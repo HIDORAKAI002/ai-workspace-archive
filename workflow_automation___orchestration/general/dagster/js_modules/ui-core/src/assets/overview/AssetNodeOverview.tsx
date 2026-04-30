@@ -13,8 +13,8 @@ import React, {useMemo} from 'react';
 import {Link} from 'react-router-dom';
 
 import {FreshnessPolicySection} from './FreshnessPolicySection';
-import {WorkspaceAssetFragment} from '../../workspace/WorkspaceContext/types/WorkspaceQueries.types';
 import {metadataForAssetNode} from '../AssetMetadata';
+import {WorkspaceAssetNode} from '../useAllAssets';
 import {AutomationDetailsSection} from './AutomationDetailsSection';
 import {AttributeAndValue, SectionEmptyState} from './Common';
 import {ComputeDetailsSection} from './ComputeDetailsSection';
@@ -39,7 +39,6 @@ import {AssetChecksStatusSummary} from '../asset-checks/AssetChecksStatusSummary
 import {buildConsolidatedColumnSchema} from '../buildConsolidatedColumnSchema';
 import {globalAssetGraphPathForAssetsAndDescendants} from '../globalAssetGraphPathToString';
 import {AssetKey} from '../types';
-import {AssetTableDefinitionFragment} from '../types/AssetTableFragment.types';
 import {AssetViewDefinitionNodeFragment} from '../types/AssetView.types';
 import {useLatestEvents} from '../useLatestEvents';
 
@@ -54,9 +53,9 @@ export const AssetNodeOverview = ({
 }: {
   assetKey: AssetKey;
   assetNode: AssetViewDefinitionNodeFragment | undefined | null;
-  cachedAssetNode: AssetTableDefinitionFragment | undefined | null;
-  upstream: WorkspaceAssetFragment[] | null;
-  downstream: WorkspaceAssetFragment[] | null;
+  cachedAssetNode: WorkspaceAssetNode | undefined | null;
+  upstream: WorkspaceAssetNode[] | null;
+  downstream: WorkspaceAssetNode[] | null;
   liveData: LiveDataForNode | undefined;
   dependsOnSelf: boolean;
 }) => {

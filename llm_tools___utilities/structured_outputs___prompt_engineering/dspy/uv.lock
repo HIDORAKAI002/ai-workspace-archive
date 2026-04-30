@@ -2,7 +2,8 @@ version = 1
 revision = 3
 requires-python = ">=3.10, <3.15"
 resolution-markers = [
-    "(python_full_version >= '3.14' and sys_platform != 'win32') or (python_full_version >= '3.12.4' and sys_platform == 'win32')",
+    "python_full_version >= '3.14'",
+    "python_full_version >= '3.12.4' and python_full_version < '3.14' and sys_platform == 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.12.4' and sys_platform == 'win32'",
     "python_full_version == '3.11.*' and sys_platform == 'win32'",
     "python_full_version < '3.11' and sys_platform == 'win32'",
@@ -598,7 +599,8 @@ name = "cryptography"
 version = "45.0.4"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "(python_full_version >= '3.14' and sys_platform != 'win32') or (python_full_version >= '3.12.4' and sys_platform == 'win32')",
+    "python_full_version >= '3.14'",
+    "python_full_version >= '3.12.4' and python_full_version < '3.14' and sys_platform == 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.12.4' and sys_platform == 'win32'",
     "python_full_version == '3.11.*' and sys_platform == 'win32'",
     "python_full_version < '3.11' and sys_platform == 'win32'",
@@ -648,7 +650,7 @@ wheels = [
 
 [[package]]
 name = "datamodel-code-generator"
-version = "0.31.1"
+version = "0.56.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "argcomplete" },
@@ -657,14 +659,13 @@ dependencies = [
     { name = "inflect" },
     { name = "isort" },
     { name = "jinja2" },
-    { name = "packaging" },
     { name = "pydantic" },
     { name = "pyyaml" },
-    { name = "tomli", marker = "python_full_version < '3.12'" },
+    { name = "tomli", marker = "python_full_version < '3.11'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/79/27/7806e87312a5fca6b0f1254b499296f836456db0b67fbbbf281c4d836da9/datamodel_code_generator-0.31.1.tar.gz", hash = "sha256:93672fd62284223203cfa7f5ab35ea0bcad0f627b0cfcbad21d8564b6be76c0b", size = 452638, upload-time = "2025-06-17T15:24:13.398Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/6f/9c/5379be8daf9ff2fbbb9a7efcf68c037b089e5b76f360c4f9ca730916e2ee/datamodel_code_generator-0.56.1.tar.gz", hash = "sha256:697abd90cc4eb2c65f130be79a83a24746c3f2d0e15e6eb9dbf17b96784449be", size = 840372, upload-time = "2026-04-16T17:09:53.537Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/2a/24/1d4caa6d6c4c0f4045c2d5ace4d37efe878e88734f55f2106e695626fefb/datamodel_code_generator-0.31.1-py3-none-any.whl", hash = "sha256:abeaff920500b4242f9cce97108801d726ff5cf3f146a2ce1e0a74a82239f701", size = 119343, upload-time = "2025-06-17T15:24:11.477Z" },
+    { url = "https://files.pythonhosted.org/packages/f7/cd/4a4a13f55069d88d8405aa325874b04c1b1dbc830f0d66c0e56cbd16aa12/datamodel_code_generator-0.56.1-py3-none-any.whl", hash = "sha256:cb2adc18a301f1a2cfcd56672037218eeaff0573669861c2b371eefe86753874", size = 256845, upload-time = "2026-04-16T17:09:51.81Z" },
 ]
 
 [[package]]
@@ -1599,7 +1600,8 @@ name = "litellm"
 version = "1.72.6"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "(python_full_version >= '3.14' and sys_platform != 'win32') or (python_full_version >= '3.12.4' and sys_platform == 'win32')",
+    "python_full_version >= '3.14'",
+    "python_full_version >= '3.12.4' and python_full_version < '3.14' and sys_platform == 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.12.4' and sys_platform == 'win32'",
     "python_full_version == '3.11.*' and sys_platform == 'win32'",
     "python_full_version < '3.11' and sys_platform == 'win32'",
@@ -1731,7 +1733,8 @@ name = "mcp"
 version = "1.9.4"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "(python_full_version >= '3.14' and sys_platform != 'win32') or (python_full_version >= '3.12.4' and sys_platform == 'win32')",
+    "python_full_version >= '3.14'",
+    "python_full_version >= '3.12.4' and python_full_version < '3.14' and sys_platform == 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.12.4' and sys_platform == 'win32'",
     "python_full_version == '3.11.*' and sys_platform == 'win32'",
     "python_full_version < '3.11' and sys_platform == 'win32'",
@@ -1970,7 +1973,8 @@ name = "numpy"
 version = "2.3.4"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "(python_full_version >= '3.14' and sys_platform != 'win32') or (python_full_version >= '3.12.4' and sys_platform == 'win32')",
+    "python_full_version >= '3.14'",
+    "python_full_version >= '3.12.4' and python_full_version < '3.14' and sys_platform == 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.12.4' and sys_platform == 'win32'",
     "python_full_version == '3.11.*' and sys_platform == 'win32'",
     "python_full_version >= '3.12.4' and python_full_version < '3.14' and sys_platform != 'win32'",
@@ -2093,7 +2097,8 @@ name = "openai"
 version = "1.88.0"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "(python_full_version >= '3.14' and sys_platform != 'win32') or (python_full_version >= '3.12.4' and sys_platform == 'win32')",
+    "python_full_version >= '3.14'",
+    "python_full_version >= '3.12.4' and python_full_version < '3.14' and sys_platform == 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.12.4' and sys_platform == 'win32'",
     "python_full_version == '3.11.*' and sys_platform == 'win32'",
     "python_full_version < '3.11' and sys_platform == 'win32'",
@@ -2115,7 +2120,7 @@ wheels = [
 
 [[package]]
 name = "optuna"
-version = "4.4.0"
+version = "4.8.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "alembic" },
@@ -2127,9 +2132,9 @@ dependencies = [
     { name = "sqlalchemy" },
     { name = "tqdm" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a5/e0/b303190ae8032d12f320a24c42af04038bacb1f3b17ede354dd1044a5642/optuna-4.4.0.tar.gz", hash = "sha256:a9029f6a92a1d6c8494a94e45abd8057823b535c2570819072dbcdc06f1c1da4", size = 467708, upload-time = "2025-06-16T05:13:00.024Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/bf/9b/62f120fb2ecbc4338bee70c5a3671c8e561714f3aa1a046b897ff142050e/optuna-4.8.0.tar.gz", hash = "sha256:6f7043e9f8ecb5e607af86a7eb00fb5ec2be26c3b08c201209a73d36aff37a38", size = 482603, upload-time = "2026-03-16T04:59:58.659Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/5c/5e/068798a8c7087863e7772e9363a880ab13fe55a5a7ede8ec42fab8a1acbb/optuna-4.4.0-py3-none-any.whl", hash = "sha256:fad8d9c5d5af993ae1280d6ce140aecc031c514a44c3b639d8c8658a8b7920ea", size = 395949, upload-time = "2025-06-16T05:12:58.37Z" },
+    { url = "https://files.pythonhosted.org/packages/ac/24/7c731839566d30dc70556d9824ef17692d896c15e3df627bce8c16f753e1/optuna-4.8.0-py3-none-any.whl", hash = "sha256:c57a7682679c36bfc9bca0da430698179e513874074b71bebedb0334964ab930", size = 419456, upload-time = "2026-03-16T04:59:56.977Z" },
 ]
 
 [[package]]
@@ -2411,7 +2416,7 @@ wheels = [
 
 [[package]]
 name = "pre-commit"
-version = "4.5.1"
+version = "4.6.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cfgv" },
@@ -2420,9 +2425,9 @@ dependencies = [
     { name = "pyyaml" },
     { name = "virtualenv" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/40/f1/6d86a29246dfd2e9b6237f0b5823717f60cad94d47ddc26afa916d21f525/pre_commit-4.5.1.tar.gz", hash = "sha256:eb545fcff725875197837263e977ea257a402056661f09dae08e4b149b030a61", size = 198232, upload-time = "2025-12-16T21:14:33.552Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/8e/22/2de9408ac81acbb8a7d05d4cc064a152ccf33b3d480ebe0cd292153db239/pre_commit-4.6.0.tar.gz", hash = "sha256:718d2208cef53fdc38206e40524a6d4d9576d103eb16f0fec11c875e7716e9d9", size = 198525, upload-time = "2026-04-21T20:31:41.613Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/5d/19/fd3ef348460c80af7bb4669ea7926651d1f95c23ff2df18b9d24bab4f3fa/pre_commit-4.5.1-py2.py3-none-any.whl", hash = "sha256:3b3afd891e97337708c1674210f8eba659b52a38ea5f822ff142d10786221f77", size = 226437, upload-time = "2025-12-16T21:14:32.409Z" },
+    { url = "https://files.pythonhosted.org/packages/80/6e/4b28b62ecb6aae56769c34a8ff1d661473ec1e9519e2d5f8b2c150086b26/pre_commit-4.6.0-py2.py3-none-any.whl", hash = "sha256:e2cf246f7299edcabcf15f9b0571fdce06058527f0a06535068a86d38089f29b", size = 226472, upload-time = "2026-04-21T20:31:40.092Z" },
 ]
 
 [[package]]
@@ -2876,7 +2881,8 @@ name = "python-multipart"
 version = "0.0.20"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "(python_full_version >= '3.14' and sys_platform != 'win32') or (python_full_version >= '3.12.4' and sys_platform == 'win32')",
+    "python_full_version >= '3.14'",
+    "python_full_version >= '3.12.4' and python_full_version < '3.14' and sys_platform == 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.12.4' and sys_platform == 'win32'",
     "python_full_version == '3.11.*' and sys_platform == 'win32'",
     "python_full_version < '3.11' and sys_platform == 'win32'",
@@ -3355,7 +3361,8 @@ name = "starlette"
 version = "0.47.0"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "(python_full_version >= '3.14' and sys_platform != 'win32') or (python_full_version >= '3.12.4' and sys_platform == 'win32')",
+    "python_full_version >= '3.14'",
+    "python_full_version >= '3.12.4' and python_full_version < '3.14' and sys_platform == 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.12.4' and sys_platform == 'win32'",
     "python_full_version == '3.11.*' and sys_platform == 'win32'",
     "python_full_version < '3.11' and sys_platform == 'win32'",
@@ -3599,7 +3606,8 @@ name = "uvicorn"
 version = "0.34.3"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "(python_full_version >= '3.14' and sys_platform != 'win32') or (python_full_version >= '3.12.4' and sys_platform == 'win32')",
+    "python_full_version >= '3.14'",
+    "python_full_version >= '3.12.4' and python_full_version < '3.14' and sys_platform == 'win32'",
     "python_full_version >= '3.12' and python_full_version < '3.12.4' and sys_platform == 'win32'",
     "python_full_version == '3.11.*' and sys_platform == 'win32'",
     "python_full_version < '3.11' and sys_platform == 'win32'",

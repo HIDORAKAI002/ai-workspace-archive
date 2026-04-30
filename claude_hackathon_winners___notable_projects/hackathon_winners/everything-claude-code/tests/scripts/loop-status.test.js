@@ -6,10 +6,16 @@ const assert = require('assert');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { execFileSync } = require('child_process');
+const { spawnSync } = require('child_process');
 
 const SCRIPT = path.join(__dirname, '..', '..', 'scripts', 'loop-status.js');
-const { analyzeTranscript, buildStatus, parseArgs } = require('../../scripts/loop-status');
+const {
+  analyzeTranscript,
+  buildStatus,
+  getStatusExitCode,
+  parseArgs,
+  writeStatusSnapshots,
+} = require('../../scripts/loop-status');
 const NOW = '2026-04-30T10:00:00.000Z';
 
 function run(args = [], options = {}) {
@@ -25,25 +31,22 @@ function run(args = [], options = {}) {
     envOverrides.HOME = envOverrides.USERPROFILE;
   }
 
-  try {
-    const stdout = execFileSync('node', [SCRIPT, ...args], {
-      encoding: 'utf8',
-      stdio: ['pipe', 'pipe', 'pipe'],
-      timeout: 10000,
-      cwd: options.cwd || process.cwd(),
-      env: {
-        ...process.env,
-        ...envOverrides,
-      },
-    });
-    return { code: 0, stdout, stderr: '' };
-  } catch (error) {
-    return {
-      code: error.status || 1,
-      stdout: error.stdout || '',
-      stderr: error.stderr || '',
-    };
-  }
+  const result = spawnSync('node', [SCRIPT, ...args], {
+    encoding: 'utf8',
+    stdio: ['pipe', 'pipe', 'pipe'],
+    timeout: 10000,
+    cwd: options.cwd || process.cwd(),
+    env: {
+      ...process.env,
+      ...envOverrides,
+    },
+  });
+
+  return {
+    code: result.status || (result.signal ? 1 : 0),
+    stdout: result.stdout || '',
+    stderr: result.stderr || '',
+  };
 }
 
 function createTempHome() {
@@ -400,6 +403,7 @@ function runTests() {
     const options = parseArgs([
       'node',
       'scripts/loop-status.js',
+      '--exit-code',
       '--watch',
       '--watch-count',
       '2',
@@ -407,9 +411,72 @@ function runTests() {
       '0.01',
     ]);
 
+    assert.strictEqual(options.exitCode, true);
     assert.strictEqual(options.watch, true);
     assert.strictEqual(options.watchCount, 2);
     assert.strictEqual(options.watchIntervalSeconds, 0.01);
+  })) passed++; else failed++;
+
+  if (test('parses write-dir snapshot option', () => {
+    const options = parseArgs([
+      'node',
+      'scripts/loop-status.js',
+      '--write-dir',
+      '/tmp/ecc-loop-snapshots',
+    ]);
+
+    assert.strictEqual(options.writeDir, '/tmp/ecc-loop-snapshots');
+  })) passed++; else failed++;
+
+  if (test('exit-code mode returns 2 when attention signals are present', () => {
+    const homeDir = createTempHome();
+
+    try {
+      writeTranscript(homeDir, '-Users-affoon-project-exit-code', 'session-exit-code.jsonl', [
+        toolUse('2026-04-30T09:10:00.000Z', 'session-exit-code', 'toolu_exit_bash', 'Bash', {
+          command: 'pytest tests/integration/test_pipeline.py',
+        }),
+      ]);
+
+      const result = run(['--home', homeDir, '--now', NOW, '--json', '--exit-code']);
+
+      assert.strictEqual(result.code, 2, result.stderr);
+      const payload = parsePayload(result.stdout);
+      assert.strictEqual(payload.sessions[0].state, 'attention');
+    } finally {
+      fs.rmSync(homeDir, { recursive: true, force: true });
+    }
+  })) passed++; else failed++;
+
+  if (test('exit-code mode returns 1 for scan errors without attention signals', () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ecc-loop-status-missing-'));
+    const missingTranscript = path.join(tempDir, 'missing.jsonl');
+    const result = run(['--transcript', missingTranscript, '--now', NOW, '--json', '--exit-code']);
+
+    try {
+      assert.strictEqual(result.code, 1, result.stderr);
+      const payload = parsePayload(result.stdout);
+      assert.strictEqual(payload.sessions.length, 0);
+      assert.strictEqual(payload.errors.length, 1);
+    } finally {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+  })) passed++; else failed++;
+
+  if (test('exit-code mode rejects unbounded watch mode', () => {
+    const result = run(['--watch', '--exit-code']);
+
+    assert.strictEqual(result.code, 1);
+    assert.match(result.stderr, /--exit-code with --watch requires --watch-count/);
+  })) passed++; else failed++;
+
+  if (test('getStatusExitCode prioritizes attention signals over scan errors', () => {
+    const payload = {
+      errors: [{ message: 'unreadable' }],
+      sessions: [{ state: 'attention' }],
+    };
+
+    assert.strictEqual(getStatusExitCode(payload), 2);
   })) passed++; else failed++;
 
   if (test('watch mode emits repeated JSON status frames', () => {
@@ -443,6 +510,233 @@ function runTests() {
       assert.strictEqual(frames[1].schemaVersion, 'ecc.loop-status.v1');
       assert.strictEqual(frames[0].sessions[0].sessionId, 'session-watch');
       assert.strictEqual(frames[1].sessions[0].sessionId, 'session-watch');
+    } finally {
+      fs.rmSync(homeDir, { recursive: true, force: true });
+    }
+  })) passed++; else failed++;
+
+  if (test('watch mode honors exit-code after bounded refreshes', () => {
+    const homeDir = createTempHome();
+
+    try {
+      writeTranscript(homeDir, '-Users-affoon-project-watch-exit', 'session-watch-exit.jsonl', [
+        toolUse('2026-04-30T09:00:00.000Z', 'session-watch-exit', 'toolu_watch_exit', 'ScheduleWakeup', {
+          delaySeconds: 300,
+          reason: 'Loop checkpoint',
+        }),
+      ]);
+
+      const result = run([
+        '--home',
+        homeDir,
+        '--now',
+        NOW,
+        '--json',
+        '--watch',
+        '--watch-count',
+        '1',
+        '--watch-interval-seconds',
+        '0.01',
+        '--exit-code',
+      ]);
+
+      assert.strictEqual(result.code, 2, result.stderr);
+      const frame = JSON.parse(result.stdout.trim());
+      assert.strictEqual(frame.sessions[0].state, 'attention');
+    } finally {
+      fs.rmSync(homeDir, { recursive: true, force: true });
+    }
+  })) passed++; else failed++;
+
+  if (test('writes per-session status snapshots and index when write-dir is set', () => {
+    const homeDir = createTempHome();
+    const snapshotDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ecc-loop-status-snapshots-'));
+
+    try {
+      writeTranscript(homeDir, '-Users-affoon-project-snapshot', 'session-snapshot.jsonl', [
+        toolUse('2026-04-30T09:00:00.000Z', 'session-snapshot', 'toolu_snapshot', 'ScheduleWakeup', {
+          delaySeconds: 300,
+          reason: 'Loop checkpoint',
+        }),
+      ]);
+
+      const result = run([
+        '--home',
+        homeDir,
+        '--now',
+        NOW,
+        '--json',
+        '--write-dir',
+        snapshotDir,
+      ]);
+
+      assert.strictEqual(result.code, 0, result.stderr);
+      const stdoutPayload = parsePayload(result.stdout);
+      assert.strictEqual(stdoutPayload.schemaVersion, 'ecc.loop-status.v1');
+
+      const indexPath = path.join(snapshotDir, 'index.json');
+      const snapshotPath = path.join(snapshotDir, 'session-snapshot.json');
+      assert.ok(fs.existsSync(indexPath), 'write-dir should include an index.json file');
+      assert.ok(fs.existsSync(snapshotPath), 'write-dir should include a per-session snapshot');
+
+      const indexPayload = JSON.parse(fs.readFileSync(indexPath, 'utf8'));
+      assert.strictEqual(indexPayload.schemaVersion, 'ecc.loop-status.index.v1');
+      assert.strictEqual(indexPayload.sessions.length, 1);
+      assert.strictEqual(indexPayload.sessions[0].sessionId, 'session-snapshot');
+      assert.strictEqual(indexPayload.sessions[0].state, 'attention');
+      assert.strictEqual(indexPayload.sessions[0].snapshotPath, snapshotPath);
+
+      const snapshotPayload = JSON.parse(fs.readFileSync(snapshotPath, 'utf8'));
+      assert.strictEqual(snapshotPayload.schemaVersion, 'ecc.loop-status.session.v1');
+      assert.strictEqual(snapshotPayload.generatedAt, NOW);
+      assert.strictEqual(snapshotPayload.session.sessionId, 'session-snapshot');
+      assert.ok(snapshotPayload.session.signals.some(signal => signal.type === 'schedule_wakeup_overdue'));
+    } finally {
+      fs.rmSync(homeDir, { recursive: true, force: true });
+      fs.rmSync(snapshotDir, { recursive: true, force: true });
+    }
+  })) passed++; else failed++;
+
+  if (test('keeps index.json reserved when session id sanitizes to index', () => {
+    const homeDir = createTempHome();
+    const snapshotDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ecc-loop-status-index-collision-'));
+
+    try {
+      writeTranscript(homeDir, '-Users-affoon-project-index-collision', 'index.jsonl', [
+        assistantMessage('2026-04-30T09:55:00.000Z', 'index', 'Loop checkpoint.'),
+      ]);
+
+      const result = run([
+        '--home',
+        homeDir,
+        '--now',
+        NOW,
+        '--json',
+        '--write-dir',
+        snapshotDir,
+      ]);
+
+      assert.strictEqual(result.code, 0, result.stderr);
+
+      const indexPath = path.join(snapshotDir, 'index.json');
+      const indexPayload = JSON.parse(fs.readFileSync(indexPath, 'utf8'));
+      assert.strictEqual(indexPayload.schemaVersion, 'ecc.loop-status.index.v1');
+      assert.strictEqual(indexPayload.sessions.length, 1);
+      assert.strictEqual(indexPayload.sessions[0].sessionId, 'index');
+      assert.notStrictEqual(indexPayload.sessions[0].snapshotPath, indexPath);
+
+      const snapshotPayload = JSON.parse(fs.readFileSync(indexPayload.sessions[0].snapshotPath, 'utf8'));
+      assert.strictEqual(snapshotPayload.schemaVersion, 'ecc.loop-status.session.v1');
+      assert.strictEqual(snapshotPayload.session.sessionId, 'index');
+    } finally {
+      fs.rmSync(homeDir, { recursive: true, force: true });
+      fs.rmSync(snapshotDir, { recursive: true, force: true });
+    }
+  })) passed++; else failed++;
+
+  if (test('avoids Windows reserved basenames for session snapshots', () => {
+    const homeDir = createTempHome();
+    const snapshotDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ecc-loop-status-windows-name-'));
+
+    try {
+      writeTranscript(homeDir, '-Users-affoon-project-windows-name', 'con.jsonl', [
+        assistantMessage('2026-04-30T09:55:00.000Z', 'con', 'Loop checkpoint.'),
+      ]);
+      writeTranscript(homeDir, '-Users-affoon-project-windows-name', 'con-txt.jsonl', [
+        assistantMessage('2026-04-30T09:56:00.000Z', 'con.txt', 'Loop checkpoint.'),
+      ]);
+
+      const result = run([
+        '--home',
+        homeDir,
+        '--now',
+        NOW,
+        '--json',
+        '--write-dir',
+        snapshotDir,
+      ]);
+
+      assert.strictEqual(result.code, 0, result.stderr);
+
+      const indexPath = path.join(snapshotDir, 'index.json');
+      const indexPayload = JSON.parse(fs.readFileSync(indexPath, 'utf8'));
+      assert.strictEqual(indexPayload.sessions.length, 2);
+
+      for (const sessionIndex of indexPayload.sessions) {
+        const snapshotName = path.basename(sessionIndex.snapshotPath);
+        assert.notStrictEqual(snapshotName.toLowerCase(), `${sessionIndex.sessionId}.json`);
+        assert.ok(!/^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i.test(snapshotName.split('.')[0]));
+
+        const snapshotPayload = JSON.parse(fs.readFileSync(sessionIndex.snapshotPath, 'utf8'));
+        assert.strictEqual(snapshotPayload.schemaVersion, 'ecc.loop-status.session.v1');
+        assert.strictEqual(snapshotPayload.session.sessionId, sessionIndex.sessionId);
+      }
+    } finally {
+      fs.rmSync(homeDir, { recursive: true, force: true });
+      fs.rmSync(snapshotDir, { recursive: true, force: true });
+    }
+  })) passed++; else failed++;
+
+  if (test('cleans temporary snapshot files when atomic rename fails', () => {
+    const snapshotDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ecc-loop-status-rename-failure-'));
+    const originalRenameSync = fs.renameSync;
+
+    try {
+      fs.renameSync = () => {
+        throw new Error('simulated rename failure');
+      };
+
+      assert.throws(() => writeStatusSnapshots({
+        errors: [],
+        generatedAt: NOW,
+        sessions: [
+          {
+            eventCount: 1,
+            lastEventAt: NOW,
+            pendingTools: [],
+            recommendedAction: 'No action needed.',
+            sessionId: 'rename-failure',
+            signals: [],
+            state: 'ok',
+            transcriptPath: path.join(snapshotDir, 'rename-failure.jsonl'),
+          },
+        ],
+        source: {},
+      }, snapshotDir), /simulated rename failure/);
+
+      const tempFiles = fs.readdirSync(snapshotDir).filter(fileName => fileName.endsWith('.tmp'));
+      assert.deepStrictEqual(tempFiles, []);
+    } finally {
+      fs.renameSync = originalRenameSync;
+      fs.rmSync(snapshotDir, { recursive: true, force: true });
+    }
+  })) passed++; else failed++;
+
+  if (test('write-dir failures do not suppress normal stdout', () => {
+    const homeDir = createTempHome();
+
+    try {
+      const blockedPath = path.join(homeDir, 'snapshot-target-is-a-file');
+      fs.writeFileSync(blockedPath, 'not a directory\n', 'utf8');
+      writeTranscript(homeDir, '-Users-affoon-project-write-error', 'session-write-error.jsonl', [
+        assistantMessage('2026-04-30T09:55:00.000Z', 'session-write-error', 'Loop checkpoint.'),
+      ]);
+
+      const result = run([
+        '--home',
+        homeDir,
+        '--now',
+        NOW,
+        '--json',
+        '--write-dir',
+        blockedPath,
+      ]);
+
+      assert.strictEqual(result.code, 0, result.stderr);
+      const payload = parsePayload(result.stdout);
+      assert.strictEqual(payload.schemaVersion, 'ecc.loop-status.v1');
+      assert.strictEqual(payload.sessions[0].sessionId, 'session-write-error');
+      assert.match(result.stderr, /\[loop-status\] WARNING: could not write status snapshots:/);
     } finally {
       fs.rmSync(homeDir, { recursive: true, force: true });
     }

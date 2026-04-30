@@ -40,7 +40,7 @@ class IGraphQLClient(AriadneClient, ABC):
         }
         http_client = http_client or httpx.Client(headers=headers, follow_redirects=True)
         super().__init__(
-            url=f"{url}/graphql",
+            url=f"{url.rstrip('/')}/graphql",
             headers=headers,
             http_client=http_client,
         )

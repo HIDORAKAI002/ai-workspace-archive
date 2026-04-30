@@ -18,7 +18,7 @@ BASE_IMAGE_TAG = "2026-04-23T130027"
 AWS_ACCOUNT_ID = os.getenv("AWS_ACCOUNT_ID")
 AWS_ECR_REGION = "us-west-2"
 
-ECR_LOGIN_FAILURE_EXIT_CODE = 200
+RETRYABLE_INFRA_FAILURE_EXIT_CODE = 200
 
 
 class ResourceRequests:
@@ -108,7 +108,9 @@ class CommandStepBuilder:
         if retry_automatically:
             # This list contains exit codes that should map only to ephemeral infrastructure issues.
             # Normal test failures (exit code 1), make command failures (exit code 2) and the like
-            # should not be included here.
+            # should not be included here. Our shell wrappers may exit with
+            # RETRYABLE_INFRA_FAILURE_EXIT_CODE (200) to escalate a known-transient failure
+            # (e.g. ECR login, pip/uv install) to a fresh-job retry.
             retry["automatic"] = [
                 # https://buildkite.com/docs/agent/v3#exit-codes
                 {"exit_status": -1, "limit": 2},  # agent lost
@@ -126,9 +128,9 @@ class CommandStepBuilder:
                 {"exit_status": 143, "limit": 2},  # agent lost
                 {"exit_status": 255, "limit": 2},  # agent forced shut down
                 {
-                    "exit_status": ECR_LOGIN_FAILURE_EXIT_CODE,
+                    "exit_status": RETRYABLE_INFRA_FAILURE_EXIT_CODE,
                     "limit": 2,
-                },  # ecr login failed
+                },  # our shell wrappers signaling a transient infra failure
                 {
                     "exit_status": 28,
                     "limit": 2,

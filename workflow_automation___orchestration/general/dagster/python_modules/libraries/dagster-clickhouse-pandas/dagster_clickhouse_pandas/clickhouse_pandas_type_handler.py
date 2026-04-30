@@ -57,9 +57,9 @@ class ClickhousePandasTypeHandler(DbTypeHandler[pd.DataFrame]):
 
         return {
             **(
-                TableMetadataSet(partition_row_count=obj.shape[0])
+                TableMetadataSet(partition_row_count=obj.shape[0], storage_kind="clickhouse")
                 if context.has_partition_key
-                else TableMetadataSet(row_count=obj.shape[0])
+                else TableMetadataSet(row_count=obj.shape[0], storage_kind="clickhouse")
             ),
             "dataframe_columns": MetadataValue.table_schema(
                 TableSchema(

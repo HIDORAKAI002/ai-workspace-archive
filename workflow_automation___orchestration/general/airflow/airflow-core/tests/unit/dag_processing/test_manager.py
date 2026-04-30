@@ -1089,7 +1089,7 @@ class TestDagFileProcessorManager:
             assert session.get(DagModel, dag_id) is not None
 
     @conf_vars({("core", "load_examples"): "False"})
-    @mock.patch("airflow.dag_processing.manager.Stats.timing")
+    @mock.patch("airflow.dag_processing.manager.stats.timing")
     def test_send_file_processing_statsd_timing(
         self, statsd_timing_mock, tmp_path, configure_testing_dag_bundle
     ):
@@ -1114,16 +1114,10 @@ class TestDagFileProcessorManager:
             bundle_path=tmp_path,
         )
         last_runtime = manager._file_stats[file_info].last_duration
-        statsd_timing_mock.assert_has_calls(
-            [
-                mock.call("dag_processing.last_duration.testing.temp_dag", last_runtime),
-                mock.call(
-                    "dag_processing.last_duration",
-                    last_runtime,
-                    tags={"file_name": dag_filename[:-3], "bundle_name": bundle_name},
-                ),
-            ],
-            any_order=True,
+        statsd_timing_mock.assert_any_call(
+            "dag_processing.last_duration",
+            last_runtime,
+            tags={"bundle_name": bundle_name, "file_name": dag_filename[:-3]},
         )
 
     @pytest.mark.usefixtures("testing_dag_bundle")
@@ -2132,14 +2126,14 @@ class TestDagFileProcessorManager:
         call_kwargs = mock_process_start.call_args.kwargs
         assert call_kwargs["bundle_name"] == "testing"
 
-    @mock.patch("airflow.dag_processing.manager.Stats.initialize")
+    @mock.patch("airflow.dag_processing.manager.stats.initialize")
     def test_stats_initialize_called_on_run(self, stats_init_mock, tmp_path, configure_testing_dag_bundle):
-        """Test that Stats.initialize() is called when DagFileProcessorManager.run() is executed."""
+        """Test that stats.initialize() is called when DagFileProcessorManager.run() is executed."""
         with configure_testing_dag_bundle(tmp_path):
             manager = DagFileProcessorManager(max_runs=1)
             manager.run()
 
-        # Verify Stats.initialize was called with the expected configuration parameters
+        # Verify stats.initialize was called with the expected configuration parameters
         stats_init_mock.assert_called_once()
         call_kwargs = stats_init_mock.call_args.kwargs
         assert "factory" in call_kwargs
@@ -2195,7 +2189,7 @@ class TestDagFileProcessorManager:
             sync_mock.assert_not_called()
             assert [b.name for b in manager._dag_bundles] == ["testing"]
 
-    @mock.patch("airflow.dag_processing.manager.Stats.gauge")
+    @mock.patch("airflow.dag_processing.manager.stats.gauge")
     def test_stats_total_parse_time(self, statsd_gauge_mock, tmp_path, configure_testing_dag_bundle):
         key = "dag_processing.total_parse_time"
         gauge_values = defaultdict(list)

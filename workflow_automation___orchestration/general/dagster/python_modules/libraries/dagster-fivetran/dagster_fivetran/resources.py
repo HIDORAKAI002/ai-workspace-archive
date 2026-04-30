@@ -1259,6 +1259,7 @@ class FivetranWorkspace(ConfigurableResource):
                             database=None,
                             schema=schema.name_in_destination,
                             table=table.name_in_destination,
+                            service=fivetran_output.connector_details.get("service"),
                         ),
                         **FivetranMetadataSet(
                             connector_id=connector.id,

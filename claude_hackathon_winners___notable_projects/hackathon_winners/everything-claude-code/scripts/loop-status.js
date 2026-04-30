@@ -4,6 +4,7 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const crypto = require('crypto');
 
 const DEFAULT_BASH_TIMEOUT_SECONDS = 30 * 60;
 const DEFAULT_LIMIT = 10;
@@ -24,9 +25,11 @@ function usage() {
     '  --bash-timeout-seconds <n>     Age before a pending Bash call is stale (default: 1800)',
     '  --wake-grace-multiplier <n>    ScheduleWakeup grace multiplier (default: 2)',
     '  --now <time>                   Override current time (ISO, epoch ms, or "now")',
+    '  --exit-code                    Exit 2 on attention signals, 1 on scan errors',
     '  --watch                        Refresh status until interrupted',
     '  --watch-count <n>              Stop after n watch refreshes',
     '  --watch-interval-seconds <n>   Seconds between watch refreshes (default: 5)',
+    '  --write-dir <dir>              Write index.json and per-session status snapshots',
     '',
     'Examples:',
     '  node scripts/loop-status.js --json',
@@ -62,6 +65,7 @@ function parseArgs(argv) {
   const args = argv.slice(2);
   const options = {
     bashTimeoutSeconds: DEFAULT_BASH_TIMEOUT_SECONDS,
+    exitCode: false,
     home: null,
     json: false,
     limit: DEFAULT_LIMIT,
@@ -72,6 +76,7 @@ function parseArgs(argv) {
     watchCount: null,
     wakeGraceMultiplier: DEFAULT_WAKE_GRACE_MULTIPLIER,
     watchIntervalSeconds: DEFAULT_WATCH_INTERVAL_SECONDS,
+    writeDir: null,
   };
 
   for (let index = 0; index < args.length; index += 1) {
@@ -99,6 +104,8 @@ function parseArgs(argv) {
     } else if (arg === '--now') {
       options.now = readValue(args, index, arg);
       index += 1;
+    } else if (arg === '--exit-code') {
+      options.exitCode = true;
     } else if (arg === '--watch') {
       options.watch = true;
     } else if (arg === '--watch-count') {
@@ -107,9 +114,16 @@ function parseArgs(argv) {
     } else if (arg === '--watch-interval-seconds') {
       options.watchIntervalSeconds = readPositiveNumber(readValue(args, index, arg), arg);
       index += 1;
+    } else if (arg === '--write-dir') {
+      options.writeDir = readValue(args, index, arg);
+      index += 1;
     } else {
       throw new Error(`Unknown option: ${arg}`);
     }
+  }
+
+  if (options.exitCode && options.watch && options.watchCount === null) {
+    throw new Error('--exit-code with --watch requires --watch-count so the process can exit');
   }
 
   return options;
@@ -119,12 +133,14 @@ function normalizeOptions(options = {}) {
   return {
     ...options,
     bashTimeoutSeconds: options.bashTimeoutSeconds ?? DEFAULT_BASH_TIMEOUT_SECONDS,
+    exitCode: Boolean(options.exitCode),
     limit: options.limit ?? DEFAULT_LIMIT,
     transcriptPaths: options.transcriptPaths || [],
     watch: Boolean(options.watch),
     watchCount: options.watchCount ?? null,
     wakeGraceMultiplier: options.wakeGraceMultiplier ?? DEFAULT_WAKE_GRACE_MULTIPLIER,
     watchIntervalSeconds: options.watchIntervalSeconds ?? DEFAULT_WATCH_INTERVAL_SECONDS,
+    writeDir: options.writeDir || null,
   };
 }
 
@@ -594,6 +610,126 @@ function formatText(payload) {
   return lines.join('\n');
 }
 
+function hashString(value) {
+  return crypto.createHash('sha256').update(String(value)).digest('hex');
+}
+
+function isWindowsReservedBasename(value) {
+  const basename = String(value).split('.')[0];
+  return /^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i.test(basename);
+}
+
+function sanitizeSnapshotName(value, fallback = 'session') {
+  const raw = String(value || '').trim() || fallback;
+  const sanitized = raw.replace(/[^a-zA-Z0-9._-]/g, '_').replace(/^_+|_+$/g, '');
+  if (sanitized && sanitized.length <= 96 && !isWindowsReservedBasename(sanitized)) {
+    return sanitized;
+  }
+  if (sanitized && isWindowsReservedBasename(sanitized)) {
+    const firstDotIndex = sanitized.indexOf('.');
+    const hashSuffix = hashString(raw).slice(0, 8);
+    if (firstDotIndex === -1) {
+      return `${sanitized}-${hashSuffix}`;
+    }
+    return `${sanitized.slice(0, firstDotIndex)}-${hashSuffix}${sanitized.slice(firstDotIndex)}`;
+  }
+
+  const prefix = sanitized ? sanitized.slice(0, 48).replace(/[._-]+$/g, '') : fallback;
+  return `${prefix || fallback}-${hashString(raw).slice(0, 12)}`;
+}
+
+function atomicWriteJson(filePath, payload) {
+  const data = JSON.stringify(payload, null, 2) + '\n';
+  const tempPath = `${filePath}.${process.pid}.${Date.now()}.${Math.random().toString(16).slice(2)}.tmp`;
+  fs.writeFileSync(tempPath, data, 'utf8');
+  try {
+    fs.renameSync(tempPath, filePath);
+  } catch (error) {
+    try {
+      fs.unlinkSync(tempPath);
+    } catch (cleanupError) {
+      if (cleanupError.code !== 'ENOENT') {
+        console.error(`[loop-status] WARNING: could not remove temporary snapshot file ${tempPath}: ${cleanupError.message}`);
+      }
+    }
+    throw error;
+  }
+}
+
+function getSnapshotPath(outputDir, session, usedNames) {
+  const baseName = sanitizeSnapshotName(session.sessionId);
+  const hashSuffix = hashString(session.transcriptPath || session.sessionId).slice(0, 8);
+  let attempt = 0;
+
+  while (attempt < 1000) {
+    const suffix = attempt === 0 ? '' : `-${hashSuffix}${attempt === 1 ? '' : `-${attempt}`}`;
+    const fileName = `${baseName}${suffix}.json`;
+    if (!usedNames.has(fileName)) {
+      usedNames.add(fileName);
+      return path.join(outputDir, fileName);
+    }
+    attempt += 1;
+  }
+
+  throw new Error(`Could not allocate a snapshot filename for session ${session.sessionId}`);
+}
+
+function writeStatusSnapshots(payload, writeDir) {
+  if (!writeDir) {
+    return null;
+  }
+
+  const outputDir = path.resolve(writeDir);
+  fs.mkdirSync(outputDir, { recursive: true });
+
+  const usedNames = new Set(['index.json']);
+  const sessions = payload.sessions.map(session => {
+    const snapshotPath = getSnapshotPath(outputDir, session, usedNames);
+    atomicWriteJson(snapshotPath, {
+      generatedAt: payload.generatedAt,
+      schemaVersion: 'ecc.loop-status.session.v1',
+      session,
+    });
+
+    return {
+      lastEventAt: session.lastEventAt,
+      sessionId: session.sessionId,
+      signalTypes: session.signals.map(signal => signal.type),
+      snapshotPath,
+      state: session.state,
+      transcriptPath: session.transcriptPath,
+    };
+  });
+
+  const indexPath = path.join(outputDir, 'index.json');
+  atomicWriteJson(indexPath, {
+    errors: payload.errors,
+    generatedAt: payload.generatedAt,
+    schemaVersion: 'ecc.loop-status.index.v1',
+    sessionCount: payload.sessions.length,
+    sessions,
+    source: payload.source,
+  });
+
+  return {
+    indexPath,
+    sessionCount: payload.sessions.length,
+  };
+}
+
+function tryWriteStatusSnapshots(payload, options) {
+  if (!options.writeDir) {
+    return null;
+  }
+
+  try {
+    return writeStatusSnapshots(payload, options.writeDir);
+  } catch (error) {
+    console.error(`[loop-status] WARNING: could not write status snapshots: ${error.message}`);
+    return null;
+  }
+}
+
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -606,15 +742,29 @@ function writeStatus(payload, options) {
   }
 }
 
+function getStatusExitCode(payload) {
+  if (payload.sessions.some(session => session.state === 'attention')) {
+    return 2;
+  }
+  if (payload.errors.length > 0) {
+    return 1;
+  }
+  return 0;
+}
+
 async function runWatch(options) {
   const normalizedOptions = normalizeOptions(options);
   let iteration = 0;
+  let exitCode = 0;
 
   while (normalizedOptions.watchCount === null || iteration < normalizedOptions.watchCount) {
     if (iteration > 0 && !normalizedOptions.json) {
       console.log('');
     }
-    writeStatus(buildStatus(normalizedOptions), normalizedOptions);
+    const payload = buildStatus(normalizedOptions);
+    tryWriteStatusSnapshots(payload, normalizedOptions);
+    writeStatus(payload, normalizedOptions);
+    exitCode = Math.max(exitCode, getStatusExitCode(payload));
     iteration += 1;
 
     if (normalizedOptions.watchCount !== null && iteration >= normalizedOptions.watchCount) {
@@ -623,6 +773,8 @@ async function runWatch(options) {
 
     await sleep(normalizedOptions.watchIntervalSeconds * 1000);
   }
+
+  return exitCode;
 }
 
 async function main() {
@@ -633,11 +785,19 @@ async function main() {
   }
 
   if (options.watch) {
-    await runWatch(options);
+    const exitCode = await runWatch(options);
+    if (options.exitCode) {
+      process.exitCode = exitCode;
+    }
     return;
   }
 
-  writeStatus(buildStatus(options), options);
+  const payload = buildStatus(options);
+  tryWriteStatusSnapshots(payload, options);
+  writeStatus(payload, options);
+  if (options.exitCode) {
+    process.exitCode = getStatusExitCode(payload);
+  }
 }
 
 if (require.main === module) {
@@ -652,6 +812,9 @@ module.exports = {
   buildStatus,
   extractToolResultIds,
   extractToolUses,
+  getStatusExitCode,
   parseArgs,
   runWatch,
+  tryWriteStatusSnapshots,
+  writeStatusSnapshots,
 };
