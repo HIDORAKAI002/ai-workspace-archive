@@ -1234,8 +1234,11 @@ class LiteLLM:
                 "max_tokens": self.max_tokens,
                 "caching": self.caching,
                 "temperature": self.temperature,
-                "top_p": self.top_p,
             }
+
+            # Only include top_p if explicitly set (not None)
+            if self.top_p is not None:
+                completion_params["top_p"] = self.top_p
 
             # Merge initialization kwargs first (lower priority)
             if self.init_kwargs:
@@ -1282,6 +1285,11 @@ class LiteLLM:
             if self.modalities and len(self.modalities) >= 2:
                 completion_params["modalities"] = self.modalities
 
+            is_anthropic = (
+                "anthropic" in self.model_name.lower()
+                or "claude" in self.model_name.lower()
+            )
+
             if (
                 self.reasoning_effort is not None
                 and litellm.supports_reasoning(model=self.model_name)
@@ -1290,6 +1298,16 @@ class LiteLLM:
                 completion_params["reasoning_effort"] = (
                     self.reasoning_effort
                 )
+
+                # Anthropic requires temperature=1 and sufficient max_tokens
+                # when reasoning/thinking is enabled.
+                # litellm maps reasoning_effort to thinking budget_tokens
+                # (low=5000, medium=10000, high=15000) and max_tokens must
+                # exceed that budget.
+                if is_anthropic:
+                    completion_params["temperature"] = 1
+                    if completion_params.get("max_tokens", 0) < 16000:
+                        completion_params["max_tokens"] = 16000
 
             if (
                 self.reasoning_enabled is True
@@ -1300,6 +1318,13 @@ class LiteLLM:
                     "budget_tokens": self.thinking_tokens,
                 }
                 completion_params["thinking"] = thinking
+
+                # Anthropic requires temperature=1 when thinking is enabled
+                if is_anthropic:
+                    completion_params["temperature"] = 1
+                    # max_tokens must be greater than thinking budget_tokens
+                    if completion_params.get("max_tokens", 0) <= self.thinking_tokens:
+                        completion_params["max_tokens"] = self.thinking_tokens + 1024
 
             # Process additional args if any
             self._process_additional_args(completion_params, args)
