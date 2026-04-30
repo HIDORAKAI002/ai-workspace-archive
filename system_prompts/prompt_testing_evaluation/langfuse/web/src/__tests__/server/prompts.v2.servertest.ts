@@ -999,9 +999,7 @@ describe("/api/public/v2/prompts API Endpoint", () => {
           "angled[brac]es]",
         ];
 
-        for (const name of validNames) {
-          await testValidName(name, auth);
-        }
+        await Promise.all(validNames.map((name) => testValidName(name, auth)));
       });
     });
 
@@ -1209,7 +1207,7 @@ describe("/api/public/v2/prompts API Endpoint", () => {
     let projectId: string;
     let auth: string;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       // Create a prompt in a different project
       ({ projectId: projectId, auth: auth } =
         await createOrgProjectAndApiKey());
