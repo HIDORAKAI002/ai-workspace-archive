@@ -45,6 +45,7 @@ describe("scripts/lib/docker-e2e-plan", () => {
     expect(plan.lanes.map((lane) => lane.name)).toContain("install-e2e-openai");
     expect(plan.lanes.map((lane) => lane.name)).toContain("install-e2e-anthropic");
     expect(plan.lanes.map((lane) => lane.name)).toContain("mcp-channels");
+    expect(plan.lanes.map((lane) => lane.name)).toContain("commitments-safety");
     expect(plan.lanes.map((lane) => lane.name)).toContain("bundled-channel-feishu");
     expect(plan.lanes.map((lane) => lane.name)).toContain("bundled-channel-update-acpx");
     expect(plan.lanes.map((lane) => lane.name)).toContain("bundled-plugin-install-uninstall-0");
@@ -175,6 +176,7 @@ describe("scripts/lib/docker-e2e-plan", () => {
       "doctor-switch",
       "update-channel-switch",
       "upgrade-survivor",
+      "published-upgrade-survivor",
     ]);
     expect(packageUpdateCore.lanes).toEqual(
       expect.arrayContaining([
@@ -192,6 +194,11 @@ describe("scripts/lib/docker-e2e-plan", () => {
         }),
         expect.objectContaining({
           name: "upgrade-survivor",
+          command: "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:upgrade-survivor",
+          stateScenario: "upgrade-survivor",
+        }),
+        expect.objectContaining({
+          name: "published-upgrade-survivor",
           stateScenario: "upgrade-survivor",
         }),
       ]),
@@ -398,6 +405,7 @@ describe("scripts/lib/docker-e2e-plan", () => {
         "bundled-channel-deps-compat",
         "bundled-channel-setup-entry",
         "bundled-plugin-install-uninstall-0",
+        "commitments-safety",
         "update-channel-switch",
         "upgrade-survivor",
       ],
@@ -474,6 +482,10 @@ describe("scripts/lib/docker-e2e-plan", () => {
       }),
       expect.objectContaining({
         name: "bundled-plugin-install-uninstall-0",
+        stateScenario: "empty",
+      }),
+      expect.objectContaining({
+        name: "commitments-safety",
         stateScenario: "empty",
       }),
       expect.objectContaining({
