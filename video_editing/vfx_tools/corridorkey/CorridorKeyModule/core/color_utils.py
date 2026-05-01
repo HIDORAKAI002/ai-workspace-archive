@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import functools
+import logging
 from collections.abc import Callable
 
 import cv2
@@ -8,6 +9,8 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 import torchvision.transforms.v2.functional as TF
+
+logger = logging.getLogger(__name__)
 
 
 def _is_tensor(x: np.ndarray | torch.Tensor) -> bool:
@@ -205,14 +208,35 @@ def apply_garbage_matte(
 
 
 def despill_opencv(
-    image: np.ndarray | torch.Tensor, green_limit_mode: str = "average", strength: float = 1.0
+    image: np.ndarray | torch.Tensor,
+    limit_mode: str = "average",
+    strength: float = 1.0,
+    screen_channel: int = 1,
+    *,
+    green_limit_mode: str | None = None,
 ) -> np.ndarray | torch.Tensor:
     """
-    Removes green spill from an RGB image using a luminance-preserving method.
+    Removes screen-color spill from an RGB image using a luminance-preserving method.
+    The algorithm is channel-agnostic: it subtracts excess in the screen channel
+    relative to the other two channels and redistributes the removed energy.
+
     image: RGB float (0-1).
-    green_limit_mode: 'average' ((R+B)/2) or 'max' (max(R, B)).
+    limit_mode: 'average' ((other_a + other_b)/2) or 'max' (max(other_a, other_b)).
     strength: 0.0 to 1.0 multiplier for the despill effect.
+    screen_channel: 0=R, 1=G (default — green screen), 2=B (blue screen).
+    green_limit_mode: deprecated alias for limit_mode kept for backward compat.
     """
+    if green_limit_mode is not None:
+        import warnings
+
+        warnings.warn(
+            "despill_opencv(green_limit_mode=...) is deprecated; pass limit_mode=... instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        limit_mode = green_limit_mode
+    if screen_channel not in (0, 1, 2):
+        raise ValueError(f"screen_channel must be 0, 1, or 2, got {screen_channel}")
     if strength <= 0.0:
         return image
 
@@ -220,28 +244,33 @@ def despill_opencv(
     _maximum = _if_tensor(tensor, torch.max, np.maximum)
     _stack = _if_tensor(tensor, _torch_stack, _numpy_stack)
 
-    r = image[..., 0]
-    g = image[..., 1]
-    b = image[..., 2]
+    other_a, other_b = (i for i in (0, 1, 2) if i != screen_channel)
+    screen = image[..., screen_channel]
+    a = image[..., other_a]
+    b = image[..., other_b]
 
-    if green_limit_mode == "max":
-        limit = _maximum(r, b)
+    if limit_mode == "max":
+        limit = _maximum(a, b)
     else:
-        limit = (r + b) / 2.0
+        limit = (a + b) / 2.0
 
     if isinstance(image, torch.Tensor):
-        # PyTorch Impl — g/limit are Tensor since image is Tensor
-        diff: torch.Tensor = g - limit  # type: ignore[assignment]
+        # PyTorch Impl
+        diff: torch.Tensor = screen - limit  # type: ignore[assignment]
         spill_amount = torch.clamp(diff, min=0.0)
     else:
         # Numpy Impl
-        spill_amount = np.maximum(g - limit, 0.0)
+        spill_amount = np.maximum(screen - limit, 0.0)
 
-    g_new = g - spill_amount
-    r_new = r + (spill_amount * 0.5)
+    screen_new = screen - spill_amount
+    a_new = a + (spill_amount * 0.5)
     b_new = b + (spill_amount * 0.5)
 
-    despilled = _stack([r_new, g_new, b_new])
+    out_channels = [None, None, None]
+    out_channels[screen_channel] = screen_new
+    out_channels[other_a] = a_new
+    out_channels[other_b] = b_new
+    despilled = _stack(out_channels)
 
     if strength < 1.0:
         return image * (1.0 - strength) + despilled * strength
@@ -249,20 +278,108 @@ def despill_opencv(
     return despilled
 
 
-def despill_torch(image: torch.Tensor, strength: float) -> torch.Tensor:
-    """GPU despill — keeps data on device."""
+def despill_torch(image: torch.Tensor, strength: float, screen_channel: int = 1) -> torch.Tensor:
+    """GPU despill — keeps data on device. screen_channel: 0=R, 1=G, 2=B."""
+    if screen_channel not in (0, 1, 2):
+        raise ValueError(f"screen_channel must be 0, 1, or 2, got {screen_channel}")
     if strength <= 0.0:
         return image
-    r, g, b = image[:, 0], image[:, 1], image[:, 2]
-    limit = (r + b) / 2.0
-    spill = torch.clamp(g - limit, min=0.0)
-    g_new = g - spill
-    r_new = r + spill * 0.5
+    other_a, other_b = (i for i in (0, 1, 2) if i != screen_channel)
+    screen = image[:, screen_channel]
+    a = image[:, other_a]
+    b = image[:, other_b]
+    limit = (a + b) / 2.0
+    spill = torch.clamp(screen - limit, min=0.0)
+    screen_new = screen - spill
+    a_new = a + spill * 0.5
     b_new = b + spill * 0.5
-    despilled = torch.stack([r_new, g_new, b_new], dim=1)
+    out_channels: list[torch.Tensor] = [None, None, None]  # type: ignore[list-item]
+    out_channels[screen_channel] = screen_new
+    out_channels[other_a] = a_new
+    out_channels[other_b] = b_new
+    despilled = torch.stack(out_channels, dim=1)
     if strength < 1.0:
         return image * (1.0 - strength) + despilled * strength
     return despilled
+
+
+# --- Screen color: single source of truth ---------------------------------
+# All callers (CLI, settings dataclasses, service layer, checkpoint discovery,
+# despill pipelines) import these constants instead of hard-coding the strings.
+# Adding a new screen color requires only updating SCREEN_CHANNEL_BY_COLOR.
+
+SCREEN_CHANNEL_BY_COLOR: dict[str, int] = {"green": 1, "blue": 2}
+SCREEN_COLOR_CHOICES: tuple[str, ...] = tuple(SCREEN_CHANNEL_BY_COLOR.keys())
+SCREEN_COLOR_AUTO: str = "auto"
+SCREEN_COLOR_CHOICES_WITH_AUTO: tuple[str, ...] = (SCREEN_COLOR_AUTO,) + SCREEN_COLOR_CHOICES
+
+
+def screen_channel_for_color(screen_color: str) -> int:
+    """Map a screen-color name ("green"/"blue") to its RGB channel index.
+
+    Raises ValueError on unknown values (including "auto" — callers must
+    resolve auto to a concrete color before calling this).
+    """
+    try:
+        return SCREEN_CHANNEL_BY_COLOR[screen_color]
+    except KeyError:
+        raise ValueError(f"Unknown screen_color '{screen_color}'. Valid: {', '.join(SCREEN_COLOR_CHOICES)}") from None
+
+
+def estimate_screen_color(image_srgb: np.ndarray, alpha_hint: np.ndarray, ambiguity_threshold: float = 0.05) -> str:
+    """Detect dominant screen color from an image + coarse alpha hint.
+
+    Looks at pixels where ``alpha_hint < 0.3`` (i.e. the background = the screen)
+    and compares mean green vs mean blue. Returns 'green' or 'blue'.
+
+    Falls back to 'green' (with a logger.warning) when:
+      - the background region is too small (<1% of pixels), or
+      - the green/blue means differ by less than ``ambiguity_threshold``.
+
+    image_srgb: [H, W, 3] float (0-1) sRGB.
+    alpha_hint: [H, W] or [H, W, 1] float (0-1), high = foreground subject.
+    """
+    if image_srgb.ndim != 3 or image_srgb.shape[2] < 3:
+        raise ValueError(f"estimate_screen_color expects HxWx3 image, got shape {image_srgb.shape}")
+    if alpha_hint.ndim not in (2, 3):
+        raise ValueError(f"estimate_screen_color expects HxW or HxWx1 alpha_hint, got shape {alpha_hint.shape}")
+    if alpha_hint.ndim == 3:
+        alpha_hint = alpha_hint[..., 0]
+    if alpha_hint.shape[:2] != image_srgb.shape[:2]:
+        raise ValueError(
+            f"image_srgb and alpha_hint must agree on H,W: got {image_srgb.shape[:2]} vs {alpha_hint.shape[:2]}"
+        )
+
+    bg_mask = alpha_hint < 0.3
+    coverage = float(bg_mask.mean()) if bg_mask.size else 0.0
+    if coverage < 0.01:
+        logger.warning(
+            "estimate_screen_color: background region too small (%.2f%% of pixels) — defaulting to green",
+            coverage * 100.0,
+        )
+        return "green"
+
+    bg_pixels = image_srgb[bg_mask]
+    mean_g = float(bg_pixels[:, 1].mean())
+    mean_b = float(bg_pixels[:, 2].mean())
+
+    if abs(mean_g - mean_b) < ambiguity_threshold:
+        logger.warning(
+            "estimate_screen_color: green/blue means too close (G=%.3f, B=%.3f) — defaulting to green",
+            mean_g,
+            mean_b,
+        )
+        return "green"
+
+    detected = "blue" if mean_b > mean_g else "green"
+    logger.info(
+        "estimate_screen_color: detected '%s' (background mean G=%.3f, B=%.3f, coverage=%.1f%%)",
+        detected,
+        mean_g,
+        mean_b,
+        coverage * 100.0,
+    )
+    return detected
 
 
 def connected_components(mask: torch.Tensor, min_component_distance=1, max_iterations=100) -> torch.Tensor:

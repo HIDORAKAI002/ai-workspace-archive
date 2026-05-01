@@ -10,6 +10,7 @@ from buildkite_shared.step_builders.command_step_builder import (
     CommandStepBuilder,
     CommandStepConfiguration,
 )
+from buildkite_shared.utils import with_infra_retry
 from buildkite_shared.uv import UV_PIN
 from dagster_buildkite.utils import make_buildkite_section_header
 
@@ -88,7 +89,7 @@ def build_tox_step(
     commands = [
         *(extra_commands_pre or []),
         f"cd {root_dir}",
-        f'pip install "{UV_PIN}"',
+        with_infra_retry(f'pip install "{UV_PIN}"'),
         f"echo -e {shlex.quote(buildkite_section_header)}",
         tox_command,
         *(extra_commands_post or []),

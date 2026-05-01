@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-05-01 15:17 IST] Auto-Sync
+- **26 Repositories Updated:** Public APIs Directory, Awesome ChatGPT Prompts, Trigger.dev, Appsmith, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, Significant-Gravitas/AutoGPT, openai/openai-agents-python, pydantic/pydantic-ai, mastra-ai/mastra, Upsonic, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, anthropics/claude-code, BradyFU/Awesome-Multimodal-Large-Language-Models, google-gemini/gemini-cli, dagster-io/dagster, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, bytedance/deer-flow, nikopueringer/CorridorKey
+
 ## [2026-05-01 08:48 IST] Auto-Sync
 - **23 Repositories Updated:** Playwright MCP, Supabase MCP, Promptfoo, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, pydantic/pydantic-ai, mastra-ai/mastra, BerriAI/litellm, ollama/ollama, ggml-org/llama.cpp, vllm-project/vllm, anthropics/claude-code, milvus-io/milvus, arize-ai/phoenix, firecrawl/firecrawl, google-gemini/gemini-cli, vercel/ai, apache/airflow, sgl-project/sglang, openclaw/openclaw, obra/superpowers, mastra-ai/mastra
 
