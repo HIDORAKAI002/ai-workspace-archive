@@ -500,12 +500,16 @@ class ClientTest < Minitest::Test
     opts = Firecrawl::Models::SearchOptions.new(
       limit: 10,
       location: "US",
-      tbs: "qdr:w"
+      tbs: "qdr:w",
+      include_domains: ["firecrawl.dev"],
+      exclude_domains: ["example.com"]
     )
     h = opts.to_h
     assert_equal 10, h["limit"]
     assert_equal "US", h["location"]
     assert_equal "qdr:w", h["tbs"]
+    assert_equal ["firecrawl.dev"], h["includeDomains"]
+    assert_equal ["example.com"], h["excludeDomains"]
   end
 
   def test_agent_options_to_h

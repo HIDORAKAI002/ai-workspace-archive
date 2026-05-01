@@ -1,6 +1,6 @@
 import { ScrapeActionContent } from "../../../lib/entities";
 import { config } from "../../../config";
-import { Meta } from "..";
+import type { BrowserCookie, Meta } from "..";
 import { documentMaxReasonableTime, scrapeDocument } from "./document";
 import {
   fireEngineMaxReasonableTime,
@@ -155,6 +155,7 @@ export type EngineScrapeResult = {
 
   youtubeTranscriptContent?: any;
   postprocessorsUsed?: string[];
+  audioCookies?: BrowserCookie[];
 
   proxyUsed: "basic" | "stealth";
   timezone?: string;
@@ -222,7 +223,7 @@ const engineOptions: {
       "screenshot@fullScreen": true,
       pdf: false,
       document: false,
-      audio: true,
+      audio: false,
       atsv: false,
       mobile: true,
       location: true,
@@ -242,7 +243,7 @@ const engineOptions: {
       "screenshot@fullScreen": true, // through actions transform
       pdf: false,
       document: false,
-      audio: false,
+      audio: true,
       atsv: false,
       location: true,
       mobile: true,
@@ -262,7 +263,7 @@ const engineOptions: {
       "screenshot@fullScreen": true, // through actions transform
       pdf: false,
       document: false,
-      audio: false,
+      audio: true,
       atsv: false,
       location: true,
       mobile: true,
@@ -282,7 +283,7 @@ const engineOptions: {
       "screenshot@fullScreen": true,
       pdf: true,
       document: true,
-      audio: true,
+      audio: false,
       atsv: false,
       location: true,
       mobile: true,
@@ -302,7 +303,7 @@ const engineOptions: {
       "screenshot@fullScreen": true, // through actions transform
       pdf: false,
       document: false,
-      audio: false,
+      audio: true,
       atsv: false,
       location: true,
       mobile: true,
@@ -322,7 +323,7 @@ const engineOptions: {
       "screenshot@fullScreen": true, // through actions transform
       pdf: false,
       document: false,
-      audio: false,
+      audio: true,
       atsv: false,
       location: true,
       mobile: true,

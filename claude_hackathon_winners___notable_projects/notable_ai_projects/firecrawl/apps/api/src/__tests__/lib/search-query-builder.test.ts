@@ -110,6 +110,45 @@ describe("Search Query Builder", () => {
       expect(result.query).toBe("test");
       expect(result.categoryMap.size).toBe(0);
     });
+
+    it("should add include domain filters", () => {
+      const result = buildSearchQuery("web scraping", undefined, {
+        includeDomains: ["firecrawl.dev", "docs.firecrawl.dev"],
+      });
+      expect(result.query).toBe(
+        "web scraping (site:firecrawl.dev OR site:docs.firecrawl.dev)",
+      );
+      expect(result.categoryMap.size).toBe(0);
+    });
+
+    it("should add exclude domain filters", () => {
+      const result = buildSearchQuery("web scraping", undefined, {
+        excludeDomains: ["example.com", "spam.example.com"],
+      });
+      expect(result.query).toBe(
+        "web scraping -site:example.com -site:spam.example.com",
+      );
+      expect(result.categoryMap.size).toBe(0);
+    });
+
+    it("should ignore empty domain filter arrays", () => {
+      const result = buildSearchQuery("web scraping", undefined, {
+        includeDomains: [],
+        excludeDomains: [],
+      });
+      expect(result.query).toBe("web scraping");
+      expect(result.categoryMap.size).toBe(0);
+    });
+
+    it("should combine categories with domain filters", () => {
+      const result = buildSearchQuery("web scraping", ["github"], {
+        includeDomains: ["firecrawl.dev"],
+      });
+      expect(result.query).toBe(
+        "web scraping (site:github.com) (site:firecrawl.dev)",
+      );
+      expect(result.categoryMap.get("github.com")).toBe("github");
+    });
   });
 
   describe("getCategoryFromUrl", () => {

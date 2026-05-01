@@ -5,7 +5,7 @@ import {
   HAS_SEARCH,
   TEST_PRODUCTION,
 } from "../lib";
-import { search, idmux, Identity } from "./lib";
+import { search, searchWithFailure, idmux, Identity } from "./lib";
 import { config } from "../../../config";
 
 let identity: Identity;
@@ -31,6 +31,48 @@ describeIf(TEST_PRODUCTION || HAS_SEARCH || HAS_PROXY)("Search tests", () => {
       );
       expect(res.web).toBeDefined();
       expect(res.web?.length).toBeGreaterThan(0);
+    },
+    60000,
+  );
+
+  it.concurrent(
+    "works with includeDomains",
+    async () => {
+      const res = await search(
+        {
+          query: "firecrawl",
+          includeDomains: ["firecrawl.dev"],
+          limit: 3,
+        },
+        identity,
+      );
+
+      expect(res.web).toBeDefined();
+      expect(res.web?.length).toBeGreaterThan(0);
+      for (const result of res.web ?? []) {
+        expect(result.url).toBeDefined();
+        const hostname = new URL(result.url!).hostname;
+        expect(
+          hostname === "firecrawl.dev" || hostname.endsWith(".firecrawl.dev"),
+        ).toBe(true);
+      }
+    },
+    60000,
+  );
+
+  it.concurrent(
+    "rejects includeDomains with excludeDomains",
+    async () => {
+      const res = await searchWithFailure(
+        {
+          query: "firecrawl",
+          includeDomains: ["firecrawl.dev"],
+          excludeDomains: ["example.com"],
+        },
+        identity,
+      );
+
+      expect(res.error).toBe("Invalid request body");
     },
     60000,
   );

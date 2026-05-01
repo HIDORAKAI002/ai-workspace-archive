@@ -284,6 +284,10 @@ export async function x402SearchController(
     const { query: searchQuery, categoryMap } = buildSearchQuery(
       req.body.query,
       req.body.categories as CategoryOption[],
+      {
+        includeDomains: req.body.includeDomains,
+        excludeDomains: req.body.excludeDomains,
+      },
     );
 
     const searchResponse = (await search({
