@@ -1,5 +1,5 @@
 import os
-from collections.abc import Iterator
+from collections.abc import Iterator, Sequence
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -44,6 +44,16 @@ def get_image_version(image_name: str) -> str:
 
 
 BUILDKITE_TEST_IMAGE_VERSION: str = get_image_version("buildkite-test")
+RETRYABLE_INFRA_FAILURE_EXIT_CODE = 200
+
+
+# Wrap a shell command in an in-process retry loop. On persistent failure, exit
+# with RETRYABLE_INFRA_FAILURE_EXIT_CODE, which CommandStepBuilder's auto-retry
+# config re-runs as a fresh job. Use this for commands that hit infrastructure
+# outside our control: package registries, ECR, pip/uv installs, etc.
+def with_infra_retry(command: str, *, backoff_seconds: Sequence[int] = (5, 15)) -> str:
+    attempts = " || ".join(["_attempt", *(f"(sleep {s} && _attempt)" for s in backoff_seconds)])
+    return f"_attempt() {{ {command}; }}; {attempts} || exit {RETRYABLE_INFRA_FAILURE_EXIT_CODE}"
 
 
 def discover_git_repo_root() -> str:

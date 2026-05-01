@@ -31,6 +31,8 @@ import numpy as np
 os.environ["OPENCV_IO_ENABLE_OPENEXR"] = "1"
 import cv2
 
+from CorridorKeyModule.core.color_utils import SCREEN_COLOR_CHOICES_WITH_AUTO as VALID_SCREEN_COLOR_CHOICES
+
 from .clip_state import (
     ClipAsset,
     ClipEntry,
@@ -86,6 +88,13 @@ class InferenceParams:
     auto_despeckle: bool = True
     despeckle_size: int = 400
     refiner_scale: float = 1.0
+    screen_color: str = "auto"  # "auto", "green", or "blue"
+
+    def __post_init__(self):
+        if self.screen_color not in VALID_SCREEN_COLOR_CHOICES:
+            raise ValueError(
+                f"Invalid screen_color '{self.screen_color}'. Valid: {', '.join(VALID_SCREEN_COLOR_CHOICES)}"
+            )
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -157,6 +166,7 @@ class CorridorKeyService:
 
     def __init__(self):
         self._engine = None
+        self._engine_screen_color: str | None = None
         self._gvm_processor = None
         self._videomama_pipeline = None
         self._active_model = _ActiveModel.NONE
@@ -259,6 +269,7 @@ class CorridorKeyService:
             if self._active_model == _ActiveModel.INFERENCE:
                 self._safe_offload(self._engine)
                 self._engine = None
+                self._engine_screen_color = None
             elif self._active_model == _ActiveModel.GVM:
                 self._safe_offload(self._gvm_processor)
                 self._gvm_processor = None
@@ -283,12 +294,47 @@ class CorridorKeyService:
 
         self._active_model = needed
 
-    def _get_engine(self):
-        """Lazy-load the CorridorKey inference engine."""
+    def _get_engine(self, screen_color: str = "green"):
+        """Lazy-load the CorridorKey inference engine for the requested screen color.
+
+        If a previously-loaded engine matches ``screen_color``, it is reused.
+        Otherwise the existing engine is unloaded (with VRAM reclaimed via the
+        same pattern as ``_ensure_model``) and the correct checkpoint is loaded
+        so the UI can switch between green and blue clips at runtime without
+        accumulating allocations.
+        """
         self._ensure_model(_ActiveModel.INFERENCE)
 
-        if self._engine is not None:
+        if self._engine is not None and self._engine_screen_color == screen_color:
             return self._engine
+
+        if self._engine is not None and self._engine_screen_color != screen_color:
+            vram_before_mb = self._vram_allocated_mb()
+            logger.info(
+                "Switching engine: %s → %s checkpoint (VRAM before: %.0fMB)",
+                self._engine_screen_color,
+                screen_color,
+                vram_before_mb,
+            )
+            self._safe_offload(self._engine)
+            self._engine = None
+            self._engine_screen_color = None
+
+            import gc
+
+            gc.collect()
+            try:
+                from device_utils import clear_device_cache
+
+                clear_device_cache(self._device)
+            except ImportError:
+                logger.debug("device_utils not available for cache clear during checkpoint switch")
+            vram_after_mb = self._vram_allocated_mb()
+            logger.info(
+                "VRAM after checkpoint unload: %.0fMB (freed %.0fMB)",
+                vram_after_mb,
+                vram_before_mb - vram_after_mb,
+            )
 
         try:
             from CorridorKeyModule.backend import TORCH_EXT, _discover_checkpoint
@@ -296,14 +342,15 @@ class CorridorKeyService:
         except ImportError as exc:
             raise RuntimeError("CorridorKeyModule is not installed. Run: uv sync") from exc
 
-        ckpt_path = _discover_checkpoint(TORCH_EXT)
-        logger.info(f"Loading checkpoint: {os.path.basename(ckpt_path)}")
+        ckpt_path = _discover_checkpoint(TORCH_EXT, screen_color=screen_color)
+        logger.info(f"Loading checkpoint: {os.path.basename(ckpt_path)} (screen={screen_color})")
         t0 = time.monotonic()
         self._engine = CorridorKeyEngine(
             checkpoint_path=ckpt_path,
             device=self._device,
             img_size=2048,
         )
+        self._engine_screen_color = screen_color
         logger.info(f"Engine loaded in {time.monotonic() - t0:.1f}s")
         return self._engine
 
@@ -344,6 +391,7 @@ class CorridorKeyService:
         self._safe_offload(self._gvm_processor)
         self._safe_offload(self._videomama_pipeline)
         self._engine = None
+        self._engine_screen_color = None
         self._gvm_processor = None
         self._videomama_pipeline = None
         self._active_model = _ActiveModel.NONE
@@ -597,8 +645,15 @@ class CorridorKeyService:
 
         t_start = time.monotonic()
 
+        # Resolve screen color. ``_resolve_screen_color`` only peeks the clip when
+        # the user asked for ``auto``; an explicit "green"/"blue" choice does no I/O.
+        from CorridorKeyModule.core.color_utils import screen_channel_for_color
+
+        resolved_color = self._resolve_screen_color(params.screen_color, clip)
+        screen_channel = screen_channel_for_color(resolved_color)
+
         with self._gpu_lock:
-            engine = self._get_engine()
+            engine = self._get_engine(screen_color=resolved_color)
         dirs = ensure_output_dirs(clip.root_path)
         cfg = output_config or OutputConfig()
 
@@ -717,6 +772,7 @@ class CorridorKeyService:
                             auto_despeckle=params.auto_despeckle,
                             despeckle_size=params.despeckle_size,
                             refiner_scale=params.refiner_scale,
+                            screen_channel=screen_channel,
                         )
                     logger.debug(f"Clip '{clip.name}' frame {i}: process_frame {time.monotonic() - t_frame:.3f}s")
                 except FrameReadError as e:
@@ -797,6 +853,65 @@ class CorridorKeyService:
 
     # --- Single-Frame Reprocess (Preview) ---
 
+    def _resolve_screen_color(self, requested: str, clip: ClipEntry) -> str:
+        """Map a settings-level screen_color to a concrete color, auto-detecting if needed.
+
+        For explicit ``"green"``/``"blue"`` the clip is never read — the choice is logged and
+        returned. Only ``"auto"`` triggers a peek of the first frame, which keeps the preview
+        path (``reprocess_single_frame``) from doing a redundant disk read on every scrub.
+        """
+        if requested != "auto":
+            logger.info("Screen color set explicitly to '%s'", requested)
+            return requested
+
+        sample_img, sample_alpha = self._peek_first_frame_for_color(clip)
+        if sample_img is None or sample_alpha is None:
+            logger.warning("Auto screen-color: no sample frame available, defaulting to 'green'.")
+            return "green"
+        from CorridorKeyModule.core.color_utils import estimate_screen_color
+
+        detected = estimate_screen_color(sample_img, sample_alpha)
+        logger.info("Screen color auto-detected from clip '%s': %s", clip.name, detected)
+        return detected
+
+    def _peek_first_frame_for_color(self, clip: ClipEntry):
+        """Read the first input frame + alpha hint for screen-color auto-detection.
+
+        Returns (img, alpha) as float arrays in [0, 1] or (None, None) if reading
+        fails. Cheap enough to call once per inference job; callers gracefully
+        fall back to 'green' when the probe fails.
+        """
+        try:
+            if clip.input_asset is None or clip.alpha_asset is None:
+                return None, None
+
+            if clip.input_asset.asset_type == "video":
+                img = read_video_frame_at(clip.input_asset.path, 0)
+            else:
+                files = clip.input_asset.get_frame_files()
+                if not files:
+                    return None, None
+                img = read_image_frame(os.path.join(clip.input_asset.path, files[0]))
+            if img is None:
+                return None, None
+
+            if clip.alpha_asset.asset_type == "video":
+                alpha = read_video_mask_at(clip.alpha_asset.path, 0)
+            else:
+                alpha_files = clip.alpha_asset.get_frame_files()
+                if not alpha_files:
+                    return None, None
+                alpha = read_mask_frame(os.path.join(clip.alpha_asset.path, alpha_files[0]), clip.name, 0)
+            if alpha is None:
+                return None, None
+
+            if alpha.shape[:2] != img.shape[:2]:
+                alpha = cv2.resize(alpha, (img.shape[1], img.shape[0]), interpolation=cv2.INTER_LINEAR)
+            return img, alpha
+        except Exception as exc:
+            logger.warning("Could not peek first frame of '%s' for screen-color detection: %s", clip.name, exc)
+            return None, None
+
     def is_engine_loaded(self) -> bool:
         """True if the inference engine is already loaded in VRAM."""
         return self._active_model == _ActiveModel.INFERENCE and self._engine is not None
@@ -821,8 +936,13 @@ class CorridorKeyService:
         if job and job.is_cancelled:
             return None
 
+        from CorridorKeyModule.core.color_utils import screen_channel_for_color
+
+        resolved_color = self._resolve_screen_color(params.screen_color, clip)
+        screen_channel = screen_channel_for_color(resolved_color)
+
         with self._gpu_lock:
-            engine = self._get_engine()
+            engine = self._get_engine(screen_color=resolved_color)
 
         # Read the specific input frame
         if clip.input_asset.asset_type == "video":
@@ -866,6 +986,7 @@ class CorridorKeyService:
                 auto_despeckle=params.auto_despeckle,
                 despeckle_size=params.despeckle_size,
                 refiner_scale=params.refiner_scale,
+                screen_channel=screen_channel,
             )
         logger.debug(f"Clip '{clip.name}' frame {frame_index}: reprocess {time.monotonic() - t_start:.3f}s")
         return res

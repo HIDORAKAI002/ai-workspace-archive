@@ -214,6 +214,8 @@ export type InitiateCallInput = {
   clientState?: Record<string, string>;
   /** Inline TwiML to execute (skips webhook, used for notify mode) */
   inlineTwiml?: string;
+  /** TwiML to serve once before normal webhook-driven call handling resumes. */
+  preConnectTwiml?: string;
 };
 
 export type InitiateCallResult = {
@@ -287,31 +289,4 @@ export type OutboundCallOptions = {
   mode?: CallMode;
   /** DTMF digits to send after the call is connected */
   dtmfSequence?: string;
-};
-
-// -----------------------------------------------------------------------------
-// Tool Result Types
-// -----------------------------------------------------------------------------
-
-export type InitiateCallToolResult = {
-  success: boolean;
-  callId?: string;
-  status?: "initiated" | "queued" | "no-answer" | "busy" | "failed";
-  error?: string;
-};
-
-export type ContinueCallToolResult = {
-  success: boolean;
-  transcript?: string;
-  error?: string;
-};
-
-export type SpeakToUserToolResult = {
-  success: boolean;
-  error?: string;
-};
-
-export type EndCallToolResult = {
-  success: boolean;
-  error?: string;
 };

@@ -187,9 +187,45 @@ def get_env_path(env: str, rel_path: str | None = None) -> str:
     return os.path.abspath(os.path.join(env_root, rel_path) if rel_path else env_root)
 
 
+_TY_ANNOTATION_RE = re.compile(r"(?:^|\s)@ty$")
+
+
+def has_ty_annotation(line: str) -> bool:
+    """Return True if `line` has a trailing `@ty` comment annotation.
+
+    Matches a comment that ends with `@ty` (the annotation must be the last
+    token of the line, preceded by whitespace or by the `#` itself).
+    """
+    if "#" not in line:
+        return False
+    comment = line.split("#", 1)[1].rstrip()
+    return bool(_TY_ANNOTATION_RE.search(comment))
+
+
 def load_path_file(path: str) -> Sequence[str]:
+    """Load paths from include.txt, returning only paths NOT marked with `@ty`.
+
+    The shared config approach uses annotations in include.txt to assign packages
+    to either pyright or ty. Lines whose trailing comment ends with `@ty` are
+    checked by ty; all other lines are checked by pyright (this script).
+
+    Format:
+        python_modules/dagster  # @ty     -> checked by ty (skipped here)
+        python_modules/dagster-graphql    -> checked by pyright
+        examples                          -> checked by pyright
+    """
     with open(path, encoding="utf-8") as f:
-        return [line.strip() for line in f.readlines() if line.strip() and not line.startswith("#")]
+        paths = []
+        for raw_line in f:
+            stripped = raw_line.strip()
+            if not stripped or stripped.startswith("#"):
+                continue
+            if has_ty_annotation(stripped):
+                continue
+            pkg_path = stripped.split("#", 1)[0].strip()
+            if pkg_path:
+                paths.append(pkg_path)
+        return paths
 
 
 def get_params(args: argparse.Namespace) -> Params:
