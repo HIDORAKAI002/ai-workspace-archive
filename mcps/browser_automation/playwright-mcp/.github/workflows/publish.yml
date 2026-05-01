@@ -67,6 +67,53 @@ jobs:
       - run: npm run ctest
       - run: npm publish
 
+  publish-mcp-release-registry:
+    # Runs on release (after npm publish succeeds) or via manual workflow_dispatch
+    # (e.g. to retroactively publish a version, in which case publish-mcp-release-npm
+    # is skipped — the always() + result check lets this job still run).
+    if: |
+      always() &&
+      (github.event_name == 'release' || github.event_name == 'workflow_dispatch') &&
+      needs.publish-mcp-release-npm.result != 'failure' &&
+      needs.publish-mcp-release-npm.result != 'cancelled'
+    needs: publish-mcp-release-npm
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write  # Required for GitHub OIDC auth to the MCP Registry
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Validate server.json version matches package.json
+        run: |
+          node -e "
+            const pkg = require('./package.json');
+            const server = require('./server.json');
+            const mismatches = [];
+            if (server.version !== pkg.version)
+              mismatches.push(\`server.version=\${server.version} != package.version=\${pkg.version}\`);
+            for (const p of server.packages) {
+              if (p.version !== pkg.version)
+                mismatches.push(\`packages[\${p.identifier}].version=\${p.version} != package.version=\${pkg.version}\`);
+            }
+            if (mismatches.length) {
+              console.error('server.json is out of sync with package.json:');
+              for (const m of mismatches) console.error('  ' + m);
+              process.exit(1);
+            }
+          "
+
+      - name: Install mcp-publisher
+        run: |
+          curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_linux_amd64.tar.gz" \
+            | tar xz mcp-publisher
+
+      - name: Authenticate with MCP Registry (GitHub OIDC)
+        run: ./mcp-publisher login github-oidc
+
+      - name: Publish to MCP Registry
+        run: ./mcp-publisher publish
+
   publish-mcp-release-docker:
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
