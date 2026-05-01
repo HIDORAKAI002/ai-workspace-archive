@@ -62,7 +62,15 @@ def create_kind_cluster(cluster_name, should_cleanup=True):
         print(f"--- \033[32m:k8s: Running kind cluster setup for cluster {cluster_name}\033[0m")
 
         p = subprocess.Popen(
-            ["kind", "create", "cluster", "--name", cluster_name],
+            [
+                "kind",
+                "create",
+                "cluster",
+                "--name",
+                cluster_name,
+                "--image",
+                "kindest/node:v1.31.14@sha256:6f86cf509dbb42767b6e79debc3f2c32e4ee01386f0489b3b2be24b0a55aac2b",
+            ],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )

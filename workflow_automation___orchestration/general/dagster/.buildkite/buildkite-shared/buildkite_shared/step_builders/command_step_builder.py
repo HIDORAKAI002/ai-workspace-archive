@@ -4,7 +4,7 @@ from enum import StrEnum
 from typing import Any, Self
 
 from buildkite_shared.python_version import AvailablePythonVersion
-from buildkite_shared.utils import BUILDKITE_TEST_IMAGE_VERSION
+from buildkite_shared.utils import BUILDKITE_TEST_IMAGE_VERSION, RETRYABLE_INFRA_FAILURE_EXIT_CODE
 from typing_extensions import NotRequired, TypedDict
 
 DEFAULT_TIMEOUT_IN_MIN = 35
@@ -17,8 +17,6 @@ BASE_IMAGE_TAG = "2026-04-23T130027"
 
 AWS_ACCOUNT_ID = os.getenv("AWS_ACCOUNT_ID")
 AWS_ECR_REGION = "us-west-2"
-
-RETRYABLE_INFRA_FAILURE_EXIT_CODE = 200
 
 
 class ResourceRequests:

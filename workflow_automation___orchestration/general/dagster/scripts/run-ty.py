@@ -9,20 +9,20 @@ import re
 import shutil
 import subprocess
 import sys
-from collections.abc import Iterator, Mapping, Sequence
-from contextlib import contextmanager
+import time
+from collections.abc import Mapping, Sequence
 from functools import reduce
 from itertools import groupby
+from pathlib import Path
 from typing import Final, Literal, cast
 
-import tomli
 from typing_extensions import NotRequired, TypedDict
 
 parser = argparse.ArgumentParser(
-    prog="run-pyright",
+    prog="run-ty",
     description=(
-        "Run pyright for every specified pyright environment and print the merged results.\n\nBy"
-        " default, the venv for each pyright environment is built using `requirements-pinned.txt`."
+        "Run ty for every specified ty environment and print the merged results.\n\nBy"
+        " default, the venv for each ty environment is built using `requirements-pinned.txt`."
         " This speeds up venv construction on a development machine and in CI. Occasionally, these"
         " pinned requirements will need to be updated. To do this, pass `--update-pins`. This will"
         " cause the venv to be rebuilt with the looser requirements specified in"
@@ -36,8 +36,8 @@ parser.add_argument(
     action="store_true",
     default=False,
     help=(
-        "Run pyright for all environments. Environments are discovered by looking for directories"
-        " at `pyright/envs/*`."
+        "Run ty for all environments. Environments are discovered by looking for directories"
+        " at `pyright/*`."
     ),
 )
 
@@ -46,7 +46,7 @@ parser.add_argument(
     "--diff",
     action="store_true",
     default=False,
-    help="Run pyright on the diff between the working tree and master.",
+    help="Run ty on the diff between the working tree and master.",
 )
 
 parser.add_argument(
@@ -56,8 +56,7 @@ parser.add_argument(
     action="append",
     default=[],
     help=(
-        "Names of pyright environment to run. Must be a directory in pyright/envs. Can be passed"
-        " multiple times."
+        "Names of ty environment to run. Must be a directory in pyright/. Can be passed multiple times."
     ),
 )
 
@@ -72,7 +71,7 @@ parser.add_argument(
     "--no-cache",
     action="store_true",
     default=False,
-    help="If rebuilding pyright environments, do not use the uv cache. This is much slower but can be useful for debugging.",
+    help="If rebuilding ty environments, do not use the uv cache. This is much slower but can be useful for debugging.",
 )
 
 parser.add_argument(
@@ -101,7 +100,7 @@ parser.add_argument(
     action="store_true",
     default=False,
     help=(
-        "Skip type checking, i.e. actually running pyright. This only makes sense when used together"
+        "Skip type checking, i.e. actually running ty. This only makes sense when used together"
         " with `--rebuild` or `--update-pins` to build an environment."
     ),
 )
@@ -110,7 +109,7 @@ parser.add_argument(
     "paths",
     type=str,
     nargs="*",
-    help="Path to directories or python files to target with pyright.",
+    help="Path to directories or python files to target with ty.",
 )
 
 # ########################
@@ -131,19 +130,33 @@ class Params(TypedDict):
 
 class Position(TypedDict):
     line: int
-    character: int
+    column: int
 
 
-class Range(TypedDict):
-    start: Position
+class Positions(TypedDict):
+    begin: Position
     end: Position
 
 
+class Location(TypedDict):
+    path: str
+    positions: Positions
+
+
+class TyDiagnostic(TypedDict):
+    check_name: str
+    description: str
+    severity: str
+    fingerprint: str
+    location: Location
+
+
+# Output format compatible with pyright for backwards compat
 class Diagnostic(TypedDict):
     file: str
     message: str
     severity: str
-    range: Range
+    range: dict
     rule: NotRequired[str]
 
 
@@ -155,7 +168,7 @@ class Summary(TypedDict):
     timeInSec: float
 
 
-class PyrightOutput(TypedDict):
+class TyOutput(TypedDict):
     version: str
     time: str
     generalDiagnostics: Sequence[Diagnostic]
@@ -164,7 +177,7 @@ class PyrightOutput(TypedDict):
 
 class RunResult(TypedDict):
     returncode: int
-    output: PyrightOutput
+    output: TyOutput
 
 
 class EnvPathSpec(TypedDict):
@@ -177,14 +190,14 @@ class EnvPathSpec(TypedDict):
 # ##### LOGIC
 # ########################
 
-PYRIGHT_ENV_ROOT: Final = "pyright"
+# Use pyright folder temporarily until full migration to ty is complete
+TY_ENV_ROOT: Final = "pyright"
 
 DEFAULT_REQUIREMENTS_FILE: Final = "requirements.txt"
 
 
-def get_env_path(env: str, rel_path: str | None = None) -> str:
-    env_root = os.path.join(PYRIGHT_ENV_ROOT, env)
-    return os.path.abspath(os.path.join(env_root, rel_path) if rel_path else env_root)
+def get_env_root(env: str) -> Path:
+    return Path(TY_ENV_ROOT, env).resolve()
 
 
 _TY_ANNOTATION_RE = re.compile(r"(?:^|\s)@ty$")
@@ -203,16 +216,16 @@ def has_ty_annotation(line: str) -> bool:
 
 
 def load_path_file(path: str) -> Sequence[str]:
-    """Load paths from include.txt, returning only paths NOT marked with `@ty`.
+    """Load paths from include.txt, returning only paths marked with `@ty`.
 
     The shared config approach uses annotations in include.txt to assign packages
     to either pyright or ty. Lines whose trailing comment ends with `@ty` are
-    checked by ty; all other lines are checked by pyright (this script).
+    checked by ty (this script); all other lines are checked by pyright.
 
     Format:
-        python_modules/dagster  # @ty     -> checked by ty (skipped here)
-        python_modules/dagster-graphql    -> checked by pyright
-        examples                          -> checked by pyright
+        python_modules/dagster  # @ty     -> checked by ty
+        python_modules/dagster-graphql    -> checked by pyright (default)
+        examples                          -> checked by pyright (default)
     """
     with open(path, encoding="utf-8") as f:
         paths = []
@@ -220,7 +233,7 @@ def load_path_file(path: str) -> Sequence[str]:
             stripped = raw_line.strip()
             if not stripped or stripped.startswith("#"):
                 continue
-            if has_ty_annotation(stripped):
+            if not has_ty_annotation(stripped):
                 continue
             pkg_path = stripped.split("#", 1)[0].strip()
             if pkg_path:
@@ -241,10 +254,10 @@ def get_params(args: argparse.Namespace) -> Params:
     mode: Literal["env", "path"]
     if args.env or use_all:
         mode = "env"
-        targets = os.listdir(PYRIGHT_ENV_ROOT) if use_all else args.env or ["master"]
+        targets = os.listdir(TY_ENV_ROOT) if use_all else args.env or ["master"]
         for env in targets:
-            if not os.path.exists(get_env_path(env)):
-                raise Exception(f"Environment {env} not found in {PYRIGHT_ENV_ROOT}.")
+            if not get_env_root(env).exists():
+                raise Exception(f"Environment {env} not found in {TY_ENV_ROOT}.")
     elif args.diff:
         mode = "path"
         targets = (
@@ -286,19 +299,21 @@ def match_path(path: str, path_spec: EnvPathSpec) -> bool:
 
 def map_paths_to_envs(paths: Sequence[str]) -> Mapping[str, Sequence[str]]:
     env_path_specs: list[EnvPathSpec] = []
-    for env in os.listdir(PYRIGHT_ENV_ROOT):
-        include_path = get_env_path(env, "include.txt")
-        exclude_path = get_env_path(env, "exclude.txt")
+    for env in os.listdir(TY_ENV_ROOT):
+        env_root = get_env_root(env)
+        include_path = env_root / "include.txt"
+        exclude_path = env_root / "exclude.txt"
         env_path_specs.append(
             EnvPathSpec(
                 env=env,
-                include=load_path_file(include_path),
-                exclude=load_path_file(exclude_path) if os.path.exists(exclude_path) else [],
+                include=load_path_file(str(include_path)),
+                exclude=load_path_file(str(exclude_path)) if exclude_path.exists() else [],
             )
         )
     env_path_map: dict[str, list[str]] = {}
     for path in paths:
-        if os.path.isdir(path) or os.path.splitext(path)[1] in [".py", ".pyi"]:
+        path_obj = Path(path)
+        if path_obj.is_dir() or path_obj.suffix in [".py", ".pyi"]:
             env = next(
                 (
                     env_path_spec["env"]
@@ -313,26 +328,30 @@ def map_paths_to_envs(paths: Sequence[str]) -> Mapping[str, Sequence[str]]:
 
 
 def normalize_env(
-    env: str, rebuild: bool, update_pins: bool, venv_python: str, no_cache: bool
+    env: str,
+    *,
+    rebuild: bool,
+    update_pins: bool,
+    venv_python: str,
+    no_cache: bool,
 ) -> None:
-    venv_path = os.path.join(get_env_path(env), ".venv")
+    venv_path = get_env_root(env) / ".venv"
     python_path = f"{venv_path}/bin/python"
-    if (rebuild or update_pins) and os.path.exists(venv_path):
-        print(f"Removing existing virtualenv for pyright environment {env}...")
-        subprocess.run(f"rm -rf {venv_path}", shell=True, check=True)
-    if not os.path.exists(venv_path):
-        print(f"Creating virtualenv for pyright environment {env}...")
+    if (rebuild or update_pins) and venv_path.exists():
+        print(f"Removing existing virtualenv for ty environment {env}...")
+        shutil.rmtree(venv_path)
+    if not venv_path.exists():
+        print(f"Creating virtualenv for ty environment {env}...")
         if update_pins:
-            src_requirements_path = get_env_path(env, "requirements.txt")
+            requirements_path = get_env_root(env) / "requirements.txt"
             extra_pip_install_args = []
         else:
-            src_requirements_path = get_env_path(env, "requirements-pinned.txt")
+            requirements_path = get_env_root(env) / "requirements-pinned.txt"
             extra_pip_install_args = ["--no-deps"]
-        dest_requirements_path = f"requirements-{env}.txt"
 
         # This is a hack to get around a bug in uv wherein "--editable-mode=compat" is not respected
         # if the package is in uv's global cache. This forces uv to reinstall the package and
-        # thereby respect --editable-mode=compat, which is necessary to guarantee that pyright can
+        # thereby respect --editable-mode=compat, which is necessary to guarantee that ty can
         # read the pth file for the editable install. Tracking uv issue here:
         #  https://github.com/astral-sh/uv/issues/7028
         reinstall_package_args = [
@@ -354,12 +373,12 @@ def normalize_env(
                         "--python",
                         python_path,
                         # editable-mode=compat ensures dagster-internal editable installs are done
-                        # in a way that is legible to pyright (i.e. not using import hooks). See:
+                        # in a way that is legible to ty (i.e. not using import hooks). See:
                         #  https://github.com/microsoft/pyright/blob/main/docs/import-resolution.md#editable-installs
                         "--config-settings",
                         "editable-mode=compat",
                         "-r",
-                        dest_requirements_path,
+                        str(requirements_path),
                         "--no-cache" if no_cache else "",
                         *extra_pip_install_args,
                         *reinstall_package_args,
@@ -368,21 +387,16 @@ def normalize_env(
             ]
         )
         try:
-            print(f"Copying {src_requirements_path} to {dest_requirements_path}....")
-            shutil.copyfile(src_requirements_path, dest_requirements_path)
             subprocess.run(build_venv_cmd, shell=True, check=True)
             validate_editable_installs(env)
-        except subprocess.CalledProcessError as e:
-            subprocess.run(f"rm -rf {venv_path}", shell=True, check=True)
-            print(f"Partially built virtualenv for pyright environment {env} deleted.")
-            raise e
-        finally:
-            os.remove(dest_requirements_path)
+        except subprocess.CalledProcessError:
+            if venv_path.exists():
+                shutil.rmtree(venv_path)
+                print(f"Partially built virtualenv for ty environment {env} deleted.")
+            raise
 
         if update_pins:
             update_pinned_requirements(env)
-
-    return None
 
 
 def extract_package_name_from_editable_requirement(line: str) -> str:
@@ -392,8 +406,8 @@ def extract_package_name_from_editable_requirement(line: str) -> str:
 
 
 def get_all_editable_packages(env: str) -> Sequence[str]:
-    requirements = get_env_path(env, "requirements.txt")
-    with open(requirements) as f:
+    requirements = get_env_root(env) / "requirements.txt"
+    with open(requirements, encoding="utf-8") as f:
         lines = [line.strip() for line in f.readlines()]
     return [
         extract_package_name_from_editable_requirement(line)
@@ -403,11 +417,11 @@ def get_all_editable_packages(env: str) -> Sequence[str]:
 
 
 # This ensures that all of our editable installs are "legacy" style, which is required to work with
-# pyright.
+# ty.
 def validate_editable_installs(env: str) -> None:
-    venv_path = os.path.join(get_env_path(env), ".venv")
+    venv_path = get_env_root(env) / ".venv"
     for pth_file in glob.glob(f"{venv_path}/lib/python*/site-packages/__editable__*.pth"):
-        with open(pth_file) as f:
+        with open(pth_file, encoding="utf-8") as f:
             first_line = f.readlines()[0]
         # Not a legacy pth-- all legacy pth files contain an absolute path on the first line
         if first_line[0] != "/":
@@ -415,8 +429,8 @@ def validate_editable_installs(env: str) -> None:
 
 
 def update_pinned_requirements(env: str) -> None:
-    print(f"Updating pinned requirements for pyright environment {env}...")
-    venv_path = os.path.join(get_env_path(env), ".venv")
+    print(f"Updating pinned requirements for ty environment {env}...")
+    venv_path = get_env_root(env) / ".venv"
     python_path = f"{venv_path}/bin/python"
     raw_dep_list = subprocess.run(
         f"uv pip freeze --python={python_path}",
@@ -426,78 +440,127 @@ def update_pinned_requirements(env: str) -> None:
         check=True,
     ).stdout
 
-    if os.path.exists("python_modules/dagster"):  # in oss
-        resolved_oss_root = os.getcwd()
-        dep_list = re.sub(f"-e file://{resolved_oss_root}/(.+)", "-e \\1", raw_dep_list)
-    else:  # in internal
-        resolved_oss_root = os.environ["DAGSTER_GIT_REPO_DIR"].rstrip("/")
-        resolved_internal_root = os.getcwd()
+    cwd = os.getcwd()
+    dagster_git_repo_dir = os.environ.get("DAGSTER_GIT_REPO_DIR")
+    if dagster_git_repo_dir is None:
+        # OSS repo: cwd is the OSS root.
+        dep_list = re.sub(f"-e file://{cwd}/(.+)", "-e \\1", raw_dep_list)
+    else:
+        # Internal repo: cwd is the internal root; OSS lives at DAGSTER_GIT_REPO_DIR.
+        oss_root = dagster_git_repo_dir.rstrip("/")
         dep_list = re.sub(
-            f"-e file://{resolved_oss_root}/(.+)", "-e ${DAGSTER_GIT_REPO_DIR}/\\1", raw_dep_list
+            f"-e file://{oss_root}/(.+)", "-e ${DAGSTER_GIT_REPO_DIR}/\\1", raw_dep_list
         )
-        dep_list = re.sub(f"-e file://{resolved_internal_root}/(.+)", "-e \\1", dep_list)
+        dep_list = re.sub(f"-e file://{cwd}/(.+)", "-e \\1", dep_list)
 
-    with open(get_env_path(env, "requirements-pinned.txt"), "w") as f:
+    with open(get_env_root(env) / "requirements-pinned.txt", "w", encoding="utf-8") as f:
         f.write(dep_list)
 
 
-def run_pyright(
+def convert_ty_diagnostic_to_pyright_format(ty_diag: TyDiagnostic) -> Diagnostic:
+    """Convert ty's gitlab format diagnostic to pyright-compatible format."""
+    return Diagnostic(
+        file=ty_diag["location"]["path"],
+        message=ty_diag["description"],
+        severity="error" if ty_diag["severity"] == "major" else "warning",
+        range={
+            "start": {
+                "line": ty_diag["location"]["positions"]["begin"]["line"] - 1,  # 0-indexed
+                "character": ty_diag["location"]["positions"]["begin"]["column"] - 1,
+            },
+            "end": {
+                "line": ty_diag["location"]["positions"]["end"]["line"] - 1,
+                "character": ty_diag["location"]["positions"]["end"]["column"] - 1,
+            },
+        },
+        rule=ty_diag["check_name"],
+    )
+
+
+def run_ty(
     env: str,
     paths: Sequence[str] | None,
-    rebuild: bool,
-    pinned_deps: bool,
-    venv_python: str,
 ) -> RunResult:
-    with temp_pyright_config_file(env) as config_path:
-        base_pyright_cmd = " ".join(
-            [
-                "pyright",
-                f"--project={config_path}",
-                "--outputjson",
-                "--level=warning",
-                "--warnings",  # Error on warnings
-            ]
-        )
-        shell_cmd = " \\\n".join([base_pyright_cmd, *[f"    {p}" for p in paths or []]])
-        print(f"Running pyright for environment `{env}`...")
-        print(f"  {shell_cmd}")
-        result = subprocess.run(shell_cmd, capture_output=True, shell=True, text=True, check=False)
-        try:
-            json_result = json.loads(result.stdout)
-            from pathlib import Path
+    start_time = time.time()
 
-            Path(f"/tmp/{env}-pyright.json").write_text(result.stdout)
-        except json.JSONDecodeError:
-            output = (result.stdout == "" and result.stderr) or result.stdout
-            raise Exception(f"Pyright output was not valid JSON. Output was:\n\n{output}")
+    env_root = get_env_root(env)
+    venv_path = env_root / ".venv"
+    python_path = f"{venv_path}/bin/python"
+
+    # Load include/exclude paths
+    include_path = env_root / "include.txt"
+    exclude_path = env_root / "exclude.txt"
+    include_paths = load_path_file(str(include_path))
+    exclude_patterns = load_path_file(str(exclude_path)) if exclude_path.exists() else []
+
+    # Build ty command
+    # ty uses --python to specify the venv interpreter
+    # ty uses --output-format gitlab for JSON output
+    base_ty_cmd_parts = [
+        "uvx",
+        "ty",
+        "check",
+        f"--python={python_path}",
+        "--output-format=gitlab",
+    ]
+
+    # Add exclude patterns
+    for pattern in exclude_patterns:
+        base_ty_cmd_parts.append(f"--exclude={pattern}")
+
+    # Add paths to check - either explicit paths or include paths
+    check_paths = list(paths) if paths else list(include_paths)
+
+    shell_cmd = " \\\n".join([" ".join(base_ty_cmd_parts), *[f"    {p}" for p in check_paths]])
+    print(f"Running ty for environment `{env}`...")
+    print(f"  {shell_cmd}")
+    result = subprocess.run(shell_cmd, capture_output=True, shell=True, text=True, check=False)
+
+    elapsed_time = time.time() - start_time
+
+    # Parse ty's gitlab JSON output
+    try:
+        ty_diagnostics: list[TyDiagnostic] = (
+            json.loads(result.stdout) if result.stdout.strip() else []
+        )
+    except json.JSONDecodeError:
+        output = (result.stdout == "" and result.stderr) or result.stdout
+        raise RuntimeError(f"ty output was not valid JSON. Output was:\n\n{output}")
+
+    # Convert to pyright-compatible format for backwards compatibility
+    diagnostics = [convert_ty_diagnostic_to_pyright_format(d) for d in ty_diagnostics]
+
+    # Count errors and warnings
+    error_count = sum(1 for d in ty_diagnostics if d["severity"] == "major")
+    warning_count = sum(1 for d in ty_diagnostics if d["severity"] != "major")
+
+    # Get ty version
+    version_result = subprocess.run(
+        ["uvx", "ty", "version"], capture_output=True, text=True, check=False
+    )
+    ty_version = version_result.stdout.strip() if version_result.returncode == 0 else "unknown"
+
+    # Get unique files analyzed (from diagnostics - ty doesn't report this directly)
+    files_analyzed = len([p for p in check_paths if Path(p).is_file()]) if check_paths else 0
+
     return {
         "returncode": result.returncode,
-        "output": cast("PyrightOutput", json_result),
+        "output": {
+            "version": ty_version,
+            "time": f"{elapsed_time:.2f}s",
+            "generalDiagnostics": diagnostics,
+            "summary": {
+                "filesAnalyzed": files_analyzed,
+                "errorCount": error_count,
+                "warningCount": warning_count,
+                "informationCount": 0,
+                "timeInSec": elapsed_time,
+            },
+        },
     }
 
 
-@contextmanager
-def temp_pyright_config_file(env: str) -> Iterator[str]:
-    with open("pyproject.toml", encoding="utf-8") as f:
-        toml = tomli.loads(f.read())
-    config = toml["tool"]["pyright"]
-    config["venvPath"] = f"{PYRIGHT_ENV_ROOT}/{env}"
-    include_path = get_env_path(env, "include.txt")
-    exclude_path = get_env_path(env, "exclude.txt")
-    config["include"] = load_path_file(include_path)
-    if os.path.exists(exclude_path):
-        config["exclude"] += load_path_file(exclude_path)
-    temp_config_path = f"pyrightconfig-{env}.json"
-    print("Creating temporary pyright config file at", temp_config_path)
-    try:
-        with open(temp_config_path, "w", encoding="utf-8") as f:
-            json.dump(config, f)
-        yield temp_config_path
-    finally:
-        os.remove(temp_config_path)
-
-
-def merge_pyright_results(result_1: RunResult, result_2: RunResult) -> RunResult:
+def merge_ty_results(result_1: RunResult, result_2: RunResult) -> RunResult:
     returncode = 1 if 1 in (result_1["returncode"], result_2["returncode"]) else 0
     output_1, output_2 = (result["output"] for result in (result_1, result_2))
     summary = {}
@@ -522,41 +585,11 @@ def print_output(result: RunResult, output_json: bool) -> None:
         print_report(result)
 
 
-def get_dagster_pyright_version() -> str:
-    dagster_pyproject = os.path.abspath(
-        os.path.join(__file__, "../../python_modules/dagster/pyproject.toml")
-    )
-
-    # Try pyproject.toml first (preferred after migration from setup.py)
-    if os.path.exists(dagster_pyproject):
-        with open(dagster_pyproject, "rb") as f:
-            pyproject = tomli.load(f)
-        pyright_deps = (
-            pyproject.get("project", {}).get("optional-dependencies", {}).get("pyright", [])
-        )
-        for dep in pyright_deps:
-            if dep.startswith("pyright=="):
-                return dep.split("==")[1]
-
-    # Fall back to setup.py for transition period
-    dagster_setup = os.path.abspath(os.path.join(__file__, "../../python_modules/dagster/setup.py"))
-    if os.path.exists(dagster_setup):
-        with open(dagster_setup, encoding="utf-8") as f:
-            content = f.read()
-        m = re.search('"pyright==([^"]+)"', content)
-        if m:
-            return m.group(1)
-
-    raise RuntimeError(
-        "Could not find pyright version in python_modules/dagster/pyproject.toml or setup.py"
-    )
-
-
-def get_hints(output: PyrightOutput) -> Sequence[str]:
+def get_hints(output: TyOutput) -> Sequence[str]:
     hints: list[str] = []
 
     if any(
-        "rule" in diag and diag["rule"] == "reportMissingImports"
+        "rule" in diag and diag["rule"] == "unresolved-import"
         for diag in output["generalDiagnostics"]
     ):
         hints.append(
@@ -568,23 +601,15 @@ def get_hints(output: PyrightOutput) -> Sequence[str]:
                     ),
                     (
                         "If you have added dependencies to an existing package, run"
-                        " `make rebuild_pyright_pins` to rebuild and update the"
-                        " dependencies of the pyright venv."
+                        " `just rebuild_ty_pins` to rebuild and update the"
+                        " dependencies of the ty venv."
                     ),
                     (
                         "If you have added an entirely new package, add it to"
-                        " pyright/master/requirements.txt and then run `make rebuild_pyright_pins`."
+                        " pyright/master/requirements.txt and then run `just rebuild_ty_pins`."
                     ),
                 ]
             )
-        )
-
-    dagster_pyright_version = get_dagster_pyright_version()
-    if dagster_pyright_version != output["version"]:
-        hints.append(
-            f"Your local version of pyright is {output['version']}, which does not match Dagster's"
-            f" pinned version of {dagster_pyright_version}. Please run `make install_pyright` to"
-            " install the correct version."
         )
 
     return hints
@@ -608,8 +633,8 @@ def print_report(result: RunResult) -> None:
 
     # summary
     summary = output["summary"]
-    print(f"pyright {output['version']}")
-    print(f"Finished in {summary['timeInSec']} seconds")
+    print(f"ty {output['version']}")
+    print(f"Finished in {summary['timeInSec']:.2f} seconds")
     print(f"Analyzed {summary['filesAnalyzed']} files")
     print(f"Found {summary['errorCount']} errors")
     print(f"Found {summary['warningCount']} warnings")
@@ -620,7 +645,7 @@ def print_report(result: RunResult) -> None:
 
 if __name__ == "__main__":
     # Verify we're in a git repo and at the OSS repo root (has pyright/ directory)
-    assert os.path.exists("pyright"), "Must be run from the root of the dagster repository"
+    assert Path(TY_ENV_ROOT).exists(), "Must be run from the root of the dagster repository"
     args = parser.parse_args()
     params = get_params(args)
     if params["mode"] == "path":
@@ -630,23 +655,18 @@ if __name__ == "__main__":
 
     for env in env_path_map:
         normalize_env(
-            env, params["rebuild"], params["update_pins"], params["venv_python"], params["no_cache"]
+            env,
+            rebuild=params["rebuild"],
+            update_pins=params["update_pins"],
+            venv_python=params["venv_python"],
+            no_cache=params["no_cache"],
         )
     if params["skip_typecheck"]:
         print("Successfully built environments. Skipping typecheck.")
     elif len(env_path_map) == 0:
         print("No paths to analyze. Skipping typecheck.")
     elif not params["skip_typecheck"]:
-        run_results = [
-            run_pyright(
-                env,
-                paths=env_path_map[env],
-                rebuild=params["rebuild"],
-                pinned_deps=params["update_pins"],
-                venv_python=params["venv_python"],
-            )
-            for env in env_path_map
-        ]
-        merged_result = reduce(merge_pyright_results, run_results)
+        run_results = [run_ty(env, paths=env_path_map[env]) for env in env_path_map]
+        merged_result = reduce(merge_ty_results, run_results)
         print_output(merged_result, params["json"])
         sys.exit(merged_result["returncode"])

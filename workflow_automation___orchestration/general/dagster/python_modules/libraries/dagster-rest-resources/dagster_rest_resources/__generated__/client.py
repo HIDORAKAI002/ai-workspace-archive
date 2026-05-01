@@ -705,9 +705,11 @@ class Client(BaseClient):
               }
               createdBy {
                 ... on DagsterCloudUser {
+                  __typename
                   displayName
                 }
                 ... on ServiceUser {
+                  __typename
                   displayName
                 }
               }
@@ -771,9 +773,11 @@ class Client(BaseClient):
               }
               createdBy {
                 ... on DagsterCloudUser {
+                  __typename
                   displayName
                 }
                 ... on ServiceUser {
+                  __typename
                   displayName
                 }
               }
@@ -792,14 +796,18 @@ class Client(BaseClient):
         return ListIssues.model_validate(data)
 
     def create_issue(
-        self, title: str, description: str, **kwargs: Any
+        self,
+        title: str,
+        description: str,
+        status: Union[Optional["IssueStatus"], "UnsetType"] = UNSET,
+        **kwargs: Any
     ) -> "CreateIssue":
         from .create_issue import CreateIssue
 
         query = gql(
             """
-            mutation CreateIssue($title: String!, $description: String!) {
-              createIssue(title: $title, description: $description) {
+            mutation CreateIssue($title: String!, $description: String!, $status: IssueStatus) {
+              createIssue(title: $title, description: $description, status: $status) {
                 __typename
                 ... on CreateIssueSuccess {
                   issue {
@@ -835,16 +843,22 @@ class Client(BaseClient):
               }
               createdBy {
                 ... on DagsterCloudUser {
+                  __typename
                   displayName
                 }
                 ... on ServiceUser {
+                  __typename
                   displayName
                 }
               }
             }
             """
         )
-        variables: Dict[str, object] = {"title": title, "description": description}
+        variables: Dict[str, object] = {
+            "title": title,
+            "description": description,
+            "status": status,
+        }
         response = self.execute(
             query=query, operation_name="CreateIssue", variables=variables, **kwargs
         )
@@ -907,9 +921,11 @@ class Client(BaseClient):
               }
               createdBy {
                 ... on DagsterCloudUser {
+                  __typename
                   displayName
                 }
                 ... on ServiceUser {
+                  __typename
                   displayName
                 }
               }
@@ -973,9 +989,11 @@ class Client(BaseClient):
               }
               createdBy {
                 ... on DagsterCloudUser {
+                  __typename
                   displayName
                 }
                 ... on ServiceUser {
+                  __typename
                   displayName
                 }
               }
@@ -1036,9 +1054,11 @@ class Client(BaseClient):
               }
               createdBy {
                 ... on DagsterCloudUser {
+                  __typename
                   displayName
                 }
                 ... on ServiceUser {
+                  __typename
                   displayName
                 }
               }

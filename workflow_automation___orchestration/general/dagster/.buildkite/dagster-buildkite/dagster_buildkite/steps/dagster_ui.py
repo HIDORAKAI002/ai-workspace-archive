@@ -4,7 +4,7 @@ from buildkite_shared.step_builders.command_step_builder import (
     CommandStepBuilder,
     CommandStepConfiguration,
 )
-from buildkite_shared.utils import oss_path
+from buildkite_shared.utils import oss_path, with_infra_retry
 from dagster_buildkite.steps.packages import PackageSpec
 
 
@@ -25,7 +25,7 @@ def build_dagster_ui_components_steps(ctx: BuildkiteContext) -> list[CommandStep
         .on_test_image()
         .run(
             f"cd {oss_path('js_modules/ui-components')}",
-            "pip install -U uv",
+            with_infra_retry("pip install -U uv"),
             f"tox -vv -e {AvailablePythonVersion.to_tox_factor(AvailablePythonVersion.get_default())}",
         )
         .skip(skip_if_no_dagster_ui_components_changes(ctx))
@@ -55,7 +55,7 @@ def build_dagster_ui_core_steps(ctx: BuildkiteContext) -> list[CommandStepConfig
         .on_test_image()
         .run(
             f"cd {oss_path('js_modules')}",
-            "pip install -U uv",
+            with_infra_retry("pip install -U uv"),
             f"tox -vv -e {AvailablePythonVersion.to_tox_factor(AvailablePythonVersion.get_default())}",
         )
         .skip(skip_if_no_dagster_ui_core_changes(ctx))
