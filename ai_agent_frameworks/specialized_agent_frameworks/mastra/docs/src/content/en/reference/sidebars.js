@@ -534,6 +534,7 @@ const sidebars = {
       label: 'Voice',
       collapsed: true,
       items: [
+        { type: 'doc', id: 'voice/aws-nova-sonic', label: 'AWS Nova Sonic' },
         { type: 'doc', id: 'voice/azure', label: 'Azure' },
         { type: 'doc', id: 'voice/cloudflare', label: 'Cloudflare' },
         { type: 'doc', id: 'voice/composite-voice', label: 'Composite Voice' },
