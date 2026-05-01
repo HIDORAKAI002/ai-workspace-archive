@@ -38,6 +38,7 @@ class TestSearchRequestPreparation:
         request = SearchRequest(
             query="test query",
             sources=["web", "news"],
+            include_domains=["firecrawl.dev"],
             limit=10,
             tbs="qdr:w",
             location="US",
@@ -69,6 +70,8 @@ class TestSearchRequestPreparation:
         assert len(data["sources"]) == 2
         assert data["sources"][0]["type"] == "web"
         assert data["sources"][1]["type"] == "news"
+        assert data["includeDomains"] == ["firecrawl.dev"]
+        assert "include_domains" not in data
         
         # Check nested scrape options conversions
         scrape_data = data["scrapeOptions"]
@@ -104,6 +107,18 @@ class TestSearchRequestPreparation:
         # When limit and timeout are explicitly None, they should be excluded
         assert "query" in data
         assert len(data) == 1  # Only query should be present
+
+    def test_domain_filters_are_mutually_exclusive(self):
+        """Test that include_domains and exclude_domains cannot both be set."""
+        with pytest.raises(
+            ValueError,
+            match="include_domains and exclude_domains cannot both be specified",
+        ):
+            SearchRequest(
+                query="test",
+                include_domains=["firecrawl.dev"],
+                exclude_domains=["example.com"],
+            )
 
     def test_empty_scrape_options(self):
         """Test that empty scrape options are handled correctly."""

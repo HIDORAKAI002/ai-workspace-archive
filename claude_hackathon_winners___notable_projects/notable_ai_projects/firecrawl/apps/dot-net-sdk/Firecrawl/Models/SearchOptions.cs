@@ -15,6 +15,14 @@ public class SearchOptions
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public List<object>? Categories { get; set; }
 
+    [JsonPropertyName("includeDomains")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<string>? IncludeDomains { get; set; }
+
+    [JsonPropertyName("excludeDomains")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<string>? ExcludeDomains { get; set; }
+
     [JsonPropertyName("limit")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? Limit { get; set; }

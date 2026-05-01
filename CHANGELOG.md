@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-05-01 21:47 IST] Auto-Sync
+- **28 Repositories Updated:** Promptfoo, Trigger.dev, Windmill, Appsmith, Hoppscotch, modelcontextprotocol/rust-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langchain, langchain-ai/langgraph, crewAIInc/crewAI, run-llama/llama_index, pydantic/pydantic-ai, BerriAI/litellm, ggml-org/llama.cpp, deepspeedai/DeepSpeed, vllm-project/vllm, lobehub/lobe-chat, chroma-core/chroma, firecrawl/firecrawl, PrefectHQ/prefect, dagster-io/dagster, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, bytedance/deer-flow
+
 ## [2026-05-01 15:17 IST] Auto-Sync
 - **26 Repositories Updated:** Public APIs Directory, Awesome ChatGPT Prompts, Trigger.dev, Appsmith, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, Significant-Gravitas/AutoGPT, openai/openai-agents-python, pydantic/pydantic-ai, mastra-ai/mastra, Upsonic, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, anthropics/claude-code, BradyFU/Awesome-Multimodal-Large-Language-Models, google-gemini/gemini-cli, dagster-io/dagster, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, bytedance/deer-flow, nikopueringer/CorridorKey
 

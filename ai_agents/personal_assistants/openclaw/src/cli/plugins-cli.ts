@@ -132,6 +132,7 @@ export function registerPluginsCli(program: Command) {
       await refreshPluginRegistryAfterConfigMutation({
         config: next,
         reason: "policy-changed",
+        policyPluginIds: [enableResult.pluginId],
         logger: {
           warn: (message) => defaultRuntime.log(theme.warn(message)),
         },
@@ -166,6 +167,7 @@ export function registerPluginsCli(program: Command) {
       await refreshPluginRegistryAfterConfigMutation({
         config: next,
         reason: "policy-changed",
+        policyPluginIds: [id],
         logger: {
           warn: (message) => defaultRuntime.log(theme.warn(message)),
         },
@@ -353,7 +355,7 @@ export function registerPluginsCli(program: Command) {
   plugins
     .command("install")
     .description(
-      "Install a plugin or hook pack (path, archive, npm spec, clawhub:package, or marketplace entry)",
+      "Install a plugin or hook pack (path, archive, npm spec, git repo, clawhub:package, or marketplace entry)",
     )
     .argument(
       "<path-or-spec-or-plugin>",

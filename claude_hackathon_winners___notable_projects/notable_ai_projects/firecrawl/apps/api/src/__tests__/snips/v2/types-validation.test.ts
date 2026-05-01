@@ -914,6 +914,44 @@ describe("V2 Types Validation", () => {
       expect(Array.isArray(result.categories)).toBe(true);
     });
 
+    it("should accept search request with includeDomains", () => {
+      const input: SearchRequestInput = {
+        query: "test",
+        includeDomains: [" Example.com ", "docs.example.com"],
+      };
+
+      const result = searchRequestSchema.parse(input);
+      expect(result.includeDomains).toEqual([
+        "example.com",
+        "docs.example.com",
+      ]);
+    });
+
+    it("should accept search request with excludeDomains", () => {
+      const input: SearchRequestInput = {
+        query: "test",
+        excludeDomains: ["example.com", "spam.example.com"],
+      };
+
+      const result = searchRequestSchema.parse(input);
+      expect(result.excludeDomains).toEqual([
+        "example.com",
+        "spam.example.com",
+      ]);
+    });
+
+    it("should reject search request with includeDomains and excludeDomains", () => {
+      const input: SearchRequestInput = {
+        query: "test",
+        includeDomains: ["example.com"],
+        excludeDomains: ["spam.example.com"],
+      };
+
+      expect(() => searchRequestSchema.parse(input)).toThrow(
+        "includeDomains and excludeDomains cannot both be specified",
+      );
+    });
+
     it("should reject limit exceeding 100", () => {
       const input: SearchRequestInput = {
         query: "test",

@@ -26,6 +26,8 @@ interface SearchOptions {
   location?: string;
   sources: Array<{ type: string }>;
   categories?: CategoryOption[];
+  includeDomains?: string[];
+  excludeDomains?: string[];
   enterprise?: ("default" | "anon" | "zdr")[];
   scrapeOptions?: ScrapeOptions;
   timeout: number;
@@ -79,6 +81,10 @@ export async function executeSearch(
   const { query: searchQuery, categoryMap } = buildSearchQuery(
     query,
     categories,
+    {
+      includeDomains: options.includeDomains,
+      excludeDomains: options.excludeDomains,
+    },
   );
 
   const searchResponse = (await search({

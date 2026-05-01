@@ -74,6 +74,8 @@ type MapOptions struct {
 type SearchOptions struct {
 	Sources           []interface{}  `json:"sources,omitempty"`
 	Categories        []interface{}  `json:"categories,omitempty"`
+	IncludeDomains    []string       `json:"includeDomains,omitempty"`
+	ExcludeDomains    []string       `json:"excludeDomains,omitempty"`
 	Limit             *int           `json:"limit,omitempty"`
 	TBS               *string        `json:"tbs,omitempty"`
 	Location          *string        `json:"location,omitempty"`

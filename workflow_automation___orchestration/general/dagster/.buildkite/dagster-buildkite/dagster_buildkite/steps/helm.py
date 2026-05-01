@@ -50,7 +50,7 @@ def _build_lint_steps(
         CommandStepBuilder("dagster-json-schema")
         .on_test_image()
         .run(
-            f"pip install -e {oss_path('helm/dagster/schema')}",
+            f"uv pip install --system -e {oss_path('helm/dagster/schema')}",
             "dagster-helm schema apply",
             "git diff --exit-code",
         )

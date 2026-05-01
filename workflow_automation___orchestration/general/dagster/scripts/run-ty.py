@@ -497,7 +497,9 @@ def run_ty(
     # ty uses --python to specify the venv interpreter
     # ty uses --output-format gitlab for JSON output
     base_ty_cmd_parts = [
-        "uvx",
+        "uv",
+        "tool",
+        "run",
         "ty",
         "check",
         f"--python={python_path}",
@@ -536,7 +538,7 @@ def run_ty(
 
     # Get ty version
     version_result = subprocess.run(
-        ["uvx", "ty", "version"], capture_output=True, text=True, check=False
+        ["uv", "tool", "run", "ty", "version"], capture_output=True, text=True, check=False
     )
     ty_version = version_result.stdout.strip() if version_result.returncode == 0 else "unknown"
 

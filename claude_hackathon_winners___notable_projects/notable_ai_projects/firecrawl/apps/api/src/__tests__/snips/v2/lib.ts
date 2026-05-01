@@ -478,7 +478,7 @@ export function expectMapToSucceed(response: Awaited<ReturnType<typeof map>>) {
 // Search API
 // =========================================
 
-async function searchRaw(body: SearchRequestInput, identity: Identity) {
+export async function searchRaw(body: SearchRequestInput, identity: Identity) {
   return await request(TEST_API_URL)
     .post("/v2/search")
     .set("Authorization", `Bearer ${identity.apiKey}`)
@@ -494,6 +494,12 @@ function expectSearchToSucceed(
   expect(typeof response.body.data).toBe("object");
 }
 
+function expectSearchToFail(response: Awaited<ReturnType<typeof searchRaw>>) {
+  expect(response.statusCode).not.toBe(200);
+  expect(response.body.success).toBe(false);
+  expect(typeof response.body.error).toBe("string");
+}
+
 export async function search(
   body: SearchRequestInput,
   identity: Identity,
@@ -501,6 +507,19 @@ export async function search(
   const raw = await searchRaw(body, identity);
   expectSearchToSucceed(raw);
   return raw.body.data;
+}
+
+export async function searchWithFailure(
+  body: SearchRequestInput,
+  identity: Identity,
+): Promise<{
+  success: false;
+  error: string;
+  details?: unknown;
+}> {
+  const raw = await searchRaw(body, identity);
+  expectSearchToFail(raw);
+  return raw.body;
 }
 
 // =========================================

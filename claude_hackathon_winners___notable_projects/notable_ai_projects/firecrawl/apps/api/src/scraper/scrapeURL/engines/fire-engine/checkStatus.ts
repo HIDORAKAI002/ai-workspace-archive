@@ -19,6 +19,13 @@ import { fireEngineURL } from "./scrape";
 import { getDocFromGCS } from "../../../../lib/gcs-jobs";
 import { Meta } from "../..";
 
+const browserCookieSchema = z
+  .object({
+    name: z.string(),
+    value: z.string(),
+  })
+  .passthrough();
+
 const successSchema = z.object({
   jobId: z.string(),
   state: z.literal("completed"),
@@ -81,6 +88,15 @@ const successSchema = z.object({
         result: z.object({
           link: z.string(),
         }),
+      }),
+      z.object({
+        idx: z.number(),
+        type: z.literal("getCookies"),
+        result: z
+          .object({
+            cookies: browserCookieSchema.array(),
+          })
+          .passthrough(),
       }),
     ])
     .array()

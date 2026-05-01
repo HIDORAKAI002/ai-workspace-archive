@@ -508,6 +508,8 @@ export interface SearchRequest {
     'web' | 'news' | 'images' | { type: 'web' | 'news' | 'images' }
   >;
   categories?: Array<'github' | 'research' | 'pdf' | CategoryOption>;
+  includeDomains?: string[];
+  excludeDomains?: string[];
   limit?: number;
   tbs?: string;
   location?: string;

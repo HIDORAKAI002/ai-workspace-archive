@@ -23,6 +23,12 @@ pub struct SearchOptions {
     /// Categories to filter results (github, research, pdf).
     pub categories: Option<Vec<SearchCategory>>,
 
+    /// Domains to include in search results.
+    pub include_domains: Option<Vec<String>>,
+
+    /// Domains to exclude from search results.
+    pub exclude_domains: Option<Vec<String>>,
+
     /// Time-based search filter (e.g., "qdr:d" for past day).
     pub tbs: Option<String>,
 

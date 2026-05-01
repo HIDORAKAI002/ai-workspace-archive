@@ -9,6 +9,8 @@ final class SearchOptions
     /**
      * @param list<mixed>|null $sources
      * @param list<mixed>|null $categories
+     * @param list<string>|null $includeDomains
+     * @param list<string>|null $excludeDomains
      */
     private function __construct(
         private readonly ?array $sources = null,
@@ -20,11 +22,15 @@ final class SearchOptions
         private readonly ?int $timeout = null,
         private readonly ?ScrapeOptions $scrapeOptions = null,
         private readonly ?string $integration = null,
+        private readonly ?array $includeDomains = null,
+        private readonly ?array $excludeDomains = null,
     ) {}
 
     /**
      * @param list<mixed>|null $sources
      * @param list<mixed>|null $categories
+     * @param list<string>|null $includeDomains
+     * @param list<string>|null $excludeDomains
      */
     public static function with(
         ?array $sources = null,
@@ -36,10 +42,12 @@ final class SearchOptions
         ?int $timeout = null,
         ?ScrapeOptions $scrapeOptions = null,
         ?string $integration = null,
+        ?array $includeDomains = null,
+        ?array $excludeDomains = null,
     ): self {
         return new self(
-            $sources, $categories, $limit, $tbs, $location,
-            $ignoreInvalidURLs, $timeout, $scrapeOptions, $integration,
+            $sources, $categories, $limit, $tbs, $location, $ignoreInvalidURLs,
+            $timeout, $scrapeOptions, $integration, $includeDomains, $excludeDomains,
         );
     }
 
@@ -49,6 +57,8 @@ final class SearchOptions
         $fields = [
             'sources' => $this->sources,
             'categories' => $this->categories,
+            'includeDomains' => $this->includeDomains,
+            'excludeDomains' => $this->excludeDomains,
             'limit' => $this->limit,
             'tbs' => $this->tbs,
             'location' => $this->location,

@@ -141,6 +141,11 @@ def _validate_search_request(request: SearchRequest) -> SearchRequest:
             elif hasattr(category, 'type'):
                 if category.type not in valid_categories:
                     raise ValueError(f"Invalid category type: {category.type}. Valid types: {valid_categories}")
+
+    if request.include_domains and request.exclude_domains:
+        raise ValueError(
+            "include_domains and exclude_domains cannot both be specified"
+        )
     
     # Validate location (if provided)
     if request.location is not None:
@@ -185,6 +190,16 @@ def _prepare_search_request(request: SearchRequest) -> Dict[str, Any]:
     if validated_request.ignore_invalid_urls is not None:
         data["ignoreInvalidURLs"] = validated_request.ignore_invalid_urls
         data.pop("ignore_invalid_urls", None)
+
+    # include_domains → includeDomains
+    if validated_request.include_domains is not None:
+        data["includeDomains"] = validated_request.include_domains
+        data.pop("include_domains", None)
+
+    # exclude_domains → excludeDomains
+    if validated_request.exclude_domains is not None:
+        data["excludeDomains"] = validated_request.exclude_domains
+        data.pop("exclude_domains", None)
     
     # scrape_options → scrapeOptions
     if validated_request.scrape_options is not None:
