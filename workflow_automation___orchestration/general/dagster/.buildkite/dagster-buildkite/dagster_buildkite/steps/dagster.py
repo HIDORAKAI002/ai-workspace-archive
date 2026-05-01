@@ -12,8 +12,7 @@ from buildkite_shared.step_builders.group_step_builder import (
     GroupStepBuilder,
 )
 from buildkite_shared.step_builders.step_builder import StepConfiguration
-from buildkite_shared.utils import oss_path, with_infra_retry
-from buildkite_shared.uv import UV_PIN
+from buildkite_shared.utils import oss_path
 from dagster_buildkite.steps.helm import build_helm_steps
 from dagster_buildkite.steps.integration import (
     build_azure_live_test_suite_steps,
@@ -151,7 +150,6 @@ def build_repo_wide_pyright_steps(ctx: BuildkiteContext) -> list[StepConfigurati
                 .on_test_image()
                 .run(
                     "curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain nightly -y",
-                    with_infra_retry(f'pip install -U "{UV_PIN}"'),
                     "uv venv",
                     "source .venv/bin/activate",
                     f"just -f {oss_path('justfile')} install_pyright",
@@ -171,7 +169,6 @@ def build_repo_wide_pyright_steps(ctx: BuildkiteContext) -> list[StepConfigurati
                 .on_test_image()
                 .run(
                     "curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain nightly -y",
-                    with_infra_retry(f'pip install -U "{UV_PIN}"'),
                     "uv venv",
                     "source .venv/bin/activate",
                     f"just -f {oss_path('justfile')} install_pyright",
@@ -189,7 +186,6 @@ def build_repo_wide_pyright_steps(ctx: BuildkiteContext) -> list[StepConfigurati
                 .on_test_image()
                 .run(
                     "curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain nightly -y",
-                    with_infra_retry(f'pip install -U "{UV_PIN}"'),
                     f"just -f {oss_path('justfile')} ty",
                 )
                 .skip(get_general_python_step_skip_reason(ctx, other_paths=["pyright"]))
