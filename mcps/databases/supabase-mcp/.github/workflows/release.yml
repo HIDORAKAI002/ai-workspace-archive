@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -115,6 +116,13 @@ jobs:
           fi
           rm -f "$NPM_VIEW_STDERR"
           pnpm publish --no-git-checks --ignore-scripts --access public --provenance
+
+      - name: Authenticate to MCP registry
+        if: ${{ steps.release.outputs['packages/mcp-server-supabase--release_created'] }}
+        working-directory: packages/mcp-server-supabase
+        env:
+          DOMAIN_VERIFICATION_KEY: ${{ secrets.DOMAIN_VERIFICATION_KEY }}
+        run: pnpm registry:login
 
       - name: Publish to MCP registry
         if: ${{ steps.release.outputs['packages/mcp-server-supabase--release_created'] }}
