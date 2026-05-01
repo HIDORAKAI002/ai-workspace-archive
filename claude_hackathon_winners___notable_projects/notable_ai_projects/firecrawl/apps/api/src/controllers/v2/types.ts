@@ -1703,6 +1703,18 @@ const pdfCategoryOptions = z.strictObject({
   type: z.literal("pdf"),
 });
 
+const searchDomainSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .refine(
+    value =>
+      /^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$/.test(
+        value,
+      ),
+    "Domain must be a valid hostname without protocol or path",
+  );
+
 export const searchRequestSchema = z
   .strictObject({
     query: z.string(),
@@ -1738,6 +1750,8 @@ export const searchRequestSchema = z
         ),
       ])
       .optional(),
+    includeDomains: z.array(searchDomainSchema).optional(),
+    excludeDomains: z.array(searchDomainSchema).optional(),
     lang: z.string().optional().prefault("en"),
     enterprise: z.array(z.enum(["default", "anon", "zdr"])).optional(),
     country: z.string().optional(),
@@ -1790,6 +1804,10 @@ export const searchRequestSchema = z
       })
       .optional(),
   })
+  .refine(
+    x => !(x.includeDomains?.length && x.excludeDomains?.length),
+    "includeDomains and excludeDomains cannot both be specified",
+  )
   .refine(x => waitForRefine(x.scrapeOptions), waitForRefineOpts)
   .transform(x => {
     const country =

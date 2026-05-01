@@ -135,7 +135,6 @@ export type NormalizedEvent = z.infer<typeof NormalizedEventSchema>;
 // -----------------------------------------------------------------------------
 
 export const CallDirectionSchema = z.enum(["outbound", "inbound"]);
-export type CallDirection = z.infer<typeof CallDirectionSchema>;
 
 // -----------------------------------------------------------------------------
 // Call Record
@@ -212,7 +211,7 @@ export type InitiateCallInput = {
   to: string;
   webhookUrl: string;
   clientState?: Record<string, string>;
-  /** Inline TwiML to execute (skips webhook, used for notify mode) */
+  /** Inline TwiML to execute without fetching webhook TwiML. */
   inlineTwiml?: string;
   /** TwiML to serve once before normal webhook-driven call handling resumes. */
   preConnectTwiml?: string;

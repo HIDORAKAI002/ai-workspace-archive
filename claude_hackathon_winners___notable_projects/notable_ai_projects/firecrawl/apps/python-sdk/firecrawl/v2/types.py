@@ -1070,6 +1070,8 @@ class SearchRequest(BaseModel):
     query: str
     sources: Optional[List[SourceOption]] = None
     categories: Optional[List[CategoryOption]] = None
+    include_domains: Optional[List[str]] = None
+    exclude_domains: Optional[List[str]] = None
     limit: Optional[int] = 5
     tbs: Optional[str] = None
     location: Optional[str] = None
@@ -1117,6 +1119,15 @@ class SearchRequest(BaseModel):
                 raise ValueError(f"Invalid category format: {category}")
 
         return normalized_categories
+
+    @model_validator(mode="after")
+    def validate_domain_filters(self):
+        """Validate mutually exclusive search domain filters."""
+        if self.include_domains and self.exclude_domains:
+            raise ValueError(
+                "include_domains and exclude_domains cannot both be specified"
+            )
+        return self
 
     # NOTE: parsers validation does not belong on SearchRequest; it is part of ScrapeOptions.
 

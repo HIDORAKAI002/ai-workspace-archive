@@ -61,10 +61,17 @@ export async function fetchAudio(
     throw new AudioUnsupportedUrlError();
   }
 
+  const requestBody = {
+    url: meta.url,
+    ...(meta.audioCookies && meta.audioCookies.length > 0
+      ? { cookies: meta.audioCookies }
+      : {}),
+  };
+
   const response = await fetch(`${config.AVGRAB_SERVICE_URL}/download`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ url: meta.url }),
+    body: JSON.stringify(requestBody),
   });
 
   if (!response.ok) {

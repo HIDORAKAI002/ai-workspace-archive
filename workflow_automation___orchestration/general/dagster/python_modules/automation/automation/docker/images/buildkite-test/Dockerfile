@@ -35,7 +35,7 @@ RUN apt-get update -yqq \
 ENV LANG=en_US.UTF-8 \
     LANGUAGE=en_US.UTF-8 \
     LC_ALL=en_US.UTF-8 \
-    KIND_VERSION=v0.31.0 \
+    KIND_VERSION=v0.14.0 \
     KUBECTL_VERSION=v1.31.2 \
     HELM_VERSION=v3.20.2 \
     FOSSA_VERSION=3.17.2 \
@@ -193,3 +193,44 @@ RUN uv pip install --system -r /snapshot-reqs.txt \
 
 # New versions of debian require allowlisting folders where `git` can run
 RUN git config --system --add safe.directory \*
+
+# Open up root-owned locations that CI writes to at runtime, so they remain
+# writable when the container runs as a non-root UID.
+#
+# When the docker plugin runs this image with `propagate-uid-gid: true`, the
+# container runs as the host buildkite-agent UID (e.g. 2000). That UID has no
+# /etc/passwd entry inside the container, so it has no group memberships beyond
+# the primary one and cannot write to root-owned paths with the default 755/644
+# permissions. CI exercises several such paths at runtime:
+#
+#   - `uv pip install --system ...` writes packages into
+#     /usr/local/lib/python3.12/site-packages and entry-point scripts into
+#     /usr/local/bin (e.g. `dagster-labs image sync-aws` reinstalls
+#     automation-internal this way).
+#   - `npm install -g ...` writes modules into /usr/lib/node_modules and links
+#     binaries into /usr/local/bin (e.g. `prettier` for lint steps).
+#   - `git config --system ...` writes to /etc/gitconfig (created above by the
+#     `safe.directory` line, so it exists with mode 644 and is read-only for
+#     non-root from then on).
+#
+# `chmod -R a+w` grants write to all users on these trees. It is a blunt
+# instrument — any process in the container can modify these locations — but
+# the image is ephemeral and single-tenant per CI job, so there is no
+# meaningful security boundary to preserve. Tightening this (e.g. via a shared
+# group) would add complexity without buying anything in this environment.
+#
+# /usr/local/lib recursively covers the python site-packages directory, so it
+# does not need to be listed separately.
+RUN chmod -R a+w /usr/local/lib /usr/local/bin /usr/lib/node_modules \
+    && chmod a+w /etc/gitconfig
+
+# Provide a writable HOME and cache dirs that work for any UID at runtime.
+# When the docker plugin runs this image with `propagate-uid-gid: true`, the
+# container runs as the host buildkite-agent UID — which has no /etc/passwd
+# entry inside the container, so $HOME would otherwise default to / (read-only).
+# A sticky world-writable /work lets uv/pip/etc. write per-user state regardless
+# of which UID the container ends up running as.
+RUN mkdir -p /work/.cache && chmod -R 1777 /work
+ENV HOME=/work \
+    XDG_CACHE_HOME=/work/.cache \
+    UV_CACHE_DIR=/work/.cache/uv

@@ -127,6 +127,8 @@ export async function searchController(
         location: req.body.location,
         sources: req.body.sources as Array<{ type: string }>,
         categories: req.body.categories as CategoryOption[],
+        includeDomains: req.body.includeDomains,
+        excludeDomains: req.body.excludeDomains,
         enterprise: req.body.enterprise,
         scrapeOptions: req.body.scrapeOptions,
         timeout: req.body.timeout,

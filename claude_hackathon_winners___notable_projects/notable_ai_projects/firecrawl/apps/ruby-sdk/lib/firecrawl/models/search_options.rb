@@ -5,8 +5,8 @@ module Firecrawl
     # Options for a web search request.
     class SearchOptions
       FIELDS = %i[
-        sources categories limit tbs location ignore_invalid_urls
-        timeout scrape_options integration
+        sources categories include_domains exclude_domains limit tbs location
+        ignore_invalid_urls timeout scrape_options integration
       ].freeze
 
       attr_reader(*FIELDS)
@@ -19,6 +19,8 @@ module Firecrawl
         {
           "sources" => sources,
           "categories" => categories,
+          "includeDomains" => include_domains,
+          "excludeDomains" => exclude_domains,
           "limit" => limit,
           "tbs" => tbs,
           "location" => location,

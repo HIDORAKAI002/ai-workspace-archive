@@ -20,11 +20,17 @@ function prepareSearchPayload(req: SearchRequest): Record<string, unknown> {
     throw new Error("limit must be positive");
   if (req.timeout != null && req.timeout <= 0)
     throw new Error("timeout must be positive");
+  if (req.includeDomains?.length && req.excludeDomains?.length)
+    throw new Error(
+      "includeDomains and excludeDomains cannot both be specified",
+    );
   const payload: Record<string, unknown> = {
     query: req.query,
   };
   if (req.sources) payload.sources = req.sources;
   if (req.categories) payload.categories = req.categories;
+  if (req.includeDomains) payload.includeDomains = req.includeDomains;
+  if (req.excludeDomains) payload.excludeDomains = req.excludeDomains;
   if (req.limit != null) payload.limit = req.limit;
   if (req.tbs != null) payload.tbs = req.tbs;
   if (req.location != null) payload.location = req.location;

@@ -27,6 +27,7 @@ class TestAsyncSearchRequestPreparation:
         request = SearchRequest(
             query="test query",
             sources=["web", "news"],
+            exclude_domains=["example.com"],
             limit=10,
             tbs="qdr:w",
             location="US",
@@ -37,6 +38,8 @@ class TestAsyncSearchRequestPreparation:
         )
         data = _prepare_search_request(request)
         assert data["ignoreInvalidURLs"] is False
+        assert data["excludeDomains"] == ["example.com"]
+        assert "exclude_domains" not in data
         assert "scrapeOptions" in data
         assert data["integration"] == "_unit-test"
 
@@ -54,6 +57,17 @@ class TestAsyncSearchRequestPreparation:
         data = _prepare_search_request(request)
         assert "query" in data
         assert len(data) == 1
+
+    def test_domain_filters_are_mutually_exclusive(self):
+        with pytest.raises(
+            ValueError,
+            match="include_domains and exclude_domains cannot both be specified",
+        ):
+            SearchRequest(
+                query="test",
+                include_domains=["firecrawl.dev"],
+                exclude_domains=["example.com"],
+            )
 
     def test_empty_scrape_options(self):
         request = SearchRequest(query="test", scrape_options=ScrapeOptions())

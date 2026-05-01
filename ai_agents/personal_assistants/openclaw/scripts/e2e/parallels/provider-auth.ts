@@ -53,6 +53,75 @@ export function resolveProviderAuth(input: {
   return { ...resolved, apiKeyValue };
 }
 
+export function resolveWindowsProviderAuth(input: {
+  provider: Provider;
+  apiKeyEnv?: string;
+  modelId?: string;
+}): ProviderAuth {
+  const auth = resolveProviderAuth(input);
+  if (input.provider !== "openai" || input.modelId) {
+    return auth;
+  }
+  const windowsModel = process.env.OPENCLAW_PARALLELS_WINDOWS_OPENAI_MODEL?.trim();
+  if (windowsModel) {
+    return { ...auth, modelId: windowsModel };
+  }
+  if (process.env.OPENCLAW_PARALLELS_OPENAI_MODEL?.trim()) {
+    return auth;
+  }
+  return { ...auth, modelId: "openai/gpt-4.1-mini" };
+}
+
+export function providerIdFromModelId(modelId: string): string {
+  const providerId = modelId.split("/", 1)[0]?.trim() ?? "";
+  return /^[A-Za-z0-9_-]+$/u.test(providerId) ? providerId : "";
+}
+
+export function resolveParallelsModelTimeoutSeconds(platform?: Platform): number {
+  const platformEnv =
+    platform === undefined
+      ? undefined
+      : process.env[`OPENCLAW_PARALLELS_${platform.toUpperCase()}_MODEL_TIMEOUT_S`];
+  const raw = Number(platformEnv || process.env.OPENCLAW_PARALLELS_MODEL_TIMEOUT_S || 600);
+  return Number.isFinite(raw) && raw > 0 ? Math.floor(raw) : 600;
+}
+
+export function providerTimeoutConfigJson(modelId: string, platform: Platform): string {
+  const providerId = providerIdFromModelId(modelId);
+  if (providerId !== "openai") {
+    return "";
+  }
+  const modelName = modelId.slice("openai/".length).trim();
+  if (!modelName) {
+    return "";
+  }
+  return JSON.stringify({
+    api: "openai-responses",
+    baseUrl: "https://api.openai.com/v1",
+    models: [
+      {
+        contextWindow: 1_047_576,
+        id: modelName,
+        maxTokens: 32_768,
+        name: modelName,
+      },
+    ],
+    timeoutSeconds: resolveParallelsModelTimeoutSeconds(platform),
+  });
+}
+
+export function modelTransportConfigJson(modelId: string): string {
+  if (providerIdFromModelId(modelId) !== "openai") {
+    return "";
+  }
+  return JSON.stringify({
+    alias: "GPT",
+    params: {
+      transport: "sse",
+    },
+  });
+}
+
 export function parseProvider(value: string): Provider {
   if (value === "openai" || value === "anthropic" || value === "minimax") {
     return value;

@@ -1,8 +1,7 @@
 /**
  * Unit test for audio-format engine routing via buildFallbackList.
- * Verifies that requesting audio format selects only index + tlsclient
- * engines (chrome-cdp and others are excluded) and that non-audio
- * requests still route through chrome-cdp as primary.
+ * Verifies that requesting audio format routes through chrome-cdp before
+ * audio postprocessing so browser cookies are available for avgrab.
  */
 
 // Avoid jest ESM-parse issues on transitive `uuid` import when pulling in engines.
@@ -61,22 +60,26 @@ describe("Audio format engine routing (buildFallbackList)", () => {
       },
     }) as any;
 
-  it("routes audio format to index then tlsclient only", async () => {
+  it("routes audio format to chrome-cdp before tlsclient", async () => {
     const fallback = await buildFallbackList(buildStubMeta(["audio"]));
     const engines = fallback.map(f => f.engine);
 
-    // Cache-first (index, quality 1000), then tlsclient (quality 10).
-    // index;documents and tlsclient;stealth drop out via the positive-quality filter.
-    expect(engines).toEqual(["index", "fire-engine;tlsclient"]);
+    expect(engines).toEqual([
+      "fire-engine;chrome-cdp",
+      "fire-engine(retry);chrome-cdp",
+      "fire-engine;tlsclient",
+    ]);
   });
 
-  it("excludes chrome-cdp engines when audio format is requested", async () => {
+  it("excludes index and non-browser engines when audio format is requested", async () => {
     const fallback = await buildFallbackList(buildStubMeta(["audio"]));
     const engines = fallback.map(f => f.engine);
 
-    expect(engines).not.toContain("fire-engine;chrome-cdp");
+    expect(engines).toContain("fire-engine;chrome-cdp");
+    expect(engines).toContain("fire-engine(retry);chrome-cdp");
+    expect(engines).not.toContain("index");
+    expect(engines).not.toContain("index;documents");
     expect(engines).not.toContain("fire-engine;chrome-cdp;stealth");
-    expect(engines).not.toContain("fire-engine(retry);chrome-cdp");
     expect(engines).not.toContain("fire-engine(retry);chrome-cdp;stealth");
     expect(engines).not.toContain("fetch");
   });

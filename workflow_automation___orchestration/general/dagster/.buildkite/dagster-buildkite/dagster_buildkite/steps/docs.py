@@ -8,8 +8,7 @@ from buildkite_shared.step_builders.group_step_builder import (
     GroupStepBuilder,
 )
 from buildkite_shared.step_builders.step_builder import StepConfiguration
-from buildkite_shared.utils import oss_path, with_infra_retry
-from buildkite_shared.uv import UV_PIN
+from buildkite_shared.utils import oss_path
 
 
 def build_repo_wide_format_docs_step(ctx: BuildkiteContext) -> GroupLeafStepConfiguration:
@@ -32,7 +31,6 @@ def build_build_docs_step(ctx: BuildkiteContext) -> GroupLeafStepConfiguration:
         .on_test_image()
         .run(
             f"cd {oss_path('docs')}",
-            with_infra_retry(f'pip install -U "{UV_PIN}"'),
             "yarn install",
             "yarn test",
             "yarn lint-check",
@@ -51,7 +49,6 @@ def build_docstring_validation_step(ctx: BuildkiteContext) -> GroupLeafStepConfi
         .on_test_image(python_version.value)
         .run(
             f"cd {oss_path('python_modules/automation')}",
-            with_infra_retry(f'pip install -U "{UV_PIN}"'),
             "uv pip install --system -e .[buildkite]",
             "python -m automation.dagster_docs.main check docstrings --all",
         )
