@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-05-01 08:48 IST] Auto-Sync
+- **23 Repositories Updated:** Playwright MCP, Supabase MCP, Promptfoo, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, pydantic/pydantic-ai, mastra-ai/mastra, BerriAI/litellm, ollama/ollama, ggml-org/llama.cpp, vllm-project/vllm, anthropics/claude-code, milvus-io/milvus, arize-ai/phoenix, firecrawl/firecrawl, google-gemini/gemini-cli, vercel/ai, apache/airflow, sgl-project/sglang, openclaw/openclaw, obra/superpowers, mastra-ai/mastra
+
 ## [2026-05-01 02:20 IST] Auto-Sync
 - **48 Repositories Updated:** Playwright MCP, GitHub MCP Server, Exa MCP Server, Promptfoo, n8n, Flowise, Activepieces, Trigger.dev, Windmill, Budibase, Directus, modelcontextprotocol/java-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langchain, langchain-ai/langgraph, crewAIInc/crewAI, microsoft/semantic-kernel, mastra-ai/mastra, BerriAI/litellm, stanfordnlp/dspy, ollama/ollama, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, cline/cline, chroma-core/chroma, weaviate/weaviate, infiniflow/ragflow, arize-ai/phoenix, openlit/openlit, affaan-m/everything-claude-code, firecrawl/firecrawl, anthropics/anthropic-sdk-typescript, google-gemini/gemini-cli, googleapis/python-genai, vercel/ai, apache/airflow, PrefectHQ/prefect, dagster-io/dagster, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow
 
