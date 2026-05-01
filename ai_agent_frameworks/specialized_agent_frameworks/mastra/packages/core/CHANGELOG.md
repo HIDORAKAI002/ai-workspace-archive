@@ -1,5 +1,13 @@
 # @mastra/core
 
+## 1.31.1-alpha.0
+
+### Patch Changes
+
+- Update provider registry and model documentation with latest models and providers ([`6dcd65f`](https://github.com/mastra-ai/mastra/commit/6dcd65f2a34069e6dc43ba35f1d11119b9b40bef))
+
+- Fixed model step traces to show the final prompt sent to the model, including memory-injected system messages. ([#16029](https://github.com/mastra-ai/mastra/pull/16029))
+
 ## 1.31.0
 
 ### Minor Changes

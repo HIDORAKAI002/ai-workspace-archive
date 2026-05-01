@@ -137,5 +137,15 @@
     "@mastra/s3": "0.5.0",
     "@mastra/vercel": "0.1.0"
   },
-  "changesets": []
+  "changesets": [
+    "automated-provider-registry-20260501-070830",
+    "chilly-lies-fail",
+    "dirty-items-rule",
+    "gold-mammals-hang",
+    "green-birds-knock",
+    "pink-bikes-flash",
+    "slow-emus-relate",
+    "tidy-ligers-warn",
+    "wise-ties-try"
+  ]
 }
