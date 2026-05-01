@@ -6,5 +6,6 @@ export function calculateBrowserSessionCredits(
   creditsPerHour = BROWSER_CREDITS_PER_HOUR,
 ): number {
   const hours = durationMs / 3_600_000;
-  return Math.max(2, Math.ceil(hours * creditsPerHour));
+  const minCredits = Math.ceil(creditsPerHour / 60);
+  return Math.max(minCredits, Math.ceil(hours * creditsPerHour));
 }
