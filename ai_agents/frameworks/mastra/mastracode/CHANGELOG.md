@@ -1,5 +1,14 @@
 # mastracode
 
+## 0.17.1-alpha.0
+
+### Patch Changes
+
+- Updated dependencies [[`6dcd65f`](https://github.com/mastra-ai/mastra/commit/6dcd65f2a34069e6dc43ba35f1d11119b9b40bef), [`1c2dda8`](https://github.com/mastra-ai/mastra/commit/1c2dda805fbfccc0abf55d4cb20cc34402dc3f0c), [`568777e`](https://github.com/mastra-ai/mastra/commit/568777ea8af77a672270b448dfd3996f9e75a964), [`568777e`](https://github.com/mastra-ai/mastra/commit/568777ea8af77a672270b448dfd3996f9e75a964)]:
+  - @mastra/core@1.31.1-alpha.0
+  - @mastra/observability@1.11.1-alpha.0
+  - @mastra/mcp@1.6.1-alpha.0
+
 ## 0.17.0
 
 ### Minor Changes

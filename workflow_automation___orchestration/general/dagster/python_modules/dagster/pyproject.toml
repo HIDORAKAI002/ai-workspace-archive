@@ -98,6 +98,7 @@ test = [
     "responses<=0.23.1",
     "syrupy>=4.0.0",
     "tox>=4",
+    "tox-uv>=1",
     "morefs[asynclocal]",
     "fsspec<2024.5.0",
     "rapidfuzz",

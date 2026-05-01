@@ -1,5 +1,19 @@
 # @mastra/koa
 
+## 1.5.0-alpha.0
+
+### Minor Changes
+
+- Improved the Koa adapter to make request routing more efficient as route counts grow. ([#16050](https://github.com/mastra-ai/mastra/pull/16050))
+
+  Requests now move through a leaner routing path with lower middleware overhead, which helps Koa-based Mastra servers stay faster and produce cleaner request traces without changing the public API.
+
+### Patch Changes
+
+- Updated dependencies [[`6dcd65f`](https://github.com/mastra-ai/mastra/commit/6dcd65f2a34069e6dc43ba35f1d11119b9b40bef), [`1c2dda8`](https://github.com/mastra-ai/mastra/commit/1c2dda805fbfccc0abf55d4cb20cc34402dc3f0c)]:
+  - @mastra/core@1.31.1-alpha.0
+  - @mastra/server@1.31.1-alpha.0
+
 ## 1.4.16
 
 ### Patch Changes
