@@ -1,5 +1,42 @@
 # @mastra/observability
 
+## 1.11.1-alpha.0
+
+### Patch Changes
+
+- Fixed model step traces to show the final prompt sent to the model, including memory-injected system messages. ([#16029](https://github.com/mastra-ai/mastra/pull/16029))
+
+- Added a new `DatadogBridge` integration for Mastra tracing so Datadog can keep auto-instrumented HTTP, database, and framework spans nested under the agent, workflow, model, and tool spans that triggered them. ([#15716](https://github.com/mastra-ai/mastra/pull/15716))
+
+  ```typescript
+  import tracer from 'dd-trace';
+
+  tracer.init({
+    service: process.env.DD_SERVICE || 'my-mastra-app',
+    env: process.env.DD_ENV || 'production',
+  });
+
+  import { Mastra } from '@mastra/core';
+  import { Observability } from '@mastra/observability';
+  import { DatadogBridge } from '@mastra/datadog';
+
+  const mastra = new Mastra({
+    observability: new Observability({
+      configs: {
+        default: {
+          serviceName: 'my-mastra-app',
+          bridge: new DatadogBridge({
+            mlApp: process.env.DD_LLMOBS_ML_APP!,
+          }),
+        },
+      },
+    }),
+  });
+  ```
+
+- Updated dependencies [[`6dcd65f`](https://github.com/mastra-ai/mastra/commit/6dcd65f2a34069e6dc43ba35f1d11119b9b40bef), [`1c2dda8`](https://github.com/mastra-ai/mastra/commit/1c2dda805fbfccc0abf55d4cb20cc34402dc3f0c)]:
+  - @mastra/core@1.31.1-alpha.0
+
 ## 1.11.0
 
 ### Minor Changes

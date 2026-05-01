@@ -1,5 +1,58 @@
 # @mastra/playground-ui
 
+## 25.1.0-alpha.0
+
+### Minor Changes
+
+- Removed the deprecated `Notification` component. Use `Notice` for inline persistent context (errors, empty states) and `toast` (from `@mastra/playground-ui`'s sonner wrapper) for transient feedback (success messages, confirmations). ([#16033](https://github.com/mastra-ai/mastra/pull/16033))
+
+  ```tsx
+  // Before
+  <Notification isVisible={true} type="error">Failed to load.</Notification>
+
+  // After — inline persistent context
+  <Notice variant="destructive">Failed to load.</Notice>
+
+  // Before
+  <Notification isVisible={true}>Saved successfully!</Notification>
+
+  // After — transient feedback
+  toast.info('Saved successfully');
+  ```
+
+- Removed the `CombinedButtons` component. Use `ButtonsGroup` with `spacing="close"` for the same segmented-style cluster of toggle buttons. ([#16035](https://github.com/mastra-ai/mastra/pull/16035))
+
+  ```tsx
+  // Before
+  <CombinedButtons>
+    <Button>Agent</Button>
+    <Button>Model</Button>
+  </CombinedButtons>
+
+  // After
+  <ButtonsGroup spacing="close">
+    <Button>Agent</Button>
+    <Button>Model</Button>
+  </ButtonsGroup>
+  ```
+
+### Patch Changes
+
+- Added support for icon-and-description layout in `Notice` by making `title` optional. When omitted, the notice renders as a single row with icon and description, useful for inline contextual messages. ([#16033](https://github.com/mastra-ai/mastra/pull/16033))
+
+  ```tsx
+  // Before — title required
+  <Notice variant="info" title="Heads up">Some message.</Notice>
+
+  // After — title optional, single-row layout
+  <Notice variant="info">Some message.</Notice>
+  ```
+
+- Updated dependencies [[`6dcd65f`](https://github.com/mastra-ai/mastra/commit/6dcd65f2a34069e6dc43ba35f1d11119b9b40bef), [`1c2dda8`](https://github.com/mastra-ai/mastra/commit/1c2dda805fbfccc0abf55d4cb20cc34402dc3f0c)]:
+  - @mastra/core@1.31.1-alpha.0
+  - @mastra/client-js@1.16.1-alpha.0
+  - @mastra/react@0.2.34-alpha.0
+
 ## 25.0.0
 
 ### Minor Changes

@@ -32,6 +32,10 @@
       "canonical": "https://arize.com"
     }
   },
+  "banner": {
+      "content": "[**Registration is open for Arize:Observe 2026**](https://arize.com/observe)",
+      "dismissible": true
+  },
   "navigation": {
     "tabs": [
       {
@@ -1029,7 +1033,8 @@
             "icon": "user-shield",
             "pages": [
               "docs/phoenix/settings/access-control-rbac",
-              "docs/phoenix/self-hosting/security/privacy"
+              "docs/phoenix/self-hosting/security/privacy",
+              "docs/phoenix/self-hosting/security/network-security"
             ]
           },
           {

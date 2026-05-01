@@ -181,6 +181,8 @@ def build_repo_wide_pyright_steps(ctx: BuildkiteContext) -> list[StepConfigurati
                     f"just -f {oss_path('justfile')} rebuild_pyright_pins",
                 )
                 .skip(_get_pyright_pin_step_skip_reason(ctx))
+                # Run on a larger instance
+                .on_queue(BuildkiteQueue.DOCKER)
                 .build(),
                 CommandStepBuilder(":ty: ty", key="ty-oss")
                 .on_test_image()

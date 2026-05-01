@@ -162,6 +162,10 @@ RUN curl --fail --silent --show-error --location \
     && /tmp/aws/install \
     && rm -rf /tmp/awscliv2.zip /tmp/aws
 
+# AWS CLI v2 pages output through `less` by default; this image has no `less`,
+# so without this every `aws` invocation fails with exit 253.
+ENV AWS_PAGER=""
+
 # Clean up
 RUN apt-get remove -yqq \
     && apt-get autoremove -yqq --purge \
