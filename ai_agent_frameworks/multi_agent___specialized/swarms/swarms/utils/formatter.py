@@ -960,6 +960,28 @@ class Formatter:
 
         self.console.print(panel)
 
+    def print_thinking_panel(
+        self,
+        content: str,
+        title: str = "Thinking",
+    ) -> None:
+        """Display reasoning/thinking content in a visually distinct panel.
+
+        Args:
+            content (str): The reasoning or thinking content to display.
+            title (str): Panel title.
+        """
+        if not content:
+            return
+        text = Text(content, style="dim italic")
+        panel = Panel(
+            text,
+            title=f"[bold magenta]{title}[/bold magenta]",
+            border_style="magenta",
+            padding=(0, 1),
+        )
+        self.console.print(panel)
+
 
 # Global formatter instance with markdown output enabled by default
 formatter = Formatter(md=False)

@@ -30,6 +30,7 @@ from litellm import completion, supports_vision
 from loguru import logger
 from pydantic import BaseModel
 
+from swarms.utils.formatter import formatter
 from swarms.utils.image_file_b64 import (
     get_image_base64,
     is_base64_encoded,
@@ -207,6 +208,7 @@ class LiteLLM:
         thinking_tokens: int = None,
         reasoning_enabled: bool = False,
         response_format: any = None,
+        agent_name: str = None,
         *args,
         **kwargs,
     ):
@@ -309,6 +311,7 @@ class LiteLLM:
         self.reasoning_enabled = reasoning_enabled
         self.verbose = verbose
         self.response_format = response_format
+        self.agent_name = agent_name
         self.modalities = []
         self.messages = []  # Initialize messages list
 
@@ -528,50 +531,42 @@ class LiteLLM:
 
             All available components are included in the formatted output.
         """
-        output_parts = []
+        message = response.choices[0].message
+        thinking_parts = []
 
-        # Check if reasoning content is available
-        if (
-            hasattr(response.choices[0].message, "reasoning_content")
-            and response.choices[0].message.reasoning_content
-        ):
-            output_parts.append(
-                f"Reasoning Content:\n{response.choices[0].message.reasoning_content}\n"
-            )
+        has_thinking_blocks = bool(
+            hasattr(message, "thinking_blocks")
+            and message.thinking_blocks
+        )
 
-        # Check if thinking blocks are available (Anthropic models)
-        if (
-            hasattr(response.choices[0].message, "thinking_blocks")
-            and response.choices[0].message.thinking_blocks
-        ):
-            output_parts.append("Thinking Blocks:")
-            for i, block in enumerate(
-                response.choices[0].message.thinking_blocks, 1
-            ):
-                block_type = block.get("type", "")
+        # Prefer thinking_blocks for Anthropic; fall back to reasoning_content
+        # for all other providers. Both fields carry the same text on Anthropic,
+        # so only collect one to avoid duplicates.
+        if has_thinking_blocks:
+            for block in message.thinking_blocks:
                 thinking = block.get("thinking", "")
-                output_parts.append(
-                    f"Block {i} (Type: {block_type}):"
-                )
-                output_parts.append(f"  Thinking: {thinking}")
-                output_parts.append("")
-
-        # Include tools if available
-        if (
-            hasattr(response.choices[0].message, "tool_calls")
-            and response.choices[0].message.tool_calls
+                if thinking:
+                    thinking_parts.append(thinking)
+        elif (
+            hasattr(message, "reasoning_content")
+            and message.reasoning_content
         ):
-            output_parts.append(
-                f"Tools:\n{self.output_for_tools(response)}\n"
+            thinking_parts.append(message.reasoning_content)
+
+        # Display all thinking content in a dedicated panel
+        if thinking_parts:
+            title = (
+                f"{self.agent_name} | Thinking"
+                if self.agent_name
+                else "Thinking"
+            )
+            formatter.print_thinking_panel(
+                "\n\n".join(thinking_parts),
+                title=title,
             )
 
-        # Always include the main content
-        content = response.choices[0].message.content
-        if content:
-            output_parts.append(f"Content:\n{content}")
-
-        # Join all parts into a single string
-        return "\n".join(output_parts)
+        # Return only the main content so memory stays clean
+        return message.content or ""
 
     def _prepare_messages(
         self,
@@ -1306,6 +1301,7 @@ class LiteLLM:
                 # exceed that budget.
                 if is_anthropic:
                     completion_params["temperature"] = 1
+                    completion_params.pop("top_p", None)
                     if completion_params.get("max_tokens", 0) < 16000:
                         completion_params["max_tokens"] = 16000
 
@@ -1322,9 +1318,15 @@ class LiteLLM:
                 # Anthropic requires temperature=1 when thinking is enabled
                 if is_anthropic:
                     completion_params["temperature"] = 1
+                    completion_params.pop("top_p", None)
                     # max_tokens must be greater than thinking budget_tokens
-                    if completion_params.get("max_tokens", 0) <= self.thinking_tokens:
-                        completion_params["max_tokens"] = self.thinking_tokens + 1024
+                    if (
+                        completion_params.get("max_tokens", 0)
+                        <= self.thinking_tokens
+                    ):
+                        completion_params["max_tokens"] = (
+                            self.thinking_tokens + 1024
+                        )
 
             # Process additional args if any
             self._process_additional_args(completion_params, args)
@@ -1347,7 +1349,8 @@ class LiteLLM:
             # Handle reasoning model output
             elif (
                 self.reasoning_enabled
-                and self.reasoning_effort is not None
+                or self.reasoning_effort is not None
+                or self.thinking_tokens is not None
             ):
                 return self.output_for_reasoning(response)
 

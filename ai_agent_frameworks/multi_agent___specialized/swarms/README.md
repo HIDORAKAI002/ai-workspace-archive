@@ -366,8 +366,7 @@ The `SwarmRouter` simplifies building complex workflows by providing a single in
 This makes your code cleaner and more flexible, allowing you to switch between different multi-agent strategies with ease. Here's a complete example that shows how to define agents and then use `SwarmRouter` to execute the same task using different collaborative strategies.
 
 ```python
-from swarms import Agent
-from swarms.structs.swarm_router import SwarmRouter, SwarmType
+from swarms import Agent, SwarmRouter, SwarmType
 
 # Define a few generic agents
 writer = Agent(agent_name="Writer", system_prompt="You are a creative writer.", model_name="gpt-5.4")
@@ -421,7 +420,7 @@ The `SwarmRouter` is a powerful tool for simplifying multi-agent orchestration. 
 The `AutoSwarmBuilder` automatically generates specialized agents and their workflows based on your task description. Simply describe what you need, and it will create a complete multi-agent system with detailed prompts and optimal agent configurations. [Learn more about AutoSwarmBuilder](https://docs.swarms.world/en/latest/swarms/structs/auto_swarm_builder/)
 
 ```python
-from swarms.structs.auto_swarm_builder import AutoSwarmBuilder
+from swarms import AutoSwarmBuilder
 import json
 
 # Initialize the AutoSwarmBuilder
@@ -692,8 +691,7 @@ Perfect for implementing complex multi-agent workflows, collaborative problem-so
 The **Agent Orchestration Protocol (AOP)** is a powerful framework for deploying and managing agents as distributed services. AOP enables agents to be discovered, managed, and executed through a standardized protocol, making it perfect for building scalable multi-agent systems. [Learn more about AOP](https://docs.swarms.world/en/latest/swarms/structs/aop/)
 
 ```python
-from swarms import Agent
-from swarms.structs.aop import AOP
+from swarms import Agent, AOP
 
 # Create specialized agents
 research_agent = Agent(

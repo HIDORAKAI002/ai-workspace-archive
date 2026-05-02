@@ -710,9 +710,7 @@ def test_concurrent_add_thread_safety(tmp_path):
     def add_msg(i):
         conv.add("user", f"Message {i}")
 
-    with concurrent.futures.ThreadPoolExecutor(
-        max_workers=8
-    ) as ex:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as ex:
         list(ex.map(add_msg, range(50)))
 
     content = md_path.read_text()
@@ -787,9 +785,7 @@ def test_compact_removes_raw_turns(tmp_path):
     conv.add("user", "Turn 1")
     conv.add("assistant", "Response 1")
     conv.compact("Summary")
-    contents = [
-        m["content"] for m in conv.conversation_history
-    ]
+    contents = [m["content"] for m in conv.conversation_history]
     assert "Turn 1" not in contents
     assert "Response 1" not in contents
     assert "Summary" in contents
@@ -836,9 +832,7 @@ def test_compact_skips_archive_when_no_interactions(tmp_path):
     conv.compact("Summary")
     archive_dir = tmp_path / "archive"
     if archive_dir.exists():
-        assert (
-            len(list(archive_dir.glob("history_*.md"))) == 0
-        )
+        assert len(list(archive_dir.glob("history_*.md"))) == 0
 
 
 def test_archive_filename_format(tmp_path):

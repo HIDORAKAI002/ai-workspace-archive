@@ -76,6 +76,7 @@ from swarms.structs.autonomous_loop_utils import (
     get_execution_prompt,
     get_planning_prompt,
     get_summary_prompt,
+    grep_tool,
     list_directory_tool,
     read_file_tool,
     respond_to_user_tool,
@@ -412,6 +413,7 @@ class Agent:
         skills_dir: Optional[str] = None,
         selected_tools: Optional[Union[str, List[str]]] = "all",
         context_compression: bool = True,
+        persistent_memory: bool = True,
         *args,
         **kwargs,
     ):
@@ -515,6 +517,9 @@ class Agent:
             self.system_prompt += (
                 "\n\n" + get_autonomous_agent_prompt()
             )
+
+        # When False the agent does not read or write MEMORY.md across sessions.
+        self.persistent_memory = persistent_memory
 
         # Context compression is available for both max_loops="auto" and
         # integer max_loops runs. Gated purely on the user-facing boolean.
@@ -1022,22 +1027,23 @@ class Agent:
             prompt += SAFETY_PROMPT
 
         # Compute the persistent MEMORY.md path under the workspace dir.
+        # Only resolved when persistent_memory=True (the default). When False
+        # the Conversation receives no path and operates as a pure in-process
+        # store with no on-disk read or write across sessions.
         # Key on agent_name only (not self.id) so memory is stable across
         # process restarts — self.id defaults to a fresh uuid every run,
         # which would otherwise create a new empty MEMORY.md each time.
-        # Conversation will create the folder, seed the header, preload any
-        # prior interactions as a system preamble, and append every future
-        # message automatically.
         memory_md_path = None
-        try:
-            base = get_workspace_dir() or os.path.join(
-                os.getcwd(), "agent_workspace"
-            )
-            memory_md_path = os.path.join(
-                base, "agents", self.agent_name, "MEMORY.md"
-            )
-        except Exception as e:
-            logger.error(f"Failed to resolve MEMORY.md path: {e}")
+        if self.persistent_memory:
+            try:
+                base = get_workspace_dir() or os.path.join(
+                    os.getcwd(), "agent_workspace"
+                )
+                memory_md_path = os.path.join(
+                    base, "agents", self.agent_name, "MEMORY.md"
+                )
+            except Exception as e:
+                logger.error(f"Failed to resolve MEMORY.md path: {e}")
 
         # Initialize the short term memory
         memory = Conversation(
@@ -1105,6 +1111,7 @@ class Agent:
                 "reasoning_effort": self.reasoning_effort,
                 "thinking_tokens": self.thinking_tokens,
                 "reasoning_enabled": self.reasoning_enabled,
+                "agent_name": self.agent_name,
             }
 
             # Initialize tools_list_dictionary, if applicable
@@ -2200,6 +2207,16 @@ class Agent:
                     f"Filtered to {len(planning_tools)} tools: {[t.get('function', {}).get('name', '') for t in planning_tools]}"
                 )
 
+            # The `think` tool is redundant when the model already reasons natively
+            # via extended thinking (thinking_tokens). Drop it to avoid unnecessary
+            # tool-call round-trips and a cluttered tool list.
+            if self.thinking_tokens is not None:
+                planning_tools = [
+                    t
+                    for t in planning_tools
+                    if t.get("function", {}).get("name") != "think"
+                ]
+
             if self.tools_list_dictionary is None:
                 self.tools_list_dictionary = []
 
@@ -2269,6 +2286,7 @@ class Agent:
                 "run_bash": lambda **kwargs: run_bash_tool(
                     self, **kwargs
                 ),
+                "grep": lambda **kwargs: grep_tool(self, **kwargs),
                 "create_sub_agent": lambda **kwargs: create_sub_agent_tool(
                     self, **kwargs
                 ),
@@ -2540,6 +2558,19 @@ class Agent:
                 max_subtask_loops = MAX_SUBTASK_LOOPS
                 subtask_done = False
 
+                # Add the execution prompt ONCE before the inner loop so the model
+                # doesn't see duplicate copies of it on subsequent iterations and
+                # mistakenly conclude "this task has been run before."
+                execution_prompt = get_execution_prompt(
+                    subtask_id,
+                    subtask_desc,
+                    self.autonomous_subtasks,
+                )
+                self.short_memory.add(
+                    role=self.user_name,
+                    content=execution_prompt,
+                )
+
                 while (
                     not subtask_done
                     and subtask_iterations < max_subtask_loops
@@ -2550,17 +2581,6 @@ class Agent:
                     )
 
                     try:
-                        # Create execution prompt for current subtask
-                        execution_prompt = get_execution_prompt(
-                            subtask_id,
-                            subtask_desc,
-                            self.autonomous_subtasks,
-                        )
-                        self.short_memory.add(
-                            role=self.user_name,
-                            content=execution_prompt,
-                        )
-
                         task_prompt = (
                             self.short_memory.return_history_as_string()
                         )
@@ -2625,11 +2645,17 @@ class Agent:
                                                 handoffs=handoffs_list
                                             )
                                         else:
-                                            # Visualize function call for other tools
-                                            self._visualize_function_call(
-                                                function_name,
-                                                arguments,
-                                            )
+                                            # Only pre-visualize tools that won't be shown again
+                                            # with their result (subtask_done / complete_task are
+                                            # visualized post-execution so skip the pre call).
+                                            if function_name not in (
+                                                "subtask_done",
+                                                "complete_task",
+                                            ):
+                                                self._visualize_function_call(
+                                                    function_name,
+                                                    arguments,
+                                                )
 
                                             result = planning_tool_handlers[
                                                 function_name
@@ -2687,8 +2713,8 @@ class Agent:
                                             == "complete_task"
                                         ):
                                             # Task is complete, exit all loops
-                                            return (
-                                                self._generate_final_summary()
+                                            return self._generate_final_summary(
+                                                streaming_callback=streaming_callback
                                             )
                                     else:
                                         # Collect regular tool calls for batch visualization and execution
@@ -2932,12 +2958,17 @@ class Agent:
                     title="Autonomous Loop: Summary Phase",
                 )
 
-            return self._generate_final_summary()
+            return self._generate_final_summary(
+                streaming_callback=streaming_callback
+            )
 
         except Exception as error:
             self._handle_run_error(error)
 
-    def _generate_final_summary(self) -> str:
+    def _generate_final_summary(
+        self,
+        streaming_callback: Optional[Callable[[str], None]] = None,
+    ) -> str:
         """
         Generate a comprehensive final summary of the autonomous task execution.
 
@@ -2954,6 +2985,7 @@ class Agent:
             response = self.call_llm(
                 task=task_prompt,
                 current_loop=0,
+                streaming_callback=streaming_callback,
             )
 
             response = self.parse_llm_output(response)
@@ -3000,7 +3032,7 @@ class Agent:
             # If complete_task wasn't called, generate summary manually
             comprehensive_summary = f"""Task Execution Summary
 
-Original Task: {self.short_memory.messages[0].get('content', 'N/A') if self.short_memory.messages else 'N/A'}
+Original Task: {self.short_memory.conversation_history[0].get('content', 'N/A') if self.short_memory.conversation_history else 'N/A'}
 
 Subtask Breakdown:
 """
@@ -3961,6 +3993,97 @@ Subtask Breakdown:
 
         return None
 
+    def _stream_with_tool_collection(
+        self, stream, tool_calls_out: list
+    ):
+        """Yield every chunk unchanged while assembling delta.tool_calls fragments.
+
+        Chunks are always forwarded so callers (print_streaming_panel, callback loops,
+        etc.) can handle content deltas as normal.  Tool-call-only chunks carry no
+        delta.content so existing display code skips them harmlessly.
+
+        After the generator is fully consumed, tool_calls_out is populated with the
+        assembled tool call list in the same format returned by output_for_tools, so
+        the auto loop can handle it without any changes.
+        """
+        accumulator: dict = {}
+        for chunk in stream:
+            if hasattr(chunk, "choices") and chunk.choices:
+                delta = chunk.choices[0].delta
+                for tc in getattr(delta, "tool_calls", None) or []:
+                    idx = tc.index
+                    if idx not in accumulator:
+                        accumulator[idx] = {
+                            "id": "",
+                            "type": "function",
+                            "function": {"name": "", "arguments": ""},
+                        }
+                    if tc.id:
+                        accumulator[idx]["id"] = tc.id
+                    if tc.function:
+                        if tc.function.name:
+                            accumulator[idx]["function"][
+                                "name"
+                            ] += tc.function.name
+                        if tc.function.arguments:
+                            accumulator[idx]["function"][
+                                "arguments"
+                            ] += tc.function.arguments
+            yield chunk  # always forward; callers filter on delta.content
+
+        # Populate the output list once the stream is exhausted
+        tool_calls_out.extend(
+            accumulator[i] for i in sorted(accumulator)
+        )
+
+    def _extract_thinking_from_stream(self, stream):
+        """Yield only content chunks from a stream, displaying thinking chunks as a panel first.
+
+        Anthropic (and other reasoning providers) emit thinking deltas before content
+        deltas. This generator consumes all thinking chunks silently, then flushes a
+        single thinking panel to the console, and finally yields every subsequent
+        content chunk unchanged so callers can handle them normally.
+        """
+        thinking_parts = []
+        thinking_displayed = False
+
+        for chunk in stream:
+            if not hasattr(chunk, "choices") or not chunk.choices:
+                yield chunk
+                continue
+
+            delta = chunk.choices[0].delta
+            reasoning = getattr(delta, "reasoning_content", None)
+
+            if reasoning:
+                thinking_parts.append(reasoning)
+                continue  # swallow the thinking chunk; don't pass to content stream
+
+            # First non-thinking chunk — flush accumulated thinking
+            if thinking_parts and not thinking_displayed:
+                title = (
+                    f"{self.agent_name} | Thinking"
+                    if self.agent_name
+                    else "Thinking"
+                )
+                formatter.print_thinking_panel(
+                    "".join(thinking_parts), title=title
+                )
+                thinking_displayed = True
+
+            yield chunk
+
+        # Edge case: stream ended with only thinking and no content chunks
+        if thinking_parts and not thinking_displayed:
+            title = (
+                f"{self.agent_name} | Thinking"
+                if self.agent_name
+                else "Thinking"
+            )
+            formatter.print_thinking_panel(
+                "".join(thinking_parts), title=title
+            )
+
     def call_llm(
         self,
         task: str,
@@ -4104,8 +4227,14 @@ Subtask Breakdown:
                     token_count = 0
                     final_chunk = None
                     first_chunk = None
+                    tool_calls_out: list = []
 
-                    for chunk in streaming_response:
+                    for chunk in self._stream_with_tool_collection(
+                        self._extract_thinking_from_stream(
+                            streaming_response
+                        ),
+                        tool_calls_out,
+                    ):
                         if first_chunk is None:
                             first_chunk = chunk
 
@@ -4215,7 +4344,11 @@ Subtask Breakdown:
                         )
 
                     self.llm.stream = original_stream
-                    return complete_response
+                    return (
+                        tool_calls_out
+                        if tool_calls_out
+                        else complete_response
+                    )
                 else:
                     self.llm.stream = original_stream
                     return streaming_response
@@ -4237,9 +4370,23 @@ Subtask Breakdown:
                 if hasattr(
                     streaming_response, "__iter__"
                 ) and not isinstance(streaming_response, str):
+                    import itertools
+
+                    tool_calls_out: list = []
+
                     # Check if streaming_callback is provided (for ConcurrentWorkflow dashboard integration)
                     if streaming_callback is not None:
-                        # Real-time callback streaming for dashboard integration
+                        # Real-time callback streaming — thinking panel is printed as a
+                        # side effect inside _extract_thinking_from_stream; no Live context
+                        # is active so there is no interleaving risk.
+                        streaming_response = (
+                            self._stream_with_tool_collection(
+                                self._extract_thinking_from_stream(
+                                    streaming_response
+                                ),
+                                tool_calls_out,
+                            )
+                        )
                         chunks = []
                         for chunk in streaming_response:
                             if (
@@ -4250,12 +4397,16 @@ Subtask Breakdown:
                                     0
                                 ].delta.content
                                 chunks.append(content)
-                                # Call the streaming callback with the new chunk
                                 streaming_callback(content)
                         complete_response = "".join(chunks)
                     # Check print_on parameter for different streaming behaviors
                     elif self.print_on is False:
                         # Silent streaming - no printing, just collect chunks
+                        streaming_response = (
+                            self._stream_with_tool_collection(
+                                streaming_response, tool_calls_out
+                            )
+                        )
                         chunks = []
                         for chunk in streaming_response:
                             if (
@@ -4268,18 +4419,57 @@ Subtask Breakdown:
                                 chunks.append(content)
                         complete_response = "".join(chunks)
                     else:
-                        # Collect chunks for conversation saving
-                        collected_chunks = []
-
-                        def on_chunk_received(chunk: str):
-                            """Callback to collect chunks as they arrive"""
-                            collected_chunks.append(chunk)
-                            # Optional: Save each chunk to conversation in real-time
-                            # This creates a more detailed conversation history
-                            if self.verbose:
-                                logger.debug(
-                                    f"Streaming chunk received: {chunk[:50]}..."
+                        # Print-streaming path uses Rich's Live display. We MUST print the
+                        # thinking panel BEFORE the Live context opens, otherwise the
+                        # console.print() call inside _extract_thinking_from_stream
+                        # interleaves with the Live display and corrupts the terminal.
+                        thinking_parts: list = []
+                        first_content_chunk = None
+                        for chunk in streaming_response:
+                            delta = (
+                                chunk.choices[0].delta
+                                if hasattr(chunk, "choices")
+                                and chunk.choices
+                                else None
+                            )
+                            reasoning = (
+                                getattr(
+                                    delta, "reasoning_content", None
                                 )
+                                if delta
+                                else None
+                            )
+                            if reasoning:
+                                thinking_parts.append(reasoning)
+                            else:
+                                first_content_chunk = chunk
+                                break
+
+                        if thinking_parts:
+                            title = (
+                                f"{self.agent_name} | Thinking"
+                                if self.agent_name
+                                else "Thinking"
+                            )
+                            formatter.print_thinking_panel(
+                                "".join(thinking_parts), title=title
+                            )
+
+                        # Chain the already-consumed first chunk with the remaining stream,
+                        # then wrap with tool-call collection.
+                        chained = itertools.chain(
+                            (
+                                [first_content_chunk]
+                                if first_content_chunk is not None
+                                else []
+                            ),
+                            streaming_response,
+                        )
+                        streaming_response = (
+                            self._stream_with_tool_collection(
+                                chained, tool_calls_out
+                            )
+                        )
 
                         # Use the streaming panel to display and collect the response
                         complete_response = formatter.print_streaming_panel(
@@ -4287,14 +4477,18 @@ Subtask Breakdown:
                             title=f"🤖 Agent: {self.agent_name} Loops: {current_loop}",
                             style=None,  # Use random color like non-streaming approach
                             collect_chunks=True,
-                            on_chunk_callback=on_chunk_received,
                         )
 
                     # Restore original stream setting
                     self.llm.stream = original_stream
 
-                    # Return the complete response for further processing
-                    return complete_response
+                    # If the model made tool calls during the stream, return them
+                    # so the auto loop executes them — same format as non-streaming.
+                    return (
+                        tool_calls_out
+                        if tool_calls_out
+                        else complete_response
+                    )
                 else:
                     # Restore original stream setting
                     self.llm.stream = original_stream
@@ -4669,6 +4863,157 @@ Subtask Breakdown:
                 "For technical support, refer to this document: https://docs.swarms.world/en/latest/swarms/support/"
             )
             raise KeyboardInterrupt
+
+    def run_stream(
+        self,
+        task: str,
+        img: Optional[str] = None,
+        **kwargs,
+    ):
+        """Run the agent and yield response tokens one-by-one as they are generated.
+
+        The full auto-loop (multi-step reasoning, tool calls, MCP, etc.) runs in a
+        background daemon thread.  Each token the model emits is put onto a queue and
+        yielded to the caller immediately, so the first characters appear on screen
+        before the model has finished generating.
+
+        Tool-call results are fed back into the loop automatically (same as a normal
+        run); the tokens from each subsequent LLM turn are also streamed through.
+
+        Args:
+            task: The prompt / task string.
+            img:  Optional image path or base64 string for vision models.
+            **kwargs: Any extra kwargs forwarded to _run().
+
+        Yields:
+            str: Individual token strings in generation order.
+
+        Example::
+
+            for token in agent.run_stream("Analyse NVDA"):
+                print(token, end="", flush=True)
+        """
+        import queue
+        import threading
+
+        token_queue: queue.Queue = queue.Queue()
+        _DONE = object()
+        _exc: list = [None]
+
+        def _on_token(token):
+            if isinstance(token, str) and token:
+                token_queue.put(token)
+            elif isinstance(token, dict):
+                t = token.get("token", "")
+                if t:
+                    token_queue.put(t)
+
+        original_streaming_on = self.streaming_on
+        self.streaming_on = True
+
+        def _run_thread():
+            try:
+                self._run(
+                    task=task,
+                    img=img,
+                    streaming_callback=_on_token,
+                    **kwargs,
+                )
+            except Exception as exc:
+                _exc[0] = exc
+            finally:
+                self.streaming_on = original_streaming_on
+                token_queue.put(_DONE)
+
+        thread = threading.Thread(target=_run_thread, daemon=True)
+        thread.start()
+
+        while True:
+            item = token_queue.get()
+            if item is _DONE:
+                break
+            yield item
+
+        thread.join()
+
+        if _exc[0] is not None:
+            raise _exc[0]
+
+    async def arun_stream(
+        self,
+        task: str,
+        img: Optional[str] = None,
+        **kwargs,
+    ):
+        """Async generator version of run_stream — yields tokens as they arrive.
+
+        The agent loop runs in a thread-pool executor so it does not block the
+        event loop.  Each token is forwarded to an asyncio.Queue and yielded to
+        the async caller immediately.
+
+        Args:
+            task: The prompt / task string.
+            img:  Optional image path or base64 string for vision models.
+            **kwargs: Extra kwargs forwarded to _run().
+
+        Yields:
+            str: Individual token strings in generation order.
+
+        Example::
+
+            async for token in agent.arun_stream("Analyse NVDA"):
+                print(token, end="", flush=True)
+        """
+        import asyncio
+        import threading
+
+        loop = asyncio.get_running_loop()
+        token_queue: asyncio.Queue = asyncio.Queue()
+        _DONE = object()
+        _exc: list = [None]
+
+        def _on_token(token):
+            if isinstance(token, str) and token:
+                loop.call_soon_threadsafe(
+                    token_queue.put_nowait, token
+                )
+            elif isinstance(token, dict):
+                t = token.get("token", "")
+                if t:
+                    loop.call_soon_threadsafe(
+                        token_queue.put_nowait, t
+                    )
+
+        original_streaming_on = self.streaming_on
+        self.streaming_on = True
+
+        def _run_sync():
+            try:
+                self._run(
+                    task=task,
+                    img=img,
+                    streaming_callback=_on_token,
+                    **kwargs,
+                )
+            except Exception as exc:
+                _exc[0] = exc
+            finally:
+                self.streaming_on = original_streaming_on
+                loop.call_soon_threadsafe(
+                    token_queue.put_nowait, _DONE
+                )
+
+        thread = threading.Thread(target=_run_sync, daemon=True)
+        thread.start()
+
+        while True:
+            item = await token_queue.get()
+            if item is _DONE:
+                break
+            yield item
+
+        if _exc[0] is not None:
+            raise _exc[0]
 
     def _handle_fallback_execution(
         self,
@@ -5589,6 +5934,7 @@ Summary: {summary}
         return LiteLLM(
             model_name=self.model_name,
             temperature=self.temperature,
+            top_p=self.top_p,  # Anthropic rejects requests with both temperature and top_p
             max_tokens=self.max_tokens,
             system_prompt=self.system_prompt,
             stream=False,  # Always disable streaming for tool summaries
