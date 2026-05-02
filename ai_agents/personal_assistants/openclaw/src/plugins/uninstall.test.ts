@@ -1037,6 +1037,44 @@ describe("uninstallPlugin", () => {
     await expect(fs.access(installPath)).rejects.toThrow();
   });
 
+  it("deletes managed ClawHub install directories", async () => {
+    const stateDir = path.join(tempDir, "state");
+    const extensionsDir = path.join(stateDir, "extensions");
+    const installPath = resolvePluginInstallDir("clawpack-demo", extensionsDir);
+    await fs.mkdir(installPath, { recursive: true });
+    await fs.writeFile(path.join(installPath, "index.js"), "// clawhub plugin");
+
+    const result = await uninstallPlugin({
+      config: createPluginConfig({
+        entries: createSinglePluginEntries("clawpack-demo"),
+        installs: {
+          "clawpack-demo": {
+            source: "clawhub",
+            spec: "clawhub:clawpack-demo@2026.5.1-beta.2",
+            installPath,
+            clawhubUrl: "https://clawhub.ai",
+            clawhubPackage: "clawpack-demo",
+            clawhubFamily: "code-plugin",
+            clawhubChannel: "official",
+            clawpackSha256: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            clawpackSpecVersion: 1,
+            clawpackManifestSha256:
+              "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            clawpackSize: 4096,
+          },
+        },
+      }),
+      pluginId: "clawpack-demo",
+      deleteFiles: true,
+      extensionsDir,
+    });
+
+    expectSuccessfulUninstallActions(result, {
+      directory: true,
+    });
+    await expect(fs.access(installPath)).rejects.toThrow();
+  });
+
   it("deletes managed git install repos outside the extensions directory", async () => {
     const stateDir = path.join(tempDir, "state");
     const extensionsDir = path.join(stateDir, "extensions");
@@ -1060,6 +1098,37 @@ describe("uninstallPlugin", () => {
       directory: true,
     });
     await expect(fs.access(installPath)).rejects.toThrow();
+  });
+
+  it("does not delete symlinked git install targets that resolve outside the managed git root", async () => {
+    const stateDir = path.join(tempDir, "state");
+    const extensionsDir = path.join(stateDir, "extensions");
+    const linkParentDir = path.join(stateDir, "git", "git-abc123");
+    const installPath = path.join(linkParentDir, "repo");
+    const outsideDir = path.join(tempDir, "outside");
+    await fs.mkdir(linkParentDir, { recursive: true });
+    await fs.mkdir(outsideDir, { recursive: true });
+    await fs.writeFile(path.join(outsideDir, "index.js"), "// keep me");
+    await fs.symlink(outsideDir, installPath, "dir");
+
+    const result = await uninstallPlugin({
+      config: createPluginConfig({
+        entries: createSinglePluginEntries(),
+        installs: {
+          "my-plugin": createGitInstallRecord("my-plugin", installPath),
+        },
+      }),
+      pluginId: "my-plugin",
+      deleteFiles: true,
+      extensionsDir,
+    });
+
+    expectSuccessfulUninstallActions(result, {
+      directory: false,
+    });
+    await expect(fs.access(outsideDir)).resolves.toBeUndefined();
+    const linkStat = await fs.lstat(installPath);
+    expect(linkStat.isSymbolicLink()).toBe(true);
   });
 });
 
@@ -1159,6 +1228,34 @@ describe("resolveUninstallDirectoryTarget", () => {
         pluginId: "my-plugin",
         hasInstall: true,
         installRecord: createGitInstallRecord("my-plugin", installPath),
+        extensionsDir,
+      }),
+    ).toBe(installPath);
+  });
+
+  it("uses configured installPath when ClawHub installed it under the managed extensions root", () => {
+    const stateDir = path.join(os.tmpdir(), "openclaw-uninstall-safe");
+    const extensionsDir = path.join(stateDir, "extensions");
+    const installPath = resolvePluginInstallDir("clawpack-demo", extensionsDir);
+
+    expect(
+      resolveUninstallDirectoryTarget({
+        pluginId: "clawpack-demo",
+        hasInstall: true,
+        installRecord: {
+          source: "clawhub",
+          spec: "clawhub:clawpack-demo@2026.5.1-beta.2",
+          installPath,
+          clawhubUrl: "https://clawhub.ai",
+          clawhubPackage: "clawpack-demo",
+          clawhubFamily: "code-plugin",
+          clawhubChannel: "official",
+          clawpackSha256: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          clawpackSpecVersion: 1,
+          clawpackManifestSha256:
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          clawpackSize: 4096,
+        },
         extensionsDir,
       }),
     ).toBe(installPath);

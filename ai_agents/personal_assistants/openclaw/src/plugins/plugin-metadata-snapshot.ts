@@ -7,6 +7,7 @@ import {
   resolveInstalledManifestRegistryIndexFingerprint,
 } from "./manifest-registry-installed.js";
 import type { PluginManifestRecord } from "./manifest-registry.js";
+import { resolvePluginControlPlaneFingerprint } from "./plugin-control-plane-context.js";
 import type {
   LoadPluginMetadataSnapshotParams,
   PluginMetadataSnapshot,
@@ -22,6 +23,15 @@ export type {
   PluginMetadataSnapshotRegistryDiagnostic,
 } from "./plugin-metadata-snapshot.types.js";
 
+function resolvePluginMetadataSnapshotConfigFingerprint(
+  params: Pick<LoadPluginMetadataSnapshotParams, "config" | "env" | "workspaceDir"> & {
+    index?: InstalledPluginIndex;
+    policyHash?: string;
+  },
+): string {
+  return resolvePluginControlPlaneFingerprint(params);
+}
+
 function indexesMatch(
   left: InstalledPluginIndex | undefined,
   right: InstalledPluginIndex | undefined,
@@ -36,13 +46,27 @@ function indexesMatch(
 }
 
 export function isPluginMetadataSnapshotCompatible(params: {
-  snapshot: Pick<PluginMetadataSnapshot, "index" | "policyHash" | "workspaceDir">;
+  snapshot: Pick<
+    PluginMetadataSnapshot,
+    "configFingerprint" | "index" | "policyHash" | "workspaceDir"
+  >;
   config: OpenClawConfig;
+  env?: NodeJS.ProcessEnv;
   workspaceDir?: string;
   index?: InstalledPluginIndex;
 }): boolean {
+  const env = params.env ?? process.env;
   return (
     params.snapshot.policyHash === resolveInstalledPluginIndexPolicyHash(params.config) &&
+    (!params.snapshot.configFingerprint ||
+      params.snapshot.configFingerprint ===
+        resolvePluginMetadataSnapshotConfigFingerprint({
+          config: params.config,
+          env,
+          index: params.index ?? params.snapshot.index,
+          policyHash: params.snapshot.policyHash,
+          workspaceDir: params.workspaceDir,
+        })) &&
     (params.snapshot.workspaceDir ?? "") === (params.workspaceDir ?? "") &&
     indexesMatch(params.snapshot.index, params.index)
   );
@@ -171,6 +195,13 @@ function loadPluginMetadataSnapshotImpl(
 
   return {
     policyHash: index.policyHash,
+    configFingerprint: resolvePluginMetadataSnapshotConfigFingerprint({
+      config: params.config,
+      env: params.env,
+      index,
+      policyHash: index.policyHash,
+      workspaceDir: params.workspaceDir,
+    }),
     ...(params.workspaceDir ? { workspaceDir: params.workspaceDir } : {}),
     index,
     registryDiagnostics: registryResult.diagnostics,

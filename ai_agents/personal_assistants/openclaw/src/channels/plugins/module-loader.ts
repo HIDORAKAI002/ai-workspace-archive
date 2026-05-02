@@ -1,23 +1,58 @@
 import fs from "node:fs";
+import { createRequire } from "node:module";
 import path from "node:path";
 import { openBoundaryFileSync } from "../../infra/boundary-file-read.js";
+import { isJavaScriptModulePath } from "../../plugins/native-module-require.js";
 import {
-  getCachedPluginJitiLoader,
-  type PluginJitiLoaderCache,
-} from "../../plugins/jiti-loader-cache.js";
+  getCachedPluginModuleLoader,
+  type PluginModuleLoaderCache,
+} from "../../plugins/plugin-module-loader-cache.js";
 
-const jitiLoaders: PluginJitiLoaderCache = new Map();
+const nodeRequire = createRequire(import.meta.url);
+const SOURCE_MODULE_EXTENSIONS = new Set([".ts", ".tsx", ".mts", ".cts"]);
+const jitiLoaders: PluginModuleLoaderCache = new Map();
 
-function loadModule(modulePath: string, tryNative?: boolean) {
-  return getCachedPluginJitiLoader({
+function hasNativeSourceRequireHook(modulePath: string): boolean {
+  const extension = path.extname(modulePath).toLowerCase();
+  return (
+    SOURCE_MODULE_EXTENSIONS.has(extension) &&
+    typeof nodeRequire.extensions?.[extension] === "function"
+  );
+}
+
+function isSourceModulePath(modulePath: string): boolean {
+  return SOURCE_MODULE_EXTENSIONS.has(path.extname(modulePath).toLowerCase());
+}
+
+function loadModuleWithJiti(modulePath: string): unknown {
+  const loadWithJiti = getCachedPluginModuleLoader({
     cache: jitiLoaders,
     modulePath,
     importerUrl: import.meta.url,
-    argvEntry: process.argv[1],
-    preferBuiltDist: true,
-    jitiFilename: import.meta.url,
-    tryNative,
+    loaderFilename: import.meta.url,
+    tryNative: false,
+    cacheScopeKey: "channel-plugin-module-loader",
   });
+  return loadWithJiti(modulePath);
+}
+
+function loadModule(modulePath: string): unknown {
+  if (!isJavaScriptModulePath(modulePath) && !hasNativeSourceRequireHook(modulePath)) {
+    if (isSourceModulePath(modulePath)) {
+      return loadModuleWithJiti(modulePath);
+    }
+    throw new Error(`channel plugin module must be built JavaScript: ${modulePath}`);
+  }
+  try {
+    return nodeRequire(modulePath);
+  } catch (error) {
+    if (isSourceModulePath(modulePath)) {
+      return loadModuleWithJiti(modulePath);
+    }
+    throw new Error(`failed to load channel plugin module with native require: ${modulePath}`, {
+      cause: error,
+    });
+  }
 }
 
 function resolvePluginModuleCandidates(rootDir: string, specifier: string): string[] {
@@ -52,7 +87,6 @@ export function loadChannelPluginModule(params: {
   rootDir: string;
   boundaryRootDir?: string;
   boundaryLabel?: string;
-  shouldTryNativeRequire?: (safePath: string) => boolean;
 }): unknown {
   const opened = openBoundaryFileSync({
     absolutePath: params.modulePath,
@@ -68,5 +102,5 @@ export function loadChannelPluginModule(params: {
   }
   const safePath = opened.path;
   fs.closeSync(opened.fd);
-  return loadModule(safePath, params.shouldTryNativeRequire?.(safePath))(safePath);
+  return loadModule(safePath);
 }

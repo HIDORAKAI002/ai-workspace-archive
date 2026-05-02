@@ -5,16 +5,16 @@ export type CliCommandPluginLoadPolicy =
   | "always"
   | "text-only"
   | ((ctx: { argv: string[]; commandPath: string[]; jsonOutputMode: boolean }) => boolean);
-export type CliRouteConfigGuardPolicy = "never" | "always" | "when-suppressed";
+type CliRouteConfigGuardPolicy = "never" | "always" | "when-suppressed";
 export type CliPluginRegistryScope = "all" | "channels" | "configured-channels";
 export type CliPluginRegistryPolicy = {
   scope: CliPluginRegistryScope;
 };
 export type CliNetworkProxyPolicy = "default" | "bypass";
-export type CliNetworkProxyPolicyResolver =
+type CliNetworkProxyPolicyResolver =
   | CliNetworkProxyPolicy
   | ((ctx: { argv: string[]; commandPath: string[] }) => CliNetworkProxyPolicy);
-export type CliRoutedCommandId =
+type CliRoutedCommandId =
   | "health"
   | "status"
   | "gateway-status"
@@ -240,6 +240,10 @@ export const cliCommandCatalog: readonly CliCommandCatalogEntry[] = [
       networkProxy: "bypass",
     },
     route: { id: "tasks-list" },
+  },
+  {
+    commandPath: ["tool"],
+    policy: { loadPlugins: "never", ensureCliPath: false, networkProxy: "bypass" },
   },
   {
     commandPath: ["tools"],
