@@ -21,6 +21,7 @@ Available Tools:
 - list_directory: List directory contents
 - delete_file: Delete files
 - run_bash: Execute bash/shell commands on the terminal
+- grep: Search for patterns in files using grep
 - create_sub_agent: Create specialized sub-agents for delegation
 - assign_task: Assign tasks to sub-agents asynchronously
 """
@@ -99,12 +100,10 @@ Description: {subtask_desc}
 Current status of all subtasks:
 {subtask_status_list}
 
-Follow this workflow:
-1. Use the 'think' tool to analyze what needs to be done (optional, but recommended)
-2. Use available tools to complete the work
-3. When the subtask is complete, use 'subtask_done' to mark it as finished
-
-Remember: Only call subtask_done when the work is ACTUALLY DONE, not when you're about to start.
+Instructions:
+- Call all required tools for this subtask in a SINGLE response — do not split them across multiple turns.
+- When the subtask is complete, include the subtask_done call in that same response.
+- Only call subtask_done once the work is ACTUALLY DONE, not before.
 """
 
 
@@ -427,6 +426,47 @@ def get_autonomous_planning_tools() -> List[Dict[str, Any]]:
                         },
                     },
                     "required": ["command"],
+                },
+            },
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "grep",
+                "description": "Search for a pattern in files. Returns matching lines with file names and optional line numbers. Prefer this over run_bash for pattern searches.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "pattern": {
+                            "type": "string",
+                            "description": "The regex or literal string pattern to search for",
+                        },
+                        "path": {
+                            "type": "string",
+                            "description": "File or directory to search in (relative to workspace or absolute). Defaults to workspace root.",
+                        },
+                        "recursive": {
+                            "type": "boolean",
+                            "description": "Search recursively through directories (default: true)",
+                        },
+                        "case_insensitive": {
+                            "type": "boolean",
+                            "description": "Perform case-insensitive matching (default: false)",
+                        },
+                        "include_line_numbers": {
+                            "type": "boolean",
+                            "description": "Show line numbers in output (default: true)",
+                        },
+                        "file_pattern": {
+                            "type": "string",
+                            "description": "Only search files matching this glob (e.g. '*.py', '*.txt'). Only used when path is a directory.",
+                        },
+                        "context_lines": {
+                            "type": "integer",
+                            "description": "Lines of context to show around each match (default: 0)",
+                        },
+                    },
+                    "required": ["pattern"],
                 },
             },
         },
@@ -1054,6 +1094,112 @@ def run_bash_tool(
             role="Terminal",
             content=f"Error: {error_msg}",
         )
+        return error_msg
+
+
+_GREP_MAX_BYTES = 65536  # cap output at 64 KB
+
+
+def grep_tool(
+    agent: Any,
+    pattern: str,
+    path: str = "",
+    recursive: bool = True,
+    case_insensitive: bool = False,
+    include_line_numbers: bool = True,
+    file_pattern: str = "",
+    context_lines: int = 0,
+    **kwargs,
+) -> str:
+    """
+    Search for a pattern in files using grep.
+
+    Args:
+        agent: The agent instance
+        pattern: Regex or literal pattern to search for
+        path: File or directory (relative to workspace or absolute). Defaults to workspace root.
+        recursive: Search directories recursively (default True)
+        case_insensitive: Case-insensitive matching (default False)
+        include_line_numbers: Show line numbers (default True)
+        file_pattern: Glob filter applied when searching a directory (e.g. '*.py')
+        context_lines: Lines of context around each match (default 0)
+        **kwargs: Additional arguments
+
+    Returns:
+        str: Matching lines or error message
+    """
+    try:
+        # Resolve path
+        if not path or not os.path.isabs(path):
+            workspace_dir = agent._get_agent_workspace_dir()
+            full_path = (
+                os.path.join(workspace_dir, path)
+                if path
+                else workspace_dir
+            )
+        else:
+            full_path = path
+
+        if not os.path.exists(full_path):
+            return f"Error: Path does not exist: {full_path}"
+
+        # Build grep argv (no shell=True — arguments are passed as a list)
+        args = ["grep"]
+        if recursive and os.path.isdir(full_path):
+            args.append("-r")
+        if case_insensitive:
+            args.append("-i")
+        if include_line_numbers:
+            args.append("-n")
+        if context_lines > 0:
+            args.extend(["-C", str(int(context_lines))])
+        if file_pattern and os.path.isdir(full_path):
+            args.extend(["--include", file_pattern])
+        args.append("--")
+        args.append(pattern)
+        args.append(full_path)
+
+        result = subprocess.run(
+            args,
+            capture_output=True,
+            text=True,
+            timeout=30,
+            encoding="utf-8",
+            errors="replace",
+        )
+
+        stdout = result.stdout or ""
+        stderr = result.stderr or ""
+
+        # Truncate oversized output
+        if len(stdout) > _GREP_MAX_BYTES:
+            stdout = (
+                stdout[:_GREP_MAX_BYTES] + "\n... (output truncated)"
+            )
+
+        if result.returncode == 0:
+            output = stdout.strip() or "(no matches)"
+        elif result.returncode == 1:
+            output = "(no matches found)"
+        else:
+            output = f"grep error (exit {result.returncode})"
+            if stderr:
+                output += f": {stderr.strip()}"
+
+        agent.short_memory.add(
+            role="Grep",
+            content=f"grep {pattern!r} in {full_path} -> {result.returncode}",
+        )
+
+        if agent.verbose:
+            logger.info(f"grep {pattern!r} in {full_path}")
+
+        return output
+    except subprocess.TimeoutExpired:
+        return "Error: grep timed out after 30 seconds"
+    except Exception as e:
+        error_msg = f"Error running grep: {str(e)}"
+        logger.error(error_msg)
         return error_msg
 
 
