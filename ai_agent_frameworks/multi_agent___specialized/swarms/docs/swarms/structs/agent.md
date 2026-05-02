@@ -129,6 +129,7 @@ The `Agent` class establishes a conversational loop with a language model, allow
 | `marketplace_prompt_id` | `Optional[str]` | Unique UUID identifier of a prompt from the Swarms marketplace. When provided, the agent will automatically fetch and load the prompt as the system prompt. |
 | `selected_tools` | `Optional[Union[str, List[str]]]` | Controls which tools are available in autonomous mode (`max_loops="auto"`). Use `"all"` for all tools or provide a list of specific tool names. Available tools: `"create_plan"`, `"think"`, `"subtask_done"`, `"complete_task"`, `"respond_to_user"`, `"create_file"`, `"update_file"`, `"read_file"`, `"list_directory"`, `"delete_file"`, `"run_bash"`, `"create_sub_agent"`, `"assign_task"`. |
 | `context_compression` | `bool` | Enables automatic context compression. When `True` (default) the agent instantiates a `ContextCompressor` that, at the top of every loop iteration, summarizes and collapses `MEMORY.md` once token usage crosses 90% of `context_length`. Works for both `max_loops="auto"` and integer `max_loops` runs. Set to `False` to disable. See [Agent Memory](../agents/agent_memory.md) for the full flow. |
+| `persistent_memory` | `bool` | Controls whether the agent reads and writes a persistent `MEMORY.md` file across sessions. When `True` (default) the agent loads prior conversation history from `$WORKSPACE_DIR/agents/{agent_name}/MEMORY.md` at startup and appends every new message to it, so state survives process restarts. Set to `False` to disable all on-disk memory — the agent starts fresh every run and nothing is written to disk. |
 
 ## `Agent` Methods
 
@@ -378,6 +379,105 @@ agent = Agent(
 # Run the agent
 response = agent.run("What are the components of a startup's stock incentive equity plan?")
 print(response)
+```
+
+### Memory Persistence and Context Compression
+
+The agent ships with two complementary memory controls that work together to give you full command over what is remembered between runs and how the context window is managed during long sessions.
+
+#### Persistent Memory (`persistent_memory`)
+
+By default (`persistent_memory=True`) the agent reads and writes a `MEMORY.md` file under `$WORKSPACE_DIR/agents/{agent_name}/MEMORY.md`. Every message is appended to this file, and on the next run the file is loaded back as a system-level preamble so the agent remembers prior interactions.
+
+Set `persistent_memory=False` to disable all on-disk state — the agent starts from a blank slate every run and nothing is written to disk. This is useful for stateless API deployments, testing, or any scenario where you do not want cross-session carry-over.
+
+```python
+from swarms import Agent
+
+# --- Default: memory survives process restarts ---
+agent = Agent(
+    agent_name="Persistent-Agent",
+    model_name="gpt-4.1",
+    system_prompt="You are a helpful assistant.",
+    # persistent_memory=True is the default — MEMORY.md is read and written
+    # at $WORKSPACE_DIR/agents/Persistent-Agent/MEMORY.md
+)
+
+agent.run("My name is Alice and I work in finance.")
+# On the next run the agent will still know the user's name and role.
+
+
+# --- Stateless: no cross-session memory ---
+stateless_agent = Agent(
+    agent_name="Stateless-Agent",
+    model_name="gpt-4.1",
+    system_prompt="You are a helpful assistant.",
+    persistent_memory=False,  # no MEMORY.md read or written
+)
+
+stateless_agent.run("Summarise the latest news.")
+# Each invocation starts completely fresh — ideal for isolated, one-shot tasks.
+```
+
+#### Context Compression (`context_compression`)
+
+For long-running agents the conversation history can grow until it fills the context window. `context_compression=True` (the default) attaches a `ContextCompressor` that automatically summarises and collapses `MEMORY.md` whenever token usage crosses 90 % of `context_length`, keeping the window clear without losing important facts.
+
+Set `context_compression=False` if you prefer raw, unmodified history — for example when you need exact replay of every message for auditing.
+
+```python
+from swarms import Agent
+
+# --- Default: automatic summarisation when the window gets full ---
+agent = Agent(
+    agent_name="Long-Session-Agent",
+    model_name="gpt-4.1",
+    system_prompt="You are a research assistant.",
+    max_loops=10,
+    context_length=8192,
+    # context_compression=True is the default
+)
+
+agent.run("Deep-dive analysis of transformer architecture papers.")
+# If token usage passes ~7,372 tokens (90 % of 8192) the compressor
+# summarises MEMORY.md in place and continues without interruption.
+
+
+# --- Disabled: keep every raw message intact ---
+audit_agent = Agent(
+    agent_name="Audit-Agent",
+    model_name="gpt-4.1",
+    system_prompt="You are a compliance auditor.",
+    context_compression=False,  # never rewrite history
+)
+
+audit_agent.run("Review and log all decisions made in this session.")
+```
+
+#### Combining Both Controls
+
+```python
+from swarms import Agent
+
+# Persistent across runs + automatic context management (production default)
+production_agent = Agent(
+    agent_name="Production-Agent",
+    model_name="gpt-4.1",
+    system_prompt="You are a customer support assistant.",
+    persistent_memory=True,       # remember users between sessions
+    context_compression=True,     # keep the window healthy automatically
+    context_length=16000,
+)
+
+# Stateless + no compression (CI / unit-test friendly)
+test_agent = Agent(
+    agent_name="Test-Agent",
+    model_name="gpt-4.1",
+    system_prompt="You are a helpful assistant.",
+    persistent_memory=False,      # no disk I/O
+    context_compression=False,    # raw, deterministic history
+    print_on=False,
+)
 ```
 
 ### Agent Handoffs and Task Delegation
@@ -1640,6 +1740,7 @@ The `run` method now supports several new parameters for advanced functionality:
 | `auto_generate_prompt`   | Automatically generate system prompts based on tasks                    |
 | `plan_enabled`           | Enable planning functionality for complex tasks                          |
 | `context_compression`    | Auto-summarize MEMORY.md once token usage crosses 90% of context_length |
+| `persistent_memory`      | Read/write MEMORY.md across sessions; set `False` to start fresh each run |
 
 ### Enhanced Tool Management
 

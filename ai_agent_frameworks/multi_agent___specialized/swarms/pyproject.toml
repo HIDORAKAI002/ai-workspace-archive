@@ -5,9 +5,9 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "swarms"
-version = "11.0.0"
+version = "11.0.1"
 description = "Swarms - TGSC"
-license = "MIT"
+license = "Apache-2.0"
 authors = ["Kye Gomez <kye@swarms.world>"]
 homepage = "https://github.com/kyegomez/swarms"
 documentation = "https://docs.swarms.world"
@@ -50,7 +50,7 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
-    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3.10",
 ]
 

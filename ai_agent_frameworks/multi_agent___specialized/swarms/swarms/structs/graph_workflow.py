@@ -10,6 +10,7 @@ from pathlib import Path
 from enum import Enum
 from typing import (
     Any,
+    Callable,
     Dict,
     Iterator,
     List,
@@ -741,9 +742,11 @@ class GraphWorkflow:
         verbose: bool = False,
         backend: str = "networkx",
         checkpoint_dir: Optional[str] = None,
+        on_node_complete: Optional[Callable[[str, Any], None]] = None,
     ):
         self.id = id
         self.verbose = verbose
+        self.on_node_complete = on_node_complete
 
         if self.verbose:
             logger.info("Initializing GraphWorkflow")
@@ -1713,6 +1716,10 @@ class GraphWorkflow:
         self,
         task: Optional[str] = None,
         img: Optional[str] = None,
+        on_node_complete: Optional[Callable[[str, Any], None]] = None,
+        streaming_callback: Optional[
+            Callable[[str, str], None]
+        ] = None,
         *args: Any,
         **kwargs: Any,
     ) -> Dict[str, Any]:
@@ -1726,6 +1733,14 @@ class GraphWorkflow:
         Args:
             task (Optional[str]): Task to execute. Uses self.task if not provided.
             img (Optional[str]): Optional image path for multimodal tasks.
+            on_node_complete (Optional[Callable[[str, Any], None]]): Callback
+                fired immediately when each agent finishes, before the layer
+                completes. Receives ``(node_id, output)``. A callback passed
+                here takes precedence over the instance-level callback set in
+                ``__init__``.
+            streaming_callback (Optional[Callable[[str, str], None]]): Callback
+                fired for every token as agents generate output in real-time.
+                Receives ``(node_id, token)``.
             *args: Additional positional arguments.
             **kwargs: Additional keyword arguments.
 
@@ -1736,6 +1751,9 @@ class GraphWorkflow:
                 keyed as ``{node_id}_loop_{loop_number}`` plus the final
                 loop's results under the plain ``node_id`` keys.
         """
+        # Resolve callbacks: run-level overrides instance-level
+        _on_node_complete = on_node_complete or self.on_node_complete
+        _streaming_callback = streaming_callback
         run_start_time = time.time()
 
         if task is not None:
@@ -1904,12 +1922,25 @@ class GraphWorkflow:
                         # Submit all tasks
                         for node_id, agent, prompt in layer_data:
                             try:
+                                # Build per-agent kwargs, injecting
+                                # streaming_callback if provided.
+                                submit_kwargs = dict(kwargs)
+                                if _streaming_callback is not None:
+                                    _nid = (
+                                        node_id  # capture for closure
+                                    )
+                                    submit_kwargs[
+                                        "streaming_callback"
+                                    ] = lambda token, _nid=_nid: _streaming_callback(
+                                        _nid, token
+                                    )
+
                                 future = executor.submit(
                                     agent.run,
                                     prompt,
                                     img,
                                     *args,
-                                    **kwargs,
+                                    **submit_kwargs,
                                 )
                                 future_to_data[future] = (
                                     node_id,
@@ -1981,6 +2012,15 @@ class GraphWorkflow:
                                 logger.exception(
                                     f"Error adding output to conversation for agent {agent_name}: {e}"
                                 )
+
+                            # Fire the on_node_complete callback
+                            if _on_node_complete is not None:
+                                try:
+                                    _on_node_complete(node_id, output)
+                                except Exception as e:
+                                    logger.exception(
+                                        f"Error in on_node_complete callback for {agent_name}: {e}"
+                                    )
 
                     layer_execution_time = (
                         time.time() - layer_start_time

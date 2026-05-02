@@ -412,7 +412,8 @@ class TestGroqProvider:
 
     def test_groq_litellm_rejects_on_auth_not_params(self):
         """The call reaches Groq's API and is rejected for auth, not bad params.
-        This proves the request payload (no reasoning_effort, correct temp) is valid."""
+        This proves the request payload (no reasoning_effort, correct temp) is valid.
+        """
         llm = LiteLLM(
             model_name=GROQ_MODEL,
             system_prompt=SIMPLE_PROMPT,

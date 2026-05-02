@@ -931,5 +931,84 @@ def test_graph_workflow_single_loop_backward_compatible():
     ), "Single-loop results should not contain loop-suffixed keys"
 
 
+def test_graph_workflow_on_node_complete_callback_via_run():
+    """Test that on_node_complete callback fires for each agent when passed
+    to run() (fixes #1482)."""
+    agent1 = create_test_agent("Agent1", "Entry agent")
+    agent2 = create_test_agent("Agent2", "End agent")
+
+    workflow = GraphWorkflow(name="Callback-Run-Test")
+    workflow.add_node(agent1)
+    workflow.add_node(agent2)
+    workflow.add_edge(agent1, agent2)
+
+    completed = []
+
+    def on_complete(node_id, output):
+        completed.append((node_id, output))
+
+    result = workflow.run(
+        "Test callback via run",
+        on_node_complete=on_complete,
+    )
+    assert result is not None
+    assert len(completed) == 2
+
+    completed_ids = [nid for nid, _ in completed]
+    assert "Agent1" in completed_ids
+    assert "Agent2" in completed_ids
+
+    # Outputs in callback should match the returned results
+    for node_id, output in completed:
+        assert result[node_id] == output
+
+
+def test_graph_workflow_on_node_complete_callback_via_init():
+    """Test that on_node_complete callback works when set at __init__ level."""
+    agent1 = create_test_agent("Agent1", "Entry agent")
+    agent2 = create_test_agent("Agent2", "End agent")
+
+    completed = []
+
+    def on_complete(node_id, output):
+        completed.append(node_id)
+
+    workflow = GraphWorkflow(
+        name="Callback-Init-Test",
+        on_node_complete=on_complete,
+    )
+    workflow.add_node(agent1)
+    workflow.add_node(agent2)
+    workflow.add_edge(agent1, agent2)
+
+    result = workflow.run("Test callback via init")
+    assert result is not None
+    assert "Agent1" in completed
+    assert "Agent2" in completed
+
+
+def test_graph_workflow_on_node_complete_run_overrides_init():
+    """Test that a callback passed to run() takes precedence over __init__."""
+    agent1 = create_test_agent("Agent1", "Solo agent")
+
+    init_calls = []
+    run_calls = []
+
+    workflow = GraphWorkflow(
+        name="Callback-Override-Test",
+        on_node_complete=lambda nid, out: init_calls.append(nid),
+    )
+    workflow.add_node(agent1)
+
+    workflow.run(
+        "Test override",
+        on_node_complete=lambda nid, out: run_calls.append(nid),
+    )
+
+    # Only the run-level callback should have been called
+    assert len(run_calls) == 1
+    assert len(init_calls) == 0
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
