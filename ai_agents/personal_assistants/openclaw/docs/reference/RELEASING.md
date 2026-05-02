@@ -102,8 +102,10 @@ the maintainer-only release runbook.
   tag, or full commit SHA, dispatches manual `CI`, and dispatches
   `OpenClaw Release Checks` for install smoke, package acceptance, Docker
   release-path suites, live/E2E, OpenWebUI, QA Lab parity, Matrix, and Telegram
-  lanes. Provide `npm_telegram_package_spec` only after a package has been
-  published and the post-publish Telegram E2E should run too. Provide
+  lanes. With `release_profile=full` and `rerun_group=all`, it also runs package
+  Telegram E2E against the `release-package-under-test` artifact from release
+  checks. Provide `npm_telegram_package_spec` after publishing when the same
+  Telegram E2E should prove the published npm package too. Provide
   `evidence_package_spec` when the private evidence report should prove that the
   validation matches a published npm package without forcing Telegram E2E.
   Example:
@@ -233,8 +235,21 @@ Validation` or from the `main`/release workflow ref so workflow logic and
 ## Release test boxes
 
 `Full Release Validation` is how operators kick off all pre-release tests from
-one entrypoint. Run it from the trusted `main` workflow ref and pass the release
-branch, tag, or full commit SHA as `ref`:
+one entrypoint. For a pinned commit proof on a fast-moving branch, use the
+helper so every child workflow runs from a temporary branch fixed at the target
+SHA:
+
+```bash
+pnpm ci:full-release --sha <full-sha>
+```
+
+The helper pushes `release-ci/<sha>-...`, dispatches `Full Release Validation`
+from that branch with `ref=<sha>`, verifies every child workflow `headSha`
+matches the target, then deletes the temporary branch. This avoids proving a
+newer `main` child run by accident.
+
+For release branch or tag validation, run it from the trusted `main` workflow
+ref and pass the release branch or tag as `ref`:
 
 ```bash
 gh workflow run full-release-validation.yml \
@@ -247,14 +262,16 @@ gh workflow run full-release-validation.yml \
 ```
 
 The workflow resolves the target ref, dispatches manual `CI` with
-`target_ref=<release-ref>`, dispatches `OpenClaw Release Checks`, and
-optionally dispatches standalone post-publish Telegram E2E when
-`npm_telegram_package_spec` is set. `OpenClaw Release Checks` then fans out
-install smoke, cross-OS release checks, live/E2E Docker release-path coverage,
-Package Acceptance with Telegram package QA, QA Lab parity, live Matrix, and
-live Telegram. A full run is only acceptable when the `Full Release Validation`
-summary shows `normal_ci` and `release_checks` as successful, and any optional
-`npm_telegram` child is either successful or intentionally skipped. The final
+`target_ref=<release-ref>`, dispatches `OpenClaw Release Checks`, and dispatches
+standalone package Telegram E2E when `release_profile=full` with
+`rerun_group=all` or when `npm_telegram_package_spec` is set. `OpenClaw Release
+Checks` then fans out install smoke, cross-OS release checks, live/E2E Docker
+release-path coverage, Package Acceptance with Telegram package QA, QA Lab
+parity, live Matrix, and live Telegram. A full run is only acceptable when the
+`Full Release Validation`
+summary shows `normal_ci` and `release_checks` as successful. In full/all mode,
+the `npm_telegram` child must also be successful; outside full/all it is skipped
+unless a published `npm_telegram_package_spec` was provided. The final
 verifier summary includes slowest-job tables for each child run, so the release
 manager can see the current critical path without downloading logs.
 See [Full release validation](/reference/full-release-validation) for the
@@ -264,6 +281,9 @@ Child workflows are dispatched from the trusted ref that runs `Full Release
 Validation`, normally `--ref main`, even when the target `ref` points at an
 older release branch or tag. There is no separate Full Release Validation
 workflow-ref input; choose the trusted harness by choosing the workflow run ref.
+Do not use `--ref main -f ref=<sha>` for exact commit proof on moving `main`;
+raw commit SHAs cannot be workflow dispatch refs, so use
+`pnpm ci:full-release --sha <sha>` to create the pinned temporary branch.
 
 Use `release_profile` to select live/provider breadth:
 
@@ -305,6 +325,7 @@ gh workflow run full-release-validation.yml \
   -f ref=release/YYYY.M.D \
   -f provider=openai \
   -f mode=both \
+  -f release_profile=full \
   -f evidence_package_spec=openclaw@YYYY.M.D-beta.N \
   -f npm_telegram_package_spec=openclaw@YYYY.M.D-beta.N \
   -f npm_telegram_provider_mode=mock-openai
@@ -322,8 +343,9 @@ For bounded recovery, pass `rerun_group` to the umbrella. `all` is the real
 release-candidate run, `ci` runs only the normal CI child, `plugin-prerelease`
 runs only the release-only plugin child, `release-checks` runs every release
 box, and the narrower release groups are `install-smoke`, `cross-os`,
-`live-e2e`, `package`, `qa`, `qa-parity`, `qa-live`, and `npm-telegram` when the
-standalone package Telegram lane is supplied.
+`live-e2e`, `package`, `qa`, `qa-parity`, `qa-live`, and `npm-telegram`.
+Focused `npm-telegram` reruns require `npm_telegram_package_spec`; full/all runs
+with `release_profile=full` use the release-checks package artifact.
 
 ### Vitest
 
@@ -439,6 +461,8 @@ The canonical checklist for update and plugin validation is
 [Testing updates and plugins](/help/testing-updates-plugins). Use it when
 deciding which local, Docker, Package Acceptance, or release-check lane proves a
 plugin install/update, doctor cleanup, or published-package migration change.
+Exhaustive published update migration from every stable `2026.4.23+` package is
+a separate manual `Update Migration` workflow, not part of Full Release CI.
 
 Legacy package-acceptance leniency is intentionally time boxed. Packages through
 `2026.4.25` may use the compatibility path for metadata gaps already published
