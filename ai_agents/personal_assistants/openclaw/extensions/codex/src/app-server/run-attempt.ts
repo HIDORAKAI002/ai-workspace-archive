@@ -54,6 +54,7 @@ import {
   type CodexPluginConfig,
 } from "./config.js";
 import { projectContextEngineAssemblyForCodex } from "./context-engine-projection.js";
+import { applyCodexDynamicToolProfile } from "./dynamic-tool-profile.js";
 import { createCodexDynamicToolBridge, type CodexDynamicToolBridge } from "./dynamic-tools.js";
 import { handleCodexAppServerElicitationRequest } from "./elicitation-bridge.js";
 import { CodexAppServerEventProjector } from "./event-projector.js";
@@ -99,15 +100,6 @@ const CODEX_APP_SERVER_STARTUP_CONNECTION_CLOSE_MAX_ATTEMPTS = 3;
 const CODEX_TURN_COMPLETION_IDLE_TIMEOUT_MS = 60_000;
 const CODEX_TURN_TERMINAL_IDLE_TIMEOUT_MS = 30 * 60_000;
 const CODEX_STEER_ALL_DEBOUNCE_MS = 500;
-const CODEX_NATIVE_FIRST_DYNAMIC_TOOL_EXCLUDES = [
-  "read",
-  "write",
-  "edit",
-  "apply_patch",
-  "exec",
-  "process",
-  "update_plan",
-] as const;
 const LOG_FIELD_MAX_LENGTH = 160;
 
 type OpenClawCodingToolsOptions = NonNullable<
@@ -430,6 +422,7 @@ export async function runCodexAppServerAttempt(
         tokenBudget: params.contextTokenBudget,
       }),
       runMaintenance: runHarnessContextEngineMaintenance,
+      config: params.config,
       warn: (message) => embeddedAgentLog.warn(message),
     });
     historyMessages =
@@ -1178,6 +1171,7 @@ export async function runCodexAppServerAttempt(
           promptCache: result.promptCache,
         }),
         runMaintenance: runHarnessContextEngineMaintenance,
+        config: params.config,
         warn: (message) => embeddedAgentLog.warn(message),
       });
     }
@@ -1497,26 +1491,6 @@ async function buildDynamicTools(input: DynamicToolBuildParams) {
   });
 }
 
-function applyCodexDynamicToolProfile<T extends { name: string }>(
-  tools: T[],
-  config: CodexPluginConfig,
-): T[] {
-  const excludes = new Set<string>();
-  const profile = config.codexDynamicToolsProfile ?? "native-first";
-  if (profile === "native-first") {
-    for (const name of CODEX_NATIVE_FIRST_DYNAMIC_TOOL_EXCLUDES) {
-      excludes.add(name);
-    }
-  }
-  for (const name of config.codexDynamicToolsExclude ?? []) {
-    const trimmed = name.trim();
-    if (trimmed) {
-      excludes.add(trimmed);
-    }
-  }
-  return excludes.size === 0 ? tools : tools.filter((tool) => !excludes.has(tool.name));
-}
-
 async function withCodexStartupTimeout<T>(params: {
   timeoutMs: number;
   timeoutFloorMs?: number;
@@ -1638,6 +1612,7 @@ async function mirrorTranscriptBestEffort(params: {
       sessionKey: params.sessionKey,
       messages: params.result.messagesSnapshot,
       idempotencyScope: `codex-app-server:${params.threadId}:${params.turnId}`,
+      config: params.params.config,
     });
   } catch (error) {
     embeddedAgentLog.warn("failed to mirror codex app-server transcript", { error });

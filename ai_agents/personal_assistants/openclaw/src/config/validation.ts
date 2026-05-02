@@ -8,11 +8,6 @@ import {
   resolveEffectivePluginActivationState,
   resolveMemorySlotDecision,
 } from "../plugins/config-state.js";
-import {
-  collectRelevantDoctorPluginIds,
-  collectRelevantDoctorPluginIdsForTouchedPaths,
-  listPluginDoctorLegacyConfigRules,
-} from "../plugins/doctor-contract-registry.js";
 import { loadInstalledPluginIndexInstallRecordsSync } from "../plugins/installed-plugin-index-record-reader.js";
 import { resolveManifestCommandAliasOwnerInRegistry } from "../plugins/manifest-command-aliases.js";
 import type { PluginManifestRegistry } from "../plugins/manifest-registry.js";
@@ -38,7 +33,6 @@ import { findDuplicateAgentDirs, formatDuplicateAgentDirError } from "./agent-di
 import { appendAllowedValuesHint, summarizeAllowedValues } from "./allowed-values.js";
 import { GENERATED_BUNDLED_CHANNEL_CONFIG_METADATA } from "./bundled-channel-config-metadata.generated.js";
 import { collectChannelSchemaMetadata } from "./channel-config-metadata.js";
-import { findLegacyConfigIssues } from "./legacy.js";
 import { materializeRuntimeConfig } from "./materialize.js";
 import type { OpenClawConfig, ConfigValidationIssue } from "./types.js";
 import { coerceSecretRef } from "./types.secrets.js";
@@ -616,36 +610,13 @@ function validateGatewayTailscaleBind(config: OpenClawConfig): ConfigValidationI
  */
 export function validateConfigObjectRaw(
   raw: unknown,
-  opts?: {
+  _opts?: {
+    sourceRaw?: unknown;
     touchedPaths?: ReadonlyArray<ReadonlyArray<string>>;
   },
 ): { ok: true; config: OpenClawConfig } | { ok: false; issues: ConfigValidationIssue[] } {
   const normalizedRaw = stripDeprecatedValidationKeys(raw);
   const policyIssues = collectUnsupportedSecretRefPolicyIssues(normalizedRaw);
-  const doctorPluginIds = opts?.touchedPaths
-    ? collectRelevantDoctorPluginIdsForTouchedPaths({
-        raw: normalizedRaw,
-        touchedPaths: opts.touchedPaths,
-      })
-    : collectRelevantDoctorPluginIds(normalizedRaw);
-  const extraLegacyRules = listPluginDoctorLegacyConfigRules({
-    pluginIds: doctorPluginIds,
-  });
-  const legacyIssues = findLegacyConfigIssues(
-    normalizedRaw,
-    normalizedRaw,
-    extraLegacyRules,
-    opts?.touchedPaths,
-  );
-  if (legacyIssues.length > 0) {
-    return {
-      ok: false,
-      issues: legacyIssues.map((iss) => ({
-        path: iss.path,
-        message: iss.message,
-      })),
-    };
-  }
   const validated = OpenClawSchema.safeParse(normalizedRaw);
   if (!validated.success) {
     const schemaIssues = validated.error.issues.map((issue) => mapZodIssueToConfigIssue(issue));
@@ -686,8 +657,11 @@ export function validateConfigObjectRaw(
 
 export function validateConfigObject(
   raw: unknown,
+  opts?: {
+    sourceRaw?: unknown;
+  },
 ): { ok: true; config: OpenClawConfig } | { ok: false; issues: ConfigValidationIssue[] } {
-  const result = validateConfigObjectRaw(raw);
+  const result = validateConfigObjectRaw(raw, opts);
   if (!result.ok) {
     return result;
   }
@@ -716,6 +690,7 @@ type ValidateConfigWithPluginsParams = {
   loadPluginMetadataSnapshot?: (
     config: OpenClawConfig,
   ) => Pick<PluginMetadataSnapshot, "manifestRegistry">;
+  sourceRaw?: unknown;
 };
 
 export function validateConfigObjectWithPlugins(
@@ -728,6 +703,7 @@ export function validateConfigObjectWithPlugins(
     pluginValidation: params?.pluginValidation ?? "full",
     pluginMetadataSnapshot: params?.pluginMetadataSnapshot,
     loadPluginMetadataSnapshot: params?.loadPluginMetadataSnapshot,
+    sourceRaw: params?.sourceRaw,
   });
 }
 
@@ -741,6 +717,7 @@ export function validateConfigObjectRawWithPlugins(
     pluginValidation: params?.pluginValidation ?? "full",
     pluginMetadataSnapshot: params?.pluginMetadataSnapshot,
     loadPluginMetadataSnapshot: params?.loadPluginMetadataSnapshot,
+    sourceRaw: params?.sourceRaw,
   });
 }
 
@@ -748,7 +725,9 @@ function validateConfigObjectWithPluginsBase(
   raw: unknown,
   opts: ValidateConfigWithPluginsParams & { applyDefaults: boolean },
 ): ValidateConfigWithPluginsResult {
-  const base = opts.applyDefaults ? validateConfigObject(raw) : validateConfigObjectRaw(raw);
+  const base = opts.applyDefaults
+    ? validateConfigObject(raw, { sourceRaw: opts.sourceRaw })
+    : validateConfigObjectRaw(raw, { sourceRaw: opts.sourceRaw });
   if (!base.ok) {
     return { ok: false, issues: base.issues, warnings: [] };
   }

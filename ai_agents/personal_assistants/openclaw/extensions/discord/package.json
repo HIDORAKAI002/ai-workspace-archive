@@ -43,6 +43,7 @@
       "blurb": "very well supported right now.",
       "systemImage": "bubble.left.and.bubble.right",
       "markdownCapable": true,
+      "preferSessionLookupForAnnounceTarget": true,
       "commands": {
         "nativeCommandsAutoEnabled": true,
         "nativeSkillsAutoEnabled": true
@@ -67,9 +68,6 @@
     },
     "build": {
       "openclawVersion": "2026.5.2"
-    },
-    "bundle": {
-      "includeInCore": true
     },
     "release": {
       "publishToClawHub": true,
