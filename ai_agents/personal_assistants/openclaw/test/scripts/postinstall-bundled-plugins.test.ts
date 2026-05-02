@@ -1,8 +1,10 @@
+import { readFileSync as readFileSyncOriginal } from "node:fs";
 import fs from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import {
+  isSourceCheckoutRoot,
   isDirectPostinstallInvocation,
   pruneOpenClawCompileCache,
   pruneInstalledPackageDist,
@@ -134,6 +136,32 @@ describe("bundled plugin postinstall", () => {
     expect(warn).toHaveBeenCalledWith(
       "[postinstall] could not prune OpenClaw compile cache: Error: locked",
     );
+  });
+
+  it("does not classify published packages with source files as source checkouts", () => {
+    const packageRoot = "/pkg";
+    const existingPaths = new Set([
+      path.join(packageRoot, "package.json"),
+      path.join(packageRoot, "pnpm-workspace.yaml"),
+      path.join(packageRoot, "src"),
+      path.join(packageRoot, "extensions"),
+      path.join(packageRoot, "dist", "postinstall-inventory.json"),
+    ]);
+
+    expect(
+      isSourceCheckoutRoot({
+        packageRoot,
+        existsSync: (value: string) => existingPaths.has(value),
+        readFileSync: () =>
+          JSON.stringify({
+            openclaw: {
+              bundle: {
+                mirroredRootRuntimeDependencies: ["json5"],
+              },
+            },
+          }),
+      }),
+    ).toBe(false);
   });
 
   it("prunes source-checkout bundled plugin node_modules", async () => {
@@ -372,6 +400,34 @@ describe("bundled plugin postinstall", () => {
     ).toEqual(["dist/memory-state-old.js"]);
 
     await expect(fs.stat(importedChunk)).resolves.toBeTruthy();
+    await expect(fs.stat(staleFile)).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
+  it("does not abort dist pruning when a listed chunk disappears before import expansion", async () => {
+    const packageRoot = await createTempDirAsync("openclaw-packaged-install-missing-chunk-");
+    const entryFile = path.join(packageRoot, "dist", "control-ui", "assets", "instances.js");
+    const staleFile = path.join(packageRoot, "dist", "stale.js");
+    await fs.mkdir(path.dirname(entryFile), { recursive: true });
+    await fs.writeFile(entryFile, 'import "./chunk.js";\n');
+    await writePackageDistInventory(packageRoot);
+    await fs.writeFile(staleFile, "export {};\n");
+    const readFileSync = vi.fn((filePath: string | Buffer | URL, options?: BufferEncoding) => {
+      if (String(filePath).endsWith("dist/control-ui/assets/instances.js")) {
+        const error = new Error("missing generated asset") as NodeJS.ErrnoException;
+        error.code = "ENOENT";
+        throw error;
+      }
+      return readFileSyncOriginal(filePath, options);
+    });
+
+    expect(() =>
+      pruneInstalledPackageDist({
+        packageRoot,
+        readFileSync,
+        log: { log: vi.fn(), warn: vi.fn() },
+      }),
+    ).not.toThrow();
+
     await expect(fs.stat(staleFile)).rejects.toMatchObject({ code: "ENOENT" });
   });
 
