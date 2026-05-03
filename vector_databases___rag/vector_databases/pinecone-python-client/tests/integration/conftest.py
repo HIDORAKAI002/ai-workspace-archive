@@ -1,44 +1,230 @@
-import logging
-from pinecone import Pinecone
-from datetime import datetime, timedelta
-import dotenv
+"""Shared fixtures for integration tests.
 
-dotenv.load_dotenv()
+These tests make real API calls to Pinecone and require a .env file
+at the SDK root with PINECONE_API_KEY set:
+
+    echo 'PINECONE_API_KEY=your-api-key' > .env
+    cd sdks/python-sdk2 && uv run --with python-dotenv pytest tests/integration/ -v -s
+"""
+
+from __future__ import annotations
+
+import asyncio
+import os
+import time
+import uuid
+from collections.abc import AsyncGenerator
+from pathlib import Path
+
+import pytest
+import pytest_asyncio
+from dotenv import load_dotenv
+
+from pinecone import AsyncPinecone, Pinecone
 
 
-logger = logging.getLogger(__name__)
+def pytest_configure(config: pytest.Config) -> None:
+    config.addinivalue_line("markers", "integration: marks tests as real-API integration tests")
 
 
-def pytest_sessionfinish(session, exitstatus):
-    """
-    Hook that runs after all tests have completed.
-    This is a good place to clean up any resources that were created during the test session.
-    """
-    logger.info("Running final cleanup after all tests...")
+# Load .env from the SDK root (two levels up from tests/integration/)
+_env_path = Path(__file__).resolve().parent.parent.parent / ".env"
+load_dotenv(_env_path)
 
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+
+def wait_for_ready(
+    check_fn: object,
+    *,
+    timeout: int = 300,
+    interval: int = 5,
+    description: str = "resource",
+) -> None:
+    """Poll until check_fn() returns True or timeout expires."""
+    start = time.time()
+    while time.time() - start < timeout:
+        try:
+            if check_fn():  # type: ignore[operator]
+                return
+        except Exception:
+            pass
+        time.sleep(interval)
+    raise TimeoutError(f"{description} not ready after {timeout}s")
+
+
+def poll_until(
+    query_fn: object,
+    check_fn: object,
+    *,
+    timeout: int = 60,
+    interval: int = 3,
+    description: str = "condition",
+) -> object:
+    """Poll query_fn() until check_fn(result) is True. Returns the final result."""
+    start = time.time()
+    last_result = None
+    while time.time() - start < timeout:
+        try:
+            last_result = query_fn()  # type: ignore[operator]
+            if check_fn(last_result):  # type: ignore[operator]
+                return last_result
+        except Exception:
+            pass
+        time.sleep(interval)
+    raise TimeoutError(f"{description} not satisfied after {timeout}s (last result: {last_result})")
+
+
+def unique_name(prefix: str = "inttest") -> str:
+    """Generate a unique resource name using timestamp + random suffix."""
+    short_uuid = uuid.uuid4().hex[:8]
+    return f"{prefix}-{int(time.time())}-{short_uuid}"
+
+
+def cleanup_resource(
+    delete_fn: object,
+    resource_id: str,
+    resource_type: str = "resource",
+) -> None:
+    """Best-effort cleanup of a named resource. Logs but never raises."""
     try:
-        # Initialize Pinecone client
-        pc = Pinecone()
+        delete_fn()  # type: ignore[operator]
+        print(f"  Cleaned up {resource_type}: {resource_id}")
+    except Exception as exc:
+        print(f"  WARNING: Failed to clean up {resource_type} {resource_id}: {exc}")
 
-        # Get all indexes
-        indexes = pc.list_indexes()
 
-        # Find test indexes (those created during this test run)
-        test_indexes = [idx for idx in indexes.names() if idx.startswith("test-")]
+def ensure_index_deleted(
+    client: Pinecone,
+    name: str,
+    *,
+    timeout: int = 120,
+    interval: int = 3,
+) -> None:
+    """Delete an index and poll until it disappears. Best-effort; never raises.
 
-        # Delete test indexes that are older than 1 hour (in case of failed cleanup)
-        for index_name in test_indexes:
-            try:
-                description = pc.describe_index(name=index_name)
-                created_at = datetime.fromisoformat(description.created_at.replace("Z", "+00:00"))
+    Unlike ``cleanup_resource``, this waits for the backend to finish the
+    asynchronous delete so the name is released before the test returns,
+    which reduces cross-test index-quota flakes.
+    """
+    try:
+        client.indexes.delete(name)
+    except Exception as exc:
+        print(f"  WARNING: delete call failed for index {name}: {exc}")
 
-                if datetime.now(created_at.tzinfo) - created_at > timedelta(hours=1):
-                    logger.info(f"Cleaning up old test index: {index_name}")
-                    pc.delete_index(name=index_name, timeout=-1)
-            except Exception as e:
-                logger.warning(f"Failed to clean up index {index_name}: {str(e)}")
+    start = time.monotonic()
+    while time.monotonic() - start < timeout:
+        try:
+            listing = client.indexes.list()
+            existing = {i.name for i in listing.indexes}
+            if name not in existing:
+                print(f"  Cleaned up index: {name}")
+                return
+        except Exception as exc:
+            print(f"  WARNING: indexes.list() failed during cleanup of {name}: {exc}")
+        time.sleep(interval)
 
-    except Exception as e:
-        logger.error(f"Error during final cleanup: {str(e)}")
+    print(f"  WARNING: index {name} still present after {timeout}s — may leak quota")
 
-    logger.info("Final cleanup completed")
+
+async def async_cleanup_resource(
+    delete_fn: object,
+    resource_id: str,
+    resource_type: str = "resource",
+) -> None:
+    """Async best-effort cleanup. Logs but never raises."""
+    try:
+        await delete_fn()  # type: ignore[operator]
+        print(f"  Cleaned up {resource_type}: {resource_id}")
+    except Exception as exc:
+        print(f"  WARNING: Failed to clean up {resource_type} {resource_id}: {exc}")
+
+
+async def async_ensure_index_deleted(
+    async_client: AsyncPinecone,
+    name: str,
+    *,
+    timeout: int = 120,
+    interval: int = 3,
+) -> None:
+    """Async version of :func:`ensure_index_deleted`. Best-effort; never raises."""
+    try:
+        await async_client.indexes.delete(name)
+    except Exception as exc:
+        print(f"  WARNING: delete call failed for index {name}: {exc}")
+
+    start = time.monotonic()
+    while time.monotonic() - start < timeout:
+        try:
+            listing = await async_client.indexes.list()
+            existing = {i.name for i in listing.indexes}
+            if name not in existing:
+                print(f"  Cleaned up index: {name}")
+                return
+        except Exception as exc:
+            print(f"  WARNING: indexes.list() failed during cleanup of {name}: {exc}")
+        await asyncio.sleep(interval)
+
+    print(f"  WARNING: index {name} still present after {timeout}s — may leak quota")
+
+
+async def async_poll_until(
+    query_fn: object,
+    check_fn: object,
+    *,
+    timeout: int = 60,
+    interval: int = 3,
+    description: str = "condition",
+) -> object:
+    """Async version of poll_until."""
+    start = time.time()
+    last_result = None
+    while time.time() - start < timeout:
+        try:
+            last_result = await query_fn()  # type: ignore[operator]
+            if check_fn(last_result):  # type: ignore[operator]
+                return last_result
+        except Exception:
+            pass
+        await asyncio.sleep(interval)
+    raise TimeoutError(f"{description} not satisfied after {timeout}s (last result: {last_result})")
+
+
+# ---------------------------------------------------------------------------
+# Fixtures
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="session")
+def api_key() -> str:
+    """Pinecone API key from environment. Skips all tests if not set."""
+    key = os.getenv("PINECONE_API_KEY")
+    if not key:
+        pytest.skip("PINECONE_API_KEY not set")
+    return key
+
+
+@pytest.fixture(scope="session")
+def client(api_key: str) -> Pinecone:
+    """Session-scoped Pinecone client."""
+    return Pinecone(api_key=api_key)
+
+
+@pytest_asyncio.fixture(scope="function", loop_scope="function")
+async def async_client(api_key: str) -> AsyncGenerator[AsyncPinecone, None]:
+    """Function-scoped async Pinecone client (REST).
+
+    Uses an explicit ``await pc.close()`` in ``finally`` rather than
+    ``async with`` because pytest-asyncio's fixture-finalization phase
+    can run the ``async with`` exit handler after the event loop has
+    been closed, producing ``"Event loop is closed"`` errors when
+    HTTP/2 sockets are still open. See IT-0025 for context.
+    """
+    pc = AsyncPinecone(api_key=api_key)
+    try:
+        yield pc
+    finally:
+        await pc.close()

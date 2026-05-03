@@ -1,9 +1,294 @@
-import warnings
+"""msgspec.Struct models for the Pinecone SDK."""
 
-from pinecone.db_control.models import *
+from __future__ import annotations
 
-warnings.warn(
-    "The module at `pinecone.models` has moved to `pinecone.db_control.models`. "
-    "This warning will become an error in a future version of the Pinecone Python SDK.",
-    DeprecationWarning,
-)
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from pinecone.models.admin.api_key import (  # noqa: F401
+        APIKeyList,
+        APIKeyModel,
+        APIKeyRole,
+        APIKeyWithSecret,
+    )
+    from pinecone.models.admin.organization import (  # noqa: F401
+        OrganizationList,
+        OrganizationModel,
+    )
+    from pinecone.models.admin.project import ProjectList, ProjectModel  # noqa: F401
+    from pinecone.models.assistant.chat import (  # noqa: F401
+        ChatCitation,
+        ChatCompletionChoice,
+        ChatCompletionResponse,
+        ChatHighlight,
+        ChatMessage,
+        ChatReference,
+        ChatResponse,
+        ChatUsage,
+    )
+    from pinecone.models.assistant.context import (  # noqa: F401
+        ContextContentBlock,
+        ContextImageBlock,
+        ContextImageData,
+        ContextReference,
+        ContextResponse,
+        ContextSnippet,
+        ContextTextBlock,
+        FileReference,
+        MultimodalSnippet,
+        PageReference,
+        TextSnippet,
+    )
+    from pinecone.models.assistant.evaluation import (  # noqa: F401
+        AlignmentResult,
+        AlignmentScores,
+        EntailmentResult,
+    )
+    from pinecone.models.assistant.file_model import AssistantFileModel  # noqa: F401
+    from pinecone.models.assistant.list import (  # noqa: F401
+        ListAssistantsResponse,
+        ListFilesResponse,
+    )
+    from pinecone.models.assistant.message import Message  # noqa: F401
+    from pinecone.models.assistant.model import AssistantModel  # noqa: F401
+    from pinecone.models.assistant.options import ContextOptions  # noqa: F401
+    from pinecone.models.assistant.streaming import (  # noqa: F401
+        ChatCompletionStreamChoice,
+        ChatCompletionStreamChunk,
+        ChatCompletionStreamDelta,
+        ChatStreamChunk,
+        StreamCitationChunk,
+        StreamContentChunk,
+        StreamContentDelta,
+        StreamMessageEnd,
+        StreamMessageStart,
+    )
+    from pinecone.models.backups.list import BackupList, RestoreJobList  # noqa: F401
+    from pinecone.models.backups.model import (  # noqa: F401
+        BackupModel,
+        CreateIndexFromBackupResponse,
+        RestoreJobModel,
+    )
+    from pinecone.models.batch import BatchError, BatchResult  # noqa: F401
+    from pinecone.models.collections.list import CollectionList  # noqa: F401
+    from pinecone.models.collections.model import CollectionModel  # noqa: F401
+    from pinecone.models.enums import (  # noqa: F401
+        CloudProvider,
+        DeletionProtection,
+        EmbedModel,
+        Metric,
+        PodType,
+        RerankModel,
+        VectorType,
+    )
+    from pinecone.models.imports.list import ImportList  # noqa: F401
+    from pinecone.models.imports.model import ImportModel, StartImportResponse  # noqa: F401
+    from pinecone.models.indexes.index import (  # noqa: F401
+        ByocSpecInfo,
+        IndexModel,
+        IndexSpec,
+        IndexStatus,
+        PodSpecInfo,
+        ServerlessSpecInfo,
+    )
+    from pinecone.models.indexes.list import IndexList  # noqa: F401
+    from pinecone.models.indexes.specs import (  # noqa: F401
+        ByocSpec,
+        EmbedConfig,
+        IntegratedSpec,
+        PodSpec,
+        ServerlessSpec,
+    )
+    from pinecone.models.inference.embed import (  # noqa: F401
+        DenseEmbedding,
+        Embedding,
+        EmbeddingsList,
+        EmbedUsage,
+        SparseEmbedding,
+    )
+    from pinecone.models.inference.model_list import ModelInfoList  # noqa: F401
+    from pinecone.models.inference.models import (  # noqa: F401
+        ModelInfo,
+        ModelInfoSupportedParameter,
+    )
+    from pinecone.models.inference.rerank import (  # noqa: F401
+        RankedDocument,
+        RerankResult,
+        RerankUsage,
+    )
+    from pinecone.models.namespaces.models import (  # noqa: F401
+        ListNamespacesResponse,
+        NamespaceDescription,
+    )
+    from pinecone.models.response_info import BatchResponseInfo  # noqa: F401
+    from pinecone.models.vectors.query_aggregator import QueryNamespacesResults  # noqa: F401
+    from pinecone.models.vectors.responses import (  # noqa: F401
+        DescribeIndexStatsResponse,
+        FetchByMetadataResponse,
+        FetchResponse,
+        ListItem,
+        ListResponse,
+        NamespaceSummary,
+        Pagination,
+        QueryResponse,
+        ResponseInfo,
+        UpdateResponse,
+        UpsertRecordsResponse,
+        UpsertResponse,
+    )
+    from pinecone.models.vectors.search import (  # noqa: F401
+        Hit,
+        SearchRecordsResponse,
+        SearchResult,
+        SearchUsage,
+    )
+    from pinecone.models.vectors.sparse import SparseValues  # noqa: F401
+    from pinecone.models.vectors.usage import Usage  # noqa: F401
+    from pinecone.models.vectors.vector import ScoredVector, Vector  # noqa: F401
+
+_LAZY_IMPORTS: dict[str, str] = {
+    # Batch
+    "BatchError": "pinecone.models.batch",
+    "BatchResponseInfo": "pinecone.models.response_info",
+    "BatchResult": "pinecone.models.batch",
+    # Admin
+    "APIKeyList": "pinecone.models.admin.api_key",
+    "APIKeyModel": "pinecone.models.admin.api_key",
+    "APIKeyRole": "pinecone.models.admin.api_key",
+    "APIKeyWithSecret": "pinecone.models.admin.api_key",
+    "OrganizationList": "pinecone.models.admin.organization",
+    "OrganizationModel": "pinecone.models.admin.organization",
+    "ProjectList": "pinecone.models.admin.project",
+    "ProjectModel": "pinecone.models.admin.project",
+    # Assistant — chat
+    "ChatCitation": "pinecone.models.assistant.chat",
+    "ChatCompletionChoice": "pinecone.models.assistant.chat",
+    "ChatCompletionResponse": "pinecone.models.assistant.chat",
+    "ChatHighlight": "pinecone.models.assistant.chat",
+    "ChatMessage": "pinecone.models.assistant.chat",
+    "ChatReference": "pinecone.models.assistant.chat",
+    "ChatResponse": "pinecone.models.assistant.chat",
+    "ChatUsage": "pinecone.models.assistant.chat",
+    # Assistant — context
+    "ContextContentBlock": "pinecone.models.assistant.context",
+    "ContextImageBlock": "pinecone.models.assistant.context",
+    "ContextImageData": "pinecone.models.assistant.context",
+    "ContextReference": "pinecone.models.assistant.context",
+    "ContextResponse": "pinecone.models.assistant.context",
+    "ContextSnippet": "pinecone.models.assistant.context",
+    "ContextTextBlock": "pinecone.models.assistant.context",
+    "FileReference": "pinecone.models.assistant.context",
+    "MultimodalSnippet": "pinecone.models.assistant.context",
+    "PageReference": "pinecone.models.assistant.context",
+    "TextSnippet": "pinecone.models.assistant.context",
+    # Assistant — evaluation
+    "AlignmentResult": "pinecone.models.assistant.evaluation",
+    "AlignmentScores": "pinecone.models.assistant.evaluation",
+    "EntailmentResult": "pinecone.models.assistant.evaluation",
+    # Assistant — misc
+    "AssistantFileModel": "pinecone.models.assistant.file_model",
+    "ListAssistantsResponse": "pinecone.models.assistant.list",
+    "ListFilesResponse": "pinecone.models.assistant.list",
+    "Message": "pinecone.models.assistant.message",
+    "AssistantModel": "pinecone.models.assistant.model",
+    "ContextOptions": "pinecone.models.assistant.options",
+    # Assistant — streaming
+    "ChatCompletionStreamChoice": "pinecone.models.assistant.streaming",
+    "ChatCompletionStreamChunk": "pinecone.models.assistant.streaming",
+    "ChatCompletionStreamDelta": "pinecone.models.assistant.streaming",
+    "ChatStreamChunk": "pinecone.models.assistant.streaming",
+    "StreamCitationChunk": "pinecone.models.assistant.streaming",
+    "StreamContentChunk": "pinecone.models.assistant.streaming",
+    "StreamContentDelta": "pinecone.models.assistant.streaming",
+    "StreamMessageEnd": "pinecone.models.assistant.streaming",
+    "StreamMessageStart": "pinecone.models.assistant.streaming",
+    # Backups
+    "BackupList": "pinecone.models.backups.list",
+    "RestoreJobList": "pinecone.models.backups.list",
+    "BackupModel": "pinecone.models.backups.model",
+    "CreateIndexFromBackupResponse": "pinecone.models.backups.model",
+    "RestoreJobModel": "pinecone.models.backups.model",
+    # Collections
+    "CollectionList": "pinecone.models.collections.list",
+    "CollectionModel": "pinecone.models.collections.model",
+    # Enums
+    "CloudProvider": "pinecone.models.enums",
+    "DeletionProtection": "pinecone.models.enums",
+    "EmbedModel": "pinecone.models.enums",
+    "Metric": "pinecone.models.enums",
+    "PodType": "pinecone.models.enums",
+    "RerankModel": "pinecone.models.enums",
+    "VectorType": "pinecone.models.enums",
+    # Imports
+    "ImportList": "pinecone.models.imports.list",
+    "ImportModel": "pinecone.models.imports.model",
+    "StartImportResponse": "pinecone.models.imports.model",
+    # Indexes
+    "ByocSpecInfo": "pinecone.models.indexes.index",
+    "IndexModel": "pinecone.models.indexes.index",
+    "IndexSpec": "pinecone.models.indexes.index",
+    "IndexStatus": "pinecone.models.indexes.index",
+    "PodSpecInfo": "pinecone.models.indexes.index",
+    "ServerlessSpecInfo": "pinecone.models.indexes.index",
+    "IndexList": "pinecone.models.indexes.list",
+    "ByocSpec": "pinecone.models.indexes.specs",
+    "EmbedConfig": "pinecone.models.indexes.specs",
+    "IntegratedSpec": "pinecone.models.indexes.specs",
+    "PodSpec": "pinecone.models.indexes.specs",
+    "ServerlessSpec": "pinecone.models.indexes.specs",
+    # Inference
+    "DenseEmbedding": "pinecone.models.inference.embed",
+    "Embedding": "pinecone.models.inference.embed",
+    "EmbeddingsList": "pinecone.models.inference.embed",
+    "EmbedUsage": "pinecone.models.inference.embed",
+    "SparseEmbedding": "pinecone.models.inference.embed",
+    "ModelInfoList": "pinecone.models.inference.model_list",
+    "ModelInfo": "pinecone.models.inference.models",
+    "ModelInfoSupportedParameter": "pinecone.models.inference.models",
+    "RankedDocument": "pinecone.models.inference.rerank",
+    "RerankResult": "pinecone.models.inference.rerank",
+    "RerankUsage": "pinecone.models.inference.rerank",
+    # Namespaces
+    "ListNamespacesResponse": "pinecone.models.namespaces.models",
+    "NamespaceDescription": "pinecone.models.namespaces.models",
+    # Vectors
+    "QueryNamespacesResults": "pinecone.models.vectors.query_aggregator",
+    "DescribeIndexStatsResponse": "pinecone.models.vectors.responses",
+    "FetchByMetadataResponse": "pinecone.models.vectors.responses",
+    "FetchResponse": "pinecone.models.vectors.responses",
+    "ListItem": "pinecone.models.vectors.responses",
+    "ListResponse": "pinecone.models.vectors.responses",
+    "NamespaceSummary": "pinecone.models.vectors.responses",
+    "Pagination": "pinecone.models.vectors.responses",
+    "QueryResponse": "pinecone.models.vectors.responses",
+    "ResponseInfo": "pinecone.models.response_info",
+    "UpdateResponse": "pinecone.models.vectors.responses",
+    "UpsertRecordsResponse": "pinecone.models.vectors.responses",
+    "UpsertResponse": "pinecone.models.vectors.responses",
+    "Hit": "pinecone.models.vectors.search",
+    "SearchRecordsResponse": "pinecone.models.vectors.search",
+    "SearchResult": "pinecone.models.vectors.search",
+    "SearchUsage": "pinecone.models.vectors.search",
+    "SparseValues": "pinecone.models.vectors.sparse",
+    "Usage": "pinecone.models.vectors.usage",
+    "ScoredVector": "pinecone.models.vectors.vector",
+    "Vector": "pinecone.models.vectors.vector",
+}
+
+__all__ = list(_LAZY_IMPORTS.keys())
+
+
+def __getattr__(name: str) -> Any:
+    """Lazy-load models on first access."""
+    if name in _LAZY_IMPORTS:
+        from importlib import import_module
+
+        module = import_module(_LAZY_IMPORTS[name])
+        return getattr(module, name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+def __dir__() -> list[str]:
+    import builtins
+
+    return builtins.list({*globals(), *__all__, *_LAZY_IMPORTS})

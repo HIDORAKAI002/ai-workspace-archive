@@ -1,38 +1,15 @@
-from dataclasses import dataclass
-from .utils import DictLike
+"""Backwards-compatibility shim for :mod:`pinecone.db_data.dataclasses.search_query_vector`.
 
+Re-exports classes that used to live at
+:mod:`pinecone.db_data.dataclasses.search_query_vector`
+before the `python-sdk2` rewrite. Preserved to keep pre-rewrite callers working.
+New code should import from the canonical module.
 
-@dataclass
-class SearchQueryVector(DictLike):
-    """
-    SearchQueryVector represents the vector values used to query.
-    """
+:meta private:
+"""
 
-    values: list[float] | None = None
-    """
-    The vector data included in the search request.
-    Optional.
-    """
+from __future__ import annotations
 
-    sparse_values: list[float] | None = None
-    """
-    The sparse embedding values to search with.
-    Optional.
-    """
+from pinecone.models.vectors.search import SearchQueryVector
 
-    sparse_indices: list[int] | None = None
-    """
-    The sparse embedding indices to search with.
-    Optional.
-    """
-
-    def as_dict(self) -> dict:
-        """
-        Returns the SearchQueryVector as a dictionary.
-        """
-        d = {
-            "values": self.values,
-            "sparse_values": self.sparse_values,
-            "sparse_indices": self.sparse_indices,
-        }
-        return {k: v for k, v in d.items() if v is not None}
+__all__ = ["SearchQueryVector"]

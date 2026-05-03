@@ -1,110 +1,55 @@
+"""Backwards-compatibility shim for :mod:`pinecone.config.config`.
+
+Re-exports classes that used to live at :mod:`pinecone.config.config` before
+the ``python-sdk2`` rewrite. Preserved to keep pre-rewrite callers working.
+New code should import from the canonical module.
+
+:meta private:
+"""
+
+# XXX: no canonical equivalent; this shim is the only definition
 from __future__ import annotations
 
-from typing import NamedTuple, TYPE_CHECKING
-import os
+from typing import NamedTuple
 
-from pinecone.exceptions import PineconeConfigurationError
-from pinecone.config.openapi_config_factory import OpenApiConfigFactory
+from pinecone._internal.http_client import _redact_headers
 
-if TYPE_CHECKING:
-    from pinecone.config.openapi_configuration import Configuration as OpenApiConfiguration
+__all__ = ["Config"]
 
-
-# Duplicated this util to help resolve circular imports
-def normalize_host(host: str | None) -> str:
-    if host is None:
-        return ""
-    if host.startswith("https://"):
-        return host
-    if host.startswith("http://"):
-        return host
-    return "https://" + host
+_EMPTY_HEADERS: dict[str, str] = {}
 
 
 class Config(NamedTuple):
+    """Legacy SDK configuration named tuple.
+
+    Fields mirror the legacy :class:`pinecone.config.config.Config` from
+    before the ``python-sdk2`` rewrite.
+    """
+
     api_key: str = ""
     host: str = ""
     proxy_url: str | None = None
     proxy_headers: dict[str, str] | None = None
     ssl_ca_certs: str | None = None
     ssl_verify: bool | None = None
-    additional_headers: dict[str, str] | None = {}
+    additional_headers: dict[str, str] = _EMPTY_HEADERS
     source_tag: str | None = None
 
-
-class ConfigBuilder:
-    """
-
-    Configurations are resolved in the following order:
-
-    - configs passed as keyword parameters
-    - configs specified in environment variables
-    - default values (if applicable)
-    """
-
-    """Initializes the Pinecone client.
-
-    :param api_key: Required if not set in config file or by environment variable ``PINECONE_API_KEY``.
-    :param host: Optional. Controller host.
-    :param openapi_config: Optional. Set OpenAPI client configuration.
-    """
-
-    @staticmethod
-    def build(
-        api_key: str | None = None,
-        host: str | None = None,
-        proxy_url: str | None = None,
-        proxy_headers: dict[str, str] | None = None,
-        ssl_ca_certs: str | None = None,
-        ssl_verify: bool | None = None,
-        additional_headers: dict[str, str] | None = {},
-        **kwargs,
-    ) -> Config:
-        api_key = api_key or kwargs.pop("api_key", None) or os.getenv("PINECONE_API_KEY")
-        host = host or kwargs.pop("host", None)
-        host = normalize_host(host)
-        source_tag = kwargs.pop("source_tag", None)
-
-        if not api_key:
-            raise PineconeConfigurationError(
-                "You haven't specified an API key. Please either set the PINECONE_API_KEY environment variable or pass the 'api_key' keyword argument to the Pinecone client constructor."
-            )
-        if not host:
-            raise PineconeConfigurationError("You haven't specified a host.")
-
-        return Config(
-            api_key,
-            host,
-            proxy_url,
-            proxy_headers,
-            ssl_ca_certs,
-            ssl_verify,
-            additional_headers,
-            source_tag,
+    def __repr__(self) -> str:
+        masked_key = f"...{self.api_key[-4:]}" if len(self.api_key) >= 4 else "***"
+        redacted_additional = _redact_headers(self.additional_headers)
+        redacted_proxy = (
+            _redact_headers(self.proxy_headers) if self.proxy_headers is not None else None
         )
-
-    @staticmethod
-    def build_openapi_config(
-        config: Config, openapi_config: "OpenApiConfiguration" | None = None, **kwargs
-    ) -> "OpenApiConfiguration":
-        if openapi_config:
-            openapi_config = OpenApiConfigFactory.copy(
-                openapi_config=openapi_config, api_key=config.api_key, host=config.host
-            )
-        elif openapi_config is None:
-            openapi_config = OpenApiConfigFactory.build(api_key=config.api_key, host=config.host)
-
-        # Check if value passed before overriding any values present
-        # in the openapi_config. This means if the user has passed
-        # an openapi_config object and a kwarg for the same setting,
-        # the kwarg will take precedence.
-        if config.proxy_url:
-            openapi_config.proxy = config.proxy_url
-        if config.proxy_headers:
-            openapi_config.proxy_headers = config.proxy_headers
-        if config.ssl_ca_certs:
-            openapi_config.ssl_ca_cert = config.ssl_ca_certs
-        if config.ssl_verify is not None:
-            openapi_config.verify_ssl = config.ssl_verify
-
-        return openapi_config
+        return (
+            f"Config("
+            f"api_key={masked_key!r}, "
+            f"host={self.host!r}, "
+            f"proxy_url={self.proxy_url!r}, "
+            f"proxy_headers={redacted_proxy!r}, "
+            f"ssl_ca_certs={self.ssl_ca_certs!r}, "
+            f"ssl_verify={self.ssl_verify!r}, "
+            f"additional_headers={redacted_additional!r}, "
+            f"source_tag={self.source_tag!r}"
+            f")"
+        )
