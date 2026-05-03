@@ -1,19 +1,14 @@
-from dataclasses import dataclass
+"""Backwards-compatibility shim for :mod:`pinecone.models.vectors.sparse`.
 
-from .utils import DictLike
-from ..types import SparseVectorTypedDict
+Re-exports the canonical ``SparseValues`` class that used to live at this
+path before the ``python-sdk2`` rewrite. Preserved to keep pre-rewrite
+callers working. New code should import from the canonical module.
 
+:meta private:
+"""
 
-@dataclass
-class SparseValues(DictLike):
-    indices: list[int]
-    values: list[float]
+from __future__ import annotations
 
-    def to_dict(self) -> SparseVectorTypedDict:
-        return {"indices": self.indices, "values": self.values}
+from pinecone.models.vectors.sparse import SparseValues
 
-    @staticmethod
-    def from_dict(sparse_values_dict: SparseVectorTypedDict) -> "SparseValues":
-        return SparseValues(
-            indices=sparse_values_dict["indices"], values=sparse_values_dict["values"]
-        )
+__all__ = ["SparseValues"]

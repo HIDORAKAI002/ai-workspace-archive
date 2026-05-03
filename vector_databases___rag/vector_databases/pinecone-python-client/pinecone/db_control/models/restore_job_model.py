@@ -1,25 +1,14 @@
-import json
-from pinecone.core.openapi.db_control.model.restore_job_model import (
-    RestoreJobModel as OpenAPIRestoreJobModel,
-)
-from pinecone.utils.repr_overrides import custom_serializer
+"""Backwards-compatibility shim for :mod:`pinecone.models.backups.model`.
 
+Re-exports classes that used to live at :mod:`pinecone.db_control.models.restore_job_model`
+before the `python-sdk2` rewrite. Preserved to keep pre-rewrite callers working.
+New code should import from the canonical module.
 
-class RestoreJobModel:
-    def __init__(self, restore_job: OpenAPIRestoreJobModel):
-        self.restore_job = restore_job
+:meta private:
+"""
 
-    def __str__(self):
-        return str(self.restore_job)
+from __future__ import annotations
 
-    def __getattr__(self, attr):
-        return getattr(self.restore_job, attr)
+from pinecone.models.backups.model import RestoreJobModel
 
-    def __getitem__(self, key):
-        return self.__getattr__(key)
-
-    def __repr__(self):
-        return json.dumps(self.to_dict(), indent=4, default=custom_serializer)
-
-    def to_dict(self):
-        return self.restore_job.to_dict()
+__all__ = ["RestoreJobModel"]

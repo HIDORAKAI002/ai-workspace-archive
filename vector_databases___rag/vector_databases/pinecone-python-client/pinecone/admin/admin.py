@@ -1,344 +1,316 @@
-from pinecone.config import OpenApiConfiguration, Config
-from pinecone.openapi_support import ApiClient
-from pinecone.core.openapi.oauth import API_VERSION
-from pinecone.core.openapi.oauth.apis import OAuthApi
-from pinecone.core.openapi.oauth.models import TokenRequest
-from pinecone.utils import get_user_agent
+"""Admin client for Pinecone organization and project management."""
+
+from __future__ import annotations
+
 import os
-from copy import deepcopy
+from typing import TYPE_CHECKING, Any
+
+import httpx
+import orjson
+
+from pinecone import __version__
+from pinecone._internal.config import PineconeConfig
+from pinecone._internal.constants import ADMIN_API_VERSION, API_VERSION_HEADER, DEFAULT_BASE_URL
+from pinecone._internal.http_client import HTTPClient, _build_socket_options, _RetryTransport
+from pinecone._internal.user_agent import build_user_agent
+from pinecone.errors.exceptions import (
+    ApiError,
+    PineconeConnectionError,
+    PineconeTimeoutError,
+    ValidationError,
+)
+
+if TYPE_CHECKING:
+    from pinecone.admin.api_keys import ApiKeys
+    from pinecone.admin.organizations import Organizations
+    from pinecone.admin.projects import Projects
+
+_OAUTH_URL: str = "https://login.pinecone.io/oauth/token"
+_OAUTH_AUDIENCE: str = "https://api.pinecone.io/"
 
 
 class Admin:
-    """
-    A class for accessing the Pinecone Admin API.
+    """Admin client for Pinecone organization and project management.
 
-    A prerequisite for using this class is to have a `service account <https://docs.pinecone.io/guides/organizations/manage-service-accounts>`_. To create a service
-    account, visit the `Pinecone web console <https://app.pinecone.io>`_ and navigate to
-    the ``Access > Service Accounts`` section.
+    Authenticates via OAuth2 client credentials flow to obtain a Bearer
+    token used for all admin API calls.
 
-    After creating a service account, you will be provided with a client ID and secret.
-    These values can be passed to the Admin constructor or set the ``PINECONE_CLIENT_ID``
-    and ``PINECONE_CLIENT_SECRET`` environment variables.
+    **Auth model:** :class:`Admin` uses OAuth2 client credentials (service account), while
+    :class:`~pinecone.Pinecone` uses API keys.  These serve different purposes:
 
+    - :class:`Admin` — organization/project/key management (create projects, rotate keys, etc.)
+    - :class:`~pinecone.Pinecone` — index and vector operations (upsert, query, etc.)
 
-    :param client_id: The client ID for the Pinecone API. To obtain a client ID and secret,
-        you must create a service account via the Pinecone web console. This value can be
-        passed using keyword arguments or set the ``PINECONE_CLIENT_ID`` environment variable.
-    :type client_id: Optional[str]
-    :param client_secret: The client secret for the Pinecone API. To obtain a client ID
-        and secret, you must create a service account via the Pinecone web console. This value
-        can be passed using keyword arguments or set the ``PINECONE_CLIENT_SECRET`` environment
-        variable.
-    :type client_secret: Optional[str]
-    :param additional_headers: Additional headers to use for the Pinecone API. This is a
-        dictionary of key-value pairs. This is primarily used for internal testing
-        purposes.
-    :type additional_headers: Optional[dict[str, str]]
+    A common workflow bridges both: use :class:`Admin` to create a project and API key, then
+    pass that key to :class:`~pinecone.Pinecone` for data-plane operations::
+
+        from pinecone import Admin, Pinecone, ServerlessSpec
+
+        admin = Admin(client_id="...", client_secret="...")
+        project = admin.projects.create(name="my-project")
+        key = admin.api_keys.create(project_id=project.id, name="my-key")
+        pc = Pinecone(api_key=key.value)
+        pc.indexes.create(name="my-index", dimension=1536, metric="cosine",
+                          spec=ServerlessSpec(cloud="aws", region="us-east-1"))
+
+    Projects are created within the organization associated with your OAuth credentials.
+
+    .. note::
+        **Obtaining OAuth credentials** — Service account credentials (``client_id`` and
+        ``client_secret``) are created in the Pinecone console:
+
+        1. Go to `console.pinecone.io <https://console.pinecone.io>`_.
+        2. Navigate to **Organization Settings** → **Service Accounts**.
+        3. Click **Create Service Account**, assign the desired role, and save the generated
+           ``client_id`` and ``client_secret``.
+
+        These differ from the API keys used by :class:`~pinecone.Pinecone`; they are scoped to
+        your organization and used exclusively for admin operations.
+
+    Args:
+        client_id (str | None): OAuth2 client ID. Falls back to ``PINECONE_CLIENT_ID`` env var.
+        client_secret (str | None): OAuth2 client secret. Falls back to ``PINECONE_CLIENT_SECRET``
+            env var.
+        additional_headers (dict[str, str] | None): Extra headers included in every admin API
+            request.
+        proxy_url (str | None): HTTP proxy URL for outgoing requests.
+        ssl_verify (bool): Whether to verify SSL certificates. Defaults to ``True``.
+        source_tag (str | None): Tag appended to the User-Agent string for request attribution.
+
+    Raises:
+        :exc:`~pinecone.errors.exceptions.PineconeValueError`:
+            If client_id or client_secret cannot be resolved.
+        :exc:`ApiError`: If the OAuth token request fails.
+
+    Examples:
+
+        >>> from pinecone import Admin
+        >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
+        >>> for org in admin.organizations.list():
+        ...     print(org.name)
     """
 
     def __init__(
         self,
+        *,
         client_id: str | None = None,
         client_secret: str | None = None,
         additional_headers: dict[str, str] | None = None,
-    ):
-        """
-        Initialize the ``Admin`` class.
+        proxy_url: str | None = None,
+        ssl_verify: bool = True,
+        source_tag: str | None = None,
+    ) -> None:
+        resolved_id = client_id or os.environ.get("PINECONE_CLIENT_ID", "")
+        resolved_secret = client_secret or os.environ.get("PINECONE_CLIENT_SECRET", "")
 
-        :param client_id: The client ID for the Pinecone API. To obtain a client ID and secret,
-          you must create a service account via the Pinecone web console. This value can be
-          passed using keyword arguments or set the ``PINECONE_CLIENT_ID`` environment variable.
-        :type client_id: Optional[str]
-        :param client_secret: The client secret for the Pinecone API. To obtain a client ID
-          and secret, you must create a service account via the Pinecone web console. This value
-          can be passed using keyword arguments or set the ``PINECONE_CLIENT_SECRET`` environment
-          variable.
-        :type client_secret: Optional[str]
-        :param additional_headers: Additional headers to use for the Pinecone API. This is a
-          dictionary of key-value pairs. This is primarily used for internal testing
-          purposes.
-        :type additional_headers: Optional[dict[str, str]]
-
-        Examples
-        --------
-
-        .. code-block:: python
-            :caption: Initialize Admin using environment variables
-
-            import os
-            from pinecone import Admin
-
-            # Set environment variables
-            os.environ["PINECONE_CLIENT_ID"] = "your-client-id"
-            os.environ["PINECONE_CLIENT_SECRET"] = "your-client-secret"
-
-            # Initialize Admin (reads from environment variables)
-            admin = Admin()
-
-        .. code-block:: python
-            :caption: Initialize Admin with explicit credentials
-
-            from pinecone import Admin
-
-            # Initialize Admin with explicit credentials
-            admin = Admin(
-                client_id="your-client-id",
-                client_secret="your-client-secret"
+        if not resolved_id or not resolved_id.strip():
+            raise ValidationError(
+                "No client_id provided. Pass client_id='...' or set the "
+                "PINECONE_CLIENT_ID environment variable."
+            )
+        if not resolved_secret or not resolved_secret.strip():
+            raise ValidationError(
+                "No client_secret provided. Pass client_secret='...' or set the "
+                "PINECONE_CLIENT_SECRET environment variable."
             )
 
-        .. code-block:: python
-            :caption: Initialize Admin with additional headers
+        resolved_source_tag = source_tag or ""
 
-            from pinecone import Admin
-
-            # Initialize Admin with additional headers for testing
-            admin = Admin(
-                client_id="your-client-id",
-                client_secret="your-client-secret",
-                additional_headers={"X-Custom-Header": "value"}
-            )
-
-        """
-
-        if client_id is not None:
-            self._client_id = client_id
-        else:
-            self._client_id = os.environ.get("PINECONE_CLIENT_ID", "")
-        if self._client_id is None or self._client_id == "":
-            raise ValueError(
-                "client_id is not set or is empty. Pass client_id to the Admin constructor or set the PINECONE_CLIENT_ID environment variable."
-            )
-
-        if client_secret is not None:
-            self._client_secret = client_secret
-        else:
-            self._client_secret = os.environ.get("PINECONE_CLIENT_SECRET", "")
-        if self._client_secret is None or self._client_secret == "":
-            raise ValueError(
-                "client_secret is not set or is empty. Pass client_secret to the Admin constructor or set the PINECONE_CLIENT_SECRET environment variable."
-            )
-
-        if additional_headers is None:
-            additional_headers = {}
-
-        _oauth_api_config = OpenApiConfiguration(host="https://login.pinecone.io")
-
-        _oauth_api_client = ApiClient(configuration=_oauth_api_config)
-        _oauth_api_client.set_default_header("X-Pinecone-Api-Version", API_VERSION)
-        for key, value in additional_headers.items():
-            _oauth_api_client.set_default_header(key, value)
-        _oauth_api_client.user_agent = get_user_agent(Config())
-
-        _oauth_api = OAuthApi(_oauth_api_client)
-        token_request = TokenRequest(
-            client_id=self._client_id,
-            client_secret=self._client_secret,
-            grant_type="client_credentials",
-            audience="https://api.pinecone.io/",
+        token = self._fetch_token(
+            resolved_id,
+            resolved_secret,
+            proxy_url=proxy_url,
+            ssl_verify=ssl_verify,
+            source_tag=resolved_source_tag,
         )
-        token_response = _oauth_api.get_token(token_request)
-        self._token = token_response.access_token
 
-        _child_api_config = deepcopy(_oauth_api_config)
-        _child_api_config.host = "https://api.pinecone.io"
-        _child_api_config.api_key_prefix = {"BearerAuth": "Bearer"}
-        _child_api_config.api_key = {"BearerAuth": self._token}
+        headers: dict[str, str] = {
+            "Authorization": f"Bearer {token}",
+            API_VERSION_HEADER: ADMIN_API_VERSION,
+        }
+        if additional_headers:
+            headers.update(additional_headers)
 
-        self._child_api_client = ApiClient(configuration=_child_api_config)
-        self._child_api_client.set_default_header("X-Pinecone-Api-Version", API_VERSION)
-        for key, value in additional_headers.items():
-            self._child_api_client.set_default_header(key, value)
-        self._child_api_client.user_agent = get_user_agent(Config())
+        config = PineconeConfig(
+            api_key="",
+            host=DEFAULT_BASE_URL,
+            additional_headers=headers,
+            proxy_url=proxy_url or "",
+            ssl_verify=ssl_verify,
+            source_tag=resolved_source_tag,
+        )
+        # Prevent __post_init__ from falling back to PINECONE_API_KEY env var.
+        # The Admin client authenticates via OAuth Bearer token, not Api-Key.
+        object.__setattr__(config, "api_key", "")
 
-        # Lazily initialize resources
-        from typing import TYPE_CHECKING
+        self._http = HTTPClient(config, ADMIN_API_VERSION)
 
-        if TYPE_CHECKING:
-            from pinecone.admin.resources import (
-                ProjectResource,
-                ApiKeyResource,
-                OrganizationResource,
-            )
+        self._organizations: Organizations | None = None
+        self._projects: Projects | None = None
+        self._api_keys: ApiKeys | None = None
 
-            self._project: ProjectResource | None = None
-            self._api_key: ApiKeyResource | None = None
-            self._organization: OrganizationResource | None = None
-        else:
-            self._project = None  # type: ignore[assignment]
-            self._api_key = None  # type: ignore[assignment]
-            self._organization = None  # type: ignore[assignment]
+    def _fetch_token(
+        self,
+        client_id: str,
+        client_secret: str,
+        *,
+        proxy_url: str | None = None,
+        ssl_verify: bool = True,
+        source_tag: str | None = None,
+    ) -> str:
+        """Exchange client credentials for a Bearer token.
 
-    @property
-    def project(self):
-        """A namespace for project-related operations
+        Args:
+            client_id: OAuth2 client ID.
+            client_secret: OAuth2 client secret.
+            proxy_url: Optional HTTP proxy URL.
+            ssl_verify: Whether to verify SSL certificates.
+            source_tag: Optional source tag to append to the User-Agent string.
 
-        Alias for :func:`projects`.
+        Returns:
+            The access token string.
 
-        To learn about all project-related operations, see :func:`pinecone.admin.resources.ProjectResource`.
-
-        Examples
-        --------
-
-        .. code-block:: python
-            :caption: Creating a project
-
-            from pinecone import Admin
-
-            # Using environment variables to pass PINECONE_CLIENT_ID and PINECONE_CLIENT_SECRET
-            admin = Admin()
-
-            # Create a project with no quota for pod indexes
-            admin.project.create(
-                name="my-project",
-                max_pods=0
-            )
-
-        .. code-block:: python
-            :caption: Listing all projects
-
-            from pinecone import Admin
-
-            admin = Admin()
-            admin.projects.list()
-
-        .. code-block:: python
-            :caption: Deleting a project
-
-            from pinecone import Admin
-
-            admin = Admin()
-            project = admin.project.get(name="my-project")
-            admin.project.delete(project_id=project.id)
-
+        Raises:
+            ApiError: If the token request fails.
         """
-        if self._project is None:
-            from pinecone.admin.resources import ProjectResource
+        body = orjson.dumps(
+            {
+                "client_id": client_id,
+                "client_secret": client_secret,
+                "grant_type": "client_credentials",
+                "audience": _OAUTH_AUDIENCE,
+            }
+        )
 
-            self._project = ProjectResource(self._child_api_client)
-        return self._project
+        transport = _RetryTransport(
+            transport=httpx.HTTPTransport(http2=False, socket_options=_build_socket_options()),
+        )
+        with httpx.Client(
+            transport=transport,
+            proxy=proxy_url or None,
+            verify=ssl_verify,
+        ) as client:
+            try:
+                response = client.post(
+                    _OAUTH_URL,
+                    content=body,
+                    headers={
+                        "Content-Type": "application/json",
+                        "User-Agent": build_user_agent(__version__, source_tag),
+                        API_VERSION_HEADER: ADMIN_API_VERSION,
+                    },
+                )
+            except httpx.TimeoutException as exc:
+                raise PineconeTimeoutError(str(exc)) from exc
+            except httpx.TransportError as exc:
+                raise PineconeConnectionError(str(exc)) from exc
 
-    @property
-    def projects(self):
-        """Alias for :func:`project`"""
-        return self.project
+        if not response.is_success:
+            err_body: dict[str, Any] | None = None
+            try:
+                err_body = response.json()
+            except Exception:
+                err_body = None
 
-    @property
-    def api_key(self):
-        """A namespace for api key-related operations
+            message = "OAuth token request failed"
+            if err_body and isinstance(err_body.get("error_description"), str):
+                message = err_body["error_description"]
+            elif err_body and isinstance(err_body.get("error"), str):
+                message = err_body["error"]
 
-        Alias for :func:`api_keys`.
-
-        To learn about all api key-related operations, see :func:`pinecone.admin.resources.ApiKeyResource`.
-
-        Examples
-        --------
-
-        .. code-block:: python
-            :caption: Creating an API key
-
-            from pinecone import Admin
-
-            admin = Admin()
-
-            project = admin.project.get(name="my-project")
-
-            admin.api_key.create(
-                name="my-api-key",
-                project_id=project.id,
-                description="my-api-key-description",
-                roles=["ProjectEditor"]
+            raise ApiError(
+                message=message,
+                status_code=response.status_code,
+                body=err_body,
             )
 
-        .. code-block:: python
-            :caption: Listing all API keys for a project
-
-            from pinecone import Admin
-
-            admin = Admin()
-            project = admin.project.get(name="my-project")
-            admin.api_key.list(project_id=project.id)
-
-        .. code-block:: python
-            :caption: Deleting an API key
-
-            from pinecone import Admin
-
-            admin = Admin()
-            project = admin.project.get(name="my-project")
-
-            # List api keys for the project
-            keys_list = admin.api_key.list(project_id=project.id)
-
-            # Delete the first api key in the list
-            admin.api_key.delete(api_key_id=keys_list[0].id)
-
-        """
-        if self._api_key is None:
-            from pinecone.admin.resources import ApiKeyResource
-
-            self._api_key = ApiKeyResource(self._child_api_client)
-        return self._api_key
-
-    @property
-    def api_keys(self):
-        """Alias for :func:`api_key`"""
-        return self.api_key
-
-    @property
-    def organization(self):
-        """A namespace for organization-related operations
-
-        Alias for :func:`organizations`.
-
-        To learn about all organization-related operations, see :func:`pinecone.admin.resources.OrganizationResource`.
-
-        Examples
-        --------
-
-        .. code-block:: python
-            :caption: Listing all organizations
-
-            from pinecone import Admin
-
-            # Using environment variables to pass PINECONE_CLIENT_ID and PINECONE_CLIENT_SECRET
-            admin = Admin()
-
-            # List all organizations
-            organizations_response = admin.organization.list()
-            for org in organizations_response.data:
-                print(org.id)
-                print(org.name)
-
-        .. code-block:: python
-            :caption: Fetching an organization
-
-            from pinecone import Admin
-
-            admin = Admin()
-            organization = admin.organization.get(organization_id="my-organization-id")
-            print(organization.name)
-            print(organization.plan)
-
-        .. code-block:: python
-            :caption: Updating an organization
-
-            from pinecone import Admin
-
-            admin = Admin()
-            organization = admin.organization.update(
-                organization_id="my-organization-id",
-                name="updated-organization-name"
+        data: dict[str, Any] = response.json()
+        access_token = data.get("access_token", "")
+        if not access_token:
+            raise ApiError(
+                message="OAuth response missing access_token",
+                status_code=response.status_code,
+                body=data,
             )
-            print(organization.name)
 
-        """
-        if self._organization is None:
-            from pinecone.admin.resources import OrganizationResource
-
-            self._organization = OrganizationResource(self._child_api_client)
-        return self._organization
+        return str(access_token)
 
     @property
-    def organizations(self):
-        """Alias for :func:`organization`"""
-        return self.organization
+    def organizations(self) -> Organizations:
+        """Access the Organizations namespace for organization operations.
+
+        Lazily imported and instantiated on first access.
+
+        Returns:
+            :class:`Organizations` namespace instance.
+
+        Examples:
+
+            >>> from pinecone import Admin
+            >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
+            >>> for org in admin.organizations.list():
+            ...     print(org.name)
+        """
+        if self._organizations is None:
+            from pinecone.admin.organizations import Organizations as _Organizations
+
+            self._organizations = _Organizations(http=self._http)
+        return self._organizations
+
+    @property
+    def projects(self) -> Projects:
+        """Access the Projects namespace for project operations.
+
+        Lazily imported and instantiated on first access.
+
+        Returns:
+            :class:`Projects` namespace instance.
+
+        Examples:
+
+            >>> from pinecone import Admin
+            >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
+            >>> for project in admin.projects.list():
+            ...     print(project.name)
+        """
+        if self._projects is None:
+            from pinecone.admin.projects import Projects as _Projects
+
+            self._projects = _Projects(http=self._http, admin=self)
+        return self._projects
+
+    @property
+    def api_keys(self) -> ApiKeys:
+        """Access the ApiKeys namespace for API key operations.
+
+        Lazily imported and instantiated on first access.
+
+        Returns:
+            :class:`ApiKeys` namespace instance.
+
+        Examples:
+
+            >>> from pinecone import Admin
+            >>> admin = Admin(client_id="your-client-id", client_secret="your-client-secret")
+            >>> keys = admin.api_keys.list(project_id="proj-abc123")
+            >>> for key in keys:
+            ...     print(key.key.id)
+        """
+        if self._api_keys is None:
+            from pinecone.admin.api_keys import ApiKeys as _ApiKeys
+
+            self._api_keys = _ApiKeys(http=self._http)
+        return self._api_keys
+
+    def __repr__(self) -> str:
+        return "Admin(organizations=<Organizations>, projects=<Projects>, api_keys=<ApiKeys>)"
+
+    def close(self) -> None:
+        """Close the underlying HTTP client."""
+        self._http.close()
+
+    def __enter__(self) -> Admin:
+        return self
+
+    def __exit__(self, *args: Any) -> None:
+        self.close()

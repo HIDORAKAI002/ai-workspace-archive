@@ -1,23 +1,15 @@
-from dataclasses import dataclass, field
-from typing import cast
+"""Backwards-compatibility shim for :mod:`pinecone.models.vectors.responses`.
 
-from .vector import Vector
-from .utils import DictLike
-from pinecone.utils.response_info import ResponseInfo
-from pinecone.core.openapi.db_data.models import Usage
+Re-exports the canonical ``FetchByMetadataResponse`` and ``Pagination`` types
+that used to live at this path before the ``python-sdk2`` rewrite. Preserved
+to keep pre-rewrite callers working. New code should import from the
+canonical module.
 
+:meta private:
+"""
 
-@dataclass
-class Pagination(DictLike):
-    next: str
+from __future__ import annotations
 
+from pinecone.models.vectors.responses import FetchByMetadataResponse, Pagination
 
-@dataclass
-class FetchByMetadataResponse(DictLike):
-    namespace: str
-    vectors: dict[str, Vector]
-    usage: Usage | None = None
-    pagination: Pagination | None = None
-    _response_info: ResponseInfo = field(
-        default_factory=lambda: cast(ResponseInfo, {"raw_headers": {}}), repr=True, compare=False
-    )
+__all__ = ["FetchByMetadataResponse", "Pagination"]

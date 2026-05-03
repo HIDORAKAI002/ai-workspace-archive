@@ -1,25 +1,14 @@
-from typing import Any
+"""Backwards-compatibility shim for :mod:`pinecone.db_data.dataclasses.utils`.
 
+Re-exports ``DictLike`` (renamed to ``DictLikeStruct`` in the python-sdk2 rewrite).
+Preserved to keep pre-rewrite callers working. New code should import from
+:mod:`pinecone.models._mixin`.
 
-class DictLike:
-    def __getitem__(self, key: str) -> Any:
-        if hasattr(self, "__dataclass_fields__") and key in getattr(
-            self, "__dataclass_fields__", {}
-        ):
-            return getattr(self, key)
-        raise KeyError(f"{key} is not a valid field")
+:meta private:
+"""
 
-    def __setitem__(self, key: str, value: Any) -> None:
-        if hasattr(self, "__dataclass_fields__") and key in getattr(
-            self, "__dataclass_fields__", {}
-        ):
-            setattr(self, key, value)
-        else:
-            raise KeyError(f"{key} is not a valid field")
+from __future__ import annotations
 
-    def get(self, key: str, default: Any = None) -> Any:
-        """Dict-like get method for compatibility with tests that use .get()"""
-        try:
-            return self[key]
-        except KeyError:
-            return default
+from pinecone.models._mixin import DictLikeStruct as DictLike
+
+__all__ = ["DictLike"]
