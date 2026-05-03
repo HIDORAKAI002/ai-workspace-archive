@@ -53,6 +53,79 @@ export type ClawHubPackageArtifactSummary = {
   tarballUrl?: string | null;
   legacyDownloadUrl?: string | null;
 };
+export type ClawHubArtifactKind = "legacy-zip" | "npm-pack";
+export type ClawHubArtifactScanState =
+  | "pending"
+  | "clean"
+  | "suspicious"
+  | "malicious"
+  | "not-run"
+  | (string & {});
+export type ClawHubArtifactModerationState = "approved" | "quarantined" | "revoked" | (string & {});
+export type ClawHubPackageSecurityState =
+  | "pending"
+  | "approved"
+  | "limited"
+  | "quarantined"
+  | "rejected"
+  | "revoked"
+  | (string & {});
+export type ClawHubResolvedArtifact =
+  | {
+      source: "clawhub";
+      artifactKind: "legacy-zip";
+      packageName: string;
+      version: string;
+      downloadUrl?: string | null;
+      artifactSha256?: string | null;
+      scanState?: ClawHubArtifactScanState | null;
+      moderationState?: ClawHubArtifactModerationState | null;
+    }
+  | {
+      source: "clawhub";
+      artifactKind: "npm-pack";
+      packageName: string;
+      version: string;
+      downloadUrl?: string | null;
+      npmIntegrity: string;
+      npmShasum?: string | null;
+      artifactSha256?: string | null;
+      scanState?: ClawHubArtifactScanState | null;
+      moderationState?: ClawHubArtifactModerationState | null;
+    };
+export type ClawHubPackageArtifactResolverResponse = {
+  package?: {
+    name?: string | null;
+    displayName?: string | null;
+    family?: ClawHubPackageFamily | (string & {}) | null;
+  } | null;
+  version?:
+    | ({
+        version?: string | null;
+        createdAt?: number | null;
+        changelog?: string | null;
+        distTags?: string[];
+        files?: unknown[];
+        sha256hash?: string | null;
+        compatibility?: ClawHubPackageCompatibility | null;
+        artifact?: ClawHubPackageArtifactSummary | null;
+        clawpack?: ClawHubPackageClawPackSummary | null;
+      } & Record<string, unknown>)
+    | string
+    | null;
+  artifact?: ClawHubResolvedArtifact | null;
+};
+export type ClawHubPackageSecurityResponse = {
+  packageId?: string | null;
+  releaseId?: string | null;
+  state: ClawHubPackageSecurityState;
+  reasonCode?: string | null;
+  moderatorNote?: string | null;
+  actorId?: string | null;
+  createdAt?: number | null;
+  scanState?: ClawHubArtifactScanState | null;
+  moderationState?: ClawHubArtifactModerationState | null;
+};
 export type ClawHubPackageClawPackSummary = {
   available: boolean;
   specVersion?: number | null;
@@ -69,6 +142,33 @@ export type ClawHubPackageClawPackSummary = {
   hostTargets?: ClawHubPackageHostTarget[];
   environment?: ClawHubPackageEnvironmentSummary | null;
   runtimeBundles?: unknown[];
+};
+export type ClawHubPackageReadinessPhase =
+  | "planned"
+  | "published"
+  | "clawpack-ready"
+  | "legacy-zip-only"
+  | "metadata-ready"
+  | "blocked"
+  | "ready-for-openclaw"
+  | (string & {});
+export type ClawHubPackageReadiness = {
+  ready?: boolean | null;
+  readyForOpenClaw?: boolean | null;
+  installReady?: boolean | null;
+  phase?: ClawHubPackageReadinessPhase | null;
+  status?: ClawHubPackageReadinessPhase | null;
+  package?: {
+    name?: string | null;
+    family?: ClawHubPackageFamily | (string & {}) | null;
+    channel?: ClawHubPackageChannel | (string & {}) | null;
+    isOfficial?: boolean | null;
+  } | null;
+  packageName?: string | null;
+  artifactKind?: ClawHubArtifactKind | (string & {}) | null;
+  blockers?: string[];
+  scanState?: ClawHubArtifactScanState | null;
+  moderationState?: ClawHubArtifactModerationState | null;
 };
 export type ClawHubPackageListItem = {
   name: string;
@@ -141,7 +241,7 @@ export type ClawHubPackageVersion = {
     distTags?: string[];
     files?: Array<{
       path: string;
-      size: number;
+      size?: number;
       sha256: string;
       contentType?: string;
     }>;
@@ -344,12 +444,25 @@ export async function resolveClawHubAuthToken(): Promise<string | undefined> {
   return undefined;
 }
 
+function normalizePartialComparableVersion(version: string): {
+  version: string;
+  isPartial: boolean;
+} {
+  const trimmed = version.trim();
+  return /^[vV]?[0-9]+\.[0-9]+$/.test(trimmed)
+    ? { version: `${trimmed}.0`, isPartial: true }
+    : { version: trimmed, isPartial: false };
+}
+
 function compareSemver(left: string, right: string): number | null {
-  return compareComparableSemver(parseComparableSemver(left), parseComparableSemver(right));
+  return compareComparableSemver(
+    parseComparableSemver(normalizePartialComparableVersion(left).version),
+    parseComparableSemver(normalizePartialComparableVersion(right).version),
+  );
 }
 
 function upperBoundForCaret(version: string): string | null {
-  const parsed = parseComparableSemver(version);
+  const parsed = parseComparableSemver(normalizePartialComparableVersion(version).version);
   if (!parsed) {
     return null;
   }
@@ -392,12 +505,13 @@ function satisfiesComparator(version: string, token: string): boolean {
   if (!match) {
     return false;
   }
-  const operator = match[1] ?? "=";
+  const operator = match[1];
   const target = match[2]?.trim();
   if (!target) {
     return false;
   }
-  const cmp = compareSemver(version, target);
+  const normalizedTarget = normalizePartialComparableVersion(target);
+  const cmp = compareSemver(version, normalizedTarget.version);
   if (cmp == null) {
     return false;
   }
@@ -412,7 +526,7 @@ function satisfiesComparator(version: string, token: string): boolean {
       return cmp < 0;
     case "=":
     default:
-      return cmp === 0;
+      return normalizedTarget.isPartial && !operator ? cmp >= 0 : cmp === 0;
   }
 }
 
@@ -585,6 +699,60 @@ export async function fetchClawHubPackageVersion(params: {
     path: `/api/v1/packages/${encodeURIComponent(params.name)}/versions/${encodeURIComponent(
       params.version,
     )}`,
+    token: params.token,
+    timeoutMs: params.timeoutMs,
+    fetchImpl: params.fetchImpl,
+  });
+}
+
+export async function fetchClawHubPackageArtifact(params: {
+  name: string;
+  version: string;
+  baseUrl?: string;
+  token?: string;
+  timeoutMs?: number;
+  fetchImpl?: FetchLike;
+}): Promise<ClawHubPackageArtifactResolverResponse> {
+  return await fetchJson<ClawHubPackageArtifactResolverResponse>({
+    baseUrl: params.baseUrl,
+    path: `/api/v1/packages/${encodeURIComponent(params.name)}/versions/${encodeURIComponent(
+      params.version,
+    )}/artifact`,
+    token: params.token,
+    timeoutMs: params.timeoutMs,
+    fetchImpl: params.fetchImpl,
+  });
+}
+
+export async function fetchClawHubPackageSecurity(params: {
+  name: string;
+  version: string;
+  baseUrl?: string;
+  token?: string;
+  timeoutMs?: number;
+  fetchImpl?: FetchLike;
+}): Promise<ClawHubPackageSecurityResponse> {
+  return await fetchJson<ClawHubPackageSecurityResponse>({
+    baseUrl: params.baseUrl,
+    path: `/api/v1/packages/${encodeURIComponent(params.name)}/versions/${encodeURIComponent(
+      params.version,
+    )}/security`,
+    token: params.token,
+    timeoutMs: params.timeoutMs,
+    fetchImpl: params.fetchImpl,
+  });
+}
+
+export async function fetchClawHubPackageReadiness(params: {
+  name: string;
+  baseUrl?: string;
+  token?: string;
+  timeoutMs?: number;
+  fetchImpl?: FetchLike;
+}): Promise<ClawHubPackageReadiness> {
+  return await fetchJson<ClawHubPackageReadiness>({
+    baseUrl: params.baseUrl,
+    path: `/api/v1/packages/${encodeURIComponent(params.name)}/readiness`,
     token: params.token,
     timeoutMs: params.timeoutMs,
     fetchImpl: params.fetchImpl,

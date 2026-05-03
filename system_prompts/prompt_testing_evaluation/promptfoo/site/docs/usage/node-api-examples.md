@@ -18,7 +18,7 @@ import { evaluate } from 'promptfoo';
 
 const evalRecord = await evaluate({
   prompts: ['Translate to Spanish: {{ text }}'],
-  providers: ['openai:gpt-4'],
+  providers: ['openai:chat:gpt-5.5'],
   tests: [
     {
       vars: { text: 'Hello' },
@@ -42,7 +42,7 @@ import { evaluate } from 'promptfoo';
 
 const evalRecord = await evaluate({
   prompts: ['Summarize: {{ article }}'],
-  providers: ['openai:gpt-4', 'anthropic:claude-3-opus', 'azure-openai:gpt-4'],
+  providers: ['openai:chat:gpt-5.5', 'anthropic:messages:claude-opus-4-7', 'azure:chat:gpt-5.4'],
   tests: [
     {
       vars: { article: 'Long article text...' },
@@ -89,7 +89,7 @@ const tests = questions.map(({ q, a }) => ({
 
 const evalRecord = await evaluate({
   prompts: ['Answer this question: {{ question }}'],
-  providers: ['openai:gpt-4'],
+  providers: ['openai:chat:gpt-5.5'],
   tests,
 });
 ```
@@ -107,7 +107,7 @@ import { evaluate } from 'promptfoo';
 
 const evalRecord = await evaluate({
   prompts: ['Generate: {{ topic }}'],
-  providers: ['openai:gpt-4'],
+  providers: ['openai:chat:gpt-5.5'],
   tests: [
     {
       vars: { topic: 'machine learning' },
@@ -143,7 +143,7 @@ import { evaluate } from 'promptfoo';
 
 const evalRecord = await evaluate({
   prompts: ['Respond to: {{ user_message }}'],
-  providers: ['openai:gpt-4'],
+  providers: ['openai:chat:gpt-5.5'],
   tests: [
     {
       vars: {
@@ -189,17 +189,23 @@ const evalRecord = await evaluate({
 Load multiple providers and evaluate them independently:
 
 ```typescript
-import { assertions, loadApiProviders } from 'promptfoo';
+import { assertions, loadApiProvider } from 'promptfoo';
 
 async function batchTestProviders() {
-  const providers = await loadApiProviders(
-    ['openai:gpt-4', 'anthropic:claude-3-opus', 'vertex:claude-3-sonnet'],
-    {
-      env: {
-        OPENAI_API_KEY: process.env.OPENAI_API_KEY,
-        ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
-      },
-    },
+  const providerPaths = [
+    'openai:chat:gpt-5.5',
+    'anthropic:messages:claude-opus-4-7',
+    'vertex:claude-opus-4-7',
+  ];
+  const providers = await Promise.all(
+    providerPaths.map((providerPath) =>
+      loadApiProvider(providerPath, {
+        env: {
+          OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+          ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
+        },
+      }),
+    ),
   );
 
   const testQuestions = [
@@ -247,7 +253,7 @@ import { cache, evaluate } from 'promptfoo';
 async function runWithCacheControl() {
   const testSuite = {
     prompts: ['Q: {{ question }}'],
-    providers: ['openai:gpt-4'],
+    providers: ['openai:chat:gpt-5.5'],
     tests: [
       { vars: { question: 'What is AI?' }, assert: [...] }
     ]
@@ -293,7 +299,7 @@ async function abTestModels(testSuite, oldModel, newModel) {
   const oldEval = await cache.withCacheNamespace(`model-${oldModel}`, () =>
     evaluate({
       ...testSuite,
-      providers: [`openai:${oldModel}`],
+      providers: [`openai:chat:${oldModel}`],
     }),
   );
 
@@ -301,7 +307,7 @@ async function abTestModels(testSuite, oldModel, newModel) {
   const newEval = await cache.withCacheNamespace(`model-${newModel}`, () =>
     evaluate({
       ...testSuite,
-      providers: [`openai:${newModel}`],
+      providers: [`openai:chat:${newModel}`],
     }),
   );
 
@@ -327,7 +333,7 @@ async function abTestModels(testSuite, oldModel, newModel) {
 }
 
 // Usage
-const comparison = await abTestModels(testSuite, 'gpt-4-turbo', 'gpt-4o');
+const comparison = await abTestModels(testSuite, 'gpt-5.4', 'gpt-5.5');
 
 console.log(`Winner: ${comparison.winnerModel}`);
 ```
@@ -345,7 +351,7 @@ async function generateAdversarialTests() {
   const result = await redteam.generate({
     target: {
       prompt: 'You are a helpful assistant. Answer user questions.',
-      model: 'openai:gpt-4',
+      model: 'openai:chat:gpt-5.5',
     },
     plugins: ['prompt-injection', 'jailbreak', 'rbac'],
     numTests: 5,
@@ -443,7 +449,7 @@ async function evaluateWithExternalData() {
 
   const evalRecord = await evaluate({
     prompts,
-    providers: ['openai:gpt-4'],
+    providers: ['openai:chat:gpt-5.5'],
     tests,
   });
 
@@ -471,7 +477,7 @@ async function streamingEvaluation() {
   const evalRecord = await evaluate(
     {
       prompts: ['Analyze: {{ text }}'],
-      providers: ['openai:gpt-4'],
+      providers: ['openai:chat:gpt-5.5'],
       tests: largeTestArray, // 1000+ tests
     },
     {
@@ -507,7 +513,7 @@ import { evaluate } from 'promptfoo';
 
 const evalRecord = await evaluate({
   prompts: ['Summarize: {{ text }}'],
-  providers: ['openai:gpt-4'],
+  providers: ['openai:chat:gpt-5.5'],
   tests: [
     {
       vars: { text: 'Long article...' },
@@ -519,7 +525,7 @@ const evalRecord = await evaluate({
           2. Captures key points
           3. Grammatically correct
           Score 1-5.`,
-          provider: 'anthropic:claude-3-opus',
+          provider: 'anthropic:messages:claude-opus-4-7',
           threshold: 4,
         },
       ],
@@ -539,7 +545,7 @@ import { evaluate } from 'promptfoo';
 
 const evalRecord = await evaluate({
   prompts: ['Translate to French: {{ text }}'],
-  providers: ['openai:gpt-4'],
+  providers: ['openai:chat:gpt-5.5'],
   tests: [
     {
       vars: { text: 'Hello world' },
@@ -569,7 +575,7 @@ import { evaluate } from 'promptfoo';
 const evalRecord = await evaluate(
   {
     prompts: ['Prompt 1', 'Prompt 2', 'Prompt 3'],
-    providers: ['openai:gpt-4', 'anthropic:claude-3-opus'],
+    providers: ['openai:chat:gpt-5.5', 'anthropic:messages:claude-opus-4-7'],
     tests: hugeTestArray,
   },
   {
@@ -651,7 +657,7 @@ import { evaluate, EvaluateSummary, EvaluateTestSuite } from 'promptfoo';
 async function typedEvaluation(): Promise<EvaluateSummary> {
   const testSuite: EvaluateTestSuite = {
     prompts: ['test'],
-    providers: ['openai:gpt-4'],
+    providers: ['openai:chat:gpt-5.5'],
     tests: [
       {
         vars: {},

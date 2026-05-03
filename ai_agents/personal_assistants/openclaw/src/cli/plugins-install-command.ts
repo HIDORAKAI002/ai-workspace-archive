@@ -38,10 +38,8 @@ import {
   resolveBundledInstallPlanForNpmFailure,
 } from "./plugin-install-plan.js";
 import {
-  buildPreferredClawHubSpec,
   createHookPackInstallLogger,
   createPluginInstallLogger,
-  decidePreferredClawHubFallback,
   formatPluginInstallWithHookFallbackError,
   parseNpmPrefixSpec,
 } from "./plugins-command-helpers.js";
@@ -774,34 +772,6 @@ export async function runPluginInstallCommand(params: {
       runtime,
     });
     return;
-  }
-
-  const preferredClawHubSpec = buildPreferredClawHubSpec(raw);
-  if (preferredClawHubSpec) {
-    const clawhubResult = await installPluginFromClawHub({
-      ...safetyOverrides,
-      mode: installMode,
-      spec: preferredClawHubSpec,
-      extensionsDir,
-      logger: createPluginInstallLogger(runtime),
-    });
-    if (clawhubResult.ok) {
-      await persistPluginInstall({
-        snapshot,
-        pluginId: clawhubResult.pluginId,
-        install: {
-          ...buildClawHubPluginInstallRecordFields(clawhubResult.clawhub),
-          spec: preferredClawHubSpec,
-          installPath: clawhubResult.targetDir,
-        },
-        runtime,
-      });
-      return;
-    }
-    if (decidePreferredClawHubFallback(clawhubResult) !== "fallback_to_npm") {
-      runtime.error(clawhubResult.error);
-      return runtime.exit(1);
-    }
   }
 
   const npmResult = await tryInstallPluginOrHookPackFromNpmSpec({

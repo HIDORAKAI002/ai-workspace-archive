@@ -10,6 +10,7 @@ import { analyticsAuth } from "@/lib/analytics";
 interface OAuthButtonProps {
   provider: string;
   providerName: string;
+  iconUrl?: string;
 }
 
 const providerIcons: Record<string, React.ReactNode> = {
@@ -38,9 +39,10 @@ const providerIcons: Record<string, React.ReactNode> = {
   ),
 };
 
-export function OAuthButton({ provider, providerName }: OAuthButtonProps) {
+export function OAuthButton({ provider, providerName, iconUrl }: OAuthButtonProps) {
   const t = useTranslations("auth");
   const [isLoading, setIsLoading] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
   const handleSignIn = async () => {
     setIsLoading(true);
@@ -63,8 +65,15 @@ export function OAuthButton({ provider, providerName }: OAuthButtonProps) {
     >
       {isLoading ? (
         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-      ) : (
+      ) : iconUrl && !imgError ? (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img src={iconUrl} alt={providerName} className="mr-2 h-4 w-4 object-contain" onError={() => setImgError(true)} />
+      ) : providerIcons[provider] ? (
         <span className="mr-2">{providerIcons[provider]}</span>
+      ) : (
+        <span className="mr-2 flex h-4 w-4 items-center justify-center rounded bg-primary/10 text-[10px] font-bold text-primary">
+          {providerName.charAt(0).toUpperCase()}
+        </span>
       )}
       {t("signInWith", { provider: providerName })}
     </Button>
