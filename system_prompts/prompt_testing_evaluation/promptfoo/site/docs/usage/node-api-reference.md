@@ -48,7 +48,7 @@ import { evaluate } from 'promptfoo';
 
 const evalRecord = await evaluate({
   prompts: ['What is 2+2?'],
-  providers: ['openai:gpt-4', 'anthropic:claude-3-opus'],
+  providers: ['openai:chat:gpt-5.5', 'anthropic:messages:claude-opus-4-7'],
   tests: [
     {
       vars: { query: 'math question' },
@@ -109,7 +109,7 @@ async function loadApiProvider(
 
 **Parameters:**
 
-- `providerPath`: Provider identifier (e.g., `'openai:gpt-4'`, `'anthropic:claude-3-opus'`, or `'file://./custom-provider.js'`)
+- `providerPath`: Provider identifier (e.g., `'openai:chat:gpt-5.5'`, `'anthropic:messages:claude-opus-4-7'`, or `'file://./custom-provider.js'`)
 - `context`: Optional context with environment overrides
 
 **Returns:** Configured `ApiProvider` instance ready to call
@@ -119,7 +119,7 @@ async function loadApiProvider(
 ```typescript
 import { loadApiProvider } from 'promptfoo';
 
-const openaiProvider = await loadApiProvider('openai:gpt-4', {
+const openaiProvider = await loadApiProvider('openai:chat:gpt-5.5', {
   env: { OPENAI_API_KEY: process.env.MY_SECRET_KEY },
 });
 
@@ -132,7 +132,7 @@ console.log(response.output);
 
 - `openai:*` (GPT models)
 - `anthropic:*` (Claude models)
-- `azure-openai:*`
+- `azure:*`
 - `bedrock:*` (AWS Bedrock)
 - `vertex:*` (Google Vertex AI)
 - `cohere:*`
@@ -143,40 +143,16 @@ console.log(response.output);
 
 ---
 
-### `loadApiProviders(providers, options?)`
-
-Load multiple providers in parallel.
+To load several providers for manual testing, call `loadApiProvider()` for each one:
 
 ```typescript
-async function loadApiProviders(
-  providers: ProvidersConfig,
-  options?: { env?: Record<string, string> },
-): Promise<ApiProvider[]>;
-```
+import { loadApiProvider } from 'promptfoo';
 
-**Parameters:**
-
-- `providers`: Array of provider identifiers or config objects
-- `options`: Optional environment overrides
-
-**Returns:** Array of configured provider instances
-
-**Example:**
-
-```typescript
-import { loadApiProviders } from 'promptfoo';
-
-const providers = await loadApiProviders([
-  'openai:gpt-4',
-  'anthropic:claude-3-opus',
-  {
-    id: 'custom-provider',
-    config: {
-      model: 'my-model',
-      temperature: 0.7,
-    },
-  },
-]);
+const providers = await Promise.all(
+  ['openai:chat:gpt-5.5', 'anthropic:messages:claude-opus-4-7'].map((providerPath) =>
+    loadApiProvider(providerPath),
+  ),
+);
 
 for (const provider of providers) {
   const result = await provider.callApi('Test');
@@ -841,7 +817,7 @@ const generateTests = (questions) => {
 
 const evalRecord = await evaluate({
   prompts: ['Answer: {{ question }}'],
-  providers: ['openai:gpt-4'],
+  providers: ['openai:chat:gpt-5.5'],
   tests: generateTests([
     'What is the capital of France?',
     'What is 2+2?',
@@ -861,7 +837,7 @@ import { evaluate } from 'promptfoo';
 
 const evalRecord = await evaluate({
   prompts: ['Analyze: {{ text }}'],
-  providers: ['openai:gpt-4'],
+  providers: ['openai:chat:gpt-5.5'],
   tests: [
     {
       vars: { text: 'Sample text' },
@@ -890,9 +866,13 @@ const evalRecord = await evaluate({
 Load providers and test in parallel:
 
 ```typescript
-import { assertions, loadApiProviders } from 'promptfoo';
+import { assertions, loadApiProvider } from 'promptfoo';
 
-const providers = await loadApiProviders(['openai:gpt-4', 'anthropic:claude-3-opus']);
+const providers = await Promise.all(
+  ['openai:chat:gpt-5.5', 'anthropic:messages:claude-opus-4-7'].map((providerPath) =>
+    loadApiProvider(providerPath),
+  ),
+);
 
 const testCases = ['2+2=?', 'What is AI?'];
 
@@ -926,14 +906,14 @@ async function compareModels(oldVersion, newVersion, testSuite) {
   const oldEval = await cache.withCacheNamespace(`model-${oldVersion}`, () =>
     evaluate({
       ...testSuite,
-      providers: [`openai:gpt-4-${oldVersion}`],
+      providers: [`openai:chat:${oldVersion}`],
     }),
   );
 
   const newEval = await cache.withCacheNamespace(`model-${newVersion}`, () =>
     evaluate({
       ...testSuite,
-      providers: [`openai:gpt-4-${newVersion}`],
+      providers: [`openai:chat:${newVersion}`],
     }),
   );
 
@@ -995,7 +975,7 @@ import type {
 ### Stable APIs (Safe for production)
 
 - `evaluate()`
-- `loadApiProvider()`, `loadApiProviders()`
+- `loadApiProvider()`
 - `assertions.runAssertion()`, `assertions.runAssertions()`
 - Cache namespace functions
 - Guardrails namespace
