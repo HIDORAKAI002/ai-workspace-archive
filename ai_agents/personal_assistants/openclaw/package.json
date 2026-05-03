@@ -1,6 +1,6 @@
 {
   "name": "openclaw",
-  "version": "2026.5.2",
+  "version": "2026.5.3",
   "description": "Multi-channel AI gateway with extensible messaging integrations",
   "keywords": [],
   "homepage": "https://github.com/openclaw/openclaw#readme",
@@ -1432,8 +1432,8 @@
     "openclaw:rpc": "node scripts/run-node.mjs agent --mode rpc --json",
     "perf:kova:summary": "node scripts/kova-ci-summary.mjs",
     "perf:source:summary": "node scripts/openclaw-performance-source-summary.mjs",
-    "plugin-sdk:api:check": "node --import tsx scripts/generate-plugin-sdk-api-baseline.ts --check",
-    "plugin-sdk:api:gen": "node --import tsx scripts/generate-plugin-sdk-api-baseline.ts --write",
+    "plugin-sdk:api:check": "node --max-old-space-size=4096 --import tsx scripts/generate-plugin-sdk-api-baseline.ts --check",
+    "plugin-sdk:api:gen": "node --max-old-space-size=4096 --import tsx scripts/generate-plugin-sdk-api-baseline.ts --write",
     "plugin-sdk:check-exports": "node scripts/sync-plugin-sdk-exports.mjs --check",
     "plugin-sdk:sync-exports": "node scripts/sync-plugin-sdk-exports.mjs",
     "plugin-sdk:usage": "node --import tsx scripts/analyze-plugin-sdk-usage.ts",
@@ -1697,13 +1697,14 @@
     "playwright-core": "1.59.1",
     "proxy-agent": "^8.0.1",
     "qrcode": "1.5.4",
-    "sqlite-vec": "0.1.9",
     "tar": "7.5.13",
     "tokenjuice": "0.7.0",
+    "tree-sitter-bash": "^0.25.1",
     "tslog": "^4.10.2",
     "typebox": "1.1.37",
     "undici": "8.1.0",
     "web-push": "^3.6.7",
+    "web-tree-sitter": "^0.26.8",
     "ws": "^8.20.0",
     "yaml": "^2.8.3",
     "zod": "^4.4.1"
@@ -1731,6 +1732,9 @@
     "tsx": "^4.21.0",
     "typescript": "^6.0.3",
     "vitest": "^4.1.5"
+  },
+  "optionalDependencies": {
+    "sqlite-vec": "0.1.9"
   },
   "overrides": {
     "@aws-sdk/client-bedrock-runtime": "$@aws-sdk/client-bedrock-runtime",
@@ -1784,7 +1788,8 @@
       "sharp"
     ],
     "ignoredBuiltDependencies": [
-      "koffi"
+      "koffi",
+      "tree-sitter-bash"
     ],
     "packageExtensions": {
       "@mariozechner/pi-coding-agent": {
