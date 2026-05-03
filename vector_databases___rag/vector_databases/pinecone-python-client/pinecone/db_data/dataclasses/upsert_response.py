@@ -1,20 +1,14 @@
-from dataclasses import dataclass, field
-from typing import cast
+"""Backwards-compatibility shim for :mod:`pinecone.models.vectors.responses`.
 
-from .utils import DictLike
-from pinecone.utils.response_info import ResponseInfo
+Re-exports the canonical ``UpsertResponse`` that used to live at this path
+before the ``python-sdk2`` rewrite. Preserved to keep pre-rewrite callers
+working. New code should import from the canonical module.
 
+:meta private:
+"""
 
-@dataclass
-class UpsertResponse(DictLike):
-    """Response from an upsert operation.
+from __future__ import annotations
 
-    Attributes:
-        upserted_count: Number of vectors that were upserted.
-        _response_info: Response metadata including LSN headers.
-    """
+from pinecone.models.vectors.responses import UpsertResponse
 
-    upserted_count: int
-    _response_info: ResponseInfo = field(
-        default_factory=lambda: cast(ResponseInfo, {"raw_headers": {}}), repr=True, compare=False
-    )
+__all__ = ["UpsertResponse"]

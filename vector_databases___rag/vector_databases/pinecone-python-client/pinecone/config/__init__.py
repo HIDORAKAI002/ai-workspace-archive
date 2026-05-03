@@ -1,11 +1,12 @@
-import logging
-import os
+"""Backwards-compatibility shim for :mod:`pinecone._internal.config`.
 
-from .config import ConfigBuilder, Config
-from .openapi_configuration import Configuration as OpenApiConfiguration
-from .pinecone_config import PineconeConfig
+Re-exports classes that used to live at :mod:`pinecone.config` before
+the ``python-sdk2`` rewrite. Preserved to keep pre-rewrite callers working.
+New code should import from the canonical module.
 
-__all__ = ["ConfigBuilder", "Config", "OpenApiConfiguration", "PineconeConfig"]
+:meta private:
+"""
 
-if os.getenv("PINECONE_DEBUG") is not None:
-    logging.getLogger("pinecone").setLevel(level=logging.DEBUG)
+from __future__ import annotations
+
+__all__: list[str] = []

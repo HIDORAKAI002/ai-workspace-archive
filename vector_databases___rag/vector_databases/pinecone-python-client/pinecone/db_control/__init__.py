@@ -1,42 +1,12 @@
-from .enums import *
-from .models import *
-from .types import *
-from .db_control import DBControl
-from .db_control_asyncio import DBControlAsyncio
-from .repr_overrides import install_repr_overrides
+"""Backwards-compatibility shim for :mod:`pinecone.db_control`.
 
-__all__ = [
-    # from .enums
-    "CloudProvider",
-    "AwsRegion",
-    "GcpRegion",
-    "AzureRegion",
-    "DeletionProtection",
-    "Metric",
-    "PodIndexEnvironment",
-    "PodType",
-    "VectorType",
-    # from .models
-    "CollectionDescription",
-    "PodSpec",
-    "PodSpecDefinition",
-    "ServerlessSpec",
-    "ServerlessSpecDefinition",
-    "ByocSpec",
-    "IndexList",
-    "CollectionList",
-    "IndexModel",
-    "IndexEmbed",
-    "BackupModel",
-    "BackupList",
-    "RestoreJobModel",
-    "RestoreJobList",
-    # from .types
-    "ConfigureIndexEmbed",
-    "CreateIndexForModelEmbedTypedDict",
-    # direct imports
-    "DBControl",
-    "DBControlAsyncio",
-]
+Re-exports classes that used to live at :mod:`pinecone.db_control` before
+the `python-sdk2` rewrite. Preserved to keep pre-rewrite callers working.
+New code should import from the canonical module.
 
-install_repr_overrides()
+:meta private:
+"""
+
+from __future__ import annotations
+
+__all__: list[str] = []

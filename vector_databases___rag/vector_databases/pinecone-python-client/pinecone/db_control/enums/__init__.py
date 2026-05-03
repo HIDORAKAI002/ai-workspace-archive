@@ -1,18 +1,12 @@
-from .clouds import CloudProvider, AwsRegion, GcpRegion, AzureRegion
-from .deletion_protection import DeletionProtection
-from .metric import Metric
-from .pod_index_environment import PodIndexEnvironment
-from .pod_type import PodType
-from .vector_type import VectorType
+"""Backwards-compatibility shim for :mod:`pinecone.db_control.enums`.
 
-__all__ = [
-    "CloudProvider",
-    "AwsRegion",
-    "GcpRegion",
-    "AzureRegion",
-    "DeletionProtection",
-    "Metric",
-    "PodIndexEnvironment",
-    "PodType",
-    "VectorType",
-]
+Re-exports classes that used to live at :mod:`pinecone.db_control.enums` before
+the `python-sdk2` rewrite. Preserved to keep pre-rewrite callers working.
+New code should import from the canonical module.
+
+:meta private:
+"""
+
+from __future__ import annotations
+
+__all__: list[str] = []

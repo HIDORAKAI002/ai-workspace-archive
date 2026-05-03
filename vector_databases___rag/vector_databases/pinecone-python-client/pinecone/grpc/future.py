@@ -1,108 +1,167 @@
-from concurrent.futures import Future as ConcurrentFuture
-from grpc import Future as GrpcFuture, RpcError
-from pinecone.exceptions.exceptions import PineconeException
+"""PineconeFuture — a thin wrapper around concurrent.futures.Future.
+
+Provides SDK-specific timeout defaults and exception translation so that
+callers get :class:`~pinecone.errors.PineconeTimeoutError` instead of the
+stdlib ``TimeoutError`` when a result is not ready in time.
+"""
+
+from __future__ import annotations
+
+from collections.abc import Callable
+from concurrent.futures import Future
+from typing import Any, TypeVar
+
+from pinecone.errors.exceptions import PineconeTimeoutError
+
+_T = TypeVar("_T")
+
+_DEFAULT_TIMEOUT: float = 5.0
 
 
-class PineconeGrpcFuture(ConcurrentFuture):
-    def __init__(
-        self, grpc_future: GrpcFuture, timeout: int | None = None, result_transformer=None
-    ):
+class PineconeFuture(Future["_T"]):
+    """Future returned by ``GrpcIndex.*_async()`` methods.
+
+    Wraps a :class:`concurrent.futures.Future` and is fully compatible with
+    :func:`concurrent.futures.as_completed` and
+    :func:`concurrent.futures.wait`.
+
+    The default :meth:`result` timeout is **5 seconds**.  When the timeout
+    elapses, :class:`~pinecone.errors.PineconeTimeoutError` is raised with
+    the message ``"deadline exceeded"``.
+
+    Examples:
+
+        .. code-block:: python
+
+            from pinecone.grpc import GrpcIndex
+            idx = GrpcIndex(host="article-search-abc123.svc.pinecone.io", api_key="your-api-key")
+            future = idx.upsert_async(vectors=[("article-101", [0.012, -0.087, 0.153, ...])])
+            result = future.result()  # blocks up to 5 seconds
+            result.upserted_count
+            # 1
+
+        .. code-block:: python
+
+            from concurrent.futures import as_completed
+            futures = [
+                idx.upsert_async(vectors=[("article-101", [0.012, -0.087, 0.153, ...])]),
+                idx.upsert_async(vectors=[("article-102", [0.045, 0.021, -0.064, ...])]),
+            ]
+            for future in as_completed(futures):
+                print(future.result().upserted_count)
+    """
+
+    def __init__(self, underlying: Future[_T]) -> None:
+        # Do NOT call super().__init__() — we delegate everything to the
+        # underlying future.  We *do* need the internal state that Future
+        # expects however, so we initialise ourselves as a bare Future and
+        # then wire up callbacks so our own state mirrors the underlying one.
         super().__init__()
-        self._grpc_future = grpc_future
-        self._result_transformer = result_transformer
-        if timeout is not None:
-            self._default_timeout = timeout  # seconds
-        else:
-            self._default_timeout = 5  # seconds
+        self._underlying = underlying
 
-        # Sync initial state, in case the gRPC future is already done
-        self._sync_state(self._grpc_future)
+        # Mirror terminal state from the underlying future into *self* so
+        # that concurrent.futures infrastructure (as_completed / wait) which
+        # inspects our internal condition/state sees the correct values.
+        self._underlying.add_done_callback(self._propagate_state)
 
-        # Add callback to subscribe to updates from the gRPC future
-        self._grpc_future.add_done_callback(self._sync_state)
+    # ------------------------------------------------------------------
+    # State propagation
+    # ------------------------------------------------------------------
 
-    @property
-    def grpc_future(self):
-        return self._grpc_future
-
-    def _sync_state(self, grpc_future):
-        if self.done():
-            return
-
-        if grpc_future.running() and not self.running():
-            if not self.set_running_or_notify_cancel():
-                grpc_future.cancel()
-        elif grpc_future.cancelled():
-            self.cancel()
-        elif grpc_future.done():
+    def _propagate_state(self, _fut: Future[_T]) -> None:
+        """Copy the terminal state of the underlying future into *self*."""
+        if self._underlying.cancelled():
+            # Mark ourselves cancelled so wait/as_completed see it.
+            super().cancel()
+            super().set_running_or_notify_cancel()
+        elif self._underlying.exception() is not None:
             try:
-                result = grpc_future.result(timeout=self._default_timeout)
-                self.set_result(result)
-            except Exception as e:
-                self.set_exception(e)
-
-    def set_result(self, result):
-        if self._result_transformer:
-            # Extract initial metadata from GRPC future if available
-            initial_metadata = None
-            try:
-                if hasattr(self._grpc_future, "initial_metadata"):
-                    initial_metadata_tuple = self._grpc_future.initial_metadata()
-                    if initial_metadata_tuple:
-                        initial_metadata = {key: value for key, value in initial_metadata_tuple}
+                super().set_exception(self._underlying.exception())
             except Exception:
-                # If metadata extraction fails, continue without it
-                pass
-
-            # Always pass initial_metadata if available (transformer is internal API)
-            if initial_metadata is not None:
-                result = self._result_transformer(result, initial_metadata=initial_metadata)
-            else:
-                result = self._result_transformer(result)
-        return super().set_result(result)
-
-    def cancel(self):
-        self._grpc_future.cancel()
-        return super().cancel()
-
-    def exception(self, timeout=None):
-        exception = super().exception(timeout=self._timeout(timeout))
-        if isinstance(exception, RpcError):
-            return self._wrap_rpc_exception(exception)
-        return exception
-
-    def traceback(self, timeout=None):
-        # This is not part of the ConcurrentFuture interface, but keeping it for
-        # backward compatibility
-        return self._grpc_future.traceback(timeout=self._timeout(timeout))
-
-    def result(self, timeout=None):
-        try:
-            return super().result(timeout=self._timeout(timeout))
-        except RpcError as e:
-            raise self._wrap_rpc_exception(e) from e
-
-    def _timeout(self, timeout: int | None = None) -> int:
-        if timeout is not None:
-            return timeout
+                pass  # already in terminal state
         else:
-            return self._default_timeout
-
-    def _wrap_rpc_exception(self, e):
-        # The way the grpc package is using multiple inheritance makes
-        # it a little unclear whether it's safe to always assume that
-        # the e.code(), e.details(), and e.debug_error_string() methods
-        # exist. So, we try/catch to avoid errors.
-        try:
-            grpc_info = {"grpc_error_code": e.code().value[0], "grpc_message": e.details()}
-
-            return PineconeException(f"GRPC error: {grpc_info}")
-        except Exception:
             try:
-                return PineconeException(f"Unknown GRPC error: {e.debug_error_string()}")
+                super().set_result(self._underlying.result(timeout=0))
             except Exception:
-                return PineconeException(f"Unknown GRPC error: {e}")
+                pass  # already in terminal state
 
-    def __del__(self):
-        self._grpc_future.cancel()
-        # Note: self = None is not valid Python syntax and has no effect
+    # ------------------------------------------------------------------
+    # Public interface — delegates to the underlying future
+    # ------------------------------------------------------------------
+
+    def result(self, timeout: float | None = _DEFAULT_TIMEOUT) -> _T:
+        """Return the result of the call that the future represents.
+
+        Args:
+            timeout: Maximum seconds to wait.  Defaults to 5.0.
+                Pass ``None`` to block indefinitely.
+
+        Returns:
+            The result value set by the underlying future.
+
+        Raises:
+            PineconeTimeoutError: If *timeout* seconds elapse before the
+                result is available.
+
+        Examples:
+
+            .. code-block:: python
+
+                future = idx.upsert_async(vectors=[("article-101", [0.012, -0.087, 0.153, ...])])
+                result = future.result()
+                result.upserted_count  # 1
+
+            .. code-block:: python
+
+                future = idx.upsert_async(vectors=large_batch)
+                result = future.result(timeout=30.0)
+
+            .. code-block:: python
+
+                result = future.result(timeout=None)
+        """
+        try:
+            return self._underlying.result(timeout=timeout)
+        except TimeoutError:
+            raise PineconeTimeoutError("deadline exceeded") from None
+
+    def exception(self, timeout: float | None = _DEFAULT_TIMEOUT) -> BaseException | None:
+        """Return the exception raised by the call, or ``None``.
+
+        Args:
+            timeout: Maximum seconds to wait.  Defaults to 5.0.
+
+        Raises:
+            PineconeTimeoutError: If *timeout* seconds elapse.
+        """
+        try:
+            return self._underlying.exception(timeout=timeout)
+        except TimeoutError:
+            raise PineconeTimeoutError("deadline exceeded") from None
+
+    def cancel(self) -> bool:
+        """Attempt to cancel the underlying call.
+
+        Returns ``True`` if the call was successfully cancelled, ``False``
+        if the call has already completed or is running.
+        """
+        return self._underlying.cancel()
+
+    def cancelled(self) -> bool:
+        """Return ``True`` if the call was successfully cancelled."""
+        return self._underlying.cancelled()
+
+    def done(self) -> bool:
+        """Return ``True`` if the call has completed or was cancelled."""
+        return self._underlying.done()
+
+    def running(self) -> bool:
+        """Return ``True`` if the call is currently being executed."""
+        return self._underlying.running()
+
+    def add_done_callback(self, fn: Callable[..., Any]) -> None:
+        """Attach a callable to be called when the future finishes.
+
+        The callable will be called with the future as its only argument.
+        """
+        self._underlying.add_done_callback(lambda _underlying: fn(self))

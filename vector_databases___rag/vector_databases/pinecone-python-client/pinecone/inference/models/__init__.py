@@ -1,6 +1,12 @@
-from .embedding_list import EmbeddingsList
-from .rerank_result import RerankResult
-from .model_info import ModelInfo
-from .model_info_list import ModelInfoList
+"""Backwards-compatibility shim for :mod:`pinecone.inference.models`.
 
-__all__ = ["EmbeddingsList", "RerankResult", "ModelInfo", "ModelInfoList"]
+Re-exports classes that used to live at :mod:`pinecone.inference.models` before
+the `python-sdk2` rewrite. Preserved to keep pre-rewrite callers working.
+New code should import from the canonical module.
+
+:meta private:
+"""
+
+from __future__ import annotations
+
+__all__: list[str] = []

@@ -1,17 +1,14 @@
-from typing import NamedTuple
+"""Backwards-compatibility shim for :mod:`pinecone.models.collections.description`.
 
+Re-exports classes that used to live at :mod:`pinecone.db_control.models.collection_description`
+before the `python-sdk2` rewrite. Preserved to keep pre-rewrite callers working.
+New code should import from the canonical module.
 
-class CollectionDescription(NamedTuple):
-    """
-    The description of a collection.
-    """
+:meta private:
+"""
 
-    name: str
-    """
-    The name of the collection.
-    """
+from __future__ import annotations
 
-    source: str
-    """
-    The name of the index used to create the collection.
-    """
+from pinecone.models.collections.description import CollectionDescription
+
+__all__ = ["CollectionDescription"]

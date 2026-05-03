@@ -1,28 +1,14 @@
+"""Backwards-compatibility shim for :mod:`pinecone.models.indexes.specs`.
+
+Re-exports the canonical ``ByocSpec`` that used to live at this path before
+the ``python-sdk2`` rewrite. Preserved to keep pre-rewrite callers working.
+New code should import from the canonical module.
+
+:meta private:
+"""
+
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Any, TYPE_CHECKING
+from pinecone.models.indexes.specs import ByocSpec
 
-if TYPE_CHECKING:
-    from .serverless_spec import ReadCapacityType, MetadataSchemaFieldConfig
-
-
-@dataclass(frozen=True)
-class ByocSpec:
-    """
-    ByocSpec represents the configuration used to deploy a BYOC (Bring Your Own Cloud) index.
-
-    To learn more about the options for each configuration, please see [Understanding Indexes](https://docs.pinecone.io/docs/indexes)
-    """
-
-    environment: str
-    read_capacity: ReadCapacityType | None = None
-    schema: dict[str, MetadataSchemaFieldConfig] | None = None
-
-    def asdict(self) -> dict[str, Any]:
-        result: dict[str, Any] = {"byoc": {"environment": self.environment}}
-        if self.read_capacity is not None:
-            result["byoc"]["read_capacity"] = self.read_capacity
-        if self.schema is not None:
-            result["byoc"]["schema"] = {"fields": self.schema}
-        return result
+__all__ = ["ByocSpec"]
