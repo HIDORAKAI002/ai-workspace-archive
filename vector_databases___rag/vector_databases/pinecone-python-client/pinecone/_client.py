@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-import logging
 from dataclasses import replace
 from typing import TYPE_CHECKING, Any, cast
 
 from pinecone._internal.config import PineconeConfig, RetryConfig
 from pinecone._internal.constants import CONTROL_PLANE_API_VERSION, DEFAULT_BASE_URL
-from pinecone._internal.indexes_helpers import IndexKwargs, poll_index_until_ready
+from pinecone._internal.indexes_helpers import _LegacyIndexKwargs, poll_index_until_ready
 from pinecone._internal.validation import require_non_empty
 from pinecone.errors.exceptions import ValidationError
 
@@ -47,8 +46,6 @@ if TYPE_CHECKING:
     )
     from pinecone.preview import Preview
 
-logger = logging.getLogger(__name__)
-
 
 class Pinecone:
     """Synchronous Pinecone client for control-plane operations.
@@ -69,6 +66,13 @@ class Pinecone:
         retry_config (RetryConfig | None): Custom retry configuration. When ``None``
             (default), uses built-in defaults (5 attempts, exponential backoff, retries
             on 500/502/503/504 for GET/HEAD).
+        pool_threads (int | None): Opt-in for the legacy ``async_req=True`` execution
+            model on data-plane methods. When set, indexes created via
+            :meth:`index` accept ``async_req=True`` on ``upsert``, ``query``,
+            ``describe_index_stats``, and ``list_paginated``. **For new code, prefer**
+            :class:`~pinecone.async_client.AsyncPinecone` **or**
+            :class:`concurrent.futures.ThreadPoolExecutor`. This kwarg exists for
+            backcompat with pre-rewrite callers.
 
     Raises:
         :exc:`PineconeValueError`: If no API key can be resolved from arguments or
@@ -108,13 +112,6 @@ class Pinecone:
         legacy_pool_threads = kwargs.pop("pool_threads", None)
         if kwargs:
             raise TypeError(f"Pinecone() got unexpected keyword arguments: {sorted(kwargs)!r}")
-        if legacy_pool_threads is not None:
-            logger.debug(
-                "Pinecone(pool_threads=%r) is accepted for backcompat but no "
-                "longer used; the new client uses httpx connection pooling. "
-                "Tune connection_pool_maxsize= instead.",
-                legacy_pool_threads,
-            )
         config = PineconeConfig(
             api_key=api_key or "",
             host=host or "",
@@ -153,6 +150,7 @@ class Pinecone:
         self._assistants: Assistants | None = None
         self._host_cache: dict[str, str] = {}
         self._preview: Preview | None = None
+        self._legacy_pool_threads: int | None = legacy_pool_threads
 
     def __repr__(self) -> str:
         masked = f"...{self._config.api_key[-4:]}" if len(self._config.api_key) >= 4 else "***"
@@ -321,6 +319,7 @@ class Pinecone:
         *,
         host: str = "",
         grpc: bool = False,
+        pool_threads: int | None = None,
     ) -> Index | GrpcIndex:
         """Create a data plane client targeting a specific index.
 
@@ -370,11 +369,16 @@ class Pinecone:
 
         from pinecone.index import Index as _Index
 
-        return _Index(**self._build_index_kwargs(resolved_host))
+        return _Index(**self._build_index_kwargs(resolved_host, pool_threads=pool_threads))
 
-    def _build_index_kwargs(self, host: str) -> IndexKwargs:
-        """Return the kwargs dict for constructing an Index or AsyncIndex."""
-        return IndexKwargs(
+    def _build_index_kwargs(
+        self,
+        host: str,
+        *,
+        pool_threads: int | None = None,
+    ) -> _LegacyIndexKwargs:
+        """Return the kwargs dict for constructing an Index."""
+        kwargs: _LegacyIndexKwargs = _LegacyIndexKwargs(
             host=host,
             api_key=self._config.api_key,
             additional_headers=dict(self._config.additional_headers),
@@ -386,6 +390,10 @@ class Pinecone:
             source_tag=self._config.source_tag,
             connection_pool_maxsize=self._config.connection_pool_maxsize,
         )
+        effective = pool_threads if pool_threads is not None else self._legacy_pool_threads
+        if effective is not None:
+            kwargs["pool_threads"] = effective
+        return kwargs
 
     def _resolve_index_host(self, *, name: str, host: str) -> str:
         """Resolve the data plane host from explicit host, cache, or describe call.
@@ -739,10 +747,17 @@ class Pinecone:
 
         Preserved to ease migration from the legacy Pinecone Python SDK. New code
         should use ``pc.index(name=..., host=...)`` instead of ``pc.Index(...)``.
+        Accepts a legacy ``pool_threads=`` kwarg and forwards it to size the
+        ``async_req=True`` thread pool; other unknown kwargs raise ``TypeError``.
         """
+        pool_threads = kwargs.pop("pool_threads", None)
+        if kwargs:
+            raise TypeError(
+                f"Pinecone.Index() got unexpected keyword arguments: {sorted(kwargs)!r}"
+            )
         from pinecone.index import Index as _Index
 
-        return cast(_Index, self.index(name=name, host=host))
+        return cast(_Index, self.index(name=name, host=host, pool_threads=pool_threads))
 
     def IndexAsyncio(self, host: str, **kwargs: Any) -> Any:  # noqa: N802
         """Backwards-compatibility shim that returns an :class:`AsyncIndex`.

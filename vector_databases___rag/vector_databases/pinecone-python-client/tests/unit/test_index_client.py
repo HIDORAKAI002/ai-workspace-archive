@@ -2,15 +2,16 @@
 
 from __future__ import annotations
 
-import logging
+import sys
 import warnings
+from multiprocessing.pool import ApplyResult
 
 import httpx
 import pytest
 import respx
 
 from pinecone import Index, Pinecone
-from pinecone.errors.exceptions import ValidationError
+from pinecone.errors.exceptions import PineconeValueError, ValidationError
 from tests.factories import make_index_response
 
 INDEX_HOST = "test-index-abc1234.svc.us-east1-gcp.pinecone.io"
@@ -220,13 +221,9 @@ class TestPoolThreadsBackcompat:
         idx = Index(host=INDEX_HOST, api_key="test-key", pool_threads=4)  # type: ignore[call-arg]
         assert idx is not None
 
-    def test_pool_threads_kwarg_emits_debug_log(self, caplog: pytest.LogCaptureFixture) -> None:
-        with caplog.at_level(logging.DEBUG, logger="pinecone.index"):
-            Index(host=INDEX_HOST, api_key="test-key", pool_threads=4)  # type: ignore[call-arg]
-        assert any(
-            "pool_threads" in r.message and "connection_pool_maxsize" in r.message
-            for r in caplog.records
-        )
+    def test_pool_threads_installs_legacy_async_pool(self) -> None:
+        idx = Index(host=INDEX_HOST, api_key="test-key", pool_threads=4)  # type: ignore[call-arg]
+        assert hasattr(idx, "_legacy_async_pool")
 
     def test_pool_threads_kwarg_does_not_warn(self) -> None:
         with warnings.catch_warnings(record=True) as record:
@@ -237,3 +234,84 @@ class TestPoolThreadsBackcompat:
     def test_unknown_kwarg_still_rejected(self) -> None:
         with pytest.raises(TypeError, match="unexpected keyword arguments"):
             Index(host=INDEX_HOST, api_key="test-key", bogus=True)  # type: ignore[call-arg]
+
+
+# ---------------------------------------------------------------------------
+# async_req=True opt-in via pool_threads= (BC-0109)
+# ---------------------------------------------------------------------------
+
+UPSERT_URL = f"{INDEX_HOST_HTTPS}/vectors/upsert"
+
+
+class TestAsyncReqOptIn:
+    def test_index_construction_does_not_import_multiprocessing(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        monkeypatch.delitem(sys.modules, "multiprocessing.pool", raising=False)
+        Index(host=INDEX_HOST, api_key="test-key")
+        # The legacy wrappers install at construction (BC-0113) — that's
+        # cheap and pulls only `pinecone._legacy.async_req` (no
+        # multiprocessing). The actual ThreadPool construction is deferred
+        # to first ``async_req=True`` submit.
+        assert "multiprocessing.pool" not in sys.modules
+
+    def test_index_with_pool_threads_does_not_import_multiprocessing(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        monkeypatch.delitem(sys.modules, "multiprocessing.pool", raising=False)
+        Index(host=INDEX_HOST, api_key="test-key", pool_threads=4)  # type: ignore[call-arg]
+        assert "pinecone._legacy.async_req" in sys.modules
+        # multiprocessing.pool is NOT yet imported — pool is lazy, constructed on first submit
+        assert "multiprocessing.pool" not in sys.modules
+
+    def test_default_pool_threads_is_10(self) -> None:
+        idx = Index(host=INDEX_HOST, api_key="test-key")
+        assert idx._legacy_async_pool_threads == 10  # type: ignore[attr-defined]
+
+    @respx.mock
+    def test_async_req_true_without_pool_threads_uses_default_pool(self) -> None:
+        respx.post(UPSERT_URL).mock(return_value=httpx.Response(200, json={"upsertedCount": 1}))
+        idx = Index(host=INDEX_HOST, api_key="test-key")
+        result = idx.upsert(vectors=[("a", [0.1, 0.2])], async_req=True)  # type: ignore[call-arg]
+        assert isinstance(result, ApplyResult)
+        upsert_response = result.get(timeout=5)
+        assert upsert_response.upserted_count == 1
+
+    @respx.mock
+    def test_async_req_true_with_pool_threads_returns_apply_result(self) -> None:
+        respx.post(UPSERT_URL).mock(return_value=httpx.Response(200, json={"upsertedCount": 1}))
+        idx = Index(host=INDEX_HOST, api_key="test-key", pool_threads=2)  # type: ignore[call-arg]
+        result = idx.upsert(vectors=[("a", [0.1, 0.2])], async_req=True)  # type: ignore[call-arg]
+        assert isinstance(result, ApplyResult)
+        upsert_response = result.get(timeout=5)
+        assert upsert_response.upserted_count == 1
+
+    def test_async_req_true_with_batch_size_raises_legacy_text(self) -> None:
+        idx = Index(host=INDEX_HOST, api_key="test-key", pool_threads=2)  # type: ignore[call-arg]
+        with pytest.raises(PineconeValueError) as excinfo:
+            idx.upsert(vectors=[("a", [0.1])], batch_size=10, async_req=True)  # type: ignore[call-arg]
+        assert str(excinfo.value) == "async_req is not supported when batch_size is provided."
+
+    @respx.mock
+    def test_close_shuts_down_legacy_pool_idempotently(self) -> None:
+        respx.post(UPSERT_URL).mock(return_value=httpx.Response(200, json={"upsertedCount": 1}))
+        idx = Index(host=INDEX_HOST, api_key="test-key", pool_threads=2)  # type: ignore[call-arg]
+        # Trigger pool construction by submitting a real call
+        result = idx.upsert(vectors=[("a", [0.1, 0.2])], async_req=True)  # type: ignore[call-arg]
+        result.get(timeout=5)
+        # Close — should not raise
+        idx.close()
+        # Second close — should also not raise
+        idx.close()
+
+    def test_close_works_when_legacy_pool_never_installed(self) -> None:
+        idx = Index(host=INDEX_HOST, api_key="test-key")
+        idx.close()  # must not raise; _legacy_async_pool attribute was never set
+
+    def test_pool_threads_emits_no_deprecation_warning(self) -> None:
+        with warnings.catch_warnings(record=True) as record:
+            warnings.simplefilter("always")
+            Index(host=INDEX_HOST, api_key="test-key", pool_threads=4)  # type: ignore[call-arg]
+        assert [w for w in record if issubclass(w.category, DeprecationWarning)] == []

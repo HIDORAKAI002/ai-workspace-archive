@@ -32,6 +32,7 @@ vi.mock("../config/plugin-auto-enable.js", () => ({
 let resolvePluginTools: typeof import("./tools.js").resolvePluginTools;
 let ensureStandalonePluginToolRegistryLoaded: typeof import("./tools.js").ensureStandalonePluginToolRegistryLoaded;
 let buildPluginToolMetadataKey: typeof import("./tools.js").buildPluginToolMetadataKey;
+let getPluginToolMeta: typeof import("./tools.js").getPluginToolMeta;
 let resetPluginToolFactoryCache: typeof import("./tools.js").resetPluginToolFactoryCache;
 let getActivePluginRegistry: typeof import("./runtime.js").getActivePluginRegistry;
 let pinActivePluginChannelRegistry: typeof import("./runtime.js").pinActivePluginChannelRegistry;
@@ -68,6 +69,7 @@ function createContext() {
 function createResolveToolsParams(params?: {
   context?: ReturnType<typeof createContext> & Record<string, unknown>;
   toolAllowlist?: readonly string[];
+  toolDenylist?: readonly string[];
   existingToolNames?: Set<string>;
   env?: NodeJS.ProcessEnv;
   suppressNameConflicts?: boolean;
@@ -76,6 +78,7 @@ function createResolveToolsParams(params?: {
   return {
     context: (params?.context ?? createContext()) as never,
     ...(params?.toolAllowlist ? { toolAllowlist: [...params.toolAllowlist] } : {}),
+    ...(params?.toolDenylist ? { toolDenylist: [...params.toolDenylist] } : {}),
     ...(params?.existingToolNames ? { existingToolNames: params.existingToolNames } : {}),
     ...(params?.env ? { env: params.env } : {}),
     ...(params?.suppressNameConflicts ? { suppressNameConflicts: true } : {}),
@@ -408,6 +411,7 @@ describe("resolvePluginTools optional tools", () => {
     ({
       buildPluginToolMetadataKey,
       ensureStandalonePluginToolRegistryLoaded,
+      getPluginToolMeta,
       resetPluginToolFactoryCache,
       resolvePluginTools,
     } = await import("./tools.js"));
@@ -1210,6 +1214,126 @@ describe("resolvePluginTools optional tools", () => {
     expect(defaultFactory).toHaveBeenCalledTimes(1);
     expect(optionalFactory).not.toHaveBeenCalled();
     expect(loadOpenClawPluginsMock).not.toHaveBeenCalled();
+  });
+
+  it("does not materialize manifest-optional sibling tools from non-optional factories by default", async () => {
+    const config = createContext().config;
+    installToolManifestSnapshot({
+      config,
+      plugin: {
+        id: "multi",
+        origin: "bundled",
+        enabledByDefault: true,
+        channels: [],
+        providers: [],
+        contracts: {
+          tools: ["other_tool", "optional_tool"],
+        },
+        toolMetadata: {
+          optional_tool: {
+            optional: true,
+          },
+        },
+      },
+    });
+    const factory = vi.fn(() => [makeTool("other_tool"), makeTool("optional_tool")]);
+    setActivePluginRegistry(
+      createToolRegistry([
+        {
+          pluginId: "multi",
+          optional: false,
+          source: "/tmp/multi.js",
+          names: ["other_tool", "optional_tool"],
+          declaredNames: ["other_tool", "optional_tool"],
+          factory,
+        },
+      ]) as never,
+      "test-tool-registry",
+      "gateway-bindable",
+      "/tmp",
+    );
+    const { loadManifestContractSnapshot } = await import("./manifest-contract-eligibility.js");
+    const snapshot = loadManifestContractSnapshot({ config, workspaceDir: "/tmp" });
+    expect(
+      snapshot.plugins.find((plugin) => plugin.id === "multi")?.toolMetadata?.optional_tool,
+    ).toMatchObject({ optional: true });
+
+    const tools = resolvePluginTools(
+      createResolveToolsParams({
+        context: {
+          ...createContext(),
+          config,
+        },
+      }),
+    );
+
+    expectResolvedToolNames(tools, ["other_tool"]);
+    expect(factory).toHaveBeenCalledTimes(1);
+    expect(loadOpenClawPluginsMock).not.toHaveBeenCalled();
+  });
+
+  it("marks allowlisted manifest-optional sibling tools from non-optional factories as optional", () => {
+    const config = createContext().config;
+    installToolManifestSnapshot({
+      config,
+      plugin: {
+        id: "multi",
+        origin: "bundled",
+        enabledByDefault: true,
+        channels: [],
+        providers: [],
+        contracts: {
+          tools: ["other_tool", "optional_tool"],
+        },
+        toolMetadata: {
+          optional_tool: {
+            optional: true,
+          },
+        },
+      },
+    });
+    const factory = vi.fn(() => [makeTool("other_tool"), makeTool("optional_tool")]);
+    setActivePluginRegistry(
+      createToolRegistry([
+        {
+          pluginId: "multi",
+          optional: false,
+          source: "/tmp/multi.js",
+          names: ["other_tool", "optional_tool"],
+          declaredNames: ["other_tool", "optional_tool"],
+          factory,
+        },
+      ]) as never,
+      "test-tool-registry",
+      "gateway-bindable",
+      "/tmp",
+    );
+
+    const first = resolvePluginTools(
+      createResolveToolsParams({
+        context: {
+          ...createContext(),
+          config,
+        },
+        toolAllowlist: [DEFAULT_PLUGIN_TOOLS_ALLOWLIST_ENTRY, "optional_tool"],
+      }),
+    );
+    const second = resolvePluginTools(
+      createResolveToolsParams({
+        context: {
+          ...createContext(),
+          config,
+        },
+        toolAllowlist: [DEFAULT_PLUGIN_TOOLS_ALLOWLIST_ENTRY, "optional_tool"],
+      }),
+    );
+
+    expectResolvedToolNames(first, ["other_tool", "optional_tool"]);
+    expectResolvedToolNames(second, ["other_tool", "optional_tool"]);
+    expect(getPluginToolMeta(first[0])?.optional).toBe(false);
+    expect(getPluginToolMeta(first[1])?.optional).toBe(true);
+    expect(getPluginToolMeta(second[1])?.optional).toBe(true);
+    expect(factory).toHaveBeenCalledTimes(1);
   });
 
   it("rejects plugin id collisions with core tool names", () => {
@@ -2175,6 +2299,30 @@ describe("resolvePluginTools optional tools", () => {
     const tools = resolvePluginTools(createResolveToolsParams({ toolAllowlist: ["*"] }));
 
     expectResolvedToolNames(tools, ["browser"]);
+  });
+
+  it("does not materialize plugin tools blocked by explicit deny policy", () => {
+    const browserFactory = vi.fn(() => makeTool("browser"));
+    const browserEntry: MockRegistryToolEntry = {
+      pluginId: "browser",
+      optional: false,
+      source: "/tmp/browser.js",
+      names: ["browser"],
+      declaredNames: ["browser"],
+      factory: browserFactory,
+    };
+    setRegistry([browserEntry]);
+
+    const tools = resolvePluginTools(
+      createResolveToolsParams({
+        toolAllowlist: ["*"],
+        toolDenylist: ["browser"],
+      }),
+    );
+
+    expectResolvedToolNames(tools, []);
+    expect(browserFactory).not.toHaveBeenCalled();
+    expect(loadOpenClawPluginsMock).not.toHaveBeenCalled();
   });
 
   it("includes optional tools when wildcard allowlist is active (#76507)", () => {

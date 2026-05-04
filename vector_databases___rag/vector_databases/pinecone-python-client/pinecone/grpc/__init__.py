@@ -13,9 +13,12 @@ if TYPE_CHECKING:
     import pandas as pd  # type: ignore[import-untyped]
 
 from pinecone._internal.adapters.vectors_adapter import VectorsAdapter, extract_response_info
+from pinecone._internal.batch import batch_execute
+from pinecone._internal.batching import chunked, validate_batch_size, with_progress
 from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import DATA_PLANE_API_VERSION
 from pinecone._internal.data_plane_helpers import _validate_host
+from pinecone._internal.validation import require_in_range
 from pinecone._internal.vector_factory import VectorFactory
 from pinecone.errors.exceptions import (
     PineconeValueError,
@@ -176,6 +179,8 @@ class GrpcIndex:
         )
 
         self._executor = ThreadPoolExecutor()
+        self._batch_executor: ThreadPoolExecutor | None = None
+        self._batch_executor_workers: int = 0
 
         # REST HTTP client for records operations (integrated inference).
         # upsert_records and search use REST endpoints with no gRPC equivalent.
@@ -198,16 +203,30 @@ class GrpcIndex:
         """The data plane host URL for this index."""
         return self._host
 
+    def _get_batch_executor(self, max_concurrency: int) -> ThreadPoolExecutor:
+        if self._batch_executor is None or self._batch_executor_workers != max_concurrency:
+            if self._batch_executor is not None:
+                self._batch_executor.shutdown(wait=False)
+            self._batch_executor = ThreadPoolExecutor(
+                max_concurrency,
+                thread_name_prefix="pinecone-grpc-batch-upsert",
+            )
+            self._batch_executor_workers = max_concurrency
+        return self._batch_executor
+
     def upsert(
         self,
         *,
         vectors: Sequence[
             Vector
-            | tuple[str, list[float]]
-            | tuple[str, list[float], dict[str, Any]]
+            | tuple[str, builtins.list[float]]
+            | tuple[str, builtins.list[float], dict[str, Any]]
             | dict[str, Any]
         ],
         namespace: str = "",
+        batch_size: int | None = None,
+        max_concurrency: int = 4,
+        show_progress: bool = True,
         timeout: float | None = None,
     ) -> UpsertResponse:
         """Upsert a batch of vectors into a namespace.
@@ -222,7 +241,18 @@ class GrpcIndex:
                 and optional ``sparse_values`` / ``metadata`` keys.
             namespace (str): Target namespace. Defaults to the default
                 (empty-string) namespace.
-            timeout (float | None): Per-call timeout in seconds. None uses the client-level default.
+            batch_size (int | None): If set, splits ``vectors`` into batches of
+                this size and submits them in **parallel** via a
+                ``ThreadPoolExecutor``. ``None`` (default) sends all vectors in
+                a single channel call. Must be a positive integer when set.
+            max_concurrency (int): Number of parallel threads used when
+                ``batch_size`` is set. Default ``4``, range ``[1, 64]``. Ignored
+                when ``batch_size`` is ``None``.
+            show_progress (bool): If ``True`` and ``tqdm`` is installed, display a
+                progress bar while submitting batches. Ignored when ``batch_size``
+                is ``None``. Defaults to ``True``.
+            timeout (float | None): Per-call timeout in seconds. Applied per batch
+                when batching. None uses the client-level default.
 
         Returns:
             :class:`UpsertResponse` with the count of vectors upserted.
@@ -230,8 +260,20 @@ class GrpcIndex:
         Raises:
             :exc:`TypeError`: If a vector element is not a recognized format.
             :exc:`ValueError`: If a vector element is malformed.
+            :exc:`PineconeValueError`: If ``batch_size`` is not a positive integer
+                or ``max_concurrency`` is outside ``[1, 64]``.
             :exc:`PineconeTimeoutError`: If the call exceeds *timeout* or the server
                 returns CANCELLED with a timeout cause.
+
+        Notes:
+            When ``batch_size`` is set, batches are submitted **in parallel** via a
+            ``ThreadPoolExecutor`` of ``max_concurrency`` workers (default 4, range
+            1–64). Per-batch retries are handled by the gRPC channel's own retry
+            policy. **Partial failures do not raise** — the returned
+            :class:`UpsertResponse` carries ``upserted_count``,
+            ``failed_item_count``, ``errors``, and ``failed_items`` for inspection /
+            retry. Pass ``response.failed_items`` back to ``upsert(...)`` to retry
+            only the failures.
 
         Examples:
 
@@ -254,12 +296,41 @@ class GrpcIndex:
                 )
                 print(response.upserted_count)
         """
-        built = [VectorFactory.build(v) for v in vectors]
-        grpc_vectors = [_vector_to_grpc_dict(v) for v in built]
+        if batch_size is None:
+            built = [VectorFactory.build(v) for v in vectors]
+            grpc_vectors = [_vector_to_grpc_dict(v) for v in built]
+            logger.info("Upserting %d vectors via gRPC into namespace %r", len(built), namespace)
+            result = self._channel.upsert(grpc_vectors, namespace or None, timeout_s=timeout)
+            return UpsertResponse(upserted_count=result.get("upserted_count", 0))
 
-        logger.info("Upserting %d vectors via gRPC into namespace %r", len(built), namespace)
-        result = self._channel.upsert(grpc_vectors, namespace or None, timeout_s=timeout)
-        return UpsertResponse(upserted_count=result.get("upserted_count", 0))
+        validate_batch_size(batch_size)
+        require_in_range("max_concurrency", max_concurrency, 1, 64)
+
+        built = [VectorFactory.build(v) for v in vectors]
+        items: builtins.list[dict[str, Any]] = [_vector_to_grpc_dict(v) for v in built]
+
+        def _operation(chunk: builtins.list[dict[str, Any]]) -> dict[str, Any]:
+            return self._channel.upsert(chunk, namespace or None, timeout_s=timeout)
+
+        batch_result = batch_execute(
+            items=items,
+            operation=_operation,
+            batch_size=batch_size,
+            max_concurrency=max_concurrency,
+            show_progress=show_progress,
+            desc="Upserting",
+            executor=self._get_batch_executor(max_concurrency),
+        )
+
+        return UpsertResponse(
+            upserted_count=batch_result.successful_item_count,
+            total_item_count=batch_result.total_item_count,
+            failed_item_count=batch_result.failed_item_count,
+            total_batch_count=batch_result.total_batch_count,
+            successful_batch_count=batch_result.successful_batch_count,
+            failed_batch_count=batch_result.failed_batch_count,
+            errors=batch_result.errors,
+        )
 
     def query(
         self,
@@ -631,6 +702,7 @@ class GrpcIndex:
                 server returns CANCELLED with a timeout cause.
 
         Examples:
+
             .. code-block:: python
 
                 for page in idx.list(prefix="doc1#"):
@@ -781,8 +853,7 @@ class GrpcIndex:
         if not isinstance(df, pd.DataFrame):
             raise PineconeValueError("df must be a pandas DataFrame")
 
-        if not isinstance(batch_size, int) or batch_size <= 0:
-            raise PineconeValueError("batch_size must be a positive integer")
+        validate_batch_size(batch_size)
 
         has_sparse = "sparse_values" in df.columns
         has_metadata = "metadata" in df.columns
@@ -796,21 +867,10 @@ class GrpcIndex:
                 record["metadata"] = row["metadata"]
             records.append(record)
 
-        batches: builtins.list[builtins.list[dict[str, Any]]] = [
-            records[i : i + batch_size] for i in range(0, len(records), batch_size)
-        ]
-
-        batch_iter: Any = batches
-        if show_progress:
-            try:
-                from tqdm.auto import tqdm  # type: ignore[import-untyped]
-
-                batch_iter = tqdm(batches, desc="Upserting")
-            except ImportError:
-                pass
-
+        batches = chunked(records, batch_size)
         futures: builtins.list[PineconeFuture[UpsertResponse]] = [
-            self.upsert_async(vectors=batch, namespace=namespace) for batch in batch_iter
+            self.upsert_async(vectors=batch, namespace=namespace)
+            for batch in with_progress(batches, show_progress=show_progress)
         ]
 
         total_count = 0
@@ -1260,6 +1320,8 @@ class GrpcIndex:
     def close(self) -> None:
         """Close the underlying gRPC channel, REST client, and release resources."""
         self._executor.shutdown(wait=True)
+        if self._batch_executor is not None:
+            self._batch_executor.shutdown(wait=False)
         self._http.close()
         if hasattr(self._channel, "close"):
             self._channel.close()
@@ -1271,6 +1333,12 @@ class GrpcIndex:
         self.close()
 
 
+# Legacy capitalisation alias (BCG-141).
+GRPCIndex = GrpcIndex
+
+# Legacy name (renamed from PineconeGrpcFuture in the rewrite — BCG-143).
+PineconeGrpcFuture = PineconeFuture
+
 from pinecone.grpc.pinecone_grpc import PineconeGRPC  # noqa: E402
 
-__all__ = ["GrpcIndex", "PineconeGRPC"]
+__all__ = ["GRPCIndex", "GrpcIndex", "PineconeGRPC", "PineconeGrpcFuture"]
