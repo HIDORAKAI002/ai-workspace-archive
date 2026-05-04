@@ -15,41 +15,18 @@
 # specific language governing permissions and limitations
 # under the License.
 
-[project]
-name = "apache-airflow-shared-state"
-description = "Shared task and asset state abstractions for Airflow distributions"
-version = "0.0"
-classifiers = [
-    "Private :: Do Not Upload",
-]
+from __future__ import annotations
 
-dependencies = []
+from airflow.api_fastapi.core_api.base import StrictBaseModel
 
-[dependency-groups]
-dev = [
-    "apache-airflow-devel-common",
-]
-mypy = [
-    "apache-airflow-devel-common[mypy]",
-]
 
-[build-system]
-requires = [
-    "hatchling==1.29.0",
-    "packaging==26.2",
-    "pathspec==1.1.1",
-    "pluggy==1.6.0",
-    "tomli==2.4.1; python_version < '3.11'",
-    "trove-classifiers==2026.4.28.13",
-]
-build-backend = "hatchling.build"
+class TaskStateResponse(StrictBaseModel):
+    """Task state value returned to a worker."""
 
-[tool.hatch.build.targets.wheel]
-packages = ["src/airflow_shared"]
+    value: str
 
-[tool.ruff]
-extend = "../../pyproject.toml"
-src = ["src"]
 
-[tool.ruff.lint.per-file-ignores]
-"!src/*" = ["D", "S101", "TRY002"]
+class TaskStatePutBody(StrictBaseModel):
+    """Request body for setting a task state value."""
+
+    value: str
