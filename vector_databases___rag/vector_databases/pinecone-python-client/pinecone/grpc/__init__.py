@@ -5,7 +5,7 @@ from __future__ import annotations
 import builtins
 import logging
 import os
-from collections.abc import Iterator, Sequence
+from collections.abc import Iterator, Mapping, Sequence
 from concurrent.futures import ThreadPoolExecutor
 from typing import TYPE_CHECKING, Any
 
@@ -219,9 +219,9 @@ class GrpcIndex:
         *,
         vectors: Sequence[
             Vector
-            | tuple[str, builtins.list[float]]
-            | tuple[str, builtins.list[float], dict[str, Any]]
-            | dict[str, Any]
+            | tuple[str, Sequence[float]]
+            | tuple[str, Sequence[float], Mapping[str, Any]]
+            | Mapping[str, Any]
         ],
         namespace: str = "",
         batch_size: int | None = None,
@@ -336,13 +336,13 @@ class GrpcIndex:
         self,
         *,
         top_k: int,
-        vector: list[float] | None = None,
+        vector: Sequence[float] | None = None,
         id: str | None = None,
         namespace: str = "",
-        filter: dict[str, Any] | None = None,
+        filter: Mapping[str, Any] | None = None,
         include_values: bool = False,
         include_metadata: bool = False,
-        sparse_vector: SparseValues | dict[str, Any] | None = None,
+        sparse_vector: SparseValues | Mapping[str, Any] | None = None,
         scan_factor: float | None = None,
         max_candidates: int | None = None,
         timeout: float | None = None,
@@ -399,7 +399,7 @@ class GrpcIndex:
             raise ValidationError("At least one of vector, id, or sparse_vector must be provided")
 
         # Convert SparseValues model to dict for GrpcChannel
-        sv_dict: dict[str, Any] | None = None
+        sv_dict: Mapping[str, Any] | None = None
         if sparse_vector is not None:
             if isinstance(sparse_vector, SparseValues):
                 sv_dict = {
@@ -435,7 +435,7 @@ class GrpcIndex:
     def fetch(
         self,
         *,
-        ids: list[str],
+        ids: Sequence[str],
         namespace: str = "",
         timeout: float | None = None,
     ) -> FetchResponse:
@@ -483,9 +483,9 @@ class GrpcIndex:
     def delete(
         self,
         *,
-        ids: list[str] | None = None,
+        ids: Sequence[str] | None = None,
         delete_all: bool = False,
-        filter: dict[str, Any] | None = None,
+        filter: Mapping[str, Any] | None = None,
         namespace: str = "",
         timeout: float | None = None,
     ) -> None:
@@ -542,11 +542,11 @@ class GrpcIndex:
         self,
         *,
         id: str | None = None,
-        values: list[float] | None = None,
-        sparse_values: SparseValues | dict[str, Any] | None = None,
-        set_metadata: dict[str, Any] | None = None,
+        values: Sequence[float] | None = None,
+        sparse_values: SparseValues | Mapping[str, Any] | None = None,
+        set_metadata: Mapping[str, Any] | None = None,
         namespace: str = "",
-        filter: dict[str, Any] | None = None,
+        filter: Mapping[str, Any] | None = None,
         dry_run: bool = False,
         timeout: float | None = None,
     ) -> UpdateResponse:
@@ -592,7 +592,7 @@ class GrpcIndex:
             raise ValidationError("Exactly one of id or filter must be provided, got neither")
 
         # Convert SparseValues model to dict for GrpcChannel
-        sv_dict: dict[str, Any] | None = None
+        sv_dict: Mapping[str, Any] | None = None
         if sparse_values is not None:
             if isinstance(sparse_values, SparseValues):
                 sv_dict = {
@@ -728,7 +728,7 @@ class GrpcIndex:
     def describe_index_stats(
         self,
         *,
-        filter: dict[str, Any] | None = None,
+        filter: Mapping[str, Any] | None = None,
         timeout: float | None = None,
     ) -> DescribeIndexStatsResponse:
         """Return statistics for this index.
@@ -889,9 +889,9 @@ class GrpcIndex:
         *,
         vectors: Sequence[
             Vector
-            | tuple[str, builtins.list[float]]
-            | tuple[str, builtins.list[float], dict[str, Any]]
-            | dict[str, Any]
+            | tuple[str, Sequence[float]]
+            | tuple[str, Sequence[float], Mapping[str, Any]]
+            | Mapping[str, Any]
         ],
         namespace: str = "",
         timeout: float | None = None,
@@ -926,13 +926,13 @@ class GrpcIndex:
         self,
         *,
         top_k: int,
-        vector: builtins.list[float] | None = None,
+        vector: Sequence[float] | None = None,
         id: str | None = None,
         namespace: str = "",
-        filter: dict[str, Any] | None = None,
+        filter: Mapping[str, Any] | None = None,
         include_values: bool = False,
         include_metadata: bool = False,
-        sparse_vector: SparseValues | dict[str, Any] | None = None,
+        sparse_vector: SparseValues | Mapping[str, Any] | None = None,
         scan_factor: float | None = None,
         max_candidates: int | None = None,
         timeout: float | None = None,
@@ -979,7 +979,7 @@ class GrpcIndex:
     def fetch_async(
         self,
         *,
-        ids: builtins.list[str],
+        ids: Sequence[str],
         namespace: str = "",
         timeout: float | None = None,
     ) -> PineconeFuture[FetchResponse]:
@@ -1008,9 +1008,9 @@ class GrpcIndex:
     def delete_async(
         self,
         *,
-        ids: builtins.list[str] | None = None,
+        ids: Sequence[str] | None = None,
         delete_all: bool = False,
-        filter: dict[str, Any] | None = None,
+        filter: Mapping[str, Any] | None = None,
         namespace: str = "",
         timeout: float | None = None,
     ) -> PineconeFuture[None]:
@@ -1051,10 +1051,10 @@ class GrpcIndex:
         self,
         *,
         id: str | None = None,
-        values: builtins.list[float] | None = None,
-        sparse_values: SparseValues | dict[str, Any] | None = None,
-        set_metadata: dict[str, Any] | None = None,
-        filter: dict[str, Any] | None = None,
+        values: Sequence[float] | None = None,
+        sparse_values: SparseValues | Mapping[str, Any] | None = None,
+        set_metadata: Mapping[str, Any] | None = None,
+        filter: Mapping[str, Any] | None = None,
         namespace: str = "",
         dry_run: bool = False,
         timeout: float | None = None,
@@ -1161,13 +1161,13 @@ class GrpcIndex:
         *,
         namespace: str,
         top_k: int,
-        inputs: SearchInputs | dict[str, Any] | None = None,
-        vector: builtins.list[float] | None = None,
+        inputs: SearchInputs | Mapping[str, Any] | None = None,
+        vector: Sequence[float] | None = None,
         id: str | None = None,
-        filter: dict[str, Any] | None = None,
-        fields: builtins.list[str] | None = None,
-        rerank: RerankConfig | dict[str, Any] | None = None,
-        match_terms: dict[str, Any] | None = None,
+        filter: Mapping[str, Any] | None = None,
+        fields: Sequence[str] | None = None,
+        rerank: RerankConfig | Mapping[str, Any] | None = None,
+        match_terms: Mapping[str, Any] | None = None,
         timeout: float | None = None,
     ) -> SearchRecordsResponse:
         """Search records by text, vector, or ID with optional reranking.
@@ -1291,13 +1291,13 @@ class GrpcIndex:
         *,
         namespace: str,
         top_k: int,
-        inputs: SearchInputs | dict[str, Any] | None = None,
-        vector: builtins.list[float] | None = None,
+        inputs: SearchInputs | Mapping[str, Any] | None = None,
+        vector: Sequence[float] | None = None,
         id: str | None = None,
-        filter: dict[str, Any] | None = None,
-        fields: builtins.list[str] | None = None,
-        rerank: RerankConfig | dict[str, Any] | None = None,
-        match_terms: dict[str, Any] | None = None,
+        filter: Mapping[str, Any] | None = None,
+        fields: Sequence[str] | None = None,
+        rerank: RerankConfig | Mapping[str, Any] | None = None,
+        match_terms: Mapping[str, Any] | None = None,
         timeout: float | None = None,
     ) -> SearchRecordsResponse:
         """Alias for :meth:`search`.
