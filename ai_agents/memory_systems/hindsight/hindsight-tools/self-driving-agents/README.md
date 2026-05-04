@@ -29,7 +29,8 @@ Agent name defaults to the directory name. Override with `--agent <name>`.
 ```
 npx @vectorize-io/self-driving-agents install <dir> --harness <harness> [options]
 
---harness <h>      Required. openclaw | hermes | claude-code
+--harness <h>      Required. openclaw | nemoclaw | hermes | claude-code
+--sandbox <name>   NemoClaw sandbox name (required when --harness nemoclaw; auto-detected if only one sandbox exists)
 --agent <name>     Agent name (defaults to directory name)
 --api-url <url>    Override Hindsight API URL
 --api-token <t>    Override API token

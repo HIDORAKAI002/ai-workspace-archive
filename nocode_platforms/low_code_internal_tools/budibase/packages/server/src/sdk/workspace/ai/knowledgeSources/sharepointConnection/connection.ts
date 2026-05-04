@@ -12,7 +12,6 @@ import {
 type SharePointConnectionRecord = Pick<
   AgentKnowledgeSourceConnection,
   | "account"
-  | "tenantId"
   | "tokenEndpoint"
   | "accessToken"
   | "refreshToken"
@@ -49,7 +48,6 @@ const mapPersistedToCacheRecord = (
 ): SharePointConnectionRecord => {
   return {
     account: doc.account || "unknown",
-    tenantId: doc.tenantId,
     tokenEndpoint: doc.tokenEndpoint,
     accessToken: doc.accessToken,
     refreshToken: doc.refreshToken,
@@ -125,7 +123,6 @@ const refreshConnection = async (
   const saved = await updateKnowledgeSourceConnection<SharePointConnectionDoc>(
     connectionId,
     {
-      tenantId: updated.tenantId,
       tokenEndpoint: updated.tokenEndpoint,
       accessToken: updated.accessToken,
       refreshToken: updated.refreshToken,

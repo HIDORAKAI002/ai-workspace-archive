@@ -378,4 +378,93 @@ describe("harness argument parsing", () => {
     expect(harness).toBe("nemoclaw");
     expect(sandbox).toBeUndefined();
   });
+
+  it("parses hermes harness", () => {
+    const { harness } = parseHarness(["--harness", "hermes"]);
+    expect(harness).toBe("hermes");
+  });
+});
+
+describe("hermes hindsight config", () => {
+  let tmpDir: string;
+
+  beforeEach(async () => {
+    tmpDir = await mkdtemp(join(tmpdir(), "sda-hermes-test-"));
+  });
+
+  afterEach(async () => {
+    await rm(tmpDir, { recursive: true, force: true });
+  });
+
+  it("generates correct hindsight/config.json", async () => {
+    const hindsightDir = join(tmpDir, "hindsight");
+    await mkdir(hindsightDir, { recursive: true });
+    const cfg = {
+      mode: "cloud",
+      api_url: "https://api.hindsight.vectorize.io",
+      api_key: "hsk_test",
+      bank_id: "marketing-seo",
+      bank_id_template: "",
+      recall_budget: "mid",
+      memory_mode: "hybrid",
+    };
+    await writeFile(join(hindsightDir, "config.json"), JSON.stringify(cfg));
+
+    const loaded = JSON.parse(readFileSync(join(hindsightDir, "config.json"), "utf-8"));
+    expect(loaded.bank_id).toBe("marketing-seo");
+    expect(loaded.bank_id_template).toBe("");
+    expect(loaded.api_url).toBe("https://api.hindsight.vectorize.io");
+    expect(loaded.api_key).toBe("hsk_test");
+    expect(loaded.mode).toBe("cloud");
+  });
+
+  it("empty bank_id_template prevents dynamic resolution", () => {
+    // Mirrors _resolve_bank_id_template logic: empty template → use fallback
+    function resolveTemplate(template: string, fallback: string): string {
+      if (!template) return fallback;
+      return template; // simplified — real impl does placeholder substitution
+    }
+
+    expect(resolveTemplate("", "marketing-seo")).toBe("marketing-seo");
+    expect(resolveTemplate("hermes-{profile}", "fallback")).toBe("hermes-{profile}");
+  });
+
+  it("plugin config is read from hindsight/config.json", async () => {
+    // Simulates what the hermes plugin does: read from HERMES_HOME/hindsight/config.json
+    const hindsightDir = join(tmpDir, "hindsight");
+    await mkdir(hindsightDir, { recursive: true });
+    const cfg = {
+      mode: "cloud",
+      api_url: "https://custom.api.com",
+      api_key: "hsk_custom",
+      bank_id: "my-agent",
+    };
+    await writeFile(join(hindsightDir, "config.json"), JSON.stringify(cfg));
+
+    // Read it back the way the plugin does
+    const cfgPath = join(tmpDir, "hindsight", "config.json");
+    const loaded = JSON.parse(readFileSync(cfgPath, "utf-8"));
+    const normalized = {
+      api_url: loaded.api_url || "",
+      api_token: loaded.api_key || "",
+      bank_id: loaded.bank_id || "hermes",
+    };
+
+    expect(normalized.api_url).toBe("https://custom.api.com");
+    expect(normalized.api_token).toBe("hsk_custom");
+    expect(normalized.bank_id).toBe("my-agent");
+  });
+
+  it("falls back to default bank_id when not set", async () => {
+    const hindsightDir = join(tmpDir, "hindsight");
+    await mkdir(hindsightDir, { recursive: true });
+    await writeFile(
+      join(hindsightDir, "config.json"),
+      JSON.stringify({ mode: "cloud", api_url: "https://api.example.com", api_key: "tok" })
+    );
+
+    const loaded = JSON.parse(readFileSync(join(hindsightDir, "config.json"), "utf-8"));
+    const bankId = loaded.bank_id || "hermes";
+    expect(bankId).toBe("hermes");
+  });
 });

@@ -108,8 +108,9 @@ def main():
 
     current_time = format_current_time()
     preamble = config.get("recallPromptPreamble", "")
+    recall_timeout = config.get("recallTimeout", 10)
 
-    debug_log(config, f"Recalling from bank '{bank_id}', query length: {len(query)}")
+    debug_log(config, f"Recalling from bank '{bank_id}', query length: {len(query)}, timeout: {recall_timeout}")
     try:
         response = client.recall(
             bank_id=bank_id,
@@ -117,7 +118,7 @@ def main():
             max_tokens=config.get("recallMaxTokens", 1024),
             budget=config.get("recallBudget", "mid"),
             types=config.get("recallTypes"),
-            timeout=10,
+            timeout=recall_timeout,
         )
     except Exception as e:
         print(f"[Hindsight] Recall failed: {e}", file=sys.stderr)

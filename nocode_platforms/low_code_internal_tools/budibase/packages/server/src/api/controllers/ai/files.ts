@@ -65,12 +65,14 @@ export async function fetchAgentKnowledge(
     sdk.ai.agents.getOrThrow(agentId),
     sdk.ai.rag.fetchKnowledgeSourceSyncStateForAgent(agentId),
   ])
-  const runsBySiteId = new Map(syncState.runs.map(run => [run.sourceId, run]))
+  const runsBySourceId = new Map(syncState.runs.map(run => [run.sourceId, run]))
   const sharePointSources = getSharePointSources(agent)
     .filter(source => source.config.site.id)
     .map<SharePointKnowledgeSourceSnapshot>(source => {
       const site = source.config.site
-      const run = runsBySiteId.get(source.id)
+      // Temporary compatibility for pre-source-id sync state rows keyed by raw site id.
+      // New sync state writes use source.id as the canonical key.
+      const run = runsBySourceId.get(source.id) || runsBySourceId.get(site.id)
       const filesForSource = files.filter(
         file => file.source?.knowledgeSourceId === source.id
       )

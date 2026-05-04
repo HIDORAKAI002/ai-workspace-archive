@@ -130,7 +130,6 @@ describe("agent files", () => {
       const connection = await createKnowledgeSourceConnection({
         sourceType: AgentKnowledgeSourceType.SHAREPOINT,
         account: "connected-sharepoint@budibase.com",
-        tenantId: config.getTenantId(),
         tokenEndpoint:
           "https://login.microsoftonline.com/common/oauth2/v2.0/token",
         accessToken: "header.payload.signature",
@@ -472,6 +471,70 @@ describe("agent files", () => {
         )
       })
       expect(hasDisconnectJob).toBe(true)
+    })
+  })
+
+  it("maps SharePoint sync run by raw site id when source id is sanitized", async () => {
+    await withRagEnabled(async () => {
+      const created = await config.api.agent.create({
+        name: "SharePoint Snapshot Mapping Agent",
+        aiconfig: "default",
+      })
+      const siteId = "contoso.sharepoint.com,site-guid,web-guid"
+      const sourceId = `sharepoint_site_${siteId}`
+      const nowIso = "2026-05-04T10:32:21.401Z"
+
+      await setSharePointSourceInAgent(created._id!, [siteId])
+
+      await config.doInContext(config.getDevWorkspaceId(), async () => {
+        const db = context.getWorkspaceDB()
+        const agentDoc = await db.tryGet<Agent>(created._id!)
+        const knowledgeBaseId = "knowledgebase_test_snapshot_mapping"
+        await db.put({
+          ...agentDoc!,
+          knowledgeBases: [{ _id: knowledgeBaseId }],
+        })
+
+        await db.put({
+          _id: `knowledgebasefile_${knowledgeBaseId}_file_1`,
+          knowledgeBaseId,
+          filename: "file-1.txt",
+          mimetype: "text/plain",
+          size: 100,
+          objectStoreKey: "test/object-store-key",
+          ragSourceId: "rag-source-1",
+          status: KnowledgeBaseFileStatus.READY,
+          uploadedBy: `sharepoint:${sourceId}`,
+          source: {
+            type: "sharepoint",
+            knowledgeSourceId: sourceId,
+            siteId,
+            driveId: "drive-1",
+            itemId: "item-1",
+            path: "file-1.txt",
+          },
+        } as any)
+
+        await db.put({
+          _id: `agentknowledgesync_${created._id!}_sharepoint_${encodeURIComponent(siteId)}`,
+          agentId: created._id!,
+          sourceType: "sharepoint",
+          sourceId: siteId,
+          lastRunAt: nowIso,
+          synced: 1,
+          failed: 0,
+          skipped: 0,
+          totalDiscovered: 1,
+          status: "success",
+          createdAt: nowIso,
+          updatedAt: nowIso,
+        } as any)
+      })
+
+      const response = await config.api.agent.fetchFiles(created._id!)
+      expect(response.sharePointSources).toHaveLength(1)
+      expect(response.sharePointSources[0].sourceId).toBe(sourceId)
+      expect(response.sharePointSources[0].lastRunAt).toBe(nowIso)
     })
   })
 })

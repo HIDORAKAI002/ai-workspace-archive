@@ -426,7 +426,12 @@ async function ensureNemoClawPlugin(sandboxName: string, agentId: string): Promi
         { stdio: "inherit" }
       );
     } catch {
-      p.log.warn("Failed to apply sandbox network policy. Retain may not work.");
+      p.cancel(
+        `Failed to apply sandbox network policy.\n` +
+          `  The sandbox may have been destroyed. Check with: nemoclaw list\n` +
+          `  Recreate with: nemoclaw onboard`
+      );
+      process.exit(1);
     }
   }
 
@@ -438,10 +443,136 @@ async function ensureNemoClawPlugin(sandboxName: string, agentId: string): Promi
     execSync(`nemoclaw ${sandboxName} rebuild --yes`, { stdio: "inherit" });
     p.log.success("Sandbox rebuilt");
   } catch {
-    p.log.warn(
-      `Failed to rebuild sandbox. Run manually: nemoclaw ${sandboxName} rebuild`
+    p.cancel(
+      `Failed to rebuild sandbox '${sandboxName}'.\n` +
+        `  Check with: nemoclaw list\n` +
+        `  Recreate with: nemoclaw onboard`
     );
+    process.exit(1);
   }
+}
+
+// ── Hermes plugin management ───────────────────────────
+
+function ensureHermesPlugin(
+  agentId: string,
+  apiUrl: string,
+  bankId: string,
+  apiToken?: string
+): void {
+  // Check hermes is installed
+  try {
+    execSync("which hermes", { stdio: "pipe" });
+  } catch {
+    p.cancel(
+      "hermes not found. Install it: curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash"
+    );
+    process.exit(1);
+  }
+
+  // Create a Hermes profile for this agent (or reuse if exists)
+  let profileHome: string;
+  try {
+    const showOut = execSync(`hermes profile show ${agentId}`, {
+      encoding: "utf-8",
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+    const pathMatch = showOut.match(/Path:\s+(\S+)/);
+    profileHome = pathMatch ? pathMatch[1] : join(homedir(), ".hermes", "profiles", agentId);
+    p.log.info(`Hermes profile '${agentId}' already exists`);
+  } catch {
+    // Profile doesn't exist — create it (clone config from default)
+    try {
+      execSync(`hermes profile create ${agentId} --clone`, {
+        encoding: "utf-8",
+        stdio: ["pipe", "pipe", "pipe"],
+      });
+      const showOut = execSync(`hermes profile show ${agentId}`, {
+        encoding: "utf-8",
+        stdio: ["pipe", "pipe", "pipe"],
+      });
+      const pathMatch = showOut.match(/Path:\s+(\S+)/);
+      profileHome = pathMatch ? pathMatch[1] : join(homedir(), ".hermes", "profiles", agentId);
+      p.log.success(`Hermes profile '${agentId}' created`);
+    } catch (err: any) {
+      const msg = err?.stderr?.toString?.()?.trim() || err?.message || String(err);
+      p.cancel(`Failed to create Hermes profile: ${msg}`);
+      process.exit(1);
+    }
+  }
+
+  // Install plugin into the profile
+  const pluginDir = join(profileHome, "plugins", "hindsight-sda");
+  const sdaPluginSrc = join(__dirname, "..", "hermes-plugin");
+  mkdirSync(pluginDir, { recursive: true });
+  for (const file of ["plugin.yaml", "__init__.py"]) {
+    const src = join(sdaPluginSrc, file);
+    if (existsSync(src)) {
+      writeFileSync(join(pluginDir, file), readFileSync(src, "utf-8"));
+    }
+  }
+  p.log.success("Hermes plugin installed");
+
+  // Write hindsight/config.json in the profile — single source of truth for
+  // both the bundled hindsight provider (auto-retain) and our tool plugin.
+  // Static bank_id, no template — both read the same bank.
+  const hindsightCfgDir = join(profileHome, "hindsight");
+  mkdirSync(hindsightCfgDir, { recursive: true });
+  writeFileSync(
+    join(hindsightCfgDir, "config.json"),
+    JSON.stringify(
+      {
+        mode: "cloud",
+        api_url: apiUrl,
+        api_key: apiToken,
+        bank_id: bankId,
+        bank_id_template: "",
+        recall_budget: "mid",
+        memory_mode: "hybrid",
+      },
+      null,
+      2
+    ) + "\n"
+  );
+
+  // Set the bundled hindsight as memory provider + enable our plugin in config.yaml
+  const hermesConfigPath = join(profileHome, "config.yaml");
+  if (existsSync(hermesConfigPath)) {
+    let config = readFileSync(hermesConfigPath, "utf-8");
+
+    // Set memory.provider to hindsight (bundled provider for auto-retain)
+    const lines = config.split("\n");
+    let inMemory = false;
+    for (let i = 0; i < lines.length; i++) {
+      if (/^memory:/.test(lines[i])) inMemory = true;
+      else if (/^\S/.test(lines[i]) && inMemory) inMemory = false;
+      if (inMemory && /^\s+provider:\s/.test(lines[i])) {
+        lines[i] = lines[i].replace(/provider:\s*\S+/, "provider: hindsight");
+        break;
+      }
+    }
+    config = lines.join("\n");
+
+    // Enable our tool plugin in plugins.enabled
+    if (!config.includes("hindsight-sda")) {
+      if (/plugins:\s*\n\s+enabled:/.test(config)) {
+        config = config.replace(/(plugins:\s*\n\s+enabled:\s*\n)/, "$1    - hindsight-sda\n");
+      } else if (/plugins:/.test(config)) {
+        config = config.replace(/(plugins:)/, "$1\n  enabled:\n    - hindsight-sda");
+      } else {
+        config += "\nplugins:\n  enabled:\n    - hindsight-sda\n";
+      }
+    }
+
+    writeFileSync(hermesConfigPath, config);
+  }
+  p.log.success("Hindsight memory + knowledge tools configured");
+
+  // Install skill into the profile
+  const skillDir = join(profileHome, "skills", "agent-knowledge");
+  mkdirSync(skillDir, { recursive: true });
+  writeFileSync(join(skillDir, "SKILL.md"), SKILL_MD);
+  p.log.success("Knowledge skill installed");
 }
 
 // ── Main ────────────────────────────────────────────────
@@ -462,7 +593,7 @@ async function main() {
     ${color.cyan("./local-dir")}                 → local directory
 
   ${color.dim("Options:")}
-    ${color.cyan("--harness <h>")}      Required. openclaw | nemoclaw
+    ${color.cyan("--harness <h>")}      Required. openclaw | nemoclaw | hermes
     ${color.cyan("--agent <name>")}     Agent name (defaults to directory name)
     ${color.cyan("--sandbox <name>")}   NemoClaw sandbox (auto-detected if only one exists)
 `);
@@ -503,18 +634,110 @@ async function main() {
   const { dir, source, defaultName, cleanup } = await resolveAgentDir(dirArg, spin);
 
   try {
-    const agentId = agentName || defaultName;
+    let agentId: string;
+    if (agentName) {
+      agentId = agentName;
+    } else if (process.stdin.isTTY) {
+      const nameInput = await p.text({
+        message: "Agent name:",
+        initialValue: defaultName,
+      });
+      if (p.isCancel(nameInput)) {
+        p.cancel("Cancelled.");
+        process.exit(0);
+      }
+      agentId = (nameInput as string).trim() || defaultName;
+    } else {
+      agentId = defaultName;
+    }
 
     // Step 1: Ensure plugin
+    let apiUrl: string;
+    let bankId: string;
+    let apiToken: string | undefined;
+
     if (harness === "openclaw") {
       await ensurePlugin();
       enableKnowledgeTools();
+      ({ apiUrl, bankId, apiToken } = resolveFromPlugin(agentId));
     } else if (harness === "nemoclaw") {
       await ensureNemoClawPlugin(sandbox!, agentId);
-    }
+      ({ apiUrl, bankId, apiToken } = resolveFromPlugin(agentId));
+    } else if (harness === "hermes") {
+      // Resolve Hindsight connection: hermes config > openclaw config > prompt
+      const hermesHsCfgPath = join(homedir(), ".hermes", "hindsight", "config.json");
+      let defaultUrl = "https://api.hindsight.vectorize.io";
+      let defaultToken = "";
 
-    // Step 2: Resolve bank + API from plugin config
-    const { apiUrl, bankId, apiToken } = resolveFromPlugin(agentId);
+      // Check existing hermes hindsight config first
+      if (existsSync(hermesHsCfgPath)) {
+        try {
+          const hsCfg = JSON.parse(readFileSync(hermesHsCfgPath, "utf-8"));
+          if (hsCfg.api_url) defaultUrl = hsCfg.api_url;
+          if (hsCfg.api_key) defaultToken = hsCfg.api_key;
+        } catch {
+          /* ignore */
+        }
+      }
+
+      // Fall back to openclaw config
+      if (!defaultToken) {
+        const config = readOpenClawConfig();
+        const pc = config?.plugins?.entries?.["hindsight-openclaw"]?.config;
+        if (pc?.hindsightApiUrl) defaultUrl = pc.hindsightApiUrl;
+        if (pc?.hindsightApiToken) defaultToken = pc.hindsightApiToken;
+      }
+
+      // If we have credentials, confirm; otherwise prompt
+      if (defaultUrl && defaultToken) {
+        const ok = await p.confirm({
+          message: `Hindsight: ${color.cyan(defaultUrl)}. Use this?`,
+        });
+        if (p.isCancel(ok)) {
+          p.cancel("Cancelled.");
+          process.exit(0);
+        }
+        if (ok) {
+          apiUrl = defaultUrl;
+          apiToken = defaultToken;
+        } else {
+          const urlInput = await p.text({
+            message: "Hindsight API URL:",
+            initialValue: defaultUrl,
+          });
+          if (p.isCancel(urlInput)) {
+            p.cancel("Cancelled.");
+            process.exit(0);
+          }
+          const tokenInput = await p.text({ message: "Hindsight API token:" });
+          if (p.isCancel(tokenInput)) {
+            p.cancel("Cancelled.");
+            process.exit(0);
+          }
+          apiUrl = urlInput as string;
+          apiToken = tokenInput as string;
+        }
+      } else {
+        const urlInput = await p.text({ message: "Hindsight API URL:", initialValue: defaultUrl });
+        if (p.isCancel(urlInput)) {
+          p.cancel("Cancelled.");
+          process.exit(0);
+        }
+        const tokenInput = await p.text({ message: "Hindsight API token:" });
+        if (p.isCancel(tokenInput)) {
+          p.cancel("Cancelled.");
+          process.exit(0);
+        }
+        apiUrl = urlInput as string;
+        apiToken = tokenInput as string;
+      }
+
+      bankId = agentId;
+      ensureHermesPlugin(agentId, apiUrl, bankId, apiToken);
+    } else {
+      p.cancel(`Unknown harness: ${harness}`);
+      process.exit(1);
+    }
 
     const workspaceDir = join(homedir(), ".self-driving-agents", harness, agentId);
 
@@ -582,8 +805,10 @@ async function main() {
       spin.stop(`Ingested ${contentFiles.length} file(s)`);
     }
 
-    // Step 6: Create agent + install skill
-    if (harness === "nemoclaw") {
+    // Step 6: Create agent + install skill (hermes handled in ensureHermesPlugin)
+    if (harness === "hermes") {
+      // Skill + plugin already installed by ensureHermesPlugin
+    } else if (harness === "nemoclaw") {
       // NemoClaw: install skill into the sandbox via nemoclaw CLI
       const tmpSkillDir = join(tmpdir(), `sda-skill-${Date.now()}`);
       const tmpSkill = join(tmpSkillDir, "agent-knowledge");
@@ -649,16 +874,20 @@ async function main() {
     }
 
     // Next steps
-    const nextSteps =
-      harness === "nemoclaw"
-        ? [
-            `${color.dim("1.")} nemoclaw ${sandbox} connect`,
-            `${color.dim("2.")} openclaw tui --session agent:main:main:session1`,
-          ]
-        : [
-            `${color.dim("1.")} openclaw gateway restart`,
-            `${color.dim("2.")} openclaw tui --session agent:${agentId}:main:session1`,
-          ];
+    let nextSteps: string[];
+    if (harness === "hermes") {
+      nextSteps = [`${color.dim("1.")} hermes -p ${agentId} chat`];
+    } else if (harness === "nemoclaw") {
+      nextSteps = [
+        `${color.dim("1.")} nemoclaw ${sandbox} connect`,
+        `${color.dim("2.")} openclaw tui --session agent:main:main:session1`,
+      ];
+    } else {
+      nextSteps = [
+        `${color.dim("1.")} openclaw gateway restart`,
+        `${color.dim("2.")} openclaw tui --session agent:${agentId}:main:session1`,
+      ];
+    }
 
     p.note(nextSteps.join("\n"), "Next steps");
 

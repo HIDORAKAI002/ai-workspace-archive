@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-05-04 21:08 IST] Auto-Sync
+- **37 Repositories Updated:** Supabase MCP, Kubernetes MCP Server, Langfuse, NVIDIA NeMo Guardrails, n8n, Dify, Activepieces, Trigger.dev, Budibase, Plane, modelcontextprotocol/java-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langgraph, crewAIInc/crewAI, run-llama/llama_index, mastra-ai/mastra, deepset-ai/haystack, Swarms, Upsonic, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, weaviate/weaviate, pinecone-io/pinecone-python-client, openlit/openlit, open-telemetry/opentelemetry-python, abi/screenshot-to-code, firecrawl/firecrawl, vercel/ai, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight
+
 ## [2026-05-04 14:30 IST] Auto-Sync
 - **24 Repositories Updated:** Public APIs Directory, Kubernetes MCP Server, Awesome ChatGPT Prompts, Promptfoo, Activepieces, Budibase, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, mastra-ai/mastra, deepset-ai/haystack, ollama/ollama, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, pinecone-io/pinecone-python-client, danny-avila/LibreChat, googleapis/python-genai, apache/airflow, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow
 

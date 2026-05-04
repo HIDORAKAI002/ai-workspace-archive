@@ -139,6 +139,28 @@ class TestRecallHook:
         if "body" in captured_body:
             assert "Python" in captured_body["body"].get("query", "")
 
+    def test_recall_timeout_is_configurable(self, monkeypatch, tmp_path):
+        memory = make_memory("User prefers Python")
+        captured = {}
+
+        def capture_timeout(req, timeout=None):
+            captured["timeout"] = timeout
+            return FakeHTTPResponse({"results": [memory]})
+
+        hook_input = make_hook_input(prompt="What language should I use?")
+        output = _run_hook(
+            "recall",
+            hook_input,
+            monkeypatch,
+            tmp_path,
+            urlopen_side_effect=capture_timeout,
+            user_config={"recallTimeout": 42},
+        )
+
+        data = json.loads(output)
+        assert data["hookSpecificOutput"]["hookEventName"] == "UserPromptSubmit"
+        assert captured["timeout"] == 42
+
     def test_disabled_auto_recall_produces_no_output(self, monkeypatch, tmp_path):
         hook_input = make_hook_input(prompt="What is the capital of France?")
         output = _run_hook("recall", hook_input, monkeypatch, tmp_path,

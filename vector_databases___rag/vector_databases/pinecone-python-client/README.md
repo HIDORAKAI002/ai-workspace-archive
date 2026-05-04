@@ -42,6 +42,7 @@ index.upsert(
         ("movie-87", [0.045, 0.021, -0.064]),  # 1536-dim embedding
     ],
     namespace="movies-en",
+    batch_size=100,  # split larger inputs into parallel batches automatically
 )
 
 # Query for similar vectors
@@ -66,7 +67,7 @@ from pinecone import AsyncPinecone
 async def main():
     async with AsyncPinecone(api_key="your-api-key") as pc:
         desc = await pc.indexes.describe("movie-recommendations")
-        index = pc.index(host=desc.host)
+        index = await pc.index(host=desc.host)
         async with index:
             results = await index.query(
                 vector=[0.012, -0.087, 0.153],  # 1536-dim vector

@@ -219,7 +219,7 @@ _TABLES: tuple[str, ...] = (
         CONSTRAINT pk_mental_models PRIMARY KEY (id, bank_id),
         CONSTRAINT fk_mm_bank FOREIGN KEY (bank_id) REFERENCES banks(bank_id) ON DELETE CASCADE,
         CONSTRAINT fk_mm_entity FOREIGN KEY (entity_id) REFERENCES entities(id) ON DELETE SET NULL,
-        CONSTRAINT chk_mm_subtype CHECK (subtype IN ('structural', 'emergent', 'pinned', 'learned'))
+        CONSTRAINT chk_mm_subtype CHECK (subtype IN ('directive', 'pinned'))
     )
     """,
     """
@@ -256,7 +256,7 @@ _TABLES: tuple[str, ...] = (
         completed_at      TIMESTAMP WITH TIME ZONE,
         CONSTRAINT pk_async_operations PRIMARY KEY (operation_id),
         CONSTRAINT fk_ao_bank FOREIGN KEY (bank_id) REFERENCES banks(bank_id) ON DELETE CASCADE,
-        CONSTRAINT chk_ao_status CHECK (status IN ('pending', 'processing', 'completed', 'failed'))
+        CONSTRAINT chk_ao_status CHECK (status IN ('pending', 'processing', 'completed', 'failed', 'cancelled'))
     )
     """,
     """
