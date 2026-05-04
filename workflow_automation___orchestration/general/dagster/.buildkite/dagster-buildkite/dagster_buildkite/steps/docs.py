@@ -13,7 +13,7 @@ from buildkite_shared.utils import oss_path
 
 def build_repo_wide_format_docs_step(ctx: BuildkiteContext) -> GroupLeafStepConfiguration:
     return (
-        CommandStepBuilder(":notebook: yarn format_check", key="format-check")
+        CommandStepBuilder("yarn-format-check", [":notebook:"])
         .on_test_image()
         .run(
             f"cd {oss_path('docs')}",
@@ -27,7 +27,7 @@ def build_repo_wide_format_docs_step(ctx: BuildkiteContext) -> GroupLeafStepConf
 
 def build_build_docs_step(ctx: BuildkiteContext) -> GroupLeafStepConfiguration:
     return (
-        CommandStepBuilder("build docs")
+        CommandStepBuilder("build-docs")
         .on_test_image()
         .run(
             f"cd {oss_path('docs')}",
@@ -45,7 +45,10 @@ def build_build_docs_step(ctx: BuildkiteContext) -> GroupLeafStepConfiguration:
 def build_docstring_validation_step(ctx: BuildkiteContext) -> GroupLeafStepConfiguration:
     python_version = AvailablePythonVersion.get_default()
     return (
-        CommandStepBuilder(f":pytest: docstring validation {python_version.value}")
+        CommandStepBuilder(
+            f"docstring-validation-{python_version.value.replace('.', '-')}",
+            [":pytest:"],
+        )
         .on_test_image(python_version.value)
         .run(
             f"cd {oss_path('python_modules/automation')}",
@@ -70,8 +73,8 @@ def _get_docstring_validation_skip_reason(ctx: BuildkiteContext) -> str | None:
 def build_docs_steps(ctx: BuildkiteContext) -> list[StepConfiguration]:
     return [
         GroupStepBuilder(
-            name=":book: docs",
-            key="docs",
+            "docs",
+            [":book:"],
             steps=[
                 build_build_docs_step(ctx),
                 build_repo_wide_format_docs_step(ctx),

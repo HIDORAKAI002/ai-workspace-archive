@@ -78,8 +78,7 @@ class AsyncPinecone:
             from pinecone import AsyncPinecone
 
             async with AsyncPinecone(api_key="your-api-key") as pc:
-                desc = await pc.indexes.describe("my-index")
-                index = pc.index(host=desc.host)
+                index = await pc.index(name="my-index")
                 async with index:
                     results = await index.query(
                         vector=[0.012, -0.087, 0.153, ...],  # 1536-dim embedding
@@ -88,16 +87,10 @@ class AsyncPinecone:
 
     .. note:: **Differences from sync Pinecone**
 
-        1. **index(name=...) requires a cached host.** Unlike the sync
-           ``Pinecone`` client, ``AsyncPinecone.index()`` is a synchronous
-           factory and cannot auto-resolve an index host from its name.
-           Call ``await pc.indexes.describe(name)`` first to populate the
-           cache, then create the data-plane client::
-
-               desc = await pc.indexes.describe("my-index")
-               idx = pc.index("my-index")          # uses cached host
-               # — or —
-               idx = pc.index(host=desc.host)       # explicit host
+        1. **index() is a coroutine.** Unlike the sync ``Pinecone`` client,
+           ``AsyncPinecone.index()`` must be awaited: ``idx = await pc.index(name="my-index")``.
+           On cache miss it performs a non-blocking describe call to resolve
+           the host — no manual two-step dance needed.
 
         2. **upsert_from_dataframe() is not supported.** ``AsyncIndex``
            raises ``NotImplementedError`` for this method. Use batched
@@ -445,17 +438,12 @@ class AsyncPinecone:
         vector_type: VectorType | str = "dense",
         tags: dict[str, str] | None = None,
     ) -> IndexModel:
-        """Backwards-compatibility delegate. See :meth:`AsyncPinecone.indexes.create`.
+        """Backwards-compatibility shim for :meth:`AsyncPinecone.indexes.create`.
 
-        :meta private:
+        Preserved to ease migration from the legacy Pinecone Python SDK. New code
+        should use ``await pc.indexes.create(...)`` instead of
+        ``await pc.create_index(...)``.
         """
-        import warnings
-
-        warnings.warn(
-            "AsyncPinecone.create_index() is deprecated; use pc.indexes.create() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         resolved_dp = deletion_protection if deletion_protection is not None else "disabled"
         return await self.indexes.create(
             name=name,
@@ -480,20 +468,13 @@ class AsyncPinecone:
         schema: dict[str, Any] | None = None,
         timeout: int | None = None,
     ) -> IndexModel:
-        """Backwards-compatibility delegate for integrated index creation.
+        """Backwards-compatibility shim for :meth:`AsyncPinecone.indexes.create`.
 
-        See :meth:`AsyncPinecone.indexes.create` with ``IntegratedSpec``.
-
-        :meta private:
+        Preserved to ease migration from the legacy Pinecone Python SDK. New code
+        should use ``await pc.indexes.create(...)`` with
+        ``IntegratedSpec(cloud=..., region=..., embed=EmbedConfig(...))`` instead of
+        ``await pc.create_index_for_model(...)``.
         """
-        import warnings
-
-        warnings.warn(
-            "AsyncPinecone.create_index_for_model() is deprecated;"
-            " use pc.indexes.create() with IntegratedSpec instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         from pinecone.inference.models.index_embed import IndexEmbed as _IndexEmbed
         from pinecone.models.indexes.specs import EmbedConfig as _EmbedConfig
         from pinecone.models.indexes.specs import IntegratedSpec as _IntegratedSpec
@@ -525,45 +506,30 @@ class AsyncPinecone:
         )
 
     async def describe_index(self, name: str) -> IndexModel:
-        """Backwards-compatibility delegate. See :meth:`AsyncPinecone.indexes.describe`.
+        """Backwards-compatibility shim for :meth:`AsyncPinecone.indexes.describe`.
 
-        :meta private:
+        Preserved to ease migration from the legacy Pinecone Python SDK. New code
+        should use ``await pc.indexes.describe(...)`` instead of
+        ``await pc.describe_index(...)``.
         """
-        import warnings
-
-        warnings.warn(
-            "AsyncPinecone.describe_index() is deprecated; use pc.indexes.describe() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         return await self.indexes.describe(name)
 
     async def list_indexes(self) -> IndexList:
-        """Backwards-compatibility delegate. See :meth:`AsyncPinecone.indexes.list`.
+        """Backwards-compatibility shim for :meth:`AsyncPinecone.indexes.list`.
 
-        :meta private:
+        Preserved to ease migration from the legacy Pinecone Python SDK. New code
+        should use ``await pc.indexes.list()`` instead of
+        ``await pc.list_indexes()``.
         """
-        import warnings
-
-        warnings.warn(
-            "AsyncPinecone.list_indexes() is deprecated; use pc.indexes.list() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         return await self.indexes.list()
 
     async def has_index(self, name: str) -> bool:
-        """Backwards-compatibility delegate. See :meth:`AsyncPinecone.indexes.exists`.
+        """Backwards-compatibility shim for :meth:`AsyncPinecone.indexes.exists`.
 
-        :meta private:
+        Preserved to ease migration from the legacy Pinecone Python SDK. New code
+        should use ``await pc.indexes.exists(...)`` instead of
+        ``await pc.has_index(...)``.
         """
-        import warnings
-
-        warnings.warn(
-            "AsyncPinecone.has_index() is deprecated; use pc.indexes.exists() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         return await self.indexes.exists(name)
 
     async def configure_index(
@@ -576,17 +542,12 @@ class AsyncPinecone:
         embed: dict[str, Any] | None = None,
         read_capacity: dict[str, Any] | None = None,
     ) -> None:
-        """Backwards-compatibility delegate. See :meth:`AsyncPinecone.indexes.configure`.
+        """Backwards-compatibility shim for :meth:`AsyncPinecone.indexes.configure`.
 
-        :meta private:
+        Preserved to ease migration from the legacy Pinecone Python SDK. New code
+        should use ``await pc.indexes.configure(...)`` instead of
+        ``await pc.configure_index(...)``.
         """
-        import warnings
-
-        warnings.warn(
-            "AsyncPinecone.configure_index() is deprecated; use pc.indexes.configure() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         await self.indexes.configure(
             name=name,
             replicas=replicas,
@@ -598,74 +559,48 @@ class AsyncPinecone:
         )
 
     async def delete_index(self, name: str, timeout: int | None = None) -> None:
-        """Backwards-compatibility delegate. See :meth:`AsyncPinecone.indexes.delete`.
+        """Backwards-compatibility shim for :meth:`AsyncPinecone.indexes.delete`.
 
-        :meta private:
+        Preserved to ease migration from the legacy Pinecone Python SDK. New code
+        should use ``await pc.indexes.delete(...)`` instead of
+        ``await pc.delete_index(...)``.
         """
-        import warnings
-
-        warnings.warn(
-            "AsyncPinecone.delete_index() is deprecated; use pc.indexes.delete() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         await self.indexes.delete(name, timeout=timeout)
 
     async def create_collection(self, name: str, source: str) -> CollectionModel:
-        """Backwards-compatibility delegate. See :meth:`AsyncPinecone.collections.create`.
+        """Backwards-compatibility shim for :meth:`AsyncPinecone.collections.create`.
 
-        :meta private:
+        Preserved to ease migration from the legacy Pinecone Python SDK. New code
+        should use ``await pc.collections.create(...)`` instead of
+        ``await pc.create_collection(...)``.
         """
-        import warnings
-
-        warnings.warn(
-            "AsyncPinecone.create_collection() is deprecated; use pc.collections.create() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         return await self.collections.create(name=name, source=source)
 
     async def list_collections(self) -> CollectionList:
-        """Backwards-compatibility delegate. See :meth:`AsyncPinecone.collections.list`.
+        """Backwards-compatibility shim for :meth:`AsyncPinecone.collections.list`.
 
-        :meta private:
+        Preserved to ease migration from the legacy Pinecone Python SDK. New code
+        should use ``await pc.collections.list()`` instead of
+        ``await pc.list_collections()``.
         """
-        import warnings
-
-        warnings.warn(
-            "AsyncPinecone.list_collections() is deprecated; use pc.collections.list() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         return await self.collections.list()
 
     async def describe_collection(self, name: str) -> CollectionModel:
-        """Backwards-compatibility delegate. See :meth:`AsyncPinecone.collections.describe`.
+        """Backwards-compatibility shim for :meth:`AsyncPinecone.collections.describe`.
 
-        :meta private:
+        Preserved to ease migration from the legacy Pinecone Python SDK. New code
+        should use ``await pc.collections.describe(...)`` instead of
+        ``await pc.describe_collection(...)``.
         """
-        import warnings
-
-        warnings.warn(
-            "AsyncPinecone.describe_collection() is deprecated;"
-            " use pc.collections.describe() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         return await self.collections.describe(name)
 
     async def delete_collection(self, name: str) -> None:
-        """Backwards-compatibility delegate. See :meth:`AsyncPinecone.collections.delete`.
+        """Backwards-compatibility shim for :meth:`AsyncPinecone.collections.delete`.
 
-        :meta private:
+        Preserved to ease migration from the legacy Pinecone Python SDK. New code
+        should use ``await pc.collections.delete(...)`` instead of
+        ``await pc.delete_collection(...)``.
         """
-        import warnings
-
-        warnings.warn(
-            "AsyncPinecone.delete_collection() is deprecated; use pc.collections.delete() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         await self.collections.delete(name)
 
     async def create_backup(
@@ -675,17 +610,12 @@ class AsyncPinecone:
         backup_name: str | None = None,
         description: str = "",
     ) -> BackupModel:
-        """Backwards-compatibility delegate. See :meth:`AsyncPinecone.backups.create`.
+        """Backwards-compatibility shim for :meth:`AsyncPinecone.backups.create`.
 
-        :meta private:
+        Preserved to ease migration from the legacy Pinecone Python SDK. New code
+        should use ``await pc.backups.create(...)`` instead of
+        ``await pc.create_backup(...)``.
         """
-        import warnings
-
-        warnings.warn(
-            "AsyncPinecone.create_backup() is deprecated; use pc.backups.create() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         return await self.backups.create(
             index_name=index_name,
             name=backup_name,
@@ -699,17 +629,12 @@ class AsyncPinecone:
         limit: int | None = 10,
         pagination_token: str | None = None,
     ) -> BackupList:
-        """Backwards-compatibility delegate. See :meth:`AsyncPinecone.backups.list`.
+        """Backwards-compatibility shim for :meth:`AsyncPinecone.backups.list`.
 
-        :meta private:
+        Preserved to ease migration from the legacy Pinecone Python SDK. New code
+        should use ``await pc.backups.list(...)`` instead of
+        ``await pc.list_backups(...)``.
         """
-        import warnings
-
-        warnings.warn(
-            "AsyncPinecone.list_backups() is deprecated; use pc.backups.list() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         return await self.backups.list(
             index_name=index_name,
             limit=limit if limit is not None else 10,
@@ -717,31 +642,21 @@ class AsyncPinecone:
         )
 
     async def describe_backup(self, *, backup_id: str) -> BackupModel:
-        """Backwards-compatibility delegate. See :meth:`AsyncPinecone.backups.describe`.
+        """Backwards-compatibility shim for :meth:`AsyncPinecone.backups.describe`.
 
-        :meta private:
+        Preserved to ease migration from the legacy Pinecone Python SDK. New code
+        should use ``await pc.backups.describe(...)`` instead of
+        ``await pc.describe_backup(...)``.
         """
-        import warnings
-
-        warnings.warn(
-            "AsyncPinecone.describe_backup() is deprecated; use pc.backups.describe() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         return await self.backups.describe(backup_id=backup_id)
 
     async def delete_backup(self, *, backup_id: str) -> None:
-        """Backwards-compatibility delegate. See :meth:`AsyncPinecone.backups.delete`.
+        """Backwards-compatibility shim for :meth:`AsyncPinecone.backups.delete`.
 
-        :meta private:
+        Preserved to ease migration from the legacy Pinecone Python SDK. New code
+        should use ``await pc.backups.delete(...)`` instead of
+        ``await pc.delete_backup(...)``.
         """
-        import warnings
-
-        warnings.warn(
-            "AsyncPinecone.delete_backup() is deprecated; use pc.backups.delete() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         await self.backups.delete(backup_id=backup_id)
 
     async def list_restore_jobs(
@@ -750,49 +665,33 @@ class AsyncPinecone:
         limit: int | None = 10,
         pagination_token: str | None = None,
     ) -> RestoreJobList:
-        """Backwards-compatibility delegate. See :meth:`AsyncPinecone.restore_jobs.list`.
+        """Backwards-compatibility shim for :meth:`AsyncPinecone.restore_jobs.list`.
 
-        :meta private:
+        Preserved to ease migration from the legacy Pinecone Python SDK. New code
+        should use ``await pc.restore_jobs.list(...)`` instead of
+        ``await pc.list_restore_jobs(...)``.
         """
-        import warnings
-
-        warnings.warn(
-            "AsyncPinecone.list_restore_jobs() is deprecated; use pc.restore_jobs.list() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         return await self.restore_jobs.list(
             limit=limit if limit is not None else 10,
             pagination_token=pagination_token,
         )
 
     async def describe_restore_job(self, *, job_id: str) -> RestoreJobModel:
-        """Backwards-compatibility delegate. See :meth:`AsyncPinecone.restore_jobs.describe`.
+        """Backwards-compatibility shim for :meth:`AsyncPinecone.restore_jobs.describe`.
 
-        :meta private:
+        Preserved to ease migration from the legacy Pinecone Python SDK. New code
+        should use ``await pc.restore_jobs.describe(...)`` instead of
+        ``await pc.describe_restore_job(...)``.
         """
-        import warnings
-
-        warnings.warn(
-            "AsyncPinecone.describe_restore_job() is deprecated;"
-            " use pc.restore_jobs.describe() instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         return await self.restore_jobs.describe(job_id=job_id)
 
     def IndexAsyncio(self, host: str, **kwargs: Any) -> AsyncIndex:  # noqa: N802
-        """Backwards-compatibility async index factory. See ``AsyncIndex``.
+        """Backwards-compatibility shim for :meth:`AsyncPinecone.index`.
 
-        :meta private:
+        Preserved to ease migration from the legacy Pinecone Python SDK. New
+        code should use ``pc.index(host=...)`` (where ``pc`` is an
+        :class:`AsyncPinecone` instance) instead of ``pc.IndexAsyncio(...)``.
         """
-        import warnings
-
-        warnings.warn(
-            "AsyncPinecone.IndexAsyncio() is deprecated; use AsyncIndex directly instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
         from pinecone.async_client.async_index import AsyncIndex as _AsyncIndex
 
         return _AsyncIndex(
@@ -823,7 +722,38 @@ class AsyncPinecone:
             connection_pool_maxsize=self._config.connection_pool_maxsize,
         )
 
-    def index(
+    async def _resolve_index_host(self, *, name: str, host: str) -> str:
+        """Resolve the data plane host from explicit host, cache, or describe call.
+
+        Async parallel of ``Pinecone._resolve_index_host``. Performs a
+        non-blocking describe-index lookup when *name* is given and the host is
+        not yet cached.
+
+        Args:
+            name: Index name (triggers describe if not cached).
+            host: Direct host URL (returned as-is if provided).
+
+        Returns:
+            The resolved host string.
+
+        Raises:
+            ValidationError: If neither *name* nor *host* is provided.
+        """
+        if host:
+            return host
+
+        if name:
+            cached_host = self._host_cache.get(name)
+            if cached_host:
+                return cached_host
+
+            desc = await self.indexes.describe(name)
+            self._host_cache[name] = desc.host
+            return desc.host
+
+        raise ValidationError("Either name or host must be provided to create an Index client.")
+
+    async def index(
         self,
         name: str = "",
         *,
@@ -831,35 +761,34 @@ class AsyncPinecone:
     ) -> AsyncIndex:
         """Create an async data plane client targeting a specific index.
 
-        This is a synchronous factory method (not a coroutine). It can target
-        an index by host URL directly, or by name if the host has already been
-        cached from a prior call or an explicit describe lookup.
+        Can target by host URL directly (skips the describe call) or by
+        index name (triggers an async describe-index lookup to resolve the host
+        on cache miss).
 
-        To resolve an index host from its name, use
-        ``await pc.indexes.describe(name)`` first, then pass the ``host``.
+        .. seealso::
+           Use ``pc.indexes`` for control-plane operations (create, list,
+           describe, delete, configure).
 
         Args:
-            name (str): Name of the index. Uses cached host from a prior
-                describe call; raises if the host is not yet cached.
-            host (str): Direct host URL of the index. Preferred path — no
-                describe call needed.
+            name (str): Name of the index. Triggers an async describe call to
+                resolve host on cache miss.
+            host (str): Direct host URL of the index. Skips the describe call.
 
         Returns:
             An async :class:`AsyncIndex` data plane client.
 
         Raises:
-            :exc:`PineconeValueError`: If neither *name* nor *host* is provided, or if
-                *name* is given but the host has not been cached yet.
+            :exc:`ValidationError`: If neither *name* nor *host* is provided.
+            :exc:`NotFoundError`: If *name* is given but no such index exists.
 
         Examples:
 
             .. code-block:: python
 
                 async with AsyncPinecone(api_key="...") as pc:
-                    idx = pc.index(host="my-index-abc123.svc.pinecone.io")
-                    # or resolve name first, then use cached host:
-                    await pc.indexes.describe("my-index")
-                    idx = pc.index(name="my-index")
+                    idx = await pc.index(host="my-index-abc123.svc.pinecone.io")
+                    # or
+                    idx = await pc.index(name="my-index")  # triggers describe on cache miss
 
         .. warning::
            The returned :class:`AsyncIndex` manages its own HTTP client.
@@ -869,22 +798,8 @@ class AsyncPinecone:
         """
         from pinecone.async_client.async_index import AsyncIndex as _AsyncIndex
 
-        if host:
-            return _AsyncIndex(**self._build_index_kwargs(host))
-
-        if name:
-            # Check cache first
-            cached_host = self._host_cache.get(name)
-            if cached_host:
-                return _AsyncIndex(**self._build_index_kwargs(cached_host))
-
-            raise ValidationError(
-                f"Host for index '{name}' is not cached. Resolve the host first with "
-                "'desc = await pc.indexes.describe(name)', then call "
-                "'pc.index(host=desc.host)' or 'pc.index(name=name)' (cached after describe)."
-            )
-
-        raise ValidationError("Either name or host must be provided to create an Index client.")
+        resolved_host = await self._resolve_index_host(name=name, host=host)
+        return _AsyncIndex(**self._build_index_kwargs(resolved_host))
 
     async def close(self) -> None:
         """Close the underlying HTTP client."""

@@ -3,4 +3,3 @@ python_modules
 examples
 integration_tests
 scripts
-python_modules/libraries/dagster-prometheus  # @ty

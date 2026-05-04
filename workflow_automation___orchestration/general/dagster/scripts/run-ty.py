@@ -16,6 +16,7 @@ from itertools import groupby
 from pathlib import Path
 from typing import Final, Literal, cast
 
+import yaml
 from typing_extensions import NotRequired, TypedDict
 
 parser = argparse.ArgumentParser(
@@ -200,45 +201,20 @@ def get_env_root(env: str) -> Path:
     return Path(TY_ENV_ROOT, env).resolve()
 
 
-_TY_ANNOTATION_RE = re.compile(r"(?:^|\s)@ty$")
+def load_ty_paths(env: str) -> Sequence[str]:
+    """Load paths assigned to `ty` for the given env.
 
-
-def has_ty_annotation(line: str) -> bool:
-    """Return True if `line` has a trailing `@ty` comment annotation.
-
-    Matches a comment that ends with `@ty` (the annotation must be the last
-    token of the line, preceded by whitespace or by the `#` itself).
+    Paths are read from `pyright/<env>/ty.yaml`. Each entry may be a
+    library root or any subpath within a library; both are passed
+    directly to `ty` as check targets. Returns an empty list if the
+    file does not exist.
     """
-    if "#" not in line:
-        return False
-    comment = line.split("#", 1)[1].rstrip()
-    return bool(_TY_ANNOTATION_RE.search(comment))
-
-
-def load_path_file(path: str) -> Sequence[str]:
-    """Load paths from include.txt, returning only paths marked with `@ty`.
-
-    The shared config approach uses annotations in include.txt to assign packages
-    to either pyright or ty. Lines whose trailing comment ends with `@ty` are
-    checked by ty (this script); all other lines are checked by pyright.
-
-    Format:
-        python_modules/dagster  # @ty     -> checked by ty
-        python_modules/dagster-graphql    -> checked by pyright (default)
-        examples                          -> checked by pyright (default)
-    """
-    with open(path, encoding="utf-8") as f:
-        paths = []
-        for raw_line in f:
-            stripped = raw_line.strip()
-            if not stripped or stripped.startswith("#"):
-                continue
-            if not has_ty_annotation(stripped):
-                continue
-            pkg_path = stripped.split("#", 1)[0].strip()
-            if pkg_path:
-                paths.append(pkg_path)
-        return paths
+    ty_yaml_path = get_env_root(env) / "ty.yaml"
+    if not ty_yaml_path.exists():
+        return []
+    with open(ty_yaml_path, encoding="utf-8") as f:
+        data = yaml.safe_load(f) or {}
+    return list(data.get("paths") or [])
 
 
 def get_params(args: argparse.Namespace) -> Params:
@@ -300,16 +276,7 @@ def match_path(path: str, path_spec: EnvPathSpec) -> bool:
 def map_paths_to_envs(paths: Sequence[str]) -> Mapping[str, Sequence[str]]:
     env_path_specs: list[EnvPathSpec] = []
     for env in os.listdir(TY_ENV_ROOT):
-        env_root = get_env_root(env)
-        include_path = env_root / "include.txt"
-        exclude_path = env_root / "exclude.txt"
-        env_path_specs.append(
-            EnvPathSpec(
-                env=env,
-                include=load_path_file(str(include_path)),
-                exclude=load_path_file(str(exclude_path)) if exclude_path.exists() else [],
-            )
-        )
+        env_path_specs.append(EnvPathSpec(env=env, include=load_ty_paths(env), exclude=[]))
     env_path_map: dict[str, list[str]] = {}
     for path in paths:
         path_obj = Path(path)
@@ -487,11 +454,8 @@ def run_ty(
     venv_path = env_root / ".venv"
     python_path = f"{venv_path}/bin/python"
 
-    # Load include/exclude paths
-    include_path = env_root / "include.txt"
-    exclude_path = env_root / "exclude.txt"
-    include_paths = load_path_file(str(include_path))
-    exclude_patterns = load_path_file(str(exclude_path)) if exclude_path.exists() else []
+    # Load paths assigned to ty for this env
+    include_paths = load_ty_paths(env)
 
     # Build ty command
     # ty uses --python to specify the venv interpreter
@@ -505,10 +469,6 @@ def run_ty(
         f"--python={python_path}",
         "--output-format=gitlab",
     ]
-
-    # Add exclude patterns
-    for pattern in exclude_patterns:
-        base_ty_cmd_parts.append(f"--exclude={pattern}")
 
     # Add paths to check - either explicit paths or include paths
     check_paths = list(paths) if paths else list(include_paths)

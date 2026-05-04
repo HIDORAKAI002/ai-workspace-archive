@@ -17,7 +17,45 @@ def pushd(path: Path) -> Iterator[None]:
 
 
 def dump_pipeline_yaml(pipeline_dict: dict[str, object]) -> str:
+    _assert_step_keys_present_and_unique(pipeline_dict)
     return yaml.dump(pipeline_dict, default_flow_style=False, Dumper=QuotedStrDumper)
+
+
+def _assert_step_keys_present_and_unique(pipeline_dict: dict[str, object]) -> None:
+    """Raise if any step is missing a `key` or if two steps share the same `key`.
+
+    Walks top-level steps and group sub-steps.
+    """
+    seen: dict[str, str] = {}
+    for step in _iter_pipeline_steps(pipeline_dict):
+        label = step.get("label") or step.get("group") or step.get("input") or ""
+        key = step.get("key")
+        if not key:
+            raise ValueError(
+                f"Step is missing a key (label={label!r}). "
+                "Pass a key as the first argument to the StepBuilder constructor."
+            )
+        if key in seen:
+            raise ValueError(
+                f"Duplicate step key {key!r} in pipeline. "
+                f"First occurrence: {seen[key]!r}; second occurrence: {label!r}. "
+                "Each step must have a unique key — pick a distinct one."
+            )
+        seen[key] = label
+
+
+def _iter_pipeline_steps(pipeline_dict: dict[str, object]) -> Iterator[dict]:
+    raw_steps = pipeline_dict.get("steps", [])
+    if not isinstance(raw_steps, list):
+        return
+    for step in raw_steps:
+        if not isinstance(step, dict):
+            continue
+        yield step
+        if "steps" in step and isinstance(step["steps"], list):
+            for sub in step["steps"]:
+                if isinstance(sub, dict):
+                    yield sub
 
 
 class QuotedStrDumper(yaml.Dumper):
