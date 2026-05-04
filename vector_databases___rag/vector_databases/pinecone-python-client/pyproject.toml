@@ -4,13 +4,16 @@ build-backend = "maturin"
 
 [project]
 name = "pinecone"
-version = "9.0.0"
+version = "8.1.2"
 description = "Pinecone Python SDK"
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.10"
 dependencies = [
-    "httpx[http2]",
+    # Upper-bound httpx to exclude the 1.0 pre-release line (1.0.devN), which
+    # drops symbols (e.g. httpx.BaseTransport) the SDK relies on. Without this
+    # cap, `pip install --pre pinecone` resolves httpx to a broken pre-release.
+    "httpx[http2]>=0.27,<1.0",
     "msgspec",
     "orjson",
 ]
@@ -37,6 +40,10 @@ docs = [
 manifest-path = "rust/Cargo.toml"
 module-name = "pinecone._grpc"
 python-source = "."
+# maturin 1.7.x doesn't auto-include the LICENSE file in the sdist even though
+# it adds `License-File: LICENSE` to PKG-INFO from the SPDX license expression.
+# The mismatch makes PyPI reject the sdist. Explicit include fixes both forms.
+include = ["LICENSE"]
 
 [tool.mypy]
 strict = true
@@ -58,7 +65,34 @@ ignore = ["ASYNC109", "SIM108", "PERF203", "RUF002"]
 required-imports = ["from __future__ import annotations"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["E501", "B905", "S101", "S105", "S106", "S107", "S110", "T20", "PT018", "PT019"]
+"tests/**" = [
+    "E501",
+    "B905",
+    "S101",
+    "S105",
+    "S106",
+    "S107",
+    "S110",
+    "T20",
+    "PT018",
+    "PT019",
+    # Stylistic rules whose suggestions don't fit common test patterns:
+    "B017",     # pytest.raises(Exception) is sometimes legitimately broad in tests
+    "B018",     # "useless" attribute access used to trigger AttributeError
+    "PT006",    # parametrize tuple/list form — both readable
+    "PT011",    # pytest.raises(Exception) too broad — duplicate of B017 stylistically
+    "PT017",    # assertion on exception in `except` block — common test pattern
+    "SIM117",   # nested `with` — often clearer than combined when scopes differ
+    "SIM105",   # try/except/pass — fine in test cleanup paths
+    "PERF401",  # list-comprehension perf doesn't matter in tests
+    "ASYNC240", # os.path in async functions — fine in tests; not real async I/O
+]
+"docs/**" = ["E501"]
+"scripts/**" = [
+    "T201",   # print() is fine in CLI utilities
+    "S603",   # subprocess.run with hardcoded args is trusted in our scripts
+    "S607",   # invoking `cargo` / `git` by partial path is intentional
+]
 "pinecone/_internal/http_client.py" = ["S311"]
 "pinecone/grpc/future.py" = ["S110", "SIM105"]
 
@@ -67,6 +101,8 @@ anyio_mode = "auto"
 timeout = 5
 markers = [
     "smoke: end-to-end smoke tests that hit a real Pinecone backend (see tests/smoke/README.md)",
+    "integration: real-API integration tests against a live Pinecone backend",
+    "preview_integration: real-API tests against 2026-01.alpha preview endpoints (not CI-gating)",
 ]
 
 [dependency-groups]
@@ -75,6 +111,7 @@ dev = [
     "ipykernel>=7.2.0",
     "pytest>=9.0.3",
     "pytest-anyio>=0.0.0",
+    "pytest-asyncio>=0.23",
     "python-dotenv>=1.2.2",
     "pytest-benchmark>=5.0.0",
     "respx>=0.22.0",

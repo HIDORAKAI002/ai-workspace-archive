@@ -103,6 +103,39 @@ class TestAsyncDescribeNamespace:
         assert result.name == "ns1"
         assert result.record_count == 500
 
+    @respx.mock
+    @pytest.mark.asyncio
+    async def test_async_describe_namespace_accepts_legacy_namespace_kwarg(self) -> None:
+        respx.get(f"{NS_URL}/movies").mock(
+            return_value=httpx.Response(200, json={"name": "movies", "record_count": 10}),
+        )
+        idx = _make_async_index()
+        result = await idx.describe_namespace(namespace="movies")
+
+        assert isinstance(result, NamespaceDescription)
+        assert result.name == "movies"
+        assert result.record_count == 10
+
+    @pytest.mark.asyncio
+    async def test_async_describe_namespace_rejects_both_kwargs(self) -> None:
+        from pinecone.errors.exceptions import ValidationError
+
+        idx = _make_async_index()
+        with pytest.raises(ValidationError, match="either name= or namespace="):
+            await idx.describe_namespace(name="a", namespace="b")  # type: ignore[call-arg]
+
+    @pytest.mark.asyncio
+    async def test_async_describe_namespace_rejects_neither_kwarg(self) -> None:
+        idx = _make_async_index()
+        with pytest.raises(ValidationError, match="non-empty string"):
+            await idx.describe_namespace()  # type: ignore[call-arg]
+
+    @pytest.mark.asyncio
+    async def test_async_describe_namespace_rejects_unknown_kwargs(self) -> None:
+        idx = _make_async_index()
+        with pytest.raises(TypeError, match="unexpected keyword arguments"):
+            await idx.describe_namespace(name="x", bogus="y")  # type: ignore[call-arg]
+
 
 # ---------------------------------------------------------------------------
 # delete_namespace
@@ -122,6 +155,47 @@ class TestAsyncDeleteNamespace:
         result = await idx.delete_namespace(name="ns1")
 
         assert result is None
+        assert route.called
+
+    @respx.mock
+    @pytest.mark.asyncio
+    async def test_delete_namespace_accepts_legacy_namespace_kwarg(self) -> None:
+        route = respx.delete(f"{NS_URL}/movies").mock(
+            return_value=httpx.Response(200, json={}),
+        )
+        idx = _make_async_index()
+        result = await idx.delete_namespace(namespace="movies")  # type: ignore[call-arg]
+
+        assert result is None
+        assert route.called
+
+    @pytest.mark.asyncio
+    async def test_delete_namespace_rejects_both_kwargs(self) -> None:
+        idx = _make_async_index()
+        with pytest.raises(ValidationError, match="either name= or namespace="):
+            await idx.delete_namespace(name="a", namespace="b")  # type: ignore[call-arg]
+
+    @pytest.mark.asyncio
+    async def test_delete_namespace_rejects_neither_kwarg(self) -> None:
+        idx = _make_async_index()
+        with pytest.raises(ValidationError, match="non-empty string"):
+            await idx.delete_namespace()  # type: ignore[call-arg]
+
+    @pytest.mark.asyncio
+    async def test_delete_namespace_rejects_unknown_kwargs(self) -> None:
+        idx = _make_async_index()
+        with pytest.raises(TypeError, match="unexpected keyword arguments"):
+            await idx.delete_namespace(name="x", bogus="y")  # type: ignore[call-arg]
+
+    @respx.mock
+    @pytest.mark.asyncio
+    async def test_delete_namespace_legacy_kwarg_with_timeout(self) -> None:
+        route = respx.delete(f"{NS_URL}/x").mock(
+            return_value=httpx.Response(200, json={}),
+        )
+        idx = _make_async_index()
+        await idx.delete_namespace(namespace="x", timeout=5.0)  # type: ignore[call-arg]
+
         assert route.called
 
 

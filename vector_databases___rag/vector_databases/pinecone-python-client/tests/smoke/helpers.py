@@ -6,7 +6,6 @@ notebook-style smoke scenarios:
 
 - Polling vector visibility after upsert (freshness window).
 - Defeating the pod-index "Ready-but-not-ready" race.
-- Capturing DeprecationWarnings from shim methods.
 - Locating the sample files reused from ``tests/integration/``.
 """
 
@@ -14,17 +13,14 @@ from __future__ import annotations
 
 import asyncio
 import time
-import warnings
-from contextlib import contextmanager
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
-
     from pinecone.async_client.async_index import AsyncIndex
     from pinecone.grpc import GrpcIndex
     from pinecone.index import Index
+    from pinecone.models.namespaces.models import NamespaceDescription
 
 
 # ---------------------------------------------------------------------------
@@ -100,6 +96,64 @@ async def async_wait_for_vector_count(
 
 
 # ---------------------------------------------------------------------------
+# Namespace visibility polling
+# ---------------------------------------------------------------------------
+#
+# create_namespace returns synchronously, but describe/list calls against the
+# new namespace can briefly return 404 while the metadata propagates to the
+# read path. These helpers retry describe_namespace until it succeeds or a
+# bounded timeout expires — never block the suite indefinitely.
+
+
+def wait_for_namespace_visible(
+    idx: Index,
+    name: str,
+    *,
+    timeout: int = 30,
+    interval: int = 1,
+) -> NamespaceDescription:
+    """Poll ``describe_namespace`` until it returns successfully.
+
+    Returns the ``NamespaceDescription`` from the first successful call. Raises
+    :class:`TimeoutError` if the namespace is not visible within ``timeout``.
+    """
+    start = time.monotonic()
+    last_exc: Exception | None = None
+    while time.monotonic() - start < timeout:
+        try:
+            return idx.describe_namespace(name=name)
+        except Exception as exc:
+            last_exc = exc
+        time.sleep(interval)
+    raise TimeoutError(
+        f"Namespace {name!r} not visible to describe_namespace within "
+        f"{timeout}s (last error: {last_exc!r})"
+    )
+
+
+async def async_wait_for_namespace_visible(
+    idx: AsyncIndex,
+    name: str,
+    *,
+    timeout: int = 30,
+    interval: int = 1,
+) -> NamespaceDescription:
+    """Async version of :func:`wait_for_namespace_visible`."""
+    start = time.monotonic()
+    last_exc: Exception | None = None
+    while time.monotonic() - start < timeout:
+        try:
+            return await idx.describe_namespace(name=name)
+        except Exception as exc:
+            last_exc = exc
+        await asyncio.sleep(interval)
+    raise TimeoutError(
+        f"Namespace {name!r} not visible to describe_namespace within "
+        f"{timeout}s (last error: {last_exc!r})"
+    )
+
+
+# ---------------------------------------------------------------------------
 # Pod-index warmup polling
 # ---------------------------------------------------------------------------
 
@@ -128,40 +182,5 @@ def wait_for_pod_warmup(
             last_exc = exc
         time.sleep(interval)
     raise TimeoutError(
-        f"Pod index did not warm up within {timeout}s "
-        f"(last fetch error: {last_exc!r})"
+        f"Pod index did not warm up within {timeout}s (last fetch error: {last_exc!r})"
     )
-
-
-# ---------------------------------------------------------------------------
-# Deprecation warning capture
-# ---------------------------------------------------------------------------
-
-
-@contextmanager
-def capture_deprecation_warning(expected_substring: str = "") -> Iterator[list[Any]]:
-    """Context manager that captures DeprecationWarning emissions.
-
-    Usage::
-
-        with capture_deprecation_warning("create_index") as records:
-            pc.create_index(...)
-        assert records, "expected a DeprecationWarning"
-
-    If ``expected_substring`` is provided, asserts that at least one captured
-    warning's message contains it.
-    """
-    with warnings.catch_warnings(record=True) as records:
-        warnings.simplefilter("always", DeprecationWarning)
-        yield records
-    relevant = [r for r in records if issubclass(r.category, DeprecationWarning)]
-    if not relevant:
-        raise AssertionError("Expected at least one DeprecationWarning, got none")
-    if expected_substring and not any(
-        expected_substring in str(r.message) for r in relevant
-    ):
-        messages = [str(r.message) for r in relevant]
-        raise AssertionError(
-            f"No captured DeprecationWarning contained {expected_substring!r}. "
-            f"Got: {messages}"
-        )
