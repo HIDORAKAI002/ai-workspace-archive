@@ -2,19 +2,18 @@ from __future__ import annotations
 
 import threading
 from collections import defaultdict
-from collections.abc import Iterator, Sequence
+from collections.abc import Iterator, Mapping, Sequence
 from contextlib import contextmanager
 from typing import Any, cast
 
 from langchain_core.runnables import RunnableConfig
 from langgraph.checkpoint.base import (
-    DELTA_SENTINEL,
     WRITES_IDX_MAP,
     ChannelVersions,
     Checkpoint,
     CheckpointMetadata,
     CheckpointTuple,
-    _ChannelWritesHistory,
+    DeltaChannelHistory,
     get_checkpoint_id,
     get_serializable_checkpoint_metadata,
 )
@@ -27,10 +26,10 @@ from psycopg_pool import ConnectionPool
 
 from langgraph.checkpoint.postgres import _internal
 from langgraph.checkpoint.postgres.base import (
-    SELECT_DELTA_STAGE1_SQL,
-    SELECT_DELTA_STAGE2_SQL,
+    _DELTA_PAGE_SIZE,
     BasePostgresSaver,
-    _DeltaStage1Row,
+    _build_delta_stage1_sql,
+    _build_delta_stage2_sql,
     _DeltaStage2Row,
 )
 from langgraph.checkpoint.postgres.shallow import ShallowPostgresSaver
@@ -311,9 +310,7 @@ class PostgresSaver(BasePostgresSaver):
         # others are stored in blobs table
         blob_values = {}
         for k, v in checkpoint["channel_values"].items():
-            if v is DELTA_SENTINEL:
-                copy["channel_values"].pop(k)
-            elif isinstance(v, _DeltaSnapshot):
+            if isinstance(v, _DeltaSnapshot):
                 blob_values[k] = copy["channel_values"].pop(k)
                 copy["channel_values"][k] = True
             elif v is None or isinstance(v, (str, int, float, bool)):
@@ -444,53 +441,111 @@ class PostgresSaver(BasePostgresSaver):
                 with conn.cursor(binary=True, row_factory=dict_row) as cur:
                     yield cur
 
-    def _get_channel_writes_history(
-        self, config: RunnableConfig, channel: str
-    ) -> _ChannelWritesHistory:
-        """Fast-path override of `BaseCheckpointSaver._get_channel_writes_history`.
+    def get_delta_channel_history(
+        self, *, config: RunnableConfig, channels: Sequence[str]
+    ) -> Mapping[str, DeltaChannelHistory]:
+        """Fast-path override of `BaseCheckpointSaver.get_delta_channel_history`.
 
-        Two-stage query: stage 1 scans checkpoint metadata to walk the parent
-        chain and locate the nearest snapshot; stage 2 fetches only the
-        chain-limited writes and single seed blob.
+        Two-stage query, both stages cover ALL requested channels:
+
+        * Stage 1 (paged): dynamic SELECT over `checkpoints` with K parallel
+          JSONB key lookups (one column pair per channel) — no subquery, no
+          aggregation. Pages newest-first by `checkpoint_id` with a cursor;
+          page size is `_DELTA_PAGE_SIZE`. Stops paging when every channel
+          has found its seed or the chain is exhausted.
+
+        * Stage 2 (per-channel UNION ALL): one branch per channel reading
+          `checkpoint_writes` filtered to that channel's specific
+          `chain_cids`, plus one branch per channel that has a seed reading
+          `checkpoint_blobs` for that channel + version. Avoids the
+          over-fetch of a single `channel = ANY(channels)` filter when
+          channels have different chain depths.
         """
+        if not channels:
+            return {}
+        channels = list(channels)
         thread_id = config["configurable"]["thread_id"]
         checkpoint_ns = config["configurable"].get("checkpoint_ns", "")
         checkpoint_id = get_checkpoint_id(config)
         if checkpoint_id is None:
             target = self.get_tuple(config)
             if target is None:
-                return _ChannelWritesHistory(seed=DELTA_SENTINEL, writes=[])
+                return {ch: {"writes": []} for ch in channels}
             checkpoint_id = target.config["configurable"]["checkpoint_id"]
 
+        # Stage 1: paged K-JSONB-lookup scan, walking the parent chain in
+        # Python after each page. Stops as soon as every channel has its seed.
+        stage1_sql = _build_delta_stage1_sql(channels, paged=True)
+        parent_of: dict[str, str | None] = {}
+        ver_by_i_by_cid: list[dict[str, str | None]] = [{} for _ in channels]
+        hs_by_i_by_cid: list[dict[str, bool]] = [{} for _ in channels]
+        chain_by_ch: dict[str, list[str]] = {ch: [] for ch in channels}
+        seed_ver_by_ch: dict[str, str | None] = {ch: None for ch in channels}
+        walk_cursor_by_ch: dict[str, str | None] = {}
+        seeded: set[str] = set()
+        cursor: str | None = None
+
         with self._cursor() as cur:
-            cur.execute(
-                SELECT_DELTA_STAGE1_SQL,
-                (channel, channel, thread_id, checkpoint_ns),
-            )
-            stage1_rows = cur.fetchall()
-        chain_cids, seed_version = self._walk_stage1(
-            cast("list[_DeltaStage1Row]", stage1_rows), checkpoint_id
+            while True:
+                stage1_params: list[Any] = []
+                for ch in channels:
+                    stage1_params.extend([ch, ch])
+                stage1_params.extend(
+                    [thread_id, checkpoint_ns, cursor, cursor, _DELTA_PAGE_SIZE]
+                )
+                cur.execute(stage1_sql, stage1_params)
+                page = cur.fetchall()
+                if not page:
+                    break
+                oldest = self._ingest_stage1_page(
+                    cast("list[Mapping[str, Any]]", page),
+                    channels,
+                    parent_of,
+                    ver_by_i_by_cid,
+                    hs_by_i_by_cid,
+                )
+                self._try_advance_walks(
+                    checkpoint_id,
+                    channels,
+                    parent_of,
+                    ver_by_i_by_cid,
+                    hs_by_i_by_cid,
+                    chain_by_ch,
+                    seed_ver_by_ch,
+                    walk_cursor_by_ch,
+                    seeded,
+                )
+                # Stop if every channel is seeded, or the page was short
+                # (chain exhausted — no more rows to fetch).
+                if len(seeded) == len(channels) or len(page) < _DELTA_PAGE_SIZE:
+                    break
+                cursor = oldest
+
+        # Stage 2: per-channel UNION ALL — one writes branch per channel
+        # with non-empty chain, plus one blob branch per seeded channel.
+        channels_with_chain = [ch for ch in channels if chain_by_ch[ch]]
+        channels_with_seed = [ch for ch in channels if seed_ver_by_ch[ch] is not None]
+        stage2_sql = _build_delta_stage2_sql(
+            channels_with_chain=channels_with_chain,
+            channels_with_seed=channels_with_seed,
         )
-        seed_versions = [seed_version] if seed_version else []
-        with self._cursor() as cur:
-            cur.execute(
-                SELECT_DELTA_STAGE2_SQL,
-                (
-                    thread_id,
-                    checkpoint_ns,
-                    channel,
-                    chain_cids,
-                    thread_id,
-                    checkpoint_ns,
-                    channel,
-                    seed_versions,
-                ),
-            )
-            stage2_rows = cur.fetchall()
-        return self._build_delta_channel_writes_history(
-            channel=channel,
-            chain_cids=chain_cids,
-            seed_version=seed_version,
+
+        if stage2_sql:
+            stage2_params: list[Any] = []
+            for ch in channels_with_chain:
+                stage2_params.extend([thread_id, checkpoint_ns, ch, chain_by_ch[ch]])
+            for ch in channels_with_seed:
+                stage2_params.extend([thread_id, checkpoint_ns, ch, seed_ver_by_ch[ch]])
+            with self._cursor() as cur:
+                cur.execute(stage2_sql, stage2_params)
+                stage2_rows = cur.fetchall()
+        else:
+            stage2_rows = []
+
+        return self._build_delta_channels_writes_history(
+            channels=channels,
+            chain_by_ch=chain_by_ch,
+            seed_ver_by_ch=seed_ver_by_ch,
             stage2_rows=cast("list[_DeltaStage2Row]", stage2_rows),
         )
 
