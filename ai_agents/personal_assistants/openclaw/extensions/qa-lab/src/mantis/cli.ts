@@ -1,6 +1,8 @@
 import type { Command } from "commander";
 import { createLazyCliRuntimeLoader } from "../live-transports/shared/live-transport-cli.js";
+import type { MantisDesktopBrowserSmokeOptions } from "./desktop-browser-smoke.runtime.js";
 import type { MantisDiscordSmokeOptions } from "./discord-smoke.runtime.js";
+import type { MantisBeforeAfterOptions } from "./run.runtime.js";
 
 type MantisCliRuntime = typeof import("./cli.runtime.js");
 
@@ -11,6 +13,16 @@ const loadMantisCliRuntime = createLazyCliRuntimeLoader<MantisCliRuntime>(
 async function runDiscordSmoke(opts: MantisDiscordSmokeOptions) {
   const runtime = await loadMantisCliRuntime();
   await runtime.runMantisDiscordSmokeCommand(opts);
+}
+
+async function runBeforeAfter(opts: MantisBeforeAfterOptions) {
+  const runtime = await loadMantisCliRuntime();
+  await runtime.runMantisBeforeAfterCommand(opts);
+}
+
+async function runDesktopBrowserSmoke(opts: MantisDesktopBrowserSmokeOptions) {
+  const runtime = await loadMantisCliRuntime();
+  await runtime.runMantisDesktopBrowserSmokeCommand(opts);
 }
 
 type MantisDiscordSmokeCommanderOptions = {
@@ -25,10 +37,72 @@ type MantisDiscordSmokeCommanderOptions = {
   tokenEnv?: string;
 };
 
+type MantisBeforeAfterCommanderOptions = {
+  baseline?: string;
+  candidate?: string;
+  credentialRole?: string;
+  credentialSource?: string;
+  fast?: boolean;
+  outputDir?: string;
+  providerMode?: string;
+  repoRoot?: string;
+  scenario?: string;
+  skipBuild?: boolean;
+  skipInstall?: boolean;
+  transport?: string;
+};
+
+type MantisDesktopBrowserSmokeCommanderOptions = {
+  browserUrl?: string;
+  class?: string;
+  crabboxBin?: string;
+  htmlFile?: string;
+  idleTimeout?: string;
+  keepLease?: boolean;
+  leaseId?: string;
+  machineClass?: string;
+  outputDir?: string;
+  provider?: string;
+  repoRoot?: string;
+  ttl?: string;
+};
+
 export function registerMantisCli(qa: Command) {
   const mantis = qa
     .command("mantis")
     .description("Run Mantis before/after and live-smoke verification flows");
+
+  mantis
+    .command("run")
+    .description("Run a Mantis before/after scenario against baseline and candidate refs")
+    .requiredOption("--transport <transport>", "Transport to verify; currently only discord")
+    .requiredOption("--scenario <id>", "Mantis scenario id to run")
+    .requiredOption("--baseline <ref>", "Ref expected to reproduce the bug")
+    .requiredOption("--candidate <ref>", "Ref expected to contain the fix")
+    .option("--repo-root <path>", "Repository root to target when running from a neutral cwd")
+    .option("--output-dir <path>", "Mantis before/after artifact directory")
+    .option("--provider-mode <mode>", "QA provider mode", "live-frontier")
+    .option("--credential-source <source>", "QA credential source", "convex")
+    .option("--credential-role <role>", "QA credential role", "ci")
+    .option("--fast", "Enable fast provider mode where supported", true)
+    .option("--skip-install", "Skip pnpm install in baseline/candidate worktrees", false)
+    .option("--skip-build", "Skip pnpm build in baseline/candidate worktrees", false)
+    .action(async (opts: MantisBeforeAfterCommanderOptions) => {
+      await runBeforeAfter({
+        baseline: opts.baseline,
+        candidate: opts.candidate,
+        credentialRole: opts.credentialRole,
+        credentialSource: opts.credentialSource,
+        fastMode: opts.fast,
+        outputDir: opts.outputDir,
+        providerMode: opts.providerMode,
+        repoRoot: opts.repoRoot,
+        scenario: opts.scenario,
+        skipBuild: opts.skipBuild,
+        skipInstall: opts.skipInstall,
+        transport: opts.transport,
+      });
+    });
 
   mantis
     .command("discord-smoke")
@@ -53,6 +127,39 @@ export function registerMantisCli(qa: Command) {
         tokenFile: opts.tokenFile,
         tokenFileEnv: opts.tokenFileEnv,
         tokenEnv: opts.tokenEnv,
+      });
+    });
+
+  mantis
+    .command("desktop-browser-smoke")
+    .description(
+      "Lease or reuse a Crabbox desktop, open a visible browser, and capture a VNC desktop screenshot",
+    )
+    .option("--repo-root <path>", "Repository root to target when running from a neutral cwd")
+    .option("--output-dir <path>", "Mantis desktop browser artifact directory")
+    .option("--browser-url <url>", "URL to open in the visible browser")
+    .option("--html-file <path>", "Repo-local HTML file to render in the visible browser")
+    .option("--crabbox-bin <path>", "Crabbox binary path")
+    .option("--provider <provider>", "Crabbox provider")
+    .option("--machine-class <class>", "Crabbox machine class")
+    .option("--class <class>", "Alias for --machine-class")
+    .option("--lease-id <id>", "Reuse an existing Crabbox lease")
+    .option("--idle-timeout <duration>", "Crabbox idle timeout")
+    .option("--ttl <duration>", "Crabbox maximum lease lifetime")
+    .option("--keep-lease", "Keep a lease created by this run after a passing smoke")
+    .action(async (opts: MantisDesktopBrowserSmokeCommanderOptions) => {
+      await runDesktopBrowserSmoke({
+        browserUrl: opts.browserUrl,
+        crabboxBin: opts.crabboxBin,
+        htmlFile: opts.htmlFile,
+        idleTimeout: opts.idleTimeout,
+        keepLease: opts.keepLease,
+        leaseId: opts.leaseId,
+        machineClass: opts.machineClass ?? opts.class,
+        outputDir: opts.outputDir,
+        provider: opts.provider,
+        repoRoot: opts.repoRoot,
+        ttl: opts.ttl,
       });
     });
 }

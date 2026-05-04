@@ -4,7 +4,7 @@ import type { PluginInstallRecord } from "../config/types.plugins.js";
 import { parseClawHubPluginSpec } from "../infra/clawhub-spec.js";
 import type { NpmSpecResolution } from "../infra/install-source-utils.js";
 import { resolveNpmSpecMetadata } from "../infra/install-source-utils.js";
-import { parseRegistryNpmSpec } from "../infra/npm-registry-spec.js";
+import { isPrereleaseResolutionAllowed, parseRegistryNpmSpec } from "../infra/npm-registry-spec.js";
 import {
   expectedIntegrityForUpdate,
   readInstalledPackageVersion,
@@ -176,6 +176,24 @@ function shouldSkipUnchangedNpmInstall(params: {
     params.record.resolvedName === params.metadata.name &&
     params.record.resolvedSpec === params.metadata.resolvedSpec &&
     params.record.resolvedVersion === params.metadata.version
+  );
+}
+
+function shouldBypassTrustedOfficialUnchangedNpmCheck(params: {
+  metadata: NpmSpecResolution;
+  spec: string;
+  trustedSourceLinkedOfficialInstall: boolean;
+}): boolean {
+  if (!params.trustedSourceLinkedOfficialInstall || !params.metadata.version) {
+    return false;
+  }
+  const parsedSpec = parseRegistryNpmSpec(params.spec);
+  return Boolean(
+    parsedSpec &&
+    !isPrereleaseResolutionAllowed({
+      spec: parsedSpec,
+      resolvedVersion: params.metadata.version,
+    }),
   );
 }
 
@@ -459,6 +477,21 @@ function isTrustedSourceLinkedOfficialNpmUpdate(params: {
   return recordedPackageNames.includes(officialPackageName);
 }
 
+function isTrustedSourceLinkedOfficialBridgeNpmInstall(params: {
+  targetPluginId: string;
+  npmSpec: string | undefined;
+}): boolean {
+  const entry = getOfficialExternalPluginCatalogEntry(params.targetPluginId);
+  if (!entry) {
+    return false;
+  }
+  const officialPackageName = resolveNpmSpecPackageName(
+    resolveOfficialExternalPluginInstall(entry)?.npmSpec,
+  );
+  const requestedPackageName = resolveNpmSpecPackageName(params.npmSpec);
+  return Boolean(officialPackageName && requestedPackageName === officialPackageName);
+}
+
 function resolveNpmUpdateSpecs(params: {
   record: PluginInstallRecord;
   specOverride?: string;
@@ -544,12 +577,25 @@ function isBridgeAlreadyInstalledFromPreferredSource(params: {
   record: PluginInstallRecord;
 }): boolean {
   const npmSpec = getExternalizedBundledPluginNpmSpec(params.bridge);
-  if (npmSpec && params.record.source === "npm" && params.record.spec === npmSpec) {
-    return true;
+  if (npmSpec && params.record.source === "npm") {
+    const bridgePackageName = resolveNpmSpecPackageName(npmSpec);
+    const recordPackageName =
+      resolveNpmSpecPackageName(params.record.spec) ??
+      resolveNpmSpecPackageName(params.record.resolvedSpec);
+    if (bridgePackageName && recordPackageName === bridgePackageName) {
+      return true;
+    }
   }
   const clawhubSpec = getExternalizedBundledPluginClawHubSpec(params.bridge);
+  const bridgeClawHubPackage = clawhubSpec ? parseClawHubPluginSpec(clawhubSpec)?.name : undefined;
+  const recordClawHubPackage =
+    params.record.source === "clawhub"
+      ? (params.record.clawhubPackage ?? parseClawHubPluginSpec(params.record.spec ?? "")?.name)
+      : undefined;
   return Boolean(
-    clawhubSpec && params.record.source === "clawhub" && params.record.spec === clawhubSpec,
+    bridgeClawHubPackage &&
+    params.record.source === "clawhub" &&
+    recordClawHubPackage === bridgeClawHubPackage,
   );
 }
 
@@ -853,6 +899,11 @@ export async function updateNpmInstalledPlugins(params: {
       });
       if (metadataResult.ok) {
         if (
+          !shouldBypassTrustedOfficialUnchangedNpmCheck({
+            metadata: metadataResult.metadata,
+            spec: effectiveSpec!,
+            trustedSourceLinkedOfficialInstall,
+          }) &&
           shouldSkipUnchangedNpmInstall({
             currentVersion,
             record,
@@ -1404,6 +1455,10 @@ export async function syncPluginsForUpdateChannel(params: {
       const preferredSource = getExternalizedBundledPluginPreferredSource(bridge);
       const npmSpec = getExternalizedBundledPluginNpmSpec(bridge);
       const clawhubSpec = getExternalizedBundledPluginClawHubSpec(bridge);
+      const trustedSourceLinkedOfficialInstall = isTrustedSourceLinkedOfficialBridgeNpmInstall({
+        targetPluginId,
+        npmSpec,
+      });
       let installSource = preferredSource;
       let installSpec = preferredSource === "clawhub" ? clawhubSpec : npmSpec;
       let result:
@@ -1435,6 +1490,7 @@ export async function syncPluginsForUpdateChannel(params: {
             spec: npmSpec,
             mode: "update",
             expectedPluginId: targetPluginId,
+            trustedSourceLinkedOfficialInstall,
             logger,
           });
         }
@@ -1443,6 +1499,7 @@ export async function syncPluginsForUpdateChannel(params: {
           spec: npmSpec,
           mode: "update",
           expectedPluginId: targetPluginId,
+          trustedSourceLinkedOfficialInstall,
           logger,
         });
       }
