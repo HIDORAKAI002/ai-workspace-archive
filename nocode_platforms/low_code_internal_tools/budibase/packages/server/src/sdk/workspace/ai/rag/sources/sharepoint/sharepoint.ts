@@ -22,6 +22,7 @@ import {
   agents as agentsSdk,
   knowledgeBase as knowledgeBaseSdk,
 } from "../../.."
+import * as knowledgeSourcesSdk from "../../../knowledgeSources"
 import {
   collectSharePointFilesRecursive,
   downloadSharePointFileBuffer,
@@ -272,7 +273,35 @@ const runSharePointSourcesForAgent = async (
     sourceFilters,
   })
 
-  const connectionId = sourceConnectionId
+  let connectionId = sourceConnectionId
+  if (!connectionId) {
+    // Temporary compatibility for legacy sources created before connectionId
+    // was persisted on agent knowledge source config. New sources must include
+    // config.connectionId and should not rely on this fallback.
+    const sharePointConnections =
+      await knowledgeSourcesSdk.listKnowledgeSourceConnections()
+    const sharePointOnlyConnections = sharePointConnections
+      .filter(
+        connection =>
+          connection.sourceType === AgentKnowledgeSourceType.SHAREPOINT
+      )
+      .sort((a, b) => {
+        function toDate(value: string | number | undefined): number {
+          if (!value) {
+            return Number.MAX_SAFE_INTEGER
+          }
+          if (typeof value === "number") {
+            return value
+          }
+          const parsed = Date.parse(value)
+          return isNaN(parsed) ? Number.MAX_SAFE_INTEGER : parsed
+        }
+        return toDate(a.createdAt) - toDate(b.createdAt)
+      })
+    // Legacy fallback: when connectionId is missing, use the oldest SharePoint
+    // connection because that was historically the one used at connection time.
+    connectionId = sharePointOnlyConnections[0]?._id
+  }
   if (!connectionId) {
     throw new HTTPError("SharePoint is not connected for this workspace", 400)
   }

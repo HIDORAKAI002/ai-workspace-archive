@@ -12,7 +12,7 @@ import re
 import subprocess
 import time
 from pathlib import Path
-from typing import Optional
+from typing import IO, Optional
 
 import httpx
 from rich.console import Console
@@ -37,7 +37,7 @@ DAEMON_STARTUP_TIMEOUT = int(os.getenv("HINDSIGHT_EMBED_DAEMON_STARTUP_TIMEOUT",
 DEFAULT_DAEMON_IDLE_TIMEOUT = 0  # 0 = disabled (no auto-exit)
 
 
-def _detach_popen_kwargs(log_handle) -> dict:
+def _detach_popen_kwargs(log_handle: IO[bytes]) -> dict:
     """Cross-platform kwargs to spawn a subprocess detached from the caller.
 
     On POSIX, `start_new_session=True` calls setsid(2) so the child
@@ -46,9 +46,9 @@ def _detach_popen_kwargs(log_handle) -> dict:
     child has no console, so stdin/stdout/stderr MUST be redirected or any
     write from the child crashes with "handle is invalid".
 
-    If a `log_handle` is supplied, stdout/stderr are routed to it on both
-    platforms (matches the existing UI-spawn behavior). If `None`, the
-    POSIX child inherits the parent's fds (legacy daemon-spawn behavior).
+    `log_handle` receives the child's stdout/stderr on both platforms so
+    output never leaks into the parent's terminal (which would corrupt a
+    TUI parent communicating over stdio).
     """
     if platform.system() == "Windows":
         # Windows-only constants; use getattr so type checkers (e.g. ty) running
@@ -63,11 +63,11 @@ def _detach_popen_kwargs(log_handle) -> dict:
             "stderr": subprocess.STDOUT,
             "close_fds": True,
         }
-    kwargs: dict = {"start_new_session": True}
-    if log_handle is not None:
-        kwargs["stdout"] = log_handle
-        kwargs["stderr"] = log_handle
-    return kwargs
+    return {
+        "start_new_session": True,
+        "stdout": log_handle,
+        "stderr": log_handle,
+    }
 
 
 class DaemonEmbedManager(EmbedManager):
@@ -387,20 +387,15 @@ class DaemonEmbedManager(EmbedManager):
             cmd.extend(extra_args)
 
         try:
-            # Start daemon. On Windows we must redirect stdout/stderr before
-            # the child Python runs; DETACHED_PROCESS leaves it without a
-            # console so any print/log to stdio would raise. We open the
-            # daemon log for append here and hand it to the child; Python's
-            # own logging (via HINDSIGHT_API_DAEMON_LOG) will append to the
-            # same path once logging initializes. On POSIX we keep the
-            # existing inherit-fd behavior to avoid touching working code.
-            if platform.system() == "Windows":
-                daemon_log_handle = open(daemon_log, "ab")
-                popen_kwargs = _detach_popen_kwargs(daemon_log_handle)
-            else:
-                daemon_log_handle = None
-                popen_kwargs = _detach_popen_kwargs(None)
-            subprocess.Popen(cmd, env=env, **popen_kwargs)
+            # Start daemon. Redirect stdout/stderr to the daemon log so that
+            # any output from the subprocess (e.g. uvx download progress,
+            # Python library init messages) does not leak into the parent
+            # process terminal. Python's own logging (via
+            # HINDSIGHT_API_DAEMON_LOG) will append to the same path.
+            # Popen dups the fd into the child during spawn, so the parent
+            # can close its handle as soon as Popen returns.
+            with open(daemon_log, "ab") as daemon_log_handle:
+                subprocess.Popen(cmd, env=env, **_detach_popen_kwargs(daemon_log_handle))
 
             # Wait for daemon to be ready with rich UI
             start_time = time.time()
@@ -621,8 +616,8 @@ class DaemonEmbedManager(EmbedManager):
         ]
 
         try:
-            log_file = open(ui_log, "w")
-            subprocess.Popen(cmd, env=env, **_detach_popen_kwargs(log_file))
+            with open(ui_log, "wb") as log_file:
+                subprocess.Popen(cmd, env=env, **_detach_popen_kwargs(log_file))
 
             # Wait for UI to be ready
             start_time = time.time()

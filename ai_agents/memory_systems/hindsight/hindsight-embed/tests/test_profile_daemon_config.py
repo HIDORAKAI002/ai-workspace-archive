@@ -495,6 +495,55 @@ def test_posix_popen_uses_start_new_session(temp_home, monkeypatch):
     assert "creationflags" not in kwargs
 
 
+def test_posix_popen_redirects_stdout_stderr_to_log(temp_home, monkeypatch):
+    """Regression test for #1380: on POSIX, the daemon child must NOT inherit
+    the parent's stdout/stderr — output would otherwise leak into a TUI
+    parent communicating over stdio (Hermes, JSON-RPC gateways) and corrupt
+    its rendering. Both streams must be redirected to a real file handle.
+    """
+    from unittest.mock import MagicMock, patch
+
+    from hindsight_embed.daemon_embed_manager import DaemonEmbedManager
+
+    manager = DaemonEmbedManager()
+    captured: dict = {}
+    popen_called = [False]
+
+    def fake_popen(cmd, env, **kwargs):
+        captured["kwargs"] = kwargs
+        popen_called[0] = True
+        proc = MagicMock()
+        proc.pid = 12345
+        return proc
+
+    def fake_is_running(profile=""):
+        return popen_called[0]
+
+    with (
+        patch("hindsight_embed.daemon_embed_manager.subprocess.Popen", side_effect=fake_popen),
+        patch("hindsight_embed.daemon_embed_manager.time.sleep"),
+        patch.object(manager, "_clear_port", return_value=True),
+        patch.object(manager, "_find_api_command", return_value=["hindsight-api"]),
+        patch.object(manager, "is_running", side_effect=fake_is_running),
+        patch("hindsight_embed.daemon_embed_manager.platform.system", return_value="Linux"),
+    ):
+        manager._start_daemon(
+            config={"llm_provider": "openai", "llm_api_key": "sk-x", "llm_model": "gpt-4o-mini"},
+            profile="",
+        )
+
+    kwargs = captured["kwargs"]
+    stdout = kwargs.get("stdout")
+    stderr = kwargs.get("stderr")
+    # Must be real file objects, not None (inherit) or DEVNULL.
+    assert stdout is not None and hasattr(stdout, "write"), (
+        f"daemon stdout must be redirected to a file handle, got {stdout!r}"
+    )
+    assert stderr is not None and hasattr(stderr, "write"), (
+        f"daemon stderr must be redirected to a file handle, got {stderr!r}"
+    )
+
+
 def test_get_config_does_not_default_llm_model(temp_home, monkeypatch):
     """Regression test for issue #1360.
 
