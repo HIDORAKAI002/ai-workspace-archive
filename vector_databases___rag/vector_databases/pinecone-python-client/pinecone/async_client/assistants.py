@@ -3,12 +3,11 @@
 from __future__ import annotations
 
 import asyncio
-import builtins
 import io
 import logging
 import os
 import time
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Mapping, Sequence
 from typing import IO, TYPE_CHECKING, Any
 
 import anyio
@@ -80,7 +79,11 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
         from pinecone._internal.http_client import AsyncHTTPClient as _AsyncHTTPClient
 
         self._config = config
-        cp_host = (config.host or DEFAULT_BASE_URL).rstrip("/")
+        # Internal env-var escape hatches (undocumented, used by Pinecone CI
+        # to redirect to non-prod KE clusters). Precedence: explicit
+        # config.host (user) > env var > hardcoded default.
+        env_control_host = os.getenv("PINECONE_PLUGIN_ASSISTANT_CONTROL_HOST")
+        cp_host = (config.host or env_control_host or DEFAULT_BASE_URL).rstrip("/")
         cp_config = _PineconeConfig(
             api_key=config.api_key,
             host=f"{cp_host}/assistant",
@@ -98,9 +101,15 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
         self._adapter = AssistantsAdapter()
         self._data_plane_clients: dict[str, AsyncHTTPClient] = {}
 
+        env_data_host = os.getenv("PINECONE_PLUGIN_ASSISTANT_DATA_HOST")
+        eval_host = (
+            f"{env_data_host.rstrip('/')}/assistant"
+            if env_data_host
+            else ASSISTANT_EVALUATION_BASE_URL
+        )
         eval_config = _PineconeConfig(
             api_key=config.api_key,
-            host=ASSISTANT_EVALUATION_BASE_URL,
+            host=eval_host,
             timeout=config.timeout,
             additional_headers=config.additional_headers,
             source_tag=config.source_tag or "",
@@ -1032,7 +1041,7 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
         *,
         assistant_name: str,
         query: str | None = None,
-        messages: builtins.list[Message | dict[str, str]] | None = None,
+        messages: Sequence[Message | Mapping[str, str]] | None = None,
         filter: dict[str, Any] | None = None,
         top_k: int | None = None,
         snippet_size: int | None = None,
@@ -1123,7 +1132,7 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
         self,
         *,
         assistant_name: str,
-        messages: builtins.list[Message | dict[str, str]],
+        messages: Sequence[Message | Mapping[str, str]],
         model: str = "gpt-4o",
         stream: bool = False,
         temperature: float | None = None,
@@ -1283,7 +1292,7 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
         self,
         *,
         assistant_name: str,
-        messages: builtins.list[Message | dict[str, str]],
+        messages: Sequence[Message | Mapping[str, str]],
         model: str = "gpt-4o",
         stream: bool = False,
         temperature: float | None = None,

@@ -7,6 +7,7 @@ built.
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from typing import Any, Protocol, runtime_checkable
 
 
@@ -28,13 +29,13 @@ class GrpcChannelProtocol(Protocol):
         self,
         top_k: int,
         *,
-        vector: list[float] | None = None,
+        vector: Sequence[float] | None = None,
         id: str | None = None,
         namespace: str | None = None,
-        filter: dict[str, Any] | None = None,
+        filter: Mapping[str, Any] | None = None,
         include_values: bool = False,
         include_metadata: bool = False,
-        sparse_vector: dict[str, Any] | None = None,
+        sparse_vector: Mapping[str, Any] | None = None,
         scan_factor: float | None = None,
         max_candidates: int | None = None,
         timeout_s: float | None = None,
@@ -44,7 +45,7 @@ class GrpcChannelProtocol(Protocol):
 
     def fetch(
         self,
-        ids: list[str],
+        ids: Sequence[str],
         *,
         namespace: str | None = None,
         timeout_s: float | None = None,
@@ -55,10 +56,10 @@ class GrpcChannelProtocol(Protocol):
     def delete(
         self,
         *,
-        ids: list[str] | None = None,
+        ids: Sequence[str] | None = None,
         delete_all: bool = False,
         namespace: str | None = None,
-        filter: dict[str, Any] | None = None,
+        filter: Mapping[str, Any] | None = None,
         timeout_s: float | None = None,
     ) -> None:
         """Delete vectors."""
@@ -68,11 +69,11 @@ class GrpcChannelProtocol(Protocol):
         self,
         id: str | None,
         *,
-        values: list[float] | None = None,
-        sparse_values: dict[str, Any] | None = None,
-        set_metadata: dict[str, Any] | None = None,
+        values: Sequence[float] | None = None,
+        sparse_values: Mapping[str, Any] | None = None,
+        set_metadata: Mapping[str, Any] | None = None,
         namespace: str | None = None,
-        filter: dict[str, Any] | None = None,
+        filter: Mapping[str, Any] | None = None,
         dry_run: bool | None = None,
         timeout_s: float | None = None,
     ) -> dict[str, Any]:
@@ -94,7 +95,7 @@ class GrpcChannelProtocol(Protocol):
     def describe_index_stats(
         self,
         *,
-        filter: dict[str, Any] | None = None,
+        filter: Mapping[str, Any] | None = None,
         timeout_s: float | None = None,
     ) -> dict[str, Any]:
         """Describe index statistics."""
