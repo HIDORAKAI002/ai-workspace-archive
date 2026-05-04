@@ -33,6 +33,7 @@ describe("Query format", () => {
       expect(response.answer).toBeDefined();
       expect(typeof response.answer).toBe("string");
       expect(response.answer!.length).toBeGreaterThan(0);
+      expect(response.markdown).toBeUndefined();
     },
     scrapeTimeout,
   );
@@ -43,7 +44,10 @@ describe("Query format", () => {
       const response = await scrape(
         {
           url: "https://firecrawl.dev",
-          formats: ["markdown", { type: "query", prompt: "What is Firecrawl?" }],
+          formats: [
+            "markdown",
+            { type: "query", prompt: "What is Firecrawl?" },
+          ],
         },
         identity,
       );
