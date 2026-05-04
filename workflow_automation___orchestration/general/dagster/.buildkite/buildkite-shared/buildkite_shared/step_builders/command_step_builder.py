@@ -4,6 +4,7 @@ from enum import StrEnum
 from typing import Any, Self
 
 from buildkite_shared.python_version import AvailablePythonVersion
+from buildkite_shared.step_builders.slug import make_label
 from buildkite_shared.utils import BUILDKITE_TEST_IMAGE_VERSION, RETRYABLE_INFRA_FAILURE_EXIT_CODE
 from typing_extensions import NotRequired, TypedDict
 
@@ -86,9 +87,9 @@ class CommandStepBuilder:
 
     def __init__(
         self,
-        label: str,
+        key: str,
+        label_emojis: list[str] | None = None,
         *,
-        key: str | None = None,
         timeout_in_minutes: int = DEFAULT_TIMEOUT_IN_MIN,
         retry_automatically: bool = True,
         plugins: list[dict[str, object]] | None = None,
@@ -141,14 +142,13 @@ class CommandStepBuilder:
 
         self._step = {
             "agents": {"queue": BuildkiteQueue.MEDIUM.value},
-            "label": label,
+            "key": key,
+            "label": make_label(key, label_emojis),
             "timeout_in_minutes": timeout_in_minutes,
             "retry": retry,
             "plugins": plugins or [],
         }
         self._requires_docker = True  # used for k8s queue
-        if key is not None:
-            self._step["key"] = key
         self._resources = None
 
     def run(self, *argc: str) -> Self:

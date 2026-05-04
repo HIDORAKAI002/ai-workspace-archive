@@ -81,7 +81,18 @@ class Index:
         ssl_verify: bool = True,
         source_tag: str | None = None,
         connection_pool_maxsize: int = 0,
+        **kwargs: Any,
     ) -> None:
+        legacy_pool_threads = kwargs.pop("pool_threads", None)
+        if kwargs:
+            raise TypeError(f"Index() got unexpected keyword arguments: {sorted(kwargs)!r}")
+        if legacy_pool_threads is not None:
+            logger.debug(
+                "Index(pool_threads=%r) is accepted for backcompat but no "
+                "longer used; the new client uses httpx connection pooling. "
+                "Tune connection_pool_maxsize= instead.",
+                legacy_pool_threads,
+            )
         # Resolve API key: explicit arg > env var (check BEFORE host per unified-ord-0001)
         resolved_key = api_key or os.environ.get("PINECONE_API_KEY", "")
         if not resolved_key:
@@ -1165,7 +1176,8 @@ class Index:
     def describe_namespace(
         self,
         *,
-        name: str,
+        name: str | None = None,
+        **kwargs: str,
     ) -> NamespaceDescription:
         """Describe a namespace by name.
 
@@ -1189,20 +1201,29 @@ class Index:
                 ns = idx.describe_namespace(name="movies-en")
                 print(ns.name, ns.record_count)
         """
-        if not isinstance(name, str):
+        legacy_namespace: str | None = kwargs.pop("namespace", None)
+        if kwargs:
+            raise TypeError(
+                f"describe_namespace() got unexpected keyword arguments: {sorted(kwargs)!r}"
+            )
+        if name is not None and legacy_namespace is not None:
+            raise ValidationError("Provide either name= or namespace=, not both")
+        effective: str = name if name is not None else (legacy_namespace or "")
+        if not isinstance(effective, str):
             raise ValidationError("namespace name must be a string")
-        if not name or not name.strip():
+        if not effective or not effective.strip():
             raise ValidationError("namespace name must be a non-empty string")
 
-        logger.info("Describing namespace %r", name)
-        response = self._http.get(f"/namespaces/{name}")
+        logger.info("Describing namespace %r", effective)
+        response = self._http.get(f"/namespaces/{effective}")
         return self._adapter.to_namespace_description(response.content)
 
     def delete_namespace(
         self,
         *,
-        name: str,
+        name: str | None = None,
         timeout: float | None = None,
+        **kwargs: str,
     ) -> None:
         """Delete a namespace by name, removing all its vectors.
 
@@ -1224,13 +1245,21 @@ class Index:
 
                 idx.delete_namespace(name="movies-deprecated")
         """
-        if not isinstance(name, str):
+        legacy_namespace: str | None = kwargs.pop("namespace", None)
+        if kwargs:
+            raise TypeError(
+                f"delete_namespace() got unexpected keyword arguments: {sorted(kwargs)!r}"
+            )
+        if name is not None and legacy_namespace is not None:
+            raise ValidationError("Provide either name= or namespace=, not both")
+        effective: str = name if name is not None else (legacy_namespace or "")
+        if not isinstance(effective, str):
             raise ValidationError("namespace name must be a string")
-        if not name or not name.strip():
+        if not effective or not effective.strip():
             raise ValidationError("namespace name must be a non-empty string")
 
-        logger.info("Deleting namespace %r", name)
-        self._http.delete(f"/namespaces/{name}", timeout=timeout)
+        logger.info("Deleting namespace %r", effective)
+        self._http.delete(f"/namespaces/{effective}", timeout=timeout)
 
     def list_namespaces_paginated(
         self,
