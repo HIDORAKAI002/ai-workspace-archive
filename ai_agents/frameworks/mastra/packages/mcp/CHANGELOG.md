@@ -1,5 +1,62 @@
 # @mastra/mcp
 
+## 1.7.0-alpha.2
+
+### Minor Changes
+
+- Added MCP Apps support for interactive UI rendering over MCP. ([#16004](https://github.com/mastra-ai/mastra/pull/16004))
+
+  **MCPClientServerProxy** — a lightweight proxy that delegates resource and tool operations to remote MCP servers via `MCPClient`, enabling Studio to fetch app resources from any connected server.
+
+  **`toMCPServerProxies()`** — new convenience method on `MCPClient` that creates proxy objects for all configured servers, ready for Mastra-level registration.
+
+  **Automatic `serverId` stamping** — tools returned by `listTools()` now carry `_meta.ui.serverId`, allowing consumers to resolve `ui://` app resources from the correct MCP server in multi-server environments.
+
+  ```ts
+  const mcp = new MCPClient({
+    servers: {
+      myApps: { url: new URL('https://my-mcp-server.example.com/mcp') },
+    },
+  });
+
+  const mastra = new Mastra({
+    agents: { myAgent },
+    mcpServers: { ...mcp.toMCPServerProxies() },
+  });
+  ```
+
+- Added MCP Apps extension support (SEP-1865). MCPServer now accepts an `appResources` config to register interactive `ui://` HTML resources. MCPClient preserves full tool `_meta` (including `ui.resourceUri`) when converting MCP tools to Mastra tools. Both advertise the `io.modelcontextprotocol/ui` extension capability. ([#16004](https://github.com/mastra-ai/mastra/pull/16004))
+
+  **Example — MCPServer with app resources:**
+
+  ```typescript
+  const server = new MCPServer({
+    name: 'my-server',
+    tools: { myTool },
+    appResources: {
+      dashboard: {
+        name: 'Dashboard',
+        description: 'Interactive dashboard UI',
+        html: '<html>...</html>',
+      },
+    },
+  });
+  ```
+
+### Patch Changes
+
+- Updated dependencies [[`7679a63`](https://github.com/mastra-ai/mastra/commit/7679a634eae8e8ca459fd87538fdf72b4389b07f), [`1d64a76`](https://github.com/mastra-ai/mastra/commit/1d64a765861a0772ea187bab76e5ed37bf82d042), [`7679a63`](https://github.com/mastra-ai/mastra/commit/7679a634eae8e8ca459fd87538fdf72b4389b07f), [`a0d9b6d`](https://github.com/mastra-ai/mastra/commit/a0d9b6d6b810aeaa9e177a0dcc99a4402e609634)]:
+  - @mastra/core@1.32.0-alpha.4
+
+## 1.6.1-alpha.1
+
+### Patch Changes
+
+- Added Fine-Grained Authorization (FGA) enforcement to MCP tool execution. Both transport-driven calls and direct `executeTool()` calls now run the same authorization checks when a request user is present, and typed FGA permission constants are accepted in MCP server authorization config. ([#15410](https://github.com/mastra-ai/mastra/pull/15410))
+
+- Updated dependencies [[`86c0298`](https://github.com/mastra-ai/mastra/commit/86c0298e647306423c842f9d5ac827bd616bd13d), [`7fce309`](https://github.com/mastra-ai/mastra/commit/7fce30912b14170bfc41f0ac736cca0f39fe0cd4), [`7997c2e`](https://github.com/mastra-ai/mastra/commit/7997c2e55ddd121562a4098cd8d2b89c68433bf1), [`e97ccb9`](https://github.com/mastra-ai/mastra/commit/e97ccb900f8b7a390ce82c9f8eb8d6eb2c5e3777), [`c5daf48`](https://github.com/mastra-ai/mastra/commit/c5daf48556e98c46ae06caf00f92c249912007e9), [`cd96779`](https://github.com/mastra-ai/mastra/commit/cd9677937f113b2856dc8b9f3d4bdabcee58bb2e)]:
+  - @mastra/core@1.32.0-alpha.2
+
 ## 1.6.1-alpha.0
 
 ### Patch Changes
