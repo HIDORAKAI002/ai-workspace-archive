@@ -13,14 +13,18 @@ if TYPE_CHECKING:
 
 from pinecone._internal.adapters.imports_adapter import ImportsAdapter
 from pinecone._internal.adapters.vectors_adapter import VectorsAdapter, extract_response_info
+from pinecone._internal.batch import batch_execute
+from pinecone._internal.batching import validate_batch_size
 from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import DATA_PLANE_API_VERSION
 from pinecone._internal.data_plane_helpers import _validate_host, _vector_to_dict
+from pinecone._internal.validation import require_in_range
 from pinecone._internal.vector_factory import VectorFactory
 from pinecone.errors.exceptions import PineconeValueError, ValidationError
 from pinecone.models.imports.list import ImportList
 from pinecone.models.imports.model import ImportModel, StartImportResponse
 from pinecone.models.namespaces.models import ListNamespacesResponse, NamespaceDescription
+from pinecone.models.response_info import ResponseInfo
 from pinecone.models.vectors.query_aggregator import QueryNamespacesResults, QueryResultsAggregator
 from pinecone.models.vectors.responses import (
     DescribeIndexStatsResponse,
@@ -56,6 +60,15 @@ class Index:
         source_tag (str | None): Tag appended to the User-Agent string for request attribution.
         connection_pool_maxsize (int): Maximum number of connections to keep in the pool.
             ``0`` (default) uses httpx defaults.
+        pool_threads (int | None): Tune the thread pool used by the legacy
+            ``async_req=True`` execution model on ``upsert``, ``query``,
+            ``describe_index_stats``, and ``list_paginated``. Defaults to ``10``.
+            The pool is lazy-constructed on first ``async_req=True`` call and shut
+            down by :meth:`close`; ``multiprocessing.pool`` is not imported until
+            then. **For new code, prefer**
+            :class:`~pinecone.async_client.async_index.AsyncIndex` **or**
+            :class:`concurrent.futures.ThreadPoolExecutor`. This kwarg exists for
+            backcompat with pre-rewrite callers.
 
     Raises:
         :exc:`PineconeValueError`: If no API key can be resolved or the host is invalid.
@@ -86,13 +99,6 @@ class Index:
         legacy_pool_threads = kwargs.pop("pool_threads", None)
         if kwargs:
             raise TypeError(f"Index() got unexpected keyword arguments: {sorted(kwargs)!r}")
-        if legacy_pool_threads is not None:
-            logger.debug(
-                "Index(pool_threads=%r) is accepted for backcompat but no "
-                "longer used; the new client uses httpx connection pooling. "
-                "Tune connection_pool_maxsize= instead.",
-                legacy_pool_threads,
-            )
         # Resolve API key: explicit arg > env var (check BEFORE host per unified-ord-0001)
         resolved_key = api_key or os.environ.get("PINECONE_API_KEY", "")
         if not resolved_key:
@@ -123,6 +129,18 @@ class Index:
         self._http = HTTPClient(config, DATA_PLANE_API_VERSION)
         self._adapter = VectorsAdapter()
         self._imports_adapter = ImportsAdapter()
+        self._batch_executor: ThreadPoolExecutor | None = None
+        self._batch_executor_workers: int = 0
+
+        from pinecone._legacy.async_req import (
+            _DEFAULT_POOL_THREADS,
+            install_async_req_support,
+        )
+
+        install_async_req_support(
+            self,
+            legacy_pool_threads if legacy_pool_threads is not None else _DEFAULT_POOL_THREADS,
+        )
 
         logger.info("Index client created for host %s", self._host)
 
@@ -130,6 +148,17 @@ class Index:
     def host(self) -> str:
         """The data plane host URL for this index."""
         return self._host
+
+    def _get_batch_executor(self, max_concurrency: int) -> ThreadPoolExecutor:
+        if self._batch_executor is None or self._batch_executor_workers != max_concurrency:
+            if self._batch_executor is not None:
+                self._batch_executor.shutdown(wait=False)
+            self._batch_executor = ThreadPoolExecutor(
+                max_concurrency,
+                thread_name_prefix="pinecone-upsert",
+            )
+            self._batch_executor_workers = max_concurrency
+        return self._batch_executor
 
     def upsert(
         self,
@@ -141,6 +170,9 @@ class Index:
             | dict[str, Any]
         ],
         namespace: str = "",
+        batch_size: int | None = None,
+        show_progress: bool = True,
+        max_concurrency: int = 4,
         timeout: float | None = None,
     ) -> UpsertResponse:
         """Upsert a batch of vectors into a namespace.
@@ -155,13 +187,30 @@ class Index:
                 and optional ``sparse_values`` / ``metadata`` keys.
             namespace (str): Target namespace. Defaults to the default
                 (empty-string) namespace.
+            batch_size (int | None): Split *vectors* into chunks of this size
+                and send one request per chunk. Default ``None`` sends a single
+                request (current behaviour). Must be a positive integer if
+                provided.
+            show_progress (bool): When ``True`` and ``tqdm`` is installed,
+                display a progress bar across batches. Has no effect when
+                ``batch_size`` is ``None`` or ``tqdm`` is not installed.
+                Defaults to ``True``.
+            max_concurrency (int): Thread pool size for concurrent batch requests
+                (range 1–64, default 4). Only used when ``batch_size`` is set.
+            timeout (float | None): Per-request timeout in seconds. Overrides
+                the client-level default for this call only.
 
         Returns:
             :class:`UpsertResponse` with the count of vectors upserted.
+            When ``batch_size`` triggers multiple requests, ``response_info``
+            carries the aggregate LSN from all successful batches (or ``None``
+            if no LSN headers were returned).
 
         Raises:
             :exc:`PineconeTypeError`: If a vector element is not a recognized format.
             :exc:`PineconeValueError`: If a vector element is malformed.
+            :exc:`PineconeValueError`: If *batch_size* is not a positive integer.
+            :exc:`PineconeValueError`: If *max_concurrency* is outside [1, 64].
             :exc:`ApiError`: If the API returns an error response (e.g. authentication
                 failure or server error).
             :exc:`PineconeConnectionError`: If a network-level connection
@@ -169,6 +218,18 @@ class Index:
             :exc:`PineconeTimeoutError`: If the request exceeds the configured timeout.
                 Pass ``timeout=<seconds>`` to override the client-level default for this
                 call only.
+
+        Notes:
+            When ``batch_size`` is set, batches are submitted **in parallel** via a
+            ``ThreadPoolExecutor`` of ``max_concurrency`` workers (default 4, range
+            1–64). Per-batch HTTP retries are handled by the client's configured
+            ``RetryConfig`` (connection errors and retryable status codes).
+
+            **Partial failures do not raise.** When ``batch_size`` is set, per-batch
+            errors are captured on the returned :class:`UpsertResponse` (see
+            ``response.has_errors``, ``response.errors``, ``response.failed_items``).
+            To retry only the failures, pass ``response.failed_items`` back to
+            ``upsert(...)``.
 
         Examples:
 
@@ -190,12 +251,13 @@ class Index:
                 )
                 print(response.upserted_count)
 
-        .. note::
-           All vectors are sent in a single request. For large datasets,
-           batch your calls (recommended batch size: 100–500 vectors) or use
-           :meth:`upsert_from_dataframe` which handles batching automatically.
-           For very large datasets (millions of vectors), consider
-           :meth:`start_import` for bulk import from cloud storage.
+                # Upsert 1000 vectors in batches of 100
+                response = idx.upsert(
+                    vectors=large_vector_list,
+                    batch_size=100,
+                    show_progress=True,
+                )
+                print(response.upserted_count)
 
         .. seealso::
            - :meth:`upsert_records` — for indexes with integrated inference
@@ -205,18 +267,86 @@ class Index:
            - :meth:`start_import` — for bulk loading millions of vectors
              from cloud storage (S3, GCS).
         """
+        if batch_size is None:
+            return self._upsert_one_batch(vectors=vectors, namespace=namespace, timeout=timeout)
+
+        validate_batch_size(batch_size)
+        require_in_range("max_concurrency", max_concurrency, 1, 64)
+
         built = [VectorFactory.build(v) for v in vectors]
-        body: dict[str, Any] = {
-            "vectors": [_vector_to_dict(v) for v in built],
-        }
+        items: list[dict[str, Any]] = [_vector_to_dict(v) for v in built]
+
+        def _operation(chunk: list[dict[str, Any]]) -> UpsertResponse:
+            return self._upsert_dict_batch(items=chunk, namespace=namespace, timeout=timeout)
+
+        batch_result = batch_execute(
+            items=items,
+            operation=_operation,
+            batch_size=batch_size,
+            max_concurrency=max_concurrency,
+            show_progress=show_progress,
+            desc="Upserting",
+            executor=self._get_batch_executor(max_concurrency),
+        )
+
+        synth_headers: dict[str, str] = {}
+        if batch_result.response_info is not None:
+            if batch_result.response_info.lsn_reconciled is not None:
+                synth_headers["x-pinecone-lsn-reconciled"] = str(
+                    batch_result.response_info.lsn_reconciled
+                )
+            if batch_result.response_info.lsn_committed is not None:
+                synth_headers["x-pinecone-lsn-committed"] = str(
+                    batch_result.response_info.lsn_committed
+                )
+        synth_response_info = ResponseInfo(raw_headers=synth_headers) if synth_headers else None
+        return UpsertResponse(
+            upserted_count=batch_result.successful_item_count,
+            response_info=synth_response_info,
+            total_item_count=batch_result.total_item_count,
+            failed_item_count=batch_result.failed_item_count,
+            total_batch_count=batch_result.total_batch_count,
+            successful_batch_count=batch_result.successful_batch_count,
+            failed_batch_count=batch_result.failed_batch_count,
+            errors=batch_result.errors,
+        )
+
+    def _upsert_one_batch(
+        self,
+        *,
+        vectors: Sequence[
+            Vector
+            | tuple[str, list[float]]
+            | tuple[str, list[float], dict[str, Any]]
+            | dict[str, Any]
+        ],
+        namespace: str,
+        timeout: float | None,
+    ) -> UpsertResponse:
+        built = [VectorFactory.build(v) for v in vectors]
+        body: dict[str, Any] = {"vectors": [_vector_to_dict(v) for v in built]}
         if namespace:
             body["namespace"] = namespace
-
         logger.info("Upserting %d vectors into namespace %r", len(built), namespace)
         response = self._http.post("/vectors/upsert", timeout=timeout, json=body)
         result = self._adapter.to_upsert_response(response.content)
         result.response_info = extract_response_info(response)
         logger.debug("Upserted %d vectors", result.upserted_count)
+        return result
+
+    def _upsert_dict_batch(
+        self,
+        *,
+        items: list[dict[str, Any]],
+        namespace: str,
+        timeout: float | None,
+    ) -> UpsertResponse:
+        body: dict[str, Any] = {"vectors": items}
+        if namespace:
+            body["namespace"] = namespace
+        response = self._http.post("/vectors/upsert", timeout=timeout, json=body)
+        result = self._adapter.to_upsert_response(response.content)
+        result.response_info = extract_response_info(response)
         return result
 
     def upsert_from_dataframe(
@@ -288,8 +418,8 @@ class Index:
                 )
 
         .. seealso::
-           - :meth:`upsert` — for upserting vectors directly (single batch,
-             no DataFrame dependency).
+           - :meth:`upsert` — for upserting vectors directly (accepts optional
+             ``batch_size``; no DataFrame dependency).
            - :meth:`upsert_records` — for indexes with integrated inference
              (text in, server-side embedding).
            - :meth:`start_import` — for bulk loading millions of vectors
@@ -305,9 +435,6 @@ class Index:
         if not isinstance(df, pd.DataFrame):
             raise PineconeValueError("df must be a pandas DataFrame")
 
-        if not isinstance(batch_size, int) or batch_size <= 0:
-            raise PineconeValueError("batch_size must be a positive integer")
-
         has_sparse = "sparse_values" in df.columns
         has_metadata = "metadata" in df.columns
 
@@ -320,26 +447,14 @@ class Index:
                 record["metadata"] = row["metadata"]
             records.append(record)
 
-        batches: list[list[dict[str, Any]]] = [
-            records[i : i + batch_size] for i in range(0, len(records), batch_size)
-        ]
-
-        batch_iter: Any = batches
-        if show_progress:
-            try:
-                from tqdm.auto import tqdm  # type: ignore[import-untyped]
-
-                batch_iter = tqdm(batches, desc="Upserting")
-            except ImportError:
-                pass
-
-        total_count = 0
         ns = namespace or ""
-        for batch in batch_iter:
-            result = self.upsert(vectors=batch, namespace=ns, timeout=timeout)
-            total_count += result.upserted_count
-
-        return UpsertResponse(upserted_count=total_count)
+        return self.upsert(
+            vectors=records,
+            namespace=ns,
+            batch_size=batch_size,
+            show_progress=show_progress,
+            timeout=timeout,
+        )
 
     def upsert_records(
         self,
@@ -1673,6 +1788,11 @@ class Index:
     def close(self) -> None:
         """Close the underlying HTTP client and release resources."""
         self._http.close()
+        if self._batch_executor is not None:
+            self._batch_executor.shutdown(wait=False)
+        legacy_pool = getattr(self, "_legacy_async_pool", None)
+        if legacy_pool is not None:
+            legacy_pool.close()
 
     def __enter__(self) -> Index:
         return self
