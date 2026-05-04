@@ -11383,6 +11383,566 @@ export interface GetObservabilityTraces_RouteContract {
 }
 
 // ============================================================================
+// Route: GET /observability/branches
+// ============================================================================
+export type GetObservabilityBranches_QueryParams = {
+  startedAt?:
+    | (
+        | (
+            | {
+                /** Start of date range (inclusive by default) */
+                start?: Date | undefined;
+                /** End of date range (inclusive by default) */
+                end?: Date | undefined;
+                /** When true, excludes the start date from results (uses > instead of >=) */
+                startExclusive?: boolean | undefined;
+                /** When true, excludes the end date from results (uses < instead of <=) */
+                endExclusive?: boolean | undefined;
+              }
+            | undefined
+          )
+        | undefined
+      )
+    | any;
+  endedAt?:
+    | (
+        | (
+            | {
+                /** Start of date range (inclusive by default) */
+                start?: Date | undefined;
+                /** End of date range (inclusive by default) */
+                end?: Date | undefined;
+                /** When true, excludes the start date from results (uses > instead of >=) */
+                startExclusive?: boolean | undefined;
+                /** When true, excludes the end date from results (uses < instead of <=) */
+                endExclusive?: boolean | undefined;
+              }
+            | undefined
+          )
+        | undefined
+      )
+    | any;
+  spanType?:
+    | (
+        | (
+            | 'agent_run'
+            | 'scorer_run'
+            | 'scorer_step'
+            | 'generic'
+            | 'model_generation'
+            | 'model_step'
+            | 'model_chunk'
+            | 'mcp_tool_call'
+            | 'processor_run'
+            | 'tool_call'
+            | 'workflow_run'
+            | 'workflow_step'
+            | 'workflow_conditional'
+            | 'workflow_conditional_eval'
+            | 'workflow_parallel'
+            | 'workflow_loop'
+            | 'workflow_sleep'
+            | 'workflow_wait_event'
+            | 'memory_operation'
+            | 'workspace_action'
+            | 'rag_ingestion'
+            | 'rag_embedding'
+            | 'rag_vector_operation'
+            | 'rag_action'
+            | 'graph_action'
+          )
+        | undefined
+      )
+    | undefined;
+  traceId?: (string | undefined) | undefined;
+  entityType?:
+    | (
+        | (
+            | (
+                | 'agent'
+                | 'scorer'
+                | 'rag_ingestion'
+                | 'trajectory'
+                | 'input_processor'
+                | 'input_step_processor'
+                | 'output_processor'
+                | 'output_step_processor'
+                | 'workflow_step'
+                | 'tool'
+                | 'workflow_run'
+                | 'memory'
+              )
+            | null
+          )
+        | undefined
+      )
+    | undefined;
+  entityId?: ((string | null) | undefined) | undefined;
+  entityName?: ((string | null) | undefined) | undefined;
+  parentEntityType?:
+    | (
+        | (
+            | (
+                | 'agent'
+                | 'scorer'
+                | 'rag_ingestion'
+                | 'trajectory'
+                | 'input_processor'
+                | 'input_step_processor'
+                | 'output_processor'
+                | 'output_step_processor'
+                | 'workflow_step'
+                | 'tool'
+                | 'workflow_run'
+                | 'memory'
+              )
+            | null
+          )
+        | undefined
+      )
+    | undefined;
+  parentEntityId?: ((string | null) | undefined) | undefined;
+  parentEntityName?: ((string | null) | undefined) | undefined;
+  rootEntityType?:
+    | (
+        | (
+            | (
+                | 'agent'
+                | 'scorer'
+                | 'rag_ingestion'
+                | 'trajectory'
+                | 'input_processor'
+                | 'input_step_processor'
+                | 'output_processor'
+                | 'output_step_processor'
+                | 'workflow_step'
+                | 'tool'
+                | 'workflow_run'
+                | 'memory'
+              )
+            | null
+          )
+        | undefined
+      )
+    | undefined;
+  rootEntityId?: ((string | null) | undefined) | undefined;
+  rootEntityName?: ((string | null) | undefined) | undefined;
+  userId?: ((string | null) | undefined) | undefined;
+  organizationId?: ((string | null) | undefined) | undefined;
+  resourceId?: ((string | null) | undefined) | undefined;
+  runId?: ((string | null) | undefined) | undefined;
+  sessionId?: ((string | null) | undefined) | undefined;
+  threadId?: ((string | null) | undefined) | undefined;
+  requestId?: ((string | null) | undefined) | undefined;
+  environment?: ((string | null) | undefined) | undefined;
+  serviceName?: ((string | null) | undefined) | undefined;
+  scope?:
+    | (
+        | (
+            | ({
+                [key: string]: unknown;
+              } | null)
+            | undefined
+          )
+        | undefined
+      )
+    | any;
+  entityVersionId?: ((string | null) | undefined) | undefined;
+  parentEntityVersionId?: ((string | null) | undefined) | undefined;
+  rootEntityVersionId?: ((string | null) | undefined) | undefined;
+  experimentId?: ((string | null) | undefined) | undefined;
+  source?: ((string | null) | undefined) | undefined;
+  metadata?:
+    | (
+        | (
+            | ({
+                [key: string]: unknown;
+              } | null)
+            | undefined
+          )
+        | undefined
+      )
+    | any;
+  tags?: (((string[] | null) | undefined) | undefined) | any;
+  status?: (('success' | 'error' | 'running') | undefined) | undefined;
+  page?: (number | undefined) | undefined;
+  perPage?: (number | undefined) | undefined;
+  field?: ('startedAt' | 'endedAt') | undefined;
+  direction?: ('ASC' | 'DESC') | undefined;
+};
+
+export type GetObservabilityBranches_Response = {
+  pagination: {
+    /** Total number of items available */
+    total: number;
+    /** Current page */
+    page: number;
+    /** Number of items per page, or false if pagination is disabled */
+    perPage: number | false;
+    /** True if more pages are available */
+    hasMore: boolean;
+  };
+  branches: {
+    /** Unique trace identifier */
+    traceId: string;
+    /** Unique span identifier within a trace */
+    spanId: string;
+    /** Human-readable span name */
+    name: string;
+    /** Span type (e.g., WORKFLOW_RUN, AGENT_RUN, TOOL_CALL, etc.) */
+    spanType:
+      | 'agent_run'
+      | 'scorer_run'
+      | 'scorer_step'
+      | 'generic'
+      | 'model_generation'
+      | 'model_step'
+      | 'model_chunk'
+      | 'mcp_tool_call'
+      | 'processor_run'
+      | 'tool_call'
+      | 'workflow_run'
+      | 'workflow_step'
+      | 'workflow_conditional'
+      | 'workflow_conditional_eval'
+      | 'workflow_parallel'
+      | 'workflow_loop'
+      | 'workflow_sleep'
+      | 'workflow_wait_event'
+      | 'memory_operation'
+      | 'workspace_action'
+      | 'rag_ingestion'
+      | 'rag_embedding'
+      | 'rag_vector_operation'
+      | 'rag_action'
+      | 'graph_action';
+    /** Whether this is an event (point-in-time) vs a span (duration) */
+    isEvent: boolean;
+    /** When the span started */
+    startedAt: Date;
+    parentSpanId?: (string | null) | undefined;
+    entityType?:
+      | (
+          | (
+              | 'agent'
+              | 'scorer'
+              | 'rag_ingestion'
+              | 'trajectory'
+              | 'input_processor'
+              | 'input_step_processor'
+              | 'output_processor'
+              | 'output_step_processor'
+              | 'workflow_step'
+              | 'tool'
+              | 'workflow_run'
+              | 'memory'
+            )
+          | null
+        )
+      | undefined;
+    entityId?: (string | null) | undefined;
+    entityName?: (string | null) | undefined;
+    parentEntityType?:
+      | (
+          | (
+              | 'agent'
+              | 'scorer'
+              | 'rag_ingestion'
+              | 'trajectory'
+              | 'input_processor'
+              | 'input_step_processor'
+              | 'output_processor'
+              | 'output_step_processor'
+              | 'workflow_step'
+              | 'tool'
+              | 'workflow_run'
+              | 'memory'
+            )
+          | null
+        )
+      | undefined;
+    parentEntityId?: (string | null) | undefined;
+    parentEntityName?: (string | null) | undefined;
+    rootEntityType?:
+      | (
+          | (
+              | 'agent'
+              | 'scorer'
+              | 'rag_ingestion'
+              | 'trajectory'
+              | 'input_processor'
+              | 'input_step_processor'
+              | 'output_processor'
+              | 'output_step_processor'
+              | 'workflow_step'
+              | 'tool'
+              | 'workflow_run'
+              | 'memory'
+            )
+          | null
+        )
+      | undefined;
+    rootEntityId?: (string | null) | undefined;
+    rootEntityName?: (string | null) | undefined;
+    userId?: (string | null) | undefined;
+    organizationId?: (string | null) | undefined;
+    resourceId?: (string | null) | undefined;
+    runId?: (string | null) | undefined;
+    sessionId?: (string | null) | undefined;
+    threadId?: (string | null) | undefined;
+    requestId?: (string | null) | undefined;
+    environment?: (string | null) | undefined;
+    serviceName?: (string | null) | undefined;
+    scope?:
+      | ({
+          [key: string]: unknown;
+        } | null)
+      | undefined;
+    entityVersionId?: (string | null) | undefined;
+    parentEntityVersionId?: (string | null) | undefined;
+    rootEntityVersionId?: (string | null) | undefined;
+    /** Experiment or eval run identifier */
+    experimentId?: (string | null) | undefined;
+    source?: (string | null) | undefined;
+    metadata?:
+      | ({
+          [key: string]: unknown;
+        } | null)
+      | undefined;
+    tags?: (string[] | null) | undefined;
+    attributes?:
+      | ({
+          [key: string]: unknown;
+        } | null)
+      | undefined;
+    links?: (unknown[] | null) | undefined;
+    input?: (unknown | null) | undefined;
+    output?: (unknown | null) | undefined;
+    error?: (unknown | null) | undefined;
+    endedAt?: (Date | null) | undefined;
+    /** Request context data */
+    requestContext?:
+      | ({
+          [key: string]: unknown;
+        } | null)
+      | undefined;
+    /** Database record creation time */
+    createdAt: Date;
+    updatedAt: Date | null;
+    /** Current status of the trace */
+    status: 'success' | 'error' | 'running';
+  }[];
+};
+
+export type GetObservabilityBranches_Request = Simplify<
+  (never extends never ? {} : { params: never }) &
+    (GetObservabilityBranches_QueryParams extends never
+      ? {}
+      : {} extends GetObservabilityBranches_QueryParams
+        ? { query?: GetObservabilityBranches_QueryParams }
+        : { query: GetObservabilityBranches_QueryParams }) &
+    (never extends never ? {} : {} extends never ? { body?: never } : { body: never })
+>;
+
+export interface GetObservabilityBranches_RouteContract {
+  pathParams: never;
+  queryParams: GetObservabilityBranches_QueryParams;
+  body: never;
+  request: GetObservabilityBranches_Request;
+  response: GetObservabilityBranches_Response;
+  responseType: 'json';
+}
+
+// ============================================================================
+// Route: GET /observability/traces/:traceId/branches/:spanId
+// ============================================================================
+export type GetObservabilityTracesTraceIdBranchesSpanId_PathParams = {
+  /** Unique trace identifier */
+  traceId: string;
+  /** Unique span identifier within a trace */
+  spanId: string;
+};
+
+export type GetObservabilityTracesTraceIdBranchesSpanId_QueryParams = {
+  /** Maximum descendant levels below the anchor span (omit for full subtree) */
+  depth?: number | undefined;
+};
+
+export type GetObservabilityTracesTraceIdBranchesSpanId_Response = {
+  /** Unique trace identifier */
+  traceId: string;
+  spans: {
+    /** Unique trace identifier */
+    traceId: string;
+    /** Unique span identifier within a trace */
+    spanId: string;
+    /** Human-readable span name */
+    name: string;
+    /** Span type (e.g., WORKFLOW_RUN, AGENT_RUN, TOOL_CALL, etc.) */
+    spanType:
+      | 'agent_run'
+      | 'scorer_run'
+      | 'scorer_step'
+      | 'generic'
+      | 'model_generation'
+      | 'model_step'
+      | 'model_chunk'
+      | 'mcp_tool_call'
+      | 'processor_run'
+      | 'tool_call'
+      | 'workflow_run'
+      | 'workflow_step'
+      | 'workflow_conditional'
+      | 'workflow_conditional_eval'
+      | 'workflow_parallel'
+      | 'workflow_loop'
+      | 'workflow_sleep'
+      | 'workflow_wait_event'
+      | 'memory_operation'
+      | 'workspace_action'
+      | 'rag_ingestion'
+      | 'rag_embedding'
+      | 'rag_vector_operation'
+      | 'rag_action'
+      | 'graph_action';
+    /** Whether this is an event (point-in-time) vs a span (duration) */
+    isEvent: boolean;
+    /** When the span started */
+    startedAt: Date;
+    parentSpanId?: (string | null) | undefined;
+    entityType?:
+      | (
+          | (
+              | 'agent'
+              | 'scorer'
+              | 'rag_ingestion'
+              | 'trajectory'
+              | 'input_processor'
+              | 'input_step_processor'
+              | 'output_processor'
+              | 'output_step_processor'
+              | 'workflow_step'
+              | 'tool'
+              | 'workflow_run'
+              | 'memory'
+            )
+          | null
+        )
+      | undefined;
+    entityId?: (string | null) | undefined;
+    entityName?: (string | null) | undefined;
+    parentEntityType?:
+      | (
+          | (
+              | 'agent'
+              | 'scorer'
+              | 'rag_ingestion'
+              | 'trajectory'
+              | 'input_processor'
+              | 'input_step_processor'
+              | 'output_processor'
+              | 'output_step_processor'
+              | 'workflow_step'
+              | 'tool'
+              | 'workflow_run'
+              | 'memory'
+            )
+          | null
+        )
+      | undefined;
+    parentEntityId?: (string | null) | undefined;
+    parentEntityName?: (string | null) | undefined;
+    rootEntityType?:
+      | (
+          | (
+              | 'agent'
+              | 'scorer'
+              | 'rag_ingestion'
+              | 'trajectory'
+              | 'input_processor'
+              | 'input_step_processor'
+              | 'output_processor'
+              | 'output_step_processor'
+              | 'workflow_step'
+              | 'tool'
+              | 'workflow_run'
+              | 'memory'
+            )
+          | null
+        )
+      | undefined;
+    rootEntityId?: (string | null) | undefined;
+    rootEntityName?: (string | null) | undefined;
+    userId?: (string | null) | undefined;
+    organizationId?: (string | null) | undefined;
+    resourceId?: (string | null) | undefined;
+    runId?: (string | null) | undefined;
+    sessionId?: (string | null) | undefined;
+    threadId?: (string | null) | undefined;
+    requestId?: (string | null) | undefined;
+    environment?: (string | null) | undefined;
+    serviceName?: (string | null) | undefined;
+    scope?:
+      | ({
+          [key: string]: unknown;
+        } | null)
+      | undefined;
+    entityVersionId?: (string | null) | undefined;
+    parentEntityVersionId?: (string | null) | undefined;
+    rootEntityVersionId?: (string | null) | undefined;
+    /** Experiment or eval run identifier */
+    experimentId?: (string | null) | undefined;
+    source?: (string | null) | undefined;
+    metadata?:
+      | ({
+          [key: string]: unknown;
+        } | null)
+      | undefined;
+    tags?: (string[] | null) | undefined;
+    attributes?:
+      | ({
+          [key: string]: unknown;
+        } | null)
+      | undefined;
+    links?: (unknown[] | null) | undefined;
+    input?: (unknown | null) | undefined;
+    output?: (unknown | null) | undefined;
+    error?: (unknown | null) | undefined;
+    endedAt?: (Date | null) | undefined;
+    /** Request context data */
+    requestContext?:
+      | ({
+          [key: string]: unknown;
+        } | null)
+      | undefined;
+    /** Database record creation time */
+    createdAt: Date;
+    updatedAt: Date | null;
+  }[];
+};
+
+export type GetObservabilityTracesTraceIdBranchesSpanId_Request = Simplify<
+  (GetObservabilityTracesTraceIdBranchesSpanId_PathParams extends never
+    ? {}
+    : { params: GetObservabilityTracesTraceIdBranchesSpanId_PathParams }) &
+    (GetObservabilityTracesTraceIdBranchesSpanId_QueryParams extends never
+      ? {}
+      : {} extends GetObservabilityTracesTraceIdBranchesSpanId_QueryParams
+        ? { query?: GetObservabilityTracesTraceIdBranchesSpanId_QueryParams }
+        : { query: GetObservabilityTracesTraceIdBranchesSpanId_QueryParams }) &
+    (never extends never ? {} : {} extends never ? { body?: never } : { body: never })
+>;
+
+export interface GetObservabilityTracesTraceIdBranchesSpanId_RouteContract {
+  pathParams: GetObservabilityTracesTraceIdBranchesSpanId_PathParams;
+  queryParams: GetObservabilityTracesTraceIdBranchesSpanId_QueryParams;
+  body: never;
+  request: GetObservabilityTracesTraceIdBranchesSpanId_Request;
+  response: GetObservabilityTracesTraceIdBranchesSpanId_Response;
+  responseType: 'json';
+}
+
+// ============================================================================
 // Route: GET /observability/traces/:traceId
 // ============================================================================
 export type GetObservabilityTracesTraceId_PathParams = {
@@ -12682,6 +13242,141 @@ export interface PostObservabilityScores_RouteContract {
 }
 
 // ============================================================================
+// Route: GET /observability/scores/:scoreId
+// ============================================================================
+export type GetObservabilityScoresScoreId_PathParams = {
+  scoreId: string;
+};
+
+export type GetObservabilityScoresScoreId_Response = {
+  score: {
+    /** Unique id for this score event */
+    scoreId?: (string | null) | undefined;
+    /** When the score was recorded */
+    timestamp: Date;
+    /** Trace that anchors the scored target when available */
+    traceId?: (string | null) | undefined;
+    /** Span ID this score applies to */
+    spanId?: (string | null) | undefined;
+    /** Identifier of the scorer (e.g., relevance, accuracy) */
+    scorerId: string;
+    scorerName?: (string | null) | undefined;
+    scorerVersion?: (string | null) | undefined;
+    scoreSource?: (string | null) | undefined;
+    source?: (string | null) | undefined;
+    /** Score value (range defined by scorer) */
+    score: number;
+    reason?: (string | null) | undefined;
+    entityType?:
+      | (
+          | (
+              | 'agent'
+              | 'scorer'
+              | 'rag_ingestion'
+              | 'trajectory'
+              | 'input_processor'
+              | 'input_step_processor'
+              | 'output_processor'
+              | 'output_step_processor'
+              | 'workflow_step'
+              | 'tool'
+              | 'workflow_run'
+              | 'memory'
+            )
+          | null
+        )
+      | undefined;
+    entityId?: (string | null) | undefined;
+    entityName?: (string | null) | undefined;
+    parentEntityType?:
+      | (
+          | (
+              | 'agent'
+              | 'scorer'
+              | 'rag_ingestion'
+              | 'trajectory'
+              | 'input_processor'
+              | 'input_step_processor'
+              | 'output_processor'
+              | 'output_step_processor'
+              | 'workflow_step'
+              | 'tool'
+              | 'workflow_run'
+              | 'memory'
+            )
+          | null
+        )
+      | undefined;
+    parentEntityId?: (string | null) | undefined;
+    parentEntityName?: (string | null) | undefined;
+    rootEntityType?:
+      | (
+          | (
+              | 'agent'
+              | 'scorer'
+              | 'rag_ingestion'
+              | 'trajectory'
+              | 'input_processor'
+              | 'input_step_processor'
+              | 'output_processor'
+              | 'output_step_processor'
+              | 'workflow_step'
+              | 'tool'
+              | 'workflow_run'
+              | 'memory'
+            )
+          | null
+        )
+      | undefined;
+    rootEntityId?: (string | null) | undefined;
+    rootEntityName?: (string | null) | undefined;
+    userId?: (string | null) | undefined;
+    organizationId?: (string | null) | undefined;
+    resourceId?: (string | null) | undefined;
+    runId?: (string | null) | undefined;
+    sessionId?: (string | null) | undefined;
+    threadId?: (string | null) | undefined;
+    requestId?: (string | null) | undefined;
+    environment?: (string | null) | undefined;
+    serviceName?: (string | null) | undefined;
+    scope?:
+      | ({
+          [key: string]: unknown;
+        } | null)
+      | undefined;
+    entityVersionId?: (string | null) | undefined;
+    parentEntityVersionId?: (string | null) | undefined;
+    rootEntityVersionId?: (string | null) | undefined;
+    experimentId?: (string | null) | undefined;
+    executionSource?: (string | null) | undefined;
+    tags?: (string[] | null) | undefined;
+    /** Trace ID of the scoring run for debugging score generation */
+    scoreTraceId?: (string | null) | undefined;
+    /** User-defined metadata */
+    metadata?:
+      | ({
+          [key: string]: unknown;
+        } | null)
+      | undefined;
+  } | null;
+};
+
+export type GetObservabilityScoresScoreId_Request = Simplify<
+  (GetObservabilityScoresScoreId_PathParams extends never ? {} : { params: GetObservabilityScoresScoreId_PathParams }) &
+    (never extends never ? {} : {} extends never ? { query?: never } : { query: never }) &
+    (never extends never ? {} : {} extends never ? { body?: never } : { body: never })
+>;
+
+export interface GetObservabilityScoresScoreId_RouteContract {
+  pathParams: GetObservabilityScoresScoreId_PathParams;
+  queryParams: never;
+  body: never;
+  request: GetObservabilityScoresScoreId_Request;
+  response: GetObservabilityScoresScoreId_Response;
+  responseType: 'json';
+}
+
+// ============================================================================
 // Route: POST /observability/scores/aggregate
 // ============================================================================
 export type PostObservabilityScoresAggregate_Body = {
@@ -12689,7 +13384,7 @@ export type PostObservabilityScoresAggregate_Body = {
   scorerId: string;
   scoreSource?: string | undefined;
   /** Aggregation function */
-  aggregation: 'sum' | 'avg' | 'min' | 'max' | 'count' | 'last';
+  aggregation: 'sum' | 'avg' | 'min' | 'max' | 'count' | 'count_distinct' | 'last';
   filters?:
     | {
         /** Filter by timestamp range */
@@ -12825,7 +13520,7 @@ export type PostObservabilityScoresBreakdown_Body = {
   /** Fields to group by */
   groupBy: string[];
   /** Aggregation function */
-  aggregation: 'sum' | 'avg' | 'min' | 'max' | 'count' | 'last';
+  aggregation: 'sum' | 'avg' | 'min' | 'max' | 'count' | 'count_distinct' | 'last';
   filters?:
     | {
         /** Filter by timestamp range */
@@ -12962,7 +13657,7 @@ export type PostObservabilityScoresTimeseries_Body = {
   /** Time bucket interval */
   interval: '1m' | '5m' | '15m' | '1h' | '1d';
   /** Aggregation function */
-  aggregation: 'sum' | 'avg' | 'min' | 'max' | 'count' | 'last';
+  aggregation: 'sum' | 'avg' | 'min' | 'max' | 'count' | 'count_distinct' | 'last';
   filters?:
     | {
         /** Filter by timestamp range */
@@ -13625,7 +14320,7 @@ export type PostObservabilityFeedbackAggregate_Body = {
   feedbackType: string;
   feedbackSource?: string | undefined;
   /** Aggregation function */
-  aggregation: 'sum' | 'avg' | 'min' | 'max' | 'count' | 'last';
+  aggregation: 'sum' | 'avg' | 'min' | 'max' | 'count' | 'count_distinct' | 'last';
   filters?:
     | {
         /** Filter by timestamp range */
@@ -13760,7 +14455,7 @@ export type PostObservabilityFeedbackBreakdown_Body = {
   /** Fields to group by */
   groupBy: string[];
   /** Aggregation function */
-  aggregation: 'sum' | 'avg' | 'min' | 'max' | 'count' | 'last';
+  aggregation: 'sum' | 'avg' | 'min' | 'max' | 'count' | 'count_distinct' | 'last';
   filters?:
     | {
         /** Filter by timestamp range */
@@ -13896,7 +14591,7 @@ export type PostObservabilityFeedbackTimeseries_Body = {
   /** Time bucket interval */
   interval: '1m' | '5m' | '15m' | '1h' | '1d';
   /** Aggregation function */
-  aggregation: 'sum' | 'avg' | 'min' | 'max' | 'count' | 'last';
+  aggregation: 'sum' | 'avg' | 'min' | 'max' | 'count' | 'count_distinct' | 'last';
   filters?:
     | {
         /** Filter by timestamp range */
@@ -14170,7 +14865,24 @@ export type PostObservabilityMetricsAggregate_Body = {
   /** Metric name(s) to aggregate */
   name: string[];
   /** Aggregation function */
-  aggregation: 'sum' | 'avg' | 'min' | 'max' | 'count' | 'last';
+  aggregation: 'sum' | 'avg' | 'min' | 'max' | 'count' | 'count_distinct' | 'last';
+  /** Column to apply count_distinct over (required when aggregation is 'count_distinct'). Restricted to low/medium-cardinality categorical columns; ID columns are not allowed. */
+  distinctColumn?:
+    | (
+        | 'entityType'
+        | 'entityName'
+        | 'parentEntityType'
+        | 'parentEntityName'
+        | 'rootEntityType'
+        | 'rootEntityName'
+        | 'name'
+        | 'provider'
+        | 'model'
+        | 'environment'
+        | 'executionSource'
+        | 'serviceName'
+      )
+    | undefined;
   filters?:
     | {
         /** Filter by timestamp range */
@@ -14320,7 +15032,24 @@ export type PostObservabilityMetricsBreakdown_Body = {
   /** Fields to group by */
   groupBy: string[];
   /** Aggregation function */
-  aggregation: 'sum' | 'avg' | 'min' | 'max' | 'count' | 'last';
+  aggregation: 'sum' | 'avg' | 'min' | 'max' | 'count' | 'count_distinct' | 'last';
+  /** Column to apply count_distinct over (required when aggregation is 'count_distinct'). Restricted to low/medium-cardinality categorical columns; ID columns are not allowed. */
+  distinctColumn?:
+    | (
+        | 'entityType'
+        | 'entityName'
+        | 'parentEntityType'
+        | 'parentEntityName'
+        | 'rootEntityType'
+        | 'rootEntityName'
+        | 'name'
+        | 'provider'
+        | 'model'
+        | 'environment'
+        | 'executionSource'
+        | 'serviceName'
+      )
+    | undefined;
   filters?:
     | {
         /** Filter by timestamp range */
@@ -14422,6 +15151,10 @@ export type PostObservabilityMetricsBreakdown_Body = {
           | undefined;
       }
     | undefined;
+  /** Maximum number of groups to return (server-side TopK). Required for high-cardinality groupBy. */
+  limit?: number | undefined;
+  /** Sort direction for the aggregated value (defaults to 'DESC' at the storage layer; pairs with limit for top/bottom-N). */
+  orderDirection?: ('ASC' | 'DESC') | undefined;
 };
 
 export type PostObservabilityMetricsBreakdown_Response = {
@@ -14467,7 +15200,24 @@ export type PostObservabilityMetricsTimeseries_Body = {
   /** Time bucket interval */
   interval: '1m' | '5m' | '15m' | '1h' | '1d';
   /** Aggregation function */
-  aggregation: 'sum' | 'avg' | 'min' | 'max' | 'count' | 'last';
+  aggregation: 'sum' | 'avg' | 'min' | 'max' | 'count' | 'count_distinct' | 'last';
+  /** Column to apply count_distinct over (required when aggregation is 'count_distinct'). Restricted to low/medium-cardinality categorical columns; ID columns are not allowed. */
+  distinctColumn?:
+    | (
+        | 'entityType'
+        | 'entityName'
+        | 'parentEntityType'
+        | 'parentEntityName'
+        | 'rootEntityType'
+        | 'rootEntityName'
+        | 'name'
+        | 'provider'
+        | 'model'
+        | 'environment'
+        | 'executionSource'
+        | 'serviceName'
+      )
+    | undefined;
   filters?:
     | {
         /** Filter by timestamp range */
@@ -18451,6 +19201,11 @@ export type GetMcpServerIdTools_Response = {
     inputSchema: unknown;
     outputSchema?: unknown | undefined;
     toolType?: string | undefined;
+    _meta?:
+      | {
+          [key: string]: unknown;
+        }
+      | undefined;
   }[];
 };
 
@@ -18485,6 +19240,11 @@ export type GetMcpServerIdToolsToolId_Response = {
   inputSchema: unknown;
   outputSchema?: unknown | undefined;
   toolType?: string | undefined;
+  _meta?:
+    | {
+        [key: string]: unknown;
+      }
+    | undefined;
 };
 
 export type GetMcpServerIdToolsToolId_Request = Simplify<
@@ -18538,6 +19298,83 @@ export interface PostMcpServerIdToolsToolIdExecute_RouteContract {
   body: PostMcpServerIdToolsToolIdExecute_Body;
   request: PostMcpServerIdToolsToolIdExecute_Request;
   response: PostMcpServerIdToolsToolIdExecute_Response;
+  responseType: 'json';
+}
+
+// ============================================================================
+// Route: GET /mcp/:serverId/resources
+// ============================================================================
+export type GetMcpServerIdResources_PathParams = {
+  /** MCP server ID */
+  serverId: string;
+};
+
+export type GetMcpServerIdResources_Response = {
+  resources: {
+    uri: string;
+    name: string;
+    description?: string | undefined;
+    mimeType?: string | undefined;
+    _meta?:
+      | {
+          [key: string]: unknown;
+        }
+      | undefined;
+  }[];
+};
+
+export type GetMcpServerIdResources_Request = Simplify<
+  (GetMcpServerIdResources_PathParams extends never ? {} : { params: GetMcpServerIdResources_PathParams }) &
+    (never extends never ? {} : {} extends never ? { query?: never } : { query: never }) &
+    (never extends never ? {} : {} extends never ? { body?: never } : { body: never })
+>;
+
+export interface GetMcpServerIdResources_RouteContract {
+  pathParams: GetMcpServerIdResources_PathParams;
+  queryParams: never;
+  body: never;
+  request: GetMcpServerIdResources_Request;
+  response: GetMcpServerIdResources_Response;
+  responseType: 'json';
+}
+
+// ============================================================================
+// Route: POST /mcp/:serverId/resources/read
+// ============================================================================
+export type PostMcpServerIdResourcesRead_PathParams = {
+  /** MCP server ID */
+  serverId: string;
+};
+
+export type PostMcpServerIdResourcesRead_Body = {
+  /** Resource URI to read */
+  uri: string;
+};
+
+export type PostMcpServerIdResourcesRead_Response = {
+  contents: {
+    uri: string;
+    text?: string | undefined;
+    blob?: string | undefined;
+  }[];
+};
+
+export type PostMcpServerIdResourcesRead_Request = Simplify<
+  (PostMcpServerIdResourcesRead_PathParams extends never ? {} : { params: PostMcpServerIdResourcesRead_PathParams }) &
+    (never extends never ? {} : {} extends never ? { query?: never } : { query: never }) &
+    (PostMcpServerIdResourcesRead_Body extends never
+      ? {}
+      : {} extends PostMcpServerIdResourcesRead_Body
+        ? { body?: PostMcpServerIdResourcesRead_Body }
+        : { body: PostMcpServerIdResourcesRead_Body })
+>;
+
+export interface PostMcpServerIdResourcesRead_RouteContract {
+  pathParams: PostMcpServerIdResourcesRead_PathParams;
+  queryParams: never;
+  body: PostMcpServerIdResourcesRead_Body;
+  request: PostMcpServerIdResourcesRead_Request;
+  response: PostMcpServerIdResourcesRead_Response;
   responseType: 'json';
 }
 
@@ -73574,6 +74411,8 @@ export interface GetBackgroundTasksBackgroundTaskId_RouteContract {
 export type GetSchedules_QueryParams = {
   workflowId?: string | undefined;
   status?: ('active' | 'paused') | undefined;
+  ownerType?: string | undefined;
+  ownerId?: string | undefined;
 };
 
 export type GetSchedules_Response = {
@@ -73620,6 +74459,8 @@ export type GetSchedules_Response = {
           [key: string]: unknown;
         }
       | undefined;
+    ownerType?: string | undefined;
+    ownerId?: string | undefined;
     createdAt: number;
     updatedAt: number;
   }[];
@@ -73694,6 +74535,8 @@ export type GetSchedulesScheduleId_Response = {
         [key: string]: unknown;
       }
     | undefined;
+  ownerType?: string | undefined;
+  ownerId?: string | undefined;
   createdAt: number;
   updatedAt: number;
 };
@@ -73728,12 +74571,30 @@ export type GetSchedulesScheduleIdTriggers_QueryParams = {
 
 export type GetSchedulesScheduleIdTriggers_Response = {
   triggers: {
+    id?: string | undefined;
     scheduleId: string;
-    runId: string;
+    runId: string | null;
     scheduledFireAt: number;
     actualFireAt: number;
-    status: 'published' | 'failed';
+    outcome:
+      | 'published'
+      | 'failed'
+      | 'skipped'
+      | 'acked'
+      | 'alerted'
+      | 'deferred'
+      | 'appended-from-queue'
+      | 'dropped-stale'
+      | 'dropped-superseded'
+      | 'dropped-busy';
     error?: string | undefined;
+    triggerKind?: ('schedule-fire' | 'queue-drain') | undefined;
+    parentTriggerId?: string | undefined;
+    metadata?:
+      | {
+          [key: string]: unknown;
+        }
+      | undefined;
     run?:
       | {
           status:
@@ -73827,6 +74688,8 @@ export type PostSchedulesScheduleIdPause_Response = {
         [key: string]: unknown;
       }
     | undefined;
+  ownerType?: string | undefined;
+  ownerId?: string | undefined;
   createdAt: number;
   updatedAt: number;
 };
@@ -73896,6 +74759,8 @@ export type PostSchedulesScheduleIdResume_Response = {
         [key: string]: unknown;
       }
     | undefined;
+  ownerType?: string | undefined;
+  ownerId?: string | undefined;
   createdAt: number;
   updatedAt: number;
 };
@@ -74195,6 +75060,8 @@ export interface RouteTypes {
   'GET /scores/entity/:entityType/:entityId': GetScoresEntityEntityTypeEntityId_RouteContract;
   'POST /scores': PostScores_RouteContract;
   'GET /observability/traces': GetObservabilityTraces_RouteContract;
+  'GET /observability/branches': GetObservabilityBranches_RouteContract;
+  'GET /observability/traces/:traceId/branches/:spanId': GetObservabilityTracesTraceIdBranchesSpanId_RouteContract;
   'GET /observability/traces/:traceId': GetObservabilityTracesTraceId_RouteContract;
   'GET /observability/traces/:traceId/light': GetObservabilityTracesTraceIdLight_RouteContract;
   'GET /observability/traces/:traceId/spans/:spanId': GetObservabilityTracesTraceIdSpansSpanId_RouteContract;
@@ -74204,6 +75071,7 @@ export interface RouteTypes {
   'GET /observability/logs': GetObservabilityLogs_RouteContract;
   'GET /observability/scores': GetObservabilityScores_RouteContract;
   'POST /observability/scores': PostObservabilityScores_RouteContract;
+  'GET /observability/scores/:scoreId': GetObservabilityScoresScoreId_RouteContract;
   'POST /observability/scores/aggregate': PostObservabilityScoresAggregate_RouteContract;
   'POST /observability/scores/breakdown': PostObservabilityScoresBreakdown_RouteContract;
   'POST /observability/scores/timeseries': PostObservabilityScoresTimeseries_RouteContract;
@@ -74284,6 +75152,8 @@ export interface RouteTypes {
   'GET /mcp/:serverId/tools': GetMcpServerIdTools_RouteContract;
   'GET /mcp/:serverId/tools/:toolId': GetMcpServerIdToolsToolId_RouteContract;
   'POST /mcp/:serverId/tools/:toolId/execute': PostMcpServerIdToolsToolIdExecute_RouteContract;
+  'GET /mcp/:serverId/resources': GetMcpServerIdResources_RouteContract;
+  'POST /mcp/:serverId/resources/read': PostMcpServerIdResourcesRead_RouteContract;
   'ALL /mcp/:serverId/mcp': AllMcpServerIdMcp_RouteContract;
   'ALL /mcp/:serverId/sse': AllMcpServerIdSse_RouteContract;
   'POST /mcp/:serverId/messages': PostMcpServerIdMessages_RouteContract;
@@ -74692,6 +75562,12 @@ export interface Client {
   '/mcp/:serverId/messages': {
     POST: PostMcpServerIdMessages_RouteContract;
   };
+  '/mcp/:serverId/resources': {
+    GET: GetMcpServerIdResources_RouteContract;
+  };
+  '/mcp/:serverId/resources/read': {
+    POST: PostMcpServerIdResourcesRead_RouteContract;
+  };
   '/mcp/:serverId/sse': {
     ALL: AllMcpServerIdSse_RouteContract;
   };
@@ -74771,6 +75647,9 @@ export interface Client {
     GET: GetMemoryThreadsThreadIdWorkingMemory_RouteContract;
     POST: PostMemoryThreadsThreadIdWorkingMemory_RouteContract;
   };
+  '/observability/branches': {
+    GET: GetObservabilityBranches_RouteContract;
+  };
   '/observability/discovery/entity-names': {
     GET: GetObservabilityDiscoveryEntityNames_RouteContract;
   };
@@ -74830,6 +75709,9 @@ export interface Client {
     GET: GetObservabilityScores_RouteContract;
     POST: PostObservabilityScores_RouteContract;
   };
+  '/observability/scores/:scoreId': {
+    GET: GetObservabilityScoresScoreId_RouteContract;
+  };
   '/observability/scores/aggregate': {
     POST: PostObservabilityScoresAggregate_RouteContract;
   };
@@ -74850,6 +75732,9 @@ export interface Client {
   };
   '/observability/traces/:traceId/:spanId/scores': {
     GET: GetObservabilityTracesTraceIdSpanIdScores_RouteContract;
+  };
+  '/observability/traces/:traceId/branches/:spanId': {
+    GET: GetObservabilityTracesTraceIdBranchesSpanId_RouteContract;
   };
   '/observability/traces/:traceId/light': {
     GET: GetObservabilityTracesTraceIdLight_RouteContract;

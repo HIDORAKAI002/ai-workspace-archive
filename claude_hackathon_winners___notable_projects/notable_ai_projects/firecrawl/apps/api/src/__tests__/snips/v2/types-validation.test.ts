@@ -79,6 +79,18 @@ describe("V2 Types Validation", () => {
       expect(result.timeout).toBe(60000); // Should be transformed from 30000
     });
 
+    it("should accept query format without markdown", () => {
+      const input: ScrapeRequestInput = {
+        url: "https://example.com",
+        formats: [{ type: "query", prompt: "What is Firecrawl?" }],
+      };
+
+      const result = scrapeRequestSchema.parse(input);
+      expect(result.formats).toEqual([
+        { type: "query", prompt: "What is Firecrawl?", directQuote: false },
+      ]);
+    });
+
     it("should accept valid scrape request with changeTracking format", () => {
       const input: ScrapeRequestInput = {
         url: "https://example.com",

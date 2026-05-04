@@ -146,6 +146,8 @@
         <Select
           bind:value={selectedSiteId}
           label="Select site"
+          autocomplete={true}
+          searchPlaceholder="Search SharePoint sites"
           options={displaySharePointSites}
           getOptionLabel={o => o.name || o.webUrl || o.id}
           getOptionSubtitle={o => o.webUrl}

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import os
-from collections.abc import Iterator, Sequence
+from collections.abc import Iterator, Mapping, Sequence
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import TYPE_CHECKING, Any
 
@@ -52,7 +52,7 @@ class Index:
     Args:
         host (str): The index-specific data plane host URL.
         api_key (str | None): Pinecone API key. Falls back to ``PINECONE_API_KEY`` env var.
-        additional_headers (dict[str, str] | None): Extra headers included in every request.
+        additional_headers (Mapping[str, str] | None): Extra headers included in every request.
         timeout (float): Request timeout in seconds. Defaults to ``30.0``.
         proxy_url (str | None): HTTP proxy URL for outgoing requests.
         ssl_ca_certs (str | None): Path to a CA certificate bundle for SSL verification.
@@ -86,10 +86,10 @@ class Index:
         *,
         host: str,
         api_key: str | None = None,
-        additional_headers: dict[str, str] | None = None,
+        additional_headers: Mapping[str, str] | None = None,
         timeout: float = 30.0,
         proxy_url: str | None = None,
-        proxy_headers: dict[str, str] | None = None,
+        proxy_headers: Mapping[str, str] | None = None,
         ssl_ca_certs: str | None = None,
         ssl_verify: bool = True,
         source_tag: str | None = None,
@@ -114,9 +114,9 @@ class Index:
             api_key=resolved_key,
             host=self._host,
             timeout=timeout,
-            additional_headers=additional_headers or {},
+            additional_headers=dict(additional_headers or {}),
             proxy_url=proxy_url or "",
-            proxy_headers=proxy_headers or {},
+            proxy_headers=dict(proxy_headers or {}),
             ssl_ca_certs=ssl_ca_certs,
             ssl_verify=ssl_verify,
             source_tag=source_tag or "",
@@ -165,9 +165,9 @@ class Index:
         *,
         vectors: Sequence[
             Vector
-            | tuple[str, list[float]]
-            | tuple[str, list[float], dict[str, Any]]
-            | dict[str, Any]
+            | tuple[str, Sequence[float]]
+            | tuple[str, Sequence[float], Mapping[str, Any]]
+            | Mapping[str, Any]
         ],
         namespace: str = "",
         batch_size: int | None = None,
@@ -316,9 +316,9 @@ class Index:
         *,
         vectors: Sequence[
             Vector
-            | tuple[str, list[float]]
-            | tuple[str, list[float], dict[str, Any]]
-            | dict[str, Any]
+            | tuple[str, Sequence[float]]
+            | tuple[str, Sequence[float], Mapping[str, Any]]
+            | Mapping[str, Any]
         ],
         namespace: str,
         timeout: float | None,
@@ -548,13 +548,13 @@ class Index:
         self,
         *,
         top_k: int,
-        vector: list[float] | None = None,
+        vector: Sequence[float] | None = None,
         id: str | None = None,
         namespace: str = "",
-        filter: dict[str, Any] | None = None,
+        filter: Mapping[str, Any] | None = None,
         include_values: bool = False,
         include_metadata: bool = False,
-        sparse_vector: SparseValues | dict[str, Any] | None = None,
+        sparse_vector: SparseValues | Mapping[str, Any] | None = None,
         scan_factor: float | None = None,
         max_candidates: int | None = None,
         timeout: float | None = None,
@@ -653,14 +653,14 @@ class Index:
     def query_namespaces(
         self,
         *,
-        vector: list[float] | None = None,
-        namespaces: list[str],
+        vector: Sequence[float] | None = None,
+        namespaces: Sequence[str],
         metric: str,
         top_k: int | None = None,
-        filter: dict[str, Any] | None = None,
+        filter: Mapping[str, Any] | None = None,
         include_values: bool = False,
         include_metadata: bool = False,
-        sparse_vector: SparseValues | dict[str, Any] | None = None,
+        sparse_vector: SparseValues | Mapping[str, Any] | None = None,
         scan_factor: float | None = None,
         max_candidates: int | None = None,
         timeout: float | None = None,
@@ -768,7 +768,7 @@ class Index:
     def fetch(
         self,
         *,
-        ids: list[str],
+        ids: Sequence[str],
         namespace: str = "",
         timeout: float | None = None,
     ) -> FetchResponse:
@@ -816,7 +816,7 @@ class Index:
     def fetch_by_metadata(
         self,
         *,
-        filter: dict[str, Any],
+        filter: Mapping[str, Any],
         namespace: str = "",
         limit: int | None = None,
         pagination_token: str | None = None,
@@ -883,9 +883,9 @@ class Index:
     def delete(
         self,
         *,
-        ids: list[str] | None = None,
+        ids: Sequence[str] | None = None,
         delete_all: bool = False,
-        filter: dict[str, Any] | None = None,
+        filter: Mapping[str, Any] | None = None,
         namespace: str = "",
         timeout: float | None = None,
     ) -> None:
@@ -946,11 +946,11 @@ class Index:
         self,
         *,
         id: str | None = None,
-        values: list[float] | None = None,
-        sparse_values: SparseValues | dict[str, Any] | None = None,
-        set_metadata: dict[str, Any] | None = None,
+        values: Sequence[float] | None = None,
+        sparse_values: SparseValues | Mapping[str, Any] | None = None,
+        set_metadata: Mapping[str, Any] | None = None,
         namespace: str = "",
-        filter: dict[str, Any] | None = None,
+        filter: Mapping[str, Any] | None = None,
         dry_run: bool = False,
         timeout: float | None = None,
     ) -> UpdateResponse:
@@ -1034,7 +1034,7 @@ class Index:
     def describe_index_stats(
         self,
         *,
-        filter: dict[str, Any] | None = None,
+        filter: Mapping[str, Any] | None = None,
         timeout: float | None = None,
     ) -> DescribeIndexStatsResponse:
         """Return statistics for this index.
@@ -1084,13 +1084,13 @@ class Index:
         *,
         namespace: str,
         top_k: int,
-        inputs: SearchInputs | dict[str, Any] | None = None,
-        vector: list[float] | None = None,
+        inputs: SearchInputs | Mapping[str, Any] | None = None,
+        vector: Sequence[float] | None = None,
         id: str | None = None,
-        filter: dict[str, Any] | None = None,
-        fields: list[str] | None = None,
-        rerank: RerankConfig | dict[str, Any] | None = None,
-        match_terms: dict[str, Any] | None = None,
+        filter: Mapping[str, Any] | None = None,
+        fields: Sequence[str] | None = None,
+        rerank: RerankConfig | Mapping[str, Any] | None = None,
+        match_terms: Mapping[str, Any] | None = None,
         timeout: float | None = None,
     ) -> SearchRecordsResponse:
         """Search records by text, vector, or ID with optional reranking.
@@ -1213,13 +1213,13 @@ class Index:
         *,
         namespace: str,
         top_k: int,
-        inputs: SearchInputs | dict[str, Any] | None = None,
-        vector: list[float] | None = None,
+        inputs: SearchInputs | Mapping[str, Any] | None = None,
+        vector: Sequence[float] | None = None,
         id: str | None = None,
-        filter: dict[str, Any] | None = None,
-        fields: list[str] | None = None,
-        rerank: RerankConfig | dict[str, Any] | None = None,
-        match_terms: dict[str, Any] | None = None,
+        filter: Mapping[str, Any] | None = None,
+        fields: Sequence[str] | None = None,
+        rerank: RerankConfig | Mapping[str, Any] | None = None,
+        match_terms: Mapping[str, Any] | None = None,
         timeout: float | None = None,
     ) -> SearchRecordsResponse:
         """Alias for :meth:`search`.

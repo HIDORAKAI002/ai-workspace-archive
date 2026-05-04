@@ -35,6 +35,7 @@ import { messageService } from '@/services/message';
 import { getAgentStoreState, useAgentStore } from '@/store/agent';
 import { agentByIdSelectors, agentSelectors } from '@/store/agent/selectors';
 import { agentGroupByIdSelectors, getChatGroupStoreState } from '@/store/agentGroup';
+import { selectRuntimeType } from '@/store/chat/slices/aiChat/actions/agentDispatcher';
 import { resolveHeteroResume } from '@/store/chat/slices/aiChat/actions/heteroResume';
 import { type ChatStore } from '@/store/chat/store';
 import {
@@ -191,7 +192,7 @@ export class ConversationLifecycleActionImpl {
     onTopicCreated,
   }: SendMessageWithContextParams): Promise<SendMessageResult | undefined> => {
     let editorData = inputEditorData;
-    const { internal_execAgentRuntime, mainInputEditor } = this.#get();
+    const { executeClientAgent, mainInputEditor } = this.#get();
     const { agentId } = context;
     const selectedSkills = parseSelectedSkillsFromEditorData(editorData);
     const selectedTools = parseSelectedToolsFromEditorData(editorData);
@@ -218,6 +219,10 @@ export class ConversationLifecycleActionImpl {
 
     const agentConfig = agentSelectors.getAgentConfigById(agentId)(getAgentStoreState());
     const heterogeneousProvider = agentConfig?.agencyConfig?.heterogeneousProvider;
+    const runtimeType = selectRuntimeType({
+      heterogeneousProvider,
+      isGatewayMode: this.#get().isGatewayModeEnabled(),
+    });
 
     // ── Command Bus: extract and process built-in commands from editorData ──
     const commandOverrides: CommandSendOverrides = processCommands({
@@ -467,7 +472,7 @@ export class ConversationLifecycleActionImpl {
 
     // ── External agent mode: delegate to heterogeneous agent CLI (desktop only) ──
     // Per-agent heterogeneousProvider config takes priority over the global gateway mode.
-    if (isDesktop && heterogeneousProvider) {
+    if (runtimeType === 'hetero' && heterogeneousProvider) {
       // Resolve cwd up-front so the new topic is bound to a project at
       // creation time. Otherwise the row stays NULL until the post-execution
       // metadata write — which never lands on cancel/error and meanwhile
@@ -638,7 +643,7 @@ export class ConversationLifecycleActionImpl {
     }
 
     // ── Gateway mode: skip sendMessageInServer, let execAgentTask handle everything ──
-    if (this.#get().isGatewayModeEnabled()) {
+    if (runtimeType === 'gateway') {
       this.#get().completeOperation(operationId);
 
       try {
@@ -997,7 +1002,7 @@ export class ConversationLifecycleActionImpl {
             agentRuntimeInitialContext,
           );
 
-          await internal_execAgentRuntime({
+          await executeClientAgent({
             context: execContext,
             initialContext: mergedAgentRuntimeInitialContext,
             messages: displayMessages,
@@ -1145,7 +1150,28 @@ export class ConversationLifecycleActionImpl {
           ]
         : currentMessages;
 
-      await this.#get().internal_execAgentRuntime({
+      // Sub-agent dispatch inherits the parent's runtime selection — a
+      // hetero/gateway parent must keep its sub-agents on the same path so
+      // events route through the same wire. See LOBE-8519.
+      const parentAgentConfig = context.agentId
+        ? agentSelectors.getAgentConfigById(context.agentId)(getAgentStoreState())
+        : undefined;
+      const runtimeType = selectRuntimeType({
+        heterogeneousProvider: parentAgentConfig?.agencyConfig?.heterogeneousProvider,
+        isGatewayMode: this.#get().isGatewayModeEnabled(),
+      });
+
+      // TODO(LOBE-8519 follow-up): only client sub-agent dispatch is
+      // implemented today. Gateway / hetero direct mentions fall through to
+      // client and will need their own runner once Step 2 lands.
+      if (runtimeType !== 'client') {
+        console.warn(
+          `[directMentionRoute] runtime=${runtimeType} not yet supported for sub-agent dispatch; ` +
+            'falling through to client mode',
+        );
+      }
+
+      await this.#get().executeClientAgent({
         context: { ...context, scope: 'sub_agent', subAgentId: targetAgentId },
         inPortalThread,
         messages: messagesWithInstruction,
@@ -1180,47 +1206,6 @@ export class ConversationLifecycleActionImpl {
       return `Failed to load agent "${agentId}": ${(error as Error).message}`;
     }
   }
-
-  continueGenerationMessage = async (id: string, messageId: string): Promise<void> => {
-    const message = dbMessageSelectors.getDbMessageById(id)(this.#get());
-    if (!message) return;
-
-    const { activeAgentId, activeTopicId, activeThreadId, activeGroupId } = this.#get();
-
-    // Create base context for continue operation (using global state)
-    const continueContext = {
-      agentId: activeAgentId,
-      topicId: activeTopicId,
-      threadId: activeThreadId ?? undefined,
-      groupId: activeGroupId,
-    };
-
-    // Create continue operation
-    const { operationId } = this.#get().startOperation({
-      type: 'continue',
-      context: { ...continueContext, messageId },
-    });
-
-    try {
-      const chats = displayMessageSelectors.mainAIChatsWithHistoryConfig(this.#get());
-
-      await this.#get().internal_execAgentRuntime({
-        context: continueContext,
-        messages: chats,
-        parentMessageId: id,
-        parentMessageType: message.role as 'assistant' | 'tool' | 'user',
-        parentOperationId: operationId,
-      });
-
-      this.#get().completeOperation(operationId);
-    } catch (error) {
-      this.#get().failOperation(operationId, {
-        type: 'ContinueError',
-        message: error instanceof Error ? error.message : String(error),
-      });
-      throw error;
-    }
-  };
 
   /**
    * Execute context compression for /compact command.

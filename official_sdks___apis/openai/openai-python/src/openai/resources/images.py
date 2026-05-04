@@ -9,8 +9,9 @@ import httpx
 
 from .. import _legacy_response
 from ..types import image_edit_params, image_generate_params, image_create_variation_params
+from .._files import deepcopy_with_paths
 from .._types import Body, Omit, Query, Headers, NotGiven, FileTypes, SequenceNotStr, omit, not_given
-from .._utils import extract_files, required_args, maybe_transform, deepcopy_minimal, async_maybe_transform
+from .._utils import extract_files, required_args, maybe_transform, async_maybe_transform
 from .._compat import cached_property
 from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -94,7 +95,7 @@ class Images(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        body = deepcopy_minimal(
+        body = deepcopy_with_paths(
             {
                 "image": image,
                 "model": model,
@@ -102,7 +103,8 @@ class Images(SyncAPIResource):
                 "response_format": response_format,
                 "size": size,
                 "user": user,
-            }
+            },
+            [["image"]],
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["image"]])
         # It should be noted that the actual Content-Type header that will be
@@ -114,7 +116,11 @@ class Images(SyncAPIResource):
             body=maybe_transform(body, image_create_variation_params.ImageCreateVariationParams),
             files=files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ImagesResponse,
         )
@@ -484,7 +490,7 @@ class Images(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | Stream[ImageEditStreamEvent]:
-        body = deepcopy_minimal(
+        body = deepcopy_with_paths(
             {
                 "image": image,
                 "prompt": prompt,
@@ -501,7 +507,8 @@ class Images(SyncAPIResource):
                 "size": size,
                 "stream": stream,
                 "user": user,
-            }
+            },
+            [["image"], ["image", "<array>"], ["mask"]],
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["image"], ["image", "<array>"], ["mask"]])
         # It should be noted that the actual Content-Type header that will be
@@ -516,7 +523,11 @@ class Images(SyncAPIResource):
             ),
             files=files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ImagesResponse,
             stream=stream or False,
@@ -908,7 +919,11 @@ class Images(SyncAPIResource):
                 else image_generate_params.ImageGenerateParamsNonStreaming,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ImagesResponse,
             stream=stream or False,
@@ -986,7 +1001,7 @@ class AsyncImages(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        body = deepcopy_minimal(
+        body = deepcopy_with_paths(
             {
                 "image": image,
                 "model": model,
@@ -994,7 +1009,8 @@ class AsyncImages(AsyncAPIResource):
                 "response_format": response_format,
                 "size": size,
                 "user": user,
-            }
+            },
+            [["image"]],
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["image"]])
         # It should be noted that the actual Content-Type header that will be
@@ -1006,7 +1022,11 @@ class AsyncImages(AsyncAPIResource):
             body=await async_maybe_transform(body, image_create_variation_params.ImageCreateVariationParams),
             files=files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ImagesResponse,
         )
@@ -1376,7 +1396,7 @@ class AsyncImages(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | AsyncStream[ImageEditStreamEvent]:
-        body = deepcopy_minimal(
+        body = deepcopy_with_paths(
             {
                 "image": image,
                 "prompt": prompt,
@@ -1393,7 +1413,8 @@ class AsyncImages(AsyncAPIResource):
                 "size": size,
                 "stream": stream,
                 "user": user,
-            }
+            },
+            [["image"], ["image", "<array>"], ["mask"]],
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["image"], ["image", "<array>"], ["mask"]])
         # It should be noted that the actual Content-Type header that will be
@@ -1408,7 +1429,11 @@ class AsyncImages(AsyncAPIResource):
             ),
             files=files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ImagesResponse,
             stream=stream or False,
@@ -1800,7 +1825,11 @@ class AsyncImages(AsyncAPIResource):
                 else image_generate_params.ImageGenerateParamsNonStreaming,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ImagesResponse,
             stream=stream or False,
