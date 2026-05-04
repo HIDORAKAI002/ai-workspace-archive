@@ -24,7 +24,7 @@ import uvicorn
 from . import MemoryEngine, __version__
 from .api import create_app
 from .banner import print_banner
-from .config import DEFAULT_WORKERS, ENV_WORKERS, HindsightConfig, _get_raw_config
+from .config import DEFAULT_WORKERS, ENV_HOST, ENV_WORKERS, HindsightConfig, _get_raw_config
 from .daemon import (
     DEFAULT_DAEMON_PORT,
     DEFAULT_IDLE_TIMEOUT,
@@ -62,6 +62,22 @@ def _signal_handler(signum, frame):
     print(f"\nReceived signal {signum}, shutting down...")
     _cleanup()
     sys.exit(0)
+
+
+def resolve_daemon_host_port(*, args_host: str, args_port: int, config_host: str, config_port: int) -> tuple[str, int]:
+    """Resolve host/port for daemon mode.
+
+    Defaults to 127.0.0.1 for security, but honors explicit user overrides
+    via --host flag or HINDSIGHT_API_HOST env var. Uses DEFAULT_DAEMON_PORT
+    unless the user specified a custom port.
+    """
+    port = args_port if args_port != config_port else DEFAULT_DAEMON_PORT
+    # Only force localhost if the user didn't explicitly set a host
+    if args_host != config_host or os.environ.get(ENV_HOST):
+        host = args_host
+    else:
+        host = "127.0.0.1"
+    return host, port
 
 
 def main():
@@ -136,10 +152,12 @@ def main():
 
     # Daemon mode handling
     if args.daemon:
-        # Use port from args (may be custom for profiles)
-        if args.port == config.port:  # No custom port specified
-            args.port = DEFAULT_DAEMON_PORT
-        args.host = "127.0.0.1"  # Only bind to localhost for security
+        args.host, args.port = resolve_daemon_host_port(
+            args_host=args.host,
+            args_port=args.port,
+            config_host=config.host,
+            config_port=config.port,
+        )
 
         # Fork into background
         # No lockfile needed - port binding prevents duplicate daemons

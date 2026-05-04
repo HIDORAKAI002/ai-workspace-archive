@@ -16,6 +16,7 @@ import signal
 import socket
 import sys
 import warnings
+from collections.abc import Callable
 
 from ..config import get_config
 from ..engine.task_backend import WorkerTaskBackend
@@ -29,6 +30,26 @@ warnings.filterwarnings("ignore", message="websockets.server.WebSocketServerProt
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 logger = logging.getLogger(__name__)
+
+
+def _install_shutdown_signal_handlers(
+    loop: asyncio.AbstractEventLoop,
+    handler: Callable[[], None],
+) -> bool:
+    """Register SIGINT/SIGTERM handlers on the asyncio loop.
+
+    Returns True when handlers were installed via ``loop.add_signal_handler``.
+    Returns False on platforms (Windows ProactorEventLoop) where asyncio
+    does not implement signal handlers; the caller falls back to Python's
+    default SIGINT behavior, which still terminates the process on Ctrl+C
+    but loses the in-loop two-stage graceful shutdown.
+    """
+    try:
+        loop.add_signal_handler(signal.SIGINT, handler)
+        loop.add_signal_handler(signal.SIGTERM, handler)
+    except NotImplementedError:
+        return False
+    return True
 
 
 def create_worker_app(poller: WorkerPoller, memory):
@@ -243,6 +264,7 @@ def main():
         # Setup signal handlers for graceful shutdown using asyncio
         shutdown_requested = asyncio.Event()
         force_exit = False
+        async_handlers_installed = False
 
         loop = asyncio.get_event_loop()
 
@@ -253,17 +275,26 @@ def main():
                 print("\nReceived second signal, forcing immediate exit...")
                 force_exit = True
                 # Restore default handler so third signal kills process
-                loop.remove_signal_handler(signal.SIGINT)
-                loop.remove_signal_handler(signal.SIGTERM)
+                if async_handlers_installed:
+                    loop.remove_signal_handler(signal.SIGINT)
+                    loop.remove_signal_handler(signal.SIGTERM)
                 sys.exit(1)
             else:
                 print("\nReceived shutdown signal, initiating graceful shutdown...")
                 print("(Press Ctrl+C again to force immediate exit)")
                 shutdown_requested.set()
 
-        # Use asyncio's signal handlers which work properly with the event loop
-        loop.add_signal_handler(signal.SIGINT, signal_handler)
-        loop.add_signal_handler(signal.SIGTERM, signal_handler)
+        async_handlers_installed = _install_shutdown_signal_handlers(loop, signal_handler)
+        if not async_handlers_installed:
+            # Windows ProactorEventLoop: asyncio.add_signal_handler is Unix-only
+            # and raises NotImplementedError. Default Python SIGINT handler still
+            # terminates the worker on Ctrl+C, just without the two-stage path.
+            print(
+                f"WARN: asyncio signal handlers unavailable on this platform "
+                f"({sys.platform}); graceful two-stage shutdown disabled, "
+                f"default Python SIGINT handler remains active.",
+                flush=True,
+            )
 
         # Create uvicorn config and server
         uvicorn_config = uvicorn.Config(

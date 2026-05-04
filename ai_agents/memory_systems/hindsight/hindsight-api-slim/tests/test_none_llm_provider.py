@@ -9,6 +9,7 @@ Verifies that when HINDSIGHT_API_LLM_PROVIDER=none:
 - NoneLLM.call() raises LLMNotAvailableError
 """
 
+import asyncio
 import os
 from datetime import datetime, timezone
 
@@ -127,6 +128,40 @@ async def test_retain_works_with_none_provider(none_memory, request_context):
     )
 
     assert len(unit_ids) > 0, "Should store chunks even without an LLM"
+
+
+@pytest.mark.asyncio
+async def test_async_batch_retain_tracks_all_document_ids_with_none_provider(none_memory, request_context):
+    """Async batch retain should materialize every distinct per-item document_id."""
+    bank_id = f"test_none_async_batch_docs_{datetime.now(timezone.utc).timestamp()}"
+    contents = [
+        {"content": "Alpha document content for async batch retain.", "document_id": "doc-alpha"},
+        {"content": "Beta document content for async batch retain.", "document_id": "doc-beta"},
+    ]
+
+    result = await none_memory.submit_async_retain(
+        bank_id=bank_id,
+        contents=contents,
+        request_context=request_context,
+    )
+
+    # Poll until the async operation completes (avoid flaky sleep)
+    for _ in range(50):
+        status = await none_memory.get_operation_status(
+            bank_id=bank_id,
+            operation_id=result["operation_id"],
+            request_context=request_context,
+        )
+        if status["status"] in ("completed", "failed"):
+            break
+        await asyncio.sleep(0.1)
+    assert status["status"] == "completed", status
+
+    alpha = await none_memory.get_document("doc-alpha", bank_id, request_context=request_context)
+    beta = await none_memory.get_document("doc-beta", bank_id, request_context=request_context)
+
+    assert alpha["memory_unit_count"] > 0
+    assert beta["memory_unit_count"] > 0
 
 
 @pytest.mark.asyncio

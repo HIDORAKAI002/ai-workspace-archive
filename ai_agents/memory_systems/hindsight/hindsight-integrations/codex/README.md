@@ -82,6 +82,7 @@ export ANTHROPIC_API_KEY=your-key
 | `retainEveryNTurns` | `10` | Retain every N turns (1 = every turn) |
 | `recallBudget` | `"mid"` | Recall depth: `"low"`, `"mid"`, `"high"` |
 | `recallMaxTokens` | `1024` | Max tokens for injected memories |
+| `recallTimeout` | `10` | Timeout in seconds for recall API calls |
 | `dynamicBankId` | `false` | Separate bank per project/session |
 | `dynamicBankGranularity` | `["agent", "project"]` | Fields for dynamic bank ID |
 | `debug` | `false` | Log debug info to stderr |
@@ -94,6 +95,7 @@ All settings can also be set via environment variables:
 export HINDSIGHT_API_URL=https://api.hindsight.vectorize.io
 export HINDSIGHT_API_TOKEN=your-api-key
 export HINDSIGHT_BANK_ID=my-project
+export HINDSIGHT_RECALL_TIMEOUT=30
 export HINDSIGHT_DEBUG=true
 ```
 
