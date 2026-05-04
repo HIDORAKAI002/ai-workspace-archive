@@ -2,14 +2,14 @@ import {
   AuthType,
   SafeSearchTypes,
   SearchCategories,
+  SearchProviders,
+  ScraperProviders,
   extractVariableName,
 } from 'librechat-data-provider';
 import { webSearchAuth } from '@librechat/data-schemas';
 import type {
   RerankerTypes,
   TCustomConfig,
-  SearchProviders,
-  ScraperProviders,
   TWebSearchConfig,
 } from 'librechat-data-provider';
 import type { TWebSearchKeys, TWebSearchCategories } from '@librechat/data-schemas';
@@ -23,6 +23,8 @@ const WEB_SEARCH_URL_KEYS = new Set<TWebSearchKeys>([
   'searxngInstanceUrl',
   'firecrawlApiUrl',
   'jinaApiUrl',
+  'tavilySearchUrl',
+  'tavilyExtractUrl',
 ]);
 
 /**
@@ -245,10 +247,23 @@ export async function loadWebSearchAuth({
     authTypes.push([category, isUserProvided ? AuthType.USER_PROVIDED : AuthType.SYSTEM_DEFINED]);
   }
 
-  authResult.safeSearch = webSearchConfig?.safeSearch ?? SafeSearchTypes.MODERATE;
-  authResult.scraperTimeout =
-    webSearchConfig?.scraperTimeout ?? webSearchConfig?.firecrawlOptions?.timeout ?? 7500;
+  const scraperProvider =
+    authResult.scraperProvider ?? webSearchConfig?.scraperProvider ?? ScraperProviders.FIRECRAWL;
+  let scraperOptionsTimeout: number | undefined;
+  if (scraperProvider === ScraperProviders.TAVILY) {
+    scraperOptionsTimeout = webSearchConfig?.tavilyScraperOptions?.timeout;
+  } else if (scraperProvider === ScraperProviders.FIRECRAWL) {
+    scraperOptionsTimeout = webSearchConfig?.firecrawlOptions?.timeout;
+  }
+
+  const searchProvider = authResult.searchProvider ?? webSearchConfig?.searchProvider;
+  if (searchProvider !== SearchProviders.TAVILY) {
+    authResult.safeSearch = webSearchConfig?.safeSearch ?? SafeSearchTypes.MODERATE;
+  }
+  authResult.scraperTimeout = webSearchConfig?.scraperTimeout ?? scraperOptionsTimeout ?? 7500;
   authResult.firecrawlOptions = webSearchConfig?.firecrawlOptions;
+  authResult.tavilySearchOptions = webSearchConfig?.tavilySearchOptions;
+  authResult.tavilyScraperOptions = webSearchConfig?.tavilyScraperOptions;
 
   return {
     authTypes,
