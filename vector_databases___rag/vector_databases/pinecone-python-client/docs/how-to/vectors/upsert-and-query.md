@@ -46,7 +46,10 @@ response = index.upsert(
 print(response.upserted_count)  # 2
 ```
 
-`upsert` returns a {class}`~pinecone.models.UpsertResponse` with `upserted_count`.
+`upsert` returns an {class}`~pinecone.models.UpsertResponse`. For a
+single-request upsert, only `upserted_count` is meaningful; for a
+batched upsert (see "Large datasets" below), the response also
+carries per-batch counters and a `failed_items` list for retry.
 
 ### Upsert into a namespace
 
@@ -63,10 +66,113 @@ The default namespace is `""`.
 
 ### Large datasets
 
-`upsert` sends all vectors in a single request. For large datasets, batch your calls
-(100–500 vectors per batch) or use {meth}`~pinecone.Index.upsert_from_dataframe` for
-DataFrame input with automatic batching. For millions of vectors, consider
+For datasets larger than a single payload, pass `batch_size` to
+split the upload into chunks. Batches are sent **in parallel**
+via a `ThreadPoolExecutor` (sync) or `asyncio.Semaphore`
+(async) of `max_concurrency` workers. HTTP-level retries
+happen automatically per batch via the configured
+{class}`~pinecone.RetryConfig`.
+
+```python
+response = index.upsert(
+    vectors=large_list,
+    batch_size=200,        # vectors per request
+    max_concurrency=8,     # parallel in-flight requests (1–64)
+    show_progress=True,    # tqdm progress bar (auto-skipped if tqdm not installed)
+)
+print(response.upserted_count)         # successful items
+print(response.total_item_count)       # total submitted
+print(response.successful_batch_count) # batches that succeeded
+```
+
+Defaults: `batch_size=None` keeps the single-request behaviour
+(no batching). When `batch_size` is set, `max_concurrency`
+defaults to `4` and `show_progress` defaults to `True`.
+
+For DataFrame input, {meth}`~pinecone.Index.upsert_from_dataframe`
+provides the same parallel batching with column extraction.
+For millions of vectors, consider
 {meth}`~pinecone.Index.start_import` to load from cloud storage.
+
+### Handling partial failures
+
+Unlike a single-request upsert (which raises on failure), a
+batched upsert never raises for per-batch errors. Instead, the
+returned {class}`~pinecone.models.UpsertResponse` carries each
+failed batch's exception and items, so you can retry only the
+failures.
+
+```python
+response = index.upsert(vectors=huge_list, batch_size=200)
+
+if response.has_errors:
+    print(f"{response.failed_item_count} of {response.total_item_count} items failed")
+    for err in response.errors:
+        print(f"  batch {err.batch_index}: {err.error_message}")
+
+    # Retry only the failures:
+    retry = index.upsert(
+        vectors=response.failed_items,
+        batch_size=200,
+    )
+```
+
+`response.failed_items` is a flat `list[dict]` of every item
+from every failed batch, in original order. Pass it directly
+back to `upsert(...)` for retry.
+
+#### Inspect errors before retrying
+
+Before retrying `failed_items`, look at why batches failed:
+
+```python
+if response.has_errors:
+    first = response.errors[0]
+    print(f"first failure: {first.error_message}")
+```
+
+If every error has the same HTTP status — especially a 4xx
+like 400 (Bad Request), 401 (Unauthorized), 403 (Forbidden),
+or 422 (Unprocessable Entity) — the failures are about your
+data or your credentials, not transient infrastructure.
+Retrying with the same input will fail the same way. Fix the
+data or the credentials and retry the corrected items, or
+stop.
+
+#### Why surfaced errors are usually persistent
+
+The HTTP transport retries `{408, 429, 500, 502, 503, 504}`
+automatically up to three times with exponential backoff (see
+{class}`~pinecone.RetryConfig`). That layer absorbs nearly
+all transient infrastructure issues. By the time an error
+reaches `response.errors`, it has either:
+
+- exhausted the retry budget (sustained 5xx, persistent 429), or
+- wasn't retryable in the first place (4xx — bad input, auth,
+  validation).
+
+Either way, naive retries usually re-create the same problem.
+Treat each entry in `response.errors` as a real signal worth
+reading.
+
+#### Batches fail atomically
+
+Any per-batch error fails the **entire batch** — even if only
+one of its 200 vectors was the actual problem. So
+`response.failed_items` may contain 199 items that would have
+succeeded on their own, plus the one bad row that triggered
+the rejection. The server doesn't surface per-item rejection
+details on the upsert path.
+
+To isolate the bad row, re-batch the failures with a smaller
+`batch_size` (down to `batch_size=1` if needed) — successful
+single-item batches narrow the problem to the rejected ones:
+
+```python
+if response.has_errors:
+    narrow = index.upsert(vectors=response.failed_items, batch_size=1)
+    # narrow.failed_items now contains only the actually-bad rows
+```
 
 
 ## Query for nearest neighbors

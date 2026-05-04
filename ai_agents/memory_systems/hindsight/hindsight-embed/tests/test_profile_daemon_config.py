@@ -114,7 +114,7 @@ def test_load_config_file_uses_correct_profile(temp_home, monkeypatch):
     default_config_dir = temp_home / ".hindsight"
     default_config_dir.mkdir(parents=True, exist_ok=True)
     (default_config_dir / "embed").write_text(
-        "HINDSIGHT_API_LLM_PROVIDER=openai\n" "HINDSIGHT_API_LLM_MODEL=gpt-4o-mini\n"
+        "HINDSIGHT_API_LLM_PROVIDER=openai\nHINDSIGHT_API_LLM_MODEL=gpt-4o-mini\n"
     )
 
     # Create a named profile with a DIFFERENT provider
@@ -123,7 +123,7 @@ def test_load_config_file_uses_correct_profile(temp_home, monkeypatch):
 
     profile_name = "myapp"
     profile_env_path = profile_dir / f"{profile_name}.env"
-    profile_env_path.write_text("HINDSIGHT_API_LLM_PROVIDER=groq\n" "HINDSIGHT_API_LLM_MODEL=llama-3.1-70b\n")
+    profile_env_path.write_text("HINDSIGHT_API_LLM_PROVIDER=groq\nHINDSIGHT_API_LLM_MODEL=llama-3.1-70b\n")
 
     # Create metadata
     import json
@@ -493,3 +493,90 @@ def test_posix_popen_uses_start_new_session(temp_home, monkeypatch):
     kwargs = captured["kwargs"]
     assert kwargs.get("start_new_session") is True
     assert "creationflags" not in kwargs
+
+
+def test_get_config_does_not_default_llm_model(temp_home, monkeypatch):
+    """Regression test for issue #1360.
+
+    When `HINDSIGHT_API_LLM_MODEL` is unset, `get_config()` must return None
+    rather than a hardcoded `gpt-4o-mini`. Previously the CLI tried to import
+    `hindsight_api.config.PROVIDER_DEFAULT_MODELS` to compute a provider-keyed
+    default, but that import fails in standalone venvs (`uvx hindsight-embed`,
+    bundled installs) where `hindsight-api` isn't installed, and the fallback
+    silently routed every non-OpenAI provider to `gpt-4o-mini` — which they
+    reject, causing retain to silently store zero memories.
+
+    Leaving the value unset lets the daemon (which has hindsight-api) resolve
+    the correct provider default itself.
+    """
+    from hindsight_embed.cli import get_config, set_cli_profile_override
+
+    set_cli_profile_override(None)
+    monkeypatch.delenv("HINDSIGHT_EMBED_PROFILE", raising=False)
+    monkeypatch.delenv("HINDSIGHT_API_LLM_MODEL", raising=False)
+    monkeypatch.setenv("HINDSIGHT_API_LLM_PROVIDER", "gemini")
+
+    config = get_config()
+
+    assert config["llm_provider"] == "gemini"
+    assert config["llm_model"] is None, (
+        "llm_model must be None when env var is unset so the daemon resolves "
+        "the provider default; got a hardcoded fallback instead"
+    )
+
+
+def test_configure_from_env_omits_model_when_unset(temp_home, monkeypatch):
+    """Regression test for issue #1360.
+
+    `_do_configure_from_env` must not write a hardcoded `HINDSIGHT_API_LLM_MODEL`
+    line into the profile .env when the user didn't set one — that line would
+    then be re-injected on every daemon start and suppress the daemon's
+    provider-keyed default lookup.
+    """
+    from hindsight_embed import cli
+
+    # CONFIG_DIR/CONFIG_FILE are computed from Path.home() at module import time,
+    # so the temp_home fixture's HOME override doesn't reach them. Redirect the
+    # module-level constants for the duration of this test.
+    config_dir = temp_home / ".hindsight"
+    monkeypatch.setattr(cli, "CONFIG_DIR", config_dir)
+    monkeypatch.setattr(cli, "CONFIG_FILE", config_dir / "embed")
+
+    monkeypatch.setenv("HINDSIGHT_API_LLM_PROVIDER", "gemini")
+    monkeypatch.setenv("HINDSIGHT_API_LLM_API_KEY", "test-key")
+    monkeypatch.delenv("HINDSIGHT_API_LLM_MODEL", raising=False)
+
+    rc = cli._do_configure_from_env()
+    assert rc == 0
+
+    contents = (config_dir / "embed").read_text()
+    assert "HINDSIGHT_API_LLM_PROVIDER=gemini" in contents
+    assert "HINDSIGHT_API_LLM_MODEL" not in contents, (
+        "model line must be omitted when the user didn't set one, so the daemon picks the provider default"
+    )
+
+
+def test_configure_from_env_accepts_providers_outside_interactive_menu(temp_home, monkeypatch):
+    """Regression test for issue #1360.
+
+    `_do_configure_from_env` previously rejected any provider not in the small
+    interactive-menu set (`PROVIDER_API_KEYS` — 5 entries) with "Unknown
+    provider". hindsight-api supports ~18 providers (anthropic, claude-code,
+    bedrock, openrouter, ...), so the gate blocked valid CI configurations.
+    Validation belongs in the daemon, not in the CLI's UX-only menu list.
+    """
+    from hindsight_embed import cli
+
+    config_dir = temp_home / ".hindsight"
+    monkeypatch.setattr(cli, "CONFIG_DIR", config_dir)
+    monkeypatch.setattr(cli, "CONFIG_FILE", config_dir / "embed")
+
+    monkeypatch.setenv("HINDSIGHT_API_LLM_PROVIDER", "anthropic")
+    monkeypatch.setenv("HINDSIGHT_API_LLM_API_KEY", "sk-ant-test")
+    monkeypatch.delenv("HINDSIGHT_API_LLM_MODEL", raising=False)
+
+    rc = cli._do_configure_from_env()
+    assert rc == 0, "anthropic must be accepted — the daemon validates providers, not the CLI"
+
+    contents = (config_dir / "embed").read_text()
+    assert "HINDSIGHT_API_LLM_PROVIDER=anthropic" in contents

@@ -390,6 +390,7 @@ interface MCPConnectionParams {
   userId?: string;
   oauthTokens?: MCPOAuthTokens | null;
   useSSRFProtection?: boolean;
+  allowedAddresses?: string[] | null;
 }
 
 export class MCPConnection extends EventEmitter {
@@ -413,6 +414,7 @@ export class MCPConnection extends EventEmitter {
   private oauthRequired = false;
   private oauthRecovery = false;
   private readonly useSSRFProtection: boolean;
+  private readonly allowedAddresses?: string[] | null;
   iconPath?: string;
   timeout?: number;
   sseReadTimeout?: number;
@@ -527,6 +529,7 @@ export class MCPConnection extends EventEmitter {
     this.serverName = params.serverName;
     this.userId = params.userId;
     this.useSSRFProtection = params.useSSRFProtection === true;
+    this.allowedAddresses = params.allowedAddresses ?? null;
     this.iconPath = params.serverConfig.iconPath;
     this.timeout = params.serverConfig.timeout;
     this.sseReadTimeout = params.serverConfig.sseReadTimeout;
@@ -568,8 +571,13 @@ export class MCPConnection extends EventEmitter {
     sseBodyTimeout?: number,
     configuredSecretHeaderKeys?: ReadonlySet<string>,
   ): (input: UndiciRequestInfo, init?: UndiciRequestInit) => Promise<UndiciResponse> {
-    const ssrfConnect = this.useSSRFProtection ? createSSRFSafeUndiciConnect() : undefined;
+    const ssrfConnect = this.useSSRFProtection
+      ? createSSRFSafeUndiciConnect(this.allowedAddresses)
+      : undefined;
     const connectOpts = ssrfConnect != null ? { connect: ssrfConnect } : {};
+    /** Capture only the fields needed by the fetch closure; see factory note above. */
+    const useSSRFProtection = this.useSSRFProtection;
+    const agents = this.agents;
     const effectiveTimeout = timeout || DEFAULT_TIMEOUT;
     const postAgent = new Agent({
       bodyTimeout: effectiveTimeout,
@@ -587,6 +595,33 @@ export class MCPConnection extends EventEmitter {
       });
       this.agents.push(getAgent);
     }
+
+    let safeRedirectPostAgent: Agent | undefined;
+    let safeRedirectGetAgent: Agent | undefined;
+    /**
+     * Allowlist mode keeps the original MCP URL admin-approved, but redirect
+     * targets are server-controlled. These agents add connect-time DNS checks
+     * for those cross-origin hops so DNS rebinding cannot beat the standalone
+     * resolveHostnameSSRF pre-check.
+     */
+    const createSafeRedirectAgent = (bodyTimeout: number): Agent => {
+      const redirectSSRFConnect = createSSRFSafeUndiciConnect();
+      const agent = new Agent({
+        bodyTimeout,
+        headersTimeout: effectiveTimeout,
+        connect: redirectSSRFConnect,
+      });
+      agents.push(agent);
+      return agent;
+    };
+    const getSafeRedirectDispatcher = (isGetRequest: boolean): Agent => {
+      if (!isGetRequest || sseBodyTimeout == null) {
+        safeRedirectPostAgent ??= createSafeRedirectAgent(effectiveTimeout);
+        return safeRedirectPostAgent;
+      }
+      safeRedirectGetAgent ??= createSafeRedirectAgent(sseBodyTimeout);
+      return safeRedirectGetAgent;
+    };
 
     return async function customFetch(
       input: UndiciRequestInfo,
@@ -635,12 +670,21 @@ export class MCPConnection extends EventEmitter {
         }
 
         const targetUrl = new URL(location, currentUrlString);
+        const isCrossOriginRedirect = targetUrl.origin !== originalOrigin;
 
         /**
-         * Defense-in-depth SSRF check on every redirect hop. The dispatcher's
-         * connect-time `lookup` only fires when `useSSRFProtection` is true;
-         * allowlist deployments disable it, and the allowlist only covers the
-         * originally-configured URL — not server-controlled redirect targets.
+         * Keep the standalone check for immediate literal/current-DNS blocks.
+         * Cross-origin allowlist redirects also switch to a connect-time
+         * SSRF-safe dispatcher below so DNS rebinding cannot change the
+         * address between this check and the socket connection.
+         *
+         * `allowedAddresses` is intentionally NOT consulted on either layer:
+         * redirect targets are server-controlled (the MCP server's response
+         * chooses where to send us), so they must not inherit the admin's
+         * exemption for the originally-configured URL. A legitimate self-
+         * redirect from a permitted private host is still blocked here, by
+         * design — letting redirect targets inherit the exemption would open
+         * an SSRF amplification primitive.
          */
         if (await resolveHostnameSSRF(targetUrl.hostname)) {
           logger.warn(
@@ -651,13 +695,26 @@ export class MCPConnection extends EventEmitter {
 
         await response.body?.cancel().catch(() => undefined);
 
-        if (targetUrl.origin !== originalOrigin && currentInit.headers != null) {
+        if (isCrossOriginRedirect && currentInit.headers != null) {
           currentInit = {
             ...currentInit,
             headers: stripCrossOriginHeaders(
               currentInit.headers as Record<string, string>,
               secretHeaderKeys,
             ),
+          };
+        }
+
+        if (!useSSRFProtection && isCrossOriginRedirect) {
+          /**
+           * Once a server-controlled cross-origin hop is seen, keep the safe
+           * dispatcher for the rest of this redirect chain. Restoring the
+           * original dispatcher on a later hop back to the original origin
+           * would re-open the allowlist-mode rebinding gap.
+           */
+          currentInit = {
+            ...currentInit,
+            dispatcher: getSafeRedirectDispatcher(isGet),
           };
         }
 
@@ -717,7 +774,7 @@ export class MCPConnection extends EventEmitter {
            * only a URL with no custom DNS lookup hook.
            */
           const wsHostname = new URL(options.url).hostname;
-          const isSSRF = await resolveHostnameSSRF(wsHostname);
+          const isSSRF = await resolveHostnameSSRF(wsHostname, this.allowedAddresses);
           if (isSSRF) {
             throw new Error(
               `SSRF protection: WebSocket host "${wsHostname}" resolved to a private/reserved IP address`,
@@ -748,7 +805,9 @@ export class MCPConnection extends EventEmitter {
            * The connect timeout is extended because proxies may delay initial response.
            */
           const sseTimeout = this.timeout || SSE_CONNECT_TIMEOUT;
-          const ssrfConnect = this.useSSRFProtection ? createSSRFSafeUndiciConnect() : undefined;
+          const ssrfConnect = this.useSSRFProtection
+            ? createSSRFSafeUndiciConnect(this.allowedAddresses)
+            : undefined;
           const sseAgent = new Agent({
             bodyTimeout: sseTimeout,
             headersTimeout: sseTimeout,
