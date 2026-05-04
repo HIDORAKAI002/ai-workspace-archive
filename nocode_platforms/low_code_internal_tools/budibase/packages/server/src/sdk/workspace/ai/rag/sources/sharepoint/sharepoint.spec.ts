@@ -8,6 +8,7 @@ const mockKnowledgeBaseListFiles = jest.fn()
 const mockKnowledgeBaseUploadFile = jest.fn()
 const mockRetryKnowledgeBaseFileIngestion = jest.fn()
 const mockGetSharePointBearerToken = jest.fn()
+const mockListKnowledgeSourceConnections = jest.fn()
 const mockEnsureKnowledgeBaseForAgent = jest.fn()
 const mockDeleteFileForAgent = jest.fn()
 
@@ -32,7 +33,7 @@ jest.mock("@budibase/backend-core", () => {
   }
 })
 
-jest.mock("..", () => ({
+jest.mock("../../../index", () => ({
   agents: {
     getOrThrow: (...args: any[]) => mockAgentsGetOrThrow(...args),
   },
@@ -46,8 +47,10 @@ jest.mock("..", () => ({
   },
 }))
 
-jest.mock("../sharepoint", () => {
-  const actual = jest.requireActual("../sharepoint")
+jest.mock("../../../knowledgeSources/sharepointConnection", () => {
+  const actual = jest.requireActual(
+    "../../../knowledgeSources/sharepointConnection"
+  )
   return {
     ...actual,
     getSharePointBearerToken: (...args: any[]) =>
@@ -55,7 +58,14 @@ jest.mock("../sharepoint", () => {
   }
 })
 
-jest.mock("./files", () => {
+jest.mock("../../../knowledgeSources", () => {
+  return {
+    listKnowledgeSourceConnections: (...args: any[]) =>
+      mockListKnowledgeSourceConnections(...args),
+  }
+})
+
+jest.mock("../../files", () => {
   return {
     ensureKnowledgeBaseForAgent: (...args: any[]) =>
       mockEnsureKnowledgeBaseForAgent(...args),
@@ -84,7 +94,8 @@ const toArrayBuffer = (value: string) => {
 const makeSharePointAgent = (
   sourceId: string,
   siteId: string,
-  patterns?: string[]
+  patterns?: string[],
+  connectionId = "connection_1"
 ): Agent =>
   ({
     _id: "agent_1",
@@ -93,6 +104,7 @@ const makeSharePointAgent = (
         id: sourceId,
         type: AgentKnowledgeSourceType.SHAREPOINT,
         config: {
+          connectionId,
           site: { id: siteId },
           ...(patterns ? { filters: { patterns } } : {}),
         },
@@ -161,6 +173,12 @@ describe("rag/sharepoint sync deduplication", () => {
     })
     mockGenerateSyncStateId.mockReturnValue("sync_state_1")
     mockGetSharePointBearerToken.mockResolvedValue("Bearer token")
+    mockListKnowledgeSourceConnections.mockResolvedValue([
+      {
+        _id: "connection_1",
+        sourceType: AgentKnowledgeSourceType.SHAREPOINT,
+      },
+    ])
     mockDoWithLock.mockImplementation(
       async (_options: any, handler: () => Promise<any>) => ({
         result: await handler(),
