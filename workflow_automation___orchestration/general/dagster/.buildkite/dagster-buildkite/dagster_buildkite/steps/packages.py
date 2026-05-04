@@ -263,8 +263,8 @@ class PackageSpec:
         if len(steps) >= 2:
             return [
                 GroupStepBuilder(
-                    name=f"{emoji} {base_name}",
-                    key=base_name,
+                    base_name,
+                    [emoji],
                     steps=steps,
                 ).build()
             ]

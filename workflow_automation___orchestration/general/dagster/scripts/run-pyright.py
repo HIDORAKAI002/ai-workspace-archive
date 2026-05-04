@@ -16,6 +16,7 @@ from itertools import groupby
 from typing import Final, Literal, cast
 
 import tomli
+import yaml
 from typing_extensions import NotRequired, TypedDict
 
 parser = argparse.ArgumentParser(
@@ -187,45 +188,33 @@ def get_env_path(env: str, rel_path: str | None = None) -> str:
     return os.path.abspath(os.path.join(env_root, rel_path) if rel_path else env_root)
 
 
-_TY_ANNOTATION_RE = re.compile(r"(?:^|\s)@ty$")
-
-
-def has_ty_annotation(line: str) -> bool:
-    """Return True if `line` has a trailing `@ty` comment annotation.
-
-    Matches a comment that ends with `@ty` (the annotation must be the last
-    token of the line, preceded by whitespace or by the `#` itself).
-    """
-    if "#" not in line:
-        return False
-    comment = line.split("#", 1)[1].rstrip()
-    return bool(_TY_ANNOTATION_RE.search(comment))
-
-
 def load_path_file(path: str) -> Sequence[str]:
-    """Load paths from include.txt, returning only paths NOT marked with `@ty`.
-
-    The shared config approach uses annotations in include.txt to assign packages
-    to either pyright or ty. Lines whose trailing comment ends with `@ty` are
-    checked by ty; all other lines are checked by pyright (this script).
-
-    Format:
-        python_modules/dagster  # @ty     -> checked by ty (skipped here)
-        python_modules/dagster-graphql    -> checked by pyright
-        examples                          -> checked by pyright
-    """
+    """Load paths from a plain include/exclude file (one path per line)."""
     with open(path, encoding="utf-8") as f:
         paths = []
         for raw_line in f:
             stripped = raw_line.strip()
             if not stripped or stripped.startswith("#"):
                 continue
-            if has_ty_annotation(stripped):
-                continue
             pkg_path = stripped.split("#", 1)[0].strip()
             if pkg_path:
                 paths.append(pkg_path)
         return paths
+
+
+def load_ty_paths(env: str) -> Sequence[str]:
+    """Load paths assigned to `ty` for the given env.
+
+    Paths listed in `pyright/<env>/ty.yaml` are checked by `ty` and are
+    implicitly excluded from `pyright`. Returns an empty list if the file
+    does not exist.
+    """
+    ty_yaml_path = get_env_path(env, "ty.yaml")
+    if not os.path.exists(ty_yaml_path):
+        return []
+    with open(ty_yaml_path, encoding="utf-8") as f:
+        data = yaml.safe_load(f) or {}
+    return list(data.get("paths") or [])
 
 
 def get_params(args: argparse.Namespace) -> Params:
@@ -289,11 +278,12 @@ def map_paths_to_envs(paths: Sequence[str]) -> Mapping[str, Sequence[str]]:
     for env in os.listdir(PYRIGHT_ENV_ROOT):
         include_path = get_env_path(env, "include.txt")
         exclude_path = get_env_path(env, "exclude.txt")
+        excludes = load_path_file(exclude_path) if os.path.exists(exclude_path) else []
         env_path_specs.append(
             EnvPathSpec(
                 env=env,
                 include=load_path_file(include_path),
-                exclude=load_path_file(exclude_path) if os.path.exists(exclude_path) else [],
+                exclude=[*excludes, *load_ty_paths(env)],
             )
         )
     env_path_map: dict[str, list[str]] = {}
@@ -487,6 +477,7 @@ def temp_pyright_config_file(env: str) -> Iterator[str]:
     config["include"] = load_path_file(include_path)
     if os.path.exists(exclude_path):
         config["exclude"] += load_path_file(exclude_path)
+    config["exclude"] += list(load_ty_paths(env))
     temp_config_path = f"pyrightconfig-{env}.json"
     print("Creating temporary pyright config file at", temp_config_path)
     try:

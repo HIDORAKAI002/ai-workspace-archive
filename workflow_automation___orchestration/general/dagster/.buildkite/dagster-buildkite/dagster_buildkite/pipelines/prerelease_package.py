@@ -15,9 +15,7 @@ def build_prerelease_package_steps(ctx: BuildkiteContext) -> list[StepConfigurat
     )
 
     input_step = (
-        BlockStepBuilder(
-            block=":question: Choose package",
-        )
+        BlockStepBuilder("choose-package", [":question:"])
         .with_prompt(
             prompt="Choose package and version to publish",
             fields=[
@@ -52,7 +50,7 @@ def build_prerelease_package_steps(ctx: BuildkiteContext) -> list[StepConfigurat
     steps.append(input_step)
 
     steps.append(
-        CommandStepBuilder(":package: Build and publish package")
+        CommandStepBuilder("build-and-publish-package", [":package:"])
         .run(
             "uv pip install --system build",
             "sh ./scripts/build_and_publish.sh",
