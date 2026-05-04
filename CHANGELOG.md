@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-05-05 03:38 IST] Auto-Sync
+- **39 Repositories Updated:** Exa MCP Server, Promptfoo, Flowise, Activepieces, Windmill, Budibase, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langgraph, run-llama/llama_index, pydantic/pydantic-ai, mastra-ai/mastra, Upsonic, BerriAI/litellm, stanfordnlp/dspy, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, chroma-core/chroma, pinecone-io/pinecone-python-client, arize-ai/phoenix, firecrawl/firecrawl, openai/openai-python, openai/openai-node, anthropics/anthropic-sdk-python, anthropics/anthropic-sdk-typescript, anthropics/anthropic-sdk-go, anthropics/anthropic-sdk-ruby, google-gemini/gemini-cli, googleapis/python-genai, vercel/ai, PrefectHQ/prefect, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, obra/superpowers, mastra-ai/mastra, vectorize-io/hindsight
+
 ## [2026-05-04 21:08 IST] Auto-Sync
 - **37 Repositories Updated:** Supabase MCP, Kubernetes MCP Server, Langfuse, NVIDIA NeMo Guardrails, n8n, Dify, Activepieces, Trigger.dev, Budibase, Plane, modelcontextprotocol/java-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langgraph, crewAIInc/crewAI, run-llama/llama_index, mastra-ai/mastra, deepset-ai/haystack, Swarms, Upsonic, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, weaviate/weaviate, pinecone-io/pinecone-python-client, openlit/openlit, open-telemetry/opentelemetry-python, abi/screenshot-to-code, firecrawl/firecrawl, vercel/ai, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight
 
