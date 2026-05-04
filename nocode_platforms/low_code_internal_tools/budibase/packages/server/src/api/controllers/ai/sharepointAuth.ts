@@ -209,7 +209,6 @@ export async function completeSharePointAuth(ctx: UserCtx<void, void>) {
     (async () => {
       await sdk.ai.knowledgeSources.createKnowledgeSourceConnection({
         sourceType: AgentKnowledgeSourceType.SHAREPOINT,
-        tenantId,
         tokenEndpoint,
         accessToken,
         refreshToken,
