@@ -8,6 +8,13 @@ import PageHero from '@site/src/components/PageHero';
 
 ← Claude Code integration
 
+## [0.6.0](https://github.com/vectorize-io/hindsight/tree/integrations/claude-code/v0.6.0)
+
+**Features**
+
+- Added Claude Code knowledge tools backed by a Python MCP server, enabling the integration to read/write and use Hindsight knowledge more directly.<span style={{color: "var(--ifm-color-emphasis-500)", margin: "0 0.3em"}}>·</span><a href="https://github.com/nicoloboschi" target="_blank" rel="noopener noreferrer" style={{color: "var(--ifm-color-primary)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "4px", verticalAlign: "middle"}}>@nicoloboschi</a><span style={{color: "var(--ifm-color-emphasis-500)", margin: "0 0.3em"}}>·</span><a href="https://github.com/vectorize-io/hindsight/commit/6c55dbde" target="_blank" rel="noopener noreferrer" style={{fontFamily: "var(--ifm-font-family-monospace, monospace)", fontSize: "0.85em", color: "var(--ifm-color-emphasis-600)"}}>6c55dbde</a>
+- Introduced subagents and a new “create-agent” skill to help users create and manage agent configurations/workflows within Claude Code.<span style={{color: "var(--ifm-color-emphasis-500)", margin: "0 0.3em"}}>·</span><a href="https://github.com/nicoloboschi" target="_blank" rel="noopener noreferrer" style={{color: "var(--ifm-color-primary)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "4px", verticalAlign: "middle"}}>@nicoloboschi</a><span style={{color: "var(--ifm-color-emphasis-500)", margin: "0 0.3em"}}>·</span><a href="https://github.com/vectorize-io/hindsight/commit/1b9d6d91" target="_blank" rel="noopener noreferrer" style={{fontFamily: "var(--ifm-font-family-monospace, monospace)", fontSize: "0.85em", color: "var(--ifm-color-emphasis-600)"}}>1b9d6d91</a>
+
 ## [0.4.0](https://github.com/vectorize-io/hindsight/tree/integrations/claude-code/v0.4.0)
 
 **Features**
