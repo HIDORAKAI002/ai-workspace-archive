@@ -66,9 +66,16 @@ impl SessionManager for LocalSessionManager {
         Ok(response)
     }
     async fn close_session(&self, id: &SessionId) -> Result<(), Self::Error> {
-        let mut sessions = self.sessions.write().await;
-        if let Some(handle) = sessions.remove(id) {
-            handle.close().await?;
+        let handle = {
+            let mut sessions = self.sessions.write().await;
+            sessions.remove(id)
+        };
+        if let Some(handle) = handle {
+            match handle.close().await {
+                // Worker already exited — nothing left to clean up.
+                Ok(()) | Err(SessionError::SessionServiceTerminated) => {}
+                Err(e) => return Err(e.into()),
+            }
         }
         Ok(())
     }
@@ -928,6 +935,7 @@ pub enum LocalSessionWorkerError {
     FailToSendInitializeRequest(SessionError),
     #[error("fail to handle message: {0}")]
     FailToHandleMessage(SessionError),
+    #[deprecated(note = "idle timeout now surfaces as WorkerQuitReason::IdleTimeout")]
     #[error("keep alive timeout after {}ms", _0.as_millis())]
     KeepAliveTimeout(Duration),
     #[error("init timeout after {}ms", _0.as_millis())]
@@ -1021,7 +1029,7 @@ impl Worker for LocalSessionWorker {
                     return Err(WorkerQuitReason::Cancelled)
                 }
                 _ = keep_alive_timeout => {
-                    return Err(WorkerQuitReason::fatal(LocalSessionWorkerError::KeepAliveTimeout(keep_alive), "poll next session event"))
+                    return Err(WorkerQuitReason::IdleTimeout(keep_alive))
                 }
             };
             match event {
