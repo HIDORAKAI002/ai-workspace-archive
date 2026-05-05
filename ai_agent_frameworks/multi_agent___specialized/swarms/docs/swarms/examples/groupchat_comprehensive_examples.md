@@ -1414,10 +1414,10 @@ creative_director: I've reviewed all contributions. The messaging aligns with ou
 
 | Resource                     | Description                                      | Link                                                                                   |
 |------------------------------|--------------------------------------------------|----------------------------------------------------------------------------------------|
-| GroupChat API Reference      | Reference for the GroupChat system               | [View](https://docs.swarms.world/en/latest/swarms/structs/group_chat/)                 |
-| GroupChat Guide  | Step-by-step guide for GroupChat     | [View](https://docs.swarms.world/en/latest/swarms/examples/groupchat_comprehensive_examples/)               |
-| Agent Documentation          | Reference for building and using agents          | [View](https://docs.swarms.world/en/latest/swarms/structs/agent/)                      |
-| Multi-Agent Architectures    | Concepts and architectures for multi-agent swarms| [View](https://docs.swarms.world/en/latest/swarms/concept/swarm_architectures/)        |
+| GroupChat API Reference      | Reference for the GroupChat system               | [View](https://docs.swarms.world/swarms/structs/group_chat/)                 |
+| GroupChat Guide  | Step-by-step guide for GroupChat     | [View](https://docs.swarms.world/swarms/examples/groupchat_comprehensive_examples/)               |
+| Agent Documentation          | Reference for building and using agents          | [View](https://docs.swarms.world/swarms/structs/agent/)                      |
+| Multi-Agent Architectures    | Concepts and architectures for multi-agent swarms| [View](https://docs.swarms.world/swarms/concept/swarm_architectures/)        |
 
 
 ## Connect With Us

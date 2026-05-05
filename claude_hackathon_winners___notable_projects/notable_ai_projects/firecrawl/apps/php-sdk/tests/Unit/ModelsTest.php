@@ -6,6 +6,7 @@ use Firecrawl\Models\CreditUsage;
 use Firecrawl\Models\MapData;
 use Firecrawl\Models\BatchScrapeJob;
 use Firecrawl\Models\CrawlJob;
+use Firecrawl\Models\QueryFormat;
 use Firecrawl\Models\ScrapeOptions;
 
 it('hydrates CreditUsage from nested data key', function (): void {
@@ -133,3 +134,19 @@ it('serializes lockdown in ScrapeOptions', function (): void {
         'integration' => 'php-sdk',
     ]);
 });
+
+it('serializes query format mode in ScrapeOptions', function (): void {
+    $options = ScrapeOptions::with(
+        formats: [QueryFormat::with('What is Firecrawl?', QueryFormat::MODE_DIRECT_QUOTE)],
+    );
+
+    expect($options->toArray()['formats'][0])->toMatchArray([
+        'type' => 'query',
+        'prompt' => 'What is Firecrawl?',
+        'mode' => 'directQuote',
+    ]);
+});
+
+it('rejects invalid query format mode', function (): void {
+    QueryFormat::with('What is Firecrawl?', 'quoted');
+})->throws(InvalidArgumentException::class, "query mode must be 'freeform' or 'directQuote'");

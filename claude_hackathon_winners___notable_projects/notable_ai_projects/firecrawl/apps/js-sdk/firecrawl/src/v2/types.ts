@@ -55,6 +55,7 @@ export interface AttributesFormat extends Format {
 export interface QueryFormat {
   type: 'query';
   prompt: string;
+  mode?: 'freeform' | 'directQuote';
 }
 
 export type FormatOption =

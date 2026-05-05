@@ -1,8 +1,40 @@
 package firecrawl
 
+import "encoding/json"
+
+// QueryFormatMode selects how query answers are generated.
+type QueryFormatMode string
+
+const (
+	QueryModeFreeform    QueryFormatMode = "freeform"
+	QueryModeDirectQuote QueryFormatMode = "directQuote"
+)
+
+// QueryFormat asks a question about page content.
+type QueryFormat struct {
+	Prompt string          `json:"prompt"`
+	Mode   QueryFormatMode `json:"mode,omitempty"`
+}
+
+// MarshalJSON always emits the API-required query format type.
+func (q QueryFormat) MarshalJSON() ([]byte, error) {
+	type queryFormat struct {
+		Type   string          `json:"type"`
+		Prompt string          `json:"prompt"`
+		Mode   QueryFormatMode `json:"mode,omitempty"`
+	}
+
+	return json.Marshal(queryFormat{
+		Type:   "query",
+		Prompt: q.Prompt,
+		Mode:   q.Mode,
+	})
+}
+
 // ScrapeOptions configures a single-page scrape request.
 type ScrapeOptions struct {
-	Formats             []string                 `json:"formats,omitempty"`
+	Formats             []string                 `json:"-"`
+	FormatOptions       []interface{}            `json:"-"`
 	Headers             map[string]string        `json:"headers,omitempty"`
 	IncludeTags         []string                 `json:"includeTags,omitempty"`
 	ExcludeTags         []string                 `json:"excludeTags,omitempty"`
@@ -24,6 +56,25 @@ type ScrapeOptions struct {
 	JsonOptions         *JsonOptions             `json:"jsonOptions,omitempty"`
 }
 
+// MarshalJSON preserves string formats while allowing object formats such as QueryFormat.
+func (o ScrapeOptions) MarshalJSON() ([]byte, error) {
+	type scrapeOptions ScrapeOptions
+	payload := struct {
+		scrapeOptions
+		Formats interface{} `json:"formats,omitempty"`
+	}{
+		scrapeOptions: scrapeOptions(o),
+	}
+
+	if len(o.FormatOptions) > 0 {
+		payload.Formats = o.FormatOptions
+	} else if len(o.Formats) > 0 {
+		payload.Formats = o.Formats
+	}
+
+	return json.Marshal(payload)
+}
+
 // CrawlOptions configures a crawl request.
 type CrawlOptions struct {
 	Prompt                 *string        `json:"prompt,omitempty"`
@@ -34,7 +85,7 @@ type CrawlOptions struct {
 	IgnoreQueryParameters  *bool          `json:"ignoreQueryParameters,omitempty"`
 	DeduplicateSimilarURLs *bool          `json:"deduplicateSimilarURLs,omitempty"`
 	Limit                  *int           `json:"limit,omitempty"`
-	CrawlEntireDomain     *bool          `json:"crawlEntireDomain,omitempty"`
+	CrawlEntireDomain      *bool          `json:"crawlEntireDomain,omitempty"`
 	AllowExternalLinks     *bool          `json:"allowExternalLinks,omitempty"`
 	AllowSubdomains        *bool          `json:"allowSubdomains,omitempty"`
 	Delay                  *int           `json:"delay,omitempty"`
@@ -87,14 +138,14 @@ type SearchOptions struct {
 
 // AgentOptions configures an agent request.
 type AgentOptions struct {
-	URLs                   []string               `json:"urls,omitempty"`
-	Prompt                 string                 `json:"prompt"`
-	Schema                 map[string]interface{} `json:"schema,omitempty"`
-	Integration            *string                `json:"integration,omitempty"`
-	MaxCredits             *int                   `json:"maxCredits,omitempty"`
-	StrictConstrainToURLs  *bool                  `json:"strictConstrainToURLs,omitempty"`
-	Model                  *string                `json:"model,omitempty"`
-	Webhook                *WebhookConfig         `json:"webhook,omitempty"`
+	URLs                  []string               `json:"urls,omitempty"`
+	Prompt                string                 `json:"prompt"`
+	Schema                map[string]interface{} `json:"schema,omitempty"`
+	Integration           *string                `json:"integration,omitempty"`
+	MaxCredits            *int                   `json:"maxCredits,omitempty"`
+	StrictConstrainToURLs *bool                  `json:"strictConstrainToURLs,omitempty"`
+	Model                 *string                `json:"model,omitempty"`
+	Webhook               *WebhookConfig         `json:"webhook,omitempty"`
 }
 
 // LocationConfig specifies geolocation for requests.

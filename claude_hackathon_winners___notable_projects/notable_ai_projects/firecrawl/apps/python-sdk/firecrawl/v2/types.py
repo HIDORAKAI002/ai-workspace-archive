@@ -451,6 +451,7 @@ class QueryFormat(Format):
 
     type: Literal["query"] = "query"
     prompt: str
+    mode: Optional[Literal["freeform", "directQuote"]] = None
 
 
 FormatOption = Union[

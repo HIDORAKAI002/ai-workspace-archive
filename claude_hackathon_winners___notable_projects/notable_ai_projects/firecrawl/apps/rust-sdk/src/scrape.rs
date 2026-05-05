@@ -436,7 +436,29 @@ impl Client {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{QueryFormat, QueryFormatMode};
     use serde_json::json;
+
+    #[test]
+    fn test_query_format_serializes_mode() {
+        let options = ScrapeOptions {
+            formats: Some(vec![Format::Query(QueryFormat {
+                prompt: "What is Firecrawl?".to_string(),
+                mode: Some(QueryFormatMode::DirectQuote),
+            })]),
+            ..Default::default()
+        };
+
+        let payload = serde_json::to_value(options).unwrap();
+        assert_eq!(
+            payload["formats"][0],
+            json!({
+                "type": "query",
+                "prompt": "What is Firecrawl?",
+                "mode": "directQuote"
+            })
+        );
+    }
 
     #[tokio::test]
     async fn test_scrape_with_mock() {

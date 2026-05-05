@@ -20,28 +20,28 @@ Multi-agent architectures leverage these communication patterns to ensure that a
 
 | **Name**                          | **Description**                                                                                                                                                         | **Documentation**                                                                                      | **Use Cases**                                                                                     |
 |-----------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------|
-| Hierarchical Architecture         | A system where agents are organized in a hierarchy, with higher-level agents coordinating lower-level agents to achieve complex tasks.                                   | [Learn More](https://docs.swarms.world/en/latest/swarms/structs/hierarchical_swarm/)                | Manufacturing process optimization, multi-level sales management, healthcare resource coordination |
-| Agent Rearrange                   | A setup where agents rearrange themselves dynamically based on the task requirements and environmental conditions.                                                       | [Learn More](https://docs.swarms.world/en/latest/swarms/structs/agent_rearrange/)                   | Adaptive manufacturing lines, dynamic sales territory realignment, flexible healthcare staffing  |
-| Concurrent Workflows              | Agents perform different tasks simultaneously, coordinating to complete a larger goal.                                                                                  | [Learn More](https://docs.swarms.world/en/latest/swarms/structs/concurrentworkflow/)               | Concurrent production lines, parallel sales operations, simultaneous patient care processes       |
-| Sequential Coordination           | Agents perform tasks in a specific sequence, where the completion of one task triggers the start of the next.                                                           | [Learn More](https://docs.swarms.world/en/latest/swarms/structs/sequential_workflow/)               | Step-by-step assembly lines, sequential sales processes, stepwise patient treatment workflows     |
-| Mixture of Agents                 | A heterogeneous architecture where agents with different capabilities are combined to solve complex problems.                                                           | [Learn More](https://docs.swarms.world/en/latest/swarms/structs/moa/)                               | Financial forecasting, complex problem-solving requiring diverse skills                           |
-| Graph Workflow                    | Agents collaborate in a directed acyclic graph (DAG) format to manage dependencies and parallel tasks.                                                                  | [Learn More](https://docs.swarms.world/en/latest/swarms/structs/graph_workflow/)                    | AI-driven software development pipelines, complex project management                              |
-| Group Chat                        | Agents engage in a chat-like interaction to reach decisions collaboratively.                                                                                           | [Learn More](https://docs.swarms.world/en/latest/swarms/structs/group_chat/)                        | Real-time collaborative decision-making, contract negotiations                                    |
-| Interactive Group Chat           | Enhanced group chat with dynamic speaker selection and interaction patterns.                                                                                           | [Learn More](https://docs.swarms.world/en/latest/swarms/structs/interactive_groupchat/)             | Advanced collaborative decision-making, dynamic team coordination                                 |
-| SpreadSheet                       | Manages tasks at scale, tracking agent outputs in a structured format like CSV files.                                                                                   | [Learn More](https://docs.swarms.world/en/latest/swarms/structs/spreadsheet_swarm/)                 | Large-scale marketing analytics, financial audits                                                 |
-| Router                            | Routes and chooses the architecture based on the task requirements and available agents.                                                                               | [Learn More](https://docs.swarms.world/en/latest/swarms/structs/swarm_router/)                       | Dynamic task routing, adaptive architecture selection, optimized agent allocation                 |
-| Heavy                             | High-performance architecture for handling intensive computational tasks with multiple agents.                                                                         | [Learn More](https://docs.swarms.world/en/latest/swarms/structs/heavy_swarm/)                       | Large-scale data processing, intensive computational workflows                                    |
-| Council as Judge                  | Multiple agents act as a council to evaluate and judge outputs or decisions.                                                                                           | [Learn More](https://docs.swarms.world/en/latest/swarms/structs/council_of_judges/)                     | Quality assessment, decision validation, peer review processes                                    |
-| Majority Voting                   | Agents vote on decisions with the majority determining the final outcome.                                                                                              | [Learn More](https://docs.swarms.world/en/latest/swarms/structs/majorityvoting/)                   | Democratic decision-making, consensus building, error reduction                                   |
-| MAKER                             | Decomposes work into sequential steps; each step uses repeated micro-agent samples, red-flagging, and first-to-ahead-by-k voting before committing.                     | [Learn More](https://docs.swarms.world/en/latest/swarms/structs/maker/)                             | Very long or high-precision pipelines where every atomic step should be statistically validated      |
-| Round Robin                       | Tasks are distributed cyclically among agents in a rotating order.                                                                                                     | [Learn More](https://docs.swarms.world/en/latest/swarms/structs/round_robin_swarm/)                       | Load balancing, fair task distribution, resource optimization                                     |
-| Auto-Builder                      | Automatically constructs and configures multi-agent systems based on requirements.                                                                                    | [Learn More](https://docs.swarms.world/en/latest/swarms/structs/auto_swarm_builder/)                | Dynamic system creation, adaptive architectures, rapid prototyping                               |
-| Hybrid Hierarchical Cluster      | Combines hierarchical and peer-to-peer communication patterns for complex workflows.                                                                                   | [Learn More](https://docs.swarms.world/en/latest/swarms/structs/hhcs/)     | Complex enterprise workflows, multi-department coordination                                       |
-| Batched Grid Workflow             | Executes tasks in a batched grid format, where each agent processes a different task simultaneously in parallel.                                                       | [Learn More](https://docs.swarms.world/en/latest/swarms/structs/batched_grid_workflow/)              | Parallel task processing, batch operations, grid-based task distribution                         |
-| LLM Council                       | Orchestrates multiple specialized LLM agents to collaboratively answer queries through structured peer review and synthesis.                                            | [Learn More](https://docs.swarms.world/en/latest/swarms/structs/llm_council/)                        | Multi-model evaluation, peer review systems, collaborative AI decision-making                    |
-| Debate with Judge                 | A debate architecture with Pro and Con agents debating topics, evaluated by a Judge. Supports preset agents, agent lists, or individual configuration for flexible setup.   | [Learn More](https://docs.swarms.world/en/latest/swarms/structs/debate_with_judge/)                 | Argument analysis, decision refinement, structured debates, iterative improvement                |
-| Self MoA Seq                      | Sequential self-mixture of agents that generates multiple candidate responses and synthesizes them sequentially using a sliding window approach.                      | [Learn More](https://docs.swarms.world/en/latest/swarms/structs/self_moa_seq/)                       | High-quality response generation, ensemble methods, sequential synthesis                          |
-| Swarm Rearrange                   | Orchestrates multiple swarms in sequential or parallel flow patterns, providing thread-safe operations for managing swarm execution.                                     | [Learn More](https://docs.swarms.world/en/latest/swarms/structs/swarm_rearrange/)                    | Multi-swarm coordination, complex workflow orchestration, swarm composition                       |
+| Hierarchical Architecture         | A system where agents are organized in a hierarchy, with higher-level agents coordinating lower-level agents to achieve complex tasks.                                   | [Learn More](https://docs.swarms.world/swarms/structs/hierarchical_swarm/)                | Manufacturing process optimization, multi-level sales management, healthcare resource coordination |
+| Agent Rearrange                   | A setup where agents rearrange themselves dynamically based on the task requirements and environmental conditions.                                                       | [Learn More](https://docs.swarms.world/swarms/structs/agent_rearrange/)                   | Adaptive manufacturing lines, dynamic sales territory realignment, flexible healthcare staffing  |
+| Concurrent Workflows              | Agents perform different tasks simultaneously, coordinating to complete a larger goal.                                                                                  | [Learn More](https://docs.swarms.world/swarms/structs/concurrentworkflow/)               | Concurrent production lines, parallel sales operations, simultaneous patient care processes       |
+| Sequential Coordination           | Agents perform tasks in a specific sequence, where the completion of one task triggers the start of the next.                                                           | [Learn More](https://docs.swarms.world/swarms/structs/sequential_workflow/)               | Step-by-step assembly lines, sequential sales processes, stepwise patient treatment workflows     |
+| Mixture of Agents                 | A heterogeneous architecture where agents with different capabilities are combined to solve complex problems.                                                           | [Learn More](https://docs.swarms.world/swarms/structs/moa/)                               | Financial forecasting, complex problem-solving requiring diverse skills                           |
+| Graph Workflow                    | Agents collaborate in a directed acyclic graph (DAG) format to manage dependencies and parallel tasks.                                                                  | [Learn More](https://docs.swarms.world/swarms/structs/graph_workflow/)                    | AI-driven software development pipelines, complex project management                              |
+| Group Chat                        | Agents engage in a chat-like interaction to reach decisions collaboratively.                                                                                           | [Learn More](https://docs.swarms.world/swarms/structs/group_chat/)                        | Real-time collaborative decision-making, contract negotiations                                    |
+| Interactive Group Chat           | Enhanced group chat with dynamic speaker selection and interaction patterns.                                                                                           | [Learn More](https://docs.swarms.world/swarms/structs/interactive_groupchat/)             | Advanced collaborative decision-making, dynamic team coordination                                 |
+| SpreadSheet                       | Manages tasks at scale, tracking agent outputs in a structured format like CSV files.                                                                                   | [Learn More](https://docs.swarms.world/swarms/structs/spreadsheet_swarm/)                 | Large-scale marketing analytics, financial audits                                                 |
+| Router                            | Routes and chooses the architecture based on the task requirements and available agents.                                                                               | [Learn More](https://docs.swarms.world/swarms/structs/swarm_router/)                       | Dynamic task routing, adaptive architecture selection, optimized agent allocation                 |
+| Heavy                             | High-performance architecture for handling intensive computational tasks with multiple agents.                                                                         | [Learn More](https://docs.swarms.world/swarms/structs/heavy_swarm/)                       | Large-scale data processing, intensive computational workflows                                    |
+| Council as Judge                  | Multiple agents act as a council to evaluate and judge outputs or decisions.                                                                                           | [Learn More](https://docs.swarms.world/swarms/structs/council_of_judges/)                     | Quality assessment, decision validation, peer review processes                                    |
+| Majority Voting                   | Agents vote on decisions with the majority determining the final outcome.                                                                                              | [Learn More](https://docs.swarms.world/swarms/structs/majorityvoting/)                   | Democratic decision-making, consensus building, error reduction                                   |
+| MAKER                             | Decomposes work into sequential steps; each step uses repeated micro-agent samples, red-flagging, and first-to-ahead-by-k voting before committing.                     | [Learn More](https://docs.swarms.world/swarms/structs/maker/)                             | Very long or high-precision pipelines where every atomic step should be statistically validated      |
+| Round Robin                       | Tasks are distributed cyclically among agents in a rotating order.                                                                                                     | [Learn More](https://docs.swarms.world/swarms/structs/round_robin_swarm/)                       | Load balancing, fair task distribution, resource optimization                                     |
+| Auto-Builder                      | Automatically constructs and configures multi-agent systems based on requirements.                                                                                    | [Learn More](https://docs.swarms.world/swarms/structs/auto_swarm_builder/)                | Dynamic system creation, adaptive architectures, rapid prototyping                               |
+| Hybrid Hierarchical Cluster      | Combines hierarchical and peer-to-peer communication patterns for complex workflows.                                                                                   | [Learn More](https://docs.swarms.world/swarms/structs/hhcs/)     | Complex enterprise workflows, multi-department coordination                                       |
+| Batched Grid Workflow             | Executes tasks in a batched grid format, where each agent processes a different task simultaneously in parallel.                                                       | [Learn More](https://docs.swarms.world/swarms/structs/batched_grid_workflow/)              | Parallel task processing, batch operations, grid-based task distribution                         |
+| LLM Council                       | Orchestrates multiple specialized LLM agents to collaboratively answer queries through structured peer review and synthesis.                                            | [Learn More](https://docs.swarms.world/swarms/structs/llm_council/)                        | Multi-model evaluation, peer review systems, collaborative AI decision-making                    |
+| Debate with Judge                 | A debate architecture with Pro and Con agents debating topics, evaluated by a Judge. Supports preset agents, agent lists, or individual configuration for flexible setup.   | [Learn More](https://docs.swarms.world/swarms/structs/debate_with_judge/)                 | Argument analysis, decision refinement, structured debates, iterative improvement                |
+| Self MoA Seq                      | Sequential self-mixture of agents that generates multiple candidate responses and synthesizes them sequentially using a sliding window approach.                      | [Learn More](https://docs.swarms.world/swarms/structs/self_moa_seq/)                       | High-quality response generation, ensemble methods, sequential synthesis                          |
+| Swarm Rearrange                   | Orchestrates multiple swarms in sequential or parallel flow patterns, providing thread-safe operations for managing swarm execution.                                     | [Learn More](https://docs.swarms.world/swarms/structs/swarm_rearrange/)                    | Multi-swarm coordination, complex workflow orchestration, swarm composition                       |
 
 ---
 
@@ -59,7 +59,7 @@ Organizes agents in a tree-like structure. Higher-level agents delegate tasks to
 - Multi-stage workflows such as data processing pipelines or hierarchical reinforcement learning
 
 
-**[Learn More](https://docs.swarms.world/en/latest/swarms/structs/hierarchical_swarm/)**
+**[Learn More](https://docs.swarms.world/swarms/structs/hierarchical_swarm/)**
 
 ```mermaid
 graph TD
@@ -87,7 +87,7 @@ A dynamic architecture where agents rearrange themselves based on task requireme
 - Flexible healthcare staffing that adjusts to patient needs
 
 
-**[Learn More](https://docs.swarms.world/en/latest/swarms/structs/agent_rearrange/)**
+**[Learn More](https://docs.swarms.world/swarms/structs/agent_rearrange/)**
 
 ```mermaid
 graph TD
@@ -125,7 +125,7 @@ Multiple agents operate independently and simultaneously on different tasks. Eac
 - Large-scale simulations where multiple scenarios are run simultaneously
 
 
-**[Learn More](https://docs.swarms.world/en/latest/swarms/structs/concurrentworkflow/)**
+**[Learn More](https://docs.swarms.world/swarms/structs/concurrentworkflow/)**
 
 ```mermaid
 graph LR
@@ -153,7 +153,7 @@ Processes tasks in a linear sequence. Each agent completes its task before passi
 - Scenarios requiring strict order of operations
 
 
-**[Learn More](https://docs.swarms.world/en/latest/swarms/structs/sequential_workflow/)**
+**[Learn More](https://docs.swarms.world/swarms/structs/sequential_workflow/)**
 
 ```mermaid
 graph TD
@@ -178,7 +178,7 @@ Tasks are distributed cyclically among a set of agents. Each agent takes turns h
 - Scenarios requiring fair distribution of tasks to avoid overloading any single agent
 
 
-**[Learn More](https://docs.swarms.world/en/latest/swarms/structs/round_robin_swarm/)**
+**[Learn More](https://docs.swarms.world/swarms/structs/round_robin_swarm/)**
 
 ```mermaid
 graph TD
@@ -209,7 +209,7 @@ Makes it easy to manage thousands of agents in one place: a CSV file. Initialize
 - One place to analyze agent outputs
 
 
-**[Learn More](https://docs.swarms.world/en/latest/swarms/structs/spreadsheet_swarm/)**
+**[Learn More](https://docs.swarms.world/swarms/structs/spreadsheet_swarm/)**
 
 ```mermaid
 graph TD
@@ -256,7 +256,7 @@ Multi-agent orchestration pattern that executes tasks in a batched grid format, 
 - Multi-task multi-agent coordination
 
 
-**[Learn More](https://docs.swarms.world/en/latest/swarms/structs/batched_grid_workflow/)**
+**[Learn More](https://docs.swarms.world/swarms/structs/batched_grid_workflow/)**
 
 ```mermaid
 graph TD
@@ -293,7 +293,7 @@ Combines multiple agents with different capabilities and expertise to solve comp
 - Multi-domain analysis tasks
 
 
-**[Learn More](https://docs.swarms.world/en/latest/swarms/structs/moa/)**
+**[Learn More](https://docs.swarms.world/swarms/structs/moa/)**
 
 ```mermaid
 graph TD
@@ -328,7 +328,7 @@ Organizes agents in a directed acyclic graph (DAG) format, enabling complex depe
 - Multi-step data processing workflows
 
 
-**[Learn More](https://docs.swarms.world/en/latest/swarms/structs/graph_workflow/)**
+**[Learn More](https://docs.swarms.world/swarms/structs/graph_workflow/)**
 
 ```mermaid
 graph TD
@@ -358,7 +358,7 @@ Enables agents to engage in chat-like interactions to reach decisions collaborat
 - Brainstorming sessions
 
 
-**[Learn More](https://docs.swarms.world/en/latest/swarms/structs/group_chat/)**
+**[Learn More](https://docs.swarms.world/swarms/structs/group_chat/)**
 
 ```mermaid
 graph TD
@@ -393,7 +393,7 @@ Enhanced version of Group Chat with dynamic speaker selection, priority-based co
 - Adaptive conversation management
 
 
-**[Learn More](https://docs.swarms.world/en/latest/swarms/structs/interactive_groupchat/)**
+**[Learn More](https://docs.swarms.world/swarms/structs/interactive_groupchat/)**
 
 ```mermaid
 graph TD
@@ -433,7 +433,7 @@ Intelligently routes tasks to the most appropriate agents or architectures based
 - Optimized agent allocation
 
 
-**[Learn More](https://docs.swarms.world/en/latest/swarms/structs/swarm_router/)**
+**[Learn More](https://docs.swarms.world/swarms/structs/swarm_router/)**
 
 ```mermaid
 graph TD
@@ -471,7 +471,7 @@ High-performance architecture designed for handling intensive computational task
 - High-throughput task execution
 
 
-**[Learn More](https://docs.swarms.world/en/latest/swarms/structs/heavy_swarm/)**
+**[Learn More](https://docs.swarms.world/swarms/structs/heavy_swarm/)**
 
 ```mermaid
 graph TD
@@ -582,7 +582,7 @@ Ensemble method that generates multiple candidate responses from a single high-p
 - Quality improvement through diversity
 
 
-**[Learn More](https://docs.swarms.world/en/latest/swarms/structs/self_moa_seq/)**
+**[Learn More](https://docs.swarms.world/swarms/structs/self_moa_seq/)**
 
 ```mermaid
 graph TD
@@ -619,7 +619,7 @@ Multiple agents act as a council to evaluate, judge, and validate outputs or dec
 - Peer review systems
 
 
-**[Learn More](https://docs.swarms.world/en/latest/swarms/structs/council_of_judges/)**
+**[Learn More](https://docs.swarms.world/swarms/structs/council_of_judges/)**
 
 ```mermaid
 graph TD
@@ -658,7 +658,7 @@ Orchestrates multiple specialized LLM agents to collaboratively answer queries t
 - Cross-model consensus building
 
 
-**[Learn More](https://docs.swarms.world/en/latest/swarms/structs/llm_council/)**
+**[Learn More](https://docs.swarms.world/swarms/structs/llm_council/)**
 
 ```mermaid
 graph TD
@@ -703,7 +703,7 @@ Debate architecture with self-refinement through a judge agent, enabling Pro and
 - `agents=[pro, con, judge]`: Provide a list of 3 agents
 - Individual parameters: `pro_agent`, `con_agent`, `judge_agent`
 
-**[Learn More](https://docs.swarms.world/en/latest/swarms/structs/debate_with_judge/)**
+**[Learn More](https://docs.swarms.world/swarms/structs/debate_with_judge/)**
 
 ```mermaid
 graph TD
@@ -740,7 +740,7 @@ Agents vote on decisions with the majority determining the final outcome, provid
 - Error reduction through voting
 
 
-**[Learn More](https://docs.swarms.world/en/latest/swarms/structs/majorityvoting/)**
+**[Learn More](https://docs.swarms.world/swarms/structs/majorityvoting/)**
 
 ```mermaid
 graph TD
@@ -778,7 +778,7 @@ MAKER (**M**aximal **A**gentic decomposition, first-to-ahead-by-**K** **E**rror 
 
 - Domains where you can decompose work into explicit steps with clear per-step I/O
 
-**[Learn More](https://docs.swarms.world/en/latest/swarms/structs/maker/)**
+**[Learn More](https://docs.swarms.world/swarms/structs/maker/)**
 
 ```mermaid
 graph TD
@@ -810,7 +810,7 @@ Automatically constructs and configures multi-agent systems based on requirement
 - Rapid prototyping of multi-agent systems
 
 
-**[Learn More](https://docs.swarms.world/en/latest/swarms/structs/auto_swarm_builder/)**
+**[Learn More](https://docs.swarms.world/swarms/structs/auto_swarm_builder/)**
 
 ```mermaid
 graph TD
@@ -850,7 +850,7 @@ Orchestrates multiple swarms in sequential or parallel flow patterns with thread
 - Sequential and parallel swarm execution
 
 
-**[Learn More](https://docs.swarms.world/en/latest/swarms/structs/swarm_rearrange/)**
+**[Learn More](https://docs.swarms.world/swarms/structs/swarm_rearrange/)**
 
 ```mermaid
 graph TD
@@ -890,7 +890,7 @@ Combines hierarchical and peer-to-peer communication patterns for complex workfl
 - Hybrid organizational structures
 
 
-**[Learn More](https://docs.swarms.world/en/latest/swarms/structs/hhcs/)**
+**[Learn More](https://docs.swarms.world/swarms/structs/hhcs/)**
 
 ```mermaid
 graph TD
@@ -932,7 +932,7 @@ Agents participate in democratic voting processes to select leaders or make coll
 - Leadership selection
 
 
-**[Learn More](https://docs.swarms.world/en/latest/swarms/structs/election_swarm/)**
+**[Learn More](https://docs.swarms.world/swarms/structs/election_swarm/)**
 
 ```mermaid
 graph TD
@@ -974,7 +974,7 @@ Adaptive conversation management with dynamic agent selection and interaction pa
 - Contextual conversations
 
 
-**[Learn More](https://docs.swarms.world/en/latest/swarms/structs/dynamic_conversational_swarm/)**
+**[Learn More](https://docs.swarms.world/swarms/structs/dynamic_conversational_swarm/)**
 
 ```mermaid
 graph TD
@@ -1014,7 +1014,7 @@ Hierarchical tree structure for organizing agents in parent-child relationships.
 - Taxonomic classification
 
 
-**[Learn More](https://docs.swarms.world/en/latest/swarms/structs/tree_swarm/)**
+**[Learn More](https://docs.swarms.world/swarms/structs/tree_swarm/)**
 
 ```mermaid
 graph TD

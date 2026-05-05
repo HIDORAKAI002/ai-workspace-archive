@@ -1,5 +1,5 @@
 import pytest
-from firecrawl.v2.types import JsonFormat, ScrapeOptions, PDFParser
+from firecrawl.v2.types import JsonFormat, QueryFormat, ScrapeOptions, PDFParser
 from firecrawl.v2.utils.validation import validate_scrape_options, prepare_scrape_options
 
 
@@ -187,6 +187,47 @@ class TestPrepareScrapeOptions:
         """Test preparation with invalid options (should raise error)."""
         options = ScrapeOptions(timeout=-1000)
         with pytest.raises(ValueError, match="Timeout must be positive"):
+            prepare_scrape_options(options)
+
+    def test_prepare_query_format_with_mode(self):
+        """Test query format mode is preserved."""
+        options = ScrapeOptions(
+            formats=[QueryFormat(prompt="What is Firecrawl?", mode="directQuote")]
+        )
+        result = prepare_scrape_options(options)
+
+        assert result["formats"] == [
+            {"type": "query", "prompt": "What is Firecrawl?", "mode": "directQuote"}
+        ]
+
+    def test_prepare_query_format_rejects_direct_quote_boolean(self):
+        """Test old query directQuote layout is rejected."""
+        options = ScrapeOptions(
+            formats=[
+                {
+                    "type": "query",
+                    "prompt": "What is Firecrawl?",
+                    "directQuote": True,
+                }
+            ]
+        )
+
+        with pytest.raises(ValueError, match="uses 'mode' instead of 'directQuote'"):
+            prepare_scrape_options(options)
+
+    def test_prepare_query_format_rejects_invalid_mode(self):
+        """Test query mode validation."""
+        options = ScrapeOptions(
+            formats=[
+                {
+                    "type": "query",
+                    "prompt": "What is Firecrawl?",
+                    "mode": "quoted",
+                }
+            ]
+        )
+
+        with pytest.raises(ValueError, match="mode must be 'freeform' or 'directQuote'"):
             prepare_scrape_options(options)
 
     def test_prepare_empty_options(self):

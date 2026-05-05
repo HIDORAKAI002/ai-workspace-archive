@@ -2,11 +2,16 @@
 
 from __future__ import annotations
 
+import json
 import os
 
+import httpx
 import pytest
+import respx
 
 from pinecone import Pinecone
+from pinecone.models.backups.model import CreateIndexFromBackupResponse
+from tests.factories import make_index_response
 
 
 @pytest.mark.integration
@@ -57,6 +62,31 @@ def test_validation_error_import_triggers_deprecation_warning() -> None:
         pytest.fail("ValidationError alias failed to catch a PineconeValueError instance")
 
 
+BASE_URL = "https://api.pinecone.io"
+
+
+@respx.mock
+def test_create_index_from_backup_no_wait_returns_restore_job_id() -> None:
+    """timeout=-1 returns CreateIndexFromBackupResponse with restore_job_id and index_id."""
+    respx.post(f"{BASE_URL}/backups/bk-test/create-index").mock(
+        return_value=httpx.Response(
+            202,
+            json={"restore_job_id": "rj-test-123", "index_id": "idx-test-456"},
+        ),
+    )
+
+    pc = Pinecone(api_key="test-key")
+    result = pc.create_index_from_backup(
+        name="test-restore-nowait",
+        backup_id="bk-test",
+        timeout=-1,
+    )
+
+    assert isinstance(result, CreateIndexFromBackupResponse)
+    assert result.restore_job_id == "rj-test-123"
+    assert result.index_id == "idx-test-456"
+
+
 @pytest.mark.integration
 def test_client_init_with_api_key() -> None:
     """Pinecone(api_key=...) creates a client with accessible control-plane namespaces."""
@@ -75,3 +105,40 @@ def test_client_init_with_api_key() -> None:
 
     assert isinstance(__version__, str)
     assert len(__version__) > 0
+
+
+@respx.mock
+def test_create_index_schema_parameter_forwarded() -> None:
+    """Verify schema param is forwarded through the create_index backcompat shim."""
+    response_body = make_index_response(name="test-schema-shim")
+    route = respx.post("https://api.pinecone.io/indexes").mock(
+        return_value=httpx.Response(201, json=response_body),
+    )
+
+    pc = Pinecone(api_key="test-key")
+    result = pc.create_index(
+        name="test-schema-shim",
+        spec={"serverless": {"cloud": "aws", "region": "us-east-1"}},
+        dimension=1536,
+        schema={"text_field": {"type": "str"}},
+        timeout=-1,
+    )
+
+    assert result.name == "test-schema-shim"
+    sent_body = json.loads(route.calls[0].request.content)
+    # schema is forwarded into spec.serverless.schema by build_create_body
+    assert sent_body["spec"]["serverless"]["schema"] == {"text_field": {"type": "str"}}
+
+
+@respx.mock
+def test_configure_index_serverless_read_capacity() -> None:
+    """configure_index shim forwards serverless_read_capacity to PATCH spec.serverless."""
+    route = respx.patch(f"{BASE_URL}/indexes/my-serverless-idx").mock(
+        return_value=httpx.Response(202, json=make_index_response(name="my-serverless-idx")),
+    )
+
+    pc = Pinecone(api_key="test-key")
+    pc.configure_index("my-serverless-idx", serverless_read_capacity={"mode": "OnDemand"})
+
+    sent_body = json.loads(route.calls[0].request.content)
+    assert sent_body == {"spec": {"serverless": {"read_capacity": {"mode": "OnDemand"}}}}

@@ -142,7 +142,7 @@ defmodule Firecrawl.Generator do
           )
       \"\"\"
 
-      @type response :: {:ok, Req.Response.t()} | {:error, Exception.t()}
+      @type response :: {:ok, Req.Response.t()} | {:error, Exception.t() | Firecrawl.Error.t()}
 
       @base_url "#{base_url}"
 
@@ -191,7 +191,14 @@ defmodule Firecrawl.Generator do
     #{auth_header_line}
         )
         |> Req.merge(opts)
+        |> Req.Request.append_response_steps(firecrawl_error_handler: &handle_api_error/1)
       end
+
+      defp handle_api_error({request, %Req.Response{status: status} = response}) when status >= 400 do
+        {request, Firecrawl.Error.exception(status: status, body: response.body)}
+      end
+
+      defp handle_api_error({request, response}), do: {request, response}
 
       defp to_body(validated_params, key_mapping) do
         Map.new(validated_params, fn {k, v} ->
@@ -486,7 +493,7 @@ defmodule Firecrawl.Generator do
 
   defp openapi_to_nimble_type(%{"type" => "string", "enum" => values}) do
     inspected = values |> Enum.map(&atom_literal/1) |> Enum.join(", ")
-    "{:in, [#{inspected}]}"
+    "{:or, [{:in, [#{inspected}]}, :string]}"
   end
 
   defp openapi_to_nimble_type(%{"type" => "string"}), do: ":string"

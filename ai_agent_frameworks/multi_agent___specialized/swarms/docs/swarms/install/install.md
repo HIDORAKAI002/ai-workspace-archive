@@ -364,7 +364,7 @@ Before you begin, ensure you have the following installed:
 
 === "Cargo install"
 
-    Get started with the Rust implementation of Swarms. [Get started with the docs here](https://docs.swarms.world/en/latest/swarms_rs/overview/)
+    Get started with the Rust implementation of Swarms. [Get started with the docs here](https://docs.swarms.world/swarms_rs/overview/)
 
     ```bash
     cargo add swarms-rs

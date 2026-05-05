@@ -123,7 +123,8 @@ class Indexes:
         logger.info("Describing index %r", name)
         response = self._http.get(f"/indexes/{name}")
         model = self._adapter.to_index_model(response.content)
-        self._host_cache[name] = model.host
+        if model.host is not None:
+            self._host_cache[name] = model.host
         logger.debug("Described index %r (host=%s)", name, model.host)
         return model
 
@@ -215,6 +216,7 @@ class Indexes:
         tags: Mapping[str, str] | None = None,
         embed: dict[str, Any] | None = None,
         read_capacity: dict[str, Any] | None = None,
+        serverless_read_capacity: dict[str, Any] | None = None,
     ) -> None:
         """Configure an existing index.
 
@@ -232,6 +234,9 @@ class Indexes:
                 BYOC indexes. Pass ``{"mode": "OnDemand"}`` or
                 ``{"mode": "Dedicated", "dedicated": {"node_type": "t1",
                 "scaling": "Manual", "manual": {"replicas": 2, "shards": 1}}}``.
+            serverless_read_capacity (dict[str, Any] | None): Read capacity configuration
+                for serverless indexes. Pass ``{"mode": "OnDemand"}`` or
+                ``{"mode": "Dedicated", "dedicated": {...}}``.
 
         Raises:
             :exc:`PineconeValueError`: If *name* is empty or *read_capacity* is invalid.
@@ -241,6 +246,7 @@ class Indexes:
         Examples:
             >>> pc.indexes.configure("my-index", replicas=4)
             >>> pc.indexes.configure("my-index", tags={"env": "prod"})
+            >>> pc.indexes.configure("my-index", serverless_read_capacity={"mode": "OnDemand"})
         """
         require_non_empty("name", name)
         logger.info("Configuring index %r", name)
@@ -268,6 +274,14 @@ class Indexes:
         if read_capacity is not None:
             validate_read_capacity(read_capacity)
             body["spec"] = {"byoc": {"read_capacity": read_capacity}}
+
+        if serverless_read_capacity is not None:
+            if pod_fields or read_capacity is not None:
+                raise ValidationError(
+                    "Cannot specify serverless_read_capacity alongside pod fields or byoc read_capacity"  # noqa: E501
+                )
+            validate_read_capacity(serverless_read_capacity)
+            body["spec"] = {"serverless": {"read_capacity": serverless_read_capacity}}
 
         # Deletion protection — only include when explicitly specified
         if deletion_protection is not None:
@@ -298,6 +312,7 @@ class Indexes:
         deletion_protection: DeletionProtection | str = "disabled",
         tags: Mapping[str, str] | None = None,
         schema: dict[str, Any] | None = None,
+        read_capacity: dict[str, Any] | None = None,
         timeout: int | None = None,
     ) -> IndexModel:
         """Create a new Pinecone index.
@@ -372,6 +387,8 @@ class Indexes:
                 spec=spec,
                 deletion_protection=deletion_protection,
                 tags=tags,
+                schema=schema,
+                read_capacity=read_capacity,
             )
         elif isinstance(spec, ByocSpec):
             validate_byoc_inputs(

@@ -166,6 +166,6 @@ Each agent includes:
 
 ## References
 
-- [AOP Reference](https://docs.swarms.world/en/latest/swarms/structs/aop/)
+- [AOP Reference](https://docs.swarms.world/swarms/structs/aop/)
 - [MCP Integration](https://docs.swarms.ai/examples/mcp-integration)
-- [Protocol Overview](https://docs.swarms.world/en/latest/protocol/overview/)
+- [Protocol Overview](https://docs.swarms.world/protocol/overview/)

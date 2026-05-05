@@ -57,7 +57,8 @@ func NewParseFileFromBytes(filename string, content []byte) *ParseFile {
 // mobile) nor the screenshot, branding, or changeTracking formats. The proxy
 // field only accepts "auto" or "basic".
 type ParseOptions struct {
-	Formats             []string          `json:"formats,omitempty"`
+	Formats             []string          `json:"-"`
+	FormatOptions       []interface{}     `json:"-"`
 	Headers             map[string]string `json:"headers,omitempty"`
 	IncludeTags         []string          `json:"includeTags,omitempty"`
 	ExcludeTags         []string          `json:"excludeTags,omitempty"`
@@ -70,6 +71,25 @@ type ParseOptions struct {
 	Proxy               *string           `json:"proxy,omitempty"`
 	Integration         *string           `json:"integration,omitempty"`
 	JsonOptions         *JsonOptions      `json:"jsonOptions,omitempty"`
+}
+
+// MarshalJSON preserves string formats while allowing object formats such as QueryFormat.
+func (o ParseOptions) MarshalJSON() ([]byte, error) {
+	type parseOptions ParseOptions
+	payload := struct {
+		parseOptions
+		Formats interface{} `json:"formats,omitempty"`
+	}{
+		parseOptions: parseOptions(o),
+	}
+
+	if len(o.FormatOptions) > 0 {
+		payload.Formats = o.FormatOptions
+	} else if len(o.Formats) > 0 {
+		payload.Formats = o.Formats
+	}
+
+	return json.Marshal(payload)
 }
 
 // Parse uploads a file to the `/v2/parse` endpoint and returns the extracted document.

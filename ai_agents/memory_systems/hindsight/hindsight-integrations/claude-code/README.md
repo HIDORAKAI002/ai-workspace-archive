@@ -34,21 +34,61 @@ That's it! The plugin will automatically start capturing and recalling memories.
 
 - **Auto-recall** — on every user prompt, queries Hindsight for relevant memories and injects them as context (invisible to the chat transcript, visible to Claude)
 - **Auto-retain** — after every response (or every N turns), extracts and retains conversation content to Hindsight for long-term storage
+- **Knowledge tools** — MCP server exposing `agent_knowledge_*` tools for managing knowledge pages (list, get, create, update, delete), searching memories, and ingesting documents
+- **Subagents with memory** — create specialized subagents with long-term memory via the `/hindsight-memory:create-agent` skill
 - **Daemon management** — can auto-start/stop `hindsight-embed` locally or connect to an external Hindsight server
 - **Dynamic bank IDs** — supports per-agent, per-project, or per-session memory isolation
 - **Channel-agnostic** — works with Claude Code Channels (Telegram, Discord, Slack) or interactive sessions
-- **Zero dependencies** — pure Python stdlib, no pip install required
+- **Zero dependencies** — hooks are pure Python stdlib; MCP server requires the `mcp` pip package
+
+## Subagents with Memory
+
+Create specialized subagents that learn and build knowledge across sessions.
+
+### Creating an agent
+
+Just tell Claude:
+
+> "Create a code review agent using /hindsight-memory:create-agent"
+
+Claude will:
+1. Ask for the agent name and description
+2. Write the subagent file to `~/.claude/agents/`
+3. Ingest any seed content you provide
+4. Create initial knowledge pages
+
+The agent appears in `/agents` and Claude auto-delegates to it based on its description, or you can mention `@agent-name` directly.
+
+### Knowledge Tools (MCP)
+
+When `enableKnowledgeTools` is `true`, the plugin starts a local MCP server exposing these tools:
+
+| Tool | Description |
+|------|-------------|
+| `agent_knowledge_list_pages` | List all knowledge pages |
+| `agent_knowledge_get_page` | Read a specific page |
+| `agent_knowledge_create_page` | Create a new page with a source query |
+| `agent_knowledge_update_page` | Update a page's name or source query |
+| `agent_knowledge_delete_page` | Delete a page |
+| `agent_knowledge_recall` | Search memories |
+| `agent_knowledge_ingest` | Ingest text content |
+| `agent_knowledge_ingest_file` | Ingest a file from disk |
+| `agent_knowledge_get_current_bank` | Get the current bank ID |
+
+The bank ID is resolved automatically from the plugin config — tools never expose a `bank_id` parameter.
 
 ## Architecture
 
-The plugin uses all four Claude Code hook events:
+The plugin uses Claude Code hook events and an MCP server:
 
-| Hook | Event | Purpose |
-|------|-------|---------|
-| `session_start.py` | `SessionStart` | Health check — verify Hindsight is reachable |
-| `recall.py` | `UserPromptSubmit` | **Auto-recall** — query memories, inject as `additionalContext` |
-| `retain.py` | `Stop` | **Auto-retain** — extract transcript, POST to Hindsight (async) |
-| `session_end.py` | `SessionEnd` | Cleanup — stop auto-managed daemon if started |
+| Component | Event/Transport | Purpose |
+|-----------|-----------------|---------|
+| `session_start.py` | `SessionStart` hook | Health check — verify Hindsight is reachable |
+| `recall.py` | `UserPromptSubmit` hook | **Auto-recall** — query memories, inject as `additionalContext` |
+| `retain.py` | `Stop` hook (async) | **Auto-retain** — extract transcript, POST to Hindsight |
+| `session_end.py` | `SessionEnd` hook | Cleanup — stop auto-managed daemon if started |
+| `mcp_server.py` | MCP stdio server | **Knowledge tools** — `agent_knowledge_*` tools for pages, recall, ingest |
+| `create-agent` | Skill | **Agent creation** — `/hindsight-memory:create-agent` wizard |
 
 ### Library Modules
 
@@ -230,6 +270,14 @@ outgoing retain request and the rest of the tags are sent as-is — so the same
 
 Downstream, `recall` can filter by `tags=["user:alice"]` to isolate memories
 authored by a specific user from a shared bank.
+
+---
+
+### Knowledge Tools
+
+| Setting | Env Var | Default | Description |
+|---------|---------|---------|-------------|
+| `enableKnowledgeTools` | `HINDSIGHT_ENABLE_KNOWLEDGE_TOOLS` | `false` | Enable the MCP server with `agent_knowledge_*` tools. When `false`, the MCP server exits immediately on startup and no tools are registered. Set to `true` to enable knowledge page management, memory search, and document ingestion via MCP tools. |
 
 ---
 

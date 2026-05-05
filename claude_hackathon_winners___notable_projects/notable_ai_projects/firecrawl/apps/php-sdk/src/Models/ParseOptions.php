@@ -23,7 +23,7 @@ final class ParseOptions
     ];
 
     /**
-     * @param list<string|JsonFormat>|null $formats
+     * @param list<string|JsonFormat|QueryFormat>|null $formats
      * @param array<string, string>|null   $headers
      * @param list<string>|null            $includeTags
      * @param list<string>|null            $excludeTags
@@ -45,7 +45,7 @@ final class ParseOptions
     ) {}
 
     /**
-     * @param list<string|JsonFormat>|null $formats
+     * @param list<string|JsonFormat|QueryFormat>|null $formats
      * @param array<string, string>|null   $headers
      * @param list<string>|null            $includeTags
      * @param list<string>|null            $excludeTags
@@ -105,7 +105,8 @@ final class ParseOptions
 
         if ($this->formats !== null) {
             $data['formats'] = array_map(
-                fn (string|JsonFormat $f): string|array => $f instanceof JsonFormat ? $f->toArray() : $f,
+                fn (string|JsonFormat|QueryFormat $f): string|array =>
+                    $f instanceof JsonFormat || $f instanceof QueryFormat ? $f->toArray() : $f,
                 $this->formats,
             );
         }
