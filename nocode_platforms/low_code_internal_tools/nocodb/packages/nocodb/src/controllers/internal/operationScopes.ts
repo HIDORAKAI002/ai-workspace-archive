@@ -20,6 +20,9 @@ export const OPERATION_SCOPES = {
   oAuthClientRegenerateSecret: 'org',
   checkDependency: 'base',
 
+  // Attachment Operations
+  attachmentDownload: 'base',
+
   // UI Get Operations
   tableGet: 'base',
   columnsHash: 'base',
@@ -94,6 +97,7 @@ export const OPERATION_SCOPES = {
   gridViewUpdate: 'base',
   formViewUpdate: 'base',
   formColumnUpdate: 'base',
+  formColumnBulkUpdate: 'base',
   galleryViewUpdate: 'base',
   kanbanViewUpdate: 'base',
   mapViewUpdate: 'base',
@@ -157,6 +161,7 @@ export const OPERATION_SCOPES = {
   managedAppDeployments: 'base',
   managedAppVersionDeployments: 'base',
   managedAppDeploymentLogs: 'base',
+  managedAppManualUpdate: 'base',
 
   // List View
   listViewDataList: 'base',

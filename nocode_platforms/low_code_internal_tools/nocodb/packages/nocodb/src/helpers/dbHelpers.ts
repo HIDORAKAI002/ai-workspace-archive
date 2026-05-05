@@ -4,6 +4,7 @@ import {
   isCreatedOrLastModifiedTimeCol,
   isDeletedCol,
   isLinksOrLTAR,
+  isMMOrMMLike,
   isOrderCol,
   isSystemColumn,
   isVirtualCol,
@@ -96,6 +97,12 @@ export function _wherePk(
     ids = [id];
   } else {
     ids = (id + '').split('___').map((val) => val.replaceAll('\\_', '_'));
+  }
+
+  // Reject incomplete composite ids up-front — otherwise knex builds a
+  // WHERE with `undefined` bindings and throws a generic 500.
+  if (!skipPkValidation && (ids as unknown[]).length < primaryKeys.length) {
+    NcError.invalidPrimaryKey(id, primaryKeys.map((pk) => pk.title).join(','));
   }
 
   for (let i = 0; i < primaryKeys.length; ++i) {
@@ -297,11 +304,9 @@ export function getRelatedLinksColumn(
   relatedModel: Model,
 ) {
   return relatedModel.columns.find((c: Column) => {
-    if (
-      column.colOptions?.type === RelationTypes.MANY_TO_MANY ||
-      column.colOptions?.type === RelationTypes.ONE_TO_MANY ||
-      column.colOptions?.type === RelationTypes.MANY_TO_ONE
-    ) {
+    // Junction-based relations (V1 mm + every V2 link) match by swapping
+    // fk_mm_parent_column_id and fk_mm_child_column_id between the two sides.
+    if (isMMOrMMLike(column)) {
       return (
         column.colOptions.fk_mm_child_column_id ===
           c.colOptions?.fk_mm_parent_column_id &&
