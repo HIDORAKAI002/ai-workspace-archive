@@ -50,18 +50,18 @@ class PodSpecInfo(StructDictMixin, Struct, kw_only=True):
     Attributes:
         environment: Deployment environment (e.g. ``"us-east1-gcp"``).
         pod_type: Pod type (e.g. ``"p1.x1"``).
-        replicas: Number of replicas.
-        shards: Number of shards.
-        pods: Total number of pods.
+        replicas: Number of replicas, or ``None`` if not set by the user.
+        shards: Number of shards, or ``None`` if not set by the user.
+        pods: Total number of pods, or ``None`` if not set by the user.
         metadata_config: Metadata indexing configuration, or ``None``.
         source_collection: Source collection name, or ``None``.
     """
 
     environment: str
     pod_type: str
-    replicas: int
-    shards: int
-    pods: int
+    replicas: int | None = None
+    shards: int | None = None
+    pods: int | None = None
     metadata_config: dict[str, list[str]] | None = None
     source_collection: str | None = None
 
@@ -72,10 +72,13 @@ class ByocSpecInfo(StructDictMixin, Struct, kw_only=True):
     Attributes:
         environment: BYOC environment identifier.
         read_capacity: Read capacity configuration, or ``None``.
+        schema: Metadata indexing schema, or ``None`` if all metadata
+            fields are indexed (the default).
     """
 
     environment: str
     read_capacity: dict[str, Any] | None = None
+    schema: dict[str, Any] | None = None
 
 
 class IndexSpec(StructDictMixin, Struct, kw_only=True):
@@ -136,7 +139,11 @@ class IndexModel(Struct, kw_only=True):
         name: The name of the index.
         metric: Distance metric used for similarity search (e.g. ``"cosine"``,
             ``"euclidean"``, ``"dotproduct"``).
-        host: The hostname where this index is served.
+        host: The hostname where this index is served, or ``None`` if the index
+            is still initializing and has not yet been assigned a host.
+        private_host: The private-endpoint hostname for this index when the project
+            has Private Endpoints configured, or ``None`` otherwise. Clients inside
+            a VPC should connect to this host instead of ``host``.
         status: Current status of the index.
         spec: Deployment specification containing either ``serverless``,
             ``pod``, or ``byoc`` configuration.
@@ -158,9 +165,10 @@ class IndexModel(Struct, kw_only=True):
 
     name: str
     metric: str
-    host: str
     status: IndexStatus
     spec: IndexSpec
+    host: str | None = None
+    private_host: str | None = None
     vector_type: str = "dense"
     dimension: int | None = None
     deletion_protection: str = "disabled"
@@ -169,8 +177,11 @@ class IndexModel(Struct, kw_only=True):
     created_at: str | None = None
 
     def __post_init__(self) -> None:
-        """Normalize host to always include https:// scheme."""
-        self.host = normalize_host(self.host)
+        """Normalize host and private_host to always include https:// scheme."""
+        if self.host is not None:
+            self.host = normalize_host(self.host)
+        if self.private_host is not None:
+            self.private_host = normalize_host(self.private_host)
         if isinstance(self.tags, dict) and not isinstance(self.tags, IndexTags):
             self.tags = IndexTags(self.tags)
 
@@ -194,8 +205,8 @@ class IndexModel(Struct, kw_only=True):
         Returns:
             Dictionary with all top-level fields, where nested ``spec``, ``status``,
             and ``embed`` structs are also converted to plain dicts recursively.
-            Optional fields (``dimension``, ``tags``, ``embed``) that are ``None``
-            are included in the output with their ``None`` values.
+            Optional fields (``dimension``, ``tags``, ``embed``, ``private_host``) that
+            are ``None`` are included in the output with their ``None`` values.
 
         Examples:
             >>> from pinecone.models.indexes.index import (

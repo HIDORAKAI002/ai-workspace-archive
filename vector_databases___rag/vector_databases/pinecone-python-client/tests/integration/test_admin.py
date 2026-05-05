@@ -24,11 +24,14 @@ not skip.
 from __future__ import annotations
 
 import os
+import time
 
 import pytest
 
 from pinecone import Admin, PineconeValueError
-from pinecone.errors import ApiError
+from pinecone.errors import ApiError, NotFoundError
+from pinecone.models.admin.organization import OrganizationList, OrganizationModel
+from pinecone.models.admin.project import ProjectList, ProjectModel
 
 
 @pytest.fixture(scope="module")
@@ -125,3 +128,170 @@ def test_admin_init_invalid_credentials_raises_api_error(monkeypatch: pytest.Mon
 
     with pytest.raises(ApiError):
         Admin(client_id="nonexistent", client_secret="nonexistent")
+
+
+# ---------------------------------------------------------------------------
+# admin fixture — requires real credentials (PINECONE_CLIENT_ID / SECRET)
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def admin(admin_credentials: tuple[str, str]) -> Admin:
+    """Construct an authenticated Admin client using real service-account credentials.
+
+    Module-scoped so the OAuth token exchange happens once per test run.
+    Skipped automatically when admin_credentials skips (no env vars).
+    """
+    client_id, client_secret = admin_credentials
+    return Admin(client_id=client_id, client_secret=client_secret)
+
+
+# ---------------------------------------------------------------------------
+# organizations — list / describe / update
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_organizations_list_returns_iterable_of_models(admin: Admin) -> None:
+    """admin.organizations.list() returns an OrganizationList with at least one org.
+
+    Verifies:
+    - Return type is OrganizationList (supports iter and len).
+    - At least one organization is present (service accounts always belong to one).
+    - Every element is an OrganizationModel with non-empty id and name.
+    """
+    orgs = admin.organizations.list()
+
+    assert isinstance(orgs, OrganizationList)
+    assert len(orgs) >= 1
+
+    for org in orgs:
+        assert isinstance(org, OrganizationModel)
+        assert isinstance(org.id, str) and org.id
+        assert isinstance(org.name, str) and org.name
+
+
+@pytest.mark.integration
+def test_organizations_describe_returns_matching_model(admin: Admin) -> None:
+    """admin.organizations.describe() returns a model matching the listed org.
+
+    Takes the first org from list(), calls describe() with its id, and
+    verifies that the described model has consistent id and name and that
+    all required fields are populated.
+    """
+    orgs = admin.organizations.list()
+    first = orgs[0]
+
+    described = admin.organizations.describe(organization_id=first.id)
+
+    assert isinstance(described, OrganizationModel)
+    assert described.id == first.id
+    assert described.name == first.name
+    assert described.plan
+    assert described.payment_status
+    assert described.created_at
+    assert described.support_tier
+
+
+@pytest.mark.integration
+def test_organizations_update_roundtrips_name(admin: Admin) -> None:
+    """admin.organizations.update() persists the new name and is reversible.
+
+    Saves the original name, renames to a timestamped variant, asserts the
+    returned model reflects the new name, re-describes to confirm the change
+    persisted on the server, then restores the original name in a finally
+    block to leave org state clean.
+    """
+    orgs = admin.organizations.list()
+    first = orgs[0]
+    original_name = first.name
+    new_name = f"{original_name}-test-{int(time.time())}"
+
+    try:
+        updated = admin.organizations.update(organization_id=first.id, name=new_name)
+        assert isinstance(updated, OrganizationModel)
+        assert updated.name == new_name
+
+        # Re-describe to confirm server persisted the change.
+        described = admin.organizations.describe(organization_id=first.id)
+        assert described.name == new_name
+    finally:
+        admin.organizations.update(organization_id=first.id, name=original_name)
+
+
+# ---------------------------------------------------------------------------
+# projects — full CRUD lifecycle
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_project_lifecycle_create_describe_update_delete(admin: Admin) -> None:
+    """Full CRUD lifecycle for admin.projects.
+
+    Creates an ephemeral project with a timestamped unique name, exercises
+    every read/write operation, then deletes it.  The project is cleaned up
+    in a finally block so a mid-test failure does not leave orphaned resources.
+
+    Operations verified:
+    - create → ProjectModel with correct name, non-empty id and organization_id
+    - list → created project appears in the result set
+    - describe (by id) → returns consistent id and name
+    - describe_by_name → positive match; NotFoundError for unknown name
+    - update → returned model and re-described model both reflect new name
+    - delete → project no longer reachable via describe after deletion
+    """
+    name = f"inttest-proj-{int(time.time())}"
+    created: ProjectModel | None = None
+    _test_passed = False
+
+    try:
+        # create
+        created = admin.projects.create(name=name)
+        assert isinstance(created, ProjectModel)
+        assert created.name == name
+        assert created.id
+        assert created.organization_id
+
+        # list — created project appears
+        listed = admin.projects.list()
+        assert isinstance(listed, ProjectList)
+        assert any(p.id == created.id for p in listed)
+
+        # describe by ID
+        described = admin.projects.describe(project_id=created.id)
+        assert isinstance(described, ProjectModel)
+        assert described.id == created.id
+        assert described.name == name
+
+        # describe_by_name — positive path
+        by_name = admin.projects.describe_by_name(name=name)
+        assert isinstance(by_name, ProjectModel)
+        assert by_name.id == created.id
+
+        # describe_by_name — negative path
+        with pytest.raises(NotFoundError):
+            admin.projects.describe_by_name(name="this-project-definitely-does-not-exist-zzzz")
+
+        # update name
+        renamed = f"{name}-renamed"
+        updated = admin.projects.update(project_id=created.id, name=renamed)
+        assert isinstance(updated, ProjectModel)
+        assert updated.name == renamed
+
+        # re-describe to confirm update persisted on the server
+        re_described = admin.projects.describe(project_id=created.id)
+        assert re_described.name == renamed
+
+        _test_passed = True
+    finally:
+        if created is not None:
+            try:
+                admin.projects.delete(project_id=created.id)
+            except Exception as e:
+                print(f"Cleanup failed for project {created.id!r}: {e}")
+
+    # Post-delete verification: only run when the main test succeeded so a
+    # cleanup failure does not shadow the real assertion error.
+    if _test_passed and created is not None:
+        with pytest.raises(NotFoundError):
+            admin.projects.describe(project_id=created.id)
