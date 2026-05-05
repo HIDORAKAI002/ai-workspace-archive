@@ -118,7 +118,7 @@ ANTHROPIC_API_KEY=""
 GROQ_API_KEY=""
 ```
 
-- [Learn more about environment configuration here](https://docs.swarms.world/swarms/install/env/)
+- [Learn more about environment configuration here](https://docs.swarms.world/environment-setup)
 
 ### Project Structure
 
@@ -298,14 +298,14 @@ We have several areas where contributions are particularly welcome.
 
 - **Goal**: Provide new multi-agent orchestration methods.
 - **Current Architectures**:
-  - [SequentialWorkflow](https://docs.swarms.world/swarms/structs/sequential_workflow/)
-  - [AgentRearrange](https://docs.swarms.world/swarms/structs/agent_rearrange/)
-  - [MixtureOfAgents](https://docs.swarms.world/swarms/structs/moa/)
-  - [SpreadSheetSwarm](https://docs.swarms.world/swarms/structs/spreadsheet_swarm/)
-  - [ForestSwarm](https://docs.swarms.world/swarms/structs/forest_swarm/)
-  - [GraphWorkflow](https://docs.swarms.world/swarms/structs/graph_swarm/)
-  - [GroupChat](https://docs.swarms.world/swarms/structs/group_chat/)
-  - [SwarmRouter](https://docs.swarms.world/swarms/structs/swarm_router/)
+  - [SequentialWorkflow](https://docs.swarms.world/api/sequential-workflow)
+  - [AgentRearrange](https://docs.swarms.world/api/agent-rearrange)
+  - [MixtureOfAgents](https://docs.swarms.world/api/mixture-of-agents)
+  - [SpreadSheetSwarm](https://docs.swarms.world/api/spreadsheet-swarm)
+  - [ForestSwarm](https://docs.swarms.world/api/forest-swarm)
+  - [GraphWorkflow](https://docs.swarms.world/api/graph-workflow)
+  - [GroupChat](https://docs.swarms.world/api/group-chat)
+  - [SwarmRouter](https://docs.swarms.world/api/swarm-router)
 
 ### Enhancing Agent Capabilities
 
@@ -333,10 +333,10 @@ We have several areas where contributions are particularly welcome.
 ### Documentation
 
 - **Official Documentation**: [docs.swarms.world](https://docs.swarms.world)
-- **Installation Guide**: [Installation](https://docs.swarms.world/swarms/install/install/)
-- **Quickstart Guide**: [Get Started](https://docs.swarms.world/swarms/install/quickstart/)
-- **Agent Architecture**: [Agent Internal Mechanisms](https://docs.swarms.world/swarms/framework/agents_explained/)
-- **Agent API**: [Agent API](https://docs.swarms.world/swarms/structs/agent/)
+- **Installation Guide**: [Installation](https://docs.swarms.world/installation)
+- **Quickstart Guide**: [Get Started](https://docs.swarms.world/quickstart)
+- **Agent Architecture**: [Agent Internal Mechanisms](https://docs.swarms.world/concepts/agents)
+- **Agent API**: [Agent API](https://docs.swarms.world/api/agent)
 
 ### Examples and Tutorials
 
