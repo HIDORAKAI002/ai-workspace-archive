@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-05-05 23:08 IST] Auto-Sync
+- **44 Repositories Updated:** Supabase MCP, Kubernetes MCP Server, Promptfoo, n8n, Dify, Flowise, Activepieces, Trigger.dev, Windmill, Budibase, NocoDB, Plane, modelcontextprotocol/kotlin-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langchain, langchain-ai/langgraph, pydantic/pydantic-ai, mastra-ai/mastra, deepset-ai/haystack, Swarms, ollama/ollama, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, pinecone-io/pinecone-python-client, arize-ai/phoenix, open-telemetry/opentelemetry-python, firecrawl/firecrawl, anthropics/anthropic-sdk-python, anthropics/anthropic-sdk-typescript, anthropics/anthropic-sdk-go, anthropics/anthropic-sdk-ruby, googleapis/python-genai, vercel/ai, apache/airflow, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow
+
 ## [2026-05-05 16:37 IST] Auto-Sync
 - **36 Repositories Updated:** Public APIs Directory, Playwright MCP, Promptfoo, n8n, Dify, Activepieces, Trigger.dev, Windmill, Budibase, NocoDB, Plane, modelcontextprotocol/java-sdk, modelcontextprotocol/kotlin-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langgraph, pydantic/pydantic-ai, mastra-ai/mastra, deepset-ai/haystack, Upsonic, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, infiniflow/ragflow, arize-ai/phoenix, open-telemetry/opentelemetry-python, vercel/ai, apache/airflow, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow
 
