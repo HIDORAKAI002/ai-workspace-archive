@@ -123,6 +123,7 @@ final class FirecrawlClient
         string $language = 'node',
         ?int $timeout = null,
         ?string $origin = null,
+        ?string $prompt = null,
     ): BrowserExecuteResponse {
         $body = [
             'code' => $code,
@@ -133,6 +134,9 @@ final class FirecrawlClient
         }
         if ($origin !== null) {
             $body['origin'] = $origin;
+        }
+        if ($prompt !== null) {
+            $body['prompt'] = $prompt;
         }
 
         return BrowserExecuteResponse::fromArray(
@@ -399,11 +403,14 @@ final class FirecrawlClient
 
     /**
      * Create a new browser session.
+     *
+     * @param array<string, string>|null $profile
      */
     public function browser(
         ?int $ttl = null,
         ?int $activityTtl = null,
         ?bool $streamWebView = null,
+        ?array $profile = null,
     ): BrowserCreateResponse {
         $body = [];
         if ($ttl !== null) {
@@ -414,6 +421,9 @@ final class FirecrawlClient
         }
         if ($streamWebView !== null) {
             $body['streamWebView'] = $streamWebView;
+        }
+        if ($profile !== null) {
+            $body['profile'] = $profile;
         }
 
         return BrowserCreateResponse::fromArray($this->http->post('/v2/browser', $body));

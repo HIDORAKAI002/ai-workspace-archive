@@ -38,7 +38,7 @@ defmodule Firecrawl do
       )
   """
 
-  @type response :: {:ok, Req.Response.t()} | {:error, Exception.t()}
+  @type response :: {:ok, Req.Response.t()} | {:error, Exception.t() | Firecrawl.Error.t()}
 
   @base_url "https://api.firecrawl.dev/v2"
 
@@ -87,7 +87,14 @@ defmodule Firecrawl do
       headers: [{"authorization", "Bearer #{api_key}"}]
     )
     |> Req.merge(opts)
+    |> Req.Request.append_response_steps(firecrawl_error_handler: &handle_api_error/1)
   end
+
+  defp handle_api_error({request, %Req.Response{status: status} = response}) when status >= 400 do
+    {request, Firecrawl.Error.exception(status: status, body: response.body)}
+  end
+
+  defp handle_api_error({request, response}), do: {request, response}
 
   defp to_body(validated_params, key_mapping) do
     Map.new(validated_params, fn {k, v} ->
@@ -272,7 +279,7 @@ defmodule Firecrawl do
     prompt: [type: :string, doc: "A prompt to use to generate the crawler options (all the parameters below) from natural language. Explicitly set parameters will override the generated equivalents."],
     regex_on_full_url: [type: :boolean, doc: "When true, includePaths and excludePaths regex patterns are matched against the full URL (including query parameters) instead of just the URL pathname. Useful when you need to filter URLs based on query strings."],
     scrape_options: [type: :keyword_list],
-    sitemap: [type: {:in, [:skip, :include, :only]}, doc: "Sitemap mode when crawling. If you set it to 'skip', the crawler will ignore the website sitemap and only crawl the entered URL and discover pages from there onwards. If you set it to 'only', the crawler will only crawl URLs from the sitemap (plus the start URL) and will not discover links from HTML."],
+    sitemap: [type: {:or, [{:in, [:skip, :include, :only]}, :string]}, doc: "Sitemap mode when crawling. If you set it to 'skip', the crawler will ignore the website sitemap and only crawl the entered URL and discover pages from there onwards. If you set it to 'only', the crawler will only crawl URLs from the sitemap (plus the start URL) and will not discover links from HTML."],
     url: [type: :string, required: true, doc: "The base URL to start crawling from"],
     webhook: [type: :keyword_list, doc: "A webhook specification object."],
     zero_data_retention: [type: :boolean, doc: "If true, this will enable zero data retention for this crawl. To enable this feature, please contact help@firecrawl.dev"]
@@ -852,7 +859,7 @@ defmodule Firecrawl do
     limit: [type: :integer, doc: "Maximum number of links to return"],
     location: [type: :keyword_list, doc: "Location settings for the request. When specified, this will use an appropriate proxy if available and emulate the corresponding language and timezone settings. Defaults to 'US' if not specified."],
     search: [type: :string, doc: "Specify a search query to order the results by relevance. Example: 'blog' will return URLs that contain the word 'blog' in the URL ordered by relevance."],
-    sitemap: [type: {:in, [:skip, :include, :only]}, doc: "Sitemap mode when mapping. If you set it to `skip`, the sitemap won't be used to find URLs. If you set it to `only`, only URLs that are in the sitemap will be returned. By default (`include`), the sitemap and other methods will be used together to find URLs."],
+    sitemap: [type: {:or, [{:in, [:skip, :include, :only]}, :string]}, doc: "Sitemap mode when mapping. If you set it to `skip`, the sitemap won't be used to find URLs. If you set it to `only`, only URLs that are in the sitemap will be returned. By default (`include`), the sitemap and other methods will be used together to find URLs."],
     timeout: [type: :integer, doc: "Timeout in milliseconds. There is no timeout by default."],
     url: [type: :string, required: true, doc: "The base URL to start crawling from"]
   ])
@@ -1076,7 +1083,7 @@ defmodule Firecrawl do
 
   @start_agent_schema NimbleOptions.new!([
     max_credits: [type: {:or, [:integer, :float]}, doc: "Maximum credits to spend on this agent task. Defaults to 2500 if not set. Values above 2,500 are always billed as paid requests."],
-    model: [type: {:in, [:"spark-1-mini", :"spark-1-pro"]}, doc: "The model to use for the agent task. spark-1-mini (default) is 60% cheaper, spark-1-pro offers higher accuracy for complex tasks"],
+    model: [type: {:or, [{:in, [:"spark-1-mini", :"spark-1-pro"]}, :string]}, doc: "The model to use for the agent task. spark-1-mini (default) is 60% cheaper, spark-1-pro offers higher accuracy for complex tasks"],
     prompt: [type: :string, required: true, doc: "The prompt describing what data to extract"],
     schema: [type: :any, doc: "Optional JSON schema to structure the extracted data"],
     strict_constrain_to_urls: [type: :boolean, doc: "If true, agent will only visit URLs provided in the urls array"],

@@ -507,7 +507,7 @@ export async function performQuery(
 
   let answer: string | null;
 
-  if (queryFormat.directQuote) {
+  if (queryFormat.mode === "directQuote") {
     answer = await performDirectQuoteQuery(
       meta,
       document,

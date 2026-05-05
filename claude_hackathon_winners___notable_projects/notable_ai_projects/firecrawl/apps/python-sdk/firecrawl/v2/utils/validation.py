@@ -454,6 +454,13 @@ def _validate_query_format(format_obj: Any) -> Dict[str, Any]:
     if not isinstance(format_obj.get('prompt'), str) or not format_obj['prompt'].strip():
         raise ValueError("query format requires a non-empty 'prompt' string")
 
+    if "directQuote" in format_obj:
+        raise ValueError("query format uses 'mode' instead of 'directQuote'")
+
+    mode = format_obj.get("mode")
+    if mode is not None and mode not in ("freeform", "directQuote"):
+        raise ValueError("query format mode must be 'freeform' or 'directQuote'")
+
     return format_obj
 
 

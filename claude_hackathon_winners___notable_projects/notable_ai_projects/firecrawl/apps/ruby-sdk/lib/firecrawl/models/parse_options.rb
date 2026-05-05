@@ -26,7 +26,7 @@ module Firecrawl
 
       def to_h
         {
-          "formats" => formats,
+          "formats" => formats&.map { |fmt| format_value(fmt) },
           "headers" => headers,
           "includeTags" => include_tags,
           "excludeTags" => exclude_tags,
@@ -68,6 +68,10 @@ module Firecrawl
         else
           fmt.respond_to?(:type) ? fmt.type : nil
         end
+      end
+
+      def format_value(fmt)
+        fmt.respond_to?(:to_h) ? fmt.to_h : fmt
       end
     end
   end

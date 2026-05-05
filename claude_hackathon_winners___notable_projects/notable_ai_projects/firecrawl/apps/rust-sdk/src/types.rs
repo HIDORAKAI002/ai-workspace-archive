@@ -1,14 +1,13 @@
 //! Type definitions for Firecrawl API v2.
 
-use serde::{Deserialize, Serialize};
+use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::Value;
 use std::collections::HashMap;
 
 use crate::serde_helpers::deserialize_string_or_array;
 
 /// Available output formats for scraping operations.
-#[derive(Deserialize, Serialize, Clone, Copy, Debug, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Format {
     /// Markdown content of the page.
     Markdown,
@@ -34,6 +33,120 @@ pub enum Format {
     Branding,
     /// Audio extraction (MP3) from YouTube videos.
     Audio,
+    /// Query answer generated from the page content.
+    Query(QueryFormat),
+}
+
+impl Serialize for Format {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match self {
+            Format::Markdown => serializer.serialize_str("markdown"),
+            Format::Html => serializer.serialize_str("html"),
+            Format::RawHtml => serializer.serialize_str("rawHtml"),
+            Format::Links => serializer.serialize_str("links"),
+            Format::Images => serializer.serialize_str("images"),
+            Format::Screenshot => serializer.serialize_str("screenshot"),
+            Format::Summary => serializer.serialize_str("summary"),
+            Format::ChangeTracking => serializer.serialize_str("changeTracking"),
+            Format::Json => serializer.serialize_str("json"),
+            Format::Attributes => serializer.serialize_str("attributes"),
+            Format::Branding => serializer.serialize_str("branding"),
+            Format::Audio => serializer.serialize_str("audio"),
+            Format::Query(query) => query.serialize(serializer),
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for Format {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let value = Value::deserialize(deserializer)?;
+        match value {
+            Value::String(format) => match format.as_str() {
+                "markdown" => Ok(Format::Markdown),
+                "html" => Ok(Format::Html),
+                "rawHtml" => Ok(Format::RawHtml),
+                "links" => Ok(Format::Links),
+                "images" => Ok(Format::Images),
+                "screenshot" => Ok(Format::Screenshot),
+                "summary" => Ok(Format::Summary),
+                "changeTracking" => Ok(Format::ChangeTracking),
+                "json" => Ok(Format::Json),
+                "attributes" => Ok(Format::Attributes),
+                "branding" => Ok(Format::Branding),
+                "audio" => Ok(Format::Audio),
+                _ => Err(de::Error::custom(format!("unknown format: {}", format))),
+            },
+            Value::Object(_) => QueryFormat::deserialize(value)
+                .map(Format::Query)
+                .map_err(de::Error::custom),
+            _ => Err(de::Error::custom("format must be a string or object")),
+        }
+    }
+}
+
+/// Query format for asking a question about page content.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct QueryFormat {
+    pub prompt: String,
+    pub mode: Option<QueryFormatMode>,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct QueryFormatWire {
+    #[serde(rename = "type")]
+    format_type: String,
+    prompt: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    mode: Option<QueryFormatMode>,
+}
+
+impl Serialize for QueryFormat {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        QueryFormatWire {
+            format_type: "query".to_string(),
+            prompt: self.prompt.clone(),
+            mode: self.mode,
+        }
+        .serialize(serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for QueryFormat {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let wire = QueryFormatWire::deserialize(deserializer)?;
+        if wire.format_type != "query" {
+            return Err(de::Error::custom(
+                "query format object must have type query",
+            ));
+        }
+
+        Ok(Self {
+            prompt: wire.prompt,
+            mode: wire.mode,
+        })
+    }
+}
+
+/// Query answer mode.
+#[derive(Deserialize, Serialize, Clone, Copy, Debug, PartialEq, Eq)]
+pub enum QueryFormatMode {
+    #[serde(rename = "freeform")]
+    Freeform,
+    #[serde(rename = "directQuote")]
+    DirectQuote,
 }
 
 /// Viewport dimensions for screenshots.

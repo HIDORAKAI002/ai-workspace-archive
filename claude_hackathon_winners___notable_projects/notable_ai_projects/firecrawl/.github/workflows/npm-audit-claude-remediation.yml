@@ -1,0 +1,103 @@
+name: Audit NPM Claude Remediation
+
+on:
+  workflow_run:
+    workflows: ["Audit NPM Packages"]
+    types:
+      - completed
+
+permissions:
+  actions: read
+  contents: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: audit-npm-claude-remediation-${{ github.event.repository.default_branch }}
+  cancel-in-progress: false
+
+jobs:
+  remediate:
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4
+        with:
+          version: 10
+
+      - name: Scan default branch audit failures
+        id: scan
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node .github/scripts/audit-ci-vuln-scan.mjs
+
+      - name: Skip when all vulnerabilities are covered
+        if: ${{ steps.scan.outputs.has_uncovered != 'true' }}
+        run: |
+          echo "No uncovered audit-ci vulnerabilities on ${GITHUB_REF_NAME}; skipping Claude."
+
+      - name: Run Claude remediation
+        id: claude
+        if: ${{ steps.scan.outputs.has_uncovered == 'true' }}
+        uses: anthropics/claude-code-action@2cc1ac1331eac7a6a96d716dd204dd2888d0fcd2 # v1
+        with:
+          anthropic_api_key: ${{ secrets.NPM_AUDIT_CLAUDE_ANTHROPIC_API_KEY }}
+          base_branch: ${{ github.event.repository.default_branch }}
+          branch_prefix: claude/audit-ci/
+          prompt: ${{ steps.scan.outputs.prompt }}
+          claude_args: |
+            --max-turns 20
+
+      - name: Ensure remediation PR marker
+        if: ${{ steps.scan.outputs.has_uncovered == 'true' && steps.claude.outputs.branch_name != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH_NAME: ${{ steps.claude.outputs.branch_name }}
+          MARKER: ${{ steps.scan.outputs.marker }}
+        run: |
+          set -euo pipefail
+
+          PR_NUMBER="$(gh pr list --head "$BRANCH_NAME" --state open --json number --jq '.[0].number // empty')"
+          if [ -z "$PR_NUMBER" ]; then
+            echo "::warning::Claude did not leave an open PR for branch ${BRANCH_NAME}; marker could not be enforced."
+            exit 0
+          fi
+
+          gh label create audit-ci-remediation \
+            --description "Automated audit-ci vulnerability remediation" \
+            --color "B60205" \
+            2>/dev/null || true
+          gh pr edit "$PR_NUMBER" --add-label audit-ci-remediation
+
+          BODY_FILE="$(mktemp)"
+          UPDATED_BODY_FILE="$(mktemp)"
+          gh pr view "$PR_NUMBER" --json body --jq '.body // ""' > "$BODY_FILE"
+
+          node - "$BODY_FILE" "$UPDATED_BODY_FILE" "$MARKER" <<'NODE'
+          const { readFileSync, writeFileSync } = require("node:fs");
+
+          const [, , inputPath, outputPath, marker] = process.argv;
+          const markerRegex = /<!--\s*audit-ci-vuln-keys:\s*\[[\s\S]*?\]\s*-->/;
+          let body = readFileSync(inputPath, "utf8");
+
+          if (!markerRegex.test(body)) {
+            if (/^## Summary\b.*$/m.test(body)) {
+              body = body.replace(/^## Summary\b.*$/m, (heading) => `${heading}\n\n${marker}`);
+            } else {
+              body = `## Summary\n\n${marker}\n\n${body.trim()}\n`;
+            }
+          }
+
+          writeFileSync(outputPath, body);
+          NODE
+
+          gh pr edit "$PR_NUMBER" --body-file "$UPDATED_BODY_FILE"

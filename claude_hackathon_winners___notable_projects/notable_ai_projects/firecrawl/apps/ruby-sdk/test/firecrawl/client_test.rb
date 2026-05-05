@@ -458,6 +458,25 @@ class ClientTest < Minitest::Test
     refute h.key?("timeout") # nil values should be omitted
   end
 
+  def test_query_format_to_h
+    format = Firecrawl::Models::QueryFormat.new(
+      prompt: "What is Firecrawl?",
+      mode: Firecrawl::Models::QueryFormat::MODE_DIRECT_QUOTE
+    )
+    opts = Firecrawl::Models::ScrapeOptions.new(formats: [format])
+
+    assert_equal(
+      [{ "type" => "query", "prompt" => "What is Firecrawl?", "mode" => "directQuote" }],
+      opts.to_h["formats"]
+    )
+  end
+
+  def test_query_format_rejects_invalid_mode
+    assert_raises(ArgumentError) do
+      Firecrawl::Models::QueryFormat.new(prompt: "What is Firecrawl?", mode: "quoted")
+    end
+  end
+
   def test_scrape_options_skip_tls_defaults_to_false
     opts = Firecrawl::Models::ScrapeOptions.new
     assert_equal false, opts.skip_tls_verification

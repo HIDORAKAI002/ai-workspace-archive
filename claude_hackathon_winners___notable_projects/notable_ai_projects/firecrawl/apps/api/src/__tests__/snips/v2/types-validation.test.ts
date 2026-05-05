@@ -87,7 +87,25 @@ describe("V2 Types Validation", () => {
 
       const result = scrapeRequestSchema.parse(input);
       expect(result.formats).toEqual([
-        { type: "query", prompt: "What is Firecrawl?", directQuote: false },
+        { type: "query", prompt: "What is Firecrawl?", mode: "freeform" },
+      ]);
+    });
+
+    it("should accept query format directQuote mode", () => {
+      const input: ScrapeRequestInput = {
+        url: "https://example.com",
+        formats: [
+          {
+            type: "query",
+            prompt: "What is Firecrawl?",
+            mode: "directQuote",
+          },
+        ],
+      };
+
+      const result = scrapeRequestSchema.parse(input);
+      expect(result.formats).toEqual([
+        { type: "query", prompt: "What is Firecrawl?", mode: "directQuote" },
       ]);
     });
 
@@ -1003,8 +1021,42 @@ describe("V2 Types Validation", () => {
 
       const result = searchRequestSchema.parse(input);
       expect(result.scrapeOptions?.formats).toEqual([
-        { type: "query", prompt: "What is Firecrawl?", directQuote: false },
+        { type: "query", prompt: "What is Firecrawl?", mode: "freeform" },
       ]);
+    });
+
+    it("should reject search scrapeOptions query format with invalid mode", () => {
+      const input: SearchRequestInput = {
+        query: "test",
+        scrapeOptions: {
+          formats: [
+            {
+              type: "query",
+              prompt: "What is Firecrawl?",
+              mode: "quoted",
+            } as any,
+          ],
+        },
+      };
+
+      expect(() => searchRequestSchema.parse(input)).toThrow();
+    });
+
+    it("should reject search scrapeOptions query format with directQuote boolean", () => {
+      const input: SearchRequestInput = {
+        query: "test",
+        scrapeOptions: {
+          formats: [
+            {
+              type: "query",
+              prompt: "What is Firecrawl?",
+              directQuote: true,
+            } as any,
+          ],
+        },
+      };
+
+      expect(() => searchRequestSchema.parse(input)).toThrow();
     });
 
     it("should reject search scrapeOptions query prompt over 10000 characters", () => {

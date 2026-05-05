@@ -11,6 +11,7 @@ final class BrowserCreateResponse
         private readonly ?string $id = null,
         private readonly ?string $cdpUrl = null,
         private readonly ?string $liveViewUrl = null,
+        private readonly ?string $interactiveLiveViewUrl = null,
         private readonly ?string $expiresAt = null,
         private readonly ?string $error = null,
     ) {}
@@ -23,6 +24,7 @@ final class BrowserCreateResponse
             id: $data['id'] ?? null,
             cdpUrl: $data['cdpUrl'] ?? null,
             liveViewUrl: $data['liveViewUrl'] ?? null,
+            interactiveLiveViewUrl: $data['interactiveLiveViewUrl'] ?? null,
             expiresAt: $data['expiresAt'] ?? null,
             error: $data['error'] ?? null,
         );
@@ -56,5 +58,10 @@ final class BrowserCreateResponse
     public function getError(): ?string
     {
         return $this->error;
+    }
+
+    public function getInteractiveLiveViewUrl(): ?string
+    {
+        return $this->interactiveLiveViewUrl;
     }
 }
