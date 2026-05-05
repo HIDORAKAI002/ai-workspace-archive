@@ -62,6 +62,30 @@ describe("Query format", () => {
   );
 
   concurrentIf(TEST_PRODUCTION || HAS_AI)(
+    "returns a direct quote answer when query mode is directQuote",
+    async () => {
+      const response = await scrape(
+        {
+          url: "https://firecrawl.dev",
+          formats: [
+            {
+              type: "query",
+              prompt: "What is Firecrawl?",
+              mode: "directQuote",
+            },
+          ],
+        },
+        identity,
+      );
+
+      expect(response.answer).toBeDefined();
+      expect(typeof response.answer).toBe("string");
+      expect(response.answer!.length).toBeGreaterThan(0);
+    },
+    scrapeTimeout,
+  );
+
+  concurrentIf(TEST_PRODUCTION || HAS_AI)(
     "does not include answer field when query format is not provided",
     async () => {
       const response = await scrape(

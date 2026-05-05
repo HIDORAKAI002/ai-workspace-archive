@@ -2098,7 +2098,7 @@ def main() -> None:
             "Your command could not be processed due to the above error.\n"
             "👉 Please review your arguments, environment settings, and try again.\n"
             "For more information, run 'swarms help' or visit the documentation:\n"
-            "https://docs.swarms.world/en/latest/swarms/cli/cli_reference/\n\n"
+            "https://docs.swarms.world/swarms/cli/cli_reference/\n\n"
             f"[dim]Traceback:[/dim]\n{traceback.format_exc()}",
             title="Fatal Error",
             style="red",

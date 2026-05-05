@@ -23,7 +23,11 @@ if TYPE_CHECKING:
     from pinecone.client._assistant_namespace_proxy import _AsyncAssistantNamespaceProxy
     from pinecone.inference.models.index_embed import IndexEmbed
     from pinecone.models.backups.list import BackupList, RestoreJobList
-    from pinecone.models.backups.model import BackupModel, RestoreJobModel
+    from pinecone.models.backups.model import (
+        BackupModel,
+        CreateIndexFromBackupResponse,
+        RestoreJobModel,
+    )
     from pinecone.models.collections.list import CollectionList
     from pinecone.models.collections.model import CollectionModel
     from pinecone.models.enums import (
@@ -350,7 +354,7 @@ class AsyncPinecone:
         deletion_protection: DeletionProtection | str | None = None,
         tags: Mapping[str, str] | None = None,
         timeout: int | None = None,
-    ) -> IndexModel:
+    ) -> CreateIndexFromBackupResponse | IndexModel:
         """Create a new index by restoring from a backup.
 
         Sends a POST to ``/backups/{backup_id}/create-index`` and then
@@ -363,10 +367,13 @@ class AsyncPinecone:
                 ``"disabled"``. Defaults to ``"disabled"`` server-side when omitted.
             tags (dict[str, str] | None): Optional key-value tags for the new index.
             timeout (int | None): Seconds to wait for readiness. ``None`` (default)
-                blocks up to 300 s. ``-1`` returns immediately without polling.
+                blocks up to 300 s. ``-1`` returns a :class:`CreateIndexFromBackupResponse`
+                immediately (contains ``restore_job_id`` and ``index_id``) without polling.
 
         Returns:
-            An :class:`IndexModel` describing the restored index.
+            A :class:`CreateIndexFromBackupResponse` when *timeout* is ``-1`` (contains
+            ``restore_job_id`` and ``index_id``), or an :class:`IndexModel` describing
+            the restored index once it is ready.
 
         Raises:
             :exc:`PineconeValueError`: If *name* or *backup_id* is empty.
@@ -387,14 +394,14 @@ class AsyncPinecone:
 
             .. code-block:: python
 
-                # Restore with tags and deletion protection
+                # Restore without waiting (returns restore_job_id)
                 async with AsyncPinecone(api_key="your-api-key") as pc:
-                    index = await pc.create_index_from_backup(
+                    result = await pc.create_index_from_backup(
                         name="product-search-restored",
                         backup_id="bk-daily-20240115",
-                        deletion_protection="enabled",
-                        tags={"env": "production", "team": "search"},
+                        timeout=-1,
                     )
+                    print(result.restore_job_id)
         """
         require_non_empty("name", name)
         require_non_empty("backup_id", backup_id)
@@ -413,10 +420,10 @@ class AsyncPinecone:
         from pinecone._internal.adapters.backups_adapter import BackupsAdapter
 
         response = await self._http.post(f"/backups/{backup_id}/create-index", json=body)
-        BackupsAdapter.to_create_index_from_backup_response(response.content)
+        create_response = BackupsAdapter.to_create_index_from_backup_response(response.content)
 
         if timeout == -1:
-            return await self.indexes.describe(name)
+            return create_response
 
         effective_timeout = timeout if timeout is not None else 300
         return await async_poll_index_until_ready(self.indexes.describe, name, effective_timeout)
@@ -542,6 +549,7 @@ class AsyncPinecone:
         tags: Mapping[str, str] | None = None,
         embed: dict[str, Any] | None = None,
         read_capacity: dict[str, Any] | None = None,
+        serverless_read_capacity: dict[str, Any] | None = None,
     ) -> None:
         """Backwards-compatibility shim for :meth:`AsyncPinecone.indexes.configure`.
 
@@ -557,6 +565,7 @@ class AsyncPinecone:
             tags=tags,
             embed=embed,
             read_capacity=read_capacity,
+            serverless_read_capacity=serverless_read_capacity,
         )
 
     async def delete_index(self, name: str, timeout: int | None = None) -> None:
@@ -627,7 +636,7 @@ class AsyncPinecone:
         self,
         *,
         index_name: str | None = None,
-        limit: int | None = 10,
+        limit: int | None = None,
         pagination_token: str | None = None,
     ) -> BackupList:
         """Backwards-compatibility shim for :meth:`AsyncPinecone.backups.list`.
@@ -638,7 +647,7 @@ class AsyncPinecone:
         """
         return await self.backups.list(
             index_name=index_name,
-            limit=limit if limit is not None else 10,
+            limit=limit,
             pagination_token=pagination_token,
         )
 
@@ -663,7 +672,7 @@ class AsyncPinecone:
     async def list_restore_jobs(
         self,
         *,
-        limit: int | None = 10,
+        limit: int | None = None,
         pagination_token: str | None = None,
     ) -> RestoreJobList:
         """Backwards-compatibility shim for :meth:`AsyncPinecone.restore_jobs.list`.
@@ -673,7 +682,7 @@ class AsyncPinecone:
         ``await pc.list_restore_jobs(...)``.
         """
         return await self.restore_jobs.list(
-            limit=limit if limit is not None else 10,
+            limit=limit,
             pagination_token=pagination_token,
         )
 
@@ -749,6 +758,12 @@ class AsyncPinecone:
                 return cached_host
 
             desc = await self.indexes.describe(name)
+            if desc.host is None:
+                raise ValidationError(
+                    f"Index {name!r} does not yet have a host assigned — "
+                    "the index may still be initializing. "
+                    "Wait until the index status is 'Ready' before connecting."
+                )
             self._host_cache[name] = desc.host
             return desc.host
 

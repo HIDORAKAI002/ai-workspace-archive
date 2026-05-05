@@ -139,6 +139,32 @@ class TestIndexModel:
         assert model.spec.byoc is not None
         assert model.spec.byoc.read_capacity is None
 
+    def test_index_model_byoc_schema_decoded(self) -> None:
+        """ByocSpecInfo must expose schema when returned by backend."""
+        raw = (
+            b'{"name":"test","metric":"cosine","host":null,'
+            b'"status":{"ready":true,"state":"Ready"},'
+            b'"spec":{"byoc":{"environment":"byoc-aws-abc123",'
+            b'"schema":{"fields":[{"name":"genre","type":"string"}]}}},'
+            b'"deletion_protection":"disabled","vector_type":"dense"}'
+        )
+        model = msgspec.json.decode(raw, type=IndexModel)
+        assert model.spec.byoc is not None
+        assert model.spec.byoc.schema is not None
+        assert model.spec.byoc.schema["fields"][0]["name"] == "genre"
+
+    def test_index_model_byoc_schema_absent(self) -> None:
+        """ByocSpecInfo.schema is None when backend omits the field."""
+        raw = (
+            b'{"name":"test","metric":"cosine","host":null,'
+            b'"status":{"ready":true,"state":"Ready"},'
+            b'"spec":{"byoc":{"environment":"byoc-aws-abc123"}},'
+            b'"deletion_protection":"disabled","vector_type":"dense"}'
+        )
+        model = msgspec.json.decode(raw, type=IndexModel)
+        assert model.spec.byoc is not None
+        assert model.spec.byoc.schema is None
+
     def test_enum_string_values(self) -> None:
         """Both enum values and plain strings work since we store as str."""
         data = make_index_response(metric="euclidean", vector_type="sparse")
@@ -157,6 +183,81 @@ class TestIndexModel:
         data = make_index_response(host="https://my-index-abc.svc.pinecone.io")
         model = msgspec.convert(data, IndexModel)
         assert model.host == "https://my-index-abc.svc.pinecone.io"
+
+    def test_index_model_null_host(self) -> None:
+        """IndexModel must decode null host from backend without raising."""
+        raw = b'{"name":"test","metric":"cosine","host":null,"status":{"ready":false,"state":"Initializing"},"spec":{"serverless":{"cloud":"aws","region":"us-east-1"}},"deletion_protection":"disabled","vector_type":"dense"}'
+        model = msgspec.json.decode(raw, type=IndexModel)
+        assert model.host is None
+        assert model.name == "test"
+
+    def test_index_model_missing_host(self) -> None:
+        """IndexModel must decode when host field is absent from backend response."""
+        raw = b'{"name":"test","metric":"cosine","status":{"ready":false,"state":"Initializing"},"spec":{"serverless":{"cloud":"aws","region":"us-east-1"}},"deletion_protection":"disabled","vector_type":"dense"}'
+        model = msgspec.json.decode(raw, type=IndexModel)
+        assert model.host is None
+        assert model.name == "test"
+
+    def test_index_model_non_null_host_normalized(self) -> None:
+        """IndexModel still normalizes non-null host with https://."""
+        raw = b'{"name":"test","metric":"cosine","host":"index-host.pinecone.io","status":{"ready":true,"state":"Ready"},"spec":{"serverless":{"cloud":"aws","region":"us-east-1"}},"deletion_protection":"disabled","vector_type":"dense"}'
+        model = msgspec.json.decode(raw, type=IndexModel)
+        assert model.host == "https://index-host.pinecone.io"
+
+    def test_index_model_pod_spec_null_replicas(self) -> None:
+        """PodSpecInfo must decode null replicas/shards/pods from backend."""
+        raw = (
+            b'{"name":"test","metric":"cosine","host":null,'
+            b'"status":{"ready":false,"state":"Initializing"},'
+            b'"spec":{"pod":{"environment":"us-east1-gcp","pod_type":"p1",'
+            b'"replicas":null,"shards":null,"pods":1}},'
+            b'"deletion_protection":"disabled","vector_type":"dense"}'
+        )
+        model = msgspec.json.decode(raw, type=IndexModel)
+        assert model.spec.pod is not None
+        assert model.spec.pod.replicas is None
+        assert model.spec.pod.shards is None
+        assert model.spec.pod.pods == 1
+
+    def test_index_model_pod_spec_explicit_replicas(self) -> None:
+        """PodSpecInfo still decodes explicit replicas/shards correctly."""
+        raw = (
+            b'{"name":"test","metric":"cosine","host":null,'
+            b'"status":{"ready":false,"state":"Initializing"},'
+            b'"spec":{"pod":{"environment":"us-east1-gcp","pod_type":"p1",'
+            b'"replicas":2,"shards":1,"pods":2}},'
+            b'"deletion_protection":"disabled","vector_type":"dense"}'
+        )
+        model = msgspec.json.decode(raw, type=IndexModel)
+        assert model.spec.pod is not None
+        assert model.spec.pod.replicas == 2
+        assert model.spec.pod.shards == 1
+        assert model.spec.pod.pods == 2
+
+    def test_index_model_private_host_decoded(self) -> None:
+        """IndexModel must expose private_host when returned by backend."""
+        raw = (
+            b'{"name":"test","metric":"cosine",'
+            b'"host":"test.svc.pinecone.io",'
+            b'"private_host":"test.svc.private.pinecone.io",'
+            b'"status":{"ready":true,"state":"Ready"},'
+            b'"spec":{"serverless":{"cloud":"aws","region":"us-east-1"}},'
+            b'"deletion_protection":"disabled","vector_type":"dense"}'
+        )
+        model = msgspec.json.decode(raw, type=IndexModel)
+        assert model.private_host == "https://test.svc.private.pinecone.io"
+        assert model.host == "https://test.svc.pinecone.io"
+
+    def test_index_model_private_host_absent(self) -> None:
+        """IndexModel.private_host is None when backend omits the field."""
+        raw = (
+            b'{"name":"test","metric":"cosine","host":"test.svc.pinecone.io",'
+            b'"status":{"ready":true,"state":"Ready"},'
+            b'"spec":{"serverless":{"cloud":"aws","region":"us-east-1"}},'
+            b'"deletion_protection":"disabled","vector_type":"dense"}'
+        )
+        model = msgspec.json.decode(raw, type=IndexModel)
+        assert model.private_host is None
 
 
 class TestIndexList:

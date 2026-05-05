@@ -24,7 +24,11 @@ if TYPE_CHECKING:
     from pinecone.index import Index
     from pinecone.inference.models.index_embed import IndexEmbed
     from pinecone.models.backups.list import BackupList, RestoreJobList
-    from pinecone.models.backups.model import BackupModel, RestoreJobModel
+    from pinecone.models.backups.model import (
+        BackupModel,
+        CreateIndexFromBackupResponse,
+        RestoreJobModel,
+    )
     from pinecone.models.collections.list import CollectionList
     from pinecone.models.collections.model import CollectionModel
     from pinecone.models.enums import (
@@ -418,6 +422,12 @@ class Pinecone:
                 return cached_host
 
             desc = self.indexes.describe(name)
+            if desc.host is None:
+                raise ValidationError(
+                    f"Index {name!r} does not yet have a host assigned — "
+                    "the index may still be initializing. "
+                    "Wait until the index status is 'Ready' before connecting."
+                )
             self._host_cache[name] = desc.host
             return desc.host
 
@@ -431,7 +441,7 @@ class Pinecone:
         deletion_protection: DeletionProtection | str | None = None,
         tags: Mapping[str, str] | None = None,
         timeout: int | None = None,
-    ) -> IndexModel:
+    ) -> CreateIndexFromBackupResponse | IndexModel:
         """Create a new index by restoring from a backup.
 
         Sends a POST to ``/backups/{backup_id}/create-index`` and then
@@ -444,10 +454,13 @@ class Pinecone:
                 ``"disabled"``. Defaults to ``"disabled"`` server-side when omitted.
             tags (dict[str, str] | None): Optional key-value tags for the new index.
             timeout (int | None): Seconds to wait for readiness. ``None`` (default)
-                blocks up to 300 s. ``-1`` returns immediately without polling.
+                blocks up to 300 s. ``-1`` returns a :class:`CreateIndexFromBackupResponse`
+                immediately (contains ``restore_job_id`` and ``index_id``) without polling.
 
         Returns:
-            An :class:`IndexModel` describing the restored index.
+            A :class:`CreateIndexFromBackupResponse` when *timeout* is ``-1`` (contains
+            ``restore_job_id`` and ``index_id``), or an :class:`IndexModel` describing
+            the restored index once it is ready.
 
         Raises:
             :exc:`PineconeValueError`: If *name* or *backup_id* is empty.
@@ -462,12 +475,12 @@ class Pinecone:
             ...     backup_id="bk-daily-20240115",
             ... )
 
-            >>> index = pc.create_index_from_backup(  # doctest: +SKIP
+            >>> result = pc.create_index_from_backup(  # doctest: +SKIP
             ...     name="product-search-restored",
             ...     backup_id="bk-daily-20240115",
-            ...     deletion_protection="enabled",
-            ...     tags={"env": "production", "team": "search"},
+            ...     timeout=-1,
             ... )
+            >>> print(result.restore_job_id)  # doctest: +SKIP
         """
         require_non_empty("name", name)
         require_non_empty("backup_id", backup_id)
@@ -486,10 +499,10 @@ class Pinecone:
         from pinecone._internal.adapters.backups_adapter import BackupsAdapter
 
         response = self._http.post(f"/backups/{backup_id}/create-index", json=body)
-        BackupsAdapter.to_create_index_from_backup_response(response.content)
+        create_response = BackupsAdapter.to_create_index_from_backup_response(response.content)
 
         if timeout == -1:
-            return self.indexes.describe(name)
+            return create_response
 
         effective_timeout = timeout if timeout is not None else 300
         return poll_index_until_ready(self.indexes.describe, name, effective_timeout)
@@ -511,6 +524,7 @@ class Pinecone:
         deletion_protection: DeletionProtection | str | None = "disabled",
         vector_type: VectorType | str = "dense",
         tags: Mapping[str, str] | None = None,
+        schema: dict[str, Any] | None = None,
     ) -> IndexModel:
         """Backwards-compatibility shim for :meth:`Pinecone.indexes.create`.
 
@@ -526,6 +540,7 @@ class Pinecone:
             vector_type=vector_type,
             deletion_protection=resolved_dp,
             tags=tags,
+            schema=schema,
             timeout=timeout,
         )
 
@@ -575,6 +590,7 @@ class Pinecone:
             tags=tags,
             deletion_protection=resolved_dp,
             schema=schema,
+            read_capacity=read_capacity,
             timeout=timeout,
         )
 
@@ -611,6 +627,7 @@ class Pinecone:
         tags: Mapping[str, str] | None = None,
         embed: dict[str, Any] | None = None,
         read_capacity: dict[str, Any] | None = None,
+        serverless_read_capacity: dict[str, Any] | None = None,
     ) -> None:
         """Backwards-compatibility shim for :meth:`Pinecone.indexes.configure`.
 
@@ -625,6 +642,7 @@ class Pinecone:
             tags=tags,
             embed=embed,
             read_capacity=read_capacity,
+            serverless_read_capacity=serverless_read_capacity,
         )
 
     def delete_index(self, name: str, timeout: int | None = None) -> None:
@@ -689,7 +707,7 @@ class Pinecone:
         self,
         *,
         index_name: str | None = None,
-        limit: int | None = 10,
+        limit: int | None = None,
         pagination_token: str | None = None,
     ) -> BackupList:
         """Backwards-compatibility shim for :meth:`Pinecone.backups.list`.
@@ -699,7 +717,7 @@ class Pinecone:
         """
         return self.backups.list(
             index_name=index_name,
-            limit=limit if limit is not None else 10,
+            limit=limit,
             pagination_token=pagination_token,
         )
 
@@ -722,7 +740,7 @@ class Pinecone:
     def list_restore_jobs(
         self,
         *,
-        limit: int | None = 10,
+        limit: int | None = None,
         pagination_token: str | None = None,
     ) -> RestoreJobList:
         """Backwards-compatibility shim for :meth:`Pinecone.restore_jobs.list`.
@@ -731,7 +749,7 @@ class Pinecone:
         should use ``pc.restore_jobs.list()`` instead of ``pc.list_restore_jobs()``.
         """
         return self.restore_jobs.list(
-            limit=limit if limit is not None else 10,
+            limit=limit,
             pagination_token=pagination_token,
         )
 

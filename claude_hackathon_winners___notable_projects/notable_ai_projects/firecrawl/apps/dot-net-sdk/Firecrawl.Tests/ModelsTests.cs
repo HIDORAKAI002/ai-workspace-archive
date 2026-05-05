@@ -245,6 +245,21 @@ public class ModelsTests
     }
 
     [Fact]
+    public void QueryFormat_HasCorrectMode()
+    {
+        var format = new QueryFormat
+        {
+            Prompt = "What is Firecrawl?",
+            Mode = QueryFormat.DirectQuoteMode
+        };
+
+        var json = JsonSerializer.Serialize(format, JsonOptions);
+        Assert.Contains("\"type\":\"query\"", json);
+        Assert.Contains("\"prompt\":\"What is Firecrawl?\"", json);
+        Assert.Contains("\"mode\":\"directQuote\"", json);
+    }
+
+    [Fact]
     public void WebhookConfig_SerializesCorrectly()
     {
         var config = new WebhookConfig

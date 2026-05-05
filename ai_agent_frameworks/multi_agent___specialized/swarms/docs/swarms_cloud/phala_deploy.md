@@ -61,7 +61,7 @@ volumes:
 
 ## 📚 Additional Resources
 
-For more comprehensive documentation and examples, visit our [Official Documentation](https://docs.swarms.world/en/latest/).
+For more comprehensive documentation and examples, visit our [Official Documentation](https://docs.swarms.world/).
 
 ---
 

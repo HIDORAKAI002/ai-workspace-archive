@@ -60,14 +60,21 @@ class FirecrawlClientTest {
 
     @Test
     void testScrapeOptionsBuilder() {
+        QueryFormat queryFormat = QueryFormat.builder()
+                .prompt("What is Firecrawl?")
+                .mode(QueryFormat.Mode.DIRECT_QUOTE)
+                .build();
+
         ScrapeOptions options = ScrapeOptions.builder()
-                .formats(List.of("markdown", "html"))
+                .formats(List.of("markdown", "html", queryFormat))
                 .onlyMainContent(true)
                 .timeout(30000)
                 .mobile(false)
                 .build();
 
-        assertEquals(List.of("markdown", "html"), options.getFormats());
+        assertEquals(List.of("markdown", "html", queryFormat), options.getFormats());
+        assertEquals("query", queryFormat.getType());
+        assertEquals(QueryFormat.Mode.DIRECT_QUOTE, queryFormat.getMode());
         assertTrue(options.getOnlyMainContent());
         assertEquals(30000, options.getTimeout());
         assertFalse(options.getMobile());

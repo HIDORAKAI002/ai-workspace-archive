@@ -265,26 +265,36 @@ def test_configure_byoc_read_capacity_dedicated(indexes: Indexes) -> None:
     }
 
 
-def test_configure_byoc_read_capacity_dedicated_missing_node_type(
+@respx.mock
+def test_configure_byoc_read_capacity_dedicated_partial_no_node_type(
     indexes: Indexes,
 ) -> None:
-    """Missing node_type in dedicated config raises ValidationError."""
-    with pytest.raises(ValidationError, match="node_type"):
-        indexes.configure(
-            "my-idx",
-            read_capacity={"mode": "Dedicated", "dedicated": {"scaling": "Manual"}},
-        )
+    """Partial Dedicated patch omitting node_type is valid and passed to the API."""
+    route = respx.patch(f"{BASE_URL}/indexes/my-idx").mock(
+        return_value=httpx.Response(202, json=make_index_response()),
+    )
+
+    rc = {"mode": "Dedicated", "dedicated": {"scaling": "Manual"}}
+    indexes.configure("my-idx", read_capacity=rc)
+
+    payload = _request_json(route)
+    assert payload == {"spec": {"byoc": {"read_capacity": rc}}}
 
 
-def test_configure_byoc_read_capacity_dedicated_missing_scaling(
+@respx.mock
+def test_configure_byoc_read_capacity_dedicated_partial_no_scaling(
     indexes: Indexes,
 ) -> None:
-    """Missing scaling in dedicated config raises ValidationError."""
-    with pytest.raises(ValidationError, match="scaling"):
-        indexes.configure(
-            "my-idx",
-            read_capacity={"mode": "Dedicated", "dedicated": {"node_type": "t1"}},
-        )
+    """Partial Dedicated patch omitting scaling is valid and passed to the API."""
+    route = respx.patch(f"{BASE_URL}/indexes/my-idx").mock(
+        return_value=httpx.Response(202, json=make_index_response()),
+    )
+
+    rc = {"mode": "Dedicated", "dedicated": {"node_type": "t1"}}
+    indexes.configure("my-idx", read_capacity=rc)
+
+    payload = _request_json(route)
+    assert payload == {"spec": {"byoc": {"read_capacity": rc}}}
 
 
 def test_configure_byoc_read_capacity_missing_mode(indexes: Indexes) -> None:
@@ -303,6 +313,91 @@ def test_configure_rejects_pod_fields_with_read_capacity(indexes: Indexes) -> No
             "my-idx",
             replicas=2,
             read_capacity={"mode": "OnDemand"},
+        )
+
+
+# ---------------------------------------------------------------------------
+# Serverless read_capacity
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+def test_configure_index_serverless_read_capacity(indexes: Indexes) -> None:
+    """PATCH body has spec.serverless.read_capacity with OnDemand mode."""
+    route = respx.patch(f"{BASE_URL}/indexes/my-idx").mock(
+        return_value=httpx.Response(202, json=make_index_response()),
+    )
+
+    indexes.configure("my-idx", serverless_read_capacity={"mode": "OnDemand"})
+
+    payload = _request_json(route)
+    assert payload == {"spec": {"serverless": {"read_capacity": {"mode": "OnDemand"}}}}
+
+
+@respx.mock
+def test_configure_serverless_read_capacity_dedicated(indexes: Indexes) -> None:
+    """PATCH body has spec.serverless.read_capacity with full dedicated structure."""
+    route = respx.patch(f"{BASE_URL}/indexes/my-idx").mock(
+        return_value=httpx.Response(202, json=make_index_response()),
+    )
+
+    indexes.configure(
+        "my-idx",
+        serverless_read_capacity={
+            "mode": "Dedicated",
+            "dedicated": {
+                "node_type": "t1",
+                "scaling": "Manual",
+                "manual": {"replicas": 2, "shards": 1},
+            },
+        },
+    )
+
+    payload = _request_json(route)
+    assert payload == {
+        "spec": {
+            "serverless": {
+                "read_capacity": {
+                    "mode": "Dedicated",
+                    "dedicated": {
+                        "node_type": "t1",
+                        "scaling": "Manual",
+                        "manual": {"replicas": 2, "shards": 1},
+                    },
+                }
+            }
+        }
+    }
+
+
+def test_configure_serverless_read_capacity_rejects_pod_fields(indexes: Indexes) -> None:
+    """serverless_read_capacity with pod fields raises ValidationError."""
+    with pytest.raises(ValidationError, match="serverless_read_capacity"):
+        indexes.configure(
+            "my-idx",
+            replicas=2,
+            serverless_read_capacity={"mode": "OnDemand"},
+        )
+
+
+def test_configure_serverless_read_capacity_rejects_byoc_read_capacity(
+    indexes: Indexes,
+) -> None:
+    """serverless_read_capacity with byoc read_capacity raises ValidationError."""
+    with pytest.raises(ValidationError, match="serverless_read_capacity"):
+        indexes.configure(
+            "my-idx",
+            read_capacity={"mode": "OnDemand"},
+            serverless_read_capacity={"mode": "OnDemand"},
+        )
+
+
+def test_configure_serverless_read_capacity_missing_mode(indexes: Indexes) -> None:
+    """Missing mode key in serverless_read_capacity raises ValidationError."""
+    with pytest.raises(ValidationError, match="mode"):
+        indexes.configure(
+            "my-idx",
+            serverless_read_capacity={"dedicated": {}},
         )
 
 

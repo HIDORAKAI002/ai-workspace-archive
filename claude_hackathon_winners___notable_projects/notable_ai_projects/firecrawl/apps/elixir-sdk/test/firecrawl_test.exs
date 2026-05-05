@@ -92,6 +92,96 @@ defmodule FirecrawlTest do
     assert {:error, _} = result
   end
 
+  test "accepts string values for enum params (model)" do
+    Application.put_env(:firecrawl, :api_key, "test-key")
+    on_exit(fn -> Application.delete_env(:firecrawl, :api_key) end)
+
+    result =
+      Firecrawl.start_agent(
+        [prompt: "test", model: "spark-1-mini"],
+        base_url: "http://localhost:1",
+        retry: false
+      )
+
+    assert {:error, err} = result
+    refute match?(%NimbleOptions.ValidationError{}, err),
+      "Expected connection error, got validation error: #{inspect(err)}"
+  end
+
+  test "accepts string values for enum params (sitemap)" do
+    Application.put_env(:firecrawl, :api_key, "test-key")
+    on_exit(fn -> Application.delete_env(:firecrawl, :api_key) end)
+
+    result =
+      Firecrawl.crawl_urls(
+        [url: "https://example.com", sitemap: "skip"],
+        base_url: "http://localhost:1",
+        retry: false
+      )
+
+    assert {:error, err} = result
+    refute match?(%NimbleOptions.ValidationError{}, err),
+      "Expected connection error, got validation error: #{inspect(err)}"
+  end
+
+  test "non-bang returns {:error, %Firecrawl.Error{}} for API errors" do
+    adapter = fn request ->
+      resp = Req.Response.new(
+        status: 402,
+        headers: %{"content-type" => ["application/json"]},
+        body: Jason.encode!(%{"success" => false, "error" => "Payment required"})
+      )
+      {request, resp}
+    end
+
+    result =
+      Firecrawl.scrape_and_extract_from_url(
+        [url: "https://example.com"],
+        api_key: "test-key",
+        adapter: adapter
+      )
+
+    assert {:error, %Firecrawl.Error{status: 402}} = result
+  end
+
+  test "bang raises Firecrawl.Error for API errors" do
+    adapter = fn request ->
+      resp = Req.Response.new(
+        status: 401,
+        headers: %{"content-type" => ["application/json"]},
+        body: Jason.encode!(%{"success" => false, "error" => "Unauthorized"})
+      )
+      {request, resp}
+    end
+
+    assert_raise Firecrawl.Error, ~r/Unauthorized/, fn ->
+      Firecrawl.scrape_and_extract_from_url!(
+        [url: "https://example.com"],
+        api_key: "test-key",
+        adapter: adapter
+      )
+    end
+  end
+
+  test "non-bang returns {:ok, response} for successful API calls" do
+    adapter = fn request ->
+      resp = Req.Response.new(
+        status: 200,
+        headers: %{"content-type" => ["application/json"]},
+        body: Jason.encode!(%{"success" => true, "data" => %{}})
+      )
+      {request, resp}
+    end
+
+    result =
+      Firecrawl.get_credit_usage(
+        api_key: "test-key",
+        adapter: adapter
+      )
+
+    assert {:ok, %Req.Response{status: 200}} = result
+  end
+
   test "all expected API functions are defined with bang variants" do
     functions = Firecrawl.__info__(:functions)
 

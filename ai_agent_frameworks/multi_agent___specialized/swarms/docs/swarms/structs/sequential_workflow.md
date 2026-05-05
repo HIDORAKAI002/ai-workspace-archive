@@ -433,6 +433,6 @@ workflow = SequentialWorkflow(
 
 ## Related Architectures
 
-- **[ConcurrentWorkflow](https://docs.swarms.world/en/latest/swarms/structs/concurrent_workflow/)**: For running agents in parallel
-- **[AgentRearrange](https://docs.swarms.world/en/latest/swarms/structs/agent_rearrange/)**: For complex agent relationships and dynamic flows
-- **[SwarmRouter](https://docs.swarms.world/en/latest/swarms/structs/swarm_router/)**: Universal orchestrator for switching between different swarm types
+- **[ConcurrentWorkflow](https://docs.swarms.world/swarms/structs/concurrent_workflow/)**: For running agents in parallel
+- **[AgentRearrange](https://docs.swarms.world/swarms/structs/agent_rearrange/)**: For complex agent relationships and dynamic flows
+- **[SwarmRouter](https://docs.swarms.world/swarms/structs/swarm_router/)**: Universal orchestrator for switching between different swarm types

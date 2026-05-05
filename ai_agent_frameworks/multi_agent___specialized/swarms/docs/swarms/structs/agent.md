@@ -313,7 +313,7 @@ The `run` method returns different types based on the input parameters:
 
 The `Agent` class allows seamless integration of external tools by accepting a list of Python functions via the `tools` parameter during initialization. Each tool function must include type annotations and a docstring. The `Agent` class automatically converts these functions into an OpenAI-compatible function calling schema, making them accessible for use during task execution.
 
-Learn more about tools [here](https://docs.swarms.world/en/latest/swarms/tools/tools_examples/)
+Learn more about tools [here](https://docs.swarms.world/swarms/tools/tools_examples/)
 
 ## Requirements for a tool
 

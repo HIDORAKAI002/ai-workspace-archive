@@ -189,7 +189,7 @@ Below is a breakdown of the attributes expected in the YAML configuration file, 
 
 | Attribute Name                   | Description                                                | Type          | Required | Default/Example Value                    |
 |-----------------------------------|------------------------------------------------------------|---------------|----------|------------------------------------------|
-| `swarm_architecture`              | Defines the swarm configuration. For more information on what can be added to the swarm architecture, please refer to the [Swarm Router documentation](https://docs.swarms.world/en/latest/swarms/structs/swarm_router/). | Dict          | No       |                                          |
+| `swarm_architecture`              | Defines the swarm configuration. For more information on what can be added to the swarm architecture, please refer to the [Swarm Router documentation](https://docs.swarms.world/swarms/structs/swarm_router/). | Dict          | No       |                                          |
 | `name`                            | The name of the swarm.                                     | String        | Yes      | `"MySwarm"`                              |
 | `description`                     | Description of the swarm and its purpose.                  | String        | No       | `"A swarm for collaborative task solving"`|
 | `max_loops`                       | Maximum number of loops for the swarm.                     | Integer       | No       | 5                                        |

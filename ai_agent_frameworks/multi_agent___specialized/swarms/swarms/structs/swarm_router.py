@@ -332,13 +332,13 @@ class SwarmRouter:
                     f"[SwarmRouter Reliability Check] Initializing SwarmRouter '{self.name}'. "
                     "Validating required parameters for robust operation.\n"
                     "For detailed documentation on SwarmRouter configuration, usage, and available swarm types, "
-                    "please visit: https://docs.swarms.world/en/latest/swarms/structs/swarm_router/"
+                    "please visit: https://docs.swarms.world/swarms/structs/swarm_router/"
                 )
 
             # Check swarm type first since it affects other validations
             if self.swarm_type is None:
                 raise SwarmRouterConfigError(
-                    "SwarmRouter: Swarm type cannot be 'none'. Check the docs for all the swarm types available. https://docs.swarms.world/en/latest/swarms/structs/swarm_router/"
+                    "SwarmRouter: Swarm type cannot be 'none'. Check the docs for all the swarm types available. https://docs.swarms.world/swarms/structs/swarm_router/"
                 )
 
             # Validate swarm type is a valid string
@@ -349,14 +349,14 @@ class SwarmRouter:
                     f"SwarmRouter: swarm_type must be a string, not {type(self.swarm_type).__name__}. "
                     f"Valid types are: {', '.join(valid_swarm_types)}. "
                     "Use swarm_type='SequentialWorkflow' (string), NOT SwarmType.SequentialWorkflow. "
-                    "See https://docs.swarms.world/en/latest/swarms/structs/swarm_router/"
+                    "See https://docs.swarms.world/swarms/structs/swarm_router/"
                 )
 
             if self.swarm_type not in valid_swarm_types:
                 raise SwarmRouterConfigError(
                     f"SwarmRouter: Invalid swarm_type '{self.swarm_type}'. "
                     f"Valid types are: {', '.join(valid_swarm_types)}. "
-                    "See https://docs.swarms.world/en/latest/swarms/structs/swarm_router/"
+                    "See https://docs.swarms.world/swarms/structs/swarm_router/"
                 )
 
             if (
@@ -364,13 +364,13 @@ class SwarmRouter:
                 and self.rearrange_flow is None
             ):
                 raise SwarmRouterConfigError(
-                    "SwarmRouter: rearrange_flow cannot be 'none' when using AgentRearrange. Check the SwarmRouter docs to learn of required parameters. https://docs.swarms.world/en/latest/swarms/structs/agent_rearrange/"
+                    "SwarmRouter: rearrange_flow cannot be 'none' when using AgentRearrange. Check the SwarmRouter docs to learn of required parameters. https://docs.swarms.world/swarms/structs/agent_rearrange/"
                 )
 
             # Validate max_loops
             if self.max_loops == 0:
                 raise SwarmRouterConfigError(
-                    "SwarmRouter: max_loops cannot be 0. Check the docs for all the max_loops available. https://docs.swarms.world/en/latest/swarms/structs/swarm_router/"
+                    "SwarmRouter: max_loops cannot be 0. Check the docs for all the max_loops available. https://docs.swarms.world/swarms/structs/swarm_router/"
                 )
 
             self.setup()
@@ -819,7 +819,7 @@ class SwarmRouter:
                 "  - Ensure all individual agents are properly configured and initialized.\n"
                 "  - Review the error message and traceback above for clues.\n\n"
                 "For detailed documentation on SwarmRouter configuration, usage, and available swarm types, please visit:\n"
-                "  https://docs.swarms.world/en/latest/swarms/structs/swarm_router/\n"
+                "  https://docs.swarms.world/swarms/structs/swarm_router/\n"
             )
             raise e
 
@@ -866,7 +866,7 @@ class SwarmRouter:
                 "  - Ensure all individual agents are properly configured and initialized.\n"
                 "  - Review the error message and traceback above for clues.\n\n"
                 "For detailed documentation on SwarmRouter configuration, usage, and available swarm types, please visit:\n"
-                "  https://docs.swarms.world/en/latest/swarms/structs/swarm_router/\n"
+                "  https://docs.swarms.world/swarms/structs/swarm_router/\n"
             )
             raise e
 

@@ -47,7 +47,7 @@ The Swarms ecosystem consists of multiple tightly integrated components that ser
 
 - **Tools Documentation (`swarms_tools`)**: Guides for CLI and GUI utilities.
 
-- **Hosted API Reference**: Up-to-date REST API documentation: [Swarms API Docs](https://docs.swarms.world/en/latest/swarms_cloud/swarms_api/).
+- **Hosted API Reference**: Up-to-date REST API documentation: [Swarms API Docs](https://docs.swarms.world/swarms_cloud/swarms_api/).
 
 - **Marketplace & Chat**: Web platforms and communication interfaces [swarms.world](https://swarms.world).
 
@@ -336,7 +336,7 @@ Active contributors are often spotlighted for leadership roles and community awa
 
 - Rust SDK Repo: https://github.com/The-Swarm-Corporation/swarms-rs
 
-- Swarms API Docs: https://docs.swarms.world/en/latest/swarms_cloud/swarms_api/
+- Swarms API Docs: https://docs.swarms.world/swarms_cloud/swarms_api/
 
 - Marketplace: https://swarms.world
 

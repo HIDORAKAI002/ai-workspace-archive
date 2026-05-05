@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"slices"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
@@ -48,6 +49,17 @@ func (c *Configuration) ListOutput() output.Output {
 	return c.listOutput
 }
 
+// warmCaches forces every lazy cache field on Configuration to be populated.
+// Callers about to publish a *Configuration to lock-free readers MUST call
+// this first; otherwise the first concurrent readers race on the lazy
+// initialization. Keep this in sync with every lazy field on Configuration —
+// adding a new lazy field without extending warmCaches re-introduces the
+// race.
+func (c *Configuration) warmCaches() {
+	c.ListOutput()
+	c.Toolsets()
+}
+
 func (c *Configuration) isToolApplicable(tool api.ServerTool) bool {
 	if c.ReadOnly && !ptr.Deref(tool.Tool.Annotations.ReadOnlyHint, false) {
 		return false
@@ -65,14 +77,24 @@ func (c *Configuration) isToolApplicable(tool api.ServerTool) bool {
 }
 
 type Server struct {
+	// mu protects the enabledX bookkeeping. The configuration is held in
+	// an atomic.Pointer (see below) and does NOT require mu for reads.
 	mu sync.RWMutex
-	// reloadMu serializes reloadToolsets calls. WatchTargets (kubeconfig +
+	// reloadMu serializes applyToolsets calls. WatchTargets (kubeconfig +
 	// cluster-state watchers) and ReloadConfiguration can all fire reloads
 	// concurrently; without this lock, two reloads can interleave their SDK
 	// Add/Remove operations and their enabledX writes, leaving the SDK and
 	// the bookkeeping divergent.
-	reloadMu                 sync.Mutex
-	configuration            *Configuration
+	reloadMu sync.Mutex
+	// configuration is the live server configuration. It's an
+	// atomic.Pointer so that handlers (which read s.configuration on every
+	// tool/prompt invocation, on hot paths) can do so without acquiring a
+	// lock, and so that a reload's swap publishes the new *Configuration
+	// in one indivisible step. Each handler should snapshot the pointer
+	// once at the top of its critical section and read all fields off that
+	// snapshot — otherwise a mid-handler reload could split fields across
+	// two configs.
+	configuration            atomic.Pointer[Configuration]
 	server                   *mcp.Server
 	enabledTools             []string
 	enabledPrompts           []string
@@ -86,7 +108,6 @@ type Server struct {
 
 func NewServer(configuration Configuration, targetProvider internalk8s.Provider) (*Server, error) {
 	s := &Server{
-		configuration: &configuration,
 		server: mcp.NewServer(
 			&mcp.Implementation{
 				Name:       version.BinaryName,
@@ -105,6 +126,7 @@ func NewServer(configuration Configuration, targetProvider internalk8s.Provider)
 			}),
 		p: targetProvider,
 	}
+	s.configuration.Store(&configuration)
 
 	// Initialize metrics system
 	metricsInstance, err := metrics.New(metrics.Config{
@@ -123,10 +145,9 @@ func NewServer(configuration Configuration, targetProvider internalk8s.Provider)
 	s.rateLimitDone = make(chan struct{})
 	s.server.AddReceivingMiddleware(
 		rateLimitingMiddleware(s.rateLimitDone, func() (rate.Limit, int) {
-			s.mu.RLock()
-			rps := s.configuration.HTTP.RateLimitRPS
-			burst := s.configuration.HTTP.RateLimitBurst
-			s.mu.RUnlock()
+			cfg := s.configuration.Load()
+			rps := cfg.HTTP.RateLimitRPS
+			burst := cfg.HTTP.RateLimitBurst
 			if burst == 0 {
 				burst = config.DefaultRateLimitBurst
 			}
@@ -139,16 +160,40 @@ func NewServer(configuration Configuration, targetProvider internalk8s.Provider)
 	s.server.AddReceivingMiddleware(toolCallLoggingMiddleware)
 	s.server.AddReceivingMiddleware(s.metricsMiddleware())
 
-	err = s.reloadToolsets()
+	err = s.applyToolsets(s.configuration.Load())
 	if err != nil {
 		return nil, err
 	}
-	s.p.WatchTargets(s.reloadToolsets)
+	s.p.WatchTargets(s.reapplyToolsets)
 
 	return s, nil
 }
 
-func (s *Server) reloadToolsets() error {
+// reapplyToolsets is the provider's WatchTargets callback (signature
+// func() error). It re-applies the currently-installed configuration when
+// cluster state changes. The nil arg tells applyToolsets to re-read
+// s.configuration *inside* the reloadMu critical section, avoiding a TOCTOU
+// where capturing cfg here could let a concurrent ReloadConfiguration commit
+// a new cfg while we're blocked on reloadMu — we'd then silently roll it
+// back by re-installing the stale snapshot.
+func (s *Server) reapplyToolsets() error {
+	return s.applyToolsets(nil)
+}
+
+// applyToolsets recomputes the SDK's tool/prompt/resource/template surface
+// against cfg and, on success, atomically installs cfg as the live
+// configuration alongside the SDK changes. cfg may be:
+//   - a freshly-built *Configuration (configuration reload path), in which
+//     case s.configuration is only mutated once the convert phase succeeds;
+//   - nil (re-apply path, e.g. cluster-state change), in which case the
+//     currently-installed configuration is re-read under reloadMu and
+//     reused. nil — instead of "callers pass s.configuration" — is required
+//     to avoid the caller capturing a stale cfg before reloadMu serializes
+//     against an in-flight ReloadConfiguration.
+//
+// On error s.configuration, the SDK, and the enabled-X bookkeeping all stay
+// at their prior consistent values.
+func (s *Server) applyToolsets(cfg *Configuration) error {
 	// TODO: No option to perform a full replacement of tools.
 	// s.server.SetTools(tools...)
 
@@ -158,11 +203,21 @@ func (s *Server) reloadToolsets() error {
 	s.reloadMu.Lock()
 	defer s.reloadMu.Unlock()
 
-	// Collect applicable items
-	applicableTools := s.collectApplicableTools()
-	applicablePrompts := s.collectApplicablePrompts()
-	applicableResources := s.collectApplicableResources()
-	applicableResourceTemplates := s.collectApplicableResourceTemplates()
+	// If the caller didn't pin a candidate cfg, re-apply whatever is
+	// currently installed. Reading inside the reloadMu critical section
+	// guarantees we observe the latest committed cfg, even if a concurrent
+	// ReloadConfiguration just stored one while we were blocked above.
+	if cfg == nil {
+		cfg = s.configuration.Load()
+	}
+
+	// Collect applicable items against cfg (NOT s.configuration) so that a
+	// pending ReloadConfiguration can probe a candidate config without making
+	// it observable to concurrent readers until the convert phase succeeds.
+	applicableTools := s.collectApplicableTools(cfg)
+	applicablePrompts := s.collectApplicablePrompts(cfg)
+	applicableResources := s.collectApplicableResources(cfg)
+	applicableResourceTemplates := s.collectApplicableResourceTemplates(cfg)
 
 	// Phase 1: convert all items to SDK types. This validates URIs, URITemplates,
 	// and any per-item conversion before any SDK mutation, so a bad item in any
@@ -222,7 +277,21 @@ func (s *Server) reloadToolsets() error {
 	newResources := commitItems(previousResources, convertedResources, s.server.RemoveResources, s.server.AddResource)
 	newResourceTemplates := commitItems(previousResourceTemplates, convertedResourceTemplates, s.server.RemoveResourceTemplates, s.server.AddResourceTemplate)
 
-	// Only hold write lock for the final assignment
+	// Pre-warm cfg's lazy caches so concurrent first-readers (handlers
+	// reading cfg.ListOutput() etc.) don't race on the lazy initialization.
+	// MUST happen before the atomic store below, otherwise lock-free readers
+	// can observe cfg with un-warmed caches.
+	cfg.warmCaches()
+
+	// Publish cfg to readers (handlers, rate-limit closure, ServeHTTP, the
+	// next re-apply) via an atomic store. The SDK already reflects cfg from
+	// the commit phase above; the store makes the new *Configuration
+	// observable to lock-free readers in one indivisible step.
+	s.configuration.Store(cfg)
+	// Update the enabledX bookkeeping under mu. Readers of these fields
+	// (GetEnabledX) only read enabledX, never combined with cfg, so there
+	// is no need to keep the cfg store and the enabledX writes inside the
+	// same critical section.
 	s.mu.Lock()
 	s.enabledTools = newTools
 	s.enabledPrompts = newPrompts
@@ -231,7 +300,7 @@ func (s *Server) reloadToolsets() error {
 	s.mu.Unlock()
 
 	// Start new watch
-	s.p.WatchTargets(s.reloadToolsets)
+	s.p.WatchTargets(s.reapplyToolsets)
 	return nil
 }
 
@@ -292,19 +361,19 @@ func commitItems[M, H any](
 }
 
 // collectApplicableTools returns tools after applying filtering and mutation
-func (s *Server) collectApplicableTools() []api.ServerTool {
+func (s *Server) collectApplicableTools(cfg *Configuration) []api.ServerTool {
 	filter := CompositeFilter(
-		s.configuration.isToolApplicable,
+		cfg.isToolApplicable,
 		ShouldIncludeTargetListTool(s.p.GetTargetParameterName(), s.p.IsMultiTarget()),
 	)
 	mutator := ComposeMutators(
 		WithTargetParameter(s.p.GetDefaultTarget(), s.p.GetTargetParameterName(), s.p.IsMultiTarget()),
 		WithTargetListTool(s.p.GetDefaultTarget(), s.p.GetTargetParameterName(), s.p),
-		WithToolOverrides(s.configuration.ToolOverrides),
+		WithToolOverrides(cfg.ToolOverrides),
 	)
 
 	tools := make([]api.ServerTool, 0)
-	for _, toolset := range s.configuration.Toolsets() {
+	for _, toolset := range cfg.Toolsets() {
 		for _, tool := range toolset.GetTools(s.p) {
 			tool = mutator(tool)
 			if filter(tool) {
@@ -316,26 +385,26 @@ func (s *Server) collectApplicableTools() []api.ServerTool {
 }
 
 // collectApplicablePrompts returns prompts after applying mutation and merging toolset and config prompts
-func (s *Server) collectApplicablePrompts() []api.ServerPrompt {
+func (s *Server) collectApplicablePrompts(cfg *Configuration) []api.ServerPrompt {
 	mutator := WithPromptTargetParameter(s.p.GetDefaultTarget(), s.p.GetTargetParameterName(), s.p.IsMultiTarget())
 
 	toolsetPrompts := make([]api.ServerPrompt, 0)
-	for _, toolset := range s.configuration.Toolsets() {
+	for _, toolset := range cfg.Toolsets() {
 		for _, prompt := range toolset.GetPrompts() {
 			toolsetPrompts = append(toolsetPrompts, mutator(prompt))
 		}
 	}
-	configPrompts := prompts.ToServerPrompts(s.configuration.Prompts)
+	configPrompts := prompts.ToServerPrompts(cfg.Prompts)
 	return prompts.MergePrompts(toolsetPrompts, configPrompts)
 }
 
 // collectApplicableResources returns resources from all enabled toolsets after filtering and mutation
-func (s *Server) collectApplicableResources() []api.ServerResource {
+func (s *Server) collectApplicableResources(cfg *Configuration) []api.ServerResource {
 	filter := CompositeResourceFilter()
 	mutator := ComposeResourceMutators()
 
 	resources := make([]api.ServerResource, 0)
-	for _, toolset := range s.configuration.Toolsets() {
+	for _, toolset := range cfg.Toolsets() {
 		for _, resource := range toolset.GetResources() {
 			resource = mutator(resource)
 			if filter(resource) {
@@ -347,12 +416,12 @@ func (s *Server) collectApplicableResources() []api.ServerResource {
 }
 
 // collectApplicableResourceTemplates returns resource templates from all enabled toolsets after filtering and mutation
-func (s *Server) collectApplicableResourceTemplates() []api.ServerResourceTemplate {
+func (s *Server) collectApplicableResourceTemplates(cfg *Configuration) []api.ServerResourceTemplate {
 	filter := CompositeResourceTemplateFilter()
 	mutator := ComposeResourceTemplateMutators()
 
 	templates := make([]api.ServerResourceTemplate, 0)
-	for _, toolset := range s.configuration.Toolsets() {
+	for _, toolset := range cfg.Toolsets() {
 		for _, template := range toolset.GetResourceTemplates() {
 			template = mutator(template)
 			if filter(template) {
@@ -414,7 +483,7 @@ func (s *Server) ServeHTTP() *mcp.StreamableHTTPHandler {
 		// balancing, and serverless environments where maintaining client state
 		// is not desired or possible.
 		// https://modelcontextprotocol.io/specification/2025-03-26/basic/transports#listening-for-messages-from-the-server
-		Stateless: s.configuration.Stateless,
+		Stateless: s.configuration.Load().Stateless,
 	})
 }
 
@@ -456,6 +525,13 @@ func (s *Server) GetEnabledResourceTemplates() []string {
 // ReloadConfiguration reloads the configuration and reinitializes the server.
 // This is intended to be called by the server lifecycle manager when
 // configuration changes are detected.
+//
+// The reload is fully transactional: s.configuration is not mutated until
+// applyToolsets has successfully recomputed and committed the SDK surface
+// against the candidate config. A rejected reload leaves s.configuration, the
+// SDK, and the enabled-X bookkeeping at their previous consistent values, so
+// concurrent readers (rate-limit closure, confirmation rules, list output...)
+// can never observe a new-but-rejected configuration.
 func (s *Server) ReloadConfiguration(newConfig *config.StaticConfig) error {
 	klog.V(1).Info("Reloading MCP server configuration...")
 
@@ -467,32 +543,11 @@ func (s *Server) ReloadConfiguration(newConfig *config.StaticConfig) error {
 		return fmt.Errorf("configuration reload rejected: %w", err)
 	}
 
-	// Update the configuration (protected by mu so concurrent readers see a
-	// consistent snapshot, e.g. the rate-limit configFn closure).
-	// TODO(#1128): refactor reloadToolsets to compute against newConfig
-	// without mutating s.configuration (transactional reload), removing
-	// the need for the rollback path below.
-	s.mu.Lock()
-	previousConfig := s.configuration.StaticConfig
-	previousListOutput := s.configuration.listOutput
-	previousToolsets := s.configuration.toolsets
-	s.configuration.StaticConfig = newConfig
-	// Clear cached values so they get recomputed
-	s.configuration.listOutput = nil
-	s.configuration.toolsets = nil
-	s.mu.Unlock()
+	// Build a candidate Configuration view. applyToolsets will install it
+	// atomically only if the convert phase succeeds.
+	candidate := &Configuration{StaticConfig: newConfig}
 
-	// Reload the Kubernetes provider (this will also rebuild tools)
-	if err := s.reloadToolsets(); err != nil {
-		// reloadToolsets is transactional — SDK state is unchanged on error.
-		// Roll back the configuration so subsequent reads (rate limiter,
-		// confirmation rules, list output, ...) stay consistent with what
-		// the SDK is actually serving.
-		s.mu.Lock()
-		s.configuration.StaticConfig = previousConfig
-		s.configuration.listOutput = previousListOutput
-		s.configuration.toolsets = previousToolsets
-		s.mu.Unlock()
+	if err := s.applyToolsets(candidate); err != nil {
 		return fmt.Errorf("failed to reload toolsets: %w", err)
 	}
 
