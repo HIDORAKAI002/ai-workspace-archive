@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-05-05 10:08 IST] Auto-Sync
+- **25 Repositories Updated:** Kubernetes MCP Server, Awesome ChatGPT Prompts, Flowise, Activepieces, Windmill, modelcontextprotocol/rust-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langgraph, pydantic/pydantic-ai, mastra-ai/mastra, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, anthropics/claude-code, chroma-core/chroma, openai/openai-cookbook, google-gemini/gemini-cli, googleapis/python-genai, apache/airflow, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra
+
 ## [2026-05-05 03:38 IST] Auto-Sync
 - **39 Repositories Updated:** Exa MCP Server, Promptfoo, Flowise, Activepieces, Windmill, Budibase, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langgraph, run-llama/llama_index, pydantic/pydantic-ai, mastra-ai/mastra, Upsonic, BerriAI/litellm, stanfordnlp/dspy, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, chroma-core/chroma, pinecone-io/pinecone-python-client, arize-ai/phoenix, firecrawl/firecrawl, openai/openai-python, openai/openai-node, anthropics/anthropic-sdk-python, anthropics/anthropic-sdk-typescript, anthropics/anthropic-sdk-go, anthropics/anthropic-sdk-ruby, google-gemini/gemini-cli, googleapis/python-genai, vercel/ai, PrefectHQ/prefect, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, obra/superpowers, mastra-ai/mastra, vectorize-io/hindsight
 

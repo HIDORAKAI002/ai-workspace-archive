@@ -1,5 +1,9 @@
 # create-mastra
 
+## 1.8.1-alpha.0
+
+## 1.8.0
+
 ## 1.8.0-alpha.4
 
 ## 1.8.0-alpha.3

@@ -92,12 +92,14 @@ describe("package acceptance workflow", () => {
     expect(workflow).toContain("suite_profile:");
     expect(workflow).toContain("published_upgrade_survivor_baseline:");
     expect(workflow).toContain("published_upgrade_survivor_baselines:");
+    expect(workflow).toContain("last-stable-4");
     expect(workflow).toContain("all-since-2026.4.23");
     expect(workflow).toContain("published_upgrade_survivor_scenarios:");
     expect(workflow).toContain("scripts/resolve-upgrade-survivor-baselines.mjs");
     expect(workflow).toContain("--history-count 6");
     expect(workflow).toContain("--include-version 2026.4.23");
     expect(workflow).toContain("--pre-date 2026-03-15T00:00:00Z");
+    expect(workflow).toContain('"last-stable-"');
     expect(workflow).toContain('"all-since-"');
     expect(workflow).toContain("npm-onboard-channel-agent gateway-network config-reload");
     expect(workflow).toContain("npm-onboard-channel-agent doctor-switch");
@@ -199,7 +201,7 @@ describe("package artifact reuse", () => {
       "OPENCLAW_UPGRADE_SURVIVOR_BASELINE_SPEC: ${{ inputs.published_upgrade_survivor_baseline }}",
     );
     expect(workflow).toContain(
-      "OPENCLAW_UPGRADE_SURVIVOR_BASELINE_SPECS: ${{ inputs.published_upgrade_survivor_baselines }}",
+      "OPENCLAW_UPGRADE_SURVIVOR_BASELINE_SPECS: ${{ matrix.group.published_upgrade_survivor_baselines || inputs.published_upgrade_survivor_baselines }}",
     );
     expect(workflow).toContain(
       "OPENCLAW_UPGRADE_SURVIVOR_SCENARIOS: ${{ inputs.published_upgrade_survivor_scenarios }}",
@@ -229,8 +231,13 @@ describe("package artifact reuse", () => {
     });
     expect(workflow).toContain("plan_docker_lane_groups:");
     expect(workflow).toContain("targeted_docker_lane_group_size:");
+    expect(workflow).toContain("scripts/plan-targeted-docker-lane-groups.mjs");
+    expect(workflow).toContain(
+      "OPENCLAW_UPGRADE_SURVIVOR_BASELINE_SPECS: ${{ inputs.published_upgrade_survivor_baselines }}",
+    );
     expect(workflow).toContain("Docker E2E targeted lanes (${{ matrix.group.label }})");
     expect(workflow).toContain("LANES: ${{ matrix.group.docker_lanes }}");
+    expect(workflow).toContain("GROUP_LABEL: ${{ matrix.group.label }}");
     expect(workflow).toContain("DOCKER_E2E_LANES: ${{ matrix.group.docker_lanes }}");
     expect(workflow).toContain("name: docker-e2e-${{ steps.plan.outputs.artifact_suffix }}");
     expect(scheduler).toContain(
@@ -307,6 +314,7 @@ describe("package artifact reuse", () => {
     expect(workflow).toContain("live_suite_filter:");
     expect(workflow).toContain("validate_live_suite_filter:");
     expect(workflow).toContain("LIVE_SUITE_FILTER: ${{ inputs.live_suite_filter }}");
+    expect(workflow).toContain("live-cache attempt ${attempt}/3");
     expect(workflow).toContain(
       "live_suite_filter '${LIVE_SUITE_FILTER}' does not match any runnable suite",
     );
@@ -528,8 +536,12 @@ describe("package artifact reuse", () => {
     expect(workflow).toContain(
       "docker_lanes: doctor-switch update-channel-switch upgrade-survivor published-upgrade-survivor plugins-offline plugin-update",
     );
-    expect(workflow).toContain("published_upgrade_survivor_baselines: all-since-2026.4.23");
-    expect(workflow).toContain("published_upgrade_survivor_scenarios: reported-issues");
+    expect(workflow).toContain(
+      "published_upgrade_survivor_baselines: ${{ needs.resolve_target.outputs.run_release_soak == 'true' && 'last-stable-4 2026.4.23 2026.5.2 2026.4.15' || '' }}",
+    );
+    expect(workflow).toContain(
+      "published_upgrade_survivor_scenarios: ${{ needs.resolve_target.outputs.run_release_soak == 'true' && 'reported-issues' || '' }}",
+    );
     expect(workflow).toContain("telegram_mode: mock-openai");
     expect(workflow).toContain(
       "telegram_scenarios: telegram-help-command,telegram-commands-command,telegram-tools-compact-command,telegram-whoami-command,telegram-context-command,telegram-current-session-status-tool,telegram-mention-gating",
@@ -544,6 +556,10 @@ describe("package artifact reuse", () => {
     );
     expect(workflow).toContain("rerun_group:");
     expect(workflow).toContain("live_suite_filter:");
+    expect(workflow).toContain("cross_os_suite_filter:");
+    expect(workflow).toContain(
+      "suite_filter: ${{ needs.resolve_target.outputs.cross_os_suite_filter }}",
+    );
     expect(workflow).toContain(
       "live_suite_filter: ${{ needs.resolve_target.outputs.live_suite_filter }}",
     );
@@ -551,10 +567,11 @@ describe("package artifact reuse", () => {
       "contains(fromJSON('[\"all\",\"cross-os\",\"package\"]'), needs.resolve_target.outputs.rerun_group) || (needs.resolve_target.outputs.rerun_group == 'live-e2e' && needs.resolve_target.outputs.live_suite_filter == '')",
     );
     expect(workflow).toContain(
-      "contains(fromJSON('[\"all\",\"live-e2e\"]'), needs.resolve_target.outputs.rerun_group) && needs.resolve_target.outputs.live_suite_filter == ''",
+      "(needs.resolve_target.outputs.rerun_group == 'live-e2e' || (needs.resolve_target.outputs.rerun_group == 'all' && needs.resolve_target.outputs.run_release_soak == 'true')) && needs.resolve_target.outputs.live_suite_filter == ''",
     );
     expect(workflow).toContain("- live-e2e");
     expect(workflow).toContain("- qa-live");
+    expect(workflow).toContain("QA release-check lanes are advisory");
   });
 
   it("detects Matrix fail-fast support for older release refs", () => {
@@ -650,6 +667,7 @@ describe("package artifact reuse", () => {
       "child_rerun_group=all",
       '-f rerun_group="$child_rerun_group"',
       'args+=(-f live_suite_filter="$LIVE_SUITE_FILTER")',
+      'args+=(-f cross_os_suite_filter="$CROSS_OS_SUITE_FILTER")',
       "cancel-in-progress: ${{ inputs.ref == 'main' && inputs.rerun_group == 'all' }}",
       "gh run cancel",
       "NORMAL_CI_RESULT: ${{ needs.normal_ci.result }}",
@@ -673,7 +691,9 @@ describe("package artifact reuse", () => {
       "Focused `npm-telegram` reruns require `npm_telegram_package_spec`",
     );
     expectTextToIncludeAll(fullReleaseDocs, [
-      "full pre-publish candidate",
+      "pre-publish candidate",
+      "cross_os_suite_filter",
+      "QA release-check lanes are advisory",
       "silently skip that",
       "Telegram package lane",
       "| `npm-telegram`      | Published-package Telegram E2E; requires `npm_telegram_package_spec`. |",
