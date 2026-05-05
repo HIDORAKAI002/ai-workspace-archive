@@ -56,13 +56,15 @@ async def pool(backend):
 
 @pytest_asyncio.fixture
 async def clean_operations(pool):
-    """Clean up async_operations table before and after tests."""
-    # Clean before test - covers both 'test-worker-' and 'test_worker_recovery' patterns
-    await pool.execute(
-        "DELETE FROM async_operations WHERE bank_id LIKE 'test-worker-%' OR bank_id LIKE 'test_worker_%'"
-    )
+    """Clean up async_operations table before and after tests.
+
+    We must clean ALL pending operations (not just test-worker-* prefixed ones)
+    because WorkerPoller.claim_batch scans the entire schema for pending tasks.
+    Stale operations left by other tests (e.g. consolidation) cause spurious
+    failures when the poller picks them up unexpectedly.
+    """
+    await pool.execute("DELETE FROM async_operations WHERE status = 'pending'")
     yield
-    # Clean after test
     await pool.execute(
         "DELETE FROM async_operations WHERE bank_id LIKE 'test-worker-%' OR bank_id LIKE 'test_worker_%'"
     )

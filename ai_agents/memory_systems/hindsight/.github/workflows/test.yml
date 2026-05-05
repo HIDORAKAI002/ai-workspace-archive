@@ -3,8 +3,6 @@ name: CI
 on:
   pull_request:
     branches: [ main ]
-  pull_request_review:
-    types: [ submitted ]
   workflow_dispatch:
 
 concurrency:
@@ -13,10 +11,6 @@ concurrency:
 
 jobs:
   detect-changes:
-    # Skip non-approved pull_request_review events
-    if: >-
-      github.event_name != 'pull_request_review' ||
-      github.event.review.state == 'approved'
     runs-on: ubuntu-latest
     permissions:
       pull-requests: read
@@ -47,24 +41,23 @@ jobs:
       integrations-llamaindex: ${{ steps.filter.outputs.integrations-llamaindex }}
       integrations-paperclip: ${{ steps.filter.outputs.integrations-paperclip }}
       integrations-opencode: ${{ steps.filter.outputs.integrations-opencode }}
+      integrations-n8n: ${{ steps.filter.outputs.integrations-n8n }}
       integrations-cloudflare-oauth-proxy: ${{ steps.filter.outputs.integrations-cloudflare-oauth-proxy }}
       integrations-lockfiles: ${{ steps.filter.outputs.integrations-lockfiles }}
       integrations-openai-agents: ${{ steps.filter.outputs.integrations-openai-agents }}
       integrations-pipecat: ${{ steps.filter.outputs.integrations-pipecat }}
       integrations-agentcore: ${{ steps.filter.outputs.integrations-agentcore }}
       integrations-smolagents: ${{ steps.filter.outputs.integrations-smolagents }}
+      integrations-dify: ${{ steps.filter.outputs.integrations-dify }}
       tools-agent-sdk: ${{ steps.filter.outputs.tools-agent-sdk }}
       tools-self-driving-agents: ${{ steps.filter.outputs.tools-self-driving-agents }}
       dev: ${{ steps.filter.outputs.dev }}
       ci: ${{ steps.filter.outputs.ci }}
-      # Secrets are available for internal PRs, pull_request_review, and workflow_dispatch.
+      # Secrets are available for internal PRs and workflow_dispatch.
       # Fork PRs via pull_request event do NOT have access to secrets.
       has_secrets: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
     steps:
     - uses: actions/checkout@v6
-      with:
-        # For pull_request_review, checkout the PR head (not the base branch)
-        ref: ${{ github.event_name == 'pull_request_review' && github.event.pull_request.head.sha || '' }}
 
     - uses: dorny/paths-filter@v4
       id: filter
@@ -133,6 +126,8 @@ jobs:
             - 'hindsight-integrations/paperclip/**'
           integrations-opencode:
             - 'hindsight-integrations/opencode/**'
+          integrations-n8n:
+            - 'hindsight-integrations/n8n/**'
           integrations-cloudflare-oauth-proxy:
             - 'hindsight-integrations/cloudflare-oauth-proxy/**'
           integrations-lockfiles:
@@ -147,6 +142,8 @@ jobs:
             - 'hindsight-integrations/agentcore/**'
           integrations-smolagents:
             - 'hindsight-integrations/smolagents/**'
+          integrations-dify:
+            - 'hindsight-integrations/dify/**'
           tools-agent-sdk:
             - 'hindsight-tools/hindsight-agent-sdk/**'
           tools-self-driving-agents:
@@ -166,7 +163,6 @@ jobs:
   check-integration-lockfiles:
     needs: [detect-changes]
     if: >-
-      github.event_name != 'pull_request_review' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.integrations-lockfiles == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -182,7 +178,6 @@ jobs:
   build-api-python-versions:
     needs: [detect-changes]
     if: >-
-      github.event_name != 'pull_request_review' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -213,7 +208,6 @@ jobs:
   build-typescript-client:
     needs: [detect-changes]
     if: >-
-      github.event_name != 'pull_request_review' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.clients-ts == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -240,7 +234,6 @@ jobs:
   build-hindsight-all-npm:
     needs: [detect-changes]
     if: >-
-      github.event_name != 'pull_request_review' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.all-npm == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -270,7 +263,6 @@ jobs:
   build-openclaw-integration:
     needs: [detect-changes]
     if: >-
-      github.event_name != 'pull_request_review' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.integrations-openclaw == 'true' ||
       needs.detect-changes.outputs.clients-ts == 'true' ||
@@ -326,7 +318,6 @@ jobs:
   smoke-openclaw-install:
     needs: [detect-changes, build-openclaw-integration]
     if: >-
-      github.event_name != 'pull_request_review' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.integrations-openclaw == 'true' ||
       needs.detect-changes.outputs.clients-ts == 'true' ||
@@ -384,7 +375,6 @@ jobs:
   test-claude-code-integration:
     needs: [detect-changes]
     if: >-
-      github.event_name != 'pull_request_review' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.integrations-claude-code == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -410,7 +400,6 @@ jobs:
   test-codex-integration:
     needs: [detect-changes]
     if: >-
-      github.event_name != 'pull_request_review' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.integrations-codex == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -436,7 +425,6 @@ jobs:
   build-ai-sdk-integration:
     needs: [detect-changes]
     if: >-
-      github.event_name != 'pull_request_review' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.integrations-ai-sdk == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -467,7 +455,6 @@ jobs:
   test-ai-sdk-integration-deno:
     needs: [detect-changes]
     if: >-
-      github.event_name != 'pull_request_review' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.integrations-ai-sdk == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -499,7 +486,6 @@ jobs:
   test-opencode-integration:
     needs: [detect-changes]
     if: >-
-      github.event_name != 'pull_request_review' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.integrations-opencode == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -527,10 +513,39 @@ jobs:
       working-directory: ./hindsight-integrations/opencode
       run: npm run build
 
+  test-n8n-integration:
+    needs: [detect-changes]
+    if: >-
+      (github.event_name == 'workflow_dispatch' ||
+      needs.detect-changes.outputs.integrations-n8n == 'true' ||
+      needs.detect-changes.outputs.ci == 'true')
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        ref: ${{ github.event.pull_request.head.sha || '' }}
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v6
+      with:
+        node-version: '22'
+
+    - name: Install dependencies
+      working-directory: ./hindsight-integrations/n8n
+      run: npm install --no-fund --no-audit
+
+    - name: Run tests
+      working-directory: ./hindsight-integrations/n8n
+      run: npm test
+
+    - name: Build
+      working-directory: ./hindsight-integrations/n8n
+      run: npm run build
+
   test-hindsight-agent-sdk:
     needs: [detect-changes]
     if: >-
-      github.event_name != 'pull_request_review' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.tools-agent-sdk == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -563,7 +578,6 @@ jobs:
   test-self-driving-agents:
     needs: [detect-changes]
     if: >-
-      github.event_name != 'pull_request_review' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.tools-self-driving-agents == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -596,7 +610,6 @@ jobs:
   test-cloudflare-oauth-proxy-integration:
     needs: [detect-changes]
     if: >-
-      github.event_name != 'pull_request_review' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.integrations-cloudflare-oauth-proxy == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -627,7 +640,6 @@ jobs:
   build-chat-integration:
     needs: [detect-changes]
     if: >-
-      github.event_name != 'pull_request_review' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.integrations-chat == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -658,7 +670,6 @@ jobs:
   test-paperclip-integration:
     needs: [detect-changes]
     if: >-
-      github.event_name != 'pull_request_review' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.integrations-paperclip == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -689,7 +700,6 @@ jobs:
   test-pipecat-integration:
     needs: [detect-changes]
     if: >-
-      github.event_name != 'pull_request_review' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.integrations-pipecat == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -727,7 +737,6 @@ jobs:
   build-control-plane:
     needs: [detect-changes]
     if: >-
-      github.event_name != 'pull_request_review' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.control-plane == 'true' ||
       needs.detect-changes.outputs.clients-ts == 'true' ||
@@ -788,7 +797,6 @@ jobs:
   build-docs:
     needs: [detect-changes]
     if: >-
-      github.event_name != 'pull_request_review' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.docs == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -816,8 +824,7 @@ jobs:
     needs: [detect-changes]
     if: >-
       needs.detect-changes.outputs.has_secrets == 'true' &&
-      ((github.event_name == 'pull_request_review' && github.event.review.state == 'approved') ||
-      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.cli == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -945,7 +952,6 @@ jobs:
   lint-helm-chart:
     needs: [detect-changes]
     if: >-
-      github.event_name != 'pull_request_review' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.helm == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -968,8 +974,7 @@ jobs:
     needs: [detect-changes]
     if: >-
       needs.detect-changes.outputs.has_secrets == 'true' &&
-      ((github.event_name == 'pull_request_review' && github.event.review.state == 'approved') ||
-      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.docker == 'true' ||
       needs.detect-changes.outputs.control-plane == 'true' ||
@@ -1062,8 +1067,7 @@ jobs:
     needs: [detect-changes]
     if: >-
       needs.detect-changes.outputs.has_secrets == 'true' &&
-      ((github.event_name == 'pull_request_review' && github.event.review.state == 'approved') ||
-      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
     runs-on: ubuntu-latest
@@ -1142,8 +1146,7 @@ jobs:
     if: >-
       needs.detect-changes.outputs.has_secrets == 'true' &&
       contains(github.event.pull_request.labels.*.name, 'oracle-tests') &&
-      ((github.event_name == 'pull_request_review' && github.event.review.state == 'approved') ||
-      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
     runs-on: ubuntu-latest
@@ -1261,8 +1264,7 @@ jobs:
     needs: [detect-changes]
     if: >-
       needs.detect-changes.outputs.has_secrets == 'true' &&
-      ((github.event_name == 'pull_request_review' && github.event.review.state == 'approved') ||
-      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.clients-python == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -1373,8 +1375,7 @@ jobs:
     needs: [detect-changes]
     if: >-
       needs.detect-changes.outputs.has_secrets == 'true' &&
-      ((github.event_name == 'pull_request_review' && github.event.review.state == 'approved') ||
-      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.clients-ts == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -1503,8 +1504,7 @@ jobs:
     needs: [detect-changes]
     if: >-
       needs.detect-changes.outputs.has_secrets == 'true' &&
-      ((github.event_name == 'pull_request_review' && github.event.review.state == 'approved') ||
-      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.clients-python == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -1663,8 +1663,7 @@ jobs:
     needs: [detect-changes]
     if: >-
       needs.detect-changes.outputs.has_secrets == 'true' &&
-      ((github.event_name == 'pull_request_review' && github.event.review.state == 'approved') ||
-      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.clients-ts == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -1823,8 +1822,7 @@ jobs:
     needs: [detect-changes]
     if: >-
       needs.detect-changes.outputs.has_secrets == 'true' &&
-      ((github.event_name == 'pull_request_review' && github.event.review.state == 'approved') ||
-      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.clients-ts == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -1945,7 +1943,6 @@ jobs:
   build-rust-cli-arm64:
     needs: [detect-changes]
     if: >-
-      github.event_name != 'pull_request_review' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.cli == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -1978,8 +1975,7 @@ jobs:
     needs: [detect-changes]
     if: >-
       needs.detect-changes.outputs.has_secrets == 'true' &&
-      ((github.event_name == 'pull_request_review' && github.event.review.state == 'approved') ||
-      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.clients-rust == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -2094,8 +2090,7 @@ jobs:
     needs: [detect-changes]
     if: >-
       needs.detect-changes.outputs.has_secrets == 'true' &&
-      ((github.event_name == 'pull_request_review' && github.event.review.state == 'approved') ||
-      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.clients-go == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -2208,8 +2203,7 @@ jobs:
     needs: [detect-changes]
     if: >-
       needs.detect-changes.outputs.has_secrets == 'true' &&
-      ((github.event_name == 'pull_request_review' && github.event.review.state == 'approved') ||
-      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.integrations-openclaw == 'true' ||
       needs.detect-changes.outputs.embed == 'true' ||
@@ -2341,8 +2335,7 @@ jobs:
     needs: [detect-changes]
     if: >-
       needs.detect-changes.outputs.has_secrets == 'true' &&
-      ((github.event_name == 'pull_request_review' && github.event.review.state == 'approved') ||
-      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.integration-tests == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -2447,7 +2440,6 @@ jobs:
   test-ag2-integration:
     needs: [detect-changes]
     if: >-
-      github.event_name != 'pull_request_review' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.integrations-ag2 == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -2484,7 +2476,6 @@ jobs:
   test-smolagents-integration:
     needs: [detect-changes]
     if: >-
-      github.event_name != 'pull_request_review' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.integrations-smolagents == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -2518,10 +2509,43 @@ jobs:
       working-directory: ./hindsight-integrations/smolagents
       run: uv run pytest tests -v
 
-  test-crewai-integration:
+  test-dify-integration:
     needs: [detect-changes]
     if: >-
       github.event_name != 'pull_request_review' &&
+      (github.event_name == 'workflow_dispatch' ||
+      needs.detect-changes.outputs.integrations-dify == 'true' ||
+      needs.detect-changes.outputs.ci == 'true')
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        ref: ${{ github.event.pull_request.head.sha || '' }}
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        prune-cache: false
+
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        # Dify plugin runtime targets Python 3.12 (see manifest.yaml)
+        python-version: '3.12'
+
+    - name: Install dependencies
+      working-directory: ./hindsight-integrations/dify
+      run: uv pip install --system -e . pytest pytest-mock
+
+    - name: Run tests
+      working-directory: ./hindsight-integrations/dify
+      run: pytest tests -v
+
+  test-crewai-integration:
+    needs: [detect-changes]
+    if: >-
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.integrations-crewai == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -2558,7 +2582,6 @@ jobs:
   test-litellm-integration:
     needs: [detect-changes]
     if: >-
-      github.event_name != 'pull_request_review' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.integrations-litellm == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -2595,7 +2618,6 @@ jobs:
   test-pydantic-ai-integration:
     needs: [detect-changes]
     if: >-
-      github.event_name != 'pull_request_review' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.integrations-pydantic-ai == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -2632,7 +2654,6 @@ jobs:
   test-llamaindex-integration:
     needs: [detect-changes]
     if: >-
-      github.event_name != 'pull_request_review' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.integrations-llamaindex == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -2669,7 +2690,6 @@ jobs:
   test-openai-agents-integration:
     needs: [detect-changes]
     if: >-
-      github.event_name != 'pull_request_review' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.integrations-openai-agents == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -2706,7 +2726,6 @@ jobs:
   test-agentcore-integration:
     needs: [detect-changes]
     if: >-
-      github.event_name != 'pull_request_review' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.integrations-agentcore == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -2744,8 +2763,7 @@ jobs:
     needs: [detect-changes]
     if: >-
       needs.detect-changes.outputs.has_secrets == 'true' &&
-      ((github.event_name == 'pull_request_review' && github.event.review.state == 'approved') ||
-      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
     runs-on: ubuntu-latest
@@ -2813,8 +2831,7 @@ jobs:
     needs: [detect-changes]
     if: >-
       needs.detect-changes.outputs.has_secrets == 'true' &&
-      ((github.event_name == 'pull_request_review' && github.event.review.state == 'approved') ||
-      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.embed == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -2881,8 +2898,7 @@ jobs:
     needs: [detect-changes]
     if: >-
       needs.detect-changes.outputs.has_secrets == 'true' &&
-      ((github.event_name == 'pull_request_review' && github.event.review.state == 'approved') ||
-      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.embed == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -3059,8 +3075,7 @@ jobs:
     needs: [detect-changes]
     if: >-
       needs.detect-changes.outputs.has_secrets == 'true' &&
-      ((github.event_name == 'pull_request_review' && github.event.review.state == 'approved') ||
-      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.hindsight-all == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -3144,8 +3159,7 @@ jobs:
     needs: [detect-changes]
     if: >-
       needs.detect-changes.outputs.has_secrets == 'true' &&
-      ((github.event_name == 'pull_request_review' && github.event.review.state == 'approved') ||
-      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.clients-ts == 'true' ||
       needs.detect-changes.outputs.clients-python == 'true' ||
@@ -3297,8 +3311,7 @@ jobs:
     needs: [detect-changes]
     if: >-
       needs.detect-changes.outputs.has_secrets == 'true' &&
-      ((github.event_name == 'pull_request_review' && github.event.review.state == 'approved') ||
-      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.dev == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -3380,7 +3393,6 @@ jobs:
         done
 
   verify-generated-files:
-    if: github.event_name != 'pull_request_review'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v6
@@ -3462,7 +3474,6 @@ jobs:
   check-openapi-compatibility:
     needs: [detect-changes]
     if: >-
-      github.event_name != 'pull_request_review' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.ci == 'true')
@@ -3514,7 +3525,6 @@ jobs:
   check-cli-coverage:
     needs: [detect-changes]
     if: >-
-      github.event_name != 'pull_request_review' &&
       (github.event_name == 'workflow_dispatch' ||
       needs.detect-changes.outputs.core == 'true' ||
       needs.detect-changes.outputs.cli == 'true' ||
@@ -3585,6 +3595,7 @@ jobs:
       - test-integration
       - test-ag2-integration
       - test-smolagents-integration
+      - test-dify-integration
       - test-crewai-integration
       - test-litellm-integration
       - test-pydantic-ai-integration
