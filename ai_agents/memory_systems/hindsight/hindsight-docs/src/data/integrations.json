@@ -211,6 +211,16 @@
       "icon": "/img/icons/opencode.svg"
     },
     {
+      "id": "n8n",
+      "name": "n8n",
+      "description": "Persistent memory community node for n8n workflows. Retain, recall, and reflect operations drop into any workflow alongside Slack, Sheets, OpenAI, and 400+ other integrations.",
+      "type": "official",
+      "by": "hindsight",
+      "category": "framework",
+      "link": "/sdks/integrations/n8n",
+      "icon": "/img/icons/n8n.svg"
+    },
+    {
       "id": "openai-agents",
       "name": "OpenAI Agents SDK",
       "description": "Give OpenAI Agents SDK agents persistent long-term memory with Hindsight FunctionTool instances for retain, recall, and reflect.",
@@ -249,6 +259,16 @@
       "category": "framework",
       "link": "/sdks/integrations/smolagents",
       "icon": "/img/icons/smolagents.png"
+    },
+    {
+      "id": "dify",
+      "name": "Dify",
+      "description": "Persistent memory plugin for Dify workflows. Retain, Recall, and Reflect tools drop into any chatflow or agent app alongside Dify's other LLM and tool nodes.",
+      "type": "official",
+      "by": "hindsight",
+      "category": "framework",
+      "link": "/sdks/integrations/dify",
+      "icon": "/img/icons/dify.png"
     },
     {
       "id": "hindclaw",

@@ -69,15 +69,47 @@ def create_isolated_schema(db_url: str, schema_name: str, dimension: int | None 
 
     # Adjust embedding dimension if specified
     if dimension is not None:
-        ensure_embedding_dimension(db_url, dimension, schema=schema_name)
+        _ensure_embedding_dimension_with_retry(db_url, dimension, schema=schema_name)
 
 
 def drop_schema(db_url: str, schema_name: str):
-    """Drop an isolated schema."""
+    """Drop an isolated schema.
+
+    Retries once on InternalError (e.g. 'could not open relation with OID')
+    which can happen when pg0 has concurrent connections referencing the schema.
+    """
     engine = create_engine(db_url)
-    with engine.connect() as conn:
-        conn.execute(text(f"DROP SCHEMA IF EXISTS {schema_name} CASCADE"))
-        conn.commit()
+    for attempt in range(2):
+        try:
+            with engine.connect() as conn:
+                conn.execute(text(f"DROP SCHEMA IF EXISTS {schema_name} CASCADE"))
+                conn.commit()
+            return
+        except Exception:
+            if attempt == 0:
+                import time
+
+                time.sleep(0.5)
+            # Best-effort teardown — don't fail the test over cleanup issues
+
+
+def _ensure_embedding_dimension_with_retry(db_url: str, dimension: int, schema: str):
+    """Wrapper around ensure_embedding_dimension with OID race retry.
+
+    pg0 with concurrent xdist workers can cause 'could not open relation with OID'
+    when one worker's DROP SCHEMA CASCADE invalidates pg_indexes references mid-query.
+    """
+    import time
+
+    for attempt in range(3):
+        try:
+            ensure_embedding_dimension(db_url, dimension, schema=schema)
+            return
+        except Exception as e:
+            if "could not open relation with OID" in str(e) and attempt < 2:
+                time.sleep(0.5)
+                continue
+            raise
 
 
 def get_column_dimension(db_url: str, schema: str = "public", table: str = "memory_units") -> int | None:
@@ -188,7 +220,7 @@ class TestEmbeddingDimension:
         assert initial_dim == 384, f"Expected 384, got {initial_dim}"
 
         # Call ensure_embedding_dimension with matching dimension
-        ensure_embedding_dimension(db_url, 384, schema=schema)
+        _ensure_embedding_dimension_with_retry(db_url, 384, schema=schema)
 
         # Dimension should still be 384
         assert get_column_dimension(db_url, schema) == 384
@@ -202,14 +234,14 @@ class TestEmbeddingDimension:
         assert get_row_count(db_url, schema) == 0
 
         # Change dimension to 768
-        ensure_embedding_dimension(db_url, 768, schema=schema)
+        _ensure_embedding_dimension_with_retry(db_url, 768, schema=schema)
 
         # Verify dimension changed
         new_dim = get_column_dimension(db_url, schema)
         assert new_dim == 768, f"Expected 768, got {new_dim}"
 
         # Change back to 384 for other tests
-        ensure_embedding_dimension(db_url, 384, schema=schema)
+        _ensure_embedding_dimension_with_retry(db_url, 384, schema=schema)
         assert get_column_dimension(db_url, schema) == 384
 
     def test_dimension_change_blocked_with_data(self, dimension_test_schema):
@@ -243,7 +275,7 @@ class TestEmbeddingDimension:
         initial_dim = get_column_dimension(db_url, schema, table="mental_models")
         assert initial_dim == 384, f"Expected 384, got {initial_dim}"
 
-        ensure_embedding_dimension(db_url, 384, schema=schema)
+        _ensure_embedding_dimension_with_retry(db_url, 384, schema=schema)
 
         assert get_column_dimension(db_url, schema, table="mental_models") == 384
 
@@ -253,12 +285,12 @@ class TestEmbeddingDimension:
 
         clear_mental_model_embeddings(db_url, schema)
 
-        ensure_embedding_dimension(db_url, 768, schema=schema)
+        _ensure_embedding_dimension_with_retry(db_url, 768, schema=schema)
 
         assert get_column_dimension(db_url, schema, table="mental_models") == 768
 
         # Change back for other tests
-        ensure_embedding_dimension(db_url, 384, schema=schema)
+        _ensure_embedding_dimension_with_retry(db_url, 384, schema=schema)
         assert get_column_dimension(db_url, schema, table="mental_models") == 384
 
     def test_mental_models_dimension_change_blocked_with_data(self, dimension_test_schema):

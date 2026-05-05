@@ -260,6 +260,10 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseViewSections = (..._args: any[]) => {}
 
+  const blockBaseVariables = computed(() => true)
+
+  const showUpgradeToUseBaseVariables = (..._args: any[]) => {}
+
   const showSandboxPlanLimitExceededModal = (..._args: any[]) => {}
   const showUpgradeToUseListView = (..._args: any[]) => {}
 
@@ -301,6 +305,10 @@ export const useEeConfig = createSharedComposable(() => {
   const blockTrashSettings = computed(() => true)
 
   const showUpgradeToUseTrashSettings = (..._args: any[]) => {}
+
+  const blockFormGridLayout = computed(() => true)
+
+  const showUpgradeToUseFormGridLayout = (..._args: any[]) => {}
 
   const blockSnapshots = computed(() => true)
 
@@ -439,6 +447,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseFormScheduling,
     blockViewSections,
     showUpgradeToUseViewSections,
+    blockBaseVariables,
+    showUpgradeToUseBaseVariables,
     blockListView,
     showUpgradeToUseListView,
     blockMapView,
@@ -468,6 +478,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseWorkflows,
     blockTrashSettings,
     showUpgradeToUseTrashSettings,
+    blockFormGridLayout,
+    showUpgradeToUseFormGridLayout,
     blockMfa,
     showUpgradeToUseMfa,
     blockForce2fa,

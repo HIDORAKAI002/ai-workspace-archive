@@ -1300,24 +1300,50 @@ export class ImportService {
               // create filters
               const filters = colOptions.filter?.children;
 
+              // Track filters that fail to create so descendants can be
+              // skipped too — otherwise a child whose fk_parent_id maps
+              // to undefined would be persisted at root level, leaving
+              // orphan filters that are hard to clean up later.
+              const failedFilterIds = new Set<string>();
+
               for (const fl of filters) {
-                const fg = await this.filtersService.linkFilterCreate(
-                  targetContext,
-                  {
-                    columnId: getIdOrExternalId(col.id),
-                    filter: withoutId({
-                      ...fl,
-                      fk_value_col_id: getIdOrExternalId(fl.fk_value_col_id),
-                      fk_link_col_id: getIdOrExternalId(fl.fk_link_col_id),
-                      fk_column_id: getIdOrExternalId(fl.fk_column_id),
-                      fk_parent_id: getIdOrExternalId(fl.fk_parent_id),
-                    }),
-                    user: param.user,
-                    req: param.req,
-                  },
-                );
-                if (fg) {
-                  idMap.set(fl.id, fg.id);
+                if (fl.fk_parent_id && failedFilterIds.has(fl.fk_parent_id)) {
+                  failedFilterIds.add(fl.id);
+                  this.logger.warn(
+                    `Skipping link filter ${fl.id} on column ${col.id} — parent ${fl.fk_parent_id} failed earlier in this import`,
+                  );
+                  continue;
+                }
+
+                // A single broken link filter (e.g. column lookup resolves
+                // to undefined when the source export references something
+                // outside the duplicated scope) shouldn't abort the entire
+                // base duplication — log and skip.
+                try {
+                  const fg = await this.filtersService.linkFilterCreate(
+                    targetContext,
+                    {
+                      columnId: getIdOrExternalId(col.id),
+                      filter: withoutId({
+                        ...fl,
+                        fk_value_col_id: getIdOrExternalId(fl.fk_value_col_id),
+                        fk_link_col_id: getIdOrExternalId(fl.fk_link_col_id),
+                        fk_column_id: getIdOrExternalId(fl.fk_column_id),
+                        fk_parent_id: getIdOrExternalId(fl.fk_parent_id),
+                      }),
+                      user: param.user,
+                      req: param.req,
+                    },
+                  );
+                  if (fg) {
+                    idMap.set(fl.id, fg.id);
+                  }
+                } catch (e) {
+                  failedFilterIds.add(fl.id);
+                  this.logger.warn(
+                    `Skipping link filter ${fl.id} on column ${col.id} during import: ${e?.message}`,
+                    e?.stack,
+                  );
                 }
               }
             });
@@ -1406,6 +1432,12 @@ export class ImportService {
           !getIdOrExternalId(colOptions.fk_lookup_column_id)
         ) {
           if (colOptions.error) {
+            // NOTE: bypasses `columnsService.columnAdd` (and its `@TraceCommand`)
+            // intentionally — `columnAdd` validates references and would throw
+            // for an unmapped Lookup. Error-state columns are a degraded
+            // outcome of cross-base imports where the lookup target couldn't be
+            // resolved; sandbox-replay won't reproduce them, but the original
+            // column is already broken so this is acceptable.
             const tableId = getIdOrExternalId(getParentIdentifier(col.id));
             const insertedColumn = await Column.insert(targetContext, {
               ...withoutId(flatCol),
@@ -1460,6 +1492,7 @@ export class ImportService {
           !getIdOrExternalId(colOptions.fk_rollup_column_id)
         ) {
           if (colOptions.error) {
+            // See Lookup branch above — same rationale applies here.
             const tableId = getIdOrExternalId(getParentIdentifier(col.id));
             const insertedColumn = await Column.insert(targetContext, {
               ...withoutId(flatCol),

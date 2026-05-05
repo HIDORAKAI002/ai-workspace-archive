@@ -121,6 +121,13 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
               column,
               _columns || (await baseModel.model.getColumns(baseModel.context)),
             );
+            // Emit DateTime as text with a +00:00 suffix at the SQL layer so the value
+            // round-trips through JSON aggregation (json_agg / JSON_ARRAYAGG / jsonb_build_object)
+            // without losing timezone information. Without this, `json_agg(timestamp)` /
+            // `JSON_ARRAYAGG(datetime)` strip the offset and downstream consumers (lookup group
+            // headers, JSON-built objects) render the raw UTC wall time as if it were local.
+            // Non-aggregation paths still work — _convertDateFormat parses the string through
+            // dayjs and re-emits the same shape.
             if (baseModel.isMySQL) {
               // MySQL stores timestamp in UTC but display in timezone
               // To verify the timezone, run `SELECT @@global.time_zone, @@session.time_zone;`
@@ -132,7 +139,7 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
               // hence, we use CONVERT_TZ to convert back to UTC value
               res[sanitize(getAs(column) || columnName)] =
                 baseModel.dbDriver.raw(
-                  `CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00')`,
+                  `CONCAT(DATE_FORMAT(CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00'), '%Y-%m-%d %H:%i:%s'), '+00:00')`,
                   [`${sanitize(alias || baseModel.tnPath)}.${columnName}`],
                 );
               break;
@@ -146,7 +153,7 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
               ) {
                 res[sanitize(getAs(column) || columnName)] = baseModel.dbDriver
                   .raw(
-                    `?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'`,
+                    `TO_CHAR((?? AT TIME ZONE CURRENT_SETTING('timezone') AT TIME ZONE 'UTC'), 'YYYY-MM-DD HH24:MI:SSTZH:TZM')`,
                     [`${sanitize(alias || baseModel.tnPath)}.${columnName}`],
                   )
                   .wrap('(', ')');
@@ -491,14 +498,23 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           break;
         }
         case UITypes.SingleSelect: {
-          res[sanitize(getAs(column) || column.column_name)] =
-            baseModel.dbDriver.raw(`COALESCE(NULLIF(??, ''), NULL)`, [
-              sanitize(column.column_name),
-            ]);
+          // NULLIF(col, '') casts '' to col's type; native PG enums reject
+          // '' with "invalid input value for enum". Native enum cells can't
+          // hold '' anyway, so select them directly.
+          if (column.internal_meta?.pg_enum_type_name) {
+            res[sanitize(getAs(column) || column.column_name)] = sanitize(
+              `${alias || baseModel.tnPath}.${column.column_name}`,
+            );
+          } else {
+            res[sanitize(getAs(column) || column.column_name)] =
+              baseModel.dbDriver.raw(`COALESCE(NULLIF(??, ''), NULL)`, [
+                sanitize(column.column_name),
+              ]);
+          }
           break;
         }
         case UITypes.LongText: {
-          if ((baseModel.dbDriver as any).isExternal) {
+          if (baseModel.dbDriver.isExternal) {
             const colPath = sanitize(
               `${alias || baseModel.tnPath}.${column.column_name}`,
             );
