@@ -2,9 +2,11 @@ import { Readable } from 'stream';
 import debug from 'debug';
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
+import { useAgent } from 'request-filtering-agent';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { Base, Source } from '~/models';
 import { NcError } from '~/helpers/ncError';
+import { assertNotSandbox } from '~/helpers/sandboxGuards';
 import { ExportService } from '~/modules/jobs/jobs/export-import/export.service';
 
 @Injectable()
@@ -27,6 +29,11 @@ export class MigrateService {
     instanceUrl: string;
     req: NcRequest;
   }) {
+    await assertNotSandbox(
+      context,
+      'Migrating a base is not allowed from a sandbox. Run the migration on the production base.',
+    );
+
     if (!base) {
       NcError.get(context).baseNotFound('Base not found!');
     }
@@ -65,12 +72,16 @@ export class MigrateService {
       stream.push(JSON.stringify(data));
     };
 
+    const targetUrl = `${instanceUrl}/api/v2/meta/duplicate/remote/${secret}`;
+
     const axiosPromise = axios({
       method: 'post',
-      url: `${instanceUrl}/api/v2/meta/duplicate/remote/${secret}`,
+      url: targetUrl,
       headers: {
         'Content-Type': 'application/octet-stream',
       },
+      httpAgent: useAgent(targetUrl),
+      httpsAgent: useAgent(targetUrl),
       data: stream,
       maxBodyLength: Infinity,
     }).catch((e) => {

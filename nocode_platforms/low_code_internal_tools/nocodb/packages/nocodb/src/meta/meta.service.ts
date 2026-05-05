@@ -115,6 +115,7 @@ export class MetaService {
       [MetaTable.HOOK_LOGS]: 'hkl',
       [MetaTable.API_TOKENS]: 'tkn',
       [MetaTable.EXTENSIONS]: 'ext',
+      [MetaTable.BASE_VARIABLES]: 'bv',
       [MetaTable.COMMENTS]: 'com',
       [MetaTable.COMMENTS_REACTIONS]: 'cre',
       [MetaTable.USER_COMMENTS_NOTIFICATIONS_PREFERENCE]: 'cnp',
@@ -143,6 +144,7 @@ export class MetaService {
       [MetaTable.MANAGED_APP_VERSIONS]: 'mav',
       [MetaTable.MANAGED_APP_DEPLOYMENT_LOGS]: 'madl',
       [MetaTable.SANDBOXES]: 'sb',
+      [MetaTable.SANDBOX_CHANGELOG]: 'scl',
       [MetaTable.SCIM_CONFIG]: 'scfg',
       [MetaTable.RLS_POLICIES]: 'rlp',
       [MetaTable.RLS_POLICY_SUBJECTS]: 'rlps',
@@ -951,8 +953,12 @@ export class MetaService {
       ? this.connection
       : await this.connection.transaction();
 
-    // todo: tobe done
-    return new MetaService(
+    // Instantiate via this.constructor so subclasses (e.g. EE MetaService)
+    // returned from startTransaction keep their overridden methods.
+    // Hard-coding `new MetaService(...)` here would always return a CE
+    // instance even when called on an EE/EE-Cloud subclass.
+    const Ctor = this.constructor as typeof MetaService;
+    return new Ctor(
       this.config,
       trx,
       // we need to keep track of the nested transaction level
