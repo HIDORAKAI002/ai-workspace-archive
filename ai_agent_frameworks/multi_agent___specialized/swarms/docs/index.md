@@ -38,21 +38,21 @@ pip3 install swarms
 
 | Section              | Links                                                                                      |
 |----------------------|--------------------------------------------------------------------------------------------|
-| Installation    | [Installation](https://docs.swarms.world/en/latest/swarms/install/install/)                                                            |
-| Quickstart | [Get Started](https://docs.swarms.world/en/latest/swarms/install/quickstart/)                                                 |
-| Environment Setup | [Environment Configuration](https://docs.swarms.world/en/latest/swarms/install/workspace_manager/)                                                 |
-| Environment Variables | [Environment Variables](https://docs.swarms.world/en/latest/swarms/install/env/)                                                 |
-| Swarms CLI | [CLI Documentation](https://docs.swarms.world/en/latest/swarms/cli/main/)                                                 |
-| Agent Internal Mechanisms | [Agent Architecture](https://docs.swarms.world/en/latest/swarms/framework/agents_explained/)                                                 |
-| Agent API | [Agent API](https://docs.swarms.world/en/latest/swarms/structs/agent/)                                                 |
-| Managing Prompts in Production | [Prompts Management](https://docs.swarms.world/en/latest/swarms/prompts/main/)                                                 |
-| Integrating External Agents | [External Agents Integration](https://docs.swarms.world/en/latest/swarms/agents/external_party_agents/)                                                 |
-| Creating Agents from YAML | [YAML Agent Creation](https://docs.swarms.world/en/latest/swarms/agents/create_agents_yaml/)                                                 |
-| Why You Need Swarms | [Why MultiAgent Collaboration](https://docs.swarms.world/en/latest/swarms/concept/why/)                                                 |
-| Swarm Architectures Analysis | [Swarm Architectures](https://docs.swarms.world/en/latest/swarms/concept/swarm_architectures/)                                                 |
-| Choosing the Right Swarm | [How to Choose Swarms](https://docs.swarms.world/en/latest/swarms/concept/how_to_choose_swarms/)                                                 |
-| Full API Reference | [API Reference](https://docs.swarms.world/en/latest/swarms/framework/reference/)                                                 |
-| AgentRearrange Docs | [AgentRearrange](https://docs.swarms.world/en/latest/swarms/structs/agent_rearrange/)                                                 |
+| Installation    | [Installation](https://docs.swarms.world/swarms/install/install/)                                                            |
+| Quickstart | [Get Started](https://docs.swarms.world/swarms/install/quickstart/)                                                 |
+| Environment Setup | [Environment Configuration](https://docs.swarms.world/swarms/install/workspace_manager/)                                                 |
+| Environment Variables | [Environment Variables](https://docs.swarms.world/swarms/install/env/)                                                 |
+| Swarms CLI | [CLI Documentation](https://docs.swarms.world/swarms/cli/main/)                                                 |
+| Agent Internal Mechanisms | [Agent Architecture](https://docs.swarms.world/swarms/framework/agents_explained/)                                                 |
+| Agent API | [Agent API](https://docs.swarms.world/swarms/structs/agent/)                                                 |
+| Managing Prompts in Production | [Prompts Management](https://docs.swarms.world/swarms/prompts/main/)                                                 |
+| Integrating External Agents | [External Agents Integration](https://docs.swarms.world/swarms/agents/external_party_agents/)                                                 |
+| Creating Agents from YAML | [YAML Agent Creation](https://docs.swarms.world/swarms/agents/create_agents_yaml/)                                                 |
+| Why You Need Swarms | [Why MultiAgent Collaboration](https://docs.swarms.world/swarms/concept/why/)                                                 |
+| Swarm Architectures Analysis | [Swarm Architectures](https://docs.swarms.world/swarms/concept/swarm_architectures/)                                                 |
+| Choosing the Right Swarm | [How to Choose Swarms](https://docs.swarms.world/swarms/concept/how_to_choose_swarms/)                                                 |
+| Full API Reference | [API Reference](https://docs.swarms.world/swarms/framework/reference/)                                                 |
+| AgentRearrange Docs | [AgentRearrange](https://docs.swarms.world/swarms/structs/agent_rearrange/)                                                 |
 
 
 ## Ecosystem
@@ -61,13 +61,13 @@ Here you'll find references about the Swarms framework, marketplace, community, 
 
 | Section              | Links                                                                                      |
 |----------------------|--------------------------------------------------------------------------------------------|
-| Swarms Python Framework Docs     | [Framework Docs](https://docs.swarms.world/en/latest/swarms/install/install/)                                                            |
-| Swarms Cloud API     | [Cloud API](https://docs.swarms.world/en/latest/swarms_cloud/swarms_api/)                                                            |
-| Swarms Marketplace API     | [Marketplace API](https://docs.swarms.world/en/latest/swarms_platform/)                                                            |
-| Swarms Memory Systems     | [Memory Systems](https://docs.swarms.world/en/latest/swarms_memory/)                                                            |
-| Available Models     | [Models Overview](https://docs.swarms.world/en/latest/swarms/models/)                                                            |
-| Swarms Tools     | [Tools Overview](https://docs.swarms.world/en/latest/swarms_tools/overview/)                                                            |
-| Example Applications     | [Examples](https://docs.swarms.world/en/latest/swarms/examples)                                                            |
+| Swarms Python Framework Docs     | [Framework Docs](https://docs.swarms.world/swarms/install/install/)                                                            |
+| Swarms Cloud API     | [Cloud API](https://docs.swarms.world/swarms_cloud/swarms_api/)                                                            |
+| Swarms Marketplace API     | [Marketplace API](https://docs.swarms.world/swarms_platform/)                                                            |
+| Swarms Memory Systems     | [Memory Systems](https://docs.swarms.world/swarms_memory/)                                                            |
+| Available Models     | [Models Overview](https://docs.swarms.world/swarms/models/)                                                            |
+| Swarms Tools     | [Tools Overview](https://docs.swarms.world/swarms_tools/overview/)                                                            |
+| Example Applications     | [Examples](https://docs.swarms.world/swarms/examples)                                                            |
 | Swarms Corp Github     | [Swarms Corp GitHub](https://github.com/The-Swarm-Corporation)                      |
 
 

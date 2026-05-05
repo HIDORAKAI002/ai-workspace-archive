@@ -275,22 +275,22 @@ Before reaching out for support, check these resources:
 
 - **[Complete Documentation](https://docs.swarms.world)** - Comprehensive guides and API reference
 
-- **[Installation Guide](https://docs.swarms.world/en/latest/swarms/install/install/)** - Setup and configuration
+- **[Installation Guide](https://docs.swarms.world/swarms/install/install/)** - Setup and configuration
 
-- **[Quick Start](https://docs.swarms.world/en/latest/quickstart/)** - Get up and running fast
+- **[Quick Start](https://docs.swarms.world/quickstart/)** - Get up and running fast
 
-- **[Examples Gallery](https://docs.swarms.world/en/latest/examples/)** - Real-world use cases
+- **[Examples Gallery](https://docs.swarms.world/examples/)** - Real-world use cases
 
 
 ### **Common Solutions**
 
 | Issue | Solution |
 |-------|----------|
-| **Installation fails** | Check [Environment Setup](https://docs.swarms.world/en/latest/swarms/install/env/) |
+| **Installation fails** | Check [Environment Setup](https://docs.swarms.world/swarms/install/env/) |
 | **Model not responding** | Verify API keys in environment variables |
 | **Import errors** | Ensure latest version: `pip install -U swarms` |
-| **Memory issues** | Review [Performance Guide](https://docs.swarms.world/en/latest/swarms/framework/test/) |
-| **Agent not working** | Check [Basic Agent Example](https://docs.swarms.world/en/latest/swarms/examples/basic_agent/) |
+| **Memory issues** | Review [Performance Guide](https://docs.swarms.world/swarms/framework/test/) |
+| **Agent not working** | Check [Basic Agent Example](https://docs.swarms.world/swarms/examples/basic_agent/) |
 
 ### **Video Tutorials**
 

@@ -24,18 +24,18 @@ Multi-agent systems unlock new levels of intelligence, reliability, and efficien
 
 | **Architecture** | **Description** | **Best For** |
 |---|---|---|
-| **[SequentialWorkflow](https://docs.swarms.world/en/latest/swarms/structs/sequential_workflow/)** | Agents execute tasks in a linear chain; one agent's output is the next one's input. | Step-by-step processes like data transformation pipelines, report generation. |
-| **[ConcurrentWorkflow](https://docs.swarms.world/en/latest/swarms/structs/concurrent_workflow/)** | Agents run tasks simultaneously for maximum efficiency. | High-throughput tasks like batch processing, parallel data analysis. |
-| **[AgentRearrange](https://docs.swarms.world/en/latest/swarms/structs/agent_rearrange/)** | Dynamically maps complex relationships (e.g., `a -> b, c`) between agents. | Flexible and adaptive workflows, task distribution, dynamic routing. |
-| **[GraphWorkflow](https://docs.swarms.world/en/latest/swarms/structs/graph_workflow/)** | Orchestrates agents as nodes in a Directed Acyclic Graph (DAG). | Complex projects with intricate dependencies, like software builds. |
-| **[MixtureOfAgents (MoA)](https://docs.swarms.world/en/latest/swarms/structs/moa/)** | Utilizes multiple expert agents in parallel and synthesizes their outputs. | Complex problem-solving, achieving state-of-the-art performance through collaboration. |
-| **[GroupChat](https://docs.swarms.world/en/latest/swarms/structs/group_chat/)** | Agents collaborate and make decisions through a conversational interface. | Real-time collaborative decision-making, negotiations, brainstorming. |
-| **[ForestSwarm](https://docs.swarms.world/en/latest/swarms/structs/forest_swarm/)** | Dynamically selects the most suitable agent or tree of agents for a given task. | Task routing, optimizing for expertise, complex decision-making trees. |
-| **[SpreadSheetSwarm](https://docs.swarms.world/en/latest/swarms/structs/spreadsheet_swarm/)** | Manages thousands of agents concurrently, tracking tasks and outputs in a structured format. | Massive-scale parallel operations, large-scale data generation and analysis. |
-| **[SwarmRouter](https://docs.swarms.world/en/latest/swarms/structs/swarm_router/)** | Universal orchestrator that provides a single interface to run any type of swarm with dynamic selection. | Simplifying complex workflows, switching between swarm strategies, unified multi-agent management. |
-| **[HierarchicalSwarm](https://docs.swarms.world/en/latest/swarms/structs/hierarchical_swarm/)** | Director agent coordinates specialized worker agents in a hierarchy. | Complex, multi-stage tasks, iterative refinement, enterprise workflows. |
-| **[Hybrid Hierarchical-Cluster Swarm (HHCS)](https://docs.swarms.world/en/latest/swarms/structs/hhcs/)** | Router agent distributes tasks to specialized swarms for parallel, hierarchical processing. | Enterprise-scale, multi-domain, and highly complex workflows. |
-| **[MAKER](https://docs.swarms.world/en/latest/swarms/structs/maker/)** | Decomposes a task into many steps; each step uses micro-agents, red-flagging, and first-to-ahead-by-k voting before committing. | Long or fragile workflows where you want statistical agreement on every atomic step (see Meyerson et al., 2025). |
+| **[SequentialWorkflow](https://docs.swarms.world/swarms/structs/sequential_workflow/)** | Agents execute tasks in a linear chain; one agent's output is the next one's input. | Step-by-step processes like data transformation pipelines, report generation. |
+| **[ConcurrentWorkflow](https://docs.swarms.world/swarms/structs/concurrent_workflow/)** | Agents run tasks simultaneously for maximum efficiency. | High-throughput tasks like batch processing, parallel data analysis. |
+| **[AgentRearrange](https://docs.swarms.world/swarms/structs/agent_rearrange/)** | Dynamically maps complex relationships (e.g., `a -> b, c`) between agents. | Flexible and adaptive workflows, task distribution, dynamic routing. |
+| **[GraphWorkflow](https://docs.swarms.world/swarms/structs/graph_workflow/)** | Orchestrates agents as nodes in a Directed Acyclic Graph (DAG). | Complex projects with intricate dependencies, like software builds. |
+| **[MixtureOfAgents (MoA)](https://docs.swarms.world/swarms/structs/moa/)** | Utilizes multiple expert agents in parallel and synthesizes their outputs. | Complex problem-solving, achieving state-of-the-art performance through collaboration. |
+| **[GroupChat](https://docs.swarms.world/swarms/structs/group_chat/)** | Agents collaborate and make decisions through a conversational interface. | Real-time collaborative decision-making, negotiations, brainstorming. |
+| **[ForestSwarm](https://docs.swarms.world/swarms/structs/forest_swarm/)** | Dynamically selects the most suitable agent or tree of agents for a given task. | Task routing, optimizing for expertise, complex decision-making trees. |
+| **[SpreadSheetSwarm](https://docs.swarms.world/swarms/structs/spreadsheet_swarm/)** | Manages thousands of agents concurrently, tracking tasks and outputs in a structured format. | Massive-scale parallel operations, large-scale data generation and analysis. |
+| **[SwarmRouter](https://docs.swarms.world/swarms/structs/swarm_router/)** | Universal orchestrator that provides a single interface to run any type of swarm with dynamic selection. | Simplifying complex workflows, switching between swarm strategies, unified multi-agent management. |
+| **[HierarchicalSwarm](https://docs.swarms.world/swarms/structs/hierarchical_swarm/)** | Director agent coordinates specialized worker agents in a hierarchy. | Complex, multi-stage tasks, iterative refinement, enterprise workflows. |
+| **[Hybrid Hierarchical-Cluster Swarm (HHCS)](https://docs.swarms.world/swarms/structs/hhcs/)** | Router agent distributes tasks to specialized swarms for parallel, hierarchical processing. | Enterprise-scale, multi-domain, and highly complex workflows. |
+| **[MAKER](https://docs.swarms.world/swarms/structs/maker/)** | Decomposes a task into many steps; each step uses micro-agents, red-flagging, and first-to-ahead-by-k voting before committing. | Long or fragile workflows where you want statistical agreement on every atomic step (see Meyerson et al., 2025). |
 
 ---
 
@@ -74,7 +74,7 @@ result = swarm.run(task="Analyze the market potential for Tesla (TSLA) stock")
 print(result)
 ```
 
-[Full HierarchicalSwarm Documentation →](https://docs.swarms.world/en/latest/swarms/structs/hierarchical_swarm/)
+[Full HierarchicalSwarm Documentation →](https://docs.swarms.world/swarms/structs/hierarchical_swarm/)
 
 
 
@@ -136,7 +136,7 @@ swarm.run(task=f"Generate a post about: {property_description}")
 
 ### AgentRearrange
 
-Inspired by `einsum`, `AgentRearrange` lets you define complex, non-linear relationships between agents using a simple string-based syntax. [Learn more](https://docs.swarms.world/en/latest/swarms/structs/agent_rearrange/). This architecture is Perfect for orchestrating dynamic workflows where agents might work in parallel, sequence, or a combination of both.
+Inspired by `einsum`, `AgentRearrange` lets you define complex, non-linear relationships between agents using a simple string-based syntax. [Learn more](https://docs.swarms.world/swarms/structs/agent_rearrange/). This architecture is Perfect for orchestrating dynamic workflows where agents might work in parallel, sequence, or a combination of both.
 
 ```python
 from swarms import Agent, AgentRearrange
@@ -167,7 +167,7 @@ print(outputs)
 
 ### SwarmRouter: The Universal Swarm Orchestrator
 
-The `SwarmRouter` simplifies building complex workflows by providing a single interface to run any type of swarm. Instead of importing and managing different swarm classes, you can dynamically select the one you need just by changing the `swarm_type` parameter. [Read the full documentation](https://docs.swarms.world/en/latest/swarms/structs/swarm_router/)
+The `SwarmRouter` simplifies building complex workflows by providing a single interface to run any type of swarm. Instead of importing and managing different swarm classes, you can dynamically select the one you need just by changing the `swarm_type` parameter. [Read the full documentation](https://docs.swarms.world/swarms/structs/swarm_router/)
 
 This makes your code cleaner and more flexible, allowing you to switch between different multi-agent strategies with ease. Here's a complete example that shows how to define agents and then use `SwarmRouter` to execute the same task using different collaborative strategies.
 
@@ -224,7 +224,7 @@ The `SwarmRouter` is a powerful tool for simplifying multi-agent orchestration. 
 
 ### MixtureOfAgents (MoA)
 
-The `MixtureOfAgents` architecture processes tasks by feeding them to multiple "expert" agents in parallel. Their diverse outputs are then synthesized by an aggregator agent to produce a final, high-quality result. [Learn more here](https://docs.swarms.world/en/latest/swarms/examples/moa_example/)
+The `MixtureOfAgents` architecture processes tasks by feeding them to multiple "expert" agents in parallel. Their diverse outputs are then synthesized by an aggregator agent to produce a final, high-quality result. [Learn more here](https://docs.swarms.world/swarms/examples/moa_example/)
 
 ```python
 from swarms import Agent, MixtureOfAgents

@@ -12,7 +12,7 @@ Before diving into specific architectures, it's important to understand the fund
 
 ## 1. SequentialWorkflow: Linear Task Processing
 
-[📖 Documentation](https://docs.swarms.world/en/latest/swarms/structs/sequential_workflow/)
+[📖 Documentation](https://docs.swarms.world/swarms/structs/sequential_workflow/)
 
 SequentialWorkflow is the simplest multi-agent architecture, where agents execute tasks in a strict linear chain. Each agent receives input from the previous agent, processes it, and passes the output to the next agent. This architecture ensures complete task dependencies and predictable execution flow.
 
@@ -78,7 +78,7 @@ print(result)
 
 ## 2. ConcurrentWorkflow: Parallel Task Execution
 
-[📖 Documentation](https://docs.swarms.world/en/latest/swarms/structs/concurrentworkflow/)
+[📖 Documentation](https://docs.swarms.world/swarms/structs/concurrentworkflow/)
 
 ConcurrentWorkflow enables multiple agents to process tasks simultaneously, dramatically reducing execution time for independent operations. All agents receive the same initial task and work in parallel, with results collected at the end.
 
@@ -158,7 +158,7 @@ for agent_name, output in results.items():
 
 ## 3. AgentRearrange: Dynamic Agent Routing
 
-[📖 Documentation](https://docs.swarms.world/en/latest/swarms/structs/agent_rearrange/)
+[📖 Documentation](https://docs.swarms.world/swarms/structs/agent_rearrange/)
 
 AgentRearrange provides the most flexible agent orchestration using a simple string-based syntax inspired by einsum notation. Define complex relationships between agents using expressions like `"researcher -> writer, editor"` to create dynamic workflows where agents can work in parallel, sequence, or any custom pattern.
 
@@ -245,7 +245,7 @@ print(outputs)
 
 ## 4. GraphWorkflow: Complex Dependency Management
 
-[📖 Documentation](https://docs.swarms.world/en/latest/swarms/structs/graph_workflow/)
+[📖 Documentation](https://docs.swarms.world/swarms/structs/graph_workflow/)
 
 GraphWorkflow orchestrates agents as nodes in a Directed Acyclic Graph (DAG), allowing complex dependency management where tasks can have multiple predecessors and successors. This architecture is perfect for intricate projects with sophisticated interdependencies.
 
@@ -370,7 +370,7 @@ print(results)
 
 ## 5. MixtureOfAgents (MoA): Expert Collaboration
 
-[📖 Documentation](https://docs.swarms.world/en/latest/swarms/structs/moa/)
+[📖 Documentation](https://docs.swarms.world/swarms/structs/moa/)
 
 MixtureOfAgents processes tasks by feeding them to multiple expert agents in parallel, then synthesizes their diverse outputs through a specialized aggregator agent. This architecture excels at complex problem-solving by combining multiple perspectives and expertise areas.
 
@@ -466,7 +466,7 @@ print(recommendation)
 
 ## 6. GroupChat: Conversational Collaboration
 
-[📖 Documentation](https://docs.swarms.world/en/latest/swarms/structs/group_chat/)
+[📖 Documentation](https://docs.swarms.world/swarms/structs/group_chat/)
 
 GroupChat creates a conversational environment where multiple agents can interact, discuss, and collaboratively solve problems. Agents take turns in conversation, building on each other's ideas and reaching consensus through dialogue. This architecture is ideal for brainstorming, negotiation, and complex decision-making requiring iterative discussion.
 
@@ -563,7 +563,7 @@ for i, message in enumerate(conversation_history, 1):
 
 ## 7. HierarchicalSwarm: Director-Worker Pattern
 
-[📖 Documentation](https://docs.swarms.world/en/latest/swarms/structs/hierarchical_swarm/)
+[📖 Documentation](https://docs.swarms.world/swarms/structs/hierarchical_swarm/)
 
 HierarchicalSwarm implements a director-worker pattern where a central director agent creates comprehensive plans and distributes specific tasks to specialized worker agents. The director evaluates results and can issue new orders in feedback loops, making it ideal for complex project management and team coordination.
 
@@ -681,7 +681,7 @@ print(project_plan)
 
 ## 8. HeavySwarm: Advanced Research Framework
 
-[📖 Documentation](https://docs.swarms.world/en/latest/swarms/structs/heavy_swarm/)
+[📖 Documentation](https://docs.swarms.world/swarms/structs/heavy_swarm/)
 
 HeavySwarm implements a sophisticated 5-phase workflow inspired by advanced AI research methodologies. It uses specialized agents for question generation, research, analysis, alternatives exploration, and verification to provide comprehensive task analysis through intelligent parallel execution and synthesis.
 
@@ -744,7 +744,7 @@ print(investment_analysis)
 
 ## 9. SwarmRouter: Universal Orchestrator
 
-[📖 Documentation](https://docs.swarms.world/en/latest/swarms/structs/swarm_router/)
+[📖 Documentation](https://docs.swarms.world/swarms/structs/swarm_router/)
 
 SwarmRouter provides a single interface to run any type of swarm architecture with dynamic selection. Instead of importing and managing different swarm classes, you can dynamically select the optimal collaborative strategy by changing a single parameter.
 
@@ -871,7 +871,7 @@ print("=== SwarmRouter enables easy architecture switching! ===")
 
 ## 10. Social Algorithms: Custom Communication Patterns
 
-[📖 Documentation](https://docs.swarms.world/en/latest/swarms/structs/social_algorithms/)
+[📖 Documentation](https://docs.swarms.world/swarms/structs/social_algorithms/)
 
 Social Algorithms provide a flexible framework for defining custom communication patterns between agents. Upload any arbitrary social algorithm as a callable that defines the sequence of communication, enabling agents to interact in sophisticated, custom ways beyond predefined architectures.
 
@@ -990,7 +990,7 @@ print(f"Final Synthesis: {result['synthesis'][:300]}...")
 
 ## 11. Agent Orchestration Protocol (AOP): Distributed Services
 
-[📖 Documentation](https://docs.swarms.world/en/latest/swarms/structs/aop/)
+[📖 Documentation](https://docs.swarms.world/swarms/structs/aop/)
 
 The Agent Orchestration Protocol (AOP) is a powerful framework for deploying and managing agents as distributed services. AOP enables agents to be discovered, managed, and executed through a standardized protocol, making it perfect for building scalable multi-agent systems across distributed infrastructure.
 
@@ -1204,17 +1204,17 @@ print(result)
 
 | Name | Description | Docs |
 |------|-------------|------|
-| SequentialWorkflow | Simple linear task processing with step-by-step execution for workflows with clear dependencies. Ideal for content creation, data pipelines, and QA chains. | [learn more](https://docs.swarms.world/en/latest/swarms/structs/sequential_workflow/) |
-| ConcurrentWorkflow | Parallel task execution enabling maximum parallelism for independent operations. Best for batch processing, market analysis, and parallel research. | [learn more](https://docs.swarms.world/en/latest/swarms/structs/concurrentworkflow/) |
-| AgentRearrange | Flexible agent routing using dynamic syntax for complex non-linear relationships. Perfect for adaptive workflows and multi-path processing. | [learn more](https://docs.swarms.world/en/latest/swarms/structs/agent_rearrange/) |
-| GraphWorkflow | Complex dependency management using DAG orchestration for intricate projects. Suitable for software builds, project management, and complex pipelines. | [learn more](https://docs.swarms.world/en/latest/swarms/structs/graph_workflow/) |
-| MixtureOfAgents | Expert collaboration through parallel analysis and synthesis for consensus building. Excellent for strategic decisions, comprehensive analysis, and risk assessment. | [learn more](https://docs.swarms.world/en/latest/swarms/structs/moa/) |
-| GroupChat | Conversational collaboration enabling multi-agent dialogue and brainstorming. Great for negotiations, creative ideation, and debate. | [learn more](https://docs.swarms.world/en/latest/swarms/structs/group_chat/) |
-| HierarchicalSwarm | Director-worker pattern for complex project management with feedback loops. Perfect for team coordination, strategic planning, and quality control. | [learn more](https://docs.swarms.world/en/latest/swarms/structs/hierarchical_swarm/) |
-| HeavySwarm | Advanced research framework with multi-phase investigation and verification. Designed for academic research, strategic planning, and comprehensive reports. | [learn more](https://docs.swarms.world/en/latest/swarms/structs/heavy_swarm/) |
-| SwarmRouter | Universal orchestrator providing single interface for all architectures. Enables easy architecture switching and A/B testing. | [learn more](https://docs.swarms.world/en/latest/swarms/structs/swarm_router/) |
-| Social Algorithms | Custom communication patterns with programmable agent interactions. Suitable for research protocols and domain-specific workflows. | [learn more](https://docs.swarms.world/en/latest/swarms/structs/social_algorithms/) |
-| Agent Orchestration Protocol | Distributed services framework for scalable multi-agent systems. Built for large-scale deployments and cloud-native applications. | [learn more](https://docs.swarms.world/en/latest/swarms/structs/aop/) |
+| SequentialWorkflow | Simple linear task processing with step-by-step execution for workflows with clear dependencies. Ideal for content creation, data pipelines, and QA chains. | [learn more](https://docs.swarms.world/swarms/structs/sequential_workflow/) |
+| ConcurrentWorkflow | Parallel task execution enabling maximum parallelism for independent operations. Best for batch processing, market analysis, and parallel research. | [learn more](https://docs.swarms.world/swarms/structs/concurrentworkflow/) |
+| AgentRearrange | Flexible agent routing using dynamic syntax for complex non-linear relationships. Perfect for adaptive workflows and multi-path processing. | [learn more](https://docs.swarms.world/swarms/structs/agent_rearrange/) |
+| GraphWorkflow | Complex dependency management using DAG orchestration for intricate projects. Suitable for software builds, project management, and complex pipelines. | [learn more](https://docs.swarms.world/swarms/structs/graph_workflow/) |
+| MixtureOfAgents | Expert collaboration through parallel analysis and synthesis for consensus building. Excellent for strategic decisions, comprehensive analysis, and risk assessment. | [learn more](https://docs.swarms.world/swarms/structs/moa/) |
+| GroupChat | Conversational collaboration enabling multi-agent dialogue and brainstorming. Great for negotiations, creative ideation, and debate. | [learn more](https://docs.swarms.world/swarms/structs/group_chat/) |
+| HierarchicalSwarm | Director-worker pattern for complex project management with feedback loops. Perfect for team coordination, strategic planning, and quality control. | [learn more](https://docs.swarms.world/swarms/structs/hierarchical_swarm/) |
+| HeavySwarm | Advanced research framework with multi-phase investigation and verification. Designed for academic research, strategic planning, and comprehensive reports. | [learn more](https://docs.swarms.world/swarms/structs/heavy_swarm/) |
+| SwarmRouter | Universal orchestrator providing single interface for all architectures. Enables easy architecture switching and A/B testing. | [learn more](https://docs.swarms.world/swarms/structs/swarm_router/) |
+| Social Algorithms | Custom communication patterns with programmable agent interactions. Suitable for research protocols and domain-specific workflows. | [learn more](https://docs.swarms.world/swarms/structs/social_algorithms/) |
+| Agent Orchestration Protocol | Distributed services framework for scalable multi-agent systems. Built for large-scale deployments and cloud-native applications. | [learn more](https://docs.swarms.world/swarms/structs/aop/) |
 
 ### Advanced Considerations
 

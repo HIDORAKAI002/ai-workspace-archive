@@ -4,7 +4,7 @@ The `aggregate` function allows you to run multiple agents concurrently on the s
 
 ## Installation
 
-You can get started by first installing swarms with the following command, or [click here for more detailed installation instructions](https://docs.swarms.world/en/latest/swarms/install/install/):
+You can get started by first installing swarms with the following command, or [click here for more detailed installation instructions](https://docs.swarms.world/swarms/install/install/):
 
 ```bash
 pip3 install -U swarms

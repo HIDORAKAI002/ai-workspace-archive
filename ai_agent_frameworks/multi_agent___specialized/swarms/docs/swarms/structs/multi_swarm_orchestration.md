@@ -150,14 +150,14 @@ flowchart TD
 
 ### HHCS Documentation:
 
-- [Hybrid Hierarchical-Cluster Swarm Documentation](https://docs.swarms.world/en/latest/swarms/structs/hhcs/)
+- [Hybrid Hierarchical-Cluster Swarm Documentation](https://docs.swarms.world/swarms/structs/hhcs/)
 
 - Covers detailed implementation, constructor arguments, and full examples
 
 
 3. SwarmRouter Documentation:
 
-- [SwarmRouter Documentation](https://docs.swarms.world/en/latest/swarms/structs/swarm_router/)
+- [SwarmRouter Documentation](https://docs.swarms.world/swarms/structs/swarm_router/)
 
 - Provides comprehensive API reference, advanced usage, and use cases
 

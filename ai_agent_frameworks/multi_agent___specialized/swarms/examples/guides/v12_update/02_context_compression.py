@@ -18,7 +18,7 @@ result = agent_compressed.run(
     "Summarise the history of artificial intelligence in 10 detailed paragraphs, "
     "then list the 20 most important researchers and their contributions."
 )
-print(result[:500], "...[truncated]")
+print(result)
 
 # --- Agent with context compression disabled ---
 # Useful for short, predictable tasks where you want raw fidelity and
