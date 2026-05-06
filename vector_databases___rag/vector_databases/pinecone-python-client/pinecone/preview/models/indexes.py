@@ -28,7 +28,8 @@ class PreviewIndexModel(Struct, kw_only=True):
 
     Attributes:
         name: Index name.
-        host: Data-plane host for this index.
+        host: Data-plane host for this index, or ``None`` if the index is still
+            initializing and has not yet been assigned a host.
         status: Current operational status.
         schema: Field-level schema definition.
         deployment: Deployment configuration (managed, pod, or BYOC).
@@ -37,16 +38,28 @@ class PreviewIndexModel(Struct, kw_only=True):
         read_capacity: Read capacity configuration, or ``None`` for the
             default on-demand mode.
         tags: User-defined key-value tags, or ``None``.
+        private_host: Private-network hostname for the index data plane, or
+            ``None`` when private endpoints are not configured for the project.
+        source_collection: Name of the collection this index was created from,
+            or ``None`` if not created from a collection.
+        source_backup_id: ID of the backup this index was created from, or
+            ``None`` if not created from a backup.
+        cmek_id: ID of the customer-managed encryption key protecting this
+            index, or ``None`` if CMEK is not configured.
     """
 
     name: str
-    host: str
     status: PreviewIndexStatus
     schema: PreviewSchema
     deployment: PreviewDeployment
     deletion_protection: str
+    host: str | None = None
     read_capacity: PreviewReadCapacity | None = None
     tags: dict[str, str] | None = None
+    private_host: str | None = None
+    source_collection: str | None = None
+    source_backup_id: str | None = None
+    cmek_id: str | None = None
 
     def __repr__(self) -> str:
         dep_name = type(self.deployment).__name__.replace("Deployment", "")
@@ -61,6 +74,8 @@ class PreviewIndexModel(Struct, kw_only=True):
             parts.append(f"schema_fields={len(self.schema.fields)}")
         if self.tags:
             parts.append(f"tags={len(self.tags)} items")
+        if self.private_host is not None:
+            parts.append(f"private_host={self.private_host!r}")
         return f"PreviewIndexModel({', '.join(parts)})"
 
     def __dir__(self) -> list[str]:
@@ -93,6 +108,9 @@ class PreviewIndexModel(Struct, kw_only=True):
             if self.tags:
                 p.breakable()
                 p.text(f"tags={self.tags!r},")
+            if self.private_host is not None:
+                p.breakable()
+                p.text(f"private_host={self.private_host!r},")
 
     def _repr_html_(self) -> str:
         """Jupyter notebook HTML representation."""
@@ -110,7 +128,7 @@ class PreviewIndexModel(Struct, kw_only=True):
             ("Status:", self.status.state),
             ("Ready:", "Yes" if self.status.ready else "No"),
             ("Deployment:", f"{dep_name}{dep_detail}"),
-            ("Host:", self.host),
+            ("Host:", self.host if self.host is not None else "not yet assigned"),
             ("Deletion Protection:", self.deletion_protection),
             ("Schema fields:", len(self.schema.fields)),
         ]

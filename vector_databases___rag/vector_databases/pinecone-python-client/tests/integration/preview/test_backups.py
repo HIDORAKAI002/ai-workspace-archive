@@ -92,6 +92,14 @@ def test_list_backups_empty_for_new_index(
     assert len(items) == 0
 
 
+def test_list_backups_server_side_limit(
+    client: Pinecone,
+    ready_preview_index: str,
+) -> None:
+    items = list(client.preview.indexes.list_backups(ready_preview_index, limit=2))
+    assert len(items) <= 2
+
+
 # ---------------------------------------------------------------------------
 # Dense-vector fixture — avoids FTS dedicated-read-capacity requirement
 # ---------------------------------------------------------------------------
@@ -212,7 +220,7 @@ def test_create_backup_optional_fields_are_correctly_typed(
         f"backup.schema must be dict or None, got {type(backup.schema)}"
     )
 
-    # tags — dict[str, str] or None; API returns {} when no tags are passed
+    # tags — dict[str, Any] or None; API returns {} when no tags are passed
     assert backup.tags is None or isinstance(backup.tags, dict), (
         f"backup.tags must be dict or None, got {type(backup.tags)}"
     )
