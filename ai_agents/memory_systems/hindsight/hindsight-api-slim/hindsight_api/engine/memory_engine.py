@@ -18,7 +18,7 @@ import uuid
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta, timezone
-from typing import TYPE_CHECKING, Any, Literal, overload
+from typing import TYPE_CHECKING, Any, Literal, cast, overload
 
 import asyncpg
 import httpx
@@ -2333,6 +2333,12 @@ class MemoryEngine(MemoryEngineInterface):
             result = await self._validate_operation(self._operation_validator.validate_retain(ctx))
             if result and result.contents is not None:
                 contents = result.contents
+
+        # Engine-owned copy: the orchestrator clears per-item "content" strings
+        # after building the document's combined text (memory pressure
+        # optimization, see retain/orchestrator.py). Without an internal copy
+        # those mutations leak back to the caller's dicts.
+        contents = cast(list[RetainContentDict], [dict(c) for c in contents])
 
         # Apply batch-level document_id to contents that don't have their own (backwards compatibility)
         if document_id:
