@@ -52,7 +52,7 @@ class DgApiDeploymentApi:
                     type=result.deployment_type,
                 )
             case "DeploymentNotFoundError":
-                raise DagsterPlusGraphqlError("Deployment not found")
+                raise DagsterPlusGraphqlError(f"Deployment not found: {name}")
             case "UnauthorizedError":
                 raise DagsterPlusUnauthorizedError(f"Error retrieving deployment: {result.message}")
             case "PythonError":
@@ -109,7 +109,7 @@ class DgApiDeploymentApi:
                     type=result.deployment_type,
                 )
             case "DeploymentNotFoundError":
-                raise DagsterPlusGraphqlError("Deployment not found")
+                raise DagsterPlusGraphqlError(f"Deployment not found: {name}")
             case "DeleteFinalDeploymentError":
                 raise DagsterPlusGraphqlError("Cannot delete the final deployment")
             case "UnauthorizedError":

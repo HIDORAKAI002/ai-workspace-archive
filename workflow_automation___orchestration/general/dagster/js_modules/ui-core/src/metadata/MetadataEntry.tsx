@@ -56,6 +56,16 @@ export const isCanonicalRowCountMetadataEntry = (
 ): m is IntMetadataEntry =>
   m && m.__typename === 'IntMetadataEntry' && m.label === 'dagster/row_count';
 
+export const isCanonicalSizeBytesMetadataEntry = (
+  m: MetadataEntryLabelOnly,
+): m is IntMetadataEntry =>
+  m && m.__typename === 'IntMetadataEntry' && m.label === 'dagster/size_bytes';
+
+export const isCanonicalQueryCountMetadataEntry = (
+  m: MetadataEntryLabelOnly,
+): m is IntMetadataEntry =>
+  m && m.__typename === 'IntMetadataEntry' && m.label === 'dagster/query_count';
+
 export type LogRowStructuredRow = {label: string; item: JSX.Element};
 
 export const LogRowStructuredContentTable = ({
