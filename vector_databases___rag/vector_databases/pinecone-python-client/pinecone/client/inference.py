@@ -297,6 +297,8 @@ class Inference:
         require_non_empty("model", str(model))
         require_non_empty("query", query)
         normalized_docs = normalize_rerank_documents(documents)
+        if top_n is not None and top_n < 1:
+            raise ValidationError("top_n must be >= 1")
 
         body: dict[str, Any] = {
             "model": str(model),
@@ -352,6 +354,8 @@ class Inference:
             require_one_of("type", type, ("embed", "rerank"))
         if vector_type is not None:
             require_one_of("vector_type", vector_type, ("dense", "sparse"))
+        if type == "rerank" and vector_type is not None:
+            raise ValidationError("vector_type is not supported when type='rerank'")
 
         params: dict[str, Any] = {}
         if type is not None:

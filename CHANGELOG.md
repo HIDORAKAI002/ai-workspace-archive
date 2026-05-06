@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-05-06 05:39 IST] Auto-Sync
+- **32 Repositories Updated:** Public APIs Directory, Playwright MCP, Browserbase MCP, Exa MCP Server, Promptfoo, Flowise, Langflow, Activepieces, Windmill, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langchain, langchain-ai/langgraph, pydantic/pydantic-ai, mastra-ai/mastra, Swarms, BerriAI/litellm, stanfordnlp/dspy, vllm-project/vllm, pinecone-io/pinecone-python-client, arize-ai/phoenix, open-telemetry/opentelemetry-python, google-gemini/gemini-cli, googleapis/python-genai, apache/airflow, dagster-io/dagster, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight
+
 ## [2026-05-05 23:08 IST] Auto-Sync
 - **44 Repositories Updated:** Supabase MCP, Kubernetes MCP Server, Promptfoo, n8n, Dify, Flowise, Activepieces, Trigger.dev, Windmill, Budibase, NocoDB, Plane, modelcontextprotocol/kotlin-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langchain, langchain-ai/langgraph, pydantic/pydantic-ai, mastra-ai/mastra, deepset-ai/haystack, Swarms, ollama/ollama, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, pinecone-io/pinecone-python-client, arize-ai/phoenix, open-telemetry/opentelemetry-python, firecrawl/firecrawl, anthropics/anthropic-sdk-python, anthropics/anthropic-sdk-typescript, anthropics/anthropic-sdk-go, anthropics/anthropic-sdk-ruby, googleapis/python-genai, vercel/ai, apache/airflow, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow
 

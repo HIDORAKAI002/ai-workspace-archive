@@ -1568,6 +1568,37 @@ request.</p></li>
 <dd></dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="genai.file_search_stores.AsyncFileSearchStores.download_media">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">download_media</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">media_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genai.file_search_stores.AsyncFileSearchStores.download_media" title="Link to this definition">¶</a></dt>
+<dd><p>Downloads media using a Media ID.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></span></p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>The media_id has the format:</dt><dd><p>fileSearchStores/&lt;store&gt;/media/&lt;blob_id&gt;</p>
+</dd>
+<dt>This is mapped to the DownloadMedia RPC which expects:</dt><dd><p>GET /{name=fileSearchStores/<em>/media/</em>}</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>media_id</strong> – The Media ID from grounding metadata.</p></li>
+<li><p><strong>config</strong> – Optional configuration for the download.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The media data.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bytes</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="genai.file_search_stores.AsyncFileSearchStores.get">
 <em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genai.file_search_stores.AsyncFileSearchStores.get" title="Link to this definition">¶</a></dt>
 <dd><p>Gets metadata about a FileSearchStore.</p>
@@ -1707,6 +1738,37 @@ request.</p></li>
 <dt class="sig sig-object py" id="genai.file_search_stores.FileSearchStores.documents">
 <em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">documents</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Documents</span></em><a class="headerlink" href="#genai.file_search_stores.FileSearchStores.documents" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="genai.file_search_stores.FileSearchStores.download_media">
+<span class="sig-name descname"><span class="pre">download_media</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">media_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genai.file_search_stores.FileSearchStores.download_media" title="Link to this definition">¶</a></dt>
+<dd><p>Downloads media using a Media ID.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></span></p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>The media_id has the format:</dt><dd><p>fileSearchStores/&lt;store&gt;/media/&lt;blob_id&gt;</p>
+</dd>
+<dt>This is mapped to the DownloadMedia RPC which expects:</dt><dd><p>GET /{name=fileSearchStores/<em>/media/</em>}</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>media_id</strong> – The Media ID from grounding metadata.</p></li>
+<li><p><strong>config</strong> – Optional configuration for the download.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The media data.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bytes</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="genai.file_search_stores.FileSearchStores.get">
@@ -2744,7 +2806,7 @@ reference images for editing.</p></li>
 
 <span class="n">raw_ref_image</span> <span class="o">=</span> <span class="n">RawReferenceImage</span><span class="p">(</span>
   <span class="n">reference_id</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-  <span class="n">reference_image</span><span class="o">=</span><span class="n">types</span><span class="o">.</span><span class="n">Image</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">IMAGE_FILE_PATH</span><span class="p">),</span>
+  <span class="n">reference_image</span><span class="o">=</span><span class="n">types</span><span class="o">.</span><span class="n">Image</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="n">IMAGE_FILE_PATH</span><span class="p">),</span>
 <span class="p">)</span>
 
 <span class="n">mask_ref_image</span> <span class="o">=</span> <span class="n">MaskReferenceImage</span><span class="p">(</span>
@@ -3072,8 +3134,12 @@ virtual_try_on_response = await client.aio.models.recontext_image(</p>
 <div><p>model=”virtual-try-on-001”,
 source=types.RecontextImageSource(</p>
 <blockquote>
-<div><p>person_image=types.Image.from_file(IMAGE1_FILE_PATH),
-product_images=[types.ProductImage.from_file(IMAGE2_FILE_PATH)],</p>
+<div><p>person_image=types.Image.from_file(location=IMAGE1_FILE_PATH),
+product_images=[types.ProductImage(product_image=</p>
+<blockquote>
+<div><p>types.Image.from_file(location=IMAGE2_FILE_PATH)</p>
+</div></blockquote>
+<p>)],</p>
 </div></blockquote>
 <p>),
 config=types.RecontextImageConfig(</p>
@@ -3111,12 +3177,12 @@ other modes.</p></li>
 <p>Usage:</p>
 <blockquote>
 <div><p><a href="#id18"><span class="problematic" id="id19">``</span></a>`
-response = client.models.segment_image(</p>
+response = await client.aio.models.segment_image(</p>
 <blockquote>
 <div><p>model=”image-segmentation-001”,
 source=types.SegmentImageSource(</p>
 <blockquote>
-<div><p>image=types.Image.from_file(IMAGE_FILE_PATH),</p>
+<div><p>image=types.Image.from_file(location=IMAGE_FILE_PATH),</p>
 </div></blockquote>
 <p>),
 config=types.SegmentImageConfig(</p>
@@ -3164,7 +3230,7 @@ config=types.SegmentImageConfig(</p>
 <span class="n">IMAGE_FILE_PATH</span><span class="o">=</span><span class="s2">&quot;my-image.png&quot;</span>
 <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">client</span><span class="o">.</span><span class="n">aio</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">upscale_image</span><span class="p">(</span>
     <span class="n">model</span><span class="o">=</span><span class="s1">&#39;imagen-3.0-generate-001&#39;</span><span class="p">,</span>
-    <span class="n">image</span><span class="o">=</span><span class="n">types</span><span class="o">.</span><span class="n">Image</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">IMAGE_FILE_PATH</span><span class="p">),</span>
+    <span class="n">image</span><span class="o">=</span><span class="n">types</span><span class="o">.</span><span class="n">Image</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="n">IMAGE_FILE_PATH</span><span class="p">),</span>
     <span class="n">upscale_factor</span><span class="o">=</span><span class="s1">&#39;x2&#39;</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="n">response</span><span class="o">.</span><span class="n">generated_images</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
@@ -3270,7 +3336,7 @@ reference images for editing.</p></li>
 
 <span class="n">raw_ref_image</span> <span class="o">=</span> <span class="n">RawReferenceImage</span><span class="p">(</span>
   <span class="n">reference_id</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-  <span class="n">reference_image</span><span class="o">=</span><span class="n">types</span><span class="o">.</span><span class="n">Image</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">IMAGE_FILE_PATH</span><span class="p">),</span>
+  <span class="n">reference_image</span><span class="o">=</span><span class="n">types</span><span class="o">.</span><span class="n">Image</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="n">IMAGE_FILE_PATH</span><span class="p">),</span>
 <span class="p">)</span>
 
 <span class="n">mask_ref_image</span> <span class="o">=</span> <span class="n">MaskReferenceImage</span><span class="p">(</span>
@@ -3282,7 +3348,7 @@ reference images for editing.</p></li>
 <span class="p">)</span>
 <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">edit_image</span><span class="p">(</span>
   <span class="n">model</span><span class="o">=</span><span class="s1">&#39;imagen-3.0-capability-001&#39;</span><span class="p">,</span>
-  <span class="n">prompt</span><span class="o">=</span><span class="s1">&#39;man with dog&#39;</span><span class="p">,</span>
+  <span class="n">prompt</span><span class="o">=</span><span class="s1">&#39;Man with dog&#39;</span><span class="p">,</span>
   <span class="n">reference_images</span><span class="o">=</span><span class="p">[</span><span class="n">raw_ref_image</span><span class="p">,</span> <span class="n">mask_ref_image</span><span class="p">],</span>
   <span class="n">config</span><span class="o">=</span><span class="n">types</span><span class="o">.</span><span class="n">EditImageConfig</span><span class="p">(</span>
       <span class="n">edit_mode</span><span class="o">=</span> <span class="s2">&quot;EDIT_MODE_INPAINT_INSERTION&quot;</span><span class="p">,</span>
@@ -3629,8 +3695,12 @@ virtual_try_on_response = client.models.recontext_image(</p>
 <div><p>model=”virtual-try-on-001”,
 source=types.RecontextImageSource(</p>
 <blockquote>
-<div><p>person_image=types.Image.from_file(IMAGE1_FILE_PATH),
-product_images=[types.ProductImage.from_file(IMAGE2_FILE_PATH)],</p>
+<div><p>person_image=types.Image.from_file(location=IMAGE1_FILE_PATH),
+product_images=[types.ProductImage(product_image=</p>
+<blockquote>
+<div><p>types.Image.from_file(location=IMAGE2_FILE_PATH)</p>
+</div></blockquote>
+<p>)],</p>
 </div></blockquote>
 <p>),
 config=types.RecontextImageConfig(</p>
@@ -3673,7 +3743,7 @@ response = client.models.segment_image(</p>
 <div><p>model=”image-segmentation-001”,
 source=types.SegmentImageSource(</p>
 <blockquote>
-<div><p>image=types.Image.from_file(IMAGE_FILE_PATH),</p>
+<div><p>image=types.Image.from_file(location=IMAGE_FILE_PATH),</p>
 </div></blockquote>
 <p>),</p>
 </div></blockquote>
@@ -3716,7 +3786,7 @@ source=types.SegmentImageSource(</p>
 <span class="n">IMAGE_FILE_PATH</span><span class="o">=</span><span class="s2">&quot;my-image.png&quot;</span>
 <span class="n">response</span><span class="o">=</span><span class="n">client</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">upscale_image</span><span class="p">(</span>
     <span class="n">model</span><span class="o">=</span><span class="s1">&#39;imagen-3.0-generate-001&#39;</span><span class="p">,</span>
-    <span class="n">image</span><span class="o">=</span><span class="n">types</span><span class="o">.</span><span class="n">Image</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">IMAGE_FILE_PATH</span><span class="p">),</span>
+    <span class="n">image</span><span class="o">=</span><span class="n">types</span><span class="o">.</span><span class="n">Image</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="n">IMAGE_FILE_PATH</span><span class="p">),</span>
     <span class="n">upscale_factor</span><span class="o">=</span><span class="s1">&#39;x2&#39;</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="n">response</span><span class="o">.</span><span class="n">generated_images</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
@@ -11309,6 +11379,19 @@ validated to form a valid model.</p>
 <span class="w">               </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
 <span class="w">               </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Optional. Page number of the retrieved context. This field is not supported in Vertex AI.&quot;</span><span class="p">,</span>
 <span class="w">               </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Pagenumber&quot;</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="nt">&quot;mediaId&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">                  </span><span class="p">},</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+<span class="w">                  </span><span class="p">}</span>
+<span class="w">               </span><span class="p">],</span>
+<span class="w">               </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Optional. Media ID. This field is not supported in Vertex AI.&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mediaid&quot;</span>
 <span class="w">            </span><span class="p">}</span>
 <span class="w">         </span><span class="p">},</span>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;GroundingChunkRetrievedContext&quot;</span><span class="p">,</span>
@@ -15264,6 +15347,19 @@ validated to form a valid model.</p>
 <span class="w">               </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
 <span class="w">               </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Optional. Page number of the retrieved context. This field is not supported in Vertex AI.&quot;</span><span class="p">,</span>
 <span class="w">               </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Pagenumber&quot;</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="nt">&quot;mediaId&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">                  </span><span class="p">},</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+<span class="w">                  </span><span class="p">}</span>
+<span class="w">               </span><span class="p">],</span>
+<span class="w">               </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Optional. Media ID. This field is not supported in Vertex AI.&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mediaid&quot;</span>
 <span class="w">            </span><span class="p">}</span>
 <span class="w">         </span><span class="p">},</span>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;GroundingChunkRetrievedContext&quot;</span><span class="p">,</span>
@@ -20309,6 +20405,19 @@ validated to form a valid model.</p>
 <span class="w">               </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
 <span class="w">               </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Optional. Page number of the retrieved context. This field is not supported in Vertex AI.&quot;</span><span class="p">,</span>
 <span class="w">               </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Pagenumber&quot;</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="nt">&quot;mediaId&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">                  </span><span class="p">},</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+<span class="w">                  </span><span class="p">}</span>
+<span class="w">               </span><span class="p">],</span>
+<span class="w">               </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Optional. Media ID. This field is not supported in Vertex AI.&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mediaid&quot;</span>
 <span class="w">            </span><span class="p">}</span>
 <span class="w">         </span><span class="p">},</span>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;GroundingChunkRetrievedContext&quot;</span><span class="p">,</span>
@@ -32705,6 +32814,19 @@ validated to form a valid model.</p>
 <span class="w">               </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
 <span class="w">               </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Optional. Page number of the retrieved context. This field is not supported in Vertex AI.&quot;</span><span class="p">,</span>
 <span class="w">               </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Pagenumber&quot;</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="nt">&quot;mediaId&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">                  </span><span class="p">},</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+<span class="w">                  </span><span class="p">}</span>
+<span class="w">               </span><span class="p">],</span>
+<span class="w">               </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Optional. Media ID. This field is not supported in Vertex AI.&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mediaid&quot;</span>
 <span class="w">            </span><span class="p">}</span>
 <span class="w">         </span><span class="p">},</span>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;GroundingChunkRetrievedContext&quot;</span><span class="p">,</span>
@@ -38913,6 +39035,19 @@ validated to form a valid model.</p>
 <span class="w">         </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;The human-readable display name for the file search store.\n      &quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Displayname&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;embeddingModel&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">         </span><span class="p">],</span>
+<span class="w">         </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;The embedding model to use for the FileSearchStore.\n      Format: `models/{model}`. If not specified, the default embedding model will be used.\n      &quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Embeddingmodel&quot;</span>
 <span class="w">      </span><span class="p">}</span>
 <span class="w">   </span><span class="p">},</span>
 <span class="w">   </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
@@ -38923,6 +39058,7 @@ validated to form a valid model.</p>
 <dt class="field-odd">Fields<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><a class="reference internal" href="#genai.types.CreateFileSearchStoreConfig.display_name" title="genai.types.CreateFileSearchStoreConfig.display_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">display_name</span> <span class="pre">(str</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
+<li><p><a class="reference internal" href="#genai.types.CreateFileSearchStoreConfig.embedding_model" title="genai.types.CreateFileSearchStoreConfig.embedding_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">embedding_model</span> <span class="pre">(str</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#genai.types.CreateFileSearchStoreConfig.http_options" title="genai.types.CreateFileSearchStoreConfig.http_options"><code class="xref py py-obj docutils literal notranslate"><span class="pre">http_options</span> <span class="pre">(genai.types.HttpOptions</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
 </ul>
 </dd>
@@ -38933,6 +39069,20 @@ validated to form a valid model.</p>
 <dt class="sig sig-object py" id="genai.types.CreateFileSearchStoreConfig.display_name">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">display_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code><span class="pre">]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"> <span class="pre">(alias</span> <span class="pre">'displayName')</span></em><a class="headerlink" href="#genai.types.CreateFileSearchStoreConfig.display_name" title="Link to this definition">¶</a></dt>
 <dd><p>The human-readable display name for the file search store.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_check_field_type_mismatches</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="genai.types.CreateFileSearchStoreConfig.embedding_model">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">embedding_model</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code><span class="pre">]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"> <span class="pre">(alias</span> <span class="pre">'embeddingModel')</span></em><a class="headerlink" href="#genai.types.CreateFileSearchStoreConfig.embedding_model" title="Link to this definition">¶</a></dt>
+<dd><p>The embedding model to use for the FileSearchStore.
+Format: <cite>models/{model}</cite>. If not specified, the default embedding model will be used.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Validated by<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -38966,6 +39116,13 @@ validated to form a valid model.</p>
 <dt class="sig sig-object py" id="genai.types.CreateFileSearchStoreConfigDict.display_name">
 <span class="sig-name descname"><span class="pre">display_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code><span class="pre">]</span></em><a class="headerlink" href="#genai.types.CreateFileSearchStoreConfigDict.display_name" title="Link to this definition">¶</a></dt>
 <dd><p>The human-readable display name for the file search store.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="genai.types.CreateFileSearchStoreConfigDict.embedding_model">
+<span class="sig-name descname"><span class="pre">embedding_model</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code><span class="pre">]</span></em><a class="headerlink" href="#genai.types.CreateFileSearchStoreConfigDict.embedding_model" title="Link to this definition">¶</a></dt>
+<dd><p>The embedding model to use for the FileSearchStore.
+Format: <cite>models/{model}</cite>. If not specified, the default embedding model will be used.</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -48145,6 +48302,66 @@ validated to form a valid model.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="genai.types.DownloadFileConfigDict.http_options">
 <span class="sig-name descname"><span class="pre">http_options</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><a class="reference internal" href="#genai.types.HttpOptionsDict" title="genai.types.HttpOptionsDict"><code class="xref py py-class docutils literal notranslate"><span class="pre">HttpOptionsDict</span></code></a><span class="pre">]</span></em><a class="headerlink" href="#genai.types.DownloadFileConfigDict.http_options" title="Link to this definition">¶</a></dt>
+<dd><p>Used to override HTTP request options.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class pydantic_model">
+<dt class="sig sig-object py" id="genai.types.DownloadMediaConfig">
+<em class="property"><span class="pre">pydantic</span> <span class="pre">model</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">genai.types.</span></span><span class="sig-name descname"><span class="pre">DownloadMediaConfig</span></span><a class="headerlink" href="#genai.types.DownloadMediaConfig" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<p>Used to override the default configuration.</p>
+<p>Create a new model by parsing and validating input data from keyword arguments.</p>
+<p>Raises [<cite>ValidationError</cite>][pydantic_core.ValidationError] if the input data cannot be
+validated to form a valid model.</p>
+<p><cite>self</cite> is explicitly positional-only to allow <cite>self</cite> as a field name.</p>
+<p><details  class="autodoc_pydantic_collapsable_json">
+<summary>Show JSON schema</summary><div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">   </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;DownloadMediaConfig&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;httpOptions&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Httpoptions&quot;</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">   </span><span class="p">},</span>
+<span class="w">   </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</details></p><dl class="field-list simple">
+<dt class="field-odd">Fields<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference internal" href="#genai.types.DownloadMediaConfig.http_options" title="genai.types.DownloadMediaConfig.http_options"><code class="xref py py-obj docutils literal notranslate"><span class="pre">http_options</span> <span class="pre">(genai.types.HttpOptions</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
+</ul>
+</dd>
+<dt class="field-even">Validators<span class="colon">:</span></dt>
+<dd class="field-even"><p></p></dd>
+</dl>
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="genai.types.DownloadMediaConfig.http_options">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">http_options</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><a class="reference internal" href="#genai.types.HttpOptions" title="genai.types.HttpOptions"><code class="xref py py-class docutils literal notranslate"><span class="pre">HttpOptions</span></code></a><span class="pre">]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"> <span class="pre">(alias</span> <span class="pre">'httpOptions')</span></em><a class="headerlink" href="#genai.types.DownloadMediaConfig.http_options" title="Link to this definition">¶</a></dt>
+<dd><p>Used to override HTTP request options.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_check_field_type_mismatches</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="genai.types.DownloadMediaConfigDict">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">genai.types.</span></span><span class="sig-name descname"><span class="pre">DownloadMediaConfigDict</span></span><a class="headerlink" href="#genai.types.DownloadMediaConfigDict" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">TypedDict</span></code></p>
+<p>Used to override the default configuration.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="genai.types.DownloadMediaConfigDict.http_options">
+<span class="sig-name descname"><span class="pre">http_options</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><a class="reference internal" href="#genai.types.HttpOptionsDict" title="genai.types.HttpOptionsDict"><code class="xref py py-class docutils literal notranslate"><span class="pre">HttpOptionsDict</span></code></a><span class="pre">]</span></em><a class="headerlink" href="#genai.types.DownloadMediaConfigDict.http_options" title="Link to this definition">¶</a></dt>
 <dd><p>Used to override HTTP request options.</p>
 </dd></dl>
 
@@ -58904,6 +59121,19 @@ validated to form a valid model.</p>
 <span class="w">         </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;The size of raw bytes ingested into the FileSearchStore. This is the\n      total size of all the documents in the FileSearchStore.&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Sizebytes&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;embeddingModel&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">         </span><span class="p">],</span>
+<span class="w">         </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;The embedding model used by the FileSearchStore.&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Embeddingmodel&quot;</span>
 <span class="w">      </span><span class="p">}</span>
 <span class="w">   </span><span class="p">},</span>
 <span class="w">   </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
@@ -58916,6 +59146,7 @@ validated to form a valid model.</p>
 <li><p><a class="reference internal" href="#genai.types.FileSearchStore.active_documents_count" title="genai.types.FileSearchStore.active_documents_count"><code class="xref py py-obj docutils literal notranslate"><span class="pre">active_documents_count</span> <span class="pre">(int</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#genai.types.FileSearchStore.create_time" title="genai.types.FileSearchStore.create_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_time</span> <span class="pre">(datetime.datetime</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#genai.types.FileSearchStore.display_name" title="genai.types.FileSearchStore.display_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">display_name</span> <span class="pre">(str</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
+<li><p><a class="reference internal" href="#genai.types.FileSearchStore.embedding_model" title="genai.types.FileSearchStore.embedding_model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">embedding_model</span> <span class="pre">(str</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#genai.types.FileSearchStore.failed_documents_count" title="genai.types.FileSearchStore.failed_documents_count"><code class="xref py py-obj docutils literal notranslate"><span class="pre">failed_documents_count</span> <span class="pre">(int</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#genai.types.FileSearchStore.name" title="genai.types.FileSearchStore.name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">name</span> <span class="pre">(str</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#genai.types.FileSearchStore.pending_documents_count" title="genai.types.FileSearchStore.pending_documents_count"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pending_documents_count</span> <span class="pre">(int</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
@@ -58956,6 +59187,19 @@ validated to form a valid model.</p>
 <dt class="sig sig-object py" id="genai.types.FileSearchStore.display_name">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">display_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code><span class="pre">]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"> <span class="pre">(alias</span> <span class="pre">'displayName')</span></em><a class="headerlink" href="#genai.types.FileSearchStore.display_name" title="Link to this definition">¶</a></dt>
 <dd><p>The human-readable display name for the FileSearchStore.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_check_field_type_mismatches</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="genai.types.FileSearchStore.embedding_model">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">embedding_model</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code><span class="pre">]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"> <span class="pre">(alias</span> <span class="pre">'embeddingModel')</span></em><a class="headerlink" href="#genai.types.FileSearchStore.embedding_model" title="Link to this definition">¶</a></dt>
+<dd><p>The embedding model used by the FileSearchStore.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Validated by<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -59054,6 +59298,12 @@ total size of all the documents in the FileSearchStore.</p>
 <dt class="sig sig-object py" id="genai.types.FileSearchStoreDict.display_name">
 <span class="sig-name descname"><span class="pre">display_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code><span class="pre">]</span></em><a class="headerlink" href="#genai.types.FileSearchStoreDict.display_name" title="Link to this definition">¶</a></dt>
 <dd><p>The human-readable display name for the FileSearchStore.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="genai.types.FileSearchStoreDict.embedding_model">
+<span class="sig-name descname"><span class="pre">embedding_model</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code><span class="pre">]</span></em><a class="headerlink" href="#genai.types.FileSearchStoreDict.embedding_model" title="Link to this definition">¶</a></dt>
+<dd><p>The embedding model used by the FileSearchStore.</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -71928,6 +72178,19 @@ validated to form a valid model.</p>
 <span class="w">               </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
 <span class="w">               </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Optional. Page number of the retrieved context. This field is not supported in Vertex AI.&quot;</span><span class="p">,</span>
 <span class="w">               </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Pagenumber&quot;</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="nt">&quot;mediaId&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">                  </span><span class="p">},</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+<span class="w">                  </span><span class="p">}</span>
+<span class="w">               </span><span class="p">],</span>
+<span class="w">               </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Optional. Media ID. This field is not supported in Vertex AI.&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mediaid&quot;</span>
 <span class="w">            </span><span class="p">}</span>
 <span class="w">         </span><span class="p">},</span>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;GroundingChunkRetrievedContext&quot;</span><span class="p">,</span>
@@ -81888,6 +82151,19 @@ validated to form a valid model.</p>
 <span class="w">               </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
 <span class="w">               </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Optional. Page number of the retrieved context. This field is not supported in Vertex AI.&quot;</span><span class="p">,</span>
 <span class="w">               </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Pagenumber&quot;</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="nt">&quot;mediaId&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">                  </span><span class="p">},</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+<span class="w">                  </span><span class="p">}</span>
+<span class="w">               </span><span class="p">],</span>
+<span class="w">               </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Optional. Media ID. This field is not supported in Vertex AI.&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mediaid&quot;</span>
 <span class="w">            </span><span class="p">}</span>
 <span class="w">         </span><span class="p">},</span>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;GroundingChunkRetrievedContext&quot;</span><span class="p">,</span>
@@ -84011,6 +84287,19 @@ validated to form a valid model.</p>
 <span class="w">         </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Optional. Page number of the retrieved context. This field is not supported in Vertex AI.&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Pagenumber&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;mediaId&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">         </span><span class="p">],</span>
+<span class="w">         </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Optional. Media ID. This field is not supported in Vertex AI.&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mediaid&quot;</span>
 <span class="w">      </span><span class="p">}</span>
 <span class="w">   </span><span class="p">},</span>
 <span class="w">   </span><span class="nt">&quot;$defs&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -84175,6 +84464,7 @@ validated to form a valid model.</p>
 <li><p><a class="reference internal" href="#genai.types.GroundingChunkRetrievedContext.custom_metadata" title="genai.types.GroundingChunkRetrievedContext.custom_metadata"><code class="xref py py-obj docutils literal notranslate"><span class="pre">custom_metadata</span> <span class="pre">(list[genai.types.GroundingChunkCustomMetadata]</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#genai.types.GroundingChunkRetrievedContext.document_name" title="genai.types.GroundingChunkRetrievedContext.document_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">document_name</span> <span class="pre">(str</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#genai.types.GroundingChunkRetrievedContext.file_search_store" title="genai.types.GroundingChunkRetrievedContext.file_search_store"><code class="xref py py-obj docutils literal notranslate"><span class="pre">file_search_store</span> <span class="pre">(str</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
+<li><p><a class="reference internal" href="#genai.types.GroundingChunkRetrievedContext.media_id" title="genai.types.GroundingChunkRetrievedContext.media_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">media_id</span> <span class="pre">(str</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#genai.types.GroundingChunkRetrievedContext.page_number" title="genai.types.GroundingChunkRetrievedContext.page_number"><code class="xref py py-obj docutils literal notranslate"><span class="pre">page_number</span> <span class="pre">(int</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#genai.types.GroundingChunkRetrievedContext.rag_chunk" title="genai.types.GroundingChunkRetrievedContext.rag_chunk"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rag_chunk</span> <span class="pre">(genai.types.RagChunk</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
 <li><p><a class="reference internal" href="#genai.types.GroundingChunkRetrievedContext.text" title="genai.types.GroundingChunkRetrievedContext.text"><code class="xref py py-obj docutils literal notranslate"><span class="pre">text</span> <span class="pre">(str</span> <span class="pre">|</span> <span class="pre">None)</span></code></a></p></li>
@@ -84215,6 +84505,19 @@ validated to form a valid model.</p>
 <dt class="sig sig-object py" id="genai.types.GroundingChunkRetrievedContext.file_search_store">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">file_search_store</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code><span class="pre">]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"> <span class="pre">(alias</span> <span class="pre">'fileSearchStore')</span></em><a class="headerlink" href="#genai.types.GroundingChunkRetrievedContext.file_search_store" title="Link to this definition">¶</a></dt>
 <dd><p>Optional. Name of the <cite>FileSearchStore</cite> containing the document. Example: <cite>fileSearchStores/123</cite>. This field is not supported in Vertex AI.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Validated by<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">_check_field_type_mismatches</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="genai.types.GroundingChunkRetrievedContext.media_id">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">media_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code><span class="pre">]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"> <span class="pre">(alias</span> <span class="pre">'mediaId')</span></em><a class="headerlink" href="#genai.types.GroundingChunkRetrievedContext.media_id" title="Link to this definition">¶</a></dt>
+<dd><p>Optional. Media ID. This field is not supported in Vertex AI.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Validated by<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -84319,6 +84622,12 @@ corpus or a public dataset.</p>
 <dd class="field-odd"><p>Optional. Name of the <cite>FileSearchStore</cite> containing the document. Example</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="genai.types.GroundingChunkRetrievedContextDict.media_id">
+<span class="sig-name descname"><span class="pre">media_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code><span class="pre">[</span><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code><span class="pre">]</span></em><a class="headerlink" href="#genai.types.GroundingChunkRetrievedContextDict.media_id" title="Link to this definition">¶</a></dt>
+<dd><p>Optional. Media ID. This field is not supported in Vertex AI.</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -85325,6 +85634,19 @@ validated to form a valid model.</p>
 <span class="w">               </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
 <span class="w">               </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Optional. Page number of the retrieved context. This field is not supported in Vertex AI.&quot;</span><span class="p">,</span>
 <span class="w">               </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Pagenumber&quot;</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="nt">&quot;mediaId&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">                  </span><span class="p">},</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+<span class="w">                  </span><span class="p">}</span>
+<span class="w">               </span><span class="p">],</span>
+<span class="w">               </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Optional. Media ID. This field is not supported in Vertex AI.&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mediaid&quot;</span>
 <span class="w">            </span><span class="p">}</span>
 <span class="w">         </span><span class="p">},</span>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;GroundingChunkRetrievedContext&quot;</span><span class="p">,</span>
@@ -87576,7 +87898,7 @@ will be automatically determined.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="genai.types.Image.model_post_init">
 <span class="sig-name descname"><span class="pre">model_post_init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genai.types.Image.model_post_init" title="Link to this definition">¶</a></dt>
-<dd><p>This function is meant to behave like a BaseModel method to initialize private attributes.</p>
+<dd><p>This function is meant to behave like a BaseModel method to initialise private attributes.</p>
 <p>It takes context as an argument since that’s what pydantic-core passes when calling it.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
@@ -92530,6 +92852,19 @@ validated to form a valid model.</p>
 <span class="w">               </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
 <span class="w">               </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Optional. Page number of the retrieved context. This field is not supported in Vertex AI.&quot;</span><span class="p">,</span>
 <span class="w">               </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Pagenumber&quot;</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="nt">&quot;mediaId&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">                  </span><span class="p">},</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+<span class="w">                  </span><span class="p">}</span>
+<span class="w">               </span><span class="p">],</span>
+<span class="w">               </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Optional. Media ID. This field is not supported in Vertex AI.&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mediaid&quot;</span>
 <span class="w">            </span><span class="p">}</span>
 <span class="w">         </span><span class="p">},</span>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;GroundingChunkRetrievedContext&quot;</span><span class="p">,</span>
@@ -98802,6 +99137,19 @@ validated to form a valid model.</p>
 <span class="w">               </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
 <span class="w">               </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;The size of raw bytes ingested into the FileSearchStore. This is the\n      total size of all the documents in the FileSearchStore.&quot;</span><span class="p">,</span>
 <span class="w">               </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Sizebytes&quot;</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="nt">&quot;embeddingModel&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">                  </span><span class="p">},</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+<span class="w">                  </span><span class="p">}</span>
+<span class="w">               </span><span class="p">],</span>
+<span class="w">               </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;The embedding model used by the FileSearchStore.&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Embeddingmodel&quot;</span>
 <span class="w">            </span><span class="p">}</span>
 <span class="w">         </span><span class="p">},</span>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;FileSearchStore&quot;</span><span class="p">,</span>
@@ -129239,6 +129587,19 @@ validated to form a valid model.</p>
 <span class="w">               </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
 <span class="w">               </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Optional. Page number of the retrieved context. This field is not supported in Vertex AI.&quot;</span><span class="p">,</span>
 <span class="w">               </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Pagenumber&quot;</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="nt">&quot;mediaId&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">                  </span><span class="p">},</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+<span class="w">                  </span><span class="p">}</span>
+<span class="w">               </span><span class="p">],</span>
+<span class="w">               </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Optional. Media ID. This field is not supported in Vertex AI.&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mediaid&quot;</span>
 <span class="w">            </span><span class="p">}</span>
 <span class="w">         </span><span class="p">},</span>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;GroundingChunkRetrievedContext&quot;</span><span class="p">,</span>
@@ -131953,6 +132314,19 @@ validated to form a valid model.</p>
 <span class="w">               </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
 <span class="w">               </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Optional. Page number of the retrieved context. This field is not supported in Vertex AI.&quot;</span><span class="p">,</span>
 <span class="w">               </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Pagenumber&quot;</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="nt">&quot;mediaId&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">                  </span><span class="p">},</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+<span class="w">                  </span><span class="p">}</span>
+<span class="w">               </span><span class="p">],</span>
+<span class="w">               </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Optional. Media ID. This field is not supported in Vertex AI.&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mediaid&quot;</span>
 <span class="w">            </span><span class="p">}</span>
 <span class="w">         </span><span class="p">},</span>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;GroundingChunkRetrievedContext&quot;</span><span class="p">,</span>
@@ -135932,7 +136306,7 @@ validated to form a valid model.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="genai.types.Metric.model_post_init">
 <span class="sig-name descname"><span class="pre">model_post_init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#genai.types.Metric.model_post_init" title="Link to this definition">¶</a></dt>
-<dd><p>This function is meant to behave like a BaseModel method to initialize private attributes.</p>
+<dd><p>This function is meant to behave like a BaseModel method to initialise private attributes.</p>
 <p>It takes context as an argument since that’s what pydantic-core passes when calling it.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>

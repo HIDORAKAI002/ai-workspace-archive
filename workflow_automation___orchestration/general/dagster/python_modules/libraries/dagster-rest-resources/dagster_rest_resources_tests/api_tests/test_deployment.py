@@ -39,7 +39,7 @@ from dagster_rest_resources.__generated__.set_deployment_settings import (
     SetDeploymentSettingsSetDeploymentSettingsPythonError,
     SetDeploymentSettingsSetDeploymentSettingsUnauthorizedError,
 )
-from dagster_rest_resources.api.deployments import DgApiDeploymentApi
+from dagster_rest_resources.api.deployment import DgApiDeploymentApi
 from dagster_rest_resources.schemas.deployment import DgApiDeploymentList, DgApiDeploymentSettings
 from dagster_rest_resources.schemas.exception import (
     DagsterPlusGraphqlError,

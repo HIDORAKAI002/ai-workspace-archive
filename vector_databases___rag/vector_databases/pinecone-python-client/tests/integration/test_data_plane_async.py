@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import httpx
+import orjson
 import pytest
+import respx
 
 from pinecone import AsyncIndex, AsyncPinecone
 from pinecone.errors import ApiError, ConflictError, PineconeValueError
@@ -1372,3 +1375,133 @@ async def test_list_namespaces_multi_page_pagination_async(async_client: AsyncPi
             name,
             "index",
         )
+
+
+# ---------------------------------------------------------------------------
+# search with dense vector — wire format (mock HTTP)
+# ---------------------------------------------------------------------------
+
+_SEARCH_HOST = "dense-vec-async-test.svc.pinecone.io"
+_SEARCH_URL = f"https://{_SEARCH_HOST}/records/namespaces/vec-ns/search"
+_SEARCH_MOCK_RESPONSE: dict[str, object] = {
+    "result": {
+        "hits": [
+            {"_id": "r1", "_score": 0.91},
+            {"_id": "r2", "_score": 0.75},
+        ]
+    },
+    "usage": {"read_units": 3},
+}
+
+
+@respx.mock
+@pytest.mark.anyio
+async def test_search_with_dense_vector() -> None:
+    """AsyncIndex.search(vector=...) sends vector as {"values": [...]} object, not a bare array.
+
+    Verifies SYNC-0098: the async code path sends the same corrected wire format
+    as the sync path.
+    """
+    route = respx.post(_SEARCH_URL).mock(
+        return_value=httpx.Response(200, json=_SEARCH_MOCK_RESPONSE),
+    )
+    idx = AsyncIndex(host=_SEARCH_HOST, api_key="test-key")
+    try:
+        response = await idx.search(namespace="vec-ns", top_k=3, vector=[0.1, 0.2, 0.3])
+    finally:
+        await idx.close()
+
+    body = orjson.loads(route.calls.last.request.content)
+    assert body["query"]["vector"] == {"values": [0.1, 0.2, 0.3]}, (
+        f"Expected vector as object with 'values' key; got {body['query']['vector']!r}"
+    )
+    assert isinstance(response.result.hits, list)
+    assert response.usage.read_units >= 0
+
+
+# ---------------------------------------------------------------------------
+# fetch_by_metadata — client-side limit validation
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.anyio
+async def test_fetch_by_metadata_limit_validation() -> None:
+    """fetch_by_metadata raises when limit=0 (minimum is 1 per OAS spec)."""
+    idx = AsyncIndex(host="my-index.svc.pinecone.io", api_key="test-key")
+    with pytest.raises((PineconeValueError, ValueError), match="limit"):
+        await idx.fetch_by_metadata(filter={"a": "b"}, limit=0)
+    await idx.close()
+
+
+@pytest.mark.anyio
+async def test_fetch_by_metadata_limit_validation_negative() -> None:
+    """fetch_by_metadata raises when limit is negative."""
+    idx = AsyncIndex(host="my-index.svc.pinecone.io", api_key="test-key")
+    with pytest.raises((PineconeValueError, ValueError), match="limit"):
+        await idx.fetch_by_metadata(filter={"a": "b"}, limit=-5)
+    await idx.close()
+
+
+# ---------------------------------------------------------------------------
+# start_import — error_mode default behavior (mock HTTP)
+# ---------------------------------------------------------------------------
+
+_IMPORTS_HOST = "test-index-abc1234.svc.us-east1-gcp.pinecone.io"
+_IMPORTS_URL = f"https://{_IMPORTS_HOST}/bulk/imports"
+
+
+@respx.mock
+@pytest.mark.anyio
+async def test_async_start_import_error_mode_default() -> None:
+    """Calling start_import without error_mode omits errorMode from request body."""
+    from pinecone.models.imports.model import StartImportResponse
+
+    route = respx.post(_IMPORTS_URL).mock(
+        return_value=httpx.Response(200, json={"id": "import-default"}),
+    )
+    idx = AsyncIndex(host=_IMPORTS_HOST, api_key="test-key")
+    try:
+        result = await idx.start_import(uri="s3://my-bucket/vectors/")
+    finally:
+        await idx.close()
+
+    assert isinstance(result, StartImportResponse)
+    assert result.id == "import-default"
+
+    body = orjson.loads(route.calls.last.request.content)
+    assert body["uri"] == "s3://my-bucket/vectors/"
+    assert "errorMode" not in body
+
+
+@respx.mock
+@pytest.mark.anyio
+async def test_async_start_import_error_mode_abort_in_body() -> None:
+    """Calling start_import(error_mode='abort') sends errorMode.onError='abort'."""
+    route = respx.post(_IMPORTS_URL).mock(
+        return_value=httpx.Response(200, json={"id": "import-abort"}),
+    )
+    idx = AsyncIndex(host=_IMPORTS_HOST, api_key="test-key")
+    try:
+        await idx.start_import(uri="s3://my-bucket/vectors/", error_mode="abort")
+    finally:
+        await idx.close()
+
+    body = orjson.loads(route.calls.last.request.content)
+    assert body["errorMode"] == {"onError": "abort"}
+
+
+@respx.mock
+@pytest.mark.anyio
+async def test_async_start_import_error_mode_continue_in_body() -> None:
+    """Calling start_import(error_mode='continue') sends errorMode.onError='continue'."""
+    route = respx.post(_IMPORTS_URL).mock(
+        return_value=httpx.Response(200, json={"id": "import-continue"}),
+    )
+    idx = AsyncIndex(host=_IMPORTS_HOST, api_key="test-key")
+    try:
+        await idx.start_import(uri="s3://my-bucket/vectors/", error_mode="continue")
+    finally:
+        await idx.close()
+
+    body = orjson.loads(route.calls.last.request.content)
+    assert body["errorMode"] == {"onError": "continue"}

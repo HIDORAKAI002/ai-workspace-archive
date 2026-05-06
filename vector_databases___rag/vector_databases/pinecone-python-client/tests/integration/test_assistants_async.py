@@ -24,6 +24,7 @@ import pytest
 from pinecone import ApiError, AsyncPinecone, PineconeError, PineconeValueError
 from pinecone.models.assistant.chat import (
     ChatCompletionChoice,
+    ChatCompletionMessage,
     ChatCompletionResponse,
     ChatHighlight,
     ChatMessage,
@@ -477,7 +478,8 @@ async def test_assistant_chat_completions_openai_compatible_response(
 
         choice = response.choices[0]
         assert hasattr(choice, "message")
-        assert isinstance(choice.message.content, str)
+        assert isinstance(choice.message, ChatCompletionMessage)
+        assert choice.message.content is not None
         assert len(choice.message.content) > 0, "Expected non-empty message content"
         assert hasattr(choice, "finish_reason")
 
@@ -666,6 +668,32 @@ async def test_assistant_create_region_validation_and_chat_stream_json_conflict_
             messages=[{"content": "test query"}],
             stream=True,
             json_response=True,
+        )
+
+
+# ---------------------------------------------------------------------------
+# assistant-create: metadata default behavior (async)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.anyio
+async def test_create_assistant_metadata_default_async(async_client: AsyncPinecone) -> None:
+    """create() without metadata produces an assistant with model.metadata is None (async).
+
+    Verifies the fix for D3: the SDK previously sent "metadata": {} instead of
+    omitting the key, causing the backend to store an empty object rather than None.
+    """
+    name = unique_name("asst")
+    try:
+        model = await async_client.assistants.create(name=name, timeout=-1)
+        assert isinstance(model, AssistantModel)
+        assert model.metadata is None
+    finally:
+        await async_cleanup_resource(
+            lambda: async_client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
         )
 
 
@@ -1964,10 +1992,10 @@ async def test_chat_completions_full_response_structure_async(
             assert isinstance(choice.index, int), (
                 f"choice.index must be int, got {type(choice.index)}"
             )
-            assert isinstance(choice.message, ChatMessage), (
-                f"choice.message must be ChatMessage, got {type(choice.message)}"
+            assert isinstance(choice.message, ChatCompletionMessage), (
+                f"choice.message must be ChatCompletionMessage, got {type(choice.message)}"
             )
-            assert isinstance(choice.message.content, str) and len(choice.message.content) > 0, (
+            assert choice.message.content is not None and len(choice.message.content) > 0, (
                 "choice.message.content must be a non-empty str"
             )
             assert isinstance(choice.finish_reason, str) and len(choice.finish_reason) > 0, (
@@ -2618,6 +2646,26 @@ async def test_assistant_create_rejects_name_over_max_length(
                 name,
                 "assistant",
             )
+
+
+# ---------------------------------------------------------------------------
+# environment parameter (async)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.anyio
+@pytest.mark.timeout(30)
+async def test_create_assistant_environment_rejected(async_client: AsyncPinecone) -> None:
+    """create() with environment= raises ApiError 403 on non-internal plans (async).
+
+    Confirms the environment parameter is wired through to the backend:
+    the backend returns 403 when the calling org is not an internal plan.
+    """
+    name = unique_name("env-test")
+    with pytest.raises(ApiError) as exc_info:
+        await async_client.assistants.create(name=name, environment="prod-us", timeout=-1)
+    assert exc_info.value.status_code == 403
 
 
 # ---------------------------------------------------------------------------

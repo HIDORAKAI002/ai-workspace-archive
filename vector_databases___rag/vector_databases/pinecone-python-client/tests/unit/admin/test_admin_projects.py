@@ -12,7 +12,12 @@ from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import ADMIN_API_VERSION
 from pinecone._internal.http_client import HTTPClient
 from pinecone.admin.projects import Projects
-from pinecone.errors.exceptions import NotFoundError, PineconeError, ValidationError
+from pinecone.errors.exceptions import (
+    NotFoundError,
+    PineconeError,
+    PineconeValueError,
+    ValidationError,
+)
 from pinecone.models.admin.project import ProjectList, ProjectModel
 
 BASE_URL = "https://api.test.pinecone.io"
@@ -154,6 +159,32 @@ def test_create_project_with_all_options(projects: Projects) -> None:
 def test_create_project_requires_name(projects: Projects) -> None:
     with pytest.raises(ValidationError, match="name"):
         projects.create(name="")
+
+
+def test_create_project_max_pods_negative(projects: Projects) -> None:
+    with pytest.raises(ValidationError, match="max_pods"):
+        projects.create(name="my-project", max_pods=-1)
+
+
+def test_create_project_name_too_long(projects: Projects) -> None:
+    with pytest.raises(PineconeValueError, match="name cannot be longer than 512 characters"):
+        projects.create(name="x" * 513)
+
+
+def test_create_project_name_null_byte(projects: Projects) -> None:
+    with pytest.raises(PineconeValueError, match="name cannot contain null characters"):
+        projects.create(name="valid\x00name")
+
+
+def test_create_project_max_pods_zero_is_valid(projects: Projects) -> None:
+    """max_pods=0 is the boundary of u32 — must not raise client-side."""
+    # zero is a valid u32; only negative values are rejected
+    with respx.mock:
+        respx.post(f"{BASE_URL}/admin/projects").mock(
+            return_value=httpx.Response(200, json=_project_response(max_pods=0)),
+        )
+        result = projects.create(name="my-project", max_pods=0)
+    assert result.max_pods == 0
 
 
 # ---------------------------------------------------------------------------

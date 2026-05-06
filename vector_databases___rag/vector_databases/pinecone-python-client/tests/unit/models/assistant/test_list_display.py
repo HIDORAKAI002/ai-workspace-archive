@@ -4,7 +4,7 @@ import builtins
 from unittest.mock import patch
 
 from pinecone.models.assistant.file_model import AssistantFileModel
-from pinecone.models.assistant.list import ListAssistantsResponse, ListFilesResponse
+from pinecone.models.assistant.list import ListAssistantsResponse, ListFilesResponse, _Pagination
 from pinecone.models.assistant.model import AssistantModel
 
 
@@ -27,7 +27,9 @@ class TestListAssistantsRepr:
         assert "count=500" in r
 
     def test_with_next_token(self) -> None:
-        assert "tok" in repr(ListAssistantsResponse(assistants=[], next="tok"))
+        assert "tok" in repr(
+            ListAssistantsResponse(assistants=[], pagination=_Pagination(next="tok"))
+        )
 
     def test_safe_on_malformed(self) -> None:
         m = ListAssistantsResponse(assistants=mk_assist(1))
@@ -83,7 +85,7 @@ class TestListFilesRepr:
         assert len(r) < 500
 
     def test_with_next_token(self) -> None:
-        assert "tok" in repr(ListFilesResponse(files=[], next="tok"))
+        assert "tok" in repr(ListFilesResponse(files=[], pagination=_Pagination(next="tok")))
 
     def test_safe_on_malformed(self) -> None:
         m = ListFilesResponse(files=mk_files(1))

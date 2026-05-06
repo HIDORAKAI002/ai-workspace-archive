@@ -142,3 +142,112 @@ def test_configure_index_serverless_read_capacity() -> None:
 
     sent_body = json.loads(route.calls[0].request.content)
     assert sent_body == {"spec": {"serverless": {"read_capacity": {"mode": "OnDemand"}}}}
+
+
+@respx.mock
+def test_configure_index_tags_sparse_patch() -> None:
+    """configure sends user tags directly without pre-fetching current state.
+
+    The backend implements merge semantics (unmentioned tags preserved, empty-string
+    value removes a tag), so the client must send only the user's dict — no describe
+    round-trip and no client-side merge.
+    """
+    index_name = "my-tagged-idx"
+    patch_route = respx.patch(f"{BASE_URL}/indexes/{index_name}").mock(
+        return_value=httpx.Response(202, json=make_index_response(name=index_name)),
+    )
+    # Ensure no GET /indexes/{name} is registered — if the client calls describe,
+    # respx will raise an error (no matching route) rather than silently passing.
+
+    pc = Pinecone(api_key="test-key")
+
+    # Sparse add: send a new key; backend will preserve any pre-existing tags.
+    pc.indexes.configure(index_name, tags={"new_key": "new_val"})
+    sent_body = json.loads(patch_route.calls[0].request.content)
+    assert sent_body["tags"] == {"new_key": "new_val"}, (
+        "Client must send only the user-supplied tags dict, not a client-side merge"
+    )
+    assert len(patch_route.calls) == 1, "configure must issue exactly one PATCH (no describe GET)"
+
+    patch_route.reset()
+
+    # Sparse remove: empty-string value signals the backend to delete that tag.
+    pc.indexes.configure(index_name, tags={"existing_key": ""})
+    sent_body2 = json.loads(patch_route.calls[0].request.content)
+    assert sent_body2["tags"] == {"existing_key": ""}, (
+        "Client must forward the empty-string removal signal unchanged"
+    )
+    assert len(patch_route.calls) == 1, "configure must issue exactly one PATCH (no describe GET)"
+
+
+@respx.mock
+def test_create_index_serverless_read_capacity_spec() -> None:
+    """ServerlessSpec.read_capacity is forwarded into spec.serverless.read_capacity in the request body."""
+    from pinecone.models.indexes.specs import ServerlessSpec
+
+    response_body = make_index_response(name="rc-index")
+    route = respx.post(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(201, json=response_body),
+    )
+
+    pc = Pinecone(api_key="test-key")
+    result = pc.indexes.create(
+        name="rc-index",
+        spec=ServerlessSpec(cloud="aws", region="us-east-1", read_capacity={"mode": "OnDemand"}),
+        dimension=128,
+        metric="cosine",
+        timeout=-1,
+    )
+
+    assert result.name == "rc-index"
+    sent_body = json.loads(route.calls[0].request.content)
+    assert sent_body["spec"]["serverless"]["read_capacity"] == {"mode": "OnDemand"}
+    assert result.spec.serverless is not None
+    assert result.spec.serverless.read_capacity is not None
+
+
+@respx.mock
+def test_create_byoc_index_spec_schema_forwarded() -> None:
+    """ByocSpec.schema is included in spec.byoc of the request body."""
+    from pinecone.models.indexes.specs import ByocSpec
+
+    response_body = make_index_response(name="byoc-schema-index")
+    route = respx.post(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(201, json=response_body),
+    )
+
+    pc = Pinecone(api_key="test-key")
+    pc.indexes.create(
+        name="byoc-schema-index",
+        spec=ByocSpec(environment="byoc-aws-abc123", schema={"genre": {"type": "str"}}),
+        dimension=128,
+        metric="cosine",
+        timeout=-1,
+    )
+
+    sent_body = json.loads(route.calls[0].request.content)
+    assert sent_body["spec"]["byoc"]["schema"] == {"genre": {"type": "str"}}
+
+
+@respx.mock
+def test_create_byoc_index_method_schema_forwarded() -> None:
+    """schema= method param is included in spec.byoc of the request body for BYOC indexes."""
+    from pinecone.models.indexes.specs import ByocSpec
+
+    response_body = make_index_response(name="byoc-schema-index")
+    route = respx.post(f"{BASE_URL}/indexes").mock(
+        return_value=httpx.Response(201, json=response_body),
+    )
+
+    pc = Pinecone(api_key="test-key")
+    pc.indexes.create(
+        name="byoc-schema-index",
+        spec=ByocSpec(environment="byoc-aws-abc123"),
+        dimension=128,
+        metric="cosine",
+        schema={"genre": {"type": "str"}},
+        timeout=-1,
+    )
+
+    sent_body = json.loads(route.calls[0].request.content)
+    assert sent_body["spec"]["byoc"]["schema"] == {"genre": {"type": "str"}}

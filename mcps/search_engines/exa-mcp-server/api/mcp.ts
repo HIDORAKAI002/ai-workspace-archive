@@ -1,5 +1,6 @@
 process.env.AGNOST_LOG_LEVEL = 'error';
 
+import { randomUUID } from 'node:crypto';
 import { createMcpHandler } from 'mcp-handler';
 import { initializeMcpServer } from '../src/mcp-handler.js';
 import { Ratelimit } from '@upstash/ratelimit';
@@ -155,6 +156,15 @@ function isRateLimitedMethod(body: string): boolean {
   }
 }
 
+function isInitializeMethod(body: string): boolean {
+  try {
+    const parsed = JSON.parse(body);
+    return parsed.method === 'initialize';
+  } catch {
+    return false;
+  }
+}
+
 /** 7-day TTL for ~10-minute bypass tracking buckets. */
 const BYPASS_BUCKET_TTL_SECONDS = 7 * 24 * 60 * 60;
 
@@ -260,9 +270,8 @@ async function checkRateLimits(ip: string, debug: boolean): Promise<Response | n
  * the request to the initializeServer callback. To support per-request
  * configuration via URL params (like ?tools=... and ?exaApiKey=...), we
  * create a fresh handler for each request. This ensures:
- * 1. Feature parity with the production Smithery-based deployment at mcp.exa.ai
- * 2. Each request gets its own configuration (no API key leakage between users)
- * 3. Users can specify different tools and API keys per request
+ * 1. Each request gets its own configuration (no API key leakage between users)
+ * 2. Users can specify different tools and API keys per request
  */
 
 /** Extract bearer token from Authorization header. */
@@ -469,6 +478,8 @@ async function handleRequest(request: Request, options?: { forceOAuth?: boolean 
  */
 async function processRequest(request: Request, options?: { forceOAuth?: boolean }): Promise<Response> {
   const debug = process.env.DEBUG === 'true';
+  const isInitializeRequest =
+    request.method === 'POST' ? isInitializeMethod(await request.clone().text()) : false;
 
   // Check user-agent bypass BEFORE the 401 gate so bypass clients never see auth prompts
   const userAgent = request.headers.get('user-agent') || '';
@@ -564,7 +575,19 @@ async function processRequest(request: Request, options?: { forceOAuth?: boolean
     duplex: 'half',
   });
   
-  return withCors(await handler(request));
+  const response = withCors(await handler(request));
+
+  if (isInitializeRequest && response.ok && !response.headers.has('Mcp-Session-Id')) {
+    const headers = new Headers(response.headers);
+    headers.set('Mcp-Session-Id', randomUUID());
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers,
+    });
+  }
+
+  return response;
 }
 
 function handleOptions(): Response {
