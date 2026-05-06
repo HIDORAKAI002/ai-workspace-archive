@@ -39,7 +39,7 @@ class DgApiRunApi:
         cursor: str | None = None,
         statuses: list[RunStatus] | None = None,
         job_name: str | None = None,
-    ) -> "DgApiRunList":
+    ) -> DgApiRunList:
         run_filter = None
         if statuses or job_name:
             run_filter = RunsFilter(

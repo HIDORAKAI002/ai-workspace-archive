@@ -4,7 +4,7 @@ description: Store your Dagster assets in DuckDB
 sidebar_position: 200
 ---
 
-This reference page provides information for working with [`dagster-duckdb`](/integrations/libraries/duckdb/dagster-duckdb) features that are not covered as part of the [Using Dagster with DuckDB tutorial](/integrations/libraries/duckdb/using-duckdb-with-dagster).
+This reference page provides information for working with [`dagster-duckdb`](/integrations/libraries/motherduck/dagster-duckdb) features that are not covered as part of the [Using Dagster with DuckDB tutorial](/integrations/libraries/motherduck/using-duckdb-with-dagster).
 
 DuckDB resource:
 
@@ -23,7 +23,7 @@ DuckDB I/O manager:
 
 The DuckDB resource provides access to a [`duckdb.DuckDBPyConnection`](https://duckdb.org/docs/api/python/reference/#duckdb.DuckDBPyConnection) object. This allows you full control over how your data is stored and retrieved in your database.
 
-For further information on the DuckDB resource, see the [DuckDB resource API docs](/integrations/libraries/duckdb/dagster-duckdb#dagster_duckdb.DuckDBResource).
+For further information on the DuckDB resource, see the [DuckDB resource API docs](/integrations/libraries/motherduck/dagster-duckdb#dagster_duckdb.DuckDBResource).
 
 ### Executing custom SQL queries
 
@@ -33,7 +33,7 @@ For further information on the DuckDB resource, see the [DuckDB resource API doc
   endBefore="end"
 />
 
-In this example, we attach the DuckDB resource to the `small_petals` asset. In the body of the asset function, we use the `get_connection` context manager on the resource to get a [`duckdb.DuckDBPyConnection`](https://duckdb.org/docs/api/python/reference/#duckdb.DuckDBPyConnection). We can use this connection to execute a custom SQL query against the `iris_dataset` table created in [Step 2: Create tables in DuckDB](/integrations/libraries/duckdb/using-duckdb-with-dagster#option-1-step-2) of the [Using Dagster with DuckDB tutorial](/integrations/libraries/duckdb/using-duckdb-with-dagster). When the `duckdb.get_connection` context is exited, the DuckDB connection will be closed.
+In this example, we attach the DuckDB resource to the `small_petals` asset. In the body of the asset function, we use the `get_connection` context manager on the resource to get a [`duckdb.DuckDBPyConnection`](https://duckdb.org/docs/api/python/reference/#duckdb.DuckDBPyConnection). We can use this connection to execute a custom SQL query against the `iris_dataset` table created in [Step 2: Create tables in DuckDB](/integrations/libraries/motherduck/using-duckdb-with-dagster#option-1-step-2) of the [Using Dagster with DuckDB tutorial](/integrations/libraries/motherduck/using-duckdb-with-dagster). When the `duckdb.get_connection` context is exited, the DuckDB connection will be closed.
 
 ## DuckDB I/O manager
 
@@ -45,7 +45,7 @@ Sometimes you may not want to fetch an entire table as the input to a downstream
 
 <CodeExample path="docs_snippets/docs_snippets/integrations/duckdb/reference/downstream_columns.py" />
 
-In this example, we only use the columns containing sepal data from the `IRIS_DATASET` table created in [Step 2: Create tables in DuckDB](/integrations/libraries/duckdb/using-duckdb-with-dagster#option-2-step-2) of the [Using Dagster with DuckDB tutorial](/integrations/libraries/duckdb/using-duckdb-with-dagster). To select specific columns, we can add metadata to the input asset. We do this in the `metadata` parameter of the `AssetIn` that loads the `iris_dataset` asset in the `ins` parameter. We supply the key `columns` with a list of names of the columns we want to fetch.
+In this example, we only use the columns containing sepal data from the `IRIS_DATASET` table created in [Step 2: Create tables in DuckDB](/integrations/libraries/motherduck/using-duckdb-with-dagster#option-2-step-2) of the [Using Dagster with DuckDB tutorial](/integrations/libraries/motherduck/using-duckdb-with-dagster). To select specific columns, we can add metadata to the input asset. We do this in the `metadata` parameter of the `AssetIn` that loads the `iris_dataset` asset in the `ins` parameter. We supply the key `columns` with a list of names of the columns we want to fetch.
 
 When Dagster materializes `sepal_data` and loads the `iris_dataset` asset using the DuckDB I/O manager, it will only fetch the `sepal_length_cm` and `sepal_width_cm` columns of the `IRIS.IRIS_DATASET` table and pass them to `sepal_data` as a Pandas DataFrame.
 
@@ -144,7 +144,7 @@ In this example, the data in the `TIME` column are integers, so the `partition_e
 
 You may want to have different assets stored in different DuckDB schemas. The DuckDB I/O manager allows you to specify the schema in several ways.
 
-You can specify the default schema where data will be stored as configuration to the I/O manager, as we did in [Step 1: Configure the DuckDB I/O manager](/integrations/libraries/duckdb/using-duckdb-with-dagster#step-1-configure-the-duckdb-io-manager) of the [Using Dagster with DuckDB tutorial](/integrations/libraries/duckdb/using-duckdb-with-dagster).
+You can specify the default schema where data will be stored as configuration to the I/O manager, as we did in [Step 1: Configure the DuckDB I/O manager](/integrations/libraries/motherduck/using-duckdb-with-dagster#step-1-configure-the-duckdb-io-manager) of the [Using Dagster with DuckDB tutorial](/integrations/libraries/motherduck/using-duckdb-with-dagster).
 
 If you want to store assets in different schemas, you can specify the schema as metadata:
 
@@ -206,11 +206,11 @@ The DuckDB I/O manager also supports storing and loading PySpark and Polars Data
 <Tabs>
 <TabItem value="PySpark DataFrames" label="Storing and loading PySpark DataFrames in DuckDB">
 
-To use the <PyObject section="libraries" integration="duckdb" module="dagster_duckdb_pyspark" object="DuckDBPySparkIOManager" />, first install the package:
+To use the <PyObject section="libraries" integration="motherduck" module="dagster_duckdb_pyspark" object="DuckDBPySparkIOManager" />, first install the package:
 
 <PackageInstallInstructions packageName="dagster-duckdb-pyspark" />
 
-Then you can use the `DuckDBPySparkIOManager` in your <PyObject section="definitions" module="dagster" object="Definitions" /> as in [Step 1: Configure the DuckDB I/O manager](/integrations/libraries/duckdb/using-duckdb-with-dagster#step-1-configure-the-duckdb-io-manager) of the [Using Dagster with DuckDB tutorial](/integrations/libraries/duckdb/using-duckdb-with-dagster).
+Then you can use the `DuckDBPySparkIOManager` in your <PyObject section="definitions" module="dagster" object="Definitions" /> as in [Step 1: Configure the DuckDB I/O manager](/integrations/libraries/motherduck/using-duckdb-with-dagster#step-1-configure-the-duckdb-io-manager) of the [Using Dagster with DuckDB tutorial](/integrations/libraries/motherduck/using-duckdb-with-dagster).
 
 <CodeExample
   path="docs_snippets/docs_snippets/integrations/duckdb/reference/pyspark_configuration.py"
@@ -240,11 +240,11 @@ The `DuckDBPySparkIOManager` requires an active `SparkSession`. You can either c
 </TabItem>
 <TabItem value="Polars DataFrames" label="Storing and loading Polars DataFrames in DuckDB">
 
-To use the <PyObject section="libraries" integration="duckdb" module="dagster_duckdb_polars" object="DuckDBPolarsIOManager" />, first install the package:
+To use the <PyObject section="libraries" integration="motherduck" module="dagster_duckdb_polars" object="DuckDBPolarsIOManager" />, first install the package:
 
 <PackageInstallInstructions packageName="dagster-duckdb-polars" />
 
-Then you can use the `DuckDBPolarsIOManager` in your <PyObject section="definitions" module="dagster" object="Definitions" /> as in [Step 1: Configure the DuckDB I/O manager](/integrations/libraries/duckdb/using-duckdb-with-dagster#step-1-configure-the-duckdb-io-manager) of the [Using Dagster with DuckDB tutorial](/integrations/libraries/duckdb/using-duckdb-with-dagster).
+Then you can use the `DuckDBPolarsIOManager` in your <PyObject section="definitions" module="dagster" object="Definitions" /> as in [Step 1: Configure the DuckDB I/O manager](/integrations/libraries/motherduck/using-duckdb-with-dagster#step-1-configure-the-duckdb-io-manager) of the [Using Dagster with DuckDB tutorial](/integrations/libraries/motherduck/using-duckdb-with-dagster).
 
 <CodeExample
   path="docs_snippets/docs_snippets/integrations/duckdb/reference/polars_configuration.py"
@@ -259,7 +259,7 @@ Then you can use the `DuckDBPolarsIOManager` in your <PyObject section="definiti
 
 If you work with several DataFrame libraries and want a single I/O manager to handle storing and loading these DataFrames in DuckDB, you can write a new I/O manager that handles the DataFrame types.
 
-To do this, inherit from the <PyObject section="libraries" integration="duckdb" module="dagster_duckdb" object="DuckDBIOManager" /> base class and implement the `type_handlers` and `default_load_type` methods. The resulting I/O manager will inherit the configuration fields of the base `DuckDBIOManager`.
+To do this, inherit from the <PyObject section="libraries" integration="motherduck" module="dagster_duckdb" object="DuckDBIOManager" /> base class and implement the `type_handlers` and `default_load_type` methods. The resulting I/O manager will inherit the configuration fields of the base `DuckDBIOManager`.
 
 <CodeExample
   path="docs_snippets/docs_snippets/integrations/duckdb/reference/multiple_dataframe_types.py"

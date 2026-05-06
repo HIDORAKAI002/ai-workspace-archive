@@ -264,7 +264,7 @@
 # ---
 # name: TestDynamicCommandExecution.test_command_execution[alert_policy_success_list_policies_json]
   dict({
-    'alert_policies': list([
+    'items': list([
       dict({
         'description': 'Send email on job failure',
         'event_types': list([
@@ -301,6 +301,7 @@
         ]),
       }),
     ]),
+    'total': 2,
   })
 # ---
 # name: TestDynamicCommandExecution.test_command_execution[alert_policy_success_list_policies_text_text]

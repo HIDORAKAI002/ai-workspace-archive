@@ -1,19 +1,25 @@
 ---
-title: Dagster & DuckDB
-sidebar_label: DuckDB
+title: Dagster & MotherDuck
+sidebar_label: MotherDuck
 sidebar_position: 1
-description: This library provides an integration with the DuckDB database, and allows for an out-of-the-box I/O Manager so that you can make DuckDB your storage of choice.
+description: This library provides an integration with MotherDuck and DuckDB, and allows for an out-of-the-box I/O Manager so that you can make MotherDuck or DuckDB your storage of choice.
 tags: [dagster-supported, storage]
 source: https://github.com/dagster-io/dagster/tree/master/python_modules/libraries/dagster-duckdb
 pypi: https://pypi.org/project/dagster-duckdb/
 sidebar_custom_props:
   logo: images/integrations/duckdb.svg
 partnerlink: https://duckdb.org/
-canonicalUrl: '/integrations/libraries/duckdb'
-slug: '/integrations/libraries/duckdb'
+canonicalUrl: '/integrations/libraries/motherduck'
+slug: '/integrations/libraries/motherduck'
 ---
 
 <p>{frontMatter.description}</p>
+
+:::note
+
+MotherDuck is the cloud-hosted version of DuckDB. This integration uses the `dagster-duckdb` package, which supports both local DuckDB and MotherDuck.
+
+:::
 
 ## Installation
 
