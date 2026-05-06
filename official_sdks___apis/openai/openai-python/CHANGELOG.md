@@ -1,5 +1,25 @@
 # Changelog
 
+## 2.35.0 (2026-05-06)
+
+Full Changelog: [v2.34.0...v2.35.0](https://github.com/openai/openai-python/compare/v2.34.0...v2.35.0)
+
+### Features
+
+* **api:** update image 2 ([0ba55d7](https://github.com/openai/openai-python/commit/0ba55d7569565045426e1587906a70d5682a4bba))
+* **api:** manual updates ([72bf67a](https://github.com/openai/openai-python/commit/72bf67acbc9f030c20db3d5a1a74ea6d67d55f51))
+
+
+### Chores
+
+* remove legacy python cli ([32f36e4](https://github.com/openai/openai-python/commit/32f36e447d02c3124af8ab48fcc3537df2fed66e))
+* rename legacy python cli entrypoint ([a3b182d](https://github.com/openai/openai-python/commit/a3b182d6d2c2e6fe1d53ca7550b2d43e0f8b2cd3))
+
+
+### Documentation
+
+* **api:** update top_logprobs parameter description across chat and responses ([f9d339f](https://github.com/openai/openai-python/commit/f9d339fcea63feaa1bdf918a4599f2b032c83517))
+
 ## 2.34.0 (2026-05-04)
 
 Full Changelog: [v2.33.0...v2.34.0](https://github.com/openai/openai-python/compare/v2.33.0...v2.34.0)

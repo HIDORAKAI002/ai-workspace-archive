@@ -33,7 +33,11 @@ pub enum Format {
     Branding,
     /// Audio extraction (MP3) from YouTube videos.
     Audio,
-    /// Query answer generated from the page content.
+    /// Question answer generated from the page content.
+    Question(QuestionFormat),
+    /// Direct highlights selected from the page content.
+    Highlights(HighlightsFormat),
+    /// Deprecated query answer generated from the page content.
     Query(QueryFormat),
 }
 
@@ -55,6 +59,8 @@ impl Serialize for Format {
             Format::Attributes => serializer.serialize_str("attributes"),
             Format::Branding => serializer.serialize_str("branding"),
             Format::Audio => serializer.serialize_str("audio"),
+            Format::Question(question) => question.serialize(serializer),
+            Format::Highlights(highlights) => highlights.serialize(serializer),
             Format::Query(query) => query.serialize(serializer),
         }
     }
@@ -82,15 +88,116 @@ impl<'de> Deserialize<'de> for Format {
                 "audio" => Ok(Format::Audio),
                 _ => Err(de::Error::custom(format!("unknown format: {}", format))),
             },
-            Value::Object(_) => QueryFormat::deserialize(value)
-                .map(Format::Query)
-                .map_err(de::Error::custom),
+            Value::Object(_) => match value.get("type").and_then(Value::as_str) {
+                Some("question") => QuestionFormat::deserialize(value)
+                    .map(Format::Question)
+                    .map_err(de::Error::custom),
+                Some("highlights") => HighlightsFormat::deserialize(value)
+                    .map(Format::Highlights)
+                    .map_err(de::Error::custom),
+                Some("query") => QueryFormat::deserialize(value)
+                    .map(Format::Query)
+                    .map_err(de::Error::custom),
+                Some(format_type) => Err(de::Error::custom(format!(
+                    "unknown object format: {}",
+                    format_type
+                ))),
+                None => Err(de::Error::custom("object format must have a type")),
+            },
             _ => Err(de::Error::custom("format must be a string or object")),
         }
     }
 }
 
-/// Query format for asking a question about page content.
+/// Question format for asking a question about page content.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct QuestionFormat {
+    pub question: String,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct QuestionFormatWire {
+    #[serde(rename = "type")]
+    format_type: String,
+    question: String,
+}
+
+impl Serialize for QuestionFormat {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        QuestionFormatWire {
+            format_type: "question".to_string(),
+            question: self.question.clone(),
+        }
+        .serialize(serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for QuestionFormat {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let wire = QuestionFormatWire::deserialize(deserializer)?;
+        if wire.format_type != "question" {
+            return Err(de::Error::custom(
+                "question format object must have type question",
+            ));
+        }
+
+        Ok(Self {
+            question: wire.question,
+        })
+    }
+}
+
+/// Highlights format for selecting direct highlights from page content.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct HighlightsFormat {
+    pub query: String,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct HighlightsFormatWire {
+    #[serde(rename = "type")]
+    format_type: String,
+    query: String,
+}
+
+impl Serialize for HighlightsFormat {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        HighlightsFormatWire {
+            format_type: "highlights".to_string(),
+            query: self.query.clone(),
+        }
+        .serialize(serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for HighlightsFormat {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let wire = HighlightsFormatWire::deserialize(deserializer)?;
+        if wire.format_type != "highlights" {
+            return Err(de::Error::custom(
+                "highlights format object must have type highlights",
+            ));
+        }
+
+        Ok(Self { query: wire.query })
+    }
+}
+
+/// Deprecated query format for asking a question about page content.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct QueryFormat {
     pub prompt: String,
@@ -555,6 +662,10 @@ pub struct Document {
     pub attributes: Option<Vec<AttributeResult>>,
     /// Action results.
     pub actions: Option<HashMap<String, Value>>,
+    /// Answer generated by the question or deprecated query format.
+    pub answer: Option<String>,
+    /// Highlights generated by the highlights format.
+    pub highlights: Option<String>,
     /// Warning message.
     pub warning: Option<String>,
     /// Change tracking data.

@@ -469,21 +469,33 @@ export async function countMonitorCheckPages(params: {
   targetId?: string;
   status?: string;
 }): Promise<number> {
-  let query = supabase_rr_service
-    .from("monitor_check_pages")
-    .select("id", { count: "exact", head: true })
-    .eq("check_id", params.checkId);
+  const pageSize = 1000;
+  let total = 0;
+  let offset = 0;
 
-  if (params.targetId) {
-    query = query.eq("target_id", params.targetId);
-  }
-  if (params.status) {
-    query = query.eq("status", params.status);
+  while (true) {
+    let query = supabase_rr_service
+      .from("monitor_check_pages")
+      .select("id")
+      .eq("check_id", params.checkId);
+
+    if (params.targetId) {
+      query = query.eq("target_id", params.targetId);
+    }
+    if (params.status) {
+      query = query.eq("status", params.status);
+    }
+
+    const { data, error } = await query.range(offset, offset + pageSize - 1);
+    throwIfError(error, "Failed to count monitor check pages");
+
+    const batch = data ?? [];
+    total += batch.length;
+    if (batch.length < pageSize) break;
+    offset += pageSize;
   }
 
-  const { count, error } = await query;
-  throwIfError(error, "Failed to count monitor check pages");
-  return count ?? 0;
+  return total;
 }
 
 export async function getMonitorPage(params: {

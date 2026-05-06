@@ -73,6 +73,7 @@ from dagster_rest_resources.__generated__.list_asset_records import (
     ListAssetRecordsAssetRecordsOrErrorPythonError,
 )
 from dagster_rest_resources.api.asset import DgApiAssetApi
+from dagster_rest_resources.gql_client import IGraphQLClient
 from dagster_rest_resources.schemas.asset import (
     DgApiAssetList,
     DgApiEvaluationRecordList,
@@ -120,7 +121,7 @@ def _make_asset_detail_node(
 
 class TestListAssets:
     def test_returns_assets(self):
-        client = Mock()
+        client = Mock(spec=IGraphQLClient)
         client.list_asset_records.return_value = ListAssetRecords(
             assetRecordsOrError=ListAssetRecordsAssetRecordsOrErrorAssetRecordConnection(
                 __typename="AssetRecordConnection",
@@ -143,7 +144,7 @@ class TestListAssets:
         assert result.has_more is False
 
     def test_returns_empty_when_no_records(self):
-        client = Mock()
+        client = Mock(spec=IGraphQLClient)
         client.list_asset_records.return_value = ListAssetRecords(
             assetRecordsOrError=ListAssetRecordsAssetRecordsOrErrorAssetRecordConnection(
                 __typename="AssetRecordConnection",
@@ -158,7 +159,7 @@ class TestListAssets:
         client.get_asset_details.assert_not_called()
 
     def test_skips_nodes_without_definition(self):
-        client = Mock()
+        client = Mock(spec=IGraphQLClient)
         client.list_asset_records.return_value = ListAssetRecords(
             assetRecordsOrError=ListAssetRecordsAssetRecordsOrErrorAssetRecordConnection(
                 __typename="AssetRecordConnection",
@@ -184,7 +185,7 @@ class TestListAssets:
         assert result.items == []
 
     def test_records_python_error_raises(self):
-        client = Mock()
+        client = Mock(spec=IGraphQLClient)
         client.list_asset_records.return_value = ListAssetRecords(
             assetRecordsOrError=ListAssetRecordsAssetRecordsOrErrorPythonError(
                 __typename="PythonError", message=""
@@ -195,7 +196,7 @@ class TestListAssets:
             DgApiAssetApi(_client=client).list_assets()
 
     def test_details_python_error_raises(self):
-        client = Mock()
+        client = Mock(spec=IGraphQLClient)
         client.list_asset_records.return_value = ListAssetRecords(
             assetRecordsOrError=ListAssetRecordsAssetRecordsOrErrorAssetRecordConnection(
                 __typename="AssetRecordConnection",
@@ -215,7 +216,7 @@ class TestListAssets:
 
 class TestGetAsset:
     def test_returns_asset(self):
-        client = Mock()
+        client = Mock(spec=IGraphQLClient)
         client.get_asset_details.return_value = GetAssetDetails(
             assetsOrError=GetAssetDetailsAssetsOrErrorAssetConnection(
                 __typename="AssetConnection",
@@ -239,7 +240,7 @@ class TestGetAsset:
         assert result.kinds == ["test_kind"]
 
     def test_asset_with_metadata_and_owners(self):
-        client = Mock()
+        client = Mock(spec=IGraphQLClient)
         client.get_asset_details.return_value = GetAssetDetails(
             assetsOrError=GetAssetDetailsAssetsOrErrorAssetConnection(
                 __typename="AssetConnection",
@@ -340,7 +341,7 @@ class TestGetAsset:
         assert result.job_names == ["daily_job"]
 
     def test_not_found_raises(self):
-        client = Mock()
+        client = Mock(spec=IGraphQLClient)
         client.get_asset_details.return_value = GetAssetDetails(
             assetsOrError=GetAssetDetailsAssetsOrErrorAssetConnection(
                 __typename="AssetConnection", nodes=[]
@@ -351,7 +352,7 @@ class TestGetAsset:
             DgApiAssetApi(_client=client).get_asset("missing/path")
 
     def test_python_error_raises(self):
-        client = Mock()
+        client = Mock(spec=IGraphQLClient)
         client.get_asset_details.return_value = GetAssetDetails(
             assetsOrError=GetAssetDetailsAssetsOrErrorPythonError(
                 __typename="PythonError", message=""
@@ -364,7 +365,7 @@ class TestGetAsset:
 
 class TestGetHealth:
     def test_returns_health(self):
-        client = Mock()
+        client = Mock(spec=IGraphQLClient)
         client.get_asset_health.return_value = GetAssetHealth(
             assetsOrError=GetAssetHealthAssetsOrErrorAssetConnection(
                 __typename="AssetConnection",
@@ -413,7 +414,7 @@ class TestGetHealth:
         assert result.checks_status.total_num_checks == 3
 
     def test_not_found_raises(self):
-        client = Mock()
+        client = Mock(spec=IGraphQLClient)
         client.get_asset_health.return_value = GetAssetHealth(
             assetsOrError=GetAssetHealthAssetsOrErrorAssetConnection(
                 __typename="AssetConnection", nodes=[]
@@ -424,7 +425,7 @@ class TestGetHealth:
             DgApiAssetApi(_client=client).get_health("missing/path")
 
     def test_python_error_raises(self):
-        client = Mock()
+        client = Mock(spec=IGraphQLClient)
         client.get_asset_health.return_value = GetAssetHealth(
             assetsOrError=GetAssetHealthAssetsOrErrorPythonError(
                 __typename="PythonError", message=""
@@ -471,7 +472,7 @@ class TestGetEvents:
         )
 
     def test_materializations_only(self):
-        client = Mock()
+        client = Mock(spec=IGraphQLClient)
         client.get_asset_materialization_events.return_value = self._make_mat_result(
             [
                 GetAssetMaterializationEventsAssetsOrErrorAssetConnectionNodesAssetMaterializations(
@@ -499,7 +500,7 @@ class TestGetEvents:
         assert result.items[0].tags == [{"key": "env", "value": "prod"}]
 
     def test_observations_only(self):
-        client = Mock()
+        client = Mock(spec=IGraphQLClient)
         client.get_asset_observation_events.return_value = self._make_obs_result(
             [
                 GetAssetObservationEventsAssetsOrErrorAssetConnectionNodesAssetObservations(
@@ -527,7 +528,7 @@ class TestGetEvents:
         assert result.items[0].tags == [{"key": "env", "value": "prod"}]
 
     def test_both_event_types_merged_and_sorted(self):
-        client = Mock()
+        client = Mock(spec=IGraphQLClient)
         client.get_asset_materialization_events.return_value = self._make_mat_result(
             [
                 GetAssetMaterializationEventsAssetsOrErrorAssetConnectionNodesAssetMaterializations(
@@ -558,7 +559,7 @@ class TestGetEvents:
         assert result.items[1].run_id == "run-mat"
 
     def test_materialization_python_error_raises(self):
-        client = Mock()
+        client = Mock(spec=IGraphQLClient)
         client.get_asset_materialization_events.return_value = GetAssetMaterializationEvents(
             assetsOrError=GetAssetMaterializationEventsAssetsOrErrorPythonError(
                 __typename="PythonError", message=""
@@ -569,7 +570,7 @@ class TestGetEvents:
             DgApiAssetApi(_client=client).get_events("test/asset")
 
     def test_observation_python_error_raises(self):
-        client = Mock()
+        client = Mock(spec=IGraphQLClient)
         client.get_asset_materialization_events.return_value = self._make_mat_result([])
         client.get_asset_observation_events.return_value = GetAssetObservationEvents(
             assetsOrError=GetAssetObservationEventsAssetsOrErrorPythonError(
@@ -583,7 +584,7 @@ class TestGetEvents:
 
 class TestGetEvaluations:
     def test_returns_evaluations(self):
-        client = Mock()
+        client = Mock(spec=IGraphQLClient)
         client.get_asset_condition_evaluations.return_value = GetAssetConditionEvaluations(
             assetConditionEvaluationRecordsOrError=GetAssetConditionEvaluationsAssetConditionEvaluationRecordsOrErrorAssetConditionEvaluationRecords(
                 __typename="AssetConditionEvaluationRecords",
@@ -626,7 +627,7 @@ class TestGetEvaluations:
         assert result.items[0].evaluation_nodes is None
 
     def test_returns_evaluations_with_nodes(self):
-        client = Mock()
+        client = Mock(spec=IGraphQLClient)
         client.get_asset_condition_evaluations.return_value = GetAssetConditionEvaluations(
             assetConditionEvaluationRecordsOrError=GetAssetConditionEvaluationsAssetConditionEvaluationRecordsOrErrorAssetConditionEvaluationRecords(
                 __typename="AssetConditionEvaluationRecords",
@@ -667,7 +668,7 @@ class TestGetEvaluations:
         assert result.items[0].evaluation_nodes[0].unique_id == "test_unique_id"
 
     def test_returns_empty(self):
-        client = Mock()
+        client = Mock(spec=IGraphQLClient)
         client.get_asset_condition_evaluations.return_value = GetAssetConditionEvaluations(
             assetConditionEvaluationRecordsOrError=GetAssetConditionEvaluationsAssetConditionEvaluationRecordsOrErrorAssetConditionEvaluationRecords(
                 __typename="AssetConditionEvaluationRecords",
@@ -680,7 +681,7 @@ class TestGetEvaluations:
         assert result == DgApiEvaluationRecordList(items=[])
 
     def test_migration_error_raises(self):
-        client = Mock()
+        client = Mock(spec=IGraphQLClient)
         client.get_asset_condition_evaluations.return_value = GetAssetConditionEvaluations(
             assetConditionEvaluationRecordsOrError=GetAssetConditionEvaluationsAssetConditionEvaluationRecordsOrErrorAutoMaterializeAssetEvaluationNeedsMigrationError(
                 __typename="AutoMaterializeAssetEvaluationNeedsMigrationError", message=""
@@ -693,7 +694,7 @@ class TestGetEvaluations:
 
 class TestGetPartitionStatus:
     def test_returns_stats(self):
-        client = Mock()
+        client = Mock(spec=IGraphQLClient)
         client.get_asset_partition_status.return_value = GetAssetPartitionStatus(
             assetNodeOrError=GetAssetPartitionStatusAssetNodeOrErrorAssetNode(
                 __typename="AssetNode",
@@ -716,7 +717,7 @@ class TestGetPartitionStatus:
         )
 
     def test_no_partitions_raises(self):
-        client = Mock()
+        client = Mock(spec=IGraphQLClient)
         client.get_asset_partition_status.return_value = GetAssetPartitionStatus(
             assetNodeOrError=GetAssetPartitionStatusAssetNodeOrErrorAssetNode(
                 __typename="AssetNode",
@@ -728,7 +729,7 @@ class TestGetPartitionStatus:
             DgApiAssetApi(_client=client).get_partition_status("test/asset")
 
     def test_not_found_raises(self):
-        client = Mock()
+        client = Mock(spec=IGraphQLClient)
         client.get_asset_partition_status.return_value = GetAssetPartitionStatus(
             assetNodeOrError=GetAssetPartitionStatusAssetNodeOrErrorAssetNotFoundError(
                 __typename="AssetNotFoundError", message=""

@@ -9,7 +9,7 @@ description = "Hindsight: Agent Memory That Works Like Human Memory - Slim All-i
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "hindsight-api-slim>=0.4.17",
+    "hindsight-api-slim==0.6.0",
     "hindsight-client>=0.0.7",
     "hindsight-embed>=0.1.0",
 ]

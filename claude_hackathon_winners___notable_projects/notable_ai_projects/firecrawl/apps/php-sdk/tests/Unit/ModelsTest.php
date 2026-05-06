@@ -6,7 +6,9 @@ use Firecrawl\Models\CreditUsage;
 use Firecrawl\Models\MapData;
 use Firecrawl\Models\BatchScrapeJob;
 use Firecrawl\Models\CrawlJob;
+use Firecrawl\Models\HighlightsFormat;
 use Firecrawl\Models\QueryFormat;
+use Firecrawl\Models\QuestionFormat;
 use Firecrawl\Models\ScrapeOptions;
 
 it('hydrates CreditUsage from nested data key', function (): void {
@@ -144,6 +146,26 @@ it('serializes query format mode in ScrapeOptions', function (): void {
         'type' => 'query',
         'prompt' => 'What is Firecrawl?',
         'mode' => 'directQuote',
+    ]);
+});
+
+it('serializes question and highlights formats in ScrapeOptions', function (): void {
+    $options = ScrapeOptions::with(
+        formats: [
+            QuestionFormat::with('What is Firecrawl?'),
+            HighlightsFormat::with('What is Firecrawl?'),
+        ],
+    );
+
+    expect($options->toArray()['formats'])->toMatchArray([
+        [
+            'type' => 'question',
+            'question' => 'What is Firecrawl?',
+        ],
+        [
+            'type' => 'highlights',
+            'query' => 'What is Firecrawl?',
+        ],
     ]);
 });
 

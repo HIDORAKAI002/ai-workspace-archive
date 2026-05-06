@@ -263,6 +263,38 @@ defmodule Firecrawl.Generator do
     has_body = Map.has_key?(operation, "requestBody")
     http_method = String.upcase(method)
 
+    if has_body and multipart?(operation) do
+      generate_multipart_function(method, path, operation, spec, func_name, summary, tag)
+    else
+      generate_json_function(
+        method,
+        path,
+        operation,
+        spec,
+        func_name,
+        summary,
+        tag,
+        path_params,
+        query_params,
+        has_body,
+        http_method
+      )
+    end
+  end
+
+  defp generate_json_function(
+         method,
+         path,
+         operation,
+         spec,
+         func_name,
+         summary,
+         tag,
+         path_params,
+         query_params,
+         has_body,
+         http_method
+       ) do
     # Extract request body schema
     body_properties = if has_body, do: extract_body_properties(operation, spec), else: []
     required_keys = if has_body, do: extract_required_keys(operation, spec), else: []
@@ -346,6 +378,227 @@ defmodule Firecrawl.Generator do
     ]
 
     parts |> Enum.reject(&is_nil/1) |> Enum.join("\n")
+  end
+
+  # ---------------------------------------------------------------------------
+  # Multipart Support
+  # ---------------------------------------------------------------------------
+
+  defp multipart?(operation) do
+    content = get_in(operation, ["requestBody", "content"]) || %{}
+    Map.has_key?(content, "multipart/form-data")
+  end
+
+  defp extract_multipart_meta(operation, spec) do
+    schema = get_in(operation, ["requestBody", "content", "multipart/form-data", "schema"]) || %{}
+    props = resolve_properties(schema, spec)
+
+    {file_props, other_props} =
+      Enum.split_with(props, fn {_name, ps} ->
+        Map.get(ps, "format") == "binary"
+      end)
+
+    file_field =
+      case file_props do
+        [{name, _} | _] -> name
+        _ -> nil
+      end
+
+    {options_field, options_props, options_required} =
+      case Enum.find(other_props, fn {_n, ps} ->
+             Map.has_key?(ps, "properties") or Map.has_key?(ps, "$ref") or
+               Map.has_key?(ps, "allOf")
+           end) do
+        {name, ps} ->
+          inner_props = resolve_properties(ps, spec)
+          inner_required = resolve_required(ps, spec)
+          {name, inner_props, inner_required}
+
+        nil ->
+          {nil, [], []}
+      end
+
+    %{
+      file_field: file_field,
+      options_field: options_field,
+      options_props: options_props,
+      options_required: options_required
+    }
+  end
+
+  defp generate_multipart_function(method, path, operation, spec, func_name, summary, tag) do
+    meta = extract_multipart_meta(operation, spec)
+    http_method = String.upcase(method)
+    has_options? = meta.options_props != []
+
+    body_schema_code =
+      if has_options?, do: generate_schema(func_name, meta.options_props, meta.options_required), else: nil
+
+    body_key_mapping_code =
+      if has_options?, do: generate_key_mapping(func_name, meta.options_props), else: nil
+
+    doc = build_multipart_doc(summary, http_method, path, tag, func_name, has_options?, meta)
+
+    {sig, body} = build_multipart_function_body(func_name, method, path, meta, has_options?, false)
+    {bang_sig, bang_body} = build_multipart_function_body(func_name, method, path, meta, has_options?, true)
+
+    spec_code = build_multipart_typespec(func_name, has_options?, false)
+    bang_spec_code = build_multipart_typespec(func_name, has_options?, true)
+
+    parts = [
+      body_schema_code,
+      body_key_mapping_code,
+      doc,
+      spec_code,
+      "  #{sig}",
+      body,
+      "",
+      doc_bang(func_name),
+      bang_spec_code,
+      "  #{bang_sig}",
+      bang_body,
+      ""
+    ]
+
+    parts |> Enum.reject(&is_nil/1) |> Enum.join("\n")
+  end
+
+  defp build_multipart_function_body(func_name, method, path, meta, has_options?, bang?) do
+    req_method = String.to_atom(method)
+    fn_name = if bang?, do: "#{func_name}!", else: func_name
+    req_fn = if bang?, do: "#{req_method}!", else: "#{req_method}"
+    options_field = meta.options_field
+    file_field = meta.file_field
+
+    sig =
+      if has_options? do
+        "def #{fn_name}(file, params \\\\ [], opts \\\\ []) do"
+      else
+        "def #{fn_name}(file, opts \\\\ []) do"
+      end
+
+    options_part_text =
+      cond do
+        has_options? and not is_nil(options_field) ->
+          "{\"#{options_field}\", Jason.encode!(to_body(params, @#{func_name}_key_mapping))}, "
+
+        true ->
+          ""
+      end
+
+    file_part_text = "{\"#{file_field}\", file_part}"
+
+    indent = if not bang? and has_options?, do: "      ", else: "    "
+
+    core_lines = [
+      "#{indent}filename = Keyword.fetch!(file, :filename)",
+      "#{indent}data = Keyword.fetch!(file, :data)",
+      "#{indent}content_type = Keyword.get(file, :content_type)",
+      "",
+      "#{indent}if not is_binary(filename) or filename == \"\" do",
+      "#{indent}  raise ArgumentError, \"filename cannot be empty\"",
+      "#{indent}end",
+      "",
+      "#{indent}if is_nil(data) do",
+      "#{indent}  raise ArgumentError, \"file data cannot be empty\"",
+      "#{indent}end",
+      "",
+      "#{indent}file_part =",
+      "#{indent}  case content_type do",
+      "#{indent}    nil -> {data, filename: filename}",
+      "#{indent}    ct -> {data, filename: filename, content_type: ct}",
+      "#{indent}  end",
+      "",
+      "#{indent}multipart = [#{options_part_text}#{file_part_text}]",
+      "",
+      "#{indent}Req.#{req_fn}(client(opts), url: \"#{path}\", form_multipart: multipart)"
+    ]
+
+    core = Enum.join(core_lines, "\n")
+
+    body =
+      cond do
+        bang? and has_options? ->
+          "    params = NimbleOptions.validate!(params, @#{func_name}_schema)\n#{core}\n  end\n"
+
+        not bang? and has_options? ->
+          "    with {:ok, params} <- NimbleOptions.validate(params, @#{func_name}_schema) do\n#{core}\n    end\n  end\n"
+
+        true ->
+          "#{core}\n  end\n"
+      end
+
+    {sig, body}
+  end
+
+  defp build_multipart_typespec(func_name, has_options?, bang?) do
+    name = if bang?, do: "#{func_name}!", else: func_name
+    return_type = if bang?, do: "Req.Response.t()", else: "response()"
+
+    args =
+      if has_options? do
+        "keyword(), keyword(), keyword()"
+      else
+        "keyword(), keyword()"
+      end
+
+    "  @spec #{name}(#{args}) :: #{return_type}"
+  end
+
+  defp build_multipart_doc(summary, http_method, path, tag, func_name, has_options?, meta) do
+    bt = <<96>>
+
+    parts = [
+      "  @doc \"\"\"",
+      "  #{summary}",
+      "",
+      "  #{bt}#{http_method} #{path}#{bt}",
+      "",
+      "  Sends a #{bt}multipart/form-data#{bt} request."
+    ]
+
+    parts = if tag != "", do: parts ++ ["", "  Tag: #{tag}"], else: parts
+
+    parts =
+      parts ++
+        [
+          "",
+          "  ## File",
+          "",
+          "  Pass #{bt}file#{bt} as a keyword list:",
+          "",
+          "    * #{bt}:filename#{bt} (required) - The filename to send.",
+          "    * #{bt}:data#{bt} (required) - The file contents as a binary.",
+          "    * #{bt}:content_type#{bt} (optional) - The MIME type of the file."
+        ]
+
+    parts =
+      if has_options? do
+        parts ++
+          [
+            "",
+            "  ## Parameters",
+            "",
+            "  Validated by #{bt}NimbleOptions#{bt}. Pass options as a keyword list with snake_case keys.",
+            "  These are JSON-encoded and sent as the #{bt}#{meta.options_field}#{bt} multipart field.",
+            "  See #{bt}@#{func_name}_schema#{bt} for the full schema."
+          ]
+      else
+        parts
+      end
+
+    parts =
+      parts ++
+        [
+          "",
+          "  ## Returns",
+          "",
+          "    * #{bt}{:ok, %Req.Response{}}#{bt} on success",
+          "    * #{bt}{:error, exception}#{bt} on HTTP or validation failure",
+          "  \"\"\""
+        ]
+
+    Enum.join(parts, "\n")
   end
 
   # ---------------------------------------------------------------------------

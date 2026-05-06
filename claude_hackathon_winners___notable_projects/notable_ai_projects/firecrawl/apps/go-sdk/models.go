@@ -16,6 +16,8 @@ type Document struct {
 	Audio          string                   `json:"audio,omitempty"`
 	Attributes     []map[string]interface{} `json:"attributes,omitempty"`
 	Actions        map[string]interface{}   `json:"actions,omitempty"`
+	Answer         string                   `json:"answer,omitempty"`
+	Highlights     string                   `json:"highlights,omitempty"`
 	Warning        string                   `json:"warning,omitempty"`
 	ChangeTracking map[string]interface{}   `json:"changeTracking,omitempty"`
 	Branding       map[string]interface{}   `json:"branding,omitempty"`

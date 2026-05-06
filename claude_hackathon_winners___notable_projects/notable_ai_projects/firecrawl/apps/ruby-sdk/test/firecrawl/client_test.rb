@@ -471,6 +471,20 @@ class ClientTest < Minitest::Test
     )
   end
 
+  def test_question_and_highlights_format_to_h
+    question = Firecrawl::Models::QuestionFormat.new(question: "What is Firecrawl?")
+    highlights = Firecrawl::Models::HighlightsFormat.new(query: "What is Firecrawl?")
+    opts = Firecrawl::Models::ScrapeOptions.new(formats: [question, highlights])
+
+    assert_equal(
+      [
+        { "type" => "question", "question" => "What is Firecrawl?" },
+        { "type" => "highlights", "query" => "What is Firecrawl?" },
+      ],
+      opts.to_h["formats"]
+    )
+  end
+
   def test_query_format_rejects_invalid_mode
     assert_raises(ArgumentError) do
       Firecrawl::Models::QueryFormat.new(prompt: "What is Firecrawl?", mode: "quoted")

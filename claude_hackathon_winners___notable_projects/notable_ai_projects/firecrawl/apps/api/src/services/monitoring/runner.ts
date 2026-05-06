@@ -55,6 +55,7 @@ import type { MonitorCheckJobData } from "./queue";
 
 const logger = _logger.child({ module: "monitoring-runner" });
 const poll = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+export const MONITOR_CHECK_STALE_TIMEOUT_MS = 24 * 60 * 60 * 1000;
 
 type PageResult = MonitorCheckPageInsert & {
   emailStatus?: string;
@@ -917,6 +918,111 @@ async function isMonitorCheckComplete(
   return true;
 }
 
+export function isMonitorCheckStale(
+  check: Pick<MonitorCheckRow, "started_at" | "updated_at" | "created_at">,
+  now: Date = new Date(),
+): boolean {
+  const startedAt = check.started_at ?? check.updated_at ?? check.created_at;
+  const startedAtMs = Date.parse(startedAt);
+  if (!Number.isFinite(startedAtMs)) return false;
+  return now.getTime() - startedAtMs >= MONITOR_CHECK_STALE_TIMEOUT_MS;
+}
+
+async function failStaleMonitorCheck(params: {
+  monitor: MonitorRow;
+  check: MonitorCheckRow;
+}): Promise<boolean> {
+  if (!isMonitorCheckStale(params.check)) return false;
+
+  const error = "Monitor check exceeded the 24 hour running timeout.";
+  if (params.check.autumn_lock_id) {
+    await autumnService
+      .finalizeCreditsLock({
+        lockId: params.check.autumn_lock_id,
+        action: "release",
+        properties: {
+          source: "monitorCheck",
+          endpoint: "monitor",
+          jobId: params.check.id,
+        },
+      })
+      .catch(releaseError => {
+        logger.warn("Failed to release stale monitor check credit lock", {
+          error: releaseError,
+          monitorId: params.monitor.id,
+          checkId: params.check.id,
+          lockId: params.check.autumn_lock_id,
+        });
+      });
+  }
+
+  const finalized = await updateMonitorCheck(params.check.id, {
+    status: "failed",
+    finished_at: new Date().toISOString(),
+    actual_credits: 0,
+    billing_status: params.check.autumn_lock_id ? "released" : "not_applicable",
+    error,
+  });
+
+  const notificationStatus = await sendNotifications({
+    monitor: params.monitor,
+    check: finalized,
+    pages: [],
+  }).catch(notificationError => {
+    logger.warn("Failed to send stale monitor check notifications", {
+      error: notificationError,
+      monitorId: params.monitor.id,
+      checkId: params.check.id,
+    });
+    return {
+      webhook: {
+        attempted: !!params.monitor.webhook,
+        success: false,
+        error:
+          notificationError instanceof Error
+            ? notificationError.message
+            : String(notificationError),
+      },
+      email: {
+        attempted: !!params.monitor.notification?.email?.enabled,
+        success: false,
+        error:
+          notificationError instanceof Error
+            ? notificationError.message
+            : String(notificationError),
+      },
+    };
+  });
+
+  const withNotifications = await updateMonitorCheck(params.check.id, {
+    notification_status: notificationStatus,
+  }).catch(updateError => {
+    logger.warn("Failed to record stale monitor check notification status", {
+      error: updateError,
+      monitorId: params.monitor.id,
+      checkId: params.check.id,
+    });
+    return finalized;
+  });
+
+  if (params.monitor.current_check_id === params.check.id) {
+    await updateMonitorScheduleAfterRun({
+      monitor: params.monitor,
+      check: withNotifications,
+      summary: toSummaryObject(withNotifications),
+    });
+  }
+
+  logger.warn("Failed stale monitor check", {
+    monitorId: params.monitor.id,
+    checkId: params.check.id,
+    startedAt: params.check.started_at,
+    timeoutMs: MONITOR_CHECK_STALE_TIMEOUT_MS,
+  });
+
+  return true;
+}
+
 export async function reconcileRunningMonitorChecks(
   limit: number = 50,
 ): Promise<void> {
@@ -932,6 +1038,8 @@ export async function reconcileRunningMonitorChecks(
         check.monitor_id,
       );
       if (!monitor) continue;
+
+      if (await failStaleMonitorCheck({ monitor, check })) continue;
 
       const targetResults = Array.isArray(check.target_results)
         ? ([...check.target_results] as any[])

@@ -74,14 +74,17 @@ class DgApiCodeLocationApi:
 
         return DgApiCodeLocationList(items=items)
 
-    def get_code_location(self, location_name: str) -> "DgApiCodeLocation | None":
+    def get_code_location(self, code_location_name: str) -> DgApiCodeLocation:
         location_list = self.list_code_locations()
         for location in location_list.items:
-            if location.location_name == location_name:
+            if location.location_name == code_location_name:
                 return location
-        return None
 
-    def add_code_location(self, document: DgApiCodeLocationDocument) -> DgApiAddCodeLocationResult:
+        raise DagsterPlusGraphqlError(f"Code location not found: {code_location_name}")
+
+    def create_code_location(
+        self, document: DgApiCodeLocationDocument
+    ) -> DgApiAddCodeLocationResult:
         result = self._client.add_or_update_code_location(
             document=document.to_document_dict()
         ).add_or_update_location_from_document
@@ -91,7 +94,7 @@ class DgApiCodeLocationApi:
                 return DgApiAddCodeLocationResult(location_name=result.location_name)
             case "InvalidLocationError":
                 errors = [e for e in result.errors if e is not None]
-                raise DagsterPlusGraphqlError("Invalid location config:\n" + "\n".join(errors))
+                raise DagsterPlusGraphqlError("Invalid code location config:\n" + "\n".join(errors))
             case "UnauthorizedError":
                 raise DagsterPlusUnauthorizedError(f"Error adding code location: {result.message}")
             case "PythonError":

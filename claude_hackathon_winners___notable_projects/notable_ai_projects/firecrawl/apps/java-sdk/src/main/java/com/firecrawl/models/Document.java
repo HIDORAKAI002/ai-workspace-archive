@@ -22,6 +22,8 @@ public class Document {
     private String audio;
     private List<Map<String, Object>> attributes;
     private Map<String, Object> actions;
+    private String answer;
+    private String highlights;
     private String warning;
     private Map<String, Object> changeTracking;
     private Map<String, Object> branding;
@@ -38,6 +40,8 @@ public class Document {
     public String getAudio() { return audio; }
     public List<Map<String, Object>> getAttributes() { return attributes; }
     public Map<String, Object> getActions() { return actions; }
+    public String getAnswer() { return answer; }
+    public String getHighlights() { return highlights; }
     public String getWarning() { return warning; }
     public Map<String, Object> getChangeTracking() { return changeTracking; }
     public Map<String, Object> getBranding() { return branding; }

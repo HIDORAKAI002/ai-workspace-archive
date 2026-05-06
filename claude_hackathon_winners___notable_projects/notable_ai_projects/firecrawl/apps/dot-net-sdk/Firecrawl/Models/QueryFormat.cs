@@ -3,8 +3,9 @@ using System.Text.Json.Serialization;
 namespace Firecrawl.Models;
 
 /// <summary>
-/// Query format specification for use in ScrapeOptions.Formats.
+/// Deprecated query format specification for use in ScrapeOptions.Formats.
 /// </summary>
+[Obsolete("Use QuestionFormat or HighlightsFormat instead.")]
 public class QueryFormat
 {
     public const string FreeformMode = "freeform";

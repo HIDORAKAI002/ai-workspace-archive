@@ -42,6 +42,9 @@ public class WebSearchHit
 
     [JsonPropertyName("answer")]
     public string? Answer { get; set; }
+
+    [JsonPropertyName("highlights")]
+    public string? Highlights { get; set; }
 }
 
 /// <summary>
@@ -90,6 +93,9 @@ public class NewsSearchHit
 
     [JsonPropertyName("answer")]
     public string? Answer { get; set; }
+
+    [JsonPropertyName("highlights")]
+    public string? Highlights { get; set; }
 }
 
 /// <summary>
@@ -117,6 +123,9 @@ public class ImageSearchHit
 
     [JsonPropertyName("answer")]
     public string? Answer { get; set; }
+
+    [JsonPropertyName("highlights")]
+    public string? Highlights { get; set; }
 }
 
 /// <summary>

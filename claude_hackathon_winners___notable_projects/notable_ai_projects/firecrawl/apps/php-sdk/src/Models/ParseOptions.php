@@ -23,7 +23,7 @@ final class ParseOptions
     ];
 
     /**
-     * @param list<string|JsonFormat|QueryFormat>|null $formats
+     * @param list<string|JsonFormat|QuestionFormat|HighlightsFormat|QueryFormat>|null $formats
      * @param array<string, string>|null   $headers
      * @param list<string>|null            $includeTags
      * @param list<string>|null            $excludeTags
@@ -45,7 +45,7 @@ final class ParseOptions
     ) {}
 
     /**
-     * @param list<string|JsonFormat|QueryFormat>|null $formats
+     * @param list<string|JsonFormat|QuestionFormat|HighlightsFormat|QueryFormat>|null $formats
      * @param array<string, string>|null   $headers
      * @param list<string>|null            $includeTags
      * @param list<string>|null            $excludeTags
@@ -105,8 +105,13 @@ final class ParseOptions
 
         if ($this->formats !== null) {
             $data['formats'] = array_map(
-                fn (string|JsonFormat|QueryFormat $f): string|array =>
-                    $f instanceof JsonFormat || $f instanceof QueryFormat ? $f->toArray() : $f,
+                fn (string|JsonFormat|QuestionFormat|HighlightsFormat|QueryFormat $f): string|array =>
+                    (
+                        $f instanceof JsonFormat
+                        || $f instanceof QuestionFormat
+                        || $f instanceof HighlightsFormat
+                        || $f instanceof QueryFormat
+                    ) ? $f->toArray() : $f,
                 $this->formats,
             );
         }
@@ -142,13 +147,22 @@ final class ParseOptions
         if ($fmt instanceof JsonFormat) {
             return 'json';
         }
+        if ($fmt instanceof QuestionFormat) {
+            return 'question';
+        }
+        if ($fmt instanceof HighlightsFormat) {
+            return 'highlights';
+        }
+        if ($fmt instanceof QueryFormat) {
+            return 'query';
+        }
         if (is_array($fmt) && isset($fmt['type']) && is_string($fmt['type'])) {
             return $fmt['type'];
         }
         return null;
     }
 
-    /** @return list<string|JsonFormat>|null */
+    /** @return list<string|JsonFormat|QuestionFormat|HighlightsFormat|QueryFormat>|null */
     public function getFormats(): ?array
     {
         return $this->formats;

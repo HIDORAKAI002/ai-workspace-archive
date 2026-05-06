@@ -1056,6 +1056,9 @@ async def _streaming_retain_batch(
         is_last: bool,
     ) -> None:
         """Run Phase 1 + Phase 2 + Phase 3 for a batch of pre-extracted chunks."""
+        # Allow clearing combined_content after the no-facts skip path runs
+        # doc tracking — see the assignment further below.
+        nonlocal combined_content
         # Combine results from individual chunk extractions
         batch_contents: list[RetainContent] = []
         batch_extracted: list = []
@@ -1127,6 +1130,10 @@ async def _streaming_retain_batch(
                                 ops=pool.ops,
                             )
                         doc_tracking_done[0] = True
+                        # Memory: combined_content has been persisted; release
+                        # it now so the rest of the consumer loop doesn't pin
+                        # a multi-MB string. Nothing reads it after tracking.
+                        combined_content = ""
                         log_buffer.append(f"[streaming] Document {effective_doc_id} tracked (0 facts in first batch)")
             log_buffer.append(
                 f"[streaming] Consumer batch {consumer_batch_idx + 1}: "
@@ -1140,6 +1147,9 @@ async def _streaming_retain_batch(
         )
 
         async def _run_mini_batch_db_work() -> None:
+            # Allow clearing combined_content after the doc-tracking call so
+            # subsequent batches don't carry the per-document text in memory.
+            nonlocal combined_content
             entity_resolver.discard_pending_stats()
             mb_start = time.time()
 
@@ -1231,6 +1241,10 @@ async def _streaming_retain_batch(
                             )
                             log_buffer.append(f"[streaming] Document {effective_doc_id} tracked (full content)")
                         doc_tracking_done[0] = True
+                        # Memory: combined_content is no longer needed after
+                        # this first-batch tracking call. Release it so the
+                        # remaining consumer batches don't pin the string.
+                        combined_content = ""
                     else:
                         # --- Later batches: verify we still own the document ---
                         # If another request took over (cascade-deleted our doc and
@@ -1405,6 +1419,9 @@ async def _streaming_retain_batch(
                             ops=pool.ops,
                         )
                     doc_tracking_done[0] = True
+                    # Memory: combined_content has been persisted and won't be
+                    # read again — release the per-document text now.
+                    combined_content = ""
                     log_buffer.append(f"[streaming] Document {effective_doc_id} tracked (no facts extracted)")
 
         # Mark facts as committed in operation metadata (crash recovery checkpoint)
