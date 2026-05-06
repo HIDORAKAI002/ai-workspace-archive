@@ -24,6 +24,9 @@ use Firecrawl\Models\CreditUsage;
 use Firecrawl\Models\Document;
 use Firecrawl\Models\MapData;
 use Firecrawl\Models\MapOptions;
+use Firecrawl\Models\Monitor;
+use Firecrawl\Models\MonitorCheck;
+use Firecrawl\Models\MonitorCheckDetail;
 use Firecrawl\Models\ParseFile;
 use Firecrawl\Models\ParseOptions;
 use Firecrawl\Models\ScrapeOptions;
@@ -317,6 +320,142 @@ final class FirecrawlClient
     }
 
     // ================================================================
+    // MONITOR
+    // ================================================================
+
+    /**
+     * Create a scheduled monitor.
+     *
+     * @param array<string, mixed>       $schedule
+     * @param list<array<string, mixed>> $targets
+     * @param array<string, mixed>|null  $webhook
+     * @param array<string, mixed>|null  $notification
+     */
+    public function createMonitor(
+        string $name,
+        array $schedule,
+        array $targets,
+        ?array $webhook = null,
+        ?array $notification = null,
+        ?int $retentionDays = null,
+    ): Monitor {
+        $body = array_filter([
+            'name' => $name,
+            'schedule' => $schedule,
+            'targets' => $targets,
+            'webhook' => $webhook,
+            'notification' => $notification,
+            'retentionDays' => $retentionDays,
+        ], static fn ($value) => $value !== null);
+
+        $response = $this->http->post('/v2/monitor', $body);
+
+        return Monitor::fromArray($response['data'] ?? $response);
+    }
+
+    /**
+     * @return list<Monitor>
+     */
+    public function listMonitors(?int $limit = null, ?int $offset = null): array
+    {
+        $response = $this->http->get('/v2/monitor' . $this->query([
+            'limit' => $limit,
+            'offset' => $offset,
+        ]));
+
+        return array_map(
+            static fn (array $item): Monitor => Monitor::fromArray($item),
+            $response['data'] ?? [],
+        );
+    }
+
+    public function getMonitor(string $monitorId): Monitor
+    {
+        $response = $this->http->get("/v2/monitor/{$monitorId}");
+
+        return Monitor::fromArray($response['data'] ?? $response);
+    }
+
+    /**
+     * @param array<string, mixed> $attributes
+     */
+    public function updateMonitor(string $monitorId, array $attributes): Monitor
+    {
+        $response = $this->http->patch("/v2/monitor/{$monitorId}", $attributes);
+
+        return Monitor::fromArray($response['data'] ?? $response);
+    }
+
+    public function deleteMonitor(string $monitorId): bool
+    {
+        $response = $this->http->delete("/v2/monitor/{$monitorId}");
+
+        return ($response['success'] ?? false) === true;
+    }
+
+    public function runMonitor(string $monitorId): MonitorCheck
+    {
+        $response = $this->http->post("/v2/monitor/{$monitorId}/run", []);
+
+        return MonitorCheck::fromArray($response['data'] ?? $response);
+    }
+
+    /**
+     * @return list<MonitorCheck>
+     */
+    public function listMonitorChecks(string $monitorId, ?int $limit = null, ?int $offset = null): array
+    {
+        $response = $this->http->get("/v2/monitor/{$monitorId}/checks" . $this->query([
+            'limit' => $limit,
+            'offset' => $offset,
+        ]));
+
+        return array_map(
+            static fn (array $item): MonitorCheck => MonitorCheck::fromArray($item),
+            $response['data'] ?? [],
+        );
+    }
+
+    public function getMonitorCheck(
+        string $monitorId,
+        string $checkId,
+        ?int $limit = null,
+        ?int $skip = null,
+        ?string $status = null,
+        bool $autoPaginate = true,
+    ): MonitorCheckDetail {
+        $response = $this->http->get("/v2/monitor/{$monitorId}/checks/{$checkId}" . $this->query([
+            'limit' => $limit,
+            'skip' => $skip,
+            'status' => $status,
+        ]));
+
+        $data = $response['data'] ?? $response;
+        if (isset($response['next'])) {
+            $data['next'] = $response['next'];
+        }
+
+        if (!$autoPaginate) {
+            return MonitorCheckDetail::fromArray($data);
+        }
+
+        while (isset($data['next']) && is_string($data['next']) && $data['next'] !== '') {
+            $this->assertSameOrigin($data['next']);
+            $nextResponse = $this->http->getAbsolute($data['next']);
+            $nextData = $nextResponse['data'] ?? $nextResponse;
+            if (isset($nextResponse['next'])) {
+                $nextData['next'] = $nextResponse['next'];
+            }
+
+            $data['pages'] = array_merge($data['pages'] ?? [], $nextData['pages'] ?? []);
+            $data['next'] = $nextData['next'] ?? null;
+        }
+
+        $data['next'] = null;
+        return MonitorCheckDetail::fromArray($data);
+    }
+
+    // ================================================================
     // SEARCH
     // ================================================================
 
@@ -505,6 +644,16 @@ final class FirecrawlClient
         }
     }
 
+    /**
+     * @param array<string, scalar|null> $params
+     */
+    private function query(array $params): string
+    {
+        $params = array_filter($params, static fn ($value) => $value !== null && $value !== '');
+
+        return $params === [] ? '' : '?' . http_build_query($params);
+    }
+
     private function pollCrawl(
         ?string $jobId,
         int $pollIntervalSec,
@@ -553,10 +702,29 @@ final class FirecrawlClient
 
     private function assertSameOrigin(string $url): void
     {
+        $baseScheme = parse_url($this->http->getBaseUrl(), PHP_URL_SCHEME);
         $baseHost = parse_url($this->http->getBaseUrl(), PHP_URL_HOST);
+        $basePort = parse_url($this->http->getBaseUrl(), PHP_URL_PORT);
+        $nextScheme = parse_url($url, PHP_URL_SCHEME);
         $nextHost = parse_url($url, PHP_URL_HOST);
+        $nextPort = parse_url($url, PHP_URL_PORT);
 
-        if ($baseHost === null || $nextHost === null || strcasecmp($baseHost, $nextHost) !== 0) {
+        $basePort ??= is_string($baseScheme) && strcasecmp($baseScheme, 'https') === 0
+            ? 443
+            : 80;
+        $nextPort ??= is_string($nextScheme) && strcasecmp($nextScheme, 'https') === 0
+            ? 443
+            : 80;
+
+        if (
+            $baseScheme === null ||
+            $nextScheme === null ||
+            $baseHost === null ||
+            $nextHost === null ||
+            strcasecmp($baseScheme, $nextScheme) !== 0 ||
+            strcasecmp($baseHost, $nextHost) !== 0 ||
+            $basePort !== $nextPort
+        ) {
             throw new FirecrawlException(
                 'Pagination URL origin does not match the API base URL. Refusing to follow: ' . $url,
             );

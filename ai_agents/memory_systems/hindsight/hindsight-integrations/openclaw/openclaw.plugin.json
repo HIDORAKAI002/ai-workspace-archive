@@ -25,8 +25,16 @@
       },
       "bankMission": {
         "type": "string",
-        "description": "Agent identity/purpose stored on the memory bank. Helps the memory engine understand context for better fact extraction during retain. Set once per bank on first use — this is not a recall prompt.",
+        "description": "Mission stamped onto the bank's reflect_mission column on first use. Only affects the /reflect operation — does not steer retain or recall. Leave unset (or empty) to manage missions out-of-band via PATCH /banks/{id}.",
         "default": "You are an AI assistant helping users across multiple communication channels (Telegram, Slack, Discord, etc.). Remember user preferences, instructions, and important context from conversations to provide personalized assistance."
+      },
+      "retainMission": {
+        "type": "string",
+        "description": "Mission stamped onto the bank's retain_mission column on first use. Steers what gets extracted as facts during retain. Leave unset to use built-in extraction rules."
+      },
+      "observationsMission": {
+        "type": "string",
+        "description": "Mission stamped onto the bank's observations_mission column on first use. Controls what gets synthesised into observations during consolidation."
       },
       "embedVersion": {
         "type": "string",
@@ -151,6 +159,12 @@
         "minimum": 0,
         "default": 0
       },
+      "retainDocumentScope": {
+        "type": "string",
+        "description": "Granularity of the retained document_id. 'session' (default) groups all retains under a single document per OpenClaw session. 'turn' produces a new document per retain.",
+        "enum": ["session", "turn"],
+        "default": "session"
+      },
       "recallBudget": {
         "type": "string",
         "description": "Recall effort level. Higher budgets use more retrieval strategies for better results but take longer.",
@@ -231,6 +245,11 @@
         "description": "Interval in ms to batch retain/recall log summaries. 0 = log every event individually. Default: 300000 (5 min).",
         "default": 300000
       },
+      "debugPerfTiming": {
+        "type": "boolean",
+        "description": "Emit one info-level perf line per before_prompt_build (recall path) and agent_end (retain path) so you can spot whether latency is in the plugin or upstream. Format: 'perf: <hook> hook_total=Xms <hook-specific fields>'.",
+        "default": false
+      },
       "retainQueuePath": {
         "type": "string",
         "description": "Path to JSONL file for buffering failed retains (external API mode only). Default: ~/.openclaw/data/hindsight-retain-queue.jsonl"
@@ -278,8 +297,16 @@
       "placeholder": "0 (auto-assign)"
     },
     "bankMission": {
-      "label": "Bank Mission",
+      "label": "Bank Mission (reflect)",
       "placeholder": "Custom context for what this agent does..."
+    },
+    "retainMission": {
+      "label": "Retain Mission",
+      "placeholder": "Steers what gets extracted as facts during retain..."
+    },
+    "observationsMission": {
+      "label": "Observations Mission",
+      "placeholder": "Controls what gets synthesised into observations..."
     },
     "embedVersion": {
       "label": "Hindsight Embed Version",
@@ -375,6 +402,10 @@
       "label": "Retain Overlap Turns",
       "placeholder": "0 (no overlap, default)"
     },
+    "retainDocumentScope": {
+      "label": "Retain Document Scope",
+      "placeholder": "session (default) or turn"
+    },
     "recallBudget": {
       "label": "Recall Budget",
       "placeholder": "low, mid, or high"
@@ -424,6 +455,14 @@
     "logSummaryIntervalMs": {
       "label": "Log Summary Interval (ms)",
       "placeholder": "300000"
+    },
+    "debugPerfTiming": {
+      "label": "Debug Perf Timing",
+      "placeholder": "false (default) — enable to log per-hook latency"
+    },
+    "enableKnowledgeTools": {
+      "label": "Enable Knowledge Tools",
+      "placeholder": "false (default) — enable agent_knowledge_* tools"
     },
     "retainQueuePath": {
       "label": "Retain Queue File Path",

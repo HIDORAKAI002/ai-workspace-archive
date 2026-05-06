@@ -168,6 +168,7 @@ const FILE_STORAGE_BACKENDS = [
   FileSources.firebase,
   FileSources.s3,
   FileSources.azure_blob,
+  FileSources.cloudfront,
 ] as const satisfies ReadonlyArray<FileSources>;
 
 export const fileStorageSchema = z.enum(FILE_STORAGE_BACKENDS);
@@ -183,6 +184,37 @@ export const fileStrategiesSchema = z
     skills: fileStorageSchema.optional(),
   })
   .optional();
+
+const cloudfrontSigningSchema = z.enum(['none', 'cookies', 'url']);
+
+export const cloudfrontConfigSchema = z
+  .object({
+    domain: z.string().url(),
+    distributionId: z.string().optional(),
+    invalidateOnDelete: z.boolean().default(false),
+    imageSigning: cloudfrontSigningSchema.default('none'),
+    urlExpiry: z.number().positive().default(3600),
+    cookieExpiry: z.number().positive().max(604800).default(1800),
+    cookieDomain: z
+      .string()
+      .min(1)
+      .refine((d) => d.startsWith('.'), {
+        message: 'cookieDomain must start with a dot (e.g., ".example.com") to apply to subdomains',
+      })
+      .optional(),
+  })
+  .refine((data) => !data.invalidateOnDelete || !!data.distributionId, {
+    message: 'distributionId is required when invalidateOnDelete is true',
+    path: ['distributionId'],
+  })
+  .refine((data) => data.imageSigning !== 'cookies' || !!data.cookieDomain, {
+    message:
+      'cookieDomain is required when imageSigning is "cookies" (e.g., ".example.com" for API at api.example.com and CDN at cdn.example.com)',
+    path: ['cookieDomain'],
+  })
+  .optional();
+
+export type CloudFrontConfig = z.infer<typeof cloudfrontConfigSchema>;
 
 // Helper type to extract the shape of the Zod object schema
 type SchemaShape<T> = T extends z.ZodObject<infer U> ? U : never;
@@ -420,6 +452,61 @@ export const defaultAgentCapabilities = [
   AgentCapabilities.ocr,
 ];
 
+const LOCAL_REMOTE_OIDC_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]']);
+
+export function isRemoteOidcUrlAllowed(value: string): boolean {
+  try {
+    const url = new URL(value);
+    if (url.protocol === 'https:') return true;
+    if (url.protocol !== 'http:') return false;
+
+    const hostname = url.hostname.toLowerCase();
+    return LOCAL_REMOTE_OIDC_HOSTS.has(hostname) || hostname.endsWith('.localhost');
+  } catch {
+    return false;
+  }
+}
+
+const remoteApiOidcUrlSchema = z
+  .string()
+  .url()
+  .refine(isRemoteOidcUrlAllowed, { message: 'must use https:// unless targeting localhost' });
+
+const remoteApiOidcScopeSchema = z.string().refine((scope) => !scope.includes(','), {
+  message: 'scopes must be space-separated',
+});
+
+const remoteApiOidcSchema = z
+  .object({
+    enabled: z.boolean().default(false),
+    issuer: remoteApiOidcUrlSchema.optional(),
+    audience: z.string().optional(),
+    jwksUri: remoteApiOidcUrlSchema.optional(),
+    scope: remoteApiOidcScopeSchema.optional(),
+  })
+  .superRefine((oidc, ctx) => {
+    if (oidc.enabled === true && !oidc.issuer) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['issuer'],
+        message: 'issuer is required when OIDC auth is enabled',
+      });
+    }
+  });
+
+const remoteApiAuthSchema = z.object({
+  apiKey: z
+    .object({
+      enabled: z.boolean().default(true),
+    })
+    .optional(),
+  oidc: remoteApiOidcSchema.optional(),
+});
+
+const remoteApiSchema = z.object({
+  auth: remoteApiAuthSchema.optional(),
+});
+
 export const agentsEndpointSchema = baseEndpointSchema
   .omit({ baseURL: true })
   .merge(
@@ -436,6 +523,7 @@ export const agentsEndpointSchema = baseEndpointSchema
         .array(z.nativeEnum(AgentCapabilities))
         .optional()
         .default(defaultAgentCapabilities),
+      remoteApi: remoteApiSchema.optional(),
     }),
   )
   .default({
@@ -1240,6 +1328,7 @@ export const configSchema = z.object({
   turnstile: turnstileSchema.optional(),
   fileStrategy: fileStorageSchema.default(FileSources.local),
   fileStrategies: fileStrategiesSchema,
+  cloudfront: cloudfrontConfigSchema,
   actions: z
     .object({
       allowedDomains: z.array(z.string()).optional(),

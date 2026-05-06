@@ -57,7 +57,8 @@ jobs:
           branch_prefix: claude/audit-ci/
           prompt: ${{ steps.scan.outputs.prompt }}
           claude_args: |
-            --max-turns 20
+            --max-turns 40
+            --allowedTools "Read,Edit,MultiEdit,Write,Glob,Grep,LS,WebFetch,WebSearch,TodoWrite,Bash(pnpm:*),Bash(npm:*),Bash(node:*),Bash(git:*),Bash(gh:*),Bash(jq:*),Bash(rg:*),Bash(curl:*),Bash(date:*)"
 
       - name: Ensure remediation PR marker
         if: ${{ steps.scan.outputs.has_uncovered == 'true' && steps.claude.outputs.branch_name != '' }}

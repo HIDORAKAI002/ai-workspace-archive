@@ -8,6 +8,8 @@ authors = [
 ]
 requires-python = ">=3.10, <3.14"
 dependencies = [
+    "crewai-core==1.14.5a2",
+    "crewai-cli==1.14.5a2",
     # Core Dependencies
     "pydantic>=2.11.9,<2.13",
     "openai>=2.30.0,<3",
@@ -40,7 +42,6 @@ dependencies = [
     "pydantic-settings~=2.10.1",
     "httpx~=0.28.1",
     "mcp~=1.26.0",
-    "uv~=0.11.6",
     "aiosqlite~=0.21.0",
     "pyyaml~=6.0",
     "aiofiles~=24.1.0",
@@ -111,10 +112,6 @@ file-processing = [
 qdrant-edge = [
     "qdrant-edge-py>=0.6.0",
 ]
-
-
-[project.scripts]
-crewai = "crewai.cli.cli:crewai"
 
 
 [tool.uv]

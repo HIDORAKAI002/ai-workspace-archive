@@ -36,7 +36,7 @@ func NewOllamaModel(baseURL map[string]string, urlSuffix URLSuffix) *OllamaModel
 	}
 }
 
-func (o OllamaModel) NewInstance(baseURL map[string]string) ModelDriver {
+func (o *OllamaModel) NewInstance(baseURL map[string]string) ModelDriver {
 	return &OllamaModel{
 		BaseURL:   baseURL,
 		URLSuffix: o.URLSuffix,
@@ -52,11 +52,11 @@ func (o OllamaModel) NewInstance(baseURL map[string]string) ModelDriver {
 	}
 }
 
-func (o OllamaModel) Name() string {
+func (o *OllamaModel) Name() string {
 	return "ollama"
 }
 
-func (o OllamaModel) ChatWithMessages(modelName string, messages []Message, apiConfig *APIConfig, chatModelConfig *ChatConfig) (*ChatResponse, error) {
+func (o *OllamaModel) ChatWithMessages(modelName string, messages []Message, apiConfig *APIConfig, chatModelConfig *ChatConfig) (*ChatResponse, error) {
 	if len(messages) == 0 {
 		return nil, fmt.Errorf("message is nil")
 	}
@@ -189,7 +189,7 @@ func (o OllamaModel) ChatWithMessages(modelName string, messages []Message, apiC
 	return chatResponse, nil
 }
 
-func (o OllamaModel) ChatStreamlyWithSender(modelName string, messages []Message, apiConfig *APIConfig, modelConfig *ChatConfig, sender func(*string, *string) error) error {
+func (o *OllamaModel) ChatStreamlyWithSender(modelName string, messages []Message, apiConfig *APIConfig, modelConfig *ChatConfig, sender func(*string, *string) error) error {
 	if len(messages) == 0 {
 		return fmt.Errorf("messages is empty")
 	}
@@ -350,15 +350,15 @@ func (o OllamaModel) ChatStreamlyWithSender(modelName string, messages []Message
 	return scanner.Err()
 }
 
-func (o OllamaModel) Encode(modelName *string, texts []string, apiConfig *APIConfig, embeddingConfig *EmbeddingConfig) ([][]float64, error) {
+func (o *OllamaModel) Encode(modelName *string, texts []string, apiConfig *APIConfig, embeddingConfig *EmbeddingConfig) ([][]float64, error) {
 	return nil, fmt.Errorf("no such method")
 }
 
-func (o OllamaModel) Rerank(modelName *string, query string, texts []string, apiConfig *APIConfig) ([]float64, error) {
+func (o *OllamaModel) Rerank(modelName *string, query string, texts []string, apiConfig *APIConfig) ([]float64, error) {
 	return nil, fmt.Errorf("no such method")
 }
 
-func (o OllamaModel) ListModels(apiConfig *APIConfig) ([]string, error) {
+func (o *OllamaModel) ListModels(apiConfig *APIConfig) ([]string, error) {
 	var region = "default"
 
 	if apiConfig.Region != nil {
@@ -414,10 +414,10 @@ func (o OllamaModel) ListModels(apiConfig *APIConfig) ([]string, error) {
 	return models, nil
 }
 
-func (o OllamaModel) Balance(apiConfig *APIConfig) (map[string]interface{}, error) {
+func (o *OllamaModel) Balance(apiConfig *APIConfig) (map[string]interface{}, error) {
 	return nil, fmt.Errorf("no such method")
 }
 
-func (o OllamaModel) CheckConnection(apiConfig *APIConfig) error {
+func (o *OllamaModel) CheckConnection(apiConfig *APIConfig) error {
 	return fmt.Errorf("no such method")
 }

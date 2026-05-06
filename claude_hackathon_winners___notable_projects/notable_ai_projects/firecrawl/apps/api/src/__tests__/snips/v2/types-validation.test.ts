@@ -21,6 +21,11 @@ import {
   SearchRequestInput,
   toV2CrawlerOptions,
 } from "../../../controllers/v2/types";
+import {
+  createMonitorSchema,
+  updateMonitorSchema,
+} from "../../../services/monitoring/types";
+import { getNextMonitorRunAt } from "../../../services/monitoring/cron";
 
 describe("V2 Types Validation", () => {
   describe("scrapeRequestSchema", () => {
@@ -1161,6 +1166,87 @@ describe("V2 Types Validation", () => {
       expect(() => scrapeOptions.parse(input)).toThrow(
         "Total wait time (waitFor + wait actions) cannot exceed",
       );
+    });
+  });
+
+  describe("monitor schedules", () => {
+    it("should accept natural language schedule text", () => {
+      const result = createMonitorSchema.parse({
+        name: "Blog monitor",
+        schedule: {
+          text: "every 30 minutes",
+        },
+        targets: [
+          {
+            type: "scrape",
+            urls: ["https://example.com"],
+          },
+        ],
+      });
+
+      expect(result.schedule).toEqual({
+        cron: "*/30 * * * *",
+        timezone: "UTC",
+      });
+    });
+
+    it("should accept a natural language start minute", () => {
+      const result = updateMonitorSchema.parse({
+        schedule: {
+          text: "every 15 minutes starting at :07",
+        },
+      });
+
+      expect(result.schedule).toEqual({
+        cron: "7-59/15 * * * *",
+        timezone: "UTC",
+      });
+    });
+
+    it("should reject ambiguous schedule definitions", () => {
+      expect(() =>
+        updateMonitorSchema.parse({
+          schedule: {
+            cron: "*/30 * * * *",
+            text: "every 30 minutes",
+          },
+        }),
+      ).toThrow("Schedule must include either cron or text, not both");
+    });
+
+    it("should calculate next runs in the configured timezone", () => {
+      const next = getNextMonitorRunAt(
+        "0 9 * * *",
+        new Date("2026-01-01T13:00:00.000Z"),
+        "America/New_York",
+      );
+
+      expect(next.toISOString()).toBe("2026-01-01T14:00:00.000Z");
+    });
+
+    it("should accept monitor webhook event filters", () => {
+      const result = updateMonitorSchema.parse({
+        webhook: {
+          url: "https://example.com/webhook",
+          events: ["monitor.page", "monitor.check.completed"],
+        },
+      });
+
+      expect(result.webhook?.events).toEqual([
+        "monitor.page",
+        "monitor.check.completed",
+      ]);
+    });
+
+    it("should reject non-monitor webhook event filters", () => {
+      expect(() =>
+        updateMonitorSchema.parse({
+          webhook: {
+            url: "https://example.com/webhook",
+            events: ["completed"],
+          },
+        }),
+      ).toThrow();
     });
   });
 
