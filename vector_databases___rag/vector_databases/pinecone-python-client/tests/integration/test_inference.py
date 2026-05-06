@@ -6,6 +6,7 @@ import pytest
 
 from pinecone import Pinecone
 from pinecone.errors import PineconeTypeError, PineconeValueError
+from pinecone.errors.exceptions import ValidationError
 from pinecone.models.inference.embed import SparseEmbedding
 from tests.integration.conftest import (  # noqa: F401 — re-exported for type use
     cleanup_resource,
@@ -473,6 +474,30 @@ def test_rerank_documents_validation_rest(client: Pinecone) -> None:
 
 
 @pytest.mark.integration
+def test_rerank_top_n_validation(client: Pinecone) -> None:
+    """rerank() raises ValidationError for top_n < 1; top_n=1 is accepted.
+
+    Verifies D6: the SDK must validate top_n client-side before the backend
+    rejects it with a confusing serde error on negative usize values.
+    """
+    with pytest.raises(ValidationError, match="top_n must be >= 1"):
+        client.inference.rerank(
+            model="bge-reranker-v2-m3",
+            query="test query",
+            documents=["doc"],
+            top_n=-1,
+        )
+
+    with pytest.raises(ValidationError, match="top_n must be >= 1"):
+        client.inference.rerank(
+            model="bge-reranker-v2-m3",
+            query="test query",
+            documents=["doc"],
+            top_n=0,
+        )
+
+
+@pytest.mark.integration
 def test_rerank_dict_documents_with_rank_fields(client: Pinecone) -> None:
     """rerank() with list-of-dict documents and custom rank_fields passes dicts through.
 
@@ -596,6 +621,20 @@ def test_list_models_filter_by_vector_type_and_invalid_values(client: Pinecone) 
         client.inference.list_models(vector_type="invalid_vector_type")
 
 
+@pytest.mark.integration
+def test_list_models_rerank_vector_type_combination(client: Pinecone) -> None:
+    """list_models(type='rerank', vector_type=...) raises ValidationError client-side.
+
+    Verifies D6 fix: the combination type='rerank' + any vector_type is rejected before
+    any HTTP request, matching the backend's InvalidArgument behavior.
+    """
+    with pytest.raises(ValidationError, match="vector_type is not supported"):
+        client.inference.list_models(type="rerank", vector_type="dense")
+
+    with pytest.raises(ValidationError, match="vector_type is not supported"):
+        client.inference.list_models(type="rerank", vector_type="sparse")
+
+
 # ---------------------------------------------------------------------------
 # get_model full structure — description, supported_parameters, modality, etc.
 # ---------------------------------------------------------------------------
@@ -639,8 +678,8 @@ def test_get_model_full_structure_rest(client: Pinecone) -> None:
         assert isinstance(param.required, bool)
         # Optional fields: None or correct type
         assert param.allowed_values is None or isinstance(param.allowed_values, list)
-        assert param.min is None or isinstance(param.min, (int, float))
-        assert param.max is None or isinstance(param.max, (int, float))
+        assert param.min is None or isinstance(param.min, int)
+        assert param.max is None or isinstance(param.max, int)
         # Bracket access works on supported parameters
         assert param["parameter"] == param.parameter
 

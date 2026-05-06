@@ -146,7 +146,12 @@ def build_create_body(
         body["tags"] = tags
 
     if isinstance(spec, ServerlessSpec):
-        body["spec"] = {"serverless": {"cloud": spec.cloud, "region": spec.region}}
+        serverless_dict: dict[str, Any] = {"cloud": spec.cloud, "region": spec.region}
+        if spec.read_capacity is not None:
+            serverless_dict["read_capacity"] = spec.read_capacity
+        if spec.schema is not None:
+            serverless_dict["schema"] = spec.schema
+        body["spec"] = {"serverless": serverless_dict}
     elif isinstance(spec, PodSpec):
         body["spec"] = {"pod": msgspec.to_builtins(spec)}
     elif isinstance(spec, dict):
@@ -190,6 +195,7 @@ def build_byoc_body(
     vector_type: VectorType | str,
     deletion_protection: DeletionProtection | str,
     tags: Mapping[str, str] | None,
+    schema: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Build the JSON body for POST /indexes (BYOC)."""
     body: dict[str, Any] = {
@@ -206,6 +212,10 @@ def build_byoc_body(
     byoc_dict: dict[str, Any] = {"environment": spec.environment}
     if spec.read_capacity is not None:
         byoc_dict["read_capacity"] = spec.read_capacity
+    if spec.schema is not None:
+        byoc_dict["schema"] = spec.schema
+    if schema is not None:
+        byoc_dict["schema"] = _normalize_schema(schema)
     body["spec"] = {"byoc": byoc_dict}
 
     return body
@@ -246,6 +256,8 @@ def build_integrated_body(
         "model": resolve_enum_value(spec.embed.model),
         "field_map": spec.embed.field_map,
     }
+    if spec.embed.dimension is not None:
+        embed_body["dimension"] = spec.embed.dimension
     if spec.embed.metric is not None:
         embed_body["metric"] = resolve_enum_value(spec.embed.metric)
     if spec.embed.read_parameters is not None:

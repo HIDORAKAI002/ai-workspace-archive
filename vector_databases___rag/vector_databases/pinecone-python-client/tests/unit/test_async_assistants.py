@@ -76,7 +76,7 @@ async def test_create_assistant_region_case_sensitive(async_assistants: AsyncAss
 
 @respx.mock
 async def test_create_assistant_defaults(async_assistants: AsyncAssistants) -> None:
-    """Default region is 'us', metadata is {}, instructions is None."""
+    """Default region is 'us', metadata is omitted from body, instructions is None."""
     route = respx.post(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
     )
@@ -92,7 +92,7 @@ async def test_create_assistant_defaults(async_assistants: AsyncAssistants) -> N
     request = route.calls.last.request
     body = json.loads(request.content)
     assert body["region"] == "us"
-    assert body["metadata"] == {}
+    assert "metadata" not in body
     assert body["instructions"] is None
 
 
@@ -342,6 +342,46 @@ async def test_async_create_assistant_initialization_failed_status(
     assert "InitializationFailed" in str(exc_info.value)
 
 
+@respx.mock
+@patch("pinecone.async_client.assistants.asyncio.sleep")
+async def test_async_create_assistant_poll_terminal_terminated(
+    mock_sleep: object, async_assistants: AsyncAssistants
+) -> None:
+    """'Terminated' status raises PineconeError immediately instead of looping."""
+    respx.post(f"{BASE_URL}/assistant/assistants").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
+    )
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Terminated")),
+    )
+
+    with pytest.raises(PineconeError, match="terminal state") as exc_info:
+        await async_assistants.create(name="test-assistant", timeout=None)
+
+    assert "Terminated" in str(exc_info.value)
+    assert "pc.assistants.describe" in str(exc_info.value)
+
+
+@respx.mock
+@patch("pinecone.async_client.assistants.asyncio.sleep")
+async def test_async_create_assistant_poll_terminal_terminating(
+    mock_sleep: object, async_assistants: AsyncAssistants
+) -> None:
+    """'Terminating' status raises PineconeError immediately instead of looping."""
+    respx.post(f"{BASE_URL}/assistant/assistants").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
+    )
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Terminating")),
+    )
+
+    with pytest.raises(PineconeError, match="terminal state") as exc_info:
+        await async_assistants.create(name="test-assistant", timeout=None)
+
+    assert "Terminating" in str(exc_info.value)
+    assert "pc.assistants.describe" in str(exc_info.value)
+
+
 # ---------------------------------------------------------------------------
 # create() — valid regions accepted
 # ---------------------------------------------------------------------------
@@ -373,6 +413,91 @@ async def test_create_assistant_accepts_eu_region(async_assistants: AsyncAssista
 
     result = await async_assistants.create(name="test-assistant", region="eu")
     assert isinstance(result, AssistantModel)
+
+
+@respx.mock
+async def test_create_assistant_metadata_default_omitted(
+    async_assistants: AsyncAssistants,
+) -> None:
+    """When metadata is not provided, the 'metadata' key is absent from the request body."""
+    route = respx.post(f"{BASE_URL}/assistant/assistants").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
+    )
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
+    )
+
+    await async_assistants.create(name="test-assistant", timeout=-1)
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert "metadata" not in body
+
+
+@respx.mock
+async def test_create_assistant_metadata_explicit_dict_included(
+    async_assistants: AsyncAssistants,
+) -> None:
+    """When metadata is provided, it is sent in the request body."""
+    route = respx.post(f"{BASE_URL}/assistant/assistants").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
+    )
+
+    await async_assistants.create(name="test-assistant", metadata={"key": "value"}, timeout=-1)
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert body["metadata"] == {"key": "value"}
+
+
+@respx.mock
+async def test_create_assistant_environment_omitted_by_default(
+    async_assistants: AsyncAssistants,
+) -> None:
+    """When environment is not provided, the 'environment' key is absent from the request body."""
+    route = respx.post(f"{BASE_URL}/assistant/assistants").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
+    )
+
+    await async_assistants.create(name="test-assistant", timeout=-1)
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert "environment" not in body
+
+
+@respx.mock
+async def test_create_assistant_environment_included_when_provided(
+    async_assistants: AsyncAssistants,
+) -> None:
+    """When environment is provided, it is sent in the request body."""
+    route = respx.post(f"{BASE_URL}/assistant/assistants").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
+    )
+
+    await async_assistants.create(name="test-assistant", environment="prod-us", timeout=-1)
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert body["environment"] == "prod-us"
+
+
+@respx.mock
+async def test_create_assistant_environment_403_propagates(
+    async_assistants: AsyncAssistants,
+) -> None:
+    """A 403 from the backend when environment is set propagates as ApiError."""
+    from pinecone.errors.exceptions import ApiError
+
+    respx.post(f"{BASE_URL}/assistant/assistants").mock(
+        return_value=httpx.Response(
+            403, json={"error": {"code": "FORBIDDEN", "message": "Not authorized"}}
+        ),
+    )
+
+    with pytest.raises(ApiError) as exc_info:
+        await async_assistants.create(name="test-assistant", environment="prod-us", timeout=-1)
+    assert exc_info.value.status_code == 403
 
 
 # ---------------------------------------------------------------------------
@@ -489,14 +614,14 @@ async def test_list_assistants_multi_page(async_assistants: AsyncAssistants) -> 
                 200,
                 json={
                     "assistants": [make_assistant_response(name="a1")],
-                    "next": "token-page2",
+                    "pagination": {"next": "token-page2"},
                 },
             ),
             httpx.Response(
                 200,
                 json={
                     "assistants": [make_assistant_response(name="a2")],
-                    "next": "token-page3",
+                    "pagination": {"next": "token-page3"},
                 },
             ),
             httpx.Response(
@@ -588,7 +713,7 @@ async def test_list_assistants_pages(async_assistants: AsyncAssistants) -> None:
                 200,
                 json={
                     "assistants": [make_assistant_response(name="a1")],
-                    "next": "token-next",
+                    "pagination": {"next": "token-next"},
                 },
             ),
             httpx.Response(
@@ -626,7 +751,7 @@ async def test_list_assistants_with_pagination_token(async_assistants: AsyncAssi
     assert len(result) == 1
     assert result[0].name == "a2"
     request = route.calls.last.request
-    assert "paginationToken=tok-page2" in str(request.url)
+    assert "pagination_token=tok-page2" in str(request.url)
 
 
 # ---------------------------------------------------------------------------
@@ -642,7 +767,7 @@ async def test_list_assistants_page(async_assistants: AsyncAssistants) -> None:
             200,
             json={
                 "assistants": [make_assistant_response(name="a1")],
-                "next": "token-next",
+                "pagination": {"next": "token-next"},
             },
         ),
     )
@@ -675,7 +800,7 @@ async def test_list_assistants_page_last_page(async_assistants: AsyncAssistants)
 
 @respx.mock
 async def test_list_assistants_page_with_page_size(async_assistants: AsyncAssistants) -> None:
-    """list_page() sends pageSize query param when provided."""
+    """list_page() sends limit query param when provided."""
     route = respx.get(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json={"assistants": []}),
     )
@@ -683,14 +808,14 @@ async def test_list_assistants_page_with_page_size(async_assistants: AsyncAssist
     await async_assistants.list_page(page_size=5)
 
     request = route.calls.last.request
-    assert "pageSize=5" in str(request.url)
+    assert "limit=5" in str(request.url)
 
 
 @respx.mock
 async def test_list_assistants_page_with_pagination_token(
     async_assistants: AsyncAssistants,
 ) -> None:
-    """list_page() sends paginationToken query param when provided."""
+    """list_page() sends pagination_token query param when provided."""
     route = respx.get(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json={"assistants": []}),
     )
@@ -698,7 +823,7 @@ async def test_list_assistants_page_with_pagination_token(
     await async_assistants.list_page(pagination_token="abc123")
 
     request = route.calls.last.request
-    assert "paginationToken=abc123" in str(request.url)
+    assert "pagination_token=abc123" in str(request.url)
 
 
 @respx.mock
@@ -713,8 +838,8 @@ async def test_list_assistants_page_omits_none_params(
     await async_assistants.list_page()
 
     request = route.calls.last.request
-    assert "pageSize" not in str(request.url)
-    assert "paginationToken" not in str(request.url)
+    assert "limit" not in str(request.url)
+    assert "pagination_token" not in str(request.url)
 
 
 # ---------------------------------------------------------------------------
@@ -1315,7 +1440,7 @@ async def test_async_list_files_page_success(async_assistants: AsyncAssistants) 
             200,
             json={
                 "files": [make_assistant_file_response()],
-                "next": "token-next",
+                "pagination": {"next": "token-next"},
             },
         ),
     )
@@ -1508,14 +1633,14 @@ async def test_async_list_files_multi_page(async_assistants: AsyncAssistants) ->
                 200,
                 json={
                     "files": [make_assistant_file_response(id="f1", name="file1.pdf")],
-                    "next": "token-page2",
+                    "pagination": {"next": "token-page2"},
                 },
             ),
             httpx.Response(
                 200,
                 json={
                     "files": [make_assistant_file_response(id="f2", name="file2.pdf")],
-                    "next": "token-page3",
+                    "pagination": {"next": "token-page3"},
                 },
             ),
             httpx.Response(
@@ -1573,7 +1698,7 @@ async def test_async_list_files_limit_accepted(async_assistants: AsyncAssistants
                     make_assistant_file_response(id="f2", name="file2.pdf"),
                     make_assistant_file_response(id="f3", name="file3.pdf"),
                 ],
-                "next": "token-page2",
+                "pagination": {"next": "token-page2"},
             },
         ),
     )
@@ -1802,8 +1927,10 @@ async def test_async_upload_file_with_metadata_and_file_id(
     # file_id is in the path, not a query param
     assert "/files/test-assistant/custom-file-id" in url_str
     assert "file_id=" not in url_str
-    # Metadata is still sent as a query param
-    assert "metadata=" in url_str
+    # v202604 rejects metadata as a query param; it must be in the multipart body
+    assert "metadata=" not in url_str
+    body = request.content.decode("latin-1")
+    assert "genre" in body and "comedy" in body
     # Returned model has the caller-specified file id
     assert isinstance(result, AssistantFileModel)
     assert result.id == "custom-file-id"
@@ -1878,6 +2005,41 @@ async def test_async_upload_file_processing_failed(
         await async_assistants.upload_file(
             assistant_name="test-assistant",
             file_stream=stream,
+        )
+
+
+# ---------------------------------------------------------------------------
+# upload_file() — upsert operation failure (error_message field name)
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+@patch("pinecone.async_client.assistants.asyncio.sleep")
+async def test_async_upload_file_upsert_error_message(
+    mock_sleep: object, async_assistants: AsyncAssistants
+) -> None:
+    """Upsert polling surfaces backend error_message, not the fallback 'Unknown operation error'."""
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    respx.put(f"{DATA_PLANE_URL}/files/test-assistant/custom-file-id").mock(
+        return_value=httpx.Response(202, json=make_operation_response(status="Processing")),
+    )
+    respx.get(f"{DATA_PLANE_URL}/operations/test-assistant/op-abc123").mock(
+        return_value=httpx.Response(
+            200,
+            json=make_operation_response(
+                status="Failed", error_message="Conflict: file already being processed"
+            ),
+        ),
+    )
+
+    stream = io.BytesIO(b"data")
+    with pytest.raises(PineconeError, match="Conflict: file already being processed"):
+        await async_assistants.upload_file(
+            assistant_name="test-assistant",
+            file_stream=stream,
+            file_id="custom-file-id",
         )
 
 
@@ -2109,6 +2271,22 @@ async def test_async_context_empty_list_messages(async_assistants: AsyncAssistan
     """Empty list messages is treated as not provided — raises if query also absent."""
     with pytest.raises(PineconeValueError):
         await async_assistants.context(assistant_name="test-assistant", messages=[])
+
+
+async def test_async_context_top_k_negative_raises(async_assistants: AsyncAssistants) -> None:
+    """Negative top_k raises PineconeValueError before any HTTP call."""
+    with pytest.raises(PineconeValueError, match="top_k"):
+        await async_assistants.context(assistant_name="test-assistant", query="test", top_k=-1)
+
+
+async def test_async_context_snippet_size_negative_raises(
+    async_assistants: AsyncAssistants,
+) -> None:
+    """Negative snippet_size raises PineconeValueError before any HTTP call."""
+    with pytest.raises(PineconeValueError, match="snippet_size"):
+        await async_assistants.context(
+            assistant_name="test-assistant", query="test", snippet_size=-1
+        )
 
 
 # ---------------------------------------------------------------------------

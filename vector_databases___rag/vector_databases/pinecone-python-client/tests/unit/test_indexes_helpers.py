@@ -5,12 +5,13 @@ from __future__ import annotations
 import pytest
 
 from pinecone._internal.indexes_helpers import (
+    build_byoc_body,
     build_create_body,
     build_integrated_body,
     validate_read_capacity,
 )
 from pinecone.errors.exceptions import ValidationError
-from pinecone.models.indexes.specs import EmbedConfig, IntegratedSpec
+from pinecone.models.indexes.specs import ByocSpec, EmbedConfig, IntegratedSpec, ServerlessSpec
 
 
 def test_build_create_body_dict_spec_not_mutated_by_schema() -> None:
@@ -126,3 +127,127 @@ def test_build_integrated_body_read_capacity_absent_when_none() -> None:
         read_capacity=None,
     )
     assert "read_capacity" not in body
+
+
+def test_build_create_body_serverless_includes_read_capacity() -> None:
+    spec = ServerlessSpec(
+        cloud="aws",
+        region="us-east-1",
+        read_capacity={
+            "mode": "Dedicated",
+            "dedicated": {
+                "node_type": "t1",
+                "scaling": "Manual",
+                "manual": {"shards": 2, "replicas": 3},
+            },
+        },
+    )
+    body = build_create_body(
+        name="test-index",
+        spec=spec,
+        dimension=128,
+        metric="cosine",
+        vector_type="dense",
+        deletion_protection="disabled",
+        tags=None,
+        schema=None,
+    )
+    assert body["spec"]["serverless"]["read_capacity"]["mode"] == "Dedicated"
+
+
+def test_build_create_body_serverless_read_capacity_absent_when_none() -> None:
+    spec = ServerlessSpec(cloud="aws", region="us-east-1")
+    body = build_create_body(
+        name="test-index",
+        spec=spec,
+        dimension=128,
+        metric="cosine",
+        vector_type="dense",
+        deletion_protection="disabled",
+        tags=None,
+        schema=None,
+    )
+    assert "read_capacity" not in body["spec"]["serverless"]
+
+
+def test_build_create_body_serverless_spec_schema_included() -> None:
+    spec = ServerlessSpec(cloud="aws", region="us-east-1", schema={"genre": {"type": "str"}})
+    body = build_create_body(
+        name="test-index",
+        spec=spec,
+        dimension=128,
+        metric="cosine",
+        vector_type="dense",
+        deletion_protection="disabled",
+        tags=None,
+        schema=None,
+    )
+    assert body["spec"]["serverless"]["schema"] == {"genre": {"type": "str"}}
+
+
+def _make_byoc_body(**kwargs: object) -> dict[object, object]:
+    return build_byoc_body(  # type: ignore[return-value]
+        name="test-byoc",
+        spec=kwargs.pop("spec", ByocSpec(environment="byoc-aws-abc123")),  # type: ignore[arg-type]
+        dimension=128,
+        metric="cosine",
+        vector_type="dense",
+        deletion_protection="disabled",
+        tags=None,
+        **kwargs,  # type: ignore[arg-type]
+    )
+
+
+def test_build_byoc_body_spec_schema_included() -> None:
+    """ByocSpec.schema must be included in the request body."""
+    spec = ByocSpec(environment="byoc-aws-abc123", schema={"genre": {"type": "str"}})
+    body = _make_byoc_body(spec=spec)
+    assert body["spec"]["byoc"]["schema"] == {"genre": {"type": "str"}}
+
+
+def test_build_byoc_body_method_schema_included() -> None:
+    """schema= method param must be normalized and included in the byoc spec."""
+    body = _make_byoc_body(schema={"genre": {"type": "str"}})
+    assert "schema" in body["spec"]["byoc"]
+
+
+def test_build_byoc_body_schema_absent_when_none() -> None:
+    """schema should not appear in the body when neither spec.schema nor schema= is set."""
+    body = _make_byoc_body()
+    assert "schema" not in body["spec"]["byoc"]
+
+
+def test_build_integrated_body_embed_dimension_included() -> None:
+    """EmbedConfig.dimension must be sent when set."""
+    spec = IntegratedSpec(
+        cloud="aws",
+        region="us-east-1",
+        embed=EmbedConfig(
+            model="multilingual-e5-large",
+            field_map={"text": "body"},
+            dimension=768,
+        ),
+    )
+    body = build_integrated_body(
+        name="test-integrated",
+        spec=spec,
+        deletion_protection="disabled",
+        tags=None,
+    )
+    assert body["embed"]["dimension"] == 768
+
+
+def test_build_integrated_body_embed_dimension_absent_when_none() -> None:
+    """embed.dimension must be absent when not set."""
+    spec = IntegratedSpec(
+        cloud="aws",
+        region="us-east-1",
+        embed=EmbedConfig(model="multilingual-e5-large", field_map={"text": "body"}),
+    )
+    body = build_integrated_body(
+        name="test-integrated",
+        spec=spec,
+        deletion_protection="disabled",
+        tags=None,
+    )
+    assert "dimension" not in body["embed"]

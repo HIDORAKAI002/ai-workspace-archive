@@ -18,7 +18,7 @@ from pinecone._internal.batching import validate_batch_size
 from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import DATA_PLANE_API_VERSION
 from pinecone._internal.data_plane_helpers import _validate_host, _vector_to_dict
-from pinecone._internal.validation import require_in_range
+from pinecone._internal.validation import require_in_range, require_positive
 from pinecone._internal.vector_factory import VectorFactory
 from pinecone.errors.exceptions import PineconeValueError, ValidationError
 from pinecone.models.imports.list import ImportList
@@ -193,12 +193,16 @@ class AsyncIndex:
         import orjson
 
         normalized: list[dict[str, Any]] = []
-        for record in records:
+        for i, record in enumerate(records):
             r = dict(record)  # shallow copy
             if "_id" not in r and "id" in r:
                 r["_id"] = r.pop("id")
             elif "_id" in r and "id" in r:
-                del r["id"]  # _id takes precedence; strip the extra key
+                raise ValidationError(f"Record at index {i} cannot have both '_id' and 'id' fields")
+            resolved_id = r.get("_id")
+            if not isinstance(resolved_id, str):
+                got = type(resolved_id).__name__
+                raise ValidationError(f"Record at index {i}: '_id' must be a string, got {got!r}")
             normalized.append(r)
 
         ndjson_lines = [orjson.dumps(r).decode("utf-8") for r in normalized]
@@ -753,6 +757,8 @@ class AsyncIndex:
                     )
                     token = response.pagination.next if response.pagination else None
         """
+        if limit is not None:
+            require_positive("limit", limit)
         body: dict[str, Any] = {"filter": filter}
         if namespace:
             body["namespace"] = namespace
@@ -918,7 +924,7 @@ class AsyncIndex:
         namespace: str,
         top_k: int,
         inputs: SearchInputs | Mapping[str, Any] | None = None,
-        vector: Sequence[float] | None = None,
+        vector: Sequence[float] | Mapping[str, Any] | None = None,
         id: str | None = None,
         filter: Mapping[str, Any] | None = None,
         fields: Sequence[str] | None = None,
@@ -938,7 +944,12 @@ class AsyncIndex:
                 server-side embedding (e.g. ``{"text": "query text"}``).
                 Use :class:`SearchInputs` for typed key validation and IDE
                 autocompletion (e.g. ``SearchInputs(text="query text")``).
-            vector (list[float] | None): Dense query vector values.
+            vector (list[float] | dict[str, Any] | None): Query vector. Pass a
+                ``list[float]`` for a dense-only query (wrapped automatically as
+                ``{"values": [...]}``) or a dict for sparse/hybrid queries with
+                keys ``values``, ``sparse_indices``, and/or ``sparse_values``
+                (passed through as-is). See :class:`SearchQueryVector` for the
+                typed helper.
             id (str | None): ID of an existing record to use as the query.
             filter (dict[str, Any] | None): Metadata filter expression.
             fields (list[str] | None): Field names to include in results.
@@ -996,7 +1007,10 @@ class AsyncIndex:
         if inputs is not None:
             query_body["inputs"] = inputs
         if vector is not None:
-            query_body["vector"] = vector
+            if isinstance(vector, Mapping):
+                query_body["vector"] = dict(vector)
+            else:
+                query_body["vector"] = {"values": list(vector)}
         if id is not None:
             query_body["id"] = id
         if filter is not None:
@@ -1024,7 +1038,7 @@ class AsyncIndex:
         namespace: str,
         top_k: int,
         inputs: SearchInputs | Mapping[str, Any] | None = None,
-        vector: Sequence[float] | None = None,
+        vector: Sequence[float] | Mapping[str, Any] | None = None,
         id: str | None = None,
         filter: Mapping[str, Any] | None = None,
         fields: Sequence[str] | None = None,
@@ -1426,7 +1440,7 @@ class AsyncIndex:
         self,
         uri: str,
         *,
-        error_mode: str = "continue",
+        error_mode: str | None = None,
         integration_id: str | None = None,
     ) -> StartImportResponse:
         """Start a bulk import operation from an external data source.
@@ -1445,8 +1459,9 @@ class AsyncIndex:
         Args:
             uri (str): Source URI for the import data (e.g.
                 ``"s3://my-bucket/vectors/"`` or ``"gs://my-bucket/vectors/"``).
-            error_mode (str): How to handle errors during import. Must be
-                ``"continue"`` (default) or ``"abort"``. Case-insensitive.
+            error_mode (str | None): How to handle errors during import. Must be
+                ``"continue"`` or ``"abort"`` when supplied. Case-insensitive.
+                Optional; when omitted the backend default (abort) applies.
             integration_id (str | None): Optional integration ID for the import.
 
         Returns:
@@ -1454,7 +1469,8 @@ class AsyncIndex:
             operation.
 
         Raises:
-            :exc:`PineconeValueError`: If ``error_mode`` is not ``"continue"`` or ``"abort"``.
+            :exc:`PineconeValueError`: If ``error_mode`` is supplied but not
+                ``"continue"`` or ``"abort"``.
             :exc:`ApiError`: If the API returns an error response.
             :exc:`PineconeConnectionError`: If a network-level connection
                 fails (DNS, refused, transport error).
@@ -1490,14 +1506,16 @@ class AsyncIndex:
            - :meth:`upsert_records` — for indexes with integrated inference
              (text in, server-side embedding).
         """
-        error_mode = error_mode.lower()
-        if error_mode not in ("continue", "abort"):
-            raise ValidationError(f"error_mode must be 'continue' or 'abort', got {error_mode!r}")
+        if error_mode is not None:
+            error_mode = error_mode.lower()
+            if error_mode not in ("continue", "abort"):
+                raise ValidationError(
+                    f"error_mode must be 'continue' or 'abort', got {error_mode!r}"
+                )
 
-        body: dict[str, Any] = {
-            "uri": uri,
-            "errorMode": {"onError": error_mode},
-        }
+        body: dict[str, Any] = {"uri": uri}
+        if error_mode is not None:
+            body["errorMode"] = {"onError": error_mode}
         if integration_id is not None:
             body["integrationId"] = integration_id
 

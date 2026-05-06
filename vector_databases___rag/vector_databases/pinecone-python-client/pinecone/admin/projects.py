@@ -8,7 +8,12 @@ from typing import TYPE_CHECKING, Any
 
 from pinecone._internal.adapters.admin_adapter import AdminAdapter
 from pinecone._internal.validation import require_non_empty
-from pinecone.errors.exceptions import NotFoundError, PineconeError, ValidationError
+from pinecone.errors.exceptions import (
+    NotFoundError,
+    PineconeError,
+    PineconeValueError,
+    ValidationError,
+)
 from pinecone.models.admin.api_key import APIKeyRole
 from pinecone.models.admin.project import ProjectList, ProjectModel
 
@@ -94,6 +99,12 @@ class Projects:
             'my-project'
         """
         require_non_empty("name", name)
+        if len(name) > 512:
+            raise PineconeValueError("name cannot be longer than 512 characters")
+        if "\x00" in name:
+            raise PineconeValueError("name cannot contain null characters")
+        if max_pods is not None and max_pods < 0:
+            raise ValidationError("max_pods must be a non-negative integer")
         body: dict[str, Any] = {"name": name}
         if max_pods is not None:
             body["max_pods"] = max_pods
@@ -232,7 +243,8 @@ class Projects:
             A :class:`ProjectModel` with the updated project details.
 
         Raises:
-            :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *project_id* is empty.
+            :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *project_id* is empty,
+                or if *name* is empty, exceeds 512 characters, or contains null bytes.
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
@@ -245,8 +257,16 @@ class Projects:
             'new-name'
         """
         require_non_empty("project_id", project_id)
+        if max_pods is not None and max_pods < 0:
+            raise PineconeValueError("max_pods must be a non-negative integer")
         body: dict[str, Any] = {}
         if name is not None:
+            if len(name) == 0:
+                raise PineconeValueError("name cannot be empty")
+            if len(name) > 512:
+                raise PineconeValueError("name cannot be longer than 512 characters")
+            if "\x00" in name:
+                raise PineconeValueError("name cannot contain null characters")
             body["name"] = name
         if max_pods is not None:
             body["max_pods"] = max_pods

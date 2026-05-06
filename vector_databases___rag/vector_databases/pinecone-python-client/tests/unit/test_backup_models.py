@@ -51,7 +51,6 @@ class TestBackupModelRequiredFields:
         assert backup.name is None
         assert backup.description is None
         assert backup.dimension is None
-        assert backup.metric is None
         assert backup.record_count is None
         assert backup.namespace_count is None
         assert backup.size_bytes is None
@@ -65,7 +64,6 @@ class TestBackupModelAllFields:
             name="daily-backup",
             description="Daily backup of production index",
             dimension=1536,
-            metric="cosine",
             record_count=100000,
             namespace_count=5,
             size_bytes=52428800,
@@ -75,7 +73,6 @@ class TestBackupModelAllFields:
         assert backup.name == "daily-backup"
         assert backup.description == "Daily backup of production index"
         assert backup.dimension == 1536
-        assert backup.metric == "cosine"
         assert backup.record_count == 100000
         assert backup.namespace_count == 5
         assert backup.size_bytes == 52428800
@@ -95,6 +92,43 @@ class TestBackupModelBracketAccess:
             backup["nonexistent"]
 
 
+class TestBackupModelSchema:
+    def test_backup_model_schema_decoded(self) -> None:
+        """BackupModel must expose schema when returned by backend."""
+        raw = (
+            b'{"backup_id":"bkp-1","source_index_name":"my-index",'
+            b'"source_index_id":"idx-abc","status":"Ready","cloud":"aws",'
+            b'"region":"us-east-1",'
+            b'"schema":{"fields":{"genre":{"filterable":true}}}}'
+        )
+        model = msgspec.json.decode(raw, type=BackupModel)
+        assert model.schema is not None
+        assert model.schema["fields"]["genre"]["filterable"] is True
+
+    def test_backup_model_schema_absent(self) -> None:
+        """BackupModel.schema is None when backend omits the field."""
+        raw = (
+            b'{"backup_id":"bkp-1","source_index_name":"my-index",'
+            b'"source_index_id":"idx-abc","status":"Ready","cloud":"aws",'
+            b'"region":"us-east-1"}'
+        )
+        model = msgspec.json.decode(raw, type=BackupModel)
+        assert model.schema is None
+
+
+class TestBackupModelNoMetricField:
+    def test_backup_model_has_no_metric_field(self) -> None:
+        """BackupModel must not expose a metric field (backend never sends it)."""
+        raw = (
+            b'{"backup_id":"bkp-1","source_index_name":"my-index",'
+            b'"source_index_id":"idx-abc","status":"Ready","cloud":"aws",'
+            b'"region":"us-east-1"}'
+        )
+        model = msgspec.json.decode(raw, type=BackupModel)
+        with pytest.raises(AttributeError):
+            _ = model.metric  # type: ignore[attr-defined]
+
+
 class TestBackupModelJsonDecode:
     def test_backup_model_json_decode(self) -> None:
         payload = b"""{
@@ -107,7 +141,6 @@ class TestBackupModelJsonDecode:
             "name": "my-backup",
             "description": "Test backup",
             "dimension": 768,
-            "metric": "dotproduct",
             "record_count": 5000,
             "namespace_count": 2,
             "size_bytes": 1048576,
@@ -122,6 +155,38 @@ class TestBackupModelJsonDecode:
         assert backup.name == "my-backup"
         assert backup.dimension == 768
         assert backup.tags == {"team": "ml"}
+
+    def test_backup_model_non_string_tag_values_decode_without_error(self) -> None:
+        """Backend tags are Option<serde_json::Value> — non-string values must not raise."""
+        payload = b"""{
+            "backup_id": "bkp-xyz",
+            "source_index_name": "my-index",
+            "source_index_id": "idx-xyz",
+            "status": "Ready",
+            "cloud": "aws",
+            "region": "us-east-1",
+            "tags": {"version": 3, "enabled": true, "ratio": 1.5, "nested": {"k": "v"}}
+        }"""
+        backup = msgspec.json.decode(payload, type=BackupModel)
+        assert isinstance(backup.tags, dict)
+        assert backup.tags["version"] == 3
+        assert backup.tags["enabled"] is True
+        assert backup.tags["ratio"] == 1.5
+        assert backup.tags["nested"] == {"k": "v"}
+
+    def test_backup_model_null_tags_decode_without_error(self) -> None:
+        """tags: null from backend maps to None."""
+        payload = b"""{
+            "backup_id": "bkp-null",
+            "source_index_name": "my-index",
+            "source_index_id": "idx-null",
+            "status": "Ready",
+            "cloud": "aws",
+            "region": "us-east-1",
+            "tags": null
+        }"""
+        backup = msgspec.json.decode(payload, type=BackupModel)
+        assert backup.tags is None
 
 
 class TestRestoreJobModelRequiredFields:
