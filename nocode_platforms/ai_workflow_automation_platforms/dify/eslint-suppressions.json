@@ -438,11 +438,6 @@
       "count": 1
     }
   },
-  "web/app/components/app/configuration/dataset-config/select-dataset/index.tsx": {
-    "no-restricted-imports": {
-      "count": 1
-    }
-  },
   "web/app/components/app/configuration/dataset-config/settings-modal/index.tsx": {
     "react/set-state-in-effect": {
       "count": 2
@@ -611,17 +606,6 @@
   "web/app/components/app/workflow-log/trigger-by-display.tsx": {
     "ts/no-explicit-any": {
       "count": 1
-    }
-  },
-  "web/app/components/apps/app-card.tsx": {
-    "no-restricted-imports": {
-      "count": 1
-    },
-    "react/set-state-in-effect": {
-      "count": 1
-    },
-    "ts/no-explicit-any": {
-      "count": 2
     }
   },
   "web/app/components/apps/new-app-card.tsx": {
@@ -1935,11 +1919,6 @@
   "web/app/components/billing/plan/assets/index.tsx": {
     "no-barrel-files/no-barrel-files": {
       "count": 4
-    }
-  },
-  "web/app/components/billing/plan/index.tsx": {
-    "ts/no-explicit-any": {
-      "count": 2
     }
   },
   "web/app/components/billing/pricing/assets/index.tsx": {
@@ -3567,11 +3546,6 @@
       "count": 1
     }
   },
-  "web/app/components/workflow/dsl-export-confirm-modal.tsx": {
-    "no-restricted-imports": {
-      "count": 1
-    }
-  },
   "web/app/components/workflow/header/run-mode.tsx": {
     "no-console": {
       "count": 1
@@ -4256,11 +4230,6 @@
   },
   "web/app/components/workflow/nodes/knowledge-retrieval/components/metadata/condition-list/condition-item.tsx": {
     "ts/no-explicit-any": {
-      "count": 1
-    }
-  },
-  "web/app/components/workflow/nodes/knowledge-retrieval/components/metadata/condition-list/condition-operator.tsx": {
-    "no-restricted-imports": {
       "count": 1
     }
   },
@@ -5125,11 +5094,6 @@
       "count": 5
     }
   },
-  "web/app/education-apply/verify-state-modal.tsx": {
-    "react/set-state-in-effect": {
-      "count": 1
-    }
-  },
   "web/app/forgot-password/ForgotPasswordForm.spec.tsx": {
     "ts/no-explicit-any": {
       "count": 5
@@ -5347,11 +5311,6 @@
     }
   },
   "web/models/share.ts": {
-    "ts/no-explicit-any": {
-      "count": 1
-    }
-  },
-  "web/plugins/dev-proxy/server.spec.ts": {
     "ts/no-explicit-any": {
       "count": 1
     }
