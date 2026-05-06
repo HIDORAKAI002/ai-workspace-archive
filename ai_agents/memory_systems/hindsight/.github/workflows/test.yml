@@ -50,7 +50,6 @@ jobs:
       integrations-smolagents: ${{ steps.filter.outputs.integrations-smolagents }}
       integrations-dify: ${{ steps.filter.outputs.integrations-dify }}
       tools-agent-sdk: ${{ steps.filter.outputs.tools-agent-sdk }}
-      tools-self-driving-agents: ${{ steps.filter.outputs.tools-self-driving-agents }}
       dev: ${{ steps.filter.outputs.dev }}
       ci: ${{ steps.filter.outputs.ci }}
       # Secrets are available for internal PRs and workflow_dispatch.
@@ -146,8 +145,6 @@ jobs:
             - 'hindsight-integrations/dify/**'
           tools-agent-sdk:
             - 'hindsight-tools/hindsight-agent-sdk/**'
-          tools-self-driving-agents:
-            - 'hindsight-tools/self-driving-agents/**'
           dev:
             - 'hindsight-dev/**'
           ci:
@@ -574,38 +571,6 @@ jobs:
 
     - name: Build
       run: npm run build --workspace=hindsight-tools/hindsight-agent-sdk
-
-  test-self-driving-agents:
-    needs: [detect-changes]
-    if: >-
-      (github.event_name == 'workflow_dispatch' ||
-      needs.detect-changes.outputs.tools-self-driving-agents == 'true' ||
-      needs.detect-changes.outputs.ci == 'true')
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v6
-      with:
-        ref: ${{ github.event.pull_request.head.sha || '' }}
-
-    - name: Set up Node.js
-      uses: actions/setup-node@v6
-      with:
-        node-version: '22'
-        cache: 'npm'
-        cache-dependency-path: package-lock.json
-
-    - name: Install root workspace dependencies
-      run: npm ci
-
-    - name: Build hindsight-client (self-driving-agents dep)
-      run: npm run build --workspace=hindsight-clients/typescript
-
-    - name: Run tests
-      run: npm test --workspace=hindsight-tools/self-driving-agents
-
-    - name: Build
-      run: npm run build --workspace=hindsight-tools/self-driving-agents
 
   test-cloudflare-oauth-proxy-integration:
     needs: [detect-changes]
@@ -3693,7 +3658,6 @@ jobs:
       - test-embed-windows
       - test-hindsight-all
       - test-hindsight-agent-sdk
-      - test-self-driving-agents
       - test-doc-examples
       - test-upgrade
       - verify-generated-files

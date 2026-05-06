@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "json"
+require "uri"
 
 module Firecrawl
   # Client for the Firecrawl v2 API.
@@ -281,6 +282,83 @@ module Firecrawl
     end
 
     # ================================================================
+    # MONITOR
+    # ================================================================
+
+    def create_monitor(name:, schedule:, targets:, webhook: nil, notification: nil, retention_days: nil)
+      body = {
+        "name" => name,
+        "schedule" => schedule,
+        "targets" => targets,
+        "webhook" => webhook,
+        "notification" => notification,
+        "retentionDays" => retention_days,
+      }.compact
+      raw = @http.post("/v2/monitor", body)
+      Models::Monitor.new(raw["data"] || raw)
+    end
+
+    def list_monitors(limit: nil, offset: nil)
+      raw = @http.get("/v2/monitor#{query(limit: limit, offset: offset)}")
+      (raw["data"] || []).map { |item| Models::Monitor.new(item) }
+    end
+
+    def get_monitor(monitor_id)
+      raise ArgumentError, "Monitor ID is required" if monitor_id.nil?
+
+      raw = @http.get("/v2/monitor/#{monitor_id}")
+      Models::Monitor.new(raw["data"] || raw)
+    end
+
+    def update_monitor(monitor_id, **attrs)
+      raise ArgumentError, "Monitor ID is required" if monitor_id.nil?
+
+      body = {
+        "name" => attrs[:name],
+        "status" => attrs[:status],
+        "schedule" => attrs[:schedule],
+        "webhook" => attrs[:webhook],
+        "notification" => attrs[:notification],
+        "targets" => attrs[:targets],
+        "retentionDays" => attrs[:retention_days],
+      }.compact
+      raw = @http.patch("/v2/monitor/#{monitor_id}", body)
+      Models::Monitor.new(raw["data"] || raw)
+    end
+
+    def delete_monitor(monitor_id)
+      raise ArgumentError, "Monitor ID is required" if monitor_id.nil?
+
+      @http.delete("/v2/monitor/#{monitor_id}")["success"] == true
+    end
+
+    def run_monitor(monitor_id)
+      raise ArgumentError, "Monitor ID is required" if monitor_id.nil?
+
+      raw = @http.post("/v2/monitor/#{monitor_id}/run", {})
+      Models::MonitorCheck.new(raw["data"] || raw)
+    end
+
+    def list_monitor_checks(monitor_id, limit: nil, offset: nil)
+      raise ArgumentError, "Monitor ID is required" if monitor_id.nil?
+
+      raw = @http.get("/v2/monitor/#{monitor_id}/checks#{query(limit: limit, offset: offset)}")
+      (raw["data"] || []).map { |item| Models::MonitorCheck.new(item) }
+    end
+
+    def get_monitor_check(monitor_id, check_id, limit: nil, skip: nil, status: nil, auto_paginate: true)
+      raise ArgumentError, "Monitor ID is required" if monitor_id.nil?
+      raise ArgumentError, "Check ID is required" if check_id.nil?
+
+      params = query(limit: limit, skip: skip, status: status)
+      raw = @http.get("/v2/monitor/#{monitor_id}/checks/#{check_id}#{params}")
+      data = raw["data"] || raw
+      data["next"] = raw["next"] if raw["next"]
+      check = Models::MonitorCheckDetail.new(data)
+      auto_paginate ? paginate_monitor_check(check) : check
+    end
+
+    # ================================================================
     # SEARCH
     # ================================================================
 
@@ -378,6 +456,11 @@ module Firecrawl
 
     private
 
+    def query(**params)
+      compact = params.compact
+      compact.empty? ? "" : "?#{URI.encode_www_form(compact)}"
+    end
+
     def poll_crawl(job_id, poll_interval, timeout)
       deadline = Time.now + timeout
       while Time.now < deadline
@@ -422,6 +505,21 @@ module Firecrawl
         current = next_page
       end
       job
+    end
+
+    def paginate_monitor_check(check)
+      check.pages ||= []
+      current = check
+      while current.next_url && !current.next_url.empty?
+        raw = @http.get_absolute(current.next_url)
+        data = raw["data"] || raw
+        data["next"] = raw["next"] if raw["next"]
+        next_page = Models::MonitorCheckDetail.new(data)
+        check.pages.concat(next_page.pages) unless next_page.pages.empty?
+        current = next_page
+      end
+      check.next_url = nil
+      check
     end
   end
 end

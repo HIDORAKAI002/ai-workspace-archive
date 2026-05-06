@@ -17,6 +17,8 @@ import urllib.parse
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+# Launched via scripts/run_mcp.sh which execs the venv's interpreter, so
+# `mcp` and friends resolve from ${CLAUDE_PLUGIN_DATA}/venv/site-packages.
 from mcp.server.fastmcp import FastMCP
 
 from lib.client import HindsightClient

@@ -83,45 +83,35 @@ jobs:
       run: |
         cd hindsight-dev && uv sync --frozen --all-extras --index-strategy unsafe-best-match
 
-    - name: "Suite: retain"
-      if: inputs.suite == '' || inputs.suite == 'retain'
+    - name: Run perf-test
       run: |
+        SUITE_ARG=""
+        if [ -n "${{ inputs.suite }}" ]; then
+          SUITE_ARG="--suite ${{ inputs.suite }}"
+        fi
         ./scripts/benchmarks/run-perf-test.sh \
           --scale ${{ inputs.scale || 'large' }} \
-          --suite retain \
-          --output perf-results-retain.json
-
-    - name: "Suite: recall"
-      if: inputs.suite == '' || inputs.suite == 'recall'
-      run: |
-        ./scripts/benchmarks/run-perf-test.sh \
-          --scale ${{ inputs.scale || 'large' }} \
-          --suite recall \
-          --output perf-results-recall.json
-
-    - name: "Suite: recall-with-observations"
-      if: inputs.suite == '' || inputs.suite == 'recall-with-observations'
-      run: |
-        ./scripts/benchmarks/run-perf-test.sh \
-          --scale ${{ inputs.scale || 'large' }} \
-          --suite recall-with-observations \
-          --output perf-results-recall-with-observations.json
-
-    - name: "Suite: consolidation"
-      if: inputs.suite == '' || inputs.suite == 'consolidation'
-      run: |
-        ./scripts/benchmarks/run-perf-test.sh \
-          --scale ${{ inputs.scale || 'large' }} \
-          --suite consolidation \
-          --output perf-results-consolidation.json
+          $SUITE_ARG \
+          --output perf-results.json
 
     - name: Upload perf results
       if: always()
       uses: actions/upload-artifact@v7
       with:
         name: perf-results-${{ github.sha }}
-        path: hindsight-dev/perf-results-*.json
+        path: hindsight-dev/perf-results.json
         retention-days: 90
+
+    # Publish enriched results (perf JSON + commit metadata) to the dashboard
+    # repo's gh-pages branch. The static site at
+    #   https://vectorize-io.github.io/hindsight-continuous-performance-monitor/
+    # reads data/index.json + data/<run>.json and renders charts client-side.
+    - name: Publish to dashboard
+      if: github.event_name == 'schedule' || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+      env:
+        PERF_DASHBOARD_TOKEN: ${{ secrets.PERF_DASHBOARD_TOKEN }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: ./scripts/benchmarks/publish-perf-results.sh hindsight-dev/perf-results.json
 
   locomo:
     if: inputs.locomo_skip != true
@@ -195,3 +185,10 @@ jobs:
         name: locomo-results-${{ github.sha }}
         path: hindsight-dev/benchmarks/locomo/results/
         retention-days: 90
+
+    - name: Publish LoComo to dashboard
+      if: success() && (github.event_name == 'schedule' || github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+      env:
+        PERF_DASHBOARD_TOKEN: ${{ secrets.PERF_DASHBOARD_TOKEN }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: ./scripts/benchmarks/publish-locomo-results.sh hindsight-dev/benchmarks/locomo/results/benchmark_results.json

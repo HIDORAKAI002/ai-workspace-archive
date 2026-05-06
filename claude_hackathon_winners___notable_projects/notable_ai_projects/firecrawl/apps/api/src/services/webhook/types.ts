@@ -13,6 +13,8 @@ export enum WebhookEvent {
   EXTRACT_STARTED = "extract.started",
   EXTRACT_COMPLETED = "extract.completed",
   EXTRACT_FAILED = "extract.failed",
+  MONITOR_PAGE = "monitor.page",
+  MONITOR_CHECK_COMPLETED = "monitor.check.completed",
 }
 
 export type WebhookEventDataMap = {
@@ -25,6 +27,8 @@ export type WebhookEventDataMap = {
   [WebhookEvent.EXTRACT_STARTED]: ExtractStartedData;
   [WebhookEvent.EXTRACT_COMPLETED]: ExtractCompletedData;
   [WebhookEvent.EXTRACT_FAILED]: ExtractFailedData;
+  [WebhookEvent.MONITOR_PAGE]: MonitorPageData;
+  [WebhookEvent.MONITOR_CHECK_COMPLETED]: MonitorCheckCompletedData;
 };
 
 export type WebhookConfig = z.infer<typeof webhookSchema>;
@@ -112,4 +116,37 @@ interface ExtractCompletedData extends BaseWebhookData {
 interface ExtractFailedData extends BaseWebhookData {
   success: false;
   error: string;
+}
+
+// monitor
+interface MonitorPageData extends BaseWebhookData {
+  success: boolean;
+  data: {
+    monitorId: string;
+    checkId: string;
+    url: string;
+    status: string;
+    previousScrapeId?: string | null;
+    currentScrapeId?: string | null;
+    error?: string | null;
+  };
+  error?: string;
+}
+
+interface MonitorCheckCompletedData extends BaseWebhookData {
+  success: boolean;
+  data: {
+    monitorId: string;
+    checkId: string;
+    status: string;
+    summary: {
+      totalPages: number;
+      same: number;
+      changed: number;
+      new: number;
+      removed: number;
+      error: number;
+    };
+  };
+  error?: string;
 }

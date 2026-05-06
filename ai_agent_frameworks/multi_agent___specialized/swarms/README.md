@@ -760,8 +760,13 @@ Perfect for deploying large scale multi-agent systems. [Read the complete AOP do
 
 Documentation is located here at: [docs.swarms.world](https://docs.swarms.world)
 
+---
 
+## Using Swarms with AI Coding Assistants
 
+The repo ships with a [`CLAUDE.md`](./CLAUDE.md) at the root — a focused guide that teaches Claude Code, Cursor, and other AI coding assistants how to build with Swarms. It covers the `Agent` primitive, every multi-agent architecture (`SequentialWorkflow`, `ConcurrentWorkflow`, `AgentRearrange`, `GraphWorkflow`, `MixtureOfAgents`, `HierarchicalSwarm`, `SwarmRouter`, and more), tools, streaming, memory, MCP integration, and the patterns to reach for in each situation.
+
+Drop `CLAUDE.md` (or symlink it as `AGENTS.md` / `.cursorrules`) into any project that depends on `swarms` and your assistant will write idiomatic Swarms code on the first try — no extra prompting required.
 
 ---
 

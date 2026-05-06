@@ -121,6 +121,9 @@ def normalize_config_dict(config: dict[str, Any]) -> dict[str, Any]:
 # Environment variable names
 ENV_DATABASE_BACKEND = "HINDSIGHT_API_DATABASE_BACKEND"
 ENV_DATABASE_URL = "HINDSIGHT_API_DATABASE_URL"
+ENV_READ_DATABASE_URL = "HINDSIGHT_API_READ_DATABASE_URL"
+ENV_READ_DB_POOL_MIN_SIZE = "HINDSIGHT_API_READ_DB_POOL_MIN_SIZE"
+ENV_READ_DB_POOL_MAX_SIZE = "HINDSIGHT_API_READ_DB_POOL_MAX_SIZE"
 ENV_MIGRATION_DATABASE_URL = "HINDSIGHT_API_MIGRATION_DATABASE_URL"
 ENV_DATABASE_SCHEMA = "HINDSIGHT_API_DATABASE_SCHEMA"
 ENV_LLM_PROVIDER = "HINDSIGHT_API_LLM_PROVIDER"
@@ -831,6 +834,11 @@ class HindsightConfig:
     # Database
     database_backend: Literal["postgresql", "oracle"]
     database_url: str
+    # Optional read-replica URL for recall queries. When set, the engine opens
+    # a second pool and routes recall SELECTs through it.
+    read_database_url: str | None
+    read_db_pool_min_size: int
+    read_db_pool_max_size: int
     migration_database_url: str | None
     database_schema: str
     vector_extension: str  # "pgvector" or "vchord"
@@ -1359,6 +1367,9 @@ class HindsightConfig:
             # Database
             database_backend=os.getenv(ENV_DATABASE_BACKEND, DEFAULT_DATABASE_BACKEND).lower(),
             database_url=os.getenv(ENV_DATABASE_URL, DEFAULT_DATABASE_URL),
+            read_database_url=os.getenv(ENV_READ_DATABASE_URL) or None,
+            read_db_pool_min_size=int(os.getenv(ENV_READ_DB_POOL_MIN_SIZE, str(DEFAULT_DB_POOL_MIN_SIZE))),
+            read_db_pool_max_size=int(os.getenv(ENV_READ_DB_POOL_MAX_SIZE, str(DEFAULT_DB_POOL_MAX_SIZE))),
             migration_database_url=os.getenv(ENV_MIGRATION_DATABASE_URL) or None,
             database_schema=os.getenv(ENV_DATABASE_SCHEMA, DEFAULT_DATABASE_SCHEMA),
             vector_extension=os.getenv(ENV_VECTOR_EXTENSION, DEFAULT_VECTOR_EXTENSION).lower(),
@@ -1888,6 +1899,8 @@ class HindsightConfig:
     def log_config(self) -> None:
         """Log the current configuration (without sensitive values)."""
         logger.info(f"Database: {mask_network_location(self.database_url)} (schema: {self.database_schema})")
+        if self.read_database_url:
+            logger.info(f"Read database (recall queries only): {mask_network_location(self.read_database_url)}")
         if self.migration_database_url:
             logger.info(f"Migration database: {mask_network_location(self.migration_database_url)}")
         logger.info(f"LLM: provider={self.llm_provider}, model={self.llm_model}")

@@ -502,9 +502,15 @@ class MemoryEngine(MemoryEngineInterface):
         self._dialect: SQLDialect | None = None
         # Connection pool — set from backend.get_pool() for backward compatibility
         self._pool = None
+        self._read_backend: DatabaseBackend | None = None
+        self._read_database_url: str | None = (
+            config.read_database_url if self._database_backend_type == "postgresql" else None
+        )
         self._initialized = False
         self._pool_min_size = pool_min_size if pool_min_size is not None else config.db_pool_min_size
         self._pool_max_size = pool_max_size if pool_max_size is not None else config.db_pool_max_size
+        self._read_pool_min_size = config.read_db_pool_min_size
+        self._read_pool_max_size = config.read_db_pool_max_size
         self._db_command_timeout = db_command_timeout if db_command_timeout is not None else config.db_command_timeout
         self._db_acquire_timeout = db_acquire_timeout if db_acquire_timeout is not None else config.db_acquire_timeout
         self._db_statement_timeout = config.db_statement_timeout
@@ -1929,6 +1935,23 @@ class MemoryEngine(MemoryEngineInterface):
         # These will be migrated to use self._backend.acquire() over time.
         self._pool = self._backend.get_pool()
 
+        if self._read_database_url:
+            logger.info(
+                f"Opening read backend against {mask_network_location(self._read_database_url)} for recall queries"
+            )
+            self._read_backend = create_database_backend(self._database_backend_type)
+            await self._read_backend.initialize(
+                self._read_database_url,
+                min_size=self._read_pool_min_size,
+                max_size=self._read_pool_max_size,
+                command_timeout=self._db_command_timeout,
+                acquire_timeout=self._db_acquire_timeout,
+                statement_cache_size=0,
+                init_callback=_init_connection,
+            )
+        else:
+            self._read_backend = self._backend
+
         # Initialize entity resolver with pool and configured lookup strategy
         self.entity_resolver = EntityResolver(
             self._backend,
@@ -2017,6 +2040,15 @@ class MemoryEngine(MemoryEngineInterface):
             await self.initialize()
         return self._pool
 
+    async def _get_read_backend(self) -> DatabaseBackend:
+        """Get the read-only backend (replica when configured, otherwise primary).
+
+        Writes MUST NOT be issued through this backend.
+        """
+        if not self._initialized:
+            await self.initialize()
+        return self._read_backend
+
     async def _get_backend(self) -> DatabaseBackend:
         """Get the database backend, auto-initializing if needed."""
         if not self._initialized:
@@ -2073,7 +2105,11 @@ class MemoryEngine(MemoryEngineInterface):
             await self._http_client.aclose()
             self._http_client = None
 
-        # Close database backend (shuts down pool)
+        if self._read_backend is not None and self._read_backend is not self._backend:
+            await self._read_backend.shutdown()
+        self._read_backend = None
+
+        # Close primary database backend (shuts down pool)
         if self._backend is not None:
             await self._backend.shutdown()
             self._backend = None
@@ -2918,7 +2954,7 @@ class MemoryEngine(MemoryEngineInterface):
         if tracer:
             tracer.start()
 
-        backend = await self._get_backend()
+        backend = await self._get_read_backend()
         recall_start = time.time()
 
         # Buffer logs for clean output in concurrent scenarios.
@@ -2987,7 +3023,7 @@ class MemoryEngine(MemoryEngineInterface):
                     max_connections=effective_connection_budget,
                     operation_id=f"recall-{recall_id}",
                 ) as op:
-                    budgeted_pool = op.wrap_pool(self._backend)
+                    budgeted_pool = op.wrap_pool(backend)
                     parallel_start = time.time()
                     multi_result = await retrieve_all_fact_types_parallel(
                         budgeted_pool,
