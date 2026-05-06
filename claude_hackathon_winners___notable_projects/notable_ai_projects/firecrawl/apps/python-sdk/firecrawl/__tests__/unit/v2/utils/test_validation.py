@@ -1,5 +1,12 @@
 import pytest
-from firecrawl.v2.types import JsonFormat, QueryFormat, ScrapeOptions, PDFParser
+from firecrawl.v2.types import (
+    HighlightsFormat,
+    JsonFormat,
+    QueryFormat,
+    QuestionFormat,
+    ScrapeOptions,
+    PDFParser,
+)
 from firecrawl.v2.utils.validation import validate_scrape_options, prepare_scrape_options
 
 
@@ -199,6 +206,33 @@ class TestPrepareScrapeOptions:
         assert result["formats"] == [
             {"type": "query", "prompt": "What is Firecrawl?", "mode": "directQuote"}
         ]
+
+    def test_prepare_question_and_highlights_formats(self):
+        """Test question and highlights formats are preserved."""
+        options = ScrapeOptions(
+            formats=[
+                QuestionFormat(question="What is Firecrawl?"),
+                HighlightsFormat(query="What is Firecrawl?"),
+            ]
+        )
+        result = prepare_scrape_options(options)
+
+        assert result["formats"] == [
+            {"type": "question", "question": "What is Firecrawl?"},
+            {"type": "highlights", "query": "What is Firecrawl?"},
+        ]
+
+    def test_prepare_question_and_highlights_reject_empty_values(self):
+        """Test question and highlights validation."""
+        with pytest.raises(ValueError, match="question format requires"):
+            prepare_scrape_options(
+                ScrapeOptions(formats=[{"type": "question", "question": ""}])
+            )
+
+        with pytest.raises(ValueError, match="highlights format requires"):
+            prepare_scrape_options(
+                ScrapeOptions(formats=[{"type": "highlights", "query": ""}])
+            )
 
     def test_prepare_query_format_rejects_direct_quote_boolean(self):
         """Test old query directQuote layout is rejected."""

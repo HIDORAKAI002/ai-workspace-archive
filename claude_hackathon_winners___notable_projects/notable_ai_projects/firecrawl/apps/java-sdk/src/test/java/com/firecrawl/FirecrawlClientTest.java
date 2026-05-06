@@ -81,6 +81,26 @@ class FirecrawlClientTest {
     }
 
     @Test
+    void testQuestionAndHighlightsFormats() {
+        QuestionFormat questionFormat = QuestionFormat.builder()
+                .question("What is Firecrawl?")
+                .build();
+        HighlightsFormat highlightsFormat = HighlightsFormat.builder()
+                .query("What is Firecrawl?")
+                .build();
+
+        ScrapeOptions options = ScrapeOptions.builder()
+                .formats(List.of(questionFormat, highlightsFormat))
+                .build();
+
+        assertEquals(List.of(questionFormat, highlightsFormat), options.getFormats());
+        assertEquals("question", questionFormat.getType());
+        assertEquals("What is Firecrawl?", questionFormat.getQuestion());
+        assertEquals("highlights", highlightsFormat.getType());
+        assertEquals("What is Firecrawl?", highlightsFormat.getQuery());
+    }
+
+    @Test
     void testCrawlOptionsBuilder() {
         CrawlOptions options = CrawlOptions.builder()
                 .limit(100)

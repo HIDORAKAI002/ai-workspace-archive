@@ -39,6 +39,25 @@ describe("Query format", () => {
   );
 
   concurrentIf(TEST_PRODUCTION || HAS_AI)(
+    "returns a non-empty answer for a valid question",
+    async () => {
+      const response = await scrape(
+        {
+          url: "https://firecrawl.dev",
+          formats: [{ type: "question", question: "What is Firecrawl?" }],
+        },
+        identity,
+      );
+
+      expect(response.answer).toBeDefined();
+      expect(typeof response.answer).toBe("string");
+      expect(response.answer!.length).toBeGreaterThan(0);
+      expect(response.markdown).toBeUndefined();
+    },
+    scrapeTimeout,
+  );
+
+  concurrentIf(TEST_PRODUCTION || HAS_AI)(
     "returns both answer and markdown when formats include markdown and query",
     async () => {
       const response = await scrape(
@@ -57,6 +76,25 @@ describe("Query format", () => {
       expect(response.answer!.length).toBeGreaterThan(0);
       expect(response.markdown).toBeDefined();
       expect(typeof response.markdown).toBe("string");
+    },
+    scrapeTimeout,
+  );
+
+  concurrentIf(TEST_PRODUCTION || HAS_FIREWORKS)(
+    "returns non-empty highlights for a valid highlights query",
+    async () => {
+      const response = await scrape(
+        {
+          url: "https://firecrawl.dev",
+          formats: [{ type: "highlights", query: "What is Firecrawl?" }],
+        },
+        identity,
+      );
+
+      expect(response.highlights).toBeDefined();
+      expect(typeof response.highlights).toBe("string");
+      expect(response.highlights!.length).toBeGreaterThan(0);
+      expect(response.answer).toBeUndefined();
     },
     scrapeTimeout,
   );
@@ -109,6 +147,40 @@ describe("Query format", () => {
         {
           url: "https://firecrawl.dev",
           formats: [{ type: "query", prompt: longPrompt }],
+        } as any,
+        identity,
+      );
+
+      expect(response.success).toBe(false);
+      expect(response.error).toBeDefined();
+    },
+    scrapeTimeout,
+  );
+
+  it(
+    "rejects question over 10000 characters",
+    async () => {
+      const response = await scrapeWithFailure(
+        {
+          url: "https://firecrawl.dev",
+          formats: [{ type: "question", question: "a".repeat(10001) }],
+        } as any,
+        identity,
+      );
+
+      expect(response.success).toBe(false);
+      expect(response.error).toBeDefined();
+    },
+    scrapeTimeout,
+  );
+
+  it(
+    "rejects highlights query over 10000 characters",
+    async () => {
+      const response = await scrapeWithFailure(
+        {
+          url: "https://firecrawl.dev",
+          formats: [{ type: "highlights", query: "a".repeat(10001) }],
         } as any,
         identity,
       );

@@ -2,7 +2,7 @@ package firecrawl
 
 import "encoding/json"
 
-// QueryFormatMode selects how query answers are generated.
+// QueryFormatMode selects how deprecated query answers are generated.
 type QueryFormatMode string
 
 const (
@@ -10,7 +10,45 @@ const (
 	QueryModeDirectQuote QueryFormatMode = "directQuote"
 )
 
+// QuestionFormat asks a question about page content.
+type QuestionFormat struct {
+	Question string `json:"question"`
+}
+
+// MarshalJSON always emits the API-required question format type.
+func (q QuestionFormat) MarshalJSON() ([]byte, error) {
+	type questionFormat struct {
+		Type     string `json:"type"`
+		Question string `json:"question"`
+	}
+
+	return json.Marshal(questionFormat{
+		Type:     "question",
+		Question: q.Question,
+	})
+}
+
+// HighlightsFormat extracts direct highlights from page content.
+type HighlightsFormat struct {
+	Query string `json:"query"`
+}
+
+// MarshalJSON always emits the API-required highlights format type.
+func (h HighlightsFormat) MarshalJSON() ([]byte, error) {
+	type highlightsFormat struct {
+		Type  string `json:"type"`
+		Query string `json:"query"`
+	}
+
+	return json.Marshal(highlightsFormat{
+		Type:  "highlights",
+		Query: h.Query,
+	})
+}
+
 // QueryFormat asks a question about page content.
+//
+// Deprecated: use QuestionFormat or HighlightsFormat instead.
 type QueryFormat struct {
 	Prompt string          `json:"prompt"`
 	Mode   QueryFormatMode `json:"mode,omitempty"`
@@ -56,7 +94,7 @@ type ScrapeOptions struct {
 	JsonOptions         *JsonOptions             `json:"jsonOptions,omitempty"`
 }
 
-// MarshalJSON preserves string formats while allowing object formats such as QueryFormat.
+// MarshalJSON preserves string formats while allowing object formats such as QuestionFormat.
 func (o ScrapeOptions) MarshalJSON() ([]byte, error) {
 	type scrapeOptions ScrapeOptions
 	payload := struct {

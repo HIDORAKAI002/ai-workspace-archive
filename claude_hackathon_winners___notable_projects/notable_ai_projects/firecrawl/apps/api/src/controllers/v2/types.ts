@@ -400,6 +400,21 @@ const attributesFormatWithOptions = z.strictObject({
 
 type AttributesFormatWithOptions = z.output<typeof attributesFormatWithOptions>;
 
+const questionFormatWithOptions = z.strictObject({
+  type: z.literal("question"),
+  question: z.string().min(1).max(10000),
+});
+
+type QuestionFormatWithOptions = z.output<typeof questionFormatWithOptions>;
+
+const highlightsFormatWithOptions = z.strictObject({
+  type: z.literal("highlights"),
+  query: z.string().min(1).max(10000),
+});
+
+type HighlightsFormatWithOptions = z.output<typeof highlightsFormatWithOptions>;
+
+/** @deprecated Use `question` or `highlights` format instead. */
 const queryFormatWithOptions = z.strictObject({
   type: z.literal("query"),
   prompt: z.string().max(10000),
@@ -419,6 +434,8 @@ export type FormatObject =
   | ChangeTrackingFormatWithOptions
   | ScreenshotFormatWithOptions
   | AttributesFormatWithOptions
+  | QuestionFormatWithOptions
+  | HighlightsFormatWithOptions
   | QueryFormatWithOptions
   | { type: "branding" }
   | { type: "audio" };
@@ -529,6 +546,8 @@ const baseScrapeOptions = z.strictObject({
           screenshotFormatWithOptions,
           attributesFormatWithOptions,
           z.strictObject({ type: z.literal("branding") }),
+          questionFormatWithOptions,
+          highlightsFormatWithOptions,
           queryFormatWithOptions,
           z.strictObject({ type: z.literal("audio") }),
         ])
@@ -1082,6 +1101,7 @@ export type Document = {
   json?: any;
   summary?: string;
   answer?: string;
+  highlights?: string;
   branding?: BrandingProfile;
   warning?: string;
   attributes?: {
@@ -1784,6 +1804,8 @@ export const searchRequestSchema = z
                 z.strictObject({ type: z.literal("images") }),
                 z.strictObject({ type: z.literal("summary") }),
                 jsonFormatWithOptions,
+                questionFormatWithOptions,
+                highlightsFormatWithOptions,
                 queryFormatWithOptions,
                 screenshotFormatWithOptions,
               ])

@@ -59,6 +59,12 @@ All params are passed as keyword lists with snake_case keys. Invalid keys, missi
 # Check crawl status
 {:ok, response} = Firecrawl.get_crawl_status("job-uuid")
 
+# Parse a file (PDF, DOCX, HTML, etc.)
+{:ok, response} = Firecrawl.parse_file(
+  [filename: "report.pdf", data: File.read!("report.pdf"), content_type: "application/pdf"],
+  formats: ["markdown"]
+)
+
 # Self-hosted instance
 {:ok, response} = Firecrawl.scrape_and_extract_from_url(
   [url: "https://example.com"],

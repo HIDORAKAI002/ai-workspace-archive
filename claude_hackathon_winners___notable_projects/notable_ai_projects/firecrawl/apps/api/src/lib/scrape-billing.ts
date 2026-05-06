@@ -75,7 +75,14 @@ export async function calculateCreditsToBeBilled(
     creditsToBeBilled = Math.ceil((costTrackingJSON.totalCost ?? 1) * 1800);
   }
 
-  if (hasFormatOfType(options.formats, "query")) {
+  const hasQuestionFormat =
+    hasFormatOfType(options.formats, "question") ||
+    hasFormatOfType(options.formats, "query");
+  if (hasQuestionFormat) {
+    creditsToBeBilled += 4;
+  }
+
+  if (hasFormatOfType(options.formats, "highlights")) {
     creditsToBeBilled += 4;
   }
 
