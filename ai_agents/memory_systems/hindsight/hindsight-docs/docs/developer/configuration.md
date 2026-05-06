@@ -20,6 +20,7 @@ The API service handles all memory operations (retain, recall, reflect).
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `HINDSIGHT_API_DATABASE_URL` | PostgreSQL connection string | `pg0` (embedded) |
+| `HINDSIGHT_API_READ_DATABASE_URL` | Optional read-replica PostgreSQL URL. When set, recall queries (semantic, BM25, graph, temporal) are routed through a separate connection pool against this URL, offloading the primary. Typically points to a read-only endpoint (e.g., CNPG's `<cluster>-ro` service or Aurora reader endpoint). | Unset (uses primary) |
 | `HINDSIGHT_API_MIGRATION_DATABASE_URL` | Direct PostgreSQL URL for running migrations, bypassing connection poolers (e.g. PgBouncer). When set, advisory locks and Alembic migrations use this URL instead of `DATABASE_URL`. | Falls back to `DATABASE_URL` |
 | `HINDSIGHT_API_DATABASE_SCHEMA` | PostgreSQL schema name for tables | `public` |
 | `HINDSIGHT_API_RUN_MIGRATIONS_ON_STARTUP` | Run database migrations on API startup | `true` |
@@ -43,8 +44,10 @@ Migrations will automatically create the schema if it doesn't exist and create a
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `HINDSIGHT_API_DB_POOL_MIN_SIZE` | Minimum connections in the pool | `5` |
-| `HINDSIGHT_API_DB_POOL_MAX_SIZE` | Maximum connections in the pool | `100` |
+| `HINDSIGHT_API_DB_POOL_MIN_SIZE` | Minimum connections in the primary pool | `5` |
+| `HINDSIGHT_API_DB_POOL_MAX_SIZE` | Maximum connections in the primary pool | `100` |
+| `HINDSIGHT_API_READ_DB_POOL_MIN_SIZE` | Minimum connections in the read-replica pool (only used when `READ_DATABASE_URL` is set) | Falls back to `DB_POOL_MIN_SIZE` |
+| `HINDSIGHT_API_READ_DB_POOL_MAX_SIZE` | Maximum connections in the read-replica pool (only used when `READ_DATABASE_URL` is set) | Falls back to `DB_POOL_MAX_SIZE` |
 | `HINDSIGHT_API_DB_COMMAND_TIMEOUT` | PostgreSQL command timeout in seconds (asyncpg client-side) | `60` |
 | `HINDSIGHT_API_DB_ACQUIRE_TIMEOUT` | Connection acquisition timeout in seconds | `30` |
 | `HINDSIGHT_API_DB_STATEMENT_TIMEOUT` | Postgres `statement_timeout` applied to every pool connection, in seconds. Server-side safety net for runaway queries. Does **not** apply to Alembic migrations (which run on a separate psycopg2 engine). Set to `0` to disable. | `600` |
