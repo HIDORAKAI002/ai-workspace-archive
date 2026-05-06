@@ -16,7 +16,6 @@ import (
 
 	"github.com/ollama/ollama/api"
 	"github.com/ollama/ollama/cmd/config"
-	"github.com/ollama/ollama/cmd/internal/fileutil"
 	"github.com/ollama/ollama/format"
 	internalcloud "github.com/ollama/ollama/internal/cloud"
 	"github.com/ollama/ollama/internal/modelref"
@@ -300,12 +299,7 @@ func pullMissingModel(ctx context.Context, client *api.Client, model string) err
 }
 
 // prepareEditorIntegration persists models and applies editor-managed config files.
-func prepareEditorIntegration(name string, runner Runner, editor Editor, models []string) error {
-	if ok, err := confirmConfigEdit(runner, editor.Paths()); err != nil {
-		return err
-	} else if !ok {
-		return errCancelled
-	}
+func prepareEditorIntegration(name string, editor Editor, models []string) error {
 	if err := editor.Edit(models); err != nil {
 		return fmt.Errorf("setup failed: %w", err)
 	}
@@ -315,12 +309,7 @@ func prepareEditorIntegration(name string, runner Runner, editor Editor, models 
 	return nil
 }
 
-func prepareManagedSingleIntegration(name string, runner Runner, managed ManagedSingleModel, model string, models []string) error {
-	if ok, err := confirmConfigEdit(runner, managed.Paths()); err != nil {
-		return err
-	} else if !ok {
-		return errCancelled
-	}
+func prepareManagedSingleIntegration(name string, managed ManagedSingleModel, model string, models []string) error {
 	models = dedupeModelList(append([]string{model}, models...))
 	var err error
 	if withModels, ok := managed.(ManagedModelListConfigurer); ok {
@@ -337,12 +326,7 @@ func prepareManagedSingleIntegration(name string, runner Runner, managed Managed
 	return nil
 }
 
-func prepareManagedAutodiscoveryIntegration(name string, runner Runner, autodiscovery ManagedAutodiscoveryIntegration, model string) error {
-	if ok, err := confirmConfigEdit(runner, autodiscovery.Paths()); err != nil {
-		return err
-	} else if !ok {
-		return errCancelled
-	}
+func prepareManagedAutodiscoveryIntegration(name string, autodiscovery ManagedAutodiscoveryIntegration, model string) error {
 	if err := autodiscovery.ConfigureAutodiscovery(); err != nil {
 		return fmt.Errorf("setup failed: %w", err)
 	}
@@ -350,20 +334,6 @@ func prepareManagedAutodiscoveryIntegration(name string, runner Runner, autodisc
 		return fmt.Errorf("failed to save: %w", err)
 	}
 	return nil
-}
-
-func confirmConfigEdit(runner Runner, paths []string) (bool, error) {
-	if len(paths) == 0 {
-		return true, nil
-	}
-
-	fmt.Fprintf(os.Stderr, "This will modify your %s configuration:\n", runner)
-	for _, path := range paths {
-		fmt.Fprintf(os.Stderr, "  %s\n", path)
-	}
-	fmt.Fprintf(os.Stderr, "Backups will be saved to %s/\n\n", fileutil.BackupDir())
-
-	return ConfirmPrompt("Proceed?")
 }
 
 // buildModelList merges existing models with recommendations for selection UIs.
