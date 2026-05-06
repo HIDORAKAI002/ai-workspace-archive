@@ -30,6 +30,7 @@ import pytest
 
 from pinecone import Admin, PineconeValueError
 from pinecone.errors import ApiError, NotFoundError
+from pinecone.models.admin.api_key import APIKeyList, APIKeyModel
 from pinecone.models.admin.organization import OrganizationList, OrganizationModel
 from pinecone.models.admin.project import ProjectList, ProjectModel
 
@@ -295,3 +296,200 @@ def test_project_lifecycle_create_describe_update_delete(admin: Admin) -> None:
     if _test_passed and created is not None:
         with pytest.raises(NotFoundError):
             admin.projects.describe(project_id=created.id)
+
+
+# ---------------------------------------------------------------------------
+# projects — validation (no credentials required)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_create_project_max_pods_negative() -> None:
+    """Projects.create() raises PineconeValueError for negative max_pods client-side.
+
+    Validation fires before any network call; no service-account credentials needed.
+    """
+    from pinecone._internal.config import PineconeConfig
+    from pinecone._internal.constants import ADMIN_API_VERSION
+    from pinecone._internal.http_client import HTTPClient
+    from pinecone.admin.projects import Projects
+
+    config = PineconeConfig(api_key="test-key", host="https://api.pinecone.io")
+    http = HTTPClient(config, ADMIN_API_VERSION)
+    projects = Projects(http=http)
+
+    with pytest.raises(PineconeValueError, match="max_pods"):
+        projects.create(name="my-project", max_pods=-1)
+
+
+@pytest.mark.integration
+def test_update_project_max_pods_negative() -> None:
+    """Projects.update() raises PineconeValueError for negative max_pods client-side.
+
+    Validation fires before any network call; no service-account credentials needed.
+    """
+    from pinecone._internal.config import PineconeConfig
+    from pinecone._internal.constants import ADMIN_API_VERSION
+    from pinecone._internal.http_client import HTTPClient
+    from pinecone.admin.projects import Projects
+
+    config = PineconeConfig(api_key="test-key", host="https://api.pinecone.io")
+    http = HTTPClient(config, ADMIN_API_VERSION)
+    projects = Projects(http=http)
+
+    with pytest.raises(PineconeValueError, match="max_pods"):
+        projects.update(project_id="proj-abc123", max_pods=-1)
+
+
+@pytest.mark.integration
+def test_update_project_name_empty() -> None:
+    """Projects.update() raises PineconeValueError when name is empty string client-side.
+
+    Validation fires before any network call; no service-account credentials needed.
+    """
+    from pinecone._internal.config import PineconeConfig
+    from pinecone._internal.constants import ADMIN_API_VERSION
+    from pinecone._internal.http_client import HTTPClient
+    from pinecone.admin.projects import Projects
+
+    config = PineconeConfig(api_key="test-key", host="https://api.pinecone.io")
+    http = HTTPClient(config, ADMIN_API_VERSION)
+    projects = Projects(http=http)
+
+    with pytest.raises(PineconeValueError, match="name cannot be empty"):
+        projects.update(project_id="proj-abc123", name="")
+
+
+@pytest.mark.integration
+def test_update_project_name_too_long() -> None:
+    """Projects.update() raises PineconeValueError when name exceeds 512 characters client-side.
+
+    Validation fires before any network call; no service-account credentials needed.
+    """
+    from pinecone._internal.config import PineconeConfig
+    from pinecone._internal.constants import ADMIN_API_VERSION
+    from pinecone._internal.http_client import HTTPClient
+    from pinecone.admin.projects import Projects
+
+    config = PineconeConfig(api_key="test-key", host="https://api.pinecone.io")
+    http = HTTPClient(config, ADMIN_API_VERSION)
+    projects = Projects(http=http)
+
+    with pytest.raises(PineconeValueError, match="name cannot be longer than 512 characters"):
+        projects.update(project_id="proj-abc123", name="x" * 513)
+
+
+@pytest.mark.integration
+def test_update_project_name_null_byte() -> None:
+    """Projects.update() raises PineconeValueError when name contains a null byte client-side.
+
+    Validation fires before any network call; no service-account credentials needed.
+    """
+    from pinecone._internal.config import PineconeConfig
+    from pinecone._internal.constants import ADMIN_API_VERSION
+    from pinecone._internal.http_client import HTTPClient
+    from pinecone.admin.projects import Projects
+
+    config = PineconeConfig(api_key="test-key", host="https://api.pinecone.io")
+    http = HTTPClient(config, ADMIN_API_VERSION)
+    projects = Projects(http=http)
+
+    with pytest.raises(PineconeValueError, match="name cannot contain null characters"):
+        projects.update(project_id="proj-abc123", name="valid\x00name")
+
+
+@pytest.mark.integration
+def test_create_project_name_too_long() -> None:
+    """Projects.create() raises PineconeValueError when name exceeds 512 characters.
+
+    Validation fires before any network call; no service-account credentials needed.
+    """
+    from pinecone._internal.config import PineconeConfig
+    from pinecone._internal.constants import ADMIN_API_VERSION
+    from pinecone._internal.http_client import HTTPClient
+    from pinecone.admin.projects import Projects
+
+    config = PineconeConfig(api_key="test-key", host="https://api.pinecone.io")
+    http = HTTPClient(config, ADMIN_API_VERSION)
+    projects = Projects(http=http)
+
+    with pytest.raises(PineconeValueError, match="name cannot be longer than 512 characters"):
+        projects.create(name="x" * 513)
+
+
+@pytest.mark.integration
+def test_create_project_name_null_byte() -> None:
+    """Projects.create() raises PineconeValueError when name contains a null byte.
+
+    Validation fires before any network call; no service-account credentials needed.
+    """
+    from pinecone._internal.config import PineconeConfig
+    from pinecone._internal.constants import ADMIN_API_VERSION
+    from pinecone._internal.http_client import HTTPClient
+    from pinecone.admin.projects import Projects
+
+    config = PineconeConfig(api_key="test-key", host="https://api.pinecone.io")
+    http = HTTPClient(config, ADMIN_API_VERSION)
+    projects = Projects(http=http)
+
+    with pytest.raises(PineconeValueError, match="name cannot contain null characters"):
+        projects.create(name="valid\x00name")
+
+
+# ---------------------------------------------------------------------------
+# api_keys — validation (no credentials required)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_api_key_create_name_too_long() -> None:
+    """ApiKeys.create() raises PineconeValueError when name exceeds 80 characters.
+
+    Validation fires before any network call; no service-account credentials needed.
+    """
+    from pinecone._internal.config import PineconeConfig
+    from pinecone._internal.constants import ADMIN_API_VERSION
+    from pinecone._internal.http_client import HTTPClient
+    from pinecone.admin.api_keys import ApiKeys
+
+    config = PineconeConfig(api_key="test-key", host="https://api.pinecone.io")
+    http = HTTPClient(config, ADMIN_API_VERSION)
+    api_keys = ApiKeys(http=http)
+
+    with pytest.raises(PineconeValueError, match="name"):
+        api_keys.create(project_id="proj-abc123", name="x" * 81)
+
+
+# ---------------------------------------------------------------------------
+# api_keys — name-nullability
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_api_key_list_name_optional(admin: Admin) -> None:
+    """api_keys.list() accepts keys whose name field may be None.
+
+    Creates an ephemeral API key, lists keys for the project, and verifies
+    that every returned key's name field is str | None.  Cleans up in a
+    finally block.
+    """
+    projects = admin.projects.list()
+    assert len(projects) >= 1, "need at least one project for this test"
+    project = projects[0]
+    key_id: str | None = None
+
+    try:
+        created = admin.api_keys.create(project_id=project.id, name="inttest-name-optional")
+        key_id = created.key.id
+
+        keys = admin.api_keys.list(project_id=project.id)
+        assert isinstance(keys, APIKeyList)
+        for key in keys:
+            assert isinstance(key, APIKeyModel)
+            assert isinstance(key.name, (str, type(None)))
+    finally:
+        if key_id is not None:
+            try:
+                admin.api_keys.delete(api_key_id=key_id)
+            except Exception as e:
+                print(f"Cleanup failed for api key {key_id!r}: {e}")

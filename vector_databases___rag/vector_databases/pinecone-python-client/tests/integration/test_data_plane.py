@@ -5,10 +5,14 @@ from __future__ import annotations
 from concurrent.futures import as_completed
 from typing import Any
 
+import httpx
+import orjson
 import pytest
+import respx
 
 from pinecone import GrpcIndex, Index, Pinecone
 from pinecone.errors import ApiError, ConflictError, PineconeValueError
+from pinecone.errors.exceptions import ValidationError
 from pinecone.grpc.future import PineconeFuture
 from pinecone.models.indexes.specs import ServerlessSpec
 from pinecone.models.namespaces.models import ListNamespacesResponse, NamespaceDescription
@@ -2151,3 +2155,219 @@ def test_async_req_concurrent_fanout_rest(client_pool: Pinecone) -> None:
             assert all(len(q.matches) > 0 for q in resolved)
     finally:
         cleanup_resource(lambda: client_pool.indexes.delete(name), name, "index")
+
+
+# ---------------------------------------------------------------------------
+# search with dense vector — wire format (mock HTTP)
+# ---------------------------------------------------------------------------
+
+_SEARCH_HOST = "dense-vec-test.svc.pinecone.io"
+_SEARCH_URL = f"https://{_SEARCH_HOST}/records/namespaces/vec-ns/search"
+_SEARCH_MOCK_RESPONSE: dict[str, object] = {
+    "result": {
+        "hits": [
+            {"_id": "r1", "_score": 0.91},
+            {"_id": "r2", "_score": 0.75},
+        ]
+    },
+    "usage": {"read_units": 3},
+}
+
+
+@respx.mock
+def test_search_with_dense_vector() -> None:
+    """search(vector=...) sends vector as {"values": [...]} object, not a bare array.
+
+    Verifies SYNC-0098: the wire payload for a dense-vector query must be
+    {"query": {"vector": {"values": [...]}, ...}} so serde on the backend can
+    deserialize RecordsVectorQuery correctly.
+    """
+    route = respx.post(_SEARCH_URL).mock(
+        return_value=httpx.Response(200, json=_SEARCH_MOCK_RESPONSE),
+    )
+    idx = Index(host=_SEARCH_HOST, api_key="test-key")
+    response = idx.search(namespace="vec-ns", top_k=3, vector=[0.1, 0.2, 0.3])
+
+    body = orjson.loads(route.calls.last.request.content)
+    assert body["query"]["vector"] == {"values": [0.1, 0.2, 0.3]}, (
+        f"Expected vector as object with 'values' key; got {body['query']['vector']!r}"
+    )
+    assert isinstance(response.result.hits, list)
+    assert response.usage.read_units >= 0
+
+
+# ---------------------------------------------------------------------------
+# search with sparse/hybrid vector — wire format (mock HTTP)
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+def test_search_with_sparse_vector() -> None:
+    """search(vector=dict) passes the dict through as-is for sparse/hybrid queries.
+
+    Verifies AGT-0046: a Mapping passed as vector is forwarded verbatim so that
+    sparse_indices and sparse_values reach the backend without wrapping.
+    """
+    route = respx.post(_SEARCH_URL).mock(
+        return_value=httpx.Response(200, json=_SEARCH_MOCK_RESPONSE),
+    )
+    idx = Index(host=_SEARCH_HOST, api_key="test-key")
+    response = idx.search(
+        namespace="vec-ns",
+        top_k=3,
+        vector={"sparse_indices": [10, 20], "sparse_values": [0.5, 0.3]},
+    )
+
+    body = orjson.loads(route.calls.last.request.content)
+    assert body["query"]["vector"] == {"sparse_indices": [10, 20], "sparse_values": [0.5, 0.3]}
+    assert isinstance(response.result.hits, list)
+    assert response.usage.read_units >= 0
+
+
+@respx.mock
+def test_search_with_hybrid_vector() -> None:
+    """search(vector=dict) with both dense values and sparse indices is passed through."""
+    route = respx.post(_SEARCH_URL).mock(
+        return_value=httpx.Response(200, json=_SEARCH_MOCK_RESPONSE),
+    )
+    idx = Index(host=_SEARCH_HOST, api_key="test-key")
+    response = idx.search(
+        namespace="vec-ns",
+        top_k=3,
+        vector={
+            "values": [0.1, 0.2, 0.3],
+            "sparse_indices": [10, 20],
+            "sparse_values": [0.5, 0.3],
+        },
+    )
+
+    body = orjson.loads(route.calls.last.request.content)
+    assert body["query"]["vector"] == {
+        "values": [0.1, 0.2, 0.3],
+        "sparse_indices": [10, 20],
+        "sparse_values": [0.5, 0.3],
+    }
+    assert isinstance(response.result.hits, list)
+
+
+# ---------------------------------------------------------------------------
+# async search with sparse/hybrid vector — wire format (mock HTTP)
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+@pytest.mark.anyio
+async def test_async_search_with_sparse_vector() -> None:
+    """AsyncIndex.search(vector=dict) passes the dict through as-is for sparse queries."""
+    from pinecone.async_client.async_index import AsyncIndex
+
+    route = respx.post(_SEARCH_URL).mock(
+        return_value=httpx.Response(200, json=_SEARCH_MOCK_RESPONSE),
+    )
+    idx = AsyncIndex(host=_SEARCH_HOST, api_key="test-key")
+    response = await idx.search(
+        namespace="vec-ns",
+        top_k=3,
+        vector={"sparse_indices": [10, 20], "sparse_values": [0.5, 0.3]},
+    )
+
+    body = orjson.loads(route.calls.last.request.content)
+    assert body["query"]["vector"] == {"sparse_indices": [10, 20], "sparse_values": [0.5, 0.3]}
+    assert isinstance(response.result.hits, list)
+    assert response.usage.read_units >= 0
+
+
+# ---------------------------------------------------------------------------
+# upsert_records — client-side ID validation
+# ---------------------------------------------------------------------------
+
+
+def test_upsert_records_id_must_be_string() -> None:
+    """upsert_records raises ValidationError when '_id' is not a string."""
+    idx = Index(host="my-index.svc.pinecone.io", api_key="test-key")
+    with pytest.raises(ValidationError, match="'_id' must be a string"):
+        idx.upsert_records(namespace="ns", records=[{"_id": 123, "text": "hello"}])
+
+
+def test_upsert_records_both_id_fields_rejected() -> None:
+    """upsert_records raises ValidationError when record has both '_id' and 'id' fields."""
+    idx = Index(host="my-index.svc.pinecone.io", api_key="test-key")
+    with pytest.raises(ValidationError, match="cannot have both '_id' and 'id'"):
+        idx.upsert_records(namespace="ns", records=[{"_id": "a", "id": "b", "text": "hello"}])
+
+
+# ---------------------------------------------------------------------------
+# start_import — error_mode default behavior (mock HTTP)
+# ---------------------------------------------------------------------------
+
+_IMPORTS_HOST = "test-index-abc1234.svc.us-east1-gcp.pinecone.io"
+_IMPORTS_URL = f"https://{_IMPORTS_HOST}/bulk/imports"
+
+
+# ---------------------------------------------------------------------------
+# fetch_by_metadata — client-side limit validation
+# ---------------------------------------------------------------------------
+
+
+def test_fetch_by_metadata_limit_validation() -> None:
+    """fetch_by_metadata raises when limit=0 (minimum is 1 per OAS spec)."""
+    idx = Index(host="my-index.svc.pinecone.io", api_key="test-key")
+    with pytest.raises((PineconeValueError, ValidationError), match="limit"):
+        idx.fetch_by_metadata(filter={"a": "b"}, limit=0)
+
+
+def test_fetch_by_metadata_limit_validation_negative() -> None:
+    """fetch_by_metadata raises when limit is negative."""
+    idx = Index(host="my-index.svc.pinecone.io", api_key="test-key")
+    with pytest.raises((PineconeValueError, ValidationError), match="limit"):
+        idx.fetch_by_metadata(filter={"a": "b"}, limit=-5)
+
+
+# ---------------------------------------------------------------------------
+# start_import — error_mode default behavior (mock HTTP)
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+def test_start_import_error_mode_default() -> None:
+    """Calling start_import without error_mode omits errorMode from request body."""
+    from pinecone.models.imports.model import StartImportResponse
+
+    route = respx.post(_IMPORTS_URL).mock(
+        return_value=httpx.Response(200, json={"id": "import-default"}),
+    )
+    idx = Index(host=_IMPORTS_HOST, api_key="test-key")
+    result = idx.start_import(uri="s3://my-bucket/vectors/")
+
+    assert isinstance(result, StartImportResponse)
+    assert result.id == "import-default"
+
+    body = orjson.loads(route.calls.last.request.content)
+    assert body["uri"] == "s3://my-bucket/vectors/"
+    assert "errorMode" not in body
+
+
+@respx.mock
+def test_start_import_error_mode_abort_in_body() -> None:
+    """Calling start_import(error_mode='abort') sends errorMode.onError='abort'."""
+    route = respx.post(_IMPORTS_URL).mock(
+        return_value=httpx.Response(200, json={"id": "import-abort"}),
+    )
+    idx = Index(host=_IMPORTS_HOST, api_key="test-key")
+    idx.start_import(uri="s3://my-bucket/vectors/", error_mode="abort")
+
+    body = orjson.loads(route.calls.last.request.content)
+    assert body["errorMode"] == {"onError": "abort"}
+
+
+@respx.mock
+def test_start_import_error_mode_continue_in_body() -> None:
+    """Calling start_import(error_mode='continue') sends errorMode.onError='continue'."""
+    route = respx.post(_IMPORTS_URL).mock(
+        return_value=httpx.Response(200, json={"id": "import-continue"}),
+    )
+    idx = Index(host=_IMPORTS_HOST, api_key="test-key")
+    idx.start_import(uri="s3://my-bucket/vectors/", error_mode="continue")
+
+    body = orjson.loads(route.calls.last.request.content)
+    assert body["errorMode"] == {"onError": "continue"}

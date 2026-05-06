@@ -34,6 +34,6 @@ tts_callback.flush()
 
 ## Related
 
-- [Single agent speech](https://docs.swarms.world/swarms/examples/single_agent_speech/) documentation
-- [Hierarchical speech swarm](https://docs.swarms.world/swarms/examples/hierarchical_speech_swarm/) documentation
+- [Examples index](https://docs.swarms.world/examples/overviews/examples-index) — full list of runnable examples
+- [Streaming agents](https://docs.swarms.world/examples/agents/agent-streaming) — token-streaming patterns used by the voice callback
 - [guides/changelog_890/](../guides/changelog_890/) and [guides/880_update_changelog_examples/](../guides/880_update_changelog_examples/) for more voice examples

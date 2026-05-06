@@ -1,9 +1,13 @@
-import { persistPxiExperiment } from "./experimentPersistence";
+import {
+  persistPxiExperiment,
+  PXI_EXPERIMENT_EXAMPLES,
+} from "./experimentPersistence";
 import { expect, test } from "./fixtures";
 import { getRequiredJudgeApiKeyEnv } from "./judge";
 import { assertPxiOutcome, evaluatePxiOutcome } from "./outcome";
 
-const USER_PROMPT = "How do I change the default project name";
+const EXPERIMENT_EXAMPLE = PXI_EXPERIMENT_EXAMPLES.docsSmoke;
+const USER_PROMPT = EXPERIMENT_EXAMPLE.prompt;
 
 const JUDGE_RUBRIC = [
   "The answer is grounded in Phoenix documentation.",
@@ -51,6 +55,8 @@ test.describe("PXI docs smoke", () => {
     const outcome = await evaluatePxiOutcome({
       assertions: async () => {
         await pxi.expectNoAgentError();
+        const calledTools = await pxi.expectBackendToolSpanCalled(turn);
+        turn.calledTools = calledTools;
         pxi.expectDocsToolCalled(turn);
         expect(turn.assistantText).toContain("PHOENIX_PROJECT_NAME");
       },
@@ -66,7 +72,7 @@ test.describe("PXI docs smoke", () => {
     await persistPxiExperiment({
       request,
       record: {
-        prompt: USER_PROMPT,
+        example: EXPERIMENT_EXAMPLE,
         assistantText: turn.assistantText,
         calledTools: turn.calledTools,
         url: page.url(),

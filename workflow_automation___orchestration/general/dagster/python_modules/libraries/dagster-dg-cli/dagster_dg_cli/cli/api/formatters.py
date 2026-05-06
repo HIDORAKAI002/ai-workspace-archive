@@ -302,13 +302,13 @@ def _format_asset_status_lines(status) -> list[str]:
 
     # Overall health status
     if status.asset_health:
-        lines.append(f"Asset Health: {status.asset_health}")
+        lines.append(f"Asset Health: {status.asset_health.value}")
     if status.materialization_status:
-        lines.append(f"Materialization Status: {status.materialization_status}")
+        lines.append(f"Materialization Status: {status.materialization_status.value}")
     if status.freshness_status:
-        lines.append(f"Freshness Status: {status.freshness_status}")
+        lines.append(f"Freshness Status: {status.freshness_status.value}")
     if status.asset_checks_status:
-        lines.append(f"Asset Checks Status: {status.asset_checks_status}")
+        lines.append(f"Asset Checks Status: {status.asset_checks_status.value}")
 
     # Health metadata details
     if status.health_metadata:

@@ -303,6 +303,7 @@ class AssetReportingMetricsFilter(BaseModel):
     code_locations: Optional[List[Optional["RepositoryCodeLocation"]]] = Field(
         alias="codeLocations", default=None
     )
+    connections: Optional[List[Optional["ReportingConnection"]]] = None
     asset_selection: Optional[str] = Field(alias="assetSelection", default=None)
     limit: Optional[int] = None
 
@@ -315,6 +316,10 @@ class QualifiedAssetGroup(BaseModel):
     code_location_name: Optional[str] = Field(alias="codeLocationName", default=None)
     repository_name: Optional[str] = Field(alias="repositoryName", default=None)
     asset_group_name: Optional[str] = Field(alias="assetGroupName", default=None)
+
+
+class ReportingConnection(BaseModel):
+    connection_id: str = Field(alias="connectionId")
 
 
 class AssetGroupReportingMetricsFilter(BaseModel):

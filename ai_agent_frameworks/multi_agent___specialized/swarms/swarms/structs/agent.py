@@ -2009,7 +2009,7 @@ class Agent:
             f"Traceback:\n{traceback_info}\n"
             f"Agent State: {self.to_dict()}\n"
             f"Please optimize your input parameters, or create an issue on the Swarms GitHub and contact our team on Discord for support. "
-            f"For technical support, refer to this document: https://docs.swarms.world/swarms/support/"
+            f"For technical support, refer to this document: https://docs.swarms.world/community/technical-support"
         )
 
         raise error
@@ -4860,7 +4860,7 @@ Subtask Breakdown:
                 f"Agent Name: {self.agent_name} Keyboard interrupt detected. "
                 "If autosave is enabled, the agent's state will be saved to the workspace directory. "
                 "To enable autosave, please initialize the agent with Agent(autosave=True)."
-                "For technical support, refer to this document: https://docs.swarms.world/swarms/support/"
+                "For technical support, refer to this document: https://docs.swarms.world/community/technical-support"
             )
             raise KeyboardInterrupt
 

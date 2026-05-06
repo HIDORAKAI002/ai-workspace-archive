@@ -134,7 +134,7 @@ def test_create_assistant_region_case_sensitive(assistants: Assistants) -> None:
 
 @respx.mock
 def test_create_assistant_defaults(assistants: Assistants) -> None:
-    """Default region is 'us', metadata is {}, instructions is None."""
+    """Default region is 'us', metadata is omitted from body, instructions is None."""
     route = respx.post(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
     )
@@ -150,7 +150,7 @@ def test_create_assistant_defaults(assistants: Assistants) -> None:
     request = route.calls.last.request
     body = json.loads(request.content)
     assert body["region"] == "us"
-    assert body["metadata"] == {}
+    assert "metadata" not in body
     assert body["instructions"] is None
 
 
@@ -431,6 +431,46 @@ def test_create_assistant_initialization_failed_status(
     assert "InitializationFailed" in str(exc_info.value)
 
 
+@respx.mock
+@patch("pinecone.client.assistants.time.sleep")
+def test_create_assistant_poll_terminal_terminated(
+    mock_sleep: object, assistants: Assistants
+) -> None:
+    """'Terminated' status raises PineconeError immediately instead of looping."""
+    respx.post(f"{BASE_URL}/assistant/assistants").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
+    )
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Terminated")),
+    )
+
+    with pytest.raises(PineconeError, match="terminal state") as exc_info:
+        assistants.create(name="test-assistant", timeout=None)
+
+    assert "Terminated" in str(exc_info.value)
+    assert "pc.assistants.describe" in str(exc_info.value)
+
+
+@respx.mock
+@patch("pinecone.client.assistants.time.sleep")
+def test_create_assistant_poll_terminal_terminating(
+    mock_sleep: object, assistants: Assistants
+) -> None:
+    """'Terminating' status raises PineconeError immediately instead of looping."""
+    respx.post(f"{BASE_URL}/assistant/assistants").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Initializing")),
+    )
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Terminating")),
+    )
+
+    with pytest.raises(PineconeError, match="terminal state") as exc_info:
+        assistants.create(name="test-assistant", timeout=None)
+
+    assert "Terminating" in str(exc_info.value)
+    assert "pc.assistants.describe" in str(exc_info.value)
+
+
 # ---------------------------------------------------------------------------
 # create() — valid regions accepted
 # ---------------------------------------------------------------------------
@@ -462,6 +502,81 @@ def test_create_assistant_accepts_eu_region(assistants: Assistants) -> None:
 
     result = assistants.create(name="test-assistant", region="eu")
     assert isinstance(result, AssistantModel)
+
+
+@respx.mock
+def test_create_assistant_metadata_default_omitted(assistants: Assistants) -> None:
+    """When metadata is not provided, the 'metadata' key is absent from the request body."""
+    route = respx.post(f"{BASE_URL}/assistant/assistants").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
+    )
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
+    )
+
+    assistants.create(name="test-assistant", timeout=-1)
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert "metadata" not in body
+
+
+@respx.mock
+def test_create_assistant_metadata_explicit_dict_included(assistants: Assistants) -> None:
+    """When metadata is provided, it is sent in the request body."""
+    route = respx.post(f"{BASE_URL}/assistant/assistants").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
+    )
+
+    assistants.create(name="test-assistant", metadata={"key": "value"}, timeout=-1)
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert body["metadata"] == {"key": "value"}
+
+
+@respx.mock
+def test_create_assistant_environment_omitted_by_default(assistants: Assistants) -> None:
+    """When environment is not provided, the 'environment' key is absent from the request body."""
+    route = respx.post(f"{BASE_URL}/assistant/assistants").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
+    )
+
+    assistants.create(name="test-assistant", timeout=-1)
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert "environment" not in body
+
+
+@respx.mock
+def test_create_assistant_environment_included_when_provided(assistants: Assistants) -> None:
+    """When environment is provided, it is sent in the request body."""
+    route = respx.post(f"{BASE_URL}/assistant/assistants").mock(
+        return_value=httpx.Response(200, json=make_assistant_response(status="Ready")),
+    )
+
+    assistants.create(name="test-assistant", environment="prod-us", timeout=-1)
+
+    request = route.calls.last.request
+    body = json.loads(request.content)
+    assert body["environment"] == "prod-us"
+
+
+@respx.mock
+def test_create_assistant_environment_403_propagates(assistants: Assistants) -> None:
+    """A 403 from the backend when environment is set propagates as ApiError."""
+    from pinecone.errors.exceptions import ApiError
+
+    respx.post(f"{BASE_URL}/assistant/assistants").mock(
+        return_value=httpx.Response(
+            403, json={"error": {"code": "FORBIDDEN", "message": "Not authorized"}}
+        ),
+    )
+
+    with pytest.raises(ApiError) as exc_info:
+        assistants.create(name="test-assistant", environment="prod-us", timeout=-1)
+    assert exc_info.value.status_code == 403
 
 
 # ---------------------------------------------------------------------------
@@ -578,14 +693,14 @@ def test_list_assistants_multi_page(assistants: Assistants) -> None:
                 200,
                 json={
                     "assistants": [make_assistant_response(name="a1")],
-                    "next": "token-page2",
+                    "pagination": {"next": "token-page2"},
                 },
             ),
             httpx.Response(
                 200,
                 json={
                     "assistants": [make_assistant_response(name="a2")],
-                    "next": "token-page3",
+                    "pagination": {"next": "token-page3"},
                 },
             ),
             httpx.Response(
@@ -677,7 +792,7 @@ def test_list_assistants_pages(assistants: Assistants) -> None:
                 200,
                 json={
                     "assistants": [make_assistant_response(name="a1")],
-                    "next": "token-next",
+                    "pagination": {"next": "token-next"},
                 },
             ),
             httpx.Response(
@@ -715,7 +830,7 @@ def test_list_assistants_with_pagination_token(assistants: Assistants) -> None:
     assert len(result) == 1
     assert result[0].name == "a2"
     request = route.calls.last.request
-    assert "paginationToken=tok-page2" in str(request.url)
+    assert "pagination_token=tok-page2" in str(request.url)
 
 
 # ---------------------------------------------------------------------------
@@ -731,7 +846,7 @@ def test_list_assistants_page(assistants: Assistants) -> None:
             200,
             json={
                 "assistants": [make_assistant_response(name="a1")],
-                "next": "token-next",
+                "pagination": {"next": "token-next"},
             },
         ),
     )
@@ -764,7 +879,7 @@ def test_list_assistants_page_last_page(assistants: Assistants) -> None:
 
 @respx.mock
 def test_list_assistants_page_with_page_size(assistants: Assistants) -> None:
-    """list_page() sends pageSize query param when provided."""
+    """list_page() sends limit query param when provided."""
     route = respx.get(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json={"assistants": []}),
     )
@@ -772,12 +887,12 @@ def test_list_assistants_page_with_page_size(assistants: Assistants) -> None:
     assistants.list_page(page_size=5)
 
     request = route.calls.last.request
-    assert "pageSize=5" in str(request.url)
+    assert "limit=5" in str(request.url)
 
 
 @respx.mock
 def test_list_assistants_page_with_pagination_token(assistants: Assistants) -> None:
-    """list_page() sends paginationToken query param when provided."""
+    """list_page() sends pagination_token query param when provided."""
     route = respx.get(f"{BASE_URL}/assistant/assistants").mock(
         return_value=httpx.Response(200, json={"assistants": []}),
     )
@@ -785,7 +900,7 @@ def test_list_assistants_page_with_pagination_token(assistants: Assistants) -> N
     assistants.list_page(pagination_token="abc123")
 
     request = route.calls.last.request
-    assert "paginationToken=abc123" in str(request.url)
+    assert "pagination_token=abc123" in str(request.url)
 
 
 # ---------------------------------------------------------------------------
@@ -1106,8 +1221,8 @@ def test_list_assistants_page_omits_none_params(assistants: Assistants) -> None:
     assistants.list_page()
 
     request = route.calls.last.request
-    assert "pageSize" not in str(request.url)
-    assert "paginationToken" not in str(request.url)
+    assert "limit" not in str(request.url)
+    assert "pagination_token" not in str(request.url)
 
 
 CONTROL_PLANE_URL = "https://api.pinecone.io"
@@ -1332,8 +1447,10 @@ def test_upload_file_with_metadata_and_file_id(mock_sleep: object, assistants: A
     # file_id is in the path, not a query param
     assert "/files/test-assistant/custom-file-id" in url_str
     assert "file_id=" not in url_str
-    # Metadata is still sent as a query param
-    assert "metadata=" in url_str
+    # v202604 rejects metadata as a query param; it must be in the multipart body
+    assert "metadata=" not in url_str
+    body = request.content.decode("latin-1")
+    assert "genre" in body and "comedy" in body
     # Returned model has the caller-specified file id
     assert isinstance(result, AssistantFileModel)
     assert result.id == "custom-file-id"
@@ -1406,6 +1523,39 @@ def test_upload_file_processing_failed(mock_sleep: object, assistants: Assistant
         assistants.upload_file(
             assistant_name="test-assistant",
             file_stream=stream,
+        )
+
+
+# ---------------------------------------------------------------------------
+# upload_file() — upsert operation failure (error_message field name)
+# ---------------------------------------------------------------------------
+
+
+@respx.mock
+@patch("pinecone.client.assistants.time.sleep")
+def test_upload_file_upsert_error_message(mock_sleep: object, assistants: Assistants) -> None:
+    """Upsert polling surfaces backend error_message, not the fallback 'Unknown operation error'."""
+    respx.get(f"{BASE_URL}/assistant/assistants/test-assistant").mock(
+        return_value=httpx.Response(200, json=make_assistant_response()),
+    )
+    respx.put(f"{DATA_PLANE_URL}/files/test-assistant/custom-file-id").mock(
+        return_value=httpx.Response(202, json=make_operation_response(status="Processing")),
+    )
+    respx.get(f"{DATA_PLANE_URL}/operations/test-assistant/op-abc123").mock(
+        return_value=httpx.Response(
+            200,
+            json=make_operation_response(
+                status="Failed", error_message="Conflict: file already being processed"
+            ),
+        ),
+    )
+
+    stream = io.BytesIO(b"data")
+    with pytest.raises(PineconeError, match="Conflict: file already being processed"):
+        assistants.upload_file(
+            assistant_name="test-assistant",
+            file_stream=stream,
+            file_id="custom-file-id",
         )
 
 
@@ -1594,7 +1744,7 @@ def test_list_files_page_success(assistants: Assistants) -> None:
             200,
             json={
                 "files": [make_assistant_file_response()],
-                "next": "token-next",
+                "pagination": {"next": "token-next"},
             },
         ),
     )
@@ -1767,14 +1917,14 @@ def test_list_files_multi_page(assistants: Assistants) -> None:
                 200,
                 json={
                     "files": [make_assistant_file_response(id="f1", name="file1.pdf")],
-                    "next": "token-page2",
+                    "pagination": {"next": "token-page2"},
                 },
             ),
             httpx.Response(
                 200,
                 json={
                     "files": [make_assistant_file_response(id="f2", name="file2.pdf")],
-                    "next": "token-page3",
+                    "pagination": {"next": "token-page3"},
                 },
             ),
             httpx.Response(
@@ -1854,7 +2004,7 @@ def test_list_files_with_limit(assistants: Assistants) -> None:
                     make_assistant_file_response(id="f2", name="file2.pdf"),
                     make_assistant_file_response(id="f3", name="file3.pdf"),
                 ],
-                "next": "more",
+                "pagination": {"next": "more"},
             },
         ),
     )
@@ -1878,7 +2028,7 @@ def test_list_files_pages(assistants: Assistants) -> None:
                 200,
                 json={
                     "files": [make_assistant_file_response(id="f1", name="file1.pdf")],
-                    "next": "token-next",
+                    "pagination": {"next": "token-next"},
                 },
             ),
             httpx.Response(
@@ -1936,7 +2086,7 @@ def test_list_files_propagates_filter_through_pages(assistants: Assistants) -> N
                 200,
                 json={
                     "files": [make_assistant_file_response(id="f1", name="file1.pdf")],
-                    "next": "token-p2",
+                    "pagination": {"next": "token-p2"},
                 },
             ),
             httpx.Response(
@@ -2737,6 +2887,18 @@ def test_context_empty_list_messages(assistants: Assistants) -> None:
         assistants.context(assistant_name="test-assistant", messages=[])
 
 
+def test_context_top_k_negative_raises(assistants: Assistants) -> None:
+    """Negative top_k raises PineconeValueError before any HTTP call."""
+    with pytest.raises(PineconeValueError, match="top_k"):
+        assistants.context(assistant_name="test-assistant", query="test", top_k=-1)
+
+
+def test_context_snippet_size_negative_raises(assistants: Assistants) -> None:
+    """Negative snippet_size raises PineconeValueError before any HTTP call."""
+    with pytest.raises(PineconeValueError, match="snippet_size"):
+        assistants.context(assistant_name="test-assistant", query="test", snippet_size=-1)
+
+
 # ---------------------------------------------------------------------------
 # context() — success with query
 # ---------------------------------------------------------------------------
@@ -3089,7 +3251,7 @@ def test_model_to_dict_recursive() -> None:
     from pinecone.models.assistant.list import ListAssistantsResponse
 
     assistant = _make_assistant_model(metadata=None)
-    response = ListAssistantsResponse(assistants=[assistant], next=None)
+    response = ListAssistantsResponse(assistants=[assistant])
 
     # Attribute access still works; nested entity models still have to_dict()
     assert len(response.assistants) == 1
@@ -3153,6 +3315,7 @@ def test_evaluate_alignment(assistants: Assistants) -> None:
     assert len(result.facts) == 1
     assert result.facts[0].fact == "Madrid is the capital of Spain."
     assert result.facts[0].entailment == "entailed"
+    assert result.facts[0].reasoning == "The answer states Barcelona but Madrid is the capital."
     assert result.usage.prompt_tokens == 120
     assert result.usage.completion_tokens == 40
     assert result.usage.total_tokens == 160
@@ -3230,6 +3393,53 @@ def test_evaluate_alignment_uses_api_key(assistants: Assistants) -> None:
 
     request = route.calls.last.request
     assert request.headers.get("Api-Key") == "test-key"
+
+
+@respx.mock
+def test_evaluate_alignment_reasoning_field(assistants: Assistants) -> None:
+    """evaluate_alignment() populates EntailmentResult.reasoning from the API response."""
+    from pinecone.models.assistant.evaluation import AlignmentResult
+
+    respx.post(f"{EVAL_BASE_URL}/evaluation/metrics/alignment").mock(
+        return_value=httpx.Response(200, json=make_alignment_response()),
+    )
+
+    result = assistants.evaluate_alignment(
+        question="What is the capital of Spain?",
+        answer="Barcelona.",
+        ground_truth_answer="Madrid.",
+    )
+
+    assert isinstance(result, AlignmentResult)
+    assert all(isinstance(f.reasoning, str) for f in result.facts)
+    # The factory includes a non-empty reasoning string
+    assert result.facts[0].reasoning == "The answer states Barcelona but Madrid is the capital."
+
+
+@respx.mock
+def test_evaluate_alignment_reasoning_defaults_to_empty(assistants: Assistants) -> None:
+    """evaluate_alignment() uses empty string for reasoning when API omits the field."""
+    from pinecone.models.assistant.evaluation import AlignmentResult
+
+    response_without_reasoning = make_alignment_response(
+        reasoning={
+            "evaluated_facts": [
+                {"fact": {"content": "Fact without reasoning."}, "entailment": "entailed"}
+            ]
+        }
+    )
+    respx.post(f"{EVAL_BASE_URL}/evaluation/metrics/alignment").mock(
+        return_value=httpx.Response(200, json=response_without_reasoning),
+    )
+
+    result = assistants.evaluate_alignment(
+        question="Q?",
+        answer="A.",
+        ground_truth_answer="GT.",
+    )
+
+    assert isinstance(result, AlignmentResult)
+    assert result.facts[0].reasoning == ""
 
 
 # ---------------------------------------------------------------------------
@@ -3399,3 +3609,73 @@ class TestAssistantsClose:
 
         assistants.close()
         assistants.close()
+
+
+# ---------------------------------------------------------------------------
+# ChatCompletionMessage optional fields
+# ---------------------------------------------------------------------------
+
+
+def test_chat_completion_choice_message_optional_fields() -> None:
+    """ChatCompletionMessage decodes successfully when role and content are absent."""
+    import msgspec
+
+    from pinecone.models.assistant.chat import ChatCompletionMessage, ChatCompletionResponse
+
+    payload = msgspec.json.encode(
+        {
+            "id": "chatcmpl-empty",
+            "model": "gpt-4o",
+            "usage": {"prompt_tokens": 5, "completion_tokens": 0, "total_tokens": 5},
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {},
+                    "finish_reason": "stop",
+                }
+            ],
+        }
+    )
+
+    response = msgspec.json.decode(payload, type=ChatCompletionResponse)
+    assert response.choices[0].message.role is None
+    assert response.choices[0].message.content is None
+    assert isinstance(response.choices[0].message, ChatCompletionMessage)
+
+
+# ---------------------------------------------------------------------------
+# ChatCompletionStreamChunk usage field
+# ---------------------------------------------------------------------------
+
+
+def test_chat_completion_stream_chunk_usage() -> None:
+    """ChatCompletionStreamChunk captures usage when present in an SSE data line."""
+    import orjson
+
+    from pinecone.models.assistant.chat import ChatUsage
+    from pinecone.models.assistant.streaming import ChatCompletionStreamChunk
+
+    raw = orjson.loads(
+        b'{"id": "cmpl-end", "choices": [], "usage": {"prompt_tokens": 10, "completion_tokens": 5, "total_tokens": 15}}'
+    )
+    chunk = msgspec.convert(raw, ChatCompletionStreamChunk)
+
+    assert chunk.usage is not None
+    assert isinstance(chunk.usage, ChatUsage)
+    assert chunk.usage.prompt_tokens == 10
+    assert chunk.usage.completion_tokens == 5
+    assert chunk.usage.total_tokens == 15
+
+
+def test_chat_completion_stream_chunk_usage_absent() -> None:
+    """ChatCompletionStreamChunk.usage is None when the SSE data line omits the field."""
+    import orjson
+
+    from pinecone.models.assistant.streaming import ChatCompletionStreamChunk
+
+    raw = orjson.loads(
+        b'{"id": "cmpl-mid", "choices": [{"index": 0, "delta": {"content": "Hello"}, "finish_reason": null}]}'
+    )
+    chunk = msgspec.convert(raw, ChatCompletionStreamChunk)
+
+    assert chunk.usage is None

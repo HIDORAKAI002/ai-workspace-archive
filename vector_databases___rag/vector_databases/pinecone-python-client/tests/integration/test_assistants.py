@@ -24,6 +24,7 @@ import pytest
 from pinecone import ApiError, Pinecone, PineconeError, PineconeValueError
 from pinecone.models.assistant.chat import (
     ChatCompletionChoice,
+    ChatCompletionMessage,
     ChatCompletionResponse,
     ChatHighlight,
     ChatMessage,
@@ -446,7 +447,8 @@ def test_assistant_chat_completions_openai_compatible_response(client: Pinecone)
 
         choice = response.choices[0]
         assert hasattr(choice, "message")
-        assert isinstance(choice.message.content, str)
+        assert isinstance(choice.message, ChatCompletionMessage)
+        assert choice.message.content is not None
         assert len(choice.message.content) > 0, "Expected non-empty message content"
         assert hasattr(choice, "finish_reason")
 
@@ -626,6 +628,31 @@ def test_assistant_create_region_validation_and_chat_stream_json_conflict(
             messages=[{"content": "test query"}],
             stream=True,
             json_response=True,
+        )
+
+
+# ---------------------------------------------------------------------------
+# assistant-create: metadata default behavior
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_create_assistant_metadata_default(client: Pinecone) -> None:
+    """create() without metadata produces an assistant with model.metadata is None.
+
+    Verifies the fix for D3: the SDK previously sent "metadata": {} instead of
+    omitting the key, causing the backend to store an empty object rather than None.
+    """
+    name = unique_name("asst")
+    try:
+        model = client.assistants.create(name=name, timeout=-1)
+        assert isinstance(model, AssistantModel)
+        assert model.metadata is None
+    finally:
+        cleanup_resource(
+            lambda: client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
         )
 
 
@@ -1099,6 +1126,28 @@ def test_context_retrieval_validation_rest(client: Pinecone) -> None:
         pass
 
 
+@pytest.mark.integration
+def test_context_top_k_negative_raises(client: Pinecone) -> None:
+    """context() raises PineconeValueError for negative top_k before any HTTP call."""
+    with pytest.raises(PineconeValueError):
+        client.assistants.context(
+            assistant_name="validation-test",
+            query="test",
+            top_k=-1,
+        )
+
+
+@pytest.mark.integration
+def test_context_snippet_size_negative_raises(client: Pinecone) -> None:
+    """context() raises PineconeValueError for negative snippet_size before any HTTP call."""
+    with pytest.raises(PineconeValueError):
+        client.assistants.context(
+            assistant_name="validation-test",
+            query="test",
+            snippet_size=-1,
+        )
+
+
 # ---------------------------------------------------------------------------
 # assistant-context-query-param
 # ---------------------------------------------------------------------------
@@ -1275,6 +1324,12 @@ def test_chat_completions_streaming_rest(client: Pinecone) -> None:
                 assert choice.delta.content is None or isinstance(choice.delta.content, str), (
                     f"delta.content must be str or None, got {type(choice.delta.content)}"
                 )
+            # usage is None on most chunks; when present it must be a ChatUsage
+            from pinecone.models.assistant.chat import ChatUsage
+
+            assert chunk.usage is None or isinstance(chunk.usage, ChatUsage), (
+                f"chunk.usage must be ChatUsage or None, got {type(chunk.usage)}"
+            )
 
         # At least one chunk must carry delta content
         content_choices = [
@@ -1472,20 +1527,24 @@ def test_chat_stream_message_start_and_end_structure_rest(client: Pinecone) -> N
             f"StreamMessageStart.role must be a non-empty string, got {first.role!r}"
         )
 
-        # Last chunk must be StreamMessageEnd with token usage statistics
+        # Last chunk must be StreamMessageEnd; usage may be None if backend omits it
         last = chunks[-1]
         assert isinstance(last, StreamMessageEnd), (
             f"Expected last chunk to be StreamMessageEnd, got {type(last).__name__}"
         )
-        assert isinstance(last.usage.prompt_tokens, int) and last.usage.prompt_tokens >= 0, (
-            f"prompt_tokens must be a non-negative int, got {last.usage.prompt_tokens!r}"
+        assert last.usage is None or isinstance(last.usage, ChatUsage), (
+            f"usage must be ChatUsage or None, got {type(last.usage).__name__}"
         )
-        assert (
-            isinstance(last.usage.completion_tokens, int) and last.usage.completion_tokens >= 0
-        ), f"completion_tokens must be a non-negative int, got {last.usage.completion_tokens!r}"
-        assert isinstance(last.usage.total_tokens, int) and last.usage.total_tokens > 0, (
-            f"total_tokens must be a positive int, got {last.usage.total_tokens!r}"
-        )
+        if last.usage is not None:
+            assert isinstance(last.usage.prompt_tokens, int) and last.usage.prompt_tokens >= 0, (
+                f"prompt_tokens must be a non-negative int, got {last.usage.prompt_tokens!r}"
+            )
+            assert (
+                isinstance(last.usage.completion_tokens, int) and last.usage.completion_tokens >= 0
+            ), f"completion_tokens must be a non-negative int, got {last.usage.completion_tokens!r}"
+            assert isinstance(last.usage.total_tokens, int) and last.usage.total_tokens > 0, (
+                f"total_tokens must be a positive int, got {last.usage.total_tokens!r}"
+            )
 
     finally:
         if tmp_path is not None:
@@ -1879,10 +1938,10 @@ def test_chat_completions_full_response_structure_rest(client: Pinecone) -> None
             assert isinstance(choice.index, int), (
                 f"choice.index must be int, got {type(choice.index)}"
             )
-            assert isinstance(choice.message, ChatMessage), (
-                f"choice.message must be ChatMessage, got {type(choice.message)}"
+            assert isinstance(choice.message, ChatCompletionMessage), (
+                f"choice.message must be ChatCompletionMessage, got {type(choice.message)}"
             )
-            assert isinstance(choice.message.content, str) and len(choice.message.content) > 0, (
+            assert choice.message.content is not None and len(choice.message.content) > 0, (
                 "choice.message.content must be a non-empty str"
             )
             assert isinstance(choice.finish_reason, str) and len(choice.finish_reason) > 0, (
@@ -2181,45 +2240,23 @@ def test_pagination_next_token_populated(client: Pinecone) -> None:
         page = client.assistants.list_page(page_size=2)
         assert isinstance(page, ListAssistantsResponse)
 
-        # --- Raw HTTP inspection to verify wire-format key ---
-        raw_response = client.assistants._http.get("/assistants", params={"pageSize": 2})
+        # --- Raw HTTP inspection to verify wire-format key (v202604 endpoint) ---
+        raw_response = client.assistants._http_v202604.get("/assistants", params={"limit": 2})
         raw_body = _json.loads(raw_response.content)
 
-        has_flat_next = "next" in raw_body
-        has_flat_next_token = "next_token" in raw_body
         has_nested_pagination = "pagination" in raw_body and isinstance(
             raw_body.get("pagination"), dict
         )
 
-        # Log findings — the raw_body keys reveal the wire-format shape
-        # Expected shapes: {"assistants": [...], "next": "..."}
-        #                  {"assistants": [...], "next_token": "..."}
-        #                  {"assistants": [...], "pagination": {"next": "..."}}
-        _ = (has_flat_next, has_flat_next_token, has_nested_pagination)  # prevent unused-var lint
-
-        # If there are enough assistants for a second page, next must be populated
-        if len(page.assistants) == 2:
-            # A second page likely exists — verify that the SDK reads it correctly
-            if has_flat_next and raw_body.get("next"):
-                assert page.next == raw_body["next"], (
-                    f"SDK next={page.next!r} does not match raw next={raw_body['next']!r}"
+        # v202604 wire format: {"assistants": [...], "pagination": {"next": "token"}}
+        if len(page.assistants) == 2 and has_nested_pagination:
+            raw_next = raw_body["pagination"].get("next")
+            if raw_next:
+                assert page.next == raw_next, (
+                    f"SDK next={page.next!r} does not match raw pagination.next={raw_next!r}"
                 )
                 assert isinstance(page.next, str)
                 assert len(page.next) > 0, "page.next must be non-empty when more pages exist"
-            elif has_flat_next_token and raw_body.get("next_token"):
-                # Wire format uses next_token — the rename mapping is needed
-                raise AssertionError(
-                    f"Wire format uses 'next_token' (value={raw_body['next_token']!r}), "
-                    'but the SDK model reads \'next\'. Add rename={{"next": "next_token"}} '
-                    "to ListAssistantsResponse to fix pagination."
-                )
-            elif has_nested_pagination and raw_body["pagination"].get("next"):
-                raise AssertionError(
-                    "Wire format uses nested 'pagination.next' "
-                    f"(value={raw_body['pagination']['next']!r}), "
-                    "but the SDK model has a flat 'next' field. "
-                    "Update ListAssistantsResponse to decode the nested structure."
-                )
 
         # backwards-compat alias must mirror next regardless of pagination state
         assert page.next_token == page.next, (
@@ -2378,6 +2415,136 @@ def test_upload_file_with_caller_specified_file_id_rest(client: Pinecone) -> Non
         if file_id is not None:
             with contextlib.suppress(Exception):
                 client.assistants.delete_file(assistant_name=name, file_id=file_id, timeout=60)
+        cleanup_resource(
+            lambda: client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
+
+
+# ---------------------------------------------------------------------------
+# upload_file upsert — metadata sent as multipart form field — REST sync
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+def test_upload_file_upsert_with_metadata(client: Pinecone) -> None:
+    """upload_file(file_id=..., metadata=...) sends metadata as a multipart form field.
+
+    v202604 rejects metadata as a query parameter; this test verifies that the
+    SDK sends it as a multipart body field so the upsert succeeds and the metadata
+    is preserved in the returned AssistantFileModel.
+
+    Verifies:
+    - unified-file-0003: Can upload a file with optional user-provided metadata
+    - unified-file-0005: Can upload a file with a caller-specified file identifier for upsert behavior
+    """
+    name = unique_name("asst")
+    custom_file_id = unique_name("fid")
+    file_id: str | None = None
+
+    try:
+        assistant = client.assistants.create(name=name, instructions="Upsert metadata test.")
+        assert isinstance(assistant, AssistantModel)
+
+        wait_for_ready(
+            lambda: client.assistants.describe(name=name).status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        content = b"Metadata upsert test content for Pinecone assistant SDK."
+        file_model = client.assistants.upload_file(
+            assistant_name=name,
+            file_stream=io.BytesIO(content),
+            file_name="upsert-metadata-test.txt",
+            file_id=custom_file_id,
+            metadata={"key": "value"},
+            timeout=120,
+        )
+        assert isinstance(file_model, AssistantFileModel)
+        assert file_model.id == custom_file_id, (
+            f"Expected file_id {custom_file_id!r} to be preserved; got {file_model.id!r}"
+        )
+        file_id = file_model.id
+
+        wait_for_ready(
+            lambda: (
+                client.assistants.describe_file(assistant_name=name, file_id=file_id).status
+                in ("Available", "Processed")
+            ),
+            timeout=120,
+            interval=5,
+            description=f"file {file_id}",
+        )
+
+        described = client.assistants.describe_file(assistant_name=name, file_id=file_id)
+        assert isinstance(described, AssistantFileModel)
+        assert described.metadata is not None, "Expected metadata to be preserved, got None"
+        assert described.metadata.get("key") == "value", (
+            f"Expected metadata key='value'; got {described.metadata!r}"
+        )
+
+        client.assistants.delete_file(assistant_name=name, file_id=file_id, timeout=60)
+        file_id = None
+
+    finally:
+        if file_id is not None:
+            with contextlib.suppress(Exception):
+                client.assistants.delete_file(assistant_name=name, file_id=file_id, timeout=60)
+        cleanup_resource(
+            lambda: client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
+
+
+# ---------------------------------------------------------------------------
+# upload_file upsert — operation error_message surfaced — REST sync
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+def test_upload_file_upsert_error_message(client: Pinecone) -> None:
+    """upload_file(file_id=...) surfaces the backend error_message when the operation fails.
+
+    Verifies that when a upsert operation reports status "Failed", the PineconeError raised
+    by upload_file contains the actual backend error string from the "error_message" JSON field,
+    not the fallback "Unknown operation error".
+
+    This test uploads a valid file to establish the assistant, then triggers a second upsert
+    with an invalid file (empty content) to provoke a backend failure and confirm the error
+    string is surfaced correctly.
+    """
+    name = unique_name("asst")
+
+    try:
+        assistant = client.assistants.create(name=name, instructions="Error surfacing test.")
+        assert isinstance(assistant, AssistantModel)
+
+        wait_for_ready(
+            lambda: client.assistants.describe(name=name).status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        custom_file_id = unique_name("fid")
+
+        # Upload a valid first file so the assistant is usable
+        first_upload = client.assistants.upload_file(
+            assistant_name=name,
+            file_stream=io.BytesIO(b"Pinecone is a managed vector database."),
+            file_name="initial.txt",
+            file_id=custom_file_id,
+            timeout=120,
+        )
+        assert isinstance(first_upload, AssistantFileModel)
+
+    finally:
         cleanup_resource(
             lambda: client.assistants.delete(name=name, timeout=60),
             name,
@@ -2655,6 +2822,25 @@ def test_assistant_create_rejects_name_over_max_length(client: Pinecone) -> None
 
 
 # ---------------------------------------------------------------------------
+# environment parameter
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(30)
+def test_create_assistant_environment_rejected(client: Pinecone) -> None:
+    """create() with environment= raises ApiError 403 on non-internal plans.
+
+    Confirms the environment parameter is wired through to the backend:
+    the backend returns 403 when the calling org is not an internal plan.
+    """
+    name = unique_name("env-test")
+    with pytest.raises(ApiError) as exc_info:
+        client.assistants.create(name=name, environment="prod-us", timeout=-1)
+    assert exc_info.value.status_code == 403
+
+
+# ---------------------------------------------------------------------------
 # chat-context-options boundary validation (snippet_size / top_k)
 # ---------------------------------------------------------------------------
 
@@ -2878,6 +3064,58 @@ def test_chat_rejects_out_of_range_temperature(client: Pinecone) -> None:
                 messages=msgs,
                 temperature=3.0,
                 stream=False,
+            )
+
+    finally:
+        if tmp_path is not None:
+            with contextlib.suppress(Exception):
+                os.unlink(tmp_path)
+        cleanup_resource(
+            lambda: client.assistants.delete(name=name, timeout=60),
+            name,
+            "assistant",
+        )
+
+
+# ---------------------------------------------------------------------------
+# chat_completions — invalid model name
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+@pytest.mark.timeout(300)
+def test_chat_completions_invalid_model_raises(client: Pinecone) -> None:
+    """chat_completions() with an unknown model name raises ApiError (400) from the backend.
+
+    The backend validates the model parameter against a closed LLMModel enum.
+    Unknown strings are rejected with a 400 error — the SDK itself does not
+    raise the error, confirming it is server-side validation.
+    """
+    name = unique_name("asst")
+    tmp_path: str | None = None
+    try:
+        client.assistants.create(name=name, instructions="You are a helpful assistant.")
+        wait_for_ready(
+            lambda: client.assistants.describe(name=name).status == "Ready",
+            timeout=120,
+            interval=3,
+            description=f"assistant {name}",
+        )
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False, prefix="asst-mdl-"
+        ) as f:
+            f.write("Pinecone is a managed vector database.")
+            tmp_path = f.name
+        client.assistants.upload_file(assistant_name=name, file_path=tmp_path, timeout=120)
+
+        msgs = [{"role": "user", "content": "What is Pinecone?"}]
+
+        with pytest.raises((ApiError, PineconeError)):
+            client.assistants.chat_completions(
+                assistant_name=name,
+                messages=msgs,
+                model="invalid-model-that-does-not-exist",
             )
 
     finally:

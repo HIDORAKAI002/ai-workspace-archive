@@ -897,7 +897,7 @@ class AirbyteYAMLCacheableAssetsDefinition(AirbyteCoreCacheableAssetsDefinition)
                 )
                 state_file = state_files[0]
 
-            with open(os.path.join(connection_dir, cast("str", state_file)), encoding="utf-8") as f:
+            with open(os.path.join(connection_dir, state_file), encoding="utf-8") as f:
                 state = yaml.safe_load(f.read())
                 connection_id = state.get("resource_id")
 

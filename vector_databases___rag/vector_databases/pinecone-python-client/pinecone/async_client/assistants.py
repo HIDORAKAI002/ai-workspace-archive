@@ -98,6 +98,7 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
             retry_config=config.retry_config,
         )
         self._http = _AsyncHTTPClient(cp_config, ASSISTANT_API_VERSION)
+        self._http_v202604 = _AsyncHTTPClient(cp_config, ASSISTANT_API_VERSION_2026_04)
         self._adapter = AssistantsAdapter()
         self._data_plane_clients: dict[str, AsyncHTTPClient] = {}
 
@@ -125,6 +126,7 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
     async def close(self) -> None:
         """Close the underlying HTTP client and any cached data-plane clients."""
         await self._http.close()
+        await self._http_v202604.close()
         await self._eval_http.close()
         for client in self._data_plane_clients.values():
             await client.close()
@@ -185,6 +187,7 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
         instructions: str | None = None,
         metadata: dict[str, Any] | None = None,
         region: str = "us",
+        environment: str | None = None,
         timeout: float | None = None,
         **kwargs: Any,
     ) -> AssistantModel:
@@ -200,9 +203,13 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
             instructions (str | None): Optional directive for the assistant.
                 Maximum 16 KB.
             metadata (dict[str, Any] | None): Optional metadata dictionary.
-                Defaults to an empty dict if not provided.
+                When omitted or ``None``, no metadata is sent and the assistant
+                is created without metadata (``None``).
             region (str): Region to deploy the assistant in. Must be ``"us"``
                 or ``"eu"`` (case-sensitive). Defaults to ``"us"``.
+            environment (str | None): Optional environment override. Restricted
+                to Pinecone-internal org plans; passing this on a non-internal
+                plan raises a 403 error from the backend.
             timeout (float | None): Seconds to wait for the assistant to become
                 ready. Use ``None`` (default) to poll indefinitely. Use ``-1``
                 to return immediately without polling. Use ``0`` or a positive
@@ -253,9 +260,12 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
         body: dict[str, Any] = {
             "name": name,
             "instructions": instructions,
-            "metadata": metadata if metadata is not None else {},
             "region": region,
         }
+        if metadata is not None:
+            body["metadata"] = metadata
+        if environment is not None:
+            body["environment"] = environment
 
         logger.info("Creating assistant %r", name)
         response = await self._http.post("/assistants", json=body)
@@ -408,12 +418,12 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
 
         params: dict[str, str | int] = {}
         if page_size is not None:
-            params["pageSize"] = page_size
+            params["limit"] = page_size
         if pagination_token is not None:
-            params["paginationToken"] = pagination_token
+            params["pagination_token"] = pagination_token
 
         logger.info("Listing assistants page")
-        response = await self._http.get("/assistants", params=params)
+        response = await self._http_v202604.get("/assistants", params=params)
         result = self._adapter.to_assistant_list(response.content)
         for item in result.assistants:
             self._attach_ref(item)
@@ -691,7 +701,7 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
 
         import json as _json
 
-        data_http = await self._data_plane_http(assistant_name)
+        list_http = await self._list_files_http(assistant_name)
         params: dict[str, str | int] = {}
         if page_size is not None:
             params["limit"] = page_size
@@ -701,7 +711,7 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
             params["filter"] = _json.dumps(filter)
 
         logger.info("Listing files page for assistant %r", assistant_name)
-        response = await data_http.get(f"/files/{assistant_name}", params=params)
+        response = await list_http.get(f"/files/{assistant_name}", params=params)
         result = self._adapter.to_file_list(response.content)
         logger.debug(
             "Listed %d files for assistant %r (has_next=%s)",
@@ -784,6 +794,29 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
                         f"File processing timed out after {timeout}s (operation_id={file_id})"
                     )
             await asyncio.sleep(_UPLOAD_POLL_INTERVAL_SECONDS)
+
+    async def _list_files_http(self, assistant_name: str) -> AsyncHTTPClient:
+        """Return an AsyncHTTPClient for the assistant's data-plane host using v202604."""
+        from pinecone._internal.config import PineconeConfig as _PineconeConfig
+        from pinecone._internal.http_client import AsyncHTTPClient as _AsyncHTTPClient
+
+        assistant = await self.describe(name=assistant_name)
+        if not assistant.host:
+            raise PineconeValueError(f"Assistant '{assistant_name}' has no data-plane host")
+        data_config = _PineconeConfig(
+            api_key=self._config.api_key,
+            host=f"{assistant.host.rstrip('/')}/assistant",
+            timeout=self._config.timeout,
+            additional_headers=self._config.additional_headers,
+            source_tag=self._config.source_tag or "",
+            proxy_url=self._config.proxy_url or "",
+            proxy_headers=self._config.proxy_headers,
+            ssl_ca_certs=self._config.ssl_ca_certs,
+            ssl_verify=self._config.ssl_verify,
+            connection_pool_maxsize=self._config.connection_pool_maxsize,
+            retry_config=self._config.retry_config,
+        )
+        return _AsyncHTTPClient(data_config, ASSISTANT_API_VERSION_2026_04)
 
     async def _upsert_http(self, assistant_name: str) -> AsyncHTTPClient:
         """Return an AsyncHTTPClient for the assistant's data-plane host using API 2026-04."""
@@ -937,10 +970,17 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
                 file_id,
                 assistant_name,
             )
+            # v202604 rejects metadata as a query param; send it as a multipart field instead.
+            upsert_files: dict[str, Any] = {"file": (upload_name, handle)}
+            if metadata is not None:
+                upsert_files["metadata"] = (None, _json.dumps(metadata))
+            upsert_query: dict[str, str] = {}
+            if multimodal is not None:
+                upsert_query["multimodal"] = str(multimodal).lower()
             upsert_response = await upsert_http.put(
                 f"/files/{assistant_name}/{file_id}",
-                files={"file": (upload_name, handle)},
-                params=params,
+                files=upsert_files,
+                params=upsert_query,
             )
             op_model = self._adapter.to_operation(upsert_response.content)
             operation_id = op_model.operation_id
@@ -1113,6 +1153,11 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
             ]
             body["messages"] = [{"role": m.role, "content": m.content} for m in parsed]
 
+        if top_k is not None and top_k < 0:
+            raise PineconeValueError("top_k must be a non-negative integer.")
+        if snippet_size is not None and snippet_size < 0:
+            raise PineconeValueError("snippet_size must be a non-negative integer.")
+
         if filter is not None:
             body["filter"] = filter
         if top_k is not None:
@@ -1149,6 +1194,15 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
                 Dicts are converted to :class:`Message` objects; role defaults
                 to ``"user"`` when not present.
             model (str): Large language model to use. Defaults to ``"gpt-4o"``.
+                Must be one of the backend's accepted values: ``"gpt-4o"``,
+                ``"gpt-4o-mini"``, ``"gpt-4.1"``, ``"gpt-4.1-mini"``,
+                ``"gpt-4.1-nano"``, ``"o3-mini"``, ``"o4-mini"``, ``"gpt-5"``,
+                ``"claude-sonnet-4"``, ``"claude-sonnet-4-5"``,
+                ``"gemini-2.5-pro"``, ``"gemini-2.5-flash"``. The aliases
+                ``"claude-3-5-sonnet"`` and ``"claude-3-7-sonnet"`` are
+                accepted but deprecated (silently remapped to
+                ``"claude-sonnet-4-5"`` by the backend). Unknown model names
+                are rejected by the backend with a 400 error.
             stream (bool): If ``True``, return an :class:`AsyncChatStream`.
                 Defaults to ``False``.
             temperature (float | None): Controls randomness. Lower values produce
@@ -1312,7 +1366,15 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
                 Dicts are converted to :class:`Message` objects; role defaults
                 to ``"user"`` when not present.
             model (str): Large language model to use. Defaults to ``"gpt-4o"``.
-                Not validated client-side — any string is accepted.
+                Must be one of the backend's accepted values: ``"gpt-4o"``,
+                ``"gpt-4o-mini"``, ``"gpt-4.1"``, ``"gpt-4.1-mini"``,
+                ``"gpt-4.1-nano"``, ``"o3-mini"``, ``"o4-mini"``, ``"gpt-5"``,
+                ``"claude-sonnet-4"``, ``"claude-sonnet-4-5"``,
+                ``"gemini-2.5-pro"``, ``"gemini-2.5-flash"``. The aliases
+                ``"claude-3-5-sonnet"`` and ``"claude-3-7-sonnet"`` are
+                accepted but deprecated (silently remapped to
+                ``"claude-sonnet-4-5"`` by the backend). Unknown model names
+                are rejected by the backend with a 400 error.
             stream (bool): If ``True``, return an async streaming iterator.
                 Defaults to ``False``.
             temperature (float | None): Controls randomness. Lower values produce
@@ -1482,7 +1544,7 @@ class AsyncAssistants(AsyncAssistantsLegacyNamespaceMixin):
             model = self._attach_ref(self._adapter.to_assistant(response.content))
             if model.status == "Ready":
                 return model
-            if model.status in ("Failed", "InitializationFailed"):
+            if model.status in ("Failed", "InitializationFailed", "Terminated", "Terminating"):
                 raise PineconeError(
                     f"Assistant '{name}' entered terminal state '{model.status}'. "
                     f"Check status with pc.assistants.describe(name='{name}')."
