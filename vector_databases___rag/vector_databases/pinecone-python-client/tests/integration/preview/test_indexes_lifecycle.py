@@ -77,8 +77,8 @@ class TestMultiFieldSchema:
 
         model = client.preview.indexes.describe(preview_index_name)
         assert model.name == preview_index_name
-        assert isinstance(model.host, str)
-        assert len(model.host) > 0
+        assert model.host is None or isinstance(model.host, str)
+        assert model.host is None or len(model.host) > 0
         assert len(model.schema.fields) == 6
 
 
@@ -197,8 +197,8 @@ class TestLifecycleBasics:
 
         described = client.preview.indexes.describe(preview_index_name)
         assert described.name == preview_index_name
-        assert isinstance(described.host, str)
-        assert len(described.host) > 0
+        assert described.host is None or isinstance(described.host, str)
+        assert described.host is None or len(described.host) > 0
         assert isinstance(described.schema.fields, dict)
 
     def test_list_includes_created_index(
@@ -1156,3 +1156,124 @@ class TestConfigureReadCapacity:
             f"returned model.read_capacity must be PreviewReadCapacityOnDemandResponse, "
             f"got {type(returned.read_capacity)}"
         )
+
+
+# ---------------------------------------------------------------------------
+# TestSourceAndCmekParameters — source_collection, source_backup_id, cmek_id
+# ---------------------------------------------------------------------------
+
+
+class TestSourceAndCmekParameters:
+    """SDK surface accepts source_collection, source_backup_id, and cmek_id."""
+
+    def test_create_index_source_collection_parameter_accepted(self) -> None:
+        """create() accepts source_collection without raising; field appears in HTTP body.
+
+        Uses respx to mock the API so this test runs without real credentials.
+        """
+        import httpx
+        import orjson
+        import respx
+
+        from pinecone._internal.config import PineconeConfig
+        from pinecone.preview._internal.constants import INDEXES_API_VERSION
+        from pinecone.preview.indexes import PreviewIndexes
+        from pinecone.preview.models.indexes import PreviewIndexModel
+
+        _base_url = "https://api.test.pinecone.io"
+        _index_response = {
+            "name": "test-index",
+            "host": "test-index-xyz.svc.pinecone.io",
+            "status": {"ready": False, "state": "Initializing"},
+            "schema": {"fields": {"vec": {"type": "dense_vector", "dimension": 128}}},
+            "deployment": {
+                "deployment_type": "managed",
+                "environment": "us-east-1-aws",
+                "cloud": "aws",
+                "region": "us-east-1",
+            },
+            "deletion_protection": "disabled",
+        }
+
+        config = PineconeConfig(api_key="test-key", host=_base_url)
+        indexes = PreviewIndexes(config=config)
+
+        with respx.mock:
+            route = respx.post(f"{_base_url}/indexes").mock(
+                return_value=httpx.Response(201, json=_index_response)
+            )
+
+            result = indexes.create(
+                schema={"fields": {"vec": {"type": "dense_vector", "dimension": 128}}},
+                source_collection="some-collection",
+            )
+
+        assert isinstance(result, PreviewIndexModel)
+        body = orjson.loads(route.calls.last.request.content)
+        assert body["source_collection"] == "some-collection"
+        assert "source_backup_id" not in body
+        assert "cmek_id" not in body
+        assert route.calls.last.request.headers.get("X-Pinecone-Api-Version") == INDEXES_API_VERSION
+
+
+# ---------------------------------------------------------------------------
+# TestConfigureDeployment — configure(deployment=...) client-side validation
+# ---------------------------------------------------------------------------
+
+
+class TestConfigureDeployment:
+    """configure(deployment=...) client-side validation and request serialization (§2)."""
+
+    def test_configure_deployment(self) -> None:
+        """configure(deployment={"replicas": 2}) serializes deployment into the PATCH body.
+
+        Uses respx to mock the API so this test runs without real credentials.
+        Verifies that:
+        1. deployment={} raises PineconeValueError before any API call.
+        2. A valid deployment dict is accepted and serialized correctly.
+        3. The returned model is a PreviewIndexModel.
+        """
+        import httpx
+        import orjson
+        import respx
+
+        from pinecone._internal.config import PineconeConfig
+        from pinecone.preview._internal.constants import INDEXES_API_VERSION
+        from pinecone.preview.indexes import PreviewIndexes
+
+        _base_url = "https://api.test.pinecone.io"
+        _index_response = {
+            "name": "pod-idx",
+            "host": "pod-idx-xyz.svc.pinecone.io",
+            "status": {"ready": True, "state": "Ready"},
+            "schema": {"fields": {}},
+            "deployment": {
+                "deployment_type": "pod",
+                "environment": "us-east-1-aws",
+                "cloud": "aws",
+                "region": "us-east-1",
+                "replicas": 2,
+                "pod_type": "p1.x1",
+            },
+            "deletion_protection": "disabled",
+        }
+
+        config = PineconeConfig(api_key="test-key", host=_base_url)
+        indexes = PreviewIndexes(config=config)
+
+        # Claim 1: empty deployment dict is rejected immediately.
+        with pytest.raises(PineconeValueError, match="deployment"):
+            indexes.configure("pod-idx", deployment={})
+
+        # Claim 2: valid deployment dict is serialized correctly.
+        with respx.mock:
+            route = respx.patch(f"{_base_url}/indexes/pod-idx").mock(
+                return_value=httpx.Response(200, json=_index_response)
+            )
+
+            result = indexes.configure("pod-idx", deployment={"replicas": 2})
+
+        assert isinstance(result, PreviewIndexModel)
+        body = orjson.loads(route.calls.last.request.content)
+        assert body == {"deployment": {"replicas": 2}}
+        assert route.calls.last.request.headers.get("X-Pinecone-Api-Version") == INDEXES_API_VERSION

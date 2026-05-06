@@ -101,6 +101,9 @@ class PreviewIndexes:
         read_capacity: dict[str, Any] | None = None,
         deletion_protection: str | None = None,
         tags: dict[str, str] | None = None,
+        source_collection: str | None = None,
+        source_backup_id: str | None = None,
+        cmek_id: str | None = None,
     ) -> PreviewIndexModel:
         """Create a new preview index.
 
@@ -135,6 +138,12 @@ class PreviewIndexes:
                 if not provided.
             tags: Optional key-value tags for the index. Keys must be at most
                 80 characters; values must be at most 120 characters.
+            source_collection: Optional name of an existing collection to
+                create the index from.
+            source_backup_id: Optional ID of an existing backup to create
+                the index from.
+            cmek_id: Optional Customer-Managed Encryption Key ID. Valid for
+                managed and BYOC indexes; returns 400 for pod indexes.
 
         Returns:
             :class:`PreviewIndexModel` describing the newly created index. The
@@ -171,6 +180,9 @@ class PreviewIndexes:
             read_capacity=read_capacity,
             deletion_protection=deletion_protection,
             tags=tags,
+            source_collection=source_collection,
+            source_backup_id=source_backup_id,
+            cmek_id=cmek_id,
         )
 
         logger.info("Creating preview index name=%r", name)
@@ -189,6 +201,7 @@ class PreviewIndexes:
         deletion_protection: str | None = None,
         tags: dict[str, str] | None = None,
         read_capacity: dict[str, Any] | None = None,
+        deployment: dict[str, Any] | None = None,
     ) -> PreviewIndexModel:
         """Update configuration of an existing preview index.
 
@@ -224,15 +237,18 @@ class PreviewIndexes:
                 be at most 80 characters; values at most 120 characters.
             read_capacity: Updated read capacity configuration dict.  Must
                 include a ``"mode"`` key (``"OnDemand"`` or ``"Dedicated"``).
+            deployment: Updated pod deployment configuration dict. For pod
+                indexes only. May include ``"replicas"`` (int) and/or
+                ``"pod_type"`` (str).
 
         Returns:
             :class:`PreviewIndexModel` reflecting the updated index state.
 
         Raises:
             :exc:`~pinecone.errors.exceptions.PineconeValueError`: If *name*
-                is empty; if all kwargs are ``None``; if *schema*, *tags*, or
-                *read_capacity* is an empty dict; or if a tag key/value
-                exceeds the length limit.
+                is empty; if all kwargs are ``None``; if *schema*, *tags*,
+                *read_capacity*, or *deployment* is an empty dict; or if a
+                tag key/value exceeds the length limit.
             :exc:`~pinecone.errors.exceptions.ApiError`: If the API returns
                 an error response.
 
@@ -273,16 +289,19 @@ class PreviewIndexes:
             raise PineconeValueError("tags cannot be an empty dict")
         if read_capacity is not None and not read_capacity:
             raise PineconeValueError("read_capacity cannot be an empty dict")
+        if deployment is not None and not deployment:
+            raise PineconeValueError("deployment cannot be an empty dict")
 
         if (
             schema is None
             and deletion_protection is None
             and tags is None
             and read_capacity is None
+            and deployment is None
         ):
             raise PineconeValueError(
                 "at least one configuration parameter must be provided: "
-                "schema, deletion_protection, tags, or read_capacity"
+                "schema, deletion_protection, tags, read_capacity, or deployment"
             )
 
         if tags is not None:
@@ -299,6 +318,7 @@ class PreviewIndexes:
             read_capacity=read_capacity,
             deletion_protection=deletion_protection,
             tags=tags,
+            deployment=deployment,
         )
 
         provided = [
@@ -308,6 +328,7 @@ class PreviewIndexes:
                 "deletion_protection": deletion_protection,
                 "tags": tags,
                 "read_capacity": read_capacity,
+                "deployment": deployment,
             }.items()
             if v is not None
         ]
@@ -643,9 +664,11 @@ class PreviewIndexes:
             require_positive("limit", limit)
 
         def fetch_page(token: str | None) -> Page[PreviewBackupModel]:
-            params: dict[str, str] = {}
+            params: dict[str, str | int] = {}
             if token:
                 params["paginationToken"] = token
+            if limit is not None:
+                params["limit"] = limit
             response = self._http.get(f"/indexes/{index_name}/backups", params=params)
             items, next_token = PreviewListBackupsAdapter.from_response(response.content)
             return Page(items=items, pagination_token=next_token)
