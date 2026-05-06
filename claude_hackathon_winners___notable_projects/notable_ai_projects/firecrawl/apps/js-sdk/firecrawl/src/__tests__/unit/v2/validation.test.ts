@@ -56,6 +56,27 @@ describe("v2 utils: validation", () => {
     expect((formats[0] as any).viewport).toEqual({ width: 800, height: 600 });
   });
 
+  test("ensureValidFormats: accepts question, highlights, and deprecated query formats", () => {
+    const formats: FormatOption[] = [
+      { type: "question", question: "What is Firecrawl?" },
+      { type: "highlights", query: "What is Firecrawl?" },
+      { type: "query", prompt: "What is Firecrawl?", mode: "directQuote" },
+    ];
+    expect(() => ensureValidFormats(formats)).not.toThrow();
+  });
+
+  test("ensureValidFormats: validates question, highlights, and deprecated query fields", () => {
+    expect(() =>
+      ensureValidFormats([{ type: "question", question: "" } as any]),
+    ).toThrow(/question format requires/i);
+    expect(() =>
+      ensureValidFormats([{ type: "highlights", query: "" } as any]),
+    ).toThrow(/highlights format requires/i);
+    expect(() =>
+      ensureValidFormats([{ type: "query", prompt: "p", mode: "quoted" } as any]),
+    ).toThrow(/query format mode/i);
+  });
+
   test("ensureValidScrapeOptions: leaves parsers untouched", () => {
     const options = { parsers: ["pdf", "images"] as string[] } as any;
     const before = [...options.parsers];

@@ -2,15 +2,21 @@
 
 from __future__ import annotations
 
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
 
 from pinecone._internal.indexes_helpers import (
+    _normalize_schema,
+    async_poll_index_until_ready,
     build_byoc_body,
     build_create_body,
     build_integrated_body,
+    poll_index_until_ready,
     validate_read_capacity,
 )
-from pinecone.errors.exceptions import ValidationError
+from pinecone.errors.exceptions import IndexInitFailedError, IndexTerminatedError, ValidationError
+from pinecone.models.indexes.index import IndexModel, IndexSpec, IndexStatus, ServerlessSpecInfo
 from pinecone.models.indexes.specs import ByocSpec, EmbedConfig, IntegratedSpec, ServerlessSpec
 
 
@@ -92,7 +98,7 @@ def test_build_integrated_body_includes_schema() -> None:
         tags=None,
         schema={"body": {"type": "str"}},
     )
-    assert body["schema"] == {"body": {"type": "str"}}
+    assert body["schema"] == {"fields": {"body": {"type": "str"}}}
 
 
 def test_build_integrated_body_schema_absent_when_none() -> None:
@@ -182,7 +188,7 @@ def test_build_create_body_serverless_spec_schema_included() -> None:
         tags=None,
         schema=None,
     )
-    assert body["spec"]["serverless"]["schema"] == {"genre": {"type": "str"}}
+    assert body["spec"]["serverless"]["schema"] == {"fields": {"genre": {"type": "str"}}}
 
 
 def _make_byoc_body(**kwargs: object) -> dict[object, object]:
@@ -199,16 +205,16 @@ def _make_byoc_body(**kwargs: object) -> dict[object, object]:
 
 
 def test_build_byoc_body_spec_schema_included() -> None:
-    """ByocSpec.schema must be included in the request body."""
+    """ByocSpec.schema bare form must be wrapped before it reaches the wire."""
     spec = ByocSpec(environment="byoc-aws-abc123", schema={"genre": {"type": "str"}})
     body = _make_byoc_body(spec=spec)
-    assert body["spec"]["byoc"]["schema"] == {"genre": {"type": "str"}}
+    assert body["spec"]["byoc"]["schema"] == {"fields": {"genre": {"type": "str"}}}
 
 
 def test_build_byoc_body_method_schema_included() -> None:
-    """schema= method param must be normalized and included in the byoc spec."""
+    """schema= method param must be wrapped and included in the byoc spec."""
     body = _make_byoc_body(schema={"genre": {"type": "str"}})
-    assert "schema" in body["spec"]["byoc"]
+    assert body["spec"]["byoc"]["schema"] == {"fields": {"genre": {"type": "str"}}}
 
 
 def test_build_byoc_body_schema_absent_when_none() -> None:
@@ -251,3 +257,177 @@ def test_build_integrated_body_embed_dimension_absent_when_none() -> None:
         tags=None,
     )
     assert "dimension" not in body["embed"]
+
+
+# _normalize_schema unit tests
+
+
+def test_normalize_schema_wraps_bare_fields_map() -> None:
+    result = _normalize_schema({"genre": {"filterable": True}})
+    assert result == {"fields": {"genre": {"filterable": True}}}
+
+
+def test_normalize_schema_passes_through_already_wrapped() -> None:
+    wrapped = {"fields": {"genre": {"filterable": True}}}
+    result = _normalize_schema(wrapped)
+    assert result == {"fields": {"genre": {"filterable": True}}}
+
+
+# ByocSpec schema round-trip tests
+
+
+def test_build_byoc_body_spec_schema_wrapped_input_passes_through() -> None:
+    spec = ByocSpec(
+        environment="byoc-aws-abc123",
+        schema={"fields": {"genre": {"filterable": True}}},
+    )
+    body = _make_byoc_body(spec=spec)
+    assert body["spec"]["byoc"]["schema"] == {"fields": {"genre": {"filterable": True}}}
+
+
+def test_build_byoc_body_spec_schema_bare_input_gets_wrapped() -> None:
+    spec = ByocSpec(
+        environment="byoc-aws-abc123",
+        schema={"genre": {"filterable": True}},
+    )
+    body = _make_byoc_body(spec=spec)
+    assert body["spec"]["byoc"]["schema"] == {"fields": {"genre": {"filterable": True}}}
+
+
+def test_build_byoc_body_method_and_spec_schema_normalized_match() -> None:
+    bare = {"genre": {"filterable": True}}
+    wrapped = {"fields": {"genre": {"filterable": True}}}
+
+    spec_via_spec = ByocSpec(environment="byoc-aws-abc123", schema=bare)
+    body_via_spec = _make_byoc_body(spec=spec_via_spec)
+
+    body_via_method = _make_byoc_body(schema=bare)
+
+    assert (
+        body_via_spec["spec"]["byoc"]["schema"]
+        == body_via_method["spec"]["byoc"]["schema"]
+        == wrapped
+    )
+
+
+# ServerlessSpec schema round-trip tests
+
+
+def test_build_create_body_serverless_spec_schema_wrapped_input_passes_through() -> None:
+    spec = ServerlessSpec(
+        cloud="aws",
+        region="us-east-1",
+        schema={"fields": {"genre": {"filterable": True}}},
+    )
+    body = build_create_body(
+        name="test-index",
+        spec=spec,
+        dimension=128,
+        metric="cosine",
+        vector_type="dense",
+        deletion_protection="disabled",
+        tags=None,
+        schema=None,
+    )
+    assert body["spec"]["serverless"]["schema"] == {"fields": {"genre": {"filterable": True}}}
+
+
+def test_build_create_body_serverless_spec_schema_bare_input_gets_wrapped() -> None:
+    spec = ServerlessSpec(
+        cloud="aws",
+        region="us-east-1",
+        schema={"genre": {"filterable": True}},
+    )
+    body = build_create_body(
+        name="test-index",
+        spec=spec,
+        dimension=128,
+        metric="cosine",
+        vector_type="dense",
+        deletion_protection="disabled",
+        tags=None,
+        schema=None,
+    )
+    assert body["spec"]["serverless"]["schema"] == {"fields": {"genre": {"filterable": True}}}
+
+
+# Integrated schema round-trip tests
+
+
+def test_build_integrated_body_method_schema_bare_input_gets_wrapped() -> None:
+    body = build_integrated_body(
+        name="my-index",
+        spec=_make_integrated_spec(),
+        deletion_protection="disabled",
+        tags=None,
+        schema={"genre": {"filterable": True}},
+    )
+    assert body["schema"] == {"fields": {"genre": {"filterable": True}}}
+
+
+# poll_index_until_ready terminal-state tests
+
+
+def _make_index(state: str, ready: bool = False) -> IndexModel:
+    return IndexModel(
+        name="test-index",
+        dimension=1536,
+        metric="cosine",
+        host="test-index.svc.pinecone.io",
+        spec=IndexSpec(serverless=ServerlessSpecInfo(cloud="aws", region="us-east-1")),
+        status=IndexStatus(ready=ready, state=state),
+        deletion_protection="disabled",
+        tags=None,
+    )
+
+
+def test_poll_index_until_ready_raises_on_terminating() -> None:
+    describe_fn = MagicMock(return_value=_make_index("Terminating"))
+    with pytest.raises(IndexTerminatedError) as exc_info:
+        poll_index_until_ready(describe_fn, "test-index", timeout=10)
+    assert exc_info.value.state == "Terminating"
+    assert exc_info.value.name == "test-index"
+
+
+def test_poll_index_until_ready_raises_on_disabled() -> None:
+    describe_fn = MagicMock(return_value=_make_index("Disabled"))
+    with pytest.raises(IndexTerminatedError) as exc_info:
+        poll_index_until_ready(describe_fn, "test-index", timeout=10)
+    assert exc_info.value.state == "Disabled"
+    assert exc_info.value.name == "test-index"
+
+
+def test_poll_index_until_ready_still_raises_on_initialization_failed() -> None:
+    describe_fn = MagicMock(return_value=_make_index("InitializationFailed"))
+    with pytest.raises(IndexInitFailedError):
+        poll_index_until_ready(describe_fn, "test-index", timeout=10)
+
+
+def test_poll_index_until_ready_returns_on_ready(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("pinecone._internal.indexes_helpers.time.sleep", lambda *_: None)
+    ready_index = _make_index("Ready", ready=True)
+    describe_fn = MagicMock(return_value=ready_index)
+    result = poll_index_until_ready(describe_fn, "test-index", timeout=10)
+    assert result.status.ready is True
+
+
+async def test_async_poll_index_until_ready_raises_on_terminating() -> None:
+    describe_fn = AsyncMock(return_value=_make_index("Terminating"))
+    with pytest.raises(IndexTerminatedError) as exc_info:
+        await async_poll_index_until_ready(describe_fn, "test-index", timeout=10)
+    assert exc_info.value.state == "Terminating"
+    assert exc_info.value.name == "test-index"
+
+
+async def test_async_poll_index_until_ready_raises_on_disabled() -> None:
+    describe_fn = AsyncMock(return_value=_make_index("Disabled"))
+    with pytest.raises(IndexTerminatedError) as exc_info:
+        await async_poll_index_until_ready(describe_fn, "test-index", timeout=10)
+    assert exc_info.value.state == "Disabled"
+    assert exc_info.value.name == "test-index"
+
+
+async def test_async_poll_index_until_ready_still_raises_on_initialization_failed() -> None:
+    describe_fn = AsyncMock(return_value=_make_index("InitializationFailed"))
+    with pytest.raises(IndexInitFailedError):
+        await async_poll_index_until_ready(describe_fn, "test-index", timeout=10)

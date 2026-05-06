@@ -277,6 +277,7 @@ class Document(BaseModel):
     audio: Optional[str] = None
     actions: Optional[Dict[str, Any]] = None
     answer: Optional[str] = None
+    highlights: Optional[str] = None
     warning: Optional[str] = None
     change_tracking: Optional[Dict[str, Any]] = None
     branding: Optional[BrandingProfile] = None
@@ -446,8 +447,22 @@ class AttributesFormat(Format):
     selectors: List[AttributeSelector]
 
 
+class QuestionFormat(Format):
+    """Configuration for question format - ask a question about the page content."""
+
+    type: Literal["question"] = "question"
+    question: str
+
+
+class HighlightsFormat(Format):
+    """Configuration for highlights format - extract direct highlights from page content."""
+
+    type: Literal["highlights"] = "highlights"
+    query: str
+
+
 class QueryFormat(Format):
-    """Configuration for query format - ask a question about the page content."""
+    """Deprecated query format. Use QuestionFormat or HighlightsFormat instead."""
 
     type: Literal["query"] = "query"
     prompt: str
@@ -461,6 +476,8 @@ FormatOption = Union[
     ChangeTrackingFormat,
     ScreenshotFormat,
     AttributesFormat,
+    QuestionFormat,
+    HighlightsFormat,
     QueryFormat,
     Format,
 ]
@@ -495,10 +512,16 @@ class ScrapeFormats(BaseModel):
                     raise ValueError("query format must be an object with 'type' and 'prompt' fields")
                 normalized_formats.append(Format(type=format_item))
             elif isinstance(format_item, dict):
-                # Reject query dicts missing prompt early
+                fmt_type = format_item.get('type')
                 prompt = format_item.get('prompt')
-                if format_item.get('type') == 'query' and (not isinstance(prompt, str) or not prompt.strip()):
+                question = format_item.get('question')
+                query = format_item.get('query')
+                if fmt_type == 'query' and (not isinstance(prompt, str) or not prompt.strip()):
                     raise ValueError("query format requires a non-empty 'prompt' string")
+                if fmt_type == 'question' and (not isinstance(question, str) or not question.strip()):
+                    raise ValueError("question format requires a non-empty 'question' string")
+                if fmt_type == 'highlights' and (not isinstance(query, str) or not query.strip()):
+                    raise ValueError("highlights format requires a non-empty 'query' string")
                 # Preserve dicts as-is to avoid dropping custom fields like 'schema'
                 normalized_formats.append(format_item)
             elif isinstance(format_item, Format):

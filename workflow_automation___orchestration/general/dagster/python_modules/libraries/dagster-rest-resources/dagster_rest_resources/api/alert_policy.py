@@ -29,7 +29,7 @@ class DgApiAlertPolicyApi:
                 alert_policies = (
                     document.get("alert_policies", []) if isinstance(document, dict) else []
                 )
-                return DgApiAlertPolicyDocument(alert_policies=alert_policies)
+                return DgApiAlertPolicyDocument(items=alert_policies)
             case "UnauthorizedError":
                 raise DagsterPlusUnauthorizedError(
                     f"Error fetching alert policies: {result.message}"
@@ -39,7 +39,9 @@ class DgApiAlertPolicyApi:
             case _ as unreachable:
                 assert_never(unreachable)
 
-    def sync_alert_policies(self, document: list[dict[str, Any]]) -> DgApiAlertPolicySyncResult:
+    def action_sync_alert_policies(
+        self, document: list[dict[str, Any]]
+    ) -> DgApiAlertPolicySyncResult:
         result = self._client.reconcile_alert_policies(
             document={"alert_policies": document}
         ).reconcile_alert_policies_from_document
@@ -47,7 +49,7 @@ class DgApiAlertPolicyApi:
         match result.typename__:
             case "ReconcileAlertPoliciesSuccess":
                 return DgApiAlertPolicySyncResult(
-                    synced_policies=sorted(p.name for p in result.alert_policies if p is not None)
+                    items=sorted(p.name for p in result.alert_policies if p is not None)
                 )
             case "InvalidAlertPolicyError":
                 raise DagsterPlusGraphqlError(f"Invalid alert policy: {result.message}")

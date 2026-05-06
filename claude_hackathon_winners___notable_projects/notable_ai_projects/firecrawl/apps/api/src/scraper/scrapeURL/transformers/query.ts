@@ -1,7 +1,7 @@
 import { generateText } from "ai";
 import * as marked from "marked";
 import { decode as decodeHtmlEntities } from "he";
-import { Document } from "../../../controllers/v2/types";
+import { Document, FormatObject } from "../../../controllers/v2/types";
 import { Meta } from "..";
 import { getModel } from "../../../lib/generic-ai";
 import { hasFormatOfType } from "../../../lib/format-utils";
@@ -475,8 +475,12 @@ export async function performQuery(
   meta: Meta,
   document: Document,
 ): Promise<Document> {
-  const queryFormat = hasFormatOfType(meta.options.formats, "query");
-  if (!queryFormat) {
+  const answerFormat = meta.options.formats?.find(
+    (format): format is Extract<FormatObject, { type: "question" | "query" }> =>
+      format.type === "question" || format.type === "query",
+  );
+  const highlightsFormat = hasFormatOfType(meta.options.formats, "highlights");
+  if (!answerFormat && !highlightsFormat) {
     return document;
   }
 
@@ -505,30 +509,40 @@ export async function performQuery(
 
   const pageUrl = meta.url ?? document.metadata?.sourceURL ?? "";
 
-  let answer: string | null;
+  if (answerFormat) {
+    const prompt =
+      answerFormat.type === "question"
+        ? answerFormat.question
+        : answerFormat.prompt;
+    const answer =
+      answerFormat.type === "query" && answerFormat.mode === "directQuote"
+        ? await performDirectQuoteQuery(meta, document, prompt, markdown)
+        : await performFreeformQuery(meta, prompt, markdown, pageUrl);
 
-  if (queryFormat.mode === "directQuote") {
-    answer = await performDirectQuoteQuery(
-      meta,
-      document,
-      queryFormat.prompt,
-      markdown,
-    );
-  } else {
-    answer = await performFreeformQuery(
-      meta,
-      queryFormat.prompt,
-      markdown,
-      pageUrl,
-    );
+    if (answer !== null) {
+      document.answer = answer;
+    } else {
+      document.warning =
+        "Query generation failed after all models." +
+        (document.warning ? " " + document.warning : "");
+    }
   }
 
-  if (answer !== null) {
-    document.answer = answer;
-  } else {
-    document.warning =
-      "Query generation failed after all models." +
-      (document.warning ? " " + document.warning : "");
+  if (highlightsFormat) {
+    const highlights = await performDirectQuoteQuery(
+      meta,
+      document,
+      highlightsFormat.query,
+      markdown,
+    );
+
+    if (highlights !== null) {
+      document.highlights = highlights;
+    } else {
+      document.warning =
+        "Highlights generation failed after all models." +
+        (document.warning ? " " + document.warning : "");
+    }
   }
 
   return document;

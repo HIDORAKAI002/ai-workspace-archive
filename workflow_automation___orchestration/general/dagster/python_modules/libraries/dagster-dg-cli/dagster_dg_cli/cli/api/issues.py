@@ -314,7 +314,7 @@ def add_link_issue_command(
     api = DgApiIssueApi(_client=client)
 
     with handle_api_errors(ctx, output_json):
-        issue = api.add_link_to_issue(
+        issue = api.create_link_on_issue(
             issue_id=issue_id,
             run_id=run_id,
             asset_key=asset_key.split("/") if asset_key else None,
@@ -373,7 +373,7 @@ def remove_link_issue_command(
     api = DgApiIssueApi(_client=client)
 
     with handle_api_errors(ctx, output_json):
-        issue = api.remove_link_from_issue(
+        issue = api.delete_link_from_issue(
             issue_id=issue_id,
             run_id=run_id,
             asset_key=asset_key.split("/") if asset_key else None,

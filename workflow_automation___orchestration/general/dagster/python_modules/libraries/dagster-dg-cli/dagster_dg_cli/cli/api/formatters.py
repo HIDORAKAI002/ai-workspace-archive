@@ -240,7 +240,7 @@ def format_alert_policies(policies: "DgApiAlertPolicyDocument", as_json: bool) -
     import yaml
 
     return yaml.dump(
-        {"alert_policies": policies.alert_policies},
+        {"alert_policies": policies.items},
         default_flow_style=False,
         sort_keys=False,
     ).rstrip()
@@ -251,7 +251,7 @@ def format_alert_policy_sync_result(result: "DgApiAlertPolicySyncResult", as_jso
     if as_json:
         return result.model_dump_json(indent=2)
 
-    return f"Synced alert policies: {', '.join(result.synced_policies)}"
+    return f"Synced alert policies: {', '.join(result.items)}"
 
 
 # ---------------------------------------------------------------------------

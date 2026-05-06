@@ -40,6 +40,12 @@ public class Document
     [JsonPropertyName("actions")]
     public object? Actions { get; set; }
 
+    [JsonPropertyName("answer")]
+    public string? Answer { get; set; }
+
+    [JsonPropertyName("highlights")]
+    public string? Highlights { get; set; }
+
     [JsonPropertyName("warning")]
     public string? Warning { get; set; }
 

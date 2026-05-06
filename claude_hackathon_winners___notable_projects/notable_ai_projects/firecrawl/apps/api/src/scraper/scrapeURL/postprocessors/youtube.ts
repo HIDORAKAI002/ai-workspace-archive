@@ -51,6 +51,15 @@ function formatUploadedBy(metadata: YouTubeMetadataResponse): string {
   return name || url || "";
 }
 
+function isYouTubeVideoPath(url: URL): boolean {
+  if (url.pathname === "/watch" && !!url.searchParams.get("v")) {
+    return true;
+  }
+
+  const pathParts = url.pathname.split("/").filter(Boolean);
+  return pathParts.length === 2 && pathParts[0] === "live";
+}
+
 function buildMarkdown(
   metadata: YouTubeMetadataResponse,
   sourceUrl: string,
@@ -139,7 +148,7 @@ export const youtubePostprocessor: Postprocessor = {
       url.hostname.endsWith(".youtube.com") ||
       url.hostname === "youtube.com"
     ) {
-      return url.pathname === "/watch" && !!url.searchParams.get("v");
+      return isYouTubeVideoPath(url);
     } else if (url.hostname === "youtu.be") {
       return url.pathname !== "/";
     } else {

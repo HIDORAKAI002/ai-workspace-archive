@@ -114,6 +114,62 @@ describe("V2 Types Validation", () => {
       ]);
     });
 
+    it("should accept question format", () => {
+      const input: ScrapeRequestInput = {
+        url: "https://example.com",
+        formats: [{ type: "question", question: "What is Firecrawl?" }],
+      };
+
+      const result = scrapeRequestSchema.parse(input);
+      expect(result.formats).toEqual([
+        { type: "question", question: "What is Firecrawl?" },
+      ]);
+    });
+
+    it("should accept highlights format", () => {
+      const input: ScrapeRequestInput = {
+        url: "https://example.com",
+        formats: [{ type: "highlights", query: "What is Firecrawl?" }],
+      };
+
+      const result = scrapeRequestSchema.parse(input);
+      expect(result.formats).toEqual([
+        { type: "highlights", query: "What is Firecrawl?" },
+      ]);
+    });
+
+    it("should reject invalid question and highlights fields", () => {
+      expect(() =>
+        scrapeRequestSchema.parse({
+          url: "https://example.com",
+          formats: [{ type: "question", question: "" }],
+        } satisfies ScrapeRequestInput),
+      ).toThrow();
+
+      expect(() =>
+        scrapeRequestSchema.parse({
+          url: "https://example.com",
+          formats: [{ type: "question", prompt: "What is Firecrawl?" } as any],
+        }),
+      ).toThrow();
+
+      expect(() =>
+        scrapeRequestSchema.parse({
+          url: "https://example.com",
+          formats: [{ type: "highlights", query: "" }],
+        } satisfies ScrapeRequestInput),
+      ).toThrow();
+
+      expect(() =>
+        scrapeRequestSchema.parse({
+          url: "https://example.com",
+          formats: [
+            { type: "highlights", prompt: "What is Firecrawl?" } as any,
+          ],
+        }),
+      ).toThrow();
+    });
+
     it("should accept valid scrape request with changeTracking format", () => {
       const input: ScrapeRequestInput = {
         url: "https://example.com",
@@ -1030,6 +1086,24 @@ describe("V2 Types Validation", () => {
       ]);
     });
 
+    it("should accept search scrapeOptions with question and highlights formats", () => {
+      const input: SearchRequestInput = {
+        query: "test",
+        scrapeOptions: {
+          formats: [
+            { type: "question", question: "What is Firecrawl?" },
+            { type: "highlights", query: "What is Firecrawl?" },
+          ],
+        },
+      };
+
+      const result = searchRequestSchema.parse(input);
+      expect(result.scrapeOptions?.formats).toEqual([
+        { type: "question", question: "What is Firecrawl?" },
+        { type: "highlights", query: "What is Firecrawl?" },
+      ]);
+    });
+
     it("should reject search scrapeOptions query format with invalid mode", () => {
       const input: SearchRequestInput = {
         query: "test",
@@ -1073,6 +1147,26 @@ describe("V2 Types Validation", () => {
       };
 
       expect(() => searchRequestSchema.parse(input)).toThrow();
+    });
+
+    it("should reject search scrapeOptions question and highlights values over 10000 characters", () => {
+      expect(() =>
+        searchRequestSchema.parse({
+          query: "test",
+          scrapeOptions: {
+            formats: [{ type: "question", question: "a".repeat(10001) }],
+          },
+        } satisfies SearchRequestInput),
+      ).toThrow();
+
+      expect(() =>
+        searchRequestSchema.parse({
+          query: "test",
+          scrapeOptions: {
+            formats: [{ type: "highlights", query: "a".repeat(10001) }],
+          },
+        } satisfies SearchRequestInput),
+      ).toThrow();
     });
   });
 

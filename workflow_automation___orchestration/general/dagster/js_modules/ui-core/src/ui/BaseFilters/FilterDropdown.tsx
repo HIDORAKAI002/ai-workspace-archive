@@ -60,7 +60,7 @@ export const FilterDropdown = ({filters, setIsOpen, setPortaledElements}: Filter
         ? filters.filter((filter) => filter.name.toLowerCase().includes(search.toLowerCase()))
         : filters;
 
-    const results: Record<string, {label: JSX.Element; key: string; value: any}[]> = {};
+    const results: Record<string, {label: JSX.Element; key: string; value: unknown}[]> = {};
     if (search) {
       filters.forEach((filter) => {
         results[filter.name] = filter.getResults(search);
@@ -70,7 +70,7 @@ export const FilterDropdown = ({filters, setIsOpen, setPortaledElements}: Filter
   }, [search, filters, selectedFilter]);
 
   const selectValue = React.useCallback(
-    (filter: FilterObject, value: any) => {
+    (filter: FilterObject, value: unknown) => {
       filter.onSelect({
         value,
         close: () => {

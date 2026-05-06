@@ -408,6 +408,14 @@ class CommandStepBuilder:
                 {
                     "image": docker_image,
                     "command": ["dockerd-entrypoint.sh"],
+                    # Bump max-concurrent-downloads/uploads from default 3 to 10 to
+                    # parallelize layer pulls. The dockerd-entrypoint.sh of the
+                    # docker:dind image execs `dockerd` with whatever args are
+                    # passed, so these forward through cleanly.
+                    "args": [
+                        "--max-concurrent-downloads=10",
+                        "--max-concurrent-uploads=10",
+                    ],
                     "resources": {
                         "requests": {
                             "cpu": self._resources.docker_cpu if self._resources else "500m"
@@ -428,6 +436,23 @@ class CommandStepBuilder:
                     "securityContext": {
                         "privileged": True,
                         "allowPrivilegeEscalation": True,
+                    },
+                    # Block main containers from starting until dockerd is
+                    # actually responding to API calls. agent-stack-k8s only
+                    # gates main-container startup on the sidecar's "Started"
+                    # signal, which fires once dockerd's binary is running but
+                    # not necessarily once the daemon is accepting connections.
+                    # `docker info` round-trips to dockerd over the socket, so
+                    # it catches the window between bind() (where the socket
+                    # file appears) and listen()/accept() — a window that
+                    # `test -S /var/run/docker.sock` was passing through,
+                    # letting test code race ahead and hit "Cannot connect to
+                    # the Docker daemon" when invoking `docker compose up`.
+                    "startupProbe": {
+                        "exec": {"command": ["docker", "info"]},
+                        "periodSeconds": 1,
+                        "failureThreshold": 30,
+                        "timeoutSeconds": 5,
                     },
                 }
             )

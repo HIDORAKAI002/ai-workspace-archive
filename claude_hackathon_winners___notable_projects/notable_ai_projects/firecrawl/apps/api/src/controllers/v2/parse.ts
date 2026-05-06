@@ -632,6 +632,8 @@ export async function parseController(
       let usedLlm =
         !!hasFormatOfType(req.body.formats, "json") ||
         !!hasFormatOfType(req.body.formats, "summary") ||
+        !!hasFormatOfType(req.body.formats, "question") ||
+        !!hasFormatOfType(req.body.formats, "highlights") ||
         !!hasFormatOfType(req.body.formats, "query");
 
       if (!usedLlm) {

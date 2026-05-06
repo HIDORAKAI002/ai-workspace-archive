@@ -73,7 +73,7 @@ type ParseOptions struct {
 	JsonOptions         *JsonOptions      `json:"jsonOptions,omitempty"`
 }
 
-// MarshalJSON preserves string formats while allowing object formats such as QueryFormat.
+// MarshalJSON preserves string formats while allowing object formats such as QuestionFormat.
 func (o ParseOptions) MarshalJSON() ([]byte, error) {
 	type parseOptions ParseOptions
 	payload := struct {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Firecrawl\Models;
 
+/** @deprecated Use QuestionFormat or HighlightsFormat instead. */
 final class QueryFormat
 {
     public const MODE_FREEFORM = 'freeform';

@@ -52,6 +52,17 @@ export interface AttributesFormat extends Format {
   }>;
 }
 
+export interface QuestionFormat {
+  type: 'question';
+  question: string;
+}
+
+export interface HighlightsFormat {
+  type: 'highlights';
+  query: string;
+}
+
+/** @deprecated Use QuestionFormat or HighlightsFormat instead. */
 export interface QueryFormat {
   type: 'query';
   prompt: string;
@@ -65,6 +76,8 @@ export type FormatOption =
   | ChangeTrackingFormat
   | ScreenshotFormat
   | AttributesFormat
+  | QuestionFormat
+  | HighlightsFormat
   | QueryFormat;
 
 export type ParseFormatString = Exclude<
@@ -81,6 +94,8 @@ export type ParseFormatOption =
   | ParseFormat
   | JsonFormat
   | AttributesFormat
+  | QuestionFormat
+  | HighlightsFormat
   | QueryFormat;
 
 export interface LocationConfig {
@@ -450,6 +465,7 @@ export interface Document {
   }>;
   actions?: Record<string, unknown>;
   answer?: string;
+  highlights?: string;
   warning?: string;
   changeTracking?: Record<string, unknown>;
   branding?: BrandingProfile;

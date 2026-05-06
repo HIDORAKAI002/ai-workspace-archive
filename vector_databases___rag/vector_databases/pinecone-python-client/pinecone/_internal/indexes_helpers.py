@@ -150,7 +150,7 @@ def build_create_body(
         if spec.read_capacity is not None:
             serverless_dict["read_capacity"] = spec.read_capacity
         if spec.schema is not None:
-            serverless_dict["schema"] = spec.schema
+            serverless_dict["schema"] = _normalize_schema(spec.schema)
         body["spec"] = {"serverless": serverless_dict}
     elif isinstance(spec, PodSpec):
         body["spec"] = {"pod": msgspec.to_builtins(spec)}
@@ -213,7 +213,7 @@ def build_byoc_body(
     if spec.read_capacity is not None:
         byoc_dict["read_capacity"] = spec.read_capacity
     if spec.schema is not None:
-        byoc_dict["schema"] = spec.schema
+        byoc_dict["schema"] = _normalize_schema(spec.schema)
     if schema is not None:
         byoc_dict["schema"] = _normalize_schema(schema)
     body["spec"] = {"byoc": byoc_dict}
@@ -278,7 +278,7 @@ def build_integrated_body(
     if tags is not None:
         body["tags"] = tags
     if schema is not None:
-        body["schema"] = schema
+        body["schema"] = _normalize_schema(schema)
     if read_capacity is not None:
         body["read_capacity"] = read_capacity
 
@@ -286,11 +286,19 @@ def build_integrated_body(
 
 
 def _normalize_schema(raw: dict[str, Any]) -> dict[str, Any]:
-    """Normalize metadata schema to flat format."""
-    if "fields" in raw:
-        result: dict[str, Any] = raw["fields"]
-        return result
-    return raw
+    """Wrap a bare fields map in ``{"fields": ...}`` for backend compatibility.
+
+    The backend's ``IndexMetadataMetadataSchema`` requires the top-level
+    ``fields`` key. For ergonomic convenience, the SDK accepts either form:
+
+    - ``{"fields": {"genre": {"filterable": True}}}`` (wrapped, per the OpenAPI spec)
+    - ``{"genre": {"filterable": True}}`` (bare fields map)
+
+    Both produce the wrapped wire format.
+    """
+    if list(raw.keys()) == ["fields"] and isinstance(raw.get("fields"), dict):
+        return raw
+    return {"fields": raw}
 
 
 def poll_index_until_ready(
@@ -313,9 +321,14 @@ def poll_index_until_ready(
 
     Raises:
         IndexInitFailedError: If the index enters ``InitializationFailed`` state.
+        IndexTerminatedError: If the index enters ``Terminating`` or ``Disabled`` state.
         PineconeTimeoutError: If *timeout* seconds elapse without becoming ready.
     """
-    from pinecone.errors.exceptions import IndexInitFailedError, PineconeTimeoutError
+    from pinecone.errors.exceptions import (
+        IndexInitFailedError,
+        IndexTerminatedError,
+        PineconeTimeoutError,
+    )
 
     start = time.monotonic()
     while True:
@@ -324,6 +337,8 @@ def poll_index_until_ready(
             return idx
         if idx.status.state == "InitializationFailed":
             raise IndexInitFailedError(name)
+        if idx.status.state in ("Terminating", "Disabled"):
+            raise IndexTerminatedError(name, idx.status.state)
         if timeout is not None:
             elapsed = time.monotonic() - start
             if elapsed >= timeout:
@@ -351,9 +366,14 @@ async def async_poll_index_until_ready(
 
     Raises:
         IndexInitFailedError: If the index enters ``InitializationFailed`` state.
+        IndexTerminatedError: If the index enters ``Terminating`` or ``Disabled`` state.
         PineconeTimeoutError: If *timeout* seconds elapse without becoming ready.
     """
-    from pinecone.errors.exceptions import IndexInitFailedError, PineconeTimeoutError
+    from pinecone.errors.exceptions import (
+        IndexInitFailedError,
+        IndexTerminatedError,
+        PineconeTimeoutError,
+    )
 
     start = time.monotonic()
     while True:
@@ -362,6 +382,8 @@ async def async_poll_index_until_ready(
             return idx
         if idx.status.state == "InitializationFailed":
             raise IndexInitFailedError(name)
+        if idx.status.state in ("Terminating", "Disabled"):
+            raise IndexTerminatedError(name, idx.status.state)
         if timeout is not None:
             elapsed = time.monotonic() - start
             if elapsed >= timeout:

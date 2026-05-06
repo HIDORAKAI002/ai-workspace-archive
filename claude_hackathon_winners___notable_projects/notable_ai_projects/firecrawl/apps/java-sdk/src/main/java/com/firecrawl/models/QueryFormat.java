@@ -4,8 +4,11 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
- * Query format for asking a question about page content.
+ * Deprecated query format for asking a question about page content.
+ *
+ * @deprecated Use {@link QuestionFormat} or {@link HighlightsFormat} instead.
  */
+@Deprecated
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class QueryFormat {
 

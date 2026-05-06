@@ -109,7 +109,7 @@ public class ScrapeOptions {
         /**
          * Output formats to request. Accepts strings like "markdown", "html", "rawHtml",
          * "links", "screenshot", "json", "audio", etc., or format configuration maps/objects for
-         * advanced formats (e.g., JsonFormat, QueryFormat).
+         * advanced formats (e.g., JsonFormat, QuestionFormat, HighlightsFormat).
          */
         public Builder formats(List<Object> formats) { this.formats = formats; return this; }
 

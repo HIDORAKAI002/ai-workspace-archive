@@ -520,9 +520,17 @@ async function scrapeURLLoopIter(
     );
     const hasJson = hasFormatOfType(meta.options.formats, "json");
     const hasSummary = hasFormatOfType(meta.options.formats, "summary");
+    const hasQuestion = hasFormatOfType(meta.options.formats, "question");
+    const hasHighlights = hasFormatOfType(meta.options.formats, "highlights");
     const hasQuery = hasFormatOfType(meta.options.formats, "query");
     const needsMarkdown =
-      hasMarkdown || hasChangeTracking || hasJson || hasSummary || hasQuery;
+      hasMarkdown ||
+      hasChangeTracking ||
+      hasJson ||
+      hasSummary ||
+      hasQuestion ||
+      hasHighlights ||
+      hasQuery;
 
     let checkMarkdown: string;
     const htmlSize = engineResult.html?.length ?? 0;
