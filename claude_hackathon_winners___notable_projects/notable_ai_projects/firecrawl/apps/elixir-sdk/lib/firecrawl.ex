@@ -1157,4 +1157,274 @@ defmodule Firecrawl do
     Req.delete!(client(opts), url: "/scrape/#{job_id}/interact")
   end
 
+  @monitor_key_mapping %{
+    name: "name",
+    schedule: "schedule",
+    targets: "targets",
+    webhook: "webhook",
+    notification: "notification",
+    retention_days: "retentionDays",
+    status: "status"
+  }
+
+  @monitor_list_key_mapping %{limit: "limit", offset: "offset"}
+  @monitor_check_list_key_mapping %{limit: "limit", offset: "offset", status: "status"}
+  @monitor_check_key_mapping %{limit: "limit", skip: "skip", status: "status"}
+
+  @monitor_schema NimbleOptions.new!([
+    name: [type: :string],
+    schedule: [type: :any],
+    targets: [type: {:list, :any}],
+    webhook: [type: :any],
+    notification: [type: :any],
+    retention_days: [type: :integer],
+    status: [type: :any]
+  ])
+
+  @monitor_list_schema NimbleOptions.new!([
+    limit: [type: :integer],
+    offset: [type: :integer]
+  ])
+
+  @monitor_check_list_schema NimbleOptions.new!([
+    limit: [type: :integer],
+    offset: [type: :integer],
+    status: [type: :any]
+  ])
+
+  @monitor_check_schema NimbleOptions.new!([
+    limit: [type: :integer],
+    skip: [type: :integer],
+    status: [type: :any]
+  ])
+
+  @doc """
+  Create a scheduled monitor.
+
+  `POST /monitor`
+  """
+  @spec create_monitor(keyword(), keyword()) :: response()
+  def create_monitor(params \\ [], opts \\ []) do
+    with {:ok, params} <- NimbleOptions.validate(params, @monitor_schema) do
+      Req.post(client(opts), url: "/monitor", json: to_body(params, @monitor_key_mapping))
+    end
+  end
+
+  @doc """
+  Bang variant of `create_monitor`. Raises on error.
+  """
+  @spec create_monitor!(keyword(), keyword()) :: Req.Response.t()
+  def create_monitor!(params \\ [], opts \\ []) do
+    params = NimbleOptions.validate!(params, @monitor_schema)
+    Req.post!(client(opts), url: "/monitor", json: to_body(params, @monitor_key_mapping))
+  end
+
+  @doc """
+  List monitors for the authenticated team.
+
+  `GET /monitor`
+  """
+  @spec list_monitors(keyword(), keyword()) :: response()
+  def list_monitors(params \\ [], opts \\ []) do
+    with {:ok, params} <- NimbleOptions.validate(params, @monitor_list_schema) do
+      Req.get(client(opts), url: "/monitor", params: to_query(params, @monitor_list_key_mapping))
+    end
+  end
+
+  @doc """
+  Bang variant of `list_monitors`. Raises on error.
+  """
+  @spec list_monitors!(keyword(), keyword()) :: Req.Response.t()
+  def list_monitors!(params \\ [], opts \\ []) do
+    params = NimbleOptions.validate!(params, @monitor_list_schema)
+    Req.get!(client(opts), url: "/monitor", params: to_query(params, @monitor_list_key_mapping))
+  end
+
+  @doc """
+  Get a monitor by ID.
+
+  `GET /monitor/{monitorId}`
+  """
+  @spec get_monitor(String.t(), keyword()) :: response()
+  def get_monitor(monitor_id, opts \\ []) do
+    Req.get(client(opts), url: "/monitor/#{monitor_id}")
+  end
+
+  @doc """
+  Bang variant of `get_monitor`. Raises on error.
+  """
+  @spec get_monitor!(String.t(), keyword()) :: Req.Response.t()
+  def get_monitor!(monitor_id, opts \\ []) do
+    Req.get!(client(opts), url: "/monitor/#{monitor_id}")
+  end
+
+  @doc """
+  Update a monitor.
+
+  `PATCH /monitor/{monitorId}`
+  """
+  @spec update_monitor(String.t(), keyword(), keyword()) :: response()
+  def update_monitor(monitor_id, params \\ [], opts \\ []) do
+    with {:ok, params} <- NimbleOptions.validate(params, @monitor_schema) do
+      Req.patch(client(opts), url: "/monitor/#{monitor_id}", json: to_body(params, @monitor_key_mapping))
+    end
+  end
+
+  @doc """
+  Bang variant of `update_monitor`. Raises on error.
+  """
+  @spec update_monitor!(String.t(), keyword(), keyword()) :: Req.Response.t()
+  def update_monitor!(monitor_id, params \\ [], opts \\ []) do
+    params = NimbleOptions.validate!(params, @monitor_schema)
+    Req.patch!(client(opts), url: "/monitor/#{monitor_id}", json: to_body(params, @monitor_key_mapping))
+  end
+
+  @doc """
+  Delete a monitor.
+
+  `DELETE /monitor/{monitorId}`
+  """
+  @spec delete_monitor(String.t(), keyword()) :: response()
+  def delete_monitor(monitor_id, opts \\ []) do
+    Req.delete(client(opts), url: "/monitor/#{monitor_id}")
+  end
+
+  @doc """
+  Bang variant of `delete_monitor`. Raises on error.
+  """
+  @spec delete_monitor!(String.t(), keyword()) :: Req.Response.t()
+  def delete_monitor!(monitor_id, opts \\ []) do
+    Req.delete!(client(opts), url: "/monitor/#{monitor_id}")
+  end
+
+  @doc """
+  Trigger a manual monitor check.
+
+  `POST /monitor/{monitorId}/run`
+  """
+  @spec run_monitor(String.t(), keyword()) :: response()
+  def run_monitor(monitor_id, opts \\ []) do
+    Req.post(client(opts), url: "/monitor/#{monitor_id}/run", json: %{})
+  end
+
+  @doc """
+  Bang variant of `run_monitor`. Raises on error.
+  """
+  @spec run_monitor!(String.t(), keyword()) :: Req.Response.t()
+  def run_monitor!(monitor_id, opts \\ []) do
+    Req.post!(client(opts), url: "/monitor/#{monitor_id}/run", json: %{})
+  end
+
+  @doc """
+  List checks for a monitor.
+
+  `GET /monitor/{monitorId}/checks`
+  """
+  @spec list_monitor_checks(String.t(), keyword(), keyword()) :: response()
+  def list_monitor_checks(monitor_id, params \\ [], opts \\ []) do
+    with {:ok, params} <- NimbleOptions.validate(params, @monitor_check_list_schema) do
+      Req.get(client(opts),
+        url: "/monitor/#{monitor_id}/checks",
+        params: to_query(params, @monitor_check_list_key_mapping)
+      )
+    end
+  end
+
+  @doc """
+  Bang variant of `list_monitor_checks`. Raises on error.
+  """
+  @spec list_monitor_checks!(String.t(), keyword(), keyword()) :: Req.Response.t()
+  def list_monitor_checks!(monitor_id, params \\ [], opts \\ []) do
+    params = NimbleOptions.validate!(params, @monitor_check_list_schema)
+    Req.get!(client(opts),
+      url: "/monitor/#{monitor_id}/checks",
+      params: to_query(params, @monitor_check_list_key_mapping)
+    )
+  end
+
+  @doc """
+  Get a monitor check with paginated page results and inline diffs.
+
+  `GET /monitor/{monitorId}/checks/{checkId}`
+  """
+  @spec get_monitor_check(String.t(), String.t(), keyword(), keyword()) :: response()
+  def get_monitor_check(monitor_id, check_id, params \\ [], opts \\ []) do
+    {auto_paginate, opts} = Keyword.pop(opts, :auto_paginate, true)
+
+    with {:ok, params} <- NimbleOptions.validate(params, @monitor_check_schema) do
+      case Req.get(client(opts),
+             url: "/monitor/#{monitor_id}/checks/#{check_id}",
+             params: to_query(params, @monitor_check_key_mapping)
+           ) do
+        {:ok, response} when auto_paginate -> {:ok, paginate_monitor_check_response(response, opts)}
+        result -> result
+      end
+    end
+  end
+
+  @doc """
+  Bang variant of `get_monitor_check`. Raises on error.
+  """
+  @spec get_monitor_check!(String.t(), String.t(), keyword(), keyword()) :: Req.Response.t()
+  def get_monitor_check!(monitor_id, check_id, params \\ [], opts \\ []) do
+    {auto_paginate, opts} = Keyword.pop(opts, :auto_paginate, true)
+    params = NimbleOptions.validate!(params, @monitor_check_schema)
+    response = Req.get!(client(opts),
+      url: "/monitor/#{monitor_id}/checks/#{check_id}",
+      params: to_query(params, @monitor_check_key_mapping)
+    )
+
+    if auto_paginate, do: paginate_monitor_check_response!(response, opts), else: response
+  end
+
+  defp paginate_monitor_check_response(%Req.Response{body: body} = response, opts) when is_map(body) do
+    data = Map.get(body, "data") || %{}
+    pages = Map.get(data, "pages") || []
+    next = Map.get(body, "next") || Map.get(data, "next")
+    pages = fetch_monitor_check_pages(next, pages, opts)
+    data = data |> Map.put("pages", pages) |> Map.put("next", nil)
+    %{response | body: body |> Map.put("data", data) |> Map.put("next", nil)}
+  end
+
+  defp paginate_monitor_check_response(response, _opts), do: response
+
+  defp paginate_monitor_check_response!(%Req.Response{body: body} = response, opts) when is_map(body) do
+    data = Map.get(body, "data") || %{}
+    pages = Map.get(data, "pages") || []
+    next = Map.get(body, "next") || Map.get(data, "next")
+    pages = fetch_monitor_check_pages!(next, pages, opts)
+    data = data |> Map.put("pages", pages) |> Map.put("next", nil)
+    %{response | body: body |> Map.put("data", data) |> Map.put("next", nil)}
+  end
+
+  defp paginate_monitor_check_response!(response, _opts), do: response
+
+  defp fetch_monitor_check_pages(nil, pages, _opts), do: pages
+  defp fetch_monitor_check_pages("", pages, _opts), do: pages
+
+  defp fetch_monitor_check_pages(next, pages, opts) do
+    case Req.get(client(opts), url: next) do
+      {:ok, %Req.Response{body: body}} when is_map(body) ->
+        data = Map.get(body, "data") || %{}
+        next_pages = Map.get(data, "pages") || []
+        next_url = Map.get(body, "next") || Map.get(data, "next")
+        fetch_monitor_check_pages(next_url, pages ++ next_pages, opts)
+
+      _ ->
+        pages
+    end
+  end
+
+  defp fetch_monitor_check_pages!(nil, pages, _opts), do: pages
+  defp fetch_monitor_check_pages!("", pages, _opts), do: pages
+
+  defp fetch_monitor_check_pages!(next, pages, opts) do
+    response = Req.get!(client(opts), url: next)
+    body = response.body
+    data = if is_map(body), do: Map.get(body, "data") || %{}, else: %{}
+    next_pages = Map.get(data, "pages") || []
+    next_url = if is_map(body), do: Map.get(body, "next") || Map.get(data, "next"), else: nil
+    fetch_monitor_check_pages!(next_url, pages ++ next_pages, opts)
+  end
+
 end

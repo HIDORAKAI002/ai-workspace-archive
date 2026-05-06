@@ -1,0 +1,134 @@
+import { addMonitorCheckJob } from "./queue";
+import { enqueueDueMonitorChecks } from "./scheduler";
+import {
+  advanceMonitorAfterSkippedCheck,
+  claimDueMonitors,
+  createMonitorCheck,
+  dispatchScheduledMonitorCheck,
+  updateMonitorCheck,
+  updateMonitorScheduleAfterRun,
+} from "./store";
+
+jest.mock("./queue", () => ({
+  addMonitorCheckJob: jest.fn(),
+}));
+
+jest.mock("./store", () => ({
+  advanceMonitorAfterSkippedCheck: jest.fn(),
+  claimDueMonitors: jest.fn(),
+  createMonitorCheck: jest.fn(),
+  dispatchScheduledMonitorCheck: jest.fn(),
+  updateMonitorCheck: jest.fn(),
+  updateMonitorScheduleAfterRun: jest.fn(),
+}));
+
+const mockAddMonitorCheckJob = addMonitorCheckJob as jest.MockedFunction<
+  typeof addMonitorCheckJob
+>;
+const mockClaimDueMonitors = claimDueMonitors as jest.MockedFunction<
+  typeof claimDueMonitors
+>;
+const mockCreateMonitorCheck = createMonitorCheck as jest.MockedFunction<
+  typeof createMonitorCheck
+>;
+const mockDispatchScheduledMonitorCheck =
+  dispatchScheduledMonitorCheck as jest.MockedFunction<
+    typeof dispatchScheduledMonitorCheck
+  >;
+const mockUpdateMonitorCheck = updateMonitorCheck as jest.MockedFunction<
+  typeof updateMonitorCheck
+>;
+const mockAdvanceMonitorAfterSkippedCheck =
+  advanceMonitorAfterSkippedCheck as jest.MockedFunction<
+    typeof advanceMonitorAfterSkippedCheck
+  >;
+const mockUpdateMonitorScheduleAfterRun =
+  updateMonitorScheduleAfterRun as jest.MockedFunction<
+    typeof updateMonitorScheduleAfterRun
+  >;
+
+describe("monitoring scheduler", () => {
+  const monitor = {
+    id: "monitor-1",
+    team_id: "team-1",
+    current_check_id: null,
+    next_run_at: "2026-05-05T18:45:00.000Z",
+  } as any;
+  const check = { id: "check-1" } as any;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockClaimDueMonitors.mockResolvedValue([monitor]);
+    mockCreateMonitorCheck.mockResolvedValue(check);
+    mockDispatchScheduledMonitorCheck.mockResolvedValue(true);
+    mockAddMonitorCheckJob.mockResolvedValue(undefined);
+    mockAdvanceMonitorAfterSkippedCheck.mockResolvedValue(undefined);
+    mockUpdateMonitorScheduleAfterRun.mockResolvedValue(undefined);
+  });
+
+  it("dispatches and advances a scheduled monitor before enqueueing its job", async () => {
+    await expect(
+      enqueueDueMonitorChecks({ workerId: "worker-1" }),
+    ).resolves.toBe(1);
+
+    expect(mockCreateMonitorCheck).toHaveBeenCalledWith({
+      monitor,
+      trigger: "scheduled",
+      scheduledFor: monitor.next_run_at,
+    });
+    expect(mockDispatchScheduledMonitorCheck).toHaveBeenCalledWith({
+      monitor,
+      checkId: check.id,
+    });
+    expect(mockAddMonitorCheckJob).toHaveBeenCalledWith({
+      monitorId: monitor.id,
+      checkId: check.id,
+      teamId: monitor.team_id,
+    });
+    expect(
+      mockDispatchScheduledMonitorCheck.mock.invocationCallOrder[0],
+    ).toBeLessThan(mockAddMonitorCheckJob.mock.invocationCallOrder[0]);
+  });
+
+  it("fails and clears a dispatched check when enqueueing fails", async () => {
+    const error = new Error("queue unavailable");
+    const failed = { id: check.id, status: "failed" } as any;
+    mockAddMonitorCheckJob.mockRejectedValue(error);
+    mockUpdateMonitorCheck.mockResolvedValue(failed);
+
+    await expect(
+      enqueueDueMonitorChecks({ workerId: "worker-1" }),
+    ).resolves.toBe(0);
+
+    expect(mockUpdateMonitorCheck).toHaveBeenCalledWith(check.id, {
+      status: "failed",
+      finished_at: expect.any(String),
+      error: error.message,
+    });
+    expect(mockUpdateMonitorScheduleAfterRun).toHaveBeenCalledWith({
+      monitor,
+      check: failed,
+    });
+  });
+
+  it("records an overlap if dispatch finds another running check", async () => {
+    const skipped = { id: check.id, status: "skipped_overlap" } as any;
+    mockDispatchScheduledMonitorCheck.mockResolvedValue(false);
+    mockUpdateMonitorCheck.mockResolvedValue(skipped);
+
+    await expect(
+      enqueueDueMonitorChecks({ workerId: "worker-1" }),
+    ).resolves.toBe(0);
+
+    expect(mockAddMonitorCheckJob).not.toHaveBeenCalled();
+    expect(mockUpdateMonitorCheck).toHaveBeenCalledWith(check.id, {
+      status: "skipped_overlap",
+      finished_at: expect.any(String),
+      error: "Previous monitor check is still running.",
+    });
+    expect(mockAdvanceMonitorAfterSkippedCheck).toHaveBeenCalledWith({
+      monitor,
+      check: skipped,
+    });
+  });
+});

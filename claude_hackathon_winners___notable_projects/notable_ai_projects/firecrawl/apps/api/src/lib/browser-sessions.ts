@@ -45,18 +45,45 @@ export async function insertBrowserSession(
     updated_at: now,
   };
 
-  const { data, error } = await supabase_service
-    .from(TABLE)
-    .insert(full)
-    .select()
-    .single();
+  const MAX_ATTEMPTS = 10;
+  let lastError: any = null;
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      const { data, error } = await supabase_service
+        .from(TABLE)
+        .insert(full)
+        .select()
+        .single();
 
-  if (error) {
-    logger.error("Failed to insert browser session", { error, id: row.id });
-    throw new Error(`Failed to insert browser session: ${error.message}`);
+      if (error) {
+        lastError = error;
+        logger.error(
+          "Error inserting browser session due to Supabase error, trying again",
+          { error, id: row.id, attempt },
+        );
+        await new Promise(resolve => setTimeout(resolve, 75));
+        continue;
+      }
+
+      return data as BrowserSessionRow;
+    } catch (error) {
+      lastError = error;
+      logger.error(
+        "Error inserting browser session due to unknown error, trying again",
+        { error, id: row.id, attempt },
+      );
+      await new Promise(resolve => setTimeout(resolve, 75));
+    }
   }
 
-  return data as BrowserSessionRow;
+  logger.error("Failed to insert browser session after all retries", {
+    error: lastError,
+    id: row.id,
+    attempts: MAX_ATTEMPTS,
+  });
+  throw new Error(
+    `Failed to insert browser session: ${lastError?.message ?? "unknown error"}`,
+  );
 }
 
 export async function getBrowserSession(
