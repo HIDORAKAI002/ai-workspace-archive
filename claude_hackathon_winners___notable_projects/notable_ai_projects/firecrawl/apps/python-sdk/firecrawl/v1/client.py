@@ -338,6 +338,8 @@ class V1ExtractResponse(pydantic.BaseModel, Generic[T]):
     data: Optional[T] = None
     error: Optional[str] = None
     warning: Optional[str] = None
+    warnings: Optional[List[str]] = None
+    replacement: Optional[str] = None
     sources: Optional[Dict[Any, Any]] = None
     creditsUsed: Optional[int] = None
 
@@ -427,6 +429,8 @@ class V1DeepResearchResponse(pydantic.BaseModel):
     success: bool
     id: str
     error: Optional[str] = None
+    warnings: Optional[List[str]] = None
+    replacement: Optional[str] = None
 
 class V1DeepResearchStatusResponse(pydantic.BaseModel):
     """
@@ -442,12 +446,16 @@ class V1DeepResearchStatusResponse(pydantic.BaseModel):
     activities: List[Dict[str, Any]]
     sources: List[Dict[str, Any]]
     summaries: List[str]
+    warnings: Optional[List[str]] = None
+    replacement: Optional[str] = None
 
 class V1GenerateLLMsTextResponse(pydantic.BaseModel):
     """Response from LLMs.txt generation operations."""
     success: bool = True
     id: str
     error: Optional[str] = None
+    warnings: Optional[List[str]] = None
+    replacement: Optional[str] = None
 
 class V1GenerateLLMsTextStatusResponseData(pydantic.BaseModel):
     llmstxt: str
@@ -460,6 +468,8 @@ class V1GenerateLLMsTextStatusResponse(pydantic.BaseModel):
     status: Literal["processing", "completed", "failed"]
     error: Optional[str] = None
     expiresAt: str
+    warnings: Optional[List[str]] = None
+    replacement: Optional[str] = None
     
 class V1SearchResponse(pydantic.BaseModel):
     """
@@ -2196,6 +2206,9 @@ class V1FirecrawlApp:
         """
         Generate LLMs.txt for a given URL and poll until completion.
 
+        .. deprecated::
+            /v1/llmstxt is deprecated and will not be replaced.
+
         Args:
             url (str): Target URL to generate LLMs.txt from
             max_urls (Optional[int]): Maximum URLs to process (default: 10)
@@ -2213,6 +2226,12 @@ class V1FirecrawlApp:
         Raises:
             Exception: If generation fails
         """
+        import warnings
+        warnings.warn(
+            "/v1/llmstxt is deprecated and will not be replaced.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         params = V1GenerateLLMsTextParams(
             maxUrls=max_urls,
             showFullText=show_full_text,
@@ -2265,6 +2284,9 @@ class V1FirecrawlApp:
         """
         Initiate an asynchronous LLMs.txt generation operation.
 
+        .. deprecated::
+            /v1/llmstxt is deprecated and will not be replaced.
+
         Args:
             url (str): The target URL to generate LLMs.txt from. Must be a valid HTTP/HTTPS URL.
             max_urls (Optional[int]): Maximum URLs to process (default: 10)
@@ -2281,6 +2303,12 @@ class V1FirecrawlApp:
         Raises:
             Exception: If the generation job initiation fails.
         """
+        import warnings
+        warnings.warn(
+            "/v1/llmstxt is deprecated and will not be replaced.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         params = V1GenerateLLMsTextParams(
             maxUrls=max_urls,
             showFullText=show_full_text,
@@ -2316,6 +2344,9 @@ class V1FirecrawlApp:
         """
         Check the status of a LLMs.txt generation operation.
 
+        .. deprecated::
+            /v1/llmstxt is deprecated and will not be replaced.
+
         Args:
             id (str): The unique identifier of the LLMs.txt generation job to check status for.
 
@@ -2332,6 +2363,12 @@ class V1FirecrawlApp:
         Raises:
             Exception: If the status check fails.
         """
+        import warnings
+        warnings.warn(
+            "/v1/llmstxt is deprecated and will not be replaced.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         headers = self._prepare_headers()
         try:
             response = self._get_request(f'{self.api_url}/v1/llmstxt/{id}', headers)
@@ -2593,6 +2630,9 @@ class V1FirecrawlApp:
         """
         Initiates a deep research operation on a given query and polls until completion.
 
+        .. deprecated::
+            /v1/deep-research is deprecated. Use /v2/search instead.
+
         Args:
             query (str): Research query or topic to investigate
             max_depth (Optional[int]): Maximum depth of research exploration
@@ -2618,6 +2658,12 @@ class V1FirecrawlApp:
         Raises:
             Exception: If research fails
         """
+        import warnings
+        warnings.warn(
+            "/v1/deep-research is deprecated. Use /v2/search instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         research_params = {}
         if max_depth is not None:
             research_params['maxDepth'] = max_depth
@@ -2687,6 +2733,9 @@ class V1FirecrawlApp:
         """
         Initiates an asynchronous deep research operation.
 
+        .. deprecated::
+            /v1/deep-research is deprecated. Use /v2/search instead.
+
         Args:
             query (str): Research query or topic to investigate
             max_depth (Optional[int]): Maximum depth of research exploration
@@ -2705,6 +2754,12 @@ class V1FirecrawlApp:
         Raises:
             Exception: If the research initiation fails.
         """
+        import warnings
+        warnings.warn(
+            "/v1/deep-research is deprecated. Use /v2/search instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         research_params = {}
         if max_depth is not None:
             research_params['maxDepth'] = max_depth
@@ -2721,7 +2776,7 @@ class V1FirecrawlApp:
         research_params = V1DeepResearchParams(**research_params)
 
         headers = self._prepare_headers()
-        
+
         json_data = {'query': query, **research_params.dict(by_alias=True, exclude_none=True)}
         json_data['origin'] = f"python-sdk@{version}"
 
@@ -2749,6 +2804,9 @@ class V1FirecrawlApp:
         """
         Check the status of a deep research operation.
 
+        .. deprecated::
+            /v1/deep-research is deprecated. Use /v2/search instead.
+
         Args:
             id (str): The ID of the deep research operation.
 
@@ -2759,7 +2817,7 @@ class V1FirecrawlApp:
             * success - Whether research completed successfully
             * status - Current state (processing/completed/failed)
             * error - Error message if failed
-            
+
             Results:
             * id - Unique identifier for the research job
             * data - Research findings and analysis
@@ -2770,6 +2828,12 @@ class V1FirecrawlApp:
         Raises:
             Exception: If the status check fails.
         """
+        import warnings
+        warnings.warn(
+            "/v1/deep-research is deprecated. Use /v2/search instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         headers = self._prepare_headers()
         try:
             response = self._get_request(f'{self.api_url}/v1/deep-research/{id}', headers)
@@ -4626,6 +4690,11 @@ class AsyncV1FirecrawlApp(V1FirecrawlApp):
         """
         Check the status of an asynchronous extraction job.
 
+        .. deprecated::
+            The extract endpoint is in maintenance mode and its use is discouraged.
+            Review https://docs.firecrawl.dev/developer-guides/usage-guides/choosing-the-data-extractor
+            to find a replacement.
+
         Args:
             job_id (str): The ID of the extraction job
 
@@ -4640,6 +4709,14 @@ class AsyncV1FirecrawlApp(V1FirecrawlApp):
         Raises:
             ValueError: If status check fails
         """
+        import warnings
+        warnings.warn(
+            "The extract endpoint is in maintenance mode and its use is discouraged. "
+            "Review https://docs.firecrawl.dev/developer-guides/usage-guides/choosing-the-data-extractor "
+            "to find a replacement.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         headers = self._prepare_headers()
         try:
             return await self._async_get_request(
@@ -4663,6 +4740,11 @@ class AsyncV1FirecrawlApp(V1FirecrawlApp):
         """
         Initiate an asynchronous extraction job without waiting for completion.
 
+        .. deprecated::
+            The extract endpoint is in maintenance mode and its use is discouraged.
+            Review https://docs.firecrawl.dev/developer-guides/usage-guides/choosing-the-data-extractor
+            to find a replacement.
+
         Args:
             urls (Optional[List[str]]): URLs to extract from
             prompt (Optional[str]): Custom extraction prompt
@@ -4683,6 +4765,14 @@ class AsyncV1FirecrawlApp(V1FirecrawlApp):
         Raises:
             ValueError: If job initiation fails
         """
+        import warnings
+        warnings.warn(
+            "The extract endpoint is in maintenance mode and its use is discouraged. "
+            "Review https://docs.firecrawl.dev/developer-guides/usage-guides/choosing-the-data-extractor "
+            "to find a replacement.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         headers = self._prepare_headers()
 
         if not prompt and not schema:
@@ -4729,6 +4819,9 @@ class AsyncV1FirecrawlApp(V1FirecrawlApp):
         """
         Generate LLMs.txt for a given URL and monitor until completion.
 
+        .. deprecated::
+            /v1/llmstxt is deprecated and will not be replaced.
+
         Args:
             url (str): Target URL to generate LLMs.txt from
             max_urls (Optional[int]): Maximum URLs to process (default: 10)
@@ -4748,6 +4841,12 @@ class AsyncV1FirecrawlApp(V1FirecrawlApp):
         Raises:
             Exception: If generation fails
         """
+        import warnings
+        warnings.warn(
+            "/v1/llmstxt is deprecated and will not be replaced.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         params = {}
         if max_urls is not None:
             params['maxUrls'] = max_urls
@@ -4791,6 +4890,9 @@ class AsyncV1FirecrawlApp(V1FirecrawlApp):
         """
         Initiate an asynchronous LLMs.txt generation job without waiting for completion.
 
+        .. deprecated::
+            /v1/llmstxt is deprecated and will not be replaced.
+
         Args:
             url (str): Target URL to generate LLMs.txt from
             max_urls (Optional[int]): Maximum URLs to process (default: 10)
@@ -4807,6 +4909,12 @@ class AsyncV1FirecrawlApp(V1FirecrawlApp):
         Raises:
             ValueError: If job initiation fails
         """
+        import warnings
+        warnings.warn(
+            "/v1/llmstxt is deprecated and will not be replaced.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         params = {}
         if max_urls is not None:
             params['maxUrls'] = max_urls
@@ -4839,6 +4947,9 @@ class AsyncV1FirecrawlApp(V1FirecrawlApp):
         """
         Check the status of an asynchronous LLMs.txt generation job.
 
+        .. deprecated::
+            /v1/llmstxt is deprecated and will not be replaced.
+
         Args:
             id (str): The ID of the generation job
 
@@ -4855,6 +4966,12 @@ class AsyncV1FirecrawlApp(V1FirecrawlApp):
         Raises:
             ValueError: If status check fails
         """
+        import warnings
+        warnings.warn(
+            "/v1/llmstxt is deprecated and will not be replaced.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         headers = self._prepare_headers()
         try:
             return await self._async_get_request(
@@ -4878,6 +4995,9 @@ class AsyncV1FirecrawlApp(V1FirecrawlApp):
             on_source: Optional[Callable[[Dict[str, Any]], None]] = None) -> V1DeepResearchStatusResponse:
         """
         Initiates a deep research operation on a given query and polls until completion.
+
+        .. deprecated::
+            /v1/deep-research is deprecated. Use /v2/search instead.
 
         Args:
             query (str): Research query or topic to investigate
@@ -4904,6 +5024,12 @@ class AsyncV1FirecrawlApp(V1FirecrawlApp):
         Raises:
             Exception: If research fails
         """
+        import warnings
+        warnings.warn(
+            "/v1/deep-research is deprecated. Use /v2/search instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         research_params = {}
         if max_depth is not None:
             research_params['maxDepth'] = max_depth
@@ -4973,6 +5099,9 @@ class AsyncV1FirecrawlApp(V1FirecrawlApp):
         """
         Initiates an asynchronous deep research operation.
 
+        .. deprecated::
+            /v1/deep-research is deprecated. Use /v2/search instead.
+
         Args:
             query (str): Research query or topic to investigate
             max_depth (Optional[int]): Maximum depth of research exploration
@@ -4991,6 +5120,12 @@ class AsyncV1FirecrawlApp(V1FirecrawlApp):
         Raises:
             Exception: If the research initiation fails.
         """
+        import warnings
+        warnings.warn(
+            "/v1/deep-research is deprecated. Use /v2/search instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         research_params = {}
         if max_depth is not None:
             research_params['maxDepth'] = max_depth
@@ -5007,7 +5142,7 @@ class AsyncV1FirecrawlApp(V1FirecrawlApp):
         research_params = V1DeepResearchParams(**research_params)
 
         headers = self._prepare_headers()
-        
+
         json_data = {'query': query, **research_params.dict(by_alias=True, exclude_none=True)}
         json_data['origin'] = f"python-sdk@{version}"
 
@@ -5024,6 +5159,9 @@ class AsyncV1FirecrawlApp(V1FirecrawlApp):
         """
         Check the status of a deep research operation.
 
+        .. deprecated::
+            /v1/deep-research is deprecated. Use /v2/search instead.
+
         Args:
             id (str): The ID of the deep research operation.
 
@@ -5034,7 +5172,7 @@ class AsyncV1FirecrawlApp(V1FirecrawlApp):
             * success - Whether research completed successfully
             * status - Current state (processing/completed/failed)
             * error - Error message if failed
-            
+
             Results:
             * id - Unique identifier for the research job
             * data - Research findings and analysis
@@ -5045,6 +5183,12 @@ class AsyncV1FirecrawlApp(V1FirecrawlApp):
         Raises:
             Exception: If the status check fails.
         """
+        import warnings
+        warnings.warn(
+            "/v1/deep-research is deprecated. Use /v2/search instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         headers = self._prepare_headers()
         try:
             return await self._async_get_request(

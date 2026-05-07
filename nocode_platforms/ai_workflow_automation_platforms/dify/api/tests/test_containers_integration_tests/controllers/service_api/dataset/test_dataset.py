@@ -217,9 +217,19 @@ class TestTagUnbindingPayload:
     """Test suite for TagUnbindingPayload Pydantic model."""
 
     def test_payload_with_valid_data(self):
-        payload = TagUnbindingPayload(tag_id="tag_123", target_id="dataset_456")
-        assert payload.tag_id == "tag_123"
+        payload = TagUnbindingPayload(tag_ids=["tag_123"], target_id="dataset_456")
+        assert payload.tag_ids == ["tag_123"]
         assert payload.target_id == "dataset_456"
+
+    def test_payload_normalizes_legacy_tag_id(self):
+        payload = TagUnbindingPayload(tag_id="tag_123", target_id="dataset_456")
+        assert payload.tag_ids == ["tag_123"]
+        assert payload.target_id == "dataset_456"
+
+    def test_payload_rejects_empty_tag_ids(self):
+        with pytest.raises(ValueError) as exc_info:
+            TagUnbindingPayload(tag_ids=[], target_id="dataset_456")
+        assert "Tag IDs is required" in str(exc_info.value)
 
 
 # ---------------------------------------------------------------------------
@@ -1015,6 +1025,36 @@ class TestDatasetTagUnbindingApiPost:
         with app.test_request_context(
             "/datasets/tags/unbinding",
             method="POST",
+            json={"tag_ids": ["tag-1"], "target_id": "ds-1"},
+        ):
+            api = DatasetTagUnbindingApi()
+            result = api.post(_=None)
+
+        assert result == ("", 204)
+        from services.tag_service import TagBindingDeletePayload
+
+        mock_tag_svc.delete_tag_binding.assert_called_once_with(
+            TagBindingDeletePayload(tag_ids=["tag-1"], target_id="ds-1", type="knowledge")
+        )
+
+    @patch("controllers.service_api.dataset.dataset.TagService")
+    @patch("controllers.service_api.dataset.dataset.current_user")
+    def test_unbind_legacy_tag_id_success(
+        self,
+        mock_current_user,
+        mock_tag_svc,
+        app,
+    ):
+        from controllers.service_api.dataset.dataset import DatasetTagUnbindingApi
+
+        mock_current_user.__class__ = Account
+        mock_current_user.has_edit_permission = True
+        mock_current_user.is_dataset_editor = True
+        mock_tag_svc.delete_tag_binding.return_value = None
+
+        with app.test_request_context(
+            "/datasets/tags/unbinding",
+            method="POST",
             json={"tag_id": "tag-1", "target_id": "ds-1"},
         ):
             api = DatasetTagUnbindingApi()
@@ -1024,7 +1064,7 @@ class TestDatasetTagUnbindingApiPost:
         from services.tag_service import TagBindingDeletePayload
 
         mock_tag_svc.delete_tag_binding.assert_called_once_with(
-            TagBindingDeletePayload(tag_id="tag-1", target_id="ds-1", type="knowledge")
+            TagBindingDeletePayload(tag_ids=["tag-1"], target_id="ds-1", type="knowledge")
         )
 
     @patch("controllers.service_api.dataset.dataset.current_user")
@@ -1038,7 +1078,7 @@ class TestDatasetTagUnbindingApiPost:
         with app.test_request_context(
             "/datasets/tags/unbinding",
             method="POST",
-            json={"tag_id": "tag-1", "target_id": "ds-1"},
+            json={"tag_ids": ["tag-1"], "target_id": "ds-1"},
         ):
             api = DatasetTagUnbindingApi()
             with pytest.raises(Forbidden):

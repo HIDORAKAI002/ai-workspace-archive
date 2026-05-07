@@ -777,6 +777,8 @@ export interface ExtractResponse {
   data?: unknown;
   error?: string;
   warning?: string;
+  warnings?: string[];
+  replacement?: string;
   sources?: Record<string, unknown>;
   expiresAt?: string;
   creditsUsed?: number;
