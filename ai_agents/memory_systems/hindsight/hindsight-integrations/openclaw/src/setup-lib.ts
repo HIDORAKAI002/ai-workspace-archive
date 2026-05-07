@@ -39,6 +39,7 @@ export interface PluginEntry {
 export interface OpenClawConfigShape {
   plugins?: {
     entries?: Record<string, PluginEntry>;
+    allow?: unknown;
     [key: string]: unknown;
   };
   [key: string]: unknown;
@@ -93,6 +94,18 @@ export function ensurePluginConfig(cfg: OpenClawConfigShape): Record<string, unk
   if (hooks.allowConversationAccess === undefined) {
     hooks.allowConversationAccess = true;
   }
+  // OpenClaw 2026.2.19+ warns at startup when `plugins.allow` is empty and
+  // non-bundled plugins are discovered: "plugins.allow is empty; discovered
+  // non-bundled plugins may auto-load: hindsight-openclaw". Cosmetic only — the
+  // plugin still loads — but noisy on every gateway start. Add ourselves to the
+  // allowlist so the warning goes away. Never clobber a user-curated allowlist:
+  // if `plugins.allow` is already an array, just append our id when missing.
+  // If it's set to something non-array (deliberate strange value), leave it.
+  if (plugins.allow === undefined) {
+    plugins.allow = [PLUGIN_ID];
+  } else if (Array.isArray(plugins.allow) && !plugins.allow.includes(PLUGIN_ID)) {
+    plugins.allow = [...plugins.allow, PLUGIN_ID];
+  }
   return (entry.config ??= {});
 }
 
@@ -120,6 +133,17 @@ export function isValidEnvVarName(value: string | undefined): boolean {
 
 export function defaultApiKeyEnvVar(provider: string): string {
   return `${provider.toUpperCase().replace(/-/g, "_")}_API_KEY`;
+}
+
+/**
+ * Mask all but the last 4 chars of a secret so we can hint "yes, this is your
+ * configured token" without leaking the secret onto the user's terminal
+ * scrollback. Used by the wizard's reuse-existing-token prompt.
+ */
+export function maskSecret(value: string): string {
+  const trimmed = value.trim();
+  if (trimmed.length <= 4) return "*".repeat(trimmed.length);
+  return `${"*".repeat(Math.max(4, trimmed.length - 4))}${trimmed.slice(-4)}`;
 }
 
 /**

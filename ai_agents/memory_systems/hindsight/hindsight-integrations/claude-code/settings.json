@@ -28,6 +28,8 @@
   "bankIdPrefix": "",
   "dynamicBankId": false,
   "dynamicBankGranularity": ["agent", "project"],
+  "resolveWorktrees": true,
+  "directoryBankMap": {},
   "llmProvider": null,
   "llmModel": null,
   "llmApiKeyEnv": null,

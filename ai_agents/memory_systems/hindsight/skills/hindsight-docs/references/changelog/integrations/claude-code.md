@@ -8,6 +8,12 @@ import PageHero from '@site/src/components/PageHero';
 
 ← Claude Code integration
 
+## [0.6.3](https://github.com/vectorize-io/hindsight/tree/integrations/claude-code/v0.6.3)
+
+**Features**
+
+- Adds explicit directory-to-bank mapping and better support for Git worktrees when using the claude-code integration.<span style={{color: "var(--ifm-color-emphasis-500)", margin: "0 0.3em"}}>·</span><a href="https://github.com/nicoloboschi" target="_blank" rel="noopener noreferrer" style={{color: "var(--ifm-color-primary)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "4px", verticalAlign: "middle"}}>@nicoloboschi</a><span style={{color: "var(--ifm-color-emphasis-500)", margin: "0 0.3em"}}>·</span><a href="https://github.com/vectorize-io/hindsight/commit/691c65ac" target="_blank" rel="noopener noreferrer" style={{fontFamily: "var(--ifm-font-family-monospace, monospace)", fontSize: "0.85em", color: "var(--ifm-color-emphasis-600)"}}>691c65ac</a>
+
 ## [0.6.2](https://github.com/vectorize-io/hindsight/tree/integrations/claude-code/v0.6.2)
 
 **Bug Fixes**

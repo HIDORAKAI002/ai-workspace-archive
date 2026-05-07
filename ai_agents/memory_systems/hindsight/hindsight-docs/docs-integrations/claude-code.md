@@ -146,6 +146,27 @@ A **bank** is an isolated memory store — like a separate "brain." These settin
 | `dynamicBankGranularity` | — | `["agent", "project"]` | Which context fields to combine when building a dynamic bank ID. Available fields: `agent` (agent name), `project` (working directory), `session` (session ID), `channel` (channel ID), `user` (user ID). |
 | `bankIdPrefix` | — | `""` | A string prepended to all bank IDs — both static and dynamic. Useful for namespacing (e.g. `"prod"` or `"staging"`). |
 | `agentName` | `HINDSIGHT_AGENT_NAME` | `"claude-code"` | Name used for the `agent` field in dynamic bank ID derivation. |
+| `resolveWorktrees` | — | `true` | When deriving the `project` field, resolve git worktrees to the **main repository's basename** so that all worktrees of the same repo share one bank. Set to `false` to use the literal working directory basename instead (each worktree gets its own bank). |
+| `directoryBankMap` | — | `{}` | Explicit `{ "/path/to/dir": "bank-id" }` mapping. When the current working directory matches an entry, that bank is used directly — overrides both static and dynamic resolution. `bankIdPrefix` still applies on top. |
+
+#### Worktrees and explicit mapping
+
+By default, all git worktrees of the same repository share one bank. For example, if you keep a main checkout at `/home/me/myproject` and a worktree at `/home/me/myproject-wt1`, both resolve to `project = "myproject"` — so dynamic bank IDs like `claude-code::myproject` are stable across all worktrees. This avoids fragmenting memory across short-lived branches.
+
+If you want each worktree to have its own bank, set `"resolveWorktrees": false`.
+
+For full control, use `directoryBankMap` to pin specific directories to specific bank IDs:
+
+```json
+{
+  "directoryBankMap": {
+    "/home/me/work/client-a": "client-a-memories",
+    "/home/me/personal/blog": "blog"
+  }
+}
+```
+
+When `cwd` matches one of the keys, that bank is used immediately — no static or dynamic resolution runs. Directories not listed fall through to the normal logic.
 
 ---
 
