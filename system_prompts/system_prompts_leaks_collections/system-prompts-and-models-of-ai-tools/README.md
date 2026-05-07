@@ -3,15 +3,15 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/latitude-dev/latitude-llm">
+  <a href="https://latitude.so/?utm_source=github&utm_medium=readme&utm_campaign=sponsorship">
     <img src="assets/latitude-dark.png" alt="Latitude Logo" width="700"/>
   </a>
 </p>
 
 <div align="center" markdown="1">
 
-### [Issue Tracking for AI Agents](https://github.com/latitude-dev/latitude-llm)  
-[Open Source Monitoring platform](https://github.com/latitude-dev/latitude-llm)
+### [Issue Tracking for AI Agents](https://latitude.so/?utm_source=github&utm_medium=readme&utm_campaign=sponsorship)  
+[Open Source Monitoring platform](https://latitude.so/?utm_source=github&utm_medium=readme&utm_campaign=sponsorship)
 
 </div>
 
