@@ -20,7 +20,6 @@ def _has_git_changes(root: Path, base: str) -> bool:
             ["git", "diff", "--name-only", base, "--"],
             capture_output=True, stdin=subprocess.DEVNULL, text=True,
             cwd=str(root), timeout=10,
-            stdin=subprocess.DEVNULL,
         )
         if result.returncode == 0 and result.stdout.strip():
             return True
@@ -29,7 +28,6 @@ def _has_git_changes(root: Path, base: str) -> bool:
             ["git", "status", "--porcelain"],
             capture_output=True, stdin=subprocess.DEVNULL, text=True,
             cwd=str(root), timeout=10,
-            stdin=subprocess.DEVNULL,
         )
         return bool(result2.stdout.strip())
     except (FileNotFoundError, subprocess.TimeoutExpired):

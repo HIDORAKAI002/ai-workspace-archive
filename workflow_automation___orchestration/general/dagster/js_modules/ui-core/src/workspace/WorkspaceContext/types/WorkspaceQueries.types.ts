@@ -1483,6 +1483,6 @@ export const LocationWorkspaceQueryVersion = '13d0e674c559c7506419e36c9f30ecc793
 
 export const CodeLocationStatusQueryVersion = '5491629a2659feca3a6cf0cc976c6f59c8e78dff1193e07d7850ae4355698b04';
 
-export const LocationWorkspaceAssetsQueryVersion = '7b38df240a251b176a84d2640ee424a4cba2c05b9c21103829c62cff0651b4b7';
+export const LocationWorkspaceAssetsQueryVersion = 'ac6da45c2b6f5e448ef92e906b1531165822e9fbe379945a0578c81598d58b4c';
 
 export const LocationWorkspaceAssetsManifestQueryVersion = '26f05a136fa06937c3c7c0536f69f2c5dde1956750e8de4eec7fcaf9dd684d94';

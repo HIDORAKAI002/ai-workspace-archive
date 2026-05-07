@@ -276,9 +276,7 @@
     <!-- SLIDE 5: AI Jargon Word Cloud                                 -->
     <!-- ============================================================ -->
     <div class="slide" data-slide="5">
-        <h1 style="font-size: 1.6rem; margin-bottom: 8px; color: #888; border-bottom: none; padding-bottom: 0; font-weight: 400; letter-spacing: 1px; text-transform: uppercase;">Jargon you'll hear</h1>
-        <p style="font-size: 1rem; color: #aaa; margin-bottom: 0; font-style: italic;">I'll unpack each of these as we go &mdash; for now, just let them wash over you.</p>
-        <div style="position: relative; width: 100%; min-height: calc(100vh - 130px); overflow: hidden;">
+        <div style="position: relative; width: 100%; min-height: calc(100vh - 20px); overflow: hidden;">
 
             <!-- ===== HERO TIER: Blue chips (bigger, bolder, dominant) ===== -->
             <!-- agentic engineering — demoted to orange, bottom-left area -->
@@ -419,16 +417,194 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- SLIDE 9: Models — Can answer / Can't answer                  -->
+    <!-- SLIDE 9: A horse. A model. (teaser for slide 19 harness reveal) -->
     <!-- ============================================================ -->
     <div class="slide" data-slide="9">
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: calc(100vh - 120px); text-align: center; gap: 0;">
+
+            <!-- SVG Horse body only — harness and callouts stripped for teaser -->
+            <!-- viewBox tightened to horse body bounds (no expanded callout margins) -->
+            <svg viewBox="110 25 340 345" width="680" height="345" xmlns="http://www.w3.org/2000/svg" aria-label="Horse illustration — the model is the horse, raw power, no direction" style="display: block; max-width: 100%; height: auto;">
+
+                <!-- === HORSE BODY (warm brown silhouette) === -->
+                <!-- Torso -->
+                <ellipse cx="260" cy="210" rx="120" ry="68" fill="#8B6340"/>
+                <!-- Neck -->
+                <path d="M175 175 Q165 130 185 100 Q200 80 220 90 Q230 100 225 130 Q220 155 205 170 Z" fill="#8B6340"/>
+                <!-- Head -->
+                <ellipse cx="198" cy="78" rx="32" ry="22" fill="#8B6340" transform="rotate(-20 198 78)"/>
+                <!-- Muzzle/snout -->
+                <ellipse cx="173" cy="88" rx="18" ry="12" fill="#A07850" transform="rotate(-20 173 88)"/>
+                <!-- Ear -->
+                <path d="M210 60 L218 44 L225 61 Z" fill="#8B6340"/>
+                <!-- Eye -->
+                <circle cx="186" cy="72" r="4" fill="#2a1a0a"/>
+                <circle cx="185" cy="71" r="1.5" fill="#fff"/>
+                <!-- Nostril -->
+                <ellipse cx="165" cy="91" rx="4" ry="2.5" fill="#5a3a1a" transform="rotate(-20 165 91)"/>
+
+                <!-- Front legs -->
+                <rect x="195" y="270" width="22" height="68" rx="8" fill="#7A5530"/>
+                <rect x="228" y="270" width="22" height="68" rx="8" fill="#7A5530"/>
+                <!-- Hooves front -->
+                <rect x="193" y="330" width="26" height="14" rx="5" fill="#3a2a18"/>
+                <rect x="226" y="330" width="26" height="14" rx="5" fill="#3a2a18"/>
+
+                <!-- Rear legs -->
+                <rect x="295" y="268" width="22" height="70" rx="8" fill="#7A5530"/>
+                <rect x="325" y="268" width="22" height="70" rx="8" fill="#7A5530"/>
+                <!-- Hooves rear -->
+                <rect x="293" y="330" width="26" height="14" rx="5" fill="#3a2a18"/>
+                <rect x="323" y="330" width="26" height="14" rx="5" fill="#3a2a18"/>
+
+                <!-- Tail -->
+                <path d="M378 195 Q420 185 430 210 Q440 235 415 255 Q400 265 385 255" stroke="#5a3a1a" stroke-width="8" fill="none" stroke-linecap="round"/>
+                <path d="M385 255 Q370 270 375 288" stroke="#5a3a1a" stroke-width="6" fill="none" stroke-linecap="round"/>
+
+                <!-- Mane -->
+                <path d="M215 88 Q208 100 205 115 Q203 128 207 140" stroke="#5a3a1a" stroke-width="7" fill="none" stroke-linecap="round"/>
+                <path d="M222 85 Q215 97 212 112 Q210 125 213 136" stroke="#5a3a1a" stroke-width="5" fill="none" stroke-linecap="round"/>
+
+            </svg>
+
+            <!-- Two-line caption — teaser framing only, no harness -->
+            <p style="font-size: 1.8rem; font-weight: 700; color: #1a1a1a; margin: 12px 0 6px; letter-spacing: -0.02em; line-height: 1.2;">A horse. A model.</p>
+            <p style="font-size: 1.2rem; font-weight: 400; color: #C0392B; margin: 0; letter-spacing: 0.01em;">The model is the horse. Raw power, no direction.</p>
+
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 10: How LLMs Generate Text — Autoregressive Loop       -->
+    <!-- ============================================================ -->
+    <div class="slide" data-slide="10">
+        <h1>How an LLM generates text (autoregressive)</h1>
+        <figure style="max-width: 1100px; width: 100%; margin: 24px auto 0;">
+            <img
+                src="../assets/llm/llm-basic.svg"
+                alt="Animated diagram showing autoregressive generation: prompt feeds into LLM, which predicts one token, feeds it back, and repeats until the full answer is produced."
+                style="width: 100%; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.10);"
+            />
+            <figcaption style="margin-top: 16px; font-size: 1.1rem; color: #1a1a1a; font-weight: 600; text-align: center;">
+                Each predicted token is appended to the input, then fed back into the LLM.
+            </figcaption>
+        </figure>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 11: What's a Token?                                    -->
+    <!-- ============================================================ -->
+    <div class="slide" data-slide="11">
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; text-align: center;">
+            <figure style="max-width: 1100px; width: 100%;">
+                <img
+                    src="../assets/llm/tokens.jpg"
+                    alt="Screenshot of the OpenAI tokenizer showing the sentence about BPE split into 32 tokens across 105 characters, with tabs for GPT-5.x, GPT-4, and GPT-3 tokenizers."
+                    style="width: 100%; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.10);"
+                />
+            </figure>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 12: Tokens In, Tokens Out — Full Picture               -->
+    <!-- ============================================================ -->
+    <div class="slide" data-slide="12">
+        <h1>How an LLM tokenizes input</h1>
+        <figure style="max-width: 1100px; width: 100%; margin: 24px auto 0;">
+            <img
+                src="../assets/llm/llm-advanced.svg"
+                alt="Animated diagram combining tokenization and autoregressive generation: the BPE-tokenized prompt feeds into the LLM, which generates the answer token-by-token using the same shared vocabulary."
+                style="width: 100%; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.10);"
+            />
+            <figcaption style="margin-top: 16px; font-size: 1.1rem; color: #1a1a1a; font-weight: 600; text-align: center;">
+                BPE chops words into subword tokens &mdash; same color = same word, gray = punctuation.
+            </figcaption>
+        </figure>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 13: What the Model Actually Sees — Integer Token IDs  -->
+    <!-- ============================================================ -->
+    <div class="slide" data-slide="13">
+        <h1>What the LLM actually sees: integer token IDs</h1>
+        <figure style="max-width: 1100px; width: 100%; margin: 24px auto 0;">
+            <img
+                src="../assets/llm/llm-animation-tokenids.svg"
+                alt="Animated diagram showing the 32 integer token IDs the model receives: e.g. 28133 for 'Does', 17554 for ' Chat', 162016 for 'GPT', 97481 for ' Claude'. Generated tokens are also shown as IDs. Vocab size V ≈ 200,000."
+                style="width: 100%; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.10);"
+            />
+            <figcaption style="margin-top: 16px; font-size: 1.1rem; color: #1a1a1a; font-weight: 600; text-align: center;">
+                Notice the comma is always ID&nbsp;11 &mdash; the same punctuation mark maps to the same integer, everywhere, every time.
+            </figcaption>
+        </figure>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 14: Models are stateless                               -->
+    <!-- ============================================================ -->
+    <div class="slide" data-slide="14">
+
+            <!-- Title -->
+            <h1>&#x1F4AC; Models are stateless</h1>
+
+            <!-- Dialog diagram — two-column conversation -->
+            <div style="max-width: 700px; width: 100%; margin: 32px auto 28px;">
+
+                <!-- Column headers -->
+                <div style="display: flex; justify-content: space-between; margin-bottom: 14px; padding: 0 24px;">
+                    <span style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #1565c0; background: rgba(21,101,192,0.08); border: 1px solid rgba(21,101,192,0.2); padding: 4px 16px; border-radius: 999px;">User</span>
+                    <span style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #7b1fa2; background: rgba(123,31,162,0.08); border: 1px solid rgba(123,31,162,0.2); padding: 4px 16px; border-radius: 999px;">Model</span>
+                </div>
+
+                <!-- Turn 1: User → Model -->
+                <div style="display: flex; justify-content: flex-start; margin-bottom: 10px;">
+                    <div style="background: #e3f2fd; border: 1px solid #90caf9; border-radius: 18px 18px 18px 4px; padding: 12px 18px; max-width: 62%; text-align: left; position: relative;">
+                        <span style="font-size: 1rem; color: #1a1a1a;">&ldquo;My name is Shayan.&rdquo;</span>
+                        <span style="display: block; font-size: 0.7rem; color: #888; margin-top: 4px; text-align: right;">&#x279C; to model</span>
+                    </div>
+                </div>
+
+                <!-- Turn 2: Model → User -->
+                <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+                    <div style="background: #f3e5f5; border: 1px solid #ce93d8; border-radius: 18px 18px 4px 18px; padding: 12px 18px; max-width: 62%; text-align: left; position: relative;">
+                        <span style="font-size: 1rem; color: #1a1a1a;">&ldquo;Okay, your name is Shayan.&rdquo;</span>
+                        <span style="display: block; font-size: 0.7rem; color: #888; margin-top: 4px;">&#x279C; to user</span>
+                    </div>
+                </div>
+
+                <!-- Turn 3: User → Model -->
+                <div style="display: flex; justify-content: flex-start; margin-bottom: 10px;">
+                    <div style="background: #e3f2fd; border: 1px solid #90caf9; border-radius: 18px 18px 18px 4px; padding: 12px 18px; max-width: 62%; text-align: left;">
+                        <span style="font-size: 1rem; color: #1a1a1a;">&ldquo;What is my name?&rdquo;</span>
+                        <span style="display: block; font-size: 0.7rem; color: #888; margin-top: 4px; text-align: right;">&#x279C; to model</span>
+                    </div>
+                </div>
+
+                <!-- Turn 4: Model → User (can't remember) -->
+                <div style="display: flex; justify-content: flex-end; margin-bottom: 0;">
+                    <div style="background: #fce4ec; border: 1px solid #f48fb1; border-radius: 18px 18px 4px 18px; padding: 12px 18px; max-width: 72%; text-align: left;">
+                        <span style="font-size: 1rem; color: #1a1a1a;">&ldquo;I don&rsquo;t know your name &mdash; I have no memory of what you just said.&rdquo;</span>
+                        <span style="display: block; font-size: 0.7rem; color: #888; margin-top: 4px;">&#x279C; to user</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Caption strip — mirrors slide-12 pattern -->
+            <p style="font-size: 1.6rem; font-weight: 700; color: #1a1a1a; margin: 8px 0 4px; letter-spacing: -0.02em; line-height: 1.2; text-align: center;">Every turn is a fresh API call.</p>
+            <p style="font-size: 1.1rem; font-weight: 400; color: #C0392B; margin: 0; letter-spacing: 0.01em; text-align: center;">Memory only exists if the harness replays the transcript.</p>
+
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 15: "Stochastic Parrots"                               -->
+    <!-- ============================================================ -->
+    <div class="slide" data-slide="15">
 
         <!-- Headline -->
-        <div style="text-align: center; margin-bottom: 36px;">
-            <div style="font-size: 3.2rem; line-height: 1; margin-bottom: 12px;">&#x1F99C;</div>
-            <h1 style="border-bottom: none; padding-bottom: 0; font-size: 2.8rem; margin-bottom: 8px;">&ldquo;Stochastic Parrots&rdquo;</h1>
-            <p style="font-size: 1.1rem; color: #777; margin: 0;"><strong>Stochastic</strong> means random/probabilistic &mdash; models don&rsquo;t <em>know</em> the answer, they <em>sample</em> from a probability distribution.</p>
-        </div>
+        <h1>&#x1F99C; &ldquo;Stochastic Parrots&rdquo;</h1>
+        <p style="font-size: 1.1rem; color: #777; margin: 0 0 32px;"><strong>Stochastic</strong> means random/probabilistic &mdash; models don&rsquo;t <em>know</em> the answer, they <em>sample</em> from a probability distribution.</p>
 
         <!-- Probability distribution visual -->
         <div style="max-width: 720px; margin: 0 auto 32px; background: #f8f9fa; border-radius: 12px; padding: 28px 36px;">
@@ -489,15 +665,13 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- SLIDE 10: Temperature = 0 ≠ Deterministic                   -->
+    <!-- SLIDE 16: Temperature = 0 ≠ Deterministic                   -->
     <!-- ============================================================ -->
-    <div class="slide" data-slide="10">
+    <div class="slide" data-slide="16">
 
         <!-- Headline -->
-        <div style="text-align: center; margin-bottom: 32px;">
-            <h1 style="border-bottom: none; padding-bottom: 0; font-size: 2.6rem; margin-bottom: 8px;">Even temperature&nbsp;=&nbsp;0 isn&rsquo;t deterministic.</h1>
-            <p style="font-size: 1.05rem; color: #777; margin: 0;">You set it to zero. You expect the same answer every time. You&rsquo;re wrong.</p>
-        </div>
+        <h1>&#x1F321;&#xFE0F; Even temperature&nbsp;=&nbsp;0 isn&rsquo;t deterministic.</h1>
+        <p style="font-size: 1.05rem; color: #777; margin: 0 0 32px;">You set it to zero. You expect the same answer every time. You&rsquo;re wrong.</p>
 
         <!-- Three beats -->
         <div style="max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px;">
@@ -560,143 +734,9 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- SLIDE 11: How LLMs Generate Text — Autoregressive Loop       -->
+    <!-- SLIDE 17: Model Limitations &mdash; Real-time access          -->
     <!-- ============================================================ -->
-    <div class="slide" data-slide="11">
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: calc(100vh - 120px); text-align: center; gap: 0;">
-
-            <!-- Title -->
-            <h1 style="border-bottom: none; padding-bottom: 0; font-size: 2.6rem; margin-bottom: 28px;">One token at a time</h1>
-
-            <!-- Animated SVG -->
-            <figure style="max-width: 860px; width: 100%; margin: 0 auto;">
-                <img
-                    src="../assets/llm/llm-basic.svg"
-                    alt="Animated diagram showing autoregressive generation: prompt feeds into LLM, which predicts one token, feeds it back, and repeats until the full answer is produced."
-                    style="width: 100%; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.10);"
-                />
-                <figcaption style="margin-top: 20px; font-size: 1rem; color: #555; font-style: italic; line-height: 1.5;">
-                    <strong style="font-style: normal; color: #1a1a1a;">The model produces one token per inference, feeding each result back as new input.</strong><br/>
-                    This is why streaming feels gradual &mdash; and why longer outputs cost more in both latency and API spend.
-                </figcaption>
-            </figure>
-
-        </div>
-    </div>
-
-    <!-- ============================================================ -->
-    <!-- SLIDE 12: What's a Token?                                    -->
-    <!-- ============================================================ -->
-    <div class="slide" data-slide="12">
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: calc(100vh - 120px); text-align: center; gap: 0;">
-
-            <!-- Title -->
-            <h1 style="border-bottom: none; padding-bottom: 0; font-size: 2.6rem; margin-bottom: 28px;">Tokens, not words</h1>
-
-            <!-- Screenshot image -->
-            <figure style="max-width: 860px; width: 100%; margin: 0 auto;">
-                <img
-                    src="../assets/llm/tokens.jpg"
-                    alt="Screenshot of the OpenAI tokenizer showing the sentence about BPE split into 32 tokens across 105 characters, with tabs for GPT-5.x, GPT-4, and GPT-3 tokenizers."
-                    style="width: 100%; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.10);"
-                />
-                <figcaption style="margin-top: 20px; font-size: 1rem; color: #555; font-style: italic; line-height: 1.5;">
-                    <strong style="font-style: normal; color: #1a1a1a;">105 characters &rarr; 32 tokens. Rule of thumb: ~4 chars per token in English.</strong><br/>
-                    Each model generation uses a different tokenizer &mdash; same text, different token count, different cost.
-                </figcaption>
-            </figure>
-
-        </div>
-    </div>
-
-    <!-- ============================================================ -->
-    <!-- SLIDE 13: Tokens In, Tokens Out — Full Picture               -->
-    <!-- ============================================================ -->
-    <div class="slide" data-slide="13">
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: calc(100vh - 120px); text-align: center; gap: 0;">
-
-            <!-- Title -->
-            <h1 style="border-bottom: none; padding-bottom: 0; font-size: 2.6rem; margin-bottom: 28px;">Tokens in, tokens out</h1>
-
-            <!-- Animated SVG -->
-            <figure style="max-width: 860px; width: 100%; margin: 0 auto;">
-                <img
-                    src="../assets/llm/llm-advanced.svg"
-                    alt="Animated diagram combining tokenization and autoregressive generation: the BPE-tokenized prompt feeds into the LLM, which generates the answer token-by-token using the same shared vocabulary."
-                    style="width: 100%; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.10);"
-                />
-                <figcaption style="margin-top: 20px; font-size: 1rem; color: #555; font-style: italic; line-height: 1.5;">
-                    <strong style="font-style: normal; color: #1a1a1a;">Input and output share the same vocabulary &mdash; tokenization shapes what the model even &ldquo;sees&rdquo;.</strong><br/>
-                    &ldquo;Anthropic&rdquo; becomes &ldquo;Anth&rdquo; + &ldquo;ropic&rdquo; because that&rsquo;s how it appears most often in training data.
-                </figcaption>
-            </figure>
-
-        </div>
-    </div>
-
-    <!-- ============================================================ -->
-    <!-- SLIDE 14: Models are stateless                               -->
-    <!-- ============================================================ -->
-    <div class="slide" data-slide="14">
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: calc(100vh - 120px); text-align: center; gap: 0;">
-
-            <!-- Title -->
-            <h1 style="border-bottom: none; padding-bottom: 0; font-size: 2.4rem; margin-bottom: 32px;">&#x1F4AC; Models are stateless</h1>
-
-            <!-- Dialog diagram — two-column conversation -->
-            <div style="max-width: 700px; width: 100%; margin: 0 auto 28px;">
-
-                <!-- Column headers -->
-                <div style="display: flex; justify-content: space-between; margin-bottom: 14px; padding: 0 24px;">
-                    <span style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #1565c0; background: rgba(21,101,192,0.08); border: 1px solid rgba(21,101,192,0.2); padding: 4px 16px; border-radius: 999px;">User</span>
-                    <span style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #7b1fa2; background: rgba(123,31,162,0.08); border: 1px solid rgba(123,31,162,0.2); padding: 4px 16px; border-radius: 999px;">Model</span>
-                </div>
-
-                <!-- Turn 1: User → Model -->
-                <div style="display: flex; justify-content: flex-start; margin-bottom: 10px;">
-                    <div style="background: #e3f2fd; border: 1px solid #90caf9; border-radius: 18px 18px 18px 4px; padding: 12px 18px; max-width: 62%; text-align: left; position: relative;">
-                        <span style="font-size: 1rem; color: #1a1a1a;">&ldquo;My name is Shayan.&rdquo;</span>
-                        <span style="display: block; font-size: 0.7rem; color: #888; margin-top: 4px; text-align: right;">&#x279C; to model</span>
-                    </div>
-                </div>
-
-                <!-- Turn 2: Model → User -->
-                <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
-                    <div style="background: #f3e5f5; border: 1px solid #ce93d8; border-radius: 18px 18px 4px 18px; padding: 12px 18px; max-width: 62%; text-align: left; position: relative;">
-                        <span style="font-size: 1rem; color: #1a1a1a;">&ldquo;Okay, your name is Shayan.&rdquo;</span>
-                        <span style="display: block; font-size: 0.7rem; color: #888; margin-top: 4px;">&#x279C; to user</span>
-                    </div>
-                </div>
-
-                <!-- Turn 3: User → Model -->
-                <div style="display: flex; justify-content: flex-start; margin-bottom: 10px;">
-                    <div style="background: #e3f2fd; border: 1px solid #90caf9; border-radius: 18px 18px 18px 4px; padding: 12px 18px; max-width: 62%; text-align: left;">
-                        <span style="font-size: 1rem; color: #1a1a1a;">&ldquo;What is my name?&rdquo;</span>
-                        <span style="display: block; font-size: 0.7rem; color: #888; margin-top: 4px; text-align: right;">&#x279C; to model</span>
-                    </div>
-                </div>
-
-                <!-- Turn 4: Model → User (can't remember) -->
-                <div style="display: flex; justify-content: flex-end; margin-bottom: 0;">
-                    <div style="background: #fce4ec; border: 1px solid #f48fb1; border-radius: 18px 18px 4px 18px; padding: 12px 18px; max-width: 72%; text-align: left;">
-                        <span style="font-size: 1rem; color: #1a1a1a;">&ldquo;I don&rsquo;t know your name &mdash; I have no memory of what you just said.&rdquo;</span>
-                        <span style="display: block; font-size: 0.7rem; color: #888; margin-top: 4px;">&#x279C; to user</span>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- Caption strip — mirrors slide-12 pattern -->
-            <p style="font-size: 1.6rem; font-weight: 700; color: #1a1a1a; margin: 8px 0 4px; letter-spacing: -0.02em; line-height: 1.2;">Every turn is a fresh API call.</p>
-            <p style="font-size: 1.1rem; font-weight: 400; color: #C0392B; margin: 0; letter-spacing: 0.01em;">Memory only exists if the harness replays the transcript.</p>
-
-        </div>
-    </div>
-
-    <!-- ============================================================ -->
-    <!-- SLIDE 15: Model Limitations &mdash; Real-time access          -->
-    <!-- ============================================================ -->
-    <div class="slide" data-slide="15">
+    <div class="slide" data-slide="17">
         <h1>&#x1F9E0; Models &mdash; e.g. Opus, GPT, Gemini</h1>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 40px 0;">
             <div class="col-card" style="border-left: 4px solid #4caf50;">
@@ -733,9 +773,9 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- SLIDE 16: Limitations                                         -->
+    <!-- SLIDE 18: Limitations                                         -->
     <!-- ============================================================ -->
-    <div class="slide" data-slide="16">
+    <div class="slide" data-slide="18">
         <h1>&#x1F9E0; Limitations</h1>
         <p>The raw model has <strong>no real-time access</strong> &mdash; no internet, no files, no clock.</p>
         <div style="text-align: center; margin: 24px 0;">
@@ -744,9 +784,9 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- SLIDE 17: Horse Harness — The Pivot Analogy                  -->
+    <!-- SLIDE 19: Horse Harness — The Pivot Analogy                  -->
     <!-- ============================================================ -->
-    <div class="slide" data-slide="17">
+    <div class="slide" data-slide="19">
         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: calc(100vh - 120px); text-align: center; gap: 0;">
 
             <!-- SVG Horse with Harness — annotated callout version -->
@@ -909,9 +949,9 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- SLIDE 18: Tool Calling &mdash; how the harness reaches the world -->
+    <!-- SLIDE 20: Tool Calling &mdash; how the harness reaches the world -->
     <!-- ============================================================ -->
-    <div class="slide" data-slide="18">
+    <div class="slide" data-slide="20">
         <h1>&#x26A1; Tool Calling &mdash; how the harness reaches the world</h1>
         <div style="text-align: center; margin: 24px 0;">
             <img src="../assets/harness/tool-calling.png"
@@ -932,9 +972,9 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- SLIDE 19: Harness (1 of 2) &mdash; mind, methods, memory       -->
+    <!-- SLIDE 21: Harness (1 of 2) &mdash; mind, methods, memory       -->
     <!-- ============================================================ -->
-    <div class="slide" data-slide="19">
+    <div class="slide" data-slide="21">
         <h1>&#x1F4AA; Harness &mdash; the body around the brain</h1>
         <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 18px; margin: 28px 0;">
             <div class="col-card" style="flex: 0 1 calc(33.333% - 12px); border-left: 4px solid #009688; text-align: center;">
@@ -977,9 +1017,9 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- SLIDE 20: Harness (2 of 2) &mdash; senses, rules, reflexes     -->
+    <!-- SLIDE 22: Harness (2 of 2) &mdash; senses, rules, reflexes     -->
     <!-- ============================================================ -->
-    <div class="slide" data-slide="20">
+    <div class="slide" data-slide="22">
         <h1>&#x1F4AA; Harness &mdash; the body around the brain</h1>
         <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 18px; margin: 28px 0;">
             <div class="col-card" style="flex: 0 1 calc(33.333% - 12px); border-left: 4px solid #4caf50; text-align: center;">
@@ -1014,9 +1054,9 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- SLIDE 21: Problem solved with harness &mdash; success case     -->
+    <!-- SLIDE 23: Problem solved with harness &mdash; success case     -->
     <!-- ============================================================ -->
-    <div class="slide" data-slide="21">
+    <div class="slide" data-slide="23">
         <h1>&#x1F389; Yayyyyy! Problem solved with harness</h1>
         <p>The harness reaches out via <strong>WebSearch</strong> and fetches a real answer from live sources.</p>
         <div style="text-align: center; margin: 24px 0;">
@@ -1025,9 +1065,9 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- SLIDE 22: Suspense / transition &mdash; But...?                -->
+    <!-- SLIDE 24: Suspense / transition &mdash; But...?                -->
     <!-- ============================================================ -->
-    <div class="slide" data-slide="22">
+    <div class="slide" data-slide="24">
         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 75vh; text-align: center;">
             <div style="font-size: 12rem; color: #3f51b5; line-height: 1; font-weight: 700;">?</div>
             <p style="font-size: 1.6rem; color: #555; margin: 24px 0 0; max-width: 900px; font-weight: 600;">Really?</p>
@@ -1035,9 +1075,9 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- SLIDE 23: Non-determinism 1 &mdash; Refuses to use tools       -->
+    <!-- SLIDE 25: Non-determinism 1 &mdash; Refuses to use tools       -->
     <!-- ============================================================ -->
-    <div class="slide" data-slide="23">
+    <div class="slide" data-slide="25">
         <h1>&#x1F4AA; Non-determinism &mdash; Doesn&rsquo;t always use its tools</h1>
         <p>Similar prompt &mdash; but this time <strong>the model decided not to use the tool</strong>.</p>
         <div style="text-align: center; margin: 24px 0;">
@@ -1046,9 +1086,9 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- SLIDE 24: Non-determinism 2 &mdash; Tools can fail             -->
+    <!-- SLIDE 26: Non-determinism 2 &mdash; Tools can fail             -->
     <!-- ============================================================ -->
-    <div class="slide" data-slide="24">
+    <div class="slide" data-slide="26">
         <h1>&#x1F4AA; Non-determinism &mdash; Tools can fail</h1>
         <p>The model first tried <strong>one source</strong> &mdash; it <strong>failed (403)</strong> &mdash; so it fell back to <strong>another</strong>.</p>
         <div style="text-align: center; margin: 24px 0;">
@@ -1057,9 +1097,9 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- SLIDE 25: The Two Problems &mdash; what we're solving          -->
+    <!-- SLIDE 27: The Two Problems &mdash; what we're solving          -->
     <!-- ============================================================ -->
-    <div class="slide" data-slide="25">
+    <div class="slide" data-slide="27">
         <h1>&#x1F6A8; Problem Statement</h1>
         <ol style="padding-left: 32px; margin: 40px 0 0 0; line-height: 2;">
             <li style="font-size: 1.25rem; color: #444; margin-bottom: 24px;">
@@ -1074,10 +1114,10 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- SLIDE 26: Vibe Coding &mdash; Karpathy&rsquo;s original tweet  -->
+    <!-- SLIDE 28: Vibe Coding &mdash; Karpathy&rsquo;s original tweet  -->
     <!-- ============================================================ -->
-    <div class="slide" data-slide="26">
-        <h1>Vibe Coding</h1>
+    <div class="slide" data-slide="28">
+        <h1>Vibe Coding &mdash; Andrej Karpathy</h1>
         <div style="text-align: center; margin: 16px 0;">
             <img src="../assets/concepts/vibe-coding.jpg" alt="Andrej Karpathy's Feb 3 2025 tweet coining 'vibe coding' — 'fully give in to the vibes, embrace exponentials, and forget that the code even exists'" style="max-width: 100%; max-height: 55vh; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.12);" />
         </div>
@@ -1086,9 +1126,28 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- SLIDE 27: Vibe Coding vs Agentic Engineering                   -->
+    <!-- SLIDE 29: Vibe Coding — A Skeptic's View                      -->
     <!-- ============================================================ -->
-    <div class="slide" data-slide="27">
+    <div class="slide" data-slide="29">
+        <h1>Vibe Coding &mdash; Robert C. &ldquo;Uncle Bob&rdquo; Martin</h1>
+        <div style="display: grid; grid-template-columns: 45fr 55fr; gap: 40px; align-items: start; margin-top: 16px;">
+            <!-- Left column: Uncle Bob image -->
+            <div style="display: flex; align-items: flex-start; justify-content: center;">
+                <img src="../assets/concepts/vibe-coding-uncle-bob.png" alt="Robert C. Martin (Uncle Bob) in his video critiquing vibe coding" style="max-width: 100%; max-height: 55vh; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.12); object-fit: contain;" />
+            </div>
+            <!-- Right column: summary, attribution, source -->
+            <div style="display: flex; flex-direction: column; justify-content: flex-start; padding-top: 4px;">
+                <p style="font-size: 1rem; line-height: 1.6; color: #333; margin: 0;">Uncle Bob warns that <strong>&ldquo;vibe coding&rdquo; &mdash; generating code from prompts without understanding what the LLM produces &mdash; is hazardous for novices.</strong> LLMs are <em>mathematical functions</em> that predict the next most likely token via matrix multiplications, trained on internet text and GitHub code. They are powerful tools &mdash; but, as he puts it, <em>&ldquo;novices using power tools lose fingers.&rdquo;</em></p>
+                <p style="color: #666; margin: 20px 0 0; font-size: 1.05rem;"><strong>Robert C. &ldquo;Uncle Bob&rdquo; Martin</strong> &mdash; author of <em>Clean Code</em> &middot; <em>Clean Architecture</em> &middot; co-author of the Agile Manifesto.</p>
+                <p style="font-size: 0.78rem; margin: 12px 0 0;"><span style="color: #1a1a1a; font-weight: 600;">Source:</span> <a href="https://x.com/unclebobmartin/status/1923334334171197549/video/1" target="_blank" rel="noopener noreferrer" style="color: #0d47a1; text-decoration: underline;">Robert C. Martin on X</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 30: Vibe Coding vs Agentic Engineering                   -->
+    <!-- ============================================================ -->
+    <div class="slide" data-slide="30">
         <h1>Vibe Coding vs Agentic Engineering</h1>
         <div class="two-col">
             <div>
@@ -1157,7 +1216,7 @@ todoapp/
     <!-- ============================================================ -->
 
     <!-- Slide 8: Agents Section Divider -->
-    <div class="slide section-slide" data-slide="28" data-level="agents">
+    <div class="slide section-slide" data-slide="31" data-level="agents">
         <div class="slide-viewport-content">
             <h1>👤 Agents</h1>
             <div style="text-align: center; margin: 12px auto 20px auto;">
@@ -1215,7 +1274,7 @@ todoapp/
     </div>
 
     <!-- Slide 9: The Restaurant Kitchen -->
-    <div class="slide" data-slide="29">
+    <div class="slide" data-slide="32">
         <div style="min-height: calc(100vh - 120px);">
             <h1>Create your first agent &mdash; <code>/agents</code></h1>
             <div style="max-width: 600px;">
@@ -1269,7 +1328,7 @@ todoapp/
     </div>
 
     <!-- Slide 10: Prompting vs Agent table -->
-    <div class="slide" data-slide="30">
+    <div class="slide" data-slide="33">
         <div style="min-height: calc(100vh - 120px);">
             <h1>Demo</h1>
             <video
@@ -1320,7 +1379,7 @@ todoapp/
     </div>
 
     <!-- Slide: Agent Created (image only) -->
-    <div class="slide" data-slide="31" data-level="agents">
+    <div class="slide" data-slide="34" data-level="agents">
         <h1>&#x1F389; Yayyyyy! Problem solved with agents</h1>
         <div style="min-height: calc(100vh - 200px); display: flex; align-items: center; justify-content: center;">
             <img src="../assets/concepts/agents/agent-created.png" alt="Agent created" style="max-width: 1200px; max-height: 80vh; width: 100%; height: auto; display: block; margin: 0 auto; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.1);" />
@@ -1365,7 +1424,7 @@ todoapp/
     </div>
 
     <!-- Slide 27: Skeptical counter-beat (mirrors slide 17) -->
-    <div class="slide" data-slide="32" data-level="agents">
+    <div class="slide" data-slide="35" data-level="agents">
         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: calc(100vh - 120px); text-align: center;">
             <div style="font-size: 12rem; color: #3f51b5; line-height: 1; font-weight: 700;">?</div>
             <p style="font-size: 1.6rem; color: #555; margin: 24px 0 0; max-width: 900px; font-weight: 600;">Not so fast...</p>
@@ -1410,7 +1469,7 @@ todoapp/
     </div>
 
     <!-- Slide 28: Callback to problem statement — agents solve half -->
-    <div class="slide" data-slide="33" data-level="agents">
+    <div class="slide" data-slide="36" data-level="agents">
         <h1>&#x1F6A8; Problem Statement</h1>
         <div style="min-height: calc(100vh - 120px);">
         <ol style="padding-left: 32px; margin: 40px 0 0 0; line-height: 2;">
@@ -1464,7 +1523,7 @@ todoapp/
     </div>
 
     <!-- Slide 13: Agent Config Fields -->
-    <div class="slide" data-slide="34" data-level="agents">
+    <div class="slide" data-slide="37" data-level="agents">
             <h1>Agent config fields with frontmatter</h1>
             <div style="margin: 24px 0;">
                 <div class="field-row" style="padding-bottom: 6px; border-bottom: 2px solid #ddd;">
@@ -1554,7 +1613,7 @@ todoapp/
     </div>
 
     <!-- Slide 30: Agent tips and tricks — part 1 -->
-    <div class="slide" data-slide="35" data-level="agents">
+    <div class="slide" data-slide="38" data-level="agents">
         <h1><code>claude-code-best-practice</code> Tips &amp; Tricks</h1>
         <div style="min-height: calc(100vh - 200px); display: flex; align-items: center; justify-content: center;">
             <img src="../assets/concepts/agents/agent-tips-1.png" alt="Claude Code tips and tricks — part 1" style="max-width: 1200px; max-height: 80vh; width: auto; height: auto; display: block; margin: 20px auto 0 auto; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); object-fit: contain;" />
@@ -1599,7 +1658,7 @@ todoapp/
     </div>
 
     <!-- Slide 31: Agent tips and tricks — part 2 -->
-    <div class="slide" data-slide="36" data-level="agents">
+    <div class="slide" data-slide="39" data-level="agents">
         <h1><code>claude-code-best-practice</code> Tips &amp; Tricks</h1>
         <div style="min-height: calc(100vh - 200px); display: flex; align-items: center; justify-content: center;">
             <img src="../assets/concepts/agents/agent-tips-2.png" alt="Claude Code tips and tricks — part 2" style="max-width: 1200px; max-height: 80vh; width: auto; height: auto; display: block; margin: 20px auto 0 auto; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); object-fit: contain;" />
@@ -1648,7 +1707,7 @@ todoapp/
     <!-- ============================================================ -->
 
     <!-- Slide 32: CLAUDE.md concept intro -->
-    <div class="slide section-slide" data-slide="37">
+    <div class="slide section-slide" data-slide="40">
         <div class="slide-viewport-content">
             <h1>&#x1F4DD; CLAUDE.md</h1>
             <div style="text-align: center; margin: 12px auto 20px auto;">
@@ -1704,7 +1763,7 @@ todoapp/
     </div>
 
     <!-- Slide 33: Create your first CLAUDE.md — /init -->
-    <div class="slide" data-slide="38" data-level="claude-md">
+    <div class="slide" data-slide="41" data-level="claude-md">
         <div style="min-height: calc(100vh - 120px);">
             <h1>Create your first CLAUDE.md &mdash; <code>/init</code></h1>
             <div style="max-width: 600px;">
@@ -1758,7 +1817,7 @@ todoapp/
     </div>
 
     <!-- Slide 34: CLAUDE.md — the real thing (screenshot) -->
-    <div class="slide" data-slide="39" data-level="claude-md">
+    <div class="slide" data-slide="42" data-level="claude-md">
         <div style="min-height: calc(100vh - 120px);">
             <h1>&#x1F4DD; CLAUDE.md &mdash; the real thing</h1>
             <div style="display: flex; align-items: center; justify-content: center;">
@@ -1805,7 +1864,7 @@ todoapp/
     </div>
 
     <!-- Slide 35: claude-code-best-practice Tips & Tricks (CLAUDE.md) -->
-    <div class="slide" data-slide="40" data-level="claude-md">
+    <div class="slide" data-slide="43" data-level="claude-md">
         <h1><code>claude-code-best-practice</code> Tips &amp; Tricks</h1>
         <div style="min-height: calc(100vh - 200px); display: flex; align-items: center; justify-content: center;">
             <img src="../assets/concepts/claudemd/claudemd-tips.png" alt="Claude Code tips and tricks for CLAUDE.md" style="max-width: 1200px; max-height: 80vh; width: auto; height: auto; display: block; margin: 20px auto 0 auto; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); object-fit: contain;" />
@@ -1850,7 +1909,7 @@ todoapp/
     </div>
 
     <!-- Slide 36: CLAUDE.md problem — keep it under 200 lines -->
-    <div class="slide" data-slide="41" data-level="claude-md">
+    <div class="slide" data-slide="44" data-level="claude-md">
         <div style="min-height: calc(100vh - 120px);">
             <h1>&#x26A0;&#xFE0F; CLAUDE.md problem &mdash; keep it under 200 lines</h1>
             <div style="min-height: calc(100vh - 200px); display: flex; align-items: center; justify-content: center;">
@@ -1901,7 +1960,7 @@ todoapp/
     <!-- ============================================================ -->
 
     <!-- Slide: Skills -->
-    <div class="slide section-slide" data-slide="42">
+    <div class="slide section-slide" data-slide="45">
         <div class="slide-viewport-content">
             <h1>&#x1F3AF; Skills</h1>
             <div style="text-align: center; margin: 12px auto 20px auto;">
@@ -1962,7 +2021,7 @@ todoapp/
     <!-- NEW SLIDE 38: Create your first skill                         -->
     <!-- ============================================================ -->
 
-    <div class="slide" data-slide="43" data-level="skills">
+    <div class="slide" data-slide="46" data-level="skills">
         <div style="min-height: calc(100vh - 120px);">
             <h1>Create your first skill</h1>
             <div class="two-col" style="margin-top: 28px;">
@@ -2025,7 +2084,7 @@ todoapp/
     <!-- Slide 39: Skills — a real one (screenshot)                    -->
     <!-- ============================================================ -->
 
-    <div class="slide" data-slide="44" data-level="skills">
+    <div class="slide" data-slide="47" data-level="skills">
         <div style="min-height: calc(100vh - 200px);">
             <h1>&#x1F3AF; Skills &mdash; a real one</h1>
             <div style="display: flex; align-items: center; justify-content: center;">
@@ -2075,7 +2134,7 @@ todoapp/
     <!-- Slide 40: Skill config fields with frontmatter (was 39)       -->
     <!-- ============================================================ -->
 
-    <div class="slide" data-slide="45" data-level="skills">
+    <div class="slide" data-slide="48" data-level="skills">
         <h1>Skill config fields with frontmatter</h1>
         <p style="font-style: italic; color: #666; margin: 8px 0 20px 0;">Most fields control how and when the skill loads &mdash; enforced by the harness. Only <code>description</code> lives in prompt-land.</p>
         <div style="margin: 0 0 24px 0;">
@@ -2170,7 +2229,7 @@ todoapp/
     <!-- ============================================================ -->
 
     <!-- Slide: Context -->
-    <div class="slide section-slide" data-slide="46">
+    <div class="slide section-slide" data-slide="49">
         <div class="slide-viewport-content">
             <h1>&#x1F4AD; Context</h1>
             <div style="text-align: center; margin: 12px auto 20px auto;">
@@ -2229,7 +2288,7 @@ todoapp/
     </div>
 
     <!-- Slide 42: Context — Claude's Brain -->
-    <div class="slide" data-slide="47" data-level="context">
+    <div class="slide" data-slide="50" data-level="context">
         <div style="min-height: calc(100vh - 120px);">
             <h1>&#x1F9E0; Claude's Brain</h1>
             <div class="analogy-box">
@@ -2305,7 +2364,7 @@ todoapp/
     </div>
 
     <!-- Slide 43: Context — What Loads at Session Start -->
-    <div class="slide" data-slide="48" data-level="context">
+    <div class="slide" data-slide="51" data-level="context">
         <div style="min-height: calc(100vh - 120px);">
             <h1>What Loads at Session Start</h1>
             <p>The moment you open Claude Code, certain things land in Claude's brain <strong>before you've typed a word</strong>. The rest waits in the wings &mdash; only loaded when you actually need it. This is called <strong>progressive disclosure</strong>.</p>
@@ -2378,7 +2437,7 @@ todoapp/
     </div>
 
     <!-- Slide 44: Context — Lost in the Middle (Liu et al., Stanford 2023) -->
-    <div class="slide" data-slide="49" data-level="context">
+    <div class="slide" data-slide="52" data-level="context">
         <div style="min-height: calc(100vh - 120px);">
             <h1 style="text-align: center;">&#x1F4C4; Lost in the Middle</h1>
             <p style="text-align: center; color: #666; font-style: italic; font-size: 1.1rem; margin-top: -20px; margin-bottom: 30px;">by Nelson F. Liu &middot; Stanford University &middot; 2023</p>
@@ -2453,7 +2512,7 @@ todoapp/
     </div>
 
     <!-- Slide 45: Workflow concept-intro -->
-    <div class="slide section-slide" data-slide="50" data-level="workflow">
+    <div class="slide section-slide" data-slide="53" data-level="workflow">
         <div class="slide-viewport-content">
             <h1>&#x1F4D8; Workflow</h1>
             <div style="text-align: center; margin: 12px auto 20px auto;">
@@ -2506,7 +2565,7 @@ todoapp/
     </div>
 
     <!-- Slide 46: Orchestration Workflow diagram -->
-    <div class="slide" data-slide="51" data-level="workflow">
+    <div class="slide" data-slide="54" data-level="workflow">
         <div style="min-height: calc(100vh - 120px);">
             <h1>&#x1F4CB; Orchestration Workflow</h1>
             <img src="../../orchestration-workflow/orchestration-workflow.svg" alt="Command → Agent → Skill architecture flow"
@@ -2552,7 +2611,7 @@ todoapp/
     </div>
 
     <!-- Slide 47: Workflow in action (GIF) -->
-    <div class="slide" data-slide="52" data-level="workflow">
+    <div class="slide" data-slide="55" data-level="workflow">
         <div style="min-height: calc(100vh - 120px);">
             <h1>&#x1F4F9; Workflow in action</h1>
             <div style="text-align: center; margin: 24px 0;">
@@ -2601,7 +2660,7 @@ todoapp/
 
 
     <!-- Slide 50: Thank you -->
-    <div class="slide section-slide" data-slide="53">
+    <div class="slide section-slide" data-slide="56">
         <div class="slide-viewport-content">
             <h1>&#x1F64F; Thank you!</h1>
             <div style="margin: 20px auto 28px auto; text-align: center;">

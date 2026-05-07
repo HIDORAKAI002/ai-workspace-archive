@@ -331,13 +331,16 @@ export const TickHistoryTimeline = ({
   const [pollingPaused, pausePolling] = React.useState<boolean>(false);
 
   const instigationSelector = {...repoAddressToSelector(repoAddress), name};
+
   const queryResult = useQuery<TickHistoryQuery, TickHistoryQueryVariables>(TICK_HISTORY_QUERY, {
     variables: {
       instigationSelector,
       beforeTimestamp,
-      afterTimestamp,
+      // When on the newest page (no pagination), use a 5-minute floor to avoid
+      // fetching unbounded old ticks. This matches LiveTickTimeline's default window.
+      afterTimestamp: afterTimestamp ?? (!beforeTimestamp ? Date.now() / 1000 - 5 * 60 : undefined),
       statuses,
-      limit: beforeTimestamp ? undefined : 15,
+      limit: beforeTimestamp ? undefined : PAGE_SIZE,
     },
     notifyOnNetworkStatusChange: true,
   });

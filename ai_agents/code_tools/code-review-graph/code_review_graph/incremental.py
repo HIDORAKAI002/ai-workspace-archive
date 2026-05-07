@@ -14,6 +14,7 @@ import os
 import re
 import subprocess
 import sys
+import threading
 import time
 from pathlib import Path, PurePosixPath
 from typing import Callable, Optional
@@ -232,7 +233,7 @@ def find_project_root(
 
 def _write_data_dir_gitignore(data_dir: Path) -> None:
     """Write .gitignore file in data directory if it doesn't exist.
-    
+
     The gitignore contains a single '*' to prevent accidental commits.
     """
     inner_gitignore = data_dir / ".gitignore"
@@ -689,7 +690,16 @@ def collect_all_files(
     for rel_path in candidates:
         if _should_ignore(rel_path, ignore_patterns):
             continue
-        full_path = repo_root / rel_path
+        # Skip paths that would exceed OS filename limits (macOS: 255 bytes
+        # per component, ~1024 total; Windows: 260 total).
+        try:
+            full_path = repo_root / rel_path
+        except (OSError, ValueError):
+            logger.debug("Skipping path that cannot be constructed: %s", rel_path)
+            continue
+        if len(str(full_path)) > 1000 or any(len(p.encode()) > 255 for p in full_path.parts):
+            logger.debug("Skipping overlong path: %s", rel_path[:120])
+            continue
         if not full_path.is_file():
             continue
         if full_path.is_symlink():

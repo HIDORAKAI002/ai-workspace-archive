@@ -171,10 +171,12 @@ def resolve_spring_di_calls(store: GraphStore) -> dict:
         impls = implementors.get(injected_type, [])
         if len(impls) == 1:
             concrete_class = impls[0].split("::")[-1]
-            new_target = method_to_qual.get((concrete_class, method_name)) or f"{impls[0]}.{method_name}"
+            fallback = f"{impls[0]}.{method_name}"
+            new_target = method_to_qual.get((concrete_class, method_name)) or fallback
         else:
-            type_bare = injected_type.split(".")[-1] if "." in injected_type else injected_type
-            new_target = method_to_qual.get((type_bare, method_name)) or f"{injected_type}.{method_name}"
+            type_bare = injected_type.rsplit(".", 1)[-1]
+            fallback = f"{injected_type}.{method_name}"
+            new_target = method_to_qual.get((type_bare, method_name)) or fallback
 
         extra["spring_resolved"] = True
         extra["injected_type"] = injected_type

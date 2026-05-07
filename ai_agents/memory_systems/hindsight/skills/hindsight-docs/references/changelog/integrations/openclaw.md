@@ -8,6 +8,12 @@ import PageHero from '@site/src/components/PageHero';
 
 ← OpenClaw integration
 
+## [0.7.6](https://github.com/vectorize-io/hindsight/tree/integrations/openclaw/v0.7.6)
+
+**Bug Fixes**
+
+- Setup wizard now preserves your existing OpenClaw token and URL when re-running setup, preventing unnecessary reconfiguration.<span style={{color: "var(--ifm-color-emphasis-500)", margin: "0 0.3em"}}>·</span><a href="https://github.com/nicoloboschi" target="_blank" rel="noopener noreferrer" style={{color: "var(--ifm-color-primary)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "4px", verticalAlign: "middle"}}>@nicoloboschi</a><span style={{color: "var(--ifm-color-emphasis-500)", margin: "0 0.3em"}}>·</span><a href="https://github.com/vectorize-io/hindsight/commit/ef600683" target="_blank" rel="noopener noreferrer" style={{fontFamily: "var(--ifm-font-family-monospace, monospace)", fontSize: "0.85em", color: "var(--ifm-color-emphasis-600)"}}>ef600683</a>
+
 ## [0.7.5](https://github.com/vectorize-io/hindsight/tree/integrations/openclaw/v0.7.5)
 
 **Bug Fixes**

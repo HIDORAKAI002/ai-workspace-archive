@@ -844,6 +844,9 @@ class TestStartWatchThread:
     @patch("code_review_graph.incremental.watch")
     def test_starts_background_thread(self, mock_watch, tmp_path):
         """start_watch_thread returns a running thread when watchdog is available."""
+        import threading
+        barrier = threading.Event()
+        mock_watch.side_effect = lambda *a, **kw: barrier.wait(timeout=5)
         db_path = tmp_path / "graph.db"
         store = GraphStore(db_path)
         try:
@@ -852,6 +855,7 @@ class TestStartWatchThread:
             assert thread.daemon is True
             assert thread.is_alive()
         finally:
+            barrier.set()
             store.close()
 
     def test_returns_none_when_watchdog_unavailable(self, tmp_path):

@@ -48,6 +48,8 @@ DEFAULTS = {
     "bankMission": "",
     "retainMission": None,
     "agentName": "claude-code",
+    "resolveWorktrees": True,
+    "directoryBankMap": {},
     # LLM (for daemon mode)
     "llmProvider": None,
     "llmModel": None,
