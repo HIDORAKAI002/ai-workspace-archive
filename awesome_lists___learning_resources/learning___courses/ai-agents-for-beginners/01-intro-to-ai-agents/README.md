@@ -95,7 +95,7 @@ The first thing you do when building an agent is define *what it can do* — its
 
 In this course, we use the **Azure AI Agent Service** as our main platform. It supports:
 
-- Open models like OpenAI, Mistral, and Llama
+- Models from providers like OpenAI, Mistral, and Meta (Llama)
 - Licensed data from providers like Tripadvisor
 - Standardized OpenAPI 3.0 tool definitions
 
