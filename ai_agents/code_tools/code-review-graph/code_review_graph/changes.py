@@ -51,11 +51,13 @@ def parse_git_diff_ranges(
         result = subprocess.run(
             ["git", "diff", "--unified=0", base, "--"],
             capture_output=True,
+            stdin=subprocess.DEVNULL,
             text=True,
             encoding="utf-8",
             errors="replace",
             cwd=repo_root,
             timeout=_GIT_TIMEOUT,
+            stdin=subprocess.DEVNULL,
         )
         if result.returncode != 0:
             logger.warning("git diff failed (rc=%d): %s", result.returncode, result.stderr[:200])
@@ -92,11 +94,13 @@ def parse_svn_diff_ranges(
         result = subprocess.run(
             cmd,
             capture_output=True,
+            stdin=subprocess.DEVNULL,
             text=True,
             encoding="utf-8",
             errors="replace",
             cwd=repo_root,
             timeout=_GIT_TIMEOUT,
+            stdin=subprocess.DEVNULL,
         )
         if result.returncode != 0:
             logger.warning("svn diff failed (rc=%d): %s", result.returncode, result.stderr[:200])

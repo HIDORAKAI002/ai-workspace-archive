@@ -19,11 +19,55 @@ from ..llm_wrapper import LLMConfig, OutputTooLongError, sanitize_llm_output
 from ..response_models import TokenUsage
 from .entity_labels import (
     EntityLabelsConfig,
+    MapField,
     build_labels_lookup,
     build_labels_model,
     is_label_entity,
     parse_entity_labels,
 )
+
+
+def _extract_map_entities(
+    entity_obj: dict,
+    fields: dict[str, MapField],
+    prefix: str,
+    validated_entities: "list[Entity]",
+    existing_texts_lower: set[str],
+) -> None:
+    """Recursively extract key:field:value entity strings from a map entity dict."""
+    for field_name, map_field in fields.items():
+        field_val = entity_obj.get(field_name)
+        if field_val is None or field_val == "":
+            continue
+        if map_field.type == "map" and map_field.fields:
+            # Nested map: recurse into each sub-entity
+            sub_list = field_val if isinstance(field_val, list) else [field_val]
+            for sub_obj in sub_list:
+                if isinstance(sub_obj, dict):
+                    _extract_map_entities(
+                        sub_obj,
+                        map_field.fields,
+                        f"{prefix}{field_name}:",
+                        validated_entities,
+                        existing_texts_lower,
+                    )
+        elif map_field.type == "multi-values":
+            vals = field_val if isinstance(field_val, list) else [field_val]
+            for v in vals:
+                if not isinstance(v, str) or not v.strip() or v.lower() in ("none", "null", "n/a"):
+                    continue
+                label_str = f"{prefix}{field_name}:{v.strip()}"
+                if label_str.lower() not in existing_texts_lower:
+                    validated_entities.append(Entity(text=label_str))
+                    existing_texts_lower.add(label_str.lower())
+        else:
+            # text or value — single string
+            if not isinstance(field_val, str) or not field_val.strip() or field_val.lower() in ("none", "null", "n/a"):
+                continue
+            label_str = f"{prefix}{field_name}:{field_val.strip()}"
+            if label_str.lower() not in existing_texts_lower:
+                validated_entities.append(Entity(text=label_str))
+                existing_texts_lower.add(label_str.lower())
 
 
 def _infer_temporal_date(fact_text: str, event_date: datetime | None) -> str | None:
@@ -731,6 +775,25 @@ Example: "Lost job → couldn't pay rent → moved apartment"
 - Fact 2: Moved apartment, causal_relations: [{target_index: 1, relation_type: "caused_by"}]"""
 
 
+def _append_map_fields_prompt(fields: dict[str, "MapField"], lines: list[str], indent: int = 4) -> None:
+    """Recursively append map field descriptions to the prompt lines."""
+    pad = " " * indent
+    for field_name, map_field in fields.items():
+        field_desc = f": {map_field.description}" if map_field.description else ""
+        if map_field.type == "map" and map_field.fields:
+            lines.append(f"{pad}• {field_name} (object){field_desc}")
+            _append_map_fields_prompt(map_field.fields, lines, indent + 4)
+        elif map_field.type == "multi-values":
+            vals = ", ".join(v.value for v in map_field.values if v.value)
+            type_hint = f"multi-values: {vals}" if vals else "multi-values"
+            lines.append(f"{pad}• {field_name} ({type_hint}){field_desc}")
+        elif map_field.type == "value" and map_field.values:
+            vals = ", ".join(v.value for v in map_field.values if v.value)
+            lines.append(f"{pad}• {field_name} (one of: {vals}){field_desc}")
+        else:
+            lines.append(f"{pad}• {field_name} (text){field_desc}")
+
+
 def _build_labels_prompt_section(labels_cfg: EntityLabelsConfig | list | None, free_form_entities: bool = True) -> str:
     """Build the entity labels classification section for the extraction prompt."""
     if labels_cfg is None:
@@ -763,7 +826,14 @@ def _build_labels_prompt_section(labels_cfg: EntityLabelsConfig | list | None, f
         "",
     ]
 
+    has_classification_attrs = False
+    has_map_attrs = False
+
     for attr in labels_cfg.attributes:
+        if attr.type == "map":
+            has_map_attrs = True
+            continue
+        has_classification_attrs = True
         if attr.type == "text":
             # Free-text: no predefined values — LLM writes any relevant string or null
             lines.append(f"- {attr.key} (free text or null): {attr.description}")
@@ -775,7 +845,31 @@ def _build_labels_prompt_section(labels_cfg: EntityLabelsConfig | list | None, f
                 lines.append(f'    • "{v.value}"{desc}')
         lines.append("")
 
-    lines.append("Only assign labels when clearly applicable. Leave null/empty if the fact does not match.")
+    if has_classification_attrs:
+        lines.append("Only assign labels when clearly applicable. Leave null/empty if the fact does not match.")
+        lines.append("")
+
+    # Add structured entity types (map groups)
+    if has_map_attrs:
+        lines.append("")
+        lines.append("══════════════════════════════════════════════════════════════════════════")
+        lines.append("STRUCTURED ENTITY TYPES")
+        lines.append("══════════════════════════════════════════════════════════════════════════")
+        lines.append("")
+        lines.append("For each fact, extract structured entities into the corresponding list field in 'labels'.")
+        lines.append("Each structured entity type has defined fields. Return a list of objects, one per entity found.")
+        lines.append("")
+        for attr in labels_cfg.attributes:
+            if attr.type != "map" or not attr.fields:
+                continue
+            desc = f": {attr.description}" if attr.description else ""
+            lines.append(f"- {attr.key}{desc}")
+            _append_map_fields_prompt(attr.fields, lines, indent=4)
+            lines.append("")
+        lines.append(
+            "Only extract structured entities when clearly present in the text. Leave the list empty if none found."
+        )
+
     return "\n".join(lines)
 
 
@@ -1163,6 +1257,19 @@ async def _extract_facts_from_chunk(
                         for group in labels_cfg.attributes:
                             value = labels_data.get(group.key)
                             if not value:
+                                continue
+                            # Map-type groups: recursively extract key:field:value strings
+                            if group.type == "map" and group.fields:
+                                entities_list = value if isinstance(value, list) else [value]
+                                for entity_obj in entities_list:
+                                    if isinstance(entity_obj, dict):
+                                        _extract_map_entities(
+                                            entity_obj,
+                                            group.fields,
+                                            f"{group.key}:",
+                                            validated_entities,
+                                            existing_texts_lower,
+                                        )
                                 continue
                             values_list = value if isinstance(value, list) else [value]
                             for v in values_list:
@@ -1862,6 +1969,19 @@ async def extract_facts_from_contents_batch_api(
                     for group in labels_cfg_batch.attributes:
                         value = labels_data.get(group.key)
                         if not value:
+                            continue
+                        # Map-type groups: recursively extract key:field:value strings
+                        if group.type == "map" and group.fields:
+                            entities_list = value if isinstance(value, list) else [value]
+                            for entity_obj in entities_list:
+                                if isinstance(entity_obj, dict):
+                                    _extract_map_entities(
+                                        entity_obj,
+                                        group.fields,
+                                        f"{group.key}:",
+                                        validated_entities,
+                                        existing_texts_lower,
+                                    )
                             continue
                         values_list = value if isinstance(value, list) else [value]
                         for v in values_list:

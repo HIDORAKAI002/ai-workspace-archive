@@ -325,6 +325,82 @@ class SequentialWorkflow:
             )
             raise e
 
+    def run_stream(
+        self,
+        task: str,
+        img: Optional[str] = None,
+        with_events: bool = False,
+        **kwargs,
+    ):
+        """Stream tokens from each agent in sequence as they are generated.
+
+        Delegates to ``AgentRearrange.run_stream``.
+
+        Args:
+            task: Initial task passed to the first agent.
+            img: Optional image input forwarded to every agent.
+            with_events: When False (default), yield plain token strings.
+                When True, yield structured event dicts (``agent_start``,
+                ``token``, ``agent_end``) — useful for UIs that need to
+                render per-agent panels.
+
+        Note: ``max_loops > 1`` and ``drift_detection`` are not applied in
+        streaming mode. Use ``run()`` if you need those.
+
+        Yields:
+            str | dict: Plain token strings, or event dicts when
+            ``with_events=True``.
+
+        Example::
+
+            for token in workflow.run_stream("Analyse NVDA"):
+                print(token, end="", flush=True)
+        """
+        if with_events:
+            for evt in self.agent_rearrange.run_stream(
+                task=task, img=img, with_events=True, **kwargs
+            ):
+                yield evt
+        else:
+            for _name, token in self.agent_rearrange.run_stream(
+                task=task, img=img, **kwargs
+            ):
+                yield token
+
+    async def arun_stream(
+        self,
+        task: str,
+        img: Optional[str] = None,
+        with_events: bool = False,
+        **kwargs,
+    ):
+        """Async generator version of run_stream — drop-in for FastAPI StreamingResponse.
+
+        Args:
+            task: Initial task passed to the first agent.
+            img: Optional image input forwarded to every agent.
+            with_events: When False (default), yield plain token strings.
+                When True, yield structured event dicts (``agent_start``,
+                ``token``, ``agent_end``).
+
+        Yields:
+            str | dict: Plain token strings, or event dicts when
+            ``with_events=True``.
+        """
+        if with_events:
+            async for evt in self.agent_rearrange.arun_stream(
+                task=task, img=img, with_events=True, **kwargs
+            ):
+                yield evt
+        else:
+            async for (
+                _name,
+                token,
+            ) in self.agent_rearrange.arun_stream(
+                task=task, img=img, **kwargs
+            ):
+                yield token
+
     def __call__(self, task: str, *args, **kwargs):
         """
         Allows the SequentialWorkflow instance to be called as a function.

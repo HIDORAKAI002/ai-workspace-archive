@@ -1503,6 +1503,7 @@ export function getPluginConfig(api: MoltbotPluginAPI): PluginConfig {
       typeof config.retainQueueFlushIntervalMs === "number" && config.retainQueueFlushIntervalMs > 0
         ? config.retainQueueFlushIntervalMs
         : undefined,
+    enableKnowledgeTools: config.enableKnowledgeTools === true,
   };
 }
 

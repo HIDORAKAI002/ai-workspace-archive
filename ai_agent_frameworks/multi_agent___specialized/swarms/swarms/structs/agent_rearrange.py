@@ -968,6 +968,244 @@ class AgentRearrange:
         except Exception as e:
             self._catch_error(e)
 
+    async def _run_sequential_workflow_stream(
+        self,
+        agent_name: str,
+        tasks: List[str],
+        task_idx: int = None,
+        img: str = None,
+        with_events: bool = False,
+        **kwargs,
+    ):
+        """Stream a single sequential agent.
+
+        Yields ``(agent_name, token)`` tuples by default, or structured event
+        dicts when ``with_events=True``.
+        """
+        agent = self.agents[agent_name]
+
+        awareness_info = self._get_sequential_awareness(
+            agent_name, tasks, task_idx=task_idx
+        )
+        if awareness_info:
+            self.conversation.add("system", awareness_info)
+
+        if with_events:
+            yield {"type": "agent_start", "agent": agent_name}
+
+        chunks: List[str] = []
+        run_kwargs = {"task": self.conversation.get_str()}
+        if img is not None:
+            run_kwargs["img"] = img
+        run_kwargs.update(kwargs)
+        async for token in agent.arun_stream(**run_kwargs):
+            chunks.append(token)
+            if with_events:
+                yield {
+                    "type": "token",
+                    "agent": agent_name,
+                    "token": token,
+                }
+            else:
+                yield (agent_name, token)
+
+        output = "".join(chunks)
+        self.conversation.add(agent.agent_name, output)
+        if with_events:
+            yield {
+                "type": "agent_end",
+                "agent": agent_name,
+                "output": output,
+            }
+
+    async def _run_concurrent_workflow_stream(
+        self,
+        agent_names: List[str],
+        img: str = None,
+        with_events: bool = False,
+        **kwargs,
+    ):
+        """Run agents in parallel, interleaving their tokens.
+
+        ``await asyncio.sleep(0)`` after each yielded token forces a scheduler
+        hop so concurrent producers get fair time on the event loop — this is
+        what gives you fine-grained ``A,B,A,B`` interleaving rather than
+        ``AAAA…BBBB…``.
+        """
+        q: asyncio.Queue = asyncio.Queue()
+        DONE = object()
+        ERROR = object()
+        base_input = self.conversation.get_str()
+        results: Dict[str, List[str]] = {
+            name: [] for name in agent_names
+        }
+
+        if with_events:
+            for name in agent_names:
+                yield {"type": "agent_start", "agent": name}
+
+        async def producer(name: str):
+            try:
+                agent = self.agents[name]
+                run_kwargs = {"task": base_input}
+                if img is not None:
+                    run_kwargs["img"] = img
+                run_kwargs.update(kwargs)
+                async for token in agent.arun_stream(**run_kwargs):
+                    results[name].append(token)
+                    await q.put((name, token))
+            except Exception as e:  # noqa: BLE001
+                await q.put((ERROR, e))
+            finally:
+                await q.put((DONE, name))
+
+        producer_tasks = [
+            asyncio.create_task(producer(name))
+            for name in agent_names
+        ]
+
+        try:
+            finished = 0
+            while finished < len(agent_names):
+                kind, payload = await q.get()
+                if kind is DONE:
+                    finished += 1
+                    if with_events:
+                        finished_name = payload
+                        yield {
+                            "type": "agent_end",
+                            "agent": finished_name,
+                            "output": "".join(results[finished_name]),
+                        }
+                    continue
+                if kind is ERROR:
+                    for t in producer_tasks:
+                        t.cancel()
+                    raise payload
+                if with_events:
+                    yield {
+                        "type": "token",
+                        "agent": kind,
+                        "token": payload,
+                    }
+                else:
+                    yield (kind, payload)
+                # Yield control so the other producer(s) can run; without
+                # this the consumer drains a full burst from one agent
+                # before the scheduler hops to the next.
+                await asyncio.sleep(0)
+        finally:
+            await asyncio.gather(
+                *producer_tasks, return_exceptions=True
+            )
+
+        for name in agent_names:
+            self.conversation.add(name, "".join(results[name]))
+
+    async def arun_stream(
+        self,
+        task: str = None,
+        img: str = None,
+        with_events: bool = False,
+        **kwargs,
+    ):
+        """Stream tokens from each agent in flow order.
+
+        - Sequential segments (``A -> B``) stream tokens one agent at a time.
+        - Parallel segments (``A, B``) interleave tokens from concurrent
+          agents fairly via ``asyncio.sleep(0)`` between yields.
+
+        Args:
+            task: Initial task fed into the first agent in the flow.
+            img: Optional image input forwarded to every agent.
+            with_events: When False (default), yield ``(agent_name, token)``
+                tuples. When True, yield structured event dicts:
+                ``{"type": "agent_start", "agent": ...}``,
+                ``{"type": "token", "agent": ..., "token": ...}``,
+                ``{"type": "agent_end", "agent": ..., "output": ...}``.
+
+        Not yet supported in streaming mode: ``max_loops > 1``,
+        ``custom_tasks``, ``human_in_the_loop``. Use ``run()`` for those.
+        """
+        self.conversation.add("User", task)
+
+        if not self.validate_flow():
+            raise ValueError("Invalid flow configuration.")
+
+        tasks_list = self.flow.split("->")
+
+        for task_idx, task_segment in enumerate(tasks_list):
+            agent_names = [
+                name.strip() for name in task_segment.split(",")
+            ]
+
+            if len(agent_names) > 1:
+                async for evt in self._run_concurrent_workflow_stream(
+                    agent_names=agent_names,
+                    img=img,
+                    with_events=with_events,
+                    **kwargs,
+                ):
+                    yield evt
+            else:
+                async for evt in self._run_sequential_workflow_stream(
+                    agent_name=agent_names[0],
+                    tasks=tasks_list,
+                    task_idx=task_idx,
+                    img=img,
+                    with_events=with_events,
+                    **kwargs,
+                ):
+                    yield evt
+
+    def run_stream(
+        self,
+        task: str = None,
+        img: str = None,
+        with_events: bool = False,
+        **kwargs,
+    ):
+        """Sync generator version of arun_stream.
+
+        Bridges the async generator to a sync iterator using a thread + queue.
+        Use ``arun_stream`` directly when you already have a running event
+        loop (e.g. inside a FastAPI handler).
+        """
+        import queue as _queue
+        import threading
+
+        q: _queue.Queue = _queue.Queue()
+        DONE = object()
+        exc_holder: List[Optional[Exception]] = [None]
+
+        def runner():
+            async def consume():
+                async for evt in self.arun_stream(
+                    task=task,
+                    img=img,
+                    with_events=with_events,
+                    **kwargs,
+                ):
+                    q.put(evt)
+
+            try:
+                asyncio.run(consume())
+            except Exception as e:  # noqa: BLE001
+                exc_holder[0] = e
+            finally:
+                q.put(DONE)
+
+        t = threading.Thread(target=runner, daemon=True)
+        t.start()
+        while True:
+            item = q.get()
+            if item is DONE:
+                break
+            yield item
+        t.join()
+        if exc_holder[0] is not None:
+            raise exc_holder[0]
+
     def _serialize_callable(
         self, attr_value: Callable
     ) -> Dict[str, Any]:

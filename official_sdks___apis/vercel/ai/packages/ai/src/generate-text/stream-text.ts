@@ -16,6 +16,7 @@ import {
   type InferToolSetContext,
   type ModelMessage,
   type ProviderOptions,
+  type Sandbox,
   type ToolApprovalResponse,
   type ToolContent,
   type ToolSet,
@@ -155,7 +156,7 @@ export type StreamTextInclude = {
    * Whether to retain the request body in step results.
    * The request body can be large when sending images or files.
    *
-   * @default true
+   * @default false
    */
   requestBody?: boolean;
 
@@ -278,6 +279,7 @@ export type StreamTextOnAbortCallback<
  * @param timeout - An optional timeout in milliseconds. The call will be aborted if it takes longer than the specified timeout.
  * @param headers - Additional HTTP headers to be sent with the request. Only applicable for HTTP-based providers.
  *
+ * @param sandbox - The sandbox environment that is passed through to the tool execution.
  * @param runtimeContext - User-defined runtime context that flows through the entire generation lifecycle.
  * @param experimental_refineToolInput - Optional mapping of tool names to functions that refine parsed tool inputs before tools are executed and before outputs, callbacks, and telemetry are recorded.
  *
@@ -310,6 +312,7 @@ export function streamText<
   timeout,
   headers,
   stopWhen = isStepCount(1),
+  sandbox,
   output,
   toolApproval,
   experimental_telemetry,
@@ -387,6 +390,11 @@ export function streamText<
      * functionality that can be fully encapsulated in the provider.
      */
     providerOptions?: ProviderOptions;
+
+    /**
+     * The sandbox environment that is passed through to the tool execution.
+     */
+    sandbox?: Sandbox;
 
     /**
      * Runtime context. Treat runtime context as immutable.
@@ -561,8 +569,7 @@ export function streamText<
      * Disabling inclusion can help reduce memory usage when processing
      * large payloads like images.
      *
-     * By default, request bodies are included and request messages are
-     * excluded.
+     * By default, request bodies and request messages are excluded.
      */
     include?: StreamTextInclude;
 
@@ -613,6 +620,7 @@ export function streamText<
     prompt,
     messages,
     allowSystemInMessages,
+    sandbox,
     tools,
     toolsContext,
     runtimeContext,
@@ -645,7 +653,7 @@ export function streamText<
 
     // assign default values to include:
     include: {
-      requestBody: include?.requestBody ?? true,
+      requestBody: include?.requestBody ?? false,
       requestMessages: include?.requestMessages ?? false,
       rawChunks: include?.rawChunks ?? includeRawChunks ?? false,
     },
@@ -775,6 +783,9 @@ class DefaultStreamTextResult<
   private readonly _steps = new DelayedPromise<
     Awaited<StreamTextResult<TOOLS, RUNTIME_CONTEXT, OUTPUT>['steps']>
   >();
+  private readonly _initialResponseMessages = new DelayedPromise<
+    Array<ResponseMessage>
+  >();
 
   private readonly addStream: (
     stream: ReadableStream<TextStreamPart<TOOLS>>,
@@ -805,6 +816,7 @@ class DefaultStreamTextResult<
     prompt,
     messages,
     allowSystemInMessages,
+    sandbox,
     tools,
     toolChoice,
     transforms,
@@ -852,6 +864,7 @@ class DefaultStreamTextResult<
     prompt: Prompt['prompt'];
     messages: Prompt['messages'];
     allowSystemInMessages: Prompt['allowSystemInMessages'];
+    sandbox: Sandbox | undefined;
     tools: TOOLS | undefined;
     toolChoice: ToolChoice<TOOLS> | undefined;
     transforms: Array<StreamTextTransform<TOOLS>>;
@@ -929,7 +942,6 @@ class DefaultStreamTextResult<
     let stepFinish!: DelayedPromise<void>;
 
     let recordedContent: Array<ContentPart<TOOLS>> = [];
-    const recordedResponseMessages: Array<ResponseMessage> = [];
     let recordedFinishReason: FinishReason | undefined = undefined;
     let recordedRawFinishReason: string | undefined = undefined;
     let recordedTotalUsage: LanguageModelUsage | undefined = undefined;
@@ -937,6 +949,9 @@ class DefaultStreamTextResult<
     let recordedRequestMessages: Array<ModelMessage> = [];
     let recordedWarnings: Array<CallWarning> = [];
     const recordedSteps: StepResult<TOOLS, RUNTIME_CONTEXT>[] = [];
+    const initialResponseMessages: Array<ResponseMessage> = [];
+    let stepMessagesForNextStep: Array<ModelMessage> | undefined;
+    let currentStepMessages: Array<ModelMessage> = [];
 
     // Track provider-executed tool calls that support deferred results
     // (e.g., code_execution in programmatic tool calling scenarios).
@@ -1122,7 +1137,7 @@ class DefaultStreamTextResult<
         }
 
         if (part.type === 'finish-step') {
-          const stepMessages = await toResponseMessages({
+          const stepResponseMessages = await toResponseMessages({
             content: recordedContent,
             tools,
           });
@@ -1149,10 +1164,7 @@ class DefaultStreamTextResult<
               },
               response: {
                 ...part.response,
-                messages: cloneModelMessages([
-                  ...recordedResponseMessages,
-                  ...stepMessages,
-                ]),
+                messages: cloneModelMessages(stepResponseMessages),
               },
               providerMetadata: part.providerMetadata,
             });
@@ -1169,8 +1181,10 @@ class DefaultStreamTextResult<
           });
 
           recordedSteps.push(currentStepResult);
-
-          recordedResponseMessages.push(...stepMessages);
+          stepMessagesForNextStep = [
+            ...currentStepMessages,
+            ...stepResponseMessages,
+          ];
 
           // resolve the promise to signal that the step has been fully processed
           // by the event processor:
@@ -1197,6 +1211,7 @@ class DefaultStreamTextResult<
             self._rawFinishReason.reject(error);
             self._totalUsage.reject(error);
             self._steps.reject(error);
+            self._initialResponseMessages.reject(error);
 
             return; // no steps recorded (e.g. in error scenario)
           }
@@ -1242,7 +1257,10 @@ class DefaultStreamTextResult<
               dynamicToolResults: finalStep.dynamicToolResults,
               request: finalStep.request,
               response: finalStep.response,
-              responseMessages: finalStep.response.messages,
+              responseMessages: [
+                ...initialResponseMessages,
+                ...recordedSteps.flatMap(step => step.response.messages),
+              ],
               warnings: finalStep.warnings,
               providerMetadata: finalStep.providerMetadata,
               steps: recordedSteps,
@@ -1394,7 +1412,6 @@ class DefaultStreamTextResult<
       });
 
       const initialMessages = initialPrompt.messages;
-      const initialResponseMessages: Array<ResponseMessage> = [];
 
       const { approvedToolApprovals, deniedToolApprovals } =
         collectToolApprovals<TOOLS>({ messages: initialMessages });
@@ -1448,6 +1465,7 @@ class DefaultStreamTextResult<
                 messages: initialMessages,
                 abortSignal,
                 timeout,
+                sandbox,
                 toolsContext,
                 onToolExecutionStart: filterNullable(
                   onToolExecutionStart,
@@ -1516,15 +1534,13 @@ class DefaultStreamTextResult<
         }
       }
 
-      recordedResponseMessages.push(...initialResponseMessages);
+      self._initialResponseMessages.resolve(initialResponseMessages);
 
       async function streamStep({
         currentStep,
-        responseMessages,
         usage,
       }: {
         currentStep: number;
-        responseMessages: Array<ResponseMessage>;
         usage: LanguageModelUsage;
       }) {
         // Set up step timeout if configured
@@ -1565,16 +1581,31 @@ class DefaultStreamTextResult<
         try {
           stepFinish = new DelayedPromise<void>();
 
-          const stepInputMessages = [...initialMessages, ...responseMessages];
+          const responseMessagesFromPreviousSteps = recordedSteps.flatMap(
+            step => step.response.messages,
+          );
+          const accumulatedResponseMessages = [
+            ...initialResponseMessages,
+            ...responseMessagesFromPreviousSteps,
+          ];
+          const stepInputMessages = stepMessagesForNextStep ?? [
+            ...initialMessages,
+            ...initialResponseMessages,
+          ];
 
           const prepareStepResult = await prepareStep?.({
             model,
             steps: recordedSteps,
             stepNumber: recordedSteps.length,
             messages: stepInputMessages,
+            initialMessages,
+            responseMessages: accumulatedResponseMessages,
             toolsContext,
             runtimeContext,
+            sandbox,
           });
+
+          const stepSandbox = prepareStepResult?.sandbox ?? sandbox;
 
           const stepModel = resolveLanguageModel(
             prepareStepResult?.model ?? model,
@@ -1597,6 +1628,7 @@ class DefaultStreamTextResult<
           toolsContext = prepareStepResult?.toolsContext ?? toolsContext;
 
           const stepMessages = prepareStepResult?.messages ?? stepInputMessages;
+          currentStepMessages = stepMessages;
           const stepSystem = prepareStepResult?.system ?? initialPrompt.system;
 
           const stepProviderOptions = mergeObjects(
@@ -1672,7 +1704,7 @@ class DefaultStreamTextResult<
           const stream2 = invokeToolCallbacksFromStream({
             stream: languageModelStream,
             tools,
-            stepInputMessages,
+            stepInputMessages: stepMessages,
             abortSignal,
             runtimeContext,
           });
@@ -1681,9 +1713,10 @@ class DefaultStreamTextResult<
             createExecuteToolsTransformation({
               tools,
               callId,
-              messages: stepInputMessages,
+              messages: stepMessages,
               abortSignal,
               timeout,
+              sandbox: stepSandbox,
               toolsContext,
               toolApproval,
               runtimeContext,
@@ -1968,20 +2001,9 @@ class DefaultStreamTextResult<
                       steps: recordedSteps,
                     }))
                   ) {
-                    // append to messages for the next step:
-                    responseMessages.push(
-                      ...(await toResponseMessages({
-                        content:
-                          // use transformed content to create the messages for the next step:
-                          recordedSteps[recordedSteps.length - 1].content,
-                        tools,
-                      })),
-                    );
-
                     try {
                       await streamStep({
                         currentStep: currentStep + 1,
-                        responseMessages,
                         usage: combinedUsage,
                       });
                     } catch (error) {
@@ -2015,11 +2037,11 @@ class DefaultStreamTextResult<
       // add the initial stream to the stitchable stream
       await streamStep({
         currentStep: 0,
-        responseMessages: initialResponseMessages,
         usage: createNullLanguageModelUsage(),
       });
     })().catch(async error => {
       await telemetryDispatcher.onError?.({ callId, error });
+      self._initialResponseMessages.reject(error);
 
       // add an error stream part and close the streams:
       self.addStream(
@@ -2117,7 +2139,13 @@ class DefaultStreamTextResult<
   }
 
   get responseMessages() {
-    return this.finalStep.then(step => step.response.messages);
+    return Promise.all([
+      this._initialResponseMessages.promise,
+      this.steps,
+    ]).then(([initialResponseMessages, steps]) => [
+      ...initialResponseMessages,
+      ...steps.flatMap(step => step.response.messages),
+    ]);
   }
 
   get totalUsage() {

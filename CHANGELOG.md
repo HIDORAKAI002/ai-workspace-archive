@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-05-07 20:49 IST] Auto-Sync
+- **41 Repositories Updated:** Kubernetes MCP Server, Langfuse, Promptfoo, n8n, Dify, Activepieces, Trigger.dev, Windmill, Appsmith, Budibase, modelcontextprotocol/java-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langchain, langchain-ai/langgraph, Significant-Gravitas/AutoGPT, openai/openai-agents-python, microsoft/semantic-kernel, mastra-ai/mastra, Swarms, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, anthropics/claude-code, weaviate/weaviate, pinecone-io/pinecone-python-client, infiniflow/ragflow, traceloop/openllmetry, microsoft/ai-agents-for-beginners, anthropics/anthropic-sdk-typescript, googleapis/python-genai, vercel/ai, apache/airflow, PrefectHQ/prefect, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight, tirth8205/code-review-graph
+
 ## [2026-05-07 14:16 IST] Auto-Sync
 - **26 Repositories Updated:** Public APIs Directory, Awesome ChatGPT Prompts, Promptfoo, n8n, Dify, Activepieces, Budibase, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, mastra-ai/mastra, deepset-ai/haystack, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, milvus-io/milvus, infiniflow/ragflow, danny-avila/LibreChat, googleapis/python-genai, vercel/ai, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, bytedance/deer-flow
 

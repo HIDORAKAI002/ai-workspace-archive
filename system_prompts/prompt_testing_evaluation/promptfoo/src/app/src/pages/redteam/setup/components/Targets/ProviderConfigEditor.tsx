@@ -66,10 +66,19 @@ function ProviderConfigEditor({
   }, []);
 
   const updateCustomTarget = (field: string, value: unknown) => {
-    const updatedTarget = { ...provider } as ProviderOptions;
+    // Shallow-clone the config along with the target so subsequent
+    // assignments and `delete` don't mutate the original provider object
+    // by reference (which is React state owned by our parent).
+    const updatedTarget = {
+      ...provider,
+      config: { ...(provider.config ?? {}) },
+    } as ProviderOptions;
 
     if (field === 'id') {
       updatedTarget.id = value as string;
+      if (providerType === 'bedrock' && !updatedTarget.id.startsWith('bedrock:converse:')) {
+        delete updatedTarget.config.mcp;
+      }
     } else if (field === 'url') {
       updatedTarget.config.url = value as string;
       if (validateUrl(value as string)) {
@@ -195,6 +204,7 @@ function ProviderConfigEditor({
         'groq',
         'deepseek',
         'azure',
+        'bedrock',
         'openrouter',
         'perplexity',
         'cerebras',
@@ -318,6 +328,7 @@ function ProviderConfigEditor({
         'groq',
         'deepseek',
         'azure',
+        'bedrock',
         'openrouter',
         'perplexity',
         'cerebras',
@@ -331,7 +342,6 @@ function ProviderConfigEditor({
 
       {/* Cloud and enterprise providers - use custom config for now */}
       {[
-        'bedrock',
         'sagemaker',
         'databricks',
         'cloudflare-ai',

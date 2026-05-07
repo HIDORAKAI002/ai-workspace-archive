@@ -1,6 +1,5 @@
 """Prompt templates for the Reflexion agent."""
 
-
 REFLEXION_PROMPT = """
 You are Reflexion, an advanced AI assistant designed to generate high-quality responses and continuously improve through self-reflection.
 
