@@ -16,6 +16,8 @@ from typing import Optional
 
 from fastmcp import FastMCP
 
+from .graph import GraphStore
+from .incremental import find_project_root, get_db_path, start_watch_thread
 from .prompts import (
     architecture_map_prompt,
     debug_issue_prompt,
@@ -45,7 +47,6 @@ from .tools import (
     get_suggested_questions_func,
     get_surprising_connections_func,
     get_wiki_page_func,
-    traverse_graph_func,
     list_communities_func,
     list_flows,
     list_graph_stats,
@@ -54,10 +55,8 @@ from .tools import (
     refactor_func,
     run_postprocess,
     semantic_search_nodes,
+    traverse_graph_func,
 )
-
-from .graph import GraphStore
-from .incremental import find_project_root, get_db_path, start_watch_thread
 
 logger = logging.getLogger(__name__)
 

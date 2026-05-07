@@ -12,6 +12,7 @@ import json
 import logging
 import os
 import platform
+import re
 import shutil
 import stat
 import sys
@@ -128,6 +129,22 @@ PLATFORMS: dict[str, dict[str, Any]] = {
         "format": "object",
         "needs_type": True,
     },
+    "copilot": {
+        "name": "GitHub Copilot",
+        "config_path": lambda root: root / ".vscode" / "mcp.json",
+        "key": "servers",
+        "detect": lambda: (Path.home() / ".vscode").exists(),
+        "format": "object",
+        "needs_type": True,
+    },
+    "copilot-cli": {
+        "name": "GitHub Copilot CLI",
+        "config_path": lambda root: Path.home() / ".copilot" / "mcp-config.json",
+        "key": "servers",
+        "detect": lambda: (Path.home() / ".copilot").exists(),
+        "format": "object",
+        "needs_type": True,
+    },
 }
 
 
@@ -212,10 +229,15 @@ def _detect_serve_command() -> tuple[str, list[str]]:
     return (sys.executable, ["-m", "code_review_graph", "serve"])
 
 
-def _build_server_entry(plat: dict[str, Any], key: str = "") -> dict[str, Any]:
+def _build_server_entry(
+    plat: dict[str, Any], key: str = "", repo_root: "Path | None" = None,
+) -> dict[str, Any]:
     """Build the MCP server entry for a platform."""
     command, args = _detect_serve_command()
     entry: dict[str, Any] = {"command": command, "args": args}
+    # Include cwd so the MCP server can find the graph database
+    if repo_root is not None:
+        entry["cwd"] = str(repo_root)
     if plat["needs_type"]:
         entry["type"] = "stdio"
     if key == "opencode":
@@ -298,7 +320,7 @@ def install_platform_configs(
     for key, plat in platforms_to_install.items():
         config_path: Path = plat["config_path"](repo_root)
         server_key = plat["key"]
-        server_entry = _build_server_entry(plat, key=key)
+        server_entry = _build_server_entry(plat, key=key, repo_root=repo_root)
 
         if plat["format"] == "toml":
             changed = _merge_toml_mcp_server(
@@ -321,11 +343,18 @@ def install_platform_configs(
         # Read existing config
         existing: dict[str, Any] = {}
         if config_path.exists():
+            raw = config_path.read_text(encoding="utf-8", errors="replace")
+            # Strip single-line comments and trailing commas (JSONC compat
+            # for editors like Zed that allow non-standard JSON).
+            stripped = re.sub(r'//.*?$', '', raw, flags=re.MULTILINE)
+            stripped = re.sub(r',(\s*[}\]])', r'\1', stripped)
             try:
-                existing = json.loads(config_path.read_text(encoding="utf-8", errors="replace"))
+                existing = json.loads(stripped)
             except (json.JSONDecodeError, OSError):
-                logger.warning("Invalid JSON in %s, will overwrite.", config_path)
-                existing = {}
+                print(f"  {plat['name']}: {config_path} contains "
+                      f"unparseable JSON — skipping to avoid data loss. "
+                      f"Please add the MCP config manually.")
+                continue
 
         if plat["format"] == "array":
             arr = existing.get(server_key, [])
@@ -496,7 +525,11 @@ def generate_skills(repo_root: Path, skills_dir: Path | None = None) -> Path:
     skills_dir.mkdir(parents=True, exist_ok=True)
 
     for filename, skill in _SKILLS.items():
-        path = skills_dir / filename
+        # Claude Code expects skills at .claude/skills/<name>/skill.md
+        skill_name = filename.removesuffix(".md")
+        skill_subdir = skills_dir / skill_name
+        skill_subdir.mkdir(parents=True, exist_ok=True)
+        path = skill_subdir / "skill.md"
         content = (
             "---\n"
             f"name: {skill['name']}\n"
@@ -787,6 +820,62 @@ Fall back to Grep/Glob/Read **only** when the graph doesn't cover what you need.
 4. Use `query_graph` pattern=\"tests_for\" to check coverage.
 """
 
+# Copilot-specific instruction file content: uses VS Code tool references and
+# includes YAML front matter so Copilot Chat applies it across the workspace.
+_COPILOT_SECTION = f"""---
+applyTo: '**'
+description: >-
+  Use code-review-graph MCP tools for token-efficient
+  codebase exploration and code review.
+---
+
+{_CLAUDE_MD_SECTION_MARKER}
+## MCP Tools: code-review-graph
+
+**IMPORTANT: This project has a knowledge graph. ALWAYS use the
+code-review-graph MCP tools BEFORE using file/search tools to
+explore the codebase.** The graph is faster, cheaper (fewer
+tokens), and gives you structural context (callers, dependents,
+test coverage) that file scanning cannot.
+
+### When to use graph tools FIRST
+
+- **Exploring code**: `semantic_search_nodes` or `query_graph`
+- **Understanding impact**: `get_impact_radius`
+- **Code review**: `detect_changes` + `get_review_context`
+- **Finding relationships**: `query_graph` callers_of/callees_of
+- **Architecture questions**: `get_architecture_overview`
+
+Fall back to file/search tools **only** when the graph doesn't
+cover what you need.
+
+### Key Tools
+
+| Tool | Use when |
+| ------ | ---------- |
+| `detect_changes` | Risk-scored change analysis |
+| `get_review_context` | Token-efficient source snippets |
+| `get_impact_radius` | Blast radius of a change |
+| `get_affected_flows` | Impacted execution paths |
+| `query_graph` | Trace callers, callees, imports, tests |
+| `semantic_search_nodes` | Find functions/classes by keyword |
+| `get_architecture_overview` | High-level structure |
+| `refactor_tool` | Rename planning, dead code |
+
+### Workflow
+
+1. The graph auto-updates on file changes (via hooks).
+2. Use `detect_changes` for code review.
+3. Use `get_affected_flows` to understand impact.
+4. Use `query_graph` pattern=\"tests_for\" to check coverage.
+"""
+
+# Maps instruction file path → (marker, section) for files that need content
+# different from the default _CLAUDE_MD_SECTION.
+_PLATFORM_INSTRUCTION_CUSTOM_SECTIONS: dict[str, tuple[str, str]] = {
+    ".github/code-review-graph.instruction.md": (_CLAUDE_MD_SECTION_MARKER, _COPILOT_SECTION),
+}
+
 
 def _inject_instructions(file_path: Path, marker: str, section: str) -> bool:
     """Append an instruction section to a file if not already present.
@@ -831,6 +920,7 @@ _PLATFORM_INSTRUCTION_FILES: dict[str, tuple[str, ...]] = {
     ".windsurfrules": ("windsurf",),
     "QODER.md": ("qoder",),
     ".kiro/steering/code-review-graph.md": ("kiro",),
+    ".github/code-review-graph.instruction.md": ("copilot", "copilot-cli"),
 }
 
 
@@ -873,7 +963,11 @@ cat > /dev/null || true
 
 msg="$(code-review-graph status --repo "__CRG_REPO__" 2>&1 | head -n 1 || true)"
 
-CRG_MSG="$msg" python3 -c 'import json, os; print(json.dumps({"systemMessage": os.environ.get("CRG_MSG",""), "suppressOutput": True}))' 2>/dev/null || echo '{"suppressOutput": true}'
+CRG_MSG="$msg" python3 -c '
+import json,os
+m=os.environ.get("CRG_MSG","")
+print(json.dumps({"systemMessage":m,"suppressOutput":True}))
+' 2>/dev/null || echo '{"suppressOutput": true}'
 exit 0
 """
     session_start_script = session_start_script.replace("__CRG_REPO__", repo_arg)
@@ -904,7 +998,9 @@ exit 0
     if not isinstance(hooks_obj, dict):
         hooks_obj = {}
 
-    def _ensure_group(event_name: str, matcher: str, hook_command: str, name: str, timeout: int) -> None:
+    def _ensure_group(
+        event_name: str, matcher: str, hook_command: str, name: str, timeout: int,
+    ) -> None:
         arr = hooks_obj.get(event_name, [])
         if not isinstance(arr, list):
             arr = []
@@ -917,7 +1013,8 @@ exit 0
             if not isinstance(nested, list):
                 return False
             for h in nested:
-                if isinstance(h, dict) and h.get("type") == "command" and h.get("command") == hook_command:
+                if isinstance(h, dict) and h.get("type") == "command" \
+                        and h.get("command") == hook_command:
                     return True
             return False
 
@@ -1002,7 +1099,11 @@ def inject_platform_instructions(repo_root: Path, target: str = "all") -> list[s
         if target != "all" and target not in owners:
             continue
         path = repo_root / filename
-        if _inject_instructions(path, _CLAUDE_MD_SECTION_MARKER, _CLAUDE_MD_SECTION):
+        if filename in _PLATFORM_INSTRUCTION_CUSTOM_SECTIONS:
+            marker, section = _PLATFORM_INSTRUCTION_CUSTOM_SECTIONS[filename]
+        else:
+            marker, section = _CLAUDE_MD_SECTION_MARKER, _CLAUDE_MD_SECTION
+        if _inject_instructions(path, marker, section):
             updated.append(filename)
     return updated
 

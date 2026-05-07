@@ -1,8 +1,13 @@
+---
+applyTo: '**'
+description: Use code-review-graph MCP tools for token-efficient codebase exploration and code review instead of built-in file/search tools.
+---
+
 <!-- code-review-graph MCP tools -->
 ## MCP Tools: code-review-graph
 
 **IMPORTANT: This project has a knowledge graph. ALWAYS use the
-code-review-graph MCP tools BEFORE using Grep/Glob/Read to explore
+code-review-graph MCP tools BEFORE using #tool:read/readFile #tool:search/fileSearch #tool:search/textSearch to explore
 the codebase.** The graph is faster, cheaper (fewer tokens), and gives
 you structural context (callers, dependents, test coverage) that file
 scanning cannot.
@@ -20,7 +25,7 @@ Fall back to Grep/Glob/Read **only** when the graph doesn't cover what you need.
 ### Key Tools
 
 | Tool | Use when |
-|------|----------|
+| ------ | ---------- |
 | `detect_changes` | Reviewing code changes — gives risk-scored analysis |
 | `get_review_context` | Need source snippets for review — token-efficient |
 | `get_impact_radius` | Understanding blast radius of a change |

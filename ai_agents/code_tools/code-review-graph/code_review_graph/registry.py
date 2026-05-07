@@ -54,7 +54,9 @@ class Registry:
             json.dumps(data, indent=2) + "\n", encoding="utf-8"
         )
 
-    def register(self, path: str, alias: str | None = None, data_dir: str | None = None) -> dict[str, str]:
+    def register(
+        self, path: str, alias: str | None = None, data_dir: str | None = None,
+    ) -> dict[str, str]:
         """Register a repository path.
 
         Validates that the path contains a ``.git`` or ``.code-review-graph``

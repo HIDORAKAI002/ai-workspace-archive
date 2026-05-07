@@ -77,7 +77,8 @@ class LocalEmbeddingProvider(EmbeddingProvider):
             try:
                 from sentence_transformers import SentenceTransformer
                 # Check environment variable, default to False to prevent RCE
-                allow_remote_code = os.environ.get("CRG_ALLOW_REMOTE_CODE", "0").lower() in ("1", "true", "yes")
+                _rce_val = os.environ.get("CRG_ALLOW_REMOTE_CODE", "0")
+                allow_remote_code = _rce_val.lower() in ("1", "true", "yes")
 
                 self._model = SentenceTransformer(
                     self._model_name,
