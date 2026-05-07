@@ -223,7 +223,7 @@ def mkdir_p(path: str) -> str:
 
 def get_prop_or_key(elem: object, key: str) -> object:
     if isinstance(elem, Mapping):
-        return elem.get(key)
+        return elem.get(key)  # ty: ignore[invalid-argument-type]
     else:
         return getattr(elem, key)
 
@@ -325,7 +325,7 @@ def ensure_gen(
 
         return _gen_thing()
 
-    return thing_or_gen
+    return cast("Generator[T, Any, Any]", thing_or_gen)
 
 
 def ensure_dir(file_path: str) -> str:

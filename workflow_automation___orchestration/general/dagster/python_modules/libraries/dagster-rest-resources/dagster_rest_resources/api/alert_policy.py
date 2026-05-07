@@ -25,17 +25,17 @@ class DgApiAlertPolicyApi:
 
         match result.typename__:
             case "AlertPoliciesAsDocument":
-                document = result.document
+                document = result.document  # ty: ignore[unresolved-attribute]
                 alert_policies = (
                     document.get("alert_policies", []) if isinstance(document, dict) else []
                 )
                 return DgApiAlertPolicyDocument(items=alert_policies)
             case "UnauthorizedError":
                 raise DagsterPlusUnauthorizedError(
-                    f"Error fetching alert policies: {result.message}"
+                    f"Error fetching alert policies: {result.message}"  # ty: ignore[unresolved-attribute]
                 )
             case "PythonError":
-                raise DagsterPlusGraphqlError(f"Error fetching alert policies: {result.message}")
+                raise DagsterPlusGraphqlError(f"Error fetching alert policies: {result.message}")  # ty: ignore[unresolved-attribute]
             case _ as unreachable:
                 assert_never(unreachable)
 
@@ -49,15 +49,15 @@ class DgApiAlertPolicyApi:
         match result.typename__:
             case "ReconcileAlertPoliciesSuccess":
                 return DgApiAlertPolicySyncResult(
-                    items=sorted(p.name for p in result.alert_policies if p is not None)
+                    items=sorted(p.name for p in result.alert_policies if p is not None)  # ty: ignore[unresolved-attribute]
                 )
             case "InvalidAlertPolicyError":
-                raise DagsterPlusGraphqlError(f"Invalid alert policy: {result.message}")
+                raise DagsterPlusGraphqlError(f"Invalid alert policy: {result.message}")  # ty: ignore[unresolved-attribute]
             case "UnauthorizedError":
                 raise DagsterPlusUnauthorizedError(
-                    f"Error fetching alert policies: {result.message}"
+                    f"Error fetching alert policies: {result.message}"  # ty: ignore[unresolved-attribute]
                 )
             case "PythonError":
-                raise DagsterPlusGraphqlError(f"Error reconciling alert policies: {result.message}")
+                raise DagsterPlusGraphqlError(f"Error reconciling alert policies: {result.message}")  # ty: ignore[unresolved-attribute]
             case _ as unreachable:
                 assert_never(unreachable)

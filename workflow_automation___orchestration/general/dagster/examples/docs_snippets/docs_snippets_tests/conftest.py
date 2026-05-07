@@ -59,7 +59,7 @@ def update_screenshots(request: pytest.FixtureRequest) -> bool:
 
 @pytest.fixture(scope="session")
 def get_selenium_driver():
-    from selenium import webdriver
+    from selenium import webdriver  # ty: ignore[unresolved-import]
 
     driver = None
 
