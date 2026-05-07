@@ -9,7 +9,7 @@ from dagster_dg_cli.utils.plus import gql
 PYTHON_VERSION = f"{sys.version_info.major}.{sys.version_info.minor}"
 
 # Module-level
-_patch_state = {
+_patch_state: dict[str, Any] = {
     # queue of pending mock responses matched by _execute_arbitrary_side_effect.
     "_pending_mocks": [],
     # currently active patch of `IGraphQLClient.execute_arbitrary`

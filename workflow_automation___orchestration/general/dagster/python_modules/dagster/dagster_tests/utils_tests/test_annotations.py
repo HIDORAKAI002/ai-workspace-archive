@@ -329,7 +329,7 @@ def test_deprecated_param_staticmethod(decorators):
     with pytest.warns(
         DeprecationWarning, match=r"Parameter `baz` of [^`]+`[^`]+Foo.bar` is deprecated"
     ) as warning:
-        Foo.bar(baz="ok")  # pyright: ignore[reportArgumentType]
+        Foo.bar(baz="ok")  # pyright: ignore[reportArgumentType]  # ty: ignore[invalid-argument-type]
     assert warning[0].filename.endswith("test_annotations.py")
 
 
@@ -868,7 +868,7 @@ def test_beta_param_staticmethod(decorators):
     with pytest.warns(
         dg.BetaWarning, match=r"Parameter `baz` of [^`]+`[^`]+Foo.bar` is currently in beta"
     ) as warning:
-        Foo.bar(baz="ok")  # pyright: ignore[reportArgumentType]
+        Foo.bar(baz="ok")  # pyright: ignore[reportArgumentType]  # ty: ignore[invalid-argument-type]
     assert warning[0].filename.endswith("test_annotations.py")
 
 

@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.36.0 (2026-05-07)
+
+Full Changelog: [v2.35.1...v2.36.0](https://github.com/openai/openai-python/compare/v2.35.1...v2.36.0)
+
+### Features
+
+* **api:** manual updates ([13c639c](https://github.com/openai/openai-python/commit/13c639cc7d57e4fbd4406563511e15eeb88a54b2))
+* **api:** realtime 2 ([8fe0ab8](https://github.com/openai/openai-python/commit/8fe0ab87e67eeb3cc27426b50093845229520f0e))
+
 ## 2.35.1 (2026-05-06)
 
 Full Changelog: [v2.35.0...v2.35.1](https://github.com/openai/openai-python/compare/v2.35.0...v2.35.1)

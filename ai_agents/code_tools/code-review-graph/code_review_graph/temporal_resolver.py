@@ -64,7 +64,7 @@ def resolve_temporal_calls(store: GraphStore) -> dict:
             temporal_interfaces[row["name"]] = row["qualified_name"]
 
     if not temporal_interfaces:
-        logger.info("Temporal resolver: no @WorkflowInterface/@ActivityInterface nodes found, skipping")
+        logger.info("Temporal resolver: no Workflow/ActivityInterface nodes, skipping")
         return {"files_indexed": len(java_files), "calls_resolved": 0}
 
     # -----------------------------------------------------------------------
@@ -88,7 +88,7 @@ def resolve_temporal_calls(store: GraphStore) -> dict:
         field_map[(row["source_qualified"], fname)] = bare_target
 
     if not field_map:
-        logger.info("Temporal resolver: no TEMPORAL_STUB edges for known Temporal interfaces, skipping")
+        logger.info("Temporal resolver: no TEMPORAL_STUB edges found, skipping")
         return {"files_indexed": len(java_files), "calls_resolved": 0}
 
     # -----------------------------------------------------------------------
@@ -171,9 +171,11 @@ def resolve_temporal_calls(store: GraphStore) -> dict:
         impls = implementors.get(interface_qual, [])
         if len(impls) == 1:
             concrete_class = impls[0].split("::")[-1]
-            new_target = method_to_qual.get((concrete_class, method_name)) or f"{impls[0]}.{method_name}"
+            fallback = f"{impls[0]}.{method_name}"
+            new_target = method_to_qual.get((concrete_class, method_name)) or fallback
         else:
-            new_target = method_to_qual.get((interface_bare, method_name)) or f"{interface_qual}.{method_name}"
+            fallback = f"{interface_qual}.{method_name}"
+            new_target = method_to_qual.get((interface_bare, method_name)) or fallback
 
         extra["temporal_resolved"] = True
         extra["temporal_interface"] = interface_bare

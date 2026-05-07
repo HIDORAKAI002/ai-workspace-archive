@@ -35,7 +35,7 @@ class DgApiCodeLocationApi:
         status_or_error = statuses_result.location_statuses_or_error
         match status_or_error.typename__:
             case "WorkspaceLocationStatusEntries":
-                statuses = {e.name: e.load_status for e in status_or_error.entries}
+                statuses = {e.name: e.load_status for e in status_or_error.entries}  # ty: ignore[unresolved-attribute]
             case "PythonError":
                 pass
             case _ as unreachable:
@@ -91,14 +91,14 @@ class DgApiCodeLocationApi:
 
         match result.typename__:
             case "WorkspaceEntry":
-                return DgApiAddCodeLocationResult(location_name=result.location_name)
+                return DgApiAddCodeLocationResult(location_name=result.location_name)  # ty: ignore[unresolved-attribute]
             case "InvalidLocationError":
-                errors = [e for e in result.errors if e is not None]
+                errors = [e for e in result.errors if e is not None]  # ty: ignore[unresolved-attribute]
                 raise DagsterPlusGraphqlError("Invalid code location config:\n" + "\n".join(errors))
             case "UnauthorizedError":
-                raise DagsterPlusUnauthorizedError(f"Error adding code location: {result.message}")
+                raise DagsterPlusUnauthorizedError(f"Error adding code location: {result.message}")  # ty: ignore[unresolved-attribute]
             case "PythonError":
-                raise DagsterPlusGraphqlError(f"Error adding code location: {result.message}")
+                raise DagsterPlusGraphqlError(f"Error adding code location: {result.message}")  # ty: ignore[unresolved-attribute]
             case _ as unreachable:
                 assert_never(unreachable)
 
@@ -107,12 +107,12 @@ class DgApiCodeLocationApi:
 
         match result.typename__:
             case "DeleteLocationSuccess":
-                return DgApiDeleteCodeLocationResult(location_name=result.location_name)
+                return DgApiDeleteCodeLocationResult(location_name=result.location_name)  # ty: ignore[unresolved-attribute]
             case "UnauthorizedError":
                 raise DagsterPlusUnauthorizedError(
-                    f"Error deleting code location: {result.message}"
+                    f"Error deleting code location: {result.message}"  # ty: ignore[unresolved-attribute]
                 )
             case "PythonError":
-                raise DagsterPlusGraphqlError(f"Error deleting code location: {result.message}")
+                raise DagsterPlusGraphqlError(f"Error deleting code location: {result.message}")  # ty: ignore[unresolved-attribute]
             case _ as unreachable:
                 assert_never(unreachable)

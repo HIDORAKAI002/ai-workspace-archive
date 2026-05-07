@@ -20,7 +20,7 @@ from dagster._core.execution.context.asset_check_execution_context import AssetC
 from dagster.components import Component, ComponentLoadContext, Model, Resolvable
 from dagster.components.scaffold.scaffold import scaffold_with
 from pydantic import Field
-from soda.scan import Scan
+from soda.scan import Scan  # ty: ignore[unresolved-import]
 
 from dagster_soda.scaffolder import SodaScanComponentScaffolder
 
@@ -71,7 +71,7 @@ def _parse_check_identifiers_from_yaml(yaml_path: Path, dataset: str) -> list[st
         if isinstance(item, dict):
             for check_def, config in item.items():
                 if isinstance(config, dict) and "name" in config:
-                    identifiers.append(_sanitize_check_name(str(config["name"])))
+                    identifiers.append(_sanitize_check_name(str(config["name"])))  # ty: ignore[invalid-argument-type]
                 else:
                     identifiers.append(_sanitize_check_name(str(check_def)) or f"soda_{i}")
                 break

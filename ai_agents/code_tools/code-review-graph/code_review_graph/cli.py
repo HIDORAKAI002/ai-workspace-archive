@@ -53,7 +53,8 @@ logger = logging.getLogger(__name__)
 # Shared platform choices for install and init commands
 _PLATFORM_CHOICES = [
     "codex", "claude", "claude-code", "cursor", "windsurf", "zed",
-    "continue", "opencode", "antigravity", "gemini-cli", "qwen", "kiro", "qoder", "all",
+    "continue", "opencode", "antigravity", "gemini-cli", "qwen", "kiro", "qoder",
+    "copilot", "copilot-cli", "all",
 ]
 
 
@@ -228,12 +229,12 @@ def _handle_init(args: argparse.Namespace) -> None:
     from .skills import (
         PLATFORMS,
         generate_skills,
-        install_gemini_cli_hooks,
-        install_gemini_cli_skills,
         inject_claude_md,
         inject_platform_instructions,
         install_codex_hooks,
         install_cursor_hooks,
+        install_gemini_cli_hooks,
+        install_gemini_cli_skills,
         install_git_hook,
         install_hooks,
         install_opencode_plugin,
@@ -895,7 +896,8 @@ def main() -> None:
         repo_root = Path(args.repo) if args.repo else find_project_root()
 
     # Handle --data-dir for commands that support it
-    if args.command in ("build", "update", "detect-changes", "status", "watch", "visualize", "wiki"):
+    _data_dir_cmds = ("build", "update", "detect-changes", "status", "watch", "visualize", "wiki")
+    if args.command in _data_dir_cmds:
         _handle_data_dir_option(args, repo_root)
 
     db_path = get_db_path(repo_root)
@@ -983,7 +985,11 @@ def main() -> None:
         elif args.command == "watch":
             from .postprocessing import run_post_processing
 
-            watch(repo_root, store, on_files_updated=run_post_processing)
+            try:
+                watch(repo_root, store, on_files_updated=run_post_processing)
+            except RuntimeError as exc:
+                print(f"Error: {exc}", file=sys.stderr)
+                sys.exit(1)
 
         elif args.command == "visualize":
             from .incremental import get_data_dir

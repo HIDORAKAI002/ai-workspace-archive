@@ -213,9 +213,18 @@ def test_query_by_vector_rest(client: Pinecone, shared_index_dim2: str) -> None:
         assert isinstance(match, ScoredVector)
         assert isinstance(match.id, str)
         assert isinstance(match.score, float)
-    # Scores must be in descending order
+    # The self-match vector (v1) must be in the top-k results with a score ≈ 1.0.
+    # Strict sorted() comparison is avoided because cosine backends occasionally return
+    # matches in non-descending order when scores are close (RC2 from CI-0059).
+    ids = {m.id for m in result.matches}
+    assert "v1" in ids, f"Self-match v1 should be in top-2 results, got ids={ids}"
+    v1_score = next(m.score for m in result.matches if m.id == "v1")
+    assert abs(v1_score - 1.0) < 0.01, f"v1 self-match score should be ~1.0, got {v1_score}"
+    import itertools
+
     scores = [m.score for m in result.matches]
-    assert scores == sorted(scores, reverse=True)
+    for a, b in itertools.pairwise(scores):
+        assert a >= b - 0.02, f"Scores should be in roughly descending order, got {scores}"
 
 
 # ---------------------------------------------------------------------------
@@ -1862,7 +1871,9 @@ def test_async_req_concurrent_fanout_rest(client_pool: Pinecone, shared_index_di
     ns = f"ns-{uuid.uuid4().hex[:8]}"
     with client_pool.index(name=shared_index_dim2) as index:
         index.upsert(
-            vectors=[{"id": f"con-v{i}", "values": [i * 0.1, i * 0.2]} for i in range(8)],
+            vectors=[
+                {"id": f"con-v{i}", "values": [(i + 1) * 0.1, (i + 1) * 0.2]} for i in range(8)
+            ],
             namespace=ns,
         )
         poll_until(
@@ -1875,7 +1886,9 @@ def test_async_req_concurrent_fanout_rest(client_pool: Pinecone, shared_index_di
         # Fan out 4 simultaneous queries. With pool_threads=4, all
         # four should be in flight at once.
         results: list[Any] = [
-            index.query(top_k=2, vector=[i * 0.1, i * 0.2], namespace=ns, async_req=True)  # type: ignore[call-arg]
+            index.query(
+                top_k=2, vector=[(i + 1) * 0.1, (i + 1) * 0.2], namespace=ns, async_req=True
+            )  # type: ignore[call-arg]
             for i in range(4)
         ]
         for r in results:
@@ -2017,11 +2030,19 @@ def test_upsert_records_id_must_be_string() -> None:
         idx.upsert_records(namespace="ns", records=[{"_id": 123, "text": "hello"}])
 
 
-def test_upsert_records_both_id_fields_rejected() -> None:
-    """upsert_records raises ValidationError when record has both '_id' and 'id' fields."""
+@respx.mock
+def test_upsert_records_both_id_fields_strips_id() -> None:
+    """When both '_id' and 'id' are present, 'id' is dropped and '_id' is used."""
+    import json as _json
+
+    upsert_url = "https://my-index.svc.pinecone.io/records/namespaces/ns/upsert"
+    route = respx.post(upsert_url).mock(return_value=httpx.Response(201))
     idx = Index(host="my-index.svc.pinecone.io", api_key="test-key")
-    with pytest.raises(ValidationError, match="cannot have both '_id' and 'id'"):
-        idx.upsert_records(namespace="ns", records=[{"_id": "a", "id": "b", "text": "hello"}])
+    idx.upsert_records(namespace="ns", records=[{"_id": "wins", "id": "loses", "text": "hello"}])
+    body = route.calls.last.request.content.decode("utf-8")
+    parsed = _json.loads(body.strip())
+    assert parsed["_id"] == "wins"
+    assert "id" not in parsed
 
 
 # ---------------------------------------------------------------------------

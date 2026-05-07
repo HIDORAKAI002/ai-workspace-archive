@@ -6,6 +6,7 @@ from buildkite_shared.step_builders.command_step_builder import (
     BuildkiteQueue,
     CommandStepBuilder,
     CommandStepConfiguration,
+    ResourceRequests,
 )
 from buildkite_shared.step_builders.group_step_builder import (
     GroupLeafStepConfiguration,
@@ -166,8 +167,9 @@ def build_repo_wide_pyright_steps(ctx: BuildkiteContext) -> list[StepConfigurati
                     f"just -f {oss_path('justfile')} pyright",
                 )
                 .skip(get_general_python_step_skip_reason(ctx, other_paths=["pyright"]))
-                # Run on a larger instance
-                .on_queue(BuildkiteQueue.DOCKER)
+                .on_queue(BuildkiteQueue.KUBERNETES_EKS)
+                .no_docker()
+                .resources(ResourceRequests(cpu="2000m", memory="8Gi", ephemeral_storage="15Gi"))
                 .build(),
                 CommandStepBuilder("pyright-rebuild-pyright-pins", [":pyright:"])
                 .on_test_image()
@@ -185,8 +187,9 @@ def build_repo_wide_pyright_steps(ctx: BuildkiteContext) -> list[StepConfigurati
                     f"just -f {oss_path('justfile')} rebuild_pyright_pins",
                 )
                 .skip(_get_pyright_pin_step_skip_reason(ctx))
-                # Run on a larger instance
-                .on_queue(BuildkiteQueue.DOCKER)
+                .on_queue(BuildkiteQueue.KUBERNETES_EKS)
+                .no_docker()
+                .resources(ResourceRequests(cpu="2000m", memory="8Gi", ephemeral_storage="15Gi"))
                 .build(),
                 CommandStepBuilder("ty", [":ty:"])
                 .on_test_image()
@@ -195,8 +198,9 @@ def build_repo_wide_pyright_steps(ctx: BuildkiteContext) -> list[StepConfigurati
                     f"just -f {oss_path('justfile')} ty",
                 )
                 .skip(get_general_python_step_skip_reason(ctx, other_paths=["pyright"]))
-                # Run on a larger instance
-                .on_queue(BuildkiteQueue.DOCKER)
+                .on_queue(BuildkiteQueue.KUBERNETES_EKS)
+                .no_docker()
+                .resources(ResourceRequests(cpu="2000m", memory="8Gi", ephemeral_storage="15Gi"))
                 .build(),
             ],
         ).build()
