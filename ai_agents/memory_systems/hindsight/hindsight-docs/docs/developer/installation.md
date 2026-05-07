@@ -29,6 +29,7 @@ Hindsight requires PostgreSQL 14+ with a vector extension for similarity search.
 - **pgvector** (default)
 - **pgvectorscale**
 - **vchord**
+- **scann** (AlloyDB)
 
 Configure which one to use with `HINDSIGHT_API_VECTOR_EXTENSION`. See [Configuration](./configuration) for details.
 
@@ -38,6 +39,7 @@ Configure which one to use with `HINDSIGHT_API_VECTOR_EXTENSION`. See [Configura
 - **Supabase** — Managed PostgreSQL with pgvector built-in
 - **Neon** — Serverless PostgreSQL with pgvector
 - **Azure Database for PostgreSQL** — With pgvector and pgvectorscale support
+- **Google AlloyDB** / **AlloyDB Omni** — With pgvector and ScaNN support
 - **AWS RDS** / **Cloud SQL** — With pgvector extension enabled
 - **Self-hosted** — PostgreSQL 14+ with your preferred vector extension
 
@@ -83,6 +85,8 @@ docker run --rm -it --pull always -p 8888:8888 -p 9999:9999 \
 - **API Server**: http://localhost:8888
 - **Control Plane** (Web UI): http://localhost:9999
 
+All published images are [signed with Cosign](#verifying-image-signatures) — verification is optional.
+
 ### Docker Image Variants
 
 | Variant | Size (AMD64) | Size (ARM64) | When to use |
@@ -91,6 +95,12 @@ docker run --rm -it --pull always -p 8888:8888 -p 9999:9999 \
 | **Slim** (`slim`) | ~500 MB | ~500 MB | Use when you already rely on external services for embeddings and reranking (OpenAI, Cohere, TEI). Significantly smaller image, faster deploys. Requires [external providers](./configuration#embeddings). |
 
 The slim image corresponds to the [`hindsight-api-slim`](#bare-metal-pip) pip package. See [Configuration](./configuration#embeddings) for external provider options.
+
+### Bundling Custom Models in a Custom Image
+
+:::tip Production deployments with non-default local models
+If you use a non-default local embedder or reranker, bake the models into a custom image at build time rather than enabling the Helm `modelCache` PVC. See [`docker/docker-compose/custom-models/`](https://github.com/vectorize-io/hindsight/tree/main/docker/docker-compose/custom-models) for a runnable example.
+:::
 
 ### Available Tags
 
@@ -107,6 +117,16 @@ ghcr.io/vectorize-io/hindsight-api:latest-slim
 
 # Control Plane only
 ghcr.io/vectorize-io/hindsight-control-plane:latest
+```
+
+### Verifying image signatures
+
+Images are signed with [Cosign](https://docs.sigstore.dev/cosign/signing/overview/) keyless OIDC. To verify any tag:
+
+```bash
+cosign verify ghcr.io/vectorize-io/hindsight:<tag> \
+  --certificate-identity-regexp '^https://github\.com/vectorize-io/hindsight/\.github/workflows/(sign-images|release)\.yml@.*' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com
 ```
 
 ---

@@ -1234,6 +1234,28 @@ describe("getPluginConfig — retainQueue whitelist (#1443)", () => {
   });
 });
 
+describe("getPluginConfig — enableKnowledgeTools whitelist", () => {
+  // Regression: the field was declared on PluginConfig and read at the
+  // tool-registration site, but never copied through getPluginConfig, so the
+  // runtime value was always undefined and the agent_knowledge_* tools never
+  // registered (live since the feature was first added on Apr 29 2026).
+  it("passes enableKnowledgeTools=true through when set", () => {
+    const cfg = getPluginConfig(makeApi({ enableKnowledgeTools: true }));
+    expect(cfg.enableKnowledgeTools).toBe(true);
+  });
+
+  it("defaults to false when not set or set to a non-boolean truthy value", () => {
+    expect(getPluginConfig(makeApi({})).enableKnowledgeTools).toBe(false);
+    expect(getPluginConfig(makeApi({ enableKnowledgeTools: false })).enableKnowledgeTools).toBe(
+      false
+    );
+    expect(getPluginConfig(makeApi({ enableKnowledgeTools: "true" })).enableKnowledgeTools).toBe(
+      false
+    );
+    expect(getPluginConfig(makeApi({ enableKnowledgeTools: 1 })).enableKnowledgeTools).toBe(false);
+  });
+});
+
 describe("formatHookPerf (#1406)", () => {
   it("emits the hook name, total ms, and field key=value pairs", () => {
     const line = formatHookPerf("before_prompt_build", 4200, {
