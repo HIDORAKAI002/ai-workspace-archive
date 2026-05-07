@@ -96,6 +96,14 @@ PLATFORMS: dict[str, dict[str, Any]] = {
         "format": "object",
         "needs_type": False,
     },
+    "gemini-cli": {
+        "name": "Gemini CLI",
+        "config_path": lambda root: root / ".gemini" / "settings.json",
+        "key": "mcpServers",
+        "detect": lambda: bool(shutil.which("gemini")) or (Path.home() / ".gemini").exists(),
+        "format": "object",
+        "needs_type": False,
+    },
     "qwen": {
         "name": "Qwen Code",
         "config_path": lambda root: Path.home() / ".qwen" / "settings.json",
@@ -549,6 +557,48 @@ def generate_hooks_config(repo_root: Path) -> dict[str, Any]:
     }
 
 
+def generate_codex_hooks_config(repo_root: Path) -> dict[str, Any]:
+    """Generate native Codex hooks configuration for ~/.codex/hooks.json."""
+    return {
+        "hooks": {
+            "PostToolUse": [
+                {
+                    "matcher": "Write|Edit|Bash",
+                    "hooks": [
+                        {
+                            "type": "command",
+                            "command": (
+                                "git rev-parse --git-dir >/dev/null 2>&1"
+                                " && code-review-graph update --skip-flows"
+                                " || true"
+                            ),
+                            "timeout": 30,
+                            "statusMessage": "Updating code-review-graph",
+                        },
+                    ],
+                },
+            ],
+            "SessionStart": [
+                {
+                    "matcher": "startup|resume",
+                    "hooks": [
+                        {
+                            "type": "command",
+                            "command": (
+                                "git rev-parse --git-dir >/dev/null 2>&1"
+                                " && code-review-graph status"
+                                " || echo 'Not a git repo, skipping'"
+                            ),
+                            "timeout": 10,
+                            "statusMessage": "Checking code-review-graph status",
+                        },
+                    ],
+                },
+            ],
+        }
+    }
+
+
 def install_git_hook(repo_root: Path) -> Path | None:
     """Install a git pre-commit hook that prints a risk summary before each commit.
 
@@ -639,6 +689,62 @@ def install_hooks(repo_root: Path, platform: str = "claude") -> None:
     logger.info("Wrote hooks config: %s", settings_path)
 
 
+def install_codex_hooks(repo_root: Path) -> Path:
+    """Write native Codex hooks config to ~/.codex/hooks.json.
+
+    Merges code-review-graph hook entries into any existing hooks.json,
+    preserving user-defined hook entries and other top-level settings.
+    A backup of the original file is created before modifications.
+    """
+    codex_dir = Path.home() / ".codex"
+    codex_dir.mkdir(parents=True, exist_ok=True)
+    hooks_path = codex_dir / "hooks.json"
+
+    existing: dict[str, Any] = {}
+    if hooks_path.exists():
+        try:
+            existing = json.loads(hooks_path.read_text(encoding="utf-8", errors="replace"))
+            backup_path = codex_dir / "hooks.json.bak"
+            shutil.copy2(hooks_path, backup_path)
+            logger.info("Backed up existing Codex hooks to %s", backup_path)
+        except (json.JSONDecodeError, OSError) as exc:
+            logger.warning("Could not read existing %s: %s", hooks_path, exc)
+
+    hooks_config = generate_codex_hooks_config(repo_root)
+    existing_hooks = existing.get("hooks", {})
+    if not isinstance(existing_hooks, dict):
+        logger.warning("Existing Codex hooks config is not a dict; replacing with defaults")
+        existing_hooks = {}
+
+    merged_hooks = dict(existing_hooks)
+    for hook_name, hook_entries in hooks_config.get("hooks", {}).items():
+        if isinstance(merged_hooks.get(hook_name), list):
+            merged_list = list(merged_hooks[hook_name])
+            existing_commands = {
+                hook.get("command", "")
+                for entry in merged_list
+                if isinstance(entry, dict)
+                for hook in entry.get("hooks", [])
+                if isinstance(hook, dict)
+            }
+            for entry in hook_entries:
+                entry_commands = [
+                    hook.get("command", "")
+                    for hook in entry.get("hooks", [])
+                    if isinstance(hook, dict)
+                ]
+                if not any(command in existing_commands for command in entry_commands):
+                    merged_list.append(entry)
+            merged_hooks[hook_name] = merged_list
+        else:
+            merged_hooks[hook_name] = hook_entries
+
+    existing["hooks"] = merged_hooks
+    hooks_path.write_text(json.dumps(existing, indent=2) + "\n", encoding="utf-8")
+    logger.info("Wrote Codex hooks config: %s", hooks_path)
+    return hooks_path
+
+
 _CLAUDE_MD_SECTION_MARKER = "<!-- code-review-graph MCP tools -->"
 
 _CLAUDE_MD_SECTION = f"""{_CLAUDE_MD_SECTION_MARKER}
@@ -720,12 +826,162 @@ def inject_claude_md(repo_root: Path) -> None:
 # whose owner set includes the target (or "all") are written.
 _PLATFORM_INSTRUCTION_FILES: dict[str, tuple[str, ...]] = {
     "AGENTS.md": ("cursor", "opencode", "antigravity"),
-    "GEMINI.md": ("antigravity",),
+    "GEMINI.md": ("antigravity", "gemini-cli"),
     ".cursorrules": ("cursor",),
     ".windsurfrules": ("windsurf",),
     "QODER.md": ("qoder",),
     ".kiro/steering/code-review-graph.md": ("kiro",),
 }
+
+
+# --- Gemini CLI hooks + skills (workspace-level: .gemini/) ---
+
+
+def install_gemini_cli_hooks(repo_root: Path) -> Path:
+    """Install Gemini CLI hooks in .gemini/settings.json and write hook scripts.
+
+    Hooks schema reference:
+    - https://geminicli.com/docs/hooks/reference/
+
+    This is workspace-scoped (project) configuration: .gemini/settings.json
+    """
+    settings_dir = repo_root / ".gemini"
+    settings_dir.mkdir(parents=True, exist_ok=True)
+    settings_path = settings_dir / "settings.json"
+
+    existing: dict[str, Any] = {}
+    if settings_path.exists():
+        try:
+            existing = json.loads(settings_path.read_text(encoding="utf-8", errors="replace"))
+            backup_path = settings_dir / "settings.json.bak"
+            shutil.copy2(settings_path, backup_path)
+            logger.info("Backed up existing Gemini CLI settings to %s", backup_path)
+        except (json.JSONDecodeError, OSError) as exc:
+            logger.warning("Could not read existing %s: %s", settings_path, exc)
+
+    hooks_dir = settings_dir / "hooks"
+    hooks_dir.mkdir(parents=True, exist_ok=True)
+
+    repo_arg = repo_root.resolve().as_posix()
+    session_start_script = """\
+#!/usr/bin/env bash
+# code-review-graph: session start status (Gemini CLI hook)
+# Must output ONLY JSON on stdout. Logs go to stderr. Never blocks the session.
+set -euo pipefail
+
+cat > /dev/null || true
+
+msg="$(code-review-graph status --repo "__CRG_REPO__" 2>&1 | head -n 1 || true)"
+
+CRG_MSG="$msg" python3 -c 'import json, os; print(json.dumps({"systemMessage": os.environ.get("CRG_MSG",""), "suppressOutput": True}))' 2>/dev/null || echo '{"suppressOutput": true}'
+exit 0
+"""
+    session_start_script = session_start_script.replace("__CRG_REPO__", repo_arg)
+
+    update_script = """\
+#!/usr/bin/env bash
+# code-review-graph: incremental update after write/replace (Gemini CLI hook)
+# Must output ONLY JSON on stdout. Low-noise: no systemMessage.
+set -euo pipefail
+
+cat > /dev/null || true
+
+code-review-graph update --skip-flows --repo "__CRG_REPO__" >/dev/null 2>&1 || true
+echo '{"suppressOutput": true}'
+exit 0
+"""
+    update_script = update_script.replace("__CRG_REPO__", repo_arg)
+
+    session_start_path = hooks_dir / "crg-session-start.sh"
+    session_start_path.write_text(session_start_script, encoding="utf-8")
+    session_start_path.chmod(0o755)
+
+    update_path = hooks_dir / "crg-update.sh"
+    update_path.write_text(update_script, encoding="utf-8")
+    update_path.chmod(0o755)
+
+    hooks_obj = existing.get("hooks", {})
+    if not isinstance(hooks_obj, dict):
+        hooks_obj = {}
+
+    def _ensure_group(event_name: str, matcher: str, hook_command: str, name: str, timeout: int) -> None:
+        arr = hooks_obj.get(event_name, [])
+        if not isinstance(arr, list):
+            arr = []
+
+        # De-duplicate by command (and type) inside nested hooks list.
+        def _group_has_command(group: Any) -> bool:
+            if not isinstance(group, dict):
+                return False
+            nested = group.get("hooks", [])
+            if not isinstance(nested, list):
+                return False
+            for h in nested:
+                if isinstance(h, dict) and h.get("type") == "command" and h.get("command") == hook_command:
+                    return True
+            return False
+
+        if any(_group_has_command(g) for g in arr):
+            hooks_obj[event_name] = arr
+            return
+
+        arr.append(
+            {
+                "matcher": matcher,
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": hook_command,
+                        "name": name,
+                        "timeout": timeout,
+                    }
+                ],
+            }
+        )
+        hooks_obj[event_name] = arr
+
+    _ensure_group(
+        event_name="SessionStart",
+        matcher="",
+        hook_command="bash .gemini/hooks/crg-session-start.sh",
+        name="code-review-graph status",
+        timeout=10_000,
+    )
+    _ensure_group(
+        event_name="AfterTool",
+        matcher="write_file|replace",
+        hook_command="bash .gemini/hooks/crg-update.sh",
+        name="code-review-graph update",
+        timeout=30_000,
+    )
+
+    existing["hooks"] = hooks_obj
+    settings_path.write_text(json.dumps(existing, indent=2) + "\n", encoding="utf-8")
+    logger.info("Wrote Gemini CLI hooks config: %s", settings_path)
+    return settings_path
+
+
+def install_gemini_cli_skills(repo_root: Path) -> Path:
+    """Install Gemini CLI Agent Skills in .gemini/skills/<skill>/SKILL.md."""
+    skills_root = repo_root / ".gemini" / "skills"
+    skills_root.mkdir(parents=True, exist_ok=True)
+
+    for filename, skill in _SKILLS.items():
+        slug = filename.rsplit(".", 1)[0]
+        skill_dir = skills_root / slug
+        skill_dir.mkdir(parents=True, exist_ok=True)
+        skill_path = skill_dir / "SKILL.md"
+        content = (
+            "---\n"
+            f"name: {slug}\n"
+            f"description: {skill['description']}\n"
+            "---\n\n"
+            f"{skill['body']}\n"
+        )
+        skill_path.write_text(content, encoding="utf-8")
+        logger.info("Wrote Gemini CLI skill: %s", skill_path)
+
+    return skills_root
 
 
 def inject_platform_instructions(repo_root: Path, target: str = "all") -> list[str]:
