@@ -976,6 +976,8 @@ class ExtractResponse(BaseModel):
     data: Optional[Any] = None
     error: Optional[str] = None
     warning: Optional[str] = None
+    warnings: Optional[List[str]] = None
+    replacement: Optional[str] = None
     sources: Optional[Dict[str, Any]] = None
     expires_at: Optional[datetime] = None
     credits_used: Optional[int] = None
