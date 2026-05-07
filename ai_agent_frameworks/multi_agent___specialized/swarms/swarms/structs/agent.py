@@ -4061,20 +4061,25 @@ Subtask Breakdown:
 
             # First non-thinking chunk — flush accumulated thinking
             if thinking_parts and not thinking_displayed:
-                title = (
-                    f"{self.agent_name} | Thinking"
-                    if self.agent_name
-                    else "Thinking"
-                )
-                formatter.print_thinking_panel(
-                    "".join(thinking_parts), title=title
-                )
+                if self.print_on:
+                    title = (
+                        f"{self.agent_name} | Thinking"
+                        if self.agent_name
+                        else "Thinking"
+                    )
+                    formatter.print_thinking_panel(
+                        "".join(thinking_parts), title=title
+                    )
                 thinking_displayed = True
 
             yield chunk
 
         # Edge case: stream ended with only thinking and no content chunks
-        if thinking_parts and not thinking_displayed:
+        if (
+            thinking_parts
+            and not thinking_displayed
+            and self.print_on
+        ):
             title = (
                 f"{self.agent_name} | Thinking"
                 if self.agent_name

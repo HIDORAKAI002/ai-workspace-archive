@@ -137,6 +137,11 @@ class WorkerPoller:
         self._slot_reservations: dict[str, int] = (
             slot_reservations if slot_reservations is not None else {"consolidation": 2}
         )
+        # Cache of which optional PG routines are installed on the server
+        # (probed once, memoised for the life of the poller).
+        from ..engine.db.optional_routines import OptionalRoutines
+
+        self._optional_routines = OptionalRoutines(self._backend)
         self._shutdown = asyncio.Event()
         self._current_tasks: set[asyncio.Task] = set()
         self._in_flight_count = 0
@@ -162,46 +167,22 @@ class WorkerPoller:
     async def _scan_active_schemas(self, schemas: list[str | None]) -> set[str | None]:
         """Find which schemas have pending work.
 
-        Tries a server-side PL/pgSQL function first (single DB round-trip,
-        ~200ms for 1400+ schemas). Falls back to per-schema Python EXISTS
-        queries if the function is not installed (~4ms each).
+        Prefers a server-side PL/pgSQL routine (single DB round-trip,
+        ~200ms for 1400+ schemas) when ``public.schemas_with_pending_work()``
+        is installed. The presence check goes through
+        ``OptionalRoutines.is_installed`` which probes ``pg_proc`` once and
+        caches the result, so we don't generate a server-side error on
+        every poll cycle when the routine isn't installed.
 
-        The server-side function should be installed in the ``public``
-        schema as::
-
-            CREATE OR REPLACE FUNCTION public.schemas_with_pending_work()
-            RETURNS SETOF text AS $$
-            DECLARE
-              r RECORD; has_work BOOLEAN;
-            BEGIN
-              FOR r IN SELECT nspname FROM pg_namespace
-                       WHERE nspname LIKE 'tenant_%' LOOP
-                BEGIN
-                  EXECUTE format(
-                    'SELECT EXISTS(SELECT 1 FROM %I.async_operations '
-                    'WHERE status = ''pending'' '
-                    'AND task_payload IS NOT NULL LIMIT 1)',
-                    r.nspname) INTO has_work;
-                  IF has_work THEN RETURN NEXT r.nspname; END IF;
-                EXCEPTION WHEN OTHERS THEN NULL;
-                END;
-              END LOOP;
-            END $$ LANGUAGE plpgsql STABLE;
-
-        In hindsight-cloud deployments this is installed by a Helm hook
-        job alongside ``total_pending_tasks()``.
+        Falls back to per-schema Python EXISTS queries (~4ms each) on
+        non-PostgreSQL backends or when the routine isn't installed. See
+        ``hindsight_api.engine.db.optional_routines`` for the canonical
+        install SQL.
         """
         async with self._backend.acquire() as conn:
-            # The schemas_with_pending_work() PL/pgSQL function is a
-            # PostgreSQL-specific optimisation installed by Helm hooks in
-            # hindsight-cloud. Skip on non-PG backends to avoid constant
-            # ORA-00904 / syntax errors on every poll cycle.
-            if self._backend.backend_type == "postgresql":
-                try:
-                    rows = await conn.fetch("SELECT * FROM schemas_with_pending_work()")
-                    return {r[0] for r in rows}
-                except Exception:
-                    pass
+            if await self._optional_routines.is_installed(conn, "schemas_with_pending_work"):
+                rows = await conn.fetch("SELECT * FROM public.schemas_with_pending_work()")
+                return {r[0] for r in rows}
 
             # Fallback: per-schema EXISTS checks from Python
             active: set[str | None] = set()
@@ -959,15 +940,30 @@ class WorkerPoller:
             if len(processing_info) > 10:
                 processing_str += f" +{len(processing_info) - 10} more"
 
-            # Get global stats from DB
+            # Get global stats from DB — scope the heavy COUNT/GROUP BY
+            # queries to schemas that actually have work. With N tenants the
+            # full fanout is 2*N queries every PROGRESS_LOG_INTERVAL; scoping
+            # via the routine (or per-schema EXISTS fallback) reduces this to
+            # 2*active_schemas which is typically << N.
             schemas = await self._get_schemas()
+            total_schema_count = len(schemas)
+
+            # Schemas with pending async_operations (uses server-side
+            # routine when installed, falls back to per-schema EXISTS).
+            schemas_with_pending = await self._scan_active_schemas(schemas)
+
+            # Also include schemas that have in-flight tasks on this worker
+            # so the "processing" worker_id GROUP BY still reports correctly.
+            schemas_with_active_tasks = {info.schema for info in active_tasks.values()}
+            schemas_to_query = schemas_with_pending | schemas_with_active_tasks
+
             global_pending = 0
             all_worker_counts: dict[str, int] = {}
             # operation_type -> aggregated bucket counts across schemas
             pending_breakdown: dict[str, dict[str, int]] = {}
 
             async with self._backend.acquire() as conn:
-                for schema in schemas:
+                for schema in schemas_to_query:
                     table = fq_table("async_operations", schema)
 
                     # Bucket pending rows by the same predicates the claim query
@@ -976,20 +972,24 @@ class WorkerPoller:
                     # retry backoff, etc.).
                     # Use SUM(CASE WHEN ...) instead of COUNT(*) FILTER (WHERE ...)
                     # for Oracle compatibility — FILTER is PG-specific.
-                    breakdown_rows = await conn.fetch(
-                        f"""
-                        SELECT
-                            operation_type,
-                            COUNT(*) AS total,
-                            SUM(CASE WHEN task_payload IS NULL THEN 1 ELSE 0 END) AS payload_null,
-                            SUM(CASE WHEN next_retry_at IS NOT NULL AND next_retry_at > now()
-                                THEN 1 ELSE 0 END) AS retry_blocked,
-                            SUM(CASE WHEN worker_id IS NOT NULL THEN 1 ELSE 0 END) AS assigned
-                        FROM {table}
-                        WHERE status = 'pending'
-                        GROUP BY operation_type
-                        """
-                    )
+                    try:
+                        breakdown_rows = await conn.fetch(
+                            f"""
+                            SELECT
+                                operation_type,
+                                COUNT(*) AS total,
+                                SUM(CASE WHEN task_payload IS NULL THEN 1 ELSE 0 END) AS payload_null,
+                                SUM(CASE WHEN next_retry_at IS NOT NULL AND next_retry_at > now()
+                                    THEN 1 ELSE 0 END) AS retry_blocked,
+                                SUM(CASE WHEN worker_id IS NOT NULL THEN 1 ELSE 0 END) AS assigned
+                            FROM {table}
+                            WHERE status = 'pending'
+                            GROUP BY operation_type
+                            """
+                        )
+                    except Exception:
+                        # Schema may be partially provisioned (table missing).
+                        breakdown_rows = []
                     for br in breakdown_rows:
                         op_type = br["operation_type"] or "unknown"
                         bucket = pending_breakdown.setdefault(
@@ -1001,14 +1001,17 @@ class WorkerPoller:
                         bucket["assigned"] += br["assigned"]
                         global_pending += br["total"]
 
-                    worker_rows = await conn.fetch(
-                        f"""
-                        SELECT worker_id, COUNT(*) as count
-                        FROM {table}
-                        WHERE status = 'processing'
-                        GROUP BY worker_id
-                        """
-                    )
+                    try:
+                        worker_rows = await conn.fetch(
+                            f"""
+                            SELECT worker_id, COUNT(*) as count
+                            FROM {table}
+                            WHERE status = 'processing'
+                            GROUP BY worker_id
+                            """
+                        )
+                    except Exception:
+                        worker_rows = []
                     for wr in worker_rows:
                         wid = wr["worker_id"] or "unknown"
                         all_worker_counts[wid] = all_worker_counts.get(wid, 0) + wr["count"]
@@ -1024,14 +1027,19 @@ class WorkerPoller:
             pool_str = self._format_pool_stats()
             proc_str = self._format_proc_stats()
 
-            # Display None as "default" in logs
-            schemas_str = ", ".join(s if s else "default" for s in schemas)
+            queried_count = len(schemas_to_query)
+            # Display queried schemas (cap at 20 for readability)
+            queried_list = sorted(s if s else "default" for s in schemas_to_query)
+            schemas_str = ", ".join(queried_list[:20])
+            if len(queried_list) > 20:
+                schemas_str += f" +{len(queried_list) - 20} more"
             logger.info(
                 f"[WORKER_STATS] worker={self._worker_id} "
                 f"slots={in_flight}/{self._max_slots} | "
                 f"reserved: [{reserved_str}] | "
                 f"shared={tasks_in_shared}/{shared_pool_size}(avail={shared_available}) | "
-                f"global: pending={global_pending} (schemas: {schemas_str}) | "
+                f"global: pending={global_pending} "
+                f"(queried={queried_count}/{total_schema_count} schemas: {schemas_str}) | "
                 f"others: {others_str} | "
                 f"pool: {pool_str} | "
                 f"proc: {proc_str} | "

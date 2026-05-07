@@ -10,6 +10,17 @@
       ]
     }
   },
+  "contracts": {
+    "tools": [
+      "agent_knowledge_list_pages",
+      "agent_knowledge_get_page",
+      "agent_knowledge_create_page",
+      "agent_knowledge_update_page",
+      "agent_knowledge_delete_page",
+      "agent_knowledge_recall",
+      "agent_knowledge_ingest"
+    ]
+  },
   "configSchema": {
     "type": "object",
     "properties": {
