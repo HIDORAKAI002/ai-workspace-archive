@@ -1,9 +1,7 @@
-import type { Tag } from '@/app/components/base/tag-management/constant'
+import type { Tag } from '@/contract/console/tags'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { act } from 'react'
-import TagSelector from '../selector'
-import { useStore as useTagStore } from '../store'
+import { TagSelector } from '../components/tag-selector'
 
 const { mockToast } = vi.hoisted(() => {
   const mockToast = Object.assign(vi.fn(), {
@@ -22,19 +20,50 @@ vi.mock('@langgenius/dify-ui/toast', () => ({
   toast: mockToast,
 }))
 
-// Hoisted mocks
-const { fetchTagList, createTag, bindTag, unBindTag } = vi.hoisted(() => ({
-  fetchTagList: vi.fn(),
+const { mockUseQueryData, createTag, bindTag, unBindTag } = vi.hoisted(() => ({
+  mockUseQueryData: { current: [] as Tag[] },
   createTag: vi.fn(),
   bindTag: vi.fn(),
   unBindTag: vi.fn(),
 }))
 
-vi.mock('@/service/tag', () => ({
-  fetchTagList,
-  createTag,
-  bindTag,
-  unBindTag,
+vi.mock('@tanstack/react-query', () => ({
+  useQuery: () => ({ data: mockUseQueryData.current }),
+}))
+
+vi.mock('../hooks/use-tag-mutations', () => ({
+  useCreateTagMutation: () => ({
+    isPending: false,
+    mutate: ({ body }: { body: { name: string, type: 'app' | 'knowledge' } }, options?: { onSuccess?: (tag: Tag) => void, onError?: () => void }) => {
+      try {
+        const tag = { id: 'new-tag', name: body.name, type: body.type, binding_count: 0 } as Tag
+        createTag(body.name, body.type)
+        options?.onSuccess?.(tag)
+      }
+      catch {
+        options?.onError?.()
+      }
+    },
+  }),
+  useApplyTagBindingsMutation: () => ({
+    mutate: (
+      { currentTagIds, nextTagIds, targetId, type }: { currentTagIds: string[], nextTagIds: string[], targetId: string, type: 'app' | 'knowledge' },
+      options?: { onSuccess?: () => void, onError?: () => void, onSettled?: () => void },
+    ) => {
+      const addTagIds = nextTagIds.filter(tagId => !currentTagIds.includes(tagId))
+      const removeTagIds = currentTagIds.filter(tagId => !nextTagIds.includes(tagId))
+      const operations: Promise<unknown>[] = []
+
+      if (addTagIds.length)
+        operations.push(Promise.resolve(bindTag(addTagIds, targetId, type)))
+      operations.push(...removeTagIds.map(tagId => Promise.resolve(unBindTag(tagId, targetId, type))))
+
+      Promise.all(operations)
+        .then(() => options?.onSuccess?.())
+        .catch(() => options?.onError?.())
+        .finally(() => options?.onSettled?.())
+    },
+  }),
 }))
 
 // i18n keys rendered in "ns.key" format
@@ -43,6 +72,8 @@ const i18n = {
   selectorPlaceholder: 'common.tag.selectorPlaceholder',
   manageTags: 'common.tag.manageTags',
   noTag: 'common.tag.noTag',
+  modifiedSuccessfully: 'common.actionMsg.modifiedSuccessfully',
+  modifiedUnsuccessfully: 'common.actionMsg.modifiedUnsuccessfully',
 }
 
 const appTags: Tag[] = [
@@ -51,12 +82,10 @@ const appTags: Tag[] = [
 ]
 
 const defaultProps = {
-  targetID: 'target-1',
+  targetId: 'target-1',
   type: 'app' as const,
-  value: ['tag-1'!],
+  selectedTagIds: ['tag-1'!],
   selectedTags: [appTags[0]!],
-  onCacheUpdate: vi.fn(),
-  onChange: vi.fn(),
 }
 
 describe('TagSelector', () => {
@@ -68,13 +97,10 @@ describe('TagSelector', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.mocked(fetchTagList).mockResolvedValue(appTags)
+    mockUseQueryData.current = appTags
     vi.mocked(createTag).mockResolvedValue({ id: 'new-tag', name: 'NewTag', type: 'app', binding_count: 0 })
     vi.mocked(bindTag).mockResolvedValue(undefined)
     vi.mocked(unBindTag).mockResolvedValue(undefined)
-    act(() => {
-      useTagStore.setState({ tagList: appTags, showTagManagementModal: false })
-    })
   })
 
   describe('Rendering', () => {
@@ -84,7 +110,7 @@ describe('TagSelector', () => {
     })
 
     it('should render TagSelector add-tag placeholder when defaultProps are overridden with empty selectedTags and value', () => {
-      render(<TagSelector {...defaultProps} selectedTags={[]} value={[]} />)
+      render(<TagSelector {...defaultProps} selectedTags={[]} selectedTagIds={[]} />)
       expect(screen.getByText(i18n.addTag))!.toBeInTheDocument()
     })
 
@@ -115,7 +141,7 @@ describe('TagSelector', () => {
         <TagSelector
           {...defaultProps}
           selectedTags={[appTags[0]!, unknownTag]}
-          value={['tag-1', 'unknown']}
+          selectedTagIds={['tag-1', 'unknown']}
         />,
       )
       // 'Frontend' is in tagList, 'Unknown' is not
@@ -129,7 +155,7 @@ describe('TagSelector', () => {
         <TagSelector
           {...defaultProps}
           selectedTags={appTags}
-          value={['tag-1', 'tag-2']}
+          selectedTagIds={['tag-1', 'tag-2']}
         />,
       )
       expect(screen.getByText('Frontend'))!.toBeInTheDocument()
@@ -164,10 +190,8 @@ describe('TagSelector', () => {
 
     it('should show the no-tag message when tag list is empty', async () => {
       const user = userEvent.setup()
-      act(() => {
-        useTagStore.setState({ tagList: [] })
-      })
-      render(<TagSelector {...defaultProps} selectedTags={[]} value={[]} />)
+      mockUseQueryData.current = []
+      render(<TagSelector {...defaultProps} selectedTags={[]} selectedTagIds={[]} />)
 
       await user.click(screen.getByRole('button'))
 
@@ -176,7 +200,7 @@ describe('TagSelector', () => {
       })
     })
 
-    it('should bind a newly selected tag and update cache when closing the panel', async () => {
+    it('should bind a newly selected tag when closing the panel', async () => {
       const user = userEvent.setup()
       render(<TagSelector {...defaultProps} />)
 
@@ -192,12 +216,28 @@ describe('TagSelector', () => {
       await waitFor(() => {
         expect(bindTag).toHaveBeenCalledTimes(1)
         expect(bindTag).toHaveBeenCalledWith(['tag-2'], 'target-1', 'app')
-        expect(defaultProps.onCacheUpdate).toHaveBeenCalledTimes(1)
-        expect(defaultProps.onCacheUpdate).toHaveBeenCalledWith(appTags)
       })
     })
 
-    it('should unbind a deselected tag and update cache when closing the panel', async () => {
+    it('should show one success toast when tag bindings are applied on close', async () => {
+      const user = userEvent.setup()
+      render(<TagSelector {...defaultProps} />)
+
+      const triggerButton = screen.getByRole('button', { name: /Frontend/i })
+      await user.click(triggerButton)
+
+      await screen.findByPlaceholderText(i18n.selectorPlaceholder)
+      await user.click(getPanelTagRow('Backend'))
+      await user.click(triggerButton)
+
+      await waitFor(() => {
+        expect(mockToast.success).toHaveBeenCalledWith(i18n.modifiedSuccessfully, {
+          id: 'tag-bindings-app-target-1',
+        })
+      })
+    })
+
+    it('should unbind a deselected tag when closing the panel', async () => {
       const user = userEvent.setup()
       render(<TagSelector {...defaultProps} />)
 
@@ -213,21 +253,85 @@ describe('TagSelector', () => {
       await waitFor(() => {
         expect(unBindTag).toHaveBeenCalledTimes(1)
         expect(unBindTag).toHaveBeenCalledWith('tag-1', 'target-1', 'app')
-        expect(defaultProps.onCacheUpdate).toHaveBeenCalledTimes(1)
-        expect(defaultProps.onCacheUpdate).toHaveBeenCalledWith([])
+      })
+    })
+
+    it('should show one error toast when applying tag bindings fails on close', async () => {
+      const user = userEvent.setup()
+      vi.mocked(unBindTag).mockRejectedValueOnce(new Error('Unbind failed'))
+      render(<TagSelector {...defaultProps} />)
+
+      const triggerButton = screen.getByRole('button', { name: /Frontend/i })
+      await user.click(triggerButton)
+
+      await screen.findByPlaceholderText(i18n.selectorPlaceholder)
+      await user.click(getPanelTagRow('Frontend'))
+      await user.click(triggerButton)
+
+      await waitFor(() => {
+        expect(mockToast.error).toHaveBeenCalledWith(i18n.modifiedUnsuccessfully, {
+          id: 'tag-bindings-app-target-1',
+        })
+      })
+    })
+
+    it('should not apply bindings when the selection is unchanged on close', async () => {
+      const user = userEvent.setup()
+      const onTagsChange = vi.fn()
+      render(<TagSelector {...defaultProps} onTagsChange={onTagsChange} />)
+
+      const triggerButton = screen.getByRole('button', { name: /Frontend/i })
+      await user.click(triggerButton)
+      await screen.findByPlaceholderText(i18n.selectorPlaceholder)
+      await user.click(triggerButton)
+
+      expect(bindTag).not.toHaveBeenCalled()
+      expect(unBindTag).not.toHaveBeenCalled()
+      expect(mockToast.success).not.toHaveBeenCalled()
+      expect(mockToast.error).not.toHaveBeenCalled()
+      expect(onTagsChange).not.toHaveBeenCalled()
+    })
+
+    it('should notify tag changes after bindings are applied successfully', async () => {
+      const user = userEvent.setup()
+      const onTagsChange = vi.fn()
+      render(<TagSelector {...defaultProps} onTagsChange={onTagsChange} />)
+
+      const triggerButton = screen.getByRole('button', { name: /Frontend/i })
+      await user.click(triggerButton)
+
+      await screen.findByPlaceholderText(i18n.selectorPlaceholder)
+      await user.click(getPanelTagRow('Backend'))
+      await user.click(triggerButton)
+
+      await waitFor(() => {
+        expect(onTagsChange).toHaveBeenCalledTimes(1)
+      })
+    })
+
+    it('should notify tag changes after applying bindings settles with an error', async () => {
+      const user = userEvent.setup()
+      const onTagsChange = vi.fn()
+      vi.mocked(unBindTag).mockRejectedValueOnce(new Error('Unbind failed'))
+      render(<TagSelector {...defaultProps} onTagsChange={onTagsChange} />)
+
+      const triggerButton = screen.getByRole('button', { name: /Frontend/i })
+      await user.click(triggerButton)
+
+      await screen.findByPlaceholderText(i18n.selectorPlaceholder)
+      await user.click(getPanelTagRow('Frontend'))
+      await user.click(triggerButton)
+
+      await waitFor(() => {
+        expect(onTagsChange).toHaveBeenCalledTimes(1)
       })
     })
   })
 
-  describe('Data Fetching (getTagList / onCreate)', () => {
-    it('should update the store tagList after fetching', async () => {
+  describe('Data Fetching', () => {
+    it('should create tags through the mutation hook', async () => {
       const user = userEvent.setup()
-      const freshTags: Tag[] = [
-        ...appTags,
-        { id: 'new-tag', name: 'BrandNewTag', type: 'app', binding_count: 0 },
-      ]
       vi.mocked(createTag).mockResolvedValue({ id: 'new-tag', name: 'BrandNewTag', type: 'app', binding_count: 0 })
-      vi.mocked(fetchTagList).mockResolvedValue(freshTags)
 
       render(<TagSelector {...defaultProps} />)
 
@@ -247,13 +351,7 @@ describe('TagSelector', () => {
         expect(createTag).toHaveBeenCalledWith('BrandNewTag', 'app')
       })
 
-      await waitFor(() => {
-        expect(fetchTagList).toHaveBeenCalled()
-      })
-
-      await waitFor(() => {
-        expect(useTagStore.getState().tagList).toEqual(freshTags)
-      })
+      expect(mockUseQueryData.current).toEqual(appTags)
     })
   })
 
@@ -266,7 +364,7 @@ describe('TagSelector', () => {
         <TagSelector
           {...defaultProps}
           selectedTags={orphanTags}
-          value={['orphan-1']}
+          selectedTagIds={['orphan-1']}
         />,
       )
       // Orphan tag is not in store tagList, so tags memo returns []
@@ -310,17 +408,14 @@ describe('TagSelector', () => {
       const knowledgeTags: Tag[] = [
         { id: 'k-1', name: 'KnowledgeDB', type: 'knowledge', binding_count: 2 },
       ]
-      vi.mocked(fetchTagList).mockResolvedValue(knowledgeTags)
-      act(() => {
-        useTagStore.setState({ tagList: knowledgeTags })
-      })
+      mockUseQueryData.current = knowledgeTags
 
       render(
         <TagSelector
           {...defaultProps}
           type="knowledge"
           selectedTags={knowledgeTags}
-          value={['k-1']}
+          selectedTagIds={['k-1']}
         />,
       )
 

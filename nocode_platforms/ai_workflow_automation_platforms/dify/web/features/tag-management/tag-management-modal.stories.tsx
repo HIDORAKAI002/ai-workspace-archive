@@ -1,9 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite'
-import type { Tag } from './constant'
+import type { Tag } from '@/contract/console/tags'
 import { ToastHost } from '@langgenius/dify-ui/toast'
-import { useEffect, useRef } from 'react'
-import TagManagementModal from '.'
-import { useStore as useTagStore } from './store'
+import { useEffect, useState } from 'react'
+import { TagManagementModal } from '@/features/tag-management/components/tag-management-modal'
 
 const INITIAL_TAGS: Tag[] = [
   { id: 'tag-product', name: 'Product', type: 'app', binding_count: 12 },
@@ -18,19 +17,11 @@ const TagManagementPlayground = ({
 }: {
   type?: 'app' | 'knowledge'
 }) => {
-  const originalFetchRef = useRef<typeof globalThis.fetch>(null)
-  const tagsRef = useRef<Tag[]>(INITIAL_TAGS)
-  const setTagList = useTagStore(s => s.setTagList)
-  const showModal = useTagStore(s => s.showTagManagementModal)
-  const setShowModal = useTagStore(s => s.setShowTagManagementModal)
+  const [showModal, setShowModal] = useState(true)
 
   useEffect(() => {
-    setTagList(tagsRef.current)
-    setShowModal(true)
-  }, [setTagList, setShowModal])
-
-  useEffect(() => {
-    originalFetchRef.current = globalThis.fetch?.bind(globalThis)
+    const originalFetch = globalThis.fetch?.bind(globalThis)
+    let tags = [...INITIAL_TAGS]
 
     const handler = async (input: RequestInfo | URL, init?: RequestInit) => {
       const request = input instanceof Request ? input : new Request(input, init)
@@ -41,22 +32,21 @@ const TagManagementPlayground = ({
       if (parsedUrl.pathname.endsWith('/tags')) {
         if (method === 'GET') {
           const tagType = parsedUrl.searchParams.get('type') || 'app'
-          const payload = tagsRef.current.filter(tag => tag.type === tagType)
+          const payload = tags.filter(tag => tag.type === tagType)
           return new Response(JSON.stringify(payload), {
             status: 200,
             headers: { 'Content-Type': 'application/json' },
           })
         }
         if (method === 'POST') {
-          const body = await request.clone().json() as { name: string, type: string }
+          const body = await request.clone().json() as { name: string, type: Tag['type'] }
           const newTag: Tag = {
             id: `tag-${Date.now()}`,
             name: body.name,
             type: body.type,
             binding_count: 0,
           }
-          tagsRef.current = [newTag, ...tagsRef.current]
-          setTagList(tagsRef.current)
+          tags = [newTag, ...tags]
           return new Response(JSON.stringify(newTag), {
             status: 200,
             headers: { 'Content-Type': 'application/json' },
@@ -64,15 +54,15 @@ const TagManagementPlayground = ({
         }
       }
 
-      if (parsedUrl.pathname.endsWith('/tag-bindings/create') || parsedUrl.pathname.endsWith('/tag-bindings/remove')) {
+      if (parsedUrl.pathname.endsWith('/tag-bindings') || parsedUrl.pathname.endsWith('/tag-bindings/remove')) {
         return new Response(JSON.stringify({ ok: true }), {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
         })
       }
 
-      if (originalFetchRef.current)
-        return originalFetchRef.current(request)
+      if (originalFetch)
+        return originalFetch(request)
 
       throw new Error(`Unhandled request in mock fetch: ${url}`)
     }
@@ -80,10 +70,10 @@ const TagManagementPlayground = ({
     globalThis.fetch = handler as typeof globalThis.fetch
 
     return () => {
-      if (originalFetchRef.current)
-        globalThis.fetch = originalFetchRef.current
+      if (originalFetch)
+        globalThis.fetch = originalFetch
     }
-  }, [setTagList])
+  }, [])
 
   return (
     <>
@@ -98,7 +88,7 @@ const TagManagementPlayground = ({
         </button>
         <p className="text-xs text-text-tertiary">Mocked tag management flows with create and bind actions.</p>
       </div>
-      <TagManagementModal show={showModal} type={type} />
+      <TagManagementModal show={showModal} type={type} onClose={() => setShowModal(false)} />
     </>
   )
 }

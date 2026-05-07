@@ -1,11 +1,10 @@
-import * as React from 'react'
 import { useTranslation } from 'react-i18next'
 
 type TriggerProps = {
   tags: string[]
 }
 
-const Trigger = ({
+export const TagTrigger = ({
   tags,
 }: TriggerProps) => {
   const { t } = useTranslation()
@@ -14,9 +13,9 @@ const Trigger = ({
     <div className="flex w-full cursor-pointer items-center gap-1 overflow-hidden rounded-lg p-1 hover:bg-state-base-hover">
       {!tags.length
         ? (
-            <div className="flex items-center gap-x-0.5 rounded-[5px] border border-dashed border-divider-deep bg-components-badge-bg-dimm px-[5px] py-[3px]">
+            <div className="flex max-w-full min-w-0 items-center gap-x-0.5 rounded-[5px] border border-dashed border-divider-deep bg-components-badge-bg-dimm px-[5px] py-[3px]">
               <span className="i-ri-price-tag-3-line h-3 w-3 shrink-0 text-text-quaternary" />
-              <div className="system-2xs-medium-uppercase text-nowrap text-text-tertiary">
+              <div className="truncate system-2xs-medium-uppercase text-text-tertiary">
                 {t('tag.addTag', { ns: 'common' })}
               </div>
             </div>
@@ -24,15 +23,15 @@ const Trigger = ({
         : (
             <>
               {
-                tags.map((content, index) => {
+                tags.map((content) => {
                   return (
                     <div
-                      key={index}
-                      className="flex items-center gap-x-0.5 rounded-[5px] border border-divider-deep bg-components-badge-bg-dimm px-[5px] py-[3px]"
-                      data-testid={`tag-badge-${index}`}
+                      key={content}
+                      className="flex max-w-[120px] min-w-0 shrink-0 items-center gap-x-0.5 rounded-[5px] border border-divider-deep bg-components-badge-bg-dimm px-[5px] py-[3px]"
+                      data-testid={`tag-badge-${content}`}
                     >
                       <span className="i-ri-price-tag-3-line h-3 w-3 shrink-0 text-text-quaternary" />
-                      <div className="system-2xs-medium-uppercase text-nowrap text-text-tertiary">
+                      <div className="truncate system-2xs-medium-uppercase text-text-tertiary">
                         {content}
                       </div>
                     </div>
@@ -44,5 +43,3 @@ const Trigger = ({
     </div>
   )
 }
-
-export default React.memo(Trigger)
