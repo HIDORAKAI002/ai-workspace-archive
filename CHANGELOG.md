@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-05-07 14:16 IST] Auto-Sync
+- **26 Repositories Updated:** Public APIs Directory, Awesome ChatGPT Prompts, Promptfoo, n8n, Dify, Activepieces, Budibase, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, mastra-ai/mastra, deepset-ai/haystack, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, milvus-io/milvus, infiniflow/ragflow, danny-avila/LibreChat, googleapis/python-genai, vercel/ai, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, bytedance/deer-flow
+
 ## [2026-05-07 07:47 IST] Auto-Sync
 - **35 Repositories Updated:** Public APIs Directory, Playwright MCP, Promptfoo, Dify, Flowise, Langflow, Activepieces, Windmill, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, crewAIInc/crewAI, openai/openai-agents-python, pydantic/pydantic-ai, mastra-ai/mastra, browser-use/browser-use, BerriAI/litellm, ollama/ollama, ggml-org/llama.cpp, deepspeedai/DeepSpeed, vllm-project/vllm, lobehub/lobe-chat, anthropics/claude-code, pinecone-io/pinecone-python-client, arize-ai/phoenix, openai/openai-cookbook, firecrawl/firecrawl, openai/openai-python, google-gemini/gemini-cli, googleapis/python-genai, apache/airflow, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, bytedance/deer-flow
 
