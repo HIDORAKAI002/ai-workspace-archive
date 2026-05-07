@@ -1265,6 +1265,8 @@ export type AuthCreditUsageChunk = {
     browser?: number;
     browserExecute?: number;
     account?: number;
+    supportAsk?: number;
+    supportDocsSearch?: number;
   };
   concurrency: number;
   flags: TeamFlags;

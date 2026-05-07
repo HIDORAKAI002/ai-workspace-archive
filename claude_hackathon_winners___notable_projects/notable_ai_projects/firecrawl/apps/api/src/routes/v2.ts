@@ -45,6 +45,7 @@ import {
   createX402RouteConfig,
   isX402Enabled,
 } from "../lib/x402";
+import { deprecationMiddleware } from "../lib/deprecations";
 import { agentController } from "../controllers/v2/agent";
 import { agentStatusController } from "../controllers/v2/agent-status";
 import { agentCancelController } from "../controllers/v2/agent-cancel";
@@ -56,6 +57,7 @@ import {
   browserWebhookDestroyedController,
 } from "../controllers/v2/browser";
 import { activityController } from "../controllers/v1/activity";
+import { supportProxyController } from "../controllers/v2/support-proxy";
 import { agentSignupController } from "../controllers/v2/agent-signup";
 import {
   agentSignupConfirmController,
@@ -380,6 +382,7 @@ v2Router.get(
 v2Router.post(
   "/extract",
   authMiddleware(RateLimiterMode.Extract),
+  deprecationMiddleware("v2_extract"),
   countryCheck,
   checkCreditsMiddleware(20),
   blocklistMiddleware,
@@ -389,6 +392,7 @@ v2Router.post(
 v2Router.get(
   "/extract/:jobId",
   authMiddleware(RateLimiterMode.ExtractStatus),
+  deprecationMiddleware("v2_extract_status"),
   validateJobIdParam,
   wrap(extractStatusController),
 );
@@ -544,6 +548,18 @@ v2Router.delete(
 v2Router.post(
   "/browser/webhook/destroyed",
   wrap(browserWebhookDestroyedController),
+);
+
+// Support agent proxy — forwards to the support-agent service.
+v2Router.post(
+  "/support/ask",
+  authMiddleware(RateLimiterMode.SupportAsk),
+  wrap(supportProxyController),
+);
+v2Router.post(
+  "/support/docs-search",
+  authMiddleware(RateLimiterMode.SupportDocsSearch),
+  wrap(supportProxyController),
 );
 
 // Agent signup routes (public, no auth required — rate limiting is handled inside the controller)
