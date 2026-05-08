@@ -30,7 +30,7 @@ bun install
 - `bun run accuracy-snapshot` — refresh `accuracy/chrome.json`
 - `bun run accuracy-snapshot:safari`
 - `bun run accuracy-snapshot:firefox`
-- `bun run benchmark-check` — Chrome benchmark snapshot
+- `bun run benchmark-check` — Chrome benchmark snapshot; default is the median of 3 full page runs, use `--runs=1` for a quick local check
 - `bun run benchmark-check:safari`
 - `bun run pre-wrap-check` — compact batched browser oracle for `{ whiteSpace: 'pre-wrap' }`
 - `bun run keep-all-check` — compact batched browser oracle for `{ wordBreak: 'keep-all' }`, including mixed-script no-space canaries

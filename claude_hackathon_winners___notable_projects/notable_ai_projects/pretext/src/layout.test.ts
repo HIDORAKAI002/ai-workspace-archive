@@ -10,8 +10,10 @@ const LINE_HEIGHT = 19
 
 type LayoutModule = typeof import('./layout.ts')
 type LineBreakModule = typeof import('./line-break.ts')
+type MeasurementModule = typeof import('./measurement.ts')
 type RichInlineModule = typeof import('./rich-inline.ts')
 type AnalysisModule = typeof import('./analysis.ts')
+type SegmentMetrics = ReturnType<MeasurementModule['getSegmentMetrics']>
 
 let prepare: LayoutModule['prepare']
 let prepareWithSegments: LayoutModule['prepareWithSegments']
@@ -27,6 +29,7 @@ let countPreparedLines: LineBreakModule['countPreparedLines']
 let measurePreparedLineGeometry: LineBreakModule['measurePreparedLineGeometry']
 let stepPreparedLineGeometry: LineBreakModule['stepPreparedLineGeometry']
 let walkPreparedLines: LineBreakModule['walkPreparedLines']
+let getSegmentBreakableFitAdvances: MeasurementModule['getSegmentBreakableFitAdvances']
 let prepareRichInline: RichInlineModule['prepareRichInline']
 let materializeRichInlineLineRange: RichInlineModule['materializeRichInlineLineRange']
 let measureRichInlineStats: RichInlineModule['measureRichInlineStats']
@@ -262,10 +265,11 @@ class TestOffscreenCanvas {
 
 beforeAll(async () => {
   Reflect.set(globalThis, 'OffscreenCanvas', TestOffscreenCanvas)
-  const [analysisMod, mod, lineBreakMod, richInlineMod] = await Promise.all([
+  const [analysisMod, mod, lineBreakMod, measurementMod, richInlineMod] = await Promise.all([
     import('./analysis.ts'),
     import('./layout.ts'),
     import('./line-break.ts'),
+    import('./measurement.ts'),
     import('./rich-inline.ts'),
   ])
   ;({ isCJK } = analysisMod)
@@ -282,12 +286,32 @@ beforeAll(async () => {
     setLocale,
   } = mod)
   ;({ countPreparedLines, measurePreparedLineGeometry, stepPreparedLineGeometry, walkPreparedLines } = lineBreakMod)
+  ;({ getSegmentBreakableFitAdvances } = measurementMod)
   ;({ prepareRichInline, materializeRichInlineLineRange, measureRichInlineStats, walkRichInlineLineRanges } = richInlineMod)
 })
 
 beforeEach(() => {
   setLocale(undefined)
   clearCache()
+})
+
+describe('measurement invariants', () => {
+  test('breakable fit cache distinguishes fit modes', () => {
+    const metrics: SegmentMetrics = { width: 80, containsCJK: false }
+    const cache = new Map<string, SegmentMetrics>([
+      ['a', { width: 10, containsCJK: false }],
+      ['b', { width: 20, containsCJK: false }],
+      ['c', { width: 30, containsCJK: false }],
+      ['ab', { width: 35, containsCJK: false }],
+      ['bc', { width: 60, containsCJK: false }],
+      ['abc', metrics],
+    ])
+
+    expect(getSegmentBreakableFitAdvances('abc', metrics, cache, 0, 'sum-graphemes')).toEqual([10, 20, 30])
+    expect(getSegmentBreakableFitAdvances('abc', metrics, cache, 0, 'pair-context')).toEqual([10, 25, 40])
+    expect(getSegmentBreakableFitAdvances('abc', metrics, cache, 0, 'segment-prefixes')).toEqual([10, 25, 45])
+    expect(getSegmentBreakableFitAdvances('abc', metrics, cache, 0, 'sum-graphemes')).toEqual([10, 20, 30])
+  })
 })
 
 describe('prepare invariants', () => {
@@ -445,6 +469,20 @@ describe('prepare invariants', () => {
     expect(prepared.segments).toEqual(['“Whenever'])
   })
 
+  test('keeps opening punctuation attached to the following word', () => {
+    const textBefore = 'aaaaaaaaaaaaaaaaaaa'
+    for (const opener of ['¡', '¿', '‚', '„', '\u2E18']) {
+      const prepared = prepareWithSegments(`${textBefore} ${opener}Wort`, FONT)
+      expect(prepared.segments).toEqual([textBefore, ' ', `${opener}Wort`])
+
+      const strandedOpenerWidth = measureWidth(`${textBefore} ${opener}`, FONT) + 0.1
+      expect(layoutWithLines(prepared, strandedOpenerWidth, LINE_HEIGHT).lines.map(line => line.text)).toEqual([
+        `${textBefore} `,
+        `${opener}Wort`,
+      ])
+    }
+  })
+
   test('keeps apostrophe-led elisions attached to the following word', () => {
     const prepared = prepareWithSegments('“Take ’em downstairs', FONT)
     expect(prepared.segments).toEqual(['“Take', ' ', '’em', ' ', 'downstairs'])
@@ -484,8 +522,11 @@ describe('prepare invariants', () => {
     ])
   })
 
-  test('keeps no-space ascii punctuation chains together as one breakable segment', () => {
-    const prepared = prepareWithSegments('foo;bar foo:bar foo,bar foo.bar as;lkdfjals;k', FONT)
+  test('keeps no-space punctuation chains together as one breakable segment', () => {
+    const prepared = prepareWithSegments(
+      'foo;bar foo:bar foo,bar foo.bar as;lkdfjals;k ééé.ééé αβγ.δεζ אבג.דהו',
+      FONT,
+    )
     expect(prepared.segments).toEqual([
       'foo;bar',
       ' ',
@@ -496,6 +537,12 @@ describe('prepare invariants', () => {
       'foo.bar',
       ' ',
       'as;lkdfjals;k',
+      ' ',
+      'ééé.ééé',
+      ' ',
+      'αβγ.δεζ',
+      ' ',
+      'אבג.דהו',
     ])
   })
 
