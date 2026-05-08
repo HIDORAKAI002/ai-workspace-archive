@@ -859,13 +859,21 @@ const result = await generateText({
     shell: tool({
       inputSchema: z.object({
         command: z.string(),
+        workingDirectory: z.string().optional(),
       }),
-      execute: async ({ command }, { sandbox }) => {
+      execute: async (
+        { command, workingDirectory },
+        { abortSignal, sandbox },
+      ) => {
         if (!sandbox) {
           throw new Error('Sandbox is not available');
         }
 
-        return sandbox.executeCommand({ command });
+        return sandbox.executeCommand({
+          command,
+          workingDirectory,
+          abortSignal,
+        });
       },
     }),
   },
@@ -878,6 +886,12 @@ The sandbox description is not added to the model prompt automatically. If the
 model should know about details such as the root directory, exposed ports, or
 public hostname, include `sandbox.description` in your system prompt,
 instructions, or user-visible context.
+
+`executeCommand` also accepts an optional `workingDirectory` and `abortSignal`.
+Use `workingDirectory` when a tool needs to run a command from a directory other
+than the sandbox implementation's default working directory. Forward
+`abortSignal` from the tool execution options so the sandbox can cancel the
+command if the overall operation is aborted or times out.
 
 The AI SDK forwards your sandbox object but does not create or isolate one for
 you.
@@ -1147,7 +1161,7 @@ with a custom function.
 You can use different strategies to repair the tool call:
 
 - Use a model with structured outputs to generate the inputs.
-- Send the messages, system prompt, and tool schema to a stronger model to generate the inputs.
+- Send the messages, instructions, and tool schema to a stronger model to generate the inputs.
 - Provide more specific repair instructions based on which tool was called.
 
 ### Example: Use a model with structured outputs for repair
@@ -1181,7 +1195,7 @@ const result = await generateText({
           ` with the following inputs:`,
         JSON.stringify(toolCall.input),
         `The tool accepts the following schema:`,
-        JSON.stringify(inputSchema(toolCall)),
+        JSON.stringify(await inputSchema({ toolName: toolCall.toolName })),
         'Please fix the inputs.',
       ].join('\n'),
     });
@@ -1207,11 +1221,11 @@ const result = await generateText({
     tools,
     error,
     messages,
-    system,
+    instructions,
   }) => {
     const result = await generateText({
       model,
-      system,
+      instructions,
       messages: [
         ...messages,
         {
