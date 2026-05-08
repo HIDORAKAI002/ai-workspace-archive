@@ -29,6 +29,7 @@ Used for fact extraction, entity resolution, mental model consolidation, and ans
 - llama.cpp
 - MiniMax
 - DeepSeek
+- z.ai
 - Volcano Engine
 - OpenRouter
 - OpenAI Codex
@@ -102,6 +103,7 @@ Each provider has a recommended default model that's used when `HINDSIGHT_API_LL
 | `llamacpp` | `gemma-4-e2b-it` (auto-downloaded GGUF) |
 | `minimax` | `MiniMax-M2.7` |
 | `deepseek` | `deepseek-v4-flash` |
+| `zai` | `glm-4.5-flash` |
 | `volcano` | `doubao-pro-32k` |
 | `openrouter` | `qwen/qwen3.5-9b` |
 | `openai-codex` | `gpt-5.4-mini` |
@@ -192,6 +194,11 @@ export HINDSIGHT_API_LLM_MODEL=MiniMax-M2.7
 export HINDSIGHT_API_LLM_PROVIDER=deepseek
 export HINDSIGHT_API_LLM_API_KEY=sk-xxxxxxxxxxxx
 export HINDSIGHT_API_LLM_MODEL=deepseek-v4-flash  # or deepseek-v4-pro / deepseek-chat / deepseek-reasoner
+
+# z.ai (Zhipu GLM series, OpenAI-compatible, https://z.ai)
+export HINDSIGHT_API_LLM_PROVIDER=zai
+export HINDSIGHT_API_LLM_API_KEY=your-zai-api-key
+export HINDSIGHT_API_LLM_MODEL=glm-4.5-flash  # or glm-4.5-air for the paid tier
 
 # Vertex AI (Google Cloud)
 export HINDSIGHT_API_LLM_PROVIDER=vertexai

@@ -1,6 +1,6 @@
 {
   "name": "@mastra/core",
-  "version": "1.33.0-alpha.5",
+  "version": "1.33.0-alpha.6",
   "license": "Apache-2.0",
   "type": "module",
   "main": "dist/index.js",
@@ -499,6 +499,16 @@
       "require": {
         "types": "./dist/workflows/evented/index.d.ts",
         "default": "./dist/workflows/evented/index.cjs"
+      }
+    },
+    "./worker": {
+      "import": {
+        "types": "./dist/worker/index.d.ts",
+        "default": "./dist/worker/index.js"
+      },
+      "require": {
+        "types": "./dist/worker/index.d.ts",
+        "default": "./dist/worker/index.cjs"
       }
     },
     "./workspace": {

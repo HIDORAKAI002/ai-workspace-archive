@@ -793,8 +793,7 @@ class TestInstallPlatformConfigs:
         assert "mcpServers" in data
         assert "code-review-graph" in data["mcpServers"]
         assert data["mcpServers"]["code-review-graph"]["type"] == "stdio"
-        import shutil
-        expected_cmd = "uvx" if shutil.which("uvx") else "code-review-graph"
+        expected_cmd, _ = _detect_serve_command()
         assert data["mcpServers"]["code-review-graph"]["command"] == expected_cmd
 
 

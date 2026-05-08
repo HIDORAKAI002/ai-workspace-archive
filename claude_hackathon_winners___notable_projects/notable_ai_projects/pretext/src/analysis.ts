@@ -167,10 +167,6 @@ const keepAllDashBreakChars = new Set([
   '\u2014',
 ])
 
-function containsCJKText(text: string): boolean {
-  return isCJK(text)
-}
-
 function endsWithKeepAllGlueText(text: string): boolean {
   const last = getLastCodePoint(text)
   return last !== null && keepAllGlueChars.has(last)
@@ -285,7 +281,7 @@ function isLeftStickyPunctuationSegment(segment: string): boolean {
   if (isEscapedQuoteClusterSegment(segment)) return true
   let sawPunctuation = false
   for (const ch of segment) {
-    if (leftStickyPunctuation.has(ch)) {
+    if (leftStickyPunctuation.has(ch) || isLineBreakNumericAffix(ch)) {
       sawPunctuation = true
       continue
     }
@@ -305,7 +301,14 @@ function isCJKLineStartProhibitedSegment(segment: string): boolean {
 function isForwardStickyClusterSegment(segment: string): boolean {
   if (isEscapedQuoteClusterSegment(segment)) return true
   for (const ch of segment) {
-    if (!kinsokuEnd.has(ch) && !forwardStickyGlue.has(ch) && !combiningMarkRe.test(ch)) return false
+    if (
+      !kinsokuEnd.has(ch) &&
+      !forwardStickyGlue.has(ch) &&
+      !combiningMarkRe.test(ch) &&
+      !isLineBreakNumericAffix(ch)
+    ) {
+      return false
+    }
   }
   return segment.length > 0
 }
@@ -341,6 +344,56 @@ function getLastCodePoint(text: string): string | null {
   if (text.length === 0) return null
   const start = previousCodePointStart(text, text.length)
   return text.slice(start)
+}
+
+function getFirstSignificantCodePoint(text: string): string | null {
+  for (const ch of text) {
+    if (!combiningMarkRe.test(ch)) return ch
+  }
+  return null
+}
+
+function getLastSignificantCodePoint(text: string): string | null {
+  for (let end = text.length; end > 0;) {
+    const start = previousCodePointStart(text, end)
+    const ch = text.slice(start, end)
+    if (!combiningMarkRe.test(ch)) return ch
+    end = start
+  }
+  return null
+}
+
+// Unicode line-break PR/PO classes from UAX #14, stored as start/end pairs.
+const lineBreakNumericAffixRanges = [
+  0x0024, 0x0025, 0x002B, 0x002B, 0x005C, 0x005C, 0x00A2, 0x00A5, 0x00B0, 0x00B1,
+  0x058F, 0x058F, 0x0609, 0x060B, 0x066A, 0x066A, 0x07FE, 0x07FF, 0x09F2, 0x09F3,
+  0x09F9, 0x09FB, 0x0AF1, 0x0AF1, 0x0BF9, 0x0BF9, 0x0D79, 0x0D79, 0x0E3F, 0x0E3F,
+  0x17DB, 0x17DB, 0x2030, 0x2037, 0x2057, 0x2057, 0x20A0, 0x20CF, 0x2103, 0x2103,
+  0x2109, 0x2109, 0x2116, 0x2116, 0x2212, 0x2213, 0xA838, 0xA838, 0xFDFC, 0xFDFC,
+  0xFE69, 0xFE6A, 0xFF04, 0xFF05, 0xFFE0, 0xFFE1, 0xFFE5, 0xFFE6,
+  0x11FDD, 0x11FE0, 0x1E2FF, 0x1E2FF, 0x1ECAC, 0x1ECAC, 0x1ECB0, 0x1ECB0,
+] as const
+
+function isCodePointInRanges(codePoint: number, ranges: readonly number[]): boolean {
+  for (let i = 0; i < ranges.length; i += 2) {
+    if (codePoint >= ranges[i]! && codePoint <= ranges[i + 1]!) return true
+  }
+  return false
+}
+
+function isLineBreakNumericAffix(ch: string): boolean {
+  const codePoint = ch.codePointAt(0)
+  return codePoint !== undefined && isCodePointInRanges(codePoint, lineBreakNumericAffixRanges)
+}
+
+function endsWithLineBreakNumericAffix(text: string): boolean {
+  const last = getLastSignificantCodePoint(text)
+  return last !== null && isLineBreakNumericAffix(last)
+}
+
+function startsWithDecimalDigit(text: string): boolean {
+  const first = getFirstSignificantCodePoint(text)
+  return first !== null && decimalDigitRe.test(first)
 }
 
 function splitTrailingForwardStickyCluster(text: string): { head: string, tail: string } | null {
@@ -655,7 +708,7 @@ function endsWithNoSpacePunctuationChainJoiner(text: string): boolean {
       end = start
       continue
     }
-    return noSpacePunctuationChainJoiners.has(ch)
+    return noSpacePunctuationChainJoiners.has(ch) || isLineBreakNumericAffix(ch)
   }
   return false
 }
@@ -738,8 +791,8 @@ function mergeNoSpacePunctuationChains(segmentation: MergedSegmentation): Merged
 
     if (
       kind === 'text' &&
-      wordLike &&
       endsWithNoSpacePunctuationChainJoiner(text) &&
+      (wordLike || endsWithLineBreakNumericAffix(text)) &&
       !isCJK(text)
     ) {
       const mergedParts = [text]
@@ -1112,9 +1165,12 @@ function buildMergedSegmentation(
     if (
       mergedKinds[i] === 'text' &&
       !mergedWordLike[i]! &&
-      isForwardStickyClusterSegment(text) &&
       nextLiveIndex >= 0 &&
-      mergedKinds[nextLiveIndex] === 'text'
+      mergedKinds[nextLiveIndex] === 'text' &&
+      (
+        isForwardStickyClusterSegment(text) ||
+        (text === '-' && startsWithDecimalDigit(mergedTexts[nextLiveIndex]!))
+      )
     ) {
       const prefixParts = forwardStickyPrefixParts[nextLiveIndex] ?? []
       prefixParts.push(text)
@@ -1286,7 +1342,7 @@ function mergeKeepAllTextSegments(
         flushGroup(i)
       }
       if (groupStart < 0) groupStart = i
-      groupContainsCJK = groupContainsCJK || containsCJKText(text)
+      groupContainsCJK = groupContainsCJK || isCJK(text)
       continue
     }
 

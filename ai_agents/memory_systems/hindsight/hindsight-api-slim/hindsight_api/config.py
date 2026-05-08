@@ -459,6 +459,7 @@ PROVIDER_DEFAULT_MODELS = {
     "groq": "openai/gpt-oss-120b",
     "minimax": "MiniMax-M2.7",
     "deepseek": "deepseek-v4-flash",
+    "zai": "glm-4.5-flash",
     "ollama": "gemma3:12b",
     "llamacpp": "gemma-4-e2b-it",
     "lmstudio": "local-model",
