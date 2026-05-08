@@ -61,6 +61,74 @@ func (s *attachedFunctionDb) Update(attachedFunction *dbmodel.AttachedFunction) 
 	return nil
 }
 
+// UpdateCompletionOffsetAndHeapEntry updates both completion offset and heap_entry_pending flag atomically
+// Only updates if the new offset is greater than or equal to the current offset (prevents moving backwards)
+// The heap_entry_pending flag is computed atomically based on the collection's log_position at update time
+func (s *attachedFunctionDb) UpdateCompletionOffsetAndHeapEntry(id uuid.UUID, collectionID string, newOffset int64) error {
+	result := s.db.Exec(`
+		UPDATE attached_functions af
+		SET
+			completion_offset = ?,
+			heap_entry_pending = (CASE WHEN ? >= c.log_position THEN false ELSE true END),
+			updated_at = ?
+		FROM collections c
+		WHERE
+			af.id = ?
+			AND af.is_deleted = false
+			AND af.completion_offset <= ?
+			AND af.input_collection_id = c.id
+			AND c.id = ?`,
+		newOffset,
+		newOffset,
+		time.Now(),
+		id,
+		newOffset,
+		collectionID,
+	)
+
+	if result.Error != nil {
+		log.Error("update completion offset and heap_entry_pending failed", zap.Error(result.Error))
+		return result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		// Could be due to:
+		// 1. Attached function not found or deleted
+		// 2. Collection not found
+		// 3. Offset would move backwards
+		log.Warn("update completion offset and heap_entry_pending: no rows affected",
+			zap.String("id", id.String()),
+			zap.String("collection_id", collectionID),
+			zap.Int64("new_offset", newOffset))
+		return common.ErrAttachedFunctionOffsetWouldRegress
+	}
+
+	return nil
+}
+
+// UpdateHeapEntryPending updates only the heap_entry_pending flag
+func (s *attachedFunctionDb) UpdateHeapEntryPending(id uuid.UUID, heapEntryPending bool) error {
+	result := s.db.Model(&dbmodel.AttachedFunction{}).
+		Where("id = ?", id).
+		Where("is_deleted = ?", false).
+		Updates(map[string]interface{}{
+			"heap_entry_pending": heapEntryPending,
+			"updated_at":         time.Now(),
+		})
+
+	if result.Error != nil {
+		log.Error("update heap_entry_pending failed", zap.Error(result.Error))
+		return result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		log.Error("update heap_entry_pending: no rows affected", zap.String("id", id.String()))
+		return common.ErrAttachedFunctionNotFound
+	}
+
+	return nil
+}
+
 // GetAttachedFunctions is a consolidated getter that supports various query patterns
 // Parameters can be nil to indicate they should not be filtered on
 // - id: Filter by attached function ID
@@ -318,4 +386,74 @@ func (s *attachedFunctionDb) HardDeleteAttachedFunction(id uuid.UUID) error {
 		zap.String("id", id.String()))
 
 	return nil
+}
+
+// AreInvocationsDone checks if multiple attached function invocations have completed
+// by comparing current completion_offset against provided completion_offset and checking
+// heap_entry_pending flag. Returns a slice of booleans indicating completion status for each input item.
+func (s *attachedFunctionDb) AreInvocationsDone(items []dbmodel.InvocationCheckItem) ([]bool, error) {
+	if len(items) == 0 {
+		return []bool{}, nil
+	}
+
+	// Prepare arrays for UNNEST
+	ordinals := make([]int64, len(items))
+	fnIDs := make([]string, len(items))
+	collectionIDs := make([]string, len(items))
+	completionOffsets := make([]int64, len(items))
+
+	for i, item := range items {
+		ordinals[i] = int64(i)
+		fnIDs[i] = item.FunctionID.String()
+		collectionIDs[i] = item.InputCollectionID
+		completionOffsets[i] = item.CompletionOffset
+	}
+
+	rows, err := s.db.Raw(`
+		WITH input_items(ord, fn_id, collection_id, completion_offset) AS (
+			SELECT * FROM UNNEST(
+				$1::bigint[],
+				$2::text[],
+				$3::text[],
+				$4::bigint[]
+			)
+		)
+		SELECT ii.ord,
+		       CASE
+		           WHEN af.id IS NULL THEN true  -- Hard deleted (not in DB)
+		           WHEN af.is_deleted THEN true   -- Soft deleted
+		           ELSE af.completion_offset > ii.completion_offset AND NOT af.heap_entry_pending
+		       END AS is_done
+		FROM input_items ii
+		LEFT JOIN attached_functions af
+			ON af.id = ii.fn_id::uuid
+			AND af.input_collection_id = ii.collection_id::uuid
+		ORDER BY ii.ord
+	`, ordinals, fnIDs, collectionIDs, completionOffsets).Rows()
+
+	if err != nil {
+		log.Error("AreInvocationsDone: query failed", zap.Error(err))
+		return nil, err
+	}
+	defer rows.Close()
+
+	results := make([]bool, len(items))
+	for rows.Next() {
+		var ord int64
+		var isDone bool
+		if err := rows.Scan(&ord, &isDone); err != nil {
+			log.Error("AreInvocationsDone: scan failed", zap.Error(err))
+			return nil, err
+		}
+		if ord >= 0 && ord < int64(len(results)) {
+			results[ord] = isDone
+		}
+	}
+
+	if err := rows.Err(); err != nil {
+		log.Error("AreInvocationsDone: rows iteration error", zap.Error(err))
+		return nil, err
+	}
+
+	return results, nil
 }

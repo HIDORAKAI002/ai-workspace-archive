@@ -6391,6 +6391,7 @@ def test_binary_content_serializable():
                 'run_id': IsStr(),
                 'conversation_id': IsStr(),
                 'metadata': None,
+                'state': 'complete',
             },
         ]
     )
@@ -6463,6 +6464,7 @@ def test_image_url_serializable_missing_media_type():
                 'run_id': IsStr(),
                 'conversation_id': IsStr(),
                 'metadata': None,
+                'state': 'complete',
             },
         ]
     )
@@ -6542,6 +6544,7 @@ def test_image_url_serializable():
                 'run_id': IsStr(),
                 'conversation_id': IsStr(),
                 'metadata': None,
+                'state': 'complete',
             },
         ]
     )
@@ -8068,6 +8071,52 @@ async def test_parallel_tool_exception_cancels_sibling_tasks():
     # No new asyncio tasks should be left over from this run.
     leaked = asyncio.all_tasks() - tasks_before
     assert not leaked, f'Orphaned tasks remain: {leaked}'
+
+
+async def test_parallel_tool_outer_cancellation_only_cancels_pending_tool_tasks():
+    """Outer cancellation can arrive after one parallel tool task has already finished.
+
+    The cleanup path should skip finished tasks and cancel only sibling tasks that are
+    still pending.
+    """
+    completed_tool_finished = asyncio.Event()
+    pending_tool_started = asyncio.Event()
+    pending_tool_cancelled = asyncio.Event()
+
+    async def call_two_tools(messages: list[ModelMessage], info: AgentInfo) -> ModelResponse:
+        return ModelResponse(
+            parts=[
+                ToolCallPart(tool_name='completed_tool'),
+                ToolCallPart(tool_name='pending_tool'),
+            ]
+        )
+
+    agent = Agent(FunctionModel(call_two_tools))
+
+    @agent.tool_plain
+    async def completed_tool() -> str:
+        completed_tool_finished.set()
+        return 'done'
+
+    @agent.tool_plain
+    async def pending_tool() -> str:
+        pending_tool_started.set()
+        try:
+            await asyncio.sleep(10)
+        except asyncio.CancelledError:
+            pending_tool_cancelled.set()
+            raise
+        return 'done'  # pragma: no cover
+
+    task = asyncio.create_task(agent.run('call tools'))
+    await asyncio.wait_for(completed_tool_finished.wait(), timeout=1)
+    await asyncio.wait_for(pending_tool_started.wait(), timeout=1)
+
+    task.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await task
+
+    assert pending_tool_cancelled.is_set()
 
 
 @pytest.mark.parametrize('mode', ['argument', 'contextmanager'])

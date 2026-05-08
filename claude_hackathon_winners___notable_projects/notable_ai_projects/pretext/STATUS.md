@@ -29,7 +29,7 @@ Notes:
 Notes:
 - Chrome is still the main maintained performance baseline.
 - Safari numbers are useful, but noisier and warm up less predictably.
-- The checked-in JSON snapshots are cold checker runs. Ad hoc page numbers can differ after warmup.
+- The checked-in JSON snapshots are medians across 3 cold checker runs. Ad hoc page numbers can differ after warmup.
 - Refresh these when benchmark methodology or the hot path changes: `src/analysis.ts`, `src/measurement.ts`, `src/line-break.ts`, `src/layout.ts`, `src/bidi.ts`, or `pages/benchmark.ts`.
 
 ## Long-Form Corpus Status
