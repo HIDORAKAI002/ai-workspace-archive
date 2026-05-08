@@ -44,6 +44,16 @@ pub struct ImmutablePointToValues<N: Default> {
 }
 
 impl<N: Default> ImmutablePointToValues<N> {
+    /// Approximate RAM usage in bytes.
+    pub fn ram_usage_bytes(&self) -> usize {
+        let Self {
+            point_entries,
+            values_container,
+        } = self;
+        point_entries.capacity() * std::mem::size_of::<PointValueEntry<N>>()
+            + values_container.capacity() * std::mem::size_of::<N>()
+    }
+
     pub fn new(src: Vec<Vec<N>>) -> Self {
         let mut point_entries = Vec::with_capacity(src.len());
 
@@ -105,12 +115,16 @@ impl<N: Default> ImmutablePointToValues<N> {
     }
 
     pub fn get_values(&self, idx: PointOffsetType) -> Option<impl Iterator<Item = &N> + '_> {
+        Some(self.get_values_slice(idx)?.iter())
+    }
+
+    pub fn get_values_slice(&self, idx: PointOffsetType) -> Option<&[N]> {
         let entry = self.point_entries.get(idx as usize)?;
         match entry {
-            PointValueEntry::Single(v) => Some(std::slice::from_ref(v).iter()),
+            PointValueEntry::Single(v) => Some(std::slice::from_ref(v)),
             PointValueEntry::Slice { start, count } => {
                 let range = *start as usize..(*start + *count) as usize;
-                Some(self.values_container[range].iter())
+                Some(&self.values_container[range])
             }
         }
     }

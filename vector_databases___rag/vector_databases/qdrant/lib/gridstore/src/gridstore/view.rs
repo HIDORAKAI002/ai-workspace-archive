@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::ops::ControlFlow;
 
 use common::counter::hardware_counter::HardwareCounterCell;
@@ -65,7 +66,10 @@ impl<'a, V, S: UniversalRead<u8>> GridstoreView<'a, V, S> {
     }
 
     /// Read raw value from the pages, considering that values can span more than one page.
-    pub fn read_from_pages<P: AccessPattern>(&self, pointer: ValuePointer) -> Result<Vec<u8>> {
+    pub fn read_from_pages<P: AccessPattern>(
+        &self,
+        pointer: ValuePointer,
+    ) -> Result<Cow<'_, [u8]>> {
         self.pages.read_from_pages::<P>(pointer, self.config)
     }
 }
@@ -78,10 +82,10 @@ impl<'a, V: Blob, S: UniversalRead<u8>> GridstoreView<'a, V, S> {
         }
     }
 
-    pub(super) fn decompress(&self, value: Vec<u8>) -> Vec<u8> {
+    pub(super) fn decompress<'val>(&self, value: Cow<'val, [u8]>) -> Cow<'val, [u8]> {
         match self.config.compression {
             Compression::None => value,
-            Compression::LZ4 => decompress_lz4(&value),
+            Compression::LZ4 => decompress_lz4(&value).into(),
         }
     }
 
@@ -102,6 +106,35 @@ impl<'a, V: Blob, S: UniversalRead<u8>> GridstoreView<'a, V, S> {
         let value = V::from_bytes(&decompressed);
 
         Ok(Some(value))
+    }
+
+    pub fn for_each_in_batch<P, F, E>(
+        &self,
+        point_offsets: &[PointOffset],
+        mut callback: F,
+        hw_counter: &HardwareCounterCell,
+    ) -> std::result::Result<(), E>
+    where
+        P: AccessPattern,
+        F: FnMut(usize, Option<V>) -> std::result::Result<(), E>,
+        E: From<GridstoreError>,
+    {
+        // Resolve all pointers in a single batched tracker read so async backends
+        // (e.g. io_uring) can fetch them in parallel.
+        let pointers = self.tracker.get_batch(point_offsets)?;
+
+        // Stream decoded values straight to the caller — no intermediate buffer.
+        // The callback `idx` maps 1-to-1 to `point_offsets`; missing offsets are
+        // delivered as `None`.
+        self.pages
+            .read_batch_from_pages::<P, _, E>(pointers, self.config, |idx, raw_opt| {
+                let value = raw_opt.map(|raw| {
+                    hw_counter.payload_io_read_counter().incr_delta(raw.len());
+                    let decompressed = self.decompress(raw);
+                    V::from_bytes(&decompressed)
+                });
+                callback(idx, value)
+            })
     }
 
     /// Iterate over all the values in the storage.

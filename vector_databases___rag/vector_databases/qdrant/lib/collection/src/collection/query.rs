@@ -118,7 +118,7 @@ impl Collection {
             let mut new_request = request.clone();
             let request_limit = new_request.limit + new_request.offset;
 
-            let is_exact = request.params.as_ref().map(|p| p.exact).unwrap_or(false);
+            let is_exact = request.params.as_ref().is_some_and(|p| p.exact);
 
             if is_exact || request_limit < Self::SHARD_QUERY_SUBSAMPLING_LIMIT {
                 new_requests.push(new_request);
@@ -263,10 +263,8 @@ impl Collection {
                 .await?;
             // update timeout
             let timeout = timeout.map(|t| t.saturating_sub(start.elapsed()));
-            let filled_results = without_payload_results
-                .into_iter()
-                .zip(requests_batch.into_iter())
-                .map(|(without_payload_result, req)| {
+            let filled_results = without_payload_results.into_iter().zip(requests_batch).map(
+                |(without_payload_result, req)| {
                     self.fill_search_result_with_payload(
                         without_payload_result,
                         Some(req.with_payload),
@@ -276,7 +274,8 @@ impl Collection {
                         timeout,
                         hw_measurement_acc.clone(),
                     )
-                });
+                },
+            );
             future::try_join_all(filled_results).await
         } else {
             self.do_query_batch_impl(

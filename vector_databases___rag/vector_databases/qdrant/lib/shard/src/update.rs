@@ -16,12 +16,14 @@ use segment::types::{
     SeqNumberType, VectorNameBuf, WithPayload, WithVector,
 };
 
-use crate::operations::FieldIndexOperations;
 use crate::operations::payload_ops::PayloadOps;
 use crate::operations::point_ops::{
     ConditionalInsertOperationInternal, PointOperations, PointStructPersisted, UpdateMode,
 };
 use crate::operations::vector_ops::{PointVectorsPersisted, UpdateVectorsOp, VectorOperations};
+use crate::operations::{
+    CreateVectorName, DeleteVectorName, FieldIndexOperations, VectorNameOperations,
+};
 use crate::segment_holder::{SegmentHolder, SegmentId};
 
 pub fn process_point_operation(
@@ -109,9 +111,9 @@ pub fn process_payload_operation(
                 set_payload_by_filter(segments, op_num, &payload, &filter, &sp.key, hw_counter)
             } else {
                 // TODO: BadRequest (prev) vs BadInput (current)!?
-                Err(OperationError::ValidationError {
-                    description: "No points or filter specified".to_string(),
-                })
+                Err(OperationError::validation_error(
+                    "No points or filter specified",
+                ))
             }
         }
         PayloadOps::DeletePayload(dp) => {
@@ -121,9 +123,9 @@ pub fn process_payload_operation(
                 delete_payload_by_filter(segments, op_num, &filter, &dp.keys, hw_counter)
             } else {
                 // TODO: BadRequest (prev) vs BadInput (current)!?
-                Err(OperationError::ValidationError {
-                    description: "No points or filter specified".to_string(),
-                })
+                Err(OperationError::validation_error(
+                    "No points or filter specified",
+                ))
             }
         }
         PayloadOps::ClearPayload { ref points, .. } => {
@@ -140,9 +142,9 @@ pub fn process_payload_operation(
                 overwrite_payload_by_filter(segments, op_num, &payload, &filter, hw_counter)
             } else {
                 // TODO: BadRequest (prev) vs BadInput (current)!?
-                Err(OperationError::ValidationError {
-                    description: "No points or filter specified".to_string(),
-                })
+                Err(OperationError::validation_error(
+                    "No points or filter specified",
+                ))
             }
         }
     }
@@ -953,6 +955,34 @@ pub fn delete_field_index(
     segments.apply_segments(|write_segment| {
         write_segment.with_upgraded(|segment| segment.delete_field_index(op_num, field_name))
     })
+}
+
+pub fn process_vector_name_operation(
+    segments: &SegmentHolder,
+    op_num: SeqNumberType,
+    vector_name_operation: &VectorNameOperations,
+) -> OperationResult<usize> {
+    match vector_name_operation {
+        VectorNameOperations::CreateVectorName(create_data) => {
+            let CreateVectorName {
+                vector_name,
+                config,
+            } = create_data;
+
+            segments.apply_segments(|write_segment| {
+                write_segment.with_upgraded(|segment| {
+                    segment.create_vector_name(op_num, vector_name, config)
+                })
+            })
+        }
+        VectorNameOperations::DeleteVectorName(delete_data) => {
+            let DeleteVectorName { vector_name } = delete_data;
+            segments.apply_segments(|write_segment| {
+                write_segment
+                    .with_upgraded(|segment| segment.delete_vector_name(op_num, vector_name))
+            })
+        }
+    }
 }
 
 fn select_excluded_by_filter_ids(

@@ -4,13 +4,13 @@ use std::path::{Path, PathBuf};
 use bytemuck::TransparentWrapper;
 
 use super::super::{
-    FileIndex, OpenOptions, ReadRange, Result, UniversalRead, UniversalReadFileOps,
+    OpenOptions, ReadRange, Result, UniversalKind, UniversalRead, UniversalReadFileOps,
 };
+use super::WrappedReadPipeline;
 use crate::generic_consts::AccessPattern;
 
 #[derive(Debug, TransparentWrapper)]
 #[repr(transparent)]
-#[transparent(S)]
 pub struct ReadOnly<S>(S);
 
 impl<S> UniversalReadFileOps for ReadOnly<S>
@@ -33,6 +33,11 @@ where
     S: UniversalRead<T>,
     T: Copy + 'static,
 {
+    type ReadPipeline<'file, Meta>
+        = WrappedReadPipeline<'file, Self, S::ReadPipeline<'file, Meta>>
+    where
+        Self: 'file;
+
     #[inline]
     fn open(path: impl AsRef<Path>, options: OpenOptions) -> Result<Self> {
         debug_assert!(!options.writeable);
@@ -51,12 +56,26 @@ where
     }
 
     #[inline]
-    fn read_batch<P: AccessPattern>(
+    fn read_batch<P, Meta>(
         &self,
-        ranges: impl IntoIterator<Item = ReadRange>,
-        callback: impl FnMut(usize, &[T]) -> Result<()>,
-    ) -> Result<()> {
-        self.0.read_batch::<P>(ranges, callback)
+        ranges: impl IntoIterator<Item = (Meta, ReadRange)>,
+        callback: impl FnMut(Meta, &[T]) -> Result<()>,
+    ) -> Result<()>
+    where
+        P: AccessPattern,
+    {
+        self.0.read_batch::<P, Meta>(ranges, callback)
+    }
+
+    #[inline]
+    fn read_iter<P, Meta>(
+        &self,
+        ranges: impl IntoIterator<Item = (Meta, ReadRange)>,
+    ) -> Result<impl Iterator<Item = Result<(Meta, Cow<'_, [T]>)>>>
+    where
+        P: AccessPattern,
+    {
+        self.0.read_iter::<P, Meta>(ranges)
     }
 
     #[inline]
@@ -75,11 +94,37 @@ where
     }
 
     #[inline]
-    fn read_multi<P: AccessPattern>(
-        files: &[Self],
-        reads: impl IntoIterator<Item = (FileIndex, ReadRange)>,
-        callback: impl FnMut(usize, FileIndex, &[T]) -> Result<()>,
-    ) -> Result<()> {
-        S::read_multi::<P>(Self::peel_slice(files), reads, callback)
+    fn read_multi<'a, P, Meta>(
+        reads: impl IntoIterator<Item = (Meta, &'a Self, ReadRange)>,
+        callback: impl FnMut(Meta, &[T]) -> Result<()>,
+    ) -> Result<()>
+    where
+        P: AccessPattern,
+        Self: 'a,
+    {
+        let reads = reads
+            .into_iter()
+            .map(|(meta, file, range)| (meta, &file.0, range));
+
+        S::read_multi::<P, _>(reads, callback)
+    }
+
+    #[inline]
+    fn read_multi_iter<'a, P, Meta>(
+        reads: impl IntoIterator<Item = (Meta, &'a Self, ReadRange)>,
+    ) -> Result<impl Iterator<Item = Result<(Meta, Cow<'a, [T]>)>>>
+    where
+        P: AccessPattern,
+        Self: 'a,
+    {
+        let it = reads
+            .into_iter()
+            .map(|(meta, file, range)| (meta, &file.0, range));
+
+        S::read_multi_iter::<P, _>(it)
+    }
+
+    fn kind() -> UniversalKind {
+        S::kind()
     }
 }

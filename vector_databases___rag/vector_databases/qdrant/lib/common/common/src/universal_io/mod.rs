@@ -1,13 +1,14 @@
 #[cfg(not(target_os = "windows"))]
 pub mod disk_cache;
 pub mod error;
+pub mod family;
 pub mod file_ops;
 #[cfg(target_os = "linux")]
 pub mod io_uring;
 pub mod local_file_ops;
 pub mod mmap;
 pub mod read;
-mod wrappers;
+pub mod wrappers;
 pub mod write;
 
 use std::path::Path;
@@ -15,14 +16,22 @@ use std::path::Path;
 use serde::de::DeserializeOwned;
 
 pub use self::error::UniversalIoError;
+pub use self::family::UniversalReadFamily;
 pub use self::file_ops::UniversalReadFileOps;
 #[cfg(target_os = "linux")]
 pub use self::io_uring::*;
 pub use self::mmap::*;
-pub use self::read::UniversalRead;
+pub use self::read::*;
 pub use self::wrappers::*;
 pub use self::write::UniversalWrite;
 use crate::mmap::{Advice, AdviceSetting};
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub enum UniversalKind {
+    Mmap,
+    IoUring,
+    DiskCache,
+}
 
 #[derive(Copy, Clone, Debug)]
 pub struct OpenOptions {
@@ -58,6 +67,42 @@ pub struct ReadRange {
     pub byte_offset: u64,
     /// Number of elements to read.
     pub length: u64,
+}
+
+impl ReadRange {
+    pub fn new(byte_offset: u64, length: u64) -> ReadRange {
+        ReadRange {
+            byte_offset,
+            length,
+        }
+    }
+
+    pub fn one(byte_offset: u64) -> ReadRange {
+        ReadRange {
+            byte_offset,
+            length: 1,
+        }
+    }
+
+    /// Split the range into a consecutive sequence of smaller ranges of
+    /// reasonable size. Takes `T` as a hint for element size in bytes.
+    pub fn iter_autochunks<T>(self) -> impl Iterator<Item = ReadRange> {
+        // TODO: align chunks. Perhaps this method and `blocks_for_range_in_file`
+        // can be unified.
+        const MAX_CHUNK_BYTES: u64 = 16 * 1024;
+        let chunk_len = (MAX_CHUNK_BYTES / size_of::<T>() as u64).max(1);
+        let Self {
+            byte_offset,
+            length,
+        } = self;
+        (0..)
+            .map(move |i| i * chunk_len)
+            .take_while(move |&start| start < length)
+            .map(move |start| ReadRange {
+                byte_offset: byte_offset + start * size_of::<T>() as u64,
+                length: std::cmp::min(chunk_len, length - start),
+            })
+    }
 }
 
 pub type ByteOffset = u64;

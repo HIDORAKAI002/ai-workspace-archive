@@ -23,6 +23,7 @@ use ::api::grpc::qdrant::qdrant_internal_server::QdrantInternalServer;
 use ::api::grpc::qdrant::qdrant_server::{Qdrant, QdrantServer};
 use ::api::grpc::qdrant::shard_snapshots_server::ShardSnapshotsServer;
 use ::api::grpc::qdrant::snapshots_server::SnapshotsServer;
+use ::api::grpc::qdrant::storage_read_server::StorageReadServer;
 use ::api::grpc::qdrant::{HealthCheckReply, HealthCheckRequest};
 use ::api::rest::models::VersionInfo;
 use collection::operations::verification::new_unchecked_verification_pass;
@@ -48,9 +49,17 @@ use crate::tonic::api::points_api::PointsService;
 use crate::tonic::api::points_internal_api::PointsInternalService;
 use crate::tonic::api::qdrant_internal_api::QdrantInternalService;
 use crate::tonic::api::snapshots_api::{ShardSnapshotsService, SnapshotsService};
+use crate::tonic::api::storage_read_api::StorageReadService;
 use crate::tonic::api::telemetry_wrapper::{
     PointsTelemetryWrapper, ShardSnapshotsTelemetryWrapper, SnapshotsTelemetryWrapper,
 };
+
+// Compile-time storage backend selection for StorageRead gRPC service.
+// On Linux, uses io_uring for optimal async I/O; falls back to mmap elsewhere.
+#[cfg(target_os = "linux")]
+type StorageBackend = common::universal_io::io_uring::IoUringFile;
+#[cfg(not(target_os = "linux"))]
+type StorageBackend = common::universal_io::mmap::MmapFile;
 
 #[derive(Default)]
 pub struct QdrantService {}
@@ -116,6 +125,7 @@ pub fn init(
         let collections_service = CollectionsService::new(dispatcher.clone());
         let points_service = PointsService::new(dispatcher.clone(), settings.service.clone());
         let snapshot_service = SnapshotsService::new(dispatcher.clone());
+        let storage_read_service = StorageReadService::<StorageBackend>::new(dispatcher.clone());
 
         // Only advertise the public services. By default, all services in QDRANT_DESCRIPTOR_SET
         // will be advertised, so explicitly list the services to be included.
@@ -126,6 +136,7 @@ pub fn init(
             .with_service_name("qdrant.Snapshots")
             .with_service_name("qdrant.Qdrant")
             .with_service_name("grpc.health.v1.Health")
+            .with_service_name("qdrant.StorageRead")
             .build()
             .unwrap();
 
@@ -197,6 +208,12 @@ pub fn init(
                     .accept_compressed(CompressionEncoding::Gzip)
                     .max_decoding_message_size(usize::MAX),
             )
+            .add_service(
+                StorageReadServer::new(storage_read_service)
+                    .send_compressed(CompressionEncoding::Gzip)
+                    .accept_compressed(CompressionEncoding::Gzip)
+                    .max_decoding_message_size(usize::MAX),
+            )
             .serve_with_shutdown(socket, async {
                 wait_stop_signal("gRPC service").await;
             })
@@ -230,6 +247,17 @@ pub fn init_internal(
         .block_on(async {
             let socket = SocketAddr::from((host.parse::<IpAddr>().unwrap(), internal_grpc_port));
             let qdrant_service = QdrantService::default();
+            // Only enforce authentication on the internal API when the operator
+            // explicitly opts in. The API key is still forwarded unconditionally
+            // on outgoing internal requests, so the cluster keeps working
+            // across a rolling upgrade while `enforce_internal_auth` is false.
+            let internal_auth_layer = if settings.service.enforce_internal_auth.unwrap_or_default()
+            {
+                AuthKeys::try_create(&settings.service, toc.clone()).map(auth::AuthLayer::new)
+            } else {
+                None
+            };
+
             let points_internal_service =
                 PointsInternalService::new(toc.clone(), settings.service.clone());
             let qdrant_internal_service =
@@ -265,6 +293,7 @@ pub fn init_internal(
                 .layer(tonic_telemetry::TonicTelemetryLayer::new(
                     tonic_telemetry_collector,
                 ))
+                .option_layer(internal_auth_layer)
                 .into_inner();
 
             server

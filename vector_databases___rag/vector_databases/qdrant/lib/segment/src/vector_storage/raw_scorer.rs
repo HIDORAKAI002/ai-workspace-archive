@@ -21,7 +21,6 @@ use crate::data_types::vectors::{
 use crate::spaces::metric::Metric;
 use crate::spaces::simple::{CosineMetric, DotProductMetric, EuclidMetric, ManhattanMetric};
 use crate::types::Distance;
-use crate::vector_storage::common::VECTOR_READ_BATCH_SIZE;
 use crate::vector_storage::query::NaiveFeedbackQuery;
 use crate::vector_storage::query_scorer::QueryScorer;
 use crate::vector_storage::query_scorer::metric_query_scorer::MetricQueryScorer;
@@ -56,12 +55,6 @@ pub fn new_raw_scorer<'a>(
     hc: HardwareCounterCell,
 ) -> OperationResult<Box<dyn RawScorer + 'a>> {
     match vector_storage {
-        #[cfg(feature = "rocksdb")]
-        VectorStorageEnum::DenseSimple(vs) => raw_scorer_impl(query, vs, hc),
-        #[cfg(feature = "rocksdb")]
-        VectorStorageEnum::DenseSimpleByte(vs) => raw_scorer_impl(query, vs, hc),
-        #[cfg(feature = "rocksdb")]
-        VectorStorageEnum::DenseSimpleHalf(vs) => raw_scorer_impl(query, vs, hc),
         VectorStorageEnum::DenseVolatile(vs) => raw_scorer_impl(query, vs, hc),
         #[cfg(test)]
         VectorStorageEnum::DenseVolatileByte(vs) => raw_scorer_impl(query, vs, hc),
@@ -73,25 +66,17 @@ pub fn new_raw_scorer<'a>(
         VectorStorageEnum::DenseMemmapHalf(vs) => raw_scorer_impl(query, vs.as_ref(), hc),
 
         #[cfg(target_os = "linux")]
-        VectorStorageEnum::DenseUring(vs) => super::async_raw_scorer::new(query, vs, hc),
+        VectorStorageEnum::DenseUring(vs) => raw_scorer_impl(query, vs.as_ref(), hc),
         #[cfg(target_os = "linux")]
-        VectorStorageEnum::DenseUringByte(vs) => super::async_raw_scorer::new(query, vs, hc),
+        VectorStorageEnum::DenseUringByte(vs) => raw_scorer_impl(query, vs.as_ref(), hc),
         #[cfg(target_os = "linux")]
-        VectorStorageEnum::DenseUringHalf(vs) => super::async_raw_scorer::new(query, vs, hc),
+        VectorStorageEnum::DenseUringHalf(vs) => raw_scorer_impl(query, vs.as_ref(), hc),
 
         VectorStorageEnum::DenseAppendableMemmap(vs) => raw_scorer_impl(query, vs.as_ref(), hc),
         VectorStorageEnum::DenseAppendableMemmapByte(vs) => raw_scorer_impl(query, vs.as_ref(), hc),
         VectorStorageEnum::DenseAppendableMemmapHalf(vs) => raw_scorer_impl(query, vs.as_ref(), hc),
-        #[cfg(feature = "rocksdb")]
-        VectorStorageEnum::SparseSimple(vs) => raw_sparse_scorer_impl(query, vs, hc),
         VectorStorageEnum::SparseVolatile(vs) => raw_sparse_scorer_volatile(query, vs, hc),
         VectorStorageEnum::SparseMmap(vs) => raw_sparse_scorer_impl(query, vs, hc),
-        #[cfg(feature = "rocksdb")]
-        VectorStorageEnum::MultiDenseSimple(vs) => raw_multi_scorer_impl(query, vs, hc),
-        #[cfg(feature = "rocksdb")]
-        VectorStorageEnum::MultiDenseSimpleByte(vs) => raw_multi_scorer_impl(query, vs, hc),
-        #[cfg(feature = "rocksdb")]
-        VectorStorageEnum::MultiDenseSimpleHalf(vs) => raw_multi_scorer_impl(query, vs, hc),
         VectorStorageEnum::MultiDenseVolatile(vs) => raw_multi_scorer_impl(query, vs, hc),
         #[cfg(test)]
         VectorStorageEnum::MultiDenseVolatileByte(vs) => raw_multi_scorer_impl(query, vs, hc),
@@ -106,6 +91,8 @@ pub fn new_raw_scorer<'a>(
         VectorStorageEnum::MultiDenseAppendableMemmapHalf(vs) => {
             raw_multi_scorer_impl(query, vs.as_ref(), hc)
         }
+        VectorStorageEnum::EmptyDense(vs) => raw_scorer_impl(query, vs, hc),
+        VectorStorageEnum::EmptySparse(vs) => raw_sparse_scorer_impl(query, vs, hc),
     }
 }
 
@@ -422,19 +409,7 @@ fn new_multi_scorer_with_metric<
 impl<TQueryScorer: QueryScorer> RawScorer for RawScorerImpl<TQueryScorer> {
     fn score_points(&self, points: &[PointOffsetType], scores: &mut [ScoreType]) {
         assert_eq!(points.len(), scores.len());
-
-        let (mut remaining_points, mut remaining_scores) = (points, scores);
-        while !remaining_points.is_empty() {
-            let chunk_size = remaining_points.len().min(VECTOR_READ_BATCH_SIZE);
-
-            let (chunk_points, rest_points) = remaining_points.split_at(chunk_size);
-            let (chunk_scores, rest_scores) = remaining_scores.split_at_mut(chunk_size);
-            remaining_points = rest_points;
-            remaining_scores = rest_scores;
-
-            self.query_scorer
-                .score_stored_batch(chunk_points, chunk_scores);
-        }
+        self.query_scorer.score_stored_batch(points, scores);
     }
 
     fn score_point(&self, point: PointOffsetType) -> ScoreType {

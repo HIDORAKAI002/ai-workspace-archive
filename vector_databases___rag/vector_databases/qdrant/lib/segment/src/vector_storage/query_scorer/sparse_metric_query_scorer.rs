@@ -66,17 +66,15 @@ impl QueryScorer for SparseMetricQueryScorer<'_> {
         self.score_ref(v2)
     }
 
+    #[inline]
     fn score_stored_batch(&self, ids: &[PointOffsetType], scores: &mut [ScoreType]) {
         debug_assert_eq!(ids.len(), scores.len());
 
-        for idx in 0..ids.len() {
-            scores[idx] = self.score_ref(
-                &self
-                    .vector_storage
-                    .get_sparse::<Random>(ids[idx])
-                    .expect("Sparse vector not found"),
-            );
-        }
+        self.vector_storage
+            .for_each_in_sparse_batch(ids, |idx, vector| {
+                scores[idx] = self.score_ref(&vector);
+            })
+            .expect("sparse vectors read");
     }
 
     fn score_internal(&self, point_a: PointOffsetType, point_b: PointOffsetType) -> ScoreType {

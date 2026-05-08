@@ -13,7 +13,7 @@ use segment::fixtures::payload_context_fixture::{
     create_plain_payload_index, create_struct_payload_index,
 };
 use segment::fixtures::payload_fixtures::{random_match_any_filter, random_must_filter};
-use segment::index::PayloadIndex;
+use segment::index::PayloadIndexRead;
 use tempfile::Builder;
 
 const NUM_POINTS: usize = 100000;
@@ -44,11 +44,8 @@ fn conditional_plain_search_benchmark(c: &mut Criterion) {
             query_count += 1;
         })
     });
-    if query_count != 0 {
-        eprintln!(
-            "result_size / query_count = {:#?}",
-            result_size / query_count
-        );
+    if let Some(avg) = result_size.checked_div(query_count) {
+        eprintln!("result_size / query_count = {avg:#?}");
     }
 
     let mut result_size = 0;
@@ -65,11 +62,8 @@ fn conditional_plain_search_benchmark(c: &mut Criterion) {
             query_count += 1;
         })
     });
-    if query_count != 0 {
-        eprintln!(
-            "result_size / query_count = {:#?}",
-            result_size / query_count
-        );
+    if let Some(avg) = result_size.checked_div(query_count) {
+        eprintln!("result_size / query_count = {avg:#?}");
     }
 
     let mut result_size = 0;
@@ -91,11 +85,8 @@ fn conditional_plain_search_benchmark(c: &mut Criterion) {
         })
     });
 
-    if query_count != 0 {
-        eprintln!(
-            "result_size / query_count = {:#?}",
-            result_size / query_count
-        );
+    if let Some(avg) = result_size.checked_div(query_count) {
+        eprintln!("result_size / query_count = {avg:#?}");
     }
 
     let mut result_size = 0;
@@ -171,11 +162,8 @@ fn conditional_struct_search_benchmark(c: &mut Criterion) {
             query_count += 1;
         })
     });
-    if query_count != 0 {
-        eprintln!(
-            "result_size / query_count = {:#?}",
-            result_size / query_count
-        );
+    if let Some(avg) = result_size.checked_div(query_count) {
+        eprintln!("result_size / query_count = {avg:#?}");
     }
 
     let mut result_size = 0;
@@ -198,11 +186,8 @@ fn conditional_struct_search_benchmark(c: &mut Criterion) {
         })
     });
 
-    if query_count != 0 {
-        eprintln!(
-            "result_size / query_count = {:#?}",
-            result_size / query_count
-        );
+    if let Some(avg) = result_size.checked_div(query_count) {
+        eprintln!("result_size / query_count = {avg:#?}");
     }
 
     group.finish();

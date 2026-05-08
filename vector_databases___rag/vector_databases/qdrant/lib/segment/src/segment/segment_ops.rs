@@ -10,23 +10,25 @@ use common::tar_unpack::tar_unpack_file;
 use common::types::PointOffsetType;
 use fs_err as fs;
 
-use super::{SEGMENT_STATE_FILE, SNAPSHOT_FILES_PATH, SNAPSHOT_PATH, Segment};
+use super::{
+    DEPRECATED_PAYLOAD_ROCKSDB_BACKUP_PATH, DEPRECATED_ROCKSDB_BACKUP_PATH, SEGMENT_STATE_FILE,
+    SNAPSHOT_FILES_PATH, SNAPSHOT_PATH, Segment,
+};
 use crate::common::operation_error::{
     OperationError, OperationResult, SegmentFailedState, get_service_error,
 };
 use crate::common::{check_named_vectors, check_vector_name};
 use crate::data_types::named_vectors::NamedVectors;
-use crate::data_types::vectors::VectorInternal;
 use crate::entry::entry_point::StorageSegmentEntry as _;
 use crate::entry::{NonAppendableSegmentEntry as _, ReadSegmentEntry};
-use crate::id_tracker::IdTracker;
-use crate::index::{PayloadIndex, VectorIndex};
+use crate::id_tracker::{IdTracker, IdTrackerRead};
+use crate::index::{PayloadIndex, PayloadIndexRead, VectorIndex};
 use crate::types::{
-    Payload, PayloadFieldSchema, PayloadKeyType, PointIdType, SegmentState, SeqNumberType,
-    SnapshotFormat, VectorName,
+    PayloadFieldSchema, PayloadKeyType, PointIdType, SegmentState, SeqNumberType, SnapshotFormat,
+    VectorName,
 };
 use crate::utils;
-use crate::vector_storage::VectorStorage;
+use crate::vector_storage::VectorStorageRead;
 
 impl Segment {
     /// Replace vectors in-place
@@ -355,19 +357,6 @@ impl Segment {
         BitVec::from(self.id_tracker.borrow().deleted_point_bitslice())
     }
 
-    pub(super) fn lookup_internal_id(
-        &self,
-        point_id: PointIdType,
-    ) -> OperationResult<PointOffsetType> {
-        let internal_id_opt = self.id_tracker.borrow().internal_id(point_id);
-        match internal_id_opt {
-            Some(internal_id) => Ok(internal_id),
-            None => Err(OperationError::PointIdError {
-                missed_point_id: point_id,
-            }),
-        }
-    }
-
     pub(super) fn get_state(&self) -> SegmentState {
         SegmentState {
             initial_version: self.initial_version,
@@ -390,84 +379,6 @@ impl Segment {
                 err
             ))
         })
-    }
-
-    /// Retrieve vector by internal ID
-    ///
-    /// Returns None if the vector does not exists or deleted
-    #[inline]
-    pub(super) fn vector_by_offset(
-        &self,
-        vector_name: &VectorName,
-        point_offset: PointOffsetType,
-        hw_counter: &HardwareCounterCell,
-    ) -> OperationResult<Option<VectorInternal>> {
-        let mut result = None;
-        self.vectors_by_offsets(
-            vector_name,
-            std::iter::once(point_offset),
-            hw_counter,
-            |_, vector_internal| {
-                result = Some(vector_internal);
-            },
-        )?;
-        Ok(result)
-    }
-
-    /// Retrieve multiple vectors by internal ID
-    pub(super) fn vectors_by_offsets(
-        &self,
-        vector_name: &VectorName,
-        point_offsets: impl IntoIterator<Item = PointOffsetType>,
-        hw_counter: &HardwareCounterCell,
-        mut callback: impl FnMut(PointOffsetType, VectorInternal),
-    ) -> OperationResult<()> {
-        check_vector_name(vector_name, &self.segment_config)?;
-        let vector_data = &self
-            .vector_data
-            .get(vector_name)
-            .ok_or_else(|| OperationError::vector_name_not_exists(vector_name))?;
-        let vector_storage = vector_data.vector_storage.borrow();
-        let total_vectors = vector_storage.total_vector_count();
-
-        let id_tracker = self.id_tracker.borrow();
-        let non_deleted_offsets = point_offsets.into_iter().filter(|&point_offset| {
-            if total_vectors <= point_offset as usize {
-                debug_assert!(
-                    false,
-                    "Vector storage is inconsistent, total_vector_count: {total_vectors}, point_offset: {point_offset}, external_id: {:?}",
-                    id_tracker.external_id(point_offset),
-                );
-                return false;
-            }
-
-            let is_vector_deleted = vector_storage.is_deleted_vector(point_offset);
-            let is_point_deleted = id_tracker.is_deleted_point(point_offset);
-            !is_vector_deleted && !is_point_deleted
-        });
-
-        vector_storage.read_vectors::<Random>(non_deleted_offsets, |point_offset, cow_vector| {
-            if vector_storage.is_on_disk() {
-                hw_counter
-                    .vector_io_read()
-                    .incr_delta(cow_vector.estimate_size_in_bytes());
-            }
-            callback(point_offset, cow_vector.to_owned());
-        });
-
-        Ok(())
-    }
-
-    /// Retrieve payload by internal ID
-    #[inline]
-    pub(super) fn payload_by_offset(
-        &self,
-        point_offset: PointOffsetType,
-        hw_counter: &HardwareCounterCell,
-    ) -> OperationResult<Payload> {
-        self.payload_index
-            .borrow()
-            .get_payload(point_offset, hw_counter)
     }
 
     pub fn save_current_state(&self) -> OperationResult<()> {
@@ -692,12 +603,6 @@ impl Segment {
             .as_ref()
             .map(|i| i.deferred_internal_id)
     }
-
-    pub(crate) fn deferred_deleted_count(&self) -> Option<usize> {
-        self.deferred_point_status
-            .as_ref()
-            .map(|i| i.deferred_deleted_count)
-    }
 }
 
 fn restore_snapshot_in_place(snapshot_path: &Path) -> OperationResult<()> {
@@ -760,22 +665,19 @@ fn restore_snapshot_in_place(snapshot_path: &Path) -> OperationResult<()> {
 }
 
 fn unpack_snapshot(segment_path: &Path) -> OperationResult<()> {
-    #[cfg(feature = "rocksdb")]
-    {
-        use super::{DB_BACKUP_PATH, PAYLOAD_DB_BACKUP_PATH};
-        use crate::index::struct_payload_index::StructPayloadIndex;
-
-        let db_backup_path = segment_path.join(DB_BACKUP_PATH);
-        if db_backup_path.is_dir() {
-            crate::rocksdb_backup::restore(&db_backup_path, segment_path)?;
-            fs::remove_dir_all(&db_backup_path)?;
-        }
-
-        let payload_index_db_backup = segment_path.join(PAYLOAD_DB_BACKUP_PATH);
-        if payload_index_db_backup.is_dir() {
-            StructPayloadIndex::restore_database_snapshot(&payload_index_db_backup, segment_path)?;
-            fs::remove_dir_all(&payload_index_db_backup)?;
-        }
+    let db_backup_path = segment_path.join(DEPRECATED_ROCKSDB_BACKUP_PATH);
+    if db_backup_path.is_dir() {
+        log::warn!(
+            "RocksDB is no longer supported, and {DEPRECATED_ROCKSDB_BACKUP_PATH} will be ignored"
+        );
+        fs::remove_dir_all(&db_backup_path)?;
+    }
+    let payload_index_db_backup = segment_path.join(DEPRECATED_PAYLOAD_ROCKSDB_BACKUP_PATH);
+    if payload_index_db_backup.is_dir() {
+        log::warn!(
+            "RocksDB is no longer supported, and {DEPRECATED_PAYLOAD_ROCKSDB_BACKUP_PATH} will be ignored"
+        );
+        fs::remove_dir_all(&payload_index_db_backup)?;
     }
 
     let files_path = segment_path.join(SNAPSHOT_FILES_PATH);

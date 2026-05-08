@@ -33,7 +33,10 @@ MatchType = Union[
 ]
 RangeType = Union["RangeFloat", "RangeDateTime"]
 QuantizationConfigType = Union[
-    "ScalarQuantizationConfig", "ProductQuantizationConfig", "BinaryQuantizationConfig"
+    "ScalarQuantizationConfig",
+    "ProductQuantizationConfig",
+    "BinaryQuantizationConfig",
+    "TurboQuantQuantizationConfig",
 ]
 IndexType = Union["PlainIndexConfig", "HnswIndexConfig"]
 StartFromType = Union[int, float, str]
@@ -638,6 +641,40 @@ class BinaryQuantizationConfig:
         """Query encoding."""
         ...
 
+class TurboQuantQuantizationConfig:
+    """Configuration for TurboQuant quantization."""
+
+    def __init__(
+        self,
+        always_ram: Optional[bool] = None,
+        plus: Optional[bool] = None,
+        bits: Optional["TurboQuantBitSize"] = None,
+    ) -> None:
+        """
+        Create a TurboQuantQuantizationConfig.
+
+        Args:
+            always_ram: Whether to keep in RAM.
+            plus: Enable the TurboQuant+ variant.
+            bits: Bit size used for compressed codes.
+        """
+        ...
+
+    @property
+    def always_ram(self) -> Optional[bool]:
+        """Always RAM flag."""
+        ...
+
+    @property
+    def plus(self) -> Optional[bool]:
+        """TurboQuant+ flag."""
+        ...
+
+    @property
+    def bits(self) -> Optional["TurboQuantBitSize"]:
+        """Bit size."""
+        ...
+
 # ============================================================================
 # Enums
 # ============================================================================
@@ -690,6 +727,14 @@ class BinaryQuantizationQueryEncoding(Enum):
     Binary = ...
     Scalar4Bits = ...
     Scalar8Bits = ...
+
+class TurboQuantBitSize(Enum):
+    """TurboQuant bit size for compressed codes."""
+
+    Bits1 = ...
+    Bits1_5 = ...
+    Bits2 = ...
+    Bits4 = ...
 
 class Modifier(Enum):
     """Sparse vector modifiers."""
@@ -3096,5 +3141,51 @@ class UpdateOperation:
 
         Args:
             field_name: Path to the payload field.
+        """
+        ...
+
+    @staticmethod
+    def create_dense_vector(
+        vector_name: str,
+        size: int,
+        distance: Distance,
+        multivector_config: Optional[MultiVectorConfig] = None,
+        datatype: Optional[VectorStorageDatatype] = None,
+    ) -> "UpdateOperation":
+        """
+        Create a new dense named vector on the collection.
+
+        Args:
+            vector_name: Name for the new vector.
+            size: Dimensionality of the vectors.
+            distance: Distance function (Cosine, Euclid, Dot, Manhattan).
+            multivector_config: Optional multi-vector configuration (e.g., for ColBERT).
+            datatype: Optional element storage type (Float32, Float16, Uint8).
+        """
+        ...
+
+    @staticmethod
+    def create_sparse_vector(
+        vector_name: str,
+        modifier: Optional[Modifier] = None,
+        datatype: Optional[VectorStorageDatatype] = None,
+    ) -> "UpdateOperation":
+        """
+        Create a new sparse named vector on the collection.
+
+        Args:
+            vector_name: Name for the new sparse vector.
+            modifier: Optional value modifier (e.g., Modifier.Idf).
+            datatype: Optional datatype for storing weights in the index.
+        """
+        ...
+
+    @staticmethod
+    def delete_vector_name(vector_name: str) -> "UpdateOperation":
+        """
+        Delete a named vector from the collection.
+
+        Args:
+            vector_name: Name of the vector to delete.
         """
         ...

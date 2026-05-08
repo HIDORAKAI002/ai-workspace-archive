@@ -8,12 +8,12 @@ use common::counter::hardware_counter::HardwareCounterCell;
 use common::generic_consts::{AccessPattern, Random, Sequential};
 use common::mmap::AdviceSetting;
 use common::types::PointOffsetType;
-use common::universal_io::MmapFile;
+use common::universal_io::{MmapFile, UniversalRead};
 use fs_err as fs;
 
 use crate::common::Flusher;
 use crate::common::flags::bitvec_flags::BitvecFlags;
-use crate::common::flags::dynamic_mmap_flags::DynamicMmapFlags;
+use crate::common::flags::dynamic_stored_flags::DynamicStoredFlags;
 use crate::common::operation_error::{OperationError, OperationResult, check_process_stopped};
 use crate::data_types::named_vectors::{CowMultiVector, CowVector};
 use crate::data_types::primitive::PrimitiveVectorElement;
@@ -21,13 +21,14 @@ use crate::data_types::vectors::{
     TypedMultiDenseVector, TypedMultiDenseVectorRef, VectorElementType, VectorRef,
 };
 use crate::types::{Distance, MultiVectorConfig, VectorStorageDatatype};
-use crate::vector_storage::chunked_vectors::ChunkedVectors;
+use crate::vector_storage::chunked_vectors::{ChunkedVectors, ChunkedVectorsRead};
 use crate::vector_storage::dense::appendable_dense_vector_storage::{
     open_appendable_memmap_vector_storage_byte, open_appendable_memmap_vector_storage_full,
     open_appendable_memmap_vector_storage_half,
 };
 use crate::vector_storage::{
-    MultiVectorStorage, VectorOffsetType, VectorStorage, VectorStorageEnum,
+    MultiVectorStorage, VectorOffset, VectorOffsetType, VectorStorage, VectorStorageEnum,
+    VectorStorageRead,
 };
 
 const VECTORS_DIR_PATH: &str = "vectors";
@@ -42,6 +43,52 @@ pub struct MultivectorMmapOffset {
     capacity: u32,
 }
 
+impl VectorOffset for MultivectorMmapOffset {
+    fn offset(self) -> VectorOffsetType {
+        self.offset as _
+    }
+
+    fn multi_vector_count(self) -> usize {
+        self.count as _
+    }
+}
+
+/// Resolve the multi-vector at `key` from a pair of chunked stores: the
+/// `offsets` store maps `key` to a [`MultivectorMmapOffset`], which is then
+/// used to fetch the flattened element slice from `vectors`.
+///
+/// Shared by the appendable and read-only storage variants — both back the
+/// same on-disk layout, so they only differ in the writability of the chunked
+/// stores.
+pub(crate) fn read_multi_vector<'a, T, P, So, Sv>(
+    offsets: &'a ChunkedVectorsRead<MultivectorMmapOffset, So>,
+    vectors: &'a ChunkedVectorsRead<T, Sv>,
+    key: PointOffsetType,
+) -> Option<CowMultiVector<'a, T>>
+where
+    T: PrimitiveVectorElement,
+    P: AccessPattern,
+    So: UniversalRead<MultivectorMmapOffset>,
+    Sv: UniversalRead<T>,
+{
+    let mmap_offset = *offsets
+        .get::<P>(key as VectorOffsetType)?
+        .first()
+        .expect("mmap_offset must not be empty");
+    let flattened =
+        vectors.get_many::<P>(mmap_offset.offset(), mmap_offset.multi_vector_count())?;
+    Some(match flattened {
+        Cow::Borrowed(slice) => CowMultiVector::Borrowed(TypedMultiDenseVectorRef {
+            flattened_vectors: slice,
+            dim: vectors.dim(),
+        }),
+        Cow::Owned(vec) => CowMultiVector::Owned(TypedMultiDenseVector {
+            flattened_vectors: vec,
+            dim: vectors.dim(),
+        }),
+    })
+}
+
 #[derive(Debug)]
 pub struct AppendableMmapMultiDenseVectorStorage<T: PrimitiveVectorElement> {
     vectors: ChunkedVectors<T, MmapFile>,
@@ -50,7 +97,7 @@ pub struct AppendableMmapMultiDenseVectorStorage<T: PrimitiveVectorElement> {
     ///
     /// Structure grows dynamically, but may be smaller than actual number of vectors. Must not
     /// depend on its length.
-    deleted: BitvecFlags,
+    deleted: BitvecFlags<MmapFile>,
     distance: Distance,
     multi_vector_config: MultiVectorConfig,
     deleted_count: usize,
@@ -89,8 +136,19 @@ impl<T: PrimitiveVectorElement> AppendableMmapMultiDenseVectorStorage<T> {
 
     /// Drop disk cache.
     pub fn clear_cache(&self) -> OperationResult<()> {
-        self.vectors.clear_cache()?;
-        self.offsets.clear_cache()?;
+        let Self {
+            vectors,
+            offsets,
+            deleted,
+            distance: _,
+            multi_vector_config: _,
+            deleted_count: _,
+            _phantom,
+        } = self;
+
+        vectors.clear_cache()?;
+        offsets.clear_cache()?;
+        deleted.clear_cache()?;
         Ok(())
     }
 }
@@ -110,25 +168,36 @@ impl<T: PrimitiveVectorElement> MultiVectorStorage<T> for AppendableMmapMultiDen
         &self,
         key: PointOffsetType,
     ) -> Option<CowMultiVector<'_, T>> {
-        self.offsets
-            .get::<P>(key as VectorOffsetType)
-            .and_then(|mmap_offset| {
-                let mmap_offset = mmap_offset.first().expect("mmap_offset must not be empty");
-                self.vectors.get_many::<P>(
-                    mmap_offset.offset as VectorOffsetType,
-                    mmap_offset.count as usize,
-                )
-            })
-            .map(|flattened_vectors| match flattened_vectors {
-                Cow::Borrowed(slice) => CowMultiVector::Borrowed(TypedMultiDenseVectorRef {
-                    flattened_vectors: slice,
-                    dim: self.vectors.dim(),
-                }),
-                Cow::Owned(vec) => CowMultiVector::Owned(TypedMultiDenseVector {
-                    flattened_vectors: vec,
-                    dim: self.vectors.dim(),
-                }),
-            })
+        read_multi_vector::<T, P, _, _>(&self.offsets, &self.vectors, key)
+    }
+
+    fn for_each_in_batch_multi<F>(&self, keys: &[PointOffsetType], mut callback: F)
+    where
+        F: FnMut(usize, TypedMultiDenseVectorRef<'_, T>),
+    {
+        // Collect multi-vector offsets
+        let mut point_indexes = Vec::with_capacity(keys.len());
+        let mut offsets = Vec::with_capacity(keys.len());
+
+        for (point_index, offset) in self.offsets.iter(keys) {
+            // `PointOffsetType::multi_vector_count` is always 1, and `self.offsets` is `ChunkedVectors`
+            // with vector dimension set to 1, so we expect to get an `offset` "vector" of exactly 1 value
+            let &[offset] = offset.as_ref() else {
+                unreachable!();
+            };
+
+            point_indexes.push(point_index);
+            offsets.push(offset);
+        }
+
+        // Fetch multi-vectors
+        self.vectors
+            .for_each_in_batch(&offsets, |offset_index, vectors| {
+                let point_index = point_indexes[offset_index];
+                let vector = TypedMultiDenseVectorRef::new(vectors, self.vector_dim());
+
+                callback(point_index, vector);
+            });
     }
 
     fn iterate_inner_vectors(&self) -> impl Iterator<Item = Cow<'_, [T]>> + Clone + Send {
@@ -163,7 +232,7 @@ impl<T: PrimitiveVectorElement> MultiVectorStorage<T> for AppendableMmapMultiDen
     }
 }
 
-impl<T: PrimitiveVectorElement> VectorStorage for AppendableMmapMultiDenseVectorStorage<T> {
+impl<T: PrimitiveVectorElement> VectorStorageRead for AppendableMmapMultiDenseVectorStorage<T> {
     fn distance(&self) -> Distance {
         self.distance
     }
@@ -190,6 +259,20 @@ impl<T: PrimitiveVectorElement> VectorStorage for AppendableMmapMultiDenseVector
         })
     }
 
+    fn is_deleted_vector(&self, key: PointOffsetType) -> bool {
+        self.deleted.get(key)
+    }
+
+    fn deleted_vector_count(&self) -> usize {
+        self.deleted_count
+    }
+
+    fn deleted_vector_bitslice(&self) -> &BitSlice {
+        self.deleted.get_bitslice()
+    }
+}
+
+impl<T: PrimitiveVectorElement> VectorStorage for AppendableMmapMultiDenseVectorStorage<T> {
     fn insert_vector(
         &mut self,
         key: PointOffsetType,
@@ -294,18 +377,6 @@ impl<T: PrimitiveVectorElement> VectorStorage for AppendableMmapMultiDenseVector
 
     fn delete_vector(&mut self, key: PointOffsetType) -> OperationResult<bool> {
         Ok(self.set_deleted(key, true))
-    }
-
-    fn is_deleted_vector(&self, key: PointOffsetType) -> bool {
-        self.deleted.get(key)
-    }
-
-    fn deleted_vector_count(&self) -> usize {
-        self.deleted_count
-    }
-
-    fn deleted_vector_bitslice(&self) -> &BitSlice {
-        self.deleted.get_bitslice()
     }
 }
 
@@ -462,7 +533,7 @@ pub fn open_appendable_memmap_multi_vector_storage_impl<T: PrimitiveVectorElemen
     let vectors = ChunkedVectors::open(&vectors_path, dim, madvise, Some(populate))?;
     let offsets = ChunkedVectors::open(&offsets_path, 1, madvise, Some(populate))?;
 
-    let deleted = BitvecFlags::new(DynamicMmapFlags::open(&deleted_path, populate)?);
+    let deleted = BitvecFlags::new(DynamicStoredFlags::open(&deleted_path, populate)?)?;
     let deleted_count = deleted.count_trues();
 
     Ok(AppendableMmapMultiDenseVectorStorage {
@@ -477,7 +548,7 @@ pub fn open_appendable_memmap_multi_vector_storage_impl<T: PrimitiveVectorElemen
 }
 
 /// Find files related to this dense vector storage
-#[cfg(any(test, feature = "rocksdb"))]
+#[cfg(test)]
 pub(crate) fn find_storage_files(vector_storage_path: &Path) -> OperationResult<Vec<PathBuf>> {
     let vectors_path = vector_storage_path.join(VECTORS_DIR_PATH);
     let offsets_path = vector_storage_path.join(OFFSETS_DIR_PATH);

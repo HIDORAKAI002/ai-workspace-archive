@@ -10,11 +10,13 @@ from .utils import *
 COLLECTION_NAME = "test_collection"
 
 
-def update_points_in_loop(peer_url, collection_name, offset=0, throttle=False, duration=None):
+def update_points_in_loop(peer_url, collection_name, offset=0, throttle=False, duration=None, stop_event=None):
     start = time.time()
     limit = 3
 
     while True:
+        if stop_event is not None and stop_event.is_set():
+            break
         upsert_random_points(peer_url, limit, collection_name, offset=offset)
         offset += limit
 
@@ -25,9 +27,25 @@ def update_points_in_loop(peer_url, collection_name, offset=0, throttle=False, d
 
 
 def run_update_points_in_background(peer_url, collection_name, init_offset=0, throttle=False, duration=None):
-    p = multiprocessing.Process(target=update_points_in_loop, args=(peer_url, collection_name, init_offset, throttle, duration))
+    stop_event = multiprocessing.Event()
+    p = multiprocessing.Process(target=update_points_in_loop, args=(peer_url, collection_name, init_offset, throttle, duration, stop_event))
     p.start()
+    p.stop_event = stop_event
     return p
+
+
+def stop_update_process(process, timeout=10):
+    """Signal the uploader to exit between requests, then join.
+
+    This ensures no HTTP upsert is in-flight when we return, so a subsequent
+    peer kill cannot interrupt partial replication. Falls back to SIGKILL if
+    the process does not exit within the timeout.
+    """
+    process.stop_event.set()
+    process.join(timeout=timeout)
+    if process.is_alive():
+        process.kill()
+        process.join()
 
 
 def check_data_consistency(data):
@@ -68,7 +86,7 @@ def test_empty_shard_wal_delta_transfer(tmp_path: pathlib.Path):
     assert_project_root()
 
     # seed port to reuse the same port for the restarted nodes
-    peer_api_uris, _peer_dirs, _bootstrap_uri = start_cluster(tmp_path, 2, 20000)
+    peer_api_uris, _peer_dirs, _bootstrap_uri = start_cluster(tmp_path, 2)
 
     create_collection(peer_api_uris[0], shard_number=1, replication_factor=2)
     wait_collection_exists_and_active_on_all_peers(
@@ -156,7 +174,7 @@ def test_shard_wal_delta_transfer_manual_recovery(tmp_path: pathlib.Path):
     }
 
     # seed port to reuse the same port for the restarted nodes
-    peer_api_uris, peer_dirs, bootstrap_uri = start_cluster(tmp_path, 3, 20000, extra_env=env)
+    peer_api_uris, peer_dirs, bootstrap_uri = start_cluster(tmp_path, 3, extra_env=env)
 
     create_collection(peer_api_uris[0], shard_number=1, replication_factor=3)
     wait_collection_exists_and_active_on_all_peers(
@@ -177,16 +195,18 @@ def test_shard_wal_delta_transfer_manual_recovery(tmp_path: pathlib.Path):
 
     sleep(1)
 
-    # Kill last peer
-    upload_process_3.kill()
-    processes.pop().kill()
+    # Stop uploader cleanly before killing peer so no upsert is in-flight
+    stop_update_process(upload_process_3)
+    p = processes.pop()
+    restart_port = p.p2p_port
+    p.kill()
 
     upsert_random_points(peer_api_uris[0], 100, batch_size=5)
 
     sleep(3)
 
     # Restart the peer
-    peer_api_uris[-1] = start_peer(peer_dirs[-1], "peer_2_restarted.log", bootstrap_uri, extra_env=env)
+    peer_api_uris[-1] = start_peer(peer_dirs[-1], "peer_2_restarted.log", bootstrap_uri, port=restart_port, extra_env=env)
     wait_for_peer_online(peer_api_uris[-1], "/")
 
     # Recover shard with WAL delta transfer
@@ -248,7 +268,7 @@ def test_shard_wal_delta_transfer_manual_recovery_chain(tmp_path: pathlib.Path):
     }
 
     # seed port to reuse the same port for the restarted nodes
-    peer_api_uris, peer_dirs, bootstrap_uri = start_cluster(tmp_path, 5, 20000, extra_env=env)
+    peer_api_uris, peer_dirs, bootstrap_uri = start_cluster(tmp_path, 5, extra_env=env)
 
     create_collection(peer_api_uris[0], shard_number=1, replication_factor=5)
     wait_collection_exists_and_active_on_all_peers(
@@ -268,23 +288,27 @@ def test_shard_wal_delta_transfer_manual_recovery_chain(tmp_path: pathlib.Path):
 
     sleep(1)
 
-    # Kill 5th peer
-    upload_process_5.kill()
-    processes.pop().kill()
+    # Stop uploader cleanly before killing peer so no upsert is in-flight
+    stop_update_process(upload_process_5)
+    p5 = processes.pop()
+    restart_port_5 = p5.p2p_port
+    p5.kill()
 
     sleep(1)
 
-    # Kill 4th peer
-    upload_process_4.kill()
-    processes.pop().kill()
+    # Stop uploader cleanly before killing peer so no upsert is in-flight
+    stop_update_process(upload_process_4)
+    p4 = processes.pop()
+    restart_port_4 = p4.p2p_port
+    p4.kill()
 
     upsert_random_points(peer_api_uris[0], 100, batch_size=5)
 
     sleep(3)
 
-    # Restart 3rd and 4th peer
-    peer_api_uris[3] = start_peer(peer_dirs[3], "peer_3_restarted.log", bootstrap_uri, extra_env=env)
-    peer_api_uris[4] = start_peer(peer_dirs[4], "peer_4_restarted.log", bootstrap_uri, extra_env=env)
+    # Restart 4th and 5th peer on same ports
+    peer_api_uris[3] = start_peer(peer_dirs[3], "peer_3_restarted.log", bootstrap_uri, port=restart_port_4, extra_env=env)
+    peer_api_uris[4] = start_peer(peer_dirs[4], "peer_4_restarted.log", bootstrap_uri, port=restart_port_5, extra_env=env)
     wait_for_peer_online(peer_api_uris[3], "/")
     wait_for_peer_online(peer_api_uris[4], "/")
 
@@ -370,7 +394,7 @@ def test_shard_wal_delta_transfer_abort_and_retry(tmp_path: pathlib.Path):
     }
 
     # seed port to reuse the same port for the restarted nodes
-    peer_api_uris, peer_dirs, bootstrap_uri = start_cluster(tmp_path, 3, 20000, extra_env=env)
+    peer_api_uris, peer_dirs, bootstrap_uri = start_cluster(tmp_path, 3, extra_env=env)
 
     create_collection(peer_api_uris[0], shard_number=1, replication_factor=3)
     wait_collection_exists_and_active_on_all_peers(
@@ -391,9 +415,11 @@ def test_shard_wal_delta_transfer_abort_and_retry(tmp_path: pathlib.Path):
 
     sleep(1)
 
-    # Kill last peer
-    upload_process_3.kill()
-    processes.pop().kill()
+    # Stop uploader cleanly before killing peer so no upsert is in-flight
+    stop_update_process(upload_process_3)
+    p = processes.pop()
+    restart_port = p.p2p_port
+    p.kill()
 
     sleep(1)
 
@@ -402,7 +428,7 @@ def test_shard_wal_delta_transfer_abort_and_retry(tmp_path: pathlib.Path):
     sleep(3)
 
     # Restart the peer
-    peer_api_uris[-1] = start_peer(peer_dirs[-1], "peer_2_restarted.log", bootstrap_uri, extra_env=env)
+    peer_api_uris[-1] = start_peer(peer_dirs[-1], "peer_2_restarted.log", bootstrap_uri, port=restart_port, extra_env=env)
     wait_for_peer_online(peer_api_uris[-1], "/")
 
     # Recover shard with WAL delta transfer
@@ -488,7 +514,7 @@ def test_shard_wal_delta_transfer_fallback(tmp_path: pathlib.Path):
     assert_project_root()
 
     # seed port to reuse the same port for the restarted nodes
-    peer_api_uris, _peer_dirs, _bootstrap_uri = start_cluster(tmp_path, 3, 20000)
+    peer_api_uris, _peer_dirs, _bootstrap_uri = start_cluster(tmp_path, 3)
 
     create_collection(peer_api_uris[0], shard_number=3, replication_factor=1)
     wait_collection_exists_and_active_on_all_peers(
@@ -559,7 +585,7 @@ def test_shard_fallback_on_big_diff(tmp_path: pathlib.Path):
     }
 
     # seed port to reuse the same port for the restarted nodes
-    peer_api_uris, peer_dirs, bootstrap_uri = start_cluster(tmp_path, 3, 20000, extra_env=env)
+    peer_api_uris, peer_dirs, bootstrap_uri = start_cluster(tmp_path, 3, extra_env=env)
 
     create_collection(peer_api_uris[0], shard_number=1, replication_factor=3)
     wait_collection_exists_and_active_on_all_peers(
@@ -580,7 +606,9 @@ def test_shard_fallback_on_big_diff(tmp_path: pathlib.Path):
     sleep(1)
 
     # Kill last peer
-    processes.pop().kill()
+    p = processes.pop()
+    restart_port = p.p2p_port
+    p.kill()
 
     sleep(1)
 
@@ -590,7 +618,7 @@ def test_shard_fallback_on_big_diff(tmp_path: pathlib.Path):
     sleep(1)
 
     # Restart the peer
-    peer_api_uris[-1] = start_peer(peer_dirs[-1], "peer_2_restarted.log", bootstrap_uri, extra_env=env)
+    peer_api_uris[-1] = start_peer(peer_dirs[-1], "peer_2_restarted.log", bootstrap_uri, port=restart_port, extra_env=env)
     wait_for_peer_online(peer_api_uris[-1], "/")
 
 
@@ -659,7 +687,7 @@ def test_abort_stream_records_breaks_wal_delta(tmp_path: pathlib.Path):
     }
 
     # seed port to reuse the same port for the restarted nodes
-    peer_api_uris, peer_dirs, bootstrap_uri = start_cluster(tmp_path, 3, 20000, extra_env=env)
+    peer_api_uris, peer_dirs, bootstrap_uri = start_cluster(tmp_path, 3, extra_env=env)
 
     create_collection(peer_api_uris[0], shard_number=1, replication_factor=3)
     wait_collection_exists_and_active_on_all_peers(
@@ -678,13 +706,15 @@ def test_abort_stream_records_breaks_wal_delta(tmp_path: pathlib.Path):
     sleep(1)
 
     # Kill last peer
-    processes.pop().kill()
+    p = processes.pop()
+    restart_port = p.p2p_port
+    p.kill()
 
     # Upsert data, last peer won't receive it
     upsert_random_points(peer_api_uris[0], 2000, COLLECTION_NAME, batch_size=100)
 
     # Restart the peer
-    peer_api_uris[-1] = start_peer(peer_dirs[-1], "peer_2_restarted.log", bootstrap_uri, extra_env=env)
+    peer_api_uris[-1] = start_peer(peer_dirs[-1], "peer_2_restarted.log", bootstrap_uri, port=restart_port, extra_env=env)
     wait_for_peer_online(peer_api_uris[-1], "/")
 
     # Recover shard with stream records transfer

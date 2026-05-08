@@ -19,7 +19,7 @@ use segment::entry::entry_point::SegmentEntry;
 use segment::fixtures::payload_fixtures::{random_int_payload, random_multi_vector};
 use segment::fixtures::query_fixtures::QueryVariant;
 use segment::index::hnsw_index::hnsw::{HNSWIndex, HnswIndexOpenArgs};
-use segment::index::{PayloadIndex, VectorIndex};
+use segment::index::{PayloadIndex, VectorIndexRead};
 use segment::json_path::JsonPath;
 use segment::segment_constructor::build_segment;
 use segment::types::{
@@ -202,14 +202,7 @@ fn test_multivector_quantization_hnsw(
     let storage_type = if on_disk {
         VectorStorageType::ChunkedMmap
     } else {
-        #[cfg(feature = "rocksdb")]
-        {
-            VectorStorageType::Memory
-        }
-        #[cfg(not(feature = "rocksdb"))]
-        {
-            VectorStorageType::InRamChunkedMmap
-        }
+        VectorStorageType::InRamChunkedMmap
     };
     let config = SegmentConfig {
         vector_data: HashMap::from([(

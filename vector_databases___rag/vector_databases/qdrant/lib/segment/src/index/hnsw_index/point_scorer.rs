@@ -8,7 +8,7 @@ use common::generic_consts::Random;
 use common::types::{PointOffsetType, ScoreType, ScoredPointOffset};
 use smallvec::SmallVec;
 
-use crate::common::operation_error::{CancellableResult, OperationResult, check_process_stopped};
+use crate::common::operation_error::{OperationResult, check_process_stopped};
 use crate::data_types::vectors::QueryVector;
 use crate::payload_storage::FilterContext;
 use crate::vector_storage::common::VECTOR_READ_BATCH_SIZE;
@@ -16,7 +16,7 @@ use crate::vector_storage::quantized::quantized_query_scorer::InternalScorerUnsu
 use crate::vector_storage::quantized::quantized_vectors::QuantizedVectors;
 use crate::vector_storage::query_scorer::QueryScorerBytes;
 use crate::vector_storage::{
-    RawScorer, VectorStorage, VectorStorageEnum, check_deleted_condition, new_raw_scorer,
+    RawScorer, VectorStorageEnum, VectorStorageRead, check_deleted_condition, new_raw_scorer,
 };
 
 /// Scorers composition:
@@ -351,7 +351,7 @@ impl<'a> BatchFilteredSearcher<'a> {
         self,
         is_stopped: &AtomicBool,
         deferred_internal_id: Option<PointOffsetType>,
-    ) -> CancellableResult<Vec<Vec<ScoredPointOffset>>> {
+    ) -> OperationResult<Vec<Vec<ScoredPointOffset>>> {
         let iter = self
             .filters
             .point_deleted
@@ -370,7 +370,7 @@ impl<'a> BatchFilteredSearcher<'a> {
         mut self,
         mut points: impl Iterator<Item = PointOffsetType>,
         is_stopped: &AtomicBool,
-    ) -> CancellableResult<Vec<Vec<ScoredPointOffset>>> {
+    ) -> OperationResult<Vec<Vec<ScoredPointOffset>>> {
         // Reuse the same buffer for all chunks, to avoid reallocation
         let mut chunk = [0; VECTOR_READ_BATCH_SIZE];
         let mut scores_buffer = [0.0; VECTOR_READ_BATCH_SIZE];

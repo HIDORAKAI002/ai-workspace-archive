@@ -14,7 +14,7 @@ use crate::types::{GeoBoundingBox, GeoPoint, GeoPolygon, GeoRadius};
 ///
 /// Geohash string is a base32 encoded string.
 /// It means that each character can be represented with 5 bits.
-/// Also, the length of the string is encoded as 4 bits (because max size is `GEOHASH_MAX_LENGTH = 12`).
+/// Also, the length of the string is encoded as 4 bits (because max size is [`GeoHash::MAX_LENGTH`] = 12).
 /// So, the packed representation is 64 bits long: 5bits * 12chars + 4bits = 64 bits.
 ///
 /// Characters are stored in reverse order to keep lexicographical order.
@@ -30,24 +30,29 @@ use crate::types::{GeoBoundingBox, GeoPoint, GeoPolygon, GeoRadius};
 /// Decoded     'd'   'r'   '5'   'r'   'u'   'j'   '4'   '4'   '7'                      9
 /// Meaning     s[0]  s[1]  s[2]  s[3]  s[4]  s[5]  s[6]  s[7]  s[8]  s[9]  s[10] s[11]  length
 /// ```
-#[repr(C)]
 #[derive(Default, Clone, Copy, Debug, PartialEq, Hash, Ord, PartialOrd, Eq)]
-pub struct GeoHash {
-    packed: u64,
+pub struct GeoHash(u64);
+
+/// Variation of [`GeoHash`] to serialize/deserialize without validation.
+///
+/// Unlike [`GeoHash`], it might contain invalid bit patterns, e.g. `length > GeoHash::MAX_LENGTH`,
+/// or non-zeroed unused bits in characters.
+#[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
+#[repr(C)]
+pub struct GeoHashRaw(pub u64);
+
+impl GeoHashRaw {
+    /// No-op, unless the raw value contains invalid bits.
+    pub fn normalize(self) -> GeoHash {
+        GeoHash::new_from_parts(self.0, self.0 & GeoHash::LEN_MASK)
+    }
 }
 
-// code from geohash crate
-// the alphabet for the base32 encoding used in geohashing
-#[rustfmt::skip]
-const BASE32_CODES: [u8; 32] = [
-    b'0', b'1', b'2', b'3', b'4', b'5', b'6', b'7',
-    b'8', b'9', b'b', b'c', b'd', b'e', b'f', b'g',
-    b'h', b'j', b'k', b'm', b'n', b'p', b'q', b'r',
-    b's', b't', b'u', b'v', b'w', b'x', b'y', b'z',
-];
-
-/// Max size of geo-hash used for indexing. size=12 is about 6cm2
-pub const GEOHASH_MAX_LENGTH: usize = 12;
+impl From<GeoHash> for GeoHashRaw {
+    fn from(hash: GeoHash) -> GeoHashRaw {
+        GeoHashRaw(hash.0)
+    }
+}
 
 const LON_RANGE: Range<f64> = -180.0..180.0;
 const LAT_RANGE: Range<f64> = -90.0..90.0;
@@ -58,8 +63,8 @@ impl Index<usize> for GeoHash {
 
     fn index(&self, i: usize) -> &Self::Output {
         assert!(i < self.len());
-        let index = (self.packed >> Self::shift_value(i)) & 0b11111;
-        &BASE32_CODES[index as usize]
+        let index = (self.0 >> Self::shift_value(i)) & ((1 << GeoHash::CHAR_BITS) - 1);
+        &GeoHash::BASE32[index as usize]
     }
 }
 
@@ -91,24 +96,22 @@ impl Display for GeoHash {
     }
 }
 
-pub struct GeoHashIterator {
-    packed_chars: u64,
-}
+pub struct GeoHashIterator(u64);
 
 impl Iterator for GeoHashIterator {
     type Item = u8;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let len = self.packed_chars & 0b1111;
+        let len = self.0 & GeoHash::LEN_MASK;
         if len > 0 {
             // take first character from the packed value
-            let char_index = (self.packed_chars >> 59) & 0b11111;
+            let char_index = self.0 >> (GeoHash::BITS - GeoHash::CHAR_BITS);
 
             // shift packed value to the left to get the next character
-            self.packed_chars = (self.packed_chars << 5) | (len - 1);
+            self.0 = (self.0 << GeoHash::CHAR_BITS) | (len - 1);
 
             // get character from the base32 alphabet
-            Some(BASE32_CODES[char_index as usize])
+            Some(GeoHash::BASE32[char_index as usize])
         } else {
             None
         }
@@ -116,31 +119,48 @@ impl Iterator for GeoHashIterator {
 }
 
 impl GeoHash {
-    pub fn new<H>(s: H) -> Result<Self, GeohashError>
+    const BITS: u32 = u64::BITS;
+
+    /// Max length of geo-hash used for indexing. size=12 is about 6cm2
+    const MAX_LEN: usize = 12;
+
+    /// Four least significant bits are length.
+    /// The negation of this mask is the packed characters mask.
+    const LEN_MASK: u64 = 0b1111;
+
+    const LEN_BITS: u32 = 4;
+
+    const CHAR_BITS: u32 = 5;
+
+    /// The alphabet for the base32 encoding used in geohashing.
+    const BASE32: [u8; 32] = *b"0123456789bcdefghjkmnpqrstuvwxyz";
+
+    fn new<H>(s: H) -> Result<Self, GeohashError>
     where
         H: AsRef<[u8]>,
     {
         let s = s.as_ref();
-        if s.len() > GEOHASH_MAX_LENGTH {
+        if s.len() > GeoHash::MAX_LEN {
             return Err(GeohashError::InvalidLength(s.len()));
         }
         let mut packed: u64 = 0;
         for (i, c) in s.iter().enumerate() {
-            let index = BASE32_CODES.iter().position(|x| x == c).unwrap() as u64;
+            let index = GeoHash::BASE32.iter().position(|x| x == c).unwrap() as u64;
             packed |= index << Self::shift_value(i);
         }
         packed |= s.len() as u64;
-        Ok(Self { packed })
+        Ok(Self(packed))
+    }
+
+    fn new_from_parts(characters: u64, len: u64) -> GeoHash {
+        let len = len.min(GeoHash::MAX_LEN as u64);
+        let characters_mask = !GeoHash::LEN_MASK
+            << (GeoHash::BITS - GeoHash::LEN_BITS - GeoHash::CHAR_BITS * len as u32);
+        GeoHash((characters & characters_mask) | len)
     }
 
     pub fn iter(&self) -> GeoHashIterator {
-        if !self.is_empty() {
-            GeoHashIterator {
-                packed_chars: self.packed,
-            }
-        } else {
-            GeoHashIterator { packed_chars: 0 }
-        }
+        GeoHashIterator(self.0)
     }
 
     pub fn is_empty(&self) -> bool {
@@ -148,24 +168,12 @@ impl GeoHash {
     }
 
     pub fn len(&self) -> usize {
-        (self.packed & 0b1111) as usize
+        (self.0 & GeoHash::LEN_MASK) as usize
     }
 
     pub fn truncate(&self, new_len: usize) -> Self {
         assert!(new_len <= self.len());
-        if new_len == self.len() {
-            return *self;
-        }
-        if new_len == 0 {
-            return Self { packed: 0 };
-        }
-
-        let mut packed = self.packed;
-        // Clear all bits after `new_len`-th character and clear length bits
-        let shift = Self::shift_value(new_len - 1);
-        packed = (packed >> shift) << shift;
-        packed |= new_len as u64; // set new length
-        Self { packed }
+        GeoHash::new_from_parts(self.0, new_len as u64)
     }
 
     pub fn starts_with(&self, other: GeoHash) -> bool {
@@ -178,16 +186,15 @@ impl GeoHash {
             return true;
         }
 
-        let self_shifted = self.packed >> Self::shift_value(other.len() - 1);
-        let other_shifted = other.packed >> Self::shift_value(other.len() - 1);
+        let self_shifted = self.0 >> Self::shift_value(other.len() - 1);
+        let other_shifted = other.0 >> Self::shift_value(other.len() - 1);
         self_shifted == other_shifted
     }
 
     // Returns the shift value. If we apply this shift to the packed value, we get the value of the `i`-th character.
-    fn shift_value(i: usize) -> usize {
-        assert!(i < GEOHASH_MAX_LENGTH);
-        // first 4 bits is size, then 5 bits per character in reverse order (for lexicographical order)
-        5 * (GEOHASH_MAX_LENGTH - 1 - i) + 4
+    fn shift_value(i: usize) -> u32 {
+        assert!(i < GeoHash::MAX_LEN);
+        GeoHash::LEN_BITS + GeoHash::CHAR_BITS * (GeoHash::MAX_LEN as u32 - 1 - i as u32)
     }
 }
 
@@ -256,7 +263,7 @@ fn sphere_neighbor(hash: GeoHash, direction: Direction) -> Result<GeoHash, Geoha
 }
 
 pub fn encode_max_precision(lon: f64, lat: f64) -> Result<GeoHash, GeohashError> {
-    let encoded_string = encode((lon, lat).into(), GEOHASH_MAX_LENGTH)?;
+    let encoded_string = encode((lon, lat).into(), GeoHash::MAX_LEN)?;
     GeoHash::try_from(encoded_string)
 }
 
@@ -393,7 +400,7 @@ fn check_polygon_intersection(geohash: &str, polygon: &Polygon) -> bool {
 fn create_hashes(
     mapping_fn: impl Fn(usize) -> Option<Vec<GeoHash>>,
 ) -> OperationResult<Vec<GeoHash>> {
-    (0..=GEOHASH_MAX_LENGTH)
+    (0..=GeoHash::MAX_LEN)
         .map(mapping_fn)
         .take_while(|hashes| hashes.is_some())
         .last()
@@ -414,7 +421,7 @@ pub fn circle_hashes(circle: &GeoRadius, max_regions: usize) -> OperationResult<
     if geo_bounding_box.top_left.lat.is_nan()
         || geo_bounding_box.top_left.lon.is_nan()
         || geo_bounding_box.bottom_right.lat.is_nan()
-        || geo_bounding_box.bottom_right.lat.is_nan()
+        || geo_bounding_box.bottom_right.lon.is_nan()
     {
         return Err(OperationError::service_error("Invalid circle"));
     }
@@ -678,9 +685,9 @@ mod tests {
             b"uft5602",
             b"uft560200000",
         ];
-        for a in samples.iter() {
+        for a in &samples {
             let a_hash = GeoHash::new(a).unwrap();
-            for b in samples.iter() {
+            for b in &samples {
                 let b_hash = GeoHash::new(b).unwrap();
                 if a.starts_with(b) {
                     assert!(
@@ -698,12 +705,45 @@ mod tests {
     }
 
     #[test]
+    #[expect(clippy::unusual_byte_groupings)]
+    fn geohash_normalize() {
+        let valid_samples: [&[u8]; _] = [
+            b"dr5ru",
+            b"uft56",
+            b"hhbcd",
+            b"uft560000000",
+            b"h",
+            b"hbcd",
+            b"887hh1234567",
+            b"",
+            b"hwx98",
+            b"hbc",
+            b"dr5rukz",
+        ];
+        // Normalization should not change valid hashes
+        for s in valid_samples {
+            let hash = GeoHash::new(s).unwrap();
+            assert_eq!(hash, GeoHashRaw::from(hash).normalize());
+        }
+
+        let raw = 0b_00001_00010_00011_00100_00101_00110_00111_01000_01001_01010_01100_01101__0011;
+        let fxd = 0b_00001_00010_00011_00000_00000_00000_00000_00000_00000_00000_00000_00000__0011;
+        // Zero-fill unused chars:     ^^^^^ ^^^^^ ^^^^^^^^^^^ ^^^^^ ^^^^^ ^^^^^ ^^^^^ ^^^^^
+        assert_eq!(GeoHashRaw(raw).normalize().0, fxd);
+
+        let raw = 0b_00001_00010_00011_00100_00101_00110_00111_01000_01001_01010_01100_01101__1111;
+        let fxd = 0b_00001_00010_00011_00100_00101_00110_00111_01000_01001_01010_01100_01101__1100;
+        // Truncate length:                                                                   ^^^^
+        assert_eq!(GeoHashRaw(raw).normalize().0, fxd);
+    }
+
+    #[test]
     fn geohash_encode_longitude_first() {
-        let center_hash = GeoHash::new(encode(Coord::from(NYC), GEOHASH_MAX_LENGTH).unwrap());
+        let center_hash = GeoHash::new(encode(Coord::from(NYC), GeoHash::MAX_LEN).unwrap());
         assert_eq!(center_hash.ok(), GeoHash::new(b"dr5ru7c02wnv").ok());
         let center_hash = GeoHash::new(encode(Coord::from(NYC), 6).unwrap());
         assert_eq!(center_hash.ok(), GeoHash::new(b"dr5ru7").ok());
-        let center_hash = GeoHash::new(encode(Coord::from(BERLIN), GEOHASH_MAX_LENGTH).unwrap());
+        let center_hash = GeoHash::new(encode(Coord::from(BERLIN), GeoHash::MAX_LEN).unwrap());
         assert_eq!(center_hash.ok(), GeoHash::new(b"u33dc1v0xupz").ok());
         let center_hash = GeoHash::new(encode(Coord::from(BERLIN), 6).unwrap());
         assert_eq!(center_hash.ok(), GeoHash::new(b"u33dc1").ok());
@@ -1410,7 +1450,7 @@ mod tests {
             },
             radius: OrderedFloat(1000.0),
         };
-        let hashes = circle_hashes(&circle, GEOHASH_MAX_LENGTH);
+        let hashes = circle_hashes(&circle, GeoHash::MAX_LEN);
         assert!(hashes.is_ok());
 
         let circle2 = GeoRadius {
@@ -1420,7 +1460,7 @@ mod tests {
             },
             radius: OrderedFloat(-1.0),
         };
-        let hashes2 = circle_hashes(&circle2, GEOHASH_MAX_LENGTH);
+        let hashes2 = circle_hashes(&circle2, GeoHash::MAX_LEN);
         assert!(hashes2.is_err());
     }
 }

@@ -6,6 +6,7 @@ use common::counter::hardware_accumulator::HwMeasurementAcc;
 use common::save_on_disk::SaveOnDisk;
 use rand::rng;
 use segment::data_types::vectors::VectorStructInternal;
+use segment::entry::ReadSegmentEntry as _;
 use segment::fixtures::payload_fixtures::random_vector;
 use segment::types::{Distance, Filter, PointIdType};
 use tempfile::{Builder, TempDir};
@@ -13,6 +14,7 @@ use tokio::runtime::Handle;
 use tokio::sync::RwLock;
 
 use crate::collection::payload_index_schema::PayloadIndexSchema;
+use crate::common::adaptive_handle::AdaptiveSearchHandle;
 use crate::config::{CollectionConfigInternal, CollectionParams, WalConfig};
 use crate::operations::point_ops::{
     PointInsertOperationsInternal, PointOperations, PointStructPersisted,
@@ -93,7 +95,8 @@ async fn build_shard() -> (LocalShard, TempDir) {
     let payload_index_schema: Arc<SaveOnDisk<PayloadIndexSchema>> =
         Arc::new(SaveOnDisk::load_or_init_default(payload_index_schema_file).unwrap());
 
-    let current_runtime = Handle::current();
+    let update_runtime = Handle::current();
+    let current_runtime = AdaptiveSearchHandle::current_for_tests();
 
     let shard = LocalShard::build(
         0,
@@ -102,7 +105,7 @@ async fn build_shard() -> (LocalShard, TempDir) {
         Arc::new(RwLock::new(config.clone())),
         Arc::new(Default::default()),
         payload_index_schema,
-        current_runtime.clone(),
+        update_runtime.clone(),
         current_runtime.clone(),
         ResourceBudget::default(),
         optimizer_config,
@@ -118,12 +121,17 @@ async fn wait_optimization(shard: &LocalShard, timeout: Duration) {
     let start = std::time::Instant::now();
     loop {
         let (status, _) = shard.local_shard_status().await;
-        if status == ShardStatus::Green {
+        let has_proxy = shard
+            .segments()
+            .read()
+            .iter()
+            .any(|(_, segment)| !segment.is_original());
+        if status == ShardStatus::Green && !has_proxy {
             return;
         }
         assert!(
             start.elapsed() < timeout,
-            "Timeout waiting for optimizations to finish (status: {status:?})",
+            "Timeout waiting for optimizations to finish (status: {status:?}, has_proxy: {has_proxy})",
         );
         tokio::time::sleep(Duration::from_millis(100)).await;
     }
@@ -142,8 +150,13 @@ fn assert_no_duplicate_point_ids(shard: &LocalShard) {
     > = std::collections::HashMap::new();
 
     for (seg_id, segment) in holder.iter() {
-        let seg = segment.get();
-        let seg_read = seg.read();
+        let original = match segment {
+            shard::locked_segment::LockedSegment::Original(segment) => segment,
+            shard::locked_segment::LockedSegment::Proxy(_) => {
+                panic!("test does not expect proxy segments")
+            }
+        };
+        let seg_read = original.read();
         for pid in seg_read.iter_points() {
             let is_deferred = seg_read.point_is_deferred(pid);
             point_occurrences
@@ -381,7 +394,7 @@ async fn test_delete_by_id_with_deferred_points() {
     let timeout = Duration::from_secs(30);
 
     // Delete all points by ID
-    let all_ids: Vec<PointIdType> = (0..NUM_POINTS).map(|i| i.into()).collect();
+    let all_ids: Vec<PointIdType> = (0..NUM_POINTS).map(u64::into).collect();
     shard
         .update(
             delete_by_ids_op(all_ids),

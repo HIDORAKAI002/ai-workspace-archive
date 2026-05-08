@@ -8,13 +8,30 @@ use memmap2::MmapRaw;
 use super::*;
 use crate::generic_consts::AccessPattern;
 use crate::mmap::{MULTI_MMAP_IS_SUPPORTED, Madviseable as _};
+use crate::universal_io::read::UniversalReadPipeline;
 
 #[derive(Debug)]
 pub struct MmapFile {
     path: PathBuf,
+
+    // `mmap` and `mmap_seq` own the mmaps.
     mmap: Arc<MmapRaw>,
     mmap_seq: Option<MmapRaw>,
+
+    // `len`, `ptr`, `ptr_seq` contain the same values as `mmap`, `mmap_seq`,
+    // but duplicated here to avoid `Arc`/`Option` overhead in hot loops.
+    /// Length of [`Self::mmap`].
+    len: usize,
+    /// Points to [`Self::mmap`].
+    ptr: SendSyncPtr,
+    /// Points to [`Self::mmap_seq`] (if present) or fallbacks to [`Self::mmap`].
+    ptr_seq: SendSyncPtr,
 }
+
+#[derive(Debug, Clone, Copy)]
+struct SendSyncPtr(*mut u8);
+unsafe impl Send for SendSyncPtr {}
+unsafe impl Sync for SendSyncPtr {}
 
 impl UniversalReadFileOps for MmapFile {
     fn list_files(prefix_path: &Path) -> Result<Vec<PathBuf>> {
@@ -30,6 +47,8 @@ impl<T> UniversalRead<T> for MmapFile
 where
     T: bytemuck::Pod,
 {
+    type ReadPipeline<'a, Meta> = MmapReadPipeline<'a, T, Meta>;
+
     fn open(path: impl AsRef<Path>, options: OpenOptions) -> Result<Self> {
         let OpenOptions {
             writeable,
@@ -46,24 +65,36 @@ where
             populate.unwrap_or_default(),
             advice.unwrap_or(AdviceSetting::Global),
         )?;
+        let ptr = SendSyncPtr(mmap.as_mut_ptr());
 
-        let mmap_seq = if need_sequential && *MULTI_MMAP_IS_SUPPORTED {
-            let mmap_seq = open_mmap(
+        let mmap_seq;
+        let len;
+        let ptr_seq;
+
+        if need_sequential && *MULTI_MMAP_IS_SUPPORTED {
+            let mmap_seq_ = open_mmap(
                 path.as_ref(),
                 false,
                 false,
                 AdviceSetting::Advice(Advice::Sequential),
             )?;
 
-            Some(mmap_seq)
+            len = std::cmp::min(mmap.len(), mmap_seq_.len());
+            ptr_seq = SendSyncPtr(mmap_seq_.as_mut_ptr());
+            mmap_seq = Some(mmap_seq_);
         } else {
-            None
+            len = mmap.len();
+            ptr_seq = ptr;
+            mmap_seq = None;
         };
 
         let mmap = Self {
             path: path.as_ref().into(),
             mmap: Arc::new(mmap),
             mmap_seq,
+            len,
+            ptr,
+            ptr_seq,
         };
 
         Ok(mmap)
@@ -75,23 +106,8 @@ where
         Ok(Cow::Borrowed(items))
     }
 
-    fn read_batch<P: AccessPattern>(
-        &self,
-        ranges: impl IntoIterator<Item = ReadRange>,
-        mut callback: impl FnMut(usize, &[T]) -> Result<()>,
-    ) -> Result<()> {
-        let mmap = self.as_bytes::<P>();
-
-        for (idx, range) in ranges.into_iter().enumerate() {
-            let items = read(mmap, range)?;
-            callback(idx, items)?;
-        }
-
-        Ok(())
-    }
-
     fn len(&self) -> Result<u64> {
-        let len = self.mmap.len() / size_of::<T>();
+        let len = self.len / size_of::<T>();
         Ok(len as u64)
     }
 
@@ -101,8 +117,51 @@ where
     }
 
     fn clear_ram_cache(&self) -> Result<()> {
-        crate::fs::clear_disk_cache(&self.path)?;
+        self.mmap.clear_cache();
+        if let Some(mmap_seq) = &self.mmap_seq {
+            mmap_seq.clear_cache();
+        }
         Ok(())
+    }
+
+    fn kind() -> UniversalKind {
+        UniversalKind::Mmap
+    }
+}
+
+pub struct MmapReadPipeline<'file, T, Meta> {
+    result: Option<(Meta, &'file [T])>,
+}
+
+impl<'file, T, Meta> UniversalReadPipeline<'file, T, Meta> for MmapReadPipeline<'file, T, Meta>
+where
+    T: bytemuck::Pod,
+{
+    type File = MmapFile;
+
+    fn new() -> Result<Self> {
+        Ok(Self { result: None })
+    }
+
+    fn can_schedule(&mut self) -> bool {
+        self.result.is_none()
+    }
+
+    fn schedule<P>(&mut self, meta: Meta, file: &'file MmapFile, range: ReadRange) -> Result<()>
+    where
+        P: AccessPattern,
+    {
+        if self.result.is_some() {
+            return Err(UniversalIoError::QueueIsFull);
+        }
+
+        self.result = Some((meta, read(file.as_bytes::<P>(), range)?));
+        Ok(())
+    }
+
+    fn wait(&mut self) -> Result<Option<(Meta, Cow<'file, [T]>)>> {
+        let result = self.result.take();
+        Ok(result.map(|(meta, items)| (meta, Cow::Borrowed(items))))
     }
 }
 
@@ -169,18 +228,79 @@ fn open_mmap(path: &Path, write: bool, populate: bool, advice: AdviceSetting) ->
 }
 
 impl MmapFile {
-    fn as_bytes<P: AccessPattern>(&self) -> &[u8] {
-        let mmap = if P::IS_SEQUENTIAL {
-            self.mmap_seq.as_ref().unwrap_or(&self.mmap)
-        } else {
-            &self.mmap
-        };
+    /// Returns the path of the underlying file.
+    pub fn path(&self) -> &Path {
+        &self.path
+    }
 
-        unsafe { slice::from_raw_parts(mmap.as_ptr(), mmap.len()) }
+    /// Returns total file size on disk in bytes.
+    pub fn disk_bytes(&self) -> std::io::Result<u64> {
+        Ok(fs_err::metadata(&self.path)?.len())
+    }
+
+    /// Returns the number of bytes currently resident in RAM (page cache),
+    /// measured via `mincore`. This is a point-in-time approximation.
+    #[cfg(unix)]
+    pub fn resident_bytes(&self) -> std::io::Result<u64> {
+        let len = self.len;
+        if len == 0 {
+            return Ok(0);
+        }
+
+        let page_size = crate::mmap::advice::page_size()
+            .ok_or_else(|| std::io::Error::other("failed to determine page size"))?;
+        let num_pages = len.div_ceil(page_size);
+        let mut vec = vec![0u8; num_pages];
+
+        // SAFETY: `self.ptr.as_ptr()` is a valid page-aligned pointer for `len` bytes
+        // (guaranteed by memmap2). `vec` is correctly sized for `num_pages` entries.
+        let ret = unsafe { nix::libc::mincore(self.ptr.0.cast(), len, vec.as_mut_ptr().cast()) };
+        if ret != 0 {
+            return Err(std::io::Error::last_os_error());
+        }
+
+        // `mincore` writes one byte per page. The least significant bit indicates
+        // whether the page is currently resident in RAM (page cache).
+        // See: https://man7.org/linux/man-pages/man2/mincore.2.html
+        let resident_pages = vec.iter().filter(|&&b| b & 1 != 0).count();
+        let resident_bytes = (resident_pages * page_size).min(len) as u64;
+        Ok(resident_bytes)
+    }
+
+    /// Opens a file as a read-only `MmapFile` and returns its memory stats.
+    ///
+    /// This creates a temporary `MmapFile` to measure `mincore` residency,
+    /// ensuring all measurements go through the same mmap path.
+    #[cfg(unix)]
+    pub fn probe_memory_stats(path: impl AsRef<Path>) -> std::io::Result<(u64, u64)> {
+        let file: Self = <Self as UniversalRead<u8>>::open(
+            path,
+            OpenOptions {
+                writeable: false,
+                need_sequential: false,
+                disk_parallel: None,
+                populate: Some(false),
+                advice: Some(AdviceSetting::Advice(Advice::Normal)),
+                prevent_caching: None,
+            },
+        )
+        .map_err(|e| std::io::Error::other(e.to_string()))?;
+        let disk_bytes = file.disk_bytes()?;
+        let resident_bytes = file.resident_bytes()?;
+        Ok((disk_bytes, resident_bytes))
+    }
+
+    fn as_bytes<P: AccessPattern>(&self) -> &[u8] {
+        let ptr = if P::IS_SEQUENTIAL {
+            self.ptr_seq
+        } else {
+            self.ptr
+        };
+        unsafe { slice::from_raw_parts(ptr.0, self.len) }
     }
 
     fn as_bytes_mut(&mut self) -> &mut [u8] {
-        unsafe { slice::from_raw_parts_mut(self.mmap.as_mut_ptr(), self.mmap.len()) }
+        unsafe { slice::from_raw_parts_mut(self.ptr.0, self.len) }
     }
 }
 

@@ -8,9 +8,9 @@ use match_converter::get_match_checkers;
 use ordered_float::OrderedFloat;
 use serde_json::Value;
 
-use crate::id_tracker::IdTracker;
+use crate::id_tracker::IdTrackerRead;
 use crate::index::field_index::FieldIndex;
-use crate::index::field_index::null_index::MutableNullIndex;
+use crate::index::field_index::null_index::NullIndex;
 use crate::index::query_optimization::optimized_filter::ConditionCheckerFn;
 use crate::index::query_optimization::payload_provider::PayloadProvider;
 use crate::index::struct_payload_index::StructPayloadIndex;
@@ -22,7 +22,7 @@ use crate::types::{
     Condition, DateTimePayloadType, FieldCondition, FloatPayloadType, GeoBoundingBox, GeoPolygon,
     GeoRadius, IntPayloadType, OwnedPayloadRef, PayloadContainer, Range, RangeInterface,
 };
-use crate::vector_storage::VectorStorage;
+use crate::vector_storage::VectorStorageRead;
 
 mod match_converter;
 
@@ -51,6 +51,7 @@ impl StructPayloadIndex {
                             point_id,
                             |payload| {
                                 check_field_condition(field_condition, &payload, field_indexes, &hw)
+                                    .unwrap(/* TODO(uio): handle errors */)
                             },
                             &hw,
                         )
@@ -400,10 +401,8 @@ pub fn get_datetime_range_checkers(
     }
 }
 
-fn get_is_empty_indexes(
-    indexes: &[FieldIndex],
-) -> (Option<&MutableNullIndex>, Option<&FieldIndex>) {
-    let mut primary_null_index: Option<&MutableNullIndex> = None;
+fn get_is_empty_indexes(indexes: &[FieldIndex]) -> (Option<&NullIndex>, Option<&FieldIndex>) {
+    let mut primary_null_index: Option<&NullIndex> = None;
     let mut fallback_index: Option<&FieldIndex> = None;
 
     for index in indexes {
@@ -421,7 +420,7 @@ fn get_is_empty_indexes(
 }
 
 fn get_null_index_is_empty_checker(
-    null_index: &MutableNullIndex,
+    null_index: &NullIndex,
     is_empty: bool,
 ) -> ConditionCheckerFn<'_> {
     Box::new(move |point_id: PointOffsetType| null_index.values_is_empty(point_id) == is_empty)

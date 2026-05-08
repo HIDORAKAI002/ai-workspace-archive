@@ -1,6 +1,7 @@
 use std::fmt::Display;
 use std::sync::Arc;
 
+pub use api::HTTP_HEADER_API_KEY;
 use chrono::Utc;
 use collection::operations::shard_selector_internal::ShardSelectorInternal;
 use common::counter::hardware_accumulator::HwMeasurementAcc;
@@ -23,8 +24,6 @@ pub mod jwt_parser;
 // Re-export Auth and AuthType from storage crate.
 pub use storage::rbac::AuthType;
 pub use storage::rbac::auth::Auth;
-
-pub const HTTP_HEADER_API_KEY: &str = "api-key";
 
 /// The API keys used for auth
 #[derive(Clone)]
@@ -68,7 +67,7 @@ impl Display for AuthError {
 /// Log a denied authentication attempt to the audit log when audit is enabled.
 /// Used by both REST (actix) and gRPC (tonic) auth middlewares.
 pub fn log_denied_auth(
-    method: &str,
+    api: &str,
     remote: Option<String>,
     tracing_id: Option<String>,
     error: &AuthError,
@@ -76,7 +75,8 @@ pub fn log_denied_auth(
     if is_audit_enabled() {
         audit_log(AuditEvent {
             timestamp: Utc::now(),
-            method: method.to_string(),
+            method: None,
+            api: Some(api.to_string()),
             auth_type: AuthType::None,
             subject: None,
             remote,

@@ -1,6 +1,6 @@
+pub mod empty_sparse_vector_storage;
 pub mod mmap_sparse_vector_storage;
-#[cfg(feature = "rocksdb")]
-pub mod simple_sparse_vector_storage;
+pub mod read_only;
 mod stored_sparse_vectors;
 pub mod volatile_sparse_vector_storage;
 

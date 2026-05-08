@@ -34,6 +34,7 @@ impl Collection {
         operation: CollectionUpdateOperations,
         wait: WaitUntil,
         hw_measurement_acc: HwMeasurementAcc,
+        force: bool,
     ) -> CollectionResult<Option<UpdateResult>> {
         let shard_holder = self.shards_holder.clone().read_owned().await;
 
@@ -59,7 +60,7 @@ impl Collection {
                             wait,
                             None,
                             hw_measurement_acc.clone(),
-                            false,
+                            force,
                         )
                     })
                     .collect();
@@ -320,9 +321,7 @@ impl Collection {
             .unwrap_or_else(|| default_request.limit.unwrap());
 
         if limit == 0 {
-            return Err(CollectionError::BadRequest {
-                description: "Limit cannot be 0".to_string(),
-            });
+            return Err(CollectionError::bad_request("Limit cannot be 0"));
         }
 
         let local_only = shard_selection.is_shard_id();

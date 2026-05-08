@@ -1,16 +1,16 @@
 use std::path::{Path, PathBuf};
 
+use common::bitvec::BitSlice;
 use common::counter::hardware_counter::HardwareCounterCell;
 use common::counter::iterator_hw_measurement::HwMeasurementIteratorExt;
 use common::types::PointOffsetType;
+use common::universal_io::MmapFile;
 use fs_err as fs;
 use roaring::RoaringBitmap;
 
-use super::BoolIndex;
-use crate::common::flags::dynamic_mmap_flags::DynamicMmapFlags;
+use crate::common::flags::dynamic_stored_flags::DynamicStoredFlags;
 use crate::common::flags::roaring_flags::RoaringFlags;
 use crate::common::operation_error::{OperationError, OperationResult};
-use crate::index::field_index::map_index::IdIter;
 use crate::index::field_index::{
     CardinalityEstimation, FieldIndexBuilderTrait, PayloadBlockCondition, PayloadFieldIndex,
     PrimaryCondition, ValueIndexer,
@@ -27,12 +27,12 @@ pub struct MutableBoolIndex {
     indexed_count: usize,
     trues_count: usize,
     falses_count: usize,
-    storage: Storage,
+    storage: Storage<MmapFile>,
 }
 
-struct Storage {
-    trues_flags: RoaringFlags,
-    falses_flags: RoaringFlags,
+struct Storage<S> {
+    trues_flags: RoaringFlags<S>,
+    falses_flags: RoaringFlags<S>,
 }
 
 impl MutableBoolIndex {
@@ -70,13 +70,13 @@ impl MutableBoolIndex {
 
         // Trues bitslice
         let trues_path = path.join(TRUES_DIRNAME);
-        let trues_slice = DynamicMmapFlags::open(&trues_path, false)?;
-        let trues_flags = RoaringFlags::new(trues_slice);
+        let trues_slice = DynamicStoredFlags::open(&trues_path, false)?;
+        let trues_flags = RoaringFlags::new(trues_slice)?;
 
         // Falses bitslice
         let falses_path = path.join(FALSES_DIRNAME);
-        let falses_slice = DynamicMmapFlags::open(&falses_path, false)?;
-        let falses_flags = RoaringFlags::new(falses_slice);
+        let falses_slice = DynamicStoredFlags::open(&falses_path, false)?;
+        let falses_flags = RoaringFlags::new(falses_slice)?;
 
         let trues_count = trues_flags.count_trues();
         let falses_count = falses_flags.count_trues();
@@ -98,10 +98,66 @@ impl MutableBoolIndex {
         })
     }
 
+    /// Open for an immutable index.
+    pub(crate) fn open_immutable(path: &Path, deleted: &BitSlice) -> OperationResult<Option<Self>> {
+        let index = Self::open(path, false)?.map(|mut idx| {
+            // Mark deleted points as not indexed
+            for id in deleted.iter_ones() {
+                idx.set_or_insert_immutable(id as u32, false, false);
+            }
+            idx
+        });
+
+        Ok(index)
+    }
+
     fn set_or_insert(&mut self, id: u32, has_true: bool, has_false: bool) {
         // Set or insert the flags
         let prev_true = self.storage.trues_flags.set(id, has_true);
         let prev_false = self.storage.falses_flags.set(id, has_false);
+
+        let was_indexed = prev_true || prev_false;
+        let is_indexed = has_true || has_false;
+
+        // update indexed_count
+        match (was_indexed, is_indexed) {
+            (false, true) => {
+                self.indexed_count += 1;
+            }
+            (true, false) => {
+                self.indexed_count = self.indexed_count.saturating_sub(1);
+            }
+            _ => {}
+        }
+
+        // update trues_count
+        match (prev_true, has_true) {
+            (false, true) => {
+                self.trues_count += 1;
+            }
+            (true, false) => {
+                self.trues_count = self.trues_count.saturating_sub(1);
+            }
+            _ => {}
+        }
+
+        // update falses_count
+        match (prev_false, has_false) {
+            (false, true) => {
+                self.falses_count += 1;
+            }
+            (true, false) => {
+                self.falses_count = self.falses_count.saturating_sub(1);
+            }
+            _ => {}
+        }
+    }
+
+    /// Set or insert for an immutable index, without modifying the underlying storage.
+    pub(crate) fn set_or_insert_immutable(&mut self, id: u32, has_true: bool, has_false: bool) {
+        // Set or insert the flags
+        let prev_true = self.storage.trues_flags.set_immutable(id, has_true);
+        let prev_false = self.storage.falses_flags.set_immutable(id, has_false);
 
         let was_indexed = prev_true || prev_false;
         let is_indexed = has_true || has_false;
@@ -184,24 +240,20 @@ impl MutableBoolIndex {
         !self.storage.trues_flags.get(point_id) && !self.storage.falses_flags.get(point_id)
     }
 
-    pub fn iter_values_map<'a>(
-        &'a self,
-        hw_counter: &'a HardwareCounterCell,
-    ) -> impl Iterator<Item = (bool, IdIter<'a>)> + 'a {
-        [
-            (
-                false,
-                Box::new(self.storage.falses_flags.iter_trues()) as IdIter,
-            ),
-            (
-                true,
-                Box::new(self.storage.trues_flags.iter_trues()) as IdIter,
-            ),
-        ]
-        .into_iter()
-        .measure_hw_with_acc(hw_counter.new_accumulator(), u8::BITS as usize, |i| {
-            i.payload_index_io_read_counter()
-        })
+    pub fn for_each_value_map(
+        &self,
+        hw_counter: &HardwareCounterCell,
+        mut f: impl FnMut(bool, &mut dyn Iterator<Item = PointOffsetType>) -> OperationResult<()>,
+    ) -> OperationResult<()> {
+        f(false, &mut self.storage.falses_flags.iter_trues())?;
+        hw_counter
+            .payload_index_io_read_counter()
+            .incr_delta(u8::BITS as usize);
+        f(true, &mut self.storage.trues_flags.iter_trues())?;
+        hw_counter
+            .payload_index_io_read_counter()
+            .incr_delta(u8::BITS as usize);
+        Ok(())
     }
 
     pub fn iter_values(&self) -> impl Iterator<Item = bool> + '_ {
@@ -213,10 +265,11 @@ impl MutableBoolIndex {
         .flatten()
     }
 
-    pub fn iter_counts_per_value(
+    pub fn for_each_count_per_value(
         &self,
         deferred_internal_id: Option<PointOffsetType>,
-    ) -> impl Iterator<Item = (bool, usize)> + '_ {
+        mut f: impl FnMut(bool, usize) -> OperationResult<()>,
+    ) -> OperationResult<()> {
         let (false_count, true_count) = match deferred_internal_id {
             Some(deferred_internal_id) => {
                 let false_count =
@@ -239,7 +292,8 @@ impl MutableBoolIndex {
             ),
         };
 
-        [(false, false_count), (true, true_count)].into_iter()
+        f(false, false_count)?;
+        f(true, true_count)
     }
 
     pub(crate) fn get_point_values(&self, point_id: u32) -> Vec<bool> {
@@ -250,6 +304,22 @@ impl MutableBoolIndex {
         .into_iter()
         .flatten()
         .collect()
+    }
+
+    /// Approximate RAM usage in bytes.
+    pub fn ram_usage_bytes(&self) -> usize {
+        let Self {
+            base_dir: _,
+            indexed_count: _,
+            trues_count: _,
+            falses_count: _,
+            storage,
+        } = self;
+        let Storage {
+            trues_flags,
+            falses_flags,
+        } = storage;
+        trues_flags.get_bitmap().serialized_size() + falses_flags.get_bitmap().serialized_size()
     }
 
     pub fn is_on_disk(&self) -> bool {
@@ -271,7 +341,7 @@ impl MutableBoolIndex {
 pub struct MutableBoolIndexBuilder(MutableBoolIndex);
 
 impl FieldIndexBuilderTrait for MutableBoolIndexBuilder {
-    type FieldIndexType = BoolIndex;
+    type FieldIndexType = MutableBoolIndex;
 
     fn init(&mut self) -> OperationResult<()> {
         // After Self is created, it is already initialized
@@ -288,7 +358,7 @@ impl FieldIndexBuilderTrait for MutableBoolIndexBuilder {
     }
 
     fn finalize(self) -> OperationResult<Self::FieldIndexType> {
-        Ok(BoolIndex::Mmap(self.0))
+        Ok(self.0)
     }
 }
 
@@ -377,7 +447,7 @@ impl PayloadFieldIndex for MutableBoolIndex {
         condition: &'a FieldCondition,
         hw_counter: &'a HardwareCounterCell,
     ) -> OperationResult<Option<Box<dyn Iterator<Item = PointOffsetType> + 'a>>> {
-        Ok(match &condition.r#match {
+        match &condition.r#match {
             Some(Match::Value(MatchValue {
                 value: ValueVariants::Bool(value),
             })) => {
@@ -390,10 +460,10 @@ impl PayloadFieldIndex for MutableBoolIndex {
                         u8::BITS as usize,
                         |i| i.payload_index_io_read_counter(),
                     );
-                Some(Box::new(iter))
+                Ok(Some(Box::new(iter)))
             }
-            _ => None,
-        })
+            _ => Ok(None),
+        }
     }
 
     fn estimate_cardinality(
@@ -420,36 +490,25 @@ impl PayloadFieldIndex for MutableBoolIndex {
         })
     }
 
-    fn payload_blocks(
+    fn for_each_payload_block(
         &self,
         threshold: usize,
         key: PayloadKeyType,
-    ) -> Box<dyn Iterator<Item = OperationResult<PayloadBlockCondition>> + '_> {
-        let make_block = |count, value, key: PayloadKeyType| {
-            if count > threshold {
-                Some(Ok(PayloadBlockCondition {
-                    condition: FieldCondition::new_match(
-                        key,
-                        Match::Value(MatchValue {
-                            value: ValueVariants::Bool(value),
-                        }),
-                    ),
-                    cardinality: count,
-                }))
-            } else {
-                None
+        f: &mut dyn FnMut(PayloadBlockCondition) -> OperationResult<()>,
+    ) -> OperationResult<()> {
+        let mut handle_block = |cardinality, value: bool, key: PayloadKeyType| {
+            if cardinality > threshold {
+                f(PayloadBlockCondition {
+                    condition: FieldCondition::new_match(key.clone(), Match::from(value)),
+                    cardinality,
+                })?;
             }
+            Ok(())
         };
 
         // just two possible blocks: true and false
-        let iter = [
-            make_block(self.trues_count, true, key.clone()),
-            make_block(self.falses_count, false, key),
-        ]
-        .into_iter()
-        .flatten();
-
-        Box::new(iter)
+        handle_block(self.trues_count, true, key.clone())?;
+        handle_block(self.falses_count, false, key)
     }
 }
 

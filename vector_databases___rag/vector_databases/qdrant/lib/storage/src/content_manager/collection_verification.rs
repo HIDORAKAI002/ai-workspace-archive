@@ -2,8 +2,8 @@ use std::iter;
 use std::sync::Arc;
 
 use collection::operations::verification::{
-    StrictModeVerification, VerificationPass, check_search_batch_size, check_timeout,
-    new_unchecked_verification_pass,
+    StrictModeVerification, VerificationPass, check_resident_memory, check_search_batch_size,
+    check_timeout, new_unchecked_verification_pass,
 };
 
 use super::errors::StorageError;
@@ -43,10 +43,22 @@ where
             check_search_batch_size(batch_size, strict_mode_config)?;
         }
 
+        // The memory check applies uniformly to external and internal traffic.
+        // Like `max_collection_vector_size_bytes`, the rejection is deterministic
+        // — a replicated op that overruns memory fails the same way on every
+        // peer on retry — so it does not flap the replica set or produce dead
+        // shards.
+        let mut any_consumes_memory = false;
+
         for request in requests {
+            any_consumes_memory |= request.consumes_memory();
             request
                 .check_strict_mode(&collection, strict_mode_config)
                 .await?;
+        }
+
+        if any_consumes_memory {
+            check_resident_memory(strict_mode_config, ::common::memory_usage::resident_bytes)?;
         }
 
         if let Some(timeout) = timeout {

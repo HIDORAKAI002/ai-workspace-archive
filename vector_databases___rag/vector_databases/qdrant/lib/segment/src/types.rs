@@ -126,11 +126,14 @@ impl FromStr for DateTimePayloadType {
         // Attempt to parse the input string in the specified formats:
         // - YYYY-MM-DD'T'HH:MM:SS (without timezone or Z)
         // - YYYY-MM-DD HH:MM:SS (without timezone or Z)
-        // - YYYY-MM-DD HH:MM
+        // - YYYY-MM-DD'T'HH:MM (without timezone and seconds)
+        // - YYYY-MM-DD HH:MM (without timezone and seconds)
         // - YYYY-MM-DD
         // See: <https://github.com/qdrant/qdrant/issues/3529>
+        // See: <https://github.com/qdrant/qdrant/issues/8718>
         let datetime = chrono::NaiveDateTime::parse_from_str(s, "%Y-%m-%dT%H:%M:%S%.f")
             .or_else(|_| chrono::NaiveDateTime::parse_from_str(s, "%Y-%m-%d %H:%M:%S%.f"))
+            .or_else(|_| chrono::NaiveDateTime::parse_from_str(s, "%Y-%m-%dT%H:%M"))
             .or_else(|_| chrono::NaiveDateTime::parse_from_str(s, "%Y-%m-%d %H:%M"))
             .or_else(|_| chrono::NaiveDate::parse_from_str(s, "%Y-%m-%d").map(Into::into))?;
 
@@ -194,10 +197,6 @@ impl ExtendedPointId {
             ExtendedPointId::NumId(num) => *num,
             ExtendedPointId::Uuid(_) => panic!("Cannot convert UUID to u64"),
         }
-    }
-
-    pub fn is_num_id(&self) -> bool {
-        matches!(self, ExtendedPointId::NumId(..))
     }
 
     pub fn is_uuid(&self) -> bool {
@@ -840,12 +839,6 @@ pub enum BinaryQuantizationEncoding {
     OneAndHalfBits,
 }
 
-impl BinaryQuantizationEncoding {
-    pub fn is_one_bit(&self) -> bool {
-        matches!(self, BinaryQuantizationEncoding::OneBit)
-    }
-}
-
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Deserialize, Serialize, JsonSchema, Validate)]
 #[serde(rename_all = "snake_case")]
 pub struct BinaryQuantizationConfig {
@@ -868,6 +861,33 @@ pub struct BinaryQuantization {
     pub binary: BinaryQuantizationConfig,
 }
 
+#[derive(Debug, Deserialize, Serialize, JsonSchema, Clone, Copy, PartialEq, Eq, Hash, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum TurboQuantBitSize {
+    Bits1,
+    Bits1_5,
+    Bits2,
+    #[default]
+    Bits4,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Deserialize, Serialize, JsonSchema, Validate)]
+#[serde(rename_all = "snake_case")]
+pub struct TurboQuantQuantizationConfig {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub always_ram: Option<bool>,
+
+    #[serde(default)]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub bits: Option<TurboQuantBitSize>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Deserialize, Serialize, JsonSchema, Validate)]
+pub struct TurboQuantization {
+    #[validate(nested)]
+    pub turbo: TurboQuantQuantizationConfig,
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Deserialize, Serialize, JsonSchema, Anonymize)]
 #[serde(untagged, rename_all = "snake_case")]
 #[anonymize(false)]
@@ -875,6 +895,7 @@ pub enum QuantizationConfig {
     Scalar(ScalarQuantization),
     Product(ProductQuantization),
     Binary(BinaryQuantization),
+    Turbo(TurboQuantization),
 }
 
 impl QuantizationConfig {
@@ -896,7 +917,19 @@ impl QuantizationConfig {
     }
 
     pub fn supports_appendable(&self) -> bool {
-        matches!(self, QuantizationConfig::Binary(_))
+        matches!(
+            self,
+            QuantizationConfig::Binary(_) | QuantizationConfig::Turbo(_)
+        )
+    }
+
+    pub fn always_ram(&self) -> bool {
+        match self {
+            QuantizationConfig::Scalar(s) => s.scalar.always_ram == Some(true),
+            QuantizationConfig::Product(p) => p.product.always_ram == Some(true),
+            QuantizationConfig::Binary(b) => b.binary.always_ram == Some(true),
+            QuantizationConfig::Turbo(t) => t.turbo.always_ram == Some(true),
+        }
     }
 }
 
@@ -906,6 +939,7 @@ impl Validate for QuantizationConfig {
             QuantizationConfig::Scalar(scalar) => scalar.validate(),
             QuantizationConfig::Product(product) => product.validate(),
             QuantizationConfig::Binary(binary) => binary.validate(),
+            QuantizationConfig::Turbo(turbo) => turbo.validate(),
         }
     }
 }
@@ -1134,6 +1168,16 @@ pub struct StrictModeConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[validate(range(min = 0))]
     pub max_payload_index_count: Option<usize>,
+
+    /// Reject memory-consuming update operations (e.g. upsert, set payload)
+    /// when the process resident memory exceeds this percentage of total system
+    /// memory (or cgroup limit). Value in [1, 100]. Applied uniformly to external
+    /// and internal (replication) traffic — rejection is deterministic so it does
+    /// not cause replica divergence. Delete operations are not affected, so
+    /// callers can still free memory.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[validate(range(min = 1, max = 100))]
+    pub max_resident_memory_percent: Option<u8>,
 }
 
 impl Eq for StrictModeConfig {}
@@ -1162,6 +1206,7 @@ impl Hash for StrictModeConfig {
             multivector_config,
             sparse_config,
             max_payload_index_count,
+            max_resident_memory_percent,
         } = self;
         enabled.hash(state);
         max_query_limit.hash(state);
@@ -1182,6 +1227,7 @@ impl Hash for StrictModeConfig {
         multivector_config.hash(state);
         sparse_config.hash(state);
         max_payload_index_count.hash(state);
+        max_resident_memory_percent.hash(state);
     }
 }
 
@@ -1195,13 +1241,11 @@ pub struct StrictModeConfigOutput {
 
     /// Max allowed `limit` parameter for all APIs that don't have their own max limit.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[validate(range(min = 1))]
     #[anonymize(false)]
     pub max_query_limit: Option<usize>,
 
     /// Max allowed `timeout` parameter.
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[validate(range(min = 1))]
     #[anonymize(false)]
     pub max_timeout: Option<usize>,
 
@@ -1282,8 +1326,12 @@ pub struct StrictModeConfigOutput {
 
     /// Max number of payload indexes in a collection
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[validate(range(min = 0))]
     pub max_payload_index_count: Option<usize>,
+
+    /// Reject memory-consuming update operations when resident memory exceeds this percentage of total RAM (1-100)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[anonymize(false)]
+    pub max_resident_memory_percent: Option<u8>,
 }
 
 impl From<StrictModeConfig> for StrictModeConfigOutput {
@@ -1309,6 +1357,7 @@ impl From<StrictModeConfig> for StrictModeConfigOutput {
             multivector_config,
             sparse_config,
             max_payload_index_count,
+            max_resident_memory_percent,
         } = config;
 
         Self {
@@ -1332,6 +1381,7 @@ impl From<StrictModeConfig> for StrictModeConfigOutput {
             multivector_config: multivector_config.map(StrictModeMultivectorConfigOutput::from),
             sparse_config: sparse_config.map(StrictModeSparseConfigOutput::from),
             max_payload_index_count,
+            max_resident_memory_percent,
         }
     }
 }
@@ -1362,12 +1412,6 @@ impl Default for Indexes {
 #[derive(Anonymize, Debug, Deserialize, Serialize, JsonSchema, Copy, Clone, PartialEq, Eq)]
 #[serde(tag = "type", content = "options", rename_all = "snake_case")]
 pub enum PayloadStorageType {
-    // Store payload in memory and use persistence storage only if vectors are changed
-    #[cfg(feature = "rocksdb")]
-    InMemory,
-    // Store payload on disk only, read each time it is requested
-    #[cfg(feature = "rocksdb")]
-    OnDisk,
     // Store payload on disk and in memory, read from memory if possible
     Mmap,
     // Store payload on disk and in memory, populate on load
@@ -1391,10 +1435,6 @@ impl PayloadStorageType {
 
     pub fn is_on_disk(&self) -> bool {
         match self {
-            #[cfg(feature = "rocksdb")]
-            PayloadStorageType::InMemory => false,
-            #[cfg(feature = "rocksdb")]
-            PayloadStorageType::OnDisk => true,
             PayloadStorageType::Mmap => true,
             PayloadStorageType::InRamMmap => false,
         }
@@ -1434,17 +1474,6 @@ impl SegmentConfig {
                 .sparse_vector_data
                 .values()
                 .any(|config| config.is_indexed())
-    }
-
-    /// Check if all vector storages are indexed
-    pub fn are_all_vectors_indexed(&self) -> bool {
-        self.vector_data
-            .values()
-            .all(|config| config.index.is_indexed())
-            && self
-                .sparse_vector_data
-                .values()
-                .all(|config| config.is_indexed())
     }
 
     /// Check if any vector storage is on-disk
@@ -1554,6 +1583,10 @@ pub enum VectorStorageType {
     /// Storage in a single mmap file, not appendable
     /// Pre-fetched into RAM on load
     InRamMmap,
+    /// Placeholder storage: contains no data, all vectors reported as deleted.
+    /// Used for newly created named vectors on immutable segments.
+    /// No files on disk, reconstructed from config on load.
+    Empty,
 }
 
 #[cfg(any(test, feature = "testing"))]
@@ -1566,7 +1599,7 @@ impl Default for VectorStorageType {
 
 /// Storage types for vectors
 #[derive(
-    Default, Debug, Deserialize, Serialize, JsonSchema, Anonymize, Eq, PartialEq, Copy, Clone,
+    Default, Debug, Deserialize, Serialize, JsonSchema, Anonymize, Eq, PartialEq, Copy, Clone, Hash,
 )]
 #[serde(rename_all = "snake_case")]
 pub enum VectorStorageDatatype {
@@ -1629,7 +1662,17 @@ impl VectorStorageType {
         match self {
             Self::Memory | Self::InRamChunkedMmap | Self::InRamMmap => false,
             Self::Mmap | Self::ChunkedMmap => true,
+            // Empty storage has no actual data; report based on what the
+            // runtime EmptyDenseVectorStorage was configured with.
+            // This fallback returns true to be safe, but callers that need
+            // the real on-disk status should check the storage instance.
+            Self::Empty => true,
         }
+    }
+
+    /// Whether this is a placeholder empty storage type
+    pub fn is_empty(&self) -> bool {
+        matches!(self, Self::Empty)
     }
 }
 
@@ -1670,6 +1713,7 @@ impl VectorDataConfig {
             VectorStorageType::ChunkedMmap => true,
             VectorStorageType::InRamChunkedMmap => true,
             VectorStorageType::InRamMmap => false,
+            VectorStorageType::Empty => false,
         };
         is_index_appendable && is_storage_appendable
     }
@@ -1733,12 +1777,12 @@ impl VectorDataConfig {
 )]
 #[serde(rename_all = "snake_case")]
 pub enum SparseVectorStorageType {
-    /// Storage on disk (rocksdb storage)
-    #[cfg(feature = "rocksdb")]
-    OnDisk,
     /// Storage in memory maps (gridstore storage)
     #[default]
     Mmap,
+    /// Placeholder storage: contains no data, all vectors reported as deleted.
+    /// Used for newly created sparse named vectors on immutable segments.
+    Empty,
 }
 
 impl SparseVectorStorageType {
@@ -1747,9 +1791,7 @@ impl SparseVectorStorageType {
         match self {
             // Both options are on disk, but we keep it explicit for the case if someone adds a new
             // storage type in the future
-            #[cfg(feature = "rocksdb")]
-            Self::OnDisk => true,
-            Self::Mmap => true,
+            Self::Mmap | Self::Empty => true,
         }
     }
 }
@@ -1775,14 +1817,7 @@ pub struct SparseVectorDataConfig {
 
 /// If the storage type is not in config, it means it is the OnDisk variant
 fn default_sparse_vector_storage_type_when_not_in_config() -> SparseVectorStorageType {
-    #[cfg(feature = "rocksdb")]
-    {
-        SparseVectorStorageType::OnDisk
-    }
-    #[cfg(not(feature = "rocksdb"))]
-    {
-        SparseVectorStorageType::default()
-    }
+    SparseVectorStorageType::default()
 }
 
 impl SparseVectorDataConfig {
@@ -2411,33 +2446,6 @@ impl TryFrom<PayloadIndexInfo> for PayloadFieldSchema {
     }
 }
 
-pub fn value_type(value: &Value) -> Option<PayloadSchemaType> {
-    match value {
-        Value::Null => None,
-        Value::Bool(_) => None,
-        Value::Number(num) => {
-            if num.is_i64() {
-                Some(PayloadSchemaType::Integer)
-            } else if num.is_f64() {
-                Some(PayloadSchemaType::Float)
-            } else {
-                None
-            }
-        }
-        Value::String(_) => Some(PayloadSchemaType::Keyword),
-        Value::Array(_) => None,
-        Value::Object(obj) => {
-            let lon_op = obj.get("lon").and_then(|x| x.as_f64());
-            let lat_op = obj.get("lat").and_then(|x| x.as_f64());
-
-            if let (Some(_), Some(_)) = (lon_op, lat_op) {
-                return Some(PayloadSchemaType::Geo);
-            }
-            None
-        }
-    }
-}
-
 #[derive(Debug, Deserialize, Serialize, JsonSchema, Clone, PartialEq, Eq, Hash)]
 #[serde(untagged)]
 pub enum ValueVariants {
@@ -2468,12 +2476,12 @@ impl Hash for AnyVariants {
         mem::discriminant(self).hash(state);
         match self {
             AnyVariants::Strings(index_set) => {
-                for item in index_set.iter() {
+                for item in index_set {
                     item.hash(state);
                 }
             }
             AnyVariants::Integers(index_set) => {
-                for item in index_set.iter() {
+                for item in index_set {
                     item.hash(state);
                 }
             }
@@ -2584,12 +2592,6 @@ impl Match {
 
     pub fn new_text(text: &str) -> Self {
         Self::Text(MatchText { text: text.into() })
-    }
-
-    pub fn new_phrase(phrase: &str) -> Self {
-        Self::Phrase(MatchPhrase {
-            phrase: phrase.into(),
-        })
     }
 
     pub fn new_any(any: AnyVariants) -> Self {
@@ -2755,7 +2757,7 @@ impl<'de> serde::Deserialize<'de> for RangeInterface {
             let keys = ["lt", "gt", "lte", "gte"];
             let has_string_bound = keys
                 .iter()
-                .any(|k| obj.get(*k).map(|v| v.is_string()).unwrap_or(false));
+                .any(|k| obj.get(*k).is_some_and(|v| v.is_string()));
 
             if has_string_bound {
                 return serde_json::from_value::<Range<DateTimePayloadType>>(value)
@@ -2953,23 +2955,19 @@ pub struct GeoPolygon {
 impl GeoPolygon {
     pub fn validate_line_string(line: &GeoLineString) -> OperationResult<()> {
         if line.points.len() <= 3 {
-            return Err(OperationError::ValidationError {
-                description: format!(
-                    "polygon invalid, the size must be at least 4, got {}",
-                    line.points.len()
-                ),
-            });
+            return Err(OperationError::validation_error(format!(
+                "polygon invalid, the size must be at least 4, got {}",
+                line.points.len()
+            )));
         }
 
         if let (Some(first), Some(last)) = (line.points.first(), line.points.last())
             && ((first.lat - last.lat).abs() > f64::EPSILON
                 || (first.lon - last.lon).abs() > f64::EPSILON)
         {
-            return Err(OperationError::ValidationError {
-                description: String::from(
-                    "polygon invalid, the first and the last points should be the same to form a closed line",
-                ),
-            });
+            return Err(OperationError::validation_error(
+                "polygon invalid, the first and the last points should be the same to form a closed line",
+            ));
         }
 
         Ok(())
@@ -3394,8 +3392,7 @@ pub enum Condition {
 #[serde(
     expecting = "Expected some form of condition, which can be a field condition (like {\"key\": ..., \"match\": ... }), or some other mentioned in the documentation: https://qdrant.tech/documentation/concepts/filtering/#filtering-conditions"
 )]
-#[allow(clippy::large_enum_variant)]
-#[allow(dead_code)]
+#[allow(clippy::large_enum_variant, dead_code)]
 enum ConditionUntagged {
     Field(FieldCondition),
     IsEmpty(IsEmptyCondition),
@@ -4099,21 +4096,10 @@ pub(crate) mod test_utils {
 mod tests {
     use itertools::Itertools;
     use rstest::rstest;
-    use serde::de::DeserializeOwned;
     use serde_json;
 
     use super::test_utils::build_polygon_with_interiors;
     use super::*;
-
-    #[allow(dead_code)]
-    fn check_rms_serialization<T: Serialize + DeserializeOwned + PartialEq + std::fmt::Debug>(
-        record: T,
-    ) {
-        let binary_entity = rmp_serde::to_vec(&record).expect("serialization ok");
-        let de_record: T = rmp_serde::from_slice(&binary_entity).expect("deserialization ok");
-
-        assert_eq!(record, de_record);
-    }
 
     #[test]
     #[ignore]
@@ -4136,6 +4122,9 @@ mod tests {
     #[case::without_z_and_decimals("2020-03-01T00:00:00.12")]
     #[case::space_sep_without_z("2020-03-01 00:00:00")]
     #[case::space_sep_without_z_and_decimals("2020-03-01 00:00:00.123456")]
+    #[case::t_sep_without_seconds("2020-03-01T00:00")]
+    #[case::space_sep_without_seconds("2020-03-01 00:00")]
+    #[case::date_only("2020-03-01")]
     fn test_datetime_deserialization(#[case] datetime: &str) {
         let datetime = DateTimePayloadType::from_str(datetime).unwrap();
         let serialized = serde_json::to_string(&datetime).unwrap();

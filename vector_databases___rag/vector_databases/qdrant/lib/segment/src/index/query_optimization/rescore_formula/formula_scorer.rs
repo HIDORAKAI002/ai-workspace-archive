@@ -2,19 +2,16 @@ use std::collections::HashMap;
 use std::ops::Neg;
 
 use ahash::AHashMap;
-use common::counter::hardware_counter::HardwareCounterCell;
 use common::types::{PointOffsetType, ScoreType};
 use geo::{Distance, Haversine};
 use serde_json::Value;
 
 use super::parsed_formula::{
-    DatetimeExpression, DecayKind, ParsedExpression, ParsedFormula, PreciseScore, VariableId,
+    DatetimeExpression, DecayKind, ParsedExpression, PreciseScore, VariableId,
 };
 use super::value_retriever::VariableRetrieverFn;
 use crate::common::operation_error::{OperationError, OperationResult};
 use crate::index::query_optimization::optimized_filter::{OptimizedCondition, check_condition};
-use crate::index::query_optimization::payload_provider::PayloadProvider;
-use crate::index::struct_payload_index::StructPayloadIndex;
 use crate::json_path::JsonPath;
 use crate::types::{DateTimePayloadType, GeoPoint};
 
@@ -57,40 +54,21 @@ impl FriendlyName for DateTimePayloadType {
     }
 }
 
-impl StructPayloadIndex {
-    pub fn formula_scorer<'s, 'q>(
-        &'s self,
-        parsed_formula: &'q ParsedFormula,
-        prefetches_scores: &'q [AHashMap<PointOffsetType, ScoreType>],
-        hw_counter: &'q HardwareCounterCell,
-    ) -> OperationResult<FormulaScorer<'q>>
-    where
-        's: 'q,
-    {
-        let ParsedFormula {
-            payload_vars,
-            conditions,
-            defaults,
+impl<'a> FormulaScorer<'a> {
+    pub(crate) fn new(
+        formula: ParsedExpression,
+        prefetches_scores: &'a [AHashMap<PointOffsetType, ScoreType>],
+        payload_retrievers: HashMap<JsonPath, VariableRetrieverFn<'a>>,
+        condition_checkers: Vec<OptimizedCondition<'a>>,
+        defaults: HashMap<VariableId, Value>,
+    ) -> Self {
+        FormulaScorer {
             formula,
-        } = parsed_formula;
-
-        let payload_retrievers = self.retrievers_map(payload_vars.clone(), hw_counter);
-
-        let payload_provider = PayloadProvider::new(self.payload.clone());
-        let total = self.available_point_count();
-        let condition_checkers = self
-            .convert_conditions(conditions, payload_provider, total, hw_counter)?
-            .into_iter()
-            .map(|(checker, _estimation)| checker)
-            .collect();
-
-        Ok(FormulaScorer {
-            formula: formula.clone(),
             prefetches_scores,
             payload_retrievers,
             condition_checkers,
-            defaults: defaults.clone(),
-        })
+            defaults,
+        }
     }
 }
 

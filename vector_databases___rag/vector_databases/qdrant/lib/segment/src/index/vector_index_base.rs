@@ -21,8 +21,12 @@ use crate::data_types::vectors::{QueryVector, VectorRef};
 use crate::telemetry::VectorIndexSearchesTelemetry;
 use crate::types::{Filter, SearchParams};
 
-/// Trait for vector searching
-pub trait VectorIndex {
+/// Read-only trait for vector index.
+///
+/// Defines all read operations on a vector index. Search and retrieval logic
+/// only requires this trait, which makes it possible to implement read-only
+/// segments without duplicating index code.
+pub trait VectorIndexRead {
     /// Return list of Ids with fitting
     fn search(
         &self,
@@ -35,17 +39,36 @@ pub trait VectorIndex {
 
     fn get_telemetry_data(&self, detail: TelemetryDetail) -> VectorIndexSearchesTelemetry;
 
-    fn files(&self) -> Vec<PathBuf>;
-
-    fn immutable_files(&self) -> Vec<PathBuf> {
-        Vec::new()
-    }
-
     /// The number of indexed vectors, currently accessible
     fn indexed_vector_count(&self) -> usize;
 
     /// Total size of all searchable vectors in bytes.
     fn size_of_searchable_vectors_in_bytes(&self) -> usize;
+
+    /// Augment the IDF stats for the given dimensions.
+    ///
+    /// Most indexes don't track IDF and should provide an empty body. Sparse-
+    /// vector indexes are the only ones that contribute. No default is provided
+    /// on purpose so a new index implementation cannot silently skip this.
+    fn fill_idf_statistics(
+        &self,
+        idf: &mut HashMap<DimId, usize>,
+        hw_counter: &HardwareCounterCell,
+    );
+
+    /// Whether this is a "real" index rather than a plain (full-scan) one.
+    ///
+    /// Used by reporting code to decide whether to count vectors as indexed.
+    fn is_index(&self) -> bool;
+}
+
+/// Trait for vector index with mutating operations.
+pub trait VectorIndex: VectorIndexRead {
+    fn files(&self) -> Vec<PathBuf>;
+
+    fn immutable_files(&self) -> Vec<PathBuf> {
+        Vec::new()
+    }
 
     /// Update index for a single vector
     ///
@@ -82,22 +105,6 @@ pub enum VectorIndexEnum {
 }
 
 impl VectorIndexEnum {
-    pub fn is_index(&self) -> bool {
-        match self {
-            Self::Plain(_) => false,
-            Self::Hnsw(_) => true,
-            Self::SparseRam(_) => true,
-            Self::SparseImmutableRam(_) => true,
-            Self::SparseMmap(_) => true,
-            Self::SparseCompressedImmutableRamF32(_) => true,
-            Self::SparseCompressedImmutableRamF16(_) => true,
-            Self::SparseCompressedImmutableRamU8(_) => true,
-            Self::SparseCompressedMmapF32(_) => true,
-            Self::SparseCompressedMmapF16(_) => true,
-            Self::SparseCompressedMmapU8(_) => true,
-        }
-    }
-
     /// Returns true if underlying storage is configured to be stored on disk without
     /// actively holding data in RAM
     pub fn is_on_disk(&self) -> bool {
@@ -149,50 +156,9 @@ impl VectorIndexEnum {
         };
         Ok(())
     }
-
-    pub fn fill_idf_statistics(
-        &self,
-        idf: &mut HashMap<DimId, usize>,
-        hw_counter: &HardwareCounterCell,
-    ) {
-        match self {
-            Self::Plain(_) | Self::Hnsw(_) => (),
-            Self::SparseRam(index) => index.fill_idf_statistics(idf, hw_counter),
-            Self::SparseImmutableRam(index) => index.fill_idf_statistics(idf, hw_counter),
-            Self::SparseMmap(index) => index.fill_idf_statistics(idf, hw_counter),
-            Self::SparseCompressedImmutableRamF32(index) => {
-                index.fill_idf_statistics(idf, hw_counter)
-            }
-            Self::SparseCompressedImmutableRamF16(index) => {
-                index.fill_idf_statistics(idf, hw_counter)
-            }
-            Self::SparseCompressedImmutableRamU8(index) => {
-                index.fill_idf_statistics(idf, hw_counter)
-            }
-            Self::SparseCompressedMmapF32(index) => index.fill_idf_statistics(idf, hw_counter),
-            Self::SparseCompressedMmapF16(index) => index.fill_idf_statistics(idf, hw_counter),
-            Self::SparseCompressedMmapU8(index) => index.fill_idf_statistics(idf, hw_counter),
-        }
-    }
-
-    pub fn indexed_vectors(&self) -> usize {
-        match self {
-            Self::Plain(index) => index.indexed_vector_count(),
-            Self::Hnsw(index) => index.indexed_vector_count(),
-            Self::SparseRam(index) => index.inverted_index().vector_count(),
-            Self::SparseImmutableRam(index) => index.inverted_index().vector_count(),
-            Self::SparseMmap(index) => index.inverted_index().vector_count(),
-            Self::SparseCompressedImmutableRamF32(index) => index.inverted_index().vector_count(),
-            Self::SparseCompressedImmutableRamF16(index) => index.inverted_index().vector_count(),
-            Self::SparseCompressedImmutableRamU8(index) => index.inverted_index().vector_count(),
-            Self::SparseCompressedMmapF32(index) => index.inverted_index().vector_count(),
-            Self::SparseCompressedMmapF16(index) => index.inverted_index().vector_count(),
-            Self::SparseCompressedMmapU8(index) => index.inverted_index().vector_count(),
-        }
-    }
 }
 
-impl VectorIndex for VectorIndexEnum {
+impl VectorIndexRead for VectorIndexEnum {
     fn search(
         &self,
         vectors: &[&QueryVector],
@@ -260,38 +226,6 @@ impl VectorIndex for VectorIndexEnum {
         }
     }
 
-    fn files(&self) -> Vec<PathBuf> {
-        match self {
-            VectorIndexEnum::Plain(index) => index.files(),
-            VectorIndexEnum::Hnsw(index) => index.files(),
-            VectorIndexEnum::SparseRam(index) => index.files(),
-            VectorIndexEnum::SparseImmutableRam(index) => index.files(),
-            VectorIndexEnum::SparseMmap(index) => index.files(),
-            VectorIndexEnum::SparseCompressedImmutableRamF32(index) => index.files(),
-            VectorIndexEnum::SparseCompressedImmutableRamF16(index) => index.files(),
-            VectorIndexEnum::SparseCompressedImmutableRamU8(index) => index.files(),
-            VectorIndexEnum::SparseCompressedMmapF32(index) => index.files(),
-            VectorIndexEnum::SparseCompressedMmapF16(index) => index.files(),
-            VectorIndexEnum::SparseCompressedMmapU8(index) => index.files(),
-        }
-    }
-
-    fn immutable_files(&self) -> Vec<PathBuf> {
-        match self {
-            VectorIndexEnum::Plain(index) => index.immutable_files(),
-            VectorIndexEnum::Hnsw(index) => index.immutable_files(),
-            VectorIndexEnum::SparseRam(index) => index.immutable_files(),
-            VectorIndexEnum::SparseImmutableRam(index) => index.immutable_files(),
-            VectorIndexEnum::SparseMmap(index) => index.immutable_files(),
-            VectorIndexEnum::SparseCompressedImmutableRamF32(index) => index.immutable_files(),
-            VectorIndexEnum::SparseCompressedImmutableRamF16(index) => index.immutable_files(),
-            VectorIndexEnum::SparseCompressedImmutableRamU8(index) => index.immutable_files(),
-            VectorIndexEnum::SparseCompressedMmapF32(index) => index.immutable_files(),
-            VectorIndexEnum::SparseCompressedMmapF16(index) => index.immutable_files(),
-            VectorIndexEnum::SparseCompressedMmapU8(index) => index.immutable_files(),
-        }
-    }
-
     fn indexed_vector_count(&self) -> usize {
         match self {
             Self::Plain(index) => index.indexed_vector_count(),
@@ -327,6 +261,81 @@ impl VectorIndex for VectorIndexEnum {
             Self::SparseCompressedMmapF32(index) => index.size_of_searchable_vectors_in_bytes(),
             Self::SparseCompressedMmapF16(index) => index.size_of_searchable_vectors_in_bytes(),
             Self::SparseCompressedMmapU8(index) => index.size_of_searchable_vectors_in_bytes(),
+        }
+    }
+
+    fn is_index(&self) -> bool {
+        match self {
+            Self::Plain(_) => false,
+            Self::Hnsw(_) => true,
+            Self::SparseRam(_) => true,
+            Self::SparseImmutableRam(_) => true,
+            Self::SparseMmap(_) => true,
+            Self::SparseCompressedImmutableRamF32(_) => true,
+            Self::SparseCompressedImmutableRamF16(_) => true,
+            Self::SparseCompressedImmutableRamU8(_) => true,
+            Self::SparseCompressedMmapF32(_) => true,
+            Self::SparseCompressedMmapF16(_) => true,
+            Self::SparseCompressedMmapU8(_) => true,
+        }
+    }
+
+    fn fill_idf_statistics(
+        &self,
+        idf: &mut HashMap<DimId, usize>,
+        hw_counter: &HardwareCounterCell,
+    ) {
+        match self {
+            Self::Plain(_) | Self::Hnsw(_) => (),
+            Self::SparseRam(index) => index.fill_idf_statistics(idf, hw_counter),
+            Self::SparseImmutableRam(index) => index.fill_idf_statistics(idf, hw_counter),
+            Self::SparseMmap(index) => index.fill_idf_statistics(idf, hw_counter),
+            Self::SparseCompressedImmutableRamF32(index) => {
+                index.fill_idf_statistics(idf, hw_counter)
+            }
+            Self::SparseCompressedImmutableRamF16(index) => {
+                index.fill_idf_statistics(idf, hw_counter)
+            }
+            Self::SparseCompressedImmutableRamU8(index) => {
+                index.fill_idf_statistics(idf, hw_counter)
+            }
+            Self::SparseCompressedMmapF32(index) => index.fill_idf_statistics(idf, hw_counter),
+            Self::SparseCompressedMmapF16(index) => index.fill_idf_statistics(idf, hw_counter),
+            Self::SparseCompressedMmapU8(index) => index.fill_idf_statistics(idf, hw_counter),
+        }
+    }
+}
+
+impl VectorIndex for VectorIndexEnum {
+    fn files(&self) -> Vec<PathBuf> {
+        match self {
+            VectorIndexEnum::Plain(index) => index.files(),
+            VectorIndexEnum::Hnsw(index) => index.files(),
+            VectorIndexEnum::SparseRam(index) => index.files(),
+            VectorIndexEnum::SparseImmutableRam(index) => index.files(),
+            VectorIndexEnum::SparseMmap(index) => index.files(),
+            VectorIndexEnum::SparseCompressedImmutableRamF32(index) => index.files(),
+            VectorIndexEnum::SparseCompressedImmutableRamF16(index) => index.files(),
+            VectorIndexEnum::SparseCompressedImmutableRamU8(index) => index.files(),
+            VectorIndexEnum::SparseCompressedMmapF32(index) => index.files(),
+            VectorIndexEnum::SparseCompressedMmapF16(index) => index.files(),
+            VectorIndexEnum::SparseCompressedMmapU8(index) => index.files(),
+        }
+    }
+
+    fn immutable_files(&self) -> Vec<PathBuf> {
+        match self {
+            VectorIndexEnum::Plain(index) => index.immutable_files(),
+            VectorIndexEnum::Hnsw(index) => index.immutable_files(),
+            VectorIndexEnum::SparseRam(index) => index.immutable_files(),
+            VectorIndexEnum::SparseImmutableRam(index) => index.immutable_files(),
+            VectorIndexEnum::SparseMmap(index) => index.immutable_files(),
+            VectorIndexEnum::SparseCompressedImmutableRamF32(index) => index.immutable_files(),
+            VectorIndexEnum::SparseCompressedImmutableRamF16(index) => index.immutable_files(),
+            VectorIndexEnum::SparseCompressedImmutableRamU8(index) => index.immutable_files(),
+            VectorIndexEnum::SparseCompressedMmapF32(index) => index.immutable_files(),
+            VectorIndexEnum::SparseCompressedMmapF16(index) => index.immutable_files(),
+            VectorIndexEnum::SparseCompressedMmapU8(index) => index.immutable_files(),
         }
     }
 

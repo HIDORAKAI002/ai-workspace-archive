@@ -59,6 +59,9 @@ FIELD_NAME = "test_field"
 PEER_ID = 0
 SHARD_KEY = "existing_shard_key"
 FACET_KEY = "a"
+STORAGE_READ_TEST_PATH = "auth/storage_read_test.bin"
+STORAGE_READ_TEST_DATA = b"jwt-storage-read-test-data"
+STORAGE_READ_SHARD_ID = 0
 
 _cached_grpc_clients = None
 
@@ -81,6 +84,18 @@ def setup(jwt_cluster):
         json={"shard_key": SHARD_KEY},
         headers=API_KEY_HEADERS,
     ).raise_for_status()
+
+    for peer_dir in peer_dirs:
+        test_path = (
+            Path(peer_dir)
+            / "storage"
+            / "collections"
+            / COLL_NAME
+            / str(STORAGE_READ_SHARD_ID)
+            / STORAGE_READ_TEST_PATH
+        )
+        test_path.parent.mkdir(parents=True, exist_ok=True)
+        test_path.write_bytes(STORAGE_READ_TEST_DATA)
 
     yield peer_api_uris, peer_dirs, bootstrap_uri
 
@@ -277,6 +292,22 @@ ACTION_ACCESS = {
         True,
         "DELETE /collections/{collection_name}/index/{field_name}",
         "qdrant.Points/DeleteFieldIndex",
+        coll_prw=False,
+    ),
+    "create_vector_name": EndpointAccess(
+        False,
+        True,
+        True,
+        "PUT /collections/{collection_name}/vectors/{vector_name}",
+        "qdrant.Points/CreateVectorName",
+        coll_prw=False,
+    ),
+    "delete_vector_name": EndpointAccess(
+        False,
+        True,
+        True,
+        "DELETE /collections/{collection_name}/vectors/{vector_name}",
+        "qdrant.Points/DeleteVectorName",
         coll_prw=False,
     ),
     ### Collection Snapshots ###
@@ -589,6 +620,31 @@ ACTION_ACCESS = {
     "clear_issues": EndpointAccess(False, False, True, "DELETE /issues"),
     "get_logger_config": EndpointAccess(True, False, True, "GET /logger", coll_r=False),
     "update_logger_config": EndpointAccess(False, False, True, "POST /logger"),
+    ### StorageRead (gRPC only, no REST equivalent) ###
+    "storage_read_list_files": EndpointAccess(
+        True, True, True, None, "qdrant.StorageRead/ListFiles"
+    ),
+    "storage_read_file_exists": EndpointAccess(
+        True, True, True, None, "qdrant.StorageRead/FileExists"
+    ),
+    "storage_read_file_length": EndpointAccess(
+        True, True, True, None, "qdrant.StorageRead/FileLength"
+    ),
+    "storage_read_read_bytes": EndpointAccess(
+        True, True, True, None, "qdrant.StorageRead/ReadBytes"
+    ),
+    "storage_read_read_bytes_stream": EndpointAccess(
+        True, True, True, None, "qdrant.StorageRead/ReadBytesStream"
+    ),
+    "storage_read_read_whole": EndpointAccess(
+        True, True, True, None, "qdrant.StorageRead/ReadWhole"
+    ),
+    "storage_read_read_batch": EndpointAccess(
+        True, True, True, None, "qdrant.StorageRead/ReadBatch"
+    ),
+    "storage_read_read_multi": EndpointAccess(
+        True, True, True, None, "qdrant.StorageRead/ReadMulti"
+    ),
 }
 
 
@@ -713,7 +769,14 @@ def check_grpc_access(
         _res = client.request(service=service, method=method, request=request)
     except grpc.RpcError as e:
         if should_succeed:
-            if e.code() not in [grpc.StatusCode.INVALID_ARGUMENT, grpc.StatusCode.NOT_FOUND]:
+            if e.code() not in [
+                grpc.StatusCode.INVALID_ARGUMENT,
+                grpc.StatusCode.NOT_FOUND,
+                # StorageRead fails with FailedPrecondition when the shard
+                # replica is not yet readable on the contacted peer; auth
+                # already passed by that point.
+                grpc.StatusCode.FAILED_PRECONDITION,
+            ]:
                 pytest.fail(f"{service}/{method} failed with {e.code()}: {e.details()}")
         else:
             assert (
@@ -760,83 +823,84 @@ def check_access(
 
     assert isinstance(action_access, EndpointAccess)
 
-    ## Check Rest
-    method, path = action_access.rest_endpoint.split(" ")
-
     allowed_for = action_access.access
 
-    check_rest_access(
-        method, path, rest_request, allowed_for.read, TOKEN_R, path_params, rest_req_kwargs
-    )
-    check_rest_access(
-        method, path, rest_request, allowed_for.coll_r, TOKEN_COLL_R, path_params, rest_req_kwargs
-    )
-    check_rest_access(
-        method,
-        path,
-        rest_request,
-        allowed_for.coll_rw,
-        TOKEN_COLL_RW,
-        path_params,
-        rest_req_kwargs,
-    )
-    check_rest_access(
-        method,
-        path,
-        rest_request,
-        allowed_for.everything or False,  # Payload constraints deprecated
-        TOKEN_COLL_R_PAYLOAD,
-        path_params,
-        rest_req_kwargs,
-        expected_status_code=401,
-    )
-    check_rest_access(
-        method,
-        path,
-        rest_request,
-        allowed_for.everything or False,  # Payload constraints deprecated
-        TOKEN_COLL_RW_PAYLOAD,
-        path_params,
-        rest_req_kwargs,
-        expected_status_code=401,
-    )
+    ## Check Rest
+    if action_access.rest_endpoint is not None:
+        method, path = action_access.rest_endpoint.split(" ")
 
-    if allowed_for.coll_prw is not None:
+        check_rest_access(
+            method, path, rest_request, allowed_for.read, TOKEN_R, path_params, rest_req_kwargs
+        )
+        check_rest_access(
+            method, path, rest_request, allowed_for.coll_r, TOKEN_COLL_R, path_params, rest_req_kwargs
+        )
         check_rest_access(
             method,
             path,
             rest_request,
-            allowed_for.coll_prw,
-            TOKEN_COLL_PRW,
+            allowed_for.coll_rw,
+            TOKEN_COLL_RW,
+            path_params,
+            rest_req_kwargs,
+        )
+        check_rest_access(
+            method,
+            path,
+            rest_request,
+            allowed_for.everything or False,  # Payload constraints deprecated
+            TOKEN_COLL_R_PAYLOAD,
+            path_params,
+            rest_req_kwargs,
+            expected_status_code=401,
+        )
+        check_rest_access(
+            method,
+            path,
+            rest_request,
+            allowed_for.everything or False,  # Payload constraints deprecated
+            TOKEN_COLL_RW_PAYLOAD,
+            path_params,
+            rest_req_kwargs,
+            expected_status_code=401,
+        )
+
+        if allowed_for.coll_prw is not None:
+            check_rest_access(
+                method,
+                path,
+                rest_request,
+                allowed_for.coll_prw,
+                TOKEN_COLL_PRW,
+                path_params,
+                rest_req_kwargs,
+            )
+
+        check_rest_access(
+            method, path, rest_request, allowed_for.manage, TOKEN_M, path_params, rest_req_kwargs
+        )
+
+        # Check that API key is the same as manage token
+        check_rest_access(
+            method,
+            path,
+            rest_request,
+            allowed_for.manage,
+            SECRET,
             path_params,
             rest_req_kwargs,
         )
 
-    check_rest_access(
-        method, path, rest_request, allowed_for.manage, TOKEN_M, path_params, rest_req_kwargs
-    )
-
-    # Check that API key is the same as manage token
-    check_rest_access(
-        method,
-        path,
-        rest_request,
-        allowed_for.manage,
-        SECRET,
-        path_params,
-        rest_req_kwargs,
-    )
-
-    # Check that read-only API key is the same as read-only token
-    check_rest_access(
-        method,
-        path,
-        rest_request,
-        allowed_for.read,
-        READ_ONLY_API_KEY,
-        path_params,
-        rest_req_kwargs,
-    )
+        # Check that read-only API key is the same as read-only token
+        check_rest_access(
+            method,
+            path,
+            rest_request,
+            allowed_for.read,
+            READ_ONLY_API_KEY,
+            path_params,
+            rest_req_kwargs,
+        )
 
     ## Check GRPC
     grpc_endpoint = action_access.grpc_endpoint
@@ -1244,6 +1308,27 @@ def test_delete_index():
         "delete_index",
         path_params={"collection_name": COLL_NAME, "field_name": "fake_field_name"},
         grpc_request={"collection_name": COLL_NAME, "field_name": "fake_field_name"},
+    )
+
+
+def test_create_vector_name():
+    check_access(
+        "create_vector_name",
+        rest_request={"dense": {"size": 4, "distance": "Cosine"}},
+        path_params={"collection_name": COLL_NAME, "vector_name": "new_vec"},
+        grpc_request={
+            "collection_name": COLL_NAME,
+            "vector_name": "new_vec",
+            "dense_config": {"size": 4, "distance": 1},
+        },
+    )
+
+
+def test_delete_vector_name():
+    check_access(
+        "delete_vector_name",
+        path_params={"collection_name": COLL_NAME, "vector_name": "fake_vector_name"},
+        grpc_request={"collection_name": COLL_NAME, "vector_name": "fake_vector_name"},
     )
 
 
@@ -1923,3 +2008,96 @@ def test_get_logger_config():
 
 def test_update_logger_config():
     check_access("update_logger_config", {})
+
+
+def test_storage_read_list_files():
+    check_access(
+        "storage_read_list_files",
+        grpc_request={
+            "collection_name": COLL_NAME,
+            "shard_id": STORAGE_READ_SHARD_ID,
+            "prefix_path": "auth/",
+        },
+    )
+
+
+def test_storage_read_file_exists():
+    check_access(
+        "storage_read_file_exists",
+        grpc_request={
+            "collection_name": COLL_NAME,
+            "shard_id": STORAGE_READ_SHARD_ID,
+            "path": STORAGE_READ_TEST_PATH,
+        },
+    )
+
+
+def test_storage_read_file_length():
+    check_access(
+        "storage_read_file_length",
+        grpc_request={
+            "collection_name": COLL_NAME,
+            "shard_id": STORAGE_READ_SHARD_ID,
+            "path": STORAGE_READ_TEST_PATH,
+        },
+    )
+
+
+def test_storage_read_read_bytes():
+    check_access(
+        "storage_read_read_bytes",
+        grpc_request={
+            "collection_name": COLL_NAME,
+            "shard_id": STORAGE_READ_SHARD_ID,
+            "path": STORAGE_READ_TEST_PATH,
+            "byteOffset": 0,
+            "length": 1,
+        },
+    )
+
+
+def test_storage_read_read_bytes_stream():
+    check_access(
+        "storage_read_read_bytes_stream",
+        grpc_request={
+            "collection_name": COLL_NAME,
+            "shard_id": STORAGE_READ_SHARD_ID,
+            "path": STORAGE_READ_TEST_PATH,
+            "byteOffset": 0,
+            "length": 1,
+        },
+    )
+
+
+def test_storage_read_read_whole():
+    check_access(
+        "storage_read_read_whole",
+        grpc_request={
+            "collection_name": COLL_NAME,
+            "shard_id": STORAGE_READ_SHARD_ID,
+            "path": STORAGE_READ_TEST_PATH,
+        },
+    )
+
+
+def test_storage_read_read_batch():
+    check_access(
+        "storage_read_read_batch",
+        grpc_request={
+            "collection_name": COLL_NAME,
+            "shard_id": STORAGE_READ_SHARD_ID,
+            "path": STORAGE_READ_TEST_PATH,
+            "ranges": [{"byteOffset": 0, "length": 1}],
+        },
+    )
+
+
+def test_storage_read_read_multi():
+    check_access(
+        "storage_read_read_multi",
+        grpc_request={
+            "collection_name": COLL_NAME,
+            "shard_id": STORAGE_READ_SHARD_ID,
+            "reads": [{"path": STORAGE_READ_TEST_PATH, "byteOffset": 0, "length": 1}],
+        },
+    )

@@ -20,6 +20,15 @@ impl QuantizedMmapStorage {
     pub fn populate(&self) {
         self.mmap.populate();
     }
+
+    pub fn clear_cache(&self) {
+        let Self {
+            mmap,
+            quantized_vector_size: _,
+            path: _,
+        } = self;
+        mmap.clear_cache();
+    }
 }
 
 pub struct QuantizedMmapStorageBuilder {
@@ -100,6 +109,16 @@ impl quantization::EncodedStorage for QuantizedMmapStorage {
 
     fn immutable_files(&self) -> Vec<PathBuf> {
         vec![self.path.clone()]
+    }
+
+    fn heap_size_bytes(&self) -> usize {
+        let Self {
+            mmap: _,
+            quantized_vector_size: _,
+            path: _,
+        } = self;
+
+        0
     }
 }
 

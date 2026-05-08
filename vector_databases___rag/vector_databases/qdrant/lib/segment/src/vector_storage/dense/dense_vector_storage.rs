@@ -6,7 +6,6 @@ use std::sync::atomic::AtomicBool;
 
 use common::bitvec::BitSlice;
 use common::counter::hardware_counter::HardwareCounterCell;
-use common::fs::clear_disk_cache;
 use common::generic_consts::AccessPattern;
 use common::mmap;
 use common::types::PointOffsetType;
@@ -23,7 +22,9 @@ use crate::types::{Distance, VectorStorageDatatype};
 #[cfg(target_os = "linux")]
 use crate::vector_storage::common::get_async_scorer;
 use crate::vector_storage::dense::immutable_dense_vectors::ImmutableDenseVectors;
-use crate::vector_storage::{DenseVectorStorage, VectorStorage, VectorStorageEnum};
+use crate::vector_storage::{
+    DenseVectorStorage, VectorStorage, VectorStorageEnum, VectorStorageRead,
+};
 
 const VECTORS_PATH: &str = "matrix.dat";
 const DELETED_PATH: &str = "deleted.dat";
@@ -44,6 +45,7 @@ where
     deleted_path: PathBuf,
     vectors: Option<ImmutableDenseVectors<T, S>>,
     distance: Distance,
+    populated: bool,
 }
 
 impl<T, S> DenseVectorStorageImpl<T, S>
@@ -61,8 +63,16 @@ where
 
     /// Drop disk cache.
     pub fn clear_cache(&self) -> OperationResult<()> {
-        clear_disk_cache(&self.vectors_path)?;
-        clear_disk_cache(&self.deleted_path)?;
+        let Self {
+            vectors_path: _,
+            deleted_path: _,
+            vectors,
+            distance: _,
+            populated: _,
+        } = self;
+        if let Some(vectors) = vectors {
+            vectors.clear_cache()?;
+        }
         Ok(())
     }
 }
@@ -173,19 +183,10 @@ where
         deleted_path,
         vectors: Some(vectors),
         distance,
+        populated: populate,
     };
 
     Ok(storage)
-}
-
-impl<T, S> DenseVectorStorageImpl<T, S>
-where
-    T: PrimitiveVectorElement,
-    S: UniversalRead<T>,
-{
-    pub fn get_mmap_vectors(&self) -> &ImmutableDenseVectors<T, S> {
-        self.vectors.as_ref().unwrap()
-    }
 }
 
 impl<T, S> DenseVectorStorage<T> for DenseVectorStorageImpl<T, S>
@@ -211,7 +212,7 @@ where
     }
 }
 
-impl<T, S> VectorStorage for DenseVectorStorageImpl<T, S>
+impl<T, S> VectorStorageRead for DenseVectorStorageImpl<T, S>
 where
     T: PrimitiveVectorElement,
     S: UniversalRead<T>,
@@ -225,7 +226,7 @@ where
     }
 
     fn is_on_disk(&self) -> bool {
-        true
+        !self.populated
     }
 
     fn total_vector_count(&self) -> usize {
@@ -247,15 +248,16 @@ where
         mut callback: impl FnMut(PointOffsetType, CowVector<'_>),
     ) {
         let point_offsets: Vec<_> = keys.into_iter().collect();
-        // Create a result vec of the appropriate size
+
         self.vectors
             .as_ref()
             .unwrap()
-            .read_vectors_async::<P>(&point_offsets, |_pos, key, vector| {
-                let cow_vector = CowVector::from(T::slice_to_float_cow(Cow::Borrowed(vector)));
-                callback(key, cow_vector);
-            })
-            .unwrap();
+            .for_each_in_batch(&point_offsets, |idx, vector| {
+                let point_offset = point_offsets[idx];
+                let vector = CowVector::from(T::slice_to_float_cow(Cow::Borrowed(vector)));
+
+                callback(point_offset, vector);
+            });
     }
 
     fn get_vector_opt<P: AccessPattern>(&self, key: PointOffsetType) -> Option<CowVector<'_>> {
@@ -266,6 +268,24 @@ where
             .map(|vector| T::slice_to_float_cow(vector).into())
     }
 
+    fn is_deleted_vector(&self, key: PointOffsetType) -> bool {
+        self.vectors.as_ref().unwrap().is_deleted_vector(key)
+    }
+
+    fn deleted_vector_count(&self) -> usize {
+        self.vectors.as_ref().unwrap().deleted_count
+    }
+
+    fn deleted_vector_bitslice(&self) -> &BitSlice {
+        self.vectors.as_ref().unwrap().deleted_vector_bitslice()
+    }
+}
+
+impl<T, S> VectorStorage for DenseVectorStorageImpl<T, S>
+where
+    T: PrimitiveVectorElement,
+    S: UniversalRead<T>,
+{
     fn insert_vector(
         &mut self,
         _key: PointOffsetType,
@@ -354,18 +374,6 @@ where
     fn delete_vector(&mut self, key: PointOffsetType) -> OperationResult<bool> {
         Ok(self.vectors.as_mut().unwrap().delete(key))
     }
-
-    fn is_deleted_vector(&self, key: PointOffsetType) -> bool {
-        self.vectors.as_ref().unwrap().is_deleted_vector(key)
-    }
-
-    fn deleted_vector_count(&self) -> usize {
-        self.vectors.as_ref().unwrap().deleted_count
-    }
-
-    fn deleted_vector_bitslice(&self) -> &BitSlice {
-        self.vectors.as_ref().unwrap().deleted_vector_bitslice()
-    }
 }
 
 /// Open a file shortly for appending
@@ -389,7 +397,7 @@ mod tests {
     use super::*;
     use crate::data_types::vectors::{DenseVector, QueryVector, VectorElementType};
     use crate::fixtures::payload_context_fixture::create_id_tracker_fixture;
-    use crate::id_tracker::IdTracker;
+    use crate::id_tracker::{IdTracker, IdTrackerRead};
     use crate::index::hnsw_index::point_scorer::{BatchFilteredSearcher, FilteredScorer};
     use crate::types::{PointIdType, QuantizationConfig, ScalarQuantizationConfig};
     use crate::vector_storage::dense::volatile_dense_vector_storage::new_volatile_dense_vector_storage;
@@ -504,7 +512,7 @@ mod tests {
             2,
         );
         let res = searcher
-            .peek_top_iter(&mut [0, 1, 2, 3, 4].iter().cloned(), &DEFAULT_STOPPED)
+            .peek_top_iter([0, 1, 2, 3, 4].iter().cloned(), &DEFAULT_STOPPED)
             .unwrap()
             .into_iter()
             .exactly_one()
@@ -576,7 +584,7 @@ mod tests {
         );
 
         let closest = searcher
-            .peek_top_iter(&mut [0, 1, 2, 3, 4].iter().cloned(), &DEFAULT_STOPPED)
+            .peek_top_iter([0, 1, 2, 3, 4].iter().cloned(), &DEFAULT_STOPPED)
             .unwrap()
             .into_iter()
             .exactly_one()
@@ -605,7 +613,7 @@ mod tests {
             5,
         );
         let closest = searcher
-            .peek_top_iter(&mut [0, 1, 2, 3, 4].iter().cloned(), &DEFAULT_STOPPED)
+            .peek_top_iter([0, 1, 2, 3, 4].iter().cloned(), &DEFAULT_STOPPED)
             .unwrap()
             .into_iter()
             .exactly_one()
@@ -694,7 +702,7 @@ mod tests {
             5,
         );
         let closest = searcher
-            .peek_top_iter(&mut [0, 1, 2, 3, 4].iter().cloned(), &DEFAULT_STOPPED)
+            .peek_top_iter([0, 1, 2, 3, 4].iter().cloned(), &DEFAULT_STOPPED)
             .unwrap()
             .into_iter()
             .exactly_one()

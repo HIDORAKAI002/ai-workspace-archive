@@ -15,7 +15,7 @@ use api::grpc::qdrant::{
 use collection::operations::cluster_ops::{
     ClusterOperations, CreateShardingKeyOperation, DropShardingKeyOperation,
 };
-use collection::operations::types::CollectionsAliasesResponse;
+use collection::operations::types::{AliasDescription, CollectionsAliasesResponse};
 use collection::operations::verification::new_unchecked_verification_pass;
 use storage::dispatcher::Dispatcher;
 use tonic::{Request, Response, Status};
@@ -145,7 +145,7 @@ impl Collections for CollectionsService {
             do_list_collection_aliases(self.dispatcher.toc(&auth, &pass), &auth, &collection_name)
                 .await?;
         let response = ListAliasesResponse {
-            aliases: aliases.into_iter().map(|alias| alias.into()).collect(),
+            aliases: aliases.into_iter().map(AliasDescription::into).collect(),
             time: timing.elapsed().as_secs_f64(),
         };
         Ok(Response::new(response))
@@ -165,7 +165,7 @@ impl Collections for CollectionsService {
         let CollectionsAliasesResponse { aliases } =
             do_list_aliases(self.dispatcher.toc(&auth, &pass), &auth).await?;
         let response = ListAliasesResponse {
-            aliases: aliases.into_iter().map(|alias| alias.into()).collect(),
+            aliases: aliases.into_iter().map(AliasDescription::into).collect(),
             time: timing.elapsed().as_secs_f64(),
         };
         Ok(Response::new(response))

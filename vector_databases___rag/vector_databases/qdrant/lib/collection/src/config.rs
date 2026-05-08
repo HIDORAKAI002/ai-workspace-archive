@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, HashMap, HashSet};
+use std::collections::{BTreeMap, HashMap};
 use std::io::{Read, Write as _};
 use std::num::{NonZeroU32, NonZeroUsize};
 use std::path::Path;
@@ -141,22 +141,12 @@ pub struct CollectionParams {
 
 impl CollectionParams {
     pub fn payload_storage_type(&self) -> PayloadStorageType {
-        #[cfg(feature = "rocksdb")]
-        if self.on_disk_payload {
-            PayloadStorageType::Mmap
-        } else if common::flags::feature_flags().payload_storage_skip_rocksdb {
-            PayloadStorageType::InRamMmap
-        } else {
-            PayloadStorageType::InMemory
-        }
-
-        #[cfg(not(feature = "rocksdb"))]
         PayloadStorageType::from_on_disk_payload(self.on_disk_payload)
     }
 
     pub fn check_compatible(&self, other: &CollectionParams) -> CollectionResult<()> {
         let CollectionParams {
-            vectors,
+            vectors: _,                  // May be changed
             shard_number: _, // Maybe be updated by resharding, assume local shards needs to be dropped
             sharding_method, // Not changeable
             replication_factor: _, // May be changed
@@ -164,30 +154,8 @@ impl CollectionParams {
             read_fan_out_factor: _, // May be changed
             read_fan_out_delay_ms: _, // May be changed,
             on_disk_payload: _, // May be changed
-            sparse_vectors,  // Parameters may be changes, but not the structure
+            sparse_vectors: _, // Sets may differ via named vector CRUD
         } = other;
-
-        self.vectors.check_compatible(vectors)?;
-
-        let this_sparse_vectors: HashSet<_> = if let Some(sparse_vectors) = &self.sparse_vectors {
-            sparse_vectors.keys().collect()
-        } else {
-            HashSet::new()
-        };
-
-        let other_sparse_vectors: HashSet<_> = if let Some(sparse_vectors) = sparse_vectors {
-            sparse_vectors.keys().collect()
-        } else {
-            HashSet::new()
-        };
-
-        if this_sparse_vectors != other_sparse_vectors {
-            return Err(CollectionError::bad_input(format!(
-                "sparse vectors are incompatible: \
-                 origin sparse vectors: {this_sparse_vectors:?}, \
-                 while other sparse vectors: {other_sparse_vectors:?}",
-            )));
-        }
 
         let this_sharding_method = self.sharding_method.unwrap_or_default();
         let other_sharding_method = sharding_method.unwrap_or_default();
@@ -397,30 +365,22 @@ impl CollectionParams {
         }
 
         if available_names.is_empty() {
-            CollectionError::BadInput {
-                description: "Vectors are not configured in this collection".into(),
-            }
+            CollectionError::bad_input("Vectors are not configured in this collection")
         } else if available_names == vec![DEFAULT_VECTOR_NAME] {
-            CollectionError::BadInput {
-                description: format!(
-                    "Vector with name {vector_name} is not configured in this collection"
-                ),
-            }
+            CollectionError::bad_input(format!(
+                "Vector with name {vector_name} is not configured in this collection"
+            ))
         } else {
             let available_names = available_names.join(", ");
             if vector_name == DEFAULT_VECTOR_NAME {
-                return CollectionError::BadInput {
-                    description: format!(
-                        "Collection requires specified vector name in the request, available names: {available_names}"
-                    ),
-                };
+                return CollectionError::bad_input(format!(
+                    "Collection requires specified vector name in the request, available names: {available_names}"
+                ));
             }
 
-            CollectionError::BadInput {
-                description: format!(
-                    "Vector with name `{vector_name}` is not configured in this collection, available names: {available_names}"
-                ),
-            }
+            CollectionError::bad_input(format!(
+                "Vector with name `{vector_name}` is not configured in this collection, available names: {available_names}"
+            ))
         }
     }
 
@@ -459,15 +419,13 @@ impl CollectionParams {
         &mut self,
         vector_name: &VectorName,
     ) -> CollectionResult<&mut VectorParams> {
-        self.vectors
-            .get_params_mut(vector_name)
-            .ok_or_else(|| CollectionError::BadInput {
-                description: if vector_name == DEFAULT_VECTOR_NAME {
-                    "Default vector params are not specified in config".into()
-                } else {
-                    format!("Vector params for {vector_name} are not specified in config")
-                },
+        self.vectors.get_params_mut(vector_name).ok_or_else(|| {
+            CollectionError::bad_input(if vector_name == DEFAULT_VECTOR_NAME {
+                "Default vector params are not specified in config".into()
+            } else {
+                format!("Vector params for {vector_name} are not specified in config")
             })
+        })
     }
 
     pub fn get_sparse_vector_params_opt(
@@ -485,16 +443,16 @@ impl CollectionParams {
     ) -> CollectionResult<&mut SparseVectorParams> {
         self.sparse_vectors
             .as_mut()
-            .ok_or_else(|| CollectionError::BadInput {
-                description: format!(
+            .ok_or_else(|| {
+                CollectionError::bad_input(format!(
                     "Sparse vector `{vector_name}` is not specified in collection config"
-                ),
+                ))
             })?
             .get_mut(vector_name)
-            .ok_or_else(|| CollectionError::BadInput {
-                description: format!(
+            .ok_or_else(|| {
+                CollectionError::bad_input(format!(
                     "Sparse vector `{vector_name}` is not specified in collection config"
-                ),
+                ))
             })
     }
 
@@ -530,6 +488,7 @@ impl CollectionParams {
                     QuantizationConfigDiff::Binary(binary) => {
                         Some(QuantizationConfig::Binary(binary))
                     }
+                    QuantizationConfigDiff::Turbo(turbo) => Some(QuantizationConfig::Turbo(turbo)),
                     QuantizationConfigDiff::Disabled(_) => None,
                 }
             }

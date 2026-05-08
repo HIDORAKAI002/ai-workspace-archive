@@ -16,7 +16,7 @@ use super::utils::sampler;
 use crate::data_types::vectors::{QueryVector, VectorElementType};
 use crate::fixtures::payload_context_fixture::create_id_tracker_fixture;
 use crate::fixtures::query_fixtures::QueryVariant;
-use crate::id_tracker::IdTracker;
+use crate::id_tracker::IdTrackerRead;
 use crate::index::hnsw_index::point_scorer::FilteredScorer;
 use crate::types::{
     BinaryQuantizationConfig, Distance, ProductQuantizationConfig, QuantizationConfig,
@@ -29,7 +29,7 @@ use crate::vector_storage::dense::volatile_dense_vector_storage::new_volatile_de
 use crate::vector_storage::quantized::quantized_vectors::{
     QuantizedVectors, QuantizedVectorsStorageType,
 };
-use crate::vector_storage::vector_storage_base::VectorStorage;
+use crate::vector_storage::vector_storage_base::{VectorStorage, VectorStorageRead};
 
 const DIMS: usize = 128;
 const NUM_POINTS: usize = 600;

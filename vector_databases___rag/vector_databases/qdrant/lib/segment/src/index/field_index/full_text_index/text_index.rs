@@ -1,39 +1,43 @@
 use std::borrow::Cow;
 use std::path::PathBuf;
-#[cfg(feature = "rocksdb")]
-use std::sync::Arc;
 
-use ahash::AHashSet;
+use ahash::AHashMap;
+use common::bitvec::BitSlice;
 use common::counter::hardware_counter::HardwareCounterCell;
+use common::iterator_ext::IteratorExt;
 use common::types::PointOffsetType;
-#[cfg(feature = "rocksdb")]
-use parking_lot::RwLock;
-#[cfg(feature = "rocksdb")]
-use rocksdb::DB;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use super::immutable_text_index::ImmutableFullTextIndex;
+use super::immutable_text_index::{ImmutableFullTextIndex, Storage};
 use super::inverted_index::{InvertedIndex, ParsedQuery, TokenId, TokenSet};
 use super::mmap_text_index::{FullTextMmapIndexBuilder, MmapFullTextIndex};
 use super::mutable_text_index::MutableFullTextIndex;
 use super::tokenizers::Tokenizer;
 use crate::common::Flusher;
 use crate::common::operation_error::{OperationError, OperationResult};
-#[cfg(feature = "rocksdb")]
-use crate::common::rocksdb_buffered_delete_wrapper::DatabaseColumnScheduledDeleteWrapper;
-#[cfg(feature = "rocksdb")]
-use crate::common::rocksdb_wrapper::DatabaseColumnWrapper;
 use crate::data_types::index::TextIndexParams;
 use crate::index::field_index::full_text_index::inverted_index::Document;
+use crate::index::field_index::full_text_index::tokenizers::TokenizerTextKind;
 use crate::index::field_index::{
     CardinalityEstimation, FieldIndexBuilderTrait, PayloadBlockCondition, PayloadFieldIndex,
     ValueIndexer,
 };
 use crate::index::payload_config::{IndexMutability, StorageType};
 use crate::telemetry::PayloadIndexTelemetry;
-use crate::types::{FieldCondition, Match, MatchPhrase, MatchText, PayloadKeyType};
+use crate::types::{FieldCondition, Match, MatchPhrase, MatchText, MatchTextAny, PayloadKeyType};
 
+/// Selects how a text query is parsed and matched against the payload.
+pub enum PayloadMatchQueryType {
+    /// All query tokens must be present in the document (any order).
+    Text,
+    /// All query tokens must be present in exact order.
+    Phrase,
+    /// At least one query token must be present.
+    TextAny,
+}
+
+#[allow(clippy::large_enum_variant)]
 pub enum FullTextIndex {
     Mutable(MutableFullTextIndex),
     Immutable(ImmutableFullTextIndex),
@@ -41,44 +45,32 @@ pub enum FullTextIndex {
 }
 
 impl FullTextIndex {
-    #[cfg(feature = "rocksdb")]
-    pub fn new_rocksdb(
-        db: Arc<RwLock<DB>>,
-        config: TextIndexParams,
-        field: &str,
-        is_appendable: bool,
-        create_if_missing: bool,
-    ) -> OperationResult<Option<Self>> {
-        let store_cf_name = Self::storage_cf_name(field);
-        let db_wrapper = DatabaseColumnScheduledDeleteWrapper::new(DatabaseColumnWrapper::new(
-            db,
-            &store_cf_name,
-        ));
-        let index = if is_appendable {
-            MutableFullTextIndex::open_rocksdb(db_wrapper, config, create_if_missing)?
-                .map(Self::Mutable)
-        } else {
-            ImmutableFullTextIndex::open_rocksdb(db_wrapper, config)?.map(Self::Immutable)
-        };
-        Ok(index)
-    }
-
     pub fn new_mmap(
         path: PathBuf,
         config: TextIndexParams,
         is_on_disk: bool,
+        deleted_points: &BitSlice,
     ) -> OperationResult<Option<Self>> {
-        let Some(mmap_index) = MmapFullTextIndex::open(path, config, is_on_disk)? else {
+        // Low-memory mode downgrades the in-RAM `Immutable` wrapper to the
+        // pure-mmap variant at load time. Files are shared between variants;
+        // the persisted `is_on_disk` flag in `mmap_index` is untouched.
+        let effective_is_on_disk =
+            is_on_disk || common::low_memory::low_memory_mode().prefer_disk();
+
+        let Some(mmap_index) =
+            MmapFullTextIndex::open(path, config, effective_is_on_disk, deleted_points)?
+        else {
             return Ok(None);
         };
-        let index = if is_on_disk {
+
+        let index = if effective_is_on_disk {
             // Use on mmap directly
             Some(Self::Mmap(Box::new(mmap_index)))
         } else {
             // Load into RAM, use mmap as backing storage
             Some(Self::Immutable(ImmutableFullTextIndex::open_mmap(
                 mmap_index,
-            )))
+            )?))
         };
         Ok(index)
     }
@@ -106,22 +98,13 @@ impl FullTextIndex {
         }
     }
 
-    #[cfg(feature = "rocksdb")]
-    pub fn builder_rocksdb(
-        db: Arc<RwLock<DB>>,
-        config: TextIndexParams,
-        field: &str,
-        keep_appendable: bool,
-    ) -> OperationResult<FullTextIndexRocksDbBuilder> {
-        FullTextIndexRocksDbBuilder::new(db, config, field, keep_appendable)
-    }
-
     pub fn builder_mmap(
         path: PathBuf,
         config: TextIndexParams,
         is_on_disk: bool,
+        deleted_points: &BitSlice,
     ) -> FullTextMmapIndexBuilder {
-        FullTextMmapIndexBuilder::new(path, config, is_on_disk)
+        FullTextMmapIndexBuilder::new(path, config, is_on_disk, deleted_points)
     }
 
     pub fn builder_gridstore(
@@ -129,11 +112,6 @@ impl FullTextIndex {
         config: TextIndexParams,
     ) -> FullTextGridstoreIndexBuilder {
         FullTextGridstoreIndexBuilder::new(dir, config)
-    }
-
-    #[cfg(feature = "rocksdb")]
-    fn storage_cf_name(field: &str) -> String {
-        format!("{field}_fts")
     }
 
     pub(super) fn points_count(&self) -> usize {
@@ -144,15 +122,16 @@ impl FullTextIndex {
         }
     }
 
-    pub(super) fn get_token(
+    pub(super) fn for_each_token_id<'a, Meta>(
         &self,
-        token: &str,
+        iter: impl Iterator<Item = (Meta, &'a str)>,
         hw_counter: &HardwareCounterCell,
-    ) -> Option<TokenId> {
+        f: impl FnMut(Meta, Option<TokenId>),
+    ) -> OperationResult<()> {
         match self {
-            Self::Mutable(index) => index.inverted_index.get_token_id(token, hw_counter),
-            Self::Immutable(index) => index.inverted_index.get_token_id(token, hw_counter),
-            Self::Mmap(index) => index.inverted_index.get_token_id(token, hw_counter),
+            Self::Mutable(index) => index.inverted_index.for_each_token_id(iter, hw_counter, f),
+            Self::Immutable(index) => index.inverted_index.for_each_token_id(iter, hw_counter, f),
+            Self::Mmap(index) => index.inverted_index.for_each_token_id(iter, hw_counter, f),
         }
     }
 
@@ -160,7 +139,7 @@ impl FullTextIndex {
         &'a self,
         query: ParsedQuery,
         hw_counter: &'a HardwareCounterCell,
-    ) -> Box<dyn Iterator<Item = PointOffsetType> + 'a> {
+    ) -> OperationResult<Box<dyn Iterator<Item = PointOffsetType> + 'a>> {
         match self {
             Self::Mutable(index) => index.inverted_index.filter(query, hw_counter),
             Self::Immutable(index) => index.inverted_index.filter(query, hw_counter),
@@ -171,20 +150,29 @@ impl FullTextIndex {
     fn get_tokenizer(&self) -> &Tokenizer {
         match self {
             Self::Mutable(index) => &index.tokenizer,
-            Self::Immutable(index) => &index.tokenizer,
+            Self::Immutable(index) => match &index.storage {
+                Storage::Mmap(mmap_index) => &mmap_index.tokenizer,
+            },
             Self::Mmap(index) => &index.tokenizer,
         }
     }
 
-    fn payload_blocks(
+    fn for_each_payload_block(
         &self,
         threshold: usize,
         key: PayloadKeyType,
-    ) -> Box<dyn Iterator<Item = OperationResult<PayloadBlockCondition>> + '_> {
+        f: &mut dyn FnMut(PayloadBlockCondition) -> OperationResult<()>,
+    ) -> OperationResult<()> {
         match self {
-            Self::Mutable(index) => Box::new(index.inverted_index.payload_blocks(threshold, key)),
-            Self::Immutable(index) => Box::new(index.inverted_index.payload_blocks(threshold, key)),
-            Self::Mmap(index) => Box::new(index.inverted_index.payload_blocks(threshold, key)),
+            Self::Mutable(index) => index
+                .inverted_index
+                .for_each_payload_block(threshold, key, f),
+            Self::Immutable(index) => index
+                .inverted_index
+                .for_each_payload_block(threshold, key, f),
+            Self::Mmap(index) => index
+                .inverted_index
+                .for_each_payload_block(threshold, key, f),
         }
     }
 
@@ -193,7 +181,7 @@ impl FullTextIndex {
         query: &ParsedQuery,
         condition: &FieldCondition,
         hw_counter: &HardwareCounterCell,
-    ) -> CardinalityEstimation {
+    ) -> OperationResult<CardinalityEstimation> {
         match self {
             Self::Mutable(index) => index
                 .inverted_index
@@ -207,7 +195,11 @@ impl FullTextIndex {
         }
     }
 
-    pub fn check_match(&self, query: &ParsedQuery, point_id: PointOffsetType) -> bool {
+    pub fn check_match(
+        &self,
+        query: &ParsedQuery,
+        point_id: PointOffsetType,
+    ) -> OperationResult<bool> {
         match self {
             Self::Mutable(index) => index.inverted_index.check_match(query, point_id),
             Self::Immutable(index) => index.inverted_index.check_match(query, point_id),
@@ -229,16 +221,6 @@ impl FullTextIndex {
             Self::Immutable(index) => index.inverted_index.values_is_empty(point_id),
             Self::Mmap(index) => index.inverted_index.values_is_empty(point_id),
         }
-    }
-
-    #[cfg(feature = "rocksdb")]
-    pub(super) fn store_key(id: PointOffsetType) -> Vec<u8> {
-        bincode::serialize(&id).unwrap()
-    }
-
-    #[cfg(feature = "rocksdb")]
-    pub(super) fn restore_key(data: &[u8]) -> PointOffsetType {
-        bincode::deserialize(data).unwrap()
     }
 
     pub(super) fn serialize_document(tokens: Vec<Cow<str>>) -> OperationResult<Vec<u8>> {
@@ -278,78 +260,96 @@ impl FullTextIndex {
         }
     }
 
-    /// Tries to parse a phrase query. If there are any unseen tokens, returns `None`
-    ///
-    /// Preserves token order
+    /// Parse as [`TokenizerTextKind::Document`] and return [`ParsedQuery::Phrase`].
+    /// Returns [`None`] if there are any unseen tokens.
     pub fn parse_phrase_query(
         &self,
         phrase: &str,
         hw_counter: &HardwareCounterCell,
-    ) -> Option<ParsedQuery> {
+    ) -> OperationResult<Option<ParsedQuery>> {
         let document = self.parse_document(phrase, hw_counter)?;
-        Some(ParsedQuery::Phrase(document))
+        Ok(document.map(ParsedQuery::Phrase))
     }
 
-    /// Tries to parse a query. If there are any unseen tokens, returns `None`
-    ///
-    /// Tokens are made unique
+    /// Parse as [`TokenizerTextKind::Query`] and return [`ParsedQuery::AllTokens`].
+    /// Returns [`None`] if there are any unseen tokens.
     pub fn parse_text_query(
         &self,
         text: &str,
         hw_counter: &HardwareCounterCell,
-    ) -> Option<ParsedQuery> {
-        let mut tokens = AHashSet::new();
-        self.get_tokenizer().tokenize_query(text, |token| {
-            tokens.insert(self.get_token(token.as_ref(), hw_counter));
-        });
-        let tokens = tokens.into_iter().collect::<Option<TokenSet>>()?;
-        Some(ParsedQuery::AllTokens(tokens))
+    ) -> OperationResult<Option<ParsedQuery>> {
+        let tokenset: Option<TokenSet> = self
+            .resolve_tokens(TokenizerTextKind::Query, text, hw_counter)?
+            .into_values()
+            .collect::<Option<TokenSet>>();
+        Ok(tokenset.map(ParsedQuery::AllTokens))
     }
 
+    /// Parse as [`TokenizerTextKind::Query`] and return [`ParsedQuery::AnyTokens`].
+    /// Unseen tokens are ignored. Never returns [`None`].
     pub fn parse_text_any_query(
         &self,
         text: &str,
         hw_counter: &HardwareCounterCell,
-    ) -> Option<ParsedQuery> {
-        let mut tokens = AHashSet::new();
-        self.get_tokenizer().tokenize_query(text, |token| {
-            if let Some(token_id) = self.get_token(token.as_ref(), hw_counter) {
-                tokens.insert(token_id);
-            }
-        });
-        let tokens = tokens.into_iter().collect::<TokenSet>();
-        Some(ParsedQuery::AnyTokens(tokens))
+    ) -> OperationResult<Option<ParsedQuery>> {
+        let tokenset = self.parse_tokenset(TokenizerTextKind::Query, text, hw_counter)?;
+        Ok(Some(ParsedQuery::AnyTokens(tokenset)))
     }
 
-    pub fn parse_tokenset(&self, text: &str, hw_counter: &HardwareCounterCell) -> TokenSet {
-        let mut tokenset = AHashSet::new();
-        self.get_tokenizer().tokenize_doc(text, |token| {
-            if let Some(token_id) = self.get_token(token.as_ref(), hw_counter) {
-                tokenset.insert(token_id);
-            }
-        });
-        TokenSet::from(tokenset)
+    /// Parse as provided [`TokenizerTextKind`] and return [`TokenSet`].
+    /// Unseen tokens are ignored.
+    fn parse_tokenset(
+        &self,
+        kind: TokenizerTextKind,
+        text: &str,
+        hw_counter: &HardwareCounterCell,
+    ) -> OperationResult<TokenSet> {
+        let token_ids = self.resolve_tokens(kind, text, hw_counter)?.into_values();
+        Ok(token_ids.flatten().collect())
     }
 
-    /// Parse document
-    ///
-    /// If there are any unseen tokens, returns `None`
-    pub fn parse_document(&self, text: &str, hw_counter: &HardwareCounterCell) -> Option<Document> {
+    /// Tokenize the `text` and return a map of token -> token_id.
+    /// Missing tokens will have [`None`] as token_id.
+    fn resolve_tokens<'a>(
+        &self,
+        kind: TokenizerTextKind,
+        text: &'a str,
+        hw_counter: &HardwareCounterCell,
+    ) -> OperationResult<AHashMap<Cow<'a, str>, Option<TokenId>>> {
+        let mut token_map = AHashMap::new();
+        self.get_tokenizer().tokenize(kind, text, |token| {
+            token_map.insert(token, None);
+        });
+        let iter = token_map
+            .iter_mut()
+            .map(|(token, cell)| (cell, token.as_ref()));
+        self.for_each_token_id(iter, hw_counter, |cell, token_id| *cell = token_id)?;
+        Ok(token_map)
+    }
+
+    /// Parse as [`TokenizerTextKind::Document`] and return a [`Document`].
+    /// Returns [`None`] if there are any unseen tokens.
+    pub fn parse_document(
+        &self,
+        text: &str,
+        hw_counter: &HardwareCounterCell,
+    ) -> OperationResult<Option<Document>> {
         let mut document_tokens = Vec::new();
-        let mut unknow_token = false;
-        self.get_tokenizer().tokenize_doc(text, |token| {
-            if let Some(token_id) = self.get_token(token.as_ref(), hw_counter) {
-                document_tokens.push(token_id);
-            } else {
-                unknow_token = true
-            }
-        });
-        // Bail out if the text contains unknown token
-        if unknow_token {
-            None
-        } else {
-            Some(Document::new(document_tokens))
+        let token_map = self.resolve_tokens(TokenizerTextKind::Document, text, hw_counter)?;
+        if token_map.values().any(|token_id| token_id.is_none()) {
+            return Ok(None);
         }
+
+        self.get_tokenizer()
+            .tokenize(TokenizerTextKind::Document, text, |token| {
+                let token_id = token_map
+                    .get(&token)
+                    .expect("token should be in map")
+                    .expect("token_id should be set for all tokens");
+                document_tokens.push(token_id);
+            });
+
+        Ok(Some(Document::new(document_tokens)))
     }
 
     #[cfg(test)]
@@ -357,46 +357,64 @@ impl FullTextIndex {
         &'a self,
         query: &'a str,
         hw_counter: &'a HardwareCounterCell,
-    ) -> Box<dyn Iterator<Item = PointOffsetType> + 'a> {
-        let Some(parsed_query) = self.parse_text_query(query, hw_counter) else {
-            return Box::new(std::iter::empty());
+    ) -> OperationResult<Box<dyn Iterator<Item = PointOffsetType> + 'a>> {
+        let Some(parsed_query) = self.parse_text_query(query, hw_counter)? else {
+            return Ok(Box::new(std::iter::empty()));
         };
         self.filter_query(parsed_query, hw_counter)
     }
 
-    /// Checks the text directly against the payload value
-    pub fn check_payload_match<const IS_PHRASE: bool>(
+    /// Checks the text directly against the payload value using the
+    /// full-text index tokenizer.
+    ///
+    /// `query_type` selects the parsing / matching strategy:
+    /// - `Text`    — all query tokens must appear in the document
+    /// - `Phrase`  — all query tokens must appear in exact order
+    /// - `TextAny` — at least one query token must appear
+    pub fn check_payload_match(
         &self,
         payload_value: &serde_json::Value,
         text: &str,
+        query_type: PayloadMatchQueryType,
         hw_counter: &HardwareCounterCell,
-    ) -> bool {
-        let query_opt = if IS_PHRASE {
-            self.parse_phrase_query(text, hw_counter)
-        } else {
-            self.parse_text_query(text, hw_counter)
+    ) -> OperationResult<bool> {
+        let query_opt = match query_type {
+            PayloadMatchQueryType::Text => self.parse_text_query(text, hw_counter)?,
+            PayloadMatchQueryType::Phrase => self.parse_phrase_query(text, hw_counter)?,
+            PayloadMatchQueryType::TextAny => self.parse_text_any_query(text, hw_counter)?,
         };
 
         let Some(query) = query_opt else {
-            return false;
+            return Ok(false);
         };
 
         FullTextIndex::get_values(payload_value)
             .iter()
-            .any(|value| match &query {
+            .try_any(|value| match &query {
                 ParsedQuery::AllTokens(query) => {
-                    let tokenset = self.parse_tokenset(value, hw_counter);
-                    tokenset.has_subset(query)
+                    let tokenset =
+                        self.parse_tokenset(TokenizerTextKind::Document, value, hw_counter)?;
+                    Ok(tokenset.has_subset(query))
                 }
                 ParsedQuery::Phrase(query) => {
-                    let document = self.parse_document(value, hw_counter);
-                    document.map(|doc| doc.has_phrase(query)).unwrap_or(false)
+                    let document = self.parse_document(value, hw_counter)?;
+                    Ok(document.is_some_and(|doc| doc.has_phrase(query)))
                 }
                 ParsedQuery::AnyTokens(query) => {
-                    let tokenset = self.parse_tokenset(value, hw_counter);
-                    tokenset.has_any(query)
+                    let tokenset =
+                        self.parse_tokenset(TokenizerTextKind::Document, value, hw_counter)?;
+                    Ok(tokenset.has_any(query))
                 }
             })
+    }
+
+    /// Approximate RAM usage in bytes for in-memory structures.
+    pub fn ram_usage_bytes(&self) -> usize {
+        match self {
+            FullTextIndex::Mutable(index) => index.ram_usage_bytes(),
+            FullTextIndex::Immutable(index) => index.ram_usage_bytes(),
+            FullTextIndex::Mmap(index) => index.ram_usage_bytes(),
+        }
     }
 
     pub fn is_on_disk(&self) -> bool {
@@ -404,15 +422,6 @@ impl FullTextIndex {
             FullTextIndex::Mutable(_) => false,
             FullTextIndex::Immutable(_) => false,
             FullTextIndex::Mmap(index) => index.is_on_disk(),
-        }
-    }
-
-    #[cfg(feature = "rocksdb")]
-    pub fn is_rocksdb(&self) -> bool {
-        match self {
-            FullTextIndex::Mutable(index) => index.is_rocksdb(),
-            FullTextIndex::Immutable(index) => index.is_rocksdb(),
-            FullTextIndex::Mmap(_) => false,
         }
     }
 
@@ -457,66 +466,6 @@ impl FullTextIndex {
     }
 }
 
-#[cfg(feature = "rocksdb")]
-pub struct FullTextIndexRocksDbBuilder {
-    mutable_index: MutableFullTextIndex,
-    keep_appendable: bool,
-}
-
-#[cfg(feature = "rocksdb")]
-impl FullTextIndexRocksDbBuilder {
-    pub fn new(
-        db: Arc<RwLock<DB>>,
-        config: TextIndexParams,
-        field: &str,
-        keep_appendable: bool,
-    ) -> OperationResult<Self> {
-        let store_cf_name = FullTextIndex::storage_cf_name(field);
-        let db_wrapper = DatabaseColumnScheduledDeleteWrapper::new(DatabaseColumnWrapper::new(
-            db,
-            &store_cf_name,
-        ));
-        let mutable_index = MutableFullTextIndex::open_rocksdb(db_wrapper, config, true)?
-            .ok_or_else(|| {
-                OperationError::service_error(format!(
-                    "Failed to create and open mutable full text index for field: {field}"
-                ))
-            })?;
-        Ok(FullTextIndexRocksDbBuilder {
-            mutable_index,
-            keep_appendable,
-        })
-    }
-}
-
-#[cfg(feature = "rocksdb")]
-impl FieldIndexBuilderTrait for FullTextIndexRocksDbBuilder {
-    type FieldIndexType = FullTextIndex;
-
-    fn init(&mut self) -> OperationResult<()> {
-        self.mutable_index.init()
-    }
-
-    fn add_point(
-        &mut self,
-        id: PointOffsetType,
-        payload: &[&Value],
-        hw_counter: &HardwareCounterCell,
-    ) -> OperationResult<()> {
-        self.mutable_index.add_point(id, payload, hw_counter)
-    }
-
-    fn finalize(self) -> OperationResult<Self::FieldIndexType> {
-        if self.keep_appendable {
-            return Ok(FullTextIndex::Mutable(self.mutable_index));
-        }
-
-        Ok(FullTextIndex::Immutable(
-            ImmutableFullTextIndex::from_rocksdb_mutable(self.mutable_index),
-        ))
-    }
-}
-
 impl ValueIndexer for FullTextIndex {
     type ValueType = String;
 
@@ -543,13 +492,11 @@ impl ValueIndexer for FullTextIndex {
 
     fn remove_point(&mut self, id: PointOffsetType) -> OperationResult<()> {
         match self {
-            FullTextIndex::Mutable(index) => index.remove_point(id),
+            FullTextIndex::Mutable(index) => index.remove_point(id)?,
             FullTextIndex::Immutable(index) => index.remove_point(id),
-            FullTextIndex::Mmap(index) => {
-                index.remove_point(id);
-                Ok(())
-            }
+            FullTextIndex::Mmap(index) => index.remove_point(id),
         }
+        Ok(())
     }
 }
 
@@ -595,19 +542,24 @@ impl PayloadFieldIndex for FullTextIndex {
         condition: &'a FieldCondition,
         hw_counter: &'a HardwareCounterCell,
     ) -> OperationResult<Option<Box<dyn Iterator<Item = PointOffsetType> + 'a>>> {
-        let parsed_query_opt = match &condition.r#match {
-            Some(Match::Text(MatchText { text })) => self.parse_text_query(text, hw_counter),
-            Some(Match::Phrase(MatchPhrase { phrase })) => {
-                self.parse_phrase_query(phrase, hw_counter)
-            }
-            _ => return Ok(None),
+        let Some(r#match) = &condition.r#match else {
+            return Ok(None);
         };
+
+        let parsed_query_opt = match r#match {
+            Match::Text(MatchText { text }) => self.parse_text_query(text, hw_counter),
+            Match::Phrase(MatchPhrase { phrase }) => self.parse_phrase_query(phrase, hw_counter),
+            Match::TextAny(MatchTextAny { text_any }) => {
+                self.parse_text_any_query(text_any, hw_counter)
+            }
+            Match::Value(_) | Match::Any(_) | Match::Except(_) => return Ok(None),
+        }?;
 
         let Some(parsed_query) = parsed_query_opt else {
             return Ok(Some(Box::new(std::iter::empty())));
         };
 
-        Ok(Some(self.filter_query(parsed_query, hw_counter)))
+        Ok(Some(self.filter_query(parsed_query, hw_counter)?))
     }
 
     fn estimate_cardinality(
@@ -615,13 +567,18 @@ impl PayloadFieldIndex for FullTextIndex {
         condition: &FieldCondition,
         hw_counter: &HardwareCounterCell,
     ) -> OperationResult<Option<CardinalityEstimation>> {
-        let parsed_query_opt = match &condition.r#match {
-            Some(Match::Text(MatchText { text })) => self.parse_text_query(text, hw_counter),
-            Some(Match::Phrase(MatchPhrase { phrase })) => {
-                self.parse_phrase_query(phrase, hw_counter)
-            }
-            _ => return Ok(None),
+        let Some(r#match) = &condition.r#match else {
+            return Ok(None);
         };
+
+        let parsed_query_opt = match r#match {
+            Match::Text(MatchText { text }) => self.parse_text_query(text, hw_counter),
+            Match::Phrase(MatchPhrase { phrase }) => self.parse_phrase_query(phrase, hw_counter),
+            Match::TextAny(MatchTextAny { text_any }) => {
+                self.parse_text_any_query(text_any, hw_counter)
+            }
+            Match::Value(_) | Match::Any(_) | Match::Except(_) => return Ok(None),
+        }?;
 
         let Some(parsed_query) = parsed_query_opt else {
             return Ok(Some(CardinalityEstimation::exact(0)));
@@ -631,15 +588,16 @@ impl PayloadFieldIndex for FullTextIndex {
             &parsed_query,
             condition,
             hw_counter,
-        )))
+        )?))
     }
 
-    fn payload_blocks(
+    fn for_each_payload_block(
         &self,
         threshold: usize,
         key: PayloadKeyType,
-    ) -> Box<dyn Iterator<Item = OperationResult<PayloadBlockCondition>> + '_> {
-        self.payload_blocks(threshold, key)
+        f: &mut dyn FnMut(PayloadBlockCondition) -> OperationResult<()>,
+    ) -> OperationResult<()> {
+        self.for_each_payload_block(threshold, key, f)
     }
 }
 

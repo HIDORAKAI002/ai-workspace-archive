@@ -36,6 +36,15 @@ pub struct VerificationPass {
 /// Trait to verify strict mode for requests.
 /// This trait ignores the `enabled` parameter in `StrictModeConfig`.
 pub trait StrictModeVerification {
+    /// Whether executing this request can grow process memory usage (e.g. upsert, set payload).
+    ///
+    /// Used by the process-level resident memory check. Delete-style operations
+    /// should return `false` so they can still run when memory is high — blocking
+    /// them would deadlock the path that frees memory.
+    fn consumes_memory(&self) -> bool {
+        false
+    }
+
     /// Implementing this method allows adding a custom check for request specific values.
     #[allow(async_fn_in_trait)]
     async fn check_custom(
@@ -219,6 +228,56 @@ pub fn check_search_batch_size(
     )
 }
 
+/// Reject a memory-consuming update if the process resident memory exceeds
+/// the configured percentage of total system memory.
+///
+/// `resident_reader` returns the current process resident memory in bytes,
+/// or `None` when the platform does not expose the stat. In production this
+/// is [`::common::memory_usage::resident_bytes`]; tests pass a closure.
+///
+/// Returns `Ok(())` when no threshold is configured, when the reader returns
+/// `None`, or when current usage is below the threshold. Total memory is
+/// cached once — cgroup limits are read at first call, so container memory
+/// limits are respected if present at startup.
+pub fn check_resident_memory(
+    strict_mode_config: &StrictModeConfig,
+    resident_reader: impl FnOnce() -> Option<usize>,
+) -> CollectionResult<()> {
+    let Some(percent) = strict_mode_config.max_resident_memory_percent else {
+        return Ok(());
+    };
+
+    let Some(resident) = resident_reader() else {
+        return Ok(());
+    };
+
+    let total = total_memory_bytes();
+    if total == 0 {
+        return Ok(());
+    }
+
+    let threshold = total.saturating_mul(u64::from(percent)) / 100;
+    if (resident as u64) >= threshold {
+        let used_percent = (resident as u64).saturating_mul(100) / total;
+        return Err(CollectionError::strict_mode(
+            format!(
+                "Resident memory usage is at {used_percent}% of total memory, exceeding the configured limit of {percent}%",
+            ),
+            "Reduce memory usage (e.g. delete points or free segments) or raise `max_resident_memory_percent` in strict mode.",
+        ));
+    }
+
+    Ok(())
+}
+
+/// Total system memory (or cgroup limit) in bytes. Cached once — total memory
+/// is effectively constant for a running process.
+fn total_memory_bytes() -> u64 {
+    use std::sync::OnceLock;
+    static TOTAL: OnceLock<u64> = OnceLock::new();
+    *TOTAL.get_or_init(|| segment::utils::mem::Mem::new().total_memory_bytes())
+}
+
 pub(crate) fn check_bool_opt(
     value: Option<bool>,
     allowed: Option<bool>,
@@ -349,7 +408,7 @@ mod test {
     };
     use tempfile::Builder;
 
-    use super::StrictModeVerification;
+    use super::{StrictModeVerification, check_resident_memory};
     use crate::collection::{Collection, RequestShardTransfer};
     use crate::config::{CollectionConfigInternal, CollectionParams, WalConfig};
     use crate::operations::point_ops::{FilterSelector, PointsSelector};
@@ -476,6 +535,99 @@ mod test {
             ],
         };
         assert_strict_mode_success(request, collection).await;
+    }
+
+    #[test]
+    fn test_resident_memory_check_disabled_passes() {
+        let cfg = StrictModeConfig::default();
+        // Reader should never be called when no threshold is configured.
+        assert!(check_resident_memory(&cfg, || unreachable!()).is_ok());
+    }
+
+    #[test]
+    fn test_resident_memory_check_no_reader_passes() {
+        // Platforms that don't expose resident memory (reader returns None)
+        // must silently skip the check rather than reject updates.
+        let cfg = StrictModeConfig {
+            max_resident_memory_percent: Some(50),
+            ..StrictModeConfig::default()
+        };
+        assert!(check_resident_memory(&cfg, || None).is_ok());
+    }
+
+    #[test]
+    fn test_resident_memory_check_over_threshold_rejects() {
+        // Force resident usage to effectively all of RAM — any non-zero
+        // threshold must reject.
+        let cfg = StrictModeConfig {
+            max_resident_memory_percent: Some(50),
+            ..StrictModeConfig::default()
+        };
+        let res = check_resident_memory(&cfg, || Some(usize::MAX));
+        assert!(
+            matches!(res, Err(CollectionError::StrictMode { .. })),
+            "expected StrictMode error but got {res:?}",
+        );
+    }
+
+    #[test]
+    fn test_resident_memory_check_under_threshold_passes() {
+        // Zero resident bytes is always under any threshold.
+        let cfg = StrictModeConfig {
+            max_resident_memory_percent: Some(50),
+            ..StrictModeConfig::default()
+        };
+        assert!(check_resident_memory(&cfg, || Some(0)).is_ok());
+    }
+
+    #[test]
+    fn test_consumes_memory_flags() {
+        use api::rest::{PointInsertOperations, PointsList};
+
+        use crate::operations::payload_ops::{DeletePayload, SetPayload};
+        use crate::operations::point_ops::{FilterSelector, PointsSelector};
+        use crate::operations::vector_ops::DeleteVectors;
+
+        // Insert-type ops consume memory.
+        let insert = PointInsertOperations::PointsList(PointsList {
+            points: vec![],
+            shard_key: None,
+            update_filter: None,
+            update_mode: None,
+        });
+        assert!(insert.consumes_memory());
+
+        let set_payload = SetPayload {
+            payload: Default::default(),
+            points: None,
+            filter: None,
+            key: None,
+            shard_key: None,
+        };
+        assert!(set_payload.consumes_memory());
+
+        // Delete-type ops must NOT consume memory (they free it).
+        let delete_vecs = DeleteVectors {
+            points: None,
+            filter: None,
+            vector: Default::default(),
+            shard_key: None,
+        };
+        assert!(!delete_vecs.consumes_memory());
+
+        let delete_payload = DeletePayload {
+            keys: vec![],
+            points: None,
+            filter: None,
+            shard_key: None,
+        };
+        assert!(!delete_payload.consumes_memory());
+
+        let delete_points = PointsSelector::FilterSelector(FilterSelector {
+            filter: Filter::default(),
+            shard_key: None,
+        });
+        assert!(!delete_points.consumes_memory());
     }
 
     async fn test_upsert_batch_limit(collection: &Collection) {

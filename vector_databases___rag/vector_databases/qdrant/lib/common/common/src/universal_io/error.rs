@@ -12,6 +12,9 @@ pub enum UniversalIoError {
     #[error("Bytemuck cast error: {0:?}")]
     BytemuckCast(bytemuck::PodCastError),
 
+    #[error("Zerocopy size error: {0:?}")]
+    ZerocopySize(String),
+
     #[error(transparent)]
     IoUringNotSupported(io::Error),
 
@@ -30,8 +33,12 @@ pub enum UniversalIoError {
     /// Source id is not valid for this multi-source storage.
     #[error("invalid file index {file_index} during multi-file operation, {files} files provided")]
     InvalidFileIndex { file_index: usize, files: usize },
+
     #[error("Resource was not initialized: {description}")]
     Uninitialized { description: String },
+
+    #[error("Request queue is full")]
+    QueueIsFull,
 }
 
 impl UniversalIoError {
@@ -57,5 +64,11 @@ impl From<serde_json::Error> for UniversalIoError {
 impl From<bytemuck::PodCastError> for UniversalIoError {
     fn from(err: bytemuck::PodCastError) -> Self {
         Self::BytemuckCast(err)
+    }
+}
+
+impl<Src, Dst: ?Sized> From<zerocopy::SizeError<Src, Dst>> for UniversalIoError {
+    fn from(err: zerocopy::SizeError<Src, Dst>) -> Self {
+        Self::ZerocopySize(format!("{err:?}"))
     }
 }

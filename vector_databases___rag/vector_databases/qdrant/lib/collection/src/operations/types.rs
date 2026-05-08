@@ -12,7 +12,6 @@ use api::rest::{
     SearchRequestInternal, ShardKeySelector, VectorStructOutput,
 };
 use common::ext::OptionExt;
-use common::fs::FileStorageError;
 use common::rate_limiting::{RateLimitError, RetryError};
 use common::types::ScoreType;
 use common::validation::validate_range_generic;
@@ -917,8 +916,6 @@ pub enum CollectionError {
     BadRequest { description: String },
     #[error("Operation Cancelled: {description}")]
     Cancelled { description: String },
-    #[error("Bad shard selection: {description}")]
-    BadShardSelection { description: String },
     #[error(
         "{shards_failed} out of {shards_total} shards failed to apply operation. First error captured: {first_err}"
     )]
@@ -989,10 +986,6 @@ impl CollectionError {
         }
     }
 
-    pub fn bad_shard_selection(description: String) -> Self {
-        Self::BadShardSelection { description }
-    }
-
     pub fn object_storage_error(what: impl Into<String>) -> Self {
         Self::ObjectStoreError { what: what.into() }
     }
@@ -1008,17 +1001,6 @@ impl CollectionError {
         match self {
             Self::ForwardProxyError { peer_id, .. } => Some(*peer_id),
             _ => None,
-        }
-    }
-
-    pub fn shard_key_not_found(shard_key: &Option<ShardKey>) -> Self {
-        match shard_key {
-            Some(shard_key) => Self::NotFound {
-                what: format!("Shard key {shard_key} not found"),
-            },
-            None => Self::NotFound {
-                what: "Shard expected, but not provided".to_string(),
-            },
         }
     }
 
@@ -1085,7 +1067,6 @@ impl CollectionError {
             Self::NotFound { .. } => false,
             Self::PointNotFound { .. } => false,
             Self::BadRequest { .. } => false,
-            Self::BadShardSelection { .. } => false,
             Self::InconsistentShardFailure { .. } => false,
             Self::ForwardProxyError { .. } => false,
             Self::ObjectStoreError { .. } => false,
@@ -1109,20 +1090,14 @@ impl CollectionError {
 }
 
 impl From<SystemTimeError> for CollectionError {
-    fn from(error: SystemTimeError) -> CollectionError {
-        CollectionError::ServiceError {
-            error: format!("System time error: {error}"),
-            backtrace: Some(Backtrace::force_capture().to_string()),
-        }
+    fn from(error: SystemTimeError) -> Self {
+        Self::service_error(format!("System time error: {error}"))
     }
 }
 
 impl From<String> for CollectionError {
-    fn from(error: String) -> CollectionError {
-        CollectionError::ServiceError {
-            error,
-            backtrace: Some(Backtrace::force_capture().to_string()),
-        }
+    fn from(error: String) -> Self {
+        Self::service_error(error)
     }
 }
 
@@ -1130,10 +1105,10 @@ impl From<OperationError> for CollectionError {
     fn from(err: OperationError) -> Self {
         match err {
             OperationError::WrongVectorDimension { .. } => Self::BadInput {
-                description: format!("{err}"),
+                description: err.to_string(),
             },
             OperationError::VectorNameNotExists { .. } => Self::BadInput {
-                description: format!("{err}"),
+                description: err.to_string(),
             },
             OperationError::PointIdError { missed_point_id } => {
                 Self::PointNotFound { missed_point_id }
@@ -1146,22 +1121,22 @@ impl From<OperationError> for CollectionError {
                 backtrace,
             },
             OperationError::TypeError { .. } => Self::BadInput {
-                description: format!("{err}"),
+                description: err.to_string(),
             },
             OperationError::Cancelled { description } => Self::Cancelled { description },
             OperationError::TypeInferenceError { .. } => Self::BadInput {
-                description: format!("{err}"),
+                description: err.to_string(),
             },
             OperationError::OutOfMemory { description, free } => {
                 Self::OutOfMemory { description, free }
             }
             OperationError::Timeout { description } => Self::Timeout { description },
             OperationError::InconsistentStorage { .. } => Self::ServiceError {
-                error: format!("{err}"),
+                error: err.to_string(),
                 backtrace: None,
             },
             OperationError::ValidationError { .. } => Self::BadInput {
-                description: format!("{err}"),
+                description: err.to_string(),
             },
             OperationError::WrongSparse => Self::BadInput {
                 description: "Conversion between sparse and regular vectors failed".to_string(),
@@ -1169,14 +1144,10 @@ impl From<OperationError> for CollectionError {
             OperationError::WrongMulti => Self::BadInput {
                 description: "Conversion between multi and regular vectors failed".to_string(),
             },
-            OperationError::MissingRangeIndexForOrderBy { .. } => Self::bad_input(format!("{err}")),
-            OperationError::MissingMapIndexForFacet { .. } => Self::bad_input(format!("{err}")),
-            OperationError::VariableTypeError { .. } => Self::bad_input(format!("{err}")),
-            OperationError::NonFiniteNumber { .. } => Self::bad_input(format!("{err}")),
-            OperationError::RocksDbColumnFamilyNotFound { .. } => Self::ServiceError {
-                error: format!("{err}"),
-                backtrace: None,
-            },
+            OperationError::MissingRangeIndexForOrderBy { .. } => Self::bad_input(err.to_string()),
+            OperationError::MissingMapIndexForFacet { .. } => Self::bad_input(err.to_string()),
+            OperationError::VariableTypeError { .. } => Self::bad_input(err.to_string()),
+            OperationError::NonFiniteNumber { .. } => Self::bad_input(err.to_string()),
         }
     }
 }
@@ -1189,101 +1160,64 @@ impl From<CancelledError> for CollectionError {
 
 impl From<OneshotRecvError> for CollectionError {
     fn from(err: OneshotRecvError) -> Self {
-        Self::ServiceError {
-            error: format!("{err}"),
-            backtrace: Some(Backtrace::force_capture().to_string()),
-        }
+        Self::service_error(err.to_string())
     }
 }
 
 impl From<JoinError> for CollectionError {
     fn from(err: JoinError) -> Self {
-        Self::ServiceError {
-            error: format!("{err}"),
-            backtrace: Some(Backtrace::force_capture().to_string()),
-        }
+        Self::service_error(err.to_string())
     }
 }
 
 impl From<WalError> for CollectionError {
     fn from(err: WalError) -> Self {
-        Self::ServiceError {
-            error: format!("{err}"),
-            backtrace: Some(Backtrace::force_capture().to_string()),
-        }
+        Self::service_error(err.to_string())
     }
 }
 
 impl<T> From<SendError<T>> for CollectionError {
     fn from(err: SendError<T>) -> Self {
-        Self::ServiceError {
-            error: format!("Can't reach one of the workers: {err}"),
-            backtrace: Some(Backtrace::force_capture().to_string()),
-        }
+        Self::service_error(format!("Can't reach one of the workers: {err}"))
     }
 }
 
 impl From<JsonError> for CollectionError {
     fn from(err: JsonError) -> Self {
-        CollectionError::ServiceError {
-            error: format!("Json error: {err}"),
-            backtrace: Some(Backtrace::force_capture().to_string()),
-        }
+        Self::service_error(format!("Json error: {err}"))
     }
 }
 
 impl From<std::io::Error> for CollectionError {
     fn from(err: std::io::Error) -> Self {
-        CollectionError::ServiceError {
-            error: format!("File IO error: {err}"),
-            backtrace: Some(Backtrace::force_capture().to_string()),
-        }
+        Self::service_error(format!("File IO error: {err}"))
     }
 }
 
 impl From<tonic::transport::Error> for CollectionError {
     fn from(err: tonic::transport::Error) -> Self {
-        CollectionError::ServiceError {
-            error: format!("Tonic transport error: {err}"),
-            backtrace: Some(Backtrace::force_capture().to_string()),
-        }
+        Self::service_error(format!("Tonic transport error: {err}"))
     }
 }
 
 impl From<InvalidUri> for CollectionError {
     fn from(err: InvalidUri) -> Self {
-        CollectionError::ServiceError {
-            error: format!("Invalid URI error: {err}"),
-            backtrace: Some(Backtrace::force_capture().to_string()),
-        }
+        Self::service_error(format!("Invalid URI error: {err}"))
     }
 }
 
 impl From<tonic::Status> for CollectionError {
     fn from(err: tonic::Status) -> Self {
         match err.code() {
-            tonic::Code::InvalidArgument => CollectionError::BadInput {
-                description: format!("InvalidArgument: {err}"),
-            },
-            tonic::Code::AlreadyExists => CollectionError::BadInput {
-                description: format!("AlreadyExists: {err}"),
-            },
-            tonic::Code::NotFound => CollectionError::NotFound {
-                what: format!("{err}"),
-            },
-            tonic::Code::Internal => CollectionError::ServiceError {
-                error: format!("Internal error: {err}"),
-                backtrace: Some(Backtrace::force_capture().to_string()),
-            },
-            tonic::Code::DeadlineExceeded => CollectionError::Timeout {
+            tonic::Code::InvalidArgument => Self::bad_input(format!("InvalidArgument: {err}")),
+            tonic::Code::AlreadyExists => Self::bad_input(format!("AlreadyExists: {err}")),
+            tonic::Code::NotFound => Self::not_found(err.to_string()),
+            tonic::Code::Internal => Self::service_error(format!("Internal error: {err}")),
+            tonic::Code::DeadlineExceeded => Self::Timeout {
                 description: format!("Deadline Exceeded: {err}"),
             },
-            tonic::Code::Cancelled => CollectionError::Cancelled {
-                description: format!("{err}"),
-            },
-            tonic::Code::FailedPrecondition => CollectionError::PreConditionFailed {
-                description: format!("{err}"),
-            },
+            tonic::Code::Cancelled => Self::cancelled(err.to_string()),
+            tonic::Code::FailedPrecondition => Self::pre_condition_failed(err.to_string()),
             tonic::Code::ResourceExhausted => {
                 // extract retry-after from metadata
                 // the value is passed as a String containing an integer number of seconds
@@ -1300,8 +1234,8 @@ impl From<tonic::Status> for CollectionError {
                         })
                         .map(Duration::from_secs)
                 });
-                CollectionError::RateLimitExceeded {
-                    description: format!("{err}"),
+                Self::RateLimitExceeded {
+                    description: err.to_string(),
                     retry_after,
                 }
             }
@@ -1313,26 +1247,16 @@ impl From<tonic::Status> for CollectionError {
             | tonic::Code::Unimplemented
             | tonic::Code::Unavailable
             | tonic::Code::DataLoss
-            | tonic::Code::Unauthenticated => CollectionError::ServiceError {
-                error: format!("Tonic status error: {err}"),
-                backtrace: Some(Backtrace::force_capture().to_string()),
-            },
+            | tonic::Code::Unauthenticated => {
+                Self::service_error(format!("Tonic status error: {err}"))
+            }
         }
     }
 }
 
 impl<Guard> From<std::sync::PoisonError<Guard>> for CollectionError {
     fn from(err: std::sync::PoisonError<Guard>) -> Self {
-        CollectionError::ServiceError {
-            error: format!("Mutex lock poisoned: {err}"),
-            backtrace: Some(Backtrace::force_capture().to_string()),
-        }
-    }
-}
-
-impl From<FileStorageError> for CollectionError {
-    fn from(err: FileStorageError) -> Self {
-        Self::service_error(err.to_string())
+        Self::service_error(format!("Mutex lock poisoned: {err}"))
     }
 }
 
@@ -1353,18 +1277,13 @@ impl From<RequestError<tonic::Status>> for CollectionError {
 
 impl From<save_on_disk::Error> for CollectionError {
     fn from(err: save_on_disk::Error) -> Self {
-        CollectionError::ServiceError {
-            error: err.to_string(),
-            backtrace: Some(Backtrace::force_capture().to_string()),
-        }
+        Self::service_error(err.to_string())
     }
 }
 
 impl From<validator::ValidationErrors> for CollectionError {
     fn from(err: validator::ValidationErrors) -> Self {
-        CollectionError::BadInput {
-            description: format!("{err}"),
-        }
+        Self::bad_input(err.to_string())
     }
 }
 
@@ -1372,9 +1291,7 @@ impl From<cancel::Error> for CollectionError {
     fn from(err: cancel::Error) -> Self {
         match err {
             cancel::Error::Join(err) => err.into(),
-            cancel::Error::Cancelled => Self::Cancelled {
-                description: err.to_string(),
-            },
+            cancel::Error::Cancelled => Self::cancelled(err.to_string()),
         }
     }
 }
@@ -1580,6 +1497,38 @@ impl VectorsConfig {
         }
     }
 
+    /// Insert or replace a named vector. Converts `Single` to `Multi` if needed.
+    pub fn insert(&mut self, name: VectorNameBuf, params: VectorParams) {
+        match self {
+            VectorsConfig::Single(_) => {
+                let mut multi = BTreeMap::new();
+                if let VectorsConfig::Single(existing) =
+                    std::mem::replace(self, VectorsConfig::empty())
+                {
+                    multi.insert(DEFAULT_VECTOR_NAME.to_owned(), existing);
+                }
+                multi.insert(name, params);
+                *self = VectorsConfig::Multi(multi);
+            }
+            VectorsConfig::Multi(vectors) => {
+                vectors.insert(name, params);
+            }
+        }
+    }
+
+    /// Remove a named vector. Converts `Single` to empty `Multi` if name matches.
+    pub fn remove(&mut self, name: &VectorName) {
+        match self {
+            VectorsConfig::Single(_) if name == DEFAULT_VECTOR_NAME => {
+                *self = VectorsConfig::Multi(Default::default());
+            }
+            VectorsConfig::Single(_) => {}
+            VectorsConfig::Multi(vectors) => {
+                vectors.remove(name);
+            }
+        }
+    }
+
     pub fn get_params_mut(&mut self, name: &VectorName) -> Option<&mut VectorParams> {
         match self {
             VectorsConfig::Single(params) => (name == DEFAULT_VECTOR_NAME).then_some(params),
@@ -1599,30 +1548,6 @@ impl VectorsConfig {
         }
     }
 
-    // TODO: Further unify `check_compatible` and `check_compatible_with_segment_config`?
-    pub fn check_compatible(&self, other: &Self) -> CollectionResult<()> {
-        match (self, other) {
-            (Self::Single(_), Self::Single(_)) | (Self::Multi(_), Self::Multi(_)) => (),
-            _ => {
-                return Err(incompatible_vectors_error(
-                    self.params_iter().map(|(name, _)| name),
-                    other.params_iter().map(|(name, _)| name),
-                ));
-            }
-        };
-
-        for (vector_name, this) in self.params_iter() {
-            let Some(other) = other.get_params(vector_name) else {
-                return Err(missing_vector_error(vector_name));
-            };
-
-            VectorParamsBase::from(this).check_compatibility(&other.into(), vector_name)?;
-        }
-
-        Ok(())
-    }
-
-    // TODO: Further unify `check_compatible` and `check_compatible_with_segment_config`?
     pub fn check_compatible_with_segment_config(
         &self,
         other: &HashMap<VectorNameBuf, segment::types::VectorDataConfig>,
@@ -1647,27 +1572,6 @@ impl VectorsConfig {
     }
 }
 
-pub fn check_sparse_compatible_with_segment_config(
-    self_config: &BTreeMap<VectorNameBuf, SparseVectorParams>,
-    other: &HashMap<VectorNameBuf, segment::types::SparseVectorDataConfig>,
-    exact: bool,
-) -> CollectionResult<()> {
-    if exact && self_config.len() != other.len() {
-        return Err(incompatible_vectors_error(
-            self_config.keys().map(AsRef::as_ref),
-            other.keys().map(AsRef::as_ref),
-        ));
-    }
-
-    for (vector_name, _) in self_config.iter() {
-        if other.get(vector_name).is_none() {
-            return Err(missing_vector_error(vector_name));
-        };
-    }
-
-    Ok(())
-}
-
 fn incompatible_vectors_error<'a, 'b>(
     this: impl Iterator<Item = &'a VectorName>,
     other: impl Iterator<Item = &'b VectorName>,
@@ -1675,22 +1579,18 @@ fn incompatible_vectors_error<'a, 'b>(
     let this_vectors = this.collect::<Vec<_>>().join(", ");
     let other_vectors = other.collect::<Vec<_>>().join(", ");
 
-    CollectionError::BadInput {
-        description: format!(
-            "Vectors configuration is not compatible: \
+    CollectionError::bad_input(format!(
+        "Vectors configuration is not compatible: \
              origin collection have vectors [{this_vectors}], \
              while other vectors [{other_vectors}]"
-        ),
-    }
+    ))
 }
 
 fn missing_vector_error(vector_name: &VectorName) -> CollectionError {
-    CollectionError::BadInput {
-        description: format!(
-            "Vectors configuration is not compatible: \
+    CollectionError::bad_input(format!(
+        "Vectors configuration is not compatible: \
              origin collection have vector {vector_name}, while other collection does not"
-        ),
-    }
+    ))
 }
 
 impl Validate for VectorsConfig {
@@ -1719,23 +1619,19 @@ struct VectorParamsBase {
 impl VectorParamsBase {
     fn check_compatibility(&self, other: &Self, vector_name: &VectorName) -> CollectionResult<()> {
         if self.size != other.size {
-            return Err(CollectionError::BadInput {
-                description: format!(
-                    "Vectors configuration is not compatible: \
+            return Err(CollectionError::bad_input(format!(
+                "Vectors configuration is not compatible: \
                      origin vector {} size: {}, while other vector size: {}",
-                    vector_name, self.size, other.size
-                ),
-            });
+                vector_name, self.size, other.size
+            )));
         }
 
         if self.distance != other.distance {
-            return Err(CollectionError::BadInput {
-                description: format!(
-                    "Vectors configuration is not compatible: \
+            return Err(CollectionError::bad_input(format!(
+                "Vectors configuration is not compatible: \
                      origin vector {} distance: {:?}, while other vector distance: {:?}",
-                    vector_name, self.distance, other.distance
-                ),
-            });
+                vector_name, self.distance, other.distance
+            )));
         }
 
         Ok(())
@@ -1815,9 +1711,7 @@ impl VectorsConfigDiff {
                 .vectors
                 .get_params(vector_name)
                 .map(|_| ())
-                .ok_or_else(|| OperationError::VectorNameNotExists {
-                    received_name: vector_name.clone(),
-                })?;
+                .ok_or_else(|| OperationError::vector_name_not_exists(vector_name.clone()))?;
         }
         Ok(())
     }

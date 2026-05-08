@@ -16,6 +16,7 @@ use crate::data_types::named_vectors::NamedVectors;
 use crate::data_types::order_by::{OrderBy, OrderValue};
 use crate::data_types::query_context::{FormulaContext, QueryContext, SegmentQueryContext};
 use crate::data_types::segment_record::SegmentRecord;
+use crate::data_types::vector_name_config::VectorNameConfig;
 use crate::data_types::vectors::{QueryVector, VectorInternal};
 use crate::entry::snapshot_entry::SnapshotEntry;
 use crate::index::field_index::{CardinalityEstimation, FieldIndex};
@@ -31,7 +32,7 @@ use crate::types::{
 ///
 /// Assume all operations are idempotent - which means that no matter how many times an operation
 /// is executed - the storage state will be the same.
-pub trait ReadSegmentEntry: SnapshotEntry {
+pub trait ReadSegmentEntry {
     /// Get current update version of the segment
     fn version(&self) -> SeqNumberType;
 
@@ -99,9 +100,6 @@ pub trait ReadSegmentEntry: SnapshotEntry {
         point_id: PointIdType,
         hw_counter: &HardwareCounterCell,
     ) -> OperationResult<Payload>;
-
-    /// Iterator over all points in segment in ascending order.
-    fn iter_points(&self) -> Box<dyn Iterator<Item = PointIdType> + '_>;
 
     /// Paginate over points which satisfies filtering condition starting with `offset` id including.
     ///
@@ -235,9 +233,6 @@ pub trait ReadSegmentEntry: SnapshotEntry {
     /// Get indexed fields
     fn get_indexed_fields(&self) -> HashMap<PayloadKeyType, PayloadFieldSchema>;
 
-    /// Checks if segment errored during last operations
-    fn check_error(&self) -> Option<SegmentFailedState>;
-
     // Get collected telemetry data of segment
     fn get_telemetry_data(&self, detail: TelemetryDetail) -> SegmentTelemetry;
 
@@ -263,7 +258,10 @@ pub trait ReadSegmentEntry: SnapshotEntry {
 }
 
 /// Segment with storage.
-pub trait StorageSegmentEntry: ReadSegmentEntry {
+pub trait StorageSegmentEntry: ReadSegmentEntry + SnapshotEntry {
+    /// Checks if segment errored during last operations
+    fn check_error(&self) -> Option<SegmentFailedState>;
+
     /// Get current persistent version of the segment
     fn persistent_version(&self) -> SeqNumberType;
 
@@ -371,6 +369,27 @@ pub trait NonAppendableSegmentEntry: StorageSegmentEntry {
 
         self.apply_field_index(op_num, key.to_owned(), schema, indexes)
     }
+
+    /// Create a new named vector in the segment.
+    /// For appendable segments: creates a real, writable vector storage + plain index.
+    /// For immutable segments: creates a placeholder (empty) vector storage.
+    /// Returns Ok(false) if the vector already exists (idempotent).
+    fn create_vector_name(
+        &mut self,
+        op_num: SeqNumberType,
+        vector_name: &VectorName,
+        vector_config: &VectorNameConfig,
+    ) -> OperationResult<bool>;
+
+    /// Delete a named vector from the segment.
+    /// Removes vector storage, index, and quantization data.
+    /// Removes the vector from segment config.
+    /// Returns Ok(false) if the vector does not exist (idempotent).
+    fn delete_vector_name(
+        &mut self,
+        op_num: SeqNumberType,
+        vector_name: &VectorName,
+    ) -> OperationResult<bool>;
 }
 
 /// Define mutable operations which can be performed with Segment or Segment-like entity.

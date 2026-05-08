@@ -17,7 +17,7 @@ use api::grpc::qdrant::{
     RecoverSnapshotResponse, ScrollPoints, ScrollPointsInternal, SearchBatchResponse,
     ShardSnapshotLocation, UpdateShardCutoffPointRequest, WaitForShardStateRequest,
 };
-use api::grpc::transport_channel_pool::{AddTimeout, MAX_GRPC_CHANNEL_TIMEOUT};
+use api::grpc::transport_channel_pool::{MAX_GRPC_CHANNEL_TIMEOUT, PoolInterceptor};
 use api::grpc::update_operation::Update;
 use api::grpc::{UpdateBatchInternal, UpdateOperation, WithPayloadSelector};
 use async_trait::async_trait;
@@ -39,7 +39,6 @@ use shard::operations::optimization::{OptimizationsRequestOptions, Optimizations
 use shard::retrieve::record_internal::RecordInternal;
 use shard::scroll::ScrollRequestInternal;
 use shard::search::CoreSearchRequestBatch;
-use tokio::runtime::Handle;
 use tonic::Status;
 use tonic::codegen::InterceptedService;
 use tonic::transport::{Channel, Uri};
@@ -50,6 +49,7 @@ use super::conversions::{
     internal_update_vectors,
 };
 use super::local_shard::clock_map::RecoveryPoint;
+use crate::common::adaptive_handle::AdaptiveSearchHandle;
 use crate::operations::conversions::try_record_from_grpc;
 use crate::operations::payload_ops::PayloadOps;
 use crate::operations::point_ops::{PointOperations, WriteOrdering};
@@ -60,14 +60,17 @@ use crate::operations::types::{
 };
 use crate::operations::universal_query::shard_query::{ShardQueryRequest, ShardQueryResponse};
 use crate::operations::vector_ops::VectorOperations;
-use crate::operations::{CollectionUpdateOperations, FieldIndexOperations, OperationWithClockTag};
+use crate::operations::{
+    CollectionUpdateOperations, FieldIndexOperations, OperationWithClockTag, VectorNameOperations,
+};
 use crate::shards::CollectionId;
 use crate::shards::channel_service::ChannelService;
 use crate::shards::conversions::{
     internal_clear_payload, internal_clear_payload_by_filter, internal_create_index,
-    internal_delete_index, internal_delete_payload, internal_delete_points,
-    internal_delete_points_by_filter, internal_set_payload, internal_sync_points,
-    internal_upsert_points, try_scored_point_from_grpc, wait_override_to_proto,
+    internal_create_vector_name, internal_delete_index, internal_delete_payload,
+    internal_delete_points, internal_delete_points_by_filter, internal_delete_vector_name,
+    internal_set_payload, internal_sync_points, internal_upsert_points, try_scored_point_from_grpc,
+    wait_override_to_proto,
 };
 use crate::shards::replica_set::replica_set_state::ReplicaState;
 use crate::shards::shard::{PeerId, ShardId};
@@ -134,7 +137,7 @@ impl RemoteShard {
 
     async fn with_points_client<T, O: Future<Output = Result<T, Status>>>(
         &self,
-        f: impl Fn(PointsInternalClient<InterceptedService<Channel, AddTimeout>>) -> O,
+        f: impl Fn(PointsInternalClient<InterceptedService<Channel, PoolInterceptor>>) -> O,
     ) -> CollectionResult<T> {
         let current_address = self.current_address()?;
         self.channel_service
@@ -150,7 +153,7 @@ impl RemoteShard {
 
     async fn with_collections_client<T, O: Future<Output = Result<T, Status>>>(
         &self,
-        f: impl Fn(CollectionsInternalClient<InterceptedService<Channel, AddTimeout>>) -> O,
+        f: impl Fn(CollectionsInternalClient<InterceptedService<Channel, PoolInterceptor>>) -> O,
     ) -> CollectionResult<T> {
         let current_address = self.current_address()?;
         self.channel_service
@@ -166,7 +169,7 @@ impl RemoteShard {
 
     async fn with_shard_snapshots_client_timeout<T, O: Future<Output = Result<T, Status>>>(
         &self,
-        f: impl Fn(ShardSnapshotsClient<InterceptedService<Channel, AddTimeout>>) -> O,
+        f: impl Fn(ShardSnapshotsClient<InterceptedService<Channel, PoolInterceptor>>) -> O,
         timeout: Option<Duration>,
         retries: usize,
     ) -> CollectionResult<T> {
@@ -189,7 +192,7 @@ impl RemoteShard {
 
     async fn with_qdrant_client<T, Fut: Future<Output = Result<T, Status>>>(
         &self,
-        f: impl Fn(QdrantClient<InterceptedService<Channel, AddTimeout>>) -> Fut,
+        f: impl Fn(QdrantClient<InterceptedService<Channel, PoolInterceptor>>) -> Fut,
     ) -> CollectionResult<T> {
         let current_address = self.current_address()?;
         self.channel_service
@@ -441,6 +444,34 @@ impl RemoteShard {
                                 ordering,
                             );
                             Update::DeleteFieldIndex(request)
+                        }
+                    }
+                }
+                CollectionUpdateOperations::VectorNameOperation(vector_name_op) => {
+                    match vector_name_op {
+                        VectorNameOperations::CreateVectorName(create) => {
+                            let request = internal_create_vector_name(
+                                shard_id,
+                                operation.clock_tag,
+                                collection_name.clone(),
+                                create,
+                                wait,
+                                timeout,
+                                ordering,
+                            );
+                            Update::CreateVectorName(request)
+                        }
+                        VectorNameOperations::DeleteVectorName(delete) => {
+                            let request = internal_delete_vector_name(
+                                shard_id,
+                                operation.clock_tag,
+                                collection_name.clone(),
+                                delete,
+                                wait,
+                                timeout,
+                                ordering,
+                            );
+                            Update::DeleteVectorName(request)
                         }
                     }
                 }
@@ -804,6 +835,45 @@ impl RemoteShard {
                     .into_inner()
                 }
             },
+            CollectionUpdateOperations::VectorNameOperation(vector_name_op) => match vector_name_op
+            {
+                VectorNameOperations::CreateVectorName(create) => {
+                    let request = &internal_create_vector_name(
+                        shard_id,
+                        operation.clock_tag,
+                        collection_name,
+                        create,
+                        wait,
+                        timeout,
+                        ordering,
+                    );
+                    self.with_points_client(|mut client| async move {
+                        client
+                            .create_vector_name(tonic::Request::new(request.clone()))
+                            .await
+                    })
+                    .await?
+                    .into_inner()
+                }
+                VectorNameOperations::DeleteVectorName(delete) => {
+                    let request = &internal_delete_vector_name(
+                        shard_id,
+                        operation.clock_tag,
+                        collection_name,
+                        delete,
+                        wait,
+                        timeout,
+                        ordering,
+                    );
+                    self.with_points_client(|mut client| async move {
+                        client
+                            .delete_vector_name(tonic::Request::new(request.clone()))
+                            .await
+                    })
+                    .await?
+                    .into_inner()
+                }
+            },
             #[cfg(feature = "staging")]
             CollectionUpdateOperations::StagingOperation(staging_op) => {
                 // TODO: Add gRPC support to forward staging operations to remote shards
@@ -986,6 +1056,31 @@ impl RemoteShard {
         Ok(response)
     }
 
+    pub async fn memory_report(
+        &self,
+    ) -> CollectionResult<crate::common::memory_reporter::CollectionMemoryReport> {
+        let res = self
+            .with_collections_client(|mut client| async move {
+                client
+                    .get_shard_memory_report(api::grpc::qdrant::GetShardMemoryReportRequest {
+                        collection_name: self.collection_id.clone(),
+                        shard_id: self.id,
+                    })
+                    .await
+            })
+            .await?
+            .into_inner();
+
+        let report: crate::common::memory_reporter::CollectionMemoryReport =
+            serde_json::from_slice(&res.memory_report_json).map_err(|err| {
+                CollectionError::service_error(format!(
+                    "Failed to deserialize memory report from remote shard: {err}"
+                ))
+            })?;
+
+        Ok(report)
+    }
+
     pub async fn health_check(&self) -> CollectionResult<()> {
         let _ = self
             .with_qdrant_client(|mut client| async move {
@@ -1052,7 +1147,7 @@ impl ShardOperation for RemoteShard {
     async fn scroll_by(
         &self,
         request: Arc<ScrollRequestInternal>,
-        _search_runtime_handle: &Handle,
+        _search_runtime_handle: &AdaptiveSearchHandle,
         timeout: Option<Duration>,
         hw_measurement_acc: HwMeasurementAcc,
     ) -> CollectionResult<Vec<RecordInternal>> {
@@ -1078,7 +1173,7 @@ impl ShardOperation for RemoteShard {
         let scroll_points = ScrollPoints {
             collection_name: self.collection_id.clone(),
             filter: filter.map(api::grpc::qdrant::Filter::from),
-            offset: offset.map(|o| o.into()),
+            offset: offset.map(ExtendedPointId::into),
             limit: limit.map(|x| x as u32),
             with_payload: Some(WithPayloadSelector::from(with_payload)),
             with_vectors: Some(with_vector.clone().into()),
@@ -1123,7 +1218,7 @@ impl ShardOperation for RemoteShard {
         _with_payload_interface: &WithPayloadInterface,
         _with_vector: &WithVector,
         _filter: Option<&Filter>,
-        _search_runtime_handle: &Handle,
+        _search_runtime_handle: &AdaptiveSearchHandle,
         _timeout: Option<Duration>,
         _hw_measurement_acc: HwMeasurementAcc,
         _overwrite_deferred: DeferredBehavior,
@@ -1156,7 +1251,7 @@ impl ShardOperation for RemoteShard {
     async fn core_search(
         &self,
         batch_request: Arc<CoreSearchRequestBatch>,
-        _search_runtime_handle: &Handle,
+        _search_runtime_handle: &AdaptiveSearchHandle,
         timeout: Option<Duration>,
         hw_measurement_acc: HwMeasurementAcc,
     ) -> CollectionResult<Vec<Vec<ScoredPoint>>> {
@@ -1225,7 +1320,7 @@ impl ShardOperation for RemoteShard {
     async fn count(
         &self,
         request: Arc<CountRequestInternal>,
-        _search_runtime_handle: &Handle,
+        _search_runtime_handle: &AdaptiveSearchHandle,
         timeout: Option<Duration>,
         hw_measurement_acc: HwMeasurementAcc,
         // TODO(deferred): Find a solution for this parameter, and don't` simply ignore it. E.g. we might call `count` directly and remove the parameter from the trait signature.
@@ -1234,7 +1329,7 @@ impl ShardOperation for RemoteShard {
         let processed_timeout = Self::process_read_timeout(timeout, "count")?;
         let count_points = CountPoints {
             collection_name: self.collection_id.clone(),
-            filter: request.filter.clone().map(|f| f.into()),
+            filter: request.filter.clone().map(Filter::into),
             exact: Some(request.exact),
             read_consistency: None,
             shard_key_selector: None,
@@ -1281,7 +1376,7 @@ impl ShardOperation for RemoteShard {
         request: Arc<PointRequestInternal>,
         with_payload: &WithPayload,
         with_vector: &WithVector,
-        _search_runtime_handle: &Handle,
+        _search_runtime_handle: &AdaptiveSearchHandle,
         timeout: Option<Duration>,
         hw_measurement_acc: HwMeasurementAcc,
         // TODO(deferred): Find a solution for this parameter, and don't simply ignore it.
@@ -1290,8 +1385,13 @@ impl ShardOperation for RemoteShard {
         let processed_timeout = Self::process_read_timeout(timeout, "retrieve")?;
         let get_points = GetPoints {
             collection_name: self.collection_id.clone(),
-            ids: request.ids.iter().copied().map(|v| v.into()).collect(),
-            with_payload: request.with_payload.clone().map(|wp| wp.into()),
+            ids: request
+                .ids
+                .iter()
+                .copied()
+                .map(ExtendedPointId::into)
+                .collect(),
+            with_payload: request.with_payload.clone().map(WithPayloadInterface::into),
             with_vectors: Some(with_vector.clone().into()),
             read_consistency: None,
             shard_key_selector: None,
@@ -1329,7 +1429,7 @@ impl ShardOperation for RemoteShard {
     async fn query_batch(
         &self,
         requests: Arc<Vec<ShardQueryRequest>>,
-        _search_runtime_handle: &Handle,
+        _search_runtime_handle: &AdaptiveSearchHandle,
         timeout: Option<Duration>,
         hw_measurement_acc: HwMeasurementAcc,
     ) -> CollectionResult<Vec<ShardQueryResponse>> {
@@ -1403,7 +1503,7 @@ impl ShardOperation for RemoteShard {
     async fn facet(
         &self,
         request: Arc<FacetParams>,
-        _search_runtime_handle: &Handle,
+        _search_runtime_handle: &AdaptiveSearchHandle,
         timeout: Option<Duration>,
         hw_measurement_acc: HwMeasurementAcc,
     ) -> CollectionResult<FacetResponse> {

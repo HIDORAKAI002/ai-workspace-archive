@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::ops::Deref as _;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -11,7 +12,6 @@ use common::cow::BoxCow;
 #[cfg(target_os = "linux")]
 use common::cpu::linux_low_thread_priority;
 use common::flags::FeatureFlags;
-use common::fs::clear_disk_cache;
 use common::progress_tracker::ProgressTracker;
 use common::types::{PointOffsetType, ScoredPointOffset, TelemetryDetail};
 use fs_err as fs;
@@ -21,6 +21,7 @@ use parking_lot::Mutex;
 use rand::Rng;
 use rayon::ThreadPool;
 use rayon::prelude::*;
+use sparse::common::types::DimId;
 
 #[cfg(feature = "gpu")]
 use super::gpu::gpu_devices_manager::LockedGpuDevice;
@@ -35,7 +36,8 @@ use crate::common::operation_time_statistics::{
 };
 use crate::data_types::query_context::VectorQueryContext;
 use crate::data_types::vectors::{QueryVector, VectorInternal, VectorRef};
-use crate::id_tracker::{IdTracker, IdTrackerEnum};
+use crate::id_tracker::{IdTrackerEnum, IdTrackerRead};
+use crate::index::field_index::PayloadBlockCondition;
 use crate::index::hnsw_index::HnswM;
 use crate::index::hnsw_index::build_condition_checker::BuildConditionChecker;
 use crate::index::hnsw_index::config::HnswGraphConfig;
@@ -57,7 +59,7 @@ use crate::index::vector_index_search_common::{
     get_oversampled_top, is_quantized_search, postprocess_search_result,
 };
 use crate::index::visited_pool::{VisitedListHandle, VisitedPool};
-use crate::index::{PayloadIndex, VectorIndex, VectorIndexEnum};
+use crate::index::{PayloadIndexRead, VectorIndex, VectorIndexEnum, VectorIndexRead};
 use crate::json_path::JsonPath;
 use crate::payload_storage::FilterContext;
 use crate::segment_constructor::VectorIndexBuildArgs;
@@ -69,7 +71,7 @@ use crate::types::{
 };
 use crate::vector_storage::quantized::quantized_vectors::QuantizedVectors;
 use crate::vector_storage::query::DiscoverQuery;
-use crate::vector_storage::{VectorStorage, VectorStorageEnum, new_raw_scorer};
+use crate::vector_storage::{VectorStorageEnum, VectorStorageRead, new_raw_scorer};
 
 const HNSW_USE_HEURISTIC: bool = true;
 const FINISH_MAIN_GRAPH_LOG_MESSAGE: &str = "Finish main graph in time";
@@ -389,10 +391,16 @@ impl HNSWIndex {
             graph_layers_builder.set_levels(vector_id, level);
         }
 
-        // Try to build the main graph on GPU if possible.
+        // Try to build graphs on GPU if possible.
         // Store created gpu vectors to reuse them for payload links.
         #[cfg(feature = "gpu")]
-        let gpu_vectors = if build_main_graph {
+        let needs_gpu_vectors = build_main_graph
+            || additional_links_params
+                .as_ref()
+                .is_some_and(|(_, indexed_fields)| !indexed_fields.is_empty());
+
+        #[cfg(feature = "gpu")]
+        let gpu_vectors = if needs_gpu_vectors {
             let timer = std::time::Instant::now();
             let gpu_vectors = Self::create_gpu_vectors(
                 gpu_device,
@@ -400,16 +408,18 @@ impl HNSWIndex {
                 &quantized_vectors_ref,
                 stopped,
             )?;
-            if let Some(gpu_constructed_graph) = Self::build_main_graph_on_gpu(
-                id_tracker_ref.deref(),
-                &vector_storage_ref,
-                &quantized_vectors_ref,
-                gpu_vectors.as_ref(),
-                &graph_layers_builder,
-                deleted_bitslice,
-                num_entries,
-                stopped,
-            )? {
+            if build_main_graph
+                && let Some(gpu_constructed_graph) = Self::build_main_graph_on_gpu(
+                    id_tracker_ref.deref(),
+                    &vector_storage_ref,
+                    &quantized_vectors_ref,
+                    gpu_vectors.as_ref(),
+                    &graph_layers_builder,
+                    deleted_bitslice,
+                    num_entries,
+                    stopped,
+                )?
+            {
                 graph_layers_builder = gpu_constructed_graph;
                 build_main_graph = false;
                 debug!("{FINISH_MAIN_GRAPH_LOG_MESSAGE} {:?}", timer.elapsed());
@@ -530,9 +540,9 @@ impl HNSWIndex {
 
             let required_connectivity = if average_links_per_0_level_int >= 4 {
                 let global_graph_connectivity = [
-                    graph_layers_builder.subgraph_connectivity(&all_points, percolation),
-                    graph_layers_builder.subgraph_connectivity(&all_points, percolation),
-                    graph_layers_builder.subgraph_connectivity(&all_points, percolation),
+                    graph_layers_builder.subgraph_connectivity(rng, &all_points, percolation),
+                    graph_layers_builder.subgraph_connectivity(rng, &all_points, percolation),
+                    graph_layers_builder.subgraph_connectivity(rng, &all_points, percolation),
                 ];
 
                 debug!("graph connectivity: {global_graph_connectivity:?} @ {percolation}");
@@ -593,12 +603,11 @@ impl HNSWIndex {
 
                 let counter = field_progress.track_progress(None);
 
-                for payload_block in payload_index_ref.payload_blocks(&field, full_scan_threshold) {
-                    let payload_block = payload_block?;
+                let mut process_block = |payload_block: PayloadBlockCondition| {
                     check_process_stopped(stopped)?;
 
                     if payload_block.cardinality > max_block_size {
-                        continue;
+                        return Ok(());
                     }
 
                     let points_to_index = Self::condition_points(
@@ -618,7 +627,7 @@ impl HNSWIndex {
                     const DELETED_POINTS_FACTOR: usize = 4; // allow block to have up to 75% of deleted points and still be indexed
 
                     if points_to_index.len() <= full_scan_threshold / DELETED_POINTS_FACTOR {
-                        continue;
+                        return Ok(());
                     }
 
                     if !is_tenant
@@ -626,14 +635,17 @@ impl HNSWIndex {
                         && let Some(required_connectivity) = required_connectivity
                     {
                         // Always build for tenants
-                        let graph_connectivity = graph_layers_builder
-                            .subgraph_connectivity(&points_to_index, percolation);
+                        let graph_connectivity = graph_layers_builder.subgraph_connectivity(
+                            rng,
+                            &points_to_index,
+                            percolation,
+                        );
 
                         if graph_connectivity >= required_connectivity {
                             trace!(
                                 "skip building additional HNSW links for {field}, connectivity {graph_connectivity:.4} >= {required_connectivity:.4}"
                             );
-                            continue;
+                            return Ok(());
                         }
                         trace!("graph connectivity: {graph_connectivity} for {field}");
                     }
@@ -663,7 +675,14 @@ impl HNSWIndex {
                         &counter,
                     )?;
                     graph_layers_builder.merge_from_other(additional_graph);
-                }
+                    Ok(())
+                };
+
+                payload_index_ref.for_each_payload_block(
+                    &field,
+                    full_scan_threshold,
+                    &mut process_block,
+                )?;
             }
 
             let indexed_payload_vectors = indexed_vectors_set.count_ones();
@@ -1296,7 +1315,7 @@ impl HNSWIndex {
         // Assume query is already estimated to be small enough so we can iterate over all matched ids
         let filtered_points = payload_index.iter_filtered_points(
             filter,
-            &id_tracker,
+            &*id_tracker,
             &point_mappings,
             &query_cardinality,
             hw_counter,
@@ -1394,14 +1413,23 @@ impl HNSWIndex {
 
     /// Drop disk cache.
     pub fn clear_cache(&self) -> OperationResult<()> {
-        for file in self.graph.files(&self.path) {
-            clear_disk_cache(&file)?
-        }
+        let Self {
+            id_tracker: _,
+            vector_storage: _,
+            quantized_vectors: _,
+            payload_index: _,
+            config: _,
+            path: _,
+            graph,
+            searches_telemetry: _,
+            is_on_disk: _,
+        } = self;
+        graph.clear_cache()?;
         Ok(())
     }
 }
 
-impl VectorIndex for HNSWIndex {
+impl VectorIndexRead for HNSWIndex {
     fn search(
         &self,
         vectors: &[&QueryVector],
@@ -1418,7 +1446,7 @@ impl VectorIndex for HNSWIndex {
         // And if so, we need to fall back to plain search (optionally, with quantization).
 
         let is_hnsw_disabled = self.config.m == 0 && self.config.payload_m.unwrap_or(0) == 0;
-        let exact = params.map(|params| params.exact).unwrap_or(false);
+        let exact = params.is_some_and(|params| params.exact);
 
         let exact_params = if exact {
             params.map(|params| {
@@ -1567,19 +1595,6 @@ impl VectorIndex for HNSWIndex {
         }
     }
 
-    fn files(&self) -> Vec<PathBuf> {
-        let mut files = self.graph.files(&self.path);
-        let config_path = HnswGraphConfig::get_config_path(&self.path);
-        if config_path.exists() {
-            files.push(config_path);
-        }
-        files
-    }
-
-    fn immutable_files(&self) -> Vec<PathBuf> {
-        self.files() // All HNSW index files are immutable 😎
-    }
-
     fn indexed_vector_count(&self) -> usize {
         self.config
             .indexed_vector_count
@@ -1591,6 +1606,33 @@ impl VectorIndex for HNSWIndex {
         self.vector_storage
             .borrow()
             .size_of_available_vectors_in_bytes()
+    }
+
+    fn fill_idf_statistics(
+        &self,
+        _idf: &mut HashMap<DimId, usize>,
+        _hw_counter: &HardwareCounterCell,
+    ) {
+        // HNSW (dense) index doesn't track IDF.
+    }
+
+    fn is_index(&self) -> bool {
+        true
+    }
+}
+
+impl VectorIndex for HNSWIndex {
+    fn files(&self) -> Vec<PathBuf> {
+        let mut files = self.graph.files(&self.path);
+        let config_path = HnswGraphConfig::get_config_path(&self.path);
+        if config_path.exists() {
+            files.push(config_path);
+        }
+        files
+    }
+
+    fn immutable_files(&self) -> Vec<PathBuf> {
+        self.files() // All HNSW index files are immutable 😎
     }
 
     fn update_vector(

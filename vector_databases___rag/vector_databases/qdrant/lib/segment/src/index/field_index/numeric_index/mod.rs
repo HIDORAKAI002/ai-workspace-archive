@@ -11,21 +11,16 @@ use std::ops::Bound;
 use std::ops::Bound::{Excluded, Included, Unbounded};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
-#[cfg(feature = "rocksdb")]
-use std::sync::Arc;
 
 use chrono::DateTime;
+use common::bitvec::{BitSlice, BitVec};
 use common::counter::hardware_counter::HardwareCounterCell;
+use common::either_variant::EitherVariant;
 use common::types::PointOffsetType;
-use delegate::delegate;
 use gridstore::Blob;
 use mmap_numeric_index::MmapNumericIndex;
 use mutable_numeric_index::{InMemoryNumericIndex, MutableNumericIndex};
 use ordered_float::OrderedFloat;
-#[cfg(feature = "rocksdb")]
-use parking_lot::RwLock;
-#[cfg(feature = "rocksdb")]
-use rocksdb::DB;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 use serde_json::Value;
@@ -33,12 +28,12 @@ use uuid::Uuid;
 
 use self::immutable_numeric_index::ImmutableNumericIndex;
 use super::FieldIndexBuilderTrait;
-use super::histogram::Point;
 use super::stored_point_to_values::StoredValue;
 use super::utils::{check_boundaries, value_to_integer};
 use crate::common::Flusher;
 use crate::common::operation_error::{OperationError, OperationResult};
-use crate::index::field_index::histogram::{Histogram, Numericable};
+use crate::index::field_index::histogram::Histogram;
+use crate::index::field_index::numeric_point::{Numericable, Point};
 use crate::index::field_index::stat_tools::estimate_multi_value_selection_cardinality;
 use crate::index::field_index::{
     CardinalityEstimation, PayloadBlockCondition, PayloadFieldIndex, PrimaryCondition, ValueIndexer,
@@ -61,7 +56,7 @@ pub trait StreamRange<T> {
     fn stream_range(
         &self,
         range: &RangeInterface,
-    ) -> Box<dyn DoubleEndedIterator<Item = (T, PointOffsetType)> + '_>;
+    ) -> OperationResult<impl DoubleEndedIterator<Item = (T, PointOffsetType)> + '_>;
 }
 
 pub trait Encodable: Copy + Serialize + DeserializeOwned + 'static {
@@ -178,31 +173,26 @@ impl<T: Encodable + Numericable + StoredValue + Send + Sync + Default> NumericIn
 where
     Vec<T>: Blob,
 {
-    #[cfg(feature = "rocksdb")]
-    pub fn new_rocksdb(
-        db: Arc<RwLock<DB>>,
-        field: &str,
-        is_appendable: bool,
-        create_if_missing: bool,
-    ) -> OperationResult<Option<Self>> {
-        if is_appendable {
-            Ok(
-                MutableNumericIndex::open_rocksdb(db, field, create_if_missing)?
-                    .map(NumericIndexInner::Mutable),
-            )
-        } else {
-            Ok(ImmutableNumericIndex::open_rocksdb(db, field)?.map(NumericIndexInner::Immutable))
-        }
-    }
-
     /// Load immutable mmap based index, either in RAM or on disk
-    pub fn new_mmap(path: &Path, is_on_disk: bool) -> OperationResult<Option<Self>> {
-        let Some(mmap_index) = MmapNumericIndex::open(path, is_on_disk)? else {
+    pub fn new_mmap(
+        path: &Path,
+        is_on_disk: bool,
+        deleted_points: &BitSlice,
+    ) -> OperationResult<Option<Self>> {
+        // Low-memory mode downgrades the in-RAM `Immutable` wrapper to the
+        // pure-mmap `Storage` variant at load time. Files are shared between
+        // variants; the persisted `is_on_disk` flag in `mmap_index` is
+        // untouched.
+        let effective_is_on_disk =
+            is_on_disk || common::low_memory::low_memory_mode().prefer_disk();
+
+        let Some(mmap_index) = MmapNumericIndex::open(path, effective_is_on_disk, deleted_points)?
+        else {
             // Files don't exist, cannot load
             return Ok(None);
         };
 
-        if is_on_disk {
+        if effective_is_on_disk {
             // Use on mmap directly
             Ok(Some(NumericIndexInner::Mmap(mmap_index)))
         } else {
@@ -234,12 +224,12 @@ where
         }
     }
 
-    fn total_unique_values_count(&self) -> usize {
-        match self {
+    fn total_unique_values_count(&self) -> OperationResult<usize> {
+        Ok(match self {
             NumericIndexInner::Mutable(index) => index.total_unique_values_count(),
             NumericIndexInner::Immutable(index) => index.total_unique_values_count(),
-            NumericIndexInner::Mmap(index) => index.total_unique_values_count(),
-        }
+            NumericIndexInner::Mmap(index) => index.total_unique_values_count()?,
+        })
     }
 
     pub fn flusher(&self) -> Flusher {
@@ -268,13 +258,11 @@ where
 
     pub fn remove_point(&mut self, idx: PointOffsetType) -> OperationResult<()> {
         match self {
-            NumericIndexInner::Mutable(index) => index.remove_point(idx),
+            NumericIndexInner::Mutable(index) => index.remove_point(idx)?,
             NumericIndexInner::Immutable(index) => index.remove_point(idx),
-            NumericIndexInner::Mmap(index) => {
-                index.remove_point(idx);
-                Ok(())
-            }
+            NumericIndexInner::Mmap(index) => index.remove_point(idx),
         }
+        Ok(())
     }
 
     pub fn check_values_any(
@@ -322,10 +310,10 @@ where
         }
     }
 
-    fn range_cardinality(&self, range: &RangeInterface) -> CardinalityEstimation {
+    fn range_cardinality(&self, range: &RangeInterface) -> OperationResult<CardinalityEstimation> {
         let max_values_per_point = self.max_values_per_point();
         if max_values_per_point == 0 {
-            return CardinalityEstimation::exact(0);
+            return Ok(CardinalityEstimation::exact(0));
         }
 
         let range = match range {
@@ -355,7 +343,7 @@ where
         let min_estimation = histogram_estimation.0;
         let max_estimation = histogram_estimation.2;
 
-        let total_values = self.total_unique_values_count();
+        let total_values = self.total_unique_values_count()?;
         // Example: points_count = 1000, total values = 2000, values_count = 500
         // min = max(1, 500 - (2000 - 1000)) = 1
         // exp = 500 / (2000 / 1000) = 250
@@ -382,12 +370,12 @@ where
         )
         .round() as usize;
 
-        CardinalityEstimation {
+        Ok(CardinalityEstimation {
             primary_clauses: vec![],
             min: expected_min,
             exp: min(expected_max, max(estimation, expected_min)),
             max: expected_max,
-        }
+        })
     }
 
     pub fn get_telemetry_data(&self) -> PayloadIndexTelemetry {
@@ -412,27 +400,31 @@ where
         &'a self,
         value: T,
         hw_counter: &'a HardwareCounterCell,
-    ) -> Box<dyn Iterator<Item = PointOffsetType> + 'a> {
+    ) -> OperationResult<Box<dyn Iterator<Item = PointOffsetType> + 'a>> {
         let start = Bound::Included(Point::new(value, PointOffsetType::MIN));
         let end = Bound::Included(Point::new(value, PointOffsetType::MAX));
-        match &self {
+        Ok(match &self {
             NumericIndexInner::Mutable(mutable) => Box::new(mutable.values_range(start, end)),
             NumericIndexInner::Immutable(immutable) => Box::new(immutable.values_range(start, end)),
-            NumericIndexInner::Mmap(mmap) => Box::new(mmap.values_range(start, end, hw_counter)),
-        }
+            NumericIndexInner::Mmap(mmap) => Box::new(mmap.values_range(start, end, hw_counter)?),
+        })
     }
 
     /// Tries to estimate the amount of points for a given key.
-    pub fn estimate_points(&self, value: &T, hw_counter: &HardwareCounterCell) -> usize {
+    pub fn estimate_points(
+        &self,
+        value: &T,
+        hw_counter: &HardwareCounterCell,
+    ) -> OperationResult<usize> {
         let start = Bound::Included(Point::new(*value, PointOffsetType::MIN));
         let end = Bound::Included(Point::new(*value, PointOffsetType::MAX));
 
         hw_counter
             .payload_index_io_read_counter()
             // We have to do 2 times binary search in mmap and immutable storage.
-            .incr_delta(2 * ((self.total_unique_values_count() as f32).log2().ceil() as usize));
+            .incr_delta(2 * ((self.total_unique_values_count()? as f32).log2().ceil() as usize));
 
-        match &self {
+        Ok(match &self {
             NumericIndexInner::Mutable(mutable) => {
                 let mut iter = mutable.map().range((start, end));
                 let first = iter.next();
@@ -447,21 +439,30 @@ where
             NumericIndexInner::Immutable(immutable) => {
                 let range_size = immutable.values_range_size(start, end);
                 if range_size == 0 {
-                    return 0;
+                    return Ok(0);
                 }
                 let avg_values_per_point =
-                    self.total_unique_values_count() as f32 / self.get_points_count() as f32;
+                    self.total_unique_values_count()? as f32 / self.get_points_count() as f32;
                 (range_size as f32 / avg_values_per_point).max(1.0).round() as usize
             }
             NumericIndexInner::Mmap(mmap) => {
-                let range_size = mmap.values_range_size(start, end);
+                let range_size = mmap.values_range_size(start, end)?;
                 if range_size == 0 {
-                    return 0;
+                    return Ok(0);
                 }
                 let avg_values_per_point =
-                    self.total_unique_values_count() as f32 / self.get_points_count() as f32;
+                    self.total_unique_values_count()? as f32 / self.get_points_count() as f32;
                 (range_size as f32 / avg_values_per_point).max(1.0).round() as usize
             }
+        })
+    }
+
+    /// Approximate RAM usage in bytes for in-memory structures.
+    pub fn ram_usage_bytes(&self) -> usize {
+        match self {
+            NumericIndexInner::Mutable(index) => index.ram_usage_bytes(),
+            NumericIndexInner::Immutable(index) => index.ram_usage_bytes(),
+            NumericIndexInner::Mmap(index) => index.ram_usage_bytes(),
         }
     }
 
@@ -470,15 +471,6 @@ where
             NumericIndexInner::Mutable(_) => false,
             NumericIndexInner::Immutable(_) => false,
             NumericIndexInner::Mmap(index) => index.is_on_disk(),
-        }
-    }
-
-    #[cfg(feature = "rocksdb")]
-    pub fn is_rocksdb(&self) -> bool {
-        match self {
-            NumericIndexInner::Mutable(index) => index.is_rocksdb(),
-            NumericIndexInner::Immutable(index) => index.is_rocksdb(),
-            NumericIndexInner::Mmap(_) => false,
         }
     }
 
@@ -522,26 +514,13 @@ impl<T: Encodable + Numericable + StoredValue + Send + Sync + Default, P> Numeri
 where
     Vec<T>: Blob,
 {
-    #[cfg(feature = "rocksdb")]
-    pub fn new_rocksdb(
-        db: Arc<RwLock<DB>>,
-        field: &str,
-        is_appendable: bool,
-        create_if_missing: bool,
-    ) -> OperationResult<Option<Self>> {
-        Ok(
-            NumericIndexInner::new_rocksdb(db, field, is_appendable, create_if_missing)?.map(
-                |inner| Self {
-                    inner,
-                    _phantom: PhantomData,
-                },
-            ),
-        )
-    }
-
     /// Load immutable mmap based index, either in RAM or on disk
-    pub fn new_mmap(path: &Path, is_on_disk: bool) -> OperationResult<Option<Self>> {
-        let index = NumericIndexInner::new_mmap(path, is_on_disk)?;
+    pub fn new_mmap(
+        path: &Path,
+        is_on_disk: bool,
+        deleted_points: &BitSlice,
+    ) -> OperationResult<Option<Self>> {
+        let index = NumericIndexInner::new_mmap(path, is_on_disk, deleted_points)?;
 
         Ok(index.map(|inner| Self {
             inner,
@@ -558,42 +537,11 @@ where
         }))
     }
 
-    #[cfg(feature = "rocksdb")]
-    pub fn builder_rocksdb(
-        db: Arc<RwLock<DB>>,
-        field: &str,
-    ) -> OperationResult<NumericIndexBuilder<T, P>>
-    where
-        Self: ValueIndexer<ValueType = P>,
-    {
-        Ok(NumericIndexBuilder(
-            Self::new_rocksdb(db, field, true, true)?.ok_or_else(|| {
-                OperationError::service_error(format!(
-                    "Failed to create and load mutable numeric index builder for field '{field}'",
-                ))
-            })?,
-        ))
-    }
-
-    #[cfg(all(test, feature = "rocksdb"))]
-    pub fn builder_rocksdb_immutable(
-        db: Arc<RwLock<DB>>,
-        field: &str,
-    ) -> NumericIndexImmutableBuilder<T, P>
-    where
-        Self: ValueIndexer<ValueType = P>,
-    {
-        NumericIndexImmutableBuilder {
-            index: Self::new_rocksdb(db.clone(), field, true, true)
-                // unwrap safety: only used in testing
-                .unwrap()
-                .unwrap(),
-            field: field.to_owned(),
-            db,
-        }
-    }
-
-    pub fn builder_mmap(path: &Path, is_on_disk: bool) -> NumericIndexMmapBuilder<T, P>
+    pub fn builder_mmap(
+        path: &Path,
+        is_on_disk: bool,
+        deleted_points: &BitSlice,
+    ) -> NumericIndexMmapBuilder<T, P>
     where
         Self: ValueIndexer<ValueType = P> + NumericIndexIntoInnerValue<T, P>,
     {
@@ -601,6 +549,7 @@ where
             path: path.to_owned(),
             in_memory_index: InMemoryNumericIndex::default(),
             is_on_disk,
+            deleted_points: deleted_points.to_owned(),
             _phantom: PhantomData,
         }
     }
@@ -638,25 +587,45 @@ where
         }
     }
 
-    delegate! {
-        to self.inner {
-            pub fn check_values_any(&self, idx: PointOffsetType, check_fn: impl Fn(&T) -> bool, hw_counter: &HardwareCounterCell) -> bool;
-            pub fn wipe(self) -> OperationResult<()>;
-            pub fn get_telemetry_data(&self) -> PayloadIndexTelemetry;
-            pub fn values_count(&self, idx: PointOffsetType) -> usize;
-            pub fn get_values(&self, idx: PointOffsetType) -> Option<Box<dyn Iterator<Item = T> + '_>>;
-            pub fn values_is_empty(&self, idx: PointOffsetType) -> bool;
-            pub fn is_on_disk(&self) -> bool;
-            pub fn populate(&self) -> OperationResult<()>;
-            pub fn clear_cache(&self) -> OperationResult<()>;
-        }
+    pub fn check_values_any(
+        &self,
+        idx: PointOffsetType,
+        check_fn: impl Fn(&T) -> bool,
+        hw_counter: &HardwareCounterCell,
+    ) -> bool {
+        self.inner.check_values_any(idx, check_fn, hw_counter)
     }
 
-    #[cfg(feature = "rocksdb")]
-    delegate! {
-        to self.inner {
-            pub fn is_rocksdb(&self) -> bool;
-        }
+    pub fn wipe(self) -> OperationResult<()> {
+        self.inner.wipe()
+    }
+
+    pub fn get_telemetry_data(&self) -> PayloadIndexTelemetry {
+        self.inner.get_telemetry_data()
+    }
+
+    pub fn values_count(&self, idx: PointOffsetType) -> usize {
+        self.inner.values_count(idx)
+    }
+
+    pub fn get_values(&self, idx: PointOffsetType) -> Option<Box<dyn Iterator<Item = T> + '_>> {
+        self.inner.get_values(idx)
+    }
+
+    pub fn values_is_empty(&self, idx: PointOffsetType) -> bool {
+        self.inner.values_is_empty(idx)
+    }
+
+    pub fn is_on_disk(&self) -> bool {
+        self.inner.is_on_disk()
+    }
+
+    pub fn populate(&self) -> OperationResult<()> {
+        self.inner.populate()
+    }
+
+    pub fn clear_cache(&self) -> OperationResult<()> {
+        self.inner.clear_cache()
     }
 }
 
@@ -698,59 +667,6 @@ where
     }
 }
 
-#[cfg(all(test, feature = "rocksdb"))]
-pub struct NumericIndexImmutableBuilder<
-    T: Encodable + Numericable + StoredValue + Send + Sync + Default,
-    P,
-> where
-    NumericIndex<T, P>: ValueIndexer<ValueType = P>,
-    Vec<T>: Blob,
-{
-    index: NumericIndex<T, P>,
-    field: String,
-    db: Arc<RwLock<DB>>,
-}
-
-#[cfg(all(test, feature = "rocksdb"))]
-impl<T: Encodable + Numericable + StoredValue + Send + Sync + Default, P> FieldIndexBuilderTrait
-    for NumericIndexImmutableBuilder<T, P>
-where
-    NumericIndex<T, P>: ValueIndexer<ValueType = P>,
-    Vec<T>: Blob,
-{
-    type FieldIndexType = NumericIndex<T, P>;
-
-    fn init(&mut self) -> OperationResult<()> {
-        match &mut self.index.inner {
-            NumericIndexInner::Mutable(index) => index.clear(),
-            NumericIndexInner::Immutable(_) => unreachable!(),
-            NumericIndexInner::Mmap(_) => unreachable!(),
-        }
-    }
-
-    fn add_point(
-        &mut self,
-        id: PointOffsetType,
-        payload: &[&Value],
-        hw_counter: &HardwareCounterCell,
-    ) -> OperationResult<()> {
-        self.index.add_point(id, payload, hw_counter)
-    }
-
-    fn finalize(self) -> OperationResult<Self::FieldIndexType> {
-        self.index.inner.flusher()()?;
-        drop(self.index);
-        let inner: NumericIndexInner<T> =
-            NumericIndexInner::new_rocksdb(self.db, &self.field, false, false)?
-                // unwrap safety: only used in testing
-                .unwrap();
-        Ok(NumericIndex {
-            inner,
-            _phantom: PhantomData,
-        })
-    }
-}
-
 pub struct NumericIndexMmapBuilder<T, P>
 where
     T: Encodable + Numericable + StoredValue + Send + Sync + Default,
@@ -760,6 +676,7 @@ where
     path: PathBuf,
     in_memory_index: InMemoryNumericIndex<T>,
     is_on_disk: bool,
+    deleted_points: BitVec,
     _phantom: PhantomData<P>,
 }
 
@@ -783,7 +700,7 @@ where
     ) -> OperationResult<()> {
         self.in_memory_index.remove_point(id);
         let mut flatten_values: Vec<_> = vec![];
-        for value in payload.iter() {
+        for value in payload {
             let payload_values = <NumericIndex<T, P> as ValueIndexer>::get_values(value);
             flatten_values.extend(payload_values);
         }
@@ -801,7 +718,12 @@ where
     }
 
     fn finalize(self) -> OperationResult<Self::FieldIndexType> {
-        let inner = MmapNumericIndex::build(self.in_memory_index, &self.path, self.is_on_disk)?;
+        let inner = MmapNumericIndex::build(
+            self.in_memory_index,
+            &self.path,
+            self.is_on_disk,
+            &self.deleted_points,
+        )?;
         Ok(NumericIndex {
             inner: NumericIndexInner::Mmap(inner),
             _phantom: PhantomData,
@@ -919,7 +841,7 @@ where
 
             if let Ok(uuid) = Uuid::from_str(keyword) {
                 let value = T::from_u128(uuid.as_u128());
-                return Ok(Some(self.point_ids_by_value(value, hw_counter)));
+                return Ok(Some(self.point_ids_by_value(value, hw_counter)?));
             }
         }
 
@@ -941,17 +863,20 @@ where
             return Ok(Some(Box::new(std::iter::empty())));
         }
 
-        Ok(Some(match self {
+        let result: Box<dyn Iterator<Item = PointOffsetType> + 'a> = match self {
             NumericIndexInner::Mutable(index) => {
                 Box::new(index.values_range(start_bound, end_bound))
             }
             NumericIndexInner::Immutable(index) => {
                 Box::new(index.values_range(start_bound, end_bound))
             }
+
             NumericIndexInner::Mmap(index) => {
-                Box::new(index.values_range(start_bound, end_bound, hw_counter))
+                Box::new(index.values_range(start_bound, end_bound, hw_counter)?)
             }
-        }))
+        };
+
+        Ok(Some(result))
     }
 
     fn estimate_cardinality(
@@ -967,7 +892,7 @@ where
             if let Ok(uuid) = Uuid::from_str(keyword) {
                 let key = T::from_u128(uuid.as_u128());
 
-                let estimated_count = self.estimate_points(&key, hw_counter);
+                let estimated_count = self.estimate_points(&key, hw_counter)?;
                 return Ok(Some(
                     CardinalityEstimation::exact(estimated_count).with_primary_clause(
                         PrimaryCondition::Condition(Box::new(condition.clone())),
@@ -976,84 +901,93 @@ where
             }
         }
 
-        Ok(condition.range.as_ref().map(|range| {
-            let mut cardinality = self.range_cardinality(range);
-            cardinality
-                .primary_clauses
-                .push(PrimaryCondition::Condition(Box::new(condition.clone())));
-            cardinality
-        }))
+        condition
+            .range
+            .as_ref()
+            .map(|range| {
+                let mut cardinality = self.range_cardinality(range)?;
+                cardinality
+                    .primary_clauses
+                    .push(PrimaryCondition::Condition(Box::new(condition.clone())));
+                Ok(cardinality)
+            })
+            .transpose()
     }
 
-    fn payload_blocks(
+    fn for_each_payload_block(
         &self,
         threshold: usize,
         key: PayloadKeyType,
-    ) -> Box<dyn Iterator<Item = OperationResult<PayloadBlockCondition>> + '_> {
-        let mut lower_bound = Unbounded;
-        let mut pre_lower_bound: Option<Bound<T>> = None;
-        let mut payload_conditions = Vec::new();
+        f: &mut dyn FnMut(PayloadBlockCondition) -> OperationResult<()>,
+    ) -> OperationResult<()> {
+        let inner = || -> OperationResult<Vec<PayloadBlockCondition>> {
+            let mut lower_bound = Unbounded;
+            let mut pre_lower_bound: Option<Bound<T>> = None;
+            let mut payload_conditions = Vec::new();
 
-        let value_per_point =
-            self.total_unique_values_count() as f64 / self.get_points_count() as f64;
-        let effective_threshold = (threshold as f64 * value_per_point) as usize;
+            let value_per_point =
+                self.total_unique_values_count()? as f64 / self.get_points_count() as f64;
+            let effective_threshold = (threshold as f64 * value_per_point) as usize;
 
-        loop {
-            let upper_bound = self
-                .get_histogram()
-                .get_range_by_size(lower_bound, effective_threshold / 2);
+            loop {
+                let upper_bound = self
+                    .get_histogram()
+                    .get_range_by_size(lower_bound, effective_threshold / 2);
 
-            if let Some(pre_lower_bound) = pre_lower_bound {
-                let range = Range {
-                    lt: match upper_bound {
-                        Excluded(val) => Some(OrderedFloat(val.to_f64())),
-                        _ => None,
-                    },
-                    gt: match pre_lower_bound {
-                        Excluded(val) => Some(OrderedFloat(val.to_f64())),
-                        _ => None,
-                    },
-                    gte: match pre_lower_bound {
-                        Included(val) => Some(OrderedFloat(val.to_f64())),
-                        _ => None,
-                    },
-                    lte: match upper_bound {
-                        Included(val) => Some(OrderedFloat(val.to_f64())),
-                        _ => None,
-                    },
-                };
-                let cardinality = self.range_cardinality(&RangeInterface::Float(range));
-                let condition = PayloadBlockCondition {
-                    condition: FieldCondition::new_range(key.clone(), range),
-                    cardinality: cardinality.exp,
-                };
-
-                payload_conditions.push(condition);
-            } else if upper_bound == Unbounded {
-                // One block covers all points
-                payload_conditions.push(PayloadBlockCondition {
-                    condition: FieldCondition::new_range(
-                        key.clone(),
-                        Range {
-                            gte: None,
-                            lte: None,
-                            lt: None,
-                            gt: None,
+                if let Some(pre_lower_bound) = pre_lower_bound {
+                    let range = Range {
+                        lt: match upper_bound {
+                            Excluded(val) => Some(OrderedFloat(val.to_f64())),
+                            _ => None,
                         },
-                    ),
-                    cardinality: self.get_points_count(),
-                });
+                        gt: match pre_lower_bound {
+                            Excluded(val) => Some(OrderedFloat(val.to_f64())),
+                            _ => None,
+                        },
+                        gte: match pre_lower_bound {
+                            Included(val) => Some(OrderedFloat(val.to_f64())),
+                            _ => None,
+                        },
+                        lte: match upper_bound {
+                            Included(val) => Some(OrderedFloat(val.to_f64())),
+                            _ => None,
+                        },
+                    };
+                    let cardinality = self.range_cardinality(&RangeInterface::Float(range))?;
+                    let condition = PayloadBlockCondition {
+                        condition: FieldCondition::new_range(key.clone(), range),
+                        cardinality: cardinality.exp,
+                    };
+
+                    payload_conditions.push(condition);
+                } else if upper_bound == Unbounded {
+                    // One block covers all points
+                    payload_conditions.push(PayloadBlockCondition {
+                        condition: FieldCondition::new_range(
+                            key.clone(),
+                            Range {
+                                gte: None,
+                                lte: None,
+                                lt: None,
+                                gt: None,
+                            },
+                        ),
+                        cardinality: self.get_points_count(),
+                    });
+                }
+
+                pre_lower_bound = Some(lower_bound);
+
+                lower_bound = match upper_bound {
+                    Included(val) => Excluded(val),
+                    Excluded(val) => Excluded(val),
+                    Unbounded => break,
+                };
             }
+            Ok(payload_conditions)
+        };
 
-            pre_lower_bound = Some(lower_bound);
-
-            lower_bound = match upper_bound {
-                Included(val) => Excluded(val),
-                Excluded(val) => Excluded(val),
-                Unbounded => break,
-            };
-        }
-        Box::new(payload_conditions.into_iter().map(Ok))
+        inner()?.into_iter().try_for_each(f)
     }
 }
 
@@ -1220,7 +1154,7 @@ where
     fn stream_range(
         &self,
         range: &RangeInterface,
-    ) -> Box<dyn DoubleEndedIterator<Item = (T, PointOffsetType)> + '_> {
+    ) -> OperationResult<impl DoubleEndedIterator<Item = (T, PointOffsetType)> + '_> {
         let range = match range {
             RangeInterface::Float(float_range) => float_range.map(|float| T::from_f64(float.0)),
             RangeInterface::DateTime(datetime_range) => {
@@ -1232,24 +1166,19 @@ where
         // map.range
         // Panics if range start > end. Panics if range start == end and both bounds are Excluded.
         if !check_boundaries(&start_bound, &end_bound) {
-            return Box::new(std::iter::empty());
+            return Ok(EitherVariant::A(std::iter::empty()));
         }
 
-        match self {
+        Ok(match self {
             NumericIndexInner::Mutable(index) => {
-                Box::new(index.orderable_values_range(start_bound, end_bound))
+                EitherVariant::B(index.orderable_values_range(start_bound, end_bound))
             }
             NumericIndexInner::Immutable(index) => {
-                Box::new(index.orderable_values_range(start_bound, end_bound))
+                EitherVariant::C(index.orderable_values_range(start_bound, end_bound))
             }
             NumericIndexInner::Mmap(index) => {
-                Box::new(index.orderable_values_range(start_bound, end_bound))
+                EitherVariant::D(index.orderable_values_range(start_bound, end_bound)?)
             }
-        }
+        })
     }
-}
-
-#[cfg(feature = "rocksdb")]
-fn numeric_index_storage_cf_name(field: &str) -> String {
-    format!("{field}_numeric")
 }
