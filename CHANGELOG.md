@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-05-08 16:37 IST] Auto-Sync
+- **31 Repositories Updated:** Public APIs Directory, Awesome ChatGPT Prompts, Langfuse, Promptfoo, n8n, Dify, Flowise, Activepieces, Windmill, Budibase, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, openai/openai-agents-python, mastra-ai/mastra, deepset-ai/haystack, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, infiniflow/ragflow, arize-ai/phoenix, open-telemetry/opentelemetry-python, chenglou/pretext, vercel/ai, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow, tirth8205/code-review-graph
+
 ## [2026-05-08 09:54 IST] Auto-Sync
 - **28 Repositories Updated:** Public APIs Directory, Promptfoo, Dify, Activepieces, modelcontextprotocol/csharp-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langgraph, pydantic/pydantic-ai, mastra-ai/mastra, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, anthropics/claude-code, chroma-core/chroma, milvus-io/milvus, infiniflow/ragflow, open-telemetry/opentelemetry-python, chenglou/pretext, googleapis/python-genai, vercel/ai, apache/airflow, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, bytedance/deer-flow
 

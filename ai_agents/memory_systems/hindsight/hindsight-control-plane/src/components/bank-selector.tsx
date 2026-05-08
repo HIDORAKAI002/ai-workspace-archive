@@ -37,8 +37,10 @@ import {
   Lock,
   ChevronDown,
   ChevronRight,
+  LogOut,
 } from "lucide-react";
 import { useTheme } from "@/lib/theme-context";
+import { useFeatures } from "@/lib/features-context";
 import Image from "next/image";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -78,8 +80,9 @@ function formatTimeAgo(isoDate: string): string {
 function BankSelectorInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { currentBank, setCurrentBank, banks, bankInfos, loadBanks } = useBank();
+  const { currentBank, setCurrentBank, banks, bankInfos, banksLoading, loadBanks } = useBank();
   const { theme, toggleTheme } = useTheme();
+  const { features } = useFeatures();
   const [open, setOpen] = React.useState(false);
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false);
   const [newBankId, setNewBankId] = React.useState("");
@@ -482,7 +485,16 @@ function BankSelectorInner() {
             <Command>
               {sortedBanks.length > 0 && <CommandInput placeholder="Search memory banks..." />}
               <CommandList>
-                <CommandEmpty>No memory banks yet.</CommandEmpty>
+                <CommandEmpty>
+                  {banksLoading ? (
+                    <div className="flex items-center justify-center gap-2 py-2">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                      <span>Loading banks...</span>
+                    </div>
+                  ) : (
+                    "No memory banks yet."
+                  )}
+                </CommandEmpty>
                 <CommandGroup>
                   {sortedBanks.map((bank) => {
                     const barPct = (bank.fact_count / maxFactCount) * 100;
@@ -601,6 +613,27 @@ function BankSelectorInner() {
         >
           {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
         </Button>
+
+        {features?.access_key_auth && (
+          <>
+            <div className="h-8 w-px bg-border" />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9"
+              title="Logout"
+              onClick={async () => {
+                try {
+                  await fetch("/api/auth/logout", { method: "POST" });
+                } finally {
+                  window.location.href = "/login";
+                }
+              }}
+            >
+              <LogOut className="h-5 w-5" />
+            </Button>
+          </>
+        )}
 
         <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
           <DialogContent className="sm:max-w-[550px]">

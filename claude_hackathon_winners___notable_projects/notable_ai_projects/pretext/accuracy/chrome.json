@@ -5,16 +5,16 @@
     "devicePixelRatio": 2,
     "viewport": {
       "innerWidth": 2560,
-      "innerHeight": 1323,
+      "innerHeight": 1227,
       "outerWidth": 2560,
-      "outerHeight": 1410,
+      "outerHeight": 1314,
       "visualViewportScale": 1
     },
     "screen": {
       "width": 2560,
       "height": 1440,
       "availWidth": 2560,
-      "availHeight": 1410,
+      "availHeight": 1314,
       "colorDepth": 30,
       "pixelDepth": 30
     }
@@ -76825,5 +76825,5 @@
       "diff": 0
     }
   ],
-  "requestId": "1778209507574-dkf1fd"
+  "requestId": "1778234152524-g3ze5g"
 }

@@ -17,6 +17,7 @@
     "url": "git+https://github.com/chenglou/pretext.git"
   },
   "type": "module",
+  "sideEffects": false,
   "publishConfig": {
     "access": "public"
   },
@@ -33,8 +34,6 @@
       "import": "./dist/rich-inline.js",
       "default": "./dist/rich-inline.js"
     },
-    "./demos/*": "./pages/demos/*",
-    "./assets/*": "./pages/assets/*",
     "./package.json": "./package.json"
   },
   "files": [

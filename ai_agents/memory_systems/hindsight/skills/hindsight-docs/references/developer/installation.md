@@ -250,6 +250,7 @@ This connects to your running API server and provides a visual interface for man
 | `-p, --port` | `PORT` | 9999 | Port to listen on |
 | `-H, --hostname` | `HOSTNAME` | 0.0.0.0 | Hostname to bind to |
 | `-a, --api-url` | `HINDSIGHT_CP_DATAPLANE_API_URL` | http://localhost:8888 | Hindsight API URL |
+| | `HINDSIGHT_CP_ACCESS_KEY` | *(none)* | Access key to protect the Control Plane UI. When set, users must enter this key to log in. |
 
 #### Examples
 

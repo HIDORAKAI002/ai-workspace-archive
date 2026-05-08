@@ -78,7 +78,16 @@ def agent_knowledge_get_current_bank() -> str:
 @mcp.tool()
 def agent_knowledge_list_pages() -> str:
     """List all your knowledge pages (IDs and names only). Use agent_knowledge_get_page to read the full content of a specific page."""
-    resp = _client.request("GET", f"/v1/default/banks/{_encode_bank(_default_bank_id)}/mental-models", timeout=10)
+    # The API defaults to detail=full, which returns synthesized content +
+    # reflect_response for every page. The docstring above promises "IDs and
+    # names only", so request the metadata projection explicitly. This keeps
+    # list_pages payloads small at realistic agent scales (tens of pages,
+    # each up to ~100 KB content).
+    resp = _client.request(
+        "GET",
+        f"/v1/default/banks/{_encode_bank(_default_bank_id)}/mental-models?detail=metadata",
+        timeout=10,
+    )
     return json.dumps(resp, indent=2)
 
 
