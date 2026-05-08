@@ -176,7 +176,7 @@ To switch between backends:
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `HINDSIGHT_API_LLM_PROVIDER` | Provider: `openai`, `openai-codex`, `claude-code`, `anthropic`, `gemini`, `groq`, `minimax`, `deepseek`, `zai`, `ollama`, `lmstudio`, `llamacpp`, `vertexai`, `bedrock`, `litellm`, `volcano`, `openrouter`, `none` | `openai` |
+| `HINDSIGHT_API_LLM_PROVIDER` | Provider: `openai`, `openai-codex`, `claude-code`, `anthropic`, `gemini`, `groq`, `minimax`, `deepseek`, `zai`, `ollama`, `lmstudio`, `llamacpp`, `vertexai`, `bedrock`, `litellm`, `litellmrouter`, `volcano`, `openrouter`, `none` | `openai` |
 | `HINDSIGHT_API_LLM_API_KEY` | API key for LLM provider | - |
 | `HINDSIGHT_API_LLM_MODEL` | Model name | `gpt-5-mini` |
 | `HINDSIGHT_API_LLM_BASE_URL` | Custom LLM endpoint | Provider default |
@@ -316,6 +316,28 @@ export HINDSIGHT_API_LLM_PROVIDER=none
 :::tip OpenAI Codex, Claude Code & Vertex AI Setup
 For detailed setup instructions for **OpenAI Codex** (ChatGPT Plus/Pro), **Claude Code** (Claude Pro/Max), and **Vertex AI** (Google Cloud), see the [Models documentation](./models#openai-codex-setup-chatgpt-pluspro).
 :::
+
+### LLM Router (LiteLLM Router)
+
+`HINDSIGHT_API_LLM_PROVIDER=litellmrouter` runs the default LLM through [LiteLLM's `Router`](https://docs.litellm.ai/docs/routing). The config JSON is forwarded verbatim — for fallback chains, load-balancing, rate limits, routing strategies, and the rest of the supported keys, see the [LiteLLM Router docs](https://docs.litellm.ai/docs/routing). Hindsight always issues completions against `model_name: "default"`, so include at least one entry with that name.
+
+| Variable | Description |
+|----------|-------------|
+| `HINDSIGHT_API_LLM_LITELLMROUTER_CONFIG` | JSON object passed to `litellm.Router(**config)`. Required when provider is `litellmrouter`. |
+| `HINDSIGHT_API_{RETAIN,REFLECT,CONSOLIDATION}_LLM_LITELLMROUTER_CONFIG` | Per-operation overrides. Fall back to the default config when unset. |
+
+```bash
+export HINDSIGHT_API_LLM_PROVIDER=litellmrouter
+export HINDSIGHT_API_LLM_LITELLMROUTER_CONFIG='{
+  "model_list": [
+    {"model_name": "default",  "litellm_params": {"model": "openai/gpt-4o-mini", "api_key": "sk-..."}},
+    {"model_name": "fallback", "litellm_params": {"model": "anthropic/claude-sonnet-4-5", "api_key": "sk-ant-..."}}
+  ],
+  "fallbacks": [{"default": ["fallback"]}]
+}'
+```
+
+The config is a credential field — never returned by the bank-config API. Hindsight already retries calls; set `"num_retries": 0` in the Router config to avoid double-retries. Batch APIs aren't supported in router mode.
 
 ### Built-in llama.cpp
 
