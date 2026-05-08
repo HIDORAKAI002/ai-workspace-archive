@@ -33,8 +33,9 @@ from nemoguardrails.guardrails import telemetry
 from nemoguardrails.guardrails.guardrails_types import REQUEST_ID_HEX_CHARS, RailResult, get_request_id
 from nemoguardrails.guardrails.iorails import REFUSAL_MESSAGE, IORails
 from nemoguardrails.rails.llm.config import RailsConfig
+from nemoguardrails.tracing import constants as tracing_constants
 from nemoguardrails.tracing.constants import SystemConstants
-from nemoguardrails.types import LLMResponse, LLMResponseChunk
+from nemoguardrails.types import LLMResponse, LLMResponseChunk, UsageInfo
 from tests.guardrails.async_helpers import saturate_stream_semaphore, wait_for_queue_state
 from tests.guardrails.metric_helpers import collect_histogram_sum, collect_metric_points
 from tests.guardrails.test_data import NEMOGUARDS_CONFIG
@@ -87,6 +88,18 @@ def tracer_from_provider(exporter):
     provider = TracerProvider()
     provider.add_span_processor(SimpleSpanProcessor(exporter))
     return provider.get_tracer("test")
+
+
+def _gated_generate(gate: asyncio.Event):
+    """Build a stubbed ``IORails._do_generate`` that blocks on
+    ``gate.wait()`` and returns a fixed response.  Used by tests that
+    observe queue / worker state while a request is mid-pipeline."""
+
+    async def _gen(messages, req_id, **kwargs):
+        await gate.wait()
+        return {"role": "assistant", "content": "done"}
+
+    return _gen
 
 
 @pytest_asyncio.fixture
@@ -996,22 +1009,48 @@ class TestOtelNotInstalled:
                 assert len(exporter.get_finished_spans()) == 0
 
 
+@pytest.fixture(autouse=True)
+def reset_telemetry_singletons():
+    """Reset telemetry's module-level singletons before and after every
+    test in this file.
+
+    Without this, tests that exercise the OTEL emission paths (e.g.
+    anything that constructs IORails from a metrics-enabled config and
+    triggers an LLM call) leave ``_meter`` / ``_request_instruments`` /
+    ``_llm_instruments`` / ``_tracer`` populated.  That state would
+    otherwise survive into later test files (e.g. the LLMRails
+    OpenTelemetry adapter tests) and produce ghost data points,
+    stale-meter bindings, or spurious warnings — a class of bug
+    that's painful to chase because it only manifests when test
+    ordering changes.
+
+    Cheap (four ``None`` assignments per test) and matches the
+    pattern used in ``test_telemetry_metrics.py`` and
+    ``test_engine_registry.py``.
+    """
+    telemetry._meter = None
+    telemetry._request_instruments = None
+    tracing_constants._llm_instruments = None
+    telemetry._tracer = None
+    yield
+    telemetry._meter = None
+    telemetry._request_instruments = None
+    tracing_constants._llm_instruments = None
+    telemetry._tracer = None
+
+
 @pytest.fixture
 def metric_reader():
-    """Install a test-local Meter on the telemetry module and return the reader."""
+    """Install a test-local Meter, return its reader.  Cleanup is
+    handled by the autouse ``reset_telemetry_singletons`` fixture."""
     reader = InMemoryMetricReader()
     provider = MeterProvider(metric_readers=[reader])
-    original_meter = telemetry._meter
-    original_instruments = telemetry._request_instruments
     telemetry._meter = provider.get_meter(
         SystemConstants.SYSTEM_NAME,
         version="0.0.0-dev",
         schema_url="https://opentelemetry.io/schemas/1.26.0",
     )
-    telemetry._request_instruments = None
-    yield reader
-    telemetry._meter = original_meter
-    telemetry._request_instruments = original_instruments
+    return reader
 
 
 class TestGenerateAsyncRequestMetrics:
@@ -1163,12 +1202,6 @@ class TestGenerateAsyncRequestMetrics:
         """
         gate = asyncio.Event()
 
-        async def blocking_generate(messages, req_id, **kwargs):
-            """Stub pipeline that blocks until ``gate`` is set, so the test can
-            observe queue/worker state mid-flight."""
-            await gate.wait()
-            return {"role": "assistant", "content": "done"}
-
         block_seconds = 0.05
 
         with (
@@ -1178,7 +1211,7 @@ class TestGenerateAsyncRequestMetrics:
             with patch.dict("os.environ", {"NVIDIA_API_KEY": "test-key"}):
                 iorails = IORails(RailsConfig.from_content(config=_make_metrics_only_config()))
             async with iorails:
-                iorails._do_generate = blocking_generate
+                iorails._do_generate = _gated_generate(gate)
 
                 tasks = [
                     asyncio.create_task(iorails.generate_async([{"role": "user", "content": f"m{i}"}]))
@@ -1541,20 +1574,14 @@ class TestNonstreamStateGauges:
         """
         gate = asyncio.Event()
 
-        async def blocking_generate(messages, req_id, **kwargs):
-            """Stub pipeline that blocks until ``gate`` is set, so the test can
-            observe queue/worker state mid-flight."""
-            await gate.wait()
-            return {"role": "assistant", "content": "done"}
-
         with patch.dict("os.environ", {"NVIDIA_API_KEY": "test-key"}):
             iorails = IORails(RailsConfig.from_content(config=_make_metrics_only_config()))
         async with iorails:
-            iorails._do_generate = blocking_generate
+            iorails._do_generate = _gated_generate(gate)
 
             task = asyncio.create_task(iorails.generate_async([{"role": "user", "content": "hi"}]))
             # Wait for the worker to pick up the item and enter
-            # ``blocking_generate`` (busy_count=1, pending=0).
+            # the gated generate (busy_count=1, pending=0).
             await wait_for_queue_state(iorails._generate_async_queue, busy=1, pending=0)
 
             mid = collect_metric_points(metric_reader)
@@ -1575,12 +1602,6 @@ class TestNonstreamStateGauges:
         """
         gate = asyncio.Event()
 
-        async def blocking_generate(messages, req_id, **kwargs):
-            """Stub pipeline that blocks until ``gate`` is set, so the test can
-            observe queue/worker state mid-flight."""
-            await gate.wait()
-            return {"role": "assistant", "content": "done"}
-
         # Patch module-level budgets so the backlog test doesn't need to
         # spin up 256 workers.
         with (
@@ -1590,7 +1611,7 @@ class TestNonstreamStateGauges:
             with patch.dict("os.environ", {"NVIDIA_API_KEY": "test-key"}):
                 iorails = IORails(RailsConfig.from_content(config=_make_metrics_only_config()))
             async with iorails:
-                iorails._do_generate = blocking_generate
+                iorails._do_generate = _gated_generate(gate)
 
                 tasks = [
                     asyncio.create_task(iorails.generate_async([{"role": "user", "content": f"m{i}"}]))
@@ -1696,12 +1717,6 @@ class TestRequestsActiveAggregate:
         """
         gate = asyncio.Event()
 
-        async def blocking_generate(messages, req_id, **kwargs):
-            """Stub pipeline that blocks until ``gate`` is set, so the test can
-            observe queue/worker state mid-flight."""
-            await gate.wait()
-            return {"role": "assistant", "content": "done"}
-
         with (
             patch("nemoguardrails.guardrails.iorails.NONSTREAM_MAX_CONCURRENCY", 1),
             patch("nemoguardrails.guardrails.iorails.NONSTREAM_QUEUE_DEPTH", 4),
@@ -1709,7 +1724,7 @@ class TestRequestsActiveAggregate:
             with patch.dict("os.environ", {"NVIDIA_API_KEY": "test-key"}):
                 iorails = IORails(RailsConfig.from_content(config=_make_metrics_only_config()))
             async with iorails:
-                iorails._do_generate = blocking_generate
+                iorails._do_generate = _gated_generate(gate)
                 tasks = [
                     asyncio.create_task(iorails.generate_async([{"role": "user", "content": f"m{i}"}]))
                     for i in range(2)
@@ -1762,12 +1777,6 @@ class TestRequestsActiveAggregate:
         """
         nonstream_gate = asyncio.Event()
 
-        async def blocking_generate(messages, req_id, **kwargs):
-            """Stub pipeline that blocks until ``nonstream_gate`` is set, so the
-            test can observe queue/worker state mid-flight."""
-            await nonstream_gate.wait()
-            return {"role": "assistant", "content": "done"}
-
         # Drop output rails so ``stream_async`` doesn't trip the
         # StreamingNotSupportedError path (matches the ``_INPUT_ONLY_*``
         # configs used by the streaming-path fixtures above).
@@ -1779,7 +1788,7 @@ class TestRequestsActiveAggregate:
             with patch.dict("os.environ", {"NVIDIA_API_KEY": "test-key"}):
                 iorails = IORails(RailsConfig.from_content(config=invariant_config))
             async with iorails:
-                iorails._do_generate = blocking_generate
+                iorails._do_generate = _gated_generate(nonstream_gate)
                 iorails.rails_manager.is_input_safe = AsyncMock(return_value=RailResult(is_safe=True))
                 iorails.engine_registry.stream_model_call = _mock_chunks_stream
 
@@ -1816,3 +1825,112 @@ class TestRequestsActiveAggregate:
 
                 final = collect_metric_points(metric_reader)
                 assert final["guardrails.requests.active"][0].value == 0
+
+
+def _stub_deep_pipeline_with_usage(iorails):
+    """Like ``_stub_deep_pipeline`` but attaches ``UsageInfo`` to every
+    ``LLMResponse`` so the LLM-call metrics emitted by ``EngineRegistry.model_call``
+    have something to record.
+
+    The token counts are arbitrary and chosen to be distinct per model so
+    tests asserting "metric fired for this model" can also check the
+    recorded sum is the expected value (catching a label-shuffle bug).
+    """
+    from nemoguardrails.guardrails.api_engine import APIEngine
+    from nemoguardrails.guardrails.model_engine import ModelEngine
+
+    # (model_name → (input_tokens, output_tokens, response_content))
+    per_model = {
+        "main": (100, 50, "Hello"),
+        "content_safety": (40, 5, SAFE_OUTPUT_JSON),
+        "topic_control": (30, 5, SAFE_INPUT_JSON),
+    }
+
+    for name, engine in iorails.engine_registry._engines.items():
+        if isinstance(engine, ModelEngine):
+            input_tokens, output_tokens, content = per_model.get(name, (10, 10, SAFE_INPUT_JSON))
+            engine.chat_completion = AsyncMock(
+                return_value=LLMResponse(
+                    content=content,
+                    usage=UsageInfo(
+                        input_tokens=input_tokens,
+                        output_tokens=output_tokens,
+                        total_tokens=input_tokens + output_tokens,
+                    ),
+                )
+            )
+        elif isinstance(engine, APIEngine):
+            engine.call = AsyncMock(return_value={"jailbreak": False, "score": 0.01})
+
+
+class TestGenerateAsyncLLMMetrics:
+    """End-to-end coverage for the OTEL GenAI client metrics emitted from
+    ``EngineRegistry.model_call`` during a real ``IORails.generate_async``
+    invocation.
+
+    Mocks at the ModelEngine layer (not the EngineRegistry layer) so the
+    full RailsManager → RailAction → EngineRegistry → metric-emission
+    chain executes.  A safe end-to-end call drives multiple LLM calls
+    (input rails: content_safety + topic_control; main generation;
+    output rails: content_safety) — token + duration metrics fire for
+    each, distinguished by ``gen_ai.request.model``.
+    """
+
+    @pytest.mark.asyncio
+    async def test_emits_token_and_duration_metrics_per_model(self, iorails_tracing, metric_reader):
+        """Safe end-to-end → token usage and duration metrics emit for
+        every distinct model the rails invoke.  Verifies the
+        ``metrics_enabled=True`` flag plumbs from IORails through
+        EngineRegistry to the per-call emission helpers.
+        """
+        _stub_deep_pipeline_with_usage(iorails_tracing)
+
+        result = await iorails_tracing.generate_async([{"role": "user", "content": "hi"}])
+        assert result == {"role": "assistant", "content": "Hello"}
+
+        points = collect_metric_points(metric_reader)
+
+        # Token usage: each LLM call emits two observations (input,
+        # output).  Models in NEMOGUARDS_CONFIG: main, content_safety,
+        # topic_control.  content_safety is invoked twice (input + output
+        # rails) but those merge into the same {model, token.type}
+        # data points → 6 distinct points total.
+        token_models = {p.attributes["gen_ai.request.model"] for p in points["gen_ai.client.token.usage"]}
+        assert token_models == {
+            "meta/llama-3.3-70b-instruct",  # main
+            "nvidia/llama-3.1-nemoguard-8b-content-safety",
+            "nvidia/llama-3.1-nemoguard-8b-topic-control",
+        }
+        # Each model produces both input and output observations.
+        for model in token_models:
+            types_for_model = {
+                p.attributes["gen_ai.token.type"]
+                for p in points["gen_ai.client.token.usage"]
+                if p.attributes["gen_ai.request.model"] == model
+            }
+            assert types_for_model == {"input", "output"}
+
+        # Duration: one data point per (model, no-error) — three models.
+        duration_models = {p.attributes["gen_ai.request.model"] for p in points["gen_ai.client.operation.duration"]}
+        assert duration_models == token_models
+
+        # All observations carry the standard provider + operation labels.
+        for point in points["gen_ai.client.token.usage"] + points["gen_ai.client.operation.duration"]:
+            assert point.attributes["gen_ai.operation.name"] == "chat"
+            assert point.attributes["gen_ai.provider.name"] == "nim"
+            assert "error.type" not in point.attributes
+
+    @pytest.mark.asyncio
+    async def test_no_llm_metrics_when_metrics_disabled(self, iorails_no_tracing, metric_reader):
+        """Default config (metrics off) → no LLM-call metrics emit even
+        when a MeterProvider is installed and the rails actually call
+        the engines.  Catches the gating slip where LLM-call metrics
+        would fire purely on meter availability.
+        """
+        _stub_deep_pipeline_with_usage(iorails_no_tracing)
+
+        await iorails_no_tracing.generate_async([{"role": "user", "content": "hi"}])
+
+        points = collect_metric_points(metric_reader)
+        assert "gen_ai.client.token.usage" not in points
+        assert "gen_ai.client.operation.duration" not in points

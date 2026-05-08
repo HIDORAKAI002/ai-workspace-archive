@@ -40,18 +40,35 @@ from nemoguardrails.guardrails.telemetry import (
     traced_request,
 )
 from nemoguardrails.rails.llm.config import MetricsConfig
-from nemoguardrails.tracing.constants import SystemConstants
+from nemoguardrails.tracing import constants as tracing_constants
+from nemoguardrails.tracing.constants import (
+    SystemConstants,
+    _ensure_llm_instruments,
+    llm_operation_duration,
+    record_time_per_output_chunk,
+    record_time_to_first_chunk,
+    record_token_usage,
+)
+from nemoguardrails.types import UsageInfo
 from tests.guardrails.metric_helpers import collect_metric_points
 
 
 @pytest.fixture(autouse=True)
 def reset_metrics_singletons():
-    """Reset module-level meter + instrument singletons between tests."""
+    """Reset module-level meter + instrument + tracer singletons between
+    tests.  ``_tracer`` is included even though tests in this file are
+    metric-focused — leaks of the cached tracer would otherwise affect
+    later test files that exercise the OTEL adapter.
+    """
     telemetry._meter = None
     telemetry._request_instruments = None
+    tracing_constants._llm_instruments = None
+    telemetry._tracer = None
     yield
     telemetry._meter = None
     telemetry._request_instruments = None
+    tracing_constants._llm_instruments = None
+    telemetry._tracer = None
 
 
 @pytest.fixture
@@ -119,6 +136,241 @@ class TestEnsureRequestInstruments:
         with patch.object(telemetry, "_OTEL_AVAILABLE", False):
             telemetry._meter = None
             assert _ensure_request_instruments() is None
+
+
+class TestEnsureLLMInstruments:
+    """``_ensure_llm_instruments()`` lazily creates and caches the
+    OTEL GenAI standard LLM-call-scope instruments."""
+
+    def test_creates_all_instruments(self, meter_reader):
+        """First call returns a populated ``LLMInstruments`` with all
+        four OTEL GenAI standard client-side metrics."""
+        result = _ensure_llm_instruments()
+        assert result is not None
+        assert result.token_usage is not None
+        assert result.operation_duration is not None
+        assert result.time_to_first_chunk is not None
+        assert result.time_per_output_chunk is not None
+
+    def test_returns_same_instruments_on_second_call(self, meter_reader):
+        """Caching: second call returns the same struct as the first.
+        Important because each call to ``meter.create_histogram`` with
+        the same name produces a duplicate-instrument warning, and
+        we'd lose data points if the SDK actually allocated two."""
+        first = _ensure_llm_instruments()
+        second = _ensure_llm_instruments()
+        assert first is second
+
+    def test_returns_none_without_otel(self):
+        with patch.object(telemetry, "_OTEL_AVAILABLE", False):
+            telemetry._meter = None
+            assert _ensure_llm_instruments() is None
+
+    def test_independent_from_request_instruments(self, meter_reader):
+        """``_ensure_llm_instruments`` and ``_ensure_request_instruments``
+        cache separately; calling one does not populate the other."""
+        _ensure_llm_instruments()
+        assert tracing_constants._llm_instruments is not None
+        assert telemetry._request_instruments is None
+        _ensure_request_instruments()
+        assert telemetry._request_instruments is not None
+
+
+class TestRecordTokenUsage:
+    """``record_token_usage`` emits two ``gen_ai.client.token.usage``
+    Histogram observations distinguished by ``gen_ai.token.type``."""
+
+    def test_emits_one_input_and_one_output_observation(self, meter_reader):
+        usage = UsageInfo(input_tokens=42, output_tokens=17, total_tokens=59)
+        record_token_usage("model-x", "openai", "chat", usage)
+        points = collect_metric_points(meter_reader)
+        observations = points["gen_ai.client.token.usage"]
+        assert len(observations) == 2
+        # Both observations carry the same model/provider/operation labels;
+        # they're distinguished by gen_ai.token.type only.
+        types = {obs.attributes["gen_ai.token.type"] for obs in observations}
+        assert types == {"input", "output"}
+
+    def test_label_set_includes_model_provider_operation(self, meter_reader):
+        record_token_usage("model-x", "openai", "chat", UsageInfo(input_tokens=1, output_tokens=1))
+        points = collect_metric_points(meter_reader)
+        attrs = points["gen_ai.client.token.usage"][0].attributes
+        assert attrs["gen_ai.request.model"] == "model-x"
+        assert attrs["gen_ai.provider.name"] == "openai"
+        assert attrs["gen_ai.operation.name"] == "chat"
+
+    def test_no_op_when_usage_is_none(self, meter_reader):
+        """Skipping when usage is None preserves the "no observation"
+        vs "0 tokens" distinction — operators can tell the difference
+        between a successful zero-token call and a call where the
+        provider didn't return usage info."""
+        record_token_usage("model-x", "openai", "chat", None)
+        points = collect_metric_points(meter_reader)
+        assert "gen_ai.client.token.usage" not in points
+
+    def test_no_op_when_otel_unavailable(self):
+        with patch.object(telemetry, "_OTEL_AVAILABLE", False):
+            telemetry._meter = None
+            tracing_constants._llm_instruments = None
+            record_token_usage("m", "p", "chat", UsageInfo(input_tokens=1, output_tokens=1))
+            # No meter to assert against; just verify no exception.
+
+    def test_records_zero_tokens_when_provider_returns_zeros(self, meter_reader):
+        """A ``UsageInfo(0, 0, 0)`` is real data (provider explicitly
+        reported zero) — distinct from ``usage=None``.  We record the
+        zeros."""
+        record_token_usage("model-x", "openai", "chat", UsageInfo(input_tokens=0, output_tokens=0))
+        points = collect_metric_points(meter_reader)
+        assert len(points["gen_ai.client.token.usage"]) == 2
+
+    def test_input_tokens_only_emits_both_observations(self, meter_reader):
+        """``UsageInfo(input_tokens=10, output_tokens=0)`` — typical of
+        an LLM call that errored after consuming prompt tokens but
+        before generating any output.  Both observations are recorded
+        (with output=0) so the operator sees the prompt cost without a
+        gap in the output series."""
+        record_token_usage("model-x", "openai", "chat", UsageInfo(input_tokens=10, output_tokens=0))
+        sums_by_type = _histogram_sums_by_token_type(meter_reader)
+        assert sums_by_type == {"input": 10, "output": 0}
+
+    def test_output_tokens_only_emits_both_observations(self, meter_reader):
+        """``UsageInfo(input_tokens=0, output_tokens=10)`` — pathological
+        but possible (e.g. cached prompt that the provider counts as 0
+        input).  Both observations are recorded for symmetry with the
+        input-only case."""
+        record_token_usage("model-x", "openai", "chat", UsageInfo(input_tokens=0, output_tokens=10))
+        sums_by_type = _histogram_sums_by_token_type(meter_reader)
+        assert sums_by_type == {"input": 0, "output": 10}
+
+
+def _histogram_sums_by_token_type(reader):
+    """Walk the SDK's collected metrics for ``gen_ai.client.token.usage``
+    and return ``{token_type: sum}`` so callers can assert that input
+    and output observations carried the correct values.
+
+    ``collect_metric_points`` only exposes the histogram *count*, not
+    *sum* per data point — so we read the SDK's data points directly
+    here.  Kept local to this test class because no other test needs
+    per-label histogram sums.
+    """
+    data = reader.get_metrics_data()
+    out = {}
+    for rm in data.resource_metrics:
+        for sm in rm.scope_metrics:
+            for metric in sm.metrics:
+                if metric.name != "gen_ai.client.token.usage":
+                    continue
+                for dp in metric.data.data_points:
+                    out[dp.attributes["gen_ai.token.type"]] = dp.sum
+    return out
+
+
+class TestLLMOperationDuration:
+    """``llm_operation_duration`` context manager records the wrapped
+    block's duration into ``gen_ai.client.operation.duration``,
+    adding ``error.type`` only on exception."""
+
+    def test_records_one_observation_on_success(self, meter_reader):
+        with llm_operation_duration("model-x", "openai", "chat"):
+            pass
+        points = collect_metric_points(meter_reader)
+        # Histogram count, not sum.
+        assert points["gen_ai.client.operation.duration"][0].value == 1
+
+    def test_label_set_on_success_has_no_error_type(self, meter_reader):
+        with llm_operation_duration("model-x", "openai", "chat"):
+            pass
+        points = collect_metric_points(meter_reader)
+        attrs = points["gen_ai.client.operation.duration"][0].attributes
+        assert attrs["gen_ai.request.model"] == "model-x"
+        assert attrs["gen_ai.provider.name"] == "openai"
+        assert attrs["gen_ai.operation.name"] == "chat"
+        assert "error.type" not in attrs
+
+    def test_records_observation_on_exception_with_error_type(self, meter_reader):
+        with pytest.raises(RuntimeError):
+            with llm_operation_duration("model-x", "openai", "chat"):
+                raise RuntimeError("boom")
+        points = collect_metric_points(meter_reader)
+        assert len(points["gen_ai.client.operation.duration"]) == 1
+        attrs = points["gen_ai.client.operation.duration"][0].attributes
+        assert attrs["error.type"] == "RuntimeError"
+
+    def test_success_and_failure_split_by_error_type_label(self, meter_reader):
+        """Two calls — one ok, one raising — produce two distinct
+        data points distinguished by presence/value of ``error.type``."""
+        with llm_operation_duration("model-x", "openai", "chat"):
+            pass
+        with pytest.raises(ValueError):
+            with llm_operation_duration("model-x", "openai", "chat"):
+                raise ValueError("nope")
+        points = collect_metric_points(meter_reader)
+        observations = points["gen_ai.client.operation.duration"]
+        assert len(observations) == 2
+        error_types = {obs.attributes.get("error.type") for obs in observations}
+        assert error_types == {None, "ValueError"}
+
+    def test_no_op_when_otel_unavailable(self):
+        with patch.object(telemetry, "_OTEL_AVAILABLE", False):
+            telemetry._meter = None
+            tracing_constants._llm_instruments = None
+            with llm_operation_duration("m", "p", "chat"):
+                pass  # must not raise
+
+
+class TestRecordTimeToFirstChunk:
+    """``record_time_to_first_chunk`` records a single observation onto
+    ``gen_ai.client.operation.time_to_first_chunk`` with the standard
+    label set."""
+
+    def test_records_observation(self, meter_reader):
+        record_time_to_first_chunk("model-x", "openai", "chat", 0.123)
+        points = collect_metric_points(meter_reader)
+        # Histogram value here is the recording count.
+        assert points["gen_ai.client.operation.time_to_first_chunk"][0].value == 1
+
+    def test_label_set(self, meter_reader):
+        record_time_to_first_chunk("model-x", "openai", "chat", 0.05)
+        points = collect_metric_points(meter_reader)
+        attrs = points["gen_ai.client.operation.time_to_first_chunk"][0].attributes
+        assert attrs["gen_ai.request.model"] == "model-x"
+        assert attrs["gen_ai.provider.name"] == "openai"
+        assert attrs["gen_ai.operation.name"] == "chat"
+
+    def test_no_op_when_otel_unavailable(self):
+        with patch.object(telemetry, "_OTEL_AVAILABLE", False):
+            telemetry._meter = None
+            tracing_constants._llm_instruments = None
+            record_time_to_first_chunk("m", "p", "chat", 0.01)
+            # No exception, no meter to assert against.
+
+
+class TestRecordTimePerOutputChunk:
+    """``record_time_per_output_chunk`` records the inter-chunk
+    interval onto ``gen_ai.client.operation.time_per_output_chunk``.
+    Caller is responsible for skipping the first chunk and any
+    non-content frames; the helper itself just records."""
+
+    def test_each_call_records_one_observation(self, meter_reader):
+        for interval in (0.02, 0.04, 0.03):
+            record_time_per_output_chunk("model-x", "openai", "chat", interval)
+        points = collect_metric_points(meter_reader)
+        # Three calls → three recordings on the same data point.
+        assert points["gen_ai.client.operation.time_per_output_chunk"][0].value == 3
+
+    def test_label_set(self, meter_reader):
+        record_time_per_output_chunk("model-x", "openai", "chat", 0.05)
+        points = collect_metric_points(meter_reader)
+        attrs = points["gen_ai.client.operation.time_per_output_chunk"][0].attributes
+        assert attrs["gen_ai.request.model"] == "model-x"
+        assert attrs["gen_ai.provider.name"] == "openai"
+        assert attrs["gen_ai.operation.name"] == "chat"
+
+    def test_no_op_when_otel_unavailable(self):
+        with patch.object(telemetry, "_OTEL_AVAILABLE", False):
+            telemetry._meter = None
+            tracing_constants._llm_instruments = None
+            record_time_per_output_chunk("m", "p", "chat", 0.01)
 
 
 class TestRequestMetrics:

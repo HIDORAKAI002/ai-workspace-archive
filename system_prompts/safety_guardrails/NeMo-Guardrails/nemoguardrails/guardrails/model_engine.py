@@ -116,28 +116,38 @@ def _parse_chat_completion(response: dict) -> LLMResponse:
 def _parse_chat_completion_chunk(chunk: dict) -> Optional[LLMResponseChunk]:
     """Build an LLMResponseChunk from an SSE chunk dict.
 
-    Returns None for chunks that carry no content or reasoning delta —
-    role-only first events, finish-only events, or empty-choices events
-    are skipped, preserving current stream_call behavior.
+    Returns None for chunks without one of: content delta, reasoning delta,
+    or a usage payload.
+    Role-only first events and finish-only events with empty deltas
+    map to None.
+
+    Last chunk from OpenAI-compatible providers has a ``usage`` field when
+    ``stream_options.include_usage=true``. This is passed through to capture
+    the token usage metadata.
     """
     choices = chunk.get("choices") or []
-    if not choices:
-        return None
+    usage_dict = chunk.get("usage")
 
-    choice = choices[0]
-    delta = choice.get("delta") or {}
-    delta_content = delta.get("content")
-    delta_reasoning = delta.get("reasoning_content") or None
+    delta_content: Optional[str] = None
+    delta_reasoning: Optional[str] = None
+    finish_reason = None
+    if choices:
+        choice = choices[0]
+        delta = choice.get("delta") or {}
+        delta_content = delta.get("content")
+        delta_reasoning = delta.get("reasoning_content") or None
+        finish_reason = choice.get("finish_reason")
 
-    if not delta_content and not delta_reasoning:
+    if not delta_content and not delta_reasoning and not usage_dict:
         return None
 
     return LLMResponseChunk(
         delta_content=delta_content,
         delta_reasoning=delta_reasoning,
         model=chunk.get("model"),
-        finish_reason=choice.get("finish_reason"),
+        finish_reason=finish_reason,
         request_id=chunk.get("id"),
+        usage=_parse_usage(usage_dict) if usage_dict else None,
     )
 
 
@@ -315,17 +325,28 @@ class ModelEngine(BaseEngine):
         """Make a streaming POST request to the /v1/chat/completions endpoint.
 
         Sends ``stream=True`` and yields one ``LLMResponseChunk`` per SSE
-        event that carries a content or reasoning delta. Role-only,
-        finish-only, and empty-choices events are skipped. Retries are
-        handled by the RetryClient (same as ``call()``).
+        event that carries a content delta, reasoning delta, OR a
+        ``usage`` payload. Role-only, finish-only, and empty-choices
+        events without usage are skipped. Retries are handled by the
+        RetryClient (same as ``call()``).
+
+        Note: when the upstream payload includes
+        ``stream_options.include_usage=true`` (default for the
+        OpenAI-compatible client), the provider sends a final
+        usage-only chunk with empty ``choices`` after the last content
+        chunk. That terminal chunk is yielded as
+        ``LLMResponseChunk(usage=...)`` with both ``delta_content``
+        and ``delta_reasoning`` unset — callers that only care about
+        content should gate on ``chunk.delta_content`` rather than
+        assuming every yielded chunk carries one.
 
         Args:
             messages: List of message dicts in OpenAI format.
             **kwargs: Additional parameters for the request body (temperature, max_tokens, etc.)
 
         Yields:
-            ``LLMResponseChunk`` objects with ``delta_content`` and/or
-            ``delta_reasoning`` populated.
+            ``LLMResponseChunk`` objects with ``delta_content``,
+            ``delta_reasoning``, and/or ``usage`` populated.
 
         Raises:
             ModelEngineError: If the request fails after all retries.
@@ -413,7 +434,9 @@ class ModelEngine(BaseEngine):
     ) -> AsyncGenerator[LLMResponseChunk, None]:
         """Stream a chat completion and yield ``LLMResponseChunk`` objects.
 
-        Thin pass-through over ``stream_call``.
+        Thin pass-through over ``stream_call`` — see that method's
+        docstring for the contract, including the terminal usage-only
+        chunk emitted when ``stream_options.include_usage`` is on.
 
         Raises:
             ModelEngineError: If the request fails after all retries.

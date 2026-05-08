@@ -20,16 +20,27 @@ model type. Each engine owns its own RetryClient with per-model settings.
 """
 
 import logging
+import time
 from collections.abc import AsyncGenerator
+from contextlib import nullcontext
 from typing import TYPE_CHECKING, Any, Optional, TypeVar
 
 from nemoguardrails.guardrails.api_engine import APIEngine
 from nemoguardrails.guardrails.base_engine import BaseEngine
 from nemoguardrails.guardrails.guardrails_types import get_request_id, truncate
 from nemoguardrails.guardrails.model_engine import ModelEngine
-from nemoguardrails.guardrails.telemetry import api_call_span, llm_call_span
+from nemoguardrails.guardrails.telemetry import (
+    api_call_span,
+    llm_call_span,
+)
 from nemoguardrails.rails.llm.config import Model, RailsConfigData
-from nemoguardrails.types import LLMResponse, LLMResponseChunk
+from nemoguardrails.tracing.constants import (
+    llm_operation_duration,
+    record_time_per_output_chunk,
+    record_time_to_first_chunk,
+    record_token_usage,
+)
+from nemoguardrails.types import LLMResponse, LLMResponseChunk, UsageInfo
 
 if TYPE_CHECKING:
     from opentelemetry.trace import Tracer
@@ -51,15 +62,24 @@ class EngineRegistry:
         models: list[Model],
         rails_config_data: RailsConfigData,
         tracer: Optional["Tracer"] = None,
+        metrics_enabled: bool = False,
     ) -> None:
         """Build one engine per configured model and API service.
 
         When *tracer* is provided, LLM and API calls produce OTEL spans; when
         ``None`` the span helpers become no-ops.
+
+        When *metrics_enabled* is True, LLM calls emit the OTEL GenAI
+        client-side metrics (``gen_ai.client.token.usage``,
+        ``gen_ai.client.operation.duration``, plus the streaming
+        chunk-timing metrics).  Defaults to False so callers that don't
+        opt in get no metric emissions even if a MeterProvider is
+        configured globally.
         """
         self._engines: dict[str, BaseEngine] = {}
         self._running = False
         self._tracer = tracer
+        self._metrics_enabled = metrics_enabled
 
         for model_config in models:
             engine = ModelEngine(model_config)
@@ -147,6 +167,11 @@ class EngineRegistry:
         reasoning (when the provider exposes it), usage, finish reason.
         Callers that only want the assistant text should access ``.content``.
 
+        When metrics are enabled, emits ``gen_ai.client.operation.duration``
+        (with ``error.type`` on exception) and ``gen_ai.client.token.usage``
+        (one observation each for ``input`` and ``output`` token types,
+        only when ``LLMResponse.usage`` is populated).
+
         Raises:
             KeyError: If no engine is registered with the given name.
             TypeError: If the named engine is not a ModelEngine.
@@ -155,8 +180,26 @@ class EngineRegistry:
         log.debug("[%s] Model engine '%s' messages: %s", req_id, model_type, truncate(messages))
 
         engine = self._get_engine(model_type, ModelEngine)
-        with llm_call_span(self._tracer, engine.model_name, engine.model_config.engine or "unknown"):
-            result = await engine.chat_completion(messages, **kwargs)
+        # TODO: Replace with LLMModel.provider_name after refactoring
+        provider_name = engine.model_config.engine or "unknown"
+        operation_name = "chat"
+
+        # Compose: span (always created — no-op when tracer is None) and
+        # duration metric (only when metrics enabled).  Token usage is
+        # emitted after the call returns since it depends on
+        # ``result.usage`` — exception path skips it because control
+        # never reaches the line below.
+        duration_ctx = (
+            llm_operation_duration(engine.model_name, provider_name, operation_name)
+            if self._metrics_enabled
+            else nullcontext()
+        )
+        with llm_call_span(self._tracer, engine.model_name, provider_name, operation_name):
+            with duration_ctx:
+                result = await engine.chat_completion(messages, **kwargs)
+
+        if self._metrics_enabled:
+            record_token_usage(engine.model_name, provider_name, operation_name, result.usage)
 
         log.debug("[%s] Model engine '%s' response: %s", req_id, model_type, truncate(result))
         return result
@@ -171,6 +214,15 @@ class EngineRegistry:
         before the first chunk and closes when the generator exhausts or
         raises.
 
+        When metrics are enabled, emits ``gen_ai.client.operation.duration``
+        for the full stream lifetime (with ``error.type`` on exception)
+        and ``gen_ai.client.token.usage`` after stream completion using
+        the ``UsageInfo`` carried on the terminal SSE chunk (when the
+        provider returns one — controlled by ``include_usage_in_stream``,
+        defaults to True for OpenAI-compatible engines).  No token
+        observation is emitted on early consumer cancellation or on
+        provider error mid-stream.
+
         Raises:
             KeyError: If no engine is registered with the given name.
             TypeError: If the named engine is not a ModelEngine.
@@ -179,9 +231,53 @@ class EngineRegistry:
         log.debug("[%s] Model engine '%s' stream messages: %s", req_id, model_type, truncate(messages))
 
         engine = self._get_engine(model_type, ModelEngine)
-        with llm_call_span(self._tracer, engine.model_name, engine.model_config.engine or "unknown"):
-            async for chunk in engine.stream_chat_completion(messages, **kwargs):
-                yield chunk
+        # TODO: Change to LLMModel.provider_name after refactor
+        provider_name = engine.model_config.engine or "unknown"
+        operation_name = "chat"
+
+        # Capture the most recent chunk's ``usage`` field so we can emit
+        # token metrics after the stream completes — providers (e.g.
+        # OpenAI-compatible) only populate ``usage`` on the terminal
+        # chunk when ``stream_options.include_usage=true``.
+        captured_usage: Optional["UsageInfo"] = None
+        duration_ctx = (
+            llm_operation_duration(engine.model_name, provider_name, operation_name)
+            if self._metrics_enabled
+            else nullcontext()
+        )
+        with llm_call_span(self._tracer, engine.model_name, provider_name, operation_name):
+            with duration_ctx:
+                # Gate timing-state setup on ``_metrics_enabled`` so the
+                # cold path skips ``time.monotonic()`` and the per-chunk
+                # bookkeeping entirely.  ``t0`` defaults to ``0.0`` in
+                # the disabled path so the type stays a plain ``float``
+                # — it's never read in that branch.
+                t0 = time.monotonic() if self._metrics_enabled else 0.0
+                last_chunk_time: Optional[float] = None
+                async for chunk in engine.stream_chat_completion(messages, **kwargs):
+                    if self._metrics_enabled:
+                        # Per OTEL semconv, "first chunk" / "output chunk"
+                        # mean content-bearing chunks — gate on
+                        # ``delta_content`` / ``delta_reasoning`` to skip
+                        # the terminal usage frame and any other cosmetic
+                        # SSE events that the parser leaves in place.
+                        if chunk.delta_content or chunk.delta_reasoning:
+                            now = time.monotonic()
+                            if last_chunk_time is None:
+                                record_time_to_first_chunk(engine.model_name, provider_name, operation_name, now - t0)
+                            else:
+                                record_time_per_output_chunk(
+                                    engine.model_name, provider_name, operation_name, now - last_chunk_time
+                                )
+                            last_chunk_time = now
+                        if chunk.usage is not None:
+                            captured_usage = chunk.usage
+                    yield chunk
+
+        # Reached only on natural exhaustion (not on consumer cancellation
+        # or provider error — those raise out of the ``with`` blocks above).
+        if self._metrics_enabled:
+            record_token_usage(engine.model_name, provider_name, operation_name, captured_usage)
 
     async def api_call(self, api_name: str, message: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
         """Route an API request to the named API engine.
