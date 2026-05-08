@@ -13,6 +13,7 @@ import { generateServerName } from "../../shared/nameUtils.js";
 import {
   getCachedFetchDocResult,
   cacheFetchDocResult,
+  withAutoragCache,
 } from "../utils/cache.js";
 
 // Define the return type for fetchDocumentation
@@ -438,7 +439,12 @@ export async function searchRepositoryDocumentationAutoRag({
     },
   };
 
-  const answer = await env.AI.autorag(autoragPipeline).search(searchRequest);
+  const answer = await withAutoragCache(
+    autoragPipeline,
+    searchRequest,
+    ctx,
+    () => env.AI.autorag(autoragPipeline).search(searchRequest),
+  );
 
   let responseText =
     `## Query\n\n${query}.\n\n## Response\n\n` ||

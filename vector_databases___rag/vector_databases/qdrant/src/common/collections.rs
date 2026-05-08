@@ -25,7 +25,9 @@ use collection::shards::replica_set;
 use collection::shards::replica_set::replica_set_state;
 use collection::shards::resharding::ReshardKey;
 use collection::shards::shard::{PeerId, ShardId, ShardsPlacement};
-use collection::shards::transfer::{ShardTransfer, ShardTransferKey, ShardTransferRestart};
+use collection::shards::transfer::{
+    ShardTransfer, ShardTransferKey, ShardTransferMethod, ShardTransferRestart,
+};
 use itertools::Itertools;
 use rand::prelude::SliceRandom;
 use rand::seq::IteratorRandom;
@@ -256,9 +258,9 @@ pub async fn do_update_collection_cluster(
     )?;
 
     if dispatcher.consensus_state().is_none() {
-        return Err(StorageError::BadRequest {
-            description: "Distributed mode disabled".to_string(),
-        });
+        return Err(StorageError::bad_request(
+            "Distributed mode disabled".to_string(),
+        ));
     }
     let consensus_state = dispatcher.consensus_state().unwrap();
 
@@ -281,9 +283,9 @@ pub async fn do_update_collection_cluster(
             .read()
             .contains_key(&peer_id);
         if !target_peer_exist {
-            return Err(StorageError::BadRequest {
-                description: format!("Peer {peer_id} does not exist"),
-            });
+            return Err(StorageError::bad_request(format!(
+                "Peer {peer_id} does not exist"
+            )));
         }
         Ok(())
     };
@@ -300,17 +302,22 @@ pub async fn do_update_collection_cluster(
         ClusterOperations::MoveShard(MoveShardOperation { move_shard }) => {
             // validate shard to move
             if !collection.contains_shard(move_shard.shard_id).await {
-                return Err(StorageError::BadRequest {
-                    description: format!(
-                        "Shard {} of {} does not exist",
-                        move_shard.shard_id, collection_name
-                    ),
-                });
+                return Err(StorageError::bad_request(format!(
+                    "Shard {} of {} does not exist",
+                    move_shard.shard_id, collection_name
+                )));
             };
 
             // validate target and source peer exists
             validate_peer_exists(move_shard.to_peer_id)?;
             validate_peer_exists(move_shard.from_peer_id)?;
+
+            // Resolve the transfer method on this peer so the whole cluster
+            // applies the same one — the consensus entry carries it explicitly.
+            let method = match move_shard.method {
+                Some(method) => method,
+                None => collection.default_shard_transfer_method(),
+            };
 
             // submit operation to consensus
             dispatcher
@@ -323,7 +330,7 @@ pub async fn do_update_collection_cluster(
                             to: move_shard.to_peer_id,
                             from: move_shard.from_peer_id,
                             sync: false,
-                            method: move_shard.method,
+                            method: Some(method),
                             filter: None,
                         }),
                     ),
@@ -335,12 +342,10 @@ pub async fn do_update_collection_cluster(
         ClusterOperations::ReplicateShard(ReplicateShardOperation { replicate_shard }) => {
             // validate shard to move
             if !collection.contains_shard(replicate_shard.shard_id).await {
-                return Err(StorageError::BadRequest {
-                    description: format!(
-                        "Shard {} of {} does not exist",
-                        replicate_shard.shard_id, collection_name
-                    ),
-                });
+                return Err(StorageError::bad_request(format!(
+                    "Shard {} of {} does not exist",
+                    replicate_shard.shard_id, collection_name
+                )));
             };
 
             // validate target peer exists
@@ -348,6 +353,13 @@ pub async fn do_update_collection_cluster(
 
             // validate source peer exists
             validate_peer_exists(replicate_shard.from_peer_id)?;
+
+            // Resolve the transfer method on this peer so the whole cluster
+            // applies the same one — the consensus entry carries it explicitly.
+            let method = match replicate_shard.method {
+                Some(method) => method,
+                None => collection.default_shard_transfer_method(),
+            };
 
             // submit operation to consensus
             dispatcher
@@ -360,7 +372,7 @@ pub async fn do_update_collection_cluster(
                             to: replicate_shard.to_peer_id,
                             from: replicate_shard.from_peer_id,
                             sync: true,
-                            method: replicate_shard.method,
+                            method: Some(method),
                             filter: None,
                         }),
                     ),
@@ -380,12 +392,10 @@ pub async fn do_update_collection_cluster(
 
             // Temporary, before we support multi-source transfers
             if from_shard_ids.len() != 1 {
-                return Err(StorageError::BadRequest {
-                    description: format!(
-                        "Only replicating from shard keys with exactly one shard is supported. Shard key {from_shard_key} has {} shards",
-                        from_shard_ids.len()
-                    ),
-                });
+                return Err(StorageError::bad_request(format!(
+                    "Only replicating from shard keys with exactly one shard is supported. Shard key {from_shard_key} has {} shards",
+                    from_shard_ids.len()
+                )));
             }
 
             // validate shard key exists
@@ -395,12 +405,10 @@ pub async fn do_update_collection_cluster(
             debug_assert!(!from_replicas.is_empty());
 
             if to_replicas.len() != 1 {
-                return Err(StorageError::BadRequest {
-                    description: format!(
-                        "Only replicating to shard keys with exactly one replica is supported. Shard key {to_shard_key} has {} replicas",
-                        to_replicas.len()
-                    ),
-                });
+                return Err(StorageError::bad_request(format!(
+                    "Only replicating to shard keys with exactly one replica is supported. Shard key {to_shard_key} has {} replicas",
+                    to_replicas.len()
+                )));
             }
 
             let (from_shard_id, from_peer_id) = from_replicas[0];
@@ -410,15 +418,12 @@ pub async fn do_update_collection_cluster(
             validate_peer_exists(to_peer_id)?;
             validate_peer_exists(from_peer_id)?;
 
-            // Decide on a transfer-method and check its validity in combination with filters.
-            let method = collection.default_shard_transfer_method().await;
-            if !method.is_streaming() && filter.is_some() {
-                return Err(StorageError::BadRequest {
-                    description: format!(
-                        "Can't do shard transfer using method {method:?} in combination with a filter",
-                    ),
-                });
-            }
+            // Require stream records based transfer if a filter is given
+            let method = if filter.is_none() {
+                collection.default_shard_transfer_method()
+            } else {
+                ShardTransferMethod::StreamRecords
+            };
 
             // submit operation to consensus
             dispatcher
@@ -449,12 +454,10 @@ pub async fn do_update_collection_cluster(
             };
 
             if !collection.check_transfer_exists(&transfer).await {
-                return Err(StorageError::NotFound {
-                    description: format!(
-                        "Shard transfer {} -> {} for collection {}:{} does not exist",
-                        transfer.from, transfer.to, collection_name, transfer.shard_id
-                    ),
-                });
+                return Err(StorageError::not_found(format!(
+                    "Shard transfer {} -> {} for collection {}:{} does not exist",
+                    transfer.from, transfer.to, collection_name, transfer.shard_id
+                )));
             }
 
             dispatcher
@@ -473,12 +476,10 @@ pub async fn do_update_collection_cluster(
         }
         ClusterOperations::DropReplica(DropReplicaOperation { drop_replica }) => {
             if !collection.contains_shard(drop_replica.shard_id).await {
-                return Err(StorageError::BadRequest {
-                    description: format!(
-                        "Shard {} of {} does not exist",
-                        drop_replica.shard_id, collection_name
-                    ),
-                });
+                return Err(StorageError::bad_request(format!(
+                    "Shard {} of {} does not exist",
+                    drop_replica.shard_id, collection_name
+                )));
             };
 
             validate_peer_exists(drop_replica.peer_id)?;
@@ -552,22 +553,18 @@ pub async fn do_update_collection_cluster(
 
             let shard_keys_mapping = state.shards_key_mapping;
             if shard_keys_mapping.contains_key(&create_sharding_key.shard_key) {
-                return Err(StorageError::BadRequest {
-                    description: format!(
-                        "Sharding key {} already exists for collection {}",
-                        create_sharding_key.shard_key, collection_name
-                    ),
-                });
+                return Err(StorageError::bad_request(format!(
+                    "Sharding key {} already exists for collection {}",
+                    create_sharding_key.shard_key, collection_name
+                )));
             }
 
             let peers_pool: Vec<_> = if let Some(placement) = create_sharding_key.placement {
                 if placement.is_empty() {
-                    return Err(StorageError::BadRequest {
-                        description: format!(
-                            "Sharding key {} placement cannot be empty. If you want to use random placement, do not specify placement",
-                            create_sharding_key.shard_key
-                        ),
-                    });
+                    return Err(StorageError::bad_request(format!(
+                        "Sharding key {} placement cannot be empty. If you want to use random placement, do not specify placement",
+                        create_sharding_key.shard_key
+                    )));
                 }
 
                 for peer_id in placement.iter().copied() {
@@ -613,12 +610,10 @@ pub async fn do_update_collection_cluster(
 
             let shard_keys_mapping = state.shards_key_mapping;
             if !shard_keys_mapping.contains_key(&drop_sharding_key.shard_key) {
-                return Err(StorageError::BadRequest {
-                    description: format!(
-                        "Sharding key {} does not exist for collection {collection_name}",
-                        drop_sharding_key.shard_key,
-                    ),
-                });
+                return Err(StorageError::bad_request(format!(
+                    "Sharding key {} does not exist for collection {collection_name}",
+                    drop_sharding_key.shard_key,
+                )));
             }
 
             dispatcher
@@ -651,12 +646,10 @@ pub async fn do_update_collection_cluster(
             };
 
             if !collection.check_transfer_exists(&transfer_key).await {
-                return Err(StorageError::NotFound {
-                    description: format!(
-                        "Shard transfer {} -> {} for collection {}:{} does not exist",
-                        transfer_key.from, transfer_key.to, collection_name, transfer_key.shard_id
-                    ),
-                });
+                return Err(StorageError::not_found(format!(
+                    "Shard transfer {} -> {} for collection {}:{} does not exist",
+                    transfer_key.from, transfer_key.to, collection_name, transfer_key.shard_id
+                )));
             }
 
             dispatcher

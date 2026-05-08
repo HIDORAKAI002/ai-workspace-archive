@@ -345,3 +345,63 @@ export async function cacheFetchDocResult(
     console.warn("Failed to save fetchDoc result to cache:", error);
   }
 }
+
+// 12h matches the KV cache TTL used elsewhere
+const AUTORAG_CACHE_TTL = 60 * 60 * 12;
+
+async function sha256Hex(input: string): Promise<string> {
+  const data = new TextEncoder().encode(input);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(hashBuffer))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+function buildAutoragCacheRequest(pipeline: string, keyHash: string): Request {
+  return new Request(
+    `https://autorag-cache.gitmcp.internal/${encodeURIComponent(pipeline)}/${keyHash}`,
+  );
+}
+
+/**
+ * Wrap an AutoRAG search call with the free per-colo Cache API.
+ * Cache key is a SHA-256 of the pipeline name + the full search request,
+ * so any change to query / filters / ranking options invalidates automatically.
+ */
+export async function withAutoragCache<T>(
+  pipeline: string,
+  searchRequest: unknown,
+  ctx: { waitUntil: (p: Promise<unknown>) => void },
+  fetcher: () => Promise<T>,
+): Promise<T> {
+  const keyHash = await sha256Hex(
+    JSON.stringify({ pipeline, request: searchRequest }),
+  );
+  const cacheRequest = buildAutoragCacheRequest(pipeline, keyHash);
+  const cache = caches.default;
+
+  try {
+    const cached = await cache.match(cacheRequest);
+    if (cached) {
+      return (await cached.json()) as T;
+    }
+  } catch (error) {
+    console.warn("AutoRAG cache lookup failed:", error);
+  }
+
+  const answer = await fetcher();
+
+  try {
+    const response = new Response(JSON.stringify(answer), {
+      headers: {
+        "Content-Type": "application/json",
+        "Cache-Control": `public, max-age=${AUTORAG_CACHE_TTL}`,
+      },
+    });
+    ctx.waitUntil(cache.put(cacheRequest, response));
+  } catch (error) {
+    console.warn("AutoRAG cache write failed:", error);
+  }
+
+  return answer;
+}

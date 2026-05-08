@@ -13,7 +13,7 @@ use fs_err as fs;
 
 use crate::common::Flusher;
 use crate::common::flags::bitvec_flags::BitvecFlags;
-use crate::common::flags::dynamic_mmap_flags::DynamicMmapFlags;
+use crate::common::flags::dynamic_stored_flags::DynamicStoredFlags;
 use crate::common::operation_error::{OperationResult, check_process_stopped};
 use crate::data_types::named_vectors::CowVector;
 use crate::data_types::primitive::PrimitiveVectorElement;
@@ -21,7 +21,7 @@ use crate::data_types::vectors::{VectorElementType, VectorRef};
 use crate::types::{Distance, VectorStorageDatatype};
 use crate::vector_storage::chunked_vectors::ChunkedVectors;
 use crate::vector_storage::{
-    DenseVectorStorage, VectorOffsetType, VectorStorage, VectorStorageEnum,
+    DenseVectorStorage, VectorOffsetType, VectorStorage, VectorStorageEnum, VectorStorageRead,
 };
 
 const VECTORS_DIR_PATH: &str = "vectors";
@@ -34,7 +34,7 @@ pub struct AppendableMmapDenseVectorStorage<T: PrimitiveVectorElement> {
     ///
     /// Structure grows dynamically, but may be smaller than actual number of vectors. Must not
     /// depend on its length.
-    deleted: BitvecFlags,
+    deleted: BitvecFlags<MmapFile>,
     distance: Distance,
     deleted_count: usize,
     _phantom: std::marker::PhantomData<T>,
@@ -93,7 +93,7 @@ impl<T: PrimitiveVectorElement> DenseVectorStorage<T> for AppendableMmapDenseVec
     }
 }
 
-impl<T: PrimitiveVectorElement> VectorStorage for AppendableMmapDenseVectorStorage<T> {
+impl<T: PrimitiveVectorElement> VectorStorageRead for AppendableMmapDenseVectorStorage<T> {
     fn distance(&self) -> Distance {
         self.distance
     }
@@ -123,6 +123,20 @@ impl<T: PrimitiveVectorElement> VectorStorage for AppendableMmapDenseVectorStora
             .map(|slice| CowVector::from(T::slice_to_float_cow(slice)))
     }
 
+    fn is_deleted_vector(&self, key: PointOffsetType) -> bool {
+        self.deleted.get(key)
+    }
+
+    fn deleted_vector_count(&self) -> usize {
+        self.deleted_count
+    }
+
+    fn deleted_vector_bitslice(&self) -> &BitSlice {
+        self.deleted.get_bitslice()
+    }
+}
+
+impl<T: PrimitiveVectorElement> VectorStorage for AppendableMmapDenseVectorStorage<T> {
     fn insert_vector(
         &mut self,
         key: PointOffsetType,
@@ -179,18 +193,6 @@ impl<T: PrimitiveVectorElement> VectorStorage for AppendableMmapDenseVectorStora
 
     fn delete_vector(&mut self, key: PointOffsetType) -> OperationResult<bool> {
         Ok(self.set_deleted(key, true))
-    }
-
-    fn is_deleted_vector(&self, key: PointOffsetType) -> bool {
-        self.deleted.get(key)
-    }
-
-    fn deleted_vector_count(&self) -> usize {
-        self.deleted_count
-    }
-
-    fn deleted_vector_bitslice(&self) -> &BitSlice {
-        self.deleted.get_bitslice()
     }
 }
 
@@ -252,7 +254,7 @@ pub fn open_appendable_memmap_vector_storage_impl<T: PrimitiveVectorElement>(
 
     let vectors = ChunkedVectors::open(&vectors_path, dim, madvise, Some(populate))?;
 
-    let deleted = BitvecFlags::new(DynamicMmapFlags::open(&deleted_path, populate)?);
+    let deleted = BitvecFlags::new(DynamicStoredFlags::open(&deleted_path, populate)?)?;
     let deleted_count = deleted.count_trues();
 
     Ok(AppendableMmapDenseVectorStorage {
@@ -265,7 +267,7 @@ pub fn open_appendable_memmap_vector_storage_impl<T: PrimitiveVectorElement>(
 }
 
 /// Find files related to this dense vector storage
-#[cfg(any(test, feature = "rocksdb"))]
+#[cfg(test)]
 pub(crate) fn find_storage_files(vector_storage_path: &Path) -> OperationResult<Vec<PathBuf>> {
     let vectors_path = vector_storage_path.join(VECTORS_DIR_PATH);
     let deleted_path = vector_storage_path.join(DELETED_DIR_PATH);

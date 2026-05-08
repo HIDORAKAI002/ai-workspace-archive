@@ -52,7 +52,8 @@ def get_mat_from_result(result: ExecuteInProcessResult, node_str: str) -> AssetM
 
 
 def get_mats_from_result(
-    result: ExecuteInProcessResult, assets: Sequence[AssetsDefinition]
+    result: ExecuteInProcessResult,
+    assets: Sequence[AssetsDefinition | SourceAsset],
 ) -> MaterializationTable:
     mats: dict[AssetKey, AssetMaterialization] = {}
     for asset_def in assets:
@@ -183,7 +184,7 @@ def materialize_asset(
 
 
 def materialize_assets(
-    assets: Sequence[AssetsDefinition],
+    assets: Sequence[AssetsDefinition | SourceAsset],
     instance: DagsterInstance,
     partition_key: str | None = None,
     run_config: Mapping[str, Any] | None = None,

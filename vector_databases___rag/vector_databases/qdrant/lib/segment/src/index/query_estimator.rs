@@ -244,37 +244,31 @@ where
     let mut filter_estimations: Vec<CardinalityEstimation> = vec![];
 
     match &filter.must {
-        None => {}
-        Some(conditions) => {
-            if !conditions.is_empty() {
-                filter_estimations.push(estimate_must(estimator, conditions, total)?);
-            }
+        Some(conditions) if !conditions.is_empty() => {
+            filter_estimations.push(estimate_must(estimator, conditions, total)?);
         }
+        Some(_) | None => {}
     }
     match &filter.should {
-        None => {}
-        Some(conditions) => {
-            if !conditions.is_empty() {
-                filter_estimations.push(estimate_should(estimator, conditions, total)?);
-            }
+        Some(conditions) if !conditions.is_empty() => {
+            filter_estimations.push(estimate_should(estimator, conditions, total)?);
         }
+        Some(_) | None => {}
     }
-    match &filter.min_should {
-        None => {}
-        Some(MinShould {
-            conditions,
-            min_count,
-        }) => filter_estimations.push(estimate_min_should(
+    if let Some(MinShould {
+        conditions,
+        min_count,
+    }) = &filter.min_should
+    {
+        filter_estimations.push(estimate_min_should(
             estimator, conditions, *min_count, total,
-        )?),
+        )?)
     }
     match &filter.must_not {
-        None => {}
-        Some(conditions) => {
-            if !conditions.is_empty() {
-                filter_estimations.push(estimate_must_not(estimator, conditions, total)?)
-            }
+        Some(conditions) if !conditions.is_empty() => {
+            filter_estimations.push(estimate_must_not(estimator, conditions, total)?)
         }
+        Some(_) | None => {}
     }
 
     Ok(combine_must_estimations(&filter_estimations, total))
@@ -607,7 +601,7 @@ mod tests {
             min_should: None,
             must: None,
             must_not: Some(vec![Condition::HasId(HasIdCondition {
-                has_id: [1, 2, 3, 4, 5].into_iter().map(|x| x.into()).collect(),
+                has_id: [1, 2, 3, 4, 5].into_iter().map(u64::into).collect(),
             })]),
         };
 
@@ -638,7 +632,7 @@ mod tests {
                 }),
             ]),
             must_not: Some(vec![Condition::HasId(HasIdCondition {
-                has_id: [1, 2, 3, 4, 5].into_iter().map(|x| x.into()).collect(),
+                has_id: [1, 2, 3, 4, 5].into_iter().map(u64::into).collect(),
             })]),
         };
 

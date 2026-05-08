@@ -11,12 +11,12 @@ use itertools::{Itertools, process_results};
 use segment::data_types::facets::{FacetParams, FacetValue, FacetValueHit};
 use segment::types::{Condition, FieldCondition, Filter, Match};
 use shard::common::stopping_guard::StoppingGuard;
-use tokio::runtime::Handle;
 use tokio::time::error::Elapsed;
 use tokio_util::task::AbortOnDropHandle;
 
 use super::LocalShard;
 use crate::collection_manager::holders::segment_holder::LockedSegment;
+use crate::common::adaptive_handle::AdaptiveSearchHandle;
 use crate::operations::types::{CollectionError, CollectionResult};
 
 impl LocalShard {
@@ -24,7 +24,7 @@ impl LocalShard {
     pub async fn approx_facet(
         &self,
         request: Arc<FacetParams>,
-        search_runtime_handle: &Handle,
+        search_runtime_handle: &AdaptiveSearchHandle,
         timeout: Duration,
         hw_measurement_acc: HwMeasurementAcc,
     ) -> CollectionResult<Vec<FacetValueHit>> {
@@ -98,7 +98,7 @@ impl LocalShard {
     pub async fn exact_facet(
         &self,
         request: Arc<FacetParams>,
-        search_runtime_handle: &Handle,
+        search_runtime_handle: &AdaptiveSearchHandle,
         timeout: Duration,
         hw_measurement_acc: HwMeasurementAcc,
     ) -> CollectionResult<Vec<FacetValueHit>> {
@@ -156,7 +156,7 @@ impl LocalShard {
     async fn unique_values(
         &self,
         request: Arc<FacetParams>,
-        handle: &Handle,
+        handle: &AdaptiveSearchHandle,
         timeout: Duration,
         hw_measurement_acc: HwMeasurementAcc,
     ) -> CollectionResult<BTreeSet<FacetValue>> {

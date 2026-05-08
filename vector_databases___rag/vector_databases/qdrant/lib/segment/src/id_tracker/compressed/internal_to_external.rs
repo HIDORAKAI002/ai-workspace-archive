@@ -109,6 +109,15 @@ impl CompressedInternalToExternal {
     }
 }
 
+impl CompressedInternalToExternal {
+    /// Approximate RAM usage in bytes.
+    pub fn ram_usage_bytes(&self) -> usize {
+        let Self { data, is_uuid } = self;
+        data.capacity() * std::mem::size_of::<u128>()
+            + is_uuid.capacity().div_ceil(u8::BITS as usize)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use uuid::Uuid;

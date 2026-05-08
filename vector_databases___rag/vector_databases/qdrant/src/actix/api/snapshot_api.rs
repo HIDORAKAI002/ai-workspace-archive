@@ -10,7 +10,7 @@ use collection::common::file_utils::move_file;
 use collection::common::sha_256;
 use collection::common::snapshot_stream::SnapshotStream;
 use collection::operations::snapshot_ops::{
-    ShardSnapshotRecover, SnapshotPriority, SnapshotRecover,
+    ShardSnapshotLocation, ShardSnapshotRecover, SnapshotPriority, SnapshotRecover,
 };
 use collection::operations::types::CollectionError;
 use collection::operations::verification::new_unchecked_verification_pass;
@@ -48,6 +48,7 @@ use crate::common::auth::Auth;
 use crate::common::collections::*;
 use crate::common::http_client::HttpClient;
 use crate::common::snapshots::try_take_partial_snapshot_recovery_lock;
+use crate::settings::ServiceConfig;
 
 #[derive(Deserialize, Serialize, JsonSchema, Validate)]
 pub struct SnapshotUploadingParam {
@@ -249,6 +250,7 @@ async fn upload_snapshot(
 async fn recover_from_snapshot(
     dispatcher: web::Data<Dispatcher>,
     http_client: web::Data<HttpClient>,
+    service_config: web::Data<ServiceConfig>,
     collection: valid::Path<CollectionPath>,
     request: valid::Json<SnapshotRecover>,
     params: valid::Query<SnapshottingParam>,
@@ -256,6 +258,15 @@ async fn recover_from_snapshot(
 ) -> impl Responder {
     let future = async move {
         let snapshot_recover = request.into_inner();
+
+        if !service_config.enable_snapshot_url_recovery
+            && matches!(snapshot_recover.location.scheme(), "http" | "https")
+        {
+            return Err(StorageError::forbidden(
+                "Snapshot recovery from remote URLs is disabled in the configuration",
+            ));
+        }
+
         let http_client = http_client.client(snapshot_recover.api_key.as_deref())?;
 
         do_recover_from_snapshot(
@@ -442,15 +453,25 @@ async fn stream_shard_snapshot(
 async fn recover_shard_snapshot(
     dispatcher: web::Data<Dispatcher>,
     http_client: web::Data<HttpClient>,
+    service_config: web::Data<ServiceConfig>,
     path: valid::Path<CollectionShardPath>,
     query: web::Query<SnapshottingParam>,
-    web::Json(request): web::Json<ShardSnapshotRecover>,
+    valid::Json(request): valid::Json<ShardSnapshotRecover>,
     ActixAuth(auth): ActixAuth,
 ) -> impl Responder {
     // nothing to verify.
     let pass = new_unchecked_verification_pass();
 
     let future = async move {
+        if !service_config.enable_snapshot_url_recovery
+            && let ShardSnapshotLocation::Url(url) = &request.location
+            && matches!(url.scheme(), "http" | "https")
+        {
+            return Err(StorageError::forbidden(
+                "Snapshot recovery from remote URLs is disabled in the configuration",
+            ));
+        }
+
         let CollectionShardPath {
             collection_name: collection,
             shard,
@@ -740,6 +761,7 @@ pub struct PartialSnapshotRecoverFrom {
 async fn recover_partial_snapshot_from(
     dispatcher: web::Data<Dispatcher>,
     http_client: web::Data<HttpClient>,
+    service_config: web::Data<ServiceConfig>,
     path: valid::Path<CollectionShardPath>,
     query: web::Query<SnapshottingParam>,
     web::Json(request): web::Json<PartialSnapshotRecoverFrom>,
@@ -751,6 +773,17 @@ async fn recover_partial_snapshot_from(
     } = path.into_inner();
     let PartialSnapshotRecoverFrom { peer_url, api_key } = request;
     let SnapshottingParam { wait } = query.into_inner();
+
+    if !service_config.enable_snapshot_url_recovery && matches!(peer_url.scheme(), "http" | "https")
+    {
+        return helpers::process_response_error(
+            StorageError::forbidden(
+                "Snapshot recovery from remote URLs is disabled in the configuration",
+            ),
+            tokio::time::Instant::now(),
+            None,
+        );
+    }
 
     // nothing to verify
     let pass = new_unchecked_verification_pass();

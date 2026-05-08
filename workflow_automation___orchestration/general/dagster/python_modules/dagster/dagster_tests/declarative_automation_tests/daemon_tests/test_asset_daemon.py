@@ -510,7 +510,7 @@ def test_auto_materialize_sensor_enforced_minimum_interval():
         with environ({"DAGSTER_ASSET_DAEMON_MINIMUM_ALLOWED_MIN_INTERVAL": "60"}):
             result = daemon_sensor_scenario.evaluate_daemon(instance)
 
-            sensor_states = instance.schedule_storage.all_instigator_state(  # pyright: ignore[reportOptionalMemberAccess]
+            sensor_states = instance.schedule_storage.all_instigator_state(  # ty: ignore[unresolved-attribute]
                 instigator_type=InstigatorType.SENSOR
             )
             assert len(sensor_states) == 1
@@ -525,7 +525,7 @@ def test_auto_materialize_sensor_enforced_minimum_interval():
             result = result.with_current_time_advanced(seconds=59)
             result = result.evaluate_tick()
             daemon_sensor_scenario.evaluate_daemon(instance)
-            sensor_states = instance.schedule_storage.all_instigator_state(  # pyright: ignore[reportOptionalMemberAccess]
+            sensor_states = instance.schedule_storage.all_instigator_state(  # ty: ignore[unresolved-attribute]
                 instigator_type=InstigatorType.SENSOR
             )
 
@@ -557,7 +557,7 @@ def test_auto_materialize_sensor_no_transition():
 
         assert get_has_migrated_to_sensors(instance)
 
-        sensor_states = instance.schedule_storage.all_instigator_state(  # pyright: ignore[reportOptionalMemberAccess]
+        sensor_states = instance.schedule_storage.all_instigator_state(  # ty: ignore[unresolved-attribute]
             instigator_type=InstigatorType.SENSOR
         )
 
@@ -580,7 +580,7 @@ def test_auto_materialize_sensor_no_transition():
         result = result.with_current_time_advanced(seconds=30)
         result = result.evaluate_tick()
         daemon_sensor_scenario.evaluate_daemon(instance)
-        sensor_states = instance.schedule_storage.all_instigator_state(  # pyright: ignore[reportOptionalMemberAccess]
+        sensor_states = instance.schedule_storage.all_instigator_state(  # ty: ignore[unresolved-attribute]
             instigator_type=InstigatorType.SENSOR
         )
         assert len(sensor_states) == 1
@@ -634,7 +634,7 @@ def test_auto_materialize_sensor_transition():
 
         assert get_has_migrated_to_sensors(instance)
 
-        sensor_states = instance.schedule_storage.all_instigator_state(  # pyright: ignore[reportOptionalMemberAccess]
+        sensor_states = instance.schedule_storage.all_instigator_state(  # ty: ignore[unresolved-attribute]
             instigator_type=InstigatorType.SENSOR
         )
 
@@ -906,7 +906,7 @@ def test_auto_materialize_sensor_ticks(num_threads):
                 instance, threadpool_executor=threadpool_executor
             )
 
-            sensor_states = instance.schedule_storage.all_instigator_state(  # pyright: ignore[reportOptionalMemberAccess]
+            sensor_states = instance.schedule_storage.all_instigator_state(  # ty: ignore[unresolved-attribute]
                 instigator_type=InstigatorType.SENSOR
             )
 
@@ -948,7 +948,7 @@ def test_auto_materialize_sensor_ticks(num_threads):
             result = result.start_sensor("auto_materialize_sensor_b")
             result = result.with_current_time_advanced(seconds=15)
             result = result.evaluate_tick()
-            sensor_states = instance.schedule_storage.all_instigator_state(  # pyright: ignore[reportOptionalMemberAccess]
+            sensor_states = instance.schedule_storage.all_instigator_state(  # ty: ignore[unresolved-attribute]
                 instigator_type=InstigatorType.SENSOR
             )
             assert len(sensor_states) == 4
@@ -978,7 +978,7 @@ def test_auto_materialize_sensor_ticks(num_threads):
             result = result.with_current_time_advanced(seconds=15)
             result = result.evaluate_tick()
 
-            sensor_states = instance.schedule_storage.all_instigator_state(  # pyright: ignore[reportOptionalMemberAccess]
+            sensor_states = instance.schedule_storage.all_instigator_state(  # ty: ignore[unresolved-attribute]
                 instigator_type=InstigatorType.SENSOR
             )
 
@@ -1092,7 +1092,7 @@ def test_auto_materialize_sensor_ticks(num_threads):
             # than the pre-sensor evaluation ID and they are increasing for each sensor
             sensor_states = [
                 sensor_state
-                for sensor_state in instance.schedule_storage.all_instigator_state(  # pyright: ignore[reportOptionalMemberAccess]
+                for sensor_state in instance.schedule_storage.all_instigator_state(  # ty: ignore[unresolved-attribute]
                     instigator_type=InstigatorType.SENSOR
                 )
             ]

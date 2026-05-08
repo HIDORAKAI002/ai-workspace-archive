@@ -57,6 +57,8 @@ pub trait MultivectorOffsetsStorage: Sized {
     fn files(&self) -> Vec<PathBuf>;
 
     fn immutable_files(&self) -> Vec<PathBuf>;
+
+    fn heap_size_bytes(&self) -> usize;
 }
 
 pub struct MultivectorOffsetsStorageRam {
@@ -124,6 +126,11 @@ impl MultivectorOffsetsStorage for MultivectorOffsetsStorageRam {
     fn immutable_files(&self) -> Vec<PathBuf> {
         vec![self.path.clone()]
     }
+
+    fn heap_size_bytes(&self) -> usize {
+        let Self { offsets, path: _ } = self;
+        offsets.capacity() * std::mem::size_of::<MultivectorOffset>()
+    }
 }
 
 #[derive(Debug)]
@@ -154,6 +161,11 @@ impl MultivectorOffsetsStorageMmap {
 
     pub fn populate(&self) -> std::io::Result<()> {
         self.offsets.populate()
+    }
+
+    pub fn clear_cache(&self) -> std::io::Result<()> {
+        let Self { offsets, path: _ } = self;
+        offsets.clear_cache()
     }
 }
 
@@ -189,6 +201,14 @@ impl MultivectorOffsetsStorage for MultivectorOffsetsStorageMmap {
 
     fn immutable_files(&self) -> Vec<PathBuf> {
         vec![self.path.clone()]
+    }
+
+    fn heap_size_bytes(&self) -> usize {
+        let Self {
+            offsets: _,
+            path: _,
+        } = self;
+        0
     }
 }
 
@@ -228,6 +248,11 @@ impl MultivectorOffsetsStorageChunkedMmap {
 
     pub fn populate(&self) -> OperationResult<()> {
         self.data.populate()
+    }
+
+    pub fn clear_cache(&self) -> OperationResult<()> {
+        let Self { data } = self;
+        data.clear_cache()
     }
 }
 
@@ -270,6 +295,11 @@ impl MultivectorOffsetsStorage for MultivectorOffsetsStorageChunkedMmap {
 
     fn immutable_files(&self) -> Vec<PathBuf> {
         self.data.immutable_files()
+    }
+
+    fn heap_size_bytes(&self) -> usize {
+        let Self { data: _ } = self;
+        0
     }
 }
 
@@ -404,6 +434,17 @@ where
             .collect()
     }
 
+    fn for_each_in_batch<F>(&self, _: &[PointOffsetType], _: F)
+    where
+        F: FnMut(usize, &[u8]),
+    {
+        unimplemented!("quantized multi-vector storage does not support `for_each_in_batch`")
+    }
+
+    fn score(&self, _: &Self::EncodedQuery, _: &[u8], _: &HardwareCounterCell) -> f32 {
+        unimplemented!("quantized multi-vector storage does not support `score`");
+    }
+
     fn score_point(
         &self,
         query: &Vec<QuantizedStorage::EncodedQuery>,
@@ -512,6 +553,17 @@ where
         let mut files = self.quantized_storage.immutable_files();
         files.extend(self.offsets.immutable_files());
         files
+    }
+
+    fn heap_size_bytes(&self) -> usize {
+        let Self {
+            quantized_storage,
+            offsets,
+            dim: _,
+            multi_vector_config: _,
+        } = self;
+
+        quantized_storage.heap_size_bytes() + offsets.heap_size_bytes()
     }
 
     type SupportsBytes = False;

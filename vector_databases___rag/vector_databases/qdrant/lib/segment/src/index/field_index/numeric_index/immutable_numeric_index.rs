@@ -1,28 +1,19 @@
 use std::collections::BTreeSet;
 use std::ops::Bound;
 use std::path::PathBuf;
-#[cfg(feature = "rocksdb")]
-use std::sync::Arc;
 
 use common::bitvec::{BitSliceExt as _, BitVec};
 use common::types::PointOffsetType;
 use gridstore::Blob;
-#[cfg(feature = "rocksdb")]
-use parking_lot::RwLock;
-#[cfg(feature = "rocksdb")]
-use rocksdb::DB;
 
 use super::Encodable;
 use super::mmap_numeric_index::MmapNumericIndex;
 use super::mutable_numeric_index::InMemoryNumericIndex;
 use crate::common::Flusher;
 use crate::common::operation_error::OperationResult;
-#[cfg(feature = "rocksdb")]
-use crate::common::rocksdb_buffered_delete_wrapper::DatabaseColumnScheduledDeleteWrapper;
-#[cfg(feature = "rocksdb")]
-use crate::common::rocksdb_wrapper::DatabaseColumnWrapper;
-use crate::index::field_index::histogram::{Histogram, Numericable, Point};
+use crate::index::field_index::histogram::Histogram;
 use crate::index::field_index::immutable_point_to_values::ImmutablePointToValues;
+use crate::index::field_index::numeric_point::{Numericable, Point};
 use crate::index::field_index::stored_point_to_values::StoredValue;
 use crate::index::payload_config::StorageType;
 
@@ -34,11 +25,33 @@ pub struct ImmutableNumericIndex<T: Encodable + Numericable + StoredValue + Defa
     point_to_values: ImmutablePointToValues<T>,
     // Backing storage, source of state, persists deletions
     storage: Storage<T>,
+    /// Snapshot of approximate RAM usage at construction time.
+    /// Not refreshed on `remove_point`.
+    cached_ram_usage_bytes: usize,
+}
+
+impl<T: Encodable + Numericable + StoredValue + Default> ImmutableNumericIndex<T> {
+    /// Approximate RAM usage in bytes for in-memory structures (cached at construction).
+    pub fn ram_usage_bytes(&self) -> usize {
+        self.cached_ram_usage_bytes
+    }
+
+    fn compute_ram_usage_bytes(&self) -> usize {
+        let Self {
+            map,
+            histogram,
+            points_count: _,
+            max_values_per_point: _,
+            point_to_values,
+            storage: _,
+            cached_ram_usage_bytes: _,
+        } = self;
+
+        map.ram_usage_bytes() + histogram.ram_usage_bytes() + point_to_values.ram_usage_bytes()
+    }
 }
 
 enum Storage<T: Encodable + Numericable + StoredValue + Default> {
-    #[cfg(feature = "rocksdb")]
-    RocksDb(DatabaseColumnScheduledDeleteWrapper),
     Mmap(Box<MmapNumericIndex<T>>),
 }
 
@@ -55,12 +68,24 @@ pub(super) struct NumericKeySortedVecIterator<'a, T: Encodable + Numericable> {
 }
 
 impl<T: Encodable + Numericable> NumericKeySortedVec<T> {
+    pub(super) fn ram_usage_bytes(&self) -> usize {
+        let Self {
+            data,
+            deleted,
+            deleted_count: _,
+        } = self;
+        data.capacity() * size_of::<Point<T>>() + deleted.capacity().div_ceil(u8::BITS as usize)
+    }
+
     fn from_btree_set(map: BTreeSet<Point<T>>) -> Self {
-        Self {
+        let result = Self {
             deleted: BitVec::repeat(false, map.len()),
             data: map.into_iter().collect(),
             deleted_count: 0,
-        }
+        };
+        // Invariant relied on by the iterators (see `next` / `next_back`).
+        debug_assert_eq!(result.deleted.len(), result.data.len());
+        result
     }
 
     fn len(&self) -> usize {
@@ -129,7 +154,7 @@ impl<T: Encodable + Numericable> Iterator for NumericKeySortedVecIterator<'_, T>
 
     fn next(&mut self) -> Option<Self::Item> {
         while self.start_index < self.end_index {
-            let key = self.set.data[self.start_index].clone();
+            let key = self.set.data[self.start_index];
             let deleted = self.set.deleted.get_bit(self.start_index).unwrap_or(true);
             self.start_index += 1;
             if deleted {
@@ -144,7 +169,7 @@ impl<T: Encodable + Numericable> Iterator for NumericKeySortedVecIterator<'_, T>
 impl<T: Encodable + Numericable> DoubleEndedIterator for NumericKeySortedVecIterator<'_, T> {
     fn next_back(&mut self) -> Option<Self::Item> {
         while self.start_index < self.end_index {
-            let key = self.set.data[self.end_index - 1].clone();
+            let key = self.set.data[self.end_index - 1];
             let deleted = self.set.deleted.get_bit(self.end_index - 1).unwrap_or(true);
             self.end_index -= 1;
             if deleted {
@@ -160,44 +185,14 @@ impl<T: Encodable + Numericable + StoredValue + Send + Sync + Default> Immutable
 where
     Vec<T>: Blob,
 {
-    /// Open and load immutable numeric index from RocksDB storage
-    #[cfg(feature = "rocksdb")]
-    pub(super) fn open_rocksdb(db: Arc<RwLock<DB>>, field: &str) -> OperationResult<Option<Self>> {
-        use crate::index::field_index::numeric_index::mutable_numeric_index::MutableNumericIndex;
-
-        let store_cf_name = super::numeric_index_storage_cf_name(field);
-        let db_wrapper = DatabaseColumnScheduledDeleteWrapper::new(DatabaseColumnWrapper::new(
-            db,
-            &store_cf_name,
-        ));
-
-        // Load through mutable numeric index structure
-        let Some(mutable) =
-            MutableNumericIndex::<T>::open_rocksdb_db_wrapper(db_wrapper.clone(), false)?
-        else {
-            // Column family doesn't exist, cannot load
-            return Ok(None);
-        };
-
-        let InMemoryNumericIndex {
-            map,
-            histogram,
-            points_count,
-            max_values_per_point,
-            point_to_values,
-        } = mutable.into_in_memory_index();
-
-        Ok(Some(Self {
-            map: NumericKeySortedVec::from_btree_set(map),
-            histogram,
-            points_count,
-            max_values_per_point,
-            point_to_values: ImmutablePointToValues::new(point_to_values),
-            storage: Storage::RocksDb(db_wrapper),
-        }))
-    }
-
-    /// Open and load immutable numeric index from mmap storage
+    /// Open and load immutable numeric index from mmap storage.
+    ///
+    /// NOTE: returns `Self` (infallible) while sibling
+    /// `ImmutableMapIndex::open_mmap` / `ImmutableGeoMapIndex::open_mmap` /
+    /// `ImmutableFullTextIndex::open_mmap` return `OperationResult<Self>`.
+    /// Numeric's body has no fallible reads to propagate (`from_mmap` is
+    /// infallible; `clear_cache` errors are warn-and-continue, matching the
+    /// other variants).
     pub(super) fn open_mmap(index: MmapNumericIndex<T>) -> Self {
         // Load in-memory index from mmap storage
         let InMemoryNumericIndex {
@@ -213,30 +208,22 @@ where
             log::warn!("Failed to clear mmap cache of ram mmap numeric index: {err}");
         }
 
-        Self {
+        let mut result = Self {
             map: NumericKeySortedVec::from_btree_set(map),
             histogram,
             points_count,
             max_values_per_point,
             point_to_values: ImmutablePointToValues::new(point_to_values),
             storage: Storage::Mmap(Box::new(index)),
-        }
-    }
-
-    #[cfg(all(test, feature = "rocksdb"))]
-    pub(super) fn db_wrapper(&self) -> Option<&DatabaseColumnScheduledDeleteWrapper> {
-        match &self.storage {
-            #[cfg(feature = "rocksdb")]
-            Storage::RocksDb(db_wrapper) => Some(db_wrapper),
-            Storage::Mmap(_) => None,
-        }
+            cached_ram_usage_bytes: 0,
+        };
+        result.cached_ram_usage_bytes = result.compute_ram_usage_bytes();
+        result
     }
 
     #[inline]
     pub(super) fn wipe(self) -> OperationResult<()> {
         match self.storage {
-            #[cfg(feature = "rocksdb")]
-            Storage::RocksDb(db_wrapper) => db_wrapper.recreate_column_family(),
             Storage::Mmap(index) => index.wipe(),
         }
     }
@@ -247,8 +234,6 @@ where
     /// index.
     pub fn clear_cache(&self) -> OperationResult<()> {
         match &self.storage {
-            #[cfg(feature = "rocksdb")]
-            Storage::RocksDb(_) => Ok(()),
             Storage::Mmap(index) => index.clear_cache(),
         }
     }
@@ -256,8 +241,6 @@ where
     #[inline]
     pub(super) fn files(&self) -> Vec<PathBuf> {
         match &self.storage {
-            #[cfg(feature = "rocksdb")]
-            Storage::RocksDb(_) => vec![],
             Storage::Mmap(index) => index.files(),
         }
     }
@@ -265,8 +248,6 @@ where
     #[inline]
     pub(super) fn immutable_files(&self) -> Vec<PathBuf> {
         match &self.storage {
-            #[cfg(feature = "rocksdb")]
-            Storage::RocksDb(_) => vec![],
             Storage::Mmap(index) => index.immutable_files(),
         }
     }
@@ -274,8 +255,6 @@ where
     #[inline]
     pub(super) fn flusher(&self) -> Flusher {
         match &self.storage {
-            #[cfg(feature = "rocksdb")]
-            Storage::RocksDb(db_wrapper) => db_wrapper.flusher(),
             Storage::Mmap(index) => index.flusher(),
         }
     }
@@ -289,11 +268,8 @@ where
     }
 
     pub fn get_values(&self, idx: PointOffsetType) -> Option<Box<dyn Iterator<Item = T> + '_>> {
-        Some(Box::new(
-            self.point_to_values
-                .get_values(idx)
-                .map(|iter| iter.copied())?,
-        ))
+        let iter = self.point_to_values.get_values(idx)?;
+        Some(Box::new(iter.copied()))
     }
 
     pub fn values_count(&self, idx: PointOffsetType) -> Option<usize> {
@@ -333,8 +309,7 @@ where
             .map(|Point { val, idx, .. }| (val, idx))
     }
 
-    #[cfg_attr(not(feature = "rocksdb"), expect(clippy::unnecessary_wraps))]
-    pub(super) fn remove_point(&mut self, idx: PointOffsetType) -> OperationResult<()> {
+    pub(super) fn remove_point(&mut self, idx: PointOffsetType) {
         if let Some(removed_values) = self.point_to_values.get_values(idx) {
             let mut removed_count = 0;
             for value in removed_values {
@@ -343,11 +318,6 @@ where
 
                 // Update persisted storage
                 match &mut self.storage {
-                    #[cfg(feature = "rocksdb")]
-                    Storage::RocksDb(db_wrapper) => {
-                        let encoded = value.encode_key(idx);
-                        db_wrapper.remove(encoded)?;
-                    }
                     Storage::Mmap(index) => {
                         index.remove_point(idx);
                     }
@@ -356,11 +326,10 @@ where
                 removed_count += 1;
             }
             if removed_count > 0 {
-                self.points_count -= 1;
+                self.points_count = self.points_count.saturating_sub(1);
             }
         }
         self.point_to_values.remove_point(idx);
-        Ok(())
     }
 
     pub(super) fn get_histogram(&self) -> &Histogram<T> {
@@ -393,7 +362,7 @@ where
         map: &NumericKeySortedVec<T>,
         point: &Point<T>,
     ) -> Option<Point<T>> {
-        map.values_range(Bound::Unbounded, Bound::Excluded(point.clone()))
+        map.values_range(Bound::Unbounded, Bound::Excluded(*point))
             .next_back()
     }
 
@@ -401,25 +370,15 @@ where
         map: &NumericKeySortedVec<T>,
         point: &Point<T>,
     ) -> Option<Point<T>> {
-        map.values_range(Bound::Excluded(point.clone()), Bound::Unbounded)
+        map.values_range(Bound::Excluded(*point), Bound::Unbounded)
             .next()
     }
 
     pub fn storage_type(&self) -> StorageType {
         match &self.storage {
-            #[cfg(feature = "rocksdb")]
-            Storage::RocksDb(_) => StorageType::RocksDb,
             Storage::Mmap(index) => StorageType::Mmap {
                 is_on_disk: index.is_on_disk(),
             },
-        }
-    }
-
-    #[cfg(feature = "rocksdb")]
-    pub fn is_rocksdb(&self) -> bool {
-        match self.storage {
-            Storage::RocksDb(_) => true,
-            Storage::Mmap(_) => false,
         }
     }
 }
@@ -438,7 +397,7 @@ mod tests {
         end_bound: Bound<Point<FloatPayloadType>>,
     ) {
         let set1 = key_set
-            .values_range(start_bound.clone(), end_bound.clone())
+            .values_range(start_bound, end_bound)
             .collect::<Vec<_>>();
 
         let set2 = encoded_map

@@ -122,6 +122,18 @@ impl TableOfContent {
                     .await
                     .map(|()| true)
             }
+            CollectionMetaOperations::CreateNamedVector(create_named_vector) => {
+                log::debug!("Create named vector {create_named_vector:?}");
+                self.create_named_vector(create_named_vector)
+                    .await
+                    .map(|()| true)
+            }
+            CollectionMetaOperations::DeleteNamedVector(delete_named_vector) => {
+                log::debug!("Delete named vector {delete_named_vector:?}");
+                self.delete_named_vector(delete_named_vector)
+                    .await
+                    .map(|()| true)
+            }
             #[cfg(feature = "staging")]
             CollectionMetaOperations::TestSlowDown(test_slow_down) => {
                 test_slow_down.execute(self.this_peer_id).await;
@@ -564,7 +576,7 @@ impl TableOfContent {
             }
             ShardTransferOperations::RecoveryToPartial(transfer)
             | ShardTransferOperations::SnapshotRecovered(transfer) => {
-                // Validate transfer exists to prevent double handling
+                // Validate transfer exists
                 transfer::helpers::validate_transfer_exists(
                     &transfer,
                     &collection.state().await.transfers,
@@ -623,7 +635,7 @@ impl TableOfContent {
                 )?;
                 log::warn!("Aborting shard transfer: {reason}");
                 collection
-                    .abort_shard_transfer_and_resharding(transfer, None)
+                    .abort_shard_transfer_and_resharding(transfer)
                     .await?;
             }
         };
@@ -712,6 +724,28 @@ impl TableOfContent {
             .await?
             .drop_payload_index(operation.field_name)
             .await?;
+        Ok(())
+    }
+
+    async fn create_named_vector(&self, operation: CreateNamedVector) -> Result<(), StorageError> {
+        let collection_hw_acc = HwMeasurementAcc::new_with_metrics_drain(
+            self.get_collection_hw_metrics(operation.collection_name.clone()),
+        );
+
+        self.get_collection_unchecked(&operation.collection_name)
+            .await?
+            .create_named_vector(operation.vector_name, operation.config, collection_hw_acc)
+            .await?;
+
+        Ok(())
+    }
+
+    async fn delete_named_vector(&self, operation: DeleteNamedVector) -> Result<(), StorageError> {
+        self.get_collection_unchecked(&operation.collection_name)
+            .await?
+            .delete_named_vector(operation.vector_name)
+            .await?;
+
         Ok(())
     }
 }

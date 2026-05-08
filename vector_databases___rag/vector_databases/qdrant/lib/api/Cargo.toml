@@ -1,6 +1,6 @@
 [package]
 name = "api"
-version = "1.17.1"
+version = "1.18.0"
 authors = [
     "Andrey Vasnetsov <andrey@vasnetsov.com>",
     "Qdrant Team <info@qdrant.tech>",
@@ -43,5 +43,3 @@ tonic-build = { workspace = true }
 prost-build = { workspace = true }
 common = { path = "../common/common" }
 
-[dev-dependencies]
-tokio = { workspace = true }

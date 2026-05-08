@@ -29,16 +29,16 @@
       "new_classes": ["ViewCounterDO"],
       "tag": "v2",
     },
+    {
+      "deleted_classes": ["ViewCounterDO"],
+      "tag": "v3",
+    },
   ],
   "durable_objects": {
     "bindings": [
       {
         "class_name": "MyMCP",
         "name": "MCP_OBJECT",
-      },
-      {
-        "class_name": "ViewCounterDO",
-        "name": "VIEW_COUNTER",
       },
     ],
   },
@@ -75,6 +75,9 @@
   },
   "observability": {
     "enabled": true,
+    "logs": {
+      "invocation_logs": false,
+    },
   },
   "assets": { "directory": "./static/", "binding": "ASSETS" },
 }

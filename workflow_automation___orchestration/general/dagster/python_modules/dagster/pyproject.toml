@@ -102,7 +102,7 @@ test = [
     "morefs[asynclocal]",
     "fsspec<2024.5.0",
     "rapidfuzz",
-    "flaky",
+    "pytest-rerunfailures",
     "psutil",
     "ruff==0.15.0",
 ]

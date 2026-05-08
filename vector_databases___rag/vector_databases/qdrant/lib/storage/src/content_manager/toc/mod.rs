@@ -5,6 +5,7 @@ pub mod dispatcher;
 mod point_ops;
 mod point_ops_internal;
 pub mod request_hw_counter;
+mod runtimes;
 mod snapshots;
 mod telemetry;
 mod temp_directories;
@@ -19,6 +20,7 @@ use std::time::Duration;
 
 use api::rest::models::HardwareUsage;
 use collection::collection::{Collection, RequestShardTransfer};
+use collection::common::adaptive_handle::{AdaptiveSearchHandle, SearchMode};
 use collection::config::{
     CollectionConfigInternal, default_replication_factor, default_shard_number,
 };
@@ -46,7 +48,7 @@ use crate::content_manager::alias_mapping::AliasPersistence;
 use crate::content_manager::collection_meta_ops::CreateCollectionOperation;
 use crate::content_manager::collections_ops::{Checker, Collections};
 use crate::content_manager::consensus::operation_sender::OperationSender;
-use crate::content_manager::errors::StorageError;
+use crate::content_manager::errors::{StorageError, StorageResult};
 use crate::content_manager::shard_distribution::ShardDistributionProposal;
 use crate::content_manager::toc::telemetry::TocTelemetryCollector;
 use crate::rbac::{Access, AccessRequirements, CollectionMultipass, CollectionPass};
@@ -67,7 +69,18 @@ pub const COLLECTION_DELETE_SPIN_INTERVAL: Duration = Duration::from_millis(200)
 pub struct TableOfContent {
     collections: Arc<RwLock<Collections>>,
     pub(crate) storage_config: Arc<StorageConfig>,
-    search_runtime: Runtime,
+    /// Adaptive wrapper that routes search `spawn_blocking` calls between
+    /// the high-CPU and high-IO search runtimes based on process CPU usage.
+    adaptive_search_handle: AdaptiveSearchHandle,
+    /// Search runtime sized for CPU-bound load (`high_cpu_blocking_threads` in
+    /// TOC runtime setup — typically one blocking thread per CPU when
+    /// `max_search_threads` is unset). Owned here so the runtime outlives all
+    /// Handles routed through `adaptive_search_handle`.
+    _high_cpu_search_runtime: Runtime,
+    /// Search runtime sized for IO-bound load (`high_io_blocking_threads`,
+    /// which delegates to `common::defaults::search_thread_count`). Owned here
+    /// for the same reason as `_high_cpu_search_runtime`.
+    _high_io_search_runtime: Runtime,
     update_runtime: Runtime,
     general_runtime: Runtime,
     /// Global CPU budget in number of cores for all optimization tasks.
@@ -100,29 +113,55 @@ impl TableOfContent {
     #[allow(clippy::too_many_arguments)]
     pub fn new(
         storage_config: &StorageConfig,
-        search_runtime: Runtime,
-        update_runtime: Runtime,
-        general_runtime: Runtime,
         optimizer_resource_budget: ResourceBudget,
         channel_service: ChannelService,
         this_peer_id: PeerId,
         consensus_proposal_sender: Option<OperationSender>,
-    ) -> Self {
+    ) -> StorageResult<Self> {
         let collections_path = storage_config.storage_path.join(COLLECTIONS_DIR);
-        fs::create_dir_all(&collections_path).expect("Can't create Collections directory");
+        fs::create_dir_all(&collections_path)?;
         if let Some(path) = storage_config.temp_path.as_deref() {
-            fs::create_dir_all(path).expect("Can't create temporary files directory");
+            fs::create_dir_all(path)?;
         }
-        let collection_paths =
-            fs::read_dir(&collections_path).expect("Can't read Collections directory");
+
+        // Clean up stale temporary directories before loading collections.
+        // Must happen before WAL application to avoid interference from leftover
+        // temp files (e.g. interrupted snapshot transfers from a previous run).
+        temp_directories::clear_tmp_directories(storage_config)?;
+
+        // Build the runtimes. They must be constructed outside any async
+        // context so they can be dropped from a sync context without panic.
+        let max_search_threads = storage_config.performance.max_search_threads;
+        let high_cpu_search_runtime = runtimes::create_high_cpu_search_runtime(max_search_threads)
+            .map_err(|err| {
+                StorageError::service_error(format!("Can't create high-CPU search runtime: {err}"))
+            })?;
+        let high_io_search_runtime = runtimes::create_high_io_search_runtime(max_search_threads)
+            .map_err(|err| {
+                StorageError::service_error(format!("Can't create high-IO search runtime: {err}"))
+            })?;
+        let update_runtime = runtimes::create_update_runtime(
+            storage_config.performance.max_optimization_runtime_threads,
+        )
+        .map_err(|err| {
+            StorageError::service_error(format!("Can't create update runtime: {err}"))
+        })?;
+        let general_runtime = runtimes::create_general_purpose_runtime().map_err(|err| {
+            StorageError::service_error(format!("Can't create general purpose runtime: {err}"))
+        })?;
+
+        let adaptive_search_handle = AdaptiveSearchHandle::new(
+            high_cpu_search_runtime.handle().clone(),
+            high_io_search_runtime.handle().clone(),
+        );
+
+        let collection_paths = fs::read_dir(&collections_path)?;
         let is_distributed = consensus_proposal_sender.is_some();
 
         // Collect valid collection paths for loading
         let mut collection_load_tasks = Vec::new();
         for entry in collection_paths {
-            let collection_path = entry
-                .expect("Can't access of one of the collection files")
-                .path();
+            let collection_path = entry?.path();
 
             if !CollectionConfigInternal::check(&collection_path) {
                 log::warn!(
@@ -134,9 +173,12 @@ impl TableOfContent {
 
             let collection_name = collection_path
                 .file_name()
-                .expect("Can't resolve a filename of one of the collection files")
-                .to_str()
-                .expect("A filename of one of the collection files is not a valid UTF-8")
+                .and_then(|os_str| os_str.to_str())
+                .ok_or_else(|| {
+                    StorageError::service_error(format!(
+                        "Can't resolve a filename of one of the collection files: {collection_path:?}",
+                    ))
+                })?
                 .to_string();
 
             let collection_snapshots_path =
@@ -145,7 +187,7 @@ impl TableOfContent {
             let consensus_proposal_sender = consensus_proposal_sender.clone();
             let channel_service = channel_service.clone();
             let storage_config = storage_config.clone();
-            let search_runtime_handle = search_runtime.handle().clone();
+            let search_runtime_handle = adaptive_search_handle.clone();
             let update_runtime_handle = update_runtime.handle().clone();
             let optimizer_resource_budget = optimizer_resource_budget.clone();
 
@@ -192,7 +234,7 @@ impl TableOfContent {
                 .get(),
         );
 
-        let mut collections: HashMap<String, Arc<Collection>> = Default::default();
+        let mut collections: Collections = Default::default();
         general_runtime.block_on(async {
             while let Some((collection_name, collection)) = collection_stream.next().await {
                 collections.insert(collection_name, Arc::new(collection));
@@ -206,8 +248,7 @@ impl TableOfContent {
         }
 
         let alias_path = storage_config.storage_path.join(ALIASES_PATH);
-        let alias_persistence = AliasPersistence::open(&alias_path)
-            .expect("Can't open database by the provided config");
+        let alias_persistence = AliasPersistence::open(&alias_path)?;
 
         let rate_limiter = match storage_config.performance.update_rate_limit {
             Some(limit) => Some(Semaphore::new(limit)),
@@ -226,10 +267,12 @@ impl TableOfContent {
             }
         };
 
-        TableOfContent {
+        Ok(TableOfContent {
             collections: Arc::new(RwLock::new(collections)),
             storage_config: Arc::new(storage_config.clone()),
-            search_runtime,
+            adaptive_search_handle,
+            _high_cpu_search_runtime: high_cpu_search_runtime,
+            _high_io_search_runtime: high_io_search_runtime,
             update_runtime,
             general_runtime,
             optimizer_resource_budget,
@@ -242,12 +285,27 @@ impl TableOfContent {
             collection_create_lock: Default::default(),
             collection_hw_metrics: DashMap::new(),
             telemetry,
-        }
+        })
     }
 
     /// Return `true` if service is working in distributed mode.
     pub fn is_distributed(&self) -> bool {
         self.consensus_proposal_sender.is_some()
+    }
+
+    /// Currently active search mode (high_cpu / high_io).
+    pub fn search_pool_mode(&self) -> SearchMode {
+        self.adaptive_search_handle.current_mode()
+    }
+
+    /// Blocking-thread counts for the two search runtimes
+    /// (high_cpu, high_io).
+    pub fn search_pool_thread_counts(&self) -> (usize, usize) {
+        let max_search_threads = self.storage_config.performance.max_search_threads;
+        (
+            runtimes::high_cpu_blocking_threads(max_search_threads),
+            runtimes::high_io_blocking_threads(max_search_threads),
+        )
     }
 
     pub fn storage_path(&self) -> &Path {

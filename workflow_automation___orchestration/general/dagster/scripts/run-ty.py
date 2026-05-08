@@ -14,7 +14,7 @@ from collections.abc import Mapping, Sequence
 from functools import reduce
 from itertools import groupby
 from pathlib import Path
-from typing import Final, Literal, cast
+from typing import Any, Final, Literal, cast
 
 import yaml
 from typing_extensions import NotRequired, TypedDict
@@ -525,9 +525,9 @@ def run_ty(
 def merge_ty_results(result_1: RunResult, result_2: RunResult) -> RunResult:
     returncode = 1 if 1 in (result_1["returncode"], result_2["returncode"]) else 0
     output_1, output_2 = (result["output"] for result in (result_1, result_2))
-    summary = {}
-    for key in output_1["summary"].keys():
-        summary[key] = output_1["summary"][key] + output_2["summary"][key]
+    summary_1 = cast("dict[str, Any]", output_1["summary"])
+    summary_2 = cast("dict[str, Any]", output_2["summary"])
+    summary = {key: summary_1[key] + summary_2[key] for key in summary_1}
     diagnostics = [*output_1["generalDiagnostics"], *output_2["generalDiagnostics"]]
     return {
         "returncode": returncode,

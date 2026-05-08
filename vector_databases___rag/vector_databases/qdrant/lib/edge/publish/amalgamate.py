@@ -25,7 +25,7 @@ from pathlib import Path
 
 import tomlkit
 
-VERSION = "0.6.0"
+VERSION = "0.6.1"
 
 # Assume this script is in <root>/lib/edge/publish/.
 REPO_ROOT = Path(__file__).parent.parent.parent.parent
@@ -190,6 +190,11 @@ def main() -> None:
 
     # Remove unused code.
     shutil.rmtree(AMALGAMATION / "src/segment/index/hnsw_index/gpu")
+    substitute(
+        AMALGAMATION / "src/segment/index/hnsw_index/mod.rs",
+        # otherwise cargo fmt will fail to resolve deleted module
+        (r"^#\[cfg\(feature = \"gpu\"\)]\npub mod gpu;\n", ""),
+    )
 
     # Ast-grep-based fixups.
     RULES_TEMPLATE = (Path(__file__).parent / "ast-grep-rules.yaml").read_text(

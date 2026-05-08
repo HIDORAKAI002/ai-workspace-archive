@@ -972,8 +972,18 @@ pub struct BinaryQuantization {
 #[derive(serde::Serialize)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TurboQuantization {
+    #[prost(bool, optional, tag = "1")]
+    pub always_ram: ::core::option::Option<bool>,
+    #[prost(enumeration = "TurboQuantBitSize", optional, tag = "2")]
+    pub bits: ::core::option::Option<i32>,
+}
+#[derive(validator::Validate)]
+#[derive(serde::Serialize)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct QuantizationConfig {
-    #[prost(oneof = "quantization_config::Quantization", tags = "1, 2, 3")]
+    #[prost(oneof = "quantization_config::Quantization", tags = "1, 2, 3, 4")]
     #[validate(nested)]
     pub quantization: ::core::option::Option<quantization_config::Quantization>,
 }
@@ -989,6 +999,8 @@ pub mod quantization_config {
         Product(super::ProductQuantization),
         #[prost(message, tag = "3")]
         Binary(super::BinaryQuantization),
+        #[prost(message, tag = "4")]
+        Turboquant(super::TurboQuantization),
     }
 }
 #[derive(validator::Validate)]
@@ -1001,7 +1013,7 @@ pub struct Disabled {}
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct QuantizationConfigDiff {
-    #[prost(oneof = "quantization_config_diff::Quantization", tags = "1, 2, 3, 4")]
+    #[prost(oneof = "quantization_config_diff::Quantization", tags = "1, 2, 3, 4, 5")]
     #[validate(nested)]
     pub quantization: ::core::option::Option<quantization_config_diff::Quantization>,
 }
@@ -1019,6 +1031,8 @@ pub mod quantization_config_diff {
         Disabled(super::Disabled),
         #[prost(message, tag = "4")]
         Binary(super::BinaryQuantization),
+        #[prost(message, tag = "5")]
+        Turboquant(super::TurboQuantization),
     }
 }
 #[derive(validator::Validate)]
@@ -1093,6 +1107,11 @@ pub struct StrictModeConfig {
     /// Max number of payload indexes in a collection
     #[prost(uint64, optional, tag = "19")]
     pub max_payload_index_count: ::core::option::Option<u64>,
+    /// Reject memory-consuming update operations when process resident memory exceeds this percentage of total RAM (cgroup-aware, 1-100).
+    /// Delete-style operations are still allowed so memory can be freed.
+    #[prost(uint32, optional, tag = "21")]
+    #[validate(range(min = 1, max = 100))]
+    pub max_resident_memory_percent: ::core::option::Option<u32>,
 }
 #[derive(validator::Validate)]
 #[derive(serde::Serialize)]
@@ -2419,6 +2438,39 @@ impl BinaryQuantizationEncoding {
             "OneBit" => Some(Self::OneBit),
             "TwoBits" => Some(Self::TwoBits),
             "OneAndHalfBits" => Some(Self::OneAndHalfBits),
+            _ => None,
+        }
+    }
+}
+#[derive(serde::Serialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum TurboQuantBitSize {
+    Bits1 = 0,
+    Bits15 = 1,
+    Bits2 = 2,
+    Bits4 = 3,
+}
+impl TurboQuantBitSize {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            TurboQuantBitSize::Bits1 => "Bits1",
+            TurboQuantBitSize::Bits15 => "Bits1_5",
+            TurboQuantBitSize::Bits2 => "Bits2",
+            TurboQuantBitSize::Bits4 => "Bits4",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "Bits1" => Some(Self::Bits1),
+            "Bits1_5" => Some(Self::Bits15),
+            "Bits2" => Some(Self::Bits2),
+            "Bits4" => Some(Self::Bits4),
             _ => None,
         }
     }
@@ -4116,6 +4168,33 @@ pub struct GetShardOptimizationsResponse {
     #[prost(double, tag = "2")]
     pub time: f64,
 }
+#[derive(validator::Validate)]
+#[derive(serde::Serialize)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetShardMemoryReportRequest {
+    /// Name of the collection
+    #[prost(string, tag = "1")]
+    #[validate(
+        length(min = 1, max = 255),
+        custom(function = "common::validation::validate_collection_name_legacy")
+    )]
+    pub collection_name: ::prost::alloc::string::String,
+    /// Id of the shard
+    #[prost(uint32, tag = "2")]
+    pub shard_id: u32,
+}
+#[derive(serde::Serialize)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetShardMemoryReportResponse {
+    /// JSON-serialized CollectionMemoryReport
+    #[prost(bytes = "vec", tag = "1")]
+    pub memory_report_json: ::prost::alloc::vec::Vec<u8>,
+    /// Time spent to process
+    #[prost(double, tag = "2")]
+    pub time: f64,
+}
 /// Generated client implementations.
 pub mod collections_internal_client {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
@@ -4374,6 +4453,34 @@ pub mod collections_internal_client {
                 );
             self.inner.unary(req, path, codec).await
         }
+        /// Get shard memory usage report
+        pub async fn get_shard_memory_report(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetShardMemoryReportRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetShardMemoryReportResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/qdrant.CollectionsInternal/GetShardMemoryReport",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new("qdrant.CollectionsInternal", "GetShardMemoryReport"),
+                );
+            self.inner.unary(req, path, codec).await
+        }
     }
 }
 /// Generated server implementations.
@@ -4429,6 +4536,14 @@ pub mod collections_internal_server {
             request: tonic::Request<super::GetShardOptimizationsRequest>,
         ) -> std::result::Result<
             tonic::Response<super::GetShardOptimizationsResponse>,
+            tonic::Status,
+        >;
+        /// Get shard memory usage report
+        async fn get_shard_memory_report(
+            &self,
+            request: tonic::Request<super::GetShardMemoryReportRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::GetShardMemoryReportResponse>,
             tonic::Status,
         >;
     }
@@ -4791,6 +4906,56 @@ pub mod collections_internal_server {
                     let fut = async move {
                         let inner = inner.0;
                         let method = GetShardOptimizationsSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/qdrant.CollectionsInternal/GetShardMemoryReport" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetShardMemoryReportSvc<T: CollectionsInternal>(pub Arc<T>);
+                    impl<
+                        T: CollectionsInternal,
+                    > tonic::server::UnaryService<super::GetShardMemoryReportRequest>
+                    for GetShardMemoryReportSvc<T> {
+                        type Response = super::GetShardMemoryReportResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::GetShardMemoryReportRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as CollectionsInternal>::get_shard_memory_report(
+                                        &inner,
+                                        request,
+                                    )
+                                    .await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = GetShardMemoryReportSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
@@ -5398,6 +5563,111 @@ pub struct DeleteFieldIndexCollection {
     /// Timeout for the request in seconds
     #[prost(uint64, optional, tag = "5")]
     pub timeout: ::core::option::Option<u64>,
+}
+/// Dense vector creation parameters.
+/// Only includes immutable properties that define the vector space.
+/// Storage type, index, and quantization are configured separately.
+#[derive(validator::Validate)]
+#[derive(serde::Serialize)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DenseVectorCreationConfig {
+    /// Size/dimensionality of the vectors
+    #[prost(uint64, tag = "1")]
+    #[validate(range(min = 1, max = 65536))]
+    pub size: u64,
+    /// Distance function used for comparing vectors
+    #[prost(enumeration = "Distance", tag = "2")]
+    pub distance: i32,
+    /// Configuration for multi-vector search (e.g., ColBERT)
+    #[prost(message, optional, tag = "3")]
+    pub multivector_config: ::core::option::Option<MultiVectorConfig>,
+    /// Data type of the vectors (Float32, Float16, Uint8)
+    #[prost(enumeration = "Datatype", optional, tag = "4")]
+    pub datatype: ::core::option::Option<i32>,
+}
+/// Sparse vector creation parameters.
+/// Only includes immutable properties that define the vector space.
+#[derive(validator::Validate)]
+#[derive(serde::Serialize)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SparseVectorCreationConfig {
+    /// If set - apply modifier to the vector values (e.g., IDF)
+    #[prost(enumeration = "Modifier", optional, tag = "1")]
+    pub modifier: ::core::option::Option<i32>,
+    /// Data type used to store weights in the index
+    #[prost(enumeration = "Datatype", optional, tag = "2")]
+    pub datatype: ::core::option::Option<i32>,
+}
+#[derive(validator::Validate)]
+#[derive(serde::Serialize)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CreateVectorNameRequest {
+    /// Name of the collection
+    #[prost(string, tag = "1")]
+    #[validate(
+        length(min = 1, max = 255),
+        custom(function = "common::validation::validate_collection_name_legacy")
+    )]
+    pub collection_name: ::prost::alloc::string::String,
+    /// Wait until the changes have been applied?
+    #[prost(bool, optional, tag = "2")]
+    pub wait: ::core::option::Option<bool>,
+    /// Name of the new vector
+    #[prost(string, tag = "3")]
+    pub vector_name: ::prost::alloc::string::String,
+    /// If set, overrides global timeout setting for this request. Unit is seconds.
+    #[prost(uint64, optional, tag = "6")]
+    pub timeout: ::core::option::Option<u64>,
+    /// Write ordering guarantees
+    #[prost(message, optional, tag = "7")]
+    pub ordering: ::core::option::Option<WriteOrdering>,
+    /// Configuration for the new vector - either dense or sparse
+    #[prost(oneof = "create_vector_name_request::VectorConfig", tags = "4, 5")]
+    #[validate(nested)]
+    pub vector_config: ::core::option::Option<create_vector_name_request::VectorConfig>,
+}
+/// Nested message and enum types in `CreateVectorNameRequest`.
+pub mod create_vector_name_request {
+    /// Configuration for the new vector - either dense or sparse
+    #[derive(serde::Serialize)]
+    #[allow(clippy::derive_partial_eq_without_eq)]
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum VectorConfig {
+        /// Dense vector parameters
+        #[prost(message, tag = "4")]
+        DenseConfig(super::DenseVectorCreationConfig),
+        /// Sparse vector parameters
+        #[prost(message, tag = "5")]
+        SparseConfig(super::SparseVectorCreationConfig),
+    }
+}
+#[derive(validator::Validate)]
+#[derive(serde::Serialize)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeleteVectorNameRequest {
+    /// Name of the collection
+    #[prost(string, tag = "1")]
+    #[validate(
+        length(min = 1, max = 255),
+        custom(function = "common::validation::validate_collection_name_legacy")
+    )]
+    pub collection_name: ::prost::alloc::string::String,
+    /// Wait until the changes have been applied?
+    #[prost(bool, optional, tag = "2")]
+    pub wait: ::core::option::Option<bool>,
+    /// Name of the vector to delete
+    #[prost(string, tag = "3")]
+    pub vector_name: ::prost::alloc::string::String,
+    /// If set, overrides global timeout setting for this request. Unit is seconds.
+    #[prost(uint64, optional, tag = "4")]
+    pub timeout: ::core::option::Option<u64>,
+    /// Write ordering guarantees
+    #[prost(message, optional, tag = "5")]
+    pub ordering: ::core::option::Option<WriteOrdering>,
 }
 #[derive(serde::Serialize)]
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -8209,6 +8479,58 @@ pub mod points_client {
                 .insert(GrpcMethod::new("qdrant.Points", "DeleteFieldIndex"));
             self.inner.unary(req, path, codec).await
         }
+        /// Create a new named vector on the collection
+        pub async fn create_vector_name(
+            &mut self,
+            request: impl tonic::IntoRequest<super::CreateVectorNameRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::PointsOperationResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/qdrant.Points/CreateVectorName",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("qdrant.Points", "CreateVectorName"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Delete a named vector from the collection
+        pub async fn delete_vector_name(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DeleteVectorNameRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::PointsOperationResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/qdrant.Points/DeleteVectorName",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("qdrant.Points", "DeleteVectorName"));
+            self.inner.unary(req, path, codec).await
+        }
         /// Retrieve closest points based on vector similarity and given filtering
         /// conditions
         pub async fn search(
@@ -8732,6 +9054,22 @@ pub mod points_server {
         async fn delete_field_index(
             &self,
             request: tonic::Request<super::DeleteFieldIndexCollection>,
+        ) -> std::result::Result<
+            tonic::Response<super::PointsOperationResponse>,
+            tonic::Status,
+        >;
+        /// Create a new named vector on the collection
+        async fn create_vector_name(
+            &self,
+            request: tonic::Request<super::CreateVectorNameRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::PointsOperationResponse>,
+            tonic::Status,
+        >;
+        /// Delete a named vector from the collection
+        async fn delete_vector_name(
+            &self,
+            request: tonic::Request<super::DeleteVectorNameRequest>,
         ) -> std::result::Result<
             tonic::Response<super::PointsOperationResponse>,
             tonic::Status,
@@ -9450,6 +9788,98 @@ pub mod points_server {
                     let fut = async move {
                         let inner = inner.0;
                         let method = DeleteFieldIndexSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/qdrant.Points/CreateVectorName" => {
+                    #[allow(non_camel_case_types)]
+                    struct CreateVectorNameSvc<T: Points>(pub Arc<T>);
+                    impl<
+                        T: Points,
+                    > tonic::server::UnaryService<super::CreateVectorNameRequest>
+                    for CreateVectorNameSvc<T> {
+                        type Response = super::PointsOperationResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::CreateVectorNameRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as Points>::create_vector_name(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = CreateVectorNameSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/qdrant.Points/DeleteVectorName" => {
+                    #[allow(non_camel_case_types)]
+                    struct DeleteVectorNameSvc<T: Points>(pub Arc<T>);
+                    impl<
+                        T: Points,
+                    > tonic::server::UnaryService<super::DeleteVectorNameRequest>
+                    for DeleteVectorNameSvc<T> {
+                        type Response = super::PointsOperationResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::DeleteVectorNameRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as Points>::delete_vector_name(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = DeleteVectorNameSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
@@ -10471,10 +10901,40 @@ pub struct DeleteFieldIndexCollectionInternal {
 #[derive(validator::Validate)]
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CreateVectorNameInternal {
+    #[prost(message, optional, tag = "1")]
+    #[validate(nested)]
+    pub create_vector_name: ::core::option::Option<CreateVectorNameRequest>,
+    #[prost(uint32, optional, tag = "2")]
+    pub shard_id: ::core::option::Option<u32>,
+    #[prost(message, optional, tag = "3")]
+    pub clock_tag: ::core::option::Option<ClockTag>,
+    #[prost(enumeration = "WaitUntil", optional, tag = "4")]
+    pub wait_override: ::core::option::Option<i32>,
+}
+#[derive(serde::Serialize)]
+#[derive(validator::Validate)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeleteVectorNameInternal {
+    #[prost(message, optional, tag = "1")]
+    #[validate(nested)]
+    pub delete_vector_name: ::core::option::Option<DeleteVectorNameRequest>,
+    #[prost(uint32, optional, tag = "2")]
+    pub shard_id: ::core::option::Option<u32>,
+    #[prost(message, optional, tag = "3")]
+    pub clock_tag: ::core::option::Option<ClockTag>,
+    #[prost(enumeration = "WaitUntil", optional, tag = "4")]
+    pub wait_override: ::core::option::Option<i32>,
+}
+#[derive(serde::Serialize)]
+#[derive(validator::Validate)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UpdateOperation {
     #[prost(
         oneof = "update_operation::Update",
-        tags = "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11"
+        tags = "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13"
     )]
     #[validate(nested)]
     pub update: ::core::option::Option<update_operation::Update>,
@@ -10507,6 +10967,10 @@ pub mod update_operation {
         CreateFieldIndex(super::CreateFieldIndexCollectionInternal),
         #[prost(message, tag = "11")]
         DeleteFieldIndex(super::DeleteFieldIndexCollectionInternal),
+        #[prost(message, tag = "12")]
+        CreateVectorName(super::CreateVectorNameInternal),
+        #[prost(message, tag = "13")]
+        DeleteVectorName(super::DeleteVectorNameInternal),
     }
 }
 #[derive(serde::Serialize)]
@@ -11493,6 +11957,56 @@ pub mod points_internal_client {
                 .insert(GrpcMethod::new("qdrant.PointsInternal", "DeleteFieldIndex"));
             self.inner.unary(req, path, codec).await
         }
+        pub async fn create_vector_name(
+            &mut self,
+            request: impl tonic::IntoRequest<super::CreateVectorNameInternal>,
+        ) -> std::result::Result<
+            tonic::Response<super::PointsOperationResponseInternal>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/qdrant.PointsInternal/CreateVectorName",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("qdrant.PointsInternal", "CreateVectorName"));
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn delete_vector_name(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DeleteVectorNameInternal>,
+        ) -> std::result::Result<
+            tonic::Response<super::PointsOperationResponseInternal>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/qdrant.PointsInternal/DeleteVectorName",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("qdrant.PointsInternal", "DeleteVectorName"));
+            self.inner.unary(req, path, codec).await
+        }
         pub async fn update_batch(
             &mut self,
             request: impl tonic::IntoRequest<super::UpdateBatchInternal>,
@@ -11765,6 +12279,20 @@ pub mod points_internal_server {
         async fn delete_field_index(
             &self,
             request: tonic::Request<super::DeleteFieldIndexCollectionInternal>,
+        ) -> std::result::Result<
+            tonic::Response<super::PointsOperationResponseInternal>,
+            tonic::Status,
+        >;
+        async fn create_vector_name(
+            &self,
+            request: tonic::Request<super::CreateVectorNameInternal>,
+        ) -> std::result::Result<
+            tonic::Response<super::PointsOperationResponseInternal>,
+            tonic::Status,
+        >;
+        async fn delete_vector_name(
+            &self,
+            request: tonic::Request<super::DeleteVectorNameInternal>,
         ) -> std::result::Result<
             tonic::Response<super::PointsOperationResponseInternal>,
             tonic::Status,
@@ -12396,6 +12924,100 @@ pub mod points_internal_server {
                     let fut = async move {
                         let inner = inner.0;
                         let method = DeleteFieldIndexSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/qdrant.PointsInternal/CreateVectorName" => {
+                    #[allow(non_camel_case_types)]
+                    struct CreateVectorNameSvc<T: PointsInternal>(pub Arc<T>);
+                    impl<
+                        T: PointsInternal,
+                    > tonic::server::UnaryService<super::CreateVectorNameInternal>
+                    for CreateVectorNameSvc<T> {
+                        type Response = super::PointsOperationResponseInternal;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::CreateVectorNameInternal>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as PointsInternal>::create_vector_name(&inner, request)
+                                    .await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = CreateVectorNameSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/qdrant.PointsInternal/DeleteVectorName" => {
+                    #[allow(non_camel_case_types)]
+                    struct DeleteVectorNameSvc<T: PointsInternal>(pub Arc<T>);
+                    impl<
+                        T: PointsInternal,
+                    > tonic::server::UnaryService<super::DeleteVectorNameInternal>
+                    for DeleteVectorNameSvc<T> {
+                        type Response = super::PointsOperationResponseInternal;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::DeleteVectorNameInternal>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as PointsInternal>::delete_vector_name(&inner, request)
+                                    .await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = DeleteVectorNameSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
@@ -15909,6 +16531,1121 @@ pub mod shard_snapshots_server {
     }
     impl<T: ShardSnapshots> tonic::server::NamedService for ShardSnapshotsServer<T> {
         const NAME: &'static str = "qdrant.ShardSnapshots";
+    }
+}
+#[derive(serde::Serialize)]
+#[derive(validator::Validate)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListFilesRequest {
+    /// Separated from `path` so that existing collection name validation can be applied at the proto level.
+    #[prost(string, tag = "1")]
+    #[validate(
+        length(min = 1, max = 255),
+        custom(function = "common::validation::validate_collection_name_legacy")
+    )]
+    pub collection_name: ::prost::alloc::string::String,
+    #[prost(uint32, tag = "2")]
+    pub shard_id: u32,
+    #[prost(string, tag = "3")]
+    #[validate(length(min = 1))]
+    pub prefix_path: ::prost::alloc::string::String,
+}
+#[derive(serde::Serialize)]
+#[derive(validator::Validate)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FileExistsRequest {
+    #[prost(string, tag = "1")]
+    #[validate(
+        length(min = 1, max = 255),
+        custom(function = "common::validation::validate_collection_name_legacy")
+    )]
+    pub collection_name: ::prost::alloc::string::String,
+    #[prost(uint32, tag = "2")]
+    pub shard_id: u32,
+    #[prost(string, tag = "3")]
+    #[validate(length(min = 1))]
+    pub path: ::prost::alloc::string::String,
+}
+#[derive(serde::Serialize)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FileExistsResponse {
+    #[prost(bool, tag = "1")]
+    pub exists: bool,
+}
+#[derive(serde::Serialize)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ListFilesResponse {
+    #[prost(string, repeated, tag = "1")]
+    pub paths: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+}
+#[derive(serde::Serialize)]
+#[derive(validator::Validate)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FileLengthRequest {
+    #[prost(string, tag = "1")]
+    #[validate(
+        length(min = 1, max = 255),
+        custom(function = "common::validation::validate_collection_name_legacy")
+    )]
+    pub collection_name: ::prost::alloc::string::String,
+    #[prost(uint32, tag = "2")]
+    pub shard_id: u32,
+    #[prost(string, tag = "3")]
+    #[validate(length(min = 1))]
+    pub path: ::prost::alloc::string::String,
+}
+#[derive(serde::Serialize)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FileLengthResponse {
+    #[prost(uint64, tag = "1")]
+    pub length: u64,
+}
+#[derive(serde::Serialize)]
+#[derive(validator::Validate)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ReadBytesRequest {
+    #[prost(string, tag = "1")]
+    #[validate(
+        length(min = 1, max = 255),
+        custom(function = "common::validation::validate_collection_name_legacy")
+    )]
+    pub collection_name: ::prost::alloc::string::String,
+    #[prost(uint32, tag = "2")]
+    pub shard_id: u32,
+    #[prost(string, tag = "3")]
+    #[validate(length(min = 1))]
+    pub path: ::prost::alloc::string::String,
+    #[prost(uint64, tag = "4")]
+    pub byte_offset: u64,
+    #[prost(uint64, tag = "5")]
+    pub length: u64,
+}
+#[derive(serde::Serialize)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ReadBytesResponse {
+    #[prost(bytes = "vec", tag = "1")]
+    pub data: ::prost::alloc::vec::Vec<u8>,
+}
+#[derive(serde::Serialize)]
+#[derive(validator::Validate)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ReadBytesStreamRequest {
+    #[prost(string, tag = "1")]
+    #[validate(
+        length(min = 1, max = 255),
+        custom(function = "common::validation::validate_collection_name_legacy")
+    )]
+    pub collection_name: ::prost::alloc::string::String,
+    #[prost(uint32, tag = "2")]
+    pub shard_id: u32,
+    #[prost(string, tag = "3")]
+    #[validate(length(min = 1))]
+    pub path: ::prost::alloc::string::String,
+    #[prost(uint64, tag = "4")]
+    pub byte_offset: u64,
+    #[prost(uint64, tag = "5")]
+    pub length: u64,
+}
+#[derive(serde::Serialize)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ReadBytesStreamResponse {
+    #[prost(bytes = "vec", tag = "1")]
+    pub data: ::prost::alloc::vec::Vec<u8>,
+}
+#[derive(serde::Serialize)]
+#[derive(validator::Validate)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ReadWholeRequest {
+    #[prost(string, tag = "1")]
+    #[validate(
+        length(min = 1, max = 255),
+        custom(function = "common::validation::validate_collection_name_legacy")
+    )]
+    pub collection_name: ::prost::alloc::string::String,
+    #[prost(uint32, tag = "2")]
+    pub shard_id: u32,
+    #[prost(string, tag = "3")]
+    #[validate(length(min = 1))]
+    pub path: ::prost::alloc::string::String,
+}
+#[derive(serde::Serialize)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ReadWholeResponse {
+    #[prost(bytes = "vec", tag = "1")]
+    pub data: ::prost::alloc::vec::Vec<u8>,
+}
+/// ReadBatch: multiple ranges from a single file (maps to UniversalRead::read_batch).
+#[derive(serde::Serialize)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ReadBatchRange {
+    #[prost(uint64, tag = "1")]
+    pub byte_offset: u64,
+    #[prost(uint64, tag = "2")]
+    pub length: u64,
+}
+#[derive(serde::Serialize)]
+#[derive(validator::Validate)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ReadBatchRequest {
+    #[prost(string, tag = "1")]
+    #[validate(
+        length(min = 1, max = 255),
+        custom(function = "common::validation::validate_collection_name_legacy")
+    )]
+    pub collection_name: ::prost::alloc::string::String,
+    #[prost(uint32, tag = "2")]
+    pub shard_id: u32,
+    #[prost(string, tag = "3")]
+    #[validate(length(min = 1))]
+    pub path: ::prost::alloc::string::String,
+    #[prost(message, repeated, tag = "4")]
+    #[validate(length(min = 1))]
+    pub ranges: ::prost::alloc::vec::Vec<ReadBatchRange>,
+}
+#[derive(serde::Serialize)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ReadBatchResponse {
+    #[prost(bytes = "vec", repeated, tag = "1")]
+    pub data: ::prost::alloc::vec::Vec<::prost::alloc::vec::Vec<u8>>,
+}
+/// ReadMulti: ranges across multiple files (maps to UniversalRead::read_multi).
+#[derive(serde::Serialize)]
+#[derive(validator::Validate)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ReadMultiEntry {
+    #[prost(string, tag = "1")]
+    #[validate(length(min = 1))]
+    pub path: ::prost::alloc::string::String,
+    #[prost(uint64, tag = "2")]
+    pub byte_offset: u64,
+    #[prost(uint64, tag = "3")]
+    pub length: u64,
+}
+#[derive(serde::Serialize)]
+#[derive(validator::Validate)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ReadMultiRequest {
+    #[prost(string, tag = "1")]
+    #[validate(
+        length(min = 1, max = 255),
+        custom(function = "common::validation::validate_collection_name_legacy")
+    )]
+    pub collection_name: ::prost::alloc::string::String,
+    #[prost(uint32, tag = "2")]
+    pub shard_id: u32,
+    #[prost(message, repeated, tag = "3")]
+    #[validate(length(min = 1), nested)]
+    pub reads: ::prost::alloc::vec::Vec<ReadMultiEntry>,
+}
+#[derive(serde::Serialize)]
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ReadMultiResponse {
+    #[prost(bytes = "vec", repeated, tag = "1")]
+    pub data: ::prost::alloc::vec::Vec<::prost::alloc::vec::Vec<u8>>,
+}
+/// Generated client implementations.
+pub mod storage_read_client {
+    #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
+    use tonic::codegen::*;
+    use tonic::codegen::http::Uri;
+    /// Shard-scoped raw I/O over on-disk collection storage.
+    ///
+    /// All requests are routed to a single shard directory
+    /// (`<storage>/collections/<collection>/<shard_id>`). Replicas of the same
+    /// shard on different peers are not binary-compatible (segment IDs, WAL
+    /// positions, optimizer state all diverge), so the caller is responsible for
+    /// targeting the peer that owns the desired replica.
+    ///
+    /// This service is intended for tooling that builds synchronization on top of
+    /// Qdrant (e.g. replica bootstrap) rather than typical user queries. It is
+    /// considered internal: the request/response shape may change between
+    /// releases.
+    #[derive(Debug, Clone)]
+    pub struct StorageReadClient<T> {
+        inner: tonic::client::Grpc<T>,
+    }
+    impl StorageReadClient<tonic::transport::Channel> {
+        /// Attempt to create a new client by connecting to a given endpoint.
+        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
+        where
+            D: TryInto<tonic::transport::Endpoint>,
+            D::Error: Into<StdError>,
+        {
+            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
+            Ok(Self::new(conn))
+        }
+    }
+    impl<T> StorageReadClient<T>
+    where
+        T: tonic::client::GrpcService<tonic::body::BoxBody>,
+        T::Error: Into<StdError>,
+        T::ResponseBody: Body<Data = Bytes> + Send + 'static,
+        <T::ResponseBody as Body>::Error: Into<StdError> + Send,
+    {
+        pub fn new(inner: T) -> Self {
+            let inner = tonic::client::Grpc::new(inner);
+            Self { inner }
+        }
+        pub fn with_origin(inner: T, origin: Uri) -> Self {
+            let inner = tonic::client::Grpc::with_origin(inner, origin);
+            Self { inner }
+        }
+        pub fn with_interceptor<F>(
+            inner: T,
+            interceptor: F,
+        ) -> StorageReadClient<InterceptedService<T, F>>
+        where
+            F: tonic::service::Interceptor,
+            T::ResponseBody: Default,
+            T: tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+                Response = http::Response<
+                    <T as tonic::client::GrpcService<tonic::body::BoxBody>>::ResponseBody,
+                >,
+            >,
+            <T as tonic::codegen::Service<
+                http::Request<tonic::body::BoxBody>,
+            >>::Error: Into<StdError> + Send + Sync,
+        {
+            StorageReadClient::new(InterceptedService::new(inner, interceptor))
+        }
+        /// Compress requests with the given encoding.
+        ///
+        /// This requires the server to support it otherwise it might respond with an
+        /// error.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.send_compressed(encoding);
+            self
+        }
+        /// Enable decompressing responses.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.accept_compressed(encoding);
+            self
+        }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_decoding_message_size(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.inner = self.inner.max_encoding_message_size(limit);
+            self
+        }
+        /// List files in the shard.
+        pub async fn list_files(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ListFilesRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListFilesResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/qdrant.StorageRead/ListFiles",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("qdrant.StorageRead", "ListFiles"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Check if a file exists in the shard.
+        pub async fn file_exists(
+            &mut self,
+            request: impl tonic::IntoRequest<super::FileExistsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::FileExistsResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/qdrant.StorageRead/FileExists",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("qdrant.StorageRead", "FileExists"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Get the length of a file in the shard.
+        pub async fn file_length(
+            &mut self,
+            request: impl tonic::IntoRequest<super::FileLengthRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::FileLengthResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/qdrant.StorageRead/FileLength",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("qdrant.StorageRead", "FileLength"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Maps to UniversalRead::read() — single range from a single file.
+        pub async fn read_bytes(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ReadBytesRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ReadBytesResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/qdrant.StorageRead/ReadBytes",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("qdrant.StorageRead", "ReadBytes"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Streaming variant of ReadBytes for large files, sends ~1MB chunks.
+        pub async fn read_bytes_stream(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ReadBytesStreamRequest>,
+        ) -> std::result::Result<
+            tonic::Response<tonic::codec::Streaming<super::ReadBytesStreamResponse>>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/qdrant.StorageRead/ReadBytesStream",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("qdrant.StorageRead", "ReadBytesStream"));
+            self.inner.server_streaming(req, path, codec).await
+        }
+        /// Maps to UniversalRead::read_whole() — read an entire file.
+        pub async fn read_whole(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ReadWholeRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ReadWholeResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/qdrant.StorageRead/ReadWhole",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("qdrant.StorageRead", "ReadWhole"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Maps to UniversalRead::read_batch() — multiple ranges from a single file.
+        pub async fn read_batch(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ReadBatchRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ReadBatchResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/qdrant.StorageRead/ReadBatch",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("qdrant.StorageRead", "ReadBatch"));
+            self.inner.unary(req, path, codec).await
+        }
+        /// Maps to UniversalRead::read_multi() — ranges across multiple files.
+        pub async fn read_multi(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ReadMultiRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ReadMultiResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/qdrant.StorageRead/ReadMulti",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(GrpcMethod::new("qdrant.StorageRead", "ReadMulti"));
+            self.inner.unary(req, path, codec).await
+        }
+    }
+}
+/// Generated server implementations.
+pub mod storage_read_server {
+    #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
+    use tonic::codegen::*;
+    /// Generated trait containing gRPC methods that should be implemented for use with StorageReadServer.
+    #[async_trait]
+    pub trait StorageRead: Send + Sync + 'static {
+        /// List files in the shard.
+        async fn list_files(
+            &self,
+            request: tonic::Request<super::ListFilesRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ListFilesResponse>,
+            tonic::Status,
+        >;
+        /// Check if a file exists in the shard.
+        async fn file_exists(
+            &self,
+            request: tonic::Request<super::FileExistsRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::FileExistsResponse>,
+            tonic::Status,
+        >;
+        /// Get the length of a file in the shard.
+        async fn file_length(
+            &self,
+            request: tonic::Request<super::FileLengthRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::FileLengthResponse>,
+            tonic::Status,
+        >;
+        /// Maps to UniversalRead::read() — single range from a single file.
+        async fn read_bytes(
+            &self,
+            request: tonic::Request<super::ReadBytesRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ReadBytesResponse>,
+            tonic::Status,
+        >;
+        /// Server streaming response type for the ReadBytesStream method.
+        type ReadBytesStreamStream: tonic::codegen::tokio_stream::Stream<
+                Item = std::result::Result<super::ReadBytesStreamResponse, tonic::Status>,
+            >
+            + Send
+            + 'static;
+        /// Streaming variant of ReadBytes for large files, sends ~1MB chunks.
+        async fn read_bytes_stream(
+            &self,
+            request: tonic::Request<super::ReadBytesStreamRequest>,
+        ) -> std::result::Result<
+            tonic::Response<Self::ReadBytesStreamStream>,
+            tonic::Status,
+        >;
+        /// Maps to UniversalRead::read_whole() — read an entire file.
+        async fn read_whole(
+            &self,
+            request: tonic::Request<super::ReadWholeRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ReadWholeResponse>,
+            tonic::Status,
+        >;
+        /// Maps to UniversalRead::read_batch() — multiple ranges from a single file.
+        async fn read_batch(
+            &self,
+            request: tonic::Request<super::ReadBatchRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ReadBatchResponse>,
+            tonic::Status,
+        >;
+        /// Maps to UniversalRead::read_multi() — ranges across multiple files.
+        async fn read_multi(
+            &self,
+            request: tonic::Request<super::ReadMultiRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ReadMultiResponse>,
+            tonic::Status,
+        >;
+    }
+    /// Shard-scoped raw I/O over on-disk collection storage.
+    ///
+    /// All requests are routed to a single shard directory
+    /// (`<storage>/collections/<collection>/<shard_id>`). Replicas of the same
+    /// shard on different peers are not binary-compatible (segment IDs, WAL
+    /// positions, optimizer state all diverge), so the caller is responsible for
+    /// targeting the peer that owns the desired replica.
+    ///
+    /// This service is intended for tooling that builds synchronization on top of
+    /// Qdrant (e.g. replica bootstrap) rather than typical user queries. It is
+    /// considered internal: the request/response shape may change between
+    /// releases.
+    #[derive(Debug)]
+    pub struct StorageReadServer<T: StorageRead> {
+        inner: _Inner<T>,
+        accept_compression_encodings: EnabledCompressionEncodings,
+        send_compression_encodings: EnabledCompressionEncodings,
+        max_decoding_message_size: Option<usize>,
+        max_encoding_message_size: Option<usize>,
+    }
+    struct _Inner<T>(Arc<T>);
+    impl<T: StorageRead> StorageReadServer<T> {
+        pub fn new(inner: T) -> Self {
+            Self::from_arc(Arc::new(inner))
+        }
+        pub fn from_arc(inner: Arc<T>) -> Self {
+            let inner = _Inner(inner);
+            Self {
+                inner,
+                accept_compression_encodings: Default::default(),
+                send_compression_encodings: Default::default(),
+                max_decoding_message_size: None,
+                max_encoding_message_size: None,
+            }
+        }
+        pub fn with_interceptor<F>(
+            inner: T,
+            interceptor: F,
+        ) -> InterceptedService<Self, F>
+        where
+            F: tonic::service::Interceptor,
+        {
+            InterceptedService::new(Self::new(inner), interceptor)
+        }
+        /// Enable decompressing requests with the given encoding.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.accept_compression_encodings.enable(encoding);
+            self
+        }
+        /// Compress responses with the given encoding, if the client supports it.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.send_compression_encodings.enable(encoding);
+            self
+        }
+        /// Limits the maximum size of a decoded message.
+        ///
+        /// Default: `4MB`
+        #[must_use]
+        pub fn max_decoding_message_size(mut self, limit: usize) -> Self {
+            self.max_decoding_message_size = Some(limit);
+            self
+        }
+        /// Limits the maximum size of an encoded message.
+        ///
+        /// Default: `usize::MAX`
+        #[must_use]
+        pub fn max_encoding_message_size(mut self, limit: usize) -> Self {
+            self.max_encoding_message_size = Some(limit);
+            self
+        }
+    }
+    impl<T, B> tonic::codegen::Service<http::Request<B>> for StorageReadServer<T>
+    where
+        T: StorageRead,
+        B: Body + Send + 'static,
+        B::Error: Into<StdError> + Send + 'static,
+    {
+        type Response = http::Response<tonic::body::BoxBody>;
+        type Error = std::convert::Infallible;
+        type Future = BoxFuture<Self::Response, Self::Error>;
+        fn poll_ready(
+            &mut self,
+            _cx: &mut Context<'_>,
+        ) -> Poll<std::result::Result<(), Self::Error>> {
+            Poll::Ready(Ok(()))
+        }
+        fn call(&mut self, req: http::Request<B>) -> Self::Future {
+            let inner = self.inner.clone();
+            match req.uri().path() {
+                "/qdrant.StorageRead/ListFiles" => {
+                    #[allow(non_camel_case_types)]
+                    struct ListFilesSvc<T: StorageRead>(pub Arc<T>);
+                    impl<
+                        T: StorageRead,
+                    > tonic::server::UnaryService<super::ListFilesRequest>
+                    for ListFilesSvc<T> {
+                        type Response = super::ListFilesResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::ListFilesRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as StorageRead>::list_files(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = ListFilesSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/qdrant.StorageRead/FileExists" => {
+                    #[allow(non_camel_case_types)]
+                    struct FileExistsSvc<T: StorageRead>(pub Arc<T>);
+                    impl<
+                        T: StorageRead,
+                    > tonic::server::UnaryService<super::FileExistsRequest>
+                    for FileExistsSvc<T> {
+                        type Response = super::FileExistsResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::FileExistsRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as StorageRead>::file_exists(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = FileExistsSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/qdrant.StorageRead/FileLength" => {
+                    #[allow(non_camel_case_types)]
+                    struct FileLengthSvc<T: StorageRead>(pub Arc<T>);
+                    impl<
+                        T: StorageRead,
+                    > tonic::server::UnaryService<super::FileLengthRequest>
+                    for FileLengthSvc<T> {
+                        type Response = super::FileLengthResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::FileLengthRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as StorageRead>::file_length(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = FileLengthSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/qdrant.StorageRead/ReadBytes" => {
+                    #[allow(non_camel_case_types)]
+                    struct ReadBytesSvc<T: StorageRead>(pub Arc<T>);
+                    impl<
+                        T: StorageRead,
+                    > tonic::server::UnaryService<super::ReadBytesRequest>
+                    for ReadBytesSvc<T> {
+                        type Response = super::ReadBytesResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::ReadBytesRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as StorageRead>::read_bytes(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = ReadBytesSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/qdrant.StorageRead/ReadBytesStream" => {
+                    #[allow(non_camel_case_types)]
+                    struct ReadBytesStreamSvc<T: StorageRead>(pub Arc<T>);
+                    impl<
+                        T: StorageRead,
+                    > tonic::server::ServerStreamingService<
+                        super::ReadBytesStreamRequest,
+                    > for ReadBytesStreamSvc<T> {
+                        type Response = super::ReadBytesStreamResponse;
+                        type ResponseStream = T::ReadBytesStreamStream;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::ResponseStream>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::ReadBytesStreamRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as StorageRead>::read_bytes_stream(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = ReadBytesStreamSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.server_streaming(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/qdrant.StorageRead/ReadWhole" => {
+                    #[allow(non_camel_case_types)]
+                    struct ReadWholeSvc<T: StorageRead>(pub Arc<T>);
+                    impl<
+                        T: StorageRead,
+                    > tonic::server::UnaryService<super::ReadWholeRequest>
+                    for ReadWholeSvc<T> {
+                        type Response = super::ReadWholeResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::ReadWholeRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as StorageRead>::read_whole(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = ReadWholeSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/qdrant.StorageRead/ReadBatch" => {
+                    #[allow(non_camel_case_types)]
+                    struct ReadBatchSvc<T: StorageRead>(pub Arc<T>);
+                    impl<
+                        T: StorageRead,
+                    > tonic::server::UnaryService<super::ReadBatchRequest>
+                    for ReadBatchSvc<T> {
+                        type Response = super::ReadBatchResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::ReadBatchRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as StorageRead>::read_batch(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = ReadBatchSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/qdrant.StorageRead/ReadMulti" => {
+                    #[allow(non_camel_case_types)]
+                    struct ReadMultiSvc<T: StorageRead>(pub Arc<T>);
+                    impl<
+                        T: StorageRead,
+                    > tonic::server::UnaryService<super::ReadMultiRequest>
+                    for ReadMultiSvc<T> {
+                        type Response = super::ReadMultiResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::ReadMultiRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as StorageRead>::read_multi(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = ReadMultiSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                _ => {
+                    Box::pin(async move {
+                        Ok(
+                            http::Response::builder()
+                                .status(200)
+                                .header("grpc-status", "12")
+                                .header("content-type", "application/grpc")
+                                .body(empty_body())
+                                .unwrap(),
+                        )
+                    })
+                }
+            }
+        }
+    }
+    impl<T: StorageRead> Clone for StorageReadServer<T> {
+        fn clone(&self) -> Self {
+            let inner = self.inner.clone();
+            Self {
+                inner,
+                accept_compression_encodings: self.accept_compression_encodings,
+                send_compression_encodings: self.send_compression_encodings,
+                max_decoding_message_size: self.max_decoding_message_size,
+                max_encoding_message_size: self.max_encoding_message_size,
+            }
+        }
+    }
+    impl<T: StorageRead> Clone for _Inner<T> {
+        fn clone(&self) -> Self {
+            Self(Arc::clone(&self.0))
+        }
+    }
+    impl<T: std::fmt::Debug> std::fmt::Debug for _Inner<T> {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            write!(f, "{:?}", self.0)
+        }
+    }
+    impl<T: StorageRead> tonic::server::NamedService for StorageReadServer<T> {
+        const NAME: &'static str = "qdrant.StorageRead";
     }
 }
 #[derive(serde::Serialize)]

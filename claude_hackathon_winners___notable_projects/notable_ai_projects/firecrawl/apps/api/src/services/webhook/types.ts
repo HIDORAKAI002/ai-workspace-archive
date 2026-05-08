@@ -41,7 +41,7 @@ export type WebhookQueueMessage = {
     webhookId: string;
     id?: string;
     jobId?: string;
-    data: any[];
+    data: any;
     error?: string;
     metadata?: Record<string, string>;
   };

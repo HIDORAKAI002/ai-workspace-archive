@@ -42,6 +42,19 @@ storage:
   # Default: true
   on_disk_payload: true
 
+  # Load-time memory mode. Only affects how segments are loaded on startup;
+  # does not modify any persisted configuration. Intended as a recovery knob
+  # when a node crash-loops on out-of-memory.
+  #
+  # Options:
+  # - disabled (default): load segments as persisted.
+  # - no_resident: downgrade components to their on-disk variants where
+  #   possible — quantization loads as if always_ram=false, payload field
+  #   indexes as if on_disk=true, payload storage as mmap (not populated).
+  # - no_populate: same as no_resident, plus skip mmap prefault on load for
+  #   vectors, HNSW graph and payload storage.
+  #low_memory_mode: disabled
+
   # Maximum number of concurrent updates to shard replicas
   # If `null` - maximum concurrency is used.
   update_concurrency: null
@@ -297,6 +310,14 @@ service:
   #
   # jwt_rbac: true
 
+  # Enforce API key / JWT authentication on the internal (p2p) gRPC API.
+  # The regular api_key is always forwarded on internal requests, but the
+  # receiving side only verifies it when this flag is enabled. Keep disabled
+  # during a rolling upgrade so older peers (that do not attach a key yet)
+  # can still reach newer peers, then turn it on once every node is upgraded.
+  #
+  # enforce_internal_auth: true
+
   # Hardware reporting adds information to the API responses with a
   # hint on how many resources were used to execute the request.
   #
@@ -308,6 +329,13 @@ service:
   # Uncomment to enable.
   # Prefix for the names of metrics in the /metrics API.
   # metrics_prefix: qdrant_
+
+  # Allow snapshot recovery from remote HTTP/HTTPS URLs.
+  # If disabled, snapshot recovery will only work with local files and uploads.
+  # Disabling this can mitigate SSRF risks in environments where the Qdrant node
+  # has access to internal resources that should not be reachable by users.
+  # Default: true
+  # enable_snapshot_url_recovery: true
 
 cluster:
   # Use `enabled: true` to run Qdrant in distributed deployment mode

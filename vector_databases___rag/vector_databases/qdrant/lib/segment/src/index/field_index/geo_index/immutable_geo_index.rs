@@ -1,24 +1,20 @@
 use std::borrow::Cow;
 use std::path::PathBuf;
 
-use ahash::AHashSet;
+use common::bitvec::BitSliceExt;
+use common::generic_consts::Random;
 use common::types::PointOffsetType;
-#[cfg(feature = "rocksdb")]
-use parking_lot::RwLock;
-#[cfg(feature = "rocksdb")]
-use rocksdb::DB;
+use common::universal_io::{MmapFile, ReadRange, UniversalRead};
 
-use super::mmap_geo_index::MmapGeoMapIndex;
+use super::mmap_geo_index::StoredGeoMapIndex;
 use crate::common::Flusher;
 use crate::common::operation_error::{OperationError, OperationResult};
-#[cfg(feature = "rocksdb")]
-use crate::common::rocksdb_buffered_delete_wrapper::DatabaseColumnScheduledDeleteWrapper;
-#[cfg(feature = "rocksdb")]
-use crate::common::rocksdb_wrapper::DatabaseColumnWrapper;
 use crate::index::field_index::geo_hash::{GeoHash, encode_max_precision};
 use crate::index::field_index::immutable_point_to_values::ImmutablePointToValues;
 use crate::index::payload_config::StorageType;
 use crate::types::GeoPoint;
+
+const DELETED_SENTINEL: PointOffsetType = PointOffsetType::MAX;
 
 #[derive(Copy, Clone, Debug)]
 struct Counts {
@@ -36,139 +32,82 @@ impl From<super::mmap_geo_index::Counts> for Counts {
             values,
         } = counts;
         Self {
-            hash,
+            hash: hash.normalize(),
             points,
             values,
         }
     }
 }
 
+/// RAM-loaded immutable geo index using flat parallel arrays instead of per-hash
+/// `AHashSet`s. This dramatically reduces memory overhead:
+///
+/// - `points_map_hashes[i]` is the sorted geohash for the i-th entry.
+/// - `points_map_offsets[i]..points_map_offsets[i+1]` is the range in
+///   `points_map_ids` holding the point IDs for that hash.
+/// - Deleted entries in `points_map_ids` are marked with `DELETED_SENTINEL`.
 pub struct ImmutableGeoMapIndex {
     counts_per_hash: Vec<Counts>,
-    points_map: Vec<(GeoHash, AHashSet<PointOffsetType>)>,
+    points_map_hashes: Vec<GeoHash>,
+    points_map_offsets: Vec<u32>,
+    points_map_ids: Vec<PointOffsetType>,
     point_to_values: ImmutablePointToValues<GeoPoint>,
     points_count: usize,
     points_values_count: usize,
     max_values_per_point: usize,
-    // Backing s torage, source of state, persists deletions
     storage: Storage,
+    cached_ram_usage_bytes: usize,
 }
 
 enum Storage {
-    #[cfg(feature = "rocksdb")]
-    RocksDb(DatabaseColumnScheduledDeleteWrapper),
-    Mmap(Box<MmapGeoMapIndex>),
+    Mmap(Box<StoredGeoMapIndex<MmapFile>>),
 }
 
 impl ImmutableGeoMapIndex {
-    /// Open and load immutable geo index from RocksDB storage
-    #[cfg(feature = "rocksdb")]
-    pub fn open_rocksdb(
-        db: std::sync::Arc<RwLock<DB>>,
-        store_cf_name: &str,
-    ) -> OperationResult<Option<Self>> {
-        use std::collections::BTreeMap;
-
-        use crate::index::field_index::geo_index::mutable_geo_index::{
-            InMemoryGeoMapIndex, MutableGeoMapIndex,
-        };
-
-        let db_wrapper = DatabaseColumnScheduledDeleteWrapper::new(DatabaseColumnWrapper::new(
-            db,
-            store_cf_name,
-        ));
-
-        let Some(mutable) = MutableGeoMapIndex::open_rocksdb(
-            db_wrapper.get_database(),
-            db_wrapper.get_column_name(),
-            false,
-        )?
-        else {
-            // Column family doesn't exist, cannot load
-            return Ok(None);
-        };
-
-        let InMemoryGeoMapIndex {
-            points_per_hash,
-            values_per_hash,
-            points_map,
-            point_to_values,
-            points_count,
-            points_values_count,
-            max_values_per_point,
-            ..
-        } = mutable.into_in_memory_index();
-
-        let mut counts_per_hash: BTreeMap<GeoHash, Counts> = Default::default();
-        for (hash, points) in points_per_hash {
-            counts_per_hash.insert(
-                hash,
-                Counts {
-                    hash,
-                    points: points as u32,
-                    values: 0,
-                },
-            );
-        }
-        for (hash, values) in values_per_hash {
-            if let Some(counts) = counts_per_hash.get_mut(&hash) {
-                counts.values = values as u32;
-            } else {
-                counts_per_hash.insert(
-                    hash,
-                    Counts {
-                        hash,
-                        points: 0,
-                        values: values as u32,
-                    },
-                );
-            }
-        }
-
-        Ok(Some(Self {
-            counts_per_hash: counts_per_hash.values().cloned().collect(),
-            points_map: points_map.iter().map(|(k, v)| (*k, v.clone())).collect(),
-            point_to_values: ImmutablePointToValues::new(point_to_values),
-            points_count,
-            points_values_count,
-            max_values_per_point,
-            storage: Storage::RocksDb(db_wrapper),
-        }))
-    }
-
     /// Open and load immutable geo index from mmap storage
-    pub fn open_mmap(index: MmapGeoMapIndex) -> OperationResult<Self> {
+    pub fn open_mmap(index: StoredGeoMapIndex<MmapFile>) -> OperationResult<Self> {
         let counts_per_hash = index
             .storage
             .counts_per_hash
+            .read_whole()?
             .iter()
             .copied()
             .map(Counts::from)
             .collect();
 
-        // Get points per geo hash and filter deleted points
-        let points_map = index
-            .storage
-            .points_map
-            .iter()
-            .copied()
-            .map(|item| {
-                let super::mmap_geo_index::PointKeyValue {
-                    hash,
-                    ids_start,
-                    ids_end,
-                } = item;
-                (
-                    hash,
-                    index.storage.points_map_ids[ids_start as usize..ids_end as usize]
-                        .iter()
-                        .copied()
-                        // Filter deleted points
-                        .filter(|id| !index.storage.deleted.get(*id as usize).unwrap_or_default())
-                        .collect(),
-                )
-            })
-            .collect();
+        // Build flat parallel arrays from on-disk points_map + points_map_ids
+        let points_map_entries = index.storage.points_map.read_whole()?;
+        let num_entries = points_map_entries.len();
+        let mut points_map_hashes = Vec::with_capacity(num_entries);
+        let mut points_map_offsets = Vec::with_capacity(num_entries + 1);
+        let mut points_map_ids = Vec::new();
+
+        index.storage.points_map_ids.read_batch::<Random, _>(
+            points_map_entries
+                .iter()
+                .map(|item| ReadRange {
+                    byte_offset: u64::from(item.ids_start) * size_of::<PointOffsetType>() as u64,
+                    length: u64::from(item.ids_end.saturating_sub(item.ids_start)),
+                })
+                .enumerate(),
+            |i, ids| {
+                points_map_hashes.push(points_map_entries[i].hash.normalize());
+                points_map_offsets.push(points_map_ids.len() as u32);
+                for &id in ids {
+                    if !index
+                        .storage
+                        .deleted
+                        .get_bit(id as usize)
+                        .unwrap_or_default()
+                    {
+                        points_map_ids.push(id);
+                    }
+                }
+                Ok(())
+            },
+        )?;
+        points_map_offsets.push(points_map_ids.len() as u32);
+        drop(points_map_entries);
 
         // Get point values and filter deleted points
         // Track deleted points to adjust point and value counts after loading
@@ -181,7 +120,11 @@ impl ImmutableGeoMapIndex {
                 .iter()
                 .map(|id_values| {
                     let (id, values) = id_values?;
-                    let is_deleted = index.storage.deleted.get(id as usize).unwrap_or_default();
+                    let is_deleted = index
+                        .storage
+                        .deleted
+                        .get_bit(id as usize)
+                        .unwrap_or_default();
                     let values = match (is_deleted, values) {
                         (false, Some(values)) => values.map(Cow::into_owned).collect(),
                         (false, None) => vec![],
@@ -209,12 +152,15 @@ impl ImmutableGeoMapIndex {
         // Construct immutable geo index
         let mut index = Self {
             counts_per_hash,
-            points_map,
+            points_map_hashes,
+            points_map_offsets,
+            points_map_ids,
             point_to_values,
             points_count: index.points_count(),
             points_values_count: index.points_values_count(),
             max_values_per_point: index.max_values_per_point(),
             storage: Storage::Mmap(Box::new(index)),
+            cached_ram_usage_bytes: 0,
         };
 
         // Update point and value counts based on deleted points
@@ -223,40 +169,28 @@ impl ImmutableGeoMapIndex {
                 .points_values_count
                 .saturating_sub(removed_geo_points.len());
 
-            let removed_geo_hashes: Vec<_> = removed_geo_points
-                .into_iter()
-                .map(|geo_point| encode_max_precision(geo_point.lon.0, geo_point.lat.0).unwrap())
-                .collect();
+            let mut removed_geo_hashes = Vec::with_capacity(removed_geo_points.len());
+            for geo_point in removed_geo_points {
+                removed_geo_hashes.push(encode_max_precision(geo_point.lon.0, geo_point.lat.0)?);
+            }
             for &removed_geo_hash in &removed_geo_hashes {
                 index.decrement_hash_value_counts(removed_geo_hash);
             }
             index.decrement_hash_point_counts(&removed_geo_hashes);
         }
 
+        index.cached_ram_usage_bytes = index.compute_ram_usage_bytes();
         Ok(index)
-    }
-
-    #[cfg(all(test, feature = "rocksdb"))]
-    pub fn db_wrapper(&self) -> Option<&DatabaseColumnScheduledDeleteWrapper> {
-        match self.storage {
-            #[cfg(feature = "rocksdb")]
-            Storage::RocksDb(ref db_wrapper) => Some(db_wrapper),
-            Storage::Mmap(_) => None,
-        }
     }
 
     pub fn files(&self) -> Vec<PathBuf> {
         match self.storage {
-            #[cfg(feature = "rocksdb")]
-            Storage::RocksDb(_) => vec![],
             Storage::Mmap(ref index) => index.files(),
         }
     }
 
     pub fn immutable_files(&self) -> Vec<PathBuf> {
         match &self.storage {
-            #[cfg(feature = "rocksdb")]
-            Storage::RocksDb(_) => vec![],
             Storage::Mmap(index) => index.immutable_files(),
         }
     }
@@ -267,8 +201,6 @@ impl ImmutableGeoMapIndex {
     /// index.
     pub fn clear_cache(&self) -> OperationResult<()> {
         match &self.storage {
-            #[cfg(feature = "rocksdb")]
-            Storage::RocksDb(_) => Ok(()),
             Storage::Mmap(index) => index.clear_cache().map_err(|err| {
                 OperationError::service_error(format!(
                     "Failed to clear immutable geo index gridstore cache: {err}"
@@ -279,16 +211,12 @@ impl ImmutableGeoMapIndex {
 
     pub fn wipe(self) -> OperationResult<()> {
         match self.storage {
-            #[cfg(feature = "rocksdb")]
-            Storage::RocksDb(ref db_wrapper) => db_wrapper.remove_column_family(),
             Storage::Mmap(index) => index.wipe(),
         }
     }
 
     pub fn flusher(&self) -> Flusher {
         match self.storage {
-            #[cfg(feature = "rocksdb")]
-            Storage::RocksDb(ref db_wrapper) => db_wrapper.flusher(),
             Storage::Mmap(ref index) => index.flusher(),
         }
     }
@@ -356,31 +284,35 @@ impl ImmutableGeoMapIndex {
             return Ok(());
         }
 
-        self.points_count -= 1;
-        self.points_values_count -= removed_geo_points.len();
+        self.points_count = self.points_count.saturating_sub(1);
+        self.points_values_count = self
+            .points_values_count
+            .saturating_sub(removed_geo_points.len());
         let mut removed_geo_hashes = Vec::with_capacity(removed_geo_points.len());
 
         for removed_geo_point in removed_geo_points {
             let removed_geo_hash: GeoHash =
-                encode_max_precision(removed_geo_point.lon.0, removed_geo_point.lat.0).unwrap();
+                encode_max_precision(removed_geo_point.lon.0, removed_geo_point.lat.0)?;
             removed_geo_hashes.push(removed_geo_hash);
 
             match self.storage {
-                #[cfg(feature = "rocksdb")]
-                Storage::RocksDb(ref db_wrapper) => {
-                    let key = super::GeoMapIndex::encode_db_key(removed_geo_hash, idx);
-                    db_wrapper.remove(&key)?;
-                }
                 Storage::Mmap(ref mut index) => {
                     index.remove_point(idx);
                 }
             }
 
-            if let Ok(index) = self
-                .points_map
-                .binary_search_by(|x| x.0.cmp(&removed_geo_hash))
+            if let Ok(hash_idx) = self
+                .points_map_hashes
+                .binary_search_by(|x| x.cmp(&removed_geo_hash))
             {
-                self.points_map[index].1.remove(&idx);
+                let start = self.points_map_offsets[hash_idx] as usize;
+                let end = self.points_map_offsets[hash_idx + 1] as usize;
+                for slot in &mut self.points_map_ids[start..end] {
+                    if *slot == idx {
+                        *slot = DELETED_SENTINEL;
+                        break;
+                    }
+                }
             } else {
                 log::warn!("Geo index error: no points for hash {removed_geo_hash} were found");
             };
@@ -394,15 +326,24 @@ impl ImmutableGeoMapIndex {
 
     /// Returns an iterator over all point IDs which have the `geohash` prefix.
     /// Note. Point ID may be repeated multiple times in the iterator.
-    pub fn stored_sub_regions(&self, geo: GeoHash) -> impl Iterator<Item = PointOffsetType> {
+    pub fn stored_sub_regions(&self, geo: GeoHash) -> impl Iterator<Item = PointOffsetType> + '_ {
         let start_index = self
-            .points_map
-            .binary_search_by(|(p, _h)| p.cmp(&geo))
+            .points_map_hashes
+            .binary_search_by(|p| p.cmp(&geo))
             .unwrap_or_else(|index| index);
-        self.points_map[start_index..]
+        let hashes = &self.points_map_hashes[start_index..];
+        let offsets = &self.points_map_offsets[start_index..];
+
+        hashes
             .iter()
-            .take_while(move |(p, _h)| p.starts_with(geo))
-            .flat_map(|(_, points)| points.iter().copied())
+            .zip(offsets.iter().zip(offsets[1..].iter()))
+            .take_while(move |(hash, _)| hash.starts_with(geo))
+            .flat_map(|(_, (&start, &end))| {
+                self.points_map_ids[start as usize..end as usize]
+                    .iter()
+                    .copied()
+                    .filter(|&id| id != DELETED_SENTINEL)
+            })
     }
 
     fn decrement_hash_value_counts(&mut self, geo_hash: GeoHash) {
@@ -428,14 +369,14 @@ impl ImmutableGeoMapIndex {
     }
 
     fn decrement_hash_point_counts(&mut self, geo_hashes: &[GeoHash]) {
-        let mut seen_hashes: AHashSet<GeoHash> = Default::default();
+        let mut seen_hashes: Vec<GeoHash> = Vec::new();
         for geo_hash in geo_hashes {
             for i in 0..=geo_hash.len() {
                 let sub_geo_hash = geo_hash.truncate(i);
                 if seen_hashes.contains(&sub_geo_hash) {
                     continue;
                 }
-                seen_hashes.insert(sub_geo_hash);
+                seen_hashes.push(sub_geo_hash);
                 if let Ok(index) = self
                     .counts_per_hash
                     .binary_search_by(|x| x.hash.cmp(&sub_geo_hash))
@@ -458,19 +399,39 @@ impl ImmutableGeoMapIndex {
 
     pub fn storage_type(&self) -> StorageType {
         match &self.storage {
-            #[cfg(feature = "rocksdb")]
-            Storage::RocksDb(_) => StorageType::RocksDb,
             Storage::Mmap(index) => StorageType::Mmap {
                 is_on_disk: index.is_on_disk(),
             },
         }
     }
 
-    #[cfg(feature = "rocksdb")]
-    pub fn is_rocksdb(&self) -> bool {
-        match self.storage {
-            Storage::RocksDb(_) => true,
-            Storage::Mmap(_) => false,
-        }
+    /// Approximate RAM usage in bytes (cached at construction).
+    pub fn ram_usage_bytes(&self) -> usize {
+        self.cached_ram_usage_bytes
+    }
+
+    fn compute_ram_usage_bytes(&self) -> usize {
+        let Self {
+            counts_per_hash,
+            points_map_hashes,
+            points_map_offsets,
+            points_map_ids,
+            point_to_values,
+            points_count: _,
+            points_values_count: _,
+            max_values_per_point: _,
+            storage: _,
+            cached_ram_usage_bytes: _,
+        } = self;
+
+        let cph_bytes = counts_per_hash.capacity() * size_of::<Counts>();
+        let pm_hashes_bytes = points_map_hashes.capacity() * size_of::<GeoHash>();
+        let pm_offsets_bytes = points_map_offsets.capacity() * size_of::<u32>();
+        let pm_ids_bytes = points_map_ids.capacity() * size_of::<PointOffsetType>();
+        cph_bytes
+            + pm_hashes_bytes
+            + pm_offsets_bytes
+            + pm_ids_bytes
+            + point_to_values.ram_usage_bytes()
     }
 }

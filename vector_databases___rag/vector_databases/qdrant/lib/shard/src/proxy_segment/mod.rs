@@ -1,8 +1,11 @@
 pub mod segment_entry;
 pub mod snapshot_entry;
+mod vector_name_changes;
 
 #[cfg(test)]
 mod tests;
+
+use std::borrow::Cow;
 
 use ahash::AHashMap;
 use common::bitvec::BitVec;
@@ -12,6 +15,7 @@ use itertools::Itertools as _;
 use segment::common::operation_error::OperationResult;
 use segment::types::*;
 
+pub use self::vector_name_changes::{IntendedVector, ProxyVectorNameChanges};
 use crate::locked_segment::LockedSegment;
 
 pub type DeletedPoints = AHashMap<PointIdType, ProxyDeletedPoint>;
@@ -28,6 +32,7 @@ pub struct ProxySegment {
     /// Used for faster deletion checks
     deleted_mask: Option<BitVec>,
     changed_indexes: ProxyIndexChanges,
+    changed_vector_names: ProxyVectorNameChanges,
     /// Points which should no longer used from wrapped_segment
     /// May contain points which are not in wrapped_segment,
     /// because the set is shared among all proxy segments
@@ -63,6 +68,7 @@ impl ProxySegment {
             wrapped_segment: segment,
             deleted_mask,
             changed_indexes: ProxyIndexChanges::default(),
+            changed_vector_names: ProxyVectorNameChanges::default(),
             deleted_points: AHashMap::new(),
             deleted_deferred_count: 0,
             wrapped_config,
@@ -129,8 +135,12 @@ impl ProxySegment {
         }
     }
 
+    /// Build a filter that excludes the given deleted points. Accepts
+    /// `Option<Cow<Filter>>` so that a filter already owned by the caller
+    /// (e.g. from [`ProxyVectorNameChanges::redact_filter`]) is reused
+    /// without an extra clone.
     fn add_deleted_points_condition_to_filter(
-        filter: Option<&Filter>,
+        filter: Option<Cow<'_, Filter>>,
         deleted_points: impl IntoIterator<Item = PointIdType>,
     ) -> Filter {
         #[allow(clippy::from_iter_instead_of_collect)]
@@ -138,10 +148,8 @@ impl ProxySegment {
         match filter {
             None => Filter::new_must_not(wrapper_condition),
             Some(f) => {
-                let mut new_filter = f.clone();
-                let must_not = new_filter.must_not;
-
-                let new_must_not = match must_not {
+                let mut new_filter = f.into_owned();
+                let new_must_not = match new_filter.must_not {
                     None => Some(vec![wrapper_condition]),
                     Some(mut conditions) => {
                         conditions.push(wrapper_condition);
@@ -211,6 +219,40 @@ impl ProxySegment {
             }
         }
 
+        // Propagate vector name changes (between index changes and point deletions)
+        {
+            if !self.changed_vector_names.is_empty() {
+                wrapped_segment.with_upgraded(|wrapped_segment| {
+                    for (vector_name, intent) in self.changed_vector_names.iter_ordered() {
+                        match intent {
+                            IntendedVector::Absent { version } => {
+                                wrapped_segment.delete_vector_name(*version, vector_name)?;
+                            }
+                            IntendedVector::Present {
+                                config,
+                                version,
+                                supersedes_wrapped,
+                            } => {
+                                if *supersedes_wrapped {
+                                    // `create_vector_name_impl` is idempotent and would
+                                    // silently keep the wrapped's stale storage. Clear it
+                                    // first so the new schema actually takes effect.
+                                    wrapped_segment.delete_vector_name(*version, vector_name)?;
+                                }
+                                wrapped_segment.create_vector_name(
+                                    *version,
+                                    vector_name,
+                                    config,
+                                )?;
+                            }
+                        }
+                    }
+                    OperationResult::Ok(())
+                })?;
+                self.changed_vector_names.clear();
+            }
+        }
+
         // Propagate deleted points
         // Lock ordering is important here and must match the flush function to prevent a deadlock
         {
@@ -249,6 +291,10 @@ impl ProxySegment {
 
     pub fn get_index_changes(&self) -> &ProxyIndexChanges {
         &self.changed_indexes
+    }
+
+    pub fn get_vector_name_changes(&self) -> &ProxyVectorNameChanges {
+        &self.changed_vector_names
     }
 }
 

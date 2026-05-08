@@ -1,13 +1,16 @@
 import { addMonitorCheckJob } from "./queue";
 import { enqueueDueMonitorChecks } from "./scheduler";
+import { isMonitorCheckStale } from "./stale";
 import {
   advanceMonitorAfterSkippedCheck,
   claimDueMonitors,
   createMonitorCheck,
   dispatchScheduledMonitorCheck,
+  getMonitorCheck,
   updateMonitorCheck,
   updateMonitorScheduleAfterRun,
 } from "./store";
+import { autumnService } from "../autumn/autumn.service";
 
 jest.mock("./queue", () => ({
   addMonitorCheckJob: jest.fn(),
@@ -18,8 +21,21 @@ jest.mock("./store", () => ({
   claimDueMonitors: jest.fn(),
   createMonitorCheck: jest.fn(),
   dispatchScheduledMonitorCheck: jest.fn(),
+  getMonitorCheck: jest.fn(),
   updateMonitorCheck: jest.fn(),
   updateMonitorScheduleAfterRun: jest.fn(),
+}));
+
+jest.mock("./stale", () => ({
+  isMonitorCheckStale: jest.fn(),
+  MONITOR_CHECK_STALE_ERROR:
+    "Monitor check exceeded the 1 hour running timeout.",
+}));
+
+jest.mock("../autumn/autumn.service", () => ({
+  autumnService: {
+    finalizeCreditsLock: jest.fn(),
+  },
 }));
 
 const mockAddMonitorCheckJob = addMonitorCheckJob as jest.MockedFunction<
@@ -34,6 +50,16 @@ const mockCreateMonitorCheck = createMonitorCheck as jest.MockedFunction<
 const mockDispatchScheduledMonitorCheck =
   dispatchScheduledMonitorCheck as jest.MockedFunction<
     typeof dispatchScheduledMonitorCheck
+  >;
+const mockGetMonitorCheck = getMonitorCheck as jest.MockedFunction<
+  typeof getMonitorCheck
+>;
+const mockIsMonitorCheckStale = isMonitorCheckStale as jest.MockedFunction<
+  typeof isMonitorCheckStale
+>;
+const mockFinalizeCreditsLock =
+  autumnService.finalizeCreditsLock as jest.MockedFunction<
+    typeof autumnService.finalizeCreditsLock
   >;
 const mockUpdateMonitorCheck = updateMonitorCheck as jest.MockedFunction<
   typeof updateMonitorCheck
@@ -64,6 +90,9 @@ describe("monitoring scheduler", () => {
     mockAddMonitorCheckJob.mockResolvedValue(undefined);
     mockAdvanceMonitorAfterSkippedCheck.mockResolvedValue(undefined);
     mockUpdateMonitorScheduleAfterRun.mockResolvedValue(undefined);
+    mockGetMonitorCheck.mockResolvedValue(null);
+    mockIsMonitorCheckStale.mockReturnValue(false);
+    mockFinalizeCreditsLock.mockResolvedValue(undefined as any);
   });
 
   it("dispatches and advances a scheduled monitor before enqueueing its job", async () => {
@@ -129,6 +158,45 @@ describe("monitoring scheduler", () => {
     expect(mockAdvanceMonitorAfterSkippedCheck).toHaveBeenCalledWith({
       monitor,
       check: skipped,
+    });
+  });
+
+  it("clears a stale current check before enqueueing a scheduled run", async () => {
+    const monitorWithCurrentCheck = {
+      ...monitor,
+      current_check_id: "stale-check",
+    } as any;
+    const staleCheck = { id: "stale-check", status: "running" } as any;
+    const failedStaleCheck = { ...staleCheck, status: "failed" } as any;
+    mockClaimDueMonitors.mockResolvedValue([monitorWithCurrentCheck]);
+    mockGetMonitorCheck.mockResolvedValue(staleCheck);
+    mockIsMonitorCheckStale.mockReturnValue(true);
+    mockUpdateMonitorCheck.mockResolvedValue(failedStaleCheck);
+
+    await expect(
+      enqueueDueMonitorChecks({ workerId: "worker-1" }),
+    ).resolves.toBe(1);
+
+    expect(mockUpdateMonitorCheck).toHaveBeenCalledWith(staleCheck.id, {
+      status: "failed",
+      finished_at: expect.any(String),
+      actual_credits: 0,
+      billing_status: "not_applicable",
+      error: "Monitor check exceeded the 1 hour running timeout.",
+    });
+    expect(mockUpdateMonitorScheduleAfterRun).toHaveBeenCalledWith({
+      monitor: monitorWithCurrentCheck,
+      check: failedStaleCheck,
+    });
+    expect(mockCreateMonitorCheck).toHaveBeenCalledWith({
+      monitor: { ...monitorWithCurrentCheck, current_check_id: null },
+      trigger: "scheduled",
+      scheduledFor: monitorWithCurrentCheck.next_run_at,
+    });
+    expect(mockAddMonitorCheckJob).toHaveBeenCalledWith({
+      monitorId: monitorWithCurrentCheck.id,
+      checkId: check.id,
+      teamId: monitorWithCurrentCheck.team_id,
     });
   });
 });

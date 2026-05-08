@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::fmt::Debug;
 
 use ahash::AHashMap;
+use common::bitvec::BitSliceExt;
 use common::counter::hardware_counter::HardwareCounterCell;
 use common::types::PointOffsetType;
 use itertools::Either;
@@ -20,6 +21,22 @@ use crate::common::operation_error::{OperationError, OperationResult};
 use crate::index::field_index::full_text_index::inverted_index::postings_iterator::{
     check_compressed_postings_phrase, intersect_compressed_postings_phrase_iterator,
 };
+
+/// Collect posting-list views for every token in `token_ids`.
+/// Returns `None` as soon as any token id is out of range.
+fn get_all_or_none<'a, V: PostingValue>(
+    postings: &'a [PostingList<V>],
+    token_ids: &[TokenId],
+) -> Option<Vec<(TokenId, PostingListView<'a, V>)>> {
+    token_ids
+        .iter()
+        .map(|&token_id| {
+            postings
+                .get(token_id as usize)
+                .map(|list| (token_id, list.view()))
+        })
+        .collect()
+}
 
 #[cfg_attr(test, derive(Clone))]
 #[derive(Debug)]
@@ -188,11 +205,19 @@ impl ImmutableInvertedIndex {
 
         match &self.postings {
             ImmutablePostings::WithPositions(postings) => {
-                Either::Right(intersect_compressed_postings_phrase_iterator(
-                    phrase,
-                    |token_id| postings.get(*token_id as usize).map(PostingList::view),
-                    is_active,
-                ))
+                // Deduplicate phrase tokens: repeated tokens (e.g. "zn zn") must
+                // not fetch the same posting list twice, otherwise positions get
+                // added twice in `phrase_in_all_postings`.
+                let unique_tokens = phrase.to_token_set();
+                if let Some(selected_postings) = get_all_or_none(postings, unique_tokens.tokens()) {
+                    Either::Right(intersect_compressed_postings_phrase_iterator(
+                        phrase,
+                        selected_postings,
+                        is_active,
+                    ))
+                } else {
+                    Either::Left(std::iter::empty())
+                }
             }
             // cannot do phrase matching if there's no positional information
             ImmutablePostings::Ids(_postings) => Either::Left(std::iter::empty()),
@@ -212,9 +237,13 @@ impl ImmutableInvertedIndex {
 
         match &self.postings {
             ImmutablePostings::WithPositions(postings) => {
-                check_compressed_postings_phrase(phrase, point_id, |token_id| {
-                    postings.get(*token_id as usize).map(PostingList::view)
-                })
+                let unique_tokens = phrase.to_token_set();
+                let Some(selected_postings) = get_all_or_none(postings, unique_tokens.tokens())
+                else {
+                    return false;
+                };
+
+                check_compressed_postings_phrase(phrase, point_id, selected_postings)
             }
             // cannot do phrase matching if there's no positional information
             ImmutablePostings::Ids(_postings) => false,
@@ -254,7 +283,7 @@ impl InvertedIndex for ImmutableInvertedIndex {
             return false; // Already removed or never actually existed
         }
         self.point_to_tokens_count[idx as usize] = 0;
-        self.points_count -= 1;
+        self.points_count = self.points_count.saturating_sub(1);
         true
     }
 
@@ -262,32 +291,43 @@ impl InvertedIndex for ImmutableInvertedIndex {
         &'a self,
         query: ParsedQuery,
         _hw_counter: &'a HardwareCounterCell,
-    ) -> Box<dyn Iterator<Item = PointOffsetType> + 'a> {
+    ) -> OperationResult<Box<dyn Iterator<Item = PointOffsetType> + 'a>> {
         match query {
-            ParsedQuery::AllTokens(tokens) => Box::new(self.filter_has_all(tokens)),
-            ParsedQuery::Phrase(tokens) => Box::new(self.filter_has_phrase(tokens)),
-            ParsedQuery::AnyTokens(tokens) => Box::new(self.filter_has_any(tokens)),
+            ParsedQuery::AllTokens(tokens) => Ok(Box::new(self.filter_has_all(tokens))),
+            ParsedQuery::Phrase(tokens) => Ok(Box::new(self.filter_has_phrase(tokens))),
+            ParsedQuery::AnyTokens(tokens) => Ok(Box::new(self.filter_has_any(tokens))),
         }
     }
 
-    fn get_posting_len(&self, token_id: TokenId, _: &HardwareCounterCell) -> Option<usize> {
-        self.postings.posting_len(token_id)
+    fn get_posting_len(
+        &self,
+        token_id: TokenId,
+        _: &HardwareCounterCell,
+    ) -> OperationResult<Option<usize>> {
+        Ok(self.postings.posting_len(token_id))
     }
 
-    fn vocab_with_postings_len_iter(&self) -> impl Iterator<Item = (&str, usize)> + '_ {
+    fn vocab_with_postings_len_iter(
+        &self,
+    ) -> impl Iterator<Item = OperationResult<(&str, usize)>> + '_ {
         self.vocab.iter().filter_map(|(token, &token_id)| {
             self.postings
                 .posting_len(token_id)
-                .map(|len| (token.as_str(), len))
+                .map(|len| Ok((token.as_str(), len)))
         })
     }
 
-    fn check_match(&self, parsed_query: &ParsedQuery, point_id: PointOffsetType) -> bool {
-        match parsed_query {
+    fn check_match(
+        &self,
+        parsed_query: &ParsedQuery,
+        point_id: PointOffsetType,
+    ) -> OperationResult<bool> {
+        let matched = match parsed_query {
             ParsedQuery::AllTokens(tokens) => self.check_has_subset(tokens, point_id),
             ParsedQuery::Phrase(phrase) => self.check_has_phrase(phrase, point_id),
             ParsedQuery::AnyTokens(tokens) => self.check_has_any(tokens, point_id),
-        }
+        };
+        Ok(matched)
     }
 
     fn values_is_empty(&self, point_id: PointOffsetType) -> bool {
@@ -307,8 +347,14 @@ impl InvertedIndex for ImmutableInvertedIndex {
         self.points_count
     }
 
-    fn get_token_id(&self, token: &str, _: &HardwareCounterCell) -> Option<TokenId> {
-        self.vocab.get(token).copied()
+    fn for_each_token_id<'a, Meta>(
+        &self,
+        tokens: impl Iterator<Item = (Meta, &'a str)>,
+        _: &HardwareCounterCell,
+        mut f: impl FnMut(Meta, Option<TokenId>),
+    ) -> OperationResult<()> {
+        tokens.for_each(|(meta, token)| f(meta, self.vocab.get(token).copied()));
+        Ok(())
     }
 }
 
@@ -446,21 +492,15 @@ fn create_compressed_postings_with_positions(
             .collect()
 }
 
-impl From<&MmapInvertedIndex> for ImmutableInvertedIndex {
-    fn from(index: &MmapInvertedIndex) -> Self {
+impl TryFrom<&MmapInvertedIndex> for ImmutableInvertedIndex {
+    type Error = OperationError;
+
+    fn try_from(index: &MmapInvertedIndex) -> OperationResult<Self> {
         let postings = match &index.storage.postings {
-            MmapPostingsEnum::Ids(postings) => ImmutablePostings::Ids(
-                postings
-                    .iter_postings()
-                    .map(PostingListView::to_owned)
-                    .collect(),
-            ),
-            MmapPostingsEnum::WithPositions(postings) => ImmutablePostings::WithPositions(
-                postings
-                    .iter_postings()
-                    .map(PostingListView::to_owned)
-                    .collect(),
-            ),
+            MmapPostingsEnum::Ids(postings) => ImmutablePostings::Ids(postings.all_postings()?),
+            MmapPostingsEnum::WithPositions(postings) => {
+                ImmutablePostings::WithPositions(postings.all_postings()?)
+            }
         };
 
         let vocab: HashMap<String, TokenId> = index
@@ -475,11 +515,44 @@ impl From<&MmapInvertedIndex> for ImmutableInvertedIndex {
             "postings and vocab must be the same size",
         );
 
-        ImmutableInvertedIndex {
+        // The in-RAM index uses `count == 0` as its deletion marker. The mmap
+        // variant tracks deletions in a separate in-memory bitmask and leaves
+        // `point_to_tokens_count` untouched on disk, so we apply the bitmask
+        // here when materializing the count vector.
+        let mut point_to_tokens_count = index.storage.point_to_tokens_count.to_vec();
+        for (idx, count) in point_to_tokens_count.iter_mut().enumerate() {
+            if index.storage.deleted_points.get_bit(idx).unwrap_or(false) {
+                *count = 0;
+            }
+        }
+
+        Ok(ImmutableInvertedIndex {
             postings,
             vocab,
-            point_to_tokens_count: index.storage.point_to_tokens_count.to_vec(),
+            point_to_tokens_count,
             points_count: index.points_count(),
-        }
+        })
+    }
+}
+
+impl ImmutableInvertedIndex {
+    /// Approximate RAM usage in bytes.
+    pub fn ram_usage_bytes(&self) -> usize {
+        let Self {
+            postings,
+            vocab,
+            point_to_tokens_count,
+            points_count: _,
+        } = self;
+
+        let postings_bytes = postings.ram_usage_bytes();
+        // HashMap per-slot overhead: hash (u64) + metadata pointer
+        let hashmap_entry_overhead = size_of::<u64>() + size_of::<usize>();
+        let vocab_base_bytes = vocab.capacity()
+            * (size_of::<String>() + size_of::<TokenId>() + hashmap_entry_overhead);
+        // Account for actual heap-allocated string data
+        let vocab_heap_bytes: usize = vocab.keys().map(|s| s.capacity()).sum();
+        let pttc_bytes = point_to_tokens_count.capacity() * size_of::<usize>();
+        postings_bytes + vocab_base_bytes + vocab_heap_bytes + pttc_bytes
     }
 }

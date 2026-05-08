@@ -11,7 +11,7 @@ use segment::segment_constructor::simple_segment_constructor::{
     VECTOR1_NAME, VECTOR2_NAME, build_multivec_segment,
 };
 use segment::types::{Distance, HnswGlobalConfig};
-use segment::vector_storage::VectorStorage;
+use segment::vector_storage::VectorStorageRead;
 use tempfile::Builder;
 
 #[test]
@@ -94,9 +94,11 @@ fn test_rebuild_with_removed_vectors() {
     )
     .unwrap();
 
-    builder.update(&[&segment1, &segment2], &stopped).unwrap();
-
     let hw_counter = HardwareCounterCell::new();
+
+    builder
+        .update(&[&segment1, &segment2], &stopped, &hw_counter)
+        .unwrap();
 
     let merged_segment = builder.build_for_test(dir.path());
 

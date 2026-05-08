@@ -33,7 +33,10 @@ use segment::types::PointIdType;
 use uuid::Uuid;
 
 use crate::locked_segment::LockedSegment;
-use crate::proxy_segment::{DeletedPoints, ProxyIndexChange, ProxyIndexChanges, ProxySegment};
+use crate::proxy_segment::{
+    DeletedPoints, IntendedVector, ProxyIndexChange, ProxyIndexChanges, ProxySegment,
+    ProxyVectorNameChanges,
+};
 use crate::segment_holder::SegmentId;
 use crate::segment_holder::locked::LockedSegmentHolder;
 
@@ -149,6 +152,28 @@ pub fn proxy_index_changes(proxies: &[LockedSegment]) -> ProxyIndexChanges {
     index_changes
 }
 
+/// Accumulates vector name changes made in a given set of proxies
+///
+/// This list is not synchronized (if not externally enforced),
+/// but guarantees that it contains at least all vector name changes made in the proxies
+/// before the call to this function.
+pub fn proxy_vector_name_changes(proxies: &[LockedSegment]) -> ProxyVectorNameChanges {
+    let mut changes = ProxyVectorNameChanges::default();
+    for proxy_segment in proxies {
+        match proxy_segment {
+            LockedSegment::Original(_) => {
+                log::error!("Reading raw segment, while proxy expected");
+                debug_assert!(false, "Reading raw segment, while proxy expected");
+            }
+            LockedSegment::Proxy(proxy) => {
+                let proxy_read = proxy.read();
+                changes.merge(proxy_read.get_vector_name_changes())
+            }
+        }
+    }
+    changes
+}
+
 /// Function to wrap slow part of optimization. Performs proxy rollback in case of cancellation.
 /// Warn: this function might be _VERY_ CPU intensive,
 /// so it is necessary to avoid any locks inside this part of the code
@@ -209,6 +234,7 @@ fn build_new_segment<F: ?Sized + OptimizationStrategy>(
         segment_builder.update(
             &segment_guards.iter().map(Deref::deref).collect_vec(),
             stopped,
+            hw_counter,
         )?;
         drop(progress_copy_data);
     }
@@ -419,6 +445,38 @@ fn finish_optimization(
 
     // This mutex prevents update operations, which could create inconsistency during transition.
     let update_guard = segment_holder.acquire_updates_lock();
+
+    // Apply vector name changes before index and point changes
+    // New named vectors must exist before indexes or points reference them
+    let old_optimized_segment_version = optimized_segment.version();
+    let vector_name_changes = proxy_vector_name_changes(&locked_proxies);
+    for (vector_name, intent) in vector_name_changes.iter_ordered() {
+        debug_assert!(
+            intent.version() >= old_optimized_segment_version,
+            "proxied vector name change should have newer version than segment",
+        );
+        match intent {
+            IntendedVector::Absent { version } => {
+                optimized_segment.delete_vector_name(*version, vector_name)?;
+            }
+            IntendedVector::Present {
+                config,
+                version,
+                supersedes_wrapped,
+            } => {
+                if *supersedes_wrapped {
+                    // The optimised segment was built from the wrapped data,
+                    // so it currently carries the *old* schema for this name.
+                    // `create_vector_name_impl` is idempotent and would
+                    // silently keep that old storage; clear it first so the
+                    // new schema actually takes effect.
+                    optimized_segment.delete_vector_name(*version, vector_name)?;
+                }
+                optimized_segment.create_vector_name(*version, vector_name, config)?;
+            }
+        }
+        check_process_stopped(stopped)?;
+    }
 
     let index_changes = proxy_index_changes(&locked_proxies);
 

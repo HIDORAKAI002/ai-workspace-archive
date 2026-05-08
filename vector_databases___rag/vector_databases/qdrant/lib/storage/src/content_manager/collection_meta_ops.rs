@@ -14,6 +14,7 @@ use collection::shards::shard::{PeerId, ShardId, ShardsPlacement};
 use collection::shards::transfer::{ShardTransfer, ShardTransferKey, ShardTransferRestart};
 use collection::shards::{CollectionId, replica_set};
 use schemars::JsonSchema;
+use segment::data_types::vectors::DEFAULT_VECTOR_NAME;
 use segment::types::{
     Payload, PayloadFieldSchema, PayloadKeyType, QuantizationConfig, ShardKey, StrictModeConfig,
     VectorNameBuf,
@@ -193,8 +194,45 @@ impl CreateCollectionOperation {
         collection_name: String,
         create_collection: CreateCollection,
     ) -> StorageResult<Self> {
+        // Apply the same vector-name validation that the
+        // `PUT /collections/{name}/vectors/{vector_name}` endpoint enforces
+        // (length 0..=200, no filesystem-unsafe characters), so both creation
+        // paths reject the same set of bad names. The `Validate` derive on
+        // `CreateCollection` only walks `BTreeMap` *values*, never keys, so this
+        // has to run imperatively here.
+        //
+        // The unnamed slot used by `VectorsConfig::Single` is exempt: its
+        // implicit key is the empty `DEFAULT_VECTOR_NAME` constant and a
+        // `Single` config has no user-supplied name to validate.
+        if let collection::operations::types::VectorsConfig::Multi(multi) =
+            &create_collection.vectors
+        {
+            for vector_name in multi.keys() {
+                common::validation::validate_vector_name(vector_name).map_err(|err| {
+                    StorageError::bad_input(format!(
+                        "Invalid dense vector name `{vector_name}`: {err}",
+                    ))
+                })?;
+            }
+        }
+        if let Some(sparse_config) = &create_collection.sparse_vectors {
+            for vector_name in sparse_config.keys() {
+                common::validation::validate_vector_name(vector_name).map_err(|err| {
+                    StorageError::bad_input(format!(
+                        "Invalid sparse vector name `{vector_name}`: {err}",
+                    ))
+                })?;
+            }
+        }
+
         // validate vector names are unique between dense and sparse vectors
         if let Some(sparse_config) = &create_collection.sparse_vectors {
+            if sparse_config.contains_key(DEFAULT_VECTOR_NAME) {
+                return Err(StorageError::bad_input(
+                    "Sparse vector name cannot be empty",
+                ));
+            }
+
             let mut dense_names = create_collection.vectors.params_iter().map(|p| p.0);
             if let Some(duplicate_name) = dense_names.find(|name| sparse_config.contains_key(*name))
             {
@@ -398,6 +436,19 @@ pub struct DropPayloadIndex {
     pub field_name: PayloadKeyType,
 }
 
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq, Hash, Clone)]
+pub struct CreateNamedVector {
+    pub collection_name: String,
+    pub vector_name: segment::types::VectorNameBuf,
+    pub config: shard::operations::vector_name_ops::VectorNameConfig,
+}
+
+#[derive(Debug, Deserialize, Serialize, PartialEq, Eq, Hash, Clone)]
+pub struct DeleteNamedVector {
+    pub collection_name: String,
+    pub vector_name: segment::types::VectorNameBuf,
+}
+
 /// Enumeration of all possible collection update operations
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq, Hash, Clone)]
 #[serde(rename_all = "snake_case")]
@@ -413,6 +464,8 @@ pub enum CollectionMetaOperations {
     DropShardKey(DropShardKey),
     CreatePayloadIndex(CreatePayloadIndex),
     DropPayloadIndex(DropPayloadIndex),
+    CreateNamedVector(CreateNamedVector),
+    DeleteNamedVector(DeleteNamedVector),
     Nop {
         token: usize,
     }, // Empty operation

@@ -20,7 +20,7 @@ const testCases = [
 ];
 
 test.describe("Dedicated repo servers", () => {
-  test.describe("SSE", () => {
+  test.describe("Streamable HTTP", () => {
     // Loop through the defined test cases
     for (const testCase of testCases) {
       const { path, expectedContentSnippet } = testCase;
@@ -30,7 +30,7 @@ test.describe("Dedicated repo servers", () => {
       test(`should list tools for ${path}`, async ({ page }) => {
         await page.goto("/");
         await page.getByRole("combobox", { name: "Transport Type" }).click();
-        await page.getByRole("option", { name: "SSE" }).click();
+        await page.getByRole("option", { name: "Streamable HTTP" }).click();
         await page.getByRole("textbox", { name: "URL" }).fill(targetServerUrl);
         await page.getByRole("button", { name: "Connect" }).click();
 
@@ -55,7 +55,7 @@ test.describe("Dedicated repo servers", () => {
       test(`should fetch documentation using generic tool for ${path}`, async ({ page }) => {
         await page.goto("/");
         await page.getByRole("combobox", { name: "Transport Type" }).click();
-        await page.getByRole("option", { name: "SSE" }).click();
+        await page.getByRole("option", { name: "Streamable HTTP" }).click();
         await page.getByRole("textbox", { name: "URL" }).fill(targetServerUrl);
         await page.getByRole("button", { name: "Connect" }).click();
 
@@ -64,7 +64,7 @@ test.describe("Dedicated repo servers", () => {
 
         await expect(page.getByText("fetch_generic_url_content")).toBeVisible({ timeout: 5000 });
         await page.getByText('fetch_generic_url_content').click();
-        await page.getByRole('textbox', { name: 'url', exact: true  }).fill('https://www.makeareadme.com/');
+        await page.getByRole('textbox', { name: 'url*', exact: true }).fill('https://www.makeareadme.com/');
         await page.getByRole('button', { name: 'Run Tool' }).click();
 
         await expect(page.getByText('Success')).toBeVisible({ timeout: 10000 });
@@ -79,7 +79,7 @@ test.describe("Dedicated repo servers", () => {
 
          await page.goto("/");
          await page.getByRole("combobox", { name: "Transport Type" }).click();
-         await page.getByRole("option", { name: "SSE" }).click();
+         await page.getByRole("option", { name: "Streamable HTTP" }).click();
          await page.getByRole("textbox", { name: "URL" }).fill(targetServerUrl);
          await page.getByRole("button", { name: "Connect" }).click();
 

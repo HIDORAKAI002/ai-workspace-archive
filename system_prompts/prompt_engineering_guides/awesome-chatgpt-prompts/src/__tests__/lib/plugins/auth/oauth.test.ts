@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- tests inspect the dynamic NextAuth provider object */
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { oauthPlugin } from "@/lib/plugins/auth/oauth";
 

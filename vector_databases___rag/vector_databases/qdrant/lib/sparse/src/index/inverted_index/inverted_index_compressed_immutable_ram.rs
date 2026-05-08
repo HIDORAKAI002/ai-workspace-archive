@@ -21,13 +21,6 @@ pub struct InvertedIndexCompressedImmutableRam<W: Weight> {
     pub(super) total_sparse_size: usize,
 }
 
-impl<W: Weight> InvertedIndexCompressedImmutableRam<W> {
-    #[allow(dead_code)]
-    pub(super) fn into_postings(self) -> Vec<CompressedPostingList<W>> {
-        self.postings
-    }
-}
-
 impl<W: Weight> InvertedIndex for InvertedIndexCompressedImmutableRam<W> {
     type Iter<'a> = CompressedPostingListIterator<'a, W>;
 
@@ -56,6 +49,8 @@ impl<W: Weight> InvertedIndex for InvertedIndexCompressedImmutableRam<W> {
             })?;
             inverted_index.postings.push(posting_list.to_owned());
         }
+
+        mmap_inverted_index.clear_cache()?;
 
         Ok(inverted_index)
     }

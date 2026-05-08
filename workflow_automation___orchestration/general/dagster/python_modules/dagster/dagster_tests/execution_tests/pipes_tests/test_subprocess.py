@@ -2,6 +2,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import time
 from collections.abc import Iterator
@@ -26,7 +27,7 @@ from dagster_pipes import DagsterPipesError
 
 from dagster_tests.execution_tests.pipes_tests.utils import temp_script
 
-_PYTHON_EXECUTABLE = shutil.which("python")
+_PYTHON_EXECUTABLE = shutil.which("python") or sys.executable
 
 
 @pytest.fixture

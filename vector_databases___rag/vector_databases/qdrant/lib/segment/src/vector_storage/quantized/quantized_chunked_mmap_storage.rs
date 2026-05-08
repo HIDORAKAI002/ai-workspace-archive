@@ -34,6 +34,11 @@ impl QuantizedChunkedMmapStorage {
     pub fn populate(&self) -> OperationResult<()> {
         self.data.populate()
     }
+
+    pub fn clear_cache(&self) -> OperationResult<()> {
+        let Self { data } = self;
+        data.clear_cache()
+    }
 }
 
 impl quantization::EncodedStorage for QuantizedChunkedMmapStorage {
@@ -41,6 +46,13 @@ impl quantization::EncodedStorage for QuantizedChunkedMmapStorage {
         self.data
             .get::<Random>(index as VectorOffsetType)
             .unwrap_or_default()
+    }
+
+    fn for_each_in_batch<F>(&self, offsets: &[PointOffsetType], callback: F)
+    where
+        F: FnMut(usize, &[u8]),
+    {
+        self.data.for_each_in_batch(offsets, callback);
     }
 
     fn upsert_vector(
@@ -72,22 +84,25 @@ impl quantization::EncodedStorage for QuantizedChunkedMmapStorage {
     }
 
     fn files(&self) -> Vec<PathBuf> {
-        ChunkedVectors::files(&self.data)
+        self.data.files()
     }
 
     fn immutable_files(&self) -> Vec<PathBuf> {
-        ChunkedVectors::immutable_files(&self.data)
+        self.data.immutable_files()
+    }
+
+    fn heap_size_bytes(&self) -> usize {
+        let Self { data } = self;
+        data.heap_size_bytes()
     }
 }
 
-#[allow(dead_code)]
 pub struct QuantizedChunkedMmapStorageBuilder {
     data: ChunkedVectors<u8, MmapFile>,
     hw_counter: HardwareCounterCell,
 }
 
 impl QuantizedChunkedMmapStorageBuilder {
-    #[allow(dead_code)]
     pub fn new(path: &Path, quantized_vector_size: usize, in_ram: bool) -> OperationResult<Self> {
         let advice = if in_ram {
             AdviceSetting::from(Advice::Normal)

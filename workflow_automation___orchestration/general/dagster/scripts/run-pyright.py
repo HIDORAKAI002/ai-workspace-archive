@@ -13,7 +13,7 @@ from collections.abc import Iterator, Mapping, Sequence
 from contextlib import contextmanager
 from functools import reduce
 from itertools import groupby
-from typing import Final, Literal, cast
+from typing import Any, Final, Literal, cast
 
 import tomli
 import yaml
@@ -491,9 +491,9 @@ def temp_pyright_config_file(env: str) -> Iterator[str]:
 def merge_pyright_results(result_1: RunResult, result_2: RunResult) -> RunResult:
     returncode = 1 if 1 in (result_1["returncode"], result_2["returncode"]) else 0
     output_1, output_2 = (result["output"] for result in (result_1, result_2))
-    summary = {}
-    for key in output_1["summary"].keys():
-        summary[key] = output_1["summary"][key] + output_2["summary"][key]
+    summary_1 = cast("dict[str, Any]", output_1["summary"])
+    summary_2 = cast("dict[str, Any]", output_2["summary"])
+    summary = {key: summary_1[key] + summary_2[key] for key in summary_1}
     diagnostics = [*output_1["generalDiagnostics"], *output_2["generalDiagnostics"]]
     return {
         "returncode": returncode,

@@ -49,7 +49,7 @@ use segment::index::field_index::{CardinalityEstimation, EstimationMerge};
 use segment::segment_constructor::{build_segment, load_segment, normalize_segment_dir};
 use segment::types::{
     Filter, PayloadIndexInfo, PayloadKeyType, PointIdType, SegmentConfig, SegmentType,
-    SeqNumberType,
+    SeqNumberType, StrictModeConfig,
 };
 use shard::files::{NEWEST_CLOCKS_PATH, OLDEST_CLOCKS_PATH, ShardDataFiles};
 use shard::operations::CollectionUpdateOperations;
@@ -71,13 +71,15 @@ use crate::collection_manager::holders::segment_holder::{LockedSegment, SegmentH
 use crate::collection_manager::optimizers::TrackerLog;
 use crate::collection_manager::optimizers::segment_optimizer::plan_optimizations;
 use crate::collection_manager::segments_searcher::SegmentsSearcher;
+use crate::common::adaptive_handle::AdaptiveSearchHandle;
 use crate::common::file_utils::{move_dir, move_file};
+use crate::common::memory_reporter::CollectionMemoryReport;
 use crate::config::CollectionConfigInternal;
 use crate::operations::OperationWithClockTag;
 use crate::operations::shared_storage_config::SharedStorageConfig;
 use crate::operations::types::{
     CollectionError, CollectionResult, OptimizersStatus, ShardInfoInternal, ShardStatus,
-    ShardUpdateQueueInfo, check_sparse_compatible_with_segment_config,
+    ShardUpdateQueueInfo,
 };
 use crate::optimizers_builder::{OptimizersConfig, build_optimizers, clear_temp_segments};
 use crate::shards::CollectionId;
@@ -111,9 +113,10 @@ pub struct LocalShard {
     pub(super) optimizers: ArcSwap<Vec<Arc<Optimizer>>>,
     pub(super) optimizers_log: Arc<ParkingMutex<TrackerLog>>,
     pub(super) total_optimized_points: Arc<AtomicUsize>,
-    pub(super) search_runtime: Handle,
+    pub(super) search_runtime: AdaptiveSearchHandle,
     disk_usage_watcher: DiskUsageWatcher,
     read_rate_limiter: Option<ParkingMutex<RateLimiter>>,
+    write_rate_limiter: Option<ParkingMutex<RateLimiter>>,
 
     is_gracefully_stopped: bool,
 
@@ -240,7 +243,7 @@ impl LocalShard {
         shard_path: &Path,
         clocks: LocalShardClocks,
         update_runtime: Handle,
-        search_runtime: Handle,
+        search_runtime: AdaptiveSearchHandle,
     ) -> Self {
         let segment_holder = LockedSegmentHolder::new(segment_holder);
         let config = collection_config.read().await;
@@ -299,6 +302,12 @@ impl LocalShard {
                 .map(RateLimiter::new_per_minute)
                 .map(ParkingMutex::new)
         });
+        let write_rate_limiter = config.strict_mode_config.as_ref().and_then(|strict_mode| {
+            strict_mode
+                .write_rate_limit
+                .map(RateLimiter::new_per_minute)
+                .map(ParkingMutex::new)
+        });
 
         drop(config); // release `shared_config` from borrow checker
 
@@ -320,6 +329,7 @@ impl LocalShard {
             total_optimized_points,
             disk_usage_watcher,
             read_rate_limiter,
+            write_rate_limiter,
             is_gracefully_stopped: false,
             update_operation_lock: scroll_read_lock,
             applied_seq_handler,
@@ -343,7 +353,7 @@ impl LocalShard {
         payload_index_schema: Arc<SaveOnDisk<PayloadIndexSchema>>,
         rebuild_payload_index: bool,
         update_runtime: Handle,
-        search_runtime: Handle,
+        search_runtime: AdaptiveSearchHandle,
         optimizer_resource_budget: ResourceBudget,
     ) -> CollectionResult<LocalShard> {
         let total_started = Instant::now();
@@ -406,9 +416,13 @@ impl LocalShard {
             })
             .map(|entry| entry.path());
 
+        // Build desired vector names from collection config for segment reconciliation
+        let desired_vector_names = desired_vector_names_from_config(&collection_config_read.params);
+
         let mut segment_stream = futures::stream::iter(segment_paths)
             .map(|segment_path| {
                 let payload_index_schema = Arc::clone(&payload_index_schema);
+                let desired_vectors = desired_vector_names.clone();
                 let handle = tokio::task::spawn_blocking(move || {
                     let Some((segment_path, uuid)) = normalize_segment_dir(&segment_path)? else {
                         return CollectionResult::Ok(None);
@@ -428,6 +442,10 @@ impl LocalShard {
                         )?;
                     }
 
+                    // Reconcile named vectors: create vectors that exist in collection config
+                    // but are missing from the segment (e.g. after crash between config update and shard update)
+                    segment.update_all_vector_names(&desired_vectors)?;
+
                     CollectionResult::Ok(Some(segment))
                 });
                 AbortOnDropHandle::new(handle)
@@ -445,23 +463,6 @@ impl LocalShard {
             let Some(segment) = result?? else {
                 continue;
             };
-
-            collection_config_read
-                .params
-                .vectors
-                .check_compatible_with_segment_config(&segment.config().vector_data, true)?;
-            collection_config_read
-                .params
-                .sparse_vectors
-                .as_ref()
-                .map(|sparse_vectors| {
-                    check_sparse_compatible_with_segment_config(
-                        sparse_vectors,
-                        &segment.config().sparse_vector_data,
-                        true,
-                    )
-                })
-                .unwrap_or(Ok(()))?;
 
             segment_holder.add_new(segment);
         }
@@ -550,7 +551,7 @@ impl LocalShard {
         shared_storage_config: Arc<SharedStorageConfig>,
         payload_index_schema: Arc<SaveOnDisk<PayloadIndexSchema>>,
         update_runtime: Handle,
-        search_runtime: Handle,
+        search_runtime: AdaptiveSearchHandle,
         optimizer_resource_budget: ResourceBudget,
         effective_optimizers_config: OptimizersConfig,
     ) -> CollectionResult<LocalShard> {
@@ -583,7 +584,7 @@ impl LocalShard {
         shared_storage_config: Arc<SharedStorageConfig>,
         payload_index_schema: Arc<SaveOnDisk<PayloadIndexSchema>>,
         update_runtime: Handle,
-        search_runtime: Handle,
+        search_runtime: AdaptiveSearchHandle,
         optimizer_resource_budget: ResourceBudget,
         effective_optimizers_config: OptimizersConfig,
     ) -> CollectionResult<LocalShard> {
@@ -909,23 +910,25 @@ impl LocalShard {
     }
 
     /// Apply shard's strict mode configuration update
-    /// - Update read rate limiter
-    pub async fn on_strict_mode_config_update(&mut self) {
-        let config = self.collection_config.read().await;
+    /// - Update read and write rate limiters
+    ///
+    /// The new strict-mode config is passed in explicitly rather than read from
+    /// `self.collection_config` so the caller can apply rate-limiter changes
+    /// before publishing the new config to readers of `self.collection_config`.
+    /// That order ensures `info()` never reports the new strict-mode state
+    /// while the rate limiters are still on the old one.
+    pub fn on_strict_mode_config_update(&mut self, new_strict_mode: &StrictModeConfig) {
+        let strict_mode = Some(new_strict_mode).filter(|cfg| cfg.enabled == Some(true));
 
-        if let Some(strict_mode_config) = &config.strict_mode_config
-            && strict_mode_config.enabled == Some(true)
-        {
-            // update read rate limiter
-            if let Some(read_rate_limit_per_min) = strict_mode_config.read_rate_limit {
-                let new_read_rate_limiter = RateLimiter::new_per_minute(read_rate_limit_per_min);
-                self.read_rate_limiter
-                    .replace(parking_lot::Mutex::new(new_read_rate_limiter));
-                return;
-            }
-        }
-        // remove read rate limiter for all other situations
-        self.read_rate_limiter.take();
+        let read_rate_limit_per_min = strict_mode.and_then(|cfg| cfg.read_rate_limit);
+        let write_rate_limit_per_min = strict_mode.and_then(|cfg| cfg.write_rate_limit);
+
+        self.read_rate_limiter = read_rate_limit_per_min
+            .map(RateLimiter::new_per_minute)
+            .map(ParkingMutex::new);
+        self.write_rate_limiter = write_rate_limit_per_min
+            .map(RateLimiter::new_per_minute)
+            .map(ParkingMutex::new);
     }
 
     pub async fn estimate_cardinality<'a>(
@@ -962,7 +965,7 @@ impl LocalShard {
     pub async fn read_filtered<'a>(
         &'a self,
         filter: Option<&'a Filter>,
-        runtime_handle: &Handle,
+        runtime_handle: &AdaptiveSearchHandle,
         hw_counter: HwMeasurementAcc,
         timeout: Option<Duration>,
         deferred_behavior: DeferredBehavior,
@@ -1097,6 +1100,25 @@ impl LocalShard {
 
         // Green status because everything is fine
         (ShardStatus::Green, OptimizersStatus::Ok)
+    }
+
+    pub async fn memory_report(&self) -> CollectionResult<CollectionMemoryReport> {
+        let segments = self.segments.clone();
+        tokio::task::spawn_blocking(move || {
+            let segments_read = segments.read();
+            let mut reports = Vec::new();
+
+            // Collect from all segments, including those wrapped in proxies.
+            // During optimization, original segments become proxy-wrapped while
+            // a new empty segment is built. We must report from both.
+            for (_id, locked_segment) in segments_read.iter() {
+                collect_memory_reports(locked_segment, &mut reports)?;
+            }
+
+            Ok(CollectionMemoryReport::merge_all(reports))
+        })
+        .await
+        .map_err(|e| CollectionError::service_error(format!("Memory report task failed: {e}")))?
     }
 
     pub async fn local_shard_info(&self) -> ShardInfoInternal {
@@ -1302,6 +1324,33 @@ impl LocalShard {
         Ok(())
     }
 
+    /// Check if the write rate limiter allows the operation to proceed.
+    ///
+    /// Mirrors `check_read_rate_limiter` but for writes; the cost is computed
+    /// lazily via `cost_fn` (which may be async, e.g. cardinality estimates).
+    /// Returns an error if the rate limit is exceeded.
+    pub(crate) async fn check_write_rate_limiter<F>(
+        &self,
+        hw_measurement_acc: &HwMeasurementAcc,
+        cost_fn: F,
+    ) -> CollectionResult<()>
+    where
+        F: AsyncFnOnce() -> usize,
+    {
+        // Do not rate limit internal operation tagged with disposable measurement
+        if hw_measurement_acc.is_disposable() {
+            return Ok(());
+        }
+        if let Some(rate_limiter) = &self.write_rate_limiter {
+            let cost = cost_fn().await;
+            rate_limiter
+                .lock()
+                .try_consume(cost as f64)
+                .map_err(|err| CollectionError::rate_limit_error(err, cost, true))?;
+        }
+        Ok(())
+    }
+
     // Returns configured default search timeout if timeout is None
     fn timeout_or_default_search_timeout(&self, timeout: Option<Duration>) -> Duration {
         timeout.unwrap_or(self.shared_storage_config.search_timeout)
@@ -1431,4 +1480,72 @@ impl LocalShardClocks {
     fn oldest_clocks_path(shard_path: &Path) -> PathBuf {
         shard::files::oldest_clocks_path(shard_path)
     }
+}
+
+/// Build a list of desired vector names from collection params for segment reconciliation.
+fn desired_vector_names_from_config(
+    params: &crate::config::CollectionParams,
+) -> Vec<(
+    segment::types::VectorNameBuf,
+    segment::data_types::vector_name_config::VectorNameConfig,
+)> {
+    use segment::data_types::vector_name_config::{
+        DenseVectorConfig, SparseVectorConfig, VectorNameConfig,
+    };
+
+    let mut desired = Vec::new();
+
+    for (name, vp) in params.vectors.params_iter() {
+        desired.push((
+            name.to_owned(),
+            VectorNameConfig::dense(DenseVectorConfig {
+                size: vp.size.get() as usize,
+                distance: vp.distance,
+                multivector_config: vp.multivector_config,
+                datatype: vp.datatype.map(segment::types::VectorStorageDatatype::from),
+            }),
+        ));
+    }
+
+    if let Some(sparse) = &params.sparse_vectors {
+        for (name, sp) in sparse {
+            desired.push((
+                name.clone(),
+                VectorNameConfig::sparse(SparseVectorConfig {
+                    modifier: sp.modifier,
+                    datatype: sp
+                        .index
+                        .as_ref()
+                        .and_then(|idx| idx.datatype)
+                        .map(segment::types::VectorStorageDatatype::from),
+                }),
+            ));
+        }
+    }
+    desired
+}
+
+/// Recursively collect memory reports from a `LockedSegment`.
+///
+/// For `Original` segments, collects directly.
+/// For `Proxy` segments, collects from the wrapped segment
+/// (which is the real data holder during optimization).
+fn collect_memory_reports(
+    locked_segment: &LockedSegment,
+    reports: &mut Vec<CollectionMemoryReport>,
+) -> CollectionResult<()> {
+    match locked_segment {
+        LockedSegment::Original(segment) => {
+            let segment_guard = segment.read();
+            let seg_report = segment_guard.memory_report();
+            reports.push(crate::common::memory_reporter::report_from_segment(
+                seg_report,
+            )?);
+        }
+        LockedSegment::Proxy(proxy) => {
+            let proxy_guard = proxy.read();
+            collect_memory_reports(&proxy_guard.wrapped_segment, reports)?;
+        }
+    }
+    Ok(())
 }

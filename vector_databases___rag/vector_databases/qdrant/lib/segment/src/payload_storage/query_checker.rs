@@ -9,17 +9,18 @@ use atomic_refcell::AtomicRefCell;
 use common::counter::hardware_counter::HardwareCounterCell;
 use common::types::PointOffsetType;
 
+use crate::common::operation_error::OperationResult;
 use crate::common::utils::{IndexesMap, check_is_empty, check_is_null};
-use crate::id_tracker::{IdTracker, IdTrackerEnum};
+use crate::id_tracker::{IdTrackerEnum, IdTrackerRead};
 use crate::index::field_index::FieldIndex;
 use crate::payload_storage::condition_checker::ValueChecker;
 use crate::payload_storage::payload_storage_enum::PayloadStorageEnum;
-use crate::payload_storage::{ConditionChecker, PayloadStorage};
+use crate::payload_storage::{ConditionChecker, PayloadStorageRead};
 use crate::types::{
     Condition, FieldCondition, Filter, IsEmptyCondition, IsNullCondition, MinShould,
     OwnedPayloadRef, Payload, PayloadContainer, PayloadKeyType, VectorNameBuf,
 };
-use crate::vector_storage::{VectorStorage, VectorStorageEnum};
+use crate::vector_storage::{VectorStorageEnum, VectorStorageRead};
 
 fn check_condition<F>(checker: &F, condition: &Condition) -> bool
 where
@@ -130,7 +131,8 @@ where
             get_payload().deref(),
             field_indexes,
             hw_counter,
-        ),
+        )
+        .unwrap(/* TODO(uio): handle errors */),
         Condition::IsEmpty(is_empty) => check_is_empty_condition(is_empty, get_payload().deref()),
         Condition::IsNull(is_null) => check_is_null_condition(is_null, get_payload().deref()),
         Condition::HasId(has_id) => id_tracker
@@ -189,7 +191,7 @@ pub fn check_field_condition<R>(
     payload: &impl PayloadContainer,
     field_indexes: &HashMap<PayloadKeyType, R>,
     hw_counter: &HardwareCounterCell,
-) -> bool
+) -> OperationResult<bool>
 where
     R: AsRef<Vec<FieldIndex>>,
 {
@@ -197,7 +199,7 @@ where
     let field_indexes = field_indexes.get(&field_condition.key);
 
     if field_values.is_empty() {
-        return field_condition.check_empty();
+        return Ok(field_condition.check_empty());
     }
 
     // This covers a case, when a field index affects the result of the condition.
@@ -206,11 +208,11 @@ where
             let mut index_checked = false;
             for index in field_indexes.as_ref() {
                 if let Some(index_check_res) =
-                    index.special_check_condition(field_condition, p, hw_counter)
+                    index.special_check_condition(field_condition, p, hw_counter)?
                 {
                     if index_check_res {
                         // If at least one object matches the condition, we can return true
-                        return true;
+                        return Ok(true);
                     }
                     index_checked = true;
                     // If index check of the condition returned something, we don't need to check
@@ -222,14 +224,14 @@ where
                 // If none of the indexes returned anything, we need to check the condition
                 // against the payload
                 if field_condition.check(p) {
-                    return true;
+                    return Ok(true);
                 }
             }
         }
-        false
+        Ok(false)
     } else {
         // Fallback to regular condition check if there are no indexes for the field
-        field_values.into_iter().any(|p| field_condition.check(p))
+        Ok(field_values.into_iter().any(|p| field_condition.check(p)))
     }
 }
 
@@ -275,30 +277,7 @@ impl ConditionChecker for SimpleConditionChecker {
                 if payload_ref_cell.borrow().is_none() {
                     let payload_ptr = match payload_storage_guard.deref() {
                         PayloadStorageEnum::InMemoryPayloadStorage(s) => {
-                            s.payload_ptr(point_id).map(|x| x.into())
-                        }
-                        #[cfg(feature = "rocksdb")]
-                        PayloadStorageEnum::SimplePayloadStorage(s) => {
-                            s.payload_ptr(point_id).map(|x| x.into())
-                        }
-                        #[cfg(feature = "rocksdb")]
-                        PayloadStorageEnum::OnDiskPayloadStorage(s) => {
-                            // Warn: Possible panic here
-                            // Currently, it is possible that `read_payload` fails with Err,
-                            // but it seems like a very rare possibility which might only happen
-                            // if something is wrong with disk or storage is corrupted.
-                            //
-                            // In both cases it means that service can't be of use any longer.
-                            // It is as good as dead. Therefore it is tolerable to just panic here.
-                            // Downside is - API user won't be notified of the failure.
-                            // It will just timeout.
-                            //
-                            // The alternative:
-                            // Rewrite condition checking code to support error reporting.
-                            // Which may lead to slowdown and assumes a lot of changes.
-                            s.read_payload(point_id, &hw_counter)
-                                .unwrap_or_else(|err| panic!("Payload storage is corrupted: {err}"))
-                                .map(|x| x.into())
+                            s.payload_ptr(point_id).map(Into::into)
                         }
                         PayloadStorageEnum::MmapPayloadStorage(s) => {
                             let payload = s.get(point_id, &hw_counter).unwrap_or_else(|err| {
@@ -636,19 +615,138 @@ mod tests {
         assert!(!payload_checker.check(0, &query));
 
         // id Filter
-        let ids: AHashSet<_> = vec![1, 2, 3].into_iter().map(|x| x.into()).collect();
+        let ids: AHashSet<_> = vec![1, 2, 3].into_iter().map(u64::into).collect();
 
         let query = Filter::new_must_not(Condition::HasId(ids.into()));
         assert!(!payload_checker.check(2, &query));
 
-        let ids: AHashSet<_> = vec![1, 2, 3].into_iter().map(|x| x.into()).collect();
+        let ids: AHashSet<_> = vec![1, 2, 3].into_iter().map(u64::into).collect();
 
         let query = Filter::new_must_not(Condition::HasId(ids.into()));
         assert!(payload_checker.check(10, &query));
 
-        let ids: AHashSet<_> = vec![1, 2, 3].into_iter().map(|x| x.into()).collect();
+        let ids: AHashSet<_> = vec![1, 2, 3].into_iter().map(u64::into).collect();
 
         let query = Filter::new_must(Condition::HasId(ids.into()));
         assert!(payload_checker.check(2, &query));
+    }
+
+    /// Regression test for <https://github.com/qdrant/qdrant/issues/8936>
+    ///
+    /// Verifies that `MatchTextAny` inside a `NestedCondition` uses the
+    /// full-text index tokenizer and does NOT fall back to substring matching.
+    /// Before the fix, "good" would incorrectly match "goodness" in the
+    /// nested path because `special_check_condition` didn't handle
+    /// `Match::TextAny`.
+    #[test]
+    fn test_nested_match_text_any_uses_full_text_index() {
+        use tempfile::Builder;
+
+        use crate::data_types::index::{TextIndexParams, TextIndexType, TokenizerType};
+        use crate::index::field_index::ValueIndexer;
+        use crate::index::field_index::full_text_index::text_index::FullTextIndex;
+        use crate::types::{Condition, MatchTextAny, Nested, NestedCondition};
+
+        let hw_counter = HardwareCounterCell::new();
+
+        // --- build payloads with nested objects ---
+        // Point 0: nested title "goodness only" (should NOT match "good cheap")
+        // Point 1: nested title "cheap hardware" (SHOULD match "good cheap")
+        // Point 2: nested title "neutral text"  (should NOT match)
+        let payloads = [
+            payload_json! {
+                "items": [{"title": "goodness only"}],
+            },
+            payload_json! {
+                "items": [{"title": "cheap hardware"}],
+            },
+            payload_json! {
+                "items": [{"title": "neutral text"}],
+            },
+        ];
+
+        // --- build a full-text index for "items.title" ---
+        let temp_dir = Builder::new()
+            .prefix("test_nested_text_any")
+            .tempdir()
+            .unwrap();
+        let config = TextIndexParams {
+            r#type: TextIndexType::Text,
+            tokenizer: TokenizerType::Word,
+            min_token_len: None,
+            max_token_len: None,
+            lowercase: Some(true),
+            on_disk: None,
+            phrase_matching: None,
+            stopwords: None,
+            stemmer: None,
+            ascii_folding: None,
+            enable_hnsw: None,
+        };
+
+        let mut ft_index =
+            FullTextIndex::new_gridstore(temp_dir.path().to_path_buf(), config, true)
+                .unwrap()
+                .unwrap();
+
+        // Index each point's nested title value
+        let nested_titles = ["goodness only", "cheap hardware", "neutral text"];
+        for (idx, title) in nested_titles.iter().enumerate() {
+            ft_index
+                .add_many(idx as u32, vec![title.to_string()], &hw_counter)
+                .unwrap();
+        }
+
+        // The key must include the `[]` wildcard so that
+        // `select_nested_indexes` can strip the `items[]` prefix and pass the
+        // index under key `title` into the nested `check_payload`.
+        let field_indexes: HashMap<PayloadKeyType, Vec<FieldIndex>> = HashMap::from([(
+            JsonPath::new("items[].title"),
+            vec![FieldIndex::FullTextIndex(ft_index)],
+        )]);
+
+        // --- build the nested MatchTextAny filter ---
+        let nested_filter = Filter::new_must(Condition::Nested(NestedCondition::new(Nested {
+            key: JsonPath::new("items"),
+            filter: Filter::new_must(Condition::Field(FieldCondition::new_match(
+                JsonPath::new("title"),
+                crate::types::Match::TextAny(MatchTextAny {
+                    text_any: "good cheap".to_string(),
+                }),
+            ))),
+        })));
+
+        // --- run check_payload for each point ---
+        let results: Vec<bool> = (0..3)
+            .map(|point_id| {
+                let payload = &payloads[point_id as usize];
+                check_payload(
+                    Box::new(|| payload.into()),
+                    None,
+                    &HashMap::new(),
+                    &nested_filter,
+                    point_id,
+                    &field_indexes,
+                    &hw_counter,
+                )
+            })
+            .collect();
+
+        // Point 0 ("goodness only"): must NOT match — "good" is not a token in "goodness"
+        assert!(
+            !results[0],
+            "Point 0 ('goodness only') must not match text_any('good cheap') — \
+             'good' is a substring of 'goodness' but not a whole token"
+        );
+        // Point 1 ("cheap hardware"): must match — "cheap" is an exact token
+        assert!(
+            results[1],
+            "Point 1 ('cheap hardware') must match text_any('good cheap')"
+        );
+        // Point 2 ("neutral text"): must NOT match
+        assert!(
+            !results[2],
+            "Point 2 ('neutral text') must not match text_any('good cheap')"
+        );
     }
 }

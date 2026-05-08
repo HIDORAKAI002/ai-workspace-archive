@@ -1,21 +1,21 @@
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-use api::grpc::Usage;
 use api::grpc::qdrant::points_server::Points;
 use api::grpc::qdrant::{
     ClearPayloadPoints, CountPoints, CountResponse, CreateFieldIndexCollection,
-    DeleteFieldIndexCollection, DeletePayloadPoints, DeletePointVectors, DeletePoints,
-    DiscoverBatchPoints, DiscoverBatchResponse, DiscoverPoints, DiscoverResponse, FacetCounts,
-    FacetResponse, GetPoints, GetResponse, PointsOperationResponse, QueryBatchPoints,
-    QueryBatchResponse, QueryGroupsResponse, QueryPointGroups, QueryPoints, QueryResponse,
-    RecommendBatchPoints, RecommendBatchResponse, RecommendGroupsResponse, RecommendPointGroups,
-    RecommendPoints, RecommendResponse, ScrollPoints, ScrollResponse, SearchBatchPoints,
-    SearchBatchResponse, SearchGroupsResponse, SearchMatrixOffsets, SearchMatrixOffsetsResponse,
-    SearchMatrixPairs, SearchMatrixPairsResponse, SearchMatrixPoints, SearchPointGroups,
-    SearchPoints, SearchResponse, SetPayloadPoints, UpdateBatchPoints, UpdateBatchResponse,
-    UpdatePointVectors, UpsertPoints,
+    CreateVectorNameRequest, DeleteFieldIndexCollection, DeletePayloadPoints, DeletePointVectors,
+    DeletePoints, DeleteVectorNameRequest, DiscoverBatchPoints, DiscoverBatchResponse,
+    DiscoverPoints, DiscoverResponse, FacetCounts, FacetResponse, GetPoints, GetResponse,
+    PointsOperationResponse, QueryBatchPoints, QueryBatchResponse, QueryGroupsResponse,
+    QueryPointGroups, QueryPoints, QueryResponse, RecommendBatchPoints, RecommendBatchResponse,
+    RecommendGroupsResponse, RecommendPointGroups, RecommendPoints, RecommendResponse,
+    ScrollPoints, ScrollResponse, SearchBatchPoints, SearchBatchResponse, SearchGroupsResponse,
+    SearchMatrixOffsets, SearchMatrixOffsetsResponse, SearchMatrixPairs, SearchMatrixPairsResponse,
+    SearchMatrixPoints, SearchPointGroups, SearchPoints, SearchResponse, SetPayloadPoints,
+    UpdateBatchPoints, UpdateBatchResponse, UpdatePointVectors, UpsertPoints,
 };
+use api::grpc::{PointsOperationResponseInternal, Usage};
 use collection::operations::types::CoreSearchRequest;
 use common::counter::hardware_accumulator::HwMeasurementAcc;
 use storage::content_manager::toc::request_hw_counter::RequestHwCounter;
@@ -176,7 +176,7 @@ impl Points for PointsService {
             hw_metrics,
         )
         .await
-        .map(|resp| resp.map(Into::into))
+        .map(|resp| resp.map(PointsOperationResponseInternal::into))
     }
 
     async fn set_payload(
@@ -199,7 +199,7 @@ impl Points for PointsService {
             hw_metrics,
         )
         .await
-        .map(|resp| resp.map(Into::into))
+        .map(|resp| resp.map(PointsOperationResponseInternal::into))
     }
 
     async fn overwrite_payload(
@@ -222,7 +222,7 @@ impl Points for PointsService {
             hw_metrics,
         )
         .await
-        .map(|resp| resp.map(Into::into))
+        .map(|resp| resp.map(PointsOperationResponseInternal::into))
     }
 
     async fn delete_payload(
@@ -245,7 +245,7 @@ impl Points for PointsService {
             hw_metrics,
         )
         .await
-        .map(|resp| resp.map(Into::into))
+        .map(|resp| resp.map(PointsOperationResponseInternal::into))
     }
 
     async fn clear_payload(
@@ -268,7 +268,7 @@ impl Points for PointsService {
             hw_metrics,
         )
         .await
-        .map(|resp| resp.map(Into::into))
+        .map(|resp| resp.map(PointsOperationResponseInternal::into))
     }
 
     async fn update_batch(
@@ -316,7 +316,7 @@ impl Points for PointsService {
             hw_metrics,
         )
         .await
-        .map(|resp| resp.map(Into::into))
+        .map(|resp| resp.map(PointsOperationResponseInternal::into))
     }
 
     async fn delete_field_index(
@@ -332,6 +332,48 @@ impl Points for PointsService {
             request.into_inner(),
             InternalUpdateParams::default(),
             auth,
+        )
+        .await
+        .map(|resp| resp.map(PointsOperationResponseInternal::into))
+    }
+
+    async fn create_vector_name(
+        &self,
+        mut request: Request<CreateVectorNameRequest>,
+    ) -> Result<Response<PointsOperationResponse>, Status> {
+        validate(request.get_ref())?;
+        let auth = extract_auth(&mut request);
+        let collection_name = request.get_ref().collection_name.clone();
+        let wait = Some(request.get_ref().wait.unwrap_or(false));
+        let hw_metrics = self.get_request_collection_hw_usage_counter(collection_name, wait);
+
+        super::update_common::create_vector_name(
+            self.dispatcher.clone(),
+            request.into_inner(),
+            InternalUpdateParams::default(),
+            auth,
+            hw_metrics,
+        )
+        .await
+        .map(|resp| resp.map(Into::into))
+    }
+
+    async fn delete_vector_name(
+        &self,
+        mut request: Request<DeleteVectorNameRequest>,
+    ) -> Result<Response<PointsOperationResponse>, Status> {
+        validate(request.get_ref())?;
+        let auth = extract_auth(&mut request);
+        let collection_name = request.get_ref().collection_name.clone();
+        let wait = Some(request.get_ref().wait.unwrap_or(false));
+        let hw_metrics = self.get_request_collection_hw_usage_counter(collection_name, wait);
+
+        super::update_common::delete_vector_name(
+            self.dispatcher.clone(),
+            request.into_inner(),
+            InternalUpdateParams::default(),
+            auth,
+            hw_metrics,
         )
         .await
         .map(|resp| resp.map(Into::into))

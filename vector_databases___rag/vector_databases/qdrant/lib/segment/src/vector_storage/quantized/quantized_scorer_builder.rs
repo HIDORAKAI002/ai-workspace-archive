@@ -119,6 +119,15 @@ impl<'a> QuantizedScorerBuilder<'a> {
             QuantizedVectorStorage::BinaryChunkedMmap(storage) => {
                 self.new_quantized_scorer::<TElement, TMetric>(storage)
             }
+            QuantizedVectorStorage::TQRam(storage) => {
+                self.new_quantized_scorer::<TElement, TMetric>(storage)
+            }
+            QuantizedVectorStorage::TQMmap(storage) => {
+                self.new_quantized_scorer::<TElement, TMetric>(storage)
+            }
+            QuantizedVectorStorage::TQChunkedMmap(storage) => {
+                self.new_quantized_scorer::<TElement, TMetric>(storage)
+            }
             QuantizedVectorStorage::ScalarRamMulti(storage) => {
                 self.new_multi_quantized_scorer::<TElement, TMetric>(storage)
             }
@@ -144,6 +153,15 @@ impl<'a> QuantizedScorerBuilder<'a> {
                 self.new_multi_quantized_scorer::<TElement, TMetric>(storage)
             }
             QuantizedVectorStorage::BinaryChunkedMmapMulti(storage) => {
+                self.new_multi_quantized_scorer::<TElement, TMetric>(storage)
+            }
+            QuantizedVectorStorage::TQRamMulti(storage) => {
+                self.new_multi_quantized_scorer::<TElement, TMetric>(storage)
+            }
+            QuantizedVectorStorage::TQMmapMulti(storage) => {
+                self.new_multi_quantized_scorer::<TElement, TMetric>(storage)
+            }
+            QuantizedVectorStorage::TQChunkedMmapMulti(storage) => {
                 self.new_multi_quantized_scorer::<TElement, TMetric>(storage)
             }
         }
@@ -249,7 +267,7 @@ impl<'a> QuantizedScorerBuilder<'a> {
 
         match query {
             QueryVector::Nearest(vector) => {
-                let query_scorer = QuantizedMultiQueryScorer::<TElement, TMetric, _>::new_multi(
+                let query_scorer = QuantizedMultiQueryScorer::new_multi::<TElement, TMetric>(
                     &MultiDenseVectorInternal::try_from(vector)?,
                     quantized_multivector_storage,
                     quantization_config,

@@ -155,9 +155,14 @@ impl Dispatcher {
                 };
 
             let do_sync_nodes = match &op {
-                // Sync nodes after collection or shard key creation
+                // Sync nodes after collection or shard key creation, or after
+                // adding/removing a named vector — in all of these cases callers
+                // expect the updated collection config to be visible on every
+                // peer on return.
                 CollectionMetaOperations::CreateCollection(_)
-                | CollectionMetaOperations::CreateShardKey(_) => true,
+                | CollectionMetaOperations::CreateShardKey(_)
+                | CollectionMetaOperations::CreateNamedVector(_)
+                | CollectionMetaOperations::DeleteNamedVector(_) => true,
 
                 // Sync nodes when creating or renaming collection aliases
                 CollectionMetaOperations::ChangeAliases(changes) => {
@@ -309,7 +314,7 @@ impl Dispatcher {
                 .await;
 
             for replica_set in shard_holder.all_shards() {
-                if replica_set.shard_key() != Some(&shard_key) {
+                if replica_set.shard_key().as_ref() != Some(&shard_key) {
                     continue;
                 }
 

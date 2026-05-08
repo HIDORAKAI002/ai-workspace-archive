@@ -1,79 +1,71 @@
 use common::counter::hardware_counter::HardwareCounterCell;
 use common::types::PointOffsetType;
+use immutable_bool_index::ImmutableBoolIndex;
 use mutable_bool_index::MutableBoolIndex;
-#[cfg(feature = "rocksdb")]
-use simple_bool_index::SimpleBoolIndex;
 
 use super::facet_index::FacetIndex;
-use super::map_index::IdIter;
 use super::{PayloadFieldIndex, ValueIndexer};
-use crate::common::operation_error::OperationResult;
+use crate::common::operation_error::{OperationError, OperationResult};
 use crate::data_types::facets::{FacetHit, FacetValueRef};
 use crate::index::payload_config::{IndexMutability, StorageType};
 use crate::telemetry::PayloadIndexTelemetry;
 
+pub mod immutable_bool_index;
 pub mod mutable_bool_index;
-#[cfg(feature = "rocksdb")]
-pub mod simple_bool_index;
 
 pub enum BoolIndex {
-    #[cfg(feature = "rocksdb")]
-    Simple(SimpleBoolIndex),
     Mmap(MutableBoolIndex),
+    Immutable(ImmutableBoolIndex),
 }
 
 impl BoolIndex {
     pub fn get_point_values(&self, point_id: PointOffsetType) -> Vec<bool> {
         match self {
-            #[cfg(feature = "rocksdb")]
-            BoolIndex::Simple(index) => index.get_point_values(point_id),
             BoolIndex::Mmap(index) => index.get_point_values(point_id),
+            BoolIndex::Immutable(index) => index.get_point_values(point_id),
         }
     }
 
-    pub fn iter_values_map<'a>(
-        &'a self,
-        hw_acc: &'a HardwareCounterCell,
-    ) -> Box<dyn Iterator<Item = (bool, IdIter<'a>)> + 'a> {
+    pub fn for_each_value_map(
+        &self,
+        hw_acc: &HardwareCounterCell,
+        f: impl FnMut(bool, &mut dyn Iterator<Item = PointOffsetType>) -> OperationResult<()>,
+    ) -> OperationResult<()> {
         match self {
-            #[cfg(feature = "rocksdb")]
-            BoolIndex::Simple(index) => Box::new(index.iter_values_map()),
-            BoolIndex::Mmap(index) => Box::new(index.iter_values_map(hw_acc)),
+            BoolIndex::Mmap(index) => index.for_each_value_map(hw_acc, f),
+            BoolIndex::Immutable(index) => index.for_each_value_map(hw_acc, f),
         }
     }
 
     pub fn iter_values(&self) -> Box<dyn Iterator<Item = bool> + '_> {
         match self {
-            #[cfg(feature = "rocksdb")]
-            BoolIndex::Simple(index) => Box::new(index.iter_values()),
             BoolIndex::Mmap(index) => Box::new(index.iter_values()),
+            BoolIndex::Immutable(index) => Box::new(index.iter_values()),
         }
     }
 
-    pub fn iter_counts_per_value(
+    pub fn for_each_count_per_value(
         &self,
         deferred_internal_id: Option<PointOffsetType>,
-    ) -> Box<dyn Iterator<Item = (bool, usize)> + '_> {
+        f: impl FnMut(bool, usize) -> OperationResult<()>,
+    ) -> OperationResult<()> {
         match self {
-            #[cfg(feature = "rocksdb")]
-            BoolIndex::Simple(index) => Box::new(index.iter_counts_per_value()),
-            BoolIndex::Mmap(index) => Box::new(index.iter_counts_per_value(deferred_internal_id)),
+            BoolIndex::Mmap(index) => index.for_each_count_per_value(deferred_internal_id, f),
+            BoolIndex::Immutable(index) => index.for_each_count_per_value(deferred_internal_id, f),
         }
     }
 
     pub fn get_telemetry_data(&self) -> PayloadIndexTelemetry {
         match self {
-            #[cfg(feature = "rocksdb")]
-            BoolIndex::Simple(index) => index.get_telemetry_data(),
             BoolIndex::Mmap(index) => index.get_telemetry_data(),
+            BoolIndex::Immutable(index) => index.get_telemetry_data(),
         }
     }
 
     pub fn values_count(&self, point_id: PointOffsetType) -> usize {
         match self {
-            #[cfg(feature = "rocksdb")]
-            BoolIndex::Simple(index) => index.values_count(point_id),
             BoolIndex::Mmap(index) => index.values_count(point_id),
+            BoolIndex::Immutable(index) => index.values_count(point_id),
         }
     }
 
@@ -84,33 +76,29 @@ impl BoolIndex {
         _hw_counter: &HardwareCounterCell,
     ) -> bool {
         match self {
-            #[cfg(feature = "rocksdb")]
-            BoolIndex::Simple(index) => index.check_values_any(point_id, is_true),
             BoolIndex::Mmap(index) => index.check_values_any(point_id, is_true),
+            BoolIndex::Immutable(index) => index.check_values_any(point_id, is_true),
         }
     }
 
     pub fn values_is_empty(&self, point_id: PointOffsetType) -> bool {
         match self {
-            #[cfg(feature = "rocksdb")]
-            BoolIndex::Simple(index) => index.values_is_empty(point_id),
             BoolIndex::Mmap(index) => index.values_is_empty(point_id),
+            BoolIndex::Immutable(index) => index.values_is_empty(point_id),
+        }
+    }
+
+    pub fn ram_usage_bytes(&self) -> usize {
+        match self {
+            BoolIndex::Mmap(index) => index.ram_usage_bytes(),
+            BoolIndex::Immutable(index) => index.ram_usage_bytes(),
         }
     }
 
     pub fn is_on_disk(&self) -> bool {
         match self {
-            #[cfg(feature = "rocksdb")]
-            BoolIndex::Simple(_) => false,
             BoolIndex::Mmap(index) => index.is_on_disk(),
-        }
-    }
-
-    #[cfg(feature = "rocksdb")]
-    pub fn is_rocksdb(&self) -> bool {
-        match self {
-            BoolIndex::Simple(_) => true,
-            BoolIndex::Mmap(_) => false,
+            BoolIndex::Immutable(index) => index.is_on_disk(),
         }
     }
 
@@ -118,9 +106,8 @@ impl BoolIndex {
     /// Block until all pages are populated.
     pub fn populate(&self) -> OperationResult<()> {
         match self {
-            #[cfg(feature = "rocksdb")]
-            BoolIndex::Simple(_) => {} // Not a mmap
             BoolIndex::Mmap(index) => index.populate()?,
+            BoolIndex::Immutable(index) => index.populate()?,
         }
         Ok(())
     }
@@ -128,71 +115,79 @@ impl BoolIndex {
     /// Drop disk cache.
     pub fn clear_cache(&self) -> OperationResult<()> {
         match self {
-            #[cfg(feature = "rocksdb")]
-            BoolIndex::Simple(_) => {} // Not a mmap
             BoolIndex::Mmap(index) => index.clear_cache()?,
+            BoolIndex::Immutable(index) => index.clear_cache()?,
         }
         Ok(())
     }
 
     pub fn get_mutability_type(&self) -> IndexMutability {
         match self {
-            #[cfg(feature = "rocksdb")]
-            BoolIndex::Simple(_) => IndexMutability::Mutable,
             // Mmap bool index can be both mutable and immutable, so we pick mutable
             BoolIndex::Mmap(_) => IndexMutability::Mutable,
+            BoolIndex::Immutable(_) => IndexMutability::Immutable,
         }
     }
 
     pub fn get_storage_type(&self) -> StorageType {
         match self {
-            #[cfg(feature = "rocksdb")]
-            BoolIndex::Simple(_) => crate::index::payload_config::StorageType::RocksDb,
             BoolIndex::Mmap(index) => StorageType::Mmap {
+                is_on_disk: index.is_on_disk(),
+            },
+            BoolIndex::Immutable(index) => StorageType::Mmap {
                 is_on_disk: index.is_on_disk(),
             },
         }
     }
 }
 
+impl From<MutableBoolIndex> for BoolIndex {
+    #[inline]
+    fn from(index: MutableBoolIndex) -> Self {
+        BoolIndex::Mmap(index)
+    }
+}
+
+impl From<ImmutableBoolIndex> for BoolIndex {
+    #[inline]
+    fn from(index: ImmutableBoolIndex) -> Self {
+        BoolIndex::Immutable(index)
+    }
+}
+
 impl PayloadFieldIndex for BoolIndex {
     fn count_indexed_points(&self) -> usize {
         match self {
-            #[cfg(feature = "rocksdb")]
-            BoolIndex::Simple(index) => index.count_indexed_points(),
             BoolIndex::Mmap(index) => index.count_indexed_points(),
+            BoolIndex::Immutable(index) => index.count_indexed_points(),
         }
     }
 
     fn wipe(self) -> OperationResult<()> {
         match self {
-            #[cfg(feature = "rocksdb")]
-            BoolIndex::Simple(index) => index.wipe(),
             BoolIndex::Mmap(index) => index.wipe(),
+            BoolIndex::Immutable(index) => index.wipe(),
         }
     }
 
     fn flusher(&self) -> crate::common::Flusher {
         match self {
-            #[cfg(feature = "rocksdb")]
-            BoolIndex::Simple(index) => index.flusher(),
             BoolIndex::Mmap(index) => index.flusher(),
+            BoolIndex::Immutable(index) => index.flusher(),
         }
     }
 
     fn files(&self) -> Vec<std::path::PathBuf> {
         match self {
-            #[cfg(feature = "rocksdb")]
-            BoolIndex::Simple(index) => index.files(),
             BoolIndex::Mmap(index) => index.files(),
+            BoolIndex::Immutable(index) => index.files(),
         }
     }
 
     fn immutable_files(&self) -> Vec<std::path::PathBuf> {
         match self {
-            #[cfg(feature = "rocksdb")]
-            BoolIndex::Simple(_) => vec![],
             BoolIndex::Mmap(index) => index.immutable_files(),
+            BoolIndex::Immutable(index) => index.immutable_files(),
         }
     }
 
@@ -202,9 +197,8 @@ impl PayloadFieldIndex for BoolIndex {
         hw_counter: &'a HardwareCounterCell,
     ) -> OperationResult<Option<Box<dyn Iterator<Item = PointOffsetType> + 'a>>> {
         match self {
-            #[cfg(feature = "rocksdb")]
-            BoolIndex::Simple(index) => index.filter(condition, hw_counter),
             BoolIndex::Mmap(index) => index.filter(condition, hw_counter),
+            BoolIndex::Immutable(index) => index.filter(condition, hw_counter),
         }
     }
 
@@ -214,56 +208,70 @@ impl PayloadFieldIndex for BoolIndex {
         hw_counter: &HardwareCounterCell,
     ) -> OperationResult<Option<super::CardinalityEstimation>> {
         match self {
-            #[cfg(feature = "rocksdb")]
-            BoolIndex::Simple(index) => index.estimate_cardinality(condition, hw_counter),
             BoolIndex::Mmap(index) => index.estimate_cardinality(condition, hw_counter),
+            BoolIndex::Immutable(index) => index.estimate_cardinality(condition, hw_counter),
         }
     }
 
-    fn payload_blocks(
+    fn for_each_payload_block(
         &self,
         threshold: usize,
         key: crate::types::PayloadKeyType,
-    ) -> Box<dyn Iterator<Item = OperationResult<super::PayloadBlockCondition>> + '_> {
+        f: &mut dyn FnMut(super::PayloadBlockCondition) -> OperationResult<()>,
+    ) -> OperationResult<()> {
         match self {
-            #[cfg(feature = "rocksdb")]
-            BoolIndex::Simple(index) => index.payload_blocks(threshold, key),
-            BoolIndex::Mmap(index) => index.payload_blocks(threshold, key),
+            BoolIndex::Mmap(index) => index.for_each_payload_block(threshold, key, f),
+            BoolIndex::Immutable(index) => index.for_each_payload_block(threshold, key, f),
         }
     }
 }
 
 impl FacetIndex for BoolIndex {
-    fn get_point_values(
+    fn for_points_values(
         &self,
-        point_id: PointOffsetType,
-    ) -> impl Iterator<Item = FacetValueRef<'_>> + '_ {
-        self.get_point_values(point_id)
-            .into_iter()
-            .map(FacetValueRef::Bool)
+        points: impl Iterator<Item = PointOffsetType>,
+        _hw_counter: &HardwareCounterCell,
+        mut f: impl FnMut(PointOffsetType, &mut dyn Iterator<Item = FacetValueRef<'_>>),
+    ) -> OperationResult<()> {
+        points.for_each(|point_id| {
+            let values = self.get_point_values(point_id);
+            f(point_id, &mut values.into_iter().map(FacetValueRef::Bool));
+        });
+        Ok(())
     }
 
-    fn iter_values(&self) -> impl Iterator<Item = FacetValueRef<'_>> + '_ {
-        self.iter_values().map(FacetValueRef::Bool)
+    fn for_each_value(
+        &self,
+        mut f: impl FnMut(FacetValueRef<'_>) -> OperationResult<()>,
+    ) -> OperationResult<()> {
+        self.iter_values()
+            .try_for_each(|v| f(FacetValueRef::Bool(v)))
     }
 
-    fn iter_values_map<'a>(
-        &'a self,
-        hw_counter: &'a HardwareCounterCell,
-    ) -> impl Iterator<Item = (FacetValueRef<'a>, IdIter<'a>)> + 'a {
-        self.iter_values_map(hw_counter)
-            .map(|(value, iter)| (FacetValueRef::Bool(value), iter))
+    fn for_each_value_map(
+        &self,
+        hw_counter: &HardwareCounterCell,
+        mut f: impl FnMut(
+            FacetValueRef<'_>,
+            &mut dyn Iterator<Item = PointOffsetType>,
+        ) -> OperationResult<()>,
+    ) -> OperationResult<()> {
+        self.for_each_value_map(hw_counter, |value, iter| {
+            f(FacetValueRef::Bool(value), iter)
+        })
     }
 
-    fn iter_counts_per_value(
+    fn for_each_count_per_value(
         &self,
         deferred_internal_id: Option<PointOffsetType>,
-    ) -> impl Iterator<Item = FacetHit<FacetValueRef<'_>>> + '_ {
-        self.iter_counts_per_value(deferred_internal_id)
-            .map(|(value, count)| FacetHit {
+        mut f: impl FnMut(FacetHit<FacetValueRef<'_>>) -> OperationResult<()>,
+    ) -> OperationResult<()> {
+        self.for_each_count_per_value(deferred_internal_id, |value, count| {
+            f(FacetHit {
                 value: FacetValueRef::Bool(value),
                 count,
             })
+        })
     }
 }
 
@@ -277,9 +285,10 @@ impl ValueIndexer for BoolIndex {
         hw_counter: &HardwareCounterCell,
     ) -> OperationResult<()> {
         match self {
-            #[cfg(feature = "rocksdb")]
-            BoolIndex::Simple(index) => index.add_many(id, values, hw_counter),
             BoolIndex::Mmap(index) => index.add_many(id, values, hw_counter),
+            BoolIndex::Immutable(_) => Err(OperationError::service_error(
+                "Can't add values to immutable bool index",
+            )),
         }
     }
 
@@ -292,9 +301,8 @@ impl ValueIndexer for BoolIndex {
 
     fn remove_point(&mut self, id: PointOffsetType) -> OperationResult<()> {
         match self {
-            #[cfg(feature = "rocksdb")]
-            BoolIndex::Simple(index) => index.remove_point(id),
             BoolIndex::Mmap(index) => index.remove_point(id),
+            BoolIndex::Immutable(index) => index.remove_point(id),
         }
     }
 }
@@ -310,39 +318,55 @@ mod tests {
     use serde_json::json;
     use tempfile::Builder;
 
-    use super::BoolIndex;
-    use super::mutable_bool_index::MutableBoolIndex;
-    #[cfg(feature = "rocksdb")]
-    use super::simple_bool_index::SimpleBoolIndex;
-    #[cfg(feature = "rocksdb")]
-    use crate::common::rocksdb_wrapper::open_db_with_existing_cf;
-    use crate::index::field_index::{FieldIndexBuilderTrait as _, PayloadFieldIndex, ValueIndexer};
+    use super::immutable_bool_index::{ImmutableBoolIndex, ImmutableBoolIndexBuilder};
+    use super::mutable_bool_index::{MutableBoolIndex, MutableBoolIndexBuilder};
+    use crate::index::field_index::{FieldIndexBuilderTrait, PayloadFieldIndex, ValueIndexer};
     use crate::json_path::JsonPath;
 
     const FIELD_NAME: &str = "bool_field";
     const DB_NAME: &str = "test_db";
 
-    trait OpenIndex {
-        fn open_at(path: &Path) -> BoolIndex;
+    #[derive(Debug, Copy, Clone, PartialEq, Eq)]
+    enum IndexType {
+        Mutable,
+        Immutable,
     }
 
-    #[cfg(feature = "rocksdb")]
-    impl OpenIndex for SimpleBoolIndex {
-        fn open_at(path: &Path) -> BoolIndex {
-            let db = open_db_with_existing_cf(path).unwrap();
-            let index = SimpleBoolIndex::new(db.clone(), FIELD_NAME, true)
-                .unwrap()
-                .unwrap();
-            BoolIndex::Simple(index)
+    trait BuildableIndex: PayloadFieldIndex {
+        type BuilderType: FieldIndexBuilderTrait<FieldIndexType = Self>;
+
+        fn builder(path: &Path) -> Self::BuilderType;
+        fn open_at(path: &Path) -> Self;
+    }
+
+    impl BuildableIndex for MutableBoolIndex {
+        type BuilderType = MutableBoolIndexBuilder;
+
+        fn builder(path: &Path) -> Self::BuilderType {
+            MutableBoolIndex::builder(path).unwrap()
         }
-    }
 
-    impl OpenIndex for MutableBoolIndex {
-        fn open_at(path: &Path) -> BoolIndex {
+        fn open_at(path: &Path) -> Self {
             MutableBoolIndex::builder(path)
                 .unwrap()
                 .make_empty()
                 .unwrap()
+        }
+    }
+
+    impl BuildableIndex for ImmutableBoolIndex {
+        type BuilderType = ImmutableBoolIndexBuilder;
+
+        fn builder(path: &Path) -> Self::BuilderType {
+            ImmutableBoolIndex::builder(path).unwrap()
+        }
+
+        fn open_at(path: &Path) -> Self {
+            let mutable_index = MutableBoolIndex::builder(path)
+                .unwrap()
+                .make_empty()
+                .unwrap();
+            ImmutableBoolIndex::from_mutable(mutable_index).unwrap()
         }
     }
 
@@ -372,16 +396,17 @@ mod tests {
         ]
     }
 
-    fn filter<I: OpenIndex>(given: serde_json::Value, match_on: bool, expected_count: usize) {
+    fn filter<I: BuildableIndex>(given: serde_json::Value, match_on: bool, expected_count: usize) {
         let tmp_dir = Builder::new().prefix(DB_NAME).tempdir().unwrap();
-        let mut index = I::open_at(tmp_dir.path());
+        let mut builder = I::builder(tmp_dir.path());
 
         let hw_counter = HardwareCounterCell::new();
 
-        index.add_point(0, &[&given], &hw_counter).unwrap();
+        builder.add_point(0, &[&given], &hw_counter).unwrap();
 
         let hw_acc = HwMeasurementAcc::new();
         let hw_counter = hw_acc.get_counter_cell();
+        let index = builder.finalize().unwrap();
         let count = index
             .filter(&match_bool(match_on), &hw_counter)
             .unwrap()
@@ -400,10 +425,15 @@ mod tests {
     #[case(json!([false, true]), 1)]
     #[case(json!([false, false]), 0)]
     #[case(json!([true, true]), 1)]
-    fn test_filter_true(#[case] given: serde_json::Value, #[case] expected_count: usize) {
-        #[cfg(feature = "rocksdb")]
-        filter::<SimpleBoolIndex>(given.clone(), true, expected_count);
-        filter::<MutableBoolIndex>(given, true, expected_count);
+    fn test_filter_true(
+        #[case] given: serde_json::Value,
+        #[case] expected_count: usize,
+        #[values(IndexType::Mutable, IndexType::Immutable)] index_type: IndexType,
+    ) {
+        match index_type {
+            IndexType::Mutable => filter::<MutableBoolIndex>(given, true, expected_count),
+            IndexType::Immutable => filter::<ImmutableBoolIndex>(given, true, expected_count),
+        }
     }
 
     #[rstest]
@@ -415,22 +445,32 @@ mod tests {
     #[case(json!([false, true]), 1)]
     #[case(json!([false, false]), 1)]
     #[case(json!([true, true]), 0)]
-    fn test_filter_false(#[case] given: serde_json::Value, #[case] expected_count: usize) {
-        #[cfg(feature = "rocksdb")]
-        filter::<SimpleBoolIndex>(given.clone(), false, expected_count);
-        filter::<MutableBoolIndex>(given, false, expected_count);
+    fn test_filter_false(
+        #[case] given: serde_json::Value,
+        #[case] expected_count: usize,
+        #[values(IndexType::Mutable, IndexType::Immutable)] index_type: IndexType,
+    ) {
+        match index_type {
+            IndexType::Mutable => filter::<MutableBoolIndex>(given.clone(), false, expected_count),
+            IndexType::Immutable => {
+                filter::<ImmutableBoolIndex>(given.clone(), false, expected_count)
+            }
+        }
     }
 
-    #[test]
-    fn test_load_from_disk() {
-        #[cfg(feature = "rocksdb")]
-        load_from_disk::<SimpleBoolIndex>();
-        load_from_disk::<MutableBoolIndex>();
+    #[rstest]
+    fn test_load_from_disk(
+        #[values(IndexType::Mutable, IndexType::Immutable)] index_type: IndexType,
+    ) {
+        match index_type {
+            IndexType::Mutable => load_from_disk::<MutableBoolIndex>(),
+            IndexType::Immutable => load_from_disk::<ImmutableBoolIndex>(),
+        }
     }
 
-    fn load_from_disk<I: OpenIndex>() {
+    fn load_from_disk<I: BuildableIndex>() {
         let tmp_dir = Builder::new().prefix(DB_NAME).tempdir().unwrap();
-        let mut index = I::open_at(tmp_dir.path());
+        let mut builder = I::builder(tmp_dir.path());
 
         let hw_counter = HardwareCounterCell::new();
 
@@ -438,11 +478,11 @@ mod tests {
             .into_iter()
             .enumerate()
             .for_each(|(i, value)| {
-                index.add_point(i as u32, &[&value], &hw_counter).unwrap();
+                builder.add_point(i as u32, &[&value], &hw_counter).unwrap();
             });
 
+        let index = builder.finalize().unwrap();
         index.flusher()().unwrap();
-
         drop(index);
 
         let new_index = I::open_at(tmp_dir.path());
@@ -470,13 +510,14 @@ mod tests {
     #[case(json!(false), json!(true))]
     #[case(json!([false, true]), json!(true))]
     fn test_modify_value(#[case] before: serde_json::Value, #[case] after: serde_json::Value) {
-        #[cfg(feature = "rocksdb")]
-        modify_value::<SimpleBoolIndex>(before.clone(), after.clone());
         modify_value::<MutableBoolIndex>(before, after);
     }
 
     /// Try to modify from falsy to only true
-    fn modify_value<I: OpenIndex>(before: serde_json::Value, after: serde_json::Value) {
+    fn modify_value<I: BuildableIndex + ValueIndexer>(
+        before: serde_json::Value,
+        after: serde_json::Value,
+    ) {
         let tmp_dir = Builder::new().prefix(DB_NAME).tempdir().unwrap();
         let mut index = I::open_at(tmp_dir.path());
 
@@ -511,16 +552,19 @@ mod tests {
         assert!(point_offsets.is_empty());
     }
 
-    #[test]
-    fn test_indexed_count() {
-        #[cfg(feature = "rocksdb")]
-        indexed_count::<SimpleBoolIndex>();
-        indexed_count::<MutableBoolIndex>();
+    #[rstest]
+    fn test_indexed_count(
+        #[values(IndexType::Mutable, IndexType::Immutable)] index_type: IndexType,
+    ) {
+        match index_type {
+            IndexType::Mutable => indexed_count::<MutableBoolIndex>(),
+            IndexType::Immutable => indexed_count::<ImmutableBoolIndex>(),
+        }
     }
 
-    fn indexed_count<I: OpenIndex>() {
+    fn indexed_count<I: BuildableIndex + PayloadFieldIndex>() {
         let tmp_dir = Builder::new().prefix(DB_NAME).tempdir().unwrap();
-        let mut index = I::open_at(tmp_dir.path());
+        let mut builder = I::builder(tmp_dir.path());
 
         let hw_counter = HardwareCounterCell::new();
 
@@ -528,20 +572,20 @@ mod tests {
             .into_iter()
             .enumerate()
             .for_each(|(i, value)| {
-                index.add_point(i as u32, &[&value], &hw_counter).unwrap();
+                builder.add_point(i as u32, &[&value], &hw_counter).unwrap();
             });
+
+        let index = builder.finalize().unwrap();
 
         assert_eq!(index.count_indexed_points(), 9);
     }
 
     #[test]
     fn test_payload_blocks() {
-        #[cfg(feature = "rocksdb")]
-        payload_blocks::<SimpleBoolIndex>();
         payload_blocks::<MutableBoolIndex>();
     }
 
-    fn payload_blocks<I: OpenIndex>() {
+    fn payload_blocks<I: BuildableIndex + ValueIndexer>() {
         let tmp_dir = Builder::new().prefix(DB_NAME).tempdir().unwrap();
         let mut index = I::open_at(tmp_dir.path());
 
@@ -554,25 +598,31 @@ mod tests {
                 index.add_point(i as u32, &[&value], &hw_counter).unwrap();
             });
 
-        let blocks = index
-            .payload_blocks(0, JsonPath::new(FIELD_NAME))
-            .map(Result::unwrap)
-            .collect_vec();
+        let mut blocks = Vec::new();
+        index
+            .for_each_payload_block(0, JsonPath::new(FIELD_NAME), &mut |block| {
+                blocks.push(block);
+                Ok(())
+            })
+            .unwrap();
         assert_eq!(blocks.len(), 2);
         assert_eq!(blocks[0].cardinality, 6);
         assert_eq!(blocks[1].cardinality, 6);
     }
 
-    #[test]
-    fn test_estimate_cardinality() {
-        #[cfg(feature = "rocksdb")]
-        estimate_cardinality::<SimpleBoolIndex>();
-        estimate_cardinality::<MutableBoolIndex>();
+    #[rstest]
+    fn test_estimate_cardinality(
+        #[values(IndexType::Mutable, IndexType::Immutable)] index_type: IndexType,
+    ) {
+        match index_type {
+            IndexType::Mutable => estimate_cardinality::<MutableBoolIndex>(),
+            IndexType::Immutable => estimate_cardinality::<ImmutableBoolIndex>(),
+        }
     }
 
-    fn estimate_cardinality<I: OpenIndex>() {
+    fn estimate_cardinality<I: BuildableIndex>() {
         let tmp_dir = Builder::new().prefix(DB_NAME).tempdir().unwrap();
-        let mut index = I::open_at(tmp_dir.path());
+        let mut builder = I::builder(tmp_dir.path());
 
         let hw_counter = HardwareCounterCell::new();
 
@@ -580,11 +630,12 @@ mod tests {
             .into_iter()
             .enumerate()
             .for_each(|(i, value)| {
-                index.add_point(i as u32, &[&value], &hw_counter).unwrap();
+                builder.add_point(i as u32, &[&value], &hw_counter).unwrap();
             });
 
         let hw_counter = HardwareCounterCell::new();
 
+        let index = builder.finalize().unwrap();
         let cardinality = index
             .estimate_cardinality(&match_bool(true), &hw_counter)
             .unwrap()

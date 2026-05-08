@@ -7,7 +7,6 @@ use crate::data_types::vectors::TypedMultiDenseVectorRef;
 use crate::spaces::metric::Metric;
 use crate::types::{MultiVectorComparator, MultiVectorConfig};
 use crate::vector_storage::VectorOffset;
-use crate::vector_storage::common::VECTOR_READ_BATCH_SIZE;
 
 pub mod custom_query_scorer;
 pub mod metric_query_scorer;
@@ -23,12 +22,10 @@ pub trait QueryScorer {
 
     /// Score a batch of points
     ///
-    /// Enable underlying storage to optimize pre-fetching of data
+    /// Enables underlying storage to optimize pre-fetching of data
     fn score_stored_batch(&self, ids: &[PointOffsetType], scores: &mut [ScoreType]) {
-        debug_assert!(ids.len() <= VECTOR_READ_BATCH_SIZE);
         debug_assert_eq!(ids.len(), scores.len());
 
-        // no specific implementation for batch scoring
         for (idx, id) in ids.iter().enumerate() {
             scores[idx] = self.score_stored(*id);
         }

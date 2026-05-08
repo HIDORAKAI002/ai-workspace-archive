@@ -4,22 +4,23 @@ use std::sync::atomic::AtomicBool;
 
 use common::bitvec::BitSlice;
 use common::counter::hardware_counter::HardwareCounterCell;
-use common::generic_consts::AccessPattern;
+use common::generic_consts::{AccessPattern, Random};
 use common::iterator_ext::IteratorExt;
 use common::types::PointOffsetType;
+use common::universal_io::MmapFile;
 use fs_err as fs;
 use gridstore::Gridstore;
 use gridstore::config::{Compression, StorageOptions};
 use sparse::common::sparse_vector::SparseVector;
 
 use crate::common::flags::bitvec_flags::BitvecFlags;
-use crate::common::flags::dynamic_mmap_flags::DynamicMmapFlags;
+use crate::common::flags::dynamic_stored_flags::DynamicStoredFlags;
 use crate::common::operation_error::{OperationError, OperationResult, check_process_stopped};
 use crate::data_types::named_vectors::CowVector;
 use crate::data_types::vectors::VectorRef;
 use crate::types::VectorStorageDatatype;
 use crate::vector_storage::sparse::stored_sparse_vectors::StoredSparseVector;
-use crate::vector_storage::{SparseVectorStorage, VectorStorage};
+use crate::vector_storage::{SparseVectorStorage, VectorStorage, VectorStorageRead};
 
 const DELETED_DIRNAME: &str = "deleted";
 const STORAGE_DIRNAME: &str = "store";
@@ -32,7 +33,7 @@ pub struct MmapSparseVectorStorage {
     ///
     /// Structure grows dynamically, but may be smaller than actual number of vectors. Must not
     /// depend on its length.
-    deleted: BitvecFlags,
+    deleted: BitvecFlags<MmapFile>,
     /// Current number of deleted vectors.
     deleted_count: usize,
     /// Maximum point offset in the storage + 1. This also means the total amount of point offsets
@@ -65,7 +66,7 @@ impl MmapSparseVectorStorage {
 
         // Deleted flags
         let deleted_path = path.join(DELETED_DIRNAME);
-        let deleted = BitvecFlags::new(DynamicMmapFlags::open(&deleted_path, populate)?);
+        let deleted = BitvecFlags::new(DynamicStoredFlags::open(&deleted_path, populate)?)?;
 
         let deleted_count = deleted.count_trues();
         let next_point_offset = deleted
@@ -106,7 +107,7 @@ impl MmapSparseVectorStorage {
 
         // Deleted flags
         let deleted_path = path.join(DELETED_DIRNAME);
-        let deleted = BitvecFlags::new(DynamicMmapFlags::open(&deleted_path, populate)?);
+        let deleted = BitvecFlags::new(DynamicStoredFlags::open(&deleted_path, populate)?)?;
 
         Ok(Self {
             storage,
@@ -167,8 +168,14 @@ impl MmapSparseVectorStorage {
 
     /// Drop disk cache.
     pub fn clear_cache(&self) -> OperationResult<()> {
-        self.deleted.clear_cache()?;
-        self.storage.clear_cache()?;
+        let Self {
+            storage,
+            deleted,
+            deleted_count: _,
+            next_point_offset: _,
+        } = self;
+        deleted.clear_cache()?;
+        storage.clear_cache()?;
         Ok(())
     }
 }
@@ -188,9 +195,29 @@ impl SparseVectorStorage for MmapSparseVectorStorage {
             .map(SparseVector::try_from)
             .transpose()
     }
+
+    fn for_each_in_sparse_batch<F>(
+        &self,
+        keys: &[PointOffsetType],
+        mut callback: F,
+    ) -> OperationResult<()>
+    where
+        F: FnMut(usize, SparseVector),
+    {
+        self.storage.for_each_in_batch::<Random, _, OperationError>(
+            keys,
+            |idx, vector| {
+                if let Some(vector) = vector {
+                    callback(idx, SparseVector::try_from(vector)?);
+                }
+                Ok(())
+            },
+            &HardwareCounterCell::disposable(),
+        )
+    }
 }
 
-impl VectorStorage for MmapSparseVectorStorage {
+impl VectorStorageRead for MmapSparseVectorStorage {
     fn distance(&self) -> crate::types::Distance {
         super::SPARSE_VECTOR_DISTANCE
     }
@@ -222,6 +249,20 @@ impl VectorStorage for MmapSparseVectorStorage {
         }
     }
 
+    fn is_deleted_vector(&self, key: common::types::PointOffsetType) -> bool {
+        self.deleted.get(key)
+    }
+
+    fn deleted_vector_count(&self) -> usize {
+        self.deleted_count
+    }
+
+    fn deleted_vector_bitslice(&self) -> &BitSlice {
+        self.deleted.get_bitslice()
+    }
+}
+
+impl VectorStorage for MmapSparseVectorStorage {
     fn insert_vector(
         &mut self,
         key: PointOffsetType,
@@ -295,22 +336,10 @@ impl VectorStorage for MmapSparseVectorStorage {
 
         Ok(was_deleted)
     }
-
-    fn is_deleted_vector(&self, key: common::types::PointOffsetType) -> bool {
-        self.deleted.get(key)
-    }
-
-    fn deleted_vector_count(&self) -> usize {
-        self.deleted_count
-    }
-
-    fn deleted_vector_bitslice(&self) -> &BitSlice {
-        self.deleted.get_bitslice()
-    }
 }
 
 /// Find files related to this sparse vector storage
-#[cfg(any(test, feature = "rocksdb"))]
+#[cfg(test)]
 pub(crate) fn find_storage_files(vector_storage_path: &Path) -> OperationResult<Vec<PathBuf>> {
     let storage_path = vector_storage_path.join(STORAGE_DIRNAME);
     let deleted_path = vector_storage_path.join(DELETED_DIRNAME);

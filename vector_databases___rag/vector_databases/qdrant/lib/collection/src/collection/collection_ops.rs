@@ -13,7 +13,6 @@ use super::Collection;
 use crate::operations::config_diff::*;
 use crate::operations::shard_selector_internal::ShardSelectorInternal;
 use crate::operations::types::*;
-use crate::optimizers_builder::OptimizersConfig;
 use crate::shards::replica_set::Change;
 use crate::shards::replica_set::replica_set_state::ReplicaState;
 use crate::shards::shard::PeerId;
@@ -115,22 +114,6 @@ impl Collection {
         Ok(())
     }
 
-    /// Updates shard optimization params: Saves new params on disk
-    ///
-    /// After this, `recreate_optimizers_blocking` must be called to create new optimizers using
-    /// the updated configuration.
-    pub async fn update_optimizer_params(
-        &self,
-        optimizer_config: OptimizersConfig,
-    ) -> CollectionResult<()> {
-        {
-            let mut config = self.collection_config.write().await;
-            config.optimizer_config = optimizer_config;
-        }
-        self.collection_config.read().await.save(&self.path)?;
-        Ok(())
-    }
-
     /// Updates quantization config:
     /// Saves new params on disk
     ///
@@ -158,6 +141,11 @@ impl Collection {
                         .quantization_config
                         .replace(QuantizationConfig::Binary(binary));
                 }
+                QuantizationConfigDiff::Turbo(turbo) => {
+                    config
+                        .quantization_config
+                        .replace(QuantizationConfig::Turbo(turbo));
+                }
                 QuantizationConfigDiff::Disabled(_) => {
                     config.quantization_config = None;
                 }
@@ -184,32 +172,48 @@ impl Collection {
     }
 
     /// Updates the strict mode configuration and saves it to disk.
+    ///
+    /// Order matters: rate limiters on each shard are updated *before* the new
+    /// `strict_mode_config` is published to `self.collection_config`. Otherwise
+    /// readers of `info()` could observe `enabled=false` while a search arriving
+    /// on the same peer is still rejected by a not-yet-cleared rate limiter
+    /// (or vice versa for an enable).
     pub async fn update_strict_mode_config(
         &self,
         strict_mode_diff: StrictModeConfig,
     ) -> CollectionResult<()> {
+        // Compute the new strict-mode config without yet exposing it.
+        let new_strict_mode_config = {
+            let config = self.collection_config.read().await;
+            if let Some(current) = config.strict_mode_config.as_ref() {
+                current.update(&strict_mode_diff)
+            } else {
+                strict_mode_diff
+            }
+        };
+
+        // Apply rate-limiter changes to every shard first, so the visible config
+        // never lies about the active rate limit.
+        {
+            let shard_holder = self.shards_holder.write().await;
+            let updates = shard_holder.all_shards().map(|replica_set| {
+                replica_set.on_strict_mode_config_update(&new_strict_mode_config)
+            });
+            future::try_join_all(updates).await?;
+        }
+
+        // Publish the new config and persist it.
         {
             let mut config = self.collection_config.write().await;
-            if let Some(current_config) = config.strict_mode_config.as_mut() {
-                *current_config = current_config.update(&strict_mode_diff);
-            } else {
-                config.strict_mode_config = Some(strict_mode_diff);
-            }
+            config.strict_mode_config = Some(new_strict_mode_config);
         }
-        // update collection config
         self.collection_config.read().await.save(&self.path)?;
-        // apply config change to all shards
-        let mut shard_holder = self.shards_holder.write().await;
-        let updates = shard_holder
-            .all_shards_mut()
-            .map(|replica_set| replica_set.on_strict_mode_config_update());
-        future::try_join_all(updates).await?;
         Ok(())
     }
 
     /// Handle replica changes
     ///
-    /// add and remove replicas from replica set
+    /// Remove replicas from replica set
     pub async fn handle_replica_changes(
         &self,
         replica_changes: Vec<Change>,
@@ -219,35 +223,35 @@ impl Collection {
         }
 
         let shard_holder = self.shards_holder.read().await;
+        let mut to_remove = Vec::with_capacity(replica_changes.len());
 
         for change in replica_changes {
             let (shard_id, peer_id) = match change {
                 Change::Remove(shard_id, peer_id) => (shard_id, peer_id),
             };
 
-            let Some(replica_set) = shard_holder.get_shard(shard_id) else {
-                return Err(CollectionError::BadRequest {
-                    description: format!("Shard {} of {} not found", shard_id, self.name()),
-                });
+            let Some(replica_set) = shard_holder.get_shard(shard_id).cloned() else {
+                return Err(CollectionError::bad_request(format!(
+                    "Shard {shard_id} of {} not found",
+                    self.name(),
+                )));
             };
 
             let peers = replica_set.peers();
 
             if !peers.contains_key(&peer_id) {
-                return Err(CollectionError::BadRequest {
-                    description: format!("Peer {peer_id} has no replica of shard {shard_id}"),
-                });
+                return Err(CollectionError::bad_request(format!(
+                    "Peer {peer_id} has no replica of shard {shard_id}"
+                )));
             }
 
             // Check that we are not removing the *last* replica or the last *active* replica
             //
             // `is_last_active_replica` counts both `Active` and `ReshardingScaleDown` replicas!
             if peers.len() == 1 || replica_set.is_last_source_of_truth_replica(peer_id) {
-                return Err(CollectionError::BadRequest {
-                    description: format!(
-                        "Shard {shard_id} must have at least one active replica after removing {peer_id}",
-                    ),
-                });
+                return Err(CollectionError::bad_request(format!(
+                    "Shard {shard_id} must have at least one active replica after removing {peer_id}",
+                )));
             }
 
             let all_nodes_fixed_cancellation = self
@@ -264,9 +268,15 @@ impl Collection {
                     .get_transfers(|transfer| transfer.from == peer_id || transfer.to == peer_id)
             };
 
-            // ...and cancel transfer tasks and remove transfers from internal state
+            to_remove.push((replica_set, peer_id, transfers));
+        }
+
+        // Must release shard holder lock for abort_shard_transfer_and_resharding
+        drop(shard_holder);
+
+        for (replica_set, peer_id, transfers) in to_remove {
             for transfer in transfers {
-                self.abort_shard_transfer_and_resharding(transfer.key(), Some(&shard_holder))
+                self.abort_shard_transfer_and_resharding(transfer.key())
                     .await?;
             }
 
@@ -279,6 +289,7 @@ impl Collection {
             // the transfer should be cancelled (see the block right above this comment),
             // so no special handling is needed.
         }
+
         Ok(())
     }
 

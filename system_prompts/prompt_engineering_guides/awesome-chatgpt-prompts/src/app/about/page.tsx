@@ -125,6 +125,11 @@ const coreContributors = [
     x: "fatihsolhann",
   },
   {
+    username: "JohnPhamous",
+    role: "Performance (Vercel)",
+    x: "JohnPhamous",
+  },
+  {
     username: "claude-opus-4.5",
     displayName: "Claude Opus 4.5",
     role: "Core Coder, DevOps, Frontend, Backend, DB",
@@ -166,6 +171,15 @@ const designCredits = [
     role: "App Design and Layout, Colors",
     isAI: true,
     icon: "anthropic",
+  },
+];
+
+const securityCredits = [
+  {
+    username: "mdisec",
+    displayName: "Mehmet Ince",
+    role: "Security Fixes",
+    x: "mdisec",
   },
 ];
 
@@ -561,6 +575,53 @@ export default async function AboutPage() {
                   )}
                 </div>
               )}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Security */}
+      <section className="mb-10">
+        <h2 className="text-lg font-semibold mb-4">{t("securityTitle")}</h2>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {securityCredits.map((contributor) => (
+            <div
+              key={contributor.username}
+              className="flex items-center gap-3 p-3 border rounded-lg"
+            >
+              <Image
+                src={`https://github.com/${contributor.username}.png`}
+                alt=""
+                width={40}
+                height={40}
+                className="rounded-full shrink-0"
+              />
+              <div className="flex-1 min-w-0">
+                <div className="font-medium text-sm">
+                  {contributor.displayName ?? `@${contributor.username}`}
+                </div>
+                <div className="text-xs text-muted-foreground">{contributor.role}</div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Link
+                  href={`https://github.com/${contributor.username}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-1.5 rounded-md hover:bg-muted transition-colors"
+                  title="GitHub"
+                >
+                  <BrandIcon name="github" />
+                </Link>
+                <Link
+                  href={`https://x.com/${contributor.x}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-1.5 rounded-md hover:bg-muted transition-colors"
+                  title="X"
+                >
+                  <BrandIcon name="x" />
+                </Link>
+              </div>
             </div>
           ))}
         </div>

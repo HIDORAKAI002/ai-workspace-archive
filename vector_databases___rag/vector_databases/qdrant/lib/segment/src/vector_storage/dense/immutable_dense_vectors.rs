@@ -140,24 +140,62 @@ impl<T: PrimitiveVectorElement, S: UniversalRead<T>> ImmutableDenseVectors<T, S>
     }
 
     pub fn for_each_in_batch<F: FnMut(usize, &[T])>(&self, keys: &[PointOffsetType], mut f: F) {
-        debug_assert!(keys.len() <= VECTOR_READ_BATCH_SIZE);
+        #[cfg(target_os = "linux")]
+        if S::kind() == common::universal_io::UniversalKind::IoUring {
+            return self.for_each_in_batch_async(keys, f);
+        }
 
-        // The `f` is most likely a scorer function.
-        // Fetching all vectors first then scoring them is more cache friendly
-        // than fetching and scoring in a single loop.
+        // The `f` is most likely a scorer function. Fetching all vectors first, and then scoring
+        // them is more cache friendly, than fetching and scoring in a single loop.
 
         let mut vectors_buffer = [const { MaybeUninit::uninit() }; VECTOR_READ_BATCH_SIZE];
-        let vectors = if is_read_with_prefetch_efficient(keys) {
-            let iter = keys.iter().map(|key| self.get_vector::<Sequential>(*key));
-            maybe_uninit_fill_from(&mut vectors_buffer, iter).0
-        } else {
-            let iter = keys.iter().map(|key| self.get_vector::<Random>(*key));
-            maybe_uninit_fill_from(&mut vectors_buffer, iter).0
+
+        for (batch_idx, keys) in keys.chunks(VECTOR_READ_BATCH_SIZE).enumerate() {
+            let vectors = if is_read_with_prefetch_efficient(keys) {
+                let iter = keys
+                    .iter()
+                    .map(|&point_offset| self.get_vector::<Sequential>(point_offset));
+
+                maybe_uninit_fill_from(&mut vectors_buffer, iter).0
+            } else {
+                let iter = keys
+                    .iter()
+                    .map(|&point_offset| self.get_vector::<Random>(point_offset));
+
+                maybe_uninit_fill_from(&mut vectors_buffer, iter).0
+            };
+
+            let batch_offset = VECTOR_READ_BATCH_SIZE * batch_idx;
+
+            for (vector_idx, vec) in vectors.iter().enumerate() {
+                f(batch_offset + vector_idx, vec);
+            }
+        }
+    }
+
+    #[cfg_attr(not(target_os = "linux"), allow(dead_code))]
+    fn for_each_in_batch_async<F>(&self, keys: &[PointOffsetType], mut callback: F)
+    where
+        F: FnMut(usize, &[T]),
+    {
+        let ranges = keys.iter().enumerate().map(|(idx, &point_offset)| {
+            let range = ReadRange {
+                byte_offset: self.data_offset(point_offset).expect("point exists") as _,
+                length: self.dim as _,
+            };
+
+            (idx, range)
+        });
+
+        let callback = move |idx, vector: &[T]| {
+            callback(idx, vector);
+            Ok(())
         };
 
-        for (i, vec) in vectors.iter().enumerate() {
-            f(i, vec);
-        }
+        // access pattern does not matter for io_uring
+        self.storage
+            .read_batch::<Random, _>(ranges, callback)
+            .expect("vectors read");
     }
 
     /// Marks the key as deleted.
@@ -183,33 +221,23 @@ impl<T: PrimitiveVectorElement, S: UniversalRead<T>> ImmutableDenseVectors<T, S>
         &self.deleted
     }
 
-    /// Reads vectors for the given ids and calls the callback for each vector.
-    /// Tries to utilize asynchronous IO if possible.
-    /// In particular, uses io_uring on Linux and simple synchronous IO otherwise.
-    pub fn read_vectors_async<P: AccessPattern>(
-        &self,
-        points: &[PointOffsetType],
-        mut callback: impl FnMut(usize, PointOffsetType, &[T]),
-    ) -> OperationResult<()> {
-        let vector_size_bytes = size_of::<T>() * self.dim;
-        let ranges = points.iter().copied().map(|point| ReadRange {
-            byte_offset: (HEADER_SIZE + vector_size_bytes * point as usize) as _,
-            length: self.dim as _,
-        });
-
-        self.storage.read_batch::<P>(ranges, |idx, vector| {
-            let point = points.get(idx).copied().expect("point ID tracked");
-            callback(idx, point, vector);
-            Ok(())
-        })?;
-
-        Ok(())
-    }
-
     pub fn populate(&self) {
         if let Err(err) = self.storage.populate() {
             log::error!("Failed to populate vector storage: {err}");
         }
+    }
+
+    pub fn clear_cache(&self) -> OperationResult<()> {
+        let Self {
+            dim: _,
+            num_vectors: _,
+            storage,
+            deleted,
+            deleted_count: _,
+        } = self;
+        storage.clear_ram_cache()?;
+        deleted.clear_cache()?;
+        Ok(())
     }
 }
 
