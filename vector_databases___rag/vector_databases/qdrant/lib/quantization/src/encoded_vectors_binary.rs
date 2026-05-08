@@ -447,7 +447,7 @@ impl<TBitsStoreType: BitsStoreType, TStorage: EncodedStorage>
         };
 
         let vector_stats = if storage_encoding_needs_states || query_encoding_needs_stats {
-            Some(VectorStats::build(orig_data.clone(), vector_parameters))
+            Some(VectorStats::build(orig_data.clone(), vector_parameters.dim))
         } else {
             None
         };
@@ -472,7 +472,7 @@ impl<TBitsStoreType: BitsStoreType, TStorage: EncodedStorage>
             .map_err(|e| EncodingError::EncodingError(format!("Failed to build storage: {e}",)))?;
 
         let metadata = Metadata {
-            vector_parameters: vector_parameters.clone(),
+            vector_parameters: *vector_parameters,
             encoding,
             query_encoding,
             vector_stats,
@@ -796,8 +796,8 @@ impl<TBitsStoreType: BitsStoreType, TStorage: EncodedStorage>
             self.metadata.vector_parameters.invert,
         ) {
             // So if `invert` is true we return XOR, otherwise we return (dim - XOR)
-            (DistanceType::Dot, true) => xor_product - zeros_count,
-            (DistanceType::Dot, false) => zeros_count - xor_product,
+            (DistanceType::Dot | DistanceType::Cosine, true) => xor_product - zeros_count,
+            (DistanceType::Dot | DistanceType::Cosine, false) => zeros_count - xor_product,
             // This also results in exact ordering as L1 and L2 but reversed.
             (DistanceType::L1 | DistanceType::L2, true) => zeros_count - xor_product,
             (DistanceType::L1 | DistanceType::L2, false) => xor_product - zeros_count,
@@ -819,16 +819,6 @@ impl<TBitsStoreType: BitsStoreType, TStorage: EncodedStorage>
     pub fn get_vector_parameters(&self) -> &VectorParameters {
         &self.metadata.vector_parameters
     }
-
-    pub fn encode_internal_query(&self, point_id: u32) -> EncodedQueryBQ<TBitsStoreType> {
-        // For internal queries we use the same encoding as for storage
-        EncodedQueryBQ::Binary(EncodedBinVector {
-            encoded_vector: bytemuck::cast_slice::<u8, TBitsStoreType>(
-                &self.get_quantized_vector(point_id),
-            )
-            .to_vec(),
-        })
-    }
 }
 
 impl<TBitsStoreType: BitsStoreType, TStorage: EncodedStorage> EncodedVectors
@@ -848,6 +838,22 @@ impl<TBitsStoreType: BitsStoreType, TStorage: EncodedStorage> EncodedVectors
             self.metadata.encoding,
             self.metadata.query_encoding,
         )
+    }
+
+    fn for_each_in_batch<F>(&self, offsets: &[PointOffsetType], callback: F)
+    where
+        F: FnMut(usize, &[u8]),
+    {
+        self.encoded_vectors.for_each_in_batch(offsets, callback);
+    }
+
+    fn score(
+        &self,
+        query: &Self::EncodedQuery,
+        encoded_vector: &[u8],
+        hw_counter: &HardwareCounterCell,
+    ) -> f32 {
+        self.score_bytes(True, query, encoded_vector, hw_counter)
     }
 
     fn score_point(
@@ -942,6 +948,17 @@ impl<TBitsStoreType: BitsStoreType, TStorage: EncodedStorage> EncodedVectors
             files.push(meta_path.clone());
         }
         files
+    }
+
+    fn heap_size_bytes(&self) -> usize {
+        let storage_heap = self.encoded_vectors.heap_size_bytes();
+        let vector_stats_heap = self
+            .metadata
+            .vector_stats
+            .as_ref()
+            .map(|vs| vs.elements_stats.capacity() * std::mem::size_of::<VectorElementStats>())
+            .unwrap_or(0);
+        storage_heap + vector_stats_heap
     }
 
     type SupportsBytes = True;

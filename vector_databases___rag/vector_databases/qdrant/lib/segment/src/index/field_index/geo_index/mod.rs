@@ -1,26 +1,16 @@
 use std::cmp::{max, min};
-#[cfg(feature = "rocksdb")]
-use std::io::Write;
 use std::path::{Path, PathBuf};
-#[cfg(feature = "rocksdb")]
-use std::str::FromStr;
-#[cfg(feature = "rocksdb")]
-use std::sync::Arc;
 
+use common::bitvec::{BitSlice, BitVec};
 use common::counter::hardware_counter::HardwareCounterCell;
 use common::types::PointOffsetType;
-use itertools::Itertools;
+use common::universal_io::MmapFile;
+use itertools::{Either, Itertools};
 use mutable_geo_index::InMemoryGeoMapIndex;
-#[cfg(feature = "rocksdb")]
-use parking_lot::RwLock;
-#[cfg(feature = "rocksdb")]
-use rocksdb::DB;
 use serde_json::Value;
-#[cfg(feature = "rocksdb")]
-use smallvec::SmallVec;
 
 use self::immutable_geo_index::ImmutableGeoMapIndex;
-use self::mmap_geo_index::MmapGeoMapIndex;
+use self::mmap_geo_index::StoredGeoMapIndex;
 use self::mutable_geo_index::MutableGeoMapIndex;
 use super::FieldIndexBuilderTrait;
 use crate::common::Flusher;
@@ -48,35 +38,30 @@ const GEO_QUERY_MAX_REGION: usize = 12;
 pub enum GeoMapIndex {
     Mutable(MutableGeoMapIndex),
     Immutable(ImmutableGeoMapIndex),
-    Mmap(Box<MmapGeoMapIndex>),
+    Storage(Box<StoredGeoMapIndex<MmapFile>>),
 }
 
 impl GeoMapIndex {
-    #[cfg(feature = "rocksdb")]
-    pub fn new_memory(
-        db: Arc<RwLock<DB>>,
-        field: &str,
-        is_appendable: bool,
-        create_if_missing: bool,
+    pub fn new_mmap(
+        path: &Path,
+        is_on_disk: bool,
+        deleted_points: &BitSlice,
     ) -> OperationResult<Option<Self>> {
-        let store_cf_name = GeoMapIndex::storage_cf_name(field);
-        let index = if is_appendable {
-            MutableGeoMapIndex::open_rocksdb(db, &store_cf_name, create_if_missing)?
-                .map(GeoMapIndex::Mutable)
-        } else {
-            ImmutableGeoMapIndex::open_rocksdb(db, &store_cf_name)?.map(GeoMapIndex::Immutable)
-        };
-        Ok(index)
-    }
+        // Low-memory mode downgrades the in-RAM `Immutable` wrapper to the
+        // pure-mmap `Storage` variant at load time. Files are shared between
+        // variants; the persisted `is_on_disk` flag in `mmap_index` is
+        // untouched.
+        let effective_is_on_disk =
+            is_on_disk || common::low_memory::low_memory_mode().prefer_disk();
 
-    pub fn new_mmap(path: &Path, is_on_disk: bool) -> OperationResult<Option<Self>> {
-        let Some(mmap_index) = MmapGeoMapIndex::open(path, is_on_disk)? else {
+        let Some(mmap_index) = StoredGeoMapIndex::open(path, effective_is_on_disk, deleted_points)?
+        else {
             // Files don't exist, cannot load
             return Ok(None);
         };
 
-        let index = if is_on_disk {
-            GeoMapIndex::Mmap(Box::new(mmap_index))
+        let index = if effective_is_on_disk {
+            GeoMapIndex::Storage(Box::new(mmap_index))
         } else {
             GeoMapIndex::Immutable(ImmutableGeoMapIndex::open_mmap(mmap_index)?)
         };
@@ -88,34 +73,16 @@ impl GeoMapIndex {
         Ok(MutableGeoMapIndex::open_gridstore(dir, create_if_missing)?.map(GeoMapIndex::Mutable))
     }
 
-    #[cfg(feature = "rocksdb")]
-    pub fn builder(db: Arc<RwLock<DB>>, field: &str) -> OperationResult<GeoMapIndexBuilder> {
-        let index = Self::new_memory(db, field, true, true)?.ok_or_else(|| {
-            OperationError::service_error("Failed to open GeoMapIndex after creating it")
-        })?;
-        Ok(GeoMapIndexBuilder(index))
-    }
-
-    #[cfg(all(test, feature = "rocksdb"))]
-    pub fn builder_immutable(
-        db: Arc<RwLock<DB>>,
-        field: &str,
-    ) -> OperationResult<GeoMapImmutableIndexBuilder> {
-        let index = Self::new_memory(db.clone(), field, true, true)?.ok_or_else(|| {
-            OperationError::service_error("Failed to open GeoMapIndex after creating it")
-        })?;
-        Ok(GeoMapImmutableIndexBuilder {
-            index,
-            field: field.to_owned(),
-            db,
-        })
-    }
-
-    pub fn builder_mmap(path: &Path, is_on_disk: bool) -> GeoMapIndexMmapBuilder {
+    pub fn builder_mmap(
+        path: &Path,
+        is_on_disk: bool,
+        deleted_points: &BitSlice,
+    ) -> GeoMapIndexMmapBuilder {
         GeoMapIndexMmapBuilder {
             path: path.to_owned(),
             in_memory_index: InMemoryGeoMapIndex::new(),
             is_on_disk,
+            deleted_points: deleted_points.to_owned(),
         }
     }
 
@@ -127,7 +94,7 @@ impl GeoMapIndex {
         match self {
             GeoMapIndex::Mutable(index) => index.points_count(),
             GeoMapIndex::Immutable(index) => index.points_count(),
-            GeoMapIndex::Mmap(index) => index.points_count(),
+            GeoMapIndex::Storage(index) => index.points_count(),
         }
     }
 
@@ -135,7 +102,7 @@ impl GeoMapIndex {
         match self {
             GeoMapIndex::Mutable(index) => index.points_values_count(),
             GeoMapIndex::Immutable(index) => index.points_values_count(),
-            GeoMapIndex::Mmap(index) => index.points_values_count(),
+            GeoMapIndex::Storage(index) => index.points_values_count(),
         }
     }
 
@@ -148,11 +115,10 @@ impl GeoMapIndex {
         match self {
             GeoMapIndex::Mutable(index) => index.max_values_per_point(),
             GeoMapIndex::Immutable(index) => index.max_values_per_point(),
-            GeoMapIndex::Mmap(index) => index.max_values_per_point(),
+            GeoMapIndex::Storage(index) => index.max_values_per_point(),
         }
     }
 
-    #[expect(clippy::unnecessary_wraps, reason = "will return Err later")] // FIXME(uio-errors)
     fn points_of_hash(
         &self,
         hash: GeoHash,
@@ -161,11 +127,10 @@ impl GeoMapIndex {
         Ok(match self {
             GeoMapIndex::Mutable(index) => index.points_of_hash(hash),
             GeoMapIndex::Immutable(index) => index.points_of_hash(hash),
-            GeoMapIndex::Mmap(index) => index.points_of_hash(hash, hw_counter),
+            GeoMapIndex::Storage(index) => index.points_of_hash(hash, hw_counter)?,
         })
     }
 
-    #[expect(clippy::unnecessary_wraps, reason = "will return Err later")] // FIXME(uio-errors)
     fn values_of_hash(
         &self,
         hash: GeoHash,
@@ -174,71 +139,8 @@ impl GeoMapIndex {
         Ok(match self {
             GeoMapIndex::Mutable(index) => index.values_of_hash(hash),
             GeoMapIndex::Immutable(index) => index.values_of_hash(hash),
-            GeoMapIndex::Mmap(index) => index.values_of_hash(hash, hw_counter),
+            GeoMapIndex::Storage(index) => index.values_of_hash(hash, hw_counter)?,
         })
-    }
-
-    #[cfg(feature = "rocksdb")]
-    fn storage_cf_name(field: &str) -> String {
-        format!("{field}_geo")
-    }
-
-    /// Encode db key
-    ///
-    /// Maximum length is 23 bytes, e.g.: `dr5ruj4477kd/4294967295`
-    #[cfg(feature = "rocksdb")]
-    fn encode_db_key(value: GeoHash, idx: PointOffsetType) -> SmallVec<[u8; 23]> {
-        let mut result = SmallVec::new();
-        write!(result, "{value}/{idx}").unwrap();
-        result
-    }
-
-    #[cfg(feature = "rocksdb")]
-    fn decode_db_key<K>(s: K) -> OperationResult<(GeoHash, PointOffsetType)>
-    where
-        K: AsRef<[u8]>,
-    {
-        const DECODE_ERR: &str = "Index db parsing error: wrong data format";
-        let s = s.as_ref();
-        let separator_pos = s
-            .iter()
-            .rposition(|b| b == &b'/')
-            .ok_or_else(|| OperationError::service_error(DECODE_ERR))?;
-        if separator_pos == s.len() - 1 {
-            return Err(OperationError::service_error(DECODE_ERR));
-        }
-        let geohash = &s[..separator_pos];
-        let idx_bytes = &s[separator_pos + 1..];
-        // Use `from_ascii_radix` here once stabilized instead of intermediate string reference
-        let idx = PointOffsetType::from_str(std::str::from_utf8(idx_bytes).map_err(|_| {
-            OperationError::service_error("Index load error: UTF8 error while DB parsing")
-        })?)
-        .map_err(|_| OperationError::service_error(DECODE_ERR))?;
-        Ok((GeoHash::new(geohash).map_err(OperationError::from)?, idx))
-    }
-
-    #[cfg(feature = "rocksdb")]
-    fn decode_db_value<T: AsRef<[u8]>>(value: T) -> OperationResult<GeoPoint> {
-        let lat_bytes = value.as_ref()[0..8]
-            .try_into()
-            .map_err(|_| OperationError::service_error("invalid lat encoding"))?;
-
-        let lon_bytes = value.as_ref()[8..16]
-            .try_into()
-            .map_err(|_| OperationError::service_error("invalid lat encoding"))?;
-
-        let lat = f64::from_be_bytes(lat_bytes);
-        let lon = f64::from_be_bytes(lon_bytes);
-
-        Ok(GeoPoint::new_unchecked(lon, lat))
-    }
-
-    #[cfg(feature = "rocksdb")]
-    fn encode_db_value(value: &GeoPoint) -> [u8; 16] {
-        let mut result: [u8; 16] = [0; 16];
-        result[0..8].clone_from_slice(&value.lat.to_be_bytes());
-        result[8..16].clone_from_slice(&value.lon.to_be_bytes());
-        result
     }
 
     pub fn check_values_any(
@@ -250,7 +152,7 @@ impl GeoMapIndex {
         match self {
             GeoMapIndex::Mutable(index) => index.check_values_any(idx, check_fn),
             GeoMapIndex::Immutable(index) => index.check_values_any(idx, check_fn),
-            GeoMapIndex::Mmap(index) => index.check_values_any(idx, hw_counter, check_fn),
+            GeoMapIndex::Storage(index) => index.check_values_any(idx, hw_counter, check_fn),
         }
     }
 
@@ -258,7 +160,7 @@ impl GeoMapIndex {
         match self {
             GeoMapIndex::Mutable(index) => index.values_count(idx),
             GeoMapIndex::Immutable(index) => index.values_count(idx),
-            GeoMapIndex::Mmap(index) => index.values_count(idx),
+            GeoMapIndex::Storage(index) => index.values_count(idx),
         }
     }
 
@@ -271,7 +173,7 @@ impl GeoMapIndex {
             GeoMapIndex::Immutable(index) => {
                 index.get_values(idx).map(|x| Box::new(x.cloned()) as _)
             }
-            GeoMapIndex::Mmap(index) => index.get_values(idx).map(|x| Box::new(x) as _),
+            GeoMapIndex::Storage(index) => index.get_values(idx).map(|x| Box::new(x) as _),
         }
     }
 
@@ -338,35 +240,32 @@ impl GeoMapIndex {
             index_type: match self {
                 GeoMapIndex::Mutable(_) => "mutable_geo",
                 GeoMapIndex::Immutable(_) => "immutable_geo",
-                GeoMapIndex::Mmap(_) => "mmap_geo",
+                GeoMapIndex::Storage(_) => "mmap_geo",
             },
         }
     }
 
-    #[expect(clippy::unnecessary_wraps, reason = "will return Err later")] // FIXME(uio-errors)
     fn iterator(
         &self,
         values: Vec<GeoHash>,
-    ) -> OperationResult<Box<dyn Iterator<Item = PointOffsetType> + '_>> {
+    ) -> OperationResult<impl Iterator<Item = PointOffsetType> + '_> {
         match self {
-            GeoMapIndex::Mutable(index) => Ok(Box::new(
+            GeoMapIndex::Mutable(index) => Ok(Either::Left(Either::Right(
                 values
                     .into_iter()
                     .flat_map(|top_geo_hash| index.stored_sub_regions(top_geo_hash))
                     .unique(),
-            )),
-            GeoMapIndex::Immutable(index) => Ok(Box::new(
+            ))),
+            GeoMapIndex::Immutable(index) => Ok(Either::Left(Either::Left(
                 values
                     .into_iter()
                     .flat_map(|top_geo_hash| index.stored_sub_regions(top_geo_hash))
                     .unique(),
-            )),
-            GeoMapIndex::Mmap(index) => Ok(Box::new(
-                values
-                    .into_iter()
-                    .flat_map(|top_geo_hash| index.stored_sub_regions(top_geo_hash))
-                    .unique(),
-            )),
+            ))),
+            GeoMapIndex::Storage(index) => {
+                let result = index.all_points(values)?;
+                Ok(Either::Right(result.into_iter()))
+            }
         }
     }
 
@@ -374,7 +273,7 @@ impl GeoMapIndex {
     fn large_hashes(
         &self,
         threshold: usize,
-    ) -> impl Iterator<Item = OperationResult<(GeoHash, usize)>> + '_ {
+    ) -> OperationResult<impl Iterator<Item = (GeoHash, usize)> + '_> {
         let filter_condition =
             |(hash, size): &(GeoHash, usize)| *size > threshold && !hash.is_empty();
         let mut large_regions = match self {
@@ -386,10 +285,7 @@ impl GeoMapIndex {
                 .points_per_hash()
                 .filter(filter_condition)
                 .collect_vec(),
-            GeoMapIndex::Mmap(index) => index
-                .points_per_hash()
-                .filter(filter_condition)
-                .collect_vec(),
+            GeoMapIndex::Storage(index) => index.points_per_hash(filter_condition)?,
         };
 
         // smallest regions first
@@ -406,27 +302,27 @@ impl GeoMapIndex {
             }
         }
 
-        edge_region.into_iter().map(Ok)
+        Ok(edge_region.into_iter())
     }
 
     pub fn values_is_empty(&self, idx: PointOffsetType) -> bool {
         self.values_count(idx) == 0
     }
 
+    /// Approximate RAM usage in bytes for in-memory structures.
+    pub fn ram_usage_bytes(&self) -> usize {
+        match self {
+            GeoMapIndex::Mutable(index) => index.ram_usage_bytes(),
+            GeoMapIndex::Immutable(index) => index.ram_usage_bytes(),
+            GeoMapIndex::Storage(index) => index.ram_usage_bytes(),
+        }
+    }
+
     pub fn is_on_disk(&self) -> bool {
         match self {
             GeoMapIndex::Mutable(_) => false,
             GeoMapIndex::Immutable(_) => false,
-            GeoMapIndex::Mmap(index) => index.is_on_disk(),
-        }
-    }
-
-    #[cfg(feature = "rocksdb")]
-    pub fn is_rocksdb(&self) -> bool {
-        match self {
-            GeoMapIndex::Mutable(index) => index.is_rocksdb(),
-            GeoMapIndex::Immutable(index) => index.is_rocksdb(),
-            GeoMapIndex::Mmap(_) => false,
+            GeoMapIndex::Storage(index) => index.is_on_disk(),
         }
     }
 
@@ -436,7 +332,7 @@ impl GeoMapIndex {
         match self {
             GeoMapIndex::Mutable(_) => {}   // Not a mmap
             GeoMapIndex::Immutable(_) => {} // Not a mmap
-            GeoMapIndex::Mmap(index) => index.populate()?,
+            GeoMapIndex::Storage(index) => index.populate()?,
         }
         Ok(())
     }
@@ -448,7 +344,7 @@ impl GeoMapIndex {
             GeoMapIndex::Mutable(index) => index.clear_cache(),
             // Only clears backing mmap storage if used, not in-memory representation
             GeoMapIndex::Immutable(index) => index.clear_cache(),
-            GeoMapIndex::Mmap(index) => index.clear_cache(),
+            GeoMapIndex::Storage(index) => index.clear_cache(),
         }
     }
 
@@ -456,7 +352,7 @@ impl GeoMapIndex {
         match self {
             Self::Mutable(_) => IndexMutability::Mutable,
             Self::Immutable(_) => IndexMutability::Immutable,
-            Self::Mmap(_) => IndexMutability::Immutable,
+            Self::Storage(_) => IndexMutability::Immutable,
         }
     }
 
@@ -464,85 +360,10 @@ impl GeoMapIndex {
         match self {
             Self::Mutable(index) => index.storage_type(),
             Self::Immutable(index) => index.storage_type(),
-            Self::Mmap(index) => StorageType::Mmap {
+            Self::Storage(index) => StorageType::Mmap {
                 is_on_disk: index.is_on_disk(),
             },
         }
-    }
-}
-
-#[cfg(feature = "rocksdb")]
-pub struct GeoMapIndexBuilder(GeoMapIndex);
-
-#[cfg(feature = "rocksdb")]
-impl FieldIndexBuilderTrait for GeoMapIndexBuilder {
-    type FieldIndexType = GeoMapIndex;
-
-    fn init(&mut self) -> OperationResult<()> {
-        match &mut self.0 {
-            GeoMapIndex::Mutable(index) => index.clear(),
-            GeoMapIndex::Immutable(_) => Err(OperationError::service_error(
-                "Cannot use immutable index as a builder type",
-            )),
-            GeoMapIndex::Mmap(_) => Err(OperationError::service_error(
-                "Cannot use mmap index as a builder type",
-            )),
-        }
-    }
-
-    fn add_point(
-        &mut self,
-        id: PointOffsetType,
-        payload: &[&Value],
-        hw_counter: &HardwareCounterCell,
-    ) -> OperationResult<()> {
-        self.0.add_point(id, payload, hw_counter)
-    }
-
-    fn finalize(self) -> OperationResult<Self::FieldIndexType> {
-        Ok(self.0)
-    }
-}
-
-#[cfg(all(test, feature = "rocksdb"))]
-pub struct GeoMapImmutableIndexBuilder {
-    index: GeoMapIndex,
-    field: String,
-    db: Arc<RwLock<DB>>,
-}
-
-#[cfg(all(test, feature = "rocksdb"))]
-impl FieldIndexBuilderTrait for GeoMapImmutableIndexBuilder {
-    type FieldIndexType = GeoMapIndex;
-
-    fn init(&mut self) -> OperationResult<()> {
-        match &mut self.index {
-            GeoMapIndex::Mutable(index) => index.clear(),
-            GeoMapIndex::Immutable(_) => Err(OperationError::service_error(
-                "Cannot use immutable index as a builder type",
-            )),
-            GeoMapIndex::Mmap(_) => Err(OperationError::service_error(
-                "Cannot use mmap index as a builder type",
-            )),
-        }
-    }
-
-    fn add_point(
-        &mut self,
-        id: PointOffsetType,
-        payload: &[&Value],
-        hw_counter: &HardwareCounterCell,
-    ) -> OperationResult<()> {
-        self.index.add_point(id, payload, hw_counter)
-    }
-
-    fn finalize(self) -> OperationResult<Self::FieldIndexType> {
-        drop(self.index);
-        let immutable_index = GeoMapIndex::new_memory(self.db, &self.field, false, false)?
-            .ok_or_else(|| {
-                OperationError::service_error("Failed to open GeoMapIndex after creating it")
-            })?;
-        Ok(immutable_index)
     }
 }
 
@@ -550,6 +371,7 @@ pub struct GeoMapIndexMmapBuilder {
     path: PathBuf,
     in_memory_index: InMemoryGeoMapIndex,
     is_on_disk: bool,
+    deleted_points: BitVec,
 }
 
 impl FieldIndexBuilderTrait for GeoMapIndexMmapBuilder {
@@ -574,10 +396,11 @@ impl FieldIndexBuilderTrait for GeoMapIndexMmapBuilder {
     }
 
     fn finalize(self) -> OperationResult<Self::FieldIndexType> {
-        Ok(GeoMapIndex::Mmap(Box::new(MmapGeoMapIndex::build(
+        Ok(GeoMapIndex::Storage(Box::new(StoredGeoMapIndex::build(
             self.in_memory_index,
             &self.path,
             self.is_on_disk,
+            &self.deleted_points,
         )?)))
     }
 }
@@ -596,7 +419,7 @@ impl ValueIndexer for GeoMapIndex {
             GeoMapIndex::Immutable(_) => Err(OperationError::service_error(
                 "Can't add values to immutable geo index",
             )),
-            GeoMapIndex::Mmap(_) => Err(OperationError::service_error(
+            GeoMapIndex::Storage(_) => Err(OperationError::service_error(
                 "Can't add values to mmap geo index",
             )),
         }
@@ -621,7 +444,7 @@ impl ValueIndexer for GeoMapIndex {
         match self {
             GeoMapIndex::Mutable(index) => index.remove_point(id),
             GeoMapIndex::Immutable(index) => index.remove_point(id),
-            GeoMapIndex::Mmap(index) => {
+            GeoMapIndex::Storage(index) => {
                 index.remove_point(id);
                 Ok(())
             }
@@ -690,7 +513,7 @@ impl PayloadFieldIndex for GeoMapIndex {
         match self {
             GeoMapIndex::Mutable(index) => index.wipe(),
             GeoMapIndex::Immutable(index) => index.wipe(),
-            GeoMapIndex::Mmap(index) => index.wipe(),
+            GeoMapIndex::Storage(index) => index.wipe(),
         }
     }
 
@@ -698,7 +521,7 @@ impl PayloadFieldIndex for GeoMapIndex {
         match self {
             GeoMapIndex::Mutable(index) => index.flusher(),
             GeoMapIndex::Immutable(index) => index.flusher(),
-            GeoMapIndex::Mmap(index) => index.flusher(),
+            GeoMapIndex::Storage(index) => index.flusher(),
         }
     }
 
@@ -706,7 +529,7 @@ impl PayloadFieldIndex for GeoMapIndex {
         match &self {
             GeoMapIndex::Mutable(index) => index.files(),
             GeoMapIndex::Immutable(index) => index.files(),
-            GeoMapIndex::Mmap(index) => index.files(),
+            GeoMapIndex::Storage(index) => index.files(),
         }
     }
 
@@ -714,7 +537,7 @@ impl PayloadFieldIndex for GeoMapIndex {
         match &self {
             GeoMapIndex::Mutable(_) => vec![],
             GeoMapIndex::Immutable(index) => index.immutable_files(),
-            GeoMapIndex::Mmap(index) => index.immutable_files(),
+            GeoMapIndex::Storage(index) => index.immutable_files(),
         }
     }
 
@@ -724,14 +547,11 @@ impl PayloadFieldIndex for GeoMapIndex {
         hw_counter: &'a HardwareCounterCell,
     ) -> OperationResult<Option<Box<dyn Iterator<Item = PointOffsetType> + 'a>>> {
         if let Some(geo_bounding_box) = &condition.geo_bounding_box {
-            let Some(geo_hashes) = rectangle_hashes(geo_bounding_box, GEO_QUERY_MAX_REGION).ok()
-            else {
-                return Ok(None);
-            };
+            let geo_hashes = rectangle_hashes(geo_bounding_box, GEO_QUERY_MAX_REGION)?;
             let geo_condition_copy = *geo_bounding_box;
             return Ok(Some(Box::new(self.iterator(geo_hashes)?.filter(
-                move |point| {
-                    self.check_values_any(*point, hw_counter, |geo_point| {
+                move |&point| {
+                    self.check_values_any(point, hw_counter, |geo_point| {
                         geo_condition_copy.check_point(geo_point)
                     })
                 },
@@ -739,13 +559,11 @@ impl PayloadFieldIndex for GeoMapIndex {
         }
 
         if let Some(geo_radius) = &condition.geo_radius {
-            let Some(geo_hashes) = circle_hashes(geo_radius, GEO_QUERY_MAX_REGION).ok() else {
-                return Ok(None);
-            };
+            let geo_hashes = circle_hashes(geo_radius, GEO_QUERY_MAX_REGION)?;
             let geo_condition_copy = *geo_radius;
             return Ok(Some(Box::new(self.iterator(geo_hashes)?.filter(
-                move |point| {
-                    self.check_values_any(*point, hw_counter, |geo_point| {
+                move |&point| {
+                    self.check_values_any(point, hw_counter, |geo_point| {
                         geo_condition_copy.check_point(geo_point)
                     })
                 },
@@ -753,13 +571,11 @@ impl PayloadFieldIndex for GeoMapIndex {
         }
 
         if let Some(geo_polygon) = &condition.geo_polygon {
-            let Some(geo_hashes) = polygon_hashes(geo_polygon, GEO_QUERY_MAX_REGION).ok() else {
-                return Ok(None);
-            };
+            let geo_hashes = polygon_hashes(geo_polygon, GEO_QUERY_MAX_REGION)?;
             let geo_condition_copy = geo_polygon.convert();
             return Ok(Some(Box::new(self.iterator(geo_hashes)?.filter(
-                move |point| {
-                    self.check_values_any(*point, hw_counter, |geo_point| {
+                move |&point| {
+                    self.check_values_any(point, hw_counter, |geo_point| {
                         geo_condition_copy.check_point(geo_point)
                     })
                 },
@@ -826,21 +642,22 @@ impl PayloadFieldIndex for GeoMapIndex {
         Ok(None)
     }
 
-    fn payload_blocks(
+    fn for_each_payload_block(
         &self,
         threshold: usize,
         key: PayloadKeyType,
-    ) -> Box<dyn Iterator<Item = OperationResult<PayloadBlockCondition>> + '_> {
-        Box::new(
-            self.large_hashes(threshold)
-                .map_ok(move |(geo_hash, size)| PayloadBlockCondition {
+        f: &mut dyn FnMut(PayloadBlockCondition) -> OperationResult<()>,
+    ) -> OperationResult<()> {
+        self.large_hashes(threshold)?
+            .try_for_each(|(geo_hash, size)| {
+                f(PayloadBlockCondition {
                     condition: FieldCondition::new_geo_bounding_box(
                         key.clone(),
                         geo_hash_to_box(geo_hash),
                     ),
                     cardinality: size,
-                }),
-        )
+                })
+            })
     }
 }
 
@@ -850,6 +667,7 @@ mod tests {
     use std::ops::Range;
 
     use common::counter::hardware_accumulator::HwMeasurementAcc;
+    use common::universal_io::MmapFile;
     use itertools::Itertools;
     use ordered_float::OrderedFloat;
     use rand::SeedableRng;
@@ -859,35 +677,43 @@ mod tests {
     use tempfile::{Builder, TempDir};
 
     use super::*;
-    #[cfg(feature = "rocksdb")]
-    use crate::common::rocksdb_wrapper::open_db_with_existing_cf;
     use crate::fixtures::payload_fixtures::random_geo_payload;
     use crate::json_path::JsonPath;
     use crate::types::test_utils::build_polygon;
     use crate::types::{GeoBoundingBox, GeoLineString, GeoPolygon, GeoRadius};
 
-    #[cfg(feature = "rocksdb")]
-    type Database = std::sync::Arc<parking_lot::RwLock<DB>>;
-    #[cfg(not(feature = "rocksdb"))]
+    /// Generous default size for the deleted-points bitslice used in tests.
+    ///
+    /// Must be larger than the stored mmap deletion bitslice for any test in
+    /// this file (which is sized to the highest point id, rounded up to a
+    /// `usize` boundary). 4096 bits comfortably covers all current tests.
+    const TEST_DELETED_BITS: usize = 4096;
+
+    /// All-zero deletion bitslice for tests that don't care about deletions.
+    fn empty_deleted() -> BitVec {
+        BitVec::repeat(false, TEST_DELETED_BITS)
+    }
+
+    /// Deletion bitslice with specific points marked as deleted.
+    fn deleted_with(points: &[PointOffsetType]) -> BitVec {
+        let mut v = empty_deleted();
+        for &p in points {
+            v.set(p as usize, true);
+        }
+        v
+    }
+
     type Database = ();
 
     #[derive(Clone, Copy, PartialEq, Debug)]
     enum IndexType {
-        #[cfg(feature = "rocksdb")]
-        Mutable,
         MutableGridstore,
-        #[cfg(feature = "rocksdb")]
-        Immutable,
         Mmap,
         RamMmap,
     }
 
     enum IndexBuilder {
-        #[cfg(feature = "rocksdb")]
-        Mutable(GeoMapIndexBuilder),
         MutableGridstore(GeoMapIndexGridstoreBuilder),
-        #[cfg(feature = "rocksdb")]
-        Immutable(GeoMapImmutableIndexBuilder),
         Mmap(GeoMapIndexMmapBuilder),
         RamMmap(GeoMapIndexMmapBuilder),
     }
@@ -900,13 +726,9 @@ mod tests {
             hw_counter: &HardwareCounterCell,
         ) -> OperationResult<()> {
             match self {
-                #[cfg(feature = "rocksdb")]
-                IndexBuilder::Mutable(builder) => builder.add_point(id, payload, hw_counter),
                 IndexBuilder::MutableGridstore(builder) => {
                     builder.add_point(id, payload, hw_counter)
                 }
-                #[cfg(feature = "rocksdb")]
-                IndexBuilder::Immutable(builder) => builder.add_point(id, payload, hw_counter),
                 IndexBuilder::Mmap(builder) => builder.add_point(id, payload, hw_counter),
                 IndexBuilder::RamMmap(builder) => builder.add_point(id, payload, hw_counter),
             }
@@ -914,14 +736,10 @@ mod tests {
 
         fn finalize(self) -> OperationResult<GeoMapIndex> {
             match self {
-                #[cfg(feature = "rocksdb")]
-                IndexBuilder::Mutable(builder) => builder.finalize(),
                 IndexBuilder::MutableGridstore(builder) => builder.finalize(),
-                #[cfg(feature = "rocksdb")]
-                IndexBuilder::Immutable(builder) => builder.finalize(),
                 IndexBuilder::Mmap(builder) => builder.finalize(),
                 IndexBuilder::RamMmap(builder) => {
-                    let GeoMapIndex::Mmap(index) = builder.finalize()? else {
+                    let GeoMapIndex::Storage(index) = builder.finalize()? else {
                         panic!("expected mmap index");
                     };
 
@@ -944,9 +762,6 @@ mod tests {
 
     const LOS_ANGELES: GeoPoint = GeoPoint::new_unchecked(-118.243683, 34.052235);
 
-    #[cfg(feature = "rocksdb")]
-    const FIELD_NAME: &str = "test";
-
     fn condition_for_geo_radius(key: &str, geo_radius: GeoRadius) -> FieldCondition {
         FieldCondition::new_geo_radius(JsonPath::new(key), geo_radius)
     }
@@ -963,34 +778,25 @@ mod tests {
     fn create_builder(index_type: IndexType) -> (IndexBuilder, TempDir, Database) {
         let temp_dir = Builder::new().prefix("test_dir").tempdir().unwrap();
 
-        #[cfg(feature = "rocksdb")]
-        let db = open_db_with_existing_cf(&temp_dir.path().join("test_db")).unwrap();
-        #[cfg(not(feature = "rocksdb"))]
         let db = ();
 
         let mut builder = match index_type {
-            #[cfg(feature = "rocksdb")]
-            IndexType::Mutable => {
-                IndexBuilder::Mutable(GeoMapIndex::builder(db.clone(), FIELD_NAME).unwrap())
-            }
             IndexType::MutableGridstore => IndexBuilder::MutableGridstore(
                 GeoMapIndex::builder_gridstore(temp_dir.path().to_path_buf()),
             ),
-            #[cfg(feature = "rocksdb")]
-            IndexType::Immutable => IndexBuilder::Immutable(
-                GeoMapIndex::builder_immutable(db.clone(), FIELD_NAME).unwrap(),
-            ),
-            IndexType::Mmap => IndexBuilder::Mmap(GeoMapIndex::builder_mmap(temp_dir.path(), true)),
-            IndexType::RamMmap => {
-                IndexBuilder::RamMmap(GeoMapIndex::builder_mmap(temp_dir.path(), false))
-            }
+            IndexType::Mmap => IndexBuilder::Mmap(GeoMapIndex::builder_mmap(
+                temp_dir.path(),
+                true,
+                &empty_deleted(),
+            )),
+            IndexType::RamMmap => IndexBuilder::RamMmap(GeoMapIndex::builder_mmap(
+                temp_dir.path(),
+                false,
+                &empty_deleted(),
+            )),
         };
         match &mut builder {
-            #[cfg(feature = "rocksdb")]
-            IndexBuilder::Mutable(builder) => builder.init().unwrap(),
             IndexBuilder::MutableGridstore(builder) => builder.init().unwrap(),
-            #[cfg(feature = "rocksdb")]
-            IndexBuilder::Immutable(builder) => builder.init().unwrap(),
             IndexBuilder::Mmap(builder) => builder.init().unwrap(),
             IndexBuilder::RamMmap(builder) => builder.init().unwrap(),
         }
@@ -1065,9 +871,7 @@ mod tests {
     }
 
     #[rstest]
-    #[cfg_attr(feature = "rocksdb", case(IndexType::Mutable))]
     #[case(IndexType::MutableGridstore)]
-    #[cfg_attr(feature = "rocksdb", case(IndexType::Immutable))]
     #[case(IndexType::Mmap)]
     #[case(IndexType::RamMmap)]
     fn test_polygon_with_exclusion(#[case] index_type: IndexType) {
@@ -1141,9 +945,7 @@ mod tests {
     }
 
     #[rstest]
-    #[cfg_attr(feature = "rocksdb", case(IndexType::Mutable))]
     #[case(IndexType::MutableGridstore)]
-    #[cfg_attr(feature = "rocksdb", case(IndexType::Immutable))]
     #[case(IndexType::Mmap)]
     #[case(IndexType::RamMmap)]
     fn match_cardinality(#[case] index_type: IndexType) {
@@ -1197,9 +999,7 @@ mod tests {
     }
 
     #[rstest]
-    #[cfg_attr(feature = "rocksdb", case(IndexType::Mutable))]
     #[case(IndexType::MutableGridstore)]
-    #[cfg_attr(feature = "rocksdb", case(IndexType::Immutable))]
     #[case(IndexType::Mmap)]
     #[case(IndexType::RamMmap)]
     fn geo_indexed_filtering(#[case] index_type: IndexType) {
@@ -1265,9 +1065,7 @@ mod tests {
     }
 
     #[rstest]
-    #[cfg_attr(feature = "rocksdb", case(IndexType::Mutable))]
     #[case(IndexType::MutableGridstore)]
-    #[cfg_attr(feature = "rocksdb", case(IndexType::Immutable))]
     #[case(IndexType::Mmap)]
     #[case(IndexType::RamMmap)]
     fn test_payload_blocks(#[case] index_type: IndexType) {
@@ -1277,10 +1075,7 @@ mod tests {
             .points_of_hash(Default::default(), &hw_counter)
             .unwrap();
         assert_eq!(top_level_points, 1_000);
-        let block_hashes = field_index
-            .large_hashes(100)
-            .map(Result::unwrap)
-            .collect_vec();
+        let block_hashes = field_index.large_hashes(100).unwrap().collect_vec();
         assert!(!block_hashes.is_empty());
         for (geohash, size) in block_hashes {
             assert_eq!(geohash.len(), 1);
@@ -1288,10 +1083,13 @@ mod tests {
             assert!(size < 1000);
         }
 
-        let blocks = field_index
-            .payload_blocks(100, JsonPath::new("test"))
-            .map(Result::unwrap)
-            .collect_vec();
+        let mut blocks = Vec::new();
+        field_index
+            .for_each_payload_block(100, JsonPath::new("test"), &mut |block| {
+                blocks.push(block);
+                Ok(())
+            })
+            .unwrap();
         blocks.iter().for_each(|block| {
             let hw_acc = HwMeasurementAcc::new();
             let hw_counter = hw_acc.get_counter_cell();
@@ -1305,9 +1103,7 @@ mod tests {
     }
 
     #[rstest]
-    #[cfg_attr(feature = "rocksdb", case(IndexType::Mutable))]
     #[case(IndexType::MutableGridstore)]
-    #[cfg_attr(feature = "rocksdb", case(IndexType::Immutable))]
     #[case(IndexType::Mmap)]
     #[case(IndexType::RamMmap)]
     fn match_cardinality_point_with_multi_far_geo_payload(#[case] index_type: IndexType) {
@@ -1405,9 +1201,7 @@ mod tests {
     }
 
     #[rstest]
-    #[cfg_attr(feature = "rocksdb", case(IndexType::Mutable))]
     #[case(IndexType::MutableGridstore)]
-    #[cfg_attr(feature = "rocksdb", case(IndexType::Immutable))]
     #[case(IndexType::Mmap)]
     #[case(IndexType::RamMmap)]
     fn match_cardinality_point_with_multi_close_geo_payload(#[case] index_type: IndexType) {
@@ -1456,9 +1250,7 @@ mod tests {
     }
 
     #[rstest]
-    #[cfg_attr(feature = "rocksdb", case(IndexType::Mutable))]
     #[case(IndexType::MutableGridstore)]
-    #[cfg_attr(feature = "rocksdb", case(IndexType::Immutable))]
     #[case(IndexType::Mmap)]
     #[case(IndexType::RamMmap)]
     fn load_from_disk(#[case] index_type: IndexType) {
@@ -1481,28 +1273,18 @@ mod tests {
             temp_dir
         };
 
-        #[cfg(feature = "rocksdb")]
-        let db = open_db_with_existing_cf(&temp_dir.path().join("test_db")).unwrap();
         let new_index = match index_type {
-            #[cfg(feature = "rocksdb")]
-            IndexType::Mutable => GeoMapIndex::new_memory(db, FIELD_NAME, true, true)
-                .unwrap()
-                .unwrap(),
             IndexType::MutableGridstore => {
                 GeoMapIndex::new_gridstore(temp_dir.path().to_path_buf(), true)
                     .unwrap()
                     .unwrap()
             }
-            #[cfg(feature = "rocksdb")]
-            IndexType::Immutable => GeoMapIndex::new_memory(db, FIELD_NAME, false, true)
-                .unwrap()
-                .unwrap(),
-            IndexType::Mmap => GeoMapIndex::new_mmap(temp_dir.path(), false)
+            IndexType::Mmap => GeoMapIndex::new_mmap(temp_dir.path(), false, &empty_deleted())
                 .unwrap()
                 .unwrap(),
             IndexType::RamMmap => GeoMapIndex::Immutable(
                 ImmutableGeoMapIndex::open_mmap(
-                    MmapGeoMapIndex::open(temp_dir.path(), false)
+                    StoredGeoMapIndex::open(temp_dir.path(), false, &empty_deleted())
                         .unwrap()
                         .unwrap(),
                 )
@@ -1540,9 +1322,7 @@ mod tests {
     }
 
     #[rstest]
-    #[cfg_attr(feature = "rocksdb", case(IndexType::Mutable))]
     #[case(IndexType::MutableGridstore)]
-    #[cfg_attr(feature = "rocksdb", case(IndexType::Immutable))]
     #[case(IndexType::Mmap)]
     #[case(IndexType::RamMmap)]
     fn same_geo_index_between_points_test(#[case] index_type: IndexType) {
@@ -1576,28 +1356,18 @@ mod tests {
             temp_dir
         };
 
-        #[cfg(feature = "rocksdb")]
-        let db = open_db_with_existing_cf(&temp_dir.path().join("test_db")).unwrap();
         let new_index = match index_type {
-            #[cfg(feature = "rocksdb")]
-            IndexType::Mutable => GeoMapIndex::new_memory(db, FIELD_NAME, true, true)
-                .unwrap()
-                .unwrap(),
             IndexType::MutableGridstore => {
                 GeoMapIndex::new_gridstore(temp_dir.path().to_path_buf(), true)
                     .unwrap()
                     .unwrap()
             }
-            #[cfg(feature = "rocksdb")]
-            IndexType::Immutable => GeoMapIndex::new_memory(db, FIELD_NAME, false, true)
-                .unwrap()
-                .unwrap(),
-            IndexType::Mmap => GeoMapIndex::new_mmap(temp_dir.path(), false)
+            IndexType::Mmap => GeoMapIndex::new_mmap(temp_dir.path(), false, &deleted_with(&[1]))
                 .unwrap()
                 .unwrap(),
             IndexType::RamMmap => GeoMapIndex::Immutable(
                 ImmutableGeoMapIndex::open_mmap(
-                    MmapGeoMapIndex::open(temp_dir.path(), false)
+                    StoredGeoMapIndex::open(temp_dir.path(), false, &deleted_with(&[1]))
                         .unwrap()
                         .unwrap(),
                 )
@@ -1611,9 +1381,7 @@ mod tests {
     }
 
     #[rstest]
-    #[cfg_attr(feature = "rocksdb", case(IndexType::Mutable))]
     #[case(IndexType::MutableGridstore)]
-    #[cfg_attr(feature = "rocksdb", case(IndexType::Immutable))]
     #[case(IndexType::Mmap)]
     #[case(IndexType::RamMmap)]
     fn test_empty_index_cardinality(#[case] index_type: IndexType) {
@@ -1689,9 +1457,7 @@ mod tests {
     }
 
     #[rstest]
-    #[cfg_attr(feature = "rocksdb", case(IndexType::Mutable))]
     #[case(IndexType::MutableGridstore)]
-    #[cfg_attr(feature = "rocksdb", case(IndexType::Immutable))]
     #[case(IndexType::Mmap)]
     #[case(IndexType::RamMmap)]
     fn query_across_antimeridian(#[case] index_type: IndexType) {
@@ -1759,7 +1525,6 @@ mod tests {
     /// `points_map` entry, and the second iteration can't find it — triggering
     /// a spurious warning.
     #[rstest]
-    #[cfg_attr(feature = "rocksdb", case(IndexType::Mutable))]
     #[case(IndexType::MutableGridstore)]
     fn test_remove_point_with_duplicate_geo_values(#[case] index_type: IndexType) {
         let (mut builder, _temp_dir, _db) = create_builder(index_type);
@@ -1817,7 +1582,6 @@ mod tests {
     /// with geo payloads. This exercises repeated add/remove cycles on the
     /// mutable geo index to check for index corruption.
     #[rstest]
-    #[cfg_attr(feature = "rocksdb", case(IndexType::Mutable))]
     #[case(IndexType::MutableGridstore)]
     fn test_frequent_add_remove_geo_points(#[case] index_type: IndexType) {
         let (mut builder, _temp_dir, _db) = create_builder(index_type);
@@ -1870,10 +1634,8 @@ mod tests {
     }
 
     #[rstest]
-    #[cfg_attr(feature = "rocksdb", case(&[IndexType::Mutable, IndexType::MutableGridstore, IndexType::Immutable, IndexType::Mmap, IndexType::RamMmap], false))]
-    #[cfg_attr(feature = "rocksdb", case(&[IndexType::Mutable, IndexType::MutableGridstore, IndexType::Immutable, IndexType::RamMmap], true))]
-    #[cfg_attr(not(feature = "rocksdb"), case(&[IndexType::MutableGridstore, IndexType::Mmap, IndexType::RamMmap], false))]
-    #[cfg_attr(not(feature = "rocksdb"), case(&[IndexType::MutableGridstore, IndexType::RamMmap], true))]
+    #[case(&[IndexType::MutableGridstore, IndexType::Mmap, IndexType::RamMmap], false)]
+    #[case(&[IndexType::MutableGridstore, IndexType::RamMmap], true)]
     fn test_congruence(#[case] types: &[IndexType], #[case] deleted: bool) {
         const POINT_COUNT: usize = 500;
 
@@ -1935,12 +1697,12 @@ mod tests {
             assert_eq!(
                 indices[0]
                     .large_hashes(20)
-                    .map(Result::unwrap)
+                    .unwrap()
                     .map(|(hash, _)| hash)
                     .collect::<BTreeSet<_>>(),
                 index
                     .large_hashes(20)
-                    .map(Result::unwrap)
+                    .unwrap()
                     .map(|(hash, _)| hash)
                     .collect::<BTreeSet<_>>(),
             );
@@ -1977,5 +1739,328 @@ mod tests {
                 );
             }
         }
+    }
+
+    /// Cross-check that [`StoredGeoMapIndex::all_points`] produces the same
+    /// point set as the mutable and immutable index implementations for a
+    /// variety of prefix configurations (single region, disjoint regions,
+    /// overlapping ancestor/descendant prefixes).
+    #[test]
+    fn test_all_points_congruence() {
+        const POINT_COUNT: usize = 500;
+
+        let (mut mutable_index, _mutable_tmp, _) =
+            build_random_index(POINT_COUNT, 20, IndexType::MutableGridstore);
+        let (mut immutable_index, _immutable_tmp, _) =
+            build_random_index(POINT_COUNT, 20, IndexType::RamMmap);
+        let (mut mmap_index, _mmap_tmp, _) = build_random_index(POINT_COUNT, 20, IndexType::Mmap);
+
+        let GeoMapIndex::Storage(storage_index) = &mmap_index else {
+            panic!("expected Mmap variant to build into Storage");
+        };
+
+        // Case 1: single contiguous region (Europe-ish polygon).
+        let europe_polygon = GeoPolygon {
+            exterior: GeoLineString {
+                points: vec![
+                    GeoPoint::new_unchecked(19.415558242000287, 69.18533258102943),
+                    GeoPoint::new_unchecked(2.4664944437317615, 61.852748225727254),
+                    GeoPoint::new_unchecked(2.713789718828849, 51.80793869181895),
+                    GeoPoint::new_unchecked(19.415558242000287, 69.18533258102943),
+                ],
+            },
+            interiors: None,
+        };
+        let europe_hashes = polygon_hashes(&europe_polygon, GEO_QUERY_MAX_REGION).unwrap();
+
+        // Case 2: two disjoint regions (NYC + Tokyo). Forces the prefix
+        // cursor inside `all_points` to traverse non-matching entries
+        // between the two prefix groups.
+        let nyc_circle = GeoRadius {
+            center: NYC,
+            radius: OrderedFloat(300_000.0),
+        };
+        let tokyo_circle = GeoRadius {
+            center: TOKYO,
+            radius: OrderedFloat(300_000.0),
+        };
+        let mut disjoint_hashes = circle_hashes(&nyc_circle, GEO_QUERY_MAX_REGION).unwrap();
+        disjoint_hashes.extend(circle_hashes(&tokyo_circle, GEO_QUERY_MAX_REGION).unwrap());
+
+        // Case 3: same set as Case 1 but with every prefix duplicated and
+        // with a shorter ancestor prefix added for the first hash. This
+        // exercises both the exact-duplicate `dedup()` and the
+        // ancestor-subsumption `dedup_by` paths in `all_points`.
+        let mut overlapping_hashes = europe_hashes.clone();
+        overlapping_hashes.extend(europe_hashes.iter().copied());
+        if let Some(first) = europe_hashes.first() {
+            let len = first.len();
+            if len > 2 {
+                overlapping_hashes.push(first.truncate(len - 1));
+                overlapping_hashes.push(first.truncate(len - 2));
+            }
+        }
+
+        // Case 4: a very large region (global-ish polygon) to stress the
+        // full-range traversal path where the cursor reaches the last
+        // prefix and keeps scanning deep into the points_map.
+        let global_polygon = GeoPolygon {
+            exterior: GeoLineString {
+                points: vec![
+                    GeoPoint::new_unchecked(-170.0, -80.0),
+                    GeoPoint::new_unchecked(170.0, -80.0),
+                    GeoPoint::new_unchecked(170.0, 80.0),
+                    GeoPoint::new_unchecked(-170.0, 80.0),
+                    GeoPoint::new_unchecked(-170.0, -80.0),
+                ],
+            },
+            interiors: None,
+        };
+        let global_hashes = polygon_hashes(&global_polygon, GEO_QUERY_MAX_REGION).unwrap();
+
+        let cases: Vec<(&str, Vec<GeoHash>)> = vec![
+            ("europe_single_region", europe_hashes),
+            ("nyc_plus_tokyo_disjoint", disjoint_hashes),
+            ("overlapping_and_duplicated", overlapping_hashes),
+            ("global_large_region", global_hashes),
+        ];
+
+        let assert_all_points_match =
+            |mutable_index: &GeoMapIndex,
+             immutable_index: &GeoMapIndex,
+             storage_index: &super::mmap_geo_index::StoredGeoMapIndex<MmapFile>,
+             cases: &[(&str, Vec<GeoHash>)],
+             phase: &str| {
+                for (name, hashes) in cases {
+                    let hashes = hashes.clone();
+                    let mutable_result: HashSet<PointOffsetType> =
+                        mutable_index.iterator(hashes.clone()).unwrap().collect();
+
+                    let immutable_result: HashSet<PointOffsetType> =
+                        immutable_index.iterator(hashes.clone()).unwrap().collect();
+
+                    let all_points_result: HashSet<PointOffsetType> = storage_index
+                        .all_points(hashes)
+                        .unwrap()
+                        .into_iter()
+                        .collect();
+
+                    assert_eq!(
+                        mutable_result, immutable_result,
+                        "{phase}: case `{name}`: mutable vs immutable differ",
+                    );
+                    assert_eq!(
+                        mutable_result, all_points_result,
+                        "{phase}: case `{name}`: mutable vs all_points differ",
+                    );
+                }
+            };
+
+        assert_all_points_match(
+            &mutable_index,
+            &immutable_index,
+            storage_index,
+            &cases,
+            "baseline",
+        );
+
+        const DELETED_POINT_IDS: &[PointOffsetType] = &[10, 11, 12, 100, 150];
+        for &id in DELETED_POINT_IDS {
+            mutable_index.remove_point(id).unwrap();
+            immutable_index.remove_point(id).unwrap();
+            mmap_index.remove_point(id).unwrap();
+        }
+
+        let GeoMapIndex::Storage(storage_index) = &mmap_index else {
+            panic!("expected Mmap variant to build into Storage");
+        };
+
+        assert_all_points_match(
+            &mutable_index,
+            &immutable_index,
+            storage_index,
+            &cases,
+            "after point deletions",
+        );
+    }
+
+    /// Reload contract: runtime deletions are not persisted by the mmap geo
+    /// index. Callers must re-supply the deletion bitslice on reload.
+    #[rstest]
+    #[case(IndexType::MutableGridstore)]
+    #[case(IndexType::Mmap)]
+    #[case(IndexType::RamMmap)]
+    fn test_geo_index_reload(#[case] index_type: IndexType) {
+        let temp_dir = {
+            let (mut builder, temp_dir, _) = create_builder(index_type);
+
+            let hw_counter = HardwareCounterCell::new();
+
+            // ids 1..=4 in/near Berlin, ids 5..=6 in Tokyo, id 7 in NYC.
+            let berlin = json!({ "lon": BERLIN.lon, "lat": BERLIN.lat });
+            let potsdam = json!({ "lon": POTSDAM.lon, "lat": POTSDAM.lat });
+            let tokyo = json!({ "lon": TOKYO.lon, "lat": TOKYO.lat });
+            let nyc = json!({ "lon": NYC.lon, "lat": NYC.lat });
+
+            builder.add_point(1, &[&berlin], &hw_counter).unwrap();
+            builder.add_point(2, &[&berlin], &hw_counter).unwrap();
+            builder.add_point(3, &[&potsdam], &hw_counter).unwrap();
+            builder.add_point(4, &[&potsdam], &hw_counter).unwrap();
+            builder.add_point(5, &[&tokyo], &hw_counter).unwrap();
+            builder.add_point(6, &[&tokyo], &hw_counter).unwrap();
+            builder.add_point(7, &[&nyc], &hw_counter).unwrap();
+
+            let mut index = builder.finalize().unwrap();
+
+            // Remove some points and flush. For Mmap/RamMmap the flush is a
+            // no-op for the deletion bitvec — the test below verifies the
+            // reload contract.
+            index.remove_point(2).unwrap();
+            index.remove_point(3).unwrap();
+            index.remove_point(6).unwrap();
+            index.flusher()().unwrap();
+            assert_eq!(index.points_count(), 4);
+            drop(index);
+            temp_dir
+        };
+
+        // Reload from disk, re-supplying the runtime deletions for the mmap
+        // variants. For the gridstore variant the argument is ignored.
+        let deleted = deleted_with(&[2, 3, 6]);
+        let new_index = match index_type {
+            IndexType::MutableGridstore => {
+                GeoMapIndex::new_gridstore(temp_dir.path().to_path_buf(), true)
+                    .unwrap()
+                    .unwrap()
+            }
+            IndexType::Mmap => GeoMapIndex::new_mmap(temp_dir.path(), false, &deleted)
+                .unwrap()
+                .unwrap(),
+            IndexType::RamMmap => GeoMapIndex::Immutable(
+                ImmutableGeoMapIndex::open_mmap(
+                    StoredGeoMapIndex::open(temp_dir.path(), false, &deleted)
+                        .unwrap()
+                        .unwrap(),
+                )
+                .unwrap(),
+            ),
+        };
+
+        assert_eq!(new_index.points_count(), 4);
+
+        // Berlin radius covers Berlin + Potsdam — ids 1, 2, 3, 4 originally,
+        // expect 1, 4 after deletions.
+        let berlin_radius = GeoRadius {
+            center: BERLIN,
+            radius: OrderedFloat(50_000.0),
+        };
+        let field_condition = condition_for_geo_radius("test", berlin_radius);
+        let hw_acc = HwMeasurementAcc::new();
+        let hw_counter = hw_acc.get_counter_cell();
+        let mut hits: Vec<PointOffsetType> = new_index
+            .filter(&field_condition, &hw_counter)
+            .unwrap()
+            .unwrap()
+            .collect();
+        hits.sort();
+        assert_eq!(hits, vec![1, 4]);
+
+        // Tokyo radius — id 5 only after deletion of 6.
+        let tokyo_radius = GeoRadius {
+            center: TOKYO,
+            radius: OrderedFloat(50_000.0),
+        };
+        let field_condition = condition_for_geo_radius("test", tokyo_radius);
+        let hw_acc = HwMeasurementAcc::new();
+        let hw_counter = hw_acc.get_counter_cell();
+        let mut hits: Vec<PointOffsetType> = new_index
+            .filter(&field_condition, &hw_counter)
+            .unwrap()
+            .unwrap()
+            .collect();
+        hits.sort();
+        assert_eq!(hits, vec![5]);
+
+        // NYC radius — id 7 untouched.
+        let nyc_radius = GeoRadius {
+            center: NYC,
+            radius: OrderedFloat(50_000.0),
+        };
+        let field_condition = condition_for_geo_radius("test", nyc_radius);
+        let hw_acc = HwMeasurementAcc::new();
+        let hw_counter = hw_acc.get_counter_cell();
+        let mut hits: Vec<PointOffsetType> = new_index
+            .filter(&field_condition, &hw_counter)
+            .unwrap()
+            .unwrap()
+            .collect();
+        hits.sort();
+        assert_eq!(hits, vec![7]);
+    }
+
+    /// Regression test: when reloading an mmap geo index with a `deleted_points`
+    /// bitslice shorter than `point_to_values.len()`, missing entries must
+    /// default to live, not deleted. Empty-payload bits from the on-disk
+    /// `deleted.bin` and any deletions encoded inside the short bitslice must
+    /// still be honored.
+    #[rstest]
+    #[case(IndexType::Mmap)]
+    #[case(IndexType::RamMmap)]
+    fn test_geo_index_reload_short_deleted_bitslice(#[case] index_type: IndexType) {
+        let temp_dir = {
+            let (mut builder, temp_dir, _) = create_builder(index_type);
+
+            let hw_counter = HardwareCounterCell::new();
+
+            let berlin = json!({ "lon": BERLIN.lon, "lat": BERLIN.lat });
+
+            // ids 1..=4 with Berlin payload; id 3 has an empty payload, so
+            // build-time `deleted.bin` will mark it.
+            builder.add_point(1, &[&berlin], &hw_counter).unwrap();
+            builder.add_point(2, &[&berlin], &hw_counter).unwrap();
+            builder.add_point(3, &[], &hw_counter).unwrap();
+            builder.add_point(4, &[&berlin], &hw_counter).unwrap();
+
+            builder.finalize().unwrap();
+            temp_dir
+        };
+
+        // Reload with a bitslice shorter than `point_to_values.len()` that
+        // marks point 1 as deleted. Models an id-tracker whose internal range
+        // hasn't yet caught up to the index's highest internal id.
+        let mut short_deleted = BitVec::repeat(false, 2);
+        short_deleted.set(1, true);
+        let new_index = match index_type {
+            IndexType::Mmap => GeoMapIndex::new_mmap(temp_dir.path(), false, &short_deleted)
+                .unwrap()
+                .unwrap(),
+            IndexType::RamMmap => GeoMapIndex::Immutable(
+                ImmutableGeoMapIndex::open_mmap(
+                    StoredGeoMapIndex::open(temp_dir.path(), false, &short_deleted)
+                        .unwrap()
+                        .unwrap(),
+                )
+                .unwrap(),
+            ),
+            IndexType::MutableGridstore => unreachable!(),
+        };
+
+        // Expect: id 1 deleted (from short bitslice), id 3 deleted (from
+        // build-time empty payload), ids 2 and 4 live (with id 4 being beyond
+        // the short bitslice).
+        let berlin_radius = GeoRadius {
+            center: BERLIN,
+            radius: OrderedFloat(50_000.0),
+        };
+        let field_condition = condition_for_geo_radius("test", berlin_radius);
+        let hw_acc = HwMeasurementAcc::new();
+        let hw_counter = hw_acc.get_counter_cell();
+        let mut hits: Vec<PointOffsetType> = new_index
+            .filter(&field_condition, &hw_counter)
+            .unwrap()
+            .unwrap()
+            .collect();
+        hits.sort();
+        assert_eq!(hits, vec![2, 4]);
     }
 }

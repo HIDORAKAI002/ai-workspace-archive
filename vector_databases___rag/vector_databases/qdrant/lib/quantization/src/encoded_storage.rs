@@ -20,6 +20,16 @@ use fs_err::File;
 pub trait EncodedStorage {
     fn get_vector_data(&self, index: PointOffsetType) -> Cow<'_, [u8]>;
 
+    fn for_each_in_batch<F>(&self, offsets: &[PointOffsetType], mut callback: F)
+    where
+        F: FnMut(usize, &[u8]),
+    {
+        for (idx, &offset) in offsets.iter().enumerate() {
+            let vector = self.get_vector_data(offset);
+            callback(idx, &vector);
+        }
+    }
+
     fn is_on_disk(&self) -> bool;
 
     fn upsert_vector(
@@ -36,6 +46,10 @@ pub trait EncodedStorage {
     fn files(&self) -> Vec<PathBuf>;
 
     fn immutable_files(&self) -> Vec<PathBuf>;
+
+    /// Additional heap memory used by this storage beyond what's tracked in files.
+    /// RAM-based storages should report their in-memory data size here.
+    fn heap_size_bytes(&self) -> usize;
 }
 
 pub trait EncodedStorageBuilder {
@@ -147,6 +161,16 @@ impl EncodedStorage for TestEncodedStorage {
 
     fn immutable_files(&self) -> Vec<PathBuf> {
         self.files()
+    }
+
+    fn heap_size_bytes(&self) -> usize {
+        let Self {
+            data,
+            quantized_vector_size: _,
+            path: _,
+        } = self;
+
+        data.capacity()
     }
 }
 

@@ -361,11 +361,24 @@ message BinaryQuantization {
   optional BinaryQuantizationQueryEncoding query_encoding = 3;
 }
 
+message TurboQuantization{
+  optional bool always_ram = 1;
+  optional TurboQuantBitSize bits = 2;
+}
+
+enum TurboQuantBitSize{
+  Bits1 = 0;
+  Bits1_5 = 1;
+  Bits2 = 2;
+  Bits4 = 3;
+}
+
 message QuantizationConfig {
   oneof quantization {
     ScalarQuantization scalar = 1;
     ProductQuantization product = 2;
     BinaryQuantization binary = 3;
+    TurboQuantization turboquant = 4;
   }
 }
 
@@ -377,6 +390,7 @@ message QuantizationConfigDiff {
     ProductQuantization product = 2;
     Disabled disabled = 3;
     BinaryQuantization binary = 4;
+    TurboQuantization turboquant = 5;
   }
 }
 
@@ -428,6 +442,9 @@ message StrictModeConfig {
   optional uint64 max_points_count = 18;
   // Max number of payload indexes in a collection
   optional uint64 max_payload_index_count = 19;
+  // Reject memory-consuming update operations when process resident memory exceeds this percentage of total RAM (cgroup-aware, 1-100).
+  // Delete-style operations are still allowed so memory can be freed.
+  optional uint32 max_resident_memory_percent = 21;
 }
 
 message StrictModeSparseConfig {

@@ -107,7 +107,7 @@ impl<TStorage: EncodedStorage> EncodedVectorsPQ<TStorage> {
         let metadata = Metadata {
             centroids,
             vector_division,
-            vector_parameters: vector_parameters.clone(),
+            vector_parameters: *vector_parameters,
         };
         if let Some(meta_path) = meta_path {
             meta_path
@@ -533,6 +533,22 @@ impl<TStorage: EncodedStorage> EncodedVectors for EncodedVectorsPQ<TStorage> {
         EncodedQueryPQ { lut }
     }
 
+    fn for_each_in_batch<F>(&self, offsets: &[PointOffsetType], callback: F)
+    where
+        F: FnMut(usize, &[u8]),
+    {
+        self.encoded_vectors.for_each_in_batch(offsets, callback);
+    }
+
+    fn score(
+        &self,
+        query: &Self::EncodedQuery,
+        encoded_vector: &[u8],
+        hw_counter: &HardwareCounterCell,
+    ) -> f32 {
+        self.score_bytes(True, query, encoded_vector, hw_counter)
+    }
+
     fn score_point(
         &self,
         query: &EncodedQueryPQ,
@@ -638,6 +654,23 @@ impl<TStorage: EncodedStorage> EncodedVectors for EncodedVectorsPQ<TStorage> {
             files.push(meta_path.clone());
         }
         files
+    }
+
+    fn heap_size_bytes(&self) -> usize {
+        let storage_heap = self.encoded_vectors.heap_size_bytes();
+        // PQ centroids: Vec<Vec<f32>> — outer Vec holds inner Vec structs,
+        // each inner Vec holds centroid floats
+        let centroids_heap: usize = self.metadata.centroids.capacity()
+            * std::mem::size_of::<Vec<f32>>()
+            + self
+                .metadata
+                .centroids
+                .iter()
+                .map(|c| c.capacity() * std::mem::size_of::<f32>())
+                .sum::<usize>();
+        let vector_division_heap =
+            self.metadata.vector_division.capacity() * std::mem::size_of::<Range<usize>>();
+        storage_heap + centroids_heap + vector_division_heap
     }
 
     type SupportsBytes = True;

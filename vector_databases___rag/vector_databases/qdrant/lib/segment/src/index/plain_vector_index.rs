@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -5,6 +6,7 @@ use atomic_refcell::AtomicRefCell;
 use common::counter::hardware_counter::HardwareCounterCell;
 use common::types::{PointOffsetType, ScoredPointOffset, TelemetryDetail};
 use parking_lot::Mutex;
+use sparse::common::types::DimId;
 
 use super::hnsw_index::point_scorer::BatchFilteredSearcher;
 use crate::common::BYTES_IN_KB;
@@ -14,16 +16,16 @@ use crate::common::operation_time_statistics::{
 };
 use crate::data_types::query_context::VectorQueryContext;
 use crate::data_types::vectors::{QueryVector, VectorRef};
-use crate::id_tracker::{IdTracker, IdTrackerEnum};
+use crate::id_tracker::{IdTrackerEnum, IdTrackerRead};
 use crate::index::struct_payload_index::StructPayloadIndex;
 use crate::index::vector_index_search_common::{
     get_oversampled_top, is_quantized_search, postprocess_search_result,
 };
-use crate::index::{PayloadIndex, VectorIndex};
+use crate::index::{PayloadIndexRead, VectorIndex, VectorIndexRead};
 use crate::telemetry::VectorIndexSearchesTelemetry;
 use crate::types::{Filter, SearchParams};
 use crate::vector_storage::quantized::quantized_vectors::QuantizedVectors;
-use crate::vector_storage::{VectorStorage, VectorStorageEnum};
+use crate::vector_storage::{VectorStorage, VectorStorageEnum, VectorStorageRead};
 
 #[derive(Debug)]
 pub struct PlainVectorIndex {
@@ -80,7 +82,7 @@ impl PlainVectorIndex {
     }
 }
 
-impl VectorIndex for PlainVectorIndex {
+impl VectorIndexRead for PlainVectorIndex {
     fn search(
         &self,
         query_vectors: &[&QueryVector],
@@ -89,7 +91,7 @@ impl VectorIndex for PlainVectorIndex {
         params: Option<&SearchParams>,
         query_context: &VectorQueryContext,
     ) -> OperationResult<Vec<Vec<ScoredPointOffset>>> {
-        let is_indexed_only = params.map(|p| p.indexed_only).unwrap_or(false);
+        let is_indexed_only = params.is_some_and(|p| p.indexed_only);
         if is_indexed_only
             && !self.is_small_enough_for_unindexed_search(
                 query_context.search_optimized_threshold_kb(),
@@ -185,10 +187,6 @@ impl VectorIndex for PlainVectorIndex {
         }
     }
 
-    fn files(&self) -> Vec<PathBuf> {
-        vec![]
-    }
-
     fn indexed_vector_count(&self) -> usize {
         0
     }
@@ -197,6 +195,24 @@ impl VectorIndex for PlainVectorIndex {
         self.vector_storage
             .borrow()
             .size_of_available_vectors_in_bytes()
+    }
+
+    fn fill_idf_statistics(
+        &self,
+        _idf: &mut HashMap<DimId, usize>,
+        _hw_counter: &HardwareCounterCell,
+    ) {
+        // Plain (dense) index doesn't track IDF.
+    }
+
+    fn is_index(&self) -> bool {
+        false
+    }
+}
+
+impl VectorIndex for PlainVectorIndex {
+    fn files(&self) -> Vec<PathBuf> {
+        vec![]
     }
 
     fn update_vector(

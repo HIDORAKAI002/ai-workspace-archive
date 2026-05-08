@@ -78,10 +78,7 @@ paths:
   - examples/assets_pandas_type_metadata
   - examples/data-quality-patterns
   - examples/development_to_production
-  - examples/docs_projects/project_ask_ai_dagster
-  - examples/docs_projects/project_dagster_modal_pipes
-  - examples/docs_projects/project_dspy
-  - examples/docs_projects/project_mini
+  - examples/docs_projects
   - examples/docs_snippets
   - examples/experimental/assets_yaml_dsl
   - examples/ingestion-patterns
@@ -131,3 +128,34 @@ paths:
   - python_modules/dagster/dagster_tests/general_tests
   - python_modules/dagster/dagster/_cli
   - python_modules/dagster/dagster_tests/cli_tests
+  - python_modules/dagster/dagster/components
+  - python_modules/dagster/dagster_tests/components_tests
+  - python_modules/dagster/dagster/_core/execution
+  - python_modules/dagster/dagster_tests/execution_tests
+  - python_modules/dagster/dagster_tests/launcher_tests
+  - python_modules/dagit
+  - docs/sphinx/_ext/dagster-sphinx
+  - integration_tests/test_suites/backcompat-test-suite
+  - integration_tests/python_modules/dagster-k8s-test-infra
+  - integration_tests/test_suites/celery-k8s-test-suite
+  - integration_tests/test_suites/k8s-test-suite
+  - integration_tests/test_suites/daemon-test-suite
+  - integration_tests/test_suites/dagster-azure-live-tests
+  - python_modules/automation
+  - scripts
+  - python_modules/dagster/dagster/_core/definitions/assets
+  - python_modules/dagster/dagster/_core/definitions/asset_checks
+  - python_modules/dagster/dagster/_core/definitions/asset_health
+  - python_modules/dagster/dagster/_core/definitions/decorators
+  - python_modules/dagster/dagster_tests/asset_defs_tests
+  - python_modules/dagster/dagster_tests/freshness_tests
+  - python_modules/dagster-test
+  - python_modules/dagster/dagster/_core/definitions/partitions
+  - python_modules/dagster/dagster_tests/definitions_tests/test_dynamic_partitions.py
+  - python_modules/dagster/dagster_tests/definitions_tests/test_multi_partitions.py
+  - python_modules/dagster/dagster_tests/definitions_tests/test_partitioned_schedule.py
+  - python_modules/dagster/dagster_tests/definitions_tests/test_time_window_partitions.py
+  - python_modules/dagster/dagster_tests/definitions_tests/test_flatten_time_window_ranges.py
+  - python_modules/dagster/dagster_tests/definitions_tests/freshness_checks_tests/test_time_partition_freshness.py
+  - python_modules/dagster/dagster/_core/definitions/declarative_automation
+  - python_modules/dagster/dagster_tests/declarative_automation_tests

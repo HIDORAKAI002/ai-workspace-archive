@@ -87,6 +87,7 @@
   "devDependencies": {
     "@cloudflare/vite-plugin": "^0.1.21",
     "@cloudflare/workers-types": "^4.20250505.0",
+    "@modelcontextprotocol/inspector": "0.21.2",
     "@playwright/test": "^1.52.0",
     "@react-router/dev": "^7.5.2",
     "@tailwindcss/postcss": "^4.1.4",

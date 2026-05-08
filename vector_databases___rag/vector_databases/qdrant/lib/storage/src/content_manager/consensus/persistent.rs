@@ -216,14 +216,6 @@ impl Persistent {
         self.save()
     }
 
-    pub fn set_peer_address_by_id(
-        &mut self,
-        peer_address_by_id: PeerAddressById,
-    ) -> Result<(), StorageError> {
-        *self.peer_address_by_id.write() = peer_address_by_id;
-        self.save()
-    }
-
     pub fn insert_peer(&mut self, peer_id: PeerId, address: Uri) -> Result<(), StorageError> {
         let address_display = address.to_string();
         match self
@@ -262,7 +254,9 @@ impl Persistent {
     }
 
     pub fn get_cluster_metadata_keys(&self) -> Vec<String> {
-        self.cluster_metadata.keys().cloned().collect()
+        let mut keys: Vec<String> = self.cluster_metadata.keys().cloned().collect();
+        keys.sort_unstable();
+        keys
     }
 
     pub fn get_cluster_metadata_key(&self, key: &str) -> serde_json::Value {
@@ -351,7 +345,7 @@ impl Persistent {
                 conf_state: ConfState::from((voters, vec![])),
             },
             apply_progress_queue: Default::default(),
-            first_voter: if first_peer { Some(this_peer_id) } else { None },
+            first_voter: first_peer.then_some(this_peer_id),
             peer_address_by_id: Default::default(),
             peer_metadata_by_id: Default::default(),
             cluster_metadata: Default::default(),

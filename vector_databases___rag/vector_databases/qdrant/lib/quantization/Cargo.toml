@@ -56,3 +56,15 @@ harness = false
 [[bench]]
 name = "p_square"
 harness = false
+
+[[bench]]
+name = "hadamard"
+harness = false
+
+[[bench]]
+name = "turboquant"
+harness = false
+
+[[bench]]
+name = "turbo_simd"
+harness = false

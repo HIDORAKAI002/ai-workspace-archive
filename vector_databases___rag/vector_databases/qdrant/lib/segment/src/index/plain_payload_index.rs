@@ -3,23 +3,31 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::sync::atomic::AtomicBool;
 
+use ahash::AHashMap;
 use atomic_refcell::AtomicRefCell;
 use common::counter::hardware_counter::HardwareCounterCell;
 use common::iterator_ext::IteratorExt;
-use common::types::PointOffsetType;
+use common::types::{PointOffsetType, ScoreType};
 use fs_err as fs;
 use schemars::_serde_json::Value;
 
 use super::field_index::FieldIndex;
 use super::payload_config::PayloadFieldSchemaWithIndexType;
 use crate::common::Flusher;
-use crate::common::operation_error::OperationResult;
-use crate::id_tracker::{IdTracker, IdTrackerEnum};
-use crate::index::field_index::{CardinalityEstimation, PayloadBlockCondition};
+use crate::common::operation_error::{OperationError, OperationResult};
+use crate::id_tracker::{IdTrackerEnum, IdTrackerRead, PointMappingsRefEnum};
+use crate::index::field_index::facet_index::FacetIndexEnum;
+use crate::index::field_index::{
+    CardinalityEstimation, FacetIndex, NumericFieldIndex, NumericFieldIndexRead,
+    PayloadBlockCondition,
+};
 use crate::index::payload_config::PayloadConfig;
-use crate::index::{BuildIndexResult, PayloadIndex};
+use crate::index::query_optimization::rescore_formula::FormulaScorer;
+use crate::index::query_optimization::rescore_formula::parsed_formula::ParsedFormula;
+use crate::index::{BuildIndexResult, PayloadIndex, PayloadIndexRead};
 use crate::json_path::JsonPath;
 use crate::payload_storage::{ConditionCheckerSS, FilterContext};
+use crate::telemetry::PayloadIndexTelemetry;
 use crate::types::{Filter, Payload, PayloadFieldSchema, PayloadKeyType, PayloadKeyTypeRef};
 
 /// Implementation of `PayloadIndex` which does not really indexes anything.
@@ -71,11 +79,138 @@ impl PlainPayloadIndex {
     }
 }
 
-impl PayloadIndex for PlainPayloadIndex {
+impl PayloadIndexRead for PlainPayloadIndex {
     fn indexed_fields(&self) -> HashMap<PayloadKeyType, PayloadFieldSchema> {
         self.config.indices.to_schemas()
     }
 
+    fn estimate_cardinality(
+        &self,
+        _query: &Filter,
+        _hw_counter: &HardwareCounterCell, // No measurements needed here.
+    ) -> OperationResult<CardinalityEstimation> {
+        let available_points = self.id_tracker.borrow().available_point_count();
+        Ok(CardinalityEstimation {
+            primary_clauses: vec![],
+            min: 0,
+            exp: available_points / 2,
+            max: available_points,
+        })
+    }
+
+    /// Forward to non nested implementation.
+    fn estimate_nested_cardinality(
+        &self,
+        query: &Filter,
+        _nested_path: &JsonPath,
+        hw_counter: &HardwareCounterCell,
+    ) -> OperationResult<CardinalityEstimation> {
+        self.estimate_cardinality(query, hw_counter)
+    }
+
+    fn query_points(
+        &self,
+        filter: &Filter,
+        hw_counter: &HardwareCounterCell,
+        is_stopped: &AtomicBool,
+        deferred_internal_id: Option<PointOffsetType>,
+    ) -> OperationResult<Vec<PointOffsetType>> {
+        let filter_context = self.filter_context(filter, hw_counter)?;
+        let id_tracker = self.id_tracker.borrow();
+        let point_mappings = id_tracker.point_mappings();
+        let all_points_iter = point_mappings.iter_internal_visible(deferred_internal_id);
+        Ok(all_points_iter
+            .stop_if(is_stopped)
+            .filter(|id| filter_context.check(*id))
+            .collect())
+    }
+
+    fn indexed_points(&self, _field: PayloadKeyTypeRef) -> usize {
+        0 // No points are indexed in the plain index
+    }
+
+    fn filter_context<'a>(
+        &'a self,
+        filter: &'a Filter,
+        _: &HardwareCounterCell,
+    ) -> OperationResult<Box<dyn FilterContext + 'a>> {
+        Ok(Box::new(PlainFilterContext {
+            filter,
+            condition_checker: self.condition_checker.clone(),
+        }))
+    }
+
+    fn for_each_payload_block(
+        &self,
+        _field: PayloadKeyTypeRef,
+        _threshold: usize,
+        _f: &mut dyn FnMut(PayloadBlockCondition) -> OperationResult<()>,
+    ) -> OperationResult<()> {
+        // No blocks for un-indexed payload
+        Ok(())
+    }
+
+    fn get_payload(
+        &self,
+        _point_id: PointOffsetType,
+        _hw_counter: &HardwareCounterCell,
+    ) -> OperationResult<Payload> {
+        unreachable!()
+    }
+
+    fn get_payload_sequential(
+        &self,
+        _point_id: PointOffsetType,
+        _hw_counter: &HardwareCounterCell,
+    ) -> OperationResult<Payload> {
+        unreachable!()
+    }
+
+    fn numeric_index_for(&self, _key: &PayloadKeyType) -> Option<impl NumericFieldIndexRead + '_> {
+        // Plain index has no field indexes; the type tag is just a placeholder.
+        None::<NumericFieldIndex<'_>>
+    }
+
+    fn facet_index_for(&self, _key: &JsonPath) -> Option<impl FacetIndex + '_> {
+        // Plain index has no field indexes; the type tag is just a placeholder.
+        None::<FacetIndexEnum<'_>>
+    }
+
+    fn get_telemetry_data(&self) -> Vec<PayloadIndexTelemetry> {
+        // Plain index has no field indexes to report telemetry for.
+        Vec::new()
+    }
+
+    fn formula_scorer<'q>(
+        &'q self,
+        _parsed_formula: &'q ParsedFormula,
+        _prefetches_scores: &'q [AHashMap<PointOffsetType, ScoreType>],
+        _hw_counter: &'q HardwareCounterCell,
+    ) -> OperationResult<FormulaScorer<'q>> {
+        Err(OperationError::service_error(
+            "Formula scoring is not supported by PlainPayloadIndex",
+        ))
+    }
+
+    fn iter_filtered_points<'a, I: IdTrackerRead>(
+        &'a self,
+        filter: &'a Filter,
+        _id_tracker: &'a I,
+        point_mappings: &'a PointMappingsRefEnum<'a>,
+        _query_cardinality: &'a CardinalityEstimation,
+        hw_counter: &'a HardwareCounterCell,
+        is_stopped: &'a AtomicBool,
+        deferred_internal_id: Option<PointOffsetType>,
+    ) -> OperationResult<impl Iterator<Item = PointOffsetType> + 'a> {
+        let filter_context = self.filter_context(filter, hw_counter)?;
+        let all_points_iter = point_mappings.iter_internal_visible(deferred_internal_id);
+        Ok(all_points_iter
+            .stop_if(is_stopped)
+            .filter(move |id| filter_context.check(*id)))
+    }
+}
+
+impl PayloadIndex for PlainPayloadIndex {
     fn build_index(
         &self,
         _field: PayloadKeyTypeRef,
@@ -137,71 +272,6 @@ impl PayloadIndex for PlainPayloadIndex {
         self.drop_index(field)
     }
 
-    fn estimate_cardinality(
-        &self,
-        _query: &Filter,
-        _hw_counter: &HardwareCounterCell, // No measurements needed here.
-    ) -> OperationResult<CardinalityEstimation> {
-        let available_points = self.id_tracker.borrow().available_point_count();
-        Ok(CardinalityEstimation {
-            primary_clauses: vec![],
-            min: 0,
-            exp: available_points / 2,
-            max: available_points,
-        })
-    }
-
-    /// Forward to non nested implementation.
-    fn estimate_nested_cardinality(
-        &self,
-        query: &Filter,
-        _nested_path: &JsonPath,
-        hw_counter: &HardwareCounterCell,
-    ) -> OperationResult<CardinalityEstimation> {
-        self.estimate_cardinality(query, hw_counter)
-    }
-
-    fn query_points(
-        &self,
-        filter: &Filter,
-        hw_counter: &HardwareCounterCell,
-        is_stopped: &AtomicBool,
-        deferred_internal_id: Option<PointOffsetType>,
-    ) -> OperationResult<Vec<PointOffsetType>> {
-        let filter_context = self.filter_context(filter, hw_counter)?;
-        let id_tracker = self.id_tracker.borrow();
-        let point_mappings = id_tracker.point_mappings();
-        let all_points_iter = point_mappings.iter_internal_visible(deferred_internal_id);
-        Ok(all_points_iter
-            .stop_if(is_stopped)
-            .filter(|id| filter_context.check(*id))
-            .collect())
-    }
-
-    fn indexed_points(&self, _field: PayloadKeyTypeRef) -> usize {
-        0 // No points are indexed in the plain index
-    }
-
-    fn filter_context<'a>(
-        &'a self,
-        filter: &'a Filter,
-        _: &HardwareCounterCell,
-    ) -> OperationResult<Box<dyn FilterContext + 'a>> {
-        Ok(Box::new(PlainFilterContext {
-            filter,
-            condition_checker: self.condition_checker.clone(),
-        }))
-    }
-
-    fn payload_blocks(
-        &self,
-        _field: PayloadKeyTypeRef,
-        _threshold: usize,
-    ) -> Box<dyn Iterator<Item = OperationResult<PayloadBlockCondition>> + '_> {
-        // No blocks for un-indexed payload
-        Box::new(std::iter::empty())
-    }
-
     fn overwrite_payload(
         &mut self,
         _point_id: PointOffsetType,
@@ -218,22 +288,6 @@ impl PayloadIndex for PlainPayloadIndex {
         _key: &Option<JsonPath>,
         _hw_counter: &HardwareCounterCell,
     ) -> OperationResult<()> {
-        unreachable!()
-    }
-
-    fn get_payload(
-        &self,
-        _point_id: PointOffsetType,
-        _hw_counter: &HardwareCounterCell,
-    ) -> OperationResult<Payload> {
-        unreachable!()
-    }
-
-    fn get_payload_sequential(
-        &self,
-        _point_id: PointOffsetType,
-        _hw_counter: &HardwareCounterCell,
-    ) -> OperationResult<Payload> {
         unreachable!()
     }
 

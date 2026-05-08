@@ -8,7 +8,7 @@ use crate::hash_ring::HashRingRouter;
 use crate::operations::cluster_ops::ReshardingDirection;
 use crate::operations::types::CollectionResult;
 use crate::shards::replica_set::replica_set_state::ReplicaState;
-use crate::shards::resharding::{ReshardKey, ReshardState};
+use crate::shards::resharding::{ReshardKey, ReshardState, ReshardingStage};
 use crate::shards::transfer::ShardTransferConsensus;
 
 impl Collection {
@@ -42,8 +42,17 @@ impl Collection {
 
             shard_holder.check_start_resharding(&resharding_key)?;
 
-            // If scaling up, create a new replica set
-            let replica_set = if resharding_key.direction == ReshardingDirection::Up {
+            // If scaling up, create a new replica set.
+            //
+            // Idempotent: only create the replica set if one for this shard id
+            // does not exist yet. A replica set may already be present as a
+            // leftover from a previous partial apply (e.g. crash between shard
+            // directory creation and persisting resharding state) or from an
+            // earlier successful apply we are now replaying. Recreating it
+            // would wipe the existing shard contents.
+            let replica_set = if resharding_key.direction == ReshardingDirection::Up
+                && !shard_holder.contains_shard(resharding_key.shard_id)
+            {
                 let replica_set = self
                     .create_replica_set(
                         resharding_key.shard_id,
@@ -65,19 +74,25 @@ impl Collection {
             if resharding_key.direction == ReshardingDirection::Up {
                 let mut config = self.collection_config.write().await;
                 match config.params.sharding_method.unwrap_or_default() {
-                    // If adding a shard, increase persisted count so we load it on restart
+                    // Idempotent: set the shard count to the new shard's id
+                    // plus one (shard ids are contiguous from zero, so this is
+                    // the count after adding the shard). A replay converges to
+                    // the same value instead of incrementing again.
                     ShardingMethod::Auto => {
-                        debug_assert_eq!(config.params.shard_number.get(), resharding_key.shard_id);
-
-                        config.params.shard_number = config
-                            .params
-                            .shard_number
+                        resharding_key
+                            .debug_assert_targets_last_shard(config.params.shard_number.get());
+                        let new_shard_number = resharding_key
+                            .shard_id
                             .checked_add(1)
+                            .and_then(NonZeroU32::new)
                             .expect("cannot have more than u32::MAX shards after resharding");
-                        if let Err(err) = config.save(&self.path) {
-                            log::error!(
-                                "Failed to update and save collection config during resharding: {err}",
-                            );
+                        if config.params.shard_number != new_shard_number {
+                            config.params.shard_number = new_shard_number;
+                            if let Err(err) = config.save(&self.path) {
+                                log::error!(
+                                    "Failed to update and save collection config during resharding: {err}",
+                                );
+                            }
                         }
                     }
                     // Custom shards don't use the persisted count, we don't change it
@@ -95,6 +110,25 @@ impl Collection {
 
     pub async fn commit_read_hashring(&self, resharding_key: &ReshardKey) -> CollectionResult<()> {
         let mut shards_holder = self.shards_holder.write().await;
+
+        // Idempotent: skip if no resharding or already past this stage
+        match shards_holder.resharding_state() {
+            None => {
+                log::warn!("commit_read_hashring: no resharding in progress, skipping");
+                return Ok(());
+            }
+            Some(state)
+                if state.matches(resharding_key)
+                    && state.stage >= ReshardingStage::ReadHashRingCommitted =>
+            {
+                log::warn!(
+                    "commit_read_hashring: already at stage {:?}, skipping",
+                    state.stage,
+                );
+                return Ok(());
+            }
+            _ => {}
+        }
 
         shards_holder.commit_read_hashring(resharding_key)?;
 
@@ -127,6 +161,25 @@ impl Collection {
     }
 
     pub async fn commit_write_hashring(&self, resharding_key: &ReshardKey) -> CollectionResult<()> {
+        // Idempotent: skip if no resharding or already past this stage
+        match self.shards_holder.read().await.resharding_state() {
+            None => {
+                log::warn!("commit_write_hashring: no resharding in progress, skipping");
+                return Ok(());
+            }
+            Some(state)
+                if state.matches(resharding_key)
+                    && state.stage >= ReshardingStage::WriteHashRingCommitted =>
+            {
+                log::warn!(
+                    "commit_write_hashring: already at stage {:?}, skipping",
+                    state.stage,
+                );
+                return Ok(());
+            }
+            _ => {}
+        }
+
         self.shards_holder
             .write()
             .await
@@ -136,6 +189,10 @@ impl Collection {
     pub async fn finish_resharding(&self, resharding_key: ReshardKey) -> CollectionResult<()> {
         let mut shard_holder = self.shards_holder.write().await;
 
+        // Each step below is individually idempotent, so on replay (e.g. after
+        // a crash that applied only part of the operation) we fall through
+        // every step to reconcile any partially-applied state instead of
+        // short-circuiting on the first condition that already holds.
         shard_holder.check_finish_resharding(&resharding_key)?;
         shard_holder.finish_resharding_unchecked(&resharding_key)?;
 
@@ -152,21 +209,23 @@ impl Collection {
             {
                 let mut config = self.collection_config.write().await;
                 match config.params.sharding_method.unwrap_or_default() {
-                    // If removing a shard, decrease persisted count so we don't load it on restart
+                    // Idempotent: set the shard count to the id of the just
+                    // removed shard (which equals the new count, since shard
+                    // ids are contiguous and this was the highest one). A
+                    // replay converges to the same value instead of
+                    // decrementing again.
                     ShardingMethod::Auto => {
-                        debug_assert_eq!(
-                            config.params.shard_number.get() - 1,
-                            resharding_key.shard_id,
-                        );
-
-                        config.params.shard_number =
-                            NonZeroU32::new(config.params.shard_number.get() - 1)
-                                .expect("cannot have zero shards after finishing resharding");
-
-                        if let Err(err) = config.save(&self.path) {
-                            log::error!(
-                                "Failed to update and save collection config during resharding: {err}"
-                            );
+                        resharding_key
+                            .debug_assert_targets_last_shard(config.params.shard_number.get());
+                        let new_shard_number = NonZeroU32::new(resharding_key.shard_id)
+                            .expect("cannot have zero shards after finishing resharding down");
+                        if config.params.shard_number != new_shard_number {
+                            config.params.shard_number = new_shard_number;
+                            if let Err(err) = config.save(&self.path) {
+                                log::error!(
+                                    "Failed to update and save collection config during resharding: {err}"
+                                );
+                            }
                         }
                     }
                     // Custom shards don't use the persisted count, we don't change it
@@ -189,6 +248,10 @@ impl Collection {
 
         let shard_holder = self.shards_holder.read().await;
 
+        // Each step below is individually idempotent, so on replay (e.g. after
+        // a crash that applied only part of the abort) we fall through every
+        // step to reconcile any partially-applied state instead of
+        // short-circuiting on the first condition that already holds.
         if !force {
             shard_holder.check_abort_resharding(&resharding_key)?;
         } else {
@@ -203,21 +266,16 @@ impl Collection {
                 self.invalidate_clean_local_shards([resharding_key.shard_id])
                     .await;
             }
-            // On resharding down: existing shards may have new points moved into them
-            ReshardingDirection::Down => match shard_holder.rings.get(&resharding_key.shard_key) {
-                Some(HashRingRouter::Resharding { old: _, new }) => {
-                    self.invalidate_clean_local_shards(new.nodes().clone())
-                        .await;
-                }
-                Some(HashRingRouter::Single(ring)) => {
-                    debug_assert!(false, "must have resharding hash ring during resharding");
+            // On resharding down: existing shards may have new points moved
+            // into them. Use the router's node set, which works regardless of
+            // whether the ring has already been rolled back to `Single` on a
+            // replay.
+            ReshardingDirection::Down => {
+                if let Some(ring) = shard_holder.rings.get(&resharding_key.shard_key) {
                     self.invalidate_clean_local_shards(ring.nodes().clone())
                         .await;
                 }
-                None => {
-                    debug_assert!(false, "must have hash ring for resharding key");
-                }
-            },
+            }
         }
 
         // Abort all resharding transfer related to this specific resharding operation
@@ -238,21 +296,22 @@ impl Collection {
         if resharding_key.direction == ReshardingDirection::Up {
             let mut config = self.collection_config.write().await;
             match config.params.sharding_method.unwrap_or_default() {
-                // If removing a shard, decrease persisted count so we don't load it on restart
+                // Idempotent: set the shard count to the aborted shard's id
+                // (shard ids are contiguous from zero, so this is the count
+                // after removing the shard). A replay converges to the same
+                // value instead of decrementing again.
                 ShardingMethod::Auto => {
-                    debug_assert_eq!(
-                        config.params.shard_number.get() - 1,
-                        resharding_key.shard_id,
-                    );
-
-                    config.params.shard_number =
-                        NonZeroU32::new(config.params.shard_number.get() - 1)
-                            .expect("cannot have zero shards after aborting resharding");
-
-                    if let Err(err) = config.save(&self.path) {
-                        log::error!(
-                            "Failed to update and save collection config during resharding: {err}"
-                        );
+                    resharding_key
+                        .debug_assert_targets_last_shard(config.params.shard_number.get());
+                    let new_shard_number = NonZeroU32::new(resharding_key.shard_id)
+                        .expect("cannot have zero shards after aborting resharding up");
+                    if config.params.shard_number != new_shard_number {
+                        config.params.shard_number = new_shard_number;
+                        if let Err(err) = config.save(&self.path) {
+                            log::error!(
+                                "Failed to update and save collection config during resharding: {err}"
+                            );
+                        }
                     }
                 }
                 // Custom shards don't use the persisted count, we don't change it

@@ -1,12 +1,14 @@
 use std::path::{Path, PathBuf};
 
+use common::bitvec::BitSlice;
 use common::counter::hardware_counter::HardwareCounterCell;
 use common::types::PointOffsetType;
+use common::universal_io::MmapFile;
 use fs_err as fs;
 use serde_json::Value;
 
 use crate::common::Flusher;
-use crate::common::flags::dynamic_mmap_flags::DynamicMmapFlags;
+use crate::common::flags::dynamic_stored_flags::DynamicStoredFlags;
 use crate::common::flags::roaring_flags::RoaringFlags;
 use crate::common::operation_error::{OperationError, OperationResult};
 use crate::index::field_index::{
@@ -24,21 +26,24 @@ const IS_NULL_DIRNAME: &str = "is_null";
 /// and buffers updates before persisting them to DynamicMmapFlags.
 pub struct MutableNullIndex {
     base_dir: PathBuf,
-    storage: Storage,
+    storage: Storage<MmapFile>,
     total_point_count: usize,
 }
 
-struct Storage {
+struct Storage<S> {
     /// Points which have at least one value
-    has_values_flags: RoaringFlags,
+    has_values_flags: RoaringFlags<S>,
     /// Points which have null values
-    is_null_flags: RoaringFlags,
+    is_null_flags: RoaringFlags<S>,
 }
 
 impl MutableNullIndex {
-    pub fn builder(path: &Path) -> OperationResult<MutableNullIndexBuilder> {
+    pub fn builder(
+        path: &Path,
+        total_point_count: usize,
+    ) -> OperationResult<MutableNullIndexBuilder> {
         Ok(MutableNullIndexBuilder(
-            Self::open(path, 0, true)?.ok_or_else(|| {
+            Self::open(path, total_point_count, true)?.ok_or_else(|| {
                 OperationError::service_error(format!(
                     "Failed to create and open mutable null index at path: {}",
                     path.display(),
@@ -68,6 +73,23 @@ impl MutableNullIndex {
         Ok(Some(Self::open_or_create(path, total_point_count)?))
     }
 
+    pub(super) fn open_immutable(
+        path: &Path,
+        total_point_count: usize,
+        deleted: &BitSlice,
+    ) -> OperationResult<Option<Self>> {
+        let mutable_null_index = Self::open(path, total_point_count, false)?;
+        match mutable_null_index {
+            Some(mut mutable_null_index) => {
+                for pos in deleted.iter_ones() {
+                    mutable_null_index.remove_point_immutable(pos as PointOffsetType);
+                }
+                Ok(Some(mutable_null_index))
+            }
+            None => Ok(None),
+        }
+    }
+
     fn open_or_create(path: &Path, total_point_count: usize) -> OperationResult<Self> {
         fs::create_dir_all(path).map_err(|err| {
             OperationError::service_error(format!(
@@ -76,12 +98,12 @@ impl MutableNullIndex {
         })?;
 
         let has_values_path = path.join(HAS_VALUES_DIRNAME);
-        let has_values_mmap = DynamicMmapFlags::open(&has_values_path, false)?;
-        let has_values_flags = RoaringFlags::new(has_values_mmap);
+        let has_values_mmap = DynamicStoredFlags::open(&has_values_path, false)?;
+        let has_values_flags = RoaringFlags::new(has_values_mmap)?;
 
         let is_null_path = path.join(IS_NULL_DIRNAME);
-        let is_null_mmap = DynamicMmapFlags::open(&is_null_path, false)?;
-        let is_null_flags = RoaringFlags::new(is_null_mmap);
+        let is_null_mmap = DynamicStoredFlags::open(&is_null_path, false)?;
+        let is_null_flags = RoaringFlags::new(is_null_mmap)?;
 
         let storage = Storage {
             has_values_flags,
@@ -166,6 +188,17 @@ impl MutableNullIndex {
         Ok(())
     }
 
+    pub(super) fn remove_point_immutable(&mut self, id: PointOffsetType) {
+        // Update bitmaps immediately
+        self.storage.has_values_flags.set_immutable(id, false);
+        self.storage.is_null_flags.set_immutable(id, false);
+
+        // N.B. We do not update total_point_count because it comes from the id tracker and is not not changed
+        // in non-appendable segments.
+
+        // N.B. No I/O, do not update hw_counter.
+    }
+
     pub fn values_count(&self, id: PointOffsetType) -> usize {
         usize::from(self.storage.has_values_flags.get(id))
     }
@@ -193,6 +226,22 @@ impl MutableNullIndex {
     pub fn populate(&self) -> OperationResult<()> {
         Ok(())
     }
+
+    /// Approximate RAM usage in bytes.
+    pub fn ram_usage_bytes(&self) -> usize {
+        let Self {
+            base_dir: _,
+            storage,
+            total_point_count: _,
+        } = self;
+        let Storage {
+            has_values_flags,
+            is_null_flags,
+        } = storage;
+        has_values_flags.get_bitmap().serialized_size()
+            + is_null_flags.get_bitmap().serialized_size()
+    }
+
     pub fn is_on_disk(&self) -> bool {
         false
     }
@@ -267,29 +316,36 @@ impl PayloadFieldIndex for MutableNullIndex {
             is_null,
         } = condition;
 
-        Ok(if let Some(is_empty) = is_empty {
-            if *is_empty {
-                // Return points that don't have values
-                let iter = self.storage.has_values_flags.iter_falses();
-                Some(Box::new(iter))
+        let result: Option<Box<dyn Iterator<Item = PointOffsetType> + 'a>> =
+            if let Some(is_empty) = is_empty {
+                if *is_empty {
+                    // Return points that don't have values
+                    Some(Box::new(self.storage.has_values_flags.iter_falses().chain(
+                        {
+                            let end = self.storage.has_values_flags.len() as PointOffsetType;
+                            end..self.total_point_count as u32
+                        },
+                    )))
+                } else {
+                    // Return points that have values
+                    Some(Box::new(self.storage.has_values_flags.iter_trues()))
+                }
+            } else if let Some(is_null) = is_null {
+                if *is_null {
+                    // Return points that have null values
+                    Some(Box::new(self.storage.is_null_flags.iter_trues()))
+                } else {
+                    // Return points that don't have null values
+                    Some(Box::new(self.storage.is_null_flags.iter_falses().chain({
+                        let end = self.storage.is_null_flags.len() as PointOffsetType;
+                        end..self.total_point_count as u32
+                    })))
+                }
             } else {
-                // Return points that have values
-                let iter = self.storage.has_values_flags.iter_trues();
-                Some(Box::new(iter))
-            }
-        } else if let Some(is_null) = is_null {
-            if *is_null {
-                // Return points that have null values
-                let iter = self.storage.is_null_flags.iter_trues();
-                Some(Box::new(iter))
-            } else {
-                // Return points that don't have null values
-                let iter = self.storage.is_null_flags.iter_falses();
-                Some(Box::new(iter))
-            }
-        } else {
-            None
-        })
+                None
+            };
+
+        Ok(result)
     }
 
     fn estimate_cardinality(
@@ -354,13 +410,14 @@ impl PayloadFieldIndex for MutableNullIndex {
         })
     }
 
-    fn payload_blocks(
+    fn for_each_payload_block(
         &self,
         _threshold: usize,
         _key: PayloadKeyType,
-    ) -> Box<dyn Iterator<Item = OperationResult<PayloadBlockCondition>> + '_> {
+        _f: &mut dyn FnMut(PayloadBlockCondition) -> OperationResult<()>,
+    ) -> OperationResult<()> {
         // No payload blocks
-        Box::new(std::iter::empty())
+        Ok(())
     }
 }
 
@@ -406,9 +463,9 @@ mod tests {
         let null_value_in_array =
             Value::Array(vec![Value::String("test".to_string()), Value::Null]);
 
-        let mut builder = MutableNullIndex::builder(dir.path()).unwrap();
+        let n: PointOffsetType = 100;
 
-        let n = 100;
+        let mut builder = MutableNullIndex::builder(dir.path(), n as usize).unwrap();
 
         let hw_counter = HardwareCounterCell::new();
 
@@ -519,7 +576,7 @@ mod tests {
     #[test]
     fn test_manual_buffer_flushing() {
         let dir = TempDir::with_prefix("test_manual_buffer_flushing").unwrap();
-        let mut index = MutableNullIndex::builder(dir.path()).unwrap().0;
+        let mut index = MutableNullIndex::builder(dir.path(), 10).unwrap().0;
 
         let hw_counter = HardwareCounterCell::new();
 

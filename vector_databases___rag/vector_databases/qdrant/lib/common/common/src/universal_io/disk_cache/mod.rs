@@ -4,7 +4,8 @@ use std::path::{Path, PathBuf};
 
 use fs_err as fs;
 
-use crate::generic_consts::AccessPattern;
+use crate::generic_consts::{AccessPattern, Random};
+use crate::universal_io::read::UniversalReadPipeline;
 use crate::universal_io::{
     OpenOptions, ReadRange, Result, UniversalIoError, UniversalRead, UniversalReadFileOps,
     local_file_ops,
@@ -17,6 +18,8 @@ mod tests;
 
 pub use cached_slice::CachedSlice;
 use controller::{CacheController, CacheRead};
+
+use super::UniversalKind;
 
 /// We cache data in blocks of this size.
 /// Should be multiple of filesystem block size (usually 4 KiB).
@@ -63,7 +66,15 @@ impl<T> UniversalReadFileOps for CachedSlice<T> {
     }
 }
 
-impl<T: bytemuck::Pod> UniversalRead<T> for CachedSlice<T> {
+impl<T> UniversalRead<T> for CachedSlice<T>
+where
+    T: bytemuck::Pod,
+{
+    type ReadPipeline<'a, Meta>
+        = DiskCacheReadPipeline<'a, T, Meta>
+    where
+        Self: 'a;
+
     fn open(path: impl AsRef<Path>, options: OpenOptions) -> Result<Self> {
         let Some(controller) = CacheController::global() else {
             return Err(UniversalIoError::uninitialized(
@@ -96,19 +107,6 @@ impl<T: bytemuck::Pod> UniversalRead<T> for CachedSlice<T> {
         Ok(self.get_range(range)?)
     }
 
-    fn read_batch<P: AccessPattern>(
-        &self,
-        ranges: impl IntoIterator<Item = ReadRange>,
-        mut callback: impl FnMut(usize, &[T]) -> Result<()>,
-    ) -> Result<()> {
-        for (i, range) in ranges.into_iter().enumerate() {
-            let data = self.read::<P>(range)?;
-            callback(i, &data)?;
-        }
-
-        Ok(())
-    }
-
     fn len(&self) -> Result<u64> {
         Ok(Self::len(self) as u64)
     }
@@ -120,5 +118,52 @@ impl<T: bytemuck::Pod> UniversalRead<T> for CachedSlice<T> {
     fn clear_ram_cache(&self) -> Result<()> {
         // TODO: issue fadvise DONTNEED on the cache file's backing mmap region.
         Ok(())
+    }
+
+    fn kind() -> UniversalKind {
+        UniversalKind::DiskCache
+    }
+}
+
+pub struct DiskCacheReadPipeline<'file, T, Meta>
+where
+    T: bytemuck::Pod,
+{
+    result: Option<(Meta, Cow<'file, [T]>)>,
+}
+
+impl<'file, T, Meta> UniversalReadPipeline<'file, T, Meta> for DiskCacheReadPipeline<'file, T, Meta>
+where
+    T: bytemuck::Pod,
+{
+    type File = CachedSlice<T>;
+
+    fn new() -> Result<Self> {
+        Ok(Self { result: None })
+    }
+
+    fn can_schedule(&mut self) -> bool {
+        self.result.is_none()
+    }
+
+    fn schedule<P>(
+        &mut self,
+        meta: Meta,
+        file: &'file CachedSlice<T>,
+        range: ReadRange,
+    ) -> Result<()>
+    where
+        P: AccessPattern,
+    {
+        if self.result.is_some() {
+            return Err(UniversalIoError::QueueIsFull);
+        }
+
+        self.result = Some((meta, file.read::<Random>(range)?));
+        Ok(())
+    }
+
+    fn wait(&mut self) -> Result<Option<(Meta, Cow<'file, [T]>)>> {
+        Ok(self.result.take())
     }
 }

@@ -257,11 +257,6 @@ impl SegmentHolder {
             .cloned()
     }
 
-    /// Iterates appendable segments only.
-    pub fn iter_appendable(&self) -> impl Iterator<Item = LockedSegment> {
-        self.appendable_segments.values().cloned()
-    }
-
     /// Get two separate lists for non-appendable and appendable locked segments
     pub fn split_segments(&self) -> (Vec<LockedSegment>, Vec<LockedSegment>) {
         (
@@ -455,18 +450,6 @@ impl SegmentHolder {
         );
 
         (to_update, to_delete)
-    }
-
-    pub fn for_each_segment<F>(&self, mut f: F) -> OperationResult<usize>
-    where
-        F: FnMut(&RwLockReadGuard<dyn ReadSegmentEntry + 'static>) -> OperationResult<bool>,
-    {
-        let mut processed_segments = 0;
-        for (_id, segment) in self.iter() {
-            let is_applied = f(&segment.get_read().read())?;
-            processed_segments += usize::from(is_applied);
-        }
-        Ok(processed_segments)
     }
 
     pub fn apply_segments<F>(&self, mut f: F) -> OperationResult<usize>
@@ -933,13 +916,24 @@ impl SegmentHolder {
             is_deferred: bool,
         }
 
+        // Dedup needs to enumerate all points in every segment, which is only
+        // available on a concrete `Segment`. Proxy segments cannot be enumerated
+        // this way (their internals span a wrapped read segment plus an
+        // in-memory write segment), so we panic if one shows up here — matching
+        // the pre-existing behavior when `iter_points` was a trait method that
+        // `unimplemented!()`'d for proxies.
         let segments = self
             .iter()
-            .map(|(segment_id, locked_segment)| (segment_id, locked_segment.get()))
+            .map(|(segment_id, locked_segment)| match locked_segment {
+                LockedSegment::Original(segment) => (segment_id, segment.as_ref()),
+                LockedSegment::Proxy(_) => panic!(
+                    "deduplicate_points cannot enumerate points of proxy segment {segment_id}",
+                ),
+            })
             .collect::<Vec<_>>();
         let locked_segments = segments
             .iter()
-            .map(|(segment_id, locked_segment)| (*segment_id, locked_segment.read()))
+            .map(|(segment_id, segment)| (*segment_id, segment.read()))
             .collect::<BTreeMap<_, _>>();
 
         // Iterator produces groups of points by point ID

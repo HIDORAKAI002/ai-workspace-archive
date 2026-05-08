@@ -42,3 +42,26 @@ class TestListPagesUsesMetadataProjection:
         assert list_pages_def > 0 and next_def > list_pages_def
         list_pages_body = src[list_pages_def:next_def]
         assert "detail=metadata" in list_pages_body
+
+
+class TestGetPageUsesContentProjection:
+    """`agent_knowledge_get_page` must request the API's `content` projection.
+
+    `detail=full` additionally returns `reflect_response`, the internal trace
+    metadata used to build a page. Measured on real banks, reflect_response is
+    70-95% of the response bytes while the synthesized `content` field is
+    typically 1-2%. At realistic page sizes (200-280 KB at full) the response
+    overflows the MCP host's per-tool-result token cap and the result spills to
+    disk, where the agent cannot consume it inline as part of its startup
+    knowledge load. The docstring promises only "the full synthesized content",
+    so the request must pin `detail=content`.
+    """
+
+    def test_get_page_request_uses_detail_content(self):
+        src = _read_mcp_server_source()
+        # Check the URL pattern in the request line; comments may legitimately
+        # mention detail=full when explaining the difference.
+        assert "/mental-models/{page_id}?detail=content" in src, (
+            "get_page must request detail=content; detail=full includes "
+            "reflect_response which dwarfs the actual content"
+        )

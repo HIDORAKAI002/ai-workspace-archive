@@ -29,6 +29,6 @@ create-dagster = "create_dagster.cli:main"
 [project.optional-dependencies]
 test = [
     "pytest",
-    "flaky",
+    "pytest-rerunfailures",
     "psutil",
 ]

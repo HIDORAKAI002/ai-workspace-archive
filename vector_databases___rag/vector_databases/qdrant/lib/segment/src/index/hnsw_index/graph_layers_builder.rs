@@ -107,7 +107,12 @@ impl GraphLayersBuilder {
     ///  - Return the fraction of reachable nodes to the total number of nodes in the sub-graph.
     ///
     /// Coin probability `q` is a parameter of this function. By default, it is 0.5.
-    pub fn subgraph_connectivity(&self, points: &[PointOffsetType], q: f32) -> f32 {
+    pub fn subgraph_connectivity<R: Rng + ?Sized>(
+        &self,
+        rng: &mut R,
+        points: &[PointOffsetType],
+        q: f32,
+    ) -> f32 {
         if points.is_empty() {
             return 1.0;
         }
@@ -121,14 +126,12 @@ impl GraphLayersBuilder {
             point_selection.set(*point_id as usize, true);
         }
 
-        let mut rnd = rand::rng();
-
         // Try to get entry point from the entry points list
         // If not found, select the point with the highest level
         let entry_point = self
             .entry_points
             .lock()
-            .get_random_entry_point(&mut rnd, |point_id| {
+            .get_random_entry_point(rng, |point_id| {
                 point_selection.get_bit(point_id as usize).unwrap_or(false)
             })
             .map(|ep| ep.point_id);
@@ -153,6 +156,7 @@ impl GraphLayersBuilder {
 
         // Retry loop, in case some budget is left.
         loop {
+            let budget_before_iteration = spent_budget;
             visited.set(entry_point as usize, true);
 
             // Points visited in the previous layer (Get used as entry point in the iteration over the next layer)
@@ -171,7 +175,7 @@ impl GraphLayersBuilder {
                         spent_budget += 1;
 
                         // Flip a coin to decide if the edge is removed or not
-                        let coin_flip = rnd.random_range(0.0..1.0);
+                        let coin_flip = rng.random_range(0.0..1.0);
                         if coin_flip < q {
                             continue;
                         }
@@ -189,8 +193,12 @@ impl GraphLayersBuilder {
                 }
             }
 
-            // Budget exhausted, don't retry.
-            if spent_budget > SUBGRAPH_CONNECTIVITY_SEARCH_BUDGET {
+            // Budget exhausted, don't retry. Also stop if this iteration made no
+            // progress: BFS traversed zero edges, so retrying cannot discover more
+            // (the graph is immutable and coin flips only gate enumerated links).
+            if spent_budget > SUBGRAPH_CONNECTIVITY_SEARCH_BUDGET
+                || spent_budget == budget_before_iteration
+            {
                 break;
             }
 
@@ -576,7 +584,7 @@ impl GraphLayersBuilder {
     pub fn get_average_connectivity_on_level(&self, level: usize) -> f32 {
         let mut sum = 0;
         let mut count = 0;
-        for links in self.links_layers.iter() {
+        for links in &self.links_layers {
             if links.len() > level {
                 sum += links[level].read().links().len();
                 count += 1;
@@ -603,7 +611,7 @@ mod tests {
     use crate::index::hnsw_index::graph_links::{GraphLinksFormat, normalize_links};
     use crate::index::hnsw_index::tests::create_graph_layer_fixture;
     use crate::types::Distance;
-    use crate::vector_storage::{DEFAULT_STOPPED, VectorStorage as _};
+    use crate::vector_storage::{DEFAULT_STOPPED, VectorStorageRead as _};
 
     const M: usize = 8;
 
@@ -941,5 +949,54 @@ mod tests {
             .sum();
         let avg_connectivity = total_edges as f64 / NUM_VECTORS as f64;
         eprintln!("avg_connectivity = {avg_connectivity:#?}");
+    }
+
+    /// Regression test: `subgraph_connectivity` must not hang when the chosen
+    /// entry point has no outgoing links on any of its layers. In that case the
+    /// inner BFS iterates zero edges, so `spent_budget` stays at 0 and the
+    /// retry `loop` never observes `spent_budget > SUBGRAPH_CONNECTIVITY_SEARCH_BUDGET`.
+    ///
+    /// The state is reachable through normal graph construction: the very first
+    /// point inserted via `link_new_point` has no pre-existing neighbors, so it
+    /// is registered in `EntryPoints` with empty `links_layers` on every layer.
+    #[test]
+    fn test_subgraph_connectivity_isolated_entry_point_does_not_hang() {
+        use std::sync::Arc;
+        use std::thread;
+        use std::time::{Duration, Instant};
+
+        const DIM: usize = 4;
+        let mut rng = StdRng::seed_from_u64(42);
+
+        // Build a one-point graph the normal way. `link_new_point` sees an
+        // empty entry-points list, takes the "new empty entry" branch, and
+        // registers point 0 with no outgoing links on any of its layers.
+        let vector_holder = TestRawScorerProducer::new(DIM, Distance::Cosine, 1, false, &mut rng);
+        let mut builder = GraphLayersBuilder::new(1, HnswM::new2(M), 16, 10, false);
+        let level = builder.get_random_layer(&mut rng);
+        builder.set_levels(0, level);
+        builder.link_new_point(0, vector_holder.internal_scorer(0));
+        let builder = Arc::new(builder);
+
+        // Run on a background thread so the test can bound wall-clock time
+        // rather than hanging the whole test runner.
+        let builder_clone = Arc::clone(&builder);
+        let handle = thread::spawn(move || {
+            let mut rng = rand::rng();
+            builder_clone.subgraph_connectivity(&mut rng, &[0], 0.5)
+        });
+
+        let deadline = Instant::now() + Duration::from_secs(2);
+        while !handle.is_finished() && Instant::now() < deadline {
+            thread::sleep(Duration::from_millis(20));
+        }
+
+        assert!(
+            handle.is_finished(),
+            "subgraph_connectivity hung on an isolated entry point",
+        );
+        handle
+            .join()
+            .expect("subgraph_connectivity thread panicked");
     }
 }

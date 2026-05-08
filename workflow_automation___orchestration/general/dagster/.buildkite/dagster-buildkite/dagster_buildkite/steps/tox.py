@@ -100,6 +100,9 @@ def build_tox_step(
         .with_timeout(timeout_in_minutes)
         .depends_on(dependencies)
         .skip(skip_reason)
+        # OSS tox suites broadly use docker-compose-backed fixtures (postgres,
+        # redis, kafka, redpanda), so opt the whole factory in.
+        .with_docker()
     )
 
     if queue:

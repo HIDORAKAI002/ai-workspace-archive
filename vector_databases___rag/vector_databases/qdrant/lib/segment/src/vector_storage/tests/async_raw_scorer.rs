@@ -9,13 +9,13 @@ use rand::seq::IteratorRandom as _;
 use super::utils::{Result, delete_random_vectors, insert_distributed_vectors, sampler};
 use crate::data_types::vectors::QueryVector;
 use crate::fixtures::payload_context_fixture::create_id_tracker_fixture;
-use crate::id_tracker::IdTracker;
+use crate::id_tracker::IdTrackerRead;
 use crate::index::hnsw_index::point_scorer::FilteredScorer;
 use crate::types::Distance;
 use crate::vector_storage::VectorStorageEnum;
 use crate::vector_storage::dense::dense_vector_storage::open_dense_vector_storage_with_uring;
 use crate::vector_storage::dense::volatile_dense_vector_storage::new_volatile_dense_vector_storage;
-use crate::vector_storage::vector_storage_base::VectorStorage;
+use crate::vector_storage::vector_storage_base::{VectorStorage, VectorStorageRead};
 
 #[test]
 fn async_raw_scorer_cosine() -> Result<()> {

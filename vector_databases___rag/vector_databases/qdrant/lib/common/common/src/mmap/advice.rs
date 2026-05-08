@@ -112,6 +112,12 @@ pub trait Madviseable {
     fn advise_impl(&self, advice: memmap2::Advice) -> io::Result<()>;
 
     fn populate(&self) {
+        // Low-memory mode `no_populate` suppresses mmap prefault globally.
+        // Pages will be faulted in on demand when queries touch them.
+        if crate::low_memory::low_memory_mode().skip_populate() {
+            return;
+        }
+
         #[cfg(target_os = "linux")]
         {
             use std::sync::LazyLock;
@@ -135,6 +141,62 @@ pub trait Madviseable {
     }
 
     fn populate_simple_impl(&self);
+
+    /// Hint to the OS that pages backing this memory map can be reclaimed.
+    ///
+    /// Uses `madvise(MADV_PAGEOUT)` on Linux 5.4+, which writes back any dirty
+    /// pages and frees the resident memory while keeping the mapping valid.
+    /// On older kernels or non-Linux platforms this is a no-op, since there is
+    /// no portable userspace equivalent.
+    fn clear_cache(&self) {
+        #[cfg(target_os = "linux")]
+        {
+            use std::sync::LazyLock;
+
+            /// True if `MADV_PAGEOUT` is supported (added in Linux 5.4).
+            /// Probed by calling `madvise` with a zero-length range, which
+            /// validates the advice value without touching any memory.
+            ///
+            /// As shown in madvise man pages:
+            /// > `madvise(0, 0, advice)` will return zero iff advice is supported by the kernel
+            /// > and can be relied on to probe for support.
+            static PAGEOUT_IS_SUPPORTED: LazyLock<bool> = LazyLock::new(|| {
+                let res =
+                    unsafe { nix::libc::madvise(std::ptr::null_mut(), 0, nix::libc::MADV_PAGEOUT) };
+                res == 0
+            });
+
+            if *PAGEOUT_IS_SUPPORTED {
+                self.pageout_impl();
+            }
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    fn pageout_impl(&self);
+}
+
+/// Issue `madvise(MADV_PAGEOUT)` for the given memory region.
+///
+/// Mmap base addresses are always page-aligned, so callers do not need to
+/// adjust the slice. The kernel will write back any dirty pages and reclaim
+/// the resident memory while keeping the mapping valid.
+#[cfg(target_os = "linux")]
+fn pageout_slice(slice: &[u8]) {
+    if slice.is_empty() {
+        return;
+    }
+    let res = unsafe {
+        nix::libc::madvise(
+            slice.as_ptr() as *mut _,
+            slice.len(),
+            nix::libc::MADV_PAGEOUT,
+        )
+    };
+    if res != 0 {
+        let err = io::Error::last_os_error();
+        log::warn!("Failed to call madvise(MADV_PAGEOUT): {err}");
+    }
 }
 
 impl Madviseable for memmap2::Mmap {
@@ -145,6 +207,11 @@ impl Madviseable for memmap2::Mmap {
 
     fn populate_simple_impl(&self) {
         populate_simple(self);
+    }
+
+    #[cfg(target_os = "linux")]
+    fn pageout_impl(&self) {
+        pageout_slice(self);
     }
 }
 
@@ -157,6 +224,11 @@ impl Madviseable for memmap2::MmapMut {
     fn populate_simple_impl(&self) {
         populate_simple(self);
     }
+
+    #[cfg(target_os = "linux")]
+    fn pageout_impl(&self) {
+        pageout_slice(self);
+    }
 }
 
 impl Madviseable for memmap2::MmapRaw {
@@ -168,6 +240,12 @@ impl Madviseable for memmap2::MmapRaw {
     fn populate_simple_impl(&self) {
         let mmap = unsafe { slice::from_raw_parts(self.as_ptr(), self.len()) };
         populate_simple(mmap);
+    }
+
+    #[cfg(target_os = "linux")]
+    fn pageout_impl(&self) {
+        let mmap = unsafe { slice::from_raw_parts(self.as_ptr(), self.len()) };
+        pageout_slice(mmap);
     }
 }
 
@@ -197,7 +275,7 @@ fn populate_simple(slice: &[u8]) {
 /// Note: if the region fits within a single page, this function is a no-op.
 #[cfg(unix)]
 pub fn will_need_multiple_pages(region: &[u8]) {
-    let Some(page_mask) = *PAGE_SIZE_MASK else {
+    let Some(page_mask) = page_size().map(|s| s - 1) else {
         return;
     };
 
@@ -226,22 +304,28 @@ pub fn will_need_multiple_pages(region: &[u8]) {
 #[cfg(not(unix))]
 pub fn will_need_multiple_pages(_region: &[u8]) {}
 
-/// Page size mask. Typically 0xfff for 4KiB pages.
+/// Returns the system page size in bytes, or `None` if it could not be determined.
+///
+/// Cached after first call. Typically 4096 on x86_64, 16384 on aarch64 macOS.
 #[cfg(unix)]
-static PAGE_SIZE_MASK: std::sync::LazyLock<Option<usize>> =
-    std::sync::LazyLock::new(|| get_page_mask().inspect_err(|err| log::warn!("{err}")).ok());
+pub fn page_size() -> Option<usize> {
+    *CACHED_PAGE_SIZE
+}
+
+/// System page size. Must be a power of two.
+#[cfg(unix)]
+static CACHED_PAGE_SIZE: std::sync::LazyLock<Option<usize>> =
+    std::sync::LazyLock::new(|| get_page_size().inspect_err(|err| log::warn!("{err}")).ok());
 
 #[cfg(unix)]
-fn get_page_mask() -> Result<usize, String> {
+fn get_page_size() -> Result<usize, String> {
     let page_size = nix::unistd::sysconf(nix::unistd::SysconfVar::PAGE_SIZE)
         .map_err(|err| format!("Failed to get page size: {err}"))?
         .ok_or_else(|| "sysconf(PAGE_SIZE) returned None".to_string())?;
     let page_size = usize::try_from(page_size)
         .map_err(|_| format!("Failed to convert page size {page_size} to usize"))?;
     if !page_size.is_power_of_two() {
-        // Assuming that page size is a power of two (which is true for all
-        // known platforms) simplifies computations.
         return Err(format!("Page size {page_size} is not a power of two"));
     }
-    Ok(page_size - 1)
+    Ok(page_size)
 }

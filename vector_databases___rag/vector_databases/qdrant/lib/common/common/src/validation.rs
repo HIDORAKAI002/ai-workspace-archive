@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 use serde::Serialize;
-use validator::{Validate, ValidationError, ValidationErrors};
+use validator::{Validate, ValidationError, ValidationErrors, ValidationErrorsKind};
 
 // Multivector should be small enough to fit the chunk of vector storage
 
@@ -11,15 +11,32 @@ pub const MAX_MULTIVECTOR_FLATTENED_LEN: usize = 32 * 1024;
 #[cfg(not(debug_assertions))]
 pub const MAX_MULTIVECTOR_FLATTENED_LEN: usize = 1024 * 1024;
 
-#[allow(clippy::manual_try_fold)] // `try_fold` can't be used because it shortcuts on Err
+/// Validate every item in an iterator and collect per-item errors under a
+/// placeholder `?` key. We can't use `ValidationErrors::merge` repeatedly with
+/// the same key — its internal `add_nested` panics on the second insert
+/// ("Attempt to replace non-empty ValidationErrors entry"). For N≥2 we use a
+/// `List` indexed by position; for N=1 we keep the historical `Struct` shape so
+/// existing renderings (`?.<field>`) are preserved.
 pub fn validate_iter<T: Validate>(iter: impl Iterator<Item = T>) -> Result<(), ValidationErrors> {
-    let errors = iter
-        .filter_map(|v| v.validate().err())
-        .fold(Err(ValidationErrors::new()), |bag, err| {
-            ValidationErrors::merge(bag, "?", Err(err))
-        })
-        .unwrap_err();
-    errors.errors().is_empty().then_some(()).ok_or(errors)
+    let mut child_errors: Vec<ValidationErrors> = iter.filter_map(|v| v.validate().err()).collect();
+    if child_errors.is_empty() {
+        return Ok(());
+    }
+
+    let kind = if child_errors.len() == 1 {
+        ValidationErrorsKind::Struct(Box::new(child_errors.pop().unwrap()))
+    } else {
+        ValidationErrorsKind::List(
+            child_errors
+                .into_iter()
+                .enumerate()
+                .map(|(i, e)| (i, Box::new(e)))
+                .collect(),
+        )
+    };
+    let mut bag = ValidationErrors::new();
+    bag.errors_mut().insert(Cow::Borrowed("?"), kind);
+    Err(bag)
 }
 
 /// Validate the value is in `[min, max]`
@@ -33,8 +50,7 @@ where
     N: PartialOrd + Serialize,
 {
     // If value is within bounds we're good
-    if min.as_ref().map(|min| &value >= min).unwrap_or(true)
-        && max.as_ref().map(|max| &value <= max).unwrap_or(true)
+    if min.as_ref().is_none_or(|min| &value >= min) && max.as_ref().is_none_or(|max| &value <= max)
     {
         return Ok(());
     }
@@ -58,23 +74,55 @@ pub fn validate_not_empty(value: &str) -> Result<(), ValidationError> {
     }
 }
 
+/// Filesystem-unsafe characters rejected for both collection and vector names.
+///
+/// These end up as path components on disk (collection directories,
+/// per-vector storage subdirectories — see
+/// `segment_constructor::get_vector_storage_path`), so they must be safe on both
+/// Linux and Windows filesystems.
+const INVALID_NAME_CHARS: [char; 11] =
+    ['<', '>', ':', '"', '/', '\\', '|', '?', '*', '\0', '\u{1F}'];
+
+/// Reject any character from [`INVALID_NAME_CHARS`] in `value`. The `kind`
+/// argument is interpolated into the error message ("collection name" /
+/// "vector name") so callers get a context-appropriate error.
+fn check_invalid_name_chars(value: &str, kind: &str) -> Result<(), ValidationError> {
+    let Some(c) = INVALID_NAME_CHARS.into_iter().find(|c| value.contains(*c)) else {
+        return Ok(());
+    };
+    let mut err = ValidationError::new("does_not_contain");
+    err.add_param(Cow::from("pattern"), &c);
+    err.message
+        .replace(format!("{kind} cannot contain \"{c}\" char").into());
+    Err(err)
+}
+
 /// Validate the collection name contains no illegal characters
 ///
 /// This does not check the length of the name.
 pub fn validate_collection_name(value: &str) -> Result<(), ValidationError> {
-    const INVALID_CHARS: [char; 11] =
-        ['<', '>', ':', '"', '/', '\\', '|', '?', '*', '\0', '\u{1F}'];
+    check_invalid_name_chars(value, "collection name")
+}
 
-    match INVALID_CHARS.into_iter().find(|c| value.contains(*c)) {
-        Some(c) => {
-            let mut err = ValidationError::new("does_not_contain");
-            err.add_param(Cow::from("pattern"), &c);
-            err.message
-                .replace(format!("collection name cannot contain \"{c}\" char").into());
-            Err(err)
-        }
-        None => Ok(()),
+/// Validate a named vector identifier.
+///
+/// Vector names become directory components on disk (see
+/// `segment_constructor::get_vector_storage_path`), so they are subject to the same
+/// rules as collection names: at most 200 bytes, and free of the
+/// filesystem-unsafe characters listed in [`INVALID_NAME_CHARS`].
+pub fn validate_vector_name(value: &str) -> Result<(), ValidationError> {
+    const MAX_LEN: usize = 200;
+
+    if value.len() > MAX_LEN {
+        let mut err = ValidationError::new("length");
+        err.add_param(Cow::from("max"), &MAX_LEN);
+        err.add_param(Cow::from("actual"), &value.len());
+        err.message
+            .replace(format!("vector name must be at most {MAX_LEN} bytes long").into());
+        return Err(err);
     }
+
+    check_invalid_name_chars(value, "vector name")
 }
 
 /// Validate the collection name contains no illegal characters, legacy edition
@@ -361,6 +409,41 @@ mod tests {
             validate_geo_polygon(&good_polygon).is_ok(),
             "good polygon should not error on validation",
         );
+    }
+
+    #[test]
+    fn test_validate_iter() {
+        #[derive(validator::Validate)]
+        struct Item {
+            #[validate(range(min = 1))]
+            idx: u32,
+        }
+
+        // Empty iter — Ok
+        assert!(validate_iter(std::iter::empty::<&Item>()).is_ok());
+
+        // All valid — Ok
+        let valid = [Item { idx: 1 }, Item { idx: 2 }];
+        assert!(validate_iter(valid.iter()).is_ok());
+
+        // Single failure — Struct under `?` (preserves historical `?.<field>`
+        // rendering for existing call sites).
+        let one_bad = [Item { idx: 0 }];
+        let err = validate_iter(one_bad.iter()).expect_err("should fail");
+        match err.errors().get("?") {
+            Some(ValidationErrorsKind::Struct(_)) => {}
+            other => panic!("expected Struct under `?`, got {other:?}"),
+        }
+
+        // Two+ failures — must NOT panic (regression: prior impl called
+        // `ValidationErrors::merge(_, "?", _)` repeatedly, and validator's
+        // internal `add_nested` panics on the second insert).
+        let many_bad = [Item { idx: 0 }, Item { idx: 0 }, Item { idx: 0 }];
+        let err = validate_iter(many_bad.iter()).expect_err("should fail");
+        match err.errors().get("?") {
+            Some(ValidationErrorsKind::List(list)) => assert_eq!(list.len(), 3),
+            other => panic!("expected List under `?`, got {other:?}"),
+        }
     }
 
     #[test]

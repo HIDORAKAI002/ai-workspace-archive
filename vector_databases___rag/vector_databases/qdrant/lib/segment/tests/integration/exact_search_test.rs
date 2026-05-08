@@ -7,7 +7,6 @@ use common::counter::hardware_counter::HardwareCounterCell;
 use common::flags::FeatureFlags;
 use common::progress_tracker::ProgressTracker;
 use common::types::PointOffsetType;
-use itertools::Itertools;
 use ordered_float::OrderedFloat;
 use rand::RngExt;
 use segment::data_types::vectors::{DEFAULT_VECTOR_NAME, only_default_vector};
@@ -15,7 +14,7 @@ use segment::entry::entry_point::SegmentEntry;
 use segment::fixtures::payload_fixtures::{random_int_payload, random_vector};
 use segment::index::hnsw_index::get_num_indexing_threads;
 use segment::index::hnsw_index::hnsw::{HNSWIndex, HnswIndexOpenArgs};
-use segment::index::{PayloadIndex, VectorIndex};
+use segment::index::{PayloadIndex, PayloadIndexRead, VectorIndexRead};
 use segment::json_path::JsonPath;
 use segment::payload_json;
 use segment::segment_constructor::VectorIndexBuildArgs;
@@ -93,11 +92,14 @@ fn exact_search_test() {
         )
         .unwrap();
     let borrowed_payload_index = payload_index_ptr.borrow();
-    let blocks = borrowed_payload_index
-        .payload_blocks(&JsonPath::new(int_key), indexing_threshold)
-        .map(Result::unwrap)
-        .collect_vec();
-    for block in blocks.iter() {
+    let mut blocks = Vec::new();
+    borrowed_payload_index
+        .for_each_payload_block(&JsonPath::new(int_key), indexing_threshold, &mut |block| {
+            blocks.push(block);
+            Ok(())
+        })
+        .unwrap();
+    for block in &blocks {
         assert!(
             block.condition.range.is_some(),
             "only range conditions should be generated for this type of payload"

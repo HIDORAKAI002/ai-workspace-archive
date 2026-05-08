@@ -94,8 +94,15 @@ def agent_knowledge_list_pages() -> str:
 @mcp.tool()
 def agent_knowledge_get_page(page_id: str) -> str:
     """Read a specific knowledge page by its ID. Returns the full synthesized content."""
+    # detail=content returns the synthesized `content` plus metadata; detail=full
+    # additionally includes `reflect_response`, the internal trace metadata used
+    # to build the page. Empirically reflect_response is 70-95% of the response
+    # bytes and the docstring promises only "synthesized content" — full payloads
+    # at this scale (200+ KB per page) blow past the MCP host's per-tool-result
+    # token cap and force the result to spill to disk, where the agent can't
+    # consume it inline.
     resp = _client.request(
-        "GET", f"/v1/default/banks/{_encode_bank(_default_bank_id)}/mental-models/{page_id}?detail=full", timeout=10
+        "GET", f"/v1/default/banks/{_encode_bank(_default_bank_id)}/mental-models/{page_id}?detail=content", timeout=10
     )
     return json.dumps(resp, indent=2)
 
@@ -142,9 +149,9 @@ def agent_knowledge_delete_page(page_id: str) -> str:
 
 
 @mcp.tool()
-def agent_knowledge_recall(query: str, max_results: int = 10) -> str:
-    """Search across all retained conversations and documents for specific facts, numbers, or details not covered by your knowledge pages."""
-    resp = _client.recall(bank_id=_default_bank_id, query=query, max_tokens=max_results, budget="mid", timeout=10)
+def agent_knowledge_recall(query: str, max_tokens: int = 1024) -> str:
+    """Search across all retained conversations and documents for specific facts, numbers, or details not covered by your knowledge pages. max_tokens is the result token budget (server returns whatever fits)."""
+    resp = _client.recall(bank_id=_default_bank_id, query=query, max_tokens=max_tokens, budget="mid", timeout=10)
     return json.dumps(resp, indent=2)
 
 

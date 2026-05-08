@@ -9,13 +9,21 @@ use rand_distr::StandardNormal;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 
-use crate::index::field_index::histogram::{Histogram, Numericable, Point};
+use crate::index::field_index::histogram::Histogram;
+use crate::index::field_index::numeric_point::{Numericable, Point};
 use crate::index::field_index::tests::histogram_test_utils::print_results;
 
-pub fn count_range<T: PartialOrd>(points_index: &BTreeSet<Point<T>>, a: T, b: T) -> usize {
+pub fn count_range<T: PartialOrd + Numericable>(
+    points_index: &BTreeSet<Point<T>>,
+    a: T,
+    b: T,
+) -> usize {
     points_index
         .iter()
-        .filter(|x| a <= x.val && x.val <= b)
+        .filter(|x| {
+            let v = x.val;
+            a <= v && v <= b
+        })
         .count()
 }
 
@@ -28,9 +36,11 @@ fn test_build_histogram_small() {
 
     // let points = (0..100000).map(|i| Point { val: rnd.random_range(-10.0..10.0), idx: i }).collect_vec();
     let points = (0..num_samples)
-        .map(|i| Point {
-            val: f64::round(rnd.sample::<f64, _>(StandardNormal) * 10.0),
-            idx: i % num_samples / 2,
+        .map(|i| {
+            Point::new(
+                f64::round(rnd.sample::<f64, _>(StandardNormal) * 10.0),
+                i % num_samples / 2,
+            )
         })
         .collect_vec();
 
@@ -39,10 +49,10 @@ fn test_build_histogram_small() {
     let mut histogram = Histogram::new(max_bucket_size, precision);
 
     for point in &points {
-        points_index.insert(point.clone());
+        points_index.insert(*point);
         // print_results(&points_index, &histogram, Some(point.clone()));
         histogram.insert(
-            point.clone(),
+            *point,
             |x| {
                 points_index
                     .range((Unbounded, Excluded(x)))
@@ -54,7 +64,7 @@ fn test_build_histogram_small() {
     }
 
     for point in &points {
-        print_results(&points_index, &histogram, Some(point.clone()));
+        print_results(&points_index, &histogram, Some(*point));
         points_index.remove(point);
         histogram.remove(
             point,
@@ -193,7 +203,7 @@ pub fn build_histogram<T: Numericable + Serialize + DeserializeOwned + std::fmt:
 
     let read_counter = Cell::new(0);
     for point in points {
-        points_index.insert(point.clone());
+        points_index.insert(point);
         // print_results(&points_index, &histogram, Some(point.clone()));
         histogram.insert(
             point,
@@ -226,10 +236,8 @@ fn test_build_histogram_round() {
     let mut rnd = StdRng::seed_from_u64(42);
 
     // let points = (0..100000).map(|i| Point { val: rnd.random_range(-10.0..10.0), idx: i }).collect_vec();
-    let points = (0..num_samples).map(|i| Point {
-        val: f64::round(rnd.sample::<f64, _>(StandardNormal) * 100.0),
-        idx: i,
-    });
+    let points = (0..num_samples)
+        .map(|i| Point::new(f64::round(rnd.sample::<f64, _>(StandardNormal) * 100.0), i));
     let (histogram, points_index) = build_histogram(max_bucket_size, precision, points.collect());
 
     request_histogram(&histogram, &points_index);
@@ -244,10 +252,7 @@ fn test_build_histogram() {
 
     // let points = (0..100000).map(|i| Point { val: rnd.random_range(-10.0..10.0), idx: i }).collect_vec();
     let points = (0..num_samples)
-        .map(|i| Point {
-            val: rnd.sample(StandardNormal),
-            idx: i,
-        })
+        .map(|i| Point::new(rnd.sample(StandardNormal), i))
         .collect_vec();
 
     let (histogram, points_index) = build_histogram(max_bucket_size, precision, points);
@@ -263,10 +268,7 @@ fn test_save_load_histogram() {
     let mut rnd = StdRng::seed_from_u64(42);
 
     let points = (0..num_samples)
-        .map(|i| Point {
-            val: rnd.random_range(-10.0..10.0),
-            idx: i,
-        })
+        .map(|i| Point::new(rnd.random_range(-10.0..10.0), i))
         .collect_vec();
     let (histogram, _) = build_histogram(max_bucket_size, precision, points);
 

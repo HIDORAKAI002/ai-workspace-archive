@@ -63,6 +63,16 @@ pub struct ServiceConfig {
     #[serde(default)]
     pub jwt_rbac: Option<bool>,
 
+    /// Enforce API key / JWT authentication on the internal (p2p) gRPC API.
+    ///
+    /// The regular API key is always forwarded on internal gRPC requests, but
+    /// the receiving side only verifies it when this flag is enabled. This is
+    /// opt-in to keep rolling upgrades safe: during an upgrade some nodes may
+    /// run a version that does not attach the key yet, so enabling enforcement
+    /// before every peer is upgraded would break intra-cluster communication.
+    #[serde(default)]
+    pub enforce_internal_auth: Option<bool>,
+
     #[serde(default)]
     pub hide_jwt_dashboard: Option<bool>,
 
@@ -87,6 +97,13 @@ pub struct ServiceConfig {
     #[serde(default)]
     #[validate(custom(function = validate_metrics_prefix))]
     pub metrics_prefix: Option<String>,
+
+    /// Whether to allow snapshot recovery from remote URLs (http/https).
+    /// If disabled, snapshot recovery will only work with local files and uploads.
+    /// Disabling this can mitigate SSRF risks in environments where the Qdrant node
+    /// has access to internal resources that should not be reachable by users.
+    #[serde(default = "default_snapshot_url_recovery")]
+    pub enable_snapshot_url_recovery: bool,
 }
 
 impl ServiceConfig {
@@ -178,7 +195,6 @@ pub struct TlsConfig {
     pub cert_ttl: Option<u64>,
 }
 
-#[allow(dead_code)]
 #[derive(Clone, Debug, Deserialize, Validate)]
 pub struct GpuConfig {
     /// Enable GPU indexing.
@@ -413,6 +429,10 @@ const fn default_telemetry_disabled() -> bool {
 }
 
 const fn default_cors() -> bool {
+    true
+}
+
+const fn default_snapshot_url_recovery() -> bool {
     true
 }
 

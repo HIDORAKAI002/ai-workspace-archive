@@ -7,7 +7,6 @@ use common::counter::hardware_counter::HardwareCounterCell;
 use common::flags::FeatureFlags;
 use common::progress_tracker::ProgressTracker;
 use common::types::{PointOffsetType, TelemetryDetail};
-use itertools::Itertools;
 use ordered_float::OrderedFloat;
 use rand::prelude::StdRng;
 use rand::{Rng, RngExt, SeedableRng};
@@ -17,7 +16,7 @@ use segment::entry::entry_point::SegmentEntry;
 use segment::fixtures::payload_fixtures::{random_int_payload, random_vector};
 use segment::fixtures::query_fixtures::QueryVariant;
 use segment::index::hnsw_index::hnsw::{HNSWIndex, HnswIndexOpenArgs};
-use segment::index::{PayloadIndex, VectorIndex};
+use segment::index::{PayloadIndex, PayloadIndexRead, VectorIndexRead};
 use segment::json_path::JsonPath;
 use segment::payload_json;
 use segment::segment_constructor::VectorIndexBuildArgs;
@@ -116,11 +115,14 @@ fn _test_filterable_hnsw(
         )
         .unwrap();
     let borrowed_payload_index = payload_index_ptr.borrow();
-    let blocks = borrowed_payload_index
-        .payload_blocks(&JsonPath::new(int_key), indexing_threshold)
-        .map(Result::unwrap)
-        .collect_vec();
-    for block in blocks.iter() {
+    let mut blocks = Vec::new();
+    borrowed_payload_index
+        .for_each_payload_block(&JsonPath::new(int_key), indexing_threshold, &mut |block| {
+            blocks.push(block);
+            Ok(())
+        })
+        .unwrap();
+    for block in &blocks {
         assert!(
             block.condition.range.is_some(),
             "only range conditions should be generated for this type of payload"
@@ -303,11 +305,14 @@ fn test_hnsw_search_top_zero(#[case] num_vectors: u64, #[case] full_scan_thresho
         )
         .unwrap();
     let borrowed_payload_index = payload_index_ptr.borrow();
-    let blocks = borrowed_payload_index
-        .payload_blocks(&JsonPath::new(int_key), indexing_threshold)
-        .map(Result::unwrap)
-        .collect_vec();
-    for block in blocks.iter() {
+    let mut blocks = Vec::new();
+    borrowed_payload_index
+        .for_each_payload_block(&JsonPath::new(int_key), indexing_threshold, &mut |block| {
+            blocks.push(block);
+            Ok(())
+        })
+        .unwrap();
+    for block in &blocks {
         assert!(
             block.condition.range.is_some(),
             "only range conditions should be generated for this type of payload"

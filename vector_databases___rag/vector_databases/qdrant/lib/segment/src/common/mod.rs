@@ -1,20 +1,13 @@
 pub mod anonymize;
+pub mod buffered_update_bitslice;
 pub mod error_logging;
 pub mod flags;
 pub mod macros;
-pub mod mmap_bitslice_buffered_update_wrapper;
-pub mod mmap_slice_buffered_update_wrapper;
+pub mod memory_usage;
 pub mod operation_error;
 pub mod operation_time_statistics;
 pub mod reciprocal_rank_fusion;
-#[cfg(feature = "rocksdb")]
-pub mod rocksdb_buffered_delete_wrapper;
-#[cfg(feature = "rocksdb")]
-pub mod rocksdb_buffered_update_wrapper;
-#[cfg(feature = "rocksdb")]
-pub mod rocksdb_wrapper;
 pub mod score_fusion;
-pub mod stored_bitslice;
 pub mod utils;
 pub mod validate_snapshot_archive;
 pub mod vector_utils;
@@ -238,9 +231,7 @@ fn check_sparse_vector_against_config(
 
 pub fn check_stopped(is_stopped: &AtomicBool) -> OperationResult<()> {
     if is_stopped.load(std::sync::atomic::Ordering::Relaxed) {
-        return Err(OperationError::Cancelled {
-            description: "Operation is stopped externally".to_string(),
-        });
+        return Err(OperationError::cancelled("Operation is stopped externally"));
     }
     Ok(())
 }

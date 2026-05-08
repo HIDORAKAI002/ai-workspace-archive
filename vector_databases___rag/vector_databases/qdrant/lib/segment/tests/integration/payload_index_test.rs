@@ -27,10 +27,10 @@ use segment::fixtures::payload_fixtures::{
     STR_PROJ_KEY, STR_ROOT_PROJ_KEY, TEXT_KEY, generate_diverse_nested_payload,
     generate_diverse_payload, random_filter, random_nested_filter, random_vector,
 };
-use segment::id_tracker::IdTracker;
-use segment::index::PayloadIndex;
+use segment::id_tracker::IdTrackerRead;
 use segment::index::field_index::{FieldIndex, PrimaryCondition};
 use segment::index::struct_payload_index::StructPayloadIndex;
+use segment::index::{PayloadIndex, PayloadIndexRead};
 use segment::json_path::JsonPath;
 use segment::payload_json;
 use segment::payload_storage::PayloadStorage;
@@ -290,8 +290,10 @@ impl TestSegments {
         )
         .unwrap();
 
-        builder.update(&[plain_segment], &stopped).unwrap();
         let hw_counter = HardwareCounterCell::new();
+        builder
+            .update(&[plain_segment], &stopped, &hw_counter)
+            .unwrap();
 
         let mut segment = builder.build_for_test(path);
         let opnum = segment.version() + 1;
@@ -967,15 +969,15 @@ fn test_struct_payload_index(test_segments: &TestSegments) -> Result<()> {
 
         // Perform additional sort to break ties by score
         let mut plain_result_sorted_ties: Vec<ScoredPointTies> =
-            plain_result.iter().map(|x| x.into()).collect_vec();
+            plain_result.iter().map(Into::into).collect_vec();
         plain_result_sorted_ties.sort();
 
         let mut struct_result_sorted_ties: Vec<ScoredPointTies> =
-            struct_result.iter().map(|x| x.into()).collect_vec();
+            struct_result.iter().map(Into::into).collect_vec();
         struct_result_sorted_ties.sort();
 
         let mut mmap_result_sorted_ties: Vec<ScoredPointTies> =
-            mmap_result.iter().map(|x| x.into()).collect_vec();
+            mmap_result.iter().map(Into::into).collect_vec();
         mmap_result_sorted_ties.sort();
 
         ensure!(
@@ -1247,6 +1249,147 @@ fn test_update_payload_index_type() {
     let field_index = index.field_indexes.get(&field).unwrap();
     assert_eq!(field_index[0].count_indexed_points(), point_num);
     assert_eq!(field_index[1].count_indexed_points(), point_num);
+}
+
+/// An appendable segment with a bool payload index must still accept updates
+/// after being reopened from disk.
+#[test]
+fn test_bool_index_appendable_reopen_accepts_updates() {
+    let dir = Builder::new().prefix("storage_dir").tempdir().unwrap();
+    let field = JsonPath::new("flag");
+    let hw_counter = HardwareCounterCell::new();
+
+    {
+        let mut payload_storage = InMemoryPayloadStorage::default();
+        payload_storage
+            .set(0, &payload_json! {"flag": true}, &hw_counter)
+            .unwrap();
+
+        let payload_storage = Arc::new(AtomicRefCell::new(payload_storage.into()));
+        let id_tracker = Arc::new(AtomicRefCell::new(create_id_tracker_fixture(2)));
+
+        let mut index = StructPayloadIndex::open(
+            payload_storage,
+            id_tracker,
+            HashMap::new(),
+            dir.path(),
+            true,
+            true,
+        )
+        .unwrap();
+
+        index
+            .set_indexed(&field, FieldType(PayloadSchemaType::Bool), &hw_counter)
+            .unwrap();
+
+        for field_index in index.field_indexes.get(&field).unwrap() {
+            field_index.flusher()().unwrap();
+        }
+    }
+
+    let payload_storage = Arc::new(AtomicRefCell::new(InMemoryPayloadStorage::default().into()));
+    let id_tracker = Arc::new(AtomicRefCell::new(create_id_tracker_fixture(2)));
+    let mut index = StructPayloadIndex::open(
+        payload_storage,
+        id_tracker,
+        HashMap::new(),
+        dir.path(),
+        true,
+        false,
+    )
+    .unwrap();
+
+    index
+        .set_payload(1, &payload_json! {"flag": false}, &None, &hw_counter)
+        .expect("update on reopened bool index must succeed");
+
+    let field_indexes = index.field_indexes.get(&field).unwrap();
+    let bool_index = field_indexes
+        .iter()
+        .find(|fi| matches!(fi, FieldIndex::BoolIndex(_)))
+        .expect("bool index present after reopen");
+    assert_eq!(bool_index.count_indexed_points(), 2);
+}
+
+/// An appendable segment with a payload field index carries a companion null
+/// index in its persisted `types`. On reopen that null index must be loaded
+/// from disk (not silently rebuilt from payload storage) and must accept
+/// subsequent updates.
+#[test]
+fn test_null_index_appendable_reopen_loads_and_accepts_updates() {
+    let dir = Builder::new().prefix("storage_dir").tempdir().unwrap();
+    let field = JsonPath::new("name");
+    let hw_counter = HardwareCounterCell::new();
+
+    {
+        let mut payload_storage = InMemoryPayloadStorage::default();
+        payload_storage
+            .set(0, &payload_json! {"name": "foo"}, &hw_counter)
+            .unwrap();
+
+        let payload_storage = Arc::new(AtomicRefCell::new(payload_storage.into()));
+        let id_tracker = Arc::new(AtomicRefCell::new(create_id_tracker_fixture(2)));
+
+        let mut index = StructPayloadIndex::open(
+            payload_storage,
+            id_tracker,
+            HashMap::new(),
+            dir.path(),
+            true,
+            true,
+        )
+        .unwrap();
+
+        index
+            .set_indexed(&field, FieldType(Keyword), &hw_counter)
+            .unwrap();
+
+        for field_index in index.field_indexes.get(&field).unwrap() {
+            field_index.flusher()().unwrap();
+        }
+    }
+
+    // Reopen with a fresh (empty) payload storage — same pattern as the bool
+    // test above.
+    let payload_storage = Arc::new(AtomicRefCell::new(InMemoryPayloadStorage::default().into()));
+    let id_tracker = Arc::new(AtomicRefCell::new(create_id_tracker_fixture(2)));
+    let mut index = StructPayloadIndex::open(
+        payload_storage,
+        id_tracker,
+        HashMap::new(),
+        dir.path(),
+        true,
+        false,
+    )
+    .unwrap();
+
+    // The null index is persisted with `{ mutability: Mutable, storage_type:
+    // Mmap }` because `MutableNullIndex` and `ImmutableNullIndex` share the
+    // same on-disk format. If the reload dispatched on storage_type alone, it
+    // would open `ImmutableNullIndex` and this write would fail with "Can't
+    // add values to immutable null index" (same class of bug as #8785 for the
+    // bool index).
+    index
+        .set_payload(1, &payload_json! {"name": "bar"}, &None, &hw_counter)
+        .expect("update on reopened null index must succeed");
+
+    let field_indexes = index.field_indexes.get(&field).unwrap();
+    let null_index = field_indexes
+        .iter()
+        .find(|fi| matches!(fi, FieldIndex::NullIndex(_)))
+        .expect("null index present after reopen");
+
+    let not_empty = FieldCondition::new_is_empty(field.clone(), false);
+    let with_values: Vec<_> = null_index
+        .filter(&not_empty, &hw_counter)
+        .unwrap()
+        .expect("null index must answer is_empty filter")
+        .collect();
+    assert_eq!(
+        with_values,
+        vec![0, 1],
+        "null index must retain point 0 from before reopen and include point 1 from after",
+    );
 }
 
 fn test_any_matcher_cardinality_estimation(test_segments: &TestSegments) -> Result<()> {

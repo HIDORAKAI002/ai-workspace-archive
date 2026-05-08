@@ -129,6 +129,7 @@ _PROVIDERS_WITHOUT_API_KEY = frozenset(
         "none",
         "vertexai",
         "litellm",
+        "litellmrouter",
         "bedrock",
     }
 )
@@ -153,6 +154,7 @@ def create_llm_provider(
     vertexai_region: str | None = None,
     vertexai_credentials: Any = None,
     gemini_safety_settings: list | None = None,
+    litellmrouter_config: dict[str, Any] | None = None,
 ) -> Any:  # Returns LLMInterface
     """
     Factory function to create the appropriate LLM provider implementation.
@@ -183,6 +185,7 @@ def create_llm_provider(
         CodexLLM,
         GeminiLLM,
         LiteLLMLLM,
+        LiteLLMRouterLLM,
         LlamaCppLLM,
         MockLLM,
         NoneLLM,
@@ -256,6 +259,23 @@ def create_llm_provider(
             api_key=api_key,
             base_url=base_url,
             model=model,
+            reasoning_effort=reasoning_effort,
+        )
+
+    elif provider_lower == "litellmrouter":
+        if not litellmrouter_config:
+            raise ValueError(
+                "Provider 'litellmrouter' requires a config object. "
+                "Set HINDSIGHT_API_LLM_LITELLMROUTER_CONFIG (or the per-op variant) "
+                "to a JSON object accepted by litellm.Router. "
+                "See https://docs.litellm.ai/docs/routing."
+            )
+        return LiteLLMRouterLLM(
+            provider=provider,
+            api_key=api_key,
+            base_url=base_url,
+            model=model,
+            config=litellmrouter_config,
             reasoning_effort=reasoning_effort,
         )
 
@@ -333,6 +353,7 @@ class LLMProvider:
         gemini_safety_settings: list | None = None,
         extra_body: dict[str, Any] | None = None,
         default_headers: dict[str, str] | None = None,
+        litellmrouter_config: dict[str, Any] | None = None,
     ):
         """
         Initialize LLM provider.
@@ -351,12 +372,18 @@ class LLMProvider:
                 Used by operators routing through proxies / request-tracing middleware. Falls
                 back to ``HindsightConfig.llm_default_headers`` (env: ``HINDSIGHT_API_LLM_DEFAULT_HEADERS``)
                 when ``None``.
+            litellmrouter_config: Provider-specific config for ``provider="litellmrouter"``.
+                JSON object passed verbatim to ``litellm.Router(**config)`` — see
+                https://docs.litellm.ai/docs/routing. Ignored unless ``provider == "litellmrouter"``.
+                When None and the provider is ``litellmrouter``, falls back to
+                ``HindsightConfig.llm_litellmrouter_config``.
         """
         self.provider = provider.lower()
         self.api_key = api_key
         self.base_url = base_url
         self.model = model
         self.reasoning_effort = reasoning_effort
+        self.litellmrouter_config = litellmrouter_config
         # Service tiers from hierarchical config (not env vars)
         self.groq_service_tier = groq_service_tier
         self.openai_service_tier = openai_service_tier
@@ -393,6 +420,7 @@ class LLMProvider:
             "minimax",
             "deepseek",
             "litellm",
+            "litellmrouter",
             "bedrock",
             "volcano",
             "openrouter",
@@ -472,6 +500,19 @@ class LLMProvider:
             except Exception:
                 pass  # Config may not be initialized in test environments
 
+        # For litellmrouter: prefer an explicit chain from the caller (per-op
+        # construction in MemoryEngine threads the right chain through). If the caller
+        # didn't supply one, fall back to the global ``llm_litellmrouter_config`` so
+        # ad-hoc constructions (e.g. ``LLMProvider.from_env()``) keep working.
+        router_config: dict[str, Any] | None = self.litellmrouter_config
+        if self.provider == "litellmrouter" and router_config is None:
+            from ..config import _get_raw_config
+
+            try:
+                router_config = _get_raw_config().llm_litellmrouter_config
+            except Exception:
+                router_config = None
+
         # Create provider implementation using factory
         self._provider_impl = create_llm_provider(
             provider=self.provider,
@@ -487,6 +528,7 @@ class LLMProvider:
             vertexai_region=vertexai_region,
             vertexai_credentials=vertexai_credentials,
             gemini_safety_settings=self.gemini_safety_settings,
+            litellmrouter_config=router_config,
         )
 
         # Backward compatibility: Keep mock provider properties

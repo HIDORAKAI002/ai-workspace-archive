@@ -26,18 +26,20 @@ use crate::common::operation_time_statistics::ScopeDurationMeasurer;
 use crate::data_types::named_vectors::CowVector;
 use crate::data_types::query_context::VectorQueryContext;
 use crate::data_types::vectors::{QueryVector, VectorInternal, VectorRef};
-use crate::id_tracker::{IdTracker, IdTrackerEnum};
+use crate::id_tracker::{IdTrackerEnum, IdTrackerRead};
 use crate::index::field_index::CardinalityEstimation;
 use crate::index::hnsw_index::point_scorer::BatchFilteredSearcher;
 use crate::index::query_estimator::adjust_to_available_vectors;
 use crate::index::sparse_index::sparse_index_config::SparseIndexConfig;
 use crate::index::sparse_index::sparse_search_telemetry::SparseSearchesTelemetry;
 use crate::index::struct_payload_index::StructPayloadIndex;
-use crate::index::{PayloadIndex, VectorIndex};
+use crate::index::{PayloadIndexRead, VectorIndex, VectorIndexRead};
 use crate::telemetry::VectorIndexSearchesTelemetry;
 use crate::types::{DEFAULT_SPARSE_FULL_SCAN_THRESHOLD, Filter, SearchParams};
 use crate::vector_storage::query::TransformInto;
-use crate::vector_storage::{VectorStorage, VectorStorageEnum, check_deleted_condition};
+use crate::vector_storage::{
+    VectorStorage, VectorStorageEnum, VectorStorageRead, check_deleted_condition,
+};
 
 /// Whether to use the new compressed format.
 pub const USE_COMPRESSED: bool = true;
@@ -261,7 +263,7 @@ impl<TInvertedIndex: InvertedIndex> SparseVectorIndex<TInvertedIndex> {
         let hw_counter = HardwareCounterCell::disposable();
 
         let mut unique_record_ids = std::collections::HashSet::new();
-        for dim_id in query_vector.indices.iter() {
+        for dim_id in &query_vector.indices {
             if let Some(dim_id) = self.indices_tracker.remap_index(*dim_id)
                 && let Some(posting_list_iter) = self.inverted_index.get(dim_id, &hw_counter)
             {
@@ -320,7 +322,7 @@ impl<TInvertedIndex: InvertedIndex> SparseVectorIndex<TInvertedIndex> {
         let mut results = match filter {
             Some(filter) => {
                 let payload_index = self.payload_index.borrow();
-                let mut filtered_points = match prefiltered_points {
+                let filtered_points = match prefiltered_points {
                     // `prefiltered_points` always contains visible points only so we don't need additional filtering here.
                     Some(filtered_points) => filtered_points.iter().copied(),
                     None => {
@@ -334,7 +336,7 @@ impl<TInvertedIndex: InvertedIndex> SparseVectorIndex<TInvertedIndex> {
                         prefiltered_points.as_ref().unwrap().iter().copied()
                     }
                 };
-                searcher.peek_top_iter(&mut filtered_points, &is_stopped)?
+                searcher.peek_top_iter(filtered_points, &is_stopped)?
             }
             None => {
                 searcher.peek_top_all(&is_stopped, vector_query_context.deferred_internal_id())?
@@ -544,26 +546,9 @@ impl<TInvertedIndex: InvertedIndex> SparseVectorIndex<TInvertedIndex> {
             }
         }
     }
-
-    // Update statistics for idf-dot similarity
-    pub fn fill_idf_statistics(
-        &self,
-        idf: &mut HashMap<DimId, usize>,
-        hw_counter: &HardwareCounterCell,
-    ) {
-        for (dim_id, count) in idf.iter_mut() {
-            if let Some(remapped_dim_id) = self.indices_tracker.remap_index(*dim_id)
-                && let Some(posting_list_len) = self
-                    .inverted_index
-                    .posting_list_len(&remapped_dim_id, hw_counter)
-            {
-                *count += posting_list_len
-            }
-        }
-    }
 }
 
-impl<TInvertedIndex: InvertedIndex> VectorIndex for SparseVectorIndex<TInvertedIndex> {
+impl<TInvertedIndex: InvertedIndex> VectorIndexRead for SparseVectorIndex<TInvertedIndex> {
     fn search(
         &self,
         vectors: &[&QueryVector],
@@ -612,6 +597,37 @@ impl<TInvertedIndex: InvertedIndex> VectorIndex for SparseVectorIndex<TInvertedI
         self.searches_telemetry.get_telemetry_data(detail)
     }
 
+    fn indexed_vector_count(&self) -> usize {
+        self.inverted_index.vector_count()
+    }
+
+    fn size_of_searchable_vectors_in_bytes(&self) -> usize {
+        self.inverted_index.total_sparse_vectors_size()
+    }
+
+    /// Update statistics for idf-dot similarity.
+    fn fill_idf_statistics(
+        &self,
+        idf: &mut HashMap<DimId, usize>,
+        hw_counter: &HardwareCounterCell,
+    ) {
+        for (dim_id, count) in idf.iter_mut() {
+            if let Some(remapped_dim_id) = self.indices_tracker.remap_index(*dim_id)
+                && let Some(posting_list_len) = self
+                    .inverted_index
+                    .posting_list_len(&remapped_dim_id, hw_counter)
+            {
+                *count += posting_list_len
+            }
+        }
+    }
+
+    fn is_index(&self) -> bool {
+        true
+    }
+}
+
+impl<TInvertedIndex: InvertedIndex> VectorIndex for SparseVectorIndex<TInvertedIndex> {
     fn files(&self) -> Vec<PathBuf> {
         let config_file = SparseIndexConfig::get_config_path(&self.path);
         if !config_file.exists() {
@@ -643,14 +659,6 @@ impl<TInvertedIndex: InvertedIndex> VectorIndex for SparseVectorIndex<TInvertedI
         immutable_files.push(config_file);
         immutable_files.extend_from_slice(&TInvertedIndex::immutable_files(&self.path));
         immutable_files
-    }
-
-    fn indexed_vector_count(&self) -> usize {
-        self.inverted_index.vector_count()
-    }
-
-    fn size_of_searchable_vectors_in_bytes(&self) -> usize {
-        self.inverted_index.total_sparse_vectors_size()
     }
 
     fn update_vector(

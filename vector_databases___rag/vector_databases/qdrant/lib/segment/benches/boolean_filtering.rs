@@ -11,8 +11,8 @@ use segment::fixtures::payload_context_fixture::{
     create_struct_payload_index,
 };
 use segment::fixtures::payload_fixtures::BOOL_KEY;
-use segment::index::PayloadIndex;
 use segment::index::struct_payload_index::StructPayloadIndex;
+use segment::index::{PayloadIndex, PayloadIndexRead};
 use segment::types::{Condition, FieldCondition, Filter, Match, PayloadSchemaType, ValueVariants};
 use tempfile::Builder;
 
@@ -53,11 +53,8 @@ pub fn plain_boolean_query_points(c: &mut Criterion) {
             query_count += 1;
         })
     });
-    if query_count != 0 {
-        eprintln!(
-            "result_size / query_count = {:#?}",
-            result_size / query_count
-        );
+    if let Some(avg) = result_size.checked_div(query_count) {
+        eprintln!("result_size / query_count = {avg:#?}");
     }
 }
 
@@ -86,11 +83,8 @@ pub fn struct_boolean_query_points(c: &mut Criterion) {
             query_count += 1;
         })
     });
-    if query_count != 0 {
-        eprintln!(
-            "result_size / query_count = {:#?}",
-            result_size / query_count
-        );
+    if let Some(avg) = result_size.checked_div(query_count) {
+        eprintln!("result_size / query_count = {avg:#?}");
     }
 
     group.finish();
@@ -143,11 +137,8 @@ pub fn keyword_index_boolean_query_points(c: &mut Criterion) {
             query_count += 1;
         })
     });
-    if query_count != 0 {
-        eprintln!(
-            "result_size / query_count = {:#?}",
-            result_size / query_count
-        );
+    if let Some(avg) = result_size.checked_div(query_count) {
+        eprintln!("result_size / query_count = {avg:#?}");
     }
 
     group.finish();

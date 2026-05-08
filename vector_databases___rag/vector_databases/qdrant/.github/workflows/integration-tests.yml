@@ -20,9 +20,7 @@ jobs:
         uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Install Protoc
-        uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3.0.0
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+        uses: ./.github/actions/setup-protoc
       - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
         with:
           shared-key: integration-tests
@@ -37,7 +35,7 @@ jobs:
           uv --project tests lock --check
           uv --project tests sync
       - name: Build
-        run: cargo build --features "service_debug data-consistency-check rocksdb staging" --locked
+        run: cargo build --features "service_debug data-consistency-check staging" --locked
       - name: Run integration tests
         run: uv --project tests run bash ./tests/integration-tests.sh
         shell: bash
@@ -50,9 +48,7 @@ jobs:
         uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Install Protoc
-        uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3.0.0
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+        uses: ./.github/actions/setup-protoc
       - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
         with:
           shared-key: integration-tests
@@ -68,15 +64,15 @@ jobs:
           uv --project tests lock --check
           uv --project tests sync
       - name: Build
-        run: cargo build --features "service_debug data-consistency-check rocksdb staging" --locked
+        run: cargo build --features "service_debug data-consistency-check staging" --locked
       - name: Run integration tests - 1 peer
         run: uv --project tests run bash ./tests/integration-tests.sh distributed
         shell: bash
       - name: Run integration tests - multiple peers - pytest
-        run: uv --project tests run pytest tests/consensus_tests --durations=10
+        run: uv --project tests run pytest -n auto --dist=loadfile -v tests/consensus_tests --durations=10
         timeout-minutes: 60
       - name: upload logs
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
           path: consensus_test_logs
@@ -101,14 +97,14 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
       - name: Docker build
-        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
+        uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
         with:
           context: .
           tags: qdrant_consensus
           cache-from: |
-            type=gha,scope=${{ github.ref }}
-            type=gha,scope=${{ github.base_ref }}
-          cache-to: type=gha,mode=max,scope=${{ github.ref }}
+            type=gha,scope=${{ github.base_ref || github.ref_name }}-consensus
+            type=gha,scope=dev-consensus
+          cache-to: ${{ github.event_name == 'push' && format('type=gha,mode=max,scope={0}-consensus', github.ref_name) || '' }}
           load: true
           build-args: |
             PROFILE=ci
@@ -133,7 +129,7 @@ jobs:
       - name: Install dependencies
         run: sudo apt-get install -y clang jq
       - name: Docker build
-        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
+        uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
         with:
           context: tools/schema2openapi
           tags: schema2openapi
@@ -146,9 +142,7 @@ jobs:
             PROFILE=ci
             FEATURES=staging
       - name: Install Protoc
-        uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3.0.0
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+        uses: ./.github/actions/setup-protoc
       - name: gRPC file consistency check
         run: ./tests/grpc_consistency_check.sh
       - name: OpenAPI file consistency check
@@ -179,17 +173,15 @@ jobs:
           shared-key: integration-tests
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       - name: Install Protoc
-        uses: arduino/setup-protoc@c65c819552d16ad3c9b72d9dfd5ba5237b9c906b # v3.0.0
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+        uses: ./.github/actions/setup-protoc
       - name: Install dependencies
         run: sudo apt-get install clang jq
       - name: Build
-        run: cargo build --bin qdrant --features "rocksdb staging" --locked
+        run: cargo build --bin qdrant --features "staging" --locked
       - name: Run Shard Snapshot API Tests (local)
         shell: bash
         run: |
-          cargo run --features "rocksdb staging" &
+          cargo run --features "staging" &
           trap 'kill $(jobs -p) &>/dev/null || :' EXIT
           sleep 10
 
@@ -204,7 +196,7 @@ jobs:
           export QDRANT__STORAGE__SNAPSHOTS_CONFIG__S3_CONFIG__SECRET_KEY=minioadmin
           export QDRANT__STORAGE__SNAPSHOTS_CONFIG__S3_CONFIG__ENDPOINT_URL=http://127.0.0.1:9000
 
-          cargo run --features "rocksdb staging" &
+          cargo run --features "staging" &
           trap 'kill $(jobs -p) &>/dev/null || :' EXIT
           sleep 10
 
@@ -246,18 +238,18 @@ jobs:
           uv --project tests lock --check
           uv --project tests sync
       - name: Build Qdrant Docker image
-        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
+        uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
         with:
           context: .
           tags: qdrant/qdrant:e2e-tests
           cache-from: |
-            type=gha,scope=${{ github.ref }}-e2e
-            type=gha,scope=${{ github.base_ref }}-e2e
-          cache-to: type=gha,mode=max,scope=${{ github.ref }}-e2e
+            type=gha,scope=${{ github.base_ref || github.ref_name }}-e2e
+            type=gha,scope=dev-e2e
+          cache-to: ${{ github.event_name == 'push' && format('type=gha,mode=max,scope={0}-e2e', github.ref_name) || '' }}
           load: true
           build-args: |
             PROFILE=ci
-            FEATURES=data-consistency-check,rocksdb,staging
+            FEATURES=data-consistency-check,staging
       - name: Verify Docker image
         run: docker images | grep qdrant
       - name: Run e2e tests
@@ -265,7 +257,7 @@ jobs:
         shell: bash
         timeout-minutes: 20
       - name: Upload test logs on failure
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()
         with:
           name: e2e-test-logs

@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+use common::bitvec::{BitSlice, BitVec};
 use common::counter::hardware_counter::HardwareCounterCell;
 use common::types::PointOffsetType;
 use fs_err as fs;
@@ -8,15 +9,13 @@ use serde_json::Value;
 use super::inverted_index::immutable_inverted_index::ImmutableInvertedIndex;
 use super::inverted_index::mmap_inverted_index::MmapInvertedIndex;
 use super::inverted_index::mutable_inverted_index::MutableInvertedIndex;
-use super::inverted_index::{Document, InvertedIndex, TokenSet};
+use super::inverted_index::{ARRAY_BOUNDARY_SENTINEL, Document, InvertedIndex, TokenSet};
 use super::text_index::FullTextIndex;
 use super::tokenizers::Tokenizer;
 use crate::common::Flusher;
 use crate::common::operation_error::{OperationError, OperationResult};
 use crate::data_types::index::TextIndexParams;
-use crate::index::field_index::full_text_index::immutable_text_index::{
-    ImmutableFullTextIndex, Storage,
-};
+use crate::index::field_index::full_text_index::immutable_text_index::ImmutableFullTextIndex;
 use crate::index::field_index::{FieldIndexBuilderTrait, ValueIndexer};
 
 pub struct MmapFullTextIndex {
@@ -29,17 +28,23 @@ impl MmapFullTextIndex {
         path: PathBuf,
         config: TextIndexParams,
         is_on_disk: bool,
+        deleted_points: &BitSlice,
     ) -> OperationResult<Option<Self>> {
         let populate = !is_on_disk;
 
         let has_positions = config.phrase_matching == Some(true);
         let tokenizer = Tokenizer::new_from_text_index_params(&config);
 
-        let inverted_index = MmapInvertedIndex::open(path, populate, has_positions)?;
+        let inverted_index =
+            MmapInvertedIndex::open(path, populate, has_positions, deleted_points)?;
         Ok(inverted_index.map(|inverted_index| Self {
             inverted_index,
             tokenizer,
         }))
+    }
+
+    pub(crate) fn ram_usage_bytes(&self) -> usize {
+        self.inverted_index.ram_usage_bytes()
     }
 
     pub fn files(&self) -> Vec<PathBuf> {
@@ -98,10 +103,16 @@ pub struct FullTextMmapIndexBuilder {
     config: TextIndexParams,
     is_on_disk: bool,
     tokenizer: Tokenizer,
+    deleted_points: BitVec,
 }
 
 impl FullTextMmapIndexBuilder {
-    pub fn new(path: PathBuf, config: TextIndexParams, is_on_disk: bool) -> Self {
+    pub fn new(
+        path: PathBuf,
+        config: TextIndexParams,
+        is_on_disk: bool,
+        deleted_points: &BitSlice,
+    ) -> Self {
         let with_positions = config.phrase_matching.unwrap_or_default();
         let tokenizer = Tokenizer::new_from_text_index_params(&config);
         Self {
@@ -110,6 +121,7 @@ impl FullTextMmapIndexBuilder {
             config,
             is_on_disk,
             tokenizer,
+            deleted_points: deleted_points.to_owned(),
         }
     }
 }
@@ -134,9 +146,15 @@ impl ValueIndexer for FullTextMmapIndexBuilder {
             return Ok(());
         }
 
-        let mut str_tokens = Vec::new();
+        let phrase_matching = self.mutable_index.point_to_doc.is_some();
+        let insert_boundaries = phrase_matching && values.len() > 1;
 
-        for value in &values {
+        let mut str_tokens: Vec<std::borrow::Cow<str>> =
+            Vec::with_capacity((values.len() * 2).saturating_sub(1));
+        for (i, value) in values.iter().enumerate() {
+            if insert_boundaries && i > 0 {
+                str_tokens.push(std::borrow::Cow::Borrowed(ARRAY_BOUNDARY_SENTINEL));
+            }
             self.tokenizer.tokenize_doc(value, |token| {
                 str_tokens.push(token);
             });
@@ -144,7 +162,7 @@ impl ValueIndexer for FullTextMmapIndexBuilder {
 
         let tokens = self.mutable_index.register_tokens(&str_tokens);
 
-        if self.mutable_index.point_to_doc.is_some() {
+        if phrase_matching {
             let document = Document::new(tokens.clone());
             self.mutable_index
                 .index_document(id, document, hw_counter)?;
@@ -186,6 +204,7 @@ impl FieldIndexBuilderTrait for FullTextMmapIndexBuilder {
             config,
             is_on_disk,
             tokenizer,
+            deleted_points,
         } = self;
 
         let immutable = ImmutableInvertedIndex::from(mutable_index);
@@ -197,25 +216,23 @@ impl FieldIndexBuilderTrait for FullTextMmapIndexBuilder {
         let populate = !is_on_disk;
         let has_positions = config.phrase_matching.unwrap_or_default();
         let inverted_index =
-            MmapInvertedIndex::open(path, populate, has_positions)?.ok_or_else(|| {
-                OperationError::service_error(
-                    "Failed to open MmapInvertedIndex that was just created",
-                )
-            })?;
+            MmapInvertedIndex::open(path, populate, has_positions, &deleted_points)?.ok_or_else(
+                || {
+                    OperationError::service_error(
+                        "Failed to open MmapInvertedIndex that was just created",
+                    )
+                },
+            )?;
 
         let mmap_index = MmapFullTextIndex {
             inverted_index,
-            tokenizer: tokenizer.clone(),
+            tokenizer,
         };
 
         let text_index = if is_on_disk {
             FullTextIndex::Mmap(Box::new(mmap_index))
         } else {
-            FullTextIndex::Immutable(ImmutableFullTextIndex {
-                inverted_index: immutable,
-                tokenizer,
-                storage: Storage::Mmap(Box::new(mmap_index)),
-            })
+            FullTextIndex::Immutable(ImmutableFullTextIndex::open_mmap(mmap_index)?)
         };
 
         Ok(text_index)

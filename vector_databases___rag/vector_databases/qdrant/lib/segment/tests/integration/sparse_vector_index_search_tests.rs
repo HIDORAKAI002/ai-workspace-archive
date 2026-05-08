@@ -16,12 +16,14 @@ use segment::data_types::vectors::{QueryVector, VectorInternal};
 use segment::entry::{SegmentEntry, StorageSegmentEntry as _};
 use segment::fixtures::payload_fixtures::STR_KEY;
 use segment::fixtures::sparse_fixtures::{fixture_sparse_index, fixture_sparse_index_from_iter};
-use segment::id_tracker::IdTracker;
+use segment::id_tracker::{IdTracker, IdTrackerRead};
 use segment::index::sparse_index::sparse_index_config::{SparseIndexConfig, SparseIndexType};
 use segment::index::sparse_index::sparse_vector_index::{
     SparseVectorIndex, SparseVectorIndexOpenArgs,
 };
-use segment::index::{PayloadIndex, VectorIndex, VectorIndexEnum};
+use segment::index::{
+    PayloadIndex, PayloadIndexRead, VectorIndex, VectorIndexEnum, VectorIndexRead,
+};
 use segment::json_path::JsonPath;
 use segment::segment::Segment;
 use segment::segment_constructor::{build_segment, load_segment};
@@ -32,7 +34,7 @@ use segment::types::{
     SegmentConfig, SeqNumberType, SparseVectorDataConfig, SparseVectorStorageType, VectorName,
     VectorStorageDatatype,
 };
-use segment::vector_storage::VectorStorage;
+use segment::vector_storage::{VectorStorage, VectorStorageRead};
 use segment::{fixture_for_all_indices, payload_json};
 use sparse::common::sparse_vector::SparseVector;
 use sparse::common::sparse_vector_fixture::{random_full_sparse_vector, random_sparse_vector};
@@ -751,7 +753,7 @@ fn check_sparse_vector_index_files<I: InvertedIndex>() {
     let files = index.files();
     // sparse index config + version + inverted index config + inverted index data + tracker
     assert_eq!(files.len(), 5);
-    for file in files.iter() {
+    for file in &files {
         assert!(file.exists(), "file {file:?} does not exist");
     }
 }

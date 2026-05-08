@@ -7,7 +7,6 @@ declare namespace Cloudflare {
 		GITHUB_TOKEN: string;
 		GROQ_API_KEY: string;
 		MCP_OBJECT: DurableObjectNamespace<import("./src/index").MyMCP>;
-		VIEW_COUNTER: DurableObjectNamespace<import("./src/index").ViewCounterDO>;
 		DOCS_BUCKET: R2Bucket;
 		MY_METRICS: AnalyticsEngineDataset;
 		MY_QUEUE: Queue;

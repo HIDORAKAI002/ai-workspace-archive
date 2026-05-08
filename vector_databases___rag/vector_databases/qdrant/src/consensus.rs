@@ -6,6 +6,7 @@ use std::time::{Duration, Instant};
 use std::{cmp, thread};
 
 use anyhow::{Context as _, anyhow};
+use api::HTTP_HEADER_API_KEY;
 use api::grpc::dynamic_channel_pool::make_grpc_channel;
 use api::grpc::qdrant::raft_client::RaftClient;
 use api::grpc::qdrant::{AllPeers, PeerId as GrpcPeerId, RaftMessage as GrpcRaftMessage};
@@ -225,6 +226,7 @@ impl Consensus {
                 tls_config.clone(),
                 &runtime,
                 leader_established_in_ms,
+                channel_service.api_key.as_deref(),
             )
             .context("Failed to initialize Consensus for new Raft state")?;
         } else {
@@ -235,6 +237,7 @@ impl Consensus {
                     p2p_port,
                     &config,
                     tls_config.clone(),
+                    channel_service.api_key.as_deref(),
                 ))
                 .context("Failed to recover Consensus from existing Raft state")?;
 
@@ -265,6 +268,7 @@ impl Consensus {
             config.clone(),
             node.store().clone(),
             channel_service.channel_pool,
+            channel_service.api_key,
         );
 
         let consensus = Self {
@@ -293,6 +297,7 @@ impl Consensus {
         tls_config: Option<ClientTlsConfig>,
         runtime: &Handle,
         leader_established_in_ms: u64,
+        api_key: Option<&str>,
     ) -> anyhow::Result<()> {
         if let Some(bootstrap_peer) = bootstrap_peer {
             log::debug!("Bootstrapping from peer with address: {bootstrap_peer}");
@@ -303,6 +308,7 @@ impl Consensus {
                 p2p_port,
                 config,
                 tls_config,
+                api_key,
             ))?;
             Ok(())
         } else {
@@ -330,6 +336,7 @@ impl Consensus {
         p2p_port: u16,
         config: &ConsensusConfig,
         tls_config: Option<ClientTlsConfig>,
+        api_key: Option<&str>,
     ) -> anyhow::Result<AllPeers> {
         // Use dedicated transport channel for bootstrapping because of specific timeout
         let channel = make_grpc_channel(
@@ -341,14 +348,18 @@ impl Consensus {
         .await
         .context("Failed to create timeout channel")?;
         let mut client = RaftClient::new(channel);
+        let mut request = tonic::Request::new(api::grpc::qdrant::AddPeerToKnownMessage {
+            uri: current_uri,
+            port: Some(u32::from(p2p_port)),
+            id: this_peer_id,
+        });
+        if let Some(key) = api_key
+            && let Ok(val) = key.parse()
+        {
+            request.metadata_mut().insert(HTTP_HEADER_API_KEY, val);
+        }
         let all_peers = client
-            .add_peer_to_known(tonic::Request::new(
-                api::grpc::qdrant::AddPeerToKnownMessage {
-                    uri: current_uri,
-                    port: Some(u32::from(p2p_port)),
-                    id: this_peer_id,
-                },
-            ))
+            .add_peer_to_known(request)
             .await
             .context("Failed to add peer to known")?
             .into_inner();
@@ -363,6 +374,7 @@ impl Consensus {
         p2p_port: u16,
         config: &ConsensusConfig,
         tls_config: Option<ClientTlsConfig>,
+        api_key: Option<&str>,
     ) -> anyhow::Result<()> {
         let this_peer_id = state_ref.this_peer_id();
         let mut peer_to_uri = state_ref
@@ -390,6 +402,7 @@ impl Consensus {
                         p2p_port,
                         config,
                         tls_config.clone(),
+                        api_key,
                     )
                     .await;
                     if res.is_err() {
@@ -431,6 +444,7 @@ impl Consensus {
         p2p_port: u16,
         config: &ConsensusConfig,
         tls_config: Option<ClientTlsConfig>,
+        api_key: Option<&str>,
     ) -> anyhow::Result<()> {
         let this_peer_id = state_ref.this_peer_id();
         let all_peers = Self::add_peer_to_known_for(
@@ -440,6 +454,7 @@ impl Consensus {
             p2p_port,
             config,
             tls_config,
+            api_key,
         )
         .await?;
 
@@ -796,7 +811,7 @@ impl Consensus {
             .ok_or_else(|| TryAddOriginError::UriNotFound)?
             .to_string();
 
-        self.node.propose_conf_change(peer_uri.into(), change)?;
+        self.node.propose_conf_change(Vec::from(peer_uri), change)?;
 
         Ok(true)
     }
@@ -1093,6 +1108,7 @@ struct RaftMessageBroker {
     consensus_config: Arc<ConsensusConfig>,
     consensus_state: ConsensusStateRef,
     transport_channel_pool: Arc<TransportChannelPool>,
+    api_key: Option<String>,
 }
 
 impl RaftMessageBroker {
@@ -1103,6 +1119,7 @@ impl RaftMessageBroker {
         consensus_config: ConsensusConfig,
         consensus_state: ConsensusStateRef,
         transport_channel_pool: Arc<TransportChannelPool>,
+        api_key: Option<String>,
     ) -> Self {
         Self {
             senders: HashMap::new(),
@@ -1112,6 +1129,7 @@ impl RaftMessageBroker {
             consensus_config: consensus_config.into(),
             consensus_state,
             transport_channel_pool,
+            api_key,
         }
     }
 
@@ -1190,6 +1208,7 @@ impl RaftMessageBroker {
             consensus_config: self.consensus_config.clone(),
             consensus_state: self.consensus_state.clone(),
             transport_channel_pool: self.transport_channel_pool.clone(),
+            api_key: self.api_key.clone(),
         };
 
         let handle = RaftMessageSenderHandle {
@@ -1240,6 +1259,7 @@ struct RaftMessageSender {
     consensus_config: Arc<ConsensusConfig>,
     consensus_state: ConsensusStateRef,
     transport_channel_pool: Arc<TransportChannelPool>,
+    api_key: Option<String>,
 }
 
 impl RaftMessageSender {
@@ -1418,8 +1438,15 @@ impl RaftMessageSender {
         .await
         .context("Failed to create who-is channel")?;
 
+        let mut request = tonic::Request::new(GrpcPeerId { id: peer_id });
+        if let Some(ref key) = self.api_key
+            && let Ok(val) = key.parse()
+        {
+            request.metadata_mut().insert(HTTP_HEADER_API_KEY, val);
+        }
+
         let uri = RaftClient::new(channel)
-            .who_is(tonic::Request::new(GrpcPeerId { id: peer_id }))
+            .who_is(request)
             .await?
             .into_inner()
             .uri
@@ -1456,7 +1483,6 @@ mod tests {
     use tempfile::Builder;
 
     use super::Consensus;
-    use crate::common::helpers::create_general_purpose_runtime;
     use crate::settings::ConsensusConfig;
 
     #[test]
@@ -1466,24 +1492,12 @@ mod tests {
         let mut settings = crate::Settings::new(None).expect("Can't read config.");
         settings.storage.storage_path = storage_dir.path().to_path_buf();
         tracing_subscriber::fmt::init();
-        let search_runtime =
-            crate::create_search_runtime(settings.storage.performance.max_search_threads)
-                .expect("Can't create search runtime.");
-        let update_runtime =
-            crate::create_update_runtime(settings.storage.performance.max_search_threads)
-                .expect("Can't create update runtime.");
-        let general_runtime =
-            create_general_purpose_runtime().expect("Can't create general purpose runtime.");
-        let handle = general_runtime.handle().clone();
         let (propose_sender, propose_receiver) = std::sync::mpsc::channel();
         let persistent_state =
             Persistent::load_or_init(&settings.storage.storage_path, true, false, None).unwrap();
         let operation_sender = OperationSender::new(propose_sender);
         let toc = TableOfContent::new(
             &settings.storage,
-            search_runtime,
-            update_runtime,
-            general_runtime,
             ResourceBudget::default(),
             ChannelService::new(
                 settings.service.http_port,
@@ -1493,7 +1507,9 @@ mod tests {
             ),
             persistent_state.this_peer_id(),
             Some(operation_sender.clone()),
-        );
+        )
+        .unwrap();
+        let handle = toc.general_runtime_handle().clone();
         let toc_arc = Arc::new(toc);
         let storage_path = toc_arc.storage_path();
         let consensus_state: ConsensusStateRef = ConsensusManager::new(
@@ -1548,7 +1564,7 @@ mod tests {
 
         // When
 
-        // New runtime is used as timers need to be enabled.
+        // `handle` is the TOC general runtime (same as passed into `Consensus::new`).
         handle
             .block_on(
                 dispatcher.submit_collection_meta_op(

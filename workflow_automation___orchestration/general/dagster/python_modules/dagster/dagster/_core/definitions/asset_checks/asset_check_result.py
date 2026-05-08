@@ -193,7 +193,7 @@ class AssetCheckResult(
             partition=partition,
         )
 
-    def with_metadata(self, metadata: Mapping[str, RawMetadataValue]) -> "AssetCheckResult":  # pyright: ignore[reportIncompatibleMethodOverride]
+    def with_metadata(self, metadata: Mapping[str, RawMetadataValue]) -> "AssetCheckResult":  # ty: ignore[invalid-method-override]
         return AssetCheckResult(
             passed=self.passed,
             asset_key=self.asset_key,

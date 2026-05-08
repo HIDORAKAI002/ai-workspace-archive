@@ -1,16 +1,17 @@
 use std::collections::BTreeMap;
 use std::collections::Bound::{Excluded, Included, Unbounded};
+use std::fmt::Debug;
 use std::ops::Bound;
 use std::path::{Path, PathBuf};
 
 use common::fs::{atomic_save_bin, atomic_save_json, read_bin, read_json};
 use common::types::PointOffsetType;
 use itertools::Itertools;
-use num_traits::Num;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
 use crate::common::operation_error::OperationResult;
+use crate::index::field_index::numeric_point::{Numericable, Point};
 use crate::index::field_index::utils::check_boundaries;
 
 const MIN_BUCKET_SIZE: usize = 10;
@@ -21,114 +22,6 @@ const BORDERS_PATH: &str = "histogram_borders.bin";
 pub struct Counts {
     pub left: usize,
     pub right: usize,
-}
-
-#[allow(clippy::derive_ord_xor_partial_ord)]
-#[derive(PartialEq, PartialOrd, Debug, Clone, Serialize, Deserialize)]
-#[repr(C)]
-pub struct Point<T> {
-    pub val: T,
-    pub idx: PointOffsetType,
-}
-
-impl<T> Point<T> {
-    pub fn new(val: T, idx: PointOffsetType) -> Self {
-        Self { val, idx }
-    }
-}
-
-impl<T: PartialEq> Eq for Point<T> {}
-
-impl<T: PartialOrd + Copy> Ord for Point<T> {
-    fn cmp(&self, other: &Point<T>) -> std::cmp::Ordering {
-        (self.val, self.idx)
-            .partial_cmp(&(other.val, other.idx))
-            .unwrap()
-    }
-}
-
-/// A trait that should represent common properties of integer and floating point types.
-/// In particular, i64 and f64.
-pub trait Numericable: Num + PartialEq + PartialOrd + Copy {
-    fn min_value() -> Self;
-    fn max_value() -> Self;
-    fn to_f64(self) -> f64;
-    fn from_f64(x: f64) -> Self;
-    fn from_u128(x: u128) -> Self;
-    fn min(self, b: Self) -> Self {
-        if self < b { self } else { b }
-    }
-    fn max(self, b: Self) -> Self {
-        if self > b { self } else { b }
-    }
-    fn abs_diff(self, b: Self) -> Self {
-        if self > b { self - b } else { b - self }
-    }
-}
-
-impl Numericable for i64 {
-    fn min_value() -> Self {
-        i64::MIN
-    }
-    fn max_value() -> Self {
-        i64::MAX
-    }
-    fn to_f64(self) -> f64 {
-        self as f64
-    }
-    fn from_f64(x: f64) -> Self {
-        x as Self
-    }
-    fn from_u128(x: u128) -> Self {
-        x as i64
-    }
-    fn abs_diff(self, b: Self) -> Self {
-        i64::abs_diff(self, b) as i64
-    }
-}
-
-impl Numericable for f64 {
-    fn min_value() -> Self {
-        f64::MIN
-    }
-    fn max_value() -> Self {
-        f64::MAX
-    }
-    fn to_f64(self) -> f64 {
-        self
-    }
-    fn from_f64(x: f64) -> Self {
-        x
-    }
-    fn from_u128(x: u128) -> Self {
-        x as Self
-    }
-}
-
-impl Numericable for u128 {
-    fn min_value() -> Self {
-        u128::MIN
-    }
-
-    fn max_value() -> Self {
-        u128::MAX
-    }
-
-    fn to_f64(self) -> f64 {
-        self as f64
-    }
-
-    fn from_f64(x: f64) -> Self {
-        x as u128
-    }
-
-    fn from_u128(x: u128) -> Self {
-        x
-    }
-
-    fn abs_diff(self, b: Self) -> Self {
-        u128::abs_diff(self, b)
-    }
 }
 
 #[derive(Default, Debug, PartialEq)]
@@ -186,11 +79,8 @@ impl<T: Numericable + Serialize + DeserializeOwned> Histogram<T> {
             },
         )?;
 
-        let borders: Vec<(Point<T>, Counts)> = self
-            .borders
-            .iter()
-            .map(|(k, v)| (k.clone(), v.clone()))
-            .collect();
+        let borders: Vec<(Point<T>, Counts)> =
+            self.borders.iter().map(|(k, v)| (*k, v.clone())).collect();
         atomic_save_bin(&borders_path, &borders)?;
         Ok(())
     }
@@ -229,14 +119,8 @@ impl<T: Numericable + Serialize + DeserializeOwned> Histogram<T> {
     /// Returns `Unbounded` if there are no points stored
     pub fn get_range_by_size(&self, from: Bound<T>, range_size: usize) -> Bound<T> {
         let from_ = match from {
-            Included(val) => Included(Point {
-                val,
-                idx: PointOffsetType::MIN,
-            }),
-            Excluded(val) => Excluded(Point {
-                val,
-                idx: PointOffsetType::MAX,
-            }),
+            Included(val) => Included(Point::new(val, PointOffsetType::MIN)),
+            Excluded(val) => Excluded(Point::new(val, PointOffsetType::MAX)),
             Unbounded => Unbounded,
         };
 
@@ -256,26 +140,14 @@ impl<T: Numericable + Serialize + DeserializeOwned> Histogram<T> {
 
     pub fn estimate(&self, from: Bound<T>, to: Bound<T>) -> (usize, usize, usize) {
         let from_ = match &from {
-            Included(val) => Included(Point {
-                val: *val,
-                idx: PointOffsetType::MIN,
-            }),
-            Excluded(val) => Excluded(Point {
-                val: *val,
-                idx: PointOffsetType::MAX,
-            }),
+            Included(val) => Included(Point::new(*val, PointOffsetType::MIN)),
+            Excluded(val) => Excluded(Point::new(*val, PointOffsetType::MAX)),
             Unbounded => Unbounded,
         };
 
         let to_ = match &to {
-            Included(val) => Included(Point {
-                val: *val,
-                idx: PointOffsetType::MAX,
-            }),
-            Excluded(val) => Excluded(Point {
-                val: *val,
-                idx: PointOffsetType::MIN,
-            }),
+            Included(val) => Included(Point::new(*val, PointOffsetType::MAX)),
+            Excluded(val) => Excluded(Point::new(*val, PointOffsetType::MIN)),
             Unbounded => Unbounded,
         };
 
@@ -296,7 +168,7 @@ impl<T: Numericable + Serialize + DeserializeOwned> Histogram<T> {
             if matches!(from_, Unbounded) {
                 None
             } else {
-                self.borders.range((Unbounded, from_.clone())).next_back()
+                self.borders.range((Unbounded, from_)).next_back()
             }
         };
 
@@ -304,7 +176,7 @@ impl<T: Numericable + Serialize + DeserializeOwned> Histogram<T> {
             if matches!(to_, Unbounded) {
                 None
             } else {
-                self.borders.range((to_.clone(), Unbounded)).next()
+                self.borders.range((to_, Unbounded)).next()
             }
         };
 
@@ -359,12 +231,12 @@ impl<T: Numericable + Serialize + DeserializeOwned> Histogram<T> {
         let (mut close_neighbors, (mut far_left_neighbor, mut far_right_neighbor)) = {
             let mut left_iterator = self
                 .borders
-                .range((Unbounded, Included(val.clone())))
-                .map(|(k, v)| (k.clone(), v.clone()));
+                .range((Unbounded, Included(val)))
+                .map(|(k, v)| (*k, v.clone()));
             let mut right_iterator = self
                 .borders
-                .range((Excluded(val.clone()), Unbounded))
-                .map(|(k, v)| (k.clone(), v.clone()));
+                .range((Excluded(val), Unbounded))
+                .map(|(k, v)| (*k, v.clone()));
             (
                 (left_iterator.next_back(), right_iterator.next()),
                 (left_iterator.next_back(), right_iterator.next()),
@@ -380,7 +252,7 @@ impl<T: Numericable + Serialize + DeserializeOwned> Histogram<T> {
                     if left_border_count.left == 0 {
                         // ...||
                         // ...|
-                        (Some(left_border.clone()), None, true)
+                        (Some(*left_border), None, true)
                     } else {
                         // ...|..|
                         // ...|.|
@@ -395,7 +267,7 @@ impl<T: Numericable + Serialize + DeserializeOwned> Histogram<T> {
                             },
                         );
                         (
-                            Some(left_border.clone()),
+                            Some(*left_border),
                             Some((new_border, new_border_count)),
                             true,
                         )
@@ -411,7 +283,7 @@ impl<T: Numericable + Serialize + DeserializeOwned> Histogram<T> {
                     if right_border_count.right == 0 {
                         // ||...
                         //  |...
-                        (Some(right_border.clone()), None, true)
+                        (Some(*right_border), None, true)
                     } else {
                         // |..|...
                         //  |.|...
@@ -426,7 +298,7 @@ impl<T: Numericable + Serialize + DeserializeOwned> Histogram<T> {
                             },
                         );
                         (
-                            Some(right_border.clone()),
+                            Some(*right_border),
                             Some((new_border, new_border_count)),
                             true,
                         )
@@ -444,7 +316,7 @@ impl<T: Numericable + Serialize + DeserializeOwned> Histogram<T> {
                         // ...||...
                         // ... |...
                         right_border_count.left = left_border_count.left;
-                        (Some(left_border.clone()), None, true)
+                        (Some(*left_border), None, true)
                     } else if right_border_count.left + left_border_count.left
                         <= self.current_bucket_size()
                         && far_left_neighbor.is_some()
@@ -455,7 +327,7 @@ impl<T: Numericable + Serialize + DeserializeOwned> Histogram<T> {
                             fln_count.right += right_border_count.left;
                             right_border_count.left = fln_count.right;
                         }
-                        (Some(left_border.clone()), None, true)
+                        (Some(*left_border), None, true)
                     } else {
                         // ...|..|...
                         // ... |.|...
@@ -468,7 +340,7 @@ impl<T: Numericable + Serialize + DeserializeOwned> Histogram<T> {
                             },
                         );
                         (
-                            Some(left_border.clone()),
+                            Some(*left_border),
                             Some((new_border, new_border_count)),
                             true,
                         )
@@ -480,7 +352,7 @@ impl<T: Numericable + Serialize + DeserializeOwned> Histogram<T> {
                         // ...||...
                         // ...| ...
                         left_border_count.right = right_border_count.left;
-                        (Some(right_border.clone()), None, true)
+                        (Some(*right_border), None, true)
                     } else if left_border_count.right + right_border_count.right
                         <= self.current_bucket_size()
                         && far_right_neighbor.is_some()
@@ -491,7 +363,7 @@ impl<T: Numericable + Serialize + DeserializeOwned> Histogram<T> {
                             frn_count.left += left_border_count.right;
                             left_border_count.right = frn_count.left;
                         }
-                        (Some(right_border.clone()), None, true)
+                        (Some(*right_border), None, true)
                     } else {
                         // ...|..|...
                         // ...|.| ...
@@ -504,7 +376,7 @@ impl<T: Numericable + Serialize + DeserializeOwned> Histogram<T> {
                             },
                         );
                         (
-                            Some(right_border.clone()),
+                            Some(*right_border),
                             Some((new_border, new_border_count)),
                             true,
                         )
@@ -570,12 +442,12 @@ impl<T: Numericable + Serialize + DeserializeOwned> Histogram<T> {
         let (mut close_neighbors, (mut far_left_neighbor, mut far_right_neighbor)) = {
             let mut left_iterator = self
                 .borders
-                .range((Unbounded, Included(val.clone())))
-                .map(|(k, v)| (k.clone(), v.clone()));
+                .range((Unbounded, Included(val)))
+                .map(|(k, v)| (*k, v.clone()));
             let mut right_iterator = self
                 .borders
-                .range((Excluded(val.clone()), Unbounded))
-                .map(|(k, v)| (k.clone(), v.clone()));
+                .range((Excluded(val), Unbounded))
+                .map(|(k, v)| (*k, v.clone()));
             (
                 (left_iterator.next_back(), right_iterator.next()),
                 (left_iterator.next_back(), right_iterator.next()),
@@ -606,10 +478,7 @@ impl<T: Numericable + Serialize + DeserializeOwned> Histogram<T> {
                     if let Some((_frn, frn_count)) = &mut far_right_neighbor {
                         frn_count.left = new_count;
                     }
-                    (
-                        Some(right_border.clone()),
-                        Some((new_border, new_border_count)),
-                    )
+                    (Some(*right_border), Some((new_border, new_border_count)))
                 }
             }
             (Some((left_border, left_border_count)), None) => {
@@ -634,10 +503,7 @@ impl<T: Numericable + Serialize + DeserializeOwned> Histogram<T> {
                     if let Some((_fln, fln_count)) = &mut far_left_neighbor {
                         fln_count.right = new_count
                     }
-                    (
-                        Some(left_border.clone()),
-                        Some((new_border, new_border_count)),
-                    )
+                    (Some(*left_border), Some((new_border, new_border_count)))
                 }
             }
             (Some((left_border, left_border_count)), Some((right_border, right_border_count))) => {
@@ -669,10 +535,7 @@ impl<T: Numericable + Serialize + DeserializeOwned> Histogram<T> {
                             if let Some((_fln, fln_count)) = &mut far_left_neighbor {
                                 fln_count.right = new_border_count.left
                             }
-                            (
-                                Some(left_border.clone()),
-                                Some((new_border, new_border_count)),
-                            )
+                            (Some(*left_border), Some((new_border, new_border_count)))
                         } else {
                             // Can't be moved anymore, create an additional one
                             //  ...|..x.........|...
@@ -701,10 +564,7 @@ impl<T: Numericable + Serialize + DeserializeOwned> Histogram<T> {
                             if let Some((_frn, frn_count)) = &mut far_right_neighbor {
                                 frn_count.left = new_border_count.right
                             }
-                            (
-                                Some(right_border.clone()),
-                                Some((new_border, new_border_count)),
-                            )
+                            (Some(*right_border), Some((new_border, new_border_count)))
                         } else {
                             // Can't be moved anymore, create a new one
                             //  1: ...|........x...|...
@@ -748,5 +608,21 @@ impl<T: Numericable + Serialize + DeserializeOwned> Histogram<T> {
         if let Some((new_border, new_border_count)) = to_create {
             self.borders.insert(new_border, new_border_count);
         }
+    }
+
+    /// Approximate RAM usage in bytes.
+    pub fn ram_usage_bytes(&self) -> usize {
+        let Self {
+            max_bucket_size: _,
+            precision: _,
+            total_count: _,
+            borders,
+        } = self;
+
+        let btree_entry_overhead = std::mem::size_of::<usize>() * 3;
+        borders.len()
+            * (std::mem::size_of::<Point<T>>()
+                + std::mem::size_of::<Counts>()
+                + btree_entry_overhead)
     }
 }

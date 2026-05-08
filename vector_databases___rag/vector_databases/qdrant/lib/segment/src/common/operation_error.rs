@@ -5,7 +5,6 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
 use atomicwrites::Error as AtomicIoError;
-use common::fs::FileStorageError;
 use common::mmap::Error as MmapError;
 use common::universal_io::UniversalIoError;
 use gridstore::error::GridstoreError;
@@ -77,10 +76,6 @@ pub enum OperationError {
     },
     #[error("The expression {expression} produced a non-finite number")]
     NonFiniteNumber { expression: String },
-
-    // ToDo: Remove after RocksDB is deprecated
-    #[error("RocksDB column family {name} not found")]
-    RocksDbColumnFamilyNotFound { name: String },
 }
 
 impl OperationError {
@@ -145,16 +140,7 @@ pub struct SegmentFailedState {
 
 impl From<ThreadPoolBuildError> for OperationError {
     fn from(error: ThreadPoolBuildError) -> Self {
-        OperationError::ServiceError {
-            description: format!("{error}"),
-            backtrace: Some(Backtrace::force_capture().to_string()),
-        }
-    }
-}
-
-impl From<FileStorageError> for OperationError {
-    fn from(err: FileStorageError) -> Self {
-        Self::service_error(err.to_string())
+        Self::service_error(error.to_string())
     }
 }
 
@@ -167,36 +153,50 @@ impl From<MmapError> for OperationError {
 impl From<UniversalIoError> for OperationError {
     fn from(err: UniversalIoError) -> Self {
         match err {
-            UniversalIoError::Io(err) => OperationError::from(err),
-            UniversalIoError::Mmap(err) => OperationError::from(err),
+            UniversalIoError::Io(err) => Self::from(err),
+            UniversalIoError::Mmap(err) => Self::from(err),
 
-            UniversalIoError::IoUringNotSupported(_)
+            UniversalIoError::BytemuckCast(_)
+            | UniversalIoError::ZerocopySize(_)
+            | UniversalIoError::IoUringNotSupported(_)
             | UniversalIoError::NotFound { .. }
             | UniversalIoError::OutOfBounds { .. }
-            | UniversalIoError::InvalidFileIndex { .. } => {
-                OperationError::service_error(err.to_string())
-            }
-            UniversalIoError::BytemuckCast(_) => OperationError::service_error(err.to_string()),
-            UniversalIoError::Uninitialized { .. } => {
-                OperationError::service_error(err.to_string())
-            }
+            | UniversalIoError::InvalidFileIndex { .. }
+            | UniversalIoError::Uninitialized { .. }
+            | UniversalIoError::QueueIsFull => Self::service_error(err.to_string()),
         }
+    }
+}
+
+impl<Src, Dst: ?Sized> From<zerocopy::SizeError<Src, Dst>> for OperationError
+where
+    zerocopy::SizeError<Src, Dst>: std::fmt::Display,
+{
+    fn from(err: zerocopy::SizeError<Src, Dst>) -> Self {
+        Self::service_error(format!("Zerocopy size error: {err}"))
+    }
+}
+
+impl<A, S, V> From<zerocopy::ConvertError<A, S, V>> for OperationError
+where
+    zerocopy::ConvertError<A, S, V>: std::fmt::Display,
+{
+    fn from(err: zerocopy::ConvertError<A, S, V>) -> Self {
+        Self::service_error(format!("Zerocopy convert error: {err}"))
     }
 }
 
 impl From<serde_cbor::Error> for OperationError {
     fn from(err: serde_cbor::Error) -> Self {
-        OperationError::service_error(format!("Failed to parse data: {err}"))
+        Self::service_error(format!("Failed to parse data: {err}"))
     }
 }
 
 impl<E> From<AtomicIoError<E>> for OperationError {
     fn from(err: AtomicIoError<E>) -> Self {
         match err {
-            AtomicIoError::Internal(io_err) => OperationError::from(io_err),
-            AtomicIoError::User(_user_err) => {
-                OperationError::service_error("Unknown atomic write error")
-            }
+            AtomicIoError::Internal(io_err) => Self::from(io_err),
+            AtomicIoError::User(_user_err) => Self::service_error("Unknown atomic write error"),
         }
     }
 }
@@ -206,31 +206,31 @@ impl From<IoError> for OperationError {
         match err.kind() {
             ErrorKind::OutOfMemory => {
                 let free_memory = Mem::new().available_memory_bytes();
-                OperationError::OutOfMemory {
+                Self::OutOfMemory {
                     description: format!("IO Error: {err}"),
                     free: free_memory,
                 }
             }
-            _ => OperationError::service_error(format!("IO Error: {err}")),
+            _ => Self::service_error(format!("IO Error: {err}")),
         }
     }
 }
 
 impl From<serde_json::Error> for OperationError {
     fn from(err: serde_json::Error) -> Self {
-        OperationError::service_error(format!("Json error: {err}"))
+        Self::service_error(format!("Json error: {err}"))
     }
 }
 
 impl From<fs_extra::error::Error> for OperationError {
     fn from(err: fs_extra::error::Error) -> Self {
-        OperationError::service_error(format!("File system error: {err}"))
+        Self::service_error(format!("File system error: {err}"))
     }
 }
 
 impl From<geohash::GeohashError> for OperationError {
     fn from(err: geohash::GeohashError) -> Self {
-        OperationError::service_error(format!("Geohash error: {err}"))
+        Self::service_error(format!("Geohash error: {err}"))
     }
 }
 
@@ -240,11 +240,11 @@ impl From<quantization::EncodingError> for OperationError {
             quantization::EncodingError::IOError(err)
             | quantization::EncodingError::EncodingError(err)
             | quantization::EncodingError::ArgumentsError(err) => {
-                OperationError::service_error(format!("Quantization encoding error: {err}"))
+                Self::service_error(format!("Quantization encoding error: {err}"))
             }
-            quantization::EncodingError::Stopped => OperationError::Cancelled {
-                description: PROCESS_CANCELLED_BY_SERVICE_MESSAGE.to_string(),
-            },
+            quantization::EncodingError::Stopped => {
+                Self::cancelled(PROCESS_CANCELLED_BY_SERVICE_MESSAGE)
+            }
         }
     }
 }
@@ -252,7 +252,7 @@ impl From<quantization::EncodingError> for OperationError {
 impl From<TryReserveError> for OperationError {
     fn from(err: TryReserveError) -> Self {
         let free_memory = Mem::new().available_memory_bytes();
-        OperationError::OutOfMemory {
+        Self::OutOfMemory {
             description: format!("Failed to reserve memory: {err}"),
             free: free_memory,
         }
@@ -265,9 +265,7 @@ impl From<GridstoreError> for OperationError {
             GridstoreError::ServiceError { description } => {
                 Self::service_error(format!("Gridstore error: {description}"))
             }
-            GridstoreError::FlushCancelled => Self::Cancelled {
-                description: "Gridstore flushing was cancelled".to_string(),
-            },
+            GridstoreError::FlushCancelled => Self::cancelled("Gridstore flushing was cancelled"),
             GridstoreError::Io(_) | GridstoreError::Mmap(_) | GridstoreError::SerdeJson(_) => {
                 Self::service_error(err.to_string())
             }
@@ -276,6 +274,7 @@ impl From<GridstoreError> for OperationError {
                 Self::service_error(format!("Gridstore IO error: {err}"))
             }
             GridstoreError::PageNotFound { .. } => Self::service_error(err.to_string()),
+            GridstoreError::ValueNotFound { .. } => Self::service_error(err.to_string()),
         }
     }
 }
@@ -306,9 +305,7 @@ pub type CancellableResult<T> = Result<T, CancelledError>;
 
 impl From<CancelledError> for OperationError {
     fn from(CancelledError: CancelledError) -> Self {
-        OperationError::Cancelled {
-            description: PROCESS_CANCELLED_BY_SERVICE_MESSAGE.to_string(),
-        }
+        Self::cancelled(PROCESS_CANCELLED_BY_SERVICE_MESSAGE)
     }
 }
 
@@ -330,7 +327,7 @@ mod tests {
         // Test sub-second timeout (500ms)
         let timeout = Duration::from_millis(500);
         let error = OperationError::timeout(timeout, "test operation");
-        let error_msg = format!("{error}");
+        let error_msg = error.to_string();
         assert!(
             error_msg.contains("500ms"),
             "Expected '500ms' but got: {error_msg}"
@@ -339,7 +336,7 @@ mod tests {
         // Test exact second timeout (1000ms = 1s)
         let timeout = Duration::from_millis(1000);
         let error = OperationError::timeout(timeout, "test operation");
-        let error_msg = format!("{error}");
+        let error_msg = error.to_string();
         assert!(
             error_msg.contains("1s"),
             "Expected '1s' but got: {error_msg}"
@@ -348,7 +345,7 @@ mod tests {
         // Test multi-second timeout with sub-second precision (2500ms = 2.5s)
         let timeout = Duration::from_millis(2500);
         let error = OperationError::timeout(timeout, "test operation");
-        let error_msg = format!("{error}");
+        let error_msg = error.to_string();
         assert!(
             error_msg.contains("2.5s"),
             "Expected '2.5s' but got: {error_msg}"
@@ -357,7 +354,7 @@ mod tests {
         // Test large timeout (60000ms = 60s)
         let timeout = Duration::from_millis(60000);
         let error = OperationError::timeout(timeout, "test operation");
-        let error_msg = format!("{error}");
+        let error_msg = error.to_string();
         assert!(
             error_msg.contains("60s"),
             "Expected '60s' but got: {error_msg}"

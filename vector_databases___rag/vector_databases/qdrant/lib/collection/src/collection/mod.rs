@@ -13,6 +13,7 @@ mod sharding_keys;
 mod snapshots;
 mod state_management;
 mod telemetry;
+mod vector_name_schema;
 
 use std::collections::HashMap;
 use std::ops::Deref;
@@ -33,6 +34,7 @@ use tokio::sync::{Mutex, RwLock};
 use crate::collection::collection_ops::ABORT_TRANSFERS_ON_SHARD_DROP_FIX_FROM_VERSION;
 use crate::collection::payload_index_schema::PayloadIndexSchema;
 use crate::collection_state::{ShardInfo, State};
+use crate::common::adaptive_handle::AdaptiveSearchHandle;
 use crate::common::collection_size_stats::{
     CollectionSizeAtomicStats, CollectionSizeStats, CollectionSizeStatsCache,
 };
@@ -82,8 +84,8 @@ pub struct Collection {
     is_initialized: Arc<IsReady>,
     // Update runtime handle.
     update_runtime: Handle,
-    // Search runtime handle.
-    search_runtime: Handle,
+    // Search runtime handle, wrapped to adapt its effective blocking concurrency.
+    search_runtime: AdaptiveSearchHandle,
     optimizer_resource_budget: ResourceBudget,
     // Cached statistics of collection size, may be outdated.
     collection_stats_cache: CollectionSizeStatsCache,
@@ -111,7 +113,7 @@ impl Collection {
         on_replica_failure: ChangePeerFromState,
         request_shard_transfer: RequestShardTransfer,
         abort_shard_transfer: replica_set::AbortShardTransfer,
-        search_runtime: Option<Handle>,
+        search_runtime: Option<AdaptiveSearchHandle>,
         update_runtime: Option<Handle>,
         optimizer_resource_budget: ResourceBudget,
         optimizers_overwrite: Option<OptimizersConfigDiff>,
@@ -153,7 +155,9 @@ impl Collection {
                 payload_index_schema.clone(),
                 channel_service.clone(),
                 update_runtime.clone().unwrap_or_else(Handle::current),
-                search_runtime.clone().unwrap_or_else(Handle::current),
+                search_runtime
+                    .clone()
+                    .unwrap_or_else(AdaptiveSearchHandle::current),
                 optimizer_resource_budget.clone(),
                 None,
             )
@@ -192,7 +196,7 @@ impl Collection {
             init_time: start_time.elapsed(),
             is_initialized: Default::default(),
             update_runtime: update_runtime.unwrap_or_else(Handle::current),
-            search_runtime: search_runtime.unwrap_or_else(Handle::current),
+            search_runtime: search_runtime.unwrap_or_else(AdaptiveSearchHandle::current),
             optimizer_resource_budget,
             collection_stats_cache,
             shard_clean_tasks: Default::default(),
@@ -210,7 +214,7 @@ impl Collection {
         on_replica_failure: replica_set::ChangePeerFromState,
         request_shard_transfer: RequestShardTransfer,
         abort_shard_transfer: replica_set::AbortShardTransfer,
-        search_runtime: Option<Handle>,
+        search_runtime: Option<AdaptiveSearchHandle>,
         update_runtime: Option<Handle>,
         optimizer_resource_budget: ResourceBudget,
         optimizers_overwrite: Option<OptimizersConfigDiff>,
@@ -278,7 +282,9 @@ impl Collection {
                 abort_shard_transfer.clone(),
                 this_peer_id,
                 update_runtime.clone().unwrap_or_else(Handle::current),
-                search_runtime.clone().unwrap_or_else(Handle::current),
+                search_runtime
+                    .clone()
+                    .unwrap_or_else(AdaptiveSearchHandle::current),
                 optimizer_resource_budget.clone(),
             )
             .await;
@@ -309,7 +315,7 @@ impl Collection {
             init_time: start_time.elapsed(),
             is_initialized: Default::default(),
             update_runtime: update_runtime.unwrap_or_else(Handle::current),
-            search_runtime: search_runtime.unwrap_or_else(Handle::current),
+            search_runtime: search_runtime.unwrap_or_else(AdaptiveSearchHandle::current),
             optimizer_resource_budget,
             collection_stats_cache,
             shard_clean_tasks: Default::default(),
@@ -383,9 +389,8 @@ impl Collection {
         let shard_holder_read = self.shards_holder.read().await;
 
         let shard = shard_holder_read.get_shard(shard_id);
-        let replica_set = shard.ok_or_else(|| CollectionError::NotFound {
-            what: format!("Shard {shard_id}"),
-        })?;
+        let replica_set =
+            shard.ok_or_else(|| CollectionError::not_found(format!("Shard {shard_id}")))?;
 
         replica_set.wait_for_local_state(state, timeout).await
     }
@@ -397,8 +402,8 @@ impl Collection {
         new_state: ReplicaState,
         from_state: Option<ReplicaState>,
     ) -> CollectionResult<()> {
-        let shard_holder = self.shards_holder.read().await;
-        let replica_set = shard_holder
+        let mut shard_holder = self.shards_holder.read().await;
+        let mut replica_set = shard_holder
             .get_shard(shard_id)
             .ok_or_else(|| shard_not_found_error(shard_id))?;
 
@@ -446,14 +451,46 @@ impl Collection {
             )));
         }
 
+        // Abort resharding *before* persisting the new replica state.
+        //
+        // If we did this after the persist, a crash between the durable
+        // `replica_state.json` write and `abort_resharding` would leave
+        // `resharding_state.json` stuck `Some` on the replaying peer (a
+        // `current_state`-based gate reads `Dead` from disk on replay and
+        // skips the abort). Doing it first means a partial-apply crash
+        // either re-runs the whole entry (replica state still reads as a
+        // resharding state, gate fires, the idempotent abort re-runs) or no
+        // longer needs the abort to fire at all (resharding_state already
+        // cleared by the prior attempt). Either way, every peer converges.
+        //
+        // Covers both directions: up (`Resharding`) and down (`ReshardingScaleDown`).
+        // For up, `abort_resharding` drops the shard entirely; we detect the
+        // missing shard below and skip the persist. For down, the shard
+        // stays, abort just reverts the receiver back to `Active`, and the
+        // persist below overwrites that with `Dead`.
+        if new_state == ReplicaState::Dead && current_state.is_some_and(|s| s.is_resharding()) {
+            let resharding_state = shard_holder.resharding_state.read().clone();
+            if let Some(state) = resharding_state {
+                // `abort_resharding` grabs the shard_holder write lock internally.
+                drop(shard_holder);
+                self.abort_resharding(state.key(), false).await?;
+                // For up direction, abort dropped the shard. If it's gone, the
+                // replica we'd be deactivating no longer exists on this peer
+                // and the rest of the function is a no-op.
+                shard_holder = self.shards_holder.read().await;
+                let Some(rs) = shard_holder.get_shard(shard_id) else {
+                    return Ok(());
+                };
+                replica_set = rs;
+            }
+        }
+
         // Update replica status
         replica_set
             .ensure_replica_with_state(peer_id, new_state)
             .await?;
 
         if new_state == ReplicaState::Dead {
-            let resharding_state = shard_holder.resharding_state.read().clone();
-
             let all_nodes_fixed_cancellation = self
                 .channel_service
                 .all_peers_at_version(&ABORT_TRANSFERS_ON_SHARD_DROP_FIX_FROM_VERSION);
@@ -471,36 +508,11 @@ impl Collection {
             // Functions below lock `shard_holder`!
             drop(shard_holder);
 
-            let mut abort_resharding_result = CollectionResult::Ok(());
-
-            // Abort resharding, if resharding shard is marked as `Dead`.
-            //
-            // This branch should only be triggered, if resharding is currently at `MigratingPoints`
-            // stage, because target shard should be marked as `Active`, when all resharding transfers
-            // are successfully completed, and so the check *right above* this one would be triggered.
-            //
-            // So, if resharding reached `ReadHashRingCommitted`, this branch *won't* be triggered,
-            // and resharding *won't* be cancelled. The update request should *fail* with "failed to
-            // update all replicas of a shard" error.
-            //
-            // If resharding reached `ReadHashRingCommitted`, and this branch is triggered *somehow*,
-            // then `Collection::abort_resharding` call should return an error, so no special handling
-            // is needed.
-            let is_resharding = current_state
-                .as_ref()
-                .is_some_and(ReplicaState::is_resharding);
-            if is_resharding && let Some(state) = resharding_state {
-                abort_resharding_result = self.abort_resharding(state.key(), false).await;
-            }
-
             // Terminate transfer if source or target replicas are now dead
             for transfer in related_transfers {
-                self.abort_shard_transfer_and_resharding(transfer.key(), None)
+                self.abort_shard_transfer_and_resharding(transfer.key())
                     .await?;
             }
-
-            // Propagate resharding errors now
-            abort_resharding_result?;
         }
 
         // If not initialized yet, we need to check if it was initialized by this call
@@ -535,9 +547,8 @@ impl Collection {
         let shard_holder_read = self.shards_holder.read().await;
 
         let shard = shard_holder_read.get_shard(shard_id);
-        let replica_set = shard.ok_or_else(|| CollectionError::NotFound {
-            what: format!("Shard {shard_id}"),
-        })?;
+        let replica_set =
+            shard.ok_or_else(|| CollectionError::not_found(format!("Shard {shard_id}")))?;
 
         replica_set.shard_recovery_point().await
     }
@@ -550,9 +561,8 @@ impl Collection {
         let shard_holder_read = self.shards_holder.read().await;
 
         let shard = shard_holder_read.get_shard(shard_id);
-        let replica_set = shard.ok_or_else(|| CollectionError::NotFound {
-            what: format!("Shard {shard_id}"),
-        })?;
+        let replica_set =
+            shard.ok_or_else(|| CollectionError::not_found(format!("Shard {shard_id}")))?;
 
         replica_set.update_shard_cutoff_point(cutoff).await
     }
@@ -565,9 +575,7 @@ impl Collection {
         let shard_holder = self.shards_holder.read().await;
 
         let Some(replica_set) = shard_holder.get_shard(shard_id) else {
-            return Err(CollectionError::NotFound {
-                what: format!("Shard {shard_id}"),
-            });
+            return Err(CollectionError::not_found(format!("Shard {shard_id}")));
         };
 
         replica_set.get_wal_entries(count).await
@@ -584,11 +592,47 @@ impl Collection {
         let shard_holder_read = self.shards_holder.read().await;
 
         let shard = shard_holder_read.get_shard(shard_id);
-        let replica_set = shard.ok_or_else(|| CollectionError::NotFound {
-            what: format!("Shard {shard_id}"),
-        })?;
+        let replica_set =
+            shard.ok_or_else(|| CollectionError::not_found(format!("Shard {shard_id}")))?;
 
         replica_set.local_optimizations(options).await
+    }
+
+    /// Collect memory report across all shards (local + remote).
+    pub async fn memory_report(
+        &self,
+    ) -> CollectionResult<crate::common::memory_reporter::CollectionMemoryReport> {
+        use crate::common::memory_reporter::CollectionMemoryReport;
+
+        let shards_holder = self.shards_holder.read().await;
+        let shards = shards_holder.select_shards(
+            &crate::operations::shard_selector_internal::ShardSelectorInternal::All,
+        )?;
+
+        let mut futures: futures::stream::FuturesUnordered<_> = shards
+            .into_iter()
+            .map(|(shard, _shard_key)| shard.memory_report())
+            .collect();
+
+        let mut reports = Vec::new();
+        while let Some(result) = futures::StreamExt::next(&mut futures).await {
+            reports.push(result?);
+        }
+
+        Ok(CollectionMemoryReport::merge_all(reports))
+    }
+
+    pub async fn local_shard_memory_report(
+        &self,
+        shard_id: ShardId,
+    ) -> CollectionResult<crate::common::memory_reporter::CollectionMemoryReport> {
+        let shard_holder_read = self.shards_holder.read().await;
+
+        let shard = shard_holder_read.get_shard(shard_id);
+        let replica_set =
+            shard.ok_or_else(|| CollectionError::not_found(format!("Shard {shard_id}")))?;
+
+        replica_set.local_memory_report().await
     }
 
     pub async fn state(&self) -> State {
@@ -631,7 +675,7 @@ impl Collection {
         }
 
         for transfer in self.get_related_transfers(peer_id).await {
-            self.abort_shard_transfer_and_resharding(transfer.key(), None)
+            self.abort_shard_transfer_and_resharding(transfer.key())
                 .await?;
         }
 
@@ -761,7 +805,7 @@ impl Collection {
 
             // Select shard transfer method, prefer user configured method or choose one now
             // If all peers are 1.8+, we try WAL delta transfer, otherwise we use the default method
-            let default_method = self.default_shard_transfer_method().await;
+            let default_method = self.default_shard_transfer_method();
             let shard_transfer_method = self
                 .shared_storage_config
                 .default_shard_transfer_method

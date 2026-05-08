@@ -168,6 +168,7 @@ fn configure_validation(builder: Builder) -> Builder {
             ("StrictModeConfig.max_points_count", "range(min = 1)"),
             ("StrictModeConfig.read_rate_limit", "range(min = 1)"),
             ("StrictModeConfig.write_rate_limit", "range(min = 1)"),
+            ("StrictModeConfig.max_resident_memory_percent", "range(min = 1, max = 100)"),
             ("StrictModeConfig.multivector_config", ""),
             ("StrictModeConfig.sparse_config", ""),
             ("StrictModeSparseConfig.sparse_config", ""),
@@ -181,6 +182,7 @@ fn configure_validation(builder: Builder) -> Builder {
             "UpdateCollectionClusterSetupRequest",
             "ProductQuantization",
             "BinaryQuantization",
+            "TurboQuantization",
             "Disabled",
             "QuantizationConfigDiff",
             "quantization_config_diff::Quantization",
@@ -196,6 +198,7 @@ fn configure_validation(builder: Builder) -> Builder {
             ("GetShardRecoveryPointRequest.collection_name", "length(min = 1, max = 255), custom(function = \"common::validation::validate_collection_name_legacy\")"),
             ("UpdateShardCutoffPointRequest.collection_name", "length(min = 1, max = 255), custom(function = \"common::validation::validate_collection_name_legacy\")"),
             ("GetShardOptimizationsRequest.collection_name", "length(min = 1, max = 255), custom(function = \"common::validation::validate_collection_name_legacy\")"),
+            ("GetShardMemoryReportRequest.collection_name", "length(min = 1, max = 255), custom(function = \"common::validation::validate_collection_name_legacy\")"),
         ], &[])
         // Service: points.proto
         .validates(&[
@@ -227,6 +230,10 @@ fn configure_validation(builder: Builder) -> Builder {
             ("PayloadIndexParams.index_params", ""),
             ("DeleteFieldIndexCollection.collection_name", "length(min = 1, max = 255), custom(function = \"common::validation::validate_collection_name_legacy\")"),
             ("DeleteFieldIndexCollection.field_name", "length(min = 1)"),
+            ("CreateVectorNameRequest.collection_name", "length(min = 1, max = 255), custom(function = \"common::validation::validate_collection_name_legacy\")"),
+            ("CreateVectorNameRequest.vector_config", ""),
+            ("DenseVectorCreationConfig.size", "range(min = 1, max = 65536)"),
+            ("DeleteVectorNameRequest.collection_name", "length(min = 1, max = 255), custom(function = \"common::validation::validate_collection_name_legacy\")"),
             ("SearchPoints.collection_name", "length(min = 1, max = 255), custom(function = \"common::validation::validate_collection_name_legacy\")"),
             ("SearchPoints.filter", ""),
             ("SearchPoints.limit", "range(min = 1)"),
@@ -355,7 +362,9 @@ fn configure_validation(builder: Builder) -> Builder {
             ("SearchMatrixPoints.sample", "range(min = 2)"),
             ("SearchMatrixPoints.limit", "range(min = 1)"),
             ("SearchMatrixPoints.timeout", "range(min = 1)")
-        ], &[])
+        ], &[
+            "SparseVectorCreationConfig",
+        ])
         .type_attribute(".", "#[derive(serde::Serialize)]")
         // Service: points_internal_service.proto
         .validates(&[
@@ -368,6 +377,8 @@ fn configure_validation(builder: Builder) -> Builder {
             ("ClearPayloadPointsInternal.clear_payload_points", ""),
             ("CreateFieldIndexCollectionInternal.create_field_index_collection", ""),
             ("DeleteFieldIndexCollectionInternal.delete_field_index_collection", ""),
+            ("CreateVectorNameInternal.create_vector_name", ""),
+            ("DeleteVectorNameInternal.delete_vector_name", ""),
             ("UpdateOperation.update", ""),
             ("UpdateBatchInternal.operations", ""),
             ("SearchPointsInternal.search_points", ""),
@@ -421,6 +432,27 @@ fn configure_validation(builder: Builder) -> Builder {
             "CreateFullSnapshotRequest",
             "ListFullSnapshotsRequest",
         ])
+        // Service: storage_read_service.proto
+        .validates(&[
+            ("FileExistsRequest.collection_name", "length(min = 1, max = 255), custom(function = \"common::validation::validate_collection_name_legacy\")"),
+            ("FileExistsRequest.path", "length(min = 1)"),
+            ("ListFilesRequest.collection_name", "length(min = 1, max = 255), custom(function = \"common::validation::validate_collection_name_legacy\")"),
+            ("ListFilesRequest.prefix_path", "length(min = 1)"),
+            ("FileLengthRequest.collection_name", "length(min = 1, max = 255), custom(function = \"common::validation::validate_collection_name_legacy\")"),
+            ("FileLengthRequest.path", "length(min = 1)"),
+            ("ReadBytesRequest.collection_name", "length(min = 1, max = 255), custom(function = \"common::validation::validate_collection_name_legacy\")"),
+            ("ReadBytesRequest.path", "length(min = 1)"),
+            ("ReadBytesStreamRequest.collection_name", "length(min = 1, max = 255), custom(function = \"common::validation::validate_collection_name_legacy\")"),
+            ("ReadBytesStreamRequest.path", "length(min = 1)"),
+            ("ReadWholeRequest.collection_name", "length(min = 1, max = 255), custom(function = \"common::validation::validate_collection_name_legacy\")"),
+            ("ReadWholeRequest.path", "length(min = 1)"),
+            ("ReadBatchRequest.collection_name", "length(min = 1, max = 255), custom(function = \"common::validation::validate_collection_name_legacy\")"),
+            ("ReadBatchRequest.path", "length(min = 1)"),
+            ("ReadBatchRequest.ranges", "length(min = 1)"),
+            ("ReadMultiRequest.collection_name", "length(min = 1, max = 255), custom(function = \"common::validation::validate_collection_name_legacy\")"),
+            ("ReadMultiRequest.reads", "length(min = 1), nested"),
+            ("ReadMultiEntry.path", "length(min = 1)"),
+        ], &[])
 }
 
 fn append_to_file(path: &str, line: &str) {

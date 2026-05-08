@@ -6,14 +6,15 @@ use std::io::Write;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 
-use crate::index::field_index::histogram::{Histogram, Numericable, Point};
+use crate::index::field_index::histogram::Histogram;
+use crate::index::field_index::numeric_point::{Numericable, Point};
 
 pub fn print_results<T: Numericable + Serialize + DeserializeOwned + Display>(
     points_index: &BTreeSet<Point<T>>,
     histogram: &Histogram<T>,
     pnt: Option<Point<T>>,
 ) {
-    for point in points_index.iter() {
+    for point in points_index {
         if let Some(border_count) = histogram.borders().get(point) {
             if pnt.is_some() && pnt.as_ref().unwrap().idx == point.idx {
                 eprint!(" {}x{} ", border_count.left, border_count.right);

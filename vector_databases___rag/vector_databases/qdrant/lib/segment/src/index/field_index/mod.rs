@@ -15,14 +15,17 @@ mod histogram;
 mod immutable_point_to_values;
 pub mod index_selector;
 pub mod map_index;
+mod memory_reporter;
 pub mod null_index;
 pub mod numeric_index;
+mod numeric_point;
 mod stat_tools;
 mod stored_point_to_values;
 #[cfg(test)]
 mod tests;
 mod utils;
 
+pub use facet_index::FacetIndex;
 pub use field_index_base::*;
 
 use crate::utils::maybe_arc::MaybeArc;

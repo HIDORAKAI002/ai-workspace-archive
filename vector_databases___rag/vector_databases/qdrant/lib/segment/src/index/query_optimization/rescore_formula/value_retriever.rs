@@ -1,4 +1,3 @@
-#![allow(dead_code)] // TODO: remove this
 use std::collections::{HashMap, HashSet};
 
 use common::counter::hardware_counter::HardwareCounterCell;
@@ -16,7 +15,7 @@ pub type VariableRetrieverFn<'a> = Box<dyn Fn(PointOffsetType) -> MultiValue<Val
 
 impl StructPayloadIndex {
     /// Prepares optimized functions to extract each of the variables, given a point id.
-    pub(super) fn retrievers_map<'a, 'q>(
+    pub(crate) fn retrievers_map<'a, 'q>(
         &'a self,
         variables: HashSet<JsonPath>,
         hw_counter: &'q HardwareCounterCell,
@@ -56,7 +55,11 @@ where
 {
     indices
         .get(json_path)
-        .and_then(|indices| indices.iter().find_map(indexed_variable_retriever))
+        .and_then(|indices| {
+            indices
+                .iter()
+                .find_map(|index| indexed_variable_retriever(index, hw_counter))
+        })
         // TODO(scoreboost): optimize by reusing the same payload for all variables?
         .unwrap_or_else(|| {
             // if the variable is not found in the index, try to find it in the payload
@@ -103,7 +106,13 @@ fn payload_variable_retriever(
 /// Returns function to extract all the values a point has in the index
 ///
 /// If there is no appropriate index, returns None
-fn indexed_variable_retriever(index: &FieldIndex) -> Option<VariableRetrieverFn<'_>> {
+fn indexed_variable_retriever<'a, 'q>(
+    index: &'a FieldIndex,
+    hw_counter: &'q HardwareCounterCell,
+) -> Option<VariableRetrieverFn<'q>>
+where
+    'a: 'q,
+{
     match index {
         FieldIndex::IntIndex(numeric_index) => {
             let extract_fn = move |point_id: PointOffsetType| -> MultiValue<Value> {
@@ -119,7 +128,7 @@ fn indexed_variable_retriever(index: &FieldIndex) -> Option<VariableRetrieverFn<
         FieldIndex::IntMapIndex(map_index) => {
             let extract_fn = move |point_id: PointOffsetType| -> MultiValue<Value> {
                 map_index
-                    .get_values(point_id)
+                    .get_values(point_id, hw_counter)
                     .into_iter()
                     .flatten()
                     .map(|v| Value::Number(Number::from(*v)))
@@ -154,7 +163,7 @@ fn indexed_variable_retriever(index: &FieldIndex) -> Option<VariableRetrieverFn<
         FieldIndex::KeywordIndex(keyword_index) => {
             let extract_fn = move |point_id: PointOffsetType| -> MultiValue<Value> {
                 keyword_index
-                    .get_values(point_id)
+                    .get_values(point_id, hw_counter)
                     .into_iter()
                     .flatten()
                     .filter_map(|v| serde_json::to_value(v).ok())
@@ -187,7 +196,7 @@ fn indexed_variable_retriever(index: &FieldIndex) -> Option<VariableRetrieverFn<
         FieldIndex::UuidMapIndex(uuid_index) => {
             let extract_fn = move |point_id: PointOffsetType| -> MultiValue<Value> {
                 uuid_index
-                    .get_values(point_id)
+                    .get_values(point_id, hw_counter)
                     .into_iter()
                     .flatten()
                     .map(|value| Value::String(UuidPayloadType::from_u128(*value).to_string()))
@@ -218,6 +227,7 @@ mod tests {
     use std::sync::Arc;
 
     use atomic_refcell::AtomicRefCell;
+    use common::bitvec::BitVec;
     use common::counter::hardware_counter::HardwareCounterCell;
     use serde_json::{Value, from_value, json};
 
@@ -335,10 +345,13 @@ mod tests {
             PayloadStorageEnum::InMemoryPayloadStorage(InMemoryPayloadStorage::default()),
         )));
         let hw_counter = HardwareCounterCell::new();
+        // No deletions in this test — sized to comfortably exceed the
+        // stored deletion bitslice for the few points added below.
+        let deleted_points = BitVec::repeat(false, 64);
 
         // Create a field index for a number.
         let dir = tempfile::tempdir().unwrap();
-        let mut builder = NumericIndex::builder_mmap(dir.path(), false);
+        let mut builder = NumericIndex::builder_mmap(dir.path(), false, &deleted_points);
         builder.add_point(0, &[&42.into()], &hw_counter).unwrap();
         builder.add_point(1, &[], &hw_counter).unwrap();
         builder
@@ -349,7 +362,7 @@ mod tests {
 
         // Create a field index for a geo point.
         let dir = tempfile::tempdir().unwrap();
-        let mut builder = GeoMapIndex::builder_mmap(dir.path(), false);
+        let mut builder = GeoMapIndex::builder_mmap(dir.path(), false, &deleted_points);
 
         builder.add_point(0, &[], &hw_counter).unwrap();
         builder
@@ -363,7 +376,7 @@ mod tests {
 
         // Create a field index for datetime
         let dir = tempfile::tempdir().unwrap();
-        let mut builder = NumericIndex::builder_mmap(dir.path(), false);
+        let mut builder = NumericIndex::builder_mmap(dir.path(), false, &deleted_points);
 
         builder
             .add_point(0, &[&json!("2023-01-01T00:00:00Z")], &hw_counter)

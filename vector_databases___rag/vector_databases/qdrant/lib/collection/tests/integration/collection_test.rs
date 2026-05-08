@@ -42,10 +42,7 @@ async fn test_collection_updater_with_shards(shard_number: u32) {
     let collection = simple_collection_fixture(collection_dir.path(), shard_number).await;
 
     let batch = BatchPersisted {
-        ids: vec![0, 1, 2, 3, 4]
-            .into_iter()
-            .map(|x| x.into())
-            .collect_vec(),
+        ids: vec![0, 1, 2, 3, 4].into_iter().map(u64::into).collect_vec(),
         vectors: BatchVectorStructPersisted::Single(vec![
             vec![1.0, 0.0, 1.0, 1.0],
             vec![1.0, 0.0, 1.0, 0.0],
@@ -228,10 +225,7 @@ async fn test_collection_loading_with_shards(shard_number: u32) {
         let collection = simple_collection_fixture(collection_dir.path(), shard_number).await;
 
         let batch = BatchPersisted {
-            ids: vec![0, 1, 2, 3, 4]
-                .into_iter()
-                .map(|x| x.into())
-                .collect_vec(),
+            ids: vec![0, 1, 2, 3, 4].into_iter().map(u64::into).collect_vec(),
             vectors: BatchVectorStructPersisted::Single(vec![
                 vec![1.0, 0.0, 1.0, 1.0],
                 vec![1.0, 0.0, 1.0, 0.0],
@@ -385,7 +379,7 @@ async fn test_recommendation_api_with_shards(shard_number: u32) {
     let batch = BatchPersisted {
         ids: vec![0, 1, 2, 3, 4, 5, 6, 7, 8]
             .into_iter()
-            .map(|x| x.into())
+            .map(u64::into)
             .collect_vec(),
         vectors: BatchVectorStructPersisted::Single(vec![
             vec![0.0, 0.0, 1.0, 1.0],
@@ -451,7 +445,7 @@ async fn test_read_api_with_shards(shard_number: u32) {
     let batch = BatchPersisted {
         ids: vec![0, 1, 2, 3, 4, 5, 6, 7, 8]
             .into_iter()
-            .map(|x| x.into())
+            .map(u64::into)
             .collect_vec(),
         vectors: BatchVectorStructPersisted::Single(vec![
             vec![0.0, 0.0, 1.0, 1.0],
@@ -550,7 +544,7 @@ async fn test_ordered_scroll_api_with_shards(shard_number: u32) {
     let batch = BatchPersisted {
         ids: vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
             .into_iter()
-            .map(|x| x.into())
+            .map(u64::into)
             .collect_vec(),
         vectors: BatchVectorStructPersisted::Single(vec![
             vec![0.0, 0.0, 1.0, 1.0],
@@ -721,7 +715,7 @@ async fn test_ordered_scroll_api_with_shards(shard_number: u32) {
             .collect::<HashSet<_>>();
         let valid_asc_second_page_points = [10, 9, 8, 7, 6]
             .into_iter()
-            .map(|x| x.into())
+            .map(u64::into)
             .collect::<HashSet<ExtendedPointId>>();
         assert_eq!(asc_second_page.points.len(), 5);
         assert!(asc_second_page_points.is_subset(&valid_asc_second_page_points));
@@ -762,7 +756,7 @@ async fn test_ordered_scroll_api_with_shards(shard_number: u32) {
 
         let valid_desc_second_page_points = [5, 6, 7, 8, 9]
             .into_iter()
-            .map(|x| x.into())
+            .map(u64::into)
             .collect::<HashSet<ExtendedPointId>>();
 
         assert_eq!(desc_second_page.points.len(), 4);
@@ -820,10 +814,7 @@ async fn test_collection_delete_points_by_filter_with_shards(shard_number: u32) 
     let collection = simple_collection_fixture(collection_dir.path(), shard_number).await;
 
     let batch = BatchPersisted {
-        ids: vec![0, 1, 2, 3, 4]
-            .into_iter()
-            .map(|x| x.into())
-            .collect_vec(),
+        ids: vec![0, 1, 2, 3, 4].into_iter().map(u64::into).collect_vec(),
         vectors: BatchVectorStructPersisted::Single(vec![
             vec![1.0, 0.0, 1.0, 1.0],
             vec![1.0, 0.0, 1.0, 0.0],

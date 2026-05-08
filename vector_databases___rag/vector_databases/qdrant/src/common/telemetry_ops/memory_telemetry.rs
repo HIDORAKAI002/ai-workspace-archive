@@ -37,7 +37,8 @@ impl MemoryTelemetry {
         let required_access = AccessRequirements::new();
         if epoch::advance().is_ok()
             && auth
-                .check_global_access(required_access, "telemetry_memory")
+                .unlogged_access()
+                .check_global_access(required_access)
                 .is_ok()
         {
             Some(MemoryTelemetry {
@@ -57,4 +58,19 @@ impl MemoryTelemetry {
     pub fn collect(_auth: &Auth) -> Option<MemoryTelemetry> {
         None
     }
+}
+
+/// Reader for [`common::memory_usage`] — returns current jemalloc resident bytes.
+#[cfg(all(
+    not(target_env = "msvc"),
+    any(target_arch = "x86_64", target_arch = "aarch64")
+))]
+pub fn resident_bytes() -> Option<usize> {
+    epoch::advance().ok()?;
+    stats::resident::read().ok()
+}
+
+#[cfg(target_env = "msvc")]
+pub fn resident_bytes() -> Option<usize> {
+    None
 }

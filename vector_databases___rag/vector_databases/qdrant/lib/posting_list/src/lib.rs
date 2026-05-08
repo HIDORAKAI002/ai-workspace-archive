@@ -12,7 +12,7 @@ use bitpacking::BitPacker;
 type BitPackerImpl = bitpacking::BitPacker4x;
 
 /// How many elements are packed in a single chunk.
-const CHUNK_LEN: usize = 128;
+pub const CHUNK_LEN: usize = 128;
 const _: () = assert!(128 == BitPackerImpl::BLOCK_LEN);
 
 pub trait SizedValue: Sized + Copy + std::fmt::Debug {}

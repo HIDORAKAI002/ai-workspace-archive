@@ -21,8 +21,8 @@ use segment::common::operation_error::OperationError;
 use segment::data_types::modifier::Modifier;
 use segment::data_types::vectors::{VectorInternal, VectorStructInternal};
 use segment::types::{
-    Distance, Filter, HnswConfig, MultiVectorConfig, QuantizationConfig, StrictModeConfigOutput,
-    WithPayloadInterface,
+    Distance, Filter, HnswConfig, MultiVectorConfig, QuantizationConfig, SearchParams,
+    StrictModeConfigOutput, WithPayloadInterface, WithVector,
 };
 use shard::retrieve::record_internal::RecordInternal;
 use tonic::Status;
@@ -211,16 +211,12 @@ pub fn try_discover_request_from_grpc(
         target,
         context: Some(context),
         filter: filter.map(|f| f.try_into()).transpose()?,
-        params: params.map(|p| p.into()),
+        params: params.map(Into::into),
         limit: limit as usize,
         offset: offset.map(|x| x as usize),
         with_payload: with_payload.map(|wp| wp.try_into()).transpose()?,
-        with_vector: Some(
-            with_vectors
-                .map(|selector| selector.into())
-                .unwrap_or_default(),
-        ),
-        using: using.map(|u| u.into()),
+        with_vector: Some(with_vectors.map(Into::into).unwrap_or_default()),
+        using: using.map(String::into),
         lookup_from: lookup_from.map(LookupLocation::try_from).transpose()?,
     };
 
@@ -379,6 +375,7 @@ impl TryFrom<api::grpc::qdrant::QuantizationConfigDiff> for QuantizationConfigDi
                 Quantization::Scalar(scalar) => Ok(Self::Scalar(scalar.try_into()?)),
                 Quantization::Product(product) => Ok(Self::Product(product.try_into()?)),
                 Quantization::Binary(binary) => Ok(Self::Binary(binary.try_into()?)),
+                Quantization::Turboquant(turbo) => Ok(Self::Turbo(turbo.try_into()?)),
                 Quantization::Disabled(_) => Ok(Self::new_disabled()),
             },
         }
@@ -540,7 +537,7 @@ impl From<CollectionInfo> for api::grpc::qdrant::CollectionInfo {
                         wal_retain_closed: Some(wal_retain_closed as u64),
                     }
                 }),
-                quantization_config: quantization_config.map(|x| x.into()),
+                quantization_config: quantization_config.map(QuantizationConfig::into),
                 strict_mode_config: strict_mode_config
                     .map(api::grpc::qdrant::StrictModeConfig::from),
                 metadata: metadata
@@ -751,7 +748,7 @@ impl TryFrom<api::grpc::qdrant::VectorParams> for VectorParams {
     }
 }
 
-fn convert_datatype_from_proto(datatype: Option<i32>) -> Result<Option<Datatype>, Status> {
+pub fn convert_datatype_from_proto(datatype: Option<i32>) -> Result<Option<Datatype>, Status> {
     if let Some(datatype_int) = datatype {
         let grpc_datatype = api::grpc::qdrant::Datatype::try_from(datatype_int);
         if let Ok(grpc_datatype) = grpc_datatype {
@@ -850,6 +847,9 @@ fn grpc_to_segment_quantization_config(
         }
         api::grpc::qdrant::quantization_config::Quantization::Binary(config) => {
             Ok(QuantizationConfig::Binary(config.try_into()?))
+        }
+        api::grpc::qdrant::quantization_config::Quantization::Turboquant(config) => {
+            Ok(QuantizationConfig::Turbo(config.try_into()?))
         }
     }
 }
@@ -955,7 +955,7 @@ impl From<UpdateResult> for api::grpc::qdrant::UpdateResultInternal {
         Self {
             operation_id,
             status: status.into(),
-            clock_tag: clock_tag.map(Into::into),
+            clock_tag: clock_tag.map(ClockTag::into),
         }
     }
 }
@@ -1062,11 +1062,11 @@ impl<'a> From<CollectionCoreSearchRequest<'a>> for api::grpc::qdrant::CoreSearch
         Self {
             collection_name: collection_id,
             query: Some(api::grpc::QueryEnum::from(query.clone())),
-            filter: filter.clone().map(|f| f.into()),
+            filter: filter.clone().map(Filter::into),
             limit: *limit as u64,
-            with_vectors: with_vector.clone().map(|wv| wv.into()),
-            with_payload: with_payload.clone().map(|wp| wp.into()),
-            params: params.map(|sp| sp.into()),
+            with_vectors: with_vector.clone().map(WithVector::into),
+            with_payload: with_payload.clone().map(WithPayloadInterface::into),
+            params: params.map(SearchParams::into),
             score_threshold: *score_threshold,
             offset: Some(*offset as u64),
             vector_name: Some(query.get_vector_name().to_owned()),
@@ -1091,7 +1091,7 @@ impl TryFrom<api::grpc::qdrant::WithLookup> for WithLookup {
                 .map(|wp| wp.try_into())
                 .transpose()?
                 .or_else(with_default_payload),
-            with_vectors: with_vectors.map(|wv| wv.into()),
+            with_vectors: with_vectors.map(Into::into),
         })
     }
 }
@@ -1280,17 +1280,13 @@ impl TryFrom<api::grpc::qdrant::RecommendPoints> for RecommendRequestInternal {
             negative,
             strategy: strategy.map(|s| s.try_into()).transpose()?,
             filter: filter.map(|f| f.try_into()).transpose()?,
-            params: params.map(|p| p.into()),
+            params: params.map(Into::into),
             limit: limit as usize,
             offset: offset.map(|x| x as usize),
             with_payload: with_payload.map(|wp| wp.try_into()).transpose()?,
-            with_vector: Some(
-                with_vectors
-                    .map(|with_vectors| with_vectors.into())
-                    .unwrap_or_default(),
-            ),
+            with_vector: Some(with_vectors.map(Into::into).unwrap_or_default()),
             score_threshold,
-            using: using.map(|name| name.into()),
+            using: using.map(String::into),
             lookup_from: lookup_from.map(LookupLocation::try_from).transpose()?,
         })
     }
@@ -1414,8 +1410,8 @@ impl From<VectorParams> for api::grpc::qdrant::VectorParams {
                 Distance::Manhattan => api::grpc::qdrant::Distance::Manhattan,
             }
             .into(),
-            hnsw_config: hnsw_config.map(Into::into),
-            quantization_config: quantization_config.map(Into::into),
+            hnsw_config: hnsw_config.map(HnswConfigDiff::into),
+            quantization_config: quantization_config.map(QuantizationConfig::into),
             on_disk,
             datatype: datatype.map(|dt| api::grpc::qdrant::Datatype::from(dt).into()),
             multivector_config: multivector_config.map(api::grpc::qdrant::MultiVectorConfig::from),
@@ -1551,19 +1547,19 @@ impl From<CollectionClusterInfo> for api::grpc::qdrant::CollectionClusterInfoRes
         Self {
             peer_id,
             shard_count: shard_count as u64,
-            local_shards: local_shards.into_iter().map(|shard| shard.into()).collect(),
+            local_shards: local_shards.into_iter().map(LocalShardInfo::into).collect(),
             remote_shards: remote_shards
                 .into_iter()
-                .map(|shard| shard.into())
+                .map(RemoteShardInfo::into)
                 .collect(),
             shard_transfers: shard_transfers
                 .into_iter()
-                .map(|shard| shard.into())
+                .map(ShardTransferInfo::into)
                 .collect(),
             resharding_operations: resharding_operations
                 .into_iter()
                 .flatten()
-                .map(|info| info.into())
+                .map(ReshardingInfo::into)
                 .collect(),
         }
     }

@@ -16,8 +16,8 @@ use segment::data_types::vectors::{
 use segment::entry::{NonAppendableSegmentEntry, SegmentEntry};
 use segment::fixtures::index_fixtures::random_vector;
 use segment::fixtures::payload_fixtures::random_int_payload;
-use segment::id_tracker::IdTracker;
-use segment::index::VectorIndex;
+use segment::id_tracker::IdTrackerRead;
+use segment::index::VectorIndexRead;
 use segment::index::hnsw_index::hnsw::{HNSWIndex, HnswIndexOpenArgs};
 use segment::json_path::JsonPath;
 use segment::payload_json;

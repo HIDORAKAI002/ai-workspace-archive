@@ -22,7 +22,6 @@ bincode = { workspace = true }
 bitvec = { workspace = true }
 bytemuck = { workspace = true }
 chrono = { workspace = true }
-delegate = { workspace = true }
 fs-err = { workspace = true }
 fs_extra = { workspace = true }
 itertools = { workspace = true }
@@ -40,6 +39,7 @@ schemars = { workspace = true }
 semver = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
+slab = "0.4.12"
 strum = { workspace = true }
 tap = { workspace = true }
 tar = { workspace = true }
@@ -56,11 +56,11 @@ criterion = { workspace = true }
 fs-err = { workspace = true, features = ["debug"] }
 rstest = { workspace = true }
 self_cell = { workspace = true }
-serde_json = { workspace = true }
 tango-bench = "0.7.2"
 
 [target.'cfg(target_os = "linux")'.dependencies]
-io-uring = "0.7.11"
+io-uring = "0.7.12"
+procfs = { version = "0.18", default-features = false }
 thread-priority = "3.0.0"
 
 [[bench]]
@@ -81,4 +81,8 @@ harness = false
 
 [[bench]]
 name = "atomic_stop"
+harness = false
+
+[[bench]]
+name = "universal_io"
 harness = false

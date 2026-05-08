@@ -12,6 +12,7 @@ use crate::visitor::PostingVisitor;
 use crate::{BitPackerImpl, CHUNK_LEN, PostingChunk, PostingList, SizedTypeFor};
 
 /// A non-owning view of [`PostingList`].
+#[derive(Clone)]
 pub struct PostingListView<'a, V: PostingValue> {
     pub(crate) id_data: &'a [u8],
     chunks: &'a [PostingChunk<SizedTypeFor<V>>],
