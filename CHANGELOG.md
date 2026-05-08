@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-05-08 09:54 IST] Auto-Sync
+- **28 Repositories Updated:** Public APIs Directory, Promptfoo, Dify, Activepieces, modelcontextprotocol/csharp-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langgraph, pydantic/pydantic-ai, mastra-ai/mastra, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, anthropics/claude-code, chroma-core/chroma, milvus-io/milvus, infiniflow/ragflow, open-telemetry/opentelemetry-python, chenglou/pretext, googleapis/python-genai, vercel/ai, apache/airflow, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, bytedance/deer-flow
+
 ## [2026-05-08 03:22 IST] Auto-Sync
 - **47 Repositories Updated:** MCP Python SDK, Playwright MCP, Exa MCP Server, AI Tools System Prompts, Langfuse, Promptfoo, n8n, Langflow, Activepieces, modelcontextprotocol/rust-sdk, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langgraph, crewAIInc/crewAI, run-llama/llama_index, pydantic/pydantic-ai, microsoft/semantic-kernel, mastra-ai/mastra, BerriAI/litellm, stanfordnlp/dspy, ollama/ollama, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, milvus-io/milvus, pinecone-io/pinecone-python-client, arize-ai/phoenix, open-telemetry/opentelemetry-python, openai/openai-cookbook, firecrawl/firecrawl, danny-avila/LibreChat, openai/openai-python, openai/openai-node, google-gemini/gemini-cli, googleapis/python-genai, vercel/ai, apache/airflow, PrefectHQ/prefect, dagster-io/dagster, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight, tirth8205/code-review-graph
 
