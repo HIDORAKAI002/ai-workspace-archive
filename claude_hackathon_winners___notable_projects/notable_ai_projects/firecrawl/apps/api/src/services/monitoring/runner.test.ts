@@ -8,7 +8,7 @@ describe("monitoring runner", () => {
   describe("isMonitorCheckStale", () => {
     const now = new Date("2026-05-06T12:00:00.000Z");
 
-    it("returns true when a running check is at least 24 hours old", () => {
+    it("returns true when a running check is at least 1 hour old", () => {
       expect(
         isMonitorCheckStale(
           {

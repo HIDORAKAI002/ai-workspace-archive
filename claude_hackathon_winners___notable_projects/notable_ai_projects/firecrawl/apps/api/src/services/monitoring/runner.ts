@@ -52,14 +52,64 @@ import type {
 import { withMarkdownFormat } from "./types";
 import { redisEvictConnection } from "../redis";
 import type { MonitorCheckJobData } from "./queue";
+import {
+  MONITOR_CHECK_STALE_ERROR,
+  isMonitorCheckStale,
+  MONITOR_CHECK_STALE_TIMEOUT_MS,
+} from "./stale";
 
 const logger = _logger.child({ module: "monitoring-runner" });
 const poll = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-export const MONITOR_CHECK_STALE_TIMEOUT_MS = 24 * 60 * 60 * 1000;
+export { isMonitorCheckStale, MONITOR_CHECK_STALE_TIMEOUT_MS };
 
 type PageResult = MonitorCheckPageInsert & {
   emailStatus?: string;
 };
+
+type MonitorTargetRun =
+  | {
+      targetId: string;
+      type: "scrape";
+      expectedJobs: string[];
+    }
+  | {
+      targetId: string;
+      type: "crawl";
+      crawlId: string;
+    };
+
+function createMonitorTargetRun(target: MonitorTarget): MonitorTargetRun {
+  if (target.type === "scrape") {
+    return {
+      targetId: target.id,
+      type: "scrape",
+      expectedJobs: target.urls.map(() => uuidv7()),
+    };
+  }
+
+  return {
+    targetId: target.id,
+    type: "crawl",
+    crawlId: uuidv7(),
+  };
+}
+
+function recoverScrapeTargetRunsFromMonitor(
+  monitor: MonitorRow,
+): MonitorTargetRun[] | null {
+  if (!monitor.targets.every(target => target.type === "scrape")) {
+    return null;
+  }
+
+  return monitor.targets.map(target => ({
+    targetId: target.id,
+    type: "scrape" as const,
+    expectedJobs:
+      target.type === "scrape"
+        ? target.urls.map((_, index) => `recovered:${target.id}:${index}`)
+        : [],
+  }));
+}
 
 function withMonitorScrapeDefaults(
   options: Record<string, unknown>,
@@ -548,12 +598,28 @@ async function sendNotifications(params: {
       webhook: params.monitor.webhook as any,
       v0: false,
     });
-    await sender?.send(WebhookEvent.MONITOR_CHECK_COMPLETED, {
-      success: params.check.status === "completed",
-      data: payload,
-      error: params.check.error ?? undefined,
-    });
-    webhookStatus = { attempted: true, success: true };
+    try {
+      const result = await sender?.send(WebhookEvent.MONITOR_CHECK_COMPLETED, {
+        success: params.check.status === "completed",
+        data: payload,
+        error: params.check.error ?? undefined,
+        awaitWebhook: true,
+      });
+      webhookStatus = {
+        attempted: result?.attempted ?? false,
+        success: result?.delivered === true,
+        delivered: result?.delivered === true,
+        queued: result?.queued === true,
+        skipped: result?.skipped === true,
+      };
+    } catch (error) {
+      webhookStatus = {
+        attempted: true,
+        success: false,
+        delivered: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
   }
 
   const emailStatus = await sendMonitoringEmailSummary({
@@ -579,14 +645,14 @@ async function enqueueMonitorScrapeTarget(params: {
   monitor: MonitorRow;
   check: MonitorCheckRow;
   target: MonitorTarget;
-}): Promise<{ targetId: string; type: "scrape"; expectedJobs: string[] }> {
+  targetRun: Extract<MonitorTargetRun, { type: "scrape" }>;
+}): Promise<Extract<MonitorTargetRun, { type: "scrape" }>> {
   if (params.target.type !== "scrape") {
     throw new Error("Expected scrape target");
   }
 
-  const expectedJobs: string[] = [];
-  for (const url of params.target.urls) {
-    const scrapeId = uuidv7();
+  for (const [index, url] of params.target.urls.entries()) {
+    const scrapeId = params.targetRun.expectedJobs[index];
     const scrapeOptions = scrapeRequestSchema.parse({
       url,
       ...withMonitorScrapeDefaults(params.target.scrapeOptions ?? {}),
@@ -632,22 +698,22 @@ async function enqueueMonitorScrapeTarget(params: {
       scrapeId,
       20,
     );
-    expectedJobs.push(scrapeId);
   }
 
-  return { targetId: params.target.id, type: "scrape", expectedJobs };
+  return params.targetRun;
 }
 
 async function enqueueMonitorCrawlTarget(params: {
   monitor: MonitorRow;
   check: MonitorCheckRow;
   target: MonitorTarget;
-}): Promise<{ targetId: string; type: "crawl"; crawlId: string }> {
+  targetRun: Extract<MonitorTargetRun, { type: "crawl" }>;
+}): Promise<Extract<MonitorTargetRun, { type: "crawl" }>> {
   if (params.target.type !== "crawl") {
     throw new Error("Expected crawl target");
   }
 
-  const crawlId = uuidv7();
+  const crawlId = params.targetRun.crawlId;
   const body = crawlRequestSchema.parse({
     url: params.target.url,
     ...(params.target.crawlOptions ?? {}),
@@ -729,7 +795,7 @@ async function enqueueMonitorCrawlTarget(params: {
     uuidv7(),
   );
 
-  return { targetId: params.target.id, type: "crawl", crawlId };
+  return params.targetRun;
 }
 
 export async function processMonitorCheckJob(
@@ -770,19 +836,19 @@ export async function processMonitorCheckJob(
       billing_status: lockId ? "reserved" : "not_applicable",
     });
 
-    const targetResults: unknown[] = [];
-
-    for (const target of monitor.targets) {
-      const result =
-        target.type === "scrape"
-          ? await enqueueMonitorScrapeTarget({ monitor, check, target })
-          : await enqueueMonitorCrawlTarget({ monitor, check, target });
-      targetResults.push(result);
-    }
-
+    const targetResults = monitor.targets.map(createMonitorTargetRun);
     await updateMonitorCheck(check.id, {
       target_results: targetResults,
     });
+
+    for (const [index, target] of monitor.targets.entries()) {
+      const targetRun = targetResults[index];
+      if (target.type === "scrape" && targetRun.type === "scrape") {
+        await enqueueMonitorScrapeTarget({ monitor, check, target, targetRun });
+      } else if (target.type === "crawl" && targetRun.type === "crawl") {
+        await enqueueMonitorCrawlTarget({ monitor, check, target, targetRun });
+      }
+    }
   } catch (error) {
     if (lockId) {
       await autumnService.finalizeCreditsLock({
@@ -884,12 +950,18 @@ async function processRemovedPagesForCompletedCrawls(params: {
 
 async function isMonitorCheckComplete(
   check: MonitorCheckRow,
+  monitor?: MonitorRow,
 ): Promise<boolean> {
-  const targetResults = Array.isArray(check.target_results)
+  let targetResults = Array.isArray(check.target_results)
     ? (check.target_results as any[])
     : [];
 
-  if (targetResults.length === 0) return false;
+  if (targetResults.length === 0) {
+    if (!monitor) return false;
+
+    targetResults = recoverScrapeTargetRunsFromMonitor(monitor) ?? [];
+    if (targetResults.length === 0) return false;
+  }
 
   for (const target of targetResults) {
     if (target?.type === "scrape") {
@@ -918,23 +990,13 @@ async function isMonitorCheckComplete(
   return true;
 }
 
-export function isMonitorCheckStale(
-  check: Pick<MonitorCheckRow, "started_at" | "updated_at" | "created_at">,
-  now: Date = new Date(),
-): boolean {
-  const startedAt = check.started_at ?? check.updated_at ?? check.created_at;
-  const startedAtMs = Date.parse(startedAt);
-  if (!Number.isFinite(startedAtMs)) return false;
-  return now.getTime() - startedAtMs >= MONITOR_CHECK_STALE_TIMEOUT_MS;
-}
-
 async function failStaleMonitorCheck(params: {
   monitor: MonitorRow;
   check: MonitorCheckRow;
 }): Promise<boolean> {
   if (!isMonitorCheckStale(params.check)) return false;
 
-  const error = "Monitor check exceeded the 24 hour running timeout.";
+  const error = MONITOR_CHECK_STALE_ERROR;
   if (params.check.autumn_lock_id) {
     await autumnService
       .finalizeCreditsLock({
@@ -1041,9 +1103,12 @@ export async function reconcileRunningMonitorChecks(
 
       if (await failStaleMonitorCheck({ monitor, check })) continue;
 
-      const targetResults = Array.isArray(check.target_results)
+      let targetResults = Array.isArray(check.target_results)
         ? ([...check.target_results] as any[])
         : [];
+      if (targetResults.length === 0) {
+        targetResults = recoverScrapeTargetRunsFromMonitor(monitor) ?? [];
+      }
 
       await processRemovedPagesForCompletedCrawls({
         monitor,
@@ -1052,10 +1117,13 @@ export async function reconcileRunningMonitorChecks(
       });
 
       if (
-        !(await isMonitorCheckComplete({
-          ...check,
-          target_results: targetResults,
-        }))
+        !(await isMonitorCheckComplete(
+          {
+            ...check,
+            target_results: targetResults,
+          },
+          monitor,
+        ))
       ) {
         await updateMonitorCheck(check.id, { target_results: targetResults });
         continue;
