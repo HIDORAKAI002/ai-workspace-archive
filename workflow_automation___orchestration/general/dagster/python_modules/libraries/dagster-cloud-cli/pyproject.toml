@@ -43,7 +43,7 @@ test = [
     "freezegun",
     "pytest>=8",
     "pytest-mock==3.14.0",
-    "flaky",
+    "pytest-rerunfailures",
     "pex>=2.1.132,<2.60.0",
     # Tests exercise the production code path in `pex_builder/source.py` that
     # shells out to `python -m pip install --target ...` to build pyproject

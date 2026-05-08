@@ -113,6 +113,7 @@ class AssetGraphView(LoadingContext):
         temporal_context: TemporalContext,
         instance: "DagsterInstance",
         asset_graph: "BaseAssetGraph",
+        enforce_event_id_upper_bound: bool = False,
     ):
         from dagster._utils.caching_instance_queryer import CachingInstanceQueryer
 
@@ -120,6 +121,11 @@ class AssetGraphView(LoadingContext):
         self._instance = instance
         self._loaders = {}
         self._asset_graph = asset_graph
+        # When true, queries that look up "events updated since a cursor" treat
+        # `temporal_context.last_event_id` as a hard upper bound. Lets callers (e.g. the
+        # automation daemon) enforce a fixed view of the event log even if asset_records
+        # has been updated by in-flight transactions that committed after the snapshot.
+        self._enforce_event_id_upper_bound = enforce_event_id_upper_bound
 
         self._queryer = CachingInstanceQueryer(
             instance=instance,
@@ -917,10 +923,20 @@ class AssetGraphView(LoadingContext):
     async def _compute_updated_since_cursor_subset(
         self, key: AssetKey, cursor: int | None, require_data_version_update: bool = False
     ) -> EntitySubset[AssetKey]:
+        # When `_enforce_event_id_upper_bound` is set, use this view's captured
+        # `last_event_id` as an upper bound on the events we'll consider. Events that committed
+        # *after* this view was constructed (e.g. during the automation daemon's settle-delay
+        # sleep) are above this bound and deferred to a later tick — this makes the cursor
+        # "exactly once": each event falls into exactly one tick's window. Off by default so
+        # non-automation callers preserve prior behavior.
+        before_cursor = (
+            self._temporal_context.last_event_id if self._enforce_event_id_upper_bound else None
+        )
         value = self._queryer.get_asset_subset_updated_after_cursor(
             asset_key=key,
             after_cursor=cursor,
             require_data_version_update=require_data_version_update,
+            before_cursor=before_cursor,
         ).value
         return EntitySubset(self, key=key, value=_ValidatedEntitySubsetValue(value))
 

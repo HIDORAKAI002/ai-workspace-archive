@@ -81,6 +81,7 @@ def build_test_project_steps() -> list[GroupStepConfiguration]:
                 ],
             )
             .with_ecr_login()
+            .with_docker()  # build.sh runs `docker build`; final step `docker push`
             .build()
         )
 

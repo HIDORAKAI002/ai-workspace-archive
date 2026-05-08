@@ -24,13 +24,18 @@ class ResourceRequests:
     def __init__(
         self,
         cpu: str,
+        *,
         memory: str | None = None,
         docker_cpu: str = "500m",
+        docker_memory: str = "1Gi",
+        docker_memory_limit: str = "2Gi",
         ephemeral_storage: str | None = None,
     ) -> None:
         self._cpu = cpu
         self._memory = memory
         self._docker_cpu = docker_cpu
+        self._docker_memory = docker_memory
+        self._docker_memory_limit = docker_memory_limit
         self._ephemeral_storage = ephemeral_storage
 
     @property
@@ -44,6 +49,14 @@ class ResourceRequests:
     @property
     def docker_cpu(self) -> str:
         return self._docker_cpu
+
+    @property
+    def docker_memory(self) -> str:
+        return self._docker_memory
+
+    @property
+    def docker_memory_limit(self) -> str:
+        return self._docker_memory_limit
 
     @property
     def ephemeral_storage(self) -> str | None:
@@ -148,7 +161,13 @@ class CommandStepBuilder:
             "retry": retry,
             "plugins": plugins or [],
         }
-        self._requires_docker = True  # used for k8s queue
+        # Default off: most steps don't need a docker daemon (lints, type-checkers,
+        # k8s manifests, helm, kaniko image builds, dashboard publishing). Steps that
+        # actually invoke `docker compose`/`docker build`/`docker pull` opt in via
+        # `.with_docker()`. Off-by-default avoids attaching a privileged dind sidecar
+        # — which costs scheduling resources and is the kubelet's first eviction
+        # target under fan-out memory pressure — to steps that don't need one.
+        self._requires_docker = False  # used for k8s queue; opt in via .with_docker()
         self._resources = None
 
     def run(self, *argc: str) -> Self:
@@ -159,8 +178,8 @@ class CommandStepBuilder:
         self._resources = resources
         return self
 
-    def no_docker(self) -> Self:
-        self._requires_docker = False
+    def with_docker(self) -> Self:
+        self._requires_docker = True
         return self
 
     def on_python_image(
@@ -400,9 +419,9 @@ class CommandStepBuilder:
             # Determine docker image based on queue (GKE vs EKS)
             queue = self._step.get("agents", {}).get("queue", "")
             if "gke" in queue:
-                docker_image = "us-central1-docker.pkg.dev/dagster-production/buildkite-images/docker:20.10.16-dind"
+                docker_image = "us-central1-docker.pkg.dev/dagster-production/buildkite-images/docker:24.0.9-dind"
             else:
-                docker_image = "public.ecr.aws/docker/library/docker:20.10.16-dind"
+                docker_image = "public.ecr.aws/docker/library/docker:24.0.9-dind"
 
             sidecars.append(
                 {
@@ -416,10 +435,23 @@ class CommandStepBuilder:
                         "--max-concurrent-downloads=10",
                         "--max-concurrent-uploads=10",
                     ],
+                    # Memory request/limit promote the dind sidecar from
+                    # BestEffort to Burstable QoS, so it isn't the first
+                    # container the kubelet evicts when a node is under
+                    # memory pressure during fan-out waves. Without this,
+                    # docker API calls (`containers.create` etc.) can hang
+                    # for minutes mid-test before the SDK's read timeout
+                    # fires — see test_docker_launcher.py flakes.
                     "resources": {
                         "requests": {
-                            "cpu": self._resources.docker_cpu if self._resources else "500m"
-                        }
+                            "cpu": self._resources.docker_cpu if self._resources else "500m",
+                            "memory": self._resources.docker_memory if self._resources else "1Gi",
+                        },
+                        "limits": {
+                            "memory": self._resources.docker_memory_limit
+                            if self._resources
+                            else "2Gi",
+                        },
                     },
                     "env": [
                         {
@@ -546,8 +578,8 @@ class CommandStepBuilder:
             BuildkiteQueue.KUBERNETES_GKE,
             BuildkiteQueue.KUBERNETES_EKS,
         )
-        if self._requires_docker is False and not on_k8s:
-            raise Exception("you specified .no_docker() but you're not running on kubernetes")
+        # Note: `self._requires_docker` is k8s-only. On non-k8s queues docker is
+        # provided by the host agent regardless of the flag, so we don't gate.
 
         if not on_k8s and self._k8s_secrets:
             raise Exception(

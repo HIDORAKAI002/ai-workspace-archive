@@ -53,7 +53,7 @@ class TestStepHandler(StepHandler):
     def launch_step(self, step_handler_context):
         if step_handler_context.execute_step_args.should_verify_step:
             TestStepHandler.verify_step_count += 1
-        if step_handler_context.execute_step_args.step_keys_to_execute[0] == "baz_op":  # pyright: ignore[reportOptionalSubscript]
+        if step_handler_context.execute_step_args.step_keys_to_execute[0] == "baz_op":
             TestStepHandler.saw_baz_op = True
             assert step_handler_context.step_tags["baz_op"] == {"foo": "bar"}
 
@@ -133,7 +133,7 @@ def test_execute():
 
     assert any(
         [
-            "Starting execution with step handler TestStepHandler" in event.message  # pyright: ignore[reportOperatorIssue]
+            "Starting execution with step handler TestStepHandler" in event.message  # ty: ignore[unsupported-operator]
             for event in result.all_events
         ]
     )
@@ -162,7 +162,7 @@ def test_execute_with_tailer_offset():
 
     assert any(
         [
-            "Starting execution with step handler TestStepHandler" in event.message  # pyright: ignore[reportOperatorIssue]
+            "Starting execution with step handler TestStepHandler" in event.message  # ty: ignore[unsupported-operator]
             for event in result.all_events
         ]
     )
@@ -361,7 +361,7 @@ def test_execute_verify_step():
 
     assert any(
         [
-            "Starting execution with step handler TestStepHandler" in event.message  # pyright: ignore[reportOperatorIssue]
+            "Starting execution with step handler TestStepHandler" in event.message  # ty: ignore[unsupported-operator]
             for event in result.all_events
         ]
     )
@@ -559,7 +559,7 @@ def test_blocked_concurrency_limits():
                 # the executor loop sleeps every second, so there should be at least a call per
                 # second that the steps are blocked, in addition to the processing of any step
                 # events
-                assert instance.event_log_storage.get_records_for_run_calls(result.run_id) <= 3  # pyright: ignore[reportAttributeAccessIssue]
+                assert instance.event_log_storage.get_records_for_run_calls(result.run_id) <= 3  # ty: ignore[unresolved-attribute]
 
 
 def test_blocked_concurrency_limits_legacy_keys():
@@ -600,7 +600,7 @@ def test_blocked_concurrency_limits_legacy_keys():
                 # the executor loop sleeps every second, so there should be at least a call per
                 # second that the steps are blocked, in addition to the processing of any step
                 # events
-                assert instance.event_log_storage.get_records_for_run_calls(result.run_id) <= 3  # pyright: ignore[reportAttributeAccessIssue]
+                assert instance.event_log_storage.get_records_for_run_calls(result.run_id) <= 3  # ty: ignore[unresolved-attribute]
 
 
 def test_check_step_health_exception_fails_open():

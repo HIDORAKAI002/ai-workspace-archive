@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import cast
 from unittest import mock
 
 import dagster as dg
@@ -114,12 +113,14 @@ def test_tags_multi_dimensional_partitions():
         asset2_records = instance.fetch_materializations(asset2.key, limit=1000).records
         materializations = sorted(
             [*asset1_records, *asset2_records],
-            key=lambda x: x.event_log_entry.dagster_event.asset_key,  # type: ignore
+            key=lambda x: x.event_log_entry.dagster_event.asset_key,
         )
         assert len(materializations) == 2
 
         for materialization in materializations:
-            assert materialization.event_log_entry.dagster_event.partition == dg.MultiPartitionKey(
+            dagster_event = materialization.event_log_entry.dagster_event
+            assert dagster_event is not None
+            assert dagster_event.partition == dg.MultiPartitionKey(
                 {"abc": "a", "date": "2021-06-01"}
             )
 
@@ -349,7 +350,7 @@ def test_keys_with_dimension_value_with_dynamic():
     )
 
     with dg.instance_for_test() as instance:
-        instance.add_dynamic_partitions(dynamic_partitions_def.name, ["a", "b", "c", "d"])  # pyright: ignore[reportArgumentType]
+        instance.add_dynamic_partitions(dynamic_partitions_def.name, ["a", "b", "c", "d"])  # ty: ignore[invalid-argument-type]
 
         with partition_loading_context(
             effective_dt=datetime(year=2015, month=1, day=5), dynamic_partitions_store=instance
@@ -730,7 +731,7 @@ def test_basic_pagination():
     ]
     for i, key in enumerate(paginated_results.results):
         assert isinstance(key, dg.MultiPartitionKey)
-        assert cast("dg.MultiPartitionKey", key).keys_by_dimension == expected_keys[i]
+        assert key.keys_by_dimension == expected_keys[i]
 
     paginated_results2 = multi_partitions.get_paginated_partition_keys(
         context=PartitionLoadingContext(
@@ -752,7 +753,7 @@ def test_basic_pagination():
     ]
     for i, key in enumerate(paginated_results2.results):
         assert isinstance(key, dg.MultiPartitionKey)
-        assert cast("dg.MultiPartitionKey", key).keys_by_dimension == expected_keys2[i]
+        assert key.keys_by_dimension == expected_keys2[i]
 
 
 def test_reverse_pagination():
@@ -781,7 +782,7 @@ def test_reverse_pagination():
     ]
     for i, key in enumerate(paginated_results.results):
         assert isinstance(key, dg.MultiPartitionKey)
-        assert cast("dg.MultiPartitionKey", key).keys_by_dimension == expected_keys[i]
+        assert key.keys_by_dimension == expected_keys[i]
 
     paginated_results2 = multi_partitions.get_paginated_partition_keys(
         context=PartitionLoadingContext(
@@ -803,7 +804,7 @@ def test_reverse_pagination():
     ]
     for i, key in enumerate(paginated_results2.results):
         assert isinstance(key, dg.MultiPartitionKey)
-        assert cast("dg.MultiPartitionKey", key).keys_by_dimension == expected_keys2[i]
+        assert key.keys_by_dimension == expected_keys2[i]
 
 
 def test_pagination_accumulation():

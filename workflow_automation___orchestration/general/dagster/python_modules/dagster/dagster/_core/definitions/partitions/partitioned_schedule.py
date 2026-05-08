@@ -187,7 +187,7 @@ def build_schedule_from_partitioned_job(
 
         partitions_def = _check_valid_schedule_partitions_def(partitions_def)
         if isinstance(partitions_def, StaticPartitionsDefinition):
-            check.not_none(
+            cron_schedule = check.not_none(
                 cron_schedule,
                 "Creating a schedule from a static partitions definition requires a cron schedule",
             )
@@ -222,7 +222,7 @@ def build_schedule_from_partitioned_job(
                 should_execute = None
 
         return schedule(
-            cron_schedule=cron_schedule,  # type: ignore[arg-type]
+            cron_schedule=cron_schedule,
             job=job,
             default_status=default_status,
             execution_timezone=execution_timezone,
@@ -258,19 +258,19 @@ def _get_schedule_evaluation_fn(
                 ]
             else:
                 check.invariant(isinstance(partitions_def, MultiPartitionsDefinition))
-                time_window_dimension = partitions_def.time_window_dimension  # pyright: ignore[reportAttributeAccessIssue]
+                time_window_dimension = partitions_def.time_window_dimension  # ty: ignore[unresolved-attribute]
                 partition_key = time_window_dimension.partitions_def.get_last_partition_key()
                 if partition_key is None:
                     return SkipReason("The job's PartitionsDefinition has no partitions")
 
                 return [
                     job.run_request_for_partition(partition_key=key, run_key=key, tags=tags)
-                    for key in partitions_def.get_multipartition_keys_with_dimension_value(  # pyright: ignore[reportAttributeAccessIssue]
+                    for key in partitions_def.get_multipartition_keys_with_dimension_value(  # ty: ignore[unresolved-attribute]
                         time_window_dimension.name, partition_key
                     )
                 ]
 
-    return schedule_fn  # pyright: ignore[reportReturnType]
+    return schedule_fn
 
 
 def _check_valid_schedule_partitions_def(

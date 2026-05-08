@@ -168,7 +168,6 @@ def build_repo_wide_pyright_steps(ctx: BuildkiteContext) -> list[StepConfigurati
                 )
                 .skip(get_general_python_step_skip_reason(ctx, other_paths=["pyright"]))
                 .on_queue(BuildkiteQueue.KUBERNETES_EKS)
-                .no_docker()
                 .resources(ResourceRequests(cpu="2000m", memory="8Gi", ephemeral_storage="15Gi"))
                 .build(),
                 CommandStepBuilder("pyright-rebuild-pyright-pins", [":pyright:"])
@@ -188,7 +187,6 @@ def build_repo_wide_pyright_steps(ctx: BuildkiteContext) -> list[StepConfigurati
                 )
                 .skip(_get_pyright_pin_step_skip_reason(ctx))
                 .on_queue(BuildkiteQueue.KUBERNETES_EKS)
-                .no_docker()
                 .resources(ResourceRequests(cpu="2000m", memory="8Gi", ephemeral_storage="15Gi"))
                 .build(),
                 CommandStepBuilder("ty", [":ty:"])
@@ -199,7 +197,6 @@ def build_repo_wide_pyright_steps(ctx: BuildkiteContext) -> list[StepConfigurati
                 )
                 .skip(get_general_python_step_skip_reason(ctx, other_paths=["pyright"]))
                 .on_queue(BuildkiteQueue.KUBERNETES_EKS)
-                .no_docker()
                 .resources(ResourceRequests(cpu="2000m", memory="8Gi", ephemeral_storage="15Gi"))
                 .build(),
             ],

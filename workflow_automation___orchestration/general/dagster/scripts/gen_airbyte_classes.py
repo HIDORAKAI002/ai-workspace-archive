@@ -561,9 +561,9 @@ from dagster._annotations import public
                                 spec = importlib.util.spec_from_file_location(
                                     "module.name", out_file
                                 )
-                                foo = importlib.util.module_from_spec(spec)  # pyright: ignore[reportArgumentType]
+                                foo = importlib.util.module_from_spec(spec)  # ty: ignore[invalid-argument-type]
                                 sys.modules["module.name"] = foo
-                                spec.loader.exec_module(foo)  # pyright: ignore[reportOptionalMemberAccess]
+                                spec.loader.exec_module(foo)  # ty: ignore[unresolved-attribute]
 
                                 out = new_out
                                 successes += 1

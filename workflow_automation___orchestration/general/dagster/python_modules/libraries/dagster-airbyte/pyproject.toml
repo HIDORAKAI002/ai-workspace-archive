@@ -35,7 +35,7 @@ dagster_airbyte = "dagster_airbyte"
 [project.optional-dependencies]
 test = [
     "requests-mock",
-    "flaky",
+    "pytest-rerunfailures",
 ]
 managed = [
     "dagster-managed-elements==1!0+dev",

@@ -23,7 +23,7 @@ full = [
     "dagster-webserver[test]",
     "dbt-duckdb",
     "duckdb",
-    "flaky",
+    "pytest-rerunfailures",
     "matplotlib",
     "moto[s3]>=5.0",
     "numpy",
