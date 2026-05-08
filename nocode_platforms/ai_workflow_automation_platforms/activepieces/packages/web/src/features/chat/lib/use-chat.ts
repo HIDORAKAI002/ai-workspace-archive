@@ -330,12 +330,18 @@ export function useAgentChat({
     return [...withoutEmptyAssistant, createPendingAssistantMessage()];
   }, [hasPending, uiMessages, pendingMessages]);
 
-  // Detect project context changes from AI tool calls
+  // Tracks whether the conversation was loaded from history (resumed).
+  // When true, the server sync should NOT re-enable the project label.
+  const loadedFromHistoryRef = useRef(false);
+
+  // Scan the last assistant message for project selection and build-complete.
+  // Runs on every uiMessages change but only inspects the tail message
+  // (the only one that changes during streaming), keeping it O(parts).
   const buildCompleteRef = useRef(false);
   useEffect(() => {
     const lastMsg = uiMessages[uiMessages.length - 1];
     if (!lastMsg || lastMsg.role !== 'assistant') return;
-    let newProjectId: string | null | undefined;
+
     for (const part of lastMsg.parts) {
       if (part.type !== 'dynamic-tool') continue;
       if (
@@ -345,10 +351,17 @@ export function useAgentChat({
         'projectId' in part.input &&
         typeof part.input.projectId === 'string'
       ) {
-        newProjectId = part.input.projectId;
+        const projectId = part.input.projectId;
+        if (projectId !== selectedProjectIdRef.current) {
+          updateSelectedProjectId(projectId);
+        }
+        setProjectSetInSession((prev) => prev || true);
+        loadedFromHistoryRef.current = false;
       }
       if (part.toolName === 'ap_deselect_project') {
-        newProjectId = null;
+        if (selectedProjectIdRef.current !== null) {
+          updateSelectedProjectId(null);
+        }
       }
       if (
         part.toolName === 'ap_manage_notes' &&
@@ -357,13 +370,11 @@ export function useAgentChat({
         buildCompleteRef.current = true;
       }
     }
-    if (newProjectId !== undefined) {
-      updateSelectedProjectId(newProjectId);
-      setProjectSetInSession(true);
-    }
   }, [uiMessages]);
 
-  // Sync project context from server after streaming completes
+  // Server sync: single source of truth for project context.
+  // After every streaming completion, fetch the conversation's projectId
+  // from the backend and derive UI state from it.
   const prevStatusRef = useRef(status);
   useEffect(() => {
     const wasStreaming =
@@ -372,14 +383,19 @@ export function useAgentChat({
     const isNowIdle = status === 'ready' || status === 'error';
     prevStatusRef.current = status;
     if (wasStreaming && isNowIdle && conversationIdRef.current) {
-      if (buildCompleteRef.current) {
+      const wasBuildComplete = buildCompleteRef.current;
+      if (wasBuildComplete) {
         setProjectSetInSession(false);
         buildCompleteRef.current = false;
       }
       void chatApi
         .getConversation(conversationIdRef.current)
         .then((conv) => {
-          updateSelectedProjectId(conv.projectId ?? null);
+          const projectId = conv.projectId ?? null;
+          updateSelectedProjectId(projectId);
+          if (projectId && !wasBuildComplete && !loadedFromHistoryRef.current) {
+            setProjectSetInSession(true);
+          }
         })
         .catch(() => undefined);
     }
@@ -402,6 +418,7 @@ export function useAgentChat({
     setModelNameState(null);
     updateSelectedProjectId(null);
     setProjectSetInSession(false);
+    loadedFromHistoryRef.current = false;
     setUiMessages([]);
     setLocalError(null);
     setWasCancelled(false);
@@ -522,6 +539,7 @@ export function useAgentChat({
         // Set project for backend tool scoping, but don't show it visually (projectSetInSession stays false)
         updateSelectedProjectId(convResult.data.projectId ?? null);
         setProjectSetInSession(false);
+        loadedFromHistoryRef.current = true;
       }
       setIsLoadingHistory(false);
     },
@@ -544,6 +562,7 @@ export function useAgentChat({
     updateSelectedProjectId(projectId);
     if (projectId) {
       setProjectSetInSession(true);
+      loadedFromHistoryRef.current = false;
     }
     const convId = conversationIdRef.current;
     if (!convId) return;
