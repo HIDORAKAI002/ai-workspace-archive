@@ -65,7 +65,7 @@ export default {
   rmKb: `${restAPIv1}/datasets`,
   getKbDetail: (datasetId: string) => `${restAPIv1}/datasets/${datasetId}`,
   getKnowledgeGraph: (knowledgeId: string) =>
-    `${restAPIv1}/datasets/${knowledgeId}/graph/search`,
+    `${restAPIv1}/datasets/${knowledgeId}/graph`,
   knowledgeGraph: (datasetId: string) =>
     `${restAPIv1}/datasets/${datasetId}/graph`,
   deleteKnowledgeGraph: (knowledgeId: string) =>
@@ -109,8 +109,7 @@ export default {
     `${restAPIv1}/datasets/${datasetId}/documents/${documentId}/chunks`,
   chunkDetail: (datasetId: string, documentId: string, chunkId: string) =>
     `${restAPIv1}/datasets/${datasetId}/documents/${documentId}/chunks/${chunkId}`,
-  retrievalTest: (datasetId: string) =>
-    `${restAPIv1}/datasets/${datasetId}/search`,
+  retrievalTest: `${restAPIv1}/datasets/search`,
 
   // document
   getDocumentList: (datasetId: string) =>
