@@ -18,7 +18,7 @@ from dagster_shared.utils import find_uv_workspace_root
 from packaging import version
 
 try:
-    import tomllib  # pyright: ignore[reportMissingImports]
+    import tomllib  # ty: ignore[unresolved-import]
 except ImportError:
     # Python < 3.11 fallback
     import tomli as tomllib

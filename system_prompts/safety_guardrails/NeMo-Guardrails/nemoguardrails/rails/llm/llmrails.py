@@ -428,6 +428,14 @@ class LLMRails:
         Raises:
             ModelInitializationError: If any model initialization fails
         """
+        from nemoguardrails._compat.langchain_kwargs import check_langchain_kwargs
+        from nemoguardrails.llm.frameworks import get_default_framework
+
+        models_to_check = (
+            [model for model in self.config.models if model.type != "main"] if self.llm else self.config.models
+        )
+        check_langchain_kwargs(models_to_check, get_default_framework())
+
         # If the user supplied an already-constructed LLM via the constructor we
         # treat it as the *main* model, but **still** iterate through the
         # configuration to load any additional models (e.g. `content_safety`).

@@ -8,7 +8,7 @@ from pathlib import Path
 
 # Quality control agent
 agent = Agent(
-    model_name="gpt-4.1-mini",
+    model_name="gpt-5.4-mini",
     max_loops=1,
 )
 

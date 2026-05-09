@@ -60,20 +60,29 @@ class CheckpointMetadata(TypedDict, total=False):
     """
     run_id: str
     """The ID of the run that created this checkpoint."""
-    delta_updates_since_snapshot: dict[str, int]
-    """Per-channel update count since the last `_DeltaSnapshot` was written.
+    counters_since_delta_snapshot: dict[str, tuple[int, int]]
+    """Per-channel counters since the last `_DeltaSnapshot` was written.
 
     !!! warning "Beta"
 
         This metadata field backs `DeltaChannel` (beta). The key name and
         contents may change while the delta-channel design stabilizes.
 
-    Maps channel name → number of supersteps that wrote to this channel
-    since its last snapshot blob. Used by `pregel.create_checkpoint` to
-    decide when to write the next snapshot (when the count reaches the
-    channel's `snapshot_frequency`, snapshot fires and the count resets
-    to 0). Absent on threads that don't use delta channels. Version-format
-    independent — works for int, float, and string version schemes.
+    Maps channel name -> `(updates, supersteps)`:
+
+    - index 0 (`updates`): number of supersteps that wrote to this channel
+      since its last snapshot blob.
+    - index 1 (`supersteps`): total supersteps elapsed since this channel's
+      last snapshot, regardless of whether the channel was written.
+
+    A snapshot fires when EITHER `updates >= ch.snapshot_frequency` OR
+    `supersteps >= DELTA_MAX_SUPERSTEPS_SINCE_SNAPSHOT` (system-wide bound,
+    default 5000, env `LANGGRAPH_DELTA_MAX_SUPERSTEPS_SINCE_SNAPSHOT`).
+    The supersteps bound prevents unbounded ancestor walks on threads where
+    a delta channel exists but is no longer being updated.
+
+    Absent on threads that don't use delta channels. Persisted as a
+    2-element list in JSON (no native tuple).
     """
 
 
@@ -679,123 +688,6 @@ class BaseCheckpointSaver(Generic[V]):
                 entry["seed"] = seed_by_ch[ch]
             result[ch] = entry
         return result
-
-    def get_delta_channel_keepset(
-        self,
-        *,
-        config: RunnableConfig,
-        channels: Sequence[str],
-    ) -> set[str]:
-        """Return ancestor checkpoint_ids that must survive deletion.
-
-        !!! warning "Beta"
-
-            This method is part of the `DeltaChannel` support surface and is
-            in beta. The signature may change while the delta-channel design
-            stabilizes.
-
-        Walks the parent chain from `config` backward, collecting visited
-        checkpoint_ids (inclusive of the target), and terminates per-channel
-        when that channel has a populated `channel_values[ch]` (a
-        `_DeltaSnapshot` blob or a pre-migration plain value). The returned
-        set is the minimum keep-set: every checkpoint_id whose removal would
-        break reconstruction of the listed channels at `config`.
-
-        Pass `channels=[]` to return just `{config.checkpoint_id}` — useful
-        for graphs that don't use `DeltaChannel`.
-
-        Compose this into custom `prune` / `delete_for_runs` / `copy_thread`::
-
-            keep = saver.get_delta_channel_keepset(
-                config=head_config, channels=delta_channels,
-            )
-            delete_rows_not_in(keep)
-
-        Note:
-            The default implementation here uses repeated `get_tuple` calls
-            to walk the parent chain. This is a basic reference implementation
-            suitable for low-frequency maintenance operations (prune, etc.).
-            Custom checkpointer backends may override with a more efficient
-            version tailored to their data model (e.g. a single SQL query
-            with a recursive CTE), but it is not required — the default works
-            correctly for any saver that implements `get_tuple`.
-
-        Args:
-            config: Configuration identifying the target checkpoint.
-            channels: Channel names whose delta history must be preserved.
-                Empty sequence means only the target checkpoint_id is kept.
-
-        Returns:
-            Set of checkpoint_ids that must not be deleted.
-        """
-        target_tuple = self.get_tuple(config)
-        if target_tuple is None:
-            return set()
-        target_id = target_tuple.config["configurable"]["checkpoint_id"]
-        keep: set[str] = {target_id}
-        if not channels:
-            return keep
-        remaining: set[str] = set(channels)
-        for ch in list(remaining):
-            if ch in target_tuple.checkpoint["channel_values"]:
-                remaining.discard(ch)
-        if not remaining:
-            return keep
-        cursor_config: RunnableConfig | None = target_tuple.parent_config
-        while cursor_config is not None and remaining:
-            tup = self.get_tuple(cursor_config)
-            if tup is None:
-                break
-            cid = tup.config["configurable"]["checkpoint_id"]
-            keep.add(cid)
-            for ch in list(remaining):
-                if ch in tup.checkpoint["channel_values"]:
-                    remaining.discard(ch)
-            if not remaining:
-                break
-            cursor_config = tup.parent_config
-        return keep
-
-    async def aget_delta_channel_keepset(
-        self,
-        *,
-        config: RunnableConfig,
-        channels: Sequence[str],
-    ) -> set[str]:
-        """Async version of `get_delta_channel_keepset`.
-
-        !!! warning "Beta"
-
-            This method is part of the `DeltaChannel` support surface and is
-            in beta. See `get_delta_channel_keepset` for full documentation.
-        """
-        target_tuple = await self.aget_tuple(config)
-        if target_tuple is None:
-            return set()
-        target_id = target_tuple.config["configurable"]["checkpoint_id"]
-        keep: set[str] = {target_id}
-        if not channels:
-            return keep
-        remaining: set[str] = set(channels)
-        for ch in list(remaining):
-            if ch in target_tuple.checkpoint["channel_values"]:
-                remaining.discard(ch)
-        if not remaining:
-            return keep
-        cursor_config: RunnableConfig | None = target_tuple.parent_config
-        while cursor_config is not None and remaining:
-            tup = await self.aget_tuple(cursor_config)
-            if tup is None:
-                break
-            cid = tup.config["configurable"]["checkpoint_id"]
-            keep.add(cid)
-            for ch in list(remaining):
-                if ch in tup.checkpoint["channel_values"]:
-                    remaining.discard(ch)
-            if not remaining:
-                break
-            cursor_config = tup.parent_config
-        return keep
 
     def get_next_version(self, current: V | None, channel: None) -> V:
         """Generate the next version ID for a channel.

@@ -400,7 +400,7 @@ def test_dbt_cli_debug_execution(
 
 
 @pytest.mark.skipif(
-    DBT_PYTHON_VERSION and DBT_PYTHON_VERSION < version.parse("1.7.9"),
+    DBT_PYTHON_VERSION is not None and DBT_PYTHON_VERSION < version.parse("1.7.9"),
     reason="`dbt retry` with `--target-path` support is only available in `dbt-core>=1.7.9`",
 )
 def test_dbt_retry_execution(
@@ -475,7 +475,7 @@ def test_dbt_cli_asset_selection(
     )
 
     @dbt_assets(manifest=test_jaffle_shop_manifest, select=dbt_select)
-    def my_dbt_assets(context: context_type, dbt: DbtCliResource):  # pyright: ignore
+    def my_dbt_assets(context: context_type, dbt: DbtCliResource):  # ty: ignore
         dbt_cli_invocation = dbt.cli(["build"], context=context)
 
         assert dbt_cli_invocation.process.args == ["dbt", "build", "--select", dbt_select]
@@ -646,7 +646,7 @@ def test_custom_subclass():
 
 
 @pytest.mark.skipif(
-    DBT_PYTHON_VERSION and DBT_PYTHON_VERSION < version.parse("1.8"),
+    DBT_PYTHON_VERSION is not None and DBT_PYTHON_VERSION < version.parse("1.8"),
     reason="Lock issue with Duckdb in test suite for `dbt-core==1.7`",
 )
 def test_metadata(test_jaffle_shop_manifest: dict[str, Any], dbt: DbtCliResource) -> None:

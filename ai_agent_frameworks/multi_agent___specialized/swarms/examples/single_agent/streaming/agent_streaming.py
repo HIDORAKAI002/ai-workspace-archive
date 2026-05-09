@@ -35,7 +35,7 @@ def sync_streaming_with_tool() -> None:
     print("=== sync run_stream — max_loops=3 with a tool ===\n")
     agent = Agent(
         agent_name="Calculator",
-        model_name="gpt-4.1-mini",
+        model_name="gpt-5.4-mini",
         max_loops=3,
         tools=[add],
         persistent_memory=False,
@@ -57,7 +57,7 @@ async def async_streaming() -> None:
     print("=== async arun_stream — max_loops=1 ===\n")
     agent = Agent(
         agent_name="Writer",
-        model_name="gpt-4.1-mini",
+        model_name="gpt-5.4-mini",
         max_loops=1,
         persistent_memory=False,
         print_on=False,
@@ -80,7 +80,7 @@ async def async_streaming_autonomous() -> None:
     )
     agent = Agent(
         agent_name="AutoBot",
-        model_name="gpt-4.1-mini",
+        model_name="gpt-5.4-mini",
         max_loops="auto",
         tools=[add],
         persistent_memory=False,

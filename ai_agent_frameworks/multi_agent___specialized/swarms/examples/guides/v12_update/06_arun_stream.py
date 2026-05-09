@@ -5,7 +5,7 @@ from swarms import Agent
 agent = Agent(
     agent_name="StreamingAgent",
     agent_description="Streams tokens asynchronously to the caller",
-    model_name="gpt-4.1-mini",
+    model_name="gpt-5.4-mini",
     max_loops=1,
     streaming_on=True,
     persistent_memory=False,
@@ -50,7 +50,7 @@ async def main():
     print("\n=== arun_stream: exception propagation ===")
     bad_agent = Agent(
         agent_name="BadAgent",
-        model_name="gpt-4.1-mini",
+        model_name="gpt-5.4-mini",
         max_loops=1,
         persistent_memory=False,
     )

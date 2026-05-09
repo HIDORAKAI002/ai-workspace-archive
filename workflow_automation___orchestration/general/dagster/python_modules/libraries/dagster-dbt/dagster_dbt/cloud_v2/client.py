@@ -344,7 +344,7 @@ class DbtCloudWorkspaceClient(DagsterModel):
                 return run_details
             # Sleep for the configured time interval before polling again.
             time.sleep(poll_interval)
-        raise Exception(f"Run {run.id} did not complete within {poll_timeout} seconds.")  # pyright: ignore[reportPossiblyUnboundVariable]
+        raise Exception(f"Run {run.id} did not complete within {poll_timeout} seconds.")
 
     def list_run_artifacts(
         self,

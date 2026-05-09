@@ -503,7 +503,7 @@ def run_crypto_quant_agent(task: str) -> str:
         You communicate in precise, technical terms while maintaining clarity for stakeholders.""",
         max_loops=1,
         max_tokens=4096,
-        model_name="gpt-4.1-mini",
+        model_name="gpt-5.4-mini",
         dynamic_temperature_enabled=True,
         output_type="final",
         tools=[
