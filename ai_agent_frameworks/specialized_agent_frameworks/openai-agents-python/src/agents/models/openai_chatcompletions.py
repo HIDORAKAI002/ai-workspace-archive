@@ -66,6 +66,16 @@ class OpenAIChatCompletionsModel(Model):
     def _supports_default_prompt_cache_key(self) -> bool:
         return ChatCmplHelpers.is_openai(self._get_client())
 
+    def _validate_prompt_is_supported(self, prompt: ResponsePromptParam | None) -> None:
+        if prompt is None:
+            return
+
+        raise UserError(
+            "Reusable prompts are only supported by the Responses API. "
+            "OpenAIChatCompletionsModel does not support `prompt`; use a Responses model "
+            "instead."
+        )
+
     def get_retry_advice(self, request: ModelRetryAdviceRequest) -> ModelRetryAdvice | None:
         return get_openai_retry_advice(request)
 
@@ -112,10 +122,16 @@ class OpenAIChatCompletionsModel(Model):
         output_schema: AgentOutputSchemaBase | None,
         handoffs: list[Handoff],
         tracing: ModelTracing,
-        previous_response_id: str | None = None,  # unused
-        conversation_id: str | None = None,  # unused
+        previous_response_id: str | None = None,
+        conversation_id: str | None = None,
         prompt: ResponsePromptParam | None = None,
     ) -> ModelResponse:
+        self._validate_no_server_managed_conversation_state(
+            previous_response_id=previous_response_id,
+            conversation_id=conversation_id,
+        )
+        self._validate_prompt_is_supported(prompt)
+
         with generation_span(
             model=str(self.model),
             model_config=model_settings.to_json_dict() | {"base_url": str(self._client.base_url)},
@@ -233,13 +249,19 @@ class OpenAIChatCompletionsModel(Model):
         output_schema: AgentOutputSchemaBase | None,
         handoffs: list[Handoff],
         tracing: ModelTracing,
-        previous_response_id: str | None = None,  # unused
-        conversation_id: str | None = None,  # unused
+        previous_response_id: str | None = None,
+        conversation_id: str | None = None,
         prompt: ResponsePromptParam | None = None,
     ) -> AsyncIterator[TResponseStreamEvent]:
         """
         Yields a partial message as it is generated, as well as the usage information.
         """
+        self._validate_no_server_managed_conversation_state(
+            previous_response_id=previous_response_id,
+            conversation_id=conversation_id,
+        )
+        self._validate_prompt_is_supported(prompt)
+
         with generation_span(
             model=str(self.model),
             model_config=model_settings.to_json_dict() | {"base_url": str(self._client.base_url)},
@@ -288,6 +310,28 @@ class OpenAIChatCompletionsModel(Model):
                     ),
                 }
 
+    def _validate_no_server_managed_conversation_state(
+        self,
+        *,
+        previous_response_id: str | None,
+        conversation_id: str | None,
+    ) -> None:
+        unsupported: list[str] = []
+        if previous_response_id is not None:
+            unsupported.append("previous_response_id")
+        if conversation_id is not None:
+            unsupported.append("conversation_id")
+        if not unsupported:
+            return
+
+        unsupported_params = ", ".join(unsupported)
+        raise UserError(
+            "OpenAIChatCompletionsModel does not support server-managed conversation state "
+            f"({unsupported_params}). Chat Completions requires callers to pass the full "
+            "conversation history; use a Responses API model for previous_response_id or a "
+            "conversation-capable model for conversation_id."
+        )
+
     @overload
     async def _fetch_response(
         self,
@@ -331,6 +375,7 @@ class OpenAIChatCompletionsModel(Model):
         stream: bool = False,
         prompt: ResponsePromptParam | None = None,
     ) -> ChatCompletion | tuple[Response, AsyncStream[ChatCompletionChunk]]:
+        self._validate_prompt_is_supported(prompt)
         self._validate_official_openai_input_content_types(input)
         converted_messages = Converter.items_to_messages(
             input,
