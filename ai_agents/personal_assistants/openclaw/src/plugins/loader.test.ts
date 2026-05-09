@@ -96,6 +96,16 @@ let cachedBundledMemoryDir = "";
 
 type GlobalHookRunner = NonNullable<ReturnType<typeof getGlobalHookRunner>>;
 
+function countMatching<T>(items: readonly T[], predicate: (item: T) => boolean): number {
+  let count = 0;
+  for (const item of items) {
+    if (predicate(item)) {
+      count += 1;
+    }
+  }
+  return count;
+}
+
 function expectGlobalHookRunner(runner: ReturnType<typeof getGlobalHookRunner>): GlobalHookRunner {
   expect(runner).toEqual(expect.objectContaining({ hasHooks: expect.any(Function) }));
   if (runner === null) {
@@ -2169,7 +2179,7 @@ module.exports = { id: "throws-after-import", register() {} };`,
 
     const event = createInternalHookEvent("gateway", "startup", "gateway:startup");
     await triggerInternalHook(event);
-    expect(event.messages.filter((message) => message === "reload-hook-fired")).toHaveLength(1);
+    expect(countMatching(event.messages, (message) => message === "reload-hook-fired")).toBe(1);
 
     clearInternalHooks();
   });
@@ -4008,7 +4018,7 @@ module.exports = { id: "throws-after-import", register() {} };`,
   });
 } };`,
         assert: (registry: ReturnType<typeof loadOpenClawPlugins>) => {
-          expect(registry.channels.filter((entry) => entry.plugin.id === "demo")).toHaveLength(1);
+          expect(countMatching(registry.channels, (entry) => entry.plugin.id === "demo")).toBe(1);
           expect(
             registry.channels.find((entry) => entry.plugin.id === "demo")?.plugin.meta?.label,
           ).toBe("Demo Duplicate");
@@ -4167,7 +4177,7 @@ module.exports = { id: "throws-after-import", register() {} };`,
   api.registerHook("gateway:startup", () => {}, { name: "shared-hook" });
 } };`,
         selectCount: (registry: ReturnType<typeof loadOpenClawPlugins>) =>
-          registry.hooks.filter((entry) => entry.entry.hook.name === "shared-hook").length,
+          countMatching(registry.hooks, (entry) => entry.entry.hook.name === "shared-hook"),
         duplicateMessage: "hook already registered: shared-hook (hook-owner-a)",
         assert: expectDuplicateRegistrationResult,
       },
@@ -4179,7 +4189,7 @@ module.exports = { id: "throws-after-import", register() {} };`,
   api.registerService({ id: "shared-service", start() {} });
 } };`,
         selectCount: (registry: ReturnType<typeof loadOpenClawPlugins>) =>
-          registry.services.filter((entry) => entry.service.id === "shared-service").length,
+          countMatching(registry.services, (entry) => entry.service.id === "shared-service"),
         duplicateMessage: "service already registered: shared-service (service-owner-a)",
         assert: expectDuplicateRegistrationResult,
       },
@@ -4272,7 +4282,7 @@ module.exports = { id: "throws-after-import", register() {} };`,
       },
     });
 
-    expect(registry.services.filter((entry) => entry.service.id === "shared-service")).toHaveLength(
+    expect(countMatching(registry.services, (entry) => entry.service.id === "shared-service")).toBe(
       1,
     );
     expectNoDiagnosticContaining({

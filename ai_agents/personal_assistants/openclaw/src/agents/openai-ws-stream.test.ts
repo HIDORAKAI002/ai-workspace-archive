@@ -29,6 +29,16 @@ import type { InputItem, ResponseCreateEvent } from "./openai-ws-types.js";
 import { log } from "./pi-embedded-runner/logger.js";
 import { SYSTEM_PROMPT_CACHE_BOUNDARY } from "./system-prompt-cache-boundary.js";
 
+function countMatching<T>(items: readonly T[], predicate: (item: T) => boolean) {
+  let count = 0;
+  for (const item of items) {
+    if (predicate(item)) {
+      count += 1;
+    }
+  }
+  return count;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Mock OpenAIWebSocketManager
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1458,7 +1468,7 @@ describe("buildAssistantMessageFromResponse", () => {
     };
 
     expect(msg.phase).toBeUndefined();
-    expect(msg.content.filter((part) => part.type === "text")).toEqual([]);
+    expect(msg.content.some((part) => part.type === "text")).toBe(false);
     expect(msg.content).toMatchObject([{ type: "toolCall", name: "exec" }]);
     expect(msg.stopReason).toBe("toolUse");
   });
@@ -2182,7 +2192,7 @@ describe("createOpenAIWebSocketStreamFn", () => {
         }
       | undefined;
     expect(doneEvent?.message.phase).toBeUndefined();
-    expect(doneEvent?.message.content?.filter((part) => part.type === "text")).toEqual([]);
+    expect(doneEvent?.message.content?.some((part) => part.type === "text")).toBe(false);
     expect(doneEvent?.message.stopReason).toBe("toolUse");
   });
 
@@ -2694,7 +2704,7 @@ describe("createOpenAIWebSocketStreamFn", () => {
 
       // The failed manager is closed before the replacement session manager is installed.
       expect(
-        MockManager.instances.filter((instance) => instance.closeCallCount >= 1).length,
+        countMatching(MockManager.instances, (instance) => instance.closeCallCount >= 1),
       ).toBeGreaterThanOrEqual(1);
     } finally {
       MockManager.globalConnectShouldFail = false;
@@ -2751,8 +2761,8 @@ describe("createOpenAIWebSocketStreamFn", () => {
 
     expect(streamSimpleCalls.length).toBeGreaterThanOrEqual(1);
     expect(manager.closeCallCount).toBeGreaterThanOrEqual(1);
-    expect(events.filter((event) => event.type === "start")).toHaveLength(1);
-    expect(events.filter((event) => event.type === "error")).toEqual([]);
+    expect(countMatching(events, (event) => event.type === "start")).toBe(1);
+    expect(events.some((event) => event.type === "error")).toBe(false);
     const doneEvent = events.find((event) => event.type === "done");
     expect(doneEvent?.message?.content?.[0]?.text).toBe("http fallback response");
   });
@@ -2785,8 +2795,8 @@ describe("createOpenAIWebSocketStreamFn", () => {
 
     expect(streamSimpleCalls.length).toBeGreaterThanOrEqual(1);
     expect(manager.closeCallCount).toBeGreaterThanOrEqual(1);
-    expect(events.filter((event) => event.type === "start")).toHaveLength(1);
-    expect(events.filter((event) => event.type === "error")).toEqual([]);
+    expect(countMatching(events, (event) => event.type === "start")).toBe(1);
+    expect(events.some((event) => event.type === "error")).toBe(false);
     const doneEvent = events.find((event) => event.type === "done");
     expect(doneEvent?.message?.content?.[0]?.text).toBe("http fallback response");
   });
@@ -2820,7 +2830,7 @@ describe("createOpenAIWebSocketStreamFn", () => {
 
     expect(streamSimpleCalls).toHaveLength(0);
     expect(firstManager.closeCallCount).toBeGreaterThanOrEqual(1);
-    expect(events.filter((event) => event.type === "start")).toHaveLength(1);
+    expect(countMatching(events, (event) => event.type === "start")).toBe(1);
     const doneEvent = events.find((event) => event.type === "done");
     expect(doneEvent?.message?.content?.[0]?.text).toBe("retry succeeded");
   });
