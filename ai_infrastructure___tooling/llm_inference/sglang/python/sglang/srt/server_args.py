@@ -425,6 +425,8 @@ class ServerArgs:
     prefill_delayer_token_usage_low_watermark: Optional[float] = None
     prefill_delayer_forward_passes_buckets: Optional[List[float]] = None
     prefill_delayer_wait_seconds_buckets: Optional[List[float]] = None
+    prefill_delayer_queue_min_ratio: Optional[float] = None
+    prefill_delayer_max_delay_ms: Optional[float] = None
 
     # Runtime options
     device: Optional[str] = None
@@ -4733,6 +4735,29 @@ class ServerArgs:
             default=None,
             help="Custom buckets for prefill delayer wait seconds histogram. 0 will be auto-added.",
         )
+        parser.add_argument(
+            "--prefill-delayer-queue-min-ratio",
+            type=float,
+            default=None,
+            help=(
+                "Opt-in to the adaptive queue-based delay trigger (independent of the "
+                "slot-based one). Delays prefill until the waiting queue reaches "
+                "min(running_req * ratio, max_prefill_bs) so small fragments batch into a "
+                "larger prefill. Unset (default) keeps the original slot-only behavior. "
+                "Typical: 0.1 ~ 0.5."
+            ),
+        )
+        parser.add_argument(
+            "--prefill-delayer-max-delay-ms",
+            type=float,
+            default=None,
+            help=(
+                "Wall-clock cap (ms) on a single queue-trigger delay; once exceeded, prefill "
+                "is force-released to bound worst-case TTFT. Only consulted when "
+                "--prefill-delayer-queue-min-ratio is set. Typical: 1000 ~ 5000; defaults to "
+                "5000 if unset."
+            ),
+        )
 
         # Runtime options
         parser.add_argument(
@@ -7020,6 +7045,11 @@ class ServerArgs:
         if self.enable_two_batch_overlap and self.moe_a2a_backend == "none":
             raise ValueError(
                 "When enabling two batch overlap, moe_a2a_backend cannot be 'none'."
+            )
+
+        if self.enable_two_batch_overlap and self.enforce_shared_experts_fusion:
+            raise ValueError(
+                "--enable-two-batch-overlap and --enforce-shared-experts-fusion cannot be used together."
             )
 
         # Check communications compression

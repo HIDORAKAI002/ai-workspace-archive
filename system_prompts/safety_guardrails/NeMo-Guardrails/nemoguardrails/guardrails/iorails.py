@@ -28,6 +28,7 @@ from collections.abc import AsyncGenerator, AsyncIterator
 from contextlib import nullcontext, suppress
 from typing import Optional, Union
 
+from nemoguardrails.actions.llm.utils import _extract_and_remove_think_tags
 from nemoguardrails.exceptions import StreamingNotSupportedError
 from nemoguardrails.guardrails.async_work_queue import AsyncWorkQueue
 from nemoguardrails.guardrails.engine_registry import EngineRegistry
@@ -92,7 +93,12 @@ class IORails:
         self._tracer = get_tracer() if self._tracing_enabled else None
         self._metrics_enabled = are_metrics_enabled(config.metrics)
 
-        self.engine_registry = EngineRegistry(config.models, config.rails.config, tracer=self._tracer)
+        self.engine_registry = EngineRegistry(
+            config.models,
+            config.rails.config,
+            tracer=self._tracer,
+            metrics_enabled=self._metrics_enabled,
+        )
         self.rails_manager = RailsManager(
             engine_registry=self.engine_registry,
             task_manager=LLMTaskManager(config),
@@ -285,9 +291,15 @@ class IORails:
         if isinstance(options, GenerationOptions) and options.llm_params:
             llm_kwargs = options.llm_params
 
-        # Extract content string from structured LLMResponse.
-        response_text = (await self.engine_registry.model_call("main", messages, **llm_kwargs)).content
-        log.debug("[%s] Main LLM response: %s", req_id, truncate(response_text))
+        response = await self.engine_registry.model_call("main", messages, **llm_kwargs)
+        # Log raw content before reasoning extraction and think-token removal
+        log.debug("[%s] Raw LLM response: %s", req_id, truncate(response.content))
+
+        # Reasoning extraction prefers LLMResponse `reasoning` field if the provider
+        # supports it, falling back to extracting <think>...</think> tags otherwise.
+        # The fallback mutates response.content to remove reasoning content.
+        reasoning_content = response.reasoning or _extract_and_remove_think_tags(response)
+        response_text = response.content
 
         # Step 3: Check output rails
         log.info("[%s] Running output rails", req_id)
@@ -297,6 +309,11 @@ class IORails:
             if self._metrics_enabled:
                 record_request_blocked(RailDirection.OUTPUT)
             return {"role": "assistant", "content": REFUSAL_MESSAGE}
+
+        # TODO: Support returning GenerationResponse `reasoning_content` to match LLMRails
+        # For now, embed the reasoning on the content with think-tags
+        if reasoning_content:
+            response_text = f"<think>{reasoning_content}</think>\n" + response_text
 
         return {"role": "assistant", "content": response_text}
 
@@ -386,13 +403,26 @@ class IORails:
                     return
 
                 # Step 2: Stream main LLM content from structured response.
-                # TODO: Only delta_content is forwarded.
-                #  Reasoning-only chunks (delta_reasoning set but delta_content is None)
-                #  and tool-call deltas will be routed through in a follow-up PR
+                # Only delta_content is forwarded. Reasoning is dropped for compatibility
+                # with LLMRails. Tool-calls are not yet supported by IORails
                 log.info("[%s] Streaming main LLM", req_id)
+                content_parts: list[str] = []
                 async for chunk in self.engine_registry.stream_model_call("main", messages, **llm_kwargs):
                     if chunk.delta_content:
+                        content_parts.append(chunk.delta_content)
                         await streaming_handler.push_chunk(chunk.delta_content)
+
+                # While LLMResponseChunk.delta_reasoning is dropped explicitly,
+                # think-tags embedded in delta_content are not. Give a warning
+                # to reflect this asymmetry (once-per-request).
+                full_content = "".join(content_parts)
+                if "<think>" in full_content or "</think>" in full_content:
+                    log.warning(
+                        "[%s] Streamed content contains <think> tags; model is leaking "
+                        "reasoning via delta_content rather than delta_reasoning "
+                        "(output rails will process reasoning tokens)",
+                        req_id,
+                    )
 
                 await streaming_handler.push_chunk(END_OF_STREAM)  # type: ignore[arg-type]
             except Exception as e:

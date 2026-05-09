@@ -137,7 +137,7 @@ class DbtCloudComponent(StateBackedComponent, dg.Resolvable, dg.Model):
                 ],
             ],
         ),
-    ] = Field(default_factory=lambda: ["build"])
+    ] = Field(default_factory=lambda: ["build"])  # ty: ignore[invalid-assignment]
 
     op: Annotated[
         OpSpec | None,
@@ -345,7 +345,7 @@ class DbtCloudComponent(StateBackedComponent, dg.Resolvable, dg.Model):
 
 
 class DbtCloudComponentTranslator(
-    create_component_translator_cls(DbtCloudComponent, DagsterDbtTranslator),
+    create_component_translator_cls(DbtCloudComponent, DagsterDbtTranslator),  # ty: ignore[unsupported-base]
     ComponentTranslator[DbtCloudComponent],
 ):
     """Translator for :py:class:`DbtCloudComponent` that applies the optional ``translation``

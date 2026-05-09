@@ -10,8 +10,6 @@ import os
 import pytest
 from dotenv import load_dotenv
 
-load_dotenv()
-
 from swarms.structs.heavy_swarm import (
     BENJAMIN_PROMPT,
     CAPTAIN_SWARM_PROMPT,
@@ -22,9 +20,9 @@ from swarms.structs.heavy_swarm import (
 )
 from swarms.structs.swarm_router import SwarmRouter
 
-MODEL = "gpt-4.1-mini"
+MODEL = "gpt-5.4-mini"
 
-
+load_dotenv()
 # ── Unit-level checks (no API calls) ────────────────────────
 
 

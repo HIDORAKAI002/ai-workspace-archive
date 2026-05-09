@@ -28,18 +28,18 @@ class TestAdvisorSwarmInit:
 
     def test_custom_model_names(self):
         swarm = AdvisorSwarm(
-            executor_model_name="gpt-4.1-mini",
+            executor_model_name="gpt-5.4-mini",
             advisor_model_name="gpt-4.1",
         )
-        assert swarm.executor_model_name == "gpt-4.1-mini"
+        assert swarm.executor_model_name == "gpt-5.4-mini"
         assert swarm.advisor_model_name == "gpt-4.1"
-        assert swarm.executor_agent.model_name == "gpt-4.1-mini"
+        assert swarm.executor_agent.model_name == "gpt-5.4-mini"
         assert swarm.advisor_agent.model_name == "gpt-4.1"
 
     def test_custom_agents_override(self):
         custom_executor = Agent(
             agent_name="CustomExecutor",
-            model_name="gpt-4.1-mini",
+            model_name="gpt-5.4-mini",
             max_loops=1,
         )
         custom_advisor = Agent(
@@ -123,8 +123,8 @@ class TestAdvisorSwarmExecution:
 
     def test_single_turn_with_advisor(self):
         swarm = AdvisorSwarm(
-            executor_model_name="gpt-4.1-mini",
-            advisor_model_name="gpt-4.1-mini",
+            executor_model_name="gpt-5.4-mini",
+            advisor_model_name="gpt-5.4-mini",
             max_advisor_uses=1,
             max_loops=1,
         )
@@ -141,8 +141,8 @@ class TestAdvisorSwarmExecution:
     def test_executor_only_no_advisor(self):
         """With max_advisor_uses=0, executor runs alone."""
         swarm = AdvisorSwarm(
-            executor_model_name="gpt-4.1-mini",
-            advisor_model_name="gpt-4.1-mini",
+            executor_model_name="gpt-5.4-mini",
+            advisor_model_name="gpt-5.4-mini",
             max_advisor_uses=0,
             max_loops=1,
         )
@@ -157,8 +157,8 @@ class TestAdvisorSwarmExecution:
     def test_multi_turn(self):
         """With max_loops=2, executor runs twice."""
         swarm = AdvisorSwarm(
-            executor_model_name="gpt-4.1-mini",
-            advisor_model_name="gpt-4.1-mini",
+            executor_model_name="gpt-5.4-mini",
+            advisor_model_name="gpt-5.4-mini",
             max_advisor_uses=2,
             max_loops=2,
         )
@@ -173,8 +173,8 @@ class TestAdvisorSwarmExecution:
 
     def test_batched_run(self):
         swarm = AdvisorSwarm(
-            executor_model_name="gpt-4.1-mini",
-            advisor_model_name="gpt-4.1-mini",
+            executor_model_name="gpt-5.4-mini",
+            advisor_model_name="gpt-5.4-mini",
             max_advisor_uses=1,
             max_loops=1,
         )
@@ -184,8 +184,8 @@ class TestAdvisorSwarmExecution:
 
     def test_callable_invocation(self):
         swarm = AdvisorSwarm(
-            executor_model_name="gpt-4.1-mini",
-            advisor_model_name="gpt-4.1-mini",
+            executor_model_name="gpt-5.4-mini",
+            advisor_model_name="gpt-5.4-mini",
             max_advisor_uses=1,
             max_loops=1,
         )

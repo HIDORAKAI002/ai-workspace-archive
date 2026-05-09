@@ -13,3 +13,4 @@ examples/docs_snippets
 examples/project_analytics
 examples/project_multi_tenant
 helm
+python_modules/libraries/dagster-cloud-cli

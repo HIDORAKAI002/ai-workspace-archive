@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-05-09 05:48 IST] Auto-Sync
+- **41 Repositories Updated:** Langfuse, Promptfoo, NVIDIA NeMo Guardrails, Dify, Flowise, Activepieces, Windmill, Appsmith, modelcontextprotocol/csharp-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langgraph, crewAIInc/crewAI, run-llama/llama_index, pydantic/pydantic-ai, mastra-ai/mastra, browser-use/browser-use, Swarms, BerriAI/litellm, ollama/ollama, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, cline/cline, anthropics/claude-code, chroma-core/chroma, pinecone-io/pinecone-python-client, arize-ai/phoenix, open-telemetry/opentelemetry-python, abi/screenshot-to-code, google-gemini/gemini-cli, googleapis/python-genai, vercel/ai, apache/airflow, PrefectHQ/prefect, dagster-io/dagster, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra
+
 ## [2026-05-08 23:11 IST] Auto-Sync
 - **37 Repositories Updated:** MCP Python SDK, Git MCP, GitHub MCP Server, Awesome ChatGPT Prompts, Promptfoo, n8n, Dify, Activepieces, Trigger.dev, Appsmith, Budibase, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, crewAIInc/crewAI, pydantic/pydantic-ai, mastra-ai/mastra, deepset-ai/haystack, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, qdrant/qdrant, weaviate/weaviate, infiniflow/ragflow, arize-ai/phoenix, openlit/openlit, firecrawl/firecrawl, danny-avila/LibreChat, google-gemini/gemini-cli, vercel/ai, apache/airflow, dagster-io/dagster, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow
 

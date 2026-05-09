@@ -147,7 +147,7 @@ class ByzantineConsensus:
         n_honest: int = 4,
         n_byzantine: int = 0,
         max_rounds: int = 15,
-        model_name: str = "gpt-4.1-mini",
+        model_name: str = "gpt-5.4-mini",
         byzantine_aware: bool = True,
         value_min: int = 0,
         value_max: int = 50,
