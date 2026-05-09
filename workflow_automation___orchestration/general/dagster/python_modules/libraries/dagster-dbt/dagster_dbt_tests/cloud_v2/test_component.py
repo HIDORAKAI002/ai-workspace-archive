@@ -126,7 +126,7 @@ def test_dbt_cloud_component_execution(mock_workspace):
     assert call_args["args"] == ["build", "--select", "tag:staging"]
 
 
-BASIC_DBT_CLOUD_COMPONENT_BODY = {
+BASIC_DBT_CLOUD_COMPONENT_BODY: dict[str, Any] = {
     "type": "dagster_dbt.DbtCloudComponent",
     "attributes": {
         "workspace": {
