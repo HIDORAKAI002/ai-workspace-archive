@@ -293,7 +293,7 @@ describe("scripts/docker/setup.sh", () => {
     const prestartCliRunLines = collectMatchingLines(prestartLines, (line) =>
       /\bcompose\b.*\brun\b.*\bopenclaw-cli\b/.test(line),
     );
-    expect(prestartCliRunLines).toEqual([]);
+    expect(prestartCliRunLines).toStrictEqual([]);
   });
 
   it("forces BuildKit for local and sandbox docker builds", async () => {
@@ -318,7 +318,7 @@ describe("scripts/docker/setup.sh", () => {
       buildLines,
       (line) => !line.includes("DOCKER_BUILDKIT=1"),
     );
-    expect(buildLinesWithoutBuildKit).toEqual([]);
+    expect(buildLinesWithoutBuildKit).toStrictEqual([]);
   });
 
   it("precreates config identity dir for CLI device auth writes", async () => {
@@ -462,7 +462,9 @@ describe("scripts/docker/setup.sh", () => {
     expect(result.stderr).toContain("Sandbox requires Docker CLI");
     const log = await readDockerLog(activeSandbox);
     expect(log).toContain("config set agents.defaults.sandbox.mode off");
-    await expect(stat(join(activeSandbox.rootDir, "docker-compose.sandbox.yml"))).rejects.toThrow();
+    await expect(
+      stat(join(activeSandbox.rootDir, "docker-compose.sandbox.yml")),
+    ).rejects.toMatchObject({ code: "ENOENT" });
   });
 
   it("skips sandbox gateway restart when sandbox config writes fail", async () => {
@@ -499,7 +501,7 @@ describe("scripts/docker/setup.sh", () => {
       expect(forceRecreateLine).not.toContain("docker-compose.sandbox.yml");
       await expect(
         stat(join(activeSandbox.rootDir, "docker-compose.sandbox.yml")),
-      ).rejects.toThrow();
+      ).rejects.toMatchObject({ code: "ENOENT" });
     });
   });
 

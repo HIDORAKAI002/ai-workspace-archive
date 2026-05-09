@@ -945,7 +945,7 @@ describe("installPluginFromNpmSpec", () => {
     expect(fs.lstatSync(peerLink).isSymbolicLink()).toBe(true);
     await expect(
       fs.promises.access(path.join(npmRoot, "node_modules", "openclaw")),
-    ).rejects.toThrow();
+    ).rejects.toMatchObject({ code: "ENOENT" });
   });
 
   it("rolls back installed npm package debris when security scan blocks the plugin", async () => {
@@ -1322,7 +1322,7 @@ describe("installPluginFromNpmSpec", () => {
     }
     expect(stableCorrection.npmResolution?.version).toBe("2026.5.3-1");
     expect(stableCorrection.npmResolution?.resolvedSpec).toBe("@openclaw/voice-call@2026.5.3-1");
-    expect(correctionWarnings).toEqual([]);
+    expect(correctionWarnings).toStrictEqual([]);
 
     runCommandWithTimeoutMock.mockReset();
     const prereleaseOnlyNpmRoot = path.join(suiteTempRootTracker.makeTempDir(), "npm");
