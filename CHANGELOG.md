@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-05-09 19:01 IST] Auto-Sync
+- **20 Repositories Updated:** Public APIs Directory, Promptfoo, Dify, Flowise, Trigger.dev, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, openai/openai-agents-python, Swarms, ggml-org/llama.cpp, vllm-project/vllm, open-webui/open-webui, lobehub/lobe-chat, infiniflow/ragflow, openlit/openlit, danny-avila/LibreChat, sgl-project/sglang, openclaw/openclaw, bytedance/deer-flow
+
 ## [2026-05-09 12:29 IST] Auto-Sync
 - **25 Repositories Updated:** Public APIs Directory, Awesome ChatGPT Prompts, Promptfoo, Dify, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, Significant-Gravitas/AutoGPT, openai/openai-agents-python, mastra-ai/mastra, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, anthropics/claude-code, chroma-core/chroma, milvus-io/milvus, infiniflow/ragflow, arize-ai/phoenix, Arize-ai/openinference, googleapis/python-genai, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, bytedance/deer-flow
 
