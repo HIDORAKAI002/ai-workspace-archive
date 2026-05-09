@@ -39,6 +39,22 @@ function countMatching<T>(items: readonly T[], predicate: (item: T) => boolean) 
   return count;
 }
 
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error(message)), timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timer) {
+      clearTimeout(timer);
+    }
+  }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Mock OpenAIWebSocketManager
 // ─────────────────────────────────────────────────────────────────────────────
@@ -398,11 +414,11 @@ function makeResponseObject(
 
 describe("convertTools", () => {
   it("returns empty array for undefined tools", () => {
-    expect(convertTools(undefined)).toEqual([]);
+    expect(convertTools(undefined)).toStrictEqual([]);
   });
 
   it("returns empty array for empty tools", () => {
-    expect(convertTools([])).toEqual([]);
+    expect(convertTools([])).toStrictEqual([]);
   });
 
   it("converts tools to FunctionToolDefinition format", () => {
@@ -978,7 +994,7 @@ describe("convertMessagesToInputItems", () => {
     const items = convertMessagesToInputItems([msg] as unknown as Parameters<
       typeof convertMessagesToInputItems
     >[0]);
-    expect(items).toEqual([]);
+    expect(items).toStrictEqual([]);
   });
 
   it("falls back to toolUseId when toolCallId is missing", () => {
@@ -1036,7 +1052,7 @@ describe("convertMessagesToInputItems", () => {
     const items = convertMessagesToInputItems([msg] as Parameters<
       typeof convertMessagesToInputItems
     >[0]);
-    expect(items).toEqual([]);
+    expect(items).toStrictEqual([]);
   });
 
   it("skips thinking blocks in assistant messages", () => {
@@ -1189,7 +1205,7 @@ describe("convertMessagesToInputItems", () => {
   });
 
   it("returns empty array for empty messages", () => {
-    expect(convertMessagesToInputItems([])).toEqual([]);
+    expect(convertMessagesToInputItems([])).toStrictEqual([]);
   });
 });
 
@@ -1340,7 +1356,7 @@ describe("buildAssistantMessageFromResponse", () => {
   it("handles empty output gracefully", () => {
     const response = makeResponseObject("resp_7");
     const msg = buildAssistantMessageFromResponse(response, modelInfo);
-    expect(msg.content).toEqual([]);
+    expect(msg.content).toStrictEqual([]);
     expect(msg.stopReason).toBe("stop");
   });
 
@@ -2722,16 +2738,15 @@ describe("createOpenAIWebSocketStreamFn", () => {
     );
 
     await expect(
-      Promise.race([
+      withTimeout(
         (
           stream as unknown as {
             result: () => Promise<{ content?: Array<{ text?: string }> }>;
           }
         ).result(),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("SSE fallback result timed out")), 100),
-        ),
-      ]),
+        100,
+        "SSE fallback result timed out",
+      ),
     ).resolves.toMatchObject({
       content: [{ text: "http fallback response" }],
     });
@@ -3180,7 +3195,7 @@ describe("createOpenAIWebSocketStreamFn", () => {
       input: Array<{ type: string; id?: string; call_id?: string }>;
     };
     expect(sent2.previous_response_id).toBe("resp_turn1_reasoning");
-    expect(sent2.input).toEqual([]);
+    expect(sent2.input).toStrictEqual([]);
   });
 
   it("replays encrypted-only reasoning when websocket must send full context", async () => {
