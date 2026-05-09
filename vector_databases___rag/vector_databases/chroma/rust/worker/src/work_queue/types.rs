@@ -11,7 +11,7 @@ pub struct WorkQueueRecord {
     pub insertion_order: u64,
 }
 
-#[derive(Error, Debug)]
+#[derive(Error, Debug, Clone)]
 #[allow(dead_code)]
 pub enum WorkQueueError {
     #[error("Storage error: {0}")]
@@ -44,4 +44,12 @@ impl ChromaError for WorkQueueError {
 pub enum FinishResult {
     Success,
     NeedsRepair,
+}
+
+// Response type for FinishWork operations
+#[derive(Debug, Clone)]
+#[allow(dead_code)]
+pub enum FinishWorkResponse {
+    Success,
+    NeedsRepair { fn_id: AttachedFunctionUuid },
 }
