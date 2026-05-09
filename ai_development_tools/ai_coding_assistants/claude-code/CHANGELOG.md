@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.1.138
+
+- Internal fixes
+
+## 2.1.137
+
+- [VSCode] Fixed extension failing to activate on Windows
+
 ## 2.1.136
 
 - Added `CLAUDE_CODE_ENABLE_FEEDBACK_SURVEY_FOR_OTEL` to re-enable the session quality survey for enterprises capturing responses through OpenTelemetry

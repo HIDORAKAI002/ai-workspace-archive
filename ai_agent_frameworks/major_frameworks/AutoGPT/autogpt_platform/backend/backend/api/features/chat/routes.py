@@ -13,15 +13,17 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from backend.copilot import service as chat_service
 from backend.copilot import stream_registry
+from backend.copilot.active_turns import (
+    ConcurrentTurnLimitError,
+    concurrent_turn_limit_message,
+)
 from backend.copilot.builder_context import resolve_session_permissions
 from backend.copilot.config import ChatConfig, CopilotLlmModel, CopilotMode
 from backend.copilot.db import get_chat_messages_paginated
-from backend.copilot.executor.utils import enqueue_cancel_task, enqueue_copilot_turn
+from backend.copilot.executor.utils import enqueue_cancel_task, schedule_chat_turn
 from backend.copilot.model import (
-    ChatMessage,
     ChatSession,
     ChatSessionMetadata,
-    append_and_save_message,
     create_chat_session,
     delete_chat_session,
     get_chat_session,
@@ -87,7 +89,6 @@ from backend.copilot.tools.models import (
     TodoWriteResponse,
     UnderstandingUpdatedResponse,
 )
-from backend.copilot.tracking import track_user_message
 from backend.data.credit import UsageTransactionMetadata, get_user_credit_model
 from backend.data.redis_client import get_redis_async
 from backend.data.understanding import get_business_understanding
@@ -902,7 +903,10 @@ def _empty_ui_message_stream_response() -> StreamingResponse:
     "/sessions/{session_id}/stream",
     responses={
         404: {"description": "Session not found or access denied"},
-        429: {"description": "Cost rate-limit or call-frequency cap exceeded"},
+        429: {
+            "description": "Cost rate-limit, call-frequency cap, or "
+            "per-user concurrent-turn limit exceeded"
+        },
         503: {
             "description": "Chat service degraded (Redis unavailable for rate "
             "limit or stream registry); client should honour the Retry-After "
@@ -1048,54 +1052,12 @@ async def stream_chat_post(
     # near the start) — that path returns early.  Any request that
     # reaches this point is starting a fresh turn, so we always mint a
     # ``turn_id`` unless ``append_and_save_message`` reports a duplicate.
-    is_duplicate_message = False
-    if request.message:
-        message = ChatMessage(
-            id=request.message_id,
-            role="user" if request.is_user_message else "assistant",
-            content=request.message,
-        )
-        logger.info(f"[STREAM] Saving user message to session {session_id}")
-        is_duplicate_message = (
-            await append_and_save_message(session_id, message)
-        ) is None
-        logger.info(f"[STREAM] User message saved for session {session_id}")
-        if not is_duplicate_message and request.is_user_message:
-            track_user_message(
-                user_id=user_id,
-                session_id=session_id,
-                message_length=len(request.message),
-            )
-
-    # Create a task in the stream registry for reconnection support.
-    # For duplicate messages, skip create_session entirely so the infra-retry
-    # client subscribes to the *existing* turn's Redis stream and receives the
-    # in-progress executor output rather than an empty stream.
-    turn_id = "" if is_duplicate_message else str(uuid4())
-    if turn_id:
-        log_meta["turn_id"] = turn_id
-        session_create_start = time.perf_counter()
-        await stream_registry.create_session(
-            session_id=session_id,
-            user_id=user_id,
-            tool_call_id="chat_stream",
-            tool_name="chat",
-            turn_id=turn_id,
-        )
-        logger.info(
-            f"[TIMING] create_session completed in {(time.perf_counter() - session_create_start) * 1000:.1f}ms",
-            extra={
-                "json_fields": {
-                    **log_meta,
-                    "duration_ms": (time.perf_counter() - session_create_start) * 1000,
-                }
-            },
-        )
-        await enqueue_copilot_turn(
+    try:
+        turn_id = await schedule_chat_turn(
             session_id=session_id,
             user_id=user_id,
             message=request.message,
-            turn_id=turn_id,
+            message_id=request.message_id,
             is_user_message=request.is_user_message,
             context=request.context,
             file_ids=sanitized_file_ids,
@@ -1104,10 +1066,17 @@ async def stream_chat_post(
             permissions=builder_permissions,
             request_arrival_at=request_arrival_at,
         )
-    else:
+    except ConcurrentTurnLimitError as exc:
+        raise HTTPException(
+            status_code=429, detail=concurrent_turn_limit_message()
+        ) from exc
+
+    if turn_id is None:
         logger.info(
             f"[STREAM] Duplicate message detected for session {session_id}, skipping enqueue"
         )
+    else:
+        log_meta["turn_id"] = turn_id
 
     setup_time = (time.perf_counter() - stream_start_time) * 1000
     logger.info(

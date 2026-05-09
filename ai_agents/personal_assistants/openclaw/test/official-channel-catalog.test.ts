@@ -124,10 +124,10 @@ describe("buildOfficialChannelCatalog", () => {
               label: "Yuanbao",
             }),
             install: {
-              npmSpec: "openclaw-plugin-yuanbao@2.11.0",
+              npmSpec: "openclaw-plugin-yuanbao@2.13.0",
               defaultChoice: "npm",
               expectedIntegrity:
-                "sha512-lYmBrU71ox3v7dzRqaltvzTXPcMjjgYrNqpBj5HIBkXgEFkXRRG8wplXg9Fub41/FjsSPn3WAbYpdTc+k+jsHg==",
+                "sha512-mx6b2gO8oqZxECG9NLLQofScaIZXjmQXqJxevagVx8IKXLGeLrpTWlvnW1P2NP5dqaSMrkvBsgJqtW+rVM7h4w==",
             },
           }),
         }),
@@ -162,7 +162,7 @@ describe("buildOfficialChannelCatalog", () => {
     expect(entries.length).toBeGreaterThan(0);
     for (const entry of entries) {
       const installSource = describePluginInstallSource(requireInstall(entry));
-      expect(installSource.warnings).toEqual([]);
+      expect(installSource.warnings).toStrictEqual([]);
       expect(requireNpmInstallSource(installSource).pinState).toBe("exact-with-integrity");
     }
   });
