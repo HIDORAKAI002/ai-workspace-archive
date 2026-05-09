@@ -2213,7 +2213,6 @@ export type ProviderModelsMap = {
     'gpt-5.4-pro',
     'gpt-5.5',
     'gpt-5.5-pro',
-    'hy3-preview-free',
     'kimi-k2.5',
     'kimi-k2.6',
     'minimax-m2.5',
