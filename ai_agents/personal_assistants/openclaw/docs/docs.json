@@ -1066,6 +1066,7 @@
                   "channels/imessage-from-bluebubbles",
                   "channels/matrix",
                   "channels/matrix-migration",
+                  "channels/matrix-presentation",
                   "channels/matrix-push-rules"
                 ]
               },
@@ -1194,6 +1195,7 @@
                   "plugins/reference",
                   "plugins/bundles",
                   "plugins/dependency-resolution",
+                  "plugins/install-overrides",
                   "plugins/codex-harness",
                   "plugins/codex-computer-use",
                   "plugins/google-meet",
