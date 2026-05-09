@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-05-09 12:29 IST] Auto-Sync
+- **25 Repositories Updated:** Public APIs Directory, Awesome ChatGPT Prompts, Promptfoo, Dify, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, Significant-Gravitas/AutoGPT, openai/openai-agents-python, mastra-ai/mastra, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, anthropics/claude-code, chroma-core/chroma, milvus-io/milvus, infiniflow/ragflow, arize-ai/phoenix, Arize-ai/openinference, googleapis/python-genai, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, bytedance/deer-flow
+
 ## [2026-05-09 05:48 IST] Auto-Sync
 - **41 Repositories Updated:** Langfuse, Promptfoo, NVIDIA NeMo Guardrails, Dify, Flowise, Activepieces, Windmill, Appsmith, modelcontextprotocol/csharp-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langgraph, crewAIInc/crewAI, run-llama/llama_index, pydantic/pydantic-ai, mastra-ai/mastra, browser-use/browser-use, Swarms, BerriAI/litellm, ollama/ollama, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, cline/cline, anthropics/claude-code, chroma-core/chroma, pinecone-io/pinecone-python-client, arize-ai/phoenix, open-telemetry/opentelemetry-python, abi/screenshot-to-code, google-gemini/gemini-cli, googleapis/python-genai, vercel/ai, apache/airflow, PrefectHQ/prefect, dagster-io/dagster, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra
 
