@@ -53,7 +53,7 @@ def build_agent(max_loops):
     """Fresh agent per request so concurrent calls don't share conversation state."""
     return Agent(
         agent_name="Streamer",
-        model_name="gpt-4.1-mini",
+        model_name="gpt-5.4-mini",
         max_loops=max_loops,
         tools=[add],
         persistent_memory=False,
@@ -89,7 +89,7 @@ def build_pipeline_agent(name: str, system_prompt: str) -> Agent:
     return Agent(
         agent_name=name,
         system_prompt=system_prompt,
-        model_name="gpt-4.1-mini",
+        model_name="gpt-5.4-mini",
         max_loops=1,
         persistent_memory=False,
         print_on=False,

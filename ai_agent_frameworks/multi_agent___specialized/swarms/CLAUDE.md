@@ -145,7 +145,7 @@ Use any LiteLLM-compatible string:
 ```python
 # OpenAI
 model_name="gpt-4.1"
-model_name="gpt-4.1-mini"
+model_name="gpt-5.4-mini"
 model_name="o3"
 
 # Anthropic
@@ -418,10 +418,10 @@ Full directed-acyclic-graph (DAG) execution. Nodes are agents; edges are depende
 from swarms import Agent, GraphWorkflow, Node, Edge, NodeType
 
 # Build agents
-analyst  = Agent(agent_name="Analyst",  model_name="gpt-4.1-mini", max_loops=1)
-writer   = Agent(agent_name="Writer",   model_name="gpt-4.1-mini", max_loops=1)
-reviewer = Agent(agent_name="Reviewer", model_name="gpt-4.1-mini", max_loops=1)
-publisher = Agent(agent_name="Publisher", model_name="gpt-4.1-mini", max_loops=1)
+analyst  = Agent(agent_name="Analyst",  model_name="gpt-5.4-mini", max_loops=1)
+writer   = Agent(agent_name="Writer",   model_name="gpt-5.4-mini", max_loops=1)
+reviewer = Agent(agent_name="Reviewer", model_name="gpt-5.4-mini", max_loops=1)
+publisher = Agent(agent_name="Publisher", model_name="gpt-5.4-mini", max_loops=1)
 
 # Build graph
 wf = GraphWorkflow()
@@ -556,9 +556,9 @@ director = Agent(
 )
 
 workers = [
-    Agent(agent_name="DataWorker",    model_name="gpt-4.1-mini", max_loops=1),
-    Agent(agent_name="WritingWorker", model_name="gpt-4.1-mini", max_loops=1),
-    Agent(agent_name="ReviewWorker",  model_name="gpt-4.1-mini", max_loops=1),
+    Agent(agent_name="DataWorker",    model_name="gpt-5.4-mini", max_loops=1),
+    Agent(agent_name="WritingWorker", model_name="gpt-5.4-mini", max_loops=1),
+    Agent(agent_name="ReviewWorker",  model_name="gpt-5.4-mini", max_loops=1),
 ]
 
 swarm = HierarchicalSwarm(
@@ -605,7 +605,7 @@ All agents independently answer the task. The answer that appears in the majorit
 from swarms import Agent, MajorityVoting
 
 voters = [
-    Agent(agent_name=f"Voter-{i}", model_name="gpt-4.1-mini", max_loops=1)
+    Agent(agent_name=f"Voter-{i}", model_name="gpt-5.4-mini", max_loops=1)
     for i in range(5)
 ]
 
@@ -710,7 +710,7 @@ Distributes tasks to agents in a fixed rotation. Each agent handles every Nth ta
 from swarms import Agent, RoundRobinSwarm
 
 agents = [
-    Agent(agent_name=f"Handler-{i}", model_name="gpt-4.1-mini", max_loops=1)
+    Agent(agent_name=f"Handler-{i}", model_name="gpt-5.4-mini", max_loops=1)
     for i in range(3)
 ]
 
@@ -738,7 +738,7 @@ planner = Agent(
 )
 
 workers = [
-    Agent(agent_name=f"Worker-{i}", model_name="gpt-4.1-mini", max_loops=2)
+    Agent(agent_name=f"Worker-{i}", model_name="gpt-5.4-mini", max_loops=2)
     for i in range(4)
 ]
 
@@ -1020,9 +1020,9 @@ result = pipeline.run("Draft a press release about our product launch.")
 ```python
 from swarms import Agent, GraphWorkflow, Node, Edge, NodeType
 
-ingestion = Agent(agent_name="Ingestion", model_name="gpt-4.1-mini", max_loops=1)
-branch_a  = Agent(agent_name="BranchA",   model_name="gpt-4.1-mini", max_loops=1)
-branch_b  = Agent(agent_name="BranchB",   model_name="gpt-4.1-mini", max_loops=1)
+ingestion = Agent(agent_name="Ingestion", model_name="gpt-5.4-mini", max_loops=1)
+branch_a  = Agent(agent_name="BranchA",   model_name="gpt-5.4-mini", max_loops=1)
+branch_b  = Agent(agent_name="BranchB",   model_name="gpt-5.4-mini", max_loops=1)
 merger    = Agent(agent_name="Merger",    model_name="gpt-4.1",      max_loops=1)
 
 wf = GraphWorkflow()

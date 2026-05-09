@@ -28,7 +28,7 @@ from swarms.prompts.heavy_swarm_prompts import (
     NOAH_PROMPT,
 )
 
-MODEL = "gpt-4.1-mini"
+MODEL = "gpt-5.4-mini"
 
 HEAVY_WORKER_KEYS = [
     "harper",

@@ -18,7 +18,7 @@ from typing import List
 from swarms import Agent, AgentRearrange, SequentialWorkflow
 
 
-MODEL = "gpt-4.1-mini"
+MODEL = "gpt-5.4-mini"
 
 
 def make_agent(name: str, system_prompt: str) -> Agent:

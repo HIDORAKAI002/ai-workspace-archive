@@ -5,7 +5,7 @@ from swarms import Agent, GraphWorkflow, Edge, Node, NodeType
 analyst = Agent(
     agent_name="Analyst",
     agent_description="Analyses raw data and extracts key statistics",
-    model_name="gpt-4.1-mini",
+    model_name="gpt-5.4-mini",
     max_loops=1,
     persistent_memory=False,
 )
@@ -13,7 +13,7 @@ analyst = Agent(
 writer = Agent(
     agent_name="Writer",
     agent_description="Turns analysis into a concise executive summary",
-    model_name="gpt-4.1-mini",
+    model_name="gpt-5.4-mini",
     max_loops=1,
     persistent_memory=False,
 )
@@ -21,7 +21,7 @@ writer = Agent(
 reviewer = Agent(
     agent_name="Reviewer",
     agent_description="Checks the summary for accuracy and clarity",
-    model_name="gpt-4.1-mini",
+    model_name="gpt-5.4-mini",
     max_loops=1,
     persistent_memory=False,
 )
