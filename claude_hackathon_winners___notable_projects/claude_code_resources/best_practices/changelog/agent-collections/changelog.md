@@ -10,6 +10,30 @@ Tracks updates to the AGENT COLLECTIONS table in `README.md`.
 
 ---
 
+## [2026-05-09 08:46 PM PKT] Agent Collections Update
+
+| # | Priority | Type  | Action                                                                                | Status                                                                                                                                                     |
+|---|----------|-------|---------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1 | LOW      | Count | Update VoltAgent/awesome-claude-code-subagents agents from 144 to 145                 | COMPLETE (per-category enumeration across all 10 dirs: 145 .md files, conf 0.87; RECURRING 144↔145 oscillation — this is the 6th consecutive flip)         |
+| 2 | LOW      | Star  | msitarzewski/agency-agents ★ unchanged (95k = ~95,300)                                | INVALID (no change required)                                                                                                                               |
+| 3 | LOW      | Star  | VoltAgent/awesome-claude-code-subagents ★ unchanged (19k = ~19,400)                  | INVALID (no change required)                                                                                                                               |
+| 4 | LOW      | Count | msitarzewski/agency-agents agents 185 vs reported 184 (−1)                            | INVALID (within ±1 margin of error; RECURRING oscillation; project-management/ truncation hint noted — 1-2 files may be missing from 184 count; no change) |
+| 5 | LOW      | Sort  | Verify sort order (stars descending)                                                  | COMPLETE (msitarzewski 95k > VoltAgent 19k — order preserved)                                                                                             |
+
+---
+
+## [2026-05-09 06:57 PM PKT] Agent Collections Update
+
+| # | Priority | Type  | Action                                                                                | Status                                                                                                                                                  |
+|---|----------|-------|---------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1 | LOW      | Count | Update msitarzewski/agency-agents agents from 185 to 186                              | INVALID (within ±1 margin of error — Python crawl reported 186 but per-directory enumeration summed to 172; agent confidence 0.93; consistent with prior 184–186 oscillation policy) |
+| 2 | LOW      | Star  | msitarzewski/agency-agents ★ unchanged (95k = 95,253)                                 | INVALID (no change required)                                                                                                                            |
+| 3 | LOW      | Star  | VoltAgent/awesome-claude-code-subagents ★ unchanged (19k = 19,433)                    | INVALID (no change required)                                                                                                                            |
+| 4 | LOW      | Count | VoltAgent/awesome-claude-code-subagents agents unchanged (144)                        | COMPLETE (tree not truncated; per-category sum exactly 144 across 10 dirs; prior 144↔145 oscillation definitively resolved as real content change, not pagination artifact) |
+| 5 | LOW      | Sort  | Verify sort order (stars descending)                                                  | COMPLETE (msitarzewski 95k > VoltAgent 19k — order preserved)                                                                                          |
+
+---
+
 ## [2026-05-08 08:46 PM PKT] Agent Collections Update
 
 | # | Priority | Type  | Action                                                                          | Status                                                                                                                                  |

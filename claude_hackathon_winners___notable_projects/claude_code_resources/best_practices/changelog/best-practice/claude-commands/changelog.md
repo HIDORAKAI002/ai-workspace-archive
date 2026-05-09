@@ -288,3 +288,14 @@ No priority action items — report is fully in sync with official documentation
 ## [2026-05-01 03:31 PM PKT] Claude Code v2.1.126
 
 No priority action items — report is fully in sync with official documentation (15 frontmatter fields, 75 built-in commands).
+
+---
+
+## [2026-05-09 06:58 PM PKT] Claude Code v2.1.138
+
+| # | Priority | Type | Action | Status |
+|---|----------|------|--------|--------|
+| 1 | HIGH | New Command | Add `/radio` to Config tag — Open Claude FM lo-fi radio in your browser. Prints stream URL when no browser is available. Not available on Bedrock, Vertex, or Foundry | ✅ COMPLETE (added as #12 in Config tag, alphabetical position between `/privacy-settings` and `/sandbox`; count updated 75 → 76; rows #12–75 renumbered to #13–76) |
+| 2 | MED | Changed Argument | Update `/clear` → `/clear [name]` — accepts optional name to label the previous conversation in the `/resume` picker | ✅ COMPLETE (signature updated at #70 in Session tag; description expanded to mention the optional name argument) |
+| 3 | MED | Changed Argument | Update `/review` → `/review [PR]` — accepts optional PR argument | ✅ COMPLETE (signature updated at #54 in Project tag; description expanded to mention the optional PR argument) |
+| 4 | MED | Changed Argument | Update `/context` → `/context [all]` — accepts `all` to expand per-item breakdown in fullscreen | ✅ COMPLETE (signature updated at #20 in Context tag; description expanded to mention the `all` argument) |
