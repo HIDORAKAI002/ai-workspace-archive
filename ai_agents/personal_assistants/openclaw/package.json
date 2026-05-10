@@ -1,6 +1,6 @@
 {
   "name": "openclaw",
-  "version": "2026.5.8",
+  "version": "2026.5.10-beta.1",
   "description": "Multi-channel AI gateway with extensible messaging integrations",
   "keywords": [],
   "homepage": "https://github.com/openclaw/openclaw#readme",
@@ -83,7 +83,6 @@
     "scripts/lib/official-external-plugin-catalog.json",
     "scripts/lib/official-external-provider-catalog.json",
     "scripts/lib/package-dist-imports.mjs",
-    "scripts/lib/bundled-runtime-deps-install.mjs",
     "scripts/postinstall-bundled-plugins.mjs",
     "scripts/windows-cmd-helpers.mjs"
   ],
@@ -619,6 +618,10 @@
       "types": "./dist/plugin-sdk/agent-config-primitives.d.ts",
       "default": "./dist/plugin-sdk/agent-config-primitives.js"
     },
+    "./plugin-sdk/access-groups": {
+      "types": "./dist/plugin-sdk/access-groups.d.ts",
+      "default": "./dist/plugin-sdk/access-groups.js"
+    },
     "./plugin-sdk/allow-from": {
       "types": "./dist/plugin-sdk/allow-from.d.ts",
       "default": "./dist/plugin-sdk/allow-from.js"
@@ -802,6 +805,14 @@
     "./plugin-sdk/channel-lifecycle": {
       "types": "./dist/plugin-sdk/channel-lifecycle.d.ts",
       "default": "./dist/plugin-sdk/channel-lifecycle.js"
+    },
+    "./plugin-sdk/channel-ingress": {
+      "types": "./dist/plugin-sdk/channel-ingress.d.ts",
+      "default": "./dist/plugin-sdk/channel-ingress.js"
+    },
+    "./plugin-sdk/channel-ingress-runtime": {
+      "types": "./dist/plugin-sdk/channel-ingress-runtime.d.ts",
+      "default": "./dist/plugin-sdk/channel-ingress-runtime.js"
     },
     "./plugin-sdk/channel-message": {
       "types": "./dist/plugin-sdk/channel-message.d.ts",
@@ -1356,6 +1367,7 @@
     "crabbox:run": "node scripts/crabbox-wrapper.mjs run",
     "crabbox:stop": "node scripts/crabbox-wrapper.mjs stop",
     "crabbox:warmup": "node scripts/crabbox-wrapper.mjs warmup",
+    "discord:opus:install": "node scripts/install-discord-native-opus.mjs",
     "deadcode:ci": "pnpm deadcode:report:ci:knip && pnpm deadcode:report:ci:ts-unused",
     "deadcode:dependencies": "pnpm --config.minimum-release-age=0 dlx knip@6.8.0 --config config/knip.config.ts --production --no-progress --reporter compact --dependencies --no-config-hints",
     "deadcode:knip": "pnpm dlx knip --config config/knip.config.ts --production --no-progress --reporter compact --files --dependencies",
@@ -1419,6 +1431,7 @@
     "lint:docker-e2e": "node scripts/check-docker-e2e-boundaries.mjs",
     "lint:docs": "pnpm dlx --config.resolution-mode=highest markdownlint-cli2 --config config/markdownlint-cli2.jsonc",
     "lint:docs:fix": "pnpm dlx --config.resolution-mode=highest markdownlint-cli2 --config config/markdownlint-cli2.jsonc --fix",
+    "lint:extensions:no-deprecated-channel-access": "node --import tsx scripts/check-no-deprecated-channel-access.ts",
     "lint:extensions": "node scripts/run-oxlint.mjs --tsconfig config/tsconfig/oxlint.extensions.json extensions",
     "lint:extensions:bundled": "node scripts/run-bundled-extension-oxlint.mjs",
     "lint:extensions:channels": "node scripts/run-extension-channel-oxlint.mjs",
@@ -1820,7 +1833,6 @@
     },
     "onlyBuiltDependencies": [
       "@openclaw/fs-safe",
-      "@discordjs/opus",
       "@google/genai",
       "@lydell/node-pty",
       "@matrix-org/matrix-sdk-crypto-nodejs",
@@ -1835,6 +1847,7 @@
       "sharp"
     ],
     "ignoredBuiltDependencies": [
+      "@discordjs/opus",
       "koffi",
       "tree-sitter-bash"
     ],
