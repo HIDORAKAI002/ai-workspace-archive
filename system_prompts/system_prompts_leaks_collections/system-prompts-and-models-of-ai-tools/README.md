@@ -71,7 +71,7 @@ Thank you for your support!
 
 Sponsor the most comprehensive repository of AI system prompts and reach thousands of developers.
 
-[Get Started](mailto:lucknitelol@pm.me)
+[Get Started](mailto:lucasvalbuena@pm.me)
 
 ---
 
@@ -79,7 +79,7 @@ Sponsor the most comprehensive repository of AI system prompts and reach thousan
 
 > Open an issue.
 
-> **Latest Update:** 08/03/2026
+> **Latest Update:** 10/05/2026
 
 ---
 
@@ -87,7 +87,7 @@ Sponsor the most comprehensive repository of AI system prompts and reach thousan
 
 - **X:** [NotLucknite](https://x.com/NotLucknite)
 - **Discord**: `x1xhlol`
-- **Email**: `lucknitelol@pm.me`
+- **Email**: `lucasvalbuena@pm.me`
 
 
 ## Star History
