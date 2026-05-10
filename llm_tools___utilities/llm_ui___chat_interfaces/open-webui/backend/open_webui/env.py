@@ -260,6 +260,15 @@ ENABLE_EASTER_EGGS = os.environ.get('ENABLE_EASTER_EGGS', 'True').lower() == 'tr
 # controlled origins) and fall through to the default image instead.
 ENABLE_PROFILE_IMAGE_URL_FORWARDING = os.environ.get('ENABLE_PROFILE_IMAGE_URL_FORWARDING', 'True').lower() == 'true'
 
+PROFILE_IMAGE_ALLOWED_MIME_TYPES = frozenset(
+    t.strip()
+    for t in os.environ.get(
+        'PROFILE_IMAGE_ALLOWED_MIME_TYPES',
+        'image/png,image/jpeg,image/gif,image/webp',
+    ).split(',')
+    if t.strip()
+)
+
 ####################################
 # WEBUI_BUILD_HASH
 ####################################
@@ -823,6 +832,13 @@ else:
 
 
 AIOHTTP_CLIENT_SESSION_SSL = os.environ.get('AIOHTTP_CLIENT_SESSION_SSL', 'True').lower() == 'true'
+
+# When False (default), outbound HTTP requests do not follow 3xx redirects.
+# This prevents redirect-based SSRF where a public URL 302-redirects to an
+# internal address (RFC 1918, loopback, cloud-metadata 169.254.169.254).
+# Set to True only if your deployment requires redirect following and you
+# have other SSRF protections in place (e.g. egress firewall).
+AIOHTTP_CLIENT_ALLOW_REDIRECTS = os.environ.get('AIOHTTP_CLIENT_ALLOW_REDIRECTS', 'False').lower() == 'true'
 
 AIOHTTP_CLIENT_TIMEOUT_MODEL_LIST = os.environ.get(
     'AIOHTTP_CLIENT_TIMEOUT_MODEL_LIST',

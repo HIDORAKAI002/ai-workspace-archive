@@ -877,7 +877,7 @@ async def get_shared_chat_by_id(
     # Look up the original chat_id to check access grants (admins bypass)
     if user.role != 'admin' or not ENABLE_ADMIN_CHAT_ACCESS:
         shared = await SharedChats.get_by_id(share_id, db=db)
-        if shared:
+        if shared and shared.user_id != user.id:
             has_grant = await AccessGrants.has_access(
                 user_id=user.id,
                 resource_type='shared_chat',
@@ -1241,9 +1241,9 @@ async def clone_shared_chat_by_id(
             detail=ERROR_MESSAGES.NOT_FOUND,
         )
 
-    # Enforce access grants
+    # Enforce access grants (owner and admins bypass)
     shared = await SharedChats.get_by_id(id, db=db)
-    if shared and user.role != 'admin':
+    if shared and user.role != 'admin' and shared.user_id != user.id:
         has_grant = await AccessGrants.has_access(
             user_id=user.id,
             resource_type='shared_chat',
@@ -1412,17 +1412,14 @@ async def update_shared_chat_access_by_id(
     user=Depends(get_verified_user),
     db: AsyncSession = Depends(get_async_session),
 ):
-    chat = await Chats.get_chat_by_id_and_user_id(id, user.id, db=db)
+    if user.role == 'admin':
+        chat = await Chats.get_chat_by_id(id, db=db)
+    else:
+        chat = await Chats.get_chat_by_id_and_user_id(id, user.id, db=db)
     if not chat:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=ERROR_MESSAGES.NOT_FOUND,
-        )
-
-    if chat.user_id != user.id and user.role != 'admin':
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=ERROR_MESSAGES.ACCESS_PROHIBITED,
         )
 
     form_data.access_grants = await filter_allowed_access_grants(
@@ -1449,17 +1446,14 @@ async def get_shared_chat_access_by_id(
     user=Depends(get_verified_user),
     db: AsyncSession = Depends(get_async_session),
 ):
-    chat = await Chats.get_chat_by_id_and_user_id(id, user.id, db=db)
+    if user.role == 'admin':
+        chat = await Chats.get_chat_by_id(id, db=db)
+    else:
+        chat = await Chats.get_chat_by_id_and_user_id(id, user.id, db=db)
     if not chat:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=ERROR_MESSAGES.NOT_FOUND,
-        )
-
-    if chat.user_id != user.id and user.role != 'admin':
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=ERROR_MESSAGES.ACCESS_PROHIBITED,
         )
 
     grants = await AccessGrants.get_grants_by_resource('shared_chat', id, db=db)

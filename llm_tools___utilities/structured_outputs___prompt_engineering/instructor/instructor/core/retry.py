@@ -5,11 +5,13 @@ from __future__ import annotations
 import logging
 from json import JSONDecodeError
 from typing import Any, Callable, TypeVar
+from collections.abc import Callable as CallableABC
 
 from .exceptions import (
     InstructorRetryException,
     AsyncValidationError,
     FailedAttempt,
+    IncompleteOutputException,
     ValidationError as InstructorValidationError,
 )
 from .hooks import Hooks
@@ -155,6 +157,7 @@ def retry_sync(
     strict: bool | None = None,
     mode: Mode = Mode.TOOLS,
     hooks: Hooks | None = None,
+    on_event: CallableABC[..., Any] | None = None,
 ) -> T_Model | None:
     """
     Retry a synchronous function upon specified exceptions.
@@ -187,6 +190,9 @@ def retry_sync(
 
     # Track all failed attempts
     failed_attempts: list[FailedAttempt] = []
+    # IncompleteOutputException is stored here to be re-raised outside tenacity
+    # so callers can catch it directly without it being wrapped in InstructorRetryException
+    _incomplete_exc: IncompleteOutputException | None = None
 
     try:
         response = None
@@ -208,6 +214,7 @@ def retry_sync(
                         strict=strict,
                         mode=mode,
                         stream=stream,
+                        on_event=on_event,
                     )
                 except (
                     ValidationError,
@@ -261,6 +268,14 @@ def retry_sync(
                     )
                     raise e
                 except Exception as e:
+                    # IncompleteOutputException must propagate directly so callers
+                    # can catch it without it being wrapped in InstructorRetryException.
+                    # Break out of the tenacity loop without raising so tenacity does
+                    # not see the exception; it is re-raised after the loop below.
+                    if isinstance(e, IncompleteOutputException):
+                        _incomplete_exc = e
+                        break
+
                     # Emit completion:error for non-validation errors (API errors, network errors, etc.)
                     logger.debug(f"Completion error: {e}")
                     attempt_number = attempt.retry_state.attempt_number
@@ -322,6 +337,9 @@ def retry_sync(
             failed_attempts=failed_attempts,
         ) from e
 
+    if _incomplete_exc is not None:
+        raise _incomplete_exc
+
 
 async def retry_async(
     func: Callable[T_ParamSpec, T_Retval],
@@ -333,6 +351,7 @@ async def retry_async(
     strict: bool | None = None,
     mode: Mode = Mode.TOOLS,
     hooks: Hooks | None = None,
+    on_event: CallableABC[..., Any] | None = None,
 ) -> T_Model | None:
     """
     Retry an asynchronous function upon specified exceptions.
@@ -365,6 +384,7 @@ async def retry_async(
 
     # Track all failed attempts
     failed_attempts: list[FailedAttempt] = []
+    _incomplete_exc: IncompleteOutputException | None = None
 
     try:
         response = None
@@ -386,6 +406,7 @@ async def retry_async(
                         strict=strict,
                         mode=mode,
                         stream=stream,
+                        on_event=on_event,
                     )
                 except (
                     ValidationError,
@@ -440,6 +461,12 @@ async def retry_async(
                     )
                     raise e
                 except Exception as e:
+                    # IncompleteOutputException must propagate directly so callers
+                    # can catch it without it being wrapped in InstructorRetryException.
+                    if isinstance(e, IncompleteOutputException):
+                        _incomplete_exc = e
+                        break
+
                     # Emit completion:error for non-validation errors (API errors, network errors, etc.)
                     logger.debug(f"Completion error: {e}")
                     attempt_number = attempt.retry_state.attempt_number
@@ -500,3 +527,6 @@ async def retry_async(
             total_usage=total_usage,
             failed_attempts=failed_attempts,
         ) from e
+
+    if _incomplete_exc is not None:
+        raise _incomplete_exc
