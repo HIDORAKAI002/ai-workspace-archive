@@ -224,6 +224,10 @@ nav:
       - "LLM Wiki": skills/engineering/llm-wiki.md
       - "TC Tracker": skills/engineering/tc-tracker.md
       - "Karpathy Coder": skills/engineering/karpathy-coder.md
+      - "Feature Flags Architect": skills/engineering/feature-flags-architect.md
+      - "Kubernetes Operator": skills/engineering/kubernetes-operator.md
+      - "Chaos Engineering": skills/engineering/chaos-engineering.md
+      - "SLO Architect": skills/engineering/slo-architect.md
       - AgentHub:
         - "AgentHub": skills/engineering/agenthub.md
         - "/hub:init": skills/engineering/agenthub-init.md
@@ -429,3 +433,7 @@ nav:
     - "/wiki-log": commands/wiki-log.md
     - "/tc": commands/tc.md
     - "/karpathy-check": commands/karpathy-check.md
+    - "/flag-cleanup": commands/flag-cleanup.md
+    - "/operator-audit": commands/operator-audit.md
+    - "/chaos-experiment": commands/chaos-experiment.md
+    - "/slo-design": commands/slo-design.md

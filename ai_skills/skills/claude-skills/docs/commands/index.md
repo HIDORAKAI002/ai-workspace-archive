@@ -1,13 +1,13 @@
 ---
 title: "Slash Commands — AI Coding Agent Commands & Codex Shortcuts"
-description: "29 slash commands for Claude Code, Codex CLI, and Gemini CLI — sprint planning, tech debt analysis, PRDs, OKRs, and more."
+description: "33 slash commands for Claude Code, Codex CLI, and Gemini CLI — sprint planning, tech debt analysis, PRDs, OKRs, and more."
 ---
 
 <div class="domain-header" markdown>
 
 # :material-console: Slash Commands
 
-<p class="domain-count">29 commands for quick access to common operations</p>
+<p class="domain-count">33 commands for quick access to common operations</p>
 
 </div>
 
@@ -24,6 +24,12 @@ description: "29 slash commands for Claude Code, Codex CLI, and Gemini CLI — s
     ---
 
     Generate Keep a Changelog entries from git history and validate commit message format.
+
+-   :material-console:{ .lg .middle } **[`/chaos-experiment`](chaos-experiment.md)**
+
+    ---
+
+    Step through the design of a chaos engineering experiment using the chaos-engineering skill. Produces a plan, calcula...
 
 -   :material-console:{ .lg .middle } **[`/code-to-prd`](code-to-prd.md)**
 
@@ -42,6 +48,12 @@ description: "29 slash commands for Claude Code, Codex CLI, and Gemini CLI — s
     ---
 
     Analyze financial statements, build valuation models, assess budget variances, and construct forecasts.
+
+-   :material-console:{ .lg .middle } **[`/flag-cleanup`](flag-cleanup.md)**
+
+    ---
+
+    Run the full feature-flag cleanup workflow:
 
 -   :material-console:{ .lg .middle } **[`/focused-fix`](focused-fix.md)**
 
@@ -66,6 +78,12 @@ description: "29 slash commands for Claude Code, Codex CLI, and Gemini CLI — s
     ---
 
     Generate cascaded OKR frameworks from company-level strategy down to team-level key results.
+
+-   :material-console:{ .lg .middle } **[`/operator-audit`](operator-audit.md)**
+
+    ---
+
+    Run the full audit on a Kubernetes Operator repository:
 
 -   :material-console:{ .lg .middle } **[`/persona`](persona.md)**
 
@@ -120,6 +138,12 @@ description: "29 slash commands for Claude Code, Codex CLI, and Gemini CLI — s
     ---
 
     Systematically scan, audit, and optimize documentation files for SEO. Targets README.md files and docs/ pages — fixes...
+
+-   :material-console:{ .lg .middle } **[`/slo-design`](slo-design.md)**
+
+    ---
+
+    Step through SLO design using the slo-architect skill. Produces an SLO definition, computes error budget + multi-wind...
 
 -   :material-console:{ .lg .middle } **[`/sprint-health`](sprint-health.md)**
 
