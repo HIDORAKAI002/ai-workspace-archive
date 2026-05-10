@@ -71,6 +71,7 @@ from open_webui.config import (
 from open_webui.constants import ERROR_MESSAGES, WEBHOOK_MESSAGES
 from open_webui.env import (
     AIOHTTP_CLIENT_SESSION_SSL,
+    AIOHTTP_CLIENT_ALLOW_REDIRECTS,
     WEBUI_NAME,
     WEBUI_AUTH_COOKIE_SAME_SITE,
     WEBUI_AUTH_COOKIE_SECURE,
@@ -740,7 +741,7 @@ class OAuthClientManager:
             async with aiohttp.ClientSession(trust_env=True) as session:
                 async with session.get(
                     authorization_url,
-                    allow_redirects=False,
+                    allow_redirects=AIOHTTP_CLIENT_ALLOW_REDIRECTS,
                     ssl=AIOHTTP_CLIENT_SESSION_SSL,
                 ) as resp:
                     if resp.status < 400:
