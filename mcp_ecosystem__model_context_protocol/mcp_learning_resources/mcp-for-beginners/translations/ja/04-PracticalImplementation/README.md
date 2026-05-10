@@ -275,7 +275,7 @@ Azure API ManagementはMCPサーバーをセキュアに保つための優れた
 
 ## 次へ
 
-次： [Advanced Topics](../05-AdvancedTopics/README.md)
+次： [高度なトピック](../05-AdvancedTopics/README.md)
 
 ---
 

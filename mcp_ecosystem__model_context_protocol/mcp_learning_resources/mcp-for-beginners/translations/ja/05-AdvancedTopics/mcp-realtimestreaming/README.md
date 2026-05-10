@@ -585,7 +585,52 @@ MCPストリーミングの未来を形作る新興技術：
 
 ### 演習1：基本的なMCPストリーミングパイプラインの構築
 
-この演
+この演習では、以下の内容を学習します。
+- 基本的な MCP ストリーミング環境の構成
+- ストリーム処理のためのコンテキストハンドラの実装
+- コンテキスト保持のテストと検証
+
+### 演習2：リアルタイム分析ダッシュボードの構築
+
+以下の機能を備えた完全なアプリケーションを作成します。
+- MCP を使用してストリーミングデータを取り込む
+- コンテキストを維持しながらストリームを処理する
+- 結果をリアルタイムで可視化する
+
+### 演習3：MCP を使用した複合イベント処理の実装
+
+以下の内容を網羅した高度な演習です。
+- ストリーム内のパターン検出
+- 複数のストリームにわたるコンテキスト相関
+- コンテキストを保持した複合イベントの生成
+
+## その他のリソース
+
+- [Model Context Protocol 仕様](https://github.com/modelcontextprotocol) - 公式 MCP 仕様およびドキュメント
+- [Apache Kafka ドキュメント](https://kafka.apache.org/documentation/) - ストリーム処理のための Kafka について学ぶ
+- [Apache Pulsar](https://pulsar.apache.org/) - 統合メッセージングおよびストリーミングプラットフォーム
+- [Streaming Systems: The What, Where, When, and How of Large-Scale Data Processing](https://www.oreilly.com/library/view/streaming-systems/9781491983867/) - ストリーミングアーキテクチャに関する包括的な書籍
+- [Microsoft Azure Event Hubs](https://learn.microsoft.com/azure/event-hubs/event-hubs-about) - マネージドイベントストリーミングサービス
+- [MLflow ドキュメント](https://mlflow.org/docs/latest/index.html) - 機械学習モデルの追跡とデプロイについて
+- [Apache Storm によるリアルタイム分析](https://storm.apache.org/releases/current/index.html) - リアルタイム計算のための処理フレームワーク
+- [Flink ML](https://nightlies.apache.org/flink/flink-ml-docs-master/) - Apache Flink 用の機械学習ライブラリ
+- [LangChain ドキュメント](https://python.langchain.com/docs/get_started/introduction) - LLM を使用したアプリケーションの構築
+
+
+## 学習成果
+
+このモジュールを修了すると、以下のことができるようになります。
+
+- リアルタイムデータストリーミングの基本と課題を理解する
+- モデルコンテキストプロトコル（MCP）がリアルタイムデータストリーミングをどのように強化するかを説明する
+- KafkaやPulsarなどの一般的なフレームワークを使用して、MCPベースのストリーミングソリューションを実装する
+- MCPを使用して、耐障害性と高性能を備えたストリーミングアーキテクチャを設計およびデプロイする
+- IoT、金融取引、AI駆動型分析のユースケースにMCPの概念を適用する
+- MCPベースのストリーミング技術における新たなトレンドと将来のイノベーションを評価する
+
+## 次のステップ
+
+- [5.11 リアルタイム検索](../mcp-realtimesearch/README.md)
 
 **免責事項**：  
 本書類はAI翻訳サービス「[Co-op Translator](https://github.com/Azure/co-op-translator)」を使用して翻訳されました。正確性の向上に努めておりますが、自動翻訳には誤りや不正確な部分が含まれる可能性があります。原文の言語によるオリジナル文書が正式な情報源とみなされるべきです。重要な情報については、専門の人間による翻訳を推奨します。本翻訳の利用により生じたいかなる誤解や誤訳についても、当方は一切の責任を負いかねます。
