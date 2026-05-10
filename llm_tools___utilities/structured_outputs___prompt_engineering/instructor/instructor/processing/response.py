@@ -38,7 +38,7 @@ from __future__ import annotations
 import inspect
 import logging
 from typing import Any, TypeVar, TYPE_CHECKING, cast
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Callable
 
 from openai.types.chat import ChatCompletion
 from pydantic import BaseModel
@@ -57,6 +57,13 @@ if TYPE_CHECKING:
 from ..mode import Mode
 from .multimodal import convert_messages
 from ..utils.core import prepare_response_model
+
+_SENSITIVE_KEYS: frozenset[str] = frozenset({"api_key", "api_secret", "authorization", "token"})
+
+
+def _redact_kwargs(kwargs: dict[str, Any]) -> dict[str, Any]:
+    """Return a shallow copy of kwargs with sensitive keys replaced by '[redacted]'."""
+    return {k: "[redacted]" if k in _SENSITIVE_KEYS else v for k, v in kwargs.items()}
 
 # Anthropic utils
 from ..providers.anthropic.utils import (
@@ -178,6 +185,7 @@ async def process_response_async(
     validation_context: dict[str, Any] | None = None,
     strict: bool | None = None,
     mode: Mode = Mode.TOOLS,
+    on_event: Callable[..., Any] | None = None,
 ) -> Any:
     """Asynchronously process and transform LLM responses into structured models.
 
@@ -245,6 +253,7 @@ async def process_response_async(
         return response_model.from_streaming_response_async(  # type: ignore[return-value,arg-type]
             cast(AsyncGenerator[Any, None], response),
             mode=mode,
+            on_event=on_event,
         )
 
     model = response_model.from_response(  # type: ignore
@@ -286,6 +295,7 @@ def process_response(
     validation_context: dict[str, Any] | None = None,
     strict=None,
     mode: Mode = Mode.TOOLS,
+    on_event: Callable[..., Any] | None = None,
 ) -> Any:
     """Process and transform LLM responses into structured models (synchronous).
 
@@ -364,6 +374,7 @@ def process_response(
             response_model.from_streaming_response(  # type: ignore
                 response,
                 mode=mode,
+                on_event=on_event,
             )
         )
 
@@ -439,8 +450,9 @@ def handle_response_model(
 
     if mode in PARALLEL_MODES:
         response_model, new_kwargs = PARALLEL_MODES[mode](response_model, new_kwargs)  # type: ignore
+        _safe_kwargs = _redact_kwargs(new_kwargs)
         logger.debug(
-            f"Instructor Request: {mode.value=}, {response_model=}, {new_kwargs=}",
+            f"Instructor Request: {mode.value=}, {response_model=}, new_kwargs={_safe_kwargs!r}",
             extra={
                 "mode": mode.value,
                 "response_model": (
@@ -449,7 +461,7 @@ def handle_response_model(
                     and hasattr(response_model, "__name__")
                     else str(response_model)
                 ),
-                "new_kwargs": new_kwargs,
+                "new_kwargs": _safe_kwargs,
             },
         )
         return response_model, new_kwargs
@@ -514,8 +526,9 @@ def handle_response_model(
             autodetect_images=autodetect_images,
         )
 
+    _safe_kwargs = _redact_kwargs(new_kwargs)
     logger.debug(
-        f"Instructor Request: {mode.value=}, {response_model=}, {new_kwargs=}",
+        f"Instructor Request: {mode.value=}, {response_model=}, new_kwargs={_safe_kwargs!r}",
         extra={
             "mode": mode.value,
             "response_model": (
@@ -523,7 +536,7 @@ def handle_response_model(
                 if response_model is not None and hasattr(response_model, "__name__")
                 else str(response_model)
             ),
-            "new_kwargs": new_kwargs,
+            "new_kwargs": _safe_kwargs,
         },
     )
     return response_model, new_kwargs
