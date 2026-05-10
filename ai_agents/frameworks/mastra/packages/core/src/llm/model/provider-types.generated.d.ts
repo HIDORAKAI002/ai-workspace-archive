@@ -1231,6 +1231,7 @@ export type ProviderModelsMap = {
     'siliconflow/deepseek-v3.2',
     'tongyi-intent-detect-v3',
   ];
+  readonly firepass: readonly ['accounts/fireworks/routers/kimi-k2p6-turbo'];
   readonly 'minimax-cn-coding-plan': readonly [
     'MiniMax-M2',
     'MiniMax-M2.1',
@@ -2221,6 +2222,7 @@ export type ProviderModelsMap = {
     'nemotron-3-super-free',
     'qwen3.5-plus',
     'qwen3.6-plus',
+    'ring-2.6-1t-free',
   ];
   readonly stepfun: readonly ['step-1-32k', 'step-2-16k', 'step-3.5-flash', 'step-3.5-flash-2603'];
   readonly nebius: readonly [
@@ -2840,20 +2842,6 @@ export type ProviderModelsMap = {
     'text-embedding-3-large',
     'text-embedding-3-small',
     'text-embedding-ada-002',
-  ];
-  readonly kiro: readonly [
-    'auto',
-    'claude-haiku-4.5',
-    'claude-opus-4.5',
-    'claude-opus-4.6',
-    'claude-opus-4.7',
-    'claude-sonnet-4',
-    'claude-sonnet-4.5',
-    'claude-sonnet-4.6',
-    'deepseek-3.2',
-    'minimax-m2.1',
-    'minimax-m2.5',
-    'qwen3-coder-next',
   ];
   readonly requesty: readonly [
     'anthropic/claude-3-7-sonnet',
