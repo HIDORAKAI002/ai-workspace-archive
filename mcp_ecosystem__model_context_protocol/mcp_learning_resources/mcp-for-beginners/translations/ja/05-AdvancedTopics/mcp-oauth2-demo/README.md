@@ -137,11 +137,11 @@ APIM は JWKS を取得し、すべてのリクエストを検証します。
 
 ## 次のステップ
 
-- [5.4 Root contexts](../mcp-root-contexts/README.md)
+- [5.4 ルートコンテキスト](../mcp-root-contexts/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
 **免責事項**：  
-本書類はAI翻訳サービス「Co-op Translator」（https://github.com/Azure/co-op-translator）を使用して翻訳されました。正確性を期しておりますが、自動翻訳には誤りや不正確な箇所が含まれる可能性があります。原文の言語によるオリジナル文書を正式な情報源としてください。重要な内容については、専門の人間による翻訳を推奨いたします。本翻訳の利用により生じたいかなる誤解や解釈の相違についても、当方は一切責任を負いません。
+本書類はAI翻訳サービス「[Co-op Translator](https://github.com/Azure/co-op-translator)」を使用して翻訳されました。正確性を期しておりますが、自動翻訳には誤りや不正確な箇所が含まれる可能性があります。原文の言語によるオリジナル文書を正式な情報源としてください。重要な内容については、専門の人間による翻訳を推奨いたします。本翻訳の利用により生じたいかなる誤解や解釈の相違についても、当方は一切責任を負いません。
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

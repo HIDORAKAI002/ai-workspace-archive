@@ -608,7 +608,7 @@ Advanced exercise covering:
 
 ## Additional Resources
 
-- [Model Context Protocol Specification](https://github.com/modelcontextprotocol) - Official MCP specification and documentation
+- [Model Context Protocol Specification](https://modelcontextprotocol.io) - Official MCP specification and documentation
 - [Apache Kafka Documentation](https://kafka.apache.org/documentation/) - Learn about Kafka for stream processing
 - [Apache Pulsar](https://pulsar.apache.org/) - Unified messaging and streaming platform
 - [Streaming Systems: The What, Where, When, and How of Large-Scale Data Processing](https://www.oreilly.com/library/view/streaming-systems/9781491983867/) - Comprehensive book on streaming architectures
