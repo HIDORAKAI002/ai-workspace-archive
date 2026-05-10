@@ -675,9 +675,9 @@ describe("runCodexAppServerAttempt", () => {
     });
     const dynamicToolNames = bridge.specs.map((tool) => tool.name);
 
-    expect(dynamicToolNames).not.toEqual(
-      expect.arrayContaining(["tool_search_code", "tool_search", "tool_describe", "tool_call"]),
-    );
+    for (const toolName of ["tool_search_code", "tool_search", "tool_describe", "tool_call"]) {
+      expect(dynamicToolNames).not.toContain(toolName);
+    }
   });
 
   it("normalizes Codex dynamic toolsAllow entries before filtering", () => {
@@ -740,6 +740,41 @@ describe("runCodexAppServerAttempt", () => {
     expect(heartbeat?.deferLoading).toBe(true);
   });
 
+  it("returns a run context report without deferred Codex dynamic tool schemas", async () => {
+    __testing.setOpenClawCodingToolsFactoryForTests(() => [
+      createRuntimeDynamicTool("message"),
+      createRuntimeDynamicTool("web_search"),
+    ]);
+    const harness = createStartedThreadHarness();
+    const params = createParams(
+      path.join(tempDir, "session.jsonl"),
+      path.join(tempDir, "workspace"),
+    );
+    params.disableTools = false;
+    params.runtimePlan = createCodexRuntimePlanFixture();
+    params.sourceReplyDeliveryMode = "message_tool_only";
+    params.toolsAllow = ["message", "web_search"];
+
+    const run = runCodexAppServerAttempt(params, {
+      pluginConfig: { appServer: { mode: "yolo" } },
+    });
+    await harness.waitForMethod("turn/start", 120_000);
+    await harness.completeTurn({ threadId: "thread-1", turnId: "turn-1" });
+    const result = await run;
+
+    const report = result.systemPromptReport;
+    expect(report?.source).toBe("run");
+    expect(report?.provider).toBe("codex");
+    expect(report?.model).toBe("gpt-5.4-codex");
+    expect(report?.systemPrompt.chars).toBeGreaterThan(0);
+
+    const message = report?.tools.entries.find((tool) => tool.name === "message");
+    const webSearch = report?.tools.entries.find((tool) => tool.name === "web_search");
+    expect(message?.schemaChars).toBeGreaterThan(0);
+    expect(webSearch?.schemaChars).toBe(0);
+    expect(report?.tools.schemaChars).toBe(message?.schemaChars);
+  });
+
   it("keeps searchable Codex dynamic tools canonical in mirrored transcript snapshots", async () => {
     __testing.setOpenClawCodingToolsFactoryForTests(() => [
       createRuntimeDynamicTool("wiki_status"),
@@ -789,36 +824,39 @@ describe("runCodexAppServerAttempt", () => {
       "assistant",
       "toolResult",
     ]);
-    expect(result.messagesSnapshot[1]).toMatchObject({
-      role: "assistant",
-      content: [
-        {
-          type: "toolCall",
-          id: "call-wiki-status-1",
-          name: "wiki_status",
-          arguments: { topic: "README.md" },
-          input: { topic: "README.md" },
-        },
-      ],
-    });
-    expect(result.messagesSnapshot[2]).toMatchObject({
-      role: "toolResult",
-      toolCallId: "call-wiki-status-1",
-      toolName: "wiki_status",
-      isError: false,
-      content: [
-        expect.objectContaining({
-          type: "toolResult",
-          id: "call-wiki-status-1",
-          name: "wiki_status",
-          toolName: "wiki_status",
-          toolCallId: "call-wiki-status-1",
-          toolUseId: "call-wiki-status-1",
-          tool_use_id: "call-wiki-status-1",
-          content: "wiki_status done",
-        }),
-      ],
-    });
+    const assistantMessage = result.messagesSnapshot[1];
+    if (assistantMessage?.role !== "assistant") {
+      throw new Error("expected mirrored assistant tool-call message");
+    }
+    expect(assistantMessage.content).toStrictEqual([
+      {
+        type: "toolCall",
+        id: "call-wiki-status-1",
+        name: "wiki_status",
+        arguments: { topic: "README.md" },
+        input: { topic: "README.md" },
+      },
+    ]);
+    const toolResultMessage = result.messagesSnapshot[2];
+    if (toolResultMessage?.role !== "toolResult") {
+      throw new Error("expected mirrored tool-result message");
+    }
+    expect(toolResultMessage.toolCallId).toBe("call-wiki-status-1");
+    expect(toolResultMessage.toolName).toBe("wiki_status");
+    expect(toolResultMessage.isError).toBe(false);
+    expect(toolResultMessage.content).toStrictEqual([
+      {
+        type: "toolResult",
+        id: "call-wiki-status-1",
+        name: "wiki_status",
+        toolName: "wiki_status",
+        toolCallId: "call-wiki-status-1",
+        toolUseId: "call-wiki-status-1",
+        tool_use_id: "call-wiki-status-1",
+        content: "wiki_status done",
+        text: "wiki_status done",
+      },
+    ]);
     expect(JSON.stringify(result.messagesSnapshot)).not.toContain("tool_search");
     expect(JSON.stringify(result.messagesSnapshot)).not.toContain("function_call_output");
   });
