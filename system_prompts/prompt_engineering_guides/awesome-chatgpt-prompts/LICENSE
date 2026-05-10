@@ -1,7 +1,9 @@
 This project uses a dual-license model:
 
-- **Source code** (everything under src/, prisma/, scripts/, and all
-  configuration/build files) is licensed under the MIT License.
+- **Source code and site-authored content** (everything under src/,
+  prisma/, scripts/, and all configuration/build files) is licensed under
+  the MIT License. This includes the interactive book content in
+  src/content/book/.
   See LICENSE-MIT for the full text.
 
 - **Prompt content and data** (prompts.csv, PROMPTS.md, and all user-submitted

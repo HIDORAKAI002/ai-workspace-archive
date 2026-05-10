@@ -513,6 +513,10 @@ async function runAutoPinnedPromptErrorRotationCase(params: {
     });
 
     expect(runEmbeddedAttemptMock).toHaveBeenCalledTimes(2);
+    await vi.waitFor(async () => {
+      const usageStats = await readUsageStats(agentDir);
+      expect(typeof usageStats["openai:p1"]?.cooldownUntil).toBe("number");
+    });
     const usageStats = await readUsageStats(agentDir);
     return { usageStats };
   });
@@ -932,18 +936,21 @@ describe("runEmbeddedPiAgent auth profile rotation", () => {
     expect(failoverAttributes.providerErrorType).toBe("overloaded_error");
     expect(failoverAttributes.rawErrorPreview).toContain('"request_id":"sha256:');
 
-    const failureStateUpdate = requireLogRecord(
-      logCapture.records,
-      "auth profile failure state updated",
-    );
-    const failureStateAttributes = requireRecord(
-      failureStateUpdate.attributes,
-      "failure state attributes",
-    );
-    expect(failureStateAttributes.event).toBe("auth_profile_failure_state_updated");
-    expect(failureStateAttributes.runId).toBe("run:overloaded-logging");
-    expect(failureStateAttributes.profileId).toBe(safeProfileId);
-    expect(failureStateAttributes.reason).toBe("overloaded");
+    await vi.waitFor(async () => {
+      await logCapture.flush();
+      const failureStateUpdate = requireLogRecord(
+        logCapture.records,
+        "auth profile failure state updated",
+      );
+      const failureStateAttributes = requireRecord(
+        failureStateUpdate.attributes,
+        "failure state attributes",
+      );
+      expect(failureStateAttributes.event).toBe("auth_profile_failure_state_updated");
+      expect(failureStateAttributes.runId).toBe("run:overloaded-logging");
+      expect(failureStateAttributes.profileId).toBe(safeProfileId);
+      expect(failureStateAttributes.reason).toBe("overloaded");
+    });
   });
 
   it("rotates for overloaded prompt failures across auto-pinned profiles", async () => {
@@ -958,7 +965,7 @@ describe("runEmbeddedPiAgent auth profile rotation", () => {
     expect(sleepWithAbortMock).not.toHaveBeenCalled();
   });
 
-  it("waits for prompt failure cooldown marking before retrying", async () => {
+  it("does not wait for prompt failure cooldown marking before retrying", async () => {
     let releaseMark: (() => void) | undefined;
     const markCanFinish = new Promise<void>((resolve) => {
       releaseMark = resolve;
@@ -984,11 +991,10 @@ describe("runEmbeddedPiAgent auth profile rotation", () => {
           runId: "run:prompt-deferred-mark",
         });
 
-        await vi.waitFor(() => expect(markStarted).toBe(true));
-        expect(runEmbeddedAttemptMock).toHaveBeenCalledTimes(1);
+        await vi.waitFor(() => expect(runEmbeddedAttemptMock).toHaveBeenCalledTimes(2));
+        expect(markStarted).toBe(true);
         releaseMark?.();
         releaseMark = undefined;
-        await vi.waitFor(() => expect(runEmbeddedAttemptMock).toHaveBeenCalledTimes(2));
         await runPromise;
 
         const usageStats = await readUsageStats(agentDir);
