@@ -3334,6 +3334,7 @@ describe('redteam generate command with target option', () => {
       'test-output.yaml',
     ]);
 
+    expect(getConfigFromCloud).toHaveBeenCalledWith(configUUID, targetUUID);
     expect(mockConfig.targets).toEqual([
       {
         id: `promptfoo://provider/${targetUUID}`,
