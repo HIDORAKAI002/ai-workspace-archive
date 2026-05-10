@@ -3,7 +3,7 @@
   "name": "claude-code-skills",
   "description": "Production-ready skill packages for AI agents - Marketing, Engineering, Product, C-Level, PM, and RA/QM",
   "repository": "https://github.com/alirezarezvani/claude-skills",
-  "total_skills": 183,
+  "total_skills": 188,
   "skills": [
     {
       "name": "business-growth-skills",
@@ -432,6 +432,12 @@
       "description": "Changelog Generator"
     },
     {
+      "name": "chaos-engineering",
+      "source": "../../engineering/skills/chaos-engineering",
+      "category": "engineering-advanced",
+      "description": "Use when planning, running, or learning from chaos engineering experiments. Triggers on \"chaos experiment\", \"fault injection\", \"gameday\", \"resilience test\", \"blast radius\", \"steady state\", \"abort criteria\", \"Chaos Toolkit\", \"Chaos Mesh\", \"Litmus\", \"Gremlin\", \"AWS FIS\", or any deliberate failure-injection question. Ships experiment designer, blast-radius calculator, and postmortem generator (all stdlib Python), 4 references on chaos principles + experiment design + attack taxonomy + tooling landscape, and a /chaos-experiment slash command. Composes with feature-flags-architect (kill switches as abort triggers) and kubernetes-operator (common chaos targets)."
+    },
+    {
       "name": "ci-cd-pipeline-builder",
       "source": "../../engineering/skills/ci-cd-pipeline-builder",
       "category": "engineering-advanced",
@@ -480,6 +486,12 @@
       "description": "Env & Secrets Manager"
     },
     {
+      "name": "feature-flags-architect",
+      "source": "../../engineering/skills/feature-flags-architect",
+      "category": "engineering-advanced",
+      "description": "Use when adding, retiring, or auditing feature flags. Triggers on \"add a flag\", \"ship behind a flag\", \"rollout plan\", \"kill switch\", \"stale flags\", \"flag debt\", \"LaunchDarkly\", \"GrowthBook\", \"Statsig\", \"Unleash\", \"Flipt\", or any progressive-delivery question. Ships flag debt scanner, rollout planner, and kill-switch auditor (all stdlib Python), 4 references on flag taxonomy + provider trade-offs + rollout strategies + lifecycle, plus a /flag-cleanup slash command."
+    },
+    {
       "name": "focused-fix",
       "source": "../../engineering/skills/focused-fix",
       "category": "engineering-advanced",
@@ -502,6 +514,12 @@
       "source": "../../engineering/skills/interview-system-designer",
       "category": "engineering-advanced",
       "description": "This skill should be used when the user asks to \"design interview processes\", \"create hiring pipelines\", \"calibrate interview loops\", \"generate interview questions\", \"design competency matrices\", \"analyze interviewer bias\", \"create scoring rubrics\", \"build question banks\", or \"optimize hiring systems\". Use for designing role-specific interview loops, competency assessments, and hiring calibration systems."
+    },
+    {
+      "name": "kubernetes-operator",
+      "source": "../../engineering/skills/kubernetes-operator",
+      "category": "engineering-advanced",
+      "description": "Use when building a Kubernetes Operator \u2014 custom controllers that reconcile CRD state. Triggers on \"build an operator\", \"CRD design\", \"reconcile loop\", \"controller-runtime\", \"kubebuilder\", \"operator-sdk\", \"metacontroller\", \"KOPF\", \"operator capability levels\", or \"custom resource\". Ships CRD validator, reconcile-loop linter, and OperatorHub capability auditor (all stdlib Python), 4 references on the operator pattern + CRD design + reconcile patterns + tooling landscape, and a /operator-audit slash command. NOT a generic k8s skill \u2014 specifically the Operator pattern."
     },
     {
       "name": "mcp-server-builder",
@@ -570,6 +588,12 @@
       "description": "Honestly evaluate AI work quality using a two-axis scoring system. Use after completing a task, code review, or work session to get an unbiased assessment. Detects score inflation, forces devil's advocate reasoning, and persists scores across sessions."
     },
     {
+      "name": "ship-gate",
+      "source": "../../engineering/skills/ship-gate",
+      "category": "engineering-advanced",
+      "description": ">"
+    },
+    {
       "name": "skill-security-auditor",
       "source": "../../engineering/skills/skill-security-auditor",
       "category": "engineering-advanced",
@@ -580,6 +604,12 @@
       "source": "../../engineering/skills/skill-tester",
       "category": "engineering-advanced",
       "description": "Skill Tester"
+    },
+    {
+      "name": "slo-architect",
+      "source": "../../engineering/skills/slo-architect",
+      "category": "engineering-advanced",
+      "description": "Use when defining, reviewing, or operating SLOs/SLIs/error budgets. Triggers on \"define an SLO\", \"what should our SLO be\", \"error budget\", \"burn rate\", \"SLI\", \"service level objective\", \"Google SRE workbook\", \"multi-window burn-rate alert\", or any reliability-target question. Ships SLO designer, error-budget calculator with multi-window burn-rate thresholds, and SLO reviewer that catches the common bugs (target too aggressive, window too short, conflicting SLOs, no SLI definition). 4 references on SLO principles + SLI design + error budget math + composition with feature-flags-architect/chaos-engineering/kubernetes-operator. NOT a generic observability skill \u2014 specifically the SLO discipline."
     },
     {
       "name": "spec-driven-workflow",
@@ -1121,7 +1151,7 @@
       "description": "Software engineering and technical skills"
     },
     "engineering-advanced": {
-      "count": 35,
+      "count": 40,
       "source": "../../engineering",
       "description": "Advanced engineering skills - agents, RAG, MCP, CI/CD, databases, observability"
     },
