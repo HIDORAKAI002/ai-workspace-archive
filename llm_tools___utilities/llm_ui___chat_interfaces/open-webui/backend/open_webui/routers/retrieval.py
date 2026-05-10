@@ -260,22 +260,6 @@ class SearchForm(BaseModel):
     queries: List[str]
 
 
-@router.get('/')
-async def get_status(request: Request):
-    return {
-        'status': True,
-        'CHUNK_SIZE': request.app.state.config.CHUNK_SIZE,
-        'CHUNK_OVERLAP': request.app.state.config.CHUNK_OVERLAP,
-        'RAG_TEMPLATE': request.app.state.config.RAG_TEMPLATE,
-        'RAG_EMBEDDING_ENGINE': request.app.state.config.RAG_EMBEDDING_ENGINE,
-        'RAG_EMBEDDING_MODEL': request.app.state.config.RAG_EMBEDDING_MODEL,
-        'RAG_RERANKING_MODEL': request.app.state.config.RAG_RERANKING_MODEL,
-        'RAG_EMBEDDING_BATCH_SIZE': request.app.state.config.RAG_EMBEDDING_BATCH_SIZE,
-        'ENABLE_ASYNC_EMBEDDING': request.app.state.config.ENABLE_ASYNC_EMBEDDING,
-        'RAG_EMBEDDING_CONCURRENT_REQUESTS': request.app.state.config.RAG_EMBEDDING_CONCURRENT_REQUESTS,
-    }
-
-
 @router.get('/embedding')
 async def get_embedding_config(request: Request, user=Depends(get_admin_user)):
     return {
@@ -1583,6 +1567,8 @@ async def process_file(
 
             if collection_name is None:
                 collection_name = f'file-{file.id}'
+            else:
+                await _validate_collection_access([collection_name], user, access_type='write')
 
             if form_data.content:
                 # Update the content in the file
@@ -2632,6 +2618,9 @@ async def process_files_batch(
     """
 
     collection_name = form_data.collection_name
+
+    if collection_name:
+        await _validate_collection_access([collection_name], user, access_type='write')
 
     file_results: List[BatchProcessFilesResult] = []
     file_errors: List[BatchProcessFilesResult] = []
