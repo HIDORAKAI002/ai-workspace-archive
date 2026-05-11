@@ -94,6 +94,7 @@ type PreparedCore = {
   simpleLineWalkFastPath: boolean // Normal text can use the simpler old line walker across all layout APIs
   segLevels: Int8Array | null // Rich-path bidi metadata for custom rendering; layout() never reads it
   breakableFitAdvances: (number[] | null)[] // Per-grapheme fit advances for breakable segments, else null
+  breakablePreferredBreaks: (number[] | null)[] // Preferred grapheme break ends inside breakable segments, else null
   letterSpacing: number // Extra advance between rendered graphemes on the same line
   spacingGraphemeCounts: number[] // Rendered grapheme counts for letter-spacing gaps; empty when letterSpacing is 0
   discretionaryHyphenWidth: number // Visible width added when a soft hyphen is chosen as the break
@@ -175,6 +176,7 @@ function createEmptyPrepared(includeSegments: boolean): InternalPreparedText | P
       simpleLineWalkFastPath: true,
       segLevels: null,
       breakableFitAdvances: [],
+      breakablePreferredBreaks: [],
       letterSpacing: 0,
       spacingGraphemeCounts: [],
       discretionaryHyphenWidth: 0,
@@ -191,6 +193,7 @@ function createEmptyPrepared(includeSegments: boolean): InternalPreparedText | P
     simpleLineWalkFastPath: true,
     segLevels: null,
     breakableFitAdvances: [],
+    breakablePreferredBreaks: [],
     letterSpacing: 0,
     spacingGraphemeCounts: [],
     discretionaryHyphenWidth: 0,
@@ -355,6 +358,30 @@ function countRenderedSpacingGraphemes(
   return count
 }
 
+function isPreferredBreakGrapheme(grapheme: string): boolean {
+  return (
+    grapheme === '-' ||
+    grapheme === '\u058A' ||
+    grapheme === '\u2010' ||
+    grapheme === '\u2012' ||
+    grapheme === '\u2013' ||
+    grapheme === '\u2014'
+  )
+}
+
+function getBreakablePreferredBreaks(text: string): number[] | null {
+  if (!/[-\u058A\u2010\u2012\u2013\u2014]/u.test(text)) return null
+
+  const breaks: number[] = []
+  let graphemeIndex = 0
+  for (const gs of getSharedGraphemeSegmenter().segment(text)) {
+    graphemeIndex++
+    if (isPreferredBreakGrapheme(gs.segment)) breaks.push(graphemeIndex)
+  }
+
+  return breaks.length === 0 ? null : breaks
+}
+
 function addInternalLetterSpacing(width: number, graphemeCount: number, letterSpacing: number): number {
   return graphemeCount > 1 ? width + (graphemeCount - 1) * letterSpacing : width
 }
@@ -387,6 +414,7 @@ function measureAnalysis(
   let simpleLineWalkFastPath = analysis.chunks.length <= 1 && !hasLetterSpacing
   const segStarts = includeSegments ? [] as number[] : null
   const breakableFitAdvances: (number[] | null)[] = []
+  const breakablePreferredBreaks: (number[] | null)[] = []
   const spacingGraphemeCounts: number[] = []
   const segments = includeSegments ? [] as string[] : null
   const preparedStartByAnalysisIndex = Array.from<number>({ length: analysis.len })
@@ -399,6 +427,7 @@ function measureAnalysis(
     kind: SegmentBreakKind,
     start: number,
     breakableFitAdvance: number[] | null,
+    breakablePreferredBreak: number[] | null,
     spacingGraphemeCount: number,
   ): void {
     if (kind !== 'text' && kind !== 'space' && kind !== 'zero-width-break') {
@@ -410,6 +439,7 @@ function measureAnalysis(
     kinds.push(kind)
     segStarts?.push(start)
     breakableFitAdvances.push(breakableFitAdvance)
+    breakablePreferredBreaks.push(breakablePreferredBreak)
     if (hasLetterSpacing) spacingGraphemeCounts.push(spacingGraphemeCount)
     if (segments !== null) segments.push(text)
   }
@@ -459,6 +489,10 @@ function measureAnalysis(
         emojiCorrection,
         fitMode,
       )
+      const preferredBreaks =
+        fitAdvances === null || wordBreak === 'keep-all'
+          ? null
+          : getBreakablePreferredBreaks(text)
       pushMeasuredSegment(
         text,
         width,
@@ -467,6 +501,7 @@ function measureAnalysis(
         kind,
         start,
         fitAdvances,
+        preferredBreaks,
         spacingGraphemeCount,
       )
       return
@@ -479,6 +514,7 @@ function measureAnalysis(
       lineEndPaintAdvance,
       kind,
       start,
+      null,
       null,
       spacingGraphemeCount,
     )
@@ -500,13 +536,14 @@ function measureAnalysis(
         segKind,
         segStart,
         null,
+        null,
         0,
       )
       continue
     }
 
     if (segKind === 'hard-break') {
-      pushMeasuredSegment(segText, 0, 0, 0, segKind, segStart, null, 0)
+      pushMeasuredSegment(segText, 0, 0, 0, segKind, segStart, null, null, 0)
       continue
     }
 
@@ -518,6 +555,7 @@ function measureAnalysis(
         0,
         segKind,
         segStart,
+        null,
         null,
         hasLetterSpacing ? countRenderedSpacingGraphemes(segText, segKind) : 0,
       )
@@ -559,6 +597,7 @@ function measureAnalysis(
       simpleLineWalkFastPath,
       segLevels,
       breakableFitAdvances,
+      breakablePreferredBreaks,
       letterSpacing,
       spacingGraphemeCounts,
       discretionaryHyphenWidth,
@@ -575,6 +614,7 @@ function measureAnalysis(
     simpleLineWalkFastPath,
     segLevels,
     breakableFitAdvances,
+    breakablePreferredBreaks,
     letterSpacing,
     spacingGraphemeCounts,
     discretionaryHyphenWidth,

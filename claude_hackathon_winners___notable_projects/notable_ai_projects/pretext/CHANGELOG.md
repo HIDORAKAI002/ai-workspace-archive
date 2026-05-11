@@ -10,13 +10,14 @@
 ### Fixed
 
 - `{ wordBreak: 'keep-all' }` now handles no-space mixed Latin, numeric, and CJK text more like browsers.
-- No-space punctuation chains now stay together for non-ASCII word-like text too, instead of only ASCII words.
+- No-space punctuation and symbol chains now stay together for non-ASCII word-like text too, instead of only ASCII words (#169).
 - Opening punctuation such as `¡`, `¿`, German low quotes, and `⸘` now stays with the following word instead of dangling at line end (#165).
 - Numeric prefix/postfix symbols like `$`, `%`, `€`, `+`, `−`, and `°` now stay attached to adjacent text the way browser line breaking does (#105).
 - Soft-hyphen breaks now stay at the soft-hyphen insertion point instead of pulling post-hyphen graphemes onto the broken line (#162).
 - Line geometry now preserves browser-style terminal letter spacing, including rich-inline item boundaries and visible soft-hyphen breaks (#171).
 - Rich-inline item boundaries no longer overflow the requested width after a forced-progress break (#132).
 - The markdown chat demo now drops parsed link URLs unless they resolve to HTTP(S) hrefs (#168).
+- Overlong hyphenated runs now prefer browser-like dash breakpoints before falling back to emergency grapheme breaks (#89).
 
 ## 0.0.6 - 2026-04-22
 

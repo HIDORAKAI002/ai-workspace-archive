@@ -8,6 +8,7 @@ import {
   KEEP_ALL_ORACLE_CASES,
   LETTER_SPACING_ORACLE_CASES,
   PRE_WRAP_ORACLE_CASES,
+  SYMBOL_ORACLE_CASES,
   type ProbeOracleCase,
 } from '../src/test-data.ts'
 import {
@@ -208,6 +209,12 @@ function getProbeBatchSpec(name: string | null): ProbeBatchSpec | null {
         title: 'Pre-wrap',
         cases: PRE_WRAP_ORACLE_CASES,
         defaults: { whiteSpace: 'pre-wrap', method: 'span' },
+      }
+    case 'symbol-runs':
+      return {
+        title: 'Symbol runs',
+        cases: SYMBOL_ORACLE_CASES,
+        defaults: {},
       }
     case 'keep-all':
       return {

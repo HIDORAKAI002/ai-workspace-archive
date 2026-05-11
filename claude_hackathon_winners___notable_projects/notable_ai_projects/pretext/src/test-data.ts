@@ -314,6 +314,36 @@ export const PRE_WRAP_ORACLE_CASES: readonly ProbeOracleCase[] = [
   },
 ]
 
+export const SYMBOL_ORACLE_CASES: readonly ProbeOracleCase[] = [
+  {
+    label: 'ascii symbols inside long words',
+    text: 'aaaaaaaaaaaaaaaa!bbbbbbbbbbbbbbbb aaaaaaaaaaaaaaaa/bbbbbbbbbbbbbbbb aaaaaaaaaaaaaaaa|bbbbbbbbbbbbbbbb',
+    width: 150,
+    font: '16px Helvetica',
+    lineHeight: 19,
+    method: 'span',
+    browsers: ['chrome', 'safari'],
+  },
+  {
+    label: 'unicode symbols inside long words',
+    text: 'aaaaaaaaaaaaaaaa♂bbbbbbbbbbbbbbbb aaaaaaaaaaaaaaaa╥bbbbbbbbbbbbbbbb aaaaaaaaaaaaaaaa⁄bbbbbbbbbbbbbbbb',
+    width: 150,
+    font: '16px Helvetica',
+    lineHeight: 19,
+    method: 'span',
+    browsers: ['chrome', 'safari'],
+  },
+  {
+    label: 'browser break symbols stay breakable',
+    text: 'aaaaaaaaaaaaaaaa?bbbbbbbbbbbbbbbb aaaaaaaaaaaaaaaa-bbbbbbbbbbbbbbbb aaaaaaaaaaaaaaaa🙂bbbbbbbbbbbbbbbb',
+    width: 150,
+    font: '16px Helvetica',
+    lineHeight: 19,
+    method: 'span',
+    browsers: ['chrome', 'safari'],
+  },
+]
+
 export const KEEP_ALL_ORACLE_CASES: readonly ProbeOracleCase[] = [
   {
     label: 'mixed latin plus cjk',
