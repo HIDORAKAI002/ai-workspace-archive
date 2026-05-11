@@ -38,6 +38,19 @@ Rules:
 - Match the problem, not the project
 - Examples: `docker-arm64-fixes`, `api-timeout-patterns`, `pnpm-monorepo-setup`
 
+**Reserved fragments — refuse to write any skill whose name contains:**
+- `claude` (any position)
+- `anthropic` (any position)
+
+These are reserved by the Claude Code skill spec. For skills about Claude
+Code itself, use the `cc-` prefix:
+- ❌ `claude-code-settings` → ✅ `cc-settings`
+- ❌ `claude-mcp-tools` → ✅ `cc-mcp-tools`
+
+Validate the proposed `name` against this rule **before** creating any file.
+If the input pattern implies a reserved fragment, rewrite to `cc-*` and
+surface the rename in your report.
+
 ### 3. Create SKILL.md
 
 Required structure:
@@ -101,6 +114,7 @@ Before delivering, verify:
 
 - [ ] YAML frontmatter is valid (`name` and `description` present)
 - [ ] `name` in frontmatter matches folder name
+- [ ] `name` does NOT contain reserved fragments `claude` or `anthropic`
 - [ ] Description includes "Use when:" trigger
 - [ ] No project-specific paths, URLs, or credentials
 - [ ] Code examples are complete and runnable

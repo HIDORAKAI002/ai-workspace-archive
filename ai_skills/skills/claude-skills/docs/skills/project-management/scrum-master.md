@@ -8,7 +8,7 @@ description: "Advanced Scrum Master skill for data-driven agile team analysis an
 <div class="page-meta" markdown>
 <span class="meta-badge">:material-clipboard-check-outline: Project Management</span>
 <span class="meta-badge">:material-identifier: `scrum-master`</span>
-<span class="meta-badge">:material-github: <a href="https://github.com/alirezarezvani/claude-skills/tree/main/project-management/scrum-master/SKILL.md">Source</a></span>
+<span class="meta-badge">:material-github: <a href="https://github.com/alirezarezvani/claude-skills/tree/main/project-management/skills/scrum-master/SKILL.md">Source</a></span>
 </div>
 
 <div class="install-banner" markdown>

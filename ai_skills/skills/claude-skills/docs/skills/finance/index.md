@@ -17,4 +17,22 @@ description: "4 finance skills — finance agent skill and Claude Code plugin fo
 
 <div class="grid cards" markdown>
 
+-   **[Finance Skills](finance-skills.md)**
+
+    ---
+
+    Production-ready financial analysis skill for strategic decision-making.
+
+-   **[Financial Analyst Skill](financial-analyst.md)**
+
+    ---
+
+    Production-ready financial analysis toolkit providing ratio analysis, DCF valuation, budget variance analysis, and ro...
+
+-   **[SaaS Metrics Coach](saas-metrics-coach.md)**
+
+    ---
+
+    Act as a senior SaaS CFO advisor. Take raw business numbers, calculate key health metrics, benchmark against industry...
+
 </div>

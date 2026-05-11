@@ -305,7 +305,7 @@ CHECKS = {
     "SEC-07": CheckDef("SEC-07", "Rate limiting on auth and sensitive endpoints", Severity.HIGH, "SEC"),
     "SEC-08": CheckDef("SEC-08", "Passwords hashed with bcrypt or argon2", Severity.CRITICAL, "SEC"),
     "SEC-11": CheckDef("SEC-11", "CSP headers configured", Severity.HIGH, "SEC"),
-    "SEC-13": CheckDef("SEC-13", "No eval() or dangerouslySetInnerHTML without sanitization", Severity.HIGH, "SEC", stack="js"),
+    "SEC-13": CheckDef("SEC-13", "No eval() or dangerouslySetInnerHTML without sanitization", Severity.HIGH, "SEC", stack="js"),  # noqa: SEC-AUDITOR
     "SEC-14": CheckDef("SEC-14", "No sensitive data in URLs or logs", Severity.HIGH, "SEC"),
     "SEC-17": CheckDef("SEC-17", "No hardcoded secrets in .env committed to repo", Severity.CRITICAL, "SEC"),
     "SEC-18": CheckDef("SEC-18", ".env files listed in .gitignore", Severity.CRITICAL, "SEC"),
@@ -495,9 +495,9 @@ def check_sec13(root, stack):
                 unsafe_dsi.append(f)
         except Exception:
             unsafe_dsi.append(f)
-    all_findings = eval_findings + unsafe_dsi
+    all_findings = eval_findings + unsafe_dsi  # noqa: SEC-AUDITOR
     if all_findings:
-        return Result(c, Status.FAIL, "Unsafe eval() or unsanitized dangerouslySetInnerHTML", all_findings)
+        return Result(c, Status.FAIL, "Unsafe eval() or unsanitized dangerouslySetInnerHTML", all_findings)  # noqa: SEC-AUDITOR
     return Result(c, Status.PASS)
 
 
