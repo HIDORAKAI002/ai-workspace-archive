@@ -2241,7 +2241,7 @@ describe("host-hook fixture plugin contract", () => {
         previousRegistry: previousFixture.registry.registry,
         nextRegistry: replacementFixture.registry.registry,
       }),
-    ).resolves.toMatchObject({ failures: [] });
+    ).resolves.toEqual({ cleanupCount: 0, failures: [] });
     expect(cleanupEvents).toEqual([]);
     expect(listPluginSessionSchedulerJobs("scheduler-preserve")).toEqual([
       {

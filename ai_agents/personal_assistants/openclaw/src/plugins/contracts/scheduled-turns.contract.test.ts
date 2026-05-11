@@ -534,14 +534,25 @@ describe("plugin scheduled turns", () => {
     expect(registry.plugins.find((plugin) => plugin.id === "loader-scheduler")?.status).toBe(
       "loaded",
     );
-    await vi.waitFor(() =>
-      expect(workflowMocks.cronAdd).toHaveBeenCalledWith(
-        expect.objectContaining({
-          sessionTarget: "session:agent:main:main",
-          payload: { kind: "agentTurn", message: "wake" },
-        }),
-      ),
-    );
+    await vi.waitFor(() => expect(workflowMocks.cronAdd).toHaveBeenCalledTimes(1));
+    const { name, schedule, ...stableCronAddBody } = getCronAddBody();
+    expect(typeof name).toBe("string");
+    expect(name.startsWith("plugin:loader-scheduler:agent:main:main:")).toBe(true);
+    if (schedule.kind !== "at") {
+      throw new Error(`Expected one-shot scheduled turn, got ${schedule.kind}`);
+    }
+    expect(typeof schedule.at).toBe("string");
+    expect(stableCronAddBody).toEqual({
+      enabled: true,
+      sessionTarget: "session:agent:main:main",
+      payload: { kind: "agentTurn", message: "wake" },
+      deleteAfterRun: true,
+      wakeMode: "now",
+      delivery: {
+        mode: "announce",
+        channel: "last",
+      },
+    });
     expect(listPluginSessionSchedulerJobs("loader-scheduler")).toEqual([
       {
         id: "loader-scheduled-job",
@@ -1130,7 +1141,12 @@ describe("plugin scheduled turns", () => {
         message: "wake",
         delayMs: 10,
       }),
-    ).resolves.toMatchObject({ id: "first-cron-job" });
+    ).resolves.toEqual({
+      id: "first-cron-job",
+      pluginId: "scheduler-plugin",
+      sessionKey: "agent:main:main",
+      kind: "session-turn",
+    });
     liveCron = secondCron;
     await expect(
       capturedApi?.session.workflow.scheduleSessionTurn({
@@ -1138,7 +1154,12 @@ describe("plugin scheduled turns", () => {
         message: "wake again",
         delayMs: 10,
       }),
-    ).resolves.toMatchObject({ id: "second-cron-job" });
+    ).resolves.toEqual({
+      id: "second-cron-job",
+      pluginId: "scheduler-plugin",
+      sessionKey: "agent:main:main",
+      kind: "session-turn",
+    });
     await expect(
       capturedApi?.session.workflow.unscheduleSessionTurnsByTag({
         sessionKey: "agent:main:main",
