@@ -233,6 +233,74 @@ function runTests() {
     }
   })) passed++; else failed++;
 
+  if (test('installs JoyCode profile through managed install-state', () => {
+    const homeDir = createTempDir('install-apply-home-');
+    const projectDir = createTempDir('install-apply-project-');
+
+    try {
+      const result = run(['--target', 'joycode', '--profile', 'minimal'], { cwd: projectDir, homeDir });
+      assert.strictEqual(result.code, 0, result.stderr);
+
+      assert.ok(fs.existsSync(path.join(projectDir, '.joycode', 'rules', 'common-coding-style.md')));
+      assert.ok(!fs.existsSync(path.join(projectDir, '.joycode', 'rules', 'common', 'coding-style.md')));
+      assert.ok(fs.existsSync(path.join(projectDir, '.joycode', 'agents', 'architect.md')));
+      assert.ok(fs.existsSync(path.join(projectDir, '.joycode', 'commands', 'plan.md')));
+      assert.ok(fs.existsSync(path.join(projectDir, '.joycode', 'skills', 'tdd-workflow', 'SKILL.md')));
+      assert.ok(fs.existsSync(path.join(projectDir, '.joycode', 'mcp-configs', 'mcp-servers.json')));
+      assert.ok(!fs.existsSync(path.join(projectDir, '.joycode', 'hooks')));
+
+      const statePath = path.join(projectDir, '.joycode', 'ecc-install-state.json');
+      const state = readJson(statePath);
+      assert.strictEqual(state.target.id, 'joycode-project');
+      assert.deepStrictEqual(state.request.modules, []);
+      assert.strictEqual(state.request.profile, 'minimal');
+      assert.ok(state.resolution.selectedModules.includes('workflow-quality'));
+      assert.ok(
+        state.operations.some(operation => (
+          operation.destinationPath.endsWith(path.join('.joycode', 'skills', 'tdd-workflow', 'SKILL.md'))
+        )),
+        'Should record JoyCode skill file operation'
+      );
+    } finally {
+      cleanup(homeDir);
+      cleanup(projectDir);
+    }
+  })) passed++; else failed++;
+
+  if (test('installs Qwen profile through managed home install-state', () => {
+    const homeDir = createTempDir('install-apply-home-');
+    const projectDir = createTempDir('install-apply-project-');
+
+    try {
+      const result = run(['--target', 'qwen', '--profile', 'minimal'], { cwd: projectDir, homeDir });
+      assert.strictEqual(result.code, 0, result.stderr);
+
+      assert.ok(fs.existsSync(path.join(homeDir, '.qwen', 'QWEN.md')));
+      assert.ok(fs.existsSync(path.join(homeDir, '.qwen', 'rules', 'common', 'coding-style.md')));
+      assert.ok(fs.existsSync(path.join(homeDir, '.qwen', 'agents', 'architect.md')));
+      assert.ok(fs.existsSync(path.join(homeDir, '.qwen', 'commands', 'plan.md')));
+      assert.ok(fs.existsSync(path.join(homeDir, '.qwen', 'skills', 'tdd-workflow', 'SKILL.md')));
+      assert.ok(fs.existsSync(path.join(homeDir, '.qwen', 'mcp-configs', 'mcp-servers.json')));
+      assert.ok(!fs.existsSync(path.join(homeDir, '.qwen', 'hooks')));
+
+      const statePath = path.join(homeDir, '.qwen', 'ecc-install-state.json');
+      const state = readJson(statePath);
+      assert.strictEqual(state.target.id, 'qwen-home');
+      assert.deepStrictEqual(state.request.modules, []);
+      assert.strictEqual(state.request.profile, 'minimal');
+      assert.ok(state.resolution.selectedModules.includes('workflow-quality'));
+      assert.ok(
+        state.operations.some(operation => (
+          operation.destinationPath.endsWith(path.join('.qwen', 'skills', 'tdd-workflow', 'SKILL.md'))
+        )),
+        'Should record Qwen skill file operation'
+      );
+    } finally {
+      cleanup(homeDir);
+      cleanup(projectDir);
+    }
+  })) passed++; else failed++;
+
   if (test('supports dry-run without mutating the target project', () => {
     const homeDir = createTempDir('install-apply-home-');
     const projectDir = createTempDir('install-apply-project-');

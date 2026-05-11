@@ -48,6 +48,7 @@ function buildExpectedPublishPaths(repoRoot) {
     "scripts/doctor.js",
     "scripts/status.js",
     "scripts/sessions-cli.js",
+    "scripts/work-items.js",
     "scripts/install-apply.js",
     "scripts/install-plan.js",
     "scripts/list-installed.js",
@@ -110,7 +111,9 @@ function main() {
       for (const requiredPath of [
         "scripts/catalog.js",
         "scripts/consult.js",
+        "scripts/work-items.js",
         ".gemini/GEMINI.md",
+        ".qwen/QWEN.md",
         ".claude-plugin/plugin.json",
         ".codex-plugin/plugin.json",
         "schemas/install-state.schema.json",
