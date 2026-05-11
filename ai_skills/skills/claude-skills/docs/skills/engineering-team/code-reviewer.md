@@ -8,7 +8,7 @@ description: "Code review automation for TypeScript, JavaScript, Python, Go, Swi
 <div class="page-meta" markdown>
 <span class="meta-badge">:material-code-braces: Engineering - Core</span>
 <span class="meta-badge">:material-identifier: `code-reviewer`</span>
-<span class="meta-badge">:material-github: <a href="https://github.com/alirezarezvani/claude-skills/tree/main/engineering-team/code-reviewer/SKILL.md">Source</a></span>
+<span class="meta-badge">:material-github: <a href="https://github.com/alirezarezvani/claude-skills/tree/main/engineering-team/skills/code-reviewer/SKILL.md">Source</a></span>
 </div>
 
 <div class="install-banner" markdown>

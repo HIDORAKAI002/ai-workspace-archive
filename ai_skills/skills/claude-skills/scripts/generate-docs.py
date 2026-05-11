@@ -45,8 +45,15 @@ def find_skill_files():
         skill_name = parts[-1]  # last directory component
         skill_path = os.path.join(root, "SKILL.md")
         # Determine nesting (e.g., playwright-pro/skills/generate)
-        is_sub_skill = len(parts) > 2
-        parent = parts[1] if len(parts) > 2 else None
+        # Post-restructure: <domain>/skills/<name>/ is treated as a top-level skill
+        # (the umbrella plugin's canonical layout). Only nested *sub-skills* of a
+        # standalone plugin (e.g. playwright-pro/skills/generate) are sub-skills.
+        if len(parts) >= 3 and parts[1] == "skills":
+            is_sub_skill = False
+            parent = None
+        else:
+            is_sub_skill = len(parts) > 2
+            parent = parts[1] if len(parts) > 2 else None
 
         if domain_key not in skills:
             skills[domain_key] = []

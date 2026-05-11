@@ -103,7 +103,7 @@ def test_struct_config_persmissive_cached_method() -> None:
             calls["plus"] += 1
             return self.x + self.y
 
-    plus_config = PlusConfig(x=1, y=2, z=10)  # type: ignore
+    plus_config = PlusConfig(x=1, y=2, z=10)
 
     assert plus_config.plus() == 3
     assert calls["plus"] == 1
@@ -809,7 +809,7 @@ def test_literal_in_resource_config() -> None:
     a_job.execute_in_process(resources={"my_resource": MyResource(a_literal="bar")})
 
     with pytest.raises(pydantic.ValidationError):
-        a_job.execute_in_process(resources={"my_resource": MyResource(a_literal="baz")})  # type: ignore
+        a_job.execute_in_process(resources={"my_resource": MyResource(a_literal="baz")})
 
 
 def test_enum_complex() -> None:
@@ -997,8 +997,8 @@ def test_permissive_extra_field_via_dot():
     class ExtraConfig(PermissiveConfig):
         foo: int
 
-    conf = ExtraConfig(foo=10, bar="hello", baz=[1, 2, 3])  # type: ignore
-    conf1 = ExtraConfig(foo=10, bar="hello", baz=[1, 2, 3])  # type: ignore
+    conf = ExtraConfig(foo=10, bar="hello", baz=[1, 2, 3])
+    conf1 = ExtraConfig(foo=10, bar="hello", baz=[1, 2, 3])
     assert conf == conf1
     assert conf.foo == 10
     assert conf.bar == "hello"

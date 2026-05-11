@@ -447,6 +447,44 @@ def test_dynamic_dimension_in_multipartitioned_asset():
         ).success
 
 
+def test_io_manager_output_context_with_time_and_dynamic_multipartition():
+    # Regression test for https://github.com/dagster-io/dagster/issues/33815:
+    # OutputContext.asset_partition_key_range (and asset_partitions_time_window which calls it)
+    # must establish a partition_loading_context so DynamicPartitionsDefinition can resolve keys.
+    multipartitions_def = dg.MultiPartitionsDefinition(
+        {
+            "date": dg.DailyPartitionsDefinition(start_date="2020-01-01"),
+            "dynamic": dg.DynamicPartitionsDefinition(name="advertisers"),
+        }
+    )
+
+    class MyIOManager(dg.IOManager):
+        def handle_output(self, context, obj):
+            assert context.asset_partition_key_range == dg.PartitionKeyRange(
+                "2020-01-01|advertiser1", "2020-01-01|advertiser1"
+            )
+            assert context.asset_partitions_time_window == dg.TimeWindow(
+                start=create_datetime(year=2020, month=1, day=1),
+                end=create_datetime(year=2020, month=1, day=2),
+            )
+
+        def load_input(self, context):
+            return 1
+
+    @dg.asset(partitions_def=multipartitions_def, io_manager_key="my_io_manager")
+    def my_asset(context):
+        return 1
+
+    with dg.instance_for_test() as instance:
+        instance.add_dynamic_partitions("advertisers", ["advertiser1"])
+        assert dg.materialize(
+            [my_asset],
+            partition_key=dg.MultiPartitionKey({"date": "2020-01-01", "dynamic": "advertiser1"}),
+            resources={"my_io_manager": MyIOManager()},
+            instance=instance,
+        ).success
+
+
 def test_invalid_dynamic_partitions_def_in_multipartitioned():
     with pytest.raises(
         dg.DagsterInvalidDefinitionError,

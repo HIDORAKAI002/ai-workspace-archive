@@ -372,9 +372,10 @@ class InputContext:
                 "Tried to access asset_partition_key_range, but the asset is not partitioned.",
             )
 
-        partition_key_ranges = subset.get_partition_key_ranges(
-            self._asset_partitions_def  # ty: ignore[invalid-argument-type]
-        )
+        with partition_loading_context(dynamic_partitions_store=self._instance):
+            partition_key_ranges = subset.get_partition_key_ranges(
+                self._asset_partitions_def  # ty: ignore[invalid-argument-type]
+            )
         if len(partition_key_ranges) != 1:
             check.failed(
                 "Tried to access asset_partition_key_range, but there are "

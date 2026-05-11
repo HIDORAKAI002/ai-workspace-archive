@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.40.0 (2026-05-11)
+
+Full Changelog: [v1.39.0...v1.40.0](https://github.com/anthropics/anthropic-sdk-ruby/compare/v1.39.0...v1.40.0)
+
+### Features
+
+* **aws:** Add AWS client for Claude Platform on AWS ([3c24797](https://github.com/anthropics/anthropic-sdk-ruby/commit/3c2479737666f61f1096b07c30412fffdfabe133))
+
+
+### Bug Fixes
+
+* **aws,bedrock:** materialize streamed request body before SigV4 signing ([#927](https://github.com/anthropics/anthropic-sdk-ruby/issues/927)) ([5b6d9d4](https://github.com/anthropics/anthropic-sdk-ruby/commit/5b6d9d4bfcb2a9e3fcc14a5683f6e25a205791a2))
+
 ## 1.39.0 (2026-05-06)
 
 Full Changelog: [v1.38.0...v1.39.0](https://github.com/anthropics/anthropic-sdk-ruby/compare/v1.38.0...v1.39.0)

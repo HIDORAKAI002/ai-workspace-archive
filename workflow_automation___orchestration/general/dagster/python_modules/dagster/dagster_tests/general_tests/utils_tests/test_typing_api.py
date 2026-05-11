@@ -193,7 +193,7 @@ def test_flatten_unions() -> None:
         float,
         int,
     }
-    assert flatten_unions(typing.Any) == {typing.Any}  # type: ignore
+    assert flatten_unions(typing.Any) == {typing.Any}
 
     # Python 3.10+ pipe syntax (creates types.UnionType instead of typing.Union)
     assert flatten_unions(str | float) == {str, float}

@@ -661,7 +661,7 @@ def test_compose_nothing():
         pass
 
     @dg.graph(ins={"start": dg.GraphIn()})
-    def _compose(start: Nothing):  # type: ignore
+    def _compose(start: Nothing):
         go(start)
 
 

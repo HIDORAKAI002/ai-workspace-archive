@@ -186,7 +186,7 @@ def _check_telemetry_instance_param(
 ) -> DagsterInstance:
     if "instance" in kwargs:
         return check.inst_param(
-            kwargs["instance"],  # type: ignore
+            kwargs["instance"],
             "instance",
             DagsterInstance,
             "'instance' parameter passed as keyword argument must be a DagsterInstance",
@@ -194,7 +194,7 @@ def _check_telemetry_instance_param(
     else:
         check.invariant(len(args) > instance_index)
         return check.inst_param(
-            args[instance_index],  # type: ignore
+            args[instance_index],
             "instance",
             DagsterInstance,
             f"'instance' argument at position {instance_index} must be a DagsterInstance",

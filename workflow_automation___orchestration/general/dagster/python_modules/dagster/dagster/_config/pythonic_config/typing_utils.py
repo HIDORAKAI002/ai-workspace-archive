@@ -79,7 +79,7 @@ class LateBoundTypesForResourceTypeChecking:
 
 
 @dataclass_transform(kw_only_default=True, field_specifiers=(Field,))
-class BaseConfigMeta(ModelMetaclass):  # type: ignore
+class BaseConfigMeta(ModelMetaclass):
     def __new__(cls, name, bases, namespaces, **kwargs) -> Any:
         # Materialize lazy annotations for Python 3.14+ before Pydantic sees them
         annotations = _materialize_annotations_for_pydantic(namespaces)

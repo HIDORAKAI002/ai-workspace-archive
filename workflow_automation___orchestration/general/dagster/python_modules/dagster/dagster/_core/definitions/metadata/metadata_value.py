@@ -537,7 +537,7 @@ class TextMetadataValue(MetadataValue[str]):
         text (Optional[str]): The text data.
     """
 
-    text: PublicAttr[str | None] = ""  # type: ignore
+    text: PublicAttr[str | None] = ""
 
     @public
     @property
@@ -556,7 +556,7 @@ class UrlMetadataValue(MetadataValue[str]):
         url (Optional[str]): The URL as a string.
     """
 
-    url: PublicAttr[str | None] = ""  # type: ignore
+    url: PublicAttr[str | None] = ""
 
     @public
     @property
@@ -592,7 +592,7 @@ class PathMetadataValue(MetadataValue[str], IHaveNew):
 
     @public
     @property
-    def path(self) -> str:  # type: ignore
+    def path(self) -> str:
         return self.fspath
 
 
@@ -623,7 +623,7 @@ class NotebookMetadataValue(MetadataValue[str], IHaveNew):
 
     @public
     @property
-    def path(self) -> str:  # type: ignore
+    def path(self) -> str:
         return self.fspath
 
 
@@ -736,7 +736,7 @@ class FloatMetadataValue(MetadataValue[float | None]):
         value (Optional[float]): The float value.
     """
 
-    value: PublicAttr[float | None]  # type: ignore
+    value: PublicAttr[float | None]
 
 
 @whitelist_for_serdes(storage_name="IntMetadataEntryData")
@@ -749,7 +749,7 @@ class IntMetadataValue(MetadataValue[int | None]):
         value (Optional[int]): The int value.
     """
 
-    value: PublicAttr[int | None]  # type: ignore
+    value: PublicAttr[int | None]
 
 
 @whitelist_for_serdes(storage_name="BoolMetadataEntryData")
@@ -761,7 +761,7 @@ class BoolMetadataValue(MetadataValue[bool | None]):
         value (Optional[bool]): The bool value.
     """
 
-    value: PublicAttr[bool | None]  # type: ignore
+    value: PublicAttr[bool | None]
 
 
 @public
@@ -774,7 +774,7 @@ class TimestampMetadataValue(MetadataValue[float]):
         value (float): Seconds since the unix epoch.
     """
 
-    value: PublicAttr[float]  # type: ignore
+    value: PublicAttr[float]
 
 
 @whitelist_for_serdes(storage_name="DagsterPipelineRunMetadataEntryData")
@@ -963,7 +963,7 @@ class TableColumnLineageMetadataValue(
 
     @public
     @property
-    def column_lineage(self) -> TableColumnLineage:  # type: ignore
+    def column_lineage(self) -> TableColumnLineage:
         return self.lineage
 
 
@@ -1018,7 +1018,7 @@ class PoolMetadataValue(
 
     @public
     @property
-    def pool(self) -> str:  # type: ignore
+    def pool(self) -> str:
         return self.name
 
 

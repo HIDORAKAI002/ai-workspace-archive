@@ -80,7 +80,8 @@ paths:
   - python_modules/libraries/dagster-hightouch
   - python_modules/libraries/dagster-polytomic
   - python_modules/libraries/dagster-mysql
-  - python_modules/dagster
+  # - python_modules/dagster
+  # - python_modules/dagster-graphql
   - python_modules/dagster-webserver
   - python_modules/dagster-pipes
   - python_modules/dagit

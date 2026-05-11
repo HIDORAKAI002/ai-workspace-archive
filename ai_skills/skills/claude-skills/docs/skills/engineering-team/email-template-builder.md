@@ -8,7 +8,7 @@ description: "Email Template Builder. Agent skill for Claude Code, Codex CLI, Ge
 <div class="page-meta" markdown>
 <span class="meta-badge">:material-code-braces: Engineering - Core</span>
 <span class="meta-badge">:material-identifier: `email-template-builder`</span>
-<span class="meta-badge">:material-github: <a href="https://github.com/alirezarezvani/claude-skills/tree/main/engineering-team/email-template-builder/SKILL.md">Source</a></span>
+<span class="meta-badge">:material-github: <a href="https://github.com/alirezarezvani/claude-skills/tree/main/engineering-team/skills/email-template-builder/SKILL.md">Source</a></span>
 </div>
 
 <div class="install-banner" markdown>

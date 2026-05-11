@@ -8,7 +8,7 @@ description: "Security audit and vulnerability scanner for AI agent skills befor
 <div class="page-meta" markdown>
 <span class="meta-badge">:material-rocket-launch: Engineering - POWERFUL</span>
 <span class="meta-badge">:material-identifier: `skill-security-auditor`</span>
-<span class="meta-badge">:material-github: <a href="https://github.com/alirezarezvani/claude-skills/tree/main/engineering/skill-security-auditor/SKILL.md">Source</a></span>
+<span class="meta-badge">:material-github: <a href="https://github.com/alirezarezvani/claude-skills/tree/main/engineering/skills/skill-security-auditor/SKILL.md">Source</a></span>
 </div>
 
 <div class="install-banner" markdown>
@@ -160,7 +160,7 @@ done
 
 ## Threat Model Reference
 
-For the complete threat model, detection patterns, and known attack vectors against AI agent skills, see [references/threat-model.md](https://github.com/alirezarezvani/claude-skills/tree/main/engineering/skill-security-auditor/references/threat-model.md).
+For the complete threat model, detection patterns, and known attack vectors against AI agent skills, see [references/threat-model.md](https://github.com/alirezarezvani/claude-skills/tree/main/engineering/skills/skill-security-auditor/references/threat-model.md).
 
 ## Limitations
 

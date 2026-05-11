@@ -83,7 +83,7 @@ def test_invalid_config() -> None:
     with pytest.raises(
         ValidationError,
     ):
-        MyResource(foo="why")  # type: ignore
+        MyResource(foo="why")
 
 
 def test_caching_within_resource():
@@ -914,7 +914,7 @@ def test_from_resource_context_and_to_config_empty() -> None:
 
     @dg.resource(config_schema=NoConfigResource.to_config_schema())
     def string_resource_function_style(context: InitResourceContext) -> str:
-        return NoConfigResource.from_resource_context(context).get_string()  # type: ignore  # (??)
+        return NoConfigResource.from_resource_context(context).get_string()  # (??)
 
     assert string_resource_function_style(dg.build_init_resource_context()) == "foo"
 

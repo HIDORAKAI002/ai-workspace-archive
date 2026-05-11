@@ -86,7 +86,7 @@ def test_override_grpc_timeouts():
             "DAGSTER_GRPC_TIMEOUT_SECONDS": "75",
             "DAGSTER_SCHEDULE_GRPC_TIMEOUT_SECONDS": "120",
             "DAGSTER_SENSOR_GRPC_TIMEOUT_SECONDS": "400",
-            "DAGSTER_REPOSITORY_GRPC_TIMEOUT_SECONDS": None,  # pyright: ignore[reportArgumentType]  # ty: ignore[invalid-argument-type]
+            "DAGSTER_REPOSITORY_GRPC_TIMEOUT_SECONDS": None,  # pyright: ignore[reportArgumentType]
         }
     ):
         assert default_grpc_timeout() == 75

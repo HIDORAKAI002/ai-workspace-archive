@@ -5,7 +5,7 @@ All notable changes to the Claude Skills Library will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — Skill Expansion Phase 1+2+3+4 (+ ship-gate)
+## [2.4.5] - 2026-05-11 — Reliability Portfolio + Count-Truth Reconciliation
 
 ### Added — Engineering POWERFUL
 
@@ -22,16 +22,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Total skills:** 235 → 238 (+3 new engineering POWERFUL skills)
-- **Python tools:** 314 → 325
-- **References:** 435 → 447
-- **Slash commands:** 27 → 30
+- **Total skills:** 235 (v2.3.0 claim) → 246 (file-system truth via `find . -name SKILL.md` minus 4 distribution duplicates). +5 new skills this cycle (slo-architect, ship-gate, feature-flags-architect, kubernetes-operator, chaos-engineering); +6 discovered during #608/#609 reconciliation.
+- **Python tools:** 314 → 359 (`find . -path '*/scripts/*.py' | wc -l`)
+- **References:** 435 → 485 (`find . -path '*/references/*.md' | wc -l`)
+- **Agents:** 28 → 27 (file-system truth: 20 `cs-*` + 7 personas. Previous "30" miscounted README/TEMPLATE as agents)
+- **Slash commands:** 27 → 33 (`find commands -name '*.md' | wc -l`)
+- **Marketplace plugins:** 30 → 33 (registered in `.claude-plugin/marketplace.json`)
 - **engineering-advanced-skills** plugin: v2.3.3 → v2.4.2
 - **marketplace.json**: `feature-flags-architect`, `kubernetes-operator`, and `chaos-engineering` registered as standalone plugins
 
 ### Fixed
 
 - `tests/test_skill_integrity.py::TestScriptDirectories::test_scripts_dirs_have_python_files` — was rejecting valid skills shipping `.mjs`/`.js`/`.ts`/`.sh` scripts (e.g., `full-page-screenshot`). Now accepts any executable script extension while keeping the "scripts/ dir is non-empty" intent.
+- **#608, #609 — Count claims aligned to ground-truth.** Every metric in `CLAUDE.md`, `README.md`, `docs/`, `mkdocs.yml`, and `.claude-plugin/marketplace.json` now reproduces from a deterministic `find` or `python3 -c "import json"` command. Stale claims of "188 skills", "30 agents", "3 personas", "235 skills" (current-state) were replaced with file-system truth. Per-domain marketplace breakdown also reconciled: engineering-advanced 40→67 unique, engineering-core 32→51, marketing 44→45, c-level 28→34, product 13→17, finance 3→4. Domains ra-qm-team (14), project-management (9), business-growth (5) unchanged.
+- **skill-security-auditor** — self-skip false positives via `noqa` directive (the auditor was flagging its own scanner code).
 
 ## [2.2.0] - 2026-03-31
 

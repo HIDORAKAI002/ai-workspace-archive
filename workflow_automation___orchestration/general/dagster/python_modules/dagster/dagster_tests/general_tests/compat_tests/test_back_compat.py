@@ -175,7 +175,7 @@ def test_snapshot_0_7_6_pre_add_job_snapshot():
 
         with DagsterInstance.from_ref(InstanceRef.from_dir(test_dir)) as instance:
             with pytest.raises(
-                (db.exc.OperationalError, db.exc.ProgrammingError, db.exc.StatementError)  # pyright: ignore[reportAttributeAccessIssue]  # ty: ignore[unresolved-attribute]
+                (db.exc.OperationalError, db.exc.ProgrammingError, db.exc.StatementError)  # pyright: ignore[reportAttributeAccessIssue]
             ):
                 noop_job.execute_in_process(instance=instance)
 

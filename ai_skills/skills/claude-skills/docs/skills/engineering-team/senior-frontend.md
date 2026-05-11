@@ -8,7 +8,7 @@ description: "Frontend development skill for React, Next.js, TypeScript, and Tai
 <div class="page-meta" markdown>
 <span class="meta-badge">:material-code-braces: Engineering - Core</span>
 <span class="meta-badge">:material-identifier: `senior-frontend`</span>
-<span class="meta-badge">:material-github: <a href="https://github.com/alirezarezvani/claude-skills/tree/main/engineering-team/senior-frontend/SKILL.md">Source</a></span>
+<span class="meta-badge">:material-github: <a href="https://github.com/alirezarezvani/claude-skills/tree/main/engineering-team/skills/senior-frontend/SKILL.md">Source</a></span>
 </div>
 
 <div class="install-banner" markdown>

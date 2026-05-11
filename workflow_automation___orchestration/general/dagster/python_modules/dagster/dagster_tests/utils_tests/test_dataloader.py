@@ -134,7 +134,7 @@ def test_bad_load_fn():
         assert len(done) == 1
 
         with pytest.raises(TypeError):
-            done[0].result()  # pyright: ignore[reportIndexIssue]  # ty: ignore[invalid-key]
+            done[0].result()  # pyright: ignore[reportIndexIssue]
 
     asyncio.run(_test())
 

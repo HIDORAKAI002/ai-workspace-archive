@@ -8,7 +8,7 @@ description: "When the user wants to audit, review, or diagnose SEO issues on th
 <div class="page-meta" markdown>
 <span class="meta-badge">:material-bullhorn-outline: Marketing</span>
 <span class="meta-badge">:material-identifier: `seo-audit`</span>
-<span class="meta-badge">:material-github: <a href="https://github.com/alirezarezvani/claude-skills/tree/main/marketing-skill/seo-audit/SKILL.md">Source</a></span>
+<span class="meta-badge">:material-github: <a href="https://github.com/alirezarezvani/claude-skills/tree/main/marketing-skill/skills/seo-audit/SKILL.md">Source</a></span>
 </div>
 
 <div class="install-banner" markdown>
@@ -78,8 +78,8 @@ Same format as above
 
 ## References
 
-- [AI Writing Detection](https://github.com/alirezarezvani/claude-skills/tree/main/marketing-skill/seo-audit/references/ai-writing-detection.md): Common AI writing patterns to avoid (em dashes, overused phrases, filler words)
-- [AEO & GEO Patterns](https://github.com/alirezarezvani/claude-skills/tree/main/marketing-skill/seo-audit/references/aeo-geo-patterns.md): Content patterns optimized for answer engines and AI citation
+- [AI Writing Detection](https://github.com/alirezarezvani/claude-skills/tree/main/marketing-skill/skills/seo-audit/references/ai-writing-detection.md): Common AI writing patterns to avoid (em dashes, overused phrases, filler words)
+- [AEO & GEO Patterns](https://github.com/alirezarezvani/claude-skills/tree/main/marketing-skill/skills/seo-audit/references/aeo-geo-patterns.md): Content patterns optimized for answer engines and AI citation
 
 ---
 

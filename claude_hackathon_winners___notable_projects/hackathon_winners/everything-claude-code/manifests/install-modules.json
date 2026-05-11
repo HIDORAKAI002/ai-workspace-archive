@@ -12,7 +12,9 @@
         "claude",
         "cursor",
         "antigravity",
-        "codebuddy"
+        "codebuddy",
+        "joycode",
+        "qwen"
       ],
       "dependencies": [],
       "defaultInstall": true,
@@ -33,7 +35,9 @@
         "cursor",
         "antigravity",
         "codex",
-        "codebuddy"
+        "codebuddy",
+        "joycode",
+        "qwen"
       ],
       "dependencies": [],
       "defaultInstall": true,
@@ -52,7 +56,9 @@
         "cursor",
         "antigravity",
         "opencode",
-        "codebuddy"
+        "codebuddy",
+        "joycode",
+        "qwen"
       ],
       "dependencies": [],
       "defaultInstall": true,
@@ -89,6 +95,7 @@
         ".cursor",
         ".gemini",
         ".opencode",
+        ".qwen",
         "mcp-configs",
         "scripts/auto-update.js",
         "scripts/setup-package-manager.js"
@@ -100,7 +107,9 @@
         "codex",
         "gemini",
         "opencode",
-        "codebuddy"
+        "codebuddy",
+        "joycode",
+        "qwen"
       ],
       "dependencies": [],
       "defaultInstall": true,
@@ -125,6 +134,7 @@
         "skills/django-tdd",
         "skills/django-verification",
         "skills/dotnet-patterns",
+        "skills/fastapi-patterns",
         "skills/frontend-patterns",
         "skills/frontend-slides",
         "skills/golang-patterns",
@@ -158,7 +168,9 @@
         "antigravity",
         "codex",
         "opencode",
-        "codebuddy"
+        "codebuddy",
+        "joycode",
+        "qwen"
       ],
       "dependencies": [
         "rules-core",
@@ -178,6 +190,7 @@
         "skills/clickhouse-io",
         "skills/database-migrations",
         "skills/jpa-patterns",
+        "skills/mysql-patterns",
         "skills/postgres-patterns"
       ],
       "targets": [
@@ -186,7 +199,9 @@
         "antigravity",
         "codex",
         "opencode",
-        "codebuddy"
+        "codebuddy",
+        "joycode",
+        "qwen"
       ],
       "dependencies": [
         "platform-configs"
@@ -213,6 +228,7 @@
         "skills/hookify-rules",
         "skills/iterative-retrieval",
         "skills/plankton-code-quality",
+        "skills/production-audit",
         "skills/skill-stocktake",
         "skills/strategic-compact",
         "skills/tdd-workflow",
@@ -224,7 +240,9 @@
         "antigravity",
         "codex",
         "opencode",
-        "codebuddy"
+        "codebuddy",
+        "joycode",
+        "qwen"
       ],
       "dependencies": [
         "platform-configs"
@@ -259,7 +277,9 @@
         "antigravity",
         "codex",
         "opencode",
-        "codebuddy"
+        "codebuddy",
+        "joycode",
+        "qwen"
       ],
       "dependencies": [
         "workflow-quality"
@@ -275,7 +295,12 @@
       "paths": [
         "skills/deep-research",
         "skills/exa-search",
-        "skills/research-ops"
+        "skills/research-ops",
+        "skills/scientific-db-pubmed-database",
+        "skills/scientific-db-uspto-database",
+        "skills/scientific-pkg-gget",
+        "skills/scientific-thinking-literature-review",
+        "skills/scientific-thinking-scholar-evaluation"
       ],
       "targets": [
         "claude",
@@ -283,7 +308,9 @@
         "antigravity",
         "codex",
         "opencode",
-        "codebuddy"
+        "codebuddy",
+        "joycode",
+        "qwen"
       ],
       "dependencies": [
         "platform-configs"
@@ -314,7 +341,9 @@
         "antigravity",
         "codex",
         "opencode",
-        "codebuddy"
+        "codebuddy",
+        "joycode",
+        "qwen"
       ],
       "dependencies": [
         "platform-configs"
@@ -352,7 +381,9 @@
         "antigravity",
         "codex",
         "opencode",
-        "codebuddy"
+        "codebuddy",
+        "joycode",
+        "qwen"
       ],
       "dependencies": [
         "platform-configs"
@@ -375,7 +406,9 @@
         "antigravity",
         "codex",
         "opencode",
-        "codebuddy"
+        "codebuddy",
+        "joycode",
+        "qwen"
       ],
       "dependencies": [
         "business-content"
@@ -401,7 +434,9 @@
         "cursor",
         "codex",
         "opencode",
-        "codebuddy"
+        "codebuddy",
+        "joycode",
+        "qwen"
       ],
       "dependencies": [
         "platform-configs"
@@ -455,7 +490,9 @@
         "antigravity",
         "codex",
         "opencode",
-        "codebuddy"
+        "codebuddy",
+        "joycode",
+        "qwen"
       ],
       "dependencies": [
         "platform-configs"
@@ -494,7 +531,9 @@
         "antigravity",
         "codex",
         "opencode",
-        "codebuddy"
+        "codebuddy",
+        "joycode",
+        "qwen"
       ],
       "dependencies": [
         "platform-configs"
@@ -508,8 +547,15 @@
       "kind": "skills",
       "description": "Deployment workflows, Docker patterns, and infrastructure skills.",
       "paths": [
+        "skills/cisco-ios-patterns",
         "skills/deployment-patterns",
-        "skills/docker-patterns"
+        "skills/docker-patterns",
+        "skills/homelab-network-readiness",
+        "skills/homelab-network-setup",
+        "skills/netmiko-ssh-automation",
+        "skills/network-bgp-diagnostics",
+        "skills/network-config-validation",
+        "skills/network-interface-health"
       ],
       "targets": [
         "claude",
@@ -517,7 +563,9 @@
         "antigravity",
         "codex",
         "opencode",
-        "codebuddy"
+        "codebuddy",
+        "joycode",
+        "qwen"
       ],
       "dependencies": [
         "platform-configs"
@@ -546,7 +594,9 @@
         "antigravity",
         "codex",
         "opencode",
-        "codebuddy"
+        "codebuddy",
+        "joycode",
+        "qwen"
       ],
       "dependencies": [
         "platform-configs"
@@ -569,7 +619,9 @@
         "antigravity",
         "codex",
         "opencode",
-        "codebuddy"
+        "codebuddy",
+        "joycode",
+        "qwen"
       ],
       "dependencies": [
         "platform-configs"

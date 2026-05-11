@@ -7,8 +7,10 @@ const PLATFORM_SOURCE_PATH_OWNERS = Object.freeze({
   '.codex': 'codex',
   '.cursor': 'cursor',
   '.gemini': 'gemini',
+  '.joycode': 'joycode',
   '.opencode': 'opencode',
   '.codebuddy': 'codebuddy',
+  '.qwen': 'qwen',
 });
 
 function normalizeRelativePath(relativePath) {

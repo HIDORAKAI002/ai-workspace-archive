@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a **comprehensive skills library** for Claude AI and Claude Code - reusable, production-ready skill packages that bundle domain expertise, best practices, analysis tools, and strategic frameworks. The repository provides modular skills that teams can download and use directly in their workflows.
 
-**Current Scope:** 235 production-ready skills across 9 domains with 314 Python automation tools, 435 reference guides, 28 agents, and 27 slash commands.
+**Current Scope:** 246 production-ready skills across 9 domains with 359 Python automation tools, 485 reference guides, 27 agents (20 `cs-*` + 7 personas), and 33 slash commands.
 
 **Key Distinction**: This is NOT a traditional application. It's a library of skill packages meant to be extracted and deployed by users into their own Claude workflows.
 
@@ -36,17 +36,17 @@ This repository uses **modular documentation**. For domain-specific guidance, se
 ```
 claude-code-skills/
 ├── .claude-plugin/            # Plugin registry (marketplace.json)
-├── agents/                    # 25 agents across all domains
-├── commands/                  # 22 slash commands (changelog, tdd, saas-health, prd, code-to-prd, plugin-audit, sprint-plan, etc.)
-├── engineering-team/          # 37 core engineering skills + Playwright Pro + Self-Improving Agent + Security Suite
-├── engineering/               # 45 POWERFUL-tier advanced skills (incl. AgentHub, self-eval, llm-wiki, tc-tracker)
-├── product-team/              # 16 product skills (incl. apple-hig-expert) + Python tools
+├── agents/                    # 27 agents (20 cs-* + 7 personas)
+├── commands/                  # 33 slash commands (changelog, tdd, saas-health, prd, code-to-prd, plugin-audit, sprint-plan, slo-design, etc.)
+├── engineering-team/          # 32 core engineering skills + Playwright Pro + Self-Improving Agent + Security Suite
+├── engineering/               # 40 POWERFUL-tier advanced skills (incl. AgentHub, self-eval, llm-wiki, tc-tracker, ship-gate, slo-architect)
+├── product-team/              # 13 product skills (incl. apple-hig-expert) + Python tools
 ├── marketing-skill/           # 44 marketing skills (7 pods) + Python tools
-├── c-level-advisor/           # 34 C-level advisory skills (10 roles + orchestration)
-├── project-management/        # 9 PM skills + Atlassian MCP
+├── c-level-advisor/           # 28 C-level advisory skills (10 roles + orchestration)
+├── project-management/        # 9 PM skills + bundled Atlassian Remote MCP (.mcp.json)
 ├── ra-qm-team/                # 14 RA/QM compliance skills
 ├── business-growth/           # 5 business & growth skills + Python tools
-├── finance/                   # 4 finance skills + Python tools
+├── finance/                   # 3 finance skills + Python tools
 ├── eval-workspace/            # Skill evaluation results (Tessl)
 ├── standards/                 # 5 standards library files
 ├── templates/                 # Reusable templates
@@ -124,7 +124,17 @@ See [standards/git/git-workflow-standards.md](standards/git/git-workflow-standar
 
 ## Current Version
 
-**Version:** v2.3.0 (latest)
+**Version:** v2.4.5 (latest)
+
+**v2.4.x Highlights — Reliability Portfolio (Phase 1–4):**
+- **slo-architect** (Phase 4 — keystone) — SLO/SLI/error-budget discipline per Google SRE Workbook. 3 stdlib Python tools (`slo_designer`, `error_budget_calculator` with multi-window burn-rate alerts, `slo_review`), 4 reference docs, asset templates, `/slo-design` slash command. Engineering-advanced bundle 49 → 50.
+- **chaos-engineering** (Phase 3) — experiment designer, blast-radius calculator, postmortem generator. `/chaos-experiment` command.
+- **kubernetes-operator** (Phase 2) — CRD validator, reconcile linter, capability auditor. `/operator-audit` command.
+- **feature-flags-architect** (Phase 1) — flag debt scanner, rollout planner, kill-switch audit. `/flag-cleanup` command.
+- **ship-gate** — pre-production audit skill (89 checks across 8 categories, stdlib-only, MIT). External contribution.
+- **Atlassian Remote MCP** — bundled `.mcp.json` in `project-management/` (SSE transport, OAuth handled by Claude Code, no env vars required).
+- **Auditor + CI cleanup** — `.mcp.json` allowlist in skill-security-auditor, manifest-only PRs skip audit, README links (toprank).
+- 246 total skills, 359 Python tools, 485 references, 27 agents, 33 commands.
 
 **v2.3.0 Highlights:**
 - **llm-wiki plugin** — new POWERFUL-tier skill implementing Karpathy's LLM Wiki pattern. Second brain for Claude Code + Obsidian where the LLM incrementally ingests sources into a persistent, interlinked markdown vault. Ships SKILL.md (with `context: fork`), 3 sub-agents (wiki-ingestor, wiki-librarian, wiki-linter), 5 slash commands (/wiki-init, /wiki-ingest, /wiki-query, /wiki-lint, /wiki-log), 8 stdlib-only Python tools, 8 reference guides, full vault templates, and a worked example. Cross-tool compatible with Claude Code, Codex CLI, Cursor, Antigravity, OpenCode, Gemini CLI.
@@ -161,10 +171,11 @@ See [standards/git/git-workflow-standards.md](standards/git/git-workflow-standar
 
 ## Roadmap
 
-**Phase 1-3 Complete:** 235 production-ready skills deployed across 9 domains
-- Engineering Core (37), Engineering POWERFUL (45), Product (16), Marketing (44), PM (9), C-Level (34), RA/QM (14), Business & Growth (5), Finance (4)
-- 314 Python automation tools, 435 reference guides, 28 agents, 27 commands
+**Phase 1-4 Complete:** 246 production-ready skills deployed across 9 domains
+- Engineering Core (32), Engineering POWERFUL (40), Product (13), Marketing (44), PM (9), C-Level (28), RA/QM (14), Business & Growth (5), Finance (3)
+- 359 Python automation tools, 485 reference guides, 27 agents, 33 commands
 - Complete enterprise coverage from engineering through regulatory compliance, sales, customer success, and finance
+- Reliability portfolio: feature-flags-architect, kubernetes-operator, chaos-engineering, slo-architect (Google SRE Workbook canon)
 - MkDocs Material docs site with 293+ indexed pages for SEO
 
 See domain-specific roadmaps in each skill folder's README.md or roadmap files.
@@ -217,6 +228,6 @@ This repository publishes skills to **ClawHub** (clawhub.com) as the distributio
 
 ---
 
-**Last Updated:** April 11, 2026
-**Version:** v2.3.0
-**Status:** 235 skills deployed across 9 domains, 30 marketplace plugins, docs site live
+**Last Updated:** May 11, 2026
+**Version:** v2.4.5
+**Status:** 246 skills deployed across 9 domains, 33 marketplace plugins, docs site live

@@ -1,8 +1,3 @@
-### CHECKED SEPARATELY
-
-examples/assets_pandas_type_metadata
-examples/project_fully_featured
-
 ### NOT TYPE CHECKED
 
 examples/assets_dbt_python
@@ -14,3 +9,10 @@ examples/project_analytics
 examples/project_multi_tenant
 helm
 python_modules/libraries/dagster-cloud-cli
+
+### TEMPORARILY PAUSED
+# Paired with the commented-out `python_modules/dagster` entry in `ty.yaml`.
+# `run-pyright.py` would normally auto-exclude paths in `ty.yaml`, but since
+# the dagster entry is commented out there, we mirror the pause here so
+# pyright also skips it. Revert both when ty's dagster backlog is cleared.
+python_modules/dagster
