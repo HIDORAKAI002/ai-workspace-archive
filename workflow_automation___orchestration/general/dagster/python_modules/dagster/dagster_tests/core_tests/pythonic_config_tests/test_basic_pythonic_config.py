@@ -715,7 +715,7 @@ def test_structured_run_config_optional() -> None:
         a_struct_config_op()
 
     a_job.execute_in_process(
-        dg.RunConfig(ops={"a_struct_config_op": ANewConfigOpConfig(a_string=None)})  # type: ignore
+        dg.RunConfig(ops={"a_struct_config_op": ANewConfigOpConfig(a_string=None)})
     )
     assert executed["yes"]
 
@@ -813,7 +813,7 @@ def test_structured_run_config_assets_optional() -> None:
         [my_asset],
         run_config=dg.RunConfig(
             ops={
-                "my_asset": AnAssetConfig(),  # type: ignore
+                "my_asset": AnAssetConfig(),
             }
         ),
     )

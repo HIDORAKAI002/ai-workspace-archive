@@ -108,7 +108,7 @@ def test_python_environment_args():
                 socket=None,
                 loadable_target_origin=loadable_target_origin,
             )
-            assert process.args[:5] == [sys.executable, "-m", "dagster", "api", "grpc"]  # pyright: ignore[reportIndexIssue]  # ty: ignore[invalid-key]
+            assert process.args[:5] == [sys.executable, "-m", "dagster", "api", "grpc"]  # pyright: ignore[reportIndexIssue]
         finally:
             if process:
                 process.terminate()
@@ -176,7 +176,7 @@ def test_empty_executable_args():
                 socket=None,
                 loadable_target_origin=loadable_target_origin,
             )
-            assert process.args[:5] == [sys.executable, "-m", "dagster", "api", "grpc"]  # pyright: ignore[reportIndexIssue]  # ty: ignore[invalid-key]
+            assert process.args[:5] == [sys.executable, "-m", "dagster", "api", "grpc"]  # pyright: ignore[reportIndexIssue]
 
             client = DagsterGrpcClient(port=port, host="localhost")
             list_repositories_response = sync_list_repositories_grpc(client)

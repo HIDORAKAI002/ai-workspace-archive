@@ -170,7 +170,7 @@
 /plugin marketplace add https://github.com/affaan-m/everything-claude-code
 
 # Install plugin
-/plugin install everything-claude-code@everything-claude-code
+/plugin install ecc@ecc
 ```
 
 ### 步骤 2：安装规则（必需）
@@ -215,16 +215,16 @@ Copy-Item -Recurse rules/typescript "$HOME/.claude/rules/"
 
 ```bash
 # Try a command (plugin install uses namespaced form)
-/everything-claude-code:plan "Add user authentication"
+/ecc:plan "Add user authentication"
 
 # Manual install (Option 2) uses the shorter form:
 # /plan "Add user authentication"
 
 # Check available commands
-/plugin list everything-claude-code@everything-claude-code
+/plugin list ecc@ecc
 ```
 
-**搞定！** 你现在可以使用 48 个智能体、182 项技能和 68 个命令了。
+**搞定！** 你现在可以使用 53 个智能体、203 项技能和 69 个命令了。
 
 ***
 
@@ -602,7 +602,7 @@ Claude Code v2.1+ **会自动加载** 任何已安装插件中的 `hooks/hooks.j
 /plugin marketplace add https://github.com/affaan-m/everything-claude-code
 
 # Install the plugin
-/plugin install everything-claude-code
+/plugin install ecc@ecc
 ```
 
 或者直接添加到您的 `~/.claude/settings.json`：
@@ -618,7 +618,7 @@ Claude Code v2.1+ **会自动加载** 任何已安装插件中的 `hooks/hooks.j
     }
   },
   "enabledPlugins": {
-    "everything-claude-code@everything-claude-code": true
+    "ecc@ecc": true
   }
 }
 ```
@@ -764,8 +764,8 @@ rules/
 
 | 我想要... | 使用此表面 | 使用的智能体 |
 |--------------|-----------------|------------|
-| 规划新功能 | `/everything-claude-code:plan "Add auth"` | planner |
-| 设计系统架构 | `/everything-claude-code:plan` + architect agent | architect |
+| 规划新功能 | `/ecc:plan "Add auth"` | planner |
+| 设计系统架构 | `/ecc:plan` + architect agent | architect |
 | 先写测试再写代码 | `tdd-workflow` 技能 | tdd-guide |
 | 评审我刚写的代码 | `/code-review` | code-reviewer |
 | 修复失败的构建 | `/build-fix` | build-error-resolver |
@@ -783,7 +783,7 @@ rules/
 **开始新功能：**
 
 ```
-/everything-claude-code:plan "使用 OAuth 添加用户身份验证"
+/ecc:plan "使用 OAuth 添加用户身份验证"
                                               → 规划器创建实现蓝图
 tdd-workflow 技能                             → tdd-guide 强制执行先写测试
 /code-review                                  → 代码审查员检查你的工作
@@ -813,7 +813,7 @@ e2e-testing 技能                              → e2e-runner: 关键用户流�
 <summary><b>如何检查已安装的代理/命令？</b></summary>
 
 ```bash
-/plugin list everything-claude-code@everything-claude-code
+/plugin list ecc@ecc
 ```
 
 这会显示插件中所有可用的代理、命令和技能。
@@ -1132,9 +1132,9 @@ opencode
 
 | 功能特性 | Claude Code | OpenCode | 状态 |
 |---------|-------------|----------|--------|
-| 智能体 | PASS: 48 个 | PASS: 12 个 | **Claude Code 领先** |
-| 命令 | PASS: 68 个 | PASS: 31 个 | **Claude Code 领先** |
-| 技能 | PASS: 182 项 | PASS: 37 项 | **Claude Code 领先** |
+| 智能体 | PASS: 53 个 | PASS: 12 个 | **Claude Code 领先** |
+| 命令 | PASS: 69 个 | PASS: 31 个 | **Claude Code 领先** |
+| 技能 | PASS: 203 项 | PASS: 37 项 | **Claude Code 领先** |
 | 钩子 | PASS: 8 种事件类型 | PASS: 11 种事件 | **OpenCode 更多！** |
 | 规则 | PASS: 29 条 | PASS: 13 条指令 | **Claude Code 领先** |
 | MCP 服务器 | PASS: 14 个 | PASS: 完整 | **完全对等** |
@@ -1240,9 +1240,9 @@ ECC 是**第一个最大化利用每个主要 AI 编码工具的插件**。以�
 
 | 功能特性 | Claude Code | Cursor IDE | Codex CLI | OpenCode |
 |---------|------------|------------|-----------|----------|
-| **智能体** | 48 | 共享 (AGENTS.md) | 共享 (AGENTS.md) | 12 |
-| **命令** | 68 | 共享 | 基于指令 | 31 |
-| **技能** | 182 | 共享 | 10 (原生格式) | 37 |
+| **智能体** | 53 | 共享 (AGENTS.md) | 共享 (AGENTS.md) | 12 |
+| **命令** | 69 | 共享 | 基于指令 | 31 |
+| **技能** | 203 | 共享 | 10 (原生格式) | 37 |
 | **钩子事件** | 8 种类型 | 15 种类型 | 暂无 | 11 种类型 |
 | **钩子脚本** | 20+ 个脚本 | 16 个脚本 (DRY 适配器) | N/A | 插件钩子 |
 | **规则** | 34 (通用 + 语言) | 34 (YAML 前页) | 基于指令 | 13 条指令 |

@@ -145,6 +145,23 @@ function runTests() {
     assert.match(component.description, /continuous-learning-v2/, 'Should point new installs to continuous-learning-v2');
   })) passed++; else failed++;
 
+  if (test('exposes continuous-learning-v2 as a single-skill install surface', () => {
+    const component = getInstallComponent('skill:continuous-learning-v2');
+    assert.strictEqual(component.id, 'skill:continuous-learning-v2');
+    assert.deepStrictEqual(component.moduleIds, ['skill-continuous-learning-v2']);
+    assert.ok(component.targets.includes('claude'), 'Should support Claude installs');
+
+    const plan = resolveInstallPlan({
+      includeComponentIds: ['skill:continuous-learning-v2'],
+      target: 'claude',
+    });
+    assert.deepStrictEqual(plan.selectedModuleIds, ['skill-continuous-learning-v2']);
+    assert.ok(
+      plan.operations.some(operation => operation.sourceRelativePath === 'skills/continuous-learning-v2'),
+      'Should plan only the continuous-learning-v2 skill path'
+    );
+  })) passed++; else failed++;
+
   if (test('lists supported legacy compatibility languages', () => {
     const languages = listLegacyCompatibilityLanguages();
     assert.ok(languages.includes('typescript'));
@@ -227,6 +244,31 @@ function runTests() {
     assert.ok(!plan.selectedModuleIds.includes('hooks-runtime'),
       'minimal profile should not install hooks-runtime');
     assert.ok(plan.operations.length > 0, 'Should include install operations');
+  })) passed++; else failed++;
+
+  if (test('resolves Qwen minimal profile while leaving hooks out', () => {
+    const homeDir = '/Users/example';
+    const plan = resolveInstallPlan({
+      profileId: 'minimal',
+      target: 'qwen',
+      homeDir,
+    });
+
+    assert.deepStrictEqual(
+      plan.selectedModuleIds,
+      ['rules-core', 'agents-core', 'commands-core', 'platform-configs', 'workflow-quality']
+    );
+    assert.deepStrictEqual(plan.skippedModuleIds, []);
+    assert.strictEqual(plan.targetAdapterId, 'qwen-home');
+    assert.strictEqual(plan.targetRoot, path.join(homeDir, '.qwen'));
+    assert.ok(
+      plan.operations.some(operation => operation.sourceRelativePath === '.qwen'),
+      'Should install Qwen native config'
+    );
+    assert.ok(
+      !plan.operations.some(operation => operation.destinationPath.includes(`${path.sep}hooks`)),
+      'Qwen minimal profile should not install hook runtime files'
+    );
   })) passed++; else failed++;
 
   if (test('resolves explicit modules with dependency expansion', () => {

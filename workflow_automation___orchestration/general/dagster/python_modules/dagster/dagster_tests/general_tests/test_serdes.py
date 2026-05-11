@@ -297,7 +297,7 @@ def test_wrong_first_arg():
 
         @serdes_test_class
         class NotCls(namedtuple("NotCls", "field_one field_two")):
-            def __new__(not_cls, field_two, field_one):  # type: ignore
+            def __new__(not_cls, field_two, field_one):
                 return super().__new__(field_one, field_two)  # pyright: ignore[reportCallIssue]  # ty: ignore[missing-argument]
 
     assert str(exc_info.value) == 'For NotCls: First parameter must be _cls or cls. Got "not_cls".'
@@ -888,7 +888,7 @@ def test_serializable_non_scalar_key_mapping():
     assert list(iter(non_scalar_key_mapping)) == list(iter([Bar("red")]))
 
     with pytest.raises(NotImplementedError, match="SerializableNonScalarKeyMapping is immutable"):
-        non_scalar_key_mapping["foo"] = None  # pyright: ignore[reportArgumentType]  # ty: ignore[invalid-argument-type]
+        non_scalar_key_mapping["foo"] = None  # pyright: ignore[reportArgumentType]
 
 
 def test_serializable_non_scalar_key_mapping_in_named_tuple():
@@ -963,12 +963,12 @@ def test_object_migration():
     nt_env = WhitelistMap.create()
 
     @_whitelist_for_serdes(nt_env)
-    class MyEnt(NamedTuple):  # type: ignore
+    class MyEnt(NamedTuple):
         name: str
         age: int
         children: list["MyEnt"]
 
-    nt_ent = MyEnt("dad", 40, [MyEnt("sis", 4, [])])  # pyright: ignore[reportArgumentType]  # ty: ignore[invalid-argument-type]
+    nt_ent = MyEnt("dad", 40, [MyEnt("sis", 4, [])])  # pyright: ignore[reportArgumentType]
     ser_nt_ent = dg.serialize_value(nt_ent, whitelist_map=nt_env)
     assert dg.deserialize_value(ser_nt_ent, whitelist_map=nt_env) == nt_ent
 
@@ -976,7 +976,7 @@ def test_object_migration():
 
     @_whitelist_for_serdes(py_dc_env)
     @pydantic.dataclasses.dataclass
-    class MyEnt:  # type: ignore
+    class MyEnt:
         name: str
         age: int
         children: list["MyEnt"]

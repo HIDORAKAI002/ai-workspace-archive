@@ -36,7 +36,7 @@ def test_json_dumps():
 
 
 def test_tempdir():
-    assert not seven.temp_dir.get_system_temp_directory().startswith("/var")  # pyright: ignore[reportAttributeAccessIssue]  # ty: ignore[unresolved-attribute]
+    assert not seven.temp_dir.get_system_temp_directory().startswith("/var")  # pyright: ignore[reportAttributeAccessIssue]
 
 
 def test_get_arg_names():

@@ -262,7 +262,7 @@ class FilesystemTestScheduler(Scheduler, ConfigurableClass):
         self._inst_data = inst_data
 
     @property
-    def inst_data(self) -> object:  # pyright: ignore[reportIncompatibleMethodOverride]  # ty: ignore[invalid-method-override]
+    def inst_data(self) -> object:  # pyright: ignore[reportIncompatibleMethodOverride]
         return self._inst_data
 
     @classmethod
@@ -322,7 +322,7 @@ class ConcurrencyEnabledSqliteTestEventLogStorage(SqliteEventLogStorage, Configu
         return ConcurrencyEnabledSqliteTestEventLogStorage(inst_data=inst_data, **config_value)
 
     @property
-    def supports_global_concurrency_limits(self) -> bool:  # pyright: ignore[reportIncompatibleVariableOverride]  # ty: ignore[invalid-method-override]
+    def supports_global_concurrency_limits(self) -> bool:  # pyright: ignore[reportIncompatibleVariableOverride]
         return True
 
     def get_records_for_run(

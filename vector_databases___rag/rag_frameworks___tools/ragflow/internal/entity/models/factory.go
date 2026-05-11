@@ -57,6 +57,8 @@ func (f *ModelFactory) CreateModelDriver(providerName string, baseURL map[string
 		return NewXAIModel(baseURL, urlSuffix), nil
 	case "lmstudio":
 		return NewLmStudioModel(baseURL, urlSuffix), nil
+	case "ollama":
+		return NewOllamaModel(baseURL, urlSuffix), nil
 	case "openai":
 		return NewOpenAIModel(baseURL, urlSuffix), nil
 	case "nvidia":
@@ -67,6 +69,10 @@ func (f *ModelFactory) CreateModelDriver(providerName string, baseURL map[string
 		return NewHuggingFaceModel(baseURL, urlSuffix), nil
 	case "baidu":
 		return NewBaiduModel(baseURL, urlSuffix), nil
+	case "cohere":
+		return NewCoHereModel(baseURL, urlSuffix), nil
+	case "fishaudio":
+		return NewFishAudioModel(baseURL, urlSuffix), nil
 	default:
 		return NewDummyModel(baseURL, urlSuffix), nil
 	}

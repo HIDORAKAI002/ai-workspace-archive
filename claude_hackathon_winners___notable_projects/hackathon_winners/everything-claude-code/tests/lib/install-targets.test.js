@@ -43,6 +43,8 @@ function runTests() {
     assert.ok(targets.includes('gemini'), 'Should include gemini target');
     assert.ok(targets.includes('opencode'), 'Should include opencode target');
     assert.ok(targets.includes('codebuddy'), 'Should include codebuddy target');
+    assert.ok(targets.includes('joycode'), 'Should include joycode target');
+    assert.ok(targets.includes('qwen'), 'Should include qwen target');
   })) passed++; else failed++;
 
   if (test('resolves cursor adapter root and install-state path from project root', () => {
@@ -501,6 +503,52 @@ function runTests() {
     assert.ok(byTarget.supports('codebuddy-project'));
   })) passed++; else failed++;
 
+  if (test('resolves joycode adapter root and install-state path from project root', () => {
+    const adapter = getInstallTargetAdapter('joycode');
+    const projectRoot = '/workspace/app';
+    const root = adapter.resolveRoot({ projectRoot });
+    const statePath = adapter.getInstallStatePath({ projectRoot });
+
+    assert.strictEqual(adapter.id, 'joycode-project');
+    assert.strictEqual(adapter.target, 'joycode');
+    assert.strictEqual(adapter.kind, 'project');
+    assert.strictEqual(root, path.join(projectRoot, '.joycode'));
+    assert.strictEqual(statePath, path.join(projectRoot, '.joycode', 'ecc-install-state.json'));
+  })) passed++; else failed++;
+
+  if (test('joycode adapter supports lookup by target and adapter id', () => {
+    const byTarget = getInstallTargetAdapter('joycode');
+    const byId = getInstallTargetAdapter('joycode-project');
+
+    assert.strictEqual(byTarget.id, 'joycode-project');
+    assert.strictEqual(byId.id, 'joycode-project');
+    assert.ok(byTarget.supports('joycode'));
+    assert.ok(byTarget.supports('joycode-project'));
+  })) passed++; else failed++;
+
+  if (test('resolves qwen adapter root and install-state path from home dir', () => {
+    const adapter = getInstallTargetAdapter('qwen');
+    const homeDir = '/Users/example';
+    const root = adapter.resolveRoot({ homeDir });
+    const statePath = adapter.getInstallStatePath({ homeDir });
+
+    assert.strictEqual(adapter.id, 'qwen-home');
+    assert.strictEqual(adapter.target, 'qwen');
+    assert.strictEqual(adapter.kind, 'home');
+    assert.strictEqual(root, path.join(homeDir, '.qwen'));
+    assert.strictEqual(statePath, path.join(homeDir, '.qwen', 'ecc-install-state.json'));
+  })) passed++; else failed++;
+
+  if (test('qwen adapter supports lookup by target and adapter id', () => {
+    const byTarget = getInstallTargetAdapter('qwen');
+    const byId = getInstallTargetAdapter('qwen-home');
+
+    assert.strictEqual(byTarget.id, 'qwen-home');
+    assert.strictEqual(byId.id, 'qwen-home');
+    assert.ok(byTarget.supports('qwen'));
+    assert.ok(byTarget.supports('qwen-home'));
+  })) passed++; else failed++;
+
   if (test('plans codebuddy rules with flat namespaced filenames', () => {
     const repoRoot = path.join(__dirname, '..', '..');
     const projectRoot = '/workspace/app';
@@ -533,6 +581,131 @@ function runTests() {
         operation.destinationPath === path.join(projectRoot, '.codebuddy', 'rules', 'common', 'coding-style.md')
       )),
       'Should not preserve nested rule directories for codebuddy installs'
+    );
+  })) passed++; else failed++;
+
+  if (test('plans joycode commands, agents, skills, and flattened rules', () => {
+    const repoRoot = path.join(__dirname, '..', '..');
+    const projectRoot = '/workspace/app';
+
+    const plan = planInstallTargetScaffold({
+      target: 'joycode',
+      repoRoot,
+      projectRoot,
+      modules: [
+        {
+          id: 'rules-core',
+          paths: ['rules'],
+        },
+        {
+          id: 'agents-core',
+          paths: ['agents'],
+        },
+        {
+          id: 'commands-core',
+          paths: ['commands'],
+        },
+        {
+          id: 'workflow-quality',
+          paths: ['skills/tdd-workflow'],
+        },
+      ],
+    });
+
+    assert.strictEqual(plan.adapter.id, 'joycode-project');
+    assert.strictEqual(plan.targetRoot, path.join(projectRoot, '.joycode'));
+    assert.strictEqual(plan.installStatePath, path.join(projectRoot, '.joycode', 'ecc-install-state.json'));
+
+    assert.ok(
+      plan.operations.some(operation => (
+        normalizedRelativePath(operation.sourceRelativePath) === 'rules/common/coding-style.md'
+        && operation.destinationPath === path.join(projectRoot, '.joycode', 'rules', 'common-coding-style.md')
+      )),
+      'Should flatten common rules into namespaced files for joycode'
+    );
+    assert.ok(
+      plan.operations.some(operation => (
+        normalizedRelativePath(operation.sourceRelativePath) === 'agents'
+        && operation.destinationPath === path.join(projectRoot, '.joycode', 'agents')
+      )),
+      'Should install agents under .joycode/agents'
+    );
+    assert.ok(
+      plan.operations.some(operation => (
+        normalizedRelativePath(operation.sourceRelativePath) === 'commands'
+        && operation.destinationPath === path.join(projectRoot, '.joycode', 'commands')
+      )),
+      'Should install commands under .joycode/commands'
+    );
+    assert.ok(
+      plan.operations.some(operation => (
+        normalizedRelativePath(operation.sourceRelativePath) === 'skills/tdd-workflow'
+        && operation.destinationPath === path.join(projectRoot, '.joycode', 'skills', 'tdd-workflow')
+      )),
+      'Should install skills under .joycode/skills'
+    );
+  })) passed++; else failed++;
+
+  if (test('plans qwen commands, agents, skills, and native config under home root', () => {
+    const repoRoot = path.join(__dirname, '..', '..');
+    const homeDir = '/Users/example';
+
+    const plan = planInstallTargetScaffold({
+      target: 'qwen',
+      repoRoot,
+      homeDir,
+      modules: [
+        {
+          id: 'rules-core',
+          paths: ['rules'],
+        },
+        {
+          id: 'agents-core',
+          paths: ['agents'],
+        },
+        {
+          id: 'commands-core',
+          paths: ['commands'],
+        },
+        {
+          id: 'platform-configs',
+          paths: ['.qwen', '.gemini', 'mcp-configs'],
+        },
+        {
+          id: 'workflow-quality',
+          paths: ['skills/tdd-workflow'],
+        },
+      ],
+    });
+
+    assert.strictEqual(plan.adapter.id, 'qwen-home');
+    assert.strictEqual(plan.targetRoot, path.join(homeDir, '.qwen'));
+    assert.strictEqual(plan.installStatePath, path.join(homeDir, '.qwen', 'ecc-install-state.json'));
+    assert.ok(
+      plan.operations.some(operation => (
+        normalizedRelativePath(operation.sourceRelativePath) === 'rules'
+        && operation.destinationPath === path.join(homeDir, '.qwen', 'rules')
+      )),
+      'Should preserve rules under ~/.qwen/rules'
+    );
+    assert.ok(
+      plan.operations.some(operation => (
+        normalizedRelativePath(operation.sourceRelativePath) === '.qwen'
+        && operation.destinationPath === path.join(homeDir, '.qwen')
+        && operation.strategy === 'sync-root-children'
+      )),
+      'Should sync Qwen native config into ~/.qwen'
+    );
+    assert.ok(
+      !plan.operations.some(operation => normalizedRelativePath(operation.sourceRelativePath) === '.gemini'),
+      'Should skip foreign platform config paths'
+    );
+    assert.ok(
+      plan.operations.some(operation => (
+        normalizedRelativePath(operation.sourceRelativePath) === 'skills/tdd-workflow'
+        && operation.destinationPath === path.join(homeDir, '.qwen', 'skills', 'tdd-workflow')
+      )),
+      'Should install skills under ~/.qwen/skills'
     );
   })) passed++; else failed++;
 

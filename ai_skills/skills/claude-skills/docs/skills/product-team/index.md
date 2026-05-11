@@ -17,4 +17,82 @@ description: "17 product skills — product management agent skill and Claude Co
 
 <div class="grid cards" markdown>
 
+-   **[Competitive Teardown](competitive-teardown.md)**
+
+    ---
+
+    Tier: POWERFUL
+
+-   **[Experiment Designer](experiment-designer.md)**
+
+    ---
+
+    Design, prioritize, and evaluate product experiments with clear hypotheses and defensible decisions.
+
+-   **[Landing Page Generator](landing-page-generator.md)**
+
+    ---
+
+    Generate high-converting landing pages from a product description. Output complete Next.js/React components with mult...
+
+-   **[Product Analytics](product-analytics.md)**
+
+    ---
+
+    Define, track, and interpret product metrics across discovery, growth, and mature product stages.
+
+-   **[Product Discovery](product-discovery.md)**
+
+    ---
+
+    Run structured discovery to identify high-value opportunities and de-risk product bets.
+
+-   **[Product Manager Toolkit](product-manager-toolkit.md)**
+
+    ---
+
+    Essential tools and frameworks for modern product management, from discovery to delivery.
+
+-   **[Product Team Skills](product-skills.md)**
+
+    ---
+
+    8 production-ready product skills covering product management, UX/UI design, and SaaS development.
+
+-   **[Product Strategist](product-strategist.md)**
+
+    ---
+
+    Strategic toolkit for Head of Product to drive vision, alignment, and organizational excellence.
+
+-   **[Roadmap Communicator](roadmap-communicator.md)**
+
+    ---
+
+    Create clear roadmap communication artifacts for internal and external stakeholders.
+
+-   **[SaaS Scaffolder](saas-scaffolder.md)**
+
+    ---
+
+    Tier: POWERFUL
+
+-   **[Spec to Repo](spec-to-repo.md)**
+
+    ---
+
+    Turn a natural-language project specification into a complete, runnable starter repository. Not a template filler — a...
+
+-   **[UI Design System](ui-design-system.md)**
+
+    ---
+
+    Generate design tokens, create color palettes, calculate typography scales, build component systems, and prepare deve...
+
+-   **[UX Researcher & Designer](ux-researcher-designer.md)**
+
+    ---
+
+    Generate user personas from research data, create journey maps, plan usability tests, and synthesize research finding...
+
 </div>

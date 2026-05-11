@@ -351,7 +351,9 @@ class DbtEventIterator(Iterator[T]):
         adapter_type = self._dbt_cli_invocation.manifest.get("metadata", {}).get("adapter_type")
         if adapter_type == "snowflake":
             try:
-                from dagster_cloud.dagster_insights import dbt_with_snowflake_insights
+                from dagster_cloud.dagster_insights import (  # ty: ignore[unresolved-import]
+                    dbt_with_snowflake_insights,
+                )
             except ImportError as e:
                 raise DagsterInvalidPropertyError(
                     "The `dagster_cloud` library is required to use the `with_insights`"
@@ -370,7 +372,9 @@ class DbtEventIterator(Iterator[T]):
             )
         elif adapter_type == "bigquery":
             try:
-                from dagster_cloud.dagster_insights import dbt_with_bigquery_insights
+                from dagster_cloud.dagster_insights import (  # ty: ignore[unresolved-import]
+                    dbt_with_bigquery_insights,
+                )
             except ImportError as e:
                 raise DagsterInvalidPropertyError(
                     "The `dagster_cloud` library is required to use the `with_insights`"

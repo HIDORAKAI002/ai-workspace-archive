@@ -683,7 +683,7 @@ describe("package artifact reuse", () => {
       for (const [jobName, job] of Object.entries(jobs)) {
         for (const step of job.steps ?? []) {
           if (step.run === "pnpm build") {
-            expect(step.env, `${workflowPath}:${jobName}:${step.name}`).toMatchObject({
+            expect(step.env, `${workflowPath}:${jobName}:${step.name}`).toEqual({
               NODE_OPTIONS: "--max-old-space-size=8192",
             });
           }

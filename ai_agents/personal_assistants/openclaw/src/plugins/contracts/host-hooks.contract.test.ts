@@ -45,9 +45,7 @@ import { runTrustedToolPolicies } from "../trusted-tool-policy.js";
 import { registerHostHookFixture, registerTrustedHostHookFixture } from "./host-hook-fixture.js";
 
 async function waitForPluginEventHandlers(): Promise<void> {
-  await new Promise<void>((resolve) => {
-    setTimeout(resolve, 0);
-  });
+  await new Promise<void>((resolve) => setImmediate(resolve));
 }
 
 function requireFirstCommandRegistration(
@@ -2241,7 +2239,7 @@ describe("host-hook fixture plugin contract", () => {
         previousRegistry: previousFixture.registry.registry,
         nextRegistry: replacementFixture.registry.registry,
       }),
-    ).resolves.toMatchObject({ failures: [] });
+    ).resolves.toEqual({ cleanupCount: 0, failures: [] });
     expect(cleanupEvents).toEqual([]);
     expect(listPluginSessionSchedulerJobs("scheduler-preserve")).toEqual([
       {

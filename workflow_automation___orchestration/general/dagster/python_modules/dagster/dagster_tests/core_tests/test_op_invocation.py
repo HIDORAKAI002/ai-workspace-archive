@@ -1321,8 +1321,8 @@ def test_async_assets_with_shared_context():
 
     async def main():
         return await asyncio.gather(
-            async_asset_one(ctx),  # type: ignore
-            async_asset_two(ctx),  # type: ignore
+            async_asset_one(ctx),
+            async_asset_two(ctx),
         )
 
     with pytest.raises(

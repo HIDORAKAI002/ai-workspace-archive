@@ -28,6 +28,7 @@ export async function savePdfResultToCache(
   pdfContent: string,
   result: CachedPdfResult,
   provider: PdfCacheProvider = "runpod",
+  variant?: string,
 ): Promise<string | null> {
   try {
     if (!config.GCS_BUCKET_NAME) {
@@ -36,8 +37,9 @@ export async function savePdfResultToCache(
 
     const prefix = PROVIDER_PREFIXES[provider];
     const cacheKey = createPdfCacheKey(pdfContent);
+    const objectKey = variant ? `${cacheKey}-${variant}` : cacheKey;
     const bucket = storage.bucket(config.GCS_BUCKET_NAME);
-    const blob = bucket.file(`${prefix}${cacheKey}.json`);
+    const blob = bucket.file(`${prefix}${objectKey}.json`);
 
     for (let i = 0; i < 3; i++) {
       try {
@@ -83,6 +85,7 @@ export async function savePdfResultToCache(
 export async function getPdfResultFromCache(
   pdfContent: string,
   provider: PdfCacheProvider = "runpod",
+  variant?: string,
 ): Promise<CachedPdfResult | null> {
   try {
     if (!config.GCS_BUCKET_NAME) {
@@ -91,8 +94,9 @@ export async function getPdfResultFromCache(
 
     const prefix = PROVIDER_PREFIXES[provider];
     const cacheKey = createPdfCacheKey(pdfContent);
+    const objectKey = variant ? `${cacheKey}-${variant}` : cacheKey;
     const bucket = storage.bucket(config.GCS_BUCKET_NAME);
-    const blob = bucket.file(`${prefix}${cacheKey}.json`);
+    const blob = bucket.file(`${prefix}${objectKey}.json`);
 
     const [content] = await blob.download();
     const result = JSON.parse(content.toString());

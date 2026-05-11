@@ -103,8 +103,8 @@ def test_process_killed_after_server_finished():
             # verify socket is cleaned up
             assert not os.path.exists(socket)
         finally:
-            raw_process.terminate()  # pyright: ignore[reportOptionalMemberAccess]  # ty: ignore[unresolved-attribute]
-            raw_process.wait()  # pyright: ignore[reportOptionalMemberAccess]  # ty: ignore[unresolved-attribute]
+            raw_process.terminate()  # pyright: ignore[reportOptionalMemberAccess]
+            raw_process.wait()  # pyright: ignore[reportOptionalMemberAccess]
 
 
 def test_server_port():

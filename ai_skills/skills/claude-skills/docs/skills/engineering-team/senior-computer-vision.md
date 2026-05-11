@@ -8,7 +8,7 @@ description: "Computer vision engineering skill for object detection, image segm
 <div class="page-meta" markdown>
 <span class="meta-badge">:material-code-braces: Engineering - Core</span>
 <span class="meta-badge">:material-identifier: `senior-computer-vision`</span>
-<span class="meta-badge">:material-github: <a href="https://github.com/alirezarezvani/claude-skills/tree/main/engineering-team/senior-computer-vision/SKILL.md">Source</a></span>
+<span class="meta-badge">:material-github: <a href="https://github.com/alirezarezvani/claude-skills/tree/main/engineering-team/skills/senior-computer-vision/SKILL.md">Source</a></span>
 </div>
 
 <div class="install-banner" markdown>

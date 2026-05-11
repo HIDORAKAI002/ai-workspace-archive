@@ -27,7 +27,17 @@ export default {
       label: 'Haystack Concepts',
       items: [
         'concepts/concepts-overview',
-        'concepts/agents',
+        {
+          type: 'category',
+          label: 'Agents',
+          link: {
+            type: 'doc',
+            id: 'concepts/agents'
+          },
+          items: [
+            'concepts/agents/multi-agent-systems',
+          ],
+        },
         {
           type: 'category',
           label: 'Components',
@@ -105,6 +115,7 @@ export default {
         },
         'document-stores/elasticsearch-document-store',
         'document-stores/faissdocumentstore',
+        'document-stores/falkordbdocumentstore',
         {
           type: 'link',
           label: 'LanceDBDocumentStore',
@@ -221,6 +232,7 @@ export default {
             'pipeline-components/converters/azureocrdocumentconverter',
             'pipeline-components/converters/csvtodocument',
             'pipeline-components/converters/doclingconverter',
+            'pipeline-components/converters/doclingserveconverter',
             'pipeline-components/converters/documenttoimagecontent',
             'pipeline-components/converters/docxtodocument',
             'pipeline-components/converters/filetofilecontent',
@@ -533,6 +545,8 @@ export default {
             'pipeline-components/retrievers/elasticsearchbm25retriever',
             'pipeline-components/retrievers/elasticsearchembeddingretriever',
             'pipeline-components/retrievers/faissembeddingretriever',
+            'pipeline-components/retrievers/falkordbcypherretriever',
+            'pipeline-components/retrievers/falkordbembeddingretriever',
             'pipeline-components/retrievers/filterretriever',
             'pipeline-components/retrievers/inmemorybm25retriever',
             'pipeline-components/retrievers/inmemoryembeddingretriever',

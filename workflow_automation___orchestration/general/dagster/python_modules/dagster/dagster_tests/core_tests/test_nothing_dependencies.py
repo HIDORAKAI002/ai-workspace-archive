@@ -316,7 +316,7 @@ def test_nothing_infer():
     ):
 
         @dg.op
-        def _bad(_previous_steps_complete: Nothing):  # type: ignore
+        def _bad(_previous_steps_complete: Nothing):
             pass
 
 

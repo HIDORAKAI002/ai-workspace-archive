@@ -30,6 +30,8 @@ class ToxFactor:
             from a residual factor with --ignore=<path>.
         label_suffix: Optional suffix appended to the Buildkite step label, used
             to differentiate multiple factors that share the same factor name.
+        queue: Optional Buildkite queue override for this factor. When set,
+            takes precedence over the PackageSpec-level queue.
     """
 
     factor: str
@@ -38,6 +40,7 @@ class ToxFactor:
     concurrency_group: str | None = None
     pytest_args: list[str] | None = None
     label_suffix: str | None = None
+    queue: BuildkiteQueue | None = None
 
 
 _COMMAND_TYPE_TO_EMOJI_MAP = {
