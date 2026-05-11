@@ -62,12 +62,12 @@ export const metadata: Metadata = {
   publisher: "prompts.chat",
   icons: {
     icon: [
-      { url: "/favicon/favicon.ico", sizes: "48x48" },
-      { url: "/favicon/favicon-96x96.png", sizes: "96x96", type: "image/png" },
       { url: "/favicon/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon/favicon-96x96.png", sizes: "96x96", type: "image/png" },
+      { url: "/favicon/favicon.ico", sizes: "48x48" },
     ],
     apple: "/favicon/apple-touch-icon.png",
-    shortcut: "/favicon/favicon.ico",
+    shortcut: "/favicon/favicon.svg",
   },
   manifest: "/favicon/site.webmanifest",
   other: {
