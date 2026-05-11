@@ -1203,7 +1203,7 @@ def test_generic_dynamic_output_type_mismatch():
     def basic() -> list[dg.DynamicOutput[int]]:
         return [
             dg.DynamicOutput(mapping_key="1", value=1),
-            dg.DynamicOutput(mapping_key="2", value="2"),  # type: ignore
+            dg.DynamicOutput(mapping_key="2", value="2"),
         ]
 
     with pytest.raises(
@@ -1258,7 +1258,7 @@ def test_generic_dynamic_output_mix_with_regular_type_mismatch():
             dg.Output(5),
             [
                 dg.DynamicOutput(mapping_key="1", value="foo"),
-                dg.DynamicOutput(mapping_key="2", value=5),  # type: ignore
+                dg.DynamicOutput(mapping_key="2", value=5),
             ],
         )
 

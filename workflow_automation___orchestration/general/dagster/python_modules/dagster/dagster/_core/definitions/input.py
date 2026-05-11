@@ -49,7 +49,7 @@ def _check_default_value(input_name: str, dagster_type: DagsterType, default_val
                     f"Received value {default_value} of type {type(default_value)}",
                 )
 
-    return default_value  # type: ignore  # (pyright bug)
+    return default_value  # (pyright bug)
 
 
 @superseded(additional_warn_text="Use `In` instead", emit_runtime_warning=False)

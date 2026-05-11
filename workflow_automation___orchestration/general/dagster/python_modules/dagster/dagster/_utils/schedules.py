@@ -31,7 +31,7 @@ class CroniterShim(_croniter):
 
     @classmethod
     @functools.lru_cache(maxsize=128)
-    def expand(cls, *args, **kwargs):  # pyright: ignore[reportIncompatibleMethodOverride]  # ty: ignore[invalid-method-override]
+    def expand(cls, *args, **kwargs):  # pyright: ignore[reportIncompatibleMethodOverride]
         return super().expand(*args, **kwargs)
 
 

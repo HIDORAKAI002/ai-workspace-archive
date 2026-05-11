@@ -12,7 +12,7 @@ IS_BUILDKITE = os.getenv("BUILDKITE") is not None
 # failing to open sporadically on windows after other subprocesses were closed.
 # Fixed in later versions of Python but never back-ported, see the bug for details.
 if seven.IS_WINDOWS and sys.version_info[0] == 3 and sys.version_info[1] == 6:
-    subprocess._cleanup = lambda: None  # type: ignore # noqa: SLF001
+    subprocess._cleanup = lambda: None  # noqa: SLF001
 
 
 @pytest.fixture(scope="session", autouse=True)

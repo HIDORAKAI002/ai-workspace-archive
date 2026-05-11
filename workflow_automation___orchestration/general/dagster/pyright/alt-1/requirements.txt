@@ -58,3 +58,7 @@
 # runtime, some of these versions have bugged or incomplete type annotations
 # that trigger type errors
 types-setuptools==80.9.0.20250822  # Pinned due to overly strict _DictLike types in newer versions (20251223) causing false positives in setup.py files
+# s3fs pulls aiobotocore transitively; force the modern version (matching upstream alt-1's
+# resolution from when project_fully_featured listed aiobotocore explicitly) to avoid the
+# resolver picking aiobotocore 2.x with an older botocore.
+aiobotocore>=3.5.0

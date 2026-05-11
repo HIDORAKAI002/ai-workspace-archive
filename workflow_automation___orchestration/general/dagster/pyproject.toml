@@ -20,6 +20,16 @@ extra-paths = [
   ".buildkite/buildkite-shared"
 ]
 
+[tool.ty.rules]
+# ty is configured as a "strict mode" tool for selective use on specific files/packages.
+# It reports 10-100x more diagnostics than pyright because:
+#   1. pyright's `useLibraryCodeForTypes = false` treats untyped code as Any
+#   2. ty performs comprehensive type inference even on untyped dependencies
+#
+deprecated = "ignore"  # Deprecation warnings across dependencies
+possibly-missing-attribute = "ignore"  # High false positive rate
+possibly-missing-import = "ignore"  # Often incorrect in complex imports
+
 [tool.ty.src]
 
 include = [
@@ -27,6 +37,18 @@ include = [
   # complaining about an empty include list. Remove with first package added
   # here.
   "__placeholder__"
+]
+
+exclude = [
+  # Example notebook intentionally references undefined names as placeholders.
+  "python_modules/libraries/dagstermill/dagstermill/examples/notebooks/yield_something.ipynb",
+  # Deliberately-malformed scaffold used as a fixture for notebook-creation tests.
+  "python_modules/libraries/dagstermill/dagstermill_tests/notebooks/cli_test_scaffold.ipynb",
+  # Documentation example trees contain illustrative snippets that reference
+  # community / scaffolded packages not installed in this env; type-checking
+  # them generates spurious unresolved-import diagnostics.
+  "examples/docs_snippets",
+  "examples/docs_projects",
 ]
 
 # Ignore all files that are git-ignored unless explicitly included.

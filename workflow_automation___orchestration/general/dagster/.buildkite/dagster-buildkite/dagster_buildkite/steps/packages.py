@@ -249,7 +249,11 @@ class PackageSpec:
                                 dependencies=dependencies,
                                 tox_file=self.tox_file,
                                 timeout_in_minutes=self.timeout_in_minutes,
-                                queue=self.queue,
+                                queue=(
+                                    other_factor.queue
+                                    if other_factor and other_factor.queue
+                                    else self.queue
+                                ),
                                 skip_reason=skip_reason_str,
                                 pytest_args=pytest_args,
                                 concurrency=other_factor.concurrency if other_factor else None,
@@ -552,6 +556,7 @@ def _example_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
             unsupported_python_versions=[
                 AvailablePythonVersion.V3_14,  # Docker client version mismatch in 3.14 container
             ],
+            queue=BuildkiteQueue.MEDIUM,
         ),
         PackageSpec(
             oss_path("examples/docs_snippets"),
@@ -746,7 +751,7 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
             pytest_tox_factors=[
                 ToxFactor("api_tests"),
                 ToxFactor("asset_defs_tests"),
-                ToxFactor("cli_tests", splits=2),
+                ToxFactor("cli_tests", splits=2, queue=BuildkiteQueue.MEDIUM),
                 ToxFactor("components_tests"),
                 ToxFactor("core_tests"),
                 ToxFactor("daemon_sensor_tests", splits=2),
@@ -817,6 +822,7 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
                 )
             ),
             timeout_in_minutes=30,
+            queue=BuildkiteQueue.MEDIUM,
         ),
         PackageSpec(
             oss_path("python_modules/dagster-test"),
@@ -826,6 +832,7 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
                 AvailablePythonVersion.V3_13,
                 AvailablePythonVersion.V3_14,
             ],
+            queue=BuildkiteQueue.MEDIUM,
         ),
         PackageSpec(
             oss_path("python_modules/libraries/dagster-dbt"),
@@ -930,10 +937,12 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
                 "AIRLIFT_MWAA_TEST_PROFILE",
                 "AIRLIFT_MWAA_TEST_REGION",
             ],
+            queue=BuildkiteQueue.MEDIUM,
         ),
         PackageSpec(
             oss_path("python_modules/libraries/dagster-airbyte"),
             pytest_tox_factors=[ToxFactor("unit"), ToxFactor("integration")],
+            queue=BuildkiteQueue.MEDIUM,
         ),
         # PackageSpec(
         #     "python_modules/libraries/dagster-airflow",
@@ -963,7 +972,7 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
             oss_path("python_modules/libraries/dagster-dg-cli"),
             pytest_tox_factors=[
                 ToxFactor("general"),
-                ToxFactor("slow", splits=4),
+                ToxFactor("slow", splits=4, queue=BuildkiteQueue.MEDIUM),
                 ToxFactor("serial"),
                 ToxFactor("plus"),
             ],
@@ -981,6 +990,7 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
         PackageSpec(
             oss_path("python_modules/libraries/dagster-aws"),
             env_vars=["AWS_DEFAULT_REGION", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"],
+            queue=BuildkiteQueue.MEDIUM,
         ),
         PackageSpec(
             oss_path("python_modules/libraries/dagster-azure"),
@@ -990,16 +1000,19 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
             oss_path("python_modules/libraries/dagster-celery"),
             env_vars=["AWS_ACCOUNT_ID", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"],
             pytest_extra_cmds=celery_extra_cmds,
+            queue=BuildkiteQueue.MEDIUM,
         ),
         PackageSpec(
             oss_path("python_modules/libraries/dagster-celery-docker"),
             env_vars=["AWS_ACCOUNT_ID", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"],
             pytest_extra_cmds=celery_extra_cmds,
             pytest_step_dependencies=test_project_depends_fn,
+            queue=BuildkiteQueue.MEDIUM,
         ),
         PackageSpec(
             oss_path("python_modules/libraries/dagster-dask"),
             env_vars=["AWS_SECRET_ACCESS_KEY", "AWS_ACCESS_KEY_ID", "AWS_DEFAULT_REGION"],
+            queue=BuildkiteQueue.MEDIUM,
         ),
         PackageSpec(
             oss_path("python_modules/libraries/dagster-databricks"),
@@ -1009,6 +1022,7 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
             env_vars=["AWS_ACCOUNT_ID", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"],
             pytest_extra_cmds=docker_extra_cmds,
             pytest_step_dependencies=test_project_depends_fn,
+            queue=BuildkiteQueue.MEDIUM,
         ),
         PackageSpec(
             oss_path("python_modules/libraries/dagster-duckdb"),
@@ -1134,6 +1148,7 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
                 AvailablePythonVersion.V3_14,  # mysql-connector-python incompatible
             ],
             force_run_fn=BuildkiteContext.has_storage_test_fixture_changes,
+            queue=BuildkiteQueue.MEDIUM,
         ),
         PackageSpec(
             oss_path("python_modules/libraries/dagster-snowflake-pandas"),
@@ -1157,6 +1172,7 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
                 ToxFactor("storage_tests_sqlalchemy_1_3"),
             ],
             force_run_fn=BuildkiteContext.has_storage_test_fixture_changes,
+            queue=BuildkiteQueue.MEDIUM,
         ),
         PackageSpec(
             oss_path("python_modules/libraries/dagster-rest-resources"),
@@ -1181,7 +1197,7 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
             oss_path("python_modules/libraries/dagstermill"),
             pytest_tox_factors=[
                 ToxFactor("papermill1", splits=2),
-                ToxFactor("papermill2", splits=2),
+                ToxFactor("papermill2", splits=2, queue=BuildkiteQueue.MEDIUM),
             ],
             unsupported_python_versions=(
                 lambda tox_factor: (

@@ -354,7 +354,7 @@ class RedshiftClientResource(ConfigurableResource):
 
 
 class FakeRedshiftClientResource(RedshiftClientResource):
-    def get_client(self) -> FakeRedshiftClient:  # pyright: ignore[reportIncompatibleMethodOverride]
+    def get_client(self) -> FakeRedshiftClient:  # ty: ignore[invalid-method-override]
         return FakeRedshiftClient(get_dagster_logger())
 
 

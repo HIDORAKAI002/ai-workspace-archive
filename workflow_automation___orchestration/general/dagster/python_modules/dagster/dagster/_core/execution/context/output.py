@@ -512,9 +512,11 @@ class OutputContext:
         if subset is None:
             check.failed("The output has no asset partitions")
 
-        partition_key_ranges = subset.get_partition_key_ranges(
-            self._asset_partitions_def  # ty: ignore[invalid-argument-type]
-        )
+        instance = self._step_context.instance if self._step_context is not None else None
+        with partition_loading_context(dynamic_partitions_store=instance):
+            partition_key_ranges = subset.get_partition_key_ranges(
+                self._asset_partitions_def  # ty: ignore[invalid-argument-type]
+            )
         if len(partition_key_ranges) != 1:
             check.failed(
                 "Tried to access asset_partition_key_range, but there are "
