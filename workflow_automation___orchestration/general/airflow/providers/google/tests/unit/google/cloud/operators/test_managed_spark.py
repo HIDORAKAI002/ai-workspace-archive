@@ -1,4 +1,3 @@
-#
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -17,32 +16,22 @@
 # under the License.
 from __future__ import annotations
 
-import copy
-from typing import Any
-
-from airflow.listeners import hookimpl
-
-changed: list[Any] = []
-created: list[Any] = []
-emitted: list[Any] = []
-
-
-@hookimpl
-def on_asset_changed(asset):
-    changed.append(copy.deepcopy(asset))
-
-
-@hookimpl
-def on_asset_event_emitted(asset_event):
-    emitted.append(copy.deepcopy(asset_event))
+from airflow.providers.google.cloud.operators.dataproc import (
+    DataprocCreateBatchOperator,
+    DataprocCreateClusterOperator,
+    DataprocDeleteClusterOperator,
+    DataprocSubmitJobOperator,
+)
+from airflow.providers.google.cloud.operators.managed_spark import (
+    ManagedSparkCreateBatchOperator,
+    ManagedSparkCreateClusterOperator,
+    ManagedSparkDeleteClusterOperator,
+    ManagedSparkSubmitJobOperator,
+)
 
 
-@hookimpl
-def on_asset_created(asset):
-    created.append(copy.deepcopy(asset))
-
-
-def clear():
-    changed.clear()
-    created.clear()
-    emitted.clear()
+def test_managed_spark_aliases():
+    assert ManagedSparkCreateClusterOperator is DataprocCreateClusterOperator
+    assert ManagedSparkDeleteClusterOperator is DataprocDeleteClusterOperator
+    assert ManagedSparkSubmitJobOperator is DataprocSubmitJobOperator
+    assert ManagedSparkCreateBatchOperator is DataprocCreateBatchOperator
