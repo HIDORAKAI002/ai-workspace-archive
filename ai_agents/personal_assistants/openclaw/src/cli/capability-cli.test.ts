@@ -559,7 +559,9 @@ describe("capability cli", () => {
       [Record<string, unknown>]
     >;
     const params = calls[0]?.[0];
-    expect(params).toBeDefined();
+    if (!params) {
+      throw new Error("Expected simple completion model params");
+    }
     expect(params).not.toHaveProperty("allowBundledStaticCatalogFallback");
   });
 
@@ -1870,7 +1872,9 @@ describe("capability cli", () => {
       argv: ["capability", "model", "auth", "logout", "--provider", "openai", "--json"],
     });
 
-    expect(updatedStore).not.toBeNull();
+    if (updatedStore === null) {
+      throw new Error("expected updated auth store");
+    }
     const storeSnapshot = updatedStore as unknown as Record<string, any>;
     expect(storeSnapshot.profiles).toEqual({
       "anthropic:default": { id: "anthropic:default" },

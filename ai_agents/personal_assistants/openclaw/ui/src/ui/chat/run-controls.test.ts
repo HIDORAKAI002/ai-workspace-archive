@@ -156,11 +156,9 @@ describe("chat run controls", () => {
     const container = document.createElement("div");
     render(renderChatRunControls(createProps({ hasMessages: true })), container);
 
-    expect(
-      getButton(container, `button[title="${t("chat.runControls.newSession")}"]`),
-    ).toBeTruthy();
-    expect(getButton(container, `button[title="${t("chat.runControls.export")}"]`)).toBeTruthy();
-    expect(getButton(container, `button[title="${t("chat.runControls.send")}"]`)).toBeTruthy();
+    getButton(container, `button[title="${t("chat.runControls.newSession")}"]`);
+    getButton(container, `button[title="${t("chat.runControls.export")}"]`);
+    getButton(container, `button[title="${t("chat.runControls.send")}"]`);
     expect(container.textContent).not.toContain("New session");
   });
 });

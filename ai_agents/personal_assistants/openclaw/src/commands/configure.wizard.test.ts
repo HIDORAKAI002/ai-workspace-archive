@@ -202,15 +202,18 @@ function setupBaseWizardState(config: OpenClawConfig = {}) {
 }
 
 function requireRecord(value: unknown, label: string): Record<string, unknown> {
-  expect(value, label).toBeTypeOf("object");
-  expect(value, label).not.toBeNull();
+  if (!value || typeof value !== "object") {
+    throw new Error(`expected ${label}`);
+  }
   return value as Record<string, unknown>;
 }
 
 function requireWriteConfig(callIndex = 0) {
   const call = mocks.writeConfigFile.mock.calls.at(callIndex);
-  expect(call, "writeConfigFile call").toBeDefined();
-  return requireRecord(call?.[0], "written config");
+  if (!call) {
+    throw new Error(`Expected writeConfigFile call ${callIndex}`);
+  }
+  return requireRecord(call[0], "written config");
 }
 
 function getGateway(config: Record<string, unknown>) {

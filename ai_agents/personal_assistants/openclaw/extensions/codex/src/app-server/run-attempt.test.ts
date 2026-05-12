@@ -290,9 +290,12 @@ function expectResumeRequest(
   params: Record<string, unknown>,
 ) {
   const request = requests.find((entry) => entry.method === "thread/resume");
-  expect(request).toBeDefined();
+  if (!request) {
+    throw new Error("Expected thread/resume request");
+  }
+  const requestParams = request.params as Record<string, unknown> | undefined;
   for (const [key, value] of Object.entries(params)) {
-    expect((request?.params as Record<string, unknown> | undefined)?.[key]).toEqual(value);
+    expect(requestParams?.[key]).toEqual(value);
   }
 }
 
@@ -1954,9 +1957,11 @@ describe("runCodexAppServerAttempt", () => {
     const startRequest = harness.requests.find((request) => request.method === "thread/start");
     const relayId = extractRelayIdFromThreadRequest(startRequest?.params);
     const registration = nativeHookRelayTesting.getNativeHookRelayRegistrationForTests(relayId);
-    expect(registration).toBeDefined();
-    expect((registration?.expiresAtMs ?? 0) - startedAtMs).toBeGreaterThanOrEqual(relayFloorMs);
-    expect((registration?.expiresAtMs ?? 0) - startedAtMs).toBeLessThan(relayFloorMs + 10_000);
+    if (!registration) {
+      throw new Error("Expected native hook relay registration");
+    }
+    expect(registration.expiresAtMs - startedAtMs).toBeGreaterThanOrEqual(relayFloorMs);
+    expect(registration.expiresAtMs - startedAtMs).toBeLessThan(relayFloorMs + 10_000);
 
     await harness.completeTurn({ threadId: "thread-1", turnId: "turn-1" });
     await run;
@@ -1982,9 +1987,11 @@ describe("runCodexAppServerAttempt", () => {
     const startRequest = harness.requests.find((request) => request.method === "thread/start");
     const relayId = extractRelayIdFromThreadRequest(startRequest?.params);
     const registration = nativeHookRelayTesting.getNativeHookRelayRegistrationForTests(relayId);
-    expect(registration).toBeDefined();
-    expect((registration?.expiresAtMs ?? 0) - startedAtMs).toBeGreaterThanOrEqual(explicitTtlMs);
-    expect((registration?.expiresAtMs ?? 0) - startedAtMs).toBeLessThan(explicitTtlMs + 10_000);
+    if (!registration) {
+      throw new Error("Expected native hook relay registration");
+    }
+    expect(registration.expiresAtMs - startedAtMs).toBeGreaterThanOrEqual(explicitTtlMs);
+    expect(registration.expiresAtMs - startedAtMs).toBeLessThan(explicitTtlMs + 10_000);
 
     await harness.completeTurn({ threadId: "thread-1", turnId: "turn-1" });
     await run;
@@ -2086,10 +2093,10 @@ describe("runCodexAppServerAttempt", () => {
       const startRequest = harness.requests.find((request) => request.method === "thread/start");
       relayId = extractRelayIdFromThreadRequest(startRequest?.params);
       const registration = nativeHookRelayTesting.getNativeHookRelayRegistrationForTests(relayId);
-      expect(registration).toBeDefined();
-      expect((registration?.expiresAtMs ?? 0) - startedAtMs).toBeGreaterThanOrEqual(
-        expectedRelayTtlMs,
-      );
+      if (!registration) {
+        throw new Error("Expected native hook relay registration");
+      }
+      expect(registration.expiresAtMs - startedAtMs).toBeGreaterThanOrEqual(expectedRelayTtlMs);
 
       await harness.completeTurn({ threadId: "thread-1", turnId: "turn-1" });
       completed = true;

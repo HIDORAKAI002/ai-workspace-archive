@@ -148,14 +148,18 @@ function mockSavedVideoResult(fileName = "out.mp4") {
 }
 
 function resultDetails(result: { details?: unknown }): Record<string, unknown> {
-  expect(result.details).toBeDefined();
+  if (result.details === undefined) {
+    throw new Error("Expected video generation result details");
+  }
   expect(typeof result.details).toBe("object");
   return result.details as Record<string, unknown>;
 }
 
 function firstMockCallArg(mock: { mock: { calls: unknown[][] } }): unknown {
   const firstCall = mock.mock.calls[0];
-  expect(firstCall).toBeDefined();
+  if (!firstCall) {
+    throw new Error("Expected first mock call");
+  }
   return firstCall[0];
 }
 

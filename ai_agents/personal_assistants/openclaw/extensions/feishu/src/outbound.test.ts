@@ -801,8 +801,11 @@ describe("feishuOutbound comment-thread routing", () => {
 
     expect(status).toBe("done");
     expect(deliverCommentThreadTextMock).toHaveBeenCalled();
-    expect(cleanupReactionCall()?.client).toBeDefined();
-    expect(cleanupReactionCall()?.deliveryContext).toEqual({
+    const cleanupCall = cleanupReactionCall();
+    if (!cleanupCall?.client) {
+      throw new Error("Expected cleanup reaction client");
+    }
+    expect(cleanupCall.deliveryContext).toEqual({
       channel: "feishu",
       to: "comment:docx:doxcn123:7623358762119646411",
       threadId: "reply_ambient_1",
