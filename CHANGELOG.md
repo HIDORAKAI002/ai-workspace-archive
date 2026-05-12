@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-05-13 01:32 IST] Auto-Sync
+- **44 Repositories Updated:** MCP Official Servers, GitHub MCP Server, Langfuse, NVIDIA NeMo Guardrails, n8n, Activepieces, Trigger.dev, Windmill, Appsmith, Budibase, modelcontextprotocol/rust-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langgraph, crewAIInc/crewAI, pydantic/pydantic-ai, microsoft/semantic-kernel, mastra-ai/mastra, deepset-ai/haystack, chatdev, BerriAI/litellm, stanfordnlp/dspy, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, cline/cline, RooCodeInc/Roo-Code, pinecone-io/pinecone-python-client, arize-ai/phoenix, open-telemetry/opentelemetry-python, affaan-m/everything-claude-code, firecrawl/firecrawl, danny-avila/LibreChat, googleapis/python-genai, vercel/ai, apache/airflow, dagster-io/dagster, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow
+
 ## [2026-05-12 18:58 IST] Auto-Sync
 - **31 Repositories Updated:** GitHub MCP Server, Langfuse, NVIDIA NeMo Guardrails, n8n, Dify, Activepieces, Trigger.dev, Windmill, Appsmith, Budibase, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, camel-ai/camel, openai/openai-agents-python, pydantic/pydantic-ai, mastra-ai/mastra, deepset-ai/haystack, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, weaviate/weaviate, infiniflow/ragflow, affaan-m/everything-claude-code, vercel/ai, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, bytedance/deer-flow
 
