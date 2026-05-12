@@ -224,7 +224,7 @@ Copy-Item -Recurse rules/typescript "$HOME/.claude/rules/"
 /plugin list ecc@ecc
 ```
 
-**搞定！** 你现在可以使用 58 个智能体、220 项技能和 74 个命令了。
+**搞定！** 你现在可以使用 60 个智能体、225 项技能和 75 个命令了。
 
 ***
 
@@ -348,6 +348,10 @@ everything-claude-code/
 |   |-- laravel-verification/       # Laravel 验证循环（新增）
 |   |-- python-patterns/            # Python 习惯用法与最佳实践（新增）
 |   |-- python-testing/             # 使用 pytest 的 Python 测试（新增）
+|   |-- quarkus-patterns/            # Java Quarkus 模式（新增）
+|   |-- quarkus-security/            # Quarkus 安全（新增）
+|   |-- quarkus-tdd/                 # Quarkus TDD（新增）
+|   |-- quarkus-verification/        # Quarkus 验证（新增）
 |   |-- springboot-patterns/        # Java Spring Boot 模式（新增）
 |   |-- springboot-security/        # Spring Boot 安全（新增）
 |   |-- springboot-tdd/             # Spring Boot TDD（新增）
@@ -677,7 +681,7 @@ cp -r everything-claude-code/.agents/skills/* ~/.claude/skills/
 cp -r everything-claude-code/skills/search-first ~/.claude/skills/
 
 # Optional: add niche/framework-specific skills only when needed
-# for s in django-patterns django-tdd laravel-patterns springboot-patterns; do
+# for s in django-patterns django-tdd laravel-patterns springboot-patterns quarkus-patterns; do
 # cp -r everything-claude-code/skills/$s ~/.claude/skills/
 # done
 ```
@@ -1132,9 +1136,9 @@ opencode
 
 | 功能特性 | Claude Code | OpenCode | 状态 |
 |---------|-------------|----------|--------|
-| 智能体 | PASS: 58 个 | PASS: 12 个 | **Claude Code 领先** |
-| 命令 | PASS: 74 个 | PASS: 35 个 | **Claude Code 领先** |
-| 技能 | PASS: 220 项 | PASS: 37 项 | **Claude Code 领先** |
+| 智能体 | PASS: 60 个 | PASS: 12 个 | **Claude Code 领先** |
+| 命令 | PASS: 75 个 | PASS: 35 个 | **Claude Code 领先** |
+| 技能 | PASS: 225 项 | PASS: 37 项 | **Claude Code 领先** |
 | 钩子 | PASS: 8 种事件类型 | PASS: 11 种事件 | **OpenCode 更多！** |
 | 规则 | PASS: 29 条 | PASS: 13 条指令 | **Claude Code 领先** |
 | MCP 服务器 | PASS: 14 个 | PASS: 完整 | **完全对等** |
@@ -1240,9 +1244,9 @@ ECC 是**第一个最大化利用每个主要 AI 编码工具的插件**。以�
 
 | 功能特性 | Claude Code | Cursor IDE | Codex CLI | OpenCode |
 |---------|------------|------------|-----------|----------|
-| **智能体** | 58 | 共享 (AGENTS.md) | 共享 (AGENTS.md) | 12 |
-| **命令** | 74 | 共享 | 基于指令 | 35 |
-| **技能** | 220 | 共享 | 10 (原生格式) | 37 |
+| **智能体** | 60 | 共享 (AGENTS.md) | 共享 (AGENTS.md) | 12 |
+| **命令** | 75 | 共享 | 基于指令 | 35 |
+| **技能** | 225 | 共享 | 10 (原生格式) | 37 |
 | **钩子事件** | 8 种类型 | 15 种类型 | 暂无 | 11 种类型 |
 | **钩子脚本** | 20+ 个脚本 | 16 个脚本 (DRY 适配器) | N/A | 插件钩子 |
 | **规则** | 34 (通用 + 语言) | 34 (YAML 前页) | 基于指令 | 13 条指令 |
