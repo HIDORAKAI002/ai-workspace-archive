@@ -13,4 +13,17 @@
 # limitations under the License.
 #
 
-__version__ = '2.1.0' # x-release-please-version
+# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+
+from typing import Optional
+
+from .._models import BaseModel
+
+__all__ = ["GoogleSearchResult"]
+
+
+class GoogleSearchResult(BaseModel):
+    """The result of the Google Search."""
+
+    search_suggestions: Optional[str] = None
+    """Web content snippet that can be embedded in a web page or an app webview."""

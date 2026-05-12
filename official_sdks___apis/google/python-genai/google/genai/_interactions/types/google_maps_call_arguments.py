@@ -13,4 +13,17 @@
 # limitations under the License.
 #
 
-__version__ = '2.1.0' # x-release-please-version
+# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+
+from typing import List, Optional
+
+from .._models import BaseModel
+
+__all__ = ["GoogleMapsCallArguments"]
+
+
+class GoogleMapsCallArguments(BaseModel):
+    """The arguments to pass to the Google Maps tool."""
+
+    queries: Optional[List[str]] = None
+    """The queries to be executed."""

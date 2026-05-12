@@ -13,4 +13,21 @@
 # limitations under the License.
 #
 
-__version__ = '2.1.0' # x-release-please-version
+# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+
+from typing import Optional
+from typing_extensions import Literal
+
+from .._models import BaseModel
+
+__all__ = ["URLContextResult"]
+
+
+class URLContextResult(BaseModel):
+    """The result of the URL context."""
+
+    status: Optional[Literal["success", "error", "paywall", "unsafe"]] = None
+    """The status of the URL retrieval."""
+
+    url: Optional[str] = None
+    """The URL that was fetched."""

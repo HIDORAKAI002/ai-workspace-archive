@@ -13,4 +13,21 @@
 # limitations under the License.
 #
 
-__version__ = '2.1.0' # x-release-please-version
+# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+
+from typing import Optional
+from typing_extensions import Literal
+
+from .._models import BaseModel
+
+__all__ = ["CodeExecutionCallArguments"]
+
+
+class CodeExecutionCallArguments(BaseModel):
+    """The arguments to pass to the code execution."""
+
+    code: Optional[str] = None
+    """The code to be executed."""
+
+    language: Optional[Literal["python"]] = None
+    """Programming language of the `code`."""
