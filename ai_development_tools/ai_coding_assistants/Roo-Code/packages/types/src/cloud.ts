@@ -6,9 +6,22 @@ import { RooCodeEventName } from "./events.js"
 import { TaskStatus, taskMetadataSchema } from "./task.js"
 import { globalSettingsSchema } from "./global-settings.js"
 import { providerSettingsWithIdSchema } from "./provider-settings.js"
-import { mcpMarketplaceItemSchema } from "./marketplace.js"
 import { clineMessageSchema, queuedMessageSchema, tokenUsageSchema } from "./message.js"
-import { staticAppPropertiesSchema, gitPropertiesSchema } from "./telemetry.js"
+
+const extensionAppPropertiesSchema = z.object({
+	appName: z.string(),
+	appVersion: z.string(),
+	vscodeVersion: z.string(),
+	platform: z.string(),
+	editorName: z.string(),
+	hostname: z.string().optional(),
+})
+
+const extensionGitPropertiesSchema = z.object({
+	repositoryUrl: z.string().optional(),
+	repositoryName: z.string().optional(),
+	defaultBranch: z.string().optional(),
+})
 
 /**
  * JWTPayload
@@ -156,9 +169,6 @@ export const organizationSettingsSchema = z.object({
 	defaultSettings: organizationDefaultSettingsSchema,
 	allowList: organizationAllowListSchema,
 	features: organizationFeaturesSchema.optional(),
-	hiddenMcps: z.array(z.string()).optional(),
-	hideMarketplaceMcps: z.boolean().optional(),
-	mcps: z.array(mcpMarketplaceItemSchema).optional(),
 	providerProfiles: z.record(z.string(), providerSettingsWithIdSchema).optional(),
 })
 
@@ -409,8 +419,8 @@ export const extensionInstanceSchema = z.object({
 	instanceId: z.string(),
 	userId: z.string(),
 	workspacePath: z.string(),
-	appProperties: staticAppPropertiesSchema,
-	gitProperties: gitPropertiesSchema.optional(),
+	appProperties: extensionAppPropertiesSchema,
+	gitProperties: extensionGitPropertiesSchema.optional(),
 	lastHeartbeat: z.coerce.number(),
 	task: extensionTaskSchema,
 	taskAsk: clineMessageSchema.optional(),
