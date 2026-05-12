@@ -27,7 +27,7 @@ class ResourceRequests:
         cpu: str,
         *,
         memory: str | None = None,
-        docker_cpu: str = "500m",
+        docker_cpu: str = "2000m",
         docker_memory: str = "1Gi",
         docker_memory_limit: str = "2Gi",
         ephemeral_storage: str | None = None,
@@ -155,7 +155,7 @@ class CommandStepBuilder:
             ]
 
         self._step = {
-            "agents": {"queue": BuildkiteQueue.KUBERNETES_EKS.value},
+            "agents": {"queue": BuildkiteQueue.MEDIUM.value},
             "key": key,
             "label": make_label(key, label_emojis),
             "timeout_in_minutes": timeout_in_minutes,
@@ -337,7 +337,7 @@ class CommandStepBuilder:
         cpu = (
             self._resources.cpu
             if self._resources
-            else ("1500m" if self._requires_docker else "500m")
+            else ("1000m" if self._requires_docker else "500m")
         )
         memory = self._resources.memory if self._resources else None
         default_ephemeral_storage = "10Gi" if self._requires_docker else "5Gi"
@@ -445,7 +445,7 @@ class CommandStepBuilder:
                     # fires — see test_docker_launcher.py flakes.
                     "resources": {
                         "requests": {
-                            "cpu": self._resources.docker_cpu if self._resources else "500m",
+                            "cpu": self._resources.docker_cpu if self._resources else "2000m",
                             "memory": self._resources.docker_memory if self._resources else "1Gi",
                         },
                         "limits": {

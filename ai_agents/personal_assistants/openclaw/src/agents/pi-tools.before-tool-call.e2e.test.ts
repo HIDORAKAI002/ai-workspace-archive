@@ -209,8 +209,6 @@ describe("before_tool_call loop detection behavior", () => {
   }
 
   function requireRecord(value: unknown, label: string): Record<string, unknown> {
-    expect(typeof value).toBe("object");
-    expect(value).not.toBeNull();
     if (typeof value !== "object" || value === null) {
       throw new Error(`${label} was not an object`);
     }
@@ -649,8 +647,6 @@ describe("before_tool_call requireApproval handling", () => {
   const mockCallGateway = vi.mocked(callGatewayTool);
 
   function requireRecord(value: unknown, label: string): Record<string, unknown> {
-    expect(typeof value).toBe("object");
-    expect(value).not.toBeNull();
     if (typeof value !== "object" || value === null) {
       throw new Error(`${label} was not an object`);
     }
@@ -661,7 +657,6 @@ describe("before_tool_call requireApproval handling", () => {
     index: number,
   ): [event: Record<string, unknown>, context: Record<string, unknown>] {
     const call = hookRunner.runBeforeToolCall.mock.calls[index] as unknown[] | undefined;
-    expect(call).toBeDefined();
     if (!call) {
       throw new Error(`missing before_tool_call hook call ${index + 1}`);
     }

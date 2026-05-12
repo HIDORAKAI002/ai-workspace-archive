@@ -766,7 +766,9 @@ describe("updateNpmInstalledPlugins", () => {
       "dist.shasum",
       "--json",
     ]);
-    expect(npmViewCall()?.[1]).toBeDefined();
+    if (npmViewCall()?.[1] === undefined) {
+      throw new Error("Expected npm view command options");
+    }
     expect(installPluginFromNpmSpecMock).not.toHaveBeenCalled();
     expect(result.changed).toBe(false);
     expect(result.config).toBe(config);

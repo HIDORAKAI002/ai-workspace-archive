@@ -4,15 +4,8 @@ import type { GlobalSettings, RooCodeSettings } from "./global-settings.js"
 import type { ProviderSettings, ProviderSettingsEntry } from "./provider-settings.js"
 import type { HistoryItem } from "./history.js"
 import type { ModeConfig, PromptComponent } from "./mode.js"
-import type { TelemetrySetting } from "./telemetry.js"
 import type { Experiments } from "./experiment.js"
 import type { ClineMessage, QueuedMessage } from "./message.js"
-import {
-	type MarketplaceItem,
-	type MarketplaceInstalledMetadata,
-	type InstallMarketplaceItemOptions,
-	marketplaceItemSchema,
-} from "./marketplace.js"
 import type { TodoItem } from "./todo.js"
 import type { CloudUserInfo, CloudOrganizationMembership, OrganizationAllowList, ShareVisibility } from "./cloud.js"
 import type { SerializedCustomToolDefinition } from "./custom-tool.js"
@@ -76,9 +69,6 @@ export interface ExtensionMessage {
 		| "indexingStatusUpdate"
 		| "indexCleared"
 		| "codebaseIndexConfig"
-		| "marketplaceInstallResult"
-		| "marketplaceRemoveResult"
-		| "marketplaceData"
 		| "shareTaskSuccess"
 		| "codeIndexSettingsSaved"
 		| "codeIndexSecretStatus"
@@ -116,7 +106,6 @@ export interface ExtensionMessage {
 		| "chatButtonClicked"
 		| "settingsButtonClicked"
 		| "historyButtonClicked"
-		| "marketplaceButtonClicked"
 		| "cloudButtonClicked"
 		| "didBecomeVisible"
 		| "focusInput"
@@ -160,13 +149,9 @@ export interface ExtensionMessage {
 	setting?: string
 	value?: any // eslint-disable-line @typescript-eslint/no-explicit-any
 	hasContent?: boolean
-	items?: MarketplaceItem[]
 	userInfo?: CloudUserInfo
 	organizationAllowList?: OrganizationAllowList
 	tab?: string
-	marketplaceItems?: MarketplaceItem[]
-	organizationMcps?: MarketplaceItem[]
-	marketplaceInstalledMetadata?: MarketplaceInstalledMetadata
 	errors?: string[]
 	visibility?: ShareVisibility
 	rulesFolderPath?: string
@@ -340,10 +325,6 @@ export type ExtensionState = Pick<
 	toolRequirements?: Record<string, boolean> // Map of tool names to their requirements (e.g. {"apply_diff": true})
 
 	cwd?: string // Current working directory
-	telemetrySetting: TelemetrySetting
-	telemetryKey?: string
-	machineId?: string
-
 	renderContext: "sidebar" | "editor"
 	settingsImportedAt?: number
 	historyPreviewCollapsed?: boolean
@@ -360,9 +341,6 @@ export type ExtensionState = Pick<
 
 	autoCondenseContext: boolean
 	autoCondenseContextPercent: number
-	marketplaceItems?: MarketplaceItem[]
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	marketplaceInstalledMetadata?: { project: Record<string, any>; global: Record<string, any> }
 	profileThresholds: Record<string, number>
 	hasOpenedModeSelector: boolean
 	openRouterImageApiKey?: string
@@ -370,7 +348,6 @@ export type ExtensionState = Pick<
 	lastShownAnnouncementId?: string
 	apiModelId?: string
 	mcpServers?: McpServer[]
-	mdmCompliant?: boolean
 	taskSyncEnabled: boolean
 	openAiCodexIsAuthenticated?: boolean
 	debug?: boolean
@@ -494,7 +471,6 @@ export interface WebviewMessage {
 		| "checkpointRestore"
 		| "deleteMcpServer"
 		| "codebaseIndexEnabled"
-		| "telemetrySetting"
 		| "searchFiles"
 		| "toggleApiConfigPin"
 		| "hasOpenedModeSelector"
@@ -519,14 +495,6 @@ export interface WebviewMessage {
 		| "setAutoEnableDefault"
 		| "focusPanelRequest"
 		| "openExternal"
-		| "filterMarketplaceItems"
-		| "marketplaceButtonClicked"
-		| "installMarketplaceItem"
-		| "installMarketplaceItemWithParameters"
-		| "cancelMarketplaceInstall"
-		| "removeInstalledMarketplaceItem"
-		| "marketplaceInstallResult"
-		| "fetchMarketplaceData"
 		| "switchTab"
 		| "shareTaskSuccess"
 		| "exportMode"
@@ -542,7 +510,6 @@ export interface WebviewMessage {
 		| "deleteCommand"
 		| "createCommand"
 		| "insertTextIntoTextarea"
-		| "showMdmAuthRequiredNotification"
 		| "imageGenerationSettings"
 		| "queueMessage"
 		| "removeQueuedMessage"
@@ -584,7 +551,7 @@ export interface WebviewMessage {
 	text?: string
 	taskId?: string
 	editedMessageContent?: string
-	tab?: "settings" | "history" | "mcp" | "modes" | "chat" | "marketplace" | "cloud"
+	tab?: "settings" | "history" | "mcp" | "modes" | "chat" | "cloud"
 	disabled?: boolean
 	context?: string
 	dataUri?: string
@@ -636,8 +603,6 @@ export interface WebviewMessage {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	settings?: any
 	url?: string // For openExternal
-	mpItem?: MarketplaceItem
-	mpInstallOptions?: InstallMarketplaceItemOptions
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	config?: Record<string, any> // Add config to the payload
 	visibility?: ShareVisibility // For share visibility
@@ -723,21 +688,11 @@ export interface IndexClearedPayload {
 	error?: string
 }
 
-export const installMarketplaceItemWithParametersPayloadSchema = z.object({
-	item: marketplaceItemSchema,
-	parameters: z.record(z.string(), z.any()),
-})
-
-export type InstallMarketplaceItemWithParametersPayload = z.infer<
-	typeof installMarketplaceItemWithParametersPayloadSchema
->
-
 export type WebViewMessagePayload =
 	| CheckpointDiffPayload
 	| CheckpointRestorePayload
 	| IndexingStatusPayload
 	| IndexClearedPayload
-	| InstallMarketplaceItemWithParametersPayload
 	| UpdateTodoListPayload
 	| EditQueuedMessagePayload
 

@@ -221,6 +221,22 @@ describe("waitForAgentRun", () => {
     expect(result).toEqual({ status: "pending" });
   });
 
+  it("normalizes wait timeouts before sending agent.wait", async () => {
+    callGatewayMock.mockResolvedValue({ status: "ok" });
+
+    const result = await waitForAgentRun({ runId: "run-clamped", timeoutMs: 0.8 });
+
+    expect(result).toEqual({ status: "ok" });
+    expect(callGatewayMock).toHaveBeenCalledWith({
+      method: "agent.wait",
+      params: {
+        runId: "run-clamped",
+        timeoutMs: 1,
+      },
+      timeoutMs: 2_001,
+    });
+  });
+
   it("preserves timing metadata from agent.wait", async () => {
     callGatewayMock.mockResolvedValue({
       status: "ok",

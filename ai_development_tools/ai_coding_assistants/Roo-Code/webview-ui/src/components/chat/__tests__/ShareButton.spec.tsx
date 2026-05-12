@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next"
 
 import { render, screen, fireEvent, waitFor } from "@/utils/test-utils"
 import { vscode } from "@/utils/vscode"
+import { useExtensionState } from "@/context/ExtensionStateContext"
 
 import { ShareButton } from "../ShareButton"
 
@@ -13,32 +14,18 @@ vi.mock("@/utils/vscode", () => ({
 }))
 
 // Mock react-i18next
-vi.mock("react-i18next")
+vi.mock("react-i18next", () => ({
+	useTranslation: vi.fn(),
+}))
 
 // Mock the extension state context
 vi.mock("@/context/ExtensionStateContext", () => ({
-	ExtensionStateContextProvider: ({ children }: { children: React.ReactNode }) => children,
-	useExtensionState: () => ({
-		sharingEnabled: true,
-		publicSharingEnabled: true,
-		cloudIsAuthenticated: true,
-		cloudUserInfo: {
-			id: "test-user",
-			email: "test@example.com",
-			organizationName: "Test Organization",
-		},
-	}),
-}))
-
-// Mock telemetry client
-vi.mock("@/utils/TelemetryClient", () => ({
-	telemetryClient: {
-		capture: vi.fn(),
-	},
+	useExtensionState: vi.fn(),
 }))
 
 const mockUseTranslation = vi.mocked(useTranslation)
 const mockVscode = vi.mocked(vscode)
+const mockUseExtensionState = vi.mocked(useExtensionState)
 
 describe("ShareButton", () => {
 	const mockT = vi.fn((key: string) => key)
@@ -54,6 +41,15 @@ describe("ShareButton", () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks()
+
+		mockUseExtensionState.mockReturnValue({
+			cloudIsAuthenticated: true,
+			sharingEnabled: true,
+			publicSharingEnabled: true,
+			cloudUserInfo: {
+				organizationName: "Test Organization",
+			},
+		} as any)
 
 		mockUseTranslation.mockReturnValue({
 			t: mockT,

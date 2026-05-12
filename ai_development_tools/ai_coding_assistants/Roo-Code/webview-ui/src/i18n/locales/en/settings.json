@@ -149,8 +149,7 @@
 			"nameInvalid": "Name must be 1-64 lowercase letters, numbers, or hyphens",
 			"descriptionRequired": "Description is required",
 			"descriptionTooLong": "Description must be 1024 characters or less"
-		},
-		"footer": "Create your own skills with the Skill Writer mode, available in the <MarketplaceLink>Modes Marketplace</MarketplaceLink>."
+		}
 	},
 	"ui": {
 		"collapseThinking": {
@@ -843,10 +842,6 @@
 			"name": "Use experimental multi block diff tool",
 			"description": "When enabled, Roo will use multi block diff tool. This will try to update multiple code blocks in the file in one request."
 		},
-		"MARKETPLACE": {
-			"name": "Enable Marketplace",
-			"description": "When enabled, you can install MCPs and custom modes from the Marketplace."
-		},
 		"PREVENT_FOCUS_DISRUPTION": {
 			"name": "Background editing",
 			"description": "Prevent editor focus disruption when enabled. File edits happen in the background without opening diff views or stealing focus. You can continue working uninterrupted while Roo makes changes. Files can be opened without focus to capture diagnostics or kept closed entirely."
@@ -928,10 +923,6 @@
 		"simplifiedExplanation": "You can adjust detailed model settings later."
 	},
 	"footer": {
-		"telemetry": {
-			"label": "Allow anonymous error and usage reporting",
-			"description": "Help improve Roo Code by sending anonymous usage data and error reports. This telemetry does not collect code, prompts or personal information. See our <privacyLink>privacy policy</privacyLink> for more details."
-		},
 		"settings": {
 			"import": "Import",
 			"export": "Export",

@@ -78,7 +78,6 @@ describe("resolveModelAsync skipPiDiscovery runtime hooks", () => {
     });
 
     expect(result.error).toBeUndefined();
-    expect(result.model).toBeDefined();
     if (!result.model) {
       throw new Error("Expected resolved model");
     }

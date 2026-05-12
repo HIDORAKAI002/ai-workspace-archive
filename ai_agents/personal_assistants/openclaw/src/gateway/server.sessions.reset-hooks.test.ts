@@ -27,8 +27,10 @@ type HookEventRecord = Record<string, unknown> & {
 
 function firstHookCall(mock: { mock: { calls: unknown[][] } }): [HookEventRecord, HookEventRecord] {
   const call = mock.mock.calls[0];
-  expect(call).toBeDefined();
-  return [call?.[0] as HookEventRecord, call?.[1] as HookEventRecord];
+  if (!call) {
+    throw new Error("Expected hook call");
+  }
+  return [call[0] as HookEventRecord, call[1] as HookEventRecord];
 }
 
 function expectTranscriptResetEvent(params: {

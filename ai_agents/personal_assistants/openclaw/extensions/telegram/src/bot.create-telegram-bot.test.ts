@@ -445,9 +445,8 @@ describe("createTelegramBot", () => {
     const sequentializer = sequentializeSpy.mock.results[0]?.value as
       | TelegramMiddleware
       | undefined;
-    expect(sequentializer).toBeDefined();
     if (!sequentializer) {
-      return;
+      throw new Error("Expected sequentialize middleware");
     }
 
     const topicCtx = (threadId: number, updateId: number) => {

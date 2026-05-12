@@ -7,12 +7,10 @@ import {
 	type ModeConfig,
 	type ExperimentId,
 	type TodoItem,
-	type TelemetrySetting,
 	type OrganizationAllowList,
 	type CloudOrganizationMembership,
 	type ExtensionMessage,
 	type ExtensionState,
-	type MarketplaceInstalledMetadata,
 	type SkillMetadata,
 	type Command,
 	type McpServer,
@@ -48,15 +46,12 @@ export interface ExtensionStateContextType extends ExtensionState {
 	cloudOrganizations?: CloudOrganizationMembership[]
 	sharingEnabled: boolean
 	publicSharingEnabled: boolean
-	mdmCompliant?: boolean
 	hasOpenedModeSelector: boolean // New property to track if user has opened mode selector
 	setHasOpenedModeSelector: (value: boolean) => void // Setter for the new property
 	alwaysAllowFollowupQuestions: boolean // New property for follow-up questions auto-approve
 	setAlwaysAllowFollowupQuestions: (value: boolean) => void // Setter for the new property
 	followupAutoApproveTimeoutMs: number | undefined // Timeout in ms for auto-approving follow-up questions
 	setFollowupAutoApproveTimeoutMs: (value: number) => void // Setter for the timeout
-	marketplaceItems?: any[]
-	marketplaceInstalledMetadata?: MarketplaceInstalledMetadata
 	profileThresholds: Record<string, number>
 	setProfileThresholds: (value: Record<string, number>) => void
 	setApiConfiguration: (config: ProviderSettings) => void
@@ -111,14 +106,12 @@ export interface ExtensionStateContextType extends ExtensionState {
 	setMaxOpenTabsContext: (value: number) => void
 	maxWorkspaceFiles: number
 	setMaxWorkspaceFiles: (value: number) => void
-	setTelemetrySetting: (value: TelemetrySetting) => void
 	awsUsePromptCache?: boolean
 	setAwsUsePromptCache: (value: boolean) => void
 	maxImageFileSize: number
 	setMaxImageFileSize: (value: number) => void
 	maxTotalImageSize: number
 	setMaxTotalImageSize: (value: number) => void
-	machineId?: string
 	pinnedApiConfigs?: Record<string, boolean>
 	setPinnedApiConfigs: (value: Record<string, boolean>) => void
 	togglePinnedApiConfig: (configName: string) => void
@@ -222,7 +215,6 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 		maxOpenTabsContext: 20,
 		maxWorkspaceFiles: 200,
 		cwd: "",
-		telemetrySetting: "unset",
 		showRooIgnoredFiles: true, // Default to showing .rooignore'd files with lock symbol (current behavior).
 		enableSubfolderRules: false, // Default to disabled - must be enabled to load rules from subdirectories
 		renderContext: "sidebar",
@@ -274,13 +266,8 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 	const [mcpServers, setMcpServers] = useState<McpServer[]>([])
 	const [currentCheckpoint, setCurrentCheckpoint] = useState<string>()
 	const [extensionRouterModels, setExtensionRouterModels] = useState<RouterModels | undefined>(undefined)
-	const [marketplaceItems, setMarketplaceItems] = useState<any[]>([])
 	const [alwaysAllowFollowupQuestions, setAlwaysAllowFollowupQuestions] = useState(false) // Add state for follow-up questions auto-approve
 	const [followupAutoApproveTimeoutMs, setFollowupAutoApproveTimeoutMs] = useState<number | undefined>(undefined) // Will be set from global settings
-	const [marketplaceInstalledMetadata, setMarketplaceInstalledMetadata] = useState<MarketplaceInstalledMetadata>({
-		project: {},
-		global: {},
-	})
 	const [skills, setSkills] = useState<SkillMetadata[]>([])
 	const [includeTaskHistoryInEnhance, setIncludeTaskHistoryInEnhance] = useState(true)
 	const [prevCloudIsAuthenticated, setPrevCloudIsAuthenticated] = useState(false)
@@ -330,13 +317,6 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 					// Update includeCurrentCost if present in state message
 					if ((newState as any).includeCurrentCost !== undefined) {
 						setIncludeCurrentCost((newState as any).includeCurrentCost)
-					}
-					// Handle marketplace data if present in state message
-					if (newState.marketplaceItems !== undefined) {
-						setMarketplaceItems(newState.marketplaceItems)
-					}
-					if (newState.marketplaceInstalledMetadata !== undefined) {
-						setMarketplaceInstalledMetadata(newState.marketplaceInstalledMetadata)
 					}
 					break
 				}
@@ -412,15 +392,6 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 				}
 				case "routerModels": {
 					setExtensionRouterModels(message.routerModels)
-					break
-				}
-				case "marketplaceData": {
-					if (message.marketplaceItems !== undefined) {
-						setMarketplaceItems(message.marketplaceItems)
-					}
-					if (message.marketplaceInstalledMetadata !== undefined) {
-						setMarketplaceInstalledMetadata(message.marketplaceInstalledMetadata)
-					}
 					break
 				}
 				case "taskHistoryUpdated": {
@@ -503,8 +474,6 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 		cloudIsAuthenticated: state.cloudIsAuthenticated ?? false,
 		cloudOrganizations: state.cloudOrganizations ?? [],
 		organizationSettingsVersion: state.organizationSettingsVersion ?? -1,
-		marketplaceItems,
-		marketplaceInstalledMetadata,
 		profileThresholds: state.profileThresholds ?? {},
 		alwaysAllowFollowupQuestions,
 		followupAutoApproveTimeoutMs,
@@ -558,7 +527,6 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 		setCustomModes: (value) => setState((prevState) => ({ ...prevState, customModes: value })),
 		setMaxOpenTabsContext: (value) => setState((prevState) => ({ ...prevState, maxOpenTabsContext: value })),
 		setMaxWorkspaceFiles: (value) => setState((prevState) => ({ ...prevState, maxWorkspaceFiles: value })),
-		setTelemetrySetting: (value) => setState((prevState) => ({ ...prevState, telemetrySetting: value })),
 		setShowRooIgnoredFiles: (value) => setState((prevState) => ({ ...prevState, showRooIgnoredFiles: value })),
 		setEnableSubfolderRules: (value) => setState((prevState) => ({ ...prevState, enableSubfolderRules: value })),
 		setAwsUsePromptCache: (value) => setState((prevState) => ({ ...prevState, awsUsePromptCache: value })),

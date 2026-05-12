@@ -576,7 +576,9 @@ describe("MediaStreamHandler security hardening", () => {
       throw new Error("Expected websocket connection emit call");
     }
     expect(emitCall[0]).toBe("connection");
-    expect(emitCall[1]).toBeDefined();
+    if (!emitCall[1]) {
+      throw new Error("Expected websocket connection argument");
+    }
     const request = requireRecord(emitCall[2], "connection request");
     const socket = requireRecord(request.socket, "connection request socket");
     expect(socket.remoteAddress).toBe("127.0.0.1");

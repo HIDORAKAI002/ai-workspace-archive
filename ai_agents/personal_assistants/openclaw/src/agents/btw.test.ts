@@ -254,7 +254,9 @@ function expectRecordFields(
   record: unknown,
   expected: Record<string, unknown>,
 ): Record<string, unknown> {
-  expect(record).toBeDefined();
+  if (!record || typeof record !== "object") {
+    throw new Error("Expected record");
+  }
   const actual = record as Record<string, unknown>;
   for (const [key, value] of Object.entries(expected)) {
     expect(actual[key]).toEqual(value);
@@ -267,8 +269,10 @@ function streamContext(callIndex = 0): {
   systemPrompt?: unknown;
 } {
   const call = streamSimpleMock.mock.calls[callIndex];
-  expect(call).toBeDefined();
-  return (call?.[1] ?? {}) as {
+  if (!call) {
+    throw new Error(`Expected streamSimple call at index ${callIndex}`);
+  }
+  return (call[1] ?? {}) as {
     messages?: Array<Record<string, unknown>>;
     systemPrompt?: unknown;
   };
@@ -276,8 +280,10 @@ function streamContext(callIndex = 0): {
 
 function contextMessages(context: unknown): Array<Record<string, unknown>> {
   const messages = (context as { messages?: Array<Record<string, unknown>> }).messages;
-  expect(messages).toBeDefined();
-  return messages ?? [];
+  if (!messages) {
+    throw new Error("Expected BTW context messages");
+  }
+  return messages;
 }
 
 function expectTextBlockContains(block: unknown, text: string): void {
@@ -748,7 +754,9 @@ describe("runBtwSideQuestion", () => {
           `<btw_side_question>\n${MATH_QUESTION}\n</btw_side_question>`,
         ),
     );
-    expect(sideQuestionMessage).toBeDefined();
+    if (!sideQuestionMessage) {
+      throw new Error("Expected BTW side question message");
+    }
   });
 
   it("uses the in-flight prompt as background only when there is no prior transcript context", async () => {
@@ -788,7 +796,9 @@ describe("runBtwSideQuestion", () => {
           "Ignore any unfinished task in the conversation while answering it.",
         ),
     );
-    expect(sideQuestionMessage).toBeDefined();
+    if (!sideQuestionMessage) {
+      throw new Error("Expected isolated side question message");
+    }
   });
 
   it("branches away from an unresolved trailing user turn before building BTW context", async () => {
