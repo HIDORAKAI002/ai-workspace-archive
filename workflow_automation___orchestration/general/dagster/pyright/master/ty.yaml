@@ -81,6 +81,7 @@ paths:
   - python_modules/libraries/dagster-polytomic
   - python_modules/libraries/dagster-mysql
   # - python_modules/dagster
+  - python_modules/dagster/dagster_tests/core_tests/runtime_types_tests
   # - python_modules/dagster-graphql
   - python_modules/dagster-webserver
   - python_modules/dagster-pipes
@@ -96,3 +97,5 @@ paths:
   - scripts
   - python_modules/dagster-test
   - python_modules/libraries/dagster-dbt
+  - python_modules/dagster/dagster_tests/core_tests/config_types_tests
+  - python_modules/dagster/dagster_tests/core_tests/snap_tests

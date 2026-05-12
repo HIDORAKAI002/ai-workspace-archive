@@ -1162,3 +1162,20 @@ class TestSchedulePermissions(ReadonlyGraphQLContextTestMatrix):
             },
         )
         assert stop_result.data["stopRunningSchedule"]["__typename"] == "UnauthorizedError"
+
+    def test_schedule_dry_run_failure(self, graphql_context):
+        assert graphql_context.read_only is True
+
+        schedule_selector = infer_schedule_selector(
+            graphql_context, "no_config_job_hourly_schedule"
+        )
+
+        result = execute_dagster_graphql(
+            graphql_context,
+            SCHEDULE_DRY_RUN_MUTATION,
+            variables={"selectorData": schedule_selector, "timestamp": None},
+        )
+
+        assert not result.errors
+        assert result.data
+        assert result.data["scheduleDryRun"]["__typename"] == "UnauthorizedError"

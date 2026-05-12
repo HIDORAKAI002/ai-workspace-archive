@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
 import rehypeSanitize, {defaultSchema} from 'rehype-sanitize';
@@ -73,7 +74,7 @@ export const MarkdownWithPlugins = ({softBreaks, ...props}: Props) => {
   return (
     <ReactMarkdown
       {...props}
-      className={styles.dagsterMarkdown}
+      className={clsx('dagster-markdown', styles.dagsterMarkdown)}
       remarkPlugins={softBreaks ? [remarkBreaks, remarkGfm] : [remarkGfm]}
       rehypePlugins={[
         [rehypeHighlight, {ignoreMissing: true}],

@@ -25,7 +25,7 @@ from dagster_test.dg_utils.utils import (
 # (see tox.ini). They are not a thread-safety problem: each test uses its own tempdir and a
 # `find_free_port()`-allocated port. The issue is resource contention — each test does one or more
 # `uv sync`s and then spawns `dg dev`, which must boot `dagster-webserver` and answer a request
-# within a 30s handshake window (`_ping_webserver` in dagster_test.dg_utils.utils). Running four of
+# within a 90s handshake window (`_ping_webserver` in dagster_test.dg_utils.utils). Running four of
 # these in parallel under xdist starved webserver startup enough to blow past that deadline on CI.
 
 
