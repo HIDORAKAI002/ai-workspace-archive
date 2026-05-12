@@ -57,6 +57,7 @@ import {
   isMonitorCheckStale,
   MONITOR_CHECK_STALE_TIMEOUT_MS,
 } from "./stale";
+import { trackMonitorCheckStartedInterest } from "./interest";
 
 const logger = _logger.child({ module: "monitoring-runner" });
 const poll = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -815,6 +816,15 @@ export async function processMonitorCheckJob(
     status: "running",
     started_at: new Date().toISOString(),
   });
+
+  trackMonitorCheckStartedInterest({ monitor, check }).catch(error =>
+    logger.warn("Failed to track monitor target interest", {
+      error,
+      monitorId: monitor.id,
+      checkId: check.id,
+      eventType: "check_started",
+    }),
+  );
 
   let lockId: string | null = null;
   try {

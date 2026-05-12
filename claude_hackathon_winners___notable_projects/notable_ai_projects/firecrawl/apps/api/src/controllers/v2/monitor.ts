@@ -1,5 +1,6 @@
 import { Response } from "express";
 import { z } from "zod";
+import { logger as _logger } from "../../lib/logger";
 import { RequestWithAuth } from "./types";
 import { getScrapeZDR } from "../../lib/zdr-helpers";
 import { getMonitorDiffArtifact } from "../../lib/gcs-monitoring";
@@ -29,6 +30,13 @@ import {
   estimateRunsPerMonth,
   validateMonitorCron,
 } from "../../services/monitoring/cron";
+import {
+  getRemovedMonitorTargets,
+  trackMonitorConfiguredInterest,
+  trackMonitorDeactivatedInterest,
+} from "../../services/monitoring/interest";
+
+const logger = _logger.child({ module: "monitor-controller" });
 
 const monitorParamsSchema = z.strictObject({
   monitorId: z.uuid(),
@@ -131,6 +139,17 @@ export async function createMonitorController(
     intervalMs: schedule.intervalMs,
   });
 
+  trackMonitorConfiguredInterest({
+    monitor,
+    intervalMs: schedule.intervalMs,
+  }).catch(error =>
+    logger.warn("Failed to track monitor target interest", {
+      error,
+      monitorId: monitor.id,
+      eventType: "configured",
+    }),
+  );
+
   res.status(200).json({
     success: true,
     data: serializeMonitor(monitor),
@@ -202,6 +221,47 @@ export async function updateMonitorController(
     intervalMs:
       input.schedule || input.targets ? schedule.intervalMs : undefined,
   });
+  if (!monitor) {
+    return res.status(404).json({ success: false, error: "Monitor not found" });
+  }
+
+  const interestTracking: Promise<void>[] = [];
+  const removedTargets = input.targets
+    ? getRemovedMonitorTargets({ before: existing, after: monitor })
+    : [];
+  if (removedTargets.length > 0) {
+    interestTracking.push(
+      trackMonitorDeactivatedInterest({
+        monitor: existing,
+        targets: removedTargets,
+      }),
+    );
+  }
+  if (
+    monitor.status === "paused" &&
+    (input.status === "paused" || input.schedule || input.targets)
+  ) {
+    interestTracking.push(
+      trackMonitorDeactivatedInterest({
+        monitor,
+        intervalMs: schedule.intervalMs,
+      }),
+    );
+  } else if (input.schedule || input.targets || input.status === "active") {
+    interestTracking.push(
+      trackMonitorConfiguredInterest({
+        monitor,
+        intervalMs: schedule.intervalMs,
+      }),
+    );
+  }
+  Promise.all(interestTracking).catch(error =>
+    logger.warn("Failed to track monitor target interest", {
+      error,
+      monitorId: monitor.id,
+      eventType: "update",
+    }),
+  );
 
   res.status(200).json({
     success: true,
@@ -214,6 +274,11 @@ export async function deleteMonitorController(
   res: Response,
 ) {
   const { monitorId } = monitorParamsSchema.parse(req.params);
+  const existing = await getMonitorForUpdate(req.auth.team_id, monitorId);
+  if (!existing) {
+    return res.status(404).json({ success: false, error: "Monitor not found" });
+  }
+
   const deleted = await deleteMonitor({
     teamId: req.auth.team_id,
     monitorId,
@@ -221,6 +286,16 @@ export async function deleteMonitorController(
   if (!deleted) {
     return res.status(404).json({ success: false, error: "Monitor not found" });
   }
+
+  trackMonitorDeactivatedInterest({
+    monitor: { ...existing, status: "deleted" },
+  }).catch(error =>
+    logger.warn("Failed to track monitor target interest", {
+      error,
+      monitorId,
+      eventType: "deactivated",
+    }),
+  );
 
   res.status(200).json({ success: true });
 }
