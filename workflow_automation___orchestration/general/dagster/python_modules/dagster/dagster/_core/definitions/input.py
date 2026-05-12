@@ -128,7 +128,7 @@ class InputDefinition:
                 'Cannot specify "asset_partitions" argument without also specifying "asset_key"',
             )
         if callable(asset_partitions):
-            self._asset_partitions_fn = asset_partitions
+            self._asset_partitions_fn = asset_partitions  # ty: ignore[invalid-assignment]
         elif asset_partitions is not None:
             _asset_partitions = check.set_param(asset_partitions, "asset_partitions", of_type=str)
             self._asset_partitions_fn = lambda _: _asset_partitions
@@ -184,7 +184,7 @@ class InputDefinition:
                 in
         """
         if callable(self._asset_key):
-            return self._asset_key(context)
+            return self._asset_key(context)  # ty: ignore[call-top-callable]
         else:
             return self.hardcoded_asset_key
 

@@ -23,6 +23,8 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'failure' }}
     runs-on: blacksmith-2vcpu-ubuntu-2404
     timeout-minutes: 60
+    env:
+      NPM_AUDIT_CLAUDE_SLACK_WEBHOOK_URL: ${{ secrets.NPM_AUDIT_CLAUDE_SLACK_WEBHOOK_URL }}
 
     steps:
       - name: Checkout default branch
@@ -61,6 +63,7 @@ jobs:
             --allowedTools "Read,Edit,MultiEdit,Write,Glob,Grep,LS,WebFetch,WebSearch,TodoWrite,Bash(pnpm:*),Bash(npm:*),Bash(node:*),Bash(git:*),Bash(gh:*),Bash(jq:*),Bash(rg:*),Bash(curl:*),Bash(date:*)"
 
       - name: Ensure remediation PR marker
+        id: remediation_pr
         if: ${{ steps.scan.outputs.has_uncovered == 'true' && steps.claude.outputs.branch_name != '' }}
         env:
           GH_TOKEN: ${{ github.token }}
@@ -74,6 +77,13 @@ jobs:
             echo "::warning::Claude did not leave an open PR for branch ${BRANCH_NAME}; marker could not be enforced."
             exit 0
           fi
+
+          PR_URL="$(gh pr view "$PR_NUMBER" --json url --jq '.url')"
+          PR_TITLE="$(gh pr view "$PR_NUMBER" --json title --jq '.title')"
+          PR_SUMMARY="$(node -e 'const title = process.argv[1] || ""; console.log(title.replace(/^[A-Za-z]+(?:\([^)]+\))?!?:\s*/, ""));' "$PR_TITLE")"
+
+          echo "pr_url=${PR_URL}" >> "$GITHUB_OUTPUT"
+          echo "summary=${PR_SUMMARY}" >> "$GITHUB_OUTPUT"
 
           gh label create audit-ci-remediation \
             --description "Automated audit-ci vulnerability remediation" \
@@ -104,3 +114,22 @@ jobs:
           NODE
 
           gh pr edit "$PR_NUMBER" --body-file "$UPDATED_BODY_FILE"
+
+      - name: Notify Slack about remediation PR
+        if: ${{ steps.remediation_pr.outputs.pr_url != '' && env.NPM_AUDIT_CLAUDE_SLACK_WEBHOOK_URL != '' }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ env.NPM_AUDIT_CLAUDE_SLACK_WEBHOOK_URL }}
+          PR_URL: ${{ steps.remediation_pr.outputs.pr_url }}
+          SUMMARY: ${{ steps.remediation_pr.outputs.summary }}
+        run: |
+          set -euo pipefail
+
+          jq -n \
+            --arg pr_url "$PR_URL" \
+            --arg summary "$SUMMARY" \
+            '{pr_url: $pr_url, summary: $summary}' \
+            | curl --fail-with-body --show-error --silent \
+              --request POST \
+              --header "Content-Type: application/json" \
+              --data @- \
+              "$SLACK_WEBHOOK_URL"

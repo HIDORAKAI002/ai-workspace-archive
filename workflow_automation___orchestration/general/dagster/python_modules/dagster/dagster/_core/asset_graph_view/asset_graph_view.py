@@ -169,7 +169,7 @@ class AssetGraphView(LoadingContext):
         return self._queryer
 
     def _get_partitions_def(self, key: T_EntityKey) -> Optional["PartitionsDefinition"]:
-        return self.asset_graph.get(key).partitions_def
+        return self.asset_graph.get(key).partitions_def  # ty: ignore[no-matching-overload]
 
     @cached_method
     @use_partition_loading_context
@@ -319,7 +319,7 @@ class AssetGraphView(LoadingContext):
         for asset_key in asset_graph_subset.asset_keys:
             yield self.get_entity_subset_from_asset_graph_subset(asset_graph_subset, asset_key)
 
-    @use_partition_loading_context
+    @use_partition_loading_context  # ty: ignore[invalid-argument-type]
     def get_subset_from_serializable_subset(
         self, serializable_subset: SerializableEntitySubset[T_EntityKey]
     ) -> EntitySubset[T_EntityKey] | None:
@@ -393,7 +393,7 @@ class AssetGraphView(LoadingContext):
         self, parent_key, subset: EntitySubset[T_EntityKey]
     ) -> tuple[EntitySubset[AssetKey], EntitySubset[AssetKey]]:
         check.invariant(
-            parent_key in self.asset_graph.get(subset.key).parent_entity_keys,
+            parent_key in self.asset_graph.get(subset.key).parent_entity_keys,  # ty: ignore[no-matching-overload]
         )
         to_key = parent_key
         to_partitions_def = self.asset_graph.get(to_key).partitions_def
@@ -426,7 +426,7 @@ class AssetGraphView(LoadingContext):
         self, parent_key: AssetKey, subset: EntitySubset[T_EntityKey]
     ) -> EntitySubset[AssetKey]:
         check.invariant(
-            parent_key in self.asset_graph.get(subset.key).parent_entity_keys,
+            parent_key in self.asset_graph.get(subset.key).parent_entity_keys,  # ty: ignore[no-matching-overload]
         )
         return self.compute_mapped_subset(parent_key, subset, direction="up")
 
@@ -435,7 +435,7 @@ class AssetGraphView(LoadingContext):
         self, child_key: T_EntityKey, subset: EntitySubset[U_EntityKey]
     ) -> EntitySubset[T_EntityKey]:
         check.invariant(
-            child_key in self.asset_graph.get(subset.key).child_entity_keys,
+            child_key in self.asset_graph.get(subset.key).child_entity_keys,  # ty: ignore[no-matching-overload]
         )
         return self.compute_mapped_subset(child_key, subset, direction="down")
 
@@ -446,7 +446,7 @@ class AssetGraphView(LoadingContext):
         parent_key = to_key
         partition_mapping = self.asset_graph.get_partition_mapping(from_key, parent_key)
         from_partitions_def = self.asset_graph.get(from_key).partitions_def
-        to_partitions_def = self.asset_graph.get(to_key).partitions_def
+        to_partitions_def = self.asset_graph.get(to_key).partitions_def  # ty: ignore[no-matching-overload]
 
         return partition_mapping.get_upstream_mapped_partitions_result_for_partitions(
             downstream_partitions_subset=from_subset.get_internal_subset_value()
@@ -462,7 +462,7 @@ class AssetGraphView(LoadingContext):
     ) -> EntitySubset[T_EntityKey]:
         from_key = from_subset.key
         from_partitions_def = self.asset_graph.get(from_key).partitions_def
-        to_partitions_def = self.asset_graph.get(to_key).partitions_def
+        to_partitions_def = self.asset_graph.get(to_key).partitions_def  # ty: ignore[no-matching-overload]
 
         if direction == "down":
             if from_partitions_def is None or to_partitions_def is None:

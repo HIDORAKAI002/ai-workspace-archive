@@ -544,7 +544,7 @@ def test_named_tuple_field_serializers() -> None:
         ) -> Sequence[Sequence[str]]:
             return list(entries.items())
 
-        def unpack(  # pyright: ignore[reportIncompatibleMethodOverride]  # ty: ignore[invalid-method-override]
+        def unpack(  # ty: ignore[invalid-method-override]
             self,
             entries: Sequence[Sequence[str]],
             whitelist_map: WhitelistMap,
@@ -798,7 +798,7 @@ def test_long_int():
     x = NumHolder(98765432109876543210)
     ser_x = dg.serialize_value(x, test_map)
     roundtrip_x = dg.deserialize_value(ser_x, whitelist_map=test_map)
-    assert x.num == roundtrip_x.num  # pyright: ignore[reportOptionalMemberAccess,reportAttributeAccessIssue]  # ty: ignore[unresolved-attribute]
+    assert x.num == roundtrip_x.num  # ty: ignore[unresolved-attribute]
 
 
 def test_enum_storage_name() -> None:
@@ -843,11 +843,11 @@ def test_enum_custom_serializer():
     test_env = WhitelistMap.create()
 
     class MyEnumSerializer(EnumSerializer["Foo"]):
-        def unpack(self, packed_val: str) -> "Foo":  # pyright: ignore[reportIncompatibleMethodOverride]  # ty: ignore[invalid-method-override]
+        def unpack(self, packed_val: str) -> "Foo":  # ty: ignore[invalid-method-override]
             packed_val = packed_val.replace("BLUE", "RED")
             return Foo[packed_val]
 
-        def pack(self, unpacked_val: "Foo", whitelist_map: WhitelistMap, descent_path: str) -> str:  # pyright: ignore[reportIncompatibleMethodOverride]  # ty: ignore[invalid-method-override]
+        def pack(self, unpacked_val: "Foo", whitelist_map: WhitelistMap, descent_path: str) -> str:  # ty: ignore[invalid-method-override]
             return f"Foo.{unpacked_val.name.replace('RED', 'BLUE')}"
 
     @_whitelist_for_serdes(test_env, serializer=MyEnumSerializer)
@@ -869,7 +869,7 @@ def test_serialize_non_scalar_key_mapping():
 
     non_scalar_key_mapping = SerializableNonScalarKeyMapping({Bar("red"): 1})
 
-    serialized = dg.serialize_value(non_scalar_key_mapping, whitelist_map=test_env)  # pyright: ignore[reportArgumentType]  # ty: ignore[invalid-argument-type]
+    serialized = dg.serialize_value(non_scalar_key_mapping, whitelist_map=test_env)  # ty: ignore[invalid-argument-type]
     assert serialized == """{"__mapping_items__": [[{"__class__": "Bar", "color": "red"}, 1]]}"""
     assert non_scalar_key_mapping == dg.deserialize_value(serialized, whitelist_map=test_env)
 
@@ -888,7 +888,7 @@ def test_serializable_non_scalar_key_mapping():
     assert list(iter(non_scalar_key_mapping)) == list(iter([Bar("red")]))
 
     with pytest.raises(NotImplementedError, match="SerializableNonScalarKeyMapping is immutable"):
-        non_scalar_key_mapping["foo"] = None  # pyright: ignore[reportArgumentType]
+        non_scalar_key_mapping["foo"] = None  # ty: ignore[invalid-assignment]
 
 
 def test_serializable_non_scalar_key_mapping_in_named_tuple():
@@ -968,7 +968,7 @@ def test_object_migration():
         age: int
         children: list["MyEnt"]
 
-    nt_ent = MyEnt("dad", 40, [MyEnt("sis", 4, [])])  # pyright: ignore[reportArgumentType]
+    nt_ent = MyEnt("dad", 40, [MyEnt("sis", 4, [])])
     ser_nt_ent = dg.serialize_value(nt_ent, whitelist_map=nt_env)
     assert dg.deserialize_value(ser_nt_ent, whitelist_map=nt_env) == nt_ent
 
@@ -1175,13 +1175,13 @@ def test_record_kwargs():
     r = MyRecord()
     assert r
     assert (
-        dg.deserialize_value(dg.serialize_value(r, whitelist_map=test_env), whitelist_map=test_env)  # pyright: ignore[reportArgumentType]  # ty: ignore[invalid-argument-type]
+        dg.deserialize_value(dg.serialize_value(r, whitelist_map=test_env), whitelist_map=test_env)  # ty: ignore[invalid-argument-type]
         == r
     )
     r = MyRecord(name="CUSTOM", stuff=[1, 2, 3, 4, 5, 6])
     assert r
     assert (
-        dg.deserialize_value(dg.serialize_value(r, whitelist_map=test_env), whitelist_map=test_env)  # pyright: ignore[reportArgumentType]  # ty: ignore[invalid-argument-type]
+        dg.deserialize_value(dg.serialize_value(r, whitelist_map=test_env), whitelist_map=test_env)  # ty: ignore[invalid-argument-type]
         == r
     )
 

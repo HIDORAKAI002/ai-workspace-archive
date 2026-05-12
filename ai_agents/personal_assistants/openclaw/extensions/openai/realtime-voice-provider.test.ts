@@ -880,7 +880,7 @@ describe("buildOpenAIRealtimeVoiceProvider", () => {
 
     expect(onAudio).toHaveBeenCalledTimes(1);
     expect(onClearAudio).not.toHaveBeenCalled();
-    expect(parseSent(socket)).not.toContainEqual({ type: "response.cancel" });
+    expect(hasSentEventType(socket, "response.cancel")).toBe(false);
     expect(hasSentEventType(socket, "conversation.item.truncate")).toBe(false);
   });
 
@@ -926,7 +926,7 @@ describe("buildOpenAIRealtimeVoiceProvider", () => {
 
     expect(onAudio).toHaveBeenCalledTimes(1);
     expect(onClearAudio).not.toHaveBeenCalled();
-    expect(parseSent(socket)).not.toContainEqual({ type: "response.cancel" });
+    expect(hasSentEventType(socket, "response.cancel")).toBe(false);
     expect(hasSentEventType(socket, "conversation.item.truncate")).toBe(false);
   });
 
@@ -1027,13 +1027,15 @@ describe("buildOpenAIRealtimeVoiceProvider", () => {
 
     expect(onAudio).toHaveBeenCalledTimes(1);
     expect(onClearAudio).toHaveBeenCalledTimes(1);
-    expect(parseSent(socket)).toContainEqual({ type: "response.cancel" });
-    expect(parseSent(socket)).toContainEqual({
-      type: "conversation.item.truncate",
-      item_id: "item_1",
-      content_index: 0,
-      audio_end_ms: 300,
-    });
+    expect(parseSent(socket).slice(-2)).toEqual([
+      { type: "response.cancel" },
+      {
+        type: "conversation.item.truncate",
+        item_id: "item_1",
+        content_index: 0,
+        audio_end_ms: 300,
+      },
+    ]);
   });
 
   it("forwards current realtime output audio events", async () => {
@@ -1387,7 +1389,7 @@ describe("buildOpenAIRealtimeVoiceProvider", () => {
         },
       },
     ]);
-    expect(parseSent(socket)).not.toContainEqual({ type: "response.create" });
+    expect(hasSentEventType(socket, "response.create")).toBe(false);
 
     bridge.submitToolResult("call_1", { text: "done" });
 
@@ -1441,7 +1443,7 @@ describe("buildOpenAIRealtimeVoiceProvider", () => {
         },
       },
     ]);
-    expect(parseSent(socket)).not.toContainEqual({ type: "response.create" });
+    expect(hasSentEventType(socket, "response.create")).toBe(false);
   });
 
   it("does not flush deferred response.create while a tool result is still continuing", async () => {
@@ -1615,7 +1617,7 @@ describe("buildOpenAIRealtimeVoiceProvider", () => {
     bridge.handleBargeIn?.({ audioPlaybackActive: true });
 
     expect(onClearAudio).not.toHaveBeenCalled();
-    expect(parseSent(socket)).not.toContainEqual({ type: "response.cancel" });
+    expect(hasSentEventType(socket, "response.cancel")).toBe(false);
     expect(parseSent(socket).some((event) => event.type === "conversation.item.truncate")).toBe(
       false,
     );
@@ -1664,8 +1666,15 @@ describe("buildOpenAIRealtimeVoiceProvider", () => {
 
     bridge.handleBargeIn?.({ audioPlaybackActive: true, force: true });
 
-    expect(parseSent(socket)).toContainEqual({ type: "response.cancel" });
-    expect(hasSentEventType(socket, "conversation.item.truncate")).toBe(true);
+    expect(parseSent(socket).slice(-2)).toEqual([
+      { type: "response.cancel" },
+      {
+        type: "conversation.item.truncate",
+        item_id: "item_1",
+        content_index: 0,
+        audio_end_ms: 0,
+      },
+    ]);
     expect(onClearAudio).toHaveBeenCalled();
     expect(
       onEvent.mock.calls.some(
@@ -1714,13 +1723,15 @@ describe("buildOpenAIRealtimeVoiceProvider", () => {
     bridge.handleBargeIn?.({ audioPlaybackActive: true });
 
     expect(onClearAudio).toHaveBeenCalledTimes(1);
-    expect(parseSent(socket)).toContainEqual({ type: "response.cancel" });
-    expect(parseSent(socket)).toContainEqual({
-      type: "conversation.item.truncate",
-      item_id: "item_1",
-      content_index: 0,
-      audio_end_ms: 0,
-    });
+    expect(parseSent(socket).slice(-2)).toEqual([
+      { type: "response.cancel" },
+      {
+        type: "conversation.item.truncate",
+        item_id: "item_1",
+        content_index: 0,
+        audio_end_ms: 0,
+      },
+    ]);
   });
 
   it("drains deferred response.create after a no-active-response cancellation error", async () => {

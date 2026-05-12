@@ -176,7 +176,7 @@
 			"docs": "Docs",
 			"goToSettings": "Settings",
 			"connection": "Connection error. Make sure you have a working internet connection.",
-			"unknown": "Unknown API error. Please contact Roo Code support.",
+			"unknown": "Unknown API error. Please report this on GitHub.",
 			"claudeCodeNotAuthenticated": "You need to sign in to use Claude Code. Go to Settings and click \"Sign in to Claude Code\" to authenticate."
 		}
 	},
@@ -350,10 +350,12 @@
 	"announcement": {
 		"title": "Roo Code {{version}} Released",
 		"support": "Please support Roo Code by starring us on <githubLink>GitHub</githubLink>.",
-		"handoff": {
-			"heading": "The Roo Code plugin is not going away.",
-			"description": "You may have seen the recent announcement that Roo Code hit 3 million installs and the original team is going all-in on Roomote. We know that news was hard for a lot of you. This plugin means a lot to us and to you, and we hear you. The good news: <bold>a community team has stepped up to carry Roo Code forward</bold>, and we're working with them on an official handoff so the plugin you rely on keeps getting maintained and improved.",
-			"readMore": "Read the original announcement from Matt Rubens"
+		"finalRelease": {
+			"title": "The last Roo Code release",
+			"intro": "This is the last Roo Code release. <announcementLink>As we announced a few weeks ago</announcementLink>, we've decided to shift our focus to <roomoteLink>Roomote</roomoteLink>, our cloud agent platform, which we believe to be the future of software development. Thank you so much for your support throughout the past year or so.",
+			"continuity": "This extension should continue to work indefinitely, but it won't receive bug fixes, new features, or model updates.",
+			"alternatives": "If you want to use an extension, we recommend checking out <zooCodeLink>ZooCode</zooCodeLink> (a Roo Code fork by the community) and <clineLink>Cline</clineLink> (where Roo Code originally started).",
+			"signoff": "Happy coding!"
 		},
 		"release": {
 			"heading": "What's New:",
@@ -475,7 +477,8 @@
 	},
 	"retiredProvider": {
 		"title": "Provider no longer supported",
-		"message": "Sorry, this provider is no longer supported. We saw very few Roo users actually using it and we need to reduce the surface area of our codebase so we can keep shipping fast and serving our community well in this space. It was a really hard decision but it lets us focus on what matters most to you. It sucks, we know.",
-		"openSettings": "Open Settings"
+		"message": "This provider is no longer supported. Please select a different provider in your API profile settings.",
+		"openSettings": "Open Settings",
+		"rooMessage": "As part of our decision to sunset the Roo Code extension, we also ended the Roo Code Router, which only existed to support the extension. Sorry about the hassle."
 	}
 }

@@ -381,7 +381,7 @@ def test_logger_defs():
     def my_logger(_):
         pass
 
-    my_job = my_graph.to_job(logger_defs={"abc": my_logger})  # pyright: ignore[reportArgumentType]
+    my_job = my_graph.to_job(logger_defs={"abc": my_logger})
     assert my_job.loggers == {"abc": my_logger}
 
 

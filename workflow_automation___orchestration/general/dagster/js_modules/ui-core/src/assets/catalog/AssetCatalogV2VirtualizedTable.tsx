@@ -225,7 +225,14 @@ const AssetRow = forwardRef(
   ) => {
     const linkUrl = assetDetailsPathForKey({path: asset.key.path});
     const {recentEvents, latestInfo, loading} = useAssetRecentUpdates({asset});
-    const lastEvent = recentEvents[0];
+    const finalRecentEvents = recentEvents.filter(
+      (event) =>
+        event.__typename === 'MaterializationEvent' ||
+        event.__typename === 'ObservationEvent' ||
+        event.__typename === 'FailedToMaterializeEvent',
+    );
+    const lastEvent = finalRecentEvents[0] ? finalRecentEvents[0] : undefined;
+
     const showTimestamp = lastEvent?.__typename !== 'ObservationEvent';
     const latestInfoItem =
       latestInfo?.inProgressRunIds.length || latestInfo?.unstartedRunIds.length
@@ -288,7 +295,10 @@ const AssetRow = forwardRef(
                 key: 'recent-events',
                 control: (
                   <Box padding={{horizontal: 8}}>
-                    <AssetRecentUpdatesTrend events={recentEvents} latestInfo={latestInfoItem} />
+                    <AssetRecentUpdatesTrend
+                      events={finalRecentEvents}
+                      latestInfo={latestInfoItem}
+                    />
                   </Box>
                 ),
               },

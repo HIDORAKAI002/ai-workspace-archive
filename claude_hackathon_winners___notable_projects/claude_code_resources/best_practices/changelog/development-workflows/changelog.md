@@ -508,36 +508,28 @@
 
 ---
 
-## [2026-05-09 07:06 PM PKT] Development Workflows Update
+## [2026-05-12 11:44 PM PKT] Development Workflows Update
 
 | # | Priority | Type | Action | Status |
 |---|----------|------|--------|--------|
-| 1 | HIGH | Star Update | Update Superpowers ★ from 175k to 184k (184,031 actual) | COMPLETE (updated README table) |
-| 2 | HIGH | Count Update | Update Superpowers agents from 5 to 0 (v5.1.0 released 2026-05-04 removed superpowers:code-reviewer; all subagent dispatches now general-purpose) | COMPLETE (updated README table) |
-| 3 | HIGH | Workflow | Add verification-before-completion(sub) between requesting-code-review(sub) and finishing-a-development-branch in Superpowers chain | COMPLETE (updated README table) |
-| 4 | HIGH | Star Update | Update ECC ★ from 171k to 176k (176,362 actual) | COMPLETE (updated README table) |
-| 5 | HIGH | Count Update | Update ECC commands 143→71, skills 230→182 (8th consecutive run with directory-enumeration giving lower counts; v2.0.0-rc.1 README self-reports match) | COMPLETE (updated to README values, methodology dispute persists) |
-| 6 | HIGH | Workflow | Replace ECC chain with prp-prd → prp-plan → prp-implement(sub) → build-fix(sub) → code-review → quality-gate → prp-commit → prp-pr (v2.0.0-rc.1 PRP-prefix family) | COMPLETE (updated README table) |
-| 7 | HIGH | Star Update | Update Spec Kit ★ from 92k to 94k (94,034 actual — v0.8.7 active patch cadence) | COMPLETE (updated README table) |
-| 8 | HIGH | Workflow | Spec Kit: drop /speckit.clarify, add checklist(sub) and taskstoissues to chain | COMPLETE (updated README table) |
-| 9 | HIGH | Star Update | Update gstack ★ from 88k to 92k (92,123 actual — v1.29.0.0 worktree-aware gbrain) | COMPLETE (updated README table) |
-| 10 | HIGH | Count Update | Update gstack skills from 43 to 56 (systematic root-dir audit confirmed 56 SKILL.md folders) | COMPLETE (updated README table) |
-| 11 | HIGH | Workflow | gstack: rename /implement → autoplan; add /plan-devex-review(sub) and /canary | COMPLETE (updated README table) |
-| 12 | HIGH | Star Update | Update GSD ★ from 59k to 61k (61,074 actual — v1.42.0-rc1 5 commits today) | COMPLETE (updated README table) |
-| 13 | MED | Count Update | Update GSD commands from 65 to 66 | COMPLETE (updated README table) |
-| 14 | HIGH | Workflow | GSD: add gsd-map-codebase as entry, gsd-new-milestone as final step | COMPLETE (updated README table) |
-| 15 | HIGH | Star Update | Update Matt Pocock Skills ★ from 51k to 67k (67,568 actual — +16k, largest single-run jump this run) | COMPLETE (updated README table) |
-| 16 | HIGH | Count Update | Update Matt Pocock skills from 22 to 13 (active per plugin.json: 10 engineering + 3 productivity; 27 total folders includes deprecated/in-progress) | COMPLETE (using plugin.json canonical install manifest) |
-| 17 | HIGH | Workflow | Matt Pocock: rearrange to grill-with-docs → to-prd → tdd(sub) → diagnose(sub) → zoom-out → improve-codebase-architecture → to-issues → triage | COMPLETE (updated README table) |
-| 18 | HIGH | Sort Order | Move Matt Pocock from row 6 (51k) to row 5 (67k, above GSD 61k) | COMPLETE (updated README table) |
-| 19 | HIGH | Star Update | Update BMAD ★ from 46k to 47k (46,722 actual) | COMPLETE (updated README table) |
-| 20 | HIGH | Count Update | Update BMAD agents from 0 to 6 (agent-persona skills in src/bmm-skills/: bmad-agent-analyst, pm, ux-designer, architect, dev, tech-writer — counted per workflow rules) | COMPLETE (updated README table) |
-| 21 | HIGH | Workflow | BMAD: rewrite chain to interleave agent-persona steps with task-skills (analyst → prfaq(sub) → pm → create-prd(sub) → ux-designer(sub) → architect → ...) | COMPLETE (updated README table) |
-| 22 | HIGH | Star Update | Update OpenSpec ★ from 45k to 47k (46,515 actual) | COMPLETE (updated README table) |
-| 23 | HIGH | Workflow | OpenSpec: expand chain — opsx:explore → opsx:propose → opsx:apply(sub) → opsx:verify(sub) → opsx:sync → opsx:archive | COMPLETE (updated README table) |
-| 24 | MED | Star Update | Update oh-my-claudecode ★ from 32k to 33k (33,170 actual — v4.13.7) | COMPLETE (updated README table) |
-| 25 | MED | Count Update | Update oh-my-claudecode commands from 0 to 27 (compatibility shim .md files in commands/ that forward to skills — counted per actual file presence) | COMPLETE (updated README table) |
-| 26 | HIGH | Workflow | oh-my-claudecode: replace v4.13.x flow — omc-setup → deepinit → plan → autopilot(sub) → ultrawork(sub) → verify(sub) → ultraqa(sub) → release | COMPLETE (updated README table) |
-| 27 | MED | Count Update | Update Compound Engineering skills from 39 to 38 (37 in compound-engineering + 1 in coding-tutor) | COMPLETE (updated README table) |
-| 28 | MED | Workflow | Compound Engineering: restructure to ce-strategy → ce-ideate → ce-brainstorm → ce-plan → ce-work(sub) → ce-debug(sub) → ce-code-review → ce-doc-review(sub) → ce-compound → ce-product-pulse | COMPLETE (updated README table) |
-| 29 | MED | Workflow | HumanLayer: expand chain to research_codebase → create_plan → validate_plan(sub) → iterate_plan(sub) → implement_plan → local_review → describe_pr → commit → create_handoff | COMPLETE (updated README table) |
+| 1 | HIGH | Star Update | Update Superpowers ★ from 175k to 188k (187,818 actual — v5.1.0 momentum, code-reviewer agent removed) | COMPLETE (updated README table) |
+| 2 | HIGH | Architecture | Update Superpowers agents 5 → 0 explicit and commands 3 → 0 (v5.1.0 removed named code-reviewer agent + legacy slash commands; review now inline in skills) | COMPLETE (updated README table) |
+| 3 | HIGH | Star Update | Update Everything Claude Code ★ from 171k to 180k (180,349 actual — v2.0.0-rc.1 alpha in progress) | COMPLETE (updated README table) |
+| 4 | HIGH | Star Update | Update Spec Kit ★ from 92k to 97k (97,048 actual — v0.8.8 config-driven auth registry, daily releases) | COMPLETE (updated README table) |
+| 5 | MED | Workflow | Fix Spec Kit workflow order: constitution → specify → clarify → plan → tasks → implement (swap clarify/specify to match repo happy path) | COMPLETE (updated README table) |
+| 6 | HIGH | Star Update | Update gstack ★ from 88k to 95k (94,500 actual — v1.33.2.0, gbrain batch import, 21 community fixes) | COMPLETE (updated README table) |
+| 7 | MED | Count Update | Update gstack skills 43 → 48 (5 new: design-shotgun, design-html, codex, retro, plan-tune) | COMPLETE (updated README table) |
+| 8 | LOW | Workflow | Expand gstack workflow chain with /design-shotgun, /design-html, /codex, /retro between /plan-design-review and /ship | COMPLETE (updated README table) |
+| 9 | HIGH | Star Update | Update Get Shit Done ★ from 59k to 62k (61,700 actual — v1.41.0 milestone archive layout) | COMPLETE (updated README table) |
+| 10 | LOW | Count Update | Update GSD commands 65 → 66 (v1.41.0 added one new command in commands/gsd/) | COMPLETE (updated README table) |
+| 11 | HIGH | Star Update | Update Matt Pocock Skills ★ from 51k to 76k (75,562 actual — +25k surge, handoff/review skills added May 10-11) | COMPLETE (updated README table) |
+| 12 | MED | Count Update | Update Matt Pocock skills 22 → 28 (6 new SKILL.md across engineering/in-progress/personal categories) | COMPLETE (updated README table) |
+| 13 | MED | Star Update | Update BMAD-METHOD ★ from 46k to 47k (47,000 actual — v6.6.0 breaking changes, brownfield epic scoping) | COMPLETE (updated README table) |
+| 14 | HIGH | Star Update | Update OpenSpec ★ from 45k to 47k (47,300 actual — Windows workspace feature development active) | COMPLETE (updated README table) |
+| 15 | LOW | Count Update | Update OpenSpec commands 11 → 9 (recount: propose, apply, archive, new, continue, ff, verify, bulk-archive, onboard — 9 confirmed) | COMPLETE (updated README table) |
+| 16 | HIGH | Star Update | Update oh-my-claudecode ★ from 32k to 34k (33,500 actual — v4.13.7 stability fixes) | COMPLETE (updated README table) |
+| 17 | MED | Star Update | Update Compound Engineering ★ from 16k to 17k (16,600 actual — v3.8.1, headless mode for ce-compound) | COMPLETE (updated README table) |
+| 18 | LOW | Count Update | Update Compound Engineering skills 39 → 38 (recount: 37 in compound-engineering/ + 1 in coding-tutor/) | COMPLETE (updated README table) |
+| 19 | HIGH | Sort Order | Re-sort table by stars descending: Superpowers (188k) > ECC (180k) > Spec Kit (97k) > gstack (95k) > Matt Pocock (76k) > GSD (62k) > OpenSpec (47.3k) > BMAD (47.0k) > oh-my-claudecode (34k) > agent-skills (27k) > Compound (17k) > HumanLayer (11k); Matt Pocock moves from row 6 to row 5 above GSD; OpenSpec swaps above BMAD (47.3 vs 47.0) | COMPLETE (updated README table) |
+| 20 | LOW | Count Verify | ECC agents 48→60, commands 143→78, skills 230→120 — research confidence 0.72 due to API pagination on 1000+ files; conflicts with README badge counts | ON HOLD (RECURRING — keeping current values until manual verification) |
+| 21 | LOW | Count Verify | BMAD agents 0→6 and skills 40→16 — methodology shift (counting bmad-agent-* skills as agents, fewer skill containers); not an actual repo change | ON HOLD (keeping current methodology to preserve trend continuity) |

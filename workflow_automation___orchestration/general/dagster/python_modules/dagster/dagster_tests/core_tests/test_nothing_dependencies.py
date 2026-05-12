@@ -349,7 +349,7 @@ def test_asset_none_output_non_none_input():
 
 
 def test_asset_nothing_output_non_none_input():
-    @dg.asset(dagster_type=Nothing)  # pyright: ignore[reportArgumentType]
+    @dg.asset(dagster_type=Nothing)  # ty: ignore[invalid-argument-type]
     def asset1():
         pass
 

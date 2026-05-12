@@ -105,7 +105,7 @@ function createConfigWithDiscordAccount(overrides: Record<string, unknown> = {})
 type MockCallReader = { mock: { calls: unknown[][] } };
 
 function firstMockArg(mock: MockCallReader, label: string) {
-  const firstCall = mock.mock.calls.at(0);
+  const firstCall = mock.mock.calls[0];
   if (!firstCall) {
     throw new Error(`expected ${label} mock call`);
   }
@@ -183,10 +183,10 @@ describe("monitorDiscordProvider", () => {
 
   const getHealthProbe = () => {
     expect(reconcileAcpThreadBindingsOnStartupMock).toHaveBeenCalledTimes(1);
-    const firstCall = reconcileAcpThreadBindingsOnStartupMock.mock.calls.at(0) as
-      | [ReconcileStartupParams]
-      | undefined;
-    const reconcileParams = firstCall?.[0];
+    const reconcileParams = firstMockArg(
+      reconcileAcpThreadBindingsOnStartupMock,
+      "ACP startup reconciliation",
+    ) as ReconcileStartupParams;
     if (!reconcileParams?.healthProbe) {
       throw new Error("healthProbe was not wired into ACP startup reconciliation");
     }
@@ -198,8 +198,7 @@ describe("monitorDiscordProvider", () => {
     gatewayRuntimeReadyTimeoutMs?: number;
   } => {
     expect(monitorLifecycleMock).toHaveBeenCalledTimes(1);
-    const firstCall = monitorLifecycleMock.mock.calls.at(0);
-    const params = firstCall?.[0] as
+    const params = firstMockArg(monitorLifecycleMock, "Discord lifecycle monitor") as
       | { gatewayReadyTimeoutMs?: number; gatewayRuntimeReadyTimeoutMs?: number }
       | undefined;
     if (!params) {

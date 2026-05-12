@@ -419,23 +419,36 @@ class CommandStepBuilder:
         if self._requires_docker:
             # Determine docker image based on queue (GKE vs EKS)
             queue = self._step.get("agents", {}).get("queue", "")
-            if "gke" in queue:
+            is_gke = "gke" in queue
+            if is_gke:
                 docker_image = "us-central1-docker.pkg.dev/dagster-production/buildkite-images/docker:28.5.2-dind"
             else:
                 docker_image = "public.ecr.aws/docker/library/docker:28.5.2-dind"
+
+            # Bump max-concurrent-downloads/uploads from default 3 to 10 to
+            # parallelize layer pulls. The dockerd-entrypoint.sh of the
+            # docker:dind image execs `dockerd` with whatever args are
+            # passed, so these forward through cleanly.
+            dind_args = [
+                "--max-concurrent-downloads=10",
+                "--max-concurrent-uploads=10",
+            ]
+            if not is_gke:
+                # Route docker.io pulls through the in-cluster Docker Hub
+                # mirror to avoid Docker Hub 5xx flakes and rate limits. The
+                # mirror is a `registry:2` Deployment in the buildkite-agent
+                # namespace; see infra/k8s/buildkite/overlays/buildkite-eks/
+                # dockerhub-mirror.yaml. dockerd transparently falls back to
+                # registry-1.docker.io if the mirror is unreachable.
+                dind_args.append(
+                    "--registry-mirror=http://dockerhub-mirror.buildkite-agent.svc.cluster.local:5000"
+                )
 
             sidecars.append(
                 {
                     "image": docker_image,
                     "command": ["dockerd-entrypoint.sh"],
-                    # Bump max-concurrent-downloads/uploads from default 3 to 10 to
-                    # parallelize layer pulls. The dockerd-entrypoint.sh of the
-                    # docker:dind image execs `dockerd` with whatever args are
-                    # passed, so these forward through cleanly.
-                    "args": [
-                        "--max-concurrent-downloads=10",
-                        "--max-concurrent-uploads=10",
-                    ],
+                    "args": dind_args,
                     # Memory request/limit promote the dind sidecar from
                     # BestEffort to Burstable QoS, so it isn't the first
                     # container the kubelet evicts when a node is under

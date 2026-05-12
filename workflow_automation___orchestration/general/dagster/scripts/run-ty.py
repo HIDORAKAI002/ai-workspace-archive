@@ -495,14 +495,39 @@ def temp_ty_config_file(env: str) -> Iterator[str]:
 
 
 def _serialize_ty_config(config: Mapping[str, Any]) -> str:
-    """Serialize a ty config dict (table-of-tables) to TOML."""
+    """Serialize a ty config dict to TOML.
+
+    Handles three table shapes that appear in `[tool.ty.*]`:
+    - dict[str, scalar | list]: emitted as a `[name]` table with key=value lines.
+    - dict containing nested dicts: emits the parent's scalars first, then a
+      `[name.child]` table for each nested dict (TOML ordering requirement).
+    - list[dict]: emitted as repeated `[[name]]` array-of-tables blocks (e.g.
+      `[[tool.ty.overrides]]`).
+    """
     sections: list[str] = []
     for section_name, section_body in config.items():
-        lines = [f"[{section_name}]"]
-        for key, value in section_body.items():
-            lines.append(f"{key} = {_toml_value(value)}")
-        sections.append("\n".join(lines))
+        if isinstance(section_body, list):
+            for item in section_body:
+                sections.append(_serialize_section(section_name, item, array_of_tables=True))
+        else:
+            sections.append(_serialize_section(section_name, section_body, array_of_tables=False))
     return "\n\n".join(sections) + "\n"
+
+
+def _serialize_section(name: str, body: Mapping[str, Any], *, array_of_tables: bool) -> str:
+    header = f"[[{name}]]" if array_of_tables else f"[{name}]"
+    lines = [header]
+    scalars = {k: v for k, v in body.items() if not isinstance(v, Mapping)}
+    nested = {k: v for k, v in body.items() if isinstance(v, Mapping)}
+    for k, v in scalars.items():
+        lines.append(f"{k} = {_toml_value(v)}")
+    for k, v in nested.items():
+        lines.append("")
+        # Nested tables under an array-of-tables item use the same dotted-key
+        # syntax (`[name.child]`) — TOML scopes them to the most recent
+        # `[[name]]` block.
+        lines.append(_serialize_section(f"{name}.{k}", v, array_of_tables=False))
+    return "\n".join(lines)
 
 
 def _toml_value(value: Any) -> str:
