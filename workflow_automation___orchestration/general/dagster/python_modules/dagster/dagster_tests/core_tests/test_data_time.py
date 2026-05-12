@@ -118,7 +118,7 @@ def test_calculate_data_time_unpartitioned(ignore_asset_tags, runs_to_expected_d
             for entry in instance.all_logs(
                 result.run_id, of_type=DagsterEventType.ASSET_MATERIALIZATION
             ):
-                asset_key = entry.dagster_event.event_specific_data.materialization.asset_key  # pyright: ignore[reportAttributeAccessIssue,reportOptionalMemberAccess]
+                asset_key = entry.dagster_event.event_specific_data.materialization.asset_key  # ty: ignore[unresolved-attribute]
                 # CachingDataTimeResolver truncates entry timestamps to millisecond
                 # granularity to match the int(t * 1000) rendering used elsewhere in
                 # GraphQL; mirror that here so equality holds.
@@ -138,11 +138,11 @@ def test_calculate_data_time_unpartitioned(ignore_asset_tags, runs_to_expected_d
                         ) as tags_property:
                             tags_property.return_value = None
                             upstream_data_times = data_time_queryer.get_data_time_by_key_for_record(
-                                record=latest_asset_record,  # pyright: ignore[reportArgumentType]
+                                record=latest_asset_record,  # ty: ignore[invalid-argument-type]
                             )
                     else:
                         upstream_data_times = data_time_queryer.get_data_time_by_key_for_record(
-                            record=latest_asset_record,  # pyright: ignore[reportArgumentType]
+                            record=latest_asset_record,  # ty: ignore[invalid-argument-type]
                         )
                     assert upstream_data_times == {
                         dg.AssetKey(k): materialization_times_index[dg.AssetKey(k)][v]

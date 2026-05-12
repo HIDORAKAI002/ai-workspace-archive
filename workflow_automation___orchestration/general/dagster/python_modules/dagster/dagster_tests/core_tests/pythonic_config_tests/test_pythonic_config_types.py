@@ -438,11 +438,11 @@ def test_discriminated_unions() -> None:
     @dg.op
     def a_struct_config_op(config: OpConfigWithUnion):
         if config.pet.pet_type == "cat":
-            assert config.pet.meows == 2
+            assert config.pet.meows == 2  # ty: ignore[unresolved-attribute]
         elif config.pet.pet_type == "dog":
-            assert config.pet.barks == 3.0
+            assert config.pet.barks == 3.0  # ty: ignore[unresolved-attribute]
         elif config.pet.pet_type == "lizard":
-            assert config.pet.scales
+            assert config.pet.scales  # ty: ignore[unresolved-attribute]
         assert config.n == 4
 
         executed["yes"] = True
@@ -1001,8 +1001,8 @@ def test_permissive_extra_field_via_dot():
     conf1 = ExtraConfig(foo=10, bar="hello", baz=[1, 2, 3])
     assert conf == conf1
     assert conf.foo == 10
-    assert conf.bar == "hello"
-    assert conf.baz == [1, 2, 3]
+    assert conf.bar == "hello"  # ty: ignore[unresolved-attribute]
+    assert conf.baz == [1, 2, 3]  # ty: ignore[unresolved-attribute]
     # confirm it's in dict and convert_to_config_dictionary
     expected = {"foo": 10, "bar": "hello", "baz": [1, 2, 3]}
     assert conf.model_dump() == expected

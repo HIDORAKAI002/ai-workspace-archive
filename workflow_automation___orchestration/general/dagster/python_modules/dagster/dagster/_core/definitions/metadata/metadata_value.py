@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Callable, Mapping, Sequence
 from datetime import datetime
 from os import PathLike
-from typing import Any, Generic, Union
+from typing import Any, Generic
 
 from dagster_shared.record import IHaveNew, LegacyNamedTupleMixin, record, record_custom
 from dagster_shared.serdes.serdes import (
@@ -232,7 +232,7 @@ class MetadataValue(ABC, Generic[T_Packable]):
             value (Callable): The python class or function for a metadata entry.
         """
         check.callable_param(python_artifact, "python_artifact")
-        return PythonArtifactMetadataValue(python_artifact.__module__, python_artifact.__name__)
+        return PythonArtifactMetadataValue(python_artifact.__module__, python_artifact.__name__)  # ty: ignore[unresolved-attribute]
 
     @public
     @staticmethod
@@ -308,7 +308,7 @@ class MetadataValue(ABC, Generic[T_Packable]):
 
     @public
     @staticmethod
-    def timestamp(value: Union["float", datetime]) -> "TimestampMetadataValue":
+    def timestamp(value: "float | datetime") -> "TimestampMetadataValue":  # ty: ignore[invalid-type-form]
         """Static constructor for a metadata value wrapping a UNIX timestamp as a
         :py:class:`TimestampMetadataValue`. Can be used as the value type for the `metadata`
         parameter for supported events.
@@ -637,7 +637,7 @@ class JsonDataFieldSerializer(FieldSerializer):
         # return the json serializable data field as is
         return mapping
 
-    def unpack(  # pyright: ignore[reportIncompatibleMethodOverride]
+    def unpack(  # ty: ignore[invalid-method-override]
         self,
         unpacked_value: JsonSerializableValue,
         whitelist_map: WhitelistMap,

@@ -96,8 +96,8 @@ def test_struct_config():
     assert DecoratedOpFunction(a_struct_config_op).has_config_arg()
 
     # test fields are inferred correctly
-    assert a_struct_config_op.config_schema.config_type.kind == ConfigTypeKind.STRICT_SHAPE  # pyright: ignore[reportOptionalMemberAccess]
-    assert list(a_struct_config_op.config_schema.config_type.fields.keys()) == [  # pyright: ignore[reportOptionalMemberAccess,reportAttributeAccessIssue]
+    assert a_struct_config_op.config_schema.config_type.kind == ConfigTypeKind.STRICT_SHAPE  # ty: ignore[unresolved-attribute]
+    assert list(a_struct_config_op.config_schema.config_type.fields.keys()) == [  # ty: ignore[unresolved-attribute]
         "a_string",
         "an_int",
     ]
@@ -269,8 +269,8 @@ def test_nested_struct_config():
     assert DecoratedOpFunction(a_struct_config_op).has_config_arg()
 
     # test fields are inferred correctly
-    assert a_struct_config_op.config_schema.config_type.kind == ConfigTypeKind.STRICT_SHAPE  # pyright: ignore[reportOptionalMemberAccess]
-    assert list(a_struct_config_op.config_schema.config_type.fields.keys()) == [  # pyright: ignore[reportOptionalMemberAccess,reportAttributeAccessIssue]
+    assert a_struct_config_op.config_schema.config_type.kind == ConfigTypeKind.STRICT_SHAPE  # ty: ignore[unresolved-attribute]
+    assert list(a_struct_config_op.config_schema.config_type.fields.keys()) == [  # ty: ignore[unresolved-attribute]
         "a_nested_value",
         "a_bool",
     ]
