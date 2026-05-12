@@ -48,16 +48,11 @@
 			"label": "バグを見つけましたか？",
 			"link": "GitHubで報告"
 		},
-		"featureRequest": {
-			"label": "アイデアがありますか？",
-			"link": "共有してください"
-		},
 		"securityIssue": {
 			"label": "脆弱性を発見しましたか？",
 			"link": "開示プロセスに従ってください"
 		},
-		"community": "ヒントが欲しいですか、または他のRoo Codeユーザーと交流したいですか？<redditLink>reddit.com/r/RooCode</redditLink>または<discordLink>discord.gg/roocode</discordLink>に参加してください",
-		"contactAndCommunity": "お問い合わせとコミュニティ",
+		"contact": "GitHub",
 		"manageSettings": "設定を管理",
 		"debugMode": {
 			"label": "デバッグモードを有効にする",
@@ -306,7 +301,7 @@
 		"searchProviderPlaceholder": "プロバイダーを検索",
 		"noProviderMatchFound": "プロバイダーが見つかりません",
 		"noMatchFound": "一致するプロファイルが見つかりません",
-		"retiredProviderMessage": "申し訳ございませんが、このプロバイダーはサポートを終了しました。実際に利用しているRooユーザーが非常に少なく、コードベースの範囲を縮小して、迅速な開発とコミュニティへの貢献を続ける必要がありました。本当に難しい決断でしたが、あなたにとって最も重要なことに集中するためです。残念ですが、ご理解ください。",
+		"retiredProviderMessage": "This provider is no longer supported. Please select a different provider in your API profile settings.",
 		"vscodeLmDescription": "VS Code言語モデルAPIを使用すると、他のVS Code拡張機能（GitHub Copilotなど）が提供するモデルを実行できます。最も簡単な方法は、VS Code MarketplaceからCopilotおよびCopilot Chat拡張機能をインストールすることです。",
 		"awsCustomArnUse": "使用したいモデルの有効なAmazon Bedrock ARNを入力してください。形式の例:",
 		"awsCustomArnDesc": "ARN内のリージョンが上で選択したAWSリージョンと一致していることを確認してください。",
@@ -550,7 +545,8 @@
 			"placeholder": "デフォルト：claude",
 			"maxTokensLabel": "最大出力トークン",
 			"maxTokensDescription": "Claude Codeレスポンスの最大出力トークン数。デフォルトは8000です。"
-		}
+		},
+		"retiredRooProviderMessage": "As part of our decision to sunset the Roo Code extension, we also ended the Roo Code Router, which only existed to support the extension. Sorry about the hassle."
 	},
 	"checkpoints": {
 		"timeout": {
