@@ -291,11 +291,13 @@ No priority action items — report is fully in sync with official documentation
 
 ---
 
-## [2026-05-09 06:58 PM PKT] Claude Code v2.1.138
+## [2026-05-12 11:39 PM PKT] Claude Code v2.1.139
 
 | # | Priority | Type | Action | Status |
 |---|----------|------|--------|--------|
-| 1 | HIGH | New Command | Add `/radio` to Config tag — Open Claude FM lo-fi radio in your browser. Prints stream URL when no browser is available. Not available on Bedrock, Vertex, or Foundry | ✅ COMPLETE (added as #12 in Config tag, alphabetical position between `/privacy-settings` and `/sandbox`; count updated 75 → 76; rows #12–75 renumbered to #13–76) |
-| 2 | MED | Changed Argument | Update `/clear` → `/clear [name]` — accepts optional name to label the previous conversation in the `/resume` picker | ✅ COMPLETE (signature updated at #70 in Session tag; description expanded to mention the optional name argument) |
-| 3 | MED | Changed Argument | Update `/review` → `/review [PR]` — accepts optional PR argument | ✅ COMPLETE (signature updated at #54 in Project tag; description expanded to mention the optional PR argument) |
-| 4 | MED | Changed Argument | Update `/context` → `/context [all]` — accepts `all` to expand per-item breakdown in fullscreen | ✅ COMPLETE (signature updated at #20 in Context tag; description expanded to mention the `all` argument) |
+| 1 | HIGH | New Command | Add `/background [prompt]` to Session tag — Detach current session to run as a background agent. Alias: `/bg` | ✅ COMPLETE (added as #69 in Session tag, count updated 75 → 80) |
+| 2 | HIGH | New Command | Add `/goal [condition\|clear]` to Session tag — Claude keeps working across turns until condition met (v2.1.139) | ✅ COMPLETE (added as #75 in Session tag) |
+| 3 | HIGH | New Command | Add `/radio` to Config tag — Open Claude FM lo-fi radio in your browser | ✅ COMPLETE (added as #12 in Config tag) |
+| 4 | HIGH | New Command | Add `/scroll-speed` to Config tag — Adjust mouse wheel scroll speed interactively (v2.1.139) | ✅ COMPLETE (added as #14 in Config tag) |
+| 5 | HIGH | New Command | Add `/stop` to Session tag — Stop the current background session; transcript and worktree are kept | ✅ COMPLETE (added as #80 in Session tag) |
+| 6 | LOW | Scope Decision | 6 bundled skills (`/batch`, `/claude-api`, `/debug`, `/fewer-permission-prompts`, `/loop`, `/simplify`) listed in upstream unified table but excluded per report scope | ❌ INVALID (recurring from v2.1.107 and v2.1.119 — user previously chose to keep report scoped to built-in commands only) |

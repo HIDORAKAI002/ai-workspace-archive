@@ -10,6 +10,16 @@ Tracks updates to the AGENT COLLECTIONS table in `README.md`.
 
 ---
 
+## [2026-05-12 08:47 PM PKT] Agent Collections Update
+
+| # | Priority | Type  | Action                                                                | Status                                                                                                                                                |
+|---|----------|-------|-----------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1 | HIGH     | Count | Update msitarzewski/agency-agents agents from 185 to 198              | COMPLETE (recursive tree scan: 198 agent .md files across 19 category dirs; +13 from 185; recent additions in specialized/ dir; NEW)                  |
+| 2 | HIGH     | Count | Update VoltAgent/awesome-claude-code-subagents agents from 145 to 189 | COMPLETE (recursive tree scan: 189 .md files under categories/, 10 READMEs excluded from 199 raw; +44 from 145; sustained PR activity ~5-8 agents/wk; NEW) |
+| 3 | LOW      | Sort  | Verify sort order (stars descending)                                  | COMPLETE (msitarzewski 96k > VoltAgent 20k — order preserved; RECURRING)                                                                              |
+
+---
+
 ## [2026-05-10 08:47 PM PKT] Agent Collections Update
 
 | # | Priority | Type  | Action                                                                                 | Status                                                                                                                                   |

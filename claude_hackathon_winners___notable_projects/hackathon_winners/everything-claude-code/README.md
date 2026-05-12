@@ -358,7 +358,7 @@ If you stacked methods, clean up in this order:
 /plugin list ecc@ecc
 ```
 
-**That's it!** You now have access to 58 agents, 220 skills, and 74 legacy command shims.
+**That's it!** You now have access to 60 agents, 225 skills, and 75 legacy command shims.
 
 ### Dashboard GUI
 
@@ -456,7 +456,7 @@ everything-claude-code/
 |   |-- plugin.json         # Plugin metadata and component paths
 |   |-- marketplace.json    # Marketplace catalog for /plugin marketplace add
 |
-|-- agents/           # 58 specialized subagents for delegation
+|-- agents/           # 60 specialized subagents for delegation
 |   |-- planner.md           # Feature implementation planning
 |   |-- architect.md         # System design decisions
 |   |-- tdd-guide.md         # Test-driven development
@@ -522,14 +522,14 @@ everything-claude-code/
 |   |-- laravel-verification/       # Laravel verification loops (NEW)
 |   |-- python-patterns/            # Python idioms and best practices (NEW)
 |   |-- python-testing/             # Python testing with pytest (NEW)
+|   |-- quarkus-patterns/            # Java Quarkus patterns (NEW)
+|   |-- quarkus-security/            # Quarkus security (NEW)
+|   |-- quarkus-tdd/                 # Quarkus TDD (NEW)
+|   |-- quarkus-verification/        # Quarkus verification (NEW)
 |   |-- springboot-patterns/        # Java Spring Boot patterns (NEW)
 |   |-- springboot-security/        # Spring Boot security (NEW)
 |   |-- springboot-tdd/             # Spring Boot TDD (NEW)
 |   |-- springboot-verification/    # Spring Boot verification (NEW)
-|   |-- quarkus-patterns/           # Quarkus REST, Panache, and messaging patterns (NEW)
-|   |-- quarkus-security/           # Quarkus JWT/OIDC and RBAC security (NEW)
-|   |-- quarkus-tdd/                # Quarkus testing with JUnit, REST Assured, and Dev Services (NEW)
-|   |-- quarkus-verification/       # Quarkus build, test, security, and native verification (NEW)
 |   |-- configure-ecc/              # Interactive installation wizard (NEW)
 |   |-- security-scan/              # AgentShield security auditor integration (NEW)
 |   |-- java-coding-standards/     # Java coding standards (NEW)
@@ -856,7 +856,7 @@ cp -r everything-claude-code/.agents/skills/* ~/.claude/skills/ecc/
 cp -r everything-claude-code/skills/search-first ~/.claude/skills/ecc/
 
 # Optional: add niche/framework-specific skills only when needed
-# for s in django-patterns django-tdd laravel-patterns springboot-patterns; do
+# for s in django-patterns django-tdd laravel-patterns springboot-patterns quarkus-patterns; do
 # cp -r everything-claude-code/skills/$s ~/.claude/skills/ecc/
 # done
 
@@ -1360,9 +1360,9 @@ The configuration is automatically detected from `.opencode/opencode.json`.
 
 | Feature | Claude Code | OpenCode | Status |
 |---------|-------------|----------|--------|
-| Agents | PASS: 58 agents | PASS: 12 agents | **Claude Code leads** |
-| Commands | PASS: 74 commands | PASS: 35 commands | **Claude Code leads** |
-| Skills | PASS: 220 skills | PASS: 37 skills | **Claude Code leads** |
+| Agents | PASS: 60 agents | PASS: 12 agents | **Claude Code leads** |
+| Commands | PASS: 75 commands | PASS: 35 commands | **Claude Code leads** |
+| Skills | PASS: 225 skills | PASS: 37 skills | **Claude Code leads** |
 | Hooks | PASS: 8 event types | PASS: 11 events | **OpenCode has more!** |
 | Rules | PASS: 29 rules | PASS: 13 instructions | **Claude Code leads** |
 | MCP Servers | PASS: 14 servers | PASS: Full | **Full parity** |
@@ -1465,9 +1465,9 @@ ECC is the **first plugin to maximize every major AI coding tool**. Here's how e
 
 | Feature | Claude Code | Cursor IDE | Codex CLI | OpenCode |
 |---------|------------|------------|-----------|----------|
-| **Agents** | 58 | Shared (AGENTS.md) | Shared (AGENTS.md) | 12 |
-| **Commands** | 74 | Shared | Instruction-based | 35 |
-| **Skills** | 220 | Shared | 10 (native format) | 37 |
+| **Agents** | 60 | Shared (AGENTS.md) | Shared (AGENTS.md) | 12 |
+| **Commands** | 75 | Shared | Instruction-based | 35 |
+| **Skills** | 225 | Shared | 10 (native format) | 37 |
 | **Hook Events** | 8 types | 15 types | None yet | 11 types |
 | **Hook Scripts** | 20+ scripts | 16 scripts (DRY adapter) | N/A | Plugin hooks |
 | **Rules** | 34 (common + lang) | 34 (YAML frontmatter) | Instruction-based | 13 instructions |

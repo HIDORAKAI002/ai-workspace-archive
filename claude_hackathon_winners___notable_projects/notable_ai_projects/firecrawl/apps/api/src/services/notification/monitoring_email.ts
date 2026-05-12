@@ -13,10 +13,11 @@ type MonitoringEmailPage = {
   error?: string | null;
 };
 
-type MonitoringEmailPayload = {
+export type MonitoringEmailPayload = {
   monitorId: string;
   monitorName: string;
   checkId: string;
+  dashboardUrl: string;
   summary: {
     changed: number;
     new: number;
@@ -64,7 +65,19 @@ async function getTeamEmails(teamId: string): Promise<string[]> {
   return [...emails];
 }
 
-function buildHtml(payload: MonitoringEmailPayload): string {
+export function buildMonitoringCheckDashboardUrl(
+  params: { monitorId: string; checkId: string },
+  baseUrl: string = config.FIRECRAWL_DASHBOARD_URL,
+): string {
+  const url = new URL(
+    `/app/monitoring/${encodeURIComponent(params.monitorId)}`,
+    baseUrl.trim(),
+  );
+  url.searchParams.set("checkId", params.checkId);
+  return url.toString();
+}
+
+export function buildHtml(payload: MonitoringEmailPayload): string {
   const pageItems = payload.pages
     .slice(0, 20)
     .map(page => {
@@ -74,6 +87,7 @@ function buildHtml(payload: MonitoringEmailPayload): string {
       }</li>`;
     })
     .join("");
+  const dashboardUrl = escapeHtml(payload.dashboardUrl);
 
   return `Hey there,<br/>
 <p>Your Firecrawl monitor <strong>${escapeHtml(payload.monitorName)}</strong> detected activity.</p>
@@ -85,6 +99,7 @@ function buildHtml(payload: MonitoringEmailPayload): string {
   <li>Total pages checked: ${payload.summary.totalPages}</li>
 </ul>
 ${pageItems ? `<p>Top pages:</p><ul>${pageItems}</ul>` : ""}
+<p><a href="${dashboardUrl}">View this check in the dashboard</a></p>
 <p>Check ID: <code>${escapeHtml(payload.checkId)}</code></p>
 <p>Credits used: ${payload.creditsUsed ?? "unknown"}</p>
 <br/>Thanks,<br/>Firecrawl Team<br/>`;
@@ -161,6 +176,10 @@ export async function sendMonitoringEmailSummary(params: {
     monitorId: params.monitor.id,
     monitorName: params.monitor.name,
     checkId: params.check.id,
+    dashboardUrl: buildMonitoringCheckDashboardUrl({
+      monitorId: params.monitor.id,
+      checkId: params.check.id,
+    }),
     summary: {
       changed: params.check.changed_count,
       new: params.check.new_count,

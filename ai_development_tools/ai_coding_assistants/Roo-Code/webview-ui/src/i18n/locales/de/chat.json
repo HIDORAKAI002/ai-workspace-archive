@@ -153,7 +153,7 @@
 			"500": "Fehler auf dem Server des Anbieters. Es stimmt etwas mit der Anbieterseite nicht, mit deiner Anfrage stimmt alles.",
 			"docs": "Dokumentation",
 			"goToSettings": "Einstellungen",
-			"unknown": "Unbekannter API-Fehler. Bitte kontaktiere den Roo Code Support.",
+			"unknown": "Unknown API error. Please report this on GitHub.",
 			"connection": "Verbindungsfehler. Stelle sicher, dass du eine funktionierende Internetverbindung hast.",
 			"claudeCodeNotAuthenticated": "Du musst dich anmelden, um Claude Code zu verwenden. Gehe zu den Einstellungen und klicke auf \"Bei Claude Code anmelden\", um dich zu authentifizieren."
 		}
@@ -331,10 +331,12 @@
 	"announcement": {
 		"title": "Roo Code {{version}} veröffentlicht",
 		"support": "Bitte unterstütze Roo Code, indem du uns auf <githubLink>GitHub</githubLink> einen Stern gibst.",
-		"handoff": {
-			"heading": "Das Roo Code-Plugin verschwindet nicht.",
-			"description": "Du hast vielleicht die neuliche Ankündigung gesehen, dass Roo Code 3 Millionen Installationen erreicht hat und das ursprüngliche Team sich voll auf Roomote konzentriert. Wir wissen, dass diese Nachricht für viele von euch schwer war. Dieses Plugin bedeutet uns und dir sehr viel, und wir hören dich. Die gute Nachricht: <bold>ein Community-Team hat sich bereit erklärt, Roo Code weiterzuführen</bold>, und wir arbeiten mit ihnen an einer offiziellen Übergabe, damit das Plugin, auf das du dich verlässt, weiterhin gepflegt und verbessert wird.",
-			"readMore": "Die ursprüngliche Ankündigung von Matt Rubens lesen"
+		"finalRelease": {
+			"title": "Die letzte Roo Code-Version",
+			"intro": "Dies ist die letzte Roo Code-Version. <announcementLink>Wie wir vor ein paar Wochen angekündigt haben</announcementLink>, haben wir beschlossen, unseren Fokus auf <roomoteLink>Roomote</roomoteLink> zu verlagern, unsere Cloud-Agent-Plattform, von der wir glauben, dass sie die Zukunft der Softwareentwicklung ist. Vielen Dank für deine Unterstützung im vergangenen Jahr oder so.",
+			"continuity": "Diese Erweiterung sollte auf unbestimmte Zeit weiter funktionieren, erhält aber keine Fehlerbehebungen, neuen Funktionen oder Modellaktualisierungen mehr.",
+			"alternatives": "Wenn du eine Erweiterung verwenden möchtest, empfehlen wir dir <zooCodeLink>ZooCode</zooCodeLink> (einen Community-Fork von Roo Code) und <clineLink>Cline</clineLink> (wo Roo Code ursprünglich begann).",
+			"signoff": "Viel Spaß beim Programmieren!"
 		},
 		"release": {
 			"heading": "Was ist neu:",
@@ -482,7 +484,8 @@
 	},
 	"retiredProvider": {
 		"title": "Anbieter wird nicht mehr unterstützt",
-		"message": "Leider wird dieser Anbieter nicht mehr unterstützt. Wir haben festgestellt, dass nur sehr wenige Roo-Nutzer ihn tatsächlich verwendet haben, und wir müssen den Umfang unserer Codebasis reduzieren, damit wir weiterhin schnell liefern und unserer Community in diesem Bereich gut dienen können. Es war eine wirklich schwere Entscheidung, aber sie ermöglicht uns, uns auf das zu konzentrieren, was dir am wichtigsten ist. Es ist ärgerlich, das wissen wir.",
-		"openSettings": "Einstellungen öffnen"
+		"message": "This provider is no longer supported. Please select a different provider in your API profile settings.",
+		"openSettings": "Einstellungen öffnen",
+		"rooMessage": "As part of our decision to sunset the Roo Code extension, we also ended the Roo Code Router, which only existed to support the extension. Sorry about the hassle."
 	}
 }

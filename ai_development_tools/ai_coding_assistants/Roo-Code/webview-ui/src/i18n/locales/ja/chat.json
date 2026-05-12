@@ -153,7 +153,7 @@
 			"500": "プロバイダー サーバー エラー。プロバイダー側に問題があり、リクエスト自体に問題はありません。",
 			"docs": "ドキュメント",
 			"goToSettings": "設定",
-			"unknown": "不明な API エラー。Roo Code のサポートにお問い合わせください。",
+			"unknown": "Unknown API error. Please report this on GitHub.",
 			"connection": "接続エラー。インターネット接続が機能していることを確認してください。",
 			"claudeCodeNotAuthenticated": "Claude Codeを使用するにはサインインが必要です。設定に移動して「Claude Codeにサインイン」をクリックして認証してください。"
 		}
@@ -331,10 +331,12 @@
 	"announcement": {
 		"title": "Roo Code {{version}} リリース",
 		"support": "<githubLink>GitHub</githubLink>でスターを付けてRoo Codeを応援してください。",
-		"handoff": {
-			"heading": "Roo Code プラグインはなくなりません。",
-			"description": "Roo Code のインストール数が300万に達し、元のチームが Roomote に全力で取り組むという先日のお知らせをご覧になったかもしれません。この知らせが多くの方にとって辛いものだったことは承知しています。このプラグインは私たちにとっても、あなたにとっても大切な存在であり、皆さんの声はしっかり届いています。良いお知らせです：<bold>コミュニティチームが Roo Code を受け継いで前進させることを引き受けてくれました</bold>。頼りにしているこのプラグインが引き続きメンテナンスと改善を受けられるよう、私たちは彼らと公式な引き継ぎを進めています。",
-			"readMore": "Matt Rubens による最初のお知らせを読む"
+		"finalRelease": {
+			"title": "Roo Code 最後のリリース",
+			"intro": "これは Roo Code の最後のリリースです。<announcementLink>数週間前にお知らせしたとおり</announcementLink>、私たちは今後、ソフトウェア開発の未来だと考えているクラウドエージェントプラットフォーム <roomoteLink>Roomote</roomoteLink> に注力することにしました。この約1年間のご支援、本当にありがとうございました。",
+			"continuity": "この拡張機能は今後も無期限に動作し続けるはずですが、バグ修正、新機能、モデル更新は提供されません。",
+			"alternatives": "拡張機能を使いたい場合は、コミュニティによる Roo Code のフォークである <zooCodeLink>ZooCode</zooCodeLink> と、Roo Code の出発点である <clineLink>Cline</clineLink> をぜひ確認してみてください。",
+			"signoff": "Happy coding!"
 		},
 		"release": {
 			"heading": "新機能:",
@@ -482,7 +484,8 @@
 	},
 	"retiredProvider": {
 		"title": "プロバイダーのサポート終了",
-		"message": "申し訳ございませんが、このプロバイダーはサポートを終了しました。実際に利用しているRooユーザーが非常に少なく、コードベースの範囲を縮小して、迅速な開発とコミュニティへの貢献を続ける必要がありました。本当に難しい決断でしたが、あなたにとって最も重要なことに集中するためです。残念ですが、ご理解ください。",
-		"openSettings": "設定を開く"
+		"message": "This provider is no longer supported. Please select a different provider in your API profile settings.",
+		"openSettings": "設定を開く",
+		"rooMessage": "As part of our decision to sunset the Roo Code extension, we also ended the Roo Code Router, which only existed to support the extension. Sorry about the hassle."
 	}
 }

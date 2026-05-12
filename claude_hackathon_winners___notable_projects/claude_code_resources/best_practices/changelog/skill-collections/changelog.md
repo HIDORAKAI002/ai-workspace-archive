@@ -53,19 +53,26 @@
 
 ---
 
-## [2026-05-09 07:00 PM PKT] Skill Collections Update
+## [2026-05-12 11:40 PM PKT] Skill Collections Update
 
 | # | Priority | Type | Action | Status |
 |---|----------|------|--------|--------|
-| 1 | MEDIUM | Star | Update anthropics/skills ★ from 127k to 131k (130,952 exact) | NEW |
-| 2 | HIGH | Star | Update mattpocock/skills ★ from 51k to 68k (67,568 exact — second consecutive +15k+ surge over ~8 days, sustained external amplification) | RECURRING |
-| 3 | LOW | Count | Update mattpocock/skills skills from 18 to 19 (handoff and prototype skills moved from in-progress/ into engineering/ around May 6; deprecated/ 4 + in-progress/ 4 still excluded from active count) | NEW |
-| 4 | LOW | Count | Update wshobson/agents skills from 152 to 153 (brand-landingpage plugin added 2026-05-02; star count flat at 35k) | NEW |
-| 5 | HIGH | Star | Update addyosmani/agent-skills ★ from 27k to 37k (36,941 exact — +10k surge in ~8 days) | NEW |
-| 6 | LOW | Count | Update addyosmani/agent-skills skills from 21 to 22 (doubt-driven-development merged 2026-05-09 via PR #139) | NEW |
-| 7 | LOW | Count | Update scientific-agent-skills skills from 134 to 137 (+3: exa-search PR #143 on 2026-05-06, autoskill PR #141 on 2026-05-03, plus one prior; star count flat at 20k) | NEW |
-| 8 | LOW | Star | Update VoltAgent/awesome-agent-skills ★ from 20k to 21k (20,933 exact) | NEW |
-| 9 | LOW | Count | Update VoltAgent/awesome-agent-skills curated count from 930+ to 938 (verified bullet count from README parse; badge still claims 1100+) | NEW |
-| 10 | MEDIUM | Sort | Move addyosmani/agent-skills (37k) above wshobson/agents (35k) — new row 3, wshobson drops to row 4 | NEW |
-| 11 | MEDIUM | Sort | Move VoltAgent/awesome-agent-skills (20,933) above scientific-agent-skills (20,478) — new row 5, scientific drops to row 6 | NEW |
-| 12 | LOW | Note | Two simultaneous rank swaps in one update is unusual; driven by mattpocock+addyosmani sustained star surges combined with wshobson/scientific staying flat | COMPLETE (recorded for trend tracking) |
+| 1 | HIGH | Star | Update anthropics/skills ★ from 127k to 133k (132,946 exact) | NEW |
+| 2 | HIGH | Star | Update mattpocock/skills ★ from 51k to 76k (75,562 exact — +25k surge over ~11 days, second consecutive amplification event) | RECURRING (similar +15k surge logged 2026-05-01) |
+| 3 | MEDIUM | Count | Update mattpocock/skills active skills from 18 to 24 (added handoff 2026-05-11, review 2026-05-10, plus engineering/in-progress additions; 4 deprecated unchanged) | NEW |
+| 4 | LOW | Count | Update wshobson/agents skill count from 152 to 153 (README count synchronized 2026-05-09 commit) | NEW |
+| 5 | LOW | Star | Update K-Dense-AI/scientific-agent-skills ★ from 20k to 21k (20,758 exact) | NEW |
+| 6 | LOW | Count | Update K-Dense-AI/scientific-agent-skills count from 134 to 135 (added exa-search 2026-05-06 PR #143, autoskill 2026-05-03 PR #141) | NEW |
+| 7 | MEDIUM | Star | Update VoltAgent/awesome-agent-skills ★ from 20k to 21k (21,417 exact — surpassed K-Dense-AI in star count) | NEW |
+| 8 | MEDIUM | Count | Update VoltAgent/awesome-agent-skills curated count from 930+ to 1,100+ (reverts to README badge as source; prior 930+ was conservative bullet parse) | RECURRING (count source method debated 2026-04-29) |
+| 9 | HIGH | Sort | Swap row 5 (K-Dense-AI 20,758) with row 6 (VoltAgent 21,417) — VoltAgent moves up due to ~660 star lead | NEW |
+| 10 | LOW | No Change | addyosmani/agent-skills (27k/21) untouched — out of standard 5-repo research scope, awaiting separate review | COMPLETE (verified, manual entry preserved) |
+
+---
+
+## [2026-05-13 PKT] Skill Collections Update
+
+| # | Priority | Type | Action | Status |
+|---|----------|------|--------|--------|
+| 1 | HIGH | Add | Added pbakaus/impeccable (27k stars / 1 SKILL.md with 7 design domain references) at row 4, between wshobson/agents (35k) and addyosmani/agent-skills (27k); user-requested manual addition | COMPLETE (inserted into SKILL COLLECTIONS table) |
+| 2 | LOW | Note | Single-skill repo with 7 reference files (typography, color-and-contrast, spatial-design, motion-design, interaction-design, responsive-design, ux-writing), 23 commands, 27 anti-pattern rules — design language skill for frontend AI work | COMPLETE (count notation matches VoltAgent pattern of parenthetical clarification) |

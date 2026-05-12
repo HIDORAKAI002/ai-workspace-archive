@@ -1,7 +1,6 @@
 import { HTMLAttributes } from "react"
 import { useAppTranslation } from "@/i18n/TranslationContext"
-import { Trans } from "react-i18next"
-import { Download, Upload, TriangleAlert, Bug, Lightbulb, Shield, MessagesSquare } from "lucide-react"
+import { Download, Upload, TriangleAlert, Bug, Shield } from "lucide-react"
 import { VSCodeCheckbox, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
 
 import { Package } from "@roo/package"
@@ -35,7 +34,7 @@ export const About = ({ debug, setDebug, className, ...props }: AboutProps) => {
 			</Section>
 
 			<Section className="space-y-0">
-				<h3>{t("settings:about.contactAndCommunity")}</h3>
+				<h3>{t("settings:about.contact")}</h3>
 				<div className="flex flex-col gap-3">
 					<div className="flex items-start gap-2">
 						<Bug className="size-4 text-vscode-descriptionForeground shrink-0" />
@@ -47,33 +46,12 @@ export const About = ({ debug, setDebug, className, ...props }: AboutProps) => {
 						</span>
 					</div>
 					<div className="flex items-start gap-2">
-						<Lightbulb className="size-4 text-vscode-descriptionForeground shrink-0" />
-						<span>
-							{t("settings:about.featureRequest.label")}{" "}
-							<VSCodeLink href="https://github.com/RooCodeInc/Roo-Code/issues/new?template=feature_request.yml">
-								{t("settings:about.featureRequest.link")}
-							</VSCodeLink>
-						</span>
-					</div>
-					<div className="flex items-start gap-2">
 						<Shield className="size-4 text-vscode-descriptionForeground shrink-0" />
 						<span>
 							{t("settings:about.securityIssue.label")}{" "}
 							<VSCodeLink href="https://github.com/RooCodeInc/Roo-Code/security/policy">
 								{t("settings:about.securityIssue.link")}
 							</VSCodeLink>
-						</span>
-					</div>
-					<div className="flex items-start gap-2">
-						<MessagesSquare className="size-4 text-vscode-descriptionForeground shrink-0" />
-						<span>
-							<Trans
-								i18nKey="settings:about.community"
-								components={{
-									redditLink: <VSCodeLink href="https://reddit.com/r/RooCode" />,
-									discordLink: <VSCodeLink href="https://discord.gg/roocode" />,
-								}}
-							/>
 						</span>
 					</div>
 					{setDebug && (

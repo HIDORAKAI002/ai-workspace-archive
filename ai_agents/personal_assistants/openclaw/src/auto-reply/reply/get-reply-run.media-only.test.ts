@@ -372,11 +372,18 @@ describe("runPreparedReply media-only handling", () => {
     expect(directContextParams?.sessionCtx?.ChatType).toBe("direct");
     expect(directContextParams?.sourceReplyDeliveryMode).toBe("message_tool_only");
     expect(buildInboundUserContextPrefix).toHaveBeenCalledWith(
-      expect.objectContaining({
+      {
+        Body: "yo",
+        BodyStripped: "yo",
+        ThreadHistoryBody: "Earlier direct message",
+        MediaPath: "/tmp/input.png",
+        Provider: "telegram",
         ChatType: "direct",
         OriginatingChannel: "telegram",
         OriginatingTo: "telegram-direct-test-id",
-      }),
+        InboundHistory: undefined,
+        ThreadStarterBody: undefined,
+      },
       expect.anything(),
       { sourceReplyDeliveryMode: "message_tool_only" },
     );

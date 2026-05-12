@@ -176,7 +176,7 @@
 			"docs": "說明文件",
 			"goToSettings": "設定",
 			"connection": "連線錯誤。請確保您有可用的網際網路連線。",
-			"unknown": "未知 API 錯誤。請聯絡 Roo Code 技術支援。",
+			"unknown": "Unknown API error. Please report this on GitHub.",
 			"claudeCodeNotAuthenticated": "您需要登入才能使用 Claude Code。前往設定並點選「登入 Claude Code」以進行驗證。"
 		}
 	},
@@ -353,10 +353,12 @@
 	"announcement": {
 		"title": "Roo Code {{version}} 已發布",
 		"support": "請在 <githubLink>GitHub</githubLink> 上給 Roo Code 星星支持我們。",
-		"handoff": {
-			"heading": "Roo Code 外掛不會消失。",
-			"description": "你可能已經看到最近的公告：Roo Code 已突破 300 萬次安裝，原團隊將全心投入 Roomote。我們知道這個消息讓許多人感到難受。這個外掛對我們和你都意義重大，你的心聲我們聽到了。好消息是：<bold>一支社群團隊已挺身而出，繼續推進 Roo Code</bold>，我們正與他們協作進行正式交接，讓你所仰賴的外掛持續受到維護與改進。",
-			"readMore": "閱讀 Matt Rubens 的原始公告"
+		"finalRelease": {
+			"title": "Roo Code 的最後一個版本",
+			"intro": "這是 Roo Code 的最後一個版本。<announcementLink>正如我們幾週前宣布的那樣</announcementLink>，我們決定將重心轉向 <roomoteLink>Roomote</roomoteLink>，這是我們的雲端代理平台，我們相信它是軟體開發的未來。非常感謝你在過去一年左右的支持。",
+			"continuity": "這個擴充功能應該會繼續無限期運作，但不會再收到錯誤修正、新功能或模型更新。",
+			"alternatives": "如果你想使用擴充功能，我們建議看看 <zooCodeLink>ZooCode</zooCodeLink>（由社群維護的 Roo Code fork）和 <clineLink>Cline</clineLink>（Roo Code 最初起源的專案）。",
+			"signoff": "Happy coding!"
 		},
 		"release": {
 			"heading": "新增功能：",
@@ -478,7 +480,8 @@
 	},
 	"retiredProvider": {
 		"title": "供應商不再受支援",
-		"message": "抱歉，此供應商已不再受支援。我們發現實際使用它的 Roo 使用者非常少，我們需要縮減程式碼庫的範圍，以便繼續快速交付並更好地服務社群。這是一個非常艱難的決定，但它能讓我們專注於對你最重要的事情。我們知道這很遺憾。",
-		"openSettings": "開啟設定"
+		"message": "This provider is no longer supported. Please select a different provider in your API profile settings.",
+		"openSettings": "開啟設定",
+		"rooMessage": "As part of our decision to sunset the Roo Code extension, we also ended the Roo Code Router, which only existed to support the extension. Sorry about the hassle."
 	}
 }
