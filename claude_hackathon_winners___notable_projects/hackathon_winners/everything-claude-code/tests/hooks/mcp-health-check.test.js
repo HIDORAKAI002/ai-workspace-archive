@@ -128,7 +128,10 @@ function waitForFile(filePath, timeoutMs = 5000) {
   const started = Date.now();
   while (Date.now() - started < timeoutMs) {
     if (fs.existsSync(filePath)) {
-      return fs.readFileSync(filePath, 'utf8');
+      const content = fs.readFileSync(filePath, 'utf8');
+      if (content.trim()) {
+        return content;
+      }
     }
     Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 25);
   }
@@ -565,7 +568,7 @@ async function runTests() {
           CLAUDE_HOOK_EVENT_NAME: 'PreToolUse',
           ECC_MCP_CONFIG_PATH: configPath,
           ECC_MCP_HEALTH_STATE_PATH: statePath,
-          ECC_MCP_HEALTH_TIMEOUT_MS: '100'
+          ECC_MCP_HEALTH_TIMEOUT_MS: '1000'
         }
       );
 

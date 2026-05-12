@@ -98,6 +98,12 @@ function runTests() {
       'Should include lang:c');
     assert.ok(components.some(component => component.id === 'capability:security'),
       'Should include capability:security');
+    assert.ok(components.some(component => component.id === 'capability:machine-learning'),
+      'Should include capability:machine-learning');
+    assert.ok(components.some(component => component.id === 'agent:mle-reviewer'),
+      'Should include agent:mle-reviewer');
+    assert.ok(components.some(component => component.id === 'skill:mle-workflow'),
+      'Should include skill:mle-workflow');
   })) passed++; else failed++;
 
   if (test('gets install component details and validates component IDs', () => {
@@ -173,6 +179,7 @@ function runTests() {
     assert.ok(languages.includes('cpp'));
     assert.ok(languages.includes('c'));
     assert.ok(languages.includes('csharp'));
+    assert.ok(languages.includes('fsharp'));
   })) passed++; else failed++;
 
   if (test('resolves a real project profile with target-specific skips', () => {
@@ -271,6 +278,67 @@ function runTests() {
     );
   })) passed++; else failed++;
 
+  if (test('resolves machine-learning component with workflow dependencies', () => {
+    const plan = resolveInstallPlan({
+      includeComponentIds: ['capability:machine-learning'],
+      target: 'claude',
+      projectRoot: '/workspace/ml-app',
+    });
+
+    assert.ok(plan.selectedModuleIds.includes('machine-learning'),
+      'Should include machine-learning module');
+    assert.ok(plan.selectedModuleIds.includes('framework-language'),
+      'Should include Python and framework-language support');
+    assert.ok(plan.selectedModuleIds.includes('workflow-quality'),
+      'Should include eval and verification workflows');
+    assert.ok(plan.selectedModuleIds.includes('database'),
+      'Should include database/data persistence support');
+    assert.ok(plan.selectedModuleIds.includes('devops-infra'),
+      'Should include deployment and container support');
+    assert.ok(plan.selectedModuleIds.includes('security'),
+      'Should include security through machine-learning dependencies');
+    assert.ok(plan.operations.some(operation => (
+      operation.sourceRelativePath === 'skills/mle-workflow'
+    )), 'Should install the MLE workflow skill');
+  })) passed++; else failed++;
+
+  if (test('resolves machine-learning component on JoyCode and Qwen targets', () => {
+    for (const target of ['joycode', 'qwen']) {
+      const plan = resolveInstallPlan({
+        includeComponentIds: ['capability:machine-learning'],
+        target,
+        projectRoot: '/workspace/ml-app',
+        homeDir: '/Users/example',
+      });
+
+      assert.ok(plan.selectedModuleIds.includes('machine-learning'),
+        `Should include machine-learning module for ${target}`);
+      assert.ok(!plan.skippedModuleIds.includes('machine-learning'),
+        `Should not skip machine-learning module for ${target}`);
+      assert.ok(plan.operations.some(operation => (
+        operation.sourceRelativePath === 'skills/mle-workflow'
+      )), `Should install the MLE workflow skill for ${target}`);
+    }
+  })) passed++; else failed++;
+
+  if (test('minimal machine-learning install includes MLE reviewer agent surface', () => {
+    const plan = resolveInstallPlan({
+      profileId: 'minimal',
+      includeComponentIds: ['capability:machine-learning'],
+      target: 'claude',
+      projectRoot: '/workspace/ml-app',
+    });
+
+    assert.ok(plan.selectedModuleIds.includes('agents-core'),
+      'Minimal install should keep the agent surface available');
+    assert.ok(plan.operations.some(operation => (
+      operation.sourceRelativePath === 'agents'
+    )), 'Should install the agent directory that contains mle-reviewer.md');
+    assert.ok(plan.operations.some(operation => (
+      operation.sourceRelativePath === 'skills/mle-workflow'
+    )), 'Should install the MLE workflow skill');
+  })) passed++; else failed++;
+
   if (test('resolves explicit modules with dependency expansion', () => {
     const plan = resolveInstallPlan({ moduleIds: ['security'] });
     assert.ok(plan.selectedModuleIds.includes('security'), 'Should include requested module');
@@ -351,6 +419,17 @@ function runTests() {
     assert.ok(selection.moduleIds.includes('rules-core'));
     assert.ok(selection.moduleIds.includes('framework-language'),
       'csharp should resolve to framework-language module');
+  })) passed++; else failed++;
+
+  if (test('resolves fsharp legacy compatibility into framework-language module', () => {
+    const selection = resolveLegacyCompatibilitySelection({
+      target: 'cursor',
+      legacyLanguages: ['fsharp'],
+    });
+
+    assert.ok(selection.moduleIds.includes('rules-core'));
+    assert.ok(selection.moduleIds.includes('framework-language'),
+      'fsharp should resolve to framework-language module');
   })) passed++; else failed++;
 
   if (test('keeps antigravity legacy compatibility selections target-safe', () => {
