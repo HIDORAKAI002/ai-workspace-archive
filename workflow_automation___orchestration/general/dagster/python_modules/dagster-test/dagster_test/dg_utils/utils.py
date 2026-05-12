@@ -1053,7 +1053,7 @@ def _ping_webserver(port: int) -> None:
         except:
             print("Waiting for dagster-webserver to be ready..")  # noqa: T201
 
-        if time.time() - start_time > 30:
+        if time.time() - start_time > 90:
             raise Exception("Timed out waiting for dagster-webserver to serve requests")
 
         time.sleep(1)

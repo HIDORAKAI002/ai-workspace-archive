@@ -95,8 +95,11 @@ function mockStringMessages(mocked: unknown): string[] {
 
 function mockCallArg(mocked: unknown, callIndex: number, argIndex: number): unknown {
   const calls = (mocked as { mock?: { calls?: unknown[][] } }).mock?.calls;
-  expect(calls?.[callIndex]).toBeDefined();
-  return calls?.[callIndex]?.[argIndex];
+  const call = calls?.[callIndex];
+  if (!call) {
+    throw new Error(`Expected mock call at index ${callIndex}`);
+  }
+  return call[argIndex];
 }
 
 async function expectPathMissing(targetPath: string): Promise<void> {

@@ -6,8 +6,7 @@ import NodeCache from "node-cache"
 import { z } from "zod"
 
 import type { ProviderName, ModelRecord } from "@roo-code/types"
-import { modelInfoSchema, TelemetryEventName } from "@roo-code/types"
-import { TelemetryService } from "@roo-code/telemetry"
+import { modelInfoSchema } from "@roo-code/types"
 
 import { safeWriteJson } from "../../../utils/safeWriteJson"
 
@@ -129,20 +128,14 @@ export const getModels = async (options: GetModelsOptions): Promise<ModelRecord>
 		models = await fetchModelsFromProvider(options)
 		const modelCount = Object.keys(models).length
 
-		// Only cache non-empty results to prevent persisting failed API responses
-		// Empty results could indicate API failure rather than "no models exist"
+		// Only cache non-empty results to prevent persisting failed API responses.
+		// Empty results could indicate API failure rather than "no models exist".
 		if (modelCount > 0) {
 			memoryCache.set(provider, models)
 
 			await writeModels(provider, models).catch((err) =>
 				console.error(`[MODEL_CACHE] Error writing ${provider} models to file cache:`, err),
 			)
-		} else {
-			TelemetryService.instance.captureEvent(TelemetryEventName.MODEL_CACHE_EMPTY_RESPONSE, {
-				provider,
-				context: "getModels",
-				hasExistingCache: false,
-			})
 		}
 
 		return models
@@ -186,17 +179,7 @@ export const refreshModels = async (options: GetModelsOptions): Promise<ModelRec
 			const existingCount = existingCache ? Object.keys(existingCache).length : 0
 
 			if (modelCount === 0) {
-				TelemetryService.instance.captureEvent(TelemetryEventName.MODEL_CACHE_EMPTY_RESPONSE, {
-					provider,
-					context: "refreshModels",
-					hasExistingCache: existingCount > 0,
-					existingCacheSize: existingCount,
-				})
-				if (existingCount > 0) {
-					return existingCache!
-				} else {
-					return {}
-				}
+				return existingCount > 0 ? existingCache! : {}
 			}
 
 			// Update memory cache first

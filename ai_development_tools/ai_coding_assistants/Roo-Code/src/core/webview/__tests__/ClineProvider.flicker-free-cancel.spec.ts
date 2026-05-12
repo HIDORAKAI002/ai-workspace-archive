@@ -52,22 +52,11 @@ vi.mock("../../../services/mcp/McpServerManager", () => ({
 		unregisterProvider: vi.fn(),
 	},
 }))
-vi.mock("../../../services/marketplace")
 vi.mock("../../../integrations/workspace/WorkspaceTracker")
 vi.mock("../../config/ProviderSettingsManager")
 vi.mock("../../config/CustomModesManager")
 vi.mock("../../../utils/path", () => ({
 	getWorkspacePath: vi.fn().mockReturnValue("/test/workspace"),
-}))
-
-// Mock TelemetryService
-vi.mock("@roo-code/telemetry", () => ({
-	TelemetryService: {
-		instance: {
-			setProvider: vi.fn(),
-			captureTaskCreated: vi.fn(),
-		},
-	},
 }))
 
 // Mock CloudService

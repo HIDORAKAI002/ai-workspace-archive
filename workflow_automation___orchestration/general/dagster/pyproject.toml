@@ -49,6 +49,9 @@ exclude = [
   # them generates spurious unresolved-import diagnostics.
   "examples/docs_snippets",
   "examples/docs_projects",
+  # Vendored third-party code (croniter, dateutil). Mirrors pyright's
+  # `**/_vendored` exclude in `[tool.pyright].exclude`.
+  "python_modules/dagster/dagster/_vendored",
 ]
 
 # Ignore all files that are git-ignored unless explicitly included.

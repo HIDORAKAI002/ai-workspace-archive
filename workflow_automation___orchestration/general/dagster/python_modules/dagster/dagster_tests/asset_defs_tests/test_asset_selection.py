@@ -20,6 +20,7 @@ from dagster._core.definitions.asset_selection import (
     DagsterInvalidAssetSelectionError,
     DownstreamAssetSelection,
     GroupsAssetSelection,
+    JobAssetSelection,
     KeyPrefixesAssetSelection,
     KeysAssetSelection,
     KeyWildCardAssetSelection,
@@ -27,6 +28,8 @@ from dagster._core.definitions.asset_selection import (
     ParentSourcesAssetSelection,
     RequiredNeighborsAssetSelection,
     RootsAssetSelection,
+    ScheduleNameAssetSelection,
+    SensorNameAssetSelection,
     SinksAssetSelection,
     StatusAssetSelection,
     SubtractAssetSelection,
@@ -39,6 +42,7 @@ from dagster._core.remote_representation.external import RemoteRepository
 from dagster._core.remote_representation.external_data import RepositorySnap
 from dagster._core.remote_representation.handle import RepositoryHandle
 from dagster._core.selector.subset_selector import MAX_NUM
+from dagster._core.test_utils import mock_workspace_from_repos
 from dagster_shared.check import CheckError
 from dagster_shared.serdes.serdes import _WHITELIST_MAP
 
@@ -1019,6 +1023,140 @@ def test_code_location() -> None:
         remote_repo.asset_graph,
         allow_missing=False,
     ) == {dg.AssetKey("my_asset")}
+
+
+def test_job() -> None:
+    @dg.asset
+    def asset_a(): ...
+
+    @dg.asset
+    def asset_b(): ...
+
+    @dg.asset
+    def asset_c(): ...
+
+    job_ab = dg.define_asset_job("job_ab", selection=[asset_a, asset_b])
+
+    @dg.repository
+    def repo():
+        return [asset_a, asset_b, asset_c, job_ab]
+
+    asset_graph = mock_workspace_from_repos([repo]).asset_graph
+
+    selection = JobAssetSelection(selected_job="job_ab")
+    assert selection.resolve_inner(asset_graph, allow_missing=False) == {
+        dg.AssetKey("asset_a"),
+        dg.AssetKey("asset_b"),
+    }
+
+    # Unknown job resolves to empty set.
+    assert (
+        JobAssetSelection(selected_job="not_a_job").resolve_inner(asset_graph, allow_missing=False)
+        == set()
+    )
+
+    # None resolves to empty set.
+    assert JobAssetSelection(selected_job=None).resolve_inner(asset_graph, allow_missing=False) == (
+        set()
+    )
+
+    # Cannot be resolved against an in-process asset graph.
+    with pytest.raises(CheckError):
+        selection.resolve([asset_a, asset_b, asset_c])
+
+
+def test_schedule_name() -> None:
+    @dg.asset
+    def asset_a(): ...
+
+    @dg.asset
+    def asset_b(): ...
+
+    @dg.asset
+    def asset_c(): ...
+
+    job_ab = dg.define_asset_job("job_ab", selection=[asset_a, asset_b])
+    my_schedule = dg.ScheduleDefinition(name="my_schedule", cron_schedule="0 0 * * *", job=job_ab)
+
+    @dg.repository
+    def repo():
+        return [asset_a, asset_b, asset_c, job_ab, my_schedule]
+
+    asset_graph = mock_workspace_from_repos([repo]).asset_graph
+
+    selection = ScheduleNameAssetSelection(selected_schedule="my_schedule")
+    assert selection.resolve_inner(asset_graph, allow_missing=False) == {
+        dg.AssetKey("asset_a"),
+        dg.AssetKey("asset_b"),
+    }
+
+    # Unknown schedule resolves to empty set.
+    assert (
+        ScheduleNameAssetSelection(selected_schedule="not_a_schedule").resolve_inner(
+            asset_graph, allow_missing=False
+        )
+        == set()
+    )
+
+    # None resolves to empty set.
+    assert (
+        ScheduleNameAssetSelection(selected_schedule=None).resolve_inner(
+            asset_graph, allow_missing=False
+        )
+        == set()
+    )
+
+    # Cannot be resolved against an in-process asset graph.
+    with pytest.raises(CheckError):
+        selection.resolve([asset_a, asset_b, asset_c])
+
+
+def test_sensor_name() -> None:
+    @dg.asset
+    def asset_a(): ...
+
+    @dg.asset
+    def asset_b(): ...
+
+    @dg.asset
+    def asset_c(): ...
+
+    job_ab = dg.define_asset_job("job_ab", selection=[asset_a, asset_b])
+
+    @dg.sensor(job=job_ab)
+    def my_sensor(): ...
+
+    @dg.repository
+    def repo():
+        return [asset_a, asset_b, asset_c, job_ab, my_sensor]
+
+    asset_graph = mock_workspace_from_repos([repo]).asset_graph
+
+    selection = SensorNameAssetSelection(selected_sensor="my_sensor")
+    assert selection.resolve_inner(asset_graph, allow_missing=False) == {
+        dg.AssetKey("asset_a"),
+        dg.AssetKey("asset_b"),
+    }
+
+    # Unknown sensor resolves to empty set.
+    assert (
+        SensorNameAssetSelection(selected_sensor="not_a_sensor").resolve_inner(
+            asset_graph, allow_missing=False
+        )
+        == set()
+    )
+
+    # None resolves to empty set.
+    assert (
+        SensorNameAssetSelection(selected_sensor=None).resolve_inner(
+            asset_graph, allow_missing=False
+        )
+        == set()
+    )
+
+    # Cannot be resolved against an in-process asset graph.
+    with pytest.raises(CheckError):
+        selection.resolve([asset_a, asset_b, asset_c])
 
 
 def test_column() -> None:

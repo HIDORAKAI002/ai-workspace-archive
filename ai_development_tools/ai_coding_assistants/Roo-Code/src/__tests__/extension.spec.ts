@@ -72,24 +72,6 @@ vi.mock("@roo-code/cloud", () => ({
 	getRooCodeApiUrl: vi.fn().mockReturnValue("https://app.roocode.com"),
 }))
 
-vi.mock("@roo-code/telemetry", () => ({
-	TelemetryService: {
-		createInstance: vi.fn().mockReturnValue({
-			register: vi.fn(),
-			setProvider: vi.fn(),
-			shutdown: vi.fn(),
-		}),
-		get instance() {
-			return {
-				register: vi.fn(),
-				setProvider: vi.fn(),
-				shutdown: vi.fn(),
-			}
-		},
-	},
-	PostHogTelemetryClient: vi.fn(),
-}))
-
 vi.mock("../utils/outputChannelLogger", () => ({
 	createOutputChannelLogger: vi.fn().mockReturnValue(vi.fn()),
 	createDualLogger: vi.fn().mockReturnValue(vi.fn()),
@@ -140,12 +122,6 @@ vi.mock("../services/mcp/McpServerManager", () => ({
 vi.mock("../services/code-index/manager", () => ({
 	CodeIndexManager: {
 		getInstance: vi.fn().mockReturnValue(null),
-	},
-}))
-
-vi.mock("../services/mdm/MdmService", () => ({
-	MdmService: {
-		createInstance: vi.fn().mockResolvedValue(null),
 	},
 }))
 
@@ -282,7 +258,6 @@ describe("extension.ts", () => {
 				return {
 					off: vi.fn(),
 					on: vi.fn(),
-					telemetryClient: null,
 					authService: mockAuthService,
 					hasActiveSession: vi.fn().mockReturnValue(false),
 				} as any
@@ -322,7 +297,6 @@ describe("extension.ts", () => {
 				return {
 					off: vi.fn(),
 					on: vi.fn(),
-					telemetryClient: null,
 					authService: null,
 					hasActiveSession: vi.fn().mockReturnValue(false),
 				} as any

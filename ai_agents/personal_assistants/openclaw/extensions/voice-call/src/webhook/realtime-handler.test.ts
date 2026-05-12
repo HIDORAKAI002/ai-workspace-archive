@@ -416,7 +416,6 @@ describe("RealtimeCallHandler path routing", () => {
         await waitForRealtimeTest(() => {
           const events = processEvent.mock.calls.map(([event]) => event as NormalizedEvent);
           const ended = events.find((event) => event.type === "call.ended");
-          expect(ended).toBeDefined();
           if (ended?.type !== "call.ended") {
             throw new Error("expected realtime stop to emit call.ended");
           }
@@ -704,12 +703,14 @@ describe("RealtimeCallHandler path routing", () => {
           const workingCall = submitToolResult.mock.calls.find(
             ([callId]) => callId === "consult-call",
           );
-          expect(workingCall).toBeDefined();
-          const payload = workingCall?.[1] as Record<string, unknown> | undefined;
+          if (!workingCall) {
+            throw new Error("expected consult-call tool result");
+          }
+          const payload = workingCall[1] as Record<string, unknown> | undefined;
           expect(payload?.status).toBe("working");
           expect(payload?.tool).toBe("openclaw_agent_consult");
           expect(typeof payload?.message).toBe("string");
-          expect(workingCall?.[2]).toEqual({ willContinue: true });
+          expect(workingCall[2]).toEqual({ willContinue: true });
         });
         expect(submitToolResult).toHaveBeenCalledTimes(1);
 

@@ -183,8 +183,9 @@ function expectFirstInstallPlanCallOmitsToken() {
 }
 
 function expectFields(value: unknown, expected: Record<string, unknown>): void {
-  expect(value).toBeTypeOf("object");
-  expect(value).not.toBeNull();
+  if (!value || typeof value !== "object") {
+    throw new Error("expected fields object");
+  }
   const record = value as Record<string, unknown>;
   for (const [key, expectedValue] of Object.entries(expected)) {
     expect(record[key], key).toEqual(expectedValue);
@@ -194,8 +195,10 @@ function expectFields(value: unknown, expected: Record<string, unknown>): void {
 function readFirstInstallPlanArg(): Record<string, unknown> {
   const [firstArg] =
     (buildGatewayInstallPlanMock.mock.calls.at(0) as [Record<string, unknown>] | undefined) ?? [];
-  expect(firstArg).toBeDefined();
-  return firstArg as Record<string, unknown>;
+  if (!firstArg) {
+    throw new Error("Expected gateway install plan arg");
+  }
+  return firstArg;
 }
 
 function expectLastEmittedResult(result: string): void {

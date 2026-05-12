@@ -343,7 +343,6 @@ function expectCandidateFields(
     | undefined,
   expected: Record<string, unknown>,
 ) {
-  expect(candidate).toBeDefined();
   if (!candidate) {
     throw new Error("Expected plugin candidate");
   }
@@ -1869,7 +1868,9 @@ describe("discoverOpenClawPlugins", () => {
             (entry.source ?? "").endsWith("alias-dir") &&
             entry.message.includes("blocked plugin candidate: world-writable path"),
         );
-        expect(diagnostic).toBeDefined();
+        if (!diagnostic) {
+          throw new Error("Expected world-writable plugin candidate diagnostic");
+        }
       } finally {
         fs.chmodSync(pluginDir, 0o755);
       }

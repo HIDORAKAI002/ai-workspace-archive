@@ -544,6 +544,7 @@ def run_ty(
             f"--config-file={config_path}",
             f"--python={python_path}",
             "--output-format=gitlab",
+            "--error-on-warning",
         ]
 
         # Add paths to check - either explicit paths or include paths
