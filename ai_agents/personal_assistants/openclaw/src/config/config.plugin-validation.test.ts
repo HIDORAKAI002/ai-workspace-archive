@@ -258,21 +258,23 @@ describe("config plugin validation", () => {
     expect(res.ok).toBe(false);
     if (!res.ok) {
       expectPathMessage(res.issues, "plugins.slots.memory", "plugin not found: missing-slot");
-      expect(res.warnings).toContainEqual({
-        path: "plugins.allow",
-        message:
-          "plugin not found: missing-allow (stale config entry ignored; remove it from plugins config)",
-      });
-      expect(res.warnings).toContainEqual({
-        path: "plugins.deny",
-        message:
-          "plugin not found: missing-deny (stale config entry ignored; remove it from plugins config)",
-      });
-      expect(res.warnings).toContainEqual({
-        path: "plugins.entries.missing-plugin",
-        message:
-          "plugin not found: missing-plugin (stale config entry ignored; remove it from plugins config)",
-      });
+      expect(res.warnings).toEqual([
+        {
+          path: "plugins.entries.missing-plugin",
+          message:
+            "plugin not found: missing-plugin (stale config entry ignored; remove it from plugins config)",
+        },
+        {
+          path: "plugins.allow",
+          message:
+            "plugin not found: missing-allow (stale config entry ignored; remove it from plugins config)",
+        },
+        {
+          path: "plugins.deny",
+          message:
+            "plugin not found: missing-deny (stale config entry ignored; remove it from plugins config)",
+        },
+      ]);
     }
   });
 
@@ -553,11 +555,13 @@ describe("config plugin validation", () => {
     );
 
     expect(res.ok).toBe(true);
-    expect(res.warnings ?? []).toContainEqual({
-      path: "plugins.allow",
-      message:
-        "plugin not installed: discord — install the official external plugin with: openclaw plugins install @openclaw/discord",
-    });
+    expect(res.warnings ?? []).toEqual([
+      {
+        path: "plugins.allow",
+        message:
+          "plugin not installed: discord — install the official external plugin with: openclaw plugins install @openclaw/discord",
+      },
+    ]);
   });
 
   it("uses persisted installed-plugin records as stale channel evidence", async () => {
