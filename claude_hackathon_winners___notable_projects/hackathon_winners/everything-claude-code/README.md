@@ -1,4 +1,4 @@
-**Language:** English | [Português (Brasil)](docs/pt-BR/README.md) | [简体中文](README.zh-CN.md) | [繁體中文](docs/zh-TW/README.md) | [日本語](docs/ja-JP/README.md) | [한국어](docs/ko-KR/README.md) | [Türkçe](docs/tr/README.md) | [Русский](docs/ru/README.md)
+**Language:** English | [Português (Brasil)](docs/pt-BR/README.md) | [简体中文](README.zh-CN.md) | [繁體中文](docs/zh-TW/README.md) | [日本語](docs/ja-JP/README.md) | [한국어](docs/ko-KR/README.md) | [Türkçe](docs/tr/README.md) | [Русский](docs/ru/README.md) | [Tiếng Việt](docs/vi-VN/README.md)
 
 # Everything Claude Code
 
@@ -25,10 +25,10 @@
 
 <div align="center">
 
-**Language / 语言 / 語言 / Dil / Язык**
+**Language / 语言 / 語言 / Dil / Язык / Ngôn ngữ**
 
 [**English**](README.md) | [Português (Brasil)](docs/pt-BR/README.md) | [简体中文](README.zh-CN.md) | [繁體中文](docs/zh-TW/README.md) | [日本語](docs/ja-JP/README.md) | [한국어](docs/ko-KR/README.md)
- | [Türkçe](docs/tr/README.md) | [Русский](docs/ru/README.md)
+ | [Türkçe](docs/tr/README.md) | [Русский](docs/ru/README.md) | [Tiếng Việt](docs/vi-VN/README.md)
 
 </div>
 
@@ -89,7 +89,7 @@ This repo is the raw code only. The guides explain everything.
 ### v2.0.0-rc.1 — Surface Refresh, Operator Workflows, and ECC 2.0 Alpha (Apr 2026)
 
 - **Dashboard GUI** — New Tkinter-based desktop application (`ecc_dashboard.py` or `npm run dashboard`) with dark/light theme toggle, font customization, and project logo in header and taskbar.
-- **Public surface synced to the live repo** — metadata, catalog counts, plugin manifests, and install-facing docs now match the actual OSS surface: 53 agents, 203 skills, and 69 legacy command shims.
+- **Public surface synced to the live repo** — metadata, catalog counts, plugin manifests, and install-facing docs now match the actual OSS surface: 55 agents, 208 skills, and 72 legacy command shims.
 - **Operator and outbound workflow expansion** — `brand-voice`, `social-graph-ranker`, `connections-optimizer`, `customer-billing-ops`, `ecc-tools-cost-audit`, `google-workspace-ops`, `project-flow-ops`, and `workspace-surface-audit` round out the operator lane.
 - **Media and launch tooling** — `manim-video`, `remotion-video-creation`, and upgraded social publishing surfaces make technical explainers and launch content part of the same system.
 - **Framework and product surface growth** — `nestjs-patterns`, richer Codex/OpenCode install surfaces, and expanded cross-harness packaging keep the repo usable beyond Claude Code alone.
@@ -217,6 +217,13 @@ npx ecc consult "security reviews" --target claude
 ```
 
 It returns matching components, related profiles, and preview/install commands. Use the preview command before installing if you want to inspect the exact file plan.
+
+For production ML/MLOps workflows, keep the install opt-in and component-scoped:
+
+```bash
+npx ecc consult "mlops training model deployment" --target claude
+npx ecc install --profile minimal --target claude --with capability:machine-learning
+```
 
 ### Step 1: Install the Plugin (Recommended)
 
@@ -351,7 +358,7 @@ If you stacked methods, clean up in this order:
 /plugin list ecc@ecc
 ```
 
-**That's it!** You now have access to 53 agents, 203 skills, and 69 legacy command shims.
+**That's it!** You now have access to 58 agents, 220 skills, and 74 legacy command shims.
 
 ### Dashboard GUI
 
@@ -449,7 +456,7 @@ everything-claude-code/
 |   |-- plugin.json         # Plugin metadata and component paths
 |   |-- marketplace.json    # Marketplace catalog for /plugin marketplace add
 |
-|-- agents/           # 53 specialized subagents for delegation
+|-- agents/           # 58 specialized subagents for delegation
 |   |-- planner.md           # Feature implementation planning
 |   |-- architect.md         # System design decisions
 |   |-- tdd-guide.md         # Test-driven development
@@ -465,6 +472,7 @@ everything-claude-code/
 |   |-- harness-optimizer.md # Harness config tuning
 |   |-- cpp-reviewer.md      # C++ code review
 |   |-- cpp-build-resolver.md # C++ build error resolution
+|   |-- fsharp-reviewer.md   # F# functional code review
 |   |-- go-reviewer.md       # Go code review
 |   |-- go-build-resolver.md # Go build error resolution
 |   |-- python-reviewer.md   # Python code review
@@ -474,9 +482,11 @@ everything-claude-code/
 |   |-- java-build-resolver.md # Java/Maven/Gradle build errors
 |   |-- kotlin-reviewer.md   # Kotlin/Android/KMP code review
 |   |-- kotlin-build-resolver.md # Kotlin/Gradle build errors
+|   |-- harmonyos-app-resolver.md # HarmonyOS/ArkTS app development
 |   |-- rust-reviewer.md     # Rust code review
 |   |-- rust-build-resolver.md # Rust build error resolution
 |   |-- pytorch-build-resolver.md # PyTorch/CUDA training errors
+|   |-- mle-reviewer.md      # Production ML pipeline, eval, serving, and monitoring review
 |
 |-- skills/           # Workflow definitions and domain knowledge
 |   |-- coding-standards/           # Language best practices
@@ -516,6 +526,10 @@ everything-claude-code/
 |   |-- springboot-security/        # Spring Boot security (NEW)
 |   |-- springboot-tdd/             # Spring Boot TDD (NEW)
 |   |-- springboot-verification/    # Spring Boot verification (NEW)
+|   |-- quarkus-patterns/           # Quarkus REST, Panache, and messaging patterns (NEW)
+|   |-- quarkus-security/           # Quarkus JWT/OIDC and RBAC security (NEW)
+|   |-- quarkus-tdd/                # Quarkus testing with JUnit, REST Assured, and Dev Services (NEW)
+|   |-- quarkus-verification/       # Quarkus build, test, security, and native verification (NEW)
 |   |-- configure-ecc/              # Interactive installation wizard (NEW)
 |   |-- security-scan/              # AgentShield security auditor integration (NEW)
 |   |-- java-coding-standards/     # Java coding standards (NEW)
@@ -538,6 +552,7 @@ everything-claude-code/
 |   |-- liquid-glass-design/         # iOS 26 Liquid Glass design system (NEW)
 |   |-- foundation-models-on-device/ # Apple on-device LLM with FoundationModels (NEW)
 |   |-- swift-concurrency-6-2/       # Swift 6.2 Approachable Concurrency (NEW)
+|   |-- mle-workflow/               # Production ML data contracts, evals, deployment, monitoring (NEW)
 |   |-- perl-patterns/             # Modern Perl 5.36+ idioms and best practices (NEW)
 |   |-- perl-security/             # Perl security patterns, taint mode, safe I/O (NEW)
 |   |-- perl-testing/              # Perl TDD with Test2::V0, prove, Devel::Cover (NEW)
@@ -597,6 +612,7 @@ everything-claude-code/
 |   |-- golang/              # Go specific
 |   |-- swift/               # Swift specific
 |   |-- php/                 # PHP specific (NEW)
+|   |-- arkts/               # HarmonyOS / ArkTS specific
 |
 |-- hooks/            # Trigger-based automations
 |   |-- README.md                 # Hook documentation, recipes, and customization guide
@@ -831,6 +847,7 @@ cp -r everything-claude-code/rules/typescript ~/.claude/rules/ecc/   # pick your
 cp -r everything-claude-code/rules/python ~/.claude/rules/ecc/
 cp -r everything-claude-code/rules/golang ~/.claude/rules/ecc/
 cp -r everything-claude-code/rules/php ~/.claude/rules/ecc/
+cp -r everything-claude-code/rules/arkts ~/.claude/rules/ecc/
 
 # Copy skills first (primary workflow surface)
 # Recommended (new users): core/general skills only
@@ -950,6 +967,7 @@ rules/
   golang/          # Go specific patterns and tools
   swift/           # Swift specific patterns and tools
   php/             # PHP specific patterns and tools
+  arkts/           # HarmonyOS / ArkTS patterns and constraints
 ```
 
 See [`rules/README.md`](rules/README.md) for installation and structure details.
@@ -973,8 +991,11 @@ Not sure where to start? Use this quick reference. Skills are the canonical work
 | Update documentation | `/update-docs` | doc-updater |
 | Review Go code | `/go-review` | go-reviewer |
 | Review Python code | `/python-review` | python-reviewer |
+| Review F# code | *(invoke `fsharp-reviewer` directly)* | fsharp-reviewer |
 | Review TypeScript/JavaScript code | *(invoke `typescript-reviewer` directly)* | typescript-reviewer |
+| Develop HarmonyOS apps | *(invoke `harmonyos-app-resolver` directly)* | harmonyos-app-resolver |
 | Audit database queries | *(auto-delegated)* | database-reviewer |
+| Review production ML changes | `mle-workflow` skill + `mle-reviewer` agent | mle-reviewer |
 
 ### Common Workflows
 
@@ -1131,7 +1152,7 @@ Please contribute! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ### Ideas for Contributions
 
-- Language-specific skills (Rust, C#, Kotlin, Java) — Go, Python, Perl, Swift, and TypeScript already included
+- Language-specific skills (Rust, C#, Kotlin, Java) — Go, Python, Perl, Swift, TypeScript, and HarmonyOS/ArkTS already included
 - Framework-specific configs (Rails, FastAPI) — Django, NestJS, Spring Boot, and Laravel already included
 - DevOps agents (Kubernetes, Terraform, AWS, Docker)
 - Testing strategies (different frameworks, visual regression)
@@ -1339,9 +1360,9 @@ The configuration is automatically detected from `.opencode/opencode.json`.
 
 | Feature | Claude Code | OpenCode | Status |
 |---------|-------------|----------|--------|
-| Agents | PASS: 53 agents | PASS: 12 agents | **Claude Code leads** |
-| Commands | PASS: 69 commands | PASS: 31 commands | **Claude Code leads** |
-| Skills | PASS: 203 skills | PASS: 37 skills | **Claude Code leads** |
+| Agents | PASS: 58 agents | PASS: 12 agents | **Claude Code leads** |
+| Commands | PASS: 74 commands | PASS: 35 commands | **Claude Code leads** |
+| Skills | PASS: 220 skills | PASS: 37 skills | **Claude Code leads** |
 | Hooks | PASS: 8 event types | PASS: 11 events | **OpenCode has more!** |
 | Rules | PASS: 29 rules | PASS: 13 instructions | **Claude Code leads** |
 | MCP Servers | PASS: 14 servers | PASS: Full | **Full parity** |
@@ -1444,9 +1465,9 @@ ECC is the **first plugin to maximize every major AI coding tool**. Here's how e
 
 | Feature | Claude Code | Cursor IDE | Codex CLI | OpenCode |
 |---------|------------|------------|-----------|----------|
-| **Agents** | 53 | Shared (AGENTS.md) | Shared (AGENTS.md) | 12 |
-| **Commands** | 69 | Shared | Instruction-based | 31 |
-| **Skills** | 203 | Shared | 10 (native format) | 37 |
+| **Agents** | 58 | Shared (AGENTS.md) | Shared (AGENTS.md) | 12 |
+| **Commands** | 74 | Shared | Instruction-based | 35 |
+| **Skills** | 220 | Shared | 10 (native format) | 37 |
 | **Hook Events** | 8 types | 15 types | None yet | 11 types |
 | **Hook Scripts** | 20+ scripts | 16 scripts (DRY adapter) | N/A | Plugin hooks |
 | **Rules** | 34 (common + lang) | 34 (YAML frontmatter) | Instruction-based | 13 instructions |
@@ -1580,6 +1601,7 @@ Projects built on or inspired by Everything Claude Code:
 | Project | Description |
 |---------|-------------|
 | [EVC](https://github.com/SaigonXIII/evc) | Marketing agent workspace — 42 commands for content operators, brand governance, and multi-channel publishing. [Visual overview](https://saigonxiii.github.io/evc). |
+| [trading-skills](https://github.com/VictorVVedtion/trading-skills) | 68 trading-themed Claude Code skills with pre-trade review prompts and risk gates inspired by market operators. |
 
 Built something with ECC? Open a PR to add it here.
 
