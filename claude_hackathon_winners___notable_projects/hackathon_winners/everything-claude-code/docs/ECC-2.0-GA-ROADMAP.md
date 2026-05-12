@@ -24,10 +24,67 @@ As of 2026-05-12:
   OpenCode, Cursor, Gemini, Zed-adjacent, dmux, Orca, Superset, Ghast, and
   terminal-only support to install paths, verification commands, and risk
   notes.
+- `npm run harness:adapters -- --check` validates that the public adapter
+  matrix still matches the source data in
+  `scripts/lib/harness-adapter-compliance.js`.
+- `docs/releases/2.0.0-rc.1/publication-readiness.md` gates GitHub release,
+  npm dist-tag, Claude plugin, Codex plugin, OpenCode package, billing, and
+  announcement publication on fresh evidence fields.
+- `docs/legacy-artifact-inventory.md` records that no `_legacy-documents-*`
+  directories exist in the current checkout, inventories the two sibling
+  workspace-level `_legacy-documents-*` repos as sanitized extraction sources,
+  and classifies `legacy-command-shims/` as an opt-in archive/no-action
+  surface.
+- `docs/stale-pr-salvage-ledger.md` records stale PR salvage outcomes,
+  skipped PRs, superseded work, and the remaining #1687 translator/manual
+  review tail.
 - AgentShield PR #53 reduced two context-rule false positives and closed the
   remaining AgentShield issues.
+- AgentShield PR #55 added GitHub Action organization-policy enforcement with
+  `policy` / `fail-on-policy` inputs, `policy-status` /
+  `policy-violations` outputs, job-summary evidence, and policy violation
+  annotations.
+- AgentShield PR #56 added SARIF/code-scanning output for organization-policy
+  violations as `agentshield-policy/*` results.
+- AgentShield PR #57 added OSS, team, enterprise, regulated,
+  high-risk-hooks/MCP, and CI-enforcement policy-pack presets plus
+  `agentshield policy init --pack`.
+- AgentShield PR #58 added MCP package provenance fields and report-level
+  counts for npm vs git, pinned vs unpinned, known-good, and registry-backed
+  supply-chain evidence.
+- AgentShield PR #59 added self-contained HTML executive summaries with risk
+  posture, critical/high priority findings, category exposure, README/API
+  docs, built-CLI smoke validation, and 1,704-test coverage.
+- AgentShield PR #60 added category-level built-in corpus benchmark output,
+  a `readyForRegressionGate` signal, terminal `--corpus` category coverage,
+  README/API docs, built-CLI smoke validation, and 1,705-test coverage.
 - ECC PR #1778 recovered the useful stale #1413 network/homelab architect-agent
   concepts.
+- ECC-Tools PR #26 added cost/token-risk predictive follow-ups for AI routing,
+  Claude/model calls, usage limits, quota, and analysis-budget changes that lack
+  budget, quota, rate-limit, or cost validation evidence.
+- ECC-Tools PR #27 added the non-blocking `ECC Tools / PR Risk Taxonomy`
+  check-run for Security Evidence, Harness Drift, Install Manifest Integrity,
+  CI/CD Recommendation, Cost/Token Risk, and Agent Config Review buckets.
+- ECC-Tools PR #28 added billing readiness audit checks for plan limits,
+  entitlements, Marketplace plan shape, subscription source, seats, and
+  overage metering.
+- ECC-Tools PR #29 added deterministic Reference Set Validation signals for
+  analyzer, skill, agent, command, and harness-guidance changes that lack eval,
+  golden trace, benchmark, or reference-set evidence.
+- ECC-Tools PR #30 capped follow-up generation to three new GitHub issues and
+  one draft PR per run, then emits the remaining deterministic findings as a
+  project sync backlog for Linear/status tracking without flooding trackers.
+- ECC-Tools PR #31 added review follow-up signals to analysis completion
+  comments for outstanding change requests, unresolved or outdated review
+  threads, and review activity without an explicit approval.
+- ECC-Tools PR #32 added CI failure-mode predictive follow-ups for workflow
+  and test-runner changes that lack failure fixtures, captured logs,
+  troubleshooting notes, dry-run evidence, or regression coverage.
+- ECC-Tools PR #33 added harness-config quality predictive follow-ups for MCP,
+  plugin, agent, hook, command, and harness config changes that lack harness
+  audit, adapter matrix, cross-harness docs, or compatibility regression
+  evidence.
 
 ## Operating Rules
 
@@ -135,13 +192,16 @@ Acceptance:
 - Formal policy schema exists for org baselines, exceptions, owners,
   expiration, severity, and audit trails.
 - SARIF/code-scanning output is implemented and tested.
+- GitHub Action policy gates expose organization policy status and violation
+  counts for branch-protection and CI evidence.
 - Policy packs are defined for OSS, team, enterprise, regulated, high-risk
   hooks/MCP, and CI enforcement.
-- Supply-chain intelligence plan covers MCP package provenance, npm/pip
-  reputation, CVEs, typosquats, and dependency risk.
+- Supply-chain intelligence covers MCP package provenance and has an extension
+  path for npm/pip reputation, CVEs, typosquats, and dependency risk.
 - Prompt-injection corpus and regression benchmark are ready for continuous
-  rule hardening.
-- Enterprise reports include JSON plus HTML/PDF or equivalent executive output.
+  rule hardening with category-level coverage and regression-gate output.
+- Enterprise reports include JSON plus self-contained HTML executive output
+  with risk posture, priority findings, and category exposure.
 
 ### 6. ECC Tools Billing, Deep Analysis, PR Checks, And Linear Sync
 
@@ -151,16 +211,32 @@ Acceptance:
 
 - Native GitHub Marketplace billing announcement is backed by verified
   implementation and docs.
-- Billing audit covers plan limits, seats, org/account mapping, subscription
-  state, overage hooks, and failure modes.
+- Internal billing readiness audit covers plan limits, seats, entitlement
+  mapping, Marketplace plan shape, subscription state, overage hooks, and
+  failure modes.
 - Deep analyzer covers diff patterns, CI/CD workflows, dependency/security
   surface, PR review behavior, failure history, harness config, skill quality,
   and reference-set/RAG comparison.
 - PR check suite taxonomy includes Security Evidence, Harness Drift, Install
   Manifest Integrity, CI/CD Recommendation, Cost/Token Risk, and Agent Config
   Review.
+- Cost/token-risk predictive follow-ups flag AI routing, model-call, usage,
+  quota, and budget changes when budget evidence is missing.
+- Reference-set validation follow-ups flag analyzer, skill, agent, command, and
+  harness-guidance changes that lack eval, golden trace, benchmark, or
+  maintained reference-set evidence.
+- PR analysis comments summarize review follow-up signals for requested
+  changes, unresolved or outdated review threads, and missing approvals.
+- CI failure-mode predictive follow-ups flag workflow and test-runner changes
+  that lack failure fixtures, captured logs, troubleshooting notes, dry-run
+  evidence, or regression coverage.
+- Harness-config quality predictive follow-ups flag MCP, plugin, agent, hook,
+  command, and harness config changes that lack audit, adapter matrix,
+  cross-harness doc, or compatibility regression evidence.
 - Linear sync design maps findings to issues/status without flooding the
   workspace.
+- Follow-up generation caps automatic GitHub object creation and keeps overflow
+  findings in a copy-ready project sync backlog.
 
 ### 7. Legacy Audit And Stale-Work Salvage Closure
 
@@ -171,6 +247,9 @@ Acceptance:
 - Legacy directories and orphaned handoffs are inventoried.
 - Each useful artifact is marked landed, Linear/project-tracked, salvage
   branch, or archive/no-action.
+- Workspace-level legacy repos are mined only through sanitized maintainer
+  branches; raw context, secrets, personal paths, local settings, and private
+  drafts are never imported wholesale.
 - Stale PR salvage policy stays in force: close stale/conflicted PRs first,
   record a salvage ledger item, then port useful compatible content on
   maintainer branches with attribution.
@@ -179,14 +258,7 @@ Acceptance:
 
 ## Next Engineering Slices
 
-1. Move the harness adapter compliance matrix from Markdown to a data-backed
-   validator.
-2. Add the release/name/plugin publication checklist with evidence fields.
-3. Start AgentShield enterprise policy schema and SARIF implementation in the
-   AgentShield repo.
-4. Audit ECC Tools billing and check-run surfaces before any native GitHub
-   payments announcement.
-5. Inventory `_legacy-documents-*` and map useful artifacts to landed,
-   milestone-tracked, salvage, or archive states.
-6. Build the stale-PR salvage ledger from closed cleanup batches, then port
-   useful pieces in small attributed maintainer PRs.
+1. Decide whether AgentShield PDF export adds value beyond the merged HTML
+   executive report and corpus benchmark output.
+2. Extend ECC Tools deep analysis and Linear/project sync without flooding the
+   workspace.

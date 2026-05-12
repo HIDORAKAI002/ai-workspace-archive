@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-05-12 18:58 IST] Auto-Sync
+- **31 Repositories Updated:** GitHub MCP Server, Langfuse, NVIDIA NeMo Guardrails, n8n, Dify, Activepieces, Trigger.dev, Windmill, Appsmith, Budibase, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, camel-ai/camel, openai/openai-agents-python, pydantic/pydantic-ai, mastra-ai/mastra, deepset-ai/haystack, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, weaviate/weaviate, infiniflow/ragflow, affaan-m/everything-claude-code, vercel/ai, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, bytedance/deer-flow
+
 ## [2026-05-12 12:24 IST] Auto-Sync
 - **38 Repositories Updated:** Public APIs Directory, Kubernetes MCP Server, Awesome ChatGPT Prompts, Promptfoo, Dify, Activepieces, Budibase, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langgraph, camel-ai/camel, openai/openai-agents-python, mastra-ai/mastra, VoltAgent, BerriAI/litellm, ollama/ollama, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, cline/cline, RooCodeInc/Roo-Code, weaviate/weaviate, infiniflow/ragflow, arize-ai/phoenix, Jenqyang/Awesome-AI-Agents, affaan-m/everything-claude-code, google-gemini/gemini-cli, googleapis/python-genai, vercel/ai, apache/airflow, PrefectHQ/prefect, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, bytedance/deer-flow
 
