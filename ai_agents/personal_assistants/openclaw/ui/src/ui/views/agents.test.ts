@@ -34,6 +34,14 @@ function createSkill() {
   };
 }
 
+function directText(element: Element | null | undefined): string | undefined {
+  return Array.from(element?.childNodes ?? [])
+    .filter((node) => node.nodeType === Node.TEXT_NODE)
+    .map((node) => node.textContent ?? "")
+    .join("")
+    .trim();
+}
+
 function createProps(overrides: Partial<AgentsProps> = {}): AgentsProps {
   return {
     basePath: "",
@@ -306,7 +314,8 @@ describe("renderAgents", () => {
       (button) => button.textContent?.includes("Skills"),
     );
 
-    expect(skillsTab?.textContent?.trim()).toContain("1");
+    expect(directText(skillsTab)).toBe("Skills");
+    expect(skillsTab?.querySelector(".agent-tab-count")?.textContent).toBe("1");
   });
 
   it("keeps the Cron Jobs tab label while localizing channel refresh never state", async () => {

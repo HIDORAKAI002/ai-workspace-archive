@@ -63,7 +63,7 @@ type Service struct {
 func NewService(allowAnonymous bool, authComposer composer.TokenFunc, state *state.State) (*Service, batch.Drain) {
 	authenticator := auth.NewHandler(allowAnonymous, authComposer)
 	batchHandler := batch.NewHandler(state.Authorizer, state.BatchManager, state.Logger, authenticator, state.SchemaManager, state.ServerConfig.Config.Namespaces.Enabled)
-	batchStreamHandler, batchDrain := batch.Start(authenticator, state.Authorizer, batchHandler, state.SchemaManager, prometheus.DefaultRegisterer, NUMCPU, state.Logger)
+	batchStreamHandler, batchDrain := batch.Start(authenticator, state.Authorizer, batchHandler, state.SchemaManager, prometheus.DefaultRegisterer, NUMCPU, state.Logger, state.ServerConfig.Config.Namespaces.Enabled)
 	return &Service{
 		traverser:            state.Traverser,
 		authComposer:         authComposer,
@@ -105,6 +105,7 @@ func (s *Service) aggregate(ctx context.Context, req *pb.AggregateRequest) (*pb.
 
 	parser := NewAggregateParser(
 		s.classGetterWithAuthzFunc(ctx, principal, req.Tenant),
+		s.config.Namespaces.Enabled,
 	)
 
 	params, err := parser.Aggregate(req)
@@ -179,15 +180,13 @@ func (s *Service) batchDelete(ctx context.Context, req *pb.BatchDeleteRequest) (
 		tenant = *req.Tenant
 	}
 
-	if class := s.schemaManager.ResolveAlias(req.Collection); class != "" {
-		req.Collection = class
-	}
+	req.Collection, _ = namespacing.Resolve(principal, s.schemaManager, s.config.Namespaces.Enabled, req.Collection)
 
 	if err := s.authorizer.Authorize(ctx, principal, authorization.DELETE, authorization.ShardsData(req.Collection, tenant)...); err != nil {
 		return nil, err
 	}
 
-	params, err := batchDeleteParamsFromProto(req, s.classGetterWithAuthzFunc(ctx, principal, tenant))
+	params, err := batchDeleteParamsFromProto(req, s.classGetterWithAuthzFunc(ctx, principal, tenant), s.config.Namespaces.Enabled)
 	if err != nil {
 		return nil, fmt.Errorf("batch delete params: %w", err)
 	}

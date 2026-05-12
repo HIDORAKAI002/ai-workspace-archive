@@ -1118,7 +1118,7 @@ describe("runGatewayUpdate", () => {
 
     expect(result.status).toBe("ok");
     expect(buildNodeOptions).toHaveLength(2);
-    expect(buildNodeOptions).toEqual(["--max-old-space-size=4096", "--max-old-space-size=4096"]);
+    expect(buildNodeOptions).toEqual(["--max-old-space-size=8192", "--max-old-space-size=8192"]);
   });
   it("pins dev updates to an explicit target ref when requested", async () => {
     await setupGitPackageManagerFixture();
