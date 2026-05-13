@@ -29,41 +29,66 @@ SKIP_PATTERNS = [
 
 
 def find_skill_files():
-    """Walk the repo and find all SKILL.md files, grouped by domain."""
-    skills = {}
+    """Walk the repo and find all SKILL.md files, grouped by domain.
+
+    Dedupes the dual-publish pattern: when a skill has both a bundled mirror
+    at <domain>/skills/<name>/SKILL.md AND a standalone wrapper at
+    <domain>/<name>/skills/<name>/SKILL.md, the standalone wrapper is skipped
+    (the bundled location is canonical for docs). The two are kept in sync by
+    scripts/sync_skill_bundles.py; rendering both creates duplicate pages.
+    """
+    # First pass: collect all SKILL.md paths grouped by domain.
+    raw = {}
     for root, dirs, files in os.walk(REPO_ROOT):
         if "SKILL.md" not in files:
             continue
         rel_path = os.path.relpath(root, REPO_ROOT)
         if any(skip in rel_path for skip in SKIP_PATTERNS):
             continue
-        # Determine domain
         parts = rel_path.split(os.sep)
         domain_key = parts[0]
         if domain_key not in DOMAINS:
             continue
-        skill_name = parts[-1]  # last directory component
-        skill_path = os.path.join(root, "SKILL.md")
-        # Determine nesting (e.g., playwright-pro/skills/generate)
-        # Post-restructure: <domain>/skills/<name>/ is treated as a top-level skill
-        # (the umbrella plugin's canonical layout). Only nested *sub-skills* of a
-        # standalone plugin (e.g. playwright-pro/skills/generate) are sub-skills.
-        if len(parts) >= 3 and parts[1] == "skills":
-            is_sub_skill = False
-            parent = None
-        else:
-            is_sub_skill = len(parts) > 2
-            parent = parts[1] if len(parts) > 2 else None
+        raw.setdefault(domain_key, []).append((parts, root))
 
-        if domain_key not in skills:
-            skills[domain_key] = []
-        skills[domain_key].append({
-            "name": skill_name,
-            "path": skill_path,
-            "rel_path": rel_path,
-            "is_sub_skill": is_sub_skill,
-            "parent": parent,
-        })
+    # Second pass: build the bundled-name set per domain, then skip
+    # standalone wrappers that mirror those bundled skills.
+    skills = {}
+    for domain_key, entries in raw.items():
+        bundled_names = {
+            parts[2]
+            for parts, _ in entries
+            if len(parts) == 3 and parts[1] == "skills"
+        }
+        for parts, root in entries:
+            # Detect the dual-publish standalone wrapper:
+            # <domain>/<name>/skills/<same-name>/SKILL.md (4 parts) where
+            # the same <name> already exists in the bundled set.
+            is_dual_publish_mirror = (
+                len(parts) == 4
+                and parts[2] == "skills"
+                and parts[1] == parts[3]
+                and parts[1] in bundled_names
+            )
+            if is_dual_publish_mirror:
+                continue
+
+            skill_name = parts[-1]
+            skill_path = os.path.join(root, "SKILL.md")
+            if len(parts) >= 3 and parts[1] == "skills":
+                is_sub_skill = False
+                parent = None
+            else:
+                is_sub_skill = len(parts) > 2
+                parent = parts[1] if len(parts) > 2 else None
+
+            skills.setdefault(domain_key, []).append({
+                "name": skill_name,
+                "path": skill_path,
+                "rel_path": os.path.relpath(root, REPO_ROOT),
+                "is_sub_skill": is_sub_skill,
+                "parent": parent,
+            })
     return skills
 
 
@@ -389,6 +414,7 @@ def main():
     for domain_key, skills in skills_by_domain.items():
         top_level = [s for s in skills if not s["is_sub_skill"]]
         sub_skills = [s for s in skills if s["is_sub_skill"]]
+        top_level_names = {s["name"] for s in top_level}
 
         for skill in top_level:
             slug = slugify(skill["name"])
@@ -404,6 +430,39 @@ def main():
                 child_slug = slugify(child["name"])
                 child_content = generate_skill_page(child, domain_key)
                 child_path = os.path.join(DOCS_DIR, "skills", domain_key, f"{slug}-{child_slug}.md")
+                with open(child_path, "w", encoding="utf-8") as f:
+                    f.write(child_content)
+                total += 1
+
+        # Render orphan sub-skills (sub-skills whose parent is a plugin folder,
+        # not a top-level skill at <domain>/skills/<name>/). Without this,
+        # standalone-only plugins like executive-mentor, agenthub, autoresearch-agent,
+        # playwright-pro, self-improving-agent, c-level-agents, and llm-wiki have
+        # their sub-skills silently dropped (~79 pages missing from the docs site).
+        orphan_sub_skills = [s for s in sub_skills if s["parent"] not in top_level_names]
+        # Group by plugin parent
+        by_parent = {}
+        for s in orphan_sub_skills:
+            by_parent.setdefault(s["parent"], []).append(s)
+        for parent, children in by_parent.items():
+            parent_slug = slugify(parent)
+            # If a child has the same name as parent, it's the plugin's index skill;
+            # render as <parent>.md (preserves existing URLs like executive-mentor.md).
+            index_sub = next((s for s in children if s["name"] == parent), None)
+            if index_sub:
+                page_content = generate_skill_page(index_sub, domain_key)
+                page_path = os.path.join(DOCS_DIR, "skills", domain_key, f"{parent_slug}.md")
+                with open(page_path, "w", encoding="utf-8") as f:
+                    f.write(page_content)
+                total += 1
+            # Render non-index children as <parent>-<child>.md
+            # (preserves existing URLs like executive-mentor-challenge.md).
+            for child in children:
+                if child["name"] == parent:
+                    continue
+                child_slug = slugify(child["name"])
+                child_content = generate_skill_page(child, domain_key)
+                child_path = os.path.join(DOCS_DIR, "skills", domain_key, f"{parent_slug}-{child_slug}.md")
                 with open(child_path, "w", encoding="utf-8") as f:
                     f.write(child_content)
                 total += 1
@@ -541,6 +600,85 @@ description: "{agent_desc}"
                     f.write(page)
                 agent_count += 1
                 agent_entries.append((title, slug, domain_label, domain_icon))
+
+    # Pass 2: walk plugin-internal agents/ folders.
+    # Plugins like c-level-agents, executive-mentor, agenthub, llm-wiki,
+    # self-improving-agent bundle agents alongside their skills at
+    # <domain>/<plugin>/agents/*.md. These weren't previously discovered;
+    # nav entries in mkdocs.yml that point to them would 404.
+    SKILL_TO_AGENT_DOMAIN = {
+        "c-level-advisor": "c-level",
+        "engineering": "engineering",
+        "engineering-team": "engineering-team",
+        "marketing-skill": "marketing",
+        "product-team": "product",
+        "project-management": "project-management",
+        "ra-qm-team": "ra-qm-team",
+        "business-growth": "business-growth",
+        "finance": "finance",
+    }
+    seen_slugs = {entry[1] for entry in agent_entries}
+    for skill_domain in DOMAINS:
+        skill_domain_path = os.path.join(REPO_ROOT, skill_domain)
+        if not os.path.isdir(skill_domain_path):
+            continue
+        for plugin_name in sorted(os.listdir(skill_domain_path)):
+            plugin_agents_dir = os.path.join(skill_domain_path, plugin_name, "agents")
+            if not os.path.isdir(plugin_agents_dir):
+                continue
+            agent_domain_key = SKILL_TO_AGENT_DOMAIN.get(skill_domain, skill_domain)
+            domain_info = AGENT_DOMAINS.get(agent_domain_key, (prettify(agent_domain_key), ":material-account:"))
+            domain_label, domain_icon = domain_info
+            for agent_file in sorted(os.listdir(plugin_agents_dir)):
+                if not agent_file.endswith(".md"):
+                    continue
+                agent_name = agent_file.replace(".md", "")
+                slug = slugify(agent_name)
+                if slug in seen_slugs:
+                    continue
+                agent_path = os.path.join(plugin_agents_dir, agent_file)
+                rel = os.path.relpath(agent_path, REPO_ROOT)
+                title = extract_title(agent_path) or prettify(agent_name)
+                title = re.sub(r"[*_`]", "", title)
+                if re.match(r"^cs-[a-z-]+$", title):
+                    title = prettify(title.removeprefix("cs-"))
+
+                with open(agent_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+
+                content_clean = strip_content(content)
+                content_clean = rewrite_relative_links(content_clean, rel)
+
+                agent_seo_title = f"{title} — AI Coding Agent & Codex Skill"
+                agent_fm_desc = extract_description_from_frontmatter(agent_path)
+                if agent_fm_desc:
+                    agent_clean = agent_fm_desc.strip("'\"").replace('"', "'")
+                    if len(agent_clean) > 150:
+                        agent_clean = agent_clean[:150].rsplit(" ", 1)[0].rstrip(".,;:—-")
+                    agent_desc = f"{agent_clean}. Agent-native orchestrator for Claude Code, Codex, Gemini CLI."
+                else:
+                    agent_desc = f"{title} — agent-native AI orchestrator for {domain_label}. Works with Claude Code, Codex CLI, Gemini CLI, and OpenClaw."
+
+                page = f'''---
+title: "{agent_seo_title}"
+description: "{agent_desc}"
+---
+
+# {title}
+
+<div class="page-meta" markdown>
+<span class="meta-badge">:material-robot: Agent</span>
+<span class="meta-badge">{domain_icon} {domain_label}</span>
+<span class="meta-badge">:material-github: <a href="https://github.com/alirezarezvani/claude-skills/tree/main/{rel}">Source</a></span>
+</div>
+
+{content_clean}'''
+                out_path = os.path.join(agents_docs_dir, f"{slug}.md")
+                with open(out_path, "w", encoding="utf-8") as f:
+                    f.write(page)
+                agent_count += 1
+                agent_entries.append((title, slug, domain_label, domain_icon))
+                seen_slugs.add(slug)
 
     # Generate agents index
     if agent_entries:

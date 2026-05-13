@@ -168,8 +168,6 @@ When recommending experiments, consider tests for:
 - Form optimization
 - Navigation and UX
 
-**For comprehensive experiment ideas by page type**: See [references/experiments.md](https://github.com/alirezarezvani/claude-skills/tree/main/marketing-skill/skills/page-cro/references/experiments.md)
-
 ---
 
 ## Task-Specific Questions

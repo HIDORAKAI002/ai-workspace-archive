@@ -1,13 +1,13 @@
 ---
 title: "AI Coding Agents — Agent-Native Orchestrators & Codex Skills"
-description: "29 agent-native orchestrators for Claude Code, Codex CLI, and Gemini CLI — multi-skill AI agents across engineering, product, marketing, and more."
+description: "54 agent-native orchestrators for Claude Code, Codex CLI, and Gemini CLI — multi-skill AI agents across engineering, product, marketing, and more."
 ---
 
 <div class="domain-header" markdown>
 
 # :material-robot: Agents
 
-<p class="domain-count">29 agents that orchestrate skills across domains</p>
+<p class="domain-count">54 agents that orchestrate skills across domains</p>
 
 </div>
 
@@ -186,5 +186,155 @@ description: "29 agent-native orchestrators for Claude Code, Codex CLI, and Gemi
     ---
 
     Regulatory & Quality
+
+-   :material-code-braces:{ .lg .middle } **[Migration Planner Agent](migration-planner.md)**
+
+    ---
+
+    Engineering - Core
+
+-   :material-code-braces:{ .lg .middle } **[Test Architect Agent](test-architect.md)**
+
+    ---
+
+    Engineering - Core
+
+-   :material-code-braces:{ .lg .middle } **[Test Debugger Agent](test-debugger.md)**
+
+    ---
+
+    Engineering - Core
+
+-   :material-code-braces:{ .lg .middle } **[Memory Analyst Agent](memory-analyst.md)**
+
+    ---
+
+    Engineering - Core
+
+-   :material-code-braces:{ .lg .middle } **[Skill Extractor Agent](skill-extractor.md)**
+
+    ---
+
+    Engineering - Core
+
+-   :material-rocket-launch:{ .lg .middle } **[Hub Coordinator Agent](hub-coordinator.md)**
+
+    ---
+
+    Engineering - POWERFUL
+
+-   :material-rocket-launch:{ .lg .middle } **[Experiment Runner Agent](experiment-runner.md)**
+
+    ---
+
+    Engineering - POWERFUL
+
+-   :material-rocket-launch:{ .lg .middle } **[karpathy-reviewer](karpathy-reviewer.md)**
+
+    ---
+
+    Engineering - POWERFUL
+
+-   :material-rocket-launch:{ .lg .middle } **[wiki-ingestor](wiki-ingestor.md)**
+
+    ---
+
+    Engineering - POWERFUL
+
+-   :material-rocket-launch:{ .lg .middle } **[wiki-librarian](wiki-librarian.md)**
+
+    ---
+
+    Engineering - POWERFUL
+
+-   :material-rocket-launch:{ .lg .middle } **[wiki-linter](wiki-linter.md)**
+
+    ---
+
+    Engineering - POWERFUL
+
+-   :material-account-tie:{ .lg .middle } **[Chief AI Officer Advisor Agent](cs-caio-advisor.md)**
+
+    ---
+
+    C-Level Advisory
+
+-   :material-account-tie:{ .lg .middle } **[Chief Customer Officer Advisor Agent](cs-cco-advisor.md)**
+
+    ---
+
+    C-Level Advisory
+
+-   :material-account-tie:{ .lg .middle } **[Chief Data Officer Advisor Agent](cs-cdo-advisor.md)**
+
+    ---
+
+    C-Level Advisory
+
+-   :material-account-tie:{ .lg .middle } **[CFO Advisor Agent](cs-cfo-advisor.md)**
+
+    ---
+
+    C-Level Advisory
+
+-   :material-account-tie:{ .lg .middle } **[Chief of Staff Agent](cs-chief-of-staff.md)**
+
+    ---
+
+    C-Level Advisory
+
+-   :material-account-tie:{ .lg .middle } **[CHRO Advisor Agent](cs-chro-advisor.md)**
+
+    ---
+
+    C-Level Advisory
+
+-   :material-account-tie:{ .lg .middle } **[CISO Advisor Agent](cs-ciso-advisor.md)**
+
+    ---
+
+    C-Level Advisory
+
+-   :material-account-tie:{ .lg .middle } **[CMO Advisor Agent](cs-cmo-advisor.md)**
+
+    ---
+
+    C-Level Advisory
+
+-   :material-account-tie:{ .lg .middle } **[COO Advisor Agent](cs-coo-advisor.md)**
+
+    ---
+
+    C-Level Advisory
+
+-   :material-account-tie:{ .lg .middle } **[CPO Advisor Agent](cs-cpo-advisor.md)**
+
+    ---
+
+    C-Level Advisory
+
+-   :material-account-tie:{ .lg .middle } **[CRO Advisor Agent](cs-cro-advisor.md)**
+
+    ---
+
+    C-Level Advisory
+
+-   :material-account-tie:{ .lg .middle } **[General Counsel Advisor Agent](cs-general-counsel-advisor.md)**
+
+    ---
+
+    C-Level Advisory
+
+-   :material-account-tie:{ .lg .middle } **[VP of Engineering Advisor Agent](cs-vpe-advisor.md)**
+
+    ---
+
+    C-Level Advisory
+
+-   :material-account-tie:{ .lg .middle } **[Devil's Advocate Agent](devils-advocate.md)**
+
+    ---
+
+    C-Level Advisory
 
 </div>

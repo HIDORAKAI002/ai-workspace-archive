@@ -198,8 +198,6 @@ What you've accomplished:
 - Revenue per user
 - Churn rate post-upgrade
 
-**For comprehensive experiment ideas**: See [references/experiments.md](https://github.com/alirezarezvani/claude-skills/tree/main/marketing-skill/skills/paywall-upgrade-cro/references/experiments.md)
-
 ---
 
 ## Anti-Patterns to Avoid
