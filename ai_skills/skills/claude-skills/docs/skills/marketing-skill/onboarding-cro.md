@@ -207,8 +207,6 @@ When recommending experiments, consider tests for:
 - Personalization by role or goal
 - Support and help availability
 
-**For comprehensive experiment ideas**: See [references/experiments.md](https://github.com/alirezarezvani/claude-skills/tree/main/marketing-skill/skills/onboarding-cro/references/experiments.md)
-
 ---
 
 ## Task-Specific Questions

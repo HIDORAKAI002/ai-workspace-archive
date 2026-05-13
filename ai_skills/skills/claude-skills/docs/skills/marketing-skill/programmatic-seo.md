@@ -93,8 +93,6 @@ Better to have 100 great pages than 10,000 thin ones.
 | Directory | "[category] tools" | "ai copywriting tools" |
 | Profiles | "[entity name]" | "stripe ceo" |
 
-**For detailed playbook implementation**: See [references/playbooks.md](https://github.com/alirezarezvani/claude-skills/tree/main/marketing-skill/skills/programmatic-seo/references/playbooks.md)
-
 ---
 
 ## Choosing Your Playbook

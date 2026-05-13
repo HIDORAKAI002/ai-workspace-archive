@@ -1,6 +1,6 @@
 site_name: Claude Code Skills & Agent Plugins
 site_url: https://alirezarezvani.github.io/claude-skills/
-site_description: "246 production-ready skills, 20 cs-* agents, 7 personas, and an orchestration protocol for 12 AI coding tools. Reusable expertise for engineering, product, marketing, compliance, and more."
+site_description: "268 production-ready skills, 33 cs-* agents (incl. founder-mode C-suite: GC, CDO, CAIO, CCO, VPE), 7 personas, 21 /cs:* slash commands, and an orchestration protocol for 12 AI coding tools."
 site_author: Alireza Rezvani
 repo_url: https://github.com/alirezarezvani/claude-skills
 repo_name: alirezarezvani/claude-skills
@@ -55,6 +55,16 @@ plugins:
   - search:
       separator: '[\s\-\.]+'
   - tags
+  - redirects:
+      redirect_maps:
+        # Dual-publish duplicate cleanup (v2.5.6 docs refresh).
+        # The auto-generator created <name>-<name>.md alongside the canonical
+        # <name>.md for engineering plugins that publish both standalone and
+        # bundled. Redirect old URLs to the canonical page to preserve SEO.
+        'skills/engineering/chaos-engineering-chaos-engineering.md': 'skills/engineering/chaos-engineering.md'
+        'skills/engineering/feature-flags-architect-feature-flags-architect.md': 'skills/engineering/feature-flags-architect.md'
+        'skills/engineering/kubernetes-operator-kubernetes-operator.md': 'skills/engineering/kubernetes-operator.md'
+        'skills/engineering/slo-architect-slo-architect.md': 'skills/engineering/slo-architect.md'
 
 extra:
   social:
@@ -336,6 +346,34 @@ nav:
       - "CTO Advisor": skills/c-level-advisor/cto-advisor.md
       - "Culture Architect": skills/c-level-advisor/culture-architect.md
       - "Decision Logger": skills/c-level-advisor/decision-logger.md
+      - "General Counsel Advisor": skills/c-level-advisor/general-counsel-advisor.md
+      - "Chief Data Officer Advisor": skills/c-level-advisor/chief-data-officer-advisor.md
+      - "Chief AI Officer Advisor": skills/c-level-advisor/chief-ai-officer-advisor.md
+      - "Chief Customer Officer Advisor": skills/c-level-advisor/chief-customer-officer-advisor.md
+      - "VP Engineering Advisor": skills/c-level-advisor/vpe-advisor.md
+      - Founder-Mode Commands (c-level-agents):
+        - "c-level-agents Index": skills/c-level-advisor/c-level-agents.md
+        - "/cs:office-hours": skills/c-level-advisor/c-level-agents-office-hours.md
+        - "/cs:cfo-review": skills/c-level-advisor/c-level-agents-cfo-review.md
+        - "/cs:cmo-review": skills/c-level-advisor/c-level-agents-cmo-review.md
+        - "/cs:cpo-review": skills/c-level-advisor/c-level-agents-cpo-review.md
+        - "/cs:cro-review": skills/c-level-advisor/c-level-agents-cro-review.md
+        - "/cs:cto-review": skills/c-level-advisor/c-level-agents-cto-review.md
+        - "/cs:ciso-review": skills/c-level-advisor/c-level-agents-ciso-review.md
+        - "/cs:gc-review": skills/c-level-advisor/c-level-agents-gc-review.md
+        - "/cs:cdo-review": skills/c-level-advisor/c-level-agents-cdo-review.md
+        - "/cs:caio-review": skills/c-level-advisor/c-level-agents-caio-review.md
+        - "/cs:cco-review": skills/c-level-advisor/c-level-agents-cco-review.md
+        - "/cs:vpe-review": skills/c-level-advisor/c-level-agents-vpe-review.md
+        - "/cs:brief": skills/c-level-advisor/c-level-agents-brief.md
+        - "/cs:boardroom": skills/c-level-advisor/c-level-agents-boardroom.md
+        - "/cs:decide": skills/c-level-advisor/c-level-agents-decide.md
+        - "/cs:execute": skills/c-level-advisor/c-level-agents-execute.md
+        - "/cs:post-mortem": skills/c-level-advisor/c-level-agents-post-mortem.md
+        - "/cs:founder-mode": skills/c-level-advisor/c-level-agents-founder-mode.md
+        - "/cs:onboard": skills/c-level-advisor/c-level-agents-onboard.md
+        - "/cs:cross-eval": skills/c-level-advisor/c-level-agents-cross-eval.md
+        - "/cs:freeze": skills/c-level-advisor/c-level-agents-freeze.md
       - Executive Mentor:
         - "Executive Mentor": skills/c-level-advisor/executive-mentor.md
         - "Board Prep": skills/c-level-advisor/executive-mentor-board-prep.md
@@ -403,6 +441,19 @@ nav:
     - "CS Quality & Regulatory": agents/cs-quality-regulatory.md
     - "CS Senior Engineer": agents/cs-senior-engineer.md
     - "CS UX Researcher": agents/cs-ux-researcher.md
+    - "CS CFO Advisor": agents/cs-cfo-advisor.md
+    - "CS CMO Advisor": agents/cs-cmo-advisor.md
+    - "CS CRO Advisor": agents/cs-cro-advisor.md
+    - "CS CPO Advisor": agents/cs-cpo-advisor.md
+    - "CS COO Advisor": agents/cs-coo-advisor.md
+    - "CS CHRO Advisor": agents/cs-chro-advisor.md
+    - "CS CISO Advisor": agents/cs-ciso-advisor.md
+    - "CS Chief of Staff": agents/cs-chief-of-staff.md
+    - "CS General Counsel Advisor": agents/cs-general-counsel-advisor.md
+    - "CS CDO Advisor (Chief Data Officer)": agents/cs-cdo-advisor.md
+    - "CS CAIO Advisor (Chief AI Officer)": agents/cs-caio-advisor.md
+    - "CS CCO Advisor (Chief Customer Officer)": agents/cs-cco-advisor.md
+    - "CS VPE Advisor (VP Engineering)": agents/cs-vpe-advisor.md
   - Commands:
     - Overview: commands/index.md
     - "/a11y-audit": commands/a11y-audit.md

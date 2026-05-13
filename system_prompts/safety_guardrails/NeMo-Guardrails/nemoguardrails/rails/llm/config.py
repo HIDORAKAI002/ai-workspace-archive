@@ -341,8 +341,22 @@ class GLiNERDetection(BaseModel):
     """Configuration for GLiNER PII detection."""
 
     server_endpoint: str = Field(
-        default="http://localhost:1235/v1/extract",
-        description="The endpoint for the GLiNER detection server.",
+        default="http://localhost:8000/v1/chat/completions",
+        description=(
+            "The endpoint for the GLiNER detection server. "
+            "By default, this is for a locally hosted NIM instance running the GLiNER model. "
+            "Changed from http://localhost:1235/v1/extract (custom server) to "
+            "http://localhost:8000/v1/chat/completions (NIM) in this release. "
+            "If you use the custom gliner_server, set this explicitly to http://localhost:1235/v1/extract."
+        ),
+    )
+    model: str = Field(
+        default="nvidia/gliner-pii",
+        description="Model identifier sent in NIM API requests (only used when server_endpoint ends with /v1/chat/completions).",
+    )
+    api_key_env_var: Optional[str] = Field(
+        default=None,
+        description="Name of the environment variable containing the API key for authenticated endpoints (e.g., NVIDIA_API_KEY).",
     )
     threshold: float = Field(
         default=0.5,
