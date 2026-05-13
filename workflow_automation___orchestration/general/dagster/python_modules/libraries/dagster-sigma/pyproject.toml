@@ -30,6 +30,16 @@ Homepage = "https://github.com/dagster-io/dagster/tree/master/python_modules/lib
 dagster-sigma = "dagster_sigma.cli:app"
 
 [project.optional-dependencies]
+
+[dependency-groups]
 test = [
+    "dagster-pipes",
+    "dagster[test]",
+    "dagster-shared",
     "aioresponses",
 ]
+
+[tool.uv.sources]
+dagster-pipes = { path = "../../dagster-pipes", editable = true }
+dagster = { path = "../../dagster", editable = true }
+dagster-shared = { path = "../dagster-shared", editable = true }

@@ -32,6 +32,16 @@ dagster_clickhouse = "dagster_clickhouse"
 pandas = [
     "pandas<3.0.0",
 ]
+
+[dependency-groups]
 test = [
+    "dagster[test]",
+    "dagster-pipes",
+    "dagster-shared",
     "testcontainers[clickhouse]>=4.0",
 ]
+
+[tool.uv.sources]
+dagster = { path = "../../dagster", editable = true }
+dagster-pipes = { path = "../../dagster-pipes", editable = true }
+dagster-shared = { path = "../dagster-shared", editable = true }

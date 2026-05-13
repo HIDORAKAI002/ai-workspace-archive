@@ -26,3 +26,29 @@ zip-safe = false
 
 [tool.setuptools.packages.find]
 exclude = ["test*"]
+
+[dependency-groups]
+test = [
+    "dagster[test]",
+    "dagster-pipes",
+    "dagster-shared",
+    "dagster-graphql",
+    "dagster-test",
+    "dagster-k8s",
+    "dagster-celery",
+    "dagster-celery-k8s",
+    "dagster-postgres",
+    "dagster-aws",
+]
+
+[tool.uv.sources]
+dagster = { path = "../../../python_modules/dagster", editable = true }
+dagster-pipes = { path = "../../../python_modules/dagster-pipes", editable = true }
+dagster-shared = { path = "../../../python_modules/libraries/dagster-shared", editable = true }
+dagster-graphql = { path = "../../../python_modules/dagster-graphql", editable = true }
+dagster-test = { path = "../../../python_modules/dagster-test", editable = true }
+dagster-k8s = { path = "../../../python_modules/libraries/dagster-k8s", editable = true }
+dagster-celery = { path = "../../../python_modules/libraries/dagster-celery", editable = true }
+dagster-celery-k8s = { path = "../../../python_modules/libraries/dagster-celery-k8s", editable = true }
+dagster-postgres = { path = "../../../python_modules/libraries/dagster-postgres", editable = true }
+dagster-aws = { path = "../../../python_modules/libraries/dagster-aws", editable = true }

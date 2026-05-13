@@ -29,10 +29,6 @@ Homepage = "https://github.com/dagster-io/dagster/tree/master/python_modules/lib
 codegen = [
     "ariadne-codegen>=0.14.0",
 ]
-test = [
-    "pytest>=9.0.2",
-]
-
 [tool.ariadne-codegen]
 schema_path = "../../../../dagster-cloud/js_modules/app-cloud/src/graphql/schema.graphql"
 queries_path = "dagster_rest_resources/queries"
@@ -43,3 +39,12 @@ plugins = [
     "ariadne_codegen.contrib.client_forward_refs.ClientForwardRefsPlugin",
     "ariadne_codegen.contrib.no_reimports.NoReimportsPlugin",
 ]
+
+[dependency-groups]
+test = [
+    "dagster-shared",
+    "pytest>=9.0.2",
+]
+
+[tool.uv.sources]
+dagster-shared = { path = "../../../python_modules/libraries/dagster-shared", editable = true }

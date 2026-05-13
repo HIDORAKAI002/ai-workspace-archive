@@ -31,7 +31,23 @@ wif = [
     "google-auth>=2.0.0",
     "boto3>=1.26.0",
 ]
-test = []
 
 [project.urls]
 Homepage = "https://github.com/dagster-io/dagster/tree/master/python_modules/libraries/dagster-postgres"
+
+[dependency-groups]
+test = [
+    "dagster[test]",
+    "dagster-test",
+    "dagster-pipes",
+    "dagster-shared",
+]
+test-sqlalchemy-1-3 = [
+    "sqlalchemy<1.4",
+]
+
+[tool.uv.sources]
+dagster = { path = "../../dagster", editable = true }
+dagster-test = { path = "../../dagster-test", editable = true }
+dagster-pipes = { path = "../../dagster-pipes", editable = true }
+dagster-shared = { path = "../dagster-shared", editable = true }

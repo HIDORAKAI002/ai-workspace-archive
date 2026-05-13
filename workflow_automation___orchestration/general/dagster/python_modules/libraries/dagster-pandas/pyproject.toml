@@ -25,3 +25,21 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://github.com/dagster-io/dagster"
+
+[dependency-groups]
+test = [
+    "dagster[test]",
+    "dagster-pipes",
+    "dagster-shared",
+    "dagstermill",
+    # Previously pulled via `dagstermill[test]`; folded when removing dagstermill's test extra
+    "matplotlib",
+    "scikit-learn>=0.19.0",
+    "tqdm",
+]
+
+[tool.uv.sources]
+dagster = { path = "../../dagster", editable = true }
+dagster-pipes = { path = "../../dagster-pipes", editable = true }
+dagster-shared = { path = "../dagster-shared", editable = true }
+dagstermill = { path = "../dagstermill", editable = true }

@@ -26,3 +26,19 @@ Homepage = "https://github.com/dagster-io/dagster/tree/master/examples/assets_ya
 [tool.dagster]
 module_name = "assets_yaml_dsl.definitions"
 code_location_name = "assets_yaml_dsl"
+
+[dependency-groups]
+test = [
+    "dagster[test]",
+    "dagster-pipes",
+    "dagster-shared",
+    "dagster-webserver",
+    "dagster-graphql",
+]
+
+[tool.uv.sources]
+dagster = { path = "../../../python_modules/dagster", editable = true }
+dagster-pipes = { path = "../../../python_modules/dagster-pipes", editable = true }
+dagster-shared = { path = "../../../python_modules/libraries/dagster-shared", editable = true }
+dagster-webserver = { path = "../../../python_modules/dagster-webserver", editable = true }
+dagster-graphql = { path = "../../../python_modules/dagster-graphql", editable = true }

@@ -34,3 +34,13 @@ dagster-buildkite-prerelease-package = "dagster_buildkite.cli:prerelease_package
 exclude = [
     "test",
 ]
+
+[dependency-groups]
+test = [
+    "buildkite-shared",
+    "pytest",
+    "flaky",
+]
+
+[tool.uv.sources]
+buildkite-shared = { path = "../buildkite-shared", editable = true }

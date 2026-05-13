@@ -79,10 +79,10 @@ def main():
 
             if update_summary:
                 for line, rules in update_summary.items():
-                    print(f"{file_path}:{line} - ignored {rules}")  # noqa
+                    print(f"{file_path}:{line} - ignored {rules}")
 
         except Exception as e:
-            print(f"Error processing {file_path}: {e}")  # noqa
+            print(f"Error processing {file_path}: {e}")
 
 
 if __name__ == "__main__":

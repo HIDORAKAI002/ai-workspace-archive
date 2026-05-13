@@ -563,3 +563,47 @@ def test_runtime_select_reinjected_below_threshold(
     assert any("model_1" in argv[i + 1] for i in select_positions), (
         "runtime --select value should appear in the final argv"
     )
+
+
+def test_runtime_exclude_preserved_for_plain_op(
+    large_dbt_project: tuple[Path, dict],
+):
+    """A plain @op (no @dbt_assets) that passes --exclude to dbt.cli must still see
+    --exclude in the final dbt argv. extract_runtime_selection_from_args strips the
+    flag at the resource boundary, so the re-injection has to happen even when there
+    is no asset context — otherwise the flag is silently dropped.
+    """
+    from dagster import OpExecutionContext, job, op
+    from dagster_dbt import DbtCliResource
+
+    project_dir, manifest = large_dbt_project
+
+    captured_argv: list[list[str]] = []
+
+    @op
+    def my_dbt_op(context: OpExecutionContext, dbt: DbtCliResource):
+        invocation = dbt.cli(
+            ["run", "--exclude", "model_0"],
+            context=context,
+            manifest=manifest,
+        ).wait()
+        captured_argv.append(cast("list[str]", invocation.process.args))
+
+    @job
+    def my_dbt_job():
+        my_dbt_op()
+
+    result = my_dbt_job.execute_in_process(
+        resources={"dbt": DbtCliResource(project_dir=str(project_dir))},
+    )
+
+    assert result.success
+    assert captured_argv
+    argv = captured_argv[0]
+    assert "--selector" not in argv, "plain-op path should not enter the selector branch"
+    # --exclude appears exactly once with the user's value. Without the fix, extraction
+    # strips it from user args and nothing re-injects it for the assets_def-is-None path,
+    # so the count is 0.
+    assert argv.count("--exclude") == 1
+    exclude_idx = argv.index("--exclude")
+    assert argv[exclude_idx + 1] == "model_0"

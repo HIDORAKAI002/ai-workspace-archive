@@ -85,7 +85,6 @@ def build_test_project_steps() -> list[GroupStepConfiguration]:
             .on_queue(BuildkiteQueue.MEDIUM)
             .build()
         )
-    # no skip
     return [
         GroupStepBuilder(
             "test-project-image",
