@@ -1,148 +1,148 @@
-# Model Context Protocol pro streamování dat v reálném čase
+# Protokol kontextu modelu pro streamování dat v reálném čase
 
 ## Přehled
 
-Streamování dat v reálném čase se stalo nezbytností v dnešním světě řízeném daty, kde firmy a aplikace potřebují okamžitý přístup k informacím pro včasné rozhodování. Model Context Protocol (MCP) představuje významný pokrok v optimalizaci těchto procesů streamování v reálném čase, zvyšuje efektivitu zpracování dat, zachovává kontextovou integritu a zlepšuje celkový výkon systému.
+Streamování dat v reálném čase se stalo nezbytností v dnešním světě orientovaném na data, kde podniky a aplikace vyžadují okamžitý přístup k informacím pro včasné rozhodování. Protokol kontextu modelu (MCP) představuje významný pokrok v optimalizaci těchto procesů streamování v reálném čase, zlepšuje efektivitu zpracování dat, udržuje kontextuální integritu a zvyšuje celkový výkon systému.
 
-Tento modul zkoumá, jak MCP mění streamování dat v reálném čase tím, že poskytuje standardizovaný přístup k řízení kontextu napříč AI modely, streamovacími platformami a aplikacemi.
+Tento modul zkoumá, jak MCP transformuje streamování dat v reálném čase tím, že poskytuje standardizovaný přístup ke správě kontextu napříč AI modely, streamovacími platformami a aplikacemi.
 
 ## Úvod do streamování dat v reálném čase
 
-Streamování dat v reálném čase je technologický přístup, který umožňuje nepřetržitý přenos, zpracování a analýzu dat v okamžiku jejich vzniku, což umožňuje systémům okamžitě reagovat na nové informace. Na rozdíl od tradičního dávkového zpracování, které pracuje se statickými datovými sadami, streamování zpracovává data za běhu a poskytuje poznatky a akce s minimální latencí.
+Streamování dat v reálném čase je technologický paradigma, které umožňuje průběžný přenos, zpracování a analýzu dat, jak jsou generována, což systémům umožňuje okamžitě reagovat na nové informace. Na rozdíl od tradičního dávkového zpracování, které operuje statickými datovými sadami, streamování zpracovává data v pohybu a dodává poznatky a akce s minimální latencí.
 
-### Základní pojmy streamování dat v reálném čase:
+### Základní koncepty streamování dat v reálném čase:
 
-- **Nepřetržitý tok dat**: Data jsou zpracovávána jako kontinuální, nikdy nekončící proud událostí nebo záznamů.
-- **Zpracování s nízkou latencí**: Systémy jsou navrženy tak, aby minimalizovaly čas mezi vznikem dat a jejich zpracováním.
+- **Nepřetržitý tok dat**: Data jsou zpracovávána jako nepřetržitý, nikdy nekončící proud událostí nebo záznamů.
+- **Nízká latence zpracování**: Systémy jsou navrženy tak, aby minimalizovaly čas mezi generováním dat a jejich zpracováním.
 - **Škálovatelnost**: Streamovací architektury musí zvládat proměnlivé objemy a rychlosti dat.
-- **Odolnost vůči chybám**: Systémy musí být schopné odolávat selháním, aby zajistily nepřerušený tok dat.
-- **Stavové zpracování**: Udržování kontextu napříč událostmi je klíčové pro smysluplnou analýzu.
+- **Odolnost proti chybám**: Systémy musí být odolné vůči selháním, aby zajistily nepřerušený tok dat.
+- **Stavové zpracování**: Udržení kontextu napříč událostmi je klíčové pro smysluplnou analýzu.
 
-### Model Context Protocol a streamování v reálném čase
+### Protokol kontextu modelu a streamování v reálném čase
 
-Model Context Protocol (MCP) řeší několik zásadních výzev v prostředích streamování v reálném čase:
+Protokol kontextu modelu (MCP) řeší několik zásadních výzev v prostředích streamování v reálném čase:
 
-1. **Kontinuita kontextu**: MCP standardizuje způsob, jakým je kontext udržován napříč distribuovanými streamovacími komponentami, což zajišťuje, že AI modely a zpracovatelské uzly mají přístup k relevantnímu historickému a environmentálnímu kontextu.
+1. **Kontextuální kontinuita**: MCP standardizuje, jak se udržuje kontext napříč distribuovanými streamovacími komponentami, zajišťuje, že AI modely a zpracovatelské uzly mají přístup k relevantnímu historickému a environmentálnímu kontextu.
 
-2. **Efektivní správa stavu**: Poskytováním strukturovaných mechanismů pro přenos kontextu MCP snižuje režii správy stavu ve streamovacích pipelinech.
+2. **Efektivní správa stavu**: Poskytováním strukturovaných mechanismů pro přenos kontextu MCP snižuje režii správy stavu v streamovacích pipelinech.
 
 3. **Interoperabilita**: MCP vytváří společný jazyk pro sdílení kontextu mezi různými streamovacími technologiemi a AI modely, což umožňuje flexibilnější a rozšiřitelnější architektury.
 
-4. **Kontext optimalizovaný pro streamování**: Implementace MCP mohou upřednostňovat, které prvky kontextu jsou nejdůležitější pro rozhodování v reálném čase, čímž optimalizují výkon i přesnost.
+4. **Kontext optimalizovaný pro streamování**: Implementace MCP mohou upřednostňovat, které prvky kontextu jsou nejrelevantnější pro rozhodování v reálném čase a optimalizovat tak výkon i přesnost.
 
-5. **Adaptivní zpracování**: Díky správě kontextu prostřednictvím MCP mohou streamovací systémy dynamicky upravovat zpracování na základě měnících se podmínek a vzorců v datech.
+5. **Adaptivní zpracování**: Díky správě kontextu prostřednictvím MCP mohou streamovací systémy dynamicky upravovat zpracování na základě vývoje podmínek a vzorců v datech.
 
-V moderních aplikacích od IoT senzorových sítí po finanční obchodní platformy umožňuje integrace MCP se streamovacími technologiemi inteligentnější, kontextově uvědomělé zpracování, které dokáže v reálném čase adekvátně reagovat na složité a vyvíjející se situace.
+V moderních aplikacích od IoT senzorových sítí až po finanční obchodní platformy integrace MCP se streamovacími technologiemi umožňuje inteligentnější, kontextově uvědomělé zpracování, které může adekvátně reagovat na komplexní a vyvíjející se situace v reálném čase.
 
 ## Výukové cíle
 
 Na konci této lekce budete schopni:
 
-- Porozumět základům streamování dat v reálném čase a jeho výzvám
-- Vysvětlit, jak Model Context Protocol (MCP) zlepšuje streamování dat v reálném čase
-- Implementovat streamovací řešení založená na MCP pomocí populárních frameworků jako Kafka a Pulsar
-- Navrhnout a nasadit odolné a vysoce výkonné streamovací architektury s MCP
-- Aplikovat koncepty MCP v případech použití IoT, finančního obchodování a analytiky řízené AI
+- Pochopit základy streamování dat v reálném čase a jeho výzvy
+- Vysvětlit, jak Protokol kontextu modelu (MCP) vylepšuje streamování dat v reálném čase
+- Implementovat řešení založená na MCP pomocí populárních rámců jako Kafka a Pulsar
+- Navrhovat a nasazovat odolné, vysoce výkonné streamovací architektury s MCP
+- Aplikovat koncepty MCP na případy použití v IoT, finančním obchodování a AI-řízené analytice
 - Hodnotit nové trendy a budoucí inovace v technologiích streamování založených na MCP
 
 ### Definice a význam
 
-Streamování dat v reálném čase zahrnuje nepřetržitou generaci, zpracování a doručování dat s minimální latencí. Na rozdíl od dávkového zpracování, kde jsou data shromažďována a zpracovávána ve skupinách, jsou streamovaná data zpracovávána postupně, jak přicházejí, což umožňuje okamžité poznatky a reakce.
+Streamování dat v reálném čase zahrnuje průběžnou generaci, zpracování a doručování dat s minimální latencí. Na rozdíl od dávkového zpracování, kdy se data shromažďují a zpracovávají ve skupinách, jsou streamovaná data zpracovávána postupně při příjmu, což umožňuje okamžité poznatky a reakce.
 
-Klíčové charakteristiky streamování dat v reálném čase zahrnují:
+Klíčové charakteristiky streamování dat v reálném čase jsou:
 
 - **Nízká latence**: Zpracování a analýza dat během milisekund až sekund
-- **Nepřetržitý tok**: Nepřerušené proudy dat z různých zdrojů
-- **Okamžité zpracování**: Analýza dat ihned po příchodu, nikoli ve skupinách
-- **Architektura řízená událostmi**: Reakce na události v okamžiku jejich vzniku
+- **Nepřetržitý tok**: Nepřerušované proudy dat z různých zdrojů
+- **Okamžité zpracování**: Analýza dat při jejich příchodu místo dávkového zpracování
+- **Architektura řízená událostmi**: Reakce na události v momentě jejich výskytu
 
 ### Výzvy v tradičním streamování dat
 
 Tradiční přístupy ke streamování dat čelí několika omezením:
 
 1. **Ztráta kontextu**: Obtížné udržet kontext napříč distribuovanými systémy
-2. **Problémy se škálovatelností**: Výzvy při škálování pro vysoký objem a rychlost dat
-3. **Komplexita integrace**: Problémy s interoperabilitou mezi různými systémy
-4. **Řízení latence**: Vyvažování propustnosti a doby zpracování
-5. **Konzistence dat**: Zajištění přesnosti a úplnosti dat v celém streamu
+2. **Problémy se škálováním**: Výzvy při škálování pro zvládnutí vysokého objemu a rychlosti dat
+3. **Složitost integrace**: Problémy s interoperabilitou mezi různými systémy
+4. **Řízení latence**: Vyvažování propustnosti a času zpracování
+5. **Konzistence dat**: Zajištění přesnosti a úplnosti dat v celém proudu
 
-## Pochopení Model Context Protocol (MCP)
+## Porozumění Protokolu kontextu modelu (MCP)
 
 ### Co je MCP?
 
-Model Context Protocol (MCP) je standardizovaný komunikační protokol navržený k usnadnění efektivní interakce mezi AI modely a aplikacemi. V kontextu streamování dat v reálném čase MCP poskytuje rámec pro:
+Protokol kontextu modelu (MCP) je standardizovaný komunikační protokol navržený k usnadnění efektivní interakce mezi AI modely a aplikacemi. V kontextu streamování dat v reálném čase MCP poskytuje rámec pro:
 
-- Zachování kontextu v celém datovém pipeline
+- Zachování kontextu v celé datové pipeline
 - Standardizaci formátů výměny dat
-- Optimalizaci přenosu velkých datových sad
-- Zlepšení komunikace mezi modely a mezi modelem a aplikací
+- Optimalizaci přenosu rozsáhlých datových sad
+- Zlepšení komunikace model-model a model-aplikace
 
 ### Hlavní komponenty a architektura
 
-Architektura MCP pro streamování v reálném čase se skládá z několika klíčových komponent:
+Architektura MCP pro streamování v reálném čase sestává z několika klíčových komponent:
 
-1. **Context Handlers**: Spravují a udržují kontextové informace napříč streamovacím pipeline
-2. **Stream Processors**: Zpracovávají příchozí datové toky pomocí technik založených na kontextu
-3. **Protocol Adapters**: Převádějí mezi různými streamovacími protokoly při zachování kontextu
-4. **Context Store**: Efektivně ukládá a načítá kontextové informace
-5. **Streaming Connectors**: Připojují se k různým streamovacím platformám (Kafka, Pulsar, Kinesis atd.)
+1. **Správci kontextu**: Řídí a udržují kontextuální informace v celé streamovací pipeline
+2. **Streamovací procesory**: Zpracovávají příchozí datové streamy pomocí technik uvědomělých o kontextu
+3. **Protokolové adaptéry**: Převádějí mezi různými streamovacími protokoly při zachování kontextu
+4. **Úložiště kontextu**: Efektivně ukládá a načítá kontextuální informace
+5. **Streamovací konektory**: Připojují se k různým streamovacím platformám (Kafka, Pulsar, Kinesis atd.)
 
 ```mermaid
 graph TD
-    subgraph "Data Sources"
-        IoT[IoT Devices]
-        APIs[APIs]
-        DB[Databases]
-        Apps[Applications]
+    subgraph "Zdroje dat"
+        IoT[Zařízení IoT]
+        APIs[API]
+        DB[Databáze]
+        Apps[Aplikace]
     end
 
-    subgraph "MCP Streaming Layer"
-        SC[Streaming Connectors]
-        PA[Protocol Adapters]
-        CH[Context Handlers]
-        SP[Stream Processors]
-        CS[Context Store]
+    subgraph "Vrstva streamování MCP"
+        SC[Streamovací konektory]
+        PA[Protokolové adaptéry]
+        CH[Správci kontextu]
+        SP[Streamovací procesory]
+        CS[Úložiště kontextu]
     end
 
-    subgraph "Processing & Analytics"
-        RT[Real-time Analytics]
-        ML[ML Models]
-        CEP[Complex Event Processing]
-        Viz[Visualization]
+    subgraph "Zpracování a analytika"
+        RT[Analytika v reálném čase]
+        ML[Modely strojového učení]
+        CEP[Komplexní zpracování událostí]
+        Viz[Vizualizace]
     end
 
-    subgraph "Applications & Services"
-        DA[Decision Automation]
-        Alerts[Alerting Systems]
-        DL[Data Lake/Warehouse]
-        API[API Services]
+    subgraph "Aplikace a služby"
+        DA[Automatizace rozhodování]
+        Alerts[Systémy upozornění]
+        DL[Datové jezero/sklad]
+        API[Služby API]
     end
 
     IoT -->|Data| SC
     APIs -->|Data| SC
-    DB -->|Changes| SC
-    Apps -->|Events| SC
+    DB -->|Změny| SC
+    Apps -->|Události| SC
     
-    SC -->|Raw Streams| PA
-    PA -->|Normalized Streams| CH
-    CH <-->|Context Operations| CS
-    CH -->|Context-Enriched Data| SP
-    SP -->|Processed Streams| RT
-    SP -->|Features| ML
-    SP -->|Events| CEP
+    SC -->|Raw streamy| PA
+    PA -->|Normalizované streamy| CH
+    CH <-->|Operace s kontextem| CS
+    CH -->|Data obohacená kontextem| SP
+    SP -->|Zpracované streamy| RT
+    SP -->|Vlastnosti| ML
+    SP -->|Události| CEP
     
-    RT -->|Insights| Viz
-    ML -->|Predictions| DA
-    CEP -->|Complex Events| Alerts
-    Viz -->|Dashboards| Users((Users))
+    RT -->|Poznatky| Viz
+    ML -->|Predikce| DA
+    CEP -->|Komplexní události| Alerts
+    Viz -->|Nástěnky| Users((Uživatelé))
     
-    RT -.->|Historical Data| DL
-    ML -.->|Model Results| DL
-    CEP -.->|Event Logs| DL
+    RT -.->|Historická data| DL
+    ML -.->|Výsledky modelu| DL
+    CEP -.->|Záznamy událostí| DL
     
-    DA -->|Actions| API
-    Alerts -->|Notifications| API
-    DL <-->|Data Access| API
+    DA -->|Akce| API
+    Alerts -->|Oznámení| API
+    DL <-->|Přístup k datům| API
     
     classDef sources fill:#f9f,stroke:#333,stroke-width:2px
     classDef mcp fill:#bbf,stroke:#333,stroke-width:2px
@@ -159,41 +159,41 @@ graph TD
 
 MCP řeší tradiční výzvy streamování prostřednictvím:
 
-- **Kontextové integrity**: Udržování vztahů mezi datovými body v celém pipeline
-- **Optimalizovaného přenosu**: Snižování redundance ve výměně dat díky inteligentní správě kontextu
-- **Standardizovaných rozhraní**: Poskytování konzistentních API pro streamovací komponenty
+- **Integrita kontextu**: Udržování vztahů mezi datovými body v celé pipeline
+- **Optimalizovaný přenos**: Snižování redundance ve výměně dat díky inteligentní správě kontextu
+- **Standardizované rozhraní**: Poskytování konzistentních API pro streamovací komponenty
 - **Snížení latence**: Minimalizace režie zpracování díky efektivní správě kontextu
-- **Zvýšené škálovatelnosti**: Podpora horizontálního škálování při zachování kontextu
+- **Zvýšená škálovatelnost**: Podpora horizontálního škálování při zachování kontextu
 
 ## Integrace a implementace
 
-Systémy streamování dat v reálném čase vyžadují pečlivý návrh architektury a implementaci, aby bylo možné udržet jak výkon, tak kontextovou integritu. Model Context Protocol nabízí standardizovaný přístup k integraci AI modelů a streamovacích technologií, což umožňuje sofistikovanější, kontextově uvědomělé zpracovatelské pipeline.
+Systémy pro streamování dat v reálném čase vyžadují pečlivý architektonický návrh a implementaci, aby bylo zachováno jak výkon, tak kontextuální integrita. Protokol kontextu modelu nabízí standardizovaný přístup k integraci AI modelů a streamovacích technologií, což umožňuje sofistikovanější, kontextově uvědomělé zpracovatelské pipeline.
 
-### Přehled integrace MCP ve streamovacích architekturách
+### Přehled integrace MCP do streamovacích architektur
 
 Implementace MCP v prostředích streamování v reálném čase zahrnuje několik klíčových aspektů:
 
-1. **Serializace a přenos kontextu**: MCP poskytuje efektivní mechanismy pro kódování kontextových informací v rámci streamovacích datových paketů, zajišťující, že nezbytný kontext doprovází data v celém zpracovatelském pipeline. To zahrnuje standardizované serializační formáty optimalizované pro streamovací přenos.
+1. **Serializace a přenos kontextu**: MCP poskytuje efektivní mechanismy pro kódování kontextuálních informací v rámci streamovaných datových paketů, zajišťuje, že nezbytný kontext následuje data během celé zpracovatelské pipeline. To zahrnuje standardizované serializační formáty optimalizované pro streamovací přenos.
 
-2. **Stavové zpracování streamu**: MCP umožňuje inteligentnější stavové zpracování tím, že udržuje konzistentní reprezentaci kontextu napříč zpracovatelskými uzly. To je zvláště cenné v distribuovaných streamovacích architekturách, kde je správa stavu tradičně náročná.
+2. **Stavové zpracování streamu**: MCP umožňuje inteligentnější stavové zpracování díky udržování konzistentní reprezentace kontextu napříč zpracovatelskými uzly. To je zvláště cenné v distribuovaných streamovacích architekturách, kde je správa stavu tradičně náročná.
 
-3. **Čas události vs. čas zpracování**: Implementace MCP ve streamovacích systémech musí řešit běžný problém rozlišení mezi časem, kdy události nastaly, a časem jejich zpracování. Protokol může zahrnovat časový kontext, který zachovává sémantiku času události.
+3. **Čas události vs. čas zpracování**: Implementace MCP v streamovacích systémech musí řešit běžný problém odlišení doby, kdy události nastaly, a kdy jsou zpracovány. Protokol může obsahovat časový kontext, který zachovává sémantiku času události.
 
-4. **Řízení zpětného tlaku (backpressure)**: Standardizací správy kontextu MCP pomáhá řídit zpětný tlak ve streamovacích systémech, umožňující komponentám komunikovat své zpracovatelské kapacity a podle toho upravovat tok dat.
+4. **Řízení zpětného tlaku (backpressure)**: Standardizací správy kontextu MCP napomáhá řídit zpětný tlak ve streamovacích systémech, což umožňuje komponentám komunikovat své schopnosti zpracování a odpovídajícím způsobem upravovat tok dat.
 
-5. **Okna a agregace kontextu**: MCP usnadňuje pokročilejší operace s okny tím, že poskytuje strukturované reprezentace časového a relačního kontextu, což umožňuje smysluplnější agregace napříč proudy událostí.
+5. **Okna kontextu a agregace**: MCP usnadňuje sofistikovanější operace s okny tím, že poskytuje strukturované reprezentace časových a relačních kontextů, což umožňuje smysluplnější agregace napříč proudy událostí.
 
-6. **Zpracování s přesností exactly-once**: Ve streamovacích systémech vyžadujících exactly-once sémantiku může MCP zahrnovat metadata zpracování, která pomáhají sledovat a ověřovat stav zpracování napříč distribuovanými komponentami.
+6. **Zpracování s garancí exactly-once**: Ve streamovacích systémech vyžadujících sémantiku exactly-once může MCP zahrnovat metadata zpracování pro sledování a ověřování stavu zpracování napříč distribuovanými komponentami.
 
-Implementace MCP napříč různými streamovacími technologiemi vytváří jednotný přístup ke správě kontextu, snižuje potřebu vlastního integračního kódu a zároveň zvyšuje schopnost systému udržet smysluplný kontext během průchodu dat pipeline.
+Implementace MCP napříč různými streamovacími technologiemi vytváří jednotný přístup ke správě kontextu, čímž snižuje potřebu vlastního integračního kódu a současně zvyšuje schopnost systému udržet významný kontext, jak data procházejí pipeline.
 
-### MCP v různých streamovacích frameworcích
+### MCP v různých frameworcích pro streamování dat
 
-Tyto příklady vycházejí z aktuální specifikace MCP, která se zaměřuje na protokol založený na JSON-RPC s různými transportními mechanismy. Kód ukazuje, jak lze implementovat vlastní transporty, které integrují streamovací platformy jako Kafka a Pulsar, přičemž zachovávají plnou kompatibilitu s protokolem MCP.
+Tyto příklady vycházejí z aktuální specifikace MCP, která se zaměřuje na protokol založený na JSON-RPC s odlišnými přenosovými mechanismy. Kód demonstruje, jak můžete implementovat vlastní transporty, jež integrují streamovací platformy jako Kafka a Pulsar, přičemž zachovávají plnou kompatibilitu s protokolem MCP.
 
-Příklady jsou navrženy tak, aby ukázaly, jak lze streamovací platformy integrovat s MCP a zajistit tak zpracování dat v reálném čase při zachování kontextového povědomí, které je pro MCP klíčové. Tento přístup zajišťuje, že ukázky kódu přesně odrážejí aktuální stav specifikace MCP k červnu 2025.
+Příklady jsou navrženy tak, aby ukázaly, jak lze streamovací platformy integrovat s MCP k dosažení zpracování dat v reálném čase při zachování kontextové povědomosti, která je centrální pro MCP. Tento přístup zajišťuje, že vzorové kódy přesně odrážejí současný stav specifikace MCP k červnu 2025.
 
-MCP lze integrovat s populárními streamovacími frameworky včetně:
+MCP lze integrovat s populárními streamovacími rámci včetně:
 
 #### Integrace Apache Kafka
 
@@ -206,7 +206,7 @@ from mcp.client import Client, ClientCapabilities
 from mcp.core.message import JsonRpcMessage
 from mcp.core.transports import Transport
 
-# Custom transport class to bridge MCP with Kafka
+# Vlastní transportní třída pro propojení MCP s Kafka
 class KafkaMCPTransport(Transport):
     def __init__(self, bootstrap_servers: str, input_topic: str, output_topic: str):
         self.bootstrap_servers = bootstrap_servers
@@ -244,7 +244,7 @@ class KafkaMCPTransport(Transport):
                     print(f"Consumer error: {msg.error()}")
                     continue
                 
-                # Parse the message value as JSON-RPC
+                # Parsovat hodnotu zprávy jako JSON-RPC
                 try:
                     message_str = msg.value().decode('utf-8')
                     message_data = json.loads(message_str)
@@ -274,7 +274,7 @@ class KafkaMCPTransport(Transport):
                 message_json.encode('utf-8'),
                 callback=self._delivery_report
             )
-            self.producer.poll(0)  # Trigger callbacks
+            self.producer.poll(0)  # Spustit zpětné volání
         except Exception as e:
             print(f"Error writing message: {e}")
     
@@ -297,15 +297,15 @@ class KafkaMCPTransport(Transport):
         self.consumer.close()
         self.producer.flush()
 
-# Example usage of the Kafka MCP transport
+# Příklad použití Kafka MCP transportu
 async def kafka_mcp_example():
-    # Create MCP client with Kafka transport
+    # Vytvořit MCP klienta s Kafka transportem
     client = Client(
         {"name": "kafka-mcp-client", "version": "1.0.0"},
         ClientCapabilities({})
     )
     
-    # Create and connect the Kafka transport
+    # Vytvořit a připojit Kafka transport
     transport = KafkaMCPTransport(
         bootstrap_servers="localhost:9092",
         input_topic="mcp-responses",
@@ -315,10 +315,10 @@ async def kafka_mcp_example():
     await client.connect(transport)
     
     try:
-        # Initialize the MCP session
+        # Inicializovat MCP relaci
         await client.initialize()
         
-        # Example of executing a tool via MCP
+        # Příklad spuštění nástroje přes MCP
         response = await client.execute_tool(
             "process_data",
             {
@@ -332,12 +332,12 @@ async def kafka_mcp_example():
         
         print(f"Tool execution response: {response}")
         
-        # Clean shutdown
+        # Čisté ukončení
         await client.shutdown()
     finally:
         await transport.close()
 
-# Run the example
+# Spustit příklad
 if __name__ == "__main__":
     asyncio.run(kafka_mcp_example())
 ```
@@ -354,7 +354,7 @@ from mcp.core.transports import Transport
 from mcp.server import Server, ServerOptions
 from mcp.server.tools import Tool, ToolExecutionContext, ToolMetadata
 
-# Create a custom MCP transport that uses Pulsar
+# Vytvořte vlastní MCP transport, který používá Pulsar
 class PulsarMCPTransport(Transport):
     def __init__(self, service_url: str, request_topic: str, response_topic: str):
         self.service_url = service_url
@@ -381,24 +381,24 @@ class PulsarMCPTransport(Transport):
         """Background task to consume messages from Pulsar and queue them for processing"""
         while self.running:
             try:
-                # Non-blocking receive with timeout
+                # Nezablokující příjem s časovým limitem
                 msg = self.consumer.receive(timeout_millis=500)
                 
-                # Process the message
+                # Zpracujte zprávu
                 try:
                     message_str = msg.data().decode('utf-8')
                     message_data = json.loads(message_str)
                     mcp_message = JsonRpcMessage.from_dict(message_data)
                     await self.message_queue.put(mcp_message)
                     
-                    # Acknowledge the message
+                    # Potvrďte přijetí zprávy
                     self.consumer.acknowledge(msg)
                 except Exception as e:
                     print(f"Error processing message: {e}")
-                    # Negative acknowledge if there was an error
+                    # Negativní potvrzení, pokud došlo k chybě
                     self.consumer.negative_acknowledge(msg)
             except Exception as e:
-                # Handle timeout or other exceptions
+                # Zpracujte časový limit nebo jiné výjimky
                 await asyncio.sleep(0.1)
     
     async def read(self) -> Optional[JsonRpcMessage]:
@@ -431,7 +431,7 @@ class PulsarMCPTransport(Transport):
         self.producer.close()
         self.client.close()
 
-# Define a sample MCP tool that processes streaming data
+# Definujte ukázkový MCP nástroj, který zpracovává streamingová data
 @Tool(
     name="process_streaming_data",
     description="Process streaming data with context preservation",
@@ -457,13 +457,13 @@ async def process_streaming_data(
     Returns:
         Dict containing processed results and context information
     """
-    # Example processing that leverages MCP context
+    # Příklad zpracování využívající MCP kontext
     print(f"Processing data from {source} with priority {priority}")
     
-    # Access conversation context from MCP
+    # Přístup ke konverzačnímu kontextu z MCP
     conversation_id = ctx.conversation_id if hasattr(ctx, 'conversation_id') else "unknown"
     
-    # Return results with enhanced context
+    # Vraťte výsledky s rozšířeným kontextem
     return {
         "processed_data": f"Processed: {data}",
         "context": {
@@ -474,9 +474,9 @@ async def process_streaming_data(
         }
     }
 
-# Example MCP server implementation using Pulsar transport
+# Ukázková implementace MCP serveru používajícího Pulsar transport
 async def run_mcp_server_with_pulsar():
-    # Create MCP server
+    # Vytvořte MCP server
     server = Server(
         {"name": "pulsar-mcp-server", "version": "1.0.0"},
         ServerOptions(
@@ -484,10 +484,10 @@ async def run_mcp_server_with_pulsar():
         )
     )
     
-    # Register our tool
+    # Zaregistrujte náš nástroj
     server.register_tool(process_streaming_data)
     
-    # Create and connect Pulsar transport
+    # Vytvořte a připojte Pulsar transport
     transport = PulsarMCPTransport(
         service_url="pulsar://localhost:6650",
         request_topic="mcp-requests",
@@ -495,28 +495,28 @@ async def run_mcp_server_with_pulsar():
     )
     
     try:
-        # Start the server with the Pulsar transport
+        # Spusťte server s Pulsar transportem
         await server.run(transport)
     finally:
         await transport.close()
 
-# Run the server
+# Spusťte server
 if __name__ == "__main__":
     asyncio.run(run_mcp_server_with_pulsar())
 ```
 
-### Nejlepší postupy pro nasazení
+### Nejlepší postupy nasazení
 
 Při implementaci MCP pro streamování v reálném čase:
 
 1. **Navrhněte odolnost vůči chybám**:
-   - Implementujte správné zpracování chyb
-   - Používejte dead-letter fronty pro neúspěšné zprávy
+   - Implementujte správné ošetření chyb
+   - Využívejte dead-letter fronty pro neúspěšné zprávy
    - Navrhujte idempotentní procesory
 
 2. **Optimalizujte výkon**:
-   - Nastavte vhodné velikosti bufferů
-   - Používejte dávkování tam, kde je to vhodné
+   - Nakonfigurujte vhodné velikosti vyrovnávacích pamětí
+   - Používejte dávkování tam, kde je vhodné
    - Implementujte mechanismy zpětného tlaku
 
 3. **Monitorujte a sledujte**:
@@ -527,90 +527,114 @@ Při implementaci MCP pro streamování v reálném čase:
 4. **Zabezpečte své streamy**:
    - Implementujte šifrování citlivých dat
    - Používejte autentizaci a autorizaci
-   - Aplikujte správnou kontrolu přístupu
+   - Použijte správnou kontrolu přístupu
 
-### MCP v IoT a edge computingu
 
-MCP zlepšuje streamování v IoT tím, že:
+### MCP v IoT a Edge computingu
 
-- Zachovává kontext zařízení napříč zpracovatelským pipeline
-- Umožňuje efektivní streamování dat z edge do cloudu
-- Podporuje analýzy v reálném čase na IoT datových tocích
-- Usnadňuje komunikaci zařízení mezi sebou s kontextem
+MCP zlepšuje streamování v IoT díky:
 
-Příklad: Sítě senzorů ve smart city  
+- Zachování kontextu zařízení v celé zpracovatelské pipeline
+- Umožnění efektivního streamování dat z edge do cloudu
+- Podpoře analýzy dat IoT v reálném čase
+- Usnadnění komunikace mezi zařízeními s kontextem
+
+Příklad: Sítě senzorů ve Smart City
 ```
 Sensors → Edge Gateways → MCP Stream Processors → Real-time Analytics → Automated Responses
 ```
 
-### Role ve finančních transakcích a vysokofrekvenčním obchodování
+### Role v finančních transakcích a vysokofrekvenčním obchodování
 
-MCP přináší významné výhody pro streamování finančních dat:
+MCP poskytuje významné výhody pro finanční streamování dat:
 
-- Ultra nízká latence zpracování pro obchodní rozhodnutí
-- Udržování kontextu transakcí během zpracování
+- Ultra-nízká latence zpracování pro obchodní rozhodnutí
+- Udržování transakčního kontextu během zpracování
 - Podpora komplexního zpracování událostí s kontextovým povědomím
 - Zajištění konzistence dat napříč distribuovanými obchodními systémy
 
-### Zlepšení analytiky řízené AI
+### Vylepšení analytiky řízené AI
 
 MCP otevírá nové možnosti pro streamovací analytiku:
 
-- Trénink a inferenci modelů v reálném čase
+- Trénink a inferenční modely v reálném čase
 - Nepřetržité učení ze streamovaných dat
-- Kontextově uvědomělé extrahování vlastností
-- Pipeline s více modely a zachovaným kontextem
+- Kontextově uvědomělé získávání rysů
+- Pipeline s vícemodelovými inferencemi se zachovaným kontextem
 
 ## Budoucí trendy a inovace
 
-### Vývoj MCP v reálných prostředích
+### Vývoj MCP v prostředích reálného času
 
-Do budoucna očekáváme, že MCP bude rozvíjen tak, aby řešil:
+Do budoucna očekáváme, že MCP bude řešit:
 
-- **Integraci kvantových výpočtů**: Příprava na streamovací systémy založené na kvantových technologiích
-- **Edge-native zpracování**: Přesun více kontextově uvědomělého zpracování na edge zařízení
-- **Autonomní řízení streamů**: Samooptimalizující se streamovací pipeline
+- **Integraci kvantového počítání**: Příprava na streamovací systémy založené na kvantových technologiích
+- **Edge-nativní zpracování**: Přesun více kontextově uvědomělého zpracování na okrajové zařízení
+- **Autonomní řízení streamu**: Samooptimalizující streamovací pipeline
 - **Federované streamování**: Distribuované zpracování při zachování soukromí
 
 ### Potenciální technologické pokroky
 
-Nové technologie, které ovlivní budoucnost MCP streamování:
+Nově vznikající technologie, které budou určovat budoucnost streamování MCP:
 
-1. **AI-optimalizované streamovací protokoly**: Vlastní protokoly navržené speciálně pro AI pracovní zátěže
-2. **Integrace neuromorfních výpočtů**: Mozkopodobné výpočty pro zpracování streamů
-3. **Serverless streamování**: Událostmi řízené, škálovatelné streamování bez správy infrastruktury
-4. **Distribuované context store**: Globálně distribuovaná, ale vysoce konzistentní správa kontextu
+1. **Protokoly streamování optimalizované pro AI**: Vlastní protokoly určené speciálně pro AI pracovní zátěže
+2. **Integrace neuromorfního počítání**: Mozkově inspirované počítání pro zpracování streamu
+3. **Serverless streaming**: Událostmi řízené, škálovatelné streamování bez správy infrastruktury
+4. **Distribuovaná úložiště kontextu**: Globálně rozptýlená, ale vysoce konzistentní správa kontextu
 
 ## Praktická cvičení
 
-### Cvičení 1: Nastavení základního MCP streamovacího pipeline
+### Cvičení 1: Nastavení základní streamovací pipeline MCP
 
 V tomto cvičení se naučíte:
-- Konfigurovat základní MCP streamovací prostředí
-- Implementovat context handlery pro zpracování streamu
+- Konfigurovat základní streamovací prostředí MCP
+- Implementovat správce kontextu pro zpracování streamu
 - Testovat a ověřovat zachování kontextu
 
 ### Cvičení 2: Vytvoření dashboardu pro analýzu v reálném čase
 
 Vytvořte kompletní aplikaci, která:
 - Příjímá streamovaná data pomocí MCP
-- Zpracovává stream při zachování kontextu
+- Zpracovává stream s udržením kontextu
 - Vizualizuje výsledky v reálném čase
 
 ### Cvičení 3: Implementace komplexního zpracování událostí s MCP
 
 Pokročilé cvičení zahrnující:
-- Detekci vzorců ve streamech
-- Kontextovou korelaci napříč více streamy
+- Detekci vzorů ve streamech
+- Kontextovou korelaci napříč několika streamy
 - Generování komplexních událostí se zachovaným kontextem
 
 ## Další zdroje
 
-- [Model Context Protocol Specification](https://github.com/modelcontextprotocol) - Oficiální specifikace a dokumentace MCP
-- [Apache Kafka Documentation](https://kafka.apache.org/documentation/) - Naučte se o Kafka pro streamovací zpracování
+- [Specifikace Protokolu kontextu modelu](https://modelcontextprotocol.io) - Oficiální specifikace a dokumentace MCP
+- [Dokumentace Apache Kafka](https://kafka.apache.org/documentation/) - Naučte se o Kafka pro streamování dat
 - [Apache Pulsar](https://pulsar.apache.org/) - Jednotná platforma pro messaging a streamování
 - [Streaming Systems: The What, Where, When, and How of Large-Scale Data Processing](https://www.oreilly.com/library/view/streaming-systems/9781491983867/) - Komplexní kniha o streamovacích architekturách
-- [Microsoft Azure Event Hubs](https://learn.microsoft.com/azure/event-hubs/event-hubs-about) - Spravovaná služba pro streamování udál
+- [Microsoft Azure Event Hubs](https://learn.microsoft.com/azure/event-hubs/event-hubs-about) - Řízená služba streamování událostí
+- [Dokumentace MLflow](https://mlflow.org/docs/latest/index.html) - Pro sledování a nasazení ML modelů
+- [Real-Time Analytics with Apache Storm](https://storm.apache.org/releases/current/index.html) - Framework pro zpracování v reálném čase
+- [Flink ML](https://nightlies.apache.org/flink/flink-ml-docs-master/) - Knihovna strojového učení pro Apache Flink
+- [Dokumentace LangChain](https://python.langchain.com/docs/get_started/introduction) - Budování aplikací s LLM
 
-**Prohlášení o vyloučení odpovědnosti**:  
-Tento dokument byl přeložen pomocí AI překladatelské služby [Co-op Translator](https://github.com/Azure/co-op-translator). I když usilujeme o přesnost, mějte prosím na paměti, že automatizované překlady mohou obsahovat chyby nebo nepřesnosti. Původní dokument v jeho mateřském jazyce by měl být považován za autoritativní zdroj. Pro důležité informace se doporučuje profesionální lidský překlad. Nejsme odpovědní za jakékoliv nedorozumění nebo nesprávné výklady vyplývající z použití tohoto překladu.
+## Výsledky učení
+
+Po dokončení tohoto modulu budete schopni:
+
+- Pochopit základy streamování dat v reálném čase a jeho výzvy
+- Vysvětlit, jak Protokol kontextu modelu (MCP) vylepšuje streamování dat v reálném čase
+- Implementovat řešení založená na MCP pomocí populárních rámců jako Kafka a Pulsar
+- Navrhovat a nasazovat odolné, vysoce výkonné streamovací architektury s MCP
+- Aplikovat koncepty MCP na případy použití v IoT, finančním obchodování a AI-řízené analytice
+- Hodnotit nové trendy a budoucí inovace v technologiích streamování založených na MCP
+
+## Co bude dál
+
+- [5.11 Realtime Search](../mcp-realtimesearch/README.md)
+
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Prohlášení o omezení odpovědnosti**:
+Tento dokument byl přeložen pomocí AI překladatelské služby [Co-op Translator](https://github.com/Azure/co-op-translator). Přestože usilujeme o co největší přesnost, mějte prosím na paměti, že automatizované překlady mohou obsahovat chyby nebo nepřesnosti. Originální dokument v jeho mateřském jazyce by měl být považován za autoritativní zdroj. Pro kritické informace se doporučuje profesionální lidský překlad. Nejsme odpovědní za jakékoli nedorozumění nebo nesprávné interpretace vzniklé použitím tohoto překladu.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

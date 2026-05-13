@@ -1,148 +1,149 @@
-# Modelio konteksto protokolas realaus laiko duomenų srautams
+# Modelio konteksto protokolas realaus laiko duomenų transliavimui
 
 ## Apžvalga
 
-Realaus laiko duomenų srautai tapo būtini šiuolaikiniame duomenimis grįstame pasaulyje, kur verslai ir programos reikalauja nedelsiant gauti informaciją, kad galėtų priimti laiku sprendimus. Modelio konteksto protokolas (MCP) yra reikšmingas žingsnis optimizuojant šiuos realaus laiko srautų procesus, didinant duomenų apdorojimo efektyvumą, išlaikant kontekstinį vientisumą ir gerinant bendrą sistemos našumą.
+Realaus laiko duomenų transliavimas tapo esminis šiandienos duomenimis pagrįstame pasaulyje, kur verslai ir programos reikalauja skubaus prieigos prie informacijos, kad galėtų priimti laiku sprendimus. Modelio konteksto protokolas (MCP) žymi reikšmingą pažangą optimizuojant šiuos realaus laiko transliavimo procesus, gerinant duomenų apdorojimo efektyvumą, išlaikant kontekstinį integralumą ir gerinant bendrą sistemos veikimą.
 
-Šiame modulyje nagrinėjama, kaip MCP transformuoja realaus laiko duomenų srautus, suteikdamas standartizuotą požiūrį į konteksto valdymą tarp AI modelių, srautų platformų ir programų.
+Šis modulis nagrinėja, kaip MCP transformuoja realaus laiko duomenų transliavimą, suteikdamas standartizuotą požiūrį į konteksto valdymą tarp dirbtinio intelekto modelių, transliavimo platformų ir programų.
 
-## Įvadas į realaus laiko duomenų srautus
+## Įvadas į realaus laiko duomenų transliavimą
 
-Realaus laiko duomenų srautai yra technologinis principas, leidžiantis nuolat perduoti, apdoroti ir analizuoti duomenis jų generavimo metu, suteikiant sistemoms galimybę nedelsiant reaguoti į naują informaciją. Skirtingai nuo tradicinio paketinio apdorojimo, kuris veikia su statiniais duomenų rinkiniais, srautinis apdorojimas vyksta judant duomenims, pateikiant įžvalgas ir veiksmus su minimaliu vėlavimu.
+Realaus laiko duomenų transliavimas yra technologinė paradigma, leidžianti nuolat perduoti, apdoroti ir analizuoti duomenis tuo metu, kai jie gaminami, leidžianti sistemoms iš karto reaguoti į naują informaciją. Skirtingai nei tradicinis partijinis apdorojimas, kuris veikia su statiniais duomenų rinkiniais, transliavimas apdoroja judančius duomenis, suteikdamas įžvalgas ir veiksmus su minimaliu delsimo laiku.
 
-### Pagrindinės realaus laiko duomenų srautų sąvokos:
+### Pagrindinės realaus laiko duomenų transliavimo sąvokos:
 
-- **Nuolatinis duomenų srautas**: Duomenys apdorojami kaip nenutrūkstamas, nesibaigiantis įvykių ar įrašų srautas.
-- **Mažas vėlavimas**: Sistemos sukurtos taip, kad sumažintų laiką tarp duomenų generavimo ir apdorojimo.
-- **Mastelio keitimas**: Srautų architektūros turi valdyti kintamus duomenų kiekius ir greitį.
-- **Atsparumas gedimams**: Sistemos turi būti atsparios gedimams, kad užtikrintų nenutrūkstamą duomenų srautą.
-- **Būsenos apdorojimas**: Konteksto išlaikymas tarp įvykių yra būtinas prasmingai analizei.
+- **Nuolatinis duomenų srautas**: Duomenys apdorojami kaip nenutrūkstamas, niekada nesibaigiantis įvykių arba įrašų srautas.
+- **Mažas delsimo laikas apdorojant**: Sistemos sukurtos sumažinti laiką tarp duomenų generavimo ir apdorojimo.
+- **Mastelio keičiamumas**: Transliavimo architektūros turi sugebėti tvarkyti kintamą duomenų kiekį ir greitį.
+- **Gedimų tolerancija**: Sistemos turi būti atsparios gedimams, kad užtikrintų nepertraukiamą duomenų srautą.
+- **Valstybės laikymas**: Konteksto palaikymas tarp įvykių yra svarbus prasmingai analizei.
 
-### Modelio konteksto protokolas ir realaus laiko srautai
+### Modelio konteksto protokolas ir realaus laiko transliavimas
 
-Modelio konteksto protokolas (MCP) sprendžia kelias svarbias problemas realaus laiko srautų aplinkose:
+Modelio konteksto protokolas (MCP) sprendžia kelias svarbias problemas realaus laiko transliavimo aplinkose:
 
-1. **Kontekstinis tęstinumas**: MCP standartizuoja, kaip kontekstas išlaikomas tarp paskirstytų srautų komponentų, užtikrinant, kad AI modeliai ir apdorojimo mazgai turėtų prieigą prie svarbaus istorinio ir aplinkos konteksto.
+1. **Kontekstinė tęstinumas**: MCP standartizuoja, kaip kontekstas palaikomas tarp paskirstytų transliavimo komponentų, užtikrindamas, kad DI modeliai ir apdorojimo mazgai turėtų prieigą prie svarbios istorinės ir aplinkos konteksto.
 
-2. **Efektyvus būsenos valdymas**: MCP suteikia struktūrizuotus mechanizmus konteksto perdavimui, sumažindamas būsenos valdymo apkrovą srautų vamzdynuose.
+2. **Efektyvus būsenos valdymas**: Pateikdamas struktūruotus mechanizmus konteksto perdavimui, MCP sumažina būsenos valdymo naštą transliavimo vamzdynuose.
 
-3. **Sąveikumas**: MCP sukuria bendrą kalbą konteksto dalijimuisi tarp įvairių srautų technologijų ir AI modelių, leidžiant lankstesnes ir išplečiamas architektūras.
+3. **Sąveikumas**: MCP sukuria bendrą kalbą konteksto dalinimuisi tarp įvairių transliavimo technologijų ir DI modelių, leidžiant lankstesnes ir išplečiamos architektūras.
 
-4. **Srautams optimizuotas kontekstas**: MCP įgyvendinimai gali prioritizuoti, kurie konteksto elementai yra svarbiausi realaus laiko sprendimų priėmimui, optimizuojant tiek našumą, tiek tikslumą.
+4. **Transliavimui optimizuotas kontekstas**: MCP įgyvendinimai gali prioritetizuoti, kurie konteksto elementai yra svarbiausi realaus laiko sprendimų priėmimui, optimizuojant tiek našumą, tiek tikslumą.
 
-5. **Prisitaikantis apdorojimas**: Tinkamai valdant kontekstą per MCP, srautų sistemos gali dinamiškai prisitaikyti prie besikeičiančių sąlygų ir duomenų modelių.
+5. **Adaptuojamas apdorojimas**: Tinkamai valdant kontekstą per MCP, transliavimo sistemos gali dinamiškai reguliuoti apdorojimą pagal kintančias sąlygas ir modelius duomenyse.
 
-Šiuolaikinėse programose, pradedant IoT jutiklių tinklais ir baigiant finansų prekybos platformomis, MCP integracija su srautų technologijomis leidžia protingesnį, kontekstu pagrįstą apdorojimą, kuris gali tinkamai reaguoti į sudėtingas, besikeičiančias situacijas realiu laiku.
+Šiuolaikinėse programose, pradedant nuo IoT jutiklių tinklų iki finansinių prekybos platformų, MCP integracija su transliavimo technologijomis leidžia atlikti intelektualesnį, kontekstualiai suvokiamą apdorojimą, galintį tinkamai reaguoti į sudėtingas, besikeičiančias situacijas realiuoju laiku.
 
 ## Mokymosi tikslai
 
-Baigę šią pamoką, galėsite:
+Pasibaigus pamokai, jūs galėsite:
 
-- Suprasti realaus laiko duomenų srautų pagrindus ir jų iššūkius
-- Paaiškinti, kaip Modelio konteksto protokolas (MCP) pagerina realaus laiko duomenų srautus
-- Įgyvendinti MCP pagrįstus srautų sprendimus naudojant populiarias platformas, tokias kaip Kafka ir Pulsar
-- Projektuoti ir diegti atsparias gedimams, aukšto našumo srautų architektūras su MCP
-- Taikyti MCP koncepcijas IoT, finansų prekybos ir AI pagrįstų analitikos atvejų naudojimui
-- Įvertinti naujas tendencijas ir ateities inovacijas MCP pagrįstose srautų technologijose
+- Suprasti realaus laiko duomenų transliavimo pagrindus ir jo iššūkius
+- Paaiškinti, kaip Modelio konteksto protokolas (MCP) pagerina realaus laiko duomenų transliavimą
+- Įgyvendinti MCP pagrindu veikiančius transliavimo sprendimus naudojant populiarias sistemas, tokias kaip Kafka ir Pulsar
+- Projektuoti ir diegti gedimų tolerantiškas, didelio našumo transliavimo architektūras su MCP
+- Taikyti MCP koncepcijas IoT, finansinių sandorių ir DI pagrindu atliekamos analizės atvejuose
+- Vertinti naujus trendus ir būsimus MCP pagrindu sukuriamus transliavimo technologijų sprendimus
+
 
 ### Apibrėžimas ir reikšmė
 
-Realaus laiko duomenų srautai apima nuolatinį duomenų generavimą, apdorojimą ir pristatymą su minimaliu vėlavimu. Skirtingai nuo paketinio apdorojimo, kur duomenys renkami ir apdorojami grupėmis, srautų duomenys apdorojami palaipsniui jų atvykimo metu, leidžiant nedelsiant gauti įžvalgas ir veiksmus.
+Realaus laiko duomenų transliavimas apima nuolatinį duomenų generavimą, apdorojimą ir tiekimą su minimaliu vėlavimu. Skirtingai nuo partijinio apdorojimo, kai duomenys renkami ir apdorojami grupėmis, transliuojami duomenys apdorojami palaipsniui jiems atvykstant, leidžiant nedelsiant gauti įžvalgas ir atlikti veiksmus.
 
-Pagrindinės realaus laiko duomenų srautų savybės:
+Pagrindinės realaus laiko duomenų transliavimo savybės yra:
 
 - **Mažas vėlavimas**: Duomenų apdorojimas ir analizė per milisekundes ar sekundes
 - **Nuolatinis srautas**: Nenutrūkstami duomenų srautai iš įvairių šaltinių
-- **Nedelsiant apdorojimas**: Duomenų analizė jų atvykimo metu, o ne grupėmis
-- **Įvykių pagrįsta architektūra**: Reagavimas į įvykius jų atsiradimo metu
+- **Nedelsiantis apdorojimas**: Duomenų analizė atkeliavus, o ne partijomis
+- **Įvykių varoma architektūra**: Reagavimas į įvykius juos įvykstant
 
-### Tradicinių duomenų srautų iššūkiai
+### Iššūkiai tradiciniame duomenų transliavime
 
-Tradiciniai duomenų srautų metodai susiduria su keliais apribojimais:
+Tradiciniai duomenų transliavimo metodai susiduria su keliais apribojimais:
 
-1. **Konteksto praradimas**: Sunku išlaikyti kontekstą paskirstytose sistemose
-2. **Mastelio keitimo problemos**: Iššūkiai valdant didelės apimties ir didelio greičio duomenis
+1. **Konteksto praradimas**: Sunku palaikyti kontekstą paskirstytose sistemose
+2. **Mastelio keitimo problemos**: Iššūkiai tvarkant didelio tūrio ir spartaus duomenų srautus
 3. **Integracijos sudėtingumas**: Sąveikos problemos tarp skirtingų sistemų
-4. **Vėlavimo valdymas**: Pusiausvyros tarp pralaidumo ir apdorojimo laiko užtikrinimas
-5. **Duomenų nuoseklumas**: Duomenų tikslumo ir išsamumo užtikrinimas visame sraute
+4. **Delsimo valdymas**: Balansavimo tarp pralaidumo ir apdorojimo laiko klausimai
+5. **Duomenų nuoseklumas**: Užtikrinti duomenų tikslumą ir pilnumą sraute
 
 ## Modelio konteksto protokolo (MCP) supratimas
 
 ### Kas yra MCP?
 
-Modelio konteksto protokolas (MCP) yra standartizuotas komunikacijos protokolas, skirtas efektyviai sąveikai tarp AI modelių ir programų. Realaus laiko duomenų srautų kontekste MCP suteikia sistemą:
+Modelio konteksto protokolas (MCP) yra standartizuotas komunikacijos protokolas, sukurtas palengvinti efektyvų bendravimą tarp DI modelių ir programų. Realaus laiko duomenų transliavimo kontekste MCP suteikia pagrindą:
 
-- Konteksto išsaugojimui visame duomenų vamzdyne
-- Duomenų mainų formatų standartizavimui
-- Didelių duomenų rinkinių perdavimo optimizavimui
-- Modelio ir programos komunikacijos gerinimui
+- Konteksto išlaikymui per duomenų vamzdyną
+- Standartizuoti duomenų mainų formatus
+- Optimizuoti didelių duomenų rinkinių perdavimą
+- Pagerinti modelių tarpusavio bei modelių ir programų komunikaciją
 
-### Pagrindiniai komponentai ir architektūra
+### Pagrindinės sudedamosios dalys ir architektūra
 
-MCP architektūra realaus laiko srautams apima kelis pagrindinius komponentus:
+MCP architektūra realaus laiko transliavimui susideda iš kelių svarbių komponentų:
 
-1. **Konteksto valdytojai**: Valdo ir palaiko kontekstinę informaciją visame srautų vamzdyne
-2. **Srautų procesoriai**: Apdoroja gaunamus duomenų srautus, naudodami kontekstu pagrįstus metodus
-3. **Protokolo adapteriai**: Konvertuoja tarp skirtingų srautų protokolų, išlaikant kontekstą
-4. **Konteksto saugykla**: Efektyviai saugo ir atkuria kontekstinę informaciją
-5. **Srautų jungtys**: Jungiasi prie įvairių srautų platformų (Kafka, Pulsar, Kinesis ir kt.)
+1. **Konteksto tvarkytojai**: Valdo ir palaiko kontekstinę informaciją per transliavimo vamzdyną
+2. **Srautų procesoriai**: Apdoroja įeinančius duomenų srautus naudojant kontekstualiai jautrias technikas
+3. **Protokolo adapteriai**: Konvertuoja tarp skirtingų transliavimo protokolų išlaikant kontekstą
+4. **Konteksto saugykla**: Efektyviai saugo ir atkūria kontekstinę informaciją
+5. **Transliavimo jungtys**: Susijungia su įvairiomis transliavimo platformomis (Kafka, Pulsar, Kinesis ir kt.)
 
 ```mermaid
 graph TD
-    subgraph "Data Sources"
-        IoT[IoT Devices]
-        APIs[APIs]
-        DB[Databases]
-        Apps[Applications]
+    subgraph "Duomenų Šaltiniai"
+        IoT[IoT Įrenginiai]
+        APIs[API]
+        DB[Duomenų Bazės]
+        Apps[Programėlės]
     end
 
-    subgraph "MCP Streaming Layer"
-        SC[Streaming Connectors]
-        PA[Protocol Adapters]
-        CH[Context Handlers]
-        SP[Stream Processors]
-        CS[Context Store]
+    subgraph "MCP Srautinio Perkėlimo Sluoksnis"
+        SC[Srautiniai Jungikliai]
+        PA[Protokolų Adapteriai]
+        CH[Konteksto Tvarkyklės]
+        SP[Srauto Apdorojimo Įrankiai]
+        CS[Konteksto Saugykla]
     end
 
-    subgraph "Processing & Analytics"
-        RT[Real-time Analytics]
-        ML[ML Models]
-        CEP[Complex Event Processing]
-        Viz[Visualization]
+    subgraph "Apdorojimas & Analitika"
+        RT[Realaus Laiko Analitika]
+        ML[ML Modeliai]
+        CEP[Sudėtingas Įvykių Apdorojimas]
+        Viz[Vizualizacija]
     end
 
-    subgraph "Applications & Services"
-        DA[Decision Automation]
-        Alerts[Alerting Systems]
-        DL[Data Lake/Warehouse]
-        API[API Services]
+    subgraph "Programėlės & Paslaugos"
+        DA[Sprendimų Automatizavimas]
+        Alerts[Įspėjimų Sistemos]
+        DL[Duomenų Ežeras/Sandėlis]
+        API[API Paslaugos]
     end
 
-    IoT -->|Data| SC
-    APIs -->|Data| SC
-    DB -->|Changes| SC
-    Apps -->|Events| SC
+    IoT -->|Duomenys| SC
+    APIs -->|Duomenys| SC
+    DB -->|Pokyčiai| SC
+    Apps -->|Įvykiai| SC
     
-    SC -->|Raw Streams| PA
-    PA -->|Normalized Streams| CH
-    CH <-->|Context Operations| CS
-    CH -->|Context-Enriched Data| SP
-    SP -->|Processed Streams| RT
-    SP -->|Features| ML
-    SP -->|Events| CEP
+    SC -->|Žali Srautai| PA
+    PA -->|Normalizuoti Srautai| CH
+    CH <-->|Konteksto Operacijos| CS
+    CH -->|Kontekstu Praturtinti Duomenys| SP
+    SP -->|Apdoroti Srautai| RT
+    SP -->|Funkcijos| ML
+    SP -->|Įvykiai| CEP
     
-    RT -->|Insights| Viz
-    ML -->|Predictions| DA
-    CEP -->|Complex Events| Alerts
-    Viz -->|Dashboards| Users((Users))
+    RT -->|Įžvalgos| Viz
+    ML -->|Prognozės| DA
+    CEP -->|Sudėtingi Įvykiai| Alerts
+    Viz -->|Informaciniai Skydeliai| Users((Naudotojai))
     
-    RT -.->|Historical Data| DL
-    ML -.->|Model Results| DL
-    CEP -.->|Event Logs| DL
+    RT -.->|Istoriniai Duomenys| DL
+    ML -.->|Modelio Rezultatai| DL
+    CEP -.->|Įvykių Žurnalai| DL
     
-    DA -->|Actions| API
-    Alerts -->|Notifications| API
-    DL <-->|Data Access| API
+    DA -->|Veiksmai| API
+    Alerts -->|Pranešimai| API
+    DL <-->|Duomenų Prieiga| API
     
     classDef sources fill:#f9f,stroke:#333,stroke-width:2px
     classDef mcp fill:#bbf,stroke:#333,stroke-width:2px
@@ -157,43 +158,43 @@ graph TD
 
 ### Kaip MCP pagerina realaus laiko duomenų apdorojimą
 
-MCP sprendžia tradicinius srautų iššūkius per:
+MCP sprendžia tradicinius transliavimo iššūkius per:
 
-- **Kontekstinį vientisumą**: Išlaikant ryšius tarp duomenų taškų visame vamzdyne
-- **Optimizuotą perdavimą**: Sumažinant duomenų mainų perteklumą per protingą konteksto valdymą
-- **Standartizuotas sąsajas**: Suteikiant nuoseklius API srautų komponentams
-- **Sumažintą vėlavimą**: Mažinant apdorojimo apkrovą per efektyvų konteksto valdymą
-- **Padidintą mastelio keitimą**: Palaikant horizontalų mastelio keitimą, išlaikant kontekstą
+- **Kontekstinį integralumą**: Išlaikant ryšius tarp duomenų taškų per visą vamzdyną
+- **Optimizuotą perdavimą**: Sumažinant duomenų mainų perteklinumą per intelektualų konteksto valdymą
+- **Standartizuotas sąsajas**: Suteikiant nuoseklius API transliavimo komponentams
+- **Sumažintą delsimą**: Mažinant apdorojimo naštą per efektyvų konteksto tvarkymą
+- **Pagerintą mastelio keitimą**: Remiant horizontalaus mastelio keitimo galimybes išlaikant kontekstą
 
 ## Integracija ir įgyvendinimas
 
-Realaus laiko duomenų srautų sistemos reikalauja kruopštaus architektūrinio projektavimo ir įgyvendinimo, kad būtų išlaikytas tiek našumas, tiek kontekstinis vientisumas. Modelio konteksto protokolas siūlo standartizuotą požiūrį į AI modelių ir srautų technologijų integraciją, leidžiant sudėtingesnius, kontekstu pagrįstus apdorojimo vamzdynus.
+Realaus laiko duomenų transliavimo sistemos reikalauja kruopštaus architektūrinio dizaino ir įgyvendinimo, siekiant išlaikyti tiek našumą, tiek kontekstinį integralumą. Modelio konteksto protokolas suteikia standartizuotą požiūrį integruojant DI modelius ir transliavimo technologijas, leidžiant sudėtingesnius ir kontekstualiai suvokiamus apdorojimo vamzdynus.
 
-### MCP integracijos apžvalga srautų architektūrose
+### MCP integracijos apžvalga transliavimo architektūrose
 
-MCP įgyvendinimas realaus laiko srautų aplinkose apima kelis svarbius aspektus:
+Įgyvendinant MCP realaus laiko transliavimo aplinkoje reikia atsižvelgti į keletą svarbių aspektų:
 
-1. **Konteksto serializacija ir transportavimas**: MCP suteikia efektyvius mechanizmus kontekstinės informacijos kodavimui srautų duomenų paketų viduje, užtikrinant, kad esminis kontekstas seka duomenis visame apdorojimo vamzdyne. Tai apima standartizuotus serializacijos formatus, optimizuotus srautų transportui.
+1. **Konteksto serializacija ir perdavimas**: MCP suteikia efektyvius mechanizmus kontekstinei informacijai koduoti transliavimo duomenų paketuose, užtikrinant, kad esminis kontekstas keliauja kartu su duomenimis per apdorojimo vamzdyną. Tai apima standartizuotus serializacijos formatus, optimizuotus transliavimo perdavimui.
 
-2. **Būsenos apdorojimas**: MCP leidžia protingesnį būsenos apdorojimą, išlaikant nuoseklų konteksto atvaizdavimą apdorojimo mazguose. Tai ypač vertinga paskirstytose srautų architektūrose, kur būsenos valdymas tradiciškai yra sudėtingas.
+2. **Valstybės laikymas srautuose**: MCP leidžia protingesnį valstybės apdorojimą palaikant nuoseklų konteksto vaizdavimą per apdorojimo mazgus. Tai ypač vertinga paskirstytose transliavimo architektūrose, kur būsenos valdymas tradiciškai yra sudėtingas.
 
-3. **Įvykių laikas vs apdorojimo laikas**: MCP įgyvendinimai srautų sistemose turi spręsti bendrą iššūkį atskirti, kada įvykiai įvyko ir kada jie apdorojami. Protokolas gali įtraukti laikinį kontekstą, kuris išsaugo įvykių laiko semantiką.
+3. **Įvykio laikas vs. apdorojimo laikas**: MCP įgyvendinimai transliavimo sistemose turi spręsti įprastą iššūkį atskirti, kada įvykiai įvyko ir kada jie apdoroti. Protokolas gali įtraukti laiko kontekstą, saugantį įvykių laiko semantiką.
 
-4. **Atgalinio spaudimo valdymas**: Standartizuojant konteksto valdymą, MCP padeda valdyti atgalinį spaudimą srautų sistemose, leidžiant komponentams komunikuoti savo apdorojimo galimybes ir atitinkamai reguliuoti srautą.
+4. **Atgalinio spaudimo valdymas**: Standartizuodamas konteksto tvarkymą, MCP padeda valdyti atgalinį spaudimą transliavimo sistemose, leidžiant komponentams perduoti savo apdorojimo galimybes ir pagal tai reguliuoti srautus.
 
-5. **Konteksto langų ir agregavimo valdymas**: MCP palengvina sudėtingesnes langų operacijas, suteikdamas struktūrizuotus laikinio ir santykinio konteksto atvaizdavimus, leidžiant prasmingesnius agregavimus per įvykių srautus.
+5. **Konteksto langų ir agregavimas**: MCP palengvina sudėtingesnes langų operacijas, pateikdamas struktūrizuotus temporalaus ir reliatyvaus konteksto vaizdavimus, leidžiančius prasmingesnes agregacijas per įvykių srautus.
 
-6. **Tiksliai vieną kartą apdorojimas**: Srautų sistemose, reikalaujančiose tiksliai vieną kartą semantikos, MCP gali įtraukti apdorojimo metaduomenis, padedančius sekti ir patikrinti apdorojimo būseną paskirstytuose komponentuose.
+6. **Tikslus vienkartinis apdorojimas**: Transliavimo sistemose, kur reikalingas tikslus vienkartinis apdorojimas, MCP gali įtraukti apdorojimo metaduomenis, padedančius sekti ir patvirtinti apdorojimo būklę paskirstytuose komponentuose.
 
-MCP įgyvendinimas įvairiose srautų technologijose sukuria vieningą požiūrį į konteksto valdymą, sumažinant poreikį pritaikyti integracijos kodą ir pagerinant sistemos gebėjimą išlaikyti prasmingą kontekstą, kai duomenys teka per vamzdyną.
+Įgyvendinimas MCP daugybėje transliavimo technologijų sukuria vieningą konteksto valdymo būdą, mažindamas poreikį rašyti specialų integracijos kodą ir pagerindamas sistemos gebėjimą išlaikyti prasmingą kontekstą, kai duomenys teka vamzdynu.
 
-### MCP įvairiuose duomenų srautų pagrinduose
+### MCP įvairiose duomenų transliavimo sistemose
 
-Šie pavyzdžiai atitinka dabartinę MCP specifikaciją, kuri orientuota į JSON-RPC pagrįstą protokolą su atskirais transportavimo mechanizmais. Kodas demonstruoja, kaip galite įgyvendinti pritaikytus transportus, kurie integruoja srautų platformas, tokias kaip Kafka ir Pulsar, išlaikant pilną suderinamumą su MCP protokolu.
+Šie pavyzdžiai atitinka dabartinę MCP specifikaciją, kuri remiasi JSON-RPC pagrindu sukurtu protokolu su atskiromis perdavimo mechanikomis. Kode parodyta, kaip galite įgyvendinti pasirinktinius perdavimus, integruojančius transliavimo platformas, tokias kaip Kafka ir Pulsar, išlaikant visišką suderinamumą su MCP protokolu.
 
-Pavyzdžiai skirti parodyti, kaip srautų platformos gali būti integruotos su MCP, kad būtų užtikrintas realaus laiko duomenų apdorojimas, išlaikant kontekstinį sąmoningumą, kuris yra MCP pagrindas. Šis požiūris užtikrina, kad kodo pavyzdžiai tiksliai atspindi dabartinę MCP specifikacijos būklę 2025 m. birželio mėn.
+Pavyzdžiai skirti parodyti, kaip transliavimo platformos gali būti integruotos su MCP, kad suteiktų realaus laiko duomenų apdorojimą išlaikant esminį MCP kontekstualų suvokimą. Šis požiūris užtikrina, kad kodo pavyzdžiai tiksliai atspindi dabartinę MCP specifikacijos būklę 2025 metų birželio mėn.
 
-MCP galima integruoti su populiariais srautų pagrindais, įskaitant:
+MCP gali būti integruotas su populiariomis transliavimo sistemomis, įskaitant:
 
 #### Apache Kafka integracija
 
@@ -206,7 +207,7 @@ from mcp.client import Client, ClientCapabilities
 from mcp.core.message import JsonRpcMessage
 from mcp.core.transports import Transport
 
-# Custom transport class to bridge MCP with Kafka
+# Tinkinta transporto klasė MCP ir Kafka tiltui
 class KafkaMCPTransport(Transport):
     def __init__(self, bootstrap_servers: str, input_topic: str, output_topic: str):
         self.bootstrap_servers = bootstrap_servers
@@ -244,7 +245,7 @@ class KafkaMCPTransport(Transport):
                     print(f"Consumer error: {msg.error()}")
                     continue
                 
-                # Parse the message value as JSON-RPC
+                # Parsinti žinutės reikšmę kaip JSON-RPC
                 try:
                     message_str = msg.value().decode('utf-8')
                     message_data = json.loads(message_str)
@@ -274,7 +275,7 @@ class KafkaMCPTransport(Transport):
                 message_json.encode('utf-8'),
                 callback=self._delivery_report
             )
-            self.producer.poll(0)  # Trigger callbacks
+            self.producer.poll(0)  # Sukelti atgalinius kvietimus
         except Exception as e:
             print(f"Error writing message: {e}")
     
@@ -297,15 +298,15 @@ class KafkaMCPTransport(Transport):
         self.consumer.close()
         self.producer.flush()
 
-# Example usage of the Kafka MCP transport
+# Pavyzdinis Kafka MCP transporto naudojimas
 async def kafka_mcp_example():
-    # Create MCP client with Kafka transport
+    # Sukurti MCP klientą su Kafka transportu
     client = Client(
         {"name": "kafka-mcp-client", "version": "1.0.0"},
         ClientCapabilities({})
     )
     
-    # Create and connect the Kafka transport
+    # Sukurti ir prijungti Kafka transportą
     transport = KafkaMCPTransport(
         bootstrap_servers="localhost:9092",
         input_topic="mcp-responses",
@@ -315,10 +316,10 @@ async def kafka_mcp_example():
     await client.connect(transport)
     
     try:
-        # Initialize the MCP session
+        # Inicializuoti MCP sesiją
         await client.initialize()
         
-        # Example of executing a tool via MCP
+        # Pavyzdys, kaip vykdyti įrankį per MCP
         response = await client.execute_tool(
             "process_data",
             {
@@ -332,12 +333,12 @@ async def kafka_mcp_example():
         
         print(f"Tool execution response: {response}")
         
-        # Clean shutdown
+        # Švarus išjungimas
         await client.shutdown()
     finally:
         await transport.close()
 
-# Run the example
+# Paleisti pavyzdį
 if __name__ == "__main__":
     asyncio.run(kafka_mcp_example())
 ```
@@ -354,7 +355,7 @@ from mcp.core.transports import Transport
 from mcp.server import Server, ServerOptions
 from mcp.server.tools import Tool, ToolExecutionContext, ToolMetadata
 
-# Create a custom MCP transport that uses Pulsar
+# Sukurkite pasirinktą MCP transportą, kuris naudoja Pulsar
 class PulsarMCPTransport(Transport):
     def __init__(self, service_url: str, request_topic: str, response_topic: str):
         self.service_url = service_url
@@ -381,24 +382,24 @@ class PulsarMCPTransport(Transport):
         """Background task to consume messages from Pulsar and queue them for processing"""
         while self.running:
             try:
-                # Non-blocking receive with timeout
+                # Neblokuojantis gavimas su laiko limitu
                 msg = self.consumer.receive(timeout_millis=500)
                 
-                # Process the message
+                # Apdorokite pranešimą
                 try:
                     message_str = msg.data().decode('utf-8')
                     message_data = json.loads(message_str)
                     mcp_message = JsonRpcMessage.from_dict(message_data)
                     await self.message_queue.put(mcp_message)
                     
-                    # Acknowledge the message
+                    # Patvirtinkite pranešimą
                     self.consumer.acknowledge(msg)
                 except Exception as e:
                     print(f"Error processing message: {e}")
-                    # Negative acknowledge if there was an error
+                    # Neigiamai patvirtinkite, jei įvyko klaida
                     self.consumer.negative_acknowledge(msg)
             except Exception as e:
-                # Handle timeout or other exceptions
+                # Tvarkykite laiko limitą arba kitas išimtis
                 await asyncio.sleep(0.1)
     
     async def read(self) -> Optional[JsonRpcMessage]:
@@ -431,7 +432,7 @@ class PulsarMCPTransport(Transport):
         self.producer.close()
         self.client.close()
 
-# Define a sample MCP tool that processes streaming data
+# Apibrėžkite pavyzdinį MCP įrankį, kuris apdoroja srautinį duomenį
 @Tool(
     name="process_streaming_data",
     description="Process streaming data with context preservation",
@@ -457,13 +458,13 @@ async def process_streaming_data(
     Returns:
         Dict containing processed results and context information
     """
-    # Example processing that leverages MCP context
+    # Pavyzdinis apdorojimas, naudojantis MCP kontekstą
     print(f"Processing data from {source} with priority {priority}")
     
-    # Access conversation context from MCP
+    # Pasiekite pokalbio kontekstą iš MCP
     conversation_id = ctx.conversation_id if hasattr(ctx, 'conversation_id') else "unknown"
     
-    # Return results with enhanced context
+    # Grąžinkite rezultatus su patobulintu kontekstu
     return {
         "processed_data": f"Processed: {data}",
         "context": {
@@ -474,9 +475,9 @@ async def process_streaming_data(
         }
     }
 
-# Example MCP server implementation using Pulsar transport
+# Pavyzdinė MCP serverio įgyvendinimas naudojant Pulsar transportą
 async def run_mcp_server_with_pulsar():
-    # Create MCP server
+    # Sukurkite MCP serverį
     server = Server(
         {"name": "pulsar-mcp-server", "version": "1.0.0"},
         ServerOptions(
@@ -484,10 +485,10 @@ async def run_mcp_server_with_pulsar():
         )
     )
     
-    # Register our tool
+    # Užregistruokite mūsų įrankį
     server.register_tool(process_streaming_data)
     
-    # Create and connect Pulsar transport
+    # Sukurkite ir prijunkite Pulsar transportą
     transport = PulsarMCPTransport(
         service_url="pulsar://localhost:6650",
         request_topic="mcp-requests",
@@ -495,91 +496,147 @@ async def run_mcp_server_with_pulsar():
     )
     
     try:
-        # Start the server with the Pulsar transport
+        # Paleiskite serverį su Pulsar transportu
         await server.run(transport)
     finally:
         await transport.close()
 
-# Run the server
+# Vykdykite serverį
 if __name__ == "__main__":
     asyncio.run(run_mcp_server_with_pulsar())
 ```
 
-### Geriausios praktikos diegimui
+### Diegimo gerosios praktikos
 
-Įgyvendinant MCP realaus laiko srautams:
+Diegiant MCP realaus laiko transliavimui:
 
-1. **Projektuokite atsparumą gedimams**:
-   - Įgyvendinkite tinkamą klaidų valdymą
-   - Naudokite „dead-letter“ eilutes nepavykusiems pranešimams
-   - Projektuokite idempotentinius procesorius
+1. **Kurkite gedimų tolerancijai**:
+   - Įgyvendinkite tinkamą klaidų tvarkymą
+   - Naudokite dead-letter queues nesėkmingoms žinutėms
+   - Projektuokite idempotentines apdorojimo funkcijas
 
-2. **Optimizuokite našumą**:
-   - Konfigūruokite tinkamus buferių dydžius
-   - Naudokite paketavimą, kur tai tinkama
-   - Įgyvendinkite atgalinio spaudimo mechanizmus
+2. **Optimizuokite našumui**:
+   - Suplanuokite tinkamus buferių dydžius
+   - Naudokite grupavimą, kai tinka
+   - Įdiekite atgalinio spaudimo mechanizmus
 
-3. **Stebėkite ir stebėkite**:
-   - Sekite srautų apdorojimo metrikas
-   - Stebėkite konteksto perdavimą
-   - Nustatykite įspėjimus dėl anomalijų
+3. **Stebėkite ir analizuokite**:
+   - Sekite srauto apdorojimo metrikas
+   - Stebėkite konteksto plitimą
+   - Nustatykite perspėjimus anomalijoms
 
 4. **Užtikrinkite srautų saugumą**:
    - Įgyvendinkite šifravimą jautriems duomenims
    - Naudokite autentifikaciją ir autorizaciją
-   - Taikykite tinkamas prieigos kontrolės priemones
+   - Taikykite teisingas prieigos kontrolės priemones
 
-### MCP IoT ir Edge Computing srityje
 
-MCP pagerina IoT srautus per:
+### MCP IoT ir krašto kompiuterijoje
 
-- Konteksto išsaugojimą visame apdorojimo vamzdyne
-- Efektyvų duomenų srautą nuo krašto iki debesies
-- Realiojo laiko analitiką IoT duomenų srautuose
-- Įrenginio komunikaciją su kontekstu
+MCP pagerina IoT transliavimą per:
 
-Pavyzdys: Išmaniųjų miestų jutiklių tinklai  
+- Įrenginių konteksto išlaikymą per apdorojimo vamzdyną
+- Efektyvų duomenų transliavimą iš krašto iki debesies
+- Realaus laiko analizę IoT duomenų srautuose
+- Įrenginių tiesioginę komunikaciją su kontekstu
+
+Pavyzdys: Išmaniųjų miestų jutiklių tinklai
 ```
 Sensors → Edge Gateways → MCP Stream Processors → Real-time Analytics → Automated Responses
 ```
 
-### Vaidmuo finansiniuose sandoriuose ir aukšto dažnio prekyboje
+### Vaidmuo finansiniuose sandoriuose ir didelio dažnio prekyboje
 
-MCP suteikia reikšmingų privalumų finansinių duomenų srautams:
+MCP suteikia reikšmingų privalumų finansinių duomenų transliavimui:
 
-- Itin mažo vėlavimo apdorojimas prekybos sprendimams
-- Sandorio konteksto išlaikymas viso apdorojimo metu
-- Sudėtingų įvykių apdorojimas su kontekstiniu sąmoningumu
+- Labai mažas vėlavimas prekybos sprendimams
+- Sandorių konteksto palaikymas per visą apdorojimą
+- Sudėtingas įvykių apdorojimas su kontekstiniu suvokimu
 - Duomenų nuoseklumo užtikrinimas paskirstytose prekybos sistemose
 
-### AI pagrįstos duomenų analitikos gerinimas
+### DI pagrįstos duomenų analizės tobulinimas
 
-MCP sukuria naujas galimybes srautų analitikoms:
+MCP kuria naujas galimybes transliavimo analitikai:
 
-- Realiojo laiko modelio mokymas ir prognozavimas
-- Nuolatinis mokymasis iš srautų duomenų
-- Kontekstu pagrįsta funkcijų ištraukimas
-- Daugelio modelių prognozavimo vamzdynai su išsaugotu kontekstu
+- Realaus laiko modelių mokymas ir išvados
+- Nuolatinis mokymasis iš transliuojamų duomenų
+- Kontekstualiai informuota požymių išgavimas
+- Daugmodelių išvadų vamzdynai su išlaikytu kontekstu
 
-## Ateities tendencijos ir inovacijos
+## Ateities tendencijos ir naujovės
 
 ### MCP evoliucija realaus laiko aplinkose
 
-Žvelgiant į ateitį, tikimasi, kad MCP evoliucionuos spręsti:
+Žvelgiant į priekį, tikimasi, kad MCP vystysis spręsdamas:
 
-- **Kvantinio kompiuterio integraciją**: Pasiruošimas kvantiniams srautų sistemoms
-- **Krašto-natūralų apdorojimą**: Daugiau kontekstu pagrįsto apdorojimo krašto įrenginiuose
-- **Autonominį srautų valdymą**: Savarankiškai optimizuojančius srautų vamzdynus
-- **Federuotus srautus**: Paskirstytą apdorojimą, išlaikant privatumą
+- **Kvantinį skaičiavimą**: Pasiruošimą kvantinius pagrindžiamoms transliavimo sistemoms
+- **Krašto gimtąjį apdorojimą**: Daugiau kontekstualiai svarbaus apdorojimo perkėlimą į krašto įrenginius
+- **Autonominį srautų valdymą**: Savioptimizuojančius transliavimo vamzdynus
+- **Federuotą transliavimą**: Paskirstytą apdorojimą išlaikant privatumo apsaugą
 
-### Galimi technologijų pažangumai
+### Potencialūs technologiniai patobulinimai
 
-Atsirandančios technologijos, kurios formuos MCP srautų ateitį:
+Atsirandančios technologijos, formuosiančios MCP transliavimą ateityje:
 
-1. **AI optimizuoti srautų protokolai**: Specialiai AI darbo krūviams sukurti protokolai
-2. **Neuromorfinio kompiuterio integracija**: Smegenų įkvėpt
+1. **AI optimizuoti transliavimo protokolai**: Specialiai DI užduotims sukurti protokolai
+2. **Neuromorfinis skaičiavimas**: Smegenų įkvėptas skaičiavimas srautų apdorojimui
+3. **Serverless transliavimas**: Įvykių valdomas, keičiantis mastą transliavimas be infrastruktūros valdymo
+4. **Paskirstytos konteksto saugyklos**: Pasaulinės paskirstytos, bet labai nuoseklios konteksto valdymo sistemos
+
+## Praktiniai užsiėmimai
+
+### Užduotis 1: Pagrindinio MCP transliavimo vamzdyno nustatymas
+
+Šioje užduotyje sužinosite, kaip:
+- Suplanuoti pagrindinę MCP transliavimo aplinką
+- Įgyvendinti konteksto tvarkytojus srautų apdorojimui
+- Ištestuoti ir patvirtinti konteksto išsaugojimą
+
+### Užduotis 2: Realaus laiko analizės informacijos panelio kūrimas
+
+Sukurkite visą programą, kuri:
+- Priima duomenis naudojant MCP
+- Apdoroja srautą išlaikydama kontekstą
+- Vizualizuoja rezultatus realiu laiku
+
+### Užduotis 3: Sudėtingo įvykių apdorojimo įgyvendinimas su MCP
+
+Pažangi užduotis apimanti:
+- Modelių aptikimą srautuose
+- Kontekstinę koreliaciją tarp kelių srautų
+- Sudėtingų įvykių generavimą išlaikant kontekstą
+
+## Papildomi ištekliai
+
+- [Model Context Protocol Specification](https://modelcontextprotocol.io) - Oficialioji MCP specifikacija ir dokumentacija
+- [Apache Kafka Documentation](https://kafka.apache.org/documentation/) - Sužinokite apie Kafka srautų apdorojimą
+- [Apache Pulsar](https://pulsar.apache.org/) - Vieninga žinučių ir transliavimo platforma
+- [Streaming Systems: The What, Where, When, and How of Large-Scale Data Processing](https://www.oreilly.com/library/view/streaming-systems/9781491983867/) - Išsamus knygos šaltinis apie transliavimo architektūras
+- [Microsoft Azure Event Hubs](https://learn.microsoft.com/azure/event-hubs/event-hubs-about) - Valdomos įvykių transliavimo paslaugos
+- [MLflow Documentation](https://mlflow.org/docs/latest/index.html) - Skirta ML modelių sekimui ir diegimui
+- [Real-Time Analytics with Apache Storm](https://storm.apache.org/releases/current/index.html) - Realaus laiko skaičiavimo apdorojimo sistema
+- [Flink ML](https://nightlies.apache.org/flink/flink-ml-docs-master/) - Mašinų mokymosi biblioteka Apache Flink
+- [LangChain Documentation](https://python.langchain.com/docs/get_started/introduction) - Programų kūrimas su LLMs
+
+
+## Mokymosi rezultatai
+
+Baigę šį modulį galėsite:
+
+- Suprasti realaus laiko duomenų transliavimo pagrindus ir jo iššūkius
+- Paaiškinti, kaip Modelio konteksto protokolas (MCP) pagerina realaus laiko duomenų transliavimą
+- Įgyvendinti MCP pagrindu veikiančius transliavimo sprendimus naudojant populiarias sistemas, tokias kaip Kafka ir Pulsar
+- Projektuoti ir diegti gedimų tolerantiškas, didelio našumo transliavimo architektūras su MCP
+- Taikyti MCP koncepcijas IoT, finansinių sandorių ir DI pagrindu atliekamos analizės atvejuose
+- Vertinti naujus trendus ir būsimus MCP pagrindu sukuriamus transliavimo technologijų sprendimus
+
+## Kas toliau
+
+- [5.11 Realtime Search](../mcp-realtimesearch/README.md)
 
 ---
 
-**Atsakomybės apribojimas**:  
-Šis dokumentas buvo išverstas naudojant AI vertimo paslaugą [Co-op Translator](https://github.com/Azure/co-op-translator). Nors siekiame tikslumo, prašome atkreipti dėmesį, kad automatiniai vertimai gali turėti klaidų ar netikslumų. Originalus dokumentas jo gimtąja kalba turėtų būti laikomas autoritetingu šaltiniu. Kritinei informacijai rekomenduojama naudoti profesionalų žmogaus vertimą. Mes neprisiimame atsakomybės už nesusipratimus ar klaidingus interpretavimus, atsiradusius dėl šio vertimo naudojimo.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Atsakomybės apribojimas**:
+Šis dokumentas buvo išverstas naudojant dirbtinio intelekto vertimo paslaugą [Co-op Translator](https://github.com/Azure/co-op-translator). Nors siekiame tikslumo, prašome atkreipti dėmesį, kad automatiniai vertimai gali turėti klaidų ar netikslumų. Originalus dokumentas jo gimtąja kalba laikomas autoritetingu šaltiniu. Svarbiai informacijai rekomenduojama naudoti profesionalų žmogiškąjį vertimą. Mes neatsakome už jokius nesusipratimus ar neteisingą interpretaciją, kilusią naudojantis šiuo vertimu.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->
