@@ -18,7 +18,7 @@ import {
   tool,
   type ToolSet,
   type ModelMessage,
-  type Sandbox,
+  type Experimental_Sandbox as Sandbox,
   type Tool,
   type ToolExecuteFunction,
 } from '@ai-sdk/provider-utils';
@@ -20175,13 +20175,13 @@ describe('streamText', () => {
         tools: {
           t1: tool({
             inputSchema: z.object({ value: z.string() }),
-            execute: async ({ value }, { sandbox }) => {
+            execute: async ({ value }, { experimental_sandbox: sandbox }) => {
               recordedSandbox = sandbox;
               return { value };
             },
           }),
         },
-        sandbox,
+        experimental_sandbox: sandbox,
         prompt: 'test-input',
       });
 
@@ -20248,8 +20248,8 @@ describe('streamText', () => {
             response: {},
           }),
         }),
-        sandbox,
-        prepareStep: async ({ sandbox }) => {
+        experimental_sandbox: sandbox,
+        prepareStep: async ({ experimental_sandbox: sandbox }) => {
           capturedSandbox = sandbox;
           return undefined;
         },
@@ -20336,15 +20336,15 @@ describe('streamText', () => {
         tools: {
           t1: tool({
             inputSchema: z.object({ value: z.string() }),
-            execute: async ({ value }, { sandbox }) => {
+            execute: async ({ value }, { experimental_sandbox: sandbox }) => {
               recordedSandboxes.push(sandbox);
               return { value };
             },
           }),
         },
-        sandbox,
+        experimental_sandbox: sandbox,
         prepareStep: async ({ stepNumber }) =>
-          stepNumber === 0 ? { sandbox: stepSandbox } : {},
+          stepNumber === 0 ? { experimental_sandbox: stepSandbox } : {},
         prompt: 'test-input',
         stopWhen: isStepCount(3),
       });
@@ -24593,7 +24593,7 @@ describe('streamText', () => {
           toolApproval: {
             tool1: 'user-approval',
           },
-          sandbox,
+          experimental_sandbox: sandbox,
           stopWhen: isStepCount(3),
           _internal: {
             generateId: mockId({ prefix: 'id' }),
@@ -24652,7 +24652,7 @@ describe('streamText', () => {
         expect(executeFunction).toHaveBeenCalledWith(
           { value: 'value' },
           expect.objectContaining({
-            sandbox,
+            experimental_sandbox: sandbox,
           }),
         );
       });
