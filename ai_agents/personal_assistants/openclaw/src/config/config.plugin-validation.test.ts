@@ -525,10 +525,12 @@ describe("config plugin validation", () => {
     if (res.ok) {
       return;
     }
-    expect(res.issues).toContainEqual({
-      path: "channels.telegarm",
-      message: "unknown channel id: telegarm",
-    });
+    expect(res.issues.filter((issue) => issue.path === "channels.telegarm")).toEqual([
+      {
+        path: "channels.telegarm",
+        message: "unknown channel id: telegarm",
+      },
+    ]);
     expectNoPath(res.warnings, "channels.telegarm");
   });
 
@@ -1002,10 +1004,14 @@ describe("config plugin validation", () => {
     });
     expect(res.ok).toBe(false);
     if (!res.ok) {
-      expect(res.issues).toContainEqual({
-        path: "agents.defaults.heartbeat.target",
-        message: "unknown heartbeat target: not-a-channel",
-      });
+      expect(
+        res.issues.filter((issue) => issue.path === "agents.defaults.heartbeat.target"),
+      ).toEqual([
+        {
+          path: "agents.defaults.heartbeat.target",
+          message: "unknown heartbeat target: not-a-channel",
+        },
+      ]);
     }
   });
 
