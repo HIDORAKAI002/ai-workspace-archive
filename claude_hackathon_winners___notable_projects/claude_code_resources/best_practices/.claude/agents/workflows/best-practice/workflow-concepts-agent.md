@@ -85,8 +85,8 @@ For each concept in the CONCEPTS table, verify:
 ### Description Accuracy
 For each concept, verify:
 - The location path is correct
-- The description matches the official docs
 - The feature name matches official naming
+- **The Description column contains only badges (best-practice, implemented, beta) and supplementary links — never prose.** Flag any row whose Description column contains a sentence-style feature summary; that prose belongs on the official docs page the feature name links to, not in the table.
 
 ### Badge Accuracy
 For concepts with best-practice or implemented badges:
@@ -105,7 +105,7 @@ Return your findings as a structured report with these sections:
    - Official name
    - Official docs URL (verified working)
    - Recommended `Location` column value
-   - Recommended `Description` column value
+   - Recommended `Description` column value — **badges and supplementary links only; never prose**. If no badges/links apply, leave it empty.
    - Version/date introduced (if known)
    - Confidence (0-1)
 4. **Changed Concepts** — Concepts where name, URL, location, or description needs updating
@@ -128,6 +128,7 @@ Be thorough and specific. Include URLs, version numbers, and exact text where po
 5. **Verify every URL** — check that official docs links actually work
 6. **Do NOT modify any files** — this is read-only research
 7. **Include the exact row format** — for missing concepts, provide the exact markdown table row ready to paste
+8. **Description column = badges + links only, never prose** — when recommending Description column values, only include badges (best-practice, implemented, beta) and supplementary links. The feature name already links to the official docs; the table should not duplicate that explanation. Flag any existing row with prose as a drift issue.
 
 ---
 

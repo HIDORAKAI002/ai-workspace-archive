@@ -204,6 +204,7 @@ export class FirecrawlClient {
    * @param file File payload (data, filename, optional contentType).
    * @param options Optional parse options (formats, parsers, etc.).
    *                Note: parse does not support changeTracking, screenshot, branding,
+   *                audio, video,
    *                actions, waitFor, location, or mobile options.
    * @returns Parsed document with requested formats.
    */

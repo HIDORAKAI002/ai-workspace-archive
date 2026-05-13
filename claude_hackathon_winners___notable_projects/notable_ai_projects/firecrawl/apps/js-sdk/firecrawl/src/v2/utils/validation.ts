@@ -114,6 +114,9 @@ export function ensureValidParseFormats(formats?: ParseFormatOption[]): void {
       if (fmt === "branding") {
         throw new Error("parse does not support branding format");
       }
+      if (fmt === "audio" || fmt === "video") {
+        throw new Error(`parse does not support ${fmt} format`);
+      }
       continue;
     }
 
@@ -126,6 +129,9 @@ export function ensureValidParseFormats(formats?: ParseFormatOption[]): void {
     }
     if (type === "branding") {
       throw new Error("parse does not support branding format");
+    }
+    if (type === "audio" || type === "video") {
+      throw new Error(`parse does not support ${type} format`);
     }
 
     if ((fmt as JsonFormat).type === "json") {

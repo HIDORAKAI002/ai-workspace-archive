@@ -66,6 +66,16 @@ class TestParseRequestPreparation:
                 content_type="text/html",
             )
 
+    def test_prepare_parse_request_rejects_video_format(self):
+        options = ParseOptions(formats=["video"])
+        with pytest.raises(ValueError, match="do not support video output"):
+            _prepare_parse_request(
+                b"<html><body><h1>Parse</h1></body></html>",
+                options,
+                filename="upload.html",
+                content_type="text/html",
+            )
+
     def test_prepare_parse_request_strips_lockdown(self):
         options = ParseOptions(formats=["markdown"], lockdown=True)
         fields, _ = _prepare_parse_request(

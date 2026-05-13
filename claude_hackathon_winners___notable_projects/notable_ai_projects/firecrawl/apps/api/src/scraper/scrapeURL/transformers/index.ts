@@ -18,6 +18,7 @@ import { performAttributes } from "./performAttributes";
 
 import { deriveDiff } from "./diff";
 import { fetchAudio } from "./audio";
+import { fetchVideo } from "./video";
 import { useIndex, useSearchIndex } from "../../../services/index";
 import { sendDocumentToIndex } from "../engines/index/index";
 import { sendDocumentToSearchIndex } from "./sendToSearchIndex";
@@ -484,6 +485,15 @@ function coerceFieldsToFormats(meta: Meta, document: Document): Document {
     );
   }
 
+  const hasVideo = hasFormatOfType(meta.options.formats, "video");
+  if (!hasVideo && document.video !== undefined) {
+    delete document.video;
+  } else if (hasVideo && document.video === undefined) {
+    meta.logger.warn(
+      "Request had format: video, but there was no video field in the result.",
+    );
+  }
+
   if (!hasChangeTracking && document.changeTracking !== undefined) {
     meta.logger.warn(
       "Removed changeTracking from Document because it wasn't in formats -- this is extremely wasteful and indicates a bug.",
@@ -558,6 +568,7 @@ const transformerStack: Transformer[] = [
   removeBase64Images,
   deriveDiff,
   fetchAudio,
+  fetchVideo,
   coerceFieldsToFormats,
 ];
 

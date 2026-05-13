@@ -9,6 +9,11 @@ describe("v2 utils: validation", () => {
     expect(() => ensureValidFormats(formats)).toThrow(/json format must be an object/i);
   });
 
+  test("ensureValidFormats: accepts video string format", () => {
+    const formats: FormatOption[] = ["markdown", "video"];
+    expect(() => ensureValidFormats(formats)).not.toThrow();
+  });
+
   test("ensureValidFormats: json format requires prompt or schema", () => {
     // Valid cases - should not throw
     const valid1: FormatOption[] = [{ type: "json", prompt: "p" } as any];

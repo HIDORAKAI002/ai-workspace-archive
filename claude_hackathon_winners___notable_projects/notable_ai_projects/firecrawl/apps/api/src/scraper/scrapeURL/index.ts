@@ -189,6 +189,10 @@ function buildFeatureFlags(
     flags.add("audio");
   }
 
+  if (hasFormatOfType(options.formats, "video")) {
+    flags.add("video");
+  }
+
   if (options.waitFor !== 0) {
     flags.add("waitFor");
   }

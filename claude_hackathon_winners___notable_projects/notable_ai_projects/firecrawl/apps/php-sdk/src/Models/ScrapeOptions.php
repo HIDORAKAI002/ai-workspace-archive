@@ -7,7 +7,7 @@ namespace Firecrawl\Models;
 final class ScrapeOptions
 {
     /**
-     * @param list<string|JsonFormat|ScreenshotFormat|QuestionFormat|HighlightsFormat|QueryFormat>|null $formats
+     * @param list<string|JsonFormat|ScreenshotFormat|QuestionFormat|HighlightsFormat|QueryFormat>|null $formats Supports strings like "markdown", "audio", and "video".
      * @param array<string, string>|null   $headers
      * @param list<string>|null            $includeTags
      * @param list<string>|null            $excludeTags
@@ -41,7 +41,7 @@ final class ScrapeOptions
     ) {}
 
     /**
-     * @param list<string|JsonFormat|ScreenshotFormat|QuestionFormat|HighlightsFormat|QueryFormat>|null $formats
+     * @param list<string|JsonFormat|ScreenshotFormat|QuestionFormat|HighlightsFormat|QueryFormat>|null $formats Supports strings like "markdown", "audio", and "video".
      * @param array<string, string>|null                    $headers
      * @param list<string>|null                             $includeTags
      * @param list<string>|null                             $excludeTags

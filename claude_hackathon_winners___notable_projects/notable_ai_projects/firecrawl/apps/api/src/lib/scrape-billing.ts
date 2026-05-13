@@ -90,6 +90,10 @@ export async function calculateCreditsToBeBilled(
     creditsToBeBilled += 4;
   }
 
+  if (hasFormatOfType(options.formats, "video")) {
+    creditsToBeBilled += 4;
+  }
+
   if (document.metadata?.postprocessorsUsed?.includes("x-twitter")) {
     creditsToBeBilled += xTwitterCostBonus;
   }

@@ -11,7 +11,7 @@ Ruby SDK for the [Firecrawl](https://firecrawl.dev) v2 web scraping API.
 Add to your `Gemfile`:
 
 ```ruby
-gem "firecrawl-sdk", "~> 1.0"
+gem "firecrawl-sdk", "~> 1.5"
 ```
 
 Or install directly:
@@ -63,12 +63,23 @@ doc = client.scrape("https://example.com",
 puts doc.html
 ```
 
+### Video Extraction
+
+Use the `video` format on supported video URLs, including YouTube and TikTok. The returned `video` field is a signed URL to the extracted video file.
+
+```ruby
+doc = client.scrape("https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+  Firecrawl::Models::ScrapeOptions.new(formats: ["video"]))
+
+puts doc.video
+```
+
 ### Parse
 
 Upload a local file (`html`, `pdf`, `docx`, etc.) via multipart form data and
 parse it synchronously. Parse options intentionally exclude browser-only
-features such as change tracking, screenshot, branding, actions, wait_for,
-location, and mobile. The `proxy` option only accepts `"auto"` or `"basic"`.
+features such as change tracking, screenshot, branding, audio, video, actions,
+wait_for, location, and mobile. The `proxy` option only accepts `"auto"` or `"basic"`.
 
 ```ruby
 # From disk
