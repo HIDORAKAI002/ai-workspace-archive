@@ -1,6 +1,6 @@
 import { betaZodOutputFormat } from '@anthropic-ai/sdk/helpers/beta/zod';
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
-import { z } from 'zod';
+import { z } from 'zod/v4';
 import { AnthropicError } from '../../src/core/error';
 import {
   BetaParseableMessageCreateParams,
@@ -75,6 +75,7 @@ describe('Beta Parser', () => {
         },
       ],
       context_management: null,
+      diagnostics: null,
       stop_details: null,
       stop_reason: 'end_turn',
       stop_sequence: null,
@@ -253,6 +254,7 @@ describe('Beta Parser', () => {
         },
       ],
       context_management: null,
+      diagnostics: null,
       stop_details: null,
       stop_reason: 'end_turn',
       stop_sequence: null,
