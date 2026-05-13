@@ -8,6 +8,10 @@ For the current rc.1 naming decision and package/plugin publication path, see
 [`naming-and-publication-matrix.md`](naming-and-publication-matrix.md).
 For the May 12 dry-run evidence pass, see
 [`publication-evidence-2026-05-12.md`](publication-evidence-2026-05-12.md).
+For the May 13 release-readiness evidence refresh, see
+[`publication-evidence-2026-05-13.md`](publication-evidence-2026-05-13.md).
+For the May 13 post-hardening evidence refresh after PR #1850 and PR #1851, see
+[`publication-evidence-2026-05-13-post-hardening.md`](publication-evidence-2026-05-13-post-hardening.md).
 
 ## Release Identity Matrix
 
@@ -24,7 +28,7 @@ For the May 12 dry-run evidence pass, see
 | Codex plugin manifest | `2.0.0-rc.1` with shared skill source | `.codex-plugin/plugin.json` | `node tests/docs/ecc2-release-surface.test.js` | `publication-evidence-2026-05-12.md` | Plugin owner | Evidence recorded |
 | OpenCode package | `ecc-universal` plugin module | `.opencode/package.json`, `.opencode/index.ts` | `npm run build:opencode` | `publication-evidence-2026-05-12.md` | Package owner | Evidence recorded |
 | Agent metadata | `2.0.0-rc.1` | `agent.yaml`, `.agents/plugins/marketplace.json` | `node tests/scripts/catalog.test.js` | `publication-evidence-2026-05-12.md` | Release owner | Evidence recorded |
-| Migration copy | rc.1 upgrade path, not GA claim | `release-notes.md`, `quickstart.md`, `HERMES-SETUP.md` | `npx markdownlint-cli docs/releases/2.0.0-rc.1/*.md` | Pending final lint on release commit | Docs owner | Pending |
+| Migration copy | rc.1 upgrade path, not GA claim | `release-notes.md`, `quickstart.md`, `HERMES-SETUP.md` | `npx markdownlint-cli '**/*.md' --ignore node_modules` | `publication-evidence-2026-05-13.md` | Docs owner | Evidence recorded |
 
 ## Publication Gates
 
@@ -37,6 +41,7 @@ For the May 12 dry-run evidence pass, see
 | OpenCode package | Build output is regenerated from source and package metadata is current | `npm run build:opencode` | `Blocker: none for local build; public distribution still follows npm/plugin release` | Package owner | Evidence recorded |
 | ECC Tools billing reference | Any billing claim links to verified Marketplace/App state | `gh api repos/ECC-Tools/ECC-Tools` plus app/marketplace URL check | `Blocker:` | ECC Tools owner | Pending |
 | Announcement copy | X, LinkedIn, GitHub release, and longform copy point to live URLs | `rg -n "TODO" docs/releases/2.0.0-rc.1` and repeat for `TBD` | `Blocker:` | Release owner | Pending |
+| Privileged workflow hardening | Release and maintenance workflows avoid persisted checkout tokens | `node scripts/ci/validate-workflow-security.js` | `Blocker:` | Release owner | Evidence recorded in post-hardening refresh |
 
 ## Required Command Evidence
 
@@ -44,15 +49,17 @@ Record the exact commit SHA and command output before any publication action:
 
 | Evidence | Command | Required result | Recorded output |
 | --- | --- | --- | --- |
-| Clean release branch | `git status --short --branch` | On intended release commit; no unrelated files | Pending |
-| Harness audit | `npm run harness:audit -- --format json` | 70/70 passing | Pending |
-| Adapter scorecard | `npm run harness:adapters -- --check` | PASS | Pending |
-| Observability readiness | `npm run observability:ready` | 16/16 passing | Pending |
-| Root suite | `node tests/run-all.js` | 0 failures | Pending |
-| Markdown lint | `npx markdownlint-cli '**/*.md' --ignore node_modules` | 0 failures | Pending |
+| Clean release branch | `git status --short --branch` | On intended release commit; no unrelated files | Pending final clean-checkout release pass; May 13 evidence branch still had unrelated untracked `docs/drafts/` |
+| Harness audit | `npm run harness:audit -- --format json` | 70/70 passing | `publication-evidence-2026-05-13.md`: 70/70 |
+| Adapter scorecard | `npm run harness:adapters -- --check` | PASS | `publication-evidence-2026-05-13.md`: PASS, 11 adapters |
+| Observability readiness | `npm run observability:ready` | 21/21 passing | `publication-evidence-2026-05-13-post-hardening.md`: 21/21, ready true after release-safety gate refresh |
+| Release safety gate | `npm run observability:ready -- --format json` | Release Safety category passing with publication readiness, supply-chain, workflow security, package surface, and release-surface evidence | `publication-evidence-2026-05-13-post-hardening.md`: Release Safety 3/3 |
+| Supply-chain verification | `npm audit --json`; `npm audit signatures`; `cd ecc2 && cargo audit -q`; Dependabot alerts; GitGuardian Security Checks | 0 vulnerabilities/alerts, registry signatures verified, GitGuardian clean | `publication-evidence-2026-05-13-post-hardening.md`: npm, cargo, Dependabot, TanStack/Mini Shai-Hulud, and GitGuardian evidence |
+| Root suite | `node tests/run-all.js` | 0 failures | `publication-evidence-2026-05-13-post-hardening.md`: 2381 passed, 0 failed |
+| Markdown lint | `npx markdownlint-cli '**/*.md' --ignore node_modules` | 0 failures | `publication-evidence-2026-05-13.md`: passed after zh-CN CLAUDE list-marker normalization |
 | Package surface | `node tests/scripts/npm-publish-surface.test.js` | 0 failures; no Python bytecode in npm tarball | `2/2` passed in May 12 evidence pass |
-| Release surface | `node tests/docs/ecc2-release-surface.test.js` | 0 failures | Pending |
-| Optional Rust surface | `cd ecc2 && cargo test` | 0 failures or explicit deferral | Pending |
+| Release surface | `node tests/docs/ecc2-release-surface.test.js` | 0 failures | `publication-evidence-2026-05-13.md`: 18/18 passed |
+| Optional Rust surface | `cd ecc2 && cargo test` | 0 failures or explicit deferral | `publication-evidence-2026-05-13.md`: 462/462 passed, warnings only |
 
 ## Do Not Publish If
 

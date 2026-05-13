@@ -14,14 +14,14 @@ so the live execution truth is split across:
 
 ## Current Evidence
 
-As of 2026-05-12:
+As of 2026-05-13:
 
 - Public GitHub queues are clean across `affaan-m/everything-claude-code`,
   `affaan-m/agentshield`, `affaan-m/JARVIS`, `ECC-Tools/ECC-Tools`, and
   `ECC-Tools/ECC-website`.
 - Public GitHub discussions are also clean across those tracked repos:
-  `states: OPEN` returned zero discussions for every accessible discussion
-  surface on 2026-05-12.
+  the latest GraphQL sweep found only closed discussions on the trunk
+  discussion surface, and satellite discussion surfaces are disabled or empty.
 - The final open public GitHub issue, #1314, was closed as a non-actionable
   external badge/listing notification with a courtesy comment.
 - Linear issue creation for this project was re-tested after GitHub cleanup and
@@ -30,7 +30,21 @@ As of 2026-05-12:
   Linear project status updates remain the active tracking surfaces until the
   workspace is upgraded or issue capacity is freed.
 - `npm run harness:audit -- --format json` reports 70/70 on current `main`.
-- `npm run observability:ready` reports 16/16 readiness on current `main`.
+- `npm run observability:ready` reports 18/18 readiness on current `main`,
+  including the GitHub/Linear/handoff/roadmap progress-sync contract.
+- PR #1846 merged as `797f283036904128bb1b348ae62019eb9f08cf39` and made
+  npm registry signature verification a durable workflow-security gate:
+  workflows that run `npm audit` now need `npm audit signatures`.
+- PR #1848 merged as `cbecf5689d8d1bd5915e7031697a1d56aac538f2` and added
+  `docs/security/supply-chain-incident-response.md`, plus a workflow-security
+  validator rule blocking `pull_request_target` workflows from restoring or
+  saving shared dependency caches.
+- PR #1850 merged as `248673271455e9dc85b8add2a6ab76107b718639` and removed
+  shell access from read-only analyzer agents and zh-CN copies, reducing
+  AgentShield high findings on that surface without changing operator agents.
+- PR #1851 merged as `209abd403b7eaa968c6d4fa67be82e04b55706d6` and made
+  `persist-credentials: false` mandatory for `actions/checkout` in workflows
+  with write permissions.
 - `docs/architecture/harness-adapter-compliance.md` maps Claude Code, Codex,
   OpenCode, Cursor, Gemini, Zed-adjacent, dmux, Orca, Superset, Ghast, and
   terminal-only support to install paths, verification commands, and risk
@@ -49,6 +63,16 @@ As of 2026-05-12:
   dry-run publication evidence pass: npm pack/publish dry-runs, temp install
   smoke, Claude plugin validation/tag preflight, Codex marketplace CLI shape,
   OpenCode build, and the remaining approval-gated release blockers.
+- `docs/releases/2.0.0-rc.1/publication-evidence-2026-05-13.md` records the
+  release-readiness evidence refresh: 70/70 harness audit, adapter compliance
+  PASS, 16/16 observability readiness, 2376/2376 root Node tests, markdownlint,
+  release-surface and npm publish-surface tests, and 462/462 `ecc2` Rust tests.
+- `docs/releases/2.0.0-rc.1/publication-evidence-2026-05-13-post-hardening.md`
+  records the post-hardening release-readiness refresh after PR #1850 and
+  PR #1851: 70/70 harness audit, adapter compliance PASS, 18/18 observability
+  readiness, 2380/2380 root Node tests, markdownlint, release-surface and
+  npm publish-surface tests, 462/462 `ecc2` Rust tests, npm audit/signature
+  checks, Rust advisory audit, and TanStack/Mini Shai-Hulud IOC checks.
 - A detached clean worktree at
   `bfacf37715b39655cbc2c48f12f2a35c67cb0253` verified Claude plugin tag
   dry-run without `--force`, local marketplace discovery, temp-home local
@@ -107,6 +131,22 @@ As of 2026-05-12:
   CLI command with severity filtering, JSON metadata output, README/API docs,
   rebuilt CLI bundle, local TDD coverage, and green remote action/self-scan/Node
   verification.
+- AgentShield PR #65 pinned workflow actions for release/security CI hardening.
+- AgentShield PR #66 disabled cache use in the release publish job so release
+  publication does not depend on mutable restored build state.
+- AgentShield PR #67 added the first portable enterprise evidence-pack bundle:
+  `agentshield scan --evidence-pack <dir>` writes deterministic manifest,
+  README, JSON, HTML, SARIF, policy-evaluation, baseline-comparison, and
+  supply-chain artifacts with default redaction and `not-run` markers for
+  optional policy/baseline evidence.
+- AgentShield PR #68 hardened evidence-pack redaction for enterprise credential
+  families including GitHub fine-grained PATs, GitLab PATs, npm tokens, Linear
+  API keys, Stripe keys, Google API keys, Hugging Face tokens, Vercel tokens,
+  AWS access key IDs, and JWT-shaped credentials.
+- AgentShield PR #69 added the deterministic harness adapter registry. Scan
+  reports now surface local marker evidence for Claude Code, OpenCode, Codex,
+  Gemini, dmux, generic terminal agents, and project-local templates in JSON,
+  markdown, terminal, and HTML outputs.
 - AgentShield PDF-export decision: defer a native PDF writer for now. The
   self-contained HTML executive report remains the exportable buyer artifact
   and can be printed to PDF when needed; native PDF generation should wait for
@@ -169,6 +209,14 @@ As of 2026-05-12:
   quality, AgentShield policy exceptions, skill-quality evidence,
   deep-analyzer evidence, and RAG/evaluator comparison evidence, with each
   scenario exercising missing-evidence and evidence-backed diffs.
+- ECC-Tools PR #41 hardened supply-chain dependencies.
+- ECC-Tools PR #42 added AgentShield evidence-pack gap prediction and routed
+  missing policy/baseline/allowlist/suppression/supply-chain evidence into the
+  PR-risk taxonomy, follow-up drafts, and Linear-ready backlog table.
+- ECC-Tools PR #43 recognized the concrete AgentShield #67 evidence-pack
+  artifact contract so canonical bundle files now satisfy the taxonomy and
+  generated follow-up PRs point maintainers at
+  `agentshield scan --evidence-pack <dir>`.
 - ECC PR #1803 landed the contributor Quarkus handling branch after maintainer
   cleanup, current-`main` alignment, full local validation, and preservation of
   the author's removal of incomplete ja-JP and zh-CN Quarkus translations.
@@ -211,32 +259,33 @@ is not complete unless the evidence column exists and has been freshly verified.
 
 | Prompt requirement | Required artifact or gate | Current evidence | Status |
 | --- | --- | --- | --- |
-| Keep public PRs below 20 | Repo-family PR recheck | 0 open PRs across the tracked public repos on 2026-05-12 | Complete for this checkpoint |
-| Keep public issues below 20 | Repo-family issue recheck | 0 open issues across the tracked public repos on 2026-05-12 after closing #1314 as non-actionable badge/listing noise | Complete for this checkpoint |
-| Manage repository discussions | Repo-family discussion recheck | 0 open discussions across the tracked public repos on 2026-05-12 via GraphQL `states: OPEN` checks | Complete for this checkpoint |
-| Manage PR discussions | PR review/comment closure plus merge/close state | #1803 was maintainer-edited and merged; no open PRs remain | Complete for this checkpoint |
+| Keep public PRs below 20 | Repo-family PR recheck | 0 open PRs across the tracked public repos on 2026-05-13 after merging #1851 | Complete for this checkpoint |
+| Keep public issues below 20 | Repo-family issue recheck | 0 open issues across the tracked public repos on 2026-05-13 | Complete for this checkpoint |
+| Manage repository discussions | Repo-family discussion recheck | Latest trunk discussion GraphQL sweep returned closed discussions only; satellite repos remain disabled or empty | Complete for this checkpoint |
+| Manage PR discussions | PR review/comment closure plus merge/close state | #1851 merged after current-head CI; no open PRs remain | Complete for this checkpoint |
 | Salvage useful stale work | `docs/stale-pr-salvage-ledger.md` | Ledger records salvaged, superseded, skipped, and manual-review tails; #1815-#1818 added cost tracking, skill scout, frontend design guidance, code-reviewer false-positive guardrails, and the May 12 gap pass | Complete except translation/manual review tail |
-| ECC 2.0 preview pack ready | Release docs, quickstart, publication readiness, release notes | `docs/releases/2.0.0-rc.1/` and readiness docs are in-tree | Needs final release evidence |
+| ECC 2.0 preview pack ready | Release docs, quickstart, publication readiness, release notes | `docs/releases/2.0.0-rc.1/` and readiness docs are in-tree; May 13 evidence refresh records harness, adapter, observability, Node, lint, release-surface, npm publish-surface, and Rust checks | Needs final clean-checkout release approval |
 | Hermes specialized skills included safely | Hermes setup/import docs and sanitized skill surface | Hermes setup and import playbook are public; secrets stay local | Needs final release review |
 | Naming and rename readiness | Naming matrix across package/plugin/docs/social surfaces | `docs/releases/2.0.0-rc.1/naming-and-publication-matrix.md` records current package, repo, Claude plugin, Codex plugin, OpenCode, and npm availability evidence | Complete for rc.1; post-rc rename remains future work |
 | Claude and Codex plugin publication | Contact/submission path with required artifacts and status | Publication readiness, naming matrix, and May 12 dry-run evidence document plugin validation, clean-checkout Claude tag/install smoke, and Codex marketplace CLI shape | Needs explicit approval for real tag/push and marketplace submission |
 | Articles, tweets, and announcements | X thread, LinkedIn copy, GitHub release copy, push checklist | Draft launch collateral exists under rc.1 release docs | Needs URL-backed refresh |
-| AgentShield enterprise iteration | Policy gates, SARIF, packs, provenance, corpus, HTML reports, exception lifecycle audit, baseline drift Action/CLI surfaces, enterprise research roadmap | PRs #53, #55-#64 landed with test evidence; native PDF export deferred in favor of self-contained HTML plus print-to-PDF until explicit enterprise demand appears; `docs/architecture/agentshield-enterprise-research-roadmap.md` selects baseline drift as the first control-plane slice | Baseline-drift Action and CLI write surfaces landed; evidence-pack routing remains |
-| ECC Tools next-level app | Billing audit, PR checks, deep analyzer, sync backlog, evaluator/RAG corpus | PRs #26-#40 landed with test evidence | Needs capacity-backed Linear rollout |
-| GitGuardian/Dependabot/CodeRabbit-style checks | Non-blocking taxonomy and deterministic follow-up checks | ECC-Tools risk taxonomy check plus follow-up signals landed, including Skill Quality, Deep Analyzer Evidence, Analyzer Corpus Evidence, RAG/Evaluator Evidence, and PR Review/Salvage Evidence | Partially complete |
+| AgentShield enterprise iteration | Policy gates, SARIF, packs, provenance, corpus, HTML reports, exception lifecycle audit, baseline drift Action/CLI surfaces, evidence-pack redaction, harness adapter registry, enterprise research roadmap | PRs #53, #55-#64 and #67-#69 landed with test evidence; native PDF export deferred in favor of self-contained HTML plus print-to-PDF until explicit enterprise demand appears; `docs/architecture/agentshield-enterprise-research-roadmap.md` now has baseline drift, evidence-pack bundle, redaction, and adapter-registry slices landed | Next corpus accuracy gate or remediation/fingerprint workflow |
+| ECC Tools next-level app | Billing audit, PR checks, deep analyzer, sync backlog, evaluator/RAG corpus | PRs #26-#43 landed with test evidence, including AgentShield evidence-pack gap routing and canonical bundle recognition | Needs capacity-backed Linear rollout |
+| GitGuardian/Dependabot/CodeRabbit-style checks | Non-blocking taxonomy, deterministic follow-up checks, and local supply-chain gates | ECC-Tools risk taxonomy check plus follow-up signals landed, including Skill Quality, Deep Analyzer Evidence, Analyzer Corpus Evidence, RAG/Evaluator Evidence, PR Review/Salvage Evidence, and AgentShield evidence-pack evidence; #1846 added npm registry signature gates; #1848 added the supply-chain incident-response playbook and `pull_request_target` cache-poisoning validator guard; #1851 added the privileged checkout credential-persistence guard | Partially complete |
 | Harness-agnostic learning system | Audit, adapter matrix, observability, traces, promotion loop | Audit/adapters/observability gates plus `docs/architecture/evaluator-rag-prototype.md`, `examples/evaluator-rag-prototype/`, and ECC-Tools PR #40 define read-only stale-salvage, billing-readiness, CI-failure-diagnosis, harness-config-quality, AgentShield policy-exception, skill-quality evidence, deep-analyzer evidence, and RAG/evaluator comparison scenarios with trace, report, playbook, verifier, and predictive-check artifacts | Local corpus complete; hosted integration remains future |
 | Linear roadmap is detailed | Linear project status plus repo mirror | Repo mirror exists; issue creation was retried on 2026-05-12 and remains blocked by the workspace free issue limit | Needs recurring status updates after each merge batch |
-| Flow separation and progress tracking | Flow lanes with owner artifacts and update cadence | This roadmap defines lanes below | Active |
-| Realtime Linear sync | Project updates while issue limit is blocked; issues later | ECC-Tools #39 implements opt-in Linear API sync for deferred follow-up backlog items | Needs workspace capacity/config rollout |
-| Observability for self-use | Local readiness gate, traces, status snapshots, HUD/status contract, risk ledger | `npm run observability:ready` reports 16/16 | Complete for local gate |
-| Proper release and notifications | Release tag, npm publish state, plugin state, social posts | Publication readiness gate exists | Not complete |
+| Flow separation and progress tracking | Flow lanes with owner artifacts and update cadence | This roadmap defines lanes below and `docs/architecture/progress-sync-contract.md` makes GitHub/Linear/handoff/roadmap sync part of the readiness gate | Active |
+| Realtime Linear sync | Project updates while issue limit is blocked; issues later | ECC-Tools #39 implements opt-in Linear API sync for deferred follow-up backlog items; `docs/architecture/progress-sync-contract.md` defines the local file-backed realtime boundary while issue capacity is blocked | Needs workspace capacity/config rollout |
+| Observability for self-use | Local readiness gate, traces, status snapshots, HUD/status contract, risk ledger, progress-sync contract | `npm run observability:ready` reports 18/18 | Complete for local gate |
+| Proper release and notifications | Release tag, npm publish state, plugin state, social posts | Publication readiness gate exists with May 12 dry-run and May 13 readiness evidence | Not complete; approval/live URLs required |
 
 ## Execution Lanes And Tracking Contract
 
 Until Linear issue capacity is cleared, this document is the durable execution
-ledger and Linear receives project status updates only. When capacity is
-available, each lane below should become a small set of Linear issues linked
-back to the repo evidence and merge commits.
+ledger and Linear receives project status updates only. The sync contract lives
+at `docs/architecture/progress-sync-contract.md`. When capacity is available,
+each lane below should become a small set of Linear issues linked back to the
+repo evidence and merge commits.
 
 | Lane | Source of truth | Next tracked artifact | Update cadence |
 | --- | --- | --- | --- |
@@ -244,9 +293,9 @@ back to the repo evidence and merge commits.
 | Release and publication | rc.1 release docs, publication readiness doc | Naming matrix and plugin submission/contact checklist | Before any tag |
 | Harness OS core | Audit, adapter matrix, observability docs, `ecc2/` | HUD/session-control acceptance spec | Weekly until GA |
 | Evaluation and RAG | Reference-set validation, harness audit, traces, ECC-Tools corpus | Read-only evaluator/RAG prototype plus stale-salvage, billing-readiness, CI-failure-diagnosis, harness-config-quality, AgentShield policy-exception, skill-quality evidence, deep-analyzer evidence, and RAG/evaluator comparison fixtures | Hosted retrieval/check-run automation plan |
-| AgentShield enterprise | AgentShield PR evidence and roadmap notes | Baseline-drift evidence-pack and backlog sync follow-up | Next implementation batch |
-| ECC Tools app | ECC-Tools PR evidence, billing audit, risk taxonomy, evaluator/RAG corpus | Capacity-backed Linear rollout | Next implementation batch |
-| Linear progress | Linear project status updates and this mirror | Status update with queue/evidence/missing gates | Every significant merge batch |
+| AgentShield enterprise | AgentShield PR evidence and roadmap notes | Adapter registry or corpus accuracy gate follow-up | Next implementation batch |
+| ECC Tools app | ECC-Tools PR evidence, billing audit, risk taxonomy, evaluator/RAG corpus | Capacity-backed Linear rollout plus hosted/deeper analysis follow-up | Next implementation batch |
+| Linear progress | Linear project status updates, `docs/architecture/progress-sync-contract.md`, and this mirror | Status update with queue/evidence/missing gates | Every significant merge batch |
 
 The project status update should always include:
 
@@ -445,12 +494,15 @@ Acceptance:
 
 ## Next Engineering Slices
 
-1. Finish the AgentShield baseline-drift control-plane slice from
+1. Continue the AgentShield enterprise control-plane sequence from
    `docs/architecture/agentshield-enterprise-research-roadmap.md`: PR #63
-   shipped the GitHub Action baseline outputs and job-summary evidence; PR #64
+   shipped GitHub Action baseline outputs and job-summary evidence; PR #64
    shipped first-class baseline snapshot creation through
-   `agentshield baseline write`; the remaining work is evidence-pack routing
-   and ECC-Tools backlog sync integration.
+   `agentshield baseline write`; PR #67 shipped the evidence-pack bundle; PR
+   #68 hardened evidence-pack redaction; PR #69 shipped the multi-harness
+   adapter registry; and ECC-Tools PRs #42/#43 now route and recognize evidence
+   packs. The next slice is either the corpus accuracy gate or
+   remediation/fingerprint workflow.
 2. Enable/configure the merged Linear backlog sync path after workspace issue
    capacity clears or the Linear workspace is upgraded.
 3. Use the ECC-Tools evaluator/RAG corpus as the promotion gate before adding
