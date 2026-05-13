@@ -250,11 +250,15 @@ describe("issue.comment.created", () => {
 
     expect(fetchMock).not.toHaveBeenCalled();
   });
-  
+
   it("skips retain when autoRetain is false", async () => {
     const harness = buildHarness({ ...DEFAULT_CONFIG, autoRetain: false });
     await setupPlugin(harness);
-    const issue = await seedIssue(harness, { companyId: "co-1", title: "x", assigneeAgentId: "ag-1" });
+    const issue = await seedIssue(harness, {
+      companyId: "co-1",
+      title: "x",
+      assigneeAgentId: "ag-1",
+    });
     const comment = await harness.ctx.issues.createComment(issue.id, "Some output", "co-1", {
       authorAgentId: "ag-1",
     });
@@ -286,7 +290,11 @@ describe("issue.comment.created", () => {
       title: "x",
       assigneeAgentId: "ag-assignee",
     });
-    const comment = await harness.ctx.issues.createComment(issue.id, "User says: please do X", "co-1");
+    const comment = await harness.ctx.issues.createComment(
+      issue.id,
+      "User says: please do X",
+      "co-1"
+    );
 
     await harness.emit(
       "issue.comment.created",

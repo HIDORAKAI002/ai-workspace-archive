@@ -54,7 +54,7 @@ dependencies = [
     "uvloop>=0.22.1; sys_platform != 'win32'",
     # Transitive dependency security fixes
     "pyasn1>=0.6.3", # DoS vulnerability fix
-    "urllib3>=2.6.3", # Decompression-bomb safeguards bypass fix
+    "urllib3>=2.7.0", # Decompression-bomb safeguards bypass + sensitive header forwarding fixes
     "langchain-core>=1.2.22", # Path traversal in legacy load_prompt functions fix
     "langsmith>=0.6.3", # SSRF via tracing header injection fix
     "protobuf>=6.33.5", # JSON recursion depth bypass fix
