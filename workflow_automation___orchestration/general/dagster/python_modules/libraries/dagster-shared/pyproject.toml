@@ -30,7 +30,11 @@ dependencies = [
 Homepage = "https://github.com/dagster-io/dagster/tree/master/python_modules/libraries/dagster-shared"
 
 [project.optional-dependencies]
+
+[dependency-groups]
 test = [
     "pytest",
     "pytest-rerunfailures",
 ]
+
+[tool.uv.sources]

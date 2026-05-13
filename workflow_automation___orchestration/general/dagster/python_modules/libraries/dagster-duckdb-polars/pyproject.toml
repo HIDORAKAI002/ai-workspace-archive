@@ -22,3 +22,17 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://github.com/dagster-io/dagster/tree/master/python_modules/libraries/dagster-duckdb-polars"
+
+[dependency-groups]
+test = [
+    "dagster[mypy,test]",
+    "dagster-pipes",
+    "dagster-shared",
+    "dagster-duckdb",
+]
+
+[tool.uv.sources]
+dagster = { path = "../../dagster", editable = true }
+dagster-pipes = { path = "../../dagster-pipes", editable = true }
+dagster-shared = { path = "../dagster-shared", editable = true }
+dagster-duckdb = { path = "../dagster-duckdb", editable = true }

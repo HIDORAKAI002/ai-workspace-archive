@@ -33,6 +33,21 @@ dagit-debug = "dagster_webserver.debug:main"
 notebook = [
     "dagster-webserver[notebook]==1!0+dev",
 ]
+
+[dependency-groups]
 test = [
+    "dagster[test]",
+    "dagster-pipes",
+    "dagster-shared",
+    "dagster-graphql",
+    "dagster-webserver",
+    "objgraph",
     "dagster-webserver[test]==1!0+dev",
 ]
+
+[tool.uv.sources]
+dagster = { path = "../dagster", editable = true }
+dagster-pipes = { path = "../dagster-pipes", editable = true }
+dagster-shared = { path = "../libraries/dagster-shared", editable = true }
+dagster-graphql = { path = "../dagster-graphql", editable = true }
+dagster-webserver = { path = "../dagster-webserver", editable = true }

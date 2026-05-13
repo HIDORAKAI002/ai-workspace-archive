@@ -244,7 +244,7 @@ exclude = ["*.ipynb"]
 "**/conftest.py" = ["INP001"]
 "examples/**" = ["INP001"]
 "docs/**" = ["INP001"]
-"**/scripts/**" = ["INP001"]
+"**/scripts/**" = ["INP001", "T201"]  # scripts are CLI tools — print is the output channel
 "python_modules/dagster/dagster/_core/storage/alembic/env.py" = ["INP001"]
 "python_modules/libraries/dagster-airlift/kitchen-sink/**" = ["INP001"]
 # There is an __init__.py.tmpl

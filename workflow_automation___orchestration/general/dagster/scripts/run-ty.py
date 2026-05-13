@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# ruff: noqa: T201
 
 import argparse
 import glob

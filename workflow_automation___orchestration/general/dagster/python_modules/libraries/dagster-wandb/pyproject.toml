@@ -29,3 +29,17 @@ dev = [
     "callee",
     "dill",
 ]
+
+[dependency-groups]
+test = [
+    "dagster-wandb[dev]",
+    "dagster[test]",
+    "dagster-pipes",
+    "dagster-shared",
+]
+
+[tool.uv.sources]
+dagster-wandb = { path = "../dagster-wandb", editable = true }
+dagster = { path = "../../dagster", editable = true }
+dagster-pipes = { path = "../../dagster-pipes", editable = true }
+dagster-shared = { path = "../dagster-shared", editable = true }

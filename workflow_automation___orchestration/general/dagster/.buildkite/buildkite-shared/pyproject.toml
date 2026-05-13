@@ -24,3 +24,10 @@ Homepage = "https://github.com/dagster-io/dagster/tree/master/.buildkite/buildki
 exclude = [
     "test",
 ]
+
+[dependency-groups]
+test = [
+    "pytest",
+]
+
+[tool.uv.sources]

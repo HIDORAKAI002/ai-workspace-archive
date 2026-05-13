@@ -24,3 +24,17 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://github.com/dagster-io/dagster/tree/master/python_modules/libraries/dagster-omni"
+
+[dependency-groups]
+test = [
+    "dagster[test]",
+    "dagster-graphql",
+    "dagster-pipes",
+    "dagster-shared",
+]
+
+[tool.uv.sources]
+dagster = { path = "../../dagster", editable = true }
+dagster-graphql = { path = "../../dagster-graphql", editable = true }
+dagster-pipes = { path = "../../dagster-pipes", editable = true }
+dagster-shared = { path = "../../libraries/dagster-shared", editable = true }
