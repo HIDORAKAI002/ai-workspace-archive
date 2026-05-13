@@ -124,6 +124,16 @@ function buildChecks(rootDir) {
   const sessionManagerRust = readText(rootDir, 'ecc2/src/session/manager.rs');
   const readinessDoc = readText(rootDir, 'docs/architecture/observability-readiness.md');
   const hudStatusContract = readText(rootDir, 'docs/architecture/hud-status-session-control.md');
+  const progressSyncContract = readText(rootDir, 'docs/architecture/progress-sync-contract.md');
+  const gaRoadmap = readText(rootDir, 'docs/ECC-2.0-GA-ROADMAP.md');
+  const workItems = readText(rootDir, 'scripts/work-items.js');
+  const publicationReadiness = readText(rootDir, 'docs/releases/2.0.0-rc.1/publication-readiness.md');
+  const postHardeningEvidence = readText(rootDir, 'docs/releases/2.0.0-rc.1/publication-evidence-2026-05-13-post-hardening.md');
+  const supplyChainIncidentResponse = readText(rootDir, 'docs/security/supply-chain-incident-response.md');
+  const workflowSecurityValidator = readText(rootDir, 'scripts/ci/validate-workflow-security.js');
+  const workflowSecurityValidatorTests = readText(rootDir, 'tests/ci/validate-workflow-security.test.js');
+  const publishSurfaceTest = readText(rootDir, 'tests/scripts/npm-publish-surface.test.js');
+  const releaseSurfaceTest = readText(rootDir, 'tests/docs/ecc2-release-surface.test.js');
   const hudStatusFixture = safeParseJson(readText(rootDir, 'examples/hud-status-contract.json')) || {};
   const quickstart = readText(rootDir, 'docs/releases/2.0.0-rc.1/quickstart.md');
   const releaseNotes = readText(rootDir, 'docs/releases/2.0.0-rc.1/release-notes.md');
@@ -237,6 +247,90 @@ function buildChecks(rootDir) {
         && quickstart.includes('observability-readiness.md')
         && releaseNotes.includes('observability-readiness.md'),
       fix: 'Add the observability readiness doc and link it from rc.1 release docs.'
+    },
+    {
+      id: 'progress-sync-contract',
+      category: 'Tracker Sync',
+      points: 2,
+      path: 'docs/architecture/progress-sync-contract.md',
+      description: 'Linear, GitHub, handoff, and roadmap progress sync has an evidence-backed contract',
+      pass: fileExists(rootDir, 'docs/architecture/progress-sync-contract.md')
+        && includesAll(progressSyncContract, [
+          'Linear',
+          'GitHub',
+          'handoff',
+          'work-items',
+          'issue capacity',
+          'status update',
+          'queue counts',
+          'release gate',
+          'flow lanes',
+          'evidence'
+        ])
+        && includesAll(gaRoadmap, [
+          'Execution Lanes And Tracking Contract',
+          'docs/architecture/progress-sync-contract.md',
+          'Linear progress',
+          'Every significant merge batch'
+        ])
+        && includesAll(workItems, [
+          'sync-github',
+          'github-pr',
+          'github-issue',
+          'sourceClosedAt',
+          'ecc-work-items-sync-github'
+        ]),
+      fix: 'Add the progress sync contract, link it from the GA roadmap, and preserve work-items GitHub sync.'
+    },
+    {
+      id: 'release-safety-evidence',
+      category: 'Release Safety',
+      points: 3,
+      path: 'docs/releases/2.0.0-rc.1/publication-readiness.md',
+      description: 'Release readiness includes package, workflow, and supply-chain evidence before publication',
+      pass: fileExists(rootDir, 'docs/releases/2.0.0-rc.1/publication-readiness.md')
+        && fileExists(rootDir, 'docs/releases/2.0.0-rc.1/publication-evidence-2026-05-13-post-hardening.md')
+        && fileExists(rootDir, 'docs/security/supply-chain-incident-response.md')
+        && fileExists(rootDir, 'scripts/ci/validate-workflow-security.js')
+        && fileExists(rootDir, 'tests/ci/validate-workflow-security.test.js')
+        && fileExists(rootDir, 'tests/scripts/npm-publish-surface.test.js')
+        && fileExists(rootDir, 'tests/docs/ecc2-release-surface.test.js')
+        && includesAll(publicationReadiness, [
+          'Publication Gates',
+          'Required Command Evidence',
+          'Do Not Publish If',
+          'npm dist-tag',
+          'GitGuardian',
+          'Dependabot alerts',
+          'npm audit signatures'
+        ])
+        && includesAll(postHardeningEvidence, [
+          'npm audit --json',
+          'npm audit signatures',
+          'cargo audit',
+          'Dependabot alert API',
+          'TanStack',
+          'Mini Shai-Hulud',
+          'GitGuardian Security Checks'
+        ])
+        && includesAll(supplyChainIncidentResponse, [
+          'TanStack',
+          'Mini Shai-Hulud',
+          'npm audit signatures',
+          'trusted publishing',
+          'pull_request_target',
+          'id-token: write'
+        ])
+        && includesAll(workflowSecurityValidator, [
+          'persist-credentials: false',
+          'npm audit signatures',
+          'pull_request_target',
+          'id-token: write'
+        ])
+        && includesAll(workflowSecurityValidatorTests, ['npm audit signatures', 'persist-credentials: false'])
+        && includesAll(publishSurfaceTest, ['npm pack', 'Python bytecode'])
+        && includesAll(releaseSurfaceTest, ['publication-readiness.md']),
+      fix: 'Refresh publication readiness, post-hardening evidence, supply-chain response docs, workflow-security validator coverage, and package/release surface tests.'
     },
     {
       id: 'package-exposes-readiness-gate',

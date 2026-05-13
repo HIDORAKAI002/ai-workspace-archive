@@ -1,148 +1,149 @@
-# Model Context Protocol za streaming podataka u stvarnom vremenu
+# Protokol Konteksta Modela za Streaming Podataka u Stvarnom Vremenu
 
 ## Pregled
 
-Streaming podataka u stvarnom vremenu postao je ključan u današnjem svijetu vođenom podacima, gdje tvrtke i aplikacije zahtijevaju trenutni pristup informacijama za pravovremene odluke. Model Context Protocol (MCP) predstavlja značajan napredak u optimizaciji ovih procesa streaminga u stvarnom vremenu, poboljšavajući učinkovitost obrade podataka, održavajući kontekstualni integritet i unapređujući ukupne performanse sustava.
+Streaming podataka u stvarnom vremenu postao je ključan u današnjem svijetu vođenom podacima, gdje tvrtke i aplikacije zahtijevaju trenutni pristup informacijama kako bi donosile pravovremene odluke. Protokol Konteksta Modela (MCP) predstavlja značajan napredak u optimizaciji ovih procesa streaming podataka u stvarnom vremenu, poboljšavajući učinkovitost obrade podataka, održavajući kontekstualni integritet i unapređujući ukupne performanse sustava.
 
-Ovaj modul istražuje kako MCP transformira streaming podataka u stvarnom vremenu pružajući standardizirani pristup upravljanju kontekstom između AI modela, streaming platformi i aplikacija.
+Ovaj modul istražuje kako MCP transformira streaming podataka u stvarnom vremenu pružajući standardizirani pristup upravljanju kontekstom među AI modelima, platformama za streaming i aplikacijama.
 
-## Uvod u streaming podataka u stvarnom vremenu
+## Uvod u Streaming Podataka u Stvarnom Vremenu
 
-Streaming podataka u stvarnom vremenu tehnološki je pristup koji omogućuje kontinuirani prijenos, obradu i analizu podataka čim se generiraju, dopuštajući sustavima da odmah reagiraju na nove informacije. Za razliku od tradicionalne obrade u serijama koja radi na statičnim skupovima podataka, streaming obrađuje podatke u pokretu, pružajući uvide i akcije s minimalnim kašnjenjem.
+Streaming podataka u stvarnom vremenu tehnološki je paradigma koja omogućava kontinuirani prijenos, obradu i analizu podataka dok se generiraju, dopuštajući sustavima da odmah reagiraju na nove informacije. Za razliku od tradicionalne obrade u skupinama koja radi na statičkim skupovima podataka, streaming obrađuje podatke u pokretu, pružajući uvide i akcije s minimalnom latencijom.
 
 ### Osnovni pojmovi streaminga podataka u stvarnom vremenu:
 
-- **Kontinuirani tok podataka**: Podaci se obrađuju kao neprekidan, beskonačan tok događaja ili zapisa.
-- **Obrada s niskim kašnjenjem**: Sustavi su dizajnirani da minimiziraju vrijeme između generiranja i obrade podataka.
-- **Skalabilnost**: Streaming arhitekture moraju podnijeti varijabilne količine i brzine podataka.
-- **Otpornost na pogreške**: Sustavi trebaju biti otporni na kvarove kako bi osigurali neprekidan tok podataka.
+- **Kontinuirani tok podataka**: Podaci se obrađuju kao kontinuirani, nikad završavajući tok događaja ili zapisa.
+- **Obrada s niskom latencijom**: Sustavi su dizajnirani da minimiziraju vrijeme između generiranja i obrade podataka.
+- **Skalabilnost**: Streaming arhitekture moraju podnijeti varijabilne volumene i brzine podataka.
+- **Otpornost na pogreške**: Sustavi trebaju biti otporni na kvarove kako bi osigurali neprekinuti tok podataka.
 - **Obrada sa stanjem**: Održavanje konteksta kroz događaje ključno je za smisleniju analizu.
 
-### Model Context Protocol i streaming u stvarnom vremenu
+### Protokol Konteksta Modela i Streaming u Stvarnom Vremenu
 
-Model Context Protocol (MCP) rješava nekoliko ključnih izazova u okruženjima streaminga u stvarnom vremenu:
+Protokol Konteksta Modela (MCP) rješava nekoliko ključnih izazova u okruženjima streaminga u stvarnom vremenu:
 
-1. **Kontekstualna kontinuitet**: MCP standardizira način održavanja konteksta kroz distribuirane streaming komponente, osiguravajući da AI modeli i čvorovi za obradu imaju pristup relevantnom povijesnom i okolišnom kontekstu.
+1. **Kontekstualna kontinuitet**: MCP standardizira način održavanja konteksta među distribuiranim komponentama streaminga, osiguravajući da AI modeli i čvorovi obrade imaju pristup relevantnom povijesnom i okolišnom kontekstu.
 
 2. **Učinkovito upravljanje stanjem**: Pružajući strukturirane mehanizme za prijenos konteksta, MCP smanjuje opterećenje upravljanja stanjem u streaming cjevovodima.
 
-3. **Interoperabilnost**: MCP stvara zajednički jezik za dijeljenje konteksta između različitih streaming tehnologija i AI modela, omogućujući fleksibilnije i proširivije arhitekture.
+3. **Interoperabilnost**: MCP stvara zajednički jezik za dijeljenje konteksta između raznih streaming tehnologija i AI modela, omogućujući fleksibilnije i proširive arhitekture.
 
-4. **Streaming-optimizirani kontekst**: Implementacije MCP-a mogu prioritizirati koje su kontekstualne informacije najvažnije za donošenje odluka u stvarnom vremenu, optimizirajući i performanse i točnost.
+4. **Kontekst optimiziran za streaming**: Implementacije MCP-a mogu prioritizirati koje su stavke konteksta najvažnije za donošenje odluka u stvarnom vremenu, optimizirajući performanse i točnost.
 
-5. **Adaptivna obrada**: Uz pravilno upravljanje kontekstom kroz MCP, streaming sustavi mogu dinamički prilagođavati obradu na temelju promjenjivih uvjeta i obrazaca u podacima.
+5. **Prilagodljiva obrada**: Uz pravilno upravljanje kontekstom kroz MCP, streaming sustavi mogu dinamički prilagođavati obradu na temelju promjenjivih uvjeta i obrazaca u podacima.
 
-U modernim aplikacijama, od IoT mreža senzora do financijskih platformi za trgovanje, integracija MCP-a sa streaming tehnologijama omogućuje inteligentniju, kontekstualno osviještenu obradu koja može adekvatno reagirati na složene, promjenjive situacije u stvarnom vremenu.
+U suvremenim aplikacijama od IoT senzorskih mreža do financijskih trgovačkih platformi, integracija MCP-a s streaming tehnologijama omogućuje inteligentniju, kontekstualno svjesnu obradu koja može pravovremeno odgovarati na složene, evoluirajuće situacije u stvarnom vremenu.
 
-## Ciljevi učenja
+## Ciljevi Učenja
 
-Na kraju ovog poglavlja moći ćete:
+Na kraju ovog sata moći ćete:
 
 - Razumjeti osnove streaminga podataka u stvarnom vremenu i njegove izazove
-- Objasniti kako Model Context Protocol (MCP) poboljšava streaming podataka u stvarnom vremenu
-- Implementirati streaming rješenja temeljena na MCP-u koristeći popularne okvire poput Kafka i Pulsar
-- Dizajnirati i implementirati otpornije i visokoučinkovite streaming arhitekture s MCP-om
-- Primijeniti MCP koncepte u IoT, financijskom trgovanju i AI-analitici
-- Procijeniti nove trendove i buduće inovacije u MCP-temeljenim streaming tehnologijama
+- Objasniti kako Protokol Konteksta Modela (MCP) unapređuje streaming podataka u stvarnom vremenu
+- Implementirati streaming rješenja temeljena na MCP-u koristeći popularne okvire poput Kafke i Pulsara
+- Dizajnirati i implementirati arhitekture streaminga otporne na kvarove i visoke izvedbe s MCP-om
+- Primijeniti koncepte MCP-a u slučajevima korištenja za IoT, financijsko trgovanje i analitiku vođenu AI-jem
+- Procijeniti nove trendove i buduće inovacije u tehnologijama streaminga temeljenima na MCP-u
 
-### Definicija i značaj
 
-Streaming podataka u stvarnom vremenu uključuje kontinuiranu generaciju, obradu i isporuku podataka s minimalnim kašnjenjem. Za razliku od obrade u serijama, gdje se podaci prikupljaju i obrađuju u skupinama, streaming podaci obrađuju se inkrementalno čim stignu, omogućujući trenutne uvide i akcije.
+### Definicija i Značaj
+
+Streaming podataka u stvarnom vremenu uključuje kontinuiranu generaciju, obradu i isporuku podataka s minimalnom latencijom. Za razliku od obrade u skupinama gdje se podaci prikupljaju i obrađuju u grupama, streaming podaci obrađuju se postupno kako dolaze, omogućujući trenutne uvide i radnje.
 
 Ključne karakteristike streaminga podataka u stvarnom vremenu uključuju:
 
-- **Nisko kašnjenje**: Obrada i analiza podataka u milisekundama do sekundi
+- **Niska latencija**: Obrada i analiza podataka unutar milisekundi do sekundi
 - **Kontinuirani tok**: Neprekidni tokovi podataka iz različitih izvora
 - **Neposredna obrada**: Analiza podataka čim stignu, a ne u skupinama
-- **Arhitektura vođena događajima**: Reakcija na događaje čim se dogode
+- **Arhitektura vođena događajima**: Reagiranje na događaje čim se dogode
 
-### Izazovi u tradicionalnom streamingu podataka
+### Izazovi u Tradicionalnom Streaming Podacima
 
 Tradicionalni pristupi streamingu podataka suočavaju se s nekoliko ograničenja:
 
 1. **Gubitak konteksta**: Teškoće u održavanju konteksta kroz distribuirane sustave
-2. **Problemi sa skalabilnošću**: Izazovi u skaliranju za rukovanje velikim količinama i brzinama podataka
-3. **Složenost integracije**: Problemi s interoperabilnošću između različitih sustava
-4. **Upravljanje kašnjenjem**: Balansiranje propusnosti i vremena obrade
-5. **Konzistentnost podataka**: Osiguravanje točnosti i potpunosti podataka kroz tok
+2. **Problemi sa skalabilnošću**: Izazovi u skaliranju za rukovanje velikim volumima i brzinom podataka
+3. **Kompleksnost integracije**: Problemi s interoperabilnošću među različitim sustavima
+4. **Upravljanje latencijom**: Uravnoteženje propusnosti i vremena obrade
+5. **Dosljednost podataka**: Osiguravanje točnosti i potpunosti podataka kroz tok
 
-## Razumijevanje Model Context Protocola (MCP)
+## Razumijevanje Protokola Konteksta Modela (MCP)
 
 ### Što je MCP?
 
-Model Context Protocol (MCP) je standardizirani komunikacijski protokol dizajniran za olakšavanje učinkovite interakcije između AI modela i aplikacija. U kontekstu streaminga podataka u stvarnom vremenu, MCP pruža okvir za:
+Protokol Konteksta Modela (MCP) je standardizirani komunikacijski protokol dizajniran za olakšavanje učinkovite interakcije između AI modela i aplikacija. U kontekstu streaminga podataka u stvarnom vremenu, MCP pruža okvir za:
 
-- Očuvanje konteksta kroz cijeli podatkovni cjevovod
+- Očuvanje konteksta kroz cijeli cjevovod podataka
 - Standardizaciju formata razmjene podataka
 - Optimizaciju prijenosa velikih skupova podataka
 - Poboljšanje komunikacije model-model i model-aplikacija
 
-### Glavne komponente i arhitektura
+### Osnovne Komponente i Arhitektura
 
 Arhitektura MCP-a za streaming u stvarnom vremenu sastoji se od nekoliko ključnih komponenti:
 
-1. **Upravitelji konteksta**: Upravljaju i održavaju kontekstualne informacije kroz streaming cjevovod
-2. **Procesori streama**: Obradjuju dolazne tokove podataka koristeći tehnike osviještene o kontekstu
-3. **Protokol adapteri**: Pretvaraju između različitih streaming protokola uz očuvanje konteksta
+1. **Upravljači kontekstom**: Upravljaju i održavaju kontekstualne informacije kroz streaming cjevovod
+2. **Procesori streama**: Procesuiraju dolazne tokove podataka koristeći tehnike osviještene o kontekstu
+3. **Adapteri protokola**: Pretvaraju između različitih streaming protokola uz očuvanje konteksta
 4. **Spremište konteksta**: Učinkovito pohranjuje i dohvaća kontekstualne informacije
-5. **Streaming konektori**: Povezuju se s različitim streaming platformama (Kafka, Pulsar, Kinesis itd.)
+5. **Streaming konektori**: Povezuju se s raznim platformama za streaming (Kafka, Pulsar, Kinesis i sl.)
 
 ```mermaid
 graph TD
-    subgraph "Data Sources"
-        IoT[IoT Devices]
-        APIs[APIs]
-        DB[Databases]
-        Apps[Applications]
+    subgraph "Izvori Podataka"
+        IoT[IoT Uređaji]
+        APIs[API-ji]
+        DB[Baze Podataka]
+        Apps[Aplikacije]
     end
 
-    subgraph "MCP Streaming Layer"
-        SC[Streaming Connectors]
-        PA[Protocol Adapters]
-        CH[Context Handlers]
-        SP[Stream Processors]
-        CS[Context Store]
+    subgraph "MCP Streaming Sloj"
+        SC[Streaming Konektori]
+        PA[Protokol Adapteri]
+        CH[Upravitelji Konteksta]
+        SP[Streaming Procesori]
+        CS[Spremište Konteksta]
     end
 
-    subgraph "Processing & Analytics"
-        RT[Real-time Analytics]
-        ML[ML Models]
-        CEP[Complex Event Processing]
-        Viz[Visualization]
+    subgraph "Obrada & Analitika"
+        RT[Analitika u Stvarnom Vremenu]
+        ML[ML Modeli]
+        CEP[Složen Procesuiranje Događaja]
+        Viz[Vizualizacija]
     end
 
-    subgraph "Applications & Services"
-        DA[Decision Automation]
-        Alerts[Alerting Systems]
-        DL[Data Lake/Warehouse]
-        API[API Services]
+    subgraph "Aplikacije & Usluge"
+        DA[Automatizacija Odluka]
+        Alerts[Sistemi Upozorenja]
+        DL[Podatkovno Jezero/Skladište]
+        API[API Usluge]
     end
 
-    IoT -->|Data| SC
-    APIs -->|Data| SC
-    DB -->|Changes| SC
-    Apps -->|Events| SC
+    IoT -->|Podaci| SC
+    APIs -->|Podaci| SC
+    DB -->|Promjene| SC
+    Apps -->|Događaji| SC
     
-    SC -->|Raw Streams| PA
-    PA -->|Normalized Streams| CH
-    CH <-->|Context Operations| CS
-    CH -->|Context-Enriched Data| SP
-    SP -->|Processed Streams| RT
-    SP -->|Features| ML
-    SP -->|Events| CEP
+    SC -->|Sirovi Streamovi| PA
+    PA -->|Normalizirani Streamovi| CH
+    CH <-->|Operacije Konteksta| CS
+    CH -->|Podaci Obogaćeni Kontekstom| SP
+    SP -->|Procesuirani Streamovi| RT
+    SP -->|Značajke| ML
+    SP -->|Događaji| CEP
     
-    RT -->|Insights| Viz
-    ML -->|Predictions| DA
-    CEP -->|Complex Events| Alerts
-    Viz -->|Dashboards| Users((Users))
+    RT -->|Uvidi| Viz
+    ML -->|Predikcije| DA
+    CEP -->|Složeni Događaji| Alerts
+    Viz -->|Nadzorne Ploče| Users((Korisnici))
     
-    RT -.->|Historical Data| DL
-    ML -.->|Model Results| DL
-    CEP -.->|Event Logs| DL
+    RT -.->|Povijesni Podaci| DL
+    ML -.->|Rezultati Modela| DL
+    CEP -.->|Dnevnici Događaja| DL
     
-    DA -->|Actions| API
-    Alerts -->|Notifications| API
-    DL <-->|Data Access| API
+    DA -->|Radnje| API
+    Alerts -->|Obavijesti| API
+    DL <-->|Pristup Podacima| API
     
     classDef sources fill:#f9f,stroke:#333,stroke-width:2px
     classDef mcp fill:#bbf,stroke:#333,stroke-width:2px
@@ -155,47 +156,47 @@ graph TD
     class DA,Alerts,DL,API apps
 ```
 
-### Kako MCP poboljšava obradu podataka u stvarnom vremenu
+### Kako MCP Poboljšava Rukovanje Podacima u Stvarnom Vremenu
 
 MCP rješava tradicionalne izazove streaminga kroz:
 
-- **Kontekstualni integritet**: Održavanje odnosa između podataka kroz cijeli cjevovod
-- **Optimizirani prijenos**: Smanjenje redundancije u razmjeni podataka inteligentnim upravljanjem kontekstom
+- **Kontekstualni integritet**: Održavanje veza između podataka kroz cijeli cjevovod
+- **Optimizirani prijenos**: Smanjenje suvišnosti u izmjeni podataka kroz inteligentno upravljanje kontekstom
 - **Standardizirani sučelja**: Pružanje dosljednih API-ja za streaming komponente
-- **Smanjeno kašnjenje**: Minimiziranje opterećenja obrade kroz učinkovito upravljanje kontekstom
-- **Poboljšana skalabilnost**: Podrška horizontalnom skaliranju uz očuvanje konteksta
+- **Smanjena latencija**: Minimiziranje troškova obrade kroz učinkovito upravljanje kontekstom
+- **Poboljšana skalabilnost**: Podrška horizontalnoj ekspanziji uz očuvanje konteksta
 
-## Integracija i implementacija
+## Integracija i Implementacija
 
-Sustavi za streaming podataka u stvarnom vremenu zahtijevaju pažljiv arhitektonski dizajn i implementaciju kako bi održali i performanse i kontekstualni integritet. Model Context Protocol nudi standardizirani pristup integraciji AI modela i streaming tehnologija, omogućujući sofisticiranije, kontekstualno osviještene cjevovode za obradu.
+Sustavi streaminga podataka u stvarnom vremenu zahtijevaju pažljiv arhitektonski dizajn i implementaciju kako bi održali i performanse i kontekstualni integritet. Protokol Konteksta Modela nudi standardizirani pristup integraciji AI modela i tehnologija streaminga, dopuštajući sofisticiranije, kontekstualno svjesne cjevovode obrade.
 
-### Pregled integracije MCP-a u streaming arhitekture
+### Pregled Integracije MCP-a u Streaming Arhitekture
 
-Implementacija MCP-a u okruženjima streaminga u stvarnom vremenu uključuje nekoliko ključnih aspekata:
+Implementacija MCP-a u okruženjima streaminga u stvarnom vremenu uključuje nekoliko ključnih razmatranja:
 
-1. **Serijalizacija i prijenos konteksta**: MCP pruža učinkovite mehanizme za kodiranje kontekstualnih informacija unutar streaming paketa podataka, osiguravajući da ključni kontekst prati podatke kroz cijeli cjevovod obrade. To uključuje standardizirane formate serijalizacije optimizirane za streaming prijenos.
+1. **Serijalizacija i prijenos konteksta**: MCP pruža učinkovite mehanizme za kodiranje kontekstualnih informacija unutar paketa streaming podataka, osiguravajući da se ključni kontekst prenosi zajedno s podacima kroz cijeli cjevovod obrade. To uključuje standardizirane formate serijalizacije optimizirane za streaming prijenos.
 
-2. **Obrada streama sa stanjem**: MCP omogućuje inteligentniju obradu sa stanjem održavajući dosljednu reprezentaciju konteksta kroz čvorove za obradu. Ovo je posebno vrijedno u distribuiranim streaming arhitekturama gdje je upravljanje stanjem tradicionalno izazovno.
+2. **Staterful obrada streama**: MCP omogućuje inteligentniju obradu sa stanjem održavajući dosljednu reprezentaciju konteksta kroz čvorove obrade. Ovo je posebno vrijedno u distribuiranim streaming arhitekturama gdje je upravljanje stanjem tradicionalno izazov.
 
-3. **Vrijeme događaja nasuprot vremenu obrade**: Implementacije MCP-a u streaming sustavima moraju adresirati uobičajeni izazov razlikovanja kada su se događaji dogodili i kada se obrađuju. Protokol može uključiti vremenski kontekst koji čuva semantiku vremena događaja.
+3. **Vrijeme događaja nasuprot vremenu obrade**: Implementacije MCP-a u streaming sustavima moraju razlikovati kada su se događaji dogodili i kada se obrađuju. Protokol može uključivati vremenski kontekst koji čuva semantiku vremena događaja.
 
-4. **Upravljanje povratnim pritiskom (backpressure)**: Standardizacijom upravljanja kontekstom, MCP pomaže u upravljanju povratnim pritiskom u streaming sustavima, dopuštajući komponentama da komuniciraju svoje mogućnosti obrade i prilagode tok podataka.
+4. **Upravljanje povratnim pritiskom**: Standardizacijom upravljanja kontekstom, MCP pomaže u kontroli povratnog pritiska u streaming sustavima, dopusteći komponentama da komuniciraju svoje obradne kapacitete i prilagode tok podataka prema potrebama.
 
-5. **Prozori i agregacija konteksta**: MCP olakšava sofisticiranije operacije prozora pružajući strukturirane prikaze vremenskog i relacijskog konteksta, omogućujući smislenije agregacije kroz tokove događaja.
+5. **Prozori konteksta i agregacija**: MCP omogućava sofisticiranije operacije prozora pružajući strukturirane prikaze vremenskog i relacijskog konteksta, omogućujući smislenije agregacije preko tokova događaja.
 
-6. **Obrada točno jednom (exactly-once)**: U streaming sustavima koji zahtijevaju semantiku točno jednom, MCP može uključiti metapodatke obrade za praćenje i verifikaciju statusa obrade kroz distribuirane komponente.
+6. **Točno-jednokratna obrada**: U streaming sustavima koji zahtijevaju točno-jednokratnu semantiku, MCP može uključiti metapodatke obrade za praćenje i verifikaciju statusa obrade kroz distribuirane komponente.
 
-Implementacija MCP-a preko različitih streaming tehnologija stvara jedinstveni pristup upravljanju kontekstom, smanjujući potrebu za prilagođenim integracijskim kodom i poboljšavajući sposobnost sustava da održava smisleni kontekst dok podaci prolaze kroz cjevovod.
+Implementacija MCP-a preko različitih streaming tehnologija stvara jedinstveni pristup upravljanju kontekstom, smanjujući potrebu za prilagođenim integracijskim kodovima dok istovremeno poboljšava sposobnost sustava da održava smisleni kontekst kako podaci prolaze kroz cjevovod.
 
-### MCP u različitim okvirima za streaming podataka
+### MCP u Različitim Okvirima za Streaming Podataka
 
-Ovi primjeri slijede trenutnu MCP specifikaciju koja se temelji na JSON-RPC protokolu s različitim mehanizmima prijenosa. Kod pokazuje kako implementirati prilagođene transportne slojeve koji integriraju streaming platforme poput Kafka i Pulsar, uz potpunu kompatibilnost s MCP protokolom.
+Ovi primjeri prate trenutnu specifikaciju MCP-a koja se fokusira na protokol temeljen na JSON-RPC s različitim mehanizmima prijenosa. Kod demonstrira kako možete implementirati prilagođene transportere koji integriraju streaming platforme poput Kafke i Pulsara uz očuvanje pune kompatibilnosti s MCP protokolom.
 
-Primjeri su osmišljeni da pokažu kako se streaming platforme mogu integrirati s MCP-om za pružanje obrade podataka u stvarnom vremenu uz očuvanje kontekstualne svijesti koja je središnja za MCP. Ovaj pristup osigurava da primjeri koda točno odražavaju trenutačno stanje MCP specifikacije zaključno s lipnjem 2025.
+Primjeri su osmišljeni da pokažu kako se streaming platforme mogu integrirati s MCP-om za pružanje obrade podataka u stvarnom vremenu uz očuvanje kontekstualne svijesti koja je središnja u MCP-u. Ovaj pristup osigurava da primjeri koda točno odražavaju trenutačno stanje specifikacije MCP-a zaključno s lipnjem 2025.
 
 MCP se može integrirati s popularnim streaming okvirima uključujući:
 
-#### Integracija Apache Kafka
+#### Integracija Apache Kafke
 
 ```python
 import asyncio
@@ -206,7 +207,7 @@ from mcp.client import Client, ClientCapabilities
 from mcp.core.message import JsonRpcMessage
 from mcp.core.transports import Transport
 
-# Custom transport class to bridge MCP with Kafka
+# Prilagođena transportna klasa za povezivanje MCP-a s kafkom
 class KafkaMCPTransport(Transport):
     def __init__(self, bootstrap_servers: str, input_topic: str, output_topic: str):
         self.bootstrap_servers = bootstrap_servers
@@ -244,7 +245,7 @@ class KafkaMCPTransport(Transport):
                     print(f"Consumer error: {msg.error()}")
                     continue
                 
-                # Parse the message value as JSON-RPC
+                # Parsiraj vrijednost poruke kao JSON-RPC
                 try:
                     message_str = msg.value().decode('utf-8')
                     message_data = json.loads(message_str)
@@ -274,7 +275,7 @@ class KafkaMCPTransport(Transport):
                 message_json.encode('utf-8'),
                 callback=self._delivery_report
             )
-            self.producer.poll(0)  # Trigger callbacks
+            self.producer.poll(0)  # Pokreni povratne pozive
         except Exception as e:
             print(f"Error writing message: {e}")
     
@@ -297,15 +298,15 @@ class KafkaMCPTransport(Transport):
         self.consumer.close()
         self.producer.flush()
 
-# Example usage of the Kafka MCP transport
+# Primjer korištenja Kafka MCP transporta
 async def kafka_mcp_example():
-    # Create MCP client with Kafka transport
+    # Kreiraj MCP klijenta s Kafka transportom
     client = Client(
         {"name": "kafka-mcp-client", "version": "1.0.0"},
         ClientCapabilities({})
     )
     
-    # Create and connect the Kafka transport
+    # Kreiraj i poveži Kafka transport
     transport = KafkaMCPTransport(
         bootstrap_servers="localhost:9092",
         input_topic="mcp-responses",
@@ -315,10 +316,10 @@ async def kafka_mcp_example():
     await client.connect(transport)
     
     try:
-        # Initialize the MCP session
+        # Inicijaliziraj MCP sesiju
         await client.initialize()
         
-        # Example of executing a tool via MCP
+        # Primjer izvršavanja alata putem MCP-a
         response = await client.execute_tool(
             "process_data",
             {
@@ -332,17 +333,17 @@ async def kafka_mcp_example():
         
         print(f"Tool execution response: {response}")
         
-        # Clean shutdown
+        # Čisto završavanje
         await client.shutdown()
     finally:
         await transport.close()
 
-# Run the example
+# Pokreni primjer
 if __name__ == "__main__":
     asyncio.run(kafka_mcp_example())
 ```
 
-#### Implementacija Apache Pulsar
+#### Implementacija Apache Pulsara
 
 ```python
 import asyncio
@@ -354,7 +355,7 @@ from mcp.core.transports import Transport
 from mcp.server import Server, ServerOptions
 from mcp.server.tools import Tool, ToolExecutionContext, ToolMetadata
 
-# Create a custom MCP transport that uses Pulsar
+# Kreirajte prilagođeni MCP transport koji koristi Pulsar
 class PulsarMCPTransport(Transport):
     def __init__(self, service_url: str, request_topic: str, response_topic: str):
         self.service_url = service_url
@@ -381,24 +382,24 @@ class PulsarMCPTransport(Transport):
         """Background task to consume messages from Pulsar and queue them for processing"""
         while self.running:
             try:
-                # Non-blocking receive with timeout
+                # Neblokirajuće primanje s vremenskim ograničenjem
                 msg = self.consumer.receive(timeout_millis=500)
                 
-                # Process the message
+                # Obradite poruku
                 try:
                     message_str = msg.data().decode('utf-8')
                     message_data = json.loads(message_str)
                     mcp_message = JsonRpcMessage.from_dict(message_data)
                     await self.message_queue.put(mcp_message)
                     
-                    # Acknowledge the message
+                    # Potvrdite poruku
                     self.consumer.acknowledge(msg)
                 except Exception as e:
                     print(f"Error processing message: {e}")
-                    # Negative acknowledge if there was an error
+                    # Negativno potvrdite ako je došlo do pogreške
                     self.consumer.negative_acknowledge(msg)
             except Exception as e:
-                # Handle timeout or other exceptions
+                # Rukujte istekom vremena ili drugim iznimkama
                 await asyncio.sleep(0.1)
     
     async def read(self) -> Optional[JsonRpcMessage]:
@@ -431,7 +432,7 @@ class PulsarMCPTransport(Transport):
         self.producer.close()
         self.client.close()
 
-# Define a sample MCP tool that processes streaming data
+# Definirajte primjer MCP alata koji obrađuje podatke u streamu
 @Tool(
     name="process_streaming_data",
     description="Process streaming data with context preservation",
@@ -457,13 +458,13 @@ async def process_streaming_data(
     Returns:
         Dict containing processed results and context information
     """
-    # Example processing that leverages MCP context
+    # Primjer obrade koji koristi MCP kontekst
     print(f"Processing data from {source} with priority {priority}")
     
-    # Access conversation context from MCP
+    # Pristupite kontekstu razgovora iz MCP-a
     conversation_id = ctx.conversation_id if hasattr(ctx, 'conversation_id') else "unknown"
     
-    # Return results with enhanced context
+    # Vratite rezultate s poboljšanim kontekstom
     return {
         "processed_data": f"Processed: {data}",
         "context": {
@@ -474,9 +475,9 @@ async def process_streaming_data(
         }
     }
 
-# Example MCP server implementation using Pulsar transport
+# Primjer implementacije MCP servera koristeći Pulsar transport
 async def run_mcp_server_with_pulsar():
-    # Create MCP server
+    # Kreirajte MCP server
     server = Server(
         {"name": "pulsar-mcp-server", "version": "1.0.0"},
         ServerOptions(
@@ -484,10 +485,10 @@ async def run_mcp_server_with_pulsar():
         )
     )
     
-    # Register our tool
+    # Registrirajte naš alat
     server.register_tool(process_streaming_data)
     
-    # Create and connect Pulsar transport
+    # Kreirajte i povežite Pulsar transport
     transport = PulsarMCPTransport(
         service_url="pulsar://localhost:6650",
         request_topic="mcp-requests",
@@ -495,132 +496,147 @@ async def run_mcp_server_with_pulsar():
     )
     
     try:
-        # Start the server with the Pulsar transport
+        # Pokrenite server s Pulsar transportom
         await server.run(transport)
     finally:
         await transport.close()
 
-# Run the server
+# Pokrenite server
 if __name__ == "__main__":
     asyncio.run(run_mcp_server_with_pulsar())
 ```
 
-### Najbolje prakse za implementaciju
+### Najbolje Prakse za Implementaciju
 
-Prilikom implementacije MCP-a za streaming u stvarnom vremenu:
+Kod implementacije MCP-a za streaming u stvarnom vremenu:
 
 1. **Dizajnirajte za otpornost na pogreške**:
-   - Implementirajte pravilno rukovanje pogreškama
-   - Koristite dead-letter queue za neuspjele poruke
+   - Implementirajte pravilno rukovanje greškama
+   - Koristite redove mrtvih poruka za neuspjele poruke
    - Dizajnirajte idempotentne procesore
 
-2. **Optimizirajte performanse**:
+2. **Optimizirajte za izvedbu**:
    - Konfigurirajte odgovarajuće veličine međuspremnika
-   - Koristite grupiranje (batching) gdje je prikladno
-   - Implementirajte mehanizme za upravljanje povratnim pritiskom
+   - Koristite serije gdje je prikladno
+   - Implementirajte mehanizme povratnog pritiska
 
-3. **Nadzor i praćenje**:
+3. **Pratite i nadgledajte**:
    - Pratite metrike obrade streama
-   - Nadzirite propagaciju konteksta
+   - Nadgledajte širenje konteksta
    - Postavite upozorenja za anomalije
 
-4. **Osigurajte svoje tokove**:
+4. **Osigurajte vaše tokove**:
    - Implementirajte enkripciju za osjetljive podatke
-   - Koristite autentikaciju i autorizaciju
+   - Koristite autentifikaciju i autorizaciju
    - Primijenite odgovarajuće kontrole pristupa
 
-### MCP u IoT i Edge računarstvu
 
-MCP poboljšava IoT streaming kroz:
+### MCP u IoT-u i Edge Computingu
 
-- Očuvanje konteksta uređaja kroz cjevovod obrade
-- Omogućavanje učinkovitog streaminga podataka s edge uređaja u cloud
-- Podršku za analitiku u stvarnom vremenu na IoT tokovima podataka
-- Olakšavanje komunikacije uređaj-uređaj s kontekstom
+MCP poboljšava IoT streaming:
 
-Primjer: Mreže senzora u pametnim gradovima  
+- Očuvanjem konteksta uređaja kroz cjevovod obrade
+- Omogućavanjem učinkovite edge-to-cloud streaming komunikacije
+- Podrškom za analitiku u stvarnom vremenu nad IoT tokovima podataka
+- Omogućavanjem komunikacije uređaj-uređaj s kontekstom
+
+Primjer: Mreže senzora u pametnim gradovima
 ```
 Sensors → Edge Gateways → MCP Stream Processors → Real-time Analytics → Automated Responses
 ```
 
-### Uloga u financijskim transakcijama i trgovanju visokih frekvencija
+### Uloga u Financijskim Transakcijama i Trgovanju Visoke Učestalosti
 
-MCP pruža značajne prednosti za streaming financijskih podataka:
+MCP pruža značajne prednosti za financijski streaming podataka:
 
-- Ultra-nisko kašnjenje obrade za trgovačke odluke
-- Očuvanje konteksta transakcija kroz cijelu obradu
+- Ultra-niska latencija obrade za trgovačke odluke
+- Održavanje konteksta transakcija kroz cijelu obradu
 - Podrška složenoj obradi događaja s kontekstualnom sviješću
-- Osiguravanje konzistentnosti podataka u distribuiranim trgovačkim sustavima
+- Osiguravanje dosljednosti podataka u distribuiranim trgovačkim sustavima
 
-### Unapređenje AI-pokretane analitike podataka
+### Unapređenje AI-Vođene Analitike Podataka
 
-MCP otvara nove mogućnosti za streaming analitiku:
+MCP stvara nove mogućnosti za streaming analitiku:
 
 - Trening i izvođenje modela u stvarnom vremenu
 - Kontinuirano učenje iz streaming podataka
-- Ekstrakcija značajki osviještena o kontekstu
-- Višestruki modeli u cjevovodima izvođenja s očuvanim kontekstom
+- Ekstrakcija značajki uz kontekst
+- Višemodelski cjevovodi izvođenja uz očuvani kontekst
 
-## Budući trendovi i inovacije
+## Budući Trendovi i Inovacije
 
-### Evolucija MCP-a u okruženjima stvarnog vremena
+### Evolucija MCP-a u Okruženjima Stvarnog Vremena
 
 Gledajući unaprijed, očekujemo da će MCP evoluirati kako bi adresirao:
 
-- **Integraciju kvantnog računarstva**: Priprema za streaming sustave temeljene na kvantnom računanju
-- **Edge-native obradu**: Premještanje više kontekstualno osviještene obrade na edge uređaje
-- **Autonomno upravljanje streamom**: Samooptimizirajući streaming cjevovodi
-- **Federirani streaming**: Distribuirana obrada uz očuvanje privatnosti
+- **Integraciju kvantnog računarstva**: Priprema streaming sustava baziranih na kvantnim tehnologijama
+- **Edge-nativnu obradu**: Premještanje više kontekstualno osviještene obrade na edge uređaje
+- **Autonomno upravljanje streamom**: Samooptimizirajući cjevovodi za streaming
+- **Ferderirani streaming**: Distribuirana obrada uz očuvanje privatnosti
 
-### Potencijalni tehnološki napreci
+### Potencijalni Tehnološki Napredci
 
 Nove tehnologije koje će oblikovati budućnost MCP streaminga:
 
-1. **AI-optimizirani streaming protokoli**: Prilagođeni protokoli posebno dizajnirani za AI radne opterećenja
-2. **Integracija neuromorfnih računala**: Računala inspirirana mozgom za obradu streama
-3. **Serverless streaming**: Event-driven, skalabilni streaming bez upravljanja infrastrukturom
-4. **Distribuirana spremišta konteksta**: Globalno distribuirano, a ipak visoko konzistentno upravljanje kontekstom
+1. **AI-optimizirani streaming protokoli**: Prilagođeni protokoli dizajnirani za AI radne opterećenja
+2. **Integracija neuromorfskog računarstva**: Računanje inspirirano mozgom za obradu tokova podataka
+3. **Serverless streaming**: Streaming upravljan događajima, skalabilan bez upravljanja infrastrukturom
+4. **Distribuirana spremišta konteksta**: Globalno distribuirano, ali visokokonzistentno upravljanje kontekstom
 
-## Praktične vježbe
+## Praktične Vježbe
 
-### Vježba 1: Postavljanje osnovnog MCP streaming cjevovoda
+### Vježba 1: Postavljanje Osnovnog MCP Streaming Cjevovoda
 
 U ovoj vježbi naučit ćete kako:
 - Konfigurirati osnovno MCP streaming okruženje
-- Implementirati upravitelje konteksta za obradu streama
+- Implementirati upravljače konteksta za obradu streama
 - Testirati i potvrditi očuvanje konteksta
 
-### Vježba 2: Izrada nadzorne ploče za analitiku u stvarnom vremenu
+### Vježba 2: Izrada Dashboarda za Analitiku u Stvarnom Vremenu
 
-Izradite kompletnu aplikaciju koja:
+Napravite kompletnu aplikaciju koja:
 - Prima streaming podatke koristeći MCP
-- Obradjuje tok podataka uz održavanje konteksta
+- Procesira tok uz održavanje konteksta
 - Vizualizira rezultate u stvarnom vremenu
 
-### Vježba 3: Implementacija složene obrade događaja s MCP-om
+### Vježba 3: Implementacija Složene Obrađene Događaja s MCP-om
 
 Napredna vježba koja pokriva:
 - Detekciju obrazaca u tokovima
-- Kontekstualnu korelaciju između više tokova
+- Kontekstualnu korelaciju kroz više tokova
 - Generiranje složenih događaja uz očuvani kontekst
 
-## Dodatni resursi
+## Dodatni Resursi
 
-- [Model Context Protocol Specification](https://github.com/modelcontextprotocol) - Službena MCP specifikacija i dokumentacija
-- [Apache Kafka Documentation](https://kafka.apache.org/documentation/) - Učenje o Kafka za obradu streama
-- [Apache Pulsar](https://pulsar.apache.org/) - Jedinstvena platforma za poruke i streaming
+- [Specifikacija Protokola Konteksta Modela](https://modelcontextprotocol.io) - Službena MCP specifikacija i dokumentacija
+- [Dokumentacija Apache Kafke](https://kafka.apache.org/documentation/) - Naučite o Kafki za obradu streama
+- [Apache Pulsar](https://pulsar.apache.org/) - Jedinstvena platforma za slanje poruka i streaming
 - [Streaming Systems: The What, Where, When, and How of Large-Scale Data Processing](https://www.oreilly.com/library/view/streaming-systems/9781491983867/) - Sveobuhvatna knjiga o streaming arhitekturama
 - [Microsoft Azure Event Hubs](https://learn.microsoft.com/azure/event-hubs/event-hubs-about) - Upravljačka usluga za event streaming
-- [MLflow Documentation](https://mlflow.org/docs/latest/index.html) - Za praćenje i implementaciju ML modela
+- [MLflow Dokumentacija](https://mlflow.org/docs/latest/index.html) - Za praćenje i implementaciju ML modela
 - [Real-Time Analytics with Apache Storm](https://storm.apache.org/releases/current/index.html) - Okvir za obradu u stvarnom vremenu
 - [Flink ML](https://nightlies.apache.org/flink/flink-ml-docs-master/) - Biblioteka za strojno učenje za Apache Flink
-- [LangChain Documentation](https://python.langchain.com/docs/get_started/introduction) - Izrada aplikacija s LLM-ovima
+- [LangChain Dokumentacija](https://python.langchain.com/docs/get_started/introduction) - Izrada aplikacija s velikim jezičnim modelima
 
-## Ishodi učenja
 
-Nakon završetka ovog modula moći ćete:
+## Ishodi Učenja
 
-- Razumjeti osnove streaminga podataka u stvarnom vremenu i njegove izaz
+Završetkom ovog modula moći ćete:
 
-**Odricanje od odgovornosti**:  
-Ovaj dokument je preveden korištenjem AI usluge za prevođenje [Co-op Translator](https://github.com/Azure/co-op-translator). Iako težimo točnosti, imajte na umu da automatski prijevodi mogu sadržavati pogreške ili netočnosti. Izvorni dokument na izvornom jeziku treba smatrati službenim i autoritativnim izvorom. Za kritične informacije preporučuje se profesionalni ljudski prijevod. Ne snosimo odgovornost za bilo kakva nesporazuma ili pogrešna tumačenja koja proizlaze iz korištenja ovog prijevoda.
+- Razumjeti osnove streaminga podataka u stvarnom vremenu i njegove izazove
+- Objasniti kako Protokol Konteksta Modela (MCP) unapređuje streaming podataka u stvarnom vremenu
+- Implementirati streaming rješenja temeljena na MCP-u koristeći popularne okvire poput Kafke i Pulsara
+- Dizajnirati i implementirati arhitekture streaminga otporne na kvarove i visoke izvedbe s MCP-om
+- Primijeniti koncepte MCP-a u slučajevima korištenja za IoT, financijsko trgovanje i analitiku vođenu AI-jem
+- Procijeniti nove trendove i buduće inovacije u tehnologijama streaminga temeljenima na MCP-u
+
+## Što slijedi
+
+- [5.11 Realtime Search](../mcp-realtimesearch/README.md)
+
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Napomena**:
+Ovaj dokument je preveden korištenjem AI prevoditeljskog servisa [Co-op Translator](https://github.com/Azure/co-op-translator). Iako težimo točnosti, imajte na umu da automatski prijevodi mogu sadržavati greške ili netočnosti. Izvorni dokument na izvornom jeziku treba smatrati autoritativnim izvorom. Za važne informacije preporuča se profesionalni ljudski prijevod. Nismo odgovorni za bilo kakva nesporazumevanja ili pogrešne interpretacije koje proizlaze iz korištenja ovog prijevoda.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

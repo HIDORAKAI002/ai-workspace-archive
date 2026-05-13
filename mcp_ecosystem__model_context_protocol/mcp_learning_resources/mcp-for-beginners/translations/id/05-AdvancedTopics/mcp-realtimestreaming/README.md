@@ -1,59 +1,60 @@
-# Model Context Protocol untuk Streaming Data Real-Time
+# Protokol Konteks Model untuk Streaming Data Waktu Nyata
 
 ## Ikhtisar
 
-Streaming data real-time telah menjadi hal yang sangat penting di dunia yang didorong oleh data saat ini, di mana bisnis dan aplikasi membutuhkan akses informasi secara langsung untuk mengambil keputusan tepat waktu. Model Context Protocol (MCP) merupakan kemajuan signifikan dalam mengoptimalkan proses streaming real-time ini, meningkatkan efisiensi pemrosesan data, menjaga integritas konteks, dan memperbaiki kinerja sistem secara keseluruhan.
+Streaming data waktu nyata telah menjadi esensial dalam dunia yang didorong oleh data saat ini, di mana bisnis dan aplikasi memerlukan akses segera ke informasi untuk membuat keputusan tepat waktu. Protokol Konteks Model (MCP) mewakili kemajuan signifikan dalam mengoptimalkan proses streaming waktu nyata ini, meningkatkan efisiensi pemrosesan data, menjaga integritas kontekstual, dan meningkatkan kinerja sistem secara keseluruhan.
 
-Modul ini membahas bagaimana MCP mengubah streaming data real-time dengan menyediakan pendekatan standar untuk manajemen konteks di antara model AI, platform streaming, dan aplikasi.
+Modul ini mengeksplorasi bagaimana MCP mengubah streaming data waktu nyata dengan menyediakan pendekatan standar untuk manajemen konteks di antara model AI, platform streaming, dan aplikasi.
 
-## Pengenalan Streaming Data Real-Time
+## Pengenalan Streaming Data Waktu Nyata
 
-Streaming data real-time adalah paradigma teknologi yang memungkinkan transfer, pemrosesan, dan analisis data secara berkelanjutan saat data dihasilkan, sehingga sistem dapat merespons informasi baru secara langsung. Berbeda dengan pemrosesan batch tradisional yang bekerja pada dataset statis, streaming memproses data yang sedang bergerak, memberikan wawasan dan tindakan dengan latensi minimal.
+Streaming data waktu nyata adalah paradigma teknologi yang memungkinkan transfer, pemrosesan, dan analisis data secara berkelanjutan saat data dihasilkan, memungkinkan sistem merespons secara instan terhadap informasi baru. Berbeda dengan pemrosesan batch tradisional yang bekerja pada dataset statis, streaming memproses data dalam pergerakan, memberikan wawasan dan tindakan dengan latensi minimal.
 
-### Konsep Inti Streaming Data Real-Time:
+### Konsep Inti Streaming Data Waktu Nyata:
 
-- **Aliran Data Berkelanjutan**: Data diproses sebagai aliran peristiwa atau catatan yang terus menerus tanpa henti.
-- **Pemrosesan Latensi Rendah**: Sistem dirancang untuk meminimalkan waktu antara data dihasilkan dan diproses.
+- **Aliran Data Berkelanjutan**: Data diproses sebagai aliran peristiwa atau catatan yang terus menerus dan tidak berakhir.
+- **Pemrosesan Latensi Rendah**: Sistem dirancang untuk meminimalkan waktu antara pembuatan data dan pemrosesan.
 - **Skalabilitas**: Arsitektur streaming harus mampu menangani volume dan kecepatan data yang bervariasi.
-- **Toleransi Kesalahan**: Sistem harus tahan terhadap kegagalan agar aliran data tidak terputus.
+- **Toleransi Kesalahan**: Sistem harus tahan terhadap kegagalan untuk memastikan aliran data tidak terputus.
 - **Pemrosesan Stateful**: Mempertahankan konteks antar peristiwa sangat penting untuk analisis yang bermakna.
 
-### Model Context Protocol dan Streaming Real-Time
+### Protokol Konteks Model dan Streaming Waktu Nyata
 
-Model Context Protocol (MCP) mengatasi beberapa tantangan penting dalam lingkungan streaming real-time:
+Protokol Konteks Model (MCP) mengatasi beberapa tantangan kritis dalam lingkungan streaming waktu nyata:
 
-1. **Kontinuitas Kontekstual**: MCP menstandarisasi cara konteks dipertahankan di antara komponen streaming yang terdistribusi, memastikan model AI dan node pemrosesan memiliki akses ke konteks historis dan lingkungan yang relevan.
+1. **Kontinuitas Kontekstual**: MCP menstandarisasi cara konteks dipertahankan di seluruh komponen streaming terdistribusi, memastikan model AI dan node pemrosesan memiliki akses ke konteks historis dan lingkungan yang relevan.
 
-2. **Manajemen Status yang Efisien**: Dengan menyediakan mekanisme terstruktur untuk transmisi konteks, MCP mengurangi beban manajemen status dalam pipeline streaming.
+2. **Manajemen State yang Efisien**: Dengan menyediakan mekanisme terstruktur untuk transmisi konteks, MCP mengurangi beban manajemen state dalam pipeline streaming.
 
-3. **Interoperabilitas**: MCP menciptakan bahasa umum untuk berbagi konteks antara teknologi streaming dan model AI yang beragam, memungkinkan arsitektur yang lebih fleksibel dan dapat diperluas.
+3. **Interoperabilitas**: MCP menciptakan bahasa umum untuk berbagi konteks antar teknologi streaming dan model AI yang beragam, memungkinkan arsitektur yang lebih fleksibel dan dapat diperluas.
 
-4. **Konteks yang Dioptimalkan untuk Streaming**: Implementasi MCP dapat memprioritaskan elemen konteks yang paling relevan untuk pengambilan keputusan real-time, mengoptimalkan kinerja dan akurasi.
+4. **Konteks yang Dioptimalkan untuk Streaming**: Implementasi MCP dapat memprioritaskan elemen konteks yang paling relevan untuk pengambilan keputusan waktu nyata, mengoptimalkan kinerja sekaligus akurasi.
 
-5. **Pemrosesan Adaptif**: Dengan manajemen konteks yang tepat melalui MCP, sistem streaming dapat menyesuaikan pemrosesan secara dinamis berdasarkan kondisi dan pola data yang berkembang.
+5. **Pemrosesan Adaptif**: Dengan manajemen konteks yang tepat melalui MCP, sistem streaming dapat menyesuaikan pemrosesan secara dinamis berdasarkan kondisi dan pola yang berkembang dalam data.
 
-Dalam aplikasi modern mulai dari jaringan sensor IoT hingga platform perdagangan keuangan, integrasi MCP dengan teknologi streaming memungkinkan pemrosesan yang lebih cerdas dan sadar konteks yang dapat merespons situasi kompleks dan berubah secara real-time.
+Dalam aplikasi modern mulai dari jaringan sensor IoT hingga platform perdagangan keuangan, integrasi MCP dengan teknologi streaming memungkinkan pemrosesan yang lebih cerdas dan peka konteks yang dapat merespons sesuai dengan situasi kompleks dan berkembang secara waktu nyata.
 
 ## Tujuan Pembelajaran
 
 Setelah menyelesaikan pelajaran ini, Anda akan mampu:
 
-- Memahami dasar-dasar streaming data real-time dan tantangannya
-- Menjelaskan bagaimana Model Context Protocol (MCP) meningkatkan streaming data real-time
+- Memahami dasar-dasar streaming data waktu nyata dan tantangannya
+- Menjelaskan bagaimana Protokol Konteks Model (MCP) meningkatkan streaming data waktu nyata
 - Mengimplementasikan solusi streaming berbasis MCP menggunakan framework populer seperti Kafka dan Pulsar
-- Merancang dan menerapkan arsitektur streaming yang tahan kesalahan dan berkinerja tinggi dengan MCP
+- Merancang dan menerapkan arsitektur streaming tahan kesalahan dan berkinerja tinggi dengan MCP
 - Menerapkan konsep MCP pada kasus penggunaan IoT, perdagangan keuangan, dan analitik berbasis AI
-- Mengevaluasi tren baru dan inovasi masa depan dalam teknologi streaming berbasis MCP
+- Mengevaluasi tren yang muncul dan inovasi masa depan dalam teknologi streaming berbasis MCP
+
 
 ### Definisi dan Signifikansi
 
-Streaming data real-time melibatkan generasi, pemrosesan, dan pengiriman data secara berkelanjutan dengan latensi minimal. Berbeda dengan pemrosesan batch, di mana data dikumpulkan dan diproses dalam kelompok, data streaming diproses secara bertahap saat tiba, memungkinkan wawasan dan tindakan langsung.
+Streaming data waktu nyata melibatkan pembuatan, pemrosesan, dan pengiriman data secara berkelanjutan dengan latensi minimal. Berbeda dengan pemrosesan batch, di mana data dikumpulkan dan diproses dalam kelompok, data streaming diproses secara bertahap saat tiba, memungkinkan wawasan dan tindakan segera.
 
-Karakteristik utama streaming data real-time meliputi:
+Karakteristik utama streaming data waktu nyata meliputi:
 
 - **Latensi Rendah**: Memproses dan menganalisis data dalam hitungan milidetik hingga detik
-- **Aliran Berkelanjutan**: Aliran data tanpa henti dari berbagai sumber
-- **Pemrosesan Langsung**: Menganalisis data saat tiba, bukan secara batch
+- **Aliran Berkelanjutan**: Aliran data yang tidak terputus dari berbagai sumber
+- **Pemrosesan Segera**: Menganalisis data saat tiba, bukan secara batch
 - **Arsitektur Berbasis Peristiwa**: Merespons peristiwa saat terjadi
 
 ### Tantangan dalam Streaming Data Tradisional
@@ -61,88 +62,88 @@ Karakteristik utama streaming data real-time meliputi:
 Pendekatan streaming data tradisional menghadapi beberapa keterbatasan:
 
 1. **Kehilangan Konteks**: Kesulitan mempertahankan konteks di sistem terdistribusi
-2. **Masalah Skalabilitas**: Tantangan dalam mengelola data dengan volume dan kecepatan tinggi
+2. **Masalah Skalabilitas**: Tantangan dalam menskalakan untuk menangani data bervolume dan berkecepatan tinggi
 3. **Kompleksitas Integrasi**: Masalah interoperabilitas antar sistem yang berbeda
 4. **Manajemen Latensi**: Menyeimbangkan throughput dengan waktu pemrosesan
 5. **Konsistensi Data**: Menjamin akurasi dan kelengkapan data di seluruh aliran
 
-## Memahami Model Context Protocol (MCP)
+## Memahami Protokol Konteks Model (MCP)
 
 ### Apa itu MCP?
 
-Model Context Protocol (MCP) adalah protokol komunikasi standar yang dirancang untuk memfasilitasi interaksi efisien antara model AI dan aplikasi. Dalam konteks streaming data real-time, MCP menyediakan kerangka kerja untuk:
+Protokol Konteks Model (MCP) adalah protokol komunikasi standar yang dirancang untuk memfasilitasi interaksi efisien antara model AI dan aplikasi. Dalam konteks streaming data waktu nyata, MCP menyediakan kerangka kerja untuk:
 
 - Mempertahankan konteks sepanjang pipeline data
 - Menstandarisasi format pertukaran data
 - Mengoptimalkan transmisi dataset besar
-- Meningkatkan komunikasi antar model dan antara model dengan aplikasi
+- Meningkatkan komunikasi model-ke-model dan model-ke-aplikasi
 
 ### Komponen Inti dan Arsitektur
 
-Arsitektur MCP untuk streaming real-time terdiri dari beberapa komponen utama:
+Arsitektur MCP untuk streaming waktu nyata terdiri dari beberapa komponen utama:
 
-1. **Context Handlers**: Mengelola dan mempertahankan informasi kontekstual di seluruh pipeline streaming
-2. **Stream Processors**: Memproses aliran data masuk menggunakan teknik sadar konteks
-3. **Protocol Adapters**: Mengonversi antar protokol streaming yang berbeda sambil mempertahankan konteks
-4. **Context Store**: Menyimpan dan mengambil informasi kontekstual secara efisien
-5. **Streaming Connectors**: Menghubungkan ke berbagai platform streaming (Kafka, Pulsar, Kinesis, dll.)
+1. **Pengelola Konteks**: Mengelola dan memelihara informasi kontekstual di seluruh pipeline streaming
+2. **Processor Stream**: Memproses aliran data masuk dengan teknik yang peka konteks
+3. **Adaptor Protokol**: Mengonversi antar protokol streaming yang berbeda sambil mempertahankan konteks
+4. **Penyimpanan Konteks**: Menyimpan dan mengambil informasi kontekstual secara efisien
+5. **Konektor Streaming**: Menghubungkan ke berbagai platform streaming (Kafka, Pulsar, Kinesis, dll.)
 
 ```mermaid
 graph TD
-    subgraph "Data Sources"
-        IoT[IoT Devices]
-        APIs[APIs]
-        DB[Databases]
-        Apps[Applications]
+    subgraph "Sumber Data"
+        IoT[Perangkat IoT]
+        APIs[API]
+        DB[Basis Data]
+        Apps[Aplikasi]
     end
 
-    subgraph "MCP Streaming Layer"
-        SC[Streaming Connectors]
-        PA[Protocol Adapters]
-        CH[Context Handlers]
-        SP[Stream Processors]
-        CS[Context Store]
+    subgraph "Lapisan Streaming MCP"
+        SC[Konektor Streaming]
+        PA[Adaptor Protokol]
+        CH[Penangani Konteks]
+        SP[Prosesor Aliran]
+        CS[Penyimpanan Konteks]
     end
 
-    subgraph "Processing & Analytics"
-        RT[Real-time Analytics]
-        ML[ML Models]
-        CEP[Complex Event Processing]
-        Viz[Visualization]
+    subgraph "Pemrosesan & Analitik"
+        RT[Analitik Waktu Nyata]
+        ML[Model ML]
+        CEP[Pengolahan Peristiwa Kompleks]
+        Viz[Visualisasi]
     end
 
-    subgraph "Applications & Services"
-        DA[Decision Automation]
-        Alerts[Alerting Systems]
-        DL[Data Lake/Warehouse]
-        API[API Services]
+    subgraph "Aplikasi & Layanan"
+        DA[Otomasi Keputusan]
+        Alerts[Sistem Peringatan]
+        DL[Danau/Gudang Data]
+        API[Layanan API]
     end
 
     IoT -->|Data| SC
     APIs -->|Data| SC
-    DB -->|Changes| SC
-    Apps -->|Events| SC
+    DB -->|Perubahan| SC
+    Apps -->|Peristiwa| SC
     
-    SC -->|Raw Streams| PA
-    PA -->|Normalized Streams| CH
-    CH <-->|Context Operations| CS
-    CH -->|Context-Enriched Data| SP
-    SP -->|Processed Streams| RT
-    SP -->|Features| ML
-    SP -->|Events| CEP
+    SC -->|Aliran Mentah| PA
+    PA -->|Aliran Ternormalisasi| CH
+    CH <-->|Operasi Konteks| CS
+    CH -->|Data Diperkaya Konteks| SP
+    SP -->|Aliran Diproses| RT
+    SP -->|Fitur| ML
+    SP -->|Peristiwa| CEP
     
-    RT -->|Insights| Viz
-    ML -->|Predictions| DA
-    CEP -->|Complex Events| Alerts
-    Viz -->|Dashboards| Users((Users))
+    RT -->|Wawasan| Viz
+    ML -->|Prediksi| DA
+    CEP -->|Peristiwa Kompleks| Alerts
+    Viz -->|Dasbor| Users((Pengguna))
     
-    RT -.->|Historical Data| DL
-    ML -.->|Model Results| DL
-    CEP -.->|Event Logs| DL
+    RT -.->|Data Historis| DL
+    ML -.->|Hasil Model| DL
+    CEP -.->|Log Peristiwa| DL
     
-    DA -->|Actions| API
-    Alerts -->|Notifications| API
-    DL <-->|Data Access| API
+    DA -->|Tindakan| API
+    Alerts -->|Notifikasi| API
+    DL <-->|Akses Data| API
     
     classDef sources fill:#f9f,stroke:#333,stroke-width:2px
     classDef mcp fill:#bbf,stroke:#333,stroke-width:2px
@@ -155,43 +156,43 @@ graph TD
     class DA,Alerts,DL,API apps
 ```
 
-### Bagaimana MCP Meningkatkan Penanganan Data Real-Time
+### Bagaimana MCP Meningkatkan Penanganan Data Waktu Nyata
 
 MCP mengatasi tantangan streaming tradisional melalui:
 
-- **Integritas Kontekstual**: Mempertahankan hubungan antar titik data di seluruh pipeline
-- **Transmisi yang Dioptimalkan**: Mengurangi redundansi dalam pertukaran data melalui manajemen konteks yang cerdas
-- **Antarmuka Standar**: Menyediakan API yang konsisten untuk komponen streaming
-- **Pengurangan Latensi**: Meminimalkan beban pemrosesan melalui penanganan konteks yang efisien
-- **Peningkatan Skalabilitas**: Mendukung skala horizontal sambil mempertahankan konteks
+- **Integritas Kontekstual**: Mempertahankan hubungan antar data di seluruh pipeline
+- **Transmisi yang Dioptimalkan**: Mengurangi redundansi dalam pertukaran data lewat manajemen konteks yang cerdas
+- **Antarmuka Standar**: Menyediakan API konsisten untuk komponen streaming
+- **Pengurangan Latensi**: Meminimalkan beban pemrosesan lewat penanganan konteks yang efisien
+- **Peningkatan Skalabilitas**: Mendukung skalabilitas horizontal sambil mempertahankan konteks
 
 ## Integrasi dan Implementasi
 
-Sistem streaming data real-time memerlukan desain arsitektur dan implementasi yang cermat untuk menjaga kinerja sekaligus integritas konteks. Model Context Protocol menawarkan pendekatan standar untuk mengintegrasikan model AI dan teknologi streaming, memungkinkan pipeline pemrosesan yang lebih canggih dan sadar konteks.
+Sistem streaming data waktu nyata memerlukan desain arsitektur dan implementasi yang cermat untuk menjaga kinerja sekaligus integritas konteks. Protokol Konteks Model menawarkan pendekatan standar untuk mengintegrasikan model AI dan teknologi streaming, memungkinkan pipeline pemrosesan yang lebih canggih dan peka konteks.
 
 ### Ikhtisar Integrasi MCP dalam Arsitektur Streaming
 
-Implementasi MCP dalam lingkungan streaming real-time melibatkan beberapa pertimbangan utama:
+Mengimplementasikan MCP dalam lingkungan streaming waktu nyata melibatkan beberapa pertimbangan penting:
 
 1. **Serialisasi dan Transportasi Konteks**: MCP menyediakan mekanisme efisien untuk mengkodekan informasi kontekstual dalam paket data streaming, memastikan konteks penting mengikuti data sepanjang pipeline pemrosesan. Ini termasuk format serialisasi standar yang dioptimalkan untuk transportasi streaming.
 
-2. **Pemrosesan Stream Stateful**: MCP memungkinkan pemrosesan stateful yang lebih cerdas dengan mempertahankan representasi konteks yang konsisten di seluruh node pemrosesan. Ini sangat berharga dalam arsitektur streaming terdistribusi di mana manajemen status biasanya menantang.
+2. **Pemrosesan Stream Stateful**: MCP memungkinkan pemrosesan stateful yang lebih cerdas dengan mempertahankan representasi konteks yang konsisten di antara node pemrosesan. Ini sangat berharga dalam arsitektur streaming terdistribusi di mana manajemen state umumnya menantang.
 
 3. **Waktu Peristiwa vs. Waktu Pemrosesan**: Implementasi MCP dalam sistem streaming harus mengatasi tantangan umum membedakan kapan peristiwa terjadi dan kapan diproses. Protokol dapat menggabungkan konteks temporal yang mempertahankan semantik waktu peristiwa.
 
-4. **Manajemen Backpressure**: Dengan menstandarisasi penanganan konteks, MCP membantu mengelola backpressure dalam sistem streaming, memungkinkan komponen untuk mengomunikasikan kapasitas pemrosesan mereka dan menyesuaikan aliran data.
+4. **Manajemen Backpressure**: Dengan menstandarisasi penanganan konteks, MCP membantu mengelola backpressure dalam sistem streaming, memungkinkan komponen saling mengkomunikasikan kapasitas pemrosesan dan menyesuaikan aliran data.
 
-5. **Windowing dan Agregasi Konteks**: MCP memfasilitasi operasi windowing yang lebih canggih dengan menyediakan representasi terstruktur dari konteks temporal dan relasional, memungkinkan agregasi yang lebih bermakna di seluruh aliran peristiwa.
+5. **Windowing dan Agregasi Konteks**: MCP memfasilitasi operasi windowing yang lebih canggih dengan menyediakan representasi terstruktur dari konteks temporal dan relasional, memungkinkan agregasi yang lebih bermakna di aliran peristiwa.
 
-6. **Pemrosesan Exactly-Once**: Dalam sistem streaming yang memerlukan semantik exactly-once, MCP dapat menggabungkan metadata pemrosesan untuk membantu melacak dan memverifikasi status pemrosesan di seluruh komponen terdistribusi.
+6. **Pemrosesan Exactly-Once**: Dalam sistem streaming yang memerlukan semantik exactly-once, MCP dapat mengintegrasikan metadata pemrosesan untuk membantu melacak dan memverifikasi status pemrosesan di komponen terdistribusi.
 
 Implementasi MCP di berbagai teknologi streaming menciptakan pendekatan terpadu untuk manajemen konteks, mengurangi kebutuhan kode integrasi khusus sekaligus meningkatkan kemampuan sistem untuk mempertahankan konteks bermakna saat data mengalir melalui pipeline.
 
 ### MCP dalam Berbagai Framework Streaming Data
 
-Contoh-contoh ini mengikuti spesifikasi MCP saat ini yang berfokus pada protokol berbasis JSON-RPC dengan mekanisme transportasi yang berbeda. Kode menunjukkan bagaimana Anda dapat mengimplementasikan transportasi kustom yang mengintegrasikan platform streaming seperti Kafka dan Pulsar sambil mempertahankan kompatibilitas penuh dengan protokol MCP.
+Contoh-contoh ini mengikuti spesifikasi MCP terkini yang fokus pada protokol berbasis JSON-RPC dengan mekanisme transportasi yang berbeda. Kode ini menunjukkan bagaimana Anda dapat mengimplementasikan transportasi kustom yang mengintegrasikan platform streaming seperti Kafka dan Pulsar sambil mempertahankan kompatibilitas penuh dengan protokol MCP.
 
-Contoh ini dirancang untuk menunjukkan bagaimana platform streaming dapat diintegrasikan dengan MCP untuk menyediakan pemrosesan data real-time sambil menjaga kesadaran konteks yang menjadi inti MCP. Pendekatan ini memastikan contoh kode mencerminkan kondisi spesifikasi MCP terkini per Juni 2025.
+Contoh ini dirancang untuk menunjukkan bagaimana platform streaming dapat diintegrasikan dengan MCP guna menyediakan pemrosesan data waktu nyata sambil menjaga kesadaran konteks yang merupakan inti MCP. Pendekatan ini memastikan contoh kode mencerminkan kondisi spesifikasi MCP saat ini per Juni 2025.
 
 MCP dapat diintegrasikan dengan framework streaming populer termasuk:
 
@@ -206,7 +207,7 @@ from mcp.client import Client, ClientCapabilities
 from mcp.core.message import JsonRpcMessage
 from mcp.core.transports import Transport
 
-# Custom transport class to bridge MCP with Kafka
+# Kelas transportasi kustom untuk menghubungkan MCP dengan Kafka
 class KafkaMCPTransport(Transport):
     def __init__(self, bootstrap_servers: str, input_topic: str, output_topic: str):
         self.bootstrap_servers = bootstrap_servers
@@ -244,7 +245,7 @@ class KafkaMCPTransport(Transport):
                     print(f"Consumer error: {msg.error()}")
                     continue
                 
-                # Parse the message value as JSON-RPC
+                # Mengurai nilai pesan sebagai JSON-RPC
                 try:
                     message_str = msg.value().decode('utf-8')
                     message_data = json.loads(message_str)
@@ -274,7 +275,7 @@ class KafkaMCPTransport(Transport):
                 message_json.encode('utf-8'),
                 callback=self._delivery_report
             )
-            self.producer.poll(0)  # Trigger callbacks
+            self.producer.poll(0)  # Memicu callback
         except Exception as e:
             print(f"Error writing message: {e}")
     
@@ -297,15 +298,15 @@ class KafkaMCPTransport(Transport):
         self.consumer.close()
         self.producer.flush()
 
-# Example usage of the Kafka MCP transport
+# Contoh penggunaan transportasi Kafka MCP
 async def kafka_mcp_example():
-    # Create MCP client with Kafka transport
+    # Membuat klien MCP dengan transportasi Kafka
     client = Client(
         {"name": "kafka-mcp-client", "version": "1.0.0"},
         ClientCapabilities({})
     )
     
-    # Create and connect the Kafka transport
+    # Membuat dan menghubungkan transportasi Kafka
     transport = KafkaMCPTransport(
         bootstrap_servers="localhost:9092",
         input_topic="mcp-responses",
@@ -315,10 +316,10 @@ async def kafka_mcp_example():
     await client.connect(transport)
     
     try:
-        # Initialize the MCP session
+        # Menginisialisasi sesi MCP
         await client.initialize()
         
-        # Example of executing a tool via MCP
+        # Contoh menjalankan alat melalui MCP
         response = await client.execute_tool(
             "process_data",
             {
@@ -332,12 +333,12 @@ async def kafka_mcp_example():
         
         print(f"Tool execution response: {response}")
         
-        # Clean shutdown
+        # Matikan dengan bersih
         await client.shutdown()
     finally:
         await transport.close()
 
-# Run the example
+# Menjalankan contoh
 if __name__ == "__main__":
     asyncio.run(kafka_mcp_example())
 ```
@@ -354,7 +355,7 @@ from mcp.core.transports import Transport
 from mcp.server import Server, ServerOptions
 from mcp.server.tools import Tool, ToolExecutionContext, ToolMetadata
 
-# Create a custom MCP transport that uses Pulsar
+# Buat transport MCP khusus yang menggunakan Pulsar
 class PulsarMCPTransport(Transport):
     def __init__(self, service_url: str, request_topic: str, response_topic: str):
         self.service_url = service_url
@@ -381,24 +382,24 @@ class PulsarMCPTransport(Transport):
         """Background task to consume messages from Pulsar and queue them for processing"""
         while self.running:
             try:
-                # Non-blocking receive with timeout
+                # Terima non-blokir dengan batas waktu
                 msg = self.consumer.receive(timeout_millis=500)
                 
-                # Process the message
+                # Proses pesan
                 try:
                     message_str = msg.data().decode('utf-8')
                     message_data = json.loads(message_str)
                     mcp_message = JsonRpcMessage.from_dict(message_data)
                     await self.message_queue.put(mcp_message)
                     
-                    # Acknowledge the message
+                    # Konfirmasi pesan
                     self.consumer.acknowledge(msg)
                 except Exception as e:
                     print(f"Error processing message: {e}")
-                    # Negative acknowledge if there was an error
+                    # Konfirmasi negatif jika terjadi kesalahan
                     self.consumer.negative_acknowledge(msg)
             except Exception as e:
-                # Handle timeout or other exceptions
+                # Tangani batas waktu atau pengecualian lainnya
                 await asyncio.sleep(0.1)
     
     async def read(self) -> Optional[JsonRpcMessage]:
@@ -431,7 +432,7 @@ class PulsarMCPTransport(Transport):
         self.producer.close()
         self.client.close()
 
-# Define a sample MCP tool that processes streaming data
+# Definisikan alat MCP contoh yang memproses data streaming
 @Tool(
     name="process_streaming_data",
     description="Process streaming data with context preservation",
@@ -457,13 +458,13 @@ async def process_streaming_data(
     Returns:
         Dict containing processed results and context information
     """
-    # Example processing that leverages MCP context
+    # Contoh pemrosesan yang memanfaatkan konteks MCP
     print(f"Processing data from {source} with priority {priority}")
     
-    # Access conversation context from MCP
+    # Akses konteks percakapan dari MCP
     conversation_id = ctx.conversation_id if hasattr(ctx, 'conversation_id') else "unknown"
     
-    # Return results with enhanced context
+    # Kembalikan hasil dengan konteks yang ditingkatkan
     return {
         "processed_data": f"Processed: {data}",
         "context": {
@@ -474,9 +475,9 @@ async def process_streaming_data(
         }
     }
 
-# Example MCP server implementation using Pulsar transport
+# Contoh implementasi server MCP menggunakan transport Pulsar
 async def run_mcp_server_with_pulsar():
-    # Create MCP server
+    # Buat server MCP
     server = Server(
         {"name": "pulsar-mcp-server", "version": "1.0.0"},
         ServerOptions(
@@ -484,10 +485,10 @@ async def run_mcp_server_with_pulsar():
         )
     )
     
-    # Register our tool
+    # Daftarkan alat kita
     server.register_tool(process_streaming_data)
     
-    # Create and connect Pulsar transport
+    # Buat dan hubungkan transport Pulsar
     transport = PulsarMCPTransport(
         service_url="pulsar://localhost:6650",
         request_topic="mcp-requests",
@@ -495,33 +496,33 @@ async def run_mcp_server_with_pulsar():
     )
     
     try:
-        # Start the server with the Pulsar transport
+        # Mulai server dengan transport Pulsar
         await server.run(transport)
     finally:
         await transport.close()
 
-# Run the server
+# Jalankan server
 if __name__ == "__main__":
     asyncio.run(run_mcp_server_with_pulsar())
 ```
 
-### Praktik Terbaik untuk Penerapan
+### Praktik Terbaik untuk Penyebaran
 
-Saat mengimplementasikan MCP untuk streaming real-time:
+Saat mengimplementasikan MCP untuk streaming waktu nyata:
 
 1. **Rancang untuk Toleransi Kesalahan**:
    - Terapkan penanganan kesalahan yang tepat
    - Gunakan dead-letter queue untuk pesan yang gagal
    - Rancang processor yang idempoten
 
-2. **Optimalkan Kinerja**:
-   - Konfigurasikan ukuran buffer yang sesuai
-   - Gunakan batching bila perlu
+2. **Optimalkan untuk Performa**:
+   - Konfigurasi ukuran buffer yang sesuai
+   - Gunakan batching bila tepat
    - Terapkan mekanisme backpressure
 
 3. **Pantau dan Amati**:
    - Lacak metrik pemrosesan stream
-   - Monitor propagasi konteks
+   - Pantau propagasi konteks
    - Atur peringatan untuk anomali
 
 4. **Amankan Aliran Data Anda**:
@@ -529,16 +530,17 @@ Saat mengimplementasikan MCP untuk streaming real-time:
    - Gunakan autentikasi dan otorisasi
    - Terapkan kontrol akses yang tepat
 
-### MCP dalam IoT dan Edge Computing
+
+### MCP di IoT dan Edge Computing
 
 MCP meningkatkan streaming IoT dengan:
 
 - Mempertahankan konteks perangkat sepanjang pipeline pemrosesan
 - Memungkinkan streaming data efisien dari edge ke cloud
-- Mendukung analitik real-time pada aliran data IoT
-- Memfasilitasi komunikasi antar perangkat dengan konteks
+- Mendukung analitik waktu nyata pada aliran data IoT
+- Memfasilitasi komunikasi perangkat-ke-perangkat dengan konteks
 
-Contoh: Jaringan Sensor Kota Pintar  
+Contoh: Jaringan Sensor Kota Pintar
 ```
 Sensors → Edge Gateways → MCP Stream Processors → Real-time Analytics → Automated Responses
 ```
@@ -556,83 +558,85 @@ MCP memberikan keuntungan signifikan untuk streaming data keuangan:
 
 MCP membuka kemungkinan baru untuk analitik streaming:
 
-- Pelatihan dan inferensi model secara real-time
-- Pembelajaran berkelanjutan dari data streaming
-- Ekstraksi fitur yang sadar konteks
-- Pipeline inferensi multi-model dengan konteks yang terjaga
+- Pelatihan dan inferensi model waktu nyata
+- Pembelajaran kontinu dari data streaming
+- Ekstraksi fitur peka konteks
+- Pipeline inferensi multi-model dengan konteks yang dipertahankan
 
 ## Tren dan Inovasi Masa Depan
 
-### Evolusi MCP di Lingkungan Real-Time
+### Evolusi MCP di Lingkungan Waktu Nyata
 
-Ke depan, kami memperkirakan MCP akan berkembang untuk mengatasi:
+Ke depan, kami mengantisipasi MCP berkembang untuk mengatasi:
 
 - **Integrasi Komputasi Kuantum**: Mempersiapkan sistem streaming berbasis kuantum
-- **Pemrosesan Edge-Native**: Memindahkan lebih banyak pemrosesan sadar konteks ke perangkat edge
-- **Manajemen Streaming Otonom**: Pipeline streaming yang mengoptimalkan diri sendiri
+- **Pemrosesan Edge-Natif**: Memindahkan lebih banyak pemrosesan peka konteks ke perangkat edge
+- **Manajemen Stream Otonom**: Pipeline streaming yang mengoptimalkan diri sendiri
 - **Streaming Federasi**: Pemrosesan terdistribusi sambil menjaga privasi
 
-### Kemajuan Teknologi Potensial
+### Potensi Kemajuan Teknologi
 
 Teknologi baru yang akan membentuk masa depan streaming MCP:
 
 1. **Protokol Streaming yang Dioptimalkan untuk AI**: Protokol khusus yang dirancang untuk beban kerja AI
-2. **Integrasi Komputasi Neuromorfik**: Komputasi terinspirasi otak untuk pemrosesan streaming
-3. **Streaming Serverless**: Streaming berbasis event-driven yang skalabel tanpa pengelolaan infrastruktur
-4. **Context Store Terdistribusi**: Manajemen konteks yang tersebar secara global namun sangat konsisten
+2. **Integrasi Komputasi Neuromorfik**: Komputasi terinspirasi otak untuk pemrosesan stream
+3. **Streaming Serverless**: Streaming skalabel berbasis event tanpa pengelolaan infrastruktur
+4. **Penyimpanan Konteks Terdistribusi**: Manajemen konteks yang didistribusikan secara global namun sangat konsisten
 
 ## Latihan Praktik
 
 ### Latihan 1: Menyiapkan Pipeline Streaming MCP Dasar
 
 Dalam latihan ini, Anda akan belajar bagaimana:
-
 - Mengonfigurasi lingkungan streaming MCP dasar
-- Mengimplementasikan context handler untuk pemrosesan stream
+- Mengimplementasikan pengelola konteks untuk pemrosesan stream
 - Menguji dan memvalidasi pelestarian konteks
 
-### Latihan 2: Membangun Dashboard Analitik Real-Time
+### Latihan 2: Membangun Dashboard Analitik Waktu Nyata
 
 Buat aplikasi lengkap yang:
-
-- Mengambil data streaming menggunakan MCP
-- Memproses stream sambil mempertahankan konteks
-- Memvisualisasikan hasil secara real-time
+- Mengonsumsi data streaming menggunakan MCP
+- Memproses stream sambil menjaga konteks
+- Memvisualisasikan hasil secara waktu nyata
 
 ### Latihan 3: Mengimplementasikan Pemrosesan Peristiwa Kompleks dengan MCP
 
-Latihan lanjutan yang mencakup:
-
+Latihan lanjutan yang meliputi:
 - Deteksi pola dalam stream
-- Korelasi kontekstual antar beberapa stream
-- Menghasilkan peristiwa kompleks dengan konteks yang terjaga
+- Korelasi kontekstual antar banyak stream
+- Menghasilkan peristiwa kompleks dengan konteks yang dipertahankan
 
 ## Sumber Daya Tambahan
 
-- [Model Context Protocol Specification](https://github.com/modelcontextprotocol) - Spesifikasi dan dokumentasi resmi MCP
-- [Apache Kafka Documentation](https://kafka.apache.org/documentation/) - Pelajari tentang Kafka untuk pemrosesan stream
-- [Apache Pulsar](https://pulsar.apache.org/) - Platform messaging dan streaming terpadu
+- [Spesifikasi Protokol Konteks Model](https://modelcontextprotocol.io) - Spesifikasi resmi MCP dan dokumentasi
+- [Dokumentasi Apache Kafka](https://kafka.apache.org/documentation/) - Pelajari tentang Kafka untuk pemrosesan streaming
+- [Apache Pulsar](https://pulsar.apache.org/) - Platform pesan dan streaming terpadu
 - [Streaming Systems: The What, Where, When, and How of Large-Scale Data Processing](https://www.oreilly.com/library/view/streaming-systems/9781491983867/) - Buku komprehensif tentang arsitektur streaming
-- [Microsoft Azure Event Hubs](https://learn.microsoft.com/azure/event-hubs/event-hubs-about) - Layanan streaming event terkelola
-- [MLflow Documentation](https://mlflow.org/docs/latest/index.html) - Untuk pelacakan dan penerapan model ML
-- [Real-Time Analytics with Apache Storm](https://storm.apache.org/releases/current/index.html) - Framework pemrosesan komputasi real-time
+- [Microsoft Azure Event Hubs](https://learn.microsoft.com/azure/event-hubs/event-hubs-about) - Layanan managed streaming event
+- [Dokumentasi MLflow](https://mlflow.org/docs/latest/index.html) - Untuk pelacakan dan penyebaran model ML
+- [Real-Time Analytics with Apache Storm](https://storm.apache.org/releases/current/index.html) - Kerangka kerja pemrosesan komputasi waktu nyata
 - [Flink ML](https://nightlies.apache.org/flink/flink-ml-docs-master/) - Perpustakaan machine learning untuk Apache Flink
-- [LangChain Documentation](https://python.langchain.com/docs/get_started/introduction) - Membangun aplikasi dengan LLM
+- [Dokumentasi LangChain](https://python.langchain.com/docs/get_started/introduction) - Membangun aplikasi dengan LLM
+
 
 ## Hasil Pembelajaran
 
 Dengan menyelesaikan modul ini, Anda akan mampu:
 
-- Memahami dasar-dasar streaming data real-time dan tantangannya
-- Menjelaskan bagaimana Model Context Protocol (MCP) meningkatkan streaming data real-time
+- Memahami dasar-dasar streaming data waktu nyata dan tantangannya
+- Menjelaskan bagaimana Protokol Konteks Model (MCP) meningkatkan streaming data waktu nyata
 - Mengimplementasikan solusi streaming berbasis MCP menggunakan framework populer seperti Kafka dan Pulsar
-- Merancang dan menerapkan arsitektur streaming yang tahan kesalahan dan berkinerja tinggi dengan MCP
+- Merancang dan menerapkan arsitektur streaming tahan kesalahan dan berkinerja tinggi dengan MCP
 - Menerapkan konsep MCP pada kasus penggunaan IoT, perdagangan keuangan, dan analitik berbasis AI
-- Mengevaluasi tren baru dan inovasi masa depan dalam teknologi streaming berbasis MCP
+- Mengevaluasi tren yang muncul dan inovasi masa depan dalam teknologi streaming berbasis MCP
 
-## Selanjutnya
+## Apa Selanjutnya
 
-- [5.11 Realtime Search](../mcp-realtimesearch/README.md)
+- [5.11 Pencarian Real-Time](../mcp-realtimesearch/README.md)
 
-**Penafian**:  
-Dokumen ini telah diterjemahkan menggunakan layanan terjemahan AI [Co-op Translator](https://github.com/Azure/co-op-translator). Meskipun kami berupaya untuk mencapai akurasi, harap diingat bahwa terjemahan otomatis mungkin mengandung kesalahan atau ketidakakuratan. Dokumen asli dalam bahasa aslinya harus dianggap sebagai sumber yang sahih. Untuk informasi penting, disarankan menggunakan terjemahan profesional oleh manusia. Kami tidak bertanggung jawab atas kesalahpahaman atau penafsiran yang keliru yang timbul dari penggunaan terjemahan ini.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Penafian**:
+Dokumen ini telah diterjemahkan menggunakan layanan terjemahan AI [Co-op Translator](https://github.com/Azure/co-op-translator). Meskipun kami berupaya untuk mencapai akurasi, harap diketahui bahwa terjemahan otomatis mungkin mengandung kesalahan atau ketidakakuratan. Dokumen asli dalam bahasa aslinya harus dianggap sebagai sumber yang sah. Untuk informasi penting, disarankan menggunakan terjemahan profesional oleh manusia. Kami tidak bertanggung jawab atas kesalahpahaman atau penafsiran yang keliru yang timbul dari penggunaan terjemahan ini.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

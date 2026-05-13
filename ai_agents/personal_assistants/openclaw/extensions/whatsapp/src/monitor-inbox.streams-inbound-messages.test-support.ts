@@ -69,12 +69,9 @@ async function primeInboundReplyHandle(params: {
   );
   await waitForMessageCalls(params.onMessage, 1);
 
-  const inbound = params.onMessage.mock.calls.at(0)?.at(0) as
-    | {
-        reply: (text: string) => Promise<void>;
-      }
-    | undefined;
-  expect(inbound).toBeDefined();
+  const inbound = inboundMessage(params.onMessage) as {
+    reply: (text: string) => Promise<void>;
+  };
 
   return { listener, sock, inbound };
 }
@@ -267,7 +264,7 @@ describe("web monitor inbox", () => {
     expect(inbound.groupSubject).toBe("Recovered Group");
     expect(inbound.senderE164).toBe("+444");
     expect(inbound.chatType).toBe("group");
-    expect(onMessage.mock.calls.at(0)?.[0].groupParticipants).toBeUndefined();
+    expect(inbound.groupParticipants).toBeUndefined();
 
     await second.listener.close();
   });
@@ -348,14 +345,11 @@ describe("web monitor inbox", () => {
     );
     await waitForMessageCalls(onMessage, 1);
 
-    const inbound = onMessage.mock.calls.at(0)?.at(0) as
-      | {
-          reply: (text: string) => Promise<void>;
-          sendMedia: (payload: Record<string, unknown>) => Promise<void>;
-          sendComposing: () => Promise<void>;
-        }
-      | undefined;
-    expect(inbound).toBeDefined();
+    const inbound = inboundMessage(onMessage) as {
+      reply: (text: string) => Promise<void>;
+      sendMedia: (payload: Record<string, unknown>) => Promise<void>;
+      sendComposing: () => Promise<void>;
+    };
 
     const replacementSock = {
       sendMessage: vi.fn(async () => undefined),
@@ -365,9 +359,9 @@ describe("web monitor inbox", () => {
       InboxMonitorOptions["socketRef"]
     >["current"];
 
-    await inbound?.reply("pong");
-    await inbound?.sendMedia({ text: "after-reconnect" });
-    await inbound?.sendComposing();
+    await inbound.reply("pong");
+    await inbound.sendMedia({ text: "after-reconnect" });
+    await inbound.sendComposing();
 
     expect(replacementSock.sendMessage).toHaveBeenNthCalledWith(1, "999@s.whatsapp.net", {
       text: "pong",
