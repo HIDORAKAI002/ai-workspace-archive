@@ -3,30 +3,35 @@
 import asyncio
 import logging
 from collections.abc import AsyncGenerator
+from datetime import datetime, timezone
 from typing import Annotated
 from uuid import uuid4
 
 from autogpt_libs import auth
-from fastapi import APIRouter, HTTPException, Query, Response, Security
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, Security
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from backend.copilot import active_turns
 from backend.copilot import service as chat_service
-from backend.copilot import stream_registry
+from backend.copilot import stream_registry, turn_queue
 from backend.copilot.active_turns import (
     ConcurrentTurnLimitError,
-    concurrent_turn_limit_message,
+    get_inflight_turn_limit,
+    inflight_turn_limit_message,
 )
 from backend.copilot.builder_context import resolve_session_permissions
 from backend.copilot.config import ChatConfig, CopilotLlmModel, CopilotMode
 from backend.copilot.db import get_chat_messages_paginated
 from backend.copilot.executor.utils import enqueue_cancel_task, schedule_chat_turn
 from backend.copilot.model import (
-    ChatSession,
+    CHAT_STATUS_IDLE,
+    CHAT_STATUS_RUNNING,
+    ChatSessionInfo,
     ChatSessionMetadata,
     create_chat_session,
     delete_chat_session,
-    get_chat_session,
+    get_chat_session_metadata,
     get_or_create_builder_session,
     get_user_sessions,
     update_session_title,
@@ -38,12 +43,14 @@ from backend.copilot.pending_message_helpers import (
     queue_pending_for_http,
 )
 from backend.copilot.pending_messages import peek_pending_messages
+from backend.copilot.permissions import CopilotPermissions
 from backend.copilot.rate_limit import (
     CoPilotUsagePublic,
     RateLimitExceeded,
     RateLimitUnavailable,
     acquire_reset_lock,
     check_rate_limit,
+    enforce_payment_paywall,
     get_daily_reset_count,
     get_global_rate_limits,
     get_usage_status,
@@ -61,6 +68,10 @@ from backend.copilot.response_model import (
 )
 from backend.copilot.service import strip_injected_context_for_display
 from backend.copilot.tools.e2b_sandbox import kill_sandbox
+from backend.copilot.tools.manage_schedules import (
+    ScheduleDeletedResponse,
+    ScheduleListResponse,
+)
 from backend.copilot.tools.models import (
     AgentDetailsResponse,
     AgentOutputResponse,
@@ -106,12 +117,50 @@ config = ChatConfig()
 async def _validate_and_get_session(
     session_id: str,
     user_id: str | None,
-) -> ChatSession:
-    """Validate session exists and belongs to user."""
-    session = await get_chat_session(session_id, user_id)
+) -> ChatSessionInfo:
+    """Validate session exists and belongs to user.
+
+    Returns metadata-only — callers needing the message history must use
+    ``get_chat_session`` directly. Bypassing the message-loading path
+    avoids a multi-KB cache deserialisation per ownership check.
+    """
+    session = await get_chat_session_metadata(session_id, user_id)
     if not session:
         raise NotFoundError(f"Session {session_id} not found.")
     return session
+
+
+# Minimum age before the orphan-reset paths (``get_session`` and
+# ``cancel_session_task``) will touch a ``chatStatus='running'`` session
+# that has no live Redis stream.  Lower bound has to clear the
+# ``acquire_turn_slot``→``dispatch_turn.create_session`` window (a few
+# ms in practice).  30s is a generous safety margin — anything still
+# at ``running`` after that without a Redis stream is genuinely an
+# orphan, not an in-flight admit racing this read.
+_ORPHAN_RUNNING_RESET_THRESHOLD_SECONDS = 30
+
+
+async def _try_release_orphan_running(session_id: str, user_id: str) -> bool:
+    """Force-release a session if it's stuck in ``chatStatus='running'``
+    older than ``_ORPHAN_RUNNING_RESET_THRESHOLD_SECONDS`` (= the
+    ``acquire_turn_slot``→``create_session`` race window).  Returns
+    True iff a release happened — callers map that into their response
+    so the user can tell ``orphan_released`` apart from
+    ``no_active_session``."""
+    meta = await get_chat_session_metadata(session_id)
+    if meta is None or meta.chat_status != CHAT_STATUS_RUNNING:
+        return False
+    # Prisma returns tz-aware UTC for ``DateTime`` columns today, but
+    # treat a naive value as UTC defensively so an accidental schema
+    # change can't make this subtraction raise ``TypeError``.
+    updated_at = meta.updated_at
+    if updated_at.tzinfo is None:
+        updated_at = updated_at.replace(tzinfo=timezone.utc)
+    age = (datetime.now(timezone.utc) - updated_at).total_seconds()
+    if age <= _ORPHAN_RUNNING_RESET_THRESHOLD_SECONDS:
+        return False
+    await active_turns.release_turn_slot(user_id, session_id)
+    return True
 
 
 router = APIRouter(
@@ -256,6 +305,7 @@ class SessionDetailResponse(BaseModel):
     created_at: str
     updated_at: str
     user_id: str | None
+    chat_status: str = "idle"
     messages: list[dict]
     active_stream: ActiveStreamInfo | None = None  # Present if stream is still active
     has_more_messages: bool = False
@@ -272,6 +322,7 @@ class SessionSummaryResponse(BaseModel):
     created_at: str
     updated_at: str
     title: str | None = None
+    chat_status: str = "idle"
     is_processing: bool
 
 
@@ -363,6 +414,7 @@ async def list_sessions(
                 created_at=session.started_at.isoformat(),
                 updated_at=session.updated_at.isoformat(),
                 title=session.title,
+                chat_status=session.chat_status,
                 is_processing=session.session_id in processing_set,
             )
             for session in sessions
@@ -488,12 +540,7 @@ async def disconnect_session_stream(
     backend releases XREAD listeners immediately rather than waiting for
     the 5-10 s timeout.
     """
-    session = await get_chat_session(session_id, user_id)
-    if not session:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Session {session_id} not found or access denied",
-        )
+    await _validate_and_get_session(session_id, user_id)
     await stream_registry.disconnect_all_listeners(session_id)
     return Response(status_code=204)
 
@@ -572,6 +619,13 @@ async def get_session(
                 last_message_id=last_message_id,
                 started_at=active_session.created_at.isoformat(),
             )
+        elif page.session.chat_status == CHAT_STATUS_RUNNING:
+            # DB says running but Redis has no live stream — either the
+            # executor crashed mid-turn or a fresh admit is racing this
+            # read.  ``_try_release_orphan_running`` age-gates the
+            # cleanup so an in-flight ``dispatch_turn`` isn't stomped.
+            if await _try_release_orphan_running(session_id, user_id):
+                page.session.chat_status = CHAT_STATUS_IDLE
 
     # Skip session metadata on "load more" — frontend only needs messages
     if before_sequence is not None:
@@ -580,6 +634,7 @@ async def get_session(
             created_at=page.session.started_at.isoformat(),
             updated_at=page.session.updated_at.isoformat(),
             user_id=page.session.user_id or None,
+            chat_status=page.session.chat_status,
             messages=messages,
             active_stream=None,
             has_more_messages=page.has_more,
@@ -596,6 +651,7 @@ async def get_session(
         created_at=page.session.started_at.isoformat(),
         updated_at=page.session.updated_at.isoformat(),
         user_id=page.session.user_id or None,
+        chat_status=page.session.chat_status,
         messages=messages,
         active_stream=active_stream_info,
         has_more_messages=page.has_more,
@@ -826,16 +882,39 @@ async def cancel_session_task(
     session_id: str,
     user_id: Annotated[str, Security(auth.get_user_id)],
 ) -> CancelSessionResponse:
-    """Cancel the active streaming task for a session.
+    """Cancel an in-flight task for a session.
 
-    Publishes a cancel event to the executor via RabbitMQ FANOUT, then
-    polls Redis until the task status flips from ``running`` or a timeout
-    (5 s) is reached.  Returns only after the cancellation is confirmed.
+    Handles both lifecycle states uniformly:
+
+    * **Queued** (``chatStatus='queued'``) — the dispatcher hasn't
+      claimed the row yet.  Flip the session back to ``idle`` and
+      return; no executor cancel event needed.
+    * **Running** (``chatStatus='running'``) — publish a cancel event
+      to the executor via RabbitMQ FANOUT, then poll Redis until the
+      task status flips out of ``running`` or a 5 s timeout is hit.
     """
     await _validate_and_get_session(session_id, user_id)
 
+    # Queued sessions: just flip back to idle.  The user clicked X
+    # before any compute was spent; no executor involvement needed.
+    if await turn_queue.cancel_queued_turn(user_id=user_id, session_id=session_id):
+        return CancelSessionResponse(cancelled=True, reason="dequeued")
+
     active_session, _ = await stream_registry.get_active_session(session_id, user_id)
     if not active_session:
+        # No Redis stream entry.  Two possibilities:
+        # (a) Executor crashed mid-turn — Redis meta TTL'd out while DB
+        #     ``chatStatus`` stayed ``running`` (the orphan case the user
+        #     wants cleaned up).
+        # (b) Sub-millisecond race against a fresh admit: ``acquire_turn_slot``
+        #     CAS'd DB ``idle → running`` and the route is about to call
+        #     ``dispatch_turn.create_session`` to write Redis.  Force-
+        #     releasing here would let the turn run while DB says idle,
+        #     orphaning the executor work in the opposite direction.
+        # Gate the cleanup on session age so a fresh admit isn't stomped.
+        # Anything older than the threshold is the real orphan.
+        if await _try_release_orphan_running(session_id, user_id):
+            return CancelSessionResponse(cancelled=True, reason="orphan_released")
         return CancelSessionResponse(cancelled=True, reason="no_active_session")
 
     await enqueue_cancel_task(session_id)
@@ -902,6 +981,7 @@ def _empty_ui_message_stream_response() -> StreamingResponse:
 @router.post(
     "/sessions/{session_id}/stream",
     responses={
+        402: {"description": "Subscription required (NO_TIER user, paywall on)"},
         404: {"description": "Session not found or access denied"},
         429: {
             "description": "Cost rate-limit, call-frequency cap, or "
@@ -913,6 +993,7 @@ def _empty_ui_message_stream_response() -> StreamingResponse:
             "header before retrying."
         },
     },
+    dependencies=[Depends(enforce_payment_paywall)],
 )
 async def stream_chat_post(
     session_id: str,
@@ -1002,8 +1083,10 @@ async def stream_chat_post(
     )
 
     # Pre-turn rate limit check (cost-based, microdollars).
-    # check_rate_limit short-circuits internally when both limits are 0.
-    # Global defaults sourced from LaunchDarkly, falling back to config.
+    # Entitlement (NO_TIER + ENABLE_PLATFORM_PAYMENT) is gated upstream by
+    # the route-level ``enforce_payment_paywall`` dependency; here we only
+    # enforce per-window USD caps. Global defaults sourced from
+    # LaunchDarkly, falling back to config.
     if user_id:
         try:
             daily_limit, weekly_limit, _ = await get_global_rate_limits(
@@ -1066,10 +1149,42 @@ async def stream_chat_post(
             permissions=builder_permissions,
             request_arrival_at=request_arrival_at,
         )
-    except ConcurrentTurnLimitError as exc:
-        raise HTTPException(
-            status_code=429, detail=concurrent_turn_limit_message()
-        ) from exc
+    except ConcurrentTurnLimitError:
+        # Soft running cap (default 5) hit. Fall through to the queue:
+        # if total in-flight (running + queued) is still under the hard
+        # cap (default 15), persist the user's message and flip the
+        # session ``idle`` → ``queued`` so the slot-free hook can promote
+        # it later. Past the hard cap the user is blocked at HTTP 429.
+        inflight_cap = get_inflight_turn_limit()
+        try:
+            await turn_queue.try_enqueue_turn(
+                user_id=user_id,
+                inflight_cap=inflight_cap,
+                session_id=session_id,
+                message=request.message,
+                message_id=request.message_id,
+                is_user_message=request.is_user_message,
+                context=request.context,
+                file_ids=sanitized_file_ids,
+                mode=request.mode,
+                model=request.model,
+                permissions=(
+                    builder_permissions.model_dump(exclude_none=True)
+                    if builder_permissions
+                    else None
+                ),
+                request_arrival_at=request_arrival_at,
+            )
+        except turn_queue.InflightCapExceeded:
+            raise HTTPException(
+                status_code=429,
+                detail=inflight_turn_limit_message(inflight_cap),
+            )
+        logger.info(
+            f"[STREAM] Queued turn for session={session_id} "
+            f"(running cap reached; inflight cap={inflight_cap})"
+        )
+        return _empty_ui_message_stream_response()
 
     if turn_id is None:
         logger.info(
@@ -1498,7 +1613,12 @@ async def health_check() -> dict:
 
     # Create and retrieve session to verify full data layer
     session = await create_chat_session(health_check_user_id, dry_run=False)
-    await get_chat_session(session.session_id, health_check_user_id)
+    fetched = await get_chat_session_metadata(session.session_id, health_check_user_id)
+    if fetched is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Chat read path unhealthy: session not found after create",
+        )
 
     return {
         "status": "healthy",
@@ -1531,6 +1651,8 @@ ToolResponseUnion = (
     | DocPageResponse
     | MCPToolsDiscoveredResponse
     | MCPToolOutputResponse
+    | ScheduleListResponse
+    | ScheduleDeletedResponse
     | MemoryStoreResponse
     | MemorySearchResponse
     | MemoryForgetCandidatesResponse

@@ -1,13 +1,13 @@
 ---
 title: "Engineering - POWERFUL Skills — Agent Skills & Codex Plugins"
-description: "70 engineering - powerful skills — advanced agent-native skill and Claude Code plugin for AI agent design, infrastructure, and automation. Works with Claude Code, Codex CLI, Gemini CLI, and OpenClaw."
+description: "66 engineering - powerful skills — advanced agent-native skill and Claude Code plugin for AI agent design, infrastructure, and automation. Works with Claude Code, Codex CLI, Gemini CLI, and OpenClaw."
 ---
 
 <div class="domain-header" markdown>
 
 # :material-rocket-launch: Engineering - POWERFUL
 
-<p class="domain-count">70 skills in this domain</p>
+<p class="domain-count">66 skills in this domain</p>
 
 </div>
 
@@ -53,7 +53,7 @@ description: "70 engineering - powerful skills — advanced agent-native skill a
 
     Tier: POWERFUL
 
--   **[Chaos Engineering](chaos-engineering.md)** + 1 sub-skills
+-   **[Chaos Engineering](chaos-engineering.md)**
 
     ---
 
@@ -107,7 +107,7 @@ description: "70 engineering - powerful skills — advanced agent-native skill a
 
     Tier: POWERFUL
 
--   **[Feature Flags Architect](feature-flags-architect.md)** + 1 sub-skills
+-   **[Feature Flags Architect](feature-flags-architect.md)**
 
     ---
 
@@ -137,7 +137,7 @@ description: "70 engineering - powerful skills — advanced agent-native skill a
 
     Comprehensive interview loop planning and calibration support for role-based hiring systems.
 
--   **[Kubernetes Operator](kubernetes-operator.md)** + 1 sub-skills
+-   **[Kubernetes Operator](kubernetes-operator.md)**
 
     ---
 
@@ -227,7 +227,7 @@ description: "70 engineering - powerful skills — advanced agent-native skill a
 
     ---
 
--   **[SLO Architect](slo-architect.md)** + 1 sub-skills
+-   **[SLO Architect](slo-architect.md)**
 
     ---
 

@@ -18,7 +18,7 @@ hide:
 { .hero-subtitle }
 
 [Get Started](getting-started.md){ .md-button .md-button--primary }
-[Browse Skills](skills/){ .md-button }
+[Browse Skills](skills/index.md){ .md-button }
 [GitHub :fontawesome-brands-github:](https://github.com/alirezarezvani/claude-skills){ .md-button }
 
 </div>
@@ -55,7 +55,7 @@ hide:
 
     Production-ready instruction packages with structured workflows, Python automation tools, and reference documentation across 9 domains.
 
-    [:octicons-arrow-right-24: Browse skills](skills/)
+    [:octicons-arrow-right-24: Browse skills](skills/index.md)
 
 -   :material-robot:{ .lg .middle } **20 Agents**
 
@@ -63,7 +63,7 @@ hide:
 
     Multi-skill orchestrators that combine domain expertise for complex tasks — from engineering leads to financial analysts.
 
-    [:octicons-arrow-right-24: View agents](agents/)
+    [:octicons-arrow-right-24: View agents](agents/index.md)
 
 -   :material-account-group:{ .lg .middle } **3 Personas**
 
@@ -71,7 +71,7 @@ hide:
 
     Role-based identities with curated skill loadouts, decision frameworks, and distinct communication styles.
 
-    [:octicons-arrow-right-24: Meet personas](personas/)
+    [:octicons-arrow-right-24: Meet personas](personas/index.md)
 
 -   :material-sitemap:{ .lg .middle } **Orchestration**
 
@@ -95,7 +95,7 @@ hide:
 
     One-command installable bundles for Claude Code, Codex CLI, Gemini CLI, and OpenClaw.
 
-    [:octicons-arrow-right-24: Plugin marketplace](plugins/)
+    [:octicons-arrow-right-24: Plugin marketplace](plugins/index.md)
 
 -   :material-console:{ .lg .middle } **33 Commands**
 
@@ -103,7 +103,7 @@ hide:
 
     Slash commands for common operations — sprint planning, tech debt analysis, PRDs, OKRs, and more.
 
-    [:octicons-arrow-right-24: View commands](commands/)
+    [:octicons-arrow-right-24: View commands](commands/index.md)
 
 -   :material-swap-horizontal:{ .lg .middle } **12 Tool Support**
 
@@ -135,7 +135,7 @@ hide:
 
     Architecture, frontend, backend, fullstack, QA, DevOps, SecOps, AI/ML, data engineering, Playwright testing, self-improving agent
 
-    [:octicons-arrow-right-24: 37 skills](skills/engineering-team/)
+    [:octicons-arrow-right-24: 37 skills](skills/engineering-team/index.md)
 
 -   :material-lightning-bolt:{ .lg .middle } **Engineering — Advanced**
 
@@ -143,7 +143,7 @@ hide:
 
     Agent designer, RAG architect, database designer, CI/CD builder, MCP server builder, security auditor, tech debt tracker
 
-    [:octicons-arrow-right-24: 45 skills](skills/engineering/)
+    [:octicons-arrow-right-24: 45 skills](skills/engineering/index.md)
 
 -   :material-bullseye-arrow:{ .lg .middle } **Product**
 
@@ -151,7 +151,7 @@ hide:
 
     Product manager, agile PO, strategist, UX researcher, UI design system, landing pages, SaaS scaffolder, analytics, experiment designer
 
-    [:octicons-arrow-right-24: 16 skills](skills/product-team/)
+    [:octicons-arrow-right-24: 16 skills](skills/product-team/index.md)
 
 -   :material-bullhorn:{ .lg .middle } **Marketing**
 
@@ -159,7 +159,7 @@ hide:
 
     Content, SEO, CRO, channels, growth, intelligence, sales — 7 specialist pods with 32 Python tools
 
-    [:octicons-arrow-right-24: 44 skills](skills/marketing-skill/)
+    [:octicons-arrow-right-24: 44 skills](skills/marketing-skill/index.md)
 
 -   :material-clipboard-check:{ .lg .middle } **Project Management**
 
@@ -167,7 +167,7 @@ hide:
 
     Senior PM, scrum master, Jira expert, Confluence expert, Atlassian admin, templates
 
-    [:octicons-arrow-right-24: 9 skills](skills/project-management/)
+    [:octicons-arrow-right-24: 9 skills](skills/project-management/index.md)
 
 -   :material-star-circle:{ .lg .middle } **C-Level Advisory**
 
@@ -175,7 +175,7 @@ hide:
 
     Full C-suite (10 roles), orchestration, board meetings, culture frameworks, strategic alignment
 
-    [:octicons-arrow-right-24: 34 skills](skills/c-level-advisor/)
+    [:octicons-arrow-right-24: 34 skills](skills/c-level-advisor/index.md)
 
 -   :material-shield-check:{ .lg .middle } **Regulatory & Quality**
 
@@ -183,7 +183,7 @@ hide:
 
     ISO 13485, MDR 2017/745, FDA, ISO 27001, GDPR, CAPA, risk management, quality documentation
 
-    [:octicons-arrow-right-24: 14 skills](skills/ra-qm-team/)
+    [:octicons-arrow-right-24: 14 skills](skills/ra-qm-team/index.md)
 
 -   :material-trending-up:{ .lg .middle } **Business & Growth**
 
@@ -191,7 +191,7 @@ hide:
 
     Customer success, sales engineer, revenue operations, contracts & proposals
 
-    [:octicons-arrow-right-24: 5 skills](skills/business-growth/)
+    [:octicons-arrow-right-24: 5 skills](skills/business-growth/index.md)
 
 -   :material-currency-usd:{ .lg .middle } **Finance**
 
@@ -199,7 +199,7 @@ hide:
 
     Financial analyst, SaaS metrics coach — DCF valuation, budgeting, forecasting, ARR/MRR/churn/LTV
 
-    [:octicons-arrow-right-24: 4 skills](skills/finance/)
+    [:octicons-arrow-right-24: 4 skills](skills/finance/index.md)
 
 </div>
 

@@ -78,8 +78,10 @@ Same format as above
 
 ## References
 
-- [AI Writing Detection](https://github.com/alirezarezvani/claude-skills/tree/main/marketing-skill/skills/seo-audit/references/ai-writing-detection.md): Common AI writing patterns to avoid (em dashes, overused phrases, filler words)
-- [AEO & GEO Patterns](https://github.com/alirezarezvani/claude-skills/tree/main/marketing-skill/skills/seo-audit/references/aeo-geo-patterns.md): Content patterns optimized for answer engines and AI citation
+- [SEO Audit Reference](https://github.com/alirezarezvani/claude-skills/tree/main/marketing-skill/skills/seo-audit/references/seo-audit-reference.md): Full audit framework, scoring, and remediation patterns
+- [Core Web Vitals Thresholds](https://github.com/alirezarezvani/claude-skills/tree/main/marketing-skill/skills/seo-audit/references/cwv-thresholds.md): LCP/INP/CLS targets and triage rules
+- [E-E-A-T Framework](https://github.com/alirezarezvani/claude-skills/tree/main/marketing-skill/skills/seo-audit/references/eeat-framework.md): Experience, Expertise, Authoritativeness, Trustworthiness checklist
+- [Schema Types](https://github.com/alirezarezvani/claude-skills/tree/main/marketing-skill/skills/seo-audit/references/schema-types.md): Structured data patterns by content type
 
 ---
 
