@@ -39,6 +39,10 @@ it('rejects unsupported parse formats', function (): void {
     ParseOptions::with(formats: ['screenshot']);
 })->throws(FirecrawlException::class);
 
+it('rejects video parse format', function (): void {
+    ParseOptions::with(formats: ['video']);
+})->throws(FirecrawlException::class);
+
 it('rejects invalid proxy values', function (): void {
     ParseOptions::with(proxy: 'stealth');
 })->throws(FirecrawlException::class);

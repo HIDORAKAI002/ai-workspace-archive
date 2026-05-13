@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Firecrawl\Models\CreditUsage;
+use Firecrawl\Models\Document;
 use Firecrawl\Models\MapData;
 use Firecrawl\Models\BatchScrapeJob;
 use Firecrawl\Models\CrawlJob;
@@ -91,6 +92,16 @@ it('preserves null creditsUsed in CrawlJob', function (): void {
     $job = CrawlJob::fromArray($raw);
 
     expect($job->getCreditsUsed())->toBeNull();
+});
+
+it('hydrates video URL in Document', function (): void {
+    $doc = Document::fromArray([
+        'markdown' => '# Video',
+        'video' => 'https://storage.googleapis.com/firecrawl/video.mp4',
+    ]);
+
+    expect($doc->getMarkdown())->toBe('# Video');
+    expect($doc->getVideo())->toBe('https://storage.googleapis.com/firecrawl/video.mp4');
 });
 
 it('preserves positional integration in ScrapeOptions::with', function (): void {

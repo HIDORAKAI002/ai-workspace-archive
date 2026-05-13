@@ -37,6 +37,9 @@ public class Document
     [JsonPropertyName("audio")]
     public object? Audio { get; set; }
 
+    [JsonPropertyName("video")]
+    public string? Video { get; set; }
+
     [JsonPropertyName("actions")]
     public object? Actions { get; set; }
 

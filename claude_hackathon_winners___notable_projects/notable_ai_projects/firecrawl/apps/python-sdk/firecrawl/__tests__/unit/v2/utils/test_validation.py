@@ -102,7 +102,7 @@ class TestPrepareScrapeOptions:
     def test_prepare_basic_options(self):
         """Test preparation with basic options."""
         options = ScrapeOptions(
-            formats=["markdown"],
+            formats=["markdown", "video"],
             timeout=30000,
             wait_for=2000
         )
@@ -112,6 +112,7 @@ class TestPrepareScrapeOptions:
         assert "formats" in result
         assert "timeout" in result
         assert "waitFor" in result
+        assert result["formats"] == ["markdown", "video"]
         assert result["timeout"] == 30000
         assert result["waitFor"] == 2000
 

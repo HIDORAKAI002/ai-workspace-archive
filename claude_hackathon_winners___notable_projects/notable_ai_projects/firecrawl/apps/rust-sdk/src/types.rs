@@ -33,6 +33,8 @@ pub enum Format {
     Branding,
     /// Audio extraction (MP3) from YouTube videos.
     Audio,
+    /// Video extraction from supported video URLs.
+    Video,
     /// Question answer generated from the page content.
     Question(QuestionFormat),
     /// Direct highlights selected from the page content.
@@ -59,6 +61,7 @@ impl Serialize for Format {
             Format::Attributes => serializer.serialize_str("attributes"),
             Format::Branding => serializer.serialize_str("branding"),
             Format::Audio => serializer.serialize_str("audio"),
+            Format::Video => serializer.serialize_str("video"),
             Format::Question(question) => question.serialize(serializer),
             Format::Highlights(highlights) => highlights.serialize(serializer),
             Format::Query(query) => query.serialize(serializer),
@@ -86,6 +89,7 @@ impl<'de> Deserialize<'de> for Format {
                 "attributes" => Ok(Format::Attributes),
                 "branding" => Ok(Format::Branding),
                 "audio" => Ok(Format::Audio),
+                "video" => Ok(Format::Video),
                 _ => Err(de::Error::custom(format!("unknown format: {}", format))),
             },
             Value::Object(_) => match value.get("type").and_then(Value::as_str) {
@@ -658,6 +662,8 @@ pub struct Document {
     pub screenshot: Option<String>,
     /// Audio download URL (signed GCS link for MP3).
     pub audio: Option<String>,
+    /// Video download URL (signed GCS link).
+    pub video: Option<String>,
     /// Extracted attributes.
     pub attributes: Option<Vec<AttributeResult>>,
     /// Action results.
@@ -793,6 +799,7 @@ mod tests {
     fn test_full_document_with_array_metadata() {
         let json = json!({
             "markdown": "# Hello",
+            "video": "https://storage.googleapis.com/firecrawl/video.mp4",
             "metadata": {
                 "sourceURL": "https://example.com",
                 "statusCode": 200,
@@ -806,6 +813,10 @@ mod tests {
         });
         let doc: Document = serde_json::from_value(json).unwrap();
         assert_eq!(doc.markdown, Some("# Hello".to_string()));
+        assert_eq!(
+            doc.video,
+            Some("https://storage.googleapis.com/firecrawl/video.mp4".to_string())
+        );
         let meta = doc.metadata.unwrap();
         assert_eq!(meta.title, Some("Example Page".to_string()));
         assert_eq!(

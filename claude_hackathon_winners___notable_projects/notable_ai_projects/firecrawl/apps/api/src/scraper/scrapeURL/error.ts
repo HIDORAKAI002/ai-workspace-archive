@@ -535,6 +535,28 @@ export class AudioUnsupportedUrlError extends TransportableError {
   }
 }
 
+export class VideoUnsupportedUrlError extends TransportableError {
+  constructor(message?: string) {
+    super(
+      "SCRAPE_VIDEO_UNSUPPORTED_URL",
+      message ?? "The video format does not support the provided URL",
+    );
+  }
+
+  serialize() {
+    return super.serialize();
+  }
+
+  static deserialize(
+    _: ErrorCodes,
+    data: ReturnType<typeof this.prototype.serialize>,
+  ) {
+    const x = new VideoUnsupportedUrlError(data.message);
+    x.stack = data.stack;
+    return x;
+  }
+}
+
 export class BrandingNotSupportedError extends TransportableError {
   constructor(message: string) {
     super("SCRAPE_BRANDING_NOT_SUPPORTED", message);

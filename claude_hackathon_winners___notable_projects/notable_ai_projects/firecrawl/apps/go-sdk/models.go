@@ -14,6 +14,7 @@ type Document struct {
 	Images         []string                 `json:"images,omitempty"`
 	Screenshot     string                   `json:"screenshot,omitempty"`
 	Audio          string                   `json:"audio,omitempty"`
+	Video          string                   `json:"video,omitempty"`
 	Attributes     []map[string]interface{} `json:"attributes,omitempty"`
 	Actions        map[string]interface{}   `json:"actions,omitempty"`
 	Answer         string                   `json:"answer,omitempty"`

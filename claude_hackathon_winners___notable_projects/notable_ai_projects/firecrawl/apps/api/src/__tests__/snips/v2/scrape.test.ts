@@ -2065,6 +2065,42 @@ describe("Attribute formats", () => {
     );
   });
 
+  describeIf(!TEST_SELF_HOST)("Video format", () => {
+    it.concurrent(
+      "should return video field with signed GCS URL for a supported video URL",
+      async () => {
+        const data = await scrape(
+          {
+            url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+            formats: ["video"],
+          },
+          identity,
+        );
+
+        expect(data.video).toBeDefined();
+        expect(typeof data.video).toBe("string");
+        expect(data.video).toMatch(/^https:\/\//);
+      },
+      scrapeTimeout * 2,
+    );
+
+    it.concurrent(
+      "should reject unsupported URL with video format",
+      async () => {
+        const result = await scrapeWithFailure(
+          {
+            url: "https://example.com",
+            formats: ["video"],
+          },
+          identity,
+        );
+
+        expect(result.error).toMatch(/video/i);
+      },
+      scrapeTimeout,
+    );
+  });
+
   describe("UUID validation", () => {
     it.concurrent(
       "should reject invalid UUID 'None' for scrape status",

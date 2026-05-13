@@ -13,7 +13,8 @@ export type FormatString =
   | 'json'
   | 'attributes'
   | 'branding'
-  | 'audio';
+  | 'audio'
+  | 'video';
 
 export interface Viewport {
   width: number;
@@ -82,7 +83,7 @@ export type FormatOption =
 
 export type ParseFormatString = Exclude<
   FormatString,
-  'screenshot' | 'changeTracking' | 'branding'
+  'screenshot' | 'changeTracking' | 'branding' | 'audio' | 'video'
 >;
 
 export interface ParseFormat {
@@ -458,6 +459,7 @@ export interface Document {
   images?: string[];
   screenshot?: string;
   audio?: string;
+  video?: string;
   attributes?: Array<{
     selector: string;
     attribute: string;
