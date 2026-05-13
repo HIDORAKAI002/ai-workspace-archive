@@ -2,32 +2,27 @@
 
 Run your own prompts.chat instance using Docker Compose.
 
+[`compose.yml`](/compose.yml) supports both the pre-built container image being fetched from ghcr.io, or being built locally.
+
 ## Quick Start
+
+### To build locally
 
 ```bash
 git clone https://github.com/f/prompts.chat.git
 cd prompts.chat
-docker compose up -d
+docker compose up -d --build
 ```
 
 Open http://localhost:4444 in your browser.
 
-## Using a Pre-built Image
+### Using a Pre-built Image
 
-Edit `compose.yml` and replace the `build` block with the published image:
-
-```yaml
-services:
-  app:
-    # build:
-    #   context: .
-    #   dockerfile: docker/Dockerfile
-    image: ghcr.io/f/prompts.chat:latest
-```
-
-Then run:
+Simply remove the `--build` flag from the command:
 
 ```bash
+git clone https://github.com/f/prompts.chat.git
+cd prompts.chat
 docker compose up -d
 ```
 
@@ -43,6 +38,17 @@ docker run -d \
   -e DATABASE_URL="postgresql://user:pass@your-db-host:5432/prompts?schema=public" \
   -e AUTH_SECRET="$(openssl rand -base64 32)" \
   prompts.chat
+```
+
+Or if you simply want to use the pre-built image:
+
+```bash
+docker run -d \
+  --name prompts \
+  -p 4444:3000 \
+  -e DATABASE_URL="postgresql://user:pass@your-db-host:5432/prompts?schema=public" \
+  -e AUTH_SECRET="$(openssl rand -base64 32)" \
+  ghcr.io/f/prompts.chat:latest
 ```
 
 ## Custom Branding

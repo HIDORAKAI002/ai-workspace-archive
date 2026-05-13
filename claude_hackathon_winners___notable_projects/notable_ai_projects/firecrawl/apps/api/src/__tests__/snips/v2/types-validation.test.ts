@@ -60,6 +60,24 @@ describe("V2 Types Validation", () => {
       expect(result.formats).toEqual([{ type: "markdown" }, { type: "html" }]);
     });
 
+    it("should accept video format as string and object", () => {
+      const stringInput: ScrapeRequestInput = {
+        url: "https://example.com",
+        formats: ["video"],
+      };
+      const objectInput: ScrapeRequestInput = {
+        url: "https://example.com",
+        formats: [{ type: "video" }],
+      };
+
+      expect(scrapeRequestSchema.parse(stringInput).formats).toEqual([
+        { type: "video" },
+      ]);
+      expect(scrapeRequestSchema.parse(objectInput).formats).toEqual([
+        { type: "video" },
+      ]);
+    });
+
     it("should accept valid scrape request with json format options", () => {
       const input: ScrapeRequestInput = {
         url: "https://example.com",

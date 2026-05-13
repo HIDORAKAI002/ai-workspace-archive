@@ -120,16 +120,17 @@ function mockMessages(mock: unknown): string[] {
 }
 
 function expectMockLogContains(mock: unknown, expected: string): void {
-  expect(mockMessages(mock).some((message) => message.includes(expected))).toBe(true);
+  expect(mockMessages(mock).join("\n")).toContain(expected);
 }
 
 function expectMockLogNotContains(mock: unknown, expected: string): void {
-  expect(mockMessages(mock).every((message) => !message.includes(expected))).toBe(true);
+  expect(mockMessages(mock).join("\n")).not.toContain(expected);
 }
 
 function expectMessagesContainAll(messages: string[], expected: string[]): void {
+  const joinedMessages = messages.join("\n");
   for (const entry of expected) {
-    expect(messages.some((message) => message.includes(entry))).toBe(true);
+    expect(joinedMessages).toContain(entry);
   }
 }
 
@@ -1167,6 +1168,6 @@ describe("monitorDiscordProvider", () => {
     });
 
     const messages = vi.mocked(runtime.log).mock.calls.map((call) => String(call[0]));
-    expect(messages.every((message) => !message.includes("discord startup ["))).toBe(true);
+    expect(messages.join("\n")).not.toContain("discord startup [");
   });
 });

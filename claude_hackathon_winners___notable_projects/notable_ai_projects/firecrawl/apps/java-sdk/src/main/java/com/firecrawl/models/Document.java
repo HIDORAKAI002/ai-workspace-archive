@@ -20,6 +20,7 @@ public class Document {
     private List<String> images;
     private String screenshot;
     private String audio;
+    private String video;
     private List<Map<String, Object>> attributes;
     private Map<String, Object> actions;
     private String answer;
@@ -38,6 +39,7 @@ public class Document {
     public List<String> getImages() { return images; }
     public String getScreenshot() { return screenshot; }
     public String getAudio() { return audio; }
+    public String getVideo() { return video; }
     public List<Map<String, Object>> getAttributes() { return attributes; }
     public Map<String, Object> getActions() { return actions; }
     public String getAnswer() { return answer; }

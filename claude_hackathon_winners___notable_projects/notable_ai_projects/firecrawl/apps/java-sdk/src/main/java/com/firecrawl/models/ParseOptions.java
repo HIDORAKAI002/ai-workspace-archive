@@ -10,8 +10,8 @@ import java.util.Map;
 /**
  * Options for parsing uploaded files via /v2/parse.
  *
- * <p>Parse does not support browser-rendering formats/options such as
- * change tracking, screenshot, branding, actions, waitFor, location, or mobile.
+     * <p>Parse does not support browser-rendering formats/options such as
+     * change tracking, screenshot, branding, audio, video, actions, waitFor, location, or mobile.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ParseOptions {
@@ -86,7 +86,9 @@ public class ParseOptions {
                 || normalized.equals("change_tracking")
                 || normalized.equals("screenshot")
                 || normalized.equals("screenshot@fullPage")
-                || normalized.equals("branding");
+                || normalized.equals("branding")
+                || normalized.equals("audio")
+                || normalized.equals("video");
     }
 
     public static final class Builder {

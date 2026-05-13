@@ -265,6 +265,7 @@ export async function scrapeURLWithFireEngineChromeCDP(
     });
     const hasBranding = hasFormatOfType(meta.options.formats, "branding");
     const hasAudio = hasFormatOfType(meta.options.formats, "audio");
+    const hasVideo = hasFormatOfType(meta.options.formats, "video");
     const shouldRunYoutubePostprocessor = youtubePostprocessor.shouldRun(
       meta,
       new URL(meta.rewrittenUrl ?? meta.url),
@@ -321,7 +322,7 @@ export async function scrapeURLWithFireEngineChromeCDP(
             },
           ]
         : []),
-      ...(hasAudio || shouldRunYoutubePostprocessor
+      ...(hasAudio || hasVideo || shouldRunYoutubePostprocessor
         ? ([
             {
               type: "getCookies",
@@ -464,7 +465,9 @@ export async function scrapeURLWithFireEngineChromeCDP(
       proxyUsed: response.usedMobileProxy ? "stealth" : "basic",
       youtubeTranscriptContent: response.youtubeTranscriptContent,
       timezone: response.timezone,
-      ...(hasAudio || shouldRunYoutubePostprocessor ? { audioCookies } : {}),
+      ...(hasAudio || hasVideo || shouldRunYoutubePostprocessor
+        ? { audioCookies }
+        : {}),
     };
   });
 }

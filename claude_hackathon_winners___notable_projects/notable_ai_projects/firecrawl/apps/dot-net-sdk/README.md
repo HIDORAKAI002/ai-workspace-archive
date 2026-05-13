@@ -73,6 +73,17 @@ Console.WriteLine(doc.Markdown);
 Console.WriteLine(doc.Html);
 ```
 
+### Video Extraction
+
+Use the `video` format on supported video URLs, including YouTube and TikTok. The returned `Video` property is a signed URL to the extracted video file.
+
+```csharp
+var doc = await client.ScrapeAsync("https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    new ScrapeOptions { Formats = new List<object> { "video" } });
+
+Console.WriteLine(doc.Video);
+```
+
 ### Crawl
 
 ```csharp
@@ -133,7 +144,7 @@ foreach (var doc in job.Data!)
 Upload and parse a local file (HTML, PDF, DOCX, etc.) through the `/v2/parse`
 endpoint. Parse does not support browser-rendering options like `actions`,
 `waitFor`, `location`, `mobile`, or the `screenshot` / `branding` /
-`changeTracking` formats.
+`changeTracking` / `audio` / `video` formats.
 
 ```csharp
 using Firecrawl;

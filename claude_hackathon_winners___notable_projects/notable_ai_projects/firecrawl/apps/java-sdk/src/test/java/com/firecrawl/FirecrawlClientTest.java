@@ -66,13 +66,13 @@ class FirecrawlClientTest {
                 .build();
 
         ScrapeOptions options = ScrapeOptions.builder()
-                .formats(List.of("markdown", "html", queryFormat))
+                .formats(List.of("markdown", "html", "video", queryFormat))
                 .onlyMainContent(true)
                 .timeout(30000)
                 .mobile(false)
                 .build();
 
-        assertEquals(List.of("markdown", "html", queryFormat), options.getFormats());
+        assertEquals(List.of("markdown", "html", "video", queryFormat), options.getFormats());
         assertEquals("query", queryFormat.getType());
         assertEquals(QueryFormat.Mode.DIRECT_QUOTE, queryFormat.getMode());
         assertTrue(options.getOnlyMainContent());
@@ -226,6 +226,15 @@ class FirecrawlClientTest {
         assertThrows(IllegalArgumentException.class, () ->
                 ParseOptions.builder()
                         .formats(List.of("markdown", "changeTracking"))
+                        .build()
+        );
+    }
+
+    @Test
+    void testParseOptionsRejectsVideoFormat() {
+        assertThrows(IllegalArgumentException.class, () ->
+                ParseOptions.builder()
+                        .formats(List.of("video"))
                         .build()
         );
     }

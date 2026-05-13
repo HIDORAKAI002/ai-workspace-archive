@@ -84,6 +84,30 @@ describe("Audio format engine routing (buildFallbackList)", () => {
     expect(engines).not.toContain("fetch");
   });
 
+  it("routes video format to chrome-cdp before tlsclient", async () => {
+    const fallback = await buildFallbackList(buildStubMeta(["video"]));
+    const engines = fallback.map(f => f.engine);
+
+    expect(engines).toEqual([
+      "fire-engine;chrome-cdp",
+      "fire-engine(retry);chrome-cdp",
+      "fire-engine;tlsclient",
+    ]);
+  });
+
+  it("excludes index and non-browser engines when video format is requested", async () => {
+    const fallback = await buildFallbackList(buildStubMeta(["video"]));
+    const engines = fallback.map(f => f.engine);
+
+    expect(engines).toContain("fire-engine;chrome-cdp");
+    expect(engines).toContain("fire-engine(retry);chrome-cdp");
+    expect(engines).not.toContain("index");
+    expect(engines).not.toContain("index;documents");
+    expect(engines).not.toContain("fire-engine;chrome-cdp;stealth");
+    expect(engines).not.toContain("fire-engine(retry);chrome-cdp;stealth");
+    expect(engines).not.toContain("fetch");
+  });
+
   it("still allows chrome-cdp for non-audio requests", async () => {
     const fallback = await buildFallbackList(buildStubMeta([]));
     const engines = fallback.map(f => f.engine);

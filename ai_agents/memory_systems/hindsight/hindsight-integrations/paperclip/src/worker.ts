@@ -173,7 +173,7 @@ const plugin = definePlugin({
           /* ignore */
         }
       }
-      
+
       if (!bankAgentId) {
         ctx.logger.info("Skipping retain — no agent attribution available", {
           commentId,

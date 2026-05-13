@@ -203,13 +203,17 @@ export function createKnowledgeTools(opts: CreateKnowledgeToolsOptions): Knowled
         type: "object",
         properties: {
           query: { type: "string", description: "What to search for" },
-          max_results: { type: "number", description: "Max results (default 10)" },
+          max_tokens: { type: "number", description: "Token budget for results (default 1024)" },
         },
         required: ["query"],
       },
       async execute(params: Record<string, unknown>) {
+        const maxTokens =
+          (params.max_tokens as number | undefined) ??
+          (params.max_results as number | undefined) ??
+          1024;
         const result = await client.recall(bankId, params.query as string, {
-          maxTokens: (params.max_results as number | undefined) ?? 10,
+          maxTokens,
         });
         return ok(result);
       },

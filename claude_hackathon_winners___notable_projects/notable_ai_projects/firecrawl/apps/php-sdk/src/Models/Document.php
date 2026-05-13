@@ -26,6 +26,7 @@ final class Document
         private readonly ?array $images = null,
         private readonly ?string $screenshot = null,
         private readonly ?string $audio = null,
+        private readonly ?string $video = null,
         private readonly ?array $attributes = null,
         private readonly ?array $actions = null,
         private readonly ?string $answer = null,
@@ -49,6 +50,7 @@ final class Document
             images: $data['images'] ?? null,
             screenshot: $data['screenshot'] ?? null,
             audio: $data['audio'] ?? null,
+            video: $data['video'] ?? null,
             attributes: $data['attributes'] ?? null,
             actions: $data['actions'] ?? null,
             answer: $data['answer'] ?? null,
@@ -110,6 +112,11 @@ final class Document
     public function getAudio(): ?string
     {
         return $this->audio;
+    }
+
+    public function getVideo(): ?string
+    {
+        return $this->video;
     }
 
     /** @return list<array<string, mixed>>|null */

@@ -98,7 +98,7 @@ Produce a structured report with these sections:
 1. **Missing Concepts** — Features/concepts in official docs but missing from CONCEPTS table, with:
    - Official name and docs URL
    - Recommended Location column value
-   - Recommended Description column value
+   - Recommended Description column value — **badges and supplementary links only; no prose descriptions** (the Description column is conventionally a links column, not a feature summary)
    - Exact markdown table row ready to paste
    - Version introduced (if known)
 2. **Changed Concepts** — Concepts whose name, URL, location, or description has changed
@@ -202,9 +202,9 @@ After presenting the report (and confirming changelog was updated), ask the user
 When executing:
 - **Missing concepts**: Add a new row to the CONCEPTS table in `README.md` following the existing format:
   ```
-  | [**Name**](docs-url) | `location` | Description |
+  | [**Name**](docs-url) | `location` | [![Best Practice](!/tags/best-practice.svg)](...) [![Implemented](!/tags/implemented.svg)](...) [Supplementary Link](...) |
   ```
-  Add badges (best-practice, implemented) only if corresponding files exist.
+  The third column is **badges and links only — never prose**. Add badges (best-practice, implemented) only if corresponding files exist. If no badges or links apply, leave the column empty (just `|  |`).
 - **Changed concepts**: Update the specific column(s) that changed
 - **Deprecated concepts**: Confirm with user before removing rows
 - **Broken URLs**: Fix the URL to the current valid one
@@ -229,3 +229,4 @@ When executing:
 11. **ALWAYS validate all CONCEPTS URLs** — Phase 2.7 is mandatory. Broken URLs are HIGH priority.
 12. **Provide ready-to-paste rows** — for missing concepts, include the exact markdown table row so execution is copy-paste.
 13. **Respect the existing table format** — match the column structure, badge pattern, and linking style of existing rows.
+14. **Description column is for badges and links only** — never prose. The third column in the CONCEPTS table (including the Hot sub-table) holds badges (best-practice, implemented, beta) and supplementary links (docs, blog posts, related reports). Never write a prose description of what a feature does — the feature name links to the official docs, which is where the explanation belongs. If a row has no badges or links, leave the cell empty.

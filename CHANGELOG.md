@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-05-13 08:02 IST] Auto-Sync
+- **33 Repositories Updated:** Awesome ChatGPT Prompts, NVIDIA NeMo Guardrails, Guardrails AI, Dify, Trigger.dev, Appsmith, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, pydantic/pydantic-ai, mastra-ai/mastra, BerriAI/litellm, ollama/ollama, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, cline/cline, anthropics/claude-code, infiniflow/ragflow, arize-ai/phoenix, openai/openai-cookbook, affaan-m/everything-claude-code, firecrawl/firecrawl, danny-avila/LibreChat, google-gemini/gemini-cli, googleapis/python-genai, vercel/ai, apache/airflow, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight
+
 ## [2026-05-13 01:32 IST] Auto-Sync
 - **44 Repositories Updated:** MCP Official Servers, GitHub MCP Server, Langfuse, NVIDIA NeMo Guardrails, n8n, Activepieces, Trigger.dev, Windmill, Appsmith, Budibase, modelcontextprotocol/rust-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langgraph, crewAIInc/crewAI, pydantic/pydantic-ai, microsoft/semantic-kernel, mastra-ai/mastra, deepset-ai/haystack, chatdev, BerriAI/litellm, stanfordnlp/dspy, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, cline/cline, RooCodeInc/Roo-Code, pinecone-io/pinecone-python-client, arize-ai/phoenix, open-telemetry/opentelemetry-python, affaan-m/everything-claude-code, firecrawl/firecrawl, danny-avila/LibreChat, googleapis/python-genai, vercel/ai, apache/airflow, dagster-io/dagster, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow
 
