@@ -363,7 +363,9 @@ function getLastRouteUpdate():
       mainDmOwnerPin?: { ownerRecipient?: string; senderRecipient?: string };
     }
   | undefined {
-  const callArgs = recordInboundSession.mock.calls.at(-1) as unknown[] | undefined;
+  const callArgs = recordInboundSession.mock.calls[recordInboundSession.mock.calls.length - 1] as
+    | unknown[]
+    | undefined;
   const params = callArgs?.[0] as
     | {
         updateLastRoute?: {
@@ -397,7 +399,9 @@ function getLastDispatchCtx():
       Transcript?: string;
     }
   | undefined {
-  const callArgs = dispatchInboundMessage.mock.calls.at(-1) as unknown[] | undefined;
+  const callArgs = dispatchInboundMessage.mock.calls[
+    dispatchInboundMessage.mock.calls.length - 1
+  ] as unknown[] | undefined;
   const params = callArgs?.[0] as
     | {
         ctx?: {
@@ -423,7 +427,9 @@ function getLastDispatchCtx():
 }
 
 function getLastDispatchReplyOptions(): DispatchInboundParams["replyOptions"] | undefined {
-  const callArgs = dispatchInboundMessage.mock.calls.at(-1) as unknown[] | undefined;
+  const callArgs = dispatchInboundMessage.mock.calls[
+    dispatchInboundMessage.mock.calls.length - 1
+  ] as unknown[] | undefined;
   const params = callArgs?.[0] as DispatchInboundParams | undefined;
   return params?.replyOptions;
 }
@@ -455,7 +461,7 @@ function requireRecord(value: unknown, label: string): Record<string, unknown> {
 type MockWithCalls = { mock: { calls: unknown[][] } };
 
 function firstMockCall(mock: MockWithCalls, label: string): unknown[] {
-  const call = mock.mock.calls.at(0);
+  const call = mock.mock.calls[0];
   if (!call) {
     throw new Error(`missing ${label} call`);
   }
