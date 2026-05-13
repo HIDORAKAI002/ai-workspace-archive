@@ -1,148 +1,149 @@
-# Model Context Protocol za pretakanje podatkov v realnem času
+# Protokol konteksta modela za pretočne podatke v realnem času
 
 ## Pregled
 
-Pretakanje podatkov v realnem času je postalo ključno v današnjem svetu, ki temelji na podatkih, kjer podjetja in aplikacije potrebujejo takojšen dostop do informacij za pravočasno sprejemanje odločitev. Model Context Protocol (MCP) predstavlja pomemben napredek pri optimizaciji teh procesov pretakanja v realnem času, saj izboljšuje učinkovitost obdelave podatkov, ohranja kontekstualno celovitost in izboljšuje splošno zmogljivost sistema.
+Pretočni podatki v realnem času so postali bistveni v današnjem svetu, ki temelji na podatkih, kjer podjetja in aplikacije potrebujejo takojšen dostop do informacij za pravočasno odločanje. Protokol konteksta modela (MCP) predstavlja pomemben napredek pri optimizaciji teh procesov pretočnih podatkov v realnem času, izboljšuje učinkovitost obdelave podatkov, ohranja kontekstno celovitost in izboljšuje splošno zmogljivost sistema.
 
-Ta modul raziskuje, kako MCP spreminja pretakanje podatkov v realnem času z zagotavljanjem standardiziranega pristopa k upravljanju konteksta med AI modeli, platformami za pretakanje in aplikacijami.
+Ta modul raziskuje, kako MCP preoblikuje pretočne podatke v realnem času z zagotavljanjem standardiziranega pristopa k upravljanju konteksta med AI modeli, pretočnimi platformami in aplikacijami.
 
-## Uvod v pretakanje podatkov v realnem času
+## Uvod v pretočne podatke v realnem času
 
-Pretakanje podatkov v realnem času je tehnološki pristop, ki omogoča neprekinjen prenos, obdelavo in analizo podatkov takoj, ko so ustvarjeni, kar sistemom omogoča takojšnje odzivanje na nove informacije. V nasprotju s tradicionalno obdelavo v serijah, ki deluje na statičnih podatkovnih nizih, pretakanje obdeluje podatke v gibanju in zagotavlja vpoglede ter ukrepe z minimalno zakasnitvijo.
+Pretočni podatki v realnem času so tehnološki paradigmi, ki omogočajo neprekinjeno prenašanje, obdelavo in analizo podatkov med njihovim generiranjem, kar sistemom omogoča takojšnje odzivanje na nove informacije. V nasprotju s tradicionalnim paketnim procesiranjem, ki deluje nad statičnimi množicami podatkov, pretočni procesi obdelujejo podatke med premikanjem, kar zagotavlja vpoglede in ukrepe z minimalno zakasnitvijo.
 
-### Osnovni pojmi pretakanja podatkov v realnem času:
+### Osnovni koncepti pretočnih podatkov v realnem času:
 
-- **Neprekinjen tok podatkov**: Podatki se obdelujejo kot neprekinjen, neskončen tok dogodkov ali zapisov.
-- **Obdelava z nizko zakasnitvijo**: Sistemi so zasnovani tako, da zmanjšajo čas med generiranjem in obdelavo podatkov.
-- **Razširljivost**: Arhitekture za pretakanje morajo obvladovati spremenljive količine in hitrost podatkov.
-- **Odpornost na napake**: Sistemi morajo biti odporni na okvare, da zagotovijo neprekinjen pretok podatkov.
-- **Stanje obdelave**: Ohranjanje konteksta med dogodki je ključno za smiselno analizo.
+- **Neprekinjen podatkovni tok**: Podatki se obdelujejo kot neprekinjen, neskončen tok dogodkov ali zapisov.
+- **Obdelava z nizko zakasnitvijo**: Sistemi so zasnovani, da zmanjšajo čas med generiranjem podatkov in njihovo obdelavo.
+- **Razširljivost**: Arhitekture pretočnega prenosa morajo obvladovati spremenljive količine in hitrost podatkov.
+- **Odpornost na napake**: Sistemi morajo biti odporni na okvare, da zagotovijo neprekinjen tok podatkov.
+- **Stanjno obdelovanje**: Ohranjanje konteksta med dogodki je ključno za smiselno analizo.
 
-### Model Context Protocol in pretakanje v realnem času
+### Protokol konteksta modela in pretočni prenos v realnem času
 
-Model Context Protocol (MCP) rešuje več ključnih izzivov v okoljih pretakanja v realnem času:
+Protokol konteksta modela (MCP) rešuje več ključnih izzivov v okoljih pretočnega prenosa v realnem času:
 
-1. **Kontekstualna kontinuiteta**: MCP standardizira način ohranjanja konteksta med razpršenimi komponentami pretakanja, kar zagotavlja, da imajo AI modeli in obdelovalni vozli dostop do relevantnega zgodovinskega in okoljskega konteksta.
+1. **Kontekstualna kontinuiteta**: MCP standardizira, kako se kontekst ohranja med distribuiranimi pretočnimi komponentami, zagotavljajoč, da imajo AI modeli in procesne enote dostop do ustreznega zgodovinskega in okoljskega konteksta.
 
-2. **Učinkovito upravljanje stanja**: Z zagotavljanjem strukturiranih mehanizmov za prenos konteksta MCP zmanjšuje obremenitev upravljanja stanja v pretakalnih cevovodih.
+2. **Učinkovito upravljanje stanj**: Z zagotavljanjem strukturiranih mehanizmov za prenos konteksta, MCP zmanjšuje režijske stroške upravljanja stanj v pretočnih cevovodih.
 
-3. **Medsebojna združljivost**: MCP ustvarja skupni jezik za deljenje konteksta med različnimi tehnologijami pretakanja in AI modeli, kar omogoča bolj prilagodljive in razširljive arhitekture.
+3. **Medsebojna združljivost**: MCP ustvarja skupni jezik za deljenje konteksta med različnimi pretočnimi tehnologijami in AI modeli, kar omogoča bolj prilagodljive in razširljive arhitekture.
 
-4. **Kontekst optimiziran za pretakanje**: Implementacije MCP lahko prednostno obravnavajo, kateri elementi konteksta so najbolj pomembni za odločitve v realnem času, s čimer optimizirajo tako zmogljivost kot natančnost.
+4. **Kontekst, optimiziran za pretočni prenos**: Implementacije MCP lahko prioritetno določijo, kateri elementi konteksta so najpomembnejši za odločanje v realnem času, optimizirajo pa zmogljivost in natančnost.
 
-5. **Prilagodljiva obdelava**: Z ustreznim upravljanjem konteksta prek MCP lahko sistemi za pretakanje dinamično prilagajajo obdelavo glede na spreminjajoče se pogoje in vzorce v podatkih.
+5. **Prilagodljivo obdelovanje**: Z ustreznim upravljanjem konteksta prek MCP lahko pretočni sistemi dinamično prilagajajo obdelavo glede na spreminjajoče se pogoje in vzorce v podatkih.
 
-V sodobnih aplikacijah, od IoT omrežij senzorjev do finančnih trgovalnih platform, integracija MCP s tehnologijami pretakanja omogoča bolj inteligentno, kontekstualno ozaveščeno obdelavo, ki se lahko ustrezno odzove na kompleksne, spreminjajoče se situacije v realnem času.
+V sodobnih aplikacijah, od omrežij IoT senzorjev do finančnih trgovalnih platform, integracija MCP s pretočnimi tehnologijami omogoča bolj inteligentno, kontekstno zavedajočo se obdelavo, ki se lahko ustrezno odzove na kompleksne, spreminjajoče se situacije v realnem času.
 
 ## Cilji učenja
 
-Ob koncu te lekcije boste znali:
+Do konca te lekcije boste lahko:
 
-- Razumeti osnove pretakanja podatkov v realnem času in njegove izzive
-- Pojasniti, kako Model Context Protocol (MCP) izboljšuje pretakanje podatkov v realnem času
-- Implementirati rešitve za pretakanje na osnovi MCP z uporabo priljubljenih ogrodij, kot sta Kafka in Pulsar
-- Načrtovati in uvajati odporne na napake, zmogljive arhitekture pretakanja z MCP
-- Uporabiti koncepte MCP v primerih uporabe IoT, finančnega trgovanja in analitike, ki temelji na AI
-- Oceniti nastajajoče trende in prihodnje inovacije v tehnologijah pretakanja na osnovi MCP
+- Razumeli temelje pretočnih podatkov v realnem času in njihove izzive
+- Pojasnili, kako protokol konteksta modela (MCP) izboljšuje pretočni prenos v realnem času
+- Implementirali rešitve pretočnega prenosa na osnovi MCP s priljubljenimi ogrodji, kot sta Kafka in Pulsar
+- Oblikovali in uvedli odpornim na napake, visoko zmogljive pretočne arhitekture z MCP
+- Uporabljali koncepte MCP v uporabi za IoT, finančno trgovanje in analitiko, ki jo poganja AI
+- Ocenili nove trende in prihodnje inovacije v tehnologijah pretočnega prenosa MCP
 
-### Definicija in pomen
 
-Pretakanje podatkov v realnem času vključuje neprekinjeno generiranje, obdelavo in dostavo podatkov z minimalno zakasnitvijo. V nasprotju z obdelavo v serijah, kjer se podatki zbirajo in obdelujejo v skupinah, se podatki v pretakanju obdelujejo postopoma, takoj ko prispejo, kar omogoča takojšnje vpoglede in ukrepe.
+### Določitev in pomen
 
-Ključne značilnosti pretakanja podatkov v realnem času so:
+Pretočni podatki v realnem času vključujejo neprekinjeno generiranje, obdelavo in dostavo podatkov z minimalno zakasnitvijo. V nasprotju s paketnim procesiranjem, kjer se podatki zbirajo in obdelujejo v skupinah, se pretočni podatki obdelujejo postopoma, ko prispejo, kar omogoča takojšnje vpoglede in ukrepe.
+
+Ključne značilnosti pretočnih podatkov v realnem času vključujejo:
 
 - **Nizka zakasnitev**: Obdelava in analiza podatkov v milisekundah do sekundah
 - **Neprekinjen tok**: Neprekinjeni tokovi podatkov iz različnih virov
-- **Takojšnja obdelava**: Analiza podatkov takoj ob prihodu, ne v serijah
+- **Takojšnja obdelava**: Analiza podatkov takoj ob njihovem prihodu namesto v paketih
 - **Arhitektura, ki temelji na dogodkih**: Odzivanje na dogodke takoj, ko se zgodijo
 
-### Izzivi tradicionalnega pretakanja podatkov
+### Izzivi pri tradicionalnem pretočnem prenosu podatkov
 
-Tradicionalni pristopi pretakanja podatkov se soočajo z več omejitvami:
+Tradicionalni pristopi k pretočnemu prenosu podatkov imajo več omejitev:
 
-1. **Izguba konteksta**: Težave pri ohranjanju konteksta med razpršenimi sistemi
-2. **Težave z razširljivostjo**: Izzivi pri prilagajanju za obvladovanje velikih količin in hitrosti podatkov
-3. **Kompleksnost integracije**: Težave z medsebojno združljivostjo med različnimi sistemi
-4. **Upravljanje zakasnitve**: Uravnoteženje prepustnosti in časa obdelave
-5. **Konsistentnost podatkov**: Zagotavljanje natančnosti in popolnosti podatkov v toku
+1. **Izguba konteksta**: Težave pri ohranjanju konteksta med distribuiranimi sistemi
+2. **Težave z razširljivostjo**: Izazivi pri prilagajanju za upravljanje velike količine in hitrosti podatkov
+3. **Kompleksnost integracije**: Težave z združljivostjo med različnimi sistemi
+4. **Upravljanje zakasnitev**: Uravnoteženje prepustnosti z časom obdelave
+5. **Konsistentnost podatkov**: Zagotavljanje natančnosti in popolnosti podatkov po celotnem toku
 
-## Razumevanje Model Context Protocol (MCP)
+## Razumevanje protokola konteksta modela (MCP)
 
 ### Kaj je MCP?
 
-Model Context Protocol (MCP) je standardiziran komunikacijski protokol, zasnovan za učinkovito interakcijo med AI modeli in aplikacijami. V kontekstu pretakanja podatkov v realnem času MCP zagotavlja okvir za:
+Protokol konteksta modela (MCP) je standardiziran komunikacijski protokol, zasnovan za učinkovito interakcijo med AI modeli in aplikacijami. V kontekstu pretočnih podatkov v realnem času MCP nudi okvir za:
 
-- Ohranjanje konteksta skozi celoten podatkovni cevovod
+- Ohranjanje konteksta po celotni podatkovni cevi
 - Standardizacijo formatov izmenjave podatkov
-- Optimizacijo prenosa velikih podatkovnih nizov
-- Izboljšanje komunikacije med modeli in med modeli ter aplikacijami
+- Optimizacijo prenosa velikih nizov podatkov
+- Izboljšanje komunikacije med modeli in med modelom in aplikacijo
 
-### Osnovne komponente in arhitektura
+### Osnovne sestavine in arhitektura
 
-Arhitektura MCP za pretakanje v realnem času vključuje več ključnih komponent:
+Arhitektura MCP za pretočni prenos v realnem času sestoji iz več ključnih komponent:
 
-1. **Upravitelji konteksta**: Upravljajo in ohranjajo kontekstualne informacije skozi cevovod pretakanja
-2. **Procesorji toka**: Obdelujejo vhodne tokove podatkov z uporabo tehnik, ki upoštevajo kontekst
-3. **Protokolni adapterji**: Pretvarjajo med različnimi protokoli pretakanja ob ohranjanju konteksta
+1. **Upravitelji konteksta**: Upravljajo in vzdržujejo kontekstualne informacije po celotnem pretočnem cevovodu
+2. **Procesorji toka**: Obdelujejo dohodne pretočne podatke z uporabo kontekstno zavedajočih tehnik
+3. **Protokolni vmesniki**: Pretvarjajo med različnimi pretočnimi protokoli ob ohranjanju konteksta
 4. **Shramba konteksta**: Učinkovito shranjuje in pridobiva kontekstualne informacije
-5. **Povezovalniki za pretakanje**: Povezujejo se z različnimi platformami za pretakanje (Kafka, Pulsar, Kinesis itd.)
+5. **Povezovalniki pretočnega prenosa**: Povezujejo se z različnimi pretočnimi platformami (Kafka, Pulsar, Kinesis itd.)
 
 ```mermaid
 graph TD
-    subgraph "Data Sources"
-        IoT[IoT Devices]
-        APIs[APIs]
-        DB[Databases]
-        Apps[Applications]
+    subgraph "Viri podatkov"
+        IoT[IoT naprave]
+        APIs[API-ji]
+        DB[Baze podatkov]
+        Apps[Programske aplikacije]
     end
 
-    subgraph "MCP Streaming Layer"
-        SC[Streaming Connectors]
-        PA[Protocol Adapters]
-        CH[Context Handlers]
-        SP[Stream Processors]
-        CS[Context Store]
+    subgraph "MCP pretakalna plast"
+        SC[Pretakalni priključki]
+        PA[Protokočni adapterji]
+        CH[Obdelovalci konteksta]
+        SP[Procesorji pretokov]
+        CS[Skladišče konteksta]
     end
 
-    subgraph "Processing & Analytics"
-        RT[Real-time Analytics]
-        ML[ML Models]
-        CEP[Complex Event Processing]
-        Viz[Visualization]
+    subgraph "Obdelava in analitika"
+        RT[Analitika v realnem času]
+        ML[ML modeli]
+        CEP[Obdelava kompleksnih dogodkov]
+        Viz[Vizualizacija]
     end
 
-    subgraph "Applications & Services"
-        DA[Decision Automation]
-        Alerts[Alerting Systems]
-        DL[Data Lake/Warehouse]
-        API[API Services]
+    subgraph "Aplikacije in storitve"
+        DA[Avtomatizacija odločanja]
+        Alerts[Sistemi za obveščanje]
+        DL[Jezerce/podatkovno skladišče]
+        API[API storitve]
     end
 
-    IoT -->|Data| SC
-    APIs -->|Data| SC
-    DB -->|Changes| SC
-    Apps -->|Events| SC
+    IoT -->|Podatki| SC
+    APIs -->|Podatki| SC
+    DB -->|Spremembe| SC
+    Apps -->|Dogodki| SC
     
-    SC -->|Raw Streams| PA
-    PA -->|Normalized Streams| CH
-    CH <-->|Context Operations| CS
-    CH -->|Context-Enriched Data| SP
-    SP -->|Processed Streams| RT
-    SP -->|Features| ML
-    SP -->|Events| CEP
+    SC -->|Surovi pretoki| PA
+    PA -->|Normalizirani pretoki| CH
+    CH <-->|Operacije s kontekstom| CS
+    CH -->|Podatki obogateni s kontekstom| SP
+    SP -->|Obdelani pretoki| RT
+    SP -->|Značilnosti| ML
+    SP -->|Dogodki| CEP
     
-    RT -->|Insights| Viz
-    ML -->|Predictions| DA
-    CEP -->|Complex Events| Alerts
-    Viz -->|Dashboards| Users((Users))
+    RT -->|Vpogledi| Viz
+    ML -->|Napovedi| DA
+    CEP -->|Kompleksni dogodki| Alerts
+    Viz -->|Nadzorne plošče| Users((Uporabniki))
     
-    RT -.->|Historical Data| DL
-    ML -.->|Model Results| DL
-    CEP -.->|Event Logs| DL
+    RT -.->|Zgodovinski podatki| DL
+    ML -.->|Rezultati modela| DL
+    CEP -.->|Zapisi dogodkov| DL
     
-    DA -->|Actions| API
-    Alerts -->|Notifications| API
-    DL <-->|Data Access| API
+    DA -->|Dejanja| API
+    Alerts -->|Obvestila| API
+    DL <-->|Dostop do podatkov| API
     
     classDef sources fill:#f9f,stroke:#333,stroke-width:2px
     classDef mcp fill:#bbf,stroke:#333,stroke-width:2px
@@ -157,43 +158,43 @@ graph TD
 
 ### Kako MCP izboljšuje obdelavo podatkov v realnem času
 
-MCP rešuje tradicionalne izzive pretakanja z:
+MCP rešuje tradicionalne izzive pretočnega prenosa z:
 
-- **Kontekstualno celovitostjo**: Ohranjanje povezav med podatkovnimi točkami skozi celoten cevovod
-- **Optimiziranim prenosom**: Zmanjševanje podvajanja pri izmenjavi podatkov z inteligentnim upravljanjem konteksta
-- **Standardiziranimi vmesniki**: Zagotavljanje doslednih API-jev za komponente pretakanja
-- **Zmanjšano zakasnitvijo**: Minimiziranje obremenitve obdelave z učinkovitim upravljanjem konteksta
-- **Izboljšano razširljivostjo**: Podpora horizontalnemu skaliranju ob ohranjanju konteksta
+- **Kontekstualno celovitostjo**: Ohranjanje odnosov med podatkovnimi točkami po celem cevovodu
+- **Optimiziranim prenosom**: Zmanjševanje odvečnosti pri izmenjavi podatkov skozi inteligentno upravljanje konteksta
+- **Standardiziranimi vmesniki**: Zagotavljanje doslednih API-jev za pretočne komponente
+- **Zmanjšano zakasnitvijo**: Minimiziranje režijskih stroškov obdelave z učinkovitim ravnanjem s kontekstom
+- **Izboljšano razširljivostjo**: Podpora lateralnemu širjenju ob ohranjanju konteksta
 
-## Integracija in implementacija
+## Integracija in izvedba
 
-Sistemi za pretakanje podatkov v realnem času zahtevajo skrbno arhitekturno zasnovo in implementacijo, da ohranijo tako zmogljivost kot kontekstualno celovitost. Model Context Protocol ponuja standardiziran pristop za integracijo AI modelov in tehnologij pretakanja, kar omogoča bolj sofisticirane, kontekstualno ozaveščene cevovode obdelave.
+Sistemi pretočnih podatkov v realnem času zahtevajo skrbno arhitekturno zasnovo in izvedbo, da ohranijo tako zmogljivost kot kontekstualno celovitost. Protokol konteksta modela ponuja standardiziran pristop za integracijo AI modelov in pretočnih tehnologij, kar omogoča bolj sofisticirane, kontekstualno zavedajoče procesne cevovode.
 
-### Pregled integracije MCP v arhitekture pretakanja
+### Pregled integracije MCP v pretočne arhitekture
 
-Implementacija MCP v okoljih pretakanja v realnem času vključuje več ključnih vidikov:
+Izvedba MCP v okoljih pretočnega prenosa v realnem času vključuje več ključnih premislekov:
 
-1. **Serilizacija in prenos konteksta**: MCP zagotavlja učinkovite mehanizme za kodiranje kontekstualnih informacij znotraj paketov podatkov za pretakanje, kar zagotavlja, da bistveni kontekst spremlja podatke skozi celoten cevovod obdelave. To vključuje standardizirane formate serializacije, optimizirane za prenos v pretakanju.
+1. **Serilizacija in prenos konteksta**: MCP nudi učinkovite mehanizme za kodiranje kontekstualnih informacij v pretočnih podatkovnih paketih, kar zagotavlja, da bistveni kontekst spremlja podatke skozi celoten procesni cevovod. To vključuje standardizirane formate serializacije, optimizirane za pretočni prenos.
 
-2. **Stanje obdelave toka**: MCP omogoča bolj inteligentno obdelavo s stanjem z ohranjanjem dosledne predstavitve konteksta med obdelovalnimi vozlišči. To je še posebej dragoceno v razpršenih arhitekturah pretakanja, kjer je upravljanje stanja tradicionalno zahtevno.
+2. **Stanjna pretočna obdelava**: MCP omogoča bolj inteligentno stanjno obdelavo z vzdrževanjem dosledne predstavitve konteksta med procesnimi vozlišči. To je posebej dragoceno v distribuiranih pretočnih arhitekturah, kjer je upravljanje stanj tradicionalno zahtevno.
 
-3. **Čas dogodka proti času obdelave**: Implementacije MCP v sistemih pretakanja morajo nasloviti pogost izziv razlikovanja med časom, ko so se dogodki zgodili, in časom njihove obdelave. Protokol lahko vključuje časovni kontekst, ki ohranja semantiko časa dogodka.
+3. **Čas dogodka v primerjavi s časom obdelave**: Implementacije MCP v pretočnih sistemih morajo nasloviti pogost izziv razlikovanja med časom dogodkov in časom njihove obdelave. Protokol lahko vključuje časovni kontekst, ki ohranja semantiko časov dogodkov.
 
-4. **Upravljanje povratnega pritiska**: S standardizacijo upravljanja konteksta MCP pomaga pri upravljanju povratnega pritiska v sistemih pretakanja, kar omogoča komponentam, da sporočajo svoje zmogljivosti obdelave in ustrezno prilagajajo tok.
+4. **Upravljanje povratnega pritiska (backpressure)**: Z zagotavljanjem standardiziranega ravnanja s kontekstom MCP pomaga upravljati povratni pritisk v pretočnih sistemih, kar omogoča komponentam, da komunicirajo svoje zmogljivosti obdelave in ustrezno prilagodijo tok.
 
-5. **Okna konteksta in agregacija**: MCP omogoča bolj sofisticirane operacije okenskega združevanja z zagotavljanjem strukturiranih predstavitev časovnega in relacijskega konteksta, kar omogoča smiselnejše agregacije preko tokov dogodkov.
+5. **Kontekstno okensko filtriranje in agregacija**: MCP omogoča bolj zapletene operacije okenskega filtriranja z zagotavljanjem strukturiranih predstavitev časovnih in relacijskih kontekstov, kar omogoča bolj smiselne agregacije po pretočnih dogodkih.
 
-6. **Obdelava natančno enkrat**: V sistemih pretakanja, ki zahtevajo semantiko natančno enkrat, lahko MCP vključuje metapodatke obdelave za pomoč pri sledenju in preverjanju stanja obdelave med razpršenimi komponentami.
+6. **Obdelava natančno enkrat**: V pretočnih sistemih, ki zahtevajo natančno enkrat semantiko, lahko MCP vključi metapodatke o obdelavi, da pomaga pri sledenju in preverjanju stanja obdelave med distribuiranimi komponentami.
 
-Implementacija MCP v različnih tehnologijah pretakanja ustvarja enoten pristop k upravljanju konteksta, zmanjšuje potrebo po prilagojenih integracijskih kodah in hkrati izboljšuje sposobnost sistema za ohranjanje smiselnega konteksta med pretokom podatkov skozi cevovod.
+Implementacija MCP v različnih pretočnih tehnologijah ustvarja enoten pristop k upravljanju konteksta, zmanjšuje potrebo po lastni kodi za integracijo, hkrati pa izboljšuje sposobnost sistema za ohranjanje smiselnega konteksta, ko podatki potujejo skozi cevovod.
 
-### MCP v različnih ogrodjih za pretakanje podatkov
+### MCP v različnih ogrodjih za pretočni prenos podatkov
 
-Ti primeri sledijo trenutni specifikaciji MCP, ki temelji na protokolu JSON-RPC z različnimi mehanizmi prenosa. Koda prikazuje, kako lahko implementirate prilagojene prenose, ki integrirajo platforme za pretakanje, kot sta Kafka in Pulsar, ob ohranjanju popolne združljivosti s protokolom MCP.
+Ti primeri sledijo trenutni specifikaciji MCP, ki se osredotoča na protokol na osnovi JSON-RPC z različnimi mehanizmi prenosa. Koda prikazuje, kako lahko implementirate lastne prenose, ki integrirajo pretočne platforme, kot sta Kafka in Pulsar, ob ohranjanju polne združljivosti s protokolom MCP.
 
-Primeri so zasnovani tako, da pokažejo, kako je mogoče platforme za pretakanje povezati z MCP za zagotavljanje obdelave podatkov v realnem času ob ohranjanju kontekstualne ozaveščenosti, ki je osrednjega pomena za MCP. Ta pristop zagotavlja, da vzorci kode natančno odražajo trenutno stanje specifikacije MCP s stanjem junija 2025.
+Primeri so zasnovani tako, da prikažejo, kako je mogoče pretočne platforme povezati z MCP, da se zagotovi obdelava podatkov v realnem času, hkrati pa ohrani kontekstualna ozaveščenost, ki je osrednja za MCP. Ta pristop zagotavlja, da vzorci kode natančno odražajo trenutno stanje specifikacije MCP od junija 2025.
 
-MCP je mogoče integrirati s priljubljenimi ogrodji za pretakanje, vključno z:
+MCP je mogoče integrirati s priljubljenimi pretočnimi ogrodji, vključno z:
 
 #### Integracija Apache Kafka
 
@@ -206,7 +207,7 @@ from mcp.client import Client, ClientCapabilities
 from mcp.core.message import JsonRpcMessage
 from mcp.core.transports import Transport
 
-# Custom transport class to bridge MCP with Kafka
+# Prilagojena transportna razred za povezavo MCP s Kafka
 class KafkaMCPTransport(Transport):
     def __init__(self, bootstrap_servers: str, input_topic: str, output_topic: str):
         self.bootstrap_servers = bootstrap_servers
@@ -244,7 +245,7 @@ class KafkaMCPTransport(Transport):
                     print(f"Consumer error: {msg.error()}")
                     continue
                 
-                # Parse the message value as JSON-RPC
+                # Razčleni vrednost sporočila kot JSON-RPC
                 try:
                     message_str = msg.value().decode('utf-8')
                     message_data = json.loads(message_str)
@@ -274,7 +275,7 @@ class KafkaMCPTransport(Transport):
                 message_json.encode('utf-8'),
                 callback=self._delivery_report
             )
-            self.producer.poll(0)  # Trigger callbacks
+            self.producer.poll(0)  # Sproži povratne klice
         except Exception as e:
             print(f"Error writing message: {e}")
     
@@ -297,15 +298,15 @@ class KafkaMCPTransport(Transport):
         self.consumer.close()
         self.producer.flush()
 
-# Example usage of the Kafka MCP transport
+# Primer uporabe Kafka MCP transporta
 async def kafka_mcp_example():
-    # Create MCP client with Kafka transport
+    # Ustvari MCP odjemalca s Kafka transportom
     client = Client(
         {"name": "kafka-mcp-client", "version": "1.0.0"},
         ClientCapabilities({})
     )
     
-    # Create and connect the Kafka transport
+    # Ustvari in poveži Kafka transport
     transport = KafkaMCPTransport(
         bootstrap_servers="localhost:9092",
         input_topic="mcp-responses",
@@ -315,10 +316,10 @@ async def kafka_mcp_example():
     await client.connect(transport)
     
     try:
-        # Initialize the MCP session
+        # Inicializiraj MCP sejo
         await client.initialize()
         
-        # Example of executing a tool via MCP
+        # Primer izvajanja orodja preko MCP
         response = await client.execute_tool(
             "process_data",
             {
@@ -332,17 +333,17 @@ async def kafka_mcp_example():
         
         print(f"Tool execution response: {response}")
         
-        # Clean shutdown
+        # Čisto zaustavitev
         await client.shutdown()
     finally:
         await transport.close()
 
-# Run the example
+# Zaženi primer
 if __name__ == "__main__":
     asyncio.run(kafka_mcp_example())
 ```
 
-#### Implementacija Apache Pulsar
+#### Izvedba Apache Pulsar
 
 ```python
 import asyncio
@@ -354,7 +355,7 @@ from mcp.core.transports import Transport
 from mcp.server import Server, ServerOptions
 from mcp.server.tools import Tool, ToolExecutionContext, ToolMetadata
 
-# Create a custom MCP transport that uses Pulsar
+# Ustvari lasten MCP prenos, ki uporablja Pulsar
 class PulsarMCPTransport(Transport):
     def __init__(self, service_url: str, request_topic: str, response_topic: str):
         self.service_url = service_url
@@ -381,24 +382,24 @@ class PulsarMCPTransport(Transport):
         """Background task to consume messages from Pulsar and queue them for processing"""
         while self.running:
             try:
-                # Non-blocking receive with timeout
+                # Nebloķirajoče sprejemanje s časovnim omejitvijo
                 msg = self.consumer.receive(timeout_millis=500)
                 
-                # Process the message
+                # Obdelaj sporočilo
                 try:
                     message_str = msg.data().decode('utf-8')
                     message_data = json.loads(message_str)
                     mcp_message = JsonRpcMessage.from_dict(message_data)
                     await self.message_queue.put(mcp_message)
                     
-                    # Acknowledge the message
+                    # Potrdi sporočilo
                     self.consumer.acknowledge(msg)
                 except Exception as e:
                     print(f"Error processing message: {e}")
-                    # Negative acknowledge if there was an error
+                    # Negativno potrdi, če je prišlo do napake
                     self.consumer.negative_acknowledge(msg)
             except Exception as e:
-                # Handle timeout or other exceptions
+                # Obravnavaj časovno omejitev ali druge izjeme
                 await asyncio.sleep(0.1)
     
     async def read(self) -> Optional[JsonRpcMessage]:
@@ -431,7 +432,7 @@ class PulsarMCPTransport(Transport):
         self.producer.close()
         self.client.close()
 
-# Define a sample MCP tool that processes streaming data
+# Določi vzorčno MCP orodje, ki obdeluje pretočne podatke
 @Tool(
     name="process_streaming_data",
     description="Process streaming data with context preservation",
@@ -457,13 +458,13 @@ async def process_streaming_data(
     Returns:
         Dict containing processed results and context information
     """
-    # Example processing that leverages MCP context
+    # Primer obdelave, ki izkorišča MCP kontekst
     print(f"Processing data from {source} with priority {priority}")
     
-    # Access conversation context from MCP
+    # Dostop do konteksta pogovora iz MCP
     conversation_id = ctx.conversation_id if hasattr(ctx, 'conversation_id') else "unknown"
     
-    # Return results with enhanced context
+    # Vrni rezultate z nadgrajenim kontekstom
     return {
         "processed_data": f"Processed: {data}",
         "context": {
@@ -474,9 +475,9 @@ async def process_streaming_data(
         }
     }
 
-# Example MCP server implementation using Pulsar transport
+# Primer implementacije MCP strežnika z uporabo Pulsar prenosa
 async def run_mcp_server_with_pulsar():
-    # Create MCP server
+    # Ustvari MCP strežnik
     server = Server(
         {"name": "pulsar-mcp-server", "version": "1.0.0"},
         ServerOptions(
@@ -484,10 +485,10 @@ async def run_mcp_server_with_pulsar():
         )
     )
     
-    # Register our tool
+    # Registriraj naše orodje
     server.register_tool(process_streaming_data)
     
-    # Create and connect Pulsar transport
+    # Ustvari in poveži Pulsar prenos
     transport = PulsarMCPTransport(
         service_url="pulsar://localhost:6650",
         request_topic="mcp-requests",
@@ -495,119 +496,147 @@ async def run_mcp_server_with_pulsar():
     )
     
     try:
-        # Start the server with the Pulsar transport
+        # Zaženi strežnik s Pulsar prenosom
         await server.run(transport)
     finally:
         await transport.close()
 
-# Run the server
+# Zaženi strežnik
 if __name__ == "__main__":
     asyncio.run(run_mcp_server_with_pulsar())
 ```
 
 ### Najboljše prakse za uvajanje
 
-Pri implementaciji MCP za pretakanje v realnem času:
+Pri izvajanju MCP za pretočni prenos v realnem času:
 
-1. **Zasnova za odpornost na napake**:
-   - Uvedite ustrezno ravnanje z napakami
-   - Uporabite dead-letter queue za neuspešna sporočila
+1. **Oblikujte za odpornost na napake**:
+   - Izvedite ustrezno ravnanje z napakami
+   - Uporabite čakalne vrste za sporočila, ki so neuspešno obdelana
    - Oblikujte idempotentne procesorje
 
-2. **Optimizacija zmogljivosti**:
-   - Nastavite primerne velikosti predpomnilnikov
-   - Uporabite združevanje (batching) tam, kjer je primerno
-   - Implementirajte mehanizme za upravljanje povratnega pritiska
+2. **Optimizirajte za zmogljivost**:
+   - Nastavite ustrezne velikosti medpomnilnikov
+   - Uporabite zbiranje paketov, kjer je primerno
+   - Izvedite mehanizme povratnega pritiska
 
-3. **Nadzor in opazovanje**:
-   - Spremljajte metrike obdelave toka
-   - Nadzorujte propagacijo konteksta
+3. **Nadzorujte in spremljajte**:
+   - Spremljajte metrike obdelave tokov
+   - Spremljajte propagacijo konteksta
    - Nastavite opozorila za anomalije
 
-4. **Zavarujte svoje tokove**:
-   - Uvedite šifriranje za občutljive podatke
+4. **Zavarujte svoje pretočne podatke**:
+   - Izvedite šifriranje za občutljive podatke
    - Uporabite avtentikacijo in avtorizacijo
-   - Uporabite ustrezne kontrole dostopa
+   - Uporabljajte ustrezne dostopne kontrole
+
 
 ### MCP v IoT in edge računalništvu
 
-MCP izboljšuje pretakanje v IoT z:
+MCP izboljšuje pretočni prenos IoT z:
 
-- Ohranjanjem konteksta naprav skozi cevovod obdelave
-- Omogočanjem učinkovitega pretakanja podatkov od roba do oblaka
-- Podporo analitiki v realnem času na IoT tokovih podatkov
-- Olajšanjem komunikacije med napravami s kontekstom
+- Ohranjanjem konteksta naprav po cevovodu obdelave
+- Omogočanjem učinkovitega pretočnega prenosa podatkov od edge do oblaka
+- Podporo analitiki v realnem času na pretočnih podatkih IoT
+- Omogočanjem komunikacije med napravami s kontekstom
 
-Primer: Omrežja senzorjev pametnih mest  
+Primer: Omrežja senzorjev pametnih mest
 ```
 Sensors → Edge Gateways → MCP Stream Processors → Real-time Analytics → Automated Responses
 ```
 
-### Vloga pri finančnih transakcijah in trgovanju z visoko frekvenco
+### Vloga v finančnih transakcijah in trgovanju z visoko frekvenco
 
-MCP prinaša pomembne prednosti za pretakanje finančnih podatkov:
+MCP nudi pomembne prednosti za pretočne finančne podatke:
 
-- Izjemno nizka zakasnitev obdelave za trgovalne odločitve
-- Ohranjanje konteksta transakcij skozi celotno obdelavo
+- Ultra-nizka latenca obdelave za trgovalne odločitve
+- Ohranjanje konteksta transakcij skozi obdelavo
 - Podpora kompleksni obdelavi dogodkov s kontekstualno ozaveščenostjo
-- Zagotavljanje konsistentnosti podatkov v razpršenih trgovalnih sistemih
+- Zagotavljanje konsistentnosti podatkov med distribuiranimi trgovalnimi sistemi
 
-### Izboljšanje analitike, ki temelji na AI
+### Izboljšanje analitike, ki jo poganja AI
 
-MCP odpira nove možnosti za analitiko pretakanja:
+MCP ustvarja nove možnosti za pretočno analitiko:
 
-- Treniranje in sklepanje modelov v realnem času
-- Neprekinjeno učenje iz pretakanih podatkov
-- Ekstrakcija značilnosti, ki upošteva kontekst
-- Večmodelni cevovodi sklepov z ohranjenim kontekstom
+- Modeliranje in inferenca v realnem času
+- Neprestano učenje iz pretočnih podatkov
+- Kontekstualno zavedena ekstrakcija značilk
+- Večmodelni inferenčni cevovodi s shranjenim kontekstom
 
 ## Prihodnji trendi in inovacije
 
 ### Razvoj MCP v okoljih realnega časa
 
-V prihodnosti pričakujemo, da se bo MCP razvijal za reševanje:
+V prihodnje pričakujemo, da se bo MCP razvijal za naslavljanje:
 
-- **Integracije kvantnega računalništva**: Priprava na sisteme pretakanja, ki temeljijo na kvantnem računalništvu
-- **Obdelave na robu, ki je naravna za edge**: Premik več kontekstualno ozaveščene obdelave na robne naprave
-- **Avtonomnega upravljanja tokov**: Samooptimizirajoči se cevovodi pretakanja
-- **Federiranega pretakanja**: Razpršena obdelava ob ohranjanju zasebnosti
+- **Integracija kvantnega računalništva**: Priprava na streaming sisteme, ki temeljijo na kvantnem računalništvu
+- **Obdelava na edge napravah**: Prenos več obdelav, ki se zavedajo konteksta, na edge naprave
+- **Avtonomno upravljanje tokov**: Samooptimizirajoči se pretočni cevovodi
+- **Federiran pretočni prenos**: Distribuirana obdelava ob ohranjanju zasebnosti
 
 ### Potencialni tehnološki napredki
 
-Nastajajoče tehnologije, ki bodo oblikovale prihodnost MCP pretakanja:
+Naraščajoče tehnologije, ki bodo oblikovale prihodnost pretočnega MCP:
 
-1. **Protokoli za pretakanje, optimizirani za AI**: Prilagojeni protokoli, zasnovani posebej za AI delovne obremenitve
-2. **Integracija nevromorfnega računalništva**: Računalništvo, navdihnjeno z delovanjem možganov, za obdelavo tokov
-3. **Brezstrežni streaming**: Dogodkovno voden, razširljiv streaming brez upravljanja infrastrukture
-4. **Razpršene shrambe konteksta**: Globalno razpršeno, a visoko konsistentno upravljanje konteksta
+1. **Protokoli, optimizirani za AI**: Prilagojeni protokoli, posebej zasnovani za delovne obremenitve AI
+2. **Integracija neuromorfnega računalništva**: Računalništvo, navdihnjeno z delovanjem možganov, za pretočno obdelavo
+3. **Brezstrežni pretočni prenos**: Dogodkovno usmerjen, razširljiv pretočni prenos brez upravljanja infrastrukture
+4. **Distribuirane shrambe konteksta**: Globalno distribuirano, a zelo konsistentno upravljanje konteksta
 
 ## Praktične vaje
 
-### Vaja 1: Nastavitev osnovnega MCP cevovoda za pretakanje
+### Vaja 1: Nastavitev osnovnega MCP pretočnega cevovoda
 
 V tej vaji se boste naučili:
-- Konfigurirati osnovno okolje za MCP pretakanje
-- Implementirati upravljalce konteksta za obdelavo toka
-- Testirati in potrditi ohranjanje konteksta
+- Konfigurirati osnovno MCP pretočno okolje
+- Implementirati upravitelje konteksta za pretočno obdelavo
+- Preizkusiti in potrditi ohranjanje konteksta
 
-### Vaja 2: Izgradnja nadzorne plošče za analitiko v realnem času
+### Vaja 2: Izdelava nadzorne plošče za analitiko v realnem času
 
-Ustvarite celovito aplikacijo, ki:
-- Sprejema podatke v pretakanju z uporabo MCP
+Ustvarite popolno aplikacijo, ki:
+- Vnaša pretočne podatke z uporabo MCP
 - Obdeluje tok ob ohranjanju konteksta
-- Vizualizira rezultate v realnem času
+- Prikazuje rezultate v realnem času
 
-### Vaja 3: Implementacija kompleksne obdelave dogodkov z MCP
+### Vaja 3: Izvedba kompleksne obdelave dogodkov z MCP
 
-Napredna vaja, ki zajema:
-- Odkrivanje vzorcev v tokovih
-- Kontekstualno korelacijo med več tokovi
-- Generiranje kompleksnih dogodkov z ohranjenim kontekstom
+Napotna vaja zajema:
+- Prepoznavanje vzorcev v tokovih
+- Kontekstualno korelacijo več tokov
+- Generiranje kompleksnih dogodkov s shranjenim kontekstom
 
 ## Dodatni viri
 
-- [Model Context Protocol Specification](https://github.com/modelcontextprotocol) - Uradna specifikacija in dokumentacija MCP
-- [Apache Kafka Documentation](https://kafka.apache.org/documentation/) - Spoznajte Kafka za ob
+- [Specifikacija protokola konteksta modela](https://modelcontextprotocol.io) - Uradna specifikacija MCP in dokumentacija
+- [Dokumentacija Apache Kafka](https://kafka.apache.org/documentation/) - Spoznajte Kafko za pretočno obdelavo
+- [Apache Pulsar](https://pulsar.apache.org/) - Združena platforma za sporočanje in pretočni prenos
+- [Streaming Systems: The What, Where, When, and How of Large-Scale Data Processing](https://www.oreilly.com/library/view/streaming-systems/9781491983867/) - Celovita knjiga o arhitekturah pretočnega prenosa
+- [Microsoft Azure Event Hubs](https://learn.microsoft.com/azure/event-hubs/event-hubs-about) - Upravljana storitev pretočnih dogodkov
+- [Dokumentacija MLflow](https://mlflow.org/docs/latest/index.html) - Za sledenje in uvajanje ML modelov
+- [Analitika v realnem času z Apache Storm](https://storm.apache.org/releases/current/index.html) - Okvir za obdelavo v realnem času
+- [Flink ML](https://nightlies.apache.org/flink/flink-ml-docs-master/) - Knjižnica strojnega učenja za Apache Flink
+- [Dokumentacija LangChain](https://python.langchain.com/docs/get_started/introduction) - Izdelava aplikacij z LLM-ji
 
-**Omejitev odgovornosti**:  
-Ta dokument je bil preveden z uporabo storitve za avtomatski prevod AI [Co-op Translator](https://github.com/Azure/co-op-translator). Čeprav si prizadevamo za natančnost, vas opozarjamo, da lahko avtomatski prevodi vsebujejo napake ali netočnosti. Izvirni dokument v njegovem izvirnem jeziku velja za avtoritativni vir. Za pomembne informacije priporočamo strokovni človeški prevod. Za morebitna nesporazume ali napačne interpretacije, ki izhajajo iz uporabe tega prevoda, ne odgovarjamo.
+
+## Rezultati učenja
+
+S končanjem tega modula boste lahko:
+
+- Razumeli temelje pretočnih podatkov v realnem času in njihove izzive
+- Pojasnili, kako protokol konteksta modela (MCP) izboljšuje pretočni prenos v realnem času
+- Implementirali rešitve pretočnega prenosa na osnovi MCP s priljubljenimi ogrodji, kot sta Kafka in Pulsar
+- Oblikovali in uvedli odpornim na napake, visoko zmogljive pretočne arhitekture z MCP
+- Uporabljali koncepte MCP v uporabi za IoT, finančno trgovanje in analitiko, ki jo poganja AI
+- Ocenili nove trende in prihodnje inovacije v tehnologijah pretočnega prenosa MCP
+
+## Kaj sledi
+
+- [5.11 Realnočasovno iskanje](../mcp-realtimesearch/README.md)
+
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Omejitev odgovornosti**:
+Ta dokument je bil preveden z uporabo AI prevajalske storitve [Co-op Translator](https://github.com/Azure/co-op-translator). Čeprav si prizadevamo za natančnost, vas prosimo, da upoštevate, da avtomatizirani prevodi lahko vsebujejo napake ali netočnosti. Izvirni dokument v njegovem izvirnem jeziku je treba obravnavati kot avtoritativni vir. Za kritične informacije je priporočljiv strokovni človeški prevod. Ne odgovarjamo za morebitna nesporazume ali napačne interpretacije, ki izhajajo iz uporabe tega prevoda.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

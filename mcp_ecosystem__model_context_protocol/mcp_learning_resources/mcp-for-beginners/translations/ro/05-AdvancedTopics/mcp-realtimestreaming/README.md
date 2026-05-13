@@ -1,148 +1,148 @@
-# Protocolul Model Context pentru Streaming de Date în Timp Real
+# Protocolul Contextului Modelului pentru Streaming de Date în Timp Real
 
 ## Prezentare generală
 
-Streamingul de date în timp real a devenit esențial în lumea actuală orientată spre date, unde afacerile și aplicațiile au nevoie de acces imediat la informații pentru a lua decizii la timp. Protocolul Model Context (MCP) reprezintă un pas important în optimizarea acestor procese de streaming în timp real, îmbunătățind eficiența procesării datelor, menținând integritatea contextuală și sporind performanța generală a sistemului.
+Streamingul de date în timp real a devenit esențial în lumea condusă de date de astăzi, unde afacerile și aplicațiile necesită acces imediat la informații pentru a lua decizii în timp util. Protocolul Contextului Modelului (MCP) reprezintă un avans semnificativ în optimizarea acestor procese de streaming în timp real, îmbunătățind eficiența procesării datelor, menținând integritatea contextuală și sporind performanța generală a sistemului.
 
 Acest modul explorează modul în care MCP transformă streamingul de date în timp real, oferind o abordare standardizată pentru gestionarea contextului între modelele AI, platformele de streaming și aplicații.
 
 ## Introducere în Streamingul de Date în Timp Real
 
-Streamingul de date în timp real este un paradigm tehnologic care permite transferul, procesarea și analiza continuă a datelor pe măsură ce sunt generate, permițând sistemelor să reacționeze imediat la informații noi. Spre deosebire de procesarea tradițională în loturi, care operează pe seturi statice de date, streamingul procesează datele în mișcare, oferind insight-uri și acțiuni cu o latență minimă.
+Streamingul de date în timp real este un paradigmă tehnologică care permite transferul, procesarea și analiza continuă a datelor pe măsură ce acestea sunt generate, permițând sistemelor să reacționeze imediat la noile informații. Spre deosebire de procesarea tradițională pe loturi care funcționează pe seturi statice de date, streamingul procesează date în mișcare, oferind perspective și acțiuni cu o latență minimă.
 
-### Concepte de bază ale Streamingului de Date în Timp Real:
+### Concepte de bază ale streamingului de date în timp real:
 
 - **Flux continuu de date**: Datele sunt procesate ca un flux continuu, nesfârșit, de evenimente sau înregistrări.
-- **Procesare cu latență redusă**: Sistemele sunt proiectate să minimizeze timpul dintre generarea și procesarea datelor.
-- **Scalabilitate**: Arhitecturile de streaming trebuie să gestioneze volume și viteze variabile ale datelor.
-- **Toleranță la erori**: Sistemele trebuie să fie rezistente la defecțiuni pentru a asigura un flux neîntrerupt de date.
-- **Procesare cu stare**: Menținerea contextului între evenimente este esențială pentru o analiză relevantă.
+- **Procesare cu latență redusă**: Sistemele sunt proiectate pentru a minimiza timpul dintre generarea și procesarea datelor.
+- **Scalabilitate**: Arhitecturile de streaming trebuie să gestioneze volume și viteze variabile de date.
+- **Toleranță la erori**: Sistemele trebuie să fie rezistente la defecțiuni pentru a asigura fluxul neîntrerupt de date.
+- **Procesare cu stare**: Menținerea contextului între evenimente este crucială pentru analiza semnificativă.
 
-### Protocolul Model Context și Streamingul în Timp Real
+### Protocolul Contextului Modelului și Streamingul în Timp Real
 
-Protocolul Model Context (MCP) abordează mai multe provocări critice în mediile de streaming în timp real:
+Protocolul Contextului Modelului (MCP) abordează mai multe provocări critice în mediile de streaming în timp real:
 
-1. **Continuitate contextuală**: MCP standardizează modul în care contextul este menținut între componentele distribuite de streaming, asigurând accesul modelelor AI și nodurilor de procesare la contextul istoric și de mediu relevant.
+1. **Continuitatea Contextuală**: MCP standardizează modul în care contextul este menținut între componentele distribuite de streaming, asigurând accesul modelelor AI și nodurilor de procesare la context istoric și de mediu relevant.
 
-2. **Gestionare eficientă a stării**: Prin oferirea unor mecanisme structurate pentru transmiterea contextului, MCP reduce suprasarcina gestionării stării în pipeline-urile de streaming.
+2. **Gestionarea Eficientă a Stării**: Prin oferirea de mecanisme structurate pentru transmiterea contextului, MCP reduce încărcătura gestionării stării în conductele de streaming.
 
 3. **Interoperabilitate**: MCP creează un limbaj comun pentru partajarea contextului între tehnologii diverse de streaming și modele AI, permițând arhitecturi mai flexibile și extensibile.
 
-4. **Context optimizat pentru streaming**: Implementările MCP pot prioritiza elementele de context cele mai relevante pentru luarea deciziilor în timp real, optimizând atât performanța, cât și acuratețea.
+4. **Context Optim pentru Streaming**: Implementările MCP pot prioritiza elementele de context cele mai relevante pentru luarea deciziilor în timp real, optimizând atât performanța, cât și acuratețea.
 
-5. **Procesare adaptivă**: Cu o gestionare corectă a contextului prin MCP, sistemele de streaming pot ajusta dinamic procesarea în funcție de condițiile și tiparele evolutive ale datelor.
+5. **Procesare Adaptivă**: Cu o gestionare adecvată a contextului prin MCP, sistemele de streaming pot ajusta dinamic procesarea pe baza condițiilor și modelelor evolutive în date.
 
-În aplicații moderne, de la rețele de senzori IoT până la platforme financiare de tranzacționare, integrarea MCP cu tehnologiile de streaming permite o procesare mai inteligentă, conștientă de context, capabilă să răspundă adecvat situațiilor complexe și în evoluție în timp real.
+În aplicații moderne, de la rețele de senzori IoT la platforme financiare de tranzacționare, integrarea MCP cu tehnologiile de streaming permite o procesare mai inteligentă, conștientă de context, care poate răspunde adecvat la situații complexe și în evoluție în timp real.
 
 ## Obiective de învățare
 
-La finalul acestei lecții, vei putea:
+La sfârșitul acestei lecții, vei putea să:
 
-- Înțelege fundamentele streamingului de date în timp real și provocările acestuia
-- Explica modul în care Protocolul Model Context (MCP) îmbunătățește streamingul de date în timp real
-- Implementa soluții de streaming bazate pe MCP folosind framework-uri populare precum Kafka și Pulsar
-- Proiecta și implementa arhitecturi de streaming tolerante la erori și cu performanță ridicată folosind MCP
-- Aplica conceptele MCP în cazuri de utilizare IoT, tranzacționare financiară și analize AI
-- Evalua tendințele emergente și inovațiile viitoare în tehnologiile de streaming bazate pe MCP
+- Înțelegi fundamentele streamingului de date în timp real și provocările sale
+- Explici cum Protocolul Contextului Modelului (MCP) îmbunătățește streamingul de date în timp real
+- Implementezi soluții de streaming bazate pe MCP folosind cadre populare ca Kafka și Pulsar
+- Proiectezi și implementezi arhitecturi de streaming tolerante la erori și cu performanță ridicată cu MCP
+- Aplici conceptele MCP în cazuri de utilizare legate de IoT, tranzacționare financiară și analize conduse de AI
+- Evaluezi tendințele emergente și inovațiile viitoare în tehnologiile de streaming bazate pe MCP
 
-### Definiție și importanță
+### Definiție și semnificație
 
-Streamingul de date în timp real implică generarea, procesarea și livrarea continuă a datelor cu o latență minimă. Spre deosebire de procesarea în loturi, unde datele sunt colectate și procesate în grupuri, streamingul procesează datele incremental pe măsură ce sosesc, permițând insight-uri și acțiuni imediate.
+Streamingul de date în timp real implică generarea continuă, procesarea și livrarea datelor cu latență minimă. Spre deosebire de procesarea pe loturi, unde datele sunt colectate și procesate în grupuri, datele din streaming sunt procesate incremental pe măsură ce sosesc, ceea ce permite perspective și acțiuni imediate.
 
 Caracteristici cheie ale streamingului de date în timp real includ:
 
-- **Latență redusă**: Procesarea și analiza datelor în câteva milisecunde până la secunde
+- **Latență scăzută**: Procesarea și analizarea datelor în milisecunde până la secunde
 - **Flux continuu**: Fluxuri neîntrerupte de date din diverse surse
-- **Procesare imediată**: Analiza datelor pe măsură ce sosesc, nu în loturi
+- **Procesare imediată**: Analizarea datelor pe măsură ce sosesc, nu în loturi
 - **Arhitectură bazată pe evenimente**: Răspuns la evenimente pe măsură ce apar
 
 ### Provocări în streamingul tradițional de date
 
-Abordările tradiționale de streaming se confruntă cu mai multe limitări:
+Abordările tradiționale de streaming de date se confruntă cu mai multe limitări:
 
-1. **Pierderea contextului**: Dificultăți în menținerea contextului între sisteme distribuite
-2. **Probleme de scalabilitate**: Provocări în extinderea pentru a gestiona volume mari și viteze ridicate ale datelor
-3. **Complexitate în integrare**: Probleme de interoperabilitate între sisteme diferite
-4. **Gestionarea latenței**: Echilibrarea debitului cu timpul de procesare
-5. **Consistența datelor**: Asigurarea acurateței și completitudinii datelor pe întregul flux
+1. **Pierderea contextului**: dificultăți în menținerea contextului între sisteme distribuite
+2. **Probleme de scalabilitate**: provocări în scalarea pentru a gestiona volume mari și date cu viteză mare
+3. **Complexitate în integrare**: probleme de interoperabilitate între sisteme diferite
+4. **Gestionarea latenței**: echilibrarea throughput-ului cu timpul de procesare
+5. **Consistența datelor**: asigurarea acurateței și completitudinii datelor pe întregul flux
 
-## Înțelegerea Protocolului Model Context (MCP)
+## Înțelegerea Protocolului Contextului Modelului (MCP)
 
 ### Ce este MCP?
 
-Protocolul Model Context (MCP) este un protocol de comunicare standardizat, conceput pentru a facilita interacțiunea eficientă între modelele AI și aplicații. În contextul streamingului de date în timp real, MCP oferă un cadru pentru:
+Protocolul Contextului Modelului (MCP) este un protocol standardizat de comunicație conceput pentru a facilita interacțiunea eficientă între modelele AI și aplicații. În contextul streamingului de date în timp real, MCP oferă un cadru pentru:
 
-- Păstrarea contextului pe tot parcursul pipeline-ului de date
+- Păstrarea contextului pe tot parcursul conductei de date
 - Standardizarea formatelor de schimb de date
 - Optimizarea transmiterii seturilor mari de date
-- Îmbunătățirea comunicării model-model și model-aplicație
+- Îmbunătățirea comunicării între modele și între modele și aplicații
 
-### Componente de bază și arhitectură
+### Componente și arhitectură principale
 
-Arhitectura MCP pentru streaming în timp real constă din mai multe componente cheie:
+Arhitectura MCP pentru streaming în timp real este alcătuită din mai multe componente cheie:
 
-1. **Context Handlers**: Gestionează și mențin informațiile contextuale pe tot pipeline-ul de streaming
-2. **Stream Processors**: Procesează fluxurile de date primite folosind tehnici conștiente de context
-3. **Protocol Adapters**: Convertesc între diferite protocoale de streaming păstrând contextul
-4. **Context Store**: Stochează și recuperează eficient informațiile contextuale
-5. **Streaming Connectors**: Se conectează la diverse platforme de streaming (Kafka, Pulsar, Kinesis etc.)
+1. **Gestionari de context**: Gestionează și mențin informațiile contextuale pe întregul pipeline de streaming
+2. **Procesoare de flux**: Procesează fluxurile de date primite utilizând tehnici conștiente de context
+3. **Adaptori de protocol**: Convertesc între diferite protocoale de streaming păstrând contextul
+4. **Depozit de context**: Stochează și recuperează eficient informațiile contextuale
+5. **Conectori de streaming**: Se conectează la diverse platforme de streaming (Kafka, Pulsar, Kinesis, etc.)
 
 ```mermaid
 graph TD
-    subgraph "Data Sources"
-        IoT[IoT Devices]
-        APIs[APIs]
-        DB[Databases]
-        Apps[Applications]
+    subgraph "Surse de date"
+        IoT[Dispozitive IoT]
+        APIs[API-uri]
+        DB[Baze de date]
+        Apps[Aplicații]
     end
 
-    subgraph "MCP Streaming Layer"
-        SC[Streaming Connectors]
-        PA[Protocol Adapters]
-        CH[Context Handlers]
-        SP[Stream Processors]
-        CS[Context Store]
+    subgraph "Stratul de Streaming MCP"
+        SC[Conectoare Streaming]
+        PA[Adaptori de Protocol]
+        CH[Gestionari de Context]
+        SP[Procesoare de Stream]
+        CS[Magazin de Context]
     end
 
-    subgraph "Processing & Analytics"
-        RT[Real-time Analytics]
-        ML[ML Models]
-        CEP[Complex Event Processing]
-        Viz[Visualization]
+    subgraph "Procesare & Analize"
+        RT[Analize în timp real]
+        ML[Modele ML]
+        CEP[Procesare Complexă de Evenimente]
+        Viz[Vizualizare]
     end
 
-    subgraph "Applications & Services"
-        DA[Decision Automation]
-        Alerts[Alerting Systems]
-        DL[Data Lake/Warehouse]
-        API[API Services]
+    subgraph "Aplicații & Servicii"
+        DA[Automatizare Decizii]
+        Alerts[Sisteme de Alertare]
+        DL[Lac/Depozit de Date]
+        API[Servicii API]
     end
 
-    IoT -->|Data| SC
-    APIs -->|Data| SC
-    DB -->|Changes| SC
-    Apps -->|Events| SC
+    IoT -->|Date| SC
+    APIs -->|Date| SC
+    DB -->|Modificări| SC
+    Apps -->|Evenimente| SC
     
-    SC -->|Raw Streams| PA
-    PA -->|Normalized Streams| CH
-    CH <-->|Context Operations| CS
-    CH -->|Context-Enriched Data| SP
-    SP -->|Processed Streams| RT
-    SP -->|Features| ML
-    SP -->|Events| CEP
+    SC -->|Streamuri brute| PA
+    PA -->|Streamuri normalizate| CH
+    CH <-->|Operații de Context| CS
+    CH -->|Date îmbogățite cu Context| SP
+    SP -->|Streamuri procesate| RT
+    SP -->|Caracteristici| ML
+    SP -->|Evenimente| CEP
     
-    RT -->|Insights| Viz
-    ML -->|Predictions| DA
-    CEP -->|Complex Events| Alerts
-    Viz -->|Dashboards| Users((Users))
+    RT -->|Perspective| Viz
+    ML -->|Predicții| DA
+    CEP -->|Evenimente complexe| Alerts
+    Viz -->|Tablouri de bord| Users((Users))
     
-    RT -.->|Historical Data| DL
-    ML -.->|Model Results| DL
-    CEP -.->|Event Logs| DL
+    RT -.->|Date istorice| DL
+    ML -.->|Rezultate modele| DL
+    CEP -.->|Jurnale de evenimente| DL
     
-    DA -->|Actions| API
-    Alerts -->|Notifications| API
-    DL <-->|Data Access| API
+    DA -->|Acțiuni| API
+    Alerts -->|Notificări| API
+    DL <-->|Acces la date| API
     
     classDef sources fill:#f9f,stroke:#333,stroke-width:2px
     classDef mcp fill:#bbf,stroke:#333,stroke-width:2px
@@ -161,39 +161,39 @@ MCP abordează provocările tradiționale ale streamingului prin:
 
 - **Integritate contextuală**: Menținerea relațiilor între punctele de date pe întregul pipeline
 - **Transmitere optimizată**: Reducerea redundanței în schimbul de date prin gestionarea inteligentă a contextului
-- **Interfețe standardizate**: Oferirea unor API-uri consistente pentru componentele de streaming
-- **Reducerea latenței**: Minimiza suprasarcina procesării prin gestionarea eficientă a contextului
-- **Scalabilitate sporită**: Susținerea scalării orizontale păstrând contextul
+- **Interfețe standardizate**: Oferirea de API-uri consistente pentru componentele de streaming
+- **Latență redusă**: Minimizați supraîncărcarea procesării prin gestionarea eficientă a contextului
+- **Scalabilitate îmbunătățită**: Suportarea scalării orizontale păstrând contextul
 
 ## Integrare și implementare
 
-Sistemele de streaming de date în timp real necesită o proiectare și implementare atentă pentru a menține atât performanța, cât și integritatea contextuală. Protocolul Model Context oferă o abordare standardizată pentru integrarea modelelor AI și a tehnologiilor de streaming, permițând pipeline-uri de procesare mai sofisticate și conștiente de context.
+Sistemele de streaming de date în timp real necesită o proiectare și implementare atentă pentru a menține atât performanța, cât și integritatea contextuală. Protocolul Contextului Modelului oferă o abordare standardizată pentru integrarea modelelor AI și tehnologiilor de streaming, permițând conducte de procesare mai sofisticate, conștiente de context.
 
 ### Prezentare generală a integrării MCP în arhitecturile de streaming
 
-Implementarea MCP în mediile de streaming în timp real implică mai multe aspecte importante:
+Implementarea MCP în mediile de streaming în timp real implică mai multe considerații cheie:
 
-1. **Serializarea și transportul contextului**: MCP oferă mecanisme eficiente pentru codificarea informațiilor contextuale în pachetele de date de streaming, asigurând că contextul esențial însoțește datele pe tot parcursul pipeline-ului de procesare. Aceasta include formate standardizate de serializare optimizate pentru transportul în streaming.
+1. **Serializarea și transportul contextului**: MCP oferă mecanisme eficiente pentru codarea informațiilor contextuale în pachetele de date de streaming, asigurând că contextul esențial însoțește datele pe tot parcursul pipeline-ului de procesare. Aceasta include formate de serializare standardizate optimizate pentru transportul în streaming.
 
-2. **Procesare cu stare a fluxului**: MCP permite o procesare cu stare mai inteligentă prin menținerea unei reprezentări consistente a contextului între nodurile de procesare. Acest lucru este deosebit de valoros în arhitecturile distribuite de streaming, unde gestionarea stării este în mod tradițional dificilă.
+2. **Procesare stream cu stare**: MCP permite o procesare mai inteligentă, cu stare, menținând o reprezentare consistentă a contextului între nodurile de procesare. Acest aspect este deosebit de valoros în arhitecturile distribuite de streaming, unde gestionarea stării este în mod tradițional o provocare.
 
-3. **Timpul evenimentului vs. timpul procesării**: Implementările MCP în sistemele de streaming trebuie să abordeze provocarea comună de a diferenția între momentul în care au avut loc evenimentele și momentul în care sunt procesate. Protocolul poate încorpora context temporal care păstrează semantica timpului evenimentului.
+3. **Timpul evenimentului vs. timpul procesării**: Implementările MCP în sistemele de streaming trebuie să abordeze provocarea comună de a diferenția între momentul în care evenimentele au avut loc și cel în care sunt procesate. Protocolul poate încorpora context temporal care păstrează semantica timpului evenimentului.
 
-4. **Gestionarea backpressure-ului**: Prin standardizarea gestionării contextului, MCP ajută la controlul backpressure-ului în sistemele de streaming, permițând componentelor să comunice capacitățile lor de procesare și să ajusteze fluxul în consecință.
+4. **Gestionarea backpressure-ului**: Prin standardizarea gestionării contextului, MCP ajută la gestionarea backpressure-ului în sistemele de streaming, permițând componentelor să comunice capacitățile lor de procesare și să ajusteze fluxul corespunzător.
 
-5. **Fereastra de context și agregarea**: MCP facilitează operațiuni mai sofisticate de fereastră prin oferirea unor reprezentări structurate ale contextelor temporale și relaționale, permițând agregări mai relevante pe fluxurile de evenimente.
+5. **Ferestre de context și agregare**: MCP facilitează operațiuni mai sofisticate de fereastră oferind reprezentări structurate ale contextelor temporale și relaționale, permițând agregări mai semnificative pe fluxurile de evenimente.
 
-6. **Procesare exact o singură dată**: În sistemele de streaming care necesită semantică exactly-once, MCP poate încorpora metadate de procesare pentru a ajuta la urmărirea și verificarea stadiului procesării între componentele distribuite.
+6. **Procesare exact o dată**: În sistemele de streaming care necesită semantică exact o dată, MCP poate încorpora metadate de procesare pentru a ajuta la urmărirea și verificarea stadiului procesării între componente distribuite.
 
-Implementarea MCP în diverse tehnologii de streaming creează o abordare unificată pentru gestionarea contextului, reducând necesitatea codului personalizat de integrare și sporind capacitatea sistemului de a menține un context semnificativ pe măsură ce datele circulă prin pipeline.
+Implementarea MCP în diferite tehnologii de streaming creează o abordare unificată pentru gestionarea contextului, reducând nevoia de cod personalizat de integrare și sporind capacitatea sistemului de a menține un context semnificativ pe măsură ce datele circulă prin conductă.
 
-### MCP în diverse framework-uri de streaming de date
+### MCP în diverse cadre de streaming de date
 
-Aceste exemple urmează specificația actuală MCP, care se bazează pe un protocol JSON-RPC cu mecanisme distincte de transport. Codul demonstrează cum se pot implementa transporturi personalizate care integrează platforme de streaming precum Kafka și Pulsar, menținând în același timp compatibilitatea completă cu protocolul MCP.
+Aceste exemple urmează specificația MCP curentă, care se concentrează pe un protocol bazat pe JSON-RPC cu mecanisme distincte de transport. Codul demonstrează cum poți implementa transporturi personalizate care integrează platforme de streaming precum Kafka și Pulsar, menținând compatibilitatea completă cu protocolul MCP.
 
-Exemplele sunt concepute pentru a arăta cum platformele de streaming pot fi integrate cu MCP pentru a oferi procesare de date în timp real, păstrând conștientizarea contextuală care este esențială pentru MCP. Această abordare asigură că mostrele de cod reflectă cu acuratețe stadiul actual al specificației MCP din iunie 2025.
+Exemplele sunt concepute să arate cum platformele de streaming pot fi integrate cu MCP pentru a oferi procesare de date în timp real, menținând în același timp conștientizarea contextului, care este centrală pentru MCP. Această abordare asigură că exemplarele de cod reflectă cu acuratețe stadiul actual al specificației MCP începând cu iunie 2025.
 
-MCP poate fi integrat cu framework-uri populare de streaming, inclusiv:
+MCP poate fi integrat cu cadre populare de streaming, inclusiv:
 
 #### Integrare Apache Kafka
 
@@ -206,7 +206,7 @@ from mcp.client import Client, ClientCapabilities
 from mcp.core.message import JsonRpcMessage
 from mcp.core.transports import Transport
 
-# Custom transport class to bridge MCP with Kafka
+# Clasă de transport personalizată pentru a face legătura între MCP și Kafka
 class KafkaMCPTransport(Transport):
     def __init__(self, bootstrap_servers: str, input_topic: str, output_topic: str):
         self.bootstrap_servers = bootstrap_servers
@@ -244,7 +244,7 @@ class KafkaMCPTransport(Transport):
                     print(f"Consumer error: {msg.error()}")
                     continue
                 
-                # Parse the message value as JSON-RPC
+                # Parsează valoarea mesajului ca JSON-RPC
                 try:
                     message_str = msg.value().decode('utf-8')
                     message_data = json.loads(message_str)
@@ -274,7 +274,7 @@ class KafkaMCPTransport(Transport):
                 message_json.encode('utf-8'),
                 callback=self._delivery_report
             )
-            self.producer.poll(0)  # Trigger callbacks
+            self.producer.poll(0)  # Declanșează apelurile înapoi (callback-uri)
         except Exception as e:
             print(f"Error writing message: {e}")
     
@@ -297,15 +297,15 @@ class KafkaMCPTransport(Transport):
         self.consumer.close()
         self.producer.flush()
 
-# Example usage of the Kafka MCP transport
+# Exemplu de utilizare a transportului Kafka MCP
 async def kafka_mcp_example():
-    # Create MCP client with Kafka transport
+    # Creează client MCP cu transport Kafka
     client = Client(
         {"name": "kafka-mcp-client", "version": "1.0.0"},
         ClientCapabilities({})
     )
     
-    # Create and connect the Kafka transport
+    # Creează și conectează transportul Kafka
     transport = KafkaMCPTransport(
         bootstrap_servers="localhost:9092",
         input_topic="mcp-responses",
@@ -315,10 +315,10 @@ async def kafka_mcp_example():
     await client.connect(transport)
     
     try:
-        # Initialize the MCP session
+        # Inițializează sesiunea MCP
         await client.initialize()
         
-        # Example of executing a tool via MCP
+        # Exemplu de executare a unui instrument prin MCP
         response = await client.execute_tool(
             "process_data",
             {
@@ -332,12 +332,12 @@ async def kafka_mcp_example():
         
         print(f"Tool execution response: {response}")
         
-        # Clean shutdown
+        # Oprire curată
         await client.shutdown()
     finally:
         await transport.close()
 
-# Run the example
+# Rulează exemplul
 if __name__ == "__main__":
     asyncio.run(kafka_mcp_example())
 ```
@@ -354,7 +354,7 @@ from mcp.core.transports import Transport
 from mcp.server import Server, ServerOptions
 from mcp.server.tools import Tool, ToolExecutionContext, ToolMetadata
 
-# Create a custom MCP transport that uses Pulsar
+# Creează un transport MCP personalizat care folosește Pulsar
 class PulsarMCPTransport(Transport):
     def __init__(self, service_url: str, request_topic: str, response_topic: str):
         self.service_url = service_url
@@ -381,24 +381,24 @@ class PulsarMCPTransport(Transport):
         """Background task to consume messages from Pulsar and queue them for processing"""
         while self.running:
             try:
-                # Non-blocking receive with timeout
+                # Recepție neblocantă cu timeout
                 msg = self.consumer.receive(timeout_millis=500)
                 
-                # Process the message
+                # Procesează mesajul
                 try:
                     message_str = msg.data().decode('utf-8')
                     message_data = json.loads(message_str)
                     mcp_message = JsonRpcMessage.from_dict(message_data)
                     await self.message_queue.put(mcp_message)
                     
-                    # Acknowledge the message
+                    # Confirmă primirea mesajului
                     self.consumer.acknowledge(msg)
                 except Exception as e:
                     print(f"Error processing message: {e}")
-                    # Negative acknowledge if there was an error
+                    # Confirmare negativă dacă a apărut o eroare
                     self.consumer.negative_acknowledge(msg)
             except Exception as e:
-                # Handle timeout or other exceptions
+                # Gestionează timeout-ul sau alte excepții
                 await asyncio.sleep(0.1)
     
     async def read(self) -> Optional[JsonRpcMessage]:
@@ -431,7 +431,7 @@ class PulsarMCPTransport(Transport):
         self.producer.close()
         self.client.close()
 
-# Define a sample MCP tool that processes streaming data
+# Definește un instrument MCP de exemplu care procesează date streaming
 @Tool(
     name="process_streaming_data",
     description="Process streaming data with context preservation",
@@ -457,13 +457,13 @@ async def process_streaming_data(
     Returns:
         Dict containing processed results and context information
     """
-    # Example processing that leverages MCP context
+    # Procesare exemplu care folosește contextul MCP
     print(f"Processing data from {source} with priority {priority}")
     
-    # Access conversation context from MCP
+    # Accesează contextul conversației din MCP
     conversation_id = ctx.conversation_id if hasattr(ctx, 'conversation_id') else "unknown"
     
-    # Return results with enhanced context
+    # Returnează rezultatele cu context îmbunătățit
     return {
         "processed_data": f"Processed: {data}",
         "context": {
@@ -474,9 +474,9 @@ async def process_streaming_data(
         }
     }
 
-# Example MCP server implementation using Pulsar transport
+# Exemplu de implementare a serverului MCP folosind transportul Pulsar
 async def run_mcp_server_with_pulsar():
-    # Create MCP server
+    # Creează serverul MCP
     server = Server(
         {"name": "pulsar-mcp-server", "version": "1.0.0"},
         ServerOptions(
@@ -484,10 +484,10 @@ async def run_mcp_server_with_pulsar():
         )
     )
     
-    # Register our tool
+    # Înregistrează instrumentul nostru
     server.register_tool(process_streaming_data)
     
-    # Create and connect Pulsar transport
+    # Creează și conectează transportul Pulsar
     transport = PulsarMCPTransport(
         service_url="pulsar://localhost:6650",
         request_topic="mcp-requests",
@@ -495,12 +495,12 @@ async def run_mcp_server_with_pulsar():
     )
     
     try:
-        # Start the server with the Pulsar transport
+        # Pornește serverul cu transportul Pulsar
         await server.run(transport)
     finally:
         await transport.close()
 
-# Run the server
+# Rulează serverul
 if __name__ == "__main__":
     asyncio.run(run_mcp_server_with_pulsar())
 ```
@@ -509,121 +509,133 @@ if __name__ == "__main__":
 
 La implementarea MCP pentru streaming în timp real:
 
-1. **Proiectați pentru toleranță la erori**:
-   - Implementați gestionarea corectă a erorilor
-   - Folosiți cozi dead-letter pentru mesajele eșuate
-   - Proiectați procesoare idempotente
+1. **Proiectează pentru toleranță la erori**:
+   - Implementează gestionarea corectă a erorilor
+   - Folosește cozi dead-letter pentru mesajele eșuate
+   - Proiectează procesoare idempotente
 
-2. **Optimizați performanța**:
-   - Configurați dimensiuni adecvate ale bufferelor
-   - Folosiți procesarea în loturi acolo unde este potrivit
-   - Implementați mecanisme de backpressure
+2. **Optimizează pentru performanță**:
+   - Configurează dimensiuni adecvate ale bufferului
+   - Folosește batch-uri unde este cazul
+   - Implementează mecanisme de backpressure
 
-3. **Monitorizați și observați**:
-   - Urmăriți metricile de procesare a fluxului
-   - Monitorizați propagarea contextului
-   - Configurați alerte pentru anomalii
+3. **Monitorizează și observă**:
+   - Urmărește metricile procesării fluxului
+   - Monitorizează propagarea contextului
+   - Configurează alerte pentru anomalii
 
-4. **Asigurați-vă fluxurile**:
-   - Implementați criptare pentru date sensibile
-   - Folosiți autentificare și autorizare
-   - Aplicați controale adecvate de acces
+4. **Securizează fluxurile**:
+   - Implementează criptarea datelor sensibile
+   - Folosește autentificare și autorizare
+   - Aplică controale corespunzătoare de acces
+
 
 ### MCP în IoT și Edge Computing
 
 MCP îmbunătățește streamingul IoT prin:
 
-- Păstrarea contextului dispozitivelor pe tot pipeline-ul de procesare
-- Permițând streaming eficient de la edge la cloud
-- Susținând analize în timp real pe fluxurile de date IoT
-- Facilitând comunicarea device-to-device cu context
+- Păstrarea contextului dispozitivului pe parcursul conductei de procesare
+- Permițând streaming eficient edge-to-cloud
+- Susținerea analizelor în timp real pe fluxurile de date IoT
+- Facilitarea comunicării device-to-device cu context
 
-Exemplu: Rețele de senzori pentru orașe inteligente  
+Exemplu: Rețele de senzori pentru orașe inteligente
 ```
 Sensors → Edge Gateways → MCP Stream Processors → Real-time Analytics → Automated Responses
 ```
 
-### Rolul în tranzacțiile financiare și tranzacționarea de înaltă frecvență
+### Rolul în tranzacțiile financiare și tranzacționarea de mare frecvență
 
-MCP oferă avantaje semnificative pentru streamingul de date financiare:
+MCP oferă avantaje semnificative pentru streamingul datelor financiare:
 
-- Procesare cu latență ultra-scăzută pentru decizii de tranzacționare
-- Menținerea contextului tranzacțiilor pe tot parcursul procesării
-- Susținerea procesării complexe a evenimentelor cu conștientizare contextuală
+- Procesare ultra-rapidă pentru decizii de tranzacționare
+- Menținerea contextului tranzacției pe tot parcursul procesării
+- Suport pentru procesarea evenimentelor complexe cu conștientizare contextuală
 - Asigurarea consistenței datelor în sistemele distribuite de tranzacționare
 
 ### Îmbunătățirea analizelor de date conduse de AI
 
-MCP creează noi posibilități pentru analizele în streaming:
+MCP creează noi posibilități pentru analize în streaming:
 
-- Antrenare și inferență a modelelor în timp real
+- Instruire și inferență de modele în timp real
 - Învățare continuă din datele în streaming
 - Extracție de caracteristici conștientă de context
-- Pipeline-uri de inferență multi-model cu context păstrat
+- Conducte de inferență multi-model cu context păstrat
 
 ## Tendințe și inovații viitoare
 
 ### Evoluția MCP în medii în timp real
 
-Privind spre viitor, anticipăm că MCP va evolua pentru a aborda:
+Privind înainte, anticipăm că MCP va evolua pentru a aborda:
 
-- **Integrarea calculului cuantic**: Pregătirea pentru sisteme de streaming bazate pe quantum
-- **Procesare nativă la edge**: Mutarea procesării conștiente de context către dispozitive edge
-- **Gestionare autonomă a fluxurilor**: Pipeline-uri de streaming auto-optimizante
-- **Streaming federat**: Procesare distribuită păstrând confidențialitatea
+- **Integrarea calculului cuantic**: Pregătirea pentru sisteme de streaming bazate pe calculul cuantic
+- **Procesare nativă la margine (edge)**: Mutarea mai multor procese conștiente de context către dispozitive edge
+- **Gestionare autonomă a fluxurilor**: Conducte de streaming auto-optimizante
+- **Streaming federat**: Procesare distribuită cu păstrarea intimității
 
-### Posibile avansări tehnologice
+### Avansări tehnologice potențiale
 
 Tehnologii emergente care vor modela viitorul streamingului MCP:
 
-1. **Protocoale de streaming optimizate pentru AI**: Protocoale personalizate pentru sarcini AI
+1. **Protocoale de streaming optimizate AI**: Protocoale personalizate concepute special pentru sarcini AI
 2. **Integrarea calculului neuromorfic**: Calcul inspirat de creier pentru procesarea fluxurilor
 3. **Streaming serverless**: Streaming scalabil, bazat pe evenimente, fără gestionarea infrastructurii
-4. **Magazine de context distribuite**: Gestionare globală, dar foarte consistentă a contextului
+4. **Depozite de context distribuite**: Gestionare globală distribuită, dar foarte consistentă a contextului
 
 ## Exerciții practice
 
-### Exercițiul 1: Configurarea unui pipeline de streaming MCP de bază
+### Exercițiul 1: Configurarea unui pipeline basic MCP pentru streaming
 
-În acest exercițiu vei învăța să:  
-- Configurezi un mediu de streaming MCP de bază  
-- Implementezi context handlers pentru procesarea fluxului  
+În acest exercițiu vei învăța să:
+- Configurezi un mediu basic de streaming MCP
+- Implementezi gestionari de context pentru procesarea fluxului
 - Testezi și validezi păstrarea contextului
 
-### Exercițiul 2: Construirea unui dashboard de analiză în timp real
+### Exercițiul 2: Construirea unui dashboard de analize în timp real
 
-Creează o aplicație completă care:  
-- Preia date în streaming folosind MCP  
-- Procesează fluxul menținând contextul  
-- Vizualizează rezultatele în timp real
+Creează o aplicație completă care:
+- Preia date în streaming folosind MCP
+- Procesează fluxul menținând contextul
+- Vizează rezultatele în timp real
 
-### Exercițiul 3: Implementarea procesării complexe a evenimentelor cu MCP
+### Exercițiul 3: Implementarea procesării complexe de evenimente cu MCP
 
-Exercițiu avansat care acoperă:  
-- Detectarea tiparelor în fluxuri  
-- Corelarea contextuală între mai multe fluxuri  
+Exercițiu avansat ce acoperă:
+- Detectarea tiparelor în fluxuri
+- Corelație contextuală între multiple fluxuri
 - Generarea de evenimente complexe cu context păstrat
 
 ## Resurse suplimentare
 
-- [Model Context Protocol Specification](https://github.com/modelcontextprotocol) - Specificația oficială MCP și documentație  
-- [Apache Kafka Documentation](https://kafka.apache.org/documentation/) - Informații despre Kafka pentru procesarea fluxurilor  
-- [Apache Pulsar](https://pulsar.apache.org/) - Platformă unificată de mesagerie și streaming  
-- [Streaming Systems: The What, Where, When, and How of Large-Scale Data Processing](https://www.oreilly.com/library/view/streaming-systems/9781491983867/) - Carte cuprinzătoare despre arhitecturi de streaming  
-- [Microsoft Azure Event Hubs](https://learn.microsoft.com/azure/event-hubs/event-hubs-about) - Serviciu gestionat de streaming de evenimente  
-- [MLflow Documentation](https://mlflow.org/docs/latest/index.html) - Pentru urmărirea și implementarea modelelor ML  
-- [Real-Time Analytics with Apache Storm](https://storm.apache.org/releases/current/index.html) - Framework pentru calcul în timp real  
-- [Flink ML](https://nightlies.apache.org/flink/flink-ml-docs-master/) - Bibliotecă de machine learning pentru Apache Flink  
-- [LangChain Documentation](https://python.langchain.com/docs/get_started/introduction) - Construirea aplicațiilor cu LLM-uri
+- [Model Context Protocol Specification](https://modelcontextprotocol.io) - Specificația oficială MCP și documentația
+- [Apache Kafka Documentation](https://kafka.apache.org/documentation/) - Informații despre Kafka pentru procesarea fluxurilor
+- [Apache Pulsar](https://pulsar.apache.org/) - Platformă unificată de mesagerie și streaming
+- [Streaming Systems: The What, Where, When, and How of Large-Scale Data Processing](https://www.oreilly.com/library/view/streaming-systems/9781491983867/) - Carte detaliată despre arhitecturi de streaming
+- [Microsoft Azure Event Hubs](https://learn.microsoft.com/azure/event-hubs/event-hubs-about) - Serviciu gestionat de streaming de evenimente
+- [MLflow Documentation](https://mlflow.org/docs/latest/index.html) - Pentru urmărirea și implementarea modelelor ML
+- [Real-Time Analytics with Apache Storm](https://storm.apache.org/releases/current/index.html) - Cadru de procesare pentru calcul în timp real
+- [Flink ML](https://nightlies.apache.org/flink/flink-ml-docs-master/) - Bibliotecă de machine learning pentru Apache Flink
+- [LangChain Documentation](https://python.langchain.com/docs/get_started/introduction) - Construirea de aplicații cu LLM-uri
 
-## Rezultate de învățare
 
-Parcurgând acest modul, vei putea:
+## Rezultate ale învățării
 
-- Înțelege fundamentele streamingului de date în timp real și provocările acestuia  
-- Explica modul în care Protocolul Model Context (MCP) îmbunătățește streamingul de date în timp real  
-- Implementa soluții de streaming bazate pe MCP folosind framework-uri populare precum Kafka și Pulsar  
-- Proiecta și implementa arhitecturi de streaming tolerante la erori și cu performanță ridic
+În urma completării acestui modul, vei putea să:
 
-**Declinare de responsabilitate**:  
-Acest document a fost tradus folosind serviciul de traducere AI [Co-op Translator](https://github.com/Azure/co-op-translator). Deși ne străduim pentru acuratețe, vă rugăm să rețineți că traducerile automate pot conține erori sau inexactități. Documentul original în limba sa nativă trebuie considerat sursa autorizată. Pentru informații critice, se recomandă traducerea profesională realizată de un specialist uman. Nu ne asumăm răspunderea pentru eventualele neînțelegeri sau interpretări greșite rezultate din utilizarea acestei traduceri.
+- Înțelegi fundamentele streamingului de date în timp real și provocările sale
+- Explici cum Protocolul Contextului Modelului (MCP) îmbunătățește streamingul de date în timp real
+- Implementezi soluții de streaming bazate pe MCP folosind cadre populare ca Kafka și Pulsar
+- Proiectezi și implementezi arhitecturi de streaming tolerante la erori și cu performanță ridicată cu MCP
+- Aplici conceptele MCP în cazuri de utilizare legate de IoT, tranzacționare financiară și analize conduse de AI
+- Evaluezi tendințele emergente și inovațiile viitoare în tehnologiile de streaming bazate pe MCP
+
+## Următorii pași
+
+- [5.11 Căutare în Timp Real](../mcp-realtimesearch/README.md)
+
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Declinare a responsabilității**:
+Acest document a fost tradus folosind serviciul de traducere AI [Co-op Translator](https://github.com/Azure/co-op-translator). În timp ce ne străduim pentru acuratețe, vă rugăm să rețineți că traducerile automate pot conține erori sau inexactități. Documentul original în limba sa nativă trebuie considerat sursa autorizată. Pentru informații critice, se recomandă traducerea profesională realizată de un om. Nu ne asumăm responsabilitatea pentru eventualele neînțelegeri sau interpretări greșite care decurg din utilizarea acestei traduceri.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

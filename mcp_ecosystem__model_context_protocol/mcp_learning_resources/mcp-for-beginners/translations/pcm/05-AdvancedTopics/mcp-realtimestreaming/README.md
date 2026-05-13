@@ -2,90 +2,91 @@
 
 ## Overview
 
-Real-time data streaming don become very important for today world wey dey depend on data, where businesses and apps need quick access to info to fit make fast decisions. The Model Context Protocol (MCP) na big improvement wey dey help make these real-time streaming processes better, e dey make data processing more efficient, keep context intact, and improve system performance.
+Real-time data streaming don become very important for today data-driven world, weh businesses and applications need to get information sharp-sharp to fit make quick decisions. The Model Context Protocol (MCP) show better way to improve these real-time streaming processes, make data processing efficient, keep context correct, and boost how system dey perform.
 
-This module go show how MCP dey change real-time data streaming by giving one standard way to manage context for AI models, streaming platforms, and apps.
+Dis module go explain how MCP dey change real-time data streaming by giving one standard way to manage context among AI models, streaming platforms, and applications.
 
 ## Introduction to Real-Time Data Streaming
 
-Real-time data streaming na technology wey dey allow data to dey move, process, and analyze as e dey happen, so systems fit react fast to new info. E different from batch processing wey dey work on static datasets, streaming dey process data as e dey move, giving insights and actions with small delay.
+Real-time data streaming na technology way dey allow continuous transfer, processing, and analysis of data as e dey come, make systems fit react quickly to new information. No be like traditional batch processing weh dey work on static datasets, streaming dey process data as e dey move, dey give insight and actions with small delay.
 
 ### Core Concepts of Real-Time Data Streaming:
 
-- **Continuous Data Flow**: Data dey process as e dey come like one never-ending stream of events or records.
-- **Low Latency Processing**: Systems dey design to make sure say time between data generation and processing dey very small.
-- **Scalability**: Streaming systems suppose fit handle different data volumes and speed.
-- **Fault Tolerance**: Systems suppose strong well to make sure data flow no stop even if something go wrong.
-- **Stateful Processing**: E dey important to keep context across events for better analysis.
+- **Continuous Data Flow**: Data dey processed as one continuous, never-ending stream of events or records.
+- **Low Latency Processing**: Systems dey designed to reduce time between data generation and processing.
+- **Scalability**: Streaming architecture must fit handle different amount and speed of data.
+- **Fault Tolerance**: Systems must strong to handle failures so data no go stop flowing.
+- **Stateful Processing**: To keep context across events very important for correct analysis.
 
 ### The Model Context Protocol and Real-Time Streaming
 
-The Model Context Protocol (MCP) dey solve some big problems for real-time streaming environments:
+The Model Context Protocol (MCP) dey solve some important wahala for real-time streaming environment:
 
-1. **Contextual Continuity**: MCP dey make sure say context dey intact across different streaming components, so AI models and processing nodes go get access to important historical and environmental context.
+1. **Contextual Continuity**: MCP dey make sure say context dey maintained across distributed streaming parts, so AI models and processing nodes fit get relevant historical and environment context.
 
-2. **Efficient State Management**: MCP dey provide structured ways to manage context, e dey reduce the stress of state management for streaming pipelines.
+2. **Efficient State Management**: MCP dey provide organized ways to send context, e reduce burdens of state management for streaming pipelines.
 
-3. **Interoperability**: MCP dey create one common language for sharing context between different streaming technologies and AI models, making architectures more flexible.
+3. **Interoperability**: MCP create common language for context sharing among different streaming tech and AI models, e make architecture flexible and fit expand well.
 
-4. **Streaming-Optimized Context**: MCP dey focus on the context wey dey important for real-time decision making, e dey help performance and accuracy.
+4. **Streaming-Optimized Context**: MCP fit decide which context parts important for real-time decision making, e dey optimize for better performance and accuracy.
 
-5. **Adaptive Processing**: With MCP, streaming systems fit adjust processing based on how data dey change.
+5. **Adaptive Processing**: With proper context handling by MCP, streaming systems fit adjust how dem process data based on changing condition and data patterns.
 
-For modern apps like IoT sensor networks and financial trading platforms, MCP dey help streaming technologies to process data smarter and respond well to complex situations as e dey happen.
+For modern app wey dey from IoT sensor networks reach financial trading platforms, when dem join MCP with streaming tech, e enable smarter, context-aware processing way fit respond well to complex and changing situations for real time.
 
 ## Learning Objectives
 
 By the end of this lesson, you go fit:
 
-- Understand the basics of real-time data streaming and the wahala wey dey follow am
-- Explain how the Model Context Protocol (MCP) dey make real-time data streaming better
-- Use MCP to build streaming solutions with frameworks like Kafka and Pulsar
-- Design and deploy streaming systems wey strong and perform well with MCP
-- Use MCP for IoT, financial trading, and AI-driven analytics
-- Check new trends and future innovations for MCP-based streaming technologies
+- Understand the basics of real-time data streaming and the wahala wey e get
+- Explain how Model Context Protocol (MCP) dey improve real-time data streaming
+- Implement MCP-based streaming solutions using popular frameworks like Kafka and Pulsar
+- Design and deploy fault-tolerant, high-performance streaming architectures with MCP
+- Use MCP concepts for IoT, financial trading, and AI-driven analytics
+- Check and assess new trends and future innovations for MCP streaming technologies
+
 
 ### Definition and Significance
 
-Real-time data streaming na the process wey dey involve continuous generation, processing, and delivery of data with small delay. E different from batch processing wey dey collect and process data in groups, streaming dey process data as e dey come, giving quick insights and actions.
+Real-time data streaming mean say data dey continuously generated, processed, and sent with small delay. Unlike batch processing, wey data dey gathered together and processed, streaming data dey processed step-by-step as e dey land, e permit quick insights and actions.
 
-Key things about real-time data streaming:
+Key characteristics of real-time data streaming na:
 
-- **Low Latency**: Processing and analyzing data fast, within milliseconds or seconds
-- **Continuous Flow**: Data dey flow non-stop from different sources
-- **Immediate Processing**: Analyzing data as e dey come instead of waiting to batch am
-- **Event-Driven Architecture**: Reacting to events as e dey happen
+- **Low Latency**: Processing and analysis dey happen inside milliseconds to seconds
+- **Continuous Flow**: Data streams dey flow non-stop from different sources
+- **Immediate Processing**: Data dey analyzed as e land, no be in batch
+- **Event-Driven Architecture**: Systems dey respond to events as dem happen
 
 ### Challenges in Traditional Data Streaming
 
-Traditional data streaming get some problems:
+Traditional data streaming get some serious wahala:
 
 1. **Context Loss**: E hard to keep context across different systems
-2. **Scalability Issues**: E dey hard to handle plenty data wey dey come fast
-3. **Integration Complexity**: E dey hard to make different systems work together
-4. **Latency Management**: Balancing speed and processing time dey hard
-5. **Data Consistency**: Making sure data dey accurate and complete dey challenging
+2. **Scalability Issues**: Hard to scale to handle big and fast data
+3. **Integration Complexity**: Wahala because different systems no dey talk well
+4. **Latency Management**: To balance throughput with how fast you process
+5. **Data Consistency**: To make sure say data correct and complete across stream
 
 ## Understanding Model Context Protocol (MCP)
 
 ### What is MCP?
 
-The Model Context Protocol (MCP) na one standard communication protocol wey dey help AI models and apps work well together. For real-time data streaming, MCP dey provide framework for:
+Model Context Protocol (MCP) na standard communication protocol wey dem design to make interaction between AI models and applications easy and efficient. For real-time data streaming, MCP provide structure to:
 
-- Keeping context intact throughout the data pipeline
-- Standardizing how data dey exchange
-- Making transmission of big datasets better
-- Improving communication between models and apps
+- Keep context correct through the data pipeline
+- Standardize how data dey exchanged
+- Optimize sending big data
+- Improve model-to-model and model-to-application communication
 
 ### Core Components and Architecture
 
-MCP architecture for real-time streaming get some important parts:
+MCP architecture for real-time streaming get some main parts:
 
-1. **Context Handlers**: E dey manage and keep context info across the streaming pipeline
-2. **Stream Processors**: E dey process data streams with context-aware methods
-3. **Protocol Adapters**: E dey convert between different streaming protocols while keeping context
-4. **Context Store**: E dey store and retrieve context info well
-5. **Streaming Connectors**: E dey connect to different streaming platforms like Kafka, Pulsar, Kinesis, etc.
+1. **Context Handlers**: Dem manage and keep contextual information across streaming pipeline
+2. **Stream Processors**: Dem process incoming streams with context-aware methods
+3. **Protocol Adapters**: Convert for different streaming protocols while keeping context
+4. **Context Store**: Efficiently save and bring context information
+5. **Streaming Connectors**: Connect to different streaming platforms (Kafka, Pulsar, Kinesis, etc.)
 
 ```mermaid
 graph TD
@@ -159,41 +160,41 @@ graph TD
 
 MCP dey solve traditional streaming problems by:
 
-- **Contextual Integrity**: E dey keep relationships between data points across the pipeline
-- **Optimized Transmission**: E dey reduce unnecessary data exchange with smart context management
-- **Standardized Interfaces**: E dey provide consistent APIs for streaming components
-- **Reduced Latency**: E dey make processing faster with efficient context handling
-- **Enhanced Scalability**: E dey support scaling while keeping context intact
+- **Contextual Integrity**: To keep the relationship between data points throughout the pipeline
+- **Optimized Transmission**: Reduce unnecessary data exchange using smart context management
+- **Standardized Interfaces**: Provide consistent APIs for streaming parts
+- **Reduced Latency**: Cut processing overhead with efficient context handling
+- **Enhanced Scalability**: Support horizontal scaling but still keep context
 
 ## Integration and Implementation
 
-Real-time data streaming systems need good design and implementation to keep performance and context intact. MCP dey provide one standard way to connect AI models and streaming technologies, making processing pipelines smarter.
+Real-time streaming system need careful architectural design and implementation to keep both performance and context integrity. Model Context Protocol offer a standard way to join AI models and streaming tech, make processing pipeline smarter and context-aware.
 
 ### Overview of MCP Integration in Streaming Architectures
 
-To use MCP for real-time streaming, you need to think about:
+To implement MCP for real-time streaming, consider:
 
-1. **Context Serialization and Transport**: MCP dey provide ways to encode context info inside streaming data packets, so context go follow data throughout the pipeline. E dey use standard serialization formats wey fit streaming transport.
+1. **Context Serialization and Transport**: MCP provide efficient ways to encode context data in streaming packets, so correct context follow data through pipelines. This get standard serialization formats optimized for streaming.
 
-2. **Stateful Stream Processing**: MCP dey make stateful processing smarter by keeping consistent context across processing nodes. This na big help for distributed streaming systems wey dey struggle with state management.
+2. **Stateful Stream Processing**: MCP allow better stateful processing by keeping context representation consistent across processing nodes. This important for distributed streaming systems weh state management dey hard.
 
-3. **Event-Time vs. Processing-Time**: MCP dey help streaming systems handle the difference between when events happen and when dem process am. E dey keep temporal context wey fit preserve event time.
+3. **Event-Time vs. Processing-Time**: MCP fit solve common problem to tell when events happen and when dem processed. Protocol fit add temporal context to keep event time meaning.
 
-4. **Backpressure Management**: MCP dey help manage backpressure for streaming systems by standardizing context handling, so components fit communicate their processing capacity and adjust flow.
+4. **Backpressure Management**: MCP standardize context handling to manage backpressure in streaming systems, so parts fit talk their ability to process and adjust flow.
 
-5. **Context Windowing and Aggregation**: MCP dey make windowing operations better by providing structured ways to represent temporal and relational contexts, so aggregations across event streams go make sense.
+5. **Context Windowing and Aggregation**: MCP help complex windowing by giving structured ways to represent time and relation contexts, allow meaningful aggregation across events.
 
-6. **Exactly-Once Processing**: For streaming systems wey need exactly-once semantics, MCP dey add processing metadata to track and confirm processing status across distributed components.
+6. **Exactly-Once Processing**: For streaming systems weh need exactly-once processing, MCP fit add metadata to track and check processing status across distributed parts.
 
-Using MCP for different streaming technologies dey create one unified way to manage context, e dey reduce the need for custom integration code and make sure system fit keep meaningful context as data dey flow.
+Implementing MCP for different streaming tech create one unified way to manage context, e reduce need for custom integration code and improve system ability to keep meaningful context as data flows pipeline.
 
 ### MCP in Various Data Streaming Frameworks
 
-These examples dey follow the MCP specification wey dey use JSON-RPC based protocol with different transport methods. The code dey show how you fit create custom transports wey go work with streaming platforms like Kafka and Pulsar while still following MCP protocol.
+Here dem show examples wey match current MCP specification weh focus on JSON-RPC based protocol with different transport ways. Code show how to implement custom transports to join streaming platforms like Kafka and Pulsar and still keep full MCP compatibility.
 
-The examples dey show how streaming platforms fit work with MCP to process data in real-time while keeping the context wey MCP dey focus on. This approach dey make sure say the code samples dey match the MCP specification as of June 2025.
+Dem examples dey show how streaming platforms fit join MCP to provide real-time data processing and keep contextual awareness weh important for MCP. This approach make sure code examples reflect current MCP specification status as of June 2025.
 
-MCP fit work with popular streaming frameworks like:
+MCP fit be joined with popular streaming frameworks including:
 
 #### Apache Kafka Integration
 
@@ -206,7 +207,7 @@ from mcp.client import Client, ClientCapabilities
 from mcp.core.message import JsonRpcMessage
 from mcp.core.transports import Transport
 
-# Custom transport class to bridge MCP with Kafka
+# Custom transport class to bridge MCP wit Kafka
 class KafkaMCPTransport(Transport):
     def __init__(self, bootstrap_servers: str, input_topic: str, output_topic: str):
         self.bootstrap_servers = bootstrap_servers
@@ -244,7 +245,7 @@ class KafkaMCPTransport(Transport):
                     print(f"Consumer error: {msg.error()}")
                     continue
                 
-                # Parse the message value as JSON-RPC
+                # Parse di message value as JSON-RPC
                 try:
                     message_str = msg.value().decode('utf-8')
                     message_data = json.loads(message_str)
@@ -297,15 +298,15 @@ class KafkaMCPTransport(Transport):
         self.consumer.close()
         self.producer.flush()
 
-# Example usage of the Kafka MCP transport
+# Example usage of di Kafka MCP transport
 async def kafka_mcp_example():
-    # Create MCP client with Kafka transport
+    # Create MCP client wit Kafka transport
     client = Client(
         {"name": "kafka-mcp-client", "version": "1.0.0"},
         ClientCapabilities({})
     )
     
-    # Create and connect the Kafka transport
+    # Create and connect di Kafka transport
     transport = KafkaMCPTransport(
         bootstrap_servers="localhost:9092",
         input_topic="mcp-responses",
@@ -315,10 +316,10 @@ async def kafka_mcp_example():
     await client.connect(transport)
     
     try:
-        # Initialize the MCP session
+        # Initialize di MCP session
         await client.initialize()
         
-        # Example of executing a tool via MCP
+        # Example of running tool through MCP
         response = await client.execute_tool(
             "process_data",
             {
@@ -337,7 +338,7 @@ async def kafka_mcp_example():
     finally:
         await transport.close()
 
-# Run the example
+# Run di example
 if __name__ == "__main__":
     asyncio.run(kafka_mcp_example())
 ```
@@ -354,7 +355,7 @@ from mcp.core.transports import Transport
 from mcp.server import Server, ServerOptions
 from mcp.server.tools import Tool, ToolExecutionContext, ToolMetadata
 
-# Create a custom MCP transport that uses Pulsar
+# Make one custom MCP transport wey go use Pulsar
 class PulsarMCPTransport(Transport):
     def __init__(self, service_url: str, request_topic: str, response_topic: str):
         self.service_url = service_url
@@ -381,24 +382,24 @@ class PulsarMCPTransport(Transport):
         """Background task to consume messages from Pulsar and queue them for processing"""
         while self.running:
             try:
-                # Non-blocking receive with timeout
+                # No block receive wit timeout
                 msg = self.consumer.receive(timeout_millis=500)
                 
-                # Process the message
+                # Process di message
                 try:
                     message_str = msg.data().decode('utf-8')
                     message_data = json.loads(message_str)
                     mcp_message = JsonRpcMessage.from_dict(message_data)
                     await self.message_queue.put(mcp_message)
                     
-                    # Acknowledge the message
+                    # Acknowledge di message
                     self.consumer.acknowledge(msg)
                 except Exception as e:
                     print(f"Error processing message: {e}")
-                    # Negative acknowledge if there was an error
+                    # Negative acknowledge if e get error
                     self.consumer.negative_acknowledge(msg)
             except Exception as e:
-                # Handle timeout or other exceptions
+                # Handle timeout or oda wahala
                 await asyncio.sleep(0.1)
     
     async def read(self) -> Optional[JsonRpcMessage]:
@@ -431,7 +432,7 @@ class PulsarMCPTransport(Transport):
         self.producer.close()
         self.client.close()
 
-# Define a sample MCP tool that processes streaming data
+# Define one sample MCP tool wey dey process streaming data
 @Tool(
     name="process_streaming_data",
     description="Process streaming data with context preservation",
@@ -457,13 +458,13 @@ async def process_streaming_data(
     Returns:
         Dict containing processed results and context information
     """
-    # Example processing that leverages MCP context
+    # Example processing wey dey use MCP context
     print(f"Processing data from {source} with priority {priority}")
     
     # Access conversation context from MCP
     conversation_id = ctx.conversation_id if hasattr(ctx, 'conversation_id') else "unknown"
     
-    # Return results with enhanced context
+    # Return results wit better context
     return {
         "processed_data": f"Processed: {data}",
         "context": {
@@ -474,7 +475,7 @@ async def process_streaming_data(
         }
     }
 
-# Example MCP server implementation using Pulsar transport
+# Example MCP server implementation wey dey use Pulsar transport
 async def run_mcp_server_with_pulsar():
     # Create MCP server
     server = Server(
@@ -495,48 +496,49 @@ async def run_mcp_server_with_pulsar():
     )
     
     try:
-        # Start the server with the Pulsar transport
+        # Start di server wit di Pulsar transport
         await server.run(transport)
     finally:
         await transport.close()
 
-# Run the server
+# Run di server
 if __name__ == "__main__":
     asyncio.run(run_mcp_server_with_pulsar())
 ```
 
 ### Best Practices for Deployment
 
-When you dey use MCP for real-time streaming:
+When you dey implement MCP for real-time streaming:
 
 1. **Design for Fault Tolerance**:
-   - Add proper error handling
+   - Implement proper error handling
    - Use dead-letter queues for failed messages
-   - Design processors wey no go repeat actions unnecessarily
+   - Design idempotent processors
 
 2. **Optimize for Performance**:
-   - Set buffer sizes well
-   - Use batching when e dey make sense
-   - Add backpressure mechanisms
+   - Configure proper buffer sizes
+   - Use batching when e fit
+   - Implement backpressure methods
 
 3. **Monitor and Observe**:
-   - Check stream processing metrics
-   - Monitor how context dey move
-   - Set alerts for any problem
+   - Track stream processing metrics
+   - Monitor context propagation
+   - Set alerts for any abnormal behavior
 
 4. **Secure Your Streams**:
    - Encrypt sensitive data
    - Use authentication and authorization
-   - Add proper access controls
+   - Apply correct access control
+
 
 ### MCP in IoT and Edge Computing
 
-MCP dey make IoT streaming better by:
+MCP dey improve IoT streaming by:
 
-- Keeping device context intact across the pipeline
-- Making edge-to-cloud data streaming efficient
-- Supporting real-time analytics for IoT data streams
-- Helping device-to-device communication with context
+- Keeping device context throughout processing pipeline
+- Allow efficient edge-to-cloud data streaming
+- Support real-time analytics on IoT data streams
+- Enable device-to-device communication with context
 
 Example: Smart City Sensor Networks
 ```
@@ -545,68 +547,68 @@ Sensors → Edge Gateways → MCP Stream Processors → Real-time Analytics → 
 
 ### Role in Financial Transactions and High-Frequency Trading
 
-MCP dey help financial data streaming by:
+MCP give big advantage for financial data streaming:
 
-- Processing data very fast for trading decisions
-- Keeping transaction context intact during processing
-- Supporting complex event processing with context awareness
-- Making sure data dey consistent across distributed trading systems
+- Ultra-low latency processing for trading decisions
+- Keep transaction context all through processing
+- Support complex event processing with good context understanding
+- Ensure data consistency across distributed trading systems
 
 ### Enhancing AI-Driven Data Analytics
 
-MCP dey open new ways for streaming analytics:
+MCP open new ways for streaming analytics:
 
-- Real-time model training and inference
+- Real-time model training and prediction
 - Continuous learning from streaming data
 - Context-aware feature extraction
-- Multi-model inference pipelines wey dey keep context intact
+- Multi-model inference pipelines with context preserved
 
 ## Future Trends and Innovations
 
 ### Evolution of MCP in Real-Time Environments
 
-For future, MCP go dey improve to handle:
+Looking ahead, we expect MCP to evolve to handle:
 
-- **Quantum Computing Integration**: Getting ready for quantum-based streaming systems
-- **Edge-Native Processing**: Moving more context-aware processing to edge devices
-- **Autonomous Stream Management**: Streaming pipelines wey fit optimize themselves
-- **Federated Streaming**: Distributed processing wey dey keep privacy intact
+- **Quantum Computing Integration**: Prepare for quantum-based streaming systems
+- **Edge-Native Processing**: Move more context-aware processing to edge devices
+- **Autonomous Stream Management**: Streaming pipelines self-optimize
+- **Federated Streaming**: Distributed processing but maintain privacy
 
 ### Potential Advancements in Technology
 
-New technologies wey go shape MCP streaming future:
+New technologies wey go shape MCP future streaming:
 
-1. **AI-Optimized Streaming Protocols**: Protocols wey dey design specially for AI workloads
-2. **Neuromorphic Computing Integration**: Brain-inspired computing for stream processing
-3. **Serverless Streaming**: Scalable streaming wey no need infrastructure management
-4. **Distributed Context Stores**: Context management wey dey consistent globally
+1. **AI-Optimized Streaming Protocols**: Protocols made specially for AI workload
+2. **Neuromorphic Computing Integration**: Brain-like computing for streaming processing
+3. **Serverless Streaming**: Event-driven, scalable streaming with no infrastructure to manage
+4. **Distributed Context Stores**: Context management globally distributed but highly consistent
 
 ## Hands-On Exercises
 
 ### Exercise 1: Setting Up a Basic MCP Streaming Pipeline
 
 For this exercise, you go learn how to:
-- Set up one MCP streaming environment
-- Add context handlers for stream processing
-- Test and confirm say context dey intact
+- Setup basic MCP streaming environment
+- Implement context handlers for stream processing
+- Test and check context preservation
 
 ### Exercise 2: Building a Real-Time Analytics Dashboard
 
-Create one app wey go:
-- Collect streaming data with MCP
-- Process the stream while keeping context
-- Show results in real-time
+Create full app wey:
+- Takes streaming data using MCP
+- Process stream while keep context
+- Show results live for real-time
 
 ### Exercise 3: Implementing Complex Event Processing with MCP
 
-Advanced exercise wey go cover:
-- Detecting patterns in streams
-- Connecting context across multiple streams
-- Creating complex events wey keep context intact
+Advanced exercise wey cover:
+- Pattern detection in streams
+- Context correlation across many streams
+- Generate complex events with context preserved
 
 ## Additional Resources
 
-- [Model Context Protocol Specification](https://github.com/modelcontextprotocol) - Official MCP specification and documentation
+- [Model Context Protocol Specification](https://modelcontextprotocol.io) - Official MCP specification and documentation
 - [Apache Kafka Documentation](https://kafka.apache.org/documentation/) - Learn about Kafka for stream processing
 - [Apache Pulsar](https://pulsar.apache.org/) - Unified messaging and streaming platform
 - [Streaming Systems: The What, Where, When, and How of Large-Scale Data Processing](https://www.oreilly.com/library/view/streaming-systems/9781491983867/) - Comprehensive book on streaming architectures
@@ -616,16 +618,17 @@ Advanced exercise wey go cover:
 - [Flink ML](https://nightlies.apache.org/flink/flink-ml-docs-master/) - Machine learning library for Apache Flink
 - [LangChain Documentation](https://python.langchain.com/docs/get_started/introduction) - Building applications with LLMs
 
+
 ## Learning Outcomes
 
-By the time you finish this module, you go fit:
+After you finish dis module, you go fit:
 
-- Understand the basics of real-time data streaming and the wahala wey dey follow am
-- Explain how the Model Context Protocol (MCP) dey make real-time data streaming better
-- Use MCP to build streaming solutions with frameworks like Kafka and Pulsar
-- Design and deploy streaming systems wey strong and perform well with MCP
-- Use MCP for IoT, financial trading, and AI-driven analytics
-- Check new trends and future innovations for MCP-based streaming technologies
+- Understand the basics of real-time data streaming and e wahala
+- Explain how Model Context Protocol (MCP) dey improve real-time streaming
+- Implement MCP-based streaming with popular frameworks like Kafka and Pulsar
+- Design and deploy fault-tolerant, high-performance streaming architecture with MCP
+- Apply MCP concepts for IoT, financial trading, and AI-driven analytics
+- Check new trends and future innovations for MCP streaming tech
 
 ## What's next 
 
@@ -634,6 +637,6 @@ By the time you finish this module, you go fit:
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Disclaimer**:  
-Dis dokyument don translate wit AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). Even as we dey try make sure say e correct, abeg make you sabi say machine translation fit get mistake or no dey accurate well. Di original dokyument for im native language na di main source wey you go trust. For important mata, e good make professional human translator check am. We no go fit take blame for any misunderstanding or wrong interpretation wey fit happen because you use dis translation.
+**Disclaimer**:
+Dis document don translate wit AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). Even tho we dey try make am correct, abeg make you know say automated translation fit get errors or mistakes. Di original document for dia own language na im be di correct source. For important info, make person wey sabi human translation do am. We no go responsible for any misunderstanding or wrong understanding wey fit happen because of dis translation.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

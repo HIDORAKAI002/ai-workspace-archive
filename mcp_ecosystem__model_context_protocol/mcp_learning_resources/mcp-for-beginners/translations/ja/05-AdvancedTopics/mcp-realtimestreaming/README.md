@@ -1,148 +1,148 @@
-# リアルタイムデータストリーミングのためのModel Context Protocol
+# モデルコンテキストプロトコルによるリアルタイムデータストリーミング
 
 ## 概要
 
-リアルタイムデータストリーミングは、ビジネスやアプリケーションが即時に情報へアクセスし、迅速な意思決定を行うために不可欠な技術となっています。Model Context Protocol（MCP）は、これらのリアルタイムストリーミングプロセスを最適化し、データ処理の効率化、コンテキストの一貫性維持、システム全体のパフォーマンス向上に大きく貢献する革新的な技術です。
+リアルタイムデータストリーミングは、企業やアプリケーションが即時に情報にアクセスして迅速な意思決定を行うために不可欠な今日のデータ駆動型の世界で重要な役割を果たしています。モデルコンテキストプロトコル（MCP）は、これらのリアルタイムストリーミングプロセスを最適化し、データ処理効率を高め、コンテキストの整合性を維持し、システム全体のパフォーマンスを向上させる重要な進歩を示します。
 
-本モジュールでは、MCPがAIモデル、ストリーミングプラットフォーム、アプリケーション間でのコンテキスト管理を標準化することで、リアルタイムデータストリーミングをどのように変革するかを解説します。
+このモジュールでは、MCPがAIモデル、ストリーミングプラットフォーム、およびアプリケーション間でコンテキスト管理の標準化されたアプローチを提供することで、リアルタイムデータストリーミングをどのように変革するかを探ります。
 
-## リアルタイムデータストリーミングの紹介
+## リアルタイムデータストリーミングの概要
 
-リアルタイムデータストリーミングは、データが生成されると同時に継続的に転送、処理、分析を行い、システムが新しい情報に即座に反応できる技術パラダイムです。静的なデータセットを対象とする従来のバッチ処理とは異なり、ストリーミングは動いているデータを処理し、遅延を最小限に抑えて洞察やアクションを提供します。
+リアルタイムデータストリーミングは、データが生成されると同時に、継続的に転送、処理、分析を行い、システムが新しい情報に即座に反応できるようにする技術的パラダイムです。静的なデータセットを対象とする従来のバッチ処理とは異なり、ストリーミングは移動中のデータを処理し、最小限の遅延で洞察やアクションを提供します。
 
-### リアルタイムデータストリーミングの主要概念：
+### リアルタイムデータストリーミングの中核概念：
 
-- **継続的なデータフロー**：データは途切れることなくイベントやレコードの連続として処理される
-- **低遅延処理**：データ生成から処理までの時間を最小化する設計
-- **スケーラビリティ**：変動するデータ量や速度に対応可能なアーキテクチャ
-- **フォールトトレランス**：障害に強く、データフローを途切れさせない耐障害性
-- **ステートフル処理**：イベント間のコンテキストを維持し、意味のある分析を可能にする
+- <strong>継続的なデータフロー</strong>：データはイベントやレコードの連続的かつ終わりのないストリームとして処理される。
+- <strong>低遅延処理</strong>：データ生成と処理間の時間を最小化する設計。
+- <strong>スケーラビリティ</strong>：可変のデータ量および速度に対応可能なストリーミングアーキテクチャ。
+- <strong>フォールトトレランス</strong>：データフローが途絶えないように失敗に対して強靭である必要がある。
+- <strong>ステートフル処理</strong>：イベント間でのコンテキスト維持は有意義な分析に不可欠。
 
-### Model Context Protocolとリアルタイムストリーミング
+### モデルコンテキストプロトコルとリアルタイムストリーミング
 
-Model Context Protocol（MCP）は、リアルタイムストリーミング環境における以下の重要な課題に対応します：
+モデルコンテキストプロトコル（MCP）はリアルタイムストリーミング環境におけるいくつかの重要な課題に対応します：
 
-1. **コンテキストの連続性**：MCPは分散されたストリーミングコンポーネント間でコンテキストを維持する方法を標準化し、AIモデルや処理ノードが関連する過去情報や環境情報にアクセスできるようにします。
+1. <strong>コンテキストの継続性</strong>：MCPは分散ストリーミングコンポーネント間でコンテキストを維持する方法を標準化し、AIモデルや処理ノードが関連する過去および環境のコンテキストにアクセス可能にする。
 
-2. **効率的なステート管理**：構造化されたコンテキスト伝達メカニズムを提供することで、ストリーミングパイプラインのステート管理の負荷を軽減します。
+2. <strong>効率的なステート管理</strong>：構造化されたコンテキスト伝送メカニズムを提供することで、ストリーミングパイプラインの状態管理の負荷を低減。
 
-3. **相互運用性**：多様なストリーミング技術とAIモデル間でコンテキスト共有の共通言語を作り、柔軟で拡張性の高いアーキテクチャを実現します。
+3. <strong>相互運用性</strong>：多様なストリーミング技術とAIモデル間でコンテキスト共有の共通言語を作成し、より柔軟で拡張可能なアーキテクチャを実現。
 
-4. **ストリーミング最適化コンテキスト**：リアルタイムの意思決定に最も関連性の高いコンテキスト要素を優先し、パフォーマンスと精度の両立を図ります。
+4. <strong>ストリーミング最適化コンテキスト</strong>：MCPの実装は、リアルタイムの意思決定に最も関連性が高いコンテキスト要素を優先させ、パフォーマンスと精度の両方を最適化可能。
 
-5. **適応的処理**：MCPによる適切なコンテキスト管理により、ストリーミングシステムはデータの変化やパターンに応じて動的に処理を調整できます。
+5. <strong>適応的処理</strong>：MCPによる適切なコンテキスト管理により、ストリーミングシステムはデータの変化する条件やパターンに基づき処理を動的に調整可能。
 
-IoTセンサーネットワークから金融取引プラットフォームまで、MCPとストリーミング技術の統合は、複雑で変化する状況にリアルタイムで適切に対応できる、より高度でコンテキスト認識型の処理を可能にします。
+IoTセンサーネットワークから金融取引プラットフォームに至る現代のアプリケーションにおいて、MCPとストリーミング技術の統合は、複雑で変化する状況にリアルタイムで適切に対応できるより高度でコンテキストに対応した処理を可能にします。
 
 ## 学習目標
 
-このレッスンを終える頃には、以下ができるようになります：
+このレッスンの終了時には、以下ができるようになります：
 
-- リアルタイムデータストリーミングの基本と課題を理解する
-- Model Context Protocol（MCP）がリアルタイムデータストリーミングをどのように強化するか説明する
-- KafkaやPulsarなどの人気フレームワークを使ってMCPベースのストリーミングソリューションを実装する
-- MCPを用いたフォールトトレラントで高性能なストリーミングアーキテクチャを設計・展開する
-- IoT、金融取引、AI駆動の分析ユースケースにMCPの概念を適用する
-- MCPベースのストリーミング技術における最新動向や将来の革新を評価する
+- リアルタイムデータストリーミングの基礎と課題を理解する
+- モデルコンテキストプロトコル（MCP）がリアルタイムデータストリーミングをどのように強化するか説明する
+- KafkaやPulsarなどの一般的なフレームワークを使用してMCPベースのストリーミングソリューションを実装する
+- MCPを用いてフォールトトレラントかつ高性能なストリーミングアーキテクチャを設計・展開する
+- MCPの概念をIoT、金融取引、AI駆動の分析ユースケースに適用する
+- MCPベースのストリーミング技術における新たな動向と将来の革新を評価する
 
-### 定義と重要性
+### 定義と意義
 
-リアルタイムデータストリーミングは、データを継続的に生成・処理・配信し、遅延を最小限に抑えることを指します。バッチ処理のようにデータをまとめて処理するのではなく、到着したデータを逐次処理し、即時の洞察やアクションを可能にします。
+リアルタイムデータストリーミングは、最小限の遅延で継続的にデータを生成・処理・配信することを指します。バッチ処理のようにデータをまとめて処理するのではなく、ストリーミングデータは到着するたびに段階的に処理され、即時の洞察とアクションを可能にします。
 
-リアルタイムデータストリーミングの主な特徴：
+リアルタイムデータストリーミングの主な特徴は以下の通りです：
 
-- **低遅延**：ミリ秒から数秒以内にデータを処理・分析
-- **継続的なフロー**：様々なソースから途切れないデータストリーム
-- **即時処理**：バッチではなく到着時にデータを分析
-- **イベント駆動型アーキテクチャ**：発生したイベントに即応
+- <strong>低遅延</strong>：ミリ秒から秒単位での処理と分析
+- <strong>連続的フロー</strong>：さまざまなソースから途切れないデータストリーム
+- <strong>即時処理</strong>：バッチではなく到着時に分析
+- <strong>イベント駆動アーキテクチャ</strong>：発生したイベントに対してリアルタイムに反応
 
-### 従来のデータストリーミングの課題
+### 従来のデータストリーミングにおける課題
 
-従来のデータストリーミングには以下のような制約があります：
+従来のデータストリーミングには以下の制約が存在します：
 
-1. **コンテキストの喪失**：分散システム間でコンテキストを維持するのが困難
-2. **スケーラビリティの問題**：大量かつ高速なデータに対応するのが難しい
-3. **統合の複雑さ**：異なるシステム間の相互運用性の問題
-4. **遅延管理**：スループットと処理時間のバランス調整
-5. **データ整合性**：ストリーム全体でのデータの正確性と完全性の確保
+1. <strong>コンテキストの損失</strong>：分散システム間でのコンテキスト維持が困難
+2. <strong>スケーラビリティの問題</strong>：高ボリューム・高速度データへのスケール対応の難しさ
+3. <strong>統合の複雑さ</strong>：異なるシステム間の相互運用性の問題
+4. <strong>遅延管理</strong>：スループットと処理時間のバランス
+5. <strong>データ整合性</strong>：ストリーム全体でのデータの正確性と完全性の確保
 
-## Model Context Protocol（MCP）について理解する
+## モデルコンテキストプロトコル（MCP）の理解
 
-### MCPとは？
+### MCPとは何か？
 
-Model Context Protocol（MCP）は、AIモデルとアプリケーション間の効率的な通信を促進するための標準化されたプロトコルです。リアルタイムデータストリーミングの文脈では、以下を提供します：
+モデルコンテキストプロトコル（MCP）は、AIモデルとアプリケーション間で効率的な相互作用を促進するために設計された標準化通信プロトコルです。リアルタイムデータストリーミングの文脈において、MCPは以下を提供します：
 
-- データパイプライン全体でのコンテキストの保持
+- データパイプライン全体にわたるコンテキストの保持
 - データ交換フォーマットの標準化
-- 大規模データセットの伝送最適化
-- モデル間およびモデルとアプリケーション間の通信強化
+- 大規模データセットの伝送の最適化
+- モデル間およびモデルとアプリ間の通信の強化
 
-### 主要コンポーネントとアーキテクチャ
+### コアコンポーネントとアーキテクチャ
 
-リアルタイムストリーミング向けMCPのアーキテクチャは以下の主要コンポーネントで構成されます：
+リアルタイムストリーミング用のMCPアーキテクチャは以下の主要コンポーネントで構成されます：
 
-1. **Context Handlers**：ストリーミングパイプライン全体でコンテキスト情報を管理・維持
-2. **Stream Processors**：コンテキスト認識技術を用いて受信データストリームを処理
-3. **Protocol Adapters**：異なるストリーミングプロトコル間でコンテキストを保持しつつ変換
-4. **Context Store**：コンテキスト情報を効率的に保存・取得
-5. **Streaming Connectors**：Kafka、Pulsar、Kinesisなど様々なストリーミングプラットフォームに接続
+1. <strong>コンテキストハンドラ</strong>：ストリーミングパイプライン全体のコンテキスト情報を管理・維持
+2. <strong>ストリームプロセッサ</strong>：コンテキスト認識技術を用いてストリームデータを処理
+3. <strong>プロトコルアダプタ</strong>：異なるストリーミングプロトコル間の変換をコンテキストを保持しつつ実施
+4. <strong>コンテキストストア</strong>：効率的なコンテキスト情報の格納と取得
+5. <strong>ストリーミングコネクタ</strong>：Kafka、Pulsar、Kinesisなどのさまざまなストリーミングプラットフォームへの接続
 
 ```mermaid
 graph TD
-    subgraph "Data Sources"
-        IoT[IoT Devices]
-        APIs[APIs]
-        DB[Databases]
-        Apps[Applications]
+    subgraph "データソース"
+        IoT[IoTデバイス]
+        APIs[API]
+        DB[データベース]
+        Apps[アプリケーション]
     end
 
-    subgraph "MCP Streaming Layer"
-        SC[Streaming Connectors]
-        PA[Protocol Adapters]
-        CH[Context Handlers]
-        SP[Stream Processors]
-        CS[Context Store]
+    subgraph "MCPストリーミングレイヤー"
+        SC[ストリーミングコネクタ]
+        PA[プロトコルアダプター]
+        CH[コンテキストハンドラー]
+        SP[ストリームプロセッサ]
+        CS[コンテキストストア]
     end
 
-    subgraph "Processing & Analytics"
-        RT[Real-time Analytics]
-        ML[ML Models]
-        CEP[Complex Event Processing]
-        Viz[Visualization]
+    subgraph "処理と分析"
+        RT[リアルタイム分析]
+        ML[機械学習モデル]
+        CEP[複雑イベント処理]
+        Viz[可視化]
     end
 
-    subgraph "Applications & Services"
-        DA[Decision Automation]
-        Alerts[Alerting Systems]
-        DL[Data Lake/Warehouse]
-        API[API Services]
+    subgraph "アプリケーションとサービス"
+        DA[意思決定の自動化]
+        Alerts[アラートシステム]
+        DL[データレイク／ウェアハウス]
+        API[APIサービス]
     end
 
-    IoT -->|Data| SC
-    APIs -->|Data| SC
-    DB -->|Changes| SC
-    Apps -->|Events| SC
+    IoT -->|データ| SC
+    APIs -->|データ| SC
+    DB -->|変更| SC
+    Apps -->|イベント| SC
     
-    SC -->|Raw Streams| PA
-    PA -->|Normalized Streams| CH
-    CH <-->|Context Operations| CS
-    CH -->|Context-Enriched Data| SP
-    SP -->|Processed Streams| RT
-    SP -->|Features| ML
-    SP -->|Events| CEP
+    SC -->|生ストリーム| PA
+    PA -->|正規化ストリーム| CH
+    CH <-->|コンテキスト操作| CS
+    CH -->|コンテキスト付加データ| SP
+    SP -->|処理済みストリーム| RT
+    SP -->|特徴量| ML
+    SP -->|イベント| CEP
     
-    RT -->|Insights| Viz
-    ML -->|Predictions| DA
-    CEP -->|Complex Events| Alerts
-    Viz -->|Dashboards| Users((Users))
+    RT -->|インサイト| Viz
+    ML -->|予測| DA
+    CEP -->|複雑イベント| Alerts
+    Viz -->|ダッシュボード| Users((ユーザー))
     
-    RT -.->|Historical Data| DL
-    ML -.->|Model Results| DL
-    CEP -.->|Event Logs| DL
+    RT -.->|履歴データ| DL
+    ML -.->|モデル結果| DL
+    CEP -.->|イベントログ| DL
     
-    DA -->|Actions| API
-    Alerts -->|Notifications| API
-    DL <-->|Data Access| API
+    DA -->|アクション| API
+    Alerts -->|通知| API
+    DL <-->|データアクセス| API
     
     classDef sources fill:#f9f,stroke:#333,stroke-width:2px
     classDef mcp fill:#bbf,stroke:#333,stroke-width:2px
@@ -157,45 +157,45 @@ graph TD
 
 ### MCPがリアルタイムデータ処理を改善する方法
 
-MCPは従来のストリーミング課題に対して以下のように対応します：
+MCPは従来のストリーミングの課題に以下のように対処します：
 
-- **コンテキストの一貫性**：パイプライン全体でデータポイント間の関係性を維持
-- **伝送の最適化**：インテリジェントなコンテキスト管理によりデータ交換の冗長性を削減
-- **標準化されたインターフェース**：ストリーミングコンポーネント向けに一貫したAPIを提供
-- **遅延の削減**：効率的なコンテキスト処理でオーバーヘッドを最小化
-- **スケーラビリティの向上**：コンテキストを維持しつつ水平スケールをサポート
+- <strong>コンテキストの整合性</strong>：パイプライン全体でデータポイント間の関係を維持
+- <strong>伝送の最適化</strong>：知的なコンテキスト管理によってデータ交換の冗長性を削減
+- <strong>標準化されたインターフェース</strong>：ストリーミングコンポーネントに一貫したAPIを提供
+- <strong>遅延の削減</strong>：効率的なコンテキスト処理による処理負荷の最小化
+- <strong>スケーラビリティの強化</strong>：コンテキストを維持しながら水平スケールに対応
 
 ## 統合と実装
 
-リアルタイムデータストリーミングシステムは、パフォーマンスとコンテキストの一貫性を両立させるために慎重な設計と実装が必要です。Model Context Protocolは、AIモデルとストリーミング技術の統合に標準化されたアプローチを提供し、より高度でコンテキスト認識型の処理パイプラインを実現します。
+リアルタイムデータストリーミングシステムは、パフォーマンスとコンテキストの整合性を維持するために注意深いアーキテクチャ設計と実装が必要です。モデルコンテキストプロトコルは、AIモデルとストリーミング技術を統合するための標準化された手法を提供し、より高度でコンテキストに対応した処理パイプラインを可能にします。
 
-### ストリーミングアーキテクチャにおけるMCP統合の概要
+### ストリーミングアーキテクチャへのMCP統合の概要
 
-リアルタイムストリーミング環境でMCPを実装する際の主なポイントは以下の通りです：
+リアルタイムストリーミング環境にMCPを実装する際には以下の重要点があります：
 
-1. **コンテキストのシリアライズと伝送**：MCPはストリーミングデータパケット内でコンテキスト情報を効率的にエンコードする仕組みを提供し、重要なコンテキストが処理パイプライン全体に渡って保持されるようにします。これにはストリーミング伝送に最適化された標準化されたシリアライズフォーマットが含まれます。
+1. <strong>コンテキストのシリアライズと転送</strong>：MCPは、ストリーミングデータパケット内でのコンテキスト情報の効率的なエンコードメカニズムを提供し、重要なコンテキストが処理パイプライン全体に渡って追従することを保証します。これにはストリーミング伝送に最適化された標準化されたシリアライズフォーマットが含まれます。
 
-2. **ステートフルストリーム処理**：MCPは処理ノード間で一貫したコンテキスト表現を維持することで、より高度なステートフル処理を可能にします。これは従来ステート管理が難しかった分散ストリーミングアーキテクチャで特に有用です。
+2. <strong>ステートフルストリーム処理</strong>：MCPは処理ノード間で一貫したコンテキスト表現を維持することで、より高度なステートフル処理を可能にします。これは、伝統的に状態管理が困難であった分散ストリーミングアーキテクチャで特に有用です。
 
-3. **イベント時間と処理時間の区別**：MCP実装は、イベントが発生した時間と処理された時間の違いを扱う一般的な課題に対応します。プロトコルはイベント時間の意味を保持する時間的コンテキストを組み込むことができます。
+3. <strong>イベント時間と処理時間の区別</strong>：MCPのストリーミング実装は、イベントが発生した時間と処理が行われた時間を区別するという共通の課題に対処しなければなりません。プロトコルはイベント時間の意味を保持するための時間的コンテキストを含めることができます。
 
-4. **バックプレッシャー管理**：コンテキスト処理を標準化することで、MCPはストリーミングシステムのバックプレッシャー管理を支援し、コンポーネント間で処理能力を伝達し、フローを調整可能にします。
+4. <strong>バックプレッシャー管理</strong>：コンテキスト処理を標準化することで、MCPはストリーミングシステムのバックプレッシャー管理を助け、コンポーネントが処理能力を伝え、フローを適宜調整可能にします。
 
-5. **コンテキストウィンドウと集約**：MCPは時間的および関係的コンテキストの構造化された表現を提供し、より意味のあるイベントストリームの集約を可能にする高度なウィンドウ処理を促進します。
+5. <strong>コンテキストのウィンドウ処理と集約</strong>：MCPは時間的および関連的コンテキストの構造化された表現を提供することで、より意味のある集約を可能にする高度なウィンドウ処理操作を支援します。
 
-6. **Exactly-Once処理**：Exactly-onceセマンティクスが求められるストリーミングシステムでは、MCPは分散コンポーネント間で処理状態を追跡・検証するためのメタデータを組み込むことができます。
+6. **完全一回のみ処理（Exactly-Once Processing）**：完全一回の整合性を要するストリーミングシステムでは、MCPは処理の状態追跡と検証に役立つメタデータを組み込むことが可能です。
 
-様々なストリーミング技術にわたるMCPの実装は、カスタム統合コードの必要性を減らし、データがパイプラインを流れる中で意味のあるコンテキストを維持するシステムの能力を高める統一的なコンテキスト管理アプローチを生み出します。
+MCPの多数のストリーミング技術への実装は、カスタム統合コードの必要性を減らしながら、データがパイプラインを流れる際に有意義なコンテキストを維持するシステムの能力を強化します。
 
-### さまざまなデータストリーミングフレームワークにおけるMCP
+### 各種データストリーミングフレームワークにおけるMCP
 
-以下の例は、JSON-RPCベースのプロトコルと異なる伝送メカニズムに焦点を当てた現行のMCP仕様に準拠しています。コードはKafkaやPulsarなどのストリーミングプラットフォームを統合しつつ、MCPプロトコルとの完全な互換性を保つカスタム伝送の実装方法を示しています。
+以下の例は、JSON-RPCベースのプロトコルに特化した現在のMCP仕様に従い、さまざまな転送メカニズムを備えています。コードはKafkaやPulsarなどのストリーミングプラットフォームと統合しながら、MCPプロトコルとの完全な互換性を保つカスタム転送を実装する方法を示しています。
 
-これらの例は、ストリーミングプラットフォームがMCPと連携してリアルタイムデータ処理を行い、MCPの中心であるコンテキスト認識を維持する方法を示すことを目的としています。このアプローチにより、コードサンプルは2025年6月時点のMCP仕様の現状を正確に反映しています。
+これらの例は、MCPの中核であるコンテキスト認識を維持しつつ、リアルタイムデータ処理を提供するためにストリーミングプラットフォームをどのように統合できるかを示すよう設計されています。このアプローチにより、コードサンプルは2025年6月時点でのMCP仕様の現状を正確に反映しています。
 
-MCPは以下のような人気のストリーミングフレームワークと統合可能です：
+MCPは以下の一般的なストリーミングフレームワークに統合可能です：
 
-#### Apache Kafka統合
+#### Apache Kafka 統合
 
 ```python
 import asyncio
@@ -206,7 +206,7 @@ from mcp.client import Client, ClientCapabilities
 from mcp.core.message import JsonRpcMessage
 from mcp.core.transports import Transport
 
-# Custom transport class to bridge MCP with Kafka
+# MCPとKafkaを橋渡しするカスタムトランスポートクラス
 class KafkaMCPTransport(Transport):
     def __init__(self, bootstrap_servers: str, input_topic: str, output_topic: str):
         self.bootstrap_servers = bootstrap_servers
@@ -244,7 +244,7 @@ class KafkaMCPTransport(Transport):
                     print(f"Consumer error: {msg.error()}")
                     continue
                 
-                # Parse the message value as JSON-RPC
+                # メッセージの値をJSON-RPCとして解析する
                 try:
                     message_str = msg.value().decode('utf-8')
                     message_data = json.loads(message_str)
@@ -274,7 +274,7 @@ class KafkaMCPTransport(Transport):
                 message_json.encode('utf-8'),
                 callback=self._delivery_report
             )
-            self.producer.poll(0)  # Trigger callbacks
+            self.producer.poll(0)  # コールバックをトリガーする
         except Exception as e:
             print(f"Error writing message: {e}")
     
@@ -297,15 +297,15 @@ class KafkaMCPTransport(Transport):
         self.consumer.close()
         self.producer.flush()
 
-# Example usage of the Kafka MCP transport
+# Kafka MCPトランスポートの使用例
 async def kafka_mcp_example():
-    # Create MCP client with Kafka transport
+    # KafkaトランスポートでMCPクライアントを作成する
     client = Client(
         {"name": "kafka-mcp-client", "version": "1.0.0"},
         ClientCapabilities({})
     )
     
-    # Create and connect the Kafka transport
+    # Kafkaトランスポートを作成して接続する
     transport = KafkaMCPTransport(
         bootstrap_servers="localhost:9092",
         input_topic="mcp-responses",
@@ -315,10 +315,10 @@ async def kafka_mcp_example():
     await client.connect(transport)
     
     try:
-        # Initialize the MCP session
+        # MCPセッションを初期化する
         await client.initialize()
         
-        # Example of executing a tool via MCP
+        # MCPを介してツールを実行する例
         response = await client.execute_tool(
             "process_data",
             {
@@ -332,17 +332,17 @@ async def kafka_mcp_example():
         
         print(f"Tool execution response: {response}")
         
-        # Clean shutdown
+        # クリーンシャットダウン
         await client.shutdown()
     finally:
         await transport.close()
 
-# Run the example
+# 例を実行する
 if __name__ == "__main__":
     asyncio.run(kafka_mcp_example())
 ```
 
-#### Apache Pulsar実装
+#### Apache Pulsar 実装
 
 ```python
 import asyncio
@@ -354,7 +354,7 @@ from mcp.core.transports import Transport
 from mcp.server import Server, ServerOptions
 from mcp.server.tools import Tool, ToolExecutionContext, ToolMetadata
 
-# Create a custom MCP transport that uses Pulsar
+# Pulsarを使用するカスタムMCPトランスポートを作成する
 class PulsarMCPTransport(Transport):
     def __init__(self, service_url: str, request_topic: str, response_topic: str):
         self.service_url = service_url
@@ -381,24 +381,24 @@ class PulsarMCPTransport(Transport):
         """Background task to consume messages from Pulsar and queue them for processing"""
         while self.running:
             try:
-                # Non-blocking receive with timeout
+                # タイムアウト付きノンブロッキング受信
                 msg = self.consumer.receive(timeout_millis=500)
                 
-                # Process the message
+                # メッセージを処理する
                 try:
                     message_str = msg.data().decode('utf-8')
                     message_data = json.loads(message_str)
                     mcp_message = JsonRpcMessage.from_dict(message_data)
                     await self.message_queue.put(mcp_message)
                     
-                    # Acknowledge the message
+                    # メッセージを確認（ACK）する
                     self.consumer.acknowledge(msg)
                 except Exception as e:
                     print(f"Error processing message: {e}")
-                    # Negative acknowledge if there was an error
+                    # エラーがあった場合にネガティブ確認（NACK）する
                     self.consumer.negative_acknowledge(msg)
             except Exception as e:
-                # Handle timeout or other exceptions
+                # タイムアウトやその他の例外を処理する
                 await asyncio.sleep(0.1)
     
     async def read(self) -> Optional[JsonRpcMessage]:
@@ -431,7 +431,7 @@ class PulsarMCPTransport(Transport):
         self.producer.close()
         self.client.close()
 
-# Define a sample MCP tool that processes streaming data
+# ストリーミングデータを処理するサンプルMCPツールを定義する
 @Tool(
     name="process_streaming_data",
     description="Process streaming data with context preservation",
@@ -457,13 +457,13 @@ async def process_streaming_data(
     Returns:
         Dict containing processed results and context information
     """
-    # Example processing that leverages MCP context
+    # MCPコンテキストを活用する処理の例
     print(f"Processing data from {source} with priority {priority}")
     
-    # Access conversation context from MCP
+    # MCPから会話コンテキストにアクセスする
     conversation_id = ctx.conversation_id if hasattr(ctx, 'conversation_id') else "unknown"
     
-    # Return results with enhanced context
+    # 強化されたコンテキストで結果を返す
     return {
         "processed_data": f"Processed: {data}",
         "context": {
@@ -474,9 +474,9 @@ async def process_streaming_data(
         }
     }
 
-# Example MCP server implementation using Pulsar transport
+# Pulsarトランスポートを使用したMCPサーバーの実装例
 async def run_mcp_server_with_pulsar():
-    # Create MCP server
+    # MCPサーバーを作成する
     server = Server(
         {"name": "pulsar-mcp-server", "version": "1.0.0"},
         ServerOptions(
@@ -484,10 +484,10 @@ async def run_mcp_server_with_pulsar():
         )
     )
     
-    # Register our tool
+    # ツールを登録する
     server.register_tool(process_streaming_data)
     
-    # Create and connect Pulsar transport
+    # Pulsarトランスポートを作成して接続する
     transport = PulsarMCPTransport(
         service_url="pulsar://localhost:6650",
         request_topic="mcp-requests",
@@ -495,48 +495,48 @@ async def run_mcp_server_with_pulsar():
     )
     
     try:
-        # Start the server with the Pulsar transport
+        # Pulsarトランスポートでサーバーを起動する
         await server.run(transport)
     finally:
         await transport.close()
 
-# Run the server
+# サーバーを実行する
 if __name__ == "__main__":
     asyncio.run(run_mcp_server_with_pulsar())
 ```
 
-### 展開のベストプラクティス
+### 展開におけるベストプラクティス
 
 リアルタイムストリーミングにMCPを実装する際は：
 
-1. **フォールトトレランス設計**：
+1. <strong>フォールトトレランス設計</strong>：
    - 適切なエラーハンドリングを実装
-   - 失敗メッセージ用のデッドレターキューを使用
+   - 失敗したメッセージ向けのデッドレターキューを使用
    - 冪等性のあるプロセッサを設計
 
-2. **パフォーマンス最適化**：
+2. <strong>パフォーマンス最適化</strong>：
    - 適切なバッファサイズを設定
-   - 適宜バッチ処理を活用
-   - バックプレッシャーメカニズムを実装
+   - 適切な箇所でバッチ処理を利用
+   - バックプレッシャーメカニズムを導入
 
-3. **監視と観測**：
+3. <strong>監視と観測</strong>：
    - ストリーム処理のメトリクスを追跡
    - コンテキスト伝播を監視
-   - 異常検知のためのアラート設定
+   - 異常検知のアラート設定
 
-4. **ストリームのセキュリティ確保**：
-   - 機密データの暗号化を実施
+4. <strong>ストリームのセキュリティ確保</strong>：
+   - センシティブデータの暗号化を実施
    - 認証と認可を適用
-   - 適切なアクセス制御を行う
+   - 適切なアクセス制御を導入
 
 ### IoTおよびエッジコンピューティングにおけるMCP
 
 MCPはIoTストリーミングを以下のように強化します：
 
-- 処理パイプライン全体でデバイスコンテキストを保持
+- 処理パイプライン全体でのデバイスコンテキストの保持
 - 効率的なエッジからクラウドへのデータストリーミングを可能に
-- IoTデータストリームのリアルタイム分析をサポート
-- コンテキストを伴うデバイス間通信を促進
+- IoTデータストリームのリアルタイム分析を支援
+- コンテキストを伴ったデバイス間通信を促進
 
 例：スマートシティのセンサーネットワーク  
 ```
@@ -545,92 +545,95 @@ Sensors → Edge Gateways → MCP Stream Processors → Real-time Analytics → 
 
 ### 金融取引および高頻度取引における役割
 
-MCPは金融データストリーミングにおいて以下の大きな利点を提供します：
+MCPは金融データストリーミングにおいて次のような大きな利点を提供します：
 
 - 取引判断のための超低遅延処理
-- 処理全体での取引コンテキストの維持
-- コンテキスト認識を伴う複雑なイベント処理のサポート
-- 分散取引システム全体でのデータ整合性の確保
+- 処理全体で取引コンテキストの維持
+- コンテキスト認識を伴う複雑イベント処理のサポート
+- 分散取引システム全体でのデータ整合性確保
 
-### AI駆動のデータ分析の強化
+### AI駆動データ分析の強化
 
-MCPはストリーミング分析に新たな可能性をもたらします：
+MCPはストリーミング分析に新たな可能性を生み出します：
 
 - リアルタイムのモデル学習と推論
-- ストリーミングデータからの継続的学習
-- コンテキスト認識型の特徴抽出
-- コンテキストを保持したマルチモデル推論パイプライン
+- ストリーミングデータからの継続的な学習
+- コンテキスト認識による特徴抽出
+- コンテキスト保持されたマルチモデル推論パイプライン
 
 ## 将来の動向と革新
 
 ### リアルタイム環境におけるMCPの進化
 
-今後、MCPは以下の課題に対応して進化すると予想されます：
+今後はMCPが以下に対応して進化すると予測されます：
 
-- **量子コンピューティング統合**：量子ベースのストリーミングシステムへの対応準備
-- **エッジネイティブ処理**：より多くのコンテキスト認識処理をエッジデバイスに移行
-- **自律的ストリーム管理**：自己最適化型ストリーミングパイプライン
-- **フェデレーテッドストリーミング**：プライバシーを保護しつつ分散処理を実現
+- <strong>量子コンピューティング統合</strong>：量子ベースのストリーミングシステムに備える
+- <strong>エッジネイティブ処理</strong>：より多くのコンテキスト認識処理をエッジデバイスに移す
+- <strong>自律的ストリーム管理</strong>：自己最適化されるストリーミングパイプライン
+- <strong>フェデレーテッドストリーミング</strong>：プライバシーを保護しつつ分散処理を実現
 
-### 技術の潜在的な進歩
+### 技術の将来的な進歩の可能性
 
 MCPストリーミングの未来を形作る新興技術：
 
-1. **AI最適化ストリーミングプロトコル**：AIワークロード向けに特化したカスタムプロトコル
-2. **ニューロモルフィックコンピューティング統合**：脳を模倣した計算によるストリーム処理
-3. **サーバーレスストリーミング**：インフラ管理不要のイベント駆動型スケーラブルストリーミング
-4. **分散コンテキストストア**：グローバルに分散しつつ高い整合性を持つコンテキスト管理
+1. **AI最適化ストリーミングプロトコル**：AIワークロード専用に設計されたカスタムプロトコル
+2. <strong>ニューロモルフィックコンピューティング統合</strong>：脳に着想を得たストリーム処理用コンピューティング
+3. <strong>サーバーレスストリーミング</strong>：インフラ管理不要のイベント駆動・スケーラブルなストリーミング
+4. <strong>分散コンテキストストア</strong>：グローバルに分散しながらも高い整合性を持つコンテキスト管理
 
 ## ハンズオン演習
 
-### 演習1：基本的なMCPストリーミングパイプラインの構築
+### 演習1：基本的なMCPストリーミングパイプラインのセットアップ
 
-この演習では、以下の内容を学習します。
-- 基本的な MCP ストリーミング環境の構成
-- ストリーム処理のためのコンテキストハンドラの実装
+この演習では以下を学びます：
+- 基本的なMCPストリーミング環境の設定
+- ストリーム処理用のコンテキストハンドラ実装
 - コンテキスト保持のテストと検証
 
 ### 演習2：リアルタイム分析ダッシュボードの構築
 
-以下の機能を備えた完全なアプリケーションを作成します。
-- MCP を使用してストリーミングデータを取り込む
-- コンテキストを維持しながらストリームを処理する
-- 結果をリアルタイムで可視化する
+以下を行う完全なアプリケーションを作成：
+- MCPを用いたストリーミングデータの取り込み
+- コンテキストを維持しながらストリーム処理
+- 結果をリアルタイムで可視化
 
-### 演習3：MCP を使用した複合イベント処理の実装
+### 演習3：MCPによる複雑イベント処理の実装
 
-以下の内容を網羅した高度な演習です。
-- ストリーム内のパターン検出
-- 複数のストリームにわたるコンテキスト相関
-- コンテキストを保持した複合イベントの生成
+高度な演習内容：
+- ストリームにおけるパターン検出
+- 複数ストリーム間のコンテキスト関連付け
+- コンテキストを保持した複雑イベントの生成
 
-## その他のリソース
+## 追加リソース
 
-- [Model Context Protocol 仕様](https://github.com/modelcontextprotocol) - 公式 MCP 仕様およびドキュメント
-- [Apache Kafka ドキュメント](https://kafka.apache.org/documentation/) - ストリーム処理のための Kafka について学ぶ
-- [Apache Pulsar](https://pulsar.apache.org/) - 統合メッセージングおよびストリーミングプラットフォーム
-- [Streaming Systems: The What, Where, When, and How of Large-Scale Data Processing](https://www.oreilly.com/library/view/streaming-systems/9781491983867/) - ストリーミングアーキテクチャに関する包括的な書籍
-- [Microsoft Azure Event Hubs](https://learn.microsoft.com/azure/event-hubs/event-hubs-about) - マネージドイベントストリーミングサービス
-- [MLflow ドキュメント](https://mlflow.org/docs/latest/index.html) - 機械学習モデルの追跡とデプロイについて
-- [Apache Storm によるリアルタイム分析](https://storm.apache.org/releases/current/index.html) - リアルタイム計算のための処理フレームワーク
-- [Flink ML](https://nightlies.apache.org/flink/flink-ml-docs-master/) - Apache Flink 用の機械学習ライブラリ
-- [LangChain ドキュメント](https://python.langchain.com/docs/get_started/introduction) - LLM を使用したアプリケーションの構築
-
+- [Model Context Protocol Specification](https://modelcontextprotocol.io) - 公式MCP仕様およびドキュメント
+- [Apache Kafka Documentation](https://kafka.apache.org/documentation/) - Kafkaによるストリーム処理の学習
+- [Apache Pulsar](https://pulsar.apache.org/) - 統一メッセージングおよびストリーミングプラットフォーム
+- [Streaming Systems: The What, Where, When, and How of Large-Scale Data Processing](https://www.oreilly.com/library/view/streaming-systems/9781491983867/) - ストリーミングアーキテクチャの包括的な書籍
+- [Microsoft Azure Event Hubs](https://learn.microsoft.com/azure/event-hubs/event-hubs-about) - 管理されたイベントストリーミングサービス
+- [MLflow Documentation](https://mlflow.org/docs/latest/index.html) - MLモデルのトラッキングとデプロイ
+- [Real-Time Analytics with Apache Storm](https://storm.apache.org/releases/current/index.html) - リアルタイムコンピューティング向け処理フレームワーク
+- [Flink ML](https://nightlies.apache.org/flink/flink-ml-docs-master/) - Apache Flink向け機械学習ライブラリ
+- [LangChain Documentation](https://python.langchain.com/docs/get_started/introduction) - LLMを用いたアプリケーション構築
 
 ## 学習成果
 
-このモジュールを修了すると、以下のことができるようになります。
+このモジュールを修了することで、以下ができるようになります：
 
-- リアルタイムデータストリーミングの基本と課題を理解する
-- モデルコンテキストプロトコル（MCP）がリアルタイムデータストリーミングをどのように強化するかを説明する
-- KafkaやPulsarなどの一般的なフレームワークを使用して、MCPベースのストリーミングソリューションを実装する
-- MCPを使用して、耐障害性と高性能を備えたストリーミングアーキテクチャを設計およびデプロイする
-- IoT、金融取引、AI駆動型分析のユースケースにMCPの概念を適用する
-- MCPベースのストリーミング技術における新たなトレンドと将来のイノベーションを評価する
+- リアルタイムデータストリーミングの基礎と課題を理解する
+- モデルコンテキストプロトコル（MCP）がリアルタイムデータストリーミングをどのように強化するか説明する
+- KafkaやPulsarなどの一般的なフレームワークを使用してMCP基盤のストリーミングソリューションを実装する
+- MCPを用いたフォールトトレラントかつ高性能なストリーミングアーキテクチャを設計・展開する
+- MCPの概念をIoT、金融取引、AI駆動分析ユースケースに適用する
+- MCPベースのストリーミング技術における新たな動向と将来の革新を評価する
 
-## 次のステップ
+## 次に学ぶこと
 
 - [5.11 リアルタイム検索](../mcp-realtimesearch/README.md)
 
-**免責事項**：  
-本書類はAI翻訳サービス「[Co-op Translator](https://github.com/Azure/co-op-translator)」を使用して翻訳されました。正確性の向上に努めておりますが、自動翻訳には誤りや不正確な部分が含まれる可能性があります。原文の言語によるオリジナル文書が正式な情報源とみなされるべきです。重要な情報については、専門の人間による翻訳を推奨します。本翻訳の利用により生じたいかなる誤解や誤訳についても、当方は一切の責任を負いかねます。
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**免責事項**：
+本書類は AI 翻訳サービス [Co-op Translator](https://github.com/Azure/co-op-translator) を使用して翻訳されています。正確性を期していますが、自動翻訳には誤りや不正確な部分が含まれる可能性があることをご承知おきください。原文の原語版が正式な情報源とみなされるべきです。重要な情報については、専門の人間による翻訳を推奨します。本翻訳の利用により生じたいかなる誤解や解釈違いについても、当方は責任を負いかねます。
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

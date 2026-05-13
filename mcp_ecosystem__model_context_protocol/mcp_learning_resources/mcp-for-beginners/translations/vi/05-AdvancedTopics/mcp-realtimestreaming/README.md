@@ -1,148 +1,148 @@
-# Model Context Protocol cho Truyền Dữ Liệu Thời Gian Thực
+# Giao Thức Ngữ Cảnh Mô Hình cho Truyền Dữ Liệu Thời Gian Thực
 
-## Tổng quan
+## Tổng Quan
 
-Truyền dữ liệu thời gian thực đã trở thành yếu tố thiết yếu trong thế giới dựa trên dữ liệu ngày nay, nơi các doanh nghiệp và ứng dụng cần truy cập thông tin ngay lập tức để đưa ra quyết định kịp thời. Model Context Protocol (MCP) đại diện cho một bước tiến quan trọng trong việc tối ưu hóa các quy trình truyền dữ liệu thời gian thực, nâng cao hiệu quả xử lý dữ liệu, duy trì tính toàn vẹn ngữ cảnh và cải thiện hiệu suất tổng thể của hệ thống.
+Truyền dữ liệu thời gian thực đã trở thành điều thiết yếu trong thế giới dựa trên dữ liệu ngày nay, nơi các doanh nghiệp và ứng dụng cần truy cập thông tin ngay lập tức để đưa ra các quyết định kịp thời. Giao Thức Ngữ Cảnh Mô Hình (MCP) đại diện cho một bước tiến đáng kể trong việc tối ưu hóa các quy trình truyền dữ liệu thời gian thực này, nâng cao hiệu quả xử lý dữ liệu, duy trì tính toàn vẹn ngữ cảnh và cải thiện hiệu suất tổng thể của hệ thống.
 
-Module này khám phá cách MCP thay đổi truyền dữ liệu thời gian thực bằng cách cung cấp một phương pháp chuẩn hóa quản lý ngữ cảnh giữa các mô hình AI, nền tảng truyền dữ liệu và ứng dụng.
+Mô-đun này khám phá cách MCP biến đổi truyền dữ liệu thời gian thực bằng cách cung cấp một cách tiếp cận chuẩn hóa quản lý ngữ cảnh trên các mô hình AI, nền tảng streaming và ứng dụng.
 
-## Giới thiệu về Truyền Dữ Liệu Thời Gian Thực
+## Giới Thiệu về Truyền Dữ Liệu Thời Gian Thực
 
-Truyền dữ liệu thời gian thực là một mô hình công nghệ cho phép chuyển, xử lý và phân tích dữ liệu liên tục ngay khi dữ liệu được tạo ra, giúp hệ thống phản ứng ngay lập tức với thông tin mới. Khác với xử lý theo lô truyền thống hoạt động trên tập dữ liệu tĩnh, truyền dữ liệu thời gian thực xử lý dữ liệu đang di chuyển, cung cấp thông tin và hành động với độ trễ tối thiểu.
+Truyền dữ liệu thời gian thực là một mô hình công nghệ cho phép chuyển tiếp, xử lý và phân tích dữ liệu liên tục khi nó được tạo ra, cho phép hệ thống phản ứng ngay lập tức với thông tin mới. Khác với xử lý theo lô truyền thống hoạt động trên bộ dữ liệu tĩnh, truyền dữ liệu streaming xử lý dữ liệu khi nó chuyển động, cung cấp thông tin và hành động với độ trễ tối thiểu.
 
-### Các khái niệm cốt lõi của Truyền Dữ Liệu Thời Gian Thực:
+### Các Khái Niệm Cốt Lõi của Truyền Dữ Liệu Thời Gian Thực:
 
-- **Dòng dữ liệu liên tục**: Dữ liệu được xử lý như một dòng sự kiện hoặc bản ghi không ngừng nghỉ.
-- **Xử lý độ trễ thấp**: Hệ thống được thiết kế để giảm thiểu thời gian giữa việc tạo dữ liệu và xử lý.
-- **Khả năng mở rộng**: Kiến trúc truyền dữ liệu phải xử lý được khối lượng và tốc độ dữ liệu biến đổi.
-- **Khả năng chịu lỗi**: Hệ thống cần có khả năng chống chịu sự cố để đảm bảo dòng dữ liệu không bị gián đoạn.
-- **Xử lý có trạng thái**: Duy trì ngữ cảnh xuyên suốt các sự kiện là điều quan trọng để phân tích có ý nghĩa.
+- **Luồng Dữ Liệu Liên Tục**: Dữ liệu được xử lý như một luồng sự kiện hoặc bản ghi liên tục, không bao giờ kết thúc.
+- **Xử Lý Độ Trễ Thấp**: Hệ thống được thiết kế để giảm thiểu thời gian giữa việc tạo dữ liệu và xử lý.
+- **Khả Năng Mở Rộng**: Kiến trúc streaming phải xử lý được khối lượng và tốc độ dữ liệu biến đổi.
+- **Chịu Lỗi Tốt**: Hệ thống cần khả năng chống chịu sự cố để đảm bảo luồng dữ liệu không bị gián đoạn.
+- **Xử Lý Có Trạng Thái**: Duy trì ngữ cảnh xuyên suốt các sự kiện là điều cần thiết cho phân tích có ý nghĩa.
 
-### Model Context Protocol và Truyền Dữ Liệu Thời Gian Thực
+### Giao Thức Ngữ Cảnh Mô Hình và Truyền Dữ Liệu Thời Gian Thực
 
-Model Context Protocol (MCP) giải quyết một số thách thức quan trọng trong môi trường truyền dữ liệu thời gian thực:
+Giao Thức Ngữ Cảnh Mô Hình (MCP) giải quyết nhiều thách thức quan trọng trong môi trường truyền dữ liệu thời gian thực:
 
-1. **Liên tục ngữ cảnh**: MCP chuẩn hóa cách duy trì ngữ cảnh giữa các thành phần truyền dữ liệu phân tán, đảm bảo các mô hình AI và nút xử lý có quyền truy cập vào ngữ cảnh lịch sử và môi trường liên quan.
+1. **Liên Tục Ngữ Cảnh**: MCP chuẩn hóa cách duy trì ngữ cảnh giữa các thành phần streaming phân tán, đảm bảo các mô hình AI và nút xử lý có quyền truy cập vào ngữ cảnh lịch sử và môi trường phù hợp.
 
-2. **Quản lý trạng thái hiệu quả**: Bằng cách cung cấp cơ chế có cấu trúc cho việc truyền ngữ cảnh, MCP giảm tải quản lý trạng thái trong các pipeline truyền dữ liệu.
+2. **Quản Lý Trạng Thái Hiệu Quả**: Bằng cách cung cấp cơ chế có cấu trúc để truyền tải ngữ cảnh, MCP giảm tải quản lý trạng thái trong các pipeline streaming.
 
-3. **Tính tương tác**: MCP tạo ra ngôn ngữ chung để chia sẻ ngữ cảnh giữa các công nghệ truyền dữ liệu và mô hình AI đa dạng, cho phép kiến trúc linh hoạt và mở rộng hơn.
+3. **Tương Tác Đa Nền Tảng**: MCP tạo ra ngôn ngữ chung để chia sẻ ngữ cảnh giữa các công nghệ streaming và mô hình AI đa dạng, cho phép kiến trúc linh hoạt và dễ mở rộng hơn.
 
-4. **Ngữ cảnh tối ưu cho truyền dữ liệu**: Các triển khai MCP có thể ưu tiên những yếu tố ngữ cảnh quan trọng nhất cho việc ra quyết định thời gian thực, tối ưu cả về hiệu suất và độ chính xác.
+4. **Ngữ Cảnh Tối Ưu cho Streaming**: Các triển khai MCP có thể ưu tiên những phần tử ngữ cảnh có liên quan nhất cho quyết định thời gian thực, tối ưu hóa cả hiệu suất lẫn độ chính xác.
 
-5. **Xử lý thích ứng**: Với quản lý ngữ cảnh đúng cách qua MCP, hệ thống truyền dữ liệu có thể điều chỉnh xử lý một cách linh hoạt dựa trên điều kiện và mẫu dữ liệu thay đổi.
+5. **Xử Lý Thích Ứng**: Nhờ quản lý ngữ cảnh đúng cách qua MCP, hệ thống streaming có thể điều chỉnh xử lý dựa trên điều kiện và mẫu dữ liệu đang thay đổi.
 
-Trong các ứng dụng hiện đại từ mạng cảm biến IoT đến nền tảng giao dịch tài chính, việc tích hợp MCP với công nghệ truyền dữ liệu giúp xử lý thông minh hơn, nhận biết ngữ cảnh và phản ứng phù hợp với các tình huống phức tạp, thay đổi liên tục trong thời gian thực.
+Trong các ứng dụng hiện đại từ mạng cảm biến IoT đến nền tảng giao dịch tài chính, tích hợp MCP với công nghệ streaming cho phép xử lý thông minh, nhận thức ngữ cảnh và phản ứng phù hợp với các tình huống phức tạp, biến đổi trong thời gian thực.
 
-## Mục tiêu học tập
+## Mục Tiêu Học Tập
 
-Kết thúc bài học này, bạn sẽ có khả năng:
+Sau bài học này, bạn sẽ có thể:
 
-- Hiểu các nguyên lý cơ bản của truyền dữ liệu thời gian thực và những thách thức liên quan
-- Giải thích cách Model Context Protocol (MCP) nâng cao truyền dữ liệu thời gian thực
-- Triển khai các giải pháp truyền dữ liệu dựa trên MCP sử dụng các framework phổ biến như Kafka và Pulsar
-- Thiết kế và triển khai kiến trúc truyền dữ liệu chịu lỗi, hiệu suất cao với MCP
+- Hiểu các nguyên lý cơ bản của truyền dữ liệu thời gian thực và những thách thức của nó
+- Giải thích cách Giao Thức Ngữ Cảnh Mô Hình (MCP) nâng cao truyền dữ liệu thời gian thực
+- Triển khai các giải pháp streaming dựa trên MCP với các framework phổ biến như Kafka và Pulsar
+- Thiết kế và triển khai kiến trúc streaming chịu lỗi, hiệu suất cao với MCP
 - Áp dụng các khái niệm MCP vào các trường hợp sử dụng IoT, giao dịch tài chính và phân tích dữ liệu dựa trên AI
-- Đánh giá các xu hướng mới nổi và đổi mới tương lai trong công nghệ truyền dữ liệu dựa trên MCP
+- Đánh giá các xu hướng mới nổi và đổi mới trong công nghệ streaming dựa trên MCP
 
-### Định nghĩa và Ý nghĩa
+### Định Nghĩa và Ý Nghĩa
 
-Truyền dữ liệu thời gian thực bao gồm việc tạo, xử lý và truyền dữ liệu liên tục với độ trễ tối thiểu. Khác với xử lý theo lô, nơi dữ liệu được thu thập và xử lý theo nhóm, dữ liệu truyền được xử lý từng phần khi nó đến, cho phép có được thông tin và hành động ngay lập tức.
+Truyền dữ liệu thời gian thực liên quan đến việc tạo ra, xử lý và phân phối dữ liệu liên tục với độ trễ tối thiểu. Khác với xử lý theo lô, nơi dữ liệu được thu thập và xử lý theo nhóm, dữ liệu streaming được xử lý từng phần khi nó đến, cho phép có được thông tin và hành động ngay lập tức.
 
 Các đặc điểm chính của truyền dữ liệu thời gian thực bao gồm:
 
-- **Độ trễ thấp**: Xử lý và phân tích dữ liệu trong vòng vài mili giây đến vài giây
-- **Dòng dữ liệu liên tục**: Dòng dữ liệu không gián đoạn từ nhiều nguồn khác nhau
-- **Xử lý ngay lập tức**: Phân tích dữ liệu ngay khi nó đến thay vì theo lô
-- **Kiến trúc hướng sự kiện**: Phản ứng với các sự kiện ngay khi chúng xảy ra
+- **Độ Trễ Thấp**: Xử lý và phân tích dữ liệu trong vòng vài mili giây đến giây
+- **Luồng Liên Tục**: Dữ liệu chảy không ngừng từ nhiều nguồn
+- **Xử Lý Ngay Lập Tức**: Phân tích dữ liệu ngay khi nó đến thay vì theo lô
+- **Kiến Trúc Sự Kiện**: Phản ứng với các sự kiện ngay khi chúng xảy ra
 
-### Thách thức trong truyền dữ liệu truyền thống
+### Thách Thức Trong Truyền Dữ Liệu Truyền Thống
 
-Các phương pháp truyền dữ liệu truyền thống gặp phải một số hạn chế:
+Các phương pháp truyền dữ liệu truyền thống đối mặt với nhiều hạn chế:
 
-1. **Mất ngữ cảnh**: Khó khăn trong việc duy trì ngữ cảnh xuyên suốt các hệ thống phân tán
-2. **Vấn đề mở rộng**: Thách thức trong việc mở rộng để xử lý dữ liệu với khối lượng và tốc độ cao
-3. **Phức tạp trong tích hợp**: Khó khăn trong việc tương tác giữa các hệ thống khác nhau
-4. **Quản lý độ trễ**: Cân bằng giữa thông lượng và thời gian xử lý
-5. **Tính nhất quán dữ liệu**: Đảm bảo độ chính xác và đầy đủ của dữ liệu xuyên suốt dòng dữ liệu
+1. **Mất Ngữ Cảnh**: Khó khăn trong việc duy trì ngữ cảnh giữa các hệ thống phân tán
+2. **Vấn đề Khả Năng Mở Rộng**: Thách thức trong việc mở rộng để xử lý dữ liệu với khối lượng và tốc độ cao
+3. **Phức Tạp Tích Hợp**: Vấn đề tương tác giữa các hệ thống khác nhau
+4. **Quản Lý Độ Trễ**: Cân bằng giữa lưu lượng truyền và thời gian xử lý
+5. **Độ Chính Xác Dữ Liệu**: Đảm bảo dữ liệu chính xác và đầy đủ trên toàn bộ luồng
 
-## Hiểu về Model Context Protocol (MCP)
+## Hiểu Về Giao Thức Ngữ Cảnh Mô Hình (MCP)
 
 ### MCP là gì?
 
-Model Context Protocol (MCP) là một giao thức truyền thông chuẩn hóa được thiết kế để tạo điều kiện cho sự tương tác hiệu quả giữa các mô hình AI và ứng dụng. Trong bối cảnh truyền dữ liệu thời gian thực, MCP cung cấp một khung làm việc cho:
+Giao Thức Ngữ Cảnh Mô Hình (MCP) là một giao thức truyền thông chuẩn hóa được thiết kế để hỗ trợ tương tác hiệu quả giữa các mô hình AI và ứng dụng. Trong bối cảnh truyền dữ liệu thời gian thực, MCP cung cấp một khung để:
 
-- Bảo tồn ngữ cảnh xuyên suốt pipeline dữ liệu
+- Bảo toàn ngữ cảnh trong suốt pipeline dữ liệu
 - Chuẩn hóa định dạng trao đổi dữ liệu
-- Tối ưu hóa việc truyền tải các bộ dữ liệu lớn
-- Nâng cao giao tiếp giữa mô hình với mô hình và mô hình với ứng dụng
+- Tối ưu hóa truyền tải các bộ dữ liệu lớn
+- Nâng cao giao tiếp giữa mô hình với mô hình và giữa mô hình với ứng dụng
 
-### Các thành phần chính và kiến trúc
+### Thành Phần Chính và Kiến Trúc
 
-Kiến trúc MCP cho truyền dữ liệu thời gian thực bao gồm một số thành phần chính:
+Kiến trúc MCP cho truyền dữ liệu thời gian thực gồm các thành phần chính:
 
-1. **Context Handlers**: Quản lý và duy trì thông tin ngữ cảnh xuyên suốt pipeline truyền dữ liệu
-2. **Stream Processors**: Xử lý các luồng dữ liệu đến bằng các kỹ thuật nhận biết ngữ cảnh
-3. **Protocol Adapters**: Chuyển đổi giữa các giao thức truyền dữ liệu khác nhau trong khi vẫn giữ nguyên ngữ cảnh
-4. **Context Store**: Lưu trữ và truy xuất thông tin ngữ cảnh một cách hiệu quả
-5. **Streaming Connectors**: Kết nối với các nền tảng truyền dữ liệu khác nhau (Kafka, Pulsar, Kinesis, v.v.)
+1. **Bộ Xử Lý Ngữ Cảnh**: Quản lý và duy trì thông tin ngữ cảnh khắp pipeline streaming
+2. **Bộ Xử Lý Luồng Dữ Liệu**: Xử lý dữ liệu streaming tới bằng kỹ thuật nhận thức ngữ cảnh
+3. **Bộ Chuyển Đổi Giao Thức**: Chuyển đổi giữa các giao thức streaming khác nhau trong khi giữ nguyên ngữ cảnh
+4. **Kho Ngữ Cảnh**: Lưu trữ và truy xuất thông tin ngữ cảnh hiệu quả
+5. **Kết Nối Streaming**: Kết nối với các nền tảng streaming khác nhau (Kafka, Pulsar, Kinesis, v.v.)
 
 ```mermaid
 graph TD
-    subgraph "Data Sources"
-        IoT[IoT Devices]
+    subgraph "Nguồn Dữ Liệu"
+        IoT[Thiết Bị IoT]
         APIs[APIs]
-        DB[Databases]
-        Apps[Applications]
+        DB[Cơ Sở Dữ Liệu]
+        Apps[Ứng Dụng]
     end
 
-    subgraph "MCP Streaming Layer"
-        SC[Streaming Connectors]
-        PA[Protocol Adapters]
-        CH[Context Handlers]
-        SP[Stream Processors]
-        CS[Context Store]
+    subgraph "Lớp Phát Thanh MCP"
+        SC[Kết Nối Phát Thanh]
+        PA[Bộ Chuyển Giao Thức]
+        CH[Trình Xử Lý Ngữ Cảnh]
+        SP[Bộ Xử Lý Luồng]
+        CS[Lưu Trữ Ngữ Cảnh]
     end
 
-    subgraph "Processing & Analytics"
-        RT[Real-time Analytics]
-        ML[ML Models]
-        CEP[Complex Event Processing]
-        Viz[Visualization]
+    subgraph "Xử Lý & Phân Tích"
+        RT[Phân Tích Theo Thời Gian Thực]
+        ML[Mô Hình ML]
+        CEP[Xử Lý Sự Kiện Phức Tạp]
+        Viz[Trực Quan Hóa]
     end
 
-    subgraph "Applications & Services"
-        DA[Decision Automation]
-        Alerts[Alerting Systems]
-        DL[Data Lake/Warehouse]
-        API[API Services]
+    subgraph "Ứng Dụng & Dịch Vụ"
+        DA[Tự Động Hóa Quyết Định]
+        Alerts[Hệ Thống Cảnh Báo]
+        DL[Hồ Dữ Liệu/Kho Dữ Liệu]
+        API[Dịch Vụ API]
     end
 
-    IoT -->|Data| SC
-    APIs -->|Data| SC
-    DB -->|Changes| SC
-    Apps -->|Events| SC
+    IoT -->|Dữ Liệu| SC
+    APIs -->|Dữ Liệu| SC
+    DB -->|Thay Đổi| SC
+    Apps -->|Sự Kiện| SC
     
-    SC -->|Raw Streams| PA
-    PA -->|Normalized Streams| CH
-    CH <-->|Context Operations| CS
-    CH -->|Context-Enriched Data| SP
-    SP -->|Processed Streams| RT
-    SP -->|Features| ML
-    SP -->|Events| CEP
+    SC -->|Luồng Thô| PA
+    PA -->|Luồng Chuẩn Hóa| CH
+    CH <-->|Thao Tác Ngữ Cảnh| CS
+    CH -->|Dữ Liệu Được Bổ Sung Ngữ Cảnh| SP
+    SP -->|Luồng Đã Xử Lý| RT
+    SP -->|Đặc Trưng| ML
+    SP -->|Sự Kiện| CEP
     
-    RT -->|Insights| Viz
-    ML -->|Predictions| DA
-    CEP -->|Complex Events| Alerts
-    Viz -->|Dashboards| Users((Users))
+    RT -->|Thông Tin Chi Tiết| Viz
+    ML -->|Dự Báo| DA
+    CEP -->|Sự Kiện Phức Tạp| Alerts
+    Viz -->|Bảng Điều Khiển| Users((Người Dùng))
     
-    RT -.->|Historical Data| DL
-    ML -.->|Model Results| DL
-    CEP -.->|Event Logs| DL
+    RT -.->|Dữ Liệu Lịch Sử| DL
+    ML -.->|Kết Quả Mô Hình| DL
+    CEP -.->|Nhật Ký Sự Kiện| DL
     
-    DA -->|Actions| API
-    Alerts -->|Notifications| API
-    DL <-->|Data Access| API
+    DA -->|Hành Động| API
+    Alerts -->|Thông Báo| API
+    DL <-->|Truy Cập Dữ Liệu| API
     
     classDef sources fill:#f9f,stroke:#333,stroke-width:2px
     classDef mcp fill:#bbf,stroke:#333,stroke-width:2px
@@ -155,47 +155,47 @@ graph TD
     class DA,Alerts,DL,API apps
 ```
 
-### MCP cải thiện xử lý dữ liệu thời gian thực như thế nào
+### Cách MCP Cải Thiện Xử Lý Dữ Liệu Thời Gian Thực
 
-MCP giải quyết các thách thức truyền thống trong truyền dữ liệu bằng cách:
+MCP giải quyết các thách thức của streaming truyền thống thông qua:
 
-- **Tính toàn vẹn ngữ cảnh**: Duy trì mối quan hệ giữa các điểm dữ liệu xuyên suốt pipeline
-- **Truyền tải tối ưu**: Giảm sự trùng lặp trong trao đổi dữ liệu thông qua quản lý ngữ cảnh thông minh
-- **Giao diện chuẩn hóa**: Cung cấp API nhất quán cho các thành phần truyền dữ liệu
-- **Giảm độ trễ**: Tối thiểu hóa chi phí xử lý nhờ quản lý ngữ cảnh hiệu quả
-- **Nâng cao khả năng mở rộng**: Hỗ trợ mở rộng theo chiều ngang trong khi vẫn giữ nguyên ngữ cảnh
+- **Tính Toàn Vẹn Ngữ Cảnh**: Duy trì các mối quan hệ giữa các điểm dữ liệu xuyên suốt pipeline
+- **Truyền Tải Tối Ưu**: Giảm sự thừa thãi trong trao đổi dữ liệu nhờ quản lý ngữ cảnh thông minh
+- **Giao Diện Chuẩn Hóa**: Cung cấp API nhất quán cho các thành phần streaming
+- **Giảm Độ Trễ**: Tối thiểu overhead xử lý qua quản lý ngữ cảnh hiệu quả
+- **Tăng Khả Năng Mở Rộng**: Hỗ trợ mở rộng ngang mà vẫn giữ được ngữ cảnh
 
-## Tích hợp và Triển khai
+## Tích Hợp và Triển Khai
 
-Hệ thống truyền dữ liệu thời gian thực đòi hỏi thiết kế kiến trúc và triển khai cẩn thận để duy trì cả hiệu suất và tính toàn vẹn ngữ cảnh. Model Context Protocol cung cấp một phương pháp chuẩn hóa để tích hợp các mô hình AI và công nghệ truyền dữ liệu, cho phép xây dựng các pipeline xử lý phức tạp, nhận biết ngữ cảnh.
+Hệ thống truyền dữ liệu thời gian thực đòi hỏi thiết kế kiến trúc và triển khai cẩn thận để duy trì cả hiệu suất lẫn tính toàn vẹn ngữ cảnh. Giao Thức Ngữ Cảnh Mô Hình cung cấp cách tiếp cận chuẩn hóa để tích hợp các mô hình AI và công nghệ streaming, cho phép tạo các pipeline xử lý phức tạp, nhận thức ngữ cảnh hơn.
 
-### Tổng quan về tích hợp MCP trong kiến trúc truyền dữ liệu
+### Tổng Quan Về Tích Hợp MCP trong Kiến Trúc Streaming
 
-Việc triển khai MCP trong môi trường truyền dữ liệu thời gian thực cần lưu ý các điểm chính sau:
+Triển khai MCP trong môi trường streaming thời gian thực liên quan đến một số điểm mấu chốt:
 
-1. **Tuần tự hóa và truyền tải ngữ cảnh**: MCP cung cấp cơ chế hiệu quả để mã hóa thông tin ngữ cảnh trong các gói dữ liệu truyền, đảm bảo ngữ cảnh quan trọng đi theo dữ liệu xuyên suốt pipeline xử lý. Bao gồm các định dạng tuần tự hóa chuẩn hóa được tối ưu cho truyền tải streaming.
+1. **Chuẩn Hóa và Truyền Tải Ngữ Cảnh**: MCP cung cấp cơ chế hiệu quả để mã hóa thông tin ngữ cảnh trong các gói dữ liệu streaming, đảm bảo ngữ cảnh quan trọng đi theo dữ liệu suốt pipeline xử lý. Bao gồm các định dạng serialization chuẩn, tối ưu cho truyền tải streaming.
 
-2. **Xử lý luồng có trạng thái**: MCP cho phép xử lý có trạng thái thông minh hơn bằng cách duy trì biểu diễn ngữ cảnh nhất quán giữa các nút xử lý. Điều này đặc biệt hữu ích trong kiến trúc truyền dữ liệu phân tán, nơi quản lý trạng thái thường gặp khó khăn.
+2. **Xử Lý Luồng Có Trạng Thái**: MCP cho phép xử lý trạng thái thông minh hơn bằng cách duy trì biểu diễn ngữ cảnh nhất quán giữa các node xử lý. Điều này đặc biệt hữu ích ở kiến trúc streaming phân tán nơi quản lý trạng thái truyền thống rất khó khăn.
 
-3. **Thời gian sự kiện so với thời gian xử lý**: Các triển khai MCP trong hệ thống streaming phải giải quyết thách thức phổ biến là phân biệt giữa thời điểm sự kiện xảy ra và thời điểm nó được xử lý. Giao thức có thể tích hợp ngữ cảnh thời gian để giữ nguyên ý nghĩa thời gian sự kiện.
+3. **Thời Gian Sự Kiện và Thời Gian Xử Lý**: Các triển khai MCP trong hệ thống streaming phải giải quyết thách thức phân biệt khi nào sự kiện xảy ra và khi nào nó được xử lý. Giao thức có thể bao gồm ngữ cảnh thời gian để giữ nguyên ngữ nghĩa thời gian sự kiện.
 
-4. **Quản lý áp lực ngược (Backpressure)**: Bằng cách chuẩn hóa xử lý ngữ cảnh, MCP giúp quản lý áp lực ngược trong hệ thống truyền dữ liệu, cho phép các thành phần thông báo khả năng xử lý và điều chỉnh luồng dữ liệu phù hợp.
+4. **Quản Lý Backpressure**: Nhờ chuẩn hóa xử lý ngữ cảnh, MCP giúp quản lý backpressure trong hệ thống streaming, cho phép các thành phần truyền đạt năng lực xử lý và điều chỉnh lưu lượng tương ứng.
 
-5. **Cửa sổ ngữ cảnh và tổng hợp**: MCP hỗ trợ các phép toán cửa sổ phức tạp hơn bằng cách cung cấp biểu diễn có cấu trúc về ngữ cảnh thời gian và quan hệ, giúp tổng hợp dữ liệu có ý nghĩa hơn trên các luồng sự kiện.
+5. **Cửa Sổ và Tổng Hợp Ngữ Cảnh**: MCP tạo điều kiện cho các phép toán windowing phức tạp hơn bằng cách cung cấp biểu diễn cấu trúc của các ngữ cảnh thời gian và quan hệ, cho phép tổng hợp có ý nghĩa trên các dòng sự kiện.
 
-6. **Xử lý chính xác một lần (Exactly-Once Processing)**: Trong các hệ thống yêu cầu xử lý chính xác một lần, MCP có thể tích hợp metadata xử lý để theo dõi và xác minh trạng thái xử lý giữa các thành phần phân tán.
+6. **Xử Lý Chính Xác Một Lần**: Trong các hệ thống streaming yêu cầu ngữ nghĩa xử lý chính xác một lần, MCP có thể bao gồm metadata xử lý giúp theo dõi và xác minh trạng thái xử lý giữa các thành phần phân tán.
 
-Việc triển khai MCP trên nhiều công nghệ truyền dữ liệu khác nhau tạo ra một phương pháp thống nhất trong quản lý ngữ cảnh, giảm nhu cầu viết mã tích hợp tùy chỉnh đồng thời nâng cao khả năng duy trì ngữ cảnh có ý nghĩa khi dữ liệu di chuyển qua pipeline.
+Triển khai MCP trên nhiều công nghệ streaming khác nhau tạo ra một cách tiếp cận thống nhất cho quản lý ngữ cảnh, giảm nhu cầu mã tích hợp tùy chỉnh trong khi nâng cao khả năng duy trì ngữ cảnh có ý nghĩa khi dữ liệu chảy qua pipeline.
 
-### MCP trong các framework truyền dữ liệu khác nhau
+### MCP trong Các Framework Streaming Phổ Biến
 
-Các ví dụ này tuân theo đặc tả MCP hiện tại, tập trung vào giao thức JSON-RPC với các cơ chế truyền tải riêng biệt. Mã nguồn minh họa cách bạn có thể triển khai các phương thức truyền tải tùy chỉnh tích hợp các nền tảng truyền dữ liệu như Kafka và Pulsar trong khi vẫn giữ tương thích hoàn toàn với giao thức MCP.
+Các ví dụ này theo đặc tả MCP hiện hành tập trung vào giao thức dựa trên JSON-RPC với các cơ chế truyền tải riêng biệt. Mã nguồn trình bày cách bạn có thể triển khai các cơ chế truyền tải tùy chỉnh tích hợp các nền tảng streaming như Kafka và Pulsar đồng thời giữ tương thích hoàn toàn với giao thức MCP.
 
-Các ví dụ được thiết kế để cho thấy cách các nền tảng truyền dữ liệu có thể tích hợp với MCP nhằm cung cấp xử lý dữ liệu thời gian thực đồng thời bảo toàn nhận thức ngữ cảnh là trọng tâm của MCP. Cách tiếp cận này đảm bảo các mẫu mã phản ánh chính xác trạng thái hiện tại của đặc tả MCP tính đến tháng 6 năm 2025.
+Các ví dụ được thiết kế để cho thấy cách nền tảng streaming có thể tích hợp với MCP để cung cấp xử lý dữ liệu thời gian thực đồng thời bảo toàn cảnh nhận thức ngữ cảnh, điều trung tâm trong MCP. Cách tiếp cận này đảm bảo các mẫu mã phản ánh chính xác trạng thái hiện tại của đặc tả MCP tính đến tháng 6 năm 2025.
 
-MCP có thể được tích hợp với các framework truyền dữ liệu phổ biến bao gồm:
+MCP có thể được tích hợp với các framework streaming phổ biến bao gồm:
 
-#### Tích hợp Apache Kafka
+#### Tích Hợp Apache Kafka
 
 ```python
 import asyncio
@@ -206,7 +206,7 @@ from mcp.client import Client, ClientCapabilities
 from mcp.core.message import JsonRpcMessage
 from mcp.core.transports import Transport
 
-# Custom transport class to bridge MCP with Kafka
+# Lớp giao vận tùy chỉnh để kết nối MCP với Kafka
 class KafkaMCPTransport(Transport):
     def __init__(self, bootstrap_servers: str, input_topic: str, output_topic: str):
         self.bootstrap_servers = bootstrap_servers
@@ -244,7 +244,7 @@ class KafkaMCPTransport(Transport):
                     print(f"Consumer error: {msg.error()}")
                     continue
                 
-                # Parse the message value as JSON-RPC
+                # Phân tích giá trị tin nhắn dưới dạng JSON-RPC
                 try:
                     message_str = msg.value().decode('utf-8')
                     message_data = json.loads(message_str)
@@ -274,7 +274,7 @@ class KafkaMCPTransport(Transport):
                 message_json.encode('utf-8'),
                 callback=self._delivery_report
             )
-            self.producer.poll(0)  # Trigger callbacks
+            self.producer.poll(0)  # Kích hoạt các hàm gọi lại
         except Exception as e:
             print(f"Error writing message: {e}")
     
@@ -297,15 +297,15 @@ class KafkaMCPTransport(Transport):
         self.consumer.close()
         self.producer.flush()
 
-# Example usage of the Kafka MCP transport
+# Ví dụ sử dụng giao vận Kafka MCP
 async def kafka_mcp_example():
-    # Create MCP client with Kafka transport
+    # Tạo client MCP với giao vận Kafka
     client = Client(
         {"name": "kafka-mcp-client", "version": "1.0.0"},
         ClientCapabilities({})
     )
     
-    # Create and connect the Kafka transport
+    # Tạo và kết nối giao vận Kafka
     transport = KafkaMCPTransport(
         bootstrap_servers="localhost:9092",
         input_topic="mcp-responses",
@@ -315,10 +315,10 @@ async def kafka_mcp_example():
     await client.connect(transport)
     
     try:
-        # Initialize the MCP session
+        # Khởi tạo phiên MCP
         await client.initialize()
         
-        # Example of executing a tool via MCP
+        # Ví dụ thực thi công cụ qua MCP
         response = await client.execute_tool(
             "process_data",
             {
@@ -332,17 +332,17 @@ async def kafka_mcp_example():
         
         print(f"Tool execution response: {response}")
         
-        # Clean shutdown
+        # Tắt máy sạch
         await client.shutdown()
     finally:
         await transport.close()
 
-# Run the example
+# Chạy ví dụ
 if __name__ == "__main__":
     asyncio.run(kafka_mcp_example())
 ```
 
-#### Triển khai Apache Pulsar
+#### Triển Khai Apache Pulsar
 
 ```python
 import asyncio
@@ -354,7 +354,7 @@ from mcp.core.transports import Transport
 from mcp.server import Server, ServerOptions
 from mcp.server.tools import Tool, ToolExecutionContext, ToolMetadata
 
-# Create a custom MCP transport that uses Pulsar
+# Tạo một giao thức MCP tùy chỉnh sử dụng Pulsar
 class PulsarMCPTransport(Transport):
     def __init__(self, service_url: str, request_topic: str, response_topic: str):
         self.service_url = service_url
@@ -381,24 +381,24 @@ class PulsarMCPTransport(Transport):
         """Background task to consume messages from Pulsar and queue them for processing"""
         while self.running:
             try:
-                # Non-blocking receive with timeout
+                # Nhận không chặn với thời gian chờ
                 msg = self.consumer.receive(timeout_millis=500)
                 
-                # Process the message
+                # Xử lý tin nhắn
                 try:
                     message_str = msg.data().decode('utf-8')
                     message_data = json.loads(message_str)
                     mcp_message = JsonRpcMessage.from_dict(message_data)
                     await self.message_queue.put(mcp_message)
                     
-                    # Acknowledge the message
+                    # Xác nhận tin nhắn
                     self.consumer.acknowledge(msg)
                 except Exception as e:
                     print(f"Error processing message: {e}")
-                    # Negative acknowledge if there was an error
+                    # Phản hồi không xác nhận nếu có lỗi xảy ra
                     self.consumer.negative_acknowledge(msg)
             except Exception as e:
-                # Handle timeout or other exceptions
+                # Xử lý thời gian chờ hoặc các ngoại lệ khác
                 await asyncio.sleep(0.1)
     
     async def read(self) -> Optional[JsonRpcMessage]:
@@ -431,7 +431,7 @@ class PulsarMCPTransport(Transport):
         self.producer.close()
         self.client.close()
 
-# Define a sample MCP tool that processes streaming data
+# Định nghĩa một công cụ MCP mẫu xử lý dữ liệu streaming
 @Tool(
     name="process_streaming_data",
     description="Process streaming data with context preservation",
@@ -457,13 +457,13 @@ async def process_streaming_data(
     Returns:
         Dict containing processed results and context information
     """
-    # Example processing that leverages MCP context
+    # Ví dụ xử lý tận dụng bối cảnh MCP
     print(f"Processing data from {source} with priority {priority}")
     
-    # Access conversation context from MCP
+    # Truy cập bối cảnh cuộc hội thoại từ MCP
     conversation_id = ctx.conversation_id if hasattr(ctx, 'conversation_id') else "unknown"
     
-    # Return results with enhanced context
+    # Trả về kết quả với bối cảnh nâng cao
     return {
         "processed_data": f"Processed: {data}",
         "context": {
@@ -474,9 +474,9 @@ async def process_streaming_data(
         }
     }
 
-# Example MCP server implementation using Pulsar transport
+# Ví dụ triển khai máy chủ MCP sử dụng giao thức Pulsar
 async def run_mcp_server_with_pulsar():
-    # Create MCP server
+    # Tạo máy chủ MCP
     server = Server(
         {"name": "pulsar-mcp-server", "version": "1.0.0"},
         ServerOptions(
@@ -484,10 +484,10 @@ async def run_mcp_server_with_pulsar():
         )
     )
     
-    # Register our tool
+    # Đăng ký công cụ của chúng ta
     server.register_tool(process_streaming_data)
     
-    # Create and connect Pulsar transport
+    # Tạo và kết nối giao thức Pulsar
     transport = PulsarMCPTransport(
         service_url="pulsar://localhost:6650",
         request_topic="mcp-requests",
@@ -495,136 +495,147 @@ async def run_mcp_server_with_pulsar():
     )
     
     try:
-        # Start the server with the Pulsar transport
+        # Khởi động máy chủ với giao thức Pulsar
         await server.run(transport)
     finally:
         await transport.close()
 
-# Run the server
+# Chạy máy chủ
 if __name__ == "__main__":
     asyncio.run(run_mcp_server_with_pulsar())
 ```
 
-### Các thực hành tốt nhất khi triển khai
+### Thực Hành Tốt Nhất Khi Triển Khai
 
 Khi triển khai MCP cho truyền dữ liệu thời gian thực:
 
-1. **Thiết kế để chịu lỗi**:
-   - Thực hiện xử lý lỗi phù hợp
-   - Sử dụng dead-letter queue cho các tin nhắn thất bại
+1. **Thiết Kế để Chịu Lỗi**:
+   - Triển khai xử lý lỗi thích hợp
+   - Sử dụng hàng đợi dead-letter cho các tin nhắn thất bại
    - Thiết kế bộ xử lý idempotent
 
-2. **Tối ưu hiệu suất**:
+2. **Tối Ưu Hiệu Suất**:
    - Cấu hình kích thước bộ đệm phù hợp
-   - Sử dụng batching khi cần thiết
-   - Triển khai cơ chế backpressure
+   - Sử dụng batch khi có thể
+   - Triển khai các cơ chế backpressure
 
-3. **Giám sát và quan sát**:
-   - Theo dõi các chỉ số xử lý luồng
-   - Giám sát việc truyền ngữ cảnh
-   - Thiết lập cảnh báo khi có bất thường
+3. **Giám Sát và Quan Sát**:
+   - Theo dõi các chỉ số xử lý stream
+   - Giám sát sự truyền ngữ cảnh
+   - Thiết lập cảnh báo cho sự bất thường
 
-4. **Bảo mật luồng dữ liệu**:
+4. **Bảo Mật Dòng Dữ Liệu**:
    - Mã hóa dữ liệu nhạy cảm
    - Sử dụng xác thực và phân quyền
-   - Áp dụng kiểm soát truy cập phù hợp
+   - Áp dụng kiểm soát truy cập đúng cách
 
-### MCP trong IoT và Edge Computing
 
-MCP nâng cao truyền dữ liệu IoT bằng cách:
+### MCP trong IoT và Điện Toán Biên
 
-- Bảo tồn ngữ cảnh thiết bị xuyên suốt pipeline xử lý
-- Cho phép truyền dữ liệu hiệu quả từ edge lên cloud
+MCP nâng cao streaming IoT bằng cách:
+
+- Bảo toàn ngữ cảnh thiết bị xuyên suốt pipeline xử lý
+- Hỗ trợ truyền dữ liệu hiệu quả từ biên đến đám mây
 - Hỗ trợ phân tích thời gian thực trên luồng dữ liệu IoT
-- Tạo điều kiện giao tiếp thiết bị với thiết bị dựa trên ngữ cảnh
+- Thúc đẩy giao tiếp thiết bị với thiết bị có ngữ cảnh
 
-Ví dụ: Mạng cảm biến thành phố thông minh  
+Ví dụ: Mạng Cảm Biến Thành Phố Thông Minh
 ```
 Sensors → Edge Gateways → MCP Stream Processors → Real-time Analytics → Automated Responses
 ```
 
-### Vai trò trong giao dịch tài chính và giao dịch tần suất cao
+### Vai Trò Trong Giao Dịch Tài Chính và Giao Dịch Tần Suất Cao
 
-MCP mang lại lợi thế lớn cho truyền dữ liệu tài chính:
+MCP đem lại lợi ích đáng kể cho truyền dữ liệu tài chính:
 
 - Xử lý độ trễ cực thấp cho quyết định giao dịch
-- Duy trì ngữ cảnh giao dịch xuyên suốt quá trình xử lý
+- Duy trì ngữ cảnh giao dịch xuyên suốt xử lý
 - Hỗ trợ xử lý sự kiện phức tạp với nhận thức ngữ cảnh
-- Đảm bảo tính nhất quán dữ liệu trong các hệ thống giao dịch phân tán
+- Đảm bảo dữ liệu nhất quán trên hệ thống giao dịch phân tán
 
-### Nâng cao phân tích dữ liệu dựa trên AI
+### Nâng Cao Phân Tích Dữ Liệu Dựa Trên AI
 
-MCP mở ra khả năng mới cho phân tích dữ liệu truyền:
+MCP tạo ra các khả năng mới cho phân tích streaming:
 
-- Huấn luyện và suy luận mô hình thời gian thực
-- Học liên tục từ dữ liệu truyền
-- Trích xuất đặc trưng nhận biết ngữ cảnh
-- Pipeline suy luận đa mô hình với ngữ cảnh được bảo toàn
+- Huấn luyện và suy diễn mô hình thời gian thực
+- Học liên tục từ dữ liệu streaming
+- Trích xuất đặc trưng nhận thức ngữ cảnh
+- Pipeline suy diễn đa mô hình với ngữ cảnh được bảo toàn
 
-## Xu hướng và Đổi mới trong tương lai
+## Xu Hướng và Đổi Mới Tương Lai
 
-### Sự phát triển của MCP trong môi trường thời gian thực
+### Sự Tiến Hóa của MCP Trong Môi Trường Thời Gian Thực
 
-Trong tương lai, MCP dự kiến sẽ phát triển để giải quyết:
+Nhìn về phía trước, chúng ta dự đoán MCP sẽ phát triển để giải quyết:
 
-- **Tích hợp điện toán lượng tử**: Chuẩn bị cho các hệ thống truyền dữ liệu dựa trên công nghệ lượng tử
-- **Xử lý native tại edge**: Di chuyển nhiều xử lý nhận biết ngữ cảnh hơn về các thiết bị edge
-- **Quản lý luồng tự động**: Pipeline truyền dữ liệu tự tối ưu hóa
-- **Truyền dữ liệu liên kết (Federated Streaming)**: Xử lý phân tán đồng thời bảo vệ quyền riêng tư
+- **Tích Hợp Điện Toán Lượng Tử**: Chuẩn bị cho các hệ thống streaming dựa trên lượng tử
+- **Xử Lý Gốc Biên**: Di chuyển nhiều xử lý nhận thức ngữ cảnh sang các thiết bị biên
+- **Quản Lý Streaming Tự Động**: Các pipeline streaming tự tối ưu hóa
+- **Streaming Liên Liên Đoàn**: Xử lý phân tán đồng thời bảo vệ quyền riêng tư
 
-### Tiến bộ công nghệ tiềm năng
+### Tiến Bộ Công Nghệ Tiềm Năng
 
-Các công nghệ mới sẽ định hình tương lai của truyền dữ liệu MCP:
+Các công nghệ mới sẽ định hình tương lai của streaming MCP:
 
-1. **Giao thức truyền dữ liệu tối ưu cho AI**: Các giao thức tùy chỉnh dành riêng cho khối lượng công việc AI
-2. **Tích hợp điện toán thần kinh (Neuromorphic Computing)**: Điện toán lấy cảm hứng từ não bộ cho xử lý luồng
-3. **Truyền dữ liệu không máy chủ (Serverless Streaming)**: Truyền dữ liệu theo sự kiện, có khả năng mở rộng mà không cần quản lý hạ tầng
-4. **Kho ngữ cảnh phân tán**: Quản lý ngữ cảnh phân tán toàn cầu nhưng vẫn đảm bảo tính nhất quán cao
+1. **Giao Thức Streaming Tối Ưu Cho AI**: Giao thức tùy biến thiết kế riêng cho tải công việc AI
+2. **Tích Hợp Điện Toán Nhân Tạo Thần Kinh**: Điện toán lấy cảm hứng từ não bộ cho xử lý streaming
+3. **Streaming Serverless**: Streaming dựa trên sự kiện, mở rộng linh hoạt mà không cần quản lý hạ tầng
+4. **Kho Ngữ Cảnh Phân Tán**: Quản lý ngữ cảnh phân tán toàn cầu nhưng nhất quán cao
 
-## Bài tập thực hành
+## Bài Tập Thực Hành
 
-### Bài tập 1: Thiết lập pipeline truyền dữ liệu MCP cơ bản
+### Bài Tập 1: Thiết Lập Pipeline Streaming MCP Cơ Bản
 
 Trong bài tập này, bạn sẽ học cách:
-- Cấu hình môi trường truyền dữ liệu MCP cơ bản
-- Triển khai các context handler cho xử lý luồng
-- Kiểm tra và xác nhận việc bảo tồn ngữ cảnh
+- Cấu hình môi trường streaming MCP cơ bản
+- Triển khai bộ xử lý ngữ cảnh cho xử lý luồng
+- Kiểm thử và xác nhận bảo toàn ngữ cảnh
 
-### Bài tập 2: Xây dựng bảng điều khiển phân tích thời gian thực
+### Bài Tập 2: Xây Dựng Bảng Điều Khiển Phân Tích Thời Gian Thực
 
-Tạo một ứng dụng hoàn chỉnh có khả năng:
-- Thu thập dữ liệu truyền sử dụng MCP
-- Xử lý luồng dữ liệu đồng thời duy trì ngữ cảnh
-- Hiển thị kết quả trực quan theo thời gian thực
+Tạo một ứng dụng hoàn chỉnh mà:
+- Thu thập dữ liệu streaming dùng MCP
+- Xử lý luồng trong khi duy trì ngữ cảnh
+- Hiển thị kết quả theo thời gian thực
 
-### Bài tập 3: Triển khai xử lý sự kiện phức tạp với MCP
+### Bài Tập 3: Triển Khai Xử Lý Sự Kiện Phức Tạp với MCP
 
 Bài tập nâng cao bao gồm:
-- Phát hiện mẫu trong các luồng dữ liệu
+- Phát hiện mẫu trong các luồng
 - Tương quan ngữ cảnh giữa nhiều luồng
-- Tạo ra các sự kiện phức tạp với ngữ cảnh được bảo toàn
+- Tạo sự kiện phức tạp với ngữ cảnh được bảo toàn
 
-## Tài nguyên bổ sung
+## Tài Nguyên Bổ Sung
 
-- [Model Context Protocol Specification](https://github.com/modelcontextprotocol) - Đặc tả và tài liệu chính thức của MCP
+- [Model Context Protocol Specification](https://modelcontextprotocol.io) - Đặc tả và tài liệu chính thức của MCP
 - [Apache Kafka Documentation](https://kafka.apache.org/documentation/) - Tìm hiểu về Kafka cho xử lý luồng
-- [Apache Pulsar](https://pulsar.apache.org/) - Nền tảng nhắn tin và truyền dữ liệu thống nhất
-- [Streaming Systems: The What, Where, When, and How of Large-Scale Data Processing](https://www.oreilly.com/library/view/streaming-systems/9781491983867/) - Sách toàn diện về kiến trúc truyền dữ liệu
-- [Microsoft Azure Event Hubs](https://learn.microsoft.com/azure/event-hubs/event-hubs-about) - Dịch vụ truyền sự kiện được quản lý
+- [Apache Pulsar](https://pulsar.apache.org/) - Nền tảng nhắn tin và streaming thống nhất
+- [Streaming Systems: The What, Where, When, and How of Large-Scale Data Processing](https://www.oreilly.com/library/view/streaming-systems/9781491983867/) - Cuốn sách toàn diện về kiến trúc streaming
+- [Microsoft Azure Event Hubs](https://learn.microsoft.com/azure/event-hubs/event-hubs-about) - Dịch vụ streaming sự kiện quản lý
 - [MLflow Documentation](https://mlflow.org/docs/latest/index.html) - Theo dõi và triển khai mô hình ML
 - [Real-Time Analytics with Apache Storm](https://storm.apache.org/releases/current/index.html) - Framework xử lý tính toán thời gian thực
-- [Flink ML](https://nightlies.apache.org/flink/flink-ml-docs-master/) - Thư viện học máy cho Apache Flink
+- [Flink ML](https://nightlies.apache.org/flink/flink-ml-docs-master/) - Thư viện máy học cho Apache Flink
 - [LangChain Documentation](https://python.langchain.com/docs/get_started/introduction) - Xây dựng ứng dụng với LLMs
 
-## Kết quả học tập
 
-Sau khi hoàn thành module này, bạn sẽ có thể:
+## Kết Quả Học Tập
 
-- Hiểu các nguyên lý cơ bản của truyền dữ liệu thời gian thực và những thách thức liên quan
-- Giải thích cách Model Context Protocol (MCP) nâng cao truyền dữ liệu thời gian thực
-- Triển khai các giải pháp truyền dữ liệu dựa trên MCP sử dụng các framework phổ biến như Kafka và Pulsar
-- Thiết kế và triển khai kiến trúc truyền dữ liệu chịu lỗi, hiệu suất cao với MCP
-- Áp dụng các khái niệm
+Sau khi hoàn thành mô-đun này, bạn sẽ có thể:
 
-**Tuyên bố từ chối trách nhiệm**:  
-Tài liệu này đã được dịch bằng dịch vụ dịch thuật AI [Co-op Translator](https://github.com/Azure/co-op-translator). Mặc dù chúng tôi cố gắng đảm bảo độ chính xác, xin lưu ý rằng các bản dịch tự động có thể chứa lỗi hoặc không chính xác. Tài liệu gốc bằng ngôn ngữ gốc của nó nên được coi là nguồn chính xác và đáng tin cậy. Đối với các thông tin quan trọng, nên sử dụng dịch vụ dịch thuật chuyên nghiệp do con người thực hiện. Chúng tôi không chịu trách nhiệm về bất kỳ sự hiểu lầm hoặc giải thích sai nào phát sinh từ việc sử dụng bản dịch này.
+- Hiểu cơ bản về truyền dữ liệu thời gian thực và các thách thức của nó
+- Giải thích cách Giao Thức Ngữ Cảnh Mô Hình (MCP) nâng cao truyền dữ liệu thời gian thực
+- Triển khai các giải pháp streaming dựa trên MCP với các framework phổ biến như Kafka và Pulsar
+- Thiết kế và triển khai kiến trúc streaming chịu lỗi, hiệu suất cao với MCP
+- Áp dụng các khái niệm MCP vào các trường hợp sử dụng IoT, giao dịch tài chính và phân tích dữ liệu dựa trên AI
+- Đánh giá các xu hướng mới nổi và đổi mới trong công nghệ streaming dựa trên MCP
+
+## Tiếp theo là
+
+- [5.11 Realtime Search](../mcp-realtimesearch/README.md)
+
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Tuyên bố miễn trừ trách nhiệm**:
+Tài liệu này đã được dịch bằng dịch vụ dịch thuật AI [Co-op Translator](https://github.com/Azure/co-op-translator). Mặc dù chúng tôi cố gắng đảm bảo độ chính xác, xin lưu ý rằng bản dịch tự động có thể chứa lỗi hoặc sai sót. Tài liệu gốc bằng ngôn ngữ gốc nên được coi là nguồn tin chính thức. Đối với thông tin quan trọng, nên sử dụng dịch vụ dịch thuật chuyên nghiệp bởi con người. Chúng tôi không chịu trách nhiệm về bất kỳ hiểu lầm hoặc giải thích sai nào phát sinh từ việc sử dụng bản dịch này.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

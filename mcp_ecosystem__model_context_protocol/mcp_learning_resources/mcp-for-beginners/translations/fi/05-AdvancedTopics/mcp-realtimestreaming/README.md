@@ -1,148 +1,149 @@
-# Model Context Protocol reaaliaikaiseen datavirtaan
+# Mallin kontekstiprotokolla reaaliaikaiseen datavirtaukseen
 
 ## Yleiskatsaus
 
-Reaikaiseen datavirtaan perustuvat ratkaisut ovat nykymaailmassa välttämättömiä, kun yritykset ja sovellukset tarvitsevat välitöntä pääsyä tietoihin tehdäkseen oikea-aikaisia päätöksiä. Model Context Protocol (MCP) edustaa merkittävää edistysaskelta reaikaisten suoratoistoprosessien optimoinnissa, parantaen datankäsittelyn tehokkuutta, säilyttäen kontekstuaalisen eheys ja kohentaen järjestelmän kokonais-suorituskykyä.
+Reaaliaikainen datavirtaus on nykypäivän datavetoisessa maailmassa välttämätöntä, kun yritykset ja sovellukset tarvitsevat välitöntä pääsyä tietoihin tehdäkseen oikea-aikaisia päätöksiä. Mallin kontekstiprotokolla (MCP) edustaa merkittävää edistysaskelta näiden reaaliaikaisten virtaprosessien optimoinnissa, parantaen datankäsittelyn tehokkuutta, säilyttäen kontekstuaalisen eheys ja parantaen koko järjestelmän suorituskykyä.
 
-Tässä moduulissa tarkastellaan, miten MCP muuttaa reaikaista datavirtaa tarjoamalla standardoidun lähestymistavan kontekstinhallintaan tekoälymallien, suoratoistoalustojen ja sovellusten välillä.
+Tässä moduulissa tarkastellaan, kuinka MCP muuttaa reaaliaikaista datavirtausta tarjoamalla standardoidun lähestymistavan kontekstinhallintaan AI-mallien, suoratoistoalustojen ja sovellusten välillä.
 
-## Johdanto reaikaiseen datavirtaan
+## Johdanto reaaliaikaiseen datavirtaamiseen
 
-Reaikainen datavirta on teknologinen malli, joka mahdollistaa datan jatkuvan siirron, käsittelyn ja analysoinnin sitä syntyessä, jolloin järjestelmät voivat reagoida välittömästi uuteen tietoon. Toisin kuin perinteinen eräajokäsittely, joka toimii staattisilla tietoaineistoilla, suoratoisto käsittelee dataa liikkeessä tarjoten oivalluksia ja toimia mahdollisimman pienellä viiveellä.
+Reaaliaikainen datavirtaus on teknologinen paradigma, joka mahdollistaa datan jatkuvan siirron, käsittelyn ja analysoinnin sitä synnytettäessä, antaen järjestelmien reagoida heti uuteen tietoon. Toisin kuin perinteinen eräajoprosessointi, joka toimii staattisilla datasetillä, suoratoisto käsittelee liikkuvaa dataa, tarjoten oivalluksia ja toimintoja minimaalisen viiveen kanssa.
 
-### Reaikaisen datavirran keskeiset käsitteet:
+### Reaaliaikaisen datavirtaamisen ydinkäsitteet:
 
-- **Jatkuva datavirta**: Dataa käsitellään jatkuvana, loputtomana tapahtuma- tai tietuevirtana.
-- **Pieni viive**: Järjestelmät on suunniteltu minimoimaan aika datan syntymisen ja käsittelyn välillä.
-- **Skaalautuvuus**: Suoratoistoarkkitehtuurien on kyettävä käsittelemään vaihtelevaa datamäärää ja -nopeutta.
-- **Vikasietoisuus**: Järjestelmien tulee kestää virheitä varmistaakseen keskeytymättömän datavirran.
-- **Tilallinen käsittely**: Kontekstin ylläpito tapahtumien välillä on olennaista merkitykselliselle analyysille.
+- **Jatkuva datavirta**: Dataa käsitellään jatkuvana, loputtomana tapahtuma- tai tietuevirrana.
+- **Pieni viive**: Järjestelmät on suunniteltu minimoimaan aika datan synnyn ja käsittelyn välillä.
+- **Skaalautuvuus**: Suoratoistoarkkitehtuurien tulee käsitellä vaihtelevaa datan määrää ja nopeutta.
+- **Vikasietoisuus**: Järjestelmien on oltava kestäviä virheitä vastaan varmistaakseen katkeamattoman datavirran.
+- **Tilallinen käsittely**: Kontekstin ylläpito tapahtumien välillä on tärkeää merkityksellisen analyysin kannalta.
 
-### Model Context Protocol ja reaikainen suoratoisto
+### Mallin kontekstiprotokolla ja reaaliaikainen suoratoisto
 
-Model Context Protocol (MCP) ratkaisee useita keskeisiä haasteita reaikaisten suoratoistoympäristöjen osalta:
+Mallin kontekstiprotokolla (MCP) ottaa käsittelyyn useita keskeisiä haasteita reaaliaikaisten suoravirtaympäristöjen osalta:
 
-1. **Kontekstuaalinen jatkuvuus**: MCP standardisoi, miten konteksti säilytetään hajautettujen suoratoistokomponenttien välillä, varmistaen, että tekoälymallit ja käsittelysolmut pääsevät käsiksi olennaiseen historialliseen ja ympäristökontekstiin.
+1. **Kontekstuaalinen jatkuvuus**: MCP standardisoi kuinka konteksti säilytetään hajautettujen suoratoistokomponenttien välillä, varmistaen että AI-malleilla ja käsittelysolmuilla on käytössään oleellista historiallista ja ympäristökontekstia.
 
-2. **Tehokas tilanhallinta**: Tarjoamalla rakenteellisia mekanismeja kontekstin siirtoon MCP vähentää tilanhallinnan kuormitusta suoratoistoputkissa.
+2. **Tehokas tilanhallinta**: Tarjoamalla rakenteellisia mekanismeja kontekstin siirtoon MCP vähentää tilanhallinnan ylikuormitusta suoratoistoputkissa.
 
-3. **Yhteentoimivuus**: MCP luo yhteisen kielen kontekstin jakamiseen eri suoratoistoteknologioiden ja tekoälymallien välillä, mahdollistaen joustavammat ja laajennettavammat arkkitehtuurit.
+3. **Yhteentoimivuus**: MCP luo yhteisen kielen kontekstin jakamiseen eri suoratoistoteknologioiden ja AI-mallien välillä mahdollistaen joustavampia ja laajennettavampia arkkitehtuureja.
 
-4. **Suoratoistoon optimoitu konteksti**: MCP:n toteutukset voivat priorisoida, mitkä kontekstielementit ovat tärkeimpiä reaaliaikaiseen päätöksentekoon, optimoiden sekä suorituskykyä että tarkkuutta.
+4. **Suoratoistoon optimoitu konteksti**: MCP-toteutukset voivat priorisoida, mitkä kontekstielementit ovat merkityksellisintä reaaliaikaista päätöksentekoa varten optimoiden sekä suorituskykyä että tarkkuutta.
 
-5. **Mukautuva käsittely**: Oikean kontekstinhallinnan avulla MCP:n kautta suoratoistojärjestelmät voivat dynaamisesti säätää käsittelyä datan muuttuvien olosuhteiden ja mallien mukaan.
+5. **Soveltuva käsittely**: Asianmukaisen kontekstinhallinnan avulla MCP:n kautta suoratoistojärjestelmät voivat dynaamisesti mukauttaa käsittelyä datassa esiintyvien muuttuvien olosuhteiden ja mallien perusteella.
 
-Nykyisissä sovelluksissa, aina IoT-antureista rahoitusmarkkinoiden kaupankäyntialustoihin, MCP:n integrointi suoratoistoteknologioihin mahdollistaa älykkäämmän, kontekstin huomioivan käsittelyn, joka pystyy reagoimaan monimutkaisiin ja kehittyviin tilanteisiin reaaliajassa.
+Nykyisissä sovelluksissa IoT-antureiden verkoista finanssikauppapaikkoihin MCP:n ja suoratoistoteknologioiden integrointi mahdollistaa älykkäämpää, kontekstitietoista käsittelyä, joka kykenee reagoimaan monimutkaisiin ja muuttuvaan tilanteisiin reaaliajassa.
 
 ## Oppimistavoitteet
 
-Tämän oppitunnin jälkeen osaat:
+Tämän oppitunnin lopuksi pystyt:
 
-- Ymmärtää reaikaisen datavirran perusteet ja siihen liittyvät haasteet
-- Selittää, miten Model Context Protocol (MCP) parantaa reaikaista datavirtaa
-- Toteuttaa MCP-pohjaisia suoratoistoratkaisuja suosituilla kehyksillä kuten Kafka ja Pulsar
-- Suunnitella ja ottaa käyttöön vikasietoisia, suorituskykyisiä suoratoistoarkkitehtuureja MCP:llä
-- Soveltaa MCP-konsepteja IoT-, rahoitus- ja tekoälypohjaisissa analytiikkatapauksissa
-- Arvioida MCP-pohjaisen suoratoiston tulevia trendejä ja innovaatioita
+- Ymmärtämään reaaliaikaisen datavirtaamisen perusteet ja haasteet
+- Selittämään, miten Mallin kontekstiprotokolla (MCP) parantaa reaaliaikaista datavirtausta
+- Toteuttamaan MCP-pohjaisia suoratoistoratkaisuja suosituilla kehyksillä kuten Kafka ja Pulsar
+- Suunnittelemaan ja ottamaan käyttöön vikasietoisia, korkeasuorituskykyisiä suoratoistoarkkitehtuureja MCP:llä
+- Soveltamaan MCP-konsepteja IoT:n, finanssikaupan ja AI-pohjaisten analytiikoiden käyttötapauksiin
+- Arvioimaan MCP-pohjaisen suoratoistoteknologian nousevia trendejä ja tulevia innovaatioita
+
 
 ### Määritelmä ja merkitys
 
-Reaikainen datavirta tarkoittaa datan jatkuvaa syntymistä, käsittelyä ja toimitusta mahdollisimman pienellä viiveellä. Toisin kuin eräajokäsittelyssä, jossa data kerätään ja käsitellään ryhmissä, suoratoistodata käsitellään inkrementaalisesti sitä saapuessa, mahdollistaen välittömät oivallukset ja toimet.
+Reaaliaikainen datavirtaus tarkoittaa datan jatkuvaa synnytystä, käsittelyä ja siirtoa minimaalisen viiveen kanssa. Toisin kuin eräajoprosessointi, jossa data kerätään ja käsitellään ryhmissä, suoratoistodata käsitellään asteittain sitä saapuessaan mahdollistaen välittömät oivallukset ja toimet.
 
-Reaikaisen datavirran keskeisiä piirteitä ovat:
+Reaaliaikaisen datavirtaamisen keskeiset ominaisuudet:
 
-- **Pieni viive**: Datan käsittely ja analysointi millisekunneista sekunteihin
-- **Jatkuva virta**: Keskeytymättömät datavirrat eri lähteistä
-- **Välitön käsittely**: Datan analysointi sitä saapuessa, ei erissä
-- **Tapahtumapohjainen arkkitehtuuri**: Reagointi tapahtumiin niiden tapahtuessa
+- **Pieni viive**: Datan käsittely ja analyysi millisekunneissa sekunteihin
+- **Jatkuva virtaus**: Katkeamattomat datavirrat eri lähteistä
+- **Välitön käsittely**: Analysointi datan saapuessa, ei erissä
+- **Tapahtumapohjainen arkkitehtuuri**: Reagoiminen tapahtumiin niiden tapahtuessa
 
-### Haasteet perinteisessä datavirtauskäsittelyssä
+### Haasteita perinteisessä datavirtaamisessa
 
-Perinteiset suoratoistoratkaisut kohtaavat useita rajoitteita:
+Perinteiset suoratoistolähestymistavat kohtaavat useita rajoitteita:
 
-1. **Kontekstin katoaminen**: Vaikeus ylläpitää kontekstia hajautetuissa järjestelmissä
-2. **Skaalautuvuusongelmat**: Haasteet suurten ja nopeiden datamäärien käsittelyssä
-3. **Integraation monimutkaisuus**: Ongelmia eri järjestelmien yhteensopivuudessa
+1. **Kontekstin menetys**: Vaikeus ylläpitää kontekstia hajautettujen järjestelmien välillä
+2. **Skaalautuvuusongelmat**: Haasteet suuren datavolyymin ja nopeuden käsittelyssä
+3. **Integroinnin monimutkaisuus**: Ongelmia eri järjestelmien yhteentoimivuudessa
 4. **Viiveen hallinta**: Läpäisyn ja käsittelyajan tasapainottaminen
-5. **Datan yhdenmukaisuus**: Tietojen tarkkuuden ja täydellisyyden varmistaminen koko virrassa
+5. **Datan yhdenmukaisuus**: Datan oikeellisuuden ja täydellisyyden varmistaminen suoratoistossa
 
-## Model Context Protocolin (MCP) ymmärtäminen
+## Mallin kontekstiprotokollan (MCP) ymmärtäminen
 
 ### Mikä on MCP?
 
-Model Context Protocol (MCP) on standardoitu viestintäprotokolla, joka helpottaa tehokasta vuorovaikutusta tekoälymallien ja sovellusten välillä. Reaikaisen datavirran yhteydessä MCP tarjoaa kehyksen:
+Mallin kontekstiprotokolla (MCP) on standardoitu kommunikointiprotokolla, joka on suunniteltu tehostamaan vuorovaikutusta AI-mallien ja sovellusten välillä. Reaaliaikaisen datavirtaamisen kontekstissa MCP tarjoaa kehyksen:
 
-- Kontekstin säilyttämiseen koko dataputken ajan
-- Standardoituihin tiedonvaihtoformaatteihin
-- Suurten tietoaineistojen siirron optimointiin
-- Mallien välisen ja mallien ja sovellusten välisen viestinnän parantamiseen
+- Säilyttää konteksti dataputken läpi
+- Standardoida datan vaihtomuodot
+- Optimoida suurten datasetien siirtoa
+- Parantaa malli-malli- ja malli-sovellus -kommunikaatiota
 
 ### Keskeiset komponentit ja arkkitehtuuri
 
-MCP:n arkkitehtuuri reaikaiseen suoratoistoon koostuu useista tärkeistä osista:
+MCP-arkkitehtuuri reaaliaikaisessa suoratoistossa koostuu useista avainkomponenteista:
 
-1. **Context Handlers**: Hallinnoivat ja ylläpitävät kontekstuaalista tietoa suoratoistoputkessa
-2. **Stream Processors**: Käsittelevät saapuvia datavirtoja kontekstitietoisilla menetelmillä
-3. **Protocol Adapters**: Muuntavat eri suoratoistoprotokollien välillä säilyttäen kontekstin
-4. **Context Store**: Tallentaa ja hakee kontekstuaalista tietoa tehokkaasti
-5. **Streaming Connectors**: Yhdistävät eri suoratoistoalustoihin (Kafka, Pulsar, Kinesis jne.)
+1. **Kontekstit käsittelijät**: Hallitsevat ja ylläpitävät kontekstuaalista tietoa suoratoistoputkessa
+2. **Suoratoistoprosessorit**: Käsittelevät saapuvaa datavirtaa kontekstitietoisilla menetelmillä
+3. **Protokolla-adapterit**: Muuntavat eri suoratoistoprotokollien välillä säilyttäen kontekstin
+4. **Kontekstivarasto**: Tallentaa ja hakee tehokkaasti kontekstuaalista tietoa
+5. **Suoratoistoyhdistäjät**: Yhdistävät eri suoratoistoalustoihin (Kafka, Pulsar, Kinesis jne.)
 
 ```mermaid
 graph TD
-    subgraph "Data Sources"
-        IoT[IoT Devices]
-        APIs[APIs]
-        DB[Databases]
-        Apps[Applications]
+    subgraph "Tietolähteet"
+        IoT[IoT-laitteet]
+        APIs[API:t]
+        DB[Tietokannat]
+        Apps[Sovellukset]
     end
 
     subgraph "MCP Streaming Layer"
-        SC[Streaming Connectors]
-        PA[Protocol Adapters]
-        CH[Context Handlers]
-        SP[Stream Processors]
-        CS[Context Store]
+        SC[Streaming-liittimet]
+        PA[Protokolla-adapterit]
+        CH[Kontextin käsittelijät]
+        SP[Virta prosessorit]
+        CS[Kontextin tallennus]
     end
 
-    subgraph "Processing & Analytics"
-        RT[Real-time Analytics]
-        ML[ML Models]
-        CEP[Complex Event Processing]
-        Viz[Visualization]
+    subgraph "Käsittely & Analytiikka"
+        RT[Reaaliaikainen analytiikka]
+        ML[ML-mallit]
+        CEP[Monimutkainen tapahtumankäsittely]
+        Viz[Visualisointi]
     end
 
-    subgraph "Applications & Services"
-        DA[Decision Automation]
-        Alerts[Alerting Systems]
-        DL[Data Lake/Warehouse]
-        API[API Services]
+    subgraph "Sovellukset & Palvelut"
+        DA[Päätösten automatisointi]
+        Alerts[Hälytysjärjestelmät]
+        DL[Tietovarasto / Tietojärvi]
+        API[API-palvelut]
     end
 
     IoT -->|Data| SC
     APIs -->|Data| SC
-    DB -->|Changes| SC
-    Apps -->|Events| SC
+    DB -->|Muutokset| SC
+    Apps -->|Tapahtumat| SC
     
-    SC -->|Raw Streams| PA
-    PA -->|Normalized Streams| CH
-    CH <-->|Context Operations| CS
-    CH -->|Context-Enriched Data| SP
-    SP -->|Processed Streams| RT
-    SP -->|Features| ML
-    SP -->|Events| CEP
+    SC -->|Raakatietovirrat| PA
+    PA -->|Normalisoidut tietovirrat| CH
+    CH <-->|Kontextitoiminnot| CS
+    CH -->|Kontextilla rikastettu data| SP
+    SP -->|Käsitellyt tietovirrat| RT
+    SP -->|Ominaisuudet| ML
+    SP -->|Tapahtumat| CEP
     
-    RT -->|Insights| Viz
-    ML -->|Predictions| DA
-    CEP -->|Complex Events| Alerts
-    Viz -->|Dashboards| Users((Users))
+    RT -->|Oivallukset| Viz
+    ML -->|Ennusteet| DA
+    CEP -->|Monimutkaiset tapahtumat| Alerts
+    Viz -->|Hallintapaneelit| Users((Käyttäjät))
     
-    RT -.->|Historical Data| DL
-    ML -.->|Model Results| DL
-    CEP -.->|Event Logs| DL
+    RT -.->|Historiallinen data| DL
+    ML -.->|Mallin tulokset| DL
+    CEP -.->|Tapahtumalokit| DL
     
-    DA -->|Actions| API
-    Alerts -->|Notifications| API
-    DL <-->|Data Access| API
+    DA -->|Toimet| API
+    Alerts -->|Ilmoitukset| API
+    DL <-->|Datan käyttö| API
     
     classDef sources fill:#f9f,stroke:#333,stroke-width:2px
     classDef mcp fill:#bbf,stroke:#333,stroke-width:2px
@@ -155,47 +156,47 @@ graph TD
     class DA,Alerts,DL,API apps
 ```
 
-### Miten MCP parantaa reaikaista datankäsittelyä
+### Kuinka MCP parantaa reaaliaikaista datankäsittelyä
 
-MCP vastaa perinteisiin suoratoiston haasteisiin seuraavasti:
+MCP ratkaisee perinteisiä suoratoiston haasteita seuraavasti:
 
-- **Kontekstuaalinen eheys**: Säilyttää datan pisteiden väliset suhteet koko putken ajan
-- **Optimoitu siirto**: Vähentää datan vaihtelun päällekkäisyyttä älykkään kontekstinhallinnan avulla
-- **Standardoidut rajapinnat**: Tarjoaa yhtenäiset API:t suoratoistokomponenteille
-- **Pienennetty viive**: Minimoi käsittelykuormaa tehokkaalla kontekstinhallinnalla
-- **Parannettu skaalautuvuus**: Tukee vaakasuuntaista skaalausta kontekstin säilyttäen
+- **Kontekstuaalinen eheys**: Säilyttää suhteet datapisteiden välillä koko putken ajan
+- **Optimoitu siirto**: Vähentää datan vaihtoon liittyvää päällekkäisyyttä älykkään kontekstinhallinnan avulla
+- **Standardoidut rajapinnat**: Tarjoaa yhtenäiset API-pisteet suoratoistokomponenteille
+- **Vähemmän viivettä**: Minimoidut käsittelykustannukset tehokkaalla kontekstin käsittelyllä
+- **Parannettu skaalautuvuus**: Tukee vaakasuuntaista laajentamista kontekstin säilyttäen
 
 ## Integrointi ja toteutus
 
-Reaikaisten datavirtojen järjestelmät vaativat huolellista arkkitehtuurisuunnittelua ja toteutusta suorituskyvyn ja kontekstuaalisen eheyden ylläpitämiseksi. Model Context Protocol tarjoaa standardoidun lähestymistavan tekoälymallien ja suoratoistoteknologioiden yhdistämiseen, mahdollistaen kehittyneemmät, kontekstia hyödyntävät käsittelyputket.
+Reaaliaikaisten datavirtausten järjestelmät vaativat huolellisen arkkitehtuurisuunnittelun ja toteutuksen suorituskyvyn ja kontekstuaalisen eheyden ylläpitämiseksi. Mallin kontekstiprotokolla tarjoaa standardoidun lähestymistavan AI-mallien ja suoratoistoteknologioiden integrointiin, mahdollistaen monimutkaisempia, kontekstitietoisia prosessointiputkia.
 
 ### MCP:n integroinnin yleiskatsaus suoratoistoarkkitehtuureissa
 
-MCP:n toteuttaminen reaikaisissa suoratoistoympäristöissä edellyttää useiden keskeisten seikkojen huomioimista:
+MCP:n toteutus reaaliaikaisissa suoratoistoympäristöissä sisältää useita avaintekijöitä:
 
-1. **Kontekstin sarjallistaminen ja siirto**: MCP tarjoaa tehokkaita mekanismeja kontekstuaalisen tiedon koodaamiseen suoratoistodatapaketeissa, varmistaen, että olennainen konteksti kulkee datan mukana koko käsittelyputken ajan. Tämä sisältää standardoidut sarjallistamisformaatit, jotka on optimoitu suoratoistokuljetukseen.
+1. **Kontekstin sarjallistaminen ja kuljetus**: MCP tarjoaa tehokkaita mekanismeja koodata kontekstuaalinen tieto suoratoistodatapaketeissa varmistaen olennaisen kontekstin kulkevan datan mukana prosessointiputken läpi. Tämä sisältää suoratoistoon optimoidut standardoidut sarjallistamisformaatit.
 
-2. **Tilallinen suoratoistokäsittely**: MCP mahdollistaa älykkäämmän tilallisen käsittelyn ylläpitämällä johdonmukaista kontekstiesitystä käsittelysolmujen välillä. Tämä on erityisen arvokasta hajautetuissa suoratoistoarkkitehtuureissa, joissa tilanhallinta on perinteisesti haastavaa.
+2. **Tilallinen suoratoistoprosessointi**: MCP mahdollistaa älykkäämmän tilallisen prosessoinnin ylläpitämällä yhdenmukaista kontekstin esitystä käsittelysolmujen välillä. Tämä on erityisen arvokasta hajautetuissa suoratoistoarkkitehtuureissa, joissa tilanhallinta on perinteisesti haastavaa.
 
-3. **Tapahtuma-aika vs. käsittelyaika**: MCP:n toteutusten on käsiteltävä yleistä haastetta erottaa, milloin tapahtumat tapahtuivat ja milloin ne käsitellään. Protokolla voi sisältää ajallisen kontekstin, joka säilyttää tapahtuma-ajan semantiikan.
+3. **Tapahtuma-aika vs. käsittelyaika**: MCP-toteutusten tulee käsitellä yleistä haastetta, erottaa milloin tapahtumat tapahtuivat ja milloin ne prosessoidaan. Protokolla voi sisältää aikakontekstia, joka säilyttää tapahtuma-ajan semantiikan.
 
-4. **Takaisinpainetta hallinta**: Standardoimalla kontekstinhallinnan MCP auttaa hallitsemaan takaisinpainetta suoratoistojärjestelmissä, jolloin komponentit voivat viestiä käsittelykyvystään ja säätää virtausta sen mukaisesti.
+4. **Takaiskuvauhdin hallinta**: Standardoimalla kontekstinhallintaa MCP auttaa hallitsemaan suoratoistojärjestelmien takaiskuvauhtia, mahdollistaen komponenttien viestiä käsittelykyvystään ja säätää virtausta sen mukaisesti.
 
-5. **Kontekstin ikkunoiminen ja aggregointi**: MCP mahdollistaa kehittyneemmät ikkunoimistoiminnot tarjoamalla rakenteellisia esityksiä ajallisesta ja suhteellisesta kontekstista, mahdollistaen merkityksellisempiä aggregaatioita tapahtumavirroissa.
+5. **Kontekstin ajallinen ja aggregaattinen ikkunoitus**: MCP mahdollistaa monipuolisemmat ikkunoitustoiminnot tarjoamalla rakenteelliset esitykset ajallisista ja suhteellisista kontekteista, mahdollistaen merkityksellisemmän aggregoinnin tapahtumavirtojen välillä.
 
-6. **Täsmälleen-kerran käsittely**: Suoratoistojärjestelmissä, joissa vaaditaan täsmälleen-kerran semantiikkaa, MCP voi sisältää käsittelymetatietoja auttaakseen seuraamaan ja varmistamaan käsittelyn tilan hajautetuissa komponenteissa.
+6. **Täsmälleen-kerran käsittely**: Suoratoistojärjestelmissä, jotka vaativat täsmälleen-kerran semantiikkaa, MCP voi sisältää käsittelymeta-tietoa auttaakseen seuraamaan ja varmistamaan käsittelyn tilan hajautetuissa komponenteissa.
 
-MCP:n toteutus eri suoratoistoteknologioissa luo yhtenäisen lähestymistavan kontekstinhallintaan, vähentäen räätälöidyn integraatiokoodin tarvetta samalla kun parantaa järjestelmän kykyä säilyttää merkityksellinen konteksti datan kulkiessa putken läpi.
+MCP:n toteuttaminen eri suoratoistoteknologioissa luo yhtenäisen lähestymistavan kontekstinhallintaan, vähentäen räätälöidyn integraatiokoodin tarvetta samalla kun parantaa järjestelmän kykyä säilyttää merkityksellinen konteksti datan kulkiessa putken läpi.
 
-### MCP eri datavirtausalustoissa
+### MCP erilaisissa datavirtauskohteissa
 
-Seuraavat esimerkit perustuvat nykyiseen MCP-spesifikaatioon, joka keskittyy JSON-RPC-pohjaiseen protokollaan erillisillä kuljetusmekanismeilla. Koodi havainnollistaa, miten voit toteuttaa mukautettuja kuljetuksia, jotka yhdistävät suoratoistoalustoja kuten Kafka ja Pulsar säilyttäen täyden yhteensopivuuden MCP-protokollan kanssa.
+Nämä esimerkit seuraavat nykyistä MCP-spesifikaatiota, joka perustuu JSON-RPC -protokollaan, jossa on erilliset siirtomekanismit. Koodi näyttää, kuinka voit toteuttaa mukautettuja siirtoja, jotka integroivat suoratoistoalustoja kuten Kafka ja Pulsar säilyttäen täydellisen yhteensopivuuden MCP-protokollan kanssa.
 
-Esimerkit on suunniteltu osoittamaan, miten suoratoistoalustat voidaan integroida MCP:hen tarjoten reaikaista datankäsittelyä säilyttäen MCP:n keskeisen kontekstuaalisen tietoisuuden. Tämä lähestymistapa varmistaa, että koodinäytteet heijastavat tarkasti MCP-spesifikaation nykytilaa kesäkuussa 2025.
+Esimerkit on suunniteltu näyttämään, kuinka suoratoistoalustat voidaan integroida MCP:n kanssa tarjoamaan reaaliaikaista datankäsittelyä samalla kun säilytetään MCP:n keskeinen kontekstitietoisuus. Tämä lähestymistapa varmistaa, että koodinäytteet heijastavat tarkasti MCP-spesifikaation nykytilaa kesäkuussa 2025.
 
-MCP voidaan integroida suosittuihin suoratoistokehyksiin, kuten:
+MCP voidaan integroida suosittuihin suoratoistokehyksiin, mukaan lukien:
 
-#### Apache Kafka -integraatio
+#### Apache Kafka -integrointi
 
 ```python
 import asyncio
@@ -206,7 +207,7 @@ from mcp.client import Client, ClientCapabilities
 from mcp.core.message import JsonRpcMessage
 from mcp.core.transports import Transport
 
-# Custom transport class to bridge MCP with Kafka
+# Räätälöity siirtoluokka MCP:n ja Kafkan yhdistämiseen
 class KafkaMCPTransport(Transport):
     def __init__(self, bootstrap_servers: str, input_topic: str, output_topic: str):
         self.bootstrap_servers = bootstrap_servers
@@ -244,7 +245,7 @@ class KafkaMCPTransport(Transport):
                     print(f"Consumer error: {msg.error()}")
                     continue
                 
-                # Parse the message value as JSON-RPC
+                # Jäsennä viestin arvo JSON-RPC:ksi
                 try:
                     message_str = msg.value().decode('utf-8')
                     message_data = json.loads(message_str)
@@ -274,7 +275,7 @@ class KafkaMCPTransport(Transport):
                 message_json.encode('utf-8'),
                 callback=self._delivery_report
             )
-            self.producer.poll(0)  # Trigger callbacks
+            self.producer.poll(0)  # Käynnistä takaisinkutsut
         except Exception as e:
             print(f"Error writing message: {e}")
     
@@ -297,15 +298,15 @@ class KafkaMCPTransport(Transport):
         self.consumer.close()
         self.producer.flush()
 
-# Example usage of the Kafka MCP transport
+# Esimerkki Kafka MCP -siirron käytöstä
 async def kafka_mcp_example():
-    # Create MCP client with Kafka transport
+    # Luo MCP-asiakas Kafka-siirrolla
     client = Client(
         {"name": "kafka-mcp-client", "version": "1.0.0"},
         ClientCapabilities({})
     )
     
-    # Create and connect the Kafka transport
+    # Luo ja yhdistä Kafka-siirto
     transport = KafkaMCPTransport(
         bootstrap_servers="localhost:9092",
         input_topic="mcp-responses",
@@ -315,10 +316,10 @@ async def kafka_mcp_example():
     await client.connect(transport)
     
     try:
-        # Initialize the MCP session
+        # Alusta MCP-istunto
         await client.initialize()
         
-        # Example of executing a tool via MCP
+        # Esimerkki työkalun suorittamisesta MCP:n kautta
         response = await client.execute_tool(
             "process_data",
             {
@@ -332,12 +333,12 @@ async def kafka_mcp_example():
         
         print(f"Tool execution response: {response}")
         
-        # Clean shutdown
+        # Siisti sulkeminen
         await client.shutdown()
     finally:
         await transport.close()
 
-# Run the example
+# Suorita esimerkki
 if __name__ == "__main__":
     asyncio.run(kafka_mcp_example())
 ```
@@ -354,7 +355,7 @@ from mcp.core.transports import Transport
 from mcp.server import Server, ServerOptions
 from mcp.server.tools import Tool, ToolExecutionContext, ToolMetadata
 
-# Create a custom MCP transport that uses Pulsar
+# Luo mukautettu MCP-siirto, joka käyttää Pulsaria
 class PulsarMCPTransport(Transport):
     def __init__(self, service_url: str, request_topic: str, response_topic: str):
         self.service_url = service_url
@@ -381,24 +382,24 @@ class PulsarMCPTransport(Transport):
         """Background task to consume messages from Pulsar and queue them for processing"""
         while self.running:
             try:
-                # Non-blocking receive with timeout
+                # Estämätön vastaanotto aikakatkaisulla
                 msg = self.consumer.receive(timeout_millis=500)
                 
-                # Process the message
+                # Käsittele viesti
                 try:
                     message_str = msg.data().decode('utf-8')
                     message_data = json.loads(message_str)
                     mcp_message = JsonRpcMessage.from_dict(message_data)
                     await self.message_queue.put(mcp_message)
                     
-                    # Acknowledge the message
+                    # Vahvista viesti
                     self.consumer.acknowledge(msg)
                 except Exception as e:
                     print(f"Error processing message: {e}")
-                    # Negative acknowledge if there was an error
+                    # Negatiivinen vahvistus, jos tapahtui virhe
                     self.consumer.negative_acknowledge(msg)
             except Exception as e:
-                # Handle timeout or other exceptions
+                # Käsittele aikakatkaisu tai muut poikkeukset
                 await asyncio.sleep(0.1)
     
     async def read(self) -> Optional[JsonRpcMessage]:
@@ -431,7 +432,7 @@ class PulsarMCPTransport(Transport):
         self.producer.close()
         self.client.close()
 
-# Define a sample MCP tool that processes streaming data
+# Määrittele esimerkkityökalu MCP:lle, joka käsittelee suoratoistotietoja
 @Tool(
     name="process_streaming_data",
     description="Process streaming data with context preservation",
@@ -457,13 +458,13 @@ async def process_streaming_data(
     Returns:
         Dict containing processed results and context information
     """
-    # Example processing that leverages MCP context
+    # Esimerkkikäsittely, joka hyödyntää MCP-kontekstia
     print(f"Processing data from {source} with priority {priority}")
     
-    # Access conversation context from MCP
+    # Pääsy keskustelukontekstiin MCP:ssä
     conversation_id = ctx.conversation_id if hasattr(ctx, 'conversation_id') else "unknown"
     
-    # Return results with enhanced context
+    # Palauta tulokset parannetulla kontekstilla
     return {
         "processed_data": f"Processed: {data}",
         "context": {
@@ -474,9 +475,9 @@ async def process_streaming_data(
         }
     }
 
-# Example MCP server implementation using Pulsar transport
+# Esimerkki MCP-palvelimen toteutuksesta, joka käyttää Pulsar-siirtoa
 async def run_mcp_server_with_pulsar():
-    # Create MCP server
+    # Luo MCP-palvelin
     server = Server(
         {"name": "pulsar-mcp-server", "version": "1.0.0"},
         ServerOptions(
@@ -484,10 +485,10 @@ async def run_mcp_server_with_pulsar():
         )
     )
     
-    # Register our tool
+    # Rekisteröi työkalumme
     server.register_tool(process_streaming_data)
     
-    # Create and connect Pulsar transport
+    # Luo ja yhdistä Pulsar-siirto
     transport = PulsarMCPTransport(
         service_url="pulsar://localhost:6650",
         request_topic="mcp-requests",
@@ -495,117 +496,147 @@ async def run_mcp_server_with_pulsar():
     )
     
     try:
-        # Start the server with the Pulsar transport
+        # Käynnistä palvelin Pulsar-siirrolla
         await server.run(transport)
     finally:
         await transport.close()
 
-# Run the server
+# Suorita palvelin
 if __name__ == "__main__":
     asyncio.run(run_mcp_server_with_pulsar())
 ```
 
 ### Parhaat käytännöt käyttöönotossa
 
-Kun toteutat MCP:tä reaikaiseen suoratoistoon:
+Kun toteutat MCP:tä reaaliaikaiseen suoratoistoon:
 
-1. **Suunnittele vikasietoisuus**:
+1. **Suunnittele vikasietoiseksi**:
    - Toteuta asianmukainen virheenkäsittely
-   - Käytä dead-letter queue -jonoja epäonnistuneille viesteille
+   - Käytä dead-letter queueja virheellisille viesteille
    - Suunnittele idempotentit prosessorit
 
 2. **Optimoi suorituskyky**:
    - Määritä sopivat puskurikoot
-   - Käytä eräkäsittelyä tarpeen mukaan
-   - Toteuta takaisinpainemekanismit
+   - Käytä erään käsittelyä tarvittaessa
+   - Ota käyttöön takaiskuvahtimekanismeja
 
-3. **Seuraa ja valvo**:
-   - Seuraa suoratoistoprosessin mittareita
-   - Valvo kontekstin leviämistä
-   - Aseta hälytykset poikkeamille
+3. **Valvo ja havainnoi**:
+   - Seuraa suoratoiston käsittelymittareita
+   - Monitoroi kontekstin etenemistä
+   - Aseta hälytykset epätavallisista tilanteista
 
-4. **Suojaa suoratoistosi**:
-   - Toteuta salaus arkaluonteiselle datalle
-   - Käytä tunnistautumista ja valtuutusta
-   - Käytä asianmukaisia käyttöoikeuksia
+4. **Varmista suoratoistosi turvallisuus**:
+   - Toteuta salausta arkaluontoiselle datalle
+   - Käytä autentikointia ja valtuutusta
+   - Sovella asianmukaisia käyttöoikeusrajoituksia
+
 
 ### MCP IoT:ssa ja reunalaskennassa
 
 MCP parantaa IoT-suoratoistoa:
 
-- Säilyttämällä laitekontekstin koko käsittelyputken ajan
-- Mahdollistamalla tehokkaan reunasta pilveen -datavirran
+- Säilyttämällä laitteen kontekstin käsittelyputken läpi
+- Mahdollistamalla tehokkaan reunalta pilveen -datavirran
 - Tukemalla reaaliaikaista analytiikkaa IoT-datavirroissa
-- Helpottamalla laite-laite -viestintää kontekstin avulla
+- Mahdollistamalla laite-laite -kommunikaation kontekstin kera
 
-Esimerkki: Älykaupunkien anturiverkot  
+Esimerkki: Älykaupungin anturiverkot
 ```
 Sensors → Edge Gateways → MCP Stream Processors → Real-time Analytics → Automated Responses
 ```
 
-### Rooli rahoitustapahtumissa ja korkean taajuuden kaupankäynnissä
+### Rooli rahoitustransaktioissa ja korkean taajuuden kaupankäynnissä
 
 MCP tarjoaa merkittäviä etuja rahoitusdatan suoratoistoon:
 
 - Erittäin pieni viive kaupankäyntipäätöksissä
-- Kaupankäyntikontekstin ylläpito koko käsittelyn ajan
-- Monimutkaisen tapahtumankäsittelyn tuki kontekstuaalisella tietoisuudella
+- Transaktioiden kontekstin ylläpito koko käsittelyn ajan
+- Monimutkaisen tapahtumankäsittelyn tuki kontekstitietoisuudella
 - Datan yhdenmukaisuuden varmistaminen hajautetuissa kaupankäyntijärjestelmissä
 
-### Tekoälypohjaisen datan analytiikan tehostaminen
+### AI-ohjatun data-analytiikan tehostaminen
 
-MCP avaa uusia mahdollisuuksia suoratoistoanalytiikkaan:
+MCP luo uusia mahdollisuuksia suoratoistoanalytiikkaan:
 
-- Reaikainen mallin koulutus ja päättely
+- Reaaliaikainen mallin koulutus ja päättely
 - Jatkuva oppiminen suoratoistodatasta
-- Kontekstia hyödyntävä piirteiden poiminta
-- Monimalliset päättelyputket säilytetyn kontekstin kanssa
+- Kontekstitietoinen piirteiden poiminta
+- Monimalliset päättelyputket kontekstin säilyttämisellä
 
-## Tulevat trendit ja innovaatiot
+## Tulevaisuuden trendit ja innovaatiot
 
-### MCP:n kehitys reaikaisissa ympäristöissä
+### MCP:n kehitys reaaliaikaympäristöissä
 
-Tulevaisuudessa MCP:n odotetaan kehittyvän vastaamaan:
+Tulevaisuutta katsoen odotamme MCP:n kehittyvän seuraaviin asioihin:
 
 - **Kvanttilaskennan integrointi**: Valmistautuminen kvanttipohjaisiin suoratoistojärjestelmiin
-- **Reunalaskennan natiivikäsittely**: Yhä enemmän kontekstitietoista käsittelyä reunalaitteilla
+- **Reunalähtöinen käsittely**: Enemmän kontekstitietoista käsittelyä reunalaitteissa
 - **Autonominen suoratoiston hallinta**: Itseoptimoituvat suoratoistoputket
-- **Federatiivinen suoratoisto**: Hajautettu käsittely yksityisyyttä säilyttäen
+- **Yhteistoiminnallinen suoratoisto**: Hajautettu käsittely yksityisyys säilyttäen
 
-### Teknologian mahdolliset edistysaskeleet
+### Mahdolliset teknologian edistysaskeleet
 
-Uudet teknologiat, jotka muokkaavat MCP:n tulevaisuutta:
+Nousevat teknologiat, jotka muokkaavat MCP:n suoratoiston tulevaisuutta:
 
-1. **Tekoälyoptimoidut suoratoistoprotokollat**: Räätälöidyt protokollat erityisesti tekoälykuormille
-2. **Neuromorfinen laskenta**: Aivojen inspiroima laskenta suoratoistokäsittelyyn
-3. **Serverless-suoratoisto**: Tapahtumapohjainen, skaalautuva suoratoisto ilman infrastruktuurin hallintaa
-4. **Hajautetut kontekstivarastot**: Maailmanlaajuisesti hajautettu mutta erittäin yhdenmukainen kontekstinhallinta
+1. **AI-optimoidut suoratoistoprotokollat**: Räätälöidyt protokollat erityisesti AI-kuormituksille
+2. **Neuromorfisen laskennan integrointi**: Aivoista inspiroitunut laskenta suoratoistojenkäsittelyyn
+3. **Palvelimeton suoratoisto**: Tapahtumapohjainen, skaalautuva suoratoisto ilman infrastruktuurin hallintaa
+4. **Hajautetut kontekstivarastot**: Globaalisti hajautettu mutta erittäin yhdenmukainen kontekstinhallinta
 
 ## Käytännön harjoitukset
 
 ### Harjoitus 1: Perus MCP-suoratoistoputken pystytys
 
 Tässä harjoituksessa opit:
-
-- Konfiguroimaan perus MCP-suoratoistoympäristön
-- Toteuttamaan kontekstinkäsittelijöitä suoratoistokäsittelyyn
+- Määrittämään perustason MCP-suoratoistoympäristön
+- Toteuttamaan kontekstit käsittelijät suoratoistokäsittelyssä
 - Testaamaan ja validoimaan kontekstin säilymisen
 
 ### Harjoitus 2: Reaaliaikaisen analytiikkapaneelin rakentaminen
 
 Luo kokonainen sovellus, joka:
-
 - Ottaa vastaan suoratoistodataa MCP:n avulla
-- Käsittelee virtaa kontekstia säilyttäen
+- Käsittelee virtaa konteksti säilyttäen
 - Visualisoi tulokset reaaliajassa
 
 ### Harjoitus 3: Monimutkaisen tapahtumankäsittelyn toteutus MCP:llä
 
-Edistynyt harjoitus, joka kattaa:
+Edistynyt harjoitus käsittää:
+- Mallien tunnistamisen virroissa
+- Kontekstuaalisen korrelaation monien virtojen välillä
+- Monimutkaisten tapahtumien generoinnin säilyttäen konteksti
 
-- Mallien tunnistamisen suoratoistoissa
-- Kontekstuaalisen korrelaation useiden virtojen välillä
-- Monimutka
+## Lisäresurssit
 
-**Vastuuvapauslauseke**:  
-Tämä asiakirja on käännetty käyttämällä tekoälypohjaista käännöspalvelua [Co-op Translator](https://github.com/Azure/co-op-translator). Vaikka pyrimme tarkkuuteen, huomioithan, että automaattikäännöksissä saattaa esiintyä virheitä tai epätarkkuuksia. Alkuperäistä asiakirjaa sen alkuperäiskielellä tulee pitää virallisena lähteenä. Tärkeissä asioissa suositellaan ammattimaista ihmiskäännöstä. Emme ole vastuussa tämän käännöksen käytöstä aiheutuvista väärinymmärryksistä tai tulkinnoista.
+- [Model Context Protocol Specification](https://modelcontextprotocol.io) - Virallinen MCP-spesifikaatio ja dokumentaatio
+- [Apache Kafka Documentation](https://kafka.apache.org/documentation/) - Opiskele Kafkaa suoratoiston käsittelyyn
+- [Apache Pulsar](https://pulsar.apache.org/) - Yhtenäinen viestintä- ja suoratoistoalusta
+- [Streaming Systems: The What, Where, When, and How of Large-Scale Data Processing](https://www.oreilly.com/library/view/streaming-systems/9781491983867/) - Kattava kirja suoratoistoarkkitehtuureista
+- [Microsoft Azure Event Hubs](https://learn.microsoft.com/azure/event-hubs/event-hubs-about) - Hallittu tapahtumasuoratoistopalvelu
+- [MLflow Documentation](https://mlflow.org/docs/latest/index.html) - Koneoppimismallien seuranta ja käyttöönotto
+- [Real-Time Analytics with Apache Storm](https://storm.apache.org/releases/current/index.html) - Reaaliaikaisen laskennan kehys
+- [Flink ML](https://nightlies.apache.org/flink/flink-ml-docs-master/) - Koneoppimiskirjasto Apache Flinkille
+- [LangChain Documentation](https://python.langchain.com/docs/get_started/introduction) - Sovellusten rakentaminen LLM:illä
+
+
+## Oppimisen tulokset
+
+Tämän moduulin suorittamalla osaat:
+
+- Ymmärtää reaaliaikaisen datavirtaamisen perusteet ja haasteet
+- Selittää, miten Mallin kontekstiprotokolla (MCP) parantaa reaaliaikaista datavirtausta
+- Toteuttaa MCP-pohjaisia suoratoistoratkaisuja suosituilla kehyksillä kuten Kafka ja Pulsar
+- Suunnitella ja ottaa käyttöön vikasietoisia, korkeasuorituskykyisiä suoratoistoarkkitehtuureja MCP:llä
+- Soveltaa MCP-konsepteja IoT:n, finanssikaupan ja AI-pohjaisten analytiikoiden käyttötapauksiin
+- Arvioida MCP-pohjaisen suoratoistoteknologian nousevia trendejä ja tulevia innovaatioita
+
+## Mitä seuraavaksi
+
+- [5.11 Reaaliaikahaku](../mcp-realtimesearch/README.md)
+
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Vastuuvapauslauseke**:
+Tämä asiakirja on käännetty käyttämällä tekoälypohjaista käännöspalvelua [Co-op Translator](https://github.com/Azure/co-op-translator). Vaikka pyrimme tarkkuuteen, otathan huomioon, että automaattiset käännökset saattavat sisältää virheitä tai epätarkkuuksia. Alkuperäinen asiakirja sen alkuperäiskielellä on virallinen lähde. Tärkeissä asioissa suositellaan ammattimaista ihmiskäännöstä. Emme ole vastuussa tämän käännöksen käytöstä aiheutuvista väärinymmärryksistä tai tulkinnoista.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->
