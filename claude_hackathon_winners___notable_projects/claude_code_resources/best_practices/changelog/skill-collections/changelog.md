@@ -76,3 +76,13 @@
 |---|----------|------|--------|--------|
 | 1 | HIGH | Add | Added pbakaus/impeccable (27k stars / 1 SKILL.md with 7 design domain references) at row 4, between wshobson/agents (35k) and addyosmani/agent-skills (27k); user-requested manual addition | COMPLETE (inserted into SKILL COLLECTIONS table) |
 | 2 | LOW | Note | Single-skill repo with 7 reference files (typography, color-and-contrast, spatial-design, motion-design, interaction-design, responsive-design, ux-writing), 23 commands, 27 anti-pattern rules — design language skill for frontend AI work | COMPLETE (count notation matches VoltAgent pattern of parenthetical clarification) |
+
+---
+
+## [2026-05-13 01:28 AM PKT] Skill Collections Update
+
+| # | Priority | Type | Action | Status |
+|---|----------|------|--------|--------|
+| 1 | HIGH | Add | Added alirezarezvani/claude-skills (14,550 exact → 15k / 246 skills across 9 domains) at row 8 of SKILL COLLECTIONS table (after K-Dense-AI/scientific-agent-skills 21k); user-requested manual addition | COMPLETE (inserted into SKILL COLLECTIONS table) |
+| 2 | MEDIUM | Note | Drops empirical SKILL COLLECTIONS star floor from 21k to ~15k. No explicit star-threshold memory exists for this table (only AGENT COLLECTIONS and CROSS-MODEL WORKFLOWS have the 10k+ rule), so this is a precedent-setting addition rather than a rule violation | COMPLETE (decision logged) |
+| 3 | LOW | Note | Repo is cross-tool by design (supports Claude Code, Codex, Gemini CLI, Cursor + 8 more per its own README description). Candidate for CROSS-MODEL WORKFLOWS table in future review, but classified here per user direction | COMPLETE (cross-classification noted) |
