@@ -16,6 +16,24 @@ dev = [
     "dagster-webserver",
     "pytest",
 ]
+test = [
+    "dagster[test]",
+    "dagster-pipes",
+    "dagster-shared",
+]
+
+[tool.uv]
+# dagster-cloud (from PyPI) pins an exact released dagster version; without
+# this override uv can't reconcile that pin with the local
+# dagster==1!0+dev source.
+override-dependencies = ["dagster==1!0+dev"]
+
+[tool.uv.sources]
+dagster = { path = "../../python_modules/dagster", editable = true }
+dagster-pipes = { path = "../../python_modules/dagster-pipes", editable = true }
+dagster-shared = { path = "../../python_modules/libraries/dagster-shared", editable = true }
+dagster-dg-cli = { path = "../../python_modules/libraries/dagster-dg-cli", editable = true }
+dagster-webserver = { path = "../../python_modules/dagster-webserver", editable = true }
 
 [build-system]
 requires = ["hatchling"]

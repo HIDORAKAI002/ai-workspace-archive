@@ -572,7 +572,7 @@ from dagster._annotations import public
                                 failures.append((connector_name_human_readable, e))
                                 continue
 
-                print("\033[1A\033[K\033[1A\033[K\033[1A\033[K")  # noqa: T201
+                print("\033[1A\033[K\033[1A\033[K\033[1A\033[K")
                 click.secho(f"{successes} successes", fg="green")
                 click.secho(f"{len(failures)} failures", fg="red")
 

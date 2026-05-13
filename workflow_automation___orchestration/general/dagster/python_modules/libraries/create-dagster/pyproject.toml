@@ -27,8 +27,24 @@ Homepage = "https://github.com/dagster-io/dagster/tree/master/python_modules/lib
 create-dagster = "create_dagster.cli:main"
 
 [project.optional-dependencies]
+
+[dependency-groups]
 test = [
+    "dagster-pipes",
+    "dagster",
+    "dagster-dg-core",
+    "dagster-shared",
+    "dagster-cloud-cli",
+    "dagster-test",
     "pytest",
     "pytest-rerunfailures",
     "psutil",
 ]
+
+[tool.uv.sources]
+dagster-pipes = { path = "../../../python_modules/dagster-pipes", editable = true }
+dagster = { path = "../../../python_modules/dagster", editable = true }
+dagster-dg-core = { path = "../dagster-dg-core", editable = true }
+dagster-shared = { path = "../dagster-shared", editable = true }
+dagster-cloud-cli = { path = "../dagster-cloud-cli", editable = true }
+dagster-test = { path = "../../../python_modules/dagster-test", editable = true }

@@ -26,3 +26,32 @@ dev = ["dagster-webserver", "pytest"]
 [tool.dagster]
 module_name = "assets_modern_data_stack.definitions"
 code_location_name = "assets_modern_data_stack"
+
+[dependency-groups]
+test = [
+    "dagster[test]",
+    "dagster-pipes",
+    "dagster-shared",
+    "dagster-graphql",
+    "dagster-webserver",
+    "dagster-dbt",
+    "dagster-airbyte",
+    "dagster-postgres",
+    "dagster-pandas",
+]
+
+[tool.uv]
+# dagster-cloud (from PyPI) pins an exact released dagster version; without
+# this override uv can't reconcile that pin with local dagster==1!0+dev.
+override-dependencies = ["dagster==1!0+dev"]
+
+[tool.uv.sources]
+dagster = { path = "../../python_modules/dagster", editable = true }
+dagster-pipes = { path = "../../python_modules/dagster-pipes", editable = true }
+dagster-shared = { path = "../../python_modules/libraries/dagster-shared", editable = true }
+dagster-graphql = { path = "../../python_modules/dagster-graphql", editable = true }
+dagster-webserver = { path = "../../python_modules/dagster-webserver", editable = true }
+dagster-dbt = { path = "../../python_modules/libraries/dagster-dbt", editable = true }
+dagster-airbyte = { path = "../../python_modules/libraries/dagster-airbyte", editable = true }
+dagster-postgres = { path = "../../python_modules/libraries/dagster-postgres", editable = true }
+dagster-pandas = { path = "../../python_modules/libraries/dagster-pandas", editable = true }

@@ -525,6 +525,7 @@ def get_updated_cli_invocation_params_for_context(
     selection_args: list[str] = []
     indirect_selection = os.getenv(DBT_INDIRECT_SELECTION_ENV, None)
     dbt_project = None
+    used_generated_selector = False
     if context and assets_def is not None:
         manifest, dagster_dbt_translator, dbt_project = get_manifest_and_translator_from_dbt_assets(
             [assets_def]
@@ -598,21 +599,25 @@ def get_updated_cli_invocation_params_for_context(
                 )
             selection_args = ["--selector", selector_name]
             target_project = replace(dbt_project, project_dir=Path(temp_project_dir))
-        else:
-            # Non-selector branch: re-inject the extracted runtime flags onto selection_args
-            # so dbt still sees them. Prepending matches the pre-refactor argv layout (user
-            # args came before selection_args in DbtCliResource.cli), preserving today's
-            # behavior where dbt's multi-flag handling decides precedence.
-            if runtime_selects:
-                selection_args = ["--select", " ".join(runtime_selects), *selection_args]
-            if runtime_excludes:
-                selection_args = ["--exclude", " ".join(runtime_excludes), *selection_args]
+            used_generated_selector = True
 
         indirect_selection = (
             indirect_selection_override if indirect_selection_override else indirect_selection
         )
     else:
         target_project = dbt_project
+
+    # extract_runtime_selection_from_args (in core/resource.py) stripped these flags
+    # from the user's argv; re-attach them onto selection_args so dbt still sees them.
+    # Skipped when the selector-yaml branch ran — that branch folded the values into
+    # the yaml and dbt silently ignores --select/--exclude alongside --selector.
+    # Prepended (not appended) to preserve pre-refactor argv order, which dbt's
+    # multi-flag precedence relies on.
+    if not used_generated_selector:
+        if runtime_selects:
+            selection_args = ["--select", " ".join(runtime_selects), *selection_args]
+        if runtime_excludes:
+            selection_args = ["--exclude", " ".join(runtime_excludes), *selection_args]
 
     return DbtCliInvocationPartialParams(
         manifest=manifest,

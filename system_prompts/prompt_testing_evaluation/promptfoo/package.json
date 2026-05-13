@@ -123,7 +123,7 @@
       "express": "^4.22.1"
     },
     "@anthropic-ai/claude-agent-sdk": {
-      "@anthropic-ai/sdk": "^0.95.1"
+      "@anthropic-ai/sdk": "^0.95.2"
     },
     "@isaacs/brace-expansion": ">=5.0.1",
     "fast-xml-parser": "$fast-xml-parser",
@@ -131,7 +131,7 @@
     "vite": "^8.0.5",
     "lodash-es": "^4.18.1",
     "langium": {
-      ".": "4.2.3",
+      ".": "4.2.4",
       "@chevrotain/regexp-to-ast": "11.2.0",
       "chevrotain": "11.2.0",
       "chevrotain-allstar": "0.4.1"
@@ -201,7 +201,7 @@
     "ibm-cloud-sdk-core": "^5.4.11",
     "knip": "^6.0.0",
     "langfuse": "^3.38.20",
-    "langium": "4.2.3",
+    "langium": "4.2.4",
     "nock": "^14.0.11",
     "node-sql-parser": "^5.4.0",
     "pdf-parse": "^2.4.5",
@@ -258,7 +258,7 @@
     "sharp": "^0.34.5"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.95.1",
+    "@anthropic-ai/sdk": "^0.95.2",
     "@apidevtools/json-schema-ref-parser": "^15.3.1",
     "@googleapis/sheets": "^13.0.1",
     "@inquirer/checkbox": "^5.1.0",
@@ -272,7 +272,7 @@
     "@opencode-ai/sdk": "^1.14.33",
     "@opentelemetry/api": "^1.9.0",
     "@opentelemetry/core": "^2.6.0",
-    "@opentelemetry/exporter-trace-otlp-http": "^0.217.0",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.218.0",
     "@opentelemetry/resources": "^2.6.0",
     "@opentelemetry/sdk-trace-base": "^2.6.0",
     "@opentelemetry/sdk-trace-node": "^2.6.0",

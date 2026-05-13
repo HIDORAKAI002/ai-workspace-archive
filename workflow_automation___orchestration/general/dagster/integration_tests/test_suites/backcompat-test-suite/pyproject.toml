@@ -7,3 +7,23 @@ dependencies = [
     "dagster-test",
     "dagster-postgres",
 ]
+
+[dependency-groups]
+test = [
+    "dagster-pipes",
+    "dagster-shared",
+    "dagster[test]",
+    "dagster-webserver",
+    "dagster-graphql",
+    "dagster-test",
+    "dagster-postgres",
+]
+
+[tool.uv.sources]
+dagster-pipes = { path = "../../../python_modules/dagster-pipes", editable = true }
+dagster-shared = { path = "../../../python_modules/libraries/dagster-shared", editable = true }
+dagster = { path = "../../../python_modules/dagster", editable = true }
+dagster-webserver = { path = "../../../python_modules/dagster-webserver", editable = true }
+dagster-graphql = { path = "../../../python_modules/dagster-graphql", editable = true }
+dagster-test = { path = "../../../python_modules/dagster-test", editable = true }
+dagster-postgres = { path = "../../../python_modules/libraries/dagster-postgres", editable = true }

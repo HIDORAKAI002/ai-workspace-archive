@@ -38,4 +38,19 @@ artifacts = ["dagster_webserver/webapp/build/"]
 
 [project.optional-dependencies]
 notebook = ["nbconvert"]  # notebooks support
-test = ["starlette[full]"]  # TestClient deps in full
+
+[dependency-groups]
+test = [
+    "dagster[test]",
+    "dagster-pipes",
+    "dagster-shared",
+    "dagster-graphql",
+    "objgraph",
+    "starlette[full]",  # TestClient deps; folded from dagster-webserver[test] extra
+]
+
+[tool.uv.sources]
+dagster = { path = "../dagster", editable = true }
+dagster-pipes = { path = "../dagster-pipes", editable = true }
+dagster-shared = { path = "../libraries/dagster-shared", editable = true }
+dagster-graphql = { path = "../dagster-graphql", editable = true }
