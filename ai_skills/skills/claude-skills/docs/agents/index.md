@@ -1,13 +1,13 @@
 ---
 title: "AI Coding Agents — Agent-Native Orchestrators & Codex Skills"
-description: "54 agent-native orchestrators for Claude Code, Codex CLI, and Gemini CLI — multi-skill AI agents across engineering, product, marketing, and more."
+description: "58 agent-native orchestrators for Claude Code, Codex CLI, and Gemini CLI — multi-skill AI agents across engineering, product, marketing, and more."
 ---
 
 <div class="domain-header" markdown>
 
 # :material-robot: Agents
 
-<p class="domain-count">54 agents that orchestrate skills across domains</p>
+<p class="domain-count">58 agents that orchestrate skills across domains</p>
 
 </div>
 
@@ -229,6 +229,24 @@ description: "54 agent-native orchestrators for Claude Code, Codex CLI, and Gemi
 
     Engineering - POWERFUL
 
+-   :material-rocket-launch:{ .lg .middle } **[Caveman Mode Agent](cs-caveman-mode.md)**
+
+    ---
+
+    Engineering - POWERFUL
+
+-   :material-rocket-launch:{ .lg .middle } **[Grill Master Agent](cs-grill-master.md)**
+
+    ---
+
+    Engineering - POWERFUL
+
+-   :material-rocket-launch:{ .lg .middle } **[Handoff Author Agent](cs-handoff-author.md)**
+
+    ---
+
+    Engineering - POWERFUL
+
 -   :material-rocket-launch:{ .lg .middle } **[karpathy-reviewer](karpathy-reviewer.md)**
 
     ---
@@ -248,6 +266,12 @@ description: "54 agent-native orchestrators for Claude Code, Codex CLI, and Gemi
     Engineering - POWERFUL
 
 -   :material-rocket-launch:{ .lg .middle } **[wiki-linter](wiki-linter.md)**
+
+    ---
+
+    Engineering - POWERFUL
+
+-   :material-rocket-launch:{ .lg .middle } **[Skill Author Agent](cs-skill-author.md)**
 
     ---
 

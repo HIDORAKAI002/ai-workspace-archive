@@ -1,6 +1,6 @@
 site_name: Claude Code Skills & Agent Plugins
 site_url: https://alirezarezvani.github.io/claude-skills/
-site_description: "268 production-ready skills, 33 cs-* agents (incl. founder-mode C-suite: GC, CDO, CAIO, CCO, VPE), 7 personas, 21 /cs:* slash commands, and an orchestration protocol for 12 AI coding tools."
+site_description: "272 production-ready skills, 37 cs-* agents (incl. founder-mode C-suite: GC, CDO, CAIO, CCO, VPE + Matt Pocock-derived productivity quartet: skill-author, caveman, grill-master, handoff), 7 personas, 25 /cs:* slash commands, and an orchestration protocol for 12 AI coding tools."
 site_author: Alireza Rezvani
 repo_url: https://github.com/alirezarezvani/claude-skills
 repo_name: alirezarezvani/claude-skills
@@ -239,6 +239,10 @@ nav:
       - "Chaos Engineering": skills/engineering/chaos-engineering.md
       - "SLO Architect": skills/engineering/slo-architect.md
       - "Ship Gate": skills/engineering/ship-gate.md
+      - "Write a Skill (Matt Pocock-derived)": skills/engineering/write-a-skill.md
+      - "Caveman Mode (Matt Pocock-derived)": skills/engineering/caveman.md
+      - "Grill Me (Matt Pocock-derived)": skills/engineering/grill-me.md
+      - "Handoff (Matt Pocock-derived)": skills/engineering/handoff.md
       - AgentHub:
         - "AgentHub": skills/engineering/agenthub.md
         - "/hub:init": skills/engineering/agenthub-init.md
@@ -454,6 +458,10 @@ nav:
     - "CS CAIO Advisor (Chief AI Officer)": agents/cs-caio-advisor.md
     - "CS CCO Advisor (Chief Customer Officer)": agents/cs-cco-advisor.md
     - "CS VPE Advisor (VP Engineering)": agents/cs-vpe-advisor.md
+    - "CS Skill Author (Matt Pocock-derived)": agents/cs-skill-author.md
+    - "CS Caveman Mode (Matt Pocock-derived)": agents/cs-caveman-mode.md
+    - "CS Grill Master (Matt Pocock-derived)": agents/cs-grill-master.md
+    - "CS Handoff Author (Matt Pocock-derived)": agents/cs-handoff-author.md
   - Commands:
     - Overview: commands/index.md
     - "/a11y-audit": commands/a11y-audit.md

@@ -5,6 +5,66 @@ All notable changes to the Claude Skills Library will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.0] - 2026-05-13 — Matt Pocock productivity skills: write-a-skill + caveman + grill-me + handoff
+
+### Added — Engineering / Productivity (4 new skills, all MIT-licensed derivations)
+
+- **write-a-skill** skill (`./engineering/write-a-skill/`) — skill-author meta-skill derived from [Matt Pocock's write-a-skill](https://github.com/mattpocock/skills/tree/main/skills/productivity/write-a-skill) (MIT). Matt's SKILL.md content + 3-phase workflow (Gather → Draft → Review) preserved verbatim per his MIT license.
+  - **3 stdlib Python validation tools**: `skill_description_validator.py` (5-check verdict: present, ≤1024 chars, third person, "Use when" trigger, action verb in first sentence), `skill_structure_validator.py` (6-check verdict: SKILL.md present + ≤100 lines, references when split needed, one-level-deep, no circular refs, scripts/ folder note), `skill_review_checklist_runner.py` (combined 6-item runner per Matt's checklist).
+  - **4 references** (7-8 sources each): progressive disclosure principles (Matt, Anthropic, Don Norman, Pirolli & Card, Maeda, DocOps, Pareto), description design patterns (Matt, Anthropic, Garrett, Nielsen Norman, Karpathy, SEO), quality gates (Matt, Humble & Farley, Kim et al., Hyrum's Law), companion tooling.
+  - **cs-skill-author** persona agent (forcing-question interrogator).
+  - **`/cs:write-a-skill`** slash command (6-question forcing interrogation mirroring Matt's review checklist).
+
+- **caveman** skill (`./engineering/caveman/`) — token-compression mode derived from [Matt Pocock's caveman](https://github.com/mattpocock/skills/tree/main/skills/productivity/caveman) (MIT). Matt's persistence rules + auto-clarity exception preserved verbatim.
+  - **3 stdlib Python tools**: `caveman_compressor.py` (deterministic application of Matt's rules — drop articles/filler/pleasantries/hedging, abbreviate technical terms, causality arrows; 20-50% typical reduction, 75% upper bound), `token_savings_estimator.py` (chars/token heuristic for prose vs technical text + $/Mtok cost extrapolation), `caveman_lint.py` (detects banned vocab with code-block + exception-zone whitelisting).
+  - **3 references** (7-8 sources each): compression principles (Matt, Strunk & White, Plain Language Movement, Pinker, Williams, Anthropic, tokenizer heuristics), when caveman backfires (Matt, NN/g, FAA cockpit-warning research, Krug, Schneier, Larson), companion tooling.
+  - **cs-caveman-mode** persona agent (persistence-enforced operator).
+  - **`/cs:caveman`** slash command.
+
+- **grill-me** skill (`./engineering/grill-me/`) — relentless plan-interrogator derived from [Matt Pocock's grill-me](https://github.com/mattpocock/skills/tree/main/skills/productivity/grill-me) (MIT). Matt's one-at-a-time interview discipline preserved verbatim.
+  - **3 stdlib Python tools**: `decision_tree_extractor.py` (6 branch kinds: intent / choice / open / tradeoff / dependency / question), `question_generator.py` (forcing questions with recommended answers + dependency-aware ordering), `grill_session_tracker.py` (JSON-backed state in `~/.grill_sessions/` for multi-day grills).
+  - **3 references** (7-8 sources each): forcing-question patterns (Matt, Socratic Method, YC office-hours, 5 Whys, Cockburn, Popper, Galef, Larson), when to stop grilling (Matt, Galef, Kahneman, Bezos Type 1/2 decisions, YC Founder School, Cynefin), companion tooling.
+  - **cs-grill-master** persona agent (one-question-at-a-time enforcer with codebase-exploration-first discipline).
+  - **`/cs:grill-me`** slash command.
+
+- **handoff** skill (`./engineering/handoff/`) — conversation-continuity generator derived from [Matt Pocock's handoff](https://github.com/mattpocock/skills/tree/main/skills/productivity/handoff) (MIT). Matt's no-duplication discipline + `mktemp` convention preserved verbatim.
+  - **3 stdlib Python tools**: `handoff_template_generator.py` (5-section scaffold tailored to 5 next-session emphases: deploy/review/debug/design/test/default; honors Matt's `mktemp -t handoff-XXXXXX.md`), `artifact_deduplicator.py` (detects PRD/ADR/issue/commit/long-code-block duplication with reference suggestions), `skill_recommender.py` (matches handoff content to 14 skills in this repo, ranked by signal strength).
+  - **4 references** (7-8 sources each): handoff structure (Matt, DRY, runbook patterns, Atlassian, GitHub PR conventions, Anthropic, Kim et al.), deduplication discipline (Matt, Hunt & Thomas, Fowler, DocOps, Karpathy LLM Wiki, git-as-source-of-truth, Stripe API versioning), next-session skill matching (Matt, Anthropic, TF-IDF/BM25, recommender systems, Karpathy, Hyrum's Law), companion tooling.
+  - **cs-handoff-author** persona agent (no-duplication-tolerated).
+  - **`/cs:handoff <next-session-focus>`** slash command with argument-hint per Matt's convention.
+
+### Attribution
+
+All four skills derive from [Matt Pocock's MIT-licensed skills repo](https://github.com/mattpocock/skills) — *"Skills for Real Engineers. Straight from my .claude directory"*. Matt's SKILL.md content reproduced verbatim under MIT. Attribution in every file: README.md + plugin.json `attribution` block + SKILL.md frontmatter metadata + agent + command + reference footers.
+
+### The Pattern (Hybrid Voice Approach)
+
+This release establishes the pattern for deriving MIT-licensed external skills into this repo:
+
+1. **Preserve upstream voice verbatim** in SKILL.md
+2. **Add wrapper layer**: stdlib Python validation tools + 3-4 references (each citing ≥ 5 authoritative sources) + cs-* persona agent + /cs:* slash command
+3. **Karpathy-coder gate** before merge (complexity_checker + assumption_linter)
+4. **Attribution discipline** in plugin.json + README + every file footer
+
+### Verified
+
+- **12 Python tools** total: 100/100 complexity across all (0 findings) — karpathy `complexity_checker` PASS
+- **13 references** total: 7-8 authoritative sources each (well over the ≥ 5 floor)
+- **All 4 SKILL.md** PASS write-a-skill's own 6-item review checklist (the meta-skill dogfooded)
+- **SKILL.md sizes**: 144 (write-a-skill, wrapper preserves Matt's full content), 69 (caveman), 58 (grill-me), 41 (handoff) — three of four under Matt's 100-line ceiling; write-a-skill documented exception (verbatim preservation overhead)
+- **pytest**: 1,921 tests passing
+- **CI**: PR 2 caught the missing H1 issue via `test_skill_integrity.py` (test suite worked as designed); fixed in a follow-up commit before merge
+
+### Documented Trade-offs
+
+- **assumption_linter false positives** on `caveman_compressor.py`, `caveman_lint.py`, `artifact_deduplicator.py`, `handoff_template_generator.py`, `skill_recommender.py`: the linter flags banned-vocabulary strings (just, simply, fix, refactor, of course) that appear inside the tools' DATA dictionaries — these strings exist precisely to be detected. Documented as expected; no code change.
+- **caveman compression ratio**: Matt's stated "~75%" is the upper bound on extremely verbose responses with multiple pleasantries + filler + hedging. Realistic compression on typical mid-conversation text is 20-50%. Documented in `compression_principles.md`.
+
+### PRs
+
+- PR #642 — write-a-skill alone (merged 2026-05-13)
+- PR #643 — caveman + grill-me + handoff batch (merged 2026-05-13)
+
 ## [2.5.7] - 2026-05-13 — Docs site refresh: nav additions, dual-publish dedup, 301 redirects
 
 ### Added
