@@ -26,6 +26,13 @@ from pinecone.errors.exceptions import (
 )
 from pinecone.grpc._protocol import GrpcChannelProtocol
 from pinecone.grpc.future import PineconeFuture
+from pinecone.models.namespaces.models import (
+    IndexedFields,
+    ListNamespacesResponse,
+    NamespaceDescription,
+    NamespaceFieldConfig,
+    NamespaceSchema,
+)
 from pinecone.models.vectors.responses import (
     DescribeIndexStatsResponse,
     FetchResponse,
@@ -1315,6 +1322,207 @@ class GrpcIndex:
             match_terms=match_terms,
             timeout=timeout,
         )
+
+    def list_namespaces_paginated(
+        self,
+        *,
+        prefix: str | None = None,
+        limit: int | None = None,
+        pagination_token: str | None = None,
+        timeout: float | None = None,
+    ) -> ListNamespacesResponse:
+        """Fetch a single page of namespace descriptions via gRPC.
+
+        Args:
+            prefix (str | None): Return only namespaces whose names start with this prefix.
+            limit (int | None): Maximum number of namespaces to return in this page.
+            pagination_token (str | None): Token from a previous response to fetch the next page.
+            timeout (float | None): Per-call timeout in seconds.
+
+        Returns:
+            :class:`ListNamespacesResponse` with namespace descriptions, pagination info,
+            and total count.
+        """
+        logger.info("Listing namespaces (paginated) via gRPC")
+        result = self._channel.list_namespaces(
+            prefix=prefix,
+            limit=limit,
+            pagination_token=pagination_token,
+            timeout_s=timeout,
+        )
+
+        namespaces: list[NamespaceDescription] = []
+        for ns_data in result.get("namespaces", []):
+            schema: NamespaceSchema | None = None
+            raw_schema = ns_data.get("schema")
+            if raw_schema is not None:
+                schema = NamespaceSchema(
+                    fields={
+                        k: NamespaceFieldConfig(filterable=v["filterable"])
+                        for k, v in raw_schema.get("fields", {}).items()
+                    }
+                )
+            indexed_fields: IndexedFields | None = None
+            raw_indexed = ns_data.get("indexed_fields")
+            if raw_indexed is not None:
+                indexed_fields = IndexedFields(fields=list(raw_indexed))
+            namespaces.append(
+                NamespaceDescription(
+                    name=ns_data.get("name", ""),
+                    record_count=ns_data.get("record_count", 0),
+                    schema=schema,
+                    indexed_fields=indexed_fields,
+                )
+            )
+
+        pagination: Pagination | None = None
+        raw_pag = result.get("pagination")
+        if raw_pag is not None:
+            pagination = Pagination(next=raw_pag.get("next"))
+
+        return ListNamespacesResponse(
+            namespaces=namespaces,
+            pagination=pagination,
+            total_count=result.get("total_count", 0),
+        )
+
+    def list_namespaces(
+        self,
+        *,
+        prefix: str | None = None,
+        limit: int | None = None,
+        timeout: float | None = None,
+    ) -> Iterator[ListNamespacesResponse]:
+        """List namespaces, automatically following pagination.
+
+        Yields one :class:`ListNamespacesResponse` per page. The generator
+        automatically follows pagination tokens until all pages have been
+        retrieved.
+
+        Args:
+            prefix (str | None): Return only namespaces whose names start with this prefix.
+            limit (int | None): Maximum number of namespaces to return per page.
+            timeout (float | None): Per-call timeout in seconds.
+
+        Yields:
+            :class:`ListNamespacesResponse` for each page of results.
+
+        Examples:
+            .. code-block:: python
+
+                for page in idx.list_namespaces(prefix="prod-"):
+                    for ns in page.namespaces:
+                        print(ns.name, ns.record_count)
+        """
+        pagination_token: str | None = None
+        while True:
+            page = self.list_namespaces_paginated(
+                prefix=prefix,
+                limit=limit,
+                pagination_token=pagination_token,
+                timeout=timeout,
+            )
+            if page.namespaces:
+                yield page
+            if page.pagination is not None and page.pagination.next is not None:
+                pagination_token = page.pagination.next
+            else:
+                break
+
+    def describe_namespace(
+        self,
+        *,
+        name: str | None = None,
+        timeout: float | None = None,
+        **kwargs: str,
+    ) -> NamespaceDescription:
+        """Describe a namespace by name.
+
+        Args:
+            name (str): Name of the namespace to describe.
+            timeout (float | None): Per-call timeout in seconds.
+
+        Returns:
+            :class:`NamespaceDescription` with the namespace name, record count,
+            and schema information.
+
+        Raises:
+            :exc:`ValidationError`: If the name is not a string or is empty/whitespace.
+            :exc:`TypeError`: If unexpected keyword arguments are passed.
+        """
+        legacy_namespace: str | None = kwargs.pop("namespace", None)
+        if kwargs:
+            raise TypeError(
+                f"describe_namespace() got unexpected keyword arguments: {sorted(kwargs)!r}"
+            )
+        if name is not None and legacy_namespace is not None:
+            raise ValidationError("Provide either name= or namespace=, not both")
+        effective: str = name if name is not None else (legacy_namespace or "")
+        if not isinstance(effective, str):
+            raise ValidationError("namespace name must be a string")
+        if not effective or not effective.strip():
+            raise ValidationError("namespace name must be a non-empty string")
+
+        logger.info("Describing namespace %r via gRPC", effective)
+        result = self._channel.describe_namespace(effective, timeout_s=timeout)
+
+        schema: NamespaceSchema | None = None
+        raw_schema = result.get("schema")
+        if raw_schema is not None:
+            schema = NamespaceSchema(
+                fields={
+                    k: NamespaceFieldConfig(filterable=v["filterable"])
+                    for k, v in raw_schema.get("fields", {}).items()
+                }
+            )
+
+        indexed_fields: IndexedFields | None = None
+        raw_indexed = result.get("indexed_fields")
+        if raw_indexed is not None:
+            indexed_fields = IndexedFields(fields=list(raw_indexed))
+
+        return NamespaceDescription(
+            name=result.get("name", ""),
+            record_count=result.get("record_count", 0),
+            schema=schema,
+            indexed_fields=indexed_fields,
+        )
+
+    def delete_namespace(
+        self,
+        *,
+        name: str | None = None,
+        timeout: float | None = None,
+        **kwargs: str,
+    ) -> None:
+        """Delete a namespace by name, removing all its vectors.
+
+        Args:
+            name (str): Name of the namespace to delete.
+            timeout (float | None): Per-call timeout in seconds.
+
+        Returns:
+            None — a successful delete returns no payload.
+
+        Raises:
+            :exc:`ValidationError`: If the name is not a string or is empty/whitespace.
+            :exc:`TypeError`: If unexpected keyword arguments are passed.
+        """
+        legacy_namespace: str | None = kwargs.pop("namespace", None)
+        if kwargs:
+            raise TypeError(
+                f"delete_namespace() got unexpected keyword arguments: {sorted(kwargs)!r}"
+            )
+        if name is not None and legacy_namespace is not None:
+            raise ValidationError("Provide either name= or namespace=, not both")
+        effective: str = name if name is not None else (legacy_namespace or "")
+        if not isinstance(effective, str):
+            raise ValidationError("namespace name must be a string")
+        if not effective or not effective.strip():
+            raise ValidationError("namespace name must be a non-empty string")
+
+        logger.info("Deleting namespace %r via gRPC", effective)
+        self._channel.delete_namespace(effective, timeout_s=timeout)
 
     def close(self) -> None:
         """Close the underlying gRPC channel, REST client, and release resources."""
