@@ -73,6 +73,8 @@ export async function startOrResumeThread(params: {
   appServer: CodexAppServerRuntimeOptions;
   developerInstructions?: string;
   config?: JsonObject;
+  mcpServersFingerprint?: string;
+  mcpServersFingerprintEvaluated?: boolean;
   pluginThreadConfig?: CodexPluginThreadConfigProvider;
 }): Promise<CodexAppServerThreadLifecycleBinding> {
   const dynamicToolsFingerprint = fingerprintDynamicTools(params.dynamicTools);
@@ -112,6 +114,17 @@ export async function startOrResumeThread(params: {
     await clearCodexAppServerBinding(params.params.sessionFile);
     binding = undefined;
   }
+  if (
+    binding?.threadId &&
+    params.mcpServersFingerprintEvaluated === true &&
+    binding.mcpServersFingerprint !== params.mcpServersFingerprint
+  ) {
+    embeddedAgentLog.debug("codex app-server MCP config changed; starting a new thread", {
+      threadId: binding.threadId,
+    });
+    await clearCodexAppServerBinding(params.params.sessionFile);
+    binding = undefined;
+  }
   if (binding?.threadId) {
     let pluginBindingStale = isCodexPluginThreadBindingStale({
       codexPluginsEnabled: params.pluginThreadConfig?.enabled ?? false,
@@ -146,6 +159,17 @@ export async function startOrResumeThread(params: {
       binding = undefined;
     }
   }
+  if (
+    binding?.threadId &&
+    params.mcpServersFingerprintEvaluated === true &&
+    binding.mcpServersFingerprint !== params.mcpServersFingerprint
+  ) {
+    embeddedAgentLog.debug("codex app-server MCP config changed; starting a new thread", {
+      threadId: binding.threadId,
+    });
+    await clearCodexAppServerBinding(params.params.sessionFile);
+    binding = undefined;
+  }
   if (binding?.threadId) {
     // `/codex resume <thread>` writes a binding before the next turn can know
     // the dynamic tool catalog, so only invalidate fingerprints we actually have.
@@ -179,6 +203,7 @@ export async function startOrResumeThread(params: {
     } else {
       try {
         const authProfileId = params.params.authProfileId ?? binding.authProfileId;
+        const resumeConfig = mergeCodexThreadConfigs(params.config, userMcpServersConfigPatch);
         const response = assertCodexThreadResumeResponse(
           await params.client.request(
             "thread/resume",
@@ -187,7 +212,7 @@ export async function startOrResumeThread(params: {
               authProfileId,
               appServer: params.appServer,
               developerInstructions: params.developerInstructions,
-              config: params.config,
+              config: resumeConfig,
             }),
           ),
         );
@@ -199,6 +224,10 @@ export async function startOrResumeThread(params: {
           agentDir: params.params.agentDir,
           config: params.params.config,
         });
+        const nextMcpServersFingerprint =
+          params.mcpServersFingerprintEvaluated === true
+            ? params.mcpServersFingerprint
+            : binding.mcpServersFingerprint;
         await writeCodexAppServerBinding(
           params.params.sessionFile,
           {
@@ -209,6 +238,7 @@ export async function startOrResumeThread(params: {
             modelProvider: response.modelProvider ?? fallbackModelProvider,
             dynamicToolsFingerprint,
             userMcpServersFingerprint,
+            mcpServersFingerprint: nextMcpServersFingerprint,
             pluginAppsFingerprint: binding.pluginAppsFingerprint,
             pluginAppsInputFingerprint: binding.pluginAppsInputFingerprint,
             pluginAppPolicyContext: binding.pluginAppPolicyContext,
@@ -230,6 +260,7 @@ export async function startOrResumeThread(params: {
           modelProvider: response.modelProvider ?? fallbackModelProvider,
           dynamicToolsFingerprint,
           userMcpServersFingerprint,
+          mcpServersFingerprint: nextMcpServersFingerprint,
           pluginAppsFingerprint: binding.pluginAppsFingerprint,
           pluginAppsInputFingerprint: binding.pluginAppsInputFingerprint,
           pluginAppPolicyContext: binding.pluginAppPolicyContext,
@@ -276,6 +307,8 @@ export async function startOrResumeThread(params: {
     config: params.params.config,
   });
   const createdAt = new Date().toISOString();
+  const nextMcpServersFingerprint =
+    params.mcpServersFingerprintEvaluated === true ? params.mcpServersFingerprint : undefined;
   if (!preserveExistingBinding) {
     await writeCodexAppServerBinding(
       params.params.sessionFile,
@@ -287,6 +320,7 @@ export async function startOrResumeThread(params: {
         modelProvider: response.modelProvider ?? modelProvider,
         dynamicToolsFingerprint,
         userMcpServersFingerprint,
+        mcpServersFingerprint: nextMcpServersFingerprint,
         pluginAppsFingerprint: pluginThreadConfig?.fingerprint,
         pluginAppsInputFingerprint: pluginThreadConfig?.inputFingerprint,
         pluginAppPolicyContext: pluginThreadConfig?.policyContext,
@@ -310,6 +344,7 @@ export async function startOrResumeThread(params: {
     modelProvider: response.modelProvider ?? modelProvider,
     dynamicToolsFingerprint,
     userMcpServersFingerprint,
+    mcpServersFingerprint: nextMcpServersFingerprint,
     pluginAppsFingerprint: pluginThreadConfig?.fingerprint,
     pluginAppsInputFingerprint: pluginThreadConfig?.inputFingerprint,
     pluginAppPolicyContext: pluginThreadConfig?.policyContext,
@@ -517,10 +552,28 @@ export function buildTurnCollaborationMode(
     settings: {
       model: params.modelId,
       reasoning_effort: resolveReasoningEffort(params.thinkLevel, params.modelId),
-      developer_instructions:
-        params.trigger === "heartbeat" ? buildHeartbeatCollaborationInstructions() : null,
+      developer_instructions: buildTurnScopedCollaborationInstructions(params),
     },
   };
+}
+
+function buildTurnScopedCollaborationInstructions(params: EmbeddedRunAttemptParams): string | null {
+  if (params.trigger === "cron") {
+    return buildCronCollaborationInstructions();
+  }
+  if (params.trigger === "heartbeat") {
+    return buildHeartbeatCollaborationInstructions();
+  }
+  return null;
+}
+
+function buildCronCollaborationInstructions(): string {
+  return [
+    "This is an OpenClaw cron automation turn. Apply these instructions only to this scheduled job; ordinary chat turns should stay in Codex Default mode.",
+    "Execute the cron payload directly. If it asks you to run an exact command, run that command before doing any investigation, planning, memory review, or workspace bootstrap.",
+    "Do not read AGENTS.md, SOUL.md, USER.md, PROJECTS.md, MEMORY.md, day logs, entity summaries, or other workspace memory/bootstrap files unless the cron payload explicitly asks you to inspect them or the requested command fails and the file is needed to diagnose that failure.",
+    "Keep output concise and automation-oriented. Prefer the final command result or a short failure summary over status narration.",
+  ].join("\n\n");
 }
 
 function buildHeartbeatCollaborationInstructions(): string {
