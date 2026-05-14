@@ -17,6 +17,8 @@ const { navigateToProject, isMobileMode } = useGlobal()
 
 const { $e: _$e } = useNuxtApp()
 
+const { t } = useI18n()
+
 const workspaceStore = useWorkspace()
 
 const { activeWorkspaceId, activeWorkspace } = storeToRefs(workspaceStore)
@@ -45,7 +47,29 @@ const {
   toggleChatPanel,
 } = useChatPanel()
 
-const { blockAiChat, showEEFeatures } = useEeConfig()
+const { blockAiChat, showEEFeatures, isEEFeatureBlocked, showUpgradeToUseBookmarks } = useEeConfig()
+
+const isBookmarksFlyoutOpen = ref(false)
+
+const bookmarksContainerRef = ref<HTMLElement | null>(null)
+
+onClickOutside(
+  bookmarksContainerRef,
+  () => {
+    isBookmarksFlyoutOpen.value = false
+  },
+  {
+    ignore: [
+      '.nc-bookmark-add-dropdown',
+      '.nc-bookmark-context-menu',
+      '.nc-bookmark-group-menu',
+      '.nc-bookmark-settings-menu',
+      '.nc-modal-wrapper',
+      '.nc-bookmark-bulk-more-dropdown-move-to',
+      '.nc-bookmark-bulk-more-dropdown',
+    ],
+  },
+)
 
 const handleChatToggle = () => {
   toggleChatPanel()
@@ -122,7 +146,7 @@ const mainItems = computed<NavItem[]>(() => [
   {
     key: 'data',
     icon: 'ncTable',
-    label: 'Data',
+    label: t('general.data'),
     disabled: !hasAvailableBases.value,
     onClick: () => onTabClick('data'),
   },
@@ -131,7 +155,7 @@ const mainItems = computed<NavItem[]>(() => [
         {
           key: 'workflows',
           icon: 'ncAutomation',
-          label: 'Workflows',
+          label: t('general.workflows'),
           disabled:
             !hasAvailableBases.value ||
             !isUIAllowed('scriptList', {
@@ -269,6 +293,14 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
     handleChatToggle()
   }
 })
+
+const handleOpenBookmarkPanel = () => {
+  if (isEEFeatureBlocked.value) {
+    showUpgradeToUseBookmarks()
+  } else {
+    isBookmarksFlyoutOpen.value = !isBookmarksFlyoutOpen.value
+  }
+}
 </script>
 
 <template>
@@ -323,7 +355,7 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
       v-if="isEeUI && !blockAiChat && hasChatWorkspaceContext && hasChatBaseContext && !isMobileMode"
       :ref="(el: any) => setItemRef('chat', el)"
       v-e="['c:chat:toggle']"
-      label="Chat"
+      :label="$t('labels.chat')"
       panel-key="chat"
       data-testid="nc-sidebar-chat-btn"
       :active="isChatPanelExpanded"
@@ -338,7 +370,7 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
     <DashboardMiniSidebarV2DockItem
       :ref="(el: any) => setItemRef('settings', el)"
       icon="ncSettings"
-      label="Settings"
+      :label="$t('labels.settings')"
       panel-key="settings"
       :active="activeSidebarTab === 'settings' && !isChatFullScreen"
       :scale="getScale('settings')"
@@ -350,7 +382,7 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
       <!-- Help -->
       <div :ref="(el: any) => setItemRef('help', el)" class="nc-dock-magnify-wrapper" :style="getMagnifyStyle('help')">
         <DashboardMiniSidebarHelp>
-          <DashboardMiniSidebarV2DockItem icon="ncHelp" label="Help" panel-key="help" :scale="1" />
+          <DashboardMiniSidebarV2DockItem icon="ncHelp" :label="$t('general.help')" panel-key="help" :scale="1" />
         </DashboardMiniSidebarHelp>
       </div>
     </div>
@@ -364,6 +396,22 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
       :style="getMagnifyStyle('create')"
     >
       <DashboardMiniSidebarCreateNewActionMenu />
+    </div>
+
+    <!-- Bookmarks -->
+    <div v-if="isEeUI" ref="bookmarksContainerRef" class="relative">
+      <div :ref="(el: any) => setItemRef('bookmarks', el)" class="nc-dock-magnify-wrapper" :style="getMagnifyStyle('bookmarks')">
+        <DashboardMiniSidebarV2DockItem
+          icon="ncBookmark"
+          :label="$t('labels.bookmarks')"
+          :active="isBookmarksFlyoutOpen"
+          data-testid="nc-dock-bookmarks"
+          :scale="getScale('bookmarks')"
+          @click="handleOpenBookmarkPanel"
+        />
+      </div>
+
+      <LazyBookmarksFlyout v-if="isBookmarksFlyoutOpen" @close="isBookmarksFlyoutOpen = false" />
     </div>
 
     <!-- Activity / Notifications -->
@@ -381,7 +429,7 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
         :style="getMagnifyStyle('notification')"
       >
         <DashboardMiniSidebarV2DockItem
-          :label="isNotificationOpen ? undefined : 'Activity'"
+          :label="isNotificationOpen ? undefined : $t('labels.activity')"
           panel-key="notification"
           data-testid="nc-sidebar-notification-btn"
           :active="isNotificationOpen"

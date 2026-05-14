@@ -4,7 +4,9 @@ import {
   EventType,
   ExpandedFormMode,
   getFirstNonPersonalView,
+  isBcryptHash,
   isSystemColumn,
+  NC_VIEW_PASSWORD_PROTECTED_SENTINEL,
   NcBaseError,
   parseProp,
   UITypes,
@@ -1303,58 +1305,67 @@ export default class View implements ViewType {
 
     // keep primary_value_column always visible and first in grid view
     if (view.type === ViewTypes.GRID) {
-      let primary_value_column_meta = await ncMeta.metaGet2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.COLUMNS,
-        {
-          fk_model_id: view.fk_model_id,
-          pv: true,
-        },
-        undefined,
-        notDeletedXcCondition,
+      // Junction (m2m) tables don't have a display value column — skip pv logic
+      const model = await Model.getByIdOrName(
+        context,
+        { id: view.fk_model_id },
+        ncMeta,
       );
-      if (!primary_value_column_meta) {
-        const metaColumns = await ncMeta.metaList2(
+
+      if (!model?.mm) {
+        let primary_value_column_meta = await ncMeta.metaGet2(
           context.workspace_id,
           context.base_id,
           MetaTable.COLUMNS,
           {
-            xcCondition: (qb) => {
-              qb.where('fk_model_id', view.fk_model_id);
-              qb.andWhere((subQb) => {
-                subQb.where('system', false).orWhereNull('system');
-              });
-            },
-            orderBy: { order: 'asc' },
+            fk_model_id: view.fk_model_id,
+            pv: true,
           },
-        );
-        primary_value_column_meta = metaColumns.find((col) =>
-          isSupportedDisplayValueColumn(col),
+          undefined,
+          notDeletedXcCondition,
         );
         if (!primary_value_column_meta) {
-          NcError.get(context).internalServerError(
-            `No display field setup for table`,
+          const metaColumns = await ncMeta.metaList2(
+            context.workspace_id,
+            context.base_id,
+            MetaTable.COLUMNS,
+            {
+              xcCondition: (qb) => {
+                qb.where('fk_model_id', view.fk_model_id);
+                qb.andWhere((subQb) => {
+                  subQb.where('system', false).orWhereNull('system');
+                });
+              },
+              orderBy: { order: 'asc' },
+            },
           );
+          primary_value_column_meta = metaColumns.find((col) =>
+            isSupportedDisplayValueColumn(col),
+          );
+          if (!primary_value_column_meta) {
+            NcError.get(context).internalServerError(
+              `No display field setup for table`,
+            );
+          }
+          await Column.update(context, primary_value_column_meta.id, {
+            pv: true,
+          });
         }
-        await Column.update(context, primary_value_column_meta.id, {
-          pv: true,
-        });
-      }
 
-      const primary_value_column = await ncMeta.metaGet2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.GRID_VIEW_COLUMNS,
-        {
-          fk_view_id: view.id,
-          fk_column_id: primary_value_column_meta.id,
-        },
-      );
+        const primary_value_column = await ncMeta.metaGet2(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.GRID_VIEW_COLUMNS,
+          {
+            fk_view_id: view.id,
+            fk_column_id: primary_value_column_meta.id,
+          },
+        );
 
-      if (primary_value_column && primary_value_column.id === colId) {
-        updateObj.order = 1;
-        updateObj.show = true;
+        if (primary_value_column && primary_value_column.id === colId) {
+          updateObj.order = 1;
+          updateObj.show = true;
+        }
       }
     }
     if (view.type === ViewTypes.CALENDAR || view.type === ViewTypes.TIMELINE) {
@@ -1647,6 +1658,16 @@ export default class View implements ViewType {
     { password }: { password: string },
     ncMeta = Noco.ncMeta,
   ) {
+    // Sentinel: client signals "password unchanged" — skip update entirely.
+    // Pre-hashed input: refuse to re-hash (defends against stale clients that
+    // echo the stored hash back to us).
+    if (
+      password === NC_VIEW_PASSWORD_PROTECTED_SENTINEL ||
+      isBcryptHash(password)
+    ) {
+      return;
+    }
+
     const hashedPassword = password
       ? await bcrypt.hash(password, 10)
       : password;
@@ -1667,6 +1688,31 @@ export default class View implements ViewType {
     });
   }
 
+  /**
+   * Mask the stored password value before returning a view to an
+   * owner-facing API consumer.
+   *
+   * - Bcrypt hash → replaced with the sentinel; the hash never leaves the
+   *   backend and the frontend renders a masked locked state.
+   * - Legacy plaintext (pre-PR-8174 rows that have never been re-saved) →
+   *   left as-is so the owner can still read their original password.
+   *   Migrates to bcrypt the next time the owner changes it.
+   * - Empty/null → unchanged.
+   *
+   * Returns a copy when masking is needed so we don't mutate cached View
+   * instances. Preserves the prototype so the returned value is still a
+   * `View` (methods stay callable on it).
+   */
+  static maskPasswordForResponse<T extends { password?: string | null }>(
+    view: T,
+  ): T {
+    if (!view || !view.password) return view;
+    if (!isBcryptHash(view.password)) return view;
+    return Object.assign(Object.create(Object.getPrototypeOf(view)), view, {
+      password: NC_VIEW_PASSWORD_PROTECTED_SENTINEL,
+    });
+  }
+
   static async verifyPassword(
     view: { password?: string },
     inputPassword: string,
@@ -1675,7 +1721,7 @@ export default class View implements ViewType {
     if (!inputPassword) return false;
 
     // Support bcrypt hashed passwords (new) and plaintext (legacy)
-    if (view.password.startsWith('$2a$') || view.password.startsWith('$2b$')) {
+    if (isBcryptHash(view.password)) {
       return bcrypt.compare(inputPassword, view.password);
     }
 
@@ -1746,8 +1792,17 @@ export default class View implements ViewType {
       ...(isEE ? ['expanded_record_mode', 'attachment_mode_column_id'] : []),
     ]);
 
-    // Hash shared view password before storage
-    if (updateObj.password) {
+    // Password handling:
+    //  - Sentinel → "no change", strip from update so the stored hash is preserved.
+    //  - Already-hashed value (stale client echoing back the hash) → strip,
+    //    so we never re-hash an existing hash and invalidate the password.
+    //  - Plaintext → hash with bcrypt before storage.
+    if (
+      updateObj.password === NC_VIEW_PASSWORD_PROTECTED_SENTINEL ||
+      isBcryptHash(updateObj.password)
+    ) {
+      delete updateObj.password;
+    } else if (updateObj.password) {
       updateObj.password = await bcrypt.hash(updateObj.password, 10);
     }
 
@@ -2640,6 +2695,16 @@ export default class View implements ViewType {
           if (!calendarRangeColumns) break;
           if (calendarRangeColumns.includes(column.id)) {
             show = true;
+          } else if (!copyFromView && !column.pv) {
+            // Fresh timeline views default to a minimal visible set:
+            // display value (pv) + the configured range columns. Other
+            // fields stay hidden so the windowed-fetch payload is a few
+            // fields × N records, not the entire row. Users can opt
+            // additional fields into the bar via the Fields menu —
+            // visibility is per-view-column, fully reversible. Skipped
+            // when duplicating a view so the source's column choices
+            // carry over.
+            show = false;
           }
         }
 

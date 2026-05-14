@@ -1130,6 +1130,21 @@ export class DataV3Service {
       ? param.body
       : [param.body]
     ).entries()) {
+      // Reject non-object records before any property access. Without this,
+      // a client sending `[ "{'Name': 'x'}" ]` (a Python repr or any other
+      // stringified payload) makes it all the way to BaseModelSqlv2.bulkInsert,
+      // where `'Id' in d` throws `Cannot use 'in' operator to search for 'Id'
+      // in {'Name': 'x'}` — the V8 in-error format shows the primitive's value,
+      // which is what surfaced in prod. Same shielding for `null` / arrays.
+      if (!row || typeof row !== 'object' || Array.isArray(row)) {
+        NcError.get(context).invalidRequestBody(
+          `Record at index ${index} must be a JSON object${
+            param.validateAdditionalProp ? ` with a 'fields' property` : ''
+          }; got ${
+            row === null ? 'null' : Array.isArray(row) ? 'array' : typeof row
+          }`,
+        );
+      }
       if (param.validateId) {
         if (!row.id) {
           NcError.get(context).invalidRequestBody(

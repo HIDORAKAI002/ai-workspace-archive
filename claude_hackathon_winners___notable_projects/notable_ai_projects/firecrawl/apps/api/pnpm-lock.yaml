@@ -183,8 +183,8 @@ importers:
         specifier: ^2.9.0
         version: 2.9.0
       langsmith:
-        specifier: ^0.5.19
-        version: 0.5.20(@opentelemetry/api@1.9.0)(@opentelemetry/sdk-trace-base@2.2.0(@opentelemetry/api@1.9.0))(openai@5.20.2(ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(zod@4.1.12))(ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+        specifier: ^0.6.0
+        version: 0.6.3(@opentelemetry/api@1.9.0)(@opentelemetry/sdk-trace-base@2.2.0(@opentelemetry/api@1.9.0))(openai@5.20.2(ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(zod@4.1.12))(ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
       lodash:
         specifier: ^4.18.0
         version: 4.18.1
@@ -240,8 +240,8 @@ importers:
         specifier: ^16.1.0
         version: 16.1.0
       systeminformation:
-        specifier: ^5.31.0
-        version: 5.31.1
+        specifier: ^5.31.6
+        version: 5.31.6
       tldts:
         specifier: ^6.1.75
         version: 6.1.75
@@ -255,8 +255,8 @@ importers:
         specifier: 7.24.1
         version: 7.24.1
       uuid:
-        specifier: ^13.0.0
-        version: 13.0.0
+        specifier: ^13.0.1
+        version: 13.0.2
       winston:
         specifier: ^3.14.2
         version: 3.14.2
@@ -4466,8 +4466,8 @@ packages:
   kuler@2.0.0:
     resolution: {integrity: sha512-Xq9nH7KlWZmXAtodXDDRE7vs6DU1gTU8zYDHDiWLSip45Egwq3plLHzPn27NgvzL2r1LMPC1vdqh98sQxtqj4A==}
 
-  langsmith@0.5.20:
-    resolution: {integrity: sha512-ULhLM8RswvQDXufLtNtvclHrWCBx8Cb5UPI6lAZC+8Dq59iHsVPz/3Ac9khWNm1VIvChRsuykixD/WrmzuuA3Q==}
+  langsmith@0.6.3:
+    resolution: {integrity: sha512-pXrQ4/4myQvjFFOAUmt5pWRrLEZR20gzIJD7MNdUH+5/S5nLI4ZRBo/SYKC6coaYj9pYTfQdBIzcs+3kfJ5uDA==}
     peerDependencies:
       '@opentelemetry/api': '*'
       '@opentelemetry/exporter-trace-otlp-proto': '*'
@@ -5494,8 +5494,8 @@ packages:
     resolution: {integrity: sha512-MeQTA1r0litLUf0Rp/iisCaL8761lKAZHaimlbGK4j0HysC4PLfqygQj9srcs0m2RdtDYnF8UuYyKpbjHYp7Jw==}
     engines: {node: ^14.18.0 || >=16.0.0}
 
-  systeminformation@5.31.1:
-    resolution: {integrity: sha512-6pRwxoGeV/roJYpsfcP6tN9mep6pPeCtXbUOCdVa0nme05Brwcwdge/fVNhIZn2wuUitAKZm4IYa7QjnRIa9zA==}
+  systeminformation@5.31.6:
+    resolution: {integrity: sha512-Uv2b2uGGM6ns+26czgW2cYRabYdnswM0ddSOOlryHOaelzsmDSet1iM/NT7VOYxW8x/BW+HkY+b1Ve2pLTSGSA==}
     engines: {node: '>=8.0.0'}
     os: [darwin, linux, win32, freebsd, openbsd, netbsd, sunos, android]
     hasBin: true
@@ -5715,13 +5715,8 @@ packages:
     resolution: {integrity: sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA==}
     engines: {node: '>= 0.4.0'}
 
-  uuid@10.0.0:
-    resolution: {integrity: sha512-8XkAphELsDnEGrDxUOHB3RGvXz6TeuYSGEZBOjtTtPm2lwhGBjLgOzLHB63IUWfBpNucQjND6d3AOudO+H3RWQ==}
-    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
-    hasBin: true
-
-  uuid@13.0.0:
-    resolution: {integrity: sha512-XQegIaBTVUjSHliKqcnFqYypAd4S+WCYt5NIeRs6w/UAry7z8Y9j5ZwRRL4kzq9U3sD6v+85er9FvkEaBpji2w==}
+  uuid@13.0.2:
+    resolution: {integrity: sha512-vzi9uRZ926x4XV73S/4qQaTwPXM2JBj6/6lI/byHH1jOpCzb0zDbfytgA9LcN/hzb2l7WQSQnxITOVx5un/wGw==}
     hasBin: true
 
   uuid@8.3.2:
@@ -10554,10 +10549,9 @@ snapshots:
 
   kuler@2.0.0: {}
 
-  langsmith@0.5.20(@opentelemetry/api@1.9.0)(@opentelemetry/sdk-trace-base@2.2.0(@opentelemetry/api@1.9.0))(openai@5.20.2(ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(zod@4.1.12))(ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)):
+  langsmith@0.6.3(@opentelemetry/api@1.9.0)(@opentelemetry/sdk-trace-base@2.2.0(@opentelemetry/api@1.9.0))(openai@5.20.2(ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(zod@4.1.12))(ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)):
     dependencies:
       p-queue: 6.6.2
-      uuid: 10.0.0
     optionalDependencies:
       '@opentelemetry/api': 1.9.0
       '@opentelemetry/sdk-trace-base': 2.2.0(@opentelemetry/api@1.9.0)
@@ -11549,7 +11543,7 @@ snapshots:
     dependencies:
       '@pkgr/core': 0.2.9
 
-  systeminformation@5.31.1: {}
+  systeminformation@5.31.6: {}
 
   tdigest@0.1.2:
     dependencies:
@@ -11764,9 +11758,7 @@ snapshots:
 
   utils-merge@1.0.1: {}
 
-  uuid@10.0.0: {}
-
-  uuid@13.0.0: {}
+  uuid@13.0.2: {}
 
   uuid@8.3.2: {}
 

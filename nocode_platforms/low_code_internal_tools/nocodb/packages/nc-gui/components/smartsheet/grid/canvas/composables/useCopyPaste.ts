@@ -109,14 +109,12 @@ export function useCopyPaste({
     props: string[],
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
     newColumns?: Partial<ColumnType>[],
-    undo?: boolean,
     path?: Array<number>,
   ) => Promise<void>
   bulkUpdateRows: (
     rows: Row[],
     props: string[],
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
-    undo?: boolean,
     path?: Array<number>,
   ) => Promise<void>
   updateOrSaveRow: (
@@ -142,11 +140,10 @@ export function useCopyPaste({
   const { getMeta, metas } = useMetas()
   const { isMysql, isPg } = useBase()
   const { appInfo } = useGlobal()
-  const { addUndo, clone, defineViewScope } = useUndoRedo()
   const { t } = useI18n()
   const { isUIAllowed } = useRoles()
   const { copy } = useCopy()
-  const { cleaMMCell, clearLTARCell, addLTARRef, syncLTARRefs } = useSmartsheetLtarHelpersOrThrow()
+  const { cleaMMCell, clearLTARCell } = useSmartsheetLtarHelpersOrThrow()
   const { isSqlView } = useSmartsheetStoreOrThrow()
   const { isAllowed } = usePermissions()
   const { maxAttachmentsAllowedInCell, showUpgradeToAddMoreAttachmentsInCell } = useEeConfig()
@@ -255,6 +252,7 @@ export function useCopyPaste({
       isSidebarNodeRenameActive() ||
       isActiveElementInsideExtension() ||
       isActiveElementInsideScriptPane() ||
+      isActiveElementInsideSmartTextPanel() ||
       isCmdJActive() ||
       cmdKActive()
     ) {
@@ -333,10 +331,14 @@ export function useCopyPaste({
         const availableRowsToUpdate = Math.max(0, tempTotalRows - totalRowsBeforeActiveCell)
         const rowsToAdd = Math.max(0, selectionRowCount - availableRowsToUpdate)
 
+        // M2M junction tables don't support inserting rows/columns via paste —
+        // records are owned by the link cell, not the junction directly.
+        const isMmTable = !!meta.value?.mm
+
         // Check if expansion is needed
         let options = {
           continue: false,
-          expand: rowsToAdd > 0 || newColsNeeded > 0,
+          expand: (rowsToAdd > 0 || newColsNeeded > 0) && !isMmTable,
         }
 
         if (options.expand) {
@@ -426,7 +428,7 @@ export function useCopyPaste({
 
           if (i < availableRowsToUpdate) {
             const absoluteRowIndex = totalRowsBeforeActiveCell + i
-            targetRow = clone(dataRef.get(absoluteRowIndex)) || {
+            targetRow = deepClone(dataRef.get(absoluteRowIndex)) || {
               row: {},
               oldRow: {},
               rowMeta: {
@@ -572,11 +574,8 @@ export function useCopyPaste({
                 if (ex instanceof ComputedTypePasteError) {
                   throw ex
                 } else if (ex instanceof SelectTypeConversionError) {
-                  await appendSelectOptions({
-                    api: $api,
-                    col: column!,
-                    addOptions: ex.missingOptions,
-                  })
+                  // Backend `typecast=true` (default on data save APIs) creates
+                  // the missing options server-side as part of the same request.
                   pasteValue = ex.value.join(',')
                 } else if (ex instanceof TypeConversionError) {
                   pasteValue = null
@@ -644,12 +643,11 @@ export function useCopyPaste({
             propsToPaste,
             undefined,
             bulkOpsCols.map(({ column }) => column),
-            false,
             groupPath,
           )
           scrollToCell?.(undefined, undefined, groupPath)
         } else {
-          await bulkUpdateRows?.(updatedRows, propsToPaste, undefined, false, groupPath)
+          await bulkUpdateRows?.(updatedRows, propsToPaste, undefined, groupPath)
         }
 
         if (isTruncated) {
@@ -695,6 +693,9 @@ export function useCopyPaste({
                 },
                 [{ columnId: columnObj.id as string, rowId: pasteRowPk, displayValues }],
               )
+
+              // Refresh view data so lookup/rollup columns reflect the new links
+              reloadViewDataHook?.trigger({ shouldShowLoading: false })
 
               return await syncCellData?.(activeCell.value, groupPath)
             } catch (e: any) {
@@ -813,114 +814,8 @@ export function useCopyPaste({
 
               // For OO and OM columns, pasting is a "move" — the backend enforces that each
               // child/record can only belong to one parent. Refresh view to reflect changes across all rows.
-              if (isOoOrOm(columnObj)) {
-                reloadViewDataHook?.trigger({ shouldShowLoading: false })
-              }
-
-              addUndo({
-                redo: {
-                  fn: async (
-                    activeCell: Cell,
-                    col: ColumnType,
-                    row: Row,
-                    value: number,
-                    result: { link: any[]; unlink: any[] },
-                  ) => {
-                    const pasteRowPk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-                    const rowObj = (unref(cachedRows) as Map<number, Row>).get(activeCell.row)
-                    if (!rowObj || !pasteRowPk) return
-                    if (
-                      pasteRowPk === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
-                      columnObj.id === col.id
-                    ) {
-                      await Promise.all([
-                        result.link.length &&
-                          $api.internal.postOperation(
-                            meta.value?.fk_workspace_id as string,
-                            meta.value?.base_id as string,
-                            {
-                              operation: 'nestedDataLink',
-                              tableId: meta.value?.id as string,
-                              columnId: columnObj.id as string,
-                              rowId: pasteRowPk,
-                              viewId: view?.value?.id,
-                            },
-                            result.link,
-                          ),
-                        result.unlink.length &&
-                          $api.internal.postOperation(
-                            meta.value?.fk_workspace_id as string,
-                            meta.value?.base_id as string,
-                            {
-                              operation: 'nestedDataUnlink',
-                              tableId: meta.value?.id as string,
-                              columnId: columnObj.id as string,
-                              rowId: pasteRowPk,
-                              viewId: view?.value?.id,
-                            },
-                            result.unlink,
-                          ),
-                      ])
-
-                      rowObj.row[columnObj.title!] = value
-
-                      await syncCellData?.(activeCell, activeCell?.path)
-                    }
-                  },
-                  args: [clone(activeCell.value), clone(columnObj), clone(rowObj), clone(pasteVal.value), result],
-                },
-                undo: {
-                  fn: async (
-                    activeCell: Cell,
-                    col: ColumnType,
-                    row: Row,
-                    value: number,
-                    result: { link: any[]; unlink: any[] },
-                  ) => {
-                    const pasteRowPk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-                    const rowObj = (unref(cachedRows) as Map<number, Row>).get(activeCell.row)
-                    if (!rowObj || !pasteRowPk) return
-
-                    if (
-                      pasteRowPk === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
-                      columnObj.id === col.id
-                    ) {
-                      await Promise.all([
-                        result.unlink.length &&
-                          $api.internal.postOperation(
-                            meta.value?.fk_workspace_id as string,
-                            meta.value?.base_id as string,
-                            {
-                              operation: 'nestedDataLink',
-                              tableId: meta.value?.id as string,
-                              columnId: columnObj.id as string,
-                              rowId: pasteRowPk,
-                            },
-                            result.unlink,
-                          ),
-                        result.link.length &&
-                          $api.internal.postOperation(
-                            meta.value?.fk_workspace_id as string,
-                            meta.value?.base_id as string,
-                            {
-                              operation: 'nestedDataUnlink',
-                              tableId: meta.value?.id as string,
-                              columnId: columnObj.id as string,
-                              rowId: pasteRowPk,
-                            },
-                            result.link,
-                          ),
-                      ])
-
-                      rowObj.row[columnObj.title!] = value
-
-                      await syncCellData?.(activeCell, activeCell?.path)
-                    }
-                  },
-                  args: [clone(activeCell.value), clone(columnObj), clone(rowObj), clone(oldCellValue), result],
-                },
-                scope: defineViewScope({ view: view?.value }),
-              })
+              // For MM and other LTAR types, refresh the view so dependent lookup/rollup columns update.
+              reloadViewDataHook?.trigger({ shouldShowLoading: false })
             }
 
             return await syncCellData?.(activeCell.value, groupPath)
@@ -953,11 +848,8 @@ export function useCopyPaste({
             if (ex instanceof ComputedTypePasteError) {
               throw ex
             } else if (ex instanceof SelectTypeConversionError) {
-              await appendSelectOptions({
-                api: $api,
-                col: columnObj!,
-                addOptions: ex.missingOptions,
-              })
+              // Backend `typecast=true` (default on data save APIs) creates
+              // the missing options server-side as part of the row update.
               pasteValue = ex.value.join(',')
             } else if (ex instanceof TypeConversionError) {
               pasteValue = null
@@ -1148,11 +1040,8 @@ export function useCopyPaste({
                   if (ex instanceof ComputedTypePasteError) {
                     throw ex
                   } else if (ex instanceof SelectTypeConversionError) {
-                    await appendSelectOptions({
-                      api: $api,
-                      col,
-                      addOptions: ex.missingOptions,
-                    })
+                    // Backend `typecast=true` (default on data save APIs) creates
+                    // the missing options server-side as part of the same request.
                     pasteValue = ex.value.join(',')
                   } else if (ex instanceof TypeConversionError) {
                     pasteValue = null
@@ -1193,7 +1082,7 @@ export function useCopyPaste({
           }
 
           if (props.length) {
-            await bulkUpdateRows?.(rows, props, undefined, false, groupPath)
+            await bulkUpdateRows?.(rows, props, undefined, groupPath)
           }
         }
       }
@@ -1301,104 +1190,13 @@ export function useCopyPaste({
     }
 
     if (isVirtualCol(columnObj)) {
-      let mmClearResult
-      const mmOldResult = rowObj.row[columnObj.title]
-
       // This will used to reload view data if it is self link column
       const isSelfLinkColumn = columnObj.fk_model_id === columnObj.colOptions?.fk_related_model_id
 
       if (isMMOrMMLike(columnObj) && rowObj) {
-        mmClearResult = await cleaMMCell(rowObj, columnObj)
+        await cleaMMCell(rowObj, columnObj)
       }
 
-      addUndo({
-        undo: {
-          fn: async (
-            ctx: { row: number; col: number },
-            col: ColumnType,
-            row: Row,
-            mmClearResult: any[],
-            mmOldResult: any,
-            isSelfLinkColumn: boolean,
-          ) => {
-            const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-            const rowObj = cachedRows.value.get(ctx.row)
-            const columnObj = fields.value[ctx.col]
-            if (
-              rowObj &&
-              columnObj &&
-              columnObj.title &&
-              rowId === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
-              columnObj.id === col.id
-            ) {
-              if (isBt(columnObj) || isOo(columnObj)) {
-                rowObj.row[columnObj.title] = row.row[columnObj.title]
-
-                await addLTARRef(rowObj, rowObj.row[columnObj.title], columnObj)
-                await syncLTARRefs(rowObj, rowObj.row)
-              } else if (isMMOrMMLike(columnObj)) {
-                await $api.internal.postOperation(
-                  meta.value?.fk_workspace_id as string,
-                  meta.value?.base_id as string,
-                  {
-                    operation: 'nestedDataLink',
-                    tableId: meta.value?.id as string,
-                    columnId: columnObj.id as string,
-                    rowId: rowId as string,
-                  },
-                  mmClearResult,
-                )
-                rowObj.row[columnObj.title] = mmOldResult ?? null
-              }
-
-              activeCell.value.column = ctx.col
-              activeCell.value.row = ctx.row
-              activeCell.value.path = groupPath
-
-              if (isSelfLinkColumn) {
-                reloadViewDataHook.trigger({ shouldShowLoading: false })
-              }
-
-              scrollToCell?.(undefined, undefined, groupPath)
-            } else {
-              throw new Error(t('msg.recordCouldNotBeFound'))
-            }
-          },
-          args: [clone(ctx), clone(columnObj), clone(rowObj), mmClearResult, mmOldResult, isSelfLinkColumn],
-        },
-        redo: {
-          fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, isSelfLinkColumn: boolean) => {
-            const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-            const rowObj = cachedRows.value.get(ctx.row)
-            const columnObj = fields.value[ctx.col]
-            if (
-              rowObj &&
-              rowId === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
-              columnObj &&
-              columnObj.id === col.id
-            ) {
-              if (isBt(columnObj) || isOo(columnObj)) {
-                await clearLTARCell(rowObj, columnObj)
-              } else if (isMMOrMMLike(columnObj)) {
-                await cleaMMCell(rowObj, columnObj)
-              }
-              activeCell.value.column = ctx.col
-              activeCell.value.row = ctx.row
-              activeCell.value.path = groupPath
-
-              if (isSelfLinkColumn) {
-                reloadViewDataHook.trigger({ shouldShowLoading: false })
-              }
-
-              scrollToCell?.(undefined, undefined, groupPath)
-            } else {
-              throw new Error(t('msg.recordCouldNotBeFound'))
-            }
-          },
-          args: [clone(ctx), clone(columnObj), clone(rowObj), isSelfLinkColumn],
-        },
-        scope: defineViewScope({ view: view.value }),
-      })
       if ((isBt(columnObj) || isOo(columnObj)) && !isMMOrMMLike(columnObj)) await clearLTARCell(rowObj, columnObj)
 
       if (isSelfLinkColumn) {

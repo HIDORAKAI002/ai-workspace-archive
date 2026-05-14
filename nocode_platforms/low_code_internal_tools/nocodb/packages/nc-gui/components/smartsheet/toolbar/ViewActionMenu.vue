@@ -377,6 +377,8 @@ const isUploadAllowed = computed(() => {
   )
 })
 
+const isUploadDisabledForMmTable = computed(() => !!table.value?.mm)
+
 const copyViewConfigMenuItemStatus = computed(() => {
   return getCopyViewConfigBtnAccessStatus(view.value, 'view-action-menu')
 })
@@ -528,20 +530,27 @@ defineOptions({
       <template v-if="view.type !== ViewTypes.FORM">
         <NcDivider />
         <template v-if="isUploadAllowed">
-          <NcSubMenu key="upload" variant="small">
+          <NcSubMenu key="upload" variant="small" :disabled="isUploadDisabledForMmTable">
             <template #title>
-              <div
-                v-e="[
-                  'c:navdraw:preview-as',
-                  {
-                    sidebar: props.inSidebar,
-                  },
-                ]"
-                class="nc-base-menu-item group"
+              <NcTooltip
+                :disabled="!isUploadDisabledForMmTable"
+                :title="$t('tooltip.uploadNotSupportedOnJunctionTable')"
+                placement="right"
+                class="w-full"
               >
-                <GeneralIcon icon="upload" class="opacity-80" />
-                {{ $t('general.upload') }}
-              </div>
+                <div
+                  v-e="[
+                    'c:navdraw:preview-as',
+                    {
+                      sidebar: props.inSidebar,
+                    },
+                  ]"
+                  class="nc-base-menu-item group"
+                >
+                  <GeneralIcon icon="upload" class="opacity-80" />
+                  {{ $t('general.upload') }}
+                </div>
+              </NcTooltip>
             </template>
 
             <NcMenuItemLabel>
@@ -811,6 +820,14 @@ defineOptions({
           </template>
         </PaymentUpgradeBadgeProvider>
       </template>
+
+      <BookmarksMenuAction
+        v-if="isEeUI"
+        target-type="view"
+        :target-id="view.id!"
+        :meta="{ view_type: view.type, workspace_id: base.fk_workspace_id, base_id: table.base_id, table_id: table.id }"
+        @close="emits('closeModal')"
+      />
 
       <template v-if="isUIAllowed('viewCreateOrEdit')">
         <NcDivider />

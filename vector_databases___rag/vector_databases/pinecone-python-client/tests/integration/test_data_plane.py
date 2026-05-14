@@ -944,6 +944,56 @@ def test_namespace_crud_lifecycle_rest(client: Pinecone, shared_index_dim2: str)
 
 
 # ---------------------------------------------------------------------------
+# namespace CRUD — gRPC
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_namespace_crud_lifecycle_grpc(client: Pinecone, shared_index_dim2: str) -> None:
+    # shared_index_dim2
+    """GrpcIndex create_namespace / describe_namespace / list_namespaces_paginated / delete_namespace round-trip.
+
+    Verifies claims:
+    - unified-ns-0001: Can create a named namespace via gRPC.
+    - unified-ns-0002: Creation returns name and record_count == 0.
+    - unified-ns-0003: Can describe a namespace by name via gRPC.
+    - unified-ns-0004: Can delete a namespace by name via gRPC; returns None.
+    - unified-ns-0005: Can list namespaces via gRPC with optional prefix filtering.
+    """
+    ns = f"ns-{uuid.uuid4().hex[:8]}"
+    ns_name = f"{ns}-grpc"
+    index: GrpcIndex = client.index(name=shared_index_dim2, grpc=True)
+
+    # 1. Create namespace — returns NamespaceDescription with record_count == 0
+    created = index.create_namespace(name=ns_name)
+    assert isinstance(created, NamespaceDescription)
+    assert created.name == ns_name
+    assert created.record_count == 0  # unified-ns-0002
+
+    # 2. Describe namespace — returns same details
+    described = index.describe_namespace(name=ns_name)
+    assert isinstance(described, NamespaceDescription)
+    assert described.name == ns_name
+    assert isinstance(described.record_count, int)
+
+    # 3. Namespace appears in list_namespaces_paginated with prefix match
+    list_resp = index.list_namespaces_paginated(prefix=f"{ns}-", limit=100)
+    assert isinstance(list_resp, ListNamespacesResponse)
+    ns_names = [ns_item.name for ns_item in list_resp.namespaces]
+    assert ns_name in ns_names
+
+    # 4. Delete namespace — returns None on success (unified-ns-0004)
+    result = index.delete_namespace(name=ns_name)
+    assert result is None
+
+    # 5. After deletion, namespace no longer appears in listing
+    post_delete = index.list_namespaces_paginated(prefix=f"{ns}-", limit=100)
+    assert isinstance(post_delete, ListNamespacesResponse)
+    post_names = [ns_item.name for ns_item in post_delete.namespaces]
+    assert ns_name not in post_names
+
+
+# ---------------------------------------------------------------------------
 # list_namespaces generator — REST sync
 # ---------------------------------------------------------------------------
 
@@ -974,6 +1024,57 @@ def test_list_namespaces_generator_rest(client: Pinecone, shared_index_dim2: str
         check_fn=lambda r: len(r.namespaces) >= 2,
         timeout=120,
         description="both test namespaces appear via list_namespaces_paginated",
+    )
+
+    # --- Exercise the generator ---
+    pages = list(index.list_namespaces(prefix=f"{ns}-"))
+    assert len(pages) >= 1, "list_namespaces() generator must yield at least one page"
+
+    # Collect all namespace names across all yielded pages
+    all_ns_names = [ns_item.name for page in pages for ns_item in page.namespaces]
+    assert ns_a in all_ns_names, f"Expected {ns_a!r} in generator output; got {all_ns_names}"
+    assert ns_b in all_ns_names, f"Expected {ns_b!r} in generator output; got {all_ns_names}"
+
+    # Verify shape of every yielded page and its namespace descriptions
+    for page in pages:
+        assert isinstance(page, ListNamespacesResponse)
+        assert len(page.namespaces) >= 1, "Each yielded page must contain at least one namespace"
+        for ns_item in page.namespaces:
+            assert isinstance(ns_item, NamespaceDescription)
+            assert isinstance(ns_item.name, str) and ns_item.name.startswith(f"{ns}-")
+            assert isinstance(ns_item.record_count, int) and ns_item.record_count >= 0
+
+
+# ---------------------------------------------------------------------------
+# list_namespaces generator — gRPC
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.integration
+def test_list_namespaces_generator_grpc(client: Pinecone, shared_index_dim2: str) -> None:
+    # shared_index_dim2
+    """list_namespaces() generator on GrpcIndex yields ListNamespacesResponse pages;
+    generator follows pagination tokens automatically until exhausted.
+
+    Verifies claims:
+    - unified-ns-0007 (gRPC): The namespace list generator yields ListNamespacesResponse
+      pages; the paginated method returns one page (not auto-paginating).
+    """
+    ns = f"ns-{uuid.uuid4().hex[:8]}"
+    ns_a = f"{ns}-a"
+    ns_b = f"{ns}-b"
+    index = client.index(name=shared_index_dim2, grpc=True)
+
+    # Upsert one vector into each namespace to create them implicitly
+    index.upsert(vectors=[{"id": "lnsg-v1", "values": [0.1, 0.2]}], namespace=ns_a)
+    index.upsert(vectors=[{"id": "lnsg-v2", "values": [0.3, 0.4]}], namespace=ns_b)
+
+    # Poll until both namespaces appear
+    poll_until(
+        query_fn=lambda: index.list_namespaces_paginated(prefix=f"{ns}-", limit=100),
+        check_fn=lambda r: len(r.namespaces) >= 2,
+        timeout=120,
+        description="both test namespaces appear via list_namespaces_paginated (grpc)",
     )
 
     # --- Exercise the generator ---

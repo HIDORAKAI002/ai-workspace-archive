@@ -72,7 +72,16 @@ def list_runs_command(
     api_token: str,
     view_graphql: bool,
 ) -> None:
-    """List runs with optional filtering and pagination."""
+    """List runs with optional filtering and pagination.
+
+    Example::
+
+        $ dg api run list --limit 3
+        ID                                    STATUS    JOB                CREATED
+        5b3c8a91-2e4f-4d7b-9c6a-1f8d3e5b2c4a  SUCCESS   ingest_customers   2026-05-06 18:00:12 UTC
+        2a1f7b3c-9d8e-4c5b-8a6d-3f1e2b9c4d7a  SUCCESS   ingest_customers   2026-05-05 18:00:08 UTC
+        8c4d2e7f-1a9b-4e3d-7c5b-9f2a1d8e3b6c  FAILURE   ingest_customers   2026-05-04 18:00:15 UTC
+    """
     from dagster_rest_resources.api.run import DgApiRunApi
 
     config = DagsterPlusCliConfig.create_for_deployment(
@@ -115,7 +124,18 @@ def get_run_command(
     api_token: str,
     view_graphql: bool,
 ) -> None:
-    """Get run metadata by ID."""
+    """Get run metadata by ID.
+
+    Example::
+
+        $ dg api run get 5b3c8a91-2e4f-4d7b-9c6a-1f8d3e5b2c4a
+        Run ID:   5b3c8a91-2e4f-4d7b-9c6a-1f8d3e5b2c4a
+        Status:   SUCCESS
+        Created:  2026-05-06 18:00:12 UTC
+        Started:  2026-05-06 18:00:14 UTC
+        Ended:    2026-05-06 18:04:42 UTC
+        Pipeline: ingest_customers
+    """
     from dagster_rest_resources.api.run import DgApiRunApi
 
     config = DagsterPlusCliConfig.create_for_deployment(
@@ -187,7 +207,22 @@ def get_events_run_command(
     api_token: str,
     view_graphql: bool,
 ) -> None:
-    """Get execution log events for a specific run ID."""
+    """Get execution log events for a specific run ID.
+
+    Example::
+
+        $ dg api run get-events 5b3c8a91-2e4f-4d7b-9c6a-1f8d3e5b2c4a --limit 4
+        Logs for run 5b3c8a91-2e4f-4d7b-9c6a-1f8d3e5b2c4a:
+
+        TIMESTAMP            LEVEL    STEP_KEY                  MESSAGE
+        --------------------------------------------------------------------------------
+        2026-05-06 18:00:14  INFO                               Started execution of run for "ingest_customers".
+        2026-05-06 18:00:14  INFO     ingest_files              Started execution of step "ingest_files".
+        2026-05-06 18:04:40  INFO     ingest_files              Finished execution of step "ingest_files" in 4m26s.
+        2026-05-06 18:04:42  INFO                               Finished execution of run for "ingest_customers".
+
+        Total log entries: 4
+    """
     from dagster_rest_resources.api.run_event import DgApiRunEventApi
 
     config = DagsterPlusCliConfig.create_for_deployment(
@@ -263,7 +298,22 @@ def get_logs_command(
     api_token: str,
     view_graphql: bool,
 ) -> None:
-    """Get stdout/stderr compute logs for a specific run."""
+    """Get stdout/stderr compute logs for a specific run.
+
+    Example::
+
+        $ dg api run get-logs 5b3c8a91-2e4f-4d7b-9c6a-1f8d3e5b2c4a --step-key ingest_files
+        Compute logs for run 5b3c8a91-2e4f-4d7b-9c6a-1f8d3e5b2c4a:
+
+        --- ingest_files [ingest_files] ---
+        STDOUT:
+        Loading 1,432 rows into raw_customers
+        Done.
+        STDERR:
+        (no errors)
+
+        Total steps with logs: 1
+    """
     from dagster_rest_resources.api.compute_log import DgApiComputeLogApi
 
     config = DagsterPlusCliConfig.create_for_deployment(

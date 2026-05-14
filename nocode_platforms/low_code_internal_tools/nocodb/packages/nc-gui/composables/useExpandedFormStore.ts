@@ -51,6 +51,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
     const saveRowAndStay = ref(0)
 
+    const isSaving = ref(false)
+
     const changedColumns = ref<Set<string>>(new Set<string>())
 
     const localOnlyChanges = ref<Record<string, any>>({})
@@ -80,11 +82,6 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
     const rowStore = useProvideSmartsheetRowStore(row, changedColumns)
 
     const activeView = inject(ActiveViewInj, ref())
-
-    const { addUndo, clone, defineViewScope } = useUndoRedo()
-
-    const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
-
     const { comments, resolveComment, loadComments, updateComment, deleteComment, saveComment, isCommentsLoading } =
       useProvideRowComments(meta, row)
 
@@ -336,16 +333,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       return $state.user?.value?.email === email
     }
 
-    const loadKanbanData = async () => {
-      if (activeView.value?.type === ViewTypes.KANBAN) {
-        const { loadKanbanData: _loadKanbanData } = useKanbanViewStoreOrThrow()
-        await _loadKanbanData()
-      }
-    }
-
     const save = async (
       ltarState: Record<string, any> = {},
-      undo = false,
       // TODO: Hack. Remove this when kanban injection store issue is resolved
       {
         kanbanClbk,
@@ -386,42 +375,6 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           },
           oldRow: { ...data },
         })
-
-        if (!undo) {
-          const id = extractPkFromRow(data, meta.value?.columns as ColumnType[])
-          const pkData = rowPkData(row.value.row, meta.value?.columns as ColumnType[])
-
-          // TODO remove linked record
-          addUndo({
-            redo: {
-              fn: async (rowData: any) => {
-                await $api.dbTableRow.create('noco', base.value.id as string, meta.value.id, { ...pkData, ...rowData })
-                await loadKanbanData()
-                reloadTrigger?.trigger()
-              },
-              args: [clone(insertObj)],
-            },
-            undo: {
-              fn: async (id: string) => {
-                const res: any = await $api.dbViewRow.delete(
-                  'noco',
-                  meta.value?.base_id ?? (base.value.id as string),
-                  meta.value?.id as string,
-                  activeView.value?.id as string,
-                  encodeURIComponent(id),
-                )
-                if (res.message) {
-                  throw new Error(res.message)
-                }
-
-                await loadKanbanData()
-                reloadTrigger?.trigger()
-              },
-              args: [id],
-            },
-            scope: defineViewScope({ view: activeView.value }),
-          })
-        }
       } else {
         const updateOrInsertObj = [...changedColumns.value].reduce((obj, col) => {
           obj[col] = row.value.row[col]
@@ -448,34 +401,6 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
             row.value.row.__nc_rls_hidden = true
           }
 
-          if (!undo) {
-            const undoObject = [...changedColumns.value].reduce((obj, col) => {
-              obj[col] = row.value.oldRow[col]
-              return obj
-            }, {} as Record<string, any>)
-
-            addUndo({
-              redo: {
-                fn: async (id: string, data: Record<string, any>) => {
-                  await $api.dbTableRow.update(NOCO, base.value.id as string, meta.value.id!, encodeURIComponent(id), data)
-                  await loadKanbanData()
-
-                  reloadTrigger?.trigger()
-                },
-                args: [id, clone(updateOrInsertObj)],
-              },
-              undo: {
-                fn: async (id: string, data: Record<string, any>) => {
-                  await $api.dbTableRow.update(NOCO, base.value.id as string, meta.value.id!, encodeURIComponent(id), data)
-                  await loadKanbanData()
-                  reloadTrigger?.trigger()
-                },
-                args: [id, clone(undoObject)],
-              },
-              scope: defineViewScope({ view: activeView.value }),
-            })
-          }
-
           if (commentsDrawer.value) {
             await Promise.all([loadComments()])
           }
@@ -493,6 +418,15 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       changedColumns.value = new Set()
       $e('a:row-expand:add')
       return data
+    }
+
+    /**
+     * Build the save-failure toast message — same copy used by both modal and panel.
+     * Centralised here so all callers stay in sync if the wording or i18n keys change.
+     */
+    const formatSaveError = async (e: any, isNewRow = rowStore.isNew.value) => {
+      const detail = await extractSdkResponseErrorMsg(e)
+      return isNewRow ? `Add row failed: ${detail}` : `${t('msg.error.rowUpdateFailed')}: ${detail}`
     }
 
     const clearColumns = () => {
@@ -936,6 +870,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       deleteRowById,
       displayValue,
       save,
+      isSaving,
+      formatSaveError,
       changedColumns,
       localOnlyChanges,
       loadRow,
