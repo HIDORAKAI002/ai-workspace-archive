@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a **comprehensive skills library** for Claude AI and Claude Code - reusable, production-ready skill packages that bundle domain expertise, best practices, analysis tools, and strategic frameworks. The repository provides modular skills that teams can download and use directly in their workflows.
 
-**Current Scope:** 268 production-ready skills across 9 domains with 373 Python automation tools, 506 reference guides, 40 agents (33 `cs-*` + 7 personas), and 54 slash commands.
+**Current Scope:** 272 production-ready skills across 9 domains with 385 Python automation tools, 519 reference guides, 44 agents (37 `cs-*` + 7 personas), and 58 slash commands. v2.6.0 adds 4 Matt Pocock-derived productivity skills (write-a-skill, caveman, grill-me, handoff) under MIT.
 
 **Key Distinction**: This is NOT a traditional application. It's a library of skill packages meant to be extracted and deployed by users into their own Claude workflows.
 
@@ -39,7 +39,7 @@ claude-code-skills/
 ├── agents/                    # 27 agents (20 cs-* + 7 personas)
 ├── commands/                  # 33 slash commands (changelog, tdd, saas-health, prd, code-to-prd, plugin-audit, sprint-plan, slo-design, etc.)
 ├── engineering-team/          # 32 core engineering skills + Playwright Pro + Self-Improving Agent + Security Suite
-├── engineering/               # 40 POWERFUL-tier advanced skills (incl. AgentHub, self-eval, llm-wiki, tc-tracker, ship-gate, slo-architect)
+├── engineering/               # 44 POWERFUL-tier advanced skills (incl. AgentHub, self-eval, llm-wiki, tc-tracker, ship-gate, slo-architect, write-a-skill, caveman, grill-me, handoff)
 ├── product-team/              # 13 product skills (incl. apple-hig-expert) + Python tools
 ├── marketing-skill/           # 44 marketing skills (7 pods) + Python tools
 ├── c-level-advisor/           # 28 C-level advisory skills (10 roles + orchestration)
@@ -124,7 +124,18 @@ See [standards/git/git-workflow-standards.md](standards/git/git-workflow-standar
 
 ## Current Version
 
-**Version:** v2.5.5 (latest)
+**Version:** v2.6.0 (latest)
+
+**v2.6.0 Highlights — Matt Pocock productivity skills (4 new, all MIT-licensed derivations):**
+- **write-a-skill** (`./engineering/write-a-skill/`) — skill-author meta-skill. Matt's 3-phase workflow preserved verbatim. Wrapper adds 3 stdlib validators (description, structure, 6-item review-checklist runner), 4 references citing 7-8 sources each, `cs-skill-author` agent, `/cs:write-a-skill` command.
+- **caveman** (`./engineering/caveman/`) — token-compression mode (20-50% typical, 75% upper bound). 3 stdlib tools: deterministic compressor, $/Mtok savings estimator, lint with code-block + exception-zone whitelisting. Matt's persistence rules + auto-clarity exception preserved verbatim.
+- **grill-me** (`./engineering/grill-me/`) — relentless plan-interrogator. 3 stdlib tools: decision-tree extractor (6 branch kinds), forcing-question generator with recommendations + dependency-aware ordering, JSON-backed session tracker for multi-day grills. Matt's one-at-a-time discipline preserved verbatim.
+- **handoff** (`./engineering/handoff/`) — conversation-continuity generator. 3 stdlib tools: 5-emphasis template generator (deploy/review/debug/design/test/default) honoring Matt's `mktemp` convention, artifact deduplicator across 5 categories, skill recommender matching 14 repo skills. Matt's no-duplication discipline preserved verbatim.
+- **Hybrid voice pattern established** for future MIT-licensed external skill imports: preserve upstream voice verbatim in SKILL.md + add wrapper (validators + references citing ≥ 5 sources + cs-* agent + /cs:* command) + karpathy gate + attribution in every file.
+- **Karpathy-coder validation:** 100/100 complexity across all 12 new Python tools (0 findings). 13 references cite 7-8 authoritative sources each (well over the ≥ 5 floor).
+- **PRs:** #642 (write-a-skill, merged) → #643 (caveman + grill-me + handoff batch, merged). Test suite caught a missing-H1 issue on PR 2; fixed in follow-up commit before merge.
+
+**Version:** v2.5.5
 
 **v2.5.5 Highlights — vpe-advisor: throughput-first VP of Engineering:**
 - **vpe-advisor** skill (new, `./c-level-advisor/skills/vpe-advisor/`) — opinionated throughput-first VPE skill covering 4 specific decisions distinct from CTO. 3 stdlib Python tools with deterministic logic: `delivery_throughput_analyzer.py` (DORA 4 metrics with Elite/High/Medium/Low verdict per metric + cycle-time bottleneck identification with typical fix per stage), `eng_hiring_funnel_calculator.py` (7-stage funnel conversion + healthy/leaky verdict per stage + end-to-end conversion + required top-of-funnel volume + weakest-stage fixes), `eng_team_structure_designer.py` (headcount-to-structure map + squad-size assessment + manager-trigger + director-trigger + span-of-control). 4 in-depth references each citing 5+ authoritative sources (DORA / Forsgren / Kim, Spotify squad model, Conway's Law, Will Larson, Camille Fournier, Google SRE Workbook).

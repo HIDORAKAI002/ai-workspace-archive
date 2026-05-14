@@ -651,6 +651,109 @@ describe("runCodexAppServerAttempt", () => {
     }
   });
 
+  it("passes MCP server config through to Codex thread/start", async () => {
+    const sessionFile = path.join(tempDir, "session.jsonl");
+    const workspaceDir = path.join(tempDir, "workspace");
+    const request = vi.fn(async (method: string, _params: unknown) => {
+      if (method === "thread/start") {
+        return threadStartResult();
+      }
+      throw new Error(`unexpected method: ${method}`);
+    });
+
+    await startOrResumeThread({
+      client: { request } as never,
+      params: createParams(sessionFile, workspaceDir),
+      cwd: workspaceDir,
+      dynamicTools: [],
+      appServer: createThreadLifecycleAppServerOptions(),
+      config: {
+        mcp_servers: {
+          search: {
+            url: "https://mcp.example.com/mcp",
+          },
+        },
+      },
+      mcpServersFingerprint: "mcp-v1",
+      mcpServersFingerprintEvaluated: true,
+    });
+
+    const startRequest = request.mock.calls.find(([method]) => method === "thread/start");
+    expect((startRequest?.[1] as { config?: unknown } | undefined)?.config).toMatchObject({
+      mcp_servers: {
+        search: {
+          url: "https://mcp.example.com/mcp",
+        },
+      },
+      "features.code_mode": true,
+      "features.code_mode_only": true,
+    });
+    const binding = await readCodexAppServerBinding(sessionFile);
+    expect(binding?.mcpServersFingerprint).toBe("mcp-v1");
+  });
+
+  it("starts a new Codex thread when the MCP server fingerprint changes", async () => {
+    const sessionFile = path.join(tempDir, "session.jsonl");
+    const workspaceDir = path.join(tempDir, "workspace");
+    await writeCodexAppServerBinding(sessionFile, {
+      threadId: "old-thread",
+      cwd: workspaceDir,
+      dynamicToolsFingerprint: JSON.stringify([]),
+      mcpServersFingerprint: "mcp-v1",
+    });
+    const request = vi.fn(async (method: string, _params: unknown) => {
+      if (method === "thread/start") {
+        return threadStartResult("new-thread");
+      }
+      throw new Error(`unexpected method: ${method}`);
+    });
+
+    const binding = await startOrResumeThread({
+      client: { request } as never,
+      params: createParams(sessionFile, workspaceDir),
+      cwd: workspaceDir,
+      dynamicTools: [],
+      appServer: createThreadLifecycleAppServerOptions(),
+      mcpServersFingerprint: "mcp-v2",
+      mcpServersFingerprintEvaluated: true,
+    });
+
+    expect(request.mock.calls.map(([method]) => method)).toEqual(["thread/start"]);
+    expect(binding.threadId).toBe("new-thread");
+    expect(binding.mcpServersFingerprint).toBe("mcp-v2");
+  });
+
+  it("starts a no-MCP Codex thread when MCP config is evaluated empty", async () => {
+    const sessionFile = path.join(tempDir, "session.jsonl");
+    const workspaceDir = path.join(tempDir, "workspace");
+    await writeCodexAppServerBinding(sessionFile, {
+      threadId: "old-thread",
+      cwd: workspaceDir,
+      dynamicToolsFingerprint: JSON.stringify([]),
+      mcpServersFingerprint: "mcp-v1",
+    });
+    const request = vi.fn(async (method: string, _params: unknown) => {
+      if (method === "thread/start") {
+        return threadStartResult("new-thread");
+      }
+      throw new Error(`unexpected method: ${method}`);
+    });
+
+    const binding = await startOrResumeThread({
+      client: { request } as never,
+      params: createParams(sessionFile, workspaceDir),
+      cwd: workspaceDir,
+      dynamicTools: [],
+      appServer: createThreadLifecycleAppServerOptions(),
+      mcpServersFingerprintEvaluated: true,
+    });
+
+    expect(request.mock.calls.map(([method]) => method)).toEqual(["thread/start"]);
+    expect(binding.threadId).toBe("new-thread");
+    expect(binding.mcpServersFingerprint).toBeUndefined();
+    expect((await readCodexAppServerBinding(sessionFile))?.mcpServersFingerprint).toBeUndefined();
+  });
+
   it("does not expose OpenClaw Tool Search controls through Codex dynamic tools", async () => {
     const sessionFile = path.join(tempDir, "session.jsonl");
     const workspaceDir = path.join(tempDir, "workspace");
@@ -2266,6 +2369,50 @@ describe("runCodexAppServerAttempt", () => {
     expect(params.developerInstructions).toContain("Codex loads AGENTS.md natively");
     expect(params.developerInstructions).not.toContain("Follow AGENTS guidance.");
     expect(config?.instructions).toBeUndefined();
+  });
+
+  it("keeps lightweight cron Codex turns out of OpenClaw bootstrap context", async () => {
+    const sessionFile = path.join(tempDir, "session.jsonl");
+    const workspaceDir = path.join(tempDir, "workspace");
+    const exactCommand =
+      "cd /Users/phaedrus/Projects/openclaw && /Users/phaedrus/clawd/scripts/clawsweeper-related-scan.py";
+    await fs.mkdir(workspaceDir, { recursive: true });
+    await fs.writeFile(path.join(workspaceDir, "AGENTS.md"), "Follow AGENTS guidance.");
+    await fs.writeFile(path.join(workspaceDir, "SOUL.md"), "Soul voice goes here.");
+    const harness = createStartedThreadHarness();
+    const params = createParams(sessionFile, workspaceDir);
+    params.trigger = "cron";
+    params.prompt = exactCommand;
+    params.bootstrapContextMode = "lightweight";
+    params.bootstrapContextRunKind = "cron";
+
+    const run = runCodexAppServerAttempt(params);
+    await harness.waitForMethod("turn/start");
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    await harness.completeTurn({ threadId: "thread-1", turnId: "turn-1" });
+    await run;
+
+    const threadStart = harness.requests.find((request) => request.method === "thread/start");
+    const threadStartParams = threadStart?.params as {
+      developerInstructions?: string;
+    };
+    expect(threadStartParams.developerInstructions).not.toContain("Soul voice goes here.");
+    expect(threadStartParams.developerInstructions).not.toContain("Follow AGENTS guidance.");
+
+    const turnStart = harness.requests.find((request) => request.method === "turn/start");
+    const turnStartParams = turnStart?.params as {
+      collaborationMode?: {
+        settings?: { developer_instructions?: string | null };
+      };
+      input?: Array<{ text?: string }>;
+    };
+    expect(turnStartParams.input?.[0]?.text).toBe(exactCommand);
+    expect(turnStartParams.collaborationMode?.settings?.developer_instructions).toContain(
+      "This is an OpenClaw cron automation turn",
+    );
+    expect(turnStartParams.collaborationMode?.settings?.developer_instructions).toContain(
+      "run that command before doing any investigation",
+    );
   });
 
   it("fires llm_input, llm_output, and agent_end hooks for codex turns", async () => {
@@ -5614,6 +5761,25 @@ describe("runCodexAppServerAttempt", () => {
 
     params.trigger = "user";
     expect(buildTurnCollaborationMode(params).settings.developer_instructions).toBeNull();
+  });
+
+  it("uses turn-scoped collaboration instructions for cron Codex turns", () => {
+    const params = createParams("/tmp/session.jsonl", "/tmp/workspace");
+    params.trigger = "cron";
+
+    const cronCollaborationMode = buildTurnCollaborationMode(params);
+    expect(cronCollaborationMode.mode).toBe("default");
+    expect(cronCollaborationMode.settings.model).toBe("gpt-5.4-codex");
+    expect(cronCollaborationMode.settings.reasoning_effort).toBe("medium");
+    expect(cronCollaborationMode.settings.developer_instructions).toContain(
+      "This is an OpenClaw cron automation turn",
+    );
+    expect(cronCollaborationMode.settings.developer_instructions).toContain(
+      "If it asks you to run an exact command, run that command before doing any investigation",
+    );
+    expect(cronCollaborationMode.settings.developer_instructions).toContain(
+      "Do not read AGENTS.md, SOUL.md, USER.md, PROJECTS.md, MEMORY.md",
+    );
   });
 
   it("preserves the bound auth profile when resume params omit authProfileId", async () => {

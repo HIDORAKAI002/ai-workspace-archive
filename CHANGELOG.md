@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-05-14 10:09 IST] Auto-Sync
+- **29 Repositories Updated:** Kubernetes MCP Server, Exa MCP Server, Promptfoo, NVIDIA NeMo Guardrails, Dify, Trigger.dev, Claude Skills, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, openai/openai-agents-python, pydantic/pydantic-ai, mastra-ai/mastra, BerriAI/litellm, stanfordnlp/dspy, ollama/ollama, ggml-org/llama.cpp, vllm-project/vllm, anthropics/claude-code, chroma-core/chroma, infiniflow/ragflow, arize-ai/phoenix, affaan-m/everything-claude-code, google-gemini/gemini-cli, vercel/ai, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, bytedance/deer-flow
+
 ## [2026-05-14 03:37 IST] Auto-Sync
 - **43 Repositories Updated:** Langfuse, Promptfoo, Guardrails AI, Activepieces, Windmill, Appsmith, modelcontextprotocol/java-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, crewAIInc/crewAI, run-llama/llama_index, pydantic/pydantic-ai, mastra-ai/mastra, browser-use/browser-use, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, cline/cline, pinecone-io/pinecone-python-client, arize-ai/phoenix, openlit/openlit, Arize-ai/openinference, openai/openai-cookbook, affaan-m/everything-claude-code, firecrawl/firecrawl, anthropics/anthropic-sdk-python, anthropics/anthropic-sdk-typescript, anthropics/anthropic-sdk-go, anthropics/anthropic-sdk-ruby, google-gemini/gemini-cli, googleapis/python-genai, vercel/ai, dagster-io/dagster, microsoft/graphrag, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow
 

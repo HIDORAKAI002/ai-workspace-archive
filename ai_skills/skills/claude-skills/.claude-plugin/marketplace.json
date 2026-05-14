@@ -4,12 +4,12 @@
     "name": "Alireza Rezvani",
     "url": "https://alirezarezvani.com"
   },
-  "description": "246 production-ready skill packages for Claude AI across 9 domains: engineering advanced (67 unique), engineering core (51), marketing (45), c-level advisory (34), product (17), regulatory/QMS (14), project management (9), business growth (5), and finance (4). Includes 359 Python tools, 485 reference documents, 27 agents (20 cs-* + 7 personas), and 33 slash commands.",
+  "description": "272 production-ready skill packages for Claude AI across 9 domains: engineering advanced (71 unique — incl. 4 Matt Pocock-derived productivity skills with validation wrappers), engineering core (51), marketing (45), c-level advisory (34), product (17), regulatory/QMS (14), project management (9), business growth (5), and finance (4). Includes 385 Python tools, 519 reference documents, 31 agents (24 cs-* + 7 personas), and 58 slash commands.",
   "homepage": "https://github.com/alirezarezvani/claude-skills",
   "repository": "https://github.com/alirezarezvani/claude-skills",
   "metadata": {
-    "description": "246 production-ready skill packages across 9 domains with 359 Python tools, 485 reference documents, 27 agents (20 cs-* + 7 personas), and 33 slash commands. Compatible with Claude Code, Codex CLI, Hermes Agent, Cursor, Antigravity, OpenCode, Gemini CLI, and OpenClaw.",
-    "version": "2.4.5"
+    "description": "272 production-ready skill packages across 9 domains with 385 Python tools, 519 reference documents, 31 agents (24 cs-* + 7 personas), and 58 slash commands. Compatible with Claude Code, Codex CLI, Hermes Agent, Cursor, Antigravity, OpenCode, Gemini CLI, and OpenClaw.",
+    "version": "2.6.0"
   },
   "plugins": [
     {
@@ -819,6 +819,80 @@
         "reliability",
         "google-sre-workbook",
         "observability"
+      ],
+      "category": "development"
+    },
+    {
+      "name": "write-a-skill",
+      "source": "./engineering/write-a-skill",
+      "description": "Skill-author skill: create new agent skills with proper structure, progressive disclosure, and bundled resources. Derived from Matt Pocock's MIT-licensed write-a-skill with: (1) 3 stdlib Python validation tools (description validator, structure validator, review-checklist runner — all enforcing Matt's 6-item checklist), (2) 4 references citing 7-8 authoritative sources each (progressive disclosure principles, description design patterns, quality gates, companion tooling), (3) cs-skill-author persona agent + /cs:write-a-skill slash command. Matt's voice and 3-phase workflow (Gather → Draft → Review) preserved verbatim per MIT.",
+      "version": "2.6.0",
+      "author": {
+        "name": "Alireza Rezvani"
+      },
+      "keywords": [
+        "skill-authoring",
+        "matt-pocock",
+        "progressive-disclosure",
+        "validators",
+        "review-checklist",
+        "skill-quality",
+        "meta-skill"
+      ],
+      "category": "development"
+    },
+    {
+      "name": "caveman",
+      "source": "./engineering/caveman",
+      "description": "Ultra-compressed communication mode. Cuts token usage 20-50% (75% upper bound) by dropping filler, articles, pleasantries, and hedging while keeping full technical accuracy. Derived from Matt Pocock's MIT-licensed caveman with: (1) 3 stdlib Python tools (deterministic compressor, token-savings estimator with $/Mtok cost extrapolation, lint that detects banned vocab with code-block + exception-zone whitelisting), (2) 3 references citing 7-8 sources (compression principles, when caveman backfires, companion tooling), (3) cs-caveman-mode persona agent + /cs:caveman slash command. Matt's persistence rules + auto-clarity exception preserved verbatim per MIT.",
+      "version": "2.6.0",
+      "author": {
+        "name": "Alireza Rezvani"
+      },
+      "keywords": [
+        "token-compression",
+        "matt-pocock",
+        "terse-mode",
+        "caveman",
+        "cost-reduction",
+        "communication"
+      ],
+      "category": "development"
+    },
+    {
+      "name": "grill-me",
+      "source": "./engineering/grill-me",
+      "description": "Relentless plan-and-design interrogator. Walks the decision tree one branch at a time, asking forcing questions sequentially with recommended answers. Explores codebase before asking. Derived from Matt Pocock's MIT-licensed grill-me with: (1) 3 stdlib Python tools (decision-tree extractor across 6 branch kinds, question generator with dependency-aware ordering, JSON-backed session tracker for multi-day grills), (2) 3 references citing 7-8 sources (6 forcing-question patterns, when to stop grilling, companion tooling), (3) cs-grill-master persona agent + /cs:grill-me slash command. Matt's relentless one-at-a-time interview discipline preserved verbatim per MIT.",
+      "version": "2.6.0",
+      "author": {
+        "name": "Alireza Rezvani"
+      },
+      "keywords": [
+        "plan-interrogation",
+        "matt-pocock",
+        "forcing-questions",
+        "decision-tree",
+        "design-review",
+        "stress-test",
+        "socratic-method"
+      ],
+      "category": "development"
+    },
+    {
+      "name": "handoff",
+      "source": "./engineering/handoff",
+      "description": "Conversation-handoff document generator. Compacts the current session into a markdown handoff for a fresh agent — references existing artifacts (PRDs, plans, ADRs, issues, commits) by path/URL instead of duplicating them. Derived from Matt Pocock's MIT-licensed handoff with: (1) 3 stdlib Python tools (template generator tailored to 5 next-session emphases, artifact deduplicator across 5 categories of duplication, skill recommender matching content to 14 skills in this repo), (2) 4 references citing 7-8 sources (handoff structure, deduplication discipline, next-session skill matching, companion tooling), (3) cs-handoff-author persona agent + /cs:handoff slash command. Matt's no-duplication discipline + mktemp convention preserved verbatim per MIT.",
+      "version": "2.6.0",
+      "author": {
+        "name": "Alireza Rezvani"
+      },
+      "keywords": [
+        "session-handoff",
+        "matt-pocock",
+        "continuity",
+        "context-transfer",
+        "documentation",
+        "no-duplication"
       ],
       "category": "development"
     },

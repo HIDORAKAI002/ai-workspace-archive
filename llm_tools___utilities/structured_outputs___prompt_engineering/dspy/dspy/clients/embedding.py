@@ -1,10 +1,13 @@
+from __future__ import annotations
+
 from typing import Any, Callable
 
 import litellm
-import numpy as np
 
 from dspy.clients.cache import request_cache
+from dspy.utils.lazy_import import require
 
+np = require("numpy")
 
 class Embedder:
     """DSPy embedding class.

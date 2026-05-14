@@ -1781,6 +1781,7 @@ dependencies = [
  "chroma-tracing",
  "chroma-types",
  "figment",
+ "frontend-core",
  "futures",
  "http-body-util",
  "lazy_static",
@@ -3629,6 +3630,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundation-api"
+version = "1.0.0"
+dependencies = [
+ "axum 0.8.8",
+ "chroma-error",
+ "chroma-system",
+ "chroma-tracing",
+ "chroma-types",
+ "figment",
+ "frontend-core",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tower-http 0.6.8",
+ "tracing",
+]
+
+[[package]]
 name = "foyer"
 version = "0.17.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3738,6 +3757,29 @@ dependencies = [
  "tracing",
  "twox-hash",
  "zstd",
+]
+
+[[package]]
+name = "frontend-core"
+version = "1.0.0"
+dependencies = [
+ "async-trait",
+ "axum 0.8.8",
+ "chroma-api-types",
+ "chroma-error",
+ "chroma-tracing",
+ "chroma-types",
+ "figment",
+ "http-body-util",
+ "mdac",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
+ "tokio",
+ "tower 0.5.3",
+ "tower-http 0.6.8",
+ "tracing",
+ "utoipa",
 ]
 
 [[package]]
