@@ -112,6 +112,33 @@ jobs:
 3. **Manual review for what tools can check** — wastes reviewer attention on mechanical items. Reserve manual review for judgment calls (is the workflow correct? Does the skill cover the stated use case?).
 4. **Gate proliferation** — adding new gates faster than they're enforced creates fatigue. Cap at ~10 gates total; merge similar ones.
 
+## Binding vs Advisory for Legacy Skills
+
+Matt's 6-item checklist is **binding for new skills** (any skill authored after v2.6.0 must PASS all 6 before merge). For **legacy skills** authored before this discipline was established, the same rules apply as **advisory** signals to triage, not blockers.
+
+The reason: this repo has 298 SKILL.md files written under different conventions over time. Auditing them against the v2.6.0 checklist surfaces real tech debt, but retro-fitting all 298 in one sweep would require ~50-100 hours of careful editing. Forcing the gate as blocking would either delay all PRs or require disabling the gate.
+
+The pragmatic split:
+
+| Skill cohort | Gate status | Action on failure |
+|---|---|---|
+| **New skills (post-v2.6.0)** | **Blocking** — must PASS all 6 | Fix before PR merge |
+| **Legacy skills (pre-v2.6.0)** | **Advisory** — WARN/FAIL surfaced but non-blocking | Track in audit report; fix opportunistically |
+
+How to tell which cohort a skill belongs to:
+- New: matches the `engineering/<skill>/skills/<skill>/` wrapper pattern with `attribution` in plugin.json, OR was added in a PR tagged for v2.6.0+
+- Legacy: pre-existing structure without the wrapper pattern, or pre-v2.6.0 git history
+
+Re-running `scripts/audit_skills.py` periodically captures the legacy backlog drift. The numerator (PASS count) is the metric to grow over time, not "force every skill to PASS by Friday."
+
+## Common Cohort-Specific Issues
+
+**Legacy SKILL.md > 100 lines (88% of repo):** the dominant violation. Most legacy skills predate the 100-line ceiling. Splitting them into `references/` is invasive. The advisory frame: a 200-line legacy SKILL.md isn't urgent unless the skill is actively being edited.
+
+**Legacy missing "Use when" trigger (26% of repo after v2.6.1 validator fix):** highest-leverage fix because it's a 1-line edit per skill. Even legacy skills should adopt this in the next time they're touched.
+
+**Legacy placeholder descriptions (e.g., "Migration Architect" as the only description text):** these are real bugs, not just lint failures. Fix on sight. v2.6.1 fixed 10 of these in the engineering POWERFUL tier.
+
 ## When This Reference Doesn't Help
 
 - **Performance optimization of skills** — different concern; benchmark agent token usage, not skill files
