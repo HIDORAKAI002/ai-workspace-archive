@@ -171,6 +171,7 @@ import { AcknowledgedAgentsService } from '../agents/acknowledgedAgents.js';
 import { setGlobalProxy, updateGlobalFetchTimeouts } from '../utils/fetch.js';
 import { ExperimentFlags } from '../code_assist/experiments/flagNames.js';
 import { debugLogger } from '../utils/debugLogger.js';
+import { ragLogger } from '../utils/ragLogger.js';
 import { SkillManager, type SkillDefinition } from '../skills/skillManager.js';
 import { startupProfiler } from '../telemetry/startupProfiler.js';
 import type { AgentDefinition } from '../agents/types.js';
@@ -739,6 +740,7 @@ export interface ConfigParameters {
     overageStrategy?: OverageStrategy;
   };
   vertexAiRouting?: VertexAiRoutingConfig;
+  logRagSnippets?: boolean;
 }
 
 export class Config implements McpContext, AgentLoopContext {
@@ -793,6 +795,7 @@ export class Config implements McpContext, AgentLoopContext {
   private geminiMdFileCount: number;
   private geminiMdFilePaths: string[];
   private readonly showMemoryUsage: boolean;
+  private readonly logRagSnippets: boolean;
   private readonly accessibility: AccessibilitySettings;
   private readonly telemetrySettings: TelemetrySettings;
   private readonly usageStatisticsEnabled: boolean;
@@ -1067,6 +1070,7 @@ export class Config implements McpContext, AgentLoopContext {
     this.geminiMdFileCount = params.geminiMdFileCount ?? 0;
     this.geminiMdFilePaths = params.geminiMdFilePaths ?? [];
     this.showMemoryUsage = params.showMemoryUsage ?? false;
+    this.logRagSnippets = params.logRagSnippets ?? false;
     this.accessibility = params.accessibility ?? {};
     this.telemetrySettings = {
       enabled: params.telemetry?.enabled ?? false,
@@ -1430,6 +1434,7 @@ export class Config implements McpContext, AgentLoopContext {
 
   private async _initialize(): Promise<void> {
     await this.storage.initialize();
+    ragLogger.initialize(this.storage.getProjectTempLogsDir());
 
     // Add pending directories to workspace context
     for (const dir of this.pendingIncludeDirectories) {
@@ -1622,10 +1627,7 @@ export class Config implements McpContext, AgentLoopContext {
     this.baseLlmClient = new BaseLlmClient(this.contentGenerator, this);
 
     const authType = this.contentGeneratorConfig.authType;
-    if (
-      authType === AuthType.USE_GEMINI ||
-      authType === AuthType.USE_VERTEX_AI
-    ) {
+    if (authType === AuthType.USE_GEMINI) {
       this.setHasAccessToPreviewModel(true);
     }
 
@@ -2227,7 +2229,7 @@ export class Config implements McpContext, AgentLoopContext {
   }
 
   getHasAccessToPreviewModel(): boolean {
-    return this.hasAccessToPreviewModel !== false;
+    return this.hasAccessToPreviewModel ?? false;
   }
 
   setHasAccessToPreviewModel(hasAccess: boolean | null): void {
@@ -2289,7 +2291,6 @@ export class Config implements McpContext, AgentLoopContext {
             });
           }
         }
-        this.emitQuotaChangedEvent();
       }
 
       const hasAccess =
@@ -2297,6 +2298,11 @@ export class Config implements McpContext, AgentLoopContext {
           (b) => b.modelId && isPreviewModel(b.modelId, this),
         ) ?? false;
       this.setHasAccessToPreviewModel(hasAccess);
+
+      if (quota.buckets) {
+        this.emitQuotaChangedEvent();
+      }
+
       return quota;
     } catch (e) {
       debugLogger.debug('Failed to retrieve user quota', e);
@@ -2807,6 +2813,10 @@ export class Config implements McpContext, AgentLoopContext {
 
   getAccessibility(): AccessibilitySettings {
     return this.accessibility;
+  }
+
+  getLogRagSnippets(): boolean {
+    return this.logRagSnippets;
   }
 
   getTelemetryEnabled(): boolean {
