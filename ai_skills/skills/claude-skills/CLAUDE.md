@@ -124,7 +124,17 @@ See [standards/git/git-workflow-standards.md](standards/git/git-workflow-standar
 
 ## Current Version
 
-**Version:** v2.6.0 (latest)
+**Version:** v2.6.1 (latest)
+
+**v2.6.1 Highlights — Meta-skill maturity: validator expansion + 21 placeholder description fixes + audit tool:**
+- **`scripts/audit_skills.py`** (new) — repo-wide write-a-skill validator runner. Stdlib-only orchestration: walks every SKILL.md, runs `skill_review_checklist_runner.py`, aggregates PASS/WARN/FAIL counts + failure-by-rule + top-10 worst offenders. ~30s on 298 real skills.
+- **Validator trigger pattern expansion** — `skill_description_validator.py` + `skill_review_checklist_runner.py` now recognize `Use before/during/after/while`, `Invoke before/after`, `Apply when`, `Run when/before` (not just `Use when`). 30 legacy skills reclassified FAIL → WARN/PASS automatically.
+- **21 placeholder descriptions fixed** — skills whose description field was literally just the skill name (e.g., `description: "Migration Architect"`) from a v2.0.0 batch import. Top-10 POWERFUL-tier engineering (#647): migration-architect, dependency-auditor, codebase-onboarding, ci-cd-pipeline-builder, mcp-server-builder, observability-designer, api-design-reviewer, performance-profiler, changelog-generator, runbook-generator. Remaining 11 across 4 domains (#648): executive-mentor/challenge, executive-mentor/board-prep, git-worktree-manager, skill-tester, monorepo-navigator, env-secrets-manager, agent-workflow-designer, incident-commander, email-template-builder, stripe-integration-expert, contract-and-proposal-writer.
+- **Quality gates: binding-for-new vs advisory-for-legacy split** — `quality_gates_for_skills.md` formalizes that Matt's 6-item checklist is BLOCKING for post-v2.6.0 skills and ADVISORY for the 298 legacy SKILL.md files.
+- **Aggregate audit improvement (vs v2.6.0 baseline):** PASS 4 → 9 (+5); WARN 111 → 137 (+26); FAIL 183 → 152 (-31); "Missing trigger" failures 119 → 68 (-51). 31 skills total lifted from FAIL.
+- **PRs:** #646 (audit tool, merged) → #647 (validator + 10 descriptions, merged) → #648 (remaining 11 descriptions, merged).
+
+**Version:** v2.6.0
 
 **v2.6.0 Highlights — Matt Pocock productivity skills (4 new, all MIT-licensed derivations):**
 - **write-a-skill** (`./engineering/write-a-skill/`) — skill-author meta-skill. Matt's 3-phase workflow preserved verbatim. Wrapper adds 3 stdlib validators (description, structure, 6-item review-checklist runner), 4 references citing 7-8 sources each, `cs-skill-author` agent, `/cs:write-a-skill` command.

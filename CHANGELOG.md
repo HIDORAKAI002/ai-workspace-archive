@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-05-14 16:43 IST] Auto-Sync
+- **35 Repositories Updated:** Public APIs Directory, GitHub MCP Server, Awesome ChatGPT Prompts, Promptfoo, n8n, Dify, Activepieces, Windmill, Budibase, Hoppscotch, Claude Skills, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, mastra-ai/mastra, deepset-ai/haystack, Swarms, BerriAI/litellm, ggml-org/llama.cpp, deepspeedai/DeepSpeed, vllm-project/vllm, lobehub/lobe-chat, cline/cline, chroma-core/chroma, milvus-io/milvus, weaviate/weaviate, infiniflow/ragflow, traceloop/openllmetry, Arize-ai/openinference, Jenqyang/Awesome-AI-Agents, apache/airflow, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra
+
 ## [2026-05-14 10:09 IST] Auto-Sync
 - **29 Repositories Updated:** Kubernetes MCP Server, Exa MCP Server, Promptfoo, NVIDIA NeMo Guardrails, Dify, Trigger.dev, Claude Skills, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, openai/openai-agents-python, pydantic/pydantic-ai, mastra-ai/mastra, BerriAI/litellm, stanfordnlp/dspy, ollama/ollama, ggml-org/llama.cpp, vllm-project/vllm, anthropics/claude-code, chroma-core/chroma, infiniflow/ragflow, arize-ai/phoenix, affaan-m/everything-claude-code, google-gemini/gemini-cli, vercel/ai, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, bytedance/deer-flow
 

@@ -51,11 +51,22 @@ FIRST_PERSON = {"i", "me", "my", "myself", "we", "us", "our", "ours", "ourselves
 SECOND_PERSON = {"you", "your", "yours", "yourself"}
 
 # Trigger phrases that count as explicit "use when" triggers
+# Per Matt Pocock's rule: descriptions need an explicit trigger so agents know when to invoke.
+# Natural English variants are all accepted: "Use when/before/during/after/for/while ..." etc.
 TRIGGER_PATTERNS = [
     re.compile(r"\buse\s+when\b", re.IGNORECASE),
     re.compile(r"\buse\s+for\b", re.IGNORECASE),
+    re.compile(r"\buse\s+before\b", re.IGNORECASE),
+    re.compile(r"\buse\s+during\b", re.IGNORECASE),
+    re.compile(r"\buse\s+after\b", re.IGNORECASE),
+    re.compile(r"\buse\s+while\b", re.IGNORECASE),
     re.compile(r"\binvoke\s+when\b", re.IGNORECASE),
+    re.compile(r"\binvoke\s+before\b", re.IGNORECASE),
+    re.compile(r"\binvoke\s+after\b", re.IGNORECASE),
     re.compile(r"\btrigger\s+when\b", re.IGNORECASE),
+    re.compile(r"\bapply\s+when\b", re.IGNORECASE),
+    re.compile(r"\brun\s+when\b", re.IGNORECASE),
+    re.compile(r"\brun\s+before\b", re.IGNORECASE),
 ]
 
 

@@ -72,14 +72,33 @@ def extract_frontmatter_description(text: str) -> str:
     return val
 
 
+# Trigger phrases that count as explicit "use when ..." triggers in a description.
+# Per Matt Pocock's rule: explicit trigger phrase. Natural English variants all accepted.
+TRIGGER_PATTERNS = [
+    re.compile(r"\buse\s+when\b", re.IGNORECASE),
+    re.compile(r"\buse\s+for\b", re.IGNORECASE),
+    re.compile(r"\buse\s+before\b", re.IGNORECASE),
+    re.compile(r"\buse\s+during\b", re.IGNORECASE),
+    re.compile(r"\buse\s+after\b", re.IGNORECASE),
+    re.compile(r"\buse\s+while\b", re.IGNORECASE),
+    re.compile(r"\binvoke\s+when\b", re.IGNORECASE),
+    re.compile(r"\binvoke\s+before\b", re.IGNORECASE),
+    re.compile(r"\binvoke\s+after\b", re.IGNORECASE),
+    re.compile(r"\btrigger\s+when\b", re.IGNORECASE),
+    re.compile(r"\bapply\s+when\b", re.IGNORECASE),
+    re.compile(r"\brun\s+when\b", re.IGNORECASE),
+    re.compile(r"\brun\s+before\b", re.IGNORECASE),
+]
+
+
 def check_description_has_trigger(text: str) -> Dict[str, Any]:
     desc = extract_frontmatter_description(text)
-    has_use_when = bool(re.search(r"\buse\s+when\b", desc, re.IGNORECASE))
+    has_trigger = any(p.search(desc) for p in TRIGGER_PATTERNS)
     return {
         "rule": "1. Description includes triggers",
-        "pass": has_use_when,
-        "detail": ("Found 'Use when' trigger" if has_use_when
-                   else "Missing 'Use when ...' trigger phrase"),
+        "pass": has_trigger,
+        "detail": ("Found explicit trigger phrase" if has_trigger
+                   else "Missing explicit trigger phrase (Use when/before/after/for ...)"),
     }
 
 

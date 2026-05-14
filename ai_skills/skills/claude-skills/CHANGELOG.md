@@ -5,6 +5,84 @@ All notable changes to the Claude Skills Library will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.1] - 2026-05-14 — Meta-skill maturity: validator expansion + 21 placeholder descriptions + audit tool
+
+### Added — Tooling
+
+- **`scripts/audit_skills.py`** (`./scripts/audit_skills.py`) — repo-wide write-a-skill validator runner. Stdlib-only orchestration that walks every SKILL.md in the repo, runs `skill_review_checklist_runner.py` against each, and aggregates results (PASS/WARN/FAIL counts, failure-by-rule breakdown, top-10 worst offenders). Excludes auto-generated tool bundles (`.gemini/`, `.codex/`, `.cursor/`, `.cline/`) and template fixtures. ~30s to run across 298 real skills. Merged via #646.
+
+### Fixed — Validator False Positives
+
+The v2.6.0 validators recognized only `Use when`, `Use for`, `Invoke when`, `Trigger when` as valid trigger phrases. But legacy skills had semantically-valid natural-English triggers like `Use before annual GDPR review` (gdpr-audit-prep). Expanded trigger patterns to include:
+
+- `Use before/during/after/while ...`
+- `Invoke before/after ...`
+- `Apply when ...`
+- `Run when/before ...`
+
+**Impact: 30 legacy skills reclassified from FAIL → WARN/PASS automatically.** Karpathy `complexity_checker`: 100/100 PASS on both modified validators (`skill_description_validator.py` + `skill_review_checklist_runner.py`). Merged via #647.
+
+### Fixed — 21 Placeholder Descriptions
+
+The v2.6.0 audit revealed 21 skills (~7% of repo) whose description field was literally just the skill name (e.g., `description: "Migration Architect"`). These were real bugs from a v2.0.0 batch import. All 21 fixed in this release.
+
+**Top-10 POWERFUL-tier engineering skills (merged via #647):**
+- `migration-architect` — zero-downtime migration planning + rollback strategy
+- `dependency-auditor` — vulnerabilities + license + safe-upgrade audit
+- `codebase-onboarding` — codebase analysis + onboarding doc generation
+- `ci-cd-pipeline-builder` — pragmatic CI/CD from project stack signals
+- `mcp-server-builder` — MCP servers from OpenAPI contracts (Python + TS)
+- `observability-designer` — metrics + logs + traces + SLI/SLO design
+- `api-design-reviewer` — REST design review + breaking-change detection
+- `performance-profiler` — Node/Python/Go profiling + flamegraphs + load tests
+- `changelog-generator` — Conventional Commits → release notes automation
+- `runbook-generator` — operational runbooks from service name + templates
+
+**Remaining 11 across 4 domains (merged via #648):**
+- `executive-mentor/skills/challenge` — pre-mortem plan analysis
+- `executive-mentor/skills/board-prep` — adversarial board prep
+- `git-worktree-manager` — parallel feature work with Git worktrees
+- `skill-tester` — meta-skill QA (structure + script + quality scoring)
+- `monorepo-navigator` — Turborepo / Nx / pnpm / Lerna navigation
+- `env-secrets-manager` — env-var hygiene + secrets rotation
+- `agent-workflow-designer` — production-grade multi-agent workflows
+- `incident-commander` — incident response framework
+- `email-template-builder` — React Email + provider integration
+- `stripe-integration-expert` — subscriptions + webhooks + billing
+- `contract-and-proposal-writer` — jurisdiction-aware business documents
+
+Each new description: ≤1024 chars, third person, action verb in first sentence, "Use when ..." trigger in second sentence per Matt Pocock's rule.
+
+### Changed — Quality Gates Reference
+
+Updated `engineering/write-a-skill/skills/write-a-skill/references/quality_gates_for_skills.md` to formalize the **binding-for-new vs advisory-for-legacy split**. The 6-item checklist remains BLOCKING for post-v2.6.0 skills and ADVISORY for the 298 legacy SKILL.md files.
+
+Why: forcing the gate as blocking would either delay every PR or require disabling the gate. The pragmatic split lets the repo grow the PASS count over time without force-marching 298 retrofits.
+
+### Aggregate Audit Improvement
+
+Against the 298 real-skill cohort (excludes auto-generated bundles):
+
+| Metric | v2.6.0 baseline | v2.6.1 (now) | Δ |
+|---|---|---|---|
+| ✅ PASS (6/6) | 4 (1%) | **9 (3%)** | **+5** |
+| 🟡 WARN (5/6) | 111 (37%) | **137 (46%)** | **+26** |
+| 🔴 FAIL (≤4/6) | 183 (61%) | **152 (51%)** | **-31** |
+| "Missing trigger" failures | 119 (39%) | **68 (23%)** | **-51** |
+
+**31 skills total lifted from FAIL → WARN/PASS in v2.6.1.**
+
+### PRs in v2.6.1
+
+- #646 — `scripts/audit_skills.py` repo-wide audit harness
+- #647 — validator trigger expansion + 10 placeholder description fixes + legacy advisory
+- #648 — closes out remaining 11 placeholder description fixes
+
+### What's Next (Not in This Release)
+
+- **v2.6.2 candidate:** 27% terminology drift (agent/bot, skill/tool mixing). Larger scope; requires careful prose edits.
+- **v2.7 candidate:** large-scale audit against the 100-line ceiling. 88% of legacy skills exceed it. Decide which top-20 high-traffic skills to refactor with `references/<topic>.md` splits.
+
 ## [2.6.0] - 2026-05-13 — Matt Pocock productivity skills: write-a-skill + caveman + grill-me + handoff
 
 ### Added — Engineering / Productivity (4 new skills, all MIT-licensed derivations)
