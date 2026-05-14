@@ -300,6 +300,8 @@ interface RequestConfig {
   exaSource?: string;
   mcpSessionId?: string;
   defaultSearchType?: 'auto' | 'fast';
+  /** True when a Bearer token was a JWT but failed OAuth verification (expired, bad sig, wrong issuer/audience). */
+  invalidOAuthJwt: boolean;
 }
 
 /**
@@ -313,6 +315,7 @@ async function getConfigFromRequest(request: Request): Promise<RequestConfig> {
   let userProvidedApiKey = false;
   let authMethod: 'oauth' | 'api_key' | 'free_tier' = 'free_tier';
   let defaultSearchType: 'auto' | 'fast' | undefined;
+  let invalidOAuthJwt = false;
 
   // 1. Check x-api-key header (highest priority)
   const xApiKey = request.headers.get('x-api-key');
@@ -335,7 +338,10 @@ async function getConfigFromRequest(request: Request): Promise<RequestConfig> {
           userProvidedApiKey = true;
           authMethod = 'oauth';
         } else {
-          // JWT verification failed — don't fall through to treating it as an API key
+          // JWT verification failed — flag so the caller can return 401 with
+          // a WWW-Authenticate challenge instead of silently falling through to
+          // the env API key or free tier.
+          invalidOAuthJwt = true;
           console.error('[EXA-MCP] Invalid OAuth JWT token');
         }
       } else {
@@ -402,7 +408,7 @@ async function getConfigFromRequest(request: Request): Promise<RequestConfig> {
   const exaSource = request.headers.get('x-exa-source') || undefined;
   const mcpSessionId = request.headers.get('MCP-Session-Id') || undefined;
 
-  return { exaApiKey, enabledTools, debug, userProvidedApiKey, authMethod, exaSource, mcpSessionId, defaultSearchType };
+  return { exaApiKey, enabledTools, debug, userProvidedApiKey, authMethod, exaSource, mcpSessionId, defaultSearchType, invalidOAuthJwt };
 }
 
 /**
@@ -433,21 +439,41 @@ function hasAuth(request: Request): boolean {
   return false;
 }
 
-function create401Response(): Response {
+/**
+ * Build a 401 Unauthorized response with an OAuth `Bearer` challenge.
+ *
+ * `reason` controls the `WWW-Authenticate` parameters per RFC 6750 §3:
+ * - 'missing'        — no credentials were presented; advertise the resource so the client can start a flow.
+ * - 'invalid_token'  — a token was presented but failed verification; include `error="invalid_token"` so the
+ *                      client can distinguish "refresh/re-auth" from "start over from scratch" and trigger its
+ *                      refresh-token exchange against the authorization server.
+ */
+function create401Response(reason: 'missing' | 'invalid_token' = 'missing'): Response {
+  const params: string[] = [];
+  if (reason === 'invalid_token') {
+    params.push('error="invalid_token"');
+    params.push('error_description="The access token is invalid or expired"');
+  }
+  params.push('resource_metadata="https://mcp.exa.ai/.well-known/oauth-protected-resource"');
+
+  const message =
+    reason === 'invalid_token'
+      ? 'The access token is invalid or expired. Refresh or re-authenticate.'
+      : 'Authentication required. Use OAuth or provide an API key.';
+
   return new Response(
     JSON.stringify({
       jsonrpc: '2.0',
       error: {
         code: -32000,
-        message: 'Authentication required. Use OAuth or provide an API key.',
+        message,
       },
       id: null,
     }),
     {
       status: 401,
       headers: {
-        'WWW-Authenticate':
-          'Bearer resource_metadata="https://mcp.exa.ai/.well-known/oauth-protected-resource"',
+        'WWW-Authenticate': `Bearer ${params.join(', ')}`,
         'Content-Type': 'application/json',
         ...CORS_HEADERS,
       },
@@ -503,7 +529,17 @@ async function processRequest(request: Request, options?: { forceOAuth?: boolean
 
   // Extract configuration from request headers, URL, and env vars
   const config = await getConfigFromRequest(request);
-  
+
+  // A Bearer JWT that fails verification (expired, bad signature, wrong issuer/audience)
+  // must produce a 401 + WWW-Authenticate challenge so the client knows to refresh or
+  // re-authenticate. Falling through to the env API key or free tier would mask the
+  // expired-credential signal and prevent the client's refresh flow from triggering.
+  // Use the `invalid_token` reason so the WWW-Authenticate header carries the standard
+  // OAuth error code that clients listen for when deciding to exchange a refresh token.
+  if (config.invalidOAuthJwt) {
+    return create401Response('invalid_token');
+  }
+
   if (config.debug) {
     console.log(`[EXA-MCP] Request URL: ${request.url}`);
     console.log(`[EXA-MCP] Enabled tools: ${config.enabledTools?.join(', ') || 'default'}`);

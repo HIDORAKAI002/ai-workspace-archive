@@ -1,6 +1,6 @@
 ---
-title: 246 Agent Skills for Codex, Gemini CLI & OpenClaw
-description: "246 production-ready Claude Code skills and agent plugins for 12 AI coding tools. Engineering, product, marketing, compliance, and finance agent skills for Claude Code, OpenAI Codex, Gemini CLI, Hermes Agent, Cursor, and OpenClaw."
+title: 272 Agent Skills for Codex, Gemini CLI & OpenClaw
+description: "272 production-ready Claude Code skills and agent plugins for 12 AI coding tools — including the v2.6.0 Matt Pocock productivity quartet (write-a-skill, caveman, grill-me, handoff). Engineering, product, marketing, compliance, and finance agent skills for Claude Code, OpenAI Codex, Gemini CLI, Hermes Agent, Cursor, and OpenClaw."
 hide:
   - toc
   - edit
@@ -14,7 +14,7 @@ hide:
 
 # Agent Skills
 
-246 production-ready skills, 20 cs-* agents, 7 personas, and an orchestration protocol for AI coding tools.
+272 production-ready skills, 37 cs-* agents (incl. founder-mode C-suite + Matt Pocock productivity quartet), 7 personas, and an orchestration protocol for AI coding tools.
 { .hero-subtitle }
 
 [Get Started](getting-started.md){ .md-button .md-button--primary }
@@ -49,15 +49,15 @@ hide:
 
 <div class="grid cards" markdown>
 
--   :material-toolbox:{ .lg .middle } **246 Skills**
+-   :material-toolbox:{ .lg .middle } **272 Skills**
 
     ---
 
-    Production-ready instruction packages with structured workflows, Python automation tools, and reference documentation across 9 domains.
+    Production-ready instruction packages with structured workflows, Python automation tools, and reference documentation across 9 domains. v2.6.0 adds the Matt Pocock productivity quartet under MIT.
 
     [:octicons-arrow-right-24: Browse skills](skills/index.md)
 
--   :material-robot:{ .lg .middle } **20 Agents**
+-   :material-robot:{ .lg .middle } **37 Agents**
 
     ---
 

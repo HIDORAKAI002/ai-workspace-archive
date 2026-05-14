@@ -21,7 +21,7 @@ from sglang.test.test_utils import (
     try_cached_model,
 )
 
-register_cuda_ci(est_time=1800, suite="stage-c-test-dsv4-8-gpu-h200")
+register_cuda_ci(est_time=1800, stage="stage-c", runner_config="dsv4-8-gpu-h200")
 
 
 def _flashinfer_has_sm90_cutlass_mxfp4() -> bool:
@@ -66,6 +66,8 @@ class TestDSV4FlashFP4H200(ServerSanityMixin, CustomTestCase):
                 "1",
                 "--speculative-num-draft-tokens",
                 "4",
+                "--watchdog-timeout",
+                "900",
             ],
         )
 

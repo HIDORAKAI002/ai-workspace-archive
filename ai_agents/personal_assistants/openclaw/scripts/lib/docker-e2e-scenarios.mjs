@@ -11,6 +11,8 @@ const RELEASE_OPENWEBUI_COMMAND =
   "OPENCLAW_OPENWEBUI_MODEL=openai/gpt-5.4-mini OPENWEBUI_SMOKE_MODE=models OPENCLAW_OPENWEBUI_PROVIDER_TIMEOUT_SECONDS=300 OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:openwebui";
 export const BUNDLED_PLUGIN_INSTALL_UNINSTALL_SHARDS = 24;
 const upgradeSurvivorCommand = "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:upgrade-survivor";
+const rootManagedVpsUpgradeCommand =
+  "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:root-managed-vps-upgrade";
 const updateRestartAuthCommand =
   "OPENCLAW_SKIP_DOCKER_BUILD=1 pnpm test:docker:update-restart-auth";
 
@@ -345,6 +347,11 @@ export const mainLanes = [
       weight: 3,
     },
   ),
+  npmLane("root-managed-vps-upgrade", rootManagedVpsUpgradeCommand, {
+    stateScenario: "upgrade-survivor",
+    timeoutMs: 25 * 60 * 1000,
+    weight: 3,
+  }),
   npmLane("update-restart-auth", updateRestartAuthCommand, {
     stateScenario: "upgrade-survivor",
     timeoutMs: 25 * 60 * 1000,
@@ -686,6 +693,11 @@ const releasePathPackageUpdateCoreLanes = [
       weight: 3,
     },
   ),
+  npmLane("root-managed-vps-upgrade", rootManagedVpsUpgradeCommand, {
+    stateScenario: "upgrade-survivor",
+    timeoutMs: 25 * 60 * 1000,
+    weight: 3,
+  }),
   npmLane("update-restart-auth", updateRestartAuthCommand, {
     stateScenario: "upgrade-survivor",
     timeoutMs: 25 * 60 * 1000,
