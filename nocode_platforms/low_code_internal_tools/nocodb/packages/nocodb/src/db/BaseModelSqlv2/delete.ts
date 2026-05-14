@@ -5,6 +5,7 @@ import {
   isDeletedCol,
   isLinksOrLTAR,
   isMMOrMMLike,
+  isSmartText,
   UITypes,
 } from 'nocodb-sdk';
 import type { Knex } from 'knex';
@@ -420,6 +421,45 @@ export class BaseModelDelete {
         await FileReference.delete(this.baseModel.context, fileReferenceIds);
       }
     });
+
+    // remove FileReferences for SmartText cells
+    //
+    // SmartText image / file refs are scoped by (fk_model_id, fk_column_id,
+    // fk_row_id) — the cell-keyed attachment proxy resolves them by that triple.
+    // The attachment-column path above doesn't visit them because the refs
+    // live in `nc_row_meta` (PM JSON), not in the cell column. Without this
+    // block, deleting rows leaks both the FileReference rows and the
+    // underlying storage objects.
+    const smartTextColumns = columns.filter((c) => isSmartText(c));
+    if (smartTextColumns.length > 0) {
+      const smartTextColumnIds = smartTextColumns
+        .map((c) => c.id)
+        .filter(Boolean) as string[];
+      const primaryKeys = this.baseModel.model.primaryKeys;
+      metaQueries.push(async ({ rows }) => {
+        if (!rows.length || !smartTextColumnIds.length) return;
+        const rowIds = rows
+          .map((row) => getCompositePkValue(primaryKeys, row))
+          .filter((v) => v != null && v !== '')
+          .map(String);
+        if (!rowIds.length) return;
+        if (isSoftDelete) {
+          await FileReference.bulkSoftDeleteForCells(
+            this.baseModel.context,
+            this.baseModel.model.id,
+            smartTextColumnIds,
+            rowIds,
+          );
+        } else {
+          await FileReference.bulkDeleteForCells(
+            this.baseModel.context,
+            this.baseModel.model.id,
+            smartTextColumnIds,
+            rowIds,
+          );
+        }
+      });
+    }
 
     // Capture one timestamp for the whole bulkAll invocation so every chunk —
     // and every linked-record LMT propagation inside each chunk — stamps rows
@@ -847,6 +887,32 @@ export class BaseModelDelete {
       await FileReference.delete(this.baseModel.context, fileReferenceIds);
     });
 
+    // remove FileReferences for SmartText cells (permanent-delete path).
+    // SmartText image / file refs live in nc_row_meta keyed by
+    // (fk_model_id, fk_column_id, fk_row_id) — not on the cell column —
+    // so the attachment block above doesn't visit them.
+    const permSmartTextColumns = columns.filter((c) => isSmartText(c));
+    if (permSmartTextColumns.length > 0) {
+      const permSmartTextColumnIds = permSmartTextColumns
+        .map((c) => c.id)
+        .filter(Boolean) as string[];
+      const permPrimaryKeys = this.baseModel.model.primaryKeys;
+      metaQueries.push(async ({ rows }) => {
+        if (!rows.length || !permSmartTextColumnIds.length) return;
+        const rowIdsForCells = rows
+          .map((row) => getCompositePkValue(permPrimaryKeys, row))
+          .filter((v) => v != null && v !== '')
+          .map(String);
+        if (!rowIdsForCells.length) return;
+        await FileReference.bulkDeleteForCells(
+          this.baseModel.context,
+          this.baseModel.model.id,
+          permSmartTextColumnIds,
+          rowIdsForCells,
+        );
+      });
+    }
+
     // Hard-delete the rows
     execQueries.push(({ trx, qb, ids }) => {
       if (this.baseModel.model.primaryKeys.length === 1) {
@@ -888,6 +954,27 @@ export class BaseModelDelete {
     if (oldRecords.length !== rowIds.length) {
       NcError.get(this.baseModel.context).recordNotTrashed();
     }
+    if (oldRecords.length !== rowIds.length) {
+      this.logger.warn(
+        `permanentDeleteByIds: ${rowIds.length - oldRecords.length} of ${
+          rowIds.length
+        } target rows are no longer trashed (restored or already hard-deleted). ` +
+          `Proceeding with the ${oldRecords.length} that remain.`,
+      );
+    }
+    // Narrow the ids list to only the rows we actually have, so the delete
+    // query targets the same set we'll report in `oldRecords`.
+    const survivingIds =
+      oldRecords.length === rowIds.length
+        ? ids
+        : this.baseModel.model.primaryKeys.length > 1
+        ? oldRecords.map((r) =>
+            this.baseModel.model.primaryKeys.reduce((acc, pk) => {
+              acc[pk.title] = r[pk.column_name];
+              return acc;
+            }, {} as Record<string, any>),
+          )
+        : oldRecords.map((r) => r[this.baseModel.model.primaryKey.column_name]);
 
     const rows = oldRecords;
 

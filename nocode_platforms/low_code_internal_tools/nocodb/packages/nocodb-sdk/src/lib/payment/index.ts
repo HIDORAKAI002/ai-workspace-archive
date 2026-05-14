@@ -113,6 +113,9 @@ export enum PlanFeatureTypes {
   FEATURE_EE_CORE = 'feature_ee_core',
   FEATURE_TRASH_SETTINGS = 'feature_trash_settings',
   FEATURE_FORM_GRID_LAYOUT = 'feature_form_grid_layout',
+  FEATURE_TABLE_VISIBILITY = 'feature_table_visibility',
+  FEATURE_FIELD_VISIBILITY = 'feature_field_visibility',
+  FEATURE_BOOKMARKS = 'feature_bookmarks',
 }
 
 export enum PlanTitles {
@@ -394,6 +397,11 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to configure per-table trash settings.',
   [PlanFeatureTypes.FEATURE_FORM_GRID_LAYOUT]:
     'to arrange form fields in multi-column rows.',
+  [PlanFeatureTypes.FEATURE_TABLE_VISIBILITY]:
+    'to control table-level visibility.',
+  [PlanFeatureTypes.FEATURE_FIELD_VISIBILITY]:
+    'to control field-level visibility.',
+  [PlanFeatureTypes.FEATURE_BOOKMARKS]: 'to use bookmarks.',
 };
 
 export const getUpgradeMessage = (

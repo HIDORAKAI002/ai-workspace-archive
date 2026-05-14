@@ -457,6 +457,7 @@ const formViewHiddenColTypes = [
   UITypes.LastModifiedBy,
   UITypes.Meta,
   UITypes.UUID,
+  UITypes.AutoNumber,
   AIButton,
   AIPrompt,
 ]
@@ -507,7 +508,7 @@ const getFormulaColDataType = (col: ColumnType) => {
 
 const isSearchableColumn = (column: ColumnType) => {
   return (
-    !isSystemColumn(column) &&
+    (column?.pk || !isSystemColumn(column)) &&
     ![
       UITypes.Links,
       UITypes.Rollup,

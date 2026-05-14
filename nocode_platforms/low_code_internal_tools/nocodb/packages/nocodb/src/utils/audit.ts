@@ -47,6 +47,12 @@ export function fromEntries<T = any>(
   }, {} as { [key: string]: T });
 }
 
+// Properties that must never end up in nc_audit.details, regardless of which
+// emit path produced them. Stripped both by removeBlankPropsAndMask (top-level
+// payloads) and extractNonSystemProps (diffs), so any current or future audit
+// path is safe even if a service forgets to mask its event payload.
+const sensitiveProps = ['password'];
+
 /**
  * Removes blank properties from an object and optionally includes null values.
  * Masks excluded properties and predefined system properties.
@@ -68,6 +74,7 @@ export const removeBlankPropsAndMask = (
     'base_id',
     'source_id',
     'fk_workspace_id',
+    ...sensitiveProps,
   ];
 
   if (obj === null || obj === undefined) return obj;
@@ -139,6 +146,7 @@ export function extractNonSystemProps<T>(
         return (
           (includeNulls || val !== null) &&
           !systemColumns.includes(key) &&
+          !sensitiveProps.includes(key) &&
           !additionalExcludeProps?.includes(key)
         );
       })
@@ -191,6 +199,12 @@ export async function generateAuditV1Payload<T = any>(
     )?.title;
   }
 
+  const triggeredVia = context?.triggered_via;
+  const detailsWithOrigin =
+    triggeredVia && details
+      ? { ...details, triggered_via: triggeredVia }
+      : details;
+
   return {
     user: req?.user?.email,
     ip: req?.ip,
@@ -204,7 +218,7 @@ export async function generateAuditV1Payload<T = any>(
     fk_model_id: params.fk_model_id ?? context?.fk_model_id,
     row_id: context?.row_id ?? params.row_id,
     op_type: opType,
-    details,
+    details: detailsWithOrigin,
     version: 1,
     fk_parent_id: id === req?.ncParentAuditId ? null : req?.ncParentAuditId,
     id,
@@ -469,7 +483,7 @@ export const additionalExcludePropsForCol = (_uidt) => [
 
 const metaAliasMap = {
   allowCSVDownload: 'allow_csv_download',
-  isLocaleString: 'locale_string',
+  separator: 'separator',
   duration: 'duration_format',
   is12hrFormat: '12hr_format',
   fk_cover_image_object_fit: 'cover_image_object_fit',

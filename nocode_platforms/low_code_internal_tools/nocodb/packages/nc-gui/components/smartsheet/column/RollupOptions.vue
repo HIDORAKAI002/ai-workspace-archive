@@ -10,6 +10,7 @@ import {
   getAvailableRollupForColumn,
   integerPreservingRollupFunctions,
   integerRollupFunctions,
+  resolveColumnSeparator,
   rollupAllFunctions,
 } from 'nocodb-sdk'
 
@@ -29,7 +30,6 @@ const {
   isEdit,
   disableSubmitBtn,
   updateFieldName,
-  setPostSaveOrUpdateCbk,
 } = useColumnCreateStoreOrThrow()
 
 const baseStore = useBase()
@@ -136,15 +136,16 @@ onMounted(() => {
     vModel.value.fk_rollup_column_id = vModel.value.colOptions?.fk_rollup_column_id
     vModel.value.rollup_function = vModel.value.colOptions?.rollup_function
   }
-
-  setPostSaveOrUpdateCbk(async ({ colId, column }) => {
-    await filterRef.value?.applyChanges(colId || column?.id, false)
-  })
 })
 
-onUnmounted(() => {
-  setPostSaveOrUpdateCbk(null)
-})
+watch(
+  () => filterRef.value?.filters,
+  (next) => {
+    if (!vModel.value) return
+    vModel.value.filters = next ? [...next] : []
+  },
+  { deep: true },
+)
 
 const getNextColumnId = () => {
   const usedLookupColumnIds = (meta.value?.columns || [])
@@ -253,6 +254,11 @@ vModel.value.meta = {
 }
 
 const precisionFormatsDisplay = makePrecisionFormatsDiplay(t)
+
+// Backward compat: resolve isLocaleString to separator if separator is not yet set
+if (!vModel.value.meta.separator) {
+  vModel.value.meta.separator = resolveColumnSeparator(vModel.value.meta)
+}
 
 const enableFormattingOptions = computed(() => {
   const relatedCol = filteredColumns.value?.find((col) => col.id === vModel.value.fk_rollup_column_id)
@@ -443,13 +449,11 @@ const handleScrollIntoView = () => {
         </a-select-option>
       </a-select>
     </a-form-item>
-    <a-form-item v-if="enableFormattingOptions">
-      <div class="flex items-center gap-1">
-        <NcSwitch v-if="vModel.meta" v-model:checked="vModel.meta.isLocaleString">
-          <div class="text-sm text-nc-content-gray select-none">{{ $t('labels.showThousandsSeparator') }}</div>
-        </NcSwitch>
-      </div>
-    </a-form-item>
+    <SmartsheetColumnSeparatorSelect
+      v-if="enableFormattingOptions"
+      v-model:value="vModel.meta.separator"
+      dropdown-class-name="nc-dropdown-rollup-separator-format"
+    />
 
     <div v-if="isEeUI && showEEFeatures" class="w-full flex flex-col gap-4">
       <div class="flex flex-col gap-2">

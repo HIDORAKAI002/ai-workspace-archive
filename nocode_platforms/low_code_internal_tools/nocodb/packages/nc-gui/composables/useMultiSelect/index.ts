@@ -48,12 +48,7 @@ export function useMultiSelect(
   }>,
   keyEventHandler?: Function,
   syncCellData?: Function,
-  bulkUpdateRows?: (
-    rows: Row[],
-    props: string[],
-    metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
-    undo?: boolean,
-  ) => Promise<void>,
+  bulkUpdateRows?: (rows: Row[], props: string[], metas?: { metaValue?: TableType; viewMetaValue?: ViewType }) => Promise<void>,
   bulkUpsertRows?: (
     insertRows: Row[],
     updateRows: Row[],
@@ -94,8 +89,6 @@ export function useMultiSelect(
 
   const { fillRows } = useNocoAi()
 
-  const { addUndo, clone, defineViewScope } = useUndoRedo()
-
   const { isDataReadOnly } = useRoles()
 
   const { meta: metaKey } = useMagicKeys()
@@ -116,11 +109,14 @@ export function useMultiSelect(
     extractCellClipboardData,
     waitingCellClipboardDataIds,
   } = useNcClipboardData()
+
+  // Trigger a view-data reload after operations that change links — lookup/rollup
+  // values depend on linked records and don't update via cell sync alone.
+  const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
+
   const aiMode = ref(false)
 
   const isArrayStructure = typeof unref(data) === 'object' && Array.isArray(unref(data))
-
-  const paginationDataRef = ref(paginationData)
 
   const editEnabled = ref(_editEnabled)
 
@@ -1141,9 +1137,13 @@ export function useMultiSelect(
           rowsToAdd = Math.max(0, selectionRowCount - availableRowsToUpdate)
         }
 
+        // M2M junction tables don't support inserting rows/columns via paste —
+        // records are owned by the link cell, not the junction directly.
+        const isMmTable = !!meta.value?.mm
+
         let options = {
           continue: false,
-          expand: (rowsToAdd > 0 || newColsNeeded > 0) && !isArrayStructure,
+          expand: (rowsToAdd > 0 || newColsNeeded > 0) && !isArrayStructure && !isMmTable,
         }
         if (options.expand && !isArrayStructure) {
           options = await expandRows?.({
@@ -1300,11 +1300,8 @@ export function useMultiSelect(
                 if (ex instanceof ComputedTypePasteError) {
                   throw ex
                 } else if (ex instanceof SelectTypeConversionError) {
-                  await appendSelectOptions({
-                    api: $api,
-                    col: column!,
-                    addOptions: ex.missingOptions,
-                  })
+                  // Backend `typecast=true` (default on data save APIs) creates
+                  // the missing options server-side as part of the same request.
                   pasteValue = ex.value.join(',')
                 } else if (ex instanceof TypeConversionError) {
                   pasteValue = null
@@ -1375,6 +1372,9 @@ export function useMultiSelect(
                 [{ columnId: columnObj.id as string, rowId: pasteRowPk, displayValues }],
               )
 
+              // Refresh view data so lookup/rollup columns reflect the new links
+              reloadViewDataHook?.trigger({ shouldShowLoading: false })
+
               return await syncCellData?.(activeCell)
             } catch (e: any) {
               message.error(await extractSdkResponseErrorMsg(e))
@@ -1407,7 +1407,7 @@ export function useMultiSelect(
             const relatedBaseId = colOpts.fk_related_base_id || (base.value?.id as string)
             const relatedTableMeta = await getMeta(relatedBaseId, colOpts.fk_related_model_id!)
 
-            // update old row to allow undo redo as bt column update only through foreignKeyColumn title
+            // mirror the bt column value to the foreign-key column title in oldRow so subsequent diffs see the right shape
             rowObj.oldRow[columnObj.title!] = rowObj.row[columnObj.title!]
             rowObj.oldRow[foreignKeyColumn.title!] = rowObj.row[columnObj.title!]
               ? extractPkFromRow(rowObj.row[columnObj.title!], (relatedTableMeta as any)!.columns!)
@@ -1482,255 +1482,8 @@ export function useMultiSelect(
                 rowObj.row[columnObj.title!] = oldCellValue
                 return
               }
-
-              if (isArrayStructure) {
-                addUndo({
-                  redo: {
-                    fn: async (
-                      activeCell: Cell,
-                      col: ColumnType,
-                      row: Row,
-                      pg: PaginatedType,
-                      value: number,
-                      result: { link: any[]; unlink: any[] },
-                    ) => {
-                      if (paginationDataRef.value?.pageSize === pg?.pageSize) {
-                        if (paginationDataRef.value?.page !== pg?.page) {
-                          await changePage?.(pg?.page)
-                        }
-                        const pasteRowPk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-                        const rowObj = (unref(data) as Row[])[activeCell.row]
-                        const columnObj = unref(fields)[activeCell.col]
-                        if (
-                          pasteRowPk === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
-                          columnObj.id === col.id
-                        ) {
-                          await Promise.all([
-                            result.link.length &&
-                              api.internal.postOperation(
-                                meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
-                                meta.value?.base_id ?? base.value.id,
-                                {
-                                  operation: 'nestedDataLink',
-                                  tableId: meta.value?.id as string,
-                                  columnId: columnObj.id as string,
-                                  rowId: encodeURIComponent(pasteRowPk),
-                                  viewId: activeView?.value?.id,
-                                },
-                                result.link,
-                              ),
-                            result.unlink.length &&
-                              api.internal.postOperation(
-                                meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
-                                meta.value?.base_id ?? base.value.id,
-                                {
-                                  operation: 'nestedDataUnlink',
-                                  tableId: meta.value?.id as string,
-                                  columnId: columnObj.id as string,
-                                  rowId: encodeURIComponent(pasteRowPk),
-                                  viewId: activeView?.value?.id,
-                                },
-                                result.unlink,
-                              ),
-                          ])
-
-                          rowObj.row[columnObj.title!] = value
-
-                          await syncCellData?.(activeCell)
-                        } else {
-                          throw new Error(t('msg.recordCouldNotBeFound'))
-                        }
-                      } else {
-                        throw new Error(t('msg.pageSizeChanged'))
-                      }
-                    },
-                    args: [
-                      clone(activeCell),
-                      clone(columnObj),
-                      clone(rowObj),
-                      clone(paginationDataRef.value),
-                      clone(pasteVal.value),
-                      result,
-                    ],
-                  },
-                  undo: {
-                    fn: async (
-                      activeCell: Cell,
-                      col: ColumnType,
-                      row: Row,
-                      pg: PaginatedType,
-                      value: number,
-                      result: { link: any[]; unlink: any[] },
-                    ) => {
-                      if (paginationDataRef.value?.pageSize === pg.pageSize) {
-                        if (paginationDataRef.value?.page !== pg.page) {
-                          await changePage?.(pg.page!)
-                        }
-
-                        const pasteRowPk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-                        const rowObj = (unref(data) as Row[])[activeCell.row]
-                        const columnObj = unref(fields)[activeCell.col]
-
-                        if (
-                          pasteRowPk === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
-                          columnObj.id === col.id
-                        ) {
-                          await Promise.all([
-                            result.unlink.length &&
-                              api.internal.postOperation(
-                                meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
-                                meta.value?.base_id ?? base.value.id,
-                                {
-                                  operation: 'nestedDataLink',
-                                  tableId: meta.value?.id as string,
-                                  columnId: columnObj.id as string,
-                                  rowId: encodeURIComponent(pasteRowPk),
-                                },
-                                result.unlink,
-                              ),
-                            result.link.length &&
-                              api.internal.postOperation(
-                                meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
-                                meta.value?.base_id ?? base.value.id,
-                                {
-                                  operation: 'nestedDataUnlink',
-                                  tableId: meta.value?.id as string,
-                                  columnId: columnObj.id as string,
-                                  rowId: encodeURIComponent(pasteRowPk),
-                                },
-                                result.link,
-                              ),
-                          ])
-
-                          rowObj.row[columnObj.title!] = value
-
-                          await syncCellData?.(activeCell)
-                        } else {
-                          throw new Error(t('msg.recordCouldNotBeFound'))
-                        }
-                      } else {
-                        throw new Error(t('msg.pageSizeChanged'))
-                      }
-                    },
-                    args: [
-                      clone(activeCell),
-                      clone(columnObj),
-                      clone(rowObj),
-                      clone(paginationDataRef.value),
-                      clone(oldCellValue),
-                      result,
-                    ],
-                  },
-                  scope: defineViewScope({ view: activeView?.value }),
-                })
-              } else {
-                addUndo({
-                  redo: {
-                    fn: async (
-                      activeCell: Cell,
-                      col: ColumnType,
-                      row: Row,
-                      value: number,
-                      result: { link: any[]; unlink: any[] },
-                    ) => {
-                      const pasteRowPk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-                      const rowObj = (unref(data) as Map<number, Row>).get(activeCell.row)
-                      if (!rowObj) return
-                      const columnObj = unref(fields)[activeCell.col]
-                      if (
-                        pasteRowPk === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
-                        columnObj.id === col.id
-                      ) {
-                        await Promise.all([
-                          result.link.length &&
-                            api.internal.postOperation(
-                              meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
-                              meta.value?.base_id ?? base.value.id,
-                              {
-                                operation: 'nestedDataLink',
-                                tableId: meta.value?.id as string,
-                                columnId: columnObj.id as string,
-                                rowId: encodeURIComponent(pasteRowPk),
-                                viewId: activeView?.value?.id,
-                              },
-                              result.link,
-                            ),
-                          result.unlink.length &&
-                            api.internal.postOperation(
-                              meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
-                              meta.value?.base_id ?? base.value.id,
-                              {
-                                operation: 'nestedDataUnlink',
-                                tableId: meta.value?.id as string,
-                                columnId: columnObj.id as string,
-                                rowId: encodeURIComponent(pasteRowPk),
-                                viewId: activeView?.value?.id,
-                              },
-                              result.unlink,
-                            ),
-                        ])
-
-                        rowObj.row[columnObj.title!] = value
-
-                        await syncCellData?.(activeCell)
-                      }
-                    },
-                    args: [clone(activeCell), clone(columnObj), clone(rowObj), clone(pasteVal.value), result],
-                  },
-                  undo: {
-                    fn: async (
-                      activeCell: Cell,
-                      col: ColumnType,
-                      row: Row,
-                      value: number,
-                      result: { link: any[]; unlink: any[] },
-                    ) => {
-                      const pasteRowPk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-                      const rowObj = (unref(data) as Map<number, Row>).get(activeCell.row)
-                      if (!rowObj) return
-                      const columnObj = unref(fields)[activeCell.col]
-
-                      if (
-                        pasteRowPk === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
-                        columnObj.id === col.id
-                      ) {
-                        await Promise.all([
-                          result.unlink.length &&
-                            api.internal.postOperation(
-                              meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
-                              meta.value?.base_id ?? base.value.id,
-                              {
-                                operation: 'nestedDataLink',
-                                tableId: meta.value?.id as string,
-                                columnId: columnObj.id as string,
-                                rowId: encodeURIComponent(pasteRowPk),
-                              },
-                              result.unlink,
-                            ),
-                          result.link.length &&
-                            api.internal.postOperation(
-                              meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
-                              meta.value?.base_id ?? base.value.id,
-                              {
-                                operation: 'nestedDataUnlink',
-                                tableId: meta.value?.id as string,
-                                columnId: columnObj.id as string,
-                                rowId: encodeURIComponent(pasteRowPk),
-                              },
-                              result.link,
-                            ),
-                        ])
-
-                        rowObj.row[columnObj.title!] = value
-
-                        await syncCellData?.(activeCell)
-                      }
-                    },
-                    args: [clone(activeCell), clone(columnObj), clone(rowObj), clone(oldCellValue), result],
-                  },
-                  scope: defineViewScope({ view: activeView?.value }),
-                })
-              }
+              // Refresh view data so lookup/rollup columns reflect the changed links
+              reloadViewDataHook?.trigger({ shouldShowLoading: false })
             }
 
             return await syncCellData?.(activeCell)
@@ -1762,11 +1515,8 @@ export function useMultiSelect(
             if (ex instanceof ComputedTypePasteError) {
               throw ex
             } else if (ex instanceof SelectTypeConversionError) {
-              await appendSelectOptions({
-                api: $api,
-                col: columnObj!,
-                addOptions: ex.missingOptions,
-              })
+              // Backend `typecast=true` (default on data save APIs) creates
+              // the missing options server-side as part of the same request.
               pasteValue = ex.value.join(',')
             } else if (ex instanceof TypeConversionError) {
               pasteValue = null
@@ -1885,11 +1635,8 @@ export function useMultiSelect(
                   if (ex instanceof ComputedTypePasteError) {
                     throw ex
                   } else if (ex instanceof SelectTypeConversionError) {
-                    await appendSelectOptions({
-                      api: $api,
-                      col,
-                      addOptions: ex.missingOptions,
-                    })
+                    // Backend `typecast=true` (default on data save APIs) creates
+                    // the missing options server-side as part of the same request.
                     pasteValue = ex.value.join(',')
                   } else if (ex instanceof TypeConversionError) {
                     pasteValue = null

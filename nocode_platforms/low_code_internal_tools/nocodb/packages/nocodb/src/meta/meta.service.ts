@@ -156,6 +156,10 @@ export class MetaService {
       [MetaTable.DATE_DEPENDENCY]: 'dd',
       [MetaTable.API_TOKEN_SCOPES]: 'ats',
       [MetaTable.TRASH]: 'tr',
+      [MetaTable.BOOKMARK_GROUPS]: 'bmg',
+      [MetaTable.BOOKMARKS]: 'bmk',
+      [MetaTable.MAIL_SENDS]: 'ms',
+      [MetaTable.OPERATION_LOGS]: 'opl',
     };
 
     const prefix = prefixMap[target] || 'nc';

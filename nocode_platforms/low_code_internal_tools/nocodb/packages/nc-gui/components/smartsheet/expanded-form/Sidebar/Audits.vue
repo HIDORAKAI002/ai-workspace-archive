@@ -45,7 +45,7 @@ watch(primaryKey, () => {
 function scrollToLastAudit() {
   auditsWrapperEl.value?.scrollBy({
     top: 50000,
-    behavior: 'smooth',
+    behavior: 'instant',
   })
 }
 
