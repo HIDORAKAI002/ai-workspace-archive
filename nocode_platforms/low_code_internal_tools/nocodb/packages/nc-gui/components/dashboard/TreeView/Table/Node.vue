@@ -37,6 +37,8 @@ const { meta: metaKey, control } = useMagicKeys()
 const baseRole = inject(ProjectRoleInj)
 provide(SidebarTableInj, table)
 
+const { isBookmarkAllowed } = useBookmarks()
+
 const {
   setMenuContext,
   handleTableRename,
@@ -425,6 +427,8 @@ const enabledOptions = computed(() => {
     tableDelete: isUIAllowed('tableDelete', { roles: baseRole?.value, source: source.value }),
   }
 })
+
+const isMmTable = computed(() => !!table.value?.mm)
 </script>
 
 <template>
@@ -719,20 +723,31 @@ const enabledOptions = computed(() => {
                     </template>
                   </PaymentUpgradeBadgeProvider>
                 </template>
+                <NcDivider v-else-if="isEeUI && isBookmarkAllowed" />
+
+                <BookmarksMenuAction
+                  v-if="isEeUI"
+                  target-type="table"
+                  :target-id="table.id!"
+                  :meta="{ workspace_id: table.fk_workspace_id, base_id: table.base_id }"
+                  @close="isOptionsOpen = false"
+                />
                 <template v-if="enabledOptions.tableDelete">
                   <NcDivider />
-                  <NcMenuItem
-                    :data-testid="`sidebar-table-delete-${table.title}`"
-                    class="nc-table-delete"
-                    danger
-                    :disabled="!!table.synced"
-                    @click="deleteTable"
-                  >
-                    <div v-e="['c:table:delete']" class="flex gap-2 items-center">
-                      <GeneralIcon icon="delete" />
-                      {{ $t('general.delete') }} {{ $t('objects.table').toLowerCase() }}
-                    </div>
-                  </NcMenuItem>
+                  <NcTooltip :disabled="!isMmTable" :title="$t('tooltip.deleteNotSupportedOnJunctionTable')" placement="right">
+                    <NcMenuItem
+                      :data-testid="`sidebar-table-delete-${table.title}`"
+                      class="nc-table-delete"
+                      danger
+                      :disabled="!!table.synced || isMmTable"
+                      @click="deleteTable"
+                    >
+                      <div v-e="['c:table:delete']" class="flex gap-2 items-center">
+                        <GeneralIcon icon="delete" />
+                        {{ $t('general.delete') }} {{ $t('objects.table').toLowerCase() }}
+                      </div>
+                    </NcMenuItem>
+                  </NcTooltip>
                 </template>
               </NcMenu>
             </template>

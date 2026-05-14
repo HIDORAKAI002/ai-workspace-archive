@@ -157,6 +157,11 @@ import { prepareMetaUpdateQuery } from '~/helpers/metaColumnHelpers';
 import { supportsThumbnails } from '~/utils/attachmentUtils';
 import { Profiler } from '~/helpers/profiler';
 import { isTransientError } from '~/helpers/db-error/utils';
+import {
+  captureForTrace,
+  isTraceActive,
+} from '~/decorators/trace-command.decorator';
+import { isReplay } from '~/helpers/replayScope';
 
 const debugCount = debug('nc:db:query:basemodel:count');
 
@@ -568,46 +573,53 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     return dvMap;
   }
 
-  // Given a source-side LTAR columnId, return the related table's column that
-  // was set as the override display value (`fk_display_value_column_id`). Used
-  // by audit paths to render linked-record display values consistently with
-  // what the UI shows in LTAR dropdowns / chips.
+  // Hook for resolving a per-LTAR display value override Column for the ref
+  // side. No override is applied here; subclasses may override.
   protected async resolveLtarDisplayCol(
-    columnId: string | undefined,
-    refModel: Model,
+    _columnId: string | undefined,
+    _refModel: Model,
   ): Promise<Column | undefined> {
-    if (!columnId) return undefined;
-    const col = await Column.get(this.context, { colId: columnId });
-    if (!col) return undefined;
-    const colOpts = await col.getColOptions<LinkToAnotherRecordColumn>(
-      this.context,
-    );
-    const displayColId = (colOpts as any)?.fk_display_value_column_id;
-    if (!displayColId) return undefined;
-    if (!refModel.columns?.length) await refModel.getColumns(this.context);
-    return refModel.columns?.find((c) => c.id === displayColId);
+    return undefined;
   }
 
-  // Source-side override: resolves the paired (reverse) LTAR's
-  // `fk_display_value_column_id` against `model`. The paired column lives on
-  // `refModel` and points back to `model`; its override is what determines how
-  // the source row renders in audits/UI viewed from refModel's perspective.
-  // Falls back to undefined when no paired column or no override is set.
+  // Hook for resolving the paired (reverse) LTAR's display value override
+  // Column against the source `model`. No override is applied here.
   protected async resolveReverseLtarDisplayCol(
-    columnId: string | undefined,
-    model: Model,
-    refModel: Model,
+    _columnId: string | undefined,
+    _model: Model,
+    _refModel: Model,
   ): Promise<Column | undefined> {
-    if (!columnId) return undefined;
-    const col = await Column.get(this.context, { colId: columnId });
-    if (!col) return undefined;
-    if (!refModel.columns?.length) await refModel.getColumns(this.context);
-    const pairedCol = await extractCorrespondingLinkColumn(this.context, {
-      ltarColumn: col,
-      referencedTableColumns: refModel.columns,
-    });
-    if (!pairedCol) return undefined;
-    return this.resolveLtarDisplayCol(pairedCol.id, model);
+    return undefined;
+  }
+
+  // Hook for resolving the LTAR's display value override Column against
+  // `model` (own direction or paired). No override is applied here.
+  public async getLtarDisplayColumnOverride(
+    _ltarColumn: Column,
+    _model: Model,
+  ): Promise<Column | undefined> {
+    return undefined;
+  }
+
+  // Batch hook for resolving LTAR display value overrides per unique columnId.
+  // `hasAny: false` is the fast-out gate that lets callers skip threading
+  // `displayColumn` through `fetchDisplayValueMap`/`displayValueMapKey`.
+  protected async resolveLtarOverrideColsForBatch(
+    _auditObjs: Array<{
+      columnId?: string;
+      model: Model;
+      refModel?: Model;
+    }>,
+  ): Promise<{
+    refByColId: Map<string, Column | undefined>;
+    sourceByColId: Map<string, Column | undefined>;
+    hasAny: boolean;
+  }> {
+    return {
+      refByColId: new Map(),
+      sourceByColId: new Map(),
+      hasAny: false,
+    };
   }
 
   public async exist(id?: any): Promise<any> {
@@ -2061,11 +2073,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 relCol.uidt === UITypes.Links && !linksAsLtar
                   ? `_nc_lk_${relCol.title}`
                   : relCol.title;
+              const { refContext: lookupRefContext } = (
+                await relCol.getColOptions<LinkToAnotherRecordColumn>(
+                  this.context,
+                )
+              ).getRelContext(this.context);
               proto.__columnAliases[column.title] = {
                 path: [
                   relColTitle,
                   (
-                    await Column.get(this.context, {
+                    await Column.get(lookupRefContext, {
                       colId: colOptions.fk_lookup_column_id,
                     })
                   )?.title,
@@ -2618,7 +2635,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               if (!shouldCascadeHere) break;
 
               const mmTable = await Model.get(
-                this.context,
+                mmContext,
                 colOptions.fk_mm_model_id,
               );
 
@@ -2940,17 +2957,25 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const colOptions = (await column.getColOptions(
         this.context,
       )) as LinkToAnotherRecordColumn;
-      const childColumn = await colOptions.getChildColumn(this.context);
-      const parentColumn = await colOptions.getParentColumn(this.context);
-      const childModel = await childColumn.getModel(this.context);
-      await childModel.getColumns(this.context);
-      const parentModel = await parentColumn.getModel(this.context);
-      await parentModel.getColumns(this.context);
+
+      const { childContext, parentContext, mmContext } =
+        await colOptions.getParentChildContext(this.context);
+
+      const childColumn = await colOptions.getChildColumn(childContext);
+      const parentColumn = await colOptions.getParentColumn(parentContext);
+      const childModel = await childColumn.getModel(childContext);
+      await childModel.getColumns(childContext);
+      const parentModel = await parentColumn.getModel(parentContext);
+      await parentModel.getColumns(parentContext);
       let cnt = 0;
       if (colOptions.type === RelationTypes.HAS_MANY) {
+        const childBaseModel = await Model.getBaseModelSQL(childContext, {
+          model: childModel,
+          dbDriver: this.dbDriver,
+        });
         cnt = +(
           await this.execAndParse(
-            this.dbDriver(this.getTnPath(childModel.table_name))
+            this.dbDriver(childBaseModel.getTnPath(childModel.table_name))
               .count(childColumn.column_name, { as: 'cnt' })
               .where(childColumn.column_name, rowId),
             null,
@@ -2958,17 +2983,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           )
         ).cnt;
       } else if (colOptions.type === RelationTypes.MANY_TO_MANY) {
-        const mmModel = await colOptions.getMMModel(this.context);
-        const mmChildColumn = await colOptions.getMMChildColumn(this.context);
+        const mmModel = await colOptions.getMMModel(mmContext);
+        const mmChildColumn = await colOptions.getMMChildColumn(mmContext);
+        const mmBaseModel = await Model.getBaseModelSQL(mmContext, {
+          model: mmModel,
+          dbDriver: this.dbDriver,
+        });
+        const mmTn = mmBaseModel.getTnPath(mmModel.table_name);
         cnt = +(
           await this.execAndParse(
-            this.dbDriver(this.getTnPath(mmModel.table_name))
-              .where(
-                `${this.getTnPath(mmModel.table_name)}.${
-                  mmChildColumn.column_name
-                }`,
-                rowId,
-              )
+            this.dbDriver(mmTn)
+              .where(`${mmTn}.${mmChildColumn.column_name}`, rowId)
               .count(mmChildColumn.column_name, { as: 'cnt' }),
             null,
             { first: true },
@@ -3007,6 +3032,30 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       NcError.get(this.context).recordNotFound(rowId);
     }
 
+    const orderCol = columns.find((c) => c.uidt === UITypes.Order);
+
+    if (isTraceActive() && orderCol && this.model.primaryKeys?.length) {
+      const currentOrder = (row as any)?.[orderCol.title];
+      if (currentOrder != null) {
+        const nextQuery = this.dbDriver(this.tnPath)
+          .select(...this.model.primaryKeys.map((c) => c.column_name))
+          .where(orderCol.column_name, '>', currentOrder)
+          .orderBy(orderCol.column_name, 'asc')
+          .limit(1)
+          .toQuery();
+        const next = (await this.execAndParse(nextQuery, null, {
+          raw: true,
+          first: true,
+        })) as Record<string, any> | undefined;
+        captureForTrace('movePrev', {
+          pk: rowId,
+          beforeRowId: next
+            ? (this.extractPksValues(next, true) as string)
+            : null,
+        });
+      }
+    }
+
     const newRecordOrder = (
       await this.getUniqueOrdersBeforeItem(beforeRowId, 1)
     )[0];
@@ -3019,7 +3068,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       .where(await this._wherePk(rowId));
   }
 
-  async updateByPk(id, data, trx?, cookie?, _disableOptimization = false) {
+  async updateByPk(
+    id,
+    data,
+    trx?,
+    cookie?,
+    _disableOptimization = false,
+    { typecast = false }: { typecast?: boolean } = {},
+  ) {
     try {
       const columns = await this.model.getColumns(this.context);
 
@@ -3031,7 +3087,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         columns,
       );
 
-      await this.validate(data, columns);
+      await this.validate(data, columns, { typecast });
 
       await this.beforeUpdate(data, trx, cookie);
 
@@ -3224,6 +3280,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         postInsertAuditEntries,
         // eslint-disable-next-line prefer-const
         postInsertLastModifiedEntries,
+        // eslint-disable-next-line prefer-const
+        displacedRecords,
       } = await this.prepareNestedLinkQb({
         nestedCols,
         data,
@@ -3258,7 +3316,27 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         undo: param?.undo,
       });
 
-      await this.runOps(preInsertOps.map((f) => f()));
+      // Cap in-flight preInsertOps so many nested LTAR capture SELECTs
+      // don't saturate the knex pool. Mutating closures only build
+      // .toQuery() strings (no connection), so the cap mainly limits
+      // the capture-SELECT side. Resolved strings are handed back to
+      // runOps to keep its serial UPDATE/DELETE walk.
+      const preInsertResolved = await processConcurrently(
+        preInsertOps,
+        (f) => f(),
+        5,
+      );
+      await this.runOps(preInsertResolved.map((s) => Promise.resolve(s)));
+
+      // Deposit displacement capture for the trace decorator.
+      // `displacedRecords` was populated by capture-ops in
+      // preInsertOps (SELECTs ran under the concurrency cap above,
+      // before runOps walked the resulting UPDATE/DELETE strings serially).
+      // Skipped under replay — replay reads from meta.extra, doesn't
+      // re-capture.
+      if (displacedRecords.length > 0 && !isReplay()) {
+        captureForTrace('displacedRecords', displacedRecords);
+      }
 
       let response;
       const query = this.dbDriver(this.tnPath).insert(insertObj);
@@ -3373,24 +3451,18 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             refRowId: entry.refRowIdIsInsertedRow ? rowId : entry.refRowId,
           }));
 
-          // Batch-fetch all display values into a KV map. Thread the LTAR's
-          // custom display column (fk_display_value_column_id) for the ref
-          // side so audit entries render the overridden value, matching UI.
-          // Pre-resolve display column per unique (columnId, refModelId) so
-          // we don't pay N+1 inside the loop.
-          const refDisplayColCache = new Map<string, Column | undefined>();
-          for (const entry of resolvedEntries) {
-            if (!entry.columnId) continue;
-            const cacheKey = `${entry.columnId}:${entry.refModel.id}`;
-            if (refDisplayColCache.has(cacheKey)) continue;
-            refDisplayColCache.set(
-              cacheKey,
-              await this.resolveLtarDisplayCol(
-                entry.columnId,
-                entry.refModel,
-              ),
-            );
-          }
+          // Pre-resolve LTAR display value overrides per unique columnId.
+          // When no LTAR in the batch carries `fk_display_value_column_id`
+          // we skip threading `displayColumn` entirely — values fall back to
+          // the table's primary value (pre-override behavior).
+          const { refByColId, hasAny } =
+            await this.resolveLtarOverrideColsForBatch(resolvedEntries);
+
+          const refDisplayColFor = (entry: (typeof resolvedEntries)[number]) =>
+            hasAny && entry.columnId
+              ? refByColId.get(entry.columnId)
+              : undefined;
+
           const dvProps: {
             model: Model;
             id: any;
@@ -3401,9 +3473,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             dvProps.push({
               model: entry.refModel,
               id: entry.refRowId,
-              displayColumn: refDisplayColCache.get(
-                `${entry.columnId}:${entry.refModel.id}`,
-              ),
+              displayColumn: refDisplayColFor(entry),
             });
           }
           const dvMap = await this.fetchDisplayValueMap(dvProps);
@@ -3417,9 +3487,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               displayValueMapKey({
                 model: entry.refModel,
                 id: entry.refRowId,
-                displayColumn: refDisplayColCache.get(
-                  `${entry.columnId}:${entry.refModel.id}`,
-                ),
+                displayColumn: refDisplayColFor(entry),
               }),
             );
 
@@ -3651,6 +3719,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       undo = false,
       mergeColumns,
       throwOnDuplicate = false,
+      typecast = false,
     }: {
       chunkSize?: number;
       cookie?: any;
@@ -3659,6 +3728,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       undo?: boolean;
       mergeColumns?: Column[];
       throwOnDuplicate?: boolean;
+      typecast?: boolean;
     } = {},
   ) {
     let trx;
@@ -3673,12 +3743,21 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const aiPkCol = this.model.primaryKeys.find((pk) => pk.ai);
       const agPkCol = this.model.primaryKeys.find((pk) => pk.meta?.ag);
 
-      // validate and prepare data
+      // When `typecast` is true, validate sequentially — missing select
+      // options are added inline via `Column.update`, and concurrent
+      // validates would race on the option-title unique constraint.
+      // Without typecast there's no Column.update, so concurrent is safe.
+      if (!raw && typecast) {
+        for (const d of datas) {
+          await this.validate(d, columns, { typecast });
+        }
+      }
+
       const preparedDatas = raw
         ? datas
         : await Promise.all(
             datas.map(async (d) => {
-              await this.validate(d, columns);
+              if (!typecast) await this.validate(d, columns);
               return this.model.mapAliasToColumn(
                 this.context,
                 d,
@@ -3931,6 +4010,48 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             })
           : [];
 
+      // Per-row outcomes for `recordBulkUpsert` undo. mergeColumns
+      // mode is V3-only and not user-undoable. NOT gated on isReplay
+      // — redo's `runInChildTraceScope` relies on this firing inside
+      // the replay scope to rotate fresh `meta.extra.upsertChanges`.
+      if (
+        isTraceActive() &&
+        !mergeColumns?.length &&
+        (toUpdate.length || insertedDataList.length)
+      ) {
+        const upsertChanges: Array<
+          | {
+              kind: 'update';
+              pk: string | number;
+              prev: Record<string, unknown>;
+            }
+          | { kind: 'insert'; pk: string | number }
+        > = [];
+
+        if (toUpdate.length && existingRecords.length) {
+          const prevByPk = new Map<string, Record<string, unknown>>();
+          for (const r of existingRecords) {
+            prevByPk.set(String(this.extractPksValues(r, true)), r);
+          }
+          for (const u of toUpdate) {
+            const pk = this.extractPksValues(u, true);
+            const prev = prevByPk.get(String(pk));
+            if (prev) upsertChanges.push({ kind: 'update', pk, prev });
+          }
+        }
+
+        for (const inserted of insertedDataList) {
+          upsertChanges.push({
+            kind: 'insert',
+            pk: this.extractPksValues(inserted, true),
+          });
+        }
+
+        if (upsertChanges.length) {
+          captureForTrace('upsertChanges', upsertChanges);
+        }
+      }
+
       if (insertedDatas.length === 1) {
         await this.afterInsert({
           data: insertedDataList[0],
@@ -3959,12 +4080,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           datas[0],
         );
       } else {
-        await this.afterBulkUpdate(
-          existingRecords,
-          updatedDataList,
-          this.dbDriver,
-          cookie,
-        );
+        await this.afterBulkUpdate(existingRecords, updatedDataList, cookie);
       }
 
       return [...updatedDataList, ...insertedDataList];
@@ -4412,13 +4528,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       if (!raw && !skip_hooks) {
         if (isSingleRecordUpdation) {
-          await this.afterUpdate(
-            prevData[0],
-            newData[0],
-            null,
-            cookie,
-            datas[0],
-          );
+          await this.afterUpdate(prevData[0], newData[0], cookie, datas[0]);
         } else {
           await this.afterBulkUpdate(prevData, newData, this.dbDriver, cookie);
         }
@@ -4752,6 +4862,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                   await colOptions.getParentColumn(parentContext)
                 ).getModel(parentContext);
                 await parentTable.getColumns(parentContext);
+                const mmBaseModel = await Model.getBaseModelSQL(mmContext, {
+                  model: mmTable,
+                  dbDriver: this.dbDriver,
+                });
                 const parentBaseModel = await Model.getBaseModelSQL(
                   parentContext,
                   { model: parentTable, dbDriver: this.dbDriver },
@@ -4768,7 +4882,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 // Collect linked parent IDs before junction deletion
                 bulkLinkedCollectors.push(async (ids) => {
                   const rows = await this.execAndParse(
-                    this.dbDriver(this.getTnPath(mmTable.table_name))
+                    this.dbDriver(mmBaseModel.getTnPath(mmTable.table_name))
                       .select(mmParentCol.column_name)
                       .whereIn(mmChildCol.column_name, ids),
                     null,
@@ -4786,7 +4900,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 });
 
                 execQueries.push((trx, ids) =>
-                  trx(this.getTnPath(mmTable.table_name))
+                  trx(mmBaseModel.getTnPath(mmTable.table_name))
                     .del()
                     .whereIn(mmChildCol.column_name, ids),
                 );
@@ -4824,7 +4938,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 // Collect child IDs before FK nulling
                 bulkLinkedCollectors.push(async (ids) => {
                   const rows = await this.execAndParse(
-                    this.dbDriver(this.getTnPath(relatedTable.table_name))
+                    this.dbDriver(
+                      refBaseModel.getTnPath(relatedTable.table_name),
+                    )
                       .select(relatedTable.primaryKey.column_name)
                       .whereIn(childColumn.column_name, ids),
                     null,
@@ -4844,7 +4960,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 });
 
                 execQueries.push((trx, ids) =>
-                  trx(this.getTnPath(relatedTable.table_name))
+                  trx(refBaseModel.getTnPath(relatedTable.table_name))
                     .update({ [childColumn.column_name]: null })
                     .whereIn(childColumn.column_name, ids),
                 );
@@ -4926,7 +5042,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
                 bulkLinkedCollectors.push(async (ids) => {
                   const rows = await this.execAndParse(
-                    this.dbDriver(this.getTnPath(ooRelatedTable.table_name))
+                    this.dbDriver(
+                      ooRefBaseModel.getTnPath(ooRelatedTable.table_name),
+                    )
                       .select(ooRelatedTable.primaryKey.column_name)
                       .whereIn(ooChildColumn.column_name, ids),
                     null,
@@ -4946,7 +5064,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 });
 
                 execQueries.push((trx, ids) =>
-                  trx(this.getTnPath(ooRelatedTable.table_name))
+                  trx(ooRefBaseModel.getTnPath(ooRelatedTable.table_name))
                     .update({ [ooChildColumn.column_name]: null })
                     .whereIn(ooChildColumn.column_name, ids),
                 );
@@ -6066,36 +6184,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     try {
       if (!auditObjs.length || !(await this.isDataAuditEnabled())) return;
 
-      // Batch-fetch missing display values into a KV map. Thread the LTAR's
-      // custom display column (fk_display_value_column_id) for the ref side
-      // so audit entries render the overridden value, matching the UI.
-      // Pre-resolve display column per unique (columnId, modelId) so we
-      // don't pay N+1 inside the loop. Two caches: ref side reads this LTAR's
-      // fk_display_value_column_id, source side reads the paired (reverse)
-      // LTAR's override.
-      const refDisplayColCache = new Map<string, Column | undefined>();
-      const sourceDisplayColCache = new Map<string, Column | undefined>();
-      for (const obj of auditObjs) {
-        if (!obj.columnId || !obj.refModel) continue;
-        const refKey = `${obj.columnId}:${obj.refModel.id}`;
-        if (!refDisplayColCache.has(refKey)) {
-          refDisplayColCache.set(
-            refKey,
-            await this.resolveLtarDisplayCol(obj.columnId, obj.refModel),
-          );
-        }
-        const srcKey = `${obj.columnId}:${obj.model.id}`;
-        if (!sourceDisplayColCache.has(srcKey)) {
-          sourceDisplayColCache.set(
-            srcKey,
-            await this.resolveReverseLtarDisplayCol(
-              obj.columnId,
-              obj.model,
-              obj.refModel,
-            ),
-          );
-        }
-      }
+      // Pre-resolve LTAR display value overrides per unique columnId. When
+      // no LTAR in the batch carries `fk_display_value_column_id` (the >99%
+      // case), `hasAny` is false and we skip threading `displayColumn`
+      // through `fetchDisplayValueMap`/`displayValueMapKey` entirely — the
+      // values fall back to the table's primary value (pre-override behavior).
+      const { refByColId, sourceByColId, hasAny } =
+        await this.resolveLtarOverrideColsForBatch(auditObjs);
+
+      const refDisplayColFor = (obj: (typeof auditObjs)[number]) =>
+        hasAny && obj.columnId ? refByColId.get(obj.columnId) : undefined;
+      const sourceDisplayColFor = (obj: (typeof auditObjs)[number]) =>
+        hasAny && obj.columnId ? sourceByColId.get(obj.columnId) : undefined;
+
       const missingDvProps: {
         model: Model;
         id: any;
@@ -6106,17 +6207,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           missingDvProps.push({
             model: obj.model,
             id: obj.rowId,
-            displayColumn: sourceDisplayColCache.get(
-              `${obj.columnId}:${obj.model.id}`,
-            ),
+            displayColumn: sourceDisplayColFor(obj),
           });
         if (obj.refDisplayValue === undefined && obj.refModel) {
           missingDvProps.push({
             model: obj.refModel,
             id: obj.refRowId,
-            displayColumn: refDisplayColCache.get(
-              `${obj.columnId}:${obj.refModel.id}`,
-            ),
+            displayColumn: refDisplayColFor(obj),
           });
         }
       }
@@ -6129,9 +6226,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             displayValueMapKey({
               model: obj.model,
               id: obj.rowId,
-              displayColumn: sourceDisplayColCache.get(
-                `${obj.columnId}:${obj.model.id}`,
-              ),
+              displayColumn: sourceDisplayColFor(obj),
             }),
           );
         const refDisplayValue =
@@ -6140,9 +6235,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             displayValueMapKey({
               model: obj.refModel,
               id: obj.refRowId,
-              displayColumn: refDisplayColCache.get(
-                `${obj.columnId}:${obj.refModel.id}`,
-              ),
+              displayColumn: refDisplayColFor(obj),
             }),
           );
 
@@ -8112,28 +8205,31 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         NcError.get(this.context).recordNotFound(id);
       }
 
-      const parentCol = await (
-        (await relColumn.getColOptions(
-          this.context,
-        )) as LinkToAnotherRecordColumn
-      ).getParentColumn(this.context);
-      const parentTable = await parentCol.getModel(this.context);
-      const chilCol = await (
-        (await relColumn.getColOptions(
-          this.context,
-        )) as LinkToAnotherRecordColumn
-      ).getChildColumn(this.context);
-      const childTable = await chilCol.getModel(this.context);
+      const colOptions = (await relColumn.getColOptions(
+        this.context,
+      )) as LinkToAnotherRecordColumn;
 
-      const parentModel = await Model.getBaseModelSQL(this.context, {
+      const { childContext, parentContext } =
+        await colOptions.getParentChildContext(this.context);
+
+      const parentCol = await colOptions.getParentColumn(parentContext);
+      const parentTable = await parentCol.getModel(parentContext);
+      const chilCol = await colOptions.getChildColumn(childContext);
+      const childTable = await chilCol.getModel(childContext);
+
+      const parentModel = await Model.getBaseModelSQL(parentContext, {
         model: parentTable,
         dbDriver: this.dbDriver,
         queryQueue: this._queryQueue,
       });
-      await childTable.getColumns(this.context);
+      const childBaseModel = await Model.getBaseModelSQL(childContext, {
+        model: childTable,
+        dbDriver: this.dbDriver,
+      });
+      await childTable.getColumns(childContext);
 
-      const childTn = this.getTnPath(childTable);
-      const parentTn = this.getTnPath(parentTable);
+      const childTn = childBaseModel.getTnPath(childTable);
+      const parentTn = parentModel.getTnPath(parentTable);
 
       const qb = this.dbDriver(parentTn);
       await this.applySortAndFilter({ table: parentTable, where, qb, sort });
@@ -8155,7 +8251,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       const parent = await this.execAndParse(
         qb,
-        await parentTable.getColumns(this.context),
+        await parentTable.getColumns(parentContext),
         {
           first: true,
         },
@@ -9292,6 +9388,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     if (!deletedIds.length) return;
 
     const columns = await this.model.getColumns(this.context);
+    const deletedSet = new Set(deletedIds.map((id) => String(id)));
+    const filterSelfOverlap = <T>(ids: T[], otherModelId: string): T[] =>
+      otherModelId === this.model.id
+        ? ids.filter((id) => !deletedSet.has(String(id)))
+        : ids;
 
     for (const column of columns) {
       if (!isLinksOrLTAR(column)) continue;
@@ -9342,9 +9443,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             null,
             { raw: true },
           );
-          const parentIds = [
-            ...new Set(fkRows.map((r) => r[childColumn.column_name])),
-          ] as string[];
+          const parentIds = filterSelfOverlap(
+            Array.from(
+              new Set(fkRows.map((r) => r[childColumn.column_name])),
+            ) as string[],
+            parentTable.id,
+          );
 
           if (parentIds.length) {
             await parentBaseModel.updateLastModified({
@@ -9395,8 +9499,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             null,
             { raw: true },
           );
-          const linkedIds = linkedRows.map(
-            (r) => r[childTable.primaryKey.column_name],
+          const linkedIds = filterSelfOverlap(
+            linkedRows.map((r) => r[childTable.primaryKey.column_name]),
+            childTable.id,
           );
 
           if (linkedIds.length) {
@@ -9446,7 +9551,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             null,
             { raw: true },
           );
-          const linkedIds = linkedRows.map((r) => r[vParentCol.column_name]);
+          const linkedIds = filterSelfOverlap(
+            linkedRows.map((r) => r[vParentCol.column_name]),
+            parentTable.id,
+          );
 
           if (linkedIds.length) {
             await parentBaseModel.updateLastModified({

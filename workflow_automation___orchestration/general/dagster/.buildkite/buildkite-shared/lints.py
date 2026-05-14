@@ -2,6 +2,8 @@
 
 import configparser
 import os
+import subprocess
+from pathlib import Path
 
 import pytest
 
@@ -58,3 +60,54 @@ def test_no_tox_pytest_config_override(tox_config: configparser.ConfigParser) ->
         assert "pyproject.toml" not in tox_config["testenv"]["commands"], (
             "We use a global PYTEST_CONFIG that uses the root directory's pyproject.toml. Remove any -c overrides in pytest commands in tox.ini"
         )
+
+
+@pytest.fixture(params=find_tox_ini(), ids=lambda i: i)
+def tox_path(request: pytest.FixtureRequest) -> str:
+    return request.param
+
+
+def _is_gitignored(path: Path) -> bool:
+    """True if `path` is excluded by a tracked .gitignore. Used to skip packages
+    that intentionally opt out of committing a uv.lock (e.g. examples/docs_snippets).
+    """
+    result = subprocess.run(
+        ["git", "check-ignore", "--quiet", str(path)],
+        capture_output=True,
+        check=False,
+    )
+    return result.returncode == 0
+
+
+def test_tox_has_lockfile(tox_path: str) -> None:
+    pkg_dir = Path(tox_path).parent
+    pyproject = pkg_dir / "pyproject.toml"
+    uv_lock = pkg_dir / "uv.lock"
+    assert pyproject.exists(), (
+        f"{tox_path} has no sibling pyproject.toml. Every tox-tested package must have"
+        f" a pyproject.toml so its dependencies can be locked via uv. See"
+        f" dagster-oss/scripts/update_lockfiles.py."
+    )
+
+    if _is_gitignored(uv_lock):
+        # Package opts out of locking by gitignoring uv.lock; nothing else to check.
+        return
+
+    assert uv_lock.exists(), (
+        f"{tox_path} has no sibling uv.lock. Run"
+        f" `python dagster-oss/scripts/update_lockfiles.py {pkg_dir}` to generate one"
+        f" (or add `uv.lock` to {pkg_dir}/.gitignore to opt out)."
+    )
+
+    config = configparser.ConfigParser()
+    config.read(tox_path)
+    runner = config.get("testenv", "runner", fallback="")
+    assert runner == "uv-venv-lock-runner", (
+        f"{tox_path} must set `runner = uv-venv-lock-runner` under [testenv] so tox"
+        f" installs from the sibling uv.lock (got runner={runner!r})."
+    )
+    uv_sync_flags = config.get("testenv", "uv_sync_flags", fallback="")
+    assert "--frozen" in uv_sync_flags, (
+        f"{tox_path} must set `uv_sync_flags = --frozen` under [testenv] so the"
+        f" installed env matches uv.lock exactly (got uv_sync_flags={uv_sync_flags!r})."
+    )

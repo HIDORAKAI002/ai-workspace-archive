@@ -242,12 +242,6 @@ type NcProject = BaseType & {
   managed_app_schema_locked?: boolean
 }
 
-interface UndoRedoAction {
-  undo: { fn: Function; args: any[] }
-  redo: { fn: Function; args: any[] }
-  scope?: { key: string; param: string | string[] }[]
-}
-
 interface ImportWorkerPayload {
   importType: ImportType
   importSource: ImportSource
@@ -580,6 +574,7 @@ interface CellRenderer {
     isPublic?: boolean
     openDetachedExpandedForm: (props: UseExpandedFormDetachedProps) => void
     openDetachedLongText: (props: UseDetachedLongTextProps) => void
+    openSmartText?: (rowId: string, columnId: string, rowData?: Record<string, any>, rowIndex?: number) => void
     formula?: boolean
     allowLocalUrl?: boolean
     t: Composer['t']
@@ -606,6 +601,7 @@ interface CellRenderer {
     makeCellEditable: MakeCellEditableFn
     cellRenderStore: CellRenderStore
     openDetachedLongText: (props: UseDetachedLongTextProps) => void
+    openSmartText?: (rowId: string, columnId: string, rowData?: Record<string, any>, rowIndex?: number) => void
     allowLocalUrl?: boolean
     t: Composer['t']
   }) => Promise<boolean | void>
@@ -664,6 +660,10 @@ interface CanvasGridColumn {
   aggregation: string
   agg_fn: string
   agg_prefix: string
+  /** True when a cell selection is active and this field is either out-of-scope
+   *  (blank) or in-scope but has no aggregator configured. Renderer should
+   *  skip both the value and the "Summary" hover affordance. */
+  aggregationSuppressed?: boolean
   relatedColObj?: ColumnType
   relatedTableMeta?: TableType
   isInvalidColumn?: {
@@ -1107,7 +1107,6 @@ export type {
   streamImportFileList,
   Nullable,
   NcProject,
-  UndoRedoAction,
   ImportWorkerPayload,
   Group,
   GroupNestedIn,

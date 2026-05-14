@@ -61,7 +61,7 @@ const props = defineProps<{
     rowOverwrite?: Record<string, any>,
     path?: Array<number>,
   ) => Row | undefined
-  deleteRow?: (rowIndex: number, undo?: boolean, path?: Array<number>) => Promise<void>
+  deleteRow?: (rowIndex: number, path?: Array<number>) => Promise<void>
   updateOrSaveRow: (
     row: Row,
     property?: string,
@@ -76,7 +76,6 @@ const props = defineProps<{
   updateRecordOrder: (
     originalIndex: number,
     targetIndex: number | null,
-    undo?: boolean,
     isFailed?: boolean,
     path?: Array<number>,
   ) => Promise<void>
@@ -84,7 +83,6 @@ const props = defineProps<{
     rows: Row[],
     props: string[],
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
-    undo?: boolean,
     path?: Array<number>,
   ) => Promise<void>
   bulkDeleteAll: (path?: Array<number>) => Promise<void>
@@ -94,7 +92,6 @@ const props = defineProps<{
     props: string[],
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
     newColumns?: Partial<ColumnType>[],
-    undo?: boolean,
     path?: Array<number>,
   ) => Promise<void>
   expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean, path: Array<number>) => void
@@ -1552,7 +1549,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
       return
     }
 
-    if (isLocked.value || !isViewOperationsAllowed.value) return
+    if (isLocked.value || !isViewOperationsAllowed.value || currentMeta.value?.mm) return
 
     // If the click is not normal single click, return
     const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
@@ -1646,6 +1643,10 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
         }
         // Skip opening aggregation menu for errored columns.
         if (clickedColumn.columnObj?.colOptions?.error) {
+          return
+        }
+        // M2M junction tables don't support aggregations
+        if (currentMeta.value?.mm) {
           return
         }
         openAggregationField.value = clickedColumn
@@ -2150,7 +2151,7 @@ const handleMouseMove = (e: MouseEvent) => {
     } else if (mousePosition.y > height.value - 36) {
       if (!isViewOperationsAllowed.value) return
 
-      cursor = mousePosition.x < totalColumnsWidth.value - scrollLeft.value ? 'pointer' : 'auto'
+      cursor = !currentMeta.value?.mm && mousePosition.x < totalColumnsWidth.value - scrollLeft.value ? 'pointer' : 'auto'
       setCursor(cursor)
       triggerRefreshCanvas()
       return
@@ -2715,6 +2716,33 @@ const smartsheetEvents = async (event: SmartsheetStoreEvents, payload) => {
 
 eventBus.on(smartsheetEvents)
 
+// Mirror SmartText panel navigation into the canvas active cell so the blue
+// active border follows the cell whose panel is currently open.
+const smartTextStoreForActive = useSmartText()
+
+const syncActiveCellFromPanel = (rowIndex: number | null | undefined, columnId: string | null | undefined) => {
+  if (rowIndex == null || !columnId) return
+  const colIdx = columns.value.findIndex((c) => c.id === columnId)
+  if (colIdx < 0) return
+  if (activeCell.value.row === rowIndex && activeCell.value.column === colIdx) return
+  activeCell.value = { row: rowIndex, column: colIdx, path: activeCell.value.path ?? [] }
+  // Clear leftover selection range + fill handle anchored to the previously
+  // clicked cell so they don't visually trail behind during panel navigation.
+  selection.value.clear()
+  isFillHandlerActive.value = false
+  triggerRefreshCanvas()
+}
+
+if (smartTextStoreForActive) {
+  watch(
+    [smartTextStoreForActive.isOpen, smartTextStoreForActive.activeRowIndex, smartTextStoreForActive.activeColumnId],
+    ([open, rowIndex, columnId]) => {
+      if (!open) return
+      syncActiveCellFromPanel(rowIndex as number | null, columnId as string | null)
+    },
+  )
+}
+
 onBeforeUnmount(() => {
   eventBus.off(smartsheetEvents)
   reloadViewDataHook.off(reloadViewDataHookHandler)
@@ -2785,6 +2813,7 @@ onClickOutside(
       '.canvas-header-column-menu',
       '.canvas-header-add-new-row-menu',
       '.canvas-group-context-menu',
+      '.nc-smart-text-panel',
     ],
   },
 )

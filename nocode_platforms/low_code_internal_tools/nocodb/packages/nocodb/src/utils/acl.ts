@@ -82,6 +82,18 @@ const permissionScopes = {
 
     'getUserProfile',
 
+    // Bookmarks
+    'bookmarkList',
+    'bookmarkCheck',
+    'bookmarkGroupList',
+    'bookmarkCreate',
+    'bookmarkUpdate',
+    'bookmarkRefresh',
+    'bookmarkDelete',
+    'bookmarkGroupCreate',
+    'bookmarkGroupUpdate',
+    'bookmarkGroupDelete',
+
     // Connection + upload (matches EE org scope)
     'testConnection',
     'upload',
@@ -197,6 +209,7 @@ const permissionScopes = {
     'dataUpdate',
     'dataDelete',
     'dataInsert',
+    'dataMove',
     'dataUpsert',
     'bulkDataUpsert',
     'viewColumnUpdate',
@@ -206,6 +219,7 @@ const permissionScopes = {
     'filterCreate',
     'filterUpdate',
     'filterDelete',
+    'filterBulkLogicalOpUpdate',
     'filterGet',
     'filterChildrenList',
     'buttonFilterList',
@@ -332,6 +346,18 @@ const rolePermissions:
 
       mcpRootList: true,
       getUserProfile: true,
+
+      // Bookmarks
+      bookmarkList: true,
+      bookmarkCheck: true,
+      bookmarkGroupList: true,
+      bookmarkCreate: true,
+      bookmarkUpdate: true,
+      bookmarkRefresh: true,
+      bookmarkDelete: true,
+      bookmarkGroupCreate: true,
+      bookmarkGroupUpdate: true,
+      bookmarkGroupDelete: true,
     },
   },
   [OrgUserRoles.CREATOR]: {
@@ -474,6 +500,7 @@ const rolePermissions:
       dataUpdate: true,
       dataDelete: true,
       dataInsert: true,
+      dataMove: true,
       dataUpsert: true,
       bulkDataUpsert: true,
       nestedDataListCopyPasteOrDeleteAll: true,
@@ -524,6 +551,7 @@ const rolePermissions:
       filterCreate: true,
       filterUpdate: true,
       filterDelete: true,
+      filterBulkLogicalOpUpdate: true,
       buttonFilterList: true,
       buttonFilterCreate: true,
       viewColumnUpdate: true,
@@ -743,6 +771,7 @@ export const sourceRestrictions = {
     dataUpdate: true,
     dataDelete: true,
     dataInsert: true,
+    dataMove: true,
     dataUpsert: true,
     bulkDataInsert: true,
     bulkDataUpdate: true,
@@ -925,6 +954,7 @@ const permissionDescriptions: Record<string, string> = {
   dataUpdate: 'update data',
   dataDelete: 'delete data',
   dataInsert: 'insert new data',
+  dataMove: 'reorder a row',
   dataUpsert: 'upsert data (insert or update)',
   viewColumnUpdate: 'update view columns',
   sortCreate: 'create a new sort',
@@ -933,6 +963,7 @@ const permissionDescriptions: Record<string, string> = {
   filterCreate: 'create a new filter',
   filterUpdate: 'update an existing filter',
   filterDelete: 'delete a filter',
+  filterBulkLogicalOpUpdate: 'update logical operator across sibling filters',
   filterGet: 'view filter details',
   filterChildrenList: 'view child filters',
   buttonFilterList: 'list button visibility filters',
@@ -976,6 +1007,17 @@ const permissionDescriptions: Record<string, string> = {
 
   dataImportPreview: 'preview file for import',
   dataImportFile: 'import file into a table',
+
+  bookmarkList: 'view list of bookmarks',
+  bookmarkCheck: 'check bookmark status of items',
+  bookmarkGroupList: 'view list of bookmark groups',
+  bookmarkCreate: 'create a new bookmark',
+  bookmarkUpdate: 'update a bookmark',
+  bookmarkRefresh: 'refresh bookmark metadata from target entity',
+  bookmarkDelete: 'delete a bookmark',
+  bookmarkGroupCreate: 'create a new bookmark group',
+  bookmarkGroupUpdate: 'update a bookmark group',
+  bookmarkGroupDelete: 'delete a bookmark group',
 };
 
 // Human-readable descriptions for roles

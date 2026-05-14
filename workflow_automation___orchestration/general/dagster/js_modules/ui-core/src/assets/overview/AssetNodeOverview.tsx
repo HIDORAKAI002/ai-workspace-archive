@@ -289,6 +289,7 @@ export const AssetNodeOverview = ({
               location={location}
               assetNode={assetNode}
               cachedOrLiveAssetNode={cachedOrLiveAssetNode}
+              storageAddress={cachedAssetNode?.storageAddress ?? null}
             />
           </LargeCollapsibleSection>
           <LargeCollapsibleSection header="Automation details" icon="automation_condition">

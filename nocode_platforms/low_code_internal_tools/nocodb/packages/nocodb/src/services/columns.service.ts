@@ -19,6 +19,8 @@ import {
   isVirtualCol,
   LinksVersion,
   LongTextAiMetaProp,
+  LongTextRichModeMetaProp,
+  LongTextSmartModeMetaProp,
   MetaEventType,
   NcApiVersion,
   NcBaseError,
@@ -41,7 +43,7 @@ import {
 import { getProjectRole } from 'nocodb-sdk';
 import { dateFormats, dateMonthFormats } from 'nocodb-sdk';
 import rfdc from 'rfdc';
-import type { ClientType } from 'nocodb-sdk';
+import { ClientType } from 'nocodb-sdk';
 import type {
   ColumnReqType,
   LinkToAnotherColumnReqType,
@@ -58,6 +60,7 @@ import type {
   LtarSideEffectIds,
   ReusableParams,
 } from '~/services/columns.service.type';
+import type { ColumnBackupRef } from '~/services/column-data-backup-handler';
 import { NcContext } from '~/interface/config';
 import {
   type ColumnWebhookManager,
@@ -71,17 +74,21 @@ import {
   createHmAndBtColumn,
   createOOColumn,
   deleteColumnSystemPropsFromRequest,
-  type OperationSource,
   generateFkName,
   getMMColumnNames,
   getRevType,
+  type OperationSource,
   sanitizeColumnName,
   validateLookupPayload,
   validatePayload,
   validateRequiredField,
   validateRollupPayload,
 } from '~/helpers';
-import { TraceCommand } from '~/decorators/trace-command.decorator';
+import {
+  captureForTrace,
+  TraceCommand,
+} from '~/decorators/trace-command.decorator';
+import { getReplay, setReplay } from '~/helpers/replayScope';
 import { OperationName } from '~/command-registry/op-names';
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
@@ -112,7 +119,9 @@ import {
 import Noco from '~/Noco';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { IFormulaColumnTypeChanger } from '~/services/formula-column-type-changer.types';
+import { ColumnDataBackupHandler } from '~/services/column-data-backup-handler.service';
 import { ViewRowColorService } from '~/services/view-row-color.service';
+import { ViewColumnsService } from '~/services/view-columns.service';
 import { FiltersService } from '~/services/filters.service';
 import { DuplicateDetectionService } from '~/services/duplicate-detection.service';
 import { LinkPlaceholderService } from '~/services/link-placeholder.service';
@@ -135,6 +144,7 @@ export type {
   LtarSideEffectIds,
   ReusableParams,
 } from '~/services/columns.service.type';
+import { isReplay } from '~/helpers/replayScope';
 
 const deepClone = rfdc();
 
@@ -356,6 +366,58 @@ const generateColumnDeleteHandler = (
   };
 };
 
+/**
+ * Validate that LongText meta flags richMode / smartMode / ai are mutually
+ * exclusive — at most one may be true on a single column.
+ *
+ * Also enforces that smartMode is only enabled on internal PostgreSQL sources:
+ * the runtime read/write paths use `nc_row_meta` JSONB (added only when
+ * `isEE && clientType === PG` in tableHelpers) and PG-specific JSONB
+ * operators in prepareMetaUpdateQuery. Allowing smartMode on SQLite/MySQL
+ * meta DBs creates a column the user can never use (no nc_row_meta) and on
+ * EE with non-PG meta DB triggers a runtime crash.
+ */
+function validateLongTextMetaExclusivity(
+  context: NcContext,
+  uidt: UITypes | string | undefined,
+  meta: Record<string, any> | null | undefined,
+  source: Source | null | undefined,
+) {
+  if (uidt !== UITypes.LongText || !meta) return;
+
+  const richMode = !!meta[LongTextRichModeMetaProp];
+  const smartMode = !!meta[LongTextSmartModeMetaProp];
+  const aiMode = !!meta[LongTextAiMetaProp];
+
+  if ([richMode, smartMode, aiMode].filter(Boolean).length > 1) {
+    NcError.get(context).invalidRequestBody(
+      'richMode, smartMode, and AI generation are mutually exclusive on LongText',
+    );
+  }
+
+  // Skip the source-eligibility check when no source is provided.
+  // `Source.isMeta()` (without args) returns is_meta || is_local — the broad
+  // "internal source" semantics used by other column validators in this file.
+  // Internal sources have `type` set to the actual DB driver (`db?.client`
+  // for is_meta, explicit 'pg' / 'sqlite3' for is_local), so type !== 'pg'
+  // catches non-PG meta DBs and is_local SQLite minimal-DBs alike.
+  if (smartMode && source) {
+    if (!source.isMeta()) {
+      NcError.get(context).invalidRequestBody(
+        'SmartText is only supported on internal sources',
+      );
+    }
+    // Compare by string — `Source.type` is typed as DriverClient (backend
+    // enum) while ClientType is the SDK-side enum; both share the 'pg' value
+    // but TS sees them as disjoint. The string compare is the cross-enum-safe form.
+    if ((source.type as string) !== ClientType.PG) {
+      NcError.get(context).invalidRequestBody(
+        'SmartText is only supported on PostgreSQL meta databases',
+      );
+    }
+  }
+}
+
 @Injectable()
 export class ColumnsService implements IColumnsService {
   protected logger = new Logger(ColumnsService.name);
@@ -370,6 +432,8 @@ export class ColumnsService implements IColumnsService {
     protected readonly metaDependencyEventHandler: MetaDependencyEventHandler,
     protected readonly duplicateDetectionService: DuplicateDetectionService,
     protected readonly linkPlaceholderService: LinkPlaceholderService,
+    protected readonly columnDataBackupHandler: ColumnDataBackupHandler,
+    protected readonly viewColumnsService: ViewColumnsService,
   ) {}
 
   /**
@@ -557,11 +621,82 @@ export class ColumnsService implements IColumnsService {
     ncMeta = Noco.ncMeta,
   ): Promise<Model | Column<any>> {
     const reuse = param.reuse || {};
-
-    const { req } = param;
-
     const column = await Column.get(context, { colId: param.columnId });
     const oldColumn = deepClone(column);
+
+    let createdBackup: ColumnBackupRef | undefined;
+    if (
+      await this.shouldBackupBeforeTypeChange(context, column, param.column)
+    ) {
+      try {
+        createdBackup = await this.columnDataBackupHandler.backup(context, {
+          sourceColumn: column,
+          backupUid: ColumnDataBackupHandler.newBackupUid(),
+          forUndo: !!getReplay('replayBackup'),
+        });
+        // Two ALS deposits, two readers:
+        //  - `captureForTrace('backup', …)` → `recordCommand` packs this onto
+        //    the changelog row's `meta.backup` for the original forward op.
+        //  - `setReplay('columnBackupOut', …)` → the handler reads this
+        //    post-call to thread the ref into `metaUpdate` (so subsequent
+        //    redo cycles point at the new backup column, not the dropped one).
+        captureForTrace('backup', createdBackup);
+        setReplay('columnBackupOut', createdBackup);
+      } catch (e) {
+        this.logger.warn(
+          `Column data backup failed for ${column.id} (${column.uidt} → ${
+            (param.column as any).uidt
+          }): ${
+            (e as Error).message
+          }. Type change will proceed without undo support.`,
+        );
+      }
+    }
+
+    try {
+      return await this._runColumnUpdate(
+        context,
+        param,
+        column,
+        oldColumn,
+        reuse,
+        ncMeta,
+      );
+    } catch (err) {
+      if (createdBackup) {
+        try {
+          await this.columnDataBackupHandler.drop(context, {
+            backupRef: createdBackup,
+          });
+        } catch (dropErr) {
+          this.logger.warn(
+            `Failed to drop orphaned backup column for ${column.id}: ${
+              (dropErr as Error).message
+            }`,
+          );
+        }
+      }
+      throw err;
+    }
+  }
+
+  protected async shouldBackupBeforeTypeChange(
+    _context: NcContext,
+    _oldColumn: Column<any> | null | undefined,
+    _requestColumn: any,
+  ): Promise<boolean> {
+    return false;
+  }
+
+  protected async _runColumnUpdate(
+    context: NcContext,
+    param: Parameters<ColumnsService['columnUpdate']>[1],
+    column: Column<any>,
+    oldColumn: any,
+    reuse: ReusableParams,
+    ncMeta = Noco.ncMeta,
+  ): Promise<Model | Column<any>> {
+    const { req } = param;
 
     validateDateFormatMeta(context, (param.column as any)?.meta);
 
@@ -610,6 +745,17 @@ export class ColumnsService implements IColumnsService {
     const source = await reuseOrSave('source', reuse, async () =>
       Source.get(context, table.source_id),
     );
+
+    // Merge incoming meta with existing column meta to validate the post-update state.
+    if (column.uidt === UITypes.LongText) {
+      const incomingMeta = parseProp((param.column as any)?.meta);
+      const existingMeta = parseProp(column.meta);
+      const mergedMeta =
+        incomingMeta !== undefined && incomingMeta !== null
+          ? { ...existingMeta, ...incomingMeta }
+          : existingMeta;
+      validateLongTextMetaExclusivity(context, column.uidt, mergedMeta, source);
+    }
 
     const columnWebhookManager =
       param.columnWebhookManager ??
@@ -2836,6 +2982,11 @@ export class ColumnsService implements IColumnsService {
     // Get all the columns in the table and return
     await table.getColumns(context, undefined, defaultView?.id);
 
+    await this.postColumnUpdate(context, {
+      ...param.column,
+      id: param.columnId,
+    } as unknown as ColumnReqType);
+
     const updatedColumn = await Column.get(context, { colId: param.columnId });
 
     this.appHooksService.emit(AppEvents.COLUMN_UPDATE, {
@@ -2877,6 +3028,14 @@ export class ColumnsService implements IColumnsService {
       columnWebhookManager.emit();
     }
 
+    const replayBackup = getReplay('replayBackup');
+    if (replayBackup) {
+      await this.columnDataBackupHandler.restore(context, {
+        destinationColumn: updatedColumn,
+        backupRef: replayBackup,
+      });
+    }
+
     if (param.apiVersion === NcApiVersion.V3) {
       return column;
     }
@@ -2899,6 +3058,16 @@ export class ColumnsService implements IColumnsService {
       .then((columns) => columns.find((c) => c.pv));
     if (!oldColumn) {
       NcError.get(context).fieldNotFound(param.columnId);
+    }
+
+    // LongText (and its richMode / smartMode / ai variants) is rejected as a
+    // display value — multi-line / markdown content renders poorly in
+    // single-line surfaces (LTAR chips, breadcrumbs, audit lines, search).
+    // Existing PV columns keep working; only new selections are blocked.
+    if (oldColumn.uidt === UITypes.LongText && !oldColumn.pv) {
+      NcError.get(context).invalidRequestBody(
+        'Long Text fields cannot be set as the display value.',
+      );
     }
     const result = await Model.updatePrimaryColumn(
       context,
@@ -2978,12 +3147,6 @@ export class ColumnsService implements IColumnsService {
       apiVersion?: T;
       columnWebhookManager?: ColumnWebhookManager;
       operationSource?: OperationSource;
-      // Sandbox-replay LTAR side-effect IDs — set by the columnAdd handler
-      // on replay, threaded down into `createLTARColumn`.
-      _ltarReplayIds?: LtarSideEffectIds;
-      // Capture slot populated by `createLTARColumn` during recording;
-      // surfaced via `extraCommandMeta` on `ColumnAddContract`.
-      _ltarCapture?: LtarSideEffectIds;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<T extends NcApiVersion.V3 ? Column : Model> {
@@ -3025,6 +3188,14 @@ export class ColumnsService implements IColumnsService {
     ) {
       NcError.get(context).sourceMetaReadOnly(source.alias);
     }
+
+    validateLongTextMetaExclusivity(
+      context,
+      param.column.uidt,
+      (param.column as any).meta,
+      source,
+    );
+
     if (
       (param.column as any).system ||
       [UITypes.Order, UITypes.ID, UITypes.Deleted, UITypes.Meta].includes(
@@ -3207,14 +3378,11 @@ export class ColumnsService implements IColumnsService {
 
       case UITypes.Links:
       case UITypes.LinkToAnotherRecord: {
-        // Sandbox-replay capture slot — populated by `createLTARColumn` with
-        // side-effect IDs (assoc model, FK cols, back-link cols, reverse LTAR)
-        // and read by `extraCommandMeta` on `ColumnAddContract` to thread
-        // them into the changelog. Filtered from replay params via
-        // `NON_SERIALIZABLE_KEYS`. Object reference is shared so inner
-        // mutations are visible to the calling decorator.
+        // `createLTARColumn` mutates this bag with the side-effect IDs
+        // (assoc model, FK cols, back-link, reverse LTAR). After the call
+        // we deposit the bag into the trace ALS so `ColumnAddContract`
+        // (`sandbox.capture: ['ltar']`) packs it onto the changelog row.
         const ltarCapture: LtarSideEffectIds = {};
-        param._ltarCapture = ltarCapture;
         savedColumn = await this.createLTARColumn(context, {
           tableId: param.tableId,
           column: param.column,
@@ -3222,12 +3390,12 @@ export class ColumnsService implements IColumnsService {
           req: param.req,
           reuse: param.reuse,
           columnWebhookManager,
-          _ltarReplayIds: param._ltarReplayIds,
           _ltarCapture: ltarCapture,
           source,
           base,
           colExtra,
         });
+        captureForTrace('ltar', ltarCapture);
 
         this.appHooksService.emit(AppEvents.RELATION_CREATE, {
           column: {
@@ -3987,7 +4155,35 @@ export class ColumnsService implements IColumnsService {
 
     await table.getColumns(context, undefined, defaultView?.id);
 
+    await this.postColumnAdd(context, param.column, table);
+
     const newColumn = table.columns.find((c) => c.title === param.column.title);
+
+    const columnFilterKind: 'link' | 'button' | null = isLinksOrLTAR(
+      param.column,
+    )
+      ? 'link'
+      : (param.column as any).uidt === UITypes.Lookup ||
+        (param.column as any).uidt === UITypes.Rollup
+      ? 'link'
+      : (param.column as any).uidt === UITypes.Button
+      ? 'button'
+      : null;
+    if (
+      columnFilterKind &&
+      (param.column as any).filters?.length &&
+      newColumn &&
+      !isReplay()
+    ) {
+      captureForTrace(
+        'filters',
+        await this.snapshotColumnFilterTree(
+          context,
+          newColumn.id,
+          columnFilterKind,
+        ),
+      );
+    }
 
     if (!isLinksOrLTAR(param.column)) {
       this.appHooksService.emit(AppEvents.COLUMN_CREATE, {
@@ -4049,9 +4245,8 @@ export class ColumnsService implements IColumnsService {
   async columnDelete(
     context: NcContext,
     param: {
-      req?: any;
+      req: NcRequest;
       columnId: string;
-      user: UserType;
       forceDeleteSystem?: boolean;
       skipLinkPlaceholder?: boolean;
       skipTrash?: boolean;
@@ -4202,8 +4397,6 @@ export class ColumnsService implements IColumnsService {
       case UITypes.QrCode:
       case UITypes.Barcode:
       case UITypes.Button:
-        // PR review fix #3: UUID removed from this group — it has a physical DB column
-        // and must go through the default path (sqlOpPlus + tableUpdate) to drop it.
         await Column.delete2(
           context,
           {
@@ -4213,7 +4406,6 @@ export class ColumnsService implements IColumnsService {
           ncMeta,
         );
         break;
-
       case UITypes.Formula:
         await Column.delete(context, param.columnId, ncMeta);
         break;
@@ -5346,18 +5538,18 @@ export class ColumnsService implements IColumnsService {
       user: UserType;
       req: NcRequest;
       columnWebhookManager?: ColumnWebhookManager;
-      // Sandbox-replay only — set by the columnAdd handler when replaying a
-      // recorded LTAR create. Each insert site below honors the matching id
-      // so dependent ops (Lookup/Rollup/linkFilter) keep stable references.
-      _ltarReplayIds?: LtarSideEffectIds;
-      // Sandbox-replay only — capture slot populated during recording so
-      // `extraCommandMeta` on `ColumnAddContract` can thread the side-effect
-      // IDs into the changelog. Object ref shared with `columnAdd`'s param.
+      // Sandbox-replay capture slot, mutated by this method with the
+      // side-effect IDs (assoc model, FK cols, back-link, reverse LTAR).
+      // Caller passes a fresh object and reads back after the call to
+      // deposit into the trace ALS.
       _ltarCapture?: LtarSideEffectIds;
     },
   ) {
     let savedColumn: Column;
-    const replayIds = param._ltarReplayIds;
+    // Sandbox-replay only — pre-recorded side-effect IDs threaded via the
+    // ALS bag by the columnAdd handler. Read once up front so the inner
+    // insert sites can match each row to its recorded id.
+    const replayIds = getReplay('ltarReplayIds');
     const capture = param._ltarCapture;
 
     if ((param.column as any).is_custom_link) {
@@ -5801,16 +5993,15 @@ export class ColumnsService implements IColumnsService {
         _tn: aTnAlias,
         columns: associateTableCols,
       });
-
+      if (replayIds?.assocDefaultViewId) {
+        setReplay('sandboxDefaultViewId', replayIds.assocDefaultViewId);
+      }
       const assocModel = await Model.insert(
         context,
         param.base.id,
         param.source.id,
         {
           ...(replayIds?.assocModelId ? { id: replayIds.assocModelId } : {}),
-          ...(replayIds?.assocDefaultViewId
-            ? { _sandboxDefaultViewId: replayIds.assocDefaultViewId }
-            : {}),
           table_name: aTn,
           title: aTnAlias,
           // todo: sanitize
@@ -6221,43 +6412,51 @@ export class ColumnsService implements IColumnsService {
     };
   }
 
-  async columnBulk(
+  @TraceCommand(OperationName.columnsBulk)
+  async columnsBulk(
     context: NcContext,
-    tableId: string,
-    params: {
+    param: {
+      tableId: string;
       hash: string;
       ops: {
         op: 'add' | 'update' | 'delete';
         column: Partial<Column>;
       }[];
+      visibility?: Array<{
+        viewId: string;
+        columnId: string;
+        column: {
+          show?: boolean | 0 | 1 | null;
+          order?: number | null;
+          underline?: boolean | 0 | 1 | null;
+          bold?: boolean | 0 | 1 | null;
+          italic?: boolean | 0 | 1 | null;
+        };
+      }>;
+      req: NcRequest;
       columnWebhookManager?: ColumnWebhookManager;
     },
-    req: NcRequest,
   ) {
-    // TODO validatePayload
-
     const table = await Model.getWithInfo(context, {
-      id: tableId,
+      id: param.tableId,
     });
 
     if (!table) {
-      NcError.get(context).tableNotFound(tableId);
+      NcError.get(context).tableNotFound(param.tableId);
     }
 
-    if (table.columnsHash !== params.hash) {
+    if (table.columnsHash !== param.hash) {
       NcError.get(context).outOfSync(
         'Columns are updated by someone else! Your changes are rejected. Please refresh the page and try again.',
       );
     }
 
     const source = await Source.get(context, table.source_id);
-
     if (!source) {
       NcError.get(context).sourceNotFound(table.source_id);
     }
 
     const base = await source.getProject(context);
-
     if (!base) {
       NcError.get(context).baseNotFound(source.base_id);
     }
@@ -6288,16 +6487,13 @@ export class ColumnsService implements IColumnsService {
       baseModel,
     };
 
-    const ops = params.ops;
-
-    for (const op of ops) {
+    for (const op of param.ops) {
       if (op.op === 'update') {
         if (!op.column || !op.column?.id) {
           NcError.get(context).badRequest(
             'Bad request, update operation requires column id',
           );
         }
-
         validateDateFormatMeta(context, op.column?.meta);
       } else if (op.op === 'delete') {
         if (!op.column || !op.column?.id) {
@@ -6314,71 +6510,79 @@ export class ColumnsService implements IColumnsService {
       }
     }
 
-    const failedOps = [];
-    // Perform operations in a loop, capturing any errors for individual operations
-    for (const op of ops) {
+    // Per-add-op new column ids are captured automatically by the
+    // macro decorator's auto-instrument (each `columnAdd` child becomes
+    // a transcript entry whose `entityId` is resolved via
+    // ColumnAddContract.entry.entity_id) — no manual title→id re-query.
+    const failedOps: Array<{
+      op: 'add' | 'update' | 'delete';
+      column: Partial<Column>;
+      error: string;
+    }> = [];
+    for (const op of param.ops) {
       const column = op.column;
-
-      if (op.op === 'add') {
-        try {
-          const tableMeta = (await this.columnAdd(context, {
-            tableId,
+      try {
+        if (op.op === 'add') {
+          await this.columnAdd(context, {
+            tableId: param.tableId,
             column: column as ColumnReqType,
-            req,
-            user: req.user,
+            req: param.req,
+            user: param.req.user,
             reuse,
-          })) as Model;
-
-          await this.postColumnAdd(context, column as ColumnReqType, tableMeta);
-        } catch (e) {
-          const dbError = DBErrorExtractor.get().extractDbError(e, {
-            clientType: source.type as unknown as ClientType, // Pass the client type from source
           });
-
-          failedOps.push({
-            ...op,
-            error: dbError?.message || e.message, // Use extracted message, fallback to original
-          });
-        }
-      } else if (op.op === 'update') {
-        try {
+        } else if (op.op === 'update') {
           await this.columnUpdate(context, {
-            columnId: op.column.id,
+            columnId: column.id as string,
             column: column as ColumnReqType,
-            req,
-            user: req.user,
+            req: param.req,
+            user: param.req.user,
             reuse,
           });
-
-          await this.postColumnUpdate(context, column as ColumnReqType);
-        } catch (e) {
-          const dbError = DBErrorExtractor.get().extractDbError(e, {
-            clientType: source.type as unknown as ClientType, // Pass the client type from source
-          });
-
-          failedOps.push({
-            ...op,
-            error: dbError?.message || e.message, // Use extracted message, fallback to original
-          });
+        } else if (op.op === 'delete') {
+          await this.handleColumnBulkDelete(context, op, param.req);
         }
-      } else if (op.op === 'delete') {
-        try {
-          await this.handleColumnBulkDelete(context, op, req);
-        } catch (e) {
-          const dbError = DBErrorExtractor.get().extractDbError(e, {
-            clientType: source.type as unknown as ClientType, // Pass the client type from source
-          });
+      } catch (e: any) {
+        const dbError = DBErrorExtractor.get().extractDbError(e, {
+          clientType: source.type as unknown as ClientType,
+        });
+        failedOps.push({
+          ...op,
+          error: dbError?.message || e.message,
+        });
+      }
+    }
 
-          failedOps.push({
-            ...op,
-            error: dbError?.message || e.message, // Use extracted message, fallback to original
-          });
-        }
+    const failedVisibility: Array<{
+      viewId: string;
+      columnId: string;
+      error: string;
+    }> = [];
+    for (const v of param.visibility ?? []) {
+      try {
+        await this.viewColumnsService.columnUpdate(context, {
+          viewId: v.viewId,
+          columnId: v.columnId,
+          column: v.column as any,
+          req: param.req,
+        });
+      } catch (e: any) {
+        this.logger.error(
+          `View column visibility update failed (view=${v.viewId} column=${v.columnId}): ${e?.message}`,
+          e?.stack,
+        );
+        const safeError =
+          e instanceof NcBaseError ? e.message : 'Visibility update failed';
+        failedVisibility.push({
+          viewId: v.viewId,
+          columnId: v.columnId,
+          error: safeError,
+        });
       }
     }
 
     return {
       failedOps,
+      failedVisibility,
     };
   }
 
@@ -6397,6 +6601,30 @@ export class ColumnsService implements IColumnsService {
     // placeholder for post column update hook
   }
 
+  protected async snapshotColumnFilterTree(
+    context: NcContext,
+    columnId: string,
+    kind: 'link' | 'button',
+  ): Promise<Array<Record<string, unknown>>> {
+    const roots =
+      kind === 'button'
+        ? await Filter.rootFilterListByButtonColumn(context, {
+            buttonColId: columnId,
+          })
+        : await Filter.rootFilterListByLink(context, { columnId });
+    const walk = async (f: Filter): Promise<Record<string, unknown>> => {
+      const children = f.is_group ? (await f.getChildren(context)) ?? [] : [];
+      const childNodes = await Promise.all(
+        children.map((c) => walk(c as Filter)),
+      );
+      return {
+        ...(f as unknown as Record<string, unknown>),
+        ...(childNodes.length ? { children: childNodes } : {}),
+      };
+    };
+    return Promise.all(roots.map((r) => walk(r as Filter)));
+  }
+
   // Hook used by columnBulk's delete branch. CE hard-deletes; EE overrides
   // this to soft-delete via baseTrashService so bulk deletes route through
   // the trash system identically to the single-column delete path.
@@ -6408,7 +6636,6 @@ export class ColumnsService implements IColumnsService {
     await this.columnDelete(context, {
       columnId: op.column.id,
       req,
-      user: req.user,
     });
   }
 

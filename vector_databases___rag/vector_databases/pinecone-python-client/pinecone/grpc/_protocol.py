@@ -101,6 +101,35 @@ class GrpcChannelProtocol(Protocol):
         """Describe index statistics."""
         ...
 
+    def describe_namespace(
+        self,
+        namespace: str,
+        *,
+        timeout_s: float | None = None,
+    ) -> dict[str, Any]:
+        """Describe a namespace."""
+        ...
+
+    def list_namespaces(
+        self,
+        *,
+        pagination_token: str | None = None,
+        limit: int | None = None,
+        prefix: str | None = None,
+        timeout_s: float | None = None,
+    ) -> dict[str, Any]:
+        """List namespaces (single page)."""
+        ...
+
+    def delete_namespace(
+        self,
+        namespace: str,
+        *,
+        timeout_s: float | None = None,
+    ) -> None:
+        """Delete a namespace."""
+        ...
+
     def close(self) -> None:
         """Close the channel and release resources."""
         ...

@@ -10,6 +10,16 @@ Tracks updates to the AGENT COLLECTIONS table in `README.md`.
 
 ---
 
+## [2026-05-14 08:48 PM PKT] Agent Collections Update
+
+| # | Priority | Type  | Action                                                                                        | Status                                                                                                                                                                                        |
+|---|----------|-------|-----------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1 | MED      | Count | Update msitarzewski/agency-agents agents from 198 to 188                                      | COMPLETE (recursive tree: 188 .md files across domain dirs; conf 0.88; RECURRING methodological variation — boundary between agent defs and workflow/example docs varies per run)              |
+| 2 | HIGH     | Count | Update VoltAgent/awesome-claude-code-subagents agents from 189 to 146                         | COMPLETE (recursive tree: 146 .md files under categories/; conf 0.92; RECURRING large-swing oscillation — prior 189 run may have counted differently; recent additions noted April 2026)       |
+| 3 | LOW      | Sort  | Verify sort order (97k > 20k — stars descending)                                              | COMPLETE (msitarzewski 97k > VoltAgent 20k — order preserved; RECURRING)                                                                                                                     |
+
+---
+
 ## [2026-05-13 08:46 PM PKT] Agent Collections Update
 
 | # | Priority | Type  | Action                                                                                      | Status                                                                                                                                                                  |

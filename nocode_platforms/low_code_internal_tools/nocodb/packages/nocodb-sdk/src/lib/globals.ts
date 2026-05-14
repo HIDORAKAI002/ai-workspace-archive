@@ -308,6 +308,8 @@ export enum COLORING_TYPE {
 }
 
 export const LongTextAiMetaProp = 'ai';
+export const LongTextRichModeMetaProp = 'richMode';
+export const LongTextSmartModeMetaProp = 'smartMode';
 
 export const NO_SCOPE = 'nc';
 
@@ -413,6 +415,7 @@ export enum DependencyTableType {
   Widget = 'widget',
   Workflow = 'workflow',
   DateDependency = 'date_dependency',
+  Bookmark = 'bookmark',
 }
 
 export enum BaseVersion {

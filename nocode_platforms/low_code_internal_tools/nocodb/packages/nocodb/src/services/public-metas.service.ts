@@ -13,6 +13,8 @@ import type {
   LinkToAnotherRecordColumn,
   LookupColumn,
   RollupColumn,
+  TimelineRange,
+  TimelineView,
 } from '~/models';
 import type { NcContext } from '~/interface/config';
 import {
@@ -71,10 +73,10 @@ export class PublicMetasService {
       is_local: source.is_local,
     };
 
-    // todo: return only required props
-    view.password = undefined;
-
-    // Required for Calendar Views
+    // Required for Calendar / Timeline views — the date columns that drive
+    // the bar / event positions are usually hidden in the field menu, so the
+    // visibility filter below would drop them from view.model.columns and
+    // leave the shared frontend with no range columns to render.
     const rangeColumns = [];
 
     if (view.type === ViewTypes.CALENDAR) {
@@ -84,6 +86,14 @@ export class PublicMetasService {
         } else if ((c as any).fk_to_column_id) {
           rangeColumns.push((c as any).fk_to_column_id);
         }
+      }
+    } else if (view.type === ViewTypes.TIMELINE) {
+      // Timeline ranges can have both from and to date columns.
+      const timelineRange = ((view.view as TimelineView)?.timeline_range ??
+        []) as TimelineRange[];
+      for (const c of timelineRange) {
+        if (c.fk_from_column_id) rangeColumns.push(c.fk_from_column_id);
+        if (c.fk_to_column_id) rangeColumns.push(c.fk_to_column_id);
       }
     }
 
@@ -164,7 +174,13 @@ export class PublicMetasService {
       }));
     }
 
-    return view;
+    // Never leak the stored password to the public viewer. Return a shallow
+    // copy with password stripped — don't mutate the loaded instance, so the
+    // strip stays safe even if `View.getByUUID` ever gains caching. Mirrors
+    // the EE dashboardMetaGet pattern.
+    return Object.assign(Object.create(Object.getPrototypeOf(view)), view, {
+      password: undefined,
+    });
   }
 
   protected async extractRelatedMetas(

@@ -268,7 +268,7 @@ def test_snapshot_id(
     assert len(set(results)) == 1
 
     # this should only update if the dbt project or asset producing code changes
-    assert results[0] == "4712da99dfd67a3964ed52a0b7852af831b55b20"
+    assert results[0] == "78112ce4276eb84a307025227c30985b5f78b206"
 
 
 @pytest.mark.parametrize("name", [None, "custom"])

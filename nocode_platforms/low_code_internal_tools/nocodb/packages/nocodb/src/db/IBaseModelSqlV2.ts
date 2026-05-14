@@ -23,6 +23,7 @@ import type {
   NestedLinkLastModifiedEntry,
 } from '~/db/BaseModelSqlv2/nested-link-preparator';
 import type { ExecAndParseOptions } from 'src/db/BaseModelSqlv2';
+import type { DisplacedRecord } from '~/command-registry/types';
 
 export interface IBaseModelSqlV2 {
   context: NcContext;
@@ -101,6 +102,10 @@ export interface IBaseModelSqlV2 {
   fetchDisplayValueMap(
     props: { model: Model; id: any; displayColumn?: Column }[],
   ): Promise<Map<string, any>>;
+  getLtarDisplayColumnOverride(
+    ltarColumn: Column,
+    model: Model,
+  ): Promise<Column | undefined>;
   extractPksValues(data: any, asString?: boolean): any;
   readByPk(
     id?: any,
@@ -287,10 +292,14 @@ export interface IBaseModelSqlV2 {
     insertObj: Record<string, any>;
     req: NcRequest;
   }): Promise<{
-    postInsertOps: ((rowId: any) => Promise<string>)[];
-    preInsertOps: (() => Promise<string>)[];
+    postInsertOps: ((
+      rowId: any,
+      trx?: Knex | Knex.Transaction,
+    ) => Promise<string>)[];
+    preInsertOps: ((trx?: Knex | Knex.Transaction) => Promise<string>)[];
     postInsertAuditEntries: NestedLinkAuditEntry[];
     postInsertLastModifiedEntries: NestedLinkLastModifiedEntry[];
+    displacedRecords: DisplacedRecord[];
   }>;
 
   handleValidateBulkInsert(

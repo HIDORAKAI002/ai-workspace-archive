@@ -444,6 +444,8 @@ import NcShare2Icon from '~icons/nc-icons-v2/share-2.svg'
 import NcPlusIcon from '~icons/nc-icons-v2/plus.svg'
 import NcCheckIcon from '~icons/nc-icons-v2/check.svg'
 import NcRotateCcwIcon from '~icons/nc-icons-v2/rotate-ccw.svg'
+import NcUndoIcon from '~icons/nc-icons-v2/undo.svg'
+import NcRedoIcon from '~icons/nc-icons-v2/redo.svg'
 import NcHardDriveIcon from '~icons/nc-icons-v2/hard-drive.svg'
 import NcBluetoothIcon from '~icons/nc-icons-v2/bluetooth.svg'
 import NcPieChartIcon from '~icons/nc-icons-v2/pie-chart.svg'
@@ -552,6 +554,7 @@ import NcTrendingDownIcon from '~icons/nc-icons-v2/trending-down.svg'
 import NcPauseIcon from '~icons/nc-icons-v2/pause.svg'
 import NcArrowDownCircleIcon from '~icons/nc-icons-v2/arrow-down-circle.svg'
 import NcBookmarkIcon from '~icons/nc-icons-v2/bookmark.svg'
+import NcBookmarkSolidIcon from '~icons/nc-icons-v2/bookmark-solid.svg'
 import NcAlertTriangleIcon from '~icons/nc-icons-v2/alert-triangle.svg'
 import NcUserCheckIcon from '~icons/nc-icons-v2/user-check.svg'
 import NcTabletIcon from '~icons/nc-icons-v2/tablet.svg'
@@ -1526,6 +1529,8 @@ export const iconMap = {
   'ncPlus': NcPlusIcon,
   'ncCheck': NcCheckIcon,
   'ncRotateCcw': NcRotateCcwIcon,
+  'ncUndo': NcUndoIcon,
+  'ncRedo': NcRedoIcon,
   'ncHardDrive': NcHardDriveIcon,
   'ncBluetooth': NcBluetoothIcon,
   'ncPieChart': NcPieChartIcon,
@@ -1635,6 +1640,7 @@ export const iconMap = {
   'ncPause': NcPauseIcon,
   'ncArrowDownCircle': NcArrowDownCircleIcon,
   'ncBookmark': NcBookmarkIcon,
+  'ncBookmarkSolid': h(NcBookmarkSolidIcon, { stroke: 'transparent' }),
   'ncAlertTriangle': NcAlertTriangleIcon,
   'ncUserCheck': NcUserCheckIcon,
   'ncTablet': NcTabletIcon,
