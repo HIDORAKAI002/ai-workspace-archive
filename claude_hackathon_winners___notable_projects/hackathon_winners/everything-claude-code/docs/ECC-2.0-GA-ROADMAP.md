@@ -90,6 +90,87 @@ As of 2026-05-13:
   analysis-depth readiness into concrete hosted jobs for CI diagnostics,
   security evidence review, harness compatibility, reference-set evaluation,
   AI routing/cost review, and team backlog routing.
+- ECC-Tools PR #57 merged as `4cc61112a4cc9feec7b07af09321f360e34af6a4`
+  and added the first executable hosted analysis job:
+  `/api/analysis/jobs/ci-diagnostics` now gates on CI/CD readiness, inspects
+  workflow/test-runner/failure-evidence artifacts, returns CI hardening
+  findings and next actions, and charges usage only after successful execution.
+- ECC-Tools PR #58 merged as `ce09dd8d9b46f65c6b88dc4f48cfb6b6227ae0bf`
+  and added the second executable hosted analysis job:
+  `/api/analysis/jobs/security-evidence-review` now gates on security-evidence
+  readiness, inspects capped AgentShield evidence-pack, policy, baseline,
+  SBOM, SARIF, and security-scan artifacts, returns supply-chain evidence
+  findings and next actions, and charges usage only after successful execution.
+- ECC-Tools PR #59 merged as `505b372dbd8f75f996d9e2ed079effd30cec5ba5`
+  and added the third executable hosted analysis job:
+  `/api/analysis/jobs/harness-compatibility-audit` now gates on harness-config
+  readiness, inspects capped Claude, Codex, OpenCode, MCP, plugin, and
+  cross-harness documentation artifacts, excludes local secret-bearing config
+  paths from fetches, returns portability findings and next actions, and
+  charges usage only after successful execution.
+- ECC-Tools PR #60 merged as `b75e0a49ba5672b1ec9a2a4880ddcfa2d07dc557`
+  and added the fourth executable hosted analysis job:
+  `/api/analysis/jobs/reference-set-evaluation` now gates on reference-evidence
+  readiness, evaluates analyzer corpus, RAG/evaluator, PR salvage/review,
+  harness, security, and CI failure-mode evidence, excludes obvious
+  secret-bearing fixture paths from fetches, returns reference coverage
+  findings and next actions, and charges usage only after successful execution.
+- ECC-Tools PR #61 merged as `7b01b67cae0b80774b311cb515b7eca0aa038c65`
+  and added the fifth executable hosted analysis job:
+  `/api/analysis/jobs/ai-routing-cost-review` now gates on AI routing/cost
+  readiness, evaluates model routing, token budget, usage-limit, rate-limit,
+  billing/entitlement, cost-regression, and cost-policy evidence, excludes
+  obvious secret-bearing paths from fetches, returns cost-control findings and
+  next actions, and charges usage only after successful execution.
+- ECC-Tools PR #62 merged as `781d6733e56f7556edb43fb96bdfb00b1f0a3aa6`
+  and added the sixth executable hosted analysis job:
+  `/api/analysis/jobs/team-backlog-routing` now gates on team handoff/project
+  tracking readiness, evaluates roadmap, runbook, handoff, release-plan,
+  issue-template, ownership, project-tracker, backlog, and follow-up evidence,
+  excludes obvious secret-bearing paths from fetches, returns team-routing
+  findings and next actions, and charges usage only after successful execution.
+- ECC-Tools PR #63 merged as `fb9e4c5ceb9ccde50da74c7a69c3fa4bd321fc07`
+  and made the hosted execution plan operator-visible on queued PR analysis:
+  the queue now publishes a non-blocking `ECC Tools / Hosted Depth Plan`
+  check-run on the PR head SHA with ready/blocked hosted executor commands
+  and next action text, while keeping check-run publication best-effort so
+  bundle generation and analysis comments are not blocked.
+- ECC-Tools PR #64 merged as `72020ef94db94840812977ea7ac37e9344036668`
+  and added PR-facing hosted job dispatch controls:
+  `/ecc-tools analyze --job ...` comments now queue hosted jobs against the
+  PR head SHA, execute them through the existing hosted readiness/evidence
+  gates, post artifacts/findings/next actions back to the PR, and scope
+  idempotency keys by job id so hosted jobs do not collide with bundle
+  analysis.
+- ECC-Tools PR #65 merged as `bacd4adf6a3a629e8d403865456d15f127baaf4e`
+  and added hosted job result history/check-run summaries:
+  queued hosted jobs now cache both the latest result and immutable run records
+  for completed or blocked runs, then publish a non-blocking per-job check-run
+  on the PR head SHA with artifacts, findings, readiness blockers, and next
+  actions.
+- ECC-Tools PR #66 merged as `4e1db48252d068ea5dcf4308b0bc11b0dfe0c9ce`
+  and added a read-only hosted status command:
+  `/ecc-tools analyze --job status` now reads the #65 latest-result cache for
+  the current PR head and posts a compact completed/blocked/not-run table with
+  the next hosted job command, without queueing work or billing usage.
+- ECC-Tools PR #67 merged as `f20e6bec2b0bf49e4cc36e08b7285c795973b73d`
+  and made the hosted depth-plan check-run status-aware:
+  queued PR analysis now reads the #65/#66 latest-result cache when publishing
+  `ECC Tools / Hosted Depth Plan`, includes the latest hosted run status in
+  the plan table, and recommends the next unrun ready job before reruns.
+- ECC-Tools PR #68 merged as `2cde524b5ef8f34ab7bb1af973248fe4be4359f8`
+  and added deterministic hosted promotion readiness:
+  opened/synchronized PRs now publish a non-blocking
+  `ECC Tools / Hosted Promotion Readiness` check-run that compares changed
+  files against the checked-in evaluator/RAG corpus, warns on missing
+  hosted-job promotion evidence, and can be disabled with
+  `PR_HOSTED_PROMOTION_READINESS_CHECK_MODE=off`.
+- ECC-Tools PR #69 merged as `d0112dac7cef807ae27def41f057682ef0772cce`
+  and extended hosted promotion readiness with deterministic output scoring:
+  the check now reads cached completed hosted job results for the current PR
+  head, scores their artifacts and findings against evaluator/RAG corpus
+  expectations, and treats matching hosted artifacts as promotion evidence
+  before reporting a gap.
 - Handoff `ecc-supply-chain-audit-20260513-0645.md` under
   `~/.cluster-swarm/handoffs/`
   records the May 13 supply-chain sweep: no active lockfile/manifest hit for
@@ -281,6 +362,58 @@ As of 2026-05-13:
 - ECC-Tools PR #56 turned that signal into a hosted execution-plan contract:
   `/api/analysis/depth-plan` returns ready/blocked jobs and next action text
   without charging analysis usage or creating bundle PRs.
+- ECC-Tools PR #57 implemented the first job-specific hosted executor:
+  `/api/analysis/jobs/ci-diagnostics` reuses the depth-readiness gate, internal
+  API auth, installation ownership, repo-access billing checks, capped workflow
+  file reads, and usage accounting to return concrete CI hardening findings.
+- ECC-Tools PR #58 implemented the second job-specific hosted executor:
+  `/api/analysis/jobs/security-evidence-review` applies the same hosted gates
+  to AgentShield evidence-pack, policy, baseline, SBOM, SARIF, and security
+  scanner artifacts.
+- ECC-Tools PR #59 implemented the third job-specific hosted executor:
+  `/api/analysis/jobs/harness-compatibility-audit` applies the same hosted
+  gates to Claude, Codex, OpenCode, MCP, plugin, and cross-harness evidence
+  while avoiding local secret-bearing harness config fetches.
+- ECC-Tools PR #60 implemented the fourth job-specific hosted executor:
+  `/api/analysis/jobs/reference-set-evaluation` applies the same hosted gates
+  to analyzer corpus, RAG/evaluator, PR salvage, harness, security, and CI
+  failure-mode reference evidence while avoiding obvious secret-bearing fixture
+  fetches.
+- ECC-Tools PR #61 implemented the fifth job-specific hosted executor:
+  `/api/analysis/jobs/ai-routing-cost-review` applies the same hosted gates to
+  model-routing, token-budget, usage-limit, rate-limit, billing/entitlement,
+  cost-regression, and cost-policy evidence while avoiding obvious
+  secret-bearing path fetches.
+- ECC-Tools PR #62 implemented the sixth job-specific hosted executor:
+  `/api/analysis/jobs/team-backlog-routing` applies the same hosted gates to
+  roadmap, runbook, handoff, release-plan, issue-template, ownership,
+  project-tracker, backlog, and follow-up evidence while avoiding obvious
+  secret-bearing path fetches.
+- ECC-Tools PR #63 publishes the hosted depth-plan check-run after queued PR
+  analysis completes, making the six hosted executor commands visible on the
+  PR head SHA without turning the check into a merge blocker.
+- ECC-Tools PR #64 wires those commands into the queue: maintainers can comment
+  `/ecc-tools analyze --job ci-diagnostics`, `security-evidence`,
+  `harness-compatibility`, `reference-set-evaluation`, `ai-routing-cost`, or
+  `team-backlog` on a PR and receive hosted job results in a PR comment.
+- ECC-Tools PR #65 persists completed and blocked hosted job results to the
+  analysis cache for 30 days and publishes non-blocking `ECC Tools / Hosted
+  Job: ...` check-runs so maintainers can scan hosted outcomes from the PR
+  checks surface instead of rereading older comments.
+- ECC-Tools PR #66 exposes the cached results from PR comments with
+  `/ecc-tools analyze --job status`, summarizing completed, blocked, and
+  not-yet-run hosted jobs for the PR head and recommending the next hosted job
+  command.
+- ECC-Tools PR #67 feeds those cached results back into the hosted depth-plan
+  check-run so queued analysis recommends the next unrun ready hosted job from
+  cache state instead of repeating the static readiness order.
+- ECC-Tools PR #68 adds the first evaluator-backed hosted promotion gate:
+  opened/synchronized PRs get a non-blocking Hosted Promotion Readiness
+  check-run that turns the evaluator/RAG corpus into warnings when changed
+  files match fixture scenarios without their expected evidence artifacts.
+- ECC-Tools PR #69 extends that gate to score cached completed hosted job
+  outputs for the current PR head, so hosted artifacts can satisfy corpus
+  evidence expectations before the check reports a promotion gap.
 - ECC PR #1803 landed the contributor Quarkus handling branch after maintainer
   cleanup, current-`main` alignment, full local validation, and preservation of
   the author's removal of incomplete ja-JP and zh-CN Quarkus translations.
@@ -334,10 +467,10 @@ is not complete unless the evidence column exists and has been freshly verified.
 | Claude and Codex plugin publication | Contact/submission path with required artifacts and status | Publication readiness, naming matrix, and May 12 dry-run evidence document plugin validation, clean-checkout Claude tag/install smoke, and Codex marketplace CLI shape | Needs explicit approval for real tag/push and marketplace submission |
 | Articles, tweets, and announcements | X thread, LinkedIn copy, GitHub release copy, push checklist | Draft launch collateral exists under rc.1 release docs | Needs URL-backed refresh |
 | AgentShield enterprise iteration | Policy gates, SARIF, packs, provenance, corpus, HTML reports, exception lifecycle audit, baseline drift Action/CLI surfaces, evidence-pack redaction, harness adapter registry, enterprise research roadmap, supply-chain hardened release path, CI-safe baseline fingerprints, corpus accuracy recommendations, remediation workflow phases, env proxy hijack corpus coverage | PRs #53, #55-#64, #67-#69, and #78-#82 landed with test evidence; native PDF export deferred in favor of self-contained HTML plus print-to-PDF until explicit enterprise demand appears; `docs/architecture/agentshield-enterprise-research-roadmap.md` now has baseline drift, evidence-pack bundle, redaction, adapter-registry, supply-chain hardening, hashed baseline fingerprints, corpus accuracy recommendation, remediation workflow, and env proxy hijack corpus slices landed | Next hosted evidence-pack workflow depth |
-| ECC Tools next-level app | Billing audit, PR checks, deep analyzer, sync backlog, evaluator/RAG corpus, analysis-depth readiness, hosted execution planning | PRs #26-#43 plus #53-#56 landed with test evidence, including AgentShield evidence-pack gap routing, canonical bundle recognition, supply-chain signature gates, PR draft follow-up Linear tracking, evidence-backed/deep-ready repository classification, and the `/api/analysis/depth-plan` hosted job plan | Needs job-specific worker execution for the hosted recommendation lanes |
+| ECC Tools next-level app | Billing audit, PR checks, deep analyzer, sync backlog, evaluator/RAG corpus, analysis-depth readiness, hosted execution planning, hosted CI diagnostics, hosted security evidence review, hosted harness compatibility audit, hosted reference-set evaluation, hosted AI routing/cost review, hosted team backlog routing, hosted depth-plan check-run, PR-comment hosted job dispatch, hosted job result history/check-runs, hosted result status command, status-aware depth-plan recommendations, hosted promotion readiness, hosted promotion output scoring | PRs #26-#43 plus #53-#69 landed with test evidence, including AgentShield evidence-pack gap routing, canonical bundle recognition, supply-chain signature gates, PR draft follow-up Linear tracking, evidence-backed/deep-ready repository classification, the `/api/analysis/depth-plan` hosted job plan, `/api/analysis/jobs/ci-diagnostics`, `/api/analysis/jobs/security-evidence-review`, `/api/analysis/jobs/harness-compatibility-audit`, `/api/analysis/jobs/reference-set-evaluation`, `/api/analysis/jobs/ai-routing-cost-review`, `/api/analysis/jobs/team-backlog-routing`, the `ECC Tools / Hosted Depth Plan` check-run, `/ecc-tools analyze --job ...` PR-comment dispatch, non-blocking per-hosted-job result check-runs backed by 30-day result cache records, `/ecc-tools analyze --job status` cache lookup, cache-aware next-job recommendations in the depth-plan check-run, the `ECC Tools / Hosted Promotion Readiness` corpus-backed PR check-run, and deterministic hosted-output scoring against cached completed job artifacts/findings | Next work is retrieval/model-backed hosted promotion after deterministic output scoring |
 | GitGuardian/Dependabot/CodeRabbit-style checks | Non-blocking taxonomy, deterministic follow-up checks, and local supply-chain gates | ECC-Tools risk taxonomy check plus follow-up signals landed, including Skill Quality, Deep Analyzer Evidence, Analyzer Corpus Evidence, RAG/Evaluator Evidence, PR Review/Salvage Evidence, and AgentShield evidence-pack evidence; #1846 added npm registry signature gates; #1848 added the supply-chain incident-response playbook and `pull_request_target` cache-poisoning validator guard; #1851 added the privileged checkout credential-persistence guard; AgentShield #78, JARVIS #13, and ECC-Tools #53 applied the same hardening outside trunk | Current supply-chain gate complete; deeper hosted review features remain future |
-| Harness-agnostic learning system | Audit, adapter matrix, observability, traces, promotion loop | Audit/adapters/observability gates plus `docs/architecture/evaluator-rag-prototype.md`, `examples/evaluator-rag-prototype/`, and ECC-Tools PR #40 define read-only stale-salvage, billing-readiness, CI-failure-diagnosis, harness-config-quality, AgentShield policy-exception, skill-quality evidence, deep-analyzer evidence, and RAG/evaluator comparison scenarios with trace, report, playbook, verifier, and predictive-check artifacts | Local corpus complete; hosted integration remains future |
-| Linear roadmap is detailed | Linear project status plus repo mirror | Repo mirror exists; issue creation was retried on 2026-05-12 and remains blocked by the workspace free issue limit; this May 13 sync adds ECC #1860, AgentShield #78-#82, JARVIS #13, ECC-Tools #53-#56, resolved queue/discussion counts, and Linear project status updates through ECC-Tools #55 | Needs recurring status updates after each merge batch |
+| Harness-agnostic learning system | Audit, adapter matrix, observability, traces, promotion loop | Audit/adapters/observability gates plus `docs/architecture/evaluator-rag-prototype.md`, `examples/evaluator-rag-prototype/`, and ECC-Tools PR #40 define read-only stale-salvage, billing-readiness, CI-failure-diagnosis, harness-config-quality, AgentShield policy-exception, skill-quality evidence, deep-analyzer evidence, and RAG/evaluator comparison scenarios with trace, report, playbook, verifier, and predictive-check artifacts; ECC-Tools PRs #68/#69 now turn that corpus into a deterministic PR check-run gate with cached hosted-output scoring | Deterministic hosted PR check and cached output scoring integrated; hosted retrieval remains future |
+| Linear roadmap is detailed | Linear project status plus repo mirror | Repo mirror exists; issue creation was retried on 2026-05-12 and remains blocked by the workspace free issue limit; this May 13 sync adds ECC #1860, AgentShield #78-#82, JARVIS #13, ECC-Tools #53-#69, resolved queue/discussion counts, and Linear project status updates through ECC-Tools #69 | Needs recurring status updates after each merge batch |
 | Flow separation and progress tracking | Flow lanes with owner artifacts and update cadence | This roadmap defines lanes below and `docs/architecture/progress-sync-contract.md` makes GitHub/Linear/handoff/roadmap sync part of the readiness gate | Active |
 | Realtime Linear sync | Project updates while issue limit is blocked; issues later | ECC-Tools #39 implements opt-in Linear API sync for deferred follow-up backlog items, and ECC-Tools #54 adds copy-ready PR drafts to that backlog when draft PR shells are not opened; `docs/architecture/progress-sync-contract.md` defines the local file-backed realtime boundary while issue capacity is blocked | Needs workspace capacity/config rollout |
 | Observability for self-use | Local readiness gate, traces, status snapshots, HUD/status contract, risk ledger, progress-sync contract | `npm run observability:ready` reports 21/21 | Complete for local gate |
@@ -356,9 +489,9 @@ repo evidence and merge commits.
 | Queue hygiene and salvage | GitHub PR/issue state, salvage ledger | Append ledger entries for any future stale closures | Every cleanup batch |
 | Release and publication | rc.1 release docs, publication readiness doc | Naming matrix and plugin submission/contact checklist | Before any tag |
 | Harness OS core | Audit, adapter matrix, observability docs, `ecc2/` | HUD/session-control acceptance spec | Weekly until GA |
-| Evaluation and RAG | Reference-set validation, harness audit, traces, ECC-Tools corpus | Read-only evaluator/RAG prototype plus stale-salvage, billing-readiness, CI-failure-diagnosis, harness-config-quality, AgentShield policy-exception, skill-quality evidence, deep-analyzer evidence, and RAG/evaluator comparison fixtures | Hosted retrieval/check-run automation plan |
+| Evaluation and RAG | Reference-set validation, harness audit, traces, ECC-Tools corpus | Read-only evaluator/RAG prototype plus stale-salvage, billing-readiness, CI-failure-diagnosis, harness-config-quality, AgentShield policy-exception, skill-quality evidence, deep-analyzer evidence, and RAG/evaluator comparison fixtures; ECC-Tools #68 publishes the corpus as a hosted promotion readiness check-run, and #69 scores cached hosted job outputs against the same corpus | Hosted retrieval/model-backed promotion plan |
 | AgentShield enterprise | AgentShield PR evidence and roadmap notes | Remediation workflow depth or corpus expansion follow-up | Next implementation batch |
-| ECC Tools app | ECC-Tools PR evidence, billing audit, risk taxonomy, evaluator/RAG corpus | ECC-Tools #53 published the supply-chain workflow hardening branch, #54 tracks copy-ready PR drafts in the Linear/project backlog, #55 classifies analysis-depth readiness, and #56 exposes the hosted execution plan; next work is job-specific hosted execution | Next implementation batch |
+| ECC Tools app | ECC-Tools PR evidence, billing audit, risk taxonomy, evaluator/RAG corpus | ECC-Tools #53 published the supply-chain workflow hardening branch, #54 tracks copy-ready PR drafts in the Linear/project backlog, #55 classifies analysis-depth readiness, #56 exposes the hosted execution plan, #57 executes the first hosted CI diagnostics job, #58 executes the hosted security evidence review job, #59 executes the hosted harness compatibility audit, #60 executes the hosted reference-set evaluation, #61 executes the hosted AI routing/cost review, #62 executes hosted team backlog routing, #63 publishes the hosted depth-plan check-run, #64 dispatches hosted jobs from PR comments, #65 persists hosted result history/check-runs, #66 exposes hosted job status from PR comments, #67 makes depth-plan recommendations cache-aware, #68 publishes hosted promotion readiness from the evaluator/RAG corpus, and #69 scores cached hosted job outputs against that corpus; next work is retrieval/model-backed hosted promotion | Next implementation batch |
 | Linear progress | Linear project status updates, `docs/architecture/progress-sync-contract.md`, and this mirror | Status update with queue/evidence/missing gates | Every significant merge batch |
 
 The project status update should always include:
@@ -575,10 +708,9 @@ Acceptance:
    PR #82 expanded corpus coverage for env proxy hijacks and out-of-band
    exfiltration; and ECC-Tools PRs #42/#43 now route and recognize evidence
    packs. The next slice is hosted evidence-pack workflow depth.
-2. Keep ECC-Tools #53's supply-chain workflow gate and #54's PR-draft backlog
-   tracking in the recurring queue evidence, and use the org-scoped GitHub auth
-   path for future ECC-Tools maintenance while the narrow environment token
-   remains active.
+2. Plan retrieval/model-backed hosted promotion on top of the #69 deterministic
+   hosted output scoring contract, keeping vector/model judgment behind fixture
+   evaluation until the retrieval contract is stable.
 3. Enable/configure the merged Linear backlog sync path after workspace issue
    capacity clears or the Linear workspace is upgraded, then verify PR-draft
    salvage items land in the expected project.
