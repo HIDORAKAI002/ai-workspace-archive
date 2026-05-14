@@ -162,12 +162,12 @@ const bundledPluginFile = (pluginId: string, relativePath: string) =>
   `${bundledPluginRoot(pluginId)}/${relativePath}`;
 const explicitNeverBundleDependencies = [
   "@anthropic-ai/vertex-sdk",
+  "@slack/bolt",
+  "@slack/web-api",
   "@discordjs/voice",
   "@lancedb/lancedb",
   "@larksuiteoapi/node-sdk",
   "@matrix-org/matrix-sdk-crypto-nodejs",
-  "@slack/bolt",
-  "@slack/web-api",
   "@vitest/expect",
   "matrix-js-sdk",
   "prism-media",
