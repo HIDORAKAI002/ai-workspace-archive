@@ -9,7 +9,7 @@
   "repository": "https://github.com/alirezarezvani/claude-skills",
   "metadata": {
     "description": "272 production-ready skill packages across 9 domains with 385 Python tools, 519 reference documents, 31 agents (24 cs-* + 7 personas), and 58 slash commands. Compatible with Claude Code, Codex CLI, Hermes Agent, Cursor, Antigravity, OpenCode, Gemini CLI, and OpenClaw.",
-    "version": "2.6.0"
+    "version": "2.6.1"
   },
   "plugins": [
     {
