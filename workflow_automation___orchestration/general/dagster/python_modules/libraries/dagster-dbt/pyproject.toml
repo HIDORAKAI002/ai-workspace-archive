@@ -66,12 +66,10 @@ test = [
 # dbt-core 1.7.x / 1.8.x pin protobuf<5 internally. dagster's runtime
 # requires grpcio>=1.66.2 on py>=3.13 (which transitively requires
 # protobuf>=5.26), so the dbt17/18 forks are only feasible on py<3.13.
-# The python_version marker scopes the constraints accordingly. Per the
-# uv resolver bug documented in
-# reports/2026-05-13-uv-disjoint-markers-conflict-resolver-bug.md, the
-# marker-scoped grpcio cap is sometimes mis-applied across fork
-# boundaries; `prerelease = "allow"` below works around it by letting
-# the resolver explore more candidates.
+# The python_version marker scopes the constraints accordingly. The
+# `[tool.uv].environments` split below is what makes uv evaluate these
+# marker-scoped caps cleanly per Python band — see the bug report at
+# reports/2026-05-13-uv-disjoint-markers-conflict-resolver-bug.md.
 test-dbt17 = [
     "dbt-core==1.7.*,>=1.7.10; python_version<'3.13'",
     "dbt-duckdb==1.7.*; python_version<'3.13'",
@@ -125,9 +123,6 @@ environments = [
     "python_version >= '3.10' and python_version < '3.13'",
     "python_version >= '3.13' and python_version < '3.14'",
 ]
-# Required for uv to find a stable resolution under the per-environment
-# fork structure; no pre-release versions end up in the lockfile.
-prerelease = "allow"
 
 [tool.uv.sources]
 dagster = { path = "../../dagster", editable = true }

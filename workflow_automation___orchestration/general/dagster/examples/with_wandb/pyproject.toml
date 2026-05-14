@@ -5,12 +5,13 @@ build-backend = "hatchling.build"
 [project]
 name = "with_wandb"
 version = "1!0+dev"
+requires-python = ">=3.12,<3.15"
 dependencies = [
     "dagster",
     "dagster-wandb",
     "onnxruntime",
     "skl2onnx",
-    "onnx>=1.13.0,<1.18.0",  # Ensure a version is installed that is protobuf 4 compatible
+    "onnx",
     "joblib",
     "torch",
     "torchvision",
