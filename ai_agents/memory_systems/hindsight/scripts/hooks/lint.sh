@@ -34,13 +34,9 @@ run_task() {
 echo "  Syncing Python dependencies..."
 # Run uv sync first to avoid race conditions when multiple uv run commands
 # try to reinstall local packages in parallel (e.g., after version bump).
-# In CI, use --frozen to avoid re-resolving the lockfile (which would cause
-# verify-generated-files to report spurious diffs on Dependabot PRs).
-if [ -n "$CI" ]; then
-    uv sync --frozen --quiet
-else
-    uv sync --quiet
-fi
+# In CI, UV_FROZEN=1 is set at the job level so this becomes a no-op for
+# lockfile resolution (see verify-generated-files in test.yml).
+uv sync --quiet
 
 echo "  Running lints in parallel..."
 
