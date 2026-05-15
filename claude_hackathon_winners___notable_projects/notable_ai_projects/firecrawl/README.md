@@ -700,6 +700,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 **Agents & AI Tools**
 - [Firecrawl Skill](https://docs.firecrawl.dev/sdks/cli)
+- [Firecrawl CLI Skills](https://github.com/firecrawl/cli#agent-skills)
+- [Firecrawl Workflows](https://github.com/firecrawl/firecrawl-workflows)
 - [Firecrawl MCP](https://github.com/mendableai/firecrawl-mcp-server)
 
 **Platforms**

@@ -1,5 +1,4 @@
 import type { Meta } from "../../..";
-import type { PDFProcessorResult } from "../types";
 import { fetch as undiciFetch } from "undici";
 import { AbortManagerThrownError } from "../../../lib/abortManager";
 import {
@@ -7,23 +6,18 @@ import {
   resultResponseSchema,
   type ResultResponse,
 } from "./schema";
-import type { Fallback } from "./utils";
+import { failAsync } from "./utils";
 
-export type ResultDeps = {
+type ResultDeps = {
   baseUrl: string;
   scrapeId: string;
   meta: Meta;
   fetchImpl: typeof undiciFetch;
   sleep: (ms: number, signal?: AbortSignal) => Promise<void>;
-  fallback: Fallback;
 };
 
-export type ResultOutcome =
-  | { kind: "ok"; result: ResultResponse }
-  | { kind: "fallback"; result: PDFProcessorResult };
-
-export async function fetchResult(deps: ResultDeps): Promise<ResultOutcome> {
-  const { baseUrl, scrapeId, meta, fetchImpl, sleep, fallback } = deps;
+export async function fetchResult(deps: ResultDeps): Promise<ResultResponse> {
+  const { baseUrl, scrapeId, meta, fetchImpl, sleep } = deps;
   let retried409 = 0;
 
   while (true) {
@@ -35,33 +29,24 @@ export async function fetchResult(deps: ResultDeps): Promise<ResultOutcome> {
       });
     } catch (error) {
       if (error instanceof AbortManagerThrownError) throw error;
-      return {
-        kind: "fallback",
-        result: await fallback("network_error", { error: String(error) }),
-      };
+      failAsync(meta, "network_error", { error: String(error) });
     }
 
     const status = resp.status;
     const body = await resp.json().catch(() => ({}));
 
     if (status === 503) {
-      return {
-        kind: "fallback",
-        result: await fallback("result_503", { body }),
-      };
+      failAsync(meta, "result_503", { body });
     }
 
     if (status === 409) {
       retried409++;
       if (retried409 > 1) {
-        return {
-          kind: "fallback",
-          result: await fallback("http_5xx", {
-            status: 409,
-            body,
-            note: "result endpoint kept returning 409",
-          }),
-        };
+        failAsync(meta, "http_5xx", {
+          status: 409,
+          body,
+          note: "result endpoint kept returning 409",
+        });
       }
       meta.logger.info("FirePDF async result returned 409, re-polling once", {
         scrapeId,
@@ -71,22 +56,16 @@ export async function fetchResult(deps: ResultDeps): Promise<ResultOutcome> {
     }
 
     if (status !== 200) {
-      return {
-        kind: "fallback",
-        result: await fallback("http_5xx", { status, body }),
-      };
+      failAsync(meta, "http_5xx", { status, body });
     }
 
     const parsed = resultResponseSchema.safeParse(body);
     if (!parsed.success) {
-      return {
-        kind: "fallback",
-        result: await fallback("http_5xx", {
-          error: String(parsed.error),
-          body,
-        }),
-      };
+      failAsync(meta, "http_5xx", {
+        error: String(parsed.error),
+        body,
+      });
     }
-    return { kind: "ok", result: parsed.data };
+    return parsed.data;
   }
 }

@@ -1,7 +1,4 @@
 import type { Meta } from "../../..";
-import type { PDFMode } from "../../../../../controllers/v2/types";
-import type { PDFProcessorResult } from "../types";
-import type { scrapePDFWithFirePDF } from "../firePDF";
 import {
   MIN_DEADLINE_MS,
   MAX_DEADLINE_MS,
@@ -59,31 +56,26 @@ export function computeDeadlineMs(scrapeTimeoutMs: number | undefined): number {
   return Math.min(MAX_DEADLINE_MS, Math.max(MIN_DEADLINE_MS, candidate));
 }
 
-export type Fallback = (
+export class FirePdfAsyncFailure extends Error {
+  constructor(
+    public readonly reason: FallbackReason,
+    public readonly extra: Record<string, unknown> = {},
+  ) {
+    super(`fire-pdf async failed: ${reason}`);
+    this.name = "FirePdfAsyncFailure";
+  }
+}
+
+export function failAsync(
+  meta: Meta,
   reason: FallbackReason,
-  extra?: Record<string, unknown>,
-) => Promise<PDFProcessorResult>;
-
-export type FallbackCtx = {
-  meta: Meta;
-  fallbackImpl: typeof scrapePDFWithFirePDF;
-  base64Content: string;
-  maxPages?: number;
-  pagesProcessed?: number;
-  mode?: PDFMode;
-};
-
-export function makeFallback(ctx: FallbackCtx): Fallback {
-  const { meta, fallbackImpl, base64Content, maxPages, pagesProcessed, mode } =
-    ctx;
-  const scrapeId = meta.id;
-  return async (reason, extra = {}) => {
-    firePdfAsyncFallbackTotal.labels(reason).inc();
-    meta.logger.warn("FirePDF async falling back to sync /ocr", {
-      scrapeId,
-      reason,
-      ...extra,
-    });
-    return fallbackImpl(meta, base64Content, maxPages, pagesProcessed, mode);
-  };
+  extra: Record<string, unknown> = {},
+): never {
+  firePdfAsyncFallbackTotal.labels(reason).inc();
+  meta.logger.warn("FirePDF async failed", {
+    scrapeId: meta.id,
+    reason,
+    ...extra,
+  });
+  throw new FirePdfAsyncFailure(reason, extra);
 }
