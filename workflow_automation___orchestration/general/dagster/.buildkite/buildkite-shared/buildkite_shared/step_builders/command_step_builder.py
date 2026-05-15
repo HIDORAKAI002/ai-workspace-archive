@@ -155,7 +155,7 @@ class CommandStepBuilder:
             ]
 
         self._step = {
-            "agents": {"queue": BuildkiteQueue.MEDIUM.value},
+            "agents": {"queue": BuildkiteQueue.KUBERNETES_EKS.value},
             "key": key,
             "label": make_label(key, label_emojis),
             "timeout_in_minutes": timeout_in_minutes,
