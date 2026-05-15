@@ -27,10 +27,6 @@ class SubjectTokenProvider(TypedDict):
 
 
 class WorkloadIdentity(TypedDict):
-    """A unique string that identifies the client."""
-
-    client_id: str
-
     """Identity provider resource id in WIFAPI."""
     identity_provider_id: str
 
@@ -253,7 +249,6 @@ class WorkloadIdentityAuth:
                 self.token_exchange_url,
                 json={
                     "grant_type": TOKEN_EXCHANGE_GRANT_TYPE,
-                    "client_id": self.workload_identity["client_id"],
                     "subject_token": subject_token,
                     "subject_token_type": subject_token_type,
                     "identity_provider_id": self.workload_identity["identity_provider_id"],

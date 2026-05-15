@@ -83,15 +83,12 @@ from openai.auth import k8s_service_account_token_provider
 
 client = OpenAI(
     workload_identity={
-        "client_id": "your-client-id",
         "identity_provider_id": "idp-123",
         "service_account_id": "sa-456",
         "provider": k8s_service_account_token_provider(
             "/var/run/secrets/kubernetes.io/serviceaccount/token"
         ),
     },
-    organization="org-xyz",
-    project="proj-abc",
 )
 
 response = client.chat.completions.create(
@@ -108,7 +105,6 @@ from openai.auth import azure_managed_identity_token_provider
 
 client = OpenAI(
     workload_identity={
-        "client_id": "your-client-id",
         "identity_provider_id": "idp-123",
         "service_account_id": "sa-456",
         "provider": azure_managed_identity_token_provider(
@@ -126,7 +122,6 @@ from openai.auth import gcp_id_token_provider
 
 client = OpenAI(
     workload_identity={
-        "client_id": "your-client-id",
         "identity_provider_id": "idp-123",
         "service_account_id": "sa-456",
         "provider": gcp_id_token_provider(audience="https://api.openai.com/v1"),
@@ -146,7 +141,6 @@ def get_custom_token() -> str:
 
 client = OpenAI(
     workload_identity={
-        "client_id": "your-client-id",
         "identity_provider_id": "idp-123",
         "service_account_id": "sa-456",
         "provider": {
@@ -165,7 +159,6 @@ from openai.auth import k8s_service_account_token_provider
 
 client = OpenAI(
     workload_identity={
-        "client_id": "your-client-id",
         "identity_provider_id": "idp-123",
         "service_account_id": "sa-456",
         "provider": k8s_service_account_token_provider("/var/token"),
