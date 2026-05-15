@@ -7,6 +7,8 @@
         // version jump). The vulnerable methods (group/link/spanAll) are HTML-only surfaces
         // unused by geoip-country and unexploitable in this server-side context.
         // Blocked until geoip-country ships a dependency on ip-address>=10.1.1.
+        // Owner: team-engineering-reviewers. Tracking: create internal ticket.
+        // Expires: 2026-06-15.
         "GHSA-v2v4-37r5-5v8g"
     ]
 }
