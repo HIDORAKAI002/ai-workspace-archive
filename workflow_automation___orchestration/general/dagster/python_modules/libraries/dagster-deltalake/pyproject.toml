@@ -9,10 +9,6 @@ description = "Package for Deltalake-specific Dagster framework op and resource 
 authors = [{name = "Elementl", email = "hello@elementl.com"}]
 license = "Apache-2.0"
 requires-python = ">=3.10,<3.15"
-classifiers = [
-    "Programming Language :: Python :: 3.10",
-    "Operating System :: OS Independent",
-]
 dependencies = [
     "deltalake>=1.0.0",
     "pyarrow",

@@ -1,5 +1,18 @@
 # @ai-sdk/angular
 
+## 3.0.0-canary.141
+
+### Patch Changes
+
+- Updated dependencies [e3a0419]
+  - ai@7.0.0-canary.141
+
+## 3.0.0-canary.140
+
+### Patch Changes
+
+- ai@7.0.0-canary.140
+
 ## 3.0.0-canary.139
 
 ### Patch Changes

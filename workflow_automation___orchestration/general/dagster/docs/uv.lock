@@ -9,10 +9,6 @@ resolution-markers = [
     "python_full_version < '3.12'",
 ]
 
-[options]
-exclude-newer = "0001-01-01T00:00:00Z" # This has no effect and is included for backwards compatibility when using relative exclude-newer values.
-exclude-newer-span = "PT48H"
-
 [[package]]
 name = "a2wsgi"
 version = "1.10.10"
@@ -247,6 +243,41 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/13/7d/8bca2bf9a247c2c5dfeec1d7a5f40db6518f88d314b8bca9da29670d2671/aiosqlite-0.21.0.tar.gz", hash = "sha256:131bb8056daa3bc875608c631c678cda73922a2d4ba8aec373b19f18c17e7aa3", size = 13454, upload-time = "2025-02-03T07:30:16.235Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/f5/10/6c25ed6de94c49f88a91fa5018cb4c0f3625f31d5be9f771ebe5cc7cd506/aiosqlite-0.21.0-py3-none-any.whl", hash = "sha256:2549cf4057f95f53dcba16f2b64e8e2791d7e1adedb13197dd8ed77bb226d7d0", size = 15792, upload-time = "2025-02-03T07:30:13.6Z" },
+]
+
+[[package]]
+name = "airlift-migration-tutorial"
+version = "1!0+dev"
+source = { editable = "../examples/airlift-migration-tutorial" }
+dependencies = [
+    { name = "dagster" },
+    { name = "dagster-airlift", extra = ["core", "in-airflow"] },
+    { name = "dagster-webserver" },
+    { name = "dbt-duckdb" },
+    { name = "pandas" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "dagster", editable = "../python_modules/dagster" },
+    { name = "dagster-airlift", extras = ["core", "in-airflow"], editable = "../python_modules/libraries/dagster-airlift" },
+    { name = "dagster-webserver", editable = "../python_modules/dagster-webserver" },
+    { name = "dbt-duckdb" },
+    { name = "pandas" },
+]
+
+[package.metadata.requires-dev]
+test = [
+    { name = "dagster", extras = ["test"], editable = "../python_modules/dagster" },
+    { name = "dagster-airlift", extras = ["core", "test", "in-airflow"], editable = "../python_modules/libraries/dagster-airlift" },
+    { name = "dagster-dbt", editable = "../python_modules/libraries/dagster-dbt" },
+    { name = "dagster-graphql", editable = "../python_modules/dagster-graphql" },
+    { name = "dagster-pipes", editable = "../python_modules/dagster-pipes" },
+    { name = "dagster-shared", editable = "../python_modules/libraries/dagster-shared" },
+    { name = "dagster-test", editable = "../python_modules/dagster-test" },
+    { name = "dagster-webserver", editable = "../python_modules/dagster-webserver" },
+    { name = "pandas" },
+    { name = "pytest" },
 ]
 
 [[package]]
@@ -2595,6 +2626,7 @@ source = { virtual = "." }
 
 [package.dev-dependencies]
 test = [
+    { name = "airlift-migration-tutorial" },
     { name = "claude-code-sdk" },
     { name = "dagster" },
     { name = "dagster-airlift", extra = ["core", "in-airflow", "tutorial"] },
@@ -2638,13 +2670,13 @@ test = [
     { name = "sphinx-click" },
     { name = "sphinx-toolbox" },
     { name = "sphinxcontrib-mdxbuilder" },
-    { name = "tutorial-example" },
 ]
 
 [package.metadata]
 
 [package.metadata.requires-dev]
 test = [
+    { name = "airlift-migration-tutorial", editable = "../examples/airlift-migration-tutorial" },
     { name = "claude-code-sdk" },
     { name = "dagster", editable = "../python_modules/dagster" },
     { name = "dagster-airlift", extras = ["tutorial", "core", "in-airflow"], editable = "../python_modules/libraries/dagster-airlift" },
@@ -2688,7 +2720,6 @@ test = [
     { name = "sphinx-click", editable = "sphinx/_ext/sphinx-click" },
     { name = "sphinx-toolbox" },
     { name = "sphinxcontrib-mdxbuilder", editable = "sphinx/_ext/sphinx-mdx-builder" },
-    { name = "tutorial-example", editable = "../examples/airlift-migration-tutorial" },
 ]
 
 [[package]]
@@ -3211,7 +3242,7 @@ requires-dist = [
     { name = "jupyter-client", specifier = "<8" },
     { name = "nbconvert" },
     { name = "packaging", specifier = ">=20.9" },
-    { name = "papermill", specifier = ">=1.0.0" },
+    { name = "papermill", specifier = ">=2.0.0" },
     { name = "scrapbook", specifier = ">=0.5.0" },
 ]
 
@@ -3224,14 +3255,6 @@ test = [
     { name = "matplotlib" },
     { name = "scikit-learn", specifier = ">=0.19.0" },
     { name = "tqdm" },
-]
-test-papermill1 = [
-    { name = "jinja2", specifier = "<3.0" },
-    { name = "jupyter-client", specifier = "<6.1.13" },
-    { name = "markupsafe", specifier = "<=2.0.1" },
-    { name = "nbconvert", specifier = "<6.0.0" },
-    { name = "nbformat", specifier = "<=5.1.3" },
-    { name = "papermill", specifier = "<2.0.0" },
 ]
 
 [[package]]
@@ -8939,41 +8962,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/1b/22/40f55b26baeab80c2d7b3f1db0682f8954e4617fee7d90ce634022ef05c6/traitlets-5.15.0.tar.gz", hash = "sha256:4fead733f81cf1c4c938e06f8ca4633896833c9d89eff878159457f4d4392971", size = 163197, upload-time = "2026-05-06T08:05:58.016Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/da/98/a9937a969d018a23badfea0b381f66783649d48e0ea6c41923265c3cbeb3/traitlets-5.15.0-py3-none-any.whl", hash = "sha256:fb36a18867a6803deab09f3c5e0fa81bb7b26a5c9e82501c9933f759166eff40", size = 85877, upload-time = "2026-05-06T08:05:55.853Z" },
-]
-
-[[package]]
-name = "tutorial-example"
-version = "1!0+dev"
-source = { editable = "../examples/airlift-migration-tutorial" }
-dependencies = [
-    { name = "dagster" },
-    { name = "dagster-airlift", extra = ["core", "in-airflow"] },
-    { name = "dagster-webserver" },
-    { name = "dbt-duckdb" },
-    { name = "pandas" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "dagster", editable = "../python_modules/dagster" },
-    { name = "dagster-airlift", extras = ["core", "in-airflow"], editable = "../python_modules/libraries/dagster-airlift" },
-    { name = "dagster-webserver", editable = "../python_modules/dagster-webserver" },
-    { name = "dbt-duckdb" },
-    { name = "pandas" },
-]
-
-[package.metadata.requires-dev]
-test = [
-    { name = "dagster", extras = ["test"], editable = "../python_modules/dagster" },
-    { name = "dagster-airlift", extras = ["core", "test", "in-airflow"], editable = "../python_modules/libraries/dagster-airlift" },
-    { name = "dagster-dbt", editable = "../python_modules/libraries/dagster-dbt" },
-    { name = "dagster-graphql", editable = "../python_modules/dagster-graphql" },
-    { name = "dagster-pipes", editable = "../python_modules/dagster-pipes" },
-    { name = "dagster-shared", editable = "../python_modules/libraries/dagster-shared" },
-    { name = "dagster-test", editable = "../python_modules/dagster-test" },
-    { name = "dagster-webserver", editable = "../python_modules/dagster-webserver" },
-    { name = "pandas" },
-    { name = "pytest" },
 ]
 
 [[package]]

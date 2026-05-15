@@ -18,7 +18,7 @@ import {
   searchFeedbackSchema,
 } from "./types";
 
-export const SEARCH_FEEDBACK_REFUND_CREDITS = 1;
+const SEARCH_FEEDBACK_REFUND_CREDITS = 1;
 
 // Must match the previewTeamId in services/logging/log_job.ts.
 const PREVIEW_TEAM_ID = "3adefd26-77ec-5968-8dcf-c94b5630d1de";
@@ -211,8 +211,7 @@ export async function searchFeedbackController(
       return fail(res, {
         status: 409,
         code: "SEARCH_FAILED",
-        error:
-          "Cannot submit feedback for a search that did not succeed.",
+        error: "Cannot submit feedback for a search that did not succeed.",
       });
     }
 

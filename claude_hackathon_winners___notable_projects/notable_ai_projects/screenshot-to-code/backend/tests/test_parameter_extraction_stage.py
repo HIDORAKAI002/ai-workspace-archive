@@ -37,3 +37,19 @@ async def test_extracts_gemini_api_key_from_env_when_not_in_request(monkeypatch:
     )
 
     assert extracted.gemini_api_key == "gemini-from-env"
+
+
+@pytest.mark.asyncio
+async def test_extracts_design_system_from_request() -> None:
+    stage = ParameterExtractionStage(AsyncMock())
+
+    extracted = await stage.extract_and_validate(
+        {
+            "generatedCodeConfig": "html_css",
+            "inputMode": "text",
+            "prompt": {"text": "hello"},
+            "designSystem": "  Reuse .mockup-frame  ",
+        }
+    )
+
+    assert extracted.design_system == "Reuse .mockup-frame"

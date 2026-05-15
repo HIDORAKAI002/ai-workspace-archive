@@ -50,7 +50,7 @@ test = [
     "dagster-powerbi",
     "dagster-pandas",
     "dagster-airlift[tutorial,core,in-airflow]",
-    "tutorial-example",
+    "airlift-migration-tutorial",
     "sling",
 
     # Community integrations (out-of-tree git sources)
@@ -100,7 +100,7 @@ dagster-tableau = { path = "../python_modules/libraries/dagster-tableau", editab
 dagster-powerbi = { path = "../python_modules/libraries/dagster-powerbi", editable = true }
 dagster-pandas = { path = "../python_modules/libraries/dagster-pandas", editable = true }
 dagster-airlift = { path = "../python_modules/libraries/dagster-airlift", editable = true }
-tutorial-example = { path = "../examples/airlift-migration-tutorial", editable = true }
+airlift-migration-tutorial = { path = "../examples/airlift-migration-tutorial", editable = true }
 
 dagster-iceberg = { git = "https://github.com/dagster-io/community-integrations.git", subdirectory = "libraries/dagster-iceberg" }
 dagster-polars = { git = "https://github.com/dagster-io/community-integrations.git", subdirectory = "libraries/dagster-polars" }

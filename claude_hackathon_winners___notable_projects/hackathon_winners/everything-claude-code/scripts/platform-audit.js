@@ -5,6 +5,10 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { spawnSync } = require('child_process');
+const {
+  emptyDiscussionSummary,
+  fetchDiscussionSummary,
+} = require('./lib/github-discussions');
 
 const SCHEMA_VERSION = 'ecc.platform-audit.v1';
 const DEFAULT_REPOS = Object.freeze([
@@ -19,9 +23,6 @@ const DEFAULT_THRESHOLDS = Object.freeze({
   maxOpenIssues: 20,
   maxDirtyFiles: 0,
 });
-const MAINTAINER_ASSOCIATIONS = new Set(['OWNER', 'MEMBER', 'COLLABORATOR']);
-const DISCUSSION_QUERY = 'query($owner: String!, $name: String!, $first: Int!) { repository(owner: $owner, name: $name) { hasDiscussionsEnabled discussions(first: $first, orderBy: {field: UPDATED_AT, direction: DESC}) { totalCount nodes { number title url updatedAt authorAssociation comments(first: 20) { nodes { authorAssociation } } } } } }';
-
 function usage() {
   console.log([
     'Usage: node scripts/platform-audit.js [options]',
@@ -29,7 +30,11 @@ function usage() {
     'Operator readiness audit for ECC queue, discussion, roadmap, release, and security evidence.',
     '',
     'Options:',
-    '  --format <text|json>       Output format (default: text)',
+    '  --format <text|json|markdown>',
+    '                             Output format (default: text)',
+    '  --json                     Alias for --format json',
+    '  --markdown                 Alias for --format markdown',
+    '  --write <path>             Write json or markdown output to a file',
     '  --root <dir>               Repository root to inspect (default: cwd)',
     '  --repo <owner/repo>        GitHub repo to inspect; repeatable',
     '  --skip-github              Skip live GitHub queue/discussion checks',
@@ -71,6 +76,7 @@ function parseArgs(argv) {
     skipGithub: false,
     thresholds: { ...DEFAULT_THRESHOLDS },
     useEnvGithubToken: false,
+    writePath: null,
   };
 
   for (let index = 0; index < args.length; index += 1) {
@@ -89,6 +95,16 @@ function parseArgs(argv) {
 
     if (arg.startsWith('--format=')) {
       parsed.format = arg.slice('--format='.length).toLowerCase();
+      continue;
+    }
+
+    if (arg === '--json') {
+      parsed.format = 'json';
+      continue;
+    }
+
+    if (arg === '--markdown') {
+      parsed.format = 'markdown';
       continue;
     }
 
@@ -127,6 +143,17 @@ function parseArgs(argv) {
 
     if (arg.startsWith('--allow-untracked=')) {
       parsed.allowUntracked.push(arg.slice('--allow-untracked='.length));
+      continue;
+    }
+
+    if (arg === '--write') {
+      parsed.writePath = path.resolve(readValue(args, index, arg));
+      index += 1;
+      continue;
+    }
+
+    if (arg.startsWith('--write=')) {
+      parsed.writePath = path.resolve(arg.slice('--write='.length));
       continue;
     }
 
@@ -176,8 +203,12 @@ function parseArgs(argv) {
     throw new Error(`Unknown argument: ${arg}`);
   }
 
-  if (!['text', 'json'].includes(parsed.format)) {
-    throw new Error(`Invalid format: ${parsed.format}. Use text or json.`);
+  if (!['text', 'json', 'markdown'].includes(parsed.format)) {
+    throw new Error(`Invalid format: ${parsed.format}. Use text, json, or markdown.`);
+  }
+
+  if (parsed.writePath && parsed.format === 'text') {
+    throw new Error('--write requires --json, --markdown, or --format json|markdown');
   }
 
   parsed.allowUntracked = parsed.allowUntracked.map(normalizeRelativePrefix);
@@ -303,57 +334,6 @@ function inspectGit(rootDir, options) {
   }
 }
 
-function discussionNeedsMaintainerTouch(discussion) {
-  if (MAINTAINER_ASSOCIATIONS.has(discussion.authorAssociation)) {
-    return false;
-  }
-
-  const comments = discussion.comments && Array.isArray(discussion.comments.nodes)
-    ? discussion.comments.nodes
-    : [];
-  return !comments.some(comment => MAINTAINER_ASSOCIATIONS.has(comment.authorAssociation));
-}
-
-function splitRepo(repo) {
-  const [owner, name] = String(repo || '').split('/');
-  if (!owner || !name) {
-    throw new Error(`Invalid repo: ${repo}`);
-  }
-  return { owner, name };
-}
-
-function fetchDiscussionSummary(repo, options) {
-  const { owner, name } = splitRepo(repo);
-  const payload = runGhJson([
-    'api',
-    'graphql',
-    '-f',
-    `owner=${owner}`,
-    '-f',
-    `name=${name}`,
-    '-F',
-    'first=100',
-    '-f',
-    `query=${DISCUSSION_QUERY}`,
-  ], options);
-  const repository = payload && payload.data && payload.data.repository;
-  const discussions = repository && repository.discussions;
-  const nodes = discussions && Array.isArray(discussions.nodes) ? discussions.nodes : [];
-  const needingTouch = nodes.filter(discussionNeedsMaintainerTouch);
-
-  return {
-    enabled: Boolean(repository && repository.hasDiscussionsEnabled),
-    totalCount: discussions && Number.isFinite(discussions.totalCount) ? discussions.totalCount : 0,
-    sampledCount: nodes.length,
-    needingMaintainerTouch: needingTouch.map(discussion => ({
-      number: discussion.number,
-      title: discussion.title,
-      url: discussion.url,
-      updatedAt: discussion.updatedAt,
-    })),
-  };
-}
-
 function fetchGithubRepo(repo, options) {
   const prs = runGhJson([
     'pr',
@@ -401,6 +381,7 @@ function buildGithubReport(options) {
         openPrs: 0,
         openIssues: 0,
         discussionsNeedingMaintainerTouch: 0,
+        discussionsMissingAcceptedAnswer: 0,
         dirtyPrs: 0,
         errors: 0,
       },
@@ -416,12 +397,7 @@ function buildGithubReport(options) {
         error: error.message,
         openPrs: 0,
         openIssues: 0,
-        discussions: {
-          enabled: false,
-          totalCount: 0,
-          sampledCount: 0,
-          needingMaintainerTouch: [],
-        },
+        discussions: emptyDiscussionSummary(),
         dirtyPrs: [],
       };
     }
@@ -434,6 +410,7 @@ function buildGithubReport(options) {
       openPrs: repoReports.reduce((sum, repo) => sum + repo.openPrs, 0),
       openIssues: repoReports.reduce((sum, repo) => sum + repo.openIssues, 0),
       discussionsNeedingMaintainerTouch: repoReports.reduce((sum, repo) => sum + repo.discussions.needingMaintainerTouch.length, 0),
+      discussionsMissingAcceptedAnswer: repoReports.reduce((sum, repo) => sum + repo.discussions.answerableWithoutAcceptedAnswer.length, 0),
       dirtyPrs: repoReports.reduce((sum, repo) => sum + repo.dirtyPrs.length, 0),
       errors: repoReports.filter(repo => repo.error).length,
     },
@@ -447,13 +424,17 @@ function buildLocalEvidenceChecks(rootDir) {
   const progressSync = readText(rootDir, 'docs/architecture/progress-sync-contract.md');
   const supplyChain = readText(rootDir, 'docs/security/supply-chain-incident-response.md');
   const evidence = readText(rootDir, 'docs/releases/2.0.0-rc.1/publication-evidence-2026-05-15.md');
+  const operatorDashboard = readText(rootDir, 'docs/releases/2.0.0-rc.1/operator-readiness-dashboard-2026-05-15.md');
 
   return [
     buildCheck(
       'platform-audit-cli-surface',
-      packageScripts['platform:audit'] === 'node scripts/platform-audit.js' ? 'pass' : 'fail',
-      'package.json exposes the platform audit command',
-      { fix: 'Add "platform:audit": "node scripts/platform-audit.js" to package.json.' }
+      packageScripts['platform:audit'] === 'node scripts/platform-audit.js'
+        && packageScripts['discussion:audit'] === 'node scripts/discussion-audit.js'
+        ? 'pass'
+        : 'fail',
+      'package.json exposes the platform and discussion audit commands',
+      { fix: 'Add platform:audit and discussion:audit commands to package.json.' }
     ),
     buildCheck(
       'roadmap-linear-mirror',
@@ -478,6 +459,12 @@ function buildLocalEvidenceChecks(rootDir) {
       includesAll(evidence, ['TanStack', 'Mini Shai-Hulud', 'Node IPC follow-up', 'node-ipc', 'IOC scan']) ? 'pass' : 'fail',
       'rc.1 evidence includes current supply-chain verification artifacts',
       { path: 'docs/releases/2.0.0-rc.1/publication-evidence-2026-05-15.md' }
+    ),
+    buildCheck(
+      'operator-readiness-dashboard',
+      includesAll(operatorDashboard, ['Prompt-To-Artifact Checklist', 'ITO-44', 'ITO-59', 'PR queue', 'Not complete']) ? 'pass' : 'fail',
+      'operator dashboard maps macro-goal requirements to current evidence and open gaps',
+      { path: 'docs/releases/2.0.0-rc.1/operator-readiness-dashboard-2026-05-15.md' }
     ),
   ];
 }
@@ -531,6 +518,13 @@ function buildReport(options) {
   ));
 
   checks.push(buildCheck(
+    'github-discussion-answers',
+    github.totals.discussionsMissingAcceptedAnswer === 0 ? 'pass' : 'fail',
+    `answerable discussions missing accepted answer: ${github.totals.discussionsMissingAcceptedAnswer}`,
+    { fix: 'Mark an accepted answer or route Q&A discussions that still need resolution.' }
+  ));
+
+  checks.push(buildCheck(
     'github-conflict-queue',
     github.totals.dirtyPrs === 0 ? 'pass' : 'fail',
     `conflicting open PRs: ${github.totals.dirtyPrs}`,
@@ -574,6 +568,7 @@ function renderText(report) {
     `Open PRs: ${report.github.totals.openPrs}/${report.thresholds.maxOpenPrs}`,
     `Open issues: ${report.github.totals.openIssues}/${report.thresholds.maxOpenIssues}`,
     `Discussions needing maintainer touch: ${report.github.totals.discussionsNeedingMaintainerTouch}`,
+    `Answerable discussions missing accepted answer: ${report.github.totals.discussionsMissingAcceptedAnswer}`,
     `Conflicting open PRs: ${report.github.totals.dirtyPrs}`,
     '',
     'Checks:',
@@ -595,6 +590,102 @@ function renderText(report) {
   return `${lines.join('\n')}\n`;
 }
 
+function markdownEscape(value) {
+  return String(value === undefined || value === null ? '' : value)
+    .replace(/\|/g, '\\|')
+    .replace(/\r?\n/g, '<br>');
+}
+
+function markdownStatus(status) {
+  switch (status) {
+    case 'pass':
+      return 'PASS';
+    case 'fail':
+      return 'FAIL';
+    case 'warn':
+      return 'WARN';
+    default:
+      return String(status || 'UNKNOWN').toUpperCase();
+  }
+}
+
+function renderMarkdown(report) {
+  const lines = [
+    '# ECC Platform Audit',
+    '',
+    `Generated: ${report.generatedAt}`,
+    `Status: ${report.ready ? 'ready' : 'attention required'}`,
+    `Root: \`${report.root}\``,
+    '',
+    '## Queue Summary',
+    '',
+    '| Surface | Count | Threshold | Status |',
+    '| --- | ---: | ---: | --- |',
+    `| Open PRs | ${report.github.totals.openPrs} | ${report.thresholds.maxOpenPrs} | ${report.github.totals.openPrs <= report.thresholds.maxOpenPrs ? 'PASS' : 'FAIL'} |`,
+    `| Open issues | ${report.github.totals.openIssues} | ${report.thresholds.maxOpenIssues} | ${report.github.totals.openIssues <= report.thresholds.maxOpenIssues ? 'PASS' : 'FAIL'} |`,
+    `| Discussions needing maintainer touch | ${report.github.totals.discussionsNeedingMaintainerTouch} | 0 | ${report.github.totals.discussionsNeedingMaintainerTouch === 0 ? 'PASS' : 'FAIL'} |`,
+    `| Answerable discussions missing accepted answer | ${report.github.totals.discussionsMissingAcceptedAnswer} | 0 | ${report.github.totals.discussionsMissingAcceptedAnswer === 0 ? 'PASS' : 'FAIL'} |`,
+    `| Conflicting open PRs | ${report.github.totals.dirtyPrs} | 0 | ${report.github.totals.dirtyPrs === 0 ? 'PASS' : 'FAIL'} |`,
+    `| Blocking dirty files | ${report.git.blockingDirtyCount} | ${report.thresholds.maxDirtyFiles} | ${report.git.blockingDirtyCount <= report.thresholds.maxDirtyFiles ? 'PASS' : 'FAIL'} |`,
+    '',
+    '## Repositories',
+    '',
+    '| Repository | PRs | Issues | Discussions sampled | Needs maintainer | Missing answers | Dirty PRs |',
+    '| --- | ---: | ---: | ---: | ---: | ---: | ---: |',
+  ];
+
+  for (const repo of report.github.repos) {
+    lines.push(
+      `| \`${markdownEscape(repo.repo)}\` | ${repo.openPrs || 0} | ${repo.openIssues || 0} | ${repo.discussions ? repo.discussions.sampledCount : 0} | ${repo.discussions ? repo.discussions.needingMaintainerTouch.length : 0} | ${repo.discussions ? repo.discussions.answerableWithoutAcceptedAnswer.length : 0} | ${repo.dirtyPrs ? repo.dirtyPrs.length : 0} |`
+    );
+  }
+
+  lines.push(
+    '',
+    '## Checks',
+    '',
+    '| Status | Check | Summary | Evidence |',
+    '| --- | --- | --- | --- |'
+  );
+
+  for (const check of report.checks) {
+    lines.push(
+      `| ${markdownStatus(check.status)} | \`${markdownEscape(check.id)}\` | ${markdownEscape(check.summary)} | ${check.path ? `\`${markdownEscape(check.path)}\`` : ''} |`
+    );
+  }
+
+  lines.push('', '## Top Actions', '');
+  if (report.top_actions.length === 0) {
+    lines.push('- none');
+  } else {
+    for (const action of report.top_actions) {
+      lines.push(`- \`${markdownEscape(action.id)}\`: ${markdownEscape(action.fix)}`);
+    }
+  }
+
+  lines.push('', '## Git State', '');
+  lines.push(`- Branch: ${report.git.branch ? `\`${markdownEscape(report.git.branch)}\`` : '(unknown)'}`);
+  lines.push(`- Ignored dirty files: ${report.git.ignoredDirty.length}`);
+  if (report.git.ignoredDirty.length > 0) {
+    for (const line of report.git.ignoredDirty) {
+      lines.push(`  - \`${markdownEscape(line)}\``);
+    }
+  }
+  lines.push(`- Blocking dirty files: ${report.git.blockingDirty.length}`);
+  if (report.git.blockingDirty.length > 0) {
+    for (const line of report.git.blockingDirty) {
+      lines.push(`  - \`${markdownEscape(line)}\``);
+    }
+  }
+
+  return `${lines.join('\n')}\n`;
+}
+
+function writeOutput(writePath, output) {
+  fs.mkdirSync(path.dirname(writePath), { recursive: true });
+  fs.writeFileSync(writePath, output, 'utf8');
+}
+
 function main() {
   try {
     const options = parseArgs(process.argv);
@@ -606,7 +697,12 @@ function main() {
     const report = buildReport(options);
     const output = options.format === 'json'
       ? `${JSON.stringify(report, null, 2)}\n`
-      : renderText(report);
+      : options.format === 'markdown'
+        ? renderMarkdown(report)
+        : renderText(report);
+    if (options.writePath) {
+      writeOutput(options.writePath, output);
+    }
     process.stdout.write(output);
 
     if (options.exitCode && !report.ready) {
@@ -625,6 +721,7 @@ if (require.main === module) {
 module.exports = {
   buildReport,
   parseArgs,
+  renderMarkdown,
   renderText,
   runGhJson,
 };

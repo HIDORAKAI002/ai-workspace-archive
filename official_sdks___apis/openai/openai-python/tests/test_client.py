@@ -45,7 +45,6 @@ base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 api_key = "My API Key"
 admin_api_key = "My Admin API Key"
 workload_identity: WorkloadIdentity = {
-    "client_id": "client_123",
     "identity_provider_id": "provider_123",
     "service_account_id": "service_account_123",
     "provider": {

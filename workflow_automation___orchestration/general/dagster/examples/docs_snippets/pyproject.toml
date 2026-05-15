@@ -12,10 +12,6 @@ version = "1!0+dev"
 requires-python = ">=3.10,<3.14"
 authors = [{name = "Dagster Labs", email = "hello@dagsterlabs.com"}]
 license = "Apache-2.0"
-classifiers = [
-    "Programming Language :: Python :: 3.10",
-    "Operating System :: OS Independent",
-]
 dependencies = []
 
 [project.optional-dependencies]

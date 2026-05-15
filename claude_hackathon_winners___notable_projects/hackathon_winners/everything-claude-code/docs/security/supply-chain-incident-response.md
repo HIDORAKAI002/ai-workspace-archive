@@ -81,6 +81,21 @@ node tests/run-all.js
 If a search hit appears only in documentation examples, note it in the release
 evidence but do not rotate credentials for a docs-only reference.
 
+## Durable Watch Workflow
+
+ECC also runs `.github/workflows/supply-chain-watch.yml` every six hours and on
+manual dispatch. The workflow is read-only, disables checkout credential
+persistence, installs with `npm ci --ignore-scripts`, verifies npm registry
+signatures, runs the IOC scanner fixtures, emits
+`supply-chain-ioc-report.json`, and re-validates GitHub Actions hardening rules.
+
+Treat a failed scheduled watch as a release blocker until an operator confirms
+whether the failure is a newly reported advisory, a stale scanner fixture, a
+registry-signature issue, or a workflow hardening regression. If the scanner
+needs new indicators, update `scripts/ci/scan-supply-chain-iocs.js`, add fixture
+coverage in `tests/ci/scan-supply-chain-iocs.test.js`, refresh this runbook, and
+attach the latest JSON artifact to the release evidence.
+
 ## Immediate Response
 
 If ECC or a maintainer machine installed a known-bad package version:
@@ -111,8 +126,10 @@ If ECC or a maintainer machine installed a known-bad package version:
      keys, and local `.npmrc` tokens;
    - any MCP, plugin, or harness credentials available in environment variables
      or user-scope config.
-6. Purge GitHub Actions caches for affected repositories.
-7. Reinstall from a clean environment with `npm ci --ignore-scripts` first.
+6. Purge GitHub Actions dependency caches for affected repositories.
+7. Reinstall from a clean environment with lifecycle scripts disabled first:
+   `npm ci --ignore-scripts`, `pnpm install --ignore-scripts`,
+   `yarn install --mode=skip-build`, or `bun install --ignore-scripts`.
 8. Re-enable lifecycle scripts only after the dependency tree and package
    versions are pinned to known-clean releases.
 
@@ -121,7 +138,9 @@ If ECC or a maintainer machine installed a known-bad package version:
 ECC enforces these rules through `scripts/ci/validate-workflow-security.js`:
 
 - privileged workflows must not checkout untrusted PR refs;
-- workflows with write permissions must use `npm ci --ignore-scripts`;
+- all workflow dependency installs must disable lifecycle scripts;
+- workflows must not restore or save shared GitHub Actions dependency caches
+  during active supply-chain hardening;
 - workflows with `id-token: write` must not restore or save shared dependency
   caches;
 - workflows that run `npm audit` must also run `npm audit signatures`;
