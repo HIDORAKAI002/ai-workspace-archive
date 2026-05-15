@@ -4,6 +4,7 @@ import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { toast } from "react-hot-toast";
 import OutputSettingsSection from "../../settings/OutputSettingsSection";
+import { DesignSystemSelectorProps } from "../../settings/DesignSystemSelector";
 import { Stack } from "../../../lib/stacks";
 
 interface Props {
@@ -15,13 +16,20 @@ interface Props {
   ) => void;
   stack: Stack;
   setStack: (stack: Stack) => void;
+  designSystem: DesignSystemSelectorProps;
 }
 
 function isFigmaUrl(url: string): boolean {
   return /^https?:\/\/([\w.-]*\.)?figma\.com\//i.test(url.trim());
 }
 
-function UrlTab({ doCreate, screenshotOneApiKey, stack, setStack }: Props) {
+function UrlTab({
+  doCreate,
+  screenshotOneApiKey,
+  stack,
+  setStack,
+  designSystem,
+}: Props) {
   const [isLoading, setIsLoading] = useState(false);
   const [referenceUrl, setReferenceUrl] = useState("");
 
@@ -129,7 +137,11 @@ function UrlTab({ doCreate, screenshotOneApiKey, stack, setStack }: Props) {
                 tab.
               </p>
             )}
-            <OutputSettingsSection stack={stack} setStack={setStack} />
+            <OutputSettingsSection
+              stack={stack}
+              setStack={setStack}
+              designSystem={designSystem}
+            />
 
             <Button
               onClick={takeScreenshot}
