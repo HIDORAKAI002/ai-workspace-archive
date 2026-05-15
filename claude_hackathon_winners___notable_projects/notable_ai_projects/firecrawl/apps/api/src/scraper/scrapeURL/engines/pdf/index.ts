@@ -18,6 +18,7 @@ import {
   shouldParsePDF,
   getPDFMaxPages,
   getPDFMode,
+  getFirePdfAsync,
 } from "../../../../controllers/v2/types";
 import type { PDFMode } from "../../../../controllers/v2/types";
 import { processPdf, detectPdf } from "@mendable/firecrawl-rs";
@@ -34,6 +35,7 @@ import {
 import { withSpan, setSpanAttributes } from "../../../../lib/otel-tracer";
 import { scrapePDFWithRunPodMU } from "./runpodMU";
 import { reconcilePageCountWithFirePdf, scrapePDFWithFirePDF } from "./firePDF";
+import { scrapePDFWithFirePDFAsync } from "./fire-pdf/async";
 import { scrapePDFWithParsePDF } from "./pdfParse";
 import { captureExceptionWithZdrCheck } from "../../../../services/sentry";
 import { isPdfBuffer, PDF_SNIFF_WINDOW } from "./pdfUtils";
@@ -399,12 +401,20 @@ export async function scrapePDF(meta: Meta): Promise<EngineScrapeResult> {
           Math.random() * 100 < config.FIRE_PDF_PERCENT);
 
       if (useFirePDF) {
+        // Per-request opt-in to async fire-pdf pipeline. Async client falls
+        // back to sync on any failure, so behaviour stays bounded by the
+        // sync path.
+        const useAsync = getFirePdfAsync(meta.options.parsers);
         try {
-          result = await scrapePDFWithFirePDF(
+          result = await (useAsync
+            ? scrapePDFWithFirePDFAsync
+            : scrapePDFWithFirePDF)(
             {
               ...meta,
               logger: meta.logger.child({
-                method: "scrapePDF/firePDF",
+                method: useAsync
+                  ? "scrapePDF/firePDFAsync"
+                  : "scrapePDF/firePDF",
               }),
             },
             base64Content,
