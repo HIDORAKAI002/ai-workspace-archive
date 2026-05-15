@@ -1731,7 +1731,7 @@ describe('tools', () => {
     );
   });
 
-  test('eploy edge function validates slug format', async () => {
+  test('deploy edge function validates slug format', async () => {
     const { callTool } = await setup();
 
     const org = await createOrganization({
@@ -2383,7 +2383,7 @@ describe('tools', () => {
     );
     expect(listBranchesResultAfterDelete.branches).toHaveLength(1);
 
-    const mainBranch = listBranchesResultAfterDelete.branches[-1];
+    const mainBranch = listBranchesResultAfterDelete.branches.at(-1);
 
     const deleteBranchPromise = callTool({
       name: 'delete_branch',
