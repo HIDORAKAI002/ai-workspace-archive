@@ -1,22 +1,18 @@
 import type { Meta } from "../../..";
 import type { PDFMode } from "../../../../../controllers/v2/types";
-import type { PDFProcessorResult } from "../types";
 import { fetch as undiciFetch } from "undici";
 import { AbortManagerThrownError } from "../../../lib/abortManager";
 import { firePdfAsyncSubmittedTotal } from "./metrics";
 import { submitResponseSchema } from "./schema";
-import type { Fallback } from "./utils";
+import { failAsync } from "./utils";
 
-export type SubmitOutcome =
-  | {
-      kind: "ok";
-      lane: string | undefined;
-      retryAfterMs: number | undefined;
-      alreadyDone: boolean;
-    }
-  | { kind: "fallback"; result: PDFProcessorResult };
+type SubmitOutcome = {
+  lane: string | undefined;
+  retryAfterMs: number | undefined;
+  alreadyDone: boolean;
+};
 
-export type SubmitArgs = {
+type SubmitArgs = {
   meta: Meta;
   baseUrl: string;
   base64Content: string;
@@ -25,7 +21,6 @@ export type SubmitArgs = {
   mode: PDFMode | undefined;
   deadlineAt: string;
   fetchImpl: typeof undiciFetch;
-  fallback: Fallback;
 };
 
 export async function submitJob(args: SubmitArgs): Promise<SubmitOutcome> {
@@ -38,7 +33,6 @@ export async function submitJob(args: SubmitArgs): Promise<SubmitOutcome> {
     mode,
     deadlineAt,
     fetchImpl,
-    fallback,
   } = args;
   const scrapeId = meta.id;
 
@@ -74,13 +68,13 @@ export async function submitJob(args: SubmitArgs): Promise<SubmitOutcome> {
     json = await resp.json().catch(() => ({}));
   } catch (error) {
     if (error instanceof AbortManagerThrownError) throw error;
-    return { kind: "fallback", result: await fallback("network_error", { error: String(error) }) };
+    failAsync(meta, "network_error", { error: String(error) });
   }
 
-  if (status === 404) return { kind: "fallback", result: await fallback("http_404") };
-  if (status === 413) return { kind: "fallback", result: await fallback("http_413") };
-  if (status === 429) return { kind: "fallback", result: await fallback("http_429") };
-  if (status === 503) return { kind: "fallback", result: await fallback("http_503") };
+  if (status === 404) failAsync(meta, "http_404");
+  if (status === 413) failAsync(meta, "http_413");
+  if (status === 429) failAsync(meta, "http_429");
+  if (status === 503) failAsync(meta, "http_503");
 
   if (status === 409) {
     meta.logger.error("FirePDF async POST /jobs returned 409 scrape_id_conflict", {
@@ -101,22 +95,16 @@ export async function submitJob(args: SubmitArgs): Promise<SubmitOutcome> {
   }
 
   if (status !== 200 && status !== 202) {
-    return {
-      kind: "fallback",
-      result: await fallback("http_5xx", { status, body: json }),
-    };
+    failAsync(meta, "http_5xx", { status, body: json });
   }
 
   const parsed = submitResponseSchema.safeParse(json);
   if (!parsed.success) {
-    return {
-      kind: "fallback",
-      result: await fallback("http_5xx", {
-        error: String(parsed.error),
-        body: json,
-        status,
-      }),
-    };
+    failAsync(meta, "http_5xx", {
+      error: String(parsed.error),
+      body: json,
+      status,
+    });
   }
 
   firePdfAsyncSubmittedTotal.labels(parsed.data.lane ?? "unknown").inc();
@@ -129,7 +117,6 @@ export async function submitJob(args: SubmitArgs): Promise<SubmitOutcome> {
   });
 
   return {
-    kind: "ok",
     lane: parsed.data.lane,
     retryAfterMs: parsed.data.retry_after_ms,
     alreadyDone: status === 200 && parsed.data.status === "done",
