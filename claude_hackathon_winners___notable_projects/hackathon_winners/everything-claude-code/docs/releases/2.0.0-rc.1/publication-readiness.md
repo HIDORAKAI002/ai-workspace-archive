@@ -14,9 +14,15 @@ For the May 13 release-readiness evidence refresh, see
 [`publication-evidence-2026-05-13.md`](publication-evidence-2026-05-13.md).
 For the May 13 post-hardening evidence refresh after PR #1850 and PR #1851, see
 [`publication-evidence-2026-05-13-post-hardening.md`](publication-evidence-2026-05-13-post-hardening.md).
-For the May 15 queue, discussion, Linear roadmap, and Mini Shai-Hulud/TanStack
-follow-up evidence refresh after PR #1921, see
+For the May 15 queue, discussion, Linear roadmap, Mini Shai-Hulud/TanStack
+follow-up, scheduled supply-chain watch, no-lifecycle CI install hardening,
+GitHub Actions cache purge, AgentShield release-verification, billing-gate,
+AgentShield #86 evidence-pack provenance, and `ecc2` current-dir guard evidence
+refresh through PR #1941, see
 [`publication-evidence-2026-05-15.md`](publication-evidence-2026-05-15.md).
+For the operator-facing prompt-to-artifact readiness dashboard from the same
+May 15 pass, see
+[`operator-readiness-dashboard-2026-05-15.md`](operator-readiness-dashboard-2026-05-15.md).
 
 ## Release Identity Matrix
 
@@ -31,6 +37,7 @@ follow-up evidence refresh after PR #1921, see
 | Claude plugin slug | `ecc` / `ecc@ecc` install path | `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json` | `node tests/hooks/hooks.test.js` | `publication-evidence-2026-05-12.md` | Plugin owner | Evidence recorded |
 | Claude plugin manifest | `2.0.0-rc.1`, no unsupported `agents` or explicit `hooks` fields | `.claude-plugin/plugin.json`, `.claude-plugin/PLUGIN_SCHEMA_NOTES.md` | `claude plugin validate .claude-plugin/plugin.json` | `publication-evidence-2026-05-12.md` | Plugin owner | Evidence recorded |
 | Codex plugin manifest | `2.0.0-rc.1` with shared skill source | `.codex-plugin/plugin.json` | `node tests/docs/ecc2-release-surface.test.js` | `publication-evidence-2026-05-12.md` | Plugin owner | Evidence recorded |
+| Codex repo marketplace | `ecc@2.0.0-rc.1` exposed through `.agents/plugins/marketplace.json` | `.agents/plugins/marketplace.json`, `.codex-plugin/README.md` | `HOME="$(mktemp -d)" codex plugin marketplace add <local-checkout>` | `publication-evidence-2026-05-15.md` | Plugin owner | Repo-marketplace path verified; official Plugin Directory publishing coming soon |
 | OpenCode package | `ecc-universal` plugin module | `.opencode/package.json`, `.opencode/index.ts` | `npm run build:opencode` | `publication-evidence-2026-05-12.md` | Package owner | Evidence recorded |
 | Agent metadata | `2.0.0-rc.1` | `agent.yaml`, `.agents/plugins/marketplace.json` | `node tests/scripts/catalog.test.js` | `publication-evidence-2026-05-12.md` | Release owner | Evidence recorded |
 | Migration copy | rc.1 upgrade path, not GA claim | `release-notes.md`, `quickstart.md`, `HERMES-SETUP.md` | `npx markdownlint-cli '**/*.md' --ignore node_modules` | `publication-evidence-2026-05-13.md` | Docs owner | Evidence recorded |
@@ -42,7 +49,7 @@ follow-up evidence refresh after PR #1921, see
 | GitHub release | Tag exists, release notes use final URLs, assets attached if needed | `gh release view v2.0.0-rc.1 --json tagName,url,isPrerelease` | `Blocker: release not found on 2026-05-12` | Release owner | Pending approval |
 | npm package | `npm pack --dry-run` has expected files, version matches, rc goes to `next` | `npm pack --dry-run` and `npm publish --tag next --dry-run` where supported | `Blocker: actual publish requires approval; dry run passed with next tag` | Package owner | Dry-run passed |
 | Claude plugin | Manifest validates, marketplace JSON points to public repo, install docs match slug | `claude plugin validate .claude-plugin/plugin.json`; `claude plugin tag .claude-plugin --dry-run`; isolated temp-home install smoke | `Blocker: real tag creation/push requires approval` | Plugin owner | Clean-checkout dry-run and install smoke recorded |
-| Codex plugin | Manifest version matches package and docs, hook limitations are explicit | `node tests/docs/ecc2-release-surface.test.js` | `Blocker: marketplace submission path still manual/owner-gated` | Plugin owner | Evidence recorded |
+| Codex plugin | Manifest version matches package and docs, repo marketplace points at the plugin root, and OpenAI's current official Plugin Directory status is recorded | `node tests/docs/ecc2-release-surface.test.js`; `node tests/plugin-manifest.test.js`; `codex plugin marketplace add --help`; temp-home `codex plugin marketplace add <local-checkout>` | `Blocker: official Plugin Directory publishing and self-serve management are documented as coming soon` | Plugin owner | Repo-marketplace distribution verified; official directory pending |
 | OpenCode package | Build output is regenerated from source and package metadata is current | `npm run build:opencode` | `Blocker: none for local build; public distribution still follows npm/plugin release` | Package owner | Evidence recorded |
 | ECC Tools billing reference | Any billing claim links to verified Marketplace/App state | `env -u GITHUB_TOKEN gh repo view ECC-Tools/ECC-Tools --json nameWithOwner,isPrivate,viewerPermission` plus internal `/api/billing/readiness?accountLogin=<marketplace-test-account>` readback | `Blocker: ECC-Tools #73 added announcementGate; live Marketplace test-account readback must return announcementGate.ready === true before payment announcement` | ECC Tools owner | Code gate recorded; live billing readback pending |
 | Announcement copy | X, LinkedIn, GitHub release, and longform copy point to live URLs | `rg -n "TODO" docs/releases/2.0.0-rc.1` and repeat for `TBD` | `Blocker: final live release/npm/plugin URLs do not exist yet` | Release owner | Pending |
@@ -59,15 +66,16 @@ Record the exact commit SHA and command output before any publication action:
 | Adapter scorecard | `npm run harness:adapters -- --check` | PASS | `publication-evidence-2026-05-13.md`: PASS, 11 adapters |
 | Observability readiness | `npm run observability:ready` | 21/21 passing | `publication-evidence-2026-05-13-post-hardening.md`: 21/21, ready true after release-safety gate refresh |
 | Release safety gate | `npm run observability:ready -- --format json` | Release Safety category passing with publication readiness, supply-chain, workflow security, package surface, and release-surface evidence | `publication-evidence-2026-05-13-post-hardening.md`: Release Safety 3/3 |
-| Supply-chain verification | `npm audit --json`; `npm audit signatures`; `cd ecc2 && cargo audit -q`; Dependabot alerts; GitGuardian Security Checks | 0 vulnerabilities/alerts, registry signatures verified, GitGuardian clean | `publication-evidence-2026-05-13-post-hardening.md`: npm, cargo, Dependabot, TanStack/Mini Shai-Hulud, and GitGuardian evidence |
-| Root suite | `node tests/run-all.js` | 0 failures | `publication-evidence-2026-05-13-post-hardening.md`: 2381 passed, 0 failed |
+| Supply-chain verification | `npm audit --json`; `npm audit signatures`; `cd ecc2 && cargo audit -q`; Dependabot alerts; GitGuardian Security Checks | 0 vulnerabilities/alerts, registry signatures verified, GitGuardian clean | `publication-evidence-2026-05-15.md`: npm registry signatures and attestations verified, 0 moderate-or-higher npm vulnerabilities, Mini Shai-Hulud/TanStack IOC scan clean |
+| Root suite | `node tests/run-all.js` | 0 failures | `publication-evidence-2026-05-15.md`: 2442 passed, 0 failed |
 | Markdown lint | `npx markdownlint-cli '**/*.md' --ignore node_modules` | 0 failures | `publication-evidence-2026-05-13.md`: passed after zh-CN CLAUDE list-marker normalization |
 | Package surface | `node tests/scripts/npm-publish-surface.test.js` | 0 failures; no Python bytecode in npm tarball | `2/2` passed in May 12 evidence pass |
 | Release surface | `node tests/docs/ecc2-release-surface.test.js` | 0 failures | `publication-evidence-2026-05-13.md`: 18/18 passed |
-| Optional Rust surface | `cd ecc2 && cargo test` | 0 failures or explicit deferral | `publication-evidence-2026-05-13.md`: 462/462 passed, warnings only |
-| Queue baseline | `gh pr list` / `gh issue list` across trunk, AgentShield, JARVIS, ECC Tools, and ECC website | Under 20 open PRs and under 20 open issues | `publication-evidence-2026-05-15.md`: 0 open PRs and 0 open issues across checked repos |
-| Discussion baseline | GraphQL discussion count and maintainer-touch sweep | No unmanaged active discussion queue | `publication-evidence-2026-05-15.md`: 58 trunk discussions, 0 without maintainer touch; other tracked repos disabled or 0 |
+| Optional Rust surface | `cd ecc2 && cargo test` | 0 failures or explicit deferral | `publication-evidence-2026-05-15.md`: 462/462 passed, existing warnings only after PR #1935 current-dir guard |
+| Queue baseline | `gh pr list` / `gh issue list` across trunk, AgentShield, JARVIS, ECC Tools, and ECC website | Under 20 open PRs and under 20 open issues | `publication-evidence-2026-05-15.md`: platform audit ready, 0 open PRs and 0 open issues across checked repos |
+| Discussion baseline | `node scripts/discussion-audit.js --json` | No unmanaged active discussion queue and no answerable Q&A missing an accepted answer | `publication-evidence-2026-05-15.md`: 58 trunk discussions, 0 without maintainer touch; other tracked repos disabled or 0 |
 | Linear roadmap | Linear project and issue readback | Detailed roadmap exists with release, security, AgentShield, ECC Tools, legacy, and observability lanes | `publication-evidence-2026-05-15.md`: project and 16 issue lanes recorded |
+| Operator readiness dashboard | `node scripts/platform-audit.js --json --allow-untracked docs/drafts/` plus `node scripts/discussion-audit.js --json` | Current queue state mapped to macro-goal deliverables and incomplete gaps | `operator-readiness-dashboard-2026-05-15.md`: live status, command evidence, Linear state, and next work order |
 
 ## Do Not Publish If
 
