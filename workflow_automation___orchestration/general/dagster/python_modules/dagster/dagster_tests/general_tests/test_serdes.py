@@ -298,7 +298,7 @@ def test_wrong_first_arg():
         @serdes_test_class
         class NotCls(namedtuple("NotCls", "field_one field_two")):
             def __new__(not_cls, field_two, field_one):
-                return super().__new__(field_one, field_two)  # pyright: ignore[reportCallIssue]  # ty: ignore[missing-argument]
+                return super().__new__(field_one, field_two)  # ty: ignore[missing-argument]
 
     assert str(exc_info.value) == 'For NotCls: First parameter must be _cls or cls. Got "not_cls".'
 
@@ -309,7 +309,7 @@ def test_incorrect_order():
         @serdes_test_class
         class WrongOrder(namedtuple("WrongOrder", "field_one field_two")):
             def __new__(cls, field_two, field_one):
-                return super().__new__(field_one, field_two)  # pyright: ignore[reportCallIssue]  # ty: ignore[missing-argument]
+                return super().__new__(field_one, field_two)  # ty: ignore[missing-argument]
 
     assert (
         str(exc_info.value) == "For WrongOrder: "
@@ -325,7 +325,7 @@ def test_missing_one_parameter():
         @serdes_test_class
         class MissingFieldInNew(namedtuple("MissingFieldInNew", "field_one field_two field_three")):
             def __new__(cls, field_one, field_two):
-                return super().__new__(field_one, field_two, None)  # pyright: ignore[reportCallIssue]  # ty: ignore[missing-argument]
+                return super().__new__(field_one, field_two, None)  # ty: ignore[missing-argument]
 
     assert (
         str(exc_info.value) == "For MissingFieldInNew: "
@@ -345,7 +345,7 @@ def test_missing_many_parameters():
             namedtuple("MissingFieldsInNew", "field_one field_two field_three, field_four")
         ):
             def __new__(cls, field_one, field_two):
-                return super().__new__(field_one, field_two, None, None)  # pyright: ignore[reportCallIssue]  # ty: ignore[missing-argument]
+                return super().__new__(field_one, field_two, None, None)  # ty: ignore[missing-argument]
 
     assert (
         str(exc_info.value) == "For MissingFieldsInNew: "
@@ -373,7 +373,7 @@ def test_extra_parameters_must_have_defaults():
                 field_one,
                 field_two,
             ):
-                return super().__new__(field_three, field_four)  # pyright: ignore[reportCallIssue]  # ty: ignore[missing-argument]
+                return super().__new__(field_three, field_four)  # ty: ignore[missing-argument]
 
     assert (
         str(exc_info.value) == "For OldFieldsWithoutDefaults: "
@@ -402,7 +402,7 @@ def test_extra_parameters_have_working_defaults():
             another_falsey_field="",
             value_field="klsjkfjd",
         ):
-            return super().__new__(field_three, field_four)  # pyright: ignore[reportCallIssue]  # ty: ignore[missing-argument]
+            return super().__new__(field_three, field_four)  # ty: ignore[missing-argument]
 
 
 def test_set():
@@ -1168,8 +1168,8 @@ def test_record_kwargs():
         def __new__(cls, **kwargs):
             return super().__new__(
                 cls,
-                name=kwargs.get("name", ""),  # pyright: ignore[reportCallIssue]  # ty: ignore[unknown-argument]
-                stuff=kwargs.get("stuff", []),  # pyright: ignore[reportCallIssue]  # ty: ignore[unknown-argument]
+                name=kwargs.get("name", ""),  # ty: ignore[unknown-argument]
+                stuff=kwargs.get("stuff", []),  # ty: ignore[unknown-argument]
             )
 
     r = MyRecord()

@@ -378,6 +378,8 @@ class AsyncPinecone:
         Raises:
             :exc:`PineconeValueError`: If *name* or *backup_id* is empty.
             :exc:`PineconeTimeoutError`: If the index is not ready within the timeout.
+            :exc:`IndexInitFailedError`: If the index enters ``InitializationFailed`` state.
+            :exc:`IndexTerminatedError`: If the index enters ``Terminating`` or ``Disabled`` state.
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
@@ -821,7 +823,11 @@ class AsyncPinecone:
         return _AsyncIndex(**self._build_index_kwargs(resolved_host))
 
     async def close(self) -> None:
-        """Close the underlying HTTP client."""
+        """Close all open HTTP connections.
+
+        Closes the main control-plane client and any namespace clients (inference, assistants,
+        preview) that were initialized during this session.
+        """
         await self._http.close()
         if self._assistants is not None:
             await self._assistants.close()

@@ -96,7 +96,9 @@ print(response.upserted_count)         # successful items
 print(response.failed_item_count)      # 0 if everything succeeded
 ```
 
-The same kwargs are accepted on `AsyncIndex.upsert()` and `Index.upsert_from_dataframe()`.
+`AsyncIndex.upsert()` accepts the same `batch_size` and `max_concurrency` kwargs.
+`Index.upsert_from_dataframe()` accepts `batch_size` but not `max_concurrency` — it batches
+sequentially rather than in parallel.
 `Index.upsert_records()` does **not** accept `batch_size` or `max_concurrency` — it
 sends a single NDJSON request per call, so chunk the record list yourself and call
 `upsert_records()` once per chunk.
@@ -217,7 +219,8 @@ reporting:
 
 ```python
 # Preferred
-async with pc.index(host=desc.host) as index:
+index = await pc.index(host=desc.host)
+async with index:
     response = await index.upsert(
         vectors=large_list,
         batch_size=100,
@@ -230,7 +233,8 @@ many namespaces — `asyncio.gather` over `AsyncIndex` calls is still the natura
 pattern:
 
 ```python
-async with pc.index(host=desc.host) as index:
+index = await pc.index(host=desc.host)
+async with index:
     results = await asyncio.gather(
         index.upsert(vectors=writes_batch, batch_size=100),
         index.query(vector=q1, top_k=10),

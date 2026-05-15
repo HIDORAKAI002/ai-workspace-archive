@@ -640,7 +640,7 @@ def test_upath_can_transition_from_non_partitioned_to_partitioned(
     my_io_manager = PickleIOManager(UPath(tmp_path))
 
     @dg.asset
-    def my_asset():  # pyright: ignore[reportRedeclaration]
+    def my_asset():
         return 1
 
     assert dg.materialize([my_asset], resources={"io_manager": my_io_manager}).success

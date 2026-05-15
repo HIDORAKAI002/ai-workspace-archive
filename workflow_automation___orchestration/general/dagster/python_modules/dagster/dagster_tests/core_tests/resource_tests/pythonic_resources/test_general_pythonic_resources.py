@@ -179,7 +179,7 @@ def test_abc_resource():
 
     # Can't instantiate abstract class
     with pytest.raises(TypeError):
-        Writer()  # pyright: ignore[reportAbstractUsage]
+        Writer()
 
     @dg.job(resource_defs={"writer": PrefixedWriterResource(prefix="greeting: ")})
     def prefixed_job():
@@ -204,7 +204,7 @@ def test_yield_in_resource_function():
     class ResourceWithCleanup(ConfigurableResourceFactory[bool]):
         idx: int
 
-        def create_resource(self, context):  # pyright: ignore[reportIncompatibleMethodOverride]
+        def create_resource(self, context):
             called.append(f"creation_{self.idx}")
             yield True
             called.append(f"cleanup_{self.idx}")

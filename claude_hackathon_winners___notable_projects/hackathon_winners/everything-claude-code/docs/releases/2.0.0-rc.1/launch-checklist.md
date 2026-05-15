@@ -4,9 +4,13 @@
 
 - verify local `main` is synced to `origin/main`
 - verify `docs/ECC-2.0-GA-ROADMAP.md` reflects the current Linear milestone plan
+  and the May 15 `ECC Platform Roadmap` project under the Ito Markets workspace
 - verify `docs/HERMES-SETUP.md` is present
 - verify `docs/architecture/cross-harness.md` is present
 - verify this release directory is committed
+- verify `preview-pack-manifest.md` lists the public release, Hermes, adapter,
+  observability, publication, and announcement artifacts before running final
+  publish checks
 - keep private tokens, personal docs, and raw workspace exports out of the repo
 
 ## Release Surface
@@ -14,6 +18,8 @@
 - verify package, plugin, marketplace, OpenCode, and agent metadata stays at `2.0.0-rc.1`
 - verify `ecc2/Cargo.toml` stays at `0.1.0` for rc.1; `ecc2/` remains an alpha control-plane scaffold
 - complete `publication-readiness.md` with fresh evidence before any GitHub release, npm publish, plugin submission, or announcement post
+- include `publication-evidence-2026-05-15.md` in the final evidence review,
+  then rerun publish-facing checks from the exact release commit
 - update release metadata in one dedicated release-version PR
 - run the root test suite
 - run `cd ecc2 && cargo test`

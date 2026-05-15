@@ -16,6 +16,12 @@ export const DEFAULT_MAX_TOKENS_BUFFER = 1024;
  */
 export const DEFAULT_MIN_OUTPUT_TOKENS = 1024;
 
+export const CONTEXT_EXCEEDED_PRE_FLIGHT_TYPE = 'context_exceeded_pre_flight' as const;
+
+export const DEFAULT_PRE_FLIGHT_SUGGESTIONS = ['fork_topic', 'switch_to_larger_ctx_model'] as const;
+
+export type PreFlightSuggestion = (typeof DEFAULT_PRE_FLIGHT_SUGGESTIONS)[number];
+
 export interface ResolveSafeMaxTokensOptions {
   /** Safety buffer reserved on top of estimated input tokens. */
   bufferTokens?: number;
@@ -24,31 +30,62 @@ export interface ResolveSafeMaxTokensOptions {
 }
 
 /**
- * Thrown when the estimated input tokens leave less room than
- * `minOutputTokens` for completion. Caught by provider-level `handleError`
- * and converted into an `ExceededContextWindow` chat error.
+ * Thrown when the estimated prompt tokens leave less room than
+ * `minOutputTokens` for completion (or already exceed the model's context
+ * window). Caught by `openaiCompatibleFactory` and surfaced as an
+ * `ExceededContextWindow` chat error carrying structured diagnostic fields
+ * — see LOBE-8974 for the rationale of failing fast instead of issuing a
+ * doomed upstream request.
  */
-export class MaxTokensExceededError extends Error {
-  readonly contextWindowTokens: number;
-  readonly estimatedInputTokens: number;
-  readonly minOutputTokens: number;
-  readonly modelId: string;
+export class ContextExceededPreFlightError extends Error {
+  readonly type = CONTEXT_EXCEEDED_PRE_FLIGHT_TYPE;
+  readonly model: string;
+  readonly promptTokens: number;
+  readonly ctx: number;
+  readonly shortBy: number;
+  /**
+   * Only populated by `resolveSafeMaxTokens` (max_tokens-capping path). The
+   * pre-flight-only `assertContextWithinWindow` leaves it undefined since
+   * it does not require headroom for completion to consider the prompt
+   * valid.
+   */
+  readonly minOutputTokens?: number;
+  readonly suggestions: readonly PreFlightSuggestion[];
 
   constructor(params: {
-    contextWindowTokens: number;
-    estimatedInputTokens: number;
-    minOutputTokens: number;
-    modelId: string;
+    ctx: number;
+    minOutputTokens?: number;
+    model: string;
+    promptTokens: number;
+    suggestions?: readonly PreFlightSuggestion[];
   }) {
-    const { modelId, contextWindowTokens, estimatedInputTokens, minOutputTokens } = params;
-    super(
-      `Estimated input tokens (${estimatedInputTokens}) leave less than ${minOutputTokens} tokens for completion within the model context window (${contextWindowTokens}) for model "${modelId}". Reduce input or attached tools, or pick a model with a larger context window.`,
-    );
-    this.name = 'MaxTokensExceededError';
-    this.modelId = modelId;
-    this.contextWindowTokens = contextWindowTokens;
-    this.estimatedInputTokens = estimatedInputTokens;
+    const { model, ctx, promptTokens, minOutputTokens, suggestions } = params;
+    const shortBy = promptTokens - ctx;
+    const message =
+      minOutputTokens !== undefined
+        ? `Prompt tokens (${promptTokens}) leave less than ${minOutputTokens} tokens for completion within the model context window (${ctx}) for model "${model}". Reduce input or attached tools, or pick a model with a larger context window.`
+        : `Prompt tokens (${promptTokens}) exceed the model context window (${ctx}) for model "${model}". Reduce input or attached tools, or pick a model with a larger context window.`;
+    super(message);
+    this.name = 'ContextExceededPreFlightError';
+    this.model = model;
+    this.promptTokens = promptTokens;
+    this.ctx = ctx;
+    this.shortBy = shortBy;
     this.minOutputTokens = minOutputTokens;
+    this.suggestions = suggestions ?? DEFAULT_PRE_FLIGHT_SUGGESTIONS;
+  }
+
+  /** Convert to a plain object suitable for embedding in a chat error body. */
+  toPayload() {
+    return {
+      ctx: this.ctx,
+      model: this.model,
+      promptTokens: this.promptTokens,
+      shortBy: this.shortBy,
+      suggestions: [...this.suggestions],
+      type: this.type,
+      ...(this.minOutputTokens !== undefined ? { minOutputTokens: this.minOutputTokens } : {}),
+    };
   }
 }
 
@@ -66,8 +103,8 @@ const estimatePayloadInputTokens = (payload: Pick<ChatStreamPayload, 'messages' 
  * - If the user explicitly passed `max_tokens`, return it untouched.
  * - Otherwise compute `min(maxOutput, contextWindow - estimatedInput - buffer)`.
  * - If the resulting value would be smaller than `minOutputTokens`, throw
- *   `MaxTokensExceededError` so callers can surface a clear error before
- *   issuing a doomed request.
+ *   `ContextExceededPreFlightError` so callers can surface a clear error
+ *   before issuing a doomed request.
  */
 export const resolveSafeMaxTokens = (
   payload: Pick<ChatStreamPayload, 'max_tokens' | 'messages' | 'model' | 'tools'>,
@@ -92,13 +129,59 @@ export const resolveSafeMaxTokens = (
   const remaining = contextWindow - estimatedInputTokens - bufferTokens;
 
   if (remaining < minOutputTokens) {
-    throw new MaxTokensExceededError({
-      contextWindowTokens: contextWindow,
-      estimatedInputTokens,
+    throw new ContextExceededPreFlightError({
+      ctx: contextWindow,
       minOutputTokens,
-      modelId: payload.model,
+      model: payload.model,
+      promptTokens: estimatedInputTokens,
     });
   }
 
   return maxOutput !== undefined ? Math.min(maxOutput, remaining) : remaining;
+};
+
+export interface AssertContextWithinWindowOptions {
+  /**
+   * Number of tokens to subtract from the model context window before
+   * comparing against the estimated prompt size. Use a small positive
+   * value to be conservative against estimator drift / per-message
+   * protocol overhead that `tokenx` doesn't model. Default `0` — only
+   * reject when the estimated prompt strictly exceeds the model window.
+   */
+  safetyMarginTokens?: number;
+}
+
+/**
+ * Pre-flight check for providers where the harness does not need to cap
+ * `max_tokens` itself (the upstream picks its own default), but we still
+ * want to bail fast when the prompt alone already overflows the model's
+ * context window.
+ *
+ * Unlike `resolveSafeMaxTokens` this does NOT require headroom for
+ * completion — the upstream will pick its own `max_tokens` default once
+ * the request is dispatched. Rejecting near-limit-but-fitting prompts
+ * (e.g. 198.5k tokens against a 200k window) would block valid requests
+ * that the upstream would happily serve. See LOBE-8974 review feedback.
+ */
+export const assertContextWithinWindow = (
+  payload: Pick<ChatStreamPayload, 'messages' | 'model' | 'tools'>,
+  models: AiFullModelCard[],
+  options: AssertContextWithinWindowOptions = {},
+): void => {
+  const model = models.find((m) => m.id === payload.model);
+  if (!model) return;
+
+  const contextWindow = model.contextWindowTokens;
+  if (!contextWindow) return;
+
+  const safetyMarginTokens = options.safetyMarginTokens ?? 0;
+  const estimatedInputTokens = estimatePayloadInputTokens(payload);
+
+  if (estimatedInputTokens <= contextWindow - safetyMarginTokens) return;
+
+  throw new ContextExceededPreFlightError({
+    ctx: contextWindow,
+    model: payload.model,
+    promptTokens: estimatedInputTokens,
+  });
 };

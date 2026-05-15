@@ -1,5 +1,28 @@
 # @ai-sdk/langchain
 
+## 3.0.0-canary.139
+
+### Patch Changes
+
+- Updated dependencies [334ae5d]
+- Updated dependencies [28dfa06]
+- Updated dependencies [e93fa91]
+  - ai@7.0.0-canary.139
+
+## 3.0.0-canary.138
+
+### Patch Changes
+
+- ai@7.0.0-canary.138
+
+## 3.0.0-canary.137
+
+### Patch Changes
+
+- Updated dependencies [98627e5]
+- Updated dependencies [476e1ca]
+  - ai@7.0.0-canary.137
+
 ## 3.0.0-canary.136
 
 ### Patch Changes

@@ -1,3 +1,4 @@
+import * as crypto from "crypto";
 import { RateLimiterRedis } from "rate-limiter-flexible";
 import { validate } from "uuid";
 import { config } from "../config";
@@ -139,6 +140,95 @@ const mockACUC: () => AuthCreditUsageChunk = () => ({
   flags: null,
   is_extract: false,
 });
+
+/**
+ * Introspection response from the OAuth token endpoint.
+ */
+interface OAuthIntrospectionResponse {
+  active: boolean;
+  api_key: string;
+  scope: string;
+  client_id: string;
+  team_id: string;
+  exp: number;
+}
+
+/**
+ * Resolve an OAuth access token (fco_…) to the underlying API key via
+ * the introspection endpoint. Results are cached in Redis for the
+ * remaining token TTL (up to 5 minutes).
+ */
+async function resolveOAuthToken(
+  token: string,
+): Promise<OAuthIntrospectionResponse | null> {
+  const introspectUrl = config.OAUTH_INTROSPECT_URL;
+  const introspectSecret = config.OAUTH_INTROSPECT_SECRET;
+
+  if (!introspectUrl || !introspectSecret) {
+    logger.warn(
+      "OAuth introspection not configured (OAUTH_INTROSPECT_URL / OAUTH_INTROSPECT_SECRET)",
+    );
+    return null;
+  }
+
+  // Check Redis cache first (hash the token to avoid leaking material in key names)
+  const tokenHash = crypto
+    .createHash("sha256")
+    .update(token)
+    .digest("hex")
+    .substring(0, 32);
+  const cacheKey = `oauth_token:${tokenHash}`;
+  const cached = await getValue(cacheKey);
+  if (cached !== null) {
+    try {
+      const parsed = JSON.parse(cached);
+      if (!parsed.active) return null;
+      return parsed;
+    } catch {
+      // Corrupt cache entry — treat as a miss
+    }
+  }
+
+  try {
+    const response = await fetch(introspectUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${introspectSecret}`,
+      },
+      body: JSON.stringify({ token }),
+    });
+
+    if (!response.ok) {
+      logger.error("OAuth introspection request failed", {
+        status: response.status,
+      });
+      return null;
+    }
+
+    const data = (await response.json()) as OAuthIntrospectionResponse;
+
+    // Cache the result — use remaining TTL (max 5 minutes) or 60s for inactive
+    if (data.active) {
+      const remainingSeconds = Math.max(
+        0,
+        data.exp - Math.floor(Date.now() / 1000),
+      );
+      const cacheTtl = Math.min(remainingSeconds, 300); // Cap at 5 minutes
+      if (cacheTtl > 0) {
+        await setValue(cacheKey, JSON.stringify(data), cacheTtl);
+      }
+    } else {
+      // Cache negative results briefly to avoid hammering introspection
+      await setValue(cacheKey, JSON.stringify({ active: false }), 60);
+    }
+
+    return data.active ? data : null;
+  } catch (error) {
+    logger.error("OAuth introspection error", { error });
+    return null;
+  }
+}
 
 /** @public used by auto_charge.ts (disabled, Autumn handles auto-recharge) */
 export async function getACUC(
@@ -479,6 +569,40 @@ async function supaAuthenticateUser(
       rateLimiter = getRateLimiter(RateLimiterMode.Preview, token);
     }
     teamId = `preview_${iptoken}`;
+  } else if (token.startsWith("fco_")) {
+    // OAuth access token — resolve via introspection endpoint
+    const introspection = await resolveOAuthToken(token);
+    if (!introspection) {
+      return {
+        success: false,
+        error: "Unauthorized: Invalid or expired OAuth token",
+        status: 401,
+      };
+    }
+
+    // Use the resolved fc- API key to get the normal ACUC chunk
+    const resolvedApi = parseApi(introspection.api_key);
+    chunk = await getACUC(resolvedApi, false, true, RateLimiterMode.Scrape);
+    chunk = await ensureChunkOrgId(resolvedApi, chunk);
+
+    if (chunk === null) {
+      return {
+        success: false,
+        error: "Unauthorized: Invalid token",
+        status: 401,
+      };
+    }
+
+    teamId = chunk.team_id;
+    priceId = chunk.price_id;
+
+    subscriptionData = {
+      team_id: teamId,
+    };
+    rateLimiter = getRateLimiter(
+      mode ?? RateLimiterMode.Crawl,
+      chunk.rate_limits,
+    );
   } else {
     normalizedApi = parseApi(token);
     if (!normalizedApiIsUuid(normalizedApi)) {

@@ -249,11 +249,6 @@ class BuildkiteContext(Generic[T_Config]):
             path.suffix == ".md" and Path("docs") not in path.parents for path in self.changed_files
         )
 
-    def has_pyright_requirements_txt_changes(self) -> bool:
-        return any(
-            path.match(str(oss_path("pyright/*/requirements.txt"))) for path in self.changed_files
-        )
-
     def has_dagster_airlift_changes(self) -> bool:
         return any("dagster-airlift" in str(path) for path in self.changed_files)
 

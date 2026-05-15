@@ -146,7 +146,7 @@ class AssetGraphView(LoadingContext):
         return self._instance
 
     @property
-    def loaders(self) -> dict[type, DataLoader]:  # pyright: ignore[reportIncompatibleMethodOverride]
+    def loaders(self) -> dict[type, DataLoader]:
         return self._loaders
 
     @property

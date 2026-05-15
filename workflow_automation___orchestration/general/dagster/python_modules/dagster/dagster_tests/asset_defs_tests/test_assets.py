@@ -547,7 +547,7 @@ def test_asset_with_io_manager_key_only():
 
 
 def test_asset_both_io_manager_args_provided():
-    @dg.io_manager  # pyright: ignore[reportCallIssue,reportArgumentType]
+    @dg.io_manager
     def the_io_manager():
         pass
 

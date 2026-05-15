@@ -8,6 +8,7 @@ packages = ["tutorial_example"]
 [project]
 name = "tutorial-example"
 version = "1!0+dev"
+requires-python = ">=3.10,<3.12"
 dependencies = [
     "dagster",
     "dagster-webserver",
