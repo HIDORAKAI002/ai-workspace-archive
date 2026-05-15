@@ -79,6 +79,51 @@ def _is_gitignored(path: Path) -> bool:
     return result.returncode == 0
 
 
+def find_project_pyprojects() -> list[str]:
+    """Pyproject.toml files declaring a `[project]` table (i.e. real Python packages).
+
+    Excludes config-only pyprojects (workspace roots, ruff-only config), docs
+    snippet fragments embedded under examples/docs_snippets/, and test fixtures
+    that intentionally have no `[project]` table.
+    """
+    out: list[str] = []
+    for root, dirs, files in os.walk("."):
+        dirs[:] = [d for d in dirs if d not in {".tox", ".venv", "node_modules", "__pycache__"}]
+        if "pyproject.toml" not in files:
+            continue
+        path = Path(root) / "pyproject.toml"
+        text = path.read_text(encoding="utf-8")
+        if "[project]" in text:
+            out.append(str(path))
+    return out
+
+
+@pytest.fixture(params=find_project_pyprojects(), ids=lambda i: i)
+def project_pyproject_path(request: pytest.FixtureRequest) -> str:
+    return request.param
+
+
+def test_pyproject_has_requires_python(project_pyproject_path: str) -> None:
+    """Every pyproject.toml with a `[project]` table must set `requires-python`.
+
+    Without an explicit `requires-python`, `uv lock` resolves across a much wider
+    Python range than the package actually supports. That tends to pin deps to
+    older versions to satisfy the broader range — exactly the failure mode that
+    surfaced during the per-package uv.lock migration. Default to
+    `>=3.10,<3.15` (matching python_modules/dagster) unless the package has a
+    real compatibility constraint requiring a narrower range.
+    """
+    text = Path(project_pyproject_path).read_text(encoding="utf-8")
+    has_requires_python = any(
+        line.lstrip().startswith("requires-python") for line in text.splitlines()
+    )
+    assert has_requires_python, (
+        f"{project_pyproject_path} declares a [project] table but no "
+        f"`requires-python`. Add one (default `>=3.10,<3.15` to match "
+        f"python_modules/dagster) under [project]."
+    )
+
+
 def test_tox_has_lockfile(tox_path: str) -> None:
     pkg_dir = Path(tox_path).parent
     pyproject = pkg_dir / "pyproject.toml"

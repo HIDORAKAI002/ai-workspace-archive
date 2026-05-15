@@ -13,7 +13,7 @@ from typing import Any, NamedTuple
 # Unfortunate hack - we only use this util in pytest tests, we just drop in a no-op
 # implementation if pytest is not installed.
 try:
-    import pytest  # pyright: ignore[reportAssignmentType]
+    import pytest
 except ImportError:
 
     class pytest:

@@ -73,7 +73,7 @@ def get_type_hints(fn: Callable[..., Any]) -> Mapping[str, Any]:
     elif inspect.isfunction(fn):
         target = fn
     elif hasattr(fn, "__call__"):
-        target = fn.__call__  # pyright: ignore[reportFunctionMemberAccess]
+        target = fn.__call__
     else:
         check.failed(f"Unhandled Callable object {fn}")
 

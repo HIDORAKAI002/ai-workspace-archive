@@ -102,12 +102,12 @@ def test_context_hook_invocation(hook_decorator):
         dg.DagsterInvalidInvocationError,
         match=r"Decorated function expects one parameter, _, but 0 were provided.",
     ):
-        my_hook()  # pyright: ignore[reportCallIssue]
+        my_hook()
 
     with pytest.raises(
         dg.DagsterInvalidInvocationError, match=r"Could not find expected argument '_'."
     ):
-        my_hook(foo=None)  # pyright: ignore[reportCallIssue]
+        my_hook(foo=None)
 
 
 @pytest.mark.parametrize(

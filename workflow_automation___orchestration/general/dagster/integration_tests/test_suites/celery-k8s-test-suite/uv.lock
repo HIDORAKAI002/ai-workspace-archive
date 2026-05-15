@@ -1,6 +1,6 @@
 version = 1
 revision = 3
-requires-python = ">=3.10"
+requires-python = ">=3.10, <3.15"
 resolution-markers = [
     "python_full_version >= '3.14'",
     "python_full_version == '3.13.*'",
@@ -924,7 +924,8 @@ requires-dist = [
     { name = "dagster", editable = "../../../python_modules/dagster" },
     { name = "kubernetes", marker = "extra == 'kubernetes'", specifier = ">=3.0.0" },
     { name = "lazy-object-proxy" },
-    { name = "pendulum" },
+    { name = "pendulum", marker = "python_full_version < '3.12'" },
+    { name = "pendulum", marker = "python_full_version >= '3.12'", specifier = ">=3" },
     { name = "setuptools", specifier = "<71.0.0" },
 ]
 provides-extras = ["kubernetes"]
@@ -951,14 +952,14 @@ test-airflow1 = [
     { name = "wtforms", marker = "python_full_version < '3.12'", specifier = "<3.0.0" },
 ]
 test-airflow2 = [
-    { name = "apache-airflow", specifier = ">=2.0.0,<2.8" },
-    { name = "apache-airflow-providers-apache-spark" },
-    { name = "apache-airflow-providers-docker", specifier = ">=3.2.0,<4" },
-    { name = "apache-airflow-providers-http", specifier = "<4.1.1" },
-    { name = "boto3", specifier = ">=1.26.7" },
-    { name = "flask-session", specifier = "<0.6.0" },
-    { name = "kubernetes", specifier = ">=10.0.1" },
-    { name = "pendulum", specifier = "<3.0.0" },
+    { name = "apache-airflow", marker = "python_full_version < '3.12'", specifier = ">=2.0.0,<2.8" },
+    { name = "apache-airflow-providers-apache-spark", marker = "python_full_version < '3.12'" },
+    { name = "apache-airflow-providers-docker", marker = "python_full_version < '3.12'", specifier = ">=3.2.0,<4" },
+    { name = "apache-airflow-providers-http", marker = "python_full_version < '3.12'", specifier = "<4.1.1" },
+    { name = "boto3", marker = "python_full_version < '3.12'", specifier = ">=1.26.7" },
+    { name = "flask-session", marker = "python_full_version < '3.12'", specifier = "<0.6.0" },
+    { name = "kubernetes", marker = "python_full_version < '3.12'", specifier = ">=10.0.1" },
+    { name = "pendulum", marker = "python_full_version < '3.12'", specifier = "<3.0.0" },
 ]
 
 [[package]]

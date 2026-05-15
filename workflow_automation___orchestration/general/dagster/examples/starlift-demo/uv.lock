@@ -1,6 +1,6 @@
 version = 1
 revision = 3
-requires-python = ">=3.10"
+requires-python = ">=3.10, <3.15"
 resolution-markers = [
     "python_full_version >= '3.14' and sys_platform == 'win32'",
     "python_full_version >= '3.14' and sys_platform == 'emscripten'",
@@ -1825,6 +1825,24 @@ test = [
 ]
 test-dbt110 = [{ name = "dbt-core", specifier = "==1.10.*" }]
 test-dbt111 = [{ name = "dbt-core", specifier = "==1.11.*" }]
+test-dbt17 = [
+    { name = "dbt-bigquery", marker = "python_full_version < '3.13'", specifier = "==1.7.*" },
+    { name = "dbt-core", marker = "python_full_version < '3.13'", specifier = "==1.7.*,>=1.7.10" },
+    { name = "dbt-duckdb", marker = "python_full_version < '3.13'", specifier = "==1.7.*" },
+    { name = "dbt-snowflake", marker = "python_full_version < '3.13'", specifier = "==1.7.*" },
+    { name = "grpcio", marker = "python_full_version < '3.13'", specifier = "<1.62" },
+    { name = "grpcio-health-checking", marker = "python_full_version < '3.13'", specifier = "<1.62" },
+    { name = "grpcio-tools", marker = "python_full_version < '3.13'", specifier = "<1.62" },
+]
+test-dbt18 = [
+    { name = "dbt-bigquery", marker = "python_full_version < '3.13'", specifier = "==1.8.*" },
+    { name = "dbt-core", marker = "python_full_version < '3.13'", specifier = "==1.8.*" },
+    { name = "dbt-duckdb", marker = "python_full_version < '3.13'", specifier = "==1.8.*" },
+    { name = "dbt-snowflake", marker = "python_full_version < '3.13'", specifier = "==1.8.*" },
+    { name = "grpcio", marker = "python_full_version < '3.13'", specifier = "<1.62" },
+    { name = "grpcio-health-checking", marker = "python_full_version < '3.13'", specifier = "<1.62" },
+    { name = "grpcio-tools", marker = "python_full_version < '3.13'", specifier = "<1.62" },
+]
 test-dbt19 = [
     { name = "dbt-bigquery", specifier = "==1.9.*" },
     { name = "dbt-core", specifier = "==1.9.*" },

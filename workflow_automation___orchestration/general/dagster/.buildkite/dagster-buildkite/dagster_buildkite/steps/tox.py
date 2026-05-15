@@ -9,6 +9,7 @@ from buildkite_shared.step_builders.command_step_builder import (
     BuildkiteQueue,
     CommandStepBuilder,
     CommandStepConfiguration,
+    ResourceRequests,
 )
 from buildkite_shared.step_builders.slug import slugify_label
 from dagster_buildkite.utils import make_buildkite_section_header
@@ -32,6 +33,8 @@ class ToxFactor:
             to differentiate multiple factors that share the same factor name.
         queue: Optional Buildkite queue override for this factor. When set,
             takes precedence over the PackageSpec-level queue.
+        resources: Optional Kubernetes resource requests for this factor. Only
+            takes effect on Kubernetes queues; ignored on EC2 queues.
     """
 
     factor: str
@@ -41,6 +44,7 @@ class ToxFactor:
     pytest_args: list[str] | None = None
     label_suffix: str | None = None
     queue: BuildkiteQueue | None = None
+    resources: ResourceRequests | None = None
 
 
 _COMMAND_TYPE_TO_EMOJI_MAP = {
@@ -66,6 +70,7 @@ def build_tox_step(
     pytest_args: list[str] | None = None,
     concurrency: int | None = None,
     concurrency_group: str | None = None,
+    resources: ResourceRequests | None = None,
 ) -> CommandStepConfiguration:
     base_label = base_label or os.path.basename(root_dir)
     emoji = _COMMAND_TYPE_TO_EMOJI_MAP[command_type]
@@ -110,6 +115,9 @@ def build_tox_step(
 
     if queue:
         step_builder.on_queue(queue)
+
+    if resources:
+        step_builder.resources(resources)
 
     if concurrency is not None or concurrency_group is not None:
         if concurrency is None or concurrency_group is None:

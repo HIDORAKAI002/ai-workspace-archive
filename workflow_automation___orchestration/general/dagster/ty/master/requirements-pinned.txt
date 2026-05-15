@@ -298,6 +298,7 @@ gcp-storage-emulator==2024.8.3
 gcsfs==0.8.0
 gitdb==4.0.12
 github3-py==4.0.1
+githubkit==0.15.5
 gitpython==3.1.50
 giturlparse==0.14.0
 google-ai-generativelanguage==0.6.15
@@ -330,6 +331,7 @@ gunicorn==25.3.0
 h11==0.16.0
 h2==4.3.0
 hf-xet==1.5.0
+hishel==0.1.5
 hpack==4.1.0
 html5lib==1.1
 httpcore==1.0.9

@@ -22,7 +22,7 @@ def mock_workspace_data():
     return DbtCloudWorkspaceData(
         project_id=123,
         environment_id=456,
-        adhoc_job_id=789,
+        adhoc_job_ids=[789],
         manifest={
             "metadata": {
                 "dbt_schema_version": "1.0.0",

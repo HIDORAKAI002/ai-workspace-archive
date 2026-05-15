@@ -5,13 +5,13 @@ build-backend = "hatchling.build"
 [project]
 name = "dagster-airlift"
 version = "1!0+dev"
+requires-python = ">=3.10,<3.12"
 description = "A toolkit for observing integration and migration between Apache Airflow and Dagster."
 authors = [{name = "Dagster Labs", email = "hello@dagsterlabs.com"}]
 license = "Apache-2.0"
 classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
     "Operating System :: OS Independent",
 ]
 

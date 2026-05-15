@@ -983,7 +983,7 @@ class GrapheneQuery(graphene.ObjectType):
             graphene_info,
             RepositorySelector.from_graphql_input(repositorySelector),
             # partitionSetName should prob be required
-            partitionSetName,  # pyright: ignore[reportArgumentType]
+            partitionSetName,
         )
 
     @capture_error
@@ -1029,7 +1029,7 @@ class GrapheneQuery(graphene.ObjectType):
         return await get_execution_plan(
             graphene_info,
             pipeline_selector_from_graphql(pipeline),
-            parse_run_config_input(runConfigData or {}, raise_on_error=True),  # pyright: ignore[reportArgumentType]
+            parse_run_config_input(runConfigData or {}, raise_on_error=True),
         )
 
     @capture_error
