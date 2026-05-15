@@ -299,7 +299,7 @@ class AsyncPinecone:
 
     @property
     def inference(self) -> AsyncInference:
-        """Access the AsyncInference namespace for inference operations.
+        """Access the AsyncInference namespace for embed and rerank operations.
 
         Lazily imported and instantiated on first access.
 
@@ -365,7 +365,7 @@ class AsyncPinecone:
             backup_id (str): Identifier of the backup to restore from.
             deletion_protection (DeletionProtection | str | None): ``"enabled"`` or
                 ``"disabled"``. Defaults to ``"disabled"`` server-side when omitted.
-            tags (dict[str, str] | None): Optional key-value tags for the new index.
+            tags (Mapping[str, str] | None): Optional key-value tags for the new index.
             timeout (int | None): Seconds to wait for readiness. ``None`` (default)
                 blocks up to 300 s. ``-1`` returns a :class:`CreateIndexFromBackupResponse`
                 immediately (contains ``restore_job_id`` and ``index_id``) without polling.
@@ -432,7 +432,12 @@ class AsyncPinecone:
 
     @property
     def config(self) -> PineconeConfig:
-        """The resolved configuration for this client."""
+        """The resolved configuration for this client.
+
+        Returns:
+            :class:`~pinecone._internal.config.PineconeConfig` containing the
+            resolved API key, host, timeout, and connection settings.
+        """
         return self._config
 
     # ---- Backcompat flat-method delegates (:meta private:) ----
@@ -454,6 +459,8 @@ class AsyncPinecone:
         Preserved to ease migration from the legacy Pinecone Python SDK. New code
         should use ``await pc.indexes.create(...)`` instead of
         ``await pc.create_index(...)``.
+
+        :meta private:
         """
         resolved_dp = deletion_protection if deletion_protection is not None else "disabled"
         return await self.indexes.create(
@@ -486,6 +493,8 @@ class AsyncPinecone:
         should use ``await pc.indexes.create(...)`` with
         ``IntegratedSpec(cloud=..., region=..., embed=EmbedConfig(...))`` instead of
         ``await pc.create_index_for_model(...)``.
+
+        :meta private:
         """
         from pinecone.inference.models.index_embed import IndexEmbed as _IndexEmbed
         from pinecone.models.indexes.specs import EmbedConfig as _EmbedConfig
@@ -524,6 +533,8 @@ class AsyncPinecone:
         Preserved to ease migration from the legacy Pinecone Python SDK. New code
         should use ``await pc.indexes.describe(...)`` instead of
         ``await pc.describe_index(...)``.
+
+        :meta private:
         """
         return await self.indexes.describe(name)
 
@@ -533,6 +544,8 @@ class AsyncPinecone:
         Preserved to ease migration from the legacy Pinecone Python SDK. New code
         should use ``await pc.indexes.list()`` instead of
         ``await pc.list_indexes()``.
+
+        :meta private:
         """
         return await self.indexes.list()
 
@@ -542,6 +555,8 @@ class AsyncPinecone:
         Preserved to ease migration from the legacy Pinecone Python SDK. New code
         should use ``await pc.indexes.exists(...)`` instead of
         ``await pc.has_index(...)``.
+
+        :meta private:
         """
         return await self.indexes.exists(name)
 
@@ -561,6 +576,8 @@ class AsyncPinecone:
         Preserved to ease migration from the legacy Pinecone Python SDK. New code
         should use ``await pc.indexes.configure(...)`` instead of
         ``await pc.configure_index(...)``.
+
+        :meta private:
         """
         await self.indexes.configure(
             name=name,
@@ -579,6 +596,8 @@ class AsyncPinecone:
         Preserved to ease migration from the legacy Pinecone Python SDK. New code
         should use ``await pc.indexes.delete(...)`` instead of
         ``await pc.delete_index(...)``.
+
+        :meta private:
         """
         await self.indexes.delete(name, timeout=timeout)
 
@@ -588,6 +607,8 @@ class AsyncPinecone:
         Preserved to ease migration from the legacy Pinecone Python SDK. New code
         should use ``await pc.collections.create(...)`` instead of
         ``await pc.create_collection(...)``.
+
+        :meta private:
         """
         return await self.collections.create(name=name, source=source)
 
@@ -597,6 +618,8 @@ class AsyncPinecone:
         Preserved to ease migration from the legacy Pinecone Python SDK. New code
         should use ``await pc.collections.list()`` instead of
         ``await pc.list_collections()``.
+
+        :meta private:
         """
         return await self.collections.list()
 
@@ -606,6 +629,8 @@ class AsyncPinecone:
         Preserved to ease migration from the legacy Pinecone Python SDK. New code
         should use ``await pc.collections.describe(...)`` instead of
         ``await pc.describe_collection(...)``.
+
+        :meta private:
         """
         return await self.collections.describe(name)
 
@@ -615,6 +640,8 @@ class AsyncPinecone:
         Preserved to ease migration from the legacy Pinecone Python SDK. New code
         should use ``await pc.collections.delete(...)`` instead of
         ``await pc.delete_collection(...)``.
+
+        :meta private:
         """
         await self.collections.delete(name)
 
@@ -630,6 +657,8 @@ class AsyncPinecone:
         Preserved to ease migration from the legacy Pinecone Python SDK. New code
         should use ``await pc.backups.create(...)`` instead of
         ``await pc.create_backup(...)``.
+
+        :meta private:
         """
         return await self.backups.create(
             index_name=index_name,
@@ -649,6 +678,8 @@ class AsyncPinecone:
         Preserved to ease migration from the legacy Pinecone Python SDK. New code
         should use ``await pc.backups.list(...)`` instead of
         ``await pc.list_backups(...)``.
+
+        :meta private:
         """
         return await self.backups.list(
             index_name=index_name,
@@ -662,6 +693,8 @@ class AsyncPinecone:
         Preserved to ease migration from the legacy Pinecone Python SDK. New code
         should use ``await pc.backups.describe(...)`` instead of
         ``await pc.describe_backup(...)``.
+
+        :meta private:
         """
         return await self.backups.describe(backup_id=backup_id)
 
@@ -671,6 +704,8 @@ class AsyncPinecone:
         Preserved to ease migration from the legacy Pinecone Python SDK. New code
         should use ``await pc.backups.delete(...)`` instead of
         ``await pc.delete_backup(...)``.
+
+        :meta private:
         """
         await self.backups.delete(backup_id=backup_id)
 
@@ -685,6 +720,8 @@ class AsyncPinecone:
         Preserved to ease migration from the legacy Pinecone Python SDK. New code
         should use ``await pc.restore_jobs.list(...)`` instead of
         ``await pc.list_restore_jobs(...)``.
+
+        :meta private:
         """
         return await self.restore_jobs.list(
             limit=limit,
@@ -697,6 +734,8 @@ class AsyncPinecone:
         Preserved to ease migration from the legacy Pinecone Python SDK. New code
         should use ``await pc.restore_jobs.describe(...)`` instead of
         ``await pc.describe_restore_job(...)``.
+
+        :meta private:
         """
         return await self.restore_jobs.describe(job_id=job_id)
 
@@ -706,6 +745,8 @@ class AsyncPinecone:
         Preserved to ease migration from the legacy Pinecone Python SDK. New
         code should use ``pc.index(host=...)`` (where ``pc`` is an
         :class:`AsyncPinecone` instance) instead of ``pc.IndexAsyncio(...)``.
+
+        :meta private:
         """
         from pinecone.async_client.async_index import AsyncIndex as _AsyncIndex
 
@@ -825,8 +866,28 @@ class AsyncPinecone:
     async def close(self) -> None:
         """Close all open HTTP connections.
 
-        Closes the main control-plane client and any namespace clients (inference, assistants,
-        preview) that were initialized during this session.
+        Closes the main control-plane client and any namespace clients (inference,
+        assistants, preview) that were initialized during this session.
+
+        Prefer the async context manager form (``async with AsyncPinecone(...) as pc:``)
+        which calls :meth:`close` automatically on exit.
+
+        Examples:
+            Close the client explicitly after use:
+
+            >>> import asyncio
+            >>> from pinecone import AsyncPinecone
+            >>> async def example():
+            ...     client = AsyncPinecone(api_key="your-api-key")
+            ...     await client.close()
+            >>> asyncio.run(example())
+
+            Use AsyncPinecone as a context manager (``close`` is called automatically):
+
+            >>> async def example():
+            ...     async with AsyncPinecone(api_key="your-api-key") as pc:
+            ...         _ = await pc.indexes.list()
+            >>> asyncio.run(example())
         """
         await self._http.close()
         if self._assistants is not None:

@@ -9,10 +9,6 @@ requires-python = ">=3.10,<3.15"
 description = "Tools for Dagster Helm schema"
 authors = [{name = "Dagster Labs", email = "hello@dagsterlabs.com"}]
 license = "Apache-2.0"
-classifiers = [
-    "Programming Language :: Python :: 3.12",
-    "Operating System :: OS Independent",
-]
 dependencies = [
     "click",
     "pydantic>=2",

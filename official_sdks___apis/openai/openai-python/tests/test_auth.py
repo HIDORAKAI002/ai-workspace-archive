@@ -36,7 +36,6 @@ def test_basic_auth():
 
     client = OpenAI(
         workload_identity={
-            "client_id": "client_123",
             "identity_provider_id": "idp_123",
             "service_account_id": "sa_123",
             "provider": {
@@ -82,7 +81,6 @@ def test_workload_identity_exchange_payload_and_cache() -> None:
 
     client = OpenAI(
         workload_identity={
-            "client_id": "client_123",
             "identity_provider_id": "idp_123",
             "service_account_id": "sa_123",
             "provider": {
@@ -103,7 +101,6 @@ def test_workload_identity_exchange_payload_and_cache() -> None:
     assert json.loads(exchange_request.content) == snapshot(
         {
             "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
-            "client_id": "client_123",
             "subject_token": "fake_subject_token",
             "subject_token_type": "urn:ietf:params:oauth:token-type:jwt",
             "identity_provider_id": "idp_123",
@@ -136,7 +133,6 @@ def test_workload_identity_exchange_error() -> None:
 
     client = OpenAI(
         workload_identity={
-            "client_id": "client_123",
             "identity_provider_id": "idp_123",
             "service_account_id": "sa_123",
             "provider": {

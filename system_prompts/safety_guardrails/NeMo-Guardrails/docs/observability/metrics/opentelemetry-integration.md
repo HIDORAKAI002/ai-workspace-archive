@@ -22,7 +22,7 @@ content:
 # OpenTelemetry Metrics Integration
 
 The NeMo Guardrails library follows OpenTelemetry best practices: the library uses only the API, and the host application configures the SDK.
-The following sections explain how to install and configure the OpenTelemetry SDK for metrics export from IORails.
+The following sections explain how to install and configure the OpenTelemetry SDK for metrics export from the Guardrails IORails engine.
 
 ## Installation
 
@@ -43,8 +43,10 @@ Choose one of the following options for installing the NeMo Guardrails library, 
 - For Prometheus scraping:
 
   ```bash
-  pip install "nemoguardrails[tracing]" opentelemetry-sdk opentelemetry-exporter-prometheus
+  pip install "nemoguardrails[tracing]" opentelemetry-sdk opentelemetry-exporter-prometheus prometheus-client
   ```
+
+  `prometheus-client` is required because the example uses `start_http_server` to expose the scrape endpoint.
 
 ## Enabling Metrics in the Configuration
 
@@ -56,8 +58,8 @@ metrics:
   enabled: true
 ```
 
-When `metrics.enabled` is `true` and `opentelemetry-api` is installed, IORails emits metrics through the active `MeterProvider`.
-When `opentelemetry-api` is not installed, IORails emits a `UserWarning` at construction time and runs without metrics.
+When `metrics.enabled` is `true` and `opentelemetry-api` is installed, the IORails engine emits metrics through the active `MeterProvider`.
+When `opentelemetry-api` is not installed, the IORails engine emits a `UserWarning` at construction time and runs without metrics.
 
 ## Configuration Examples
 
@@ -83,7 +85,7 @@ metrics.set_meter_provider(MeterProvider(resource=resource, metric_readers=[read
 
 # Configure NeMo Guardrails afterwards.
 from nemoguardrails import RailsConfig
-from nemoguardrails.guardrails.iorails import IORails
+from nemoguardrails.guardrails.guardrails import Guardrails
 
 config_yaml = """
 models:
@@ -96,7 +98,7 @@ metrics:
 """
 
 config = RailsConfig.from_content(yaml_content=config_yaml)
-rails = IORails(config)
+rails = Guardrails(config, use_iorails=True)
 ```
 
 ### OTLP Exporter (Production)

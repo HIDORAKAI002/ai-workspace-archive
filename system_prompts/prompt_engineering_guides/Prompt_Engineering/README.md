@@ -2,6 +2,7 @@
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue)](https://www.linkedin.com/in/nir-diamant-759323134/)
 [![Twitter](https://img.shields.io/twitter/follow/NirDiamantAI?label=Follow%20@NirDiamantAI&style=social)](https://twitter.com/NirDiamantAI)
 [![Discord](https://img.shields.io/badge/Discord-Join%20our%20community-7289da?style=flat-square&logo=discord&logoColor=white)](https://discord.gg/cA6Aa4uyDX)
+[![DiamantAI Collective is hiring](https://img.shields.io/badge/%F0%9F%92%BC%20Hiring-DiamantAI%20Collective-7c3aed?style=flat-square)](https://europe-west1-prompt-eng-views-tracker.cloudfunctions.net/prompt-eng-tracker?notebook=main-readme--hiring-badge&click=top-badge-hiring&target=https%3A%2F%2Fdiamant-ai.com%2Fjobs&text=Hiring%20Badge)
 
 
 > 🌟 **Support This Project:** Your sponsorship fuels innovation in prompt engineering development.  **[Become a sponsor](https://github.com/sponsors/NirDiamant)** to help maintain and expand this valuable resource!
@@ -25,6 +26,22 @@ Welcome to one of the most extensive and dynamic collections of Prompt Engineeri
 
 
 > **22 hands-on tutorials** covering everything from basic prompt templates to advanced techniques like chain-of-thought, self-consistency, and tree-of-thought prompting.
+
+<div align="center">
+
+---
+
+<img src="images/collective-banner.png" alt="DiamantAI Collective - AI engineering jobs" width="600">
+
+## 💼 Apply for open AI engineering jobs
+
+**AI-first companies are hiring through the DiamantAI Collective.**
+
+[![See open jobs and apply](https://img.shields.io/badge/%E2%9E%A1%EF%B8%8F%20%20See%20open%20jobs%20and%20apply-7c3aed?style=for-the-badge)](https://europe-west1-prompt-eng-views-tracker.cloudfunctions.net/prompt-eng-tracker?notebook=main-readme--jobs-panel&click=jobs-panel-see-all-roles&target=https%3A%2F%2Fdiamant-ai.com%2Fjobs&text=See%20open%20jobs%20and%20apply)
+
+---
+
+</div>
 
 ## 🎯 Sponsors
 
@@ -89,21 +106,6 @@ Available on:
 
 
 
-<div align="center">
-
----
-
-## 💼 AI Engineering Roles via the DiamantAI Collective
-
-**I'm partnered with AI-first companies looking for serious engineers.**
-
-*Voice AI · AI agents · Applied LLM · AI fintech · Founding-eng seats*
-
-[![See open roles and apply](https://img.shields.io/badge/%E2%9E%A1%EF%B8%8F%20%20See%20open%20roles%20and%20apply-7c3aed?style=for-the-badge)](https://europe-west1-prompt-eng-views-tracker.cloudfunctions.net/prompt-eng-tracker?notebook=main-readme--jobs-panel&click=jobs-panel-see-all-roles&target=https%3A%2F%2Fdiamant-ai.com%2Fjobs&text=See%20open%20roles%20and%20apply)
-
----
-
-</div>
 
 ## Related Projects
 
