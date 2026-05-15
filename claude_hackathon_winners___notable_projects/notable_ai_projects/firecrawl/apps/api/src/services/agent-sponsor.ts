@@ -89,7 +89,7 @@ export async function getAgentSponsorStatus({
 /**
  * Clear cached agent sponsor status for a given api_key_id.
  */
-export async function clearAgentSponsorCache({
+async function clearAgentSponsorCache({
   apiKeyId,
 }: {
   apiKeyId: number;
@@ -100,7 +100,7 @@ export async function clearAgentSponsorCache({
 /**
  * Look up agent sponsor record by verification token.
  */
-export async function getAgentSponsorByToken({
+async function getAgentSponsorByToken({
   agent_signup_token,
 }: {
   agent_signup_token: string;
@@ -131,7 +131,7 @@ export async function getAgentSponsorByToken({
 /**
  * Mark sponsor as verified and set verified_at timestamp.
  */
-export async function markSponsorVerified({
+async function markSponsorVerified({
   sponsorId,
 }: {
   sponsorId: number;
@@ -150,7 +150,7 @@ export async function markSponsorVerified({
 /**
  * Mark sponsor as blocked.
  */
-export async function markSponsorBlocked({
+async function markSponsorBlocked({
   sponsorId,
 }: {
   sponsorId: number;
