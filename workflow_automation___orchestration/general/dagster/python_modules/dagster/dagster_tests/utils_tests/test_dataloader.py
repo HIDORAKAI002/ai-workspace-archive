@@ -134,7 +134,7 @@ def test_bad_load_fn():
         assert len(done) == 1
 
         with pytest.raises(TypeError):
-            done[0].result()  # ty: ignore[not-subscriptable]  # pyright: ignore[reportIndexIssue]
+            done[0].result()  # ty: ignore[not-subscriptable]
 
     asyncio.run(_test())
 

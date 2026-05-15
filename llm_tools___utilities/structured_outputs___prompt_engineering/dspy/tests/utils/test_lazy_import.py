@@ -46,17 +46,32 @@ def test_require_stub_raises_on_access_with_install_hint():
     dist = _detect_dspy_dist()
     stub = require("nonexistent_abc", feature="dspy.Test")
     with pytest.raises(ImportError) as exc_info:
-        stub.something
+        _ = stub.something
     msg = str(exc_info.value)
     assert f"{dist}[nonexistent_abc]" in msg, msg
     assert "dspy.Test" in msg
+
+
+def test_require_stub_uses_install_hint_for_litellm(monkeypatch):
+    import importlib.util
+    import sys
+
+    dist = _detect_dspy_dist()
+    find_spec = importlib.util.find_spec
+    monkeypatch.delitem(sys.modules, "litellm", raising=False)
+    monkeypatch.setattr(importlib.util, "find_spec", lambda module: None if module == "litellm" else find_spec(module))
+
+    stub = require("litellm", feature="dspy.LM")
+    with pytest.raises(ImportError) as exc_info:
+        _ = stub.something
+    assert f"{dist}[litellm]" in str(exc_info.value)
 
 
 def test_require_stub_uses_explicit_extra():
     dist = _detect_dspy_dist()
     stub = require("nonexistent_xyz", extra="custom", feature="dspy.X")
     with pytest.raises(ImportError) as exc_info:
-        stub.something
+        _ = stub.something
     assert f"{dist}[custom]" in str(exc_info.value)
 
 
@@ -64,7 +79,7 @@ def test_require_stub_falls_back_to_module_name():
     dist = _detect_dspy_dist()
     stub = require("nonexistent_xyz", feature="dspy.X")
     with pytest.raises(ImportError) as exc_info:
-        stub.something
+        _ = stub.something
     assert f"{dist}[nonexistent_xyz]" in str(exc_info.value)
 
 

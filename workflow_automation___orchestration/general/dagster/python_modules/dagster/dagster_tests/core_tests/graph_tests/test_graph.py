@@ -377,7 +377,7 @@ def test_logger_defs():
     def my_graph():
         my_op()
 
-    @dg.logger  # pyright: ignore[reportCallIssue,reportArgumentType]
+    @dg.logger
     def my_logger(_):
         pass
 

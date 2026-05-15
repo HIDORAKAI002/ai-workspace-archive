@@ -442,7 +442,7 @@ def test_bad_config_provided():
 
 
 def test_overlapping_io_manager_asset():
-    @dg.io_manager  # pyright: ignore[reportCallIssue,reportArgumentType]
+    @dg.io_manager
     def the_io_manager():
         pass
 
@@ -502,7 +502,7 @@ def test_overlapping_resources_asset():
 
 
 def test_overlapping_io_manager_source_asset():
-    @dg.io_manager  # pyright: ignore[reportCallIssue,reportArgumentType]
+    @dg.io_manager
     def the_io_manager():
         pass
 
@@ -572,7 +572,7 @@ def test_with_resources_no_exp_warnings():
     def blah():
         pass
 
-    @dg.io_manager  # pyright: ignore[reportCallIssue,reportArgumentType]
+    @dg.io_manager
     def the_manager():
         pass
 

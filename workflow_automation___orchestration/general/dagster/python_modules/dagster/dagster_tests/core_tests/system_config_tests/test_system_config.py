@@ -12,7 +12,7 @@ from dagster._core.system_config.objects import OpConfig, ResolvedRunConfig, Res
 
 
 def create_creation_data(job_def):
-    return RunConfigSchemaCreationData(  # pyright: ignore[reportCallIssue]  # ty: ignore[missing-argument]
+    return RunConfigSchemaCreationData(  # ty: ignore[missing-argument]
         job_def.name,
         job_def.nodes,
         job_def.dependency_structure,

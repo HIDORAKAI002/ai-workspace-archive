@@ -1,6 +1,6 @@
 version = 1
 revision = 3
-requires-python = ">=3.10"
+requires-python = ">=3.10, <3.15"
 resolution-markers = [
     "python_full_version >= '3.14'",
     "python_full_version == '3.13.*'",
@@ -1645,7 +1645,7 @@ requires-dist = [
     { name = "jupyter-client", specifier = "<8" },
     { name = "nbconvert" },
     { name = "packaging", specifier = ">=20.9" },
-    { name = "papermill", specifier = ">=1.0.0" },
+    { name = "papermill", specifier = ">=2.0.0" },
     { name = "scrapbook", specifier = ">=0.5.0" },
 ]
 
@@ -1658,14 +1658,6 @@ test = [
     { name = "matplotlib" },
     { name = "scikit-learn", specifier = ">=0.19.0" },
     { name = "tqdm" },
-]
-test-papermill1 = [
-    { name = "jinja2", specifier = "<3.0" },
-    { name = "jupyter-client", specifier = "<6.1.13" },
-    { name = "markupsafe", specifier = "<=2.0.1" },
-    { name = "nbconvert", specifier = "<6.0.0" },
-    { name = "nbformat", specifier = "<=5.1.3" },
-    { name = "papermill", specifier = "<2.0.0" },
 ]
 
 [[package]]

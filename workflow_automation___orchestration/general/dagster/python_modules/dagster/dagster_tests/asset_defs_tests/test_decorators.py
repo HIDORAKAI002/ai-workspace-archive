@@ -661,7 +661,7 @@ def test_multi_asset_resource_defs():
     def foo_manager():
         pass
 
-    @dg.io_manager  # pyright: ignore[reportCallIssue,reportArgumentType]
+    @dg.io_manager
     def bar_manager():
         pass
 
@@ -692,7 +692,7 @@ def test_multi_asset_resource_defs_specs() -> None:
     def foo_manager():
         pass
 
-    @dg.io_manager  # pyright: ignore[reportCallIssue,reportArgumentType]
+    @dg.io_manager
     def bar_manager():
         pass
 
@@ -732,7 +732,7 @@ def test_multi_asset_code_versions():
 @ignore_warning("Parameter `io_manager_def` .* is currently in beta")
 @ignore_warning("Parameter `resource_defs` .* is currently in beta")
 def test_asset_io_manager_def():
-    @dg.io_manager  # pyright: ignore[reportCallIssue,reportArgumentType]
+    @dg.io_manager
     def the_manager():
         pass
 

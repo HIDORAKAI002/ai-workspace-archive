@@ -104,6 +104,41 @@ function run() {
     });
   })) passed++; else failed++;
 
+  if (test('rejects node-ipc campaign package versions and CJS indicators', () => {
+    withFixture({
+      'package-lock.json': JSON.stringify({
+        packages: {
+          'node_modules/node-ipc': {
+            version: '12.0.1',
+          },
+        },
+      }, null, 2),
+      'node_modules/node-ipc/package.json': JSON.stringify({
+        name: 'node-ipc',
+        version: '9.2.3',
+      }, null, 2),
+      'node_modules/node-ipc/node-ipc.cjs': [
+        'const host = "sh.azurestaticprovider.net";',
+        'const zone = "bt.node.js";',
+        'process.env.__ntw = "1";',
+        'module.exports.__ntRun = true;',
+        'const archive = "/nt-/sample.tar.gz";',
+        'const entries = ["uname.txt", "envs.txt", "fixtures/_paths.txt"];',
+      ].join('\n'),
+    }, rootDir => {
+      const result = scanSupplyChainIocs({ rootDir });
+      const indicators = result.findings.map(finding => finding.indicator);
+      assert.ok(indicators.includes('node-ipc@12.0.1'));
+      assert.ok(indicators.includes('node-ipc@9.2.3'));
+      assert.ok(indicators.includes('sh.azurestaticprovider.net'));
+      assert.ok(indicators.includes('bt.node.js'));
+      assert.ok(indicators.includes('__ntw'));
+      assert.ok(indicators.includes('__ntRun'));
+      assert.ok(indicators.includes('/nt-'));
+      assert.ok(indicators.includes('fixtures/_paths.txt'));
+    });
+  })) passed++; else failed++;
+
   if (test('passes clean versions of watched packages', () => {
     withFixture({
       'package-lock.json': JSON.stringify({
@@ -111,6 +146,21 @@ function run() {
           'node_modules/@tanstack/react-router': {
             version: '1.170.0',
           },
+        },
+      }, null, 2),
+    }, rootDir => {
+      const result = scanSupplyChainIocs({ rootDir });
+      assert.deepStrictEqual(result.findings, []);
+    });
+  })) passed++; else failed++;
+
+  if (test('does not flag benign substrings in clean package scripts', () => {
+    withFixture({
+      'node_modules/uuid/package.json': JSON.stringify({
+        name: 'uuid',
+        version: '9.0.1',
+        scripts: {
+          test: 'BABEL_ENV=commonjsNode node --throw-deprecation node_modules/.bin/jest test/unit/',
         },
       }, null, 2),
     }, rootDir => {
@@ -206,7 +256,6 @@ function run() {
       assert.ok(indicators.includes('claude@users.noreply.github.com'));
       assert.ok(indicators.includes('dependabout/'));
       assert.ok(indicators.includes('signalservice'));
-      assert.ok(indicators.includes('snode'));
     });
   })) passed++; else failed++;
 

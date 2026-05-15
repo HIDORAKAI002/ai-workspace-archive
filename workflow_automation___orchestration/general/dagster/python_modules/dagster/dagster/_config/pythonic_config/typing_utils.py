@@ -151,7 +151,7 @@ class BaseResourceMeta(BaseConfigMeta):
                     base = annotations[field]
                     annotations[field] = Annotated[
                         base
-                        | LateBoundTypesForResourceTypeChecking.get_partial_resource_type(base),
+                        | LateBoundTypesForResourceTypeChecking.get_partial_resource_type(base),  # ty: ignore[invalid-type-form]
                         "resource_dependency",
                     ]
                     # Pydantic 2.5.0 changed the default union mode to "smart", which causes

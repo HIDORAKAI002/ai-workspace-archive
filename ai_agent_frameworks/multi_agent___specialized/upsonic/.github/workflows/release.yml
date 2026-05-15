@@ -11,6 +11,8 @@ jobs:
       contents: write
       pull-requests: write
     outputs:
+      pr: ${{ steps.release.outputs.pr }}
+      prs_created: ${{ steps.release.outputs.prs_created }}
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
       version: ${{ steps.release.outputs.version }}
@@ -21,6 +23,44 @@ jobs:
         with:
           release-type: python
           target-branch: master
+
+  refresh-lockfile:
+    runs-on: ubuntu-latest
+    needs: release-please
+    if: needs.release-please.outputs.prs_created == 'true'
+    permissions:
+      contents: write
+    env:
+      RELEASE_BRANCH: ${{ fromJSON(needs.release-please.outputs.pr).headBranchName }}
+    steps:
+      - name: Check out release PR branch
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ env.RELEASE_BRANCH }}
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: "latest"
+
+      - name: Refresh uv.lock
+        run: uv lock
+
+      - name: Commit refreshed lockfile
+        run: |
+          if git diff --quiet --exit-code -- uv.lock; then
+            exit 0
+          fi
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add uv.lock
+          git commit -m "chore: refresh uv.lock for release PR [skip ci]"
+          git push origin "HEAD:${RELEASE_BRANCH}"
 
   publish:
     runs-on: ubuntu-latest
@@ -47,9 +87,7 @@ jobs:
         run: uv build
 
       - name: Publish package to PyPI
-        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b # release/v1
-        with:
-          packages-dir: dist/
+        run: uv publish -t ${{ secrets.THE_PYPI_TOKEN }}
 
   notify-slack:
     needs: [release-please, publish]

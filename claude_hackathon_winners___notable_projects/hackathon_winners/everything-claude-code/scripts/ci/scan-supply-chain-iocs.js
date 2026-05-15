@@ -5,6 +5,7 @@
  */
 
 const fs = require('fs');
+const crypto = require('crypto');
 const os = require('os');
 const path = require('path');
 
@@ -204,6 +205,7 @@ const MALICIOUS_PACKAGE_VERSIONS = {
   'mbt': ['1.2.48'],
   'mistralai': ['2.4.6'],
   'ml-toolkit-ts': ['1.0.4', '1.0.5'],
+  'node-ipc': ['9.1.6', '9.2.3', '10.1.1', '10.1.2', '11.0.0', '11.1.0', '12.0.1'],
   'nextmove-mcp': ['0.1.3', '0.1.4', '0.1.5', '0.1.7'],
   'safe-action': ['0.8.3', '0.8.4'],
   'ts-dna': ['3.0.1', '3.0.2', '3.0.3', '3.0.4', '3.0.5'],
@@ -251,7 +253,6 @@ const CRITICAL_TEXT_INDICATORS = [
   'seed2.getsession.org',
   'seed3.getsession.org',
   'signalservice',
-  'snode',
   'git-tanstack.com',
   'litter.catbox.moe/h8nc9u.js',
   'litter.catbox.moe/7rrc6l.mjs',
@@ -266,7 +267,59 @@ const CRITICAL_TEXT_INDICATORS = [
   'PUSH UR T3MPRR',
   'codeql_analysis.yml',
   'shai-hulud-workflow.yml',
+  [
+    '96097e0612d9575c',
+    'b133021017fb1a5c',
+    '68a03b60f9f3d24e',
+    'bdc0e628d9034144',
+  ].join(''),
+  [
+    '449e4265979b5fdb',
+    '2d3446c021af437e',
+    '815debd66de7da2f',
+    'e54f1ad93cbcc75e',
+  ].join(''),
+  [
+    'c2f4dc64aec46315',
+    '40a568e88932b61d',
+    'aebbfb7e8281b812',
+    'fa01b7215f9be9ea',
+  ].join(''),
+  [
+    '78a82d93b4f58083',
+    '5f5823b85a3d9ee1',
+    'f03a15ee6f0e01b',
+    '4eac86252a7002981',
+  ].join(''),
+  'sh.azurestaticprovider.net',
+  '37.16.75.69',
+  'bt.node.js',
+  '__ntw',
+  '__ntRun',
+  '/nt-',
+  'uname.txt',
+  'envs.txt',
+  'fixtures/_paths.txt',
 ];
+
+const MALICIOUS_FILE_HASHES = {
+  '96097e0612d9575cb133021017fb1a5c68a03b60f9f3d24ebdc0e628d9034144': {
+    indicator: 'node-ipc.cjs sha256',
+    message: 'Known malicious node-ipc CommonJS payload hash is present',
+  },
+  '449e4265979b5fdb2d3446c021af437e815debd66de7da2fe54f1ad93cbcc75e': {
+    indicator: 'node-ipc-9.1.6.tgz sha256',
+    message: 'Known malicious node-ipc tarball hash is present',
+  },
+  'c2f4dc64aec4631540a568e88932b61daebbfb7e8281b812fa01b7215f9be9ea': {
+    indicator: 'node-ipc-9.2.3.tgz sha256',
+    message: 'Known malicious node-ipc tarball hash is present',
+  },
+  '78a82d93b4f580835f5823b85a3d9ee1f03a15ee6f0e01b4eac86252a7002981': {
+    indicator: 'node-ipc-12.0.1.tar.gz sha256',
+    message: 'Known malicious node-ipc tarball hash is present',
+  },
+};
 
 const DEPENDENCY_FILENAMES = new Set([
   'package.json',
@@ -277,6 +330,13 @@ const DEPENDENCY_FILENAMES = new Set([
   'pyproject.toml',
   'poetry.lock',
   'requirements.txt',
+]);
+
+const INSPECT_ONLY_FILENAMES = new Set([
+  'node-ipc.cjs',
+  'node-ipc-9.1.6.tgz',
+  'node-ipc-9.2.3.tgz',
+  'node-ipc-12.0.1.tar.gz',
 ]);
 
 const PERSISTENCE_FILENAMES = new Set([
@@ -342,6 +402,7 @@ function shouldInspectFile(filePath) {
   if (DEPENDENCY_FILENAMES.has(base)) return true;
   if (PERSISTENCE_FILENAMES.has(base) && isInSpecialConfigPath(filePath)) return true;
   if (PAYLOAD_FILENAMES.has(base) && filePath.includes(`${path.sep}node_modules${path.sep}`)) return true;
+  if (INSPECT_ONLY_FILENAMES.has(base)) return true;
   return false;
 }
 
@@ -392,7 +453,13 @@ function walkNodeModules(nodeModulesDir, files) {
 }
 
 function inspectPackageDir(packageDir, files) {
-  for (const filename of [...DEPENDENCY_FILENAMES, ...PAYLOAD_FILENAMES, 'setup.mjs', 'execution.js']) {
+  for (const filename of [
+    ...DEPENDENCY_FILENAMES,
+    ...PAYLOAD_FILENAMES,
+    ...INSPECT_ONLY_FILENAMES,
+    'setup.mjs',
+    'execution.js',
+  ]) {
     const candidate = path.join(packageDir, filename);
     if (fs.existsSync(candidate) && fs.statSync(candidate).isFile()) {
       files.push(candidate);
@@ -403,6 +470,14 @@ function inspectPackageDir(packageDir, files) {
 function readText(filePath) {
   try {
     return fs.readFileSync(filePath, 'utf8');
+  } catch {
+    return '';
+  }
+}
+
+function sha256File(filePath) {
+  try {
+    return crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
   } catch {
     return '';
   }
@@ -425,6 +500,18 @@ function scanFile(filePath, rootDir, findings) {
   const relativePath = path.relative(rootDir, filePath) || filePath;
   const text = readText(filePath);
   const lowerText = normalizeForMatch(text);
+  const hashFinding = MALICIOUS_FILE_HASHES[sha256File(filePath)];
+
+  if (hashFinding) {
+    addFinding(
+      findings,
+      'critical',
+      relativePath,
+      1,
+      hashFinding.indicator,
+      hashFinding.message,
+    );
+  }
 
   if (PAYLOAD_FILENAMES.has(base)) {
     addFinding(
@@ -492,8 +579,14 @@ function runtimeTargets() {
   return [
     '/tmp/transformers.pyz',
     '/tmp/pgmonitor.py',
+    '/tmp/node-ipc-9.1.6.tgz',
+    '/tmp/node-ipc-9.2.3.tgz',
+    '/tmp/node-ipc-12.0.1.tar.gz',
     '/private/tmp/transformers.pyz',
     '/private/tmp/pgmonitor.py',
+    '/private/tmp/node-ipc-9.1.6.tgz',
+    '/private/tmp/node-ipc-9.2.3.tgz',
+    '/private/tmp/node-ipc-12.0.1.tar.gz',
   ];
 }
 
@@ -526,7 +619,9 @@ function parseArgs(argv) {
   const options = {};
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
-    if (arg === '--root') {
+    if (arg === '--help' || arg === '-h') {
+      options.help = true;
+    } else if (arg === '--root') {
       options.rootDir = argv[++i];
     } else if (arg === '--home') {
       options.home = true;
@@ -540,6 +635,26 @@ function parseArgs(argv) {
     }
   }
   return options;
+}
+
+function printHelp() {
+  console.log(`Usage: node scripts/ci/scan-supply-chain-iocs.js [options]
+
+Scan dependency manifests, lockfiles, installed package payloads, and AI-tool
+persistence paths for active supply-chain IOC markers.
+
+Options:
+  --root <dir>       Directory to scan (default: repo root)
+  --home             Also scan user-level Claude, VS Code, LaunchAgent, systemd,
+                     and /tmp persistence targets
+  --home-dir <dir>   Home directory to use with --home
+  --json             Emit JSON instead of text
+  --help, -h         Show this help
+
+Examples:
+  node scripts/ci/scan-supply-chain-iocs.js --home
+  node scripts/ci/scan-supply-chain-iocs.js --root /path/to/project --json
+`);
 }
 
 function printReport(result, json = false) {
@@ -564,6 +679,10 @@ function printReport(result, json = false) {
 if (require.main === module) {
   try {
     const options = parseArgs(process.argv.slice(2));
+    if (options.help) {
+      printHelp();
+      process.exit(0);
+    }
     const result = scanSupplyChainIocs(options);
     printReport(result, options.json);
     process.exit(result.findings.length > 0 ? 1 : 0);
@@ -575,6 +694,7 @@ if (require.main === module) {
 
 module.exports = {
   CRITICAL_TEXT_INDICATORS,
+  MALICIOUS_FILE_HASHES,
   MALICIOUS_PACKAGE_VERSIONS,
   scanSupplyChainIocs,
 };

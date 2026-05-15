@@ -1110,11 +1110,11 @@ def test_default_executor_jobs():
 
     unresolved_job = dg.define_asset_job("asset_job", selection="*")
 
-    @dg.executor  # pyright: ignore[reportCallIssue,reportArgumentType]
+    @dg.executor
     def custom_executor(_):
         pass
 
-    @dg.executor  # pyright: ignore[reportCallIssue,reportArgumentType]
+    @dg.executor
     def other_custom_executor(_):
         pass
 
@@ -1324,11 +1324,11 @@ def test_default_loggers_for_jobs():
 
     unresolved_job = dg.define_asset_job("asset_job", selection="*")
 
-    @dg.logger  # pyright: ignore[reportCallIssue,reportArgumentType]
+    @dg.logger
     def custom_logger(_):
         pass
 
-    @dg.logger  # pyright: ignore[reportCallIssue,reportArgumentType]
+    @dg.logger
     def other_custom_logger(_):
         pass
 

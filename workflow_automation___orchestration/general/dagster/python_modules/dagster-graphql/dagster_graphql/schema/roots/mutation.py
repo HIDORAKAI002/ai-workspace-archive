@@ -354,7 +354,7 @@ class GrapheneLaunchMultipleRunsMutation(graphene.Mutation):
 
         for execution_params in executionParamsList:
             result = await GrapheneLaunchRunMutation.mutate(
-                None,  # pyright: ignore[reportArgumentType]
+                None,
                 graphene_info,
                 executionParams=execution_params,
             )

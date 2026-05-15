@@ -320,7 +320,7 @@ class PipesCompositeMessageReader(PipesMessageReader):
             per_writer_params = [
                 stack.enter_context(
                     reader.read_messages(
-                        _ChildMessageHandler(handler, reader)  # pyright: ignore[reportArgumentType]  # ty: ignore[invalid-argument-type]
+                        _ChildMessageHandler(handler, reader)  # ty: ignore[invalid-argument-type]
                     )
                 )
                 for reader in self._readers

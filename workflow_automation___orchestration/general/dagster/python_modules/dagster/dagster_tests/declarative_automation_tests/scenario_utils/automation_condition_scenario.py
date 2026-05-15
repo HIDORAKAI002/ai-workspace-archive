@@ -92,7 +92,7 @@ class AutomationConditionScenarioState(ScenarioState):
                 emit_backfills=False,
                 evaluation_id=cursor.evaluation_id,
             )
-            evaluator.request_subsets_by_key = self._get_request_subsets_by_key(  # ty: ignore[invalid-assignment]  # pyright: ignore[reportAttributeAccessIssue]
+            evaluator.request_subsets_by_key = self._get_request_subsets_by_key(  # ty: ignore[invalid-assignment]
                 evaluator.asset_graph_view
             )
             context = AutomationContext.create(key=asset_key, evaluator=evaluator)

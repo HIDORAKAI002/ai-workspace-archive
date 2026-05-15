@@ -284,6 +284,51 @@ class DbtCloudWorkspaceClient(DagsterModel):
         total_count = resp["extra"]["pagination"]["total_count"]
         return data, total_count
 
+    def get_active_job_ids(
+        self,
+        project_id: int,
+        environment_id: int,
+        job_ids: Sequence[int],
+    ) -> set[int]:
+        """Returns the subset of ``job_ids`` that currently have at least one
+        active (QUEUED, STARTING, or RUNNING) run in dbt Cloud.
+
+        Issues one ``/runs`` request per job ID with ``limit=1`` — we only need
+        a yes/no answer, so pagination is not required.
+
+        Args:
+            project_id (int): The dbt Cloud Project ID.
+            environment_id (int): The dbt Cloud Environment ID.
+            job_ids (Sequence[int]): The job IDs to test.
+
+        Returns:
+            set[int]: The subset of ``job_ids`` with at least one active run.
+        """
+        active_statuses = [
+            int(DbtCloudJobRunStatusType.QUEUED),
+            int(DbtCloudJobRunStatusType.STARTING),
+            int(DbtCloudJobRunStatusType.RUNNING),
+        ]
+        status_filter = f"[{','.join(str(s) for s in active_statuses)}]"
+        active_job_ids: set[int] = set()
+        for job_id in job_ids:
+            resp = self._make_request(
+                method="get",
+                endpoint="runs",
+                base_url=self.api_v2_url,
+                params={
+                    "account_id": self.account_id,
+                    "environment_id": environment_id,
+                    "project_id": project_id,
+                    "job_definition_id": job_id,
+                    "status__in": status_filter,
+                    "limit": 1,
+                },
+            ).json()
+            if resp.get("data"):
+                active_job_ids.add(job_id)
+        return active_job_ids
+
     def get_run_details(
         self, run_id: int, include_related: Sequence[str] | None = None
     ) -> Mapping[str, Any]:

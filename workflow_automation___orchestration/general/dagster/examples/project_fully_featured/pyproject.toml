@@ -5,9 +5,11 @@ build-backend = "hatchling.build"
 [project]
 name = "project_fully_featured"
 version = "1!0+dev"
+requires-python = ">=3.10,<3.12"
 authors = [{name = "Dagster Labs", email = "hello@dagsterlabs.com"}]
 classifiers = [
-    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
     "Operating System :: OS Independent",
 ]
 dependencies = [

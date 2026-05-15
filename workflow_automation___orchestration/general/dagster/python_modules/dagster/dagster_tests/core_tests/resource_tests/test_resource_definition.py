@@ -599,7 +599,7 @@ def test_incorrect_resource_init_error():
         ),
     ):
 
-        @dg.resource  # ty: ignore[no-matching-overload]  # pyright: ignore[reportCallIssue,reportArgumentType]
+        @dg.resource  # ty: ignore[no-matching-overload]
         def _incorrect_resource_2(_a, _b, _c, _d=4):
             pass
 

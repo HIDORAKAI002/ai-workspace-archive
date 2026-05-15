@@ -8,7 +8,7 @@ from typing import TypeAlias
 from buildkite_shared.context import BuildkiteContext
 from buildkite_shared.packages import get_python_package_step_skip_reason
 from buildkite_shared.python_version import AvailablePythonVersion
-from buildkite_shared.step_builders.command_step_builder import BuildkiteQueue
+from buildkite_shared.step_builders.command_step_builder import BuildkiteQueue, ResourceRequests
 from buildkite_shared.step_builders.group_step_builder import (
     GroupLeafStepConfiguration,
     GroupStepBuilder,
@@ -260,6 +260,7 @@ class PackageSpec:
                                 concurrency_group=(
                                     other_factor.concurrency_group if other_factor else None
                                 ),
+                                resources=other_factor.resources if other_factor else None,
                             )
                         )
 
@@ -776,9 +777,25 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
                 ToxFactor("logging_tests"),
                 ToxFactor("model_tests"),
                 ToxFactor("scheduler_tests"),
-                ToxFactor("storage_tests", splits=2),
-                ToxFactor("storage_tests_sqlalchemy_1_3", splits=2),
-                ToxFactor("storage_tests_sqlalchemy_1_4", splits=2),
+                # `test_threaded_concurrency` (100-thread sqlite contention)
+                # times out at 30s wall-clock on the EKS default 1000m CPU
+                # budget. Bumping per-step CPU to match what pyright/ty use
+                # for CPU-bound EKS work.
+                ToxFactor(
+                    "storage_tests",
+                    splits=2,
+                    resources=ResourceRequests(cpu="2000m", memory="4Gi"),
+                ),
+                ToxFactor(
+                    "storage_tests_sqlalchemy_1_3",
+                    splits=2,
+                    resources=ResourceRequests(cpu="2000m", memory="4Gi"),
+                ),
+                ToxFactor(
+                    "storage_tests_sqlalchemy_1_4",
+                    splits=2,
+                    resources=ResourceRequests(cpu="2000m", memory="4Gi"),
+                ),
                 ToxFactor("utils_tests"),
                 ToxFactor("type_signature_tests"),
             ]

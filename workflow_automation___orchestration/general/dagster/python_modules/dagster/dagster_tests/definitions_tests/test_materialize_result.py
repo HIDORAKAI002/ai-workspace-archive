@@ -493,7 +493,7 @@ def test_materialize_result_no_output_typing_does_not_call_io():
         yield dg.MaterializeResult(metadata={"foo": "bar"})
 
     _exec_asset(generator_asset, resources={"io_manager": io_mgr})
-    io_mgr.handle_output_calls == 0  # pyright: ignore[reportUnusedExpression]
+    io_mgr.handle_output_calls == 0
 
 
 def test_materialize_result_implicit_output_typing():
