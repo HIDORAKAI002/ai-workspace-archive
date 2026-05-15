@@ -15,11 +15,13 @@ assistant = pc.assistant.create(
     instructions="Answer questions based on the uploaded documents.",
 )
 print(assistant.name)    # "my-assistant"
-print(assistant.status)  # "Initializing" immediately after creation
+print(assistant.status)  # "Ready"
 ```
 
-The assistant transitions through ``Initializing`` → ``Ready``. ``create`` returns
-immediately; poll with ``describe`` to wait for readiness.
+By default, ``create()`` polls until the assistant reaches ``"Ready"`` status before
+returning. To return immediately without waiting (for example to kick off creation
+asynchronously), pass ``timeout=-1`` — the returned assistant will be in
+``"Initializing"`` status and you can check readiness later via ``describe()``.
 
 ## List and describe assistants
 
@@ -67,7 +69,12 @@ print(response.message.content)
 
 ## Streaming chat
 
-Pass ``stream=True`` to receive tokens incrementally:
+Pass ``stream=True`` to receive tokens incrementally as text fragments.  Use
+``stream.text()`` — the idiomatic text-only accessor — to iterate over plain
+strings.  Iterating ``stream`` directly instead yields typed chunk objects
+(``StreamMessageStart``, ``StreamContentChunk``, ``StreamCitationChunk``,
+``StreamMessageEnd``), which is useful when you need full metadata but would
+print their ``repr`` rather than the assistant's text.
 
 ```python
 stream = pc.assistant.chat(
@@ -75,8 +82,8 @@ stream = pc.assistant.chat(
     messages=[{"role": "user", "content": "Summarize the document."}],
     stream=True,
 )
-for chunk in stream:
-    print(chunk, end="", flush=True)
+for text in stream.text():
+    print(text, end="", flush=True)
 ```
 
 ## Delete a file

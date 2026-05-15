@@ -201,7 +201,7 @@ class Pinecone:
 
     @property
     def backups(self) -> Backups:
-        """Access the Backups namespace for backup operations.
+        """Access the Backups namespace for control-plane backup operations.
 
         Lazily imported and instantiated on first access.
 
@@ -362,6 +362,8 @@ class Pinecone:
 
         Raises:
             :exc:`PineconeValueError`: If neither *name* nor *host* is provided.
+            :exc:`~pinecone.errors.NotFoundError`: If *name* is given but no index with that
+                name exists.
 
         Examples:
 
@@ -478,6 +480,8 @@ class Pinecone:
         Raises:
             :exc:`PineconeValueError`: If *name* or *backup_id* is empty.
             :exc:`PineconeTimeoutError`: If the index is not ready within the timeout.
+            :exc:`IndexInitFailedError`: If the index enters ``InitializationFailed`` state.
+            :exc:`IndexTerminatedError`: If the index enters ``Terminating`` or ``Disabled`` state.
             :exc:`ApiError`: If the API returns an error response.
 
         Examples:
@@ -853,7 +857,11 @@ class Pinecone:
         )
 
     def close(self) -> None:
-        """Close the underlying HTTP client."""
+        """Close all open HTTP connections.
+
+        Closes the main control-plane client and any namespace clients (inference, assistants,
+        preview) that were initialized during this session.
+        """
         self._http.close()
         if self._inference is not None:
             self._inference.close()
