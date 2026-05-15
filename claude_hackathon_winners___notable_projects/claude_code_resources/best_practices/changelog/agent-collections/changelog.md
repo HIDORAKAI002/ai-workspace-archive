@@ -10,6 +10,17 @@ Tracks updates to the AGENT COLLECTIONS table in `README.md`.
 
 ---
 
+## [2026-05-15 08:47 PM PKT] Agent Collections Update
+
+| # | Priority | Type  | Action                                                                                                         | Status                                                                                                                                                                                               |
+|---|----------|-------|----------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1 | HIGH     | Star  | Update msitarzewski/agency-agents ★ from 97k to 98k                                                           | COMPLETE (GitHub: 97,800 exact; crosses k-boundary; NEW — first 98k crossing)                                                                                                                        |
+| 2 | LOW      | Count | msitarzewski/agency-agents agents 188 → ~144–168+ (README roster 144, file count ~168+)                        | INVALID (RECURRING methodological variation; confidence 0.72; README roster 144 vs file count 168+; prior run set to 188 with different scope; no change applied)                                     |
+| 3 | LOW      | Count | VoltAgent/awesome-claude-code-subagents agents 146 → ~143 (±3)                                                 | INVALID (RECURRING methodological variation ±3; confidence 0.70; within margin of error; no change applied)                                                                                          |
+| 4 | LOW      | Sort  | Verify sort order (98k > 20k — stars descending)                                                               | COMPLETE (order preserved; RECURRING)                                                                                                                                                                |
+
+---
+
 ## [2026-05-14 08:48 PM PKT] Agent Collections Update
 
 | # | Priority | Type  | Action                                                                                        | Status                                                                                                                                                                                        |
