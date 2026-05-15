@@ -7,15 +7,13 @@ import { safeMarkdownToHtml } from "../markdownToHtml";
 import { scrapePDFWithFirePDF } from "../firePDF";
 import { firePdfAsyncTotalDurationSeconds } from "./metrics";
 import { POLL_FLOOR_MS, POLL_TIMEOUT_BUFFER_MS } from "./schema";
-import {
-  defaultSleep,
-  computeDeadlineMs,
-  makeFallback,
-} from "./utils";
+import { defaultSleep, computeDeadlineMs } from "./utils";
 import { tryGetCached, maybeSaveResult } from "./cache";
 import { submitJob } from "./submit";
-import { pollUntilTerminal, type PollOutcome } from "./poll";
+import { pollUntilTerminal } from "./poll";
 import { fetchResult } from "./result";
+
+export { FirePdfAsyncFailure } from "./utils";
 
 type FirePdfAsyncDeps = {
   fetchImpl?: typeof undiciFetch;
@@ -61,15 +59,6 @@ export async function scrapePDFWithFirePDFAsync(
   const deadlineAt = new Date(submitTime + deadlineFromNow).toISOString();
   const pollingDeadline = submitTime + deadlineFromNow + POLL_TIMEOUT_BUFFER_MS;
 
-  const fallback = makeFallback({
-    meta,
-    fallbackImpl,
-    base64Content,
-    maxPages,
-    pagesProcessed,
-    mode,
-  });
-
   // ── Step 1: POST /jobs ────────────────────────────────────────────────
   const submit = await submitJob({
     meta,
@@ -80,15 +69,12 @@ export async function scrapePDFWithFirePDFAsync(
     mode,
     deadlineAt,
     fetchImpl,
-    fallback,
   });
-  if (submit.kind === "fallback") return submit.result;
 
   // ── Step 2: poll until terminal (skip on idempotent-replay done) ──────
-  const polled: PollOutcome = submit.alreadyDone
+  const polled = submit.alreadyDone
     ? {
-        kind: "done",
-        poll: { scrape_id: meta.id, status: "done" },
+        poll: { scrape_id: meta.id, status: "done" as const },
         pollCount: 0,
       }
     : await pollUntilTerminal({
@@ -100,9 +86,7 @@ export async function scrapePDFWithFirePDFAsync(
         fetchImpl,
         sleep,
         now,
-        fallback,
       });
-  if (polled.kind === "fallback") return polled.result;
 
   // ── Step 3: GET /jobs/:id/result ──────────────────────────────────────
   const fetched = await fetchResult({
@@ -111,35 +95,27 @@ export async function scrapePDFWithFirePDFAsync(
     meta,
     fetchImpl,
     sleep,
-    fallback,
   });
-  if (fetched.kind === "fallback") return fetched.result;
 
   // ── Assemble + cache save ─────────────────────────────────────────────
   const pages =
-    fetched.result.pages_processed ??
-    polled.poll.pages_processed ??
-    pagesProcessed;
+    fetched.pages_processed ?? polled.poll.pages_processed ?? pagesProcessed;
   const durationMs = now() - overallStartedAt;
   firePdfAsyncTotalDurationSeconds.observe(durationMs / 1000);
 
   meta.logger.info("FirePDF async completed", {
     scrapeId: meta.id,
     durationMs,
-    markdownLength: fetched.result.markdown.length,
+    markdownLength: fetched.markdown.length,
     pagesProcessed: pages,
-    failedPages: fetched.result.failed_pages,
-    partialPages: fetched.result.partial_pages,
+    failedPages: fetched.failed_pages,
+    partialPages: fetched.partial_pages,
     pollCount: polled.pollCount,
   });
 
   const processorResult: PDFProcessorResult & { markdown: string } = {
-    markdown: fetched.result.markdown,
-    html: await safeMarkdownToHtml(
-      fetched.result.markdown,
-      meta.logger,
-      meta.id,
-    ),
+    markdown: fetched.markdown,
+    html: await safeMarkdownToHtml(fetched.markdown, meta.logger, meta.id),
     pagesProcessed: pages,
   };
 

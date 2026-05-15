@@ -1,5 +1,4 @@
 import type { Meta } from "../../..";
-import type { PDFProcessorResult } from "../types";
 import { fetch as undiciFetch } from "undici";
 import { AbortManagerThrownError } from "../../../lib/abortManager";
 import {
@@ -12,9 +11,9 @@ import {
   TERMINAL_STATUSES,
   type PollResponse,
 } from "./schema";
-import { nextPollDelay, type Fallback } from "./utils";
+import { failAsync, nextPollDelay } from "./utils";
 
-export type PollDeps = {
+type PollDeps = {
   baseUrl: string;
   scrapeId: string;
   initialDelay: number;
@@ -23,16 +22,11 @@ export type PollDeps = {
   fetchImpl: typeof undiciFetch;
   sleep: (ms: number, signal?: AbortSignal) => Promise<void>;
   now: () => number;
-  fallback: Fallback;
 };
 
-export type PollOutcome =
-  | { kind: "done"; poll: PollResponse; pollCount: number }
-  | { kind: "fallback"; result: PDFProcessorResult };
+type PollOk = { poll: PollResponse; pollCount: number };
 
-export async function pollUntilTerminal(
-  deps: PollDeps,
-): Promise<PollOutcome> {
+export async function pollUntilTerminal(deps: PollDeps): Promise<PollOk> {
   const {
     baseUrl,
     scrapeId,
@@ -41,7 +35,6 @@ export async function pollUntilTerminal(
     fetchImpl,
     sleep,
     now,
-    fallback,
   } = deps;
   let pollCount = 0;
   let lastDelay = deps.initialDelay;
@@ -49,10 +42,7 @@ export async function pollUntilTerminal(
   while (true) {
     if (now() > pollingDeadline) {
       firePdfAsyncPollCount.observe(pollCount);
-      return {
-        kind: "fallback",
-        result: await fallback("polling_timeout", { pollCount }),
-      };
+      failAsync(meta, "polling_timeout", { pollCount });
     }
 
     meta.abort.throwIfAborted();
@@ -68,13 +58,10 @@ export async function pollUntilTerminal(
     } catch (error) {
       if (error instanceof AbortManagerThrownError) throw error;
       firePdfAsyncPollCount.observe(pollCount);
-      return {
-        kind: "fallback",
-        result: await fallback("network_error", {
-          error: String(error),
-          pollCount,
-        }),
-      };
+      failAsync(meta, "network_error", {
+        error: String(error),
+        pollCount,
+      });
     }
 
     const pollStatus = pollResp.status;
@@ -92,50 +79,39 @@ export async function pollUntilTerminal(
       const parsed = pollResponseSchema.safeParse(pollBody);
       const status = parsed.success ? parsed.data.status : "expired";
       firePdfAsyncCompletedTotal.labels(status).inc();
-      return {
-        kind: "fallback",
-        result: await fallback(
-          status === "cancelled" ? "terminal_cancelled" : "terminal_expired",
-          { status, pollCount, body: pollBody },
-        ),
-      };
+      failAsync(
+        meta,
+        status === "cancelled" ? "terminal_cancelled" : "terminal_expired",
+        { status, pollCount, body: pollBody },
+      );
     }
 
     if (pollStatus === 502) {
       firePdfAsyncPollCount.observe(pollCount);
       firePdfAsyncCompletedTotal.labels("failed").inc();
-      return {
-        kind: "fallback",
-        result: await fallback("terminal_failed", {
-          pollCount,
-          body: pollBody,
-        }),
-      };
+      failAsync(meta, "terminal_failed", {
+        pollCount,
+        body: pollBody,
+      });
     }
 
     if (pollStatus !== 200 && pollStatus !== 202) {
       firePdfAsyncPollCount.observe(pollCount);
-      return {
-        kind: "fallback",
-        result: await fallback("http_5xx", {
-          status: pollStatus,
-          body: pollBody,
-          pollCount,
-        }),
-      };
+      failAsync(meta, "http_5xx", {
+        status: pollStatus,
+        body: pollBody,
+        pollCount,
+      });
     }
 
     const parsed = pollResponseSchema.safeParse(pollBody);
     if (!parsed.success) {
       firePdfAsyncPollCount.observe(pollCount);
-      return {
-        kind: "fallback",
-        result: await fallback("http_5xx", {
-          error: String(parsed.error),
-          body: pollBody,
-          pollCount,
-        }),
-      };
+      failAsync(meta, "http_5xx", {
+        error: String(parsed.error),
+        body: pollBody,
+        pollCount,
+      });
     }
 
     if (TERMINAL_STATUSES.has(parsed.data.status)) {
@@ -148,17 +124,14 @@ export async function pollUntilTerminal(
             : parsed.data.status === "expired"
               ? "terminal_expired"
               : "terminal_cancelled";
-        return {
-          kind: "fallback",
-          result: await fallback(reason, {
-            status: parsed.data.status,
-            errorClass: parsed.data.error_class,
-            errorMessage: parsed.data.error_message,
-            pollCount,
-          }),
-        };
+        failAsync(meta, reason, {
+          status: parsed.data.status,
+          errorClass: parsed.data.error_class,
+          errorMessage: parsed.data.error_message,
+          pollCount,
+        });
       }
-      return { kind: "done", poll: parsed.data, pollCount };
+      return { poll: parsed.data, pollCount };
     }
 
     lastDelay = nextPollDelay(lastDelay, parsed.data.retry_after_ms);

@@ -7,7 +7,10 @@ jest.mock("../../../../../lib/gcs-pdf-cache", () => ({
   savePdfResultToCache: jest.fn(async () => null),
 }));
 
-import { scrapePDFWithFirePDFAsync } from "../fire-pdf/async";
+import {
+  FirePdfAsyncFailure,
+  scrapePDFWithFirePDFAsync,
+} from "../fire-pdf/async";
 import { config } from "../../../../../config";
 
 // ── Fixtures ─────────────────────────────────────────────────────────────
@@ -219,59 +222,56 @@ describe("scrapePDFWithFirePDFAsync", () => {
   });
 
   it.each([
-    ["404", 404],
-    ["413", 413],
-    ["429", 429],
-    ["503", 503],
-    ["generic 5xx", 500],
-  ])("falls back to sync when POST /jobs returns %s", async (_, status) => {
-    const { fetchImpl } = makeFetchFromSequence([
-      {
-        matchUrl: /\/jobs$/,
-        matchMethod: "POST",
-        response: { status, body: { error: "x" } },
-      },
-    ]);
-    const fallback = jest.fn(async () => ({
-      markdown: "sync-result",
-      html: "<p>sync-result</p>",
-      pagesProcessed: 1,
-    }));
+    ["404", 404, "http_404"],
+    ["413", 413, "http_413"],
+    ["429", 429, "http_429"],
+    ["503", 503, "http_503"],
+    ["generic 5xx", 500, "http_5xx"],
+  ])(
+    "throws FirePdfAsyncFailure when POST /jobs returns %s",
+    async (_, status, reason) => {
+      const { fetchImpl } = makeFetchFromSequence([
+        {
+          matchUrl: /\/jobs$/,
+          matchMethod: "POST",
+          response: { status, body: { error: "x" } },
+        },
+      ]);
+      const fallback = jest.fn();
 
-    const result = await scrapePDFWithFirePDFAsync(
-      makeMeta(),
-      "BASE64",
-      undefined,
-      undefined,
-      undefined,
-      { fetchImpl, fallbackImpl: fallback, sleepImpl: noopSleep },
-    );
+      const err = await scrapePDFWithFirePDFAsync(
+        makeMeta(),
+        "BASE64",
+        undefined,
+        undefined,
+        undefined,
+        { fetchImpl, fallbackImpl: fallback, sleepImpl: noopSleep },
+      ).catch(e => e);
 
-    expect(fallback).toHaveBeenCalledTimes(1);
-    expect(result.markdown).toBe("sync-result");
-  });
+      expect(err).toBeInstanceOf(FirePdfAsyncFailure);
+      expect(err.reason).toBe(reason);
+      expect(fallback).not.toHaveBeenCalled();
+    },
+  );
 
-  it("falls back to sync when POST /jobs throws a network error", async () => {
+  it("throws FirePdfAsyncFailure when POST /jobs throws a network error", async () => {
     const fetchImpl: any = async () => {
       throw new Error("connect ECONNREFUSED");
     };
-    const fallback = jest.fn(async () => ({
-      markdown: "sync",
-      html: "",
-      pagesProcessed: 0,
-    }));
+    const fallback = jest.fn();
 
-    const result = await scrapePDFWithFirePDFAsync(
+    const err = await scrapePDFWithFirePDFAsync(
       makeMeta(),
       "BASE64",
       undefined,
       undefined,
       undefined,
       { fetchImpl, fallbackImpl: fallback, sleepImpl: noopSleep },
-    );
+    ).catch(e => e);
 
-    expect(fallback).toHaveBeenCalledTimes(1);
-    expect(result.markdown).toBe("sync");
+    expect(err).toBeInstanceOf(FirePdfAsyncFailure);
+    expect(err.reason).toBe("network_error");
+    expect(fallback).not.toHaveBeenCalled();
   });
 
   it("throws on POST 409 scrape_id conflict (fatal, no fallback)", async () => {
@@ -300,7 +300,7 @@ describe("scrapePDFWithFirePDFAsync", () => {
     expect(fallback).not.toHaveBeenCalled();
   });
 
-  it("falls back when polling returns terminal failed (502)", async () => {
+  it("throws FirePdfAsyncFailure when polling returns terminal failed (502)", async () => {
     const { fetchImpl } = makeFetchFromSequence([
       {
         matchUrl: /\/jobs$/,
@@ -322,26 +322,23 @@ describe("scrapePDFWithFirePDFAsync", () => {
         },
       },
     ]);
-    const fallback = jest.fn(async () => ({
-      markdown: "sync",
-      html: "",
-      pagesProcessed: 0,
-    }));
+    const fallback = jest.fn();
 
-    const result = await scrapePDFWithFirePDFAsync(
+    const err = await scrapePDFWithFirePDFAsync(
       makeMeta(),
       "BASE64",
       undefined,
       undefined,
       undefined,
       { fetchImpl, fallbackImpl: fallback, sleepImpl: noopSleep },
-    );
+    ).catch(e => e);
 
-    expect(fallback).toHaveBeenCalledTimes(1);
-    expect(result.markdown).toBe("sync");
+    expect(err).toBeInstanceOf(FirePdfAsyncFailure);
+    expect(err.reason).toBe("terminal_failed");
+    expect(fallback).not.toHaveBeenCalled();
   });
 
-  it("falls back when polling returns 410 (expired/cancelled)", async () => {
+  it("throws FirePdfAsyncFailure when polling returns 410 (expired)", async () => {
     const { fetchImpl } = makeFetchFromSequence([
       {
         matchUrl: /\/jobs$/,
@@ -358,26 +355,23 @@ describe("scrapePDFWithFirePDFAsync", () => {
         },
       },
     ]);
-    const fallback = jest.fn(async () => ({
-      markdown: "sync",
-      html: "",
-      pagesProcessed: 0,
-    }));
+    const fallback = jest.fn();
 
-    const result = await scrapePDFWithFirePDFAsync(
+    const err = await scrapePDFWithFirePDFAsync(
       makeMeta(),
       "BASE64",
       undefined,
       undefined,
       undefined,
       { fetchImpl, fallbackImpl: fallback, sleepImpl: noopSleep },
-    );
+    ).catch(e => e);
 
-    expect(fallback).toHaveBeenCalledTimes(1);
-    expect(result.markdown).toBe("sync");
+    expect(err).toBeInstanceOf(FirePdfAsyncFailure);
+    expect(err.reason).toBe("terminal_expired");
+    expect(fallback).not.toHaveBeenCalled();
   });
 
-  it("falls back when polling exceeds deadline + buffer", async () => {
+  it("throws FirePdfAsyncFailure when polling exceeds deadline + buffer", async () => {
     let virtualNow = 1_000_000;
     const advance = (ms: number) => {
       virtualNow += ms;
@@ -402,11 +396,7 @@ describe("scrapePDFWithFirePDFAsync", () => {
         response: { status: 202, body: { scrape_id: "x", status: "running" } },
       },
     ]);
-    const fallback = jest.fn(async () => ({
-      markdown: "sync",
-      html: "",
-      pagesProcessed: 0,
-    }));
+    const fallback = jest.fn();
 
     // 5s scrape budget → deadline 5s, polling deadline = submit + 5s + 30s = 35s.
     // Each sleep advances time by 60s, blowing past the polling deadline.
@@ -418,7 +408,7 @@ describe("scrapePDFWithFirePDFAsync", () => {
       },
     });
 
-    const result = await scrapePDFWithFirePDFAsync(
+    const err = await scrapePDFWithFirePDFAsync(
       meta,
       "BASE64",
       undefined,
@@ -430,13 +420,14 @@ describe("scrapePDFWithFirePDFAsync", () => {
         sleepImpl: async ms => advance(ms + 60_000),
         nowImpl: () => virtualNow,
       },
-    );
+    ).catch(e => e);
 
-    expect(fallback).toHaveBeenCalledTimes(1);
-    expect(result.markdown).toBe("sync");
+    expect(err).toBeInstanceOf(FirePdfAsyncFailure);
+    expect(err.reason).toBe("polling_timeout");
+    expect(fallback).not.toHaveBeenCalled();
   });
 
-  it("falls back when result endpoint returns 503", async () => {
+  it("throws FirePdfAsyncFailure when result endpoint returns 503", async () => {
     const { fetchImpl } = makeFetchFromSequence([
       {
         matchUrl: /\/jobs$/,
@@ -457,23 +448,20 @@ describe("scrapePDFWithFirePDFAsync", () => {
         response: { status: 503, body: { error: "gcs_unreachable" } },
       },
     ]);
-    const fallback = jest.fn(async () => ({
-      markdown: "sync",
-      html: "",
-      pagesProcessed: 0,
-    }));
+    const fallback = jest.fn();
 
-    const result = await scrapePDFWithFirePDFAsync(
+    const err = await scrapePDFWithFirePDFAsync(
       makeMeta(),
       "BASE64",
       undefined,
       undefined,
       undefined,
       { fetchImpl, fallbackImpl: fallback, sleepImpl: noopSleep },
-    );
+    ).catch(e => e);
 
-    expect(fallback).toHaveBeenCalledTimes(1);
-    expect(result.markdown).toBe("sync");
+    expect(err).toBeInstanceOf(FirePdfAsyncFailure);
+    expect(err.reason).toBe("result_503");
+    expect(fallback).not.toHaveBeenCalled();
   });
 
   it("re-polls once on result 409, then succeeds", async () => {
