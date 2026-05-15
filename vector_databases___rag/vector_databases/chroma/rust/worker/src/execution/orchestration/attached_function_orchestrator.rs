@@ -21,8 +21,8 @@ use chroma_system::{
     OrchestratorContext, PanicError, TaskError, TaskMessage, TaskResult,
 };
 use chroma_types::{
-    AttachedFunctionUuid, Chunk, CollectionAndSegments, CollectionUuid, JobId, LogRecord,
-    SegmentShard, SegmentShardError,
+    AttachedFunction, AttachedFunctionUuid, Chunk, CollectionAndSegments, CollectionUuid, JobId,
+    LogRecord, SegmentShard, SegmentShardError,
 };
 use thiserror::Error;
 use tokio::sync::oneshot::{error::RecvError, Sender};
@@ -61,7 +61,9 @@ pub struct FunctionContext {
     pub attached_function_id: AttachedFunctionUuid,
     pub function_id: Uuid,
     pub updated_completion_offset: u64,
+    pub input_collection_id: CollectionUuid,
     pub is_async: bool,
+    pub attached_function: AttachedFunction,
 }
 
 #[derive(Debug)]
@@ -86,6 +88,8 @@ pub struct AttachedFunctionOrchestrator {
     dispatcher: ComponentHandle<Dispatcher>,
 
     is_for_backfill: bool,
+
+    is_fn_consumer: bool,
 }
 
 #[derive(Error, Debug)]
@@ -252,6 +256,7 @@ impl AttachedFunctionOrchestrator {
         dispatcher: ComponentHandle<Dispatcher>,
         data_fetch_records: Vec<MaterializeLogOutput>,
         is_for_backfill: bool,
+        is_fn_consumer: bool,
     ) -> Self {
         let orchestrator_context = OrchestratorContext::new(dispatcher.clone());
 
@@ -265,6 +270,7 @@ impl AttachedFunctionOrchestrator {
             orchestrator_context,
             dispatcher,
             is_for_backfill,
+            is_fn_consumer,
         }
     }
 
@@ -312,8 +318,10 @@ impl AttachedFunctionOrchestrator {
     pub fn set_function_context(
         &self,
         function_context: FunctionContext,
-    ) -> Result<(), FunctionContext> {
-        self.function_context.set(function_context)
+    ) -> Result<(), Box<FunctionContext>> {
+        self.function_context
+            .set(function_context)
+            .map_err(Box::new)
     }
 
     async fn finish_no_attached_function(&mut self, ctx: &ComponentContext<Self>) {
@@ -358,7 +366,7 @@ impl AttachedFunctionOrchestrator {
         // Update the completion offset from the input collection's pulled log offset
         // For async functions, we don't update the completion offset here as they will
         // be processed through a separate queue mechanism
-        if !function_context.is_async {
+        if !function_context.is_async || self.is_fn_consumer {
             function_context.updated_completion_offset = collection_info.pulled_log_offset as u64;
         }
 
@@ -571,7 +579,9 @@ impl Handler<TaskResult<GetAttachedFunctionOutput, GetAttachedFunctionOperatorEr
                         attached_function_id: attached_function.id,
                         function_id: attached_function.function_id,
                         updated_completion_offset: attached_function.completion_offset,
+                        input_collection_id: attached_function.input_collection_id,
                         is_async: attached_function.is_async,
+                        attached_function: attached_function.clone(),
                     })
                     .is_err()
                 {
@@ -859,7 +869,7 @@ impl Handler<TaskResult<CollectionAndSegments, GetCollectionAndSegmentsError>>
 
         // Execute the attached function
         let operator = match ExecuteAttachedFunctionOperator::from_attached_function(
-            attached_function.function_id,
+            &attached_function.attached_function,
             self.output_context.log.clone(),
         ) {
             Ok(op) => Box::new(op),

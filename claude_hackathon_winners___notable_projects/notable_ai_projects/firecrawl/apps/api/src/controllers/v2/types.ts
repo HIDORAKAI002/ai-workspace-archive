@@ -449,6 +449,11 @@ const pdfParserWithOptions = z.strictObject({
   type: z.literal("pdf"),
   mode: pdfModeSchema.optional(),
   maxPages: z.int().positive().finite().max(10000).optional(),
+  // Experimental: route this request through the fire-pdf async pipeline
+  // (POST /jobs + poll) instead of the sync POST /ocr endpoint. Falls back
+  // to sync on any async-path failure, so user-visible behavior is unchanged
+  // beyond latency variance. Underscored to mark as internal/experimental.
+  __firePdfAsync: z.boolean().optional(),
 });
 
 const parsersSchema = z
@@ -491,6 +496,17 @@ export function getPDFMode(parsers?: Parsers): PDFMode {
     }
   }
   return "auto";
+}
+
+export function getFirePdfAsync(parsers?: Parsers): boolean {
+  if (!parsers) return false;
+  for (const parser of parsers) {
+    if (parser === "pdf") return false;
+    if (typeof parser === "object" && parser.type === "pdf") {
+      return parser.__firePdfAsync === true;
+    }
+  }
+  return false;
 }
 
 function transformIframeSelector(selector: string): string {
@@ -1943,6 +1959,98 @@ export type SearchResponse =
       };
       creditsUsed: number;
       id: string;
+    };
+
+// =============================================
+// Search Feedback
+// =============================================
+
+const searchFeedbackUrlSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(2048)
+  .refine(value => {
+    try {
+      const u = new globalThis.URL(value);
+      return u.protocol === "http:" || u.protocol === "https:";
+    } catch {
+      return false;
+    }
+  }, "Must be a valid http(s) URL");
+
+const missingContentEntrySchema = z.strictObject({
+  topic: z
+    .string()
+    .trim()
+    .min(1, "topic must not be empty")
+    .max(200, "topic must be 200 characters or fewer"),
+  description: z.string().trim().max(2000).optional(),
+});
+
+export const searchFeedbackSchema = z
+  .strictObject({
+    rating: z.enum(["good", "bad", "partial"]),
+    valuableSources: z
+      .array(
+        z.strictObject({
+          url: searchFeedbackUrlSchema,
+          reason: z.string().trim().max(1000).optional(),
+        }),
+      )
+      .max(50)
+      .optional(),
+    missingContent: z.array(missingContentEntrySchema).max(20).optional(),
+    querySuggestions: z.string().trim().max(2000).optional(),
+    origin: z.string().optional().prefault("api"),
+    integration: integrationSchema.optional().transform(val => val || null),
+  })
+  .refine(
+    data => {
+      const hasSources = (data.valuableSources?.length ?? 0) > 0;
+      const hasMissing = (data.missingContent?.length ?? 0) > 0;
+      const hasSuggestions =
+        !!data.querySuggestions && data.querySuggestions.length > 0;
+
+      switch (data.rating) {
+        case "good":
+          return hasSources;
+        case "partial":
+          return hasSources || hasMissing;
+        case "bad":
+          return hasMissing || hasSuggestions;
+      }
+    },
+    {
+      message:
+        "Feedback must be substantive. 'good' requires at least one valuableSources entry; 'partial' requires valuableSources or at least one missingContent entry; 'bad' requires at least one missingContent entry or querySuggestions.",
+    },
+  );
+
+export type SearchFeedbackRequest = z.infer<typeof searchFeedbackSchema>;
+export type SearchFeedbackRequestInput = z.input<typeof searchFeedbackSchema>;
+
+export type SearchFeedbackErrorCode =
+  | "SEARCH_NOT_FOUND"
+  | "FEEDBACK_WINDOW_EXPIRED"
+  | "SEARCH_FAILED"
+  | "PREVIEW_TEAM_NOT_ALLOWED"
+  | "TEAM_OPTED_OUT"
+  | "INVALID_BODY"
+  | "DB_DISABLED"
+  | "INTERNAL";
+
+export type SearchFeedbackResponse =
+  | (ErrorResponse & { feedbackErrorCode?: SearchFeedbackErrorCode })
+  | {
+      success: true;
+      feedbackId: string;
+      creditsRefunded: number;
+      alreadySubmitted?: boolean;
+      dailyCapReached?: boolean;
+      creditsRefundedToday?: number;
+      dailyRefundCap?: number;
+      warning?: string;
     };
 
 export type TokenUsage = {
