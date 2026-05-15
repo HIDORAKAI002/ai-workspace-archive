@@ -212,24 +212,60 @@ const MALICIOUS_PACKAGE_VERSIONS = {
 
 const CRITICAL_TEXT_INDICATORS = [
   '@tanstack/setup',
-  'github:tanstack/router#79ac49eedf774dd4b0cfa308722bc463cfe5885c',
+  [
+    'github:tanstack/router#79ac49eedf774dd4b0cf',
+    'a308722bc463cfe5885c',
+  ].join(''),
+  [
+    '79ac49eedf774dd4b0cf',
+    'a308722bc463cfe5885c',
+  ].join(''),
   'router_init.js',
   'router_runtime.js',
   'tanstack_runner.js',
+  'opensearch_init.js',
+  'vite_setup.mjs',
+  'bun run tanstack_runner.js',
   'execution.js',
   'transformers.pyz',
+  'pgmonitor.py',
+  'pgsql-monitor.service',
   'gh-token-monitor',
   'com.user.gh-token-monitor',
+  'IfYouRevokeThisTokenItWillWipeTheComputerOfTheOwner',
+  [
+    'ab4fcadaec49c032',
+    '78063dd269ea5ee',
+    'f82d24f2124a8e15',
+    'd7b90f2fa8601266c',
+  ].join(''),
+  [
+    '2ec78d556d696e20',
+    '8927cc503d48e4b5e',
+    'b56b31abc2870c2e',
+    'd2e98d6be27fc96',
+  ].join(''),
+  'svksjrhjkcejg',
   'filev2.getsession.org',
   'seed1.getsession.org',
   'seed2.getsession.org',
   'seed3.getsession.org',
+  'signalservice',
+  'snode',
   'git-tanstack.com',
+  'litter.catbox.moe/h8nc9u.js',
+  'litter.catbox.moe/7rrc6l.mjs',
   '83.142.209.194',
   'api.masscan.cloud',
+  'claude@users.noreply.github.com',
+  'dependabout/',
+  'OhNoWhatsGoingOnWithGitHub',
+  'voicproducoes',
   'A Mini Shai-Hulud has Appeared',
   'Shai-Hulud: Here We Go Again',
   'PUSH UR T3MPRR',
+  'codeql_analysis.yml',
+  'shai-hulud-workflow.yml',
 ];
 
 const DEPENDENCY_FILENAMES = new Set([
@@ -248,17 +284,30 @@ const PERSISTENCE_FILENAMES = new Set([
   'tasks.json',
   'router_runtime.js',
   'setup.mjs',
+  'pgmonitor.py',
   'gh-token-monitor.sh',
   'com.user.gh-token-monitor.plist',
   'gh-token-monitor.service',
+  'pgsql-monitor.service',
+  'codeql_analysis.yml',
+  'shai-hulud-workflow.yml',
 ]);
 
 const PAYLOAD_FILENAMES = new Set([
   'router_init.js',
   'router_runtime.js',
   'tanstack_runner.js',
+  'opensearch_init.js',
+  'vite_setup.mjs',
   'execution.js',
+  'transformers.pyz',
+  'pgmonitor.py',
   'gh-token-monitor.sh',
+  'com.user.gh-token-monitor.plist',
+  'gh-token-monitor.service',
+  'pgsql-monitor.service',
+  'codeql_analysis.yml',
+  'shai-hulud-workflow.yml',
 ]);
 
 const IGNORED_DIRS = new Set([
@@ -284,7 +333,8 @@ function isInSpecialConfigPath(filePath) {
     || /\/\.kiro\/settings\//.test(normalized)
     || /\/Library\/LaunchAgents\//.test(normalized)
     || /\/\.config\/systemd\/user\//.test(normalized)
-    || /\/\.local\/bin\//.test(normalized);
+    || /\/\.local\/bin\//.test(normalized)
+    || /\/\.github\/workflows\//.test(normalized);
 }
 
 function shouldInspectFile(filePath) {
@@ -432,8 +482,19 @@ function homeTargets(homeDir) {
     '.vscode/setup.mjs',
     'Library/LaunchAgents/com.user.gh-token-monitor.plist',
     '.config/systemd/user/gh-token-monitor.service',
+    '.config/systemd/user/pgsql-monitor.service',
     '.local/bin/gh-token-monitor.sh',
+    '.local/bin/pgmonitor.py',
   ].map(relativePath => path.join(homeDir, relativePath));
+}
+
+function runtimeTargets() {
+  return [
+    '/tmp/transformers.pyz',
+    '/tmp/pgmonitor.py',
+    '/private/tmp/transformers.pyz',
+    '/private/tmp/pgmonitor.py',
+  ];
 }
 
 function scanSupplyChainIocs(options = {}) {
@@ -443,6 +504,9 @@ function scanSupplyChainIocs(options = {}) {
 
   if (options.home) {
     for (const target of homeTargets(options.homeDir || os.homedir())) {
+      if (fs.existsSync(target)) files.push(target);
+    }
+    for (const target of runtimeTargets()) {
       if (fs.existsSync(target)) files.push(target);
     }
   }

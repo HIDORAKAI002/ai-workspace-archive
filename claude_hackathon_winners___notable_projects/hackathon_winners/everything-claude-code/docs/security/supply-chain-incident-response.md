@@ -23,8 +23,18 @@ credentials:
   OpenSearch, Guardrails AI, Squawk, and other npm/PyPI packages.
 - The live IOC set includes persistence through Claude Code
   `.claude/settings.json`, VS Code `.vscode/tasks.json`, and OS-level
-  `gh-token-monitor` LaunchAgent/systemd services. Remove those persistence
-  hooks before rotating a stolen GitHub token.
+  `gh-token-monitor` LaunchAgent/systemd services. Some variants add a
+  dead-man-switch token description
+  `IfYouRevokeThisTokenItWillWipeTheComputerOfTheOwner`, malicious workflow
+  files such as `.github/workflows/codeql_analysis.yml`, and Python runtime
+  payloads such as `transformers.pyz` / `pgmonitor.py`. Remove those
+  persistence hooks before rotating a stolen GitHub token.
+- The scanner also watches for late-reporting markers: `router_init.js`
+  SHA-256 prefix/suffix `ab4fcada...8601266c`, `tanstack_runner.js`
+  SHA-256 prefix/suffix `2ec78d55...6be27fc96`,
+  `opensearch_init.js`, `vite_setup.mjs`, campaign salt `svksjrhjkcejg`,
+  Session protocol strings, `claude@users.noreply.github.com` dead-drop
+  commits, `dependabout/` branch names, and `OhNoWhatsGoingOnWithGitHub`.
 - The attack chain combined `pull_request_target`, GitHub Actions cache
   poisoning across a fork/base trust boundary, and OIDC token extraction from a
   GitHub Actions runner.
@@ -77,7 +87,11 @@ If ECC or a maintainer machine installed a known-bad package version:
    - `.vscode/tasks.json` folder-open tasks and adjacent payload files;
    - `~/Library/LaunchAgents/com.user.gh-token-monitor.plist`;
    - `~/.config/systemd/user/gh-token-monitor.service`;
-   - `~/.local/bin/gh-token-monitor.sh`.
+   - `~/.config/systemd/user/pgsql-monitor.service`;
+   - `~/.local/bin/gh-token-monitor.sh`;
+   - `~/.local/bin/pgmonitor.py`;
+   - `/tmp/transformers.pyz`, `/tmp/pgmonitor.py`, and their
+     `/private/tmp/` equivalents on macOS.
 5. Rotate every credential reachable by the process:
    - npm automation tokens and maintainer tokens;
    - GitHub PATs, fine-grained tokens, deploy keys, and Actions secrets;
