@@ -31,6 +31,7 @@ from pydantic_ai.capabilities import (
     Instrumentation,
     NativeTool,
     PrefixTools,
+    PrepareTools,
     ProcessEventStream,
     ReinjectSystemPrompt,
     SetToolMetadata,
@@ -4630,6 +4631,10 @@ class TestWebSearchCapability:
 
     def test_websearch_default_with_nonsupporting_model(self, allow_model_requests: None):
         """WebSearch(local='duckduckgo') with non-supporting model → DuckDuckGo fallback used."""
+        from unittest.mock import patch
+
+        pytest.importorskip('duckduckgo_search', reason='duckduckgo extra not installed')
+        from pydantic_ai.common_tools.duckduckgo import DDGS
 
         def model_fn(messages: list[ModelMessage], info: AgentInfo) -> ModelResponse:
             # When called with tools, call the first one
@@ -4647,7 +4652,11 @@ class TestWebSearchCapability:
 
         model = FunctionModel(model_fn, profile=ModelProfile(supported_native_tools=frozenset()))
         agent = Agent(model, capabilities=[WebSearch(local='duckduckgo')])
-        result = agent.run_sync('search for something')
+        # `ddgs` calls Bing/DuckDuckGo via the Rust `primp` HTTP client, so VCR can't intercept it.
+        # Mock the result at the library boundary to keep the test hermetic.
+        fake_results = [{'title': 'Example', 'href': 'https://example.com', 'body': 'Example body'}]
+        with patch.object(DDGS, 'text', return_value=fake_results):
+            result = agent.run_sync('search for something')
         # Should have used the DuckDuckGo fallback tool
         assert 'Tool result' in result.output
 
@@ -5661,38 +5670,6 @@ class TestPrepareOutputToolsCapability:
         assert PrepareOutputTools.get_serialization_name() is None
 
 
-class TestAgentPrepareArgInjection:
-    """The Agent `prepare_tools` / `prepare_output_tools` constructor args are
-    sugar for `PrepareTools` / `PrepareOutputTools` capabilities — verify they
-    show up in `root_capability` and apply the same way."""
-
-    def test_prepare_tools_arg_injects_capability(self):
-        from pydantic_ai.capabilities import PrepareTools
-
-        async def noop(
-            ctx: RunContext[None], tool_defs: list[ToolDefinition]
-        ) -> list[ToolDefinition]:  # pragma: no cover
-            return tool_defs
-
-        agent = Agent('test', prepare_tools=noop)
-        injected = [c for c in agent.root_capability.capabilities if isinstance(c, PrepareTools)]
-        assert len(injected) == 1
-        assert injected[0].prepare_func is noop
-
-    def test_prepare_output_tools_arg_injects_capability(self):
-        from pydantic_ai.capabilities import PrepareOutputTools
-
-        async def noop(
-            ctx: RunContext[None], tool_defs: list[ToolDefinition]
-        ) -> list[ToolDefinition]:  # pragma: no cover
-            return tool_defs
-
-        agent = Agent('test', output_type=str, prepare_output_tools=noop)
-        injected = [c for c in agent.root_capability.capabilities if isinstance(c, PrepareOutputTools)]
-        assert len(injected) == 1
-        assert injected[0].prepare_func is noop
-
-
 class TestOverrideWithSpec:
     async def test_override_with_spec_instructions_and_model(self):
         """Spec instructions and model replace the agent's when used via override."""
@@ -6316,7 +6293,7 @@ class TestGetWrapperToolsetHook:
             descs = [t.description for t in info.function_tools]
             return make_text_response(f'tools: {tool_names}, descs: {descs}')
 
-        agent = Agent(FunctionModel(model_fn), prepare_tools=agent_prepare, capabilities=[PrefixCap()])
+        agent = Agent(FunctionModel(model_fn), capabilities=[PrepareTools(agent_prepare), PrefixCap()])
 
         @agent.tool_plain
         def my_tool() -> str:
@@ -6638,7 +6615,7 @@ def test_mcp_local_true_raises_user_error_when_mcp_extra_missing(monkeypatch: py
 
 @pytest.mark.filterwarnings(
     'ignore::RuntimeWarning'
-)  # the `duckduckgo_search` package emits a "renamed to ddgs" RuntimeWarning on import
+)  # the `duckduckgo_search` package emits a "renamed to ddgs" RuntimeWarning when DDGS is instantiated
 def test_web_search_v2_deprecation_warning():
     """WebSearch() with duckduckgo installed warns about v2 default change."""
     pytest.importorskip('duckduckgo_search', reason='duckduckgo extra not installed')
