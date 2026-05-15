@@ -4,6 +4,7 @@ import { config } from "../config";
 import { RateLimiterMode } from "../types";
 import expressWs from "express-ws";
 import { searchController } from "../controllers/v2/search";
+import { searchFeedbackController } from "../controllers/v2/search-feedback";
 import { x402SearchController } from "../controllers/v2/x402-search";
 import { scrapeController } from "../controllers/v2/scrape";
 import {
@@ -58,11 +59,6 @@ import {
 } from "../controllers/v2/browser";
 import { activityController } from "../controllers/v1/activity";
 import { supportProxyController } from "../controllers/v2/support-proxy";
-import { agentSignupController } from "../controllers/v2/agent-signup";
-import {
-  agentSignupConfirmController,
-  agentSignupBlockController,
-} from "../controllers/v2/agent-signup-confirm";
 import {
   scrapeInteractController,
   scrapeStopInteractiveBrowserController,
@@ -238,6 +234,13 @@ v2Router.post(
   checkCreditsMiddleware(),
   blocklistMiddleware,
   wrap(searchController),
+);
+
+v2Router.post(
+  "/search/:jobId/feedback",
+  authMiddleware(RateLimiterMode.Account),
+  validateJobIdParam,
+  wrap(searchFeedbackController),
 );
 
 v2Router.post(
@@ -561,11 +564,6 @@ v2Router.post(
   authMiddleware(RateLimiterMode.SupportDocsSearch),
   wrap(supportProxyController),
 );
-
-// Agent signup routes (public, no auth required — rate limiting is handled inside the controller)
-// v2Router.post("/agent-signup", wrap(agentSignupController));
-v2Router.post("/agent-signup/confirm", wrap(agentSignupConfirmController));
-v2Router.post("/agent-signup/block", wrap(agentSignupBlockController));
 
 // Only register x402 routes if X402_PAY_TO_ADDRESS is configured
 if (isX402Enabled()) {

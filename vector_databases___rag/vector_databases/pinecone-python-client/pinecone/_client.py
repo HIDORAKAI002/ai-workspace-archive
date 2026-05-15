@@ -182,7 +182,7 @@ class Pinecone:
 
     @property
     def collections(self) -> Collections:
-        """Access the Collections namespace for collection operations.
+        """Access the Collections namespace for control-plane collection operations.
 
         Lazily imported and instantiated on first access.
 
@@ -210,7 +210,7 @@ class Pinecone:
 
         Examples:
 
-            >>> ids = [b.backup_id for b in pc.backups.list()]  # doctest: +SKIP
+            >>> ids = [backup.backup_id for backup in pc.backups.list()]  # doctest: +SKIP
         """
         if self._backups is None:
             from pinecone.client.backups import Backups as _Backups
@@ -249,7 +249,8 @@ class Pinecone:
         Examples:
 
             >>> embeddings = pc.inference.embed(  # doctest: +SKIP
-            ...     model="multilingual-e5-large", inputs=["Hello, world!"]
+            ...     model="multilingual-e5-large",
+            ...     inputs=["Solar panels reduce energy costs and lower carbon emissions."],
             ... )
         """
         if self._inference is None:
@@ -279,7 +280,7 @@ class Pinecone:
 
     @property
     def assistant(self) -> _AssistantNamespaceProxy:
-        """Convenience alias for :attr:`Pinecone.assistants`.
+        """Return a callable proxy alias for :attr:`Pinecone.assistants`.
 
         Returns a proxy that supports both namespace-style access
         (``pc.assistant.create_assistant(...)``) and the convenience call
@@ -289,6 +290,18 @@ class Pinecone:
         The canonical entry point is :attr:`Pinecone.assistants`; this
         alias is provided for ergonomic singular-form access and is not
         deprecated.
+
+        Returns:
+            Proxy supporting namespace-style access (``pc.assistant.create_assistant(...)``)
+            and the shorthand call form (``pc.assistant("my-name")``).
+
+        Examples:
+
+            >>> bot = pc.assistant("acme-support-bot")  # doctest: +SKIP
+            >>> pc.assistant.create_assistant(  # doctest: +SKIP
+            ...     name="support-bot",
+            ...     instructions="Help users with billing questions.",
+            ... )
         """
         from pinecone.client._assistant_namespace_proxy import _AssistantNamespaceProxy
 
@@ -530,6 +543,8 @@ class Pinecone:
 
         Preserved to ease migration from the legacy Pinecone Python SDK. New code
         should use ``pc.indexes.create()`` instead of ``pc.create_index()``.
+
+        :meta private:
         """
         resolved_dp = deletion_protection if deletion_protection is not None else "disabled"
         return self.indexes.create(
@@ -562,6 +577,8 @@ class Pinecone:
         code should use ``pc.indexes.create()`` with an ``IntegratedSpec``
         (``IntegratedSpec(cloud=..., region=..., embed=EmbedConfig(...))``)
         instead of ``pc.create_index_for_model()``.
+
+        :meta private:
         """
         from pinecone.inference.models.index_embed import IndexEmbed as _IndexEmbed
         from pinecone.models.indexes.specs import EmbedConfig as _EmbedConfig
@@ -599,6 +616,8 @@ class Pinecone:
 
         Preserved to ease migration from the legacy Pinecone Python SDK. New code
         should use ``pc.indexes.describe()`` instead of ``pc.describe_index()``.
+
+        :meta private:
         """
         return self.indexes.describe(name)
 
@@ -607,6 +626,8 @@ class Pinecone:
 
         Preserved to ease migration from the legacy Pinecone Python SDK. New
         code should use ``pc.indexes.list()`` instead of ``pc.list_indexes()``.
+
+        :meta private:
         """
         return self.indexes.list()
 
@@ -615,6 +636,8 @@ class Pinecone:
 
         Preserved to ease migration from the legacy Pinecone Python SDK. New code
         should use ``pc.indexes.exists()`` instead of ``pc.has_index()``.
+
+        :meta private:
         """
         return self.indexes.exists(name)
 
@@ -633,6 +656,8 @@ class Pinecone:
 
         Preserved to ease migration from the legacy Pinecone Python SDK. New code
         should use ``pc.indexes.configure()`` instead of ``pc.configure_index()``.
+
+        :meta private:
         """
         self.indexes.configure(
             name=name,
@@ -650,6 +675,8 @@ class Pinecone:
 
         Preserved to ease migration from the legacy Pinecone Python SDK. New code
         should use ``pc.indexes.delete()`` instead of ``pc.delete_index()``.
+
+        :meta private:
         """
         self.indexes.delete(name, timeout=timeout)
 
@@ -658,6 +685,8 @@ class Pinecone:
 
         Preserved to ease migration from the legacy Pinecone Python SDK. New code
         should use ``pc.collections.create()`` instead of ``pc.create_collection()``.
+
+        :meta private:
         """
         return self.collections.create(name=name, source=source)
 
@@ -666,6 +695,8 @@ class Pinecone:
 
         Preserved to ease migration from the legacy Pinecone Python SDK. New code
         should use ``pc.collections.list()`` instead of ``pc.list_collections()``.
+
+        :meta private:
         """
         return self.collections.list()
 
@@ -674,6 +705,8 @@ class Pinecone:
 
         Preserved to ease migration from the legacy Pinecone Python SDK. New code
         should use ``pc.collections.describe()`` instead of ``pc.describe_collection()``.
+
+        :meta private:
         """
         return self.collections.describe(name)
 
@@ -682,6 +715,8 @@ class Pinecone:
 
         Preserved to ease migration from the legacy Pinecone Python SDK. New code
         should use ``pc.collections.delete()`` instead of ``pc.delete_collection()``.
+
+        :meta private:
         """
         self.collections.delete(name)
 
@@ -696,6 +731,8 @@ class Pinecone:
 
         Preserved to ease migration from the legacy Pinecone Python SDK. New code
         should use ``pc.backups.create()`` instead of ``pc.create_backup()``.
+
+        :meta private:
         """
         return self.backups.create(
             index_name=index_name,
@@ -714,6 +751,8 @@ class Pinecone:
 
         Preserved to ease migration from the legacy Pinecone Python SDK. New code
         should use ``pc.backups.list()`` instead of ``pc.list_backups()``.
+
+        :meta private:
         """
         return self.backups.list(
             index_name=index_name,
@@ -726,6 +765,8 @@ class Pinecone:
 
         Preserved to ease migration from the legacy Pinecone Python SDK. New code
         should use ``pc.backups.describe()`` instead of ``pc.describe_backup()``.
+
+        :meta private:
         """
         return self.backups.describe(backup_id=backup_id)
 
@@ -734,6 +775,8 @@ class Pinecone:
 
         Preserved to ease migration from the legacy Pinecone Python SDK. New code
         should use ``pc.backups.delete()`` instead of ``pc.delete_backup()``.
+
+        :meta private:
         """
         self.backups.delete(backup_id=backup_id)
 
@@ -747,6 +790,8 @@ class Pinecone:
 
         Preserved to ease migration from the legacy Pinecone Python SDK. New code
         should use ``pc.restore_jobs.list()`` instead of ``pc.list_restore_jobs()``.
+
+        :meta private:
         """
         return self.restore_jobs.list(
             limit=limit,
@@ -758,6 +803,8 @@ class Pinecone:
 
         Preserved to ease migration from the legacy Pinecone Python SDK. New code
         should use ``pc.restore_jobs.describe()`` instead of ``pc.describe_restore_job()``.
+
+        :meta private:
         """
         return self.restore_jobs.describe(job_id=job_id)
 
@@ -768,6 +815,8 @@ class Pinecone:
         should use ``pc.index(name=..., host=...)`` instead of ``pc.Index(...)``.
         Accepts a legacy ``pool_threads=`` kwarg and forwards it to size the
         ``async_req=True`` thread pool; other unknown kwargs raise ``TypeError``.
+
+        :meta private:
         """
         pool_threads = kwargs.pop("pool_threads", None)
         if kwargs:
@@ -785,6 +834,8 @@ class Pinecone:
         code should construct an :class:`AsyncPinecone` and call ``.index(host=...)``
         on it (or instantiate :class:`AsyncIndex` directly) instead of
         ``Pinecone.IndexAsyncio(...)``.
+
+        :meta private:
         """
         from pinecone.async_client.async_index import AsyncIndex as _AsyncIndex
 
