@@ -1,6 +1,6 @@
 # AgentShield Enterprise Research Roadmap
 
-Generated: 2026-05-12
+Generated: 2026-05-12; refreshed with May 16 AgentShield PR #87, #88, and #89 evidence.
 
 This is a planning artifact for the next AgentShield enterprise iteration. It
 does not modify AgentShield code. The goal is to turn the current scanner,
@@ -84,12 +84,38 @@ AgentShield is already more than a static lint tool:
 - Enterprise hooks exist: policy packs, exception metadata, expiring/expired
   exception reporting, SARIF code scanning, and job-summary output.
 - Accuracy work is active: `runtimeConfidence`, template/example weighting,
-  docs-example downgrades, hook-manifest resolution, false-positive audit
-  guidance, and corpus readiness.
+  docs-example downgrades, installed Claude plugin-cache confidence,
+  hook-manifest resolution, false-positive audit guidance, and corpus readiness.
+- Evidence-pack consumption is now first-class enough for downstream tools:
+  `agentshield evidence-pack inspect` verifies a bundle and emits compact
+  JSON/text summaries for report score, finding counts, runtime confidence,
+  policy, baseline, supply-chain, CI context, remediation, and malformed
+  artifact errors.
+- Fleet-level evidence-pack consumption now has a local routing primitive:
+  `agentshield evidence-pack fleet <dirs...> [--json]` aggregates multiple
+  inspected bundles into ready, security-blocker, policy-review,
+  baseline-regression, supply-chain-review, and invalid routes.
 
-The next iteration should not be "add more regex rules" by default. The higher
-leverage move is to make AgentShield remember, compare, route, and enforce
-security posture across time, repos, teams, and harnesses.
+May 16 update: AgentShield PR #87 merged as
+`26bb44650663816d07180e0d20c1895e431a326c`. It classifies installed Claude
+plugin cache content as `runtimeConfidence: plugin-cache`, keeps non-secret
+plugin-cache score impact at `0.5x`, avoids downgrading repository-local
+non-Claude `plugins/cache` paths, and makes plugin-cache classification win
+before cached hook implementations would otherwise appear as active `hook-code`.
+AgentShield PR #88 merged as
+`65ed6e2a87545dc99d962b58413f49096a4d70ec`. It adds
+`agentshield evidence-pack inspect <dir> [--json]`, validates the bundle before
+readback, summarizes every consumer-facing evidence artifact, and keeps
+malformed-but-valid JSON artifacts from crashing inspection.
+AgentShield PR #89 merged as
+`521ada9091bb6d818511ab8589ae675b920c106a`. It adds
+`agentshield evidence-pack fleet <dirs...> [--json]`, verifies each pack through
+the inspect path, aggregates finding, policy, baseline, supply-chain, and
+remediation totals, and assigns each pack to a deterministic fleet route.
+
+The next iteration after fleet routing should not be "add more regex rules" by
+default. The higher leverage move is to wire the new fleet summaries into
+ECC-Tools follow-up routing and cross-harness policy integration.
 
 ## Enterprise Gaps
 
@@ -323,6 +349,8 @@ The AgentShield enterprise iteration is not complete until these are true:
 - Built CLI smoke tests cover the new flags or report modes.
 - GitHub Action self-test covers the new CI-visible output.
 - Documentation names the free/local path and the paid/team path separately.
+- Runtime-confidence changes include live scan evidence proving lower-confidence
+  plugin/package surfaces stay visible instead of being suppressed.
 - Evidence produced by the feature is deterministic enough for CI diffing.
 - ECC-Tools can consume the finding fingerprints or backlog export without
   exceeding GitHub/Linear object caps.
