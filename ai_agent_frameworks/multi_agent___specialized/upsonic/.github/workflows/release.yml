@@ -101,3 +101,10 @@ jobs:
           webhook-type: incoming-webhook
           payload: |
             text: ":rocket: *Upsonic Framework* `${{ needs.release-please.outputs.version }}` released\nGithub: <https://github.com/${{ github.repository }}/releases/tag/${{ needs.release-please.outputs.tag_name }}|${{ needs.release-please.outputs.tag_name }}>"
+
+  sync-dev:
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    permissions:
+      contents: write
+    uses: ./.github/workflows/sync-dev.yml
