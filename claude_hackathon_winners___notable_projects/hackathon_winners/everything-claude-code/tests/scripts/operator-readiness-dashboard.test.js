@@ -47,9 +47,9 @@ function seedRepo(rootDir, overrides = {}) {
     'docs/ECC-2.0-GA-ROADMAP.md': [
       'https://linear.app/itomarkets/project/ecc-platform-roadmap-52b328ee03e1',
       'Linear ITO-44 ITO-59',
-      'AgentShield PR #89 #78-#89',
+      'AgentShield PR #90 #78-#90',
       'AgentShield Enterprise Iteration',
-      'ECC-Tools PR #73',
+      'ECC-Tools PR #78',
       'hosted promotion',
       'announcementGate',
       'ITO-55'
@@ -185,6 +185,51 @@ function runTests() {
       assert.ok(report.requirements.some(item => item.id === 'completion-dashboard' && item.status === 'complete'));
       assert.ok(report.requirements.some(item => item.id === 'ecc-tools-next-level' && item.status === 'in_progress'));
       assert.ok(report.top_actions.some(item => item.id === 'naming-and-plugin-publication'));
+    } finally {
+      cleanup(rootDir);
+    }
+  })) passed++; else failed++;
+
+  if (test('legacy salvage recognizes the real manual-review backlog heading', () => {
+    const rootDir = createTempDir('operator-dashboard-legacy-salvage-');
+
+    try {
+      seedRepo(rootDir, {
+        'docs/ECC-2.0-GA-ROADMAP.md': [
+          'https://linear.app/itomarkets/project/ecc-platform-roadmap-52b328ee03e1',
+          'Linear ITO-44 ITO-59',
+          'AgentShield PR #90 #78-#90',
+          'AgentShield Enterprise Iteration',
+          'ECC-Tools PR #78',
+          'hosted promotion',
+          'announcementGate'
+        ].join('\n'),
+        'docs/stale-pr-salvage-ledger.md': [
+          '# Stale PR Salvage Ledger',
+          '',
+          '## Remaining Manual-Review Backlog',
+          '',
+          '- #1609 Persian README translation',
+          '- #1563 zh-TW README sync'
+        ].join('\n')
+      });
+
+      const report = buildReport({
+        allowUntracked: [],
+        exitCode: false,
+        format: 'json',
+        generatedAt: '2026-05-15T00:00:00.000Z',
+        help: false,
+        repos: [],
+        root: rootDir,
+        skipGithub: true,
+        thresholds: { maxOpenPrs: 20, maxOpenIssues: 20, maxDirtyFiles: 0 },
+        useEnvGithubToken: false,
+        writePath: null
+      });
+
+      const legacySalvage = report.requirements.find(item => item.id === 'legacy-salvage');
+      assert.strictEqual(legacySalvage.status, 'in_progress');
     } finally {
       cleanup(rootDir);
     }
