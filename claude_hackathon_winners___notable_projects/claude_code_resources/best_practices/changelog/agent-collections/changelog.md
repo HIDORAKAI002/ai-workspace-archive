@@ -10,6 +10,16 @@ Tracks updates to the AGENT COLLECTIONS table in `README.md`.
 
 ---
 
+## [2026-05-16 08:47 PM PKT] Agent Collections Update
+
+| # | Priority | Type  | Action                                                                                                      | Status                                                                                                                                                           |
+|---|----------|-------|-------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 1 | MED      | Count | Update VoltAgent/awesome-claude-code-subagents agents from 146 to 151                                       | COMPLETE (per-directory enumeration: 151 .md files across 10 category dirs; conf 0.88; 2 confirmed new files: ui-ux-tester.md, codebase-orchestrator.md Apr 19-20; NEW — net +5 exceeds ±3 oscillation threshold) |
+| 2 | LOW      | Count | msitarzewski/agency-agents agents 188 → 185                                                                 | INVALID (RECURRING methodological variation; conf 0.82; ±10 possible range; prior runs show 144–188 oscillation; no confirmed net change) |
+| 3 | LOW      | Sort  | Verify sort order (98k > 20k — stars descending)                                                            | COMPLETE (order preserved; RECURRING) |
+
+---
+
 ## [2026-05-15 08:47 PM PKT] Agent Collections Update
 
 | # | Priority | Type  | Action                                                                                                         | Status                                                                                                                                                                                               |
