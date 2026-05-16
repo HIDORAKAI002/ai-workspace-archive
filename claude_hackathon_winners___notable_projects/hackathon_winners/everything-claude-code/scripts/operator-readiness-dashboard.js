@@ -243,6 +243,14 @@ function includesAll(text, needles) {
   return needles.every(needle => text.includes(needle));
 }
 
+function hasLegacySalvageTracking({ stalePrSalvage, legacyInventory, roadmap }) {
+  return stalePrSalvage.includes('Manual review tail')
+    || stalePrSalvage.includes('Remaining Manual-Review Backlog')
+    || stalePrSalvage.includes('Translator/manual review')
+    || legacyInventory.includes('Translator/manual review')
+    || roadmap.includes('ITO-55');
+}
+
 function runCommand(command, args, options = {}) {
   const result = spawnSync(command, args, {
     cwd: options.cwd,
@@ -286,6 +294,7 @@ function buildRequirements(rootDir, platformReport) {
   const progressSync = readText(rootDir, 'docs/architecture/progress-sync-contract.md');
   const observabilityReadiness = readText(rootDir, 'docs/architecture/observability-readiness.md');
   const stalePrSalvage = readText(rootDir, 'docs/stale-pr-salvage-ledger.md');
+  const legacyInventory = readText(rootDir, 'docs/legacy-artifact-inventory.md');
   const supplyChainRunbook = readText(rootDir, 'docs/security/supply-chain-incident-response.md');
   const supplyChainWorkflow = readText(rootDir, '.github/workflows/supply-chain-watch.yml');
   const packageJson = readPackage(rootDir);
@@ -392,27 +401,27 @@ function buildRequirements(rootDir, platformReport) {
       'agentshield-enterprise-iteration',
       'Advance AgentShield enterprise iteration',
       'AgentShield PR evidence plus enterprise roadmap',
-      roadmap.includes('AgentShield Enterprise Iteration') && roadmap.includes('#78-#89')
+      roadmap.includes('AgentShield Enterprise Iteration') && roadmap.includes('#78-#90')
         ? 'in_progress'
         : 'not_complete',
       'AgentShield enterprise PR evidence is mirrored in the GA roadmap',
-      'ECC-Tools fleet-summary consumption and cross-harness policy integration remain pending after evidence-pack fleet routing shipped'
+      'durable policy export and fleet-review workflow automation remain pending after reviewItems shipped'
     ),
     buildRequirement(
       'ecc-tools-next-level',
       'Advance ECC Tools native payments and AI-native harness-agnostic app',
       'ECC Tools PR evidence, billing gate, hosted analysis lanes',
-      includesAll(roadmap, ['ECC-Tools PR #73', 'hosted promotion', 'announcementGate'])
+      includesAll(roadmap, ['ECC-Tools PR #78', 'hosted promotion', 'announcementGate'])
         ? 'in_progress'
         : 'not_complete',
-      'billing announcement gate and hosted analysis lanes are mirrored in the GA roadmap',
-      'live Marketplace test-account readback, hosted promotion telemetry, and operator review UX pending'
+      'billing announcement gate, hosted analysis lanes, AgentShield fleet-summary consumption, hosted finding evidence paths, and harness-route policy linking are mirrored in the GA roadmap',
+      'live Marketplace test-account readback, hosted promotion telemetry, and richer operator review UX pending'
     ),
     buildRequirement(
       'legacy-salvage',
       'Audit, prune, or attach legacy work',
       'docs/stale-pr-salvage-ledger.md and legacy inventory',
-      stalePrSalvage.includes('Manual review tail') || roadmap.includes('ITO-55')
+      hasLegacySalvageTracking({ stalePrSalvage, legacyInventory, roadmap })
         ? 'in_progress'
         : 'not_complete',
       'legacy salvage ledger and ITO-55 tracking are present',

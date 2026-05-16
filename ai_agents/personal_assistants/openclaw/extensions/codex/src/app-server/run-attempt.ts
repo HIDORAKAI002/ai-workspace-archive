@@ -12,6 +12,7 @@ import {
   emitAgentEvent as emitGlobalAgentEvent,
   finalizeHarnessContextEngineTurn,
   formatErrorMessage,
+  hasBeforeToolCallPolicy,
   isActiveHarnessContextEngine,
   isSubagentSessionKey,
   loadCodexBundleMcpThreadConfig,
@@ -64,6 +65,7 @@ import {
 } from "./client.js";
 import { ensureCodexComputerUse } from "./computer-use.js";
 import {
+  isCodexAppServerApprovalPolicyAllowedByRequirements,
   readCodexPluginConfig,
   resolveCodexPluginsPolicy,
   resolveCodexAppServerRuntimeOptions,
@@ -429,6 +431,45 @@ function restrictCodexAppServerSandboxForOpenClawSandbox(
   };
 }
 
+function resolveCodexAppServerForOpenClawToolPolicy(params: {
+  appServer: CodexAppServerRuntimeOptions;
+  pluginConfig: CodexPluginConfig;
+  env: NodeJS.ProcessEnv;
+  shouldPromote: boolean;
+  canUseUntrustedApprovalPolicy: boolean;
+}): CodexAppServerRuntimeOptions {
+  if (
+    !params.shouldPromote ||
+    !params.canUseUntrustedApprovalPolicy ||
+    params.appServer.approvalPolicy !== "never"
+  ) {
+    return params.appServer;
+  }
+  const explicitMode =
+    params.pluginConfig.appServer?.mode !== undefined ||
+    isCodexAppServerPolicyMode(params.env.OPENCLAW_CODEX_APP_SERVER_MODE);
+  const explicitApprovalPolicy =
+    params.pluginConfig.appServer?.approvalPolicy !== undefined ||
+    isCodexAppServerApprovalPolicy(params.env.OPENCLAW_CODEX_APP_SERVER_APPROVAL_POLICY);
+  if (explicitMode || explicitApprovalPolicy) {
+    return params.appServer;
+  }
+  return {
+    ...params.appServer,
+    approvalPolicy: "untrusted",
+  };
+}
+
+function isCodexAppServerPolicyMode(value: unknown): boolean {
+  return value === "guardian" || value === "yolo";
+}
+
+function isCodexAppServerApprovalPolicy(value: unknown): boolean {
+  return (
+    value === "never" || value === "on-request" || value === "on-failure" || value === "untrusted"
+  );
+}
+
 export async function runCodexAppServerAttempt(
   params: EmbeddedRunAttemptParams,
   options: {
@@ -466,7 +507,15 @@ export async function runCodexAppServerAttempt(
       : sandbox.workspaceDir
     : resolvedWorkspace;
   await fs.mkdir(effectiveWorkspace, { recursive: true });
-  const appServer = restrictCodexAppServerSandboxForOpenClawSandbox(configuredAppServer, sandbox);
+  const appServer = resolveCodexAppServerForOpenClawToolPolicy({
+    appServer: restrictCodexAppServerSandboxForOpenClawSandbox(configuredAppServer, sandbox),
+    pluginConfig,
+    env: process.env,
+    shouldPromote: hasBeforeToolCallPolicy(),
+    canUseUntrustedApprovalPolicy:
+      configuredAppServer.start.transport !== "stdio" ||
+      isCodexAppServerApprovalPolicyAllowedByRequirements("untrusted"),
+  });
   let pluginAppServer: CodexAppServerRuntimeOptions = appServer;
   const nativeHookRelayEvents = resolveCodexNativeHookRelayEvents({
     configuredEvents: options.nativeHookRelay?.events,
@@ -1019,6 +1068,7 @@ export async function runCodexAppServerAttempt(
   let activeAppServerTurnRequests = 0;
   const activeOpenClawDynamicToolCallIds = new Set<string>();
   const activeTurnItemIds = new Set<string>();
+  let turnCrossedToolHandoff = false;
 
   const clearTurnCompletionIdleTimer = () => {
     if (turnCompletionIdleTimer) {
@@ -1345,12 +1395,22 @@ export async function runCodexAppServerAttempt(
       activeOpenClawDynamicToolCallIds,
     );
     const rawToolOutputCompletion = isRawToolOutputCompletionNotification(notification);
+    if (
+      isCurrentTurnNotification &&
+      (rawToolOutputCompletion || isNativeToolProgressNotification(notification))
+    ) {
+      turnCrossedToolHandoff = true;
+    }
+    const assistantCompletionCanRelease = isAssistantCompletionReleaseNotification(
+      notification,
+      turnCrossedToolHandoff,
+    );
     const shouldRearmCompletionIdleWatchAfterLastCurrentTurnItem =
       isCurrentTurnNotification &&
       notification.method === "item/completed" &&
       activeTurnItemIds.size === 0 &&
       !trackedDynamicToolCompletion &&
-      !isCompletedAssistantNotification(notification);
+      !assistantCompletionCanRelease;
     if (isCurrentTurnNotification && notification.method === "error") {
       if (isRetryableErrorNotification(notification.params)) {
         disarmTurnCompletionIdleWatch();
@@ -1360,7 +1420,7 @@ export async function runCodexAppServerAttempt(
       disarmTurnAssistantCompletionIdleWatch();
     } else if (isTurnCompletion) {
       disarmTurnAssistantCompletionIdleWatch();
-    } else if (isCurrentTurnNotification && isCompletedAssistantNotification(notification)) {
+    } else if (isCurrentTurnNotification && assistantCompletionCanRelease) {
       armTurnAssistantCompletionIdleWatch(describeNotificationActivity(notification));
     } else if (unblockedAssistantCompletionRelease) {
       armTurnAssistantCompletionIdleWatch(describeNotificationActivity(notification));
@@ -1494,6 +1554,7 @@ export async function runCodexAppServerAttempt(
         return undefined;
       }
       armCompletionWatchOnResponse = true;
+      turnCrossedToolHandoff = true;
       activeOpenClawDynamicToolCallIds.add(call.callId);
       trajectoryRecorder?.recordEvent("tool.call", {
         threadId: call.threadId,
@@ -2978,6 +3039,16 @@ function isCompletedAssistantNotification(notification: CodexServerNotification)
   );
 }
 
+function isAssistantCompletionReleaseNotification(
+  notification: CodexServerNotification,
+  turnCrossedToolHandoff: boolean,
+): boolean {
+  if (isCompletedAssistantNotification(notification)) {
+    return true;
+  }
+  return !turnCrossedToolHandoff && isRawAssistantCompletionNotification(notification);
+}
+
 function shouldDisarmAssistantCompletionIdleWatch(notification: CodexServerNotification): boolean {
   if (!isJsonObject(notification.params)) {
     return false;
@@ -3025,6 +3096,43 @@ function isRawToolOutputCompletionNotification(notification: CodexServerNotifica
   }
   const item = isJsonObject(notification.params.item) ? notification.params.item : undefined;
   return item ? readString(item, "type") === "custom_tool_call_output" : false;
+}
+
+function isNativeToolProgressNotification(notification: CodexServerNotification): boolean {
+  if (
+    notification.method !== "item/started" &&
+    notification.method !== "item/completed" &&
+    notification.method !== "item/updated"
+  ) {
+    return false;
+  }
+  if (!isJsonObject(notification.params)) {
+    return false;
+  }
+  const item = isJsonObject(notification.params.item) ? notification.params.item : undefined;
+  switch (item ? readString(item, "type") : undefined) {
+    case "commandExecution":
+    case "fileChange":
+    case "mcpToolCall":
+    case "webSearch":
+      return true;
+    default:
+      return false;
+  }
+}
+
+function isRawAssistantCompletionNotification(notification: CodexServerNotification): boolean {
+  if (notification.method !== "rawResponseItem/completed" || !isJsonObject(notification.params)) {
+    return false;
+  }
+  const item = isJsonObject(notification.params.item) ? notification.params.item : undefined;
+  return Boolean(
+    item &&
+    readString(item, "type") === "message" &&
+    readString(item, "role") === "assistant" &&
+    readString(item, "phase") !== "commentary" &&
+    readRawAssistantTextPreview(item),
+  );
 }
 
 function readRawAssistantTextPreview(item: JsonObject): string | undefined {
@@ -3544,6 +3652,7 @@ export const __testing = {
   remapCodexContextFilePath,
   resolveDynamicToolCallTimeoutMs,
   restrictCodexAppServerSandboxForOpenClawSandbox,
+  resolveCodexAppServerForOpenClawToolPolicy,
   resolveOpenClawCodingToolsSessionKeys,
   shouldForceMessageTool,
   setOpenClawCodingToolsFactoryForTests(factory: OpenClawCodingToolsFactory): void {
