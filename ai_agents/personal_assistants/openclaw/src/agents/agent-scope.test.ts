@@ -326,6 +326,23 @@ describe("resolveAgentConfig", () => {
     ).toStrictEqual([]);
     expect(
       resolveEffectiveModelFallbacks({
+        cfg,
+        agentId: "linus",
+        hasSessionModelOverride: true,
+        hasAutoFallbackProvenance: true,
+      }),
+    ).toEqual(["openai/gpt-5.4"]);
+    expect(
+      resolveEffectiveModelFallbacks({
+        cfg,
+        agentId: "linus",
+        hasSessionModelOverride: true,
+        modelOverrideSource: "user",
+        hasAutoFallbackProvenance: true,
+      }),
+    ).toStrictEqual([]);
+    expect(
+      resolveEffectiveModelFallbacks({
         cfg: cfgNoOverride,
         agentId: "linus",
         hasSessionModelOverride: true,
@@ -761,6 +778,15 @@ describe("resolveAgentConfig", () => {
     expect(workspace).toBe(path.join(path.resolve(home), ".openclaw", "workspace"));
   });
 
+  it("uses OPENCLAW_WORKSPACE_DIR for default agent workspace", () => {
+    const workspaceDir = path.join(path.sep, "srv", "openclaw-workspace");
+    vi.stubEnv("OPENCLAW_WORKSPACE_DIR", workspaceDir);
+    vi.stubEnv("OPENCLAW_HOME", path.join(path.sep, "srv", "openclaw-home"));
+
+    const workspace = resolveAgentWorkspaceDir({} as OpenClawConfig, "main");
+    expect(workspace).toBe(path.resolve(workspaceDir));
+  });
+
   it("uses OPENCLAW_HOME for default agentDir", () => {
     const home = path.join(path.sep, "srv", "openclaw-home");
     vi.stubEnv("OPENCLAW_HOME", home);
@@ -782,7 +808,7 @@ describe("resolveAgentConfig", () => {
 
     const agentDir = resolveDefaultAgentDir(cfg);
 
-    expect(agentDir).toBe(path.join(stateDir, "agents", "ops", "agent"));
+    expect(agentDir).toBe(path.resolve(stateDir, "agents", "ops", "agent"));
   });
 
   it("non-default agent uses agents.defaults.workspace as base (#59789)", () => {
@@ -816,7 +842,7 @@ describe("resolveAgentConfig", () => {
       },
     };
     const workspace = resolveAgentWorkspaceDir(cfg, "main");
-    expect(workspace).toBe(path.join(stateDir, "workspace-main"));
+    expect(workspace).toBe(path.resolve(stateDir, "workspace-main"));
   });
 });
 
