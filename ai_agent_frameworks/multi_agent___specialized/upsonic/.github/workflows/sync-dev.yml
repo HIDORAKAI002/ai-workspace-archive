@@ -1,9 +1,8 @@
 name: Sync dev with master
 
 on:
-  release:
-    types:
-      - published
+  workflow_call:
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -14,7 +13,6 @@ concurrency:
 
 jobs:
   sync-dev:
-    if: github.event_name != 'release' || github.event.release.target_commitish == 'master'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
