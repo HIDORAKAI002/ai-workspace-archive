@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.77.2](https://github.com/Upsonic/Upsonic/compare/v0.77.1...v0.77.2) (2026-05-16)
+
+
+### Bug Fixes
+
+* **chat,messages:** tolerate trailing junk in tool args and reset task on retry ([#597](https://github.com/Upsonic/Upsonic/issues/597)) ([#598](https://github.com/Upsonic/Upsonic/issues/598)) ([12f3ac2](https://github.com/Upsonic/Upsonic/commit/12f3ac2e2f346b3174f459f01af7e218e72b4d93))
+
 ## [0.77.1](https://github.com/Upsonic/Upsonic/compare/v0.77.0...v0.77.1) (2026-05-15)
 
 
