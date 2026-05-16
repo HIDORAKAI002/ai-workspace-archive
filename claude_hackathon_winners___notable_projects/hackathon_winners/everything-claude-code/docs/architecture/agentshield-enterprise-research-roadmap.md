@@ -95,6 +95,10 @@ AgentShield is already more than a static lint tool:
   `agentshield evidence-pack fleet <dirs...> [--json]` aggregates multiple
   inspected bundles into ready, security-blocker, policy-review,
   baseline-regression, supply-chain-review, and invalid routes.
+- ECC-Tools now consumes that fleet primitive in hosted security review:
+  `agentshield-evidence/fleet-summary.json` routes invalid packs, security
+  blockers, policy reviews, baseline regressions, and supply-chain reviews into
+  hosted findings.
 
 May 16 update: AgentShield PR #87 merged as
 `26bb44650663816d07180e0d20c1895e431a326c`. It classifies installed Claude
@@ -114,8 +118,12 @@ the inspect path, aggregates finding, policy, baseline, supply-chain, and
 remediation totals, and assigns each pack to a deterministic fleet route.
 
 The next iteration after fleet routing should not be "add more regex rules" by
-default. The higher leverage move is to wire the new fleet summaries into
-ECC-Tools follow-up routing and cross-harness policy integration.
+default. ECC-Tools follow-up routing now consumes fleet summaries and surfaces
+source evidence paths in hosted findings, and the first cross-harness policy
+slice now links AgentShield fleet route target paths to harness-owner review.
+AgentShield fleet output now also emits `reviewItems` with source evidence paths
+and owner-ready recommendations for routed packs. The higher leverage move is
+durable policy export and workflow automation for routed fleet findings.
 
 ## Enterprise Gaps
 
