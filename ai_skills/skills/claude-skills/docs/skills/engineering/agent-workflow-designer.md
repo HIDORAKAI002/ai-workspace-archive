@@ -1,6 +1,6 @@
 ---
 title: "Agent Workflow Designer — Agent Skill for Codex & OpenClaw"
-description: "Agent Workflow Designer. Agent skill for Claude Code, Codex CLI, Gemini CLI, OpenClaw."
+description: "Design production-grade multi-agent workflows with clear pattern choice (sequential, parallel, hierarchical), handoff contracts, failure handling. Agent skill for Claude Code, Codex CLI, Gemini CLI, OpenClaw."
 ---
 
 # Agent Workflow Designer

@@ -370,7 +370,7 @@ import {
   shouldPreemptivelyCompactBeforePrompt,
 } from "./preemptive-compaction.js";
 import {
-  buildCurrentTurnPrompt,
+  buildCurrentInboundPrompt,
   buildRuntimeContextSystemContext,
   queueRuntimeContextForNextTurn,
   resolveRuntimeContextPromptParts,
@@ -659,9 +659,10 @@ export function normalizeMessagesForLlmBoundary(messages: AgentMessage[]): Agent
 }
 
 function stripHistoricalInboundMetadataFromUserMessages(messages: AgentMessage[]): AgentMessage[] {
+  const activeUserMessageIndex = findActiveUserMessageIndex(messages);
   let changed = false;
-  const nextMessages = messages.map((message) => {
-    if (message.role !== "user") {
+  const nextMessages = messages.map((message, index) => {
+    if (message.role !== "user" || index === activeUserMessageIndex) {
       return message;
     }
     const content = (message as { content?: unknown }).content;
@@ -699,6 +700,39 @@ function stripHistoricalInboundMetadataFromUserMessages(messages: AgentMessage[]
     return { ...message, content: nextContent } as AgentMessage;
   });
   return changed ? nextMessages : messages;
+}
+
+function findActiveUserMessageIndex(messages: AgentMessage[]): number {
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const message = messages[index];
+    if (!message) {
+      continue;
+    }
+    if (message.role === "user") {
+      return index;
+    }
+    if (message.role === "assistant" && !isToolCallAssistantMessage(message)) {
+      return -1;
+    }
+  }
+  return -1;
+}
+
+function isToolCallAssistantMessage(message: AgentMessage): boolean {
+  if (message.role !== "assistant") {
+    return false;
+  }
+  const content = (message as { content?: unknown }).content;
+  if (!Array.isArray(content)) {
+    return false;
+  }
+  return content.some((block) => {
+    if (!block || typeof block !== "object") {
+      return false;
+    }
+    const type = (block as { type?: unknown }).type;
+    return type === "toolCall" || type === "toolUse" || type === "functionCall";
+  });
 }
 
 function cloneHookMessages(messages: AgentMessage[]): AgentMessage[] {
@@ -1157,7 +1191,7 @@ export async function runEmbeddedAttempt(
             requireExplicitMessageTarget:
               params.requireExplicitMessageTarget ?? isSubagentSessionKey(params.sessionKey),
             sourceReplyDeliveryMode: params.sourceReplyDeliveryMode,
-            inboundTurnKind: params.currentTurnKind,
+            inboundEventKind: params.currentInboundEventKind,
             disableMessageTool: params.disableMessageTool,
             forceMessageTool: params.forceMessageTool,
             enableHeartbeatTool: params.enableHeartbeatTool,
@@ -1165,6 +1199,7 @@ export async function runEmbeddedAttempt(
             authProfileStore: params.authProfileStore,
             recordToolPrepStage: (name) => corePluginToolStages.mark(name),
             onToolOutcome: params.onToolOutcome,
+            skillsSnapshot: skillsSnapshotForRun,
             onYield: (message) => {
               yieldDetected = true;
               yieldMessage = message;
@@ -3313,8 +3348,8 @@ export async function runEmbeddedAttempt(
               ? "model-prompt"
               : "runtime-event",
           });
-          const promptForModel = buildCurrentTurnPrompt({
-            context: promptSubmission.runtimeOnly ? undefined : params.currentTurnContext,
+          const promptForModel = buildCurrentInboundPrompt({
+            context: promptSubmission.runtimeOnly ? undefined : params.currentInboundContext,
             prompt: promptSubmission.prompt,
           });
           const runtimeSystemContext = promptSubmission.runtimeSystemContext?.trim();
@@ -3339,7 +3374,7 @@ export async function runEmbeddedAttempt(
             : undefined;
           if (systemPromptReport) {
             systemPromptReport.currentTurn = {
-              ...(params.currentTurnKind ? { kind: params.currentTurnKind } : {}),
+              ...(params.currentInboundEventKind ? { kind: params.currentInboundEventKind } : {}),
               promptChars: promptForModel.length,
               runtimeContextChars: promptSubmission.runtimeOnly
                 ? (runtimeSystemContext?.length ?? 0)

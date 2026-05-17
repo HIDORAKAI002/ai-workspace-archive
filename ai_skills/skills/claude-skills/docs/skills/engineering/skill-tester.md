@@ -1,6 +1,6 @@
 ---
 title: "Skill Tester — Agent Skill for Codex & OpenClaw"
-description: "Skill Tester. Agent skill for Claude Code, Codex CLI, Gemini CLI, OpenClaw."
+description: "Validate, test, and score the quality of skills within the claude-skills ecosystem. Comprehensive meta-skill: structure validation, Python script. Agent skill for Claude Code, Codex CLI, Gemini CLI, OpenClaw."
 ---
 
 # Skill Tester

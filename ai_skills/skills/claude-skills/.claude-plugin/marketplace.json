@@ -4,12 +4,12 @@
     "name": "Alireza Rezvani",
     "url": "https://alirezarezvani.com"
   },
-  "description": "272 production-ready skill packages for Claude AI across 9 domains: engineering advanced (71 unique — incl. 4 Matt Pocock-derived productivity skills with validation wrappers), engineering core (51), marketing (45), c-level advisory (34), product (17), regulatory/QMS (14), project management (9), business growth (5), and finance (4). Includes 385 Python tools, 519 reference documents, 31 agents (24 cs-* + 7 personas), and 58 slash commands.",
+  "description": "311 production-ready skill packages for Claude AI across 12 domains: engineering advanced (75 \u2014 incl. 4 Matt Pocock-derived productivity skills), engineering core (51), marketing (46), c-level advisory (66), product (17), regulatory/QMS (18), project management (9), business growth (5), finance (4), productivity (4, v2.7.0), marketing top-level (2, v2.7.0), and research (8, v2.7.0). Includes ~398 Python tools, ~538 reference documents, 45+ agents, 59+ slash commands.",
   "homepage": "https://github.com/alirezarezvani/claude-skills",
   "repository": "https://github.com/alirezarezvani/claude-skills",
   "metadata": {
-    "description": "272 production-ready skill packages across 9 domains with 385 Python tools, 519 reference documents, 31 agents (24 cs-* + 7 personas), and 58 slash commands. Compatible with Claude Code, Codex CLI, Hermes Agent, Cursor, Antigravity, OpenCode, Gemini CLI, and OpenClaw.",
-    "version": "2.6.1"
+    "description": "311 production-ready skill packages across 12 domains (engineering, marketing, product, c-level, project management, RA/QM, business growth, finance, productivity, marketing (top-level), research, plus standards). ~398 Python tools, ~538 reference guides, 45+ agents (cs-* + personas), 59+ slash commands. Compatible with Claude Code, Codex CLI, Gemini CLI, Cursor, OpenClaw, Hermes Agent, and 6 more coding agents.",
+    "version": "2.7.0"
   },
   "plugins": [
     {
@@ -61,7 +61,7 @@
     {
       "name": "c-level-agents",
       "source": "./c-level-advisor/c-level-agents",
-      "description": "Founder-mode executive team plugin: 13 cs-* C-suite agents (CFO, CMO, CRO, CPO, COO, CHRO, CISO, Chief of Staff, General Counsel, Chief Data Officer, Chief AI Officer, Chief Customer Officer, VP of Engineering) with distinct cognitive voices, plus 21 /cs:* slash commands — forcing-question office hours (CFO/CMO/CPO/CRO/CTO/CISO/GC/CDO/CAIO/CCO/VPE reviews), strategic sprint pipeline (brief → boardroom → decide → execute → post-mortem), and meta routing (/cs:founder-mode auto-router, /cs:onboard, /cs:cross-eval multi-model consensus, /cs:freeze cooldown lock). Wraps the 33 c-level skills with cognitive gearing, persona voice, and artifact-driven handoffs. The business-domain answer to YC Garry Tan's gstack.",
+      "description": "Founder-mode executive team plugin: 13 cs-* C-suite agents (CFO, CMO, CRO, CPO, COO, CHRO, CISO, Chief of Staff, General Counsel, Chief Data Officer, Chief AI Officer, Chief Customer Officer, VP of Engineering) with distinct cognitive voices, plus 21 /cs:* slash commands \u2014 forcing-question office hours (CFO/CMO/CPO/CRO/CTO/CISO/GC/CDO/CAIO/CCO/VPE reviews), strategic sprint pipeline (brief \u2192 boardroom \u2192 decide \u2192 execute \u2192 post-mortem), and meta routing (/cs:founder-mode auto-router, /cs:onboard, /cs:cross-eval multi-model consensus, /cs:freeze cooldown lock). Wraps the 33 c-level skills with cognitive gearing, persona voice, and artifact-driven handoffs. The business-domain answer to YC Garry Tan's gstack.",
       "version": "1.5.0",
       "author": {
         "name": "Alireza Rezvani"
@@ -111,7 +111,7 @@
     {
       "name": "general-counsel-advisor",
       "source": "./c-level-advisor/general-counsel-advisor",
-      "description": "General Counsel advisory for startups: contract risk scanner (12 founder-killer patterns: auto-renew traps, uncapped indemnity, vague IP, MFN pricing, missing DPA, one-sided venue, broad non-solicit, perpetual license-back, etc.) and term sheet analyzer (0-100 founder-friendliness across 12 dimensions). 3 in-depth references: contracts playbook (7 startup contract types), IP + regulatory landscape mapping (HIPAA, GDPR, FDA, fintech, EU AI Act, SOC 2 → ISO sequencing), term sheet decoder (full glossary + founder-friendly defaults). Standalone-installable; also bundled in c-level-skills. Stdlib-only. NOT a substitute for licensed counsel.",
+      "description": "General Counsel advisory for startups: contract risk scanner (12 founder-killer patterns: auto-renew traps, uncapped indemnity, vague IP, MFN pricing, missing DPA, one-sided venue, broad non-solicit, perpetual license-back, etc.) and term sheet analyzer (0-100 founder-friendliness across 12 dimensions). 3 in-depth references: contracts playbook (7 startup contract types), IP + regulatory landscape mapping (HIPAA, GDPR, FDA, fintech, EU AI Act, SOC 2 \u2192 ISO sequencing), term sheet decoder (full glossary + founder-friendly defaults). Standalone-installable; also bundled in c-level-skills. Stdlib-only. NOT a substitute for licensed counsel.",
       "version": "1.0.0",
       "author": {
         "name": "Alireza Rezvani"
@@ -133,7 +133,7 @@
     {
       "name": "chief-data-officer-advisor",
       "source": "./c-level-advisor/chief-data-officer-advisor",
-      "description": "Chief Data Officer advisory for startups: AI training data audit (origin × class × use-case matrix with GDPR Art. 6 + EU AI Act citations), data product strategy picker (warehouse vs lakehouse vs mesh + 6-layer build-vs-buy + 12-month sequencing), data asset valuator (strategic value 0-10 + M&A multiplier with carve-out penalties + 3 ranked productization paths). 4 references answering one decision each: training rights, data product strategy, customer-data-as-asset, data team org evolution. Standalone-installable; also bundled in c-level-skills. Strategic only — does not duplicate engineering data skills.",
+      "description": "Chief Data Officer advisory for startups: AI training data audit (origin \u00d7 class \u00d7 use-case matrix with GDPR Art. 6 + EU AI Act citations), data product strategy picker (warehouse vs lakehouse vs mesh + 6-layer build-vs-buy + 12-month sequencing), data asset valuator (strategic value 0-10 + M&A multiplier with carve-out penalties + 3 ranked productization paths). 4 references answering one decision each: training rights, data product strategy, customer-data-as-asset, data team org evolution. Standalone-installable; also bundled in c-level-skills. Strategic only \u2014 does not duplicate engineering data skills.",
       "version": "1.0.0",
       "author": {
         "name": "Alireza Rezvani"
@@ -155,7 +155,7 @@
     {
       "name": "vpe-advisor",
       "source": "./c-level-advisor/vpe-advisor",
-      "description": "VP of Engineering advisory: delivery throughput analyzer (DORA 4 metrics + cycle-time bottleneck identification with typical fixes per stage), engineering hiring funnel calculator (7-stage conversion + pipeline gap + weakest-stage fixes from sourcing to offer-accept), engineering team structure designer (squad/tribe model + manager-trigger + director-trigger + span-of-control). 4 in-depth references citing DORA / Spotify / Conway / Google SRE / Larson / Fournier. Standalone-installable; also bundled in c-level-skills. NOT a CTO skill — VPE owns how the team ships; CTO owns what to build.",
+      "description": "VP of Engineering advisory: delivery throughput analyzer (DORA 4 metrics + cycle-time bottleneck identification with typical fixes per stage), engineering hiring funnel calculator (7-stage conversion + pipeline gap + weakest-stage fixes from sourcing to offer-accept), engineering team structure designer (squad/tribe model + manager-trigger + director-trigger + span-of-control). 4 in-depth references citing DORA / Spotify / Conway / Google SRE / Larson / Fournier. Standalone-installable; also bundled in c-level-skills. NOT a CTO skill \u2014 VPE owns how the team ships; CTO owns what to build.",
       "version": "1.0.0",
       "author": {
         "name": "Alireza Rezvani"
@@ -179,7 +179,7 @@
     {
       "name": "chief-customer-officer-advisor",
       "source": "./c-level-advisor/chief-customer-officer-advisor",
-      "description": "Chief Customer Officer advisory: retention decomposition analyzer (honest GRR vs NRR; 7-category churn taxonomy with preventable% scoring), customer segmentation designer (4-tier framework, ICP fit scoring across 7 weighted signals, kill list + upgrade candidates), CS coverage calculator (pooled vs named CSM ratio math + 12-month hiring plan with quarterly sequencing). 4 in-depth references each citing 5+ authoritative sources. Standalone-installable; also bundled in c-level-skills. Strategic only — does not duplicate business-growth tactical CS skills.",
+      "description": "Chief Customer Officer advisory: retention decomposition analyzer (honest GRR vs NRR; 7-category churn taxonomy with preventable% scoring), customer segmentation designer (4-tier framework, ICP fit scoring across 7 weighted signals, kill list + upgrade candidates), CS coverage calculator (pooled vs named CSM ratio math + 12-month hiring plan with quarterly sequencing). 4 in-depth references each citing 5+ authoritative sources. Standalone-installable; also bundled in c-level-skills. Strategic only \u2014 does not duplicate business-growth tactical CS skills.",
       "version": "1.0.0",
       "author": {
         "name": "Alireza Rezvani"
@@ -201,7 +201,7 @@
     {
       "name": "chief-ai-officer-advisor",
       "source": "./c-level-advisor/chief-ai-officer-advisor",
-      "description": "Chief AI Officer advisory for startups: model build-vs-buy calculator (API vs fine-tune vs build with 3-year TCO across 6 paths + breakeven that balances economics with practical feasibility), AI risk classifier (EU AI Act tier with 7 Article citations + US state patchwork: NYC LL 144, CO AI Act, IL HB 53, CA SB 1001, IL BIPA + industry overlays for FDA AI/ML, CFPB Circular 2023-03, NYDFS Reg 23, NAIC, ECOA, Fed SR 11-7), AI cost economics (API vs self-hosted breakeven with 2026 pricing across A100/H100, utilization reality, hidden costs). 4 in-depth references each citing 5+ authoritative sources. Standalone-installable; also bundled in c-level-skills. Strategic only — does not duplicate engineering AI/ML skills.",
+      "description": "Chief AI Officer advisory for startups: model build-vs-buy calculator (API vs fine-tune vs build with 3-year TCO across 6 paths + breakeven that balances economics with practical feasibility), AI risk classifier (EU AI Act tier with 7 Article citations + US state patchwork: NYC LL 144, CO AI Act, IL HB 53, CA SB 1001, IL BIPA + industry overlays for FDA AI/ML, CFPB Circular 2023-03, NYDFS Reg 23, NAIC, ECOA, Fed SR 11-7), AI cost economics (API vs self-hosted breakeven with 2026 pricing across A100/H100, utilization reality, hidden costs). 4 in-depth references each citing 5+ authoritative sources. Standalone-installable; also bundled in c-level-skills. Strategic only \u2014 does not duplicate engineering AI/ML skills.",
       "version": "1.0.0",
       "author": {
         "name": "Alireza Rezvani"
@@ -825,7 +825,7 @@
     {
       "name": "write-a-skill",
       "source": "./engineering/write-a-skill",
-      "description": "Skill-author skill: create new agent skills with proper structure, progressive disclosure, and bundled resources. Derived from Matt Pocock's MIT-licensed write-a-skill with: (1) 3 stdlib Python validation tools (description validator, structure validator, review-checklist runner — all enforcing Matt's 6-item checklist), (2) 4 references citing 7-8 authoritative sources each (progressive disclosure principles, description design patterns, quality gates, companion tooling), (3) cs-skill-author persona agent + /cs:write-a-skill slash command. Matt's voice and 3-phase workflow (Gather → Draft → Review) preserved verbatim per MIT.",
+      "description": "Skill-author skill: create new agent skills with proper structure, progressive disclosure, and bundled resources. Derived from Matt Pocock's MIT-licensed write-a-skill with: (1) 3 stdlib Python validation tools (description validator, structure validator, review-checklist runner \u2014 all enforcing Matt's 6-item checklist), (2) 4 references citing 7-8 authoritative sources each (progressive disclosure principles, description design patterns, quality gates, companion tooling), (3) cs-skill-author persona agent + /cs:write-a-skill slash command. Matt's voice and 3-phase workflow (Gather \u2192 Draft \u2192 Review) preserved verbatim per MIT.",
       "version": "2.6.0",
       "author": {
         "name": "Alireza Rezvani"
@@ -881,7 +881,7 @@
     {
       "name": "handoff",
       "source": "./engineering/handoff",
-      "description": "Conversation-handoff document generator. Compacts the current session into a markdown handoff for a fresh agent — references existing artifacts (PRDs, plans, ADRs, issues, commits) by path/URL instead of duplicating them. Derived from Matt Pocock's MIT-licensed handoff with: (1) 3 stdlib Python tools (template generator tailored to 5 next-session emphases, artifact deduplicator across 5 categories of duplication, skill recommender matching content to 14 skills in this repo), (2) 4 references citing 7-8 sources (handoff structure, deduplication discipline, next-session skill matching, companion tooling), (3) cs-handoff-author persona agent + /cs:handoff slash command. Matt's no-duplication discipline + mktemp convention preserved verbatim per MIT.",
+      "description": "Conversation-handoff document generator. Compacts the current session into a markdown handoff for a fresh agent \u2014 references existing artifacts (PRDs, plans, ADRs, issues, commits) by path/URL instead of duplicating them. Derived from Matt Pocock's MIT-licensed handoff with: (1) 3 stdlib Python tools (template generator tailored to 5 next-session emphases, artifact deduplicator across 5 categories of duplication, skill recommender matching content to 14 skills in this repo), (2) 4 references citing 7-8 sources (handoff structure, deduplication discipline, next-session skill matching, companion tooling), (3) cs-handoff-author persona agent + /cs:handoff slash command. Matt's no-duplication discipline + mktemp convention preserved verbatim per MIT.",
       "version": "2.6.0",
       "author": {
         "name": "Alireza Rezvani"
@@ -915,6 +915,240 @@
         "epic-breakdown"
       ],
       "category": "product"
+    },
+    {
+      "name": "capture-skill",
+      "source": "./productivity/capture",
+      "description": "Brain-dump-to-action workspace skill. Routes vague captures into discoverable actions via classify\u2192cluster\u2192connect\u2192clarify intake. Path-B from megaprompt 05.",
+      "version": "2.7.0",
+      "author": {
+        "name": "Alireza Rezvani"
+      },
+      "keywords": [
+        "capture",
+        "brain-dump",
+        "productivity",
+        "gtd",
+        "workspace",
+        "path-b-megaprompt"
+      ],
+      "category": "productivity"
+    },
+    {
+      "name": "email-pair",
+      "source": "./productivity/email",
+      "description": "Email-workflow skill pair: inbox-setup builds your taxonomy/KB; inbox-triage classifies + drafts (drafts-only, never auto-send). KB-file contract between them. Path-B from megaprompts 06+07.",
+      "version": "2.7.0",
+      "author": {
+        "name": "Alireza Rezvani"
+      },
+      "keywords": [
+        "email",
+        "inbox",
+        "triage",
+        "gmail",
+        "outlook",
+        "productivity",
+        "path-b-megaprompt"
+      ],
+      "category": "productivity"
+    },
+    {
+      "name": "reflect-skill",
+      "source": "./productivity/reflect",
+      "description": "Light-prompt reflection skill. Single forcing question + structured journal capture. Path-B sibling of capture from megaprompt 08.",
+      "version": "2.7.0",
+      "author": {
+        "name": "Alireza Rezvani"
+      },
+      "keywords": [
+        "reflect",
+        "journaling",
+        "productivity",
+        "forcing-question",
+        "path-b-megaprompt"
+      ],
+      "category": "productivity"
+    },
+    {
+      "name": "landing",
+      "source": "./marketing/landing",
+      "description": "Single-file HTML landing-page generator with 4 design styles, brand palette validation, GSAP animation patterns, kebab-slug URL hygiene. Path-B from megaprompt 04.",
+      "version": "2.7.0",
+      "author": {
+        "name": "Alireza Rezvani"
+      },
+      "keywords": [
+        "landing-page",
+        "html",
+        "marketing",
+        "generator",
+        "gsap",
+        "brand",
+        "path-b-megaprompt"
+      ],
+      "category": "marketing"
+    },
+    {
+      "name": "pulse",
+      "source": "./research/pulse",
+      "description": "Multi-source recency research. Reddit/HN/X/web sentiment + trending. Research-pack convention (1 q/sec, three-count tracking). Path-B from megaprompt 01.",
+      "version": "2.7.0",
+      "author": {
+        "name": "Alireza Rezvani"
+      },
+      "keywords": [
+        "research",
+        "pulse",
+        "sentiment",
+        "reddit",
+        "hn",
+        "trending",
+        "research-pack",
+        "path-b-megaprompt"
+      ],
+      "category": "research"
+    },
+    {
+      "name": "litreview",
+      "source": "./research/litreview",
+      "description": "Academic literature orientation skill. PICO/SPIDER frameworks, systematic review structure, 8-section DOCX guide. Research-pack convention. Path-B from megaprompt 09.",
+      "version": "2.7.0",
+      "author": {
+        "name": "Alireza Rezvani"
+      },
+      "keywords": [
+        "research",
+        "literature-review",
+        "pico",
+        "spider",
+        "systematic-review",
+        "academic",
+        "research-pack",
+        "path-b-megaprompt"
+      ],
+      "category": "research"
+    },
+    {
+      "name": "grants",
+      "source": "./research/grants",
+      "description": "NIH grant-funding intelligence skill. RePORTER/NOSI/study-section navigation, R01/R21/K-award strategy. Research-pack convention. Path-B from megaprompt 11.",
+      "version": "2.7.0",
+      "author": {
+        "name": "Alireza Rezvani"
+      },
+      "keywords": [
+        "research",
+        "grants",
+        "nih",
+        "r01",
+        "k-award",
+        "reporter",
+        "nosi",
+        "research-pack",
+        "path-b-megaprompt"
+      ],
+      "category": "research"
+    },
+    {
+      "name": "dossier",
+      "source": "./research/dossier",
+      "description": "Decision-grade entity research. Due-diligence/background-check/competitor-prep with tier-weighted verdict + citation tracker. Research-pack convention. Path-B from megaprompt 02.",
+      "version": "2.7.0",
+      "author": {
+        "name": "Alireza Rezvani"
+      },
+      "keywords": [
+        "research",
+        "dossier",
+        "due-diligence",
+        "background-check",
+        "competitor",
+        "entity-research",
+        "research-pack",
+        "path-b-megaprompt"
+      ],
+      "category": "research"
+    },
+    {
+      "name": "patent",
+      "source": "./research/patent",
+      "description": "Patent prior-art + IP landscape skill. FTO/novelty/family-resolver via 3-pass Jaccard heuristic. Research-pack convention. Path-B from megaprompt 12.",
+      "version": "2.7.0",
+      "author": {
+        "name": "Alireza Rezvani"
+      },
+      "keywords": [
+        "research",
+        "patent",
+        "prior-art",
+        "fto",
+        "freedom-to-operate",
+        "ip-landscape",
+        "research-pack",
+        "path-b-megaprompt"
+      ],
+      "category": "research"
+    },
+    {
+      "name": "syllabus",
+      "source": "./research/syllabus",
+      "description": "Course supplementary-reading skill. Topic-grouper + bundled Node.js DOCX generator for syllabus-anchored reading lists. Research-pack convention. Path-B from megaprompt 10.",
+      "version": "2.7.0",
+      "author": {
+        "name": "Alireza Rezvani"
+      },
+      "keywords": [
+        "research",
+        "syllabus",
+        "curriculum",
+        "reading-list",
+        "docx",
+        "course",
+        "research-pack",
+        "path-b-megaprompt"
+      ],
+      "category": "research"
+    },
+    {
+      "name": "notebooklm",
+      "source": "./research/notebooklm",
+      "description": "Google NotebookLM browser-automation skill. 4 actions (read/extract, add-source, Studio outputs, create notebook). Screenshot-first + find-before-click + fire-and-notify async discipline. Path-B from megaprompt 03.",
+      "version": "2.7.0",
+      "author": {
+        "name": "Alireza Rezvani"
+      },
+      "keywords": [
+        "research",
+        "notebooklm",
+        "google",
+        "browser-automation",
+        "studio",
+        "audio-overview",
+        "research-pack",
+        "path-b-megaprompt"
+      ],
+      "category": "research"
+    },
+    {
+      "name": "research-orchestrator",
+      "source": "./research/research",
+      "description": "Research orchestrator (hybrid router + fallback). Deterministic SIGNALS classification routes to 6 specialists (pulse/litreview/grants/dossier/patent/syllabus) at >=2 signals, else runs own 8-step plan-decompose-search-synthesize-cite fallback. Routing transparency mandatory. Path-B from megaprompt 13.",
+      "version": "2.7.0",
+      "author": {
+        "name": "Alireza Rezvani"
+      },
+      "keywords": [
+        "research",
+        "router",
+        "orchestrator",
+        "classifier",
+        "fallback",
+        "hybrid-architecture",
+        "research-pack",
+        "path-b-megaprompt"
+      ],
+      "category": "research"
     }
   ]
 }

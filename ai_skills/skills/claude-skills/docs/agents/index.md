@@ -1,13 +1,13 @@
 ---
 title: "AI Coding Agents — Agent-Native Orchestrators & Codex Skills"
-description: "58 agent-native orchestrators for Claude Code, Codex CLI, and Gemini CLI — multi-skill AI agents across engineering, product, marketing, and more."
+description: "72 agent-native orchestrators for Claude Code, Codex CLI, and Gemini CLI — multi-skill AI agents across engineering, product, marketing, and more."
 ---
 
 <div class="domain-header" markdown>
 
 # :material-robot: Agents
 
-<p class="domain-count">58 agents that orchestrate skills across domains</p>
+<p class="domain-count">72 agents that orchestrate skills across domains</p>
 
 </div>
 
@@ -241,6 +241,12 @@ description: "58 agent-native orchestrators for Claude Code, Codex CLI, and Gemi
 
     Engineering - POWERFUL
 
+-   :material-rocket-launch:{ .lg .middle } **[Grill With Docs Agent](cs-grill-with-docs.md)**
+
+    ---
+
+    Engineering - POWERFUL
+
 -   :material-rocket-launch:{ .lg .middle } **[Handoff Author Agent](cs-handoff-author.md)**
 
     ---
@@ -360,5 +366,83 @@ description: "58 agent-native orchestrators for Claude Code, Codex CLI, and Gemi
     ---
 
     C-Level Advisory
+
+-   :material-account:{ .lg .middle } **[Capture Agent](cs-capture.md)**
+
+    ---
+
+    Productivity
+
+-   :material-account:{ .lg .middle } **[Inbox-Setup Agent](cs-inbox-setup.md)**
+
+    ---
+
+    Productivity
+
+-   :material-account:{ .lg .middle } **[Inbox-Triage Agent](cs-inbox-triage.md)**
+
+    ---
+
+    Productivity
+
+-   :material-account:{ .lg .middle } **[Reflect Agent](cs-reflect.md)**
+
+    ---
+
+    Productivity
+
+-   :material-bullhorn-outline:{ .lg .middle } **[Landing Agent](cs-landing.md)**
+
+    ---
+
+    Marketing
+
+-   :material-account:{ .lg .middle } **[Dossier Agent](cs-dossier.md)**
+
+    ---
+
+    Research
+
+-   :material-account:{ .lg .middle } **[Grants Agent](cs-grants.md)**
+
+    ---
+
+    Research
+
+-   :material-account:{ .lg .middle } **[Litreview Agent](cs-litreview.md)**
+
+    ---
+
+    Research
+
+-   :material-account:{ .lg .middle } **[NotebookLM Agent](cs-notebooklm.md)**
+
+    ---
+
+    Research
+
+-   :material-account:{ .lg .middle } **[Patent Agent](cs-patent.md)**
+
+    ---
+
+    Research
+
+-   :material-account:{ .lg .middle } **[Pulse Agent](cs-pulse.md)**
+
+    ---
+
+    Research
+
+-   :material-account:{ .lg .middle } **[Research Agent](cs-research.md)**
+
+    ---
+
+    Research
+
+-   :material-account:{ .lg .middle } **[Syllabus Agent](cs-syllabus.md)**
+
+    ---
+
+    Research
 
 </div>

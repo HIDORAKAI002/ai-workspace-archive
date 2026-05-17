@@ -1,6 +1,6 @@
 ---
 title: "Migration Architect — Agent Skill for Codex & OpenClaw"
-description: "Migration Architect. Agent skill for Claude Code, Codex CLI, Gemini CLI, OpenClaw."
+description: "Zero-downtime migration planning, compatibility validation, and rollback strategy generation. Tools for system, database, and infrastructure. Agent skill for Claude Code, Codex CLI, Gemini CLI, OpenClaw."
 ---
 
 # Migration Architect
