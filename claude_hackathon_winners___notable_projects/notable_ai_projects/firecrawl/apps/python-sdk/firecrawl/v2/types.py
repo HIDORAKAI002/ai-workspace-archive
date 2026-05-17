@@ -341,6 +341,23 @@ class AgentWebhookConfig(BaseModel):
     events: Optional[List[Literal["started", "action", "completed", "failed", "cancelled"]]] = None
 
 
+class MonitorWebhookConfig(BaseModel):
+    """Configuration for monitor webhooks.
+
+    Monitor webhooks support different events than crawl webhooks:
+    - monitor.page: One event per scraped URL as it finishes, with the
+      page-level diff status (`same` | `changed` | `new` | `removed` |
+      `error`).
+    - monitor.check.completed: A summary event sent after the full
+      monitor check is reconciled.
+    """
+
+    url: str
+    headers: Optional[Dict[str, str]] = None
+    metadata: Optional[Dict[str, str]] = None
+    events: Optional[List[Literal["monitor.page", "monitor.check.completed"]]] = None
+
+
 class WebhookData(BaseModel):
     """Data sent to webhooks."""
 
@@ -824,9 +841,22 @@ class MapResponse(BaseResponse[MapData]):
 
 # Monitor types
 class MonitorSchedule(BaseModel):
-    """Cron schedule for a monitor."""
+    """Schedule for a monitor.
 
-    cron: str
+    On create / update you provide exactly one of `cron` or `text`:
+
+    - `cron`: a 5-field cron expression (e.g. ``"*/30 * * * *"``).
+    - `text`: a natural-language schedule (e.g. ``"every 30 minutes"``,
+      ``"hourly"``, ``"daily at 9:00"``). Firecrawl normalizes this to a
+      cron expression server-side.
+
+    On read, the API always returns the normalized ``cron`` value, so
+    `cron` is populated in responses even when the monitor was created
+    with `text`.
+    """
+
+    cron: Optional[str] = None
+    text: Optional[str] = None
     timezone: str = "UTC"
 
 
@@ -860,7 +890,7 @@ class MonitorCreateRequest(BaseModel):
 
     name: str
     schedule: MonitorSchedule
-    webhook: Optional[WebhookConfig] = None
+    webhook: Optional[MonitorWebhookConfig] = None
     notification: Optional[MonitorNotification] = None
     targets: List[Union[MonitorTarget, Dict[str, Any]]]
     retention_days: Optional[int] = Field(default=None, alias="retentionDays")
@@ -872,7 +902,7 @@ class MonitorUpdateRequest(BaseModel):
     name: Optional[str] = None
     status: Optional[Literal["active", "paused"]] = None
     schedule: Optional[MonitorSchedule] = None
-    webhook: Optional[Union[WebhookConfig, Dict[str, Any]]] = None
+    webhook: Optional[Union[MonitorWebhookConfig, Dict[str, Any]]] = None
     notification: Optional[Union[MonitorNotification, Dict[str, Any]]] = None
     targets: Optional[List[Union[MonitorTarget, Dict[str, Any]]]] = None
     retention_days: Optional[int] = Field(default=None, alias="retentionDays")
@@ -931,6 +961,28 @@ class MonitorCheck(BaseModel):
     updated_at: str = Field(alias="updatedAt")
 
 
+class MonitorPageDiff(BaseModel):
+    """Diff payload returned alongside a monitor page.
+
+    Markdown-only monitors populate both `text` (unified diff) and `json`
+    (the parseDiff AST). JSON-extraction monitors populate `json` only,
+    where `json` is the per-field `{previous, current}` map. Mixed-mode
+    monitors (JSON + git-diff) populate both `json` (field diff) and
+    `text` (markdown sidecar).
+    """
+    model_config = {"populate_by_name": True, "extra": "allow"}
+
+    text: Optional[str] = None
+    json: Optional[Any] = None  # markdown→parseDiff AST | json→field diff
+
+
+class MonitorPageSnapshot(BaseModel):
+    """Current JSON extraction at this run. JSON / mixed mode only."""
+    model_config = {"populate_by_name": True, "extra": "allow"}
+
+    json: Optional[Dict[str, Any]] = None
+
+
 class MonitorCheckPage(BaseModel):
     model_config = {"populate_by_name": True, "extra": "allow"}
 
@@ -943,7 +995,8 @@ class MonitorCheckPage(BaseModel):
     status_code: Optional[int] = Field(default=None, alias="statusCode")
     error: Optional[str] = None
     metadata: Optional[Any] = None
-    diff: Optional[Any] = None
+    diff: Optional[MonitorPageDiff] = None
+    snapshot: Optional[MonitorPageSnapshot] = None
     created_at: str = Field(alias="createdAt")
 
 

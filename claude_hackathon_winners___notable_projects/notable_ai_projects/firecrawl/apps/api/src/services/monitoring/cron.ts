@@ -1,4 +1,4 @@
-const MIN_MONITOR_INTERVAL_MS = 15 * 60 * 1000;
+const MIN_MONITOR_INTERVAL_MS = 5 * 60 * 1000;
 const SEARCH_LIMIT_MINUTES = 366 * 24 * 60;
 
 type CronField = Set<number>;
@@ -234,7 +234,7 @@ export function validateMonitorCron(
   const intervalMs = secondRunAt.getTime() - nextRunAt.getTime();
   if (intervalMs < MIN_MONITOR_INTERVAL_MS) {
     throw new Error(
-      "Monitor schedule must not run more often than every 15 minutes",
+      "Monitor schedule must not run more often than every 5 minutes",
     );
   }
 

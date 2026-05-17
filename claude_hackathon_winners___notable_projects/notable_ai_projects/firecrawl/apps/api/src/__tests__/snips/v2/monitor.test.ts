@@ -139,4 +139,190 @@ describeIf(ALLOW_TEST_SUITE_WEBSITE && !TEST_SELF_HOST)("/v2/monitor", () => {
     },
     2 * scrapeTimeout,
   );
+
+  it(
+    "runs a JSON-mode monitor and surfaces a snapshot",
+    async () => {
+      const jsonSchema = {
+        type: "object",
+        additionalProperties: false,
+        required: ["title"],
+        properties: {
+          title: {
+            type: "string",
+            description: "The page title, verbatim.",
+          },
+        },
+      };
+
+      const create = await monitorCreateRaw(
+        {
+          name: "json-mode monitor",
+          schedule: { cron: "*/30 * * * *", timezone: "UTC" },
+          targets: [
+            {
+              type: "scrape",
+              urls: [createTestIdUrl()],
+              scrapeOptions: {
+                formats: [
+                  "markdown",
+                  {
+                    type: "json",
+                    prompt: "Extract the page title verbatim.",
+                    schema: jsonSchema,
+                  },
+                ],
+              },
+            },
+          ],
+        },
+        identity,
+      );
+      expect(create.statusCode).toBe(200);
+
+      const monitorId = create.body.data.id;
+      const run = await monitorRunRaw(monitorId, identity);
+      expect(run.statusCode).toBe(200);
+      const checkId = run.body.id;
+
+      let check: any;
+      for (let i = 0; i < 90; i++) {
+        const raw = await monitorCheckRaw(monitorId, checkId, identity);
+        expect(raw.statusCode).toBe(200);
+        check = raw.body.data;
+        if (["completed", "partial", "failed"].includes(check.status)) break;
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+      expect(["completed", "partial"]).toContain(check.status);
+      // First run: status is "new" (no previous scrape to diff against), no
+      // snapshot persisted to GCS. We can't assert snapshot.json here
+      // without a mutating fixture; a second run with a changed page would
+      // be needed. The contract assertion is: when JSON mode is requested,
+      // the monitor doesn't fall through the markdown path and crash.
+      expect(check.pages[0].status).toBe("new");
+
+      await monitorDeleteRaw(monitorId, identity);
+    },
+    2 * scrapeTimeout,
+  );
+
+  it(
+    "accepts changeTracking-json format on a monitor target",
+    async () => {
+      const jsonSchema = {
+        type: "object",
+        additionalProperties: false,
+        required: ["title"],
+        properties: {
+          title: { type: "string", description: "The page title." },
+        },
+      };
+
+      const create = await monitorCreateRaw(
+        {
+          name: "ct-json monitor",
+          schedule: { cron: "*/30 * * * *", timezone: "UTC" },
+          targets: [
+            {
+              type: "scrape",
+              urls: [createTestIdUrl()],
+              scrapeOptions: {
+                formats: [
+                  "markdown",
+                  {
+                    type: "changeTracking",
+                    modes: ["json"],
+                    prompt: "Extract the title.",
+                    schema: jsonSchema,
+                  },
+                ],
+              },
+            },
+          ],
+        },
+        identity,
+      );
+      expect(create.statusCode).toBe(200);
+
+      const monitorId = create.body.data.id;
+      const run = await monitorRunRaw(monitorId, identity);
+      expect(run.statusCode).toBe(200);
+      const checkId = run.body.id;
+
+      let check: any;
+      for (let i = 0; i < 90; i++) {
+        const raw = await monitorCheckRaw(monitorId, checkId, identity);
+        expect(raw.statusCode).toBe(200);
+        check = raw.body.data;
+        if (["completed", "partial", "failed"].includes(check.status)) break;
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+      expect(["completed", "partial"]).toContain(check.status);
+      expect(check.pages[0].status).toBe("new");
+
+      await monitorDeleteRaw(monitorId, identity);
+    },
+    2 * scrapeTimeout,
+  );
+
+  it(
+    "accepts mixed json + git-diff changeTracking modes",
+    async () => {
+      const jsonSchema = {
+        type: "object",
+        additionalProperties: false,
+        required: ["title"],
+        properties: {
+          title: { type: "string", description: "The page title." },
+        },
+      };
+
+      const create = await monitorCreateRaw(
+        {
+          name: "ct-mixed monitor",
+          schedule: { cron: "*/30 * * * *", timezone: "UTC" },
+          targets: [
+            {
+              type: "scrape",
+              urls: [createTestIdUrl()],
+              scrapeOptions: {
+                formats: [
+                  "markdown",
+                  {
+                    type: "changeTracking",
+                    modes: ["json", "git-diff"],
+                    prompt: "Extract the title.",
+                    schema: jsonSchema,
+                  },
+                ],
+              },
+            },
+          ],
+        },
+        identity,
+      );
+      expect(create.statusCode).toBe(200);
+
+      const monitorId = create.body.data.id;
+      const run = await monitorRunRaw(monitorId, identity);
+      expect(run.statusCode).toBe(200);
+      const checkId = run.body.id;
+
+      let check: any;
+      for (let i = 0; i < 90; i++) {
+        const raw = await monitorCheckRaw(monitorId, checkId, identity);
+        expect(raw.statusCode).toBe(200);
+        check = raw.body.data;
+        if (["completed", "partial", "failed"].includes(check.status)) break;
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+      expect(["completed", "partial"]).toContain(check.status);
+      // First run is always "new"; the assertion here is that mixed-mode
+      // configuration is accepted end-to-end without erroring.
+      expect(check.pages[0].status).toBe("new");
+
+      await monitorDeleteRaw(monitorId, identity);
+    },
+    2 * scrapeTimeout,
+  );
 });

@@ -6,11 +6,8 @@ import { processJobInternal } from "../worker/scrape-worker";
 import { NuQJob, crawlGroup, scrapeQueue } from "../worker/nuq";
 import { ScrapeJobData } from "../../types";
 import { getJobFromGCS } from "../../lib/gcs-jobs";
-import {
-  monitorDiffGcsKey,
-  saveMonitorDiffArtifact,
-} from "../../lib/gcs-monitoring";
-import { diffMonitorMarkdown } from "./diff";
+import { computeAndPersistPageDiff } from "./diff-orchestrator";
+import { normalizeMonitorFormats } from "./diff";
 import { autumnService } from "../autumn/autumn.service";
 import { getBillingQueue } from "../queue-service";
 import {
@@ -115,9 +112,15 @@ function recoverScrapeTargetRunsFromMonitor(
 function withMonitorScrapeDefaults(
   options: Record<string, unknown>,
 ): ScrapeOptions {
+  // Monitor owns history: rewrite changeTracking-json to plain json before
+  // handing the formats array to the scrape engine, so we always get back
+  // current values to diff against the previous run.
+  const formats = Array.isArray(options.formats)
+    ? normalizeMonitorFormats(options.formats)
+    : options.formats;
   return {
     maxAge: 0,
-    ...withMarkdownFormat(options),
+    ...withMarkdownFormat({ ...options, formats }),
   };
 }
 
@@ -217,42 +220,22 @@ async function diffAndPersistPage(params: {
     url: params.url,
   });
 
-  let status: PageResult["status"] = "new";
-  let diffGcsKey: string | null = null;
-  let diffTextBytes: number | null = null;
-  let diffJsonBytes: number | null = null;
-
-  if (previous?.last_scrape_id && !previous.is_removed) {
-    const previousDoc = (await getJobFromGCS(previous.last_scrape_id))?.[0];
-    const previousMarkdown = previousDoc?.markdown;
-    const currentMarkdown = params.doc?.markdown;
-
-    if (previousMarkdown && currentMarkdown) {
-      const diff = diffMonitorMarkdown(previousMarkdown, currentMarkdown);
-      status = diff.status;
-
-      if (diff.status === "changed") {
-        diffGcsKey = monitorDiffGcsKey({
-          teamId: params.monitor.team_id,
-          monitorId: params.monitor.id,
-          checkId: params.check.id,
-          pageId: uuidv7(),
-        });
-        const sizes = await saveMonitorDiffArtifact(diffGcsKey, {
-          url: params.url,
-          previousScrapeId: previous.last_scrape_id,
-          currentScrapeId: params.scrapeId,
-          text: diff.text,
-          json: diff.json,
-          generatedAt: new Date().toISOString(),
-        });
-        diffTextBytes = sizes.textBytes;
-        diffJsonBytes = sizes.jsonBytes;
-      }
-    } else {
-      status = "changed";
-    }
-  }
+  const { status, diffGcsKey, diffTextBytes, diffJsonBytes } =
+    await computeAndPersistPageDiff({
+      teamId: params.monitor.team_id,
+      monitorId: params.monitor.id,
+      checkId: params.check.id,
+      url: params.url,
+      scrapeId: params.scrapeId,
+      doc: params.doc,
+      previous: previous
+        ? {
+            last_scrape_id: previous.last_scrape_id,
+            is_removed: previous.is_removed,
+          }
+        : null,
+      formats: params.target.scrapeOptions?.formats,
+    });
 
   await upsertMonitorPage({
     monitorId: params.monitor.id,
