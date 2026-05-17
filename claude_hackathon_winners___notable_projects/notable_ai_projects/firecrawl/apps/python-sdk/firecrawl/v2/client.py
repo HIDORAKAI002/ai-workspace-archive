@@ -315,6 +315,8 @@ class FirecrawlClient:
         *,
         sources: Optional[List[SourceOption]] = None,
         categories: Optional[List[CategoryOption]] = None,
+        include_domains: Optional[List[str]] = None,
+        exclude_domains: Optional[List[str]] = None,
         limit: Optional[int] = None,
         tbs: Optional[str] = None,
         location: Optional[str] = None,
@@ -325,7 +327,7 @@ class FirecrawlClient:
     ) -> SearchData:
         """
         Search for documents.
-        
+
         Args:
             query: Search query string
             limit: Maximum number of results to return (default: 5)
@@ -333,7 +335,7 @@ class FirecrawlClient:
             location: Location string for search
             timeout: Request timeout in milliseconds (default: 300000)
             page_options: Options for scraping individual pages
-            
+
         Returns:
             SearchData containing the search results
         """
@@ -341,6 +343,8 @@ class FirecrawlClient:
             query=query,
             sources=sources,
             categories=categories,
+            include_domains=include_domains,
+            exclude_domains=exclude_domains,
             limit=limit,
             tbs=tbs,
             location=location,
