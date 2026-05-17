@@ -1,14 +1,8 @@
-import { v7 as uuidv7 } from "uuid";
 import { NuQJob } from "../worker/nuq";
 import { ScrapeJobData } from "../../types";
-import { getJobFromGCS } from "../../lib/gcs-jobs";
-import {
-  monitorDiffGcsKey,
-  saveMonitorDiffArtifact,
-} from "../../lib/gcs-monitoring";
 import { logger as _logger } from "../../lib/logger";
 import { createWebhookSender, WebhookEvent } from "../webhook";
-import { diffMonitorMarkdown } from "./diff";
+import { computeAndPersistPageDiff } from "./diff-orchestrator";
 import {
   getMonitorForUpdate,
   getMonitorPage,
@@ -88,42 +82,32 @@ export async function recordMonitorScrapeSuccess(
     url,
   });
 
-  let status: "same" | "new" | "changed" = "new";
-  let diffGcsKey: string | null = null;
-  let diffTextBytes: number | null = null;
-  let diffJsonBytes: number | null = null;
+  // The monitor row's target carries the canonical formats; fetch it to
+  // decide whether this run is a JSON-extraction monitor.
+  const monitorForRun = await getMonitorForUpdate(
+    job.data.team_id,
+    monitoring.monitorId,
+  );
+  const targetFormats = monitorForRun?.targets?.find(
+    (t: any) => t.id === monitoring.targetId,
+  )?.scrapeOptions?.formats;
 
-  if (previous?.last_scrape_id && !previous.is_removed) {
-    const previousDoc = (await getJobFromGCS(previous.last_scrape_id))?.[0];
-    const previousMarkdown = previousDoc?.markdown;
-    const currentMarkdown = doc?.markdown;
-
-    if (previousMarkdown && currentMarkdown) {
-      const diff = diffMonitorMarkdown(previousMarkdown, currentMarkdown);
-      status = diff.status;
-
-      if (diff.status === "changed") {
-        diffGcsKey = monitorDiffGcsKey({
-          teamId: job.data.team_id,
-          monitorId: monitoring.monitorId,
-          checkId: monitoring.checkId,
-          pageId: uuidv7(),
-        });
-        const sizes = await saveMonitorDiffArtifact(diffGcsKey, {
-          url,
-          previousScrapeId: previous.last_scrape_id,
-          currentScrapeId: job.id,
-          text: diff.text,
-          json: diff.json,
-          generatedAt: new Date().toISOString(),
-        });
-        diffTextBytes = sizes.textBytes;
-        diffJsonBytes = sizes.jsonBytes;
-      }
-    } else {
-      status = "changed";
-    }
-  }
+  const { status, diffGcsKey, diffTextBytes, diffJsonBytes } =
+    await computeAndPersistPageDiff({
+      teamId: job.data.team_id,
+      monitorId: monitoring.monitorId,
+      checkId: monitoring.checkId,
+      url,
+      scrapeId: job.id,
+      doc,
+      previous: previous
+        ? {
+            last_scrape_id: previous.last_scrape_id,
+            is_removed: previous.is_removed,
+          }
+        : null,
+      formats: targetFormats,
+    });
 
   await upsertMonitorPage({
     monitorId: monitoring.monitorId,

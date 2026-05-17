@@ -180,19 +180,54 @@ type MonitorCheck struct {
 	UpdatedAt          string         `json:"updatedAt,omitempty"`
 }
 
+// MonitorJsonFieldDiff is a single field-level diff returned for monitors
+// that requested JSON extraction. Keys are field paths in the extracted
+// JSON; values describe what changed between the previous and current run.
+type MonitorJsonFieldDiff struct {
+	Previous interface{} `json:"previous"`
+	Current  interface{} `json:"current"`
+}
+
+// MonitorPageDiff is the diff payload returned alongside a monitor page
+// when its scrape produced a change. The shape depends on what the
+// monitor's formats asked for:
+//
+//   - markdown-only monitors  → Text holds the unified diff and JSON
+//     holds the parseDiff AST (a {"files": [...]} object).
+//   - JSON-extraction monitors → JSON holds the per-field
+//     map[string]MonitorJsonFieldDiff and Text is empty.
+//   - mixed (JSON + git-diff) monitors → both fields are populated:
+//     JSON is the per-field diff and Text is the markdown sidecar.
+//
+// JSON is left as interface{} so callers can decode into either of the
+// two possible shapes; use json.Unmarshal with a concrete target when
+// the monitor's mode is known.
+type MonitorPageDiff struct {
+	Text string      `json:"text,omitempty"`
+	JSON interface{} `json:"json,omitempty"`
+}
+
+// MonitorPageSnapshot is the snapshot of the current JSON extraction at
+// this run. It is present on JSON and mixed-mode monitors and absent
+// for markdown-only monitors.
+type MonitorPageSnapshot struct {
+	JSON map[string]interface{} `json:"json,omitempty"`
+}
+
 // MonitorCheckPage is a single page result in a monitor check.
 type MonitorCheckPage struct {
-	ID               string      `json:"id"`
-	TargetID         string      `json:"targetId"`
-	URL              string      `json:"url"`
-	Status           string      `json:"status"`
-	PreviousScrapeID string      `json:"previousScrapeId,omitempty"`
-	CurrentScrapeID  string      `json:"currentScrapeId,omitempty"`
-	StatusCode       *int        `json:"statusCode,omitempty"`
-	Error            string      `json:"error,omitempty"`
-	Metadata         interface{} `json:"metadata,omitempty"`
-	Diff             interface{} `json:"diff,omitempty"`
-	CreatedAt        string      `json:"createdAt,omitempty"`
+	ID               string               `json:"id"`
+	TargetID         string               `json:"targetId"`
+	URL              string               `json:"url"`
+	Status           string               `json:"status"`
+	PreviousScrapeID string               `json:"previousScrapeId,omitempty"`
+	CurrentScrapeID  string               `json:"currentScrapeId,omitempty"`
+	StatusCode       *int                 `json:"statusCode,omitempty"`
+	Error            string               `json:"error,omitempty"`
+	Metadata         interface{}          `json:"metadata,omitempty"`
+	Diff             *MonitorPageDiff     `json:"diff,omitempty"`
+	Snapshot         *MonitorPageSnapshot `json:"snapshot,omitempty"`
+	CreatedAt        string               `json:"createdAt,omitempty"`
 }
 
 // MonitorCheckDetail includes paginated page results and inline diffs.

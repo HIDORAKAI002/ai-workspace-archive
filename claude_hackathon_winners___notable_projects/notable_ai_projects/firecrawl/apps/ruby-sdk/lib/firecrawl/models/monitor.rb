@@ -55,6 +55,19 @@ module Firecrawl
       end
     end
 
+    # A monitor check with paginated page results inlined.
+    #
+    # Each entry in {#pages} is a {Hash} with the standard monitor page
+    # fields (id, targetId, url, status, previousScrapeId,
+    # currentScrapeId, statusCode, error, metadata, createdAt) plus:
+    #
+    # * +"diff"+  – when the page changed. A hash with +"text"+ (markdown
+    #   unified diff) and/or +"json"+ (parseDiff AST for markdown
+    #   monitors, or a per-field +{ "previous", "current" }+ map for
+    #   JSON-extraction monitors).
+    # * +"snapshot"+ – present on JSON / mixed-mode monitors. A hash
+    #   with a +"json"+ key holding the current JSON extraction at this
+    #   run.
     class MonitorCheckDetail < MonitorCheck
       attr_accessor :pages, :next_url
 

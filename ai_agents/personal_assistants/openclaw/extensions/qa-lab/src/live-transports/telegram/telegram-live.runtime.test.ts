@@ -422,7 +422,7 @@ describe("telegram live qa runtime", () => {
     ).steps[0];
     expect(replyChainStep?.expectedJoinedSutTextIncludes).toEqual(["QA-TELEGRAM-REPLY-CHAIN-OK"]);
     expect(replyChainStep?.expectedSutMessageCount).toBe(1);
-    expect(replyChainStep?.replyToLatestSutMessage).toBe(true);
+    expect(replyChainStep?.replyToLatestSutMessage).toBeUndefined();
     const streamSingleStep = requireScenario(
       scenarios,
       "telegram-stream-final-single-message",
@@ -431,7 +431,7 @@ describe("telegram live qa runtime", () => {
       "QA-TELEGRAM-STREAM-SINGLE-OK",
     ]);
     expect(streamSingleStep?.expectedSutMessageCount).toBe(1);
-    expect(streamSingleStep?.replyToLatestSutMessage).toBe(true);
+    expect(streamSingleStep?.replyToLatestSutMessage).toBeUndefined();
     const longReusesStep = requireScenario(
       scenarios,
       "telegram-long-final-reuses-preview",
@@ -483,8 +483,6 @@ describe("telegram live qa runtime", () => {
         "telegram-other-bot-command-gating",
         "telegram-context-command",
         "telegram-mentioned-message-reply",
-        "telegram-reply-chain-exact-marker",
-        "telegram-stream-final-single-message",
         "telegram-long-final-reuses-preview",
         "telegram-mention-gating",
       ],
@@ -500,8 +498,11 @@ describe("telegram live qa runtime", () => {
       false,
     );
     const streamSingle = requireScenario(catalog, "telegram-stream-final-single-message");
-    expect(streamSingle.defaultEnabled).toBe(true);
+    expect(streamSingle.defaultEnabled).toBe(false);
     expect(streamSingle.regressionRefs).toEqual(["openclaw/openclaw#39905"]);
+    expect(requireScenario(catalog, "telegram-reply-chain-exact-marker").defaultEnabled).toBe(
+      false,
+    );
   });
 
   it("tracks Telegram live coverage against the shared transport contract", () => {

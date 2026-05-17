@@ -7,7 +7,15 @@ namespace Firecrawl\Models;
 final class MonitorCheckDetail extends MonitorCheck
 {
     /**
-     * @param list<array<string, mixed>> $pages
+     * @param list<array<string, mixed>> $pages Each page array contains
+     *     keys: id, targetId, url, status, previousScrapeId,
+     *     currentScrapeId, statusCode, error, metadata, diff, snapshot,
+     *     createdAt. The `diff` value (when present) is an array with
+     *     `text` (markdown unified diff) and/or `json` (parseDiff AST
+     *     for markdown monitors, or a per-field
+     *     `{previous, current}` map for JSON-extraction monitors). The
+     *     `snapshot` value (JSON / mixed mode only) is an array with a
+     *     `json` key holding the current JSON extraction at this run.
      */
     public function __construct(
         ?string $id = null,
@@ -80,7 +88,12 @@ final class MonitorCheckDetail extends MonitorCheck
         return $check;
     }
 
-    /** @return list<array<string, mixed>> */
+    /**
+     * @return list<array<string, mixed>> Each page array contains the
+     *     standard monitor page fields plus the `diff` and `snapshot`
+     *     payloads when present. See the constructor PHPDoc for the
+     *     shape of those nested values.
+     */
     public function getPages(): array { return $this->pages; }
     public function getNext(): ?string { return $this->next; }
 }

@@ -1,20 +1,20 @@
-import type { ZodTypeAny } from 'zod';
+import type { ZodTypeAny } from "zod";
 // Public types for Firecrawl JS/TS SDK v2 (camelCase only)
 
 export type FormatString =
-  | 'markdown'
-  | 'html'
-  | 'rawHtml'
-  | 'links'
-  | 'images'
-  | 'screenshot'
-  | 'summary'
-  | 'changeTracking'
-  | 'json'
-  | 'attributes'
-  | 'branding'
-  | 'audio'
-  | 'video';
+  | "markdown"
+  | "html"
+  | "rawHtml"
+  | "links"
+  | "images"
+  | "screenshot"
+  | "summary"
+  | "changeTracking"
+  | "json"
+  | "attributes"
+  | "branding"
+  | "audio"
+  | "video";
 
 export interface Viewport {
   width: number;
@@ -26,27 +26,32 @@ export interface Format {
 }
 
 export interface JsonFormat extends Format {
-  type: 'json';
+  type: "json";
   prompt?: string;
   schema?: Record<string, unknown> | ZodTypeAny;
 }
 
 export interface ScreenshotFormat {
-  type: 'screenshot';
+  type: "screenshot";
   fullPage?: boolean;
   quality?: number;
   viewport?: Viewport | { width: number; height: number };
 }
 
 export interface ChangeTrackingFormat extends Format {
-  type: 'changeTracking';
-  modes: ('git-diff' | 'json')[];
-  schema?: Record<string, unknown>;
+  type: "changeTracking";
+  modes: ("git-diff" | "json")[];
+  /**
+   * Either a JSON Schema object or a Zod schema. Zod schemas are
+   * auto-converted to JSON Schema by the SDK before being sent — see
+   * `utils/validation.ts`.
+   */
+  schema?: Record<string, unknown> | ZodTypeAny;
   prompt?: string;
   tag?: string;
 }
 export interface AttributesFormat extends Format {
-  type: 'attributes';
+  type: "attributes";
   selectors: Array<{
     selector: string;
     attribute: string;
@@ -54,20 +59,20 @@ export interface AttributesFormat extends Format {
 }
 
 export interface QuestionFormat {
-  type: 'question';
+  type: "question";
   question: string;
 }
 
 export interface HighlightsFormat {
-  type: 'highlights';
+  type: "highlights";
   query: string;
 }
 
 /** @deprecated Use QuestionFormat or HighlightsFormat instead. */
 export interface QueryFormat {
-  type: 'query';
+  type: "query";
   prompt: string;
-  mode?: 'freeform' | 'directQuote';
+  mode?: "freeform" | "directQuote";
 }
 
 export type FormatOption =
@@ -83,7 +88,7 @@ export type FormatOption =
 
 export type ParseFormatString = Exclude<
   FormatString,
-  'screenshot' | 'changeTracking' | 'branding' | 'audio' | 'video'
+  "screenshot" | "changeTracking" | "branding" | "audio" | "video"
 >;
 
 export interface ParseFormat {
@@ -105,62 +110,62 @@ export interface LocationConfig {
 }
 
 export interface WaitAction {
-  type: 'wait';
+  type: "wait";
   milliseconds?: number;
   selector?: string;
 }
 
 export interface ScreenshotAction {
-  type: 'screenshot';
+  type: "screenshot";
   fullPage?: boolean;
   quality?: number;
   viewport?: Viewport | { width: number; height: number };
 }
 
 export interface ClickAction {
-  type: 'click';
+  type: "click";
   selector: string;
 }
 
 export interface WriteAction {
-  type: 'write';
+  type: "write";
   text: string;
 }
 
 export interface PressAction {
-  type: 'press';
+  type: "press";
   key: string;
 }
 
 export interface ScrollAction {
-  type: 'scroll';
-  direction: 'up' | 'down';
+  type: "scroll";
+  direction: "up" | "down";
   selector?: string;
 }
 
 export interface ScrapeAction {
-  type: 'scrape';
+  type: "scrape";
 }
 
 export interface ExecuteJavascriptAction {
-  type: 'executeJavascript';
+  type: "executeJavascript";
   script: string;
 }
 
 export interface PDFAction {
-  type: 'pdf';
+  type: "pdf";
   format?:
-    | 'A0'
-    | 'A1'
-    | 'A2'
-    | 'A3'
-    | 'A4'
-    | 'A5'
-    | 'A6'
-    | 'Letter'
-    | 'Legal'
-    | 'Tabloid'
-    | 'Ledger';
+    | "A0"
+    | "A1"
+    | "A2"
+    | "A3"
+    | "A4"
+    | "A5"
+    | "A6"
+    | "Letter"
+    | "Legal"
+    | "Tabloid"
+    | "Ledger";
   landscape?: boolean;
   scale?: number;
 }
@@ -185,7 +190,9 @@ export interface ScrapeOptions {
   timeout?: number;
   waitFor?: number;
   mobile?: boolean;
-  parsers?: Array<string | { type: 'pdf'; mode?: 'fast' | 'auto' | 'ocr'; maxPages?: number }>;
+  parsers?: Array<
+    string | { type: "pdf"; mode?: "fast" | "auto" | "ocr"; maxPages?: number }
+  >;
   actions?: ActionOption[];
   location?: LocationConfig;
   skipTlsVerification?: boolean;
@@ -193,7 +200,7 @@ export interface ScrapeOptions {
   fastMode?: boolean;
   useMock?: string;
   blockAds?: boolean;
-  proxy?: 'basic' | 'stealth' | 'enhanced' | 'auto' | string;
+  proxy?: "basic" | "stealth" | "enhanced" | "auto" | string;
   maxAge?: number;
   minAge?: number;
   storeInCache?: boolean;
@@ -222,30 +229,35 @@ export interface ParseFile {
 
 export type ParseOptions = Omit<
   ScrapeOptions,
-  | 'formats'
-  | 'waitFor'
-  | 'mobile'
-  | 'actions'
-  | 'location'
-  | 'maxAge'
-  | 'minAge'
-  | 'storeInCache'
-  | 'lockdown'
-  | 'proxy'
+  | "formats"
+  | "waitFor"
+  | "mobile"
+  | "actions"
+  | "location"
+  | "maxAge"
+  | "minAge"
+  | "storeInCache"
+  | "lockdown"
+  | "proxy"
 > & {
   formats?: ParseFormatOption[];
-  proxy?: 'basic' | 'auto';
+  proxy?: "basic" | "auto";
 };
 
 export interface WebhookConfig {
   url: string;
   headers?: Record<string, string>;
   metadata?: Record<string, string>;
-  events?: Array<'completed' | 'failed' | 'page' | 'started'>;
+  events?: Array<"completed" | "failed" | "page" | "started">;
 }
 
 // Agent webhook events differ from crawl: has 'action' and 'cancelled', no 'page'
-export type AgentWebhookEvent = 'started' | 'action' | 'completed' | 'failed' | 'cancelled';
+export type AgentWebhookEvent =
+  | "started"
+  | "action"
+  | "completed"
+  | "failed"
+  | "cancelled";
 
 export interface AgentWebhookConfig {
   url: string;
@@ -255,7 +267,7 @@ export interface AgentWebhookConfig {
 }
 
 export interface BrandingProfile {
-  colorScheme?: 'light' | 'dark';
+  colorScheme?: "light" | "dark";
   logo?: string | null;
   fonts?: Array<{
     family: string;
@@ -377,13 +389,13 @@ export interface BrandingProfile {
   };
   personality?: {
     tone:
-      | 'professional'
-      | 'playful'
-      | 'modern'
-      | 'traditional'
-      | 'minimalist'
-      | 'bold';
-    energy: 'low' | 'medium' | 'high';
+      | "professional"
+      | "playful"
+      | "modern"
+      | "traditional"
+      | "minimalist"
+      | "bold";
+    energy: "low" | "medium" | "high";
     targetAudience: string;
   };
   [key: string]: unknown;
@@ -435,8 +447,8 @@ export interface DocumentMetadata {
   numPages?: number;
   contentType?: string;
   timezone?: string;
-  proxyUsed?: 'basic' | 'stealth';
-  cacheState?: 'hit' | 'miss';
+  proxyUsed?: "basic" | "stealth";
+  cacheState?: "hit" | "miss";
   cachedAt?: string;
   creditsUsed?: number;
   concurrencyLimited?: boolean;
@@ -518,15 +530,15 @@ export interface SearchData {
 }
 
 export interface CategoryOption {
-  type: 'github' | 'research' | 'pdf';
+  type: "github" | "research" | "pdf";
 }
 
 export interface SearchRequest {
   query: string;
   sources?: Array<
-    'web' | 'news' | 'images' | { type: 'web' | 'news' | 'images' }
+    "web" | "news" | "images" | { type: "web" | "news" | "images" }
   >;
-  categories?: Array<'github' | 'research' | 'pdf' | CategoryOption>;
+  categories?: Array<"github" | "research" | "pdf" | CategoryOption>;
   includeDomains?: string[];
   excludeDomains?: string[];
   limit?: number;
@@ -544,7 +556,7 @@ export interface CrawlOptions {
   excludePaths?: string[] | null;
   includePaths?: string[] | null;
   maxDiscoveryDepth?: number | null;
-  sitemap?: 'skip' | 'include' | 'only';
+  sitemap?: "skip" | "include" | "only";
   ignoreQueryParameters?: boolean;
   deduplicateSimilarURLs?: boolean;
   limit?: number | null;
@@ -570,7 +582,7 @@ export interface CrawlResponse {
 
 export interface CrawlJob {
   id: string;
-  status: 'scraping' | 'completed' | 'failed' | 'cancelled';
+  status: "scraping" | "completed" | "failed" | "cancelled";
   total: number;
   completed: number;
   creditsUsed?: number;
@@ -599,7 +611,7 @@ export interface BatchScrapeResponse {
 
 export interface BatchScrapeJob {
   id: string;
-  status: 'scraping' | 'completed' | 'failed' | 'cancelled';
+  status: "scraping" | "completed" | "failed" | "cancelled";
   completed: number;
   total: number;
   creditsUsed?: number;
@@ -614,7 +626,7 @@ export interface MapData {
 
 export interface MapOptions {
   search?: string;
-  sitemap?: 'only' | 'include' | 'skip';
+  sitemap?: "only" | "include" | "skip";
   includeSubdomains?: boolean;
   ignoreQueryParameters?: boolean;
   limit?: number;
@@ -624,8 +636,21 @@ export interface MapOptions {
   location?: LocationConfig;
 }
 
+/**
+ * Schedule for a monitor.
+ *
+ * On create/update, provide exactly one of `cron` or `text`:
+ *  - `cron`: a 5-field cron expression (e.g. `"*\u002F30 * * * *"`).
+ *  - `text`: a natural-language schedule (e.g. `"every 30 minutes"`,
+ *    `"hourly"`, `"daily at 9:00"`). Firecrawl normalizes this to a cron
+ *    expression server-side.
+ *
+ * On read, the API always returns the normalized `cron` value, so `cron`
+ * is populated in responses even when the monitor was created with `text`.
+ */
 export interface MonitorSchedule {
-  cron: string;
+  cron?: string;
+  text?: string;
   timezone?: string;
 }
 
@@ -648,14 +673,14 @@ export interface MonitorWebhookConfig {
 
 export interface MonitorScrapeTarget {
   id?: string;
-  type: 'scrape';
+  type: "scrape";
   urls: string[];
   scrapeOptions?: ScrapeOptions;
 }
 
 export interface MonitorCrawlTarget {
   id?: string;
-  type: 'crawl';
+  type: "crawl";
   url: string;
   crawlOptions?: CrawlOptions;
   scrapeOptions?: ScrapeOptions;
@@ -674,7 +699,7 @@ export interface CreateMonitorRequest {
 
 export interface UpdateMonitorRequest {
   name?: string;
-  status?: 'active' | 'paused';
+  status?: "active" | "paused";
   schedule?: MonitorSchedule;
   webhook?: MonitorWebhookConfig | null;
   notification?: MonitorNotification | null;
@@ -694,7 +719,7 @@ export interface MonitorSummary {
 export interface Monitor {
   id: string;
   name: string;
-  status: 'active' | 'paused' | 'deleted';
+  status: "active" | "paused" | "deleted";
   schedule: MonitorSchedule;
   nextRunAt?: string | null;
   lastRunAt?: string | null;
@@ -713,13 +738,13 @@ export interface MonitorCheck {
   id: string;
   monitorId: string;
   status:
-    | 'queued'
-    | 'running'
-    | 'completed'
-    | 'failed'
-    | 'partial'
-    | 'skipped_overlap';
-  trigger: 'scheduled' | 'manual';
+    | "queued"
+    | "running"
+    | "completed"
+    | "failed"
+    | "partial"
+    | "skipped_overlap";
+  trigger: "scheduled" | "manual";
   scheduledFor?: string | null;
   startedAt?: string | null;
   finishedAt?: string | null;
@@ -727,11 +752,11 @@ export interface MonitorCheck {
   reservedCredits?: number | null;
   actualCredits?: number | null;
   billingStatus:
-    | 'not_applicable'
-    | 'reserved'
-    | 'confirmed'
-    | 'released'
-    | 'failed';
+    | "not_applicable"
+    | "reserved"
+    | "confirmed"
+    | "released"
+    | "failed";
   summary: MonitorSummary;
   targetResults?: unknown;
   notificationStatus?: unknown;
@@ -740,17 +765,48 @@ export interface MonitorCheck {
   updatedAt: string;
 }
 
+/** Per-field diff for monitors that requested JSON extraction. */
+export interface MonitorJsonFieldDiff {
+  [field: string]: { previous: unknown; current: unknown };
+}
+
+/**
+ * Diff payload returned alongside a monitor page when its scrape produced
+ * a change. The shape depends on what the monitor's formats asked for:
+ *
+ *  - markdown-only monitors  → `{ text, json }` where `json` is the
+ *    `parseDiff` AST (a `{ files: [...] }` object).
+ *  - JSON-extraction monitors → `{ json }` where `json` is the per-field
+ *    `{ previous, current }` map.
+ *  - Mixed (JSON + git-diff) monitors → both `text` (markdown sidecar)
+ *    and `json` (field-level diff) are present.
+ */
+export interface MonitorPageDiff {
+  text?: string;
+  /** Markdown variants: parseDiff AST. JSON variants: per-field diff. */
+  json?: MonitorJsonFieldDiff | { files: unknown[] };
+}
+
+/**
+ * Snapshot of the current JSON extraction at this run. Present on JSON
+ * and mixed-mode monitors; absent for markdown-only.
+ */
+export interface MonitorPageSnapshot {
+  json?: Record<string, unknown>;
+}
+
 export interface MonitorCheckPage {
   id: string;
   targetId: string;
   url: string;
-  status: 'same' | 'new' | 'changed' | 'removed' | 'error';
+  status: "same" | "new" | "changed" | "removed" | "error";
   previousScrapeId?: string | null;
   currentScrapeId?: string | null;
   statusCode?: number | null;
   error?: string | null;
   metadata?: unknown;
-  diff?: unknown;
+  diff?: MonitorPageDiff | null;
+  snapshot?: MonitorPageSnapshot | null;
   createdAt: string;
 }
 
@@ -775,7 +831,7 @@ export type GetMonitorCheckOptions = PaginationConfig & {
 export interface ExtractResponse {
   success?: boolean;
   id?: string;
-  status?: 'processing' | 'completed' | 'failed' | 'cancelled';
+  status?: "processing" | "completed" | "failed" | "cancelled";
   data?: unknown;
   error?: string;
   warning?: string;
@@ -794,16 +850,16 @@ export interface AgentResponse {
 
 export interface AgentStatusResponse {
   success: boolean;
-  status: 'processing' | 'completed' | 'failed';
+  status: "processing" | "completed" | "failed";
   error?: string;
   data?: unknown;
-  model?: 'spark-1-pro' | 'spark-1-mini';
+  model?: "spark-1-pro" | "spark-1-mini";
   expiresAt: string;
   creditsUsed?: number;
 }
 
 export interface AgentOptions {
-  model: 'FIRE-1' | 'v3-beta';
+  model: "FIRE-1" | "v3-beta";
 }
 
 export interface ConcurrencyCheck {
@@ -889,10 +945,10 @@ export class SdkError extends Error {
     status?: number,
     code?: string,
     details?: unknown,
-    jobId?: string
+    jobId?: string,
   ) {
     super(message);
-    this.name = 'FirecrawlSdkError';
+    this.name = "FirecrawlSdkError";
     this.status = status;
     this.code = code;
     this.details = details;
@@ -902,16 +958,20 @@ export class SdkError extends Error {
 
 export class JobTimeoutError extends SdkError {
   timeoutSeconds: number;
-  constructor(jobId: string, timeoutSeconds: number, jobType: 'batch' | 'crawl' = 'batch') {
-    const jobTypeLabel = jobType === 'batch' ? 'batch scrape' : 'crawl';
+  constructor(
+    jobId: string,
+    timeoutSeconds: number,
+    jobType: "batch" | "crawl" = "batch",
+  ) {
+    const jobTypeLabel = jobType === "batch" ? "batch scrape" : "crawl";
     super(
       `${jobTypeLabel.charAt(0).toUpperCase() + jobTypeLabel.slice(1)} job ${jobId} did not complete within ${timeoutSeconds} seconds`,
       undefined,
-      'JOB_TIMEOUT',
+      "JOB_TIMEOUT",
       undefined,
-      jobId
+      jobId,
     );
-    this.name = 'JobTimeoutError';
+    this.name = "JobTimeoutError";
     this.timeoutSeconds = timeoutSeconds;
   }
 }
