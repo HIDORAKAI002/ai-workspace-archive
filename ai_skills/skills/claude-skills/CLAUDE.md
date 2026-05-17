@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a **comprehensive skills library** for Claude AI and Claude Code - reusable, production-ready skill packages that bundle domain expertise, best practices, analysis tools, and strategic frameworks. The repository provides modular skills that teams can download and use directly in their workflows.
 
-**Current Scope:** 272 production-ready skills across 9 domains with 385 Python automation tools, 519 reference guides, 44 agents (37 `cs-*` + 7 personas), and 58 slash commands. v2.6.0 adds 4 Matt Pocock-derived productivity skills (write-a-skill, caveman, grill-me, handoff) under MIT.
+**Current Scope:** 311 production-ready skills across 12 domains with ~398 Python automation tools, ~538 reference guides, 45+ agents (cs-* + 7 personas), and 59+ slash commands. v2.7.0 adds 13 Path-B skills across 3 new top-level domains (productivity, marketing, research). v2.6.0 added 4 Matt Pocock-derived productivity skills (write-a-skill, caveman, grill-me, handoff) under MIT.
 
 **Key Distinction**: This is NOT a traditional application. It's a library of skill packages meant to be extracted and deployed by users into their own Claude workflows.
 
@@ -124,7 +124,24 @@ See [standards/git/git-workflow-standards.md](standards/git/git-workflow-standar
 
 ## Current Version
 
-**Version:** v2.6.1 (latest)
+**Version:** v2.7.0 (latest)
+
+**v2.7.0 Highlights — v2 megaprompt-to-skill conversion sweep: 13 new skills across productivity + marketing + research:**
+
+This release ships the complete v2 megaprompt collection (`megaprompts/01-13`) as production-ready skills using the **Path-B direct-conversion pattern**. Three new top-level domain folders created (`productivity/`, `marketing/`, `research/`) hosting 13 skills, 142 files, 23,698 lines of code + documentation.
+
+- **`productivity/`** (3 skills) — `capture` (brain-dump-to-action workspace, megaprompt 05), `email` (paired inbox-setup + inbox-triage with 7-file KB contract, megaprompts 06+07), `reflect` (light-prompt sibling, megaprompt 08).
+- **`marketing/`** (1 skill) — `landing` (single-file HTML generator with 4 design styles, brand palette validator, GSAP patterns, megaprompt 04).
+- **`research/`** (8 skills) — 7 specialists (`pulse`, `litreview`, `grants`, `dossier`, `patent`, `syllabus`, `notebooklm`) + 1 hybrid router (`research/research/` orchestrator). Megaprompts 01-03, 09-13.
+- **Research orchestrator** — deterministic SIGNALS classification routes to 6 specialists at ≥2-signal confidence, else runs own 8-step plan-decompose-search-synthesize-cite fallback. Routing transparency mandatory. Distinct from `engineering/autoresearch-agent` (Karpathy's file-optimization loop) — disambiguation surfaced in 5 places.
+- **Marketplace + Codex registry:** 43 → 55 plugins; 290 → 303 indexed skills; new categories `productivity` + `research`; `scripts/sync-codex-skills.py` extended to recognize the 3 new top-level domains.
+- **Path-B convention formalized** — megaprompt body → SKILL.md verbatim, 11-file plugin layout, 3 stdlib Python scripts per skill, 3 reference docs each citing 7+ authoritative sources, `cs-*` agent + `/cs:*` command, `source` field documents spec + build_pattern + distinct_from.
+- **Verification:** 39/39 scripts pass `--help`; 8-phase plugin audit on orchestrator → PASS WITH WARNINGS (structure 84.1/GOOD, scripts 3/3, 0 critical/high security findings); bulk audit on 12 siblings → all 79.5-86.4 structure, 0 critical/high findings.
+- **PRs:** #659 (capture) → #660 (pulse) → #661 (email pair) → #662 (landing) → #663 (litreview) → #664 (grants+dossier) → #666 (patent+syllabus) → #667 (domain-folder cleanup) → #668 (reflect) → #669 (notebooklm) → #671 (research orchestrator) → #672 (v2.7.0 release prep).
+
+**Total scope after v2.7.0:** 311 skills across 12 domain folders, ~398 Python automation tools, ~538 reference guides, 45+ agents, 59+ slash commands.
+
+**Version:** v2.6.1
 
 **v2.6.1 Highlights — Meta-skill maturity: validator expansion + 21 placeholder description fixes + audit tool:**
 - **`scripts/audit_skills.py`** (new) — repo-wide write-a-skill validator runner. Stdlib-only orchestration: walks every SKILL.md, runs `skill_review_checklist_runner.py`, aggregates PASS/WARN/FAIL counts + failure-by-rule + top-10 worst offenders. ~30s on 298 real skills.
@@ -263,11 +280,15 @@ This repository publishes skills to **ClawHub** (clawhub.com) as the distributio
 2. **Never rename repo folders or local skill names** to match ClawHub slugs. The repo is the source of truth.
 3. **No paid/commercial service dependencies.** Skills must not require paid third-party API keys or commercial services unless provided by the project itself. Free-tier APIs and BYOK (bring-your-own-key) patterns are acceptable.
 4. **Rate limit: 5 new skills per hour** on ClawHub. Batch publishes must respect this. Use the drip timer (`clawhub-drip.timer`) for bulk operations.
-5. **plugin.json schema** — ONLY these fields: `name`, `description`, `version`, `author`, `homepage`, `repository`, `license`, `skills`. No extra fields. The `skills` value depends on the plugin layout (Claude Code v2.1.107+ rejects bare `"./"`):
+5. **plugin.json schema** — Required fields: `name`, `description`, `version`, `author`, `homepage`, `repository`, `license`, `skills`. Two **approved extension fields** are permitted in the repo (stripped at ClawHub-publish time, if/when a stripping pipeline lands):
+   - `source` (object) — provenance metadata for skills built via Path-B megaprompt conversion. Recommended shape: `{spec: "megaprompts/NN-name.md", build_pattern: "...", distinct_from: "..."}`. Used by all 13 v2 megaprompt-derived skills (productivity/, marketing/, research/).
+   - `attribution` (object) — credit metadata for skills derived from external MIT-licensed work. Used by `engineering/caveman`, `engineering/grill-me`, `engineering/grill-with-docs` (Matt Pocock derivatives).
+
+   No other extras. The `skills` value depends on the plugin layout (Claude Code v2.1.107+ rejects bare `"./"`):
    - Single-skill plugin (SKILL.md at root): `"skills": ["./"]` (array form required).
    - Plugin with `./skills/` subdir: `"skills": "./skills"`.
    - Multi-skill domain plugin (skills are subfolders at root): `"skills": ["./sub1", "./sub2", ...]` (explicit list, omit `"./"` to avoid namespace collision with the index SKILL.md).
-6. **Version follows repo versioning.** ClawHub package versions must match the repo release version (currently v2.2.0+).
+6. **Version follows repo versioning.** ClawHub package versions must match the repo release version (currently v2.7.0+).
 
 ## Anti-Patterns to Avoid
 

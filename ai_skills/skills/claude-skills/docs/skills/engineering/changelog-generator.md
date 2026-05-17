@@ -1,6 +1,6 @@
 ---
 title: "Changelog Generator — Agent Skill for Codex & OpenClaw"
-description: "Changelog Generator. Agent skill for Claude Code, Codex CLI, Gemini CLI, OpenClaw."
+description: "Produce consistent, auditable release notes from Conventional Commits. Separates commit parsing, semantic-bump logic, and changelog rendering for. Agent skill for Claude Code, Codex CLI, Gemini CLI, OpenClaw."
 ---
 
 # Changelog Generator

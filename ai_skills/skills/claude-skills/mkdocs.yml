@@ -1,6 +1,6 @@
 site_name: Claude Code Skills & Agent Plugins
 site_url: https://alirezarezvani.github.io/claude-skills/
-site_description: "272 production-ready skills, 37 cs-* agents (incl. founder-mode C-suite: GC, CDO, CAIO, CCO, VPE + Matt Pocock-derived productivity quartet: skill-author, caveman, grill-master, handoff), 7 personas, 25 /cs:* slash commands, and an orchestration protocol for 12 AI coding tools."
+site_description: "311 production-ready skills, 45+ cs-* agents (incl. founder-mode C-suite: GC, CDO, CAIO, CCO, VPE + Matt Pocock-derived productivity quartet: skill-author, caveman, grill-master, handoff + v2.7.0 megaprompt-derived research stack), 7 personas, 59+ /cs:* slash commands, and an orchestration protocol for 12 AI coding tools. v2.7.0 adds 13 new skills across productivity (capture, email pair, reflect), marketing (landing), and research (pulse, litreview, grants, dossier, patent, syllabus, notebooklm + research orchestrator)."
 site_author: Alireza Rezvani
 repo_url: https://github.com/alirezarezvani/claude-skills
 repo_name: alirezarezvani/claude-skills
@@ -418,6 +418,25 @@ nav:
       - "Business Investment Advisor": skills/finance/business-investment-advisor.md
       - "Financial Analyst": skills/finance/financial-analyst.md
       - "SaaS Metrics Coach": skills/finance/saas-metrics-coach.md
+    - Productivity:
+      - Overview: skills/productivity/index.md
+      - "Capture (Brain-Dump-to-Action)": skills/productivity/capture.md
+      - "Inbox Setup (KB Builder)": skills/productivity/email-inbox-setup.md
+      - "Inbox Triage (Drafts-Only)": skills/productivity/email-inbox-triage.md
+      - "Reflect (Light-Prompt Journal)": skills/productivity/reflect.md
+    - Marketing (Landing Pages):
+      - Overview: skills/marketing/index.md
+      - "Landing Page Generator (HTML)": skills/marketing/landing.md
+    - Research:
+      - Overview: skills/research/index.md
+      - "Research Orchestrator (Hybrid Router)": skills/research/research.md
+      - "Pulse (Recency + Sentiment)": skills/research/pulse.md
+      - "LitReview (Academic)": skills/research/litreview.md
+      - "Grants (NIH)": skills/research/grants.md
+      - "Dossier (Entity Research)": skills/research/dossier.md
+      - "Patent (Prior Art + IP Landscape)": skills/research/patent.md
+      - "Syllabus (Course Reading List)": skills/research/syllabus.md
+      - "NotebookLM (Browser Automation)": skills/research/notebooklm.md
   - Plugins:
     - Overview: plugins/index.md
   - Personas:

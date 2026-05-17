@@ -5,6 +5,74 @@ All notable changes to the Claude Skills Library will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.0] - 2026-05-16 — v2 megaprompt-to-skill conversion sweep: 13 new skills (productivity + marketing + research)
+
+### Added — 13 Path-B Skills From `megaprompts/`
+
+This release ships the complete v2 megaprompt collection (`megaprompts/01-13`) as production-ready skills using the **Path-B direct-conversion pattern**: each megaprompt's body becomes the SKILL.md verbatim, wrapped in the standard 11-file plugin layout (`.claude-plugin/plugin.json`, README, agent, command, SKILL.md, 3 references citing 7+ sources each, 3 stdlib Python scripts).
+
+Three new top-level domain folders were created to host the 13 skills:
+
+| Domain | Skills | Build pattern |
+|---|---|---|
+| `productivity/` | `capture`, `email` (paired: inbox-setup + inbox-triage), `reflect` | Personal-productivity slices — single-action intake, KB-file contract between pair |
+| `marketing/` | `landing` | Single-file HTML landing-page generator with 4 design styles |
+| `research/` | `pulse`, `litreview`, `grants`, `dossier`, `patent`, `syllabus`, `notebooklm`, `research` (orchestrator) | 7 research-pack siblings + 1 hybrid router |
+
+**13 skills, 142 files, 23,698 lines of code + documentation.** All scripts stdlib-only. All references cite 7+ authoritative sources.
+
+#### Productivity slice (3 skills)
+
+- **`productivity/capture/`** (PR #659) — Brain-dump-to-action workspace. Classify→cluster→connect→clarify intake. Path-B from megaprompt 05.
+- **`productivity/email/`** (PR #661) — Email-workflow skill pair. `inbox-setup` builds taxonomy/KB; `inbox-triage` classifies + drafts (drafts-only, never auto-send). 7-file KB contract between them. Path-B from megaprompts 06+07.
+- **`productivity/reflect/`** (PR #668) — Light-prompt reflection sibling of capture. Path-B from megaprompt 08.
+
+#### Marketing slice (1 skill)
+
+- **`marketing/landing/`** (PR #662) — Single-file HTML landing-page generator. 4 design styles, brand palette validator, GSAP animation patterns, kebab-slug URL hygiene. Path-B from megaprompt 04.
+
+#### Research pack (8 skills — 7 specialists + 1 orchestrator)
+
+- **`research/pulse/`** (PR #660) — Multi-source recency research (Reddit/HN/X/web sentiment + trending). Research-pack convention. Path-B from megaprompt 01.
+- **`research/litreview/`** (PR #663) — Academic literature orientation. PICO/SPIDER frameworks, systematic review structure, 8-section DOCX guide. Path-B from megaprompt 09.
+- **`research/grants/`** (PR #664) — NIH grant-funding intelligence. RePORTER/NOSI/study-section navigation, R01/R21/K-award strategy. Path-B from megaprompt 11.
+- **`research/dossier/`** (PR #664) — Decision-grade entity research. Due-diligence/background-check/competitor-prep with tier-weighted verdict + citation tracker. Path-B from megaprompt 02.
+- **`research/patent/`** (PR #666) — Patent prior-art + IP landscape. FTO/novelty/family-resolver via 3-pass Jaccard heuristic. Path-B from megaprompt 12.
+- **`research/syllabus/`** (PR #666) — Course supplementary-reading skill. Topic-grouper + bundled Node.js DOCX generator. Path-B from megaprompt 10.
+- **`research/notebooklm/`** (PR #669) — Google NotebookLM browser-automation. 4 actions (read/extract, add-source, Studio outputs, create notebook). Screenshot-first + find-before-click + fire-and-notify discipline. Path-B from megaprompt 03.
+- **`research/research/`** (PR #671) — **Research orchestrator (hybrid router + fallback).** Deterministic SIGNALS classification routes to the 6 specialists above at ≥2-signal confidence, else runs own 8-step plan-decompose-search-synthesize-cite fallback. Routing transparency mandatory. Distinct from `engineering/autoresearch-agent` (Karpathy's file-optimization loop). Path-B from megaprompt 13.
+
+### Added — Marketplace + Codex Registry
+
+- **`.claude-plugin/marketplace.json`**: 43 → 55 plugins. 12 new entries (email-pair holds 2 skills) across 3 categories. New categories added: `productivity`, `research`.
+- **`.codex/skills-index.json`**: 290 → 303 entries. 13 new skills indexed with category metadata.
+- **`.codex/skills/` symlinks**: 11 new symlinks created (capture + pulse already existed from prior auto-sync).
+- **`scripts/sync-codex-skills.py`**: Added `productivity/`, `marketing/`, `research/` to `SKILL_DOMAINS` so future auto-sync runs pick up the new top-level domains.
+
+### Path-B Convention (Documented)
+
+This release formalizes the **Path-B direct-conversion** pattern for future megaprompt-derived skills:
+
+- Megaprompt body → SKILL.md preserving content verbatim
+- 11-file standard plugin layout (12 files for skills with bundled JS DOCX generators like syllabus)
+- 3 stdlib Python scripts per skill (no external deps)
+- 3 reference docs per skill, each citing 7+ authoritative sources
+- `cs-*` agent + `/cs:*` command per plugin
+- `source` field in `plugin.json` documents `spec` (megaprompt path) + `build_pattern` + `distinct_from` (where disambiguation needed)
+
+### Verification
+
+- **39/39 scripts pass `--help`** across all 13 skills
+- **8-phase plugin audit** on `research/research`: PASS WITH WARNINGS (structure 84.1/GOOD, scripts 3/3, security 0 findings)
+- **Spot-check audit** on pulse / litreview / notebooklm: all 86.4/GOOD, 3/3 scripts, security PASS
+- **Bulk audit** on remaining 9 skills: all 79.5-86.4 structure, 0 critical/high security findings (1 false positive in syllabus on a user-facing `npm install docx` error-message string literal)
+- **Cross-skill consistency**: 7/7 research-pack siblings carry the `Agent Integrity Rules` block (1 q/sec rate limit, three-count tracking, retry-once-after-3s, source discipline)
+- **Orchestrator disambiguation**: `distinct_from autoresearch-agent` callouts present in plugin.json + README + SKILL.md + agent + command (5 places)
+
+### PRs
+
+#659 (capture), #660 (pulse), #661 (email pair), #662 (landing), #663 (litreview), #664 (grants+dossier), #666 (patent+syllabus), #667 (domain-folder cleanup), #668 (reflect), #669 (notebooklm), #671 (research orchestrator), #672 (v2.7.0 release prep — this commit).
+
 ## [2.6.1] - 2026-05-14 — Meta-skill maturity: validator expansion + 21 placeholder descriptions + audit tool
 
 ### Added — Tooling

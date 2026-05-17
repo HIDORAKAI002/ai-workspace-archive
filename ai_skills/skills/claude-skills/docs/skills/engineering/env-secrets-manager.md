@@ -1,6 +1,6 @@
 ---
 title: "Env & Secrets Manager — Agent Skill for Codex & OpenClaw"
-description: "Env & Secrets Manager. Agent skill for Claude Code, Codex CLI, Gemini CLI, OpenClaw."
+description: "Manage environment-variable hygiene and secrets safety across local development and production. Practical auditing, drift awareness, rotation. Agent skill for Claude Code, Codex CLI, Gemini CLI, OpenClaw."
 ---
 
 # Env & Secrets Manager

@@ -1,6 +1,6 @@
 ---
-title: 272 Agent Skills for Codex, Gemini CLI & OpenClaw
-description: "272 production-ready Claude Code skills and agent plugins for 12 AI coding tools — including the v2.6.0 Matt Pocock productivity quartet (write-a-skill, caveman, grill-me, handoff). Engineering, product, marketing, compliance, and finance agent skills for Claude Code, OpenAI Codex, Gemini CLI, Hermes Agent, Cursor, and OpenClaw."
+title: 311 Agent Skills for Codex, Gemini CLI & OpenClaw
+description: "311 production-ready Claude Code skills and agent plugins for 12 AI coding tools — including the v2.7.0 megaprompt-derived productivity, marketing, and research stacks (capture, email-pair, reflect, landing, pulse, litreview, grants, dossier, patent, syllabus, notebooklm, research orchestrator) and the v2.6.0 Matt Pocock productivity quartet (write-a-skill, caveman, grill-me, handoff). Engineering, product, marketing, compliance, and finance agent skills for Claude Code, OpenAI Codex, Gemini CLI, Hermes Agent, Cursor, and OpenClaw."
 hide:
   - toc
   - edit
@@ -14,7 +14,7 @@ hide:
 
 # Agent Skills
 
-272 production-ready skills, 37 cs-* agents (incl. founder-mode C-suite + Matt Pocock productivity quartet), 7 personas, and an orchestration protocol for AI coding tools.
+311 production-ready skills, 45+ cs-* agents (incl. founder-mode C-suite, Matt Pocock productivity quartet, and v2.7.0 megaprompt-derived research stack), 7 personas, and an orchestration protocol for AI coding tools.
 { .hero-subtitle }
 
 [Get Started](getting-started.md){ .md-button .md-button--primary }
@@ -49,19 +49,19 @@ hide:
 
 <div class="grid cards" markdown>
 
--   :material-toolbox:{ .lg .middle } **272 Skills**
+-   :material-toolbox:{ .lg .middle } **311 Skills**
 
     ---
 
-    Production-ready instruction packages with structured workflows, Python automation tools, and reference documentation across 9 domains. v2.6.0 adds the Matt Pocock productivity quartet under MIT.
+    Production-ready instruction packages with structured workflows, Python automation tools, and reference documentation across 12 domains. v2.7.0 adds 13 Path-B skills (productivity, marketing, research). v2.6.0 added the Matt Pocock productivity quartet under MIT.
 
     [:octicons-arrow-right-24: Browse skills](skills/index.md)
 
--   :material-robot:{ .lg .middle } **37 Agents**
+-   :material-robot:{ .lg .middle } **45+ Agents**
 
     ---
 
-    Multi-skill orchestrators that combine domain expertise for complex tasks — from engineering leads to financial analysts.
+    Multi-skill orchestrators that combine domain expertise for complex tasks — from engineering leads to financial analysts to research-pack routers.
 
     [:octicons-arrow-right-24: View agents](agents/index.md)
 

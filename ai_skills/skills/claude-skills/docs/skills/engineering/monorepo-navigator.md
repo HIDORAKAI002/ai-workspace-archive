@@ -1,6 +1,6 @@
 ---
 title: "Monorepo Navigator — Agent Skill for Codex & OpenClaw"
-description: "Monorepo Navigator. Agent skill for Claude Code, Codex CLI, Gemini CLI, OpenClaw."
+description: "Navigate, manage, and optimize monorepos. Covers Turborepo, Nx, pnpm workspaces, and Lerna. Cross-package impact analysis, selective builds/tests on. Agent skill for Claude Code, Codex CLI, Gemini CLI, OpenClaw."
 ---
 
 # Monorepo Navigator

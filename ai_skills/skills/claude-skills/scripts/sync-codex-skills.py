@@ -55,6 +55,18 @@ SKILL_DOMAINS = {
     "finance": {
         "category": "finance",
         "description": "Financial analysis, valuation, and forecasting skills"
+    },
+    "productivity": {
+        "category": "productivity",
+        "description": "Personal-productivity skills - capture, email, reflect"
+    },
+    "marketing": {
+        "category": "marketing",
+        "description": "Top-level marketing slices (landing-page generator)"
+    },
+    "research": {
+        "category": "research",
+        "description": "Research orchestrator + 6 specialists (pulse, litreview, grants, dossier, patent, syllabus, notebooklm)"
     }
 }
 
@@ -73,10 +85,13 @@ def find_skills(repo_root: Path) -> List[Dict]:
         if not domain_path.exists():
             continue
 
-        # Skills now live under <domain>/skills/<name>/SKILL.md after the
-        # plugin restructure (see PR #593). Fall back to scanning <domain>/
-        # directly so the script keeps working for domains that weren't
-        # restructured.
+        # Three discovery patterns supported:
+        #   1. <domain>/skills/<name>/SKILL.md  — flat-domain pattern (most domains)
+        #   2. <domain>/<name>/SKILL.md         — legacy pattern
+        #   3. <domain>/<plugin>/skills/<name>/SKILL.md — nested plugin pattern
+        #      (used by engineering/caveman/, engineering/write-a-skill/, etc.)
+        seen_paths: set = set()
+
         scan_roots = []
         skills_subdir = domain_path / "skills"
         if skills_subdir.is_dir():
@@ -92,21 +107,49 @@ def find_skills(repo_root: Path) -> List[Dict]:
                     continue
 
                 skill_md = skill_path / "SKILL.md"
-                if not skill_md.exists():
+                if skill_md.exists():
+                    if str(skill_md) in seen_paths:
+                        continue
+                    seen_paths.add(str(skill_md))
+
+                    skill_name = skill_path.name
+                    description = extract_skill_description(skill_md)
+                    relative_path = f"../../{domain_dir}/{prefix}{skill_name}"
+
+                    skills.append({
+                        "name": skill_name,
+                        "source": relative_path,
+                        "source_absolute": str(skill_path.relative_to(repo_root)),
+                        "category": domain_info["category"],
+                        "description": description or f"Skill from {domain_dir}"
+                    })
                     continue
 
-                skill_name = skill_path.name
-                description = extract_skill_description(skill_md)
+                # Pattern 3: plugin with nested skills/ subdir (engineering/caveman/skills/caveman/SKILL.md)
+                nested_skills = skill_path / "skills"
+                if not nested_skills.is_dir():
+                    continue
+                for inner_path in nested_skills.iterdir():
+                    if not inner_path.is_dir():
+                        continue
+                    inner_skill_md = inner_path / "SKILL.md"
+                    if not inner_skill_md.exists():
+                        continue
+                    if str(inner_skill_md) in seen_paths:
+                        continue
+                    seen_paths.add(str(inner_skill_md))
 
-                relative_path = f"../../{domain_dir}/{prefix}{skill_name}"
+                    skill_name = inner_path.name
+                    description = extract_skill_description(inner_skill_md)
+                    relative_path = f"../../{domain_dir}/{skill_path.name}/skills/{skill_name}"
 
-                skills.append({
-                    "name": skill_name,
-                    "source": relative_path,
-                    "source_absolute": str(skill_path.relative_to(repo_root)),
-                    "category": domain_info["category"],
-                    "description": description or f"Skill from {domain_dir}"
-                })
+                    skills.append({
+                        "name": skill_name,
+                        "source": relative_path,
+                        "source_absolute": str(inner_path.relative_to(repo_root)),
+                        "category": domain_info["category"],
+                        "description": description or f"Skill from {domain_dir}"
+                    })
 
     # Sort by category then name for consistent output
     skills.sort(key=lambda s: (s["category"], s["name"]))

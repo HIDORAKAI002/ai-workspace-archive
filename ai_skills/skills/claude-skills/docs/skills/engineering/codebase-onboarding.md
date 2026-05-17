@@ -1,6 +1,6 @@
 ---
 title: "Codebase Onboarding — Agent Skill for Codex & OpenClaw"
-description: "Codebase Onboarding. Agent skill for Claude Code, Codex CLI, Gemini CLI, OpenClaw."
+description: "Analyze a codebase and generate onboarding documentation for engineers, tech leads, and contractors. Fast fact-gathering and repeatable onboarding. Agent skill for Claude Code, Codex CLI, Gemini CLI, OpenClaw."
 ---
 
 # Codebase Onboarding
