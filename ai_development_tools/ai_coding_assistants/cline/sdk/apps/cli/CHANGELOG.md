@@ -1,5 +1,15 @@
 # Cline CLI Changelog
 
+## 3.0.5
+
+- Show plugin-provided tools and slash commands in the CLI settings dialog by hydrating them through the sandbox.
+- Preserve hydrated plugin tools and config reload options when toggling settings, so they no longer disappear after a toggle.
+
+## 3.0.4
+
+- Improve light theme TUI colors so chat, status bar, tool output, and syntax highlighting render with better contrast on light terminals.
+- Fix plugin tools failing in the production npm build by bundling the SDK deps plugins import at runtime.
+
 ## 3.0.3
 
 - Add `--worktree` flag that auto-creates a fresh git worktree under `~/.cline/worktrees/` and runs the task there. Works with `--taskId` and `--continue` so you can resume a task in an isolated worktree to try a different approach.
