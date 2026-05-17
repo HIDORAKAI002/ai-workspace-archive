@@ -25,6 +25,18 @@
         ]
       }
     ],
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .codex/hooks/scripts/hooks.py --hook PermissionRequest",
+            "timeout": 10,
+            "statusMessage": "Running permission request hook"
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "hooks": [
@@ -57,6 +69,30 @@
             "command": "python3 .codex/hooks/scripts/hooks.py --hook UserPromptSubmit",
             "timeout": 10,
             "statusMessage": "Running user prompt submit hook"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .codex/hooks/scripts/hooks.py --hook PreCompact",
+            "timeout": 10,
+            "statusMessage": "Running pre-compact hook"
+          }
+        ]
+      }
+    ],
+    "PostCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .codex/hooks/scripts/hooks.py --hook PostCompact",
+            "timeout": 10,
+            "statusMessage": "Running post-compact hook"
           }
         ]
       }
