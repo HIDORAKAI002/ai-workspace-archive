@@ -13,8 +13,37 @@ Claude Code remains a core target. Codex, OpenCode, Cursor, Gemini, and other ha
 - Clarified the split between ECC as the reusable substrate and Hermes as the operator shell.
 - Documented the cross-harness portability model for skills, hooks, MCPs, rules, and instructions.
 - Added a Hermes import playbook for turning local operator patterns into publishable ECC skills.
+- Added Zed as a project-local planning/install target while keeping BYOK and OpenRouter secrets outside ECC-managed project files.
+- Added command-registry coverage, platform audit, discussion audit, operator dashboard, Linear progress readiness, and preview-pack smoke gates.
 - Added a local [observability readiness gate](../../architecture/observability-readiness.md) for loop status, session traces, harness audit, and ECC2 tool-risk logs.
 - Refreshed the release-readiness evidence after the May 2026 Mini Shai-Hulud/TanStack campaign follow-up, including full-campaign AgentShield IOC coverage, queue-zero/discussion checks, a detailed Linear roadmap gate, and the May 17 operator dashboard snapshot.
+
+## Since v1.10.0
+
+The rc.1 surface now includes the main 2.0 direction rather than one isolated
+feature branch:
+
+- cross-harness substrate work for Claude Code, Codex, OpenCode, Cursor,
+  Gemini, Zed, and terminal-only workflows;
+- stronger package and plugin publication surfaces for npm, Claude plugin,
+  Codex repo-marketplace, OpenCode, and agent metadata;
+- operator gates for PRs, issues, discussions, stale legacy work, Linear
+  progress, release evidence, and dashboard repeatability;
+- supply-chain hardening after the Mini Shai-Hulud/TanStack campaign,
+  including IOC scanning, no-lifecycle CI installs, advisory-source refresh,
+  npm audit/signature checks, and user-level AI-tool persistence targets;
+- AgentShield enterprise-roadmap mirrors for package-manager hardening,
+  evidence-pack provenance, policy export, policy promotion, fleet routing,
+  and GitHub Action output telemetry;
+- ECC Tools roadmap mirrors for hosted analysis, fleet-summary consumption,
+  finding evidence paths, harness policy-route linking, hosted promotion judge
+  audit traces, billing announcement preflight, and production Marketplace
+  readback state;
+- documentation expansion, Japanese localization, zh-CN to ja-JP parity
+  repair, and dependency readiness through TypeScript 6 and Node type updates;
+- launch collateral for GitHub release copy, X, LinkedIn, article outline,
+  Telegram/Hermes handoff, demo prompts, and the approval-gated launch
+  checklist.
 
 ## Why This Matters
 
@@ -39,6 +68,7 @@ What ships in this surface:
 - cross-harness architecture documentation
 - Hermes import guidance for sanitized operator workflows
 - publication-readiness evidence for queue state, discussion state, Linear roadmap coverage, operator dashboard status, and supply-chain follow-up
+- preview-pack smoke evidence proving the public pack is assembled without private Hermes state
 
 What stays local:
 
@@ -57,3 +87,10 @@ What stays local:
 5. Start with one workflow lane: engineering, research, content, or outreach.
 6. Import only sanitized operator patterns into ECC skills.
 7. Treat `ecc2/` as an alpha control plane until release packaging and installer behavior are finalized.
+
+## Do Not Treat This As Published Yet
+
+The release candidate copy is ready for final review, but the public release is
+still blocked on approval-gated actions: the GitHub prerelease, npm `next`
+publish, Claude plugin tag/marketplace path, Codex Plugin Directory status,
+final live URLs, and any billing or native-payments announcement.

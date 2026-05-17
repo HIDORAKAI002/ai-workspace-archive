@@ -243,12 +243,53 @@ function includesAll(text, needles) {
   return needles.every(needle => text.includes(needle));
 }
 
+const LOCALIZATION_MANUAL_REVIEW_TAIL = [
+  '#1687 zh-CN localization tail',
+  '#1609 Persian README translation',
+  '#1563 zh-TW README sync',
+  '#1564 Turkish README sync',
+  '#1565 pt-BR README sync',
+];
+
 function hasLegacySalvageTracking({ stalePrSalvage, legacyInventory, roadmap }) {
   return stalePrSalvage.includes('Manual review tail')
     || stalePrSalvage.includes('Remaining Manual-Review Backlog')
     || stalePrSalvage.includes('Translator/manual review')
     || legacyInventory.includes('Translator/manual review')
     || roadmap.includes('ITO-55');
+}
+
+function hasAttachedLegacyManualReviewTail({ stalePrSalvage, legacyInventory, roadmap }) {
+  return stalePrSalvage.includes('Linear ITO-55')
+    && legacyInventory.includes('ITO-55')
+    && roadmap.includes('ITO-55')
+    && LOCALIZATION_MANUAL_REVIEW_TAIL.every(item => (
+      stalePrSalvage.includes(item) && legacyInventory.includes(item)
+    ));
+}
+
+function legacySalvageStatus(context) {
+  if (hasAttachedLegacyManualReviewTail(context)) {
+    return 'current';
+  }
+
+  return hasLegacySalvageTracking(context) ? 'in_progress' : 'not_complete';
+}
+
+function legacySalvageEvidence(context) {
+  if (hasAttachedLegacyManualReviewTail(context)) {
+    return 'legacy salvage ledger and inventory are current; all localization tails are attached to Linear ITO-55 for manual language-owner review';
+  }
+
+  return 'legacy salvage ledger and ITO-55 tracking are present';
+}
+
+function legacySalvageGap(context) {
+  if (hasAttachedLegacyManualReviewTail(context)) {
+    return 'repeat legacy scan before release';
+  }
+
+  return 'final translation/manual-review tail remains';
 }
 
 function hasAgentShieldEnterpriseTracking(roadmap) {
@@ -264,10 +305,17 @@ function hasAgentShieldEnterpriseTracking(roadmap) {
       || roadmap.includes('AgentShield #91')
       || roadmap.includes('checksum-backed policy export')
       || roadmap.includes('#78-#90')
+      || roadmap.includes('hosted promotion judge audit traces')
+      || roadmap.includes('operator-visible promotion output values')
     );
 }
 
 function agentShieldEnterpriseGap(roadmap) {
+  if (roadmap.includes('hosted promotion judge audit traces')
+    || roadmap.includes('operator-visible promotion output values')) {
+    return 'deepen live operator approval/readback after Marketplace/payment gates';
+  }
+
   if (roadmap.includes('#78-#92')
     || roadmap.includes('AgentShield PR #92')
     || roadmap.includes('AgentShield #92')
@@ -282,6 +330,103 @@ function agentShieldEnterpriseGap(roadmap) {
     || roadmap.includes('checksum-backed policy export')
     ? 'workflow automation plus policy promotion/review UX pending after policy export shipped'
     : 'durable policy export and fleet-review workflow automation remain pending after reviewItems shipped';
+}
+
+function agentShieldEnterpriseEvidence(roadmap) {
+  if (roadmap.includes('hosted promotion judge audit traces')
+    || roadmap.includes('operator-visible promotion output values')) {
+    return 'AgentShield policy promotion `reviewItems` landed in `87aec47`; package-manager hardening drift detection landed in `28d08c7`; workflow action runtime pins were refreshed in `659f569`; npm age-gate guidance was corrected in `ee585cd`; package-manager hardening Action outputs landed in `1124535`; policy-promotion Action outputs and runtime-smoke job-summary evidence landed in `1593925`; ECC-Tools consumes those outputs in `8658951`, surfaces operator-readable status/pack/count/digest telemetry in `16c537f`, and renders hosted promotion judge audit traces in `05d4e82`; all are mirrored in the GA roadmap';
+  }
+
+  return 'AgentShield enterprise PR evidence is mirrored in the GA roadmap';
+}
+
+function eccToolsNextLevelEvidence(roadmap) {
+  if (roadmap.includes('production Marketplace readback state')
+    || roadmap.includes('eb69412')) {
+    return 'billing announcement gate, hosted analysis lanes, AgentShield fleet-summary consumption, hosted finding evidence paths, harness-route policy linking, policy-promotion Action-output telemetry, operator-visible promotion output details, hosted promotion judge audit traces, billing announcement preflight, and production KV readback state are mirrored in the GA roadmap';
+  }
+
+  if (roadmap.includes('hosted promotion judge audit traces')
+    || roadmap.includes('operator-visible promotion output values')) {
+    return 'billing announcement gate, hosted analysis lanes, AgentShield fleet-summary consumption, hosted finding evidence paths, harness-route policy linking, policy-promotion Action-output telemetry, operator-visible promotion output details, and hosted promotion judge audit traces are mirrored in the GA roadmap';
+  }
+
+  return 'billing announcement gate, hosted analysis lanes, AgentShield fleet-summary consumption, hosted finding evidence paths, and harness-route policy linking are mirrored in the GA roadmap';
+}
+
+function eccToolsNextLevelGap(roadmap) {
+  if (roadmap.includes('production Marketplace readback state')
+    || roadmap.includes('eb69412')) {
+    return 'complete Marketplace purchase/webhook readback, then run the live announcement gate';
+  }
+
+  if (roadmap.includes('hosted promotion judge audit traces')
+    || roadmap.includes('operator-visible promotion output values')) {
+    return 'live Marketplace test-account readback pending';
+  }
+
+  return 'live Marketplace test-account readback, hosted promotion telemetry, and richer operator review UX pending';
+}
+
+function supplyChainLocalProtectionEvidence({ roadmap, scripts }) {
+  if (scripts['security:advisory-sources'] === 'node scripts/ci/supply-chain-advisory-sources.js'
+    && roadmap.includes('package-manager hardening Action outputs')) {
+    return 'scheduled supply-chain watch emits IOC/advisory-source refresh artifacts; AgentShield now detects known AI-tool persistence IOCs, npm lifecycle/token drift, unsupported npm age-key drift, and pnpm/Yarn cooldown drift; ITO-57 has May 17 Linear evidence updates';
+  }
+
+  return scripts['security:advisory-sources'] === 'node scripts/ci/supply-chain-advisory-sources.js'
+    ? 'scheduled supply-chain watch now emits IOC and advisory-source refresh artifacts'
+    : 'scheduled supply-chain watch or advisory-source command is missing';
+}
+
+function supplyChainLocalProtectionGap({ roadmap, scripts }) {
+  if (scripts['security:advisory-sources'] === 'node scripts/ci/supply-chain-advisory-sources.js'
+    && roadmap.includes('package-manager hardening Action outputs')) {
+    return 'repeat advisory/source refresh and Linear sync after each significant supply-chain batch';
+  }
+
+  return 'Linear status synchronization remains ITO-57 follow-up after each significant merge batch';
+}
+
+function hasCurrentLinearProgressSync({ roadmap, progressSync }) {
+  return includesAll(roadmap, [
+    'Linear live sync is current',
+    'operator progress snapshot',
+  ]) && includesAll(progressSync, [
+    'node scripts/work-items.js sync-github --repo <owner/repo>',
+    'node scripts/status.js --json',
+    'Linear remains the external status surface',
+  ]);
+}
+
+function hasLinearProgressContract({ roadmap, progressSync }) {
+  return includesAll(roadmap, ['ITO-44', 'ITO-59', 'Linear'])
+    && includesAll(progressSync, ['GitHub', 'Linear', 'handoff', 'repo roadmap']);
+}
+
+function linearProgressStatus(context) {
+  if (hasCurrentLinearProgressSync(context)) {
+    return 'current';
+  }
+
+  return hasLinearProgressContract(context) ? 'in_progress' : 'not_complete';
+}
+
+function linearProgressEvidence(context) {
+  if (hasCurrentLinearProgressSync(context)) {
+    return 'Linear live sync and project progress snapshot are current; progress-sync contract defines the file-backed work-items/status path';
+  }
+
+  return 'repo mirror and progress-sync contract are present';
+}
+
+function linearProgressGap(context) {
+  if (hasCurrentLinearProgressSync(context)) {
+    return 'repeat Linear/project status update and local work-items sync after each significant merge batch';
+  }
+
+  return 'recurring Linear status sync and productized realtime sync remain pending';
 }
 
 function runCommand(command, args, options = {}) {
@@ -324,6 +469,7 @@ function buildRequirements(rootDir, platformReport) {
   const publicationReadiness = readText(rootDir, 'docs/releases/2.0.0-rc.1/publication-readiness.md');
   const namingMatrix = readText(rootDir, 'docs/releases/2.0.0-rc.1/naming-and-publication-matrix.md');
   const previewManifest = readText(rootDir, 'docs/releases/2.0.0-rc.1/preview-pack-manifest.md');
+  const previewPackSmoke = readText(rootDir, 'scripts/preview-pack-smoke.js');
   const progressSync = readText(rootDir, 'docs/architecture/progress-sync-contract.md');
   const observabilityReadiness = readText(rootDir, 'docs/architecture/observability-readiness.md');
   const stalePrSalvage = readText(rootDir, 'docs/stale-pr-salvage-ledger.md');
@@ -332,6 +478,23 @@ function buildRequirements(rootDir, platformReport) {
   const supplyChainWorkflow = readText(rootDir, '.github/workflows/supply-chain-watch.yml');
   const packageJson = readPackage(rootDir);
   const scripts = packageJson.scripts || {};
+  const legacyContext = { stalePrSalvage, legacyInventory, roadmap };
+  const previewPackManifestReady = includesAll(previewManifest, [
+    'publication-readiness.md',
+    'release-notes.md',
+    'quickstart.md'
+  ]);
+  const previewPackSmokeReady = scripts['preview-pack:smoke'] === 'node scripts/preview-pack-smoke.js'
+    && fileExists(rootDir, 'scripts/preview-pack-smoke.js')
+    && includesAll(previewManifest, ['scripts/preview-pack-smoke.js', 'npm run preview-pack:smoke'])
+    && includesAll(previewPackSmoke, [
+      'ecc.preview-pack-smoke.v1',
+      'preview-pack-artifacts-present',
+      'hermes-boundary-sanitized',
+      'publication-blockers-preserved'
+    ]);
+  const hermesArtifactsReady = fileExists(rootDir, 'docs/HERMES-SETUP.md')
+    && fileExists(rootDir, 'skills/hermes-imports/SKILL.md');
 
   const githubLive = !platformReport.github.skipped && platformReport.github.totals.errors === 0;
   const queuesCurrent = githubLive
@@ -389,23 +552,29 @@ function buildRequirements(rootDir, platformReport) {
       'ecc-preview-pack',
       'ECC 2.0 preview pack ready',
       'docs/releases/2.0.0-rc.1/preview-pack-manifest.md',
-      includesAll(previewManifest, ['publication-readiness.md', 'release-notes.md', 'quickstart.md']) ? 'in_progress' : 'not_complete',
-      includesAll(previewManifest, ['publication-readiness.md', 'release-notes.md', 'quickstart.md'])
+      previewPackManifestReady && previewPackSmokeReady ? 'current' : previewPackManifestReady ? 'in_progress' : 'not_complete',
+      previewPackManifestReady && previewPackSmokeReady
+        ? 'preview pack manifest and deterministic smoke gate are in-tree'
+        : previewPackManifestReady
         ? 'preview pack manifest is in-tree'
         : 'preview pack manifest is incomplete',
-      'final clean-checkout release approval and publish evidence still pending'
+      previewPackManifestReady && previewPackSmokeReady
+        ? 'repeat clean-checkout preview-pack smoke before publication'
+        : 'final clean-checkout release approval and publish evidence still pending'
     ),
     buildRequirement(
       'hermes-specialized-skills',
       'Include Hermes specialized skills safely',
       'docs/HERMES-SETUP.md and skills/hermes-imports/SKILL.md',
-      fileExists(rootDir, 'docs/HERMES-SETUP.md') && fileExists(rootDir, 'skills/hermes-imports/SKILL.md')
-        ? 'in_progress'
-        : 'not_complete',
-      fileExists(rootDir, 'docs/HERMES-SETUP.md') && fileExists(rootDir, 'skills/hermes-imports/SKILL.md')
+      hermesArtifactsReady && previewPackSmokeReady ? 'current' : hermesArtifactsReady ? 'in_progress' : 'not_complete',
+      hermesArtifactsReady && previewPackSmokeReady
+        ? 'Hermes setup/import artifacts are covered by preview-pack smoke'
+        : hermesArtifactsReady
         ? 'Hermes setup and import skill are present'
         : 'Hermes setup/import artifacts missing',
-      'final preview-pack smoke and release review pending'
+      hermesArtifactsReady && previewPackSmokeReady
+        ? 'repeat preview-pack smoke before release review'
+        : 'final preview-pack smoke and release review pending'
     ),
     buildRequirement(
       'naming-and-plugin-publication',
@@ -437,7 +606,7 @@ function buildRequirements(rootDir, platformReport) {
       hasAgentShieldEnterpriseTracking(roadmap)
         ? 'in_progress'
         : 'not_complete',
-      'AgentShield enterprise PR evidence is mirrored in the GA roadmap',
+      agentShieldEnterpriseEvidence(roadmap),
       agentShieldEnterpriseGap(roadmap)
     ),
     buildRequirement(
@@ -447,28 +616,24 @@ function buildRequirements(rootDir, platformReport) {
       includesAll(roadmap, ['ECC-Tools PR #78', 'hosted promotion', 'announcementGate'])
         ? 'in_progress'
         : 'not_complete',
-      'billing announcement gate, hosted analysis lanes, AgentShield fleet-summary consumption, hosted finding evidence paths, and harness-route policy linking are mirrored in the GA roadmap',
-      'live Marketplace test-account readback, hosted promotion telemetry, and richer operator review UX pending'
+      eccToolsNextLevelEvidence(roadmap),
+      eccToolsNextLevelGap(roadmap)
     ),
     buildRequirement(
       'legacy-salvage',
       'Audit, prune, or attach legacy work',
       'docs/stale-pr-salvage-ledger.md and legacy inventory',
-      hasLegacySalvageTracking({ stalePrSalvage, legacyInventory, roadmap })
-        ? 'in_progress'
-        : 'not_complete',
-      'legacy salvage ledger and ITO-55 tracking are present',
-      'final translation/manual-review tail remains'
+      legacySalvageStatus(legacyContext),
+      legacySalvageEvidence(legacyContext),
+      legacySalvageGap(legacyContext)
     ),
     buildRequirement(
       'linear-roadmap-and-progress',
       'Keep Linear roadmap detailed and progress tracking synchronized',
       'Linear project mirror plus progress-sync contract',
-      includesAll(roadmap, ['ITO-44', 'ITO-59', 'Linear']) && includesAll(progressSync, ['GitHub', 'Linear', 'handoff', 'repo roadmap'])
-        ? 'in_progress'
-        : 'not_complete',
-      'repo mirror and progress-sync contract are present',
-      'recurring Linear status sync and productized realtime sync remain pending'
+      linearProgressStatus({ roadmap, progressSync }),
+      linearProgressEvidence({ roadmap, progressSync }),
+      linearProgressGap({ roadmap, progressSync })
     ),
     buildRequirement(
       'observability-for-self-use',
@@ -486,17 +651,15 @@ function buildRequirements(rootDir, platformReport) {
     buildRequirement(
       'supply-chain-local-protection',
       'Keep Mini Shai-Hulud/TanStack protection loop current',
-      'supply-chain watch plus runbook',
+      'supply-chain watch plus runbook plus AgentShield package-manager hardening',
       includesAll(supplyChainRunbook, ['TanStack', 'Mini Shai-Hulud', 'scan-supply-chain-iocs.js', 'supply-chain-advisory-sources.js'])
         && includesAll(supplyChainWorkflow, ['supply-chain-advisory-sources.js', 'supply-chain-advisory-sources.json'])
         && scripts['security:advisory-sources'] === 'node scripts/ci/supply-chain-advisory-sources.js'
         && fileExists(rootDir, '.github/workflows/supply-chain-watch.yml')
         ? 'current'
         : 'in_progress',
-      scripts['security:advisory-sources'] === 'node scripts/ci/supply-chain-advisory-sources.js'
-        ? 'scheduled supply-chain watch now emits IOC and advisory-source refresh artifacts'
-        : 'scheduled supply-chain watch or advisory-source command is missing',
-      'Linear status synchronization remains ITO-57 follow-up after each significant merge batch'
+      supplyChainLocalProtectionEvidence({ roadmap, scripts }),
+      supplyChainLocalProtectionGap({ roadmap, scripts })
     ),
   ];
 }
@@ -549,8 +712,8 @@ function buildReport(options) {
     top_actions: topActions,
     next_work_order: [
       'Regenerate this dashboard from the final release commit before publication evidence is recorded.',
-      'Continue ITO-57 with Linear status synchronization for the scheduled supply-chain watch advisory-source report.',
-      'Advance ECC Tools live Marketplace test-account readback before publishing native-payments announcement copy.',
+      'Repeat ITO-57 Linear/project status sync after the next significant merge batch or advisory-source refresh.',
+      'Complete ECC Tools Marketplace purchase/webhook readback, then run preflight and the live announcement gate before publishing native-payments copy.',
       'Resume ITO-45, ITO-46, and ITO-56 only after the generated dashboard and final release gates are refreshed.',
     ],
   };
