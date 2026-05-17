@@ -478,6 +478,7 @@ describe("capability cli", () => {
   };
   type ImageDescribeParams = {
     filePath?: string;
+    mediaUrl?: string;
     model?: unknown;
     prompt?: unknown;
     provider?: unknown;
@@ -1124,6 +1125,26 @@ describe("capability cli", () => {
     expect(outputs[0]?.kind).toBe("image.description");
   });
 
+  it("keeps image describe HTTP URLs as URLs", async () => {
+    await runRegisteredCli({
+      register: registerCapabilityCli as (program: Command) => void,
+      argv: [
+        "capability",
+        "image",
+        "describe",
+        "--file",
+        "https://httpbin.org/image/png",
+        "--json",
+      ],
+    });
+
+    const describeCall = imageDescribeCall();
+    expect(describeCall?.filePath).toBe("https://httpbin.org/image/png");
+    const output = firstJsonOutput();
+    const outputs = output?.outputs as Array<Record<string, unknown>>;
+    expect(outputs[0]?.path).toBe("https://httpbin.org/image/png");
+  });
+
   it("passes image describe prompts through media understanding", async () => {
     await runRegisteredCli({
       register: registerCapabilityCli as (program: Command) => void,
@@ -1145,6 +1166,26 @@ describe("capability cli", () => {
     expect(path.basename(describeCall?.filePath ?? "")).toBe("photo.jpg");
     expect(describeCall?.prompt).toBe("Read the menu text");
     expect(describeCall?.timeoutMs).toBe(90000);
+  });
+
+  it("keeps image describe URL files as remote media references", async () => {
+    await runRegisteredCli({
+      register: registerCapabilityCli as (program: Command) => void,
+      argv: [
+        "capability",
+        "image",
+        "describe",
+        "--file",
+        "https://example.com/photo.png",
+        "--json",
+      ],
+    });
+
+    const describeCall = imageDescribeCall();
+    expect(describeCall?.filePath).toBe("https://example.com/photo.png");
+    expect(describeCall?.mediaUrl).toBe("https://example.com/photo.png");
+    const outputs = firstJsonOutput()?.outputs as Array<Record<string, unknown>>;
+    expect(outputs[0]?.path).toBe("https://example.com/photo.png");
   });
 
   it("uses the explicit media-understanding provider for image describe model overrides", async () => {
@@ -1175,6 +1216,51 @@ describe("capability cli", () => {
     expect(mocks.describeImageFile).not.toHaveBeenCalled();
     expect(firstJsonOutput()?.provider).toBe("ollama");
     expect(firstJsonOutput()?.model).toBe("gpt-4.1-mini");
+  });
+
+  it("keeps explicit-model image describe URL files as remote media references", async () => {
+    await runRegisteredCli({
+      register: registerCapabilityCli as (program: Command) => void,
+      argv: [
+        "capability",
+        "image",
+        "describe",
+        "--file",
+        "https://example.com/photo.png",
+        "--model",
+        "ollama/qwen2.5vl:7b",
+        "--json",
+      ],
+    });
+
+    const describeCall = firstImageDescribeWithModelCall();
+    expect(describeCall?.filePath).toBe("https://example.com/photo.png");
+    expect(describeCall?.mediaUrl).toBe("https://example.com/photo.png");
+    expect(mocks.describeImageFile).not.toHaveBeenCalled();
+    const outputs = firstJsonOutput()?.outputs as Array<Record<string, unknown>>;
+    expect(outputs[0]?.path).toBe("https://example.com/photo.png");
+  });
+
+  it("keeps explicit-model image describe HTTP URLs as URLs", async () => {
+    await runRegisteredCli({
+      register: registerCapabilityCli as (program: Command) => void,
+      argv: [
+        "capability",
+        "image",
+        "describe",
+        "--file",
+        "https://httpbin.org/image/png",
+        "--model",
+        "minimax-cn/MiniMax-VL-01",
+        "--json",
+      ],
+    });
+
+    const describeCall = firstImageDescribeWithModelCall();
+    expect(describeCall?.filePath).toBe("https://httpbin.org/image/png");
+    expect(describeCall?.provider).toBe("minimax-cn");
+    expect(describeCall?.model).toBe("MiniMax-VL-01");
+    expect(mocks.describeImageFile).not.toHaveBeenCalled();
   });
 
   it("passes describe-many prompts to each image", async () => {
@@ -2254,6 +2340,7 @@ describe("capability cli", () => {
         commandName: "infer web search",
         targetIds,
         allowedPaths,
+        providerOverrides: { webSearch: "tavily" },
         runtime: mocks.runtime,
       }),
     );
@@ -2334,6 +2421,7 @@ describe("capability cli", () => {
         commandName: "infer web fetch",
         targetIds,
         allowedPaths,
+        providerOverrides: { webFetch: "firecrawl" },
         runtime: mocks.runtime,
       }),
     );
