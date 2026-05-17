@@ -179,6 +179,61 @@ public class MonitorCheck
     public string? UpdatedAt { get; set; }
 }
 
+/// <summary>
+/// Per-field diff entry returned for monitors that requested JSON
+/// extraction. The keys on <see cref="MonitorPageDiff.Json"/> (when used
+/// in JSON or mixed mode) are field paths in the extracted JSON; the
+/// values describe what changed between the previous and current run.
+/// </summary>
+public class MonitorJsonFieldDiff
+{
+    [JsonPropertyName("previous")]
+    public object? Previous { get; set; }
+
+    [JsonPropertyName("current")]
+    public object? Current { get; set; }
+}
+
+/// <summary>
+/// Diff payload returned alongside a monitor page when its scrape
+/// produced a change. The shape depends on what the monitor's formats
+/// asked for:
+/// <list type="bullet">
+///   <item>Markdown-only monitors: <see cref="Text"/> holds the unified
+///   diff and <see cref="Json"/> holds the parseDiff AST
+///   (<c>{ "files": [...] }</c>).</item>
+///   <item>JSON-extraction monitors: <see cref="Json"/> holds the
+///   per-field <see cref="MonitorJsonFieldDiff"/> map and
+///   <see cref="Text"/> is null.</item>
+///   <item>Mixed (JSON + git-diff) monitors: both fields are populated:
+///   <see cref="Json"/> is the per-field diff and <see cref="Text"/>
+///   is the markdown sidecar.</item>
+/// </list>
+/// <see cref="Json"/> is exposed as <see cref="object"/> because its
+/// concrete shape depends on the monitor mode; callers should
+/// re-deserialize with <c>System.Text.Json</c> into either a
+/// <c>Dictionary&lt;string, MonitorJsonFieldDiff&gt;</c> (JSON / mixed
+/// mode) or a wrapper containing the <c>files</c> array (markdown mode).
+/// </summary>
+public class MonitorPageDiff
+{
+    [JsonPropertyName("text")]
+    public string? Text { get; set; }
+
+    [JsonPropertyName("json")]
+    public object? Json { get; set; }
+}
+
+/// <summary>
+/// Snapshot of the current JSON extraction at this run. Present on JSON
+/// and mixed-mode monitors; absent for markdown-only monitors.
+/// </summary>
+public class MonitorPageSnapshot
+{
+    [JsonPropertyName("json")]
+    public Dictionary<string, object>? Json { get; set; }
+}
+
 public class MonitorCheckPage
 {
     [JsonPropertyName("id")]
@@ -209,7 +264,10 @@ public class MonitorCheckPage
     public object? Metadata { get; set; }
 
     [JsonPropertyName("diff")]
-    public object? Diff { get; set; }
+    public MonitorPageDiff? Diff { get; set; }
+
+    [JsonPropertyName("snapshot")]
+    public MonitorPageSnapshot? Snapshot { get; set; }
 
     [JsonPropertyName("createdAt")]
     public string? CreatedAt { get; set; }

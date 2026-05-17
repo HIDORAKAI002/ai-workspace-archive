@@ -31,7 +31,8 @@ combined final-gate rerun on current `main`, see
 [`publication-evidence-2026-05-16.md`](publication-evidence-2026-05-16.md).
 For the May 17 queue cleanup, Japanese localization merge, Dependabot
 TypeScript and Node type merges, post-merge ja-JP lint repair, Mini
-Shai-Hulud/TanStack local protection recheck, and current operator dashboard
+Shai-Hulud/TanStack local protection recheck, legacy-tail and Linear progress
+routing, deterministic preview-pack smoke gate, and current operator dashboard
 refresh, see
 [`publication-evidence-2026-05-17.md`](publication-evidence-2026-05-17.md).
 For the operator-facing prompt-to-artifact readiness dashboard from the same
@@ -78,12 +79,13 @@ Record the exact commit SHA and command output before any publication action:
 | Evidence | Command | Required result | Recorded output |
 | --- | --- | --- | --- |
 | Clean release branch | `git status --short --branch` | On intended release commit; no unrelated files | Pending final strict clean-checkout release pass; `publication-evidence-2026-05-17.md` records current `main` with unrelated untracked `docs/drafts/` |
+| Preview-pack smoke | `npm run preview-pack:smoke` | Preview pack artifacts, Hermes boundary, final verification command list, and publication blockers pass | `publication-evidence-2026-05-17.md`: ready yes, digest `dfb1ed014607`, 5 passed, 0 failed; repeat in a final strict clean-checkout release pass |
 | Harness audit | `npm run harness:audit -- --format json` | 70/70 passing | `publication-evidence-2026-05-17.md`: 70/70 |
 | Adapter scorecard | `npm run harness:adapters -- --check` | PASS | `publication-evidence-2026-05-16.md`: PASS, 11 adapters |
 | Observability readiness | `npm run observability:ready` | 21/21 passing | `publication-evidence-2026-05-17.md`: 21/21, ready yes |
 | Release safety gate | `npm run observability:ready -- --format json` | Release Safety category passing with publication readiness, supply-chain, workflow security, package surface, and release-surface evidence | `publication-evidence-2026-05-13-post-hardening.md`: Release Safety 3/3 |
 | Supply-chain verification | `npm audit --json`; `npm audit signatures`; `cd ecc2 && cargo audit -q`; Dependabot alerts; GitGuardian Security Checks | 0 vulnerabilities/alerts, registry signatures verified, GitGuardian clean | `publication-evidence-2026-05-17.md`: npm registry signatures and attestations verified, 0 high-or-higher npm vulnerabilities, supply-chain IOC scan clean |
-| Root suite | `node tests/run-all.js` | 0 failures | `publication-evidence-2026-05-17.md`: `npm test` passed 2473/2473, 0 failed |
+| Root suite | `node tests/run-all.js` | 0 failures | `publication-evidence-2026-05-17.md`: `npm test` passed 2487/2487, 0 failed |
 | Markdown lint | `npx markdownlint-cli '**/*.md' --ignore node_modules` | 0 failures | `publication-evidence-2026-05-17.md`: passed after ja-JP autonomous-loop anchor repair |
 | Package surface | `node tests/scripts/npm-publish-surface.test.js` | 0 failures; no Python bytecode in npm tarball | `2/2` passed in May 12 evidence pass |
 | Release surface | `node tests/docs/ecc2-release-surface.test.js` | 0 failures | `publication-evidence-2026-05-16.md`: 20/20 passed |
@@ -91,7 +93,7 @@ Record the exact commit SHA and command output before any publication action:
 | Queue baseline | `gh pr list` / `gh issue list` across trunk, AgentShield, JARVIS, ECC Tools, and ECC website | Under 20 open PRs and under 20 open issues | `publication-evidence-2026-05-17.md`: platform audit ready, 0 open PRs and 0 open issues across checked repos |
 | Discussion baseline | `node scripts/discussion-audit.js --json` | No unmanaged active discussion queue and no answerable Q&A missing an accepted answer | `publication-evidence-2026-05-15.md`: 58 trunk discussions, 0 without maintainer touch; other tracked repos disabled or 0 |
 | Linear roadmap | Linear project and issue readback | Detailed roadmap exists with release, security, AgentShield, ECC Tools, legacy, and observability lanes | `publication-evidence-2026-05-15.md`: project and 16 issue lanes recorded |
-| Operator readiness dashboard | `npm run operator:dashboard -- --allow-untracked docs/drafts/ --write docs/releases/2.0.0-rc.1/operator-readiness-dashboard-2026-05-17.md` | Current queue state mapped to macro-goal deliverables and incomplete gaps | `operator-readiness-dashboard-2026-05-17.md`: regenerated from `afe0ae8d`, 0 open PRs, 0 open issues, 0 discussion gaps |
+| Operator readiness dashboard | `npm run operator:dashboard -- --json --allow-untracked docs/drafts/` | Current queue state mapped to macro-goal deliverables and incomplete gaps | `publication-evidence-2026-05-17.md`: generated from `27dc2918`, platform ready true, dashboard ready true, 0 open PRs, 0 open issues, 0 discussion gaps |
 
 ## Do Not Publish If
 

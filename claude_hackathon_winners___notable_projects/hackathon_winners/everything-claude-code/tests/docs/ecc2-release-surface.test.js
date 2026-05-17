@@ -171,6 +171,7 @@ test('preview pack manifest assembles release, Hermes, and publication gates', (
     'docs/HERMES-SETUP.md',
     'skills/hermes-imports/SKILL.md',
     'docs/architecture/harness-adapter-compliance.md',
+    'scripts/preview-pack-smoke.js',
     'docs/releases/2.0.0-rc.1/publication-readiness.md',
     'docs/releases/2.0.0-rc.1/naming-and-publication-matrix.md',
   ]) {
@@ -189,6 +190,7 @@ test('preview pack manifest assembles release, Hermes, and publication gates', (
 
   assert.ok(manifest.includes('no raw workspace exports'));
   assert.ok(manifest.includes('Final Verification Commands'));
+  assert.ok(manifest.includes('npm run preview-pack:smoke'));
   assert.ok(manifest.includes('Reference-Inspired Adapter Direction'));
 });
 
@@ -263,6 +265,8 @@ test('publication readiness checklist gates public release actions on evidence',
   }
 
   assert.ok(source.includes('publication-evidence-2026-05-15.md'));
+  assert.ok(source.includes('Preview-pack smoke'));
+  assert.ok(source.includes('npm run preview-pack:smoke'));
   assert.ok(may15Evidence.includes('PR #1921'));
   assert.ok(may15Evidence.includes('PR #1933'));
   assert.ok(may15Evidence.includes('PR #1934'));

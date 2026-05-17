@@ -91,6 +91,42 @@ pub struct MonitorCheck {
     pub updated_at: String,
 }
 
+/// Per-field diff entry returned for monitors that requested JSON extraction.
+#[derive(Deserialize, Serialize, Debug, Clone)]
+pub struct MonitorJsonFieldDiff {
+    pub previous: Value,
+    pub current: Value,
+}
+
+/// Diff payload returned alongside a monitor page when its scrape produced
+/// a change. The shape depends on what the monitor's formats asked for:
+///
+/// - markdown-only monitors  → `text` is the unified diff and `json` is
+///   the `parseDiff` AST (a `{ "files": [...] }` object).
+/// - JSON-extraction monitors → `json` is the per-field
+///   `{ previous, current }` map and `text` is absent.
+/// - mixed (JSON + git-diff) monitors → both `text` (markdown sidecar)
+///   and `json` (field-level diff) are present.
+///
+/// `json` is kept as a raw [`serde_json::Value`] so callers can decode it
+/// into either shape (`HashMap<String, MonitorJsonFieldDiff>` for the
+/// field-diff case, or a `{ files: [...] }` struct for the parseDiff AST).
+#[derive(Deserialize, Serialize, Debug, Clone)]
+pub struct MonitorPageDiff {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub text: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub json: Option<Value>,
+}
+
+/// Snapshot of the current JSON extraction at this run. Present on JSON
+/// and mixed-mode monitors; absent for markdown-only.
+#[derive(Deserialize, Serialize, Debug, Clone)]
+pub struct MonitorPageSnapshot {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub json: Option<Value>,
+}
+
 #[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct MonitorCheckPage {
@@ -103,7 +139,8 @@ pub struct MonitorCheckPage {
     pub status_code: Option<u16>,
     pub error: Option<String>,
     pub metadata: Option<Value>,
-    pub diff: Option<Value>,
+    pub diff: Option<MonitorPageDiff>,
+    pub snapshot: Option<MonitorPageSnapshot>,
     pub created_at: String,
 }
 

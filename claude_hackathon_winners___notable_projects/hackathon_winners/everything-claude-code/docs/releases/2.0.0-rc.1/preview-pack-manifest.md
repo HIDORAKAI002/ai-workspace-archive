@@ -16,13 +16,14 @@ surfaces, or posting announcements.
 | `docs/architecture/harness-adapter-compliance.md` | Adapter matrix and scorecard | Verified by `npm run harness:adapters -- --check` |
 | `docs/architecture/observability-readiness.md` | Local operator-readiness gate | Verified by `npm run observability:ready` |
 | `docs/architecture/progress-sync-contract.md` | GitHub, Linear, handoff, roadmap, and work-item sync boundary | Checked by `node scripts/platform-audit.js --format json --allow-untracked docs/drafts/` |
+| `scripts/preview-pack-smoke.js` | Deterministic preview-pack smoke gate | Verified by `npm run preview-pack:smoke` |
 | `docs/releases/2.0.0-rc.1/release-notes.md` | GitHub release copy source | Must be refreshed with final live release/package/plugin URLs before publication |
 | `docs/releases/2.0.0-rc.1/quickstart.md` | Clone-to-first-workflow path | Covers clone, install, verify, first skill, and harness switch |
 | `docs/releases/2.0.0-rc.1/launch-checklist.md` | Operator launch checklist | Must remain approval-gated for release, package, plugin, and announcement actions |
 | `docs/releases/2.0.0-rc.1/publication-readiness.md` | Release gate | Requires fresh evidence from the exact release commit |
 | `docs/releases/2.0.0-rc.1/publication-evidence-2026-05-15.md` | Current May 15 queue, roadmap, security, supply-chain watch, no-lifecycle CI install hardening, AgentShield #86 evidence-pack provenance, ECC Tools billing-gate, Actions cache purge, and `ecc2` test evidence through PR #1941 | Must be superseded by a final clean-checkout evidence file before real publication |
 | `docs/releases/2.0.0-rc.1/publication-evidence-2026-05-16.md` | Current May 16/17 queue cleanup, recsys skill merge, GateGuard triage, PR #1947 supply-chain protection, AgentShield #87 plugin-cache confidence evidence, AgentShield #88 evidence-pack inspect/readback, AgentShield #89 evidence-pack fleet routing, AgentShield #90 fleet review items, AgentShield #91 policy export, AgentShield #92 policy promotion, ECC-Tools #76 fleet-summary consumption, ECC-Tools #77 hosted finding evidence paths, ECC-Tools #78 harness policy-route linking, dashboard refresh, and combined Node/Rust/release-surface gate evidence through the May 16 mirror | Must still be repeated from a strict clean checkout before real publication |
-| `docs/releases/2.0.0-rc.1/publication-evidence-2026-05-17.md` | Current May 17 queue-zero state, Japanese localization merge, Dependabot TypeScript and Node type merges, post-merge ja-JP lint repair, Mini Shai-Hulud/TanStack protection recheck, npm audit/signature checks, operator dashboard refresh, Linear sync, and GitHub CI evidence for `99dd6ac0` | Current strongest readiness snapshot; must still be repeated from a strict clean checkout before real publication |
+| `docs/releases/2.0.0-rc.1/publication-evidence-2026-05-17.md` | Current May 17 queue-zero state, Japanese localization merge, Dependabot TypeScript and Node type merges, post-merge ja-JP lint repair, Mini Shai-Hulud/TanStack protection recheck, npm audit/signature checks, legacy and Linear progress routing, deterministic preview-pack smoke, operator dashboard refresh, Linear sync, and GitHub CI evidence for `27dc2918` | Current strongest readiness snapshot; must still be repeated from a strict clean checkout before real publication |
 | `docs/releases/2.0.0-rc.1/operator-readiness-dashboard-2026-05-17.md` | Current prompt-to-artifact operator dashboard | Shows PR/issue/discussion/platform/supply-chain gates current and publication, plugin, billing, AgentShield, ECC Tools, legacy, and Linear productization gaps still open |
 | `docs/releases/2.0.0-rc.1/naming-and-publication-matrix.md` | Naming, slug, and publication-path decision record | Keeps `Everything Claude Code / ECC`, npm `ecc-universal`, and plugin slug `ecc` for rc.1 |
 | `docs/releases/2.0.0-rc.1/x-thread.md` | X launch draft | Must replace placeholders with live URLs after release/package/plugin publication |
@@ -69,6 +70,7 @@ Run these from the exact release commit before publication:
 ```bash
 git status --short --branch
 node scripts/platform-audit.js --format json --allow-untracked docs/drafts/
+npm run preview-pack:smoke
 npm run harness:adapters -- --check
 npm run harness:audit -- --format json
 npm run observability:ready

@@ -122,7 +122,9 @@ porting.
 ## Remaining Manual-Review Backlog
 
 The remaining plausibly useful backlog is translation/localization work that is
-unsafe to auto-port without language-owner review:
+unsafe to auto-port without language-owner review. This tail is attached to
+Linear ITO-55 and is not a release-blocking salvage task; release work should
+only verify that the backlog remains recorded and excluded from blind imports:
 
 - #1687 zh-CN localization tail
 - #1609 Persian README translation
