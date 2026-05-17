@@ -2377,6 +2377,87 @@ describe("openai transport stream", () => {
     }
   });
 
+  it("keeps distinct overlong Copilot Responses replay item ids distinct", () => {
+    const sharedToolItemPrefix = "iVec" + "A".repeat(160);
+    const firstToolCallId = `call_first|${sharedToolItemPrefix}Aa`;
+    const secondToolCallId = `call_second|${sharedToolItemPrefix}BB`;
+    const params = buildOpenAIResponsesParams(
+      {
+        id: "gpt-5.5",
+        name: "GPT-5.5",
+        api: "openai-responses",
+        provider: "github-copilot",
+        baseUrl: "https://api.githubcopilot.com",
+        reasoning: true,
+        input: ["text"],
+        cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+        contextWindow: 200000,
+        maxTokens: 8192,
+      } satisfies Model<"openai-responses">,
+      {
+        systemPrompt: "system",
+        messages: [
+          {
+            role: "assistant",
+            api: "openai-responses",
+            provider: "github-copilot",
+            model: "gpt-5.5",
+            usage: {
+              input: 0,
+              output: 0,
+              cacheRead: 0,
+              cacheWrite: 0,
+              totalTokens: 0,
+              cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 },
+            },
+            stopReason: "toolUse",
+            timestamp: 1,
+            content: [
+              { type: "toolCall", id: firstToolCallId, name: "read", arguments: { path: "a" } },
+              { type: "toolCall", id: secondToolCallId, name: "read", arguments: { path: "b" } },
+            ],
+          },
+          {
+            role: "toolResult",
+            toolCallId: firstToolCallId,
+            toolName: "read",
+            content: [{ type: "text", text: "a" }],
+            isError: false,
+            timestamp: 2,
+          },
+          {
+            role: "toolResult",
+            toolCallId: secondToolCallId,
+            toolName: "read",
+            content: [{ type: "text", text: "b" }],
+            isError: false,
+            timestamp: 3,
+          },
+          { role: "user", content: "continue", timestamp: 4 },
+        ],
+        tools: [],
+      } as never,
+      { sessionId: "session-123" },
+    ) as {
+      input?: Array<{ type?: string; id?: string; call_id?: string }>;
+    };
+
+    const functionCalls = params.input?.filter((item) => item.type === "function_call") ?? [];
+    const functionOutputs =
+      params.input?.filter((item) => item.type === "function_call_output") ?? [];
+    expect(functionCalls).toHaveLength(2);
+    expect(functionOutputs).toHaveLength(2);
+    expect(functionCalls.map((item) => item.id)).toEqual([
+      expect.stringMatching(/^fc_/),
+      expect.stringMatching(/^fc_/),
+    ]);
+    expect(new Set(functionCalls.map((item) => item.id)).size).toBe(2);
+    for (const item of functionCalls) {
+      expect(item.id?.length).toBeLessThanOrEqual(64);
+    }
+    expect(functionOutputs.map((item) => item.call_id)).toEqual(["call_first", "call_second"]);
+  });
+
   it("adds minimal user input for Codex responses when only the system prompt is present", () => {
     const params = buildOpenAIResponsesParams(
       {
@@ -2849,6 +2930,53 @@ describe("openai transport stream", () => {
     ) as { tool_choice?: string };
 
     expect(params.tool_choice).toBe("required");
+  });
+
+  it("sorts Responses tools by name for stable prompt-cache payloads", () => {
+    const model = {
+      id: "gpt-5.4",
+      name: "GPT-5.4",
+      api: "openai-responses",
+      provider: "openai",
+      baseUrl: "https://api.openai.com/v1",
+      reasoning: true,
+      input: ["text"],
+      cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+      contextWindow: 200000,
+      maxTokens: 8192,
+    } satisfies Model<"openai-responses">;
+    const zetaTool = {
+      name: "zeta",
+      description: "Z",
+      parameters: { type: "object", properties: {}, additionalProperties: false },
+    };
+    const alphaTool = {
+      name: "alpha",
+      description: "A",
+      parameters: { type: "object", properties: {}, additionalProperties: false },
+    };
+
+    const first = buildOpenAIResponsesParams(
+      model,
+      {
+        systemPrompt: "system",
+        messages: [],
+        tools: [zetaTool, alphaTool],
+      } as never,
+      { sessionId: "session-123" } as never,
+    ) as { tools?: Array<{ name?: string }> };
+    const second = buildOpenAIResponsesParams(
+      model,
+      {
+        systemPrompt: "system",
+        messages: [],
+        tools: [alphaTool, zetaTool],
+      } as never,
+      { sessionId: "session-123" } as never,
+    ) as { tools?: Array<{ name?: string }> };
+
+    expect(first.tools?.map((tool) => tool.name)).toEqual(["alpha", "zeta"]);
+    expect(first.tools).toEqual(second.tools);
   });
 
   it("falls back to strict:false when a native OpenAI tool schema is not strict-compatible", () => {
@@ -3455,6 +3583,49 @@ describe("openai transport stream", () => {
     expect(params).not.toHaveProperty("reasoning_effort");
   });
 
+  it("maps together thinking format to reasoning enabled", () => {
+    const baseModel = {
+      id: "moonshotai/Kimi-K2.5",
+      name: "Kimi K2.5",
+      api: "openai-completions",
+      provider: "together",
+      baseUrl: "https://api.together.xyz/v1",
+      reasoning: true,
+      input: ["text"],
+      cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+      contextWindow: 262144,
+      maxTokens: 32768,
+      compat: {
+        thinkingFormat: "together",
+        supportsReasoningEffort: true,
+      },
+    } as unknown as Model<"openai-completions">;
+    const context = {
+      systemPrompt: "system",
+      messages: [],
+      tools: [],
+    } as never;
+
+    const enabled = buildOpenAICompletionsParams(baseModel, context, {
+      reasoning: "medium",
+    } as never) as {
+      max_completion_tokens?: unknown;
+      max_tokens?: unknown;
+      reasoning?: unknown;
+      reasoning_effort?: unknown;
+    };
+    const disabled = buildOpenAICompletionsParams(baseModel, context, {
+      reasoning: "off",
+    } as never) as { reasoning?: unknown; reasoning_effort?: unknown };
+
+    expect(enabled.max_tokens).toBe(32768);
+    expect(enabled).not.toHaveProperty("max_completion_tokens");
+    expect(enabled.reasoning).toEqual({ enabled: true });
+    expect(enabled.reasoning_effort).toBe("medium");
+    expect(disabled.reasoning).toEqual({ enabled: false });
+    expect(disabled).not.toHaveProperty("reasoning_effort");
+  });
+
   it("omits unsupported disabled reasoning for completions providers", () => {
     const params = buildOpenAICompletionsParams(
       {
@@ -3683,6 +3854,54 @@ describe("openai transport stream", () => {
 
     expect(disabled.prompt_cache_key).toBeUndefined();
     expect(notOptedIn.prompt_cache_key).toBeUndefined();
+  });
+
+  it("sorts Chat Completions tools by function name for stable prompt-cache payloads", () => {
+    const model = {
+      id: "custom-model",
+      name: "Custom Model",
+      api: "openai-completions",
+      provider: "custom-cpa",
+      baseUrl: "https://proxy.example.com/v1",
+      compat: { supportsPromptCacheKey: true },
+      reasoning: false,
+      input: ["text"],
+      cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+      contextWindow: 32768,
+      maxTokens: 8192,
+    } as unknown as Model<"openai-completions">;
+    const zetaTool = {
+      name: "zeta",
+      description: "Z",
+      parameters: { type: "object", properties: {} },
+    };
+    const alphaTool = {
+      name: "alpha",
+      description: "A",
+      parameters: { type: "object", properties: {} },
+    };
+
+    const first = buildOpenAICompletionsParams(
+      model,
+      {
+        systemPrompt: "system",
+        messages: [],
+        tools: [zetaTool, alphaTool],
+      } as never,
+      { sessionId: "session-123" },
+    ) as { tools?: Array<{ function?: { name?: string } }> };
+    const second = buildOpenAICompletionsParams(
+      model,
+      {
+        systemPrompt: "system",
+        messages: [],
+        tools: [alphaTool, zetaTool],
+      } as never,
+      { sessionId: "session-123" },
+    ) as { tools?: Array<{ function?: { name?: string } }> };
+
+    expect(first.tools?.map((tool) => tool.function?.name)).toEqual(["alpha", "zeta"]);
+    expect(first.tools).toEqual(second.tools);
   });
 
   it("disables developer-role-only compat defaults for configured custom proxy completions providers", () => {
