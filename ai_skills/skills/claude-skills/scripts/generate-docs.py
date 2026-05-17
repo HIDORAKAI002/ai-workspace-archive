@@ -19,6 +19,9 @@ DOMAINS = {
     "ra-qm-team": ("Regulatory & Quality", 7, ":material-shield-check-outline:", "ra-qm-skills"),
     "business-growth": ("Business & Growth", 8, ":material-trending-up:", "business-growth-skills"),
     "finance": ("Finance", 9, ":material-calculator-variant:", "finance-skills"),
+    "productivity": ("Productivity", 10, ":material-lightning-bolt-outline:", "productivity-skills"),
+    "marketing": ("Marketing (Top-Level)", 11, ":material-web:", "marketing-top-level-skills"),
+    "research": ("Research", 12, ":material-magnify:", "research-skills"),
 }
 
 # Skills to skip (nested assets, samples, etc.)
@@ -191,6 +194,9 @@ DOMAIN_SEO_SUFFIX = {
     "ra-qm-team": "Agent Skill for Compliance",
     "business-growth": "Agent Skill for Growth",
     "finance": "Agent Skill for Finance",
+    "productivity": "Agent Skill for Personal Productivity",
+    "marketing": "Agent Skill for Landing Pages",
+    "research": "Agent Skill for Research Workflows",
 }
 
 # Domain-specific description context for pages without frontmatter descriptions
@@ -204,6 +210,9 @@ DOMAIN_SEO_CONTEXT = {
     "ra-qm-team": "regulatory and quality management agent skill for ISO 13485, MDR, FDA, and GDPR compliance",
     "business-growth": "business growth agent skill and Claude Code plugin for customer success, sales, and revenue ops",
     "finance": "finance agent skill and Claude Code plugin for DCF valuation, budgeting, and SaaS metrics",
+    "productivity": "personal productivity agent skill and Claude Code plugin for brain-dump capture, email triage, and reflection",
+    "marketing": "landing-page generator agent skill and Claude Code plugin for single-file HTML output with 4 design styles",
+    "research": "research orchestrator agent skill and Claude Code plugin for hybrid routing across pulse, litreview, grants, dossier, patent, syllabus, and notebooklm specialists",
 }
 
 

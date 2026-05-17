@@ -1,6 +1,6 @@
 ---
 title: "Git Worktree Manager — Agent Skill for Codex & OpenClaw"
-description: "Git Worktree Manager. Agent skill for Claude Code, Codex CLI, Gemini CLI, OpenClaw."
+description: "Run parallel feature work safely with Git worktrees. Standardizes branch isolation, port allocation, environment sync, and cleanup so each worktree. Agent skill for Claude Code, Codex CLI, Gemini CLI, OpenClaw."
 ---
 
 # Git Worktree Manager

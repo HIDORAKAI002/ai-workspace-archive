@@ -1,6 +1,6 @@
 ---
 title: "Contract & Proposal Writer — Agent Skill for Growth"
-description: "Contract & Proposal Writer. Agent skill for Claude Code, Codex CLI, Gemini CLI, OpenClaw."
+description: "Generate professional, jurisdiction-aware business documents: freelance contracts, project proposals, SOWs, NDAs, and MSAs. Structured Markdown. Agent skill for Claude Code, Codex CLI, Gemini CLI, OpenClaw."
 ---
 
 # Contract & Proposal Writer

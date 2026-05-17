@@ -1,6 +1,6 @@
 ---
 title: "Stripe Integration Expert — Agent Skill & Codex Plugin"
-description: "Stripe Integration Expert. Agent skill for Claude Code, Codex CLI, Gemini CLI, OpenClaw."
+description: "Production-grade Stripe integrations: subscriptions with trials and proration, one-time payments, usage-based billing, checkout sessions, idempotent. Agent skill for Claude Code, Codex CLI, Gemini CLI, OpenClaw."
 ---
 
 # Stripe Integration Expert

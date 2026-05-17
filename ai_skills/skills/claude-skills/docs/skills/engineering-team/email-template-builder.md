@@ -1,6 +1,6 @@
 ---
 title: "Email Template Builder — Agent Skill & Codex Plugin"
-description: "Email Template Builder. Agent skill for Claude Code, Codex CLI, Gemini CLI, OpenClaw."
+description: "Build complete transactional email systems: React Email templates, provider integration (Resend, Postmark, SendGrid, AWS SES), preview server, i18n. Agent skill for Claude Code, Codex CLI, Gemini CLI, OpenClaw."
 ---
 
 # Email Template Builder

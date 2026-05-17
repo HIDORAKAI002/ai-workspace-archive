@@ -1,6 +1,6 @@
 ---
 title: "MCP Server Builder — Agent Skill for Codex & OpenClaw"
-description: "MCP Server Builder. Agent skill for Claude Code, Codex CLI, Gemini CLI, OpenClaw."
+description: "Design and ship production-ready MCP (Model Context Protocol) servers from OpenAPI contracts instead of hand-written tool wrappers. Python and."
 ---
 
 # MCP Server Builder
