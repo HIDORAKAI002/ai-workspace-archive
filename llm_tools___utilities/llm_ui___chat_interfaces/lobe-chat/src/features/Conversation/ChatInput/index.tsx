@@ -8,7 +8,7 @@ import { type ReactNode } from 'react';
 import { memo, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { type ActionKeys } from '@/features/ChatInput';
+import type { ActionKeys, ChatInputFeature } from '@/features/ChatInput';
 import { ChatInputProvider, DesktopChatInput } from '@/features/ChatInput';
 import {
   type SendButtonHandler,
@@ -56,22 +56,18 @@ export interface ChatInputProps {
    */
   disableFollowUpVariant?: boolean;
   /**
-   * Disable the @ mention trigger and its placeholder hint
-   */
-  disableMention?: boolean;
-  /**
    * Disable enqueuing follow-up messages while the agent is streaming.
    * Hides the QueueTray and gates handleSend so Enter does not enqueue.
    */
   disableQueue?: boolean;
   /**
-   * Disable the / slash command trigger
-   */
-  disableSlash?: boolean;
-  /**
    * Extra action items to append to the ActionBar
    */
   extraActionItems?: ChatInputActionsProps['items'];
+  /**
+   * Chat input capability switches. Omitted capabilities keep the default enabled state.
+   */
+  feature?: ChatInputFeature;
   /**
    * Swap the action bar and send area for skeleton placeholders while
    * the underlying agent/session config is still hydrating. The editor
@@ -136,9 +132,8 @@ const ChatInput = memo<ChatInputProps>(
     actionBarStyle,
     allowExpand,
     disableFollowUpVariant,
-    disableMention,
     disableQueue,
-    disableSlash,
+    feature,
     leftActions = [],
     leftContent,
     rightActions = [],
@@ -340,8 +335,7 @@ const ChatInput = memo<ChatInputProps>(
         agentId={agentId}
         allowExpand={allowExpand}
         contextWindowMessages={contextWindowMessages}
-        disableMention={disableMention}
-        disableSlash={disableSlash}
+        feature={feature}
         getMessages={getMessages}
         leftActions={leftActions}
         mentionItems={mentionItems}

@@ -23,7 +23,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from nemoguardrails.guardrails.guardrails import Guardrails
+from nemoguardrails import Guardrails
 from nemoguardrails.guardrails.iorails import IORails
 from nemoguardrails.logging.explain import ExplainInfo
 from nemoguardrails.rails.llm.config import RailsConfig
@@ -90,7 +90,7 @@ class TestGuardrailsRouting:
 
         async with Guardrails(config=_content_safety_rails_config, verbose=False, use_iorails=False) as guardrails:
             # Content-safety config is supported by IORails, but use_iorails=False overrides
-            assert guardrails._has_only_iorails_flows()
+            assert IORails.can_handle(guardrails.config)
             assert isinstance(guardrails.rails_engine, LLMRails)
 
             # Set up mocks on the real (but uninitialized) LLMRails instance
@@ -141,7 +141,7 @@ class TestGuardrailsRouting:
         """
 
         async with Guardrails(config=_content_safety_rails_config, verbose=False, use_iorails=True) as guardrails:
-            assert guardrails._has_only_iorails_flows()
+            assert IORails.can_handle(guardrails.config)
             assert isinstance(guardrails.rails_engine, IORails)
 
             # Mock generate (sync) and generate_async on IORails
@@ -199,7 +199,7 @@ class TestGuardrailsRouting:
         )
 
         async with Guardrails(config=unsupported_config, verbose=False, use_iorails=True) as guardrails:
-            assert not guardrails._has_only_iorails_flows()
+            assert not IORails.can_handle(guardrails.config)
             assert isinstance(guardrails.rails_engine, LLMRails)
 
             # Set up mocks on the real (but uninitialized) LLMRails instance
@@ -294,6 +294,140 @@ class TestGuardrailsInit:
         guardrails = Guardrails(config=_content_safety_rails_config, use_iorails=True)
         assert isinstance(guardrails.rails_engine, IORails)
         mock_iorails_init.assert_called_once_with(_content_safety_rails_config)
+
+
+class TestIORailsUnsupportedReason:
+    """Direct tests for ``IORails.unsupported_reason`` and ``IORails.can_handle``."""
+
+    def test_returns_none_for_compatible_config(self, _content_safety_rails_config):
+        """Compatible config and no llm: IORails is usable, reason is None."""
+        assert IORails.unsupported_reason(_content_safety_rails_config, llm=None) is None
+
+    def test_llm_provided_returns_llm_reason(self, _content_safety_rails_config, mock_llm):
+        """Passing an llm is reported even when the config is IORails-compatible."""
+        reason = IORails.unsupported_reason(_content_safety_rails_config, llm=mock_llm)
+        assert reason == "an `llm` argument was provided; IORails does not accept a custom LLM"
+
+    def test_unsupported_rail_section_reports_offender(self):
+        """A rail section outside {input, output, config} (e.g. ``dialog``) is named in the reason."""
+        config = _make_iorails_config(rails={**_IORAILS_BASE_RAILS, "dialog": {}})
+        reason = IORails.unsupported_reason(config, llm=None)
+        assert reason == "config has rails outside the IORails-supported set: ['dialog']"
+
+    def test_unsupported_input_flow_reports_offender(self):
+        """An input flow outside the IORails-supported set is named in the reason."""
+        config = _make_iorails_config(
+            rails={
+                "input": {"flows": ["self check input"]},
+                "output": {"flows": ["content safety check output $model=content_safety"]},
+            },
+            extra_prompts=[{"task": "self_check_input", "content": "placeholder"}],
+        )
+        reason = IORails.unsupported_reason(config, llm=None)
+        assert reason == "config has unsupported input flows: ['self check input']"
+
+    def test_unsupported_output_flow_reports_offender(self):
+        """An output flow outside the IORails-supported set is named in the reason."""
+        config = _make_iorails_config(
+            rails={
+                "input": {"flows": ["content safety check input $model=content_safety"]},
+                "output": {"flows": ["self check output"]},
+            },
+            extra_prompts=[{"task": "self_check_output", "content": "placeholder"}],
+        )
+        reason = IORails.unsupported_reason(config, llm=None)
+        assert reason == "config has unsupported output flows: ['self check output']"
+
+    def test_llm_takes_precedence_over_config_issues(self):
+        """When both llm is provided and the config has unsupported flows, the llm
+        reason is reported first so the user fixes one issue at a time."""
+        config = _make_iorails_config(
+            rails={"input": {"flows": ["self check input"]}},
+            extra_prompts=[{"task": "self_check_input", "content": "placeholder"}],
+        )
+        reason = IORails.unsupported_reason(config, llm=MagicMock())
+        assert reason == "an `llm` argument was provided; IORails does not accept a custom LLM"
+
+    def test_can_handle_matches_reason_none(self, _content_safety_rails_config):
+        """``can_handle`` is a thin wrapper that returns True iff reason is None."""
+        assert IORails.can_handle(_content_safety_rails_config, llm=None) is True
+        assert IORails.unsupported_reason(_content_safety_rails_config, llm=None) is None
+
+
+class TestRequireIORails:
+    """Tests for the ``require_iorails`` kwarg on ``Guardrails.__init__``."""
+
+    @patch("nemoguardrails.guardrails.guardrails.log")
+    @patch.object(IORails, "__init__", return_value=None)
+    def test_compatible_config_succeeds_silently(self, mock_iorails_init, mock_log, _content_safety_rails_config):
+        """require_iorails=True with a compatible config selects IORails and emits no warning."""
+        guardrails = Guardrails(config=_content_safety_rails_config, use_iorails=True, require_iorails=True)
+        assert isinstance(guardrails.rails_engine, IORails)
+        mock_log.warning.assert_not_called()
+
+    def test_with_llm_raises_value_error(self, _content_safety_rails_config, mock_llm):
+        """require_iorails=True + llm provided => ValueError naming the llm reason."""
+        with pytest.raises(ValueError, match="llm"):
+            Guardrails(
+                config=_content_safety_rails_config,
+                llm=mock_llm,
+                use_iorails=True,
+                require_iorails=True,
+            )
+
+    def test_unsupported_input_flow_raises_value_error(self):
+        """require_iorails=True + unsupported input flow => ValueError naming the offending flow."""
+        config = _make_iorails_config(
+            rails={"input": {"flows": ["self check input"]}},
+            extra_prompts=[{"task": "self_check_input", "content": "placeholder"}],
+        )
+        with pytest.raises(ValueError, match="self check input"):
+            Guardrails(config=config, use_iorails=True, require_iorails=True)
+
+    @patch("nemoguardrails.guardrails.guardrails.log")
+    @patch("nemoguardrails.guardrails.guardrails.LLMRails")
+    def test_with_llm_no_require_warns(self, mock_llmrails_class, mock_log, _content_safety_rails_config, mock_llm):
+        """require_iorails=False (default) + llm provided => warn and fall back to LLMRails."""
+        mock_llmrails_class.return_value = MagicMock()
+        Guardrails(
+            config=_content_safety_rails_config,
+            llm=mock_llm,
+            use_iorails=True,
+            require_iorails=False,
+        )
+        mock_log.warning.assert_called_once()
+        warning_message = mock_log.warning.call_args[0][0]
+        assert "llm" in warning_message.lower()
+        mock_llmrails_class.assert_called_once_with(_content_safety_rails_config, mock_llm, False)
+
+    @patch("nemoguardrails.guardrails.guardrails.log")
+    @patch("nemoguardrails.guardrails.guardrails.LLMRails")
+    def test_unsupported_config_no_require_warns(self, mock_llmrails_class, mock_log):
+        """require_iorails=False + unsupported config => warn naming the bad flow, fall back to LLMRails."""
+        config = _make_iorails_config(
+            rails={"input": {"flows": ["self check input"]}},
+            extra_prompts=[{"task": "self_check_input", "content": "placeholder"}],
+        )
+        mock_llmrails_class.return_value = MagicMock()
+        Guardrails(config=config, use_iorails=True, require_iorails=False)
+        mock_log.warning.assert_called_once()
+        warning_message = mock_log.warning.call_args[0][0]
+        assert "self check input" in warning_message
+
+    @patch("nemoguardrails.guardrails.guardrails.log")
+    @patch("nemoguardrails.guardrails.guardrails.LLMRails")
+    def test_use_iorails_false_overrides_require_iorails(
+        self, mock_llmrails_class, mock_log, _content_safety_rails_config
+    ):
+        """use_iorails=False is the dominant choice — require_iorails=True must not raise or warn."""
+        mock_llmrails_class.return_value = MagicMock()
+        Guardrails(
+            config=_content_safety_rails_config,
+            use_iorails=False,
+            require_iorails=True,
+        )
+        mock_log.warning.assert_not_called()
+        mock_llmrails_class.assert_called_once_with(_content_safety_rails_config, None, False)
 
 
 class TestConvertToMessages:
@@ -932,58 +1066,43 @@ class TestGuardrailsLifecycle:
         mock_start.assert_called_once()
 
 
-class TestHasOnlyIORailsFlows:
-    """Check all the permutations of configs with `has_only_iorails_flows()`"""
+class TestIORailsCanHandle:
+    """Permutation tests for ``IORails.can_handle(config)`` across rail-section variations."""
 
-    @patch("nemoguardrails.guardrails.guardrails.LLMRails")
-    def test_content_safety_has_only_iorails_flows(self, mock_llmrails_class, _content_safety_rails_config):
-        """Check if we have config rails we don't use iorails"""
-        guardrails = Guardrails(config=_content_safety_rails_config)
-        assert guardrails._has_only_iorails_flows()
+    def test_content_safety_config(self, _content_safety_rails_config):
+        """Content-safety only config is supported by IORails."""
+        assert IORails.can_handle(_content_safety_rails_config)
 
-    @patch("nemoguardrails.guardrails.guardrails.LLMRails")
-    def test_nemoguards_has_only_iorails_flows(self, mock_llmrails_class, _nemoguards_rails_config):
+    def test_nemoguards_config(self, _nemoguards_rails_config):
         """Nemoguards config (content safety + topic safety + jailbreak) is supported by IORails."""
-        guardrails = Guardrails(config=_nemoguards_rails_config, use_iorails=False)
-        assert guardrails._has_only_iorails_flows()
+        assert IORails.can_handle(_nemoguards_rails_config)
 
-    @patch("nemoguardrails.guardrails.guardrails.LLMRails")
-    def test_has_only_iorails_flows_unsupported_retrieval_rails(self, mock_llmrails_class):
-        """Check if we have retrieval rails we don't use iorails"""
+    def test_unsupported_retrieval_rails(self):
+        """Configs with retrieval rails are not supported by IORails."""
         config = _make_iorails_config({**_IORAILS_BASE_RAILS, "retrieval": {"flows": ["check facts"]}})
-        guardrails = Guardrails(config=config)
-        assert not guardrails._has_only_iorails_flows()
+        assert not IORails.can_handle(config)
 
-    @patch("nemoguardrails.guardrails.guardrails.LLMRails")
-    def test_has_only_iorails_flows_unsupported_dialog_rails(self, mock_llmrails_class):
-        """Check if we have dialog rails we don't use iorails"""
+    def test_unsupported_dialog_rails(self):
+        """Configs with dialog rails are not supported by IORails."""
         config = _make_iorails_config({**_IORAILS_BASE_RAILS, "dialog": {}})
-        guardrails = Guardrails(config=config)
-        assert not guardrails._has_only_iorails_flows()
+        assert not IORails.can_handle(config)
 
-    @patch("nemoguardrails.guardrails.guardrails.LLMRails")
-    def test_has_only_iorails_flows_unsupported_actions_rails(self, mock_llmrails_class):
-        """Check if we have actions rails we don't use iorails"""
+    def test_unsupported_actions_rails(self):
+        """Configs with actions rails are not supported by IORails."""
         config = _make_iorails_config({**_IORAILS_BASE_RAILS, "actions": {"instant_actions": ["some_action"]}})
-        guardrails = Guardrails(config=config)
-        assert not guardrails._has_only_iorails_flows()
+        assert not IORails.can_handle(config)
 
-    @patch("nemoguardrails.guardrails.guardrails.LLMRails")
-    def test_has_only_iorails_flows_unsupported_tool_output_rails(self, mock_llmrails_class):
-        """Check if we have tool_output rails we don't use iorails"""
+    def test_unsupported_tool_output_rails(self):
+        """Configs with tool_output rails are not supported by IORails."""
         config = _make_iorails_config({**_IORAILS_BASE_RAILS, "tool_output": {"flows": ["check tool output"]}})
-        guardrails = Guardrails(config=config)
-        assert not guardrails._has_only_iorails_flows()
+        assert not IORails.can_handle(config)
 
-    @patch("nemoguardrails.guardrails.guardrails.LLMRails")
-    def test_has_only_iorails_flows_unsupported_tool_input_rails(self, mock_llmrails_class):
-        """Check if we have tool_input rails we don't use iorails"""
+    def test_unsupported_tool_input_rails(self):
+        """Configs with tool_input rails are not supported by IORails."""
         config = _make_iorails_config({**_IORAILS_BASE_RAILS, "tool_input": {"flows": ["check tool input"]}})
-        guardrails = Guardrails(config=config)
-        assert not guardrails._has_only_iorails_flows()
+        assert not IORails.can_handle(config)
 
-    @patch("nemoguardrails.guardrails.guardrails.LLMRails")
-    def test_has_only_iorails_flows_with_topic_safety_input_rails(self, mock_llmrails_class):
+    def test_topic_safety_input_rails_supported(self):
         """Content safety + topic safety input rails are both supported by IORails."""
         config = RailsConfig.from_content(
             config={
@@ -1011,12 +1130,10 @@ class TestHasOnlyIORailsFlows:
                 ],
             }
         )
-        guardrails = Guardrails(config=config)
-        assert guardrails._has_only_iorails_flows() is True
+        assert IORails.can_handle(config) is True
 
-    @patch("nemoguardrails.guardrails.guardrails.LLMRails")
-    def test_has_only_iorails_flows_unsupported_self_check_output_rails(self, mock_llmrails_class):
-        """Check if we have input and output content safety **and also output self-check** we can't use IORails"""
+    def test_unsupported_self_check_output_rails(self):
+        """Adding an unsupported output flow (self check output) disqualifies the config."""
         config = _make_iorails_config(
             rails={
                 "input": {"flows": ["content safety check input $model=content_safety"]},
@@ -1029,8 +1146,7 @@ class TestHasOnlyIORailsFlows:
             },
             extra_prompts=[{"task": "self_check_output", "content": "placeholder"}],
         )
-        guardrails = Guardrails(config=config)
-        assert guardrails._has_only_iorails_flows() is False
+        assert IORails.can_handle(config) is False
 
 
 class TestStreamAsyncIORails:

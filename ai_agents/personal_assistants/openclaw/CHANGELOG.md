@@ -2,7 +2,7 @@
 
 Docs: https://docs.openclaw.ai
 
-## Unreleased
+## 2026.5.19
 
 ### Changes
 
@@ -16,7 +16,9 @@ Docs: https://docs.openclaw.ai
 - Mac app: redesign Settings pages with consistent card layouts, cached navigation, cleaner permissions/voice/skills/cron/exec/debug panes, and steadier spacing around the native sidebar.
 - Skills: rename the repo-local Codex closeout review skill and helper to `autoreview` while preserving the Codex-first fallback behavior.
 - Skills: add a meme-maker skill for curated template search, local SVG/PNG rendering, Imgflip hosted rendering, and Know Your Meme provenance links.
+- Skills CLI: allow `openclaw skills install` and `openclaw skills update` to target shared managed skills with `--global`. (#74466) Thanks @Marvae.
 - Browser: surface pending and recently handled modal dialogs in snapshots, return `blockedByDialog` when an action opens a modal, and allow `browser dialog --dialog-id` to answer pending dialogs.
+- Browser CLI: add `openclaw browser evaluate --timeout-ms` so long-running page functions can extend both the evaluate action and request timeout budgets. (#83447) Thanks @eefreenyc.
 - Codex app-server: scope OpenClaw prompt guidance by runtime surface so native Codex keeps Codex-owned base/personality instructions while OpenClaw contributes only runtime context, delivery guidance, and explicitly scoped command hints. (#83454) Thanks @100yenadmin.
 - Agents/tools: shorten built-in tool descriptions and schema hints across media, messaging, sessions, cron, Gateway, web, image/PDF, TTS, nodes, and plan tools while preserving routing guardrails.
 - Skills: add node inspector debugging, fused diagram generation, and throwaway spike workflow skills.
@@ -25,6 +27,7 @@ Docs: https://docs.openclaw.ai
 - Skills: update the Obsidian skill to target the official `obsidian` CLI and require its registered binary instead of the third-party `obsidian-cli`.
 - Skills: add a Python debugging skill for pdb, breakpoint(), post-mortem inspection, and debugpy remote attach.
 - Plugins/messages: add presentation capability limits for channel renderers, adapt rich message controls before native rendering, and mark legacy `interactive`/Slack directive producer APIs as deprecated.
+- Plugins/subagents: store channel delivery routes as canonical session metadata and deprecate ad hoc subagent hook delivery-origin fields in favor of core route projection.
 - Proxy: support HTTPS managed forward-proxy endpoints and scoped `proxy.tls.caFile` CA trust for proxy endpoint TLS. (#79171) Thanks @jesse-merhi.
 - QA-Lab: add first-hour 20-turn and optional 100-turn runtime parity scenarios, with tier metadata for standard and soak QA gates. Fixes #80338; refs #80337. Thanks @100yenadmin.
 - QA-Lab: add `openclaw qa suite --runtime-parity-tier` and wire the standard Codex-vs-Pi tier into release checks separately from optional/live-only/soak lanes. Fixes #80337. Thanks @100yenadmin.
@@ -41,15 +44,32 @@ Docs: https://docs.openclaw.ai
 - Android: switch Talk Mode to realtime Gateway relay voice sessions with streaming mic input, realtime audio playback, tool-result bridging, and on-screen transcripts. (#83130) Thanks @sliekens.
 - Gateway/config: expose config lookup reload metadata so tools can distinguish restart-required, hot-reloadable, and no-op fields before applying config edits. Fixes #81409. (#81612) Thanks @LLagoon3.
 - Telegram: add allowlisted native DM draft previews for transient tool progress while keeping final answers on the normal persistent delivery path. (#83622) Thanks @akrimm702.
+- QA-Lab: add a personal-agent share-safe diagnostics artifact scenario so support handoffs keep useful status while omitting raw personal content. Thanks @iFiras-Max1.
 
 ### Fixes
 
+- Memory/search: scan the JS-side fallback vector path (used when the sqlite-vec index is unavailable or has a mismatched dimension) in bounded rowid batches and yield to the event loop between batches so large chunk tables can no longer pin the Node.js main thread for multi-second windows. Also keeps the SQL prepared statement rooted in a local so node:sqlite cannot finalize it mid-scan under heap pressure. Fixes #81172. Thanks @dev23xyz-oss.
+- CLI/update: bypass npm freshness filters consistently during managed package and plugin installs so freshly published release plugins remain installable. Thanks @jalehman.
+- CLI/update: guide root-owned npm install EACCES recovery by stopping the managed Gateway before manual package replacement, then reinstalling and restarting the service. Fixes #83747. (#83757) Thanks @brokemac79.
+- Agents/subagents: keep collect-mode announce queues batching unresolved-origin items with compatible same-route messages and resume collection after a true cross-channel drain when a later compatible batch remains. Fixes #83577.
+- Providers/Anthropic: preserve native image input for current Claude model rows when stale local catalog data marks them text-only. (#83756) Thanks @TurboTheTurtle.
+- Control UI: render live tool progress from session-scoped `session.tool` Gateway events so externally started runs show their tool cards in the active session. (#83734) Thanks @TurboTheTurtle.
+- Outbound: resolve send-capable channel plugins from the active runtime registry when the pinned startup registry only has setup metadata. (#83733) Thanks @TurboTheTurtle.
+- Browser: enforce current-tab URL allowlist checks for `/act` evaluate/batch actions and `/highlight` routes while leaving tab-management actions unblocked. (#78523)
+- CI: require real-behavior-proof verdict markers to come from the ClawSweeper GitHub App before accepting exact-head proof. (#83692)
+- Models: show the effective OpenAI/Codex auth profile in `/models` provider headers instead of falling back to the OpenAI env-key label. (#83697) Thanks @yu-xin-c.
+- Browser: keep a profile `cdpPort` when its `cdpUrl` omits a port, while still letting explicitly written URL ports win. (#82166) Thanks @Marvae.
 - Agents/image generation: allow distinct `image_generate` prompts to start separate session-backed background tasks while same-prompt retries still return the active task status. (#83614) Thanks @Elarwei001.
+- Gateway/WebChat: honor configured `channels.webchat.textChunkLimit` and `chunkMode` overrides when chunking WebChat replies. (#83713)
+- Control UI: stop the chat reading indicator from sticking after an assistant response finishes. (#83515) Thanks @njuboy11.
+- Skills: reject empty or whitespace-only skill names and descriptions during quick validation. (#27061)
 - Sessions: skip trailing custom transcript entries when checking tail assistant replies so embedded CLI gap-fill does not duplicate canonical assistant output. (#83635) Thanks @yaoyi1222.
 - Memory Wiki: keep `wiki_lint` tool output path-safe by reporting vault-internal lint reports as relative paths in tool text and details while preserving absolute report paths for CLI/file callers. (#83439) Thanks @LLagoon3.
 - Telegram: keep verbose tool progress visible without mirroring non-final progress into active session transcripts, preventing embedded provider replies from aborting mid-run. (#83631) Thanks @kurplunkin.
+- Telegram: log successful outbound text and media deliveries with account, chat, message, operation, thread, reply, silent, and chunk metadata while keeping message bodies out of logs. Fixes #83196. (#83247) Thanks @jrwrest.
 - Cron: link isolated scheduled task runs to their stable cron session so task status and cleanup can follow the backing agent run. (#83606) Thanks @jai.
 - CLI: enforce the documented Node.js 22.19 runtime floor in the source launcher.
+- Release stability: repair broad-gate regressions in requester-agent completion handoff, QA-Lab mock spawn attribution, Slack monitor test isolation, plugin uninstall peer fixtures, and Node-floor launcher contract coverage.
 - Agents/replies: persist queued follow-up user messages and assistant error stubs only once across model-fallback retries, preventing repeated provider rejections from corrupted same-role session transcripts. Fixes #83404. (#83417) Thanks @yetval.
 - Slack: persist delivered inbound message IDs and fail closed when same-channel thread replies lose their thread context, preventing delayed duplicate replies and accidental channel-root posts. Fixes #83521. Thanks @shannon0430.
 - Codex app-server: complete OpenClaw dynamic tool diagnostics at the request boundary so successful, failed, timed out, aborted, and blocked tool calls do not leave active tool state behind. Fixes #83474. Thanks @rozmiarD.
@@ -1645,6 +1665,7 @@ Docs: https://docs.openclaw.ai
 - Dependencies: bump transitive `basic-ftp` to 5.3.1 so the runtime lockfile no longer includes the vulnerable 5.3.0 build flagged by the production dependency audit. (#78637) Thanks @sallyom.
 - Hooks/cron: log returned `/hooks/agent` isolated-run errors and failed cron jobs with cron diagnostic summaries, so rejected `payload.model` values are visible instead of looking like accepted-but-missing runs. Fixes #78597. (#78655) Thanks @kevinslin.
 - Managed proxy/security: classify raw socket callsites and proxy runtime mutations in boundary checks so new direct egress or unmanaged proxy-state changes cannot land without explicit review. (#77126) Thanks @jesse-merhi.
+- Memory indexing: propagate memory directory creation failures immediately instead of reporting an unusable directory as ready. Thanks @he-yufeng.
 - Channels/iMessage: surface the silent group-allowlist drop at default log level by emitting a one-time `warn` per account at monitor startup when `channels.imessage.groupPolicy: "allowlist"` is set without a `channels.imessage.groups` block, plus a one-time `warn` per `chat_id` when the runtime gate drops a specific group, naming the exact `channels.imessage.groups[...]` key to add to allow it. Fixes #78749. (#79190) Thanks @omarshahine.
 - WhatsApp: stop Gateway-originated outbound echoes from advancing inbound activity in `openclaw channels status`, so outbound self-sends no longer look like handled inbound messages. Fixes #79056. (#79057) Thanks @ai-hpc and @bittoby.
 - Gateway/nodes: preserve the live node registry session and invoke ownership when an older same-node WebSocket closes after reconnecting. (#78351) Thanks @samzong.
@@ -3543,6 +3564,7 @@ Docs: https://docs.openclaw.ai
 - Agents/LSP: terminate bundled stdio LSP process trees during runtime disposal and Gateway shutdown, so nested children such as `tsserver` do not survive stop or restart. Fixes #72357. Thanks @ai-hpc and @bittoby.
 - Diagnostics/OTEL: capture privacy-safe model-call request payload bytes, streamed response bytes, first-response latency, and total duration in diagnostic events, plugin hooks, stability snapshots, and OTEL model-call spans/metrics without logging raw model content. Fixes #33832. Thanks @wwh830.
 - Logging: write validated diagnostic trace context as top-level `traceId`, `spanId`, `parentSpanId`, and `traceFlags` fields in file-log JSONL records so traced requests and model calls are easier to correlate in log processors. Refs #40353. Thanks @liangruochong44-ui.
+- Nextcloud-Talk: wire the existing reaction sender into the channel `actions` adapter so agents can react to messages via the shared `message` tool, instead of advertising the `reactions` capability without a dispatch path. Fixes #70110. Thanks @powerpaul17.
 - Logging/sessions: apply configured redaction patterns to persisted session transcript text and accept escaped character classes in safe custom redaction regexes, so transcript JSONL no longer keeps matching sensitive text in the clear. Fixes #42982. Thanks @panpan0000.
 - Providers/Ollama: honor `/api/show` capabilities when registering local models so non-tool Ollama models no longer receive the agent tool surface, and keep native Ollama thinking opt-in instead of enabling it by default. Fixes #64710 and duplicate #65343. Thanks @yuan-b, @netherby, @xilopaint, and @Diyforfun2026.
 - Control UI/Agents: remount the Overview model controls when switching agents so the primary-model picker cannot retain stale per-agent selection. Fixes #39392; carries forward #39401, notes the duplicate #39495 approach, and keeps #46275/#54724 broader stabilization out of scope. Thanks @daijunyi002, @SergioChan, @aworki, and @wsyjh8.
@@ -5185,6 +5207,7 @@ Docs: https://docs.openclaw.ai
 
 ### Fixes
 
+- CLI/skills: require unique case-insensitive fallback matches in `openclaw skills info` so case-only collisions return not-found instead of showing guidance for the wrong skill. (#38713)
 - Agents/Ollama: forward the configured embedded-run timeout into the global undici stream timeout tuning so slow local Ollama runs no longer inherit the default stream cutoff instead of the operator-set run timeout. (#63175) Thanks @mindcraftreader and @vincentkoc.
 - Models/Codex: include `apiKey` in the codex provider catalog output so the Pi ModelRegistry validator no longer rejects the entry and silently drops all custom models from every provider in `models.json`. (#66180) Thanks @hoyyeva.
 - Tools/image+pdf: normalize configured provider/model refs before media-tool registry lookup so image and PDF tool runs stop rejecting valid Ollama vision models as unknown just because the tool path skipped the usual model-ref normalization step. (#59943) Thanks @yqli2420 and @vincentkoc.
