@@ -7,10 +7,10 @@ npm publication, plugin tag, marketplace submission, or announcement post.
 
 | Field | Evidence |
 | --- | --- |
-| Upstream main | `04d4d81938b20ac2bac1f0025145ab77d6a59f5f` |
+| Upstream main | `1571494573f8348d6520b7b58f00885ce9d75834` |
 | Git remote | `https://github.com/affaan-m/everything-claude-code.git` |
-| Evidence scope | Current `main` after PR #1970 workflow-security validator bypass fixes, PR #1971 metrics bridge cost-reporting fixes, PR #1972 `uncloud` skill merge, PR #1973 stale script cleanup, issue #1974 cost-reporting verification/closure, PR #1976 OpenAI/AstraFlow provider response guards, catalog/operator dashboard refresh, ECC-Tools Wrangler OAuth billing readback mirror, Mini Shai-Hulud/TanStack protection recheck, defensive-deny IOC scanner hardening, current-head CI/security scan, work-items sync, and Linear progress sync |
-| Local status caveat | `git status --short --branch` showed `## main...origin/main` plus unrelated untracked `docs/drafts/`; generated evidence files are committed after the source snapshot they describe |
+| Evidence scope | Current `main` after PR #1970 workflow-security validator bypass fixes, PR #1971 metrics bridge cost-reporting fixes, PR #1972 `uncloud` skill merge, PR #1973 stale script cleanup, issue #1974 cost-reporting verification/closure, PR #1976 OpenAI/AstraFlow provider response guards, PR #1978 review/closure, catalog/operator dashboard refresh, ECC-Tools Wrangler OAuth billing readback mirror, AgentShield `840952a` fleet-ticket and Mini Shai-Hulud IOC evidence mirror, Mini Shai-Hulud/TanStack protection recheck, defensive-deny IOC scanner hardening, release name/plugin publication checklist, readiness/smoke gate enforcement for that checklist, current-head CI/security scan, work-items sync, and Linear progress sync |
+| Local status caveat | `git status --short --branch` was clean at dashboard generation time; generated evidence files are committed after the source snapshot they describe |
 
 The actual release operator should repeat all publish-facing checks from the
 final release commit with a strictly clean checkout before publishing.
@@ -24,7 +24,7 @@ final release commit with a strictly clean checkout before publishing.
 | Discussion audit | `npm run discussion:audit -- --json` | Ready; 58 sampled discussions in `affaan-m/everything-claude-code`, 0 needing maintainer touch, 0 answerable discussions missing accepted answer, and 0 fetch errors |
 | Platform audit | `node scripts/platform-audit.js --json --allow-untracked docs/drafts/` | Ready; tracked repos report 0 open PRs, 0 open issues, 0 discussion maintainer-touch gaps, 0 answerable Q&A missing accepted answers, and 0 blocking dirty files |
 | Work-items sync | `node scripts/work-items.js sync-github --repo <tracked-repo>` for five tracked repos; `node scripts/status.js --json`; `node scripts/work-items.js list --json` | All five tracked repos synced with 0 open PRs/issues and no changed work items; local status reports 0 open, 0 blocked, and 0 closed work items |
-| Operator dashboard | `node scripts/operator-readiness-dashboard.js --markdown --allow-untracked docs/drafts/ --write docs/releases/2.0.0-rc.1/operator-readiness-dashboard-2026-05-18.md` | Generated current dashboard for `fb4b0c8dced77b8097b98b08c9091e554b6878a5`; dashboard ready true, publication ready false because release, npm, plugin, billing, and announcement gates are approval-gated; ECC Tools target-account billing readback is now the documented native-payments gate |
+| Operator dashboard | `npm run operator:dashboard -- --markdown --write docs/releases/2.0.0-rc.1/operator-readiness-dashboard-2026-05-18.md` | Generated current dashboard for `1571494573f8348d6520b7b58f00885ce9d75834`; dashboard ready true, publication ready false because release, npm, plugin, billing, and announcement gates are approval-gated; AgentShield enterprise evidence now includes `840952a`; ECC Tools target-account billing readback remains the documented native-payments gate; the naming/plugin row still requires the release-name/plugin publication checklist |
 
 Tracked repositories in the platform audit and work-items sync were:
 
@@ -47,7 +47,12 @@ Tracked repositories in the platform audit and work-items sync were:
 | PR #1976 | Merged provider response hardening for OpenAI-compatible and AstraFlow providers; main includes `eb0d8939` follow-up guards for empty/filtered provider choices, missing OpenAI `response.usage`, shared filtered-response error text, and credential-less provider construction validation |
 | Provider guard validation | `uv run --extra dev pytest -q tests/test_provider_tools.py tests/test_astraflow_provider.py`, `uv run --extra dev pytest -q`, `node tests/run-all.js`, and `git diff --check` passed before merging #1976 follow-up into main: 11 provider-focused Python tests, 76 full Python tests, 2509 Node tests, and clean whitespace checks |
 | Defensive-deny IOC scanner hardening | Pushed `04d4d819` so explicit Claude `permissions.deny` IOC entries are treated as defensive controls while the same IOC still fails in hooks, tasks, scripts, locks, and payload files; local `npm test` passed 2511/2511 and current-head CI `26017368895` passed 37/37 |
-| Clean-worktree preview-pack smoke | Detached worktree at `742bc58d9748184dc6fd54ef42ffcf165c9d1360`; `node scripts/preview-pack-smoke.js --root <worktree> --format json` passed 5/5 with digest `59bbf2630a44`; required artifacts, final verification commands, Hermes public sanitization boundary, and approval-gated publication blockers were all preserved |
+| Release name/plugin publication checklist | Pushed `6c0fbfb6` to add `docs/releases/2.0.0-rc.1/release-name-plugin-publication-checklist-2026-05-18.md`; the artifact freezes rc.1 as Everything Claude Code / ECC, keeps npm `ecc-universal`, keeps Claude/Codex plugin slug `ecc`, cites current Anthropic/OpenAI plugin publication paths, and blocks rename/npm publish/plugin tag/submission/billing/social actions until final release evidence exists; GitHub Actions CI `26034898420` passed |
+| Dashboard and preview-pack checklist enforcement | Added `680aeff0` so `scripts/operator-readiness-dashboard.js` and `scripts/preview-pack-smoke.js` require the release-name/plugin publication checklist; local dashboard and smoke tests passed and preview-pack smoke now enforces 26 required artifacts |
+| AgentShield enterprise evidence mirror | Added `2ba0c62d` and refreshed the dashboard generator/GA roadmap/AgentShield enterprise roadmap so the ECC release evidence names AgentShield `840952a` fleet review ticket payloads and current Mini Shai-Hulud IOC breadcrumb coverage |
+| PR #1978 | Closed broad/failing outside Excel harness PR after review; recorded a corrected split path for a future smaller Excel harness proposal, install-target/tooling PR, plugin-runtime PR, and translation-automation PR |
+| Announcement draft tracking | Added `docs/drafts/release-1.10.1-announcement.md` so the stabilization announcement draft is tracked instead of remaining as release-blocking untracked local state |
+| Clean-worktree preview-pack smoke | Detached worktree at `680aeff0fb9a8598858e3105ba4742973ef386ab`; `node scripts/preview-pack-smoke.js --root <worktree> --format json` passed 5/5 with digest `0ed831dbd0cf`; 26 required artifacts, final verification commands, Hermes public sanitization boundary, and approval-gated publication blockers were all preserved |
 | Public queues | Rechecked after the merge and issue-closure batch; 0 PRs, 0 issues, and 0 discussion gaps remain across tracked repos |
 
 ## Supply-Chain And Security Evidence
@@ -101,14 +106,16 @@ Tracked repositories in the platform audit and work-items sync were:
   target-account acceptance criteria.
 - Release notes, X, LinkedIn, GitHub release, and longform copy still need final
   live URLs after release/package/plugin URLs exist.
-- The local checkout still has unrelated untracked `docs/drafts/`, so a strict
-  clean-checkout release pass remains required before real publication.
+- The local checkout is clean after the dashboard/evidence refresh, but a
+  strict clean-checkout release pass remains required before real publication.
 
 ## Result
 
 The tracked public PR queue, issue queue, discussion queue, local work-items
-bridge, and Mini Shai-Hulud/TanStack protection loop are current on
-May 18, 2026 for current `main` through `aa634df9`, with follow-up ECC Tools
-billing-gate hardening in `632e059`. This improves publication readiness but
-does not replace the approval-gated release, package, plugin, billing, and
-announcement steps in `publication-readiness.md`.
+bridge, release-name/plugin publication gate, and Mini Shai-Hulud/TanStack
+protection loop are current on May 18, 2026 for current `main` through
+`15714945`, with follow-up ECC Tools billing-gate hardening in `632e059`
+and AgentShield enterprise hardening in `840952a`.
+This improves publication readiness but does not replace the approval-gated
+release, package, plugin, billing, and announcement steps in
+`publication-readiness.md`.

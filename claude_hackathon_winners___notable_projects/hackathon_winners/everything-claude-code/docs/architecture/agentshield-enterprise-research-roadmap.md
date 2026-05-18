@@ -1,6 +1,7 @@
 # AgentShield Enterprise Research Roadmap
 
-Generated: 2026-05-12; refreshed with May 16 AgentShield PR #87, #88, and #89 evidence.
+Generated: 2026-05-12; refreshed with May 18 AgentShield fleet-ticket and
+Mini Shai-Hulud IOC evidence.
 
 This is a planning artifact for the next AgentShield enterprise iteration. It
 does not modify AgentShield code. The goal is to turn the current scanner,
@@ -116,14 +117,21 @@ AgentShield PR #89 merged as
 `agentshield evidence-pack fleet <dirs...> [--json]`, verifies each pack through
 the inspect path, aggregates finding, policy, baseline, supply-chain, and
 remediation totals, and assigns each pack to a deterministic fleet route.
+AgentShield commit `840952a7a07f820f24081c43df656d7f7295f23b` adds
+Linear/operator-ready fleet review ticket payloads with priority, labels,
+titles, and Markdown bodies. The same commit expands current Mini
+Shai-Hulud/TanStack IOC coverage for the in-cluster Vault endpoint and
+temporary lockfile breadcrumb, with local typecheck, lint, full tests,
+`git diff --check`, and GitHub CI/Self-Scan/Action-test evidence.
 
 The next iteration after fleet routing should not be "add more regex rules" by
 default. ECC-Tools follow-up routing now consumes fleet summaries and surfaces
 source evidence paths in hosted findings, and the first cross-harness policy
 slice now links AgentShield fleet route target paths to harness-owner review.
 AgentShield fleet output now also emits `reviewItems` with source evidence paths
-and owner-ready recommendations for routed packs. The higher leverage move is
-durable policy export and workflow automation for routed fleet findings.
+and owner-ready recommendations plus copy-ready ticket payloads for routed
+packs. The higher leverage move is durable operator approval/readback and
+workflow automation for routed fleet findings.
 
 ## Enterprise Gaps
 

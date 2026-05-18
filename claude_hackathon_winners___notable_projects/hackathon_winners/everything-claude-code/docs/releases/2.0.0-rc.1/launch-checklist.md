@@ -12,6 +12,8 @@
 - verify `preview-pack-manifest.md` lists the public release, Hermes, adapter,
   observability, publication, and announcement artifacts before running final
   publish checks
+- verify `release-name-plugin-publication-checklist-2026-05-18.md` still
+  matches current GitHub, npm, Claude, Codex, OpenCode, and billing surfaces
 - keep private tokens, personal docs, and raw workspace exports out of the repo
 
 ## Release Surface
@@ -19,6 +21,9 @@
 - verify package, plugin, marketplace, OpenCode, and agent metadata stays at `2.0.0-rc.1`
 - verify `ecc2/Cargo.toml` stays at `0.1.0` for rc.1; `ecc2/` remains an alpha control-plane scaffold
 - complete `publication-readiness.md` with fresh evidence before any GitHub release, npm publish, plugin submission, or announcement post
+- rerun the release name/plugin publication checklist before creating a
+  GitHub prerelease, publishing npm, pushing Claude plugin tags, recording the
+  Codex marketplace path, or posting public copy
 - include `publication-evidence-2026-05-17.md` and
   `operator-readiness-dashboard-2026-05-17.md` in the final evidence review,
   then rerun publish-facing checks from the exact release commit
