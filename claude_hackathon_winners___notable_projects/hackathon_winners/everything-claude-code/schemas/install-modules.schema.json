@@ -26,7 +26,8 @@
               "hooks",
               "platform",
               "orchestration",
-              "skills"
+              "skills",
+              "docs"
             ]
           },
           "description": {

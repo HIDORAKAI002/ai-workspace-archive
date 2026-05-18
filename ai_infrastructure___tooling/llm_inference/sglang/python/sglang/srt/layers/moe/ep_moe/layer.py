@@ -25,12 +25,6 @@ from sglang.srt.layers.moe.token_dispatcher.deepep import (
 )
 from sglang.srt.layers.moe.topk import TopKOutput, TopKOutputChecker
 from sglang.srt.layers.quantization.base_config import QuantizationConfig
-from sglang.srt.layers.quantization.compressed_tensors.compressed_tensors import (
-    CompressedTensorsFusedMoEMethod,
-)
-from sglang.srt.layers.quantization.compressed_tensors.schemes import (
-    NPUCompressedTensorsW4A16Int4DynamicMoE,
-)
 from sglang.srt.layers.quantization.fp8 import Fp8Config
 from sglang.srt.layers.quantization.fp8_kernel import is_fp8_fnuz
 from sglang.srt.layers.quantization.w4afp8 import W4AFp8Config, W4AFp8MoEMethod
@@ -47,9 +41,6 @@ _is_hip = is_hip()
 _is_npu = is_npu()
 _is_fp8_fnuz = is_fp8_fnuz()
 _use_aiter = get_bool_env_var("SGLANG_USE_AITER") and _is_hip
-
-if _is_npu:
-    import torch_npu
 
 
 logger = logging.getLogger(__name__)
@@ -105,6 +96,12 @@ class DeepEPMoE(FusedMoE):
             and envs.SGLANG_DEEPEP_BF16_DISPATCH.get()
         ):
             self.deprecate_flag = True
+        elif (
+            get_moe_runner_backend().is_flashinfer_cutedsl()
+            and quant_config is not None
+            and quant_config.get_name() == "modelopt_fp4"
+        ):
+            self.deprecate_flag = True
         else:
             self.deprecate_flag = False
 
@@ -127,22 +124,21 @@ class DeepEPMoE(FusedMoE):
 
         self.deepep_mode = get_deepep_mode()
 
+        # TODO: move this logic to process_weigths_after_loading, like:
+        # def process_weights_after_loading(self, layer: torch.nn.Module) -> None:
+        #    if hasattr(layer, "dispatcher"):
+        #       layer.dispatcher.set_quant_config({"dispatcher_output_dtype": "bf16"})
+
         if quant_config is None and hasattr(self.dispatcher, "set_quant_config"):
-            self.dispatcher.set_quant_config({"bf16_dispatch": True})
+            self.dispatcher.set_quant_config({"dispatcher_output_dtype": "bf16"})
 
         if (
             self.deepep_mode.enable_low_latency()
             and not _is_npu
             and not _is_hip
-            and not (
-                get_moe_runner_backend().is_flashinfer_cutedsl()
-                and self.quant_config is not None
-                and self.quant_config.get_name() == "modelopt_fp4"
-            )
             and quant_config is not None
         ):
-            # AMD HIP, NPU supports low_latency deepep without deepgemm
-            # NV FP4 quantization with flashinfer_cutedsl also supports low_latency deepep without deepgemm
+            # AMD HIP and NPU support low_latency DeepEP without DeepGEMM.
             # Unquantized draft MoE uses BF16 DeepEP dispatch and a local fallback.
             assert (
                 deep_gemm_wrapper.ENABLE_JIT_DEEPGEMM
@@ -220,12 +216,6 @@ class DeepEPMoE(FusedMoE):
         elif DispatchOutputChecker.format_is_deepep_ll(dispatch_output):
             if self.quant_config is None:
                 output = self.forward_unquantized_deepep_ll(dispatch_output)
-            elif (
-                get_moe_runner_backend().is_flashinfer_cutedsl()
-                and self.quant_config is not None
-                and self.quant_config.get_name() == "modelopt_fp4"
-            ):
-                output = self.forward_flashinfer_cutedsl(dispatch_output)
             elif self.use_w4afp8:
                 output = self.forward_cutlass_w4afp8_masked(dispatch_output)
             else:
@@ -288,22 +278,6 @@ class DeepEPMoE(FusedMoE):
             output = output + w2_bias.unsqueeze(1)
         return output.masked_fill(~valid_mask, 0)
 
-    def forward_flashinfer_cutedsl(
-        self,
-        dispatch_output: DeepEPLLDispatchOutput,
-    ):
-        hidden_states, hidden_states_scale, _, _, masked_m, _ = dispatch_output
-        assert self.quant_method is not None
-        assert self.moe_runner_config.activation == "silu"
-
-        output = self.quant_method.apply_without_routing_weights(
-            layer=self,
-            x=(hidden_states, hidden_states_scale),
-            masked_m=masked_m,
-            moe_runner_config=self.moe_runner_config,
-        )
-        return output
-
     def forward_cutlass_w4afp8(
         self,
         dispatch_output: DeepEPNormalDispatchOutput,
@@ -360,17 +334,6 @@ class DeepEPMoE(FusedMoE):
                     self, hidden_states, group_list_type, group_list, output_dtype
                 )
             else:
-                input_quant = get_bool_env_var("DEEP_NORMAL_MODE_USE_INT8_QUANT")
-                if not input_quant and not isinstance(
-                    self.quant_method,
-                    (
-                        NPUCompressedTensorsW4A16Int4DynamicMoE,
-                        CompressedTensorsFusedMoEMethod,
-                    ),
-                ):
-                    hidden_states, hidden_states_scale = torch_npu.npu_dynamic_quant(
-                        hidden_states
-                    )
                 hidden_states = self.quant_method.apply_without_routing_weights(
                     self,
                     hidden_states,

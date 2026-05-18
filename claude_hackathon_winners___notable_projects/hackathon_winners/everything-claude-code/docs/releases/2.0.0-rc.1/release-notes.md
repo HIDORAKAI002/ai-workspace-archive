@@ -16,7 +16,11 @@ Claude Code remains a core target. Codex, OpenCode, Cursor, Gemini, and other ha
 - Added Zed as a project-local planning/install target while keeping BYOK and OpenRouter secrets outside ECC-managed project files.
 - Added command-registry coverage, platform audit, discussion audit, operator dashboard, Linear progress readiness, and preview-pack smoke gates.
 - Added a local [observability readiness gate](../../architecture/observability-readiness.md) for loop status, session traces, harness audit, and ECC2 tool-risk logs.
-- Refreshed the release-readiness evidence after the May 2026 Mini Shai-Hulud/TanStack campaign follow-up, including full-campaign AgentShield IOC coverage, queue-zero/discussion checks, a detailed Linear roadmap gate, and the May 17 operator dashboard snapshot.
+- Refreshed the release-readiness evidence after the May 2026 Mini
+  Shai-Hulud/TanStack campaign follow-up, including full-campaign AgentShield
+  IOC coverage, queue-zero/discussion checks, a detailed Linear roadmap gate,
+  the May 18 operator dashboard snapshot, and a live/pending release URL
+  ledger for announcement gating.
 
 ## Since v1.10.0
 
@@ -44,6 +48,9 @@ feature branch:
 - launch collateral for GitHub release copy, X, LinkedIn, article outline,
   Telegram/Hermes handoff, demo prompts, and the approval-gated launch
   checklist.
+- a release URL ledger that separates links which already resolve from links
+  that must wait for the GitHub release, npm rc package, plugin tag/directory,
+  and ECC Tools billing readback.
 
 ## Why This Matters
 
@@ -84,9 +91,12 @@ What stays local:
 2. Read the [Hermes setup guide](../../HERMES-SETUP.md).
 3. Review the [cross-harness architecture](../../architecture/cross-harness.md).
 4. Run the [observability readiness gate](../../architecture/observability-readiness.md).
-5. Start with one workflow lane: engineering, research, content, or outreach.
-6. Import only sanitized operator patterns into ECC skills.
-7. Treat `ecc2/` as an alpha control plane until release packaging and installer behavior are finalized.
+5. Check the [release URL ledger](release-url-ledger-2026-05-18.md) before
+   using any announcement links.
+6. Start with one workflow lane: engineering, research, content, or outreach.
+7. Import only sanitized operator patterns into ECC skills.
+8. Treat `ecc2/` as an alpha control plane until release packaging and installer
+   behavior is finalized.
 
 ## Do Not Treat This As Published Yet
 
