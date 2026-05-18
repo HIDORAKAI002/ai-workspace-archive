@@ -342,6 +342,31 @@ function agentShieldEnterpriseEvidence(roadmap) {
 }
 
 function eccToolsNextLevelEvidence(roadmap) {
+  if (roadmap.includes('d5f60db')
+    || roadmap.includes('Marketplace-source provenance counts')) {
+    return 'billing announcement gate, hosted analysis lanes, AgentShield fleet-summary consumption, hosted finding evidence paths, harness-route policy linking, policy-promotion Action-output telemetry, operator-visible promotion output details, hosted promotion judge audit traces, billing announcement preflight, aggregate production billing KV readback, Wrangler OAuth readback, target-account billing readback, provenance-aware Marketplace billing-state gates, and sanitized Marketplace plan/action provenance counts are mirrored in the GA roadmap';
+  }
+
+  if (roadmap.includes('target account billing readback')
+    || roadmap.includes('632e059')) {
+    return 'billing announcement gate, hosted analysis lanes, AgentShield fleet-summary consumption, hosted finding evidence paths, harness-route policy linking, policy-promotion Action-output telemetry, operator-visible promotion output details, hosted promotion judge audit traces, billing announcement preflight, aggregate production billing KV readback, Wrangler OAuth readback, target-account billing readback, and provenance-aware Marketplace billing-state gates are mirrored in the GA roadmap';
+  }
+
+  if (roadmap.includes('Wrangler OAuth readback')
+    || roadmap.includes('42653f9')) {
+    return 'billing announcement gate, hosted analysis lanes, AgentShield fleet-summary consumption, hosted finding evidence paths, harness-route policy linking, policy-promotion Action-output telemetry, operator-visible promotion output details, hosted promotion judge audit traces, billing announcement preflight, aggregate production billing KV readback, Wrangler OAuth readback, and provenance-aware Marketplace billing-state gates are mirrored in the GA roadmap';
+  }
+
+  if (roadmap.includes('Marketplace webhook provenance')
+    || roadmap.includes('2859678')) {
+    return 'billing announcement gate, hosted analysis lanes, AgentShield fleet-summary consumption, hosted finding evidence paths, harness-route policy linking, policy-promotion Action-output telemetry, operator-visible promotion output details, hosted promotion judge audit traces, billing announcement preflight, aggregate production billing KV readback, and provenance-aware Marketplace billing-state gates are mirrored in the GA roadmap';
+  }
+
+  if (roadmap.includes('billing:kv-readback')
+    || roadmap.includes('95d0bec')) {
+    return 'billing announcement gate, hosted analysis lanes, AgentShield fleet-summary consumption, hosted finding evidence paths, harness-route policy linking, policy-promotion Action-output telemetry, operator-visible promotion output details, hosted promotion judge audit traces, billing announcement preflight, and aggregate production billing KV readback are mirrored in the GA roadmap';
+  }
+
   if (roadmap.includes('production Marketplace readback state')
     || roadmap.includes('eb69412')) {
     return 'billing announcement gate, hosted analysis lanes, AgentShield fleet-summary consumption, hosted finding evidence paths, harness-route policy linking, policy-promotion Action-output telemetry, operator-visible promotion output details, hosted promotion judge audit traces, billing announcement preflight, and production KV readback state are mirrored in the GA roadmap';
@@ -356,6 +381,31 @@ function eccToolsNextLevelEvidence(roadmap) {
 }
 
 function eccToolsNextLevelGap(roadmap) {
+  if (roadmap.includes('d5f60db')
+    || roadmap.includes('Marketplace-source provenance counts')) {
+    return 'create or verify Marketplace-managed Pro target billing-state with webhook provenance, then run `billing:kv-readback -- --wrangler --wrangler-bin ./node_modules/.bin/wrangler --account <github-login> --require-ready`, followed by the live announcement gate';
+  }
+
+  if (roadmap.includes('target account billing readback')
+    || roadmap.includes('632e059')) {
+    return 'create or verify Marketplace-managed Pro target billing-state with webhook provenance, then run `billing:kv-readback -- --account <github-login> --require-ready` with working Cloudflare API auth or repaired Wrangler OAuth, followed by the live announcement gate';
+  }
+
+  if (roadmap.includes('Wrangler OAuth readback')
+    || roadmap.includes('42653f9')) {
+    return 'create or verify Marketplace-managed Pro billing-state with webhook provenance, then run `billing:kv-readback -- --require-ready` with working Cloudflare API auth or repaired Wrangler OAuth, followed by the live announcement gate';
+  }
+
+  if (roadmap.includes('Marketplace webhook provenance')
+    || roadmap.includes('2859678')) {
+    return 'replace the invalid Cloudflare credential, create or verify Marketplace-managed Pro billing-state with webhook provenance, then run `billing:kv-readback -- --require-ready` and the live announcement gate';
+  }
+
+  if (roadmap.includes('billing:kv-readback')
+    || roadmap.includes('95d0bec')) {
+    return 'create or verify a Marketplace-managed Pro billing-state, then run the official live announcement gate';
+  }
+
   if (roadmap.includes('production Marketplace readback state')
     || roadmap.includes('eb69412')) {
     return 'complete Marketplace purchase/webhook readback, then run the live announcement gate';
@@ -720,7 +770,7 @@ function buildReport(options) {
     next_work_order: [
       'Regenerate this dashboard from the final release commit before publication evidence is recorded.',
       'Repeat ITO-57 Linear/project status sync after the next significant merge batch or advisory-source refresh.',
-      'Complete ECC Tools Marketplace purchase/webhook readback, then run preflight and the live announcement gate before publishing native-payments copy.',
+      'Create or verify Marketplace-managed Pro target billing-state with webhook provenance, then run `billing:kv-readback -- --wrangler --wrangler-bin ./node_modules/.bin/wrangler --account <github-login> --require-ready`, followed by the live announcement gate before publishing native-payments copy.',
       'Resume ITO-45, ITO-46, and ITO-56 only after the generated dashboard and final release gates are refreshed.',
     ],
   };

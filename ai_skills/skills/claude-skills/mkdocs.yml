@@ -1,6 +1,6 @@
 site_name: Claude Code Skills & Agent Plugins
 site_url: https://alirezarezvani.github.io/claude-skills/
-site_description: "311 production-ready skills, 45+ cs-* agents (incl. founder-mode C-suite: GC, CDO, CAIO, CCO, VPE + Matt Pocock-derived productivity quartet: skill-author, caveman, grill-master, handoff + v2.7.0 megaprompt-derived research stack), 7 personas, 59+ /cs:* slash commands, and an orchestration protocol for 12 AI coding tools. v2.7.0 adds 13 new skills across productivity (capture, email pair, reflect), marketing (landing), and research (pulse, litreview, grants, dossier, patent, syllabus, notebooklm + research orchestrator)."
+site_description: "313 production-ready skills, 46+ cs-* agents (incl. founder-mode C-suite: GC, CDO, CAIO, CCO, VPE + Matt Pocock-derived productivity quartet: skill-author, caveman, grill-master, handoff + v2.7.0 megaprompt-derived research stack + v2.7.3 cs-aeo), 7 personas, 60+ /cs:* slash commands, and an orchestration protocol for 12 AI coding tools. v2.7.3 ports `alirezarezvani/aeo-box` — adds AEO (Answer Engine Optimization for LLM citation across ChatGPT / Perplexity / Claude / Gemini / Mistral) into marketing-skill and a security-guidance PreToolUse hook into engineering."
 site_author: Alireza Rezvani
 repo_url: https://github.com/alirezarezvani/claude-skills
 repo_name: alirezarezvani/claude-skills
@@ -221,6 +221,7 @@ nav:
       - "Release Manager": skills/engineering/release-manager.md
       - "Runbook Generator": skills/engineering/runbook-generator.md
       - "Secrets Vault Manager": skills/engineering/secrets-vault-manager.md
+      - "Security Guidance": skills/engineering/security-guidance.md
       - "Self-Eval": skills/engineering/self-eval.md
       - "Skill Security Auditor": skills/engineering/skill-security-auditor.md
       - "Skill Tester": skills/engineering/skill-tester.md
@@ -274,6 +275,7 @@ nav:
       - Overview: skills/marketing-skill/index.md
       - "A/B Test Setup": skills/marketing-skill/ab-test-setup.md
       - "Ad Creative": skills/marketing-skill/ad-creative.md
+      - "AEO (Answer Engine Optimization)": skills/marketing-skill/aeo.md
       - "AI SEO": skills/marketing-skill/ai-seo.md
       - "Analytics Tracking": skills/marketing-skill/analytics-tracking.md
       - "App Store Optimization": skills/marketing-skill/app-store-optimization.md
@@ -448,6 +450,7 @@ nav:
   - Custom GPTs: custom-gpts.md
   - Agents:
     - Overview: agents/index.md
+    - "CS AEO (Answer Engine Optimization)": agents/cs-aeo.md
     - "CS Agile Product Owner": agents/cs-agile-product-owner.md
     - "CS CEO Advisor": agents/cs-ceo-advisor.md
     - "CS Content Creator": agents/cs-content-creator.md
@@ -516,3 +519,4 @@ nav:
     - "/operator-audit": commands/operator-audit.md
     - "/chaos-experiment": commands/chaos-experiment.md
     - "/slo-design": commands/slo-design.md
+    - "/cs:aeo": commands/cs-aeo.md

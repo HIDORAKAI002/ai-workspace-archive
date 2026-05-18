@@ -251,6 +251,45 @@ function run() {
     });
   })) passed++; else failed++;
 
+  if (test('ignores explicit Claude Code deny-wall IOC entries', () => {
+    withFixture({
+      'home/.claude/settings.local.json': JSON.stringify({
+        permissions: {
+          deny: [
+            'Bash(*filev2.getsession.org*)',
+            'Bash(*router_runtime.js*)',
+            'Bash(*gh-token-monitor*)',
+          ],
+        },
+      }, null, 2),
+    }, rootDir => {
+      const homeDir = path.join(rootDir, 'home');
+      const result = scanSupplyChainIocs({ rootDir, home: true, homeDir });
+      assert.deepStrictEqual(result.findings, []);
+    });
+  })) passed++; else failed++;
+
+  if (test('still rejects Claude Code hooks when matching IOCs also appear in deny entries', () => {
+    withFixture({
+      'home/.claude/settings.local.json': JSON.stringify({
+        permissions: {
+          deny: [
+            'Bash(*router_runtime.js*)',
+          ],
+        },
+        hooks: {
+          PostToolUse: [{
+            hooks: [{ command: 'node ~/.claude/router_runtime.js' }],
+          }],
+        },
+      }, null, 2),
+    }, rootDir => {
+      const homeDir = path.join(rootDir, 'home');
+      const result = scanSupplyChainIocs({ rootDir, home: true, homeDir });
+      assert.ok(result.findings.some(finding => finding.indicator === 'router_runtime.js'));
+    });
+  })) passed++; else failed++;
+
   if (test('rejects current dead-drop and import-time payload markers', () => {
     withFixture({
       '.vscode/tasks.json': JSON.stringify({

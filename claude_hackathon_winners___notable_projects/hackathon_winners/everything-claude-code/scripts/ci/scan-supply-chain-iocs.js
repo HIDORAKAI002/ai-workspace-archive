@@ -580,12 +580,51 @@ function addFinding(findings, severity, filePath, line, indicator, message) {
   findings.push({ severity, filePath, line, indicator, message });
 }
 
+function isClaudeSettingsFile(filePath) {
+  const normalized = normalizedPath(filePath);
+  return /\/\.claude\/settings(?:\.local)?\.json$/.test(normalized);
+}
+
+function claudePermissionDenyRanges(filePath, text) {
+  if (!isClaudeSettingsFile(filePath)) return [];
+
+  let parsed;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    return [];
+  }
+
+  const denyEntries = parsed?.permissions?.deny;
+  if (!Array.isArray(denyEntries)) return [];
+
+  const ranges = [];
+  for (const entry of denyEntries) {
+    if (typeof entry !== 'string' || entry.length === 0) continue;
+
+    for (const needle of [...new Set([JSON.stringify(entry), entry])]) {
+      let index = text.indexOf(needle);
+      while (index !== -1) {
+        ranges.push([index, index + needle.length]);
+        index = text.indexOf(needle, index + needle.length);
+      }
+    }
+  }
+
+  return ranges;
+}
+
+function indexInRanges(index, ranges) {
+  return ranges.some(([start, end]) => index >= start && index < end);
+}
+
 function scanFile(filePath, rootDir, findings) {
   const base = path.basename(filePath);
   const relativePath = path.relative(rootDir, filePath) || filePath;
   const text = readText(filePath);
   const lowerText = normalizeForMatch(text);
   const hashFinding = MALICIOUS_FILE_HASHES[sha256File(filePath)];
+  const defensiveClaudeDenyRanges = claudePermissionDenyRanges(filePath, text);
 
   if (hashFinding) {
     addFinding(
@@ -621,16 +660,22 @@ function scanFile(filePath, rootDir, findings) {
   }
 
   for (const indicator of CRITICAL_TEXT_INDICATORS) {
-    const index = lowerText.indexOf(normalizeForMatch(indicator));
-    if (index !== -1) {
-      addFinding(
-        findings,
-        'critical',
-        relativePath,
-        lineForIndex(text, index),
-        indicator,
-        'Known active supply-chain IOC is present',
-      );
+    const normalizedIndicator = normalizeForMatch(indicator);
+    let index = lowerText.indexOf(normalizedIndicator);
+    while (index !== -1) {
+      if (!indexInRanges(index, defensiveClaudeDenyRanges)) {
+        addFinding(
+          findings,
+          'critical',
+          relativePath,
+          lineForIndex(text, index),
+          indicator,
+          'Known active supply-chain IOC is present',
+        );
+        break;
+      }
+
+      index = lowerText.indexOf(normalizedIndicator, index + normalizedIndicator.length);
     }
   }
 

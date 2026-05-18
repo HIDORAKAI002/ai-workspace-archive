@@ -1,13 +1,13 @@
 ---
 title: "AI Coding Agents — Agent-Native Orchestrators & Codex Skills"
-description: "72 agent-native orchestrators for Claude Code, Codex CLI, and Gemini CLI — multi-skill AI agents across engineering, product, marketing, and more."
+description: "73 agent-native orchestrators for Claude Code, Codex CLI, and Gemini CLI — multi-skill AI agents across engineering, product, marketing, and more."
 ---
 
 <div class="domain-header" markdown>
 
 # :material-robot: Agents
 
-<p class="domain-count">72 agents that orchestrate skills across domains</p>
+<p class="domain-count">73 agents that orchestrate skills across domains</p>
 
 </div>
 
@@ -78,6 +78,12 @@ description: "72 agent-native orchestrators for Claude Code, Codex CLI, and Gemi
     ---
 
     Finance
+
+-   :material-bullhorn-outline:{ .lg .middle } **[AEO Agent — Answer Engine Optimization Specialist](cs-aeo.md)**
+
+    ---
+
+    Marketing
 
 -   :material-bullhorn-outline:{ .lg .middle } **[Content Creator Agent](cs-content-creator.md)**
 
