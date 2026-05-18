@@ -5,6 +5,92 @@ All notable changes to the Claude Skills Library will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.3] - 2026-05-17 — aeo-box port: AEO skill + security-guidance PreToolUse hook
+
+### Added
+
+**Ported `alirezarezvani/aeo-box` after a full component audit.** Two new skills, one preserved megaprompt, and a Hermes Agent install/configure walkthrough.
+
+#### `marketing-skill/skills/aeo/` — Answer Engine Optimization
+
+A discipline distinct from SEO. AEO optimizes content for **citation** in LLM-generated responses (ChatGPT, Perplexity, Claude, Gemini, Mistral); SEO optimizes for search rankings. New 8th pod in marketing-skill.
+
+- `aeo_audit.py` — E-E-A-T + structure scoring, 0-100 composite with letter grade. 8 industries with calibrated thresholds (YMYL industries 85+, SaaS/b2b/media 70, ecommerce 65).
+- `aeo_optimizer.py` — Content rewriting in 3 modes (conservative/balanced/aggressive). Auto-injects schema.org Article + FAQPage JSON-LD.
+- `citation_tracker.py` — Local-first citation ledger at `~/.aeo-data/citations.json`. Stats: count, LLM coverage, velocity, top queries, verdict (EARLY / EMERGING / STRONG).
+- 3 references each citing 8 sources: E-E-A-T canon (Google QRG adapted for LLM citation), per-LLM citation patterns (with 73% cross-LLM correlation analysis), AEO-vs-SEO strategic choice.
+- `cs-aeo` agent (pragmatic content strategist; refuses fake authority signals) + `/cs:aeo` slash command.
+
+#### `engineering/security-guidance/` — PreToolUse security hook
+
+Ported from David Dworken (@dworken) at Anthropic (MIT). PreToolUse hook that catches 12 security anti-patterns in Edit/Write/MultiEdit operations **before** they're written:
+
+| Pattern | Upstream | Added in this port |
+|---|:-:|:-:|
+| `child_process.exec` / `execSync` | ✓ | |
+| `new Function` | ✓ | |
+| `eval(` | ✓ | |
+| `dangerouslySetInnerHTML` | ✓ | |
+| `document.write` | ✓ | |
+| `.innerHTML =` | ✓ | |
+| `pickle` | ✓ | |
+| `os.system` | ✓ | |
+| GitHub Actions workflow injection | ✓ | |
+| `subprocess shell=True` | | ✓ |
+| SQL via f-string or `.format` | | ✓ |
+| `yaml.unsafe_load` | | ✓ |
+
+Session-state caching prevents nagging (warn once per file+rule combo); 30-day auto-cleanup; disable per-session with `ENABLE_SECURITY_REMINDER=0`. Full `attribution` block in plugin.json credits the upstream.
+
+#### `megaprompts/14-aeo-agentic-megaprompt.md`
+
+1,579-line multi-agent AEO application spec preserved verbatim. Keeps Path-B option open for future "build the full agentic AEO app" work.
+
+#### `docs/integrations.md` — Hermes Agent install/configure walkthrough
+
+Earlier user-flagged docs gap: nowhere did the repo tell users HOW to install Hermes Agent itself (only how to install our skills INTO Hermes). Added macOS/Linux/Windows install paths, complete first-run walkthrough, sample `~/.hermes/config.yaml`, and a 6 Q&A troubleshooting section.
+
+### Changed
+
+- **Marketplace**: 55 → 57 plugins. Top-level + metadata descriptions updated to v2.7.3 / 313 skills.
+- **Domain plugin.json**: `marketing-skill/.claude-plugin/plugin.json` description updated from "44 skills across 7 pods" → "45 skills across 8 pods" (adds AEO pod). Version bumped 2.2.3 → 2.7.3.
+- **CLAUDE.md**: root + marketing-skill CLAUDE.md refreshed to 313/402/542 counts.
+- **README.md**: badges (313 / 46+ / 60+), Skills Overview table row counts, FAQ counts.
+- **docs/index.md + getting-started.md + mkdocs.yml**: title, meta description, hero subtitle, grid cards, nav entries.
+- **MkDocs**: 401 → 403 generated pages (296 skill + 73 agent + 34 command).
+
+### Layout fix (during /plugin-audit Phase 7)
+
+- Moved `marketing-skill/agents/cs-aeo.md` → `agents/marketing/cs-aeo.md` (repo convention: agents live at root `agents/<domain>/`).
+- Moved `marketing-skill/commands/cs-aeo.md` → `commands/cs-aeo.md` (repo convention: commands live at root `commands/`).
+- Cleaned empty `marketing-skill/agents/` and `marketing-skill/commands/` directories.
+- Without this fix, `scripts/generate-docs.py` wouldn't have generated docs/agents/cs-aeo.md or docs/commands/cs-aeo.md.
+
+### Cross-platform sync
+
+- `.codex/skills-index.json`: 303 → 305 skills.
+- `.gemini/skills-index.json`: 353 → 355 items.
+- `.hermes/skills/claude-skills/skills-index.json`: 305 skills across 12 domains.
+
+### Honest assessments from /plugin-audit (both skills)
+
+**aeo**: PASS WITH WARNINGS — structure 86.4/GOOD, quality 52.4/D (validator expects legacy frontmatter fields v2.7 skills don't use), 3/3 scripts PASS, 2 HIGH security findings (NET-EXFIL from `urllib.request` — same known false-positive as sister `seo-audit` skill; URL fetch is core functionality for content-audit-by-URL tools).
+
+**security-guidance**: PASS WITH WARNINGS — structural mismatch (validators assume `scripts/` layout, hook plugins use `hooks/` per Claude Code spec), 6 CRITICAL + 4 HIGH security findings are all recursive false-positives (the auditor detects the hook's own pattern-strings like `"exec("`, `"eval("`, `"yaml.load("` as actual calls — verified zero real exec/eval calls). Live smoke test: `eval(input())` in Write tool → exit 2 + warning. **Real defects: 0.**
+
+### PRs
+
+#678 (Hermes first-class integration) → #679 (aeo-box port + Hermes install guide) → this PR (v2.7.3 release: docs sync + layout fix + CHANGELOG + audit).
+
+### Verification
+
+- All 4 new Python tools pass `--help` and `--sample`.
+- Security hook smoke-tested: exit 2 on detection, exit 0 on cached/clean.
+- All 3 cross-platform syncs ran clean.
+- MkDocs build: exit 0, 450 HTML pages generated.
+
+---
+
 ## [2.7.0] - 2026-05-16 — v2 megaprompt-to-skill conversion sweep: 13 new skills (productivity + marketing + research)
 
 ### Added — 13 Path-B Skills From `megaprompts/`

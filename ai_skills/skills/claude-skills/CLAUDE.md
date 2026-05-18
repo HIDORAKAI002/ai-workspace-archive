@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a **comprehensive skills library** for Claude AI and Claude Code - reusable, production-ready skill packages that bundle domain expertise, best practices, analysis tools, and strategic frameworks. The repository provides modular skills that teams can download and use directly in their workflows.
 
-**Current Scope:** 311 production-ready skills across 12 domains with ~398 Python automation tools, ~538 reference guides, 45+ agents (cs-* + 7 personas), and 59+ slash commands. v2.7.0 adds 13 Path-B skills across 3 new top-level domains (productivity, marketing, research). v2.6.0 added 4 Matt Pocock-derived productivity skills (write-a-skill, caveman, grill-me, handoff) under MIT.
+**Current Scope:** 313 production-ready skills across 12 domains with ~402 Python automation tools, ~542 reference guides, 46+ agents (cs-* + 7 personas), and 60+ slash commands. v2.7.3 ports `alirezarezvani/aeo-box` — AEO (Answer Engine Optimization) skill into marketing-skill/ + security-guidance PreToolUse hook into engineering/, both built fresh on top of upstream MIT-licensed sources. v2.7.0 added 13 Path-B skills across 3 new top-level domains (productivity, marketing, research). v2.6.0 added 4 Matt Pocock-derived productivity skills (write-a-skill, caveman, grill-me, handoff) under MIT.
 
 **Key Distinction**: This is NOT a traditional application. It's a library of skill packages meant to be extracted and deployed by users into their own Claude workflows.
 
@@ -124,7 +124,22 @@ See [standards/git/git-workflow-standards.md](standards/git/git-workflow-standar
 
 ## Current Version
 
-**Version:** v2.7.0 (latest)
+**Version:** v2.7.3 (latest)
+
+**v2.7.3 Highlights — aeo-box port: AEO skill + security-guidance PreToolUse hook + master prompt preserved:**
+
+Ported `alirezarezvani/aeo-box` after a full component audit. Distilled the valuable parts into our conventions; skipped repo-specific infra (generic agents, GH workflows, TS scripts).
+
+- **`marketing-skill/skills/aeo/`** (new, 8 files, ~3,200 LOC) — Answer Engine Optimization skill, a discipline distinct from SEO. 3 stdlib Python tools: `aeo_audit.py` (E-E-A-T + structure scoring, 0-100 composite, 8 industries with calibrated thresholds where YMYL industries hit 85+, SaaS/b2b/media 70, ecommerce 65), `aeo_optimizer.py` (conservative/balanced/aggressive rewrites + schema.org JSON-LD injection), `citation_tracker.py` (local-first citation ledger at `~/.aeo-data/citations.json` with verdict EARLY/EMERGING/STRONG). 3 references each citing 8 sources: E-E-A-T canon, per-LLM citation patterns (Perplexity / ChatGPT / Claude / Gemini / Mistral with 73% cross-LLM correlation analysis), AEO vs. SEO strategic choice. New `cs-aeo` agent + `/cs:aeo` slash command. New 8th pod ("AEO") added to marketing-skill.
+- **`engineering/security-guidance/`** (new, 5 files) — PreToolUse security reminder hook ported from David Dworken @ Anthropic (MIT). Preserves 9 upstream patterns verbatim (eval, pickle, dangerouslySetInnerHTML, innerHTML, document.write, new Function, child_process.exec, os.system, GH Actions workflow injection) + adds 3 new patterns (subprocess shell=True, SQL f-string injection, yaml.unsafe_load). Session-state caching prevents nagging (warn once per file+rule combo), 30-day auto-cleanup, disable via `ENABLE_SECURITY_REMINDER=0`. `attribution` block in plugin.json credits upstream. Reference doc `pretooluse_hook_canon.md` cites 8 sources on hook design discipline.
+- **`megaprompts/14-aeo-agentic-megaprompt.md`** — 1,579-line multi-agent AEO application spec preserved verbatim. Keeps Path-B option open for future "build the full agentic AEO app" work.
+- **Marketplace + Codex registry:** 55 → 57 plugins; 303 → 305 indexed skills; `marketing-skill/.claude-plugin/plugin.json` description updated from 7 → 8 pods.
+- **Verification:** all 4 new Python tools pass `--help` and `--sample`; security hook smoke-tested (exits 2 on detection, 0 on cached/clean); all 3 cross-platform syncs (.codex / .gemini / .hermes) re-ran clean.
+- **PRs:** #678 (Hermes first-class integration, merged) → #679 (aeo-box port + Hermes install guide, merged).
+
+**Total scope after v2.7.3:** 313 skills across 12 domain folders, ~402 Python automation tools, ~542 reference guides, 46+ agents, 60+ slash commands.
+
+**Version:** v2.7.0
 
 **v2.7.0 Highlights — v2 megaprompt-to-skill conversion sweep: 13 new skills across productivity + marketing + research:**
 
@@ -139,7 +154,7 @@ This release ships the complete v2 megaprompt collection (`megaprompts/01-13`) a
 - **Verification:** 39/39 scripts pass `--help`; 8-phase plugin audit on orchestrator → PASS WITH WARNINGS (structure 84.1/GOOD, scripts 3/3, 0 critical/high security findings); bulk audit on 12 siblings → all 79.5-86.4 structure, 0 critical/high findings.
 - **PRs:** #659 (capture) → #660 (pulse) → #661 (email pair) → #662 (landing) → #663 (litreview) → #664 (grants+dossier) → #666 (patent+syllabus) → #667 (domain-folder cleanup) → #668 (reflect) → #669 (notebooklm) → #671 (research orchestrator) → #672 (v2.7.0 release prep).
 
-**Total scope after v2.7.0:** 311 skills across 12 domain folders, ~398 Python automation tools, ~538 reference guides, 45+ agents, 59+ slash commands.
+**Total scope after v2.7.0:** 311 skills across 12 domain folders, ~398 Python automation tools, ~538 reference guides, 45+ agents, 59+ slash commands. (Superseded by v2.7.3 totals above.)
 
 **Version:** v2.6.1
 
@@ -316,6 +331,6 @@ This repository publishes skills to **ClawHub** (clawhub.com) as the distributio
 
 ---
 
-**Last Updated:** May 11, 2026
-**Version:** v2.4.5
-**Status:** 246 skills deployed across 9 domains, 33 marketplace plugins, docs site live
+**Last Updated:** May 17, 2026
+**Version:** v2.7.3
+**Status:** 313 skills deployed across 12 domains, 57 marketplace plugins, docs site live

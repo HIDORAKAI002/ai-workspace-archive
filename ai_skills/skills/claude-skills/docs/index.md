@@ -1,6 +1,6 @@
 ---
-title: 311 Agent Skills for Codex, Gemini CLI & OpenClaw
-description: "311 production-ready Claude Code skills and agent plugins for 12 AI coding tools — including the v2.7.0 megaprompt-derived productivity, marketing, and research stacks (capture, email-pair, reflect, landing, pulse, litreview, grants, dossier, patent, syllabus, notebooklm, research orchestrator) and the v2.6.0 Matt Pocock productivity quartet (write-a-skill, caveman, grill-me, handoff). Engineering, product, marketing, compliance, and finance agent skills for Claude Code, OpenAI Codex, Gemini CLI, Hermes Agent, Cursor, and OpenClaw."
+title: 313 Agent Skills for Codex, Gemini CLI & OpenClaw
+description: "313 production-ready Claude Code skills and agent plugins for 12 AI coding tools — including v2.7.3 AEO (Answer Engine Optimization for ChatGPT / Perplexity / Claude / Gemini / Mistral citation) + security-guidance PreToolUse hook, the v2.7.0 megaprompt-derived productivity / marketing / research stacks (capture, email-pair, reflect, landing, pulse, litreview, grants, dossier, patent, syllabus, notebooklm, research orchestrator), and the v2.6.0 Matt Pocock productivity quartet (write-a-skill, caveman, grill-me, handoff). Engineering, product, marketing, compliance, and finance agent skills for Claude Code, OpenAI Codex, Gemini CLI, Hermes Agent, Cursor, and OpenClaw."
 hide:
   - toc
   - edit
@@ -14,7 +14,7 @@ hide:
 
 # Agent Skills
 
-311 production-ready skills, 45+ cs-* agents (incl. founder-mode C-suite, Matt Pocock productivity quartet, and v2.7.0 megaprompt-derived research stack), 7 personas, and an orchestration protocol for AI coding tools.
+313 production-ready skills, 46+ cs-* agents (incl. founder-mode C-suite, Matt Pocock productivity quartet, v2.7.0 megaprompt-derived research stack, and v2.7.3 cs-aeo), 7 personas, and an orchestration protocol for AI coding tools.
 { .hero-subtitle }
 
 [Get Started](getting-started.md){ .md-button .md-button--primary }
@@ -49,15 +49,15 @@ hide:
 
 <div class="grid cards" markdown>
 
--   :material-toolbox:{ .lg .middle } **311 Skills**
+-   :material-toolbox:{ .lg .middle } **313 Skills**
 
     ---
 
-    Production-ready instruction packages with structured workflows, Python automation tools, and reference documentation across 12 domains. v2.7.0 adds 13 Path-B skills (productivity, marketing, research). v2.6.0 added the Matt Pocock productivity quartet under MIT.
+    Production-ready instruction packages with structured workflows, Python automation tools, and reference documentation across 12 domains. v2.7.3 adds AEO (Answer Engine Optimization for LLM citation) and a security-guidance PreToolUse hook. v2.7.0 added 13 Path-B skills (productivity, marketing, research). v2.6.0 added the Matt Pocock productivity quartet under MIT.
 
     [:octicons-arrow-right-24: Browse skills](skills/index.md)
 
--   :material-robot:{ .lg .middle } **45+ Agents**
+-   :material-robot:{ .lg .middle } **46+ Agents**
 
     ---
 
