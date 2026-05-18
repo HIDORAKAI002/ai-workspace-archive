@@ -753,11 +753,7 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
             force_run_fn=BuildkiteContext.has_published_python_package_changes,
         ),
         PackageSpec(oss_path("python_modules/dagster-webserver"), pytest_extra_cmds=ui_extra_cmds),
-        PackageSpec(
-            oss_path("python_modules/dagit"),
-            # `test_cli_logs_to_dagit` flakes on EKS with empty captured stderr.
-            queue=BuildkiteQueue.MEDIUM,
-        ),
+        PackageSpec(oss_path("python_modules/dagit")),
         PackageSpec(
             oss_path("python_modules/dagster"),
             env_vars=["AWS_ACCOUNT_ID"],
@@ -769,7 +765,16 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
                 ToxFactor("core_tests", queue=BuildkiteQueue.MEDIUM),
                 ToxFactor("daemon_sensor_tests", splits=2),
                 ToxFactor("daemon_tests", splits=2),
-                ToxFactor("declarative_automation_tests", splits=2, queue=BuildkiteQueue.MEDIUM),
+                # CPU-bound: `test_asset_daemon_without_sensor` parametrizes over
+                # AssetDaemonScenarios; the slowest scenario submits 73 partitioned run
+                # requests through the synchronous run coordinator in one tick and brushes
+                # the 240s pytest-timeout fallback on the EKS default 1000m budget.
+                # Bumping per-step CPU + migrating off the MEDIUM (EC2) queue.
+                ToxFactor(
+                    "declarative_automation_tests",
+                    splits=2,
+                    resources=ResourceRequests(cpu="2000m", memory="2Gi"),
+                ),
                 ToxFactor("definitions_tests"),
                 ToxFactor("general_tests", queue=BuildkiteQueue.MEDIUM),
                 ToxFactor("general_tests_old_protobuf", queue=BuildkiteQueue.MEDIUM),
@@ -803,10 +808,7 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
                 "execution_tests",
                 # Timing-sensitive concurrency / subprocess-lifecycle tests flake on EKS.
                 queue_overrides={
-                    "engine_tests": BuildkiteQueue.MEDIUM,
-                    "dynamic_tests": BuildkiteQueue.MEDIUM,
                     "misc_execution_tests": BuildkiteQueue.MEDIUM,
-                    "pipes_tests": BuildkiteQueue.MEDIUM,
                 },
             ),
             unsupported_python_versions=_unsupported_dagster_python_versions,
@@ -979,8 +981,21 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
         ),
         PackageSpec(
             oss_path("python_modules/libraries/dagster-airbyte"),
-            pytest_tox_factors=[ToxFactor("unit"), ToxFactor("integration")],
-            queue=BuildkiteQueue.MEDIUM,
+            pytest_tox_factors=[
+                ToxFactor("unit"),
+                # 8-service Airbyte compose stack (5 JVMs + Postgres + nginx + init)
+                # OOM-kills under the dind default 2Gi / 2 vCPU.
+                ToxFactor(
+                    "integration",
+                    resources=ResourceRequests(
+                        cpu="1000m",
+                        memory="1Gi",
+                        docker_cpu="4000m",
+                        docker_memory="4Gi",
+                        docker_memory_limit="6Gi",
+                    ),
+                ),
+            ],
         ),
         # PackageSpec(
         #     "python_modules/libraries/dagster-airflow",
@@ -1011,8 +1026,7 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
             pytest_tox_factors=[
                 ToxFactor("general"),
                 ToxFactor("slow", splits=4, queue=BuildkiteQueue.MEDIUM),
-                # `test_dev_uses_active_venv_when_flag_set` empty-stdout capture flakes on EKS.
-                ToxFactor("serial", queue=BuildkiteQueue.MEDIUM),
+                ToxFactor("serial"),
                 ToxFactor("plus"),
             ],
             env_vars=["SHELL"],
