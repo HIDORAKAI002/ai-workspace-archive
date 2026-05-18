@@ -15,7 +15,7 @@ surfaces, or posting announcements.
 | `docs/architecture/cross-harness.md` | Shared substrate model for Claude Code, Codex, OpenCode, Cursor, Gemini, Hermes, and terminal-only use | Names portability boundaries and does not claim unsupported native parity |
 | `docs/architecture/harness-adapter-compliance.md` | Adapter matrix and scorecard | Verified by `npm run harness:adapters -- --check` |
 | `docs/architecture/observability-readiness.md` | Local operator-readiness gate | Verified by `npm run observability:ready` |
-| `docs/architecture/progress-sync-contract.md` | GitHub, Linear, handoff, roadmap, and work-item sync boundary | Checked by `node scripts/platform-audit.js --format json --allow-untracked docs/drafts/` |
+| `docs/architecture/progress-sync-contract.md` | GitHub, Linear, handoff, roadmap, and work-item sync boundary | Checked by `node scripts/platform-audit.js --json` |
 | `scripts/preview-pack-smoke.js` | Deterministic preview-pack smoke gate | Verified by `npm run preview-pack:smoke` |
 | `docs/releases/2.0.0-rc.1/release-notes.md` | GitHub release copy source | Must be refreshed with final live release/package/plugin URLs before publication |
 | `docs/releases/2.0.0-rc.1/quickstart.md` | Clone-to-first-workflow path | Covers clone, install, verify, first skill, and harness switch |
@@ -24,11 +24,12 @@ surfaces, or posting announcements.
 | `docs/releases/2.0.0-rc.1/publication-evidence-2026-05-15.md` | Current May 15 queue, roadmap, security, supply-chain watch, no-lifecycle CI install hardening, AgentShield #86 evidence-pack provenance, ECC Tools billing-gate, Actions cache purge, and `ecc2` test evidence through PR #1941 | Must be superseded by a final clean-checkout evidence file before real publication |
 | `docs/releases/2.0.0-rc.1/publication-evidence-2026-05-16.md` | Current May 16/17 queue cleanup, recsys skill merge, GateGuard triage, PR #1947 supply-chain protection, AgentShield #87 plugin-cache confidence evidence, AgentShield #88 evidence-pack inspect/readback, AgentShield #89 evidence-pack fleet routing, AgentShield #90 fleet review items, AgentShield #91 policy export, AgentShield #92 policy promotion, ECC-Tools #76 fleet-summary consumption, ECC-Tools #77 hosted finding evidence paths, ECC-Tools #78 harness policy-route linking, dashboard refresh, and combined Node/Rust/release-surface gate evidence through the May 16 mirror | Must still be repeated from a strict clean checkout before real publication |
 | `docs/releases/2.0.0-rc.1/publication-evidence-2026-05-17.md` | May 17 queue-zero state, Japanese localization merge, Dependabot TypeScript and Node type merges, post-merge ja-JP lint repair, Mini Shai-Hulud/TanStack protection recheck, npm audit/signature checks, legacy and Linear progress routing, deterministic preview-pack smoke, operator dashboard refresh, Linear sync, and GitHub CI evidence for `27dc2918` | Superseded by the May 18 evidence snapshot; repeat from a strict clean checkout before real publication |
-| `docs/releases/2.0.0-rc.1/publication-evidence-2026-05-18.md` | Current May 18 queue-zero state, #1970/#1971/#1972 merge batch, current-head Mini Shai-Hulud/TanStack protection recheck, no-lifecycle install, npm audit/signature checks, AgentShield project `.claude` scan, work-items sync, Linear sync, operator dashboard refresh, and Supply-Chain Watch success for `3b7e0ba3` | Current strongest readiness snapshot; must still be repeated from a strict clean checkout before real publication |
+| `docs/releases/2.0.0-rc.1/publication-evidence-2026-05-18.md` | Current May 18 queue-zero state, #1970/#1971/#1972 merge batch, #1978 review/closure, current-head Mini Shai-Hulud/TanStack protection recheck, no-lifecycle install, npm audit/signature checks, AgentShield `840952a` enterprise/IOC evidence mirror, work-items sync, Linear sync, operator dashboard refresh, and current-head CI/security scan success for `99e01ded` | Current strongest readiness snapshot; must still be repeated from a strict clean checkout before real publication |
 | `docs/releases/2.0.0-rc.1/operator-readiness-dashboard-2026-05-17.md` | Previous prompt-to-artifact operator dashboard | Superseded by the May 18 generated dashboard |
 | `docs/releases/2.0.0-rc.1/operator-readiness-dashboard-2026-05-18.md` | Current prompt-to-artifact operator dashboard | Shows PR/issue/discussion/platform/supply-chain gates current and publication, plugin, billing, AgentShield, ECC Tools, legacy, and Linear productization gaps still open |
 | `docs/releases/2.0.0-rc.1/release-url-ledger-2026-05-18.md` | Live URL and approval-gated URL ledger for release copy | Must be regenerated from the final release commit before public announcements |
 | `docs/releases/2.0.0-rc.1/naming-and-publication-matrix.md` | Naming, slug, and publication-path decision record | Keeps `Everything Claude Code / ECC`, npm `ecc-universal`, and plugin slug `ecc` for rc.1 |
+| `docs/releases/2.0.0-rc.1/release-name-plugin-publication-checklist-2026-05-18.md` | Release name, package, Claude plugin, Codex plugin, and publication-order checklist | Freezes rc.1 identity and requires final commit evidence before release, npm, plugin, billing, or announcement actions |
 | `docs/releases/2.0.0-rc.1/x-thread.md` | X launch draft | Must replace placeholders with live URLs after release/package/plugin publication |
 | `docs/releases/2.0.0-rc.1/linkedin-post.md` | LinkedIn launch draft | Must replace placeholders with live URLs after release/package/plugin publication |
 | `docs/releases/2.0.0-rc.1/article-outline.md` | Longform launch outline | Must stay release-candidate framed until GA evidence exists |
@@ -72,7 +73,7 @@ Run these from the exact release commit before publication:
 
 ```bash
 git status --short --branch
-node scripts/platform-audit.js --format json --allow-untracked docs/drafts/
+node scripts/platform-audit.js --json
 npm run preview-pack:smoke
 npm run harness:adapters -- --check
 npm run harness:audit -- --format json
@@ -91,6 +92,8 @@ The preview pack is assembled, but publication is still blocked until these live
 surfaces exist and are recorded in a final evidence file:
 
 - final release URL ledger regenerated from the intended release commit;
+- final release name/plugin publication checklist rerun from the intended
+  release commit;
 - GitHub prerelease `v2.0.0-rc.1`;
 - npm `ecc-universal@2.0.0-rc.1` on the `next` dist-tag;
 - Claude plugin tag / marketplace propagation for `ecc@ecc`;

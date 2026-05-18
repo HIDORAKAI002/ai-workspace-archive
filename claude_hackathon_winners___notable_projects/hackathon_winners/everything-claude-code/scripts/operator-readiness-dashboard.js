@@ -335,7 +335,7 @@ function agentShieldEnterpriseGap(roadmap) {
 function agentShieldEnterpriseEvidence(roadmap) {
   if (roadmap.includes('hosted promotion judge audit traces')
     || roadmap.includes('operator-visible promotion output values')) {
-    return 'AgentShield policy promotion `reviewItems` landed in `87aec47`; package-manager hardening drift detection landed in `28d08c7`; workflow action runtime pins were refreshed in `659f569`; npm age-gate guidance was corrected in `ee585cd`; package-manager hardening Action outputs landed in `1124535`; policy-promotion Action outputs and runtime-smoke job-summary evidence landed in `1593925`; ECC-Tools consumes those outputs in `8658951`, surfaces operator-readable status/pack/count/digest telemetry in `16c537f`, and renders hosted promotion judge audit traces in `05d4e82`; all are mirrored in the GA roadmap';
+    return 'AgentShield policy promotion `reviewItems` landed in `87aec47`; package-manager hardening drift detection landed in `28d08c7`; workflow action runtime pins were refreshed in `659f569`; npm age-gate guidance was corrected in `ee585cd`; package-manager hardening Action outputs landed in `1124535`; policy-promotion Action outputs and runtime-smoke job-summary evidence landed in `1593925`; fleet review ticket payloads and current Mini Shai-Hulud IOC breadcrumbs landed in `840952a`; ECC-Tools consumes those outputs in `8658951`, surfaces operator-readable status/pack/count/digest telemetry in `16c537f`, and renders hosted promotion judge audit traces in `05d4e82`; all are mirrored in the GA roadmap';
   }
 
   return 'AgentShield enterprise PR evidence is mirrored in the GA roadmap';
@@ -512,6 +512,17 @@ function buildRequirement(id, requirement, artifact, status, evidence, gap) {
   return { id, requirement, artifact, status, evidence, gap };
 }
 
+function extractLabeledCount(text, label) {
+  const pattern = new RegExp(`${label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}:\\s*(\\d+)`, 'i');
+  const match = text.match(pattern);
+  if (!match) {
+    return null;
+  }
+
+  const parsed = Number.parseInt(match[1], 10);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 function isCurrentOrComplete(status) {
   return status === 'current' || status === 'complete';
 }
@@ -520,7 +531,9 @@ function buildRequirements(rootDir, platformReport) {
   const roadmap = readText(rootDir, 'docs/ECC-2.0-GA-ROADMAP.md');
   const publicationReadiness = readText(rootDir, 'docs/releases/2.0.0-rc.1/publication-readiness.md');
   const namingMatrix = readText(rootDir, 'docs/releases/2.0.0-rc.1/naming-and-publication-matrix.md');
+  const releasePublicationChecklist = readText(rootDir, 'docs/releases/2.0.0-rc.1/release-name-plugin-publication-checklist-2026-05-18.md');
   const releaseUrlLedger = readText(rootDir, 'docs/releases/2.0.0-rc.1/release-url-ledger-2026-05-18.md');
+  const ownerQueueCleanup = readText(rootDir, 'docs/releases/2.0.0-rc.1/owner-queue-cleanup-2026-05-18.md');
   const previewManifest = readText(rootDir, 'docs/releases/2.0.0-rc.1/preview-pack-manifest.md');
   const previewPackSmoke = readText(rootDir, 'scripts/preview-pack-smoke.js');
   const progressSync = readText(rootDir, 'docs/architecture/progress-sync-contract.md');
@@ -550,9 +563,22 @@ function buildRequirements(rootDir, platformReport) {
     && fileExists(rootDir, 'skills/hermes-imports/SKILL.md');
 
   const githubLive = !platformReport.github.skipped && platformReport.github.totals.errors === 0;
-  const queuesCurrent = githubLive
-    && platformReport.github.totals.openPrs <= platformReport.thresholds.maxOpenPrs
+  const ownerWideOpenPrs = extractLabeledCount(ownerQueueCleanup, 'Owner-wide open PRs after cleanup');
+  const ownerWideOpenIssues = extractLabeledCount(ownerQueueCleanup, 'Owner-wide open issues after cleanup');
+  const trackedPrQueueCurrent = githubLive
+    && platformReport.github.totals.openPrs <= platformReport.thresholds.maxOpenPrs;
+  const trackedIssueQueueCurrent = githubLive
     && platformReport.github.totals.openIssues <= platformReport.thresholds.maxOpenIssues;
+  const ownerPrQueueCurrent = ownerWideOpenPrs === null
+    || ownerWideOpenPrs <= platformReport.thresholds.maxOpenPrs;
+  const ownerIssueQueueCurrent = ownerWideOpenIssues === null
+    || ownerWideOpenIssues <= platformReport.thresholds.maxOpenIssues;
+  const ownerPrEvidence = ownerWideOpenPrs === null
+    ? ''
+    : `; ${ownerWideOpenPrs} owner-wide open PRs after cleanup`;
+  const ownerIssueEvidence = ownerWideOpenIssues === null
+    ? ''
+    : `; ${ownerWideOpenIssues} owner-wide open issues after cleanup`;
   const discussionsCurrent = githubLive
     && platformReport.github.totals.discussionsNeedingMaintainerTouch === 0
     && platformReport.github.totals.discussionsMissingAcceptedAnswer === 0;
@@ -561,22 +587,30 @@ function buildRequirements(rootDir, platformReport) {
     buildRequirement(
       'public-pr-budget',
       'Keep public PRs below 20',
-      'scripts/platform-audit.js live GitHub sweep',
-      queuesCurrent ? 'current' : 'in_progress',
+      ownerWideOpenPrs === null
+        ? 'scripts/platform-audit.js live GitHub sweep'
+        : 'scripts/platform-audit.js live GitHub sweep plus owner-wide queue cleanup ledger',
+      trackedPrQueueCurrent && ownerPrQueueCurrent ? 'current' : 'in_progress',
       githubLive
-        ? `${platformReport.github.totals.openPrs} open PRs across ${platformReport.github.repos.length} tracked repos`
+        ? `${platformReport.github.totals.openPrs} open PRs across ${platformReport.github.repos.length} tracked repos${ownerPrEvidence}`
         : 'live GitHub queue readback was skipped or failed',
-      queuesCurrent ? 'repeat before release' : 'run live platform:audit and drain PR queue'
+      trackedPrQueueCurrent && ownerPrQueueCurrent
+        ? 'repeat platform:audit and owner-wide gh search before release'
+        : 'run live platform:audit and owner-wide gh search, then drain PR queue'
     ),
     buildRequirement(
       'public-issue-budget',
       'Keep public issues below 20',
-      'scripts/platform-audit.js live GitHub sweep',
-      queuesCurrent ? 'current' : 'in_progress',
+      ownerWideOpenIssues === null
+        ? 'scripts/platform-audit.js live GitHub sweep'
+        : 'scripts/platform-audit.js live GitHub sweep plus owner-wide queue cleanup ledger',
+      trackedIssueQueueCurrent && ownerIssueQueueCurrent ? 'current' : 'in_progress',
       githubLive
-        ? `${platformReport.github.totals.openIssues} open issues across ${platformReport.github.repos.length} tracked repos`
+        ? `${platformReport.github.totals.openIssues} open issues across ${platformReport.github.repos.length} tracked repos${ownerIssueEvidence}`
         : 'live GitHub queue readback was skipped or failed',
-      queuesCurrent ? 'repeat before release' : 'run live platform:audit and drain issue queue'
+      trackedIssueQueueCurrent && ownerIssueQueueCurrent
+        ? 'repeat platform:audit and owner-wide gh search before release'
+        : 'run live platform:audit and owner-wide gh search, then drain issue queue'
     ),
     buildRequirement(
       'repository-discussions',
@@ -632,12 +666,19 @@ function buildRequirements(rootDir, platformReport) {
     buildRequirement(
       'naming-and-plugin-publication',
       'Prepare name-change, Claude plugin, and Codex plugin paths',
-      'naming-and-publication-matrix plus publication-readiness',
+      'naming-and-publication-matrix plus release-name-plugin-publication checklist plus publication-readiness',
       includesAll(namingMatrix, ['Claude plugin', 'Codex plugin', 'npm package', 'Publication Paths'])
+        && includesAll(releasePublicationChecklist, [
+          'Everything Claude Code (ECC)',
+          'ecc-universal',
+          'claude plugin tag .claude-plugin --dry-run',
+          'codex plugin marketplace add',
+          'Do not rename the repo or package until rc.1 is published'
+        ])
         && includesAll(publicationReadiness, ['Claude plugin', 'Codex plugin'])
         ? 'in_progress'
         : 'not_complete',
-      'naming matrix and plugin readiness gates exist',
+      'naming matrix, release publication checklist, and plugin readiness gates exist',
       'real tag/push, marketplace submission, and final channel choice remain approval-gated'
     ),
     buildRequirement(
