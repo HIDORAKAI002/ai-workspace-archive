@@ -4,12 +4,12 @@
     "name": "Alireza Rezvani",
     "url": "https://alirezarezvani.com"
   },
-  "description": "311 production-ready skill packages for Claude AI across 12 domains: engineering advanced (75 \u2014 incl. 4 Matt Pocock-derived productivity skills), engineering core (51), marketing (46), c-level advisory (66), product (17), regulatory/QMS (18), project management (9), business growth (5), finance (4), productivity (4, v2.7.0), marketing top-level (2, v2.7.0), and research (8, v2.7.0). Includes ~398 Python tools, ~538 reference documents, 45+ agents, 59+ slash commands.",
+  "description": "313 production-ready skill packages for Claude AI across 12 domains: engineering advanced (76 \u2014 incl. 4 Matt Pocock-derived productivity skills + v2.7.3 security-guidance PreToolUse hook), engineering core (51), marketing (47 \u2014 incl. v2.7.3 AEO/Answer Engine Optimization), c-level advisory (66), product (17), regulatory/QMS (18), project management (9), business growth (5), finance (4), productivity (4, v2.7.0), marketing top-level (2, v2.7.0), and research (8, v2.7.0). Includes ~402 Python tools, ~542 reference documents, 46+ agents, 60+ slash commands.",
   "homepage": "https://github.com/alirezarezvani/claude-skills",
   "repository": "https://github.com/alirezarezvani/claude-skills",
   "metadata": {
-    "description": "311 production-ready skill packages across 12 domains (engineering, marketing, product, c-level, project management, RA/QM, business growth, finance, productivity, marketing (top-level), research, plus standards). ~398 Python tools, ~538 reference guides, 45+ agents (cs-* + personas), 59+ slash commands. Compatible with Claude Code, Codex CLI, Gemini CLI, Cursor, OpenClaw, Hermes Agent, and 6 more coding agents.",
-    "version": "2.7.0"
+    "description": "313 production-ready skill packages across 12 domains (engineering, marketing, product, c-level, project management, RA/QM, business growth, finance, productivity, marketing (top-level), research, plus standards). ~402 Python tools, ~542 reference guides, 46+ agents (cs-* + personas), 60+ slash commands. v2.7.3 adds AEO (Answer Engine Optimization for LLM citation) + security-guidance PreToolUse hook. Compatible with Claude Code, Codex CLI, Gemini CLI, Cursor, OpenClaw, Hermes Agent, and 6 more coding agents.",
+    "version": "2.7.3"
   },
   "plugins": [
     {
@@ -1149,6 +1149,50 @@
         "path-b-megaprompt"
       ],
       "category": "research"
+    },
+    {
+      "name": "aeo",
+      "source": "./marketing-skill/skills/aeo",
+      "description": "Answer Engine Optimization (AEO) skill \u2014 optimize content to be cited by AI language models (ChatGPT, Perplexity, Claude, Gemini, Mistral) as authoritative sources. Distinct from SEO (which optimizes for search rankings), AEO optimizes for citation in LLM-generated responses. 3 stdlib Python tools (aeo_audit, aeo_optimizer, citation_tracker), 3 references citing 8 sources each, industry-aware thresholds for 8 industries (saas/healthcare/finance/legal/ecommerce/b2b/media/education). Ported from alirezarezvani/aeo-box.",
+      "version": "2.7.3",
+      "author": {
+        "name": "Alireza Rezvani"
+      },
+      "keywords": [
+        "aeo",
+        "answer-engine-optimization",
+        "llm-citation",
+        "eeat",
+        "chatgpt",
+        "perplexity",
+        "claude",
+        "gemini",
+        "marketing",
+        "seo-complement"
+      ],
+      "category": "marketing"
+    },
+    {
+      "name": "security-guidance",
+      "source": "./engineering/security-guidance",
+      "description": "PreToolUse security reminder hook for Claude Code. Catches 12 common security anti-patterns in Edit/Write/MultiEdit operations BEFORE they happen \u2014 command injection (exec, os.system, subprocess shell=True), XSS (innerHTML, dangerouslySetInnerHTML, document.write), SQL injection (f-string queries, .format), unsafe deserialization (pickle, yaml.unsafe_load), code injection (eval, new Function), and GitHub Actions workflow injection. Session-state caching prevents duplicate warnings; 30-day auto-cleanup. Disable per-session with ENABLE_SECURITY_REMINDER=0. Ported from David Dworken at Anthropic.",
+      "version": "2.7.3",
+      "author": {
+        "name": "Alireza Rezvani"
+      },
+      "keywords": [
+        "security",
+        "hook",
+        "pretooluse",
+        "command-injection",
+        "xss",
+        "sql-injection",
+        "eval",
+        "pickle",
+        "engineering",
+        "static-analysis"
+      ],
+      "category": "development"
     }
   ]
 }

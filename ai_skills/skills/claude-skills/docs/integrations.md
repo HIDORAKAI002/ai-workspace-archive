@@ -5,7 +5,7 @@ description: "Install Claude Code skills and agent plugins in Hermes Agent, Curs
 
 # Multi-Tool Integrations
 
-All 246 skills in this repository work natively with **8 AI coding tools** beyond Claude Code, Codex, Gemini CLI, and OpenClaw. Hermes Agent uses the same agentskills.io SKILL.md standard — no conversion needed. For the other 7 tools, a conversion script adapts the format each tool expects while preserving skill instructions, workflows, and supporting files.
+All 311 skills in this repository work natively with **8 AI coding tools** beyond Claude Code, Codex, Gemini CLI, and OpenClaw. Hermes Agent uses the same agentskills.io SKILL.md standard — no conversion needed. For the other 7 tools, a conversion script adapts the format each tool expects while preserving skill instructions, workflows, and supporting files.
 
 <div class="grid cards" markdown>
 
@@ -537,11 +537,59 @@ find ~/.gemini/antigravity/skills -name "SKILL.md" | wc -l
 
 [Hermes Agent](https://github.com/NousResearch/hermes-agent) by Nous Research is a self-improving AI agent with a built-in learning loop. It uses the [agentskills.io](https://agentskills.io) standard — **the same SKILL.md format our repo uses** — so no conversion is needed.
 
+!!! tip "Tier: BYO-sync (pre-generated tree available since v2.7.2)"
+    Starting in v2.7.2, the repo ships a pre-generated `.hermes/skills/claude-skills/` tree with **303 symlinks** across **12 domains** (including the v2.7.0 productivity/marketing/research domains). You still need to copy/symlink that tree into `~/.hermes/skills/` on your machine — that's the BYO-sync step. The `sync-hermes-skills.py` script handles this in one command.
+
 ### Why Hermes is different
 
 Unlike other tools that need format conversion, Hermes reads `SKILL.md` files natively with the exact same YAML frontmatter (`name`, `description`, `version`, `license`), the same directory layout (`references/`, `templates/`, `assets/`), and the same `AGENTS.md` project context. Our skills are plug-and-play.
 
-### Install
+### Step 1 — Install Hermes Agent itself
+
+If you don't have Hermes Agent installed yet, set it up first:
+
+=== "macOS / Linux"
+
+    ```bash
+    # 1. Clone the official repo
+    git clone https://github.com/NousResearch/hermes-agent.git
+    cd hermes-agent
+
+    # 2. Install dependencies (Python 3.10+)
+    python3 -m venv .venv
+    source .venv/bin/activate
+    pip install -r requirements.txt
+
+    # 3. Configure your model provider (Nous, OpenAI, Anthropic — pick one)
+    cp .env.example .env
+    # Edit .env and set: NOUS_API_KEY=... OR OPENAI_API_KEY=... OR ANTHROPIC_API_KEY=...
+
+    # 4. First run to create ~/.hermes/ config dir
+    python hermes.py --version
+
+    # 5. Verify the skills directory exists
+    ls ~/.hermes/skills/  # → empty by default, ready for our claude-skills tree
+    ```
+
+=== "Windows (WSL2 recommended)"
+
+    Hermes Agent's official support targets macOS and Linux. On Windows, use WSL2 (Ubuntu 22.04+) and follow the macOS/Linux steps above. Native Windows is community-supported only.
+
+=== "Docker"
+
+    ```bash
+    docker run -it --rm \
+      -v $HOME/.hermes:/root/.hermes \
+      -e NOUS_API_KEY=$NOUS_API_KEY \
+      ghcr.io/nousresearch/hermes-agent:latest
+    ```
+
+    The `-v` flag mounts your local `~/.hermes/` so skills + history persist across runs. Replace `NOUS_API_KEY` with whichever provider you configured.
+
+!!! info "Don't have a Nous account?"
+    Hermes Agent supports multiple LLM providers — Nous (default), OpenAI, Anthropic, and any OpenAI-compatible endpoint. You don't need a Nous account if you already have OpenAI or Anthropic credentials. See [Hermes Agent README](https://github.com/NousResearch/hermes-agent#configuration) for the full provider matrix.
+
+### Step 2 — Install our skills into Hermes
 
 === "Sync script (recommended)"
 
@@ -551,7 +599,7 @@ Unlike other tools that need format conversion, Hermes reads `SKILL.md` files na
     python scripts/sync-hermes-skills.py --verbose
     ```
 
-    This symlinks all 198+ skills into `~/.hermes/skills/claude-skills/` where Hermes discovers them automatically.
+    This symlinks all 303 skills into `~/.hermes/skills/claude-skills/` where Hermes discovers them automatically. Covers all 12 domains including the v2.7.0 additions (productivity, marketing, research).
 
 === "Single domain"
 
@@ -607,7 +655,7 @@ Hermes's skill_view tool loads the SKILL.md content into the conversation contex
 ```bash
 # Check how many skills Hermes can see
 find ~/.hermes/skills/claude-skills -name "SKILL.md" | wc -l
-# Expected: 198+
+# Expected: 303 (v2.7.2+)
 
 # Or in Hermes CLI
 hermes
@@ -622,6 +670,95 @@ git pull origin main
 python scripts/sync-hermes-skills.py --verbose
 # Existing symlinks are preserved, new skills are added
 ```
+
+### Step 3 — First-run walkthrough
+
+A complete dry-run from cold install to running your first skill:
+
+```bash
+# 1. After Steps 1 + 2 above (Hermes installed, skills synced)
+hermes
+
+# 2. Check what skills are loaded
+> /skills
+# → claude-skills/engineering/karpathy-coder
+# → claude-skills/research/research
+# → claude-skills/productivity/capture
+# ... (303 total)
+
+# 3. Invoke a skill — research orchestrator example
+> /research What's the state of post-quantum cryptography in 2026?
+# → Hermes loads research/research/SKILL.md, runs Q1+Q2 intake,
+#   classifies via SIGNALS map, routes to research-pack specialist
+#   (litreview here) or runs fallback workflow
+
+# 4. Or browse a skill's docs without running it
+> /skill_view claude-skills/engineering/karpathy-coder
+# → loads SKILL.md content as context; you can ask questions about it
+
+# 5. Search for a topic
+> /skills search "test generation"
+# → ranks claude-skills entries by description match
+```
+
+### Configuration tips
+
+Edit `~/.hermes/config.yaml` (created on first run) to customize how Hermes uses our skills:
+
+```yaml
+# Recommended config for working with the claude-skills tree
+skills:
+  search_paths:
+    - ~/.hermes/skills/         # Default location (our sync script lands here)
+  auto_load:
+    - claude-skills/engineering/karpathy-coder  # Always-loaded skills (high-impact, low-token)
+    - claude-skills/engineering/grill-me        # Use sparingly — adds intake friction
+  display:
+    show_category: true   # Group results by claude-skills/<domain>/
+    show_description: true
+```
+
+### Troubleshooting
+
+??? question "`/skills` shows 0 results after running the sync script"
+    The sync target may be wrong. Check what the script actually did:
+    ```bash
+    python scripts/sync-hermes-skills.py --target ~/.hermes/skills --verbose --dry-run
+    # Should show 303 skills queued for sync. If 0, your DOMAIN_DIRS list is wrong (regression — file an issue).
+    ls -la ~/.hermes/skills/claude-skills/
+    # If empty, the sync didn't actually write — check for permission errors above.
+    ```
+
+??? question "Symlinks point to a path on someone else's machine"
+    You probably cloned a fork that committed absolute-path symlinks. Re-run the sync from your own clone — v2.7.2+ generates relative symlinks (`../../../../<domain>/...`) which work across machines:
+    ```bash
+    rm -rf ~/.hermes/skills/claude-skills/
+    python scripts/sync-hermes-skills.py --verbose
+    ```
+
+??? question "Slash commands like `/research` collide with Hermes's built-ins"
+    Hermes resolves user-defined skills first, so `/research` from claude-skills wins. If you want the built-in instead, use the fully qualified path: `/skill_view hermes/research`. To avoid collisions entirely, rename via symlink: `ln -s ~/.hermes/skills/claude-skills/research/research ~/.hermes/skills/cs-research`.
+
+??? question "Python tools fail with ModuleNotFoundError"
+    Our scripts are stdlib-only by policy — `ModuleNotFoundError` means either (a) you're running an old Python (we require 3.10+) or (b) the script itself violated the policy (file a bug). Confirm:
+    ```bash
+    python3 --version  # Must be ≥ 3.10
+    python3 ~/.hermes/skills/claude-skills/engineering/karpathy-coder/scripts/karpathy_lint.py --help
+    # Should print help text without errors
+    ```
+
+??? question "Hermes can't find SKILL.md but the file exists"
+    Hermes expects SKILL.md at the **top of the skill directory**. Our nested-plugin layout (`<domain>/<plugin>/skills/<skill>/SKILL.md`) is flattened by the sync script — the symlink at `~/.hermes/skills/claude-skills/<domain>/<skill>/` points directly at the inner `skills/<skill>/` folder, so `SKILL.md` is at the top level after the symlink jump. If a specific skill is missing, check:
+    ```bash
+    ls -la ~/.hermes/skills/claude-skills/<domain>/<skill>/SKILL.md
+    # If "No such file", the symlink target is broken — re-run the sync script
+    ```
+
+??? question "How do I unsync (remove our skills from Hermes)?"
+    ```bash
+    rm -rf ~/.hermes/skills/claude-skills/
+    # Hermes's own built-in skills are unaffected (they live elsewhere in ~/.hermes/skills/)
+    ```
 
 <hr class="section-divider">
 

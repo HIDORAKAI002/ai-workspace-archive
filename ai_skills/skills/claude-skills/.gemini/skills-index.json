@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "name": "gemini-cli-skills",
-  "total_skills": 353,
+  "total_skills": 355,
   "skills": [
     {
       "name": "README",
@@ -1199,6 +1199,11 @@
       "description": "Use when the user asks to set up secret management infrastructure, integrate HashiCorp Vault, configure cloud secret stores (AWS Secrets Manager, Azure Key Vault, GCP Secret Manager), implement secret rotation, or audit secret access patterns."
     },
     {
+      "name": "security-guidance",
+      "category": "engineering-advanced",
+      "description": "PreToolUse security-anti-pattern hook for Claude Code. Catches 12 common security risks (command injection, XSS, SQL injection, unsafe deserialization, GitHub Actions workflow injection, eval/new Function code injection) BEFORE the Edit/Write/MultiEdit operation completes. Session-state caching prevents duplicate warnings on the same file+rule combo. Stdlib only \u2014 no dependencies. Use when you want a safety net during Claude Code sessions that touch security-sensitive code (auth, payments, user input handling, IaC). Disable with ENABLE_SECURITY_REMINDER=0 if you need to perform a verified-safe operation that would otherwise trip a pattern. Triggers \u2014 \"add security hook\", \"block unsafe code\", \"detect command injection before write\", \"prevent SQL injection patterns\", \"security warning hook\"."
+    },
+    {
       "name": "self-eval",
       "category": "engineering-advanced",
       "description": "Honestly evaluate AI work quality using a two-axis scoring system. Use after completing a task, code review, or work session to get an unbiased assessment. Detects score inflation, forces devil's advocate reasoning, and persists scores across sessions."
@@ -1332,6 +1337,11 @@
       "name": "ad-creative",
       "category": "marketing",
       "description": "When the user needs to generate, iterate, or scale ad creative for paid advertising. Use when they say 'write ad copy,' 'generate headlines,' 'create ad variations,' 'bulk creative,' 'iterate on ads,' 'ad copy validation,' 'RSA headlines,' 'Meta ad copy,' 'LinkedIn ad,' or 'creative testing.' This is pure creative production \u2014 distinct from paid-ads (campaign strategy). Use ad-creative when you need the copy, not the campaign plan."
+    },
+    {
+      "name": "aeo",
+      "category": "marketing",
+      "description": "Answer Engine Optimization (AEO) skill \u2014 optimize content to be cited by AI language models (ChatGPT, Perplexity, Claude, Gemini, Mistral) as authoritative sources. Distinct from SEO: AEO optimizes for citation in LLM-generated responses, not search rankings. Use when planning content for AI-first search audiences, auditing existing content for E-E-A-T signals, tracking which pages get cited by which LLMs, or building a citation-friendly content strategy. Triggers \u2014 \"AEO audit\", \"optimize for ChatGPT\", \"get cited by Perplexity\", \"LLM citation strategy\", \"answer engine optimization\", \"content for AI search\", \"E-E-A-T audit\". Output is a markdown audit report (default) or JSON for pipeline integration. Stdlib-only Python tools."
     },
     {
       "name": "ai-seo",
@@ -1791,7 +1801,7 @@
       "description": "Engineering resources"
     },
     "engineering-advanced": {
-      "count": 76,
+      "count": 77,
       "description": "Engineering-advanced resources"
     },
     "finance": {
@@ -1799,7 +1809,7 @@
       "description": "Finance resources"
     },
     "marketing": {
-      "count": 45,
+      "count": 46,
       "description": "Marketing resources"
     },
     "product": {
