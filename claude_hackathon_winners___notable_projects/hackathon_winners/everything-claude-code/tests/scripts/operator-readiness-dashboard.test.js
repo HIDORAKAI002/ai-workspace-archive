@@ -70,6 +70,11 @@ function seedRepo(rootDir, overrides = {}) {
       '42653f9',
       'target account billing readback',
       '632e059',
+      '69ca535',
+      'team feedback controls',
+      'e56fc1a',
+      '1Password CLI authorization timed out',
+      'Cloudflare API auth returned `Authentication error [code: 10000]`',
       'announcementGate',
       'ITO-55',
       'Linear live sync is current for the May 17 merge batch',
@@ -278,7 +283,7 @@ function runTests() {
       )));
       assert.ok(report.requirements.some(item => (
         item.id === 'ecc-tools-next-level'
-          && item.gap === 'create or verify Marketplace-managed Pro target billing-state with webhook provenance, then run `billing:kv-readback -- --account <github-login> --require-ready` with working Cloudflare API auth or repaired Wrangler OAuth, followed by the live announcement gate'
+          && item.gap === 'authorize Cloudflare API or 1Password CLI access, configure the target Marketplace Pro account and INTERNAL_API_SECRET, create or replay Marketplace Pro webhook state, then rerun target readback and the live announcement gate'
           && item.evidence.includes('operator-visible promotion output details')
           && item.evidence.includes('hosted promotion judge audit traces')
           && item.evidence.includes('billing announcement preflight')
@@ -286,6 +291,8 @@ function runTests() {
           && item.evidence.includes('Wrangler OAuth readback')
           && item.evidence.includes('target-account billing readback')
           && item.evidence.includes('provenance-aware Marketplace billing-state gates')
+          && item.evidence.includes('hosted team-learning feedback controls')
+          && item.evidence.includes('ECC-Tools Dependabot alert remediation')
       )));
       assert.ok(report.requirements.some(item => (
         item.id === 'naming-and-plugin-publication'

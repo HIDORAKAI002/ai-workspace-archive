@@ -4,6 +4,7 @@ import json
 from typing import Callable
 
 import pytest
+from openinference.instrumentation import OITracer, TraceConfig
 from openinference.semconv.trace import (
     OpenInferenceMimeTypeValues,
     OpenInferenceSpanKindValues,
@@ -13,7 +14,7 @@ from openinference.semconv.trace import (
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
-from opentelemetry.trace import StatusCode
+from opentelemetry.trace import StatusCode, Tracer
 from pydantic_ai._run_context import RunContext
 from pydantic_ai.models.test import TestModel
 from pydantic_ai.toolsets import FunctionToolset
@@ -32,6 +33,11 @@ def tracer_provider(in_memory_span_exporter: InMemorySpanExporter) -> TracerProv
     provider = TracerProvider()
     provider.add_span_processor(SimpleSpanProcessor(in_memory_span_exporter))
     return provider
+
+
+@pytest.fixture
+def tracer(tracer_provider: TracerProvider) -> Tracer:
+    return OITracer(tracer_provider.get_tracer("test"), config=TraceConfig())
 
 
 @pytest.fixture
@@ -75,10 +81,10 @@ def make_ctx() -> Callable[..., RunContext[None]]:
 async def test_call_tool_emits_tool_span(
     add_toolset: FunctionToolset[None],
     in_memory_span_exporter: InMemorySpanExporter,
-    tracer_provider: TracerProvider,
+    tracer: Tracer,
     make_ctx: Callable[..., RunContext[None]],
 ) -> None:
-    wrapped_toolset = OpenInferenceToolsetWrapper(add_toolset, tracer_provider=tracer_provider)
+    wrapped_toolset = OpenInferenceToolsetWrapper(add_toolset, tracer=tracer)
     tool_args = {"a": 2, "b": 3}
 
     async with wrapped_toolset:
@@ -128,10 +134,10 @@ async def test_call_tool_emits_tool_span(
 async def test_call_tool_records_exception_when_tool_raises(
     raising_toolset: FunctionToolset[None],
     in_memory_span_exporter: InMemorySpanExporter,
-    tracer_provider: TracerProvider,
+    tracer: Tracer,
     make_ctx: Callable[..., RunContext[None]],
 ) -> None:
-    wrapped_toolset = OpenInferenceToolsetWrapper(raising_toolset, tracer_provider=tracer_provider)
+    wrapped_toolset = OpenInferenceToolsetWrapper(raising_toolset, tracer=tracer)
 
     async with wrapped_toolset:
         ctx = make_ctx(tool_call_id="call_err", tool_name="explode")
