@@ -449,6 +449,7 @@
       "kind": "skills",
       "description": "Media generation, technical explainers, and AI-assisted editing skills.",
       "paths": [
+        "skills/blender-motion-state-inspection",
         "skills/fal-ai-media",
         "skills/manim-video",
         "skills/remotion-video-creation",

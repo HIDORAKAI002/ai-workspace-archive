@@ -64,6 +64,12 @@ function seedRepo(rootDir, overrides = {}) {
       'package-manager hardening Action outputs',
       'production Marketplace readback state',
       'eb69412',
+      'Marketplace webhook provenance',
+      '2859678',
+      'Wrangler OAuth readback',
+      '42653f9',
+      'target account billing readback',
+      '632e059',
       'announcementGate',
       'ITO-55',
       'Linear live sync is current for the May 17 merge batch',
@@ -258,11 +264,14 @@ function runTests() {
       )));
       assert.ok(report.requirements.some(item => (
         item.id === 'ecc-tools-next-level'
-          && item.gap === 'complete Marketplace purchase/webhook readback, then run the live announcement gate'
+          && item.gap === 'create or verify Marketplace-managed Pro target billing-state with webhook provenance, then run `billing:kv-readback -- --account <github-login> --require-ready` with working Cloudflare API auth or repaired Wrangler OAuth, followed by the live announcement gate'
           && item.evidence.includes('operator-visible promotion output details')
           && item.evidence.includes('hosted promotion judge audit traces')
           && item.evidence.includes('billing announcement preflight')
-          && item.evidence.includes('production KV readback state')
+          && item.evidence.includes('aggregate production billing KV readback')
+          && item.evidence.includes('Wrangler OAuth readback')
+          && item.evidence.includes('target-account billing readback')
+          && item.evidence.includes('provenance-aware Marketplace billing-state gates')
       )));
       assert.ok(report.requirements.some(item => (
         item.id === 'supply-chain-local-protection'
