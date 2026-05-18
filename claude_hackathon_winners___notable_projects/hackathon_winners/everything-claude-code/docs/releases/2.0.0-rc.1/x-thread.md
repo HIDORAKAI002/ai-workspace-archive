@@ -78,3 +78,6 @@ Hermes x ECC setup:
 
 12/ Release notes:
 <https://github.com/affaan-m/everything-claude-code/blob/main/docs/releases/2.0.0-rc.1/release-notes.md>
+
+URL ledger:
+<https://github.com/affaan-m/everything-claude-code/blob/main/docs/releases/2.0.0-rc.1/release-url-ledger-2026-05-18.md>

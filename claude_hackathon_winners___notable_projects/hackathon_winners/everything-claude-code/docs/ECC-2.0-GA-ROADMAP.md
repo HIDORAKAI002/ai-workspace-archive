@@ -14,15 +14,16 @@ execution truth is split across:
 
 ## Current Evidence
 
-As of 2026-05-17:
+As of 2026-05-18:
 
 - GitHub queues are clean across `affaan-m/everything-claude-code`,
   `affaan-m/agentshield`, `affaan-m/JARVIS`, `ECC-Tools/ECC-Tools`, and
   `ECC-Tools/ECC-website`: the latest `platform-audit` sweep found 0 open PRs,
   0 open issues, 0 discussion maintainer-touch gaps, 0 answerable Q&A missing
   accepted answers, and 0 blocking dirty files when allowing the unrelated
-  local `docs/drafts/` directory. The May 17 queue batch merged #1961, #1963,
-  and #1953, closed/skipped incompatible #1962, and #1953 closed #1951.
+  local `docs/drafts/` directory. The May 18 sync also refreshed
+  `scripts/work-items.js sync-github` across all five tracked repos, leaving
+  no open or blocked local work items.
 - GitHub discussions are current across those tracked repos:
   `affaan-m/everything-claude-code` has 58 total discussions and 0 without
   maintainer touch after May 15 maintainer updates on #73 and #1239; AgentShield,
@@ -32,21 +33,32 @@ As of 2026-05-17:
   `ITO-59`) and five milestones: Security and Access Baseline, ECC 2.0 Preview
   and Publication, AgentShield Enterprise Iteration, ECC Tools Next-Level
   Platform, and Legacy Audit and Salvage.
-- Linear live sync is current for the May 17 merge batch: ITO-57 has a new
-  supply-chain protection comment (`ca703b95-41a1-403e-9bc4-3d68edd4d4a3`),
-  and the ECC platform project has a new operator progress snapshot
-  (`6c4d1b92-95cf-4ea1-84fd-cbea36f24d1a`).
-- `docs/releases/2.0.0-rc.1/publication-evidence-2026-05-17.md` records the
-  May 17 queue-zero state, Japanese localization merge, Dependabot TypeScript
-  and Node type merges, post-merge ja-JP lint repair, Mini Shai-Hulud/TanStack
-  local protection recheck, npm audit/signature checks, current operator
-  dashboard, and GitHub CI success for `99dd6ac0`.
-- `docs/releases/2.0.0-rc.1/operator-readiness-dashboard-2026-05-17.md`
+- Linear live sync is current for the May 18 merge and supply-chain batch:
+  ITO-57 has a new current-head supply-chain protection comment
+  (`0b9931b9-1556-4ebc-a70c-f3635557625d`), and the ECC platform project has
+  a new operator progress comment (`e32e5b7a-287b-4bf4-9ed7-314389a157e1`).
+  Linear project status updates are disabled in this workspace, so the project
+  comment is the supported external status surface.
+- The latest May 18 merge batch on `main` includes PR #1970 workflow-security
+  validator bypass fixes, PR #1971 metrics bridge cost-reporting and warning
+  de-dup fixes, PR #1972 `uncloud` skill activation structure, and
+  `3b7e0ba3` catalog/operator dashboard refresh.
+- `docs/releases/2.0.0-rc.1/publication-evidence-2026-05-18.md` records the
+  May 18 queue-zero state, current-head TanStack/Mini Shai-Hulud protection
+  recheck, no-lifecycle npm install, npm audit/signature checks, AgentShield
+  project `.claude` scan, Linear sync, work-items sync, operator dashboard
+  refresh, and current-head Supply-Chain Watch success for `3b7e0ba3`.
+- `docs/releases/2.0.0-rc.1/operator-readiness-dashboard-2026-05-18.md`
   regenerates the ITO-44 prompt-to-artifact dashboard from live platform audit
   evidence: PR queue, issue queue, discussion queue, local worktree gate,
   dashboard generation, and supply-chain loop are current; publication, plugin,
   billing, AgentShield, ECC Tools, legacy, and Linear/productized sync lanes
   remain the next work.
+- `docs/releases/2.0.0-rc.1/publication-evidence-2026-05-17.md` records the
+  May 17 queue-zero state, Japanese localization merge, Dependabot TypeScript
+  and Node type merges, post-merge ja-JP lint repair, Mini Shai-Hulud/TanStack
+  local protection recheck, npm audit/signature checks, current operator
+  dashboard, and GitHub CI success for `99dd6ac0`.
 - `docs/releases/2.0.0-rc.1/publication-evidence-2026-05-16.md` records the
   queue, discussion, Linear roadmap, ECC Tools access, Mini Shai-Hulud/TanStack
   full-campaign follow-up, scheduled supply-chain watch coverage, no-lifecycle
@@ -64,9 +76,13 @@ As of 2026-05-17:
 - `npm run harness:audit -- --format json` reports 70/70 on current `main`.
 - `npm run observability:ready` reports 21/21 readiness on current `main`,
   including the GitHub/Linear/handoff/roadmap progress-sync contract.
-- GitHub CI run `25983803011` completed successfully for
-  `99dd6ac0db20fce51713b6a1c92515d2453b769e`, including Validate Components,
+- GitHub CI run `26009328404` completed successfully for
+  `3b7e0ba30a027ffd3319c2f145c63076c296d80a`, including Validate Components,
   Coverage, Lint, Security Scan, and the full Node/package-manager matrix.
+- Supply-Chain Watch run `26009825837` completed successfully for
+  `3b7e0ba30a027ffd3319c2f145c63076c296d80a`, including no-lifecycle install,
+  npm audit/signature verification, scanner fixtures, advisory-source
+  fixtures, IOC/advisory artifact generation, and workflow-security validation.
 - PR #1846 merged as `797f283036904128bb1b348ae62019eb9f08cf39` and made
   npm registry signature verification a durable workflow-security gate:
   workflows that run `npm audit` now need `npm audit signatures`.
@@ -626,7 +642,7 @@ is not complete unless the evidence column exists and has been freshly verified.
 | Manage repository discussions | Repo-family discussion recheck | Platform audit reports 0 discussion maintainer-touch gaps and 0 answerable Q&A missing accepted answers; trunk still has 58 total discussions | Complete |
 | Manage PR discussions | PR review/comment closure plus merge/close state | ECC #1961, #1963, and #1953 merged after maintainer validation; no open tracked PRs remain | Complete |
 | Salvage useful stale work | `docs/stale-pr-salvage-ledger.md` plus `docs/legacy-artifact-inventory.md` | Ledger records salvaged, superseded, skipped, and manual-review tails; #1815-#1818 added cost tracking, skill scout, frontend design guidance, code-reviewer false-positive guardrails, and the May 12 gap pass; #1687, #1609, #1563, #1564, and #1565 localization tails are attached to Linear ITO-55 for language-owner review and no automatic import remains release-blocking | Complete; repeat legacy scan before release |
-| ECC 2.0 preview pack ready | Release docs, quickstart, publication readiness, release notes | `docs/releases/2.0.0-rc.1/` and readiness docs are in-tree; May 17 evidence records queue-zero state, localized docs merge, supply-chain recheck, lint/test/security gates, operator dashboard, and successful GitHub CI on `99dd6ac0` | Needs final clean-checkout release approval |
+| ECC 2.0 preview pack ready | Release docs, quickstart, publication readiness, release notes | `docs/releases/2.0.0-rc.1/` and readiness docs are in-tree; May 18 evidence records queue-zero state, #1970/#1971/#1972 merge batch, supply-chain recheck, npm no-lifecycle install/audit/signature gates, Linear sync, operator dashboard, and successful current-head Supply-Chain Watch on `3b7e0ba3` | Needs final clean-checkout release approval |
 | Hermes specialized skills included safely | Hermes setup/import docs and sanitized skill surface | Hermes setup and import playbook are public; secrets stay local | Needs final release review |
 | Naming and rename readiness | Naming matrix across package/plugin/docs/social surfaces | `docs/releases/2.0.0-rc.1/naming-and-publication-matrix.md` records current package, repo, Claude plugin, Codex plugin, OpenCode, and npm availability evidence | Complete for rc.1; post-rc rename remains future work |
 | Claude and Codex plugin publication | Contact/submission path with required artifacts and status | Publication readiness, naming matrix, and May 12 dry-run evidence document plugin validation, clean-checkout Claude tag/install smoke, and Codex marketplace CLI shape | Needs explicit approval for real tag/push and marketplace submission |
@@ -635,9 +651,9 @@ is not complete unless the evidence column exists and has been freshly verified.
 | ECC Tools next-level app | Billing audit, PR checks, deep analyzer, sync backlog, evaluator/RAG corpus, analysis-depth readiness, hosted execution planning, hosted CI diagnostics, hosted security evidence review, hosted harness compatibility audit, hosted reference-set evaluation, hosted AI routing/cost review, hosted team backlog routing, hosted depth-plan check-run, PR-comment hosted job dispatch, hosted job result history/check-runs, hosted result status command, status-aware depth-plan recommendations, hosted promotion readiness, hosted promotion output scoring, hosted promotion retrieval planning, hosted promotion judge contract, gated hosted promotion judge execution, hosted promotion judge audit trace, payment-announcement readiness, billing announcement preflight, production Marketplace readback state, AgentShield fleet-summary hosted routing, hosted finding source-evidence surfacing, harness policy-route review, policy-promotion Action-output hosted telemetry, and operator-visible promotion output values | PRs #26-#43 plus #53-#78 landed with test evidence, including AgentShield evidence-pack gap routing, canonical bundle recognition, supply-chain signature gates, PR draft follow-up Linear tracking, evidence-backed/deep-ready repository classification, the `/api/analysis/depth-plan` hosted job plan, `/api/analysis/jobs/ci-diagnostics`, `/api/analysis/jobs/security-evidence-review`, `/api/analysis/jobs/harness-compatibility-audit`, `/api/analysis/jobs/reference-set-evaluation`, `/api/analysis/jobs/ai-routing-cost-review`, `/api/analysis/jobs/team-backlog-routing`, the `ECC Tools / Hosted Depth Plan` check-run, `/ecc-tools analyze --job ...` PR-comment dispatch, non-blocking per-hosted-job result check-runs backed by 30-day result cache records, `/ecc-tools analyze --job status` cache lookup, cache-aware next-job recommendations in the depth-plan check-run, the `ECC Tools / Hosted Promotion Readiness` corpus-backed PR check-run, deterministic hosted-output scoring against cached completed job artifacts/findings, ranked retrieval/model-prompt planning, the fail-closed `hosted-promotion-judge.v1` request contract, opt-in live model-judge execution behind hosted evidence, entitlement, budget, provider, executor, strict JSON, and citation gates, hosted promotion judge request fingerprints plus allowed-citation audit trails, a fail-closed `/api/billing/readiness` `announcementGate` for native GitHub payments claims, `npm run billing:announcement-gate` plus `--preflight` as the non-secret operator verifier, hosted security findings for AgentShield fleet summaries, an `Evidence` column in hosted finding comments/check-runs, hosted harness findings that route AgentShield fleet target paths to harness owners, ECC-Tools commit `8658951` routing AgentShield policy-promotion Action outputs into hosted security review and promotion-readiness scoring, ECC-Tools commit `16c537f` rendering policy-promotion status/pack/count/digest values directly in hosted security job comments/check-runs, ECC-Tools commit `05d4e82` rendering model-judge audit traces without exposing raw provider output, ECC-Tools commit `91a441b` adding the safe billing announcement preflight path, and ECC-Tools commit `eb69412` recording that production has no Marketplace billing-state KV records yet | Next work is complete Marketplace purchase/webhook readback, then run the live announcement gate |
 | GitGuardian/Dependabot/CodeRabbit-style checks | Non-blocking taxonomy, deterministic follow-up checks, and local supply-chain gates | ECC-Tools risk taxonomy check plus follow-up signals landed, including Skill Quality, Deep Analyzer Evidence, Analyzer Corpus Evidence, RAG/Evaluator Evidence, PR Review/Salvage Evidence, and AgentShield evidence-pack evidence; #1846 added npm registry signature gates; #1848 added the supply-chain incident-response playbook and `pull_request_target` cache-poisoning validator guard; #1851 added the privileged checkout credential-persistence guard; AgentShield #78, JARVIS #13, and ECC-Tools #53 applied the same hardening outside trunk | Current supply-chain gate complete; deeper hosted review features remain future |
 | Harness-agnostic learning system | Audit, adapter matrix, observability, traces, promotion loop | Audit/adapters/observability gates plus `docs/architecture/evaluator-rag-prototype.md`, `examples/evaluator-rag-prototype/`, and ECC-Tools PR #40 define read-only stale-salvage, billing-readiness, CI-failure-diagnosis, harness-config-quality, AgentShield policy-exception, skill-quality evidence, deep-analyzer evidence, and RAG/evaluator comparison scenarios with trace, report, playbook, verifier, and predictive-check artifacts; ECC-Tools PRs #68-#72 now turn that corpus into a deterministic PR check-run gate with cached hosted-output scoring, ranked retrieval candidates, a model prompt seed, a fail-closed hosted model-judge request contract, and opt-in live model execution behind strict hosted-evidence gates | Deterministic hosted PR check, cached output scoring, retrieval planning, judge contract, and gated model execution integrated |
-| Linear roadmap is detailed | Linear project status plus repo mirror | Repo mirror exists; issue creation was retried on 2026-05-12 and remains blocked by the workspace free issue limit; the May 17 sync adds the queue-zero batch, Japanese localization merge, ITO-57 live supply-chain refresh comment, ECC platform project progress snapshot, and generated `operator:dashboard` prompt-to-artifact audit for recurring status updates | Needs recurring status updates after each significant merge batch |
+| Linear roadmap is detailed | Linear project status plus repo mirror | Repo mirror exists; issue creation was retried on 2026-05-12 and remains blocked by the workspace free issue limit; the May 18 sync adds queue-zero/work-items state, #1970/#1971/#1972 merge evidence, ITO-57 current-head supply-chain refresh comment `0b9931b9-1556-4ebc-a70c-f3635557625d`, ECC platform progress comment `e32e5b7a-287b-4bf4-9ed7-314389a157e1`, and generated `operator:dashboard` prompt-to-artifact audit for recurring status updates | Needs recurring status updates after each significant merge batch |
 | Flow separation and progress tracking | Flow lanes with owner artifacts and update cadence | This roadmap defines lanes below and `docs/architecture/progress-sync-contract.md` makes GitHub/Linear/handoff/roadmap sync part of the readiness gate | Active |
-| Realtime Linear sync | Project updates while issue limit is blocked; issues later | ECC-Tools #39 implements opt-in Linear API sync for deferred follow-up backlog items, and ECC-Tools #54 adds copy-ready PR drafts to that backlog when draft PR shells are not opened; `docs/architecture/progress-sync-contract.md` defines the local file-backed realtime boundary while issue capacity is blocked; May 17 live connector comments were posted to ITO-57 and the ECC platform project | Needs workspace capacity/config rollout for productized issue sync |
+| Realtime Linear sync | Project comments while issue/status capacity is blocked; issues later | ECC-Tools #39 implements opt-in Linear API sync for deferred follow-up backlog items, and ECC-Tools #54 adds copy-ready PR drafts to that backlog when draft PR shells are not opened; `docs/architecture/progress-sync-contract.md` defines the local file-backed realtime boundary while issue capacity is blocked; May 18 live connector comments were posted to ITO-57 and the ECC platform project after project status updates returned disabled | Needs workspace capacity/config rollout for productized issue sync |
 | Observability for self-use | Local readiness gate, traces, status snapshots, HUD/status contract, risk ledger, progress-sync contract | `npm run observability:ready` reports 21/21 | Complete for local gate |
 | Proper release and notifications | Release tag, npm publish state, plugin state, social posts | Publication readiness gate exists with May 12 dry-run and May 13 readiness evidence | Not complete; approval/live URLs required |
 

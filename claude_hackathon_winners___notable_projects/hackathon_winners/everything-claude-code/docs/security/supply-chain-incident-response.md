@@ -27,8 +27,8 @@ credentials:
   they carried destructive or unauthorized file-writing behavior.
 - The live IOC set includes persistence through Claude Code
   `.claude/settings.json`, VS Code `.vscode/tasks.json`, and OS-level
-  `gh-token-monitor` LaunchAgent/systemd services. Some variants add a
-  dead-man-switch token description
+  `gh-token-monitor` LaunchAgent/systemd services. Some variants add
+  `~/.config/gh-token-monitor/token` plus a dead-man-switch token description
   `IfYouRevokeThisTokenItWillWipeTheComputerOfTheOwner`, malicious workflow
   files such as `.github/workflows/codeql_analysis.yml`, and Python runtime
   payloads such as `transformers.pyz` / `pgmonitor.py`. Remove those
@@ -124,6 +124,7 @@ If ECC or a maintainer machine installed a known-bad package version:
    - `~/Library/LaunchAgents/com.user.gh-token-monitor.plist`;
    - `~/.config/systemd/user/gh-token-monitor.service`;
    - `~/.config/systemd/user/pgsql-monitor.service`;
+   - `~/.config/gh-token-monitor/token`;
    - `~/.local/bin/gh-token-monitor.sh`;
    - `~/.local/bin/pgmonitor.py`;
    - `/tmp/transformers.pyz`, `/tmp/pgmonitor.py`, and their

@@ -37,3 +37,6 @@ There is still more to harden before GA, especially around packaging, installers
 Public publication is still approval-gated until the GitHub release, npm
 `next` publish, plugin path, final URLs, and billing/native-payments claims have
 live evidence.
+
+The release URL ledger now separates links that already resolve from links that
+must wait for the approval-gated release, package, plugin, and billing checks.
