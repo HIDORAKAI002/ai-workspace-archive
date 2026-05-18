@@ -29,15 +29,15 @@ Reasons:
 
 | Surface | Current value | Evidence command | 2026-05-18 result | Release action |
 | --- | --- | --- | --- | --- |
-| Git commit | `0e88e6a4ddf9968e55faa07f3ad8a03d3943b58c` | `git rev-parse HEAD` | Recorded from `main` | Re-run from final release commit |
+| Git commit | `67e63e63f9bfd074bd6a21bf6bac71f3dfefa58b` | `git rev-parse HEAD` | Recorded from clean `main` before this ITO-46 evidence refresh | Re-run from final release commit |
 | GitHub repo | `affaan-m/everything-claude-code` | `git remote get-url origin` | `https://github.com/affaan-m/everything-claude-code.git` | Keep for rc.1 |
 | Possible short repo | `affaan-m/ecc` | `gh repo view affaan-m/ecc --json nameWithOwner,url,isPrivate` | GraphQL could not resolve repository | Do not depend on it for rc.1 |
 | npm package | `ecc-universal@2.0.0-rc.1` local, `1.10.0` registry latest | `node -p "require('./package.json').name + '@' + require('./package.json').version"` and `npm view ecc-universal name version dist-tags --json` | Local rc.1 ready; registry still latest `1.10.0` | Publish rc.1 with `--tag next` after approval |
 | Exact npm short name | `ecc` | `npm view ecc name version description repository.url --json` | Occupied by unrelated `ecc@0.0.2` | Do not use |
 | Scoped npm short name | `@affaan-m/ecc` | `npm view @affaan-m/ecc name version --json` | 404 | Candidate only after migration plan |
-| Claude plugin | `ecc@2.0.0-rc.1` | `claude plugin validate .claude-plugin/plugin.json` | Validation passed | Run dry-run tag, then tag/push only after approval |
-| Claude marketplace | `.claude-plugin/marketplace.json` | `claude plugin marketplace --help`; Anthropic plugin marketplace docs | GitHub, git URL, remote marketplace JSON, and local path marketplace sources are supported | Submit official listing through the current Anthropic forms only after final evidence |
-| Codex plugin | `ecc@2.0.0-rc.1` | `node tests/plugin-manifest.test.js`; `codex plugin marketplace add --help`; OpenAI Codex plugin docs | Repo marketplace and local marketplace roots are supported | Use repo marketplace for rc.1; official Plugin Directory is still pending |
+| Claude plugin | `ecc@2.0.0-rc.1` | `claude plugin validate .claude-plugin/plugin.json`; `claude plugin validate .`; `claude plugin tag .claude-plugin --dry-run` | Validation passed on Claude Code `2.1.143`; full plugin validation has one expected root `CLAUDE.md` context warning; dry run would create `ecc--v2.0.0-rc.1` | Run dry-run tag again from the final commit, then tag/push only after approval |
+| Claude marketplace | `.claude-plugin/marketplace.json` | `claude plugin marketplace add --help`; Anthropic plugin marketplace docs | GitHub repo, git URL, remote marketplace JSON, and local path marketplace sources are supported | Verify post-tag marketplace install/update path after final evidence |
+| Codex plugin | `ecc@2.0.0-rc.1` | `node tests/plugin-manifest.test.js`; `codex plugin marketplace add --help`; OpenAI Codex plugin docs | Plugin manifest passed 54/54; local and GitHub-ref repo marketplace smokes passed on Codex CLI `0.131.0` | Use repo marketplace for rc.1; do not claim official directory listing until OpenAI publishing path is available |
 | OpenCode package | `ecc-universal@2.0.0-rc.1` | `node -p "require('./.opencode/package.json').name + '@' + require('./.opencode/package.json').version"` | Matches rc.1 package identity | Follow npm package publication |
 | Billing claim | Pending ECC Tools readiness | ECC Tools billing gate and Marketplace account readback | Code-side gate exists; live Marketplace account readback still pending | Do not announce native payments |
 
@@ -77,8 +77,8 @@ keep the related publication action blocked.
 | 2 | Verify clean release branch | `git status --short --branch` shows only the intended release commit and no unrelated drift | Any unexplained dirty file |
 | 3 | Verify package and plugin manifests | `node tests/plugin-manifest.test.js` and `node tests/docs/ecc2-release-surface.test.js` pass | Manifest or release-surface failure |
 | 4 | Dry-run package surface | `npm pack --dry-run --json`; `npm publish --tag next --dry-run` | Missing files, wrong dist-tag, or publish dry-run failure |
-| 5 | Dry-run Claude distribution | `claude plugin validate`; `claude plugin tag .claude-plugin --dry-run`; temp install smoke | Validation, tag, or install-smoke failure |
-| 6 | Verify Codex repo marketplace | `codex plugin marketplace add --help`; temp-home repo marketplace add smoke; OpenAI official directory status recorded | Missing repo marketplace or unverified official-directory status |
+| 5 | Dry-run Claude distribution | `claude plugin validate`; `claude plugin tag .claude-plugin --dry-run`; marketplace source/help evidence | Validation, tag, or install-smoke failure |
+| 6 | Verify Codex repo marketplace | `codex plugin marketplace add --help`; temp-home local and GitHub-ref repo marketplace add smoke; OpenAI official directory status recorded | Missing repo marketplace or unverified official-directory status |
 | 7 | Verify OpenCode package | `npm run build:opencode` | Build failure |
 | 8 | Regenerate release URL ledger | Live and approval-gated URLs separated in `release-url-ledger-YYYY-MM-DD.md` | Placeholder, private URL, or announcement URL drift |
 | 9 | Create GitHub prerelease | `gh release view v2.0.0-rc.1 --json tagName,url,isPrerelease` | Missing URL or wrong prerelease flag |
@@ -92,8 +92,8 @@ keep the related publication action blocked.
   final release commit.
 - Do not create or push Claude plugin tags before `claude plugin tag
   .claude-plugin --dry-run` passes from the final release commit.
-- Do not claim Codex official Plugin Directory availability unless OpenAI docs
-  no longer say official public plugin publishing is pending.
+- Do not claim an official Codex Plugin Directory listing unless OpenAI
+  documents a public submission path or confirms the plugin has been listed.
 - Do not announce billing, Marketplace, or native payments until ECC Tools live
   Marketplace account readback returns ready.
 - Do not rename the repo or package until rc.1 is published and a migration
@@ -109,7 +109,8 @@ keep the related publication action blocked.
 - OpenAI Codex plugin docs:
   `https://developers.openai.com/codex/plugins/build#add-a-marketplace-from-the-cli`
 
-As of this snapshot, Anthropic documents official marketplace submission through
-Claude.ai and Console forms. OpenAI documents repo/local marketplace
-distribution for Codex and says official public Plugin Directory publishing and
-self-serve plugin management are coming soon.
+As of this snapshot, Anthropic documents self-hosted marketplace distribution
+through GitHub, git URL, remote marketplace JSON, and local path sources.
+OpenAI documents repo/personal marketplace distribution for Codex and describes
+an official Plugin Directory, but ECC has not submitted or received an official
+directory listing in this pass.

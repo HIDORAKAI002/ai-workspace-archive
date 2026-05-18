@@ -244,10 +244,25 @@ function run() {
 
   if (test('rejects actions/cache in workflows with id-token write', () => {
     const result = runValidator({
-      'unsafe-oidc-cache.yml': `name: Unsafe\non:\n  push:\npermissions:\n  contents: read\n  id-token: write\njobs:\n  release:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/cache@v5\n        with:\n          path: ~/.npm\n          key: cache\n`,
+      'unsafe-oidc-cache.yml': `name: Unsafe\non:\n  push:\npermissions:\n  contents: read\njobs:\n  release:\n    runs-on: ubuntu-latest\n    permissions:\n      contents: read\n      id-token: write\n    steps:\n      - uses: actions/cache@v5\n        with:\n          path: ~/.npm\n          key: cache\n`,
     });
     assert.notStrictEqual(result.status, 0, 'Expected validator to fail on id-token workflow cache use');
     assert.match(result.stderr, /id-token: write must not restore or save shared dependency caches/);
+  })) passed++; else failed++;
+
+  if (test('rejects workflow-scoped id-token write', () => {
+    const result = runValidator({
+      'unsafe-workflow-oidc.yml': `name: Unsafe\non:\n  push:\npermissions:\n  contents: read\n  id-token: write\njobs:\n  verify:\n    runs-on: ubuntu-latest\n    steps:\n      - run: npm ci --ignore-scripts\n`,
+    });
+    assert.notStrictEqual(result.status, 0, 'Expected validator to fail on workflow-level id-token write');
+    assert.match(result.stderr, /id-token: write must be scoped to a publish-only job/);
+  })) passed++; else failed++;
+
+  if (test('allows job-scoped id-token for publish-only jobs', () => {
+    const result = runValidator({
+      'safe-publish-oidc.yml': `name: Safe\non:\n  push:\npermissions:\n  contents: read\njobs:\n  publish:\n    runs-on: ubuntu-latest\n    permissions:\n      contents: write\n      id-token: write\n    steps:\n      - run: npm publish package.tgz --access public --provenance\n`,
+    });
+    assert.strictEqual(result.status, 0, result.stderr || result.stdout);
   })) passed++; else failed++;
 
   if (test('rejects npm audit without registry signature verification', () => {

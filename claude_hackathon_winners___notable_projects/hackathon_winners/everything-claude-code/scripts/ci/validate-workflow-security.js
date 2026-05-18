@@ -45,6 +45,7 @@ const NPM_AUDIT_PATTERN = /\bnpm\s+audit\b(?!\s+signatures\b)/;
 const NPM_AUDIT_SIGNATURES_PATTERN = /\bnpm\s+audit\s+signatures\b/;
 const ACTIONS_CACHE_PATTERN = /uses:\s*['"]?actions\/cache@/m;
 const ID_TOKEN_WRITE_PATTERN = /^\s*id-token:\s*write\b/m;
+const TOP_LEVEL_JOBS_PATTERN = /^jobs:\s*$/m;
 const UNSAFE_INSTALL_PATTERNS = [
   {
     pattern: /\bnpm\s+ci\b(?![^\n]*--ignore-scripts)/g,
@@ -121,6 +122,8 @@ function extractCheckoutSteps(source) {
 function findViolations(filePath, source) {
   const violations = [];
   const checkoutSteps = extractCheckoutSteps(source);
+  const jobsIndex = source.search(TOP_LEVEL_JOBS_PATTERN);
+  const workflowHeader = jobsIndex >= 0 ? source.slice(0, jobsIndex) : source;
 
   for (const rule of RULES) {
     if (!rule.eventPattern.test(source)) {
@@ -173,6 +176,16 @@ function findViolations(filePath, source) {
       }
     }
 
+  }
+
+  if (ID_TOKEN_WRITE_PATTERN.test(workflowHeader)) {
+    violations.push({
+      filePath,
+      event: 'workflow-scoped id-token',
+      description: 'id-token: write must be scoped to a publish-only job, not the entire workflow',
+      expression: 'top-level id-token: write',
+      line: getLineNumber(source, source.search(ID_TOKEN_WRITE_PATTERN)),
+    });
   }
 
   for (const installRule of UNSAFE_INSTALL_PATTERNS) {
