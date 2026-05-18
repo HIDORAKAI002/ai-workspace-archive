@@ -372,7 +372,7 @@ function eccToolsNextLevelGap(roadmap) {
 function supplyChainLocalProtectionEvidence({ roadmap, scripts }) {
   if (scripts['security:advisory-sources'] === 'node scripts/ci/supply-chain-advisory-sources.js'
     && roadmap.includes('package-manager hardening Action outputs')) {
-    return 'scheduled supply-chain watch emits IOC/advisory-source refresh artifacts; AgentShield now detects known AI-tool persistence IOCs, npm lifecycle/token drift, unsupported npm age-key drift, and pnpm/Yarn cooldown drift; ITO-57 has May 17 Linear evidence updates';
+    return 'scheduled supply-chain watch emits IOC/advisory-source refresh artifacts; ECC scanner covers gh-token-monitor token-store persistence; AgentShield now detects known AI-tool persistence IOCs, npm lifecycle/token drift, unsupported npm age-key drift, and pnpm/Yarn cooldown drift; current-head watch evidence and ITO-57 May 18 Linear evidence updates are current';
   }
 
   return scripts['security:advisory-sources'] === 'node scripts/ci/supply-chain-advisory-sources.js'
@@ -390,10 +390,12 @@ function supplyChainLocalProtectionGap({ roadmap, scripts }) {
 }
 
 function hasCurrentLinearProgressSync({ roadmap, progressSync }) {
-  return includesAll(roadmap, [
-    'Linear live sync is current',
-    'operator progress snapshot',
-  ]) && includesAll(progressSync, [
+  const hasOperatorProgressSurface = roadmap.includes('operator progress snapshot')
+    || roadmap.includes('operator progress comment');
+
+  return roadmap.includes('Linear live sync is current')
+    && hasOperatorProgressSurface
+    && includesAll(progressSync, [
     'node scripts/work-items.js sync-github --repo <owner/repo>',
     'node scripts/status.js --json',
     'Linear remains the external status surface',
@@ -415,7 +417,7 @@ function linearProgressStatus(context) {
 
 function linearProgressEvidence(context) {
   if (hasCurrentLinearProgressSync(context)) {
-    return 'Linear live sync and project progress snapshot are current; progress-sync contract defines the file-backed work-items/status path';
+    return 'Linear live sync and project progress surface are current; progress-sync contract defines the file-backed work-items/status path';
   }
 
   return 'repo mirror and progress-sync contract are present';
@@ -468,6 +470,7 @@ function buildRequirements(rootDir, platformReport) {
   const roadmap = readText(rootDir, 'docs/ECC-2.0-GA-ROADMAP.md');
   const publicationReadiness = readText(rootDir, 'docs/releases/2.0.0-rc.1/publication-readiness.md');
   const namingMatrix = readText(rootDir, 'docs/releases/2.0.0-rc.1/naming-and-publication-matrix.md');
+  const releaseUrlLedger = readText(rootDir, 'docs/releases/2.0.0-rc.1/release-url-ledger-2026-05-18.md');
   const previewManifest = readText(rootDir, 'docs/releases/2.0.0-rc.1/preview-pack-manifest.md');
   const previewPackSmoke = readText(rootDir, 'scripts/preview-pack-smoke.js');
   const progressSync = readText(rootDir, 'docs/architecture/progress-sync-contract.md');
@@ -596,8 +599,12 @@ function buildRequirements(rootDir, platformReport) {
         && fileExists(rootDir, 'docs/releases/2.0.0-rc.1/linkedin-post.md')
         ? 'in_progress'
         : 'not_complete',
-      'release notes, X thread, and LinkedIn draft are present',
-      'URL-backed refresh and publish approval still pending'
+      includesAll(releaseUrlLedger, ['Live Now', 'Approval-Gated URLs', 'Codex marketplace CLI docs'])
+        ? 'release notes, X thread, LinkedIn draft, and URL ledger are present'
+        : 'release notes, X thread, and LinkedIn draft are present',
+      includesAll(releaseUrlLedger, ['Live Now', 'Approval-Gated URLs', 'Codex marketplace CLI docs'])
+        ? 'final live release/npm/plugin/billing URLs and publish approval still pending'
+        : 'URL-backed refresh and publish approval still pending'
     ),
     buildRequirement(
       'agentshield-enterprise-iteration',

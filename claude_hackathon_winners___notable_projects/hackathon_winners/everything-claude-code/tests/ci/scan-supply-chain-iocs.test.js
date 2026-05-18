@@ -365,6 +365,18 @@ function run() {
     });
   })) passed++; else failed++;
 
+  if (test('rejects Mini Shai-Hulud gh-token-monitor token store when home scan is enabled', () => {
+    withFixture({
+      'home/.config/gh-token-monitor/token': 'redacted-token-placeholder',
+    }, rootDir => {
+      const homeDir = path.join(rootDir, 'home');
+      const result = scanSupplyChainIocs({ rootDir, home: true, homeDir });
+      assert.ok(result.findings.some(
+        finding => finding.indicator === '~/.config/gh-token-monitor/token',
+      ));
+    });
+  })) passed++; else failed++;
+
   if (test('rejects installed payload filenames in node_modules', () => {
     withFixture({
       'node_modules/@tanstack/react-router/router_init.js': '/* payload */',

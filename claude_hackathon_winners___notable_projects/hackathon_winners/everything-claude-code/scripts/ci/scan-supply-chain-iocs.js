@@ -387,6 +387,14 @@ const PAYLOAD_FILENAMES = new Set([
   'shai-hulud-workflow.yml',
 ]);
 
+function normalizedPath(filePath) {
+  return filePath.split(path.sep).join('/');
+}
+
+function isGhTokenMonitorTokenPath(filePath) {
+  return /\/\.config\/gh-token-monitor\/token$/.test(normalizedPath(filePath));
+}
+
 const IGNORED_DIRS = new Set([
   '.git',
   '.next',
@@ -404,7 +412,7 @@ function normalizeForMatch(value) {
 }
 
 function isInSpecialConfigPath(filePath) {
-  const normalized = filePath.split(path.sep).join('/');
+  const normalized = normalizedPath(filePath);
   return /\/\.claude\//.test(normalized)
     || /\/\.vscode\//.test(normalized)
     || /\/\.kiro\/settings\//.test(normalized)
@@ -416,6 +424,7 @@ function isInSpecialConfigPath(filePath) {
 
 function shouldInspectFile(filePath) {
   const base = path.basename(filePath);
+  if (isGhTokenMonitorTokenPath(filePath)) return true;
   if (DEPENDENCY_FILENAMES.has(base)) return true;
   if (PERSISTENCE_FILENAMES.has(base) && isInSpecialConfigPath(filePath)) return true;
   if (PAYLOAD_FILENAMES.has(base) && filePath.includes(`${path.sep}node_modules${path.sep}`)) return true;
@@ -600,6 +609,17 @@ function scanFile(filePath, rootDir, findings) {
     );
   }
 
+  if (isGhTokenMonitorTokenPath(filePath)) {
+    addFinding(
+      findings,
+      'critical',
+      relativePath,
+      1,
+      '~/.config/gh-token-monitor/token',
+      'Known Mini Shai-Hulud dead-man switch token store is present',
+    );
+  }
+
   for (const indicator of CRITICAL_TEXT_INDICATORS) {
     const index = lowerText.indexOf(normalizeForMatch(indicator));
     if (index !== -1) {
@@ -651,6 +671,7 @@ function homeTargets(homeDir) {
     'Library/LaunchAgents/com.user.gh-token-monitor.plist',
     '.config/systemd/user/gh-token-monitor.service',
     '.config/systemd/user/pgsql-monitor.service',
+    '.config/gh-token-monitor/token',
     '.local/bin/gh-token-monitor.sh',
     '.local/bin/pgmonitor.py',
   ].map(relativePath => path.join(homeDir, relativePath));

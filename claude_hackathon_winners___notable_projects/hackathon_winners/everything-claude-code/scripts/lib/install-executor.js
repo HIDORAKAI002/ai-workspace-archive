@@ -555,6 +555,12 @@ function createLegacyCompatInstallPlan(options = {}) {
   const sourceRoot = options.sourceRoot || getSourceRoot();
   const projectRoot = options.projectRoot || process.cwd();
   const target = options.target || 'claude';
+  const includeComponentIds = Array.isArray(options.includeComponentIds)
+    ? [...options.includeComponentIds]
+    : [];
+  const excludeComponentIds = Array.isArray(options.excludeComponentIds)
+    ? [...options.excludeComponentIds]
+    : [];
 
   validateLegacyTarget(target);
 
@@ -571,14 +577,14 @@ function createLegacyCompatInstallPlan(options = {}) {
     target,
     profileId: null,
     moduleIds: selection.moduleIds,
-    includeComponentIds: [],
-    excludeComponentIds: [],
+    includeComponentIds,
+    excludeComponentIds,
     legacyLanguages: selection.legacyLanguages,
     legacyMode: true,
     requestProfileId: null,
     requestModuleIds: [],
-    requestIncludeComponentIds: [],
-    requestExcludeComponentIds: [],
+    requestIncludeComponentIds: includeComponentIds,
+    requestExcludeComponentIds: excludeComponentIds,
     mode: 'legacy-compat',
   });
 }

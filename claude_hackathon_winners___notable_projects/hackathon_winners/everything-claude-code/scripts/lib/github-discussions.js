@@ -4,6 +4,7 @@ const { spawnSync } = require('child_process');
 
 const DEFAULT_DISCUSSION_FIRST = 100;
 const MAINTAINER_ASSOCIATIONS = new Set(['OWNER', 'MEMBER', 'COLLABORATOR']);
+const DISCUSSION_ENABLED_QUERY = 'query($owner: String!, $name: String!) { repository(owner: $owner, name: $name) { hasDiscussionsEnabled } }';
 const DISCUSSION_QUERY = 'query($owner: String!, $name: String!, $first: Int!) { repository(owner: $owner, name: $name) { hasDiscussionsEnabled discussions(first: $first, orderBy: {field: UPDATED_AT, direction: DESC}) { totalCount nodes { number title url updatedAt authorAssociation category { name isAnswerable } answer { url authorAssociation } comments(first: 20) { nodes { authorAssociation } } } } } }';
 
 function splitRepo(repo) {
@@ -91,6 +92,22 @@ function summarizeDiscussion(discussion) {
 function fetchDiscussionSummary(repo, options = {}) {
   const { owner, name } = splitRepo(repo);
   const first = Number.isFinite(options.first) ? options.first : DEFAULT_DISCUSSION_FIRST;
+  const enabledPayload = runGhJson([
+    'api',
+    'graphql',
+    '-f',
+    `owner=${owner}`,
+    '-f',
+    `name=${name}`,
+    '-f',
+    `query=${DISCUSSION_ENABLED_QUERY}`,
+  ], options);
+  const enabledRepository = enabledPayload && enabledPayload.data && enabledPayload.data.repository;
+
+  if (!enabledRepository || !enabledRepository.hasDiscussionsEnabled) {
+    return emptyDiscussionSummary();
+  }
+
   const payload = runGhJson([
     'api',
     'graphql',
@@ -130,6 +147,7 @@ function emptyDiscussionSummary() {
 
 module.exports = {
   DEFAULT_DISCUSSION_FIRST,
+  DISCUSSION_ENABLED_QUERY,
   DISCUSSION_QUERY,
   MAINTAINER_ASSOCIATIONS,
   discussionNeedsAcceptedAnswer,
