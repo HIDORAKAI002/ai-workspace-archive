@@ -58,11 +58,11 @@ from nemoguardrails.guardrails.telemetry import (
 )
 from nemoguardrails.llm.taskmanager import LLMTaskManager
 from nemoguardrails.rails.llm.buffer import get_buffer_strategy
-from nemoguardrails.rails.llm.config import RailsConfig
+from nemoguardrails.rails.llm.config import RailsConfig, _get_flow_name
 from nemoguardrails.rails.llm.options import GenerationOptions
 from nemoguardrails.streaming import END_OF_STREAM, StreamingHandler
 from nemoguardrails.tracing.constants import GuardrailsAttributes
-from nemoguardrails.types import LLMResponse
+from nemoguardrails.types import LLMModel, LLMResponse
 
 if TYPE_CHECKING:
     from opentelemetry.trace import Span
@@ -89,7 +89,48 @@ _GENERATION_ERROR_TYPE = "generation_error"
 class IORails:
     """Workflow engine for accelerated Input/Output rails inference."""
 
-    def __init__(self, config: RailsConfig) -> None:
+    # Rail sections and flows that this engine can handle. Configs using anything
+    # outside these sets fall back to LLMRails.
+    SUPPORTED_RAILS = frozenset({"input", "output", "config"})
+    SUPPORTED_INPUT_FLOWS = frozenset(
+        {"content safety check input", "topic safety check input", "jailbreak detection model"}
+    )
+    SUPPORTED_OUTPUT_FLOWS = frozenset({"content safety check output"})
+
+    @classmethod
+    def unsupported_reason(cls, config: RailsConfig, llm: Optional[LLMModel] = None) -> Optional[str]:
+        """Return None if IORails can handle (config, llm), else a human-readable reason."""
+        if llm is not None:
+            return "an `llm` argument was provided; IORails does not accept a custom LLM"
+
+        unsupported_rails = sorted(config.rails.model_fields_set - cls.SUPPORTED_RAILS)
+        if unsupported_rails:
+            return f"config has rails outside the IORails-supported set: {unsupported_rails}"
+
+        unsupported_input = set()
+        for flow in config.rails.input.flows:
+            name = _get_flow_name(flow)
+            if name and name not in cls.SUPPORTED_INPUT_FLOWS:
+                unsupported_input.add(name)
+        if unsupported_input:
+            return f"config has unsupported input flows: {sorted(unsupported_input)}"
+
+        unsupported_output = set()
+        for flow in config.rails.output.flows:
+            name = _get_flow_name(flow)
+            if name and name not in cls.SUPPORTED_OUTPUT_FLOWS:
+                unsupported_output.add(name)
+        if unsupported_output:
+            return f"config has unsupported output flows: {sorted(unsupported_output)}"
+
+        return None
+
+    @classmethod
+    def can_handle(cls, config: RailsConfig, llm: Optional[LLMModel] = None) -> bool:
+        """Return True iff IORails can handle the given config and llm argument."""
+        return cls.unsupported_reason(config, llm) is None
+
+    def __init__(self, config: RailsConfig, *, _report_usage: bool = True) -> None:
         """Build the engine registry and rails manager from the given config."""
         self._running = False
         self.config = config
@@ -134,6 +175,11 @@ class IORails:
         # ObservableGauges are created lazily on first ``start()`` because
         # they need a reference to an AsyncWorkQueue which has been started.
         self._gauges_registered = False
+
+        if _report_usage:
+            from nemoguardrails.telemetry import RailsEngineEnum, report_usage
+
+            report_usage(config, deployment_type="library", rails_engine=RailsEngineEnum.IORAILS.value)
 
     @property
     def _has_streaming_output_rails(self) -> bool:
@@ -225,7 +271,8 @@ class IORails:
 
         async def _run_sync_iorails():
             """Spin up a short-lived IORails engine for one synchronous generate call."""
-            async with IORails(sync_config) as iorails_engine:
+            # Avoid counting this sync-API bridge as a separate user-created IORails instance.
+            async with IORails(sync_config, _report_usage=False) as iorails_engine:
                 return await iorails_engine.generate_async(messages, **kwargs)
 
         return asyncio.run(_run_sync_iorails())

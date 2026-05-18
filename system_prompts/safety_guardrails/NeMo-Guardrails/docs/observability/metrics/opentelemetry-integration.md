@@ -84,8 +84,7 @@ reader = PeriodicExportingMetricReader(
 metrics.set_meter_provider(MeterProvider(resource=resource, metric_readers=[reader]))
 
 # Configure NeMo Guardrails afterwards.
-from nemoguardrails import RailsConfig
-from nemoguardrails.guardrails.guardrails import Guardrails
+from nemoguardrails import Guardrails, RailsConfig
 
 config_yaml = """
 models:
@@ -98,7 +97,10 @@ metrics:
 """
 
 config = RailsConfig.from_content(yaml_content=config_yaml)
-rails = Guardrails(config, use_iorails=True)
+# require_iorails=True raises if the config is incompatible with the IORails engine,
+# so the metrics setup fails loudly rather than silently falling back to LLMRails
+# (which emits no metrics).
+rails = Guardrails(config, use_iorails=True, require_iorails=True)
 ```
 
 ### OTLP Exporter (Production)
