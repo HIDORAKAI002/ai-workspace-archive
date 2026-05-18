@@ -52,6 +52,7 @@ const expectedReleaseFiles = [
   'quickstart.md',
   'preview-pack-manifest.md',
   'publication-readiness.md',
+  'release-name-plugin-publication-checklist-2026-05-18.md',
 ];
 
 test('release candidate directory includes the public launch pack', () => {
@@ -174,6 +175,7 @@ test('preview pack manifest assembles release, Hermes, and publication gates', (
     'scripts/preview-pack-smoke.js',
     'docs/releases/2.0.0-rc.1/publication-readiness.md',
     'docs/releases/2.0.0-rc.1/naming-and-publication-matrix.md',
+    'docs/releases/2.0.0-rc.1/release-name-plugin-publication-checklist-2026-05-18.md',
   ]) {
     assert.ok(manifest.includes(artifact), `preview pack manifest missing ${artifact}`);
   }
@@ -288,11 +290,50 @@ test('publication readiness checklist gates public release actions on evidence',
   assert.ok(may15Evidence.includes('announcementGate.ready === true'));
   assert.ok(source.includes('ECC-Tools #73 added announcementGate'));
   assert.ok(source.includes('official Plugin Directory publishing and self-serve management are documented as coming soon'));
+  assert.ok(source.includes('release-name-plugin-publication-checklist-2026-05-18.md'));
+  assert.ok(source.includes('Release name and plugin publication checklist'));
   assert.ok(may15Evidence.includes('| Trunk discussions | GraphQL discussion count and maintainer-touch sweep | 58 total discussions;'));
-  assert.ok(source.includes('58 trunk discussions, 0 without maintainer touch'));
+  assert.ok(source.includes('platform audit sampled 58 trunk discussions'));
+  assert.ok(source.includes('0 needing maintainer touch'));
   assert.ok(may15Evidence.includes('env -u GITHUB_TOKEN'));
   assert.ok(may15Evidence.includes('ITO-44'));
   assert.ok(may15Evidence.includes('0 open PRs, 0 open issues'));
+});
+
+test('release name and plugin publication checklist freezes rc.1 surfaces', () => {
+  const checklist = read(
+    'docs/releases/2.0.0-rc.1/release-name-plugin-publication-checklist-2026-05-18.md'
+  );
+  const launchChecklist = read('docs/releases/2.0.0-rc.1/launch-checklist.md');
+  const referenceArchitecture = read('docs/ECC-2.0-REFERENCE-ARCHITECTURE.md');
+
+  for (const value of [
+    'Everything Claude Code (ECC)',
+    '`affaan-m/everything-claude-code`',
+    '`ecc-universal`',
+    '`ecc` on npm is occupied',
+    '`@affaan-m/ecc` is unclaimed on npm',
+    'Claude plugin',
+    'Codex plugin',
+    'self-serve plugin management are coming soon',
+    'Do not rename the repo or package until rc.1 is published',
+    'Do not announce billing, Marketplace, or native payments',
+  ]) {
+    assert.ok(checklist.includes(value), `release name/plugin checklist missing ${value}`);
+  }
+
+  for (const command of [
+    'claude plugin validate .claude-plugin/plugin.json',
+    'claude plugin tag .claude-plugin --dry-run',
+    'codex plugin marketplace add --help',
+    'npm publish --tag next --dry-run',
+    'npm run preview-pack:smoke',
+  ]) {
+    assert.ok(checklist.includes(command), `release name/plugin checklist missing command ${command}`);
+  }
+
+  assert.ok(launchChecklist.includes('release-name-plugin-publication-checklist-2026-05-18.md'));
+  assert.ok(referenceArchitecture.includes('Keep the release/name/plugin publication checklist current'));
 });
 
 test('release checklist and roadmap link to publication readiness evidence gate', () => {

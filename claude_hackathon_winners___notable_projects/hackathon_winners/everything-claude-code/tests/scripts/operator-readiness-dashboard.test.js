@@ -75,10 +75,18 @@ function seedRepo(rootDir, overrides = {}) {
       'Linear live sync is current for the May 17 merge batch',
       'operator progress snapshot'
     ].join('\n'),
-    'docs/releases/2.0.0-rc.1/publication-readiness.md': 'Claude plugin Codex plugin',
+    'docs/releases/2.0.0-rc.1/publication-readiness.md': 'Claude plugin Codex plugin release-name-plugin-publication-checklist-2026-05-18.md',
     'docs/releases/2.0.0-rc.1/naming-and-publication-matrix.md': 'Claude plugin Codex plugin npm package Publication Paths',
+    'docs/releases/2.0.0-rc.1/release-name-plugin-publication-checklist-2026-05-18.md': [
+      'Everything Claude Code (ECC)',
+      'ecc-universal',
+      'claude plugin tag .claude-plugin --dry-run',
+      'codex plugin marketplace add',
+      'Do not rename the repo or package until rc.1 is published'
+    ].join('\n'),
     'docs/releases/2.0.0-rc.1/preview-pack-manifest.md': [
       'publication-readiness.md release-notes.md quickstart.md',
+      'release-name-plugin-publication-checklist-2026-05-18.md',
       '`scripts/preview-pack-smoke.js`',
       'npm run preview-pack:smoke'
     ].join('\n'),
@@ -94,6 +102,12 @@ function seedRepo(rootDir, overrides = {}) {
       'ITO-59',
       'PR queue',
       'Not complete'
+    ].join('\n'),
+    'docs/releases/2.0.0-rc.1/owner-queue-cleanup-2026-05-18.md': [
+      'Owner-wide open PRs after cleanup: 0.',
+      'Owner-wide open issues after cleanup: 0.',
+      'Stale dependency-bot PRs closed: 24.',
+      'Stale legacy payments/0EM roadmap issues closed: 72.'
     ].join('\n'),
     'docs/HERMES-SETUP.md': 'Hermes setup Public Release Candidate Scope',
     'skills/hermes-imports/SKILL.md': 'Hermes imports Sanitization Checklist Do not ship raw workspace exports Output Contract',
@@ -272,6 +286,12 @@ function runTests() {
           && item.evidence.includes('Wrangler OAuth readback')
           && item.evidence.includes('target-account billing readback')
           && item.evidence.includes('provenance-aware Marketplace billing-state gates')
+      )));
+      assert.ok(report.requirements.some(item => (
+        item.id === 'naming-and-plugin-publication'
+          && item.artifact.includes('release-name-plugin-publication checklist')
+          && item.evidence.includes('release publication checklist')
+          && item.gap === 'real tag/push, marketplace submission, and final channel choice remain approval-gated'
       )));
       assert.ok(report.requirements.some(item => (
         item.id === 'supply-chain-local-protection'
