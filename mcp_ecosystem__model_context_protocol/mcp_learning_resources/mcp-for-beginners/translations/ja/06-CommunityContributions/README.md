@@ -847,5 +847,5 @@ async def delete_tool(tool_name: str):
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
 **免責事項**：
-本書類はAI翻訳サービス「Co-op Translator」（https://github.com/Azure/co-op-translator）を使用して翻訳されました。正確性には努めておりますが、自動翻訳には誤りや不正確な表現が含まれる場合があります。原文はあくまで正式な情報源としてご参照ください。重要な情報については、専門の翻訳者による人力翻訳を推奨いたします。本翻訳の利用により生じたいかなる誤解や解釈違いについても、当方は一切責任を負いかねます。
+本書類はAI翻訳サービス「[Co-op Translator](https://github.com/Azure/co-op-translator)」を使用して翻訳されました。正確性には努めておりますが、自動翻訳には誤りや不正確な表現が含まれる場合があります。原文はあくまで正式な情報源としてご参照ください。重要な情報については、専門の翻訳者による人力翻訳を推奨いたします。本翻訳の利用により生じたいかなる誤解や解釈違いについても、当方は一切責任を負いかねます。
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->
