@@ -1,12 +1,12 @@
 **Language:** English | [Português (Brasil)](docs/pt-BR/README.md) | [简体中文](README.zh-CN.md) | [繁體中文](docs/zh-TW/README.md) | [日本語](docs/ja-JP/README.md) | [한국어](docs/ko-KR/README.md) | [Türkçe](docs/tr/README.md) | [Русский](docs/ru/README.md) | [Tiếng Việt](docs/vi-VN/README.md) | [ไทย](docs/th/README.md)
 
-# Everything Claude Code
+# ECC
 
-![Everything Claude Code — the performance system for AI agent harnesses](assets/hero.png)
+![ECC - the harness-native operator system for agentic work](assets/hero.png)
 
-[![Stars](https://img.shields.io/github/stars/affaan-m/everything-claude-code?style=flat)](https://github.com/affaan-m/everything-claude-code/stargazers)
-[![Forks](https://img.shields.io/github/forks/affaan-m/everything-claude-code?style=flat)](https://github.com/affaan-m/everything-claude-code/network/members)
-[![Contributors](https://img.shields.io/github/contributors/affaan-m/everything-claude-code?style=flat)](https://github.com/affaan-m/everything-claude-code/graphs/contributors)
+[![Stars](https://img.shields.io/github/stars/affaan-m/ECC?style=flat)](https://github.com/affaan-m/ECC/stargazers)
+[![Forks](https://img.shields.io/github/forks/affaan-m/ECC?style=flat)](https://github.com/affaan-m/ECC/network/members)
+[![Contributors](https://img.shields.io/github/contributors/affaan-m/ECC?style=flat)](https://github.com/affaan-m/ECC/graphs/contributors)
 [![npm ecc-universal](https://img.shields.io/npm/dw/ecc-universal?label=ecc-universal%20weekly%20downloads&logo=npm)](https://www.npmjs.com/package/ecc-universal)
 [![npm ecc-agentshield](https://img.shields.io/npm/dw/ecc-agentshield?label=ecc-agentshield%20weekly%20downloads&logo=npm)](https://www.npmjs.com/package/ecc-agentshield)
 [![GitHub App Install](https://img.shields.io/badge/GitHub%20App-150%20installs-2ea44f?logo=github)](https://github.com/marketplace/ecc-tools)
@@ -34,7 +34,7 @@
 
 ---
 
-**The performance optimization system for AI agent harnesses. From an Anthropic hackathon winner.**
+**The harness-native operator system for agentic work. From an Anthropic hackathon winner.**
 
 Not just configs. A complete system: skills, instincts, memory optimization, continuous learning, security scanning, and research-first development. Production-ready agents, skills, hooks, rules, MCP configurations, and legacy command shims evolved over 10+ months of intensive daily use building real products.
 
@@ -59,7 +59,7 @@ ECC v2.0.0-rc.1 adds the public Hermes operator story on top of that reusable la
   </a>
 </td>
 <td width="25%" align="center">
-  <a href="https://github.com/affaan-m/everything-claude-code/discussions">
+  <a href="https://github.com/affaan-m/ECC/discussions">
     <strong>Community</strong>
     <br />
     <sub>Discussions · Q&amp;A · Show & Tell</sub>
@@ -172,7 +172,7 @@ This repo is the raw code only. The guides explain everything.
 
 ### v1.4.1 — Bug Fix (Feb 2026)
 
-- **Fixed instinct import content loss** — `parse_instinct_file()` was silently dropping all content after frontmatter (Action, Evidence, Examples sections) during `/instinct-import`. ([#148](https://github.com/affaan-m/everything-claude-code/issues/148), [#161](https://github.com/affaan-m/everything-claude-code/pull/161))
+- **Fixed instinct import content loss** — `parse_instinct_file()` was silently dropping all content after frontmatter (Action, Evidence, Examples sections) during `/instinct-import`. ([#148](https://github.com/affaan-m/ECC/issues/148), [#161](https://github.com/affaan-m/ECC/pull/161))
 
 ### v1.4.0 — Multi-Language Rules, Installation Wizard & PM2 (Feb 2026)
 
@@ -196,7 +196,7 @@ This repo is the raw code only. The guides explain everything.
 - **Session management** — `/sessions` command for session history
 - **Continuous learning v2** — Instinct-based learning with confidence scoring, import/export, evolution
 
-See the full changelog in [Releases](https://github.com/affaan-m/everything-claude-code/releases).
+See the full changelog in [Releases](https://github.com/affaan-m/ECC/releases).
 
 ---
 
@@ -265,7 +265,7 @@ npx ecc install --profile minimal --target claude --with capability:machine-lear
 
 ```bash
 # Add marketplace
-/plugin marketplace add https://github.com/affaan-m/everything-claude-code
+/plugin marketplace add https://github.com/affaan-m/ECC
 
 # Install plugin
 /plugin install ecc@ecc
@@ -275,7 +275,7 @@ npx ecc install --profile minimal --target claude --with capability:machine-lear
 
 ECC now has three public identifiers, and they are not interchangeable:
 
-- GitHub source repo: `affaan-m/everything-claude-code`
+- GitHub source repo: `affaan-m/ECC`
 - Claude marketplace/plugin identifier: `ecc@ecc`
 - npm package: `ecc-universal`
 
@@ -295,8 +295,8 @@ This is intentional. Anthropic marketplace/plugin installs are keyed by a canoni
 
 ```bash
 # Clone the repo first
-git clone https://github.com/affaan-m/everything-claude-code.git
-cd everything-claude-code
+git clone https://github.com/affaan-m/ECC.git
+cd ECC
 
 # Install dependencies (pick your package manager)
 npm install        # or: pnpm install | yarn install | bun install
@@ -494,7 +494,7 @@ Windows PowerShell:
 This repo is a **Claude Code plugin** - install it directly or copy components manually.
 
 ```
-everything-claude-code/
+ECC/
 |-- .claude-plugin/   # Plugin and marketplace manifests
 |   |-- plugin.json         # Plugin metadata and component paths
 |   |-- marketplace.json    # Marketplace catalog for /plugin marketplace add
@@ -812,7 +812,7 @@ Claude Code v2.1+ **automatically loads** `hooks/hooks.json` from any installed 
 Duplicate hooks file detected: ./hooks/hooks.json resolves to already-loaded file
 ```
 
-**History:** This has caused repeated fix/revert cycles in this repo ([#29](https://github.com/affaan-m/everything-claude-code/issues/29), [#52](https://github.com/affaan-m/everything-claude-code/issues/52), [#103](https://github.com/affaan-m/everything-claude-code/issues/103)). The behavior changed between Claude Code versions, leading to confusion. We now have a regression test to prevent this from being reintroduced.
+**History:** This has caused repeated fix/revert cycles in this repo ([#29](https://github.com/affaan-m/ECC/issues/29), [#52](https://github.com/affaan-m/ECC/issues/52), [#103](https://github.com/affaan-m/ECC/issues/103)). The behavior changed between Claude Code versions, leading to confusion. We now have a regression test to prevent this from being reintroduced.
 
 ---
 
@@ -824,7 +824,7 @@ The easiest way to use this repo - install as a Claude Code plugin:
 
 ```bash
 # Add this repo as a marketplace
-/plugin marketplace add https://github.com/affaan-m/everything-claude-code
+/plugin marketplace add https://github.com/affaan-m/ECC
 
 # Install the plugin
 /plugin install ecc@ecc
@@ -838,7 +838,7 @@ Or add directly to your `~/.claude/settings.json`:
     "ecc": {
       "source": {
         "source": "github",
-        "repo": "affaan-m/everything-claude-code"
+        "repo": "affaan-m/ECC"
       }
     }
   },
@@ -854,20 +854,21 @@ This gives you instant access to all commands, agents, skills, and hooks.
 >
 > ```bash
 > # Clone the repo first
-> git clone https://github.com/affaan-m/everything-claude-code.git
+> git clone https://github.com/affaan-m/ECC.git
+> cd ECC
 >
 > # Option A: User-level rules (applies to all projects)
 > mkdir -p ~/.claude/rules/ecc
-> cp -r everything-claude-code/rules/common ~/.claude/rules/ecc/
-> cp -r everything-claude-code/rules/typescript ~/.claude/rules/ecc/   # pick your stack
-> cp -r everything-claude-code/rules/python ~/.claude/rules/ecc/
-> cp -r everything-claude-code/rules/golang ~/.claude/rules/ecc/
-> cp -r everything-claude-code/rules/php ~/.claude/rules/ecc/
+> cp -r rules/common ~/.claude/rules/ecc/
+> cp -r rules/typescript ~/.claude/rules/ecc/   # pick your stack
+> cp -r rules/python ~/.claude/rules/ecc/
+> cp -r rules/golang ~/.claude/rules/ecc/
+> cp -r rules/php ~/.claude/rules/ecc/
 >
 > # Option B: Project-level rules (applies to current project only)
 > mkdir -p .claude/rules/ecc
-> cp -r everything-claude-code/rules/common .claude/rules/ecc/
-> cp -r everything-claude-code/rules/typescript .claude/rules/ecc/     # pick your stack
+> cp -r rules/common .claude/rules/ecc/
+> cp -r rules/typescript .claude/rules/ecc/     # pick your stack
 > ```
 
 ---
@@ -878,34 +879,35 @@ If you prefer manual control over what's installed:
 
 ```bash
 # Clone the repo
-git clone https://github.com/affaan-m/everything-claude-code.git
+git clone https://github.com/affaan-m/ECC.git
+cd ECC
 
 # Copy agents to your Claude config
-cp everything-claude-code/agents/*.md ~/.claude/agents/
+cp agents/*.md ~/.claude/agents/
 
 # Copy rules directories (common + language-specific)
 mkdir -p ~/.claude/rules/ecc
-cp -r everything-claude-code/rules/common ~/.claude/rules/ecc/
-cp -r everything-claude-code/rules/typescript ~/.claude/rules/ecc/   # pick your stack
-cp -r everything-claude-code/rules/python ~/.claude/rules/ecc/
-cp -r everything-claude-code/rules/golang ~/.claude/rules/ecc/
-cp -r everything-claude-code/rules/php ~/.claude/rules/ecc/
-cp -r everything-claude-code/rules/arkts ~/.claude/rules/ecc/
+cp -r rules/common ~/.claude/rules/ecc/
+cp -r rules/typescript ~/.claude/rules/ecc/   # pick your stack
+cp -r rules/python ~/.claude/rules/ecc/
+cp -r rules/golang ~/.claude/rules/ecc/
+cp -r rules/php ~/.claude/rules/ecc/
+cp -r rules/arkts ~/.claude/rules/ecc/
 
 # Copy skills first (primary workflow surface)
 # Recommended (new users): core/general skills only
 mkdir -p ~/.claude/skills/ecc
-cp -r everything-claude-code/.agents/skills/* ~/.claude/skills/ecc/
-cp -r everything-claude-code/skills/search-first ~/.claude/skills/ecc/
+cp -r .agents/skills/* ~/.claude/skills/ecc/
+cp -r skills/search-first ~/.claude/skills/ecc/
 
 # Optional: add niche/framework-specific skills only when needed
 # for s in django-patterns django-tdd laravel-patterns springboot-patterns quarkus-patterns; do
-# cp -r everything-claude-code/skills/$s ~/.claude/skills/ecc/
+# cp -r skills/$s ~/.claude/skills/ecc/
 # done
 
 # Optional: keep maintained slash-command compatibility during migration
 mkdir -p ~/.claude/commands
-cp everything-claude-code/commands/*.md ~/.claude/commands/
+cp commands/*.md ~/.claude/commands/
 
 # Retired shims live in legacy-command-shims/commands/.
 # Copy individual files from there only if you still need old names such as /tdd.
@@ -1083,7 +1085,7 @@ This shows all available agents, commands, and skills from the plugin.
 <details>
 <summary><b>My hooks aren't working / I see "Duplicate hooks file" errors</b></summary>
 
-This is the most common issue. **Do NOT add a `"hooks"` field to `.claude-plugin/plugin.json`.** Claude Code v2.1+ automatically loads `hooks/hooks.json` from installed plugins. Explicitly declaring it causes duplicate detection errors. See [#29](https://github.com/affaan-m/everything-claude-code/issues/29), [#52](https://github.com/affaan-m/everything-claude-code/issues/52), [#103](https://github.com/affaan-m/everything-claude-code/issues/103).
+This is the most common issue. **Do NOT add a `"hooks"` field to `.claude-plugin/plugin.json`.** Claude Code v2.1+ automatically loads `hooks/hooks.json` from installed plugins. Explicitly declaring it causes duplicate detection errors. See [#29](https://github.com/affaan-m/ECC/issues/29), [#52](https://github.com/affaan-m/ECC/issues/52), [#103](https://github.com/affaan-m/ECC/issues/103).
 </details>
 
 <details>
@@ -1128,11 +1130,11 @@ Yes. Use Option 2 (manual installation) and copy only what you need:
 
 ```bash
 # Just agents
-cp everything-claude-code/agents/*.md ~/.claude/agents/
+cp agents/*.md ~/.claude/agents/
 
 # Just rules
 mkdir -p ~/.claude/rules/ecc/
-cp -r everything-claude-code/rules/common ~/.claude/rules/ecc/
+cp -r rules/common ~/.claude/rules/ecc/
 ```
 
 Each component is fully independent.
@@ -1145,7 +1147,7 @@ Yes. ECC is cross-platform:
 - **Cursor**: Pre-translated configs in `.cursor/`. See [Cursor IDE Support](#cursor-ide-support).
 - **Gemini CLI**: Experimental project-local support via `.gemini/GEMINI.md` and shared installer plumbing.
 - **OpenCode**: Full plugin support in `.opencode/`. See [OpenCode Support](#opencode-support).
-- **Codex**: First-class support for both macOS app and CLI, with adapter drift guards and SessionStart fallback. See PR [#257](https://github.com/affaan-m/everything-claude-code/pull/257).
+- **Codex**: First-class support for both macOS app and CLI, with adapter drift guards and SessionStart fallback. See PR [#257](https://github.com/affaan-m/ECC/pull/257).
 - **GitHub Copilot (VS Code)**: Instruction and prompt layer via `.github/copilot-instructions.md`, `.vscode/settings.json`, and `.github/prompts/`. See [GitHub Copilot Support](#github-copilot-support).
 - **Antigravity**: Tightly integrated setup for workflows, skills, and flattened rules in `.agent/`. See [Antigravity Guide](docs/ANTIGRAVITY-GUIDE.md).
 - **JoyCode / CodeBuddy**: Project-local selective install adapters for commands, agents, skills, and flattened rules. See [JoyCode Adapter Guide](docs/JOYCODE-GUIDE.md).
@@ -1488,7 +1490,7 @@ OpenCode's plugin system is MORE sophisticated than Claude Code with 20+ event t
 
 **Option 1: Use directly**
 ```bash
-cd everything-claude-code
+cd ECC
 opencode
 ```
 
@@ -1717,7 +1719,7 @@ These configs work for my workflow. You should:
 
 ## Community Projects
 
-Projects built on or inspired by Everything Claude Code:
+Projects built on or inspired by ECC:
 
 | Project | Description |
 |---------|-------------|
@@ -1738,7 +1740,7 @@ This project is free and open source. Sponsors help keep it maintained and growi
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=affaan-m/everything-claude-code&type=Date)](https://star-history.com/#affaan-m/everything-claude-code&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=affaan-m/ECC&type=Date)](https://star-history.com/#affaan-m/ECC&Date)
 
 ---
 

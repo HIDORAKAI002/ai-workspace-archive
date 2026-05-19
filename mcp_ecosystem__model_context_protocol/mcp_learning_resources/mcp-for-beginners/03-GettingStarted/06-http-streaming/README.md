@@ -11,7 +11,7 @@ This section explores the different transport mechanisms available in MCP and th
 A transport mechanism defines how data is exchanged between the client and server. MCP supports multiple transport types to suit different environments and requirements:
 
 - **stdio**: Standard input/output, suitable for local and CLI-based tools. Simple but not suitable for web or cloud.
-- **SSE (Server-Sent Events)**: Allows servers to push real-time updates to clients over HTTP. Good for web UIs, but limited in scalability and flexibility.
+- **SSE (Server-Sent Events)**: Allows servers to push real-time updates to clients over HTTP. Good for web UIs, but limited in scalability and flexibility. As of MCP Specification 2025-06-18, the standalone SSE (Server-Sent Events) transport has been deprecated and replaced by "Streamable HTTP" transport.
 - **Streamable HTTP**: Modern HTTP-based streaming transport, supporting notifications and better scalability. Recommended for most production and cloud scenarios.
 
 ### Comparison Table

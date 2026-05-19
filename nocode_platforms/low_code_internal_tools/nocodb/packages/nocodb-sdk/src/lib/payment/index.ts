@@ -34,6 +34,7 @@ export enum PlanLimitTypes {
   LIMIT_DOCS_PAGE_SIZE_KB = 'limit_docs_page_size_kb',
   LIMIT_WORKSPACE = 'limit_workspace',
   LIMIT_TRASH_RETENTION = 'limit_trash_retention',
+  LIMIT_AI_INTEGRATIONS = 'limit_ai_integrations',
 }
 
 export enum PlanFeatureTypes {
@@ -127,7 +128,7 @@ export enum PlanTitles {
 
 export enum OnPremPlanTitles {
   FREE = 'Free',
-  SELF_HOSTED_STARTER = 'Self-hosted Starter',
+  SELF_HOSTED_BUSINESS = 'Self-hosted Business',
   SELF_HOSTED_SCALE = 'Self-hosted Scale',
   SELF_HOSTED_ENTERPRISE = 'Self-hosted Enterprise',
 }
@@ -295,6 +296,7 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
   [PlanLimitTypes.LIMIT_DOCS_PAGE_SIZE_KB]:
     'to increase the document page size limit.',
   [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 'for extended trash retention.',
+  [PlanLimitTypes.LIMIT_AI_INTEGRATIONS]: 'to add more AI integrations.',
 };
 
 export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {

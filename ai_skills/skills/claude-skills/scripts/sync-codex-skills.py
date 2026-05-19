@@ -67,6 +67,14 @@ SKILL_DOMAINS = {
     "research": {
         "category": "research",
         "description": "Research orchestrator + 6 specialists (pulse, litreview, grants, dossier, patent, syllabus, notebooklm)"
+    },
+    "business-operations": {
+        "category": "business-operations",
+        "description": "Internal BizOps skills (v2.8.0): process mapping, vendor management, capacity planning (Erlang-C), internal comms (ADKAR+Kotter), knowledge ops (SOP+runbook), procurement (UNSPSC)"
+    },
+    "commercial": {
+        "category": "commercial",
+        "description": "Per-deal-and-packaging Commercial skills (v2.8.0): pricing strategy, deal desk, partnerships, channel economics, commercial policy, RFP responder, commercial forecaster"
     }
 }
 

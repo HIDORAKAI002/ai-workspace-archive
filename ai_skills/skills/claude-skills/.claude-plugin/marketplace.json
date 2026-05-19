@@ -4,12 +4,12 @@
     "name": "Alireza Rezvani",
     "url": "https://alirezarezvani.com"
   },
-  "description": "313 production-ready skill packages for Claude AI across 12 domains: engineering advanced (76 \u2014 incl. 4 Matt Pocock-derived productivity skills + v2.7.3 security-guidance PreToolUse hook), engineering core (51), marketing (47 \u2014 incl. v2.7.3 AEO/Answer Engine Optimization), c-level advisory (66), product (17), regulatory/QMS (18), project management (9), business growth (5), finance (4), productivity (4, v2.7.0), marketing top-level (2, v2.7.0), and research (8, v2.7.0). Includes ~402 Python tools, ~542 reference documents, 46+ agents, 60+ slash commands.",
+  "description": "328 production-ready skill packages for Claude AI across 14 domains: engineering advanced (76 \u2014 incl. 4 Matt Pocock-derived productivity skills + v2.7.3 security-guidance PreToolUse hook), engineering core (51), marketing (47 \u2014 incl. v2.7.3 AEO/Answer Engine Optimization), c-level advisory (66), product (17), regulatory/QMS (18), project management (9), business growth (5), finance (4), productivity (4, v2.7.0), marketing top-level (2, v2.7.0), research (8, v2.7.0), business-operations (7, v2.8.0), and commercial (8, v2.8.0). Includes ~441 Python tools, ~594 reference documents, 48+ agents, 77+ slash commands.",
   "homepage": "https://github.com/alirezarezvani/claude-skills",
   "repository": "https://github.com/alirezarezvani/claude-skills",
   "metadata": {
-    "description": "313 production-ready skill packages across 12 domains (engineering, marketing, product, c-level, project management, RA/QM, business growth, finance, productivity, marketing (top-level), research, plus standards). ~402 Python tools, ~542 reference guides, 46+ agents (cs-* + personas), 60+ slash commands. v2.7.3 adds AEO (Answer Engine Optimization for LLM citation) + security-guidance PreToolUse hook. Compatible with Claude Code, Codex CLI, Gemini CLI, Cursor, OpenClaw, Hermes Agent, and 6 more coding agents.",
-    "version": "2.7.3"
+    "description": "328 production-ready skill packages across 14 domains (engineering, marketing, product, c-level, project management, RA/QM, business growth, finance, productivity, marketing (top-level), research, business-operations [v2.8.0], commercial [v2.8.0], plus standards). ~441 Python tools, ~594 reference guides, 48+ agents (cs-* + personas), 77+ slash commands. v2.8.0 adds 2 new top-level domains (business-operations + commercial) with 15 new skills, context: fork chaining via Matt Pocock grill-with-docs discipline. v2.7.3 adds AEO + security-guidance PreToolUse hook. Compatible with Claude Code, Codex CLI, Gemini CLI, Cursor, OpenClaw, Hermes Agent, and 6 more coding agents.",
+    "version": "2.8.0"
   },
   "plugins": [
     {
@@ -1197,7 +1197,7 @@
     {
       "name": "business-operations-skills",
       "source": "./business-operations",
-      "description": "Internal BizOps domain. Sprint 1 ships 3 skills: orchestrator + process-mapper (BPMN + bottleneck + cycle-time, Lean/TOC canon) + vendor-management (scorecard + SLA + third-party risk, Shared Assessments SIG-Lite). Orchestrator uses context: fork to route inquiries via Matt Pocock grill discipline (one question per turn, recommended answer, canon-cited challenge). Distinct from business-growth (external sales) and c-level-advisor (strategic). Sprint 2 adds capacity-planner, internal-comms, knowledge-ops, procurement-optimizer.",
+      "description": "Internal BizOps domain. v2.8.0 ships 7 skills: orchestrator + process-mapper (BPMN/bottleneck/cycle-time, Lean+TOC) + vendor-management (scorecard+SLA+3rd-party risk, NIST SP 800-161/ISO 27036) + capacity-planner (Erlang-C queueing math for ops teams, NOT engineering) + internal-comms (ADKAR+Kotter 8-step, NOT marketing) + knowledge-ops (SOP+runbook+KB hygiene with 5W2H, context: fork) + procurement-optimizer (UNSPSC spend categorization + supplier consolidation). Orchestrator uses context: fork to route inquiries via Matt Pocock grill discipline (one question per turn, recommended answer, canon-cited challenge). Every SKILL.md ships a Forcing-question library section. 18 stdlib Python tools, 24+ reference docs. Distinct from business-growth (external sales) and c-level-advisor (strategic).",
       "version": "2.8.0",
       "author": {
         "name": "Alireza Rezvani"
@@ -1213,6 +1213,21 @@
         "lean",
         "theory-of-constraints",
         "value-stream",
+        "capacity-planning",
+        "erlang-c",
+        "queueing-theory",
+        "internal-comms",
+        "change-management",
+        "adkar",
+        "kotter",
+        "knowledge-ops",
+        "sop",
+        "runbook",
+        "5w2h",
+        "procurement",
+        "spend-categorization",
+        "unspsc",
+        "supplier-consolidation",
         "matt-pocock",
         "grill-with-docs"
       ],
@@ -1221,7 +1236,7 @@
     {
       "name": "commercial-skills",
       "source": "./commercial",
-      "description": "Per-deal-and-packaging Commercial domain. Sprint 1 ships 3 skills: orchestrator + pricing-strategist (model picker + Van Westendorp WTP + packaging) + deal-desk (deal scorer + discount approval routing + redline). Orchestrator uses context: fork; sub-skills follow Matt Pocock grill discipline. Hard rules: pricing outputs model+range (never a single number), deal outputs route to named human approver (never auto-approve), forecast outputs surface conversion assumption. Distinct from business-growth (sales execution), c-level-advisor/cro-advisor (strategic), finance (close+report). Sprint 2 adds partnerships-architect, channel-economics, commercial-policy, rfp-responder, commercial-forecaster.",
+      "description": "Per-deal-and-packaging Commercial domain. v2.8.0 ships 8 skills: orchestrator + pricing-strategist (model picker + Van Westendorp WTP + packaging) + deal-desk (deal scorer + discount approval routing + redline) + partnerships-architect (5-tier classifier + joint GTM + revshare modeler) + channel-economics (cost-to-serve + ROI + mix optimizer) + commercial-policy (data-backed discount matrix + exception flow + linter) + rfp-responder (Shipley structured RFP/RFI/RFQ + win-theme + winrate predictor, context: fork) + commercial-forecaster (4Q-weighted bookings + cohort NRR/GRR + funnel-confidence with mandatory assumption disclosure). Hard rules: pricing outputs model+range (never a single number), deal outputs route to named human approver (never auto-approve), forecast outputs surface conversion assumption, RFP never invents claims for GAP requirements. 21 stdlib Python tools, 28+ reference docs. Distinct from business-growth (sales execution), c-level-advisor/cro-advisor (strategic), finance (close+report).",
       "version": "2.8.0",
       "author": {
         "name": "Alireza Rezvani"
@@ -1237,6 +1252,23 @@
         "saas-pricing",
         "redline",
         "margin",
+        "partnerships",
+        "channel-partners",
+        "joint-gtm",
+        "revshare",
+        "channel-economics",
+        "cost-to-serve",
+        "channel-roi",
+        "commercial-policy",
+        "discount-matrix",
+        "exception-flow",
+        "rfp",
+        "rfi",
+        "shipley-method",
+        "winrate-predictor",
+        "bookings-forecast",
+        "cohort-arr",
+        "funnel-confidence",
         "matt-pocock",
         "grill-with-docs"
       ],

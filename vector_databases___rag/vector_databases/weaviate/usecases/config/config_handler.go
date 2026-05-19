@@ -153,6 +153,7 @@ type Config struct {
 	QueryDefaults                    QueryDefaults            `json:"query_defaults" yaml:"query_defaults"`
 	QueryMaximumResults              int64                    `json:"query_maximum_results" yaml:"query_maximum_results"`
 	QueryHybridMaximumResults        int64                    `json:"query_hybrid_maximum_results" yaml:"query_hybrid_maximum_results"`
+	QueryBoostDefaultDepth           int                      `json:"query_boost_default_depth" yaml:"query_boost_default_depth"`
 	QueryNestedCrossReferenceLimit   int64                    `json:"query_nested_cross_reference_limit" yaml:"query_nested_cross_reference_limit"`
 	QueryCrossReferenceDepthLimit    int                      `json:"query_cross_reference_depth_limit" yaml:"query_cross_reference_depth_limit"`
 	Contextionary                    Contextionary            `json:"contextionary" yaml:"contextionary"`
@@ -559,9 +560,9 @@ type Profiling struct {
 }
 
 type DistributedTasksConfig struct {
-	Enabled               bool          `json:"enabled" yaml:"enabled"`
-	CompletedTaskTTL      time.Duration `json:"completedTaskTTL" yaml:"completedTaskTTL"`
-	SchedulerTickInterval time.Duration `json:"schedulerTickInterval" yaml:"schedulerTickInterval"`
+	CompletedTaskTTL      time.Duration              `json:"completedTaskTTL" yaml:"completedTaskTTL"`
+	SchedulerTickInterval time.Duration              `json:"schedulerTickInterval" yaml:"schedulerTickInterval"`
+	ReindexConcurrency    *runtime.DynamicValue[int] `json:"reindexConcurrency" yaml:"reindexConcurrency"`
 }
 
 type Persistence struct {
@@ -619,10 +620,6 @@ const (
 
 const (
 	DefaultReindexerGoroutinesFactor = 0.5
-
-	DefaultMapToBlockmaxProcessingDurationSeconds  = 3 * 60
-	DefaultMapToBlockmaxPauseDurationSeconds       = 60
-	DefaultMapToBlockmaxPerObjectDelayMilliseconds = 0
 )
 
 // MetadataServer is experimental.

@@ -25,6 +25,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { populateMeta, validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { extractPropsAndSanitize } from '~/helpers/extractProps';
+import { validateAndNormalizeSqliteConfig } from '~/helpers/validateSqliteFilename';
 import syncMigration from '~/helpers/syncMigration';
 import { Base, BaseUser, Integration, IntegrationLink } from '~/models';
 import Noco from '~/Noco';
@@ -55,8 +56,13 @@ export class BasesService {
       req?: NcRequest;
     },
   ) {
+    // Pass workspaceId even for super admin: EE's Base.list override returns
+    // [] when called without one (cloud safety — see ee/models/Base.ts), so
+    // unlicensed on-prem (which falls back here via @EEOnly) would get an
+    // empty list. In true CE there is only one workspace, so filtering by
+    // it is equivalent to listing all.
     const bases = extractRolesObj(param.user?.roles)[OrgUserRoles.SUPER_ADMIN]
-      ? await Base.list()
+      ? await Base.list(Noco.ncDefaultWorkspaceId)
       : await BaseUser.getProjectsList(param.user.id, {
           ...param.query,
           workspaceId: Noco.ncDefaultWorkspaceId,
@@ -289,6 +295,10 @@ export class BasesService {
         }
         const dbId = nanoidv2();
         const baseTitle = DOMPurify.sanitize(baseBody.title);
+        // Restrict path component to safe characters so a title cannot
+        // escape the nc_minimal_dbs/ directory via traversal sequences.
+        const filenameSlug =
+          baseTitle.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64) || 'db';
         baseBody.prefix = '';
         baseBody.sources = [
           {
@@ -301,7 +311,7 @@ export class BasesService {
                 client: 'sqlite3',
                 database: baseTitle,
                 connection: {
-                  filename: `${toolDir}/nc_minimal_dbs/${baseTitle}_${dbId}.db`,
+                  filename: `${toolDir}/nc_minimal_dbs/${filenameSlug}_${dbId}.db`,
                 },
               },
             },
@@ -328,6 +338,7 @@ export class BasesService {
 
       for (const source of baseBody.sources || []) {
         if (!source.fk_integration_id) {
+          validateAndNormalizeSqliteConfig(source.config, source.type);
           const integration = await Integration.createIntegration(
             {
               title: source.alias || baseBody.title,

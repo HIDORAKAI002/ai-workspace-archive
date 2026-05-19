@@ -46,8 +46,8 @@ feature branch:
 - documentation expansion, Japanese localization, zh-CN to ja-JP parity
   repair, and dependency readiness through TypeScript 6 and Node type updates;
 - launch collateral for GitHub release copy, X, LinkedIn, article outline,
-  Telegram/Hermes handoff, demo prompts, and the approval-gated launch
-  checklist.
+  Telegram/Hermes handoff, demo prompts, partner/sponsor/talk outreach, and
+  the approval-gated launch checklist.
 - a release URL ledger that separates links which already resolve from links
   that must wait for the GitHub release, npm rc package, plugin tag/directory,
   and ECC Tools billing readback.
@@ -91,7 +91,7 @@ What stays local:
 2. Read the [Hermes setup guide](../../HERMES-SETUP.md).
 3. Review the [cross-harness architecture](../../architecture/cross-harness.md).
 4. Run the [observability readiness gate](../../architecture/observability-readiness.md).
-5. Check the [release URL ledger](release-url-ledger-2026-05-18.md) before
+5. Check the [release URL ledger](release-url-ledger-2026-05-19.md) before
    using any announcement links.
 6. Start with one workflow lane: engineering, research, content, or outreach.
 7. Import only sanitized operator patterns into ECC skills.

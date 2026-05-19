@@ -29,6 +29,7 @@ import {
 } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
+import { extractDisplayNameFromEmail } from '~/utils/emailUtils';
 import { hasDefaultTableVisibility } from '~/helpers/tableHelpers';
 
 @Injectable()
@@ -165,8 +166,8 @@ export class PublicMetasService {
 
       view.users = baseUsers.map((u) => ({
         id: u.id,
-        display_name: u.display_name,
-        email: u.email,
+        display_name: extractDisplayNameFromEmail(u.email, u.display_name),
+        email: '',
         meta: ncIsObject(u.meta)
           ? extractProps(u.meta, ['icon', 'iconType'])
           : null,
