@@ -419,6 +419,10 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       }
 
       markPersonalViewIfNeeded(req, view);
+
+      if (publicDataUuid || sharedViewUuid || sharedBaseUuid) {
+        req.context.is_public = true;
+      }
     } else {
       await this.legacyExtractIds(req);
     }
@@ -997,6 +1001,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       timezone: context.timezone,
       is_api_token: req.user?.is_api_token,
       permissions: [],
+      ...(params.publicDataUuid ||
+      params.sharedViewUuid ||
+      params.sharedBaseUuid
+        ? { is_public: true }
+        : {}),
     };
 
     // Store table ID to check in context for ACL middleware to perform table visibility check
@@ -1057,6 +1066,10 @@ export class AclMiddleware implements NestInterceptor {
 
     if (!req.user?.isAuthorized) {
       NcError.unauthorized('Invalid token');
+    }
+
+    if (req.user?.isPublicBase && req.context) {
+      req.context.is_public = true;
     }
 
     // Block non-owners from modifying filters/sorts on someone else's personal view

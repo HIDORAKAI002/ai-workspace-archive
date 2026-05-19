@@ -13,6 +13,7 @@ import {
   ViewTypes,
 } from 'nocodb-sdk';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import { Logger } from '@nestjs/common';
 import { isSupportedDisplayValueColumn } from 'nocodb-sdk';
 import type {
@@ -1141,6 +1142,14 @@ export default class View implements ViewType {
     let columns: Array<GridViewColumn | any> = [];
     const view = await this.get(context, viewId, false, ncMeta);
 
+    // Guard: a stale fk_view_id reference (e.g. a column's column_order.view_id
+    // pointing at a deleted view, or a list-view-level referencing a deleted
+    // view) returns null here. Without this guard, `view.type` blows up with
+    // "Cannot read properties of null (reading 'type')" and the whole caller
+    // chain (Column.list → Model.getColumns → ColumnsService.columnAdd/Update)
+    // dies. Treat the view as having no columns and let the caller proceed.
+    if (!view) return columns;
+
     // todo:  just get - order & show props
     switch (view.type) {
       case ViewTypes.GRID:
@@ -1725,8 +1734,14 @@ export default class View implements ViewType {
       return bcrypt.compare(inputPassword, view.password);
     }
 
-    // Plaintext fallback for pre-migration passwords
-    return view.password === inputPassword;
+    // Timing-safe plaintext fallback for pre-migration view passwords.
+    const a = Buffer.from(inputPassword, 'utf-8');
+    const b = Buffer.from(view.password, 'utf-8');
+    if (a.length !== b.length) {
+      crypto.timingSafeEqual(a, Buffer.alloc(a.length));
+      return false;
+    }
+    return crypto.timingSafeEqual(a, b);
   }
 
   static async sharedViewDelete(

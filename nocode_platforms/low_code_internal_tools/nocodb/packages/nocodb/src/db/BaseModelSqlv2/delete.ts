@@ -727,7 +727,6 @@ export class BaseModelDelete {
       if (!skip_hooks) {
         await this.baseModel.afterBulkDelete(
           chunkResponse,
-          this.baseModel.dbDriver,
           cookie,
           true,
           bulkAuditEvent,
@@ -951,7 +950,20 @@ export class BaseModelDelete {
       deletedOnly: true,
     });
 
-    if (oldRecords.length !== rowIds.length) {
+    // Strict-equality check (`oldRecords.length !== rowIds.length`) caused the
+    // base-trash cleanup processor to retry the same trash entries indefinitely
+    // in production. Race scenarios that drop the count:
+    //   - A concurrent restore activated some of the rows since the trash
+    //     handler's `nextBatch` query selected them.
+    //   - A prior partial-success run hard-deleted some rows; the remaining
+    //     rowIds in the entry's batch no longer exist anywhere.
+    //   - User opened the trash UI and hard-deleted a subset manually.
+    // In all cases the right behavior is to proceed with what we found, not
+    // to throw `recordNotTrashed` and retry forever. Throw only when ZERO
+    // matching trashed rows survive — there is genuinely nothing to delete
+    // and the caller (handler.permanentDelete) should bubble it up so the
+    // trash entry's cleanup_retry_count records the dead-end state.
+    if (oldRecords.length === 0) {
       NcError.get(this.baseModel.context).recordNotTrashed();
     }
     if (oldRecords.length !== rowIds.length) {
@@ -981,7 +993,9 @@ export class BaseModelDelete {
     const trx = await this.baseModel.dbDriver.transaction();
     try {
       for (const execQuery of execQueries) {
-        await Promise.all(execQuery({ trx, qb: qb.clone(), ids, rows }));
+        await Promise.all(
+          execQuery({ trx, qb: qb.clone(), ids: survivingIds, rows }),
+        );
       }
       await trx.commit();
     } catch (ex) {
@@ -991,12 +1005,11 @@ export class BaseModelDelete {
     }
 
     for (const metaQuery of metaQueries) {
-      await metaQuery({ qb: qb.clone(), ids, rows });
+      await metaQuery({ qb: qb.clone(), ids: survivingIds, rows });
     }
 
     await this.baseModel.afterBulkDelete(
       oldRecords,
-      this.baseModel.dbDriver,
       cookie,
       isBulkAllOperation,
       AuditV1OperationTypes.DATA_BULK_PERMANENT_DELETE,

@@ -108,6 +108,9 @@ export const SKIP_STORING_JOB_META = [
   JobTypes.WorkflowDraftReminder,
   JobTypes.ChatMessage,
   JobTypes.ChatApproval,
+  JobTypes.MailDispatch,
+  JobTypes.MailOutboxRecovery,
+  JobTypes.MailScanner,
 ];
 
 export enum JobStatus {
@@ -134,7 +137,25 @@ export const JobVersions: {
 
 export const JOB_REQUEUED = 'job.requeued';
 
-export const JOB_REQUEUE_LIMIT = 10;
+// Requeues exist for transient mismatches between primary and worker during
+// rolling deploys (new job type, renamed fn, version skew) and for local
+// concurrency back-pressure. Both want to wait patiently for the system to
+// settle. Exponential backoff (5s, 10s, 20s, 40s, capped at 60s) catches
+// fast-resolving blips quickly and settles into a steady 60s tail.
+// 60 attempts × max 60s ≈ 57 min total budget before the job is dropped.
+export const JOB_REQUEUE_LIMIT = 60;
+export const JOB_REQUEUE_BASE_DELAY_MS = 5_000;
+export const JOB_REQUEUE_MAX_DELAY_MS = 60_000;
+
+export function jobRequeueDelay(attempt: number): number {
+  const exp = JOB_REQUEUE_BASE_DELAY_MS * 2 ** Math.max(0, attempt - 1);
+  return Math.min(exp, JOB_REQUEUE_MAX_DELAY_MS);
+}
+
+export function parseWorkerConcurrency(value: string | undefined): number {
+  const parsed = parseInt(value ?? '10', 10);
+  return Math.max(1, Number.isFinite(parsed) ? parsed : 10);
+}
 
 export const InstanceTypes = {
   PRIMARY: `${process.env.NC_ENV ?? 'default'}-primary`,
@@ -153,7 +174,6 @@ export enum InstanceCommands {
 export interface JobData {
   // meta info
   jobName: string;
-  _jobDelay?: number;
   _jobAttempt?: number;
   _jobVersion?: number;
   // context
@@ -370,6 +390,10 @@ export interface ChatApprovalJobData extends JobData {
   sessionId: string;
   messageId: string;
   decisions: Record<string, 'approved' | 'denied'>;
+}
+
+export interface MailDispatchJobData extends JobData {
+  mailSendId: string;
 }
 
 export interface DataImportJobData extends JobData {

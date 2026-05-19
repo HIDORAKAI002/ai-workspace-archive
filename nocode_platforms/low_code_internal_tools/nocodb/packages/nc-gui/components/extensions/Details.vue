@@ -15,15 +15,8 @@ const emit = defineEmits(['update:modelValue'])
 
 const vModel = useVModel(props, 'modelValue', emit)
 
-const {
-  availableExtensions,
-  descriptionContent,
-  addExtension,
-  getExtensionAssetsUrl,
-  isMarketVisible,
-
-  extensionAccess,
-} = useExtensions()
+const { availableExtensions, descriptionContent, addExtension, getExtensionAssetsUrl, isMarketVisible, extensionAccess } =
+  useExtensions()
 
 const { blockAddNewExtension, navigateToPricing, isWsOwner } = useEeConfig()
 
@@ -34,6 +27,11 @@ const onBack = () => {
 
 const onAddExtension = (ext: any) => {
   addExtension(ext)
+  vModel.value = false
+}
+
+const onUpgradeToAdd = () => {
+  navigateToPricing({ limitOrFeature: PlanFeatureTypes.FEATURE_EXTENSIONS })
   vModel.value = false
 }
 
@@ -105,11 +103,7 @@ const detailsBody = computed(() => {
             <template #title>
               {{ $t('upgrade.upgradeToAddMoreExtensions') }}
             </template>
-            <NcButton
-              size="small"
-              class="w-full nc-upgrade-plan-btn"
-              @click="navigateToPricing({ limitOrFeature: PlanFeatureTypes.FEATURE_EXTENSIONS })"
-            >
+            <NcButton size="small" class="w-full nc-upgrade-plan-btn" @click="onUpgradeToAdd">
               <div class="flex items-center justify-center gap-2">
                 <GeneralIcon icon="ncArrowUpCircle" class="h-4 w-4" />
 
