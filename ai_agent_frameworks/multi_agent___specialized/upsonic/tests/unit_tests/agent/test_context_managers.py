@@ -38,7 +38,7 @@ class MockTask:
         self.description = description
         self.context = None
         self.response_format = None
-        self.price_id = None
+        self.task_usage_id = "task-mock"
         self.context_formatted = None
         self.response = None
         self.tool_calls = []
@@ -47,10 +47,11 @@ class MockTask:
         self.not_main_task = False
         self.start_time = None
         self.end_time = None
-        self.duration = None
-        self.total_cost = None
-        self.total_input_token = None
-        self.total_output_token = None
+        # Mocked registry view — context_manager reads task.usage.duration
+        # (and friends) off the AggregatedUsage shape.
+        _usage = Mock()
+        _usage.duration = None
+        self.usage = _usage
         self.enable_thinking_tool = None
         self.enable_reasoning_tool = None
         self.tools = []

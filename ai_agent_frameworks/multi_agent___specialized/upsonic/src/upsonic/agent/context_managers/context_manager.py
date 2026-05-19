@@ -287,11 +287,8 @@ class ContextManager:
                 "not_main_task": self.task.not_main_task,
                 "start_time": self.task.start_time,
                 "end_time": self.task.end_time,
-                "duration": self.task.duration,
-                "price_id": self.task.price_id,
-                "total_cost": self.task.total_cost,
-                "total_input_tokens": self.task.total_input_token,
-                "total_output_tokens": self.task.total_output_token,
+                "duration": self.task.usage.duration,
+                "task_usage_id": self.task.task_usage_id,
                 "tool_calls_count": len(self.task.tool_calls) if self.task.tool_calls else 0,
                 "query_knowledge_base": self.task.query_knowledge_base
             },

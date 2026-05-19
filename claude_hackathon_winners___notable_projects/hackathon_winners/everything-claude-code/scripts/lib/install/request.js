@@ -100,8 +100,8 @@ function normalizeInstallRequest(options = {}) {
       `Unsupported locale: "${locale}". Supported locales: ${listSupportedLocales().join(', ')}`
     );
   }
-  if (locale && target !== 'claude') {
-    throw new Error('--locale can only be used with --target claude');
+  if (locale && target !== 'claude' && target !== 'claude-project') {
+    throw new Error('--locale can only be used with --target claude or --target claude-project');
   }
   const requestedIncludeComponentIds = dedupeStrings([
     ...(config?.includeComponentIds || []),

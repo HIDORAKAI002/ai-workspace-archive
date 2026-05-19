@@ -260,8 +260,9 @@ class AutonomousAgent(Agent):
         else:
             effective_memory = None
         
-        self._autonomous_memory: Optional[Memory] = effective_memory
-        
+        # We don't cache `effective_memory`; the base class owns `self.memory`
+        # and the `autonomous_memory` property routes through it (no stale snapshot).
+
         self.filesystem_toolkit: Optional[AutonomousFilesystemToolKit] = None
         self.shell_toolkit: Optional[AutonomousShellToolKit] = None
         
@@ -484,13 +485,15 @@ You can execute commands in the workspace directory:
     
     @property
     def autonomous_storage(self) -> Optional["Storage"]:
-        """Get the storage backend created by AutonomousAgent."""
+        """The storage backend currently in use by this agent."""
+        if self.memory is not None:
+            return getattr(self.memory, "storage", None) or self._autonomous_storage
         return self._autonomous_storage
-    
+
     @property
     def autonomous_memory(self) -> Optional["Memory"]:
-        """Get the memory instance created by AutonomousAgent."""
-        return self._autonomous_memory
+        """The memory instance currently in use by this agent."""
+        return self.memory
     
     def reset_filesystem_tracking(self) -> None:
         """

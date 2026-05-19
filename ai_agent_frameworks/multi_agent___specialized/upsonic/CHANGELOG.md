@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.77.3](https://github.com/Upsonic/Upsonic/compare/v0.77.2...v0.77.3) (2026-05-19)
+
+
+### Bug Fixes
+
+* TECH-1625 centralized usage registry ([#602](https://github.com/Upsonic/Upsonic/issues/602)) ([4dc6f60](https://github.com/Upsonic/Upsonic/commit/4dc6f6028026adc5f6b2aed237e05d5dce65599b))
+
 ## [0.77.2](https://github.com/Upsonic/Upsonic/compare/v0.77.1...v0.77.2) (2026-05-16)
 
 

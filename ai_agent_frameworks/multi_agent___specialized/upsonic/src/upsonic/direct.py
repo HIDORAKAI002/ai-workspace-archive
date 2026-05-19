@@ -375,11 +375,7 @@ class Direct:
         print_output = show_output if show_output is not None else self.print
         
         model = self._prepare_model()
-        
-        # Ensure fresh price_id is set for cost tracking
-        import uuid as _uuid
-        task.price_id_ = str(_uuid.uuid4())
-        
+
         # Get response format name
         response_format_name = "str"
         if task.response_format and task.response_format != str:
@@ -429,6 +425,13 @@ class Direct:
             # all metrics are set when stop_timer finalizes duration.
             if hasattr(response, 'usage') and response.usage:
                 task._usage.incr(response.usage)
+                from upsonic.usage_registry import record_request_usage
+                record_request_usage(
+                    response.usage,
+                    model=getattr(model, "model_name", None),
+                    pipeline_step="direct",
+                    model_execution_time=_model_elapsed,
+                )
 
             task._usage.stop_timer()
             
@@ -457,7 +460,6 @@ class Direct:
                 usage=usage,
                 tool_usage=[],
                 debug=False,
-                price_id=task.price_id,
                 print_output=print_output
             )
             

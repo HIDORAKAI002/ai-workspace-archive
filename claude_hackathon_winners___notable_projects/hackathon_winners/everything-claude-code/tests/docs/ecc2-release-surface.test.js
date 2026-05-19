@@ -54,6 +54,7 @@ const expectedReleaseFiles = [
   'publication-readiness.md',
   'video-suite-production.md',
   'partner-sponsor-talks-pack.md',
+  'owner-approval-packet-2026-05-19.md',
   'release-name-plugin-publication-checklist-2026-05-18.md',
 ];
 
@@ -179,6 +180,7 @@ test('preview pack manifest assembles release, Hermes, and publication gates', (
     'docs/releases/2.0.0-rc.1/publication-readiness.md',
     'docs/releases/2.0.0-rc.1/naming-and-publication-matrix.md',
     'docs/releases/2.0.0-rc.1/release-url-ledger-2026-05-19.md',
+    'docs/releases/2.0.0-rc.1/owner-approval-packet-2026-05-19.md',
     'docs/releases/2.0.0-rc.1/video-suite-production.md',
     'docs/releases/2.0.0-rc.1/publication-evidence-2026-05-19.md',
     'docs/releases/2.0.0-rc.1/release-name-plugin-publication-checklist-2026-05-18.md',
@@ -201,6 +203,74 @@ test('preview pack manifest assembles release, Hermes, and publication gates', (
   assert.ok(manifest.includes('npm run preview-pack:smoke'));
   assert.ok(manifest.includes('npm run release:video-suite -- --format json'));
   assert.ok(manifest.includes('Reference-Inspired Adapter Direction'));
+});
+
+test('owner approval packet consolidates the final gated decisions', () => {
+  const packet = read('docs/releases/2.0.0-rc.1/owner-approval-packet-2026-05-19.md');
+  const manifest = read('docs/releases/2.0.0-rc.1/preview-pack-manifest.md');
+  const publicationReadiness = read('docs/releases/2.0.0-rc.1/publication-readiness.md');
+  const hypergrowth = read('docs/releases/2.0.0/ecc-2-hypergrowth-release-command-center.md');
+
+  for (const marker of [
+    'Owner Approval Packet',
+    'Source commit',
+    'Decision Register',
+    'GitHub prerelease',
+    'npm `next` publish',
+    'Claude plugin tag',
+    'Video upload',
+    'Final URL Fill-In',
+    'Do Not Approve If',
+    'No outbound email, personal-account post, package publish, plugin tag, or billing announcement is authorized by this packet alone.',
+  ]) {
+    assert.ok(packet.includes(marker), `owner approval packet missing ${marker}`);
+  }
+
+  for (const command of [
+    'node scripts/platform-audit.js --json',
+    'npm run preview-pack:smoke -- --format json',
+    'npm run release:video-suite -- --format json',
+    'node tests/run-all.js',
+  ]) {
+    assert.ok(packet.includes(command), `owner approval packet missing command ${command}`);
+  }
+
+  for (const urlSurface of [
+    'GitHub prerelease URL',
+    'npm rc package URL',
+    'Claude plugin tag URL',
+    'Primary launch video URL',
+    'ECC Tools billing/readiness URL',
+  ]) {
+    assert.ok(packet.includes(urlSurface), `owner approval packet missing ${urlSurface}`);
+  }
+
+  assert.ok(manifest.includes('owner-approval-packet-2026-05-19.md'));
+  assert.ok(publicationReadiness.includes('owner-approval-packet-2026-05-19.md'));
+  assert.ok(hypergrowth.includes('owner-approval-packet-2026-05-19.md'));
+});
+
+test('GA roadmap mirrors the current May 19 release evidence', () => {
+  const roadmap = read('docs/ECC-2.0-GA-ROADMAP.md');
+
+  for (const marker of [
+    'owner-approval-packet-2026-05-19.md',
+    'preview-pack smoke digest `790430aef4a8`',
+    'local 2560-test suite',
+    'PR #2001',
+    'GitHub Actions run `26102500291`',
+    'PR #2002',
+    'GitHub Actions run `26103853507`',
+    'PR #2009',
+    'GitHub Actions run `26111313938`',
+    'ecc-may-19-post-pr-2002-sync-64cef8f668e0',
+    'owner approval packet',
+  ]) {
+    assert.ok(roadmap.includes(marker), `GA roadmap missing current evidence marker ${marker}`);
+  }
+
+  assert.ok(!roadmap.includes('preview-pack smoke digest `bc2bf157616e`'));
+  assert.ok(!roadmap.includes('local 2544-test suite'));
 });
 
 test('rc.1 quickstart gives a clone-to-cross-harness path', () => {
@@ -269,7 +339,7 @@ test('release video suite manifest gates the content launch lane', () => {
   }
 
   assert.ok(launchChecklist.includes('npm run release:video-suite -- --format json'));
-  assert.ok(hypergrowth.includes('Validate `video-suite-production.md`'));
+  assert.ok(hypergrowth.includes('Pick final video cuts, upload after approval, and attach public URLs'));
   assert.strictEqual(packageJson.scripts['release:video-suite'], 'node scripts/release-video-suite.js');
   assert.ok(packageJson.files.includes('scripts/release-video-suite.js'));
 });
@@ -394,7 +464,7 @@ test('publication readiness checklist gates public release actions on evidence',
   assert.ok(source.includes('release-name-plugin-publication-checklist-2026-05-18.md'));
   assert.ok(source.includes('Release name and plugin publication checklist'));
   assert.ok(may15Evidence.includes('| Trunk discussions | GraphQL discussion count and maintainer-touch sweep | 58 total discussions;'));
-  assert.ok(source.includes('platform audit sampled 58 trunk discussions'));
+  assert.ok(source.includes('platform audit sampled 59 trunk discussions'));
   assert.ok(source.includes('0 needing maintainer touch'));
   assert.ok(source.includes('discussion-response-playbook.md'));
   for (const expected of [

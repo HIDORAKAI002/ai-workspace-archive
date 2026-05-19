@@ -16,12 +16,181 @@ import os
 from pathlib import Path
 
 from upsonic import Agent, Chat, Task
-from upsonic.chat import SessionState, ChatMessage, SessionMetrics, ChatAttachment
+from upsonic.chat import SessionState, ChatMessage, ChatAttachment
+from upsonic.storage import InMemoryStorage, Memory
 
 # Get project root (4 levels up from this test file)
 PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
 
 pytestmark = pytest.mark.timeout(120)
+
+
+# ---------------------------------------------------------------------------
+# Regression: ``Chat`` follows an **agent-first** policy.
+#
+# Resolution order (highest → lowest):
+#   1. ``agent.memory`` (and its ``storage``)   — kept as-is, Chat does NOT
+#                                                  override it; ``storage=``
+#                                                  kwarg on Chat is ignored.
+#   2. ``Chat(storage=…)`` kwarg                — only when the agent has
+#                                                  no memory.
+#   3. New ``InMemoryStorage()``                — fallback, wired to agent.
+#
+# All checks below are synchronous — no LLM call required.
+# Bare ``Agent(...)`` has ``memory=None`` unless memory is supplied, so we
+# drive the regression through an explicitly-wired ``Memory``. The
+# ``AutonomousAgent`` path (which seeds a default storage) is covered under
+# ``tests/smoke_tests/autonomous_agent/test_autonomous_agent.py``.
+# ---------------------------------------------------------------------------
+
+def test_chat_reuses_agent_memory_and_storage():
+    """Agent has Memory ⇒ Chat reuses both the Memory *and* the storage."""
+    shared = InMemoryStorage()
+    # Build Memory with matching ids so no alignment warning is triggered.
+    agent_memory = Memory(storage=shared, session_id="reuse-default", user_id="u")
+    agent = Agent(
+        model="openai/gpt-4o-mini",
+        name="Storage Reuse Agent",
+        memory=agent_memory,
+    )
+
+    chat = Chat(session_id="reuse-default", user_id="u", agent=agent)
+
+    # Storage is shared
+    assert chat._storage is shared
+    # Memory is the *same* instance (Chat does not build a new one)
+    assert chat._memory is agent_memory
+    assert agent.memory is agent_memory
+    assert agent.memory.storage is shared
+
+
+def test_chat_creates_storage_when_agent_has_none():
+    """No memory on the agent ⇒ Chat creates one and wires it into the agent."""
+    agent = Agent(model="openai/gpt-4o-mini", name="Storage Reuse Agent")
+    assert agent.memory is None
+
+    chat = Chat(session_id="reuse-fresh", user_id="u", agent=agent)
+
+    assert isinstance(chat._storage, InMemoryStorage)
+    # Chat builds a Memory and attaches it to the agent.
+    assert agent.memory is not None
+    assert agent.memory is chat._memory
+    assert agent.memory.storage is chat._storage
+
+
+def test_chat_explicit_storage_used_only_when_agent_has_no_memory():
+    """No agent memory + explicit Chat storage ⇒ Chat's storage is used."""
+    chat_storage = InMemoryStorage()
+    agent = Agent(model="openai/gpt-4o-mini", name="Storage Reuse Agent")
+    assert agent.memory is None
+
+    chat = Chat(
+        session_id="explicit-used",
+        user_id="u",
+        agent=agent,
+        storage=chat_storage,
+    )
+
+    assert chat._storage is chat_storage
+    assert agent.memory.storage is chat_storage
+
+
+def test_agent_storage_wins_over_chat_explicit_storage():
+    """Agent has Memory + Chat also passes ``storage=`` ⇒ agent wins.
+
+    Under the agent-first policy, ``Chat(storage=…)`` is silently ignored
+    when the agent already has a memory wrapper.
+    """
+    agent_storage = InMemoryStorage()
+    agent_memory = Memory(storage=agent_storage, session_id="agent-wins", user_id="u")
+    agent = Agent(
+        model="openai/gpt-4o-mini",
+        name="Storage Reuse Agent",
+        memory=agent_memory,
+    )
+    rejected_storage = InMemoryStorage()
+
+    chat = Chat(
+        session_id="agent-wins",
+        user_id="u",
+        agent=agent,
+        storage=rejected_storage,   # ← agent already has memory → ignored
+    )
+
+    assert chat._storage is agent_storage
+    assert chat._storage is not rejected_storage
+    assert chat._memory is agent_memory
+    assert agent.memory is agent_memory
+
+
+def test_chat_aligns_session_id_with_agent_memory():
+    """Chat session_id mismatched with agent.memory ⇒ agent wins + UserWarning."""
+    import pytest
+
+    agent_memory = Memory(
+        storage=InMemoryStorage(),
+        session_id="agent-session",
+        user_id="u",
+    )
+    agent = Agent(
+        model="openai/gpt-4o-mini",
+        name="Align Agent",
+        memory=agent_memory,
+    )
+
+    with pytest.warns(UserWarning, match=r"session_id.*overridden by agent\.memory"):
+        chat = Chat(session_id="chat-session", user_id="u", agent=agent)
+
+    # Chat's label is realigned to the agent's memory.
+    assert chat.session_id == "agent-session"
+    assert chat._memory is agent_memory
+    # The SessionManager must also key against the aligned id.
+    assert chat._session_manager.session_id == "agent-session"
+
+
+def test_chat_aligns_user_id_with_agent_memory():
+    """Chat user_id mismatched with agent.memory ⇒ agent wins + UserWarning."""
+    import pytest
+
+    agent_memory = Memory(
+        storage=InMemoryStorage(),
+        session_id="s",
+        user_id="agent-user",
+    )
+    agent = Agent(
+        model="openai/gpt-4o-mini",
+        name="Align Agent",
+        memory=agent_memory,
+    )
+
+    with pytest.warns(UserWarning, match=r"user_id.*overridden by agent\.memory"):
+        chat = Chat(session_id="s", user_id="chat-user", agent=agent)
+
+    assert chat.user_id == "agent-user"
+    assert chat._session_manager.user_id == "agent-user"
+
+
+def test_chat_no_warning_when_ids_match_agent_memory():
+    """Matching ids ⇒ no warning, ids stay as-is."""
+    import warnings
+
+    agent_memory = Memory(
+        storage=InMemoryStorage(),
+        session_id="s-match",
+        user_id="u-match",
+    )
+    agent = Agent(
+        model="openai/gpt-4o-mini",
+        name="Match Agent",
+        memory=agent_memory,
+    )
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")  # any warning ⇒ failure
+        chat = Chat(session_id="s-match", user_id="u-match", agent=agent)
+
+    assert chat.session_id == "s-match"
+    assert chat.user_id == "u-match"
 
 
 @pytest.mark.asyncio
@@ -66,18 +235,18 @@ async def test_chat_basic_invoke():
         
         # Verify usage properties from storage
         print(f"\n[RESULT] Usage from storage:")
-        print(f"  - Input tokens: {chat.input_tokens}")
-        print(f"  - Output tokens: {chat.output_tokens}")
-        print(f"  - Total tokens: {chat.total_tokens}")
-        print(f"  - Total cost: ${chat.total_cost:.6f}")
-        print(f"  - Total requests: {chat.total_requests}")
-        print(f"  - Total tool calls: {chat.total_tool_calls}")
+        print(f"  - Input tokens: {chat.usage.input_tokens}")
+        print(f"  - Output tokens: {chat.usage.output_tokens}")
+        print(f"  - Total tokens: {chat.usage.total_tokens}")
+        print(f"  - Total cost: ${(chat.usage.cost or 0.0):.6f}")
+        print(f"  - Total requests: {chat.usage.requests}")
+        print(f"  - Total tool calls: {chat.usage.tool_calls}")
         
-        assert chat.input_tokens > 0, "Should have input tokens"
-        assert chat.output_tokens > 0, "Should have output tokens"
-        assert chat.total_tokens == chat.input_tokens + chat.output_tokens, "Total should equal sum"
-        assert chat.total_cost >= 0, "Total cost should be non-negative"
-        assert chat.total_requests >= 1, "Should have at least 1 request"
+        assert chat.usage.input_tokens > 0, "Should have input tokens"
+        assert chat.usage.output_tokens > 0, "Should have output tokens"
+        assert chat.usage.total_tokens == chat.usage.input_tokens + chat.usage.output_tokens, "Total should equal sum"
+        assert (chat.usage.cost or 0.0) >= 0, "Total cost should be non-negative"
+        assert chat.usage.requests >= 1, "Should have at least 1 request"
         print("[PASS] All usage properties verified")
         
     finally:
@@ -127,10 +296,10 @@ async def test_chat_streaming():
         
         # Verify usage is tracked
         print(f"\n[RESULT] Usage after streaming:")
-        print(f"  - Input tokens: {chat.input_tokens}")
-        print(f"  - Output tokens: {chat.output_tokens}")
-        print(f"  - Total cost: ${chat.total_cost:.6f}")
-        assert chat.total_cost >= 0, "Total cost should be tracked"
+        print(f"  - Input tokens: {chat.usage.input_tokens}")
+        print(f"  - Output tokens: {chat.usage.output_tokens}")
+        print(f"  - Total cost: ${(chat.usage.cost or 0.0):.6f}")
+        assert (chat.usage.cost or 0.0) >= 0, "Total cost should be tracked"
         print("[PASS] Usage tracked for streaming")
         
     finally:
@@ -220,14 +389,14 @@ async def test_chat_all_attributes():
         print(f"  - user_id: {chat.user_id}")
         print(f"  - state: {chat.state}")
         print(f"  - all_messages: {len(chat.all_messages)}")
-        print(f"  - input_tokens: {chat.input_tokens}")
-        print(f"  - output_tokens: {chat.output_tokens}")
-        print(f"  - total_tokens: {chat.total_tokens}")
-        print(f"  - total_cost: {chat.total_cost}")
-        print(f"  - total_requests: {chat.total_requests}")
-        print(f"  - total_tool_calls: {chat.total_tool_calls}")
-        print(f"  - run_duration: {chat.run_duration}")
-        print(f"  - time_to_first_token: {chat.time_to_first_token}")
+        print(f"  - input_tokens: {chat.usage.input_tokens}")
+        print(f"  - output_tokens: {chat.usage.output_tokens}")
+        print(f"  - total_tokens: {chat.usage.total_tokens}")
+        print(f"  - total_cost: {(chat.usage.cost or 0.0)}")
+        print(f"  - total_requests: {chat.usage.requests}")
+        print(f"  - total_tool_calls: {chat.usage.tool_calls}")
+        print(f"  - run_duration: {chat.usage.duration}")
+        print(f"  - time_to_first_token: {chat.usage.time_to_first_token}")
         print(f"  - duration: {chat.duration:.2f}s")
         print(f"  - start_time: {chat.start_time}")
         print(f"  - end_time: {chat.end_time}")
@@ -240,12 +409,12 @@ async def test_chat_all_attributes():
         assert chat.agent == agent, "agent should be set"
         assert chat.state == SessionState.IDLE, "Should start in IDLE state"
         assert len(chat.all_messages) == 0, "Should start with no messages"
-        assert chat.total_cost == 0.0, "Should start with zero cost"
-        assert chat.input_tokens == 0, "Should start with zero input tokens"
-        assert chat.output_tokens == 0, "Should start with zero output tokens"
-        assert chat.total_tokens == 0, "Should start with zero total tokens"
-        assert chat.total_requests == 0, "Should start with zero requests"
-        assert chat.total_tool_calls == 0, "Should start with zero tool calls"
+        assert (chat.usage.cost or 0.0) == 0.0, "Should start with zero cost"
+        assert chat.usage.input_tokens == 0, "Should start with zero input tokens"
+        assert chat.usage.output_tokens == 0, "Should start with zero output tokens"
+        assert chat.usage.total_tokens == 0, "Should start with zero total tokens"
+        assert chat.usage.requests == 0, "Should start with zero requests"
+        assert chat.usage.tool_calls == 0, "Should start with zero tool calls"
         print("[PASS] All pre-invocation attributes correct")
         
         # After invocation
@@ -255,14 +424,14 @@ async def test_chat_all_attributes():
         print("\n[CHECK] Attributes AFTER invocation:")
         print(f"  - state: {chat.state}")
         print(f"  - all_messages: {len(chat.all_messages)}")
-        print(f"  - input_tokens: {chat.input_tokens}")
-        print(f"  - output_tokens: {chat.output_tokens}")
-        print(f"  - total_tokens: {chat.total_tokens}")
-        print(f"  - total_cost: ${chat.total_cost:.6f}")
-        print(f"  - total_requests: {chat.total_requests}")
-        print(f"  - total_tool_calls: {chat.total_tool_calls}")
-        print(f"  - run_duration: {chat.run_duration}")
-        print(f"  - time_to_first_token: {chat.time_to_first_token}")
+        print(f"  - input_tokens: {chat.usage.input_tokens}")
+        print(f"  - output_tokens: {chat.usage.output_tokens}")
+        print(f"  - total_tokens: {chat.usage.total_tokens}")
+        print(f"  - total_cost: ${(chat.usage.cost or 0.0):.6f}")
+        print(f"  - total_requests: {chat.usage.requests}")
+        print(f"  - total_tool_calls: {chat.usage.tool_calls}")
+        print(f"  - run_duration: {chat.usage.duration}")
+        print(f"  - time_to_first_token: {chat.usage.time_to_first_token}")
         print(f"  - duration: {chat.duration:.2f}s")
         print(f"  - start_time: {chat.start_time}")
         print(f"  - end_time: {chat.end_time}")
@@ -272,11 +441,11 @@ async def test_chat_all_attributes():
         
         assert chat.state == SessionState.IDLE, "Should return to IDLE after invoke"
         assert len(chat.all_messages) > 0, "Should have messages after invoke"
-        assert chat.input_tokens > 0, "Should have input tokens"
-        assert chat.output_tokens > 0, "Should have output tokens"
-        assert chat.total_tokens == chat.input_tokens + chat.output_tokens, "Total should match sum"
-        assert chat.total_cost >= 0, "Total cost should be tracked"
-        assert chat.total_requests >= 1, "Should have at least 1 request"
+        assert chat.usage.input_tokens > 0, "Should have input tokens"
+        assert chat.usage.output_tokens > 0, "Should have output tokens"
+        assert chat.usage.total_tokens == chat.usage.input_tokens + chat.usage.output_tokens, "Total should match sum"
+        assert (chat.usage.cost or 0.0) >= 0, "Total cost should be tracked"
+        assert chat.usage.requests >= 1, "Should have at least 1 request"
         assert chat.duration > 0, "Session duration should increase"
         assert chat.start_time > 0, "Start time should be set"
         assert chat.end_time is None, "End time should be None (session still active)"
@@ -297,7 +466,7 @@ async def test_chat_all_attributes():
         
         # Test get_usage
         print("\n[CHECK] get_usage():")
-        usage = chat.get_usage()
+        usage = chat.usage
         print(f"  - Type: {type(usage)}")
         if usage:
             print(f"  - requests: {usage.requests}")
@@ -310,44 +479,11 @@ async def test_chat_all_attributes():
             assert usage.input_tokens > 0, "Usage should have input tokens"
         print("[PASS] get_usage returns RunUsage object")
         
-        # Test get_session_metrics
-        print("\n[CHECK] get_session_metrics():")
-        metrics = chat.get_session_metrics()
-        print(f"  - Type: {type(metrics)}")
-        assert metrics is not None, "Session metrics should not be None"
-        assert isinstance(metrics, SessionMetrics), "Should return SessionMetrics"
-        print(f"  - session_id: {metrics.session_id}")
-        print(f"  - user_id: {metrics.user_id}")
-        print(f"  - message_count: {metrics.message_count}")
-        print(f"  - total_input_tokens: {metrics.total_input_tokens}")
-        print(f"  - total_output_tokens: {metrics.total_output_tokens}")
-        print(f"  - total_tokens: {metrics.total_tokens}")
-        print(f"  - total_cost: {metrics.total_cost}")
-        print(f"  - total_requests: {metrics.total_requests}")
-        print(f"  - total_tool_calls: {metrics.total_tool_calls}")
-        print(f"  - run_duration: {metrics.run_duration}")
-        print(f"  - time_to_first_token: {metrics.time_to_first_token}")
-        print(f"  - duration: {metrics.duration}")
-        print(f"  - messages_per_minute: {metrics.messages_per_minute:.2f}")
-        
-        assert hasattr(metrics, 'message_count'), "Metrics should have message_count"
-        assert hasattr(metrics, 'total_cost'), "Metrics should have total_cost"
-        assert hasattr(metrics, 'total_tokens'), "Metrics should have total_tokens"
-        assert hasattr(metrics, 'total_requests'), "Metrics should have total_requests"
-        assert hasattr(metrics, 'run_duration'), "Metrics should have run_duration"
-        print("[PASS] SessionMetrics has all fields")
-        
-        # Test get_session_summary
-        print("\n[CHECK] get_session_summary():")
-        summary = chat.get_session_summary()
-        print(summary)
-        assert isinstance(summary, str), "Session summary should be a string"
-        assert len(summary) > 0, "Session summary should not be empty"
-        assert "Duration" in summary, "Summary should include duration"
-        assert "Tokens" in summary, "Summary should include tokens"
-        assert "Cost" in summary, "Summary should include cost"
-        print("[PASS] Session summary is formatted correctly")
-        
+        # ``chat.get_session_metrics()`` and ``chat.get_session_summary()``
+        # were removed in the usage-registry unification — every counter
+        # is now a field on ``chat.usage`` (AggregatedUsage), which is
+        # exercised in the block above.
+
     finally:
         await chat.close()
         print("\n[DONE] test_chat_all_attributes completed")
@@ -403,9 +539,9 @@ async def test_chat_cost_tracking():
     )
     
     try:
-        initial_cost = chat.total_cost
-        initial_tokens = chat.total_tokens
-        initial_requests = chat.total_requests
+        initial_cost = (chat.usage.cost or 0.0)
+        initial_tokens = chat.usage.total_tokens
+        initial_requests = chat.usage.requests
         
         print(f"\n[CHECK] Initial state:")
         print(f"  - Cost: ${initial_cost:.6f}")
@@ -421,9 +557,9 @@ async def test_chat_cost_tracking():
         print("\n[ACTION] First invoke...")
         await chat.invoke("Hello")
         
-        cost_after_one = chat.total_cost
-        tokens_after_one = chat.total_tokens
-        requests_after_one = chat.total_requests
+        cost_after_one = (chat.usage.cost or 0.0)
+        tokens_after_one = chat.usage.total_tokens
+        requests_after_one = chat.usage.requests
         
         print(f"\n[CHECK] After first invoke:")
         print(f"  - Cost: ${cost_after_one:.6f}")
@@ -439,9 +575,9 @@ async def test_chat_cost_tracking():
         print("\n[ACTION] Second invoke...")
         await chat.invoke("What is 1 + 1?")
         
-        cost_after_two = chat.total_cost
-        tokens_after_two = chat.total_tokens
-        requests_after_two = chat.total_requests
+        cost_after_two = (chat.usage.cost or 0.0)
+        tokens_after_two = chat.usage.total_tokens
+        requests_after_two = chat.usage.requests
         
         print(f"\n[CHECK] After second invoke:")
         print(f"  - Cost: ${cost_after_two:.6f}")
@@ -454,15 +590,15 @@ async def test_chat_cost_tracking():
         print("[PASS] Metrics increased after second invoke")
         
         # Verify usage object
-        usage = chat.get_usage()
+        usage = chat.usage
         print(f"\n[CHECK] Final RunUsage object:")
         if usage:
             print(f"  - input_tokens: {usage.input_tokens}")
             print(f"  - output_tokens: {usage.output_tokens}")
             print(f"  - requests: {usage.requests}")
             print(f"  - cost: {usage.cost}")
-            assert usage.input_tokens == chat.input_tokens, "Usage should match property"
-            assert usage.output_tokens == chat.output_tokens, "Usage should match property"
+            assert usage.input_tokens == chat.usage.input_tokens, "Usage should match property"
+            assert usage.output_tokens == chat.usage.output_tokens, "Usage should match property"
         print("[PASS] RunUsage object is consistent")
         
     finally:
@@ -491,7 +627,7 @@ async def test_chat_clear_history():
         await chat.invoke("How are you?")
         
         messages_before = len(chat.all_messages)
-        cost_before = chat.total_cost
+        cost_before = (chat.usage.cost or 0.0)
         
         print(f"\n[CHECK] Before clear_history:")
         print(f"  - Messages: {messages_before}")
@@ -505,7 +641,7 @@ async def test_chat_clear_history():
         chat.clear_history()
         
         messages_after = len(chat.all_messages)
-        cost_after = chat.total_cost
+        cost_after = (chat.usage.cost or 0.0)
         
         print(f"\n[CHECK] After clear_history:")
         print(f"  - Messages: {messages_after}")
@@ -541,7 +677,7 @@ async def test_chat_reset_session():
         await chat.invoke("Hello")
         
         messages_before = len(chat.all_messages)
-        cost_before = chat.total_cost
+        cost_before = (chat.usage.cost or 0.0)
         
         print(f"\n[CHECK] Before reset_session:")
         print(f"  - Messages: {messages_before}")
@@ -555,7 +691,7 @@ async def test_chat_reset_session():
         chat.reset_session()
         
         messages_after = len(chat.all_messages)
-        cost_after = chat.total_cost
+        cost_after = (chat.usage.cost or 0.0)
         state_after = chat.state
         
         print(f"\n[CHECK] After reset_session:")
@@ -1076,10 +1212,10 @@ async def test_chat_history_manipulation_workflow():
         
         # Step 5: Test cost is preserved
         print("\n[STEP 5] Verifying usage is preserved after deletion...")
-        assert chat.total_cost > 0, "Cost should be preserved"
-        assert chat.input_tokens > 0, "Input tokens should be preserved"
-        print(f"  - Total cost: ${chat.total_cost:.6f}")
-        print(f"  - Total tokens: {chat.total_tokens}")
+        assert (chat.usage.cost or 0.0) > 0, "Cost should be preserved"
+        assert chat.usage.input_tokens > 0, "Input tokens should be preserved"
+        print(f"  - Total cost: ${(chat.usage.cost or 0.0):.6f}")
+        print(f"  - Total tokens: {chat.usage.total_tokens}")
         print("[PASS] Usage preserved after message deletion")
         
     finally:
@@ -1200,10 +1336,10 @@ async def test_chat_remove_attachment():
         
         # Step 7: Verify usage is preserved
         print("\n[STEP 7] Verifying usage is preserved...")
-        assert chat.total_cost > 0, "Cost should be preserved"
-        assert chat.total_tokens > 0, "Tokens should be preserved"
-        print(f"  - Total cost: ${chat.total_cost:.6f}")
-        print(f"  - Total tokens: {chat.total_tokens}")
+        assert (chat.usage.cost or 0.0) > 0, "Cost should be preserved"
+        assert chat.usage.total_tokens > 0, "Tokens should be preserved"
+        print(f"  - Total cost: ${(chat.usage.cost or 0.0):.6f}")
+        print(f"  - Total tokens: {chat.usage.total_tokens}")
         print("[PASS] Usage preserved after attachment removal")
         
     finally:
@@ -1440,7 +1576,7 @@ async def test_chat_reopen_session():
         await chat.invoke("Hello, my name is TestUser!")
         
         initial_messages = len(chat.all_messages)
-        initial_tokens = chat.total_tokens
+        initial_tokens = chat.usage.total_tokens
         initial_duration = chat.duration
         
         print(f"  - Messages: {initial_messages}")
@@ -1497,7 +1633,7 @@ async def test_chat_reopen_session():
         # Step 5: Verify messages and data are preserved
         print("\n[STEP 5] Verifying messages preserved...")
         reopen_messages = len(chat.all_messages)
-        reopen_tokens = chat.total_tokens
+        reopen_tokens = chat.usage.total_tokens
         
         print(f"  - Messages after reopen: {reopen_messages}")
         print(f"  - Tokens after reopen: {reopen_tokens}")
@@ -1511,7 +1647,7 @@ async def test_chat_reopen_session():
         await chat.invoke("What was my name again?")
         
         final_messages = len(chat.all_messages)
-        final_tokens = chat.total_tokens
+        final_tokens = chat.usage.total_tokens
         
         print(f"  - Messages after continue: {final_messages}")
         print(f"  - Tokens after continue: {final_tokens}")

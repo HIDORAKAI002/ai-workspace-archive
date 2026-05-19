@@ -534,22 +534,23 @@ class Graph(BaseModel):
                     debug=self.debug,
                     debug_level=self.debug_level,
                     node_id=node.id,
-                    execution_time=task.duration or 0.0,
+                    execution_time=task.usage.duration or 0.0,
                     output_preview=str(output)[:500] if output else None,
-                    total_cost=task.total_cost,
+                    total_cost=getattr(task._usage, "cost", None) if task._usage else None,
                     state_updated_keys=list(state.keys()) if hasattr(state, 'keys') else None
                 )
             
             # The task object is now mutated in place by the pipeline.
             if verbose:
-                time_taken = task.duration or 0.0
+                time_taken = task.usage.duration or 0.0
                 table = Table(show_header=False, expand=True, box=None)
                 table.add_row("[bold]Task:[/bold]", f"[cyan]{escape_rich_markup(task.description)}[/cyan]")
                 output_str = self._format_output_for_display(output)
                 table.add_row("[bold]Output:[/bold]", f"[green]{output_str}[/green]")
                 table.add_row("[bold]Time Taken:[/bold]", f"{time_taken:.2f} seconds")
-                if task.total_cost:
-                    table.add_row("[bold]Estimated Cost:[/bold]", f"${task.total_cost:.4f}")
+                _task_cost = getattr(task._usage, "cost", None) if task._usage else None
+                if _task_cost:
+                    table.add_row("[bold]Estimated Cost:[/bold]", f"${_task_cost:.4f}")
                 panel = Panel(table, title="[bold green]✅ Task Completed[/bold green]", border_style="green", expand=True, width=70)
                 console.print(panel)
                 spacing()

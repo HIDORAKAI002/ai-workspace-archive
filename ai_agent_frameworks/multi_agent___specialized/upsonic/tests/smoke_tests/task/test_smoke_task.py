@@ -66,9 +66,7 @@ class TestUpsonicBasicFlow:
         assert result is not None
 
         assert hasattr(task, 'duration')
-        assert hasattr(task, 'total_cost')
-        assert hasattr(task, 'total_input_token')
-        assert hasattr(task, 'total_output_token')
+        assert task.usage is not None
 
 
 class TestTaskWithTools:
@@ -318,14 +316,12 @@ class TestComprehensiveTaskExecution:
 
         # Verify task metadata is accessible
         assert hasattr(task, 'duration')
-        assert hasattr(task, 'total_cost')
-        assert hasattr(task, 'total_input_token')
-        assert hasattr(task, 'total_output_token')
         assert hasattr(task, 'tool_calls')
+        assert task.usage is not None
 
         # Verify task execution metrics
-        assert task.duration >= 0
-        assert task.total_cost >= 0
+        assert task.usage.duration >= 0
+        assert (task.usage.cost or 0) >= 0
         assert isinstance(task.tool_calls, list)
     
 
@@ -388,7 +384,7 @@ class TestComprehensiveTaskExecution:
     #   result = agent.do_async(task)
     #   
     #   # Access task results and metadata
-    #   print(f"Analysis completed in {task.duration:.2f} seconds")
+    #   print(f"Analysis completed in {task.usage.duration:.2f} seconds")
     #   print(f"Total cost: ${task.total_cost}")
     #   print(f"Cache hit: {task._cache_hit}")
     #   print(f"Tool calls made: {len(task.tool_calls)}")
@@ -404,7 +400,7 @@ class TestComprehensiveTaskExecution:
     #   
     #   # Verify task execution metrics
     #   if hasattr(task, 'duration'):
-    #       assert task.duration >= 0
+    #       assert task.usage.duration >= 0
     #   if hasattr(task, 'total_cost'):
     #       assert task.total_cost >= 0
         #   if hasattr(task, 'tool_calls'):

@@ -769,6 +769,8 @@ function runTests() {
       'git diff --name-only',
       'git log --oneline --max-count=1',
       'git show HEAD:README.md',
+      'git show HEAD:"docs/install guide.md"',
+      '/usr/bin/git status --short',
       'git branch --show-current',
       'git rev-parse --abbrev-ref HEAD',
     ];
@@ -802,7 +804,20 @@ function runTests() {
     assert.ok(output.hookSpecificOutput.permissionDecisionReason.includes('current user request'));
   })) passed++; else failed++;
 
-  // --- Test 23: module-load pruning removes old state files only ---
+  // --- Test 23: quoted shell separators are not read-only git bypasses
+  clearState();
+  if (test('does not treat quoted shell separators as read-only git introspection', () => {
+    const result = runBashHook({
+      tool_name: 'Bash',
+      tool_input: { command: 'git show HEAD:"docs/a;b.md"' }
+    });
+    const output = parseOutput(result.stdout);
+    assert.ok(output, 'should produce valid JSON output');
+    assert.strictEqual(output.hookSpecificOutput.permissionDecision, 'deny');
+    assert.ok(output.hookSpecificOutput.permissionDecisionReason.includes('current user request'));
+  })) passed++; else failed++;
+
+  // --- Test 24: module-load pruning removes old state files only ---
   clearState();
   if (test('prunes stale state files while keeping fresh state files', () => {
     const staleFile = path.join(stateDir, 'state-stale-session.json');

@@ -106,19 +106,42 @@ Required local rough v1 artifacts:
 - `segments/primary-launch-v1/08-oss-paid-model.mp4`
 - `segments/primary-launch-v1/09-close-shipping-system.mp4`
 
+## Publish-Candidate Outputs
+
+The release validator also expects the current publish-candidate set under
+`renders/publish-candidates/`. These are still local review files, not public
+uploads or committed media.
+
+| Output | Target |
+| --- | --- |
+| `ecc-2-primary-launch.mp4` | 90-150s, 1920x1080, audio |
+| `ecc-2-primary-launch.captions.srt` | primary captions |
+| `ecc-2-install-proof-wide.mp4` | 25-35s, 1920x1080, audio |
+| `ecc-2-install-proof-vertical.mp4` | 25-35s, 1080x1920, audio |
+| `ecc-2-what-is-ecc-wide.mp4` | 45-60s, 1920x1080, audio |
+| `ecc-2-what-is-ecc-vertical.mp4` | 45-60s, 1080x1920, audio |
+| `ecc-2-security-proof-wide.mp4` | 45-60s, 1920x1080, audio |
+| `ecc-2-security-proof-vertical.mp4` | 45-60s, 1080x1920, audio |
+| `ecc-2-money-proof-wide.mp4` | 30-45s, 1920x1080, audio |
+| `ecc-2-money-proof-vertical.mp4` | 30-45s, 1080x1920, audio |
+| `ecc-2-social-proof-wide.mp4` | 30-45s, 1920x1080, audio |
+| `ecc-2-social-proof-vertical.mp4` | 30-45s, 1080x1920, audio |
+
 ## video-use compatible workflow
 
 Use the same production shape as Video Use while keeping the ECC-specific media
 stack intact:
 
 1. Treat transcript and timeline data as the editing surface.
-2. Inspect filmstrip or frame samples only at ambiguous cut points.
-3. Keep an edit decision list before rendering.
+2. Keep visual inspection on demand: filmstrips, waveform/timeline composites,
+   or frame samples only at ambiguous cut points.
+3. Propose the edit strategy and EDL before rendering.
 4. Cut deterministically with FFmpeg.
 5. Add proof overlays with Remotion or Manim where product claims need visual
    evidence.
 6. Export the MP4 plus editable timeline and caption state.
-7. Run self-eval before any upload or social post.
+7. Run cut-boundary, audio, caption, black-frame, and product-claim self-eval
+   before any upload or social post.
 
 Do not dump frames into the repo. Frame samples used for self-eval belong in the
 local release suite workspace.
@@ -155,6 +178,10 @@ Then manually check the final render for:
 
 - validator self-eval passes for the primary render: 90-150 seconds, at least
   1280x720, video stream present, audio stream present, and non-empty output;
+- validator self-eval passes for the publish-candidate set: primary MP4 plus
+  captions and five short clips in both wide and vertical formats;
+- validator visual QA reports zero detected black-frame segments for every
+  publish-candidate MP4;
 - no blank frames or accidental desktop exposure;
 - no stale repo name, pivot, rename, or Claude-only framing in captions;
 - no captions that rewrite speech into a false claim;
