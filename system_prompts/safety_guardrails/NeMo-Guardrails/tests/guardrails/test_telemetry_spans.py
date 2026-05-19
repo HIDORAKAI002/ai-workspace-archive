@@ -15,6 +15,8 @@
 
 """Unit tests for telemetry span helpers: rail_span, action_span, llm_call_span, api_call_span."""
 
+import asyncio
+
 import pytest
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
@@ -77,6 +79,36 @@ class TestRailSpan:
         spans = exporter.get_finished_spans()
         assert spans[0].status.status_code == StatusCode.ERROR
 
+    def test_records_error_type_on_cancelled_error(self, otel_provider):
+        """A consumer cancel that propagates through a rail span must
+        mark it ERROR with ``error.type=CancelledError`` — otherwise
+        the rail leg of a cancelled-request trace is silently untagged.
+        """
+        provider, exporter = otel_provider
+        tracer = provider.get_tracer("test")
+
+        with pytest.raises(asyncio.CancelledError):
+            with rail_span(tracer, "some flow", RailDirection.INPUT):
+                raise asyncio.CancelledError()
+
+        span = exporter.get_finished_spans()[0]
+        assert span.status.status_code == StatusCode.ERROR
+        assert span.attributes["error.type"] == "CancelledError"
+
+    def test_records_error_type_on_generator_exit(self, otel_provider):
+        """``GeneratorExit`` propagating through a rail span must mark
+        it ERROR with ``error.type=GeneratorExit``."""
+        provider, exporter = otel_provider
+        tracer = provider.get_tracer("test")
+
+        with pytest.raises(GeneratorExit):
+            with rail_span(tracer, "some flow", RailDirection.INPUT):
+                raise GeneratorExit()
+
+        span = exporter.get_finished_spans()[0]
+        assert span.status.status_code == StatusCode.ERROR
+        assert span.attributes["error.type"] == "GeneratorExit"
+
 
 class TestActionSpan:
     def test_creates_internal_span(self, otel_provider):
@@ -118,6 +150,34 @@ class TestActionSpan:
         exc_events = [e for e in span.events if e.name == "exception"]
         assert len(exc_events) == 1
         assert exc_events[0].attributes["exception.type"] == "RuntimeError"
+
+    def test_records_error_type_on_cancelled_error(self, otel_provider):
+        """A consumer cancel propagating through an action span must
+        mark it ERROR with ``error.type=CancelledError``."""
+        provider, exporter = otel_provider
+        tracer = provider.get_tracer("test")
+
+        with pytest.raises(asyncio.CancelledError):
+            with action_span(tracer, "some action"):
+                raise asyncio.CancelledError()
+
+        span = exporter.get_finished_spans()[0]
+        assert span.status.status_code == StatusCode.ERROR
+        assert span.attributes["error.type"] == "CancelledError"
+
+    def test_records_error_type_on_generator_exit(self, otel_provider):
+        """``GeneratorExit`` propagating through an action span must
+        mark it ERROR with ``error.type=GeneratorExit``."""
+        provider, exporter = otel_provider
+        tracer = provider.get_tracer("test")
+
+        with pytest.raises(GeneratorExit):
+            with action_span(tracer, "some action"):
+                raise GeneratorExit()
+
+        span = exporter.get_finished_spans()[0]
+        assert span.status.status_code == StatusCode.ERROR
+        assert span.attributes["error.type"] == "GeneratorExit"
 
 
 class TestLlmCallSpan:
@@ -165,6 +225,38 @@ class TestLlmCallSpan:
         assert span.status.status_code == StatusCode.ERROR
         assert span.attributes["error.type"] == "ConnectionError"
 
+    def test_records_error_type_on_cancelled_error(self, otel_provider):
+        """Consumer-cancelled streams raise ``asyncio.CancelledError``
+        inside the LLM CLIENT span.  Span must still be marked ERROR
+        with ``error.type=CancelledError`` so trace queries can
+        correlate cancelled streams to their LLM-call leg.
+        """
+        provider, exporter = otel_provider
+        tracer = provider.get_tracer("test")
+
+        with pytest.raises(asyncio.CancelledError):
+            with llm_call_span(tracer, "model", "nim"):
+                raise asyncio.CancelledError()
+
+        span = exporter.get_finished_spans()[0]
+        assert span.status.status_code == StatusCode.ERROR
+        assert span.attributes["error.type"] == "CancelledError"
+
+    def test_records_error_type_on_generator_exit(self, otel_provider):
+        """``GeneratorExit`` raised inside the LLM CLIENT span must
+        also flip the span to ERROR with ``error.type=GeneratorExit``.
+        """
+        provider, exporter = otel_provider
+        tracer = provider.get_tracer("test")
+
+        with pytest.raises(GeneratorExit):
+            with llm_call_span(tracer, "model", "nim"):
+                raise GeneratorExit()
+
+        span = exporter.get_finished_spans()[0]
+        assert span.status.status_code == StatusCode.ERROR
+        assert span.attributes["error.type"] == "GeneratorExit"
+
     def test_noop_when_tracer_none(self):
         with llm_call_span(None, "model", "nim") as span:
             assert span is None
@@ -207,6 +299,35 @@ class TestApiCallSpan:
         span = exporter.get_finished_spans()[0]
         assert span.status.status_code == StatusCode.ERROR
         assert span.attributes["error.type"] == "ValueError"
+
+    def test_records_error_type_on_cancelled_error(self, otel_provider):
+        """A consumer cancel propagating through an api-call span
+        (e.g. an in-flight jailbreak-detection HTTP request) must mark
+        it ERROR with ``error.type=CancelledError``."""
+        provider, exporter = otel_provider
+        tracer = provider.get_tracer("test")
+
+        with pytest.raises(asyncio.CancelledError):
+            with api_call_span(tracer, "jailbreak_detection"):
+                raise asyncio.CancelledError()
+
+        span = exporter.get_finished_spans()[0]
+        assert span.status.status_code == StatusCode.ERROR
+        assert span.attributes["error.type"] == "CancelledError"
+
+    def test_records_error_type_on_generator_exit(self, otel_provider):
+        """``GeneratorExit`` propagating through an api-call span must
+        mark it ERROR with ``error.type=GeneratorExit``."""
+        provider, exporter = otel_provider
+        tracer = provider.get_tracer("test")
+
+        with pytest.raises(GeneratorExit):
+            with api_call_span(tracer, "jailbreak_detection"):
+                raise GeneratorExit()
+
+        span = exporter.get_finished_spans()[0]
+        assert span.status.status_code == StatusCode.ERROR
+        assert span.attributes["error.type"] == "GeneratorExit"
 
     def test_noop_when_tracer_none(self):
         with api_call_span(None, "jailbreak_detection") as span:
