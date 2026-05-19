@@ -93,6 +93,8 @@ func (f *ModelFactory) CreateModelDriver(providerName string, baseURL map[string
 		return NewLongCatModel(baseURL, urlSuffix), nil
 	case "novita":
 		return NewNovitaModel(baseURL, urlSuffix), nil
+	case "replicate":
+		return NewReplicateModel(baseURL, urlSuffix), nil
 	case "voyage":
 		return NewVoyageModel(baseURL, urlSuffix), nil
 	case "paddleocr":
@@ -101,6 +103,8 @@ func (f *ModelFactory) CreateModelDriver(providerName string, baseURL map[string
 		return NewXunFeiModel(baseURL, urlSuffix), nil
 	case "deepinfra":
 		return NewDeepInfraModel(baseURL, urlSuffix), nil
+	case "mineru":
+		return NewMinerUModel(baseURL, urlSuffix), nil
 	default:
 		return NewDummyModel(baseURL, urlSuffix), nil
 	}
