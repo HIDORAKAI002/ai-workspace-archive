@@ -5,6 +5,60 @@ All notable changes to the Claude Skills Library will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.0] - 2026-05-19 — business-operations + commercial domains, plugin.json regression fix, auto-release pipeline
+
+### Added
+
+#### `business-operations/` — new top-level domain (Sprint 1)
+
+Internal-ops skills for BizOps leads, COO direct reports, vendor management, IT ops. Sprint 1 ships the orchestrator + 2 sub-skills using `context: fork` to chain without polluting parent context. Sprint 2 will add `capacity-planner`, `internal-comms`, `knowledge-ops`, `procurement-optimizer`.
+
+- `business-operations-skills` (orchestrator) — routes inquiries to the right sub-skill and returns a digest
+- `process-mapper` — BPMN modeling + bottleneck detection + cycle-time analysis
+- `vendor-management` — SLA tracking + risk scoring + supplier scorecards
+- Distinct from `business-growth/` (external sales) and `c-level-advisor/` (strategic, not operational)
+
+#### `commercial/` — new top-level domain (Sprint 1)
+
+Per-deal economics skills for pricing, deal desk, partnerships. Sprint 1 ships the orchestrator + 2 sub-skills. Sprint 2 will add `partnerships-architect`, `channel-economics`, `commercial-policy`, `rfp-responder`, `commercial-forecaster`.
+
+- `commercial-skills` (orchestrator) — routes commercial inquiries via `context: fork`
+- `pricing-strategist` — Van Westendorp WTP analysis + packaging + pricing-model picker
+- `deal-desk` — margin analysis + discount routing + contract redline scoring
+- Distinct from `business-growth/sales-engineer`, `c-level-advisor/cro-advisor`, `finance/financial-analysis`
+
+#### Forcing-question slash commands
+
+- `/cs:grill-bizops` — Matt Pocock docs-anchored grilling for BizOps workflows
+- `/cs:grill-commercial` — same for commercial decisions (pricing, deals, partnerships)
+
+#### Release automation
+
+- **`.github/workflows/release.yml`** — On every push to `main`, parses CHANGELOG.md and auto-creates a git tag + GitHub Release for the latest version listed. Idempotent (skips if tag already exists). Release notes are extracted from the matching CHANGELOG section.
+- **`scripts/extract_release_notes.py`** — Stdlib-only CHANGELOG parser. Extracts the latest version, date, subtitle, and body. Used by the release workflow but also runnable standalone for previewing release notes.
+
+### Fixed
+
+#### Plugin manifest `/doctor` warning — issue #686 (reported by @esoneill)
+
+Claude Code 2.1.133+ rejects `"skills": "./skills"` with a "Path escapes plugin directory" warning, even though `./skills` resolves to a valid subdirectory inside the plugin root. This blocked skill registration for the 9 main marketplace plugins plus 38 sibling sub-plugins.
+
+- **PR #689** — replaced `"skills": "./skills"` with `"skills": "skills"` across all 47 affected `plugin.json` files. Updated `CLAUDE.md` ClawHub publishing constraints to document the new convention.
+- **PR #690 (regression prevention)** — `scripts/check_plugin_json.py` now actively rejects any `"skills"` string starting with `"./"` (catches both `"./skills"` and `"./skills/sub"` regressions). Wired into `ci-quality-gate.yml` as a blocking step on every PR. Also recognized `source` and `attribution` as approved extension fields (per CLAUDE.md), and dropped the over-strict `"./"` rejection inside arrays (`["./"]` is the documented single-skill-at-root form). Validator's previous error message was actually recommending `"./skills"` verbatim — a leftover from #539, the *first* round of this same upstream rule tightening — which has been corrected.
+
+This is the second round of the same Claude Code path-validator tightening (round 1 was #539, fixing `"./"` → `"./skills"` at CC v2.1.107). The new validator + CI gate prevents a future round 3 from silently shipping again.
+
+### Maintenance
+
+- **inspect-assets.py** (#684, contributor: @TemaDeveloper) — `--help` now works without Pillow installed
+- Codex symlink syncs (automated)
+
+### Stats
+
+- 313 → 319 skills (business-operations: +3, commercial: +3)
+- 12 → 14 top-level domains
+- 60 → 68 slash commands
+
 ## [2.7.3] - 2026-05-17 — aeo-box port: AEO skill + security-guidance PreToolUse hook
 
 ### Added

@@ -1,11 +1,22 @@
 #!/usr/bin/env python3
 """Validate plugin.json files against the strict ClawHub schema.
 
-Required fields (exactly these 8, no others):
+Required fields (exactly these 8):
   name, description, version, author{name,url}, homepage, repository, license, skills
 
-skills: must be either a string ("./skills") or an array of relative paths.
-        The bare "./" form is REJECTED (Claude Code v2.1.107+ rejects it).
+Two approved extension fields (documented in CLAUDE.md, stripped at ClawHub-publish):
+  source, attribution
+
+skills layouts (Claude Code tightens its path validator regularly — be explicit):
+  - Single-skill plugin (SKILL.md at root):       "skills": ["./"]   (array form)
+  - Plugin with skills/ subdir:                   "skills": "skills" (NO "./" prefix — #686)
+  - Multi-skill domain plugin (subfolders at root):
+                                                   "skills": ["./sub1", "./sub2", ...]
+
+REJECTED forms and why:
+  - "skills": "./"     — Claude Code v2.1.107+ rejects ("Path escapes plugin directory")
+  - "skills": "./skills" — Claude Code v2.1.133+ rejects (issue #686)
+  - Any string starting with "./" (lifted out of array context)
 """
 import argparse
 import json
@@ -15,6 +26,7 @@ import sys
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ALLOWED = {"name", "description", "version", "author", "homepage", "repository", "license", "skills"}
+APPROVED_EXTENSIONS = {"source", "attribution"}
 STRING_FIELDS = ("name", "description", "homepage", "repository", "license")
 SEMVER = re.compile(r"^\d+\.\d+\.\d+(?:-[\w.]+)?$")
 
@@ -22,7 +34,7 @@ SEMVER = re.compile(r"^\d+\.\d+\.\d+(?:-[\w.]+)?$")
 def _check_keys(data):
     keys = set(data.keys())
     errors = []
-    extra = keys - ALLOWED
+    extra = keys - ALLOWED - APPROVED_EXTENSIONS
     missing = ALLOWED - keys
     if extra:
         errors.append(f"extra fields: {sorted(extra)}")
@@ -63,7 +75,12 @@ def _check_author(data):
 
 def _check_skills_string(s):
     if s in ("./", ""):
-        return ['skills: "./" is rejected by Claude Code v2.1.107+; use "./skills" or an array']
+        return ['skills: bare "./" is rejected by Claude Code v2.1.107+; '
+                'use ["./"] (array) for single-skill at root, or "skills" for subdir layout']
+    if s.startswith("./"):
+        return [f'skills: {s!r} starts with "./" — Claude Code v2.1.133+ rejects this as '
+                f'"Path escapes plugin directory" (issue #686). Drop the "./" prefix: '
+                f'"{s[2:]}". (For single-skill plugins, use ["./"] in an array instead.)']
     return []
 
 
@@ -74,8 +91,6 @@ def _check_skills_array(s):
     for entry in s:
         if not isinstance(entry, str):
             errors.append(f"skills: entries must be strings, got {entry!r}")
-        elif entry == "./":
-            errors.append('skills: "./" is rejected by Claude Code v2.1.107+; list explicit subfolders')
     return errors
 
 
