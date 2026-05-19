@@ -10,6 +10,7 @@ const { execFileSync, spawnSync } = require('child_process');
 
 const SCRIPT = path.join(__dirname, '..', '..', 'scripts', 'release-video-suite.js');
 const {
+  REQUIRED_PUBLISH_CANDIDATES,
   REQUIRED_SOURCE_ASSETS,
   REQUIRED_SUITE_ARTIFACTS,
   buildReport,
@@ -53,7 +54,7 @@ function seedRepo(rootDir, overrides = {}) {
     ].join('\n'),
     'docs/releases/2.0.0/ecc-2-hypergrowth-release-command-center.md': [
       'Keep raw absolute paths out of public docs',
-      'Validate `video-suite-production.md`',
+      'Pick final video cuts, upload after approval, and attach public URLs',
     ].join('\n'),
     'docs/releases/2.0.0-rc.1/preview-pack-manifest.md': 'video-suite-production.md',
     'docs/releases/2.0.0-rc.1/launch-checklist.md': 'release video suite',
@@ -74,6 +75,10 @@ function seedMedia(sourceRoot, suiteRoot) {
 
   for (const artifact of REQUIRED_SUITE_ARTIFACTS) {
     writeFile(suiteRoot, artifact.relativePath, `artifact ${artifact.id}`);
+  }
+
+  for (const candidate of REQUIRED_PUBLISH_CANDIDATES) {
+    writeFile(suiteRoot, candidate.relativePath, `candidate ${candidate.id}`);
   }
 }
 
@@ -175,13 +180,25 @@ function runTests() {
       )));
       assert.strictEqual(report.sourceAssets.length, REQUIRED_SOURCE_ASSETS.length);
       assert.strictEqual(report.suiteArtifacts.length, REQUIRED_SUITE_ARTIFACTS.length);
+      assert.strictEqual(report.publishCandidates.length, REQUIRED_PUBLISH_CANDIDATES.length);
       assert.ok(renderText(report).includes('Ready: yes'));
       assert.strictEqual(summarizeReport(report).sourceAssetSummary.present, REQUIRED_SOURCE_ASSETS.length);
+      assert.strictEqual(
+        summarizeReport(report).publishCandidateSummary.present,
+        REQUIRED_PUBLISH_CANDIDATES.length
+      );
     } finally {
       cleanup(rootDir);
       cleanup(sourceRoot);
       cleanup(suiteRoot);
     }
+  })) passed++; else failed++;
+
+  if (test('publish candidate videos require visual blank-frame QA', () => {
+    const publishVideos = REQUIRED_PUBLISH_CANDIDATES.filter(candidate => candidate.kind === 'video');
+
+    assert.ok(publishVideos.length > 0);
+    assert.ok(publishVideos.every(candidate => candidate.noBlackFrames === true));
   })) passed++; else failed++;
 
   if (test('missing local roots keep the release video gate blocked', () => {
@@ -202,6 +219,7 @@ function runTests() {
       assert.ok(report.checks.some(check => check.id === 'video-source-assets-present' && check.status === 'fail'));
       assert.ok(report.checks.some(check => check.id === 'video-release-artifacts-present' && check.status === 'fail'));
       assert.ok(report.checks.some(check => check.id === 'video-primary-render-self-eval' && check.status === 'fail'));
+      assert.ok(report.checks.some(check => check.id === 'video-publish-candidates-present' && check.status === 'fail'));
     } finally {
       cleanup(rootDir);
     }
@@ -269,6 +287,7 @@ function runTests() {
       assert.strictEqual(parsed.suiteRootConfigured, true);
       assert.strictEqual(parsed.sourceAssetSummary.present, REQUIRED_SOURCE_ASSETS.length);
       assert.strictEqual(parsed.suiteArtifactSummary.present, REQUIRED_SUITE_ARTIFACTS.length);
+      assert.strictEqual(parsed.publishCandidateSummary.present, REQUIRED_PUBLISH_CANDIDATES.length);
     } finally {
       cleanup(rootDir);
       cleanup(sourceRoot);

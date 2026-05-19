@@ -37,6 +37,7 @@ function runTests() {
     const adapters = listInstallTargetAdapters();
     const targets = adapters.map(adapter => adapter.target);
     assert.ok(targets.includes('claude'), 'Should include claude target');
+    assert.ok(targets.includes('claude-project'), 'Should include claude-project target');
     assert.ok(targets.includes('cursor'), 'Should include cursor target');
     assert.ok(targets.includes('antigravity'), 'Should include antigravity target');
     assert.ok(targets.includes('codex'), 'Should include codex target');
@@ -863,6 +864,106 @@ function runTests() {
         `Supported: ${SUPPORTED_INSTALL_TARGETS.join(', ')}`
       );
     }
+  })) passed++; else failed++;
+
+  if (test('resolves claude-project adapter root and install-state path from project root', () => {
+    const adapter = getInstallTargetAdapter('claude-project');
+    const projectRoot = '/workspace/app';
+    const root = adapter.resolveRoot({ projectRoot });
+    const statePath = adapter.getInstallStatePath({ projectRoot });
+
+    assert.strictEqual(adapter.id, 'claude-project');
+    assert.strictEqual(adapter.target, 'claude-project');
+    assert.strictEqual(adapter.kind, 'project');
+    assert.strictEqual(root, path.join(projectRoot, '.claude'));
+    assert.strictEqual(statePath, path.join(projectRoot, '.claude', 'ecc', 'install-state.json'));
+  })) passed++; else failed++;
+
+  if (test('claude-project adapter supports lookup by target and adapter id', () => {
+    const byTarget = getInstallTargetAdapter('claude-project');
+    const byId = getInstallTargetAdapter('claude-project');
+
+    assert.strictEqual(byTarget.id, 'claude-project');
+    assert.strictEqual(byId.id, 'claude-project');
+    assert.ok(byTarget.supports('claude-project'));
+  })) passed++; else failed++;
+
+  if (test('plans claude-project rules and skills under project-scope ECC-managed subdirectories', () => {
+    const repoRoot = path.join(__dirname, '..', '..');
+    const projectRoot = '/workspace/app';
+
+    const plan = planInstallTargetScaffold({
+      target: 'claude-project',
+      repoRoot,
+      projectRoot,
+      modules: [
+        {
+          id: 'rules-core',
+          paths: ['rules'],
+        },
+        {
+          id: 'workflow-quality',
+          paths: ['skills/tdd-workflow'],
+        },
+      ],
+    });
+
+    assert.strictEqual(plan.adapter.id, 'claude-project');
+    assert.strictEqual(plan.targetRoot, path.join(projectRoot, '.claude'));
+    assert.strictEqual(plan.installStatePath, path.join(projectRoot, '.claude', 'ecc', 'install-state.json'));
+    assert.ok(
+      plan.operations.some(operation => (
+        normalizedRelativePath(operation.sourceRelativePath) === 'rules'
+        && operation.destinationPath === path.join(projectRoot, '.claude', 'rules', 'ecc')
+      )),
+      'Should install bundled rules under project-scope rules/ecc'
+    );
+    assert.ok(
+      plan.operations.some(operation => (
+        normalizedRelativePath(operation.sourceRelativePath) === 'skills/tdd-workflow'
+        && operation.destinationPath === path.join(projectRoot, '.claude', 'skills', 'ecc', 'tdd-workflow')
+      )),
+      'Should install bundled skills under project-scope skills/ecc'
+    );
+  })) passed++; else failed++;
+
+  if (test('claude-project skips foreign platform source paths', () => {
+    const repoRoot = path.join(__dirname, '..', '..');
+    const projectRoot = '/workspace/app';
+
+    const plan = planInstallTargetScaffold({
+      target: 'claude-project',
+      repoRoot,
+      projectRoot,
+      modules: [
+        {
+          id: 'platform-configs',
+          paths: ['.cursor', '.zed', 'rules'],
+        },
+      ],
+    });
+
+    assert.ok(
+      plan.operations.some(operation => (
+        normalizedRelativePath(operation.sourceRelativePath) === 'rules'
+        && operation.destinationPath === path.join(projectRoot, '.claude', 'rules', 'ecc')
+      )),
+      'Should still include non-foreign rules path (guards against empty-plan regression)'
+    );
+    assert.ok(
+      !plan.operations.some(operation => (
+        normalizedRelativePath(operation.sourceRelativePath) === '.cursor'
+        || normalizedRelativePath(operation.sourceRelativePath).startsWith('.cursor/')
+      )),
+      'Should skip foreign Cursor platform paths'
+    );
+    assert.ok(
+      !plan.operations.some(operation => (
+        normalizedRelativePath(operation.sourceRelativePath) === '.zed'
+        || normalizedRelativePath(operation.sourceRelativePath).startsWith('.zed/')
+      )),
+      'Should skip foreign Zed platform paths'
+    );
   })) passed++; else failed++;
 
   console.log(`\nResults: Passed: ${passed}, Failed: ${failed}`);

@@ -119,6 +119,65 @@ function tokenize(segment) {
   return segment.split(/\s+/).filter(Boolean);
 }
 
+
+/**
+ * Tokenize a short allowlisted shell command while preserving quoted
+ * arguments. This is intentionally smaller than a full shell parser: the
+ * caller rejects shell control characters before invoking it, so this only
+ * needs to keep spaces inside quotes together for read-only git commands.
+ *
+ * @param {string} input
+ * @returns {string[] | null}
+ */
+function tokenizeAllowlistedShellWords(input) {
+  const tokens = [];
+  let current = '';
+  let quote = null;
+  let escaped = false;
+
+  for (const char of String(input || '')) {
+    if (escaped) {
+      current += char;
+      escaped = false;
+      continue;
+    }
+
+    if (char === '\\') {
+      escaped = true;
+      continue;
+    }
+
+    if (quote) {
+      if (char === quote) {
+        quote = null;
+      } else {
+        current += char;
+      }
+      continue;
+    }
+
+    if (char === '"' || char === "'") {
+      quote = char;
+      continue;
+    }
+
+    if (/\s/.test(char)) {
+      if (current) {
+        tokens.push(current);
+        current = '';
+      }
+      continue;
+    }
+
+    current += char;
+  }
+
+  if (escaped) current += '\\';
+  if (quote) return null;
+  if (current) tokens.push(current);
+  return tokens;
+}
+
 /**
  * Strip a leading path and trailing `.exe` from a command token so
  * `/usr/bin/git`, `git.exe`, and `GIT` all normalize to `git`.
@@ -592,8 +651,16 @@ function isReadOnlyGitIntrospection(command) {
     return false;
   }
 
-  const tokens = trimmed.split(/\s+/);
-  if (tokens[0] !== 'git' || tokens.length < 2) {
+  const segments = splitCommandSegments(trimmed);
+  if (segments.length !== 1) {
+    return false;
+  }
+
+  const tokens = tokenizeAllowlistedShellWords(trimmed);
+  if (!tokens) {
+    return false;
+  }
+  if (commandBasename(tokens[0]) !== 'git' || tokens.length < 2) {
     return false;
   }
 
@@ -613,7 +680,7 @@ function isReadOnlyGitIntrospection(command) {
   }
 
   if (subcommand === 'show') {
-    return args.length === 1 && !args[0].startsWith('--') && /^[a-zA-Z0-9._:/-]+$/.test(args[0]);
+    return args.length === 1 && !args[0].startsWith('--') && /^[a-zA-Z0-9._:/ -]+$/.test(args[0]);
   }
 
   if (subcommand === 'branch') {

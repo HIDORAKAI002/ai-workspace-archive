@@ -458,9 +458,12 @@ function supplyChainLocalProtectionGap({ roadmap, scripts }) {
 function hasCurrentLinearProgressSync({ roadmap, progressSync }) {
   const hasOperatorProgressSurface = roadmap.includes('operator progress snapshot')
     || roadmap.includes('operator progress comment');
+  const hasMay19ProgressSurface = roadmap.includes('ecc-may-19-post-pr-2002-sync-64cef8f668e0')
+    && roadmap.includes('a6411e3a-8c8e-4a58-adba-687e77d4c543')
+    && roadmap.includes('ITO-56');
 
   return roadmap.includes('Linear live sync is current')
-    && hasOperatorProgressSurface
+    && (hasOperatorProgressSurface || hasMay19ProgressSurface)
     && includesAll(progressSync, [
     'node scripts/work-items.js sync-github --repo <owner/repo>',
     'node scripts/status.js --json',
@@ -483,6 +486,10 @@ function linearProgressStatus(context) {
 
 function linearProgressEvidence(context) {
   if (hasCurrentLinearProgressSync(context)) {
+    if (context.roadmap.includes('ecc-may-19-post-pr-2002-sync-64cef8f668e0')) {
+      return 'Linear live sync is current with the May 19 post-PR #2002 sync document, project comment, and active issue-lane updates; progress-sync contract defines the file-backed work-items/status path';
+    }
+
     return 'Linear live sync and project progress surface are current; progress-sync contract defines the file-backed work-items/status path';
   }
 
@@ -588,6 +595,7 @@ function buildRequirements(rootDir, platformReport) {
   const partnerSponsorTalksPack = readText(rootDir, 'docs/releases/2.0.0-rc.1/partner-sponsor-talks-pack.md');
   const releaseVideoProduction = readText(rootDir, 'docs/releases/2.0.0-rc.1/video-suite-production.md');
   const ownerQueueCleanup = readText(rootDir, 'docs/releases/2.0.0-rc.1/owner-queue-cleanup-2026-05-18.md');
+  const ownerApprovalPacket = readText(rootDir, 'docs/releases/2.0.0-rc.1/owner-approval-packet-2026-05-19.md');
   const previewManifest = readText(rootDir, 'docs/releases/2.0.0-rc.1/preview-pack-manifest.md');
   const previewPackSmoke = readText(rootDir, 'scripts/preview-pack-smoke.js');
   const releaseVideoSuite = readText(rootDir, 'scripts/release-video-suite.js');
@@ -641,6 +649,15 @@ function buildRequirements(rootDir, platformReport) {
       'video-source-assets-present',
       'video-release-artifacts-present',
     ]);
+  const releaseVideoPublishCandidatesReady = releaseVideoSuiteReady
+    && includesAll(publicationEvidenceMay19, [
+      'Ready true',
+      '15/15 source assets present',
+      '13/13 render, timeline, caption, EDL, and segment artifacts present',
+      '12/12 publish-candidate outputs present',
+      'zero detected black-frame segments',
+      'primary rough render self-eval passed',
+    ]);
   const partnerSponsorTalksReady = includesAll(partnerSponsorTalksPack, [
     'Sponsor Outbound',
     'Platform Partner DM',
@@ -649,6 +666,17 @@ function buildRequirements(rootDir, platformReport) {
     'GitHub Discussion Announcement',
     'Do Not Send Or Publish If',
   ]);
+  const ownerApprovalPacketReady = includesAll(ownerApprovalPacket, [
+    'Owner Approval Packet',
+    'Decision Register',
+    'GitHub prerelease',
+    'npm `next` publish',
+    'Claude plugin tag',
+    'Video upload',
+    'Final URL Fill-In',
+    'Do Not Approve If',
+    'No outbound email, personal-account post, package publish, plugin tag, or billing announcement is authorized by this packet alone.'
+  ]) && includesAll(previewManifest, ['owner-approval-packet-2026-05-19.md']);
 
   const githubLive = !platformReport.github.skipped && platformReport.github.totals.errors === 0;
   const ownerWideOpenPrs = extractLabeledCount(ownerQueueCleanup, 'Owner-wide open PRs after cleanup');
@@ -787,6 +815,18 @@ function buildRequirements(rootDir, platformReport) {
         : 'URL-backed refresh and publish approval still pending'
     ),
     buildRequirement(
+      'owner-approval-packet',
+      'Prepare final owner approval packet',
+      'docs/releases/2.0.0-rc.1/owner-approval-packet-2026-05-19.md',
+      ownerApprovalPacketReady ? 'current' : 'not_complete',
+      ownerApprovalPacketReady
+        ? 'owner approval packet covers release, package, plugin, video, billing, social, and outbound decisions'
+        : 'owner approval packet is missing or incomplete',
+      ownerApprovalPacketReady
+        ? 'review owner approvals from the final release commit before any publication or outbound action'
+        : 'add the owner decision sheet before publication review'
+    ),
+    buildRequirement(
       'hypergrowth-command-center',
       'Create a second-phase hypergrowth release command center',
       'docs/releases/2.0.0/ecc-2-hypergrowth-release-command-center.md plus May 19 evidence',
@@ -802,11 +842,15 @@ function buildRequirements(rootDir, platformReport) {
       'release-video-suite',
       'Produce the ECC 2.0 release video suite',
       'docs/releases/2.0.0-rc.1/video-suite-production.md and npm run release:video-suite',
-      releaseVideoSuiteReady ? 'in_progress' : 'not_complete',
-      releaseVideoSuiteReady
+      releaseVideoPublishCandidatesReady ? 'current' : releaseVideoSuiteReady ? 'in_progress' : 'not_complete',
+      releaseVideoPublishCandidatesReady
+        ? 'video-suite gate is ready with 15/15 source assets, 13/13 suite artifacts, 12/12 publish candidates, primary self-eval, and zero detected black-frame segments recorded in May 19 evidence'
+        : releaseVideoSuiteReady
         ? 'video production manifest and deterministic video-suite gate are wired for launch video, short clips, captions, timeline, and self-eval evidence'
         : 'video production manifest or release:video-suite gate is incomplete',
-      releaseVideoSuiteReady
+      releaseVideoPublishCandidatesReady
+        ? 'final owner approval, upload, and public video URLs remain approval-gated'
+        : releaseVideoSuiteReady
         ? 'render final owner-approved MP4s, captions, platform reframes, and editable timeline before posting'
         : 'wire release:video-suite and production manifest before final content work'
     ),
@@ -911,6 +955,10 @@ function buildReport(options) {
   }));
   const head = runCommand('git', ['rev-parse', 'HEAD'], { cwd: rootDir });
   const growth = buildGrowthSummary(rootDir);
+  const releaseVideoRequirement = requirements.find(item => item.id === 'release-video-suite');
+  const releaseVideoWorkOrder = releaseVideoRequirement && releaseVideoRequirement.status === 'current'
+    ? 'Review the owner-approved primary launch video candidates, choose the final cuts, upload after approval, and attach public video URLs to the release pack.'
+    : 'Render the owner-approved primary launch video, short clips, captions, reframes, and editable timeline from the video-suite production manifest.';
 
   return {
     schema_version: SCHEMA_VERSION,
@@ -937,7 +985,8 @@ function buildReport(options) {
     top_actions: topActions,
     next_work_order: [
       'Regenerate this dashboard from the final release commit before publication evidence is recorded.',
-      'Render the owner-approved primary launch video, short clips, captions, reframes, and editable timeline from the video-suite production manifest.',
+      'Review the owner approval packet from the final release commit and approve, defer, or block each publication and outbound lane.',
+      releaseVideoWorkOrder,
       'Replace final release, npm, plugin, billing, and video URLs in the partner/sponsor/talk pack, then get explicit approval before outbound.',
       'Repeat ITO-57 Linear/project status sync after the next significant merge batch or advisory-source refresh.',
       'Create or verify Marketplace-managed Pro target billing-state with webhook provenance, configure the target account and INTERNAL_API_SECRET, then rerun target readback and the live announcement gate before publishing native-payments copy.',

@@ -183,6 +183,139 @@ const REQUIRED_SUITE_ARTIFACTS = [
   },
 ];
 
+const REQUIRED_PUBLISH_CANDIDATES = [
+  {
+    id: 'publish-primary-launch',
+    relativePath: 'renders/publish-candidates/ecc-2-primary-launch.mp4',
+    kind: 'video',
+    minDurationSeconds: 90,
+    maxDurationSeconds: 150,
+    minWidth: 1920,
+    minHeight: 1080,
+    minSizeMb: 5,
+    requiresAudio: true,
+  },
+  {
+    id: 'publish-primary-launch-captions',
+    relativePath: 'renders/publish-candidates/ecc-2-primary-launch.captions.srt',
+    kind: 'captions',
+  },
+  {
+    id: 'publish-install-proof-wide',
+    relativePath: 'renders/publish-candidates/ecc-2-install-proof-wide.mp4',
+    kind: 'video',
+    minDurationSeconds: 25,
+    maxDurationSeconds: 35,
+    minWidth: 1920,
+    minHeight: 1080,
+    minSizeMb: 1,
+    requiresAudio: true,
+  },
+  {
+    id: 'publish-install-proof-vertical',
+    relativePath: 'renders/publish-candidates/ecc-2-install-proof-vertical.mp4',
+    kind: 'video',
+    minDurationSeconds: 25,
+    maxDurationSeconds: 35,
+    minWidth: 1080,
+    minHeight: 1920,
+    minSizeMb: 1,
+    requiresAudio: true,
+  },
+  {
+    id: 'publish-what-is-ecc-wide',
+    relativePath: 'renders/publish-candidates/ecc-2-what-is-ecc-wide.mp4',
+    kind: 'video',
+    minDurationSeconds: 45,
+    maxDurationSeconds: 60,
+    minWidth: 1920,
+    minHeight: 1080,
+    minSizeMb: 2,
+    requiresAudio: true,
+  },
+  {
+    id: 'publish-what-is-ecc-vertical',
+    relativePath: 'renders/publish-candidates/ecc-2-what-is-ecc-vertical.mp4',
+    kind: 'video',
+    minDurationSeconds: 45,
+    maxDurationSeconds: 60,
+    minWidth: 1080,
+    minHeight: 1920,
+    minSizeMb: 2,
+    requiresAudio: true,
+  },
+  {
+    id: 'publish-security-proof-wide',
+    relativePath: 'renders/publish-candidates/ecc-2-security-proof-wide.mp4',
+    kind: 'video',
+    minDurationSeconds: 45,
+    maxDurationSeconds: 60,
+    minWidth: 1920,
+    minHeight: 1080,
+    minSizeMb: 2,
+    requiresAudio: true,
+  },
+  {
+    id: 'publish-security-proof-vertical',
+    relativePath: 'renders/publish-candidates/ecc-2-security-proof-vertical.mp4',
+    kind: 'video',
+    minDurationSeconds: 45,
+    maxDurationSeconds: 60,
+    minWidth: 1080,
+    minHeight: 1920,
+    minSizeMb: 2,
+    requiresAudio: true,
+  },
+  {
+    id: 'publish-money-proof-wide',
+    relativePath: 'renders/publish-candidates/ecc-2-money-proof-wide.mp4',
+    kind: 'video',
+    minDurationSeconds: 30,
+    maxDurationSeconds: 45,
+    minWidth: 1920,
+    minHeight: 1080,
+    minSizeMb: 2,
+    requiresAudio: true,
+  },
+  {
+    id: 'publish-money-proof-vertical',
+    relativePath: 'renders/publish-candidates/ecc-2-money-proof-vertical.mp4',
+    kind: 'video',
+    minDurationSeconds: 30,
+    maxDurationSeconds: 45,
+    minWidth: 1080,
+    minHeight: 1920,
+    minSizeMb: 2,
+    requiresAudio: true,
+  },
+  {
+    id: 'publish-social-proof-wide',
+    relativePath: 'renders/publish-candidates/ecc-2-social-proof-wide.mp4',
+    kind: 'video',
+    minDurationSeconds: 30,
+    maxDurationSeconds: 45,
+    minWidth: 1920,
+    minHeight: 1080,
+    minSizeMb: 2,
+    requiresAudio: true,
+  },
+  {
+    id: 'publish-social-proof-vertical',
+    relativePath: 'renders/publish-candidates/ecc-2-social-proof-vertical.mp4',
+    kind: 'video',
+    minDurationSeconds: 30,
+    maxDurationSeconds: 45,
+    minWidth: 1080,
+    minHeight: 1920,
+    minSizeMb: 2,
+    requiresAudio: true,
+  },
+].map(candidate => (
+  candidate.kind === 'video'
+    ? { noBlackFrames: true, ...candidate }
+    : candidate
+));
+
 function usage() {
   console.log([
     'Usage: node scripts/release-video-suite.js [options]',
@@ -427,6 +560,55 @@ function probeMedia(filePath, skipProbe) {
   return result;
 }
 
+function detectBlackSegments(filePath, skipProbe) {
+  if (skipProbe) {
+    return {
+      blackFrameProbe: 'skipped',
+      blackSegments: null,
+    };
+  }
+
+  const result = {
+    blackFrameProbe: 'unavailable',
+    blackSegments: null,
+  };
+  const probe = spawnSync('ffmpeg', [
+    '-hide_banner',
+    '-nostats',
+    '-i',
+    filePath,
+    '-vf',
+    'blackdetect=d=0.5:pix_th=0.10',
+    '-an',
+    '-f',
+    'null',
+    '-',
+  ], {
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+    timeout: 120000,
+  });
+
+  if (probe.error) {
+    result.blackFrameProbe = `error: ${probe.error.message}`;
+    return result;
+  }
+
+  if (probe.status !== 0) {
+    result.blackFrameProbe = `failed: ${(probe.stderr || '').trim() || `exit ${probe.status}`}`;
+    return result;
+  }
+
+  const output = `${probe.stdout || ''}\n${probe.stderr || ''}`;
+  result.blackSegments = output
+    .split('\n')
+    .filter(line => line.includes('black_start'))
+    .length;
+  result.blackFrameProbe = 'ok';
+
+  return result;
+}
+
 function resolveSourceAssetPath(sourceRoot, fileName) {
   const candidates = [
     path.join(sourceRoot, fileName),
@@ -471,67 +653,123 @@ function inspectSourceAssets(sourceRoot, skipProbe) {
   });
 }
 
-function inspectSuiteArtifacts(suiteRoot, skipProbe) {
-  return REQUIRED_SUITE_ARTIFACTS.map(artifact => {
-    if (!suiteRoot) {
+function validateVideoArtifact(artifact, media, skipProbe) {
+  if (artifact.kind !== 'video' || skipProbe) {
+    return [];
+  }
+
+  const failures = [];
+
+  if (media.probe !== 'ok') {
+    failures.push(`ffprobe ${media.probe}`);
+  }
+
+  if (
+    Number.isFinite(artifact.minDurationSeconds)
+    && (
+      !Number.isFinite(media.durationSeconds)
+      || media.durationSeconds < artifact.minDurationSeconds
+    )
+  ) {
+    failures.push(`duration below ${artifact.minDurationSeconds}s`);
+  }
+
+  if (
+    Number.isFinite(artifact.maxDurationSeconds)
+    && (
+      !Number.isFinite(media.durationSeconds)
+      || media.durationSeconds > artifact.maxDurationSeconds
+    )
+  ) {
+    failures.push(`duration above ${artifact.maxDurationSeconds}s`);
+  }
+
+  if (
+    Number.isFinite(artifact.minSizeMb)
+    && (!Number.isFinite(media.sizeMb) || media.sizeMb < artifact.minSizeMb)
+  ) {
+    failures.push(`size below ${artifact.minSizeMb} MB`);
+  }
+
+  if (
+    Number.isFinite(artifact.minWidth)
+    && (!Number.isFinite(media.width) || media.width < artifact.minWidth)
+  ) {
+    failures.push(`width below ${artifact.minWidth}`);
+  }
+
+  if (
+    Number.isFinite(artifact.minHeight)
+    && (!Number.isFinite(media.height) || media.height < artifact.minHeight)
+  ) {
+    failures.push(`height below ${artifact.minHeight}`);
+  }
+
+  if (artifact.requiresAudio && (!Number.isFinite(media.audioStreams) || media.audioStreams < 1)) {
+    failures.push('audio stream missing');
+  }
+
+  if (artifact.noBlackFrames) {
+    if (media.blackFrameProbe !== 'ok') {
+      failures.push(`blackdetect ${media.blackFrameProbe}`);
+    } else if (Number.isFinite(media.blackSegments) && media.blackSegments > 0) {
+      failures.push(`${media.blackSegments} black frame segment(s)`);
+    }
+  }
+
+  return failures;
+}
+
+function inspectArtifactCollection(rootDir, artifacts, skipProbe) {
+  return artifacts.map(artifact => {
+    if (!rootDir) {
       return {
         ...artifact,
         status: 'missing',
         configured: false,
+        validationFailures: [],
       };
     }
 
-    const filePath = path.join(suiteRoot, artifact.relativePath);
+    const filePath = path.join(rootDir, artifact.relativePath);
     if (!fs.existsSync(filePath)) {
       return {
         ...artifact,
         status: 'missing',
         configured: true,
+        validationFailures: [],
       };
     }
 
-    const media = artifact.kind === 'video' ? probeMedia(filePath, skipProbe) : {
-      sizeBytes: fs.statSync(filePath).size,
-      sizeMb: formatBytes(fs.statSync(filePath).size),
-      durationSeconds: null,
-      probe: 'not-media',
-    };
-
-    let durationStatus = 'pass';
-    if (
-      artifact.kind === 'video'
-      && Number.isFinite(artifact.minDurationSeconds)
-      && Number.isFinite(media.durationSeconds)
-      && media.durationSeconds < artifact.minDurationSeconds
-    ) {
-      durationStatus = 'fail';
-    }
-
-    if (
-      artifact.kind === 'video'
-      && Number.isFinite(artifact.maxDurationSeconds)
-      && Number.isFinite(media.durationSeconds)
-      && media.durationSeconds > artifact.maxDurationSeconds
-    ) {
-      durationStatus = 'fail';
-    }
-
-    if (
-      artifact.kind === 'video'
-      && Number.isFinite(artifact.minDurationSeconds)
-      && !skipProbe
-      && media.durationSeconds === null
-    ) {
-      durationStatus = 'fail';
-    }
+    const media = artifact.kind === 'video'
+      ? {
+        ...probeMedia(filePath, skipProbe),
+        ...(artifact.noBlackFrames ? detectBlackSegments(filePath, skipProbe) : {}),
+      }
+      : {
+        sizeBytes: fs.statSync(filePath).size,
+        sizeMb: formatBytes(fs.statSync(filePath).size),
+        durationSeconds: null,
+        probe: 'not-media',
+      };
+    const validationFailures = validateVideoArtifact(artifact, media, skipProbe);
 
     return {
       ...artifact,
-      status: durationStatus === 'pass' ? 'present' : 'invalid',
+      status: validationFailures.length === 0 ? 'present' : 'invalid',
       configured: true,
+      validationFailures,
       ...media,
     };
   });
+}
+
+function inspectSuiteArtifacts(suiteRoot, skipProbe) {
+  return inspectArtifactCollection(suiteRoot, REQUIRED_SUITE_ARTIFACTS, skipProbe);
+}
+
+function inspectPublishCandidates(suiteRoot, skipProbe) {
+  return inspectArtifactCollection(suiteRoot, REQUIRED_PUBLISH_CANDIDATES, skipProbe);
 }
 
 function evaluatePrimaryRender(suiteArtifacts, skipProbe) {
@@ -617,8 +855,10 @@ function buildReport(options = {}) {
   ]);
   const sourceAssets = inspectSourceAssets(sourceRoot, skipProbe);
   const suiteArtifacts = inspectSuiteArtifacts(suiteRoot, skipProbe);
+  const publishCandidates = inspectPublishCandidates(suiteRoot, skipProbe);
   const missingSourceAssets = sourceAssets.filter(asset => asset.status !== 'present');
   const missingSuiteArtifacts = suiteArtifacts.filter(artifact => artifact.status !== 'present');
+  const missingPublishCandidates = publishCandidates.filter(candidate => candidate.status !== 'present');
   const primaryRenderSelfEval = evaluatePrimaryRender(suiteArtifacts, skipProbe);
 
   const checks = [
@@ -682,6 +922,23 @@ function buildReport(options = {}) {
       primaryRenderSelfEval.summary,
       primaryRenderSelfEval.fix
     ),
+    makeCheck(
+      'video-publish-candidates-present',
+      missingPublishCandidates.length === 0 ? 'pass' : 'fail',
+      missingPublishCandidates.length === 0
+        ? `${publishCandidates.length} publish-candidate MP4/caption artifacts are present, self-evaluable, and free of detected black-frame segments`
+        : `missing or invalid publish candidates: ${missingPublishCandidates.map(candidate => {
+          const reason = candidate.validationFailures && candidate.validationFailures.length > 0
+            ? ` (${candidate.validationFailures.join(', ')})`
+            : '';
+          return `${candidate.relativePath}${reason}`;
+        }).join(', ')}`,
+      'Render the publish-candidate MP4/caption set under renders/publish-candidates before release review.',
+      {
+        configured: Boolean(suiteRoot),
+        missing: missingPublishCandidates.map(candidate => candidate.relativePath),
+      }
+    ),
   ];
 
   const failed = checks.filter(check => check.status !== 'pass');
@@ -713,6 +970,7 @@ function buildReport(options = {}) {
     checks,
     sourceAssets,
     suiteArtifacts,
+    publishCandidates,
     top_actions: topActions,
   };
 }
@@ -748,6 +1006,7 @@ function summarizeReport(report) {
     })),
     sourceAssetSummary: summarizeItems(report.sourceAssets),
     suiteArtifactSummary: summarizeItems(report.suiteArtifacts),
+    publishCandidateSummary: summarizeItems(report.publishCandidates),
     primaryRender: primaryRender ? {
       status: primaryRender.status,
       durationSeconds: primaryRender.durationSeconds,
@@ -778,6 +1037,11 @@ function renderText(report) {
       `Primary rough render: ${primaryRender.relativePath}`
         + (Number.isFinite(primaryRender.durationSeconds) ? ` (${primaryRender.durationSeconds}s)` : '')
     );
+  }
+
+  if (report.publishCandidates.length > 0) {
+    const present = report.publishCandidates.filter(item => item.status === 'present').length;
+    lines.push(`Publish candidates: ${present}/${report.publishCandidates.length} present`);
   }
 
   if (report.top_actions.length > 0) {
@@ -822,6 +1086,7 @@ if (require.main === module) {
 }
 
 module.exports = {
+  REQUIRED_PUBLISH_CANDIDATES,
   REQUIRED_SOURCE_ASSETS,
   REQUIRED_SUITE_ARTIFACTS,
   buildReport,
