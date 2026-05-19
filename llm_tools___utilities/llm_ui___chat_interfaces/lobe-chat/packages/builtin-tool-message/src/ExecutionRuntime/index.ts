@@ -105,6 +105,7 @@ export type {
   SearchMessagesState,
   SendDirectMessageParams,
   SendDirectMessageState,
+  SendMessageAttachment,
   SendMessageParams,
   SendMessageState,
   ToggleBotParams,

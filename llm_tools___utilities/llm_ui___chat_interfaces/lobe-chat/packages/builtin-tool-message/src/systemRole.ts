@@ -125,6 +125,7 @@ Skipping step 1 will silently wipe other entries.
 - Uses iLink Bot API with long-polling for message delivery
 - Sending messages requires a context token from an active conversation
 - Only sendMessage is available, and only within active conversation context
+- Outbound text, images, files, and videos are supported (each media item is sent as a separate message per protocol)
 - Message operations may fail if no active conversation context exists
 </platform_notes>
 `;
