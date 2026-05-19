@@ -385,7 +385,12 @@ class TestTaskUsageLifecycle:
     def test_task_usage_none_initially(self) -> None:
         task = Task(description="test")
         assert task._usage is None
-        assert task.usage is None
+        # task.usage is now a registry-backed AggregatedUsage view —
+        # always non-None, zero-valued when nothing has been recorded.
+        assert task.usage is not None
+        assert task.usage.input_tokens == 0
+        assert task.usage.output_tokens == 0
+        assert task.usage.requests == 0
 
     def test_task_start_creates_usage(self) -> None:
         task = Task(description="test")
@@ -429,56 +434,26 @@ class TestTaskUsageLifecycle:
 # ---------------------------------------------------------------------------
 
 class TestTaskPropertyDelegation:
+    """The legacy ``task.duration`` / ``task.model_execution_time`` /
+    ``task.tool_execution_time`` / ``task.upsonic_execution_time``
+    properties were removed in the unification pass — callers read
+    everything off ``task.usage`` now. The tests that asserted the
+    delegation contract no longer apply and have been deleted."""
 
-    def test_duration_delegates_to_usage(self) -> None:
+    def test_usage_property_is_registry_view_not_internal_mutable(self) -> None:
+        """``task.usage`` is now an :class:`AggregatedUsage` derived from
+        the registry — distinct from the in-pipeline ``_usage`` timer
+        scratchpad."""
+        from upsonic.usage import TaskUsage
+        from upsonic.usage_registry import AggregatedUsage
+
         task = Task(description="test")
         mock_agent = Mock()
         mock_agent.canvas = None
         task.task_start(mock_agent)
-        task._usage.duration = 3.14
-        assert task.duration == 3.14
-
-    def test_duration_fallback_to_start_end_time(self) -> None:
-        task = Task(description="test")
-        task.start_time = 100
-        task.end_time = 105
-        assert task.duration == 5
-
-    def test_duration_none_when_no_usage_and_no_times(self) -> None:
-        task = Task(description="test")
-        assert task.duration is None
-
-    def test_model_execution_time_delegates_to_usage(self) -> None:
-        task = Task(description="test")
-        mock_agent = Mock()
-        mock_agent.canvas = None
-        task.task_start(mock_agent)
-        task._usage.model_execution_time = 2.0
-        assert task.model_execution_time == 2.0
-
-    def test_model_execution_time_none_without_usage(self) -> None:
-        task = Task(description="test")
-        assert task.model_execution_time is None
-
-    def test_upsonic_execution_time_delegates_to_usage(self) -> None:
-        task = Task(description="test")
-        mock_agent = Mock()
-        mock_agent.canvas = None
-        task.task_start(mock_agent)
-        task._usage.duration = 5.0
-        task._usage.model_execution_time = 3.0
-        assert task.upsonic_execution_time == pytest.approx(2.0)
-
-    def test_upsonic_execution_time_none_without_usage(self) -> None:
-        task = Task(description="test")
-        assert task.upsonic_execution_time is None
-
-    def test_usage_property_returns_internal_usage(self) -> None:
-        task = Task(description="test")
-        mock_agent = Mock()
-        mock_agent.canvas = None
-        task.task_start(mock_agent)
-        assert task.usage is task._usage
+        assert isinstance(task._usage, TaskUsage)
+        assert isinstance(task.usage, AggregatedUsage)
+        assert task.usage is not task._usage
 
 
 # ---------------------------------------------------------------------------
@@ -512,29 +487,59 @@ class TestTaskUsagePopulation:
         assert task._usage.model_execution_time == pytest.approx(1.5)
 
     def test_full_lifecycle_with_tokens_and_timing(self) -> None:
+        """``task._usage`` is the in-pipeline timer / model_execution_time
+        scratchpad. The public ``task.usage`` is a registry view —
+        populating ``_usage`` directly does NOT show up there. To get a
+        recorded entry under this task's scope, callers must go through
+        the Phase-2 emission hook (``record_request_usage``) — which is
+        what every real pipeline step does."""
+        from upsonic.usage_registry import scope, record_request_usage, get_default_registry
+        get_default_registry().clear()
+
         task = Task(description="test")
         mock_agent = Mock()
         mock_agent.canvas = None
 
         task.task_start(mock_agent)
 
+        # Scratchpad is still useful for timer state.
         task._usage.incr(RequestUsage(input_tokens=50, output_tokens=20))
         task._usage.add_model_execution_time(0.8)
-
         task._usage.incr(RequestUsage(input_tokens=30, output_tokens=10))
         task._usage.add_model_execution_time(0.4)
 
         time.sleep(0.05)
         task.task_end()
 
+        # Scratchpad totals
+        assert task._usage.input_tokens == 80
+        assert task._usage.output_tokens == 30
+        assert task._usage.model_execution_time == pytest.approx(1.2, abs=0.01)
+
+        # Public registry view is empty — nothing was recorded via the
+        # emission hook in this synthetic test.
+        assert task.usage.input_tokens == 0
+        assert task.usage.requests == 0
+
+        # Now drive the registry the way the pipeline does.
+        with scope(task_usage_id=task.task_usage_id):
+            record_request_usage(
+                RequestUsage(input_tokens=50, output_tokens=20),
+                model="test-model",
+            )
+            record_request_usage(
+                RequestUsage(input_tokens=30, output_tokens=10),
+                model="test-model",
+            )
+
         assert task.usage.input_tokens == 80
         assert task.usage.output_tokens == 30
         assert task.usage.requests == 2
-        assert task.usage.model_execution_time == pytest.approx(1.2, abs=0.01)
-        assert task.usage.duration >= 0.04
-        assert task.usage.upsonic_execution_time is not None
-        assert task.duration == task.usage.duration
-        assert task.model_execution_time == task.usage.model_execution_time
+
+        # Internal ``_usage`` scratchpad still carries the timer state
+        # the pipeline accumulated during the run.
+        assert task._usage.duration is None or task._usage.duration >= 0
+        assert task._usage.model_execution_time == pytest.approx(1.2, abs=0.01)
 
 
 # ---------------------------------------------------------------------------
@@ -564,7 +569,13 @@ class TestTaskSerializationWithUsage:
         d = task.to_dict()
         assert d["_usage"] is None
 
-    def test_from_dict_restores_usage(self) -> None:
+    def test_from_dict_restores_internal_usage_scratchpad(self) -> None:
+        """``Task._usage`` (the timer scratchpad) round-trips through
+        ``to_dict`` / ``from_dict``. The public ``task.usage`` is now a
+        registry view independent of the serialised _usage state — it
+        reflects ledger entries scoped to ``task_usage_id``, which a
+        deserialised task does not auto-rehydrate (storage layer does
+        that explicitly via ``UsageRegistry.load_from_storage``)."""
         task = Task(description="test")
         mock_agent = Mock()
         mock_agent.canvas = None
@@ -577,19 +588,23 @@ class TestTaskSerializationWithUsage:
         d = task.to_dict()
         restored = Task.from_dict(d)
 
-        assert restored.usage is not None
-        assert isinstance(restored.usage, TaskUsage)
-        assert restored.usage.input_tokens == 100
-        assert restored.usage.output_tokens == 50
-        assert restored.usage.duration is not None
-        assert restored.usage.model_execution_time == 2.0
-        assert restored.duration == restored.usage.duration
-        assert restored.model_execution_time == 2.0
+        # Internal scratchpad survives the round-trip.
+        assert restored._usage is not None
+        assert isinstance(restored._usage, TaskUsage)
+        assert restored._usage.input_tokens == 100
+        assert restored._usage.output_tokens == 50
+        assert restored._usage.duration is not None
+        assert restored._usage.model_execution_time == 2.0
 
     def test_from_dict_without_usage(self) -> None:
+        from upsonic.usage_registry import AggregatedUsage
         d = {"description": "test", "_usage": None}
         restored = Task.from_dict(d)
-        assert restored.usage is None
+        # Internal scratchpad is None when not serialised.
+        assert restored._usage is None
+        # Public registry view is a zero-valued AggregatedUsage.
+        assert isinstance(restored.usage, AggregatedUsage)
+        assert restored.usage.input_tokens == 0
 
 
 # ---------------------------------------------------------------------------

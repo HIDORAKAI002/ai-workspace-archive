@@ -745,7 +745,7 @@ class AgentRunOutput:
             result["usage"] = self.usage.to_dict()
         else:
             result["usage"] = None
-        
+
         # additional_input_message: ModelMessagesTypeAdapter
         if self.additional_input_message:
             result["additional_input_message"] = ModelMessagesTypeAdapter.dump_python(
@@ -953,7 +953,7 @@ class AgentRunOutput:
             usage = TaskUsage.from_dict(usage_data)
         else:
             usage = usage_data
-        
+
         # Handle additional_input_message: ModelMessagesTypeAdapter
         additional_input_message_data = data.get("additional_input_message")
         if additional_input_message_data and isinstance(additional_input_message_data, list):
