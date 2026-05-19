@@ -281,8 +281,19 @@ function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false, 
     rowId &&
     isCanvasRendering.value
   ) {
-    expandedFormPanelStore.openPanel(row, row.rowMeta?.rowIndex, state, rowId, path)
-    updateRowIdRoute(rowId, path)
+    const doExpand = () => {
+      expandedFormPanelStore.openPanel(row, row.rowMeta?.rowIndex, state, rowId, path)
+      updateRowIdRoute(rowId, path)
+    }
+    // When panel is already open on a different row, route through the
+    // discard guard so unsaved edits trigger the Save / Discard modal before
+    // we swap rows. Covers every expand surface (cell click, comment icon,
+    // Space key, deep-link) since they all funnel through expandForm.
+    if (expandedFormPanelStore?.isOpen.value && expandedFormPanelStore.activeRowId.value !== rowId) {
+      expandedFormPanelStore.requestSwitch.value?.(doExpand)
+    } else {
+      doExpand()
+    }
     return
   }
 
@@ -587,9 +598,19 @@ watch(
   () => groupBy.value.map((g) => g.column?.id ?? '').join('|'),
   (newKey, oldKey) => {
     if (newKey === oldKey) return
-    if (expandedFormPanelStore?.isOpen.value) {
-      expandedFormPanelStore.closePanel()
-    }
+    if (!expandedFormPanelStore?.isOpen.value) return
+
+    // Skip the initial async load. At mount gridViewCols is empty so groupBy is
+    // []; once the persisted view config arrives, groupBy transitions to its real
+    // value. If a deep link (?rowId=X&path=A-B) opened the panel with a path
+    // matching the just-loaded structure, the path was authored against this very
+    // structure and is still valid — don't tear it down. User-initiated changes
+    // still close because either oldKey is non-empty or the depth no longer matches.
+    const newDepth = newKey ? newKey.split('|').length : 0
+    const panelDepth = expandedFormPanelStore.activePath.value?.length ?? 0
+    if (!oldKey && panelDepth > 0 && panelDepth === newDepth) return
+
+    expandedFormPanelStore.closePanel()
   },
 )
 

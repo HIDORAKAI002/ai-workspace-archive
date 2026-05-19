@@ -3,7 +3,7 @@
   "name": "claude-code-skills",
   "description": "Production-ready skill packages for AI agents - Marketing, Engineering, Product, C-Level, PM, and RA/QM",
   "repository": "https://github.com/alirezarezvani/claude-skills",
-  "total_skills": 305,
+  "total_skills": 320,
   "skills": [
     {
       "name": "business-growth-skills",
@@ -34,6 +34,48 @@
       "source": "../../business-growth/skills/sales-engineer",
       "category": "business-growth",
       "description": "Analyzes RFP/RFI responses for coverage gaps, builds competitive feature comparison matrices, and plans proof-of-concept (POC) engagements for pre-sales engineering. Use when responding to RFPs, bids, or proposal requests; comparing product features against competitors; planning or scoring a customer POC or sales demo; preparing a technical proposal; or performing win/loss competitor analysis. Handles tasks described as 'RFP response', 'bid response', 'proposal response', 'competitor comparison', 'feature matrix', 'POC planning', 'sales demo prep', or 'pre-sales engineering'."
+    },
+    {
+      "name": "business-operations-skills",
+      "source": "../../business-operations/skills/business-operations-skills",
+      "category": "business-operations",
+      "description": "Use when running, diagnosing, or designing internal business operations \u2014 process documentation, vendor SLAs, capacity planning, internal comms, SOP/runbook authoring, procurement spend. Triggers on \"BizOps review\", \"where's the bottleneck\", \"vendor health\", \"internal SOP\", \"all-hands deck\", \"spend categorization\", \"capacity for Q3\", \"process mapping\". Forks context to route to one of six BizOps sub-skills (process-mapper, vendor-management, capacity-planner, internal-comms, knowledge-ops, procurement-optimizer) and returns a digest. Distinct from business-growth (external sales motion) and c-level-advisor (strategic, not operational)."
+    },
+    {
+      "name": "capacity-planner",
+      "source": "../../business-operations/skills/capacity-planner",
+      "category": "business-operations",
+      "description": "Use when an ops leader (Director of CX, Head of Support, VP Ops, Head of BizOps, Head of IT ops, Head of Finance ops) is sizing ops capacity, building a headcount plan, modeling utilization risk, planning Q3 capacity or annual support capacity, or designing CS coverage \u2014 and needs Erlang-C queueing math, P90 demand sizing, shrinkage-adjusted FTE, manager-trigger thresholds, and a quarterly hiring sequence with ramp + attrition. Apply when sustained team utilization is above 80% or when the team is growing >50% in 12 months. Run before committing the headcount budget. This is NOT engineering capacity (see vpe-advisor for DORA + cycle time) and NOT strategic 3-year workforce planning (see chro-advisor)."
+    },
+    {
+      "name": "internal-comms",
+      "source": "../../business-operations/skills/internal-comms",
+      "category": "business-operations",
+      "description": "Use when a Head of People Ops, BizOps lead, or Internal Communications owner needs to draft and sequence an internal-only change-management communication \u2014 a re-org announcement, a tool rollout, a policy change, a benefit change, a leadership transition, a layoff, an acquisition close, or an internal product launch \u2014 and the audience is employees (not customers). Triggers on \"all-hands announcement\", \"town-hall script\", \"change comms\", \"internal newsletter\", \"rollout comms\", \"policy change announcement\", \"re-org announcement\", \"internal FAQ\", \"manager talking points\", \"Prosci ADKAR\", \"Kotter 8-step\", \"layoff comms\", \"RIF comms\", \"internal memo\". Pairs Prosci ADKAR (Awareness / Desire / Knowledge / Ability / Reinforcement) and Kotter's 8-step change model with deterministic stdlib-only Python tools to produce a sequenced touchpoint calendar, a Kotter-compliant primary announcement, an audience-segmented FAQ, and manager cascade talking points. Industry-tuned via --profile {tech-startup, scaleup, enterprise, public-company, non-profit}. Distinct from marketing-skill/* (external/customer-facing), c-level-advisor/internal-narrative (strategic framing, not tactical drafts), and c-level-advisor/change-management (executive change strategy, not the comms package itself)."
+    },
+    {
+      "name": "knowledge-ops",
+      "source": "../../business-operations/skills/knowledge-ops",
+      "category": "business-operations",
+      "description": "Use when a Head of Ops, Knowledge Manager, or TPM-Internal needs to author, validate, or clean up company SOPs and internal runbooks (procurement intake, vendor offboarding, incident-comms cascade, employee onboarding, expense reimbursement, system-access provisioning, customer-escalation playbook) \u2014 including 5W2H completeness checks (Who-What-When-Where-Why-How-HowMuch), cross-link and orphan-page validation across a sprawling Notion/Confluence/Obsidian wiki, KB ingestion + hygiene reporting, ops onboarding doc generation, and runbook step verification (named owner, expected duration, observable success signal, rollback path, escalation contact). Pairs Kaoru Ishikawa's 5W2H method, Atul Gawande's *The Checklist Manifesto*, ISO 9001, ITIL v4 Service Operation, FDA 21 CFR Part 211, and Google SRE Workbook runbook discipline with deterministic stdlib-only Python tools that score completeness, detect anti-patterns, and emit prioritized cleanup lists. Distinct from `engineering/llm-wiki` (Karpathy-style personal PKM second brain), `engineering-team/runbook-generator` (system-ops production debugging runbook), `project-management/*` (Jira/Confluence delivery + ticket tracking), and sibling `business-operations/process-mapper` (BPMN process *design*, while knowledge-ops is process *documentation*)."
+    },
+    {
+      "name": "process-mapper",
+      "source": "../../business-operations/skills/process-mapper",
+      "category": "business-operations",
+      "description": "Use when a BizOps lead, COO, or process-improvement owner needs to document an end-to-end business process (procurement, employee onboarding, incident handoff, customer-onboarding, claims adjudication) in BPMN-style notation, measure cycle times by stage, surface where work spends most of its time waiting vs. being worked, and quantify the gap between processing time and total elapsed time. Pairs Lean / Six Sigma / Theory-of-Constraints canon with deterministic stdlib-only Python tools to produce a process map, a ranked bottleneck list (with severity + root-cause hypothesis), and a cycle-time analysis (P50, P90, value-add ratio, Little's-Law throughput). Distinct from sales-pipeline, system-reliability (SLO), and strategic-OKR work \u2014 this is tactical process documentation for internal operations."
+    },
+    {
+      "name": "procurement-optimizer",
+      "source": "../../business-operations/skills/procurement-optimizer",
+      "category": "business-operations",
+      "description": "Use when running an annual SaaS audit, doing category-level spend review, or rationalizing the supplier base \u2014 when the user needs to do a spend audit, spend categorization (UNSPSC-aligned), purchasing-cycle analysis, or risk-balanced supplier consolidation. Triggers on \"spend audit\", \"SaaS audit\", \"spend categorization\", \"supplier rationalization\", \"supplier consolidation\", \"purchasing cycle\", \"procurement review\", \"category strategy\", \"duplicate SaaS\", \"renewal cluster\". Ships 3 stdlib-only Python tools (UNSPSC-aligned spend categorizer with Pareto breakdown and industry profiles, purchasing-cycle analyzer that surfaces bottleneck categories per Goldratt's Theory of Constraints, supplier-consolidation planner that refuses single-source recommendations for tier-1 categories without a documented break-glass plan), 3 reference docs each citing 7+ authoritative sources (A.T. Kearney / Hackett / Spend Matters / UNSPSC / Productiv / Vendr / Tropic / IACCM / ISM / BCG), and a 20-minute spend-intake template. Distinct from sibling vendor-management (performance scoring of vendors you keep paying), finance/financial-analysis (close + report, not category strategy), and c-level-advisor/general-counsel-advisor (contract law, not category rationalization)."
+    },
+    {
+      "name": "vendor-management",
+      "source": "../../business-operations/skills/vendor-management",
+      "category": "business-operations",
+      "description": "Use when reviewing, scoring, or auditing third-party SaaS / vendor relationships \u2014 running a vendor scorecard, tracking SLA compliance, classifying third-party risk, preparing a tier-1 vendor review, or auditing the SaaS portfolio. Triggers on \"vendor SLA\", \"vendor scorecard\", \"third-party risk\", \"TPRM\", \"vendor review\", \"SaaS audit\", \"supplier performance\", \"vendor health check\", \"renewal review\". Forks context so large vendor catalogs (50-500 line items) and SLA logs don't pollute the parent thread. Ships 3 stdlib-only Python tools (vendor scorer with industry tuning, SLA compliance tracker with credit-claim flags, vendor risk classifier across 4 risk vectors), 3 reference docs each citing 7+ authoritative sources (Gartner / Shared Assessments / NIST / ISO 27036 / breach post-mortems), and a 5-vendor catalog template. Distinct from c-level-advisor/general-counsel-advisor (contract law, not operational management), business-growth/contract-and-proposal-writer (outbound proposals, not inbound vendor scoring), and sibling procurement-optimizer (spend categorization, not vendor performance)."
     },
     {
       "name": "agent-protocol",
@@ -430,6 +472,54 @@
       "source": "../../c-level-advisor/c-level-agents/skills/vpe-review",
       "category": "c-level",
       "description": "/cs:vpe-review <plan> \u2014 Throughput-first VP of Engineering interrogation of any plan that touches delivery, eng hiring, team structure, or production discipline."
+    },
+    {
+      "name": "channel-economics",
+      "source": "../../commercial/skills/channel-economics",
+      "category": "commercial",
+      "description": "Use when reviewing or rebalancing direct vs. partner-led channel economics \u2014 computing fully-loaded cost-to-serve per channel, channel ROI with cash / LTV / marginal lenses, and optimal channel mix subject to constraints. For Head of Commercial, RevOps, and VP Sales doing quarterly channel review when pipeline is mixed (e.g., 60% direct + 40% partner-led) and nobody actually knows which channel makes money after CAC, support load, partner discount, deal-velocity differences, retention differential, and overhead allocation are all loaded in. Outputs cost to serve, channel ROI verdicts (DOUBLE-DOWN / MAINTAIN / DEFUND / EXIT), a sensitivity-tested channel-mix recommendation, and the diminishing-returns inflection. Not channel structure (that's partnerships-architect \u2014 tiers, joint GTM, revshare). Not RevOps process (that's business-growth/revenue-operations \u2014 lead routing, SDR motion). Not strategic CRO judgment (that's c-level-advisor/cro-advisor \u2014 comp plans, when-to-hire-a-VP-Sales). Not historical close-and-report (that's finance/financial-analysis). This skill answers: direct vs partner profitability, channel profitability, channel mix, channel economics."
+    },
+    {
+      "name": "commercial-forecaster",
+      "source": "../../commercial/skills/commercial-forecaster",
+      "category": "commercial",
+      "description": "Use when building a quarterly bookings forecast, ARR projection, pipeline forecast, NRR projection, or commit/best-case/pipe-only board number \u2014 especially when the CRO needs to walk the board through funnel math + cohort ARR + per-stage conversion assumptions without the theatre of a single undefended number. Decomposes pipeline into commit, best-case, and pipe-only tiers; projects cohort-level NRR/GRR to surface leaky cohorts before they show up in the consolidated number; scores per-stage funnel confidence so soft-floor stages get treated differently from high-confidence ones. Every output explicitly names the conversion rate used, the data window, and the weighting choice. For Head of Commercial, RevOps, VP Sales, and CRO at quarterly forecast or board prep. NOT financial close (see finance/financial-analysis). NOT strategic CRO hiring/territory (see c-level-advisor/cro-advisor). NOT pricing (see sibling pricing-strategist)."
+    },
+    {
+      "name": "commercial-policy",
+      "source": "../../commercial/skills/commercial-policy",
+      "category": "commercial",
+      "description": "Use when designing or revising a company's commercial policy \u2014 the rules of engagement governing discounts off list price, approver thresholds, exception flows, and the deal framework that Deal Desk and AEs operate under. Covers discount matrix design (ARR band x term length x payment terms x strategic value), commercial policy design, exception policy, discount governance, approval thresholds, deal framework structure, and policy linting (contradictions, gaps, cliff edges, gaming surfaces). For Head of Commercial, Head of Deal Desk, VP Sales, or RevOps at the policy-design moment \u2014 NOT per-deal application (that is deal-desk) and NOT pricing model selection (that is pricing-strategist)."
+    },
+    {
+      "name": "commercial-skills",
+      "source": "../../commercial/skills/commercial-skills",
+      "category": "commercial",
+      "description": "Use when reviewing, approving, or designing commercial motion \u2014 pricing models, deal review, discount approval, partnership economics, channel mix, commercial policy, RFP/RFI response, bookings forecast. Triggers on \"review this deal\", \"should we discount\", \"pricing model\", \"partner economics\", \"RFP response\", \"bookings forecast\", \"channel mix\". Forks context to route to one of seven Commercial sub-skills (pricing-strategist, deal-desk, partnerships-architect, channel-economics, commercial-policy, rfp-responder, commercial-forecaster) and returns a digest. Distinct from business-growth (sales execution) and c-level-advisor/cro-advisor (strategic CRO judgment)."
+    },
+    {
+      "name": "deal-desk",
+      "source": "../../commercial/skills/deal-desk",
+      "category": "commercial",
+      "description": "Use when reviewing a specific inbound deal before close \u2014 when sales has asked for a discount that exceeds AE authority, when the customer has redlined the MSA, when per-deal economics (margin after discount, multi-year payment shape, indemnity exposure) need to be quantified, or when discount approval needs to be routed to a named human approver (Sales Director, VP Sales, CFO, CRO, General Counsel). Covers deal review, discount approval routing, per-deal margin scoring, deal exception handling, MSA redline triage, contract landmine detection (uncapped indemnity, MFN, perpetual license-back, missing DPA), and named-approver chain assembly. NEVER auto-approves \u2014 every output is a numeric scorecard plus a routing recommendation to a named human."
+    },
+    {
+      "name": "partnerships-architect",
+      "source": "../../commercial/skills/partnerships-architect",
+      "category": "commercial",
+      "description": "Use when a startup is approached by a prospective partner and someone has to decide should we sign this partner, at what partner tier (referral / reseller / OEM / SI-consulting / strategic alliance), with what joint GTM commitment, and at what revshare. Classifies partner tier from independent-demand evidence vs. preferential-terms hunting, designs a 90-day joint GTM plan, models revshare against direct-sale margin, and surfaces kill criteria for unwinding under-performing partnerships. For Head of Partnerships, Head of BD, and Founder-CEOs doing reseller agreement, OEM deal, or strategic alliance review \u2014 not technical sale enablement, not channel cost economics, not M&A."
+    },
+    {
+      "name": "pricing-strategist",
+      "source": "../../commercial/skills/pricing-strategist",
+      "category": "commercial",
+      "description": "Use when designing or revisiting product pricing \u2014 selecting a pricing model (subscription seat-based, usage-based, value-based, freemium, or hybrid), running Van Westendorp Price Sensitivity Meter analysis on WTP survey data, or designing Good/Better/Best packaging tiers. Recommends a model and a price range with trade-offs, never a single number. For Commercial leads, Product Marketing, and CMOs at the pricing-design moment \u2014 not deal-by-deal discounting, not brand positioning."
+    },
+    {
+      "name": "rfp-responder",
+      "source": "../../commercial/skills/rfp-responder",
+      "category": "commercial",
+      "description": "Use when an RFP, RFI, RFQ, security questionnaire, vendor questionnaire, or proposal request arrives and the team needs a structured response \u2014 parsing multi-section buyer-dictated requirements (MANDATORY vs WEIGHTED vs NICE-TO-HAVE), building a Shipley-method proof-point matrix mapping each requirement to a verifiable proof point, articulating 3-5 win-themes that ladder up across requirements, and producing a Shipley-derived winrate estimate that informs a bid / no-bid / partner-bid recommendation. For Bid Managers, Proposal Leads, Directors of Sales, and Sales Engineers at the response-strategy moment. Surfaces GAP requirements explicitly \u2014 never invents claims. NOT free-form proposal narrative authoring, NOT contract redline, NOT marketing collateral."
     },
     {
       "name": "a11y-audit",
@@ -1842,10 +1932,20 @@
       "source": "../../business-growth",
       "description": "Customer success, sales engineering, and revenue operations skills"
     },
+    "business-operations": {
+      "count": 7,
+      "source": "../../business-operations",
+      "description": "Internal BizOps skills (v2.8.0): process mapping, vendor management, capacity planning (Erlang-C), internal comms (ADKAR+Kotter), knowledge ops (SOP+runbook), procurement (UNSPSC)"
+    },
     "c-level": {
       "count": 66,
       "source": "../../c-level-advisor",
       "description": "Executive leadership and advisory skills"
+    },
+    "commercial": {
+      "count": 8,
+      "source": "../../commercial",
+      "description": "Per-deal-and-packaging Commercial skills (v2.8.0): pricing strategy, deal desk, partnerships, channel economics, commercial policy, RFP responder, commercial forecaster"
     },
     "engineering": {
       "count": 51,

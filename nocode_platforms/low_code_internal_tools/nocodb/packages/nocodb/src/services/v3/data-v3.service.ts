@@ -1153,6 +1153,25 @@ export class DataV3Service {
         }
       }
       if (param.validateAdditionalProp) {
+        // `fields` must be an object — a string here would be returned as-is
+        // by transformLTARFieldsToInternal and reach bulkInsert as a primitive,
+        // producing the same 'Id' in <string> crash. null and arrays are also
+        // invalid envelopes.
+        if (
+          !row.fields ||
+          typeof row.fields !== 'object' ||
+          Array.isArray(row.fields)
+        ) {
+          NcError.get(context).invalidRequestBody(
+            `Property 'fields' on index ${index} must be a JSON object; got ${
+              row.fields === null
+                ? 'null'
+                : Array.isArray(row.fields)
+                ? 'array'
+                : typeof row.fields
+            }`,
+          );
+        }
         const otherProps = Object.keys(row).filter(
           (prop) => !['id', 'fields'].includes(prop),
         );

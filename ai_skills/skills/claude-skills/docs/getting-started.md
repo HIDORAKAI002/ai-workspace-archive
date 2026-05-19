@@ -249,7 +249,7 @@ my-skill/
   assets/        # Templates (optional)
 ```
 
-See the [Skills & Agents Factory](https://github.com/alirezarezvani/claude-code-skills-agents-factory) for a complete guide.
+See the [Skills & Agents Factory](https://github.com/alirezarezvani/claude-code-skill-factory) for a complete guide.
 
 <hr class="section-divider">
 

@@ -118,6 +118,7 @@ import {
 } from '~/helpers/dbHelpers';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import { extractProps } from '~/helpers/extractProps';
+import { extractDisplayNameFromEmail } from '~/utils/emailUtils';
 import getAst from '~/helpers/getAst';
 import { sanitize, unsanitize } from '~/helpers/sqlSanitize';
 import {
@@ -190,6 +191,10 @@ export interface ExecAndParseOptions {
   first?: boolean;
   bulkAggregate?: boolean;
   apiVersion?: NcApiVersion;
+  // Bypass the public-viewer email redaction in convertUserFormat. Used by
+  // write paths that need full emails to flow into webhook hooks; they apply
+  // the redaction themselves on the response copy after firing hooks.
+  skipPublicRedaction?: boolean;
 }
 
 /** Args stashed on DataLoader instances for relation queries (hm/mm/bt/oo). */
@@ -240,6 +245,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
    */
   protected _queryQueue: PQueue;
   protected _columns = {};
+  protected _softDeleteFilter: Promise<Knex.QueryCallback | null> | undefined;
   protected source: Source;
   public model: Model;
   public context: NcContext;
@@ -327,6 +333,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       extractOrderColumn = false,
       ignoreRls = false,
       fk_display_value_column_id,
+      skipPublicRedaction = false,
     }: {
       ignoreView?: boolean;
       getHiddenColumn?: boolean;
@@ -336,6 +343,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       extractOrderColumn?: boolean;
       ignoreRls?: boolean;
       fk_display_value_column_id?: string | null;
+      skipPublicRedaction?: boolean;
     } = {},
   ): Promise<any> {
     const qb = this.dbDriver(this.tnPath);
@@ -396,6 +404,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         skipSubstitutingColumnIds:
           this.context.api_version === NcApiVersion.V3 &&
           query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+        skipPublicRedaction,
       });
     } catch (e) {
       const isTransient = isTransientError(e);
@@ -409,6 +418,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       logger.log(e);
       return this.readByPk(id, true, query, {
         apiVersion,
+        skipPublicRedaction,
       });
     }
 
@@ -2540,7 +2550,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   async delByPk(id, _trx?, cookie?) {
-    let trx: Knex.Transaction = _trx;
+    let trx: Knex.Transaction | null = _trx;
     try {
       const source = await this.getSource();
       // retrieve data for handling params in hook
@@ -2551,7 +2561,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         getHiddenColumn: true,
         source,
       });
-      await this.beforeDelete(id, trx, cookie);
+      await this.beforeDelete(id, cookie);
 
       // Detect soft-delete column for meta sources
       const deletedColumn = this.model.columns.find((c) => isDeletedCol(c));
@@ -2592,7 +2602,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
         await this.afterDelete(
           data,
-          null,
           cookie,
           AuditV1OperationTypes.DATA_SOFT_DELETE,
         );
@@ -2916,7 +2925,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       const response = await trx(this.tnPath).del().where(where);
 
-      if (!_trx) await trx.commit();
+      if (!_trx) {
+        await trx.commit();
+        // Transaction is finalized; clear the reference so a post-commit
+        // failure below can't trigger rollback() on an already-closed trx
+        // (which throws "Transaction is already complete" and masks the
+        // original error in the catch block).
+        trx = null;
+      }
 
       await this.clearFileReferences({
         oldData: [data],
@@ -2938,11 +2954,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         }
       }
 
-      await this.afterDelete(data, trx, cookie);
+      await this.afterDelete(data, cookie);
       return response;
     } catch (e) {
-      if (!_trx) await trx.rollback();
-      await this.errorDelete(e, id, trx, cookie);
+      if (!_trx) await trx?.rollback();
+      await this.errorDelete(e, id, cookie);
       throw e;
     }
   }
@@ -3089,7 +3105,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       await this.validate(data, columns, { typecast });
 
-      await this.beforeUpdate(data, trx, cookie);
+      await this.beforeUpdate(data, cookie);
 
       const btForeignKeyColumn = columns.find(
         (c) =>
@@ -3156,11 +3172,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           prevData,
         });
       } else {
-        await this.afterUpdate(prevData, newData, trx, cookie, updateObj);
+        await this.afterUpdate(prevData, newData, cookie, updateObj);
       }
       return newData;
     } catch (e) {
-      await this.errorUpdate(e, data, trx, cookie);
+      await this.errorUpdate(e, data, cookie);
       throw e;
     }
   }
@@ -3242,6 +3258,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     disableOptimization?: boolean;
     view?: View;
     ignoreRls?: boolean;
+    skipPublicRedaction?: boolean;
   }): Promise<any> {
     return this.readByPk(
       params.idOrRecord,
@@ -3251,6 +3268,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         ignoreView: params.ignoreView,
         getHiddenColumn: params.getHiddenColumn,
         ignoreRls: params.ignoreRls,
+        skipPublicRedaction: params.skipPublicRedaction,
       },
     );
   }
@@ -3308,7 +3326,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       await this.validate(insertObj, columns);
 
-      await this.beforeInsert(insertObj, this.dbDriver, request);
+      await this.beforeInsert(insertObj, request);
 
       await this.prepareNocoData(insertObj, true, request, null, {
         ncOrder: null,
@@ -3574,6 +3592,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           getHiddenColumn: true,
           source,
           ignoreRls: true,
+          // Skip public-viewer email redaction during this read — afterInsert
+          // fires the webhook with full emails, then we redact `response` in
+          // place below before returning to the API caller.
+          skipPublicRedaction: true,
         });
       }
 
@@ -3588,10 +3610,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       await this.afterInsert({
         data: response,
-        trx: this.dbDriver,
         req: request,
         insertData: data,
       });
+
+      // Counterpart to `skipPublicRedaction: true` above — restore the
+      // public-viewer redaction on the response after the webhook has fired.
+      await this.redactPublicForResponse(response);
 
       await this.statsUpdate({
         count: 1,
@@ -3990,6 +4015,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
 
       await trx.commit();
+      // Transaction is finalized; clear the reference so a post-commit
+      // failure below can't trigger rollback() on an already-closed trx.
+      trx = null;
 
       const updatedRecords = await this.chunkList({
         pks: updatedPks,
@@ -4055,7 +4083,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       if (insertedDatas.length === 1) {
         await this.afterInsert({
           data: insertedDataList[0],
-          trx: this.dbDriver,
           req: cookie,
           insertData: datas[0],
         });
@@ -4064,7 +4091,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           count: insertedDataList.length,
         });
       } else if (insertedDatas.length > 1) {
-        await this.afterBulkInsert(insertedDataList, this.dbDriver, cookie);
+        await this.afterBulkInsert(insertedDataList, cookie);
 
         await this.statsUpdate({
           count: insertedDataList.length,
@@ -4075,7 +4102,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         await this.afterUpdate(
           existingRecords[0],
           updatedDataList[0],
-          null,
           cookie,
           datas[0],
         );
@@ -4473,8 +4499,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         }
 
         await transaction.commit();
+        transaction = null;
       } catch (ex) {
+        // Roll back and propagate — silently swallowing here would let the
+        // post-update hooks (afterBulkUpdate, etc.) report success on data
+        // that was never written.
         await transaction.rollback();
+        // Mark finalized so the outer catch can't try to roll back the
+        // already-closed trx if a post-commit op throws.
+        transaction = null;
+        throw ex;
       }
 
       if (apiVersion === NcApiVersion.V3) {
@@ -4530,7 +4564,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         if (isSingleRecordUpdation) {
           await this.afterUpdate(prevData[0], newData[0], cookie, datas[0]);
         } else {
-          await this.afterBulkUpdate(prevData, newData, this.dbDriver, cookie);
+          await this.afterBulkUpdate(prevData, newData, cookie);
         }
       }
       profiler.end();
@@ -4675,7 +4709,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
 
       if (!args.skipValidationAndHooks && !skip_hooks)
-        await this.afterBulkUpdate(null, count, this.dbDriver, cookie, true);
+        await this.afterBulkUpdate(null, count, cookie, true);
 
       return count;
     } catch (e) {
@@ -4766,7 +4800,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         }
       }
 
-      await this.beforeBulkDelete(deleted, this.dbDriver, cookie);
+      await this.beforeBulkDelete(deleted, cookie);
 
       const source = await this.getSource();
 
@@ -5151,6 +5185,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
 
       await transaction.commit();
+      // Transaction is finalized; clear the reference so a post-commit
+      // failure below can't trigger rollback() on an already-closed trx.
+      transaction = null;
 
       const deletedIds = res.map((d) =>
         this.model.primaryKeys.length === 1
@@ -5192,7 +5229,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       if (isSingleRecordDeletion) {
         await this.afterDelete(
           deleted[0],
-          null,
           cookie,
           isSoftDelete
             ? AuditV1OperationTypes.DATA_SOFT_DELETE
@@ -5201,7 +5237,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       } else {
         await this.afterBulkDelete(
           deleted,
-          this.dbDriver,
           cookie,
           false,
           isSoftDelete
@@ -5267,7 +5302,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   public async beforeInsert(
     data: Record<string, any>,
-    _trx: any,
     req: NcRequest,
     params?: {
       allowSystemColumn?: boolean;
@@ -5287,7 +5321,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   public async beforeBulkInsert(
     data: Record<string, any>[],
-    _trx: any,
     req: NcRequest,
     params?: {
       allowSystemColumn?: boolean;
@@ -5308,12 +5341,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   public async afterInsert({
     data,
     insertData,
-    trx: _trx,
     req,
   }: {
     data: Record<string, any>;
     insertData: Record<string, any>;
-    trx: any;
     req: NcRequest;
   }): Promise<void> {
     await this.handleHooks('after.insert', null, data, req);
@@ -5356,7 +5387,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   public async afterBulkInsert(
     data: Record<string, any>[],
-    _trx: any,
     req: NcRequest,
   ): Promise<void> {
     await this.handleHooks('after.bulkInsert', null, data, req);
@@ -5433,7 +5463,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   public async afterDelete(
     data: Record<string, any>,
-    _trx: any,
     req: NcRequest,
     eventType: AuditV1OperationTypes = AuditV1OperationTypes.DATA_DELETE,
   ): Promise<void> {
@@ -5463,7 +5492,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   public async afterBulkDelete(
     data: Record<string, any>[],
-    _trx: any,
     req: NcRequest,
     isBulkAllOperation = false,
     bulkEventType: AuditV1OperationTypes = AuditV1OperationTypes.DATA_BULK_DELETE,
@@ -5606,7 +5634,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   public async afterBulkUpdate(
     prevData: Record<string, any>[] | null,
     newData: Record<string, any>[] | number,
-    _trx: any,
     req: NcRequest,
     isBulkAllOperation = false,
   ): Promise<void> {
@@ -5719,7 +5746,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   public async beforeUpdate(
     data: Record<string, any>,
-    _trx: any,
     req: NcRequest,
   ): Promise<void> {
     const ignoreWebhook = req.query?.ignoreWebhook;
@@ -5738,7 +5764,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   public async afterUpdate(
     prevData: Record<string, any>,
     newData: Record<string, any>,
-    _trx: any,
     req: NcRequest,
     updateObj?: Record<string, any>,
   ): Promise<void> {
@@ -5820,7 +5845,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   public async beforeDelete(
     data: Record<string, any>,
-    _trx: any,
     req: NcRequest,
   ): Promise<void> {
     if (this.model.synced) {
@@ -5835,7 +5859,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   public async beforeBulkDelete(
     _data: Record<string, any>[],
-    _trx: any,
     _req: NcRequest,
   ): Promise<void> {
     if (this.model.synced) {
@@ -5852,6 +5875,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     newData: Record<string, any> | Record<string, any>[] | null,
     req: NcRequest,
   ): Promise<void> {
+    // Webhook destinations are server-side and configured by the workspace
+    // owner — they receive whatever the caller passes here. Public-viewer
+    // email redaction is applied at the API response boundary (in afterX
+    // methods, after this hook fires), not in the data layer, so write paths
+    // that opt in via `skipPublicRedaction` on their read deliver full emails
+    // to webhooks while the API response remains redacted.
     Noco.eventEmitter.emit(HANDLE_WEBHOOK, {
       context: { ...this.context, cache: false, cacheMap: undefined },
       hookName,
@@ -5864,17 +5893,31 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     });
   }
 
+  // Apply public-viewer email redaction to data destined for the API response,
+  // after webhook hooks have fired with full emails. Idempotent — redacting
+  // already-redacted data is a no-op. Variadic so callers can pass multiple
+  // payloads in one call (e.g. prevData + newData on updates).
+  protected async redactPublicForResponse(
+    ...payloads: any[]
+  ): Promise<void> {
+    if (!this.context?.is_public) return;
+    const userColumns = await this._getUserBearingColumns();
+    if (!userColumns.length) return;
+    for (const p of payloads) {
+      if (p == null) continue;
+      await this._applyPublicEmailRedaction(p, userColumns);
+    }
+  }
+
   public async errorInsert(
     _e: Error,
     _data: Record<string, any>,
-    _trx: any,
     _cookie: NcRequest,
   ) {}
 
   public async errorUpdate(
     _e: Error,
     _data: Record<string, any>,
-    _trx: any,
     _cookie: NcRequest,
   ) {}
 
@@ -5886,7 +5929,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   protected async errorDelete(
     _e: Error,
     _id: Record<string, any>,
-    _trx: any,
     _cookie: NcRequest,
   ) {}
 
@@ -7111,6 +7153,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         data,
         dependencyColumns,
         options?.apiVersion,
+        { skipPublicRedaction: options?.skipPublicRedaction },
       );
     }
 
@@ -7348,16 +7391,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     data: Record<string, any>[],
     dependencyColumns?: Column[],
     apiVersion?: NcApiVersion,
+    options?: { skipPublicRedaction?: boolean },
   ): Promise<Record<string, any>[]>;
   protected async convertUserFormat(
     data: Record<string, any>,
     dependencyColumns?: Column[],
     apiVersion?: NcApiVersion,
+    options?: { skipPublicRedaction?: boolean },
   ): Promise<Record<string, any>>;
   protected async convertUserFormat(
     data: Record<string, any>,
     dependencyColumns?: Column[],
     apiVersion?: NcApiVersion,
+    options?: { skipPublicRedaction?: boolean },
   ) {
     // user is stored as id within the database
     // convertUserFormat is used to convert the response in id to user object in API response
@@ -7418,9 +7464,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     await PresignedUrl.signMetaIconImage(baseUsers);
 
+    let converted: Record<string, any> | Record<string, any>[];
     if (Array.isArray(data)) {
       const userMap = new Map(baseUsers.map((user) => [user.id, user]));
-      return Promise.all(
+      converted = await Promise.all(
         data.map((d) =>
           this._convertUserFormat(
             allUserColumns,
@@ -7432,13 +7479,22 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         ),
       );
     } else {
-      return this._convertUserFormat(
+      converted = this._convertUserFormat(
         allUserColumns,
         baseUsers,
         data,
         apiVersion,
       );
     }
+
+    // Apply public-viewer redaction at the conversion boundary unless the
+    // caller opted out (e.g. the read feeds a webhook hook that needs full
+    // emails — the caller will redact again after firing the hook).
+    if (!options?.skipPublicRedaction) {
+      await this._applyPublicEmailRedaction(converted, allUserColumns);
+    }
+
+    return converted;
   }
 
   protected _convertUserFormat(
@@ -7506,6 +7562,105 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
     } catch {}
     return d;
+  }
+
+  // Public viewers must not see real emails on User / CreatedBy / LastModifiedBy
+  // / Lookup-of-User values. We redact at the API response boundary instead of
+  // inside `_convertUserFormat` so write hooks (webhooks, audit) see full data —
+  // those destinations are server-side and configured by the workspace owner.
+  // Mutates `data` in-place. Walks by column metadata (no shape heuristics) and
+  // accepts data keyed by `col.id` (mid-pipeline) or `col.title` (post-alias).
+  protected async _applyPublicEmailRedaction<T>(
+    data: T,
+    userColumns: Column[],
+  ): Promise<T> {
+    if (!this.context?.is_public || !data || !userColumns?.length) return data;
+
+    const redactUser = (u: any) => {
+      if (!u || typeof u !== 'object' || Array.isArray(u)) return;
+      if (u.email) {
+        u.display_name = extractDisplayNameFromEmail(u.email, u.display_name);
+      }
+      u.email = '';
+    };
+
+    const redactColumnValue = (value: any) => {
+      if (value == null) return;
+      if (Array.isArray(value)) {
+        for (const item of value) {
+          if (Array.isArray(item)) {
+            for (const inner of item) redactUser(inner);
+          } else {
+            redactUser(item);
+          }
+        }
+        return;
+      }
+      redactUser(value);
+    };
+
+    const redactRow = (row: any) => {
+      if (!row || typeof row !== 'object' || Array.isArray(row)) return;
+      for (const col of userColumns) {
+        if (col.id && row[col.id] !== undefined) {
+          redactColumnValue(row[col.id]);
+        } else if (col.title && row[col.title] !== undefined) {
+          redactColumnValue(row[col.title]);
+        }
+      }
+    };
+
+    if (Array.isArray(data)) {
+      for (const row of data) redactRow(row);
+    } else {
+      redactRow(data);
+    }
+
+    return data;
+  }
+
+  // Resolve the User / CreatedBy / LastModifiedBy / Lookup-of-User columns
+  // we care about for `_applyPublicEmailRedaction`. Exposed as a helper so
+  // afterInsert/afterUpdate can resolve once and reuse.
+  protected async _getUserBearingColumns(): Promise<Column[]> {
+    const columns = await this.model.getColumns(this.context);
+    const directUserColumns: Column[] = [];
+    const lookupColumns: Column[] = [];
+
+    for (const col of columns) {
+      if (col.uidt === UITypes.Lookup) {
+        lookupColumns.push(col);
+      } else if (
+        [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
+          col.uidt,
+        )
+      ) {
+        directUserColumns.push(col);
+      }
+    }
+
+    const lookupUserColumns = lookupColumns.length
+      ? (
+          await Promise.all(
+            lookupColumns.map(async (col) => {
+              try {
+                const nestedCol = await this.getNestedColumn(col);
+                return [
+                  UITypes.User,
+                  UITypes.CreatedBy,
+                  UITypes.LastModifiedBy,
+                ].includes(nestedCol?.uidt as UITypes)
+                  ? col
+                  : null;
+              } catch {
+                return null;
+              }
+            }),
+          )
+        ).filter(Boolean)
+      : [];
+
+    return [...directUserColumns, ...lookupUserColumns];
   }
 
   protected async _convertAttachmentType(
@@ -8039,6 +8194,21 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       if (d[col.id] instanceof Date) {
         // e.g. MSSQL
         // Wed May 10 2023 17:47:46 GMT+0800 (Hong Kong Standard Time)
+        keepLocalTime = false;
+      }
+
+      // MySQL DateTime/CreatedTime/LastModifiedTime selects are wrapped with
+      // CONVERT_TZ(...,'+00:00') + a literal '+00:00' suffix in select-object.ts
+      // so the string is already correct UTC. Without this branch,
+      // dayjs.utc(keepLocalTime=true) would re-anchor the wall clock to the
+      // NocoDB server's local timezone before stamping +00:00 — on a non-UTC
+      // server (e.g. IST), this re-shifts the value and the displayed records
+      // no longer match the group-by SELECT's UTC keys.
+      if (
+        this.isMySQL &&
+        typeof d[col.id] === 'string' &&
+        !noTimezoneRegex.test(d[col.id])
+      ) {
         keepLocalTime = false;
       }
       // e.g. 01.01.2022 10:00:00+05:30 -> 2022-01-01 04:30:00+00:00
@@ -9736,17 +9906,22 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
    * or null if the table has no __nc_deleted column or is not a meta (NocoDB-managed) source.
    */
   public async getSoftDeleteFilter(): Promise<Knex.QueryCallback | null> {
-    const columns = await this.model.getColumns(this.context);
-    const deletedColumn = columns.find((c) => isDeletedCol(c));
-    if (!deletedColumn) return null;
+    if (this._softDeleteFilter !== undefined) return this._softDeleteFilter;
 
-    const source = await this.getSource();
-    if (!source.isMeta()) return null;
+    this._softDeleteFilter = (async () => {
+      const columns = await this.model.getColumns(this.context);
+      const deletedColumn = columns.find((c) => isDeletedCol(c));
+      if (!deletedColumn) return null;
 
-    const columnName = deletedColumn.column_name;
-    return function () {
-      this.whereNull(columnName).orWhere(columnName, false);
-    };
+      const source = await this.getSource();
+      if (!source.isMeta() || !this.model.isTrashEnabled) return null;
+      const columnName = deletedColumn.column_name;
+      return function () {
+        this.whereNull(columnName).orWhere(columnName, false);
+      };
+    })();
+
+    return this._softDeleteFilter;
   }
 }
 

@@ -827,18 +827,17 @@ export const deleteColumnSystemPropsFromRequest = (
   delete col.validate;
   switch (opts?.operationSource) {
     case OperationSource.AT_IMPORT: {
-      const isNcRecordColumn = col.system &&
-        ['ncRecordId', 'ncRecordHash'].includes(col.title);
+      const isNcRecordColumn =
+        col.system && ['ncRecordId', 'ncRecordHash'].includes(col.title);
       if (!isNcRecordColumn) {
         delete col.system;
       }
       break;
     }
-    deafult: {
+    default: {
       delete col.system;
     }
   }
-  
 };
 
 // get the reverse type of the relation

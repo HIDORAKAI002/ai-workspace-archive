@@ -36,7 +36,13 @@
 - publish the X thread from `x-thread.md`
 - publish the LinkedIn draft from `linkedin-post.md`
 - use `article-outline.md` for the longer writeup
+- route sponsor, partner, consulting, conference, podcast, and GitHub
+  Discussion copy through `partner-sponsor-talks-pack.md`
 - record one 30-60 second proof-of-work clip
+- validate the release video suite with `npm run release:video-suite -- --format json`
+  after setting `ECC_VIDEO_SOURCE_ROOT` and `ECC_VIDEO_RELEASE_SUITE_ROOT`
+- keep `video-suite-production.md` aligned with the actual primary launch
+  render, timeline, captions, and self-eval gate
 
 ## Demo Asset Suggestions
 
@@ -54,3 +60,6 @@ Use language like:
 - "cross-harness operating system for agentic work"
 - "ECC is the reusable substrate; Hermes is the operator shell"
 - "private/local integrations land after sanitization"
+
+Do not send sponsor, partner, consulting, conference, or podcast outreach
+without explicit human approval.

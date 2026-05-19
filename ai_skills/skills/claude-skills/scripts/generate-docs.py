@@ -22,6 +22,8 @@ DOMAINS = {
     "productivity": ("Productivity", 10, ":material-lightning-bolt-outline:", "productivity-skills"),
     "marketing": ("Marketing (Top-Level)", 11, ":material-web:", "marketing-top-level-skills"),
     "research": ("Research", 12, ":material-magnify:", "research-skills"),
+    "business-operations": ("Business Operations", 13, ":material-cog-outline:", "business-operations-skills"),
+    "commercial": ("Commercial", 14, ":material-handshake-outline:", "commercial-skills"),
 }
 
 # Skills to skip (nested assets, samples, etc.)
@@ -625,16 +627,25 @@ description: "{agent_desc}"
         "ra-qm-team": "ra-qm-team",
         "business-growth": "business-growth",
         "finance": "finance",
+        "business-operations": "business-operations",
+        "commercial": "commercial",
     }
     seen_slugs = {entry[1] for entry in agent_entries}
     for skill_domain in DOMAINS:
         skill_domain_path = os.path.join(REPO_ROOT, skill_domain)
         if not os.path.isdir(skill_domain_path):
             continue
+        # Pass 2a: <domain>/agents/<agent>.md (v2.8.0 pattern — business-operations, commercial)
+        domain_agents = os.path.join(skill_domain_path, "agents")
+        candidate_dirs = []
+        if os.path.isdir(domain_agents):
+            candidate_dirs.append(domain_agents)
+        # Pass 2b: <domain>/<plugin>/agents/<agent>.md (legacy pattern — c-level-agents, agenthub, etc.)
         for plugin_name in sorted(os.listdir(skill_domain_path)):
             plugin_agents_dir = os.path.join(skill_domain_path, plugin_name, "agents")
-            if not os.path.isdir(plugin_agents_dir):
-                continue
+            if os.path.isdir(plugin_agents_dir):
+                candidate_dirs.append(plugin_agents_dir)
+        for plugin_agents_dir in candidate_dirs:
             agent_domain_key = SKILL_TO_AGENT_DOMAIN.get(skill_domain, skill_domain)
             domain_info = AGENT_DOMAINS.get(agent_domain_key, (prettify(agent_domain_key), ":material-account:"))
             domain_label, domain_icon = domain_info
@@ -771,6 +782,77 @@ description: "{cmd_desc}"
             with open(out_path, "w", encoding="utf-8") as f:
                 f.write(page)
             cmd_count += 1
+            desc = extract_subtitle(cmd_path) or title
+            cmd_entries.append((cmd_name, slug, title, desc))
+
+    # Pass 2: domain-level and skill-internal commands/ folders.
+    # Patterns:
+    #   <domain>/commands/<cmd>.md         — v2.8.0 (business-operations, commercial)
+    #   <domain>/<skill>/commands/<cmd>.md — v2.7.0 (productivity, research, marketing top-level)
+    seen_cmd_slugs = {entry[1] for entry in cmd_entries}
+    extra_cmd_dirs = []
+    for skill_domain in DOMAINS:
+        skill_domain_path = os.path.join(REPO_ROOT, skill_domain)
+        if not os.path.isdir(skill_domain_path):
+            continue
+        # v2.8.0 pattern: <domain>/commands/
+        domain_cmds = os.path.join(skill_domain_path, "commands")
+        if os.path.isdir(domain_cmds):
+            extra_cmd_dirs.append(domain_cmds)
+        # v2.7.0 pattern: <domain>/<skill>/commands/
+        for entry in sorted(os.listdir(skill_domain_path)):
+            if entry in {"skills", "agents", "commands", ".claude-plugin", ".codex-plugin"}:
+                continue
+            skill_cmds = os.path.join(skill_domain_path, entry, "commands")
+            if os.path.isdir(skill_cmds):
+                extra_cmd_dirs.append(skill_cmds)
+
+    for cmd_dir in extra_cmd_dirs:
+        for cmd_file in sorted(os.listdir(cmd_dir)):
+            if not cmd_file.endswith(".md") or cmd_file == "CLAUDE.md":
+                continue
+            cmd_name = cmd_file.replace(".md", "")
+            slug = slugify(cmd_name)
+            if slug in seen_cmd_slugs:
+                continue
+            cmd_path = os.path.join(cmd_dir, cmd_file)
+            rel = os.path.relpath(cmd_path, REPO_ROOT)
+            title = extract_title(cmd_path) or prettify(cmd_name)
+            title = re.sub(r"[*_`]", "", title)
+
+            with open(cmd_path, "r", encoding="utf-8") as f:
+                content = f.read()
+
+            content_clean = strip_content(content)
+            content_clean = rewrite_relative_links(content_clean, rel)
+
+            cmd_fm_desc = extract_description_from_frontmatter(cmd_path)
+            if cmd_fm_desc:
+                cmd_clean = cmd_fm_desc.strip("'\"").replace('"', "'")
+                if len(cmd_clean) > 150:
+                    cmd_clean = cmd_clean[:150].rsplit(" ", 1)[0].rstrip(".,;:—-")
+                cmd_desc = f"{cmd_clean}. Slash command for Claude Code, Codex CLI, Gemini CLI."
+            else:
+                cmd_desc = f"/{cmd_name} — slash command for Claude Code, Codex CLI, and Gemini CLI. Run directly in your AI coding agent."
+
+            page = f'''---
+title: "/{cmd_name} — Slash Command for AI Coding Agents"
+description: "{cmd_desc}"
+---
+
+# /{cmd_name}
+
+<div class="page-meta" markdown>
+<span class="meta-badge">:material-console: Slash Command</span>
+<span class="meta-badge">:material-github: <a href="https://github.com/alirezarezvani/2-claude-skills/tree/main/{rel}">Source</a></span>
+</div>
+
+{content_clean}'''
+            out_path = os.path.join(commands_docs_dir, f"{slug}.md")
+            with open(out_path, "w", encoding="utf-8") as f:
+                f.write(page)
+            cmd_count += 1
+            seen_cmd_slugs.add(slug)
             desc = extract_subtitle(cmd_path) or title
             cmd_entries.append((cmd_name, slug, title, desc))
 
