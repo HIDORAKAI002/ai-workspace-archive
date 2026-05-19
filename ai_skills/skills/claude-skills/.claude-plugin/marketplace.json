@@ -1193,6 +1193,54 @@
         "static-analysis"
       ],
       "category": "development"
+    },
+    {
+      "name": "business-operations-skills",
+      "source": "./business-operations",
+      "description": "Internal BizOps domain. Sprint 1 ships 3 skills: orchestrator + process-mapper (BPMN + bottleneck + cycle-time, Lean/TOC canon) + vendor-management (scorecard + SLA + third-party risk, Shared Assessments SIG-Lite). Orchestrator uses context: fork to route inquiries via Matt Pocock grill discipline (one question per turn, recommended answer, canon-cited challenge). Distinct from business-growth (external sales) and c-level-advisor (strategic). Sprint 2 adds capacity-planner, internal-comms, knowledge-ops, procurement-optimizer.",
+      "version": "2.8.0",
+      "author": {
+        "name": "Alireza Rezvani"
+      },
+      "keywords": [
+        "bizops",
+        "operations",
+        "process-mapping",
+        "bottleneck",
+        "vendor-management",
+        "sla",
+        "third-party-risk",
+        "lean",
+        "theory-of-constraints",
+        "value-stream",
+        "matt-pocock",
+        "grill-with-docs"
+      ],
+      "category": "operations"
+    },
+    {
+      "name": "commercial-skills",
+      "source": "./commercial",
+      "description": "Per-deal-and-packaging Commercial domain. Sprint 1 ships 3 skills: orchestrator + pricing-strategist (model picker + Van Westendorp WTP + packaging) + deal-desk (deal scorer + discount approval routing + redline). Orchestrator uses context: fork; sub-skills follow Matt Pocock grill discipline. Hard rules: pricing outputs model+range (never a single number), deal outputs route to named human approver (never auto-approve), forecast outputs surface conversion assumption. Distinct from business-growth (sales execution), c-level-advisor/cro-advisor (strategic), finance (close+report). Sprint 2 adds partnerships-architect, channel-economics, commercial-policy, rfp-responder, commercial-forecaster.",
+      "version": "2.8.0",
+      "author": {
+        "name": "Alireza Rezvani"
+      },
+      "keywords": [
+        "commercial",
+        "pricing",
+        "deal-desk",
+        "discount-approval",
+        "van-westendorp",
+        "wtp",
+        "packaging",
+        "saas-pricing",
+        "redline",
+        "margin",
+        "matt-pocock",
+        "grill-with-docs"
+      ],
+      "category": "commercial"
     }
   ]
 }
