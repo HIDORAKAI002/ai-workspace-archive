@@ -10,6 +10,7 @@
       ],
       "targets": [
         "claude",
+        "claude-project",
         "cursor",
         "antigravity",
         "codebuddy",
@@ -33,6 +34,7 @@
       ],
       "targets": [
         "claude",
+        "claude-project",
         "cursor",
         "antigravity",
         "codex",
@@ -55,6 +57,7 @@
       ],
       "targets": [
         "claude",
+        "claude-project",
         "cursor",
         "antigravity",
         "opencode",
@@ -79,6 +82,7 @@
       ],
       "targets": [
         "claude",
+        "claude-project",
         "cursor",
         "opencode",
         "codebuddy"
@@ -106,6 +110,7 @@
       ],
       "targets": [
         "claude",
+        "claude-project",
         "cursor",
         "antigravity",
         "codex",
@@ -177,6 +182,7 @@
       ],
       "targets": [
         "claude",
+        "claude-project",
         "cursor",
         "antigravity",
         "codex",
@@ -210,6 +216,7 @@
       ],
       "targets": [
         "claude",
+        "claude-project",
         "cursor",
         "antigravity",
         "codex",
@@ -255,6 +262,7 @@
       ],
       "targets": [
         "claude",
+        "claude-project",
         "cursor",
         "antigravity",
         "codex",
@@ -294,6 +302,7 @@
       ],
       "targets": [
         "claude",
+        "claude-project",
         "cursor",
         "antigravity",
         "codex",
@@ -326,6 +335,7 @@
       ],
       "targets": [
         "claude",
+        "claude-project",
         "cursor",
         "antigravity",
         "codex",
@@ -360,6 +370,7 @@
       ],
       "targets": [
         "claude",
+        "claude-project",
         "cursor",
         "antigravity",
         "codex",
@@ -402,6 +413,7 @@
       ],
       "targets": [
         "claude",
+        "claude-project",
         "cursor",
         "antigravity",
         "codex",
@@ -428,6 +440,7 @@
       ],
       "targets": [
         "claude",
+        "claude-project",
         "cursor",
         "antigravity",
         "codex",
@@ -459,6 +472,7 @@
       ],
       "targets": [
         "claude",
+        "claude-project",
         "cursor",
         "codex",
         "opencode",
@@ -490,6 +504,7 @@
       ],
       "targets": [
         "claude",
+        "claude-project",
         "codex",
         "opencode"
       ],
@@ -515,6 +530,7 @@
       ],
       "targets": [
         "claude",
+        "claude-project",
         "cursor",
         "antigravity",
         "codex",
@@ -559,6 +575,7 @@
       ],
       "targets": [
         "claude",
+        "claude-project",
         "cursor",
         "antigravity",
         "codex",
@@ -592,6 +609,7 @@
       ],
       "targets": [
         "claude",
+        "claude-project",
         "cursor",
         "antigravity",
         "codex",
@@ -617,6 +635,7 @@
       ],
       "targets": [
         "claude",
+        "claude-project",
         "cursor",
         "antigravity",
         "codex",
@@ -653,6 +672,7 @@
       ],
       "targets": [
         "claude",
+        "claude-project",
         "cursor",
         "antigravity",
         "codex",
@@ -679,6 +699,7 @@
       ],
       "targets": [
         "claude",
+        "claude-project",
         "cursor",
         "antigravity",
         "codex",
@@ -703,7 +724,8 @@
         "docs/ja-JP"
       ],
       "targets": [
-        "claude"
+        "claude",
+        "claude-project"
       ],
       "dependencies": [],
       "defaultInstall": false,
@@ -718,7 +740,8 @@
         "docs/zh-CN"
       ],
       "targets": [
-        "claude"
+        "claude",
+        "claude-project"
       ],
       "dependencies": [],
       "defaultInstall": false,
@@ -733,7 +756,8 @@
         "docs/ko-KR"
       ],
       "targets": [
-        "claude"
+        "claude",
+        "claude-project"
       ],
       "dependencies": [],
       "defaultInstall": false,
@@ -748,7 +772,8 @@
         "docs/pt-BR"
       ],
       "targets": [
-        "claude"
+        "claude",
+        "claude-project"
       ],
       "dependencies": [],
       "defaultInstall": false,
@@ -763,7 +788,8 @@
         "docs/ru"
       ],
       "targets": [
-        "claude"
+        "claude",
+        "claude-project"
       ],
       "dependencies": [],
       "defaultInstall": false,
@@ -778,7 +804,8 @@
         "docs/tr"
       ],
       "targets": [
-        "claude"
+        "claude",
+        "claude-project"
       ],
       "dependencies": [],
       "defaultInstall": false,
@@ -793,7 +820,8 @@
         "docs/vi-VN"
       ],
       "targets": [
-        "claude"
+        "claude",
+        "claude-project"
       ],
       "dependencies": [],
       "defaultInstall": false,
@@ -808,7 +836,8 @@
         "docs/zh-TW"
       ],
       "targets": [
-        "claude"
+        "claude",
+        "claude-project"
       ],
       "dependencies": [],
       "defaultInstall": false,

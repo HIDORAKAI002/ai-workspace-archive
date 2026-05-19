@@ -4,7 +4,7 @@ const path = require('path');
 const { getInstallTargetAdapter, planInstallTargetScaffold } = require('./install-targets/registry');
 
 const DEFAULT_REPO_ROOT = path.join(__dirname, '../..');
-const SUPPORTED_INSTALL_TARGETS = ['claude', 'cursor', 'antigravity', 'codex', 'gemini', 'opencode', 'codebuddy', 'joycode', 'qwen', 'zed'];
+const SUPPORTED_INSTALL_TARGETS = ['claude', 'claude-project', 'cursor', 'antigravity', 'codex', 'gemini', 'opencode', 'codebuddy', 'joycode', 'qwen', 'zed'];
 const COMPONENT_FAMILY_PREFIXES = {
   baseline: 'baseline:',
   language: 'lang:',
@@ -36,6 +36,14 @@ function listSupportedLocales() {
 }
 const LEGACY_COMPAT_BASE_MODULE_IDS_BY_TARGET = Object.freeze({
   claude: [
+    'rules-core',
+    'agents-core',
+    'commands-core',
+    'hooks-runtime',
+    'platform-configs',
+    'workflow-quality',
+  ],
+  'claude-project': [
     'rules-core',
     'agents-core',
     'commands-core',

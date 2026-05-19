@@ -32,8 +32,8 @@ class Task(BaseModel):
     _response: Optional[Union[str, bytes]] = None
     context: Any = None
     _context_formatted: Optional[str] = None
-    price_id_: Optional[str] = None
     task_id_: Optional[str] = None
+    task_usage_id_: Optional[str] = None
     not_main_task: bool = False
     start_time: Optional[int] = None
     end_time: Optional[int] = None
@@ -310,8 +310,8 @@ class Task(BaseModel):
         response: Optional[Union[str, bytes]] = None,
         context: Any = None,
         _context_formatted: Optional[str] = None,
-        price_id_: Optional[str] = None,
         task_id_: Optional[str] = None,
+        task_usage_id_: Optional[str] = None,
         not_main_task: bool = False,
         start_time: Optional[int] = None,
         end_time: Optional[int] = None,
@@ -375,10 +375,11 @@ class Task(BaseModel):
 
         # Eagerly generate IDs if not provided
         import uuid
-        if price_id_ is None:
-            price_id_ = str(uuid.uuid4())
+        from upsonic.usage_registry import new_usage_id
         if task_id_ is None:
             task_id_ = str(uuid.uuid4())
+        if task_usage_id_ is None:
+            task_usage_id_ = new_usage_id("task")
 
         super().__init__(**{
             "description": description,
@@ -389,8 +390,8 @@ class Task(BaseModel):
             "_response": response,
             "context": context,
             "_context_formatted": _context_formatted,
-            "price_id_": price_id_,
             "task_id_": task_id_,
+            "task_usage_id_": task_usage_id_,
             "not_main_task": not_main_task,
             "start_time": start_time,
             "end_time": end_time,
@@ -429,34 +430,18 @@ class Task(BaseModel):
         self.validate_tools()
 
     @property
-    def usage(self) -> Optional["TaskUsage"]:
-        return self._usage
+    def usage(self) -> Optional[Any]:
+        """Aggregated usage for every ledger entry recorded under this
+        task's scope.
 
-    @property
-    def duration(self) -> Optional[float]:
-        if self._usage is not None and self._usage.duration is not None:
-            return self._usage.duration
-        if self.start_time is None or self.end_time is None:
-            return None
-        return self.end_time - self.start_time
+        Returns an :class:`AggregatedUsage` view derived from the usage
+        registry. Shape mirrors the previous :class:`TaskUsage`
+        (input_tokens, output_tokens, cost, requests, duration,
+        model_execution_time, ...) so existing callers keep working.
+        """
+        from upsonic.usage_registry import get_default_registry
+        return get_default_registry().by_task(self.task_usage_id_) if self.task_usage_id_ else None
 
-    @property
-    def model_execution_time(self) -> Optional[float]:
-        if self._usage is not None:
-            return self._usage.model_execution_time
-        return None
-
-    @property
-    def tool_execution_time(self) -> Optional[float]:
-        if self._usage is not None:
-            return self._usage.tool_execution_time
-        return None
-
-    @property
-    def upsonic_execution_time(self) -> Optional[float]:
-        if self._usage is not None:
-            return self._usage.upsonic_execution_time
-        return None
 
     @property
     def id(self) -> str:
@@ -737,13 +722,19 @@ class Task(BaseModel):
 
 
     @property
-    def price_id(self):
-        return self.price_id_
-
-    @property
     def task_id(self):
         return self.task_id_
-    
+
+    @property
+    def task_usage_id(self) -> str:
+        """Stable id used by the usage registry to scope every ledger
+        entry produced while this task is running. Lazily generated when
+        not set explicitly."""
+        if self.task_usage_id_ is None:
+            from upsonic.usage_registry import new_usage_id
+            self.task_usage_id_ = new_usage_id("task")
+        return self.task_usage_id_
+
     def get_task_id(self):
         return f"Task_{self.task_id[:8]}"
 
@@ -761,52 +752,6 @@ class Task(BaseModel):
         return self._response
 
 
-
-    def get_total_cost(self):
-        if self.price_id_ is None:
-            return None
-        # Lazy import for heavy modules
-        from upsonic.utils.printing import get_price_id_total_cost
-        return get_price_id_total_cost(self.price_id)
-    
-    @property
-    def total_cost(self) -> Optional[float]:
-        """
-        Get the total estimated cost of this task.
-        
-        Returns:
-            Optional[float]: The estimated cost in USD, or None if not available
-        """
-        the_total_cost = self.get_total_cost()
-        if the_total_cost and "estimated_cost" in the_total_cost:
-            return the_total_cost["estimated_cost"]
-        return None
-        
-    @property
-    def total_input_token(self) -> Optional[int]:
-        """
-        Get the total number of input tokens used by this task.
-        
-        Returns:
-            Optional[int]: The number of input tokens, or None if not available
-        """
-        the_total_cost = self.get_total_cost()
-        if the_total_cost and "input_tokens" in the_total_cost:
-            return the_total_cost["input_tokens"]
-        return None
-        
-    @property
-    def total_output_token(self) -> Optional[int]:
-        """
-        Get the total number of output tokens used by this task.
-        
-        Returns:
-            Optional[int]: The number of output tokens, or None if not available
-        """
-        the_total_cost = self.get_total_cost()
-        if the_total_cost and "output_tokens" in the_total_cost:
-            return the_total_cost["output_tokens"]
-        return None
 
     @property
     def cache_hit(self) -> bool:
@@ -872,25 +817,65 @@ class Task(BaseModel):
 
 
 
+    def reset_run_state(self) -> None:
+        """Clear per-attempt state so a fresh pipeline run does not inherit
+        leftover values from a previous (failed or completed) attempt.
+
+        Called from ``task_start()`` so every fresh pipeline run starts clean,
+        and from the agent retry path so re-attempts after a failure cannot
+        carry stale flags. In particular ``is_paused`` is set to True by the
+        pipeline manager when a run errors or is cancelled; without clearing
+        it here, a successful retry attempt would still look paused.
+
+        Does NOT touch user-provided configuration (description, tools,
+        response_format, ...) or persistent fields (task_id_, task_usage_id_,
+        agent, _cache_manager, _tool_manager). Does NOT recreate ``_usage``
+        — ``task_start()`` owns that lifecycle.
+        """
+        self.is_paused = False
+        self.status = None
+        # Do NOT reset ``_run_id`` here: ``do_async`` assigns it before the
+        # pipeline runs and this method runs inside InitStep — clearing it
+        # would break cross-process resume, which keys on ``task.run_id``.
+        self.start_time = None
+        self.end_time = None
+
+        self._response = None
+        self._tool_calls = None
+
+        self._cache_hit = False
+        self._last_cache_entry = None
+        self._cached_result = False
+
+        self._policy_blocked = False
+        self._saved_context_for_policy = None
+        self._policy_originals = None
+        self._policy_scope_tool_outputs = False
+
+        self._anonymization_map = None
+
+        self._reliability_sub_agent_usage = None
+
+        self._context_formatted = None
+
+        self._promptlayer_request_id = None
+
     def task_start(self, agent: Any) -> None:
         """Initialize task for a fresh pipeline run.
 
         This is called by InitStep (step 0) and always means the start of a
-        brand-new pipeline execution. It creates fresh TaskUsage and resets
-        per-run state. Must NOT be called during HITL resume — the pipeline
-        skips InitStep when resuming from a later step, which is the correct
-        behavior. If this is ever called while _usage already has accumulated
-        data, it means a full restart was intended.
+        brand-new pipeline execution. It clears per-run state via
+        ``reset_run_state()`` and then creates fresh ``TaskUsage``. Must NOT
+        be called during HITL resume — the pipeline skips InitStep when
+        resuming from a later step, which is the correct behavior. If this
+        is ever called while ``_usage`` already has accumulated data, it
+        means a full restart was intended.
         """
+        self.reset_run_state()
         self.start_time = time.time()
-        self.end_time = None
         from upsonic.usage import TaskUsage
         self._usage = TaskUsage()
         self._usage.start_timer()
-        # Reset per-run state
-        self._context_formatted = None
-        self._cached_result = False
-        self._policy_blocked = False
         if agent.canvas:
             self.add_canvas(agent.canvas)
 
@@ -1052,8 +1037,8 @@ class Task(BaseModel):
             "description": self.description,
             "attachments": self.attachments,
             "response_lang": self.response_lang,
-            "price_id_": self.price_id_,
             "task_id_": self.task_id_,
+            "task_usage_id_": self.task_usage_id_,
             "not_main_task": self.not_main_task,
             "start_time": self.start_time,
             "end_time": self.end_time,
@@ -1270,7 +1255,7 @@ class Task(BaseModel):
         # Filter to only fields that Task accepts in constructor
         valid_fields = {
             "description", "attachments", "response_lang", "context",
-            "price_id_", "task_id_", "not_main_task", "start_time", "end_time",
+            "task_id_", "task_usage_id_", "not_main_task", "start_time", "end_time",
             "enable_thinking_tool", "enable_reasoning_tool",
             "guardrail_retries", "is_paused", "enable_cache", "cache_method",
             "cache_threshold", "cache_duration_minutes", "query_knowledge_base", "vector_search_top_k",

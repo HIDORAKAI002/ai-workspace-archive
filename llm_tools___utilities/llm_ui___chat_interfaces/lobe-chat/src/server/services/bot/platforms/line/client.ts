@@ -20,6 +20,7 @@ import {
   type BotPlatformRuntimeContext,
   type BotProviderConfig,
   ClientFactory,
+  messengerContentText,
   type PlatformClient,
   type PlatformMessenger,
   type UsageStats,
@@ -166,14 +167,16 @@ class LineWebhookClient implements PlatformClient {
   getMessenger(platformThreadId: string): PlatformMessenger {
     const { id: recipient, type } = decodeThread(platformThreadId);
     return {
+      // Attachments are silently dropped for now — LINE outbound media is
+      // its own follow-up; reply text still ships.
       createMessage: async (content) => {
-        await this.api.pushText(recipient, content);
+        await this.api.pushText(recipient, messengerContentText(content));
       },
       // LINE does not support editing — `supportsMessageEdit: false` makes the
       // bridge skip the per-step progress edit, but we still implement this
       // path so any unexpected caller falls back to a fresh push.
       editMessage: async (_messageId, content) => {
-        await this.api.pushText(recipient, content);
+        await this.api.pushText(recipient, messengerContentText(content));
       },
       removeReaction: () => Promise.resolve(),
       triggerTyping: async () => {

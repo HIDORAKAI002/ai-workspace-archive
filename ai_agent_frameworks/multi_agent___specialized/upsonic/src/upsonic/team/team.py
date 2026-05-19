@@ -43,6 +43,8 @@ class Team:
                  debug_level: int = 1,
                  agents: Optional[List[Union[Agent, "Team"]]] = None,
                  print: Optional[bool] = None,
+                 team_id: Optional[str] = None,
+                 team_usage_id: Optional[str] = None,
                  ):
         """
         Initialize the Team with entities (Agents and/or nested Teams) and optionally tasks.
@@ -71,6 +73,10 @@ class Team:
         self.entities: List[Union[Agent, Team]] = resolved_entities
         self.tasks: List[Task] = tasks if isinstance(tasks, list) else [tasks] if tasks is not None else []
         self.name: Optional[str] = name
+
+        from upsonic.usage_registry import new_usage_id
+        self.team_id: str = team_id or new_usage_id("team")
+        self.team_usage_id: str = team_usage_id or new_usage_id("team")
         self.role: Optional[str] = role
         self.goal: Optional[str] = goal
         self.model: Optional[Any] = model
@@ -98,6 +104,18 @@ class Team:
 
         if self.ask_other_team_members:
             self.add_tool()
+
+    @property
+    def usage(self):
+        """Aggregated token / cost / timing for every ledger entry
+        recorded under this team's scope.
+
+        Returns an :class:`~upsonic.usage_registry.AggregatedUsage` view
+        derived from the usage registry. Same shape as ``agent.usage`` /
+        ``task.usage`` / ``chat.usage`` — read fields directly.
+        """
+        from upsonic.usage_registry import get_default_registry
+        return get_default_registry().by_team(self.team_usage_id)
 
     @property
     def agents(self) -> List[Union[Agent, "Team"]]:
@@ -261,13 +279,18 @@ class Team:
             The response from the multi-agent operation.
         """
         from upsonic.tasks.tasks import Task as TaskClass
+        from upsonic.usage_registry import push_scope_tags, reset_scope_tags
         if isinstance(task, str):
             task = TaskClass(description=task)
         tasks_to_execute: List[Task] = [task]
         resolved_print: bool = self._resolve_print_flag(False) if _print_method_default is None else _print_method_default
-        result = await self.multi_agent_async(
-            self.entities, tasks_to_execute, _print_method_default=resolved_print
-        )
+        _scope_tokens = push_scope_tags(team_usage_id=self.team_usage_id)
+        try:
+            result = await self.multi_agent_async(
+                self.entities, tasks_to_execute, _print_method_default=resolved_print
+            )
+        finally:
+            reset_scope_tags(_scope_tokens)
         if isinstance(task, TaskClass) and task.response is None and result is not None:
             task._response = str(result) if not isinstance(result, str) else result
         return result

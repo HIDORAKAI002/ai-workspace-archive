@@ -6,24 +6,33 @@ Docs: https://docs.openclaw.ai
 
 ### Changes
 
+- Agents/config: allow `agents.list[].experimental.localModelLean` so lean local-model mode can be enabled for one configured agent instead of globally.
 - Providers/xAI: add device-code OAuth login so remote and headless setups can authorize xAI without a localhost browser callback. (#84005) Thanks @fuller-stack-dev.
 
 ### Fixes
 
+- Plugins/perf: thread explicit plugin discovery results through `loadBundledCapabilityRuntimeRegistry`, `resolveBundledPluginSources`, and `listChannelCatalogEntries` so callers that already hold a discovery result skip redundant filesystem walks. Thanks @SebTardif.
+- harden update restart script creation [AI]. (#84088) Thanks @pgondhi987.
+- Docker: keep the bundled Codex plugin in official release image keep lists so the default OpenAI agent harness remains available after Docker pruning. Fixes #83613. (#83626) Thanks @YuanHanzhong.
+- CLI/channels: preserve the first line of `openclaw channels logs` output when the rolling tail window starts exactly on a line boundary, mirroring the already-fixed `readLogSlice` behavior in `src/logging/log-tail.ts`.
 - Control UI: treat terminal session status as authoritative over stale active-run flags so completed terminal runs stop showing abort/live UI. (#84057)
 - CLI: preserve embedded equals signs in inline root option values instead of truncating after the second separator. (#83995) Thanks @ThiagoCAltoe.
 - Matrix/config: accept `messages.queue.byChannel.matrix` queue overrides and keep queue provider schema/type keys aligned for Matrix, Google Chat, and Mattermost. Thanks @bdjben.
+- CLI: format `openclaw acp client` failures through the shared error formatter so object-shaped errors stay readable instead of printing `[object Object]`. Fixes #83904. (#84080)
 - Providers/Ollama: default unknown-capabilities models to tool-capable so discovered native Ollama models can use tools when `/api/show` omits capabilities. (#84055) Thanks @dutifulbob.
 - Installer/Windows: launch `install.ps1` onboarding as an attached child process so fresh native Windows installs do not freeze visibly at `Starting setup...` or corrupt the wizard's terminal rendering.
 - Memory/search: close local embedding providers when active-memory searches time out so pending local model loads and embedding contexts are aborted and released. (#83858) Thanks @brokemac79.
 - Agents: include bounded trajectory queued-writer diagnostics in `pi-trajectory-flush` timeout warnings so flush stalls show pending writes, queued bytes, and append state. Fixes #82961. (#82962) Thanks @galiniliev.
 - Agents/subagents: recover stale completion announces by retrying unsupported transcript-wait wakes without transcript waiting and forcing a message-tool handoff when the requester run is already stale. Fixes #83699. (#83700) Thanks @galiniliev.
+- Agents: honor explicit `models.providers.<id>.timeoutSeconds` values above the default idle watchdog for cloud and self-hosted providers, so long first-token waits no longer fall back at ~120s when the provider timeout is higher. (#83979) Thanks @yujiawei.
 - Agents/subagents: skip stale embedded-run wake probes for dormant completion requesters, so late subagent completions go straight to requester-agent/direct handoff instead of producing `reason=no_active_run` queue noise. (#82964) Thanks @galiniliev.
 - CLI: retry config snapshot reads after a transient failure so one rejected read no longer poisons later commands in the same process. (#83931) Thanks @honor2030.
 - Media: decode URL path basenames before using them as remote media fallback filenames, so files like `My%20Report.pdf` are surfaced as `My Report.pdf`. Fixes #84050. (#84052) Thanks @jbetala7.
 - WhatsApp: clarify inbound group diagnostics so observed but unregistered groups point to `channels.whatsapp.groups` without changing routing or sender authorization. (#83846) Thanks @neeravmakwana.
 - WhatsApp: drain pending outbound deliveries on a 30s periodic timer in addition to the reconnect handler, so messages enqueued while the provider is already connected no longer wait for the next reconnect to send. (#79083) Thanks @Oviemudiaga.
 - CLI/TUI: include gateway plugin slash commands in TUI autocomplete, so connected sessions can suggest plugin-owned commands exposed by the running Gateway. (#83640) Thanks @se7en-agent.
+- Gateway/mobile: restore QR setup-code handoff of bounded operator tokens for iOS and Android onboarding while keeping admin and pairing scopes out of bootstrap. (#83684) Thanks @ngutman.
+- iOS: repair Release archive compilation for the TestFlight build. (#84255) Thanks @ngutman.
 
 ## 2026.5.19
 
@@ -51,6 +60,7 @@ Docs: https://docs.openclaw.ai
 - Agents/skills: tighten bundled skill prompts and metadata, quote skill descriptions, refresh current CLI/API guidance, and update embedded sherpa-onnx runtime downloads.
 - Skills: update the Obsidian skill to target the official `obsidian` CLI and require its registered binary instead of the third-party `obsidian-cli`.
 - Skills: add a Python debugging skill for pdb, breakpoint(), post-mortem inspection, and debugpy remote attach.
+- Codex: add `/codex plugins list`, `enable`, and `disable` for managing configured native Codex plugins from chat without editing config by hand.
 - Plugins/messages: add presentation capability limits for channel renderers, adapt rich message controls before native rendering, and mark legacy `interactive`/Slack directive producer APIs as deprecated.
 - Plugins/subagents: store channel delivery routes as canonical session metadata and deprecate ad hoc subagent hook delivery-origin fields in favor of core route projection.
 - Proxy: support HTTPS managed forward-proxy endpoints and scoped `proxy.tls.caFile` CA trust for proxy endpoint TLS. (#79171) Thanks @jesse-merhi.

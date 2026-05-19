@@ -175,14 +175,6 @@ class CacheCheckStep(Step):
             cached_response = await task.get_cached_response(input_text, model)
             
             # Propagate sub-agent usage from cache LLM comparison (if any)
-            cache_mgr = getattr(agent, '_cache_manager', None)
-            if cache_mgr is not None:
-                cache_llm_usage = getattr(cache_mgr, '_last_llm_usage', None)
-                if cache_llm_usage is not None:
-                    usage = context._ensure_usage()
-                    usage.incr(cache_llm_usage)
-                    cache_mgr._last_llm_usage = None
-            
             if cached_response is not None:
                 similarity = None
                 cache_key = None
@@ -1828,16 +1820,16 @@ class ModelExecutionStep(Step):
         finally:
             # Always update usage from model response if available (even on error/cancel)
             # This ensures usage is tracked for durable execution recovery
-            if response is not None and hasattr(response, 'usage') and response.usage:
-                try:
-                    context._ensure_usage().incr(response.usage)
-                    
-                    from upsonic.utils.usage import calculate_cost_from_usage
-                    cost_value = calculate_cost_from_usage(response.usage, model)
-                    context.set_usage_cost(cost_value)
-                except Exception:
-                    pass
-            
+            if response is not None:
+                from upsonic.usage_registry import record_response_usage
+                record_response_usage(
+                    response,
+                    model=model,
+                    pipeline_step="model_call",
+                    model_execution_time=model_execution_time,
+                    run_output=context,
+                )
+
             if step_result:
                 self._finalize_step_result(step_result, context)
             
@@ -2036,10 +2028,9 @@ class ReflectionStep(Step):
                 context.output
             )
             
-            # Aggregate sub-agent usage from reflection into parent context
-            if reflection_result.sub_agent_usage is not None:
-                usage = context._ensure_usage()
-                usage.incr(reflection_result.sub_agent_usage)
+            # Reflection's sub-agent LLM calls already land in the usage
+            # registry under the parent's scope tags (inherited via
+            # contextvars), so no manual roll-up onto the run snapshot.
             
             # Extract values from ReflectionResult
             improved_output = reflection_result.improved_output
@@ -2568,12 +2559,10 @@ class ReliabilityStep(Step):
             finally:
                 await reliability_manager.afinalize()
 
-            # Aggregate sub-agent usage from reliability layer into parent context
-            reliability_usage = getattr(task, '_reliability_sub_agent_usage', None)
-            if reliability_usage is not None:
-                usage = context._ensure_usage()
-                usage.incr(reliability_usage)
-                task._reliability_sub_agent_usage = None
+            # Reliability layer's validator / editor sub-agents inherit
+            # the parent's scope tags via contextvars, so their LLM usage
+            # is already in the registry; just clear the staging field.
+            task._reliability_sub_agent_usage = None
 
             modifications_made = str(original_output) != str(context.output)
             
@@ -2714,12 +2703,10 @@ class AgentPolicyStep(Step):
                 iteration += 1
                 
                 processed_task, feedback_message = await agent._apply_agent_policy(task, context)
-                
-                # Drain and aggregate sub-agent usage from agent policy LLM calls
-                agent_policy_usage = agent.agent_policy_manager.drain_accumulated_usage()
-                if agent_policy_usage is not None:
-                    usage = context._ensure_usage()
-                    usage.incr(agent_policy_usage)
+
+                # Agent-policy LLM calls inherit the parent's scope tags
+                # and land in the usage registry directly; no roll-up
+                # onto the run snapshot is needed.
                 
                 if agent.debug and agent.debug_level >= 2:
                     from upsonic.utils.printing import debug_log_level2
@@ -2830,15 +2817,15 @@ class AgentPolicyStep(Step):
         )
         _policy_model_elapsed: float = time.time() - _policy_model_start
         context.add_model_execution_time(_policy_model_elapsed)
-        
-        if hasattr(response, 'usage') and response.usage:
-            context._ensure_usage().incr(response.usage)
-            try:
-                from upsonic.utils.usage import calculate_cost_from_usage
-                cost_value: float = calculate_cost_from_usage(response.usage, model)
-                context.set_usage_cost(cost_value)
-            except Exception:
-                pass
+
+        from upsonic.usage_registry import record_response_usage
+        record_response_usage(
+            response,
+            model=model,
+            pipeline_step="policy_feedback",
+            model_execution_time=_policy_model_elapsed,
+            run_output=context,
+        )
         
         # Handle response (including any tool calls)
         final_response = await agent._handle_model_response(
@@ -3252,16 +3239,15 @@ class StreamModelExecutionStep(Step):
         # This ensures the response is included in session memory
         context.chat_history.append(final_response)
         
-        if hasattr(final_response, 'usage') and final_response.usage:
-            context._ensure_usage().incr(final_response.usage)
-            
-            try:
-                from upsonic.utils.usage import calculate_cost_from_usage
-                cost_value = calculate_cost_from_usage(final_response.usage, model)
-                context.set_usage_cost(cost_value)
-            except Exception:
-                pass
-        
+        from upsonic.usage_registry import record_response_usage
+        record_response_usage(
+            final_response,
+            model=model,
+            pipeline_step="model_call_stream",
+            model_execution_time=_stream_model_elapsed,
+            run_output=context,
+        )
+
         # Note: TextCompleteEvent is already yielded by convert_llm_event_to_agent_event
         # when PartEndEvent with TextPart is received, so we don't yield it again here
         
@@ -3715,7 +3701,7 @@ class StreamFinalizationStep(Step):
                     has_output=context.output is not None,
                     output_preview=output_preview,
                     total_tool_calls=context.tool_call_count,
-                    total_duration=task.duration if task.duration else None
+                    total_duration=task.usage.duration if task.usage.duration else None
                 ):
                     context.events.append(event)
 
@@ -3860,7 +3846,7 @@ class FinalizationStep(Step):
 
             if context.is_streaming:
                 output_preview = str(context.output)[:100] if context.output else None
-                total_duration = task.duration if task.duration else None
+                total_duration = task.usage.duration if task.usage.duration else None
                 from upsonic.utils.agent.events import ayield_execution_complete_event
                 async for event in ayield_execution_complete_event(
                     run_id=context.run_id or "",

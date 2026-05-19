@@ -85,6 +85,25 @@ export async function removeConcurrencyLimitActiveJob(
   await getRedisConnection().zrem(constructKey(team_id), id);
 }
 
+export async function removeConcurrencyLimitedJobs(
+  team_id: string,
+  job_ids: string[],
+) {
+  if (job_ids.length === 0) return;
+  const redis = getRedisConnection();
+  const queueKey = constructQueueKey(team_id);
+  const chunkSize = 1000;
+  for (let i = 0; i < job_ids.length; i += chunkSize) {
+    const chunk = job_ids.slice(i, i + chunkSize);
+    const pipeline = redis.pipeline();
+    pipeline.zrem(queueKey, ...chunk);
+    for (const id of chunk) {
+      pipeline.del(constructJobKey(id));
+    }
+    await pipeline.exec();
+  }
+}
+
 type ConcurrencyLimitedJob = {
   id: string;
   data: any;

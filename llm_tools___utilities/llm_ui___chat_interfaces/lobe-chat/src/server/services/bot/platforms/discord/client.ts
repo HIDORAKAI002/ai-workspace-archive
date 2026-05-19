@@ -14,6 +14,7 @@ import {
   type BotPlatformRuntimeContext,
   type BotProviderConfig,
   ClientFactory,
+  messengerContentText,
   type PlatformClient,
   type PlatformMessenger,
   type UsageStats,
@@ -228,8 +229,12 @@ class DiscordGatewayClient implements PlatformClient {
     const discord = this.discord;
     return {
       addReaction: (messageId, emoji) => discord.createReaction(channelId, messageId, emoji),
-      createMessage: (content) => discord.createMessage(channelId, content).then(() => {}),
-      editMessage: (messageId, content) => discord.editMessage(channelId, messageId, content),
+      // Attachments are silently dropped for now — Discord outbound media
+      // is its own follow-up; reply text still ships.
+      createMessage: (content) =>
+        discord.createMessage(channelId, messengerContentText(content)).then(() => {}),
+      editMessage: (messageId, content) =>
+        discord.editMessage(channelId, messageId, messengerContentText(content)),
       removeReaction: (messageId, emoji) => discord.removeOwnReaction(channelId, messageId, emoji),
       replaceReaction: async (messageId, prevEmoji, nextEmoji) => {
         if (prevEmoji === nextEmoji) return;

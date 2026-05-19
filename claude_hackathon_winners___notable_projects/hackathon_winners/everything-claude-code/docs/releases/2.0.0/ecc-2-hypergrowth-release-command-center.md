@@ -32,7 +32,7 @@ The release copy should show the 2.0 product shape directly.
 | MRR | `$1,728/mo` | `$10,000/mo` | `$8,272/mo` |
 | Sponsor motion | Active GitHub Sponsors plus open inbound | Repeatable sponsor close loop | Approval-gated outbound |
 | Consulting motion | Open, non-primary | Partner-ready packages | Public proof, talks, and intake |
-| Content motion | Raw ECC 2 media exists | Weekly launch clips and founder proof | Final video suite |
+| Content motion | Release video publish candidates ready | Weekly launch clips and founder proof | Owner approval, upload, and public URLs |
 | Community motion | Discord exists | Useful coding/operator community | Invite, channels, pins, moderation |
 
 MRR growth should come from four lanes at once:
@@ -42,6 +42,30 @@ MRR growth should come from four lanes at once:
 - consulting and implementation contracts;
 - talks, podcasts, conference demos, and partner webinars that create inbound.
 
+## Second Hypergrowth Phase
+
+The release should behave like a proof engine, not a name-change announcement.
+Every public surface should make the product obvious in the first screen,
+clip, paragraph, or demo:
+
+| Workstream | Public proof | Revenue path |
+| --- | --- | --- |
+| Product category | ECC as the harness-native operator system, not a Claude-only config pack | Converts confused OSS traffic into install, Pro, and sponsor intent |
+| Harness coverage | Claude Code, Codex, OpenCode, Cursor, Gemini, Zed, GitHub Copilot, and terminal workflows shown as execution surfaces | Partner conversations with tools, IDEs, model providers, and platform teams |
+| Control plane | `ecc2/` alpha dashboard/status/session surface and Hermes operator shell clearly framed as directionally live | Consulting and team implementation sprints |
+| Enterprise trust | AgentShield, supply-chain, release, observability, and CI gates shown as repeatable evidence | Security vendors, code-review vendors, platform sponsors, and enterprise pilots |
+| Media engine | Primary launch video, five proof clips, browser captures, transcripts, EDLs, captions, and editable timelines | Social reach, podcast/talk booking, sponsor proof, partner demos |
+| Community funnel | GitHub Discussions, Discord once approved, sponsor tiers, Pro, and consulting CTAs routed without clutter | Repeatable inbound, not one-off launch spikes |
+
+The operating rhythm after launch should be weekly:
+
+1. one product proof clip;
+2. one security or release-discipline proof clip;
+3. one partner/sponsor/talk outreach batch after owner approval;
+4. one public discussion or community prompt;
+5. one measurable funnel readback covering repo traffic, sponsor clicks, Pro
+   conversions, MRR movement, and inbound replies.
+
 ## Release Gates
 
 | Lane | Done when | Current action |
@@ -50,7 +74,7 @@ MRR growth should come from four lanes at once:
 | Package and plugin publication | `ecc-universal@2.0.0-rc.1` dry-runs clean, npm `next` is approved, Claude plugin tag dry-runs, Codex repo marketplace smoke passes, OpenCode build passes | Refresh publication evidence from final commit |
 | Product proof | Quickstart, cross-harness architecture, demo prompts, `ecc2/` alpha boundary, AgentShield safety proof, and hosted ECC Tools links are consistent | Keep proof surfaces concrete |
 | Revenue proof | Sponsor tiers, Pro pricing, consulting CTA, partner CTA, and billing-readback language are current | Do not announce billing claims before live readback |
-| Content proof | Launch video, short-form clips, screenshots, release notes, GitHub Discussion, X, LinkedIn, and longform post are aligned | Validate `video-suite-production.md` and the local render suite |
+| Content proof | Launch video, short-form clips, screenshots, release notes, GitHub Discussion, X, LinkedIn, and longform post are aligned | Pick final video cuts, upload after approval, and attach public URLs |
 | Community proof | Discord invite, rules, channels, onboarding, and sponsor/community routing are ready | Needs invite/token decision before public links |
 
 ## Video Suite
@@ -103,6 +127,9 @@ Production steps:
 The source of truth for sponsor, partner, consulting, conference, podcast, and
 GitHub Discussion copy is
 `docs/releases/2.0.0-rc.1/partner-sponsor-talks-pack.md`.
+The source of truth for owner approval across release, package, plugin, video,
+billing, social, and outbound actions is
+`docs/releases/2.0.0-rc.1/owner-approval-packet-2026-05-19.md`.
 
 ## Copy Rules
 
@@ -128,11 +155,12 @@ Avoid:
 1. Land the public repo identity fixes.
 2. Refresh package, plugin, workflow, release, and launch-copy URLs.
 3. Record final publication evidence from the exact release commit.
-4. Produce the video suite manifest and transcripts from existing raw material;
-   gate it with `npm run release:video-suite -- --format json`.
+4. Keep the video suite manifest, transcripts, publish candidates, and visual QA
+   current with `npm run release:video-suite -- --format json`.
 5. Browser-capture the README, ECC Tools app, install flow, and relevant proof
    surfaces for b-roll.
-6. Render the primary launch video plus five short clips.
+6. Choose the owner-approved primary launch video and five short clips, then
+   upload and attach final public URLs.
 7. Finalize GitHub release, X thread, LinkedIn post, Discussion announcement,
    sponsor email copy, consulting intro, partner DM, and podcast/talk pitch.
 8. Publish only after npm, plugin, release URL, and billing-readback gates are

@@ -406,7 +406,7 @@ def request_span(tracer: "Tracer") -> Generator[Tuple["Span", str], None, None]:
         span.set_attribute("request.id", req_id)
         try:
             yield span, req_id
-        except Exception as exc:
+        except BaseException as exc:
             record_span_error(span, exc)
             raise
 
@@ -434,7 +434,7 @@ def rail_span(
         span.set_attribute(GuardrailsAttributes.RAIL_NAME, flow)
         try:
             yield span
-        except Exception as exc:
+        except BaseException as exc:
             record_span_error(span, exc)
             raise
 
@@ -457,7 +457,7 @@ def action_span(tracer: Optional["Tracer"], action_name: str) -> Generator[Optio
         span.set_attribute(GuardrailsAttributes.ACTION_NAME, action_name)
         try:
             yield span
-        except Exception as exc:
+        except BaseException as exc:
             record_span_error(span, exc)
             raise
 
@@ -495,7 +495,7 @@ def llm_call_span(
         span.set_attribute(GenAIAttributes.GEN_AI_PROVIDER_NAME, provider_name)
         try:
             yield span
-        except Exception as exc:
+        except BaseException as exc:
             record_span_error(span, exc)
             raise
 
@@ -522,7 +522,7 @@ def api_call_span(tracer: Optional["Tracer"], api_name: str) -> Generator[Option
         span.set_attribute(GuardrailsAttributes.API_NAME, api_name)
         try:
             yield span
-        except Exception as exc:
+        except BaseException as exc:
             record_span_error(span, exc)
             raise
 
@@ -712,7 +712,7 @@ def request_metrics() -> Generator[None, None, None]:
     instruments.requests_active.add(1)
     try:
         yield
-    except Exception as exc:
+    except BaseException as exc:
         record_request_error(exc)
         raise
     finally:

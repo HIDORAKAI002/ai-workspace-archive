@@ -100,8 +100,20 @@ function seedRepo(rootDir, overrides = {}) {
     'docs/releases/2.0.0-rc.1/preview-pack-manifest.md': [
       'publication-readiness.md release-notes.md quickstart.md',
       'release-name-plugin-publication-checklist-2026-05-18.md',
+      'owner-approval-packet-2026-05-19.md',
       '`scripts/preview-pack-smoke.js`',
       'npm run preview-pack:smoke'
+    ].join('\n'),
+    'docs/releases/2.0.0-rc.1/owner-approval-packet-2026-05-19.md': [
+      'Owner Approval Packet',
+      'Decision Register',
+      'GitHub prerelease',
+      'npm `next` publish',
+      'Claude plugin tag',
+      'Video upload',
+      'Final URL Fill-In',
+      'Do Not Approve If',
+      'No outbound email, personal-account post, package publish, plugin tag, or billing announcement is authorized by this packet alone.'
     ].join('\n'),
     'docs/releases/2.0.0-rc.1/release-notes.md': 'release notes',
     'docs/releases/2.0.0-rc.1/x-thread.md': 'x thread',
@@ -178,7 +190,7 @@ function seedRepo(rootDir, overrides = {}) {
       'Operator dashboard',
       'GitGuardian',
       'macOS/Ubuntu/Windows test matrix',
-      '2544 passed',
+      '2560 passed',
       'Business baseline',
       '$1,728/mo',
       '$8,272/mo'
@@ -382,6 +394,12 @@ function runTests() {
           && item.gap === 'replace final URLs after publication gates, then get explicit approval before outbound or personal-account posts'
       )));
       assert.ok(report.requirements.some(item => (
+        item.id === 'owner-approval-packet'
+          && item.status === 'current'
+          && item.evidence.includes('release, package, plugin, video, billing, social, and outbound decisions')
+          && item.gap === 'review owner approvals from the final release commit before any publication or outbound action'
+      )));
+      assert.ok(report.requirements.some(item => (
         item.id === 'supply-chain-local-protection'
           && item.artifact.includes('AgentShield package-manager hardening')
           && item.evidence.includes('known AI-tool persistence IOCs')
@@ -403,11 +421,50 @@ function runTests() {
       assert.ok(report.top_actions.some(item => item.id === 'naming-and-plugin-publication'));
       assert.ok(report.top_actions.some(item => item.id === 'release-video-suite'));
       assert.ok(report.top_actions.some(item => item.id === 'partner-sponsor-talks-pack'));
+      assert.ok(!report.top_actions.some(item => item.id === 'owner-approval-packet'));
       assert.ok(!report.top_actions.some(item => item.id === 'ecc-preview-pack'));
       assert.ok(!report.top_actions.some(item => item.id === 'hermes-specialized-skills'));
       assert.ok(!report.top_actions.some(item => item.id === 'hypergrowth-command-center'));
       assert.ok(!report.top_actions.some(item => item.id === 'legacy-salvage'));
       assert.ok(!report.top_actions.some(item => item.id === 'linear-roadmap-and-progress'));
+    } finally {
+      cleanup(rootDir);
+    }
+  })) passed++; else failed++;
+
+  if (test('release video suite moves current when publish-candidate evidence is recorded', () => {
+    const rootDir = createTempDir('operator-dashboard-video-current-');
+
+    try {
+      seedRepo(rootDir, {
+        'docs/releases/2.0.0-rc.1/publication-evidence-2026-05-19.md': [
+          'Release video suite',
+          'growth outreach',
+          'Operator dashboard',
+          'GitGuardian',
+          'macOS/Ubuntu/Windows test matrix',
+          '2560 passed',
+          'Business baseline',
+          '$1,728/mo',
+          '$8,272/mo',
+          'Ready true',
+          '15/15 source assets present',
+          '13/13 render, timeline, caption, EDL, and segment artifacts present',
+          '12/12 publish-candidate outputs present with zero detected black-frame segments',
+          'primary rough render self-eval passed'
+        ].join('\n')
+      });
+
+      const report = buildSeededReport(rootDir);
+      const releaseVideo = report.requirements.find(item => item.id === 'release-video-suite');
+
+      assert.strictEqual(releaseVideo.status, 'current');
+      assert.ok(releaseVideo.evidence.includes('15/15 source assets'));
+      assert.ok(releaseVideo.evidence.includes('12/12 publish candidates'));
+      assert.ok(releaseVideo.evidence.includes('zero detected black-frame segments'));
+      assert.strictEqual(releaseVideo.gap, 'final owner approval, upload, and public video URLs remain approval-gated');
+      assert.ok(!report.top_actions.some(item => item.id === 'release-video-suite'));
+      assert.ok(report.next_work_order.some(item => item.includes('Review the owner-approved primary launch video candidates')));
     } finally {
       cleanup(rootDir);
     }
@@ -474,6 +531,32 @@ function runTests() {
       assert.strictEqual(hermes.gap, 'final preview-pack smoke and release review pending');
       assert.ok(report.top_actions.some(item => item.id === 'ecc-preview-pack'));
       assert.ok(report.top_actions.some(item => item.id === 'hermes-specialized-skills'));
+    } finally {
+      cleanup(rootDir);
+    }
+  })) passed++; else failed++;
+
+  if (test('owner approval packet fails closed when it is missing from the release pack', () => {
+    const rootDir = createTempDir('operator-dashboard-owner-packet-');
+
+    try {
+      seedRepo(rootDir, {
+        'docs/releases/2.0.0-rc.1/owner-approval-packet-2026-05-19.md': null,
+        'docs/releases/2.0.0-rc.1/preview-pack-manifest.md': [
+          'publication-readiness.md release-notes.md quickstart.md',
+          'release-name-plugin-publication-checklist-2026-05-18.md',
+          '`scripts/preview-pack-smoke.js`',
+          'npm run preview-pack:smoke'
+        ].join('\n')
+      });
+
+      const report = buildSeededReport(rootDir);
+      const ownerPacket = report.requirements.find(item => item.id === 'owner-approval-packet');
+
+      assert.strictEqual(ownerPacket.status, 'not_complete');
+      assert.strictEqual(ownerPacket.evidence, 'owner approval packet is missing or incomplete');
+      assert.strictEqual(ownerPacket.gap, 'add the owner decision sheet before publication review');
+      assert.ok(report.top_actions.some(item => item.id === 'owner-approval-packet'));
     } finally {
       cleanup(rootDir);
     }
