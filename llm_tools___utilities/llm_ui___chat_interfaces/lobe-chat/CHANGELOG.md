@@ -2,6 +2,39 @@
 
 # Changelog
 
+### [Version 2.2.0](https://github.com/lobehub/lobe-chat/compare/v2.1.59-canary.27...v2.2.0)
+
+<sup>Released on **2026-05-18**</sup>
+
+#### 💄 Styles
+
+- **pricing**: restore DeepSeek models to official pricing.
+
+#### 🐛 Bug Fixes
+
+- **conversation**: animate only the last markdown block + drop clearMessages hotkey.
+
+<br/>
+
+<details>
+<summary><kbd>Improvements and Fixes</kbd></summary>
+
+#### Styles
+
+- **pricing**: restore DeepSeek models to official pricing, closes [#14911](https://github.com/lobehub/lobe-chat/issues/14911) ([e566688](https://github.com/lobehub/lobe-chat/commit/e566688))
+
+#### What's fixed
+
+- **conversation**: animate only the last markdown block + drop clearMessages hotkey, closes [#14906](https://github.com/lobehub/lobe-chat/issues/14906) ([469a8e6](https://github.com/lobehub/lobe-chat/commit/469a8e6))
+
+</details>
+
+<div align="right">
+
+[![](https://img.shields.io/badge/-BACK_TO_TOP-151515?style=flat-square)](#readme-top)
+
+</div>
+
 ## [Version 2.1.58](https://github.com/lobehub/lobe-chat/compare/v2.1.57...v2.1.58)
 
 <sup>Released on **2026-05-13**</sup>
