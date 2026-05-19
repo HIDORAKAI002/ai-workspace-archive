@@ -593,6 +593,7 @@
               "reference/camel.toolkits.wechat_official_toolkit",
               "reference/camel.toolkits.whatsapp_toolkit",
               "reference/camel.toolkits.wolfram_alpha_toolkit",
+              "reference/camel.toolkits.xquik_toolkit",
               "reference/camel.toolkits.zapier_toolkit",
               "reference/camel.toolkits.hybrid_browser_toolkit.actions",
               "reference/camel.toolkits.hybrid_browser_toolkit.agent",
