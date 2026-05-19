@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a **comprehensive skills library** for Claude AI and Claude Code - reusable, production-ready skill packages that bundle domain expertise, best practices, analysis tools, and strategic frameworks. The repository provides modular skills that teams can download and use directly in their workflows.
 
-**Current Scope:** 319 production-ready skills across 14 domains with ~414 Python automation tools, ~554 reference guides, 48+ agents (cs-* + 7 personas), and 68+ slash commands. **v2.8.0 Sprint 1 (in-flight on `claude/skills-plugins-framework-XjTjh`)** adds 2 new top-level domains — **business-operations/** (internal ops: process mapping, vendor management; 4 more planned in Sprint 2) and **commercial/** (per-deal economics: pricing, deal desk; 5 more planned in Sprint 2) — with orchestrator skills using `context: fork` for chaining, plus Matt Pocock docs-anchored grilling via `/cs:grill-bizops` and `/cs:grill-commercial`. v2.7.3 ports `alirezarezvani/aeo-box` — AEO (Answer Engine Optimization) skill into marketing-skill/ + security-guidance PreToolUse hook into engineering/. v2.7.0 added 13 Path-B skills across 3 top-level domains (productivity, marketing, research). v2.6.0 added 4 Matt Pocock-derived productivity skills.
+**Current Scope:** 328 production-ready skills across 14 domains with ~441 Python automation tools, ~581 reference guides, 48+ agents (cs-* + 7 personas), and 77+ slash commands. **v2.8.0 (complete)** added 2 new top-level domains — **business-operations/** (7 internal-ops skills: orchestrator + process-mapper + vendor-management + capacity-planner + internal-comms + knowledge-ops + procurement-optimizer) and **commercial/** (8 per-deal-economics skills: orchestrator + pricing-strategist + deal-desk + partnerships-architect + channel-economics + commercial-policy + rfp-responder + commercial-forecaster) — with orchestrator skills using `context: fork` for chaining, Matt Pocock docs-anchored "Forcing-question library" in every SKILL.md, plus `/cs:grill-bizops` and `/cs:grill-commercial`. v2.7.3 ports `alirezarezvani/aeo-box` — AEO (Answer Engine Optimization) skill into marketing-skill/ + security-guidance PreToolUse hook into engineering/. v2.7.0 added 13 Path-B skills across 3 top-level domains (productivity, marketing, research). v2.6.0 added 4 Matt Pocock-derived productivity skills.
 
 **Key Distinction**: This is NOT a traditional application. It's a library of skill packages meant to be extracted and deployed by users into their own Claude workflows.
 
@@ -124,9 +124,9 @@ See [standards/git/git-workflow-standards.md](standards/git/git-workflow-standar
 
 ## Current Version
 
-**Version:** v2.8.0 Sprint 1 (in-flight) / v2.7.3 (stable)
+**Version:** v2.8.0 (released — Sprint 1 + 2 + 3 closure complete)
 
-**v2.8.0 Sprint 1 highlights — two new top-level domains: business-operations + commercial:**
+**v2.8.0 highlights — two new top-level domains: business-operations + commercial:**
 
 Designed and shipped under the `/goal` directive to expand BizOps + Commercial surface area. Both domains follow the Path-B 11-file contract per skill, are top-level domain folders (not subfolders inside an existing domain), and ship with orchestrator skills that use `context: fork` to chain sub-skills.
 

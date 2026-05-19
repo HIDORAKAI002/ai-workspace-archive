@@ -28,7 +28,12 @@ DOMAIN_MAP = {
     "project-management": "project-management",
     "ra-qm-team": "ra-qm",
     "business-growth": "business-growth",
-    "finance": "finance"
+    "finance": "finance",
+    "productivity": "productivity",
+    "marketing": "marketing-top-level",
+    "research": "research",
+    "business-operations": "business-operations",
+    "commercial": "commercial"
 }
 
 

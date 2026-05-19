@@ -9,28 +9,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-#### `business-operations/` — new top-level domain (Sprint 1)
+#### `business-operations/` — new top-level domain (Sprint 1 + 2 complete)
 
-Internal-ops skills for BizOps leads, COO direct reports, vendor management, IT ops. Sprint 1 ships the orchestrator + 2 sub-skills using `context: fork` to chain without polluting parent context. Sprint 2 will add `capacity-planner`, `internal-comms`, `knowledge-ops`, `procurement-optimizer`.
+Internal-ops skills for BizOps leads, COO direct reports, vendor management, IT ops. Both Sprints ship the orchestrator + 6 sub-skills using `context: fork` to chain without polluting parent context.
 
 - `business-operations-skills` (orchestrator) — routes inquiries to the right sub-skill and returns a digest
-- `process-mapper` — BPMN modeling + bottleneck detection + cycle-time analysis
-- `vendor-management` — SLA tracking + risk scoring + supplier scorecards
-- Distinct from `business-growth/` (external sales) and `c-level-advisor/` (strategic, not operational)
+- `process-mapper` — BPMN modeling + bottleneck detection + cycle-time analysis (Lean + TOC canon: Womack & Jones, Goldratt, Rother & Shook, Reinertsen, Anderson, Pyzdek, Ohno, Liker)
+- `vendor-management` (`context: fork`) — SLA tracking + risk scoring + supplier scorecards (NIST SP 800-161, ISO/IEC 27036, Shared Assessments SIG-Lite)
+- `capacity-planner` (Sprint 2) — Erlang-C queueing math for ops teams; NOT engineering capacity (vpe-advisor's lane). Implements full Erlang-C in stdlib Python (~30 lines, log-space to avoid factorial overflow). Canon: Erlang 1909, Little 1961, Hopp & Spearman, Reinertsen, Kingman, ITIL.
+- `internal-comms` (Sprint 2) — ADKAR (Prosci) + Kotter 8-step change-comms with magnitude validation (rejects celebratory framing on disruptive, layoff-keywords without disruptive magnitude). 5 tone profiles. Canon: Hiatt, Kotter, Bridges, Schein, Heath brothers, Lencioni.
+- `knowledge-ops` (Sprint 2, `context: fork`) — Company SOPs + runbooks + KB hygiene with 5W2H validation. 6 industry profiles. 5 regulatory overlays (SOC2/HIPAA/ISO13485/GDPR/SOX). Canon: Ishikawa (5W2H), Liker (Toyota), Gawande (Checklist Manifesto), ISO 9001, ITIL v4, FDA 21 CFR Part 211, Google SRE Workbook.
+- `procurement-optimizer` (Sprint 2) — UNSPSC-aligned spend categorization + supplier consolidation. HARD REFUSAL for tier-1 single-source consolidation without break-glass plan. Canon: A.T. Kearney, Spend Matters, Hackett, BCG, Productiv, Zylo, Vendr.
+- Distinct from `business-growth/` (external sales), `c-level-advisor/coo-advisor` (strategic), `engineering/slo-architect` (system reliability), `engineering/llm-wiki` (personal PKM)
 
-#### `commercial/` — new top-level domain (Sprint 1)
+#### `commercial/` — new top-level domain (Sprint 1 + 2 complete)
 
-Per-deal economics skills for pricing, deal desk, partnerships. Sprint 1 ships the orchestrator + 2 sub-skills. Sprint 2 will add `partnerships-architect`, `channel-economics`, `commercial-policy`, `rfp-responder`, `commercial-forecaster`.
+Per-deal-and-packaging economics skills for pricing, deal desk, partnerships, RFP, forecasting. Both Sprints ship the orchestrator + 7 sub-skills.
 
 - `commercial-skills` (orchestrator) — routes commercial inquiries via `context: fork`
-- `pricing-strategist` — Van Westendorp WTP analysis + packaging + pricing-model picker
-- `deal-desk` — margin analysis + discount routing + contract redline scoring
-- Distinct from `business-growth/sales-engineer`, `c-level-advisor/cro-advisor`, `finance/financial-analysis`
+- `pricing-strategist` — Van Westendorp WTP analysis (full PSM: OPP/IDP/PMC/PME + RAP, monotonicity screening, N<30 warning) + 5-model picker + 7 packaging anti-pattern detectors. Canon: Ramanujam (*Monetizing Innovation*), Skok, Tunguz, Campbell/ProfitWell, Bessemer, Poyar, Sawtooth.
+- `deal-desk` — 5-dim deal scorer + discount approval routing (5-band policy + 4 industry variants) + 10-pattern terms redliner. **Never auto-approves** — every verdict names the human(s). Canon: SaaStr, Winning by Design, OpenView, Forrester, KeyBanc, IACCM/WorldCC.
+- `partnerships-architect` (Sprint 2) — 5-tier classifier (REFERRAL/RESELLER/OEM/SI/STRATEGIC with hard floors per tier) + joint GTM + revshare modeler. Canon: Chintagunta, Hessling, Forrester, Moore, Tzuo, MPN, AWS APN.
+- `channel-economics` (Sprint 2) — Fully-loaded CTS + 3-lens ROI (Cash / LTV / Marginal) + channel mix optimizer with sensitivity. Canon: Skok, Tunguz, Ramanujam, Kaplan & Cooper, Horngren, McKinsey, BCG.
+- `commercial-policy` (Sprint 2) — Data-backed discount matrix (4-dim: ARR × term × payment × strategic) + exception flow with compensating commitments + 10-rule linter (L01-L10 BLOCKER/MAJOR/MINOR). Canon: OpenView, Skok, Tunguz, BVP, KeyBanc, SaaStr, Winning by Design.
+- `rfp-responder` (Sprint 2, `context: fork`) — Shipley-method structured RFP/RFI/RFQ response. Parser with NICE>MANDATORY>WEIGHTED precedence + response drafter (HARD RULE: never invent claims for GAP) + winrate predictor with BID/PARTNER-BID/NO-BID verdict. Canon: Shipley Proposal Guide v6, APMP BoK, Sant, FAR, GSA.
+- `commercial-forecaster` (Sprint 2) — 4Q-weighted bookings + cohort NRR/GRR + funnel-confidence with MANDATORY assumption disclosure. 3-tier commit/best-case/pipe-only with sandbag/hockey-stick detection. Canon: Skok, Tunguz, OpenView, BVP, Chen, Balfour, Ramanujam.
+- Distinct from `business-growth/sales-engineer` (technical sale), `business-growth/contract-and-proposal-writer` (free-form authoring; RFP-responder handles buyer-dictated structured response), `c-level-advisor/cro-advisor` (strategic), `finance/financial-analysis` (close+report, not forward)
 
-#### Forcing-question slash commands
+#### Matt Pocock grill-with-docs discipline (per user direction)
+
+Every v2.8.0 SKILL.md ships a **"Forcing-question library"** section: 5–7 cited canon-anchored questions, walked one at a time by the orchestrator (or `/cs:grill-bizops` / `/cs:grill-commercial`), each with a **recommended answer** + a **canon citation** + **depth-first decision-tree walking**. Discipline derived verbatim from `engineering/grill-me` + `engineering/grill-with-docs` (Matt Pocock, MIT).
 
 - `/cs:grill-bizops` — Matt Pocock docs-anchored grilling for BizOps workflows
 - `/cs:grill-commercial` — same for commercial decisions (pricing, deals, partnerships)
+- Plus 15 per-skill slash commands: `/cs:bizops`, `/cs:process-map`, `/cs:vendor-review`, `/cs:capacity-plan`, `/cs:internal-comms`, `/cs:knowledge-ops`, `/cs:procurement`, `/cs:commercial`, `/cs:pricing-strategy`, `/cs:deal-review`, `/cs:partner-tier`, `/cs:channel-econ`, `/cs:commercial-policy`, `/cs:rfp-respond`, `/cs:commercial-forecast`
+
+#### Hard rules per skill (enforced by agent personas + scripts)
+
+- **Pricing**: outputs are model + range, **never a single number** — the human picks the number
+- **Deal-desk**: every verdict (incl. APPROVE) names the human approver — **never auto-approves**
+- **Forecaster**: every output names the conversion assumption + data window + weighting choice explicitly
+- **RFP**: GAP requirements are surfaced for leadership decision — **never invents claims**
+- **Partnership**: STRATEGIC tier requires named-account independent-demand evidence
+- **Procurement**: tier-1 single-source consolidation **refused without** documented break-glass plan
+- **Vendor**: scoring outputs route to a named human reviewer — **never auto-replaces**
+
+#### Sprint 3 — closure (this commit)
+
+Final housekeeping to take v2.8.0 from "Sprint 2 complete" to "release-ready":
+
+- **Cross-platform sync** — `scripts/sync-codex-skills.py`, `scripts/sync-gemini-skills.py`, and `scripts/sync-hermes-skills.py` extended to recognize `business-operations/` and `commercial/` top-level domains. Codex symlinks regenerated for 15 new skills; Gemini index expanded by 30 entries.
+- **Docs generation** — `scripts/generate-docs.py` extended with Pass 2 command discovery walking `<domain>/commands/<cmd>.md` (v2.8.0 pattern) AND `<domain>/<skill>/commands/<cmd>.md` (v2.7.0 pattern). Now generates 311 skill pages + 75 agent pages + 69 command pages (was 311 + 73 + 34) across **14 domains**. The previously-missing v2.7.0 commands (capture, pulse, landing, etc.) plus all v2.8.0 commands now have rendered MkDocs pages.
+- **MkDocs nav** — `mkdocs.yml` updated with new "Business Operations" and "Commercial" sections (14 sub-skill entries), 2 new orchestrator agents, and 17 new slash commands.
+- **Plugin manifest validation** — both `business-operations/.claude-plugin/plugin.json` and `commercial/.claude-plugin/plugin.json` pass `scripts/check_plugin_json.py --all` cleanly (recognized `source` extension field per PR #690).
+- **Per-skill audit** — `scripts/audit_skills.py` ran across 329 skills total; all 13 v2.8.0 sub-skills audited with checklist scores 2-5/6 (dominant failure: rule #2 "SKILL.md under 100 lines" — known tension with our deliberate "Forcing-question library" depth; documented as ADVISORY for skills that deliberately expose extended grill discipline).
 
 #### Release automation
 
@@ -53,11 +85,21 @@ This is the second round of the same Claude Code path-validator tightening (roun
 - **inspect-assets.py** (#684, contributor: @TemaDeveloper) — `--help` now works without Pillow installed
 - Codex symlink syncs (automated)
 
-### Stats
+### Stats (final v2.8.0)
 
-- 313 → 319 skills (business-operations: +3, commercial: +3)
-- 12 → 14 top-level domains
-- 60 → 68 slash commands
+- **313 → 328 skills** (+15: business-operations 7 + commercial 8)
+- **12 → 14 top-level domains**
+- **60 → 77 slash commands** (+17 new `/cs:*` commands)
+- **402 → 441 stdlib Python tools** (+39: 13 sub-skills × 3 tools each)
+- **542 → 581 reference documents** (+39, each citing ≥7 authoritative sources)
+- **46 → 48 cs-* agents** (+2: cs-bizops-orchestrator, cs-commercial-orchestrator)
+- **57 → 59 marketplace plugins** (+2: business-operations-skills, commercial-skills)
+- **34 → 69 documented slash commands in MkDocs** (+35: previously-orphaned v2.7.0 + all v2.8.0)
+- **73 → 75 documented agents in MkDocs** (+2)
+- All 39 Python tools pass `--help` and `--sample` smoke tests (exit 0)
+- All 39 reference docs cite ≥7 authoritative sources
+- 0 external imports (stdlib-only across the board)
+- 0 LLM calls in tool scripts (deterministic, repeatable)
 
 ## [2.7.3] - 2026-05-17 — aeo-box port: AEO skill + security-guidance PreToolUse hook
 

@@ -217,33 +217,34 @@ Marketplace plugins go **55 → 57**. Indexed skills go **313 → 328** (+13 sub
 
 ## 9. Build sequence
 
-### Sprint 1 (this PR) — foundation
+### Sprint 1 (PR #688, MERGED 2026-05-19) — foundation ✅
 
-1. Master plan doc ✓
-2. Directory scaffolding (both domains)
-3. Both orchestrator skills (`business-operations-skills`, `commercial-skills`) **fully wired** with `context: fork`
-4. Two priority sub-skills per domain **fully wired**:
+1. ✅ Master plan doc
+2. ✅ Directory scaffolding (both domains)
+3. ✅ Both orchestrator skills (`business-operations-skills`, `commercial-skills`) wired with `context: fork`
+4. ✅ Two priority sub-skills per domain wired:
    - bizops: `process-mapper`, `vendor-management`
    - commercial: `pricing-strategist`, `deal-desk`
-5. Both `cs-*-orchestrator` agents
-6. Two `/cs:bizops` and `/cs:commercial` orchestrator commands + four per-skill commands
-7. Marketplace registration for both new plugins
-8. Draft PR opened
+5. ✅ Both `cs-*-orchestrator` agents
+6. ✅ `/cs:bizops`, `/cs:commercial`, `/cs:grill-bizops`, `/cs:grill-commercial` + four per-skill commands
+7. ✅ Marketplace registration for both new plugins (57 → 59 plugins)
 
-### Sprint 2 — fill out
+### Sprint 2 (THIS PR — v2.8.0 completion) — fill out ✅
 
-9. Remaining 4 bizops sub-skills: capacity-planner, internal-comms, knowledge-ops, procurement-optimizer
-10. Remaining 5 commercial sub-skills: partnerships-architect, channel-economics, commercial-policy, rfp-responder, commercial-forecaster
-11. Per-skill cs-* sub-agents (cs-pricing-strategist, cs-deal-desk)
-12. Full slash-command coverage
+9. ✅ All 4 remaining bizops sub-skills: `capacity-planner` (Erlang-C), `internal-comms` (ADKAR+Kotter), `knowledge-ops` (5W2H, `context: fork`), `procurement-optimizer` (UNSPSC)
+10. ✅ All 5 remaining commercial sub-skills: `partnerships-architect` (5-tier), `channel-economics` (CTS+ROI+mix), `commercial-policy` (matrix+exception+linter), `rfp-responder` (Shipley, `context: fork`), `commercial-forecaster` (4Q-weighted + cohort + funnel-confidence)
+11. ✅ 9 new `/cs:*` slash commands (one per sub-skill)
+12. ✅ Updated plugin.json + marketplace.json with full skills arrays + expanded keywords
+13. ✅ Updated domain CLAUDE.md + README.md with all 7+8 skills
+14. ✅ Root CLAUDE.md + marketplace.json metadata bumped to v2.8.0
 
-### Sprint 3 — polish
+### Sprint 3 (future, not in v2.8.0) — polish
 
-13. CLAUDE.md per domain
-14. README.md per domain
-15. Bulk plugin-audit pass; karpathy-check on all tools
-16. Update root CLAUDE.md (`Project Purpose`, `Architecture Overview`, `Current Version`)
+15. Per-skill cs-* sub-agents for high-stakes skills (cs-pricing-strategist, cs-deal-desk) — only added if usage telemetry shows demand
+16. Bulk plugin-audit pass; karpathy-check on all 30 new tools (Sprint 1 + Sprint 2)
 17. Release notes for v2.8.0
+18. Codex / Gemini / Hermes cross-platform sync
+19. MkDocs docs site rebuild with new domain pages
 
 ---
 

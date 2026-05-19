@@ -439,6 +439,25 @@ nav:
       - "Patent (Prior Art + IP Landscape)": skills/research/patent.md
       - "Syllabus (Course Reading List)": skills/research/syllabus.md
       - "NotebookLM (Browser Automation)": skills/research/notebooklm.md
+    - Business Operations:
+      - Overview: skills/business-operations/index.md
+      - "Business Operations Skills (Orchestrator)": skills/business-operations/business-operations-skills.md
+      - "Process Mapper (BPMN + Bottleneck + Cycle-Time)": skills/business-operations/process-mapper.md
+      - "Vendor Management (Scorecard + SLA + Risk)": skills/business-operations/vendor-management.md
+      - "Capacity Planner (Erlang-C for Ops Teams)": skills/business-operations/capacity-planner.md
+      - "Internal Comms (ADKAR + Kotter 8-Step)": skills/business-operations/internal-comms.md
+      - "Knowledge Ops (SOP + Runbook + KB Hygiene)": skills/business-operations/knowledge-ops.md
+      - "Procurement Optimizer (UNSPSC Spend + Consolidation)": skills/business-operations/procurement-optimizer.md
+    - Commercial:
+      - Overview: skills/commercial/index.md
+      - "Commercial Skills (Orchestrator)": skills/commercial/commercial-skills.md
+      - "Pricing Strategist (Model Picker + Van Westendorp + Packaging)": skills/commercial/pricing-strategist.md
+      - "Deal Desk (Scorer + Approval Router + Redline)": skills/commercial/deal-desk.md
+      - "Partnerships Architect (5-Tier + Joint GTM + Revshare)": skills/commercial/partnerships-architect.md
+      - "Channel Economics (Cost-to-Serve + ROI + Mix)": skills/commercial/channel-economics.md
+      - "Commercial Policy (Matrix + Exception + Linter)": skills/commercial/commercial-policy.md
+      - "RFP Responder (Shipley Method + Win-Theme + Winrate)": skills/commercial/rfp-responder.md
+      - "Commercial Forecaster (4Q-Weighted + Cohort + Confidence)": skills/commercial/commercial-forecaster.md
   - Plugins:
     - Overview: plugins/index.md
   - Personas:
@@ -484,6 +503,8 @@ nav:
     - "CS Caveman Mode (Matt Pocock-derived)": agents/cs-caveman-mode.md
     - "CS Grill Master (Matt Pocock-derived)": agents/cs-grill-master.md
     - "CS Handoff Author (Matt Pocock-derived)": agents/cs-handoff-author.md
+    - "CS BizOps Orchestrator (v2.8.0)": agents/cs-bizops-orchestrator.md
+    - "CS Commercial Orchestrator (v2.8.0)": agents/cs-commercial-orchestrator.md
   - Commands:
     - Overview: commands/index.md
     - "/a11y-audit": commands/a11y-audit.md
@@ -520,3 +541,20 @@ nav:
     - "/chaos-experiment": commands/chaos-experiment.md
     - "/slo-design": commands/slo-design.md
     - "/cs:aeo": commands/cs-aeo.md
+    - "/cs:bizops (v2.8.0 — BizOps router)": commands/cs-bizops.md
+    - "/cs:grill-bizops (v2.8.0 — Matt grill bizops)": commands/cs-grill-bizops.md
+    - "/cs:process-map (v2.8.0)": commands/cs-process-map.md
+    - "/cs:vendor-review (v2.8.0)": commands/cs-vendor-review.md
+    - "/cs:capacity-plan (v2.8.0)": commands/cs-capacity-plan.md
+    - "/cs:internal-comms (v2.8.0)": commands/cs-internal-comms.md
+    - "/cs:knowledge-ops (v2.8.0)": commands/cs-knowledge-ops.md
+    - "/cs:procurement (v2.8.0)": commands/cs-procurement.md
+    - "/cs:commercial (v2.8.0 — Commercial router)": commands/cs-commercial.md
+    - "/cs:grill-commercial (v2.8.0 — Matt grill commercial)": commands/cs-grill-commercial.md
+    - "/cs:pricing-strategy (v2.8.0)": commands/cs-pricing-strategy.md
+    - "/cs:deal-review (v2.8.0)": commands/cs-deal-review.md
+    - "/cs:partner-tier (v2.8.0)": commands/cs-partner-tier.md
+    - "/cs:channel-econ (v2.8.0)": commands/cs-channel-econ.md
+    - "/cs:commercial-policy (v2.8.0)": commands/cs-commercial-policy.md
+    - "/cs:rfp-respond (v2.8.0)": commands/cs-rfp-respond.md
+    - "/cs:commercial-forecast (v2.8.0)": commands/cs-commercial-forecast.md
