@@ -650,43 +650,46 @@ func MakeAppState(ctx, serverShutdownCtx context.Context, options *swag.CommandL
 	namespacesController := appState.NamespacesController
 
 	rConfig := rCluster.Config{
-		WorkDir:                         filepath.Join(dataPath, config.DefaultRaftDir),
-		NodeID:                          nodeName,
-		Host:                            appState.Cluster.LocalAddr(),
-		BindAddr:                        appState.Cluster.LocalBindAddr(),
-		RaftPort:                        appState.ServerConfig.Config.Raft.Port,
-		RPCPort:                         appState.ServerConfig.Config.Raft.InternalRPCPort,
-		RaftRPCMessageMaxSize:           appState.ServerConfig.Config.Raft.RPCMessageMaxSize,
-		BootstrapTimeout:                appState.ServerConfig.Config.Raft.BootstrapTimeout,
-		BootstrapExpect:                 appState.ServerConfig.Config.Raft.BootstrapExpect,
-		HeartbeatTimeout:                appState.ServerConfig.Config.Raft.HeartbeatTimeout,
-		ElectionTimeout:                 appState.ServerConfig.Config.Raft.ElectionTimeout,
-		LeaderLeaseTimeout:              appState.ServerConfig.Config.Raft.LeaderLeaseTimeout,
-		TimeoutsMultiplier:              appState.ServerConfig.Config.Raft.TimeoutsMultiplier.Get(),
-		SnapshotInterval:                appState.ServerConfig.Config.Raft.SnapshotInterval,
-		SnapshotThreshold:               appState.ServerConfig.Config.Raft.SnapshotThreshold,
-		TrailingLogs:                    appState.ServerConfig.Config.Raft.TrailingLogs,
-		ConsistencyWaitTimeout:          appState.ServerConfig.Config.Raft.ConsistencyWaitTimeout,
-		MetadataOnlyVoters:              appState.ServerConfig.Config.Raft.MetadataOnlyVoters,
-		EnableOneNodeRecovery:           appState.ServerConfig.Config.Raft.EnableOneNodeRecovery,
-		ForceOneNodeRecovery:            appState.ServerConfig.Config.Raft.ForceOneNodeRecovery,
-		DB:                              nil,
-		Parser:                          schemaParser,
-		NodeNameToPortMap:               server2port,
-		NodeSelector:                    appState.Cluster,
-		Logger:                          appState.Logger,
-		IsLocalHost:                     appState.ServerConfig.Config.Cluster.Localhost,
-		LoadLegacySchema:                schemaRepo.LoadLegacySchema,
-		SentryEnabled:                   appState.ServerConfig.Config.Sentry.Enabled,
-		AuthzController:                 appState.AuthzController,
-		RBAC:                            appState.RBAC,
-		DynamicUserController:           appState.APIKey.Dynamic,
-		NamespacesController:            namespacesController,
-		NamespacesEnabled:               appState.ServerConfig.Config.Namespaces.Enabled,
-		ReplicaCopier:                   replicaCopier,
-		AuthNConfig:                     appState.ServerConfig.Config.Authentication,
-		ReplicationEngineMaxWorkers:     appState.ServerConfig.Config.ReplicationEngineMaxWorkers,
-		DistributedTasks:                appState.ServerConfig.Config.DistributedTasks,
+		WorkDir:                     filepath.Join(dataPath, config.DefaultRaftDir),
+		NodeID:                      nodeName,
+		Host:                        appState.Cluster.LocalAddr(),
+		BindAddr:                    appState.Cluster.LocalBindAddr(),
+		RaftPort:                    appState.ServerConfig.Config.Raft.Port,
+		RPCPort:                     appState.ServerConfig.Config.Raft.InternalRPCPort,
+		RaftRPCMessageMaxSize:       appState.ServerConfig.Config.Raft.RPCMessageMaxSize,
+		BootstrapTimeout:            appState.ServerConfig.Config.Raft.BootstrapTimeout,
+		BootstrapExpect:             appState.ServerConfig.Config.Raft.BootstrapExpect,
+		HeartbeatTimeout:            appState.ServerConfig.Config.Raft.HeartbeatTimeout,
+		ElectionTimeout:             appState.ServerConfig.Config.Raft.ElectionTimeout,
+		LeaderLeaseTimeout:          appState.ServerConfig.Config.Raft.LeaderLeaseTimeout,
+		TimeoutsMultiplier:          appState.ServerConfig.Config.Raft.TimeoutsMultiplier.Get(),
+		SnapshotInterval:            appState.ServerConfig.Config.Raft.SnapshotInterval,
+		SnapshotThreshold:           appState.ServerConfig.Config.Raft.SnapshotThreshold,
+		TrailingLogs:                appState.ServerConfig.Config.Raft.TrailingLogs,
+		ConsistencyWaitTimeout:      appState.ServerConfig.Config.Raft.ConsistencyWaitTimeout,
+		MetadataOnlyVoters:          appState.ServerConfig.Config.Raft.MetadataOnlyVoters,
+		EnableOneNodeRecovery:       appState.ServerConfig.Config.Raft.EnableOneNodeRecovery,
+		ForceOneNodeRecovery:        appState.ServerConfig.Config.Raft.ForceOneNodeRecovery,
+		DB:                          nil,
+		Parser:                      schemaParser,
+		NodeNameToPortMap:           server2port,
+		NodeSelector:                appState.Cluster,
+		Logger:                      appState.Logger,
+		IsLocalHost:                 appState.ServerConfig.Config.Cluster.Localhost,
+		LoadLegacySchema:            schemaRepo.LoadLegacySchema,
+		SentryEnabled:               appState.ServerConfig.Config.Sentry.Enabled,
+		AuthzController:             appState.AuthzController,
+		RBAC:                        appState.RBAC,
+		DynamicUserController:       appState.APIKey.Dynamic,
+		NamespacesController:        namespacesController,
+		NamespacesEnabled:           appState.ServerConfig.Config.Namespaces.Enabled,
+		ReplicaCopier:               replicaCopier,
+		AuthNConfig:                 appState.ServerConfig.Config.Authentication,
+		ReplicationEngineMaxWorkers: appState.ServerConfig.Config.ReplicationEngineMaxWorkers,
+		DistributedTasks:            appState.ServerConfig.Config.DistributedTasks,
+		DistributedTaskCollectionExtractors: map[string]distributedtask.CollectionExtractor{
+			db.ReindexNamespace: db.ExtractReindexTaskCollection,
+		},
 		ReplicaMovementEnabled:          appState.ServerConfig.Config.ReplicaMovementEnabled,
 		ReplicaMovementMinimumAsyncWait: appState.ServerConfig.Config.ReplicaMovementMinimumAsyncWait,
 		DrainSleep:                      appState.ServerConfig.Config.Raft.DrainSleep.Get(),
@@ -725,6 +728,7 @@ func MakeAppState(ctx, serverShutdownCtx context.Context, options *swag.CommandL
 		appState.Modules, appState.Cluster,
 		offloadmod, *schemaParser,
 		collectionRetrievalStrategyConfigFlag,
+		appState.NamespacesController,
 	)
 	if err != nil {
 		appState.Logger.
@@ -906,6 +910,7 @@ func MakeAppState(ctx, serverShutdownCtx context.Context, options *swag.CommandL
 		if err := enforceNamespaceStartupInvariants(
 			appState.ServerConfig.Config.Namespaces.Enabled,
 			appState.ServerConfig.Config.Persistence.LSMSkipWriteClassNameEnabled,
+			appState.ServerConfig.Config.Replication.MaximumFactor,
 			classNames,
 			appState.ClusterService.NamespaceCount(),
 		); err != nil {
@@ -1055,7 +1060,7 @@ func configureReindexer(recovered []db.RecoveredReindex, logger logrus.FieldLogg
 // A class name is considered namespace-qualified iff it contains
 // entschema.NamespaceSeparator (":"), which is forbidden in plain class names
 // by ClassNameRegexCore and locked by TestValidateClassName_RejectsNamespaceSeparator.
-func enforceNamespaceStartupInvariants(enabled bool, lsmSkipWriteClassNameEnabled bool, classNames []string, nsCount int) error {
+func enforceNamespaceStartupInvariants(enabled bool, lsmSkipWriteClassNameEnabled bool, maxReplicationFactor int, classNames []string, nsCount int) error {
 	var nonNamespacedCount, namespacedCount int
 	var nonNamespacedExample, namespacedExample string
 	for _, name := range classNames {
@@ -1075,6 +1080,10 @@ func enforceNamespaceStartupInvariants(enabled bool, lsmSkipWriteClassNameEnable
 	switch {
 	case enabled && !lsmSkipWriteClassNameEnabled:
 		return fmt.Errorf("internal invariant violated: NAMESPACES_ENABLED=true but LSMSkipWriteClassNameEnabled=false; env-var wiring in usecases/config/environment.go is broken")
+	case enabled && maxReplicationFactor != 1:
+		// Each namespace's shards are pinned to a single home_node; RF>1
+		// would either leave replicas off-namespace or contradict the pin.
+		return fmt.Errorf("NAMESPACES_ENABLED=true requires REPLICATION_MAXIMUM_FACTOR=1; got %d", maxReplicationFactor)
 	case enabled && nonNamespacedCount > 0:
 		return fmt.Errorf("NAMESPACES_ENABLED=true but cluster has %d non-namespaced collection(s) (e.g. %q); namespaces can only be enabled on newly bootstrapped clusters or on clusters whose collections are all already namespace-qualified", nonNamespacedCount, nonNamespacedExample)
 	case !enabled && nsCount > 0:

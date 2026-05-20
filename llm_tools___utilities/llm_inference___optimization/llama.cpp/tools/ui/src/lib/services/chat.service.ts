@@ -10,7 +10,9 @@ import {
 import {
 	AttachmentType,
 	ContentPartType,
+	FileTypeAudio,
 	MessageRole,
+	MimeTypeAudio,
 	ReasoningFormat,
 	UrlProtocol
 } from '$lib/enums';
@@ -19,8 +21,28 @@ import type {
 	ApiChatMessageData,
 	ApiChatCompletionToolCall
 } from '$lib/types/api';
-import type { DatabaseMessageExtraMcpPrompt, DatabaseMessageExtraMcpResource } from '$lib/types';
+import type {
+	AudioInputFormat,
+	DatabaseMessageExtraMcpPrompt,
+	DatabaseMessageExtraMcpResource
+} from '$lib/types';
 import { modelsStore } from '$lib/stores/models.svelte';
+
+function getAudioInputFormat(mimeType: string): AudioInputFormat {
+	const normalizedMimeType = mimeType.trim().toLowerCase();
+
+	if (
+		normalizedMimeType === MimeTypeAudio.WAV ||
+		normalizedMimeType === MimeTypeAudio.WAVE ||
+		normalizedMimeType === MimeTypeAudio.X_WAV ||
+		normalizedMimeType === MimeTypeAudio.X_WAVE ||
+		normalizedMimeType === MimeTypeAudio.X_PN_WAV
+	) {
+		return FileTypeAudio.WAV;
+	}
+
+	return FileTypeAudio.MP3;
+}
 
 export class ChatService {
 	/**
@@ -824,26 +846,6 @@ export class ChatService {
 
 		const contentParts: ApiChatMessageContentPart[] = [];
 
-		if (message.content) {
-			contentParts.push({
-				type: ContentPartType.TEXT,
-				text: message.content
-			});
-		}
-
-		// Include images from all messages
-		const imageFiles = message.extra.filter(
-			(extra: DatabaseMessageExtra): extra is DatabaseMessageExtraImageFile =>
-				extra.type === AttachmentType.IMAGE
-		);
-
-		for (const image of imageFiles) {
-			contentParts.push({
-				type: ContentPartType.IMAGE_URL,
-				image_url: { url: image.base64Url }
-			});
-		}
-
 		const textFiles = message.extra.filter(
 			(extra: DatabaseMessageExtra): extra is DatabaseMessageExtraTextFile =>
 				extra.type === AttachmentType.TEXT
@@ -869,6 +871,26 @@ export class ChatService {
 			});
 		}
 
+		if (message.content) {
+			contentParts.push({
+				type: ContentPartType.TEXT,
+				text: message.content
+			});
+		}
+
+		// Include images from all messages
+		const imageFiles = message.extra.filter(
+			(extra: DatabaseMessageExtra): extra is DatabaseMessageExtraImageFile =>
+				extra.type === AttachmentType.IMAGE
+		);
+
+		for (const image of imageFiles) {
+			contentParts.push({
+				type: ContentPartType.IMAGE_URL,
+				image_url: { url: image.base64Url }
+			});
+		}
+
 		const audioFiles = message.extra.filter(
 			(extra: DatabaseMessageExtra): extra is DatabaseMessageExtraAudioFile =>
 				extra.type === AttachmentType.AUDIO
@@ -879,7 +901,7 @@ export class ChatService {
 				type: ContentPartType.INPUT_AUDIO,
 				input_audio: {
 					data: audio.base64Data,
-					format: audio.mimeType.includes('wav') ? 'wav' : 'mp3'
+					format: getAudioInputFormat(audio.mimeType)
 				}
 			});
 		}
