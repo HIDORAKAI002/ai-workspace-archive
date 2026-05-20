@@ -85,6 +85,56 @@ Inventory snapshots component:
 
 Configure separate [pool limits for each domain](/guides/operate/managing-concurrency/concurrency-pools#limit-the-number-of-assets-or-ops-actively-executing-across-all-runs). This approach allows snapshots from different business domains to run in parallel while preventing concurrent execution within each domain, reducing the risk of corruption while maintaining reasonable performance.
 
+## Microbatch incremental models
+
+dbt's [microbatch incremental strategy](https://docs.getdbt.com/docs/build/incremental-microbatch) uses a fundamentally different batching model than regular incremental models. Understanding the difference determines which CLI flags you pass from Dagster.
+
+### Regular incremental models
+
+With regular incremental models, **you** control the row filtering. Dagster passes `--vars` to provide date boundaries, and your SQL uses `{% if is_incremental() %}` to filter rows within those boundaries. dbt runs the model once for the entire window:
+
+<CodeExample
+  path="docs_snippets/docs_snippets/integrations/dbt/pythonic/assets_incrementals.py"
+  startAfter="start_incremental_dbt_models"
+  endBefore="end_incremental_dbt_models"
+  title="dbt_assets.py"
+/>
+
+<CodeExample
+  path="docs_snippets/docs_snippets/integrations/dbt/pythonic/incremental_model.sql"
+  title="models/incremental_model.sql"
+  language="sql"
+/>
+
+### Microbatch incremental models
+
+With microbatch, **dbt** controls the batching. You configure the model with an `event_time` column and a `batch_size`, and dbt's engine automatically subdivides the window into discrete batches — running the model once per batch. Your SQL doesn't need a manual filter; dbt injects it based on `event_time`.
+
+<CodeExample
+  path="docs_snippets/docs_snippets/integrations/dbt/pythonic/microbatch_model.sql"
+  title="models/microbatch_model.sql"
+  language="sql"
+/>
+
+Dagster passes `--event-time-start` and `--event-time-end` to tell the microbatch engine which window to process. These flags drive the engine directly. Passing `--vars` instead has no effect on batch scheduling — it only injects values into the SQL template — which is why misconfigured microbatch models silently process all batches from `begin` to now rather than the intended partition window.
+
+<CodeExample
+  path="docs_snippets/docs_snippets/integrations/dbt/pythonic/assets_microbatch_incrementals.py"
+  startAfter="start_microbatch_dbt_models"
+  endBefore="end_microbatch_dbt_models"
+  title="dbt_assets.py"
+/>
+
+Because dbt processes one `batch_size` interval at a time, your `PartitionsDefinition` should match:
+
+| dbt `batch_size` | Dagster `PartitionsDefinition` |
+| ---------------- | ------------------------------ |
+| `day`            | `DailyPartitionsDefinition`    |
+| `month`          | `MonthlyPartitionsDefinition`  |
+| `year`           | `YearlyPartitionsDefinition`   |
+
+The `start_date` of the `PartitionsDefinition` should match the model's `begin` config so Dagster backfills align with dbt's batch history.
+
 ## Organizing dbt assets into groups
 
 By default, all dbt assets land in a single `dbt` group. To split them into meaningful groups, subclass <PyObject section="libraries" integration="dbt" module="dagster_dbt" object="DagsterDbtTranslator" /> and override `get_group_name`. Common grouping strategies:
@@ -148,3 +198,14 @@ dbt clean && dbt deps
 ```
 
 Then re-run the snapshots. To prevent recurrence, pin package versions in `packages.yml` rather than letting them float, and test snapshots in a development environment after any package upgrade before promoting to production.
+
+## Recovering from infrastructure interruptions
+
+To gracefully recover from infrastructure interruptions, such as a Kubernetes node eviction or a pod termination, use the `FROM_ASSET_FAILURE` run retry strategy with a `dagster/retry_on_asset_or_op_failure` setting value of `false` to use persisted asset materialization records from the event log and automatically exclude already-materialized assets during retry. This enables recovering without requiring persisted dbt artifacts. See [Configuring run retries](/deployment/execution/run-retries).
+
+<CodeExample
+  path="docs_snippets/docs_snippets/deployment/execution/asset_job_from_asset_failure_retries.py"
+  startAfter="start_from_asset_failure_job"
+  endBefore="end_from_asset_failure_job"
+  title="src/my_project/jobs.py"
+/>
