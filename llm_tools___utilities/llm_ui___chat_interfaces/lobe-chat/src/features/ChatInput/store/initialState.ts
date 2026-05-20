@@ -48,6 +48,7 @@ export interface PublicState {
   agentId?: string;
   allowExpand?: boolean;
   contextWindowMessages?: ContextWindowMessage[];
+  draftKey?: string;
   expand?: boolean;
   feature?: ChatInputFeature;
   getMessages?: () => OpenAIChatMessage[];

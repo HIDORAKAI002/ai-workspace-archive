@@ -19,6 +19,7 @@ const StoreUpdater = memo<StoreUpdaterProps>(
     agentId,
     chatInputEditorRef,
     contextWindowMessages,
+    draftKey,
     feature = DEFAULT_CHAT_INPUT_FEATURE,
     mobile,
     sendButtonProps,
@@ -38,6 +39,7 @@ const StoreUpdater = memo<StoreUpdaterProps>(
 
     useStoreUpdater('agentId', agentId);
     useStoreUpdater('contextWindowMessages', contextWindowMessages);
+    useStoreUpdater('draftKey', draftKey);
     useStoreUpdater('mobile', mobile!);
     useStoreUpdater('mentionItems', mentionItems);
     useStoreUpdater('leftActions', leftActions!);
