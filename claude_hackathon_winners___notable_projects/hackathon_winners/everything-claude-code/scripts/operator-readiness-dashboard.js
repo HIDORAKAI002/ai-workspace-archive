@@ -342,6 +342,11 @@ function agentShieldEnterpriseEvidence(roadmap) {
 }
 
 function eccToolsNextLevelEvidence(roadmap) {
+  if (roadmap.includes('select-ready-target')
+    || roadmap.includes('f14ed2fe-a219-470c-8119-63429e197027')) {
+    return 'billing announcement gate, hosted analysis lanes, AgentShield fleet-summary consumption, hosted finding evidence paths, harness-route policy linking, policy-promotion Action-output telemetry, operator-visible promotion output details, hosted promotion judge audit traces, billing announcement preflight, aggregate production billing KV readback, Wrangler OAuth readback, target-account billing readback, provenance-aware Marketplace billing-state gates, sanitized Marketplace plan/action provenance counts, ready Marketplace Pro target selection, hosted team-learning feedback controls, and ECC-Tools Dependabot alert remediation are mirrored in the GA roadmap';
+  }
+
   if (roadmap.includes('69ca535')
     || roadmap.includes('team feedback controls')
     || roadmap.includes('e56fc1a')) {
@@ -387,6 +392,12 @@ function eccToolsNextLevelEvidence(roadmap) {
 }
 
 function eccToolsNextLevelGap(roadmap) {
+  if (roadmap.includes('select-ready-target')
+    || roadmap.includes('f14ed2fe-a219-470c-8119-63429e197027')
+    || roadmap.includes('old "no Marketplace-managed Pro target billing-state" blocker is cleared')) {
+    return 'obtain or rotate the local/internal INTERNAL_API_SECRET bearer-token path, then run the live billing announcement gate for the selected Marketplace Pro target before publishing native-payments copy';
+  }
+
   if (roadmap.includes('1Password CLI authorization timed out')
     || roadmap.includes('Cloudflare API auth returned `Authentication error [code: 10000]`')) {
     return 'authorize Cloudflare API or 1Password CLI access, configure the target Marketplace Pro account and INTERNAL_API_SECRET, create or replay Marketplace Pro webhook state, then rerun target readback and the live announcement gate';
@@ -989,7 +1000,7 @@ function buildReport(options) {
       releaseVideoWorkOrder,
       'Replace final release, npm, plugin, billing, and video URLs in the partner/sponsor/talk pack, then get explicit approval before outbound.',
       'Repeat ITO-57 Linear/project status sync after the next significant merge batch or advisory-source refresh.',
-      'Create or verify Marketplace-managed Pro target billing-state with webhook provenance, configure the target account and INTERNAL_API_SECRET, then rerun target readback and the live announcement gate before publishing native-payments copy.',
+      'Obtain or rotate the local/internal INTERNAL_API_SECRET bearer-token path, then run the live billing announcement gate for the selected Marketplace Pro target before publishing native-payments copy.',
     ],
   };
 }
