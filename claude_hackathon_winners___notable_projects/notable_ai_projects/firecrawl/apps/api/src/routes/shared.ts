@@ -298,7 +298,10 @@ export function blocklistMiddleware(
 ) {
   if (
     typeof req.body.url === "string" &&
-    isUrlBlocked(req.body.url, req.acuc?.flags ?? null)
+    isUrlBlocked(req.body.url, req.acuc?.flags ?? null, {
+      team_id: req.acuc?.team_id ?? null,
+      origin: typeof req.body.origin === "string" ? req.body.origin : null,
+    })
   ) {
     if (!res.headersSent) {
       return res.status(403).json({
