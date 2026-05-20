@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/jonboulle/clockwork"
+	"github.com/sirupsen/logrus"
 	"github.com/weaviate/weaviate/cluster/proto/api"
 )
 
@@ -59,9 +60,15 @@ type Manager struct {
 	// safe — the setter takes m.mu.
 	schemaMutationDetectors map[string]SchemaMutationDetector
 
+	// Per-namespace payload→collection extractors. Absent ⇒ namespace is
+	// not collection-scoped and survives DeleteTasksForCollection.
+	collectionExtractors map[string]CollectionExtractor
+
 	completedTaskTTL time.Duration
 
 	clock clockwork.Clock
+
+	logger logrus.FieldLogger
 
 	// notifier is signalled after every state-changing apply
 	// (AddTask, RecordUnitCompletion, UpdateUnitProgress, CancelTask) so
@@ -200,6 +207,8 @@ type ManagerParameters struct {
 	Clock clockwork.Clock
 
 	CompletedTaskTTL time.Duration
+
+	Logger logrus.FieldLogger
 }
 
 func NewManager(params ManagerParameters) *Manager {
@@ -208,12 +217,57 @@ func NewManager(params ManagerParameters) *Manager {
 	}
 
 	return &Manager{
-		tasks: make(map[string]map[string]*Task),
+		tasks:                make(map[string]map[string]*Task),
+		collectionExtractors: make(map[string]CollectionExtractor),
 
 		completedTaskTTL: params.CompletedTaskTTL,
 
-		clock: params.Clock,
+		clock:  params.Clock,
+		logger: params.Logger,
 	}
+}
+
+// RegisterCollectionExtractor opts a task namespace into DeleteTasksForCollection's
+// cascade. Extractor runs under the Manager lock — must not block or recurse. Last
+// write wins per namespace; nil / empty arguments are silently dropped.
+func (m *Manager) RegisterCollectionExtractor(namespace string, extractor CollectionExtractor) {
+	if namespace == "" || extractor == nil {
+		return
+	}
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.collectionExtractors[namespace] = extractor
+}
+
+// DeleteTasksForCollection drops tasks whose payload binds to `collection`. Called
+// from the schema FSM on DELETE_CLASS so a drop+recreate of the same class name
+// starts with a clean task slate. Empty `collection` is rejected (an extractor
+// emitting ("", true) on stray bytes would otherwise wipe the cluster).
+// See weaviate/0-weaviate-issues#231.
+func (m *Manager) DeleteTasksForCollection(collection string) []TaskDescriptor {
+	if collection == "" {
+		return nil
+	}
+
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	var removed []TaskDescriptor
+	for namespace, tasksByID := range m.tasks {
+		extractor, ok := m.collectionExtractors[namespace]
+		if !ok || extractor == nil {
+			continue
+		}
+		for taskID, task := range tasksByID {
+			c, ok := extractor(task.Payload)
+			if !ok || c != collection {
+				continue
+			}
+			delete(tasksByID, taskID)
+			removed = append(removed, task.TaskDescriptor)
+		}
+	}
+	return removed
 }
 
 // AddTask registers a new distributed task from a Raft apply. The seqNum becomes the task's
@@ -634,6 +688,10 @@ func (m *Manager) MarkTaskFinalized(c *api.ApplyRequest) error {
 // unassigned unit sets its NodeID, claiming it for that node. After assignment, updates from
 // other nodes are rejected. Progress updates to terminal units are silently ignored (no error)
 // because in-flight Raft commands may arrive after a unit has already completed.
+//
+// Stored Progress is monotonic per task version; only NodeID and UpdatedAt are applied when
+// the requested Progress regresses. Receiver-side defence against sender-side miscomputation.
+// See weaviate/0-weaviate-issues#232.
 func (m *Manager) UpdateUnitProgress(c *api.ApplyRequest) error {
 	var r api.UpdateDistributedTaskUnitProgressRequest
 	if err := json.Unmarshal(c.SubCommand, &r); err != nil {
@@ -658,7 +716,19 @@ func (m *Manager) UpdateUnitProgress(c *api.ApplyRequest) error {
 	}
 
 	u.NodeID = r.NodeId
-	u.Progress = r.Progress
+	if r.Progress > u.Progress {
+		u.Progress = r.Progress
+	} else if r.Progress < u.Progress {
+		// Sender-side regression: surface so future emitter bugs don't
+		// hide behind the receiver clamp. Debug-only — under steady-state
+		// monotonic senders this branch is unreachable.
+		m.logger.WithField("namespace", r.Namespace).
+			WithField("task_id", r.Id).
+			WithField("unit_id", r.UnitId).
+			WithField("stored_progress", u.Progress).
+			WithField("requested_progress", r.Progress).
+			Debug("distributedtask: clamping unit-progress regression (sender bug)")
+	}
 	u.UpdatedAt = time.UnixMilli(r.UpdatedAtUnixMillis)
 
 	wasPending := u.Status == UnitStatusPending
