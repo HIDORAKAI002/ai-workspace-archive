@@ -8,9 +8,9 @@ social announcement.
 
 | Field | Evidence |
 | --- | --- |
-| Upstream main | `906e06406e95742944ccb05065f95a7e4dd4a036` |
+| Upstream main | `c2471fe5c535310f8a8008c9ed7ea9f6757b33f2` |
 | Git remote | `https://github.com/affaan-m/ECC.git` |
-| Evidence scope | Current `main` after PR #1990 harness-audit GitHub integration scoring, PR #1991 canonical ECC identity gate, PR #1992 release video-suite gate, PR #1993 growth outreach pack, PR #1994 May 19 publication evidence refresh, PR #1995 operator dashboard refresh, PR #1996 primary render self-eval gate, PR #1997 publish-candidate gate, PR #1998 visual QA gate, PR #1999 video dashboard evidence refresh, PR #2000 suite-count evidence refresh, PR #2001 owner approval packet addition, PR #2002 owner approval dashboard gate refresh, PR #2004 Linear readiness evidence sync, PR #2005 post-PR #2004 evidence refresh, PR #2008 release supply-chain evidence gate fix, PR #2006 per-project Claude Code adapter, PR #2009 continuous-learning project registry hygiene fix, PR #2011 GateGuard quoted git introspection fix, PR #2013 deterministic release approval gate, PR #2017 AgentShield adapter evidence sync, ECC-Tools #80-#88 hosted observability/readback batch, AgentShield #94 Zed/VS Code adapter coverage, and AgentShield #95 Dependabot alert closure |
+| Evidence scope | Current `main` after PR #1990 harness-audit GitHub integration scoring, PR #1991 canonical ECC identity gate, PR #1992 release video-suite gate, PR #1993 growth outreach pack, PR #1994 May 19 publication evidence refresh, PR #1995 operator dashboard refresh, PR #1996 primary render self-eval gate, PR #1997 publish-candidate gate, PR #1998 visual QA gate, PR #1999 video dashboard evidence refresh, PR #2000 suite-count evidence refresh, PR #2001 owner approval packet addition, PR #2002 owner approval dashboard gate refresh, PR #2004 Linear readiness evidence sync, PR #2005 post-PR #2004 evidence refresh, PR #2008 release supply-chain evidence gate fix, PR #2006 per-project Claude Code adapter, PR #2009 continuous-learning project registry hygiene fix, PR #2011 GateGuard quoted git introspection fix, PR #2013 deterministic release approval gate, PR #2017 AgentShield adapter evidence sync, PR #2018 AgentShield Dependabot evidence sync, ECC-Tools #80-#91 hosted observability/readback, Marketplace Pro selected-target, selected-target announcement gate, and env-file operator-path batch, AgentShield #94 Zed/VS Code adapter coverage, AgentShield #95 Dependabot alert closure, PR #2019 Marketplace Pro release-gate sync, and PR #2020 selected-target announcement gate sync |
 | Local status caveat | `git status --short --branch` was clean after pulling `origin/main`; generated evidence files are committed after the source snapshot they describe |
 
 The release operator must repeat all publish-facing checks from the exact final
@@ -59,6 +59,9 @@ Tracked repositories in the platform audit were:
 | PR #2011 | Merged the GateGuard read-only git introspection tokenizer fix so quoted `git show` pathspecs with spaces are preserved while quoted shell separators stay outside the bypass |
 | PR #2013 | Merged the deterministic `release:approval-gate` so final publication, package, plugin, video, billing, social, and outbound actions remain blocked until owner decisions and live URL readbacks are complete |
 | PR #2017 | Merged the AgentShield #94 evidence mirror as `906e06406e95742944ccb05065f95a7e4dd4a036`, syncing roadmap, publication evidence, preview-pack manifest, and supply-chain incident-response surfaces after full GitHub CI passed |
+| PR #2018 | Merged the AgentShield #95 Dependabot evidence mirror as `68b4e45145968acd52e68d900f8422061ed7f4a2`, syncing the roadmap, publication evidence, and preview-pack manifest after full PR CI passed |
+| PR #2019 | Merged the Marketplace Pro selected-target release-gate sync as `30f60710d4e0424fc70d9bbdc105009db141d9d8`, updating the roadmap, publication evidence, naming matrix, preview manifest, and operator dashboard after full PR CI passed |
+| PR #2020 | Merged the selected-target announcement gate sync as `c2471fe5c535310f8a8008c9ed7ea9f6757b33f2`, updating the roadmap, publication evidence, naming matrix, preview manifest, release URL ledger, platform audit surfaces, and operator dashboard after full PR CI passed |
 
 ## Post-Queue-Zero Sync - 2026-05-19 Late Pass
 
@@ -86,14 +89,32 @@ Tracked repositories in the platform audit were:
 | AgentShield #95 | PR #95 merged the `brace-expansion` Dependabot fix as `25d91f0002214c408da4ceaac7def20bad40ca10`. The lockfile now resolves vulnerable transitive `brace-expansion` 5.x entries to `5.0.6`, local `npm audit --audit-level=moderate` returns 0 vulnerabilities, and `gh api repos/affaan-m/agentshield/dependabot/alerts?state=open` returns `[]`. Local validation passed typecheck, lint, full `npm test` (1822 tests), build, audit, and whitespace checks; GitHub checks passed across Verify Node 18/20/22, self-scan, self-scan examples, Test GitHub Action, GitGuardian, CodeRabbit, and Cubic. |
 | Linear roadmap sync | Linear ITO-54 comment `74dcc101-3be5-4173-be13-62b80d54f569` and ECC Platform Roadmap project comment `348ea8f5-2a2d-46d9-a0fe-ed99653e7fe5` record the May 20 hosted observability status/depth-plan readback batch; Linear comments `291e2a4b-06e3-4672-a057-cdb141478161` and `b2d35de0-ca49-44cb-982a-ddec229e7691` add the #88 observability API readback; Linear ITO-49 comment `faed69dd-35f5-469d-acb5-ddde6a70d6a1` and project comment `70187c1e-d481-4181-b418-09bd65d54b5e` add the #94 AgentShield Zed/VS Code adapter evidence; Linear ITO-49 comment `371fc3e4-611f-4d20-a23f-67db1260b418`, ITO-57 comment `bd06e252-15c1-4256-b667-caa3f64f5968`, and project comment `22c2c388-2fd1-4dea-a939-6141f40c9a21` add the #95 AgentShield Dependabot alert closure; earlier comments on ITO-54, ITO-48, and the project record the #84 hosted remediation sync and #85 hosted observability event emission batches. |
 
+## May 20 Marketplace Pro Release-Gate Sync
+
+| Surface | Evidence |
+| --- | --- |
+| ECC-Tools #89 | PR #89 merged as `512bca6b99cdaa67058a6aa9a4e7e7f0b1d9873a` after Verify, Security Audit, and Workers Builds passed. It added `billing:kv-readback -- --select-ready-target --require-ready`, allowing operators to select a ready Marketplace Pro target internally without passing or printing the login. |
+| Live production readback | The 2026-05-20 Wrangler OAuth readback found ready-like Marketplace Pro records with webhook provenance, selected a target with both key families, seat and webhook readiness, no overage, and 0 blockers, with account details redacted. The old missing Marketplace Pro target-state blocker is cleared. |
+| ECC #2019 | PR #2019 merged as `30f60710d4e0424fc70d9bbdc105009db141d9d8`, syncing the selected-target readback evidence into the GA roadmap, rc.1 publication evidence, naming matrix, preview manifest, and operator dashboard. |
+| ECC-Tools #90 | PR #90 merged as `16a5bb33ee5ce7c31d2ad8d041e5afac03308f05` after Verify, Security Audit, and Workers Builds passed. It added the selected-target official announcement gate through `/api/billing/readiness?selectReadyTarget=1` and `npm run billing:announcement-gate -- --select-ready-target`, keeping the raw account login out of command logs. |
+| ECC #2020 | PR #2020 merged as `c2471fe5c535310f8a8008c9ed7ea9f6757b33f2`, syncing ECC-Tools #90 into the roadmap, publication evidence, naming matrix, preview manifest, publication readiness, release URL ledger, platform audit surfaces, and operator dashboard. |
+| ECC-Tools #91 | PR #91 merged as `72119a1acc6f5a0cd3bb5d90afd6e87fd1fefd05` after Verify, Security Audit, and Workers Builds passed. It added `--env-file` to the billing announcement and KV readback scripts for ignored local operator credential files, with tests proving sentinel secrets and account logins are not printed. |
+| ECC-Tools #92 | PR #92 merged as `18d80197be779619283e0b37e2952bac53819a07` after Verify, Security Audit, and Workers Builds passed. It added the non-breaking `INTERNAL_OPERATOR_API_SECRET` bearer accepted by privileged internal API routes without rotating the primary `INTERNAL_API_SECRET`, and the merged Worker was deployed to `api.ecc.tools`. |
+| May 20 live selected-target gate | Vault-backed Wrangler readback passed with Marketplace Pro state, target fingerprint `e953a74209fe`, both key families, webhook evidence, seat readiness, no overage, and 0 blockers. After rotating the operator bearer, `npm run billing:announcement-gate -- --preflight --select-ready-target` returned ready and `npm run billing:announcement-gate -- --select-ready-target` returned `announcementGateReady: true`, 0 required actions, 0 blockers, and audit summary 6 pass / 1 warn / 0 fail. |
+| ECC-Tools #93 | PR #93 merged as `d3d62df83fa075660fa4530c3e0edc311a4355fe`, recording the live billing announcement gate pass in the launch checklist and distribution roadmap while preserving final release/plugin/URL approval gates. |
+| Post-merge main CI | ECC GitHub Actions runs `26135974576`, `26136949698`, and `26138015245` completed successfully on `main` for `30f60710d4e0424fc70d9bbdc105009db141d9d8`, `c2471fe5c535310f8a8008c9ed7ea9f6757b33f2`, and `6e25458dbc15cd07cfb7a4e1f0b06f3eda41a043` across lint, coverage, security, validation, and the full OS/package-manager matrix. ECC-Tools main CI runs `26137280847`, `26138403065`, and `26138669148` completed successfully for `72119a1acc6f5a0cd3bb5d90afd6e87fd1fefd05`, `18d80197be779619283e0b37e2952bac53819a07`, and `d3d62df83fa075660fa4530c3e0edc311a4355fe`. |
+| Post-merge local gates | `npm run platform:audit -- --json` returned ready true with 0 PRs, 0 issues, 0 discussion gaps, and 0 dirty blockers; `npm run preview-pack:smoke -- --format json` returned ready true with digest `531328aaaa53` before the May 20 dashboard rollover and `eebb8a66c33e` after adding the May 20 dashboard artifact; `git diff --check HEAD~1..HEAD` was clean. |
+| Linear roadmap sync | Linear ITO-61 comment `467d148a-712a-4777-aad9-95593e9f1739` and ECC Platform Roadmap project comment `7642ee9c-3107-400c-a229-53e2895a8914` record ECC-Tools #89, ECC #2019, the green post-merge CI run, and the earlier internal bearer-token gate; Linear ITO-44 comment `a9297467-208a-41e4-8dbb-35f0dad5fe2b`, ITO-56 comment `5008b70b-cf98-43cd-a8d4-f098ba9b9780`, ITO-61 comment `5ebf0aaf-e2d3-4537-878f-484f49dcf87a`, and project reply `1c74a3d0-f8ca-4306-997e-a37c53d49f97` record the ECC #2020 selected-target announcement-gate sync; a new Linear sync should record ECC-Tools #92/#93 and the live gate pass. |
+| Remaining blocker | Native-payments billing evidence is ready as of the May 20 selected-target gate pass. Repeat KV readback and `billing:announcement-gate -- --select-ready-target` immediately before launch, and keep native-payments copy behind the final release, plugin, live URL, and owner-approval gates. |
+
 ## Release And Growth Evidence
 
 | Gate | Command | Result |
 | --- | --- | --- |
 | Release-surface tests | `node tests/docs/ecc2-release-surface.test.js` | 28 passed, 0 failed |
-| Preview-pack smoke | `npm run preview-pack:smoke -- --format json` | Ready true; digest `531328aaaa53`; 32 required artifacts; 5 passed, 0 failed |
+| Preview-pack smoke | `npm run preview-pack:smoke -- --format json` | Ready true; digest `eebb8a66c33e`; 33 required artifacts; 5 passed, 0 failed |
 | Release approval gate | `npm run release:approval-gate -- --format json` | Expected blocked; digest `ef8f49f727b7`; 4 passed, 2 failed; owner decisions and live URL readbacks remain approval-gated |
-| Operator dashboard | `npm run operator:dashboard -- --write docs/releases/2.0.0-rc.1/operator-readiness-dashboard-2026-05-19.md` | Regenerated from the May 19 `main` baseline with platform audit ready true, 0 tracked PRs, 0 tracked issues, 0 discussion gaps, `$1,728/mo` current MRR, `$10,000/mo` target MRR, the release video suite marked current, and top actions for plugin publication, notifications, outbound approval, AgentShield, and ECC Tools billing |
+| Operator dashboard | `npm run operator:dashboard -- --write docs/releases/2.0.0-rc.1/operator-readiness-dashboard-2026-05-20.md` | Regenerated from the May 20 `main` baseline with platform audit ready true, 0 tracked PRs, 0 tracked issues, 0 discussion gaps, `$1,728/mo` current MRR, `$10,000/mo` target MRR, the release video suite marked current, Linear release-gate sync current, and top actions for plugin publication, notifications, outbound approval, AgentShield, and ECC Tools billing |
 | Supply-chain verification | `npm audit --audit-level=moderate`; `npm audit signatures`; `yarn install --immutable --mode=skip-build` | Current supply-chain refresh found 0 npm vulnerabilities, verified 254 registry signatures and 30 attestations, and accepted the Yarn lock after pinning `@types/node@25.7.0` plus refreshing `brace-expansion` to `5.0.6` / `1.1.14` |
 | Release video suite | `npm run release:video-suite -- --format json --summary` with `ECC_VIDEO_SOURCE_ROOT` and `ECC_VIDEO_RELEASE_SUITE_ROOT` | Ready true; 15/15 source assets present; 13/13 render, timeline, caption, EDL, and segment artifacts present; 12/12 publish-candidate outputs present with zero detected black-frame segments; primary rough render self-eval passed at 144.759 seconds, 1920x1080, 1 audio stream, and 106.78 MB |
 | Focused post-merge regression set | `node tests/hooks/detect-project-worktree.test.js`; `node tests/hooks/observe-subdirectory-detection.test.js`; `node tests/scripts/instinct-cli-projects.test.js`; `node tests/hooks/hooks.test.js` | 10/10, 6/6, 5/5, and 237/237 passed after PR #2009 merged |
@@ -112,7 +133,12 @@ Tracked repositories in the platform audit were:
 | Post-PR #2009 main CI | GitHub Actions run `26111946778` | Completed successfully with 37 completed jobs, 0 failed jobs, and `main` advanced to `bc519e5b8ed42f26c0a5a611756e04351c323f21` |
 | Post-PR #2011 main CI | GitHub Actions run `26113695068` | Completed successfully with 37 completed jobs, 0 failed jobs, and `main` advanced to `14d88e517b0c56a80c1a6392b1cde2474948d29f` |
 | Post-PR #2013 main CI | GitHub Actions run `26128749863` | Completed successfully with `main` advanced to `9819626459a662773be7d0b1c18d82c1316b8c36` |
-| Linear sync | Linear document `ecc-may-19-post-pr-2002-sync-64cef8f668e0` plus project comment `a6411e3a-8c8e-4a58-adba-687e77d4c543`; late-pass document `ecc-may-19-late-queue-zero-and-release-gate-sync-1c26f65e6b3f` plus project comment `d42bf0e2-7a8e-4934-9f3f-e281498ee805` | Project and issue lanes record PR #2002 evidence, discussion #2003 routing, owner-approval dashboard gate, and In Progress status for ITO-47, ITO-48, ITO-49, ITO-51, ITO-54, and ITO-56; the late-pass sync attaches PR #2013, ECC-Tools #79, and JARVIS #15/#16 evidence to ITO-44, ITO-50, ITO-54, ITO-56, and ITO-61 |
+| Post-PR #2019 main CI | GitHub Actions run `26135974576` | Completed successfully with `main` advanced to `30f60710d4e0424fc70d9bbdc105009db141d9d8` |
+| Post-PR #2020 main CI | GitHub Actions run `26136949698` | Completed successfully with `main` advanced to `c2471fe5c535310f8a8008c9ed7ea9f6757b33f2` |
+| ECC-Tools #91 main CI | GitHub Actions run `26137280847` | Completed successfully on ECC-Tools `main` with `72119a1acc6f5a0cd3bb5d90afd6e87fd1fefd05` after the env-file billing gate support merged |
+| ECC-Tools #92 main CI | GitHub Actions run `26138403065` | Completed successfully on ECC-Tools `main` with `18d80197be779619283e0b37e2952bac53819a07` after the operator bearer path merged |
+| ECC-Tools #93 main CI | GitHub Actions run `26138669148` | Completed successfully on ECC-Tools `main` with `d3d62df83fa075660fa4530c3e0edc311a4355fe` after the live billing announcement evidence merged |
+| Linear sync | Linear document `ecc-may-19-post-pr-2002-sync-64cef8f668e0` plus project comment `a6411e3a-8c8e-4a58-adba-687e77d4c543`; late-pass document `ecc-may-19-late-queue-zero-and-release-gate-sync-1c26f65e6b3f` plus project comment `d42bf0e2-7a8e-4934-9f3f-e281498ee805`; May 20 ITO-61 comment `467d148a-712a-4777-aad9-95593e9f1739` plus project comment `7642ee9c-3107-400c-a229-53e2895a8914`; May 20 ITO-44 comment `a9297467-208a-41e4-8dbb-35f0dad5fe2b`, ITO-56 comment `5008b70b-cf98-43cd-a8d4-f098ba9b9780`, ITO-61 comment `5ebf0aaf-e2d3-4537-878f-484f49dcf87a`, and project reply `1c74a3d0-f8ca-4306-997e-a37c53d49f97` | Project and issue lanes record PR #2002 evidence, discussion #2003 routing, owner-approval dashboard gate, and In Progress status for ITO-47, ITO-48, ITO-49, ITO-51, ITO-54, and ITO-56; the late-pass sync attaches PR #2013, ECC-Tools #79, and JARVIS #15/#16 evidence to ITO-44, ITO-50, ITO-54, ITO-56, and ITO-61; the May 20 sync attaches ECC-Tools #89/#90, ECC #2019/#2020 Marketplace Pro selected-target and selected-target announcement-gate evidence, and the remaining env-file/bearer-token gate to ITO-44, ITO-56, ITO-61, and the project |
 | Public-path sanitization | `node scripts/ci/validate-no-personal-paths.js` through local suite and CI | Passed |
 | Markdown and whitespace | `markdownlint` focused release docs plus `git diff --check` before PR #1999 | Passed |
 
@@ -126,8 +152,8 @@ Tracked repositories in the platform audit were:
 | Growth proof | `partner-sponsor-talks-pack.md` provides approval-gated copy for sponsors, partners, consulting, talks, podcasts, GitHub Discussion, and video CTAs |
 | Owner approval proof | `owner-approval-packet-2026-05-19.md` centralizes release, package, plugin, video, billing, social, and outbound decision gates |
 | Business baseline | Hypergrowth command center and partner pack use `$1,728/mo` current MRR, `$10,000/mo` target MRR, and `$8,272/mo` gap |
-| Operator dashboard | `operator-readiness-dashboard-2026-05-19.md` pulls the growth baseline into the same queue, publication, video, outbound, AgentShield, ECC Tools, Linear, and supply-chain control surface |
-| Linear progress proof | Linear project document `ecc-may-19-post-pr-2002-sync-64cef8f668e0` mirrors the post-PR #2002 state and records active lanes for launch materials, AgentShield, ECC Tools deep analysis, observability, and final release publication; Linear document `ecc-may-19-late-queue-zero-and-release-gate-sync-1c26f65e6b3f` adds the PR #2013 approval gate, ECC-Tools #79 redaction hardening, and JARVIS #15/#16 queue/deploy repair evidence; May 20 Linear comments `74dcc101-3be5-4173-be13-62b80d54f569`, `348ea8f5-2a2d-46d9-a0fe-ed99653e7fe5`, `291e2a4b-06e3-4672-a057-cdb141478161`, `b2d35de0-ca49-44cb-982a-ddec229e7691`, `faed69dd-35f5-469d-acb5-ddde6a70d6a1`, `70187c1e-d481-4181-b418-09bd65d54b5e`, `371fc3e4-611f-4d20-a23f-67db1260b418`, `bd06e252-15c1-4256-b667-caa3f64f5968`, and `22c2c388-2fd1-4dea-a939-6141f40c9a21` add ECC-Tools #86/#87/#88 hosted observability readback evidence, AgentShield #94 adapter evidence, and AgentShield #95 Dependabot alert closure to ITO-54, ITO-49, ITO-57, and the project |
+| Operator dashboard | `operator-readiness-dashboard-2026-05-20.md` pulls the growth baseline into the same queue, publication, video, outbound, AgentShield, ECC Tools billing/env-file gate, Linear, and supply-chain control surface |
+| Linear progress proof | Linear project document `ecc-may-19-post-pr-2002-sync-64cef8f668e0` mirrors the post-PR #2002 state and records active lanes for launch materials, AgentShield, ECC Tools deep analysis, observability, and final release publication; Linear document `ecc-may-19-late-queue-zero-and-release-gate-sync-1c26f65e6b3f` adds the PR #2013 approval gate, ECC-Tools #79 redaction hardening, and JARVIS #15/#16 queue/deploy repair evidence; May 20 Linear comments `74dcc101-3be5-4173-be13-62b80d54f569`, `348ea8f5-2a2d-46d9-a0fe-ed99653e7fe5`, `291e2a4b-06e3-4672-a057-cdb141478161`, `b2d35de0-ca49-44cb-982a-ddec229e7691`, `faed69dd-35f5-469d-acb5-ddde6a70d6a1`, `70187c1e-d481-4181-b418-09bd65d54b5e`, `371fc3e4-611f-4d20-a23f-67db1260b418`, `bd06e252-15c1-4256-b667-caa3f64f5968`, `22c2c388-2fd1-4dea-a939-6141f40c9a21`, `a9297467-208a-41e4-8dbb-35f0dad5fe2b`, `5008b70b-cf98-43cd-a8d4-f098ba9b9780`, `5ebf0aaf-e2d3-4537-878f-484f49dcf87a`, and `1c74a3d0-f8ca-4306-997e-a37c53d49f97` add ECC-Tools hosted observability readback evidence, AgentShield adapter evidence, AgentShield Dependabot alert closure, and Marketplace selected-target announcement-gate evidence to ITO-44, ITO-49, ITO-54, ITO-56, ITO-57, ITO-61, and the project |
 
 ## Current Publication Blockers
 
@@ -138,12 +164,21 @@ Tracked repositories in the platform audit were:
 - Codex repo-marketplace distribution is verified by prior evidence, but
   official Plugin Directory publishing remains blocked on OpenAI submission or
   listing evidence.
-- ECC Tools billing/native-payments copy remains blocked until the
-  local/internal `INTERNAL_API_SECRET` bearer-token path is available and the
-  billing announcement gate passes for the ready Marketplace Pro target.
+- ECC Tools billing/native-payments evidence is no longer blocked by the
+  internal bearer-token path or selected-target announcement gate. Repeat
+  `billing:kv-readback -- --select-ready-target --require-ready` and
+  `billing:announcement-gate -- --select-ready-target` immediately before
+  launch, and keep the copy behind the final release, plugin, live URL, and
+  owner-approval gates.
   ECC-Tools PR #89 (`512bca6`) added `billing:kv-readback --
   --select-ready-target --require-ready`; its 2026-05-20 production run cleared
   the old missing-target-state blocker without printing the account login.
+  ECC-Tools PR #90 (`16a5bb3`) added the selected-target official announcement
+  gate, so production preflight no longer needs a raw GitHub login.
+  ECC-Tools PR #91 (`72119a1`) added `--env-file` support for ignored local
+  billing credentials without printing loaded secrets or account logins.
+  ECC-Tools PR #92 (`18d8019`) added the non-breaking operator bearer path, and
+  ECC-Tools PR #93 (`d3d62df`) recorded the live gate pass.
 - Release notes, X, LinkedIn, GitHub release, GitHub Discussion, longform copy,
   sponsor outreach, partner outreach, consulting copy, conference pitches, and
   podcast pitches still need final live URLs plus human approval before posting
@@ -157,13 +192,14 @@ The tracked public PR queue, issue queue, discussion queue, canonical ECC
 identity, release video suite, preview pack, growth outreach packet, per-project
 Claude Code adapter surface, continuous-learning project registry hygiene,
 GateGuard quoted git introspection fix, deterministic release approval gate,
-ECC-Tools billing-announcement redaction hardening, ECC-Tools hosted
-observability readback, AgentShield Zed/VS Code adapter coverage, AgentShield
-Dependabot alert closure, and JARVIS
-security/deploy queue repairs are current on May 20, 2026 for ECC `main`
-through `906e06406e95742944ccb05065f95a7e4dd4a036`, ECC-Tools `main`
-through `c836ac3fb24ed7e2ae38cd61e41c9651ac9c00f8`, and AgentShield `main`
-through `25d91f0002214c408da4ceaac7def20bad40ca10`. The remaining video work is owner
+ECC-Tools billing-announcement redaction hardening, selected-target billing
+readback, selected-target announcement gate, billing gate env-file operator path,
+ECC-Tools hosted observability readback, AgentShield Zed/VS Code adapter coverage,
+AgentShield Dependabot alert closure, and JARVIS security/deploy queue repairs
+are current on May 20, 2026 for ECC `main` through
+`c2471fe5c535310f8a8008c9ed7ea9f6757b33f2`, ECC-Tools `main` through
+`72119a1acc6f5a0cd3bb5d90afd6e87fd1fefd05`, and AgentShield `main` through
+`25d91f0002214c408da4ceaac7def20bad40ca10`. The remaining video work is owner
 approval, upload, and public URL attachment, not render or QA production.
 
 This improves publication readiness but does not replace the approval-gated
