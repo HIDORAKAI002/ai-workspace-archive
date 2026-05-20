@@ -1,5 +1,105 @@
 # @mastra/playground-ui
 
+## 29.0.0-alpha.11
+
+### Minor Changes
+
+- Added a custom date range option to the Metrics page date picker. You can now filter metrics by an arbitrary start and end date and time, matching the Traces page, alongside the existing relative presets (last 24 hours, 3, 7, 14, and 30 days). ([#16832](https://github.com/mastra-ai/mastra/pull/16832))
+
+  The selected range is reflected in the URL so it can be bookmarked or shared:
+
+  ```txt
+  /metrics?period=custom&dateFrom=2026-05-01T00:00:00.000Z&dateTo=2026-05-07T23:59:59.999Z
+  ```
+
+### Patch Changes
+
+- Updated dependencies [[`27fd1b7`](https://github.com/mastra-ai/mastra/commit/27fd1b79ac62eb7694f92587eb7d1be05b59be01), [`a702009`](https://github.com/mastra-ai/mastra/commit/a702009d3cfaa745120f501e21c783ed4d6a3072), [`8534d79`](https://github.com/mastra-ai/mastra/commit/8534d791fa1cb70fe1c19e2604c4b63cc10dd051), [`c78f8cd`](https://github.com/mastra-ai/mastra/commit/c78f8cd6222a86e6c60ae5210b6929ad5221b6fb), [`e146aad`](https://github.com/mastra-ai/mastra/commit/e146aadbba66c410ba0e74bac4c50135495cb8dd), [`1a0ec78`](https://github.com/mastra-ai/mastra/commit/1a0ec789a26cae443744e9abbd62ed6ee676af39), [`d52b6fe`](https://github.com/mastra-ai/mastra/commit/d52b6fe1c56853eb38864baae0bbfa75cc739ccb)]:
+  - @mastra/core@1.36.0-alpha.10
+  - @mastra/client-js@1.20.0-alpha.10
+  - @mastra/react@0.4.0-alpha.10
+
+## 29.0.0-alpha.10
+
+### Patch Changes
+
+- Fixed a crash in filter menus with nested submenus (such as the Filter on the Agent review page) that showed "`MenuPortal` must be used within `Menu`". The submenu content now uses the design system's `DropdownMenu.SubContent` instead of the underlying library's portal directly. ([#16829](https://github.com/mastra-ai/mastra/pull/16829))
+
+- Fixed type definitions and shared UI component types for `@mastra/playground-ui`. ([#16213](https://github.com/mastra-ai/mastra/pull/16213))
+
+- `AlertDialog`'s API and behavior are unchanged — `asChild` on `AlertDialog.Trigger`, and `AlertDialog.Action` and `AlertDialog.Cancel`, all work exactly as before. (Internally it now builds on Base UI primitives.) ([#16824](https://github.com/mastra-ai/mastra/pull/16824))
+
+- Moved the `Collapsible` component to Base UI, with a smoother height-based expand and collapse animation. The public API is unchanged — `asChild` on `CollapsibleTrigger` still works. ([#16825](https://github.com/mastra-ai/mastra/pull/16825))
+
+- Upgraded `@base-ui/react` to 1.5, making popups noticeably faster — components built on Base UI such as `Tooltip`, `Popover`, `DropdownMenu` and `ContextMenu` now open and close more quickly. ([#16819](https://github.com/mastra-ai/mastra/pull/16819))
+
+- Fixed the playground memory configuration display for agents using observationalMemory: true. ([#16213](https://github.com/mastra-ai/mastra/pull/16213))
+
+- Updated dependencies [[`bd92c15`](https://github.com/mastra-ai/mastra/commit/bd92c154238ce5d05e12d5477da07c7b7292c5e3), [`bd92c15`](https://github.com/mastra-ai/mastra/commit/bd92c154238ce5d05e12d5477da07c7b7292c5e3), [`1698f5e`](https://github.com/mastra-ai/mastra/commit/1698f5ec141d34f22a873efdb145ce3cdf848a5e)]:
+  - @mastra/client-js@1.20.0-alpha.9
+  - @mastra/core@1.36.0-alpha.9
+  - @mastra/react@0.4.0-alpha.9
+
+## 29.0.0-alpha.9
+
+### Patch Changes
+
+- Moved the `Dialog` component to Base UI. The public API is unchanged — `asChild` on `DialogTrigger` and `DialogClose` still works the same way, and open/close animations behave as before. ([#16821](https://github.com/mastra-ai/mastra/pull/16821))
+
+## 29.0.0-alpha.8
+
+### Minor Changes
+
+- Added `ContextMenu` for right-click interactions. Supports submenus, checkbox and radio items, keyboard shortcuts, and a `destructive` variant for dangerous actions like delete. ([#16791](https://github.com/mastra-ai/mastra/pull/16791))
+
+  ```tsx
+  import { ContextMenu } from '@mastra/playground-ui';
+
+  <ContextMenu>
+    <ContextMenu.Trigger className="…">Right click here</ContextMenu.Trigger>
+    <ContextMenu.Content>
+      <ContextMenu.Item>Rename</ContextMenu.Item>
+      <ContextMenu.Item variant="destructive">Delete</ContextMenu.Item>
+    </ContextMenu.Content>
+  </ContextMenu>;
+  ```
+
+### Patch Changes
+
+- Added a `destructive` variant on `DropdownMenu.Item` to highlight dangerous actions like delete. ([#16791](https://github.com/mastra-ai/mastra/pull/16791))
+
+  ```tsx
+  <DropdownMenu.Item variant="destructive">Delete project</DropdownMenu.Item>
+  ```
+
+- `PopoverContent` no longer forwards the underlying library's auto-focus event handlers (`onOpenAutoFocus`, `onCloseAutoFocus`). To control focus when the popover opens or closes, use `initialFocus` and `finalFocus`. ([#16791](https://github.com/mastra-ai/mastra/pull/16791))
+
+  ```tsx
+  // Before
+  <PopoverContent onOpenAutoFocus={(e) => e.preventDefault()} />
+
+  // After
+  <PopoverContent initialFocus={false} />
+  ```
+
+- Migrated the Slider component to base-ui with a refined neutral visual design. ([#16788](https://github.com/mastra-ai/mastra/pull/16788))
+
+  **What changed**
+  - Replaced `@radix-ui/react-slider` with `@base-ui/react/slider` as the underlying primitive
+  - Refreshed visuals: thin rounded thumb with white border and neutral inside, opacity-based track that adapts to any surface, neutral filled indicator (no green/accent color)
+  - Larger click target via padded `Slider.Control` and an invisible hit area on the thumb so it is easier to grab
+  - Added `cursor-pointer` on the control and `cursor-not-allowed` when disabled
+  - Removed the now unused `@radix-ui/react-slider` and `@radix-ui/react-tabs` dependencies
+
+  **API compatibility**
+
+  The public API is preserved. `onValueChange` and `onValueCommitted` are wrapped so consumers always receive `number[]`, even though base-ui returns `number | number[]` internally. Existing call sites like `<Slider value={[temperature]} onValueChange={value => setTemperature(value[0])} />` continue to work without changes.
+
+- Updated dependencies [[`9aee493`](https://github.com/mastra-ai/mastra/commit/9aee493ed6089b5133472623dcce49934bf2d509)]:
+  - @mastra/core@1.36.0-alpha.8
+  - @mastra/client-js@1.20.0-alpha.8
+  - @mastra/react@0.4.0-alpha.8
+
 ## 29.0.0-alpha.7
 
 ### Patch Changes

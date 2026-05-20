@@ -1,5 +1,55 @@
 # @mastra/core
 
+## 1.36.0-alpha.10
+
+### Minor Changes
+
+- Enterprise edition now automatically captures PostHog telemetry for EE license checks and feature usage, including license validation status, RBAC access resolution, FGA authorization calls, and EE feature invocation metadata. Telemetry is enabled by default for EE customers and can be disabled with `MASTRA_TELEMETRY_DISABLED=1`; community users are unaffected. ([#16660](https://github.com/mastra-ai/mastra/pull/16660))
+
+### Patch Changes
+
+- Fixed task_update to auto-demote previously in_progress tasks instead of returning an error when moving another task to in_progress. ([#16843](https://github.com/mastra-ai/mastra/pull/16843))
+
+- Channels now serialize messages per thread to keep conversations in order, and the tool approval flow is fixed end-to-end: ([#16517](https://github.com/mastra-ai/mastra/pull/16517))
+  - Messages arriving while the agent is busy are delivered into the running agent loop instead of starting a new, conflicting stream on the same thread. Each Mastra thread shares one subscription, and channel/author facts (platform, message id, author name) are surfaced on the stored message under `providerMetadata.mastra.channels.<platform>`.
+  - Tool approval flow: approving now drains the resumed run so the card is updated with the tool result and any follow-up assistant text is posted. Denying now resumes the run via `declineToolCall` instead of leaving it suspended. `agent.subscribeToThread()` consumers also receive chunks from resumed runs (the subscription used to drop the second registration for a resumed run that kept its original `runId`).
+  - The original `ChannelConfig` is now exposed via the new `AgentChannels.channelConfig` field so channel providers can merge with existing adapters instead of replacing them.
+  - Bumped `chat` to `^4.29.0`.
+
+- Fixed trajectory scorers so tool calls stored only in V2 content.parts are included in extracted eval steps. ([#15439](https://github.com/mastra-ai/mastra/pull/15439))
+
+- Fixed thread metadata updates to merge with existing fields instead of replacing them. Previously, updating a thread's metadata would silently drop any fields not included in the update. Now existing metadata fields are preserved when updating. ([#16846](https://github.com/mastra-ai/mastra/pull/16846))
+
+  Fixed MockMemory working memory tool to support partial JSON updates when using schema-based working memory. Previously, sending a partial update would overwrite all existing data. Now for schema-based configs, unchanged fields are preserved automatically (matching @mastra/memory behavior).
+
+  Fixed MockMemory constructor to preserve workingMemory config options (like schema) when enableWorkingMemory is true.
+
+- Remove hardcoded `/api/` prefix check from `registerApiRoute()`. The check incorrectly rejected custom routes starting with `/api/` even when users configured a different `apiPrefix`. Reserved-path validation is already handled at the server adapter level using the actual configured prefix. ([#16859](https://github.com/mastra-ai/mastra/pull/16859))
+
+- Fixed scheduler performance and correctness issues that could cause excessive Postgres CPU and noisy failed runs. ([#16805](https://github.com/mastra-ai/mastra/pull/16805))
+  - Added missing indexes on the schedules tables that the tick loop polls every 10 seconds: `(status, next_fire_at)` on `mastra_schedules` and `(schedule_id, actual_fire_at)` on `mastra_schedule_triggers`. Without these the scheduler performed a full sequential scan on every tick.
+  - The scheduler tick loop is now only started when at least one workflow declares a schedule (or `scheduler.enabled` is set explicitly), so deployments without scheduled workflows no longer poll the database at all.
+  - The scheduler now validates that a schedule's target workflow is still registered before firing it. Schedules whose target workflow has been removed from the Mastra config are skipped for a short grace window and then deleted, so stale rows stop producing failed workflow runs forever.
+  - The scheduler is now lazily initialized inside `startWorkers()`. Accessing `mastra.scheduler` before `startWorkers()` runs throws a descriptive error instead of returning a half-initialized instance.
+
+## 1.36.0-alpha.9
+
+### Patch Changes
+
+- Fix in-memory observability storage to match the contract validated against DuckDB/ClickHouse vNext adapters. ([#16808](https://github.com/mastra-ai/mastra/pull/16808))
+
+  Previously, when running Mastra with the default in-memory storage, several observability operations behaved differently than they would against a production database:
+  - **`getSpans`** threw 'This storage provider does not support batch-fetching spans'. It now batch-fetches spans by id within a trace, enabling the optimized `getBranch` path on in-memory storage.
+  - **`batchCreateLogs`, `batchCreateMetrics`, `createScore`/`batchCreateScores`, `createFeedback`/`batchCreateFeedback`** appended duplicate records on retry. They now upsert by id, preserving the cursor id so delta polling does not re-emit the record. This makes client retries safe.
+  - **Discovery operations** (`getEntityTypes`, `getEntityNames`, `getServiceNames`, `getEnvironments`, `getTags`) only inspected spans. They now also scan logs and metrics, so dimensions emitted on those surfaces are surfaced in discovery results.
+  - **`getMetricTimeSeries`** merged grouped series whose label values contained the `|` character (e.g. `{segmentA: 'a', segmentB: 'b|c'}` collided with `{segmentA: 'a|b', segmentB: 'c'}`). Series are now keyed on the original label tuple, so colliding display names remain distinct series.
+
+## 1.36.0-alpha.8
+
+### Patch Changes
+
+- Fixed type error when a tool calls `suspend(...)` inside `execute` while also declaring an `outputSchema`. The `execute` return type now allows `void` in addition to the declared output shape, so the idiomatic `return await suspend(...)` pattern type-checks correctly. ([#16799](https://github.com/mastra-ai/mastra/pull/16799))
+
 ## 1.36.0-alpha.7
 
 ### Minor Changes
