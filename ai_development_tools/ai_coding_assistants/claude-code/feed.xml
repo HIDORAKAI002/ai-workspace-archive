@@ -6,7 +6,33 @@
   <author><name>Anthropic</name></author>
   <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md"/>
   <link rel="self" type="application/atom+xml" href="https://raw.githubusercontent.com/anthropics/claude-code/main/feed.xml"/>
-  <updated>2026-05-19T00:48:45Z</updated>
+  <updated>2026-05-19T21:31:01Z</updated>
+  <entry>
+    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.145</id>
+    <title>Claude Code v2.1.145</title>
+    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.145"/>
+    <updated>2026-05-19T21:31:01Z</updated>
+    <content type="html">&lt;p&gt;• Added claude agents --json to list live Claude sessions as JSON for scripting (tmux-resurrect, status bars, session pickers)&lt;/p&gt;
+&lt;p&gt;• Added agent_id and parent_agent_id attributes to claude_code.tool OTEL spans, and fixed trace parenting so background subagent spans nest under the dispatching Agent tool span&lt;/p&gt;
+&lt;p&gt;• Status line JSON input now includes GitHub repo and PR information when detected&lt;/p&gt;
+&lt;p&gt;• /plugin Discover and Browse screens now show a plugin's commands, agents, skills, hooks, and MCP/LSP servers before installation&lt;/p&gt;
+&lt;p&gt;• claude agents terminal tab title now shows the awaiting-input count so an alt-tabbed window tells you when an agent needs attention&lt;/p&gt;
+&lt;p&gt;• Slash command and @-mention suggestion list now supports mouse hover and click in fullscreen mode&lt;/p&gt;
+&lt;p&gt;• Stop and SubagentStop hook input now includes background_tasks and session_crons fields&lt;/p&gt;
+&lt;p&gt;• Fixed a permission-prompt bypass where bare variable assignments to non-allowlisted environment variables in Bash commands were auto-approved&lt;/p&gt;
+&lt;p&gt;• Fixed MCP prompt slash commands showing raw server validation errors when a required argument is omitted — the error now names the missing argument and shows expected usage&lt;/p&gt;
+&lt;p&gt;• Fixed the spinner and elapsed-time display freezing until a keypress after the terminal was resized or refocused&lt;/p&gt;
+&lt;p&gt;• Fixed the cross-project resume hint failing in default Windows PowerShell 5.1 — Windows now uses ; as the command separator&lt;/p&gt;
+&lt;p&gt;• Fixed voice push-to-talk not working in the agent view's reply pane&lt;/p&gt;
+&lt;p&gt;• Fixed task lists rendering in random order when several tasks are created at once&lt;/p&gt;
+&lt;p&gt;• Fixed stale "Failed to install Anthropic marketplace" banner showing when the marketplace is already installed&lt;/p&gt;
+&lt;p&gt;• Fixed the PR badge in the footer not updating immediately after gh pr create and other PR-state-changing commands run in-session&lt;/p&gt;
+&lt;p&gt;• Fixed Agent Teams teammates with non-ASCII names failing every API call due to invalid header encoding&lt;/p&gt;
+&lt;p&gt;• Fixed /review using a deprecated projectCards GraphQL query that errored on repos with Classic Projects&lt;/p&gt;
+&lt;p&gt;• Fixed claude plugin validate not flagging skills: entries that point at a file instead of a directory — the error now suggests the parent directory&lt;/p&gt;
+&lt;p&gt;• Fixed an infinite loop where a skill using context: fork could repeatedly re-invoke itself instead of running&lt;/p&gt;
+&lt;p&gt;• Improved the Read tool to return a truncated first page with a "PARTIAL view" notice instead of a hard error when a whole-file read exceeds the token limit&lt;/p&gt;</content>
+  </entry>
   <entry>
     <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.144</id>
     <title>Claude Code v2.1.144</title>
@@ -40,8 +66,6 @@
 &lt;p&gt;• Fixed background side-queries on custom ANTHROPIC_BASE_URL setups and Bedrock Mantle not using Haiku — now falls back correctly when a first-party API key is configured or no Haiku model is set&lt;/p&gt;
 &lt;p&gt;• Fixed scrolling in attached background sessions on Windows — PgUp/PgDn, mouse wheel, and Ctrl+O transcript navigation now work&lt;/p&gt;
 &lt;p&gt;• Fixed a crash when closing the terminal while attached to a background session&lt;/p&gt;
-&lt;p&gt;• Fixed ! &amp;lt;cmd&amp;gt; exec sessions not responding to Ctrl+C while attached — now interrupts the running command&lt;/p&gt;
-&lt;p&gt;• Fixed agent view shell-command rows lingering under Working after completion, and pressing Enter on a completed row re-running the command after its output expired&lt;/p&gt;
 &lt;p&gt;• Fixed on Windows, pressing ← in claude agents leaving the list unresponsive to keyboard input&lt;/p&gt;
 &lt;p&gt;• Fixed ghost characters at the left edge when switching panes in Agent View on Windows Terminal with CJK content&lt;/p&gt;
 &lt;p&gt;• /bg and ←-detach now preserve directories added via /add-dir&lt;/p&gt;
@@ -630,62 +654,5 @@
 &lt;p&gt;• [VSCode] /usage now opens the native Account &amp;amp; Usage dialog instead of returning plain-text session cost&lt;/p&gt;
 &lt;p&gt;• [VSCode] Voice dictation now respects the language setting in ~/.claude/settings.json&lt;/p&gt;
 &lt;p&gt;• Fixed find in the Bash tool exhausting open file descriptors on large directory trees, causing host-wide crashes (macOS/Linux native builds)&lt;/p&gt;</content>
-  </entry>
-  <entry>
-    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.119</id>
-    <title>Claude Code v2.1.119</title>
-    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.119"/>
-    <updated>2026-05-18T01:52:01Z</updated>
-    <content type="html">&lt;p&gt;• /config settings (theme, editor mode, verbose, etc.) now persist to ~/.claude/settings.json and participate in project/local/policy override precedence&lt;/p&gt;
-&lt;p&gt;• Added prUrlTemplate setting to point the footer PR badge at a custom code-review URL instead of github.com&lt;/p&gt;
-&lt;p&gt;• Added CLAUDE_CODE_HIDE_CWD environment variable to hide the working directory in the startup logo&lt;/p&gt;
-&lt;p&gt;• --from-pr now accepts GitLab merge-request, Bitbucket pull-request, and GitHub Enterprise PR URLs&lt;/p&gt;
-&lt;p&gt;• --print mode now honors the agent's tools: and disallowedTools: frontmatter, matching interactive-mode behavior&lt;/p&gt;
-&lt;p&gt;• --agent &amp;lt;name&amp;gt; now honors the agent definition's permissionMode for built-in agents&lt;/p&gt;
-&lt;p&gt;• PowerShell tool commands can now be auto-approved in permission mode, matching Bash behavior&lt;/p&gt;
-&lt;p&gt;• Hooks: PostToolUse and PostToolUseFailure hook inputs now include duration_ms (tool execution time, excluding permission prompts and PreToolUse hooks)&lt;/p&gt;
-&lt;p&gt;• Subagent and SDK MCP server reconfiguration now connects servers in parallel instead of serially&lt;/p&gt;
-&lt;p&gt;• Plugins pinned by another plugin's version constraint now auto-update to the highest satisfying git tag&lt;/p&gt;
-&lt;p&gt;• Vim mode: Esc in INSERT no longer pulls a queued message back into the input; press Esc again to interrupt&lt;/p&gt;
-&lt;p&gt;• Slash command suggestions now highlight the characters that matched your query&lt;/p&gt;
-&lt;p&gt;• Slash command picker now wraps long descriptions onto a second line instead of truncating&lt;/p&gt;
-&lt;p&gt;• owner/repo#N shorthand links in output now use your git remote's host instead of always pointing at github.com&lt;/p&gt;
-&lt;p&gt;• Security: blockedMarketplaces now correctly enforces hostPattern and pathPattern entries&lt;/p&gt;
-&lt;p&gt;• OpenTelemetry: tool_result and tool_decision events now include tool_use_id; tool_result also includes tool_input_size_bytes&lt;/p&gt;
-&lt;p&gt;• Status line: stdin JSON now includes effort.level and thinking.enabled&lt;/p&gt;
-&lt;p&gt;• Fixed pasting CRLF content (Windows clipboards, Xcode console) inserting an extra blank line between every line&lt;/p&gt;
-&lt;p&gt;• Fixed multi-line paste losing newlines in terminals using kitty keyboard protocol sequences inside bracketed paste&lt;/p&gt;
-&lt;p&gt;• Fixed Glob and Grep tools disappearing on native macOS/Linux builds when the Bash tool is denied via permissions&lt;/p&gt;
-&lt;p&gt;• Fixed scrolling up in fullscreen mode snapping back to the bottom every time a tool finishes&lt;/p&gt;
-&lt;p&gt;• Fixed MCP HTTP connections failing with "Invalid OAuth error response" when servers returned non-JSON bodies for OAuth discovery requests&lt;/p&gt;
-&lt;p&gt;• Fixed Rewind overlay showing "(no prompt)" for messages with image attachments&lt;/p&gt;
-&lt;p&gt;• Fixed auto mode overriding plan mode with conflicting "Execute immediately" instructions&lt;/p&gt;
-&lt;p&gt;• Fixed async PostToolUse hooks that emit no response payload writing empty entries to the session transcript&lt;/p&gt;
-&lt;p&gt;• Fixed spinner staying on when a subagent task notification is orphaned in the queue&lt;/p&gt;
-&lt;p&gt;• Tool search is now disabled by default on Vertex AI to avoid an unsupported beta header error (opt in with ENABLE_TOOL_SEARCH)&lt;/p&gt;
-&lt;p&gt;• Fixed @-file Tab completion replacing the entire prompt when used inside a slash command with an absolute path&lt;/p&gt;
-&lt;p&gt;• Fixed a stray p character appearing at the prompt on startup in macOS Terminal.app via Docker or SSH&lt;/p&gt;
-&lt;p&gt;• Fixed ${ENV_VAR} placeholders in headers for HTTP/SSE/WebSocket MCP servers not being substituted before requests&lt;/p&gt;
-&lt;p&gt;• Fixed MCP OAuth client secret stored via --client-secret not being sent during token exchange for servers requiring client_secret_post&lt;/p&gt;
-&lt;p&gt;• Fixed /skills Enter key closing the dialog instead of pre-filling /&amp;lt;skill-name&amp;gt; in the prompt&lt;/p&gt;
-&lt;p&gt;• Fixed /agents detail view mislabeling built-in tools unavailable to subagents as "Unrecognized"&lt;/p&gt;
-&lt;p&gt;• Fixed MCP servers from plugins not spawning on Windows when the plugin cache was incomplete&lt;/p&gt;
-&lt;p&gt;• Fixed /export showing the current default model instead of the model the conversation actually used&lt;/p&gt;
-&lt;p&gt;• Fixed verbose output setting not persisting after restart&lt;/p&gt;
-&lt;p&gt;• Fixed /usage progress bars overlapping with their "Resets …" labels&lt;/p&gt;
-&lt;p&gt;• Fixed plugin MCP servers failing when ${user_config.*} references an optional field left blank&lt;/p&gt;
-&lt;p&gt;• Fixed list items containing a sentence-final number wrapping the number onto its own line&lt;/p&gt;
-&lt;p&gt;• Fixed /plan and /plan open not acting on the existing plan when entering plan mode&lt;/p&gt;
-&lt;p&gt;• Fixed skills invoked before auto-compaction being re-executed against the next user message&lt;/p&gt;
-&lt;p&gt;• Fixed /reload-plugins and /doctor reporting load errors for disabled plugins&lt;/p&gt;
-&lt;p&gt;• Fixed Agent tool with isolation: "worktree" reusing stale worktrees from prior sessions&lt;/p&gt;
-&lt;p&gt;• Fixed disabled MCP servers appearing as "failed" in /status&lt;/p&gt;
-&lt;p&gt;• Fixed TaskList returning tasks in arbitrary filesystem order instead of sorted by ID&lt;/p&gt;
-&lt;p&gt;• Fixed spurious "GitHub API rate limit exceeded" hints when gh output contained PR titles mentioning "rate limit"&lt;/p&gt;
-&lt;p&gt;• Fixed SDK/bridge read_file not correctly enforcing size cap on growing files&lt;/p&gt;
-&lt;p&gt;• Fixed PR not linked to session when working in a git worktree&lt;/p&gt;
-&lt;p&gt;• Fixed /doctor warning about MCP server entries overridden by a higher-precedence scope&lt;/p&gt;
-&lt;p&gt;• Windows: removed false-positive "Windows requires 'cmd /c' wrapper" MCP config warning&lt;/p&gt;
-&lt;p&gt;• [VSCode] Fixed voice dictation's first recording producing nothing on macOS while the microphone permission prompt is showing&lt;/p&gt;</content>
   </entry>
 </feed>

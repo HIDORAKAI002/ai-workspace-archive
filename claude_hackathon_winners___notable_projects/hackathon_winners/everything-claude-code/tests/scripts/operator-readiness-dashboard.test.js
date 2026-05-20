@@ -77,6 +77,9 @@ function seedRepo(rootDir, overrides = {}) {
       '42653f9',
       'target account billing readback',
       '632e059',
+      'select-ready-target',
+      'f14ed2fe-a219-470c-8119-63429e197027',
+      'old "no Marketplace-managed Pro target billing-state" blocker is cleared',
       '69ca535',
       'team feedback controls',
       'e56fc1a',
@@ -190,7 +193,7 @@ function seedRepo(rootDir, overrides = {}) {
       'Operator dashboard',
       'GitGuardian',
       'macOS/Ubuntu/Windows test matrix',
-      '2560 passed',
+      '2568 passed',
       'Business baseline',
       '$1,728/mo',
       '$8,272/mo'
@@ -347,7 +350,7 @@ function runTests() {
       )));
       assert.ok(report.requirements.some(item => (
         item.id === 'ecc-tools-next-level'
-          && item.gap === 'authorize Cloudflare API or 1Password CLI access, configure the target Marketplace Pro account and INTERNAL_API_SECRET, create or replay Marketplace Pro webhook state, then rerun target readback and the live announcement gate'
+          && item.gap === 'obtain or rotate the local/internal INTERNAL_API_SECRET bearer-token path, then run the live billing announcement gate for the selected Marketplace Pro target before publishing native-payments copy'
           && item.evidence.includes('operator-visible promotion output details')
           && item.evidence.includes('hosted promotion judge audit traces')
           && item.evidence.includes('billing announcement preflight')
@@ -355,6 +358,7 @@ function runTests() {
           && item.evidence.includes('Wrangler OAuth readback')
           && item.evidence.includes('target-account billing readback')
           && item.evidence.includes('provenance-aware Marketplace billing-state gates')
+          && item.evidence.includes('ready Marketplace Pro target selection')
           && item.evidence.includes('hosted team-learning feedback controls')
           && item.evidence.includes('ECC-Tools Dependabot alert remediation')
       )));
@@ -443,7 +447,7 @@ function runTests() {
           'Operator dashboard',
           'GitGuardian',
           'macOS/Ubuntu/Windows test matrix',
-          '2560 passed',
+          '2568 passed',
           'Business baseline',
           '$1,728/mo',
           '$8,272/mo',
