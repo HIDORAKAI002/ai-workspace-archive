@@ -217,6 +217,9 @@ pub struct AppWithLastVersionAndDraft {
     pub draft: Option<sqlx::types::Json<Box<RawValue>>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub draft_only: Option<bool>,
+    /// Timestamp at which the most recent DB draft was created.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub draft_created_at: Option<chrono::DateTime<chrono::Utc>>,
 }
 
 #[derive(Serialize)]
@@ -642,29 +645,30 @@ async fn get_app_w_draft(
 
     let app_o = sqlx::query_as::<_, AppWithLastVersionAndDraft>(
         r#"
-        SELECT 
-            app.id, 
-            app.path, 
-            app.summary, 
-            app.versions, 
-            app.policy, 
+        SELECT
+            app.id,
+            app.path,
+            app.summary,
+            app.versions,
+            app.policy,
             app.custom_path,
-            app.extra_perms, 
+            app.extra_perms,
             app_version.value,
-            app_version.created_at, 
+            app_version.created_at,
             app_version.created_by,
             app.draft_only,
             draft.value AS "draft",
+            draft.created_at AS "draft_created_at",
             app_version.raw_app,
             app.labels
         FROM app
-        INNER JOIN app_version 
+        INNER JOIN app_version
             ON app_version.id = app.versions[array_upper(app.versions, 1)]
-        LEFT JOIN draft 
-            ON app.path = draft.path 
-        AND draft.workspace_id = $2 
+        LEFT JOIN draft
+            ON app.path = draft.path
+        AND draft.workspace_id = $2
         AND draft.typ = 'app'
-        WHERE app.path = $1 
+        WHERE app.path = $1
         AND app.workspace_id = $2
     "#,
     )
@@ -2039,6 +2043,10 @@ pub struct ExecuteApp {
     pub force_viewer_delete_after_secs: Option<i32>,
     /// Runnable query parameters (e.g., memory_id for chat-enabled flows)
     pub run_query_params: Option<RunJobQuery>,
+    /// Map of relative-import script path -> temp storage hash. Only honored for
+    /// inline-script (raw_code, preview) execution so `wmill app dev` resolves
+    /// those imports from not-yet-deployed local content instead of deployed.
+    pub temp_script_refs: Option<HashMap<String, String>>,
 }
 
 fn digest(code: &str) -> String {
@@ -2113,8 +2121,16 @@ async fn execute_component(
     Extension(db): Extension<DB>,
     Extension(user_db): Extension<UserDB>,
     Path((w_id, path)): Path<(String, StripPath)>,
-    Json(payload): Json<ExecuteApp>,
+    Json(mut payload): Json<ExecuteApp>,
 ) -> Result<String> {
+    // Only honor temp_script_refs for the inline-script preview path:
+    // preview/editor mode (force_viewer_static_fields set, == `is_preview`),
+    // raw_code present, and no deployed app_script id — i.e. `wmill app dev`.
+    let temp_script_refs = payload.temp_script_refs.take();
+    let inject_temp_refs = temp_script_refs.is_some()
+        && payload.force_viewer_static_fields.is_some()
+        && payload.raw_code.is_some()
+        && payload.id.is_none();
     match (payload.path.is_some(), payload.raw_code.is_some()) {
         (false, false) => {
             return Err(Error::BadRequest(
@@ -2343,7 +2359,7 @@ async fn execute_component(
     let resolved_delete_secs =
         resolve_delete_after_secs(None, policy_triggerables.delete_after_secs);
 
-    let (args, job_id) = build_args(
+    let (mut args, job_id) = build_args(
         policy,
         policy_triggerables,
         payload.args,
@@ -2353,6 +2369,14 @@ async fn execute_component(
         &w_id,
     )
     .await?;
+
+    if inject_temp_refs {
+        if let Some(refs) = temp_script_refs {
+            args.extra
+                .get_or_insert_with(HashMap::new)
+                .insert("_TEMP_SCRIPT_REFS".to_string(), to_raw_value(&refs));
+        }
+    }
 
     let is_flow = payload
         .path
@@ -2569,6 +2593,21 @@ async fn upload_s3_file_from_app(
     request: axum::extract::Request,
 ) -> JsonResult<AppUploadFileResponse> {
     let policy = if let Some(file_key_regex) = query.force_viewer_file_key_regex {
+        // `force_viewer_*` lets the caller supply a synthetic upload policy that
+        // bypasses the deployed app's file_key_regex / resource restrictions.
+        // It is intended for the app editor's preview path, so it must enforce
+        // the same guards as `execute_component`'s preview mode (PR #9235):
+        // authed caller, not an operator, and `apps:write` scope to make sure
+        // an `apps:run`-scoped token cannot pick its own policy.
+        let authed = opt_authed.as_ref().ok_or_else(|| {
+            Error::NotAuthorized("App S3 preview upload requires authentication".to_string())
+        })?;
+        if authed.is_operator {
+            return Err(Error::NotAuthorized(
+                "Operators cannot run app S3 previews for security reasons".to_string(),
+            ));
+        }
+        check_scopes(authed, || format!("apps:write:{}", path.to_path()))?;
         Some(Policy {
             execution_mode: ExecutionMode::Viewer,
             triggerables: None,
@@ -3080,6 +3119,20 @@ async fn download_s3_file_from_app(
     let force_viewer_allowed_s3_keys = if let Some(force_viewer_allowed_s3_keys) =
         query.force_viewer_allowed_s3_keys.clone()
     {
+        // `force_viewer_allowed_s3_keys` lets the caller supply a synthetic
+        // allowlist that bypasses the deployed app policy. Apply the same
+        // preview-mode guard as `execute_component` (PR #9235): authed, not an
+        // operator, `apps:write` scope so an `apps:run`-scoped token cannot
+        // pick its own allowlist.
+        let authed = opt_authed.as_ref().ok_or_else(|| {
+            Error::NotAuthorized("App S3 preview download requires authentication".to_string())
+        })?;
+        if authed.is_operator {
+            return Err(Error::NotAuthorized(
+                "Operators cannot run app S3 previews for security reasons".to_string(),
+            ));
+        }
+        check_scopes(authed, || format!("apps:write:{}", path))?;
         Some(serde_json::from_str::<Vec<S3Key>>(&force_viewer_allowed_s3_keys).unwrap_or_default())
     } else {
         None
