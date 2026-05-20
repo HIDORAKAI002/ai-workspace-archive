@@ -143,6 +143,7 @@ class PackageSpec:
     splits: int = 1
     force_run_fn: Callable[[BuildkiteContext], bool] | None = None
     skip_run_fn: Callable[[BuildkiteContext], str | None] | None = None
+    ecr_passthru: bool = False
 
     def __post_init__(self):
         if not self.name:
@@ -261,6 +262,8 @@ class PackageSpec:
                                     other_factor.concurrency_group if other_factor else None
                                 ),
                                 resources=other_factor.resources if other_factor else None,
+                                soft_fail=other_factor.soft_fail if other_factor else False,
+                                ecr_passthru=self.ecr_passthru,
                             )
                         )
 
@@ -1032,6 +1035,12 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
                         docker_memory="4Gi",
                         docker_memory_limit="6Gi",
                     ),
+                    # Quarantined: recurring `KeyError: 'airbyte-webapp'` from
+                    # an IPAM race in `buildkite_hostnames_cm` on the EKS
+                    # runner. The localhost fallback fix in #24675 broke every
+                    # other `docker_compose_cm` consumer (build 151863), so it
+                    # was reverted; needs a different fix.
+                    soft_fail=True,
                 ),
             ],
         ),
@@ -1336,6 +1345,16 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
             unsupported_python_versions=[
                 AvailablePythonVersion.V3_10,  # requires tomllib (3.11+)
             ],
+        ),
+        PackageSpec(
+            oss_path("python_modules/dagster-cloud"),
+            pytest_tox_factors=[
+                ToxFactor("default", splits=3),
+                ToxFactor("pex_tests", splits=3),
+            ],
+            unsupported_python_versions=AvailablePythonVersion.get_all_except_default(),
+            timeout_in_minutes=25,
+            ecr_passthru=True,
         ),
     ]
 
