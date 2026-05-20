@@ -27,7 +27,6 @@ LobeHub 帮你把专属 Agent 组织成 7×24 不打烊的高效队伍：
 [![][github-stars-shield]][github-stars-link]
 [![][github-issues-shield]][github-issues-link]
 [![][github-license-shield]][github-license-link]<br>
-[![][sponsor-shield]][sponsor-link]
 
 **分享 LobeHub 给你的好友**
 
@@ -40,7 +39,7 @@ LobeHub 帮你把专属 Agent 组织成 7×24 不打烊的高效队伍：
 
 <sup>你的首席 Agent 运营官</sup>
 
-[![][github-trending-shield]][github-trending-url]
+<a href="https://www.producthunt.com/products/lobehub?embed=true&amp;utm_source=badge-top-post-badge&amp;utm_medium=badge&amp;utm_campaign=badge-lobehub-2" target="_blank" rel="noopener noreferrer"><img alt="LobeHub - Your Chief Agent Operator for multi-agent work | Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/top-post-badge.svg?post_id=1147569&amp;theme=light&amp;period=daily&amp;t=1779247564355"></a> <a href="https://trendshift.io/repositories/19224" target="_blank"><img src="https://trendshift.io/api/badge/repositories/19224" alt="lobehub%2Flobehub | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
 [![][github-hello-shield]][github-hello-url]
 
 </div>
@@ -545,9 +544,7 @@ This project is [LobeHub Community License](./LICENSE) licensed.
 [github-releasedate-link]: https://github.com/lobehub/lobehub/releases
 [github-releasedate-shield]: https://img.shields.io/github/release-date/lobehub/lobehub?labelColor=black&style=flat-square
 [github-stars-link]: https://github.com/lobehub/lobehub/stargazers
-[github-stars-shield]: https://github.com/user-attachments/assets/3216e25b-186f-4a54-9cb4-2f124aec0471
-[github-trending-shield]: https://trendshift.io/api/badge/repositories/2256
-[github-trending-url]: https://trendshift.io/repositories/2256
+[github-stars-shield]: https://img.shields.io/github/stars/lobehub/lobehub?color=ffcb47&labelColor=black&style=flat-square
 [image-banner]: https://github.com/user-attachments/assets/5f78ae58-ed4f-4d38-8037-96109fbba58c
 [image-star]: https://github.com/user-attachments/assets/c3b482e7-cef5-4e94-bef9-226900ecfaab
 [issues-link]: https://img.shields.io/github/issues/lobehub/lobehub.svg?style=flat
@@ -584,8 +581,6 @@ This project is [LobeHub Community License](./LICENSE) licensed.
 [share-whatsapp-shield]: https://img.shields.io/badge/-share%20on%20whatsapp-black?labelColor=black&logo=whatsapp&logoColor=white&style=flat-square
 [share-x-link]: https://x.com/intent/tweet?hashtags=chatbot%2CchatGPT%2CopenAI&text=%E6%8E%A8%E8%8D%90%E4%B8%80%E4%B8%AA%20GitHub%20%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%20%F0%9F%A4%AF%20LobeHub%20-%20%E5%BC%80%E6%BA%90%E7%9A%84%E3%80%81%E5%8F%AF%E6%89%A9%E5%B1%95%E7%9A%84%EF%BC%88Function%20Calling%EF%BC%89%E9%AB%98%E6%80%A7%E8%83%BD%E8%81%8A%E5%A4%A9%E6%9C%BA%E5%99%A8%E4%BA%BA%E6%A1%86%E6%9E%B6%E3%80%82%0A%E5%AE%83%E6%94%AF%E6%8C%81%E4%B8%80%E9%94%AE%E5%85%8D%E8%B4%B9%E9%83%A8%E7%BD%B2%E7%A7%81%E4%BA%BA%20ChatGPT%2FLLM%20%E7%BD%91%E9%A1%B5%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F&url=https%3A%2F%2Fgithub.com%2Flobehub%2Flobehub
 [share-x-shield]: https://img.shields.io/badge/-share%20on%20x-black?labelColor=black&logo=x&logoColor=white&style=flat-square
-[sponsor-link]: https://opencollective.com/lobehub 'Become ❤ LobeHub Sponsor'
-[sponsor-shield]: https://img.shields.io/badge/-Sponsor%20LobeHub-f04f88?logo=opencollective&logoColor=white&style=flat-square
 [submit-agents-link]: https://github.com/lobehub/lobe-chat-agents
 [submit-agents-shield]: https://img.shields.io/badge/🤖/🏪_submit_agent-%E2%86%92-c4f042?labelColor=black&style=for-the-badge
 [submit-plugin-link]: https://github.com/lobehub/lobe-chat-plugins

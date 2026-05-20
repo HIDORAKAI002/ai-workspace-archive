@@ -176,7 +176,16 @@ export class HeterogeneousAgentService {
     try {
       const topic = await this.topicModel.findById(topicId);
       completionWebhook = topic?.metadata?.runningOperation?.completionWebhook;
-      assistantMessageId = topic?.metadata?.runningOperation?.assistantMessageId;
+      // Prefer heteroCurrentMsgId — the persistence handler updates this pointer
+      // on every step boundary, so it refers to the LAST assistant message with
+      // the complete final content.  Fall back to the initial placeholder id
+      // recorded in runningOperation if the pointer is absent or belongs to a
+      // different operation (shouldn't happen, but defensive).
+      const currentMsgRef = topic?.metadata?.heteroCurrentMsgId;
+      assistantMessageId =
+        currentMsgRef?.operationId === operationId
+          ? currentMsgRef.msgId
+          : topic?.metadata?.runningOperation?.assistantMessageId;
       await this.topicModel.updateMetadata(topicId, { runningOperation: null });
     } catch (err) {
       log('heteroFinish: failed to clear runningOperation (non-fatal): %O', err);
