@@ -280,4 +280,5 @@ Troubleshooting <troubleshooting>
 :hidden:
 
 Security <resources/security/guidelines.md>
+Telemetry and Privacy <telemetry.md>
 ```
