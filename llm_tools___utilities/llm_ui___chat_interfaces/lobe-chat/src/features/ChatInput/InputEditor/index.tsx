@@ -26,6 +26,7 @@ import {
 } from '@/store/user/selectors';
 
 import { useAgentId } from '../hooks/useAgentId';
+import { useChatInputDraft } from '../hooks/useChatInputDraft';
 import { useChatInputStore, useStoreApi } from '../store';
 import {
   INSERT_ACTION_TAG_COMMAND,
@@ -78,6 +79,7 @@ const InputEditor = memo<{
   ]);
 
   const storeApi = useStoreApi();
+  const { restoreDraft, saveDraftDebounced } = useChatInputDraft();
   const state = useEditorState(editor);
   const hotkey = useUserStore(settingsSelectors.getHotkeyById(HotkeyEnum.AddUserMessage));
   const { enableScope, disableScope } = useHotkeysContext();
@@ -140,7 +142,9 @@ const InputEditor = memo<{
     : undefined;
   // Heterogeneous agents (e.g. Claude Code) don't yet support @-assigning to other agents
   const showAgentAssignmentHint =
-    isMentionEnabled && !heterogeneousName && categories.some((category) => category.id === 'agent');
+    isMentionEnabled &&
+    !heterogeneousName &&
+    categories.some((category) => category.id === 'agent');
   const { handleUploadFiles } = useUploadFiles({ model, provider });
 
   // Listen to editor's paste event for file uploads
@@ -300,10 +304,10 @@ const InputEditor = memo<{
     [enableMention, mentionItemsFn, mentionMarkdownWriter, mentionOnSelect, MentionMenuComp],
   );
 
-  const slashOption = useMemo(() => (isSlashEnabled ? { items: slashItems } : undefined), [
-    isSlashEnabled,
-    slashItems,
-  ]);
+  const slashOption = useMemo(
+    () => (isSlashEnabled ? { items: slashItems } : undefined),
+    [isSlashEnabled, slashItems],
+  );
 
   const richRenderProps = useMemo(() => {
     const basePlugins = !enableRichRender
@@ -353,9 +357,11 @@ const InputEditor = memo<{
       onCompositionEnd={({ event }) => compositionProps.onCompositionEnd(event)}
       onBlur={() => {
         disableScope(HotkeyEnum.AddUserMessage);
+        saveDraftDebounced.flush();
       }}
       onChange={() => {
         updateMarkdownContent();
+        saveDraftDebounced();
       }}
       onCompositionStart={({ event }) => {
         compositionProps.onCompositionStart(event);
@@ -390,7 +396,11 @@ const InputEditor = memo<{
           requestAnimationFrame(() => {
             editor.setDocument('json', saved);
           });
+          return;
         }
+        requestAnimationFrame(() => {
+          restoreDraft(editor);
+        });
       }}
       onPressEnter={({ event: e }) => {
         if (e.shiftKey || isComposingRef.current) return;

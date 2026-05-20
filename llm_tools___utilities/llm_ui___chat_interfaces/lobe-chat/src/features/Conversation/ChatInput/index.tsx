@@ -17,6 +17,7 @@ import {
 } from '@/features/ChatInput/store/initialState';
 import { useChatStore } from '@/store/chat';
 import { operationSelectors } from '@/store/chat/selectors';
+import { messageMapKey } from '@/store/chat/utils/messageMapKey';
 import { fileChatSelectors, useFileStore } from '@/store/file';
 
 import WideScreenContainer from '../../WideScreenContainer';
@@ -161,6 +162,7 @@ const ChatInput = memo<ChatInputProps>(
 
     // ConversationStore state
     const context = useConversationStore((s) => s.context);
+    const draftKey = useMemo(() => messageMapKey(context), [context]);
     const [agentId, inputMessage, sendMessage, stopGenerating] = useConversationStore((s) => [
       s.context.agentId,
       s.inputMessage,
@@ -337,6 +339,7 @@ const ChatInput = memo<ChatInputProps>(
         agentId={agentId}
         allowExpand={allowExpand}
         contextWindowMessages={contextWindowMessages}
+        draftKey={draftKey}
         feature={feature}
         getMessages={getMessages}
         leftActions={leftActions}

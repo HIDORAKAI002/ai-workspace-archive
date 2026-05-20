@@ -20,7 +20,8 @@ with output from the exact release commit.
 | May 19 evidence snapshot | <https://github.com/affaan-m/ECC/blob/main/docs/releases/2.0.0-rc.1/publication-evidence-2026-05-19.md> | Current strongest identity, video, growth, and CI readiness evidence |
 | May 18 evidence snapshot | <https://github.com/affaan-m/ECC/blob/main/docs/releases/2.0.0-rc.1/publication-evidence-2026-05-18.md> | Previous supply-chain and publication-path readiness evidence |
 | May 18 operator dashboard | <https://github.com/affaan-m/ECC/blob/main/docs/releases/2.0.0-rc.1/operator-readiness-dashboard-2026-05-18.md> | Previous prompt-to-artifact dashboard |
-| May 19 operator dashboard | <https://github.com/affaan-m/ECC/blob/main/docs/releases/2.0.0-rc.1/operator-readiness-dashboard-2026-05-19.md> | Current prompt-to-artifact dashboard with hypergrowth, video, and outbound lanes |
+| May 19 operator dashboard | <https://github.com/affaan-m/ECC/blob/main/docs/releases/2.0.0-rc.1/operator-readiness-dashboard-2026-05-19.md> | Previous prompt-to-artifact dashboard with hypergrowth, video, and outbound lanes |
+| May 20 operator dashboard | <https://github.com/affaan-m/ECC/blob/main/docs/releases/2.0.0-rc.1/operator-readiness-dashboard-2026-05-20.md> | Current prompt-to-artifact dashboard with Marketplace Pro release-gate sync |
 | npm package page | <https://www.npmjs.com/package/ecc-universal> | `npm view ecc-universal name version dist-tags --json` returned `latest: 1.10.0`; rc.1 is not published yet |
 | Codex marketplace CLI docs | <https://developers.openai.com/codex/cli/reference#codex-plugin-marketplace> | Official docs list `codex plugin marketplace add` for GitHub shorthand, Git URLs, SSH URLs, and local marketplace roots |
 | Codex official Plugin Directory status | <https://developers.openai.com/codex/plugins/build#publish-official-public-plugins> | Official docs say public Plugin Directory publishing and self-serve management are coming soon |
@@ -33,7 +34,7 @@ with output from the exact release commit.
 | npm rc package | <https://www.npmjs.com/package/ecc-universal/v/2.0.0-rc.1> | `npm publish --tag next` approval and post-publish `npm view ecc-universal dist-tags --json` |
 | Claude plugin tag | `claude plugin tag .claude-plugin --dry-run`, then real tag only after approval | Clean release commit and plugin tag/push approval |
 | Codex repo marketplace install | `codex plugin marketplace add affaan-m/ECC --ref v2.0.0-rc.1` | GitHub tag must exist; official Plugin Directory submission remains separate |
-| ECC Tools native-payments announcement | ECC Tools Marketplace/App URL plus billing readiness readback | Marketplace-managed test account must return `announcementGate.ready === true` |
+| ECC Tools native-payments announcement | ECC Tools Marketplace/App URL plus selected-target billing readiness readback through the operator bearer path | Marketplace-managed selected target returned `announcementGate.ready === true` on 2026-05-20; repeat immediately before publication |
 | Public announcements | X, LinkedIn, GitHub release, and longform URLs | GitHub release, npm, plugin, and billing URLs must resolve first |
 
 ## Pre-Post Check
