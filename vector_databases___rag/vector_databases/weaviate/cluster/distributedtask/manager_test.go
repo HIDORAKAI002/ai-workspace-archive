@@ -818,6 +818,154 @@ func TestManager_UpdateUnitProgress_InvalidValues(t *testing.T) {
 	})
 }
 
+// Pins receiver-side monotonic clamp on Unit.Progress with NodeID+UpdatedAt still
+// flowing through on regressions. See weaviate/0-weaviate-issues#232.
+func TestManager_UpdateUnitProgress_MonotonicityGuard(t *testing.T) {
+	getUnit := func(t *testing.T, h *testHarness, ns, id, unitID string) *Unit {
+		t.Helper()
+		tasks, err := h.manager.ListDistributedTasks(context.Background())
+		require.NoError(t, err)
+		require.Contains(t, tasks, ns)
+		require.NotEmpty(t, tasks[ns])
+		task := tasks[ns][0]
+		require.NotNil(t, task.Units)
+		u, ok := task.Units[unitID]
+		require.True(t, ok, "unit %s should exist", unitID)
+		return u
+	}
+
+	t.Run("smaller progress is clamped but UpdatedAt still advances", func(t *testing.T) {
+		h := newTestHarness(t).init(t)
+		var version uint64 = 10
+		addTaskWithUnits(t, h, "ns", "task1", version, []string{"su-1"})
+
+		updateProgress(t, h, "ns", "task1", version, "node-1", "su-1", 0.51)
+		first := getUnit(t, h, "ns", "task1", "su-1")
+		require.Equal(t, float32(0.51), first.Progress)
+		require.Equal(t, "node-1", first.NodeID)
+		firstUpdatedAt := first.UpdatedAt
+
+		h.clock.Advance(time.Second)
+
+		err := h.manager.UpdateUnitProgress(toCmd(t, &cmd.UpdateDistributedTaskUnitProgressRequest{
+			Namespace:           "ns",
+			Id:                  "task1",
+			Version:             version,
+			NodeId:              "node-1",
+			UnitId:              "su-1",
+			Progress:            0.48,
+			UpdatedAtUnixMillis: h.clock.Now().UnixMilli(),
+		}))
+		require.NoError(t, err)
+
+		got := getUnit(t, h, "ns", "task1", "su-1")
+		assert.Equal(t, float32(0.51), got.Progress, "progress must be clamped to monotonic floor")
+		assert.Equal(t, "node-1", got.NodeID)
+		assert.True(t, got.UpdatedAt.After(firstUpdatedAt), "UpdatedAt must still advance on regression")
+	})
+
+	t.Run("monotonic-up sequence accepted in order", func(t *testing.T) {
+		h := newTestHarness(t).init(t)
+		var version uint64 = 10
+		addTaskWithUnits(t, h, "ns", "task1", version, []string{"su-1"})
+
+		for _, p := range []float32{0.0, 0.1, 0.25, 0.5, 0.9, 1.0} {
+			updateProgress(t, h, "ns", "task1", version, "node-1", "su-1", p)
+			got := getUnit(t, h, "ns", "task1", "su-1")
+			assert.Equal(t, p, got.Progress)
+		}
+	})
+
+	t.Run("equal progress is a no-op for the Progress field", func(t *testing.T) {
+		h := newTestHarness(t).init(t)
+		var version uint64 = 10
+		addTaskWithUnits(t, h, "ns", "task1", version, []string{"su-1"})
+
+		updateProgress(t, h, "ns", "task1", version, "node-1", "su-1", 0.42)
+		before := getUnit(t, h, "ns", "task1", "su-1")
+		require.Equal(t, float32(0.42), before.Progress)
+		beforeUpdatedAt := before.UpdatedAt
+
+		h.clock.Advance(time.Second)
+
+		err := h.manager.UpdateUnitProgress(toCmd(t, &cmd.UpdateDistributedTaskUnitProgressRequest{
+			Namespace:           "ns",
+			Id:                  "task1",
+			Version:             version,
+			NodeId:              "node-1",
+			UnitId:              "su-1",
+			Progress:            0.42,
+			UpdatedAtUnixMillis: h.clock.Now().UnixMilli(),
+		}))
+		require.NoError(t, err)
+
+		got := getUnit(t, h, "ns", "task1", "su-1")
+		assert.Equal(t, float32(0.42), got.Progress)
+		assert.True(t, got.UpdatedAt.After(beforeUpdatedAt))
+	})
+
+	t.Run("interleaved regression in long sequence preserves max", func(t *testing.T) {
+		h := newTestHarness(t).init(t)
+		var version uint64 = 10
+		addTaskWithUnits(t, h, "ns", "task1", version, []string{"su-1"})
+
+		seq := []struct {
+			send float32
+			want float32
+		}{
+			{0.10, 0.10},
+			{0.30, 0.30},
+			{0.51, 0.51},
+			{0.48, 0.51},
+			{0.52, 0.52},
+			{0.50, 0.52},
+			{0.75, 0.75},
+			{1.00, 1.00},
+		}
+		for _, step := range seq {
+			updateProgress(t, h, "ns", "task1", version, "node-1", "su-1", step.send)
+			got := getUnit(t, h, "ns", "task1", "su-1")
+			assert.Equal(t, step.want, got.Progress, "after send=%v", step.send)
+		}
+	})
+
+	t.Run("regression to 0.0 from a positive floor is clamped", func(t *testing.T) {
+		h := newTestHarness(t).init(t)
+		var version uint64 = 10
+		addTaskWithUnits(t, h, "ns", "task1", version, []string{"su-1"})
+
+		updateProgress(t, h, "ns", "task1", version, "node-1", "su-1", 0.6)
+		updateProgress(t, h, "ns", "task1", version, "node-1", "su-1", 0.0)
+
+		got := getUnit(t, h, "ns", "task1", "su-1")
+		assert.Equal(t, float32(0.6), got.Progress, "0.0 must be clamped against 0.6 floor")
+	})
+
+	t.Run("invalid range still rejected even when smaller than floor", func(t *testing.T) {
+		// Range validation runs before the monotonicity clamp, so a bad input
+		// surfaces as an error even when clamping would have silently swallowed it.
+		h := newTestHarness(t).init(t)
+		var version uint64 = 10
+		addTaskWithUnits(t, h, "ns", "task1", version, []string{"su-1"})
+
+		updateProgress(t, h, "ns", "task1", version, "node-1", "su-1", 0.7)
+
+		err := h.manager.UpdateUnitProgress(toCmd(t, &cmd.UpdateDistributedTaskUnitProgressRequest{
+			Namespace:           "ns",
+			Id:                  "task1",
+			Version:             version,
+			NodeId:              "node-1",
+			UnitId:              "su-1",
+			Progress:            -0.5,
+			UpdatedAtUnixMillis: h.clock.Now().UnixMilli(),
+		}))
+		require.ErrorContains(t, err, "between 0.0 and 1.0")
+
+		got := getUnit(t, h, "ns", "task1", "su-1")
+		assert.Equal(t, float32(0.7), got.Progress)
+	})
+}
+
 func TestManager_SnapshotRestore_WithUnits(t *testing.T) {
 	h := newTestHarness(t).init(t)
 	var version uint64 = 10
@@ -1384,6 +1532,135 @@ func TestManager_CheckTenantMutation_DispatchToDetectors(t *testing.T) {
 		err := h.manager.CheckTenantMutation("C", []string{"t1"})
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "simulated")
+	})
+}
+
+func TestManager_DeleteTasksForCollection(t *testing.T) {
+	// Conservative: ("", false) on parse error keeps the cascade from
+	// matching when the payload is not the expected shape.
+	collectionExtractor := func(payload []byte) (string, bool) {
+		var p struct {
+			Collection string `json:"collection"`
+		}
+		if err := json.Unmarshal(payload, &p); err != nil {
+			return "", false
+		}
+		if p.Collection == "" {
+			return "", false
+		}
+		return p.Collection, true
+	}
+
+	addRawTask := func(t *testing.T, h *testHarness, ns, id string, payload []byte, unitID string) {
+		t.Helper()
+		require.NoError(t, h.manager.AddTask(toCmd(t, &cmd.AddDistributedTaskRequest{
+			Namespace:             ns,
+			Id:                    id,
+			Payload:               payload,
+			SubmittedAtUnixMillis: h.clock.Now().UnixMilli(),
+			UnitIds:               []string{unitID},
+		}), 1))
+	}
+
+	t.Run("removes only tasks whose payload matches the collection", func(t *testing.T) {
+		h := newTestHarness(t).init(t)
+		h.manager.RegisterCollectionExtractor("scoped", collectionExtractor)
+
+		mkTask := func(id string, payload any) {
+			t.Helper()
+			bytes, err := json.Marshal(payload)
+			require.NoError(t, err)
+			require.NoError(t, h.manager.AddTask(toCmd(t, &cmd.AddDistributedTaskRequest{
+				Namespace:             "scoped",
+				Id:                    id,
+				Payload:               bytes,
+				SubmittedAtUnixMillis: h.clock.Now().UnixMilli(),
+				UnitIds:               []string{"u-" + id},
+			}), 1))
+		}
+		mkTask("foo-1", map[string]string{"collection": "Foo"})
+		mkTask("foo-2", map[string]string{"collection": "Foo"})
+		mkTask("bar-1", map[string]string{"collection": "Bar"})
+		mkTask("nope", "opaque-string")
+
+		removed := h.manager.DeleteTasksForCollection("Foo")
+		require.Len(t, removed, 2, "should remove both Foo tasks")
+
+		removedIDs := []string{removed[0].ID, removed[1].ID}
+		sort.Strings(removedIDs)
+		assert.Equal(t, []string{"foo-1", "foo-2"}, removedIDs)
+
+		all, err := h.manager.ListDistributedTasks(context.Background())
+		require.NoError(t, err)
+		surviving := []string{}
+		for _, ts := range all["scoped"] {
+			surviving = append(surviving, ts.ID)
+		}
+		sort.Strings(surviving)
+		assert.Equal(t, []string{"bar-1", "nope"}, surviving)
+	})
+
+	t.Run("namespace without registered extractor is untouched", func(t *testing.T) {
+		h := newTestHarness(t).init(t)
+		// Payload incidentally contains the deleted-class name; tasks in
+		// an unscoped namespace MUST survive regardless.
+		bytes, err := json.Marshal(map[string]string{"collection": "Foo"})
+		require.NoError(t, err)
+		addRawTask(t, h, "unscoped", "u-1", bytes, "u-only")
+
+		removed := h.manager.DeleteTasksForCollection("Foo")
+		assert.Empty(t, removed, "tasks in namespaces without an extractor must not be removed")
+
+		all, err := h.manager.ListDistributedTasks(context.Background())
+		require.NoError(t, err)
+		assert.Len(t, all["unscoped"], 1, "unscoped task must still be there")
+	})
+
+	t.Run("empty collection name is a no-op (refuses to nuke everything)", func(t *testing.T) {
+		h := newTestHarness(t).init(t)
+		// Guard against a sloppy extractor emitting ("", true) accidentally
+		// matching every task on DeleteTasksForCollection("").
+		h.manager.RegisterCollectionExtractor("scoped", func([]byte) (string, bool) {
+			return "", true
+		})
+
+		addRawTask(t, h, "scoped", "still-here", []byte("anything"), "u-1")
+
+		removed := h.manager.DeleteTasksForCollection("")
+		assert.Empty(t, removed, "empty collection name must be refused")
+
+		all, err := h.manager.ListDistributedTasks(context.Background())
+		require.NoError(t, err)
+		assert.Len(t, all["scoped"], 1, "task must still exist after empty-name query")
+	})
+
+	t.Run("RegisterCollectionExtractor is idempotent (last write wins)", func(t *testing.T) {
+		h := newTestHarness(t).init(t)
+		h.manager.RegisterCollectionExtractor("scoped", func([]byte) (string, bool) { return "Foo", true })
+		h.manager.RegisterCollectionExtractor("scoped", func([]byte) (string, bool) { return "", false })
+
+		addRawTask(t, h, "scoped", "task", []byte("payload"), "u-1")
+
+		removed := h.manager.DeleteTasksForCollection("Foo")
+		assert.Empty(t, removed, "second extractor takes effect; task must NOT be removed")
+	})
+
+	t.Run("RegisterCollectionExtractor rejects nil extractor and empty namespace", func(t *testing.T) {
+		// Without these guards, DeleteTasksForCollection would either panic
+		// on the nil function pointer or shadow legitimate "" tasks.
+		h := newTestHarness(t).init(t)
+
+		h.manager.RegisterCollectionExtractor("scoped", nil)
+		addRawTask(t, h, "scoped", "task", []byte("anything"), "u-1")
+		require.NotPanics(t, func() {
+			removed := h.manager.DeleteTasksForCollection("Foo")
+			assert.Empty(t, removed, "nil extractor must not match anything")
+		})
+
+		h.manager.RegisterCollectionExtractor("", func([]byte) (string, bool) { return "Foo", true })
+		addRawTask(t, h, "", "task-in-empty-ns", []byte("anything"), "u-2")
+		removed := h.manager.DeleteTasksForCollection("Foo")
+		assert.Empty(t, removed, "empty-namespace registration must be ignored")
 	})
 }
 
