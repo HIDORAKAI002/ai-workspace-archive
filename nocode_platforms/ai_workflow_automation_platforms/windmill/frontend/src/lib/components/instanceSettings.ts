@@ -246,10 +246,24 @@ export const settings: Record<string, Setting[]> = {
 			]
 		},
 		{
+			label: 'Nsjail /tmp backing',
+			key: 'nsjail_tmp_backing',
+			fieldType: 'select',
+			description:
+				'How <code>/tmp</code> is backed inside the nsjail sandbox. <strong>RAM (tmpfs)</strong> is the default — fast, with a hard size cap from <em>Nsjail tmpfs size</em>, but consumes worker memory. <strong>Disk (bind mount)</strong> uses a per-job directory on the worker disk — no RAM cost, but the only remaining per-file ceiling is <code>rlimit_fsize</code> (~1GB for python/ansible, unbounded for most other languages because they set <code>disable_rl: true</code>); pair with host disk monitoring or quotas.',
+			storage: 'setting',
+			placeholder: 'tmpfs',
+			defaultValue: () => 'tmpfs',
+			select_items: [
+				{ label: 'RAM (tmpfs) — default', value: 'tmpfs' },
+				{ label: 'Disk (bind mount)', value: 'disk' }
+			]
+		},
+		{
 			label: 'Nsjail tmpfs size (MB)',
 			key: 'nsjail_tmpfs_size_mb',
 			description:
-				'Override the size of the <code>/tmp</code> tmpfs mount inside the nsjail sandbox (in MB). When left empty, defaults to 800MB. Only applies when the job isolation mode is set to Nsjail.',
+				'Override the size of the <code>/tmp</code> tmpfs mount inside the nsjail sandbox (in MB). When left empty, defaults to 800MB. Only applies when <em>Nsjail /tmp backing</em> is RAM (tmpfs).',
 			fieldType: 'number',
 			placeholder: '800',
 			storage: 'setting'
@@ -468,6 +482,15 @@ export const settings: Record<string, Setting[]> = {
 			placeholder: 'https://username:password@pypi.company.com/simple',
 			storage: 'setting',
 			ee_only: ''
+		},
+		{
+			label: 'UV Python install mirror',
+			description:
+				'Mirror URL for downloading managed Python interpreters. Wires to <code>UV_PYTHON_INSTALL_MIRROR</code>. See <a href="https://docs.astral.sh/uv/configuration/environment/#uv_python_install_mirror">uv docs</a>.',
+			key: 'uv_python_install_mirror',
+			fieldType: 'text',
+			placeholder: 'https://mirror.example.com/python-build-standalone',
+			storage: 'setting'
 		},
 		{
 			label: 'UV index strategy',
@@ -1110,7 +1133,10 @@ export function buildSearchableSettingItems(
 	return items
 }
 
-/** Registry settings that support per-workspace overrides. Excludes instance_python_version and uv_index_strategy which are instance-wide only. */
+/** Registry settings that support per-workspace overrides. Excludes instance_python_version, uv_index_strategy, and uv_python_install_mirror which are instance-wide only. */
 export const WORKSPACE_REGISTRY_SETTINGS: Setting[] = settings['Registries'].filter(
-	(s) => s.key !== 'instance_python_version' && s.key !== 'uv_index_strategy'
+	(s) =>
+		s.key !== 'instance_python_version' &&
+		s.key !== 'uv_index_strategy' &&
+		s.key !== 'uv_python_install_mirror'
 )

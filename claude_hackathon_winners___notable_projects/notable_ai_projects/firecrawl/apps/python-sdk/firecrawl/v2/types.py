@@ -430,6 +430,7 @@ class Format(BaseModel):
 class JsonFormat(Format):
     """Configuration for JSON extraction."""
 
+    type: Literal["json"] = "json"
     prompt: Optional[str] = None
     schema: Optional[Any] = None
 
@@ -437,6 +438,7 @@ class JsonFormat(Format):
 class ChangeTrackingFormat(Format):
     """Configuration for change tracking."""
 
+    type: Literal["change_tracking", "changeTracking"] = "change_tracking"
     modes: List[Literal["git-diff", "json"]]
     schema: Optional[Dict[str, Any]] = None
     prompt: Optional[str] = None
@@ -1361,6 +1363,20 @@ class SearchData(BaseModel):
     web: Optional[List[Union[SearchResultWeb, Document]]] = None
     news: Optional[List[Union[SearchResultNews, Document]]] = None
     images: Optional[List[Union[SearchResultImages, Document]]] = None
+
+    @property
+    def data(self):
+        parts = []
+        if self.web:
+            parts.append(f".web ({len(self.web)} results)")
+        if self.news:
+            parts.append(f".news ({len(self.news)} results)")
+        if self.images:
+            parts.append(f".images ({len(self.images)} results)")
+        available = ", ".join(parts) if parts else ".web, .news, or .images"
+        raise AttributeError(
+            f"SearchData has no '.data'. Results are grouped by source: {available}"
+        )
 
 
 class SearchResponse(BaseResponse[SearchData]):

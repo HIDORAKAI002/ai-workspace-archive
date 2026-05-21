@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "name": "gemini-cli-skills",
-  "total_skills": 385,
+  "total_skills": 392,
   "skills": [
     {
       "name": "README",
@@ -27,6 +27,11 @@
       "name": "cs-agile-product-owner",
       "category": "agent",
       "description": "Agile product owner agent for epic breakdown, sprint planning, backlog refinement, and INVEST-compliant user story generation"
+    },
+    {
+      "name": "cs-backend-engineer",
+      "category": "agent",
+      "description": "Backend-engineering orchestrator. Walks the 7 Matt Pocock forcing questions (read/write ratio + QPS, tenancy, sync vs async, data sensitivity, pattern, RPO/RTO, SLO), picks the language + pattern profile, forks into specialists (api-design-reviewer, database-designer, migration-architect, slo-architect, observability-designer) rather than reimplementing their scope. Forks own context. Invoke via /cs:backend-review or Agent({subagent_type:\"cs-backend-engineer\",...})."
     },
     {
       "name": "cs-ceo-advisor",
@@ -57,6 +62,16 @@
       "name": "cs-financial-analyst",
       "category": "agent",
       "description": "Financial Analyst agent for DCF valuation, financial modeling, budgeting, forecasting, and SaaS metrics (ARR, MRR, churn, CAC, LTV, NRR). Orchestrates finance skills. Spawn when users need financial analysis, valuation models, budget planning, ratio analysis, SaaS health checks, or unit economics projections."
+    },
+    {
+      "name": "cs-frontend-engineer",
+      "category": "agent",
+      "description": "Frontend-engineering orchestrator. Walks the 7 Matt Pocock forcing questions (device, LCP target, rendering, bundle budget, SEO vs auth, design system, WCAG), picks the framework/rendering profile, forks into specialists (a11y-audit, performance-profiler, epic-design, apple-hig-expert, playwright-pro) rather than reimplementing their scope. Forks own context. Invoke via /cs:frontend-review or Agent({subagent_type:\"cs-frontend-engineer\",...})."
+    },
+    {
+      "name": "cs-fullstack-engineer",
+      "category": "agent",
+      "description": "Fullstack-engineering orchestrator. Walks the Matt Pocock 7-question forcing-question grill, runs the deterministic profile picker, then forks into the POWERFUL-tier specialists (api-design-reviewer, database-designer, slo-architect, ci-cd-pipeline-builder, performance-profiler) rather than reimplementing their scope. Forks own context so heavy ingestion does not pollute parent thread. Invoke via /cs:fullstack-review or Agent({subagent_type:\"cs-fullstack-engineer\",...})."
     },
     {
       "name": "cs-growth-strategist",
@@ -577,6 +592,26 @@
       "name": "competitive-matrix",
       "category": "command",
       "description": "Build competitive analysis matrices with scoring and gap analysis. Usage: /competitive-matrix <analyze> [options]"
+    },
+    {
+      "name": "cs-backend-review",
+      "category": "command",
+      "description": "Backend engineering review \u2014 walks the 7 Matt Pocock forcing questions (read/write ratio + QPS, tenancy, sync vs async, data sensitivity, pattern, RPO/RTO, SLO), picks the language + pattern profile, forks into specialists (api-design-reviewer, database-designer, migration-architect, slo-architect). Invokes the cs-backend-engineer agent with context fork."
+    },
+    {
+      "name": "cs-engineer-grill",
+      "category": "command",
+      "description": "Cross-role engineering grill \u2014 Matt Pocock 7 questions per role \u00d7 3 roles (fullstack / frontend / backend) = up to 21 forcing questions, one per turn, with canon citations and kill criteria. Default: ask which lane first; `--all` runs all 21."
+    },
+    {
+      "name": "cs-frontend-review",
+      "category": "command",
+      "description": "Frontend engineering review \u2014 walks the 7 Matt Pocock forcing questions (device, LCP target, rendering, bundle budget, SEO vs auth, design system, WCAG), picks the framework + rendering profile, forks into specialists (a11y-audit, performance-profiler, epic-design). Invokes the cs-frontend-engineer agent with context fork."
+    },
+    {
+      "name": "cs-fullstack-review",
+      "category": "command",
+      "description": "Fullstack engineering review \u2014 walks the 7 Matt Pocock forcing questions, picks the profile, forks into POWERFUL specialists (api-design-reviewer, database-designer, slo-architect). Invokes the cs-fullstack-engineer agent with context fork."
     },
     {
       "name": "financial-health",
@@ -1931,7 +1966,7 @@
   ],
   "categories": {
     "agent": {
-      "count": 30,
+      "count": 33,
       "description": "Agent resources"
     },
     "business-growth": {
@@ -1947,7 +1982,7 @@
       "description": "C-level resources"
     },
     "command": {
-      "count": 34,
+      "count": 38,
       "description": "Command resources"
     },
     "commercial": {

@@ -129,7 +129,7 @@ interface MonitorPageData extends BaseWebhookData {
     previousScrapeId?: string | null;
     currentScrapeId?: string | null;
     error?: string | null;
-  };
+  }[];
   error?: string;
 }
 
@@ -147,6 +147,6 @@ interface MonitorCheckCompletedData extends BaseWebhookData {
       removed: number;
       error: number;
     };
-  };
+  }[];
   error?: string;
 }
