@@ -5,6 +5,87 @@ All notable changes to the Claude Skills Library will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.1] - 2026-05-20 — Engineering role-skill upgrade: karpathy-coder + Matt Pocock applied to fullstack / frontend / backend
+
+### Audited and upgraded
+
+The three role-based engineering skills — `senior-fullstack`, `senior-frontend`, `senior-backend` — were audited against the karpathy-coder + Matt Pocock canon already shipping in this repo (`engineering/karpathy-coder`, `engineering/grill-me`, `engineering/grill-with-docs`, v2.8.0 BizOps/Commercial pattern). Three findings drove the upgrade:
+
+1. **Generic role descriptions, not opinionated workflows.** Existing SKILL.md files described capabilities; they did not enforce assumptions, success criteria, or kill criteria.
+2. **No customization surface.** A 4-person SaaS startup and a 200-person enterprise read the same recommendations.
+3. **No invocation contract.** Other agents/skills could not orchestrate fullstack / frontend / backend lenses via a typed surface.
+
+### Added — per-skill artifacts (21 new files: 7 × 3 skills)
+
+For each of `senior-fullstack`, `senior-frontend`, `senior-backend`:
+
+- `scripts/<role>_decision_engine.py` — stdlib-only deterministic profile picker. Refuses to recommend without the four core assumptions (Karpathy #1). Surfaces kill criteria. Names the human approver chain (never auto-approves).
+- `profiles/*.json` × 4 — customization profiles, JSON-loadable, swappable. Users copy one to `<your-org>.json` to override defaults.
+- `references/forcing_questions.md` — 7 Matt Pocock forcing questions per skill, one per turn, each with recommended answer + canon citation + kill criterion. 21 forcing questions total across the three roles.
+- `references/composition_map.md` — explicit routing table to POWERFUL-tier specialists (api-design-reviewer, database-designer, slo-architect, performance-profiler, a11y-audit, epic-design, apple-hig-expert, etc.).
+
+### Added — 3 orchestrator agents (cs-* with `context: fork`)
+
+- `agents/engineering/cs-fullstack-engineer.md` — walks 7 fullstack questions → decision engine → forks specialists.
+- `agents/engineering/cs-frontend-engineer.md` — frontend equivalent.
+- `agents/engineering/cs-backend-engineer.md` — backend equivalent.
+
+All three are invokable by other agents via `Agent({subagent_type:"cs-<role>-engineer", prompt:"..."})` — the "invokable by other agents" promise.
+
+### Added — 4 slash commands
+
+- `/cs:fullstack-review <prompt>` — full grill + decision engine + composition routing.
+- `/cs:frontend-review <prompt>` — frontend equivalent.
+- `/cs:backend-review <prompt>` — backend equivalent.
+- `/cs:engineer-grill <plan> [--lane fullstack|frontend|backend|all]` — cross-role 21-question forcing-question runner.
+
+### Augmented — 3 existing SKILL.md files (additive edits only)
+
+Each augmented SKILL.md now has 4 new sections appended:
+
+1. **Assumptions and Verifiable Success Criteria** (Karpathy #1 + #4) — names the four core assumptions + three machine-checkable success criteria.
+2. **Customization profiles** — table of the 4 profiles + how to add an org-specific one.
+3. **Composition map** — table of which POWERFUL specialist to fork into per sub-concern.
+4. **Forcing-question library (Matt Pocock grill)** — summary of the 7 questions + the discipline.
+5. **Invocation from other agents and skills** — explicit contract: 3 surfaces.
+
+### Principles enforced
+
+- **Karpathy #1 (Think Before Coding):** every decision engine refuses to run without the four core assumption inputs.
+- **Karpathy #2 (Simplicity First):** profiles never auto-recommend microservices unless team size + platform team + bounded-context independence all pass (Newman's MonolithFirst).
+- **Karpathy #3 (Surgical Changes):** the upgrade did NOT rewrite existing SKILL.md content. New sections appended; existing tools / references / scaffolding untouched.
+- **Karpathy #4 (Goal-Driven Execution):** every recommendation prints verifiable success criteria (latency floor, CWV target, SLO).
+- **Matt Pocock grill discipline:** all 21 forcing questions ship with recommended answer + canon citation + kill criterion + one-per-turn rule.
+
+### Verification
+
+- 12/12 profile JSON files parse cleanly (`json.load`).
+- 3/3 new Python decision engines pass `--help` and `--sample`, exit code 0.
+- 3/3 new cs-* agents have valid YAML frontmatter with required keys (`name`, `description`, `skills`, `domain`, `model`, `tools`, `context: fork`).
+- 3/3 agent → skill relative paths resolve from `agents/engineering/`.
+- 3/3 slash commands reference their correct cs-* agent.
+- Existing SKILL.md content unchanged (additive edits only — Karpathy #3, surgical scope).
+
+### Customization story
+
+Adding org-specific defaults requires zero code changes:
+
+```bash
+cp engineering-team/skills/senior-fullstack/profiles/saas-startup.json \
+   engineering-team/skills/senior-fullstack/profiles/my-org.json
+# Edit constraints + stack_recommendations + named_approver_chain
+# Decision engine auto-discovers the new profile via Path.glob('*.json')
+```
+
+This is the "world-class customizable plugin" promise: profiles are the customization surface, not code.
+
+### Versions bumped
+
+- `engineering-team/.claude-plugin/plugin.json`: `2.2.3` → `2.8.1`
+- `.claude-plugin/marketplace.json`: `engineering-skills` plugin → `2.8.1`
+
+---
+
 ## [2.8.0] - 2026-05-19 — business-operations + commercial domains, plugin.json regression fix, auto-release pipeline
 
 ### Added

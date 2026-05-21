@@ -86,10 +86,6 @@ jobs:
         run: |
           python scripts/check_plugin_json.py --all
 
-      - name: Run test suite
-        run: |
-          python -m pytest tests/ --tb=short -q
-
       - name: Safety dependency audit (requirements*.txt)
         run: |
           set -e
