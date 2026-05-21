@@ -60,6 +60,28 @@ export class GroupPermissionsUtilService implements IGroupPermissionsUtilService
     if (Object.values(USER_ROLE).includes(createGroupPermissionDto.name as USER_ROLE))
       throw new BadRequestException(ERROR_HANDLER.RESERVED_KEYWORDS_FOR_GROUP_NAME);
   }
+    async checkIfGroupHasBuilderGranularPermissions(
+      groupId: string,
+      organizationId: string,
+      manager?: EntityManager
+    ): Promise<boolean> {
+      const allGranularPermissions = await this.groupPermissionsRepository.getAllGranularPermissions(
+        { groupId },
+        organizationId,
+        manager
+      );
+
+      for (const granularPerm of allGranularPermissions) {
+        if (granularPerm.type === ResourceType.APP || granularPerm.type === ResourceType.WORKFLOWS) {
+          if (granularPerm.appsGroupPermissions?.canEdit) return true;
+        }
+        if (granularPerm.type === ResourceType.FOLDER) {
+          const fp = granularPerm.foldersGroupPermissions;
+          if (fp?.canEditFolder || fp?.canEditApps) return true;
+        }
+      }
+      return false;
+    }
 
   validateAddGroupUserOperation(group: GroupPermissions) {
     if (!group || Object.keys(group)?.length === 0) throw new BadRequestException(ERROR_HANDLER.GROUP_NOT_EXIST);
@@ -103,6 +125,9 @@ export class GroupPermissionsUtilService implements IGroupPermissionsUtilService
   ): Promise<{ group: GroupPermissions; isBuilderLevel: boolean }> {
     // Check if plan is restricted (basic/starter have read-only permissions)
     const isRestrictedPlan = await this.licenseUtilService.isRestrictedPlan(organizationId);
+    const { promote: canPromote, release: canRelease } =
+      await this.licenseUtilService.isPromoteAndReleaseEnabled(organizationId);
+    const customGroupsEnabled = await this.licenseUtilService.isFeatureEnabled(organizationId);
     const restrictedPlanFilter = { type: GROUP_PERMISSIONS_TYPE.DEFAULT };
     return await dbTransactionWrap(async (manager: EntityManager) => {
       // Get Group details
@@ -141,6 +166,22 @@ export class GroupPermissionsUtilService implements IGroupPermissionsUtilService
       const isBuilderLevelMainPermissions = Object.values(group).some(
         (value) => typeof value === 'boolean' && value === true
       );
+
+      if (group.name !== USER_ROLE.END_USER) {
+        if (!customGroupsEnabled) {
+          Object.keys(group).forEach((key) => {
+            if (typeof group[key] === 'boolean' && !['appPromote', 'appRelease'].includes(key)) {
+              group[key] = true;
+            }
+          });
+        }
+        if (!canPromote) {
+          group.appPromote = true;
+        }
+        if (!canRelease) {
+          group.appRelease = true;
+        }
+      }
 
       if (isBuilderLevelMainPermissions) {
         return { group, isBuilderLevel: true };
@@ -184,18 +225,10 @@ export class GroupPermissionsUtilService implements IGroupPermissionsUtilService
         > = DEFAULT_RESOURCE_PERMISSIONS[group.name];
         for (const resource of Object.keys(groupGranularPermissions)) {
           if (getTooljetEdition() === TOOLJET_EDITIONS.CE && resource == ResourceType.WORKFLOWS) continue;
-          let createResourcePermissionObj: CreateResourcePermissionObject<any> = groupGranularPermissions[resource];
+          const createResourcePermissionObj: CreateResourcePermissionObject<any> = groupGranularPermissions[resource];
 
-          // For builder role APP permissions: set production access based on license
-          // If multi-environment is NOT available (basic plan/invalid license), enable production
-          // If multi-environment IS available (valid license), disable production (security)
-          if (group.name === USER_ROLE.BUILDER && resource === ResourceType.APP) {
-            const shouldEnableProduction = hasMultiEnvironment !== true;
-            createResourcePermissionObj = {
-              ...createResourcePermissionObj,
-              canAccessProduction: shouldEnableProduction,
-            };
-          }
+          // End users only have access to released apps by default
+          // For basic/starter plans: keep default (released only) from DEFAULT_RESOURCE_PERMISSIONS
 
           const dtoObject = {
             name: DEFAULT_GRANULAR_PERMISSIONS_NAME[resource],
@@ -268,7 +301,12 @@ export class GroupPermissionsUtilService implements IGroupPermissionsUtilService
         manager
       );
 
-      if ((isBuilderLevel || hasBuilderEnvironments) && endUserRoleUsers.length) {
+      const hasBuilderGranularPermissions = await this.checkIfGroupHasBuilderGranularPermissions(
+        groupId,
+        organizationId,
+        manager
+    );
+      if ((isBuilderLevel || hasBuilderEnvironments || hasBuilderGranularPermissions) && endUserRoleUsers.length) {
         // Group has builder-level permissions or environment access and end users are to be added
         if (!allowRoleChange) {
           // Role change not allowed - Throw error

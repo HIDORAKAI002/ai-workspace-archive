@@ -10,7 +10,7 @@ ToolJet can integrate with Portkey to access AI services such as text completion
 </div>
 
 :::note
-Before following this guide, it is assumed that you have already completed the process of **[Using Marketplace plugins](/docs/marketplace/marketplace-overview#configuring-plugins)**.
+Before following this guide, it is assumed that you have already completed the process of **[Using Marketplace plugins](/docs/marketplace/marketplace-overview#using-marketplace-plugins)**.
 :::
 
 ## Connection
@@ -53,31 +53,30 @@ This operation generates text completions based on a given prompt.
     <img className="screenshot-full" src="/img/marketplace/plugins/portkey/completion.png" alt="Completion Operation for Portkey" />
 </div>
 
-    <details>
+    <details id="tj-dropdown">
     <summary>**Response Example**</summary>
     ```json
-
 {
-"id": "cmpl-9vNUfM8OP0SwSqXcnPwkqzR7ep8Sy",
-"object": "text_completion",
-"created": 1723462033,
-"model": "gpt-3.5-turbo-instruct",
-"choices": [
-{
-"text": "nn"Experience the perfect brew at Bean There."",
-"index": 0,
-"logprobs": null,
-"finish_reason": "stop"
+  "id": "cmpl-9vNUfM8OP0SwSqXcnPwkqzR7ep8Sy",
+  "object": "text_completion",
+  "created": 1723462033,
+  "model": "gpt-3.5-turbo-instruct",
+  "choices": [
+    {
+      "text": "nn"Experience the perfect brew at Bean There."",
+      "index": 0,
+      "logprobs": null,
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 13,
+    "completion_tokens": 10,
+    "total_tokens": 23
+  }
 }
-],
-"usage": {
-"prompt_tokens": 13,
-"completion_tokens": 10,
-"total_tokens": 23
-}
-}
-```
-</details>
+    ```
+    </details>
 
 ### Chat
 
@@ -97,7 +96,7 @@ This operation generates chat completions based on a series of messages.
     <img className="screenshot-full" src="/img/marketplace/plugins/portkey/chat.png" alt="Chat Operation for Portkey" />
 </div>
 
-  <details>
+  <details id="tj-dropdown">
   <summary>**Response Example**</summary>
 ```json
 {
@@ -142,7 +141,7 @@ This operation generates completions based on a pre-defined prompt.
     <img className="screenshot-full" src="/img/marketplace/plugins/portkey/prompt-completion.png" alt="Prompt Completion Operation for Portkey" />
 </div>
 
-  <details>
+  <details id="tj-dropdown">
   <summary>**Response Example**</summary>
 ```json
 {
@@ -186,7 +185,7 @@ This operation creates embeddings for given input text.
     <img className="screenshot-full" src="/img/marketplace/plugins/portkey/embedding.png" alt="Create Embedding Operation for Portkey" />
 </div>
 
-  <details>
+  <details id="tj-dropdown">
   <summary>**Response Example**</summary>
 ```json
 {
@@ -227,7 +226,6 @@ This operation creates embeddings for given input text.
 </details>
 
 For all operations, you can optionally specify:
-
 - **Config**: Configuration options for the request.
 - **Virtual Key**: A specific virtual key to use for the request, overriding the default.
 

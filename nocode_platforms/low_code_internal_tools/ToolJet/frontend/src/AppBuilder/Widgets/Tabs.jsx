@@ -5,7 +5,7 @@ import useStore from '@/AppBuilder/_stores/store';
 import Spinner from '@/_ui/Spinner';
 import { useExposeState } from '@/AppBuilder/_hooks/useExposeVariables';
 import SolidIcon from '@/_ui/Icon/SolidIcons';
-import * as Icons from '@tabler/icons-react';
+import TablerIcon from '@/_ui/Icon/TablerIcon';
 import OverflowTooltip from '@/_components/OverflowTooltip';
 import { TAB_CANVAS_PADDING } from '@/AppBuilder/AppCanvas/appCanvasConstants';
 import { useDynamicHeight } from '@/_hooks/useDynamicHeight';
@@ -64,6 +64,7 @@ export const Tabs = function Tabs({
   properties,
   currentMode,
   subContainerIndex,
+  componentType,
 }) {
   const { tabWidth, boxShadow } = styles;
   const { isDisabled, isVisible, isLoading } = useExposeState(
@@ -89,12 +90,10 @@ export const Tabs = function Tabs({
     parsedTabs = resolveWidgetFieldValue(parsedTabs);
   }
 
-  parsedTabs = parsedTabs
-    ?.filter((tab) => tab.visible !== false)
-    ?.map((parsedTab, index) => ({
-      ...parsedTab,
-      id: parsedTab.id ? parsedTab.id : index,
-    }));
+  parsedTabs = parsedTabs?.map((parsedTab, index) => ({
+    ...parsedTab,
+    id: parsedTab.id ? parsedTab.id : index,
+  }));
   const highlightColor = styles?.highlightColor ?? '#f44336';
   let parsedHighlightColor = highlightColor;
   parsedHighlightColor = resolveWidgetFieldValue(highlightColor);
@@ -116,9 +115,10 @@ export const Tabs = function Tabs({
   // Default tab
   let parsedDefaultTab = defaultTab;
 
-  const defaultTabExists = parsedTabs?.some((tab) => tab.id === parsedDefaultTab);
-  if (!defaultTabExists && parsedTabs.length > 0) {
-    parsedDefaultTab = parsedTabs[0].id;
+  const visibleParsedTabs = parsedTabs?.filter((tab) => tab.visible !== false) ?? [];
+  const defaultTabExists = visibleParsedTabs.some((tab) => tab.id === parsedDefaultTab);
+  if (!defaultTabExists && visibleParsedTabs.length > 0) {
+    parsedDefaultTab = visibleParsedTabs[0].id;
   }
 
   const parsedDisabledState =
@@ -157,6 +157,7 @@ export const Tabs = function Tabs({
     componentCount,
     visibility: widgetVisibility,
     subContainerIndex,
+    componentType,
   });
 
   useEffect(() => {
@@ -318,11 +319,10 @@ export const Tabs = function Tabs({
 
   function getTabIcon(tab) {
     const iconName = tab?.icon;
-    // eslint-disable-next-line import/namespace
-    const IconElement = Icons[iconName] == undefined ? Icons['IconHome2'] : Icons[iconName];
 
     return tab?.iconVisibility ? (
-      <IconElement
+      <TablerIcon
+        iconName={iconName}
         color={`${currentTab == tab?.id ? selectedIcon : unselectedIcon}`}
         style={{
           width: '20px',
@@ -335,8 +335,8 @@ export const Tabs = function Tabs({
     ) : null;
   }
 
-  const equalSplitWidth = 100 / tabItems?.length || 1;
   const someTabsVisible = tabItems?.filter((tab) => tab?.visible !== false);
+  const equalSplitWidth = 100 / someTabsVisible?.length || 1;
 
   // React Spring transitions for tab switching
   const transitions = useTransition(currentTab, {

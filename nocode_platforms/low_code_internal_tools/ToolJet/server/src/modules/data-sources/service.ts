@@ -5,7 +5,7 @@ import { User } from '@entities/user.entity';
 import { decode } from 'js-base64';
 import { AppEnvironmentUtilService } from '@modules/app-environments/util.service';
 import { decamelizeKeys } from 'humps';
-import { DataSourceTypes } from './constants';
+import { DataSourceScopes, DataSourceTypes } from './constants';
 import {
   AuthorizeDataSourceOauthDto,
   CreateDataSourceDto,
@@ -23,6 +23,9 @@ import { AUDIT_LOGS_REQUEST_CONTEXT_KEY } from '@modules/app/constants';
 import * as fs from 'fs';
 import { UserPermissions } from '@modules/ability/types';
 import { QueryResult } from '@tooljet/plugins/dist/packages/common/lib';
+import { DataSourceVersion } from '@entities/data_source_version.entity';
+import { dbTransactionWrap } from '@helpers/database.helper';
+import { EntityManager } from 'typeorm';
 
 @Injectable()
 export class DataSourcesService implements IDataSourcesService {
@@ -39,6 +42,10 @@ export class DataSourcesService implements IDataSourcesService {
     userPermissions: UserPermissions
   ): Promise<{ data_sources: object[] }> {
     const shouldIncludeWorkflows = query.shouldIncludeWorkflows ?? true;
+
+    // Removed: appVersionId-based branchId derivation (app_version_id dropped from data_source_versions).
+    // Released versions now use is_default DSV; branch editors pass branchId directly.
+    // if (!query.branchId && query.appVersionId) { ... }
 
     let dataSources = await this.dataSourcesRepository.allGlobalDS(userPermissions, user.organizationId, query ?? {});
 
@@ -59,9 +66,9 @@ export class DataSourcesService implements IDataSourcesService {
       query.environmentId || (await this.appEnvironmentsUtilService.get(user.organizationId, null, true))?.id;
 
     const dataSources = await this.dataSourcesRepository.allGlobalDS(userPermissions, user.organizationId, {
-      appVersionId: query.appVersionId,
       environmentId: selectedEnvironmentId,
       types: [DataSourceTypes.DEFAULT, DataSourceTypes.SAMPLE],
+      branchId: query.branchId,
     });
     for (const dataSource of dataSources) {
       const parseIfNeeded = (data: any) => {
@@ -110,7 +117,7 @@ export class DataSourcesService implements IDataSourcesService {
     return { data_sources: decamelizedDatasources };
   }
 
-  async create(createDataSourceDto: CreateDataSourceDto, user: User): Promise<DataSource> {
+  async create(createDataSourceDto: CreateDataSourceDto, user: User, branchId?: string): Promise<DataSource> {
     const { kind, name, options, plugin_id: pluginId, environment_id } = createDataSourceDto;
 
     if (kind === 'grpc') {
@@ -129,7 +136,8 @@ export class DataSourcesService implements IDataSourcesService {
         pluginId,
         environmentId: environment_id,
       },
-      user
+      user,
+      branchId
     );
 
     // Setting data for audit logs
@@ -154,14 +162,22 @@ export class DataSourcesService implements IDataSourcesService {
     return dataSource;
   }
 
-  async update(updateDataSourceDto: UpdateDataSourceDto, user: User, updateOptions: UpdateOptions) {
+  async update(updateDataSourceDto: UpdateDataSourceDto, user: User, updateOptions: UpdateOptions, branchId?: string) {
     const { name, options } = updateDataSourceDto;
     const { dataSourceId, environmentId } = updateOptions;
 
-        // Fetch datasource details for audit log
-    const dataSource = await this.dataSourcesRepository.findById(dataSourceId);
+    // Fetch datasource details for audit log
+    const dataSource = await this.dataSourcesRepository.findById(dataSourceId, user.organizationId);
 
-    await this.dataSourcesUtilService.update(dataSourceId, user.organizationId, user.id, name, options, environmentId);
+    await this.dataSourcesUtilService.update(
+      dataSourceId,
+      user.organizationId,
+      user.id,
+      name,
+      options,
+      environmentId,
+      branchId
+    );
 
     // Setting data for audit logs
     RequestContext.setLocals(AUDIT_LOGS_REQUEST_CONTEXT_KEY, {
@@ -186,8 +202,8 @@ export class DataSourcesService implements IDataSourcesService {
     return await this.dataSourcesUtilService.decrypt(options);
   }
 
-  async delete(dataSourceId: string, user: User) {
-    const dataSource = await this.dataSourcesRepository.findById(dataSourceId);
+  async delete(dataSourceId: string, user: User, branchId?: string) {
+    const dataSource = await this.dataSourcesRepository.findById(dataSourceId, user.organizationId);
     if (!dataSource) {
       return;
     }
@@ -195,12 +211,25 @@ export class DataSourcesService implements IDataSourcesService {
       throw new BadRequestException('Cannot delete sample data source');
     }
 
-    const result = await this.findQueriesLinkedToDatasource(dataSourceId);
+    const result = await this.findQueriesLinkedToDatasource(dataSourceId, user.organizationId, branchId);
     if (result.dependent_queries) {
       throw new BadRequestException(`Datasource can't be deleted, queries are in use`);
     }
 
-    await this.dataSourcesRepository.delete(dataSourceId);
+    // Branch-aware: soft-delete via DataSourceVersion.isActive = false
+    const effectiveBranchId = dataSource.scope === DataSourceScopes.GLOBAL ? branchId || null : null;
+
+    if (effectiveBranchId) {
+      await dbTransactionWrap(async (manager: EntityManager) => {
+        await manager.update(
+          DataSourceVersion,
+          { dataSourceId, branchId: effectiveBranchId },
+          { isActive: false, updatedAt: new Date() }
+        );
+      });
+    } else {
+      await this.dataSourcesRepository.delete(dataSourceId);
+    }
 
     // Setting data for audit logs
     RequestContext.setLocals(AUDIT_LOGS_REQUEST_CONTEXT_KEY, {
@@ -228,14 +257,15 @@ export class DataSourcesService implements IDataSourcesService {
   async findOneByEnvironment(
     dataSourceId: string,
     organizationId: string,
-    environmentId?: string
+    environmentId?: string,
+    branchId?: string
   ): Promise<DataSource> {
     const dataSource = await this.dataSourcesUtilService.findOneByEnvironment(
       dataSourceId,
       environmentId,
-      organizationId
+      organizationId,
+      branchId
     );
-    delete dataSource['dataSourceOptions'];
     return dataSource;
   }
 
@@ -253,6 +283,7 @@ export class DataSourcesService implements IDataSourcesService {
     testDataSourceDto.options = dataSource.options;
     return await this.dataSourcesUtilService.testConnection(testDataSourceDto, user.organizationId);
   }
+
   async getAuthUrl(getDataSourceOauthUrlDto: GetDataSourceOauthUrlDto): Promise<{ url: string }> {
     return this.dataSourcesUtilService.getAuthUrl(getDataSourceOauthUrlDto);
   }
@@ -280,8 +311,8 @@ export class DataSourcesService implements IDataSourcesService {
     return;
   }
 
-  async findQueriesLinkedToDatasource(datasourceId: string) {
-    const dataSourceDetails = await this.dataSourcesRepository.getQueriesByDatasourceId(datasourceId);
+  async findQueriesLinkedToDatasource(datasourceId: string, organizationId?: string, branchId?: string) {
+    const dataSourceDetails = await this.dataSourcesRepository.getQueriesByDatasourceId(datasourceId, branchId || null);
     if (dataSourceDetails.length == 0) return { datasources: 0, dependent_queries: 0 };
 
     const queries = [];
@@ -310,7 +341,9 @@ export class DataSourcesService implements IDataSourcesService {
     dataSource: DataSource,
     methodName: string,
     user: User,
-    environmentId: string
+    environmentId: string,
+    args?: any,
+    branchId?: string
   ): Promise<QueryResult> {
     const service = await this.pluginsServiceSelector.getService(dataSource.pluginId, dataSource.kind);
 
@@ -318,10 +351,14 @@ export class DataSourcesService implements IDataSourcesService {
       throw new BadRequestException(`Plugin ${dataSource.kind} does not support method invocation`);
     }
 
+    // Branch-aware: pass branchId for global DS option resolution
+    const effectiveBranchId = dataSource.scope === DataSourceScopes.GLOBAL ? branchId || null : null;
+
     const dataSourceOptions = await this.appEnvironmentsUtilService.getOptions(
       dataSource.id,
       user.organizationId,
-      environmentId
+      environmentId,
+      effectiveBranchId
     );
 
     const sourceOptions = await this.dataSourcesUtilService.parseSourceOptions(
@@ -332,9 +369,88 @@ export class DataSourcesService implements IDataSourcesService {
     );
 
     try {
-      const result = await service.invokeMethod(methodName, sourceOptions);
+      const result = await service.invokeMethod(
+        methodName,
+        {
+          user: { id: user?.id },
+          app: { id: dataSource?.app?.id, isPublic: dataSource?.app?.isPublic },
+          dataSourceDetails: {
+            datasourceId: dataSource?.id,
+            datasourcekind: dataSource?.kind,
+            datasourceUpdatedAt: dataSourceOptions?.updatedAt,
+            dataSourceOptionsEnvironmentId: dataSourceOptions?.environmentId,
+          },
+        },
+        sourceOptions,
+        args
+      );
       return { status: 'ok', data: result };
     } catch (error) {
+      if (error.constructor.name === 'OAuthUnauthorizedClientError') {
+        const currentUserToken = sourceOptions['refresh_token']
+          ? sourceOptions
+          : this.getCurrentUserToken(sourceOptions['multiple_auth_enabled'], sourceOptions['tokenData'], user?.id);
+
+        if (currentUserToken && currentUserToken['refresh_token']) {
+          try {
+            const accessTokenDetails = await service.refreshToken(sourceOptions);
+
+            await this.dataSourcesUtilService.updateOAuthAccessToken(
+              accessTokenDetails,
+              dataSourceOptions.options,
+              dataSource.id,
+              user?.id,
+              user?.organizationId,
+              environmentId
+            );
+
+            // Re-fetch options to use the new token
+            const updatedDataSourceOptions = await this.appEnvironmentsUtilService.getOptions(
+              dataSource.id,
+              user.organizationId,
+              environmentId,
+              branchId
+            );
+
+            const updatedSourceOptions = await this.dataSourcesUtilService.parseSourceOptions(
+              updatedDataSourceOptions.options,
+              user.organizationId,
+              updatedDataSourceOptions.environmentId,
+              user
+            );
+
+            // Retry invoke
+            const result = await service.invokeMethod(
+              methodName,
+              {
+                user: { id: user?.id },
+                app: { id: dataSource?.app?.id, isPublic: dataSource?.app?.isPublic },
+              },
+              updatedSourceOptions,
+              args
+            );
+            return { status: 'ok', data: result };
+          } catch (refreshError) {
+            // If refresh fails or retry fails, return original or new error data
+            if (refreshError.constructor.name === 'QueryError') {
+              return {
+                status: 'failed',
+                data: refreshError.data,
+                errorMessage: refreshError.message,
+                metadata: refreshError.metadata,
+              };
+            }
+
+            return {
+              status: 'failed',
+              data: error.data,
+              errorMessage: error.message,
+              metadata: error.metadata,
+            };
+          }
+        }
+      }
+
       if (error.constructor.name === 'QueryError') {
         return {
           status: 'failed',
@@ -346,4 +462,13 @@ export class DataSourcesService implements IDataSourcesService {
       throw error;
     }
   }
+
+  protected getCurrentUserToken = (isMultiAuthEnabled: boolean, tokenData: any, userId: string) => {
+    if (isMultiAuthEnabled) {
+      if (!tokenData || !Array.isArray(tokenData)) return null;
+      return userId ? tokenData.find((token: any) => token.user_id === userId) : tokenData[0];
+    } else {
+      return tokenData;
+    }
+  };
 }

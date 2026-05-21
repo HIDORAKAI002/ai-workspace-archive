@@ -13,6 +13,7 @@ import moment from 'moment-timezone';
 import cx from 'classnames';
 
 import './styles.scss';
+import { useShowValidationOnFormSubmit } from '@/AppBuilder/Widgets/Form/FormValidationContext';
 
 export const DatePickerV2 = ({
   height,
@@ -30,7 +31,8 @@ export const DatePickerV2 = ({
   const isInitialRender = useRef(true);
   const dateInputRef = useRef(null);
   const datePickerRef = useRef(null);
-  const { label, defaultValue, dateFormat } = properties;
+  const { label, defaultValue, dateFormat, placeholder: placeholderProp, showClearBtn } = properties;
+  const placeholder = placeholderProp ?? 'Select date';
   const inputProps = {
     properties,
     setExposedVariable,
@@ -53,10 +55,11 @@ export const DatePickerV2 = ({
     defaultValue ? getSelectedTimestampFromUnixTimestamp(unixTimestamp) : null
   );
   const [showValidationError, setShowValidationError] = useState(false);
+  useShowValidationOnFormSubmit(setShowValidationError);
   const [validationStatus, setValidationStatus] = useState({ isValid: true, validationError: '' });
   const { isValid, validationError } = validationStatus;
   const [displayTimestamp, setDisplayTimestamp] = useState(
-    selectedTimestamp ? getFormattedSelectTimestamp(selectedTimestamp, dateFormat) : 'Select date'
+    selectedTimestamp ? getFormattedSelectTimestamp(selectedTimestamp, dateFormat) : ''
   );
   const [datepickerMode, setDatePickerMode] = useState('date');
 
@@ -68,6 +71,11 @@ export const DatePickerV2 = ({
     setExposedDateVariables(unixTimestamp, selectedTimestamp);
     if (skipFireEvent) return;
     fireEvent('onSelect');
+  };
+
+  const handleClear = () => {
+    setInputValue(null);
+    setDisplayTimestamp('');
   };
 
   const onDateSelect = (date) => {
@@ -103,7 +111,7 @@ export const DatePickerV2 = ({
 
   useEffect(() => {
     if (isInitialRender.current || textInputFocus) return;
-    setDisplayTimestamp(selectedTimestamp ? getFormattedSelectTimestamp(selectedTimestamp, dateFormat) : 'Select date');
+    setDisplayTimestamp(selectedTimestamp ? getFormattedSelectTimestamp(selectedTimestamp, dateFormat) : '');
   }, [selectedTimestamp, dateFormat, textInputFocus]);
 
   useEffect(() => {
@@ -212,6 +220,9 @@ export const DatePickerV2 = ({
     showValidationError,
     isValid,
     validationError,
+    showClearBtn,
+    onClear: handleClear,
+    inputPlaceholder: placeholder,
   };
 
   return (
@@ -231,6 +242,8 @@ export const DatePickerV2 = ({
       customHeaderProps={customHeaderProps}
       customDateInputProps={customDateInputProps}
       id={id}
+      showClearBtn={showClearBtn}
+      dataCy={dataCy}
     />
   );
 };

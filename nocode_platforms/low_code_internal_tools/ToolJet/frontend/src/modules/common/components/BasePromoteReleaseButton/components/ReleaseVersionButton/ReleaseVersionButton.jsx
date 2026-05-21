@@ -27,7 +27,7 @@ const ReleaseVersionButton = function DeployVersionButton({ version = null, vari
       name: version?.name || state?.selectedVersion?.name,
       isEditorFreezed: state.isEditorFreezed,
       updateReleasedVersionId: state.updateReleasedVersionId,
-      appId: state.appStore.modules[moduleId].app.appId,
+      appId: state.appStore.modules[moduleId]?.app?.appId ?? state.appId,
       versionToBeReleased: version?.id || state.currentVersionId,
       // selectedVersionId: state.selectedVersion.id,
     }),
@@ -49,9 +49,30 @@ const ReleaseVersionButton = function DeployVersionButton({ version = null, vari
         setIsReleasing(false);
         setShowConfirmation(false);
       })
-      .catch((_error) => {
-        toast.error(`${name} could not be released. Please try again!`);
+      .catch((error) => {
+        const rawError = error?.error || error?.message;
+        const errorMessage =
+          typeof rawError === 'object'
+            ? rawError.error
+            : rawError || `${name} could not be released. Please try again!`;
+        const errorDetails = typeof rawError === 'object' ? rawError.details : errorMessage;
+        toast.error(errorMessage);
         setIsReleasing(false);
+        setShowConfirmation(false);
+        try {
+          useStore.getState().debugger.log({
+            logLevel: 'error',
+            type: 'component',
+            key: 'Release Failed',
+            message: errorMessage,
+            description: errorDetails || errorMessage,
+            error: { message: errorMessage, description: errorDetails || errorMessage },
+            errorTarget: 'Version',
+            timestamp: new Date().toISOString(),
+          });
+        } catch (_) {
+          // debugger may not be available
+        }
       });
   };
 

@@ -295,23 +295,39 @@ export class AuthUtilService implements IAuthUtilService {
           }
         }
       } else {
-        // No role specified -> finding role
-        newRole = await this.findUserRoleFromGroups(customGroups, manager);
-        if (newRole === USER_ROLE.END_USER) {
-          // If new role is end user and but user is app owner, assign editor role
-          const appCounts = await manager.count(App, {
-            where: {
-              userId: userId,
-              organizationId: organizationId,
-            },
-          });
-          if (appCounts > 0) {
-            newRole = USER_ROLE.END_USER;
+        // No explicit role group mapped from IdP — derive role from custom groups if present,
+        // only elevating (never demoting). If no custom groups, preserve existing role.
+        const existingRoleObj = await this.rolesRepository.getUserRole(userId, organizationId, manager);
+        const existingRole = existingRoleObj?.name as USER_ROLE;
+
+        if (existingRole) {
+          if (customGroups.length > 0) {
+            // Infer required role from custom groups. If it demands a higher privilege
+            // than the user currently holds, elevate — never demote.
+            const inferredRole = await this.findUserRoleFromGroups(customGroups, manager);
+            newRole = rolePriority[inferredRole] < rolePriority[existingRole] ? inferredRole : existingRole;
+          } else {
+            newRole = existingRole;
+          }
+        } else {
+          // New user with no existing role — infer from custom group permissions
+          newRole = await this.findUserRoleFromGroups(customGroups, manager);
+          if (newRole === USER_ROLE.END_USER) {
+            // If new role is end user but user is app owner, assign editor role
+            const appCounts = await manager.count(App, {
+              where: {
+                userId: userId,
+                organizationId: organizationId,
+              },
+            });
+            if (appCounts > 0) {
+              newRole = USER_ROLE.END_USER;
+            }
           }
         }
       }
 
-      // Remove user from existing role
+      // Remove user from existing custom groups (will be re-added below from IdP mapping)
       await this.groupPermissionsUtilService.deleteFromAllCustomGroupUser(userId, organizationId);
 
       /* Sync LDAP / SAML / OIDC groups before signup to the workspace */

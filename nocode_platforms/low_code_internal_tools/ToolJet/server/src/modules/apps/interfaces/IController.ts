@@ -39,9 +39,11 @@ export interface IAppsController {
 
   tables(user: UserEntity, app: AppEntity): Promise<{ tables: any[] }>;
 
-  show(user: UserEntity, app: AppEntity): Promise<any>;
+  show(user: UserEntity, app: AppEntity, branchId?: string): Promise<any>;
 
   appFromSlug(user: UserEntity, app: AppEntity): Promise<any>;
 
   releaseVersion(user: UserEntity, app: AppEntity, versionReleaseDto: VersionReleaseDto): Promise<any>;
+
+  getAppAuthenticationConfig(slug: string): Promise<any>;
 }

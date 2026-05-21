@@ -12,7 +12,7 @@ module.exports = defineConfig({
   projectId: "sk3oji",
 
   e2e: {
-    setupNodeEvents(on, config) {
+    setupNodeEvents (on, config) {
       require("./cypress/config/tasks")(on);
       require("./cypress/config/browserConfig")(on);
 

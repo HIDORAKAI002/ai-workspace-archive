@@ -1,7 +1,8 @@
 import React, { forwardRef } from 'react';
 import Label from '@/_ui/Label';
 import Loader from '@/ToolJetUI/Loader/Loader';
-import * as Icons from '@tabler/icons-react';
+import TablerIcon from '@/_ui/Icon/TablerIcon';
+import { IconX } from '@tabler/icons-react';
 import { cn } from '@/lib/utils';
 import { getModifiedColor } from '@/AppBuilder/Widgets/utils';
 import { BOX_PADDING } from '../../AppCanvas/appCanvasConstants';
@@ -12,7 +13,7 @@ import './baseInput.scss';
 const RenderInput = forwardRef((props, ref) => {
   const { inputType, ...restProps } = props;
 
-  return inputType !== 'textarea' ? <input {...restProps} ref={ref} /> : <textarea {...restProps} ref={ref} />;
+  return inputType !== 'textarea' ? <input {...restProps} ref={ref} /> : <textarea rows={1} {...restProps} ref={ref} />;
 });
 
 export const BaseInput = ({
@@ -46,6 +47,10 @@ export const BaseInput = ({
   isDynamicHeightEnabled,
   id,
   classes = null,
+  showClearBtn,
+  onClear,
+  clearButtonRightOffset = 0,
+  getCustomStyles,
 }) => {
   const {
     padding,
@@ -53,6 +58,7 @@ export const BaseInput = ({
     borderColor,
     backgroundColor,
     textColor,
+    placeholderTextColor,
     boxShadow,
     width,
     alignment,
@@ -70,6 +76,21 @@ export const BaseInput = ({
   const { label, placeholder } = properties;
   const _width = getLabelWidthOfInput(widthType, width);
   const defaultAlignment = alignment === 'side' || alignment === 'top' ? alignment : 'side';
+  const hasLabel = (label?.length > 0 && width > 0) || (auto && width == 0 && label && label?.length != 0);
+  const hasValue = value !== '' && value !== null && value !== undefined;
+  const shouldShowClearBtn = showClearBtn && hasValue && !disable && !loading;
+  const shouldOverridePlaceholderTextColor =
+    typeof placeholderTextColor === 'string' &&
+    placeholderTextColor.length > 0 &&
+    placeholderTextColor !== 'var(--cc-placeholder-text)';
+  const shouldUsePlaceholderTextColorForIcon =
+    shouldOverridePlaceholderTextColor &&
+    (!iconColor || iconColor === 'var(--cc-default-icon)' || iconColor === '#CFD3D859');
+  const computedIconColor = shouldUsePlaceholderTextColorForIcon
+    ? placeholderTextColor
+    : iconColor !== '#CFD3D859'
+    ? iconColor
+    : 'var(--icons-weak-disabled)';
 
   const inputStyles = {
     color: !['#1B1F24', '#000', '#000000ff'].includes(textColor)
@@ -79,6 +100,7 @@ export const BaseInput = ({
       : 'var(--text-primary)',
     textOverflow: 'ellipsis',
     backgroundColor: 'inherit',
+    ...(shouldOverridePlaceholderTextColor && { '--cc-placeholder-text': placeholderTextColor }),
   };
 
   let loaderStyle;
@@ -94,13 +116,48 @@ export const BaseInput = ({
     };
   }
 
-  // eslint-disable-next-line import/namespace
-  const IconElement = Icons[icon] ?? Icons['IconHome2'];
+  const finalStyles = getCustomStyles ? getCustomStyles(inputStyles) : inputStyles;
+  const clearButtonBaseRight =
+    direction === 'right' && defaultAlignment === 'side' && hasLabel ? `${labelWidth + 11}px` : '11px';
+  const clearButtonRight =
+    clearButtonRightOffset > 0 ? `calc(${clearButtonBaseRight} + ${clearButtonRightOffset}px)` : clearButtonBaseRight;
+  const clearButtonTop =
+    inputType === 'textarea'
+      ? defaultAlignment === 'top'
+        ? '30px'
+        : '10px'
+      : defaultAlignment === 'top' && hasLabel
+      ? 'calc(50% + 10px)'
+      : '50%';
+  const clearButtonTransform = inputType === 'textarea' ? 'none' : 'translateY(-50%)';
+  const clearButton = shouldShowClearBtn ? (
+    <button
+      type="button"
+      className="tj-input-clear-btn"
+      aria-label="Clear"
+      onMouseDown={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+      }}
+      onClick={(event) => {
+        event.stopPropagation();
+        onClear?.();
+      }}
+      style={{
+        position: 'absolute',
+        right: clearButtonRight,
+        top: clearButtonTop,
+        transform: clearButtonTransform,
+        zIndex: 3,
+      }}
+    >
+      <IconX size={16} color="var(--borders-strong)" className="cursor-pointer clear-indicator" />
+    </button>
+  ) : null;
 
   return (
     <>
       <div
-        data-cy={`label-${String(componentName).toLowerCase()}`}
         className={`text-input scrollbar-container d-flex ${
           defaultAlignment === 'top' &&
           ((width != 0 && label?.length != 0) || (auto && width == 0 && label && label?.length != 0))
@@ -137,9 +194,11 @@ export const BaseInput = ({
               'tw-flex-shrink-0': defaultAlignment === 'top',
             }),
           }}
+          dataCy={`${String(dataCy).toLowerCase()}`}
         />
 
         <div
+          data-cy={`${String(dataCy).toLowerCase()}-actionable-section`}
           className={cn(
             'tw-px-2.5 tw-py-2 tw-border tw-border-solid tw-flex tw-items-center tw-gap-1.5 tj-text-input-widget-container',
             classes?.inputContainer
@@ -178,13 +237,14 @@ export const BaseInput = ({
           }}
         >
           {showLeftIcon && (
-            <IconElement
-              data-cy={'text-input-icon'}
+            <TablerIcon
+              iconName={icon}
+              data-cy={`${String(dataCy).toLowerCase()}-icon`}
               className={cn('tw-shrink-0', classes?.leftIcon)}
               style={{
                 width: '16px',
                 height: '16px',
-                color: iconColor !== '#CFD3D859' ? iconColor : 'var(--icons-weak-disabled)',
+                color: computedIconColor,
                 zIndex: 3,
                 ...(inputType === 'textarea' && { alignSelf: 'start' }),
               }}
@@ -194,7 +254,7 @@ export const BaseInput = ({
 
           <RenderInput
             inputType={inputType}
-            data-cy={dataCy}
+            data-cy={`${String(dataCy).toLowerCase()}-input`}
             ref={inputRef}
             type={inputType}
             className={cn(
@@ -207,7 +267,7 @@ export const BaseInput = ({
             onFocus={handleFocus}
             onKeyUp={handleKeyUp}
             placeholder={placeholder}
-            style={inputStyles}
+            style={finalStyles}
             {...additionalInputProps}
             id={`component-${id}`}
             aria-disabled={disable || loading}
@@ -217,7 +277,7 @@ export const BaseInput = ({
             aria-invalid={!isValid && showValidationError}
             aria-label={!auto && labelWidth == 0 && label?.length != 0 ? label : undefined}
           />
-
+          {clearButton}
           {loading ? <Loader classes={classes} style={loaderStyle} absolute={false} width="16" /> : rightIcon}
         </div>
       </div>

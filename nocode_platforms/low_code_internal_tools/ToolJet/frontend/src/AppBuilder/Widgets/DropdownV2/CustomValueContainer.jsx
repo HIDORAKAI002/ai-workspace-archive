@@ -1,24 +1,36 @@
 import React from 'react';
 import { components } from 'react-select';
-import * as Icons from '@tabler/icons-react';
+import TablerIcon from '@/_ui/Icon/TablerIcon';
 import './dropdownV2.scss';
 
 const { ValueContainer, SingleValue, Placeholder } = components;
 
 const CustomValueContainer = ({ children, ...props }) => {
   const selectProps = props.selectProps;
-  // eslint-disable-next-line import/namespace
-  const IconElement = Icons[selectProps?.icon] == undefined ? Icons['IconHome2'] : Icons[selectProps?.icon];
+  const shouldOverridePlaceholderTextColor =
+    typeof selectProps?.placeholderTextColor === 'string' &&
+    selectProps.placeholderTextColor.length > 0 &&
+    selectProps.placeholderTextColor !== 'var(--cc-placeholder-text)';
+  const shouldUsePlaceholderTextColorForIcon =
+    shouldOverridePlaceholderTextColor &&
+    (!selectProps?.iconColor ||
+      selectProps.iconColor === 'var(--cc-default-icon)' ||
+      selectProps.iconColor === '#CFD3D859');
+  const computedIconColor = shouldUsePlaceholderTextColorForIcon
+    ? selectProps?.placeholderTextColor
+    : selectProps?.iconColor;
+
   return (
     <ValueContainer {...props}>
       <div className="d-inline-flex">
         {selectProps?.doShowIcon && (
           <div>
-            <IconElement
+            <TablerIcon
+              iconName={selectProps?.icon}
               style={{
                 width: '16px',
                 height: '16px',
-                color: selectProps?.iconColor,
+                color: computedIconColor,
                 marginRight: '2px',
                 marginBottom: '2px',
               }}

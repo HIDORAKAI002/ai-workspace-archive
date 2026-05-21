@@ -71,6 +71,14 @@ export const datetimePickerV2Config = {
       validation: { schema: { type: 'boolean' }, defaultValue: false },
       section: 'Data',
     },
+    placeholder: {
+      type: 'code',
+      displayName: 'Placeholder',
+      validation: {
+        schema: { type: 'string' },
+        defaultValue: 'Select date and time',
+      },
+    },
     defaultValue: {
       type: 'code',
       displayName: 'Default value',
@@ -79,7 +87,12 @@ export const datetimePickerV2Config = {
         defaultValue: '01/01/2022',
       },
     },
-
+    showClearBtn: {
+      type: 'toggle',
+      displayName: 'Enable clear button',
+      validation: { schema: { type: 'boolean' }, defaultValue: false },
+      section: 'additionalActions',
+    },
     loadingState: {
       type: 'toggle',
       displayName: 'Loading state',
@@ -91,6 +104,13 @@ export const datetimePickerV2Config = {
       displayName: 'Visibility',
       validation: { schema: { type: 'boolean' }, defaultValue: true },
 
+      section: 'additionalActions',
+    },
+
+    collapseWhenHidden: {
+      type: 'toggle',
+      displayName: 'Collapse when hidden',
+      validation: { schema: { type: 'boolean' }, defaultValue: false },
       section: 'additionalActions',
     },
     disabledState: {
@@ -402,6 +422,7 @@ export const datetimePickerV2Config = {
     properties: {
       label: { value: 'Label' },
       defaultValue: { value: '01/01/2022' },
+      placeholder: { value: 'Select date and time' },
       dateFormat: { value: 'DD/MM/YYYY' },
       timeFormat: { value: 'HH:mm' },
       isTimezoneEnabled: { value: '{{false}}' },
@@ -409,8 +430,11 @@ export const datetimePickerV2Config = {
       storeTimezone: { value: 'UTC' },
       loadingState: { value: '{{false}}' },
       visibility: { value: '{{true}}' },
+
+      collapseWhenHidden: { value: '{{false}}' },
       disabledState: { value: '{{false}}' },
       tooltip: { value: '' },
+      showClearBtn: { value: '{{false}}' },
     },
     events: [],
     styles: {

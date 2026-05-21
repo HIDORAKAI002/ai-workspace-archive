@@ -3,13 +3,17 @@ id: overview
 title: Overview
 ---
 
-<div style={{display:'flex',justifyContent:"start",alignItems:"center",gap:"8px"}}>
-
-<div className="badge badge--self-hosted heading-badge" >   
- <span>Self Hosted</span>
+<div className="badge badge--primary heading-badge">   
+  <img 
+    src="/img/badge-icons/premium.svg" 
+    alt="Icon" 
+    width="16" 
+    height="16" 
+  />
+ <span>Paid feature</span>
 </div>
 
-</div>
+<br/>
 
 ToolJet Workflows is a visual, node-based platform tailored for data-centric automation tasks. With its intuitive design, users can create detailed queries across diverse data sources, manage conditional flows, and execute custom JavaScript code while making the processes presentable and easy to manage. 
 

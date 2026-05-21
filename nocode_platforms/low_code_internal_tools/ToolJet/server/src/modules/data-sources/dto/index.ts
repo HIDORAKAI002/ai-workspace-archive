@@ -50,6 +50,14 @@ export class GetDataSourceOauthUrlDto {
 
   @IsOptional()
   plugin_id: string;
+
+  @IsOptional()
+  @IsString()
+  environment_id?: string;
+
+  @IsOptional()
+  @IsUUID()
+  organization_id?: string;
 }
 
 export class AuthorizeDataSourceOauthDto {
@@ -88,6 +96,9 @@ export class InvokeDataSourceMethodDto {
 
   @IsString()
   environmentId: string;
+
+  @IsOptional()
+  args?: any;
 }
 
 export type InvokeDataSourceMethodResponseDto = QueryResult;

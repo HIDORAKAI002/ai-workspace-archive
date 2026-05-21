@@ -12,7 +12,7 @@ const PasswordResponses = {
 // Using new URL keeps this portable across bundlers (Webpack 5, Vite, etc.)
 pdfjs.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).toString();
 
-export const PDF = React.memo(({ styles, properties, width, height, componentName, dataCy }) => {
+const PDF = React.memo(({ styles, properties, width, height, componentName, dataCy }) => {
   const { visibility, boxShadow, borderColor, borderRadius } = styles;
   const { url, scale, pageControls, showDownloadOption } = properties;
   const [numPages, setNumPages] = useState(null);
@@ -258,3 +258,5 @@ export const PDF = React.memo(({ styles, properties, width, height, componentNam
     </div>
   );
 });
+
+export default PDF;
