@@ -36,6 +36,7 @@ pub const EXTRA_PIP_INDEX_URL_SETTING: &str = "pip_extra_index_url";
 pub const PIP_INDEX_URL_SETTING: &str = "pip_index_url";
 pub const UV_INDEX_STRATEGY_SETTING: &str = "uv_index_strategy";
 pub const UV_EXCLUDE_NEWER_SETTING: &str = "uv_exclude_newer";
+pub const UV_PYTHON_INSTALL_MIRROR_SETTING: &str = "uv_python_install_mirror";
 pub const BUN_INSTALL_MIN_RELEASE_AGE_SETTING: &str = "bun_install_min_release_age";
 pub const INSTANCE_PYTHON_VERSION_SETTING: &str = "instance_python_version";
 pub const RUFF_CONFIG_SETTING: &str = "ruff_config";
@@ -54,6 +55,9 @@ pub const KEEP_JOB_DIR_SETTING: &str = "keep_job_dir";
 pub const REQUIRE_PREEXISTING_USER_FOR_OAUTH_SETTING: &str = "require_preexisting_user_for_oauth";
 pub const JOB_ISOLATION_SETTING: &str = "job_isolation";
 pub const NSJAIL_TMPFS_SIZE_MB_SETTING: &str = "nsjail_tmpfs_size_mb";
+pub const NSJAIL_TMP_BACKING_SETTING: &str = "nsjail_tmp_backing";
+pub const NSJAIL_TMP_BACKING_DISK: &str = "disk";
+pub const NSJAIL_TMP_BACKING_TMPFS: &str = "tmpfs";
 pub const OBJECT_STORE_CONFIG_SETTING: &str = "object_store_cache_config";
 pub const HUB_API_SECRET_SETTING: &str = "hub_api_secret";
 
@@ -125,6 +129,7 @@ pub const ENV_SETTINGS: &[&str] = &[
     "PIP_INDEX_URL",
     "PIP_EXTRA_INDEX_URL",
     "PIP_TRUSTED_HOST",
+    "UV_PYTHON_INSTALL_MIRROR",
     "PATH",
     "HOME",
     "DATABASE_CONNECTIONS",
