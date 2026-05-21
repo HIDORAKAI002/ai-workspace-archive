@@ -6,7 +6,29 @@
   <author><name>Anthropic</name></author>
   <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md"/>
   <link rel="self" type="application/atom+xml" href="https://raw.githubusercontent.com/anthropics/claude-code/main/feed.xml"/>
-  <updated>2026-05-19T21:31:01Z</updated>
+  <updated>2026-05-21T01:51:45Z</updated>
+  <entry>
+    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.146</id>
+    <title>Claude Code v2.1.146</title>
+    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.146"/>
+    <updated>2026-05-21T01:51:45Z</updated>
+    <content type="html">&lt;p&gt;• Renamed /simplify to /code-review with an optional effort level (e.g. /code-review high)&lt;/p&gt;
+&lt;p&gt;• Auto mode no longer suppresses AskUserQuestion when the user or a skill explicitly relies on it&lt;/p&gt;
+&lt;p&gt;• Fixed Windows PowerShell tool failing with "command line is invalid" when pwsh is installed via winget or the Microsoft Store (regression in v2.1.124)&lt;/p&gt;
+&lt;p&gt;• Fixed MCP resources/list, resources/templates/list, and prompts/list dropping items past page 1 on paginating servers&lt;/p&gt;
+&lt;p&gt;• Fixed full-screen strobing in attached background sessions on Windows Terminal while Claude is streaming&lt;/p&gt;
+&lt;p&gt;• Fixed the auto-updater status line not showing your current version when an update fails&lt;/p&gt;
+&lt;p&gt;• Fixed on Windows, removing a background-job worktree no longer follows NTFS junctions into the main repo&lt;/p&gt;
+&lt;p&gt;• Fixed /background refusing sessions whose only typed input was a skill or custom slash command&lt;/p&gt;
+&lt;p&gt;• Fixed backgrounded sessions re-prompting for tool permissions you already granted with "don't ask again"&lt;/p&gt;
+&lt;p&gt;• Fixed /theme color editor and "New custom theme" dialogs not responding to Esc&lt;/p&gt;
+&lt;p&gt;• Fixed an uncaught exception at the end of streaming sessions when running via the Agent SDK&lt;/p&gt;
+&lt;p&gt;• Fixed forceLoginOrgUUID and forceLoginMethod managed-settings policies not being enforced against third-party-provider and API-key sessions&lt;/p&gt;
+&lt;p&gt;• Fixed GNOME Terminal right-click and middle-click paste not inserting text&lt;/p&gt;
+&lt;p&gt;• Fixed CLAUDE_CODE_SUBAGENT_MODEL not being forwarded to child processes in multi-agent sessions&lt;/p&gt;
+&lt;p&gt;• Improved auto-updater reliability: native version checks and downloads now retry transient network failures instead of failing immediately&lt;/p&gt;
+&lt;p&gt;• Improved diff rendering performance for large file edits&lt;/p&gt;</content>
+  </entry>
   <entry>
     <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.145</id>
     <title>Claude Code v2.1.145</title>
@@ -626,33 +648,5 @@
 &lt;p&gt;• Fixed /focus showing "Unknown command" when the fullscreen renderer is off — now explains how to enable it&lt;/p&gt;
 &lt;p&gt;• Fixed embedded grep/find/rg shell wrappers failing when the running binary is deleted mid-session — now falls back to installed tools&lt;/p&gt;
 &lt;p&gt;• Reduced peak file descriptor usage during find in the Bash tool on large directory trees&lt;/p&gt;</content>
-  </entry>
-  <entry>
-    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.120</id>
-    <title>Claude Code v2.1.120</title>
-    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.120"/>
-    <updated>2026-05-18T01:52:01Z</updated>
-    <content type="html">&lt;p&gt;• Windows: Git for Windows (Git Bash) is no longer required — when absent, Claude Code uses PowerShell as the shell tool&lt;/p&gt;
-&lt;p&gt;• Added claude ultrareview [target] subcommand to run /ultrareview non-interactively from CI or scripts — prints findings to stdout (--json for raw output) and exits 0 on completion or 1 on failure&lt;/p&gt;
-&lt;p&gt;• Skills can now reference the current effort level with ${CLAUDE_EFFORT} in their content&lt;/p&gt;
-&lt;p&gt;• Set AI_AGENT environment variable for subprocesses so gh can attribute traffic to Claude Code&lt;/p&gt;
-&lt;p&gt;• Spinner tips that recommend installing the desktop app or creating skills/agents are now hidden when you already have them&lt;/p&gt;
-&lt;p&gt;• Show a "use PgUp/PgDn to scroll" hint when the terminal sends arrow keys instead of scroll events&lt;/p&gt;
-&lt;p&gt;• Faster session start when you have many claude.ai connectors configured but not authorized&lt;/p&gt;
-&lt;p&gt;• The auto mode denial message now links to the configuration docs&lt;/p&gt;
-&lt;p&gt;• claude plugin validate now accepts $schema, version, and description at the top level of marketplace.json and $schema in plugin.json&lt;/p&gt;
-&lt;p&gt;• Auto-compact in auto mode now displays auto (lowercase, no token count) instead of a misleading token value&lt;/p&gt;
-&lt;p&gt;• Fixed pressing Esc during a stdio MCP tool call closing the entire server connection (regression in 2.1.105)&lt;/p&gt;
-&lt;p&gt;• Fixed /rewind and other interactive overlays not responding to keyboard input after launching with claude --resume&lt;/p&gt;
-&lt;p&gt;• Fixed terminal scrollback duplication in non-fullscreen mode (resize, dialog dismiss, long sessions)&lt;/p&gt;
-&lt;p&gt;• Fixed DISABLE_TELEMETRY / CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC not suppressing usage metrics telemetry for API and enterprise users&lt;/p&gt;
-&lt;p&gt;• Fixed false-positive "Dangerous rm operation" permission prompts in auto mode for multi-line bash commands containing both a pipe and a redirect&lt;/p&gt;
-&lt;p&gt;• Fixed long selection menus clipping below the terminal in fullscreen mode — the focused option now stays on screen as you scroll&lt;/p&gt;
-&lt;p&gt;• Fixed Write tool output collapsing instead of expanding when clicking "+N lines" in fullscreen&lt;/p&gt;
-&lt;p&gt;• Fixed slash command picker jumping while typing, and improved highlight to only match contiguous substrings in blue&lt;/p&gt;
-&lt;p&gt;• Fixed /plugin marketplace failing to load when one entry uses an unrecognized source format — that entry is shown but installing it prompts you to update&lt;/p&gt;
-&lt;p&gt;• [VSCode] /usage now opens the native Account &amp;amp; Usage dialog instead of returning plain-text session cost&lt;/p&gt;
-&lt;p&gt;• [VSCode] Voice dictation now respects the language setting in ~/.claude/settings.json&lt;/p&gt;
-&lt;p&gt;• Fixed find in the Bash tool exhausting open file descriptors on large directory trees, causing host-wide crashes (macOS/Linux native builds)&lt;/p&gt;</content>
   </entry>
 </feed>
