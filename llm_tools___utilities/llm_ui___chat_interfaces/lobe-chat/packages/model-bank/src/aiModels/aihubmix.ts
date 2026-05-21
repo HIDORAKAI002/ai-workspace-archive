@@ -1,5 +1,5 @@
-import { type AIChatModelCard, type AIImageModelCard } from '../types/aiModel';
-import { gptImage2Schema } from './lobehub';
+import { gptImage2Schema } from '../const/imageParameters';
+import type { AIChatModelCard, AIImageModelCard } from '../types/aiModel';
 
 const aihubmixChatModels: AIChatModelCard[] = [
   {

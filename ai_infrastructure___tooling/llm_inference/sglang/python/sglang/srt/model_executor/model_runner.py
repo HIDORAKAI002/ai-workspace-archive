@@ -2292,13 +2292,20 @@ class ModelRunner(ModelRunnerKVCacheMixin):
     def kernel_warmup(self):
         """
         Warmup and tune kernels before cuda graph capture.
-        Currently only doing FlashInfer autotune.
+        Covers framework-level warmups and optional model-specific warmups.
         """
         if self.device != "cuda":
             return
 
         if self._should_run_flashinfer_autotune():
             self._flashinfer_autotune()
+
+        # Models may need their own warmup for model-specific kernels or JIT paths.
+        # Register those hooks on the model class so ModelRunner can keep this
+        # warmup entry point generic.
+        model_kernel_warmup = getattr(self.model, "kernel_warmup", None)
+        if model_kernel_warmup is not None:
+            model_kernel_warmup(self)
 
     def _pre_initialize_flashinfer_allreduce_workspace(self):
         """Pre-initialize flashinfer allreduce fusion workspaces.
@@ -2787,7 +2794,7 @@ class ModelRunner(ModelRunnerKVCacheMixin):
             f"mem usage={self.graph_mem_usage:.2f} GB. avail mem={after_mem:.2f} GB."
         )
 
-    def init_piecewise_cuda_graphs(self):
+    def init_piecewise_cuda_graphs(self, force_for_draft_worker: bool = False):
         """Initialize piecewise CUDA graph runner."""
         self.piecewise_cuda_graph_runner = None
 
@@ -2797,8 +2804,10 @@ class ModelRunner(ModelRunnerKVCacheMixin):
             )
             return
 
-        # Draft models use decode CUDA graphs, not PCG
-        if self.is_draft_worker:
+        # Draft models skip here during __init__; the eagle worker calls
+        # this method explicitly (force_for_draft_worker=True) after
+        # init_lm_head so graphs capture the final embedding weights.
+        if self.is_draft_worker and not force_for_draft_worker:
             return
 
         # Disable piecewise CUDA graph for non-language models
@@ -3248,9 +3257,8 @@ class ModelRunner(ModelRunnerKVCacheMixin):
                 server_args=self.server_args,
             )
 
-        # Use precomputed SWA cache location
-        if forward_batch.out_cache_loc_swa is not None:
-            self.token_to_kv_pool.set_swa_loc(forward_batch.out_cache_loc_swa)
+        if self.is_hybrid_swa:
+            self.token_to_kv_pool.invalidate_loc_cache()
 
         # Hisparse coordinator
         forward_batch.hisparse_coordinator = self.hisparse_coordinator
