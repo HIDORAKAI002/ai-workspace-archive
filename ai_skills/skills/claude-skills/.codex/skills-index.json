@@ -685,15 +685,15 @@
     },
     {
       "name": "review",
-      "source": "../../engineering-team/playwright-pro/skills/review",
-      "category": "engineering",
-      "description": ">-"
-    },
-    {
-      "name": "review",
       "source": "../../engineering-team/self-improving-agent/skills/review",
       "category": "engineering",
       "description": "Analyze auto-memory for promotion candidates, stale entries, consolidation opportunities, and health metrics."
+    },
+    {
+      "name": "review",
+      "source": "../../engineering-team/playwright-pro/skills/review",
+      "category": "engineering",
+      "description": ">-"
     },
     {
       "name": "security-pen-testing",
@@ -1153,15 +1153,15 @@
     },
     {
       "name": "run",
-      "source": "../../engineering/agenthub/skills/run",
-      "category": "engineering-advanced",
-      "description": "One-shot lifecycle command that chains init \u2192 baseline \u2192 spawn \u2192 eval \u2192 merge in a single invocation."
-    },
-    {
-      "name": "run",
       "source": "../../engineering/autoresearch-agent/skills/run",
       "category": "engineering-advanced",
       "description": "Run a single experiment iteration. Edit the target file, evaluate, keep or discard."
+    },
+    {
+      "name": "run",
+      "source": "../../engineering/agenthub/skills/run",
+      "category": "engineering-advanced",
+      "description": "One-shot lifecycle command that chains init \u2192 baseline \u2192 spawn \u2192 eval \u2192 merge in a single invocation."
     },
     {
       "name": "runbook-generator",
@@ -1249,15 +1249,15 @@
     },
     {
       "name": "status",
-      "source": "../../engineering/agenthub/skills/status",
-      "category": "engineering-advanced",
-      "description": "Show DAG state, agent progress, and branch status for an AgentHub session."
-    },
-    {
-      "name": "status",
       "source": "../../engineering/autoresearch-agent/skills/status",
       "category": "engineering-advanced",
       "description": "Show experiment dashboard with results, active loops, and progress."
+    },
+    {
+      "name": "status",
+      "source": "../../engineering/agenthub/skills/status",
+      "category": "engineering-advanced",
+      "description": "Show DAG state, agent progress, and branch status for an AgentHub session."
     },
     {
       "name": "tc-tracker",

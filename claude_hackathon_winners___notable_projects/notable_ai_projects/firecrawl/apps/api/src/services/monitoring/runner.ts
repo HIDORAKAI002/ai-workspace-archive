@@ -585,7 +585,7 @@ async function sendNotifications(params: {
     try {
       const result = await sender?.send(WebhookEvent.MONITOR_CHECK_COMPLETED, {
         success: params.check.status === "completed",
-        data: payload,
+        data: [payload],
         error: params.check.error ?? undefined,
         awaitWebhook: true,
       });

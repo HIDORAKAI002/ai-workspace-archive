@@ -64,6 +64,7 @@ import {
   type ToolExecutionResultResponse,
   type ToolExecutionService,
 } from '@/server/services/toolExecution';
+import { archiveToolResultIfNeeded } from '@/server/services/toolExecution/archiveToolResult';
 
 import { dispatchClientTool } from './dispatchClientTool';
 import { formatErrorEventData } from './formatErrorEventData';
@@ -116,6 +117,40 @@ const getToolFailureKind = (result: ToolExecutionResultResponse): ToolFailureKin
 const shouldRetryTool = (kind: ToolFailureKind | undefined, attempt: number, maxRetries: number) =>
   kind === 'retry' && attempt <= maxRetries;
 
+const archiveRuntimeToolResult = async (
+  result: ToolExecutionResultResponse,
+  {
+    agentId,
+    identifier,
+    limit,
+    serverDB,
+    toolCallId,
+    topicId,
+    userId,
+  }: {
+    agentId?: string | null;
+    identifier?: string;
+    limit?: number;
+    serverDB: LobeChatDatabase;
+    toolCallId?: string;
+    topicId?: string | null;
+    userId?: string;
+  },
+): Promise<ToolExecutionResultResponse> => {
+  const archive = await archiveToolResultIfNeeded({
+    agentId,
+    content: result.content,
+    identifier,
+    limit,
+    serverDB,
+    toolCallId,
+    topicId,
+    userId,
+  });
+
+  return archive.content === result.content ? result : { ...result, content: archive.content };
+};
+
 // Builds a postProcessUrl callback that resolves S3 keys in file-backed fields
 // (imageList, videoList, fileList) to absolute URLs. Must be passed to every
 // messageModel.query() call whose output is later fed to the LLM — otherwise
@@ -143,6 +178,16 @@ const resolveLLMMaxRetries = (provider: string) =>
   // The branded provider already routes through its own fallback chain. Retrying
   // again here multiplies the same failed routed request across every channel.
   provider === BRANDING_PROVIDER ? 0 : LLM_MAX_RETRIES;
+
+const resolveRuntimeHistoryCount = (historyCount?: number) => {
+  if (historyCount === undefined) return undefined;
+
+  // Agent config stores historical message count, excluding the current turn.
+  // Runtime executors already pass the current user/tool turn in `llmPayload.messages`;
+  // without this +1, `historyCount: 0` truncates the current message too and sends
+  // `messages: []` to providers.
+  return historyCount + 1;
+};
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -652,7 +697,7 @@ export const createRuntimeExecutors = (
           enableHistoryCount: agentConfig.chatConfig?.enableHistoryCount ?? undefined,
           evalContext: ctx.evalContext,
           forceFinish: state.forceFinish,
-          historyCount: agentConfig.chatConfig?.historyCount ?? undefined,
+          historyCount: resolveRuntimeHistoryCount(agentConfig.chatConfig?.historyCount),
           initialContext: (state as any).initialContext?.initialContext,
           knowledge: {
             fileContents: agentConfig.files
@@ -1688,6 +1733,7 @@ export const createRuntimeExecutors = (
               operationId,
               scope: state.metadata?.scope,
               serverDB: ctx.serverDB,
+              skipResultTruncation: true,
               taskId: state.metadata?.taskId,
               threadId: state.metadata?.threadId,
               toolCallId: chatToolPayload.id,
@@ -1705,7 +1751,15 @@ export const createRuntimeExecutors = (
         );
       }
 
-      const executionResult = execution.result;
+      const executionResult = await archiveRuntimeToolResult(execution.result, {
+        agentId: state.metadata?.agentId,
+        identifier: chatToolPayload.identifier,
+        limit: toolResultMaxLength,
+        serverDB: ctx.serverDB,
+        toolCallId: chatToolPayload.id,
+        topicId: ctx.topicId ?? state.metadata?.topicId,
+        userId: ctx.userId,
+      });
       const executionTime = executionResult.executionTime;
       const isSuccess = executionResult.success;
       if (ctx.hookDispatcher) {
@@ -2162,6 +2216,7 @@ export const createRuntimeExecutors = (
                   operationId,
                   scope: state.metadata?.scope,
                   serverDB: ctx.serverDB,
+                  skipResultTruncation: true,
                   taskId: state.metadata?.taskId,
                   threadId: state.metadata?.threadId,
                   toolCallId: chatToolPayload.id,
@@ -2179,7 +2234,15 @@ export const createRuntimeExecutors = (
             );
           }
 
-          const executionResult = execution.result;
+          const executionResult = await archiveRuntimeToolResult(execution.result, {
+            agentId: state.metadata?.agentId,
+            identifier: chatToolPayload.identifier,
+            limit: batchAgentConfig?.chatConfig?.toolResultMaxLength,
+            serverDB: ctx.serverDB,
+            toolCallId: chatToolPayload.id,
+            topicId: ctx.topicId ?? state.metadata?.topicId,
+            userId: ctx.userId,
+          });
           const executionTime = executionResult.executionTime;
           const isSuccess = executionResult.success;
           if (ctx.hookDispatcher) {

@@ -146,7 +146,7 @@ use windmill_object_store::OBJECT_STORE_SETTINGS;
 use crate::{
     common::{
         build_command_with_isolation, create_args_and_out_file, get_reserved_variables, read_file,
-        read_result, resolve_nsjail_timeout, resolve_nsjail_tmpfs_size_bytes, start_child_process,
+        read_result, resolve_nsjail_timeout, resolve_nsjail_tmp_mount_block, start_child_process,
         OccupancyMetrics, StreamNotifier, DEV_CONF_NSJAIL,
     },
     get_proxy_envs_for_lang,
@@ -155,7 +155,7 @@ use crate::{
     worker_utils::ping_job_status,
     PyV, DISABLE_NUSER, HOME_ENV, NSJAIL_AVAILABLE, NSJAIL_PATH, PATH_ENV, PIP_EXTRA_INDEX_URL,
     PIP_INDEX_URL, PROXY_ENVS, PY_INSTALL_DIR, TRACING_PROXY_CA_CERT_PATH, TZ_ENV, UV_CACHE_DIR,
-    UV_EXCLUDE_NEWER, UV_INDEX_STRATEGY,
+    UV_EXCLUDE_NEWER, UV_INDEX_STRATEGY, UV_PYTHON_INSTALL_MIRROR,
 };
 use windmill_common::client::AuthedClient;
 
@@ -392,6 +392,10 @@ pub async fn uv_pip_compile(
             .args(&args)
             .stdout(Stdio::piped())
             .stderr(Stdio::piped());
+
+        if let Some(mirror) = UV_PYTHON_INSTALL_MIRROR.read().await.as_ref() {
+            child_cmd.env("UV_PYTHON_INSTALL_MIRROR", mirror);
+        }
 
         #[cfg(windows)]
         {
@@ -1024,8 +1028,8 @@ mount {{
                 .replace("{TRACING_PROXY_CA_CERT_PATH}", &*TRACING_PROXY_CA_CERT_PATH)
                 .replace("#{DEV}", DEV_CONF_NSJAIL)
                 .replace(
-                    "{NSJAIL_TMPFS_SIZE}",
-                    &resolve_nsjail_tmpfs_size_bytes().await,
+                    "{TMP_MOUNT_BLOCK}",
+                    &resolve_nsjail_tmp_mount_block(job_dir).await,
                 )
                 .replace("{TIMEOUT}", &nsjail_timeout),
         )?;
@@ -1995,6 +1999,7 @@ async fn spawn_uv_install(
         .unwrap_or("unsafe-best-match");
     let uv_exclude_newer = (*UV_EXCLUDE_NEWER.read().await).map(|secs| format!("{}s", secs));
     let uv_exclude_newer = uv_exclude_newer.as_deref();
+    let uv_python_install_mirror = UV_PYTHON_INSTALL_MIRROR.read().await.clone();
 
     if is_sandboxing_enabled() {
         tracing::info!(
@@ -2033,6 +2038,9 @@ async fn spawn_uv_install(
         if let Some(v) = uv_exclude_newer {
             vars.push(("UV_EXCLUDE_NEWER", v));
         }
+        if let Some(mirror) = uv_python_install_mirror.as_ref() {
+            vars.push(("UV_PYTHON_INSTALL_MIRROR", mirror));
+        }
 
         std::fs::create_dir_all(venv_p)?;
         let nsjail_proto = format!("{req}.config.proto");
@@ -2048,8 +2056,8 @@ async fn spawn_uv_install(
                 .replace("{TRACING_PROXY_CA_CERT_PATH}", &*TRACING_PROXY_CA_CERT_PATH)
                 .replace("#{DEV}", DEV_CONF_NSJAIL)
                 .replace(
-                    "{NSJAIL_TMPFS_SIZE}",
-                    &resolve_nsjail_tmpfs_size_bytes().await,
+                    "{TMP_MOUNT_BLOCK}",
+                    &resolve_nsjail_tmp_mount_block(job_dir).await,
                 )
                 .as_str(),
         )?;
@@ -2115,6 +2123,9 @@ async fn spawn_uv_install(
         let mut envs = vec![("PATH", PATH_ENV.as_str())];
         envs.push(("HOME", HOME_ENV.as_str()));
         envs.push(("UV_INDEX_STRATEGY", uv_index_strategy));
+        if let Some(mirror) = uv_python_install_mirror.as_ref() {
+            envs.push(("UV_PYTHON_INSTALL_MIRROR", mirror));
+        }
 
         if let Some(url) = pip_index_url.as_ref() {
             command_args.extend(["--index-url", url]);
