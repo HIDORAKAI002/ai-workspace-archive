@@ -48,6 +48,12 @@ export const currencyinputConfig = {
       displayName: 'Show currency flag',
       validation: { schema: { type: 'boolean' }, defaultValue: true },
     },
+    showClearBtn: {
+      type: 'toggle',
+      displayName: 'Enable clear button',
+      validation: { schema: { type: 'boolean' }, defaultValue: false },
+      section: 'additionalActions',
+    },
     loadingState: {
       type: 'toggle',
       displayName: 'Loading state',
@@ -58,6 +64,13 @@ export const currencyinputConfig = {
       type: 'toggle',
       displayName: 'Visibility',
       validation: { schema: { type: 'boolean' }, defaultValue: true },
+      section: 'additionalActions',
+    },
+
+    collapseWhenHidden: {
+      type: 'toggle',
+      displayName: 'Collapse when hidden',
+      validation: { schema: { type: 'boolean' }, defaultValue: false },
       section: 'additionalActions',
     },
     disabledState: {
@@ -310,12 +323,16 @@ export const currencyinputConfig = {
       label: { value: 'Label' },
       placeholder: { value: 'Enter amount' },
       visibility: { value: '{{true}}' },
+
+      collapseWhenHidden: { value: '{{false}}' },
       disabledState: { value: '{{false}}' },
       loadingState: { value: '{{false}}' },
       tooltip: { value: '' },
       isCountryChangeEnabled: { value: '{{true}}' },
       showFlag: { value: '{{true}}' },
       decimalPlaces: { value: '2' },
+      numberFormat: { value: 'us' },
+      showClearBtn: { value: '{{false}}' },
     },
     events: [],
     styles: {

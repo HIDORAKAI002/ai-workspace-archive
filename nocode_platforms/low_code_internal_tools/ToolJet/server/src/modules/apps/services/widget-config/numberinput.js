@@ -38,6 +38,12 @@ export const numberinputConfig = {
         defaultValue: 2,
       },
     },
+    showClearBtn: {
+      type: 'toggle',
+      displayName: 'Enable clear button',
+      validation: { schema: { type: 'boolean' }, defaultValue: false },
+      section: 'additionalActions',
+    },
     loadingState: {
       type: 'toggle',
       displayName: 'Loading state',
@@ -48,6 +54,13 @@ export const numberinputConfig = {
       type: 'toggle',
       displayName: 'Visibility',
       validation: { schema: { type: 'boolean' }, defaultValue: true },
+      section: 'additionalActions',
+    },
+
+    collapseWhenHidden: {
+      type: 'toggle',
+      displayName: 'Collapse when hidden',
+      validation: { schema: { type: 'boolean' }, defaultValue: false },
       section: 'additionalActions',
     },
     disabledState: {
@@ -176,6 +189,12 @@ export const numberinputConfig = {
       validation: { schema: { type: 'string' }, defaultValue: 'var(--cc-primary-text)' },
       accordian: 'field',
     },
+    placeholderTextColor: {
+      type: 'colorSwatches',
+      displayName: 'Placeholder Text',
+      validation: { schema: { type: 'string' }, defaultValue: 'var(--cc-placeholder-text)' },
+      accordian: 'field',
+    },
     errTextColor: {
       type: 'colorSwatches',
       displayName: 'Error text',
@@ -300,8 +319,11 @@ export const numberinputConfig = {
       decimalPlaces: { value: '{{2}}' },
       tooltip: { value: '' },
       visibility: { value: '{{true}}' },
+
+      collapseWhenHidden: { value: '{{false}}' },
       loadingState: { value: '{{false}}' },
       disabledState: { value: '{{false}}' },
+      showClearBtn: { value: '{{false}}' },
     },
     events: [],
     styles: {
@@ -311,6 +333,7 @@ export const numberinputConfig = {
       accentColor: { value: 'var(--cc-primary-brand)' },
       errTextColor: { value: 'var(--cc-error-systemStatus)' },
       textColor: { value: 'var(--cc-primary-text)' },
+      placeholderTextColor: { value: 'var(--cc-placeholder-text)' },
       color: { value: 'var(--cc-primary-text)' },
       iconColor: { value: 'var(--cc-default-icon)' },
       direction: { value: 'left' },

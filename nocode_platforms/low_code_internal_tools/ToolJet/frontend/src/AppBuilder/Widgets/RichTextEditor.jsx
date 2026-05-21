@@ -4,7 +4,7 @@ import 'draft-js/dist/Draft.css';
 import { DraftEditor } from './DraftEditor';
 import { useDynamicHeight } from '@/_hooks/useDynamicHeight';
 
-export const RichTextEditor = function RichTextEditor({
+export default function RichTextEditor({
   id,
   width,
   height,
@@ -17,6 +17,7 @@ export const RichTextEditor = function RichTextEditor({
   currentLayout,
   currentMode,
   subContainerIndex,
+  componentType,
 }) {
   const isInitialRender = useRef(true);
   const { visibility, disabledState, boxShadow } = styles;
@@ -39,6 +40,7 @@ export const RichTextEditor = function RichTextEditor({
     width,
     visibility: isVisible,
     subContainerIndex,
+    componentType,
   });
 
   useEffect(() => {
@@ -103,4 +105,4 @@ export const RichTextEditor = function RichTextEditor({
       ></DraftEditor>
     </div>
   );
-};
+}

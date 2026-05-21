@@ -30,4 +30,7 @@ COPY ./server/package.json ./server/package-lock.json ./server/
 RUN npm --prefix server install
 COPY ./server/ ./server/
 
-ENTRYPOINT ["./server/local-ce-entrypoint.sh"]
+COPY ./docker/dev-entrypoint.sh ./server/dev-entrypoint.sh
+RUN chmod +x ./server/dev-entrypoint.sh
+
+ENTRYPOINT ["./server/dev-entrypoint.sh"]

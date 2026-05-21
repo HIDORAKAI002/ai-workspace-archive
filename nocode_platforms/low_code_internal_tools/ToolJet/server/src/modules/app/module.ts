@@ -1,4 +1,4 @@
-import { OnModuleInit, DynamicModule } from '@nestjs/common';
+import { OnModuleInit, DynamicModule, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { GetConnection } from './database/getConnection';
 import { ShutdownHook } from './schedulers/shut-down.hook';
 import { AppModuleLoader } from './loader';
@@ -13,6 +13,8 @@ import { MetaModule } from '@modules/meta/module';
 import { SessionModule } from '@modules/session/module';
 import { EncryptionModule } from '@modules/encryption/module';
 import { AppController } from './controller';
+import { AppService } from './service';
+import { AppUtilService } from './util.service';
 import { ProfileModule } from '@modules/profile/module';
 import { SMTPModule } from '@modules/smtp/module';
 import { UsersModule } from '@modules/users/module';
@@ -32,6 +34,7 @@ import { WhiteLabellingModule } from '@modules/white-labelling/module';
 import { EmailModule } from '@modules/email/module';
 import { OrganizationConstantModule } from '@modules/organization-constants/module';
 import { FolderAppsModule } from '@modules/folder-apps/module';
+import { DataQueryFoldersModule } from '@modules/data-query-folders/module';
 import { AppsModule } from '@modules/apps/module';
 import { VersionModule } from '@modules/versions/module';
 import { DataQueriesModule } from '@modules/data-queries/module';
@@ -47,15 +50,18 @@ import { EventsModule } from '@modules/events/module';
 import { ExternalApiModule } from '@modules/external-apis/module';
 import { GitSyncModule } from '@modules/git-sync/module';
 import { AppGitModule } from '@modules/app-git/module';
+import { WorkspaceBranchesModule } from '@modules/workspace-branches/module';
 import { OrganizationPaymentModule } from '@modules/organization-payments/module';
 import { CrmModule } from '@modules/CRM/module';
 import { ClearSSOResponseScheduler } from '@modules/auth/schedulers/clear-sso-response.scheduler';
 import { SampleDBScheduler } from '@modules/data-sources/schedulers/sample-db.scheduler';
 import { SessionScheduler } from '@modules/session/scheduler';
 import { AuditLogsClearScheduler } from '@modules/audit-logs/scheduler';
+import { CustomDomainStatusScheduler } from '@modules/custom-domains/scheduler';
 import { ModulesModule } from '@modules/modules/module';
 import { EmailListenerModule } from '@modules/email-listener/module';
 import { InMemoryCacheModule } from '@modules/inMemoryCache/module';
+import { OrganizationEnvModule } from '@modules/organization-env/module';
 import { reconfigurePostgrest, reconfigurePostgrestWithoutSchemaSync } from '@modules/tooljet-db/helper';
 import { isSQLModeDisabled } from '@helpers/tooljet_db.helper';
 import { EntityManager } from 'typeorm';
@@ -64,17 +70,25 @@ import { InjectEntityManager } from '@nestjs/typeorm';
 import { MetricsModule } from '@modules/metrices/module';
 import { AppHistoryModule } from '@modules/app-history/module';
 import { ScimModule } from '@modules/scim/module';
+import { CustomDomainsModule } from '@modules/custom-domains/module';
 import { BullBoardModule } from '@bull-board/nestjs';
 import { ExpressAdapter } from '@bull-board/express';
 import * as basicAuth from 'express-basic-auth';
 import { MfaCleanupScheduler } from '@modules/auth/scheduler';
+import { OtelMiddleware } from './middlewares/otel.middleware';
+import { BackgroundProcessorModule } from '@modules/background-processor/module';
+import { WorkspaceContextModule } from '@modules/workspace-context/module';
 
-export class AppModule implements OnModuleInit {
+export class AppModule implements OnModuleInit, NestModule {
   constructor(
     private configService: ConfigService,
     @InjectEntityManager('tooljetDb')
     private readonly tooljetDbManager: EntityManager
   ) {}
+
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(OtelMiddleware).forRoutes('*'); // global
+  }
 
   static async register(configs: { IS_GET_CONTEXT: boolean }): Promise<DynamicModule> {
     // Load static and dynamic modules
@@ -97,6 +111,7 @@ export class AppModule implements OnModuleInit {
       await InstanceSettingsModule.register(configs, true),
       await FoldersModule.register(configs, true),
       await FolderAppsModule.register(configs, true),
+      await DataQueryFoldersModule.register(configs, true),
       await SMTPModule.register(configs, true),
       await RolesModule.register(configs, true),
       await GroupPermissionsModule.register(configs, true),
@@ -132,12 +147,17 @@ export class AppModule implements OnModuleInit {
       await ExternalApiModule.register(configs, true),
       await GitSyncModule.register(configs, true),
       await AppGitModule.register(configs, true),
+      await WorkspaceBranchesModule.register(configs, true),
       await CrmModule.register(configs, true),
       await OrganizationPaymentModule.register(configs, true),
       await EmailListenerModule.register(configs),
       await InMemoryCacheModule.register(configs),
+      await OrganizationEnvModule.register(configs),
       await AppHistoryModule.register(configs, true),
       await ScimModule.register(configs, true),
+      await CustomDomainsModule.register(configs, true),
+      await BackgroundProcessorModule.register(configs, true),
+      await WorkspaceContextModule.register(configs, true),
     ];
 
     const conditionalImports = [];
@@ -156,6 +176,11 @@ export class AppModule implements OnModuleInit {
       );
     }
 
+    if (getTooljetEdition() === TOOLJET_EDITIONS.Cloud) {
+      const { SessionTransferModule } = await import('../session-transfer/module');
+      conditionalImports.push(await SessionTransferModule.register(configs, true));
+    }
+
     if (process.env.ENABLE_METRICS === 'true') {
       conditionalImports.push(MetricsModule);
     }
@@ -169,11 +194,15 @@ export class AppModule implements OnModuleInit {
       providers: [
         ShutdownHook,
         GetConnection,
+        AppService,
+        AppUtilService,
         ClearSSOResponseScheduler,
         SampleDBScheduler,
         SessionScheduler,
         AuditLogsClearScheduler,
         MfaCleanupScheduler,
+        CustomDomainStatusScheduler,
+        AppService,
       ],
     };
   }

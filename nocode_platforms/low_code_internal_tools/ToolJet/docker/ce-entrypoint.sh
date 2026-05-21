@@ -1,26 +1,14 @@
 #!/bin/bash
 set -e
 
-if [ -f "./.env" ]; then
-  export $(grep -v '^#' ./.env | xargs -d '\n') || true
+# Start Redis if not already running (bundled sidecar for single-instance CE)
+if ! pgrep -x redis-server > /dev/null 2>&1; then
+  redis-server /app/redis.conf
+  echo "Redis started"
 fi
 
-# Check if PGRST_HOST starts with "localhost"
-if [[ "$PGRST_HOST" == localhost:* ]]; then
-  echo "Starting PostgREST server locally..."
-
-  # Generate PostgREST configuration in a writable directory
-  POSTGREST_CONFIG_PATH="/tmp/postgrest.conf"
-
-  echo "db-uri = \"${PGRST_DB_URI}\"" > "$POSTGREST_CONFIG_PATH"
-  echo "db-pre-config = \"postgrest.pre_config\"" >> "$POSTGREST_CONFIG_PATH"
-  echo "server-port = \"${PGRST_SERVER_PORT}\"" >> "$POSTGREST_CONFIG_PATH"
-
-  # Starting PostgREST
-  echo "Starting PostgREST..."
-  postgrest "$POSTGREST_CONFIG_PATH" &
-else
-  echo "Using external PostgREST at $PGRST_HOST."
+if [ -f "./.env" ]; then
+  export $(grep -v '^#' ./.env | xargs -d '\n') || true
 fi
 
 if [ -d "./server/dist" ]; then

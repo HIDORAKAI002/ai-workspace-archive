@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import cx from 'classnames';
 import Select from '@/_ui/Select';
 import { components } from 'react-select';
@@ -7,12 +7,16 @@ import { ConfirmDialog } from '@/_components';
 import { ToolTip } from '@/_components/ToolTip';
 import EditWhite from '@assets/images/icons/edit-white.svg';
 import { defaultAppEnvironments, decodeEntities } from '@/_helpers/utils';
-import { CreateVersionModal, CreateDraftVersionModal } from '@/modules/Appbuilder/components';
 
 import useStore from '@/AppBuilder/_stores/store';
 
 import { Tag } from 'lucide-react';
 import { Button } from '@/components/ui/Button/Button';
+
+// Lazy load editor-only component to reduce viewer bundle size
+const CreateDraftVersionModal = lazy(() =>
+  import('@/modules/Appbuilder/components').then((m) => ({ default: m.CreateDraftVersionModal }))
+);
 
 // TODO: edit version modal and add version modal
 const Menu = (props) => {
@@ -101,7 +105,7 @@ const Menu = (props) => {
 
 export const SingleValue = ({ selectProps = {} }) => {
   const appVersionName = selectProps.value?.appVersionName;
-  const { menuIsOpen, onToggleMenu } = selectProps;
+  const { menuIsOpen, onToggleMenu, isDisabled } = selectProps;
   return (
     <div className="d-inline-flex align-items-center tw-w-full" data-cy="app-version-label" style={{ gap: '8px' }}>
       <Button
@@ -112,7 +116,10 @@ export const SingleValue = ({ selectProps = {} }) => {
           }
         }}
         variant="ghost"
-        className={`tw-w-full tw-min-w-[80px] ${menuIsOpen ? 'tw-bg-button-outline-hover' : ''}`}
+        disabled={isDisabled}
+        className={`tw-w-full tw-min-w-[80px] ${menuIsOpen && !isDisabled ? 'tw-bg-button-outline-hover' : ''} ${
+          isDisabled ? '!tw-cursor-default tw-opacity-50' : ''
+        }`}
       >
         <Tag width="16" height="16" className="tw-text-icon-success" />
 
@@ -135,12 +142,14 @@ export const CustomSelect = ({ currentEnvironment, onSelectVersion, ...props }) 
   return (
     <>
       {isEditable && showCreateAppVersion && (
-        <CreateDraftVersionModal
-          {...props}
-          showCreateAppVersion={showCreateAppVersion}
-          setShowCreateAppVersion={setShowCreateAppVersion}
-          onSelectVersion={onSelectVersion}
-        />
+        <Suspense fallback={null}>
+          <CreateDraftVersionModal
+            {...props}
+            showCreateAppVersion={showCreateAppVersion}
+            setShowCreateAppVersion={setShowCreateAppVersion}
+            onSelectVersion={onSelectVersion}
+          />
+        </Suspense>
       )}
 
       {isEditable && (

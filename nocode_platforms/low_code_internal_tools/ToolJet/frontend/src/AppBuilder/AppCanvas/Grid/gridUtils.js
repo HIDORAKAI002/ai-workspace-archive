@@ -3,6 +3,10 @@ import { isEmpty } from 'lodash';
 import useStore from '@/AppBuilder/_stores/store';
 import { getTabId, getSubContainerIdWithSlots } from '../appCanvasUtils';
 import { NO_OF_GRIDS } from '../appCanvasConstants';
+import {
+  RESTRICTED_WIDGETS_CONFIG,
+  RESTRICTED_WIDGET_SLOTS_CONFIG,
+} from '@/AppBuilder/WidgetManager/configs/restrictedWidgetsConfig';
 
 export function correctBounds(layout, bounds) {
   layout = scaleLayouts(layout);
@@ -287,11 +291,13 @@ export const handleWidgetResize = (e, list, boxes, gridWidth) => {
   e.target.style.transform = `translate(${transformX}px, ${transformY}px)`;
 };
 
-export function getMouseDistanceFromParentDiv(event, id, parentWidgetType) {
+export function getMouseDistanceFromParentDiv(event, id, parentWidgetType, frozenTargetRect) {
   let parentDiv = document.getElementById('canvas-' + id) || document.getElementById('real-canvas');
   // Get the bounding rectangle of the parent div.
   const parentDivRect = parentDiv.getBoundingClientRect();
-  const targetDivRect = event.target.getBoundingClientRect();
+  // Use the pre-snapshotted rect when available (e.g. after async stub hydration the
+  // ghost element is already detached and getBoundingClientRect returns all-zeros).
+  const targetDivRect = frozenTargetRect ?? event.target.getBoundingClientRect();
 
   const mouseX = targetDivRect.left - parentDivRect.left;
   const mouseY = targetDivRect.top - parentDivRect.top;
@@ -417,20 +423,6 @@ export function hideGridLines() {
   });
 }
 
-export function showGridLinesOnSlot(slotId) {
-  var canvasElm = document.getElementById(`canvas-${slotId}`);
-
-  canvasElm.classList.remove('hide-grid');
-  canvasElm.classList.add('show-grid');
-}
-
-export function hideGridLinesOnSlot(slotId) {
-  var canvasElm = document.getElementById(`canvas-${slotId}`);
-
-  canvasElm.classList.remove('show-grid');
-  canvasElm.classList.add('hide-grid');
-}
-
 // Track previously active elements for efficient cleanup
 let previousActiveWidgets = null;
 let previousActiveCanvas = null;
@@ -479,7 +471,16 @@ export const clearNonDraggingComponentsCache = () => {
 };
 
 export const handleActivateTargets = (parentId) => {
-  const WIDGETS_WITH_CANVAS_OUTLINE = ['Container', 'Modal', 'Form', 'Listview', 'Kanban', 'ModalV2'];
+  const WIDGETS_WITH_CANVAS_OUTLINE = [
+    'Container',
+    'Modal',
+    'Form',
+    'Listview',
+    'Kanban',
+    'ModalV2',
+    'Accordion',
+    'Table',
+  ];
 
   const newParentType = document.getElementById('canvas-' + parentId)?.getAttribute('component-type');
   let _parentId = parentId;
@@ -545,16 +546,16 @@ export const computeScrollDeltaOnDrag = (canvasId) => {
   return 0;
 };
 
-export const getDraggingWidgetWidth = (canvasParentId, widgetWidth) => {
-  const targetCanvasWidth = document.getElementById(`canvas-${canvasParentId}`)?.offsetWidth || 0;
-  const gridUnitWidth = targetCanvasWidth / NO_OF_GRIDS;
-  const gridUnits = Math.round(widgetWidth / gridUnitWidth);
-  const draggingWidgetWidth = gridUnits * gridUnitWidth;
+export const getDraggingWidgetWidth = (widgetWidth, gridWidth) => {
+  const gridUnits = Math.round(widgetWidth / gridWidth);
+  const draggingWidgetWidth = gridUnits * gridWidth;
   return draggingWidgetWidth;
 };
 
 /**
- * Positions a ghost/feedback element relative to the main canvas
+ * Positions a ghost/feedback element relative to its offset parent
+ * Uses the ghost's own offsetParent to align correctly with the DOM structure
+ * (header + canvas wrapper are siblings under the same positioned ancestor)
  * @param {HTMLElement} targetElement - The element being dragged/resized
  * @param {string} ghostElementId - The ID of the ghost element to position
  */
@@ -563,15 +564,15 @@ export const positionGhostElement = (targetElement, ghostElementId) => {
 
   if (!ghostElement || !targetElement) return;
 
-  const mainCanvas = document.getElementById('real-canvas');
-  if (!mainCanvas) return;
+  const referenceElement = ghostElement.offsetParent;
+  if (!referenceElement) return;
 
-  const mainCanvasRect = mainCanvas.getBoundingClientRect();
+  const referenceRect = referenceElement.getBoundingClientRect();
   const targetRect = targetElement.getBoundingClientRect();
 
-  // Calculate position relative to main canvas
-  const relativeLeft = targetRect.left - mainCanvasRect.left;
-  const relativeTop = targetRect.top - mainCanvasRect.top;
+  // Calculate position relative to the ghost's offset parent
+  const relativeLeft = targetRect.left - referenceRect.left;
+  const relativeTop = targetRect.top - referenceRect.top;
 
   // Apply the position
   ghostElement.style.left = `${relativeLeft}px`;
@@ -583,15 +584,16 @@ export const positionGhostElement = (targetElement, ghostElementId) => {
 /**
  * Calculates the unified bounding box for a group of elements
  * @param {HTMLElement[]} targetElements - Array of elements being dragged as a group
- * @returns {Object} - Bounding box with left, top, width, height relative to main canvas
+ * @param {HTMLElement} ghostElement - The ghost element to use as positioning reference
+ * @returns {Object} - Bounding box with left, top, width, height relative to ghost's offset parent
  */
-export const calculateGroupBoundingBox = (targetElements) => {
+export const calculateGroupBoundingBox = (targetElements, ghostElement) => {
   if (!targetElements || targetElements.length === 0) return null;
 
-  const mainCanvas = document.getElementById('real-canvas');
-  if (!mainCanvas) return null;
+  const referenceElement = ghostElement?.offsetParent || document.getElementById('real-canvas');
+  if (!referenceElement) return null;
 
-  const mainCanvasRect = mainCanvas.getBoundingClientRect();
+  const referenceRect = referenceElement.getBoundingClientRect();
 
   // Initialize with extreme values
   let minLeft = Infinity;
@@ -604,8 +606,8 @@ export const calculateGroupBoundingBox = (targetElements) => {
     if (!element) return;
 
     const rect = element.getBoundingClientRect();
-    const relativeLeft = rect.left - mainCanvasRect.left;
-    const relativeTop = rect.top - mainCanvasRect.top;
+    const relativeLeft = rect.left - referenceRect.left;
+    const relativeTop = rect.top - referenceRect.top;
     const relativeRight = relativeLeft + rect.width;
     const relativeBottom = relativeTop + rect.height;
 
@@ -631,10 +633,15 @@ export const calculateGroupBoundingBox = (targetElements) => {
 export const positionGroupGhostElement = (events, ghostElementId, gridWidth) => {
   if (!events || events.length === 0) return;
 
-  const boundingBox = calculateGroupBoundingBox(events.map((e) => e.target));
   const ghostElement = document.getElementById(ghostElementId);
+  if (!ghostElement) return;
 
-  if (!ghostElement || !boundingBox) return;
+  const boundingBox = calculateGroupBoundingBox(
+    events.map((e) => e.target),
+    ghostElement
+  );
+
+  if (!boundingBox) return;
   ghostElement.style.width = `${boundingBox.width}px`;
   ghostElement.style.height = `${boundingBox.height}px`;
   ghostElement.style.willChange = 'transform';
@@ -720,3 +727,21 @@ export const updateDashedBordersOnDragResize = (targetId, moveableControlBoxClas
     moveableControlBoxClassList?.remove('moveable-dynamic-height');
   }
 };
+
+export const isDroppingRestrictedWidget = (target, dragged) => {
+  const restrictedWidgetsOnTarget = RESTRICTED_WIDGETS_CONFIG?.[target.widgetType] || [];
+  const restrictedWidgetsOnTargetSlot = RESTRICTED_WIDGET_SLOTS_CONFIG?.[target.slotType] || [];
+
+  const restrictedWidgets = [...restrictedWidgetsOnTarget, ...restrictedWidgetsOnTargetSlot];
+  return restrictedWidgets.includes(dragged.widgetType);
+};
+
+export function getCanvasBottomBound() {
+  const footerElement = document.querySelector('[component-id="canvas-footer"]');
+  const realCanvas = document.getElementById('real-canvas');
+  if (!footerElement || !realCanvas) return Infinity;
+
+  const footerRect = footerElement.getBoundingClientRect();
+  const realCanvasRect = realCanvas.getBoundingClientRect();
+  return footerRect.top - realCanvasRect.top;
+}

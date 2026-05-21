@@ -1,5 +1,5 @@
 import React from 'react';
-import * as Icons from '@tabler/icons-react';
+import TablerIcon from '@/_ui/Icon/TablerIcon';
 import { useTranslation } from 'react-i18next';
 import { DatepickerInput } from './DatepickerInput';
 import TimepickerInput from './TimepickerInput';
@@ -31,6 +31,8 @@ export const BaseDateComponent = ({
   customTimeInputProps,
   customDateInputProps,
   id,
+  showClearBtn,
+  dataCy,
 }) => {
   const { i18n } = useTranslation();
   const currentLocale = getDateLocale(i18n.language);
@@ -56,6 +58,8 @@ export const BaseDateComponent = ({
     widthType,
   } = styles;
 
+  const rightPaddingBase = iconVisibility && iconDirection === 'right' ? '30px' : undefined;
+  const paddingRight = showClearBtn ? (rightPaddingBase ? '52px' : '32px') : rightPaddingBase;
   const computedStyles = {
     height: height == 36 ? (padding == 'default' ? '36px' : '40px') : padding == 'default' ? height : height + 4,
     borderColor: focus
@@ -87,6 +91,7 @@ export const BaseDateComponent = ({
     ...(iconVisibility && {
       ...(iconDirection === 'left' ? { paddingLeft: '30px' } : { paddingRight: '30px' }),
     }),
+    ...(paddingRight && { paddingRight }),
   };
 
   const loaderStyles = {
@@ -122,13 +127,11 @@ export const BaseDateComponent = ({
 
   const _width = getLabelWidthOfInput(widthType, labelWidth);
 
-  const iconName = styles.icon; // Replace with the name of the icon you want
-  // eslint-disable-next-line import/namespace
-  const IconElement = Icons[iconName] == undefined ? Icons['IconHome2'] : Icons[iconName];
+  const iconName = styles.icon;
+  const IconElement = (props) => <TablerIcon iconName={iconName} {...props} />;
 
   return (
     <div
-      data-cy={`label-${String(componentName).toLowerCase()}`}
       className={cx('d-flex datetimepicker-component', {
         [alignment === 'top' &&
         ((labelWidth != 0 && label?.length != 0) || (labelAutoWidth && labelWidth == 0 && label && label?.length != 0))
@@ -157,6 +160,7 @@ export const BaseDateComponent = ({
         _width={_width}
         widthType={widthType}
         inputId={`component-${id}`}
+        dataCy={dataCy}
       />
       <div
         className="px-0 h-100"
@@ -200,6 +204,8 @@ export const BaseDateComponent = ({
               label={label}
               {...customDateInputProps}
               inputId={id}
+              clearButtonRightOffset={iconVisibility && iconDirection === 'right' ? 20 : 0}
+              dataCy={dataCy}
             />
           }
           customTimeInput={<TimepickerInput darkMode={darkMode} {...customTimeInputProps} />}

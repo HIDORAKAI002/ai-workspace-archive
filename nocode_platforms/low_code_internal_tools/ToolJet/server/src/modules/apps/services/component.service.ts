@@ -9,17 +9,19 @@ import { EventsService } from './event.service';
 import { LayoutData } from '../dto/component';
 import { CreateEventHandlerDto } from '../dto/event';
 import { LayoutDimensionUnits } from '../constants';
-import { IComponentsService } from '../interfaces/services/IComponentService';
-import { ACTION_TYPE } from '@modules/app-history/constants';
-import { AppHistoryUtilService } from '@modules/app-history/util.service';
+import {
+  IComponentsService,
+  ComponentCreateContext,
+  ComponentUpdateContext,
+  ComponentDeleteContext,
+  ComponentLayoutContext,
+} from '../interfaces/services/IComponentService';
+import { RequestContext } from '@modules/request-context/service';
 const _ = require('lodash');
 
 @Injectable()
 export class ComponentsService implements IComponentsService {
-  constructor(
-    protected eventHandlerService: EventsService,
-    protected appHistoryUtilService: AppHistoryUtilService
-  ) {}
+  constructor(protected eventHandlerService: EventsService) {}
 
   findOne(id: string): Promise<Component> {
     return dbTransactionWrap((manager: EntityManager) => {
@@ -44,38 +46,62 @@ export class ComponentsService implements IComponentsService {
   }
 
   async create(componentDiff: object, pageId: string, appVersionId: string, skipHistoryCapture: boolean = false) {
+    const componentIds = Object.keys(componentDiff);
+    const historyUserId = (RequestContext.currentContext?.req as any)?.user?.id;
+
+    const context = skipHistoryCapture
+      ? null
+      : await this.beforeComponentCreate(componentIds, pageId, appVersionId, componentDiff);
+
     const result = await dbTransactionForAppVersionAssociationsUpdate(async (manager: EntityManager) => {
       await this.createComponentsAndLayouts(componentDiff, pageId, appVersionId, manager);
       return {};
     }, appVersionId);
 
-    if (skipHistoryCapture) {
-      return result;
+    const operationTimestamp = Date.now();
+    if (!skipHistoryCapture) {
+      this.afterComponentCreate(context, componentDiff, pageId, appVersionId, historyUserId, operationTimestamp).catch(
+        (err) => console.error('[AppHistory] Fire-and-forget afterComponentCreate failed:', err.message)
+      );
     }
-
-    // Queue history capture after successful component creation
-    try {
-      // Extract component IDs - let the queue processor resolve names from componentData
-      const componentData = componentDiff as Record<string, any>;
-      const componentIds = Object.keys(componentData);
-
-      // The queue processor will resolve names from componentData and previous state
-      await this.appHistoryUtilService.queueHistoryCapture(appVersionId, ACTION_TYPE.COMPONENT_ADD, {
-        pageId,
-        componentIds,
-        operation: 'create',
-        componentData: componentDiff,
-      });
-    } catch (error) {
-      // Log the error but don't throw - component creation already succeeded
-      console.error('Failed to queue history capture for component creation:', error);
-      // History capture failure doesn't affect the component creation success
-    }
-
     return result;
   }
 
+  /**
+   * Create components using an external EntityManager (for use within existing transactions)
+   * Use this when creating components within a transaction that has also created pages,
+   * so both operations share the same transaction and can see each other's uncommitted changes.
+   */
+  async createWithManager(
+    componentDiff: object,
+    pageId: string,
+    appVersionId: string,
+    manager: EntityManager,
+    skipHistoryCapture: boolean = false
+  ): Promise<void> {
+    const componentIds = Object.keys(componentDiff);
+    const historyUserId = (RequestContext.currentContext?.req as any)?.user?.id;
+
+    const context = skipHistoryCapture
+      ? null
+      : await this.beforeComponentCreate(componentIds, pageId, appVersionId, componentDiff);
+
+    await this.createComponentsAndLayouts(componentDiff, pageId, appVersionId, manager);
+
+    const operationTimestamp = Date.now();
+    if (!skipHistoryCapture) {
+      this.afterComponentCreate(context, componentDiff, pageId, appVersionId, historyUserId, operationTimestamp).catch(
+        (err) => console.error('[AppHistory] Fire-and-forget afterComponentCreate failed:', err.message)
+      );
+    }
+  }
+
   async update(componentDiff: object, appVersionId: string) {
+    const componentIds = Object.keys(componentDiff);
+    const historyUserId = (RequestContext.currentContext?.req as any)?.user?.id;
+
+    const context = await this.beforeComponentUpdate(componentIds, appVersionId, componentDiff);
+
     const result = await dbTransactionForAppVersionAssociationsUpdate(async (manager: EntityManager) => {
       const result = await this.updateComponents(componentDiff, appVersionId, manager);
       if (result?.error) {
@@ -83,25 +109,18 @@ export class ComponentsService implements IComponentsService {
       }
     }, appVersionId);
 
-    // Queue history capture after successful component update
-    try {
-      // Extract component IDs - let the queue processor resolve names from componentData and previous state
-      const componentIds = Object.keys(componentDiff);
-      if (componentIds.length > 0) {
-        await this.appHistoryUtilService.queueHistoryCapture(appVersionId, ACTION_TYPE.COMPONENT_UPDATE, {
-          componentIds,
-          operation: 'update',
-          componentData: componentDiff,
-        });
-      }
-    } catch (error) {
-      console.error('Failed to queue history capture for component update:', error);
-    }
+    const operationTimestamp = Date.now();
+    this.afterComponentUpdate(context, componentDiff, appVersionId, historyUserId, operationTimestamp).catch((err) =>
+      console.error('[AppHistory] Fire-and-forget afterComponentUpdate failed:', err.message)
+    );
 
     return result;
   }
 
   async delete(componentIds: string[], appVersionId: string, isComponentCut = false) {
+    const historyUserId = (RequestContext.currentContext?.req as any)?.user?.id;
+    const context = await this.beforeComponentDelete(componentIds, appVersionId);
+
     const result = await dbTransactionForAppVersionAssociationsUpdate(async (manager: EntityManager) => {
       const result = await this.deleteComponents(componentIds, appVersionId, isComponentCut, manager);
       if (result?.error) {
@@ -109,17 +128,10 @@ export class ComponentsService implements IComponentsService {
       }
     }, appVersionId);
 
-    // Queue history capture
-    try {
-      await this.appHistoryUtilService.queueHistoryCapture(appVersionId, ACTION_TYPE.COMPONENT_DELETE, {
-        componentIds,
-        operation: 'delete',
-        isComponentCut,
-        // No need to pre-fetch componentNames or pageName - queue processor will resolve from history
-      });
-    } catch (error) {
-      console.error('Failed to queue history capture for component deletion:', error);
-    }
+    const operationTimestamp = Date.now();
+    this.afterComponentDelete(context, componentIds, appVersionId, historyUserId, operationTimestamp).catch((err) =>
+      console.error('[AppHistory] Fire-and-forget afterComponentDelete failed:', err.message)
+    );
 
     return result;
   }
@@ -129,9 +141,13 @@ export class ComponentsService implements IComponentsService {
     appVersionId: string,
     skipHistoryCapture: boolean = false
   ) {
+    const historyUserId = (RequestContext.currentContext?.req as any)?.user?.id;
+
     const result = await dbTransactionForAppVersionAssociationsUpdate(async (manager: EntityManager) => {
       for (const componentId in componenstLayoutDiff) {
-        const doesComponentExist = await manager.findAndCount(Component, { where: { id: componentId } });
+        const doesComponentExist = await manager.findAndCount(Component, {
+          where: { id: componentId },
+        });
 
         if (doesComponentExist[1] === 0) {
           return {
@@ -144,7 +160,9 @@ export class ComponentsService implements IComponentsService {
         const { layouts, component } = componenstLayoutDiff[componentId];
 
         for (const type in layouts) {
-          const componentLayout = await manager.findOne(Layout, { where: { componentId, type } });
+          const componentLayout = await manager.findOne(Layout, {
+            where: { componentId, type },
+          });
 
           if (componentLayout) {
             const layout = {
@@ -161,73 +179,83 @@ export class ComponentsService implements IComponentsService {
       }
     }, appVersionId);
 
-    // Skip history capture if requested (e.g., when called from AI service)
-    if (skipHistoryCapture) {
-      return result;
-    }
-
-    // Queue history capture after successful layout change
-    try {
-      // Extract component IDs - let the queue processor resolve names from layoutData and previous state
-      const componentIds = Object.keys(componenstLayoutDiff);
-      if (componentIds.length > 0) {
-        await this.appHistoryUtilService.queueHistoryCapture(appVersionId, ACTION_TYPE.COMPONENT_UPDATE, {
-          componentIds,
-          operation: 'layout_change',
-          layoutData: componenstLayoutDiff,
-        });
-      }
-    } catch (error) {
-      console.error('Failed to queue history capture for component layout change:', error);
+    const operationTimestamp = Date.now();
+    if (!skipHistoryCapture) {
+      this.afterComponentLayoutChange(
+        null,
+        componenstLayoutDiff,
+        appVersionId,
+        historyUserId,
+        operationTimestamp
+      ).catch((err) => console.error('[AppHistory] Fire-and-forget afterComponentLayoutChange failed:', err.message));
     }
 
     return result;
   }
 
-  async getAllComponents(pageId: string, externalManager?: EntityManager) {
+  async getAllComponents(pageId: string, externalManager?: EntityManager): Promise<Record<string, any>> {
+    const byPage = await this.getAllComponentsForPages([pageId], externalManager);
+    return byPage.get(pageId) ?? {};
+  }
+
+  async getAllComponentsForPages(
+    pageIds: string[],
+    externalManager?: EntityManager
+  ): Promise<Map<string, Record<string, any>>> {
+    if (pageIds.length === 0) return new Map();
+
     return dbTransactionWrap(async (manager: EntityManager) => {
       const rawComponents = await manager
         .createQueryBuilder(Component, 'component')
         .leftJoinAndSelect('component.layouts', 'layout')
-        .where('component.pageId = :pageId', { pageId })
+        .where('component.pageId IN (:...pageIds)', { pageIds })
         .andWhere('layout.type IN (:...types)', { types: ['desktop', 'mobile'] })
-        .orderBy('component.id', 'ASC')
+        .orderBy('component.pageId', 'ASC')
+        .addOrderBy('component.id', 'ASC')
         .addOrderBy('layout.updatedAt', 'DESC')
         .getMany();
 
-      const result: Record<string, any> = {};
-      const layoutsToUpdate: Layout[] = [];
+      const { componentsByPage, layoutsNeedingMigration } = this.assembleComponentsByPage(rawComponents);
 
-      for (const component of rawComponents) {
-        const processedLayoutsForComponent: Layout[] = [];
+      if (layoutsNeedingMigration.length > 0) {
+        await manager.save(Layout, layoutsNeedingMigration);
+      }
 
-        (component.layouts || []).forEach((layout) => {
-          if (layout && layout.type) {
-            const currentLayout = { ...layout };
+      return componentsByPage;
+    }, externalManager);
+  }
 
-            if (currentLayout.dimensionUnit === LayoutDimensionUnits.PERCENT) {
-              currentLayout.left = this.resolveGridPositionForComponent(currentLayout.left, currentLayout.type);
-              currentLayout.dimensionUnit = LayoutDimensionUnits.COUNT;
-              layoutsToUpdate.push(currentLayout);
-            }
-            processedLayoutsForComponent.push(currentLayout);
+  private assembleComponentsByPage(rawComponents: Component[]): {
+    componentsByPage: Map<string, Record<string, any>>;
+    layoutsNeedingMigration: Layout[];
+  } {
+    const componentsByPage = new Map<string, Record<string, any>>();
+    const layoutsNeedingMigration: Layout[] = [];
+
+    for (const component of rawComponents) {
+      const normalisedLayouts = (component.layouts || [])
+        .filter((l) => l && l.type)
+        .map((layout) => {
+          const next = { ...layout };
+          if (next.dimensionUnit === LayoutDimensionUnits.PERCENT) {
+            next.left = this.resolveGridPositionForComponent(next.left, next.type);
+            next.dimensionUnit = LayoutDimensionUnits.COUNT;
+            layoutsNeedingMigration.push(next);
           }
+          return next;
         });
 
-        const relevantLayouts = processedLayoutsForComponent
-          .sort((a, b) => (b.updatedAt?.getTime() || 0) - (a.updatedAt?.getTime() || 0))
-          .slice(0, 2);
+      const mostRecentLayouts = [...normalisedLayouts]
+        .sort((a, b) => (b.updatedAt?.getTime() || 0) - (a.updatedAt?.getTime() || 0))
+        .slice(0, 2);
 
-        const transformedData = this.createComponentWithLayout(component, relevantLayouts);
-        result[component.id] = transformedData[component.id];
-      }
+      const transformed = this.createComponentWithLayout(component, mostRecentLayouts);
+      const bucket = componentsByPage.get(component.pageId) ?? {};
+      bucket[component.id] = transformed[component.id];
+      componentsByPage.set(component.pageId, bucket);
+    }
 
-      if (layoutsToUpdate.length > 0) {
-        await manager.save(Layout, layoutsToUpdate);
-      }
-
-      return result;
-    }, externalManager);
+    return { componentsByPage, layoutsNeedingMigration };
   }
 
   transformComponentData(data: object): Component[] {
@@ -259,19 +287,26 @@ export class ComponentsService implements IComponentsService {
     const { id, name, properties, styles, generalStyles, validation, parent, displayPreferences, general } =
       componentData;
 
-    const layouts: Record<string, { top: number; left: number; width: number; height: number }> = {};
+    const layouts: Record<
+      string,
+      { top: number; left: number; width: number; height: number; updatedAt: Date | null }
+    > = {};
 
     layoutData.forEach((layout) => {
       if (layout && layout.type) {
-        const { type, top, left, width, height } = layout;
+        const { type, top, left, width, height, updatedAt } = layout;
 
         // Note: adjustedLeftValue logic will be handled BEFORE calling this function
         // so 'left' here is already the final desired value for the output.
+        // `updatedAt` is exposed so the frontend can use it as a stack-order
+        // tiebreaker for widgets sharing the same (top, left) — most recently
+        // positioned widget renders at the bottom of the stack.
         layouts[type] = {
           top: top ?? 0,
           left: left ?? 0, // Use the already adjusted 'left' value
           width: width ?? 0,
           height: height ?? 0,
+          updatedAt: updatedAt ?? null,
         };
       }
     });
@@ -311,14 +346,13 @@ export class ComponentsService implements IComponentsService {
       create?: { diff: object; pageId: string };
       update?: { diff: object };
       delete?: { diff: string[]; is_component_cut?: boolean };
-      layout?: { diff: Record<string, { layouts: LayoutData; component?: { parent: string } }> };
+      layout?: {
+        diff: Record<string, { layouts: LayoutData; component?: { parent: string } }>;
+      };
       events?: CreateEventHandlerDto[];
     },
     appVersionId: string
   ) {
-    // TODO: Consider moving batchOperations to a dedicated BatchOperationsService
-    // to support batching across all entity types (components, events, queries, etc.)
-    // This would make it reusable across the application and keep services focused
     const result = await dbTransactionForAppVersionAssociationsUpdate(async (manager: EntityManager) => {
       const results: {
         created?: number;
@@ -370,32 +404,17 @@ export class ComponentsService implements IComponentsService {
       return results;
     }, appVersionId);
 
-    // Queue history capture after successful batch operations
-    try {
-      // For batch operations, let the queue processor resolve names from batchData
-      // Extract all component IDs from all operations
-      const allComponentIds = [
-        ...(batchOperations.create ? Object.keys(batchOperations.create.diff) : []),
-        ...(batchOperations.update ? Object.keys(batchOperations.update.diff) : []),
-        ...(batchOperations.delete ? batchOperations.delete.diff : []),
-        ...(batchOperations.layout ? Object.keys(batchOperations.layout.diff) : []),
-      ];
-
-      await this.appHistoryUtilService.queueHistoryCapture(appVersionId, ACTION_TYPE.BATCH_UPDATE, {
-        componentIds: allComponentIds,
-        changeCount: allComponentIds.length,
-        operation: 'batch_operations',
-        batchData: batchOperations,
-      });
-    } catch (error) {
-      console.error('Failed to queue history capture for batch operations:', error);
-    }
-
+    // History capture is handled by EE override
     return result;
   }
 
   // Common methods used by both the original methods and batch operations
-  private async createComponentsAndLayouts(diff: object, pageId: string, appVersionId: string, manager: EntityManager) {
+  protected async createComponentsAndLayouts(
+    diff: object,
+    pageId: string,
+    appVersionId: string,
+    manager: EntityManager
+  ) {
     const page = await manager.findOne(Page, {
       where: { appVersionId, id: pageId },
     });
@@ -432,11 +451,13 @@ export class ComponentsService implements IComponentsService {
     await manager.save(Layout, componentLayouts);
   }
 
-  private async updateComponents(diff: object, appVersionId: string, manager: EntityManager) {
+  protected async updateComponents(diff: object, appVersionId: string, manager: EntityManager) {
     for (const componentId in diff) {
       const { component } = diff[componentId];
 
-      const doesComponentExist = await manager.findAndCount(Component, { where: { id: componentId } });
+      const doesComponentExist = await manager.findAndCount(Component, {
+        where: { id: componentId },
+      });
 
       if (doesComponentExist[1] === 0) {
         return {
@@ -477,6 +498,9 @@ export class ComponentsService implements IComponentsService {
                   'RadioButtonV2',
                   'Tags',
                   'TagsInput',
+                  'Navigation',
+                  'TreeSelect',
+                  'ButtonGroupV2',
                 ].includes(componentData.type) &&
                 _.isArray(objValue)
               ) {
@@ -501,7 +525,7 @@ export class ComponentsService implements IComponentsService {
     }
   }
 
-  private async deleteComponents(
+  protected async deleteComponents(
     componentIds: string[],
     appVersionId: string,
     isComponentCut: boolean,
@@ -528,12 +552,14 @@ export class ComponentsService implements IComponentsService {
     await manager.delete(Component, { id: In(componentIds) });
   }
 
-  private async updateComponentLayouts(
+  protected async updateComponentLayouts(
     layoutDiff: Record<string, { layouts: LayoutData; component?: { parent: string } }>,
     manager: EntityManager
   ) {
     for (const componentId in layoutDiff) {
-      const doesComponentExist = await manager.findAndCount(Component, { where: { id: componentId } });
+      const doesComponentExist = await manager.findAndCount(Component, {
+        where: { id: componentId },
+      });
 
       if (doesComponentExist[1] === 0) {
         return {
@@ -546,7 +572,9 @@ export class ComponentsService implements IComponentsService {
       const { layouts, component } = layoutDiff[componentId];
 
       for (const type in layouts) {
-        const componentLayout = await manager.findOne(Layout, { where: { componentId, type } });
+        const componentLayout = await manager.findOne(Layout, {
+          where: { componentId, type },
+        });
 
         if (componentLayout) {
           const layout = {
@@ -563,4 +591,100 @@ export class ComponentsService implements IComponentsService {
     }
   }
 
+  /**
+   * Hook called before component creation - override in EE to capture state for history
+   */
+  protected async beforeComponentCreate(
+    componentIds: string[],
+    pageId: string,
+    appVersionId: string,
+    componentDiff: object
+  ): Promise<ComponentCreateContext | null> {
+    return null; // No-op in CE
+  }
+
+  /**
+   * Hook called after component creation - override in EE to queue history
+   */
+  protected async afterComponentCreate(
+    context: ComponentCreateContext | null,
+    componentDiff: object,
+    pageId: string,
+    appVersionId: string,
+    userId?: string,
+    operationTimestamp?: number
+  ): Promise<void> {
+    // No-op in CE
+  }
+
+  /**
+   * Hook called before component update - override in EE to capture state for history
+   */
+  protected async beforeComponentUpdate(
+    componentIds: string[],
+    appVersionId: string,
+    componentDiff: object
+  ): Promise<ComponentUpdateContext | null> {
+    return null; // No-op in CE
+  }
+
+  /**
+   * Hook called after component update - override in EE to queue history
+   */
+  protected async afterComponentUpdate(
+    context: ComponentUpdateContext | null,
+    componentDiff: object,
+    appVersionId: string,
+    userId?: string,
+    operationTimestamp?: number
+  ): Promise<void> {
+    // No-op in CE
+  }
+
+  /**
+   * Hook called before component deletion - override in EE to capture state for history
+   */
+  protected async beforeComponentDelete(
+    componentIds: string[],
+    appVersionId: string
+  ): Promise<ComponentDeleteContext | null> {
+    return null; // No-op in CE
+  }
+
+  /**
+   * Hook called after component deletion - override in EE to queue history
+   */
+  protected async afterComponentDelete(
+    context: ComponentDeleteContext | null,
+    componentIds: string[],
+    appVersionId: string,
+    userId?: string,
+    operationTimestamp?: number
+  ): Promise<void> {
+    // No-op in CE
+  }
+
+  /**
+   * Hook called before layout change - override in EE to capture state for history
+   */
+  protected async beforeComponentLayoutChange(
+    componentIds: string[],
+    appVersionId: string,
+    layoutDiff: Record<string, { layouts: LayoutData; component?: { parent: string } }>
+  ): Promise<ComponentLayoutContext | null> {
+    return null; // No-op in CE
+  }
+
+  /**
+   * Hook called after layout change - override in EE to queue history
+   */
+  protected async afterComponentLayoutChange(
+    context: ComponentLayoutContext | null,
+    layoutDiff: Record<string, { layouts: LayoutData; component?: { parent: string } }>,
+    appVersionId: string,
+    userId?: string,
+    operationTimestamp?: number
+  ): Promise<void> {
+    // No-op in CE
+  }
 }

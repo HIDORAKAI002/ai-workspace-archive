@@ -1,12 +1,10 @@
+import { lazy } from 'react';
 import { Button } from '@/AppBuilder/Widgets/Button';
-import { Image } from '@/AppBuilder/Widgets/Image/Image';
 import { Text } from '@/AppBuilder/Widgets/Text';
-import { Table } from '@/AppBuilder/Widgets/NewTable/Table';
 import { AudioRecorder } from '@/AppBuilder/Widgets/AudioRecorder/AudioRecorder';
 import { TextInput } from '@/AppBuilder/Widgets/TextInput';
 import { TextArea } from '@/AppBuilder/Widgets/TextArea';
 import { NumberInput } from '@/AppBuilder/Widgets/NumberInput';
-import { RichTextEditor } from '@/AppBuilder/Widgets/RichTextEditor';
 import { DropDown } from '@/AppBuilder/Widgets/DropDown';
 import { DropdownV2 } from '@/AppBuilder/Widgets/DropdownV2/DropdownV2';
 import { Checkbox } from '@/AppBuilder/Widgets/Checkbox';
@@ -18,23 +16,20 @@ import { TimePicker } from '@/AppBuilder/Widgets/Date/TimePicker';
 import { DaterangePicker } from '@/AppBuilder/Widgets/Date/DaterangePicker';
 import { Multiselect } from '@/AppBuilder/Widgets/Multiselect';
 import { MultiselectV2 } from '@/AppBuilder/Widgets/MultiselectV2/MultiselectV2';
-import { TagsInput } from '@/AppBuilder/Widgets/TagsInput/TagsInput';
-import { Chart } from '@/AppBuilder/Widgets/Chart';
-import { Map as MapComponent } from '@/AppBuilder/Widgets/Map/Map';
-import { QrScanner } from '@/AppBuilder/Widgets/QrScanner/QrScanner';
 import { ToggleSwitch } from '@/AppBuilder/Widgets/Toggle';
 import { ToggleSwitchV2 } from '@/AppBuilder/Widgets/ToggleV2';
+
 import { RadioButton } from '@/AppBuilder/Widgets/RadioButton';
 import { RadioButtonV2 } from '@/AppBuilder/Widgets/RadioButtonV2/RadioButtonV2';
 import { Rating as StarRating } from '@/AppBuilder/Widgets/Rating/Rating';
 import { Divider } from '@/AppBuilder/Widgets/Divider';
-import { FilePicker } from '@/AppBuilder/Widgets/FilePicker';
+import { FileInput } from '@/AppBuilder/Widgets/FileInput';
+import { FileButton } from '@/AppBuilder/Widgets/FileButton/FileButton';
 import { PasswordInput } from '@/AppBuilder/Widgets/PasswordInput';
 import { EmailInput } from '@/AppBuilder/Widgets/EmailInput';
 import { PhoneInput } from '@/AppBuilder/Widgets/PhoneCurrency/PhoneInput';
 import { CurrencyInput } from '@/AppBuilder/Widgets/PhoneCurrency/CurrencyInput';
 import { IFrame } from '@/AppBuilder/Widgets/IFrame';
-import { CodeEditor } from '@/AppBuilder/Widgets/CodeEditor';
 import { Timer } from '@/AppBuilder/Widgets/Timer';
 import { Statistics } from '@/AppBuilder/Widgets/Statistics';
 import { Pagination } from '@/AppBuilder/Widgets/Pagination';
@@ -47,32 +42,56 @@ import { Timeline } from '@/AppBuilder/Widgets/Timeline';
 import { SvgImage } from '@/AppBuilder/Widgets/SvgImage';
 import { Html } from '@/AppBuilder/Widgets/Html';
 import { ButtonGroup } from '@/AppBuilder/Widgets/ButtonGroup';
+import { ButtonGroupV2 } from '@/AppBuilder/Widgets/ButtonGroupV2/ButtonGroupV2';
 import { CustomComponent } from '@/AppBuilder/Widgets/CustomComponent/CustomComponent';
 import { VerticalDivider } from '@/AppBuilder/Widgets/VerticalDivider';
-import { ColorPicker } from '@/AppBuilder/Widgets/ColorPicker';
-import { KanbanBoard } from '@/AppBuilder/Widgets/KanbanBoard/KanbanBoard';
 import { Steps } from '@/AppBuilder/Widgets/Steps';
-import { TreeSelect } from '@/AppBuilder/Widgets/TreeSelect';
-import { Icon } from '@/AppBuilder/Widgets/Icon';
 import { Link } from '@/AppBuilder/Widgets/Link/Link';
-// import { Form } from '@/AppBuilder/Widgets/Form/Form';
 import { BoundedBox } from '@/AppBuilder/Widgets/BoundedBox/BoundedBox';
 import { isPDFSupported } from '@/_helpers/appUtils';
+
+import { Form } from '@/AppBuilder/Widgets/Form/Form';
 import { Container } from '@/AppBuilder/Widgets/Container/Container';
 import { Listview } from '@/AppBuilder/Widgets/Listview/Listview';
 import { Tabs } from '@/AppBuilder/Widgets/Tabs';
 import { Kanban } from '@/AppBuilder/Widgets/Kanban/Kanban';
-import { Form } from '@/AppBuilder/Widgets/Form/Form';
 import { Modal } from '@/AppBuilder/Widgets/Modal';
 import { ModalV2 } from '@/AppBuilder/Widgets/ModalV2/ModalV2';
-import { Calendar } from '@/AppBuilder/Widgets/Calendar/Calendar';
-import { ModuleContainer, ModuleViewer } from '@/modules/Modules/components';
-import { Chat } from '@/AppBuilder/Widgets/Chat';
+import { ProgressBar } from '@/AppBuilder/Widgets/Progressbar/Progressbar';
 import { Camera } from '@/AppBuilder/Widgets/Camera/Camera';
+import { Accordion } from '@/AppBuilder/Widgets/Accordion/Accordion';
+import { ReorderableList } from '@/AppBuilder/Widgets/ReorderableList/ReorderableList';
+import { JSONEditor } from '@/AppBuilder/Widgets/JSONEditor/JSONEditor';
+import { JSONExplorer } from '@/AppBuilder/Widgets/JSONExplorer/JSONExplorer';
+import { Navigation } from '@/AppBuilder/Widgets/Navigation';
+
+// Lazy load module components to reduce viewer bundle size
+const ModuleContainer = lazy(() =>
+  import('@/modules/Modules/components').then((m) => ({ default: m.ModuleContainer }))
+);
+const ModuleViewer = lazy(() => import('@/modules/Modules/components').then((m) => ({ default: m.ModuleViewer })));
 
 import { APP_HEADER_HEIGHT, QUERY_PANE_HEIGHT } from '../AppCanvas/appCanvasConstants';
 
 // import './requestIdleCallbackPolyfill';
+
+const Icon = lazy(() => import('@/AppBuilder/Widgets/Icon'));
+const Table = lazy(() => import('@/AppBuilder/Widgets/NewTable/Table'));
+const KanbanBoard = lazy(() => import('@/AppBuilder/Widgets/KanbanBoard/KanbanBoard'));
+const ColorPicker = lazy(() => import('@/AppBuilder/Widgets/ColorPicker/ColorPicker'));
+const CodeEditor = lazy(() => import('@/AppBuilder/Widgets/CodeEditor'));
+const Calendar = lazy(() => import('@/AppBuilder/Widgets/Calendar/Calendar'));
+const Chart = lazy(() => import('@/AppBuilder/Widgets/Chart'));
+const Chat = lazy(() => import('@/AppBuilder/Widgets/Chat'));
+const FilePicker = lazy(() => import('@/AppBuilder/Widgets/FilePicker'));
+const Image = lazy(() => import('@/AppBuilder/Widgets/Image/Image'));
+const MapComponent = lazy(() => import('@/AppBuilder/Widgets/Map/Map'));
+const PDF = lazy(() => import('@/AppBuilder/Widgets/PDF'));
+const QrScanner = lazy(() => import('@/AppBuilder/Widgets/QrScanner/QrScanner'));
+const RichTextEditor = lazy(() => import('@/AppBuilder/Widgets/RichTextEditor'));
+const TreeSelect = lazy(() => import('@/AppBuilder/Widgets/TreeSelect/TreeSelect'));
+const TagsInput = lazy(() => import('@/AppBuilder/Widgets/TagsInput/TagsInput'));
+const KeyValuePair = lazy(() => import('@/AppBuilder/Widgets/KeyValuePair/KeyValuePair'));
 
 export function memoizeFunction(func) {
   const cache = new Map();
@@ -98,8 +117,6 @@ export const AllComponents = {
   NumberInput,
   Table,
   TextArea,
-  Container,
-  Tabs,
   RichTextEditor,
   DropDown,
   DropdownV2,
@@ -111,9 +128,6 @@ export const AllComponents = {
   TimePicker,
   Multiselect,
   MultiselectV2,
-  TagsInput,
-  Modal,
-  ModalV2,
   Chart,
   Map: MapComponent,
   QrScanner,
@@ -123,14 +137,14 @@ export const AllComponents = {
   StarRating,
   Divider,
   FilePicker,
+  FileInput,
+  FileButton,
   PasswordInput,
   EmailInput,
   PhoneInput,
   CurrencyInput,
-  Calendar,
   IFrame,
   CodeEditor,
-  Listview,
   Timer,
   Statistics,
   Pagination,
@@ -143,27 +157,42 @@ export const AllComponents = {
   SvgImage,
   Html,
   ButtonGroup,
+  ButtonGroupV2,
   CustomComponent,
   VerticalDivider,
   ColorPicker,
   KanbanBoard,
-  Kanban,
   Steps,
   TreeSelect,
   Link,
   Icon,
-  Form,
   BoundedBox,
   ToggleSwitchV2,
   Chat,
+  PopoverMenu,
+  Form,
+  Calendar,
+  Container,
+  Listview,
+  Tabs,
+  Kanban,
+  Modal,
+  ModalV2,
   ModuleContainer,
   ModuleViewer,
-  PopoverMenu,
+  ProgressBar,
+  TagsInput,
   AudioRecorder,
   Camera,
+  Accordion,
+  ReorderableList,
+  JSONEditor,
+  JSONExplorer,
+  KeyValuePair,
+  Navigation,
 };
 if (isPDFSupported()) {
-  AllComponents.PDF = await import('@/AppBuilder/Widgets/PDF').then((module) => module.PDF);
+  AllComponents.PDF = PDF;
 }
 
 export const getComponentToRender = (componentName) => {

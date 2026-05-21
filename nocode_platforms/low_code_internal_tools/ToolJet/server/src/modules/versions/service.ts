@@ -1,14 +1,16 @@
 import { App } from '@entities/app.entity';
-import { BadRequestException, Injectable, NotAcceptableException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotAcceptableException, NotFoundException } from '@nestjs/common';
+import { APP_TYPES } from '@modules/apps/constants';
 import { VersionRepository } from './repository';
-import { AppVersion, AppVersionStatus } from '@entities/app_version.entity';
+import { AppVersion, AppVersionStatus, AppVersionType } from '@entities/app_version.entity';
+import { WorkspaceBranch } from '@entities/workspace_branch.entity';
 import { DraftVersionDto, PromoteVersionDto, VersionCreateDto } from './dto';
 import { User } from '@entities/user.entity';
 import { AppEnvironmentUtilService } from '@modules/app-environments/util.service';
 import { EntityManager, MoreThan } from 'typeorm';
 import { dbTransactionWrap } from '@helpers/database.helper';
 import { VersionsCreateService } from './services/create.service';
-import { camelizeKeys, decamelizeKeys } from 'humps';
+import { camelizeKeys } from 'humps';
 import { PageService } from '@modules/apps/services/page.service';
 import { EventsService } from '@modules/apps/services/event.service';
 import { AppsUtilService } from '@modules/apps/util.service';
@@ -17,14 +19,21 @@ import { LICENSE_FIELD } from '@modules/licensing/constants';
 import { OrganizationThemesUtilService } from '@modules/organization-themes/util.service';
 import { AppVersionUpdateDto } from '@dto/app-version-update.dto';
 import { VersionUtilService } from './util.service';
+import { listModuleVersions, resolveModuleRef } from './module-ref.util';
 import { AppEnvironment } from '@entities/app_environments.entity';
-import { IVersionService } from './interfaces/IService';
+import {
+  IVersionService,
+  VersionCreateContext,
+  VersionUpdateContext,
+  VersionSettingsUpdateContext,
+} from './interfaces/IService';
 import { RequestContext } from '@modules/request-context/service';
 import { AUDIT_LOGS_REQUEST_CONTEXT_KEY } from '@modules/app/constants';
+import { MODULE_VERSION_AUDIT_KEYS } from '@modules/modules/constants';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { AppGitRepository } from '@modules/app-git/repository';
 import { AppHistoryUtilService } from '@modules/app-history/util.service';
-import { ACTION_TYPE } from '@modules/app-history/constants';
+import { OrganizationGitSyncRepository } from '@modules/git-sync/repository';
 
 @Injectable()
 export class VersionService implements IVersionService {
@@ -40,10 +49,88 @@ export class VersionService implements IVersionService {
     protected readonly versionsUtilService: VersionUtilService,
     protected readonly eventEmitter: EventEmitter2,
     protected readonly appGitRepository: AppGitRepository,
-    protected readonly appHistoryUtilService: AppHistoryUtilService
+    protected readonly appHistoryUtilService: AppHistoryUtilService,
+    protected readonly organizationGitRepository: OrganizationGitSyncRepository
   ) {}
-  async getAllVersions(app: App): Promise<{ versions: Array<AppVersion> }> {
-    const result = await this.versionRepository.getVersionsInApp(app.id);
+
+  /**
+   * Hook called before version creation - override in EE to capture state for history
+   */
+  protected async beforeVersionCreate(
+    app: App,
+    user: User,
+    versionCreateDto: VersionCreateDto
+  ): Promise<VersionCreateContext | null> {
+    return null; // No-op in CE, EE overrides
+  }
+
+  /**
+   * Hook called after version creation - override in EE to queue history
+   */
+  protected async afterVersionCreate(
+    context: VersionCreateContext | null,
+    createdVersion: any,
+    app: App,
+    user: User
+  ): Promise<void> {
+    // No-op in CE, EE overrides to capture history
+  }
+
+  /**
+   * Hook called before version update - override in EE to capture state for history
+   */
+  protected async beforeVersionUpdate(
+    app: App,
+    user: User,
+    appVersionUpdateDto: AppVersionUpdateDto
+  ): Promise<VersionUpdateContext | null> {
+    return null; // No-op in CE, EE overrides
+  }
+
+  /**
+   * Hook called after version update - override in EE to queue history
+   */
+  protected async afterVersionUpdate(
+    context: VersionUpdateContext | null,
+    app: App,
+    user: User,
+    appVersionUpdateDto: AppVersionUpdateDto,
+    userId?: string,
+    operationTimestamp?: number
+  ): Promise<void> {
+    // No-op in CE, EE overrides to capture history
+  }
+
+  /**
+   * Hook called before version settings update - override in EE to capture state for history
+   */
+  protected async beforeVersionSettingsUpdate(
+    app: App,
+    user: User,
+    appVersionUpdateDto: AppVersionUpdateDto
+  ): Promise<VersionSettingsUpdateContext | null> {
+    return null; // No-op in CE, EE overrides
+  }
+
+  /**
+   * Hook called after version settings update - override in EE to queue history
+   */
+  protected async afterVersionSettingsUpdate(
+    context: VersionSettingsUpdateContext | null,
+    app: App,
+    user: User,
+    appVersionUpdateDto: AppVersionUpdateDto,
+    userId?: string,
+    operationTimestamp?: number
+  ): Promise<void> {
+    // No-op in CE, EE overrides to capture history
+  }
+  async getAllVersions(app: App, branchId?: string): Promise<{ versions: Array<AppVersion> }> {
+    const effectiveBranchId = app.type === 'workflow' ? undefined : branchId;
+    const result =
+      app.type === APP_TYPES.MODULE
+        ? await listModuleVersions(this.versionRepository.manager, app, branchId, app.organizationId)
+        : await this.versionRepository.getVersionsInApp(app.id, effectiveBranchId);
 
     if (result?.length) {
       result[0].isCurrentEditingVersion = true;
@@ -52,80 +139,28 @@ export class VersionService implements IVersionService {
   }
 
   async createVersion(app: App, user: User, versionCreateDto: VersionCreateDto) {
-    const { versionName, versionFromId, versionDescription } = versionCreateDto;
-    if (!versionName || versionName.trim().length === 0) {
-      // need to add logic to get the version name -> from the version created at from
-      throw new BadRequestException('Version name cannot be empty.');
-    }
-    const { organizationId } = user;
-
-    const result = await dbTransactionWrap(async (manager: EntityManager) => {
-      const versionFrom = await manager.findOneOrFail(AppVersion, {
-        where: { id: versionFromId, appId: app.id },
-        relations: ['dataSources', 'dataSources.dataQueries', 'dataSources.dataSourceOptions'],
-      });
-
-      const firstPriorityEnv = await this.appEnvironmentUtilService.get(organizationId, null, true, manager);
-
-      const appVersion = await manager.save(
-        AppVersion,
-        manager.create(AppVersion, {
-          name: versionName,
-          appId: app.id,
-          definition: versionFrom?.definition,
-          currentEnvironmentId: firstPriorityEnv?.id,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          status: AppVersionStatus.DRAFT,
-          parentVersionId: versionCreateDto.versionFromId ? versionFromId : null,
-          description: versionDescription ? versionDescription : null,
-        })
-      );
-
-      await this.createVersionService.setupNewVersion(appVersion, versionFrom, organizationId, manager);
-
-      //APP_VERSION_CREATE audit
-      RequestContext.setLocals(AUDIT_LOGS_REQUEST_CONTEXT_KEY, {
-        userId: user.id,
-        organizationId: user.organizationId,
-        resourceId: app.id,
-        resourceName: app.name,
-        metadata: {
-          data: {
-            updatedAppVersionName: versionCreateDto.versionName,
-            updatedAppVersionFrom: versionCreateDto.versionFromId,
-            updatedAppVersionEnvironment: versionCreateDto.environmentId,
-          },
-        },
-      });
-
-      return decamelizeKeys(appVersion);
-    });
-
-    // Queue initial history capture for the created version
-    try {
-      await this.appHistoryUtilService.queueHistoryCapture(
-        result.id,
-        ACTION_TYPE.INITIAL_SNAPSHOT,
-        {
-          operation: 'version_create',
-          versionName: versionCreateDto.versionName,
-          versionFromId: versionCreateDto.versionFromId,
-          appId: app.id,
-          appName: app.name,
-        },
-        false,
-        user.id
-      );
-    } catch (error) {
-      console.error('Failed to queue initial history capture for version creation:', error);
-    }
-
+    const context = await this.beforeVersionCreate(app, user, versionCreateDto);
+    const result = await this.versionsUtilService.createVersion(app, user, versionCreateDto);
+    await this.afterVersionCreate(context, result, app, user);
     return result;
   }
 
   async deleteVersion(app: App, user: User, manager?: EntityManager): Promise<void> {
-    return await this.versionsUtilService.deleteVersion(app, user, manager);
+    const versionToDelete = app.appVersions[0];
+    await this.versionsUtilService.deleteVersion(app, user, manager);
+    RequestContext.setLocals(AUDIT_LOGS_REQUEST_CONTEXT_KEY, {
+      userId: user.id,
+      organizationId: user.organizationId,
+      resourceId: app.id,
+      resourceName: app.name,
+      ...(app.type === 'module' && { actionType: MODULE_VERSION_AUDIT_KEYS.DELETE }),
+      metadata: {
+        data: {
+          versionId: versionToDelete.id,
+          deletedAppVersionName: versionToDelete.name,
+        },
+      },
+    });
   }
 
   async getVersion(app: App, user: User, mode?: string): Promise<any> {
@@ -186,7 +221,12 @@ export class VersionService implements IVersionService {
         user.organizationId,
         editingVersion?.globalSettings?.theme?.id
       );
-      const appGit = await this.appGitRepository.findAppGitByAppId(app.id);
+      let appGit = await this.appGitRepository.findAppGitByAppId(app.id);
+      // Branch-copy apps (platform git sync) don't have their own app_git_sync record
+      if (!appGit && app.co_relation_id && app.co_relation_id !== app.id) {
+        appGit = await this.appGitRepository.findAppGitByAppId(app.co_relation_id);
+      }
+      // Modules are branch-scoped like apps — same git-sync freeze applies.
       if (appGit) {
         shouldFreezeEditor = !appGit.allowEditing || shouldFreezeEditor;
       }
@@ -194,6 +234,18 @@ export class VersionService implements IVersionService {
         shouldFreezeEditor = true;
       }
       editingVersion['globalSettings']['theme'] = appTheme;
+
+      // Strip JS libraries from globalSettings when the org's license doesn't include
+      // the feature — the FE loads whatever arrives here, so the gate lives on the BE.
+      const hasJsLibrariesAccess = await this.licenseTermsService.getLicenseTerms(
+        LICENSE_FIELD.APP_JS_LIBRARIES,
+        app.organizationId
+      );
+      if (!hasJsLibrariesAccess) {
+        delete editingVersion['globalSettings']['libraries'];
+        delete editingVersion['globalSettings']['preloadedScript'];
+      }
+
       return {
         ...appData,
         editing_version: editingVersion,
@@ -208,17 +260,77 @@ export class VersionService implements IVersionService {
 
     response['modules'] = await Promise.all(modules.map((module) => prepareResponse(module, undefined)));
 
-    // need to add freeze version logic here
     return response;
   }
 
-  async update(app: App, user: User, appVersionUpdateDto: AppVersionUpdateDto) {
-    const appVersion = await this.versionRepository.findById(app.appVersions[0].id, app.id);
+  async getVersionByStableIds(
+    coRelationId: string,
+    moduleReferenceId: string | undefined,
+    user: User,
+    mode?: string,
+    branchId?: string
+  ): Promise<any> {
+    // co_relation_id is only unique per-org — multiple orgs can share one after a git-origin clone.
+    const moduleApp = await this.versionRepository.manager.findOne(App, {
+      where: { co_relation_id: coRelationId, type: APP_TYPES.MODULE, organizationId: user.organizationId },
+      order: { createdAt: 'ASC' },
+    });
+    if (!moduleApp) {
+      throw new NotFoundException('Module not found');
+    }
 
-    await this.versionsUtilService.updateVersion(appVersion, appVersionUpdateDto);
+    const version = await resolveModuleRef(
+      this.versionRepository.manager,
+      moduleApp,
+      moduleReferenceId,
+      branchId,
+      user.organizationId
+    );
+    if (!version) {
+      // NotFoundException (not findOneOrFail) so drift surfaces as 404, not 500.
+      throw new NotFoundException('Module version not found');
+    }
+    moduleApp.appVersions = [version];
+    return this.getVersion(moduleApp, user, mode);
+  }
+
+  async update(app: App, user: User, appVersionUpdateDto: AppVersionUpdateDto) {
+    const context = await this.beforeVersionUpdate(app, user, appVersionUpdateDto);
+
+    const appVersion = await dbTransactionWrap(async (manager: EntityManager) => {
+      const appVersion = await this.versionRepository.findById(app.appVersions[0].id, app.id, undefined, manager);
+
+      if (appVersionUpdateDto?.status === AppVersionStatus.PUBLISHED && app.type !== 'module') {
+        await this.versionsUtilService.checkDraftModulesInApp(appVersion.id, user.organizationId, manager);
+      }
+
+      if (appVersion.status === AppVersionStatus.PUBLISHED) {
+        const nameChanging = appVersionUpdateDto.name && appVersionUpdateDto.name !== appVersion.name;
+        const descChanging =
+          appVersionUpdateDto.description !== undefined &&
+          appVersionUpdateDto.description !== appVersion.description;
+        if (nameChanging || descChanging) {
+          const organizationGit = await this.organizationGitRepository.findOrgGitByOrganizationId(
+            user.organizationId,
+            manager
+          );
+          if (organizationGit?.isEnabled) {
+            throw new BadRequestException('Cannot edit name or description of a saved version.');
+          }
+        }
+      }
+
+      await this.versionsUtilService.updateVersion(appVersion, appVersionUpdateDto, manager);
+
+      return appVersion;
+    });
+
     if (app.type === 'workflow') {
       await this.appUtilService.updateWorflowVersion(appVersion, appVersionUpdateDto, app);
-    } else if (appVersion.name !== appVersionUpdateDto.name) {
+    } else if (
+      appVersion.name !== appVersionUpdateDto.name &&
+      appVersionUpdateDto.status !== AppVersionStatus.PUBLISHED
+    ) {
       const versionRenameDto = {
         user: user,
         appVersion: appVersion,
@@ -229,26 +341,33 @@ export class VersionService implements IVersionService {
       await this.eventEmitter.emit('version-rename-commit', versionRenameDto);
     }
 
-    // Queue history capture if homepage or settings are being updated
-    await this.appHistoryUtilService.captureSettingsUpdateHistory(appVersion, appVersionUpdateDto);
+    const operationTimestamp = Date.now();
+    this.afterVersionUpdate(context, app, user, appVersionUpdateDto, user.id, operationTimestamp).catch((err) =>
+      console.error('[AppHistory] Fire-and-forget afterVersionUpdate failed:', err.message)
+    );
 
     RequestContext.setLocals(AUDIT_LOGS_REQUEST_CONTEXT_KEY, {
       userId: user.id,
       organizationId: user.organizationId,
       resourceId: app.id,
       resourceName: app.name,
+      ...(app.type === 'module' && { actionType: MODULE_VERSION_AUDIT_KEYS.SAVE }),
       metadata: { data: { updatedAppVersionName: appVersionUpdateDto.name, version: app.appVersions[0] } },
     });
     return;
   }
 
   async updateSettings(app: App, user: User, appVersionUpdateDto: AppVersionUpdateDto) {
+    const context = await this.beforeVersionSettingsUpdate(app, user, appVersionUpdateDto);
+
     const appVersion = await this.versionRepository.findById(app.appVersions[0].id, app.id);
 
     await this.versionsUtilService.updateVersion(appVersion, appVersionUpdateDto);
 
-    // Queue history capture for settings changes AFTER successful update
-    await this.appHistoryUtilService.captureSettingsUpdateHistory(appVersion, appVersionUpdateDto);
+    const settingsOperationTimestamp = Date.now();
+    this.afterVersionSettingsUpdate(context, app, user, appVersionUpdateDto, user.id, settingsOperationTimestamp).catch(
+      (err) => console.error('[AppHistory] Fire-and-forget afterVersionSettingsUpdate failed:', err.message)
+    );
 
     RequestContext.setLocals(AUDIT_LOGS_REQUEST_CONTEXT_KEY, {
       userId: user.id,
@@ -316,6 +435,7 @@ export class VersionService implements IVersionService {
           organizationId: user.organizationId,
           resourceId: app.id,
           resourceName: app.name,
+          ...(app.type === 'module' && { actionType: MODULE_VERSION_AUDIT_KEYS.PROMOTE }),
           metadata: {
             data: {
               name: 'Version Promoted',
@@ -333,8 +453,8 @@ export class VersionService implements IVersionService {
     user: User,
     draftVersionDto: DraftVersionDto,
     manager?: EntityManager
-  ): Promise<void> {
-    const { versionFromId } = draftVersionDto;
+  ): Promise<AppVersion> {
+    const { versionFromId, versionType } = draftVersionDto;
     const parentVersion = await this.versionRepository.findVersion(versionFromId);
     const childVersionApps = await this.versionRepository.findParentVersionApps(versionFromId);
     const childVersionAppsCount = childVersionApps.length;
@@ -342,6 +462,7 @@ export class VersionService implements IVersionService {
       ...draftVersionDto,
       versionName: `${parentVersion?.name}_${childVersionAppsCount + 1}`,
       versionDescription: '',
+      versionType: versionType,
     };
     const draftVersion = await this.createVersion(app, user, createVersionDto);
     return draftVersion;

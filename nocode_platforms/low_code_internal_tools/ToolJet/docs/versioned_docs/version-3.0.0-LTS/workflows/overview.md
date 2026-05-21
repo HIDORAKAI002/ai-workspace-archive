@@ -3,13 +3,9 @@ id: overview
 title: Overview
 ---
 
-<div style={{display:'flex',justifyContent:"start",alignItems:"center",gap:"8px"}}>
+<div className='badge badge--primary heading-badge' style={{marginBottom:'10px'}}>Available on: Paid plans</div>
 
-<div className="badge badge--self-hosted heading-badge" >   
- <span>Self Hosted</span>
-</div>
-
-</div>
+<br/>
 
 ## Introduction
 

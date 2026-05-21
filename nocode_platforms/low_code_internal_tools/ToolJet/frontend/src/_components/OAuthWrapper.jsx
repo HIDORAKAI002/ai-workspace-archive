@@ -1,7 +1,8 @@
 import OAuth from '@/_ui/OAuth';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { datasourceService } from '@/_services';
+import { getHostURL } from '@/_helpers/routes';
+import { datasourceService, authenticationService } from '@/_services';
 import { capitalize } from 'lodash';
 import { toast } from 'react-hot-toast';
 import Button from '@/_ui/Button';
@@ -19,13 +20,40 @@ const OAuthWrapper = ({
   workspaceConstants,
   optionsChanged,
   isDisabled,
+  isWorkspaceBranchLocked = false,
   multiple_auth_enabled,
   scopes,
   oauth_configs,
   currentAppEnvironmentId,
 }) => {
+  // Inner OAuth fields stay locked when the workspace branch is locked (default
+  // branch + branching enabled). The save button uses `isDisabled` alone so an
+  // edit to an encrypted field on the default branch can still be saved.
+  const isFieldsDisabled = isDisabled || isWorkspaceBranchLocked;
   const [authStatus, setAuthStatus] = useState(null);
   const { t } = useTranslation();
+  const [initialOptions, setInitialOptions] = useState(null);
+  useEffect(() => {
+    if (selectedDataSource?.id && !initialOptions) {
+      setInitialOptions(options);
+    }
+  }, [selectedDataSource?.id, options, initialOptions]);
+
+  const hasFieldsChanged = () => {
+    if (!selectedDataSource?.id || !initialOptions) {
+      return true;
+    }
+
+    const optionKeys = Object.keys(options || {});
+    for (const key of optionKeys) {
+      const currentValue = options[key]?.value;
+      const initialValue = initialOptions[key]?.value;
+      if (currentValue !== initialValue) {
+        return true;
+      }
+    }
+    return false;
+  };
   const needConnectionButton =
     selectedDataSource.kind !== 'openapi' &&
     options?.auth_type?.value === 'oauth2' &&
@@ -33,10 +61,7 @@ const OAuthWrapper = ({
   const dataSourceNameCapitalize = capitalize(
     selectedDataSource?.plugin?.manifestFile?.data?.source?.name || selectedDataSource?.kind
   );
-  const hostUrl = window.public_config?.TOOLJET_HOST;
-  const subPathUrl = window.public_config?.SUB_PATH;
-  const fullUrl = `${hostUrl}${subPathUrl ? subPathUrl : '/'}oauth2/authorize`;
-  const redirectUri = fullUrl;
+  const redirectUri = `${getHostURL()}/oauth2/authorize`;
 
   const docLink =
     selectedDataSource?.pluginId && selectedDataSource.pluginId.trim() !== ''
@@ -47,9 +72,13 @@ const OAuthWrapper = ({
     const provider = selectedDataSource?.kind;
     const plugin_id = selectedDataSource?.plugin?.id;
     const source_options = options;
+    const organizationId = authenticationService.currentSessionValue?.current_organization_id;
     setAuthStatus('waiting_for_url');
 
-    const fetchArgs = plugin_id ? [provider, plugin_id, source_options] : [provider, null, source_options];
+    // Pass envId, orgId to resolve workspace constants on the backend
+    const fetchArgs = plugin_id
+      ? [provider, plugin_id, source_options, currentAppEnvironmentId, organizationId]
+      : [provider, null, source_options, currentAppEnvironmentId, organizationId];
 
     datasourceService
       .fetchOauth2BaseUrl(...fetchArgs)
@@ -105,7 +134,7 @@ const OAuthWrapper = ({
           multiple_auth_enabled={options?.multiple_auth_enabled?.value}
           optionchanged={optionchanged}
           workspaceConstants={workspaceConstants}
-          isDisabled={isDisabled}
+          isDisabled={isFieldsDisabled}
           options={options}
           optionsChanged={optionsChanged}
           selectedDataSource={selectedDataSource}
@@ -147,12 +176,38 @@ const OAuthWrapper = ({
               type="checkbox"
               checked={multiple_auth_enabled}
               onChange={() => optionchanged('multiple_auth_enabled', !multiple_auth_enabled)}
+              disabled={isFieldsDisabled}
             />
             <div>
               <span className="form-check-label">Authentication required for all users</span>
               <span className="text-muted" style={{ fontSize: '12px' }}>
                 Other users will be redirected to OAuth flow once first query of this data source is run in an app.
               </span>
+            </div>
+          </label>
+        </div>
+      )}
+      {oauth_configs?.allowed_dynamic_params_field && (
+        <div>
+          <label className="form-check form-switch mt-3">
+            <input
+              className="form-check-input"
+              type="checkbox"
+              checked={options?.[oauth_configs.allowed_dynamic_params_field.key]?.value || false}
+              onChange={() =>
+                optionchanged(
+                  oauth_configs.allowed_dynamic_params_field.key,
+                  !options?.[oauth_configs.allowed_dynamic_params_field.key]?.value
+                )
+              }
+            />
+            <div>
+              <span className="form-check-label">{oauth_configs.allowed_dynamic_params_field.label}</span>
+              {oauth_configs.allowed_dynamic_params_field.help_text && (
+                <span className="text-muted" style={{ fontSize: '12px' }}>
+                  {oauth_configs.allowed_dynamic_params_field.help_text}
+                </span>
+              )}
             </div>
           </label>
         </div>
@@ -183,10 +238,33 @@ const OAuthWrapper = ({
                 {t('globals.readDocumentation', 'Read documentation')}
               </a>
             </div>
-            <div className="col-auto row">
-              <center>
-                {authStatus === 'waiting_for_token' && (
-                  <div>
+            <div className="col-auto d-flex gap-2">
+              {selectedDataSource?.kind === 'googlesheetsv2' ? (
+                <>
+                  {(!authStatus || authStatus === 'waiting_for_url') && (
+                    <Button
+                      className={cx('m2', { 'btn-loading': authStatus === 'waiting_for_url' })}
+                      disabled={isSaving}
+                      onClick={() => authorizeWithProvider()}
+                    >
+                      {t(
+                        `${selectedDataSource.kind}.connect${dataSourceNameCapitalize}`,
+                        `Connect to ${dataSourceNameCapitalize}`
+                      )}
+                    </Button>
+                  )}
+                  <Button
+                    className={`m2 ${isSaving ? ' loading' : ''}`}
+                    disabled={isSaving || isDisabled || !hasFieldsChanged()}
+                    onClick={() => saveDataSource()}
+                    variant={localStorage.getItem('OAuthCode') ? 'primary' : 'tertiary'}
+                  >
+                    {isSaving ? t('globals.saving', 'Saving...') : t('globals.saveDatasource', 'Save data source')}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  {authStatus === 'waiting_for_token' && (
                     <Button
                       className={`m2 ${isSaving ? ' loading' : ''}`}
                       disabled={isSaving}
@@ -194,22 +272,22 @@ const OAuthWrapper = ({
                     >
                       {isSaving ? t('globals.saving', 'Saving...') : t('globals.saveDatasource', 'Save data source')}
                     </Button>
-                  </div>
-                )}
+                  )}
 
-                {(!authStatus || authStatus === 'waiting_for_url') && (
-                  <Button
-                    className={cx('m2', { 'btn-loading': authStatus === 'waiting_for_url' })}
-                    disabled={isSaving}
-                    onClick={() => authorizeWithProvider()}
-                  >
-                    {t(
-                      `${selectedDataSource.kind}.connect${dataSourceNameCapitalize}`,
-                      `Connect to ${dataSourceNameCapitalize}`
-                    )}
-                  </Button>
-                )}
-              </center>
+                  {(!authStatus || authStatus === 'waiting_for_url') && (
+                    <Button
+                      className={cx('m2', { 'btn-loading': authStatus === 'waiting_for_url' })}
+                      disabled={isSaving}
+                      onClick={() => authorizeWithProvider()}
+                    >
+                      {t(
+                        `${selectedDataSource.kind}.connect${dataSourceNameCapitalize}`,
+                        `Connect to ${dataSourceNameCapitalize}`
+                      )}
+                    </Button>
+                  )}
+                </>
+              )}
             </div>
           </>
         </Modal.Footer>

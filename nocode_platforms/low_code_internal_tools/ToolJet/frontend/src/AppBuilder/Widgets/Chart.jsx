@@ -12,7 +12,7 @@ import { getCssVarValue, getModifiedColor } from './utils';
 
 var tinycolor = require('tinycolor2');
 
-export const Chart = function Chart({
+export default function Chart({
   width,
   height,
   darkMode,
@@ -26,7 +26,6 @@ export const Chart = function Chart({
   const isInitialRender = useRef(true);
   const [loadingState, setLoadingState] = useState(false);
   const themeChanged = useStore((state) => state.themeChanged);
-
 
   const getColor = (color) => {
     if (tinycolor(color).getBrightness() > 128) return '#000';
@@ -106,6 +105,7 @@ export const Chart = function Chart({
   }, [JSON.stringify(chartLayout, chartTitle)]);
 
   const layout = {
+    ...chartLayout,
     width: width - 6,
     height: height - 2,
     plot_bgcolor: updatedBgColor,
@@ -193,6 +193,7 @@ export const Chart = function Chart({
     ...(chartLayout.annotations && { annotations: chartLayout.annotations }),
     barmode: barmode,
     hoverlabel: { namelength: -1 },
+    ...('dragmode' in chartLayout && { dragmode: chartLayout.dragmode }),
   };
 
   const computeChartData = (data, dataString) => {
@@ -314,7 +315,7 @@ export const Chart = function Chart({
       )}
     </div>
   );
-};
+}
 
 // onClick event was not working when the component is re-rendered for every click. Hance, memoization is used
 const PlotComponent = memo(

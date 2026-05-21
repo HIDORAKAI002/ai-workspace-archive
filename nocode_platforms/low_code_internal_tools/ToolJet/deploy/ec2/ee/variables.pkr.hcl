@@ -4,12 +4,12 @@ variable "ami_name" {
 
 variable "instance_type" {
   type    = string
-  default = "t2.large"
+  default = "t2.xlarge"
 }
 
 variable "ami_region" {
   type    = string
-  default = "us-east-1"
+  default = "us-west-1"
 }
 
 variable "ami_groups" {

@@ -4,13 +4,13 @@ import { groupsSelector } from "Selectors/manageGroups";
 import { fake } from "Fixtures/fake";
 import * as common from "Support/utils/common";
 import { bulkUserUpload } from "Support/utils/manageUsers";
+import { smtpConfig } from "Constants/constants/whitelabel";
 
 // Helper to resolve correct test data based on env
 const getFile = (fileGroup) => {
   const env = Cypress.env("environment");
   return env === "Community" ? fileGroup.default : fileGroup.alt;
 };
-
 
 describe("Bulk User Upload", () => {
   const TEST_FILES = {
@@ -127,10 +127,12 @@ describe("Bulk User Upload", () => {
   beforeEach(() => {
     const firstName = fake.firstName;
     const workspaceName = firstName.toLowerCase();
+    cy.mhDeleteAll();
     cy.apiLogin();
     cy.apiCreateWorkspace(firstName, workspaceName);
     cy.visit(`${workspaceName}`);
     common.navigateToManageUsers();
+    cy.apiConfigureSmtp(smtpConfig);
   });
 
   it("Should validate error cases for invalid bulk user uploads", () => {
@@ -158,6 +160,7 @@ describe("Bulk User Upload", () => {
 
   it("Should successfully upload valid users", () => {
     const file = getFile(TEST_FILES.VALID_USERS);
+    cy.mhDeleteAll();
     cy.get(usersSelector.buttonAddUsers).click();
     cy.get(usersSelector.buttonUploadCsvFile).click();
 
@@ -177,6 +180,8 @@ describe("Bulk User Upload", () => {
       .within(() => {
         cy.get("td small").should("have.text", "invited");
       });
+    cy.wait(5000);
+    cy.mhGetAllMails().should("have.length", 3);
 
     common.navigateToManageGroups();
     cy.get(groupsSelector.groupLink("Admin")).click();

@@ -1,19 +1,33 @@
 /* eslint-disable import/no-named-as-default */
-import React, { useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { useEffect, useRef, useMemo, useCallback, Suspense, lazy } from 'react';
 import cx from 'classnames';
 import WidgetWrapper from './WidgetWrapper';
 import useStore from '@/AppBuilder/_stores/store';
 import { shallow } from 'zustand/shallow';
 import { useDrop, useDragLayer } from 'react-dnd';
-import { computeViewerBackgroundColor, getSubContainerWidthAfterPadding } from './appCanvasUtils';
-import { CANVAS_WIDTHS, NO_OF_GRIDS, GRID_HEIGHT } from './appCanvasConstants';
+import {
+  computeViewerBackgroundColor,
+  getSubContainerWidthAfterPadding,
+  getSubContainerHeightAfterPadding,
+} from './appCanvasUtils';
+import {
+  NO_OF_GRIDS,
+  GRID_HEIGHT,
+  HOVER_CLICK_OUTLINE_BORDER,
+  PAGE_CANVAS_HEADER_FOOTER_PADDING,
+  ROW_SCOPED_WIDGET_TYPES,
+} from './appCanvasConstants';
 import { useGridStore } from '@/_stores/gridStore';
 import NoComponentCanvasContainer from './NoComponentCanvasContainer';
-import { ModuleContainerBlank } from '@/modules/Modules/components';
 import { useModuleContext } from '@/AppBuilder/_contexts/ModuleContext';
 import useSortedComponents from '../_hooks/useSortedComponents';
 import { useDropVirtualMoveableGhost } from './Grid/hooks/useDropVirtualMoveableGhost';
 import { findNewParentIdFromMousePosition } from './Grid/gridUtils';
+
+// Lazy load editor-only component to reduce viewer bundle size
+const ModuleContainerBlank = lazy(() =>
+  import('@/modules/Modules/components').then((m) => ({ default: m.ModuleContainerBlank }))
+);
 
 //TODO: Revisit the logic of height (dropRef)
 
@@ -43,6 +57,7 @@ const Container = React.memo(
     const realCanvasRef = useRef(null);
     const components = useStore((state) => state.getContainerChildrenMapping(id, moduleId), shallow);
     const setLastCanvasClickPosition = useStore((state) => state.setLastCanvasClickPosition, shallow);
+    const isEmbeddedModule = appType === 'module' && !isModuleEditor;
     const canvasBgColor = useStore(
       (state) => (id === 'canvas' ? state.getCanvasBackgroundColor('canvas', darkMode) : ''),
       shallow
@@ -70,14 +85,16 @@ const Container = React.memo(
     }, [id, isDragging, deactivateMoveableGhost]);
 
     const isContainerReadOnly = useMemo(() => {
-      return (index !== 0 && (componentType === 'Listview' || componentType === 'Kanban')) || currentMode === 'view';
+      return (index !== 0 && ROW_SCOPED_WIDGET_TYPES.includes(componentType)) || currentMode === 'view';
     }, [index, componentType, currentMode]);
 
     const setCurrentDragCanvasId = useGridStore((state) => state.actions.setCurrentDragCanvasId);
 
     const [{ isOverCurrent }, drop] = useDrop({
       accept: 'box',
+      canDrop: () => !isContainerReadOnly,
       hover: (item, monitor) => {
+        if (isContainerReadOnly) return;
         const clientOffset = monitor.getClientOffset();
 
         const appCanvasWidth = realCanvasRef?.current?.offsetWidth || 0;
@@ -112,19 +129,23 @@ const Container = React.memo(
         if (id === 'canvas') return canvasWidth;
         return getSubContainerWidthAfterPadding(canvasWidth, componentType, id, realCanvasRef);
       }
+      if (componentType === 'canvas-header' || componentType === 'canvas-footer') {
+        return realCanvasRef?.current?.offsetWidth - 2 * PAGE_CANVAS_HEADER_FOOTER_PADDING;
+      }
       return realCanvasRef?.current?.offsetWidth;
     }
 
     const gridWidth = getContainerCanvasWidth() / NO_OF_GRIDS;
+
     useEffect(() => {
       useGridStore.getState().actions.setSubContainerWidths(id, gridWidth);
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [canvasWidth, listViewMode, columns, id]);
+    }, [gridWidth, listViewMode, columns, id]);
 
     const handleCanvasClick = useCallback(
       (e) => {
         const realCanvas = e.target.closest('.real-canvas');
-        const canvasId = realCanvas?.getAttribute('id')?.split('canvas-')[1];
+        const canvasId = realCanvas?.getAttribute('data-parentId');
         setFocusedParentId(canvasId);
         if (realCanvas) {
           const rect = realCanvas.getBoundingClientRect();
@@ -151,21 +172,27 @@ const Container = React.memo(
 
       return (
         <div style={styles}>
-          {componentType === 'ModuleContainer' ? <ModuleContainerBlank /> : <NoComponentCanvasContainer />}
+          {componentType === 'ModuleContainer' ? (
+            <Suspense fallback={null}>
+              <ModuleContainerBlank />
+            </Suspense>
+          ) : (
+            <NoComponentCanvasContainer />
+          )}
         </div>
       );
     };
     const sortedComponents = useSortedComponents(components, currentLayout, id, moduleId);
     return (
       <div
-        // {...(config.COMMENT_FEATURE_ENABLE && showComments && { onClick: handleAddThread })}
         ref={(el) => {
           realCanvasRef.current = el;
           drop(el);
         }}
         style={{
-          height: id === 'canvas' ? `${canvasHeight}` : '100%',
+          height: id === 'canvas' ? `${canvasHeight}` : getSubContainerHeightAfterPadding(componentType),
           backgroundSize: `${gridWidth}px ${GRID_HEIGHT}px`,
+          padding: `${HOVER_CLICK_OUTLINE_BORDER}px`, // This is required to prevent the hover click outline from being cut off
           backgroundColor:
             currentMode === 'view'
               ? computeViewerBackgroundColor(darkMode, canvasBgColor)
@@ -175,15 +202,8 @@ const Container = React.memo(
           width: '100%',
           maxWidth: (() => {
             // For Main Canvas
-            if (id === 'canvas') {
-              if (currentLayout === 'mobile') {
-                return CANVAS_WIDTHS.deviceWindowWidth;
-              }
-              if (currentMode === 'view') {
-                return '100%';
-              } else {
-                return canvasMaxWidth;
-              }
+            if (id === 'canvas' || componentType === 'canvas-header' || componentType === 'canvas-footer') {
+              return '100%';
             }
             // For Subcontainers
             return canvasWidth;
@@ -193,6 +213,7 @@ const Container = React.memo(
           // Prevent the scroll when dragging a widget inside the container or moving out of the container
           overflow: isWidgetInSubContainerDragging ? 'hidden' : undefined,
           ...(id !== 'canvas' && appType !== 'module' && { backgroundColor: 'transparent' }), // Ensure the container's background isn't overridden by the canvas background color.
+          ...(isEmbeddedModule && id === moduleId && { backgroundColor: 'transparent' }), // Embedded module root canvas inherits host app background
         }}
         className={cx('real-canvas', {
           'sub-canvas': id !== 'canvas' && appType !== 'module',

@@ -14,7 +14,7 @@ const EditVersionModal = ({ showEditAppVersion, setShowEditAppVersion, versionTo
     (state) => ({
       updateVersionNameAction: state.updateVersionNameAction,
       selectedVersion: state.selectedVersion,
-      appId: state.appStore.modules[moduleId].app.appId,
+      appId: state.appId ?? state.appStore.modules[moduleId]?.app?.appId,
     }),
     shallow
   );
@@ -33,6 +33,8 @@ const EditVersionModal = ({ showEditAppVersion, setShowEditAppVersion, versionTo
       return t('editor.appVersionManager.emptyNameError', 'Version name should not be empty');
     } else if (value.length > 25) {
       return t('editor.appVersionManager.maxLengthError', 'Version name cannot exceed 25 characters');
+    } else if (/[\s~^:?*[\]\\@{]/.test(value.trim())) {
+      return 'Version name cannot contain spaces or special characters (~ ^ : ? * [ \\ @ {).';
     }
     return '';
   };

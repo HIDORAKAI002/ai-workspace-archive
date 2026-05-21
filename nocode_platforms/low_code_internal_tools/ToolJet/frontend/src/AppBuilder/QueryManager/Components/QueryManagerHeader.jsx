@@ -15,9 +15,12 @@ import { Button as ButtonComponent } from '@/components/ui/Button/Button';
 import { debounce } from 'lodash';
 import posthogHelper from '@/modules/common/helpers/posthogHelper';
 import { useAppDataStore } from '@/_stores/appDataStore';
+import AITripleSparkles from '@/_ui/Icon/solidIcons/AITripleSparkles';
+
+const GENERATE_QUERY_SUPPORTED_KINDS = ['postgresql', 'openapi', 'mongodb', 'bigquery', 'mysql', 'mssql'];
 
 export const QueryManagerHeader = forwardRef(({ darkMode, setActiveTab, activeTab }, ref) => {
-  const { moduleId } = useModuleContext();
+  const { moduleId, isModuleEditor } = useModuleContext();
   const updateQuerySuggestions = useStore((state) => state.queryPanel.updateQuerySuggestions);
   const previewQuery = useStore((state) => state.queryPanel.previewQuery);
   const renameQuery = useStore((state) => state.dataQuery.renameQuery);
@@ -27,7 +30,7 @@ export const QueryManagerHeader = forwardRef(({ darkMode, setActiveTab, activeTa
   const showCreateQuery = useStore((state) => state.queryPanel.showCreateQuery);
   const setShowCreateQuery = useStore((state) => state.queryPanel.setShowCreateQuery);
   const queryName = selectedQuery?.name ?? '';
-  const shouldFreeze = useStore((state) => state.getShouldFreeze());
+  const shouldFreeze = useStore((state) => state.getShouldFreeze(false, isModuleEditor));
 
   useEffect(() => {
     if (selectedQuery?.name) {
@@ -140,6 +143,7 @@ export const QueryManagerHeader = forwardRef(({ darkMode, setActiveTab, activeTa
       <div className="query-header-buttons">
         {!(selectedQuery === null || showCreateQuery) && (
           <>
+            <GenerateQueryButton />
             <RunButton buttonLoadingState={buttonLoadingState} />
             <PreviewButton
               disabled={shouldFreeze}
@@ -154,7 +158,8 @@ export const QueryManagerHeader = forwardRef(({ darkMode, setActiveTab, activeTa
 });
 
 const NameInput = ({ onInput, value, darkMode, isDiabled, selectedQuery }) => {
-  const shouldFreeze = useStore((state) => state.getShouldFreeze());
+  const { isModuleEditor } = useModuleContext();
+  const shouldFreeze = useStore((state) => state.getShouldFreeze(false, isModuleEditor));
   const isFocused = useStore((state) => state.queryPanel.nameInputFocused, shallow);
   const setIsFocused = useStore((state) => state.queryPanel.setNameInputFocused, shallow);
   const [name, setName] = useState(value);
@@ -277,6 +282,76 @@ const RunButton = ({ buttonLoadingState }) => {
         </ButtonComponent>
       </ToolTip>
     </span>
+  );
+};
+
+const hasQueryMention = (text, queryName) => {
+  if (!queryName || !text) return false;
+  const escaped = queryName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`(?:^|[ ,])@${escaped}(?=$|[ ,])`).test(text);
+};
+
+const GenerateQueryButton = () => {
+  const selectedDataSource = useStore((state) => state.queryPanel.selectedDataSource);
+  const selectedQuery = useStore((state) => state.queryPanel.selectedQuery);
+  const shouldFreeze = useStore((state) => state.getShouldFreeze());
+  const featureAccess = useStore((state) => state?.license?.featureAccess, shallow);
+  const queryName = selectedQuery?.name ?? '';
+  // Derived boolean so the component only re-renders when mention is added/removed, not on every keystroke
+  const isQueryMentioned = useStore((state) => hasQueryMention(state.ai?.inputMessage ?? '', queryName));
+  const [buttonPressedForQuery, setButtonPressedForQuery] = useState(null);
+
+  if (!featureAccess?.ai) return null;
+  if (!GENERATE_QUERY_SUPPORTED_KINDS.includes(selectedDataSource?.kind)) return null;
+
+  const isPressed = buttonPressedForQuery === queryName && isQueryMentioned;
+
+  const handleGenerateQuery = async () => {
+    posthogHelper.captureEvent('click_generate_query', { dataSource: selectedDataSource?.kind });
+    const store = useStore.getState();
+
+    store.toggleLeftSidebar(true);
+    store.setSelectedSidebarItem('tooljetai');
+
+    if (isPressed) {
+      requestAnimationFrame(() => store.ai.triggerChatInputFocus());
+      return;
+    }
+
+    setButtonPressedForQuery(queryName);
+    store.ai.setGenerateQuerySource({
+      queryName,
+      queryId: selectedQuery?.id,
+      datasourceId: selectedDataSource?.id,
+      datasourceName: selectedDataSource?.name,
+      datasourceType: selectedDataSource?.kind,
+    });
+    await store.ai.createNewConversation();
+
+    const current = store.ai.inputMessage;
+    const mention = `@${queryName} `;
+    store.ai.setInputMessage(current ? `${current} ${mention}` : mention);
+
+    requestAnimationFrame(() => store.ai.triggerChatInputFocus());
+  };
+
+  return (
+    <ToolTip message="Generate query with AI" placement="bottom" trigger={['hover']} show={true} tooltipClassName="">
+      <span>
+        <ButtonComponent
+          size="medium"
+          variant="ghost"
+          aria-selected={isPressed}
+          className={isPressed ? '!tw-bg-button-outline-hover' : ''}
+          onClick={handleGenerateQuery}
+          disabled={shouldFreeze}
+          data-cy="query-generate-button"
+        >
+          <AITripleSparkles width="14" height="14" />
+          Generate query
+        </ButtonComponent>
+      </span>
+    </ToolTip>
   );
 };
 
