@@ -9,6 +9,7 @@ import {
   createAnthropicCompatibleParams,
   createAnthropicCompatibleRuntime,
 } from '../../core/anthropicCompatibleFactory';
+import type { AnthropicGenerateObjectConfig } from '../../core/anthropicCompatibleFactory/generateObject';
 import { createAnthropicGenerateObject } from '../../core/anthropicCompatibleFactory/generateObject';
 import type { OpenAICompatibleFactoryOptions } from '../../core/openaiCompatibleFactory';
 import { createOpenAICompatibleRuntime } from '../../core/openaiCompatibleFactory';
@@ -28,6 +29,9 @@ const DEEPSEEK_ANTHROPIC_BASE_URL_PATTERN = /\/anthropic\/?$/;
 const DEEPSEEK_ANTHROPIC_MESSAGES_PATH_PATTERN = /\/v1\/messages\/?$/;
 
 type DeepSeekSDKType = 'anthropic' | 'openai';
+type GenerateObjectHandlePayload = NonNullable<
+  NonNullable<OpenAICompatibleFactoryOptions['generateObject']>['handlePayload']
+>;
 
 const isDeepSeekV4Model = (model: string) => model.startsWith('deepseek-v4');
 const isEmptyContent = (content: unknown) =>
@@ -230,11 +234,40 @@ const createDeepSeekAnthropicGenerateObject = async (
   // `{ type: "any" }`. If thinking is already disabled, keep the stricter
   // named tool choice; otherwise use `any` without changing the thinking mode.
   const thinkingDisabled = isGenerateObjectThinkingDisabled(payload);
+  const requestParams: AnthropicGenerateObjectConfig['requestParams'] = {
+    ...(!thinkingDisabled && payload.reasoning_effort
+      ? {
+          output_config: {
+            effort: payload.reasoning_effort as NonNullable<
+              Anthropic.MessageCreateParams['output_config']
+            >['effort'],
+          },
+        }
+      : {}),
+    ...(thinkingDisabled ? { thinking: { type: 'disabled' } } : {}),
+  };
 
   return createAnthropicGenerateObject(client, payload, options, pricing, {
-    ...(thinkingDisabled ? { requestParams: { thinking: { type: 'disabled' } } } : {}),
+    requestParams,
     schemaToolChoice: thinkingDisabled ? 'tool' : 'any',
   });
+};
+
+const buildDeepSeekGenerateObjectPayload: GenerateObjectHandlePayload = (
+  payload,
+  requestPayload,
+) => {
+  const { thinking } = payload;
+  const thinkingExplicitlyDisabled = thinking?.type === 'disabled';
+  const payloadWithoutReasoningEffort = { ...requestPayload };
+  delete (payloadWithoutReasoningEffort as { reasoning_effort?: unknown }).reasoning_effort;
+
+  return {
+    ...(thinkingExplicitlyDisabled ? payloadWithoutReasoningEffort : requestPayload),
+    ...(thinking?.type === 'enabled' || thinkingExplicitlyDisabled
+      ? { thinking: { type: thinking.type } }
+      : {}),
+  };
 };
 
 const fetchDeepSeekModels = async ({
@@ -288,6 +321,7 @@ export const openAIParams = {
   // Deepseek don't support json format well
   // use Tools calling to simulate
   generateObject: {
+    handlePayload: buildDeepSeekGenerateObjectPayload,
     useToolsCalling: true,
   },
   models: fetchDeepSeekModels,
