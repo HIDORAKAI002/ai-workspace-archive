@@ -46,15 +46,17 @@ async function sendMonitorPageWebhook(params: {
 
     await sender?.send(WebhookEvent.MONITOR_PAGE, {
       success: params.status !== "error",
-      data: {
-        monitorId: params.monitorId,
-        checkId: params.checkId,
-        url: params.url,
-        status: params.status,
-        previousScrapeId: params.previousScrapeId ?? null,
-        currentScrapeId: params.currentScrapeId ?? null,
-        error: params.error ?? null,
-      },
+      data: [
+        {
+          monitorId: params.monitorId,
+          checkId: params.checkId,
+          url: params.url,
+          status: params.status,
+          previousScrapeId: params.previousScrapeId ?? null,
+          currentScrapeId: params.currentScrapeId ?? null,
+          error: params.error ?? null,
+        },
+      ],
       error: params.error ?? undefined,
     });
   } catch (error) {
