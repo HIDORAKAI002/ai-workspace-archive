@@ -1,20 +1,22 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, Suspense, lazy } from 'react';
 import { shallow } from 'zustand/shallow';
 import './configHandle.scss';
 import useStore from '@/AppBuilder/_stores/store';
+import useTransientStore from '@/AppBuilder/_stores/transientStore';
 import { findHighestLevelofSelection } from '../Grid/gridUtils';
-import SolidIcon from '@/_ui/Icon/solidIcons/index';
-import { ToolTip } from '@/_components/ToolTip';
 import { useModuleContext } from '@/AppBuilder/_contexts/ModuleContext';
 import { DROPPABLE_PARENTS } from '../appCanvasConstants';
 import { Tooltip } from 'react-tooltip';
+import { ToolTip } from '@/_components/ToolTip';
 import { RIGHT_SIDE_BAR_TAB } from '@/AppBuilder/RightSideBar/rightSidebarConstants';
-import MentionComponentInChat from './MentionComponentInChat';
 import ConfigHandleButton from '../../../_components/ConfigHandleButton';
 import { SquareDashedMousePointer, PencilRuler, Lock, VectorSquare, EyeClosed, Trash } from 'lucide-react';
 import Popover from '@/_ui/Popover';
 import DynamicHeightInfo from '@assets/images/dynamic-height-info.svg';
 import { Button as ButtonComponent } from '@/components/ui/Button/Button.jsx';
+
+// Lazy load editor-only component to reduce viewer bundle size
+const MentionComponentInChat = lazy(() => import('./MentionComponentInChat'));
 
 const CONFIG_HANDLE_HEIGHT = 20;
 const BUFFER_HEIGHT = 1;
@@ -34,9 +36,9 @@ export const ConfigHandle = ({
   subContainerIndex,
   isDynamicHeightEnabled,
 }) => {
-  const { moduleId } = useModuleContext();
+  const { moduleId, isModuleEditor } = useModuleContext();
   const isModulesEnabled = useStore((state) => state.license.featureAccess?.modulesEnabled, shallow);
-  const shouldFreeze = useStore((state) => state.getShouldFreeze());
+  const shouldFreeze = useStore((state) => state.getShouldFreeze(false, isModuleEditor));
   const componentName = useStore((state) => state.getComponentDefinition(id, moduleId)?.component?.name || '', shallow);
   const isMultipleComponentsSelected = useStore(
     (state) => (findHighestLevelofSelection(state?.selectedComponents)?.length > 1 ? true : false),
@@ -58,16 +60,17 @@ export const ConfigHandle = ({
 
   const setComponentToInspect = useStore((state) => state.setComponentToInspect);
   const isModal = componentType === 'Modal' || componentType === 'ModalV2';
-  const _showHandle = useStore((state) => {
-    const isWidgetHovered = state.getHoveredComponentForGrid() === id || state.hoveredComponentBoundaryId === id;
-    const anyComponentHovered = state.getHoveredComponentForGrid() !== '' || state.hoveredComponentBoundaryId !== '';
-    // If one component is hovered and one is selected, show the handle for the hovered component
+
+  // If one component is hovered and one is selected, show the handle for the hovered component
+  const _showHandle = useTransientStore((state) => {
+    const isWidgetHovered = state.hoveredComponentForGrid === id || state.hoveredComponentBoundaryId === id;
+    const anyComponentHovered = state.hoveredComponentForGrid !== '' || state.hoveredComponentBoundaryId !== '';
     return (
       ((subContainerIndex === 0 || subContainerIndex === null) && (isModuleContainer || (isModal && isModalOpen))) ||
       isWidgetHovered ||
       (showHandle && !isMultipleComponentsSelected && !anyComponentHovered)
     );
-  }, shallow);
+  });
 
   const currentPageIndex = useStore((state) => state.modules.canvas.currentPageIndex);
   const component = useStore((state) => state.modules.canvas.pages[currentPageIndex]?.components[id]);
@@ -83,7 +86,7 @@ export const ConfigHandle = ({
   const deleteComponents = () => {
     const selectedComponents = getSelectedComponents();
     if (selectedComponents.length > 0) {
-      setWidgetDeleteConfirmation(true);
+      setWidgetDeleteConfirmation(true, isModuleEditor);
     }
   };
 
@@ -115,24 +118,24 @@ export const ConfigHandle = ({
   const isHiddenOrModalOpen = visibility === false || (componentType === 'Modal' && isModalOpen);
   const getConfigHandleButtonStyle = isHiddenOrModalOpen
     ? {
-      background: 'var(--interactive-selected)',
-      color: 'var(--text-default)',
-      padding: '2px 6px',
-      display: 'flex',
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: '6px',
-      height: '24px',
-    }
+        background: 'var(--interactive-selected)',
+        color: 'var(--text-default)',
+        padding: '2px 6px',
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: '6px',
+        height: '24px',
+      }
     : {
-      color: 'var(--text-on-solid)',
-      padding: '2px 6px',
-      display: 'flex',
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: '6px',
-      height: '24px',
-    };
+        color: 'var(--text-on-solid)',
+        padding: '2px 6px',
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: '6px',
+        height: '24px',
+      };
   if (isDynamicHeightEnabled && !isHiddenOrModalOpen) {
     getConfigHandleButtonStyle.background = '#9747FF';
   }
@@ -192,7 +195,6 @@ export const ConfigHandle = ({
     return null;
   }
 
-
   return (
     <div
       className={`config-handle ${customClassName}`}
@@ -202,8 +204,8 @@ export const ConfigHandle = ({
           componentType === 'Modal' && isModalOpen
             ? '0px'
             : position === 'top'
-              ? '-26px'
-              : `${height - (CONFIG_HANDLE_HEIGHT + BUFFER_HEIGHT)}px`,
+            ? '-26px'
+            : `${height - (CONFIG_HANDLE_HEIGHT + BUFFER_HEIGHT)}px`,
         visibility: _showHandle || visibility === false ? 'visible' : 'hidden',
         left: '-1px',
         display: 'flex',
@@ -212,6 +214,9 @@ export const ConfigHandle = ({
       }}
       onClick={(e) => {
         e.stopPropagation();
+        if (isModal) {
+          setSelectedComponentAsModal(id);
+        }
         if (componentType === 'Tabs') {
           setFocusedParentId(`${id}-${currentTab}`);
         } else {
@@ -259,7 +264,6 @@ export const ConfigHandle = ({
         )}
         <span>{componentName}</span>
       </ConfigHandleButton>
-
       <ConfigHandleButton
         customStyles={iconOnlyButtonStyle}
         onClick={() => setComponentToInspect(componentName)}
@@ -293,7 +297,11 @@ export const ConfigHandle = ({
           <Lock size={14} color="var(--icon-strong)" />
         </ConfigHandleButton>
       )}
-      {!isMultipleComponentsSelected && !shouldFreeze && <MentionComponentInChat componentName={componentName} />}
+      {!isMultipleComponentsSelected && !shouldFreeze && (
+        <Suspense fallback={null}>
+          <MentionComponentInChat componentName={componentName} />
+        </Suspense>
+      )}
       <ConfigHandleButton
         customStyles={iconOnlyButtonStyle}
         onClick={() => {

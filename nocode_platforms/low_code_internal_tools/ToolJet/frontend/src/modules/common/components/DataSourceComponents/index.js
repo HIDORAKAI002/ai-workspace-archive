@@ -43,8 +43,9 @@ export const CommonlyUsedDataSources = Object.keys(allManifests)
       sourceName === 'REST API' ||
       sourceName === 'MongoDB' ||
       sourceName === 'Airtable' ||
-      sourceName === 'Google Sheets' ||
-      sourceName === 'PostgreSQL'
+      sourceName === 'Google Sheets 2.0' ||
+      sourceName === 'PostgreSQL' ||
+      sourceName === 'Snowflake'
     ) {
       accumulator.push(getSchemaDetailsForRender(allManifests[currentValue]));
     }
@@ -52,7 +53,7 @@ export const CommonlyUsedDataSources = Object.keys(allManifests)
     return accumulator;
   }, [])
   .sort((a, b) => {
-    const order = ['REST API', 'PostgreSQL', 'Google Sheets', 'Airtable', 'MongoDB'];
+    const order = ['REST API', 'PostgreSQL', 'Google Sheets 2.0', 'MongoDB', 'Snowflake', 'Airtable'];
     return order.indexOf(a.name) - order.indexOf(b.name);
   });
 

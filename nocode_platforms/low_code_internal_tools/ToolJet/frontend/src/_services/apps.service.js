@@ -1,14 +1,17 @@
 import config from 'config';
-import { authHeader, handleResponse } from '@/_helpers';
+import { authHeader, handleResponse, handleResponseWithoutValidation } from '@/_helpers';
+import { getActiveBranchId } from '@/_helpers/active-branch';
 import queryString from 'query-string';
 
 export const appsService = {
+  getAppAuthenticationConfig,
   validatePrivateApp,
   validateReleasedApp,
   setVisibility,
   setMaintenance,
   setSlug,
   getAll,
+  getAllAddableApps,
   createApp,
   cloneApp,
   exportApp,
@@ -29,6 +32,13 @@ export const appsService = {
   getWorkflowLimit,
   releaseVersion,
 };
+
+function getAppAuthenticationConfig(slug) {
+  const requestOptions = { method: 'GET', headers: { 'Content-Type': 'application/json' } };
+  return fetch(`${config.apiUrl}/apps/app-authentication-config/${slug}`, requestOptions).then(
+    handleResponseWithoutValidation
+  );
+}
 
 function getWorkflows(id) {
   const requestOptions = { method: 'GET', headers: authHeader(), credentials: 'include' };
@@ -58,15 +68,27 @@ function validatePrivateApp(slug, queryParams) {
 //use default value for type of apps i.e.'front-end'
 function getAll(page, folder, searchKey, type = 'front-end') {
   const requestOptions = { method: 'GET', headers: authHeader(), credentials: 'include' };
-  if (page === 0) return fetch(`${config.apiUrl}/apps?type=${type}`, requestOptions).then(handleResponse);
+  const branchId = getActiveBranchId();
+  const branchParam = branchId ? `&branch_id=${branchId}` : '';
+  if (page === 0) return fetch(`${config.apiUrl}/apps?type=${type}${branchParam}`, requestOptions).then(handleResponse);
   else
     return fetch(
-      `${config.apiUrl}/apps?page=${page}&folder=${folder || ''}&searchKey=${searchKey}&type=${type}`,
+      `${config.apiUrl}/apps?page=${page}&folder=${folder || ''}&searchKey=${searchKey}&type=${type}${branchParam}`,
       requestOptions
     ).then(handleResponse);
 }
 
+// get all addable apps
+function getAllAddableApps() {
+  const requestOptions = { method: 'GET', headers: authHeader(), credentials: 'include' };
+  const branchId = getActiveBranchId();
+  const branchParam = branchId ? `?branch_id=${branchId}` : '';
+  return fetch(`${config.apiUrl}/apps/addable${branchParam}`, requestOptions).then(handleResponse);
+}
+
 function createApp(body = {}) {
+  const branchId = getActiveBranchId();
+  if (branchId) body.branchId = branchId;
   const requestOptions = {
     method: 'POST',
     headers: authHeader(),
@@ -214,6 +236,8 @@ function exportResource(body, appType) {
 }
 
 function importResource(body, appType) {
+  const branchId = getActiveBranchId();
+  if (branchId) body.branchId = branchId;
   const requestOptions = {
     method: 'POST',
     headers: authHeader(),
@@ -228,6 +252,8 @@ function importResource(body, appType) {
 }
 
 function cloneResource(body, appType) {
+  const branchId = getActiveBranchId();
+  if (branchId) body.branchId = branchId;
   const requestOptions = {
     method: 'POST',
     headers: authHeader(),

@@ -17,6 +17,7 @@ const CommonOAuthFields = ({
   grant_type,
   oauth_configs,
   isFieldAllowed,
+  isDisabled = false,
 }) => {
   const { access_token_url, access_token_custom_headers } = tokenConfig;
   const { client_id, client_secret, client_auth } = clientConfig;
@@ -101,7 +102,9 @@ const CommonOAuthFields = ({
       )}
       {oauthTypes?.required && oauthTypeOptions && oauthTypeOptions.length > 1 && (
         <div className="col-md-12" data-cy="oauth-type-section">
-          <label className="form-label mt-3" data-cy="oauth-type-label">OAuth type</label>
+          <label className="form-label mt-3" data-cy="oauth-type-label">
+            OAuth type
+          </label>
           <Select
             options={oauthTypeOptions}
             value={options?.oauth_type?.value}
@@ -125,6 +128,7 @@ const CommonOAuthFields = ({
                 className="form-control"
                 onChange={(e) => optionchanged('client_id', e.target.value)}
                 value={client_id}
+                disabled={isDisabled}
                 workspaceConstants={workspaceConstants}
                 placeholder="Enter client ID"
               />
@@ -307,7 +311,7 @@ const AuthorizationCode = ({ authConfig, tokenConfig, workspaceConfig, handlers,
       )}
       {isFieldAllowed('multiple_auth_enabled', 'authorization_code', oauth_configs) && (
         <div data-cy="authentication-required-for-all-users-section">
-          <label className="form-check form-switch my-4" >
+          <label className="form-check form-switch my-4">
             <input
               data-cy="authentication-required-for-all-users-toggle-switch"
               className="form-check-input"
@@ -334,6 +338,7 @@ const OAuthConfiguration = ({
   handlers,
   oauth_configs,
   isFieldAllowed,
+  isDisabled,
 }) => {
   const { optionchanged } = handlers;
   const { grant_type } = authConfig;
@@ -356,7 +361,9 @@ const OAuthConfiguration = ({
       <div className="row">
         {(!allowed_grant_types || (allowed_grant_types && allowed_grant_types.length > 1)) && (
           <div data-cy="grant-type-section">
-            <label className="form-label mt-3" data-cy="grant-type-label">Grant type</label>
+            <label className="form-label mt-3" data-cy="grant-type-label">
+              Grant type
+            </label>
             <Select
               options={grantTypeOptions()}
               value={grant_type}
@@ -377,6 +384,7 @@ const OAuthConfiguration = ({
           oauth_configs={oauth_configs}
           grant_type={grant_type}
           isFieldAllowed={isFieldAllowed}
+          isDisabled={isDisabled}
         />
         {grant_type === 'client_credentials' ? (
           <ClientCredentialsFields

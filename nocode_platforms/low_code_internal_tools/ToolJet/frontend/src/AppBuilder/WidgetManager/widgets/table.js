@@ -110,6 +110,10 @@ export const tableConfig = {
         defaultValue: 10,
       },
     },
+    serverSideRowsPerPage: {
+      type: 'code',
+      displayName: 'Number of rows per page',
+    },
     enablePagination: {
       type: 'toggle',
       displayName: 'Enable pagination',
@@ -239,6 +243,14 @@ export const tableConfig = {
         defaultValue: false,
       },
     },
+    disableRowDeselection: {
+      type: 'toggle',
+      displayName: 'Disable row deselection',
+      validation: {
+        schema: { type: 'boolean' },
+        defaultValue: false,
+      },
+    },
     defaultSelectedRow: {
       type: 'code',
       displayName: 'Default selected row',
@@ -258,6 +270,14 @@ export const tableConfig = {
         defaultValue: true,
       },
     },
+    showRefreshButton: {
+      type: 'toggle',
+      displayName: 'Show refresh button',
+      validation: {
+        schema: { type: 'boolean' },
+        defaultValue: false,
+      },
+    },
     selectRowOnCellEdit: {
       type: 'toggle',
       displayName: 'Select row on cell edit',
@@ -272,6 +292,13 @@ export const tableConfig = {
       validation: {
         schema: { type: 'boolean' },
       },
+    },
+
+    collapseWhenHidden: {
+      type: 'toggle',
+      displayName: 'Collapse when hidden',
+      validation: { schema: { type: 'boolean' }, defaultValue: false },
+      section: 'additionalActions',
     },
     disabledState: {
       type: 'toggle',
@@ -289,6 +316,26 @@ export const tableConfig = {
       },
       section: 'additionalActions',
     },
+    enableExpandableRows: {
+      type: 'toggle',
+      displayName: 'Enable expandable rows',
+      validation: {
+        schema: { type: 'boolean' },
+        defaultValue: false,
+      },
+    },
+    expansionHeight: {
+      type: 'number',
+      displayName: 'Expanded row height',
+      validation: {
+        schema: { type: 'number' },
+        defaultValue: 229,
+      },
+      conditionallyRender: {
+        key: 'enableExpandableRows',
+        value: true,
+      },
+    },
   },
   others: {
     showOnDesktop: { type: 'toggle', displayName: 'Show on desktop ' },
@@ -301,6 +348,7 @@ export const tableConfig = {
   events: {
     onRowHovered: { displayName: 'Row hovered' },
     onRowClicked: { displayName: 'Row clicked' },
+    onExpand: { displayName: 'Row expanded' },
     onBulkUpdate: { displayName: 'Save changes' },
     onPageChanged: { displayName: 'Page changed' },
     onSearch: { displayName: 'Search' },
@@ -350,6 +398,15 @@ export const tableConfig = {
       validation: {
         schema: { type: 'string' },
         defaultValue: 'var(--cc-primary-text)',
+      },
+      accordian: 'Data',
+    },
+    selectedRowColor: {
+      type: 'colorSwatches',
+      displayName: 'Selected row',
+      validation: {
+        schema: { type: 'string' },
+        defaultValue: 'var(--cc-surface2-surface)',
       },
       accordian: 'Data',
     },
@@ -469,6 +526,9 @@ export const tableConfig = {
     },
   },
   exposedVariables: {
+    isVisible: true,
+    isDisabled: false,
+    isLoading: false,
     selectedRow: {},
     changeSet: {},
     dataUpdates: [],
@@ -476,6 +536,8 @@ export const tableConfig = {
     searchText: '',
     selectedRows: [],
     filters: [],
+    lastExpandedRow: null,
+    currentExpandedRows: [],
   },
   actions: [
     {
@@ -570,6 +632,21 @@ export const tableConfig = {
     {
       handle: 'clearFilters',
       displayName: 'Clear filters',
+    },
+    {
+      handle: 'setDisable',
+      displayName: 'Set disable',
+      params: [{ handle: 'disable', displayName: 'Value', defaultValue: '{{false}}', type: 'toggle' }],
+    },
+    {
+      handle: 'setLoading',
+      displayName: 'Set loading',
+      params: [{ handle: 'loading', displayName: 'Value', defaultValue: '{{false}}', type: 'toggle' }],
+    },
+    {
+      handle: 'setVisibility',
+      displayName: 'Set visibility',
+      params: [{ handle: 'visible', displayName: 'Value', defaultValue: '{{false}}', type: 'toggle' }],
     },
   ],
   definition: {
@@ -728,11 +805,17 @@ export const tableConfig = {
       hideColumnSelectorButton: { value: '{{false}}' },
       defaultSelectedRow: { value: '{{{"id":1}}}' },
       showAddNewRowButton: { value: '{{true}}' },
+      showRefreshButton: { value: '{{false}}' },
       allowSelection: { value: '{{true}}' },
       visibility: { value: '{{true}}' },
+
+      collapseWhenHidden: { value: '{{false}}' },
       disabledState: { value: '{{false}}' },
       dynamicHeight: { value: `{{false}}` },
       selectRowOnCellEdit: { value: '{{false}}' },
+      enableExpandableRows: { value: '{{false}}' },
+      expansionHeight: { value: '{{229}}' },
+      disableRowDeselection: { value: '{{false}}' },
     },
     events: [],
     styles: {
@@ -740,6 +823,7 @@ export const tableConfig = {
       columnBackgroundColor: { value: 'var(--cc-surface1-surface)' },
       containerBackgroundColor: { value: 'var(--cc-surface1-surface)' },
       textColor: { value: 'var(--cc-primary-text)' },
+      selectedRowColor: { value: 'var(--cc-surface2-surface)' },
       columnHeaderWrap: { value: 'fixed' },
       headerCasing: { value: 'none' },
       actionButtonRadius: { value: '0' },

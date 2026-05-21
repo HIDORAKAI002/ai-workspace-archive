@@ -255,6 +255,31 @@ describe('LobeDeepSeekAnthropicAI', () => {
       expect(payload.thinking).toEqual({ type: 'disabled' });
       expect(payload.tool_choice).toEqual({ name: 'task_topic_handoff', type: 'tool' });
     });
+
+    it('should map reasoning_effort to output_config.effort', async () => {
+      await instance.generateObject({
+        ...generateObjectPayload,
+        reasoning_effort: 'high',
+      });
+
+      const payload = getLastRequestPayload();
+
+      expect(payload.output_config).toEqual({ effort: 'high' });
+      expect(payload.tool_choice).toEqual({ type: 'any' });
+    });
+
+    it('should omit output_config when thinking is disabled', async () => {
+      await instance.generateObject({
+        ...generateObjectPayload,
+        reasoning_effort: 'high',
+        thinking: { type: 'disabled' },
+      });
+
+      const payload = getLastRequestPayload();
+
+      expect(payload.output_config).toBeUndefined();
+      expect(payload.thinking).toEqual({ type: 'disabled' });
+    });
   });
 
   describe('handlePayload', () => {
@@ -796,6 +821,48 @@ describe('LobeDeepSeekAI - custom features', () => {
     it('should use tools calling for generateObject', () => {
       expect(openAIParams.generateObject).toBeDefined();
       expect(openAIParams.generateObject?.useToolsCalling).toBe(true);
+    });
+
+    it('should forward disabled thinking for generateObject DeepSeek requests', () => {
+      const requestPayload = {
+        messages: [{ role: 'user' as const, content: 'Hello' }],
+        model: 'deepseek-v4-pro',
+        reasoning_effort: 'high' as const,
+      };
+
+      const result = openAIParams.generateObject!.handlePayload!(
+        {
+          messages: [{ role: 'user', content: 'Hello' }],
+          model: 'deepseek-v4-pro',
+          thinking: { budget_tokens: 0, type: 'disabled' },
+        },
+        requestPayload,
+        {},
+      );
+
+      expect(result).toEqual(expect.objectContaining({ thinking: { type: 'disabled' } }));
+      expect(result).not.toHaveProperty('reasoning_effort');
+    });
+
+    it('should preserve reasoning_effort when generateObject thinking is enabled', () => {
+      const requestPayload = {
+        messages: [{ role: 'user' as const, content: 'Hello' }],
+        model: 'deepseek-v4-pro',
+        reasoning_effort: 'high' as const,
+      };
+
+      const result = openAIParams.generateObject!.handlePayload!(
+        {
+          messages: [{ role: 'user', content: 'Hello' }],
+          model: 'deepseek-v4-pro',
+          thinking: { budget_tokens: 1024, type: 'enabled' },
+        },
+        requestPayload,
+        {},
+      );
+
+      expect(result.reasoning_effort).toBe('high');
+      expect(result).toEqual(expect.objectContaining({ thinking: { type: 'enabled' } }));
     });
   });
 

@@ -406,9 +406,18 @@ export class AiAgentService {
     const agentSlug = agentConfig.slug;
     const builtinSlugs = Object.values(BUILTIN_AGENT_SLUGS) as string[];
     if (agentSlug && builtinSlugs.includes(agentSlug)) {
+      let userLocale: string | undefined;
+      try {
+        const userInfo = await UserModel.getInfoForAIGeneration(this.db, this.userId);
+        userLocale = userInfo.responseLanguage;
+      } catch (error) {
+        log('execAgent: failed to load user locale for builtin runtime config: %O', error);
+      }
+
       const runtimeConfig = getAgentRuntimeConfig(agentSlug, {
         model: agentConfig.model,
         plugins: agentConfig.plugins ?? [],
+        userLocale,
       });
       if (runtimeConfig) {
         // Runtime systemRole takes effect only if DB has no user-customized systemRole

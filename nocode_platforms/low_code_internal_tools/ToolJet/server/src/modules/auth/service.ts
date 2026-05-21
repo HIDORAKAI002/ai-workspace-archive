@@ -27,6 +27,7 @@ import { RequestContext } from '@modules/request-context/service';
 import { AUDIT_LOGS_REQUEST_CONTEXT_KEY } from '@modules/app/constants';
 import { decamelizeKeysExcept } from 'src/helpers/utils.helper';
 import { validatePasswordServer } from 'src/helpers/utils.helper';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService implements IAuthService {
@@ -58,7 +59,11 @@ export class AuthService implements IAuthService {
       invitingOrganizationId = organizationId;
       /* give access to the default organization */
       user = await this.userRepository.findByEmail(email, organizationId, [WORKSPACE_USER_STATUS.INVITED]);
-      if (!user) {
+      if (!user || !user.password) {
+        throw new UnauthorizedException('Invalid credentials');
+      }
+      const isPasswordMatching = await bcrypt.compare(password, user?.password);
+      if (!isPasswordMatching) {
         throw new UnauthorizedException('Invalid credentials');
       }
       organizationId = undefined;
@@ -235,7 +240,7 @@ export class AuthService implements IAuthService {
     }
   }
 
-  async forgotPassword(email: string) {
+  async forgotPassword(email: string, redirectTo?: string) {
     const user = await this.userRepository.findByEmail(email);
     if (!user) {
       // No need to throw error - To prevent Username Enumeration vulnerability
@@ -256,6 +261,8 @@ export class AuthService implements IAuthService {
         to: email,
         token: forgotPasswordToken,
         firstName: user.firstName,
+        organizationId: user.defaultOrganizationId,
+        ...(redirectTo && { redirectTo }),
       },
     });
   }

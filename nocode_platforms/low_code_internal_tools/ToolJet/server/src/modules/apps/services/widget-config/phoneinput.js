@@ -40,6 +40,12 @@ export const phoneinputConfig = {
       displayName: 'Enable country change',
       validation: { schema: { type: 'boolean' }, defaultValue: true },
     },
+    showClearBtn: {
+      type: 'toggle',
+      displayName: 'Enable clear button',
+      validation: { schema: { type: 'boolean' }, defaultValue: false },
+      section: 'additionalActions',
+    },
     loadingState: {
       type: 'toggle',
       displayName: 'Loading state',
@@ -50,6 +56,13 @@ export const phoneinputConfig = {
       type: 'toggle',
       displayName: 'Visibility',
       validation: { schema: { type: 'boolean' }, defaultValue: true },
+      section: 'additionalActions',
+    },
+
+    collapseWhenHidden: {
+      type: 'toggle',
+      displayName: 'Collapse when hidden',
+      validation: { schema: { type: 'boolean' }, defaultValue: false },
       section: 'additionalActions',
     },
     disabledState: {
@@ -292,10 +305,13 @@ export const phoneinputConfig = {
       label: { value: 'Label' },
       placeholder: { value: 'Enter your phone' },
       visibility: { value: '{{true}}' },
+
+      collapseWhenHidden: { value: '{{false}}' },
       disabledState: { value: '{{false}}' },
       loadingState: { value: '{{false}}' },
       tooltip: { value: '' },
       isCountryChangeEnabled: { value: '{{true}}' },
+      showClearBtn: { value: '{{false}}' },
     },
     events: [],
     styles: {

@@ -39,6 +39,13 @@ export const containerConfig = {
         defaultValue: true,
       },
     },
+
+    collapseWhenHidden: {
+      type: 'toggle',
+      displayName: 'Collapse when hidden',
+      validation: { schema: { type: 'boolean' }, defaultValue: false },
+      section: 'additionalActions',
+    },
     disabledState: {
       type: 'toggle',
       displayName: 'Disable',
@@ -62,7 +69,7 @@ export const containerConfig = {
       componentName: 'Text',
       slotName: 'header',
       layout: {
-        top: 20,
+        top: 10,
         left: 1,
         height: 40,
         width: 20,
@@ -170,15 +177,17 @@ export const containerConfig = {
       showHeader: { value: `{{true}}` },
       loadingState: { value: `{{false}}` },
       visibility: { value: '{{true}}' },
+
+      collapseWhenHidden: { value: '{{false}}' },
       disabledState: { value: '{{false}}' },
       dynamicHeight: { value: '{{false}}' },
-      headerHeight: { value: `{{80}}` },
+      headerHeight: { value: `{{60}}` },
     },
     events: [],
     styles: {
       backgroundColor: { value: 'var(--cc-surface1-surface)' },
       headerBackgroundColor: { value: 'var(--cc-surface1-surface)' },
-      headerDividerColor: { value: 'var(--cc-default-border)' },
+      headerDividerColor: { value: 'var(--cc-weak-border)' },
       borderRadius: { value: '6' },
       borderColor: { value: 'var(--cc-weak-border)' },
       boxShadow: { value: '0px 0px 0px 0px #00000040' },
