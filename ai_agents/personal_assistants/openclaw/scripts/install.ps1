@@ -389,8 +389,7 @@ function Add-ToUserPath {
 }
 
 function Get-PortableGitRoot {
-    $base = Join-Path $env:LOCALAPPDATA "OpenClaw\deps"
-    return (Join-Path $base "portable-git")
+    return (Join-Path (Get-OpenClawDepsRoot) "portable-git")
 }
 
 function Get-PortableGitCommandPath {
@@ -414,20 +413,41 @@ function Use-PortableGitIfPresent {
         return $false
     }
 
-    $portableRoot = Get-PortableGitRoot
-    foreach ($pathEntry in @(
-        (Join-Path $portableRoot "mingw64\bin"),
-        (Join-Path $portableRoot "usr\bin"),
-        (Split-Path -Parent $gitExe)
-    )) {
-        if (Test-Path $pathEntry) {
-            Add-ToProcessPath $pathEntry
-        }
+    foreach ($pathEntry in (Get-PortableGitPathEntries)) {
+        Add-ToProcessPath $pathEntry
     }
     if (Check-Git) {
         return $true
     }
     return $false
+}
+
+function Get-PortableGitPathEntries {
+    $gitExe = Get-PortableGitCommandPath
+    if (-not $gitExe) {
+        return @()
+    }
+
+    $portableRoot = Get-PortableGitRoot
+    $pathEntries = @(
+        (Join-Path $portableRoot "mingw64\bin"),
+        (Join-Path $portableRoot "usr\bin"),
+        (Split-Path -Parent $gitExe)
+    )
+    return ($pathEntries | Where-Object { Test-Path $_ } | Select-Object -Unique)
+}
+
+function Ensure-PortableGitOnUserPath {
+    $added = @()
+    foreach ($pathEntry in (Get-PortableGitPathEntries)) {
+        if (Add-ToUserPath $pathEntry) {
+            $added += $pathEntry
+        }
+    }
+
+    if ($added.Count -gt 0) {
+        Write-Host "[!] Added user-local Git to user PATH (restart terminal if git or git-backed updates are not found)" -ForegroundColor Yellow
+    }
 }
 
 function Resolve-PortableGitDownload {
@@ -458,6 +478,7 @@ function Resolve-PortableGitDownload {
 
 function Install-PortableGit {
     if (Use-PortableGitIfPresent) {
+        Ensure-PortableGitOnUserPath
         $portableVersion = (& git --version 2>$null)
         if ($portableVersion) {
             Write-Host "[OK] User-local Git already available: $portableVersion" -ForegroundColor Green
@@ -499,6 +520,7 @@ function Install-PortableGit {
     if (-not (Use-PortableGitIfPresent)) {
         throw "Portable Git bootstrap completed, but git is still unavailable."
     }
+    Ensure-PortableGitOnUserPath
 
     $portableVersion = (& git --version 2>$null)
     Write-Host "[OK] User-local Git ready: $portableVersion" -ForegroundColor Green
@@ -506,7 +528,10 @@ function Install-PortableGit {
 
 function Ensure-Git {
     if (Check-Git) { return $true }
-    if (Use-PortableGitIfPresent) { return $true }
+    if (Use-PortableGitIfPresent) {
+        Ensure-PortableGitOnUserPath
+        return $true
+    }
     try {
         Install-PortableGit
         if (Check-Git) {
@@ -598,6 +623,53 @@ function Get-PnpmCommandPath {
     return (Resolve-CommandPath -Candidates @("pnpm.cmd", "pnpm.exe", "pnpm"))
 }
 
+function Get-WindowsCommandSafeDirectory {
+    $userHome = [Environment]::GetFolderPath("UserProfile")
+    if (-not [string]::IsNullOrWhiteSpace($userHome) -and (Test-Path $userHome)) {
+        return $userHome
+    }
+    if (-not [string]::IsNullOrWhiteSpace($env:TEMP) -and (Test-Path $env:TEMP)) {
+        return $env:TEMP
+    }
+    return $null
+}
+
+function Invoke-CommandFromWindowsSafeDirectory {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$CommandPath,
+        [string[]]$Arguments = @()
+    )
+
+    $safeDir = Get-WindowsCommandSafeDirectory
+    $pushedLocation = $false
+    try {
+        if (-not [string]::IsNullOrWhiteSpace($safeDir)) {
+            Push-Location -LiteralPath $safeDir
+            $pushedLocation = $true
+        }
+        & $CommandPath @Arguments
+    } finally {
+        if ($pushedLocation) {
+            Pop-Location
+        }
+    }
+}
+
+function Invoke-NpmCommand {
+    param([string[]]$Arguments = @())
+    Invoke-CommandFromWindowsSafeDirectory -CommandPath (Get-NpmCommandPath) -Arguments $Arguments
+}
+
+function Invoke-CorepackCommand {
+    param([string[]]$Arguments = @())
+    $corepackCommand = Get-CorepackCommandPath
+    if (-not $corepackCommand) {
+        throw "corepack not found on PATH."
+    }
+    Invoke-CommandFromWindowsSafeDirectory -CommandPath $corepackCommand -Arguments $Arguments
+}
+
 function Get-NpmGlobalBinCandidates {
     param(
         [string]$NpmPrefix
@@ -622,7 +694,7 @@ function Ensure-OpenClawOnPath {
 
     $npmPrefix = $null
     try {
-        $npmPrefix = (& (Get-NpmCommandPath) config get prefix 2>$null).Trim()
+        $npmPrefix = (Invoke-NpmCommand -Arguments @("config", "get", "prefix") 2>$null).Trim()
     } catch {
         $npmPrefix = $null
     }
@@ -655,17 +727,81 @@ function Ensure-OpenClawOnPath {
     return $false
 }
 
+function Get-RepoPnpmVersion {
+    param([string]$RepoDir)
+
+    if ([string]::IsNullOrWhiteSpace($RepoDir)) {
+        return $null
+    }
+
+    $packageJsonPath = Join-Path $RepoDir "package.json"
+    if (-not (Test-Path $packageJsonPath)) {
+        return $null
+    }
+
+    try {
+        $packageJson = Get-Content -LiteralPath $packageJsonPath -Raw | ConvertFrom-Json
+        if ($packageJson.packageManager -match '^pnpm@(?<version>[^+]+)') {
+            return $Matches["version"]
+        }
+        if ($packageJson.devEngines -and $packageJson.devEngines.packageManager) {
+            $packageManager = $packageJson.devEngines.packageManager
+            if ($packageManager.name -eq "pnpm" -and -not [string]::IsNullOrWhiteSpace($packageManager.version)) {
+                return $packageManager.version
+            }
+        }
+    } catch {
+        return $null
+    }
+
+    return $null
+}
+
+function Test-PnpmCommandMatchesVersion {
+    param(
+        [string]$PnpmVersion,
+        [string]$RepoDir
+    )
+
+    $pnpmCommand = Get-PnpmCommandPath
+    if (-not $pnpmCommand) {
+        return $false
+    }
+    if ([string]::IsNullOrWhiteSpace($PnpmVersion)) {
+        return $true
+    }
+
+    $pushedLocation = $false
+    try {
+        if (-not [string]::IsNullOrWhiteSpace($RepoDir) -and (Test-Path $RepoDir)) {
+            Push-Location -LiteralPath $RepoDir
+            $pushedLocation = $true
+        }
+        $currentVersion = (& $pnpmCommand --version 2>$null)
+        return ($LASTEXITCODE -eq 0 -and $currentVersion -and $currentVersion.Trim() -eq $PnpmVersion)
+    } finally {
+        if ($pushedLocation) {
+            Pop-Location
+        }
+    }
+}
+
 function Ensure-Pnpm {
-    if (Get-PnpmCommandPath) {
+    param([string]$RepoDir)
+
+    $pnpmVersion = Get-RepoPnpmVersion -RepoDir $RepoDir
+    $pnpmSpec = if ([string]::IsNullOrWhiteSpace($pnpmVersion)) { "pnpm@latest" } else { "pnpm@$pnpmVersion" }
+
+    if (Test-PnpmCommandMatchesVersion -PnpmVersion $pnpmVersion -RepoDir $RepoDir) {
         return
     }
     $corepackCommand = Get-CorepackCommandPath
     if ($corepackCommand) {
         try {
-            & $corepackCommand enable | Out-Null
-            & $corepackCommand prepare pnpm@latest --activate | Out-Null
-            if (Get-PnpmCommandPath) {
-                Write-Host "[OK] pnpm installed via corepack" -ForegroundColor Green
+            Invoke-CorepackCommand -Arguments @("enable") | Out-Null
+            Invoke-CorepackCommand -Arguments @("prepare", $pnpmSpec, "--activate") | Out-Null
+            if (Test-PnpmCommandMatchesVersion -PnpmVersion $pnpmVersion -RepoDir $RepoDir) {
+                Write-Host "[OK] pnpm installed via corepack ($pnpmSpec)" -ForegroundColor Green
                 return
             }
         } catch {
@@ -676,14 +812,63 @@ function Ensure-Pnpm {
     $prevScriptShell = $env:NPM_CONFIG_SCRIPT_SHELL
     $env:NPM_CONFIG_SCRIPT_SHELL = "cmd.exe"
     try {
-        & (Get-NpmCommandPath) install -g pnpm
+        Invoke-NpmCommand -Arguments @("install", "-g", $pnpmSpec)
     } finally {
         $env:NPM_CONFIG_SCRIPT_SHELL = $prevScriptShell
+    }
+    if (-not (Test-PnpmCommandMatchesVersion -PnpmVersion $pnpmVersion -RepoDir $RepoDir)) {
+        throw "pnpm install completed, but $pnpmSpec is not first on PATH."
     }
     Write-Host "[OK] pnpm installed" -ForegroundColor Green
 }
 
 # Install OpenClaw
+function Resolve-LocalNpmPackagePath {
+    param([string]$PackagePath)
+
+    try {
+        return (Resolve-Path -LiteralPath $PackagePath -ErrorAction Stop).ProviderPath
+    } catch {
+        return [System.IO.Path]::GetFullPath($PackagePath)
+    }
+}
+
+function Resolve-LocalNpmPackageInstallSpec {
+    param([string]$InstallSpec)
+
+    if ([string]::IsNullOrWhiteSpace($InstallSpec)) {
+        return $InstallSpec
+    }
+    if ($InstallSpec -match '^file:(?<path>.+)$') {
+        $filePath = $Matches["path"]
+        if (
+            $filePath -match '^/' -or
+            $filePath -match '^\\\\' -or
+            $filePath -match '^[A-Za-z]:[\\/]'
+        ) {
+            return $InstallSpec
+        }
+        return ([System.Uri](Resolve-LocalNpmPackagePath -PackagePath $filePath)).AbsoluteUri
+    }
+    if (
+        $InstallSpec -match '^https?:' -or
+        $InstallSpec -match '^(git\+|github:)' -or
+        $InstallSpec -match '^[A-Za-z]:[\\/]' -or
+        $InstallSpec -match '^\\\\'
+    ) {
+        return $InstallSpec
+    }
+    if ($InstallSpec -notmatch '^\.\.?[\\/]' -and $InstallSpec -notmatch '\.tgz$') {
+        return $InstallSpec
+    }
+
+    try {
+        return (Resolve-LocalNpmPackagePath -PackagePath $InstallSpec)
+    } catch {
+        return $InstallSpec
+    }
+}
+
 function Resolve-NpmOpenClawInstallSpec {
     param(
         [string]$PackageName,
@@ -703,7 +888,7 @@ function Resolve-NpmOpenClawInstallSpec {
         $trimmedTag -match '^\.\.?[\\/]' -or
         $trimmedTag -match '\.tgz($|[?#])'
     ) {
-        return $trimmedTag
+        return (Resolve-LocalNpmPackageInstallSpec -InstallSpec $trimmedTag)
     }
 
     return "$PackageName@$trimmedTag"
@@ -760,9 +945,9 @@ function Install-OpenClaw {
     $installSpec = Resolve-NpmOpenClawInstallSpec -PackageName $packageName -RequestedTag $Tag
     Write-Host "[*] Installing OpenClaw ($installSpec)..." -ForegroundColor Yellow
     $freshnessArgs = @("--min-release-age=0")
-    $minReleaseAge = (& (Get-NpmCommandPath) config get min-release-age 2>$null)
+    $minReleaseAge = (Invoke-NpmCommand -Arguments @("config", "get", "min-release-age") 2>$null)
     if ($LASTEXITCODE -ne 0 -or -not $minReleaseAge -or $minReleaseAge.Trim() -eq "null" -or $minReleaseAge.Trim() -eq "undefined") {
-        $beforeValue = (& (Get-NpmCommandPath) config get before 2>$null)
+        $beforeValue = (Invoke-NpmCommand -Arguments @("config", "get", "before") 2>$null)
         if ($LASTEXITCODE -eq 0 -and $beforeValue -and $beforeValue.Trim() -ne "null" -and $beforeValue.Trim() -ne "undefined") {
             $freshnessArgs = @("--before=$((Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ"))")
         }
@@ -784,7 +969,7 @@ function Install-OpenClaw {
     Remove-Item Env:NPM_CONFIG_BEFORE -ErrorAction SilentlyContinue
     Remove-Item Env:NPM_CONFIG_MIN_RELEASE_AGE -ErrorAction SilentlyContinue
     try {
-        $npmOutput = & (Get-NpmCommandPath) install -g @freshnessArgs "$installSpec" 2>&1
+        $npmOutput = Invoke-NpmCommand -Arguments (@("install", "-g") + $freshnessArgs + @("$installSpec")) 2>&1
         if ($LASTEXITCODE -ne 0) {
             Write-Host "[!] npm install failed" -ForegroundColor Red
             if ($npmOutput -match "spawn git" -or $npmOutput -match "ENOENT.*git") {
@@ -821,7 +1006,6 @@ function Install-OpenClawFromGit {
     if (-not (Ensure-Git)) {
         return $false
     }
-    Ensure-Pnpm
 
     $repoUrl = "https://github.com/openclaw/openclaw.git"
     Write-Host "[*] Installing OpenClaw from GitHub ($repoUrl)..." -ForegroundColor Yellow
@@ -844,6 +1028,7 @@ function Install-OpenClawFromGit {
     } else {
         Write-Host "[!] Git update disabled; skipping git pull" -ForegroundColor Yellow
     }
+    Ensure-Pnpm -RepoDir $RepoDir
 
     Remove-LegacySubmodule -RepoDir $RepoDir
 
@@ -853,13 +1038,19 @@ function Install-OpenClawFromGit {
         throw "pnpm not found after installation."
     }
     $env:NPM_CONFIG_SCRIPT_SHELL = "cmd.exe"
+    $pushedRepoLocation = $false
     try {
-        & $pnpmCommand -C $RepoDir install
-        if (-not (& $pnpmCommand -C $RepoDir ui:build)) {
+        Push-Location -LiteralPath $RepoDir
+        $pushedRepoLocation = $true
+        & $pnpmCommand install
+        if (-not (& $pnpmCommand ui:build)) {
             Write-Host "[!] UI build failed; continuing (CLI may still work)" -ForegroundColor Yellow
         }
-        & $pnpmCommand -C $RepoDir build
+        & $pnpmCommand build
     } finally {
+        if ($pushedRepoLocation) {
+            Pop-Location
+        }
         $env:NPM_CONFIG_SCRIPT_SHELL = $prevPnpmScriptShell
     }
 
@@ -1006,7 +1197,7 @@ function Main {
         try {
             $npmCommand = Get-NpmCommandPath
             if ($npmCommand) {
-                & $npmCommand uninstall -g openclaw 2>$null | Out-Null
+                Invoke-NpmCommand -Arguments @("uninstall", "-g", "openclaw") 2>$null | Out-Null
                 Write-Host "[OK] Removed npm global install if present" -ForegroundColor Green
             }
         } catch { }
@@ -1046,7 +1237,7 @@ function Main {
     }
     if (-not $installedVersion) {
         try {
-            $npmList = & (Get-NpmCommandPath) list -g --depth 0 --json 2>$null | ConvertFrom-Json
+            $npmList = Invoke-NpmCommand -Arguments @("list", "-g", "--depth", "0", "--json") 2>$null | ConvertFrom-Json
             if ($npmList -and $npmList.dependencies -and $npmList.dependencies.openclaw -and $npmList.dependencies.openclaw.version) {
                 $installedVersion = $npmList.dependencies.openclaw.version
             }
