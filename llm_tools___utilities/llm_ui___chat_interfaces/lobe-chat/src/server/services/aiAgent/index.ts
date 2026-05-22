@@ -23,6 +23,7 @@ import type {
 } from '@lobechat/context-engine';
 import { SkillEngine } from '@lobechat/context-engine';
 import type { LobeChatDatabase } from '@lobechat/database';
+import { isRemoteHeterogeneousType } from '@lobechat/heterogeneous-agents';
 import { buildTaskManagerDefaultsPrompt } from '@lobechat/prompts';
 import type {
   ChatFileItem,
@@ -650,10 +651,11 @@ export class AiAgentService {
     const model = agentConfig.model!;
     const provider = agentConfig.provider!;
 
-    // 3.5. Hetero-agent early exit — Claude Code / Codex agents bypass the
+    // 3.5. Hetero-agent early exit — Claude Code / Codex / OpenClaw / Hermes agents bypass the
     // server-side LLM pipeline.  After topic + message creation we hand off to
     // the device gateway (desktop) or cloud sandbox, which will push events
-    // back via `heteroIngest` / `heteroFinish`.
+    // back via `heteroIngest` / `heteroFinish` (claude-code / codex) or
+    // `agentNotify.notify` (openclaw / hermes).
     //
     // Detection: prefer agencyConfig.heterogeneousProvider.type (set by the UI),
     // fall back to model field for backwards compatibility.
@@ -661,7 +663,12 @@ export class AiAgentService {
     const heteroProviderType = agentConfig.agencyConfig?.heterogeneousProvider?.type;
     const isHeteroAgent = !!heteroProviderType || HETERO_AGENT_MODELS.has(model);
     if (isHeteroAgent) {
-      const heteroType = (heteroProviderType ?? model) as 'claude-code' | 'codex';
+      const heteroType = (heteroProviderType ?? model) as
+        | 'claude-code'
+        | 'codex'
+        | 'hermes'
+        | 'openclaw';
+      const isRemoteHetero = isRemoteHeterogeneousType(heteroType);
       const operationId = nanoid();
 
       // Create user message so the conversation is visible in the UI immediately.
@@ -676,12 +683,14 @@ export class AiAgentService {
           });
 
       // Create an assistant message placeholder (shows spinner in the UI).
+      // For remote hetero agents (openclaw/hermes), override provider with the hetero type
+      // so the frontend can identify the platform and display the correct name in the model tag.
       const assistantMsg = await this.messageModel.create({
         agentId: resolvedAgentId,
         content: LOADING_FLAT,
         model,
         parentId: parentMessageId ?? userMsg?.id,
-        provider,
+        provider: isRemoteHetero ? heteroType : provider,
         role: 'assistant',
         threadId: appContext?.threadId ?? undefined,
         topicId,
@@ -746,6 +755,9 @@ export class AiAgentService {
         userId: this.userId,
       };
 
+      const remoteDeviceId =
+        requestedDeviceId || agentConfig.agencyConfig?.boundDeviceId || undefined;
+
       // Seed topic.metadata.runningOperation so heteroIngest can validate the operation.
       // completionWebhook is stored so heteroFinish can call back to the IM bot-callback
       // endpoint even though the hetero path bypasses the normal hook registration flow.
@@ -753,14 +765,111 @@ export class AiAgentService {
         runningOperation: {
           assistantMessageId: assistantMsg.id,
           completionWebhook: hooks?.find((h) => h.type === 'onComplete')?.webhook,
+          // Store deviceId + heteroType so interruptTask can cancel remote processes
+          ...(isRemoteHetero && remoteDeviceId
+            ? { deviceId: remoteDeviceId, heteroType }
+            : undefined),
           operationId,
           scope: appContext?.scope ?? undefined,
           threadId: appContext?.threadId ?? undefined,
         },
       });
 
-      if (requestedDeviceId) {
-        // Dispatch to the user's connected desktop via device-gateway.
+      // Remote hetero agents (openclaw / hermes) dispatch to the device identified
+      // by agencyConfig.boundDeviceId and communicate back via agentNotify.notify.
+      // They always go through the gateway WS channel — open the stream now so the
+      // frontend can subscribe before the first lh notify arrives.
+
+      if (isRemoteHetero) {
+        if (!remoteDeviceId) {
+          log('execAgent: openclaw/hermes requires a bound device (boundDeviceId not set)');
+          await this.messageModel.update(assistantMsg.id, {
+            content: '',
+            error: {
+              body: { detail: 'No device bound to this agent. Configure boundDeviceId.' },
+              message: 'No bound device for remote hetero agent',
+              type: 'ServerAgentRuntimeError',
+            },
+          });
+          return {
+            agentId: resolvedAgentId,
+            assistantMessageId: assistantMsg.id,
+            autoStarted: false,
+            createdAt: new Date().toISOString(),
+            error: 'No bound device',
+            message: 'Remote hetero agent requires boundDeviceId',
+            operationId,
+            status: 'error',
+            success: false,
+            timestamp: new Date().toISOString(),
+            topicId,
+            userMessageId: userMsg?.id ?? parentMessageId ?? '',
+          };
+        }
+
+        // Open the stream channel so the gateway WS subscription can receive
+        // notify_update events published by agentNotify.notify.
+        const { createStreamEventManager } = await import('@/server/modules/AgentRuntime/factory');
+        const streamManager = createStreamEventManager();
+        await streamManager
+          .publishAgentRuntimeInit(operationId, {
+            agentId: resolvedAgentId,
+            assistantMessageId: assistantMsg.id,
+            heteroType,
+            topicId,
+            userId: this.userId,
+          })
+          .catch((err) => log('execAgent: failed to init stream for remote hetero: %O', err));
+
+        // lh connect only handles tool_call_request (not agent_run_request),
+        // so we use executeToolCall with the runHeteroTask tool instead of dispatchAgentRun.
+        const result = await deviceProxy.executeToolCall(
+          { deviceId: remoteDeviceId, userId: this.userId },
+          {
+            apiName: 'runHeteroTask',
+            arguments: JSON.stringify({
+              agentId: resolvedAgentId,
+              agentType: heteroType,
+              cwd: undefined,
+              operationId,
+              prompt,
+              taskId: operationId,
+              topicId,
+            }),
+            identifier: 'runHeteroTask',
+          },
+          120_000, // hetero tasks can take longer than the default 30 s
+        );
+        if (!result.success) {
+          log('execAgent: remote hetero dispatch failed: %s', result.error);
+          await streamManager
+            .publishAgentRuntimeEnd(operationId, 0, { error: result.error }, 'error', result.error)
+            .catch(() => {});
+          await this.messageModel.update(assistantMsg.id, {
+            content: '',
+            error: {
+              body: { detail: result.error },
+              message: result.error ?? 'Device dispatch failed',
+              type: 'ServerAgentRuntimeError',
+            },
+          });
+          return {
+            agentId: resolvedAgentId,
+            assistantMessageId: assistantMsg.id,
+            autoStarted: false,
+            createdAt: new Date().toISOString(),
+            error: result.error,
+            message: 'Remote hetero agent dispatch failed',
+            operationId,
+            status: 'error',
+            success: false,
+            timestamp: new Date().toISOString(),
+            topicId,
+            userMessageId: userMsg?.id ?? parentMessageId ?? '',
+          };
+        }
+      } else if (requestedDeviceId) {
+        // Local CLI (claude-code / codex) — dispatch to user's connected desktop.
         const result = await deviceProxy.dispatchAgentRun({
           ...heteroParams,
           deviceId: requestedDeviceId,
@@ -791,10 +900,15 @@ export class AiAgentService {
           };
         }
       } else {
-        // Cloud sandbox path — fire-and-forget; errors surfaced via heteroFinish.
+        // Cloud sandbox path — only for local CLI agents (claude-code / codex).
+        // Remote agents (openclaw / hermes) always require a bound device.
         const { spawnHeteroSandbox } =
           await import('@/server/services/heterogeneousAgent/sandboxRunner');
-        spawnHeteroSandbox({ ...heteroParams, marketService: this.marketService }).catch((err) => {
+        spawnHeteroSandbox({
+          ...heteroParams,
+          agentType: heteroType as 'claude-code' | 'codex',
+          marketService: this.marketService,
+        }).catch((err) => {
           log('execAgent: hetero sandbox spawn failed: %O', err);
         });
       }
@@ -1892,8 +2006,9 @@ export class AiAgentService {
     );
 
     // 18. Build OperationSkillSet via SkillEngine
-    // Combines builtin skills + user DB skills, filters by platform via enableChecker,
-    // and pairs with agent's enabled plugin IDs for downstream SkillResolver consumption.
+    // Combines builtin skills + user DB skills + agent-document skill bundles,
+    // filters by platform via enableChecker, and pairs with agent's enabled
+    // plugin IDs for downstream SkillResolver consumption.
     let operationSkillSet;
     try {
       const builtinMetas = builtinSkills.map((s) => ({
@@ -1910,9 +2025,23 @@ export class AiAgentService {
         name: s.name,
       }));
 
+      // Agent-document skill bundles surfaced as runtime skills via the shared
+      // `getAgentSkills` source of truth (prefix + index-child resolution lives
+      // there; see `AgentDocumentsService.getAgentSkills`). Identifier is
+      // prefixed (`agent-skills:<filename>`) so it can't collide with builtin
+      // / DB skill names, and we re-use it as `name` so the prompt's
+      // `<skill name="...">` line and the model's `activateSkill(name)` call
+      // carry the same value.
+      const agentSkills = await this.agentDocumentsService.getAgentSkills(resolvedAgentId);
+      const agentSkillMetas = agentSkills.map((skill) => ({
+        description: skill.description,
+        identifier: skill.identifier,
+        name: skill.name,
+      }));
+
       const skillEngine = new SkillEngine({
         enableChecker: (skill) => shouldEnableBuiltinSkill(skill.identifier),
-        skills: [...builtinMetas, ...dbMetas],
+        skills: [...builtinMetas, ...dbMetas, ...agentSkillMetas],
       });
       operationSkillSet = skillEngine.generate(agentPlugins ?? []);
     } catch (error) {
@@ -2549,8 +2678,9 @@ export class AiAgentService {
   async interruptTask(params: {
     operationId?: string;
     threadId?: string;
+    topicId?: string;
   }): Promise<{ operationId?: string; success: boolean; threadId?: string }> {
-    const { threadId, operationId } = params;
+    const { threadId, operationId, topicId } = params;
 
     log('interruptTask: threadId=%s, operationId=%s', threadId, operationId);
 
@@ -2570,7 +2700,43 @@ export class AiAgentService {
       throw new Error('Operation ID not found');
     }
 
-    // 2. Interrupt the runtime operation first. Only mark the thread cancelled
+    // 2. Cancel remote hetero process (openclaw / hermes) if applicable.
+    // Check topic.metadata.runningOperation for device + heteroType info seeded by execAgent.
+    // This runs regardless of whether interruptOperation succeeds — the remote process
+    // is independent of the local operation registry.
+    if (topicId) {
+      const topic = await this.topicModel.findById(topicId);
+      const runningOp = (topic?.metadata as any)?.runningOperation as
+        | { deviceId?: string; heteroType?: string; operationId?: string }
+        | undefined;
+
+      if (
+        runningOp?.deviceId &&
+        runningOp.heteroType &&
+        isRemoteHeterogeneousType(runningOp.heteroType)
+      ) {
+        const taskId = runningOp.operationId ?? resolvedOperationId;
+        log(
+          'interruptTask: cancelling remote hetero process heteroType=%s deviceId=%s taskId=%s',
+          runningOp.heteroType,
+          runningOp.deviceId,
+          taskId,
+        );
+        await deviceProxy
+          .executeToolCall(
+            { deviceId: runningOp.deviceId, userId: this.userId },
+            {
+              apiName: 'cancelHeteroTask',
+              arguments: JSON.stringify({ signal: 'SIGINT', taskId }),
+              identifier: 'cancelHeteroTask',
+            },
+            5_000,
+          )
+          .catch((err) => log('interruptTask: cancelHeteroTask dispatch failed: %O', err));
+      }
+    }
+
+    // 3. Interrupt the runtime operation first. Only mark the thread cancelled
     // after the runtime acknowledges the interrupt to avoid unlocking a live task.
     const interrupted = await this.agentRuntimeService.interruptOperation(resolvedOperationId);
     log(
@@ -2589,7 +2755,7 @@ export class AiAgentService {
       };
     }
 
-    // 3. Update Thread status to cancel
+    // 4. Update Thread status to cancel
     if (thread) {
       await this.threadModel.update(thread.id, {
         metadata: {
