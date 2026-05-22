@@ -106,7 +106,10 @@ import {
 } from "./compaction-safety-timeout.js";
 import { resolveContextEngineCapabilities } from "./context-engine-capabilities.js";
 import { runContextEngineMaintenance } from "./context-engine-maintenance.js";
-import { hasMessagingToolDeliveryEvidence } from "./delivery-evidence.js";
+import {
+  hasMessagingToolDeliveryEvidence,
+  hasOutboundDeliveryEvidence,
+} from "./delivery-evidence.js";
 import { resolveEmbeddedRunFailureSignal } from "./failure-signal.js";
 import { resolveGlobalLane, resolveSessionLane } from "./lanes.js";
 import { log } from "./logger.js";
@@ -251,6 +254,7 @@ function normalizeEmbeddedRunAttemptResult(
   const raw = attempt as EmbeddedRunAttemptForRunner & {
     assistantTexts?: EmbeddedRunAttemptForRunner["assistantTexts"] | null;
     toolMetas?: EmbeddedRunAttemptForRunner["toolMetas"] | null;
+    acceptedSessionSpawns?: EmbeddedRunAttemptForRunner["acceptedSessionSpawns"] | null;
     messagesSnapshot?: EmbeddedRunAttemptForRunner["messagesSnapshot"] | null;
     messagingToolSentTexts?: EmbeddedRunAttemptForRunner["messagingToolSentTexts"] | null;
     messagingToolSentMediaUrls?: EmbeddedRunAttemptForRunner["messagingToolSentMediaUrls"] | null;
@@ -264,6 +268,7 @@ function normalizeEmbeddedRunAttemptResult(
     ...attempt,
     assistantTexts: raw.assistantTexts ?? [],
     toolMetas: raw.toolMetas ?? [],
+    acceptedSessionSpawns: raw.acceptedSessionSpawns ?? [],
     messagesSnapshot: raw.messagesSnapshot ?? [],
     messagingToolSentTexts: raw.messagingToolSentTexts ?? [],
     messagingToolSentMediaUrls: raw.messagingToolSentMediaUrls ?? [],
@@ -283,7 +288,7 @@ function hasCompletedModelProgressForIdleBreaker(attempt: EmbeddedRunAttemptForR
     attempt.assistantTexts.some((text) => text.trim().length > 0) ||
     attempt.toolMetas.length > 0 ||
     (attempt.clientToolCalls?.length ?? 0) > 0 ||
-    hasMessagingToolDeliveryEvidence(attempt) ||
+    hasOutboundDeliveryEvidence(attempt) ||
     attempt.itemLifecycle.completedCount > 0
   );
 }
@@ -1652,7 +1657,7 @@ export async function runEmbeddedPiAgent(
               ? sessionLastAssistant.errorMessage?.trim() || formattedAssistantErrorText
               : undefined;
           const canRestartForLiveSwitch =
-            !hasMessagingToolDeliveryEvidence(attempt) &&
+            !hasOutboundDeliveryEvidence(attempt) &&
             !attempt.didSendDeterministicApprovalPrompt &&
             !attempt.lastToolError &&
             (attempt.toolMetas?.length ?? 0) === 0 &&
@@ -2686,20 +2691,25 @@ export async function runEmbeddedPiAgent(
           // partial assistant fragment. Emit an explicit timeout error instead,
           // preserving any tool payloads that succeeded before the timeout.
           if (timedOutDuringPrompt && !hasMessagingToolDeliveryEvidence(attempt)) {
-            const timeoutText = idleTimedOut
+            const defaultTimeoutText = idleTimedOut
               ? "The model did not produce a response before the model idle timeout. " +
                 "Please try again, or increase `models.providers.<id>.timeoutSeconds` for slow local or self-hosted providers. " +
                 "If `agents.defaults.timeoutSeconds` or a run-specific timeout is lower, raise that ceiling too; provider timeouts cannot extend the whole agent run."
               : "Request timed out before a response was generated. " +
                 "Please try again, or increase `agents.defaults.timeoutSeconds` in your config.";
-            const replayInvalid = resolveReplayInvalidForAttempt(null);
-            const livenessState = resolveRunLivenessState({
-              payloadCount: hasPartialAssistantTextAfterPromptTimeout ? 0 : payloads.length,
-              aborted,
-              timedOut,
-              attempt,
-              incompleteTurnText: null,
-            });
+            const promptTimeoutMessage = attempt.promptTimeoutOutcome?.message?.trim();
+            const timeoutText = promptTimeoutMessage || defaultTimeoutText;
+            const replayInvalid =
+              attempt.promptTimeoutOutcome?.replayInvalid ?? resolveReplayInvalidForAttempt(null);
+            const livenessState =
+              attempt.promptTimeoutOutcome?.livenessState ??
+              resolveRunLivenessState({
+                payloadCount: hasPartialAssistantTextAfterPromptTimeout ? 0 : payloads.length,
+                aborted,
+                timedOut,
+                attempt,
+                incompleteTurnText: null,
+              });
             attempt.setTerminalLifecycleMeta?.({
               replayInvalid,
               livenessState,
@@ -2734,6 +2744,7 @@ export async function runEmbeddedPiAgent(
               messagingToolSourceReplyPayloads: attempt.messagingToolSourceReplyPayloads,
               heartbeatToolResponse: attempt.heartbeatToolResponse,
               successfulCronAdds: attempt.successfulCronAdds,
+              acceptedSessionSpawns: attempt.acceptedSessionSpawns,
             };
           }
 
@@ -2957,6 +2968,7 @@ export async function runEmbeddedPiAgent(
               messagingToolSourceReplyPayloads: attempt.messagingToolSourceReplyPayloads,
               heartbeatToolResponse: attempt.heartbeatToolResponse,
               successfulCronAdds: attempt.successfulCronAdds,
+              acceptedSessionSpawns: attempt.acceptedSessionSpawns,
             };
           }
           if (reasoningOnlyRetriesExhausted && !finalAssistantVisibleText) {
@@ -3009,6 +3021,7 @@ export async function runEmbeddedPiAgent(
               messagingToolSourceReplyPayloads: attempt.messagingToolSourceReplyPayloads,
               heartbeatToolResponse: attempt.heartbeatToolResponse,
               successfulCronAdds: attempt.successfulCronAdds,
+              acceptedSessionSpawns: attempt.acceptedSessionSpawns,
             };
           }
           if (
@@ -3120,6 +3133,7 @@ export async function runEmbeddedPiAgent(
               messagingToolSourceReplyPayloads: attempt.messagingToolSourceReplyPayloads,
               heartbeatToolResponse: attempt.heartbeatToolResponse,
               successfulCronAdds: attempt.successfulCronAdds,
+              acceptedSessionSpawns: attempt.acceptedSessionSpawns,
             };
           }
 
@@ -3236,6 +3250,7 @@ export async function runEmbeddedPiAgent(
             messagingToolSourceReplyPayloads: attempt.messagingToolSourceReplyPayloads,
             heartbeatToolResponse: attempt.heartbeatToolResponse,
             successfulCronAdds: attempt.successfulCronAdds,
+            acceptedSessionSpawns: attempt.acceptedSessionSpawns,
           };
         }
       } finally {
