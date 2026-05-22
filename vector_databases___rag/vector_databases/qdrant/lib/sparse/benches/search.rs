@@ -19,7 +19,6 @@ use sparse::common::types::QuantizedU8;
 use sparse::index::inverted_index::InvertedIndex;
 use sparse::index::inverted_index::inverted_index_compressed_immutable_ram::InvertedIndexCompressedImmutableRam;
 use sparse::index::inverted_index::inverted_index_compressed_mmap::InvertedIndexCompressedMmap;
-use sparse::index::inverted_index::inverted_index_mmap::InvertedIndexMmap;
 use sparse::index::inverted_index::inverted_index_ram::InvertedIndexRam;
 use sparse::index::inverted_index::inverted_index_ram_builder::InvertedIndexBuilder;
 use sparse::index::loaders::{self, Csr};
@@ -137,21 +136,6 @@ pub fn run_bench(
         &hottest_query_vectors,
     );
 
-    run_bench2(
-        c.benchmark_group(format!("search/mmap/{name}")),
-        &InvertedIndexMmap::from_ram_index(
-            Cow::Borrowed(&index),
-            tempfile::Builder::new()
-                .prefix("test_index_dir")
-                .tempdir()
-                .unwrap()
-                .path(),
-        )
-        .unwrap(),
-        query_vectors,
-        &hottest_query_vectors,
-    );
-
     macro_rules! run_bench2 {
         ($name:literal, $type:ty) => {
             run_bench2(
@@ -206,6 +190,7 @@ fn run_bench2(
             || it.next().unwrap().clone().into_remapped(),
             |vec| {
                 SearchContext::new(vec, TOP, index, pool.get(), &stopped, &hardware_counter)
+                    .unwrap()
                     .search(&|_| true)
             },
             criterion::BatchSize::SmallInput,
@@ -220,6 +205,7 @@ fn run_bench2(
             || it.next().unwrap().clone(),
             |vec| {
                 SearchContext::new(vec, TOP, index, pool.get(), &stopped, &hardware_counter)
+                    .unwrap()
                     .search(&|_| true)
             },
             criterion::BatchSize::SmallInput,

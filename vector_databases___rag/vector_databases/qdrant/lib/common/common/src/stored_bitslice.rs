@@ -15,7 +15,8 @@ use itertools::Itertools;
 use crate::bitvec::BitVec;
 use crate::generic_consts::Random;
 use crate::universal_io::{
-    Flusher, OpenOptions, ReadRange, Result, UniversalIoError, UniversalRead, UniversalWrite,
+    Flusher, OpenOptions, ReadRange, Result, TypedStorage, UniversalIoError, UniversalRead,
+    UniversalWrite,
 };
 
 /// Number of bits per `BitStore` element.
@@ -35,15 +36,15 @@ pub type MmapBitSlice = StoredBitSlice<crate::universal_io::MmapFile>;
 /// on the backend.
 #[derive(Debug)]
 pub struct StoredBitSlice<S> {
-    storage: S,
+    storage: TypedStorage<S, BitStore>,
     /// Total number of `BitStore` elements in the underlying storage.
     element_len: u64,
 }
 
-impl<S: UniversalRead<BitStore>> StoredBitSlice<S> {
+impl<S: UniversalRead> StoredBitSlice<S> {
     /// Open a bitslice storage from the given path using backend `S`.
     pub fn open(path: impl AsRef<Path>, options: OpenOptions) -> Result<Self> {
-        let storage = S::open(path, options)?;
+        let storage = TypedStorage::open(path, options)?;
         let element_len = storage.len()?;
         Ok(Self {
             storage,
@@ -171,7 +172,7 @@ impl<S: UniversalRead<BitStore>> StoredBitSlice<S> {
     }
 }
 
-impl<S: UniversalWrite<u64>> StoredBitSlice<S> {
+impl<S: UniversalWrite> StoredBitSlice<S> {
     /// Set multiple individual bits in a batch.
     ///
     /// Each `(bit_index, value)` pair sets a single bit. Bits within the same
@@ -352,7 +353,8 @@ mod tests {
         ];
         let f = create_temp_file(&data);
 
-        let storage: MmapBitSlice = StoredBitSlice::open(f.path(), OpenOptions::default()).unwrap();
+        let storage: MmapBitSlice =
+            StoredBitSlice::open(f.path(), OpenOptions::new_for_test()).unwrap();
 
         assert_eq!(storage.element_len(), 2);
         assert_eq!(storage.bit_len(), 128);
@@ -405,7 +407,8 @@ mod tests {
         let data = [0xB2u8]; // 0b10110010
         let f = create_temp_file(&data);
 
-        let storage: MmapBitSlice = StoredBitSlice::open(f.path(), OpenOptions::default()).unwrap();
+        let storage: MmapBitSlice =
+            StoredBitSlice::open(f.path(), OpenOptions::new_for_test()).unwrap();
 
         // Lsb0: 0xB2 = bits [0,1,0,0,1,1,0,1]
         assert_eq!(storage.get_bit(0).unwrap(), Some(false));
@@ -424,7 +427,7 @@ mod tests {
         let f = create_temp_file(&[0x00; 8]);
 
         let mut storage: MmapBitSlice =
-            StoredBitSlice::open(f.path(), OpenOptions::default()).unwrap();
+            StoredBitSlice::open(f.path(), OpenOptions::new_for_test()).unwrap();
 
         // Set bit 3
         storage.replace_bit(3, true).unwrap();
@@ -441,7 +444,7 @@ mod tests {
         let f = create_temp_file(&[0x00; 8]);
 
         let mut storage: MmapBitSlice =
-            StoredBitSlice::open(f.path(), OpenOptions::default()).unwrap();
+            StoredBitSlice::open(f.path(), OpenOptions::new_for_test()).unwrap();
 
         assert!(storage.replace_bit(storage.bit_len(), true).is_err());
     }
@@ -450,7 +453,7 @@ mod tests {
     fn test_replace_bit() {
         let f = create_temp_file(&[0xFF; 8]); // all bits set
         let mut storage: MmapBitSlice =
-            StoredBitSlice::open(f.path(), OpenOptions::default()).unwrap();
+            StoredBitSlice::open(f.path(), OpenOptions::new_for_test()).unwrap();
 
         // Replace bit 2 (was true) with false
         let old = storage.replace_bit(2, false).unwrap();
@@ -469,7 +472,7 @@ mod tests {
         let f = create_temp_file(&[0x00; (NUM_BITS / 8) as usize]);
 
         let mut storage: MmapBitSlice =
-            StoredBitSlice::open(f.path(), OpenOptions::default()).unwrap();
+            StoredBitSlice::open(f.path(), OpenOptions::new_for_test()).unwrap();
         assert_eq!(storage.bit_len(), NUM_BITS);
 
         /// Verify every bit in storage matches the predicate.
@@ -546,14 +549,14 @@ mod tests {
         let f = create_temp_file(&[0x00; 8]);
 
         let mut storage: MmapBitSlice =
-            StoredBitSlice::open(f.path(), OpenOptions::default()).unwrap();
+            StoredBitSlice::open(f.path(), OpenOptions::new_for_test()).unwrap();
 
         storage.replace_bit(0, true).unwrap();
         storage.flusher()().unwrap();
 
         // Reopen and verify persistence
         let storage2: MmapBitSlice =
-            StoredBitSlice::open(f.path(), OpenOptions::default()).unwrap();
+            StoredBitSlice::open(f.path(), OpenOptions::new_for_test()).unwrap();
         assert_eq!(storage2.get_bit(0).unwrap(), Some(true));
     }
 
@@ -561,7 +564,8 @@ mod tests {
     fn test_bit_len() {
         let f = create_temp_file(&[0u8; 16]); // 2 u64 elements
 
-        let storage: MmapBitSlice = StoredBitSlice::open(f.path(), OpenOptions::default()).unwrap();
+        let storage: MmapBitSlice =
+            StoredBitSlice::open(f.path(), OpenOptions::new_for_test()).unwrap();
 
         assert_eq!(storage.element_len(), 2);
         assert_eq!(storage.bit_len(), 128);
@@ -572,7 +576,8 @@ mod tests {
         let data = [0xAB, 0xCD, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
         let f = create_temp_file(&data);
 
-        let storage: MmapBitSlice = StoredBitSlice::open(f.path(), OpenOptions::default()).unwrap();
+        let storage: MmapBitSlice =
+            StoredBitSlice::open(f.path(), OpenOptions::new_for_test()).unwrap();
 
         let bs = storage.read_all().unwrap();
         assert_eq!(bs.len(), storage.bit_len() as usize);

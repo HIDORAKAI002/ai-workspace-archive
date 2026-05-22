@@ -1,7 +1,7 @@
 use common::bitvec::BitSlice;
 use common::generic_consts::AccessPattern;
 use common::types::PointOffsetType;
-use common::universal_io::UniversalReadFamily;
+use common::universal_io::UniversalRead;
 
 use crate::data_types::named_vectors::CowVector;
 use crate::data_types::vectors::{VectorElementType, VectorElementTypeByte, VectorElementTypeHalf};
@@ -16,36 +16,20 @@ use crate::vector_storage::sparse::read_only::sparse_vector_storage::ReadOnlySpa
 ///
 /// Wraps each on-disk storage type with its [`super`] read-only variant.
 /// Volatile, empty and test-only variants are intentionally absent.
-pub enum VectorStorageReadEnum<S: UniversalReadFamily> {
-    Dense(Box<DenseVectorStorageImpl<VectorElementType, S::Read<VectorElementType>>>),
-    DenseByte(Box<DenseVectorStorageImpl<VectorElementTypeByte, S::Read<VectorElementTypeByte>>>),
-    DenseHalf(Box<DenseVectorStorageImpl<VectorElementTypeHalf, S::Read<VectorElementTypeHalf>>>),
-    DenseChunked(
-        Box<ReadOnlyChunkedDenseVectorStorage<VectorElementType, S::Read<VectorElementType>>>,
-    ),
-    DenseChunkedByte(
-        Box<
-            ReadOnlyChunkedDenseVectorStorage<
-                VectorElementTypeByte,
-                S::Read<VectorElementTypeByte>,
-            >,
-        >,
-    ),
-    DenseChunkedHalf(
-        Box<
-            ReadOnlyChunkedDenseVectorStorage<
-                VectorElementTypeHalf,
-                S::Read<VectorElementTypeHalf>,
-            >,
-        >,
-    ),
+pub enum VectorStorageReadEnum<S: UniversalRead> {
+    Dense(Box<DenseVectorStorageImpl<VectorElementType, S>>),
+    DenseByte(Box<DenseVectorStorageImpl<VectorElementTypeByte, S>>),
+    DenseHalf(Box<DenseVectorStorageImpl<VectorElementTypeHalf, S>>),
+    DenseChunked(Box<ReadOnlyChunkedDenseVectorStorage<VectorElementType, S>>),
+    DenseChunkedByte(Box<ReadOnlyChunkedDenseVectorStorage<VectorElementTypeByte, S>>),
+    DenseChunkedHalf(Box<ReadOnlyChunkedDenseVectorStorage<VectorElementTypeHalf, S>>),
     MultiDenseChunked(Box<ReadOnlyChunkedMultiDenseVectorStorage<VectorElementType, S>>),
     MultiDenseChunkedByte(Box<ReadOnlyChunkedMultiDenseVectorStorage<VectorElementTypeByte, S>>),
     MultiDenseChunkedHalf(Box<ReadOnlyChunkedMultiDenseVectorStorage<VectorElementTypeHalf, S>>),
-    Sparse(Box<ReadOnlySparseVectorStorage>),
+    Sparse(Box<ReadOnlySparseVectorStorage<S>>),
 }
 
-impl<S: UniversalReadFamily> VectorStorageRead for VectorStorageReadEnum<S> {
+impl<S: UniversalRead> VectorStorageRead for VectorStorageReadEnum<S> {
     fn distance(&self) -> Distance {
         match self {
             VectorStorageReadEnum::Dense(s) => s.distance(),
@@ -121,22 +105,26 @@ impl<S: UniversalReadFamily> VectorStorageRead for VectorStorageReadEnum<S> {
         }
     }
 
-    fn read_vectors<P: AccessPattern>(
+    fn read_vectors<P: AccessPattern, U: Copy>(
         &self,
-        keys: impl IntoIterator<Item = PointOffsetType>,
-        callback: impl FnMut(PointOffsetType, CowVector<'_>),
+        keys: impl IntoIterator<Item = (U, PointOffsetType)>,
+        callback: impl FnMut(U, PointOffsetType, CowVector<'_>),
     ) {
         match self {
-            VectorStorageReadEnum::Dense(s) => s.read_vectors::<P>(keys, callback),
-            VectorStorageReadEnum::DenseByte(s) => s.read_vectors::<P>(keys, callback),
-            VectorStorageReadEnum::DenseHalf(s) => s.read_vectors::<P>(keys, callback),
-            VectorStorageReadEnum::DenseChunked(s) => s.read_vectors::<P>(keys, callback),
-            VectorStorageReadEnum::DenseChunkedByte(s) => s.read_vectors::<P>(keys, callback),
-            VectorStorageReadEnum::DenseChunkedHalf(s) => s.read_vectors::<P>(keys, callback),
-            VectorStorageReadEnum::MultiDenseChunked(s) => s.read_vectors::<P>(keys, callback),
-            VectorStorageReadEnum::MultiDenseChunkedByte(s) => s.read_vectors::<P>(keys, callback),
-            VectorStorageReadEnum::MultiDenseChunkedHalf(s) => s.read_vectors::<P>(keys, callback),
-            VectorStorageReadEnum::Sparse(s) => s.read_vectors::<P>(keys, callback),
+            VectorStorageReadEnum::Dense(s) => s.read_vectors::<P, U>(keys, callback),
+            VectorStorageReadEnum::DenseByte(s) => s.read_vectors::<P, U>(keys, callback),
+            VectorStorageReadEnum::DenseHalf(s) => s.read_vectors::<P, U>(keys, callback),
+            VectorStorageReadEnum::DenseChunked(s) => s.read_vectors::<P, U>(keys, callback),
+            VectorStorageReadEnum::DenseChunkedByte(s) => s.read_vectors::<P, U>(keys, callback),
+            VectorStorageReadEnum::DenseChunkedHalf(s) => s.read_vectors::<P, U>(keys, callback),
+            VectorStorageReadEnum::MultiDenseChunked(s) => s.read_vectors::<P, U>(keys, callback),
+            VectorStorageReadEnum::MultiDenseChunkedByte(s) => {
+                s.read_vectors::<P, U>(keys, callback)
+            }
+            VectorStorageReadEnum::MultiDenseChunkedHalf(s) => {
+                s.read_vectors::<P, U>(keys, callback)
+            }
+            VectorStorageReadEnum::Sparse(s) => s.read_vectors::<P, U>(keys, callback),
         }
     }
 

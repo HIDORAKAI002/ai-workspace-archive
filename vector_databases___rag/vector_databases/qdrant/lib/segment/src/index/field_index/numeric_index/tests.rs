@@ -1,12 +1,28 @@
+use std::path::Path;
+
+use common::bitvec::{BitSlice, BitVec};
 use common::counter::hardware_accumulator::HwMeasurementAcc;
+use common::counter::hardware_counter::HardwareCounterCell;
+use common::types::PointOffsetType;
+use gridstore::Blob;
 use itertools::Itertools;
+use ordered_float::OrderedFloat;
 use rand::prelude::StdRng;
 use rand::{RngExt, SeedableRng};
 use rstest::rstest;
+use serde_json::Value;
 use tempfile::{Builder, TempDir};
 
+use super::immutable_numeric_index::ImmutableNumericIndex;
 use super::*;
+use crate::common::operation_error::OperationResult;
+use crate::index::field_index::numeric_point::Numericable;
+use crate::index::field_index::stored_point_to_values::StoredValue;
+use crate::index::field_index::{
+    CardinalityEstimation, FieldIndexBuilderTrait, PayloadFieldIndexRead, ValueIndexer,
+};
 use crate::json_path::JsonPath;
+use crate::types::{FieldCondition, FloatPayloadType, Range, RangeInterface};
 
 /// Generous default size for the deleted-points bitslice used in tests.
 ///
@@ -156,10 +172,8 @@ fn cardinality_request(
         lte: query.lte.map(OrderedFloat::from),
     };
 
-    let estimation = index
-        .inner()
-        .range_cardinality(&RangeInterface::Float(ordered_range))
-        .unwrap();
+    let estimation =
+        query::range_cardinality(index.inner(), &RangeInterface::Float(ordered_range)).unwrap();
 
     let result = index
         .inner()
@@ -662,7 +676,7 @@ fn test_numeric_index_reload(#[case] index_type: IndexType) {
 
     // Reload!
     //
-    // Note: `MmapNumericIndex::remove_point` is in-memory only — it doesn't
+    // Note: `UniversalNumericIndex::remove_point` is in-memory only — it doesn't
     // persist to the on-disk deletion bitslice. The reload path picks up
     // deletions from the `&BitSlice` argument, so for this test we have to
     // re-supply the same set of removed points here.
@@ -851,7 +865,7 @@ fn test_empty_cardinality(#[case] index_type: IndexType) {
 /// `lib/segment/src/segment/tests/test_immutable_payload_index_files.rs`.
 #[test]
 fn test_remove_reopen() {
-    use crate::index::field_index::PayloadFieldIndex;
+    use crate::index::field_index::PayloadFieldIndexRead;
 
     let hw_acc = HwMeasurementAcc::new();
     let hw_counter = hw_acc.get_counter_cell();
@@ -902,4 +916,79 @@ fn test_remove_reopen() {
     assert_eq!(index.values_count(1), 0);
     assert_eq!(index.values_count(2), 1);
     assert_eq!(index.values_count(3), 0);
+}
+
+/// Regression test for #9049: fractional `f64` range bounds were truncated
+/// toward zero when converted to the integer index's storage type, so a
+/// `gte: 1.5` predicate (meaning `>= 1.5`) wrongly matched the integer
+/// value `1`. The indexed path must agree with the documented
+/// `f64`-comparison semantics for every fractional bound.
+#[test]
+fn test_integer_index_fractional_range_bounds() {
+    use crate::types::IntPayloadType;
+
+    let temp_dir = Builder::new()
+        .prefix("test_integer_index_fractional_range_bounds")
+        .tempdir()
+        .unwrap();
+
+    let mut builder = NumericIndex::<IntPayloadType, IntPayloadType>::builder_gridstore(
+        temp_dir.path().to_path_buf(),
+    );
+    builder.init().unwrap();
+
+    let hw_counter = HardwareCounterCell::new();
+    let v1 = Value::from(1_i64);
+    let v2 = Value::from(2_i64);
+    builder.add_point(0, &[&v1], &hw_counter).unwrap();
+    builder.add_point(1, &[&v2], &hw_counter).unwrap();
+    let index = builder.finalize().unwrap();
+
+    let run = |range: Range<FloatPayloadType>| -> Vec<PointOffsetType> {
+        let cond = FieldCondition::new_range(JsonPath::new("price"), range.map(OrderedFloat::from));
+        let hw = HardwareCounterCell::new();
+        let mut ids: Vec<_> = index.inner().filter(&cond, &hw).unwrap().unwrap().collect();
+        ids.sort();
+        ids
+    };
+
+    // `gte: 1.5` ⇒ `>= 1.5` ⇒ integer 1 must NOT match, integer 2 must match.
+    assert_eq!(
+        run(Range {
+            gte: Some(1.5),
+            ..Default::default()
+        }),
+        vec![1],
+        "gte: 1.5 must exclude integer 1",
+    );
+
+    // `gt: 1.5` ⇒ `> 1.5` ⇒ integer 1 must NOT match, integer 2 must match.
+    assert_eq!(
+        run(Range {
+            gt: Some(1.5),
+            ..Default::default()
+        }),
+        vec![1],
+        "gt: 1.5 must exclude integer 1",
+    );
+
+    // `lt: 1.5` ⇒ `< 1.5` ⇒ integer 1 must match, integer 2 must NOT.
+    assert_eq!(
+        run(Range {
+            lt: Some(1.5),
+            ..Default::default()
+        }),
+        vec![0],
+        "lt: 1.5 must include integer 1 and exclude 2",
+    );
+
+    // `lte: 1.5` ⇒ `<= 1.5` ⇒ integer 1 must match, integer 2 must NOT.
+    assert_eq!(
+        run(Range {
+            lte: Some(1.5),
+            ..Default::default()
+        }),
+        vec![0],
+        "lte: 1.5 must include integer 1 and exclude 2",
+    );
 }

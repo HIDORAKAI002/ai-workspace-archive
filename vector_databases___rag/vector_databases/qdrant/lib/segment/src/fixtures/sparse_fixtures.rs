@@ -83,7 +83,6 @@ pub fn fixture_sparse_index_from_iter<I: InvertedIndex>(
             path: index_dir,
             stopped: &stopped,
             tick_progress: || (),
-            deferred_internal_id: None,
         })?;
 
     assert_eq!(
@@ -122,16 +121,6 @@ macro_rules! fixture_for_all_indices {
         eprintln!("InvertedIndexCompressedMmap<f32>");
         $test::<
             ::sparse::index::inverted_index::inverted_index_compressed_mmap::InvertedIndexCompressedMmap<f32>
-        >($($args)*);
-
-        eprintln!("InvertedIndexImmutableRam");
-        $test::<
-            ::sparse::index::inverted_index::inverted_index_immutable_ram::InvertedIndexImmutableRam
-        >($($args)*);
-
-        eprintln!("InvertedIndexMmap");
-        $test::<
-            ::sparse::index::inverted_index::inverted_index_mmap::InvertedIndexMmap
         >($($args)*);
     };
 }
