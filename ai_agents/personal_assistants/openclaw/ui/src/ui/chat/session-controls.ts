@@ -29,6 +29,7 @@ import {
   normalizeThinkingOptionValue,
 } from "../thinking-labels.ts";
 import {
+  type ThinkingCatalogEntry,
   listThinkingLevelLabels,
   normalizeThinkLevel,
   resolveThinkingDefaultForModel,
@@ -59,6 +60,7 @@ export function renderChatSessionSelect(
     hasAgentSelect ? "" : "chat-controls__session-row--single-agent",
     quotaPill ? "chat-controls__session-row--has-quota" : "",
     flashSession ? "chat-controls__session-row--flash" : "",
+    "chat-controls__session-row--session-search-open",
   ]
     .filter(Boolean)
     .join(" ");
@@ -103,11 +105,15 @@ function requestHostUpdate(state: AppViewState) {
   (state as AppViewState & { requestUpdate?: () => void }).requestUpdate?.();
 }
 
-function focusChatSessionPickerSearch(state: AppViewState) {
+function focusChatSessionPickerSearch(state: AppViewState, surface: ChatSessionSelectSurface) {
   const updateComplete = (state as AppViewState & { updateComplete?: Promise<unknown> })
     .updateComplete;
   const focus = () => {
-    document.querySelector<HTMLInputElement>('[data-chat-session-picker-search="true"]')?.focus();
+    document
+      .querySelector<HTMLInputElement>(
+        `[data-chat-session-picker-search="true"][data-chat-session-picker-search-surface="${surface}"]`,
+      )
+      ?.focus();
   };
   if (updateComplete) {
     void updateComplete.then(focus);
@@ -121,7 +127,7 @@ function openChatSessionPicker(state: AppViewState, surface: ChatSessionSelectSu
   state.chatSessionPickerSurface = surface;
   state.chatSessionPickerError = null;
   requestHostUpdate(state);
-  focusChatSessionPickerSearch(state);
+  focusChatSessionPickerSearch(state, surface);
 }
 
 function closeChatSessionPicker(state: AppViewState) {
@@ -248,7 +254,6 @@ function clearChatSessionPickerSearch(state: AppViewState) {
   state.chatSessionPickerError = null;
   state.chatSessionPickerResult = null;
   requestHostUpdate(state);
-  focusChatSessionPickerSearch(state);
 }
 
 async function loadMoreChatSessionPickerResults(state: AppViewState) {
@@ -344,7 +349,46 @@ function renderChatSessionPicker(params: {
           ${icons.chevronDown}
         </span>
       </button>
+      ${renderChatSessionPickerSearchControls(state, surface)}
       ${pickerOpen ? renderChatSessionPickerPopover(state, onSwitchSession, pickerId) : ""}
+    </div>
+  `;
+}
+
+function renderChatSessionPickerSearchControls(
+  state: AppViewState,
+  surface: ChatSessionSelectSurface,
+) {
+  const disabled = !state.connected || !state.client || state.chatSessionPickerLoading;
+  return html`
+    <div class="chat-controls__session-actions">
+      <label class="field chat-controls__session-search">
+        <span class="chat-controls__session-search-icon" aria-hidden="true">${icons.search}</span>
+        <input
+          data-chat-session-picker-search="true"
+          data-chat-session-picker-search-surface=${surface}
+          type="search"
+          placeholder=${t("chat.selectors.sessionSearch")}
+          aria-label=${t("chat.selectors.sessionSearch")}
+          .value=${state.chatSessionPickerQuery ?? ""}
+          ?disabled=${disabled}
+          @focus=${() => openChatSessionPicker(state, surface)}
+          @input=${(event: Event) => {
+            state.chatSessionPickerQuery = (event.target as HTMLInputElement).value;
+          }}
+          @keydown=${(event: KeyboardEvent) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              openChatSessionPicker(state, surface);
+              void applyChatSessionPickerSearch(state);
+            } else if (event.key === "Escape") {
+              event.preventDefault();
+              event.stopPropagation();
+              closeChatSessionPicker(state);
+            }
+          }}
+        />
+      </label>
     </div>
   `;
 }
@@ -357,8 +401,6 @@ function renderChatSessionPickerPopover(
   const result = resolveChatSessionPickerResult(state);
   const rows = result?.sessions ?? [];
   const disabled = !state.connected || !state.client || state.chatSessionPickerLoading;
-  const hasQuery =
-    state.chatSessionPickerQuery.trim() !== "" || state.chatSessionPickerAppliedQuery.trim() !== "";
   const loadMoreOffset = resolveNextChatSessionOffset(result);
   const shownCount = rows.length;
   const totalCount = result?.totalCount;
@@ -381,51 +423,6 @@ function renderChatSessionPickerPopover(
         }
       }}
     >
-      <div class="chat-session-picker__search-row">
-        <label class="field chat-session-picker__search">
-          <input
-            data-chat-session-picker-search="true"
-            type="search"
-            placeholder=${t("chat.selectors.sessionSearch")}
-            aria-label=${t("chat.selectors.sessionSearch")}
-            .value=${state.chatSessionPickerQuery}
-            ?disabled=${disabled}
-            @input=${(event: Event) => {
-              state.chatSessionPickerQuery = (event.target as HTMLInputElement).value;
-            }}
-            @keydown=${(event: KeyboardEvent) => {
-              if (event.key === "Enter") {
-                event.preventDefault();
-                void applyChatSessionPickerSearch(state);
-              }
-            }}
-          />
-        </label>
-        <button
-          class="btn btn--ghost btn--icon chat-session-picker__icon-button"
-          data-chat-session-search-submit="true"
-          type="button"
-          title=${t("common.search")}
-          aria-label=${t("common.search")}
-          ?disabled=${disabled}
-          @click=${() => void applyChatSessionPickerSearch(state)}
-        >
-          ${icons.search}
-        </button>
-        ${hasQuery
-          ? html`<button
-              class="btn btn--ghost btn--icon chat-session-picker__icon-button"
-              data-chat-session-search-clear="true"
-              type="button"
-              title=${t("chat.selectors.clearSessionSearch")}
-              aria-label=${t("chat.selectors.clearSessionSearch")}
-              ?disabled=${disabled}
-              @click=${() => clearChatSessionPickerSearch(state)}
-            >
-              ${icons.x}
-            </button>`
-          : ""}
-      </div>
       ${state.chatSessionPickerError
         ? html`<div class="chat-session-picker__status" role="alert">
             ${state.chatSessionPickerError}
@@ -673,26 +670,51 @@ function buildThinkingOptions(
   return options;
 }
 
+function isOffThinkingOption(value: string | null | undefined): boolean {
+  return normalizeThinkingOptionValue(value ?? "") === "off";
+}
+
+function isOffOnlyThinkingLevels(levels: readonly GatewayThinkingLevelOption[]): boolean {
+  return levels.every((level) => isOffThinkingOption(level.id || level.label));
+}
+
 function resolveThinkingLevelOptions(
   activeRow: SessionsListResult["sessions"][number] | undefined,
   defaults: SessionsListResult["defaults"] | undefined,
   provider: string | null,
   model: string | null,
+  catalog: readonly ThinkingCatalogEntry[],
 ): GatewayThinkingLevelOption[] {
-  if (activeRow?.thinkingLevels?.length) {
-    return activeRow.thinkingLevels;
-  }
   const sessionModelMatchesDefaults =
     (!activeRow?.modelProvider || activeRow.modelProvider === defaults?.modelProvider) &&
     (!activeRow?.model || activeRow.model === defaults?.model);
-  if (sessionModelMatchesDefaults && defaults?.thinkingLevels?.length) {
-    return defaults.thinkingLevels;
+  const catalogEntry =
+    provider && model
+      ? catalog.find((entry) => entry.provider === provider && entry.id === model)
+      : undefined;
+  const explicitLevels =
+    (activeRow?.thinkingLevels?.length ? activeRow.thinkingLevels : null) ??
+    (sessionModelMatchesDefaults && defaults?.thinkingLevels?.length
+      ? defaults.thinkingLevels
+      : null);
+  if (explicitLevels) {
+    if (catalogEntry?.reasoning === false && isOffOnlyThinkingLevels(explicitLevels)) {
+      return [];
+    }
+    return explicitLevels;
   }
-  const labels =
+  const explicitLabels =
     (activeRow?.thinkingOptions?.length ? activeRow.thinkingOptions : null) ??
     (sessionModelMatchesDefaults && defaults?.thinkingOptions?.length
       ? defaults.thinkingOptions
-      : null) ??
+      : null);
+  if (catalogEntry?.reasoning === false) {
+    if (!explicitLabels || explicitLabels.every(isOffThinkingOption)) {
+      return [];
+    }
+  }
+  const labels =
+    explicitLabels ??
     (provider && model ? listThinkingLevelLabels(provider, model) : listThinkingLevelLabels());
   return labels.map((label) => ({
     id: normalizeThinkLevel(label) ?? normalizeLowercaseStringOrEmpty(label),
@@ -713,6 +735,7 @@ export function resolveChatThinkingSelectState(state: AppViewState): ChatThinkin
     state.sessionsResult?.defaults,
     provider,
     model,
+    state.chatModelCatalog ?? [],
   );
   const defaultLevel =
     activeRow?.thinkingDefault ??
@@ -724,10 +747,11 @@ export function resolveChatThinkingSelectState(state: AppViewState): ChatThinkin
           catalog: state.chatModelCatalog ?? [],
         })
       : "off");
+  const effectiveOverride = levels.length === 0 && currentOverride === "off" ? "" : currentOverride;
   return {
-    currentOverride,
+    currentOverride: effectiveOverride,
     defaultLabel: formatInheritedThinkingLabel(defaultLevel),
-    options: buildThinkingOptions(levels, currentOverride),
+    options: buildThinkingOptions(levels, effectiveOverride),
   };
 }
 
@@ -735,7 +759,8 @@ export function renderChatThinkingSelect(state: AppViewState) {
   const { currentOverride, defaultLabel, options } = resolveChatThinkingSelectState(state);
   const busy =
     state.chatLoading || state.chatSending || Boolean(state.chatRunId) || state.chatStream !== null;
-  const disabled = !state.connected || busy || !state.client;
+  const disabled =
+    !state.connected || busy || !state.client || (options.length === 0 && currentOverride === "");
   const selectedLabel =
     currentOverride === ""
       ? defaultLabel
