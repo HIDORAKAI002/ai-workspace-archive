@@ -1,60 +1,60 @@
 # HTTPS Streaming gamit ang Model Context Protocol (MCP)
 
-Ang kabanatang ito ay nagbibigay ng detalyadong gabay sa pag-implement ng ligtas, scalable, at real-time na streaming gamit ang Model Context Protocol (MCP) sa pamamagitan ng HTTPS. Saklaw nito ang motibasyon para sa streaming, ang mga magagamit na transport mechanisms, kung paano mag-implement ng streamable HTTP sa MCP, mga pinakamahusay na kasanayan sa seguridad, paglipat mula sa SSE, at praktikal na gabay para sa paggawa ng sarili mong streaming MCP applications.
+Ang kabanatang ito ay nagbibigay ng komprehensibong gabay sa pagpapatupad ng ligtas, scalable, at real-time na streaming gamit ang Model Context Protocol (MCP) gamit ang HTTPS. Tinatalakay nito ang motibasyon para sa streaming, mga available na mekanismo ng transportasyon, kung paano ipatupad ang streamable HTTP sa MCP, mga pinakamahusay na kasanayan sa seguridad, paglipat mula sa SSE, at praktikal na gabay sa pagbuo ng iyong sariling streaming MCP na mga aplikasyon.
 
-## Transport Mechanisms at Streaming sa MCP
+## Mga Mekanismo ng Transportasyon at Streaming sa MCP
 
-Ang seksyong ito ay tumatalakay sa iba't ibang transport mechanisms na magagamit sa MCP at ang kanilang papel sa pagpapagana ng streaming capabilities para sa real-time na komunikasyon sa pagitan ng mga kliyente at server.
+Tinalakay sa seksyong ito ang iba't ibang mekanismo ng transportasyon na available sa MCP at ang kanilang papel sa pagpapagana ng streaming capabilities para sa real-time na komunikasyon sa pagitan ng mga kliyente at mga server.
 
-### Ano ang Transport Mechanism?
+### Ano ang isang Mekanismo ng Transportasyon?
 
-Ang transport mechanism ay tumutukoy kung paano ipinapasa ang data sa pagitan ng kliyente at server. Sinusuportahan ng MCP ang iba't ibang uri ng transport upang umangkop sa iba't ibang kapaligiran at pangangailangan:
+Ang mekanismo ng transportasyon ay nagtatakda kung paano palitan ang data sa pagitan ng kliyente at server. Sinusuportahan ng MCP ang maraming uri ng transport upang umangkop sa iba't ibang kapaligiran at pangangailangan:
 
-- **stdio**: Standard input/output, angkop para sa lokal at CLI-based na tools. Simple ngunit hindi angkop para sa web o cloud.
-- **SSE (Server-Sent Events)**: Pinapayagan ang mga server na mag-push ng real-time updates sa mga kliyente gamit ang HTTP. Maganda para sa web UIs, ngunit limitado sa scalability at flexibility.
-- **Streamable HTTP**: Modernong HTTP-based streaming transport, sumusuporta sa notifications at mas mahusay na scalability. Inirerekomenda para sa karamihan ng production at cloud scenarios.
+- **stdio**: Standard input/output, angkop para sa lokal at CLI-based na mga tool. Simple ngunit hindi angkop para sa web o cloud.
+- **SSE (Server-Sent Events)**: Pinapayagan ang mga server na magpush ng real-time na mga update sa mga kliyente sa ibabaw ng HTTP. Mabuti para sa mga web UI, ngunit limitado sa scalability at flexibility. Mula sa MCP Specification 2025-06-18, ang standalone na SSE (Server-Sent Events) transport ay deprecate na at pinalitan ng "Streamable HTTP" transport.
+- **Streamable HTTP**: Modernong HTTP-based streaming transport, sumusuporta sa mga notifications at higit na scalability. Inirerekomenda para sa karamihan ng mga production at cloud scenarios.
 
-### Talahanayan ng Paghahambing
+### Talaan ng Paghahambing
 
-Tingnan ang talahanayan ng paghahambing sa ibaba upang maunawaan ang mga pagkakaiba sa pagitan ng mga transport mechanisms:
+Tingnan ang talaang paghahambing sa ibaba para maunawaan ang mga pagkakaiba ng mga mekanismong ito:
 
-| Transport         | Real-time Updates | Streaming | Scalability | Gamit                  |
+| Transport         | Real-time Updates | Streaming | Scalability | Use Case                |
 |-------------------|------------------|-----------|-------------|-------------------------|
-| stdio             | Hindi            | Hindi     | Mababa      | Lokal na CLI tools      |
+| stdio             | Hindi            | Hindi     | Mababa      | Lokal na tool sa CLI    |
 | SSE               | Oo               | Oo        | Katamtaman  | Web, real-time updates  |
 | Streamable HTTP   | Oo               | Oo        | Mataas      | Cloud, multi-client     |
 
-> **Tip:** Ang tamang pagpili ng transport ay nakakaapekto sa performance, scalability, at user experience. **Streamable HTTP** ang inirerekomenda para sa modernong, scalable, at cloud-ready na applications.
+> **Tip:** Ang pagpili ng tamang transport ay nakaapekto sa performance, scalability, at karanasan ng gumagamit. Inirerekomenda ang **Streamable HTTP** para sa modern, scalable, at cloud-ready na mga aplikasyon.
 
-Tandaan ang transports na stdio at SSE na tinalakay sa mga nakaraang kabanata at kung paano ang streamable HTTP ang transport na saklaw sa kabanatang ito.
+Pansinin ang transports na stdio at SSE na ipinakita sa iyo sa mga nakaraang kabanata at kung paano ang streamable HTTP ang transport na tinalakay sa kabanatang ito.
 
 ## Streaming: Mga Konsepto at Motibasyon
 
-Ang pag-unawa sa mga pangunahing konsepto at motibasyon sa likod ng streaming ay mahalaga para sa pag-implement ng epektibong real-time na communication systems.
+Mahalagang maunawaan ang mga pangunahing konsepto at motibasyon sa likod ng streaming upang makapagtayo ng epektibong mga system para sa real-time na komunikasyon.
 
-**Streaming** ay isang teknik sa network programming na nagpapahintulot sa data na maipadala at matanggap sa maliliit na bahagi o bilang isang serye ng mga event, sa halip na hintayin ang buong response na maging handa. Ito ay partikular na kapaki-pakinabang para sa:
+**Streaming** ay isang teknik sa network programming na nagpapahintulot na ang data ay maipadala at matanggap nang paunti-unti, bilang maliliit na bahagi o bilang isang sekwensya ng mga pangyayari, sa halip na maghintay ng buong tugon bago simulan ang pagtanggap. Ito ay partikular na kapaki-pakinabang para sa:
 
-- Malalaking file o datasets.
-- Real-time updates (hal., chat, progress bars).
-- Mahabang computations kung saan nais mong panatilihing updated ang user.
+- Malalaking files o datasets.
+- Real-time na mga update (hal., chat, progress bars).
+- Mahahabang computation na gusto mong panatilihing updated ang gumagamit.
 
-Narito ang mga dapat mong malaman tungkol sa streaming sa mataas na antas:
+Narito ang mga mahalagang dapat malaman tungkol sa streaming sa mataas na antas:
 
-- Ang data ay naihahatid nang paunti-unti, hindi sabay-sabay.
-- Ang kliyente ay maaaring magproseso ng data habang ito ay dumarating.
-- Binabawasan ang perceived latency at pinapabuti ang user experience.
+- Ang data ay naihahatid nang paunti-unti, hindi lahat nang sabay-sabay.
+- Ang kliyente ay maaaring magproseso ng data habang dumadating.
+- Binabawasan ang pakiramdam ng latency at pinapahusay ang karanasan ng gumagamit.
 
 ### Bakit gumamit ng streaming?
 
-Narito ang mga dahilan para gumamit ng streaming:
+Narito ang mga dahilan para sa paggamit ng streaming:
 
-- Agad na nakakatanggap ng feedback ang mga user, hindi lamang sa dulo.
-- Pinapagana ang real-time applications at responsive UIs.
-- Mas epektibong paggamit ng network at compute resources.
+- Nakakakuha agad ng feedback ang mga gumagamit, hindi lang sa dulo
+- Nagpapahintulot ng real-time na aplikasyon at responsive na UI
+- Mas epektibong paggamit ng mga network at compute na resources
 
-### Simpleng Halimbawa: HTTP Streaming Server at Client
+### Simpleng Halimbawa: HTTP Streaming Server & Client
 
-Narito ang isang simpleng halimbawa kung paano ma-implement ang streaming:
+Narito ang isang simpleng halimbawa kung paano maaaring ipatupad ang streaming:
 
 #### Python
 
@@ -88,18 +88,18 @@ with requests.get("http://localhost:8000/stream", stream=True) as r:
             print(line.decode())
 ```
 
-Ang halimbawang ito ay nagpapakita ng server na nagpapadala ng serye ng mga mensahe sa kliyente habang ang mga ito ay nagiging available, sa halip na hintayin ang lahat ng mensahe na maging handa.
+Ipinapakita ng halimbawa na ito ang server na nagpapadala ng serye ng mga mensahe sa kliyente habang sila ay nagiging available, sa halip na maghintay hanggang handa na lahat ng mga mensahe.
 
 **Paano ito gumagana:**
 
-- Ang server ay naglalabas ng bawat mensahe habang ito ay handa na.
-- Ang kliyente ay tumatanggap at nagpi-print ng bawat chunk habang ito ay dumarating.
+- Ang server ay nag-yield ng bawat mensahe habang ito ay handa.
+- Natatanggap at naipiprint ng kliyente ang bawat bahagi habang dumarating.
 
-**Mga Pangangailangan:**
+**Mga Kinakailangan:**
 
-- Ang server ay dapat gumamit ng streaming response (hal., `StreamingResponse` sa FastAPI).
-- Ang kliyente ay dapat magproseso ng response bilang stream (`stream=True` sa requests).
-- Ang Content-Type ay karaniwang `text/event-stream` o `application/octet-stream`.
+- Dapat gamitin ng server ang streaming response (hal., `StreamingResponse` sa FastAPI).
+- Dapat iproseso ng kliyente ang tugon bilang stream (`stream=True` sa requests).
+- Karaniwan ang Content-Type ay `text/event-stream` o `application/octet-stream`.
 
 #### Java
 
@@ -166,76 +166,76 @@ public class CalculatorClientApplication implements CommandLineRunner {
 }
 ```
 
-**Mga Tala sa Implementasyon ng Java:**
+**Mga Tala sa Java Implementation:**
 
-- Gumagamit ng reactive stack ng Spring Boot gamit ang `Flux` para sa streaming.
-- Ang `ServerSentEvent` ay nagbibigay ng structured event streaming na may event types.
-- Ang `WebClient` na may `bodyToFlux()` ay nagpapagana ng reactive streaming consumption.
-- Ang `delayElements()` ay nagsisimula ng processing time sa pagitan ng mga event.
-- Ang mga event ay maaaring magkaroon ng types (`info`, `result`) para sa mas mahusay na handling ng kliyente.
+- Ginagamit ang Spring Boot reactive stack kasama ang `Flux` para sa streaming
+- Ang `ServerSentEvent` ay nagbibigay ng structured event streaming na may mga uri ng event
+- Ang `WebClient` na may `bodyToFlux()` ay nagpapahintulot sa reactive streaming consumption
+- Ang `delayElements()` ay nagsasaad ng processing time sa pagitan ng mga event
+- Maaaring magkaroon ng mga uri (`info`, `result`) ang mga event para sa mas magandang paghawak ng kliyente
 
-### Paghahambing: Classic Streaming vs MCP Streaming
+### Paghahambing: Classic Streaming kumpara sa MCP Streaming
 
-Ang mga pagkakaiba sa pagitan ng kung paano gumagana ang streaming sa "klasikal" na paraan kumpara sa kung paano ito gumagana sa MCP ay maaaring ilarawan tulad nito:
+Ang pagkakaiba sa pagitan ng karaniwang paraan ng streaming at kung paano ito gumagana sa MCP ay maaaring ipakita nang ganito:
 
-| Tampok                | Classic HTTP Streaming         | MCP Streaming (Notifications)      |
-|------------------------|-------------------------------|-------------------------------------|
-| Pangunahing response   | Chunked                       | Single, sa dulo                    |
-| Progress updates       | Ipinapadala bilang data chunks | Ipinapadala bilang notifications   |
-| Pangangailangan ng kliyente | Dapat magproseso ng stream | Dapat mag-implement ng message handler |
-| Gamit                  | Malalaking file, AI token streams | Progress, logs, real-time feedback |
+| Tampok                 | Classic HTTP Streaming           | MCP Streaming (Mga Notipikasyon)   |
+|------------------------|---------------------------------|-----------------------------------|
+| Pangunahing tugon      | Chunked                         | Isa lang, sa dulo                 |
+| Mga update ng progreso  | Ipinapadala bilang data chunks  | Ipinapadala bilang mga notipikasyon|
+| Mga kinakailangan ng kliyente | Kailangang magproseso ng stream | Kailangang magpatupad ng message handler |
+| Use case               | Malalaking files, AI token streams | Progreso, logs, real-time na feedback |
 
-### Mga Napansing Pagkakaiba
+### Mahalagang Pagkakaiba na Napansin
 
-Dagdag pa, narito ang ilang pangunahing pagkakaiba:
+Bukod pa rito, narito ang mga pangunahing pagkakaiba:
 
 - **Pattern ng Komunikasyon:**
-  - Classic HTTP streaming: Gumagamit ng simpleng chunked transfer encoding para magpadala ng data sa chunks.
-  - MCP streaming: Gumagamit ng structured notification system na may JSON-RPC protocol.
+  - Classic HTTP streaming: Gumagamit ng simple chunked transfer encoding para magpadala ng data nang paunti-unti
+  - MCP streaming: Gumagamit ng structured notification system gamit ang JSON-RPC protocol
 
 - **Format ng Mensahe:**
-  - Classic HTTP: Plain text chunks na may newlines.
-  - MCP: Structured LoggingMessageNotification objects na may metadata.
+  - Classic HTTP: Plain text chunks na may mga bagong linya
+  - MCP: Structured LoggingMessageNotification objects na may metadata
 
 - **Implementasyon ng Kliyente:**
-  - Classic HTTP: Simpleng kliyente na nagpoproseso ng streaming responses.
-  - MCP: Mas sopistikadong kliyente na may message handler para magproseso ng iba't ibang uri ng mensahe.
+  - Classic HTTP: Simpleng kliyente na nagpoproseso ng streaming responses
+  - MCP: Mas sopistikadong kliyente na may message handler para iproseso ang iba't ibang uri ng mensahe
 
-- **Progress Updates:**
-  - Classic HTTP: Ang progress ay bahagi ng pangunahing response stream.
-  - MCP: Ang progress ay ipinapadala sa pamamagitan ng hiwalay na notification messages habang ang pangunahing response ay dumarating sa dulo.
+- **Mga Update ng Progreso:**
+  - Classic HTTP: Kasama ang progreso sa pangunahing stream ng tugon
+  - MCP: Ipinapadala ang progreso sa pamamagitan ng hiwalay na mga notification message habang ang pangunahing tugon ay dumadating sa dulo
 
 ### Mga Rekomendasyon
 
-Narito ang ilang rekomendasyon pagdating sa pagpili sa pagitan ng pag-implement ng klasikong streaming (bilang endpoint na ipinakita sa iyo sa itaas gamit ang `/stream`) kumpara sa pagpili ng streaming sa pamamagitan ng MCP.
+May ilang mga bagay na inirerekomenda namin pagdating sa pagpili sa pagitan ng pagpapalaganap ng klasikong streaming (bilang endpoint na ipinakita namin sa itaas gamit ang `/stream`) laban sa paggamit ng streaming sa MCP.
 
-- **Para sa simpleng pangangailangan sa streaming:** Ang klasikong HTTP streaming ay mas simple i-implement at sapat para sa mga basic na pangangailangan sa streaming.
+- **Para sa simpleng pangangailangan sa streaming:** Mas madaling ipatupad at sapat na ang classic HTTP streaming.
 
-- **Para sa mas kumplikado at interactive na applications:** Ang MCP streaming ay nagbibigay ng mas structured na approach na may mas mayamang metadata at paghihiwalay sa pagitan ng notifications at final results.
+- **Para sa mga komplikado at interaktibong aplikasyon:** Nagbibigay ang MCP streaming ng mas istrakturadong paraan na may masamang metadata at paghihiwalay sa pagitan ng mga notipikasyon at panghuling mga resulta.
 
-- **Para sa AI applications:** Ang notification system ng MCP ay partikular na kapaki-pakinabang para sa mahahabang AI tasks kung saan nais mong panatilihing updated ang mga user tungkol sa progress.
+- **Para sa mga AI na aplikasyon:** Lalo na kapaki-pakinabang ang notification system ng MCP para sa mga mahahabang AI tasks kung saan nais mong panatilihing alam ang mga gumagamit sa progreso.
 
 ## Streaming sa MCP
 
-Ok, nakita mo na ang ilang rekomendasyon at paghahambing tungkol sa pagkakaiba ng klasikong streaming at streaming sa MCP. Tingnan natin nang mas detalyado kung paano mo magagamit ang streaming sa MCP.
+Ok, nakita mo na ang ilang rekomendasyon at paghahambing tungkol sa pagkakaiba ng klasikong streaming at streaming sa MCP. Tingnan natin nang detalyado kung paano mo magagamit ang streaming sa MCP.
 
-Ang pag-unawa kung paano gumagana ang streaming sa loob ng MCP framework ay mahalaga para sa paggawa ng responsive applications na nagbibigay ng real-time feedback sa mga user habang may mahahabang operasyon.
+Mahalagang maunawaan kung paano gumagana ang streaming sa loob ng MCP framework upang makabuo ng mga responsive na application na nagbibigay ng real-time na feedback sa mga gumagamit habang nagpapatakbo ng mahahabang operasyon.
 
-Sa MCP, ang streaming ay hindi tungkol sa pagpapadala ng pangunahing response sa chunks, kundi tungkol sa pagpapadala ng **notifications** sa kliyente habang ang isang tool ay nagpoproseso ng request. Ang mga notifications na ito ay maaaring maglaman ng progress updates, logs, o iba pang events.
+Sa MCP, ang streaming ay hindi tungkol sa pagpapadala ng pangunahing tugon nang paunti-unti, kundi tungkol sa pagpapadala ng **notifications** sa kliyente habang isang tool ay pinoproseso ang isang kahilingan. Maaaring kabilang ang mga notification sa mga update ng progreso, mga log, o iba pang mga kaganapan.
 
 ### Paano ito gumagana
 
-Ang pangunahing resulta ay ipinapadala pa rin bilang isang single response. Gayunpaman, ang mga notifications ay maaaring ipadala bilang hiwalay na mga mensahe habang nagpoproseso, kaya't na-update ang kliyente nang real-time. Ang kliyente ay dapat na may kakayahang mag-handle at mag-display ng mga notifications na ito.
+Ang pangunahing resulta ay ipinapadala pa rin bilang isang solong tugon. Gayunpaman, ang mga notification ay maaaring ipadala bilang hiwalay na mga mensahe habang nagpapatuloy ang pagproseso at sa gayon ay nai-update ang kliyente nang real time. Dapat kaya ng kliyente na pangasiwaan at ipakita ang mga notification na ito.
 
 ## Ano ang Notification?
 
-Sinabi naming "Notification", ano ang ibig sabihin nito sa konteksto ng MCP?
+Nabanggit namin ang "Notification", ano ba ang ibig sabihin nito sa konteksto ng MCP?
 
-Ang notification ay isang mensahe na ipinapadala mula sa server patungo sa kliyente upang magbigay ng impormasyon tungkol sa progress, status, o iba pang events habang may mahahabang operasyon. Ang notifications ay nagpapabuti sa transparency at user experience.
+Ang notification ay isang mensahe na ipinapadala mula sa server papuntang kliyente upang ipaalam ang progreso, status, o iba pang mga kaganapan habang nagpapatakbo ng mahahabang operasyon. Pinapabuti ng mga notification ang transparency at karanasan ng gumagamit.
 
-Halimbawa, ang kliyente ay dapat magpadala ng notification kapag ang initial handshake sa server ay nagawa na.
+Halimbawa, dapat magpadala ang kliyente ng notification kapag nagawa na ang unang handshake sa server.
 
-Ang notification ay ganito ang hitsura bilang JSON message:
+Ganito ang hitsura ng notification bilang isang JSON na mensahe:
 
 ```json
 {
@@ -247,9 +247,9 @@ Ang notification ay ganito ang hitsura bilang JSON message:
 }
 ```
 
-Ang notifications ay kabilang sa isang topic sa MCP na tinatawag na ["Logging"](https://modelcontextprotocol.io/specification/draft/server/utilities/logging).
+Ang mga notification ay kabilang sa isang paksa sa MCP na tinutukoy bilang ["Logging"](https://modelcontextprotocol.io/specification/draft/server/utilities/logging).
 
-Para gumana ang logging, kailangang i-enable ng server ito bilang feature/capability tulad nito:
+Para gumana ang logging, kailangan i-enable ng server ito bilang feature/capability nang ganito:
 
 ```json
 {
@@ -260,28 +260,28 @@ Para gumana ang logging, kailangang i-enable ng server ito bilang feature/capabi
 ```
 
 > [!NOTE]
-> Depende sa SDK na ginagamit, maaaring naka-enable na ang logging bilang default, o maaaring kailangan mong i-enable ito nang tahasan sa iyong server configuration.
+> Depende sa SDK na ginagamit, maaaring naka-enable na ang logging bilang default, o maaaring kailanganin mo itong i-enable nang tahasan sa iyong server configuration.
 
-May iba't ibang uri ng notifications:
+May iba't ibang uri ng notification:
 
-| Level     | Deskripsyon                  | Halimbawa ng Gamit              |
-|-----------|-------------------------------|---------------------------------|
-| debug     | Detalyadong debugging information | Function entry/exit points      |
-| info      | Pangkalahatang impormasyon    | Operation progress updates      |
-| notice    | Normal ngunit mahalagang events | Configuration changes           |
-| warning   | Mga kondisyon ng babala       | Deprecated feature usage        |
-| error     | Mga kondisyon ng error        | Operation failures              |
-| critical  | Mga kritikal na kondisyon     | System component failures       |
-| alert     | Kailangang agad na aksyon     | Data corruption detected        |
-| emergency | Hindi magagamit ang sistema   | Complete system failure         |
+| Antas     | Paglalarawan                   | Halimbawa ng Paggamit          |
+|-----------|-------------------------------|-------------------------------|
+| debug     | Detalyadong impormasyon sa pagddebug | Entry/exit points ng function    |
+| info      | Pangkalahatang impormasyong mensahe | Mga update sa progreso          |
+| notice    | Normal ngunit mahalagang mga kaganapan | Mga pagbabago sa configuration  |
+| warning   | Mga kundisyon ng babala        | Paggamit ng deprecated na feature |
+| error     | Mga kondisyong error           | Pagkabigo sa operasyon          |
+| critical  | Kritikal na kundisyon          | Pagkabigo ng bahagi ng sistema   |
+| alert     | Agarang aksyon ang kinakailangan | Nadiskubreng corruption ng data |
+| emergency | Hindi na magamit ang sistema    | Kumpletong pagkabigo ng sistema  |
 
-## Pag-implement ng Notifications sa MCP
+## Pagpapatupad ng Mga Notification sa MCP
 
-Para mag-implement ng notifications sa MCP, kailangan mong i-set up ang parehong server at client sides upang mag-handle ng real-time updates. Pinapayagan nito ang iyong application na magbigay ng agarang feedback sa mga user habang may mahahabang operasyon.
+Para magpatupad ng notifications sa MCP, kailangan mong i-set up ang parehong server at kliyente upang mahawakan ang real-time na mga update. Pinapayagan nito ang iyong aplikasyon na magbigay ng agarang feedback sa mga gumagamit habang nagpapatakbo ng mahahabang operasyon.
 
-### Server-side: Pagpapadala ng Notifications
+### Server-side: Pagpapadala ng Notification
 
-Simulan natin sa server side. Sa MCP, nagde-define ka ng tools na maaaring magpadala ng notifications habang nagpoproseso ng requests. Ang server ay gumagamit ng context object (karaniwang `ctx`) para magpadala ng mga mensahe sa kliyente.
+Magsimula tayo sa server side. Sa MCP, nagdedeklara ka ng mga tool na maaaring magpadala ng mga notification habang pinoproseso ang mga kahilingan. Ginagamit ng server ang context object (karaniwan ay `ctx`) upang magpadala ng mga mensahe sa kliyente.
 
 #### Python
 
@@ -294,9 +294,9 @@ async def process_files(message: str, ctx: Context) -> TextContent:
     return TextContent(type="text", text=f"Done: {message}")
 ```
 
-Sa naunang halimbawa, ang `process_files` tool ay nagpapadala ng tatlong notifications sa kliyente habang nagpoproseso ng bawat file. Ang `ctx.info()` method ay ginagamit para magpadala ng informational messages.
+Sa naunang halimbawa, ang `process_files` tool ay nagpadala ng tatlong notification sa kliyente habang pinoproseso ang bawat file. Ginagamit ang `ctx.info()` method para magpadala ng mga impormasyong mensahe.
 
-Dagdag pa, para ma-enable ang notifications, tiyakin na ang iyong server ay gumagamit ng streaming transport (tulad ng `streamable-http`) at ang iyong kliyente ay nag-implement ng message handler para magproseso ng notifications. Narito kung paano mo ma-set up ang server para gumamit ng `streamable-http` transport:
+Dagdag pa rito, upang paganahin ang notifications, siguraduhing ang iyong server ay gumagamit ng streaming transport (tulad ng `streamable-http`) at ang kliyente ay nagpapatupad ng isang message handler para iproseso ang mga notification. Ganito mo ise-set up ang server para gamitin ang `streamable-http` transport:
 
 ```python
 mcp.run(transport="streamable-http")
@@ -319,9 +319,9 @@ public async Task<TextContent> ProcessFiles(string message, ToolContext ctx)
 }
 ```
 
-Sa .NET na halimbawa, ang `ProcessFiles` tool ay may dekorasyon na `Tool` attribute at nagpapadala ng tatlong notifications sa kliyente habang nagpoproseso ng bawat file. Ang `ctx.Info()` method ay ginagamit para magpadala ng informational messages.
+Sa .NET na halimbawang ito, ang `ProcessFiles` tool ay pinalamutian ng `Tool` attribute at nagpadala ng tatlong notification sa kliyente habang pinoproseso ang bawat file. Ginagamit ang `ctx.Info()` method para magpadala ng mga impormasyong mensahe.
 
-Para ma-enable ang notifications sa iyong .NET MCP server, tiyakin na gumagamit ka ng streaming transport:
+Para paganahin ang notifications sa iyong .NET MCP server, siguraduhing gumagamit ka ng streaming transport:
 
 ```csharp
 var builder = McpBuilder.Create();
@@ -331,9 +331,9 @@ await builder
     .RunAsync();
 ```
 
-### Client-side: Pagtanggap ng Notifications
+### Client-side: Pagtanggap ng Notification
 
-Ang kliyente ay dapat mag-implement ng message handler para magproseso at mag-display ng notifications habang dumarating ang mga ito.
+Dapat magpatupad ang kliyente ng message handler upang iproseso at ipakita ang mga notification habang dumarating.
 
 #### Python
 
@@ -352,7 +352,7 @@ async with ClientSession(
 ) as session:
 ```
 
-Sa naunang code, ang `message_handler` function ay nagche-check kung ang incoming message ay notification. Kung ito ay notification, ipinapakita ito; kung hindi, pinoproseso ito bilang regular na server message. Pansinin din kung paano ang `ClientSession` ay na-initialize gamit ang `message_handler` para mag-handle ng incoming notifications.
+Sa naunang code, sinusuri ng `message_handler` function kung ang papasok na mensahe ay isang notification. Kapag oo, ini-print nito ang notification; kung hindi, ipoproseso ito bilang regular na mensahe mula sa server. Pansinin din kung paano ini-initialize ang `ClientSession` gamit ang `message_handler` upang hawakan ang papasok na mga notification.
 
 #### .NET
 
@@ -383,15 +383,15 @@ await client.InitializeAsync();
 // Now the client will process notifications through the MessageHandler
 ```
 
-Sa .NET na halimbawa, ang `MessageHandler` function ay nagche-check kung ang incoming message ay notification. Kung ito ay notification, ipinapakita ito; kung hindi, pinoproseso ito bilang regular na server message. Ang `ClientSession` ay na-initialize gamit ang message handler sa pamamagitan ng `ClientSessionOptions`.
+Sa .NET na halimbawang ito, sinusuri ng `MessageHandler` function kung ang papasok na mensahe ay isang notification. Kapag oo, ini-print nito ang notification; kung hindi, ipoproseso ito bilang regular na mensahe mula sa server. Ini-initialize ang `ClientSession` gamit ang message handler sa pamamagitan ng `ClientSessionOptions`.
 
-Para ma-enable ang notifications, tiyakin na ang iyong server ay gumagamit ng streaming transport (tulad ng `streamable-http`) at ang iyong kliyente ay nag-implement ng message handler para magproseso ng notifications.
+Para paganahin ang notifications, siguraduhing gumagamit ang iyong server ng streaming transport (tulad ng `streamable-http`) at nagpapatupad ang iyong kliyente ng message handler para iproseso ang mga notification.
 
-## Progress Notifications at Scenarios
+## Mga Notification ng Progreso at Mga Senaryo
 
-Ang seksyong ito ay nagpapaliwanag ng konsepto ng progress notifications sa MCP, kung bakit mahalaga ang mga ito, at kung paano ito i-implement gamit ang Streamable HTTP. Makakakita ka rin ng praktikal na assignment para mapalalim ang iyong pag-unawa.
+Ipinaliwanag sa seksyong ito ang konsepto ng progress notifications sa MCP, bakit ito mahalaga, at kung paano ito ipatupad gamit ang Streamable HTTP. Makakakita ka rin ng praktikal na gawain upang lalong maunawaan ito.
 
-Ang progress notifications ay real-time na mga mensahe na ipinapadala mula sa server patungo sa kliyente habang may mahahabang operasyon. Sa halip na hintayin ang buong proseso na matapos, pinapanatili ng server ang kliyente na updated tungkol sa kasalukuyang status. Pinapabuti nito ang transparency, user experience, at ginagawang mas madali ang debugging.
+Ang progress notifications ay mga real-time na mensahe na ipinapadala mula sa server papuntang kliyente habang nagpapatuloy ang mahahabang operasyon. Sa halip na maghintay na matapos ang buong proseso, patuloy na ina-update ng server ang kliyente tungkol sa kasalukuyang estado. Pinapabuti nito ang transparency, karanasan ng gumagamit, at nagpapadali ng pag-debug.
 
 **Halimbawa:**
 
@@ -404,20 +404,20 @@ Ang progress notifications ay real-time na mga mensahe na ipinapadala mula sa se
 
 ```
 
-### Bakit Gumamit ng Progress Notifications?
+### Bakit Gamitin ang Progress Notifications?
 
-Ang progress notifications ay mahalaga para sa ilang kadahilanan:
+Napakahalaga ng progress notifications dahil sa mga sumusunod:
 
-- **Mas magandang user experience:** Nakikita ng mga user ang updates habang nagpapatuloy ang trabaho, hindi lamang sa dulo.
-- **Real-time feedback:** Maaaring mag-display ang mga kliyente ng progress bars o logs, na nagpaparamdam na responsive ang app.
-- **Mas madaling debugging at monitoring:** Nakikita ng mga developer at user kung saan maaaring mabagal o ma-stuck ang proseso.
+- **Mas mahusay na karanasan ng gumagamit:** Nakikita ng mga gumagamit ang mga update habang nagpapatuloy ang trabaho, hindi lang sa huli.
+- **Real-time na feedback:** Maaaring magpakita ang mga kliyente ng progress bar o logs, kaya mas responsive ang app.
+- **Mas madaling pag-debug at pagmamanman:** Nakikita ng mga developer at gumagamit kung saan nahihinto o bumagal ang proseso.
 
-### Paano Mag-implement ng Progress Notifications
+### Paano Ipatupad ang Progress Notifications
 
-Narito kung paano mo ma-implement ang progress notifications sa MCP:
+Ganito mo maaaring ipatupad ang progress notifications sa MCP:
 
-- **Sa server:** Gumamit ng `ctx.info()` o `ctx.log()` para magpadala ng notifications habang nagpoproseso ng bawat item. Ipinapadala nito ang mensahe sa kliyente bago maging handa ang pangunahing resulta.
-- **Sa kliyente:** Mag-implement ng message handler na nakikinig at nagpapakita ng notifications habang dumarating ang mga ito. Ang handler na ito ay nagtatangi sa pagitan ng notifications at ng final result.
+- **Sa server:** Gamitin ang `ctx.info()` o `ctx.log()` para magpadala ng mga notification sa tuwing may naiprosesong item. Pinapadala ito bago ang pangunahing resulta ay handa pa.
+- **Sa kliyente:** Magpatupad ng message handler na nakikinig at nagpapakita ng mga notification habang dumarating. Nakikilala ng handler ang pagitan ng notifications at panghuling resulta.
 
 **Halimbawa ng Server:**
 
@@ -432,7 +432,7 @@ async def process_files(message: str, ctx: Context) -> TextContent:
     return TextContent(type="text", text=f"Done: {message}")
 ```
 
-**Halimbawa ng Client:**
+**Halimbawa ng Kliyente:**
 
 #### Python
 
@@ -446,115 +446,115 @@ async def message_handler(message):
 
 ## Mga Pagsasaalang-alang sa Seguridad
 
-Kapag nag-implement ng MCP servers gamit ang HTTP-based transports, ang seguridad ay nagiging pangunahing alalahanin na nangangailangan ng maingat na pansin sa iba't ibang attack vectors at protection mechanisms.
+Kapag nagpapatupad ng MCP servers gamit ang mga HTTP-based na transport, nagiging napakahalaga ang seguridad na nangangailangan ng maingat na pagtutok sa iba't ibang attack vectors at mga mekanismo ng proteksyon.
 
-### Overview
+### Pangkalahatang Tanaw
 
-Ang seguridad ay kritikal kapag nag-e-expose ng MCP servers sa HTTP. Ang Streamable HTTP ay nagdadala ng bagong attack surfaces at nangangailangan ng maingat na configuration.
+Mahalaga ang seguridad kapag inilalantad ang MCP servers sa HTTP. Nagdadala ang Streamable HTTP ng mga bagong butas na posibleng pagsamantalahan kaya kailangan ng maingat na konfigurasyon.
 
 ### Mga Pangunahing Punto
 
-- **Origin Header Validation**: Palaging i-validate ang `Origin` header upang maiwasan ang DNS rebinding attacks.
-- **Localhost Binding**: Para sa lokal na development, i-bind ang servers sa `localhost` upang maiwasan ang pag-expose sa public internet.
-- **Authentication**: Mag-implement ng authentication (hal., API keys, OAuth) para sa production deployments.
+- **Pag-validate ng Origin Header**: Palaging i-validate ang `Origin` header upang maiwasan ang DNS rebinding attacks.
+- **Localhost Binding**: Para sa lokal na pag-unlad, i-bind ang mga server sa `localhost` upang hindi ito maging bukas sa publiko.
+- **Authentication**: Ipatupad ang authentication (hal., API keys, OAuth) para sa production deployment.
 - **CORS**: I-configure ang Cross-Origin Resource Sharing (CORS) policies upang limitahan ang access.
-- **HTTPS**: Gumamit ng HTTPS sa production upang ma-encrypt ang traffic.
+- **HTTPS**: Gumamit ng HTTPS sa production upang i-encrypt ang trapiko.
 
-### Mga Pinakamahusay na Kasanayan
+### Mga Pinakamahuhusay na Praktis
 
-- Huwag kailanman magtiwala sa incoming requests nang walang validation.
-- I-log at i-monitor ang lahat ng access at errors.
-- Regular na i-update ang dependencies upang ma-patch ang security vulnerabilities.
+- Huwag kailanman pagkatiwalaan ang mga papasok na kahilingan nang walang validation.
+- Mag-log at mag-monitor ng lahat ng access at errors.
+- Regular na i-update ang dependencies upang ma-patch ang mga security vulnerabilities.
 
 ### Mga Hamon
+- Pagtutugma ng seguridad at kadalian sa pag-develop
+- Pagtitiyak ng pagiging compatible sa iba't ibang client na kapaligiran
 
-- Pagbabalanse ng seguridad at kadalian ng development.
-- Pagtitiyak ng compatibility sa iba't ibang client environments.
+## Pag-upgrade mula SSE papuntang Streamable HTTP
 
-## Pag-upgrade mula SSE patungo sa Streamable HTTP
-
-Para sa mga applications na kasalukuyang gumagamit ng Server-Sent Events (SSE), ang paglipat sa Streamable HTTP ay nagbibigay ng mas pinahusay na capabilities at mas magandang pangmatagalang sustainability para sa iyong MCP implementations.
+Para sa mga aplikasyon na kasalukuyang gumagamit ng Server-Sent Events (SSE), ang paglipat sa Streamable HTTP ay nagbibigay ng mas pinahusay na kakayahan at mas maayos na pangmatagalang pagpapanatili para sa iyong mga MCP na implementasyon.
 
 ### Bakit Mag-upgrade?
-Mayroong dalawang mahalagang dahilan para mag-upgrade mula SSE patungo sa Streamable HTTP:
 
-- Ang Streamable HTTP ay nag-aalok ng mas mahusay na scalability, compatibility, at mas mayamang suporta sa notification kumpara sa SSE.
-- Ito ang inirerekomendang transport para sa mga bagong MCP application.
+May dalawang malakas na dahilan para mag-upgrade mula SSE papuntang Streamable HTTP:
 
-### Mga Hakbang sa Paglipat
+- Nag-aalok ang Streamable HTTP ng mas mahusay na scalability, compatibility, at mas mayamang suporta para sa mga notification kaysa sa SSE.
+- Ito ang inirerekomendang transport para sa mga bagong MCP na aplikasyon.
 
-Narito kung paano mo maililipat ang iyong MCP application mula SSE patungo sa Streamable HTTP:
+### Mga Hakbang sa Pag-migrate
 
-- **I-update ang server code** upang gamitin ang `transport="streamable-http"` sa `mcp.run()`.
-- **I-update ang client code** upang gamitin ang `streamablehttp_client` sa halip na SSE client.
-- **Magpatupad ng message handler** sa client upang iproseso ang mga notification.
-- **Subukan ang compatibility** sa mga umiiral na tools at workflows.
+Narito kung paano ka makakapag-migrate mula SSE papuntang Streamable HTTP sa iyong mga MCP na aplikasyon:
+
+- **I-update ang server code** para gamitin ang `transport="streamable-http"` sa `mcp.run()`.
+- **I-update ang client code** para gamitin ang `streamablehttp_client` imbes na SSE client.
+- **Mag-implement ng message handler** sa client upang iproseso ang mga notifications.
+- **Subukan ang compatibility** gamit ang mga umiiral na tools at workflows.
 
 ### Pagpapanatili ng Compatibility
 
-Inirerekomenda na panatilihin ang compatibility sa mga umiiral na SSE client habang nasa proseso ng paglipat. Narito ang ilang estratehiya:
+Inirerekomenda na panatilihin ang compatibility sa umiiral na mga SSE client habang nagpapatuloy ang pag-migrate. Narito ang ilang mga estratehiya:
 
-- Maaari mong suportahan ang parehong SSE at Streamable HTTP sa pamamagitan ng pagpapatakbo ng parehong transport sa magkaibang endpoints.
-- Dahan-dahang ilipat ang mga client sa bagong transport.
+- Maaari mong suportahan ang parehong SSE at Streamable HTTP sa pamamagitan ng pagpapatakbo ng parehong transport sa magkahiwalay na mga endpoint.
+- Unti-unting ilipat ang mga client sa bagong transport.
 
 ### Mga Hamon
 
-Siguraduhing matugunan ang mga sumusunod na hamon sa panahon ng paglipat:
+Siguraduhing matugunan ang mga sumusunod na hamon sa panahon ng pag-migrate:
 
-- Siguraduhing lahat ng client ay na-update
-- Pag-handle ng mga pagkakaiba sa notification delivery
+- Pagtitiyak na updated lahat ng client
+- Pag-handle sa mga pagkakaiba sa pagde-deliver ng notification
 
 ## Mga Pagsasaalang-alang sa Seguridad
 
-Ang seguridad ay dapat maging pangunahing prayoridad kapag nag-iimplementa ng anumang server, lalo na kung gumagamit ng HTTP-based transports tulad ng Streamable HTTP sa MCP.
+Dapat maging pangunahing prayoridad ang seguridad kapag nag-iimplementa ng anumang server, lalo na kung gumagamit ng mga HTTP-based na transport gaya ng Streamable HTTP sa MCP.
 
-Kapag nag-iimplementa ng MCP servers gamit ang HTTP-based transports, ang seguridad ay nagiging mahalagang usapin na nangangailangan ng maingat na pagtuon sa iba't ibang attack vectors at mga mekanismo ng proteksyon.
+Sa pag-implementa ng mga MCP server gamit ang HTTP-based na transport, nagiging napakahalaga ang seguridad na nangangailangan ng maingat na pagtuon sa iba't ibang paraan ng pag-atake at mga mekanismo ng proteksyon.
 
 ### Pangkalahatang-ideya
 
-Ang seguridad ay kritikal kapag ine-expose ang MCP servers sa HTTP. Ang Streamable HTTP ay nagdadala ng mga bagong attack surfaces at nangangailangan ng maingat na configuration.
+Mahalaga ang seguridad kapag nag-e-expose ng mga MCP server sa ibabaw ng HTTP. Nagpapakilala ang Streamable HTTP ng mga bagong attack surface at nangangailangan ng maingat na configuration.
 
-Narito ang ilang mahahalagang pagsasaalang-alang sa seguridad:
+Narito ang mga pangunahing pagsasaalang-alang sa seguridad:
 
-- **Origin Header Validation**: Palaging i-validate ang `Origin` header upang maiwasan ang DNS rebinding attacks.
-- **Localhost Binding**: Para sa lokal na development, i-bind ang mga server sa `localhost` upang maiwasan ang pag-expose sa public internet.
-- **Authentication**: Magpatupad ng authentication (hal., API keys, OAuth) para sa production deployments.
-- **CORS**: I-configure ang Cross-Origin Resource Sharing (CORS) policies upang limitahan ang access.
+- **Pag-validate ng Origin Header**: Laging i-validate ang `Origin` header upang pigilan ang mga DNS rebinding attack.
+- **Localhost Binding**: Para sa local development, i-bind ang mga server sa `localhost` upang maiwasang ma-expose sa public internet.
+- **Authentication**: Mag-implement ng authentication (hal., API keys, OAuth) para sa mga production deployment.
+- **CORS**: I-configure ang mga patakaran ng Cross-Origin Resource Sharing (CORS) upang limitahan ang access.
 - **HTTPS**: Gumamit ng HTTPS sa production upang i-encrypt ang traffic.
 
-### Mga Best Practices
+### Mga Pinakamahusay na Praktis
 
-Bukod dito, narito ang ilang best practices na dapat sundin kapag nag-iimplementa ng seguridad sa iyong MCP streaming server:
+Bukod dito, narito ang ilang pinakamahusay na praktis sa pag-implementa ng seguridad sa iyong MCP streaming server:
 
-- Huwag magtiwala sa mga incoming requests nang walang validation.
-- I-log at i-monitor ang lahat ng access at errors.
-- Regular na i-update ang mga dependencies upang ma-patch ang mga security vulnerabilities.
+- Huwag kailanman pagkatiwalaan ang mga papasok na request nang walang validation.
+- I-log at i-monitor ang lahat ng access at error.
+- Regular na i-update ang mga dependencies para mapatch ang mga kahinaan sa seguridad.
 
 ### Mga Hamon
 
-Makakaranas ka ng ilang hamon kapag nag-iimplementa ng seguridad sa MCP streaming servers:
+Makakaharap ka ng ilang hamon sa pag-implementa ng seguridad sa mga MCP streaming server:
 
-- Pagbabalanse ng seguridad at kadalian ng development
-- Pagtiyak ng compatibility sa iba't ibang client environments
+- Pagtutugma ng seguridad at kadalian sa pag-develop
+- Pagtitiyak ng compatibility sa iba't ibang client na kapaligiran
 
-### Assignment: Gumawa ng Sariling Streaming MCP App
+### Takdang-Aralin: Gumawa ng Sariling Streaming MCP App
 
-**Scenario:**
-Gumawa ng MCP server at client kung saan ang server ay nagpoproseso ng listahan ng mga item (hal., mga file o dokumento) at nagpapadala ng notification para sa bawat item na naproseso. Ang client ay dapat magpakita ng bawat notification habang ito ay dumarating.
+**Sitwasyon:**
+Gumawa ng MCP server at client kung saan ang server ay nagpo-proseso ng listahan ng mga item (hal., mga file o dokumento) at nagpapadala ng notification para sa bawat naprosesong item. Dapat ipakita ng client ang bawat notification habang dumarating ito.
 
 **Mga Hakbang:**
 
-1. Magpatupad ng server tool na nagpoproseso ng listahan at nagpapadala ng notification para sa bawat item.
-2. Magpatupad ng client na may message handler upang magpakita ng mga notification nang real-time.
-3. Subukan ang iyong implementation sa pamamagitan ng pagpapatakbo ng parehong server at client, at obserbahan ang mga notification.
+1. Mag-implement ng tool para sa server na nagpo-proseso ng listahan at nagpapadala ng mga notification para sa bawat item.
+2. Mag-implement ng client na may message handler upang ipakita ang mga notification nang real time.
+3. Subukan ang iyong implementasyon sa pamamagitan ng pagpapatakbo ng parehong server at client, at obserbahan ang mga notification.
 
 [Solution](./solution/README.md)
 
-## Karagdagang Pagbabasa at Ano ang Susunod?
+## Karagdagang Babasahin at Ano ang Susunod?
 
-Upang ipagpatuloy ang iyong paglalakbay sa MCP streaming at palawakin ang iyong kaalaman, ang seksyong ito ay nagbibigay ng karagdagang resources at mga mungkahing susunod na hakbang para sa paggawa ng mas advanced na mga application.
+Upang ipagpatuloy ang iyong paglalakbay sa MCP streaming at palawakin ang iyong kaalaman, nagbibigay ang seksyong ito ng mga karagdagang mapagkukunan at mungkahing mga susunod na hakbang para sa paggawa ng mas advanced na mga aplikasyon.
 
-### Karagdagang Pagbabasa
+### Karagdagang Babasahin
 
 - [Microsoft: Introduction to HTTP Streaming](https://learn.microsoft.com/aspnet/core/fundamentals/http-requests?view=aspnetcore-8.0&WT.mc_id=%3Fwt.mc_id%3DMVP_452430#streaming)
 - [Microsoft: Server-Sent Events (SSE)](https://learn.microsoft.com/azure/application-gateway/for-containers/server-sent-events?tabs=server-sent-events-gateway-api&WT.mc_id=%3Fwt.mc_id%3DMVP_452430)
@@ -563,9 +563,13 @@ Upang ipagpatuloy ang iyong paglalakbay sa MCP streaming at palawakin ang iyong 
 
 ### Ano ang Susunod?
 
-- Subukang gumawa ng mas advanced na MCP tools na gumagamit ng streaming para sa real-time analytics, chat, o collaborative editing.
-- Tuklasin ang pag-integrate ng MCP streaming sa frontend frameworks (React, Vue, atbp.) para sa live UI updates.
+- Subukang gumawa ng mas advanced na mga MCP tool na gumagamit ng streaming para sa real-time analytics, chat, o collaborative editing.
+- Suriin ang pagsasama ng MCP streaming sa mga frontend framework (React, Vue, atbp.) para sa mga live na UI update.
 - Susunod: [Utilising AI Toolkit for VSCode](../07-aitk/README.md)
 
-**Paunawa**:  
-Ang dokumentong ito ay isinalin gamit ang AI translation service na [Co-op Translator](https://github.com/Azure/co-op-translator). Bagama't sinisikap naming maging tumpak, pakitandaan na ang mga awtomatikong pagsasalin ay maaaring maglaman ng mga pagkakamali o hindi pagkakatugma. Ang orihinal na dokumento sa kanyang orihinal na wika ang dapat ituring na opisyal na sanggunian. Para sa mahalagang impormasyon, inirerekomenda ang propesyonal na pagsasalin ng tao. Hindi kami mananagot sa anumang hindi pagkakaunawaan o maling interpretasyon na maaaring magmula sa paggamit ng pagsasaling ito.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Pagtatanggi**:
+Ang dokumentong ito ay isinalin gamit ang serbisyo ng AI translation na [Co-op Translator](https://github.com/Azure/co-op-translator). Bagama't nagsusumikap kami para sa katumpakan, pakatandaan na ang awtomatikong pagsasalin ay maaaring maglaman ng mga pagkakamali o hindi pagkakatugma. Ang orihinal na dokumento sa orihinal nitong wika ang dapat ituring na pangunahing sanggunian. Para sa mahahalagang impormasyon, inirerekomenda ang propesyonal na pagsasalin ng tao. Hindi kami mananagot sa anumang maling pagkakaintindi o maling interpretasyon na nagmula sa paggamit ng pagsasaling ito.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->
