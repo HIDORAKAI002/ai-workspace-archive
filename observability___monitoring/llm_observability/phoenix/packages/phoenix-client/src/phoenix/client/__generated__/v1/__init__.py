@@ -178,19 +178,6 @@ class FileUIPart(TypedDict):
     providerMetadata: NotRequired[Mapping[str, Mapping[str, Any]]]
 
 
-class FreeformAnnotationConfig(TypedDict):
-    type: Literal["FREEFORM"]
-    name: str
-    id: str
-    description: NotRequired[str]
-
-
-class FreeformAnnotationConfigData(TypedDict):
-    type: Literal["FREEFORM"]
-    name: str
-    description: NotRequired[str]
-
-
 class GetDatasetResponseBody(TypedDict):
     data: DatasetWithExampleCount
 
@@ -313,10 +300,6 @@ class OAuth2User(OAuth2UserData):
 class OtlpStatus(TypedDict):
     code: NotRequired[int]
     message: NotRequired[str]
-
-
-class PhoenixToolCallProviderMetadata(TypedDict):
-    tool_execution_environment: Literal["client", "server"]
 
 
 class PlaygroundContext(TypedDict):
@@ -900,8 +883,17 @@ class ValidationError(TypedDict):
     ctx: NotRequired[Mapping[str, Any]]
 
 
+class WebAccessContext(TypedDict):
+    type: Literal["web_access"]
+    enabled: bool
+
+
 class FieldSummarizeResponse(TypedDict):
     summary: str
+
+
+class ToolCallProviderMetadata(TypedDict):
+    tool_execution_environment: Literal["client", "server"]
 
 
 class AnnotateSessionsRequestBody(TypedDict):
@@ -999,10 +991,6 @@ class ContinuousAnnotationConfigData(TypedDict):
     upper_bound: NotRequired[float]
 
 
-class CreateAnnotationConfigResponseBody(TypedDict):
-    data: Union[CategoricalAnnotationConfig, ContinuousAnnotationConfig, FreeformAnnotationConfig]
-
-
 class CreateExperimentResponseBody(TypedDict):
     data: Experiment
 
@@ -1046,10 +1034,6 @@ class CreateUserRequestBody(TypedDict):
 
 class CreateUserResponseBody(TypedDict):
     data: Union[LocalUser, OAuth2User, LDAPUser]
-
-
-class DeleteAnnotationConfigResponseBody(TypedDict):
-    data: Union[CategoricalAnnotationConfig, ContinuousAnnotationConfig, FreeformAnnotationConfig]
 
 
 class DynamicToolApprovalRequestedPart(TypedDict):
@@ -1123,6 +1107,27 @@ class DynamicToolOutputErrorPart(TypedDict):
     state: NotRequired[str]
     callProviderMetadata: NotRequired[Mapping[str, Mapping[str, Any]]]
     approval: NotRequired[Union[ToolApprovalRequested, ToolApprovalResponded]]
+
+
+class FreeformAnnotationConfig(TypedDict):
+    type: Literal["FREEFORM"]
+    name: str
+    id: str
+    description: NotRequired[str]
+    optimization_direction: NotRequired[Literal["MINIMIZE", "MAXIMIZE", "NONE"]]
+    threshold: NotRequired[float]
+    lower_bound: NotRequired[float]
+    upper_bound: NotRequired[float]
+
+
+class FreeformAnnotationConfigData(TypedDict):
+    type: Literal["FREEFORM"]
+    name: str
+    description: NotRequired[str]
+    optimization_direction: NotRequired[Literal["MINIMIZE", "MAXIMIZE", "NONE"]]
+    threshold: NotRequired[float]
+    lower_bound: NotRequired[float]
+    upper_bound: NotRequired[float]
 
 
 class GetAnnotationConfigResponseBody(TypedDict):
@@ -1452,6 +1457,7 @@ class ChatRegenerateMessage(TypedDict):
                 AgentSpanContext,
                 PlaygroundContext,
                 GraphQLContext,
+                WebAccessContext,
             ]
         ]
     ]
@@ -1473,13 +1479,22 @@ class ChatSubmitMessage(TypedDict):
                 AgentSpanContext,
                 PlaygroundContext,
                 GraphQLContext,
+                WebAccessContext,
             ]
         ]
     ]
 
 
+class CreateAnnotationConfigResponseBody(TypedDict):
+    data: Union[CategoricalAnnotationConfig, ContinuousAnnotationConfig, FreeformAnnotationConfig]
+
+
 class CreateSpansRequestBody(TypedDict):
     data: Sequence[Span]
+
+
+class DeleteAnnotationConfigResponseBody(TypedDict):
+    data: Union[CategoricalAnnotationConfig, ContinuousAnnotationConfig, FreeformAnnotationConfig]
 
 
 class GetSessionResponseBody(TypedDict):
