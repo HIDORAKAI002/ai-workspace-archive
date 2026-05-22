@@ -12,7 +12,7 @@ use common::types::PointOffsetType;
 use crate::common::operation_error::OperationResult;
 use crate::common::utils::{IndexesMap, check_is_empty, check_is_null};
 use crate::id_tracker::{IdTrackerEnum, IdTrackerRead};
-use crate::index::field_index::FieldIndex;
+use crate::index::field_index::FieldIndexRead;
 use crate::payload_storage::condition_checker::ValueChecker;
 use crate::payload_storage::payload_storage_enum::PayloadStorageEnum;
 use crate::payload_storage::{ConditionChecker, PayloadStorageRead};
@@ -28,7 +28,13 @@ where
 {
     match condition {
         Condition::Filter(filter) => check_filter(checker, filter),
-        _ => checker(condition),
+        Condition::Field(_)
+        | Condition::IsEmpty(_)
+        | Condition::IsNull(_)
+        | Condition::HasId(_)
+        | Condition::HasVector(_)
+        | Condition::Nested(_)
+        | Condition::CustomIdChecker(_) => checker(condition),
     }
 }
 
@@ -96,12 +102,13 @@ where
     }
 }
 
-pub fn select_nested_indexes<'a, R>(
+pub fn select_nested_indexes<'a, R, FI>(
     nested_path: &PayloadKeyType,
     field_indexes: &'a HashMap<PayloadKeyType, R>,
-) -> HashMap<PayloadKeyType, &'a Vec<FieldIndex>>
+) -> HashMap<PayloadKeyType, &'a Vec<FI>>
 where
-    R: AsRef<Vec<FieldIndex>>,
+    FI: FieldIndexRead,
+    R: AsRef<Vec<FI>>,
 {
     let nested_indexes: HashMap<_, _> = field_indexes
         .iter()
@@ -113,7 +120,7 @@ where
     nested_indexes
 }
 
-pub fn check_payload<'a, R>(
+pub fn check_payload<'a, R, FI>(
     get_payload: Box<dyn Fn() -> OwnedPayloadRef<'a> + 'a>,
     id_tracker: Option<&IdTrackerEnum>,
     vector_storages: &HashMap<VectorNameBuf, Arc<AtomicRefCell<VectorStorageEnum>>>,
@@ -123,7 +130,8 @@ pub fn check_payload<'a, R>(
     hw_counter: &HardwareCounterCell,
 ) -> bool
 where
-    R: AsRef<Vec<FieldIndex>>,
+    FI: FieldIndexRead,
+    R: AsRef<Vec<FI>>,
 {
     let checker = |condition: &Condition| match condition {
         Condition::Field(field_condition) => check_field_condition(
@@ -186,14 +194,15 @@ pub fn check_is_null_condition(is_null: &IsNullCondition, payload: &impl Payload
     check_is_null(payload.get_value(&is_null.is_null.key).iter().copied())
 }
 
-pub fn check_field_condition<R>(
+pub fn check_field_condition<R, FI>(
     field_condition: &FieldCondition,
     payload: &impl PayloadContainer,
     field_indexes: &HashMap<PayloadKeyType, R>,
     hw_counter: &HardwareCounterCell,
 ) -> OperationResult<bool>
 where
-    R: AsRef<Vec<FieldIndex>>,
+    FI: FieldIndexRead,
+    R: AsRef<Vec<FI>>,
 {
     let field_values = payload.get_value(&field_condition.key);
     let field_indexes = field_indexes.get(&field_condition.key);
@@ -312,6 +321,7 @@ mod tests {
     use super::*;
     use crate::id_tracker::in_memory_id_tracker::InMemoryIdTracker;
     use crate::id_tracker::{IdTracker, IdTrackerEnum};
+    use crate::index::field_index::FieldIndex;
     use crate::json_path::JsonPath;
     use crate::payload_json;
     use crate::payload_storage::PayloadStorage;
@@ -644,7 +654,7 @@ mod tests {
 
         use crate::data_types::index::{TextIndexParams, TextIndexType, TokenizerType};
         use crate::index::field_index::ValueIndexer;
-        use crate::index::field_index::full_text_index::text_index::FullTextIndex;
+        use crate::index::field_index::full_text_index::FullTextIndex;
         use crate::types::{Condition, MatchTextAny, Nested, NestedCondition};
 
         let hw_counter = HardwareCounterCell::new();

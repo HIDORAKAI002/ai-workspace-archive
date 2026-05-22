@@ -5,11 +5,14 @@ use std::path::PathBuf;
 use common::bitvec::{BitSlice, BitSliceExt, BitVec};
 use common::counter::hardware_counter::HardwareCounterCell;
 use common::fs::clear_disk_cache;
-use common::mmap::{self, Advice, AdviceSetting, MmapSlice, create_and_ensure_length};
-use common::persisted_hashmap::{MmapHashMap, READ_ENTRY_OVERHEAD, serialize_hashmap};
+use common::generic_consts::Random;
+use common::mmap::{Advice, AdviceSetting, MmapSlice, create_and_ensure_length};
+use common::persisted_hashmap::{READ_ENTRY_OVERHEAD, UniversalHashMap, serialize_hashmap};
 use common::stored_bitslice::MmapBitSlice;
 use common::types::PointOffsetType;
-use common::universal_io::{MmapFile, OpenOptions};
+use common::universal_io::{
+    MmapFile, OpenOptions, Populate, ReadRange, TypedStorage, UniversalRead, UserData,
+};
 use types::ZerocopyPostingValue;
 use uio_postings::UniversalPostings;
 
@@ -52,22 +55,23 @@ const DELETED_POINTS_FILE: &str = "deleted_points.dat";
 /// only updates the in-memory bitvec. Callers must re-supply the authoritative
 /// deletion set (typically `id_tracker.deleted_point_bitslice()`) via the
 /// `deleted_points` argument to [`Self::open`] on reload.
-pub struct MmapInvertedIndex {
+pub struct MmapInvertedIndex<S: UniversalRead = MmapFile> {
     pub(in crate::index::field_index::full_text_index) path: PathBuf,
-    pub(in crate::index::field_index::full_text_index) storage: Storage,
+    pub(in crate::index::field_index::full_text_index) storage: Storage<S>,
     /// Number of points which are not deleted
     pub(in crate::index::field_index::full_text_index) active_points_count: usize,
     is_on_disk: bool,
 }
 
-pub(in crate::index::field_index::full_text_index) struct Storage {
-    pub(in crate::index::field_index::full_text_index) postings: MmapPostingsEnum,
-    pub(in crate::index::field_index::full_text_index) vocab: MmapHashMap<str, TokenId>,
-    pub(in crate::index::field_index::full_text_index) point_to_tokens_count: MmapSlice<usize>,
+pub(in crate::index::field_index::full_text_index) struct Storage<S: UniversalRead = MmapFile> {
+    pub(in crate::index::field_index::full_text_index) postings: MmapPostingsEnum<S>,
+    pub(in crate::index::field_index::full_text_index) vocab: UniversalHashMap<str, TokenId, S>,
+    pub(in crate::index::field_index::full_text_index) point_to_tokens_count:
+        TypedStorage<S, usize>,
     pub(in crate::index::field_index::full_text_index) deleted_points: BitVec,
 }
 
-impl Storage {
+impl<S: UniversalRead> Storage<S> {
     pub(crate) fn ram_usage_bytes(&self) -> usize {
         let Self {
             postings: _,
@@ -80,7 +84,7 @@ impl Storage {
     }
 }
 
-impl MmapInvertedIndex {
+impl MmapInvertedIndex<MmapFile> {
     pub fn create(path: PathBuf, inverted_index: &ImmutableInvertedIndex) -> OperationResult<()> {
         let ImmutableInvertedIndex {
             postings,
@@ -103,8 +107,6 @@ impl MmapInvertedIndex {
             }
         }
 
-        // Currently MmapHashMap maps str -> [u32], but we only need to map str -> u32.
-        // TODO: Consider making another mmap structure for this case.
         serialize_hashmap::<str, TokenId>(
             &vocab_path,
             vocab.iter().map(|(k, v)| (k.as_str(), std::iter::once(*v))),
@@ -126,8 +128,16 @@ impl MmapInvertedIndex {
                     .next_multiple_of(size_of::<u64>()),
             )?;
 
-            let mut deleted_storage =
-                MmapBitSlice::open(&deleted_points_path, OpenOptions::default())?;
+            let mut deleted_storage = MmapBitSlice::open(
+                &deleted_points_path,
+                OpenOptions {
+                    writeable: true,
+                    need_sequential: false,
+                    populate: Populate::Auto,
+                    advice: AdviceSetting::Global,
+                    extra: Default::default(),
+                },
+            )?;
             deleted_storage.write_bitslice(&deleted_bitslice)?;
             deleted_storage.flusher()()?;
         }
@@ -139,7 +149,9 @@ impl MmapInvertedIndex {
 
         Ok(())
     }
+}
 
+impl<S: UniversalRead> MmapInvertedIndex<S> {
     pub fn open(
         path: PathBuf,
         populate: bool,
@@ -159,35 +171,52 @@ impl MmapInvertedIndex {
         let postings_open_options = OpenOptions {
             writeable: false,
             need_sequential: false,
-            disk_parallel: None,
-            populate: Some(populate),
-            advice: Some(AdviceSetting::Advice(Advice::Normal)),
-            prevent_caching: None,
+            populate: Populate::from(populate),
+            advice: AdviceSetting::Advice(Advice::Normal),
+            extra: Default::default(),
         };
         let postings = match has_positions {
-            false => MmapPostingsEnum::Ids(UniversalPostings::<(), MmapFile>::open(
+            false => MmapPostingsEnum::Ids(UniversalPostings::<(), S>::open(
                 &postings_path,
                 postings_open_options,
             )?),
-            true => {
-                MmapPostingsEnum::WithPositions(UniversalPostings::<Positions, MmapFile>::open(
-                    &postings_path,
-                    postings_open_options,
-                )?)
-            }
+            true => MmapPostingsEnum::WithPositions(UniversalPostings::<Positions, S>::open(
+                &postings_path,
+                postings_open_options,
+            )?),
         };
-        let vocab = MmapHashMap::<str, TokenId>::open(&vocab_path, false)?;
+        let vocab = UniversalHashMap::<str, TokenId, S>::open(
+            &vocab_path,
+            OpenOptions {
+                writeable: false,
+                need_sequential: false,
+                populate: Populate::from(populate),
+                advice: AdviceSetting::Global,
+                extra: Default::default(),
+            },
+        )?;
 
-        let point_to_tokens_count = unsafe {
-            MmapSlice::try_from(mmap::open_write_mmap(
-                &point_to_tokens_count_path,
-                AdviceSetting::Global,
-                populate,
-            )?)?
-        };
+        let point_to_tokens_count = TypedStorage::<S, usize>::open(
+            &point_to_tokens_count_path,
+            OpenOptions {
+                writeable: false,
+                need_sequential: false,
+                populate: Populate::from(populate),
+                advice: AdviceSetting::Global,
+                extra: Default::default(),
+            },
+        )?;
 
-        let deleted_payload_mmap =
-            MmapBitSlice::open(&deleted_points_path, OpenOptions::default())?;
+        let deleted_payload_mmap = MmapBitSlice::open(
+            &deleted_points_path,
+            OpenOptions {
+                writeable: true,
+                need_sequential: false,
+                populate: Populate::from(populate),
+                advice: AdviceSetting::Global,
+                extra: Default::default(),
+            },
+        )?;
         let deleted_payloads_bitslice = deleted_payload_mmap.read_all()?;
 
         // `deleted` length must match `point_to_tokens_count.len()` because it
@@ -196,12 +225,13 @@ impl MmapInvertedIndex {
         // live (the id-tracker is the source of truth for deletions, and a
         // shorter mask just means it doesn't yet know about those higher
         // offsets).
+        let total_count = point_to_tokens_count.len()? as usize;
         let mut deleted = deleted_points.to_owned();
-        deleted.resize(point_to_tokens_count.len(), false);
+        deleted.resize(total_count, false);
         deleted.bitor_assign(deleted_payloads_bitslice.as_ref());
 
         let num_deleted_points = deleted.count_ones();
-        let points_count = point_to_tokens_count.len() - num_deleted_points;
+        let points_count = total_count - num_deleted_points;
 
         Ok(Some(Self {
             path,
@@ -216,12 +246,13 @@ impl MmapInvertedIndex {
         }))
     }
 
-    pub(super) fn iter_vocab(&self) -> impl Iterator<Item = (&str, &TokenId)> + '_ {
-        // unwrap safety: we know that each token points to a token id.
+    pub(super) fn for_each_vocab(
+        &self,
+        mut f: impl FnMut(&str, TokenId) -> OperationResult<()>,
+    ) -> OperationResult<()> {
         self.storage
             .vocab
-            .iter()
-            .map(|(k, v)| (k, v.first().unwrap()))
+            .for_each_entry(|k, v| f(k, unwrap_token(v)))
     }
 
     /// Returns whether the point id is valid and active.
@@ -243,8 +274,8 @@ impl MmapInvertedIndex {
         // in case of mmap immutable index, deleted points are still in the postings
         let filter = move |idx| self.is_active(idx);
 
-        fn intersection<V: ZerocopyPostingValue>(
-            postings: &UniversalPostings<V, MmapFile>,
+        fn intersection<V: ZerocopyPostingValue, S: UniversalRead>(
+            postings: &UniversalPostings<V, S>,
             tokens: TokenSet,
             filter: impl Fn(PointOffsetType) -> bool,
         ) -> OperationResult<Vec<PointOffsetType>> {
@@ -274,8 +305,8 @@ impl MmapInvertedIndex {
         // in case of immutable index, deleted documents are still in the postings
         let is_active = move |idx| self.is_active(idx);
 
-        fn merge<V: ZerocopyPostingValue>(
-            postings: &UniversalPostings<V, MmapFile>,
+        fn merge<V: ZerocopyPostingValue, S: UniversalRead>(
+            postings: &UniversalPostings<V, S>,
             tokens: TokenSet,
             is_active: impl Fn(PointOffsetType) -> bool,
         ) -> OperationResult<Vec<PointOffsetType>> {
@@ -312,8 +343,8 @@ impl MmapInvertedIndex {
             return Ok(false);
         }
 
-        fn check_intersection<V: ZerocopyPostingValue>(
-            postings: &UniversalPostings<V, MmapFile>,
+        fn check_intersection<V: ZerocopyPostingValue, S: UniversalRead>(
+            postings: &UniversalPostings<V, S>,
             tokens: &TokenSet,
             point_id: PointOffsetType,
         ) -> OperationResult<bool> {
@@ -344,8 +375,8 @@ impl MmapInvertedIndex {
             return Ok(false);
         }
 
-        fn check_any<V: ZerocopyPostingValue>(
-            postings: &UniversalPostings<V, MmapFile>,
+        fn check_any<V: ZerocopyPostingValue, S: UniversalRead>(
+            postings: &UniversalPostings<V, S>,
             tokens: &TokenSet,
             point_id: PointOffsetType,
         ) -> OperationResult<bool> {
@@ -480,14 +511,14 @@ impl MmapInvertedIndex {
             deleted_points: _,
         } = storage;
         postings.clear_cache()?;
-        vocab.clear_cache()?;
-        point_to_tokens_count.clear_cache()?;
+        vocab.clear_ram_cache()?;
+        point_to_tokens_count.clear_ram_cache()?;
         clear_disk_cache(&path.join(DELETED_POINTS_FILE))?;
         Ok(())
     }
 }
 
-impl InvertedIndex for MmapInvertedIndex {
+impl<S: UniversalRead> InvertedIndex for MmapInvertedIndex<S> {
     fn get_vocab_mut(&mut self) -> &mut HashMap<String, TokenId> {
         unreachable!("MmapInvertedIndex does not support mutable operations")
     }
@@ -549,17 +580,16 @@ impl InvertedIndex for MmapInvertedIndex {
         self.storage.postings.posting_len(token_id)
     }
 
-    fn vocab_with_postings_len_iter(
+    fn for_each_vocab_with_postings_len(
         &self,
-    ) -> impl Iterator<Item = OperationResult<(&str, usize)>> + '_ {
-        self.iter_vocab().filter_map(move |(token, &token_id)| {
-            // Surface read errors as iterator items; drop tokens with no
-            // posting list silently (same as the in-memory variants).
-            match self.storage.postings.posting_len(token_id) {
-                Ok(Some(posting_len)) => Some(Ok((token, posting_len))),
-                Ok(None) => None,
-                Err(err) => Some(Err(err)),
+        mut f: impl FnMut(&str, usize) -> OperationResult<()>,
+    ) -> OperationResult<()> {
+        self.for_each_vocab(|token, token_id| {
+            // Drop tokens with no posting list silently (same as the in-memory variants).
+            if let Some(posting_len) = self.storage.postings.posting_len(token_id)? {
+                f(token, posting_len)?;
             }
+            Ok(())
         })
     }
 
@@ -584,11 +614,9 @@ impl InvertedIndex for MmapInvertedIndex {
         {
             return true;
         }
-        self.storage
-            .point_to_tokens_count
-            .get(point_id as usize)
-            .map(|count| *count == 0)
-            // if the point does not exist, it is considered empty
+        // If the read fails or the point does not exist, treat as empty.
+        read_point_to_tokens_count(&self.storage.point_to_tokens_count, point_id)
+            .map(|count| count == 0)
             .unwrap_or(true)
     }
 
@@ -602,39 +630,52 @@ impl InvertedIndex for MmapInvertedIndex {
             return 0;
         }
 
-        self.storage
-            .point_to_tokens_count
-            .get(point_id as usize)
-            .copied()
-            // if the point does not exist, it is considered empty
-            .unwrap_or(0)
+        // If the read fails or the point does not exist, treat as 0.
+        read_point_to_tokens_count(&self.storage.point_to_tokens_count, point_id).unwrap_or(0)
     }
 
     fn points_count(&self) -> usize {
         self.active_points_count
     }
 
-    fn for_each_token_id<'a, Meta>(
+    fn for_each_token_id<'a, U: UserData>(
         &self,
-        mut tokens: impl Iterator<Item = (Meta, &'a str)>,
+        tokens: impl Iterator<Item = (U, &'a str)>,
         hw_counter: &HardwareCounterCell,
-        mut f: impl FnMut(Meta, Option<TokenId>),
+        mut f: impl FnMut(U, Option<TokenId>),
     ) -> OperationResult<()> {
-        tokens.try_for_each(|(meta, token)| {
-            if self.is_on_disk {
-                hw_counter.payload_index_io_read_counter().incr_delta(
-                    READ_ENTRY_OVERHEAD + size_of::<TokenId>(), // Avoid check overhead and assume token is always read
-                );
-            }
-
-            let token_id = self
-                .storage
-                .vocab
-                .get(token.as_ref())?
-                .and_then(<[TokenId]>::first)
-                .copied();
-            f(meta, token_id);
-            Ok(())
-        })
+        self.storage
+            .vocab
+            .for_each_entry_in_iter(tokens, |user_data, token_ids| {
+                if self.is_on_disk {
+                    hw_counter.payload_index_io_read_counter().incr_delta(
+                        READ_ENTRY_OVERHEAD + size_of::<TokenId>(), // Avoid check overhead and assume token is always read
+                    );
+                }
+                f(user_data, token_ids.map(unwrap_token));
+                Ok(())
+            })
     }
+}
+
+/// Currently persisted_hashmap maps `str -> [u32]`, but we only need to map
+/// `str -> u32`.
+/// TODO: Consider making another mmap structure for this case.
+fn unwrap_token(token_ids: &[TokenId]) -> TokenId {
+    match token_ids {
+        [token_id] => *token_id,
+        _ => panic!("Expected exactly one token id, got {}", token_ids.len()),
+    }
+}
+
+/// Read a single `usize` count for `point_id` from the storage-backed
+/// `point_to_tokens_count`. Returns `None` if the read fails or the offset is
+/// out of range — callers treat that as "point has no values".
+fn read_point_to_tokens_count<S: UniversalRead>(
+    storage: &TypedStorage<S, usize>,
+    point_id: PointOffsetType,
+) -> Option<usize> {
+    let byte_offset = u64::from(point_id).checked_mul(size_of::<usize>() as u64)?;
+    let cow = storage.read::<Random>(ReadRange::one(byte_offset)).ok()?;
+    cow.first().copied()
 }

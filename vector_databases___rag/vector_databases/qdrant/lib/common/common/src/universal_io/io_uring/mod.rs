@@ -1,4 +1,5 @@
 mod error;
+mod pipeline;
 mod pool;
 mod runtime;
 
@@ -8,7 +9,7 @@ mod tests;
 use std::borrow::Cow;
 use std::io::{self, Read as _, Seek as _};
 use std::os::fd::AsRawFd as _;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use ::io_uring::types::Fd;
@@ -16,8 +17,10 @@ use fs_err as fs;
 use fs_err::os::unix::fs::{FileExt as _, OpenOptionsExt as _};
 
 use self::error::*;
+use self::pipeline::{BorrowedIoUringPipeline, OwnedIoUringPipeline};
 use self::pool::*;
 use self::runtime::*;
+use super::traits::UniversalReadFileOps;
 use super::*;
 use crate::generic_consts::AccessPattern;
 
@@ -29,11 +32,11 @@ pub struct IoUringFile {
     ///
     /// This is because `O_DIRECT` can only read in aligned blocks of data, so reads at EOF might not
     /// be aligned with O_DIRECT alignment, but it is not possible to request less than one block.
-    direct_io: bool,
+    pub(super) direct_io: bool,
 }
 
 impl IoUringFile {
-    fn fd(&self) -> Fd {
+    pub(super) fn fd(&self) -> Fd {
         Fd(self.file.as_raw_fd())
     }
 }
@@ -48,11 +51,18 @@ impl UniversalReadFileOps for IoUringFile {
     }
 }
 
-impl<T> UniversalRead<T> for IoUringFile
-where
-    T: bytemuck::Pod,
-{
-    type ReadPipeline<'a, Meta> = IoUringPipeline<'a, T, Meta>;
+impl UniversalRead for IoUringFile {
+    type BorrowedReadPipeline<'a, T, U>
+        = BorrowedIoUringPipeline<'a, T, U>
+    where
+        T: bytemuck::Pod,
+        U: UserData;
+
+    type OwnedReadPipeline<T, U>
+        = OwnedIoUringPipeline<T, U>
+    where
+        T: bytemuck::Pod,
+        U: UserData;
 
     fn open(path: impl AsRef<Path>, options: OpenOptions) -> Result<Self> {
         // Check that io_uring is supported on this system.
@@ -61,13 +71,12 @@ where
         let OpenOptions {
             writeable,
             need_sequential: _,
-            disk_parallel: _,
             populate: _,
             advice: _,
-            prevent_caching,
+            extra: OpenOptionsExtra { prevent_caching },
         } = options;
 
-        let direct_io = prevent_caching.unwrap_or(false);
+        let direct_io = prevent_caching;
         let direct_io_flags = if direct_io { nix::libc::O_DIRECT } else { 0 };
 
         let file = fs::OpenOptions::new()
@@ -86,11 +95,11 @@ where
         Ok(file)
     }
 
-    fn read<P: AccessPattern>(&self, range: ReadRange) -> Result<Cow<'_, [T]>> {
+    fn read<P: AccessPattern, T: bytemuck::Pod>(&self, range: ReadRange) -> Result<Cow<'_, [T]>> {
         if self.direct_io {
             // direct_io needs special handling
             return self
-                .read_iter::<P, _>([((), range)])?
+                .read_iter::<P, T, _>([((), range)])?
                 .next()
                 .expect("there's exactly one read")
                 .map(|(_, data)| data);
@@ -102,7 +111,7 @@ where
         Ok(Cow::Owned(items))
     }
 
-    fn len(&self) -> Result<u64> {
+    fn len<T>(&self) -> Result<u64> {
         let byte_len = self.file.metadata()?.len();
 
         let items_len = byte_len / size_of::<T>() as u64;
@@ -141,83 +150,14 @@ where
     }
 }
 
-pub struct IoUringPipeline<'file, T, Meta>
-where
-    T: bytemuck::Pod,
-{
-    runtime: IoUringRuntime<'file, T, Meta>,
-}
-
-impl<'file, T, Meta> UniversalReadPipeline<'file, T, Meta> for IoUringPipeline<'file, T, Meta>
-where
-    T: bytemuck::Pod,
-{
-    type File = IoUringFile;
-
-    fn new() -> Result<Self> {
-        Ok(Self {
-            runtime: IoUringRuntime::new()?,
-        })
-    }
-
-    fn can_schedule(&mut self) -> bool {
-        let squeue = self.runtime.io_uring.submission();
-        self.runtime.in_progress + squeue.len() < IO_URING_QUEUE_LENGTH as _
-    }
-
-    fn schedule<P>(&mut self, meta: Meta, file: &'file IoUringFile, range: ReadRange) -> Result<()>
-    where
-        P: AccessPattern,
-    {
-        let mut squeue = self.runtime.io_uring.submission();
-
-        if self.runtime.in_progress + squeue.len() >= IO_URING_QUEUE_LENGTH as _ {
-            return Err(UniversalIoError::QueueIsFull);
-        }
-
-        let entry = self
-            .runtime
-            .state
-            .read(meta, file.fd(), range, file.direct_io);
-
-        unsafe {
-            squeue.push(&entry).expect("submission queue is not full");
-        }
-
-        Ok(())
-    }
-
-    fn wait(&mut self) -> Result<Option<(Meta, Cow<'file, [T]>)>> {
-        let next = self.runtime.completed().next();
-
-        let enqueued = self.runtime.enqueued();
-
-        if next.is_some() && enqueued > 0 {
-            self.runtime.submit_and_wait(0)?;
-        } else if next.is_none() && enqueued + self.runtime.in_progress > 0 {
-            self.runtime.submit_and_wait(1)?;
-        }
-
-        let Some(result) = next.or_else(|| self.runtime.completed().next()) else {
-            return Ok(None);
-        };
-
-        let (meta, resp) = result?;
-        Ok(Some((meta, Cow::Owned(resp.expect_read()))))
-    }
-}
-
-impl<T> UniversalWrite<T> for IoUringFile
-where
-    T: bytemuck::Pod,
-{
-    fn write(&mut self, byte_offset: ByteOffset, items: &[T]) -> Result<()> {
+impl UniversalWrite for IoUringFile {
+    fn write<T: bytemuck::Pod>(&mut self, byte_offset: ByteOffset, items: &[T]) -> Result<()> {
         let bytes = bytemuck::cast_slice(items);
         self.file.write_all_at(bytes, byte_offset)?;
         Ok(())
     }
 
-    fn write_batch<'a>(
+    fn write_batch<'a, T: bytemuck::Pod>(
         &mut self,
         items: impl IntoIterator<Item = (ByteOffset, &'a [T])>,
     ) -> Result<()> {
@@ -245,7 +185,7 @@ where
         Ok(())
     }
 
-    fn write_multi<'a>(
+    fn write_multi<'a, T: bytemuck::Pod>(
         files: &mut [Self],
         writes: impl IntoIterator<Item = (FileIndex, ByteOffset, &'a [T])>,
     ) -> Result<()> {

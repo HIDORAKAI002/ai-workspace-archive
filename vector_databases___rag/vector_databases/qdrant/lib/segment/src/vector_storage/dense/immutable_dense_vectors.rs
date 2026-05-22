@@ -10,7 +10,8 @@ use common::mmap;
 use common::mmap::{AdviceSetting, MmapBitSlice, MmapFlusher};
 use common::types::PointOffsetType;
 use common::universal_io::{
-    MmapFile, OpenOptions as UniversalOpenOptions, ReadOnly, ReadRange, TypedStorage, UniversalRead,
+    MmapFile, OpenOptions as UniversalOpenOptions, Populate, ReadOnly, ReadRange, TypedStorage,
+    UniversalRead,
 };
 use fs_err::{File, OpenOptions};
 
@@ -29,11 +30,11 @@ const DELETED_HEADER: &[u8; HEADER_SIZE] = b"drop";
 pub struct ImmutableDenseVectors<T, S = MmapFile>
 where
     T: PrimitiveVectorElement,
-    S: UniversalRead<T>,
+    S: UniversalRead,
 {
     pub dim: usize,
     pub num_vectors: usize,
-    /// Vector data storage, providing read access via [`UniversalRead<T>`].
+    /// Vector data storage, providing typed read access for `T`.
     storage: TypedStorage<ReadOnly<S>, T>,
     /// Memory mapped deletion flags
     deleted: MmapBitSlice,
@@ -41,7 +42,7 @@ where
     pub deleted_count: usize,
 }
 
-impl<T: PrimitiveVectorElement, S: UniversalRead<T>> ImmutableDenseVectors<T, S> {
+impl<T: PrimitiveVectorElement, S: UniversalRead> ImmutableDenseVectors<T, S> {
     pub fn open(
         vectors_path: &Path,
         deleted_path: &Path,
@@ -58,10 +59,9 @@ impl<T: PrimitiveVectorElement, S: UniversalRead<T>> ImmutableDenseVectors<T, S>
         let options = UniversalOpenOptions {
             writeable: false,
             need_sequential: true,
-            disk_parallel: None,
-            populate: Some(populate),
-            advice: None,
-            prevent_caching: None,
+            populate: Populate::from(populate),
+            advice: AdviceSetting::Global,
+            extra: Default::default(),
         };
         let storage = TypedStorage::open(vectors_path, options).map_err(|e| {
             crate::common::operation_error::OperationError::service_error(format!(
@@ -141,7 +141,7 @@ impl<T: PrimitiveVectorElement, S: UniversalRead<T>> ImmutableDenseVectors<T, S>
 
     pub fn for_each_in_batch<F: FnMut(usize, &[T])>(&self, keys: &[PointOffsetType], mut f: F) {
         #[cfg(target_os = "linux")]
-        if S::kind() == common::universal_io::UniversalKind::IoUring {
+        if TypedStorage::<ReadOnly<S>, T>::kind() == common::universal_io::UniversalKind::IoUring {
             return self.for_each_in_batch_async(keys, f);
         }
 

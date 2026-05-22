@@ -86,7 +86,9 @@ impl SegmentBuilder {
         let temp_dir = create_temp_dir(temp_dir)?;
 
         let id_tracker = if segment_config.is_appendable() {
-            IdTrackerEnum::MutableIdTracker(create_mutable_id_tracker(temp_dir.path())?)
+            // Deferred state is applied when the freshly built segment is reloaded
+            // via `load_segment`. The transient builder tracker doesn't need it.
+            IdTrackerEnum::MutableIdTracker(create_mutable_id_tracker(temp_dir.path(), None)?)
         } else {
             IdTrackerEnum::InMemoryIdTracker(InMemoryIdTracker::new())
         };
@@ -319,6 +321,33 @@ impl SegmentBuilder {
 
         let vector_storages: Vec<_> = segments.iter().map(|i| &i.vector_data).collect();
 
+        // Every named vector present on any source segment must also be in the
+        // target schema. The merge loop below iterates `self.vector_data`
+        // (target) and would otherwise silently drop source vectors that
+        // aren't in target — the harm behind the optimizer-vs-CreateVectorName
+        // race: an optimizer launched with a pre-`CreateVectorName(V)` config
+        // would observe sources that gained V mid-flight and emit a merged
+        // segment without V at version >= V_opnum, breaking the next
+        // optimization round that uses the refreshed config (which has V).
+        //
+        // Use `Cancelled` rather than `ServiceError` so the optimization
+        // worker treats this as a recoverable cancellation (logged at debug,
+        // tracker marked Cancelled, no shard-level optimizer_errors set, no
+        // RED status). The follow-up `recreate_optimizers_blocking` will
+        // restart workers with a refreshed `target_config` that matches the
+        // sources, and the retry merges cleanly.
+        for vector_storage in &vector_storages {
+            for source_vector_name in vector_storage.keys() {
+                if !self.vector_data.contains_key(source_vector_name) {
+                    return Err(OperationError::cancelled(format!(
+                        "Cannot update from other segment because it has an extra \
+                         vector name {source_vector_name} not in the target schema; \
+                         retry after optimizer config refresh"
+                    )));
+                }
+            }
+        }
+
         let internal_range_start = self.id_tracker.available_point_count() as PointOffsetType;
         let internal_range_end = internal_range_start + points_to_insert.len() as PointOffsetType;
 
@@ -330,10 +359,20 @@ impl SegmentBuilder {
             let other_vector_storages = vector_storages
                 .iter()
                 .map(|i| {
+                    // Symmetric counterpart to the source-superset check above:
+                    // when target has a vector name a source lacks, the
+                    // optimizer-vs-`DeleteVectorName` race is the typical
+                    // cause (V was removed from originals before the proxy
+                    // wrap, but the frozen `target_config` still has V).
+                    // Use `Cancelled` so the optimization worker treats this
+                    // as a recoverable cancellation — no shard-level
+                    // `optimizer_errors`, no RED status — and the next round
+                    // with refreshed config merges cleanly.
                     let other_vector_data = i.get(vector_name).ok_or_else(|| {
-                        OperationError::service_error(format!(
+                        OperationError::cancelled(format!(
                             "Cannot update from other segment because it is \
-                             missing vector name {vector_name}"
+                             missing vector name {vector_name}; \
+                             retry after optimizer config refresh"
                         ))
                     })?;
 
@@ -375,7 +414,7 @@ impl SegmentBuilder {
             let old_internal_id = point_data.internal_id;
 
             let other_payload = payloads[point_data.segment_index.get() as usize]
-                .get_payload_sequential(old_internal_id, &hw_counter)?; // Internal operation, no measurement needed!
+                .with_view(|v| v.get_payload_sequential(old_internal_id, &hw_counter))?; // Internal operation, no measurement needed!
 
             match self
                 .id_tracker
@@ -436,7 +475,7 @@ impl SegmentBuilder {
         }
 
         for payload in payloads {
-            for (field, payload_schema) in payload.indexed_fields() {
+            for (field, payload_schema) in payload.with_view(|v| v.indexed_fields()) {
                 self.indexed_fields.insert(field, payload_schema);
             }
         }
@@ -658,8 +697,6 @@ impl SegmentBuilder {
                     path: &vector_index_path,
                     stopped,
                     tick_progress: || (),
-                    // We don't use the `index` returned here so we always set deferred to `None`. It's been loaded properly later.
-                    deferred_internal_id: None,
                 })?;
 
                 if sparse_vector_config.storage_type.is_on_disk() {

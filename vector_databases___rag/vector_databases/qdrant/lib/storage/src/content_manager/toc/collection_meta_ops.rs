@@ -202,8 +202,12 @@ impl TableOfContent {
         collection.print_warnings().await;
 
         // Recreate optimizers
+        //
+        // This runs in the background and does not block: this path is reached from consensus, and
+        // stopping the existing optimizers can take a long time (in-flight optimizations are
+        // awaited), which would otherwise stall the consensus loop and can take down a cluster.
         if recreate_optimizers {
-            collection.recreate_optimizers_blocking().await?;
+            collection.recreate_optimizers_background();
         }
         Ok(true)
     }
@@ -601,7 +605,15 @@ impl TableOfContent {
 
                 match current_state {
                     ReplicaState::PartialSnapshot | ReplicaState::Recovery => (),
-                    _ => {
+                    ReplicaState::Active
+                    | ReplicaState::Dead
+                    | ReplicaState::Partial
+                    | ReplicaState::Initializing
+                    | ReplicaState::Listener
+                    | ReplicaState::Resharding
+                    | ReplicaState::ReshardingScaleDown
+                    | ReplicaState::ActiveRead
+                    | ReplicaState::ManualRecovery => {
                         return Err(StorageError::bad_input(format!(
                             "Replica {} of {collection_id}:{} has unexpected {current_state:?} \
                              (expected {:?} or {:?})",

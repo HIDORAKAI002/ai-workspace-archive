@@ -4,20 +4,21 @@ use std::path::{Path, PathBuf};
 
 use fs_err as fs;
 
-use crate::generic_consts::{AccessPattern, Random};
-use crate::universal_io::read::UniversalReadPipeline;
+use crate::generic_consts::AccessPattern;
 use crate::universal_io::{
-    OpenOptions, ReadRange, Result, UniversalIoError, UniversalRead, UniversalReadFileOps,
-    local_file_ops,
+    OpenOptions, OpenOptionsExtra, ReadRange, Result, UniversalIoError, UniversalRead,
+    UniversalReadFileOps, UserData, local_file_ops,
 };
 
 mod cached_slice;
 mod controller;
+mod pipeline;
 #[cfg(test)]
 mod tests;
 
 pub use cached_slice::CachedSlice;
 use controller::{CacheController, CacheRead};
+use pipeline::{BorrowedDiskCacheReadPipeline, OwnedDiskCacheReadPipeline};
 
 use super::UniversalKind;
 
@@ -56,7 +57,7 @@ struct BlockRequest {
     range: Range<usize>,
 }
 
-impl<T> UniversalReadFileOps for CachedSlice<T> {
+impl UniversalReadFileOps for CachedSlice {
     fn list_files(prefix_path: &Path) -> Result<Vec<PathBuf>> {
         local_file_ops::local_list_files(prefix_path)
     }
@@ -66,14 +67,19 @@ impl<T> UniversalReadFileOps for CachedSlice<T> {
     }
 }
 
-impl<T> UniversalRead<T> for CachedSlice<T>
-where
-    T: bytemuck::Pod,
-{
-    type ReadPipeline<'a, Meta>
-        = DiskCacheReadPipeline<'a, T, Meta>
+impl UniversalRead for CachedSlice {
+    type BorrowedReadPipeline<'a, T, U>
+        = BorrowedDiskCacheReadPipeline<'a, T, U>
     where
-        Self: 'a;
+        Self: 'a,
+        T: bytemuck::Pod,
+        U: UserData;
+
+    type OwnedReadPipeline<T, U>
+        = OwnedDiskCacheReadPipeline<T, U>
+    where
+        T: bytemuck::Pod,
+        U: UserData;
 
     fn open(path: impl AsRef<Path>, options: OpenOptions) -> Result<Self> {
         let Some(controller) = CacheController::global() else {
@@ -86,10 +92,12 @@ where
         let OpenOptions {
             writeable,
             need_sequential: _,
-            disk_parallel: _,
             populate: _,
             advice: _,
-            prevent_caching: _, // This is cached in disk, backed by a mmap
+            extra:
+                OpenOptionsExtra {
+                    prevent_caching: _, // This is cached in disk, backed by a mmap
+                },
         } = options;
 
         debug_assert!(!writeable);
@@ -97,7 +105,7 @@ where
         Ok(CachedSlice::open(controller, path.as_ref())?)
     }
 
-    fn read<P: AccessPattern>(&self, range: ReadRange) -> Result<Cow<'_, [T]>> {
+    fn read<P: AccessPattern, T: bytemuck::Pod>(&self, range: ReadRange) -> Result<Cow<'_, [T]>> {
         let elem_start = usize::try_from(range.byte_offset).expect("range.start is within usize")
             / size_of::<T>();
         let elem_length = usize::try_from(range.length).expect("range.length is within usize");
@@ -107,8 +115,8 @@ where
         Ok(self.get_range(range)?)
     }
 
-    fn len(&self) -> Result<u64> {
-        Ok(Self::len(self) as u64)
+    fn len<T>(&self) -> Result<u64> {
+        Ok(Self::len::<T>(self) as u64)
     }
 
     fn populate(&self) -> Result<()> {
@@ -122,48 +130,5 @@ where
 
     fn kind() -> UniversalKind {
         UniversalKind::DiskCache
-    }
-}
-
-pub struct DiskCacheReadPipeline<'file, T, Meta>
-where
-    T: bytemuck::Pod,
-{
-    result: Option<(Meta, Cow<'file, [T]>)>,
-}
-
-impl<'file, T, Meta> UniversalReadPipeline<'file, T, Meta> for DiskCacheReadPipeline<'file, T, Meta>
-where
-    T: bytemuck::Pod,
-{
-    type File = CachedSlice<T>;
-
-    fn new() -> Result<Self> {
-        Ok(Self { result: None })
-    }
-
-    fn can_schedule(&mut self) -> bool {
-        self.result.is_none()
-    }
-
-    fn schedule<P>(
-        &mut self,
-        meta: Meta,
-        file: &'file CachedSlice<T>,
-        range: ReadRange,
-    ) -> Result<()>
-    where
-        P: AccessPattern,
-    {
-        if self.result.is_some() {
-            return Err(UniversalIoError::QueueIsFull);
-        }
-
-        self.result = Some((meta, file.read::<Random>(range)?));
-        Ok(())
-    }
-
-    fn wait(&mut self) -> Result<Option<(Meta, Cow<'file, [T]>)>> {
-        Ok(self.result.take())
     }
 }

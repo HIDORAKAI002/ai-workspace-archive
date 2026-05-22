@@ -17,6 +17,7 @@ use segment::entry::{SegmentEntry, StorageSegmentEntry as _};
 use segment::fixtures::payload_fixtures::STR_KEY;
 use segment::fixtures::sparse_fixtures::{fixture_sparse_index, fixture_sparse_index_from_iter};
 use segment::id_tracker::{IdTracker, IdTrackerRead};
+use segment::index::field_index::PayloadFieldIndexRead;
 use segment::index::sparse_index::sparse_index_config::{SparseIndexConfig, SparseIndexType};
 use segment::index::sparse_index::sparse_vector_index::{
     SparseVectorIndex, SparseVectorIndexOpenArgs,
@@ -91,7 +92,7 @@ fn compare_sparse_vectors_search_with_without_filter(full_scan_threshold: usize)
     // compares results with and without filters
     // expects the filter to have no effect on the results because the filter matches everything
     for query in query_vectors {
-        let maximum_number_of_results = sparse_vector_index.max_result_count(&query);
+        let maximum_number_of_results = sparse_vector_index.max_result_count(&query).unwrap();
         // get all results minus 10 to force a bit of pruning
         let top = max(1, maximum_number_of_results.saturating_sub(10));
         let query_vector: QueryVector = query.clone().into();
@@ -189,7 +190,7 @@ fn check_index_storage_consistency<T: InvertedIndex>(sparse_vector_index: &Spars
             );
         }
         // check the vector can be found via search using large top
-        let top = sparse_vector_index.max_result_count(vector);
+        let top = sparse_vector_index.max_result_count(vector).unwrap();
         let query_vector: QueryVector = vector.to_owned().into();
         let results = sparse_vector_index
             .search(&[&query_vector], None, top, None, &Default::default())
@@ -229,7 +230,6 @@ fn sparse_vector_index_consistent_with_storage() {
             path: mmap_index_dir.path(),
             stopped: &stopped,
             tick_progress: || (),
-            deferred_internal_id: None,
         })
         .unwrap();
 
@@ -256,7 +256,6 @@ fn sparse_vector_index_consistent_with_storage() {
             path: mmap_index_dir.path(),
             stopped: &stopped,
             tick_progress: || (),
-            deferred_internal_id: None,
         })
         .unwrap();
 
@@ -410,7 +409,7 @@ fn sparse_vector_index_ram_filtered_search() {
 
     // assert payload field index created and empty
     let payload_index = sparse_vector_index.payload_index().borrow();
-    let indexed_fields = payload_index.indexed_fields();
+    let indexed_fields = payload_index.with_view(|v| v.indexed_fields());
     assert_eq!(
         *indexed_fields.get(&JsonPath::new(field_name)).unwrap(),
         FieldType(Keyword)
@@ -693,7 +692,6 @@ fn check_persistence<TInvertedIndex: InvertedIndex>(
             path: inverted_index_dir.path(),
             stopped: &stopped,
             tick_progress: || (),
-            deferred_internal_id: None,
         })
         .unwrap()
     };

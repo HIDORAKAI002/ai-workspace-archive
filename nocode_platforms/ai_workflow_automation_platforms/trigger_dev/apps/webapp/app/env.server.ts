@@ -134,6 +134,7 @@ const EnvironmentSchema = z
     ELECTRIC_ORIGIN_SHARDS: z.string().optional(),
     APP_ENV: z.string().default(process.env.NODE_ENV),
     SERVICE_NAME: z.string().default("trigger.dev webapp"),
+    SENTRY_DSN: z.string().optional(),
     POSTHOG_PROJECT_KEY: z.string().default("phc_LFH7kJiGhdIlnO22hTAKgHpaKhpM8gkzWAFvHmf5vfS"),
     TRIGGER_TELEMETRY_DISABLED: z.string().optional(),
     AUTH_GITHUB_CLIENT_ID: z.string().optional(),
@@ -459,7 +460,10 @@ const EnvironmentSchema = z
     // If specified, you must configure the corresponding provider using OBJECT_STORE_{PROTOCOL}_* env vars.
     // Example: OBJECT_STORE_DEFAULT_PROTOCOL=s3 requires OBJECT_STORE_S3_BASE_URL, OBJECT_STORE_S3_ACCESS_KEY_ID, etc.
     // Enables zero-downtime migration between providers (old data keeps working, new data uses new provider).
-    OBJECT_STORE_DEFAULT_PROTOCOL: z.string().regex(/^[a-z0-9]+$/).optional(),
+    OBJECT_STORE_DEFAULT_PROTOCOL: z
+      .string()
+      .regex(/^[a-z0-9]+$/)
+      .optional(),
 
     ARTIFACTS_OBJECT_STORE_BUCKET: z.string().optional(),
     ARTIFACTS_OBJECT_STORE_BASE_URL: z.string().optional(),
@@ -1489,9 +1493,18 @@ const EnvironmentSchema = z
     EVENTS_CLICKHOUSE_MAX_TRACE_DETAILED_SUMMARY_VIEW_COUNT: z.coerce.number().int().default(5_000),
     EVENTS_CLICKHOUSE_MAX_LIVE_RELOADING_SETTING: z.coerce.number().int().default(2000),
 
+    // Organization data stores registry
+    ORGANIZATION_DATA_STORES_RELOAD_INTERVAL_MS: z.coerce
+      .number()
+      .int()
+      .default(60 * 1000), // 1 minute
+
     // LLM cost tracking
     LLM_COST_TRACKING_ENABLED: BoolEnv.default(true),
-    LLM_PRICING_RELOAD_INTERVAL_MS: z.coerce.number().int().default(5 * 60 * 1000), // 5 minutes
+    LLM_PRICING_RELOAD_INTERVAL_MS: z.coerce
+      .number()
+      .int()
+      .default(5 * 60 * 1000), // 5 minutes
     LLM_PRICING_RELOAD_CHANNEL: z.string().default("llm-registry:reload"),
     LLM_PRICING_RELOAD_DEBOUNCE_MS: z.coerce.number().int().default(1000),
     // Whether to subscribe this process to the LLM_PRICING_RELOAD_CHANNEL.

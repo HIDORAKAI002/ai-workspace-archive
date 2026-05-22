@@ -1,6 +1,6 @@
 [package]
 name = "qdrant"
-version = "1.18.0"
+version = "1.18.1"
 description = "Qdrant - Vector Search engine"
 authors = [
     "Andrey Vasnetsov <andrey@vasnetsov.com>",
@@ -188,6 +188,7 @@ used_underscore_binding = "warn"
 match_wildcard_for_single_variants = "warn"
 needless_pass_by_ref_mut = "warn"
 unused_async = "warn"
+wildcard_enum_match_arm = "warn"
 
 [workspace.lints.rust]
 # https://blog.rust-lang.org/2024/05/06/check-cfg.html#expecting-custom-cfgs
@@ -260,6 +261,7 @@ raft = { git = "https://github.com/tikv/raft-rs", rev = "aafb07c7bab439c6139926a
 rand = "0.10.1"
 rand_distr = "0.6.0"
 rmp-serde = "~1.3"
+roaring = "0.11.4"
 reqwest = { version = "0.13.3", default-features = false, features = [
     "json",
     "http2",
@@ -280,15 +282,15 @@ self_cell = "1.2.2"
 serde = { version = "~1.0", features = ["derive", "rc"] }
 serde_cbor = "0.11.2"
 serde_variant = "0.1.3"
-serde_with = "3.19.0"
+serde_with = "3.20.0"
 sha2 = "0.11.0"
 serde_json = { version = "~1.0", features = ["preserve_order"] }
 strum = { version = "0.28.0", features = ["derive"] }
 tap = "1.0.1"
-tar = "0.4.45"
+tar = "0.4.46"
 tempfile = "3.27.0"
 tinyvec = { version = "1.11.0", features = ["alloc", "latest_stable_rust"] }
-tokio = { version = "1.52.2", features = ["full"] }
+tokio = { version = "1.52.3", features = ["full"] }
 tokio-util = { version = "0.7", features = ["io", "io-util", "rt"] }
 tonic = { version = "0.11.0", features = ["gzip", "tls"] }
 tonic-build = { version = "0.11.0", features = ["prost"] }
@@ -302,7 +304,7 @@ byteorder = "1.5.0"
 thiserror = "2.0.18"
 bitvec = "1.0.1"
 smallvec = { version = "1.15.1", features = ["write"] }
-dashmap = "6.1"
+dashmap = "6.2"
 walkdir = "2.5.0"
 
 [patch.crates-io]

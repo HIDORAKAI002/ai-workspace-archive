@@ -29,15 +29,16 @@ impl PageAlignedBytes {
     }
 }
 
-pub struct IoUringRuntime<'data, T: bytemuck::Pod, Meta = u64> {
+pub struct IoUringRuntime<'data, T: bytemuck::Pod, U: UserData = u64> {
     pub io_uring: IoUringGuard,
-    pub state: IoUringState<'data, T, Meta>,
+    pub state: IoUringState<'data, T, U>,
     pub in_progress: usize,
 }
 
-impl<'data, T, Meta> IoUringRuntime<'data, T, Meta>
+impl<'data, T, U> IoUringRuntime<'data, T, U>
 where
     T: bytemuck::Pod,
+    U: UserData,
 {
     pub fn new() -> Result<Self> {
         let mut io_uring = pool::get_io_uring()?;
@@ -55,7 +56,7 @@ where
     /// or the queue is full.
     pub fn enqueue_while<F>(&mut self, mut entries: F) -> Result<()>
     where
-        F: FnMut(&mut IoUringState<'data, T, Meta>) -> Result<Option<squeue::Entry>>,
+        F: FnMut(&mut IoUringState<'data, T, U>) -> Result<Option<squeue::Entry>>,
     {
         let mut squeue = self.io_uring.submission();
 
@@ -121,7 +122,7 @@ where
         Ok(())
     }
 
-    pub fn completed(&mut self) -> impl Iterator<Item = io::Result<(Meta, IoUringResponse<T>)>> {
+    pub fn completed(&mut self) -> impl Iterator<Item = io::Result<(U, IoUringResponse<T>)>> {
         self.io_uring.completion().map(|entry| {
             self.in_progress -= 1;
 
@@ -138,15 +139,16 @@ where
             }
 
             let length = result as _;
-            let (meta, resp) = self.state.finalize(slot, length)?;
-            Ok((meta, resp))
+            let (user_data, resp) = self.state.finalize(slot, length)?;
+            Ok((user_data, resp))
         })
     }
 }
 
-impl<'data, T, Meta> Drop for IoUringRuntime<'data, T, Meta>
+impl<'data, T, U> Drop for IoUringRuntime<'data, T, U>
 where
     T: bytemuck::Pod,
+    U: UserData,
 {
     fn drop(&mut self) {
         while self.in_progress > 0 || !self.io_uring.submission().is_empty() {
@@ -167,13 +169,20 @@ where
 }
 
 #[derive(Debug)]
-pub struct IoUringState<'data, T, Meta> {
-    requests: Slab<(Meta, IoUringRequest<'data, T>)>,
+pub struct IoUringState<'data, T, U> {
+    requests: Slab<PendingRequest<'data, T, U>>,
 }
 
-impl<'data, T, Meta> IoUringState<'data, T, Meta>
+#[derive(Debug)]
+struct PendingRequest<'data, T, U> {
+    user_data: U,
+    request: IoUringRequest<'data, T>,
+}
+
+impl<'data, T, U> IoUringState<'data, T, U>
 where
     T: bytemuck::Pod,
+    U: UserData,
 {
     pub fn with_capacity(capacity: usize) -> Self {
         Self {
@@ -182,17 +191,23 @@ where
     }
 
     /// Prepare the buffer for storing the read with correct alignment, and returns the queue entry.
-    pub fn read(&mut self, meta: Meta, fd: Fd, range: ReadRange, o_direct: bool) -> squeue::Entry {
+    pub fn read(
+        &mut self,
+        user_data: U,
+        fd: Fd,
+        range: ReadRange,
+        o_direct: bool,
+    ) -> squeue::Entry {
         if o_direct {
-            self.read_o_direct(meta, fd, range)
+            self.read_o_direct(user_data, fd, range)
         } else {
-            self.read_exact(meta, fd, range)
+            self.read_exact(user_data, fd, range)
         }
     }
 
     /// Allocates `Vec<MaybeUninit<T>>`, reinterprets it as `Vec<MaybeUninit<u8>>`, and stores the byte buffer
     /// so the kernel writes into correctly aligned memory for `T`.
-    fn read_exact(&mut self, meta: Meta, fd: Fd, range: ReadRange) -> squeue::Entry {
+    fn read_exact(&mut self, user_data: U, fd: Fd, range: ReadRange) -> squeue::Entry {
         let ReadRange {
             byte_offset,
             length,
@@ -200,7 +215,7 @@ where
 
         // Size the buffer exactly to the number of items to read
         let items: Vec<MaybeUninit<T>> = vec![MaybeUninit::uninit(); length as _];
-        let (slot, req) = self.init(meta, IoUringRequest::Read { items });
+        let (slot, req) = self.init(user_data, IoUringRequest::Read { items });
         let items = req.expect_read();
 
         let bytes_ptr = items.as_mut_ptr().cast();
@@ -214,7 +229,7 @@ where
     }
 
     /// Allocates a `Vec<MaybeUninit<u8>>` aligned to 4kB.
-    fn read_o_direct(&mut self, meta: Meta, fd: Fd, range: ReadRange) -> squeue::Entry {
+    fn read_o_direct(&mut self, user_data: U, fd: Fd, range: ReadRange) -> squeue::Entry {
         let ReadRange {
             byte_offset,
             length,
@@ -232,7 +247,7 @@ where
         let buffer: Vec<PageAlignedBytes> = vec![PageAlignedBytes::uninit(); num_pages as _];
 
         let (slot, req) = self.init(
-            meta,
+            user_data,
             IoUringRequest::ODirectRead {
                 buffer,
                 inner_byte_offset: inner_byte_offset as usize,
@@ -252,12 +267,12 @@ where
 
     pub fn write(
         &mut self,
-        meta: Meta,
+        user_data: U,
         fd: Fd,
         byte_offset: u64,
         items: &'data [T],
     ) -> squeue::Entry {
-        let (slot, req) = self.init(meta, IoUringRequest::Write(items));
+        let (slot, req) = self.init(user_data, IoUringRequest::Write(items));
         let items = req.expect_write();
 
         let bytes: &[u8] = bytemuck::cast_slice(items);
@@ -270,28 +285,28 @@ where
 
     fn init(
         &mut self,
-        meta: Meta,
-        req: IoUringRequest<'data, T>,
+        user_data: U,
+        request: IoUringRequest<'data, T>,
     ) -> (usize, &mut IoUringRequest<'data, T>) {
         let entry = self.requests.vacant_entry();
         let slot = entry.key();
-        let (_, req) = entry.insert((meta, req));
-        (slot, req)
+        let pending = entry.insert(PendingRequest { user_data, request });
+        (slot, &mut pending.request)
     }
 
     pub fn finalize(
         &mut self,
         slot: usize,
         byte_length: u32,
-    ) -> io::Result<(Meta, IoUringResponse<T>)> {
-        let (meta, req) = self
+    ) -> io::Result<(U, IoUringResponse<T>)> {
+        let PendingRequest { user_data, request } = self
             .requests
             .try_remove(slot)
             .ok_or_else(|| io::Error::other(format!("request in slot {slot} does not exist")))?;
 
         let byte_length = byte_length as usize;
 
-        let resp = match req {
+        let resp = match request {
             IoUringRequest::Read { items } => {
                 assert_eq!(size_of_val(items.as_slice()), byte_length);
 
@@ -345,7 +360,7 @@ where
             }
         };
 
-        Ok((meta, resp))
+        Ok((user_data, resp))
     }
 
     pub fn abort(&mut self, slot: usize) {
@@ -353,7 +368,7 @@ where
     }
 }
 
-impl<'data, T, Meta> Drop for IoUringState<'data, T, Meta> {
+impl<'data, T, U> Drop for IoUringState<'data, T, U> {
     fn drop(&mut self) {
         debug_assert!(self.requests.is_empty());
     }
@@ -374,6 +389,10 @@ pub enum IoUringRequest<'data, T> {
     Write(&'data [T]),
 }
 
+#[expect(
+    clippy::wildcard_enum_match_arm,
+    reason = "matchers for individual variants"
+)]
 impl<'data, T> IoUringRequest<'data, T> {
     pub fn expect_read(&mut self) -> &mut Vec<MaybeUninit<T>> {
         match self {

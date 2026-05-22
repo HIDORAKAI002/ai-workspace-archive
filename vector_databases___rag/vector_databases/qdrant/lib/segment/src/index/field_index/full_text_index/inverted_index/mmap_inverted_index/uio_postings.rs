@@ -23,7 +23,7 @@ use crate::index::field_index::full_text_index::inverted_index::mmap_inverted_in
 /// `size_of::<PostingsHeader>() + token_id * size_of::<PostingListHeader>()`.
 /// Each [`PostingListHeader`] then points (via absolute `offset`) into the
 /// posting-data region.
-pub struct UniversalPostings<V: ZerocopyPostingValue, S: UniversalRead<u8>> {
+pub struct UniversalPostings<V: ZerocopyPostingValue, S: UniversalRead> {
     _path: PathBuf,
     storage: S,
     header: PostingsHeader,
@@ -40,18 +40,13 @@ struct HeadersBatch<'a> {
     missing: Vec<TokenId>,
 }
 
-impl<V: ZerocopyPostingValue, S: UniversalRead<u8>> UniversalPostings<V, S> {
+impl<V: ZerocopyPostingValue, S: UniversalRead> UniversalPostings<V, S> {
     /// Open the postings file at `path` via the `S` storage backend.
     pub fn open(path: impl Into<PathBuf>, options: OpenOptions) -> OperationResult<Self> {
         let path = path.into();
         let storage = S::open(&path, options)?;
 
-        let header_bytes = storage.read::<Sequential>(ReadRange {
-            byte_offset: 0,
-            length: size_of::<PostingsHeader>() as u64,
-        })?;
-
-        let (header, _) = PostingsHeader::read_from_prefix(header_bytes.as_ref())?;
+        let header = storage.read::<Sequential, PostingsHeader>(ReadRange::one(0))?[0];
 
         Ok(Self {
             _path: path,
@@ -107,7 +102,7 @@ impl<V: ZerocopyPostingValue, S: UniversalRead<u8>> UniversalPostings<V, S> {
 
         let valid_iter = self
             .storage
-            .read_iter::<Random, _>(valid_ranges)?
+            .read_iter::<Random, u8, _>(valid_ranges)?
             .map(|res| {
                 let (token_id, bytes) = res?;
                 let (header, _) = PostingListHeader::read_from_prefix(bytes.as_ref())?;
@@ -150,7 +145,7 @@ impl<V: ZerocopyPostingValue, S: UniversalRead<u8>> UniversalPostings<V, S> {
             byte_offset: header.offset,
             length: header.posting_size::<V>() as u64,
         };
-        let bytes = self.storage.read::<Sequential>(read_range)?;
+        let bytes = self.storage.read::<Sequential, u8>(read_range)?;
         let result = RawPostingList::new(bytes, header);
         Ok(result)
     }
@@ -200,7 +195,7 @@ impl<V: ZerocopyPostingValue, S: UniversalRead<u8>> UniversalPostings<V, S> {
         let mut raw_postings: Vec<(TokenId, RawPostingList<'_>)> =
             Vec::with_capacity(expected_capacity);
 
-        for entry in self.storage.read_iter::<Sequential, _>(range_iter)? {
+        for entry in self.storage.read_iter::<Sequential, u8, _>(range_iter)? {
             let ((token_id, header), bytes) = entry?;
             raw_postings.push((token_id, RawPostingList::new(bytes, header)));
         }

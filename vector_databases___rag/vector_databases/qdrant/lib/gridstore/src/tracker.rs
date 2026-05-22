@@ -3,13 +3,10 @@ use std::path::{Path, PathBuf};
 use ahash::{AHashMap, AHashSet};
 use common::generic_consts::Random;
 use common::mmap::{Advice, AdviceSetting, create_and_ensure_length};
-#[expect(deprecated, reason = "legacy code")]
-use common::mmap::{transmute_from_u8, transmute_to_u8};
 use common::universal_io::{
-    OpenOptions, ReadRange, UniversalIoError, UniversalRead, UniversalWrite,
+    OpenOptions, Populate, ReadRange, UniversalIoError, UniversalRead, UniversalWrite,
 };
 use smallvec::SmallVec;
-use zerocopy::FromZeros;
 
 use crate::Result;
 use crate::error::GridstoreError;
@@ -23,28 +20,25 @@ fn tracker_open_options() -> OpenOptions {
     OpenOptions {
         writeable: true,
         need_sequential: false,
-        disk_parallel: None,
-        populate: Some(false),
-        advice: Some(AdviceSetting::Advice(Advice::Random)),
-        prevent_caching: None,
+        populate: Populate::No,
+        advice: AdviceSetting::Advice(Advice::Random),
+        extra: Default::default(),
     }
 }
 
-/// A type similar to [`std::option::Option`], but with stable layout. It is intended to be compatible with older
+/// A type similar to [`std::option::Option<ValuePointer>`], but with stable layout. It is intended to be compatible with older
 /// gridstore files, but it is well-defined, unlike [`std::option::Option`].
 ///
-/// Please note that it uses 32-bit tag and is intended to be used for `ValuePointer` without padding bytes.
-///
-/// If `T` is a POD type, then `Optional<T>` is a POD type.
-#[derive(Copy, Clone, zerocopy::FromBytes)]
+/// Please note that it uses 32-bit tag so that there's no padding before `ValuePointer`.
+#[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 #[repr(C)]
-struct Optional<T> {
+struct OptionalPointer {
     discriminant: u32,
-    value: T,
+    value: ValuePointer,
 }
 
-impl<T: FromZeros> From<Option<T>> for Optional<T> {
-    fn from(value: Option<T>) -> Self {
+impl From<Option<ValuePointer>> for OptionalPointer {
+    fn from(value: Option<ValuePointer>) -> Self {
         match value {
             Some(value) => Self::some(value),
             None => Self::none(),
@@ -52,7 +46,7 @@ impl<T: FromZeros> From<Option<T>> for Optional<T> {
     }
 }
 
-impl<T: FromZeros> Optional<T> {
+impl OptionalPointer {
     const OPTIONAL_NONE: u32 = 0;
     const OPTIONAL_SOME: u32 = 1;
 
@@ -60,28 +54,28 @@ impl<T: FromZeros> Optional<T> {
     pub fn none() -> Self {
         Self {
             discriminant: Self::OPTIONAL_NONE,
-            value: FromZeros::new_zeroed(),
+            value: ValuePointer::new(0, 0, 0),
         }
     }
 
     /// Some is 1 for the discriminant, and value is stored as is.
-    pub const fn some(value: T) -> Self {
+    pub const fn some(value: ValuePointer) -> Self {
         Self {
             discriminant: Self::OPTIONAL_SOME,
             value,
         }
     }
 
-    pub fn is_some(&self) -> Option<&T> {
+    pub fn to_option(self) -> Option<ValuePointer> {
         if self.discriminant == Self::OPTIONAL_NONE {
             None
         } else {
-            Some(&self.value)
+            Some(self.value)
         }
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, zerocopy::FromBytes)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, bytemuck::Pod, bytemuck::Zeroable)]
 #[repr(C)]
 pub struct ValuePointer {
     /// Which page the value is stored in
@@ -227,7 +221,7 @@ impl PointerUpdates {
     }
 }
 
-#[derive(Debug, Default, Clone, Copy)]
+#[derive(Debug, Default, Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 #[repr(C)]
 struct TrackerHeader {
     next_pointer_offset: u32,
@@ -268,7 +262,7 @@ impl<S> Tracker<S> {
 }
 
 // Read operations -- only require UniversalRead
-impl<S: UniversalRead<u8>> Tracker<S> {
+impl<S: UniversalRead> Tracker<S> {
     /// Open an existing PageTracker at the given path
     /// If the file does not exist, return an error
     pub fn open(path: &Path) -> Result<Self> {
@@ -286,12 +280,8 @@ impl<S: UniversalRead<u8>> Tracker<S> {
     }
 
     fn read_header(storage: &S) -> Result<TrackerHeader> {
-        let header_bytes = storage.read::<Random>(ReadRange {
-            byte_offset: 0,
-            length: std::mem::size_of::<TrackerHeader>() as u64,
-        })?;
-        #[expect(deprecated, reason = "legacy code")]
-        Ok(*unsafe { transmute_from_u8::<TrackerHeader>(header_bytes.as_ref()) })
+        let header = storage.read::<Random, TrackerHeader>(ReadRange::one(0))?[0];
+        Ok(header)
     }
 
     fn open_storage(path: &Path) -> Result<S> {
@@ -341,21 +331,18 @@ impl<S: UniversalRead<u8>> Tracker<S> {
     }
 
     /// Get the raw value at the given point offset
-    fn get_raw(&self, point_offset: PointOffset) -> Result<Option<Option<ValuePointer>>> {
-        let start_offset = std::mem::size_of::<TrackerHeader>()
-            + point_offset as usize * std::mem::size_of::<Optional<ValuePointer>>();
-        let end_offset = start_offset + std::mem::size_of::<Optional<ValuePointer>>();
-        let storage_len = self.storage.len()?;
+    fn get_raw(&self, point_offset: PointOffset) -> Result<Option<ValuePointer>> {
+        let start_offset =
+            size_of::<TrackerHeader>() + point_offset as usize * size_of::<OptionalPointer>();
+        let end_offset = start_offset + size_of::<OptionalPointer>();
+        let storage_len = self.storage.len::<u8>()?;
         if end_offset as u64 > storage_len {
             return Ok(None);
         }
-        let bytes = self.storage.read::<Random>(ReadRange {
-            byte_offset: start_offset as u64,
-            length: std::mem::size_of::<Optional<ValuePointer>>() as u64,
-        })?;
-        #[expect(deprecated, reason = "legacy code")]
-        let opt: &Optional<ValuePointer> = unsafe { transmute_from_u8(bytes.as_ref()) };
-        Ok(Some(opt.is_some().copied()))
+        let opt = self
+            .storage
+            .read::<Random, OptionalPointer>(ReadRange::one(start_offset as u64))?[0];
+        Ok(opt.to_option())
     }
 
     /// Get the page pointer at the given point offset
@@ -364,12 +351,12 @@ impl<S: UniversalRead<u8>> Tracker<S> {
             // Pending update exists but is empty, should not happen, fall back to real data
             Some(pending) if pending.is_empty() => {
                 debug_assert!(false, "pending updates must not be empty");
-                Ok(self.get_raw(point_offset)?.and_then(|o| o))
+                self.get_raw(point_offset)
             }
             // Use set from pending updates
             Some(pending) => Ok(pending.current),
             // No pending update, use real data
-            None => Ok(self.get_raw(point_offset)?.and_then(|o| o)),
+            None => self.get_raw(point_offset),
         }
     }
 
@@ -380,9 +367,9 @@ impl<S: UniversalRead<u8>> Tracker<S> {
     /// updates and out-of-range offsets are handled before/after the batch
     /// read, mirroring [`get`](Self::get).
     pub fn get_batch(&self, point_offsets: &[PointOffset]) -> Result<Vec<Option<ValuePointer>>> {
-        let item_size = std::mem::size_of::<Optional<ValuePointer>>();
+        let item_size = std::mem::size_of::<OptionalPointer>();
         let header_size = std::mem::size_of::<TrackerHeader>();
-        let storage_len = self.storage.len()?;
+        let storage_len = self.storage.len::<u8>()?;
 
         let mut result: Vec<Option<ValuePointer>> = vec![None; point_offsets.len()];
         let mut storage_reads: Vec<(usize, ReadRange)> = Vec::with_capacity(point_offsets.len());
@@ -405,24 +392,16 @@ impl<S: UniversalRead<u8>> Tracker<S> {
                 continue;
             }
 
-            storage_reads.push((
-                i,
-                ReadRange {
-                    byte_offset: start_offset as u64,
-                    length: item_size as u64,
-                },
-            ));
+            storage_reads.push((i, ReadRange::one(start_offset as u64)));
         }
 
         let reads = storage_reads
             .iter()
             .map(|(i, range)| (*i, &self.storage, *range));
 
-        for read_result in S::read_multi_iter::<Random, _>(reads)? {
-            let (i, bytes) = read_result?;
-            #[expect(deprecated, reason = "legacy code")]
-            let opt: &Optional<ValuePointer> = unsafe { transmute_from_u8(bytes.as_ref()) };
-            result[i] = opt.is_some().copied();
+        for read_result in S::read_multi_iter::<Random, OptionalPointer, _>(reads)? {
+            let (i, opt_slice) = read_result?;
+            result[i] = opt_slice[0].to_option();
         }
 
         Ok(result)
@@ -470,14 +449,17 @@ impl<S: UniversalRead<u8>> Tracker<S> {
     /// Return the size of the underlying file
     #[cfg(test)]
     pub fn mmap_file_size(&self) -> Result<usize> {
-        self.storage.len().map(|u| u as usize).map_err(Into::into)
+        self.storage
+            .len::<u8>()
+            .map(|u| u as usize)
+            .map_err(Into::into)
     }
 }
 
 // Write operations and constructors -- require UniversalWrite
 impl<S> Tracker<S>
 where
-    S: UniversalRead<u8> + UniversalWrite<u8>,
+    S: UniversalWrite,
 {
     const DEFAULT_SIZE: usize = 1024 * 1024; // 1MB
 
@@ -526,7 +508,7 @@ where
                 // Write to store a new pointer
                 Some(new_pointer) => {
                     // Mark any existing pointer for removal to free its blocks
-                    if let Some(Some(old_pointer)) = self.get_raw(point_offset)? {
+                    if let Some(old_pointer) = self.get_raw(point_offset)? {
                         old_pointers.push(old_pointer);
                     }
 
@@ -575,9 +557,7 @@ where
 
     /// Write the current page header to the storage
     fn write_header(&mut self) -> Result<()> {
-        #[expect(deprecated, reason = "legacy code")]
-        let header_bytes = unsafe { transmute_to_u8(&self.header) };
-        self.storage.write(0, header_bytes)?;
+        self.storage.write(0, &[self.header])?;
         Ok(())
     }
 
@@ -588,15 +568,14 @@ where
         point_offset: PointOffset,
         pointer: Option<ValuePointer>,
     ) -> Result<()> {
-        let storage_len = self.storage.len()? as usize;
+        let storage_len = self.storage.len::<u8>()? as usize;
         if pointer.is_none() && point_offset as usize >= storage_len {
             return Ok(());
         }
 
         let point_offset = point_offset as usize;
-        let start_offset = std::mem::size_of::<TrackerHeader>()
-            + point_offset * std::mem::size_of::<Optional<ValuePointer>>();
-        let end_offset = start_offset + std::mem::size_of::<Optional<ValuePointer>>();
+        let start_offset = size_of::<TrackerHeader>() + point_offset * size_of::<OptionalPointer>();
+        let end_offset = start_offset + size_of::<OptionalPointer>();
 
         // Grow tracker file if it isn't big enough
         if storage_len < end_offset {
@@ -606,10 +585,8 @@ where
             self.storage = S::open(&self.path, tracker_open_options())?;
         }
 
-        let pointer: Optional<_> = pointer.into();
-        #[expect(deprecated, reason = "legacy code")]
-        let pointer_bytes = unsafe { transmute_to_u8(&pointer) };
-        self.storage.write(start_offset as u64, pointer_bytes)?;
+        let pointer = OptionalPointer::from(pointer);
+        self.storage.write(start_offset as u64, &[pointer])?;
         Ok(())
     }
 
@@ -646,14 +623,12 @@ where
 mod tests {
     use std::path::PathBuf;
 
-    #[expect(deprecated, reason = "legacy code")]
-    use common::mmap::transmute_from_u8;
     use common::universal_io::MmapFile;
     use rstest::rstest;
     use tempfile::Builder;
 
     use super::{PointerUpdates, Tracker, ValuePointer};
-    use crate::tracker::{BlockOffset, Optional, PageId};
+    use crate::tracker::{BlockOffset, OptionalPointer, PageId};
 
     type TestTracker = Tracker<MmapFile>;
 
@@ -728,20 +703,20 @@ mod tests {
 
         assert_eq!(
             tracker.get_raw(0).unwrap(),
-            Some(Some(ValuePointer::new(1, 1, 1)))
+            Some(ValuePointer::new(1, 1, 1))
         );
         assert_eq!(
             tracker.get_raw(1).unwrap(),
-            Some(Some(ValuePointer::new(2, 2, 2)))
+            Some(ValuePointer::new(2, 2, 2))
         );
         assert_eq!(
             tracker.get_raw(2).unwrap(),
-            Some(Some(ValuePointer::new(3, 3, 3)))
+            Some(ValuePointer::new(3, 3, 3))
         );
-        assert_eq!(tracker.get_raw(3).unwrap(), Some(None)); // intermediate empty slot
+        assert_eq!(tracker.get_raw(3).unwrap(), None); // intermediate empty slot
         assert_eq!(
             tracker.get_raw(10).unwrap(),
-            Some(Some(ValuePointer::new(10, 10, 10)))
+            Some(ValuePointer::new(10, 10, 10))
         );
         assert_eq!(tracker.get_raw(100_000).unwrap(), None); // out of bounds
 
@@ -750,7 +725,7 @@ mod tests {
         tracker.write_pending_and_flush_internal().unwrap();
 
         // the value has been cleared but the entry is still there
-        assert_eq!(tracker.get_raw(1).unwrap(), Some(None));
+        assert_eq!(tracker.get_raw(1).unwrap(), None);
         assert_eq!(tracker.get(1).unwrap(), None);
 
         assert_eq!(tracker.mapping_len().unwrap(), 3);
@@ -966,17 +941,16 @@ mod tests {
     #[test]
     fn test_option_value_pointer_layout() {
         #[repr(align(4))]
-        struct AlignedData([u8; std::mem::size_of::<Optional<ValuePointer>>()]);
+        struct AlignedData([u8; std::mem::size_of::<OptionalPointer>()]);
 
         assert_eq!(
-            std::mem::size_of::<Optional<ValuePointer>>(),
+            std::mem::size_of::<OptionalPointer>(),
             std::mem::size_of::<Option<ValuePointer>>()
         );
 
         let none_data = AlignedData([0; _]);
-        #[expect(deprecated, reason = "legacy code")]
-        let none_val: &Optional<ValuePointer> = unsafe { transmute_from_u8(&none_data.0) };
-        assert!(none_val.is_some().is_none());
+        let none_val: &OptionalPointer = bytemuck::cast_ref(&none_data.0);
+        assert!(none_val.to_option().is_none());
 
         let some_data = AlignedData([
             1, 0, 0, 0, // discriminant with padding
@@ -984,12 +958,11 @@ mod tests {
             0x88, 0x77, 0x66, 0x55, // block_offset
             0xDD, 0xCC, 0xBB, 0xAA, // length
         ]);
-        #[expect(deprecated, reason = "legacy code")]
-        let some_val: &Optional<ValuePointer> = unsafe { transmute_from_u8(&some_data.0) };
+        let some_val: &OptionalPointer = bytemuck::cast_ref(&some_data.0);
         // N.B. fails on a big-endian machine.
         assert_eq!(
-            some_val.is_some(),
-            Some(&ValuePointer {
+            some_val.to_option(),
+            Some(ValuePointer {
                 page_id: 0x11223344,
                 block_offset: 0x55667788,
                 length: 0xAABBCCDD,
@@ -1001,12 +974,12 @@ mod tests {
     #[ignore = "contains undefined behavior"]
     fn test_layout_compatibility() {
         assert_eq!(
-            std::mem::size_of::<Optional<ValuePointer>>(),
+            std::mem::size_of::<OptionalPointer>(),
             std::mem::size_of::<Option<ValuePointer>>()
         );
 
         let old_none = Option::<ValuePointer>::None;
-        let new_none = Optional::<ValuePointer>::none();
+        let new_none = OptionalPointer::none();
 
         // KLUDGE: actually this is UNDEFINED BEHAVIOR because old_one type contains padding bytes.
         // But we don't have any better option.
@@ -1021,7 +994,7 @@ mod tests {
             block_offset: BLOCK_OFFSET,
             length: LENGTH,
         });
-        let new_value = Optional::some(ValuePointer::new(PAGE_ID, BLOCK_OFFSET, LENGTH));
+        let new_value = OptionalPointer::some(ValuePointer::new(PAGE_ID, BLOCK_OFFSET, LENGTH));
 
         // KLUDGE: actually this is UNDEFINED BEHAVIOR because old_one type contains padding bytes.
         // But we don't have any better option.

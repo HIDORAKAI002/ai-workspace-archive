@@ -4,15 +4,15 @@ use std::sync::atomic::AtomicBool;
 
 use ahash::AHashMap;
 use common::counter::hardware_counter::HardwareCounterCell;
-use common::types::{PointOffsetType, ScoreType};
+use common::types::{DeferredBehavior, PointOffsetType, ScoreType};
 use serde_json::Value;
 
-use super::field_index::{FacetIndex, FieldIndex, NumericFieldIndexRead};
+use super::field_index::numeric_index::NumericFieldIndexRead;
+use super::field_index::{FacetIndex, FieldIndex};
 use super::query_optimization::rescore_formula::FormulaScorer;
 use super::query_optimization::rescore_formula::parsed_formula::ParsedFormula;
 use crate::common::Flusher;
 use crate::common::operation_error::OperationResult;
-use crate::id_tracker::{IdTrackerRead, PointMappingsRefEnum};
 use crate::index::field_index::{CardinalityEstimation, PayloadBlockCondition};
 use crate::json_path::JsonPath;
 use crate::payload_storage::FilterContext;
@@ -65,7 +65,6 @@ pub trait PayloadIndexRead {
         filter: &Filter,
         hw_counter: &HardwareCounterCell,
         is_stopped: &AtomicBool,
-        deferred_internal_id: Option<PointOffsetType>,
     ) -> OperationResult<Vec<PointOffsetType>>;
 
     /// Return number of points, indexed by this field
@@ -105,19 +104,16 @@ pub trait PayloadIndexRead {
 
     /// Iterate point offsets that match the filter.
     ///
-    /// Generic over `I: IdTrackerRead` so callers pass their concrete tracker
-    /// without dynamic dispatch; the iterator return uses RPITIT so each impl
-    /// keeps its own zero-cost concrete chain.
-    #[allow(clippy::too_many_arguments)]
-    fn iter_filtered_points<'a, I: IdTrackerRead>(
+    /// The iterator return uses RPITIT so each impl keeps its own zero-cost
+    /// concrete chain. The id tracker is read from `&self`, so impls reach it
+    /// through their own field rather than receiving a separate parameter.
+    fn iter_filtered_points<'a>(
         &'a self,
         filter: &'a Filter,
-        id_tracker: &'a I,
-        point_mappings: &'a PointMappingsRefEnum<'a>,
         query_cardinality: &'a CardinalityEstimation,
         hw_counter: &'a HardwareCounterCell,
         is_stopped: &'a AtomicBool,
-        deferred_internal_id: Option<PointOffsetType>,
+        deferred_behavior: DeferredBehavior,
     ) -> OperationResult<impl Iterator<Item = PointOffsetType> + 'a>;
 
     /// Iterate conditions for payload blocks with minimum size of `threshold`
@@ -145,7 +141,13 @@ pub trait PayloadIndexRead {
 }
 
 /// Trait for payload index with mutating operations.
-pub trait PayloadIndex: PayloadIndexRead {
+///
+/// `PayloadIndex` only covers writes. Callers that also need reads must
+/// bring [`PayloadIndexRead`] into scope explicitly (or bound on it
+/// explicitly in generic code) -- the two traits are siblings, not
+/// parent/child, so that implementations of `PayloadIndexRead` (e.g. a
+/// borrowed read-only view) do not need to also implement `PayloadIndex`.
+pub trait PayloadIndex {
     /// Build the index, if not built before, taking the caller by reference only
     fn build_index(
         &self,

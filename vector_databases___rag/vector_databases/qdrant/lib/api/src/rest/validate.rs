@@ -4,6 +4,7 @@ use common::validation::validate_multi_vector;
 use segment::index::query_optimization::rescore_formula::parsed_formula::VariableId;
 use validator::{Validate, ValidationError, ValidationErrors};
 
+use super::schema::validate_non_empty_dense;
 use super::{
     Batch, BatchVectorStruct, ContextInput, Expression, FormulaQuery, Fusion, NamedVectorStruct,
     PointVectors, Query, QueryInterface, RecommendInput, RelevanceFeedbackInput, Sample,
@@ -136,7 +137,7 @@ impl Validate for FormulaQuery {
                     let validation = ValidationError::new("Score default must be a number");
                     errors.add("defaults", validation);
                 }
-                _ => (),
+                VariableId::Score(_) | VariableId::Payload(_) | VariableId::Condition(_) => (),
             }
         }
 
@@ -155,7 +156,12 @@ impl Validate for Sample {
 impl Validate for BatchVectorStruct {
     fn validate(&self) -> Result<(), ValidationErrors> {
         match self {
-            BatchVectorStruct::Single(_) => Ok(()),
+            BatchVectorStruct::Single(vectors) => {
+                for vector in vectors {
+                    validate_non_empty_dense(vector)?;
+                }
+                Ok(())
+            }
             BatchVectorStruct::MultiDense(vectors) => {
                 for vector in vectors {
                     validate_multi_vector(vector)?;

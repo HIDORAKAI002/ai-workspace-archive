@@ -10,7 +10,7 @@ use crate::common::operation_error::{OperationError, OperationResult};
 use crate::data_types::order_by::{Direction, OrderBy, OrderValue};
 use crate::id_tracker::IdTrackerRead;
 use crate::index::PayloadIndexRead;
-use crate::index::field_index::NumericFieldIndexRead;
+use crate::index::field_index::numeric_index::NumericFieldIndexRead;
 use crate::payload_storage::PayloadStorageRead;
 use crate::segment::read_view::SegmentReadView;
 use crate::segment::vector_data_read::VectorDataRead;
@@ -46,19 +46,14 @@ where
 
         let start_from = order_by.start_from();
 
-        let effective_deferred_id = deferred_behavior.apply(self.deferred_internal_id());
-
-        let point_mappings = self.id_tracker.point_mappings();
         let values_ids_iterator = self
             .payload_index
             .iter_filtered_points(
                 condition,
-                self.id_tracker,
-                &point_mappings,
                 &cardinality_estimation,
                 hw_counter,
                 is_stopped,
-                effective_deferred_id,
+                deferred_behavior,
             )?
             .flat_map(|internal_id| {
                 // Repeat a point for as many values as it has.

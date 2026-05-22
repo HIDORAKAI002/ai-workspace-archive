@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use atomic_refcell::AtomicRefCell;
 use common::counter::hardware_counter::HardwareCounterCell;
-use common::types::{PointOffsetType, ScoredPointOffset, TelemetryDetail};
+use common::types::{DeferredBehavior, PointOffsetType, ScoredPointOffset, TelemetryDetail};
 use parking_lot::Mutex;
 use sparse::common::types::DimId;
 
@@ -71,8 +71,10 @@ impl PlainVectorIndex {
         let indexing_threshold_bytes = search_optimized_threshold_kb * BYTES_IN_KB;
 
         if let Some(payload_filter) = filter {
-            let payload_index = self.payload_index.borrow();
-            let cardinality = payload_index.estimate_cardinality(payload_filter, hw_counter)?;
+            let cardinality = self
+                .payload_index
+                .borrow()
+                .with_view(|v| v.estimate_cardinality(payload_filter, hw_counter))?;
             let scan_size = vector_size_bytes.saturating_mul(cardinality.max);
             Ok(scan_size <= indexing_threshold_bytes)
         } else {
@@ -135,20 +137,20 @@ impl VectorIndexRead for PlainVectorIndex {
             query_context.hardware_counter(),
         )?;
 
-        let deferred_internal_id = query_context.deferred_internal_id();
-
         let mut search_results = match filter {
             Some(filter) => {
-                let payload_index = self.payload_index.borrow();
-                let filtered_ids_vec = payload_index.query_points(
-                    filter,
-                    &hw_counter,
-                    &is_stopped,
-                    deferred_internal_id,
-                )?;
+                let filtered_ids_vec = self
+                    .payload_index
+                    .borrow()
+                    .with_view(|v| v.query_points(filter, &hw_counter, &is_stopped))?;
                 batch_searcher.peek_top_iter(filtered_ids_vec.iter().copied(), &is_stopped)?
             }
-            None => batch_searcher.peek_top_all(&is_stopped, deferred_internal_id)?,
+            None => {
+                let iter = id_tracker
+                    .point_mappings()
+                    .filter_deferred(batch_searcher.iter_not_deleted(), DeferredBehavior::Exclude);
+                batch_searcher.peek_top_iter(iter, &is_stopped)?
+            }
         };
 
         for (search_result, query_vector) in search_results.iter_mut().zip(query_vectors) {
@@ -201,8 +203,9 @@ impl VectorIndexRead for PlainVectorIndex {
         &self,
         _idf: &mut HashMap<DimId, usize>,
         _hw_counter: &HardwareCounterCell,
-    ) {
+    ) -> OperationResult<()> {
         // Plain (dense) index doesn't track IDF.
+        Ok(())
     }
 
     fn is_index(&self) -> bool {

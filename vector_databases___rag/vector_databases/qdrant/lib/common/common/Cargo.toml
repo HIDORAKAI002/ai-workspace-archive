@@ -17,6 +17,7 @@ testing = []
 
 [dependencies]
 ahash = { workspace = true }
+aligned-vec = "0.6.4"
 atomicwrites = { workspace = true }
 bincode = { workspace = true }
 bitvec = { workspace = true }
@@ -33,8 +34,9 @@ num_cpus = "1.17"
 ordered-float = { workspace = true }
 parking_lot = { workspace = true }
 ph = { workspace = true }
-quick_cache = "0.6.19"
+quick_cache = "0.6.22"
 rand = { workspace = true }
+roaring = { workspace = true }
 schemars = { workspace = true }
 semver = { workspace = true }
 serde = { workspace = true }
@@ -53,6 +55,7 @@ zerocopy = { workspace = true }
 [dev-dependencies]
 common = { path = ".", features = ["testing"] }
 criterion = { workspace = true }
+duplicate = "2.0.1"
 fs-err = { workspace = true, features = ["debug"] }
 rstest = { workspace = true }
 self_cell = { workspace = true }
