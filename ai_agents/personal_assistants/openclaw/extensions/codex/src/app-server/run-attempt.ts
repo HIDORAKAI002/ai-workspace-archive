@@ -28,6 +28,7 @@ import {
   resolveSandboxContext,
   resolveSessionAgentIds,
   resolveUserPath,
+  awaitAgentHarnessAgentEndHook,
   runAgentHarnessAgentEndHook,
   runAgentHarnessLlmInputHook,
   runAgentHarnessLlmOutputHook,
@@ -194,9 +195,11 @@ const CODEX_DYNAMIC_TOOL_TIMEOUT_MS = 30_000;
 const CODEX_DYNAMIC_TOOL_MAX_TIMEOUT_MS = 600_000;
 const CODEX_DYNAMIC_IMAGE_GENERATION_TOOL_TIMEOUT_MS = 120_000;
 const CODEX_DYNAMIC_IMAGE_TOOL_TIMEOUT_MS = 60_000;
+const CODEX_DYNAMIC_MESSAGE_TOOL_TIMEOUT_MS = 120_000;
 const CODEX_APP_SERVER_STARTUP_CONNECTION_CLOSE_MAX_ATTEMPTS = 3;
 const CODEX_APP_SERVER_STARTUP_TIMEOUT_FLOOR_MS = 100;
 const CODEX_APP_SERVER_INTERRUPT_TIMEOUT_MS = 5_000;
+const CODEX_APP_SERVER_UNSUBSCRIBE_TIMEOUT_MS = 5_000;
 const CODEX_USAGE_LIMIT_RATE_LIMIT_REFRESH_TIMEOUT_MS = 5_000;
 const CODEX_TURN_COMPLETION_IDLE_TIMEOUT_MS = 60_000;
 const CODEX_TURN_ASSISTANT_COMPLETION_IDLE_TIMEOUT_MS = 10_000;
@@ -214,6 +217,7 @@ const CODEX_NATIVE_SANDBOX_TOOL_REQUIREMENTS = [
   "edit",
   "apply_patch",
 ] as const;
+const CODEX_MEMORY_FLUSH_DYNAMIC_TOOL_ALLOW = new Set(["read", "write"]);
 const CODEX_NATIVE_PROJECT_DOC_BASENAMES = new Set(["agents.md"]);
 const CODEX_WORKSPACE_DEVELOPER_CONTEXT_BASENAMES = new Set([
   "identity.md",
@@ -769,6 +773,23 @@ async function rotateOversizedCodexAppServerStartupBinding(params: {
   return binding;
 }
 
+type CodexAgentEndHookParams = Parameters<typeof runAgentHarnessAgentEndHook>[0];
+
+function shouldAwaitCodexAgentEndHook(params: EmbeddedRunAttemptParams): boolean {
+  return !params.messageChannel && !params.messageProvider;
+}
+
+async function runCodexAgentEndHook(
+  params: EmbeddedRunAttemptParams,
+  hookParams: CodexAgentEndHookParams,
+): Promise<void> {
+  if (shouldAwaitCodexAgentEndHook(params)) {
+    await awaitAgentHarnessAgentEndHook(hookParams);
+    return;
+  }
+  runAgentHarnessAgentEndHook(hookParams);
+}
+
 export async function runCodexAppServerAttempt(
   params: EmbeddedRunAttemptParams,
   options: {
@@ -783,6 +804,7 @@ export async function runCodexAppServerAttempt(
     };
     turnCompletionIdleTimeoutMs?: number;
     turnAssistantCompletionIdleTimeoutMs?: number;
+    postToolRawAssistantCompletionIdleTimeoutMs?: number;
     turnTerminalIdleTimeoutMs?: number;
     clientFactory?: CodexAppServerClientFactory;
   } = {},
@@ -1505,6 +1527,12 @@ export async function runCodexAppServerAttempt(
   const turnAssistantCompletionIdleTimeoutMs = resolveCodexTurnAssistantCompletionIdleTimeoutMs(
     options.turnAssistantCompletionIdleTimeoutMs,
   );
+  const postToolRawAssistantCompletionIdleTimeoutMs =
+    resolveCodexPostToolRawAssistantCompletionIdleTimeoutMs(
+      options.postToolRawAssistantCompletionIdleTimeoutMs ??
+        appServer.postToolRawAssistantCompletionIdleTimeoutMs,
+      turnAssistantCompletionIdleTimeoutMs,
+    );
   const turnTerminalIdleTimeoutMs = resolveCodexTurnTerminalIdleTimeoutMs(
     options.turnTerminalIdleTimeoutMs,
   );
@@ -2006,7 +2034,7 @@ export async function runCodexAppServerAttempt(
     } else if (isCurrentTurnNotification && assistantCompletionCanRelease) {
       armTurnAssistantCompletionIdleWatch(describeNotificationActivity(notification));
     } else if (postToolRawAssistantCompletionNeedsTerminalGuard) {
-      armTurnCompletionIdleWatch({ timeoutMs: turnAssistantCompletionIdleTimeoutMs });
+      armTurnCompletionIdleWatch({ timeoutMs: postToolRawAssistantCompletionIdleTimeoutMs });
     } else if (unblockedAssistantCompletionRelease) {
       armTurnAssistantCompletionIdleWatch(describeNotificationActivity(notification));
     } else if (shouldRearmCompletionIdleWatchAfterLastCurrentTurnItem) {
@@ -2573,7 +2601,7 @@ export async function runCodexAppServerAttempt(
         },
         ctx: hookContext,
       });
-      runAgentHarnessAgentEndHook({
+      await runCodexAgentEndHook(params, {
         event: {
           messages: buildTurnStartFailureMessages(),
           success: false,
@@ -2582,6 +2610,12 @@ export async function runCodexAppServerAttempt(
         },
         ctx: hookContext,
       });
+      if (!timedOut) {
+        await unsubscribeCodexThreadBestEffort(client, {
+          threadId: thread.threadId,
+          timeoutMs: CODEX_APP_SERVER_UNSUBSCRIBE_TIMEOUT_MS,
+        });
+      }
       notificationCleanup();
       requestCleanup();
       nativeHookRelay?.unregister();
@@ -2880,7 +2914,7 @@ export async function runCodexAppServerAttempt(
       },
       ctx: hookContext,
     });
-    runAgentHarnessAgentEndHook({
+    await runCodexAgentEndHook(params, {
       event: {
         messages: result.messagesSnapshot,
         success: !finalAborted && !finalPromptError,
@@ -2926,6 +2960,12 @@ export async function runCodexAppServerAttempt(
     });
     if (!timedOut && !runAbortController.signal.aborted) {
       await steeringQueue?.flushPending();
+    }
+    if (!timedOut) {
+      await unsubscribeCodexThreadBestEffort(client, {
+        threadId: thread.threadId,
+        timeoutMs: CODEX_APP_SERVER_UNSUBSCRIBE_TIMEOUT_MS,
+      });
     }
     userInputBridge?.cancelPending();
     clearTurnAttemptIdleTimer();
@@ -3217,6 +3257,10 @@ function readConfiguredDynamicToolTimeoutMs(
     );
   }
 
+  if (toolName === "message") {
+    return CODEX_DYNAMIC_MESSAGE_TOOL_TIMEOUT_MS;
+  }
+
   return undefined;
 }
 
@@ -3395,6 +3439,27 @@ function interruptCodexTurnBestEffort(
   }
 }
 
+async function unsubscribeCodexThreadBestEffort(
+  client: CodexAppServerClient,
+  params: {
+    threadId: string;
+    timeoutMs: number;
+  },
+): Promise<void> {
+  try {
+    await client.request(
+      "thread/unsubscribe",
+      { threadId: params.threadId },
+      { timeoutMs: params.timeoutMs },
+    );
+  } catch (error) {
+    embeddedAgentLog.debug("codex app-server thread unsubscribe cleanup failed", {
+      threadId: params.threadId,
+      error,
+    });
+  }
+}
+
 function retireCodexAppServerClientAfterTimedOutTurn(
   client: CodexAppServerClient,
   params: {
@@ -3537,7 +3602,9 @@ async function buildDynamicTools(input: DynamicToolBuildParams) {
     },
   });
   const codexFilteredTools = addSandboxShellDynamicToolsIfAvailable(
-    filterCodexDynamicTools(allTools, input.pluginConfig),
+    isCodexMemoryFlushRun(params)
+      ? filterCodexMemoryFlushDynamicTools(allTools)
+      : filterCodexDynamicTools(allTools, input.pluginConfig),
     allTools,
     input,
   );
@@ -3583,6 +3650,9 @@ function shouldEnableCodexAppServerNativeToolSurface(
   sandbox?: OpenClawSandboxContext,
   options: { sandboxExecServerEnabled?: boolean } = {},
 ): boolean {
+  if (isCodexMemoryFlushRun(params)) {
+    return false;
+  }
   const toolsAllow = includeForcedMessageToolAllow(params.toolsAllow, params);
   if (toolsAllow === undefined) {
     return canCodexAppServerNativeToolSurfaceHonorSandbox(sandbox, options);
@@ -3622,6 +3692,18 @@ function canSandboxToolPolicyExposeCodexNativeToolSurface(sandbox: {
 }): boolean {
   return CODEX_NATIVE_SANDBOX_TOOL_REQUIREMENTS.every((toolName) =>
     isToolAllowed(sandbox.tools, toolName),
+  );
+}
+
+function isCodexMemoryFlushRun(
+  params?: Pick<EmbeddedRunAttemptParams, "trigger" | "memoryFlushWritePath">,
+): boolean {
+  return params?.trigger === "memory" && Boolean(params.memoryFlushWritePath?.trim());
+}
+
+function filterCodexMemoryFlushDynamicTools<T extends { name: string }>(tools: T[]): T[] {
+  return tools.filter((tool) =>
+    CODEX_MEMORY_FLUSH_DYNAMIC_TOOL_ALLOW.has(normalizeCodexDynamicToolName(tool.name)),
   );
 }
 
@@ -3732,6 +3814,9 @@ function addSandboxShellDynamicToolsIfAvailable(
 }
 
 function shouldExposeSandboxExecDynamicTool(input: DynamicToolBuildParams): boolean {
+  if (isCodexMemoryFlushRun(input.params)) {
+    return false;
+  }
   const backendId = input.sandbox?.enabled ? input.sandbox.backendId.trim().toLowerCase() : "";
   return Boolean(backendId && input.nativeToolSurfaceEnabled === false);
 }
@@ -3943,6 +4028,19 @@ function resolveCodexTurnAssistantCompletionIdleTimeoutMs(value: number | undefi
   }
   if (!Number.isFinite(value)) {
     return CODEX_TURN_ASSISTANT_COMPLETION_IDLE_TIMEOUT_MS;
+  }
+  return Math.max(1, Math.floor(value));
+}
+
+function resolveCodexPostToolRawAssistantCompletionIdleTimeoutMs(
+  value: number | undefined,
+  fallbackMs: number,
+): number {
+  if (value === undefined) {
+    return fallbackMs;
+  }
+  if (!Number.isFinite(value)) {
+    return fallbackMs;
   }
   return Math.max(1, Math.floor(value));
 }
@@ -5067,6 +5165,7 @@ export const testing = {
   CODEX_DYNAMIC_TOOL_TIMEOUT_MS,
   CODEX_DYNAMIC_TOOL_MAX_TIMEOUT_MS,
   CODEX_DYNAMIC_IMAGE_TOOL_TIMEOUT_MS,
+  CODEX_DYNAMIC_MESSAGE_TOOL_TIMEOUT_MS,
   CODEX_TURN_COMPLETION_IDLE_TIMEOUT_MS,
   CODEX_TURN_TERMINAL_IDLE_TIMEOUT_MS,
   createCodexSteeringQueue,

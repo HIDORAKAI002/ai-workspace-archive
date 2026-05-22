@@ -1622,7 +1622,7 @@ export async function runEmbeddedPiAgent(
           if (
             typeof attempt.compactionTokensAfter === "number" &&
             Number.isFinite(attempt.compactionTokensAfter) &&
-            attempt.compactionTokensAfter > 0
+            attempt.compactionTokensAfter >= 0
           ) {
             lastCompactionTokensAfter = Math.floor(attempt.compactionTokensAfter);
           }
@@ -1807,7 +1807,7 @@ export async function runEmbeddedPiAgent(
                 if (
                   typeof timeoutCompactResult.result?.tokensAfter === "number" &&
                   Number.isFinite(timeoutCompactResult.result.tokensAfter) &&
-                  timeoutCompactResult.result.tokensAfter > 0
+                  timeoutCompactResult.result.tokensAfter >= 0
                 ) {
                   lastCompactionTokensAfter = Math.floor(timeoutCompactResult.result.tokensAfter);
                 }
@@ -2004,7 +2004,7 @@ export async function runEmbeddedPiAgent(
                 if (
                   typeof compactResult.result?.tokensAfter === "number" &&
                   Number.isFinite(compactResult.result.tokensAfter) &&
-                  compactResult.result.tokensAfter > 0
+                  compactResult.result.tokensAfter >= 0
                 ) {
                   lastCompactionTokensAfter = Math.floor(compactResult.result.tokensAfter);
                 }
@@ -2669,6 +2669,35 @@ export async function runEmbeddedPiAgent(
           });
           const timedOutDuringPrompt =
             timedOut && !timedOutDuringCompaction && !timedOutDuringToolExecution;
+          const finalAssistantStopReason = (sessionLastAssistant?.stopReason ?? "")
+            .trim()
+            .toLowerCase();
+          const recoveredFinalAssistantTextAfterPromptTimeout =
+            timedOutDuringPrompt &&
+            ["completed", "end_turn", "stop"].includes(finalAssistantStopReason)
+              ? (finalAssistantVisibleText ?? finalAssistantRawText)?.trim()
+              : undefined;
+          const payloadAlreadyContainsRecoveredFinalAssistant =
+            recoveredFinalAssistantTextAfterPromptTimeout
+              ? (payloadsWithToolMedia ?? []).some(
+                  (payload) =>
+                    payload?.isError !== true &&
+                    payload?.isReasoning !== true &&
+                    typeof payload.text === "string" &&
+                    payload.text.trim() === recoveredFinalAssistantTextAfterPromptTimeout,
+                )
+              : false;
+          const recoveredFinalAssistantPayloadsAfterPromptTimeout =
+            recoveredFinalAssistantTextAfterPromptTimeout &&
+            !payloadAlreadyContainsRecoveredFinalAssistant
+              ? [{ text: recoveredFinalAssistantTextAfterPromptTimeout }]
+              : undefined;
+          const hasSuccessfulFinalAssistantAfterPromptTimeout =
+            timedOutDuringPrompt &&
+            Boolean(
+              payloadAlreadyContainsRecoveredFinalAssistant ||
+              recoveredFinalAssistantPayloadsAfterPromptTimeout?.length,
+            );
           const hasPartialAssistantTextAfterPromptTimeout =
             timedOutDuringPrompt &&
             (attempt.assistantTexts ?? []).some((text) => text.trim().length > 0) &&
@@ -2690,7 +2719,11 @@ export async function runEmbeddedPiAgent(
           // Timeout aborts can leave the run without payloads or with only a
           // partial assistant fragment. Emit an explicit timeout error instead,
           // preserving any tool payloads that succeeded before the timeout.
-          if (timedOutDuringPrompt && !hasMessagingToolDeliveryEvidence(attempt)) {
+          if (
+            timedOutDuringPrompt &&
+            !hasSuccessfulFinalAssistantAfterPromptTimeout &&
+            !hasMessagingToolDeliveryEvidence(attempt)
+          ) {
             const defaultTimeoutText = idleTimedOut
               ? "The model did not produce a response before the model idle timeout. " +
                 "Please try again, or increase `models.providers.<id>.timeoutSeconds` for slow local or self-hosted providers. " +
@@ -2755,11 +2788,13 @@ export async function runEmbeddedPiAgent(
             timedOut,
             attempt,
           });
-          const payloadsForTerminalPath = payloadsWithToolMedia?.length
-            ? payloadsWithToolMedia
-            : silentToolResultReplyPayload
-              ? [silentToolResultReplyPayload]
-              : payloadsWithToolMedia;
+          const payloadsForTerminalPath = recoveredFinalAssistantPayloadsAfterPromptTimeout
+            ? recoveredFinalAssistantPayloadsAfterPromptTimeout
+            : payloadsWithToolMedia?.length
+              ? payloadsWithToolMedia
+              : silentToolResultReplyPayload
+                ? [silentToolResultReplyPayload]
+                : payloadsWithToolMedia;
           const payloadCount = payloadsForTerminalPath?.length ?? 0;
           const emptyAssistantReplyIsSilent = shouldTreatEmptyAssistantReplyAsSilent({
             allowEmptyAssistantReplyAsSilent: params.allowEmptyAssistantReplyAsSilent,
