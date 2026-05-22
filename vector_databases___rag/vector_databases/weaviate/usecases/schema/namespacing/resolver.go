@@ -105,6 +105,50 @@ func QualifyClass(principal *models.Principal, namespacesEnabled bool, name stri
 	return qualified, nil
 }
 
+// QualifyPropertyDataTypes auto-qualifies cross-reference DataType class names
+// with the principal's namespace on namespaces-enabled clusters. Primitive and
+// nested-object DataTypes pass through unchanged. Already-qualified entries
+// (containing the namespace separator) sent by a namespaced principal are
+// rejected via ValidateNamespacePrefix — symmetric with QualifyClass.
+//
+// Mutates properties[i].DataType slices in place. No-op when namespaces are
+// disabled or the principal has no namespace (global principals / NS-disabled
+// clusters). Callers that construct *models.Property programmatically must
+// pass short DataType names; an already-qualified value will be rejected.
+//
+// Scope: top-level properties only. NestedProperty.DataType cross-refs are
+// rejected at usecases/schema/validation.go and never reach this path.
+func QualifyPropertyDataTypes(
+	principal *models.Principal,
+	namespacesEnabled bool,
+	properties []*models.Property,
+) error {
+	if !namespacesEnabled || principal == nil || principal.Namespace == "" {
+		return nil
+	}
+	for _, p := range properties {
+		if p == nil || len(p.DataType) == 0 {
+			continue
+		}
+		if _, ok := schema.AsPrimitive(p.DataType); ok {
+			continue
+		}
+		if _, ok := schema.AsNested(p.DataType); ok {
+			continue
+		}
+		for i, dt := range p.DataType {
+			if dt == "" {
+				continue
+			}
+			if err := ValidateNamespacePrefix(principal, namespacesEnabled, dt, "class"); err != nil {
+				return err
+			}
+			p.DataType[i] = QualifiedName(principal.Namespace, dt)
+		}
+	}
+	return nil
+}
+
 // StripOwnNamespace removes the principal's own namespace prefix from name
 // when present. Returns name unchanged when principal.Namespace is empty
 // (global principal; also the case on NS-disabled clusters, where principals
@@ -208,3 +252,37 @@ func StripObjectResponseClass(principal *models.Principal, obj *models.Object) {
 	}
 	obj.Class = StripOwnNamespace(principal, obj.Class)
 }
+
+// StripErrorMessage removes every occurrence of the principal's own
+// "<namespace>:" prefix from msg. Returns msg unchanged when principal is
+// nil or has no namespace.
+func StripErrorMessage(principal *models.Principal, msg string) string {
+	if principal == nil || principal.Namespace == "" {
+		return msg
+	}
+	return strings.ReplaceAll(msg, principal.Namespace+schema.NamespaceSeparator, "")
+}
+
+// StripErrForPrincipal returns an error whose Error() has the principal's
+// own namespace prefix removed. The original error is held via Unwrap so
+// errors.As keeps matching. Returns err unchanged when nothing was stripped.
+func StripErrForPrincipal(principal *models.Principal, err error) error {
+	if err == nil {
+		return nil
+	}
+	msg := err.Error()
+	stripped := StripErrorMessage(principal, msg)
+	if stripped == msg {
+		return err
+	}
+	return &strippedErr{msg: stripped, orig: err}
+}
+
+// strippedErr overrides Error() while keeping the original reachable via Unwrap.
+type strippedErr struct {
+	msg  string
+	orig error
+}
+
+func (e *strippedErr) Error() string { return e.msg }
+func (e *strippedErr) Unwrap() error { return e.orig }
