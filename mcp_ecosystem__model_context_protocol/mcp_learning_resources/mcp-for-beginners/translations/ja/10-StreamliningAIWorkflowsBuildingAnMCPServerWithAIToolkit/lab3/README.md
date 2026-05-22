@@ -61,8 +61,8 @@ Model Context ProtocolのPython SDKはカスタムMCPサーバー構築の基盤
 ### ステップ2: MCPサーバープロジェクトの初期化
 
 1. Agent Builderの**Tools → Add Tool**に移動  
-2. 利用可能なオプションから**「MCP Server」**を選択  
-3. **「Create A new MCP Server」**を選ぶ  
+2. 利用可能なオプションから **「MCP Server」** を選択  
+3. **「Create A new MCP Server」** を選ぶ  
 4. **`python-weather`テンプレートを選択**  
 5. サーバー名を`weather_mcp`に設定
 
@@ -314,7 +314,7 @@ npm install
 
 ### ステップ7: Agent Builderでデバッグ
 
-1. **F5キーを押す**か、**「Debug in Agent Builder」**構成を選択  
+1. **F5キーを押す**か、**「Debug in Agent Builder」** 構成を選択  
 2. デバッグパネルから**compound構成を選択**  
 3. サーバー起動とAgent Builderの起動を待つ  
 4. 自然言語クエリでWeather MCPサーバーをテスト
@@ -337,7 +337,7 @@ How's the weather like in Seattle
 
 ### ステップ8: MCP Inspectorでデバッグ
 
-1. **「Debug in Inspector」**構成を使用（EdgeまたはChrome）  
+1. **「Debug in Inspector」** 構成を使用（EdgeまたはChrome）  
 2. `http://localhost:6274`でInspectorインターフェースを開く  
 3. インタラクティブなテスト環境を探索：  
    - 利用可能なツールの確認  
@@ -382,7 +382,7 @@ How's the weather like in Seattle
 ### 🔜 次のモジュールへ進む
 
 実際の開発ワークフローでMCPスキルを活かす準備はできましたか？  
-続けて**[モジュール4: 実践的MCP開発 - カスタムGitHubクローンサーバー](../lab4/README.md)**へ進みましょう。ここでは：  
+続けて **[モジュール4: 実践的MCP開発 - カスタムGitHubクローンサーバー](../lab4/README.md)** へ進みましょう。ここでは：  
 - GitHubリポジトリ操作を自動化する本番対応MCPサーバーを構築  
 - MCP経由でGitHubリポジトリのクローン機能を実装  
 - VS CodeとGitHub Copilot Agent Modeとの統合  
