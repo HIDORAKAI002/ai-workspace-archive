@@ -173,7 +173,7 @@ describeControlUiE2e("Control UI chat picker mocked Gateway E2E", () => {
       await page.getByRole("option", { name: /Alpha planning/u }).waitFor({ timeout: 10_000 });
 
       await searchInput.fill(" telegram ");
-      await page.locator('[data-chat-session-search-submit="true"]').last().click();
+      await searchInput.press("Enter");
 
       const searchRequest = await waitForSessionsRequest(
         gateway,

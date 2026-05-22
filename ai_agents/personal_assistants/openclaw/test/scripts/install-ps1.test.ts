@@ -84,7 +84,7 @@ describe("install.ps1 failure handling", () => {
 
   it("runs npm install through the resolved command with quiet CI defaults", () => {
     const npmInstallBody = extractFunctionBody(source, "Install-OpenClaw");
-    expect(npmInstallBody).toContain("$npmOutput = & (Get-NpmCommandPath) install -g");
+    expect(npmInstallBody).toContain("$npmOutput = Invoke-NpmCommand -Arguments");
     expect(npmInstallBody).toContain('$env:NPM_CONFIG_LOGLEVEL = "error"');
     expect(npmInstallBody).toContain('$env:NPM_CONFIG_UPDATE_NOTIFIER = "false"');
     expect(npmInstallBody).toContain('$env:NPM_CONFIG_FUND = "false"');
@@ -95,12 +95,44 @@ describe("install.ps1 failure handling", () => {
     expect(npmInstallBody).toContain("Remove-Item Env:NPM_CONFIG_MIN_RELEASE_AGE");
     expect(npmInstallBody).toContain('$env:NODE_LLAMA_CPP_SKIP_DOWNLOAD = "1"');
     expect(npmInstallBody).toContain(
-      '$npmOutput = & (Get-NpmCommandPath) install -g @freshnessArgs "$installSpec"',
+      [
+        "$npmOutput = Invoke-NpmCommand -Arguments",
+        '(@("install", "-g") + $freshnessArgs + @("$installSpec"))',
+      ].join(" "),
     );
     expect(npmInstallBody).toContain("$env:NPM_CONFIG_LOGLEVEL = $prevLogLevel");
     expect(npmInstallBody).toContain("$env:NPM_CONFIG_BEFORE = $prevBefore");
     expect(npmInstallBody).toContain(
       "$env:NODE_LLAMA_CPP_SKIP_DOWNLOAD = $prevNodeLlamaSkipDownload",
+    );
+  });
+
+  it("runs Windows command shims from a Windows-local cwd", () => {
+    const commandSafeBody = extractFunctionBody(source, "Invoke-CommandFromWindowsSafeDirectory");
+    const npmCommandBody = extractFunctionBody(source, "Invoke-NpmCommand");
+    const corepackCommandBody = extractFunctionBody(source, "Invoke-CorepackCommand");
+    const openClawPathBody = extractFunctionBody(source, "Ensure-OpenClawOnPath");
+    const ensurePnpmBody = extractFunctionBody(source, "Ensure-Pnpm");
+    const mainBody = extractFunctionBody(source, "Main");
+
+    expect(commandSafeBody).toContain("Get-WindowsCommandSafeDirectory");
+    expect(commandSafeBody).toContain("Push-Location -LiteralPath $safeDir");
+    expect(commandSafeBody).toContain("& $CommandPath @Arguments");
+    expect(commandSafeBody).toContain("Pop-Location");
+    expect(npmCommandBody).toContain("Invoke-CommandFromWindowsSafeDirectory");
+    expect(corepackCommandBody).toContain("Invoke-CommandFromWindowsSafeDirectory");
+    expect(openClawPathBody).toContain(
+      'Invoke-NpmCommand -Arguments @("config", "get", "prefix")',
+    );
+    expect(ensurePnpmBody).toContain(
+      'Invoke-CorepackCommand -Arguments @("prepare", $pnpmSpec, "--activate")',
+    );
+    expect(ensurePnpmBody).toContain('Invoke-NpmCommand -Arguments @("install", "-g", $pnpmSpec)');
+    expect(mainBody).toContain(
+      'Invoke-NpmCommand -Arguments @("uninstall", "-g", "openclaw")',
+    );
+    expect(mainBody).toContain(
+      'Invoke-NpmCommand -Arguments @("list", "-g", "--depth", "0", "--json")',
     );
   });
 
@@ -114,9 +146,27 @@ describe("install.ps1 failure handling", () => {
     expect(npmInstallBody).toContain("-InstallMethod git -Tag main");
   });
 
+  it("preserves caller-relative local tarball install specs before safe-cwd npm calls", () => {
+    const resolveSpecBody = extractFunctionBody(source, "Resolve-NpmOpenClawInstallSpec");
+    const localSpecBody = extractFunctionBody(source, "Resolve-LocalNpmPackageInstallSpec");
+    const localPathBody = extractFunctionBody(source, "Resolve-LocalNpmPackagePath");
+
+    expect(resolveSpecBody).toContain(
+      "Resolve-LocalNpmPackageInstallSpec -InstallSpec $trimmedTag",
+    );
+    expect(localSpecBody).toContain("$InstallSpec -match '^file:(?<path>.+)$'");
+    expect(localSpecBody).toContain("Resolve-LocalNpmPackagePath -PackagePath $filePath");
+    expect(localSpecBody).toContain(").AbsoluteUri");
+    expect(localSpecBody).toContain("$InstallSpec -notmatch '^\\.\\.?[\\\\/]'");
+    expect(localSpecBody).toContain("$InstallSpec -notmatch '\\.tgz$'");
+    expect(localPathBody).toContain("Resolve-Path -LiteralPath $PackagePath");
+    expect(localPathBody).toContain("[System.IO.Path]::GetFullPath($PackagePath)");
+  });
+
   it("falls back to a user-local portable Node.js bootstrap when package managers are absent", () => {
     const installNodeBody = extractFunctionBody(source, "Install-Node");
     const portableNodeBody = extractFunctionBody(source, "Install-PortableNode");
+    const portableNodeRootBody = extractFunctionBody(source, "Get-PortableNodeRoot");
     const portableNodePathBody = extractFunctionBody(source, "Ensure-PortableNodeOnUserPath");
     const userPathBody = extractFunctionBody(source, "Add-ToUserPath");
     const depsRootBody = extractFunctionBody(source, "Get-OpenClawDepsRoot");
@@ -127,7 +177,7 @@ describe("install.ps1 failure handling", () => {
     expect(installNodeBody).toContain("Portable Node.js bootstrap failed");
     expect(installNodeBody).toContain("Error: Could not install Node.js automatically.");
     expect(depsRootBody).toContain("OpenClaw\\deps");
-    expect(portableNodeBody).toContain("portable-node");
+    expect(portableNodeRootBody).toContain("portable-node");
     expect(portableNodeBody).toContain("Ensure-PortableNodeOnUserPath");
     expect(portableNodeBody).toContain(
       "Expand-PortableNodeArchive -ZipPath $tmpZip -DestinationPath $portableRoot",
@@ -151,6 +201,55 @@ describe("install.ps1 failure handling", () => {
     expect(resolveNodeBody).toContain("https://nodejs.org/dist/index.json");
     expect(resolveNodeBody).toContain("win-$architecture-zip");
     expect(resolveNodeBody).toContain("node-$($release.version)-win-$architecture.zip");
+  });
+
+  it("persists user-local portable Git for future git-backed updates", () => {
+    const portableGitRootBody = extractFunctionBody(source, "Get-PortableGitRoot");
+    const portableGitBody = extractFunctionBody(source, "Install-PortableGit");
+    const portableGitPathEntriesBody = extractFunctionBody(source, "Get-PortableGitPathEntries");
+    const portableGitPathBody = extractFunctionBody(source, "Ensure-PortableGitOnUserPath");
+    const usePortableGitBody = extractFunctionBody(source, "Use-PortableGitIfPresent");
+    const ensureGitBody = extractFunctionBody(source, "Ensure-Git");
+
+    expect(portableGitRootBody).toContain("Get-OpenClawDepsRoot");
+    expect(portableGitPathEntriesBody).toContain("mingw64\\bin");
+    expect(portableGitPathEntriesBody).toContain("usr\\bin");
+    expect(portableGitPathEntriesBody).toContain("Split-Path -Parent $gitExe");
+    expect(usePortableGitBody).toContain("foreach ($pathEntry in (Get-PortableGitPathEntries))");
+    expect(portableGitBody).toContain("Ensure-PortableGitOnUserPath");
+    expect(ensureGitBody).toContain("Ensure-PortableGitOnUserPath");
+    expect(portableGitPathBody).toContain("Add-ToUserPath $pathEntry");
+    expect(portableGitPathBody).toContain("git-backed updates");
+  });
+
+  it("activates the repo-pinned pnpm version for git installs", () => {
+    const pnpmVersionBody = extractFunctionBody(source, "Get-RepoPnpmVersion");
+    const pnpmVersionMatchBody = extractFunctionBody(source, "Test-PnpmCommandMatchesVersion");
+    const ensurePnpmBody = extractFunctionBody(source, "Ensure-Pnpm");
+    const gitInstallBody = extractFunctionBody(source, "Install-OpenClawFromGit");
+
+    expect(pnpmVersionBody).toContain("package.json");
+    expect(pnpmVersionBody).toContain("$packageJson.packageManager -match '^pnpm@(?<version>[^+]+)'");
+    expect(pnpmVersionMatchBody).toContain("Push-Location -LiteralPath $RepoDir");
+    expect(pnpmVersionMatchBody).toContain("$currentVersion.Trim() -eq $PnpmVersion");
+    expect(ensurePnpmBody).toContain("Get-RepoPnpmVersion -RepoDir $RepoDir");
+    expect(ensurePnpmBody).toContain("$pnpmSpec");
+    expect(ensurePnpmBody).toContain(
+      "Test-PnpmCommandMatchesVersion -PnpmVersion $pnpmVersion -RepoDir $RepoDir",
+    );
+    expect(ensurePnpmBody).toContain(
+      'Invoke-CorepackCommand -Arguments @("prepare", $pnpmSpec, "--activate")',
+    );
+    expect(ensurePnpmBody).toContain('Invoke-NpmCommand -Arguments @("install", "-g", $pnpmSpec)');
+    expect(gitInstallBody.indexOf("git clone $repoUrl $RepoDir")).toBeLessThan(
+      gitInstallBody.indexOf("Ensure-Pnpm -RepoDir $RepoDir"),
+    );
+    expect(gitInstallBody.indexOf("git -C $RepoDir pull --rebase")).toBeLessThan(
+      gitInstallBody.indexOf("Ensure-Pnpm -RepoDir $RepoDir"),
+    );
+    expect(gitInstallBody).toContain("Push-Location -LiteralPath $RepoDir");
+    expect(gitInstallBody).toContain("& $pnpmCommand install");
+    expect(gitInstallBody).not.toContain("& $pnpmCommand -C $RepoDir install");
   });
 
   it("cleans legacy git submodules only from the selected git checkout", () => {

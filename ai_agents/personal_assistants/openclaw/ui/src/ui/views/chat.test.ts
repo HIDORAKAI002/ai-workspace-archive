@@ -1,6 +1,6 @@
 /* @vitest-environment jsdom */
 
-import { render } from "lit";
+import { html, render } from "lit";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { i18n, t } from "../../i18n/index.ts";
 import type { AppViewState } from "../app-view-state.ts";
@@ -1039,6 +1039,35 @@ describe("chat slash menu accessibility", () => {
 });
 
 describe("chat attachment picker", () => {
+  it("converts pasted data image text into an attachment", () => {
+    const onAttachmentsChange = vi.fn();
+    const container = renderChatView({ onAttachmentsChange });
+    const textarea = requireElement(
+      container,
+      ".agent-chat__composer-combobox > textarea",
+      "composer textarea",
+    );
+    const base64 = btoa("png");
+    const dataUrl = ` data:image/PNG;base64,${base64.slice(0, 2)}\n${base64.slice(2)} `;
+    const event = new Event("paste", { bubbles: true, cancelable: true });
+    Object.defineProperty(event, "clipboardData", {
+      value: {
+        items: { length: 0 },
+        getData: (type: string) => (type === "text/plain" ? dataUrl : ""),
+      },
+    });
+
+    const allowed = textarea.dispatchEvent(event);
+
+    expect(allowed).toBe(false);
+    const attachments = requireFirstAttachmentsChange(onAttachmentsChange);
+    expect(attachments).toHaveLength(1);
+    expect(attachments[0]?.fileName).toBe("pasted-image.png");
+    expect(attachments[0]?.mimeType).toBe("image/png");
+    expect(attachments[0]?.sizeBytes).toBe(3);
+    expect(getChatAttachmentDataUrl(attachments[0])).toBe(`data:image/png;base64,${base64}`);
+  });
+
   it("accepts and previews non-video file attachments", async () => {
     const onAttachmentsChange = vi.fn();
     const container = renderChatView({ onAttachmentsChange });
@@ -1273,7 +1302,7 @@ describe("chat session controls", () => {
     ).toEqual([t("chat.selectors.model"), t("chat.selectors.thinkingLevel")]);
   });
 
-  it("searches chat sessions inside the picker without replacing recent sessions", async () => {
+  it("searches chat sessions from the inline picker search without replacing recent sessions", async () => {
     const { state, request } = createChatHeaderState();
     state.sessionsIncludeGlobal = false;
     state.sessionsIncludeUnknown = false;
@@ -1281,20 +1310,15 @@ describe("chat session controls", () => {
     const container = document.createElement("div");
     render(renderChatSessionSelect(state), container);
 
-    container.querySelector<HTMLButtonElement>('button[data-chat-session-select="true"]')!.click();
-    render(renderChatSessionSelect(state), container);
     const input = container.querySelector<HTMLInputElement>(
       'input[data-chat-session-picker-search="true"]',
-    );
-    const submit = container.querySelector<HTMLButtonElement>(
-      'button[data-chat-session-search-submit="true"]',
     );
 
     input!.value = " telegram ";
     input!.dispatchEvent(new Event("input", { bubbles: true }));
     expect(state.chatSessionPickerQuery).toBe(" telegram ");
-    expect(submit?.disabled).toBe(false);
-    submit!.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+    input!.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+    expect(state.chatSessionPickerOpen).toBe(true);
     await vi.waitFor(() => expect(state.chatSessionPickerAppliedQuery).toBe("telegram"));
     render(renderChatSessionSelect(state), container);
 
@@ -1312,6 +1336,46 @@ describe("chat session controls", () => {
       search: "telegram",
     });
     expect(loadSessionsMock).not.toHaveBeenCalled();
+
+    const documentKeydown = vi.fn();
+    document.addEventListener("keydown", documentKeydown);
+    try {
+      input!.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+      expect(state.chatSessionPickerOpen).toBe(false);
+      expect(documentKeydown).not.toHaveBeenCalled();
+    } finally {
+      document.removeEventListener("keydown", documentKeydown);
+    }
+  });
+
+  it("focuses the inline search for the active picker surface", async () => {
+    const { state } = createChatHeaderState();
+    const mobileContainer = document.createElement("div");
+    const desktopContainer = document.createElement("div");
+    document.body.append(mobileContainer, desktopContainer);
+    try {
+      render(renderChatSessionSelect(state, undefined, { surface: "mobile" }), mobileContainer);
+      render(renderChatSessionSelect(state), desktopContainer);
+
+      desktopContainer
+        .querySelector<HTMLButtonElement>('button[data-chat-session-select="true"]')!
+        .click();
+      render(renderChatSessionSelect(state, undefined, { surface: "mobile" }), mobileContainer);
+      render(renderChatSessionSelect(state), desktopContainer);
+
+      const desktopInput = desktopContainer.querySelector<HTMLInputElement>(
+        'input[data-chat-session-picker-search="true"]',
+      );
+      expect(
+        mobileContainer.querySelector('input[data-chat-session-picker-search="true"]'),
+      ).toBeTruthy();
+      await vi.waitFor(() => expect(document.activeElement).toBe(desktopInput));
+    } finally {
+      render(html``, mobileContainer);
+      render(html``, desktopContainer);
+      mobileContainer.remove();
+      desktopContainer.remove();
+    }
   });
 
   it("loads another chat session picker page using the server next offset", async () => {
@@ -1644,6 +1708,48 @@ describe("chat session controls", () => {
     expect(thinkingSelect?.value).toBe("");
     expect(thinkingSelect?.options[0]?.textContent?.trim()).toBe("Inherited: Adaptive");
     expect(thinkingSelect?.title).toBe("Inherited: Adaptive");
+  });
+
+  it("disables thinking for known non-reasoning models without duplicate off options", () => {
+    const { state } = createChatHeaderState({
+      model: "mistral:v0.3",
+      modelProvider: "ollama",
+      models: [
+        {
+          id: "mistral:v0.3",
+          name: "Mistral",
+          provider: "ollama",
+          reasoning: false,
+        },
+      ],
+    });
+    const session = state.sessionsResult!.sessions[0];
+    state.sessionsResult = {
+      ...state.sessionsResult!,
+      defaults: {
+        ...state.sessionsResult!.defaults,
+        thinkingLevels: [{ id: "off", label: "off" }],
+      },
+      sessions: [
+        {
+          ...session,
+          thinkingLevel: "off",
+          thinkingLevels: [{ id: "off", label: "off" }],
+        },
+      ],
+    };
+    const container = document.createElement("div");
+    render(renderChatSessionSelect(state), container);
+
+    const thinkingSelect = container.querySelector<HTMLSelectElement>(
+      'select[data-chat-thinking-select="true"]',
+    );
+
+    expect(thinkingSelect?.disabled).toBe(true);
+    expect([...(thinkingSelect?.options ?? [])].map((option) => option.value)).toEqual([""]);
+    expect(
+      [...(thinkingSelect?.options ?? [])].map((option) => option.textContent?.trim()),
+    ).toEqual(["Inherited: Off"]);
   });
 
   it("always renders full thinking labels", () => {
