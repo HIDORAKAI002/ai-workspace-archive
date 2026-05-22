@@ -32,12 +32,12 @@ const USER_AGENT: &str = concat!(
 #[derive(Error, Debug)]
 pub enum ChromaHttpClientError {
     /// Network-level HTTP request failed.
-    #[error("Request error: {0:?}")]
+    #[error("Request error: {0}")]
     RequestError(#[from] reqwest::Error),
     /// Chroma API returned an error status with a structured error message.
     ///
     /// Contains the error message from the server and the HTTP status code that triggered the error.
-    #[error("API error: {0:?} ({1})")]
+    #[error("API error: {0} ({1})")]
     ApiError(String, reqwest::StatusCode),
     /// Client lacks access to a unique database or cannot determine which database to use.
     #[error("Could not resolve database ID: {0}")]
@@ -268,8 +268,9 @@ impl ChromaHttpClient {
 
     /// Constructs a client from environment variables.
     ///
-    /// Reads configuration from `CHROMA_ENDPOINT`, `CHROMA_TENANT`, and `CHROMA_DATABASE`.
-    /// Falls back to default local endpoint if `CHROMA_ENDPOINT` is not set.
+    /// Reads configuration from `CHROMA_ENDPOINT`, `CHROMA_HOST`, `CHROMA_TENANT`,
+    /// and `CHROMA_DATABASE`. Falls back to default local endpoint if neither
+    /// `CHROMA_ENDPOINT` nor `CHROMA_HOST` is set.
     ///
     /// # Errors
     ///
@@ -291,8 +292,9 @@ impl ChromaHttpClient {
 
     /// Constructs a client configured for Chroma Cloud from environment variables.
     ///
-    /// Reads `CHROMA_API_KEY` (required), `CHROMA_ENDPOINT` (defaults to Chroma Cloud),
-    /// `CHROMA_TENANT`, and `CHROMA_DATABASE` from the environment.
+    /// Reads `CHROMA_API_KEY` (required), `CHROMA_ENDPOINT` or `CHROMA_HOST`
+    /// (defaults to Chroma Cloud), `CHROMA_TENANT`, and `CHROMA_DATABASE` from
+    /// the environment.
     ///
     /// # Errors
     ///
@@ -855,6 +857,179 @@ impl ChromaHttpClient {
                 collection: Arc::new(collection),
             })
             .collect())
+    }
+
+    /// Attaches a function to a collection.
+    ///
+    /// Functions execute automatically when data is written to the input collection,
+    /// producing results in a separate output collection.
+    ///
+    /// # Arguments
+    ///
+    /// * `function_id` - The function identifier (e.g., "statistics", "record_counter")
+    /// * `name` - A unique name for this attached function instance
+    /// * `input_collection_id` - UUID of the collection that triggers the function
+    /// * `output_collection` - Name for the collection where function output is stored
+    /// * `params` - Optional JSON parameters for the function
+    ///
+    /// # Returns
+    ///
+    /// A tuple of (response, created) where `created` is true if newly created,
+    /// false if an attached function with this name already existed.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use chroma::ChromaHttpClient;
+    /// # async fn example(client: ChromaHttpClient) -> Result<(), Box<dyn std::error::Error>> {
+    /// let (response, created) = client.attach_function(
+    ///     "statistics",
+    ///     "my_stats",
+    ///     "00000000-0000-0000-0000-000000000001",
+    ///     "my_stats_output",
+    ///     None,
+    /// ).await?;
+    /// println!("Attached function ID: {}", response.attached_function.id);
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn attach_function(
+        &self,
+        function_id: impl AsRef<str>,
+        name: impl AsRef<str>,
+        input_collection_id: impl AsRef<str>,
+        output_collection: impl AsRef<str>,
+        params: Option<serde_json::Value>,
+    ) -> Result<(chroma_types::AttachFunctionResponse, bool), ChromaHttpClientError> {
+        let tenant_id = self.get_tenant_id().await?;
+        let database_name = self.get_database_name().await?;
+
+        let response: chroma_types::AttachFunctionResponse = self
+            .send(
+                "attach_function",
+                Method::POST,
+                format!(
+                    "/api/v2/tenants/{}/databases/{}/collections/{}/functions/attach",
+                    tenant_id,
+                    database_name,
+                    input_collection_id.as_ref()
+                ),
+                Some(serde_json::json!({
+                    "name": name.as_ref(),
+                    "function_id": function_id.as_ref(),
+                    "output_collection": output_collection.as_ref(),
+                    "params": params.unwrap_or(serde_json::json!({})),
+                })),
+                None::<()>,
+            )
+            .await?;
+
+        let created = response.created;
+        Ok((response, created))
+    }
+
+    /// Gets an attached function by name for a specific collection.
+    ///
+    /// # Arguments
+    ///
+    /// * `input_collection_id` - UUID of the collection the function is attached to
+    /// * `name` - Name of the attached function instance
+    ///
+    /// # Returns
+    ///
+    /// The attached function details including its ID, function name, and output collection.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use chroma::ChromaHttpClient;
+    /// # async fn example(client: ChromaHttpClient) -> Result<(), Box<dyn std::error::Error>> {
+    /// let response = client.get_attached_function(
+    ///     "00000000-0000-0000-0000-000000000001",
+    ///     "my_stats",
+    /// ).await?;
+    /// println!("Function: {}", response.attached_function.function_name);
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn get_attached_function(
+        &self,
+        input_collection_id: impl AsRef<str>,
+        name: impl AsRef<str>,
+    ) -> Result<chroma_types::GetAttachedFunctionResponse, ChromaHttpClientError> {
+        let tenant_id = self.get_tenant_id().await?;
+        let database_name = self.get_database_name().await?;
+
+        self.send_read_only(
+            "get_attached_function",
+            Method::GET,
+            format!(
+                "/api/v2/tenants/{}/databases/{}/collections/{}/functions/{}",
+                tenant_id,
+                database_name,
+                input_collection_id.as_ref(),
+                name.as_ref()
+            ),
+            None::<()>,
+            None::<()>,
+        )
+        .await
+    }
+
+    /// Detaches a function from a collection, preventing further executions.
+    ///
+    /// # Arguments
+    ///
+    /// * `input_collection_id` - UUID of the collection the function is attached to
+    /// * `name` - Name of the attached function instance to detach
+    /// * `delete_output` - Whether to also delete the output collection
+    ///
+    /// # Returns
+    ///
+    /// `true` if the function was successfully detached.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// # use chroma::ChromaHttpClient;
+    /// # async fn example(client: ChromaHttpClient) -> Result<(), Box<dyn std::error::Error>> {
+    /// let success = client.detach_function(
+    ///     "00000000-0000-0000-0000-000000000001",
+    ///     "my_stats",
+    ///     false,
+    /// ).await?;
+    /// assert!(success);
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub async fn detach_function(
+        &self,
+        input_collection_id: impl AsRef<str>,
+        name: impl AsRef<str>,
+        delete_output: bool,
+    ) -> Result<bool, ChromaHttpClientError> {
+        let tenant_id = self.get_tenant_id().await?;
+        let database_name = self.get_database_name().await?;
+
+        let response: chroma_types::DetachFunctionResponse = self
+            .send(
+                "detach_function",
+                Method::POST,
+                format!(
+                    "/api/v2/tenants/{}/databases/{}/collections/{}/attached_functions/{}/detach",
+                    tenant_id,
+                    database_name,
+                    input_collection_id.as_ref(),
+                    name.as_ref()
+                ),
+                Some(serde_json::json!({
+                    "delete_output": delete_output,
+                })),
+                None::<()>,
+            )
+            .await?;
+
+        Ok(response.success)
     }
 
     async fn common_create_collection(
