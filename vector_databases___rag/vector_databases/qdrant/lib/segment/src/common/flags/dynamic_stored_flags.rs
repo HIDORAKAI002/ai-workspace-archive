@@ -7,7 +7,7 @@ use common::bitvec::BitSlice;
 use common::mmap::{AdviceSetting, create_and_ensure_length};
 use common::stored_bitslice::StoredBitSlice;
 use common::types::PointOffsetType;
-use common::universal_io::{OpenOptions, StoredStruct, UniversalWrite};
+use common::universal_io::{OpenOptions, Populate, StoredStruct, UniversalWrite};
 use fs_err as fs;
 use itertools::Either;
 
@@ -19,22 +19,13 @@ const MINIMAL_MMAP_SIZE: usize = 128; // 128 bytes -> 1024 flags
 #[cfg(not(debug_assertions))]
 const MINIMAL_MMAP_SIZE: usize = 1024 * 1024; // 1Mb
 
-const FLAGS_FILE: &str = "flags_a.dat";
+pub(super) const FLAGS_FILE: &str = "flags_a.dat";
 const FLAGS_FILE_LEGACY: &str = "flags_b.dat";
 
-const STATUS_FILE_NAME: &str = "status.dat";
+pub(super) const STATUS_FILE_NAME: &str = "status.dat";
 
-fn status_file(directory: &Path) -> PathBuf {
+pub(super) fn status_file(directory: &Path) -> PathBuf {
     directory.join(STATUS_FILE_NAME)
-}
-
-pub trait UioDynamicFlags:
-    UniversalWrite<DynamicFlagsStatus> + UniversalWrite<u64> + Send + 'static
-{
-}
-impl<T> UioDynamicFlags for T where
-    T: UniversalWrite<DynamicFlagsStatus> + UniversalWrite<u64> + Send + 'static
-{
 }
 
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
@@ -46,6 +37,17 @@ pub struct DynamicFlagsStatus {
     /// Should be 0 in the current version.  Old versions used it to indicate which flags file
     /// (flags_a.dat or flags_b.dat) is currently in use.
     current_file_id: usize,
+}
+
+impl DynamicFlagsStatus {
+    /// Number of logical flags (bits) stored.
+    pub fn len(&self) -> usize {
+        self.len
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len == 0
+    }
 }
 
 /// Mutable persisted bitslice. This uses no buffering for updates.
@@ -84,7 +86,7 @@ fn file_size_for(num_flags: usize) -> usize {
 
 impl<S> DynamicStoredFlags<S>
 where
-    S: UioDynamicFlags,
+    S: UniversalWrite + Send + 'static,
 {
     pub fn len(&self) -> usize {
         self.status.len
@@ -113,10 +115,9 @@ where
             OpenOptions {
                 writeable: true,
                 need_sequential: false,
-                disk_parallel: None,
-                populate: Some(false),
-                advice: None,
-                prevent_caching: None,
+                populate: Populate::No,
+                advice: AdviceSetting::Global,
+                extra: Default::default(),
             },
         )?;
 
@@ -158,9 +159,10 @@ where
 
         let options = OpenOptions {
             writeable: true,
-            populate: Some(populate),
-            advice: Some(AdviceSetting::Global),
-            ..Default::default()
+            need_sequential: false,
+            populate: Populate::from(populate),
+            advice: AdviceSetting::Global,
+            extra: Default::default(),
         };
         let flags = StoredBitSlice::open(&path, options)?;
         Ok(flags)

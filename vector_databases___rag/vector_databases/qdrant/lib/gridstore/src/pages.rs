@@ -5,8 +5,9 @@ use std::path::{Path, PathBuf};
 use ahash::{AHashMap, HashSet};
 use common::generic_consts::AccessPattern;
 use common::maybe_uninit::assume_init_vec;
+use common::mmap::{Advice, AdviceSetting};
 use common::universal_io::{
-    FileIndex, Flusher, OpenOptions, ReadRange, UniversalRead, UniversalWrite,
+    FileIndex, Flusher, OpenOptions, Populate, ReadRange, UniversalRead, UniversalWrite,
 };
 use itertools::Either;
 
@@ -31,7 +32,7 @@ impl<S> Pages<S> {
     }
 }
 
-impl<S: UniversalRead<u8>> Pages<S> {
+impl<S: UniversalRead> Pages<S> {
     pub fn new(base_path: PathBuf) -> Self {
         Self {
             base_path,
@@ -59,10 +60,9 @@ impl<S: UniversalRead<u8>> Pages<S> {
         let options = OpenOptions {
             writeable: true,
             need_sequential: true,
-            disk_parallel: None,
-            populate: Some(false),
-            advice: None,
-            prevent_caching: None,
+            populate: Populate::No,
+            advice: AdviceSetting::Advice(Advice::Random),
+            extra: Default::default(),
         };
 
         let page = S::open(path, options)?;
@@ -213,7 +213,7 @@ impl<S: UniversalRead<u8>> Pages<S> {
             vec![MaybeUninit::uninit(); pointer.length as _]
         };
 
-        for result in S::read_multi_iter::<P, _>(reads)? {
+        for result in S::read_multi_iter::<P, u8, _>(reads)? {
             let (offset, bytes) = result?;
 
             if pages == 1 {
@@ -282,7 +282,7 @@ impl<S: UniversalRead<u8>> Pages<S> {
                 })
             });
 
-        let chunks = S::read_multi_iter::<P, _>(reads).map_err(GridstoreError::from)?;
+        let chunks = S::read_multi_iter::<P, u8, _>(reads).map_err(GridstoreError::from)?;
 
         // Multi-page values need buffering since chunks for the same value may
         // arrive interleaved with chunks for other values. Single-page reads
@@ -384,7 +384,7 @@ impl<S: UniversalRead<u8>> Pages<S> {
     }
 }
 
-impl<S: UniversalWrite<u8>> Pages<S> {
+impl<S: UniversalWrite> Pages<S> {
     pub fn write_to_pages(
         &mut self,
         pointer: ValuePointer,

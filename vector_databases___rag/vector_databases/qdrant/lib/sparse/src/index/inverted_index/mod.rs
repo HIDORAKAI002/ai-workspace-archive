@@ -5,6 +5,7 @@ use std::path::{Path, PathBuf};
 use common::counter::hardware_counter::HardwareCounterCell;
 use common::storage_version::StorageVersion;
 use common::types::PointOffsetType;
+use common::universal_io::{Result, UniversalIoError};
 
 use super::posting_list_common::PostingListIter;
 use crate::common::sparse_vector::RemappedSparseVector;
@@ -13,12 +14,13 @@ use crate::index::inverted_index::inverted_index_ram::InvertedIndexRam;
 
 pub mod inverted_index_compressed_immutable_ram;
 pub mod inverted_index_compressed_mmap;
-pub mod inverted_index_immutable_ram;
-pub mod inverted_index_mmap;
 pub mod inverted_index_ram;
 pub mod inverted_index_ram_builder;
 
-pub const OLD_INDEX_FILE_NAME: &str = "inverted_index.data";
+// NOTE: index in the original format (Qdrant <=v1.9 / sparse <=v0.1.0) lacks of the
+// version file. To distinguish between index in original format and partially
+// written index in the current format, the index file name is changed from
+// `inverted_index.data` to `inverted_index.dat`.
 pub const INDEX_FILE_NAME: &str = "inverted_index.dat";
 
 pub trait InvertedIndex: Sized + Debug + 'static {
@@ -31,7 +33,7 @@ pub trait InvertedIndex: Sized + Debug + 'static {
     fn is_on_disk(&self) -> bool;
 
     /// Open existing index based on path
-    fn open(path: &Path) -> std::io::Result<Self>;
+    fn open(path: &Path) -> Result<Self>;
 
     /// Save index
     fn save(&self, path: &Path) -> std::io::Result<()>;
@@ -41,7 +43,7 @@ pub trait InvertedIndex: Sized + Debug + 'static {
         &'a self,
         id: DimOffset,
         hw_counter: &'a HardwareCounterCell,
-    ) -> Option<Self::Iter<'a>>;
+    ) -> Result<Self::Iter<'a>>;
 
     /// Get number of posting lists
     fn len(&self) -> usize;
@@ -52,7 +54,7 @@ pub trait InvertedIndex: Sized + Debug + 'static {
     }
 
     /// Get number of posting lists for dimension id
-    fn posting_list_len(&self, id: &DimOffset, hw_counter: &HardwareCounterCell) -> Option<usize>;
+    fn posting_list_len(&self, id: DimOffset, hw_counter: &HardwareCounterCell) -> Result<usize>;
 
     /// Files used by this index
     fn files(path: &Path) -> Vec<PathBuf>;
@@ -83,4 +85,15 @@ pub trait InvertedIndex: Sized + Debug + 'static {
 
     /// Get max existed index
     fn max_index(&self) -> Option<DimOffset>;
+}
+
+/// Error returned from [`InvertedIndex::get`] and [`InvertedIndex::posting_list_len`].
+///
+/// Should never happen for valid index as `IndicesTracker` filters unknown
+/// dimension ids.
+pub(crate) fn out_of_bounds(id: DimOffset, len: usize) -> UniversalIoError {
+    UniversalIoError::Io(std::io::Error::new(
+        std::io::ErrorKind::InvalidData,
+        format!("DimOffset {id} out of bounds. Index contains {len} posting lists."),
+    ))
 }

@@ -5,9 +5,9 @@ use std::path::{Path, PathBuf};
 
 use ahash::AHashSet;
 use common::bitvec::BitSlice;
-use common::mmap::create_and_ensure_length;
+use common::mmap::{Advice, AdviceSetting, create_and_ensure_length};
 use common::stored_bitslice::StoredBitSlice;
-use common::universal_io::{MmapFile, OpenOptions, UniversalWrite};
+use common::universal_io::{MmapFile, OpenOptions, Populate, UniversalWrite};
 use gaps::{BitmaskGaps, RegionGaps};
 use itertools::Itertools;
 
@@ -18,22 +18,20 @@ use crate::tracker::{BlockOffset, PageId};
 
 const BITMASK_NAME: &str = "bitmask.dat";
 
-const OPEN_OPTIONS: OpenOptions = OpenOptions {
-    writeable: true,
-    need_sequential: false,
-    disk_parallel: None,
-    populate: Some(false),
-    advice: None,
-    prevent_caching: None,
-};
+fn open_options() -> OpenOptions {
+    OpenOptions {
+        writeable: true,
+        need_sequential: false,
+        populate: Populate::No,
+        advice: AdviceSetting::Advice(Advice::Random),
+        extra: Default::default(),
+    }
+}
 
 type RegionId = u32;
 
 /// Concrete bitmask type using memory-mapped storage.
 pub type MmapBitmask = Bitmask<MmapFile>;
-
-pub trait BitmaskStorage: UniversalWrite<RegionGaps> + UniversalWrite<u64> {}
-impl<T> BitmaskStorage for T where T: UniversalWrite<RegionGaps> + UniversalWrite<u64> {}
 
 #[derive(Debug)]
 pub struct Bitmask<S> {
@@ -49,7 +47,7 @@ pub struct Bitmask<S> {
     path: PathBuf,
 }
 
-impl<S: BitmaskStorage> Bitmask<S> {
+impl<S: UniversalWrite> Bitmask<S> {
     pub fn files(&self) -> Vec<PathBuf> {
         vec![self.path.clone(), self.regions_gaps.path()]
     }
@@ -95,7 +93,7 @@ impl<S: BitmaskStorage> Bitmask<S> {
         let path = Self::bitmask_path(dir);
         create_and_ensure_length(&path, length)?;
 
-        let bitslice = StoredBitSlice::open(&path, OPEN_OPTIONS)?;
+        let bitslice = StoredBitSlice::open(&path, open_options())?;
 
         let bit_len = bitslice.bit_len() as usize;
         assert_eq!(bit_len, length * 8, "Bitmask length mismatch");
@@ -130,7 +128,16 @@ impl<S: BitmaskStorage> Bitmask<S> {
             )));
         }
 
-        let bitslice = StoredBitSlice::open(&path, OpenOptions::default())?;
+        let bitslice = StoredBitSlice::open(
+            &path,
+            OpenOptions {
+                writeable: true,
+                need_sequential: false,
+                populate: Populate::Auto,
+                advice: AdviceSetting::Advice(Advice::Random),
+                extra: Default::default(),
+            },
+        )?;
         let regions_gaps = BitmaskGaps::open(dir, config.clone())?;
 
         Ok(Self {
@@ -201,7 +208,7 @@ impl<S: BitmaskStorage> Bitmask<S> {
         let new_length = (previous_bit_len / u8::BITS as usize) + extra_length;
         create_and_ensure_length(&self.path, new_length)?;
 
-        self.bitslice = StoredBitSlice::open(&self.path, OPEN_OPTIONS)?;
+        self.bitslice = StoredBitSlice::open(&self.path, open_options())?;
 
         let current_bit_len = self.bitslice.bit_len() as usize;
 

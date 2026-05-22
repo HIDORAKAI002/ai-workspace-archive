@@ -1,16 +1,20 @@
 use std::path::{Path, PathBuf};
 
 use common::bitvec::BitSlice;
+use common::counter::hardware_accumulator::HwMeasurementAcc;
 use common::counter::hardware_counter::HardwareCounterCell;
 use common::types::PointOffsetType;
+use common::universal_io::MmapFile;
 
 use super::mutable_bool_index::MutableBoolIndex;
+use super::read_ops::{self, BoolIndexRead};
+use crate::common::flags::roaring_flags::RoaringFlags;
 use crate::common::operation_error::{OperationError, OperationResult};
 use crate::index::field_index::{
     CardinalityEstimation, FieldIndexBuilderTrait, PayloadBlockCondition, PayloadFieldIndex,
-    ValueIndexer,
+    PayloadFieldIndexRead, ValueIndexer,
 };
-use crate::telemetry::PayloadIndexTelemetry;
+use crate::index::query_optimization::optimized_filter::ConditionCheckerFn;
 use crate::types::{FieldCondition, PayloadKeyType};
 
 pub struct ImmutableBoolIndex(MutableBoolIndex);
@@ -40,92 +44,38 @@ impl ImmutableBoolIndex {
     }
 }
 
-impl ImmutableBoolIndex {
-    // N.B.: these operations are immutable.
+impl BoolIndexRead for ImmutableBoolIndex {
+    type Flags = RoaringFlags<MmapFile>;
 
-    #[inline]
-    pub fn get_point_values(&self, point_id: PointOffsetType) -> Vec<bool> {
-        self.0.get_point_values(point_id)
+    fn trues_flags(&self) -> &Self::Flags {
+        self.0.trues_flags()
     }
 
-    #[inline]
-    pub fn for_each_value_map(
-        &self,
-        hw_counter: &HardwareCounterCell,
-        f: impl FnMut(bool, &mut dyn Iterator<Item = PointOffsetType>) -> OperationResult<()>,
-    ) -> OperationResult<()> {
-        self.0.for_each_value_map(hw_counter, f)
+    fn falses_flags(&self) -> &Self::Flags {
+        self.0.falses_flags()
     }
 
-    #[inline]
-    pub fn iter_values(&self) -> impl Iterator<Item = bool> + '_ {
-        self.0.iter_values()
+    fn indexed_count(&self) -> usize {
+        self.0.indexed_count()
     }
 
-    #[inline]
-    pub fn for_each_count_per_value(
-        &self,
-        deferred_internal_id: Option<PointOffsetType>,
-        f: impl FnMut(bool, usize) -> OperationResult<()>,
-    ) -> OperationResult<()> {
-        self.0.for_each_count_per_value(deferred_internal_id, f)
+    fn telemetry_index_type(&self) -> &'static str {
+        self.0.telemetry_index_type()
     }
 
-    #[inline]
-    pub fn get_telemetry_data(&self) -> PayloadIndexTelemetry {
-        self.0.get_telemetry_data()
+    fn trues_count(&self) -> usize {
+        self.0.trues_count()
     }
 
-    #[inline]
-    pub fn values_count(&self, point_id: PointOffsetType) -> usize {
-        self.0.values_count(point_id)
-    }
-
-    #[inline]
-    pub fn check_values_any(&self, point_id: PointOffsetType, is_true: bool) -> bool {
-        self.0.check_values_any(point_id, is_true)
-    }
-
-    #[inline]
-    pub fn values_is_empty(&self, point_id: PointOffsetType) -> bool {
-        self.0.values_is_empty(point_id)
-    }
-
-    #[inline]
-    pub fn ram_usage_bytes(&self) -> usize {
-        self.0.ram_usage_bytes()
-    }
-
-    #[inline]
-    pub fn is_on_disk(&self) -> bool {
-        self.0.is_on_disk()
-    }
-
-    #[inline]
-    pub fn populate(&self) -> OperationResult<()> {
-        self.0.populate()
-    }
-
-    #[inline]
-    pub fn clear_cache(&self) -> OperationResult<()> {
-        self.0.clear_cache()
+    fn falses_count(&self) -> usize {
+        self.0.falses_count()
     }
 }
 
-impl PayloadFieldIndex for ImmutableBoolIndex {
+impl PayloadFieldIndexRead for ImmutableBoolIndex {
     #[inline]
     fn count_indexed_points(&self) -> usize {
-        self.0.count_indexed_points()
-    }
-
-    #[inline]
-    fn wipe(self) -> OperationResult<()> {
-        self.0.wipe()
-    }
-
-    #[inline]
-    fn files(&self) -> Vec<PathBuf> {
-        self.0.files()
+        self.indexed_count()
     }
 
     #[inline]
@@ -134,7 +84,7 @@ impl PayloadFieldIndex for ImmutableBoolIndex {
         condition: &'a FieldCondition,
         hw_counter: &'a HardwareCounterCell,
     ) -> OperationResult<Option<Box<dyn Iterator<Item = PointOffsetType> + 'a>>> {
-        self.0.filter(condition, hw_counter)
+        Ok(read_ops::filter(self, condition, hw_counter))
     }
 
     #[inline]
@@ -143,7 +93,7 @@ impl PayloadFieldIndex for ImmutableBoolIndex {
         condition: &FieldCondition,
         hw_counter: &HardwareCounterCell,
     ) -> OperationResult<Option<CardinalityEstimation>> {
-        self.0.estimate_cardinality(condition, hw_counter)
+        Ok(read_ops::estimate_cardinality(self, condition, hw_counter))
     }
 
     #[inline]
@@ -153,12 +103,32 @@ impl PayloadFieldIndex for ImmutableBoolIndex {
         key: PayloadKeyType,
         f: &mut dyn FnMut(PayloadBlockCondition) -> OperationResult<()>,
     ) -> OperationResult<()> {
-        self.0.for_each_payload_block(threshold, key, f)
+        read_ops::for_each_payload_block(self, threshold, key, f)
+    }
+
+    fn condition_checker<'a>(
+        &'a self,
+        condition: &FieldCondition,
+        hw_acc: HwMeasurementAcc,
+    ) -> Option<ConditionCheckerFn<'a>> {
+        read_ops::condition_checker(self, condition, hw_acc)
+    }
+}
+
+impl PayloadFieldIndex for ImmutableBoolIndex {
+    #[inline]
+    fn wipe(self) -> OperationResult<()> {
+        self.0.wipe()
+    }
+
+    #[inline]
+    fn files(&self) -> Vec<PathBuf> {
+        BoolIndexRead::files(self)
     }
 
     #[inline]
     fn immutable_files(&self) -> Vec<PathBuf> {
-        self.files() // All the files are immutable in this index.
+        BoolIndexRead::files(self) // All the files are immutable in this index.
     }
 
     #[inline]

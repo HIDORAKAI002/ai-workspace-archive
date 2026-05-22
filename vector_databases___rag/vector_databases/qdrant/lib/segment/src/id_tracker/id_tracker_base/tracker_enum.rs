@@ -2,6 +2,7 @@ use std::path::PathBuf;
 
 use common::bitvec::BitSlice;
 use common::types::PointOffsetType;
+use common::universal_io::MmapFile;
 
 use super::point_mappings_ref::PointMappingsRefEnum;
 use super::trait_def::{IdTracker, IdTrackerRead};
@@ -16,7 +17,7 @@ use crate::types::{PointIdType, SeqNumberType};
 #[allow(clippy::large_enum_variant)]
 pub enum IdTrackerEnum {
     MutableIdTracker(MutableIdTracker),
-    ImmutableIdTracker(ImmutableIdTracker),
+    ImmutableIdTracker(ImmutableIdTracker<MmapFile>),
     InMemoryIdTracker(InMemoryIdTracker),
 }
 
@@ -108,6 +109,22 @@ impl IdTrackerRead for IdTrackerEnum {
             IdTrackerEnum::MutableIdTracker(id_tracker) => id_tracker.iter_internal_versions(),
             IdTrackerEnum::ImmutableIdTracker(id_tracker) => id_tracker.iter_internal_versions(),
             IdTrackerEnum::InMemoryIdTracker(id_tracker) => id_tracker.iter_internal_versions(),
+        }
+    }
+
+    fn deferred_internal_id(&self) -> Option<PointOffsetType> {
+        match self {
+            IdTrackerEnum::MutableIdTracker(id_tracker) => id_tracker.deferred_internal_id(),
+            IdTrackerEnum::ImmutableIdTracker(id_tracker) => id_tracker.deferred_internal_id(),
+            IdTrackerEnum::InMemoryIdTracker(id_tracker) => id_tracker.deferred_internal_id(),
+        }
+    }
+
+    fn deferred_deleted_count(&self) -> usize {
+        match self {
+            IdTrackerEnum::MutableIdTracker(id_tracker) => id_tracker.deferred_deleted_count(),
+            IdTrackerEnum::ImmutableIdTracker(id_tracker) => id_tracker.deferred_deleted_count(),
+            IdTrackerEnum::InMemoryIdTracker(id_tracker) => id_tracker.deferred_deleted_count(),
         }
     }
 }

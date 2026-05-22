@@ -12,6 +12,7 @@ use std::collections::HashMap;
 
 use common::counter::hardware_counter::HardwareCounterCell;
 use common::types::PointOffsetType;
+use common::universal_io::UserData;
 use itertools::Itertools;
 
 use crate::common::operation_error::OperationResult;
@@ -363,9 +364,10 @@ pub trait InvertedIndex {
         })
     }
 
-    fn vocab_with_postings_len_iter(
+    fn for_each_vocab_with_postings_len(
         &self,
-    ) -> impl Iterator<Item = OperationResult<(&str, usize)>> + '_;
+        f: impl FnMut(&str, usize) -> OperationResult<()>,
+    ) -> OperationResult<()>;
 
     fn for_each_payload_block(
         &self,
@@ -375,8 +377,7 @@ pub trait InvertedIndex {
     ) -> OperationResult<()> {
         // It might be very hard to predict possible combinations of conditions,
         // so we only build it for individual tokens
-        self.vocab_with_postings_len_iter().try_for_each(|item| {
-            let (token, postings_len) = item?;
+        self.for_each_vocab_with_postings_len(|token, postings_len| {
             if postings_len >= threshold {
                 f(PayloadBlockCondition {
                     condition: FieldCondition::new_match(key.clone(), Match::new_text(token)),
@@ -400,11 +401,11 @@ pub trait InvertedIndex {
     fn points_count(&self) -> usize;
 
     /// Resolve token -> token_id and call the closure for each token_id.
-    fn for_each_token_id<'a, Meta>(
+    fn for_each_token_id<'a, U: UserData>(
         &self,
-        tokens: impl Iterator<Item = (Meta, &'a str)>,
+        tokens: impl Iterator<Item = (U, &'a str)>,
         hw_counter: &HardwareCounterCell,
-        f: impl FnMut(Meta, Option<TokenId>),
+        f: impl FnMut(U, Option<TokenId>),
     ) -> OperationResult<()>;
 }
 
@@ -560,7 +561,7 @@ mod tests {
 
         MmapInvertedIndex::create(mmap_dir.path().into(), &immutable).unwrap();
         let empty_deleted = BitVec::new();
-        let mmap = MmapInvertedIndex::open(
+        let mmap: MmapInvertedIndex = MmapInvertedIndex::open(
             mmap_dir.path().into(),
             false,
             phrase_matching,
@@ -603,6 +604,12 @@ mod tests {
             assert_eq!(mutable_ids, imm_mmap_ids);
         }
 
+        let mmap_counts = mmap
+            .storage
+            .point_to_tokens_count
+            .read_whole()
+            .unwrap()
+            .into_owned();
         for (point_id, count) in immutable.point_to_tokens_count.iter().enumerate() {
             // Check same deleted points
             assert_eq!(
@@ -612,10 +619,7 @@ mod tests {
             );
 
             // Check same count
-            assert_eq!(
-                *mmap.storage.point_to_tokens_count.get(point_id).unwrap(),
-                *count
-            );
+            assert_eq!(mmap_counts[point_id], *count);
             assert_eq!(imm_mmap.point_to_tokens_count[point_id], *count);
         }
 

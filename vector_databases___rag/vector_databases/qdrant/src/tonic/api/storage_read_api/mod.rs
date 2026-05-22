@@ -12,8 +12,10 @@ use api::grpc::qdrant::{
     ReadWholeRequest, ReadWholeResponse,
 };
 use common::generic_consts::Random;
-use common::universal_io::mmap::MmapFile;
-use common::universal_io::{FileIndex, OpenOptions, ReadRange, UniversalIoError, UniversalRead};
+use common::mmap::{Advice, AdviceSetting};
+use common::universal_io::{
+    FileIndex, MmapFile, OpenOptions, Populate, ReadRange, UniversalIoError, UniversalRead,
+};
 use futures::Stream;
 use storage::dispatcher::Dispatcher;
 use tonic::{Request, Response, Status, async_trait};
@@ -29,13 +31,13 @@ mod tests;
 /// Chunk size for streaming reads (~1 MB).
 const STREAM_CHUNK_SIZE: u64 = 1024 * 1024;
 
-pub struct StorageReadService<S: UniversalRead<u8> + Send + Sync + 'static = MmapFile> {
+pub struct StorageReadService<S: UniversalRead + Send + Sync + 'static = MmapFile> {
     dispatcher: Arc<Dispatcher>,
     _marker: PhantomData<S>,
 }
 
 #[async_trait]
-impl<S: UniversalRead<u8> + Send + Sync + 'static> StorageRead for StorageReadService<S> {
+impl<S: UniversalRead + Send + Sync + 'static> StorageRead for StorageReadService<S> {
     // Check if a file exists via UniversalRead::open(), catch NotFound → false.
     async fn file_exists(
         &self,
@@ -124,10 +126,16 @@ impl<S: UniversalRead<u8> + Send + Sync + 'static> StorageRead for StorageReadSe
             .await?;
         let path = Self::resolve_path(&base, &collections_root, &path)?;
 
-        let open_options = OpenOptions::default();
+        let open_options = OpenOptions {
+            writeable: false,
+            need_sequential: false,
+            populate: Populate::No,
+            advice: AdviceSetting::Advice(Advice::Normal),
+            extra: Default::default(),
+        };
         let length = tokio::task::spawn_blocking(move || {
             let storage = S::open(&path, open_options).map_err(io_error_to_status)?;
-            storage.len().map_err(io_error_to_status)
+            storage.len::<u8>().map_err(io_error_to_status)
         })
         .await
         .map_err(|e| Status::internal(format!("Task join error: {e}")))??;
@@ -154,12 +162,18 @@ impl<S: UniversalRead<u8> + Send + Sync + 'static> StorageRead for StorageReadSe
             .check_and_resolve_shard(&auth, &collection_name, shard_id, "read_bytes")
             .await?;
         let path = Self::resolve_path(&base, &collections_root, &path)?;
-        let open_options = OpenOptions::default();
+        let open_options = OpenOptions {
+            writeable: false,
+            need_sequential: false,
+            populate: Populate::No,
+            advice: AdviceSetting::Advice(Advice::Normal),
+            extra: Default::default(),
+        };
 
         let data = tokio::task::spawn_blocking(move || {
             let storage = S::open(&path, open_options).map_err(io_error_to_status)?;
             let cow = storage
-                .read::<Random>(ReadRange::new(byte_offset, length))
+                .read::<Random, u8>(ReadRange::new(byte_offset, length))
                 .map_err(io_error_to_status)?;
             Ok::<_, Status>(cow.into_owned())
         })
@@ -192,11 +206,17 @@ impl<S: UniversalRead<u8> + Send + Sync + 'static> StorageRead for StorageReadSe
             .check_and_resolve_shard(&auth, &collection_name, shard_id, "read_bytes_stream")
             .await?;
         let path = Self::resolve_path(&base, &collections_root, &path)?;
-        let open_options = OpenOptions::default();
+        let open_options = OpenOptions {
+            writeable: false,
+            need_sequential: false,
+            populate: Populate::No,
+            advice: AdviceSetting::Advice(Advice::Sequential),
+            extra: Default::default(),
+        };
         let range = ReadRange::new(byte_offset, length);
         let (storage, range) = tokio::task::spawn_blocking(move || {
             let s = S::open(&path, open_options).map_err(io_error_to_status)?;
-            let file_len = s.len().map_err(io_error_to_status)?;
+            let file_len = s.len::<u8>().map_err(io_error_to_status)?;
             validate_range(range, file_len).map_err(io_error_to_status)?;
             Ok::<_, Status>((s, range))
         })
@@ -217,7 +237,7 @@ impl<S: UniversalRead<u8> + Send + Sync + 'static> StorageRead for StorageReadSe
 
                 let data = tokio::task::spawn_blocking(move || {
                     storage_for_read
-                        .read::<Random>(ReadRange::new(current_offset, chunk_size))
+                        .read::<Random, u8>(ReadRange::new(current_offset, chunk_size))
                         .map(|cow| cow.into_owned())
                         .map_err(io_error_to_status)
                 })
@@ -250,11 +270,17 @@ impl<S: UniversalRead<u8> + Send + Sync + 'static> StorageRead for StorageReadSe
             .check_and_resolve_shard(&auth, &collection_name, shard_id, "read_whole")
             .await?;
         let path = Self::resolve_path(&base, &collections_root, &path)?;
-        let open_options = OpenOptions::default();
+        let open_options = OpenOptions {
+            writeable: false,
+            need_sequential: false,
+            populate: Populate::No,
+            advice: AdviceSetting::Advice(Advice::Sequential),
+            extra: Default::default(),
+        };
 
         let data = tokio::task::spawn_blocking(move || {
             let storage = S::open(&path, open_options).map_err(io_error_to_status)?;
-            let cow = storage.read_whole().map_err(io_error_to_status)?;
+            let cow = storage.read_whole::<u8>().map_err(io_error_to_status)?;
             Ok::<_, Status>(cow.into_owned())
         })
         .await
@@ -281,7 +307,13 @@ impl<S: UniversalRead<u8> + Send + Sync + 'static> StorageRead for StorageReadSe
             .await?;
         let path = Self::resolve_path(&base, &collections_root, &path)?;
 
-        let open_options = OpenOptions::default();
+        let open_options = OpenOptions {
+            writeable: false,
+            need_sequential: false,
+            populate: Populate::No,
+            advice: AdviceSetting::Advice(Advice::Normal),
+            extra: Default::default(),
+        };
         let ranges = ranges
             .iter()
             .map(|r| ReadRange::new(r.byte_offset, r.length))
@@ -291,7 +323,7 @@ impl<S: UniversalRead<u8> + Send + Sync + 'static> StorageRead for StorageReadSe
             let storage = S::open(&path, open_options).map_err(io_error_to_status)?;
             let mut results = ranges.iter().map(|_| Vec::new()).collect::<Vec<_>>();
             storage
-                .read_batch::<Random, _>(ranges.into_iter().enumerate(), |idx, chunk| {
+                .read_batch::<Random, u8, _>(ranges.into_iter().enumerate(), |idx, chunk| {
                     results[idx].extend_from_slice(chunk);
                     Ok(())
                 })
@@ -321,7 +353,13 @@ impl<S: UniversalRead<u8> + Send + Sync + 'static> StorageRead for StorageReadSe
         let (base, collections_root) = self
             .check_and_resolve_shard(&auth, &collection_name, shard_id, "read_multi")
             .await?;
-        let open_options = OpenOptions::default();
+        let open_options = OpenOptions {
+            writeable: false,
+            need_sequential: false,
+            populate: Populate::No,
+            advice: AdviceSetting::Advice(Advice::Normal),
+            extra: Default::default(),
+        };
 
         // Resolve all paths and deduplicate into a file index.
         let mut path_to_index = HashMap::<PathBuf, FileIndex>::new();
@@ -352,7 +390,7 @@ impl<S: UniversalRead<u8> + Send + Sync + 'static> StorageRead for StorageReadSe
                 .enumerate()
                 .map(|(op_idx, (file_idx, range))| (op_idx, &files[file_idx], range));
 
-            S::read_multi::<Random, _>(reads, |op_idx, chunk| {
+            S::read_multi::<Random, u8, _>(reads, |op_idx, chunk| {
                 results[op_idx].extend_from_slice(chunk);
                 Ok(())
             })
