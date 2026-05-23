@@ -13,6 +13,7 @@ Language-specific coding standards and conventions for code review.
 - [Go Standards](#go-standards)
 - [Swift Standards](#swift-standards)
 - [Kotlin Standards](#kotlin-standards)
+- [C# / .NET Standards](#c--net-standards)
 
 ---
 
@@ -552,4 +553,241 @@ suspend fun fetchWithRetry(url: String): Response {
     }
     throw IllegalStateException("Unreachable")
 }
+```
+
+---
+
+## C# / .NET Standards
+
+### Nullable Reference Types
+
+```csharp
+// Enable nullable reference types at the project level
+// <PropertyGroup>
+//   <Nullable>enable</Nullable>
+//   <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+// </PropertyGroup>
+
+// Be explicit about nullability
+public string Name { get; set; } = "";          // non-nullable, requires init
+public string? Nickname { get; set; }           // nullable
+
+public User? FindUser(int id)                   // may return null
+{
+    return _repo.Get(id);
+}
+
+// Avoid the null-forgiving operator (!) — it tells the compiler
+// "trust me, this is not null" and silently disables the safety net.
+// BAD:  return user!.Name;
+// GOOD: return user?.Name ?? throw new InvalidOperationException(nameof(user));
+
+// Use the null-conditional and null-coalescing operators
+var displayName = user?.Profile?.Name ?? "Anonymous";
+
+// Pattern matching for null checks
+if (user is { Profile.Name: { } name })
+{
+    Log(name);
+}
+```
+
+### Async / Await
+
+```csharp
+// Return Task (or Task<T>), never `void`, except for event handlers.
+// `async void` cannot be awaited and exceptions cannot be caught by callers.
+public async Task SaveAsync(User user)
+{
+    await _db.SaveChangesAsync();
+}
+
+// Never block on async with .Result, .Wait(), or .GetAwaiter().GetResult()
+// in code that runs on a synchronization context (ASP.NET Classic, WinForms, WPF)
+// — it causes deadlocks.
+// BAD:  var data = FetchAsync().Result;
+// GOOD: var data = await FetchAsync();
+
+// In library code, use ConfigureAwait(false) to avoid forcing the caller's
+// context back onto the continuation.
+public async Task<User> LoadAsync(int id)
+{
+    var row = await _db.Users.FindAsync(id).ConfigureAwait(false);
+    return Map(row);
+}
+
+// Parallelize independent awaitables
+var (profile, stats, notifications) = (
+    await Task.WhenAll(
+        FetchProfileAsync(id),
+        FetchStatsAsync(id),
+        FetchNotificationsAsync(id)
+    )
+);
+```
+
+### Exception Handling
+
+```csharp
+// Catch the most specific exception, not `Exception`
+try
+{
+    await client.GetAsync(url);
+}
+catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+{
+    return null;
+}
+catch (TaskCanceledException)
+{
+    _logger.LogWarning("Request to {Url} timed out", url);
+    throw;
+}
+
+// Never swallow exceptions
+// BAD:
+// try { ... } catch (Exception) { }
+//
+// GOOD: log with context, then rethrow or convert to a domain error.
+try
+{
+    await Process(order);
+}
+catch (DomainException ex)
+{
+    _logger.LogError(ex, "Order {OrderId} failed", order.Id);
+    throw;
+}
+
+// Use `throw;` (not `throw ex;`) to preserve the original stack trace
+```
+
+### Resource Management (IDisposable)
+
+```csharp
+// Always wrap IDisposable resources in `using` / `using var`
+using var connection = new SqlConnection(connectionString);
+using var command = new SqlCommand(query, connection);
+
+// HttpClient is the exception — it's IDisposable but designed to be
+// long-lived. Use IHttpClientFactory in DI rather than `new HttpClient()`
+// in a method body.
+public class Foo
+{
+    private readonly HttpClient _client;
+
+    public Foo(IHttpClientFactory factory)
+    {
+        _client = factory.CreateClient("api");
+    }
+}
+
+// For `DbContext`, register as scoped — never instantiate per-request inside a method.
+services.AddDbContext<AppDbContext>(opts => opts.UseSqlServer(connStr));
+```
+
+### LINQ
+
+```csharp
+// Defer execution until you actually need the results
+var activeUsers = _db.Users
+    .Where(u => u.IsActive)
+    .Select(u => new UserDto(u.Id, u.Email));   // still an IQueryable
+
+// Prefer FirstOrDefault / SingleOrDefault to First / Single
+// when "no match" is a valid outcome
+var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == email);
+if (user is null) return NotFound();
+
+// Avoid premature materialization
+// BAD:  _db.Users.ToList().Where(u => u.IsActive)   // pulls the entire table
+// GOOD: _db.Users.Where(u => u.IsActive).ToList()   // SQL WHERE clause
+
+// Don't fight LINQ — if the chain is hard to read, drop to a for loop
+```
+
+### Dependency Injection
+
+```csharp
+// Constructor injection — required dependencies as ctor params
+public class OrderService
+{
+    private readonly IOrderRepository _repo;
+    private readonly IPaymentGateway _payments;
+    private readonly ILogger<OrderService> _logger;
+
+    public OrderService(
+        IOrderRepository repo,
+        IPaymentGateway payments,
+        ILogger<OrderService> logger)
+    {
+        _repo = repo;
+        _payments = payments;
+        _logger = logger;
+    }
+}
+
+// Pick lifetimes deliberately
+services.AddSingleton<IClock, SystemClock>();        // stateless, thread-safe
+services.AddScoped<AppDbContext>();                  // per-request state
+services.AddTransient<IEmailSender, SmtpEmailSender>(); // light, no state
+
+// Don't pass IServiceProvider into business code — it's the service locator
+// anti-pattern. If you need many services, group them or inject what you need.
+```
+
+### Records and Pattern Matching
+
+```csharp
+// Use records for immutable value types (DTOs, value objects, events)
+public record UserDto(int Id, string Email, string Name);
+
+// `with` expressions for non-destructive updates
+var updated = user with { Name = "New Name" };
+
+// Use pattern matching to flatten nested logic
+public decimal CalculateFee(Order order) => order switch
+{
+    { Customer.Tier: "Gold", Total: > 1000m } => 0m,
+    { Customer.Tier: "Gold" } => order.Total * 0.01m,
+    { Total: > 500m }         => order.Total * 0.02m,
+    _                          => order.Total * 0.03m,
+};
+
+// Property patterns for clean guards
+if (response is { IsSuccess: true, Data: var data })
+{
+    Process(data);
+}
+```
+
+### Security (ASP.NET Core)
+
+```csharp
+// Parameterized queries — never interpolate user input into SQL
+// BAD:  _db.Users.FromSqlRaw($"SELECT * FROM Users WHERE Id = {id}")
+// GOOD:
+var users = await _db.Users
+    .FromSqlInterpolated($"SELECT * FROM Users WHERE Id = {id}")  // EF Core handles parameters
+    .ToListAsync();
+
+// Or explicitly:
+var users = await _db.Users
+    .FromSqlRaw("SELECT * FROM Users WHERE Id = @id",
+        new SqlParameter("@id", id))
+    .ToListAsync();
+
+// Anti-forgery on state-changing actions
+[HttpPost]
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> Update(UpdateUserDto dto) { ... }
+
+// Never bind sensitive properties from the request body
+public record CreateUserDto(string Email, string Name);  // no Role, no IsAdmin
+public IActionResult Create([FromBody] CreateUserDto dto) { ... }
+
+// Use IOptions and the secrets store, not appsettings.json, for secrets
+// dotnet user-secrets set ConnectionStrings:Default "Server=...;Password=..."
+public class DbOptions { public string ConnectionString { get; init; } = ""; }
+services.Configure<DbOptions>(config.GetSection("Db"));
 ```

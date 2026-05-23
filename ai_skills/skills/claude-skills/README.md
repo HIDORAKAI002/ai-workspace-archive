@@ -9,10 +9,10 @@ The most comprehensive open-source library of Claude Code skills and agent plugi
 [^hermes]: Hermes Agent is **BYO-sync tier**: the repo ships a pre-generated `.hermes/skills/claude-skills/` tree (305 skills across 12 domains as of v2.7.3), but you run `python scripts/sync-hermes-skills.py` once locally to install into `~/.hermes/skills/`. Uses the same agentskills.io SKILL.md standard — no format conversion.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](https://opensource.org/licenses/MIT)
-[![Skills](https://img.shields.io/badge/Skills-313-brightgreen?style=for-the-badge)](#skills-overview)
-[![Agents](https://img.shields.io/badge/Agents-46+-blue?style=for-the-badge)](#agents)
+[![Skills](https://img.shields.io/badge/Skills-329-brightgreen?style=for-the-badge)](#skills-overview)
+[![Agents](https://img.shields.io/badge/Agents-49+-blue?style=for-the-badge)](#agents)
 [![Personas](https://img.shields.io/badge/Personas-7-purple?style=for-the-badge)](#personas)
-[![Commands](https://img.shields.io/badge/Commands-60+-orange?style=for-the-badge)](#commands)
+[![Commands](https://img.shields.io/badge/Commands-79+-orange?style=for-the-badge)](#commands)
 [![Stars](https://img.shields.io/github/stars/alirezarezvani/claude-skills?style=for-the-badge)](https://github.com/alirezarezvani/claude-skills/stargazers)
 [![SkillCheck Validated](https://img.shields.io/badge/SkillCheck-Validated-4c1?style=for-the-badge)](https://getskillcheck.com)
 
@@ -158,7 +158,7 @@ Run `./scripts/convert.sh --tool all` to generate tool-specific outputs locally.
 | **⚡ Engineering — POWERFUL** | 45 | Agent designer, RAG architect, database designer, CI/CD builder, security auditor, MCP builder, AgentHub, Helm charts, Terraform, self-eval, llm-wiki, tc-tracker, **reliability portfolio** (feature-flags-architect, kubernetes-operator, chaos-engineering, slo-architect), ship-gate, **security-guidance** (✨v2.7.3 — PreToolUse hook catching 12 anti-patterns), **Matt Pocock skills** (write-a-skill, caveman, grill-me, handoff, grill-with-docs) | [engineering/](engineering/) |
 | **🎯 Product** | 13 | Product manager, agile PO, strategist, UX researcher, UI design, landing pages, SaaS scaffolder, analytics, experiment designer, discovery, roadmap communicator, code-to-prd, apple-hig-expert | [product-team/](product-team/) |
 | **📣 Marketing** | 45 | 8 pods: Content (8), SEO + AEO (6 incl. ✨v2.7.3 `aeo` — E-E-A-T audit, citation tracking across 5 LLMs), CRO (6), Channels (6), Growth (4), Intelligence (4), Sales (2) + context foundation + orchestration router. 58 Python tools. | [marketing-skill/](marketing-skill/) |
-| **🚀 Productivity** ✨v2.7.0 | 4 | `capture` (brain-dump-to-action), `email` pair (inbox-setup + inbox-triage with 7-file KB contract), `reflect` (light-prompt journal). Path-B from megaprompts 05-08. | [productivity/](productivity/) |
+| **🚀 Productivity** ✨v2.8.2 | 5 | `capture` (brain-dump-to-action), `email` pair (inbox-setup + inbox-triage with 7-file KB contract), `reflect` (light-prompt journal), **`handoff`** (✨v2.8.2 — Matt Pocock-inspired: first-run setup, redaction linter, SessionStart + SessionEnd hooks, fidelity self-check, `--refresh`). Path-B from megaprompts 05-08 + Matt Pocock derivation. | [productivity/](productivity/) |
 | **🎨 Marketing (top-level)** ✨v2.7.0 | 1 | `landing` — single-file HTML landing-page generator (4 design styles, GSAP patterns, brand palette validator). Path-B from megaprompt 04. | [marketing/](marketing/) |
 | **🔬 Research** ✨v2.7.0 | 8 | `research` orchestrator (hybrid router + fallback, megaprompt 13) + 7 specialists: `pulse` (recency), `litreview` (academic), `grants` (NIH), `dossier` (entity), `patent` (prior-art), `syllabus` (course reading), `notebooklm` (browser-automation). | [research/](research/) |
 | **📋 Project Management** | 9 | Senior PM, scrum master, Jira, Confluence, Atlassian admin, templates + bundled Atlassian Remote MCP | [project-management/](project-management/) |

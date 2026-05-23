@@ -107,14 +107,14 @@ def score_profile(profile: dict[str, Any], inputs: Inputs) -> Match:
     constraints = profile.get("constraints", {})
     matched: list[str] = []
     violated: list[str] = []
-    weight_total = 0.0
-    weight_matched = 0.0
+    w_total = 0.0
+    w_matched = 0.0
 
     def check(label: str, ok: bool, weight: float) -> None:
-        nonlocal weight_total, weight_matched
-        weight_total += weight
+        nonlocal w_total, w_matched
+        w_total += weight
         if ok:
-            weight_matched += weight
+            w_matched += weight
             matched.append(label)
         else:
             violated.append(label)
@@ -139,7 +139,11 @@ def score_profile(profile: dict[str, Any], inputs: Inputs) -> Match:
         )
     if "deployment_cadence" in constraints:
         target = constraints["deployment_cadence"]
-        ok = inputs.cadence in target or target in inputs.cadence
+        # Profile cadences are explicit alternatives joined by "-or-",
+        # e.g. "weekly-or-on-demand" → {"weekly", "on-demand"}.
+        # Modifier suffixes like "-with-gates" are stripped for matching.
+        allowed = {a.split("-with-")[0] for a in target.split("-or-")}
+        ok = inputs.cadence in allowed
         check(f"cadence ~ {target}", ok, weight=1.5)
     if "cloud_budget_monthly_usd_ceiling" in constraints:
         check(
@@ -164,7 +168,7 @@ def score_profile(profile: dict[str, Any], inputs: Inputs) -> Match:
             weight=1.0,
         )
 
-    score = weight_matched / weight_total if weight_total > 0 else 0.0
+    score = w_matched / w_total if w_total > 0 else 0.0
     return Match(
         profile_name=name,
         score=score,

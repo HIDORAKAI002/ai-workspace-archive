@@ -1,13 +1,13 @@
 ---
 title: "Slash Commands — AI Coding Agent Commands & Codex Shortcuts"
-description: "69 slash commands for Claude Code, Codex CLI, and Gemini CLI — sprint planning, tech debt analysis, PRDs, OKRs, and more."
+description: "74 slash commands for Claude Code, Codex CLI, and Gemini CLI — sprint planning, tech debt analysis, PRDs, OKRs, and more."
 ---
 
 <div class="domain-header" markdown>
 
 # :material-console: Slash Commands
 
-<p class="domain-count">69 commands for quick access to common operations</p>
+<p class="domain-count">74 commands for quick access to common operations</p>
 
 </div>
 
@@ -48,6 +48,30 @@ description: "69 slash commands for Claude Code, Codex CLI, and Gemini CLI — s
     ---
 
     Command: /cs:aeo action args
+
+-   :material-console:{ .lg .middle } **[`/cs-backend-review`](cs-backend-review.md)**
+
+    ---
+
+    Use the cs-backend-engineer agent (uses context: fork) to handle this inquiry:
+
+-   :material-console:{ .lg .middle } **[`/cs-engineer-grill`](cs-engineer-grill.md)**
+
+    ---
+
+    Walk the user through the Matt Pocock forcing-question discipline before they lock any engineering decision. This is ...
+
+-   :material-console:{ .lg .middle } **[`/cs-frontend-review`](cs-frontend-review.md)**
+
+    ---
+
+    Use the cs-frontend-engineer agent (uses context: fork) to handle this inquiry:
+
+-   :material-console:{ .lg .middle } **[`/cs-fullstack-review`](cs-fullstack-review.md)**
+
+    ---
+
+    Use the cs-fullstack-engineer agent (which uses context: fork to keep the parent thread clean) to handle this inquiry:
 
 -   :material-console:{ .lg .middle } **[`/financial-health`](financial-health.md)**
 
@@ -264,6 +288,12 @@ description: "69 slash commands for Claude Code, Codex CLI, and Gemini CLI — s
     ---
 
     Command: /cs:inbox-triage
+
+-   :material-console:{ .lg .middle } **[`/cs-handoff-setup`](cs-handoff-setup.md)**
+
+    ---
+
+    Configure the handoff skill. Walks 5 questions (plus 1-2 optional) and writes the config. Re-run any time.
 
 -   :material-console:{ .lg .middle } **[`/cs-reflect`](cs-reflect.md)**
 

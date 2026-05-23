@@ -12,6 +12,7 @@ Code antipatterns to identify during review, with examples and fixes.
 - [Performance Antipatterns](#performance-antipatterns)
 - [Testing Antipatterns](#testing-antipatterns)
 - [Async Antipatterns](#async-antipatterns)
+- [C# / .NET Antipatterns](#c--net-antipatterns)
 
 ---
 
@@ -737,3 +738,254 @@ const db = await DatabaseConnection.create(url);
 ```
 
 **Detection:** `async` calls or `.then()` in constructor.
+
+---
+
+## C# / .NET Antipatterns
+
+### `async void`
+
+`async void` cannot be awaited and exceptions cannot be caught by callers — they tear down the process. Only safe for event handlers.
+
+```csharp
+// BAD: async void in non-event-handler code
+public async void SaveUser(User user)
+{
+    await _db.SaveChangesAsync();  // exception here crashes the host
+}
+
+// GOOD: return Task so callers can await + observe exceptions
+public async Task SaveUserAsync(User user)
+{
+    await _db.SaveChangesAsync();
+}
+
+// EXCEPTION: real event handlers must be `async void` (delegate signature)
+private async void OnClick(object sender, EventArgs e)
+{
+    try { await DoWorkAsync(); }
+    catch (Exception ex) { _logger.LogError(ex, "Click handler failed"); }
+}
+```
+
+**Detection:** `async\s+void\s+\w+` outside of event-handler signatures.
+
+---
+
+### Blocking on Async (`.Result`, `.Wait()`, `.GetAwaiter().GetResult()`)
+
+Synchronously waiting on a Task from inside a synchronization context (ASP.NET Classic, WinForms, WPF) deadlocks: the continuation needs the context, which is blocked by the caller.
+
+```csharp
+// BAD: deadlock in ASP.NET Classic / WPF / WinForms
+public IActionResult Index()
+{
+    var data = FetchAsync().Result;
+    return View(data);
+}
+
+// BAD: same issue
+public string Synchronous() => FetchAsync().GetAwaiter().GetResult();
+
+// GOOD: be async all the way up
+public async Task<IActionResult> Index()
+{
+    var data = await FetchAsync();
+    return View(data);
+}
+```
+
+**Detection:** `\.Result`, `\.Wait\(\)`, `\.GetAwaiter\(\)\.GetResult\(\)` on Task-returning calls.
+
+---
+
+### Swallowing `Exception`
+
+Catching the base `Exception` and dropping it hides bugs.
+
+```csharp
+// BAD: silent failure
+try
+{
+    await _payments.ChargeAsync(order);
+}
+catch (Exception)
+{
+    // ¯\_(ツ)_/¯
+}
+
+// GOOD: catch specific exceptions, log, rethrow or convert
+try
+{
+    await _payments.ChargeAsync(order);
+}
+catch (PaymentDeclinedException ex)
+{
+    _logger.LogWarning(ex, "Payment declined for order {OrderId}", order.Id);
+    throw new OrderDeclinedException(order.Id, ex);
+}
+catch (HttpRequestException ex)
+{
+    _logger.LogError(ex, "Payment gateway unreachable");
+    throw;  // bubble up — caller decides retry policy
+}
+```
+
+**Detection:** `catch (Exception)` with empty body, or no log/rethrow.
+
+---
+
+### Undisposed `IDisposable`
+
+Forgetting `using` leaks file handles, database connections, sockets, etc.
+
+```csharp
+// BAD: connection never closed if an exception occurs
+public string GetName(int id)
+{
+    var conn = new SqlConnection(_connStr);
+    conn.Open();
+    var cmd = new SqlCommand("SELECT name FROM users WHERE id = @id", conn);
+    cmd.Parameters.AddWithValue("@id", id);
+    return (string)cmd.ExecuteScalar();
+}
+
+// GOOD: `using var` disposes on scope exit, even on exceptions
+public string GetName(int id)
+{
+    using var conn = new SqlConnection(_connStr);
+    using var cmd = new SqlCommand("SELECT name FROM users WHERE id = @id", conn);
+    cmd.Parameters.AddWithValue("@id", id);
+    conn.Open();
+    return (string)cmd.ExecuteScalar();
+}
+```
+
+**Detection:** `new\s+\w+(?:Stream|Connection|Reader|Writer|Client|Context|Command)\s*\(` not preceded by `using`.
+
+---
+
+### `new HttpClient()` in a Method
+
+Each `HttpClient` opens its own socket pool. Creating one per request exhausts sockets under load.
+
+```csharp
+// BAD: socket exhaustion
+public async Task<string> FetchAsync(string url)
+{
+    using var client = new HttpClient();   // even disposed, sockets linger
+    return await client.GetStringAsync(url);
+}
+
+// GOOD: IHttpClientFactory via DI
+public class ApiClient
+{
+    private readonly HttpClient _client;
+    public ApiClient(IHttpClientFactory factory) => _client = factory.CreateClient("api");
+
+    public Task<string> FetchAsync(string url) => _client.GetStringAsync(url);
+}
+```
+
+**Detection:** `new\s+HttpClient\s*\(` inside a method body.
+
+---
+
+### Missing `ConfigureAwait(false)` in Library Code
+
+Continuations on the captured synchronization context can deadlock callers blocking on `Result` / `Wait()`, and create unnecessary context switches on hot paths.
+
+```csharp
+// BAD (library code):
+public async Task<User> LoadAsync(int id)
+{
+    var row = await _db.Users.FindAsync(id);  // recaptures context
+    return Map(row);
+}
+
+// GOOD: opt out of the capture in library code
+public async Task<User> LoadAsync(int id)
+{
+    var row = await _db.Users.FindAsync(id).ConfigureAwait(false);
+    return Map(row);
+}
+```
+
+**Detection:** library projects (not the entry point) where every `await` recaptures context.
+
+**Note:** ASP.NET Core has no synchronization context, so `ConfigureAwait(false)` is *not required* in ASP.NET Core application code — but it doesn't hurt and is mandatory for shared libraries.
+
+---
+
+### Mutable Public Setters on Domain Models
+
+```csharp
+// BAD: any caller can mutate state outside the entity's rules
+public class Order
+{
+    public OrderStatus Status { get; set; }   // anyone can set Shipped
+    public decimal Total      { get; set; }
+}
+
+// GOOD: invariants enforced by methods, state only mutable through them
+public class Order
+{
+    public OrderStatus Status { get; private set; } = OrderStatus.Pending;
+    public decimal    Total   { get; private set; }
+
+    public void MarkShipped(IShippingProvider shipper)
+    {
+        if (Status != OrderStatus.Paid)
+            throw new InvalidOperationException("Cannot ship unpaid order");
+        shipper.Ship(this);
+        Status = OrderStatus.Shipped;
+    }
+}
+
+// For DTOs, prefer records with init-only properties
+public record OrderDto(int Id, string Status, decimal Total);
+```
+
+**Detection:** public domain entities with `{ get; set; }` on every property.
+
+---
+
+### Overuse of `dynamic`
+
+`dynamic` opts out of type checking. Use only when you genuinely need late binding (COM interop, ExpandoObject for JSON-shaped data).
+
+```csharp
+// BAD: dynamic for ordinary code — typos surface only at runtime
+public void Save(dynamic user)
+{
+    _db.Insert(user.Emial);    // typo, compiles fine, NullReferenceException at runtime
+}
+
+// GOOD: real type
+public void Save(User user)
+{
+    _db.Insert(user.Email);
+}
+```
+
+**Detection:** `\bdynamic\s+\w+\s*[=;]` outside of obvious interop / DOM code.
+
+---
+
+### Suppressing Analyzer Warnings Without Justification
+
+```csharp
+// BAD: suppression with no rationale
+#pragma warning disable CS8602
+var name = user.Name;
+#pragma warning restore CS8602
+
+// GOOD: explain WHY the warning is wrong here
+// CS8602 is incorrect here: `user` is non-null because we just
+// validated it on line 42 inside the same method.
+#pragma warning disable CS8602  // justified above
+var name = user.Name;
+#pragma warning restore CS8602
+```
+
+**Detection:** `#pragma warning disable` or `[SuppressMessage]` without an adjacent justification comment.
