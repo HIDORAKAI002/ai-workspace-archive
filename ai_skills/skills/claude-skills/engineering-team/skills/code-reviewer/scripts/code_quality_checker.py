@@ -26,7 +26,8 @@ LANGUAGE_EXTENSIONS = {
     "javascript": [".js", ".jsx", ".mjs"],
     "go": [".go"],
     "swift": [".swift"],
-    "kotlin": [".kt", ".kts"]
+    "kotlin": [".kt", ".kts"],
+    "csharp": [".cs", ".csx", ".razor", ".cshtml"],
 }
 
 # Code smell thresholds
@@ -126,7 +127,14 @@ def find_functions(content: str, language: str) -> List[Dict]:
         "javascript": r"(?:function\s+(\w+)|(?:const|let|var)\s+(\w+)\s*=\s*(?:async\s+)?\([^)]*\)\s*=>)",
         "go": r"func\s+(?:\([^)]+\)\s+)?(\w+)\s*\(([^)]*)\)",
         "swift": r"func\s+(\w+)\s*\(([^)]*)\)",
-        "kotlin": r"fun\s+(\w+)\s*\(([^)]*)\)"
+        "kotlin": r"fun\s+(\w+)\s*\(([^)]*)\)",
+        # C#: require at least one method modifier (public/private/etc. or static/async/...)
+        # to distinguish declarations from invocations.
+        "csharp": (
+            r"(?:(?:public|private|protected|internal|static|async|virtual|"
+            r"override|sealed|abstract|partial|new|readonly|extern)\s+)+"
+            r"(?:[\w<>?,\s\[\]\.]+?\s+)?(\w+)\s*\(([^)]*)\)"
+        ),
     }
 
     pattern = patterns.get(language, patterns["python"])
@@ -173,7 +181,8 @@ def find_classes(content: str, language: str) -> List[Dict]:
         "javascript": r"class\s+(\w+)",
         "go": r"type\s+(\w+)\s+struct",
         "swift": r"class\s+(\w+)",
-        "kotlin": r"class\s+(\w+)"
+        "kotlin": r"class\s+(\w+)",
+        "csharp": r"(?:class|struct|record|interface)\s+(\w+)",
     }
 
     pattern = patterns.get(language, patterns["python"])
@@ -198,7 +207,12 @@ def find_classes(content: str, language: str) -> List[Dict]:
             "javascript": r"\w+\s*\([^)]*\)\s*\{",
             "go": r"func\s+\(",
             "swift": r"func\s+\w+",
-            "kotlin": r"fun\s+\w+"
+            "kotlin": r"fun\s+\w+",
+            "csharp": (
+                r"(?:(?:public|private|protected|internal|static|async|virtual|"
+                r"override|sealed|abstract|partial)\s+)+"
+                r"(?:[\w<>?,\s\[\]\.]+?\s+)?\w+\s*\("
+            ),
         }
         method_pattern = method_patterns.get(language, method_patterns["python"])
         methods = len(re.findall(method_pattern, class_body))
@@ -280,6 +294,116 @@ def check_code_smells(content: str, functions: List[Dict], classes: List[Dict]) 
                 "severity": "low",
                 "message": "Commented-out code should be removed",
                 "location": f"line {i}"
+            })
+
+    return smells
+
+
+def check_csharp_specific_smells(content: str) -> List[Dict]:
+    """C# / .NET-specific code smells documented in SKILL.md."""
+    smells: List[Dict] = []
+
+    # async void (event handler exception only — caller must justify)
+    for match in re.finditer(r"\basync\s+void\s+(\w+)\s*\(", content):
+        smells.append({
+            "type": "csharp_async_void",
+            "severity": "high",
+            "message": (
+                f"'async void {match.group(1)}' — only safe for event handlers; "
+                "prefer 'async Task'"
+            ),
+            "location": match.group(1),
+        })
+
+    # Blocking on async: .Result, .Wait(), .GetAwaiter().GetResult()
+    for match in re.finditer(
+        r"\.(?:Result\b|Wait\(\)|GetAwaiter\(\)\.GetResult\(\))", content
+    ):
+        smells.append({
+            "type": "csharp_blocking_async",
+            "severity": "high",
+            "message": (
+                "Blocking call on async operation ('.Result' / '.Wait()' / "
+                "'.GetAwaiter().GetResult()') — can deadlock in ASP.NET contexts"
+            ),
+            "location": f"offset {match.start()}",
+        })
+
+    # Bare catch / catch (Exception) that swallows
+    swallow_pattern = re.compile(
+        r"catch\s*(?:\(\s*(?:System\.)?Exception(?:\s+\w+)?\s*\))?\s*\{\s*\}"
+    )
+    for match in swallow_pattern.finditer(content):
+        smells.append({
+            "type": "csharp_swallowed_exception",
+            "severity": "high",
+            "message": "Empty catch block swallows exceptions silently",
+            "location": f"offset {match.start()}",
+        })
+
+    # IDisposable instantiated but not in `using` — heuristic: `new SomethingClient(`
+    # / `new SomethingStream(` / `new SqlConnection(` outside a `using` line.
+    disposable_hint = re.compile(
+        r"^(?!\s*using\b)\s*(?:var|[\w<>]+)\s+\w+\s*=\s*new\s+"
+        r"(\w*(?:Stream|Connection|Reader|Writer|Client|Context|Command))\s*\(",
+        re.MULTILINE,
+    )
+    for match in disposable_hint.finditer(content):
+        smells.append({
+            "type": "csharp_undisposed_idisposable",
+            "severity": "medium",
+            "message": (
+                f"'{match.group(1)}' looks like IDisposable but is not wrapped in "
+                "'using' / 'using var'"
+            ),
+            "location": f"offset {match.start()}",
+        })
+
+    # HttpClient instantiated with `new` inside a method body (socket exhaustion)
+    httpclient_inline = re.compile(r"new\s+HttpClient\s*\(\s*\)")
+    for match in httpclient_inline.finditer(content):
+        smells.append({
+            "type": "csharp_new_httpclient",
+            "severity": "medium",
+            "message": (
+                "'new HttpClient()' — prefer IHttpClientFactory or a long-lived "
+                "static instance to avoid socket exhaustion"
+            ),
+            "location": f"offset {match.start()}",
+        })
+
+    # Missing await: `Task.Run(` / async method call assigned but never awaited.
+    # Heuristic: a statement ending in `Async()` or `Async(...)` followed by `;`
+    # with no `await` keyword on the same line.
+    for line_no, line in enumerate(content.split("\n"), 1):
+        stripped = line.strip()
+        if not stripped or stripped.startswith(("//", "/*", "*")):
+            continue
+        if re.search(r"\b\w+Async\s*\([^)]*\)\s*;\s*$", stripped) and "await " not in stripped:
+            # Skip `return ...Async();` (forwarding the Task is legitimate)
+            if stripped.startswith("return "):
+                continue
+            smells.append({
+                "type": "csharp_missing_await",
+                "severity": "medium",
+                "message": "Async method called without 'await' — Task is discarded",
+                "location": f"line {line_no}",
+            })
+
+    # Unnecessary `using` directives — heuristic: `using` directive whose
+    # namespace tail isn't referenced anywhere else in the file.
+    using_directives = re.findall(
+        r"^using\s+(?:static\s+)?([A-Z]\w*(?:\.\w+)*)\s*;", content, re.MULTILINE
+    )
+    body = re.sub(r"^using\s+[^;]+;\s*$", "", content, flags=re.MULTILINE)
+    for ns in using_directives:
+        tail = ns.split(".")[-1]
+        if not re.search(rf"\b{re.escape(tail)}\b", body):
+            smells.append({
+                "type": "csharp_unused_using",
+                "severity": "low",
+                "message": f"'using {ns};' appears unused",
+                "location": ns,
             })
 
     return smells
@@ -393,6 +517,8 @@ def analyze_file(filepath: Path) -> Dict:
     functions = find_functions(content, language)
     classes = find_classes(content, language)
     smells = check_code_smells(content, functions, classes)
+    if language == "csharp":
+        smells.extend(check_csharp_specific_smells(content))
     violations = check_solid_violations(content)
     score = calculate_quality_score(line_metrics, functions, classes, smells, violations)
 

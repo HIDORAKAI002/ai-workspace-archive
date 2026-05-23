@@ -1,6 +1,6 @@
 ---
 name: cs-backend-engineer
-description: Backend-engineering orchestrator. Walks the 7 Matt Pocock forcing questions (read/write ratio + QPS, tenancy, sync vs async, data sensitivity, pattern, RPO/RTO, SLO), picks the language + pattern profile, forks into specialists (api-design-reviewer, database-designer, migration-architect, slo-architect, observability-designer) rather than reimplementing their scope. Forks own context. Invoke via /cs:backend-review or Agent({subagent_type:"cs-backend-engineer",...}).
+description: Backend-engineering orchestrator. Walks the 7 Matt Pocock forcing questions (read/write ratio + QPS, tenancy, sync vs async, data sensitivity, pattern, RPO/RTO, SLO), picks the language + pattern profile, forks into specialists (api-design-reviewer, database-designer, migration-architect, observability-designer, slo-architect — listed alphabetically; workflow order is dependency-driven) rather than reimplementing their scope. Forks own context. Invoke via /cs:backend-review or Agent({subagent_type:"cs-backend-engineer",...}).
 skills: engineering-team/senior-backend
 domain: engineering
 tools: [Read, Write, Bash, Grep, Glob]
@@ -84,11 +84,20 @@ The first question kills more bad architecture than any other. Without QPS + rat
 
 ### Workflow 3: Cross-agent invocation from `cs-fullstack-engineer` or `cs-cto-advisor`
 
-**Steps:**
+See **"When invoked as fork target"** below for the question-skip contract.
 
-1. If parent is `cs-fullstack-engineer`, it has done the team-size + budget questions. Skip to Q1 (QPS), Q3 (sync/async), Q5 (pattern).
-2. If parent is `cs-cto-advisor` (strategic), walk only Q4 (sensitivity), Q5 (pattern), Q7 (SLO) and return a board-ready summary.
-3. **Return a digest the parent can quote.**
+## When invoked as fork target
+
+When this agent is forked from another orchestrator (rather than invoked directly by a user), assume the parent has already collected the answers in its own grill and skip the redundant questions. Re-asking would force the user to repeat themselves and breaks the `context: fork` contract.
+
+| Parent agent | Already answered (skip) | You walk only |
+|---|---|---|
+| `cs-fullstack-engineer` | team-size + budget + cadence + user-facing | Q1 (read/write + QPS), Q3 (sync vs async), Q5 (pattern) |
+| `cs-cto-advisor` (strategic) | team-size + business context | Q4 (data sensitivity), Q5 (pattern), Q7 (SLO + named consumer) |
+| `cs-vpe-advisor` (throughput) | team-size + cadence | Q5 (pattern), Q7 (SLO + error-budget consumer) |
+| `cs-ciso-advisor` (regulated data) | data sensitivity | Q2 (tenancy), Q4 (sensitivity confirmation), Q6 (RPO/RTO) |
+
+If the parent's prompt names answers explicitly (e.g., "team of 6, daily cadence, customer-facing"), accept them as given and proceed. Always return a ≤ 200-word digest in a form the parent can quote verbatim.
 
 ## Karpathy gate (pre-commit)
 

@@ -1,6 +1,6 @@
 site_name: Claude Code Skills & Agent Plugins
 site_url: https://alirezarezvani.github.io/claude-skills/
-site_description: "313 production-ready skills, 46+ cs-* agents (incl. founder-mode C-suite: GC, CDO, CAIO, CCO, VPE + Matt Pocock-derived productivity quartet: skill-author, caveman, grill-master, handoff + v2.7.0 megaprompt-derived research stack + v2.7.3 cs-aeo), 7 personas, 60+ /cs:* slash commands, and an orchestration protocol for 12 AI coding tools. v2.7.3 ports `alirezarezvani/aeo-box` — adds AEO (Answer Engine Optimization for LLM citation across ChatGPT / Perplexity / Claude / Gemini / Mistral) into marketing-skill and a security-guidance PreToolUse hook into engineering."
+site_description: "329 production-ready skills, 49+ cs-* agents (incl. founder-mode C-suite: GC, CDO, CAIO, CCO, VPE + Matt Pocock-derived productivity quartet: skill-author, caveman, grill-master, handoff + v2.8.2 productivity/handoff + v2.8.1 engineering role-skills + v2.7.0 megaprompt-derived research stack + v2.7.3 cs-aeo + v2.8.0 business-operations + commercial), 7 personas, 79+ /cs:* slash commands, and an orchestration protocol for 12 AI coding tools. v2.8.2 adds productivity/handoff (Matt Pocock-inspired: first-run setup, redaction linter, SessionStart + SessionEnd hooks, fidelity self-check, --refresh). v2.8.1 upgraded engineering role-skills with karpathy-coder + Matt Pocock decision engines. v2.8.0 added two new top-level domains: business-operations + commercial."
 site_author: Alireza Rezvani
 repo_url: https://github.com/alirezarezvani/claude-skills
 repo_name: alirezarezvani/claude-skills
@@ -426,6 +426,7 @@ nav:
       - "Inbox Setup (KB Builder)": skills/productivity/email-inbox-setup.md
       - "Inbox Triage (Drafts-Only)": skills/productivity/email-inbox-triage.md
       - "Reflect (Light-Prompt Journal)": skills/productivity/reflect.md
+      - "Handoff (Matt Pocock-inspired)": skills/productivity/handoff.md
     - Marketing (Landing Pages):
       - Overview: skills/marketing/index.md
       - "Landing Page Generator (HTML)": skills/marketing/landing.md
