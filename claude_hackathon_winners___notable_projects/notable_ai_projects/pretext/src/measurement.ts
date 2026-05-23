@@ -182,21 +182,6 @@ export function getCorrectedSegmentWidth(seg: string, metrics: SegmentMetrics, e
   return metrics.width - getEmojiCount(seg, metrics) * emojiCorrection
 }
 
-export function getSegmentGraphemeWidths(
-  seg: string,
-  cache: Map<string, SegmentMetrics>,
-  emojiCorrection: number,
-): number[] | null {
-  const widths: number[] = []
-  const graphemeSegmenter = getSharedGraphemeSegmenter()
-  for (const gs of graphemeSegmenter.segment(seg)) {
-    const graphemeMetrics = getSegmentMetrics(gs.segment, cache)
-    widths.push(getCorrectedSegmentWidth(gs.segment, graphemeMetrics, emojiCorrection))
-  }
-
-  return widths.length > 1 ? widths : null
-}
-
 export function getSegmentBreakableFitAdvances(
   seg: string,
   metrics: SegmentMetrics,
