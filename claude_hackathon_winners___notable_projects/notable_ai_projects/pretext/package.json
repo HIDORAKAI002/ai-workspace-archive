@@ -55,7 +55,7 @@
     "benchmark-check": "bun run scripts/benchmark-check.ts",
     "benchmark-check:safari": "BENCHMARK_CHECK_BROWSER=safari bun run scripts/benchmark-check.ts",
     "build:package": "rm -rf dist && tsc -p tsconfig.build.json",
-    "check": "tsc && oxlint --type-aware src",
+    "check": "tsc && oxlint --type-aware src && knip",
     "corpus-check": "bun run scripts/corpus-check.ts",
     "corpus-check:safari": "CORPUS_CHECK_BROWSER=safari bun run scripts/corpus-check.ts",
     "corpus-font-matrix": "bun run scripts/corpus-font-matrix.ts",
@@ -82,6 +82,7 @@
   },
   "devDependencies": {
     "@types/bun": "latest",
+    "knip": "^6.14.2",
     "marked": "^17.0.5",
     "oxlint": "^1.51.0",
     "oxlint-tsgolint": "^0.15.0",

@@ -25,14 +25,6 @@ export type PreparedLineBreakData = {
   }[]
 }
 
-export type InternalLayoutLine = {
-  startSegmentIndex: number
-  startGraphemeIndex: number
-  endSegmentIndex: number
-  endGraphemeIndex: number
-  width: number
-}
-
 type InternalLineVisitor = (
   width: number,
   startSegmentIndex: number,
@@ -790,28 +782,6 @@ export function walkPreparedLinesRaw(
   }
 
   return lineCount
-}
-
-export function walkPreparedLines(
-  prepared: PreparedLineBreakData,
-  maxWidth: number,
-  onLine?: (line: InternalLayoutLine) => void,
-): number {
-  if (onLine === undefined) return walkPreparedLinesRaw(prepared, maxWidth)
-
-  return walkPreparedLinesRaw(
-    prepared,
-    maxWidth,
-    (width, startSegmentIndex, startGraphemeIndex, endSegmentIndex, endGraphemeIndex) => {
-      onLine({
-        startSegmentIndex,
-        startGraphemeIndex,
-        endSegmentIndex,
-        endGraphemeIndex,
-        width,
-      })
-    },
-  )
 }
 
 function stepPreparedChunkLineGeometry(
