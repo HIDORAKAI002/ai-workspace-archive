@@ -101,27 +101,13 @@ function createDisplayTools({ writer }: { writer: ChatStreamWriter }): ToolSet {
     }
 }
 
-function createLocalTools({ writer, onSessionTitle, onSetProjectContext, projects }: {
-    writer: ChatStreamWriter
-    onSessionTitle: (title: string) => void
+function createLocalTools({ onSetProjectContext, projects }: {
     onSetProjectContext: (projectId: string | null) => Promise<void>
     projects: Array<{ id: string, displayName: string, type: string }>
 }): ToolSet {
     const availableProjectIds = new Set(projects.map((p) => p.id))
 
     return {
-        ap_set_session_title: tool({
-            description: 'Set the conversation title. Call this after your first response to name the conversation based on the topic discussed.',
-            inputSchema: z.object({
-                title: z.string().min(1).max(100).describe('A short title (3-6 words) summarizing the conversation topic'),
-            }),
-            execute: async (input) => {
-                onSessionTitle(input.title)
-                writer.write({ type: 'data-session-title', data: { title: input.title }, transient: true })
-                return { success: true }
-            },
-        }),
-
         ap_select_project: tool({
             description: 'Select a project to work in. All subsequent tool calls will operate on this project.',
             inputSchema: z.object({
@@ -152,8 +138,18 @@ function createCrossProjectTools({ executeTool }: {
     executeTool: (toolName: string, toolInput: Record<string, unknown>) => Promise<unknown>
 }): ToolSet {
     return {
+        ap_discover_action_auth: tool({
+            description: 'Check what authentication a piece needs and find available connections. Call this BEFORE ap_run_one_time_action to determine if auth is needed.',
+            inputSchema: z.object({
+                pieceName: z.string().describe('Piece name, e.g. "@activepieces/piece-gmail"'),
+            }),
+            execute: async (input) => {
+                return executeTool('ap_discover_action_auth', input)
+            },
+        }),
+
         ap_run_one_time_action: tool({
-            description: 'Execute a single piece action once for one-time tasks like "check my inbox" or "send a Slack message". If the piece needs auth and no connectionExternalId is provided, returns connection data. If no connections exist, call ap_show_connection_required. If multiple exist, call ap_show_connection_picker.',
+            description: 'Execute a piece action once. Use ap_discover_action_auth first to check if auth is needed. If the action requires auth, provide connectionExternalId and projectId.',
             inputSchema: z.object({
                 pieceName: z.string().describe('Piece name, e.g. "@activepieces/piece-gmail"'),
                 actionName: z.string().describe('Action to run, e.g. "gmail_search_mail"'),
@@ -179,7 +175,7 @@ function createCrossProjectTools({ executeTool }: {
     }
 }
 
-function createPlanApprovalTool({ writer, onPlanApproved, waitForApproval }: {
+function createPlanTools({ writer, onPlanApproved, waitForApproval }: {
     writer: ChatStreamWriter
     onPlanApproved: () => void
     waitForApproval: (gateId: string) => Promise<boolean>
@@ -201,9 +197,25 @@ function createPlanApprovalTool({ writer, onPlanApproved, waitForApproval }: {
                 const approved = await waitForApproval(gateId)
                 if (approved) {
                     onPlanApproved()
-                    return { success: true, message: 'Plan approved by the user. Execute each step in order now.' }
+                    return { success: true, message: 'Plan approved by the user. Execute each step in order now. Call ap_update_plan to update step statuses as you work.' }
                 }
                 return { success: false, message: 'Plan rejected by user. Do not proceed.' }
+            },
+        }),
+
+        ap_update_plan: tool({
+            description: 'Update the status of plan steps. Call this before starting each step (status: executing) and after completing it (status: done or error).',
+            inputSchema: z.object({
+                updates: z.array(z.object({
+                    stepIndex: z.number().describe('Zero-based index of the step in the plan'),
+                    status: z.enum(['pending', 'executing', 'done', 'error']).describe('New status for this step'),
+                })).min(1),
+            }),
+            execute: async (input) => {
+                for (const update of input.updates) {
+                    writer.write({ type: 'data-plan-progress', data: update, transient: true })
+                }
+                return { success: true }
             },
         }),
     }
@@ -214,5 +226,5 @@ export const chatWorkerTools = {
     createDisplayTools,
     createLocalTools,
     createCrossProjectTools,
-    createPlanApprovalTool,
+    createPlanTools,
 }
