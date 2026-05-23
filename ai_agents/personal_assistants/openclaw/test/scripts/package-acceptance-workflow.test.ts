@@ -15,6 +15,7 @@ const QA_LIVE_TRANSPORTS_WORKFLOW = ".github/workflows/qa-live-transports-convex
 const UPDATE_MIGRATION_WORKFLOW = ".github/workflows/update-migration.yml";
 const CI_CHECK_TESTBOX_WORKFLOW = ".github/workflows/ci-check-testbox.yml";
 const CRABBOX_HYDRATE_WORKFLOW = ".github/workflows/crabbox-hydrate.yml";
+const CRABBOX_CONFIG = ".crabbox.yaml";
 const SCHEDULED_LIVE_CHECKS_WORKFLOW = ".github/workflows/openclaw-scheduled-live-checks.yml";
 const CI_HYDRATE_LIVE_AUTH_SCRIPT = "scripts/ci-hydrate-live-auth.sh";
 const UPGRADE_SURVIVOR_RUN_SCRIPT = "scripts/e2e/lib/upgrade-survivor/run.sh";
@@ -105,6 +106,32 @@ describe("package acceptance workflow", () => {
     }
   });
 
+  it("keeps Crabbox hydration compatible with local Actions replay", () => {
+    const crabboxConfig = parse(readFileSync(CRABBOX_CONFIG, "utf8")) as {
+      actions?: { job?: string };
+    };
+    const workflow = readWorkflow(CRABBOX_HYDRATE_WORKFLOW);
+    const hydrate = workflowJob(CRABBOX_HYDRATE_WORKFLOW, "hydrate");
+    const hydrateGithub = workflowJob(CRABBOX_HYDRATE_WORKFLOW, "hydrate-github");
+
+    expect(crabboxConfig.actions?.job).toBe("hydrate");
+    expect(hydrate.if).toBe("${{ inputs.crabbox_job != 'hydrate-github' }}");
+    expect(workflowStep(hydrate, "Setup Node.js").uses).toBe("actions/setup-node@v6");
+    expect(workflowStep(hydrate, "Setup Node.js").with?.["node-version"]).toBe("24");
+    expect(workflowStep(hydrate, "Setup pnpm and dependencies").run).toContain("corepack enable");
+    expect(workflowStep(hydrate, "Setup pnpm and dependencies").run).toContain("COREPACK_HOME");
+    expect(workflowStep(hydrate, "Mark Crabbox ready").run).toContain("COREPACK_HOME");
+    expect(workflowStep(hydrate, "Hydrate provider env helper").env).toBeUndefined();
+
+    expect(hydrateGithub.if).toBe("${{ inputs.crabbox_job == 'hydrate-github' }}");
+    expect(workflowStep(hydrateGithub, "Setup Node environment").uses).toBe(
+      "./.github/actions/setup-node-env",
+    );
+    expect(workflowStep(hydrateGithub, "Hydrate provider env helper").env?.FACTORY_API_KEY).toBe(
+      "${{ secrets.FACTORY_API_KEY }}",
+    );
+  });
+
   it("resolves candidate package sources before reusing Docker E2E lanes", () => {
     const workflow = readFileSync(PACKAGE_ACCEPTANCE_WORKFLOW, "utf8");
 
@@ -116,7 +143,11 @@ describe("package acceptance workflow", () => {
     expect(workflow).toContain("- npm");
     expect(workflow).toContain("- ref");
     expect(workflow).toContain("- url");
+    expect(workflow).toContain("- trusted-url");
     expect(workflow).toContain("- artifact");
+    expect(workflow).toContain("trusted_source_id:");
+    expect(workflow).toContain("TRUSTED_SOURCE_ID: ${{ inputs.trusted_source_id }}");
+    expect(workflow).toContain('--trusted-source-id "$TRUSTED_SOURCE_ID"');
     expect(workflow).toContain("scripts/resolve-openclaw-package-candidate.mjs");
     expect(workflow).toContain('--package-ref "$PACKAGE_REF"');
     expect(workflow).toContain('gh run download "$ARTIFACT_RUN_ID"');
@@ -639,7 +670,6 @@ describe("package artifact reuse", () => {
     const scheduledWorkflow = readFileSync(SCHEDULED_LIVE_CHECKS_WORKFLOW, "utf8");
     const packageAcceptanceWorkflow = readFileSync(PACKAGE_ACCEPTANCE_WORKFLOW, "utf8");
     const testboxWorkflow = readFileSync(CI_CHECK_TESTBOX_WORKFLOW, "utf8");
-    const crabboxHydrateWorkflow = readFileSync(CRABBOX_HYDRATE_WORKFLOW, "utf8");
     const dockerPlanAction = readFileSync(DOCKER_E2E_PLAN_ACTION, "utf8");
     const hydrateScript = readFileSync(CI_HYDRATE_LIVE_AUTH_SCRIPT, "utf8");
 
@@ -665,7 +695,6 @@ describe("package artifact reuse", () => {
       scheduledWorkflow,
       packageAcceptanceWorkflow,
       testboxWorkflow,
-      crabboxHydrateWorkflow,
     ]) {
       expect(workflow).toContain("FACTORY_API_KEY: ${{ secrets.FACTORY_API_KEY }}");
     }
@@ -876,7 +905,8 @@ describe("package artifact reuse", () => {
       TARGET_SHA: "${{ needs.resolve_target.outputs.sha }}",
     });
     expectTextToIncludeAll(dispatchStep.run, [
-      'gh workflow run npm-telegram-beta-e2e.yml --ref "$CHILD_WORKFLOW_REF" "${args[@]}"',
+      'gh_with_retry workflow run npm-telegram-beta-e2e.yml --ref "$CHILD_WORKFLOW_REF" "${args[@]}"',
+      'before_json="$(gh_with_retry run list --workflow npm-telegram-beta-e2e.yml',
       '-f harness_ref="$TARGET_SHA"',
       'args=(-f package_spec="${PACKAGE_SPEC:-openclaw@beta}"',
       'if [[ -z "${PACKAGE_SPEC// }" ]]; then',
