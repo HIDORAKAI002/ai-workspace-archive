@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "name": "gemini-cli-skills",
-  "total_skills": 392,
+  "total_skills": 393,
   "skills": [
     {
       "name": "README",
@@ -31,7 +31,7 @@
     {
       "name": "cs-backend-engineer",
       "category": "agent",
-      "description": "Backend-engineering orchestrator. Walks the 7 Matt Pocock forcing questions (read/write ratio + QPS, tenancy, sync vs async, data sensitivity, pattern, RPO/RTO, SLO), picks the language + pattern profile, forks into specialists (api-design-reviewer, database-designer, migration-architect, slo-architect, observability-designer) rather than reimplementing their scope. Forks own context. Invoke via /cs:backend-review or Agent({subagent_type:\"cs-backend-engineer\",...})."
+      "description": "Backend-engineering orchestrator. Walks the 7 Matt Pocock forcing questions (read/write ratio + QPS, tenancy, sync vs async, data sensitivity, pattern, RPO/RTO, SLO), picks the language + pattern profile, forks into specialists (api-design-reviewer, database-designer, migration-architect, observability-designer, slo-architect \u2014 listed alphabetically; workflow order is dependency-driven) rather than reimplementing their scope. Forks own context. Invoke via /cs:backend-review or Agent({subagent_type:\"cs-backend-engineer\",...})."
     },
     {
       "name": "cs-ceo-advisor",
@@ -66,12 +66,12 @@
     {
       "name": "cs-frontend-engineer",
       "category": "agent",
-      "description": "Frontend-engineering orchestrator. Walks the 7 Matt Pocock forcing questions (device, LCP target, rendering, bundle budget, SEO vs auth, design system, WCAG), picks the framework/rendering profile, forks into specialists (a11y-audit, performance-profiler, epic-design, apple-hig-expert, playwright-pro) rather than reimplementing their scope. Forks own context. Invoke via /cs:frontend-review or Agent({subagent_type:\"cs-frontend-engineer\",...})."
+      "description": "Frontend-engineering orchestrator. Walks the 7 Matt Pocock forcing questions (device, LCP target, rendering, bundle budget, SEO vs auth, design system, WCAG), picks the framework/rendering profile, forks into specialists (a11y-audit, apple-hig-expert, epic-design, performance-profiler, playwright-pro \u2014 listed alphabetically; workflow order is dependency-driven) rather than reimplementing their scope. Forks own context. Invoke via /cs:frontend-review or Agent({subagent_type:\"cs-frontend-engineer\",...})."
     },
     {
       "name": "cs-fullstack-engineer",
       "category": "agent",
-      "description": "Fullstack-engineering orchestrator. Walks the Matt Pocock 7-question forcing-question grill, runs the deterministic profile picker, then forks into the POWERFUL-tier specialists (api-design-reviewer, database-designer, slo-architect, ci-cd-pipeline-builder, performance-profiler) rather than reimplementing their scope. Forks own context so heavy ingestion does not pollute parent thread. Invoke via /cs:fullstack-review or Agent({subagent_type:\"cs-fullstack-engineer\",...})."
+      "description": "Fullstack-engineering orchestrator. Walks the Matt Pocock 7-question forcing-question grill, runs the deterministic profile picker, then forks into the POWERFUL-tier specialists (api-design-reviewer, ci-cd-pipeline-builder, database-designer, performance-profiler, slo-architect \u2014 listed alphabetically; workflow order is dependency-driven) rather than reimplementing their scope. Forks own context so heavy ingestion does not pollute parent thread. Invoke via /cs:fullstack-review or Agent({subagent_type:\"cs-fullstack-engineer\",...})."
     },
     {
       "name": "cs-growth-strategist",
@@ -1009,7 +1009,7 @@
       "description": ">-"
     },
     {
-      "name": "skills-status",
+      "name": "skills-status-2",
       "category": "engineering",
       "description": "Memory health dashboard showing line counts, topic files, capacity, stale entries, and recommendations."
     },
@@ -1199,11 +1199,6 @@
       "description": "Docs-anchored grilling session \u2014 challenges a plan against the project's existing language (CONTEXT.md) and recorded decisions (docs/adr/), and updates those files inline as terminology and decisions crystallise. Use when user wants to stress-test a plan against documented domain language, or mentions \"grill with docs\"."
     },
     {
-      "name": "handoff",
-      "category": "engineering-advanced",
-      "description": "Compact the current conversation into a handoff document for another agent to pick up. References existing artifacts (PRDs, plans, ADRs, issues, commits, diffs) by path or URL instead of duplicating them. Use when user wants to hand off the conversation to a fresh agent or starts a new session that picks up prior work."
-    },
-    {
       "name": "helm-chart-builder",
       "category": "engineering-advanced",
       "description": "Helm chart development agent skill and plugin for Claude Code, Codex, Gemini CLI, Cursor, OpenClaw \u2014 chart scaffolding, values design, template patterns, dependency management, security hardening, and chart testing. Use when: user wants to create or improve Helm charts, design values.yaml files, implement template helpers, audit chart security (RBAC, network policies, pod security), manage subcharts, or run helm lint/test."
@@ -1357,6 +1352,11 @@
       "name": "skills-feature-flags-architect",
       "category": "engineering-advanced",
       "description": "Use when adding, retiring, or auditing feature flags. Triggers on \"add a flag\", \"ship behind a flag\", \"rollout plan\", \"kill switch\", \"stale flags\", \"flag debt\", \"LaunchDarkly\", \"GrowthBook\", \"Statsig\", \"Unleash\", \"Flipt\", or any progressive-delivery question. Ships flag debt scanner, rollout planner, and kill-switch auditor (all stdlib Python), 4 references on flag taxonomy + provider trade-offs + rollout strategies + lifecycle, plus a /flag-cleanup slash command."
+    },
+    {
+      "name": "skills-handoff",
+      "category": "engineering-advanced",
+      "description": "Compact the current conversation into a handoff document for another agent to pick up. References existing artifacts (PRDs, plans, ADRs, issues, commits, diffs) by path or URL instead of duplicating them. Use when user wants to hand off the conversation to a fresh agent or starts a new session that picks up prior work."
     },
     {
       "name": "skills-kubernetes-operator",
@@ -1774,6 +1774,11 @@
       "description": "Captures and organizes chaotic brain dumps into a structured, actionable system with zero information loss. Use this skill whenever the user says 'capture this', 'brain dump', 'let me dump some ideas', 'I've got a bunch of thoughts', 'here's everything on my mind', 'idea dump', 'let me get this out of my head', 'I need to organize my thoughts', 'here's what I'm thinking', or any variation where someone is unloading a messy stream of ideas, tasks, thoughts, and plans wanting them turned into something coherent. Also trigger when the user pastes or dictates a long, unstructured block of mixed ideas \u2014 even without the exact phrase \u2014 the intent is the same. Fast-to-action by design: no upfront intake. Output is four sections (Projects/Ideas, Tasks, Connections, How I Can Help) ending with a directive question. Asks at most one mid-organization clarifying question when a single item is genuinely ambiguous between task and project."
     },
     {
+      "name": "handoff",
+      "category": "productivity",
+      "description": "Compact the current conversation into a handoff document for another agent to pick up. Save to a user-configured location (OS temp, home folder, or per-project .handoff/), redact secrets before write, suggest skills for the next session, and auto-load the latest handoff on the next SessionStart. First-run setup asks where to save so the project folder never gets cluttered. Use when the user says 'hand this off', 'handoff doc', 'summarize this for a new session', 'compact this conversation', 'I'm ending this session', 'pick this up later', or any variation signaling intent to pass work to a fresh agent. Also trigger on implicit signals: the user announcing they're switching machines, ending the day mid-task, or context is growing long without a natural stopping point."
+    },
+    {
       "name": "inbox-setup",
       "category": "productivity",
       "description": "One-time setup skill that builds a personalized inbox triage knowledge base via interactive interview. Interviews the user about their email patterns, business context, reply style, and priorities using grill-me discipline (one question at a time, forcing format where possible, dependency-ordered, each question explains why I'm asking), then generates the knowledge base files that power the companion 'inbox-triage' skill. Run this once before using inbox-triage for the first time. Re-run when business, pricing, or priorities change significantly. Triggers: 'set up my inbox', 'configure inbox triage', 'set up my email system', 'configure email triage', 'build my email knowledge base', 'initialize email management', 'set up inbox triage', 'onboard email triage', or any variation where someone wants to get the email triage system running for the first time."
@@ -2014,7 +2019,7 @@
       "description": "Product resources"
     },
     "productivity": {
-      "count": 4,
+      "count": 5,
       "description": "Productivity resources"
     },
     "project-management": {

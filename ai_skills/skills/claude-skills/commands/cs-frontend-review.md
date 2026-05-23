@@ -9,6 +9,18 @@ Use the `cs-frontend-engineer` agent (uses `context: fork`) to handle this inqui
 
 **$ARGUMENTS**
 
+## Forcing-question library
+
+Canonical source: `engineering-team/skills/senior-frontend/references/forcing_questions.md` (7 questions, one-per-turn, recommendation + canon citation per question).
+
+1. Primary device + network (desktop-fiber / mobile-4G / low-end Android / corporate)
+2. LCP target on primary device (milliseconds)
+3. Server Components vs SPA vs SSR vs SSG
+4. JS bundle budget per route (KB gzipped)
+5. SEO-dependent or auth-walled
+6. Design-system location (Figma + tokens / ad-hoc Tailwind / headless UI)
+7. WCAG target (AA / AAA / best-effort) + accessibility owner
+
 ## Routing protocol
 
 1. **Walk the 7 forcing questions** in `engineering-team/skills/senior-frontend/references/forcing_questions.md`. One per turn. Recommend with cited canon. Track in `/tmp/frontend-grill-<date>.md`.

@@ -9,6 +9,18 @@ Use the `cs-backend-engineer` agent (uses `context: fork`) to handle this inquir
 
 **$ARGUMENTS**
 
+## Forcing-question library
+
+Canonical source: `engineering-team/skills/senior-backend/references/forcing_questions.md` (7 questions, one-per-turn, recommendation + canon citation per question).
+
+1. Read/write ratio + one-year p99 QPS
+2. Tenancy model (single / shared / isolated multi-tenant)
+3. Sync request/response vs async (queue) vs event-driven
+4. Data sensitivity tier (public / internal / PII / PHI / PCI)
+5. Monolith / modular monolith / microservices (team-size justification)
+6. RPO and RTO
+7. SLO + named error-budget consumer
+
 ## Routing protocol
 
 1. **Walk the 7 forcing questions** in `engineering-team/skills/senior-backend/references/forcing_questions.md`. One per turn. Recommend with cited canon. Track in `/tmp/backend-grill-<date>.md`.

@@ -1,6 +1,6 @@
 ---
 name: "code-reviewer"
-description: Code review automation for TypeScript, JavaScript, Python, Go, Swift, Kotlin. Analyzes PRs for complexity and risk, checks code quality for SOLID violations and code smells, generates review reports. Use when reviewing pull requests, analyzing code quality, identifying issues, generating review checklists.
+description: Code review automation for TypeScript, JavaScript, Python, Go, Swift, Kotlin, C#, and .NET. Analyzes PRs for complexity and risk, checks code quality for SOLID violations and code smells, generates review reports. Use when reviewing pull requests, analyzing code quality, identifying issues, generating review checklists.
 ---
 
 # Code Reviewer
@@ -38,12 +38,14 @@ python scripts/pr_analyzer.py /path/to/repo --json
 ```
 
 **What it detects:**
-- Hardcoded secrets (passwords, API keys, tokens)
+- Hardcoded secrets (passwords, API keys, tokens, connection strings)
 - SQL injection patterns (string concatenation in queries)
-- Debug statements (debugger, console.log)
-- ESLint rule disabling
-- TypeScript `any` types
+- Debug statements (debugger, console.log, Debug.WriteLine)
+- ESLint / Roslyn analyzer rule disabling (`#pragma warning disable`, `[SuppressMessage]`)
+- TypeScript `any` types / C# `dynamic` overuse
 - TODO/FIXME comments
+- Unsafe code blocks (`unsafe { }` in C#)
+- Nullable reference type suppressions (`!` null-forgiving operator overuse)
 
 **Output includes:**
 - Complexity score (1-10)
@@ -61,7 +63,7 @@ Analyzes source code for structural issues, code smells, and SOLID violations.
 # Analyze a directory
 python scripts/code_quality_checker.py /path/to/code
 
-# Analyze specific language
+# Analyze specific language (valid values: python, typescript, javascript, go, swift, kotlin, csharp)
 python scripts/code_quality_checker.py . --language python
 
 # JSON output
@@ -69,15 +71,16 @@ python scripts/code_quality_checker.py /path/to/code --json
 ```
 
 **What it detects:**
-- Long functions (>50 lines)
+- Long functions/methods (>50 lines)
 - Large files (>500 lines)
 - God classes (>20 methods)
 - Deep nesting (>4 levels)
 - Too many parameters (>5)
 - High cyclomatic complexity
-- Missing error handling
-- Unused imports
+- Missing error handling (bare `catch` / `catch (Exception)` swallowing)
+- Unused imports / unnecessary `using` directives
 - Magic numbers
+- C#-specific: missing `async`/`await` on async paths, `Task` not awaited, `IDisposable` not disposed
 
 **Thresholds:**
 
@@ -139,7 +142,7 @@ Systematic checklists covering:
 - Performance (efficiency, caching, scalability)
 - Maintainability (code quality, naming, structure)
 - Testing (coverage, quality, mocking)
-- Language-specific checks
+- Language-specific checks (including C# / .NET)
 
 ### Coding Standards
 `references/coding_standards.md`
@@ -151,6 +154,7 @@ Language-specific standards for:
 - Go (error handling, structs, concurrency)
 - Swift (optionals, protocols, errors)
 - Kotlin (null safety, data classes, coroutines)
+- **C# / .NET** (nullable reference types, async/await, LINQ, dependency injection, exception handling, record types, pattern matching)
 
 ### Common Antipatterns
 `references/common_antipatterns.md`
@@ -158,10 +162,48 @@ Language-specific standards for:
 Antipattern catalog with examples and fixes:
 - Structural (god class, long method, deep nesting)
 - Logic (boolean blindness, stringly typed code)
-- Security (SQL injection, hardcoded credentials)
-- Performance (N+1 queries, unbounded collections)
+- Security (SQL injection, hardcoded credentials, unvalidated input in ASP.NET)
+- Performance (N+1 queries, unbounded collections, `async void`, blocking on async code with `.Result` / `.Wait()`)
 - Testing (duplication, testing implementation)
-- Async (floating promises, callback hell)
+- Async (floating promises, callback hell, `async void` in C#, deadlocks from `.GetAwaiter().GetResult()`)
+- **C# / .NET-specific**: catching and swallowing `Exception`, missing `ConfigureAwait`, overuse of `dynamic`, not disposing `IDisposable` resources, mutable public setters on domain models
+
+---
+
+## C# / .NET Review Notes
+
+When reviewing C# or .NET code, pay special attention to:
+
+### Async / Await
+- Flag `async void` methods (except event handlers) — they can't be awaited and swallow exceptions
+- Flag `.Result`, `.Wait()`, or `.GetAwaiter().GetResult()` on `Task` — causes deadlocks in ASP.NET contexts
+- Flag missing `ConfigureAwait(false)` in library code
+
+### Nullable Reference Types
+- Flag excessive use of the null-forgiving operator (`!`) without justification
+- Ensure nullable annotations are enabled at the project level (`<Nullable>enable</Nullable>`)
+- Flag unchecked dereferences of potentially null values
+
+### Resource Management
+- Flag `IDisposable` objects not wrapped in `using` / `using var`
+- Flag `HttpClient` instantiated with `new` inside methods (should be injected or use `IHttpClientFactory`)
+- Flag `DbContext` not scoped correctly in DI
+
+### Exception Handling
+- Flag bare `catch { }` or `catch (Exception) { }` that swallows exceptions silently
+- Flag catching `Exception` when a more specific type is appropriate
+- Flag exceptions used for control flow
+
+### LINQ
+- Flag `.ToList()` / `.ToArray()` called prematurely on queryables, forcing unnecessary DB round-trips
+- Flag `First()` where `FirstOrDefault()` is safer
+- Flag complex LINQ chains that would be clearer as explicit loops
+
+### Security (ASP.NET)
+- Flag raw string interpolation in SQL queries — require parameterized queries or EF Core
+- Flag missing `[ValidateAntiForgeryToken]` on state-changing controller actions
+- Flag user-controlled data passed to `Process.Start()` or `File` APIs without validation
+- Flag hardcoded connection strings in source (should use `appsettings.json` + secrets management)
 
 ---
 
@@ -175,3 +217,4 @@ Antipattern catalog with examples and fixes:
 | Go | `.go` |
 | Swift | `.swift` |
 | Kotlin | `.kt`, `.kts` |
+| **C# / .NET** | **`.cs`, `.csx`, `.razor`, `.cshtml`** |

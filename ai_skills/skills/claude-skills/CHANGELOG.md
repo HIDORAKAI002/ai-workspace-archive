@@ -5,6 +5,93 @@ All notable changes to the Claude Skills Library will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.2] - 2026-05-23 — productivity/handoff skill, Matt Pocock-inspired
+
+Single-skill point release on top of v2.8.1. New `productivity/handoff/` skill is a sibling to the existing `engineering/handoff/` (shipped in v2.6.0). Both preserve Matt Pocock's seven-sentence body verbatim; the productivity variant adds the wrappers the engineering port deliberately skipped.
+
+### Added — `productivity/handoff/` skill (PR #724)
+
+Single-skill plugin. Stdlib-only across the board. 23 files total.
+
+- **`SKILL.md`** — Matt Pocock's seven-sentence body preserved verbatim, surrounded by invocation triggers, output-path discipline, 5-section template (Goal / State / Decisions / Skills / Artifacts), redaction checklist, anti-patterns block in Matt's register, examples, usage table.
+- **`scripts/setup.py`** — first-run Q&A. 5 core questions (save location, retention, redaction strictness, git context, recommender scope) plus 2 optional (filename style, project override). **No pre-selected default for Q1**: user explicitly picks OS temp / home folder / per-project `.handoff/` / custom on first run. Prompt-once-then-default model: declining setup drops a sentinel so the prompt never re-appears. `/cs:handoff-setup` re-runs anytime.
+- **`scripts/handoff_template_generator.py`** — writes the 5-section scaffold at the configured path. Auto-includes git context (branch, last commit, dirty-file count) when in a repo + enabled in config.
+- **`scripts/redaction_linter.py`** — 17 stdlib regex patterns: AWS access keys, AWS secret assignments, GitHub tokens, OpenAI keys, Anthropic keys, Slack tokens, Google API keys, Stripe keys, private-key blocks, JWT, env-style secret assignments, DB connection strings with creds, bearer tokens, URL token params, email, phone, private CIDR. Strict-by-default with inline `<!-- handoff:allow secret -->` whitelist marker. Operationalizes Matt's redaction sentence (which the engineering port left as prose-only).
+- **`scripts/skill_recommender.py`** — scans repo SKILL.md files, scores against goal text, returns top 3-5 matches with one-line *why*. Hard cap at 5 — refuses to list more.
+- **`scripts/cleanup.py`** — mtime-guarded retention cleanup. **Never deletes a handoff the user edited as a working surface** (data-loss prevention).
+- **`scripts/config_loader.py`** — shared helper. Project config → global config → built-in defaults precedence.
+- **`hooks/session_start.py`** + **`hooks/hooks.json`** — `SessionStart` hook surfaces latest handoff (within retention window) as `<handoff_from_previous_session>` data. Treated as data, not instructions. Disable via `HANDOFF_SESSIONSTART=0`.
+- **`references/handoff_prompt.md`** — mandatory 7-step checklist for the agent. Forces topic-by-topic classification (State / Decision / drop) instead of free-handing prose.
+- **`references/handoff_structure.md`** — 5-section template with worked example.
+- **`references/deduplication_discipline.md`** — Matt's no-duplication rule made concrete via do-this-not-that pairs.
+- **`references/redaction_checklist.md`** — what regex catches + manual-review steps for what regex can't.
+- **`references/configuration.md`** — field-by-field config reference.
+- **`agents/cs-handoff-author.md`** + **`commands/cs-handoff.md`** + **`commands/cs-handoff-setup.md`**.
+
+### Added — v1.1 improvements (PR #728)
+
+Three follow-up improvements judged most impactful in v1.1 design review.
+
+- **`hooks/session_end.py`** — pairs with SessionStart. When a session ends with no handoff in the last 30 minutes, prints a one-line reminder. Cannot prompt interactively or block session end (Claude Code hook constraint) — surfaces text via stdout. Disable via `HANDOFF_SESSIONEND=0`. `hooks/hooks.json` updated to wire both hooks.
+- **`scripts/handoff_self_check.py`** — operationalizes `handoff_prompt.md`. 6 checks: all 5 sections present, Goal non-empty, State bullets reference an artifact (commit hash / PR / file path), Open Decisions present when git is dirty / has recent commits, Skills 3-5 with `— why` explanation, Artifacts are paths/URLs only. Strict mode exits 1 only on high-severity findings (medium issues warn without blocking). Closes the fidelity gap (W3 from the design weakness list).
+- **`--refresh` flag** on `handoff_template_generator.py` — reuses the most recent handoff instead of creating a new file. Falls through to create-if-missing when none exists. Keeps the save location uncluttered.
+- `/cs:handoff` command flow updated to insert self-check between scaffold-fill and redaction linter.
+
+### Coexists with — `engineering/handoff/`
+
+| Aspect | `productivity/handoff/` (v2.8.2) | `engineering/handoff/` (v2.6.0) |
+|---|---|---|
+| Primary audience | End-of-day / cross-machine session handoff | Code/PR handoff |
+| First-run setup | Yes (5 questions, configurable save location) | No (fixed `mktemp`) |
+| Redaction enforcement | Yes (linter + whitelist + strict/warn/off) | No |
+| SessionStart auto-load | Yes (hook + retention-aware) | No |
+| SessionEnd reminder | Yes (when no recent handoff) | No |
+| Mandatory checklist | Yes (handoff_prompt.md, 7 steps) | No |
+| Self-check fidelity script | Yes | No |
+| Retention cleanup | Yes (mtime-guarded) | No |
+
+Both stay. Cross-referenced in their READMEs.
+
+### Inspired by
+
+[Matt Pocock's handoff skill](https://github.com/mattpocock/skills/tree/main/skills/productivity/handoff) (MIT). Matt's seven-sentence body of `SKILL.md` is preserved verbatim. The wrapper around it (first-run setup, redaction enforcement, hooks, self-check, --refresh, retention) is original work in this repo.
+
+### Audit results
+
+Plugin audit ran twice (after each PR) — final state:
+
+- Phase 2 (structure): **86.0/100 (GOOD)** — above 75 threshold
+- Phase 3 (quality): **63.0/100 (C)** — above 60 floor (sibling `capture` scores 46.4 on the same scorer)
+- Phase 4 (scripts): **PASS** — 7 scripts, 3 PASS + 4 PARTIAL (sibling `config_loader` import flagged as external — false positive)
+- Phase 5 (security): **PASS** — 0 critical, 0 high
+- Phase 6 (marketplace): **PASS** — plugin.json valid, marketplace entry at 2.8.2
+- Phase 7 (ecosystem): **PASS** — Codex + Gemini indexed, 0 broken internal links
+- Phase 8 (code review): **PASS** — all 7 scripts and 2 hooks work end-to-end
+
+### Documentation sync (PR #729)
+
+- `CLAUDE.md` Current Scope: 328 → 329 skills, v2.8.2 Highlights section added, footer bumped.
+- `mkdocs.yml` nav: `productivity/handoff` entry added under Productivity.
+- `docs/skills/productivity/handoff.md` generated.
+- `README.md` badges: Skills 313 → 329, Agents 46+ → 49+, Commands 60+ → 79+. Productivity table row updated to 5 skills (incl. handoff).
+- `docs/index.md` + `docs/getting-started.md`: counts and version references updated.
+- 0 remaining stale `v2.7.5` references (an earlier version-number typo that this release also corrects).
+
+### Stats
+
+- 328 → 329 skills (productivity: +1)
+- 14 domains unchanged
+- Plugins in marketplace: 59 → 60
+- New artifacts: 23 files in productivity/handoff/
+
+### PRs
+
+- #724 (v1.0 — 5 must-haves)
+- #728 (v1.1 — SessionEnd + self-check + --refresh)
+- #729 (docs sync)
+
+---
+
 ## [2.8.1] - 2026-05-20 — Engineering role-skill upgrade: karpathy-coder + Matt Pocock applied to fullstack / frontend / backend
 
 ### Audited and upgraded

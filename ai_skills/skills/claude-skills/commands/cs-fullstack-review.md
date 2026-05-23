@@ -9,6 +9,18 @@ Use the `cs-fullstack-engineer` agent (which uses `context: fork` to keep the pa
 
 **$ARGUMENTS**
 
+## Forcing-question library
+
+Canonical source: `engineering-team/skills/senior-fullstack/references/forcing_questions.md` (7 questions, one-per-turn, recommendation + canon citation per question).
+
+1. Team size now + 12-month headcount
+2. Deployment cadence (per-PR / daily / weekly / quarterly)
+3. Customer-facing / internal tool / marketing site
+4. One-year p50 + p99 traffic forecast
+5. Hiring-against vs training-into the stack
+6. Year-one monthly cloud + SaaS budget ceiling
+7. Three verifiable success criteria with numeric targets
+
 ## Routing protocol
 
 1. **Walk the 7 forcing questions** in `engineering-team/skills/senior-fullstack/references/forcing_questions.md`. One per turn. Recommend the answer with cited canon. Track in `/tmp/fullstack-grill-<date>.md`.

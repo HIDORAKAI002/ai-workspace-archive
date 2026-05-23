@@ -1,5 +1,17 @@
 # Cline CLI Changelog
 
+## 3.0.13
+
+- Show a loading dialog while resuming a session from history so the TUI no longer appears frozen during the load.
+- Speed up the `/clear` command by deferring new session creation until you send the next prompt, so clearing no longer blocks on spinning up an empty session.
+
+## 3.0.12
+
+- Show a loading dialog while the config screen switches provider or model so the transition no longer looks frozen.
+- Render the ask question tool prompt inline with the conversation so the question and suggested answers stay attached to the assistant turn that asked them, instead of appearing in a separate modal.
+- Allow manual `cline update` runs to install the latest published version immediately, bypassing the release age gate that delays automatic updates.
+- Refresh the bundled SDK to 0.0.42, updating the model catalog.
+
 ## 3.0.11
 
 - Fix a regression in the ChatGPT OAuth provider where requests failed with `max_output_tokens not supported`, by restoring the full output token budget instead of applying an implicit cap.
