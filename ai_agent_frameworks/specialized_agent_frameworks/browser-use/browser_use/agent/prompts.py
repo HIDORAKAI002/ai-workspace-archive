@@ -327,9 +327,6 @@ Available tabs:
 			_todo_contents = '[empty todo.md, fill it when applicable]'
 
 		agent_state = f"""
-<user_request>
-{self.task}
-</user_request>
 <file_system>
 {self.file_system.describe() if self.file_system else 'No file system available'}
 </file_system>
@@ -347,6 +344,9 @@ Available tabs:
 			available_file_paths_text = '\n'.join(self.available_file_paths)
 			agent_state += f'<available_file_paths>{available_file_paths_text}\nUse with absolute paths</available_file_paths>\n'
 		return agent_state
+
+	def _get_user_request_description(self) -> str:
+		return f'<user_request>\n{self.task}\n</user_request>\n\n'
 
 	def _get_step_meta_description(self) -> str:
 		# Per-step varying metadata (step counter, wall-clock date). Kept out of <agent_state> so it
@@ -401,7 +401,8 @@ Available tabs:
 
 		# Build complete state description
 		state_description = (
-			'<agent_history>\n'
+			self._get_user_request_description()
+			+ '<agent_history>\n'
 			+ (self.agent_history_description.strip('\n') if self.agent_history_description else '')
 			+ '\n</agent_history>\n\n'
 		)
