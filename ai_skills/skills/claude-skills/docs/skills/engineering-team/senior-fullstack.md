@@ -45,6 +45,34 @@ Use this skill when you hear:
 
 ## Tools
 
+### Decision Engine
+
+Deterministic profile picker. Given four assumptions (team-size, cadence, user-facing, budget) plus optional traffic/sensitivity inputs, ranks the four built-in profiles and returns the matched profile with SLO floor and named approver chain. Refuses to recommend a profile without the four required inputs.
+
+**Usage:**
+
+```bash
+# See all options
+python scripts/fullstack_decision_engine.py --help
+
+# Run against a sample input
+python scripts/fullstack_decision_engine.py --sample
+
+# Pick a profile from real inputs
+python scripts/fullstack_decision_engine.py \
+    --team-size-12mo 8 --cadence daily --user-facing true --budget 5000 \
+    --traffic-p99-rps 50 --data-sensitivity pii-only
+
+# JSON output for downstream tools
+python scripts/fullstack_decision_engine.py --sample --output json
+```
+
+Returns: matched profile name, score, matched/violated constraints, stack recommendation, anti-recommendations, SLO floor, named-approver chain, and canon references.
+
+The engine encodes the same matrix the conversational grill walks through — use it directly when inputs are already known, or via the `cs-fullstack-engineer` agent for the question-by-question grill.
+
+---
+
 ### Project Scaffolder
 
 Generates fullstack project structures with boilerplate code.

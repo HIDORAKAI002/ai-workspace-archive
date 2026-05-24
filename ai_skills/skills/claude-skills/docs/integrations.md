@@ -1,11 +1,11 @@
 ---
-title: Cursor, Aider, Windsurf, Hermes & 9 More AI Coding Tools
-description: "Install Claude Code skills and agent plugins in Hermes Agent, Cursor, Aider, Kilo Code, Windsurf, OpenCode, Augment, and Antigravity. One-command conversion for 12 AI coding agents."
+title: Cursor, Aider, Windsurf, Hermes, Mistral Vibe & 8 More AI Coding Tools
+description: "Install Claude Code skills and agent plugins in Hermes Agent, Mistral Vibe, Cursor, Aider, Kilo Code, Windsurf, OpenCode, Augment, and Antigravity. One-command conversion for 13 AI coding agents."
 ---
 
 # Multi-Tool Integrations
 
-All 311 skills in this repository work natively with **8 AI coding tools** beyond Claude Code, Codex, Gemini CLI, and OpenClaw. Hermes Agent uses the same agentskills.io SKILL.md standard — no conversion needed. For the other 7 tools, a conversion script adapts the format each tool expects while preserving skill instructions, workflows, and supporting files.
+All 311 skills in this repository work natively with **9 AI coding tools** beyond Claude Code, Codex, Gemini CLI, and OpenClaw. Hermes Agent and Mistral Vibe both use the same agentskills.io SKILL.md standard — no conversion needed. For the other 7 tools, a conversion script adapts the format each tool expects while preserving skill instructions, workflows, and supporting files.
 
 <div class="grid cards" markdown>
 
@@ -72,6 +72,14 @@ All 311 skills in this repository work natively with **8 AI coding tools** beyon
     Native `SKILL.md` in `~/.hermes/skills/` — no conversion needed
 
     [:octicons-arrow-right-24: Jump to Hermes Agent](#hermes-agent)
+
+-   :material-wave:{ .lg .middle } **Mistral Vibe**
+
+    ---
+
+    Native `SKILL.md` in `~/.vibe/skills/` — no conversion needed
+
+    [:octicons-arrow-right-24: Jump to Mistral Vibe](#mistral-vibe)
 
 </div>
 
@@ -758,6 +766,133 @@ skills:
     ```bash
     rm -rf ~/.hermes/skills/claude-skills/
     # Hermes's own built-in skills are unaffected (they live elsewhere in ~/.hermes/skills/)
+    ```
+
+<hr class="section-divider">
+
+## Mistral Vibe
+
+[Mistral Vibe](https://github.com/mistralai/mistral-vibe) is Mistral AI's open-source Apache-2.0 CLI coding agent (v2.0, released January 2026). It uses the [Agent Skills standard](https://docs.mistral.ai/mistral-vibe/agents-skills) — the same `SKILL.md` + YAML frontmatter format Claude Code and Hermes Agent use — so **no conversion is needed**.
+
+!!! tip "Tier: BYO-sync (pre-generated tree available)"
+    The repo ships a pre-generated `.vibe/skills/claude-skills/` tree with **306 symlinks** across **14 domains**. You still need to copy/symlink that tree into `~/.vibe/skills/` on your machine — that's the BYO-sync step. The `sync-vibe-skills.py` script handles this in one command.
+
+### Discovery paths
+
+Per the [official docs](https://docs.mistral.ai/mistral-vibe/agents-skills), Vibe scans three locations for skills:
+
+| Path | Scope |
+|------|-------|
+| `~/.vibe/skills/` | User-global (what our sync script writes to) |
+| `.vibe/skills/` | Project-local |
+| `.agents/skills/` | Agent Skills standard path |
+
+### Step 1 — Install Mistral Vibe itself
+
+If you don't have Vibe installed yet, follow the [Vibe quickstart](https://docs.mistral.ai/mistral-vibe/introduction/quickstart):
+
+```bash
+pip install mistral-vibe
+vibe --version    # Verify install
+```
+
+Vibe supports both Mistral's hosted models (via `MISTRAL_API_KEY`) and self-hosted endpoints. See the [Vibe CLI docs](https://docs.mistral.ai/mistral-vibe/terminal) for provider configuration.
+
+### Step 2 — Install our skills into Vibe
+
+=== "Sync script (recommended)"
+
+    ```bash
+    git clone https://github.com/alirezarezvani/claude-skills.git
+    cd claude-skills
+    ./scripts/vibe-install.sh
+    ```
+
+    This symlinks all 306 skills into `~/.vibe/skills/claude-skills/` where Vibe discovers them automatically. Covers all 14 domains.
+
+=== "Single domain"
+
+    ```bash
+    python scripts/sync-vibe-skills.py --domain engineering --verbose
+    ```
+
+=== "Copy mode (portable)"
+
+    ```bash
+    python scripts/sync-vibe-skills.py --copy --verbose
+    ```
+
+    Creates full copies instead of symlinks — useful for Docker containers or shared filesystems where symlinks don't traverse cleanly.
+
+=== "Custom target"
+
+    ```bash
+    python scripts/sync-vibe-skills.py --target /opt/team-vibe/skills/
+    ```
+
+    Useful for team-wide installs or sandboxed environments.
+
+### Using skills in Vibe
+
+Once installed, skills are available through Vibe's standard discovery (per the [Vibe Agents & Skills docs](https://docs.mistral.ai/mistral-vibe/agents-skills)):
+
+```
+/skills                    # List all installed skills
+/<skill-name>              # Invoke a skill by slug as a slash command
+```
+
+Vibe can also auto-load skills when your prompt matches a skill's `description` field — same trigger mechanism Claude Code uses.
+
+### What works
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| SKILL.md loading | ✅ | Identical YAML frontmatter (agentskills.io) |
+| Python scripts (`scripts/`) | ✅ | All stdlib-only; Vibe shell tool runs them |
+| References / templates / assets | ✅ | Same directory convention |
+| Slash commands (`/<name>`) | ✅ | Auto-discovered from SKILL.md |
+| Sub-agents | ⚠️ | Vibe uses its own subagent system with TOML configs (`~/.vibe/agents/`) — Claude Code agent `.md` files load as context but dispatch differs |
+| Claude Code plugin.json | ➖ | Vibe ignores this — scans SKILL.md directly |
+| Hooks (settings.json) | ➖ | Vibe has its own hook system; manual wiring required |
+
+### Verify
+
+```bash
+# Count installed skills
+find ~/.vibe/skills/claude-skills -mindepth 2 -maxdepth 2 -name "SKILL.md" -o -type l | wc -l
+# Expected: 306
+
+# Inspect the manifest
+cat ~/.vibe/skills/claude-skills/skills-index.json | python3 -m json.tool | head -20
+
+# Or in the Vibe CLI
+vibe
+> /skills
+```
+
+### Updating
+
+```bash
+cd claude-skills
+git pull origin main
+python scripts/sync-vibe-skills.py --verbose
+# Existing symlinks are preserved, new skills are added
+```
+
+### Troubleshooting
+
+??? question "Vibe doesn't see the synced skills"
+    Make sure the sync ran and the symlinks resolve:
+    ```bash
+    ls -la ~/.vibe/skills/claude-skills/engineering/agent-designer/SKILL.md
+    # Should print a valid SKILL.md, not "No such file"
+    ```
+    If symlinks are broken (the source repo was moved), re-run `python scripts/sync-vibe-skills.py --verbose`.
+
+??? question "How do I unsync (remove our skills from Vibe)?"
+    ```bash
+    rm -rf ~/.vibe/skills/claude-skills/
+    # Vibe's own built-in skills are unaffected (they live elsewhere in ~/.vibe/skills/)
     ```
 
 <hr class="section-divider">

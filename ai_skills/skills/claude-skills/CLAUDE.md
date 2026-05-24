@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a **comprehensive skills library** for Claude AI and Claude Code - reusable, production-ready skill packages that bundle domain expertise, best practices, analysis tools, and strategic frameworks. The repository provides modular skills that teams can download and use directly in their workflows.
 
-**Current Scope:** 329 production-ready skills across 14 domains with ~448 Python automation tools, ~586 reference guides, 49+ agents (cs-* + 7 personas), and 79+ slash commands. **v2.8.0 (complete)** added 2 new top-level domains — **business-operations/** (7 internal-ops skills: orchestrator + process-mapper + vendor-management + capacity-planner + internal-comms + knowledge-ops + procurement-optimizer) and **commercial/** (8 per-deal-economics skills: orchestrator + pricing-strategist + deal-desk + partnerships-architect + channel-economics + commercial-policy + rfp-responder + commercial-forecaster) — with orchestrator skills using `context: fork` for chaining, Matt Pocock docs-anchored "Forcing-question library" in every SKILL.md, plus `/cs:grill-bizops` and `/cs:grill-commercial`. **v2.8.2** adds a productivity-shaped `handoff` skill (sibling to engineering/handoff) inspired by Matt Pocock — first-run setup with configurable save location, redaction linter, SessionStart + SessionEnd hooks, fidelity self-check, `--refresh` flag. **v2.8.1** upgraded the engineering role-skills (senior-fullstack / senior-frontend / senior-backend) with karpathy-coder + Matt Pocock decision engines + per-role forcing questions. v2.7.3 ports `alirezarezvani/aeo-box` — AEO (Answer Engine Optimization) skill into marketing-skill/ + security-guidance PreToolUse hook into engineering/. v2.7.0 added 13 Path-B skills across 3 top-level domains (productivity, marketing, research). v2.6.0 added 4 Matt Pocock-derived productivity skills.
+**Current Scope:** 330 production-ready skills across 14 domains with ~451 Python automation tools, ~590 reference guides, 50+ agents (cs-* + 7 personas), and 81+ slash commands. **v2.8.0 (complete)** added 2 new top-level domains — **business-operations/** (7 internal-ops skills: orchestrator + process-mapper + vendor-management + capacity-planner + internal-comms + knowledge-ops + procurement-optimizer) and **commercial/** (8 per-deal-economics skills: orchestrator + pricing-strategist + deal-desk + partnerships-architect + channel-economics + commercial-policy + rfp-responder + commercial-forecaster) — with orchestrator skills using `context: fork` for chaining, Matt Pocock docs-anchored "Forcing-question library" in every SKILL.md, plus `/cs:grill-bizops` and `/cs:grill-commercial`. **v2.8.2** adds a productivity-shaped `handoff` skill (sibling to engineering/handoff) inspired by Matt Pocock — first-run setup with configurable save location, redaction linter, SessionStart + SessionEnd hooks, fidelity self-check, `--refresh` flag. **v2.8.1** upgraded the engineering role-skills (senior-fullstack / senior-frontend / senior-backend) with karpathy-coder + Matt Pocock decision engines + per-role forcing questions. v2.7.3 ports `alirezarezvani/aeo-box` — AEO (Answer Engine Optimization) skill into marketing-skill/ + security-guidance PreToolUse hook into engineering/. v2.7.0 added 13 Path-B skills across 3 top-level domains (productivity, marketing, research). v2.6.0 added 4 Matt Pocock-derived productivity skills.
 
 **Key Distinction**: This is NOT a traditional application. It's a library of skill packages meant to be extracted and deployed by users into their own Claude workflows.
 
@@ -137,7 +137,20 @@ See [standards/git/git-workflow-standards.md](standards/git/git-workflow-standar
 
 ## Current Version
 
-**Version:** v2.8.2 (released — productivity/handoff v1.1)
+**Version:** v2.8.4 (released — productivity/andreessen v1.0)
+
+**v2.8.3** shipped the Mistral Vibe cross-platform sync (`scripts/sync-vibe-skills.py`, `~/.vibe/skills/claude-skills/`) — bringing first-class tool support to 13 coding agents.
+
+**v2.8.4 highlights — productivity/andreessen skill, Marc Andreessen-mode:**
+
+New `productivity/andreessen/` plugin — the Andreessen-lens counterpart to a founder-operating-system plugin. A blunt, market-first operator that pressure-tests ventures/ideas/features/career-bets through Andreessen's documented frameworks (market > team > product; product/market fit is the only milestone; bias to build) and runs his 3x5-card + Anti-Todo daily routine.
+
+- **Runs on a fixed anti-sycophancy operating prompt** (user-supplied, preserved verbatim in `references/operating_prompt.md`): leads with the strongest counterargument, never validates premises, no disclaimers, no morals lectures, explicit confidence levels (high/moderate/low/unknown), never apologizes for disagreeing, no capitulation without new evidence. The user's second emphasis block is operationalized as a posture-mapping table so each instruction changes behavior rather than sitting as decoration.
+- **3 stdlib deterministic tools:** `market_first_evaluator.py` (market weighted 0.55, sub-4 market is a hard kill gate → BUILD-POUR-FUEL / MARKET-FIRST-DERISK / KILL-OR-REPICK-MARKET), `pmf_signal_scorer.py` (felt-signals + the Sean Ellis 40% gate, labeled as Ellis's not Andreessen's → BEFORE/APPROACHING/AFTER-PMF), `anti_todo_card.py` (3x5 card with enforced 3-5 cap + Anti-Todo log).
+- **4 references** (each citing 5-7 sources with explicit confidence levels on every Andreessen attribution, incl. the documented reversal of "don't keep a schedule"), **5 assets** (worked examples + fillable worksheet + blank card), `cs-andreessen` agent, `/cs:andreessen` + `/cs:pmf-check` commands.
+- **8-phase plugin audit:** PASS WITH WARNINGS → structure 91.3/EXCELLENT, quality 65.7 (after asset/example additions), scripts 3/3, security PASS (0 critical, 0 high). Marketplace 60 → 61 plugins; productivity domain 5 → 6 skills.
+
+---
 
 **v2.8.2 highlights — productivity/handoff skill, Matt Pocock-inspired:**
 
@@ -403,6 +416,6 @@ This repository publishes skills to **ClawHub** (clawhub.com) as the distributio
 
 ---
 
-**Last Updated:** May 23, 2026
-**Version:** v2.8.2
-**Status:** 329 skills deployed across 14 domains, 60 marketplace plugins, docs site live
+**Last Updated:** May 24, 2026
+**Version:** v2.8.4
+**Status:** 330 skills deployed across 14 domains, 61 marketplace plugins, docs site live

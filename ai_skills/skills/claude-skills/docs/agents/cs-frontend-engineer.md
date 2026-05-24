@@ -91,11 +91,19 @@ Do not skip ahead. Do not bundle. The primary device decides every downstream ch
 
 ### Workflow 3: Cross-agent invocation from `cs-fullstack-engineer` or `cs-content-creator`
 
-**Steps:**
+See **"When invoked as fork target"** below for the question-skip contract.
 
-1. If the parent is `cs-fullstack-engineer`, it has already done the team-size + cadence questions. Skip to Q1 (device), Q3 (rendering), Q7 (WCAG).
-2. If the parent is `cs-content-creator` (marketing), default to `astro-or-static` profile — skip to Q4 (bundle) + Q7 (WCAG).
-3. **Return a digest the parent can quote verbatim.**
+## When invoked as fork target
+
+When this agent is forked from another orchestrator (rather than invoked directly by a user), assume the parent has already collected the answers in its own grill and skip the redundant questions. Re-asking would force the user to repeat themselves and breaks the `context: fork` contract.
+
+| Parent agent | Already answered (skip) | You walk only |
+|---|---|---|
+| `cs-fullstack-engineer` | team-size + cadence + user-facing + budget | Q1 (primary device), Q3 (rendering), Q7 (WCAG + a11y owner) |
+| `cs-content-creator` (marketing copy) | brand voice + surface = marketing | Default to `astro-or-static` profile; walk only Q4 (bundle) + Q7 (WCAG) |
+| `cs-product-manager` (feature spec) | user persona + surface | Q1 (device), Q2 (LCP target), Q5 (SEO vs auth) |
+
+If the parent's prompt names answers explicitly (e.g., "mobile-4G primary, LCP target 2000ms"), accept them as given and proceed. Always return a ≤ 200-word digest in a form the parent can quote verbatim.
 
 ## Karpathy gate (pre-commit)
 

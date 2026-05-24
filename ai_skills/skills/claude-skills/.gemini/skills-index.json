@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "name": "gemini-cli-skills",
-  "total_skills": 393,
+  "total_skills": 395,
   "skills": [
     {
       "name": "README",
@@ -826,7 +826,7 @@
     {
       "name": "code-reviewer",
       "category": "engineering",
-      "description": "Code review automation for TypeScript, JavaScript, Python, Go, Swift, Kotlin. Analyzes PRs for complexity and risk, checks code quality for SOLID violations and code smells, generates review reports. Use when reviewing pull requests, analyzing code quality, identifying issues, generating review checklists."
+      "description": "Code review automation for TypeScript, JavaScript, Python, Go, Swift, Kotlin, C#, and .NET. Analyzes PRs for complexity and risk, checks code quality for SOLID violations and code smells, generates review reports. Use when reviewing pull requests, analyzing code quality, identifying issues, generating review checklists."
     },
     {
       "name": "coverage",
@@ -1107,6 +1107,11 @@
       "name": "ci-cd-pipeline-builder",
       "category": "engineering-advanced",
       "description": "Generate pragmatic CI/CD pipelines from detected project stack signals \u2014 fast baseline generation, repeatable checks, environment-aware deployment stages. Use when setting up CI for a new project, refactoring existing pipelines, or standardizing deployment workflows across multiple repos."
+    },
+    {
+      "name": "claude-coach",
+      "category": "engineering-advanced",
+      "description": "Personal coach that teaches users to become Claude power users. Use this skill the FIRST time a user asks to \"learn Claude\", \"be a power user\", \"coach me\", \"teach me Claude tricks\", \"what can Claude do\", \"make me better at prompting\", or any variation. After activation, also use it on EVERY subsequent turn to detect missed optimization opportunities (vague prompts, ignored capabilities, manual work Claude could automate) and surface a single power-user tip. Trigger generously \u2014 most users do not know what they do not know, so err on the side of coaching."
     },
     {
       "name": "code-tour",
@@ -1769,6 +1774,11 @@
       "description": "UX research and design toolkit for Senior UX Designer/Researcher including data-driven persona generation, journey mapping, usability testing frameworks, and research synthesis. Use for user research, persona creation, journey mapping, and design validation."
     },
     {
+      "name": "andreessen",
+      "category": "productivity",
+      "description": "Marc Andreessen-mode decision and productivity skill. A blunt, market-first operator that pressure-tests ideas, ventures, features, and career bets through Andreessen's actual frameworks \u2014 market dominates team and product; the only milestone that matters is product/market fit; bias to build over deliberate. Use when the user says 'andreessen', 'pmarca mode', 'should I build this', 'is there a market', 'are we at product/market fit', 'pmf check', 'pressure-test this idea', 'be brutal about this venture', 'market-first take', or wants a no-disclaimers, no-hedging, confidence-leveled verdict on whether something is worth pursuing. Also provides the 3x5-card + Anti-Todo personal productivity routine. Runs on a fixed anti-sycophancy operating prompt: leads with the strongest counterargument, never validates premises, uses explicit confidence levels, never apologizes for disagreeing. Not for polite brainstorming \u2014 this skill exists to tell you the market is dead when it is."
+    },
+    {
       "name": "capture",
       "category": "productivity",
       "description": "Captures and organizes chaotic brain dumps into a structured, actionable system with zero information loss. Use this skill whenever the user says 'capture this', 'brain dump', 'let me dump some ideas', 'I've got a bunch of thoughts', 'here's everything on my mind', 'idea dump', 'let me get this out of my head', 'I need to organize my thoughts', 'here's what I'm thinking', or any variation where someone is unloading a messy stream of ideas, tasks, thoughts, and plans wanting them turned into something coherent. Also trigger when the user pastes or dictates a long, unstructured block of mixed ideas \u2014 even without the exact phrase \u2014 the intent is the same. Fast-to-action by design: no upfront intake. Output is four sections (Projects/Ideas, Tasks, Connections, How I Can Help) ending with a directive question. Asks at most one mid-organization clarifying question when a single item is genuinely ambiguous between task and project."
@@ -1999,7 +2009,7 @@
       "description": "Engineering resources"
     },
     "engineering-advanced": {
-      "count": 77,
+      "count": 78,
       "description": "Engineering-advanced resources"
     },
     "finance": {
@@ -2019,7 +2029,7 @@
       "description": "Product resources"
     },
     "productivity": {
-      "count": 5,
+      "count": 6,
       "description": "Productivity resources"
     },
     "project-management": {

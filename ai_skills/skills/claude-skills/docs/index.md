@@ -1,6 +1,6 @@
 ---
-title: 329 Agent Skills for Codex, Gemini CLI & OpenClaw
-description: "329 production-ready Claude Code skills and agent plugins for 12 AI coding tools — v2.8.2 adds a productivity-shaped `handoff` skill (Matt Pocock-inspired: first-run setup, redaction linter, SessionStart + SessionEnd hooks, fidelity self-check, --refresh); v2.8.1 upgraded the engineering role-skills (senior-fullstack/frontend/backend) with karpathy-coder + Matt Pocock decision engines; v2.8.0 added two new top-level domains (business-operations + commercial, 15 skills); v2.7.3 added AEO (Answer Engine Optimization for ChatGPT / Perplexity / Claude / Gemini / Mistral citation) + security-guidance PreToolUse hook; v2.7.0 added the megaprompt-derived productivity / marketing / research stacks; v2.6.0 added the Matt Pocock productivity quartet. Engineering, product, marketing, compliance, and finance agent skills for Claude Code, OpenAI Codex, Gemini CLI, Hermes Agent, Cursor, and OpenClaw."
+title: 330 Agent Skills for Codex, Gemini CLI & OpenClaw
+description: "330 production-ready Claude Code skills and agent plugins for 13 AI coding tools — v2.8.2 adds a productivity-shaped `handoff` skill (Matt Pocock-inspired: first-run setup, redaction linter, SessionStart + SessionEnd hooks, fidelity self-check, --refresh); v2.8.1 upgraded the engineering role-skills (senior-fullstack/frontend/backend) with karpathy-coder + Matt Pocock decision engines; v2.8.0 added two new top-level domains (business-operations + commercial, 15 skills); v2.7.3 added AEO (Answer Engine Optimization for ChatGPT / Perplexity / Claude / Gemini / Mistral citation) + security-guidance PreToolUse hook; v2.7.0 added the megaprompt-derived productivity / marketing / research stacks; v2.6.0 added the Matt Pocock productivity quartet. Engineering, product, marketing, compliance, and finance agent skills for Claude Code, OpenAI Codex, Gemini CLI, Hermes Agent, Mistral Vibe, Cursor, and OpenClaw."
 hide:
   - toc
   - edit
@@ -14,7 +14,7 @@ hide:
 
 # Agent Skills
 
-329 production-ready skills, 49+ cs-* agents (incl. founder-mode C-suite, Matt Pocock productivity quartet + v2.8.2 productivity/handoff, v2.8.1 engineering role-skills, v2.7.0 megaprompt-derived research stack, v2.7.3 cs-aeo, and v2.8.0 business-operations + commercial), 7 personas, and an orchestration protocol for AI coding tools.
+330 production-ready skills, 50+ cs-* agents (incl. founder-mode C-suite, Matt Pocock productivity quartet + v2.8.2 productivity/handoff, v2.8.1 engineering role-skills, v2.7.0 megaprompt-derived research stack, v2.7.3 cs-aeo, and v2.8.0 business-operations + commercial), 7 personas, and an orchestration protocol for AI coding tools.
 { .hero-subtitle }
 
 [Get Started](getting-started.md){ .md-button .md-button--primary }
@@ -49,7 +49,7 @@ hide:
 
 <div class="grid cards" markdown>
 
--   :material-toolbox:{ .lg .middle } **329 Skills**
+-   :material-toolbox:{ .lg .middle } **330 Skills**
 
     ---
 
@@ -93,7 +93,7 @@ hide:
 
     ---
 
-    One-command installable bundles for Claude Code, Codex CLI, Gemini CLI, and OpenClaw.
+    One-command installable bundles for Claude Code, Codex CLI, Gemini CLI, Hermes Agent, Mistral Vibe, and OpenClaw.
 
     [:octicons-arrow-right-24: Plugin marketplace](plugins/index.md)
 
@@ -225,7 +225,7 @@ hide:
 
     ---
 
-    Plugin marketplace for Claude Code. Sync scripts for Codex, Gemini, and Hermes Agent. Conversion script for 8 more tools.
+    Plugin marketplace for Claude Code. Sync scripts for Codex, Gemini, Hermes Agent, and Mistral Vibe. Conversion script for 7 more tools.
 
 -   :material-puzzle:{ .lg .middle } **Self-contained**
 
@@ -237,7 +237,7 @@ hide:
 
     ---
 
-    Native support for 12 AI coding tools. Write once, convert to any tool's format automatically.
+    Native support for 13 AI coding tools. Write once, convert to any tool's format automatically.
 
 -   :material-check-decagram:{ .lg .middle } **Production-grade**
 
@@ -281,6 +281,15 @@ hide:
     cd claude-skills
     python scripts/sync-hermes-skills.py --verbose
     # Skills appear in /skills and /<skill-name> automatically
+    ```
+
+=== "Mistral Vibe"
+
+    ```bash
+    git clone https://github.com/alirezarezvani/claude-skills.git
+    cd claude-skills
+    ./scripts/vibe-install.sh
+    # 306 skills install to ~/.vibe/skills/claude-skills/; same SKILL.md standard
     ```
 
 === "Cursor / Windsurf / Aider"

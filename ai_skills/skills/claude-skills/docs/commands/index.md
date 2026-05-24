@@ -1,13 +1,13 @@
 ---
 title: "Slash Commands — AI Coding Agent Commands & Codex Shortcuts"
-description: "74 slash commands for Claude Code, Codex CLI, and Gemini CLI — sprint planning, tech debt analysis, PRDs, OKRs, and more."
+description: "77 slash commands for Claude Code, Codex CLI, and Gemini CLI — sprint planning, tech debt analysis, PRDs, OKRs, and more."
 ---
 
 <div class="domain-header" markdown>
 
 # :material-console: Slash Commands
 
-<p class="domain-count">74 commands for quick access to common operations</p>
+<p class="domain-count">77 commands for quick access to common operations</p>
 
 </div>
 
@@ -247,6 +247,12 @@ description: "74 slash commands for Claude Code, Codex CLI, and Gemini CLI — s
 
     Command: /cs:caveman
 
+-   :material-console:{ .lg .middle } **[`/cs-claude-coach`](cs-claude-coach.md)**
+
+    ---
+
+    Activates the claude-coach skill. From this point on, the conversation gains:
+
 -   :material-console:{ .lg .middle } **[`/cs-grill-me`](cs-grill-me.md)**
 
     ---
@@ -270,6 +276,18 @@ description: "74 slash commands for Claude Code, Codex CLI, and Gemini CLI — s
     ---
 
     Command: /cs:write-a-skill <name-or-description>
+
+-   :material-console:{ .lg .middle } **[`/cs-andreessen`](cs-andreessen.md)**
+
+    ---
+
+    Command: /cs:andreessen
+
+-   :material-console:{ .lg .middle } **[`/cs-pmf-check`](cs-pmf-check.md)**
+
+    ---
+
+    Command: /cs:pmf-check
 
 -   :material-console:{ .lg .middle } **[`/cs-capture`](cs-capture.md)**
 
