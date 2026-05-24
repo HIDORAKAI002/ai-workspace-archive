@@ -299,9 +299,18 @@ def check_code_smells(content: str, functions: List[Dict], classes: List[Dict]) 
     return smells
 
 
+def _strip_csharp_comments(content: str) -> str:
+    """Remove // line comments and /* */ block comments so regex detectors
+    don't match keywords inside prose."""
+    no_block = re.sub(r"/\*.*?\*/", "", content, flags=re.DOTALL)
+    no_line = re.sub(r"//[^\n]*", "", no_block)
+    return no_line
+
+
 def check_csharp_specific_smells(content: str) -> List[Dict]:
     """C# / .NET-specific code smells documented in SKILL.md."""
     smells: List[Dict] = []
+    content = _strip_csharp_comments(content)
 
     # async void (event handler exception only — caller must justify)
     for match in re.finditer(r"\basync\s+void\s+(\w+)\s*\(", content):

@@ -16,6 +16,8 @@ Automated code review tools for analyzing pull requests, detecting code quality 
   - [Code Quality Checker](#code-quality-checker)
   - [Review Report Generator](#review-report-generator)
 - [Reference Guides](#reference-guides)
+- [C# / .NET Review Notes](#c--net-review-notes)
+- [Examples](#examples)
 - [Languages Supported](#languages-supported)
 
 ---
@@ -204,6 +206,27 @@ When reviewing C# or .NET code, pay special attention to:
 - Flag missing `[ValidateAntiForgeryToken]` on state-changing controller actions
 - Flag user-controlled data passed to `Process.Start()` or `File` APIs without validation
 - Flag hardcoded connection strings in source (should use `appsettings.json` + secrets management)
+
+---
+
+## Examples
+
+Sample fixtures live in `assets/` with their expected analyzer output in `expected_outputs/`:
+
+| Fixture | What it demonstrates | Expected verdict |
+|---------|---------------------|------------------|
+| `assets/sample_csharp_smells.cs` | Every C#-specific pattern this skill detects (`async void`, blocking on `Task`, swallowed `Exception`, undisposed `IDisposable`, `new HttpClient()`, missing `await`, null-forgiving `!`, hardcoded connection string, `unsafe`, `dynamic`, `#pragma warning disable`, `[SuppressMessage]`, SQL concatenation) | F / 45 / 100, 3 HIGH smells |
+| `assets/sample_csharp_clean.cs` | Same code refactored per `references/coding_standards.md` and `references/common_antipatterns.md` | A / 98 / 100, 0 HIGH smells |
+
+Reproduce the expected output:
+
+```bash
+python scripts/code_quality_checker.py assets/sample_csharp_smells.cs --json \
+  > /tmp/check.json
+diff /tmp/check.json expected_outputs/sample_csharp_smells_quality.json
+```
+
+The expected-output JSON is regenerated after any analyzer change; drift from the committed fixture signals a behaviour change in the detector.
 
 ---
 
