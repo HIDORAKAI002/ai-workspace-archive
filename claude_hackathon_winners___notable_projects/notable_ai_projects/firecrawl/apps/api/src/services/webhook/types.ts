@@ -119,6 +119,18 @@ interface ExtractFailedData extends BaseWebhookData {
 }
 
 // monitor
+interface MonitorPageJudgment {
+  meaningful: boolean;
+  confidence: "high" | "medium" | "low";
+  reason: string;
+  fields: string[];
+}
+
+interface MonitorPageDiff {
+  text?: string;
+  json?: Record<string, { previous: unknown; current: unknown }>;
+}
+
 interface MonitorPageData extends BaseWebhookData {
   success: boolean;
   data: {
@@ -129,6 +141,9 @@ interface MonitorPageData extends BaseWebhookData {
     previousScrapeId?: string | null;
     currentScrapeId?: string | null;
     error?: string | null;
+    isMeaningful: boolean | null;
+    judgment?: MonitorPageJudgment | null;
+    diff?: MonitorPageDiff | null;
   }[];
   error?: string;
 }
