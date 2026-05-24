@@ -3,7 +3,7 @@
   "name": "claude-code-skills",
   "description": "Production-ready skill packages for AI agents - Marketing, Engineering, Product, C-Level, PM, and RA/QM",
   "repository": "https://github.com/alirezarezvani/claude-skills",
-  "total_skills": 322,
+  "total_skills": 323,
   "skills": [
     {
       "name": "business-growth-skills",
@@ -1698,6 +1698,12 @@
       "description": "UX research and design toolkit for Senior UX Designer/Researcher including data-driven persona generation, journey mapping, usability testing frameworks, and research synthesis. Use for user research, persona creation, journey mapping, and design validation."
     },
     {
+      "name": "andreessen",
+      "source": "../../productivity/andreessen/skills/andreessen",
+      "category": "productivity",
+      "description": "Marc Andreessen-mode decision and productivity skill. A blunt, market-first operator that pressure-tests ideas, ventures, features, and career bets through Andreessen's actual frameworks \u2014 market dominates team and product; the only milestone that matters is product/market fit; bias to build over deliberate. Use when the user says 'andreessen', 'pmarca mode', 'should I build this', 'is there a market', 'are we at product/market fit', 'pmf check', 'pressure-test this idea', 'be brutal about this venture', 'market-first take', or wants a no-disclaimers, no-hedging, confidence-leveled verdict on whether something is worth pursuing. Also provides the 3x5-card + Anti-Todo personal productivity routine. Runs on a fixed anti-sycophancy operating prompt: leads with the strongest counterargument, never validates premises, uses explicit confidence levels, never apologizes for disagreeing. Not for polite brainstorming \u2014 this skill exists to tell you the market is dead when it is."
+    },
+    {
       "name": "capture",
       "source": "../../productivity/capture/skills/capture",
       "category": "productivity",
@@ -1985,7 +1991,7 @@
       "description": "Product management and design skills"
     },
     "productivity": {
-      "count": 5,
+      "count": 6,
       "source": "../../productivity",
       "description": "Personal-productivity skills - capture, email, reflect"
     },
