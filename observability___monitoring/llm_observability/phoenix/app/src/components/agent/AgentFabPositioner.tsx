@@ -9,6 +9,7 @@ import type {
 import { useLayoutEffect, useRef, useState } from "react";
 import invariant from "tiny-invariant";
 
+import { NON_MODAL_FLOATING_Z_INDEX } from "@phoenix/components/core/zIndex";
 import type { AgentFabPlacement } from "@phoenix/store/agentStore";
 import type { Bounds, Point, Size } from "@phoenix/types/geometry";
 
@@ -33,15 +34,11 @@ const SNAP_TRANSITION = `transform ${SNAP_DURATION_MS}ms ${SNAP_EASING}`;
 // button. The FAB only responds to primary-button gestures.
 const PRIMARY_POINTER_BUTTON = 0;
 
-// Sits above app chrome but below modal overlays. Matches the value the
-// floating button used in its previous fixed-position incarnation.
-const FAB_Z_INDEX = 1000;
-
 const positionerCSS = css`
   position: fixed;
   top: 0;
   left: 0;
-  z-index: ${FAB_Z_INDEX};
+  z-index: ${NON_MODAL_FLOATING_Z_INDEX};
   cursor: pointer;
   touch-action: none;
   transform: translate3d(0, 0, 0);
@@ -72,6 +69,7 @@ export type AgentFabPositionerProps = {
   children: ReactNode;
   placement: AgentFabPlacement;
   size?: Size;
+  onActivate?: () => void;
   onPlacementChange: (placement: AgentFabPlacement) => void;
 };
 
@@ -194,6 +192,7 @@ export function AgentFabPositioner({
   children,
   placement,
   size,
+  onActivate,
   onPlacementChange,
 }: AgentFabPositionerProps) {
   const positionerRef = useRef<HTMLDivElement>(null);
@@ -297,7 +296,7 @@ export function AgentFabPositioner({
         : getSize();
     const pointer = { x: event.clientX, y: event.clientY };
 
-    dragSessionRef.current = {
+    const session: DragSession = {
       bounds: getBounds(),
       hasPointerCapture: false,
       offset: {
@@ -308,6 +307,12 @@ export function AgentFabPositioner({
       size: measuredSize,
       startPointer: pointer,
     };
+    // Capture immediately so touch drags stay connected before the movement
+    // threshold is crossed, even when the trigger child releases implicit
+    // pointer capture.
+    event.currentTarget.setPointerCapture(session.pointerId);
+    session.hasPointerCapture = true;
+    dragSessionRef.current = session;
     lastDragPositionRef.current = null;
     pendingPointerRef.current = null;
     hasDraggedRef.current = false;
@@ -327,8 +332,10 @@ export function AgentFabPositioner({
         return;
       }
       hasDraggedRef.current = true;
-      session.hasPointerCapture = true;
-      event.currentTarget.setPointerCapture(session.pointerId);
+      if (!session.hasPointerCapture) {
+        event.currentTarget.setPointerCapture(session.pointerId);
+        session.hasPointerCapture = true;
+      }
       // Suppress the snap-to-corner transition while the user is dragging —
       // the transform must follow the pointer 1:1.
       positionerRef.current?.style.setProperty("transition", "none");
@@ -379,6 +386,9 @@ export function AgentFabPositioner({
       // Pure click — no transform changes, just clear any leftover transition
       // override so the next render is in the default state.
       positionerRef.current?.style.removeProperty("transition");
+      if (event.type === "pointerup") {
+        onActivate?.();
+      }
       return;
     }
 
@@ -477,10 +487,10 @@ export function AgentFabPositioner({
       data-placement={placement}
       ref={positionerRef}
       onClickCapture={handleClickCapture}
-      onPointerCancel={finishDrag}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={finishDrag}
+      onPointerCancelCapture={finishDrag}
+      onPointerDownCapture={handlePointerDown}
+      onPointerMoveCapture={handlePointerMove}
+      onPointerUpCapture={finishDrag}
       onTransitionEnd={handleTransitionEnd}
     >
       {children}
