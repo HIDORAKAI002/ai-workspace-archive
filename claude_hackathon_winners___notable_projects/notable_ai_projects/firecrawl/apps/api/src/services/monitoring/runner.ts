@@ -2,6 +2,7 @@ import { v7 as uuidv7 } from "uuid";
 import { config } from "../../config";
 import { logger as _logger } from "../../lib/logger";
 import { logRequest } from "../logging/log_job";
+import { getMonitorDiffArtifact } from "../../lib/gcs-monitoring";
 import { processJobInternal } from "../worker/scrape-worker";
 import { NuQJob, crawlGroup, scrapeQueue } from "../worker/nuq";
 import { ScrapeJobData } from "../../types";
@@ -112,9 +113,6 @@ function recoverScrapeTargetRunsFromMonitor(
 function withMonitorScrapeDefaults(
   options: Record<string, unknown>,
 ): ScrapeOptions {
-  // Monitor owns history: rewrite changeTracking-json to plain json before
-  // handing the formats array to the scrape engine, so we always get back
-  // current values to diff against the previous run.
   const formats = Array.isArray(options.formats)
     ? normalizeMonitorFormats(options.formats)
     : options.formats;
@@ -220,7 +218,12 @@ async function diffAndPersistPage(params: {
     url: params.url,
   });
 
-  const { status, diffGcsKey, diffTextBytes, diffJsonBytes } =
+  const ctFormat = Array.isArray(params.target.scrapeOptions?.formats)
+    ? (params.target.scrapeOptions!.formats as any[]).find(
+        (f: any) => f?.type === "changeTracking",
+      )
+    : undefined;
+  const { status, diffGcsKey, diffTextBytes, diffJsonBytes, judgment } =
     await computeAndPersistPageDiff({
       teamId: params.monitor.team_id,
       monitorId: params.monitor.id,
@@ -235,6 +238,8 @@ async function diffAndPersistPage(params: {
           }
         : null,
       formats: params.target.scrapeOptions?.formats,
+      goal: params.monitor.judge_enabled ? params.monitor.goal : null,
+      extractionPrompt: ctFormat?.prompt ?? null,
     });
 
   await upsertMonitorPage({
@@ -269,6 +274,7 @@ async function diffAndPersistPage(params: {
     metadata: {
       title: params.doc?.metadata?.title ?? null,
     },
+    judgment,
     emailStatus: status,
   };
 }
@@ -606,17 +612,45 @@ async function sendNotifications(params: {
     }
   }
 
+  const nonSamePages = params.pages.filter(page => page.status !== "same");
+  // Pull the unified-diff text for up to 5 meaningful changed pages so the
+  // email leads with the actual diff. Cheap GCS reads, parallelised. Errors
+  // are swallowed per-page so a single GCS hiccup doesn't drop the alert.
+  const diffEligible = nonSamePages
+    .filter(
+      p => p.status === "changed" && (!p.judgment || p.judgment.meaningful),
+    )
+    .slice(0, 5);
+  const diffTextByUrl = new Map<string, string>();
+  await Promise.all(
+    diffEligible.map(async page => {
+      if (!page.diff_gcs_key) return;
+      try {
+        const artifact = await getMonitorDiffArtifact(page.diff_gcs_key);
+        const text =
+          artifact?.kind === "markdown"
+            ? artifact.text
+            : artifact?.markdown?.text;
+        if (text) diffTextByUrl.set(page.url, text);
+      } catch (error) {
+        logger.warn("Failed to load diff artifact for email", {
+          error,
+          url: page.url,
+        });
+      }
+    }),
+  );
+
   const emailStatus = await sendMonitoringEmailSummary({
     monitor: params.monitor,
     check: params.check,
-    pages: params.pages
-      .filter(page => page.status !== "same")
-      .slice(0, 25)
-      .map(page => ({
-        url: page.url,
-        status: page.status,
-        error: page.error,
-      })),
+    pages: nonSamePages.map(page => ({
+      url: page.url,
+      status: page.status,
+      error: page.error,
+      judgment: page.judgment ?? null,
+      diffText: diffTextByUrl.get(page.url) ?? null,
+    })),
   });
 
   return {

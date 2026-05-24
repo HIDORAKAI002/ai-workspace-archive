@@ -79,6 +79,8 @@ function serializeMonitor(monitor: any) {
     retentionDays: monitor.retention_days,
     estimatedCreditsPerMonth: monitor.estimated_credits_per_month,
     lastCheckSummary: monitor.last_check_summary,
+    goal: monitor.goal ?? null,
+    judgeEnabled: Boolean(monitor.judge_enabled),
     createdAt: monitor.created_at,
     updatedAt: monitor.updated_at,
   };
@@ -401,6 +403,7 @@ export async function getMonitorCheckController(
         statusCode: page.status_code,
         error: page.error,
         metadata: page.metadata,
+        judgment: page.judgment ?? null,
         createdAt: page.created_at,
       };
       if (!artifact) {
