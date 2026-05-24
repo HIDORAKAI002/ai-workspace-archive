@@ -11,7 +11,42 @@ type MonitoringEmailPage = {
   url: string;
   status: string;
   error?: string | null;
+  judgment?: {
+    meaningful: boolean;
+    confidence: "high" | "medium" | "low";
+    reason: string;
+    fields: string[];
+  } | null;
+  diffText?: string | null;
 };
+
+const DIFF_MAX_LINES_PER_PAGE = 24;
+const DIFF_MAX_CHARS_PER_LINE = 200;
+
+function renderDiffBlock(diffText: string): string {
+  const lines = diffText.split("\n");
+  const truncated = lines.length > DIFF_MAX_LINES_PER_PAGE;
+  const shown = lines.slice(0, DIFF_MAX_LINES_PER_PAGE).map(rawLine => {
+    const clipped =
+      rawLine.length > DIFF_MAX_CHARS_PER_LINE
+        ? rawLine.slice(0, DIFF_MAX_CHARS_PER_LINE) + "…"
+        : rawLine;
+    const safe = escapeHtml(clipped);
+    let color = "#374151";
+    let bg = "transparent";
+    if (clipped.startsWith("+") && !clipped.startsWith("+++")) {
+      color = "#166534";
+      bg = "#dcfce7";
+    } else if (clipped.startsWith("-") && !clipped.startsWith("---")) {
+      color = "#991b1b";
+      bg = "#fee2e2";
+    } else if (clipped.startsWith("@@")) {
+      color = "#6b21a8";
+    }
+    return `<div style="color:${color};background:${bg};padding:0 6px;">${safe || "&nbsp;"}</div>`;
+  });
+  return `<pre style="margin:8px 0 0;padding:10px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:12px;line-height:1.5;white-space:pre;overflow-x:auto;">${shown.join("")}${truncated ? `<div style="color:#6b7280;padding:6px 6px 0;">… ${lines.length - DIFF_MAX_LINES_PER_PAGE} more lines</div>` : ""}</pre>`;
+}
 
 export type MonitoringEmailPayload = {
   monitorId: string;
@@ -78,21 +113,52 @@ export function buildMonitoringCheckDashboardUrl(
 }
 
 export function buildHtml(payload: MonitoringEmailPayload): string {
-  const pageItems = payload.pages
+  const sortedPages = [...payload.pages].sort((a, b) => {
+    const aMeaningful = a.judgment?.meaningful === true ? 0 : 1;
+    const bMeaningful = b.judgment?.meaningful === true ? 0 : 1;
+    return aMeaningful - bMeaningful;
+  });
+
+  const pageItems = sortedPages
     .slice(0, 20)
     .map(page => {
       const url = escapeHtml(page.url);
-      return `<li><strong>${escapeHtml(page.status)}</strong>: <a href="${url}">${url}</a>${
+      let badge = "";
+      let reason = "";
+      if (page.judgment) {
+        if (page.judgment.meaningful) {
+          badge =
+            ' <span style="color:#b45309;font-weight:600">[meaningful]</span>';
+        } else {
+          badge = ' <span style="color:#6b7280">[noise]</span>';
+        }
+        reason = `<br/><small style="color:#6b7280">${escapeHtml(page.judgment.reason)}</small>`;
+      }
+      const diffBlock =
+        page.diffText && page.diffText.trim().length > 0
+          ? renderDiffBlock(page.diffText)
+          : "";
+      return `<li style="margin:0 0 14px;"><strong>${escapeHtml(page.status)}</strong>${badge}: <a href="${url}">${url}</a>${
         page.error ? ` &mdash; ${escapeHtml(page.error)}` : ""
-      }</li>`;
+      }${reason}${diffBlock}</li>`;
     })
     .join("");
   const dashboardUrl = escapeHtml(payload.dashboardUrl);
 
+  const judgedPages = payload.pages.filter(p => p.judgment);
+  const meaningfulCount = judgedPages.filter(
+    p => p.judgment!.meaningful,
+  ).length;
+  const noiseCount = judgedPages.length - meaningfulCount;
+  const changedLine =
+    judgedPages.length > 0
+      ? `Changed: ${payload.summary.changed} (${meaningfulCount} meaningful, ${noiseCount} noise)`
+      : `Changed: ${payload.summary.changed}`;
+
   return `Hey there,<br/>
 <p>Your Firecrawl monitor <strong>${escapeHtml(payload.monitorName)}</strong> detected activity.</p>
 <ul>
-  <li>Changed: ${payload.summary.changed}</li>
+  <li>${changedLine}</li>
   <li>New: ${payload.summary.new}</li>
   <li>Removed: ${payload.summary.removed}</li>
   <li>Errors: ${payload.summary.error}</li>
@@ -143,6 +209,48 @@ export async function sendMonitoringEmailSummary(params: {
       errors: params.check.error_count,
     });
     return { attempted: false, success: true, recipients: [] };
+  }
+
+  // Caller may pass a paginated subset; only trust the judgment-based
+  // suppression when changedPages covers the full changed_count. A missed
+  // meaningful alert is worse than an extra noisy email.
+  if (params.monitor.judge_enabled && params.monitor.goal) {
+    const changedPages = params.pages.filter(p => p.status === "changed");
+    const nonChangedActivity = params.pages.some(
+      p => p.status === "new" || p.status === "removed" || p.status === "error",
+    );
+    const changedListComplete =
+      changedPages.length >= params.check.changed_count;
+    if (changedPages.length > 0 && !nonChangedActivity && changedListComplete) {
+      const anyMeaningful = changedPages.some(
+        p => p.judgment?.meaningful === true || !p.judgment,
+      );
+      if (!anyMeaningful) {
+        logger.info(
+          "Skipping monitoring email summary; all changed pages judged noise",
+          {
+            monitorId: params.monitor.id,
+            checkId: params.check.id,
+            changedCount: changedPages.length,
+          },
+        );
+        return { attempted: false, success: true, recipients: [] };
+      }
+    } else if (
+      changedPages.length > 0 &&
+      !nonChangedActivity &&
+      !changedListComplete
+    ) {
+      logger.info(
+        "Skipping judge-based email gating; changed-page list is truncated",
+        {
+          monitorId: params.monitor.id,
+          checkId: params.check.id,
+          changedSeen: changedPages.length,
+          changedTotal: params.check.changed_count,
+        },
+      );
+    }
   }
 
   const explicitRecipients = configEmail.recipients ?? [];
