@@ -1,21 +1,18 @@
 # Features
 
-## v2.2.1 (Current)
-- **24 MCP tools** (up from 22): Added `get_minimal_context` and `run_postprocess`.
-- **Parallel parsing**: `ProcessPoolExecutor` for 3-5x faster builds on large repos.
-- **Lazy post-processing**: `postprocess="full"|"minimal"|"none"` to skip expensive steps.
-- **SQLite-native BFS**: Recursive CTE replaces NetworkX for impact analysis (faster on large graphs).
-- **Token-efficient output**: `detail_level="minimal"` on 8 tools for 40-60% token reduction.
-- **`get_minimal_context`**: Ultra-compact entry point (~100 tokens) with task-based tool routing.
-- **Incremental flow/community updates**: Only re-trace affected flows, skip community re-detection when unaffected.
-- **Visualization aggregation**: Community/file/auto modes with drill-down for 5k+ node graphs.
-- **Token-efficiency benchmarks**: 5 workflow benchmarks in eval framework.
-- **Pre-computed summary tables**: DB schema v6 with `community_summaries`, `flow_snapshots`, `risk_index`.
-- **Configurable limits**: `CRG_MAX_IMPACT_NODES`, `CRG_MAX_IMPACT_DEPTH`, `CRG_DEPENDENT_HOPS`, etc.
-- **Multi-hop dependents**: N-hop dependent discovery (default 2) with 500-file cap.
-- **615 tests** across 22 test files.
+## v2.3.4 (Current)
+- **Estimated context savings**: Review, impact, detect-changes, and compact architecture responses include tiny `context_savings` metadata (`estimated`, `saved_tokens`, `saved_percent`) where a baseline can be estimated.
+- **Compact architecture overview by default**: `get_architecture_overview_tool` defaults to `detail_level="minimal"` to avoid huge member lists and per-edge payloads. Use `detail_level="standard"` for full detail.
+- **Bounded change analysis**: `CRG_MAX_CHANGED_FUNCS`, `CRG_MAX_TRANSITIVE_FRONTIER`, and `CRG_TOOL_TIMEOUT` help keep large MCP review calls responsive.
+- **Windows MCP reliability**: Local embedding models are pre-warmed on Windows before FastMCP starts worker dispatch to avoid semantic-search deadlocks.
+- **Parser correctness**: Rust `#[test]` and common async test attributes now produce `Test` nodes.
+- **Graph lookup correctness**: Review, impact, and file-summary tools resolve user-facing paths to stored graph paths; `callers_of` includes cross-file callers even when same-file callers exist.
+- **Install/runtime reliability**: Generated Codex/Claude hooks drain stdin, bundled docs are available from wheels, missing local embeddings report unavailable status, and `.svn` roots pass validation.
+- **CLI reliability**: `build --skip-postprocess` and `update --skip-flows` honor the requested post-processing level.
+- **Broad parser surface**: Python, JavaScript/TypeScript/TSX, Go, Rust, Java, C/C++, C#, Ruby, Kotlin, Swift, PHP, Scala, Solidity, Dart, R, Perl, Lua/Luau, Objective-C, shell scripts, Elixir, Zig, PowerShell, Julia, ReScript, GDScript, Nix, Verilog/SystemVerilog, SQL, Vue/Svelte SFCs, Astro files parsed through the TypeScript parser, Jupyter/Databricks notebooks, and Perl XS files.
+- **Local-first by design**: SQLite graph storage remains local, with no telemetry and no cloud-default behavior.
 
-## v2.1.0
+## v2.0.0
 - **22 MCP tools** (up from 9): 13 new tools for flows, communities, architecture, refactoring, wiki, multi-repo, and risk-scored change detection.
 - **5 MCP prompts**: `review_changes`, `architecture_map`, `debug_issue`, `onboard_developer`, `pre_merge_check` workflow templates.
 - **18 languages** (up from 15): Added Dart, R, Perl support.
@@ -124,7 +121,8 @@
 - **FastMCP 3.0 compatible** stdio MCP server
 
 ## Privacy & Data
-- All data stays 100% local
+- Core graph data is stored locally
 - Graph stored in `.code-review-graph/graph.db` (SQLite), auto-gitignored
-- No telemetry, no network calls
+- No telemetry; core graph/review workflows do not require network access
+- Optional embedding and wiki features may call configured local or remote services when explicitly enabled
 - Respects `.gitignore` and `.code-review-graphignore`
