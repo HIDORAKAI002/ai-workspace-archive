@@ -71,6 +71,7 @@ Browse all supported integrations in the Integrations Hub.
 - Vertex AI
 - Groq
 - Ollama
+- Ollama Cloud
 - LM Studio
 - llama.cpp
 - MiniMax
