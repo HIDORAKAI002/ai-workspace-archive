@@ -3,9 +3,13 @@ import { PassThrough } from 'stream';
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
 import { nanoid } from 'nanoid';
-import { AuditV1OperationTypes, EventType, ncIsNull } from 'nocodb-sdk';
+import {
+  AuditV1OperationTypes,
+  EventType,
+  ncIsNull,
+  OperationSource,
+} from 'nocodb-sdk';
 import slash from 'slash';
-import { useAgent } from 'request-filtering-agent';
 import { getBase64FileSize } from 'src/helpers/stringHelpers';
 import type { DataUpdatePayload, NcContext } from 'nocodb-sdk';
 import type { AttachmentFilePathConstructed } from '~/helpers/attachmentHelpers';
@@ -13,6 +17,7 @@ import type {
   AttachmentBase64UploadParam,
   AttachmentUrlUploadParam,
 } from '~/types/data-columns/attachment';
+import { getFilteredAgents } from '~/utils/ssrf';
 import {
   NC_ATTACHMENT_FIELD_SIZE,
   NC_ATTACHMENT_URL_MAX_REDIRECT,
@@ -389,11 +394,18 @@ export class DataAttachmentV3Service {
       httpsAgent: useAgent(url),
     });
 
-    // Extract file information from response headers
+    // Extract file information from response headers (axios >=1.14 widens
+    // AxiosHeaderValue to string | number | boolean | string[] — content-* are
+    // always a single string in HTTP responses, so coerce to string.)
     const contentType =
-      response.headers['content-type'] || 'application/octet-stream';
-    const contentLength = response.headers['content-length'];
-    const contentDisposition = response.headers['content-disposition'];
+      (response.headers['content-type'] as string) ||
+      'application/octet-stream';
+    const contentLength = response.headers['content-length'] as
+      | string
+      | undefined;
+    const contentDisposition = response.headers['content-disposition'] as
+      | string
+      | undefined;
 
     const passthrough = new PassThrough(); // Track size via the PassThrough stream
     let totalBytes = 0;
