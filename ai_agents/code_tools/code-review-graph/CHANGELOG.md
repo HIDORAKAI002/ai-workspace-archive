@@ -2,6 +2,44 @@
 
 ## [Unreleased]
 
+## [2.3.4] - 2026-05-25
+
+Focused reliability and token-efficiency release for MCP/CLI review workflows. No breaking changes.
+
+### Added
+
+- **Estimated context savings metadata** for graph-filtered review/impact/architecture responses. The new `context_savings` field is intentionally compact (`estimated`, `saved_tokens`, `saved_percent`) and uses the existing conservative character-count approximation rather than claiming exact tokenization.
+- **CLI estimated savings line** for `code-review-graph detect-changes --brief`; full JSON output includes the same compact `context_savings` metadata.
+
+### Changed
+
+- **Architecture overview is compact by default**: `get_architecture_overview_tool` now defaults to `detail_level="minimal"`, dropping per-community member lists and aggregating cross-community edges by community pair. Full per-edge output remains available with `detail_level="standard"`.
+- **Bounded change analysis**: `detect_changes_tool` can now cap very large changed-function and transitive-test frontiers with `CRG_MAX_CHANGED_FUNCS` and `CRG_MAX_TRANSITIVE_FRONTIER`, and can return a structured timeout error via `CRG_TOOL_TIMEOUT`.
+
+### Fixed
+
+- **Windows semantic search deadlock** (#508/#507): local embedding models are pre-warmed on the main thread on Windows before FastMCP starts worker dispatch.
+- **Rust test detection** (#503/#502): Rust `#[test]` and common async test attributes now produce `Test` nodes.
+- **Generated hook stdin handling** (#494/#493): Codex and Claude hook commands drain stdin to avoid caller-side broken pipes on large hook payloads.
+- **Cross-file callers** (#486/#472): `callers_of` now returns cross-file callers even when same-file callers exist.
+- **Graph path lookup** (#469): review, impact, and file-summary tools resolve user-facing paths to the path format stored in the graph.
+- **Bundled MCP docs** (#485/#480): `get_docs_section` can load the packaged `LLM-OPTIMIZED-REFERENCE.md` from installed wheels.
+- **Local embedding provider availability** (#484/#448): missing `sentence-transformers` now reports local provider unavailability instead of silently producing zero embeddings.
+- **Dead-code response fields** (#481/#447): dead-code results now include `file_path`, `relative_path`, and `language` while preserving the legacy `file` key.
+- **SVN root validation** (#456): MCP/daemon/registry root validation now accepts `.svn` working copies consistently.
+- **CLI postprocess flags** (#487): `build --skip-postprocess` and `update --skip-flows` no longer run an extra full post-processing pass.
+
+### Documentation
+
+- Updated stale release-facing version references for 2.3.4.
+- Replaced fragile language-count wording with current broad language and notebook support wording.
+- Added the missing VS Code extension `0.2.2` changelog entry without changing the extension package version.
+
+### Tests
+
+- Added regression coverage for compact architecture overview output and #476 mitigation.
+- Added tests for estimated context savings calculation, compact metadata shape, MCP metadata, CLI brief/JSON output, Rust test parsing, hook stdin draining, graph path resolution, dead-code fields, SVN root validation, CLI postprocess flags, embedding availability, and bounded detect-changes behavior.
+
 ## [2.3.3] - 2026-05-08
 
 Large additive release accumulated since v2.3.2 — 141 non-merge commits, 8 new languages/extensions, 5 new platform install targets, 6 new framework call resolvers, comprehensive Windows hardening, VS Code accessibility pass, and a full sweep of community PRs.

@@ -4,15 +4,15 @@ build-backend = "hatchling.build"
 
 [project]
 name = "code-review-graph"
-version = "2.3.3"
-description = "Persistent incremental knowledge graph for token-efficient, context-aware code reviews with Claude Code"
+version = "2.3.4"
+description = "Local-first knowledge graph for token-efficient code review through MCP and CLI"
 readme = {file = "README.md", content-type = "text/markdown"}
 license = "MIT"
 requires-python = ">=3.10"
 authors = [
     { name = "Tirth" },
 ]
-keywords = ["code-review", "knowledge-graph", "tree-sitter", "claude-code", "mcp"]
+keywords = ["code-review", "knowledge-graph", "tree-sitter", "mcp", "ai-coding-tools"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -87,11 +87,13 @@ dev = [
 [tool.hatch.build.targets.wheel]
 packages = ["code_review_graph"]
 
+[tool.hatch.build.targets.wheel.force-include]
+"docs/LLM-OPTIMIZED-REFERENCE.md" = "code_review_graph/docs/LLM-OPTIMIZED-REFERENCE.md"
+
 [tool.hatch.build.targets.sdist]
 include = [
     "code_review_graph/",
     "skills/",
-    ".claude-plugin/",
     "docs/",
     "hooks/",
     "LICENSE",
@@ -132,4 +134,5 @@ norecursedirs = ["tests/fixtures"]
 [dependency-groups]
 dev = [
     "pytest>=8.4.2",
+    "pytest-asyncio>=0.23,<1",
 ]

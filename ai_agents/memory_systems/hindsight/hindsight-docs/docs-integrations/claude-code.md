@@ -128,7 +128,7 @@ These settings configure which LLM the local daemon uses for fact extraction. Th
 
 | Setting | Env Var | Default | Description |
 |---------|---------|---------|-------------|
-| `llmProvider` | `HINDSIGHT_LLM_PROVIDER` | auto-detect | Which LLM provider to use. Supported values: `openai`, `anthropic`, `gemini`, `groq`, `ollama`, `openai-codex`, `claude-code`. When omitted, the plugin auto-detects by checking for API key env vars in order: `OPENAI_API_KEY` → `ANTHROPIC_API_KEY` → `GEMINI_API_KEY` → `GROQ_API_KEY`. |
+| `llmProvider` | `HINDSIGHT_LLM_PROVIDER` | auto-detect | Which LLM provider to use. Supported values: `openai`, `anthropic`, `gemini`, `groq`, `ollama`, `ollama-cloud`, `openai-codex`, `claude-code`. When omitted, the plugin auto-detects by checking for API key env vars in order: `OPENAI_API_KEY` → `ANTHROPIC_API_KEY` → `GEMINI_API_KEY` → `GROQ_API_KEY`. |
 | `llmModel` | `HINDSIGHT_LLM_MODEL` | provider default | Override the default model for the chosen provider (e.g. `"gpt-4o"`, `"claude-sonnet-4-20250514"`). When omitted, the Hindsight API picks a sensible default for each provider. |
 | `llmApiKeyEnv` | — | provider standard | Name of the environment variable that holds the API key. Normally auto-detected (e.g. `OPENAI_API_KEY` for the `openai` provider). Set this only if your key is in a non-standard env var. |
 

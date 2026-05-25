@@ -130,9 +130,14 @@ def load_config(path: Path | None = None) -> DaemonConfig:
             logger.warning("Skipping repo %s — directory does not exist", repo_path)
             continue
 
-        if not (repo_path / ".git").exists() and not (repo_path / ".code-review-graph").exists():
+        has_repo_marker = (
+            (repo_path / ".git").exists()
+            or (repo_path / ".svn").exists()
+            or (repo_path / ".code-review-graph").exists()
+        )
+        if not has_repo_marker:
             logger.warning(
-                "Skipping repo %s — no .git or .code-review-graph directory found",
+                "Skipping repo %s — no .git, .svn, or .code-review-graph directory found",
                 repo_path,
             )
             continue
@@ -222,8 +227,13 @@ def add_repo_to_config(
     if not resolved.is_dir():
         raise ValueError(f"Not a directory: {resolved}")
 
-    if not (resolved / ".git").exists() and not (resolved / ".code-review-graph").exists():
-        raise ValueError(f"No .git or .code-review-graph directory in {resolved}")
+    has_repo_marker = (
+        (resolved / ".git").exists()
+        or (resolved / ".svn").exists()
+        or (resolved / ".code-review-graph").exists()
+    )
+    if not has_repo_marker:
+        raise ValueError(f"No .git, .svn, or .code-review-graph directory in {resolved}")
 
     effective_alias = alias or resolved.name
 
