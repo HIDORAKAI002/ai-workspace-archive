@@ -230,6 +230,16 @@ describe("test scripts", () => {
     };
 
     expect(pkg.scripts?.["test:serial"]).toBe("node scripts/test-projects-serial.mjs");
+    expect(pkg.scripts?.["test:max"]).toBe("node scripts/test-projects-max.mjs");
+    expect(pkg.scripts?.["test:changed:max"]).toBe(
+      "node scripts/test-projects-max.mjs --changed origin/main",
+    );
+    expect(pkg.scripts?.["test:perf:imports"]).toBe(
+      "node scripts/test-projects-imports.mjs",
+    );
+    expect(pkg.scripts?.["test:perf:imports:changed"]).toBe(
+      "node scripts/test-projects-imports.mjs --changed origin/main",
+    );
     expect(pkg.scripts?.["test:fast"]).toBe(
       "node scripts/run-vitest.mjs run --config test/vitest/vitest.unit.config.ts",
     );
@@ -243,7 +253,7 @@ describe("test scripts", () => {
     expect(pkg.scripts?.["test"]).toBe("node scripts/test-projects.mjs");
     expect(pkg.scripts?.["test:force"]).toBe("node --import tsx scripts/test-force.ts");
     expect(pkg.scripts?.["test:gateway"]).toBe(
-      "OPENCLAW_GATEWAY_PROJECT_SHARDS=1 node scripts/run-vitest.mjs run --config test/vitest/vitest.gateway.config.ts",
+      "node scripts/run-with-env.mjs OPENCLAW_GATEWAY_PROJECT_SHARDS=1 -- node scripts/run-vitest.mjs run --config test/vitest/vitest.gateway.config.ts",
     );
     expect(pkg.scripts?.["test:single"]).toBeUndefined();
   });
