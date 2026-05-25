@@ -19,7 +19,7 @@ import {
   finalizeHarnessContextEngineTurn,
   formatPrePromptPrecheckLog,
   formatErrorMessage,
-  hasBeforeToolCallPolicy,
+  getBeforeToolCallPolicyDiagnosticState,
   isActiveHarnessContextEngine,
   isSubagentSessionKey,
   loadCodexBundleMcpThreadConfig,
@@ -195,6 +195,7 @@ import {
   recordCodexTrajectoryContext,
 } from "./trajectory.js";
 import {
+  attachCodexMirrorIdentity,
   buildCodexUserPromptMessage,
   mirrorCodexAppServerTranscript,
 } from "./transcript-mirror.js";
@@ -946,6 +947,7 @@ export async function runCodexAppServerAttempt(
   const pluginConfig = readCodexPluginConfig(options.pluginConfig);
   const computerUseConfig = resolveCodexComputerUseConfig({ pluginConfig });
   const configuredAppServer = resolveCodexAppServerRuntimeOptions({ pluginConfig });
+  const beforeToolCallPolicy = getBeforeToolCallPolicyDiagnosticState();
   const resolvedWorkspace = resolveUserPath(params.workspaceDir);
   await fs.mkdir(resolvedWorkspace, { recursive: true });
   const sandboxSessionKey =
@@ -966,11 +968,21 @@ export async function runCodexAppServerAttempt(
     appServer: configuredAppServer,
     pluginConfig,
     env: process.env,
-    shouldPromote: hasBeforeToolCallPolicy(),
+    shouldPromote:
+      beforeToolCallPolicy.hasBeforeToolCallHook ||
+      beforeToolCallPolicy.trustedToolPolicies.length > 0,
     canUseUntrustedApprovalPolicy:
       configuredAppServer.start.transport !== "stdio" ||
       isCodexAppServerApprovalPolicyAllowedByRequirements("untrusted"),
   });
+  if (configuredAppServer.approvalPolicy === "never" && appServer.approvalPolicy === "untrusted") {
+    embeddedAgentLog.info("codex app-server approval policy promoted for OpenClaw tool policy", {
+      from: "never",
+      to: "untrusted",
+      beforeToolCallHook: beforeToolCallPolicy.hasBeforeToolCallHook,
+      trustedToolPolicies: beforeToolCallPolicy.trustedToolPolicies,
+    });
+  }
   let pluginAppServer: CodexAppServerRuntimeOptions = appServer;
   const nativeHookRelayEvents = resolveCodexNativeHookRelayEvents({
     configuredEvents: options.nativeHookRelay?.events,
@@ -3136,6 +3148,13 @@ export async function runCodexAppServerAttempt(
     abort: () => runAbortController.abort("aborted"),
   };
   setActiveEmbeddedRun(params.sessionId, handle, params.sessionKey);
+  void mirrorPromptAtTurnStartBestEffort({
+    params,
+    agentId: sessionAgentId,
+    sessionKey: sandboxSessionKey,
+    threadId: thread.threadId,
+    turnId: activeTurnId,
+  });
   turnAttemptIdleWatchArmed = true;
   turnTerminalIdleWatchArmed = true;
   touchTurnCompletionActivity("turn:start", { attemptProgress: true });
@@ -5703,6 +5722,35 @@ async function mirrorTranscriptBestEffort(params: {
     });
   } catch (error) {
     embeddedAgentLog.warn("failed to mirror codex app-server transcript", { error });
+  }
+}
+
+async function mirrorPromptAtTurnStartBestEffort(params: {
+  params: EmbeddedRunAttemptParams;
+  agentId?: string;
+  sessionKey?: string;
+  threadId: string;
+  turnId: string;
+}): Promise<void> {
+  if (params.params.suppressNextUserMessagePersistence) {
+    return;
+  }
+  try {
+    await mirrorCodexAppServerTranscript({
+      sessionFile: params.params.sessionFile,
+      agentId: params.agentId,
+      sessionKey: params.sessionKey,
+      messages: [
+        attachCodexMirrorIdentity(
+          buildCodexUserPromptMessage(params.params),
+          `${params.turnId}:prompt`,
+        ),
+      ],
+      idempotencyScope: `codex-app-server:${params.threadId}`,
+      config: params.params.config,
+    });
+  } catch (error) {
+    embeddedAgentLog.warn("failed to mirror codex app-server prompt at turn start", { error });
   }
 }
 
