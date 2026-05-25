@@ -14,7 +14,8 @@ import { NcError } from '~/helpers/catchError';
  * or private-network databases).
  */
 export async function validateDbConnectionHost(host: unknown): Promise<void> {
-  if (process.env.NC_ALLOW_LOCAL_EXTERNAL_DBS === 'true') return;
+  if (!isSsrfProtectionEnabled({ source: OperationSource.EXTERNAL_DBS }))
+    return;
   if (typeof host !== 'string' || host.length === 0) return;
 
   const trimmed = host.trim();

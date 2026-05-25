@@ -2,8 +2,9 @@ import fs from 'fs';
 import { Readable } from 'stream';
 import { Client as MinioClient } from 'minio';
 import axios from 'axios';
-import { useAgent } from 'request-filtering-agent';
+import { OperationSource } from 'nocodb-sdk';
 import type { IStorageAdapterV2, XcFile } from '~/types/nc-plugin';
+import { getFilteredAgents } from '~/utils/ssrf';
 import { NcError } from '~/helpers/ncError';
 import { NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
 
@@ -189,7 +190,7 @@ export default class Minio implements IStorageAdapterV2 {
         Key: key,
         Body: response.data,
         metaData: {
-          ContentType: response.headers['content-type'],
+          ContentType: response.headers['content-type'] as string,
         },
       };
 
