@@ -270,6 +270,7 @@ class OpenAICompatibleLLM(LLMInterface):
             "openai",
             "groq",
             "ollama",
+            "ollama-cloud",
             "lmstudio",
             "llamacpp",
             "minimax",
@@ -288,6 +289,8 @@ class OpenAICompatibleLLM(LLMInterface):
                 self.base_url = "https://api.groq.com/openai/v1"
             elif self.provider == "ollama":
                 self.base_url = "http://localhost:11434/v1"
+            elif self.provider == "ollama-cloud":
+                self.base_url = "https://ollama.com/v1"
             elif self.provider == "lmstudio":
                 self.base_url = "http://localhost:1234/v1"
             elif self.provider == "minimax":
@@ -316,6 +319,7 @@ class OpenAICompatibleLLM(LLMInterface):
                 "openrouter",
                 "zai",
                 "opencode-go",
+                "ollama-cloud",
             )
             and not self.api_key
         ):
@@ -1073,12 +1077,17 @@ class OpenAICompatibleLLM(LLMInterface):
 
         last_exception = None
 
+        # Pass API key as Bearer token for cloud Ollama endpoints
+        headers: dict[str, str] = {}
+        if self.api_key and self.api_key != "local":
+            headers["Authorization"] = f"Bearer {self.api_key}"
+
         async with httpx.AsyncClient(timeout=300.0) as client:
             for attempt in range(max_retries + 1):
                 if attempt > 0:
                     set_stage(f"llm.ollama_native.{scope}.attempt={attempt + 1}/{max_retries + 1}")
                 try:
-                    response = await client.post(native_url, json=payload)
+                    response = await client.post(native_url, json=payload, headers=headers)
                     response.raise_for_status()
 
                     result = response.json()

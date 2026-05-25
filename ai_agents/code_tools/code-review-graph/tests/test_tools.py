@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+import code_review_graph.tools.docs as docs_module
 from code_review_graph.graph import GraphStore, _sanitize_name, node_to_dict
 from code_review_graph.parser import EdgeInfo, NodeInfo
 from code_review_graph.tools import (
@@ -13,8 +14,12 @@ from code_review_graph.tools import (
     get_community_func,
     get_docs_section,
     get_flow,
+    get_impact_radius,
+    get_review_context,
     list_communities_func,
     list_flows,
+    query_graph,
+    _validate_repo_root,
 )
 
 
@@ -151,6 +156,216 @@ class TestTools:
         assert edges[0].source_qualified == "/repo/main.py::process"
 
 
+class TestQueryGraphCallTargetFallbacks:
+    """Regression tests for mixed qualified and bare CALLS targets."""
+
+    def setup_method(self):
+        self.tmp_dir = tempfile.mkdtemp()
+        self.root = Path(self.tmp_dir).resolve()
+        (self.root / ".git").mkdir()
+        (self.root / ".code-review-graph").mkdir()
+
+        self.target_file = str(self.root / "target.m")
+        self.cross_file = str(self.root / "cross.m")
+        self.dispatch_file = str(self.root / "dispatch.m")
+        self.db_path = str(self.root / ".code-review-graph" / "graph.db")
+        self._seed_data()
+
+    def teardown_method(self):
+        import shutil
+
+        shutil.rmtree(self.tmp_dir, ignore_errors=True)
+
+    def _seed_data(self):
+        with GraphStore(self.db_path) as store:
+            store.upsert_node(NodeInfo(
+                kind="Function", name="target_func", file_path=self.target_file,
+                line_start=10, line_end=12, language="objc",
+            ))
+            store.upsert_node(NodeInfo(
+                kind="Function", name="same_file_caller", file_path=self.target_file,
+                line_start=20, line_end=24, language="objc",
+            ))
+            store.upsert_node(NodeInfo(
+                kind="Function", name="cross_file_caller", file_path=self.cross_file,
+                line_start=5, line_end=9, language="objc",
+            ))
+            store.upsert_edge(EdgeInfo(
+                kind="CALLS",
+                source=f"{self.target_file}::same_file_caller",
+                target=f"{self.target_file}::target_func",
+                file_path=self.target_file,
+                line=22,
+            ))
+            store.upsert_edge(EdgeInfo(
+                kind="CALLS",
+                source=f"{self.cross_file}::cross_file_caller",
+                target="target_func",
+                file_path=self.cross_file,
+                line=7,
+            ))
+
+            store.upsert_node(NodeInfo(
+                kind="Function", name="dispatcher", file_path=self.dispatch_file,
+                line_start=1, line_end=8, language="objc",
+            ))
+            store.upsert_node(NodeInfo(
+                kind="Function", name="resolved_helper", file_path=self.dispatch_file,
+                line_start=12, line_end=14, language="objc",
+            ))
+            store.upsert_edge(EdgeInfo(
+                kind="CALLS",
+                source=f"{self.dispatch_file}::dispatcher",
+                target=f"{self.dispatch_file}::resolved_helper",
+                file_path=self.dispatch_file,
+                line=3,
+            ))
+            store.upsert_edge(EdgeInfo(
+                kind="CALLS",
+                source=f"{self.dispatch_file}::dispatcher",
+                target="external_helper",
+                file_path=self.dispatch_file,
+                line=4,
+            ))
+            store.commit()
+
+    def test_callers_of_includes_qualified_and_bare_target_callers(self):
+        result = query_graph(
+            pattern="callers_of",
+            target=f"{self.target_file}::target_func",
+            repo_root=str(self.root),
+        )
+
+        assert result["status"] == "ok"
+        names = {r["name"] for r in result["results"]}
+        assert names == {"same_file_caller", "cross_file_caller"}
+        assert len(result["results"]) == 2
+
+        edge_targets = {e["target"] for e in result["edges"]}
+        assert edge_targets == {f"{self.target_file}::target_func", "target_func"}
+
+    def test_callees_of_includes_resolved_and_bare_target_callees(self):
+        result = query_graph(
+            pattern="callees_of",
+            target=f"{self.dispatch_file}::dispatcher",
+            repo_root=str(self.root),
+        )
+
+        assert result["status"] == "ok"
+        names = {r["name"] for r in result["results"]}
+        assert names == {"resolved_helper", "external_helper"}
+
+        edge_targets = {e["target"] for e in result["edges"]}
+        assert edge_targets == {
+            f"{self.dispatch_file}::resolved_helper",
+            "external_helper",
+        }
+
+
+def _seed_repo_relative_graph(root: Path) -> None:
+    """Seed graph data with cwd-relative paths, as eval repos currently do."""
+    graph_dir = root / ".code-review-graph"
+    graph_dir.mkdir()
+    store = GraphStore(graph_dir / "graph.db")
+    stored_path = "fixtures/sample_repo/src/app.py"
+    try:
+        store.upsert_node(NodeInfo(
+            kind="File",
+            name=stored_path,
+            file_path=stored_path,
+            line_start=1,
+            line_end=6,
+            language="python",
+        ))
+        store.upsert_node(NodeInfo(
+            kind="Function",
+            name="handle",
+            file_path=stored_path,
+            line_start=1,
+            line_end=3,
+            language="python",
+        ))
+        store.commit()
+    finally:
+        store.close()
+
+
+class TestGraphPathResolution:
+    def test_get_review_context_resolves_repo_relative_changed_file(self, tmp_path):
+        repo = tmp_path / "fixtures" / "sample_repo"
+        repo.mkdir(parents=True)
+        (repo / ".git").mkdir()
+        (repo / "src").mkdir()
+        (repo / "src" / "app.py").write_text(
+            "def handle():\n    return 'ok'\n" + ("# padding\n" * 500),
+            encoding="utf-8",
+        )
+        _seed_repo_relative_graph(repo)
+
+        result = get_review_context(
+            changed_files=["src/app.py"],
+            repo_root=str(repo),
+            include_source=False,
+        )
+
+        changed = result["context"]["graph"]["changed_nodes"]
+        assert any(n["name"] == "handle" for n in changed)
+        assert result["context_savings"]["estimated"] is True
+        assert set(result["context_savings"]) == {
+            "estimated",
+            "saved_tokens",
+            "saved_percent",
+        }
+
+    def test_get_impact_radius_resolves_repo_relative_changed_file(self, tmp_path):
+        repo = tmp_path / "fixtures" / "sample_repo"
+        repo.mkdir(parents=True)
+        (repo / ".git").mkdir()
+        (repo / "src").mkdir()
+        (repo / "src" / "app.py").write_text(
+            "def handle():\n    return 'ok'\n",
+            encoding="utf-8",
+        )
+        _seed_repo_relative_graph(repo)
+
+        result = get_impact_radius(
+            changed_files=["src/app.py"],
+            repo_root=str(repo),
+        )
+
+        assert any(n["name"] == "handle" for n in result["changed_nodes"])
+
+    def test_file_summary_resolves_repo_relative_target(self, tmp_path):
+        repo = tmp_path / "fixtures" / "sample_repo"
+        repo.mkdir(parents=True)
+        (repo / ".git").mkdir()
+        (repo / "src").mkdir()
+        (repo / "src" / "app.py").write_text(
+            "def handle():\n    return 'ok'\n",
+            encoding="utf-8",
+        )
+        _seed_repo_relative_graph(repo)
+
+        result = query_graph(
+            pattern="file_summary",
+            target="src/app.py",
+            repo_root=str(repo),
+        )
+
+        assert any(n["name"] == "handle" for n in result["results"])
+
+
+class TestRepoRootValidation:
+    def test_validate_repo_root_accepts_svn_working_copy(self, tmp_path):
+        (tmp_path / ".svn").mkdir()
+
+        assert _validate_repo_root(tmp_path) == tmp_path.resolve()
+
+    def test_validate_repo_root_error_mentions_svn_marker(self, tmp_path):
+        with pytest.raises(ValueError, match=r"\.git, \.svn, or \.code-review-graph"):
+            _validate_repo_root(tmp_path)
+
+
 class TestGetDocsSection:
     """Tests for the get_docs_section tool."""
 
@@ -188,6 +403,37 @@ class TestGetDocsSection:
         assert result["status"] in ("ok", "not_found")
         if result["status"] == "ok":
             assert len(result["content"]) > 0
+
+    def test_source_tree_docs_lookup_from_outside_repo(self, tmp_path, monkeypatch):
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.delenv("CRG_REPO_ROOT", raising=False)
+
+        result = get_docs_section(section_name="usage")
+
+        assert result["status"] == "ok"
+        assert len(result["content"]) > 0
+
+    def test_packaged_docs_lookup_from_outside_repo(self, tmp_path, monkeypatch):
+        package_dir = tmp_path / "site-packages" / "code_review_graph"
+        tools_dir = package_dir / "tools"
+        docs_dir = package_dir / "docs"
+        tools_dir.mkdir(parents=True)
+        docs_dir.mkdir()
+        (docs_dir / "LLM-OPTIMIZED-REFERENCE.md").write_text(
+            '<section name="usage">packaged docs</section>\n',
+            encoding="utf-8",
+        )
+        work_dir = tmp_path / "elsewhere"
+        work_dir.mkdir()
+
+        monkeypatch.chdir(work_dir)
+        monkeypatch.delenv("CRG_REPO_ROOT", raising=False)
+        monkeypatch.setattr(docs_module, "__file__", str(tools_dir / "docs.py"))
+
+        result = docs_module.get_docs_section("usage")
+
+        assert result["status"] == "ok"
+        assert result["content"] == "packaged docs"
 
 
 class TestFindLargeFunctions:
@@ -698,10 +944,64 @@ class TestCommunityTools:
         assert "summary" in result
 
     def test_get_architecture_overview_summary_format(self):
-        result = get_architecture_overview_func(repo_root=str(self.root))
+        result = get_architecture_overview_func(
+            repo_root=str(self.root), detail_level="standard"
+        )
         assert "Architecture:" in result["summary"]
         assert "communities" in result["summary"]
         assert "cross-community edges" in result["summary"]
+
+    def test_get_architecture_overview_defaults_to_compact_output(self):
+        result = get_architecture_overview_func(repo_root=str(self.root))
+        assert "community pairs" in result["summary"]
+        for c in result["communities"]:
+            assert "members" not in c
+        assert result["context_savings"]["estimated"] is True
+        assert set(result["context_savings"]) == {
+            "estimated",
+            "saved_tokens",
+            "saved_percent",
+        }
+
+    def test_get_architecture_overview_standard_omits_savings_metadata(self):
+        result = get_architecture_overview_func(
+            repo_root=str(self.root), detail_level="standard"
+        )
+        assert "context_savings" not in result
+
+    def test_get_architecture_overview_minimal_drops_members(self):
+        result = get_architecture_overview_func(
+            repo_root=str(self.root), detail_level="minimal"
+        )
+        assert result["status"] == "ok"
+        for c in result["communities"]:
+            assert "members" not in c
+            assert "name" in c and "size" in c and "cohesion" in c
+
+    def test_get_architecture_overview_minimal_aggregates_edges(self):
+        std = get_architecture_overview_func(
+            repo_root=str(self.root), detail_level="standard"
+        )
+        minimal = get_architecture_overview_func(
+            repo_root=str(self.root), detail_level="minimal"
+        )
+        # Minimal edges are pair-aggregated, so count is <= standard's
+        # per-edge count.
+        assert len(minimal["cross_community_edges"]) <= len(
+            std["cross_community_edges"]
+        )
+        for pair in minimal["cross_community_edges"]:
+            assert "source_community" in pair
+            assert "target_community" in pair
+            assert "edge_count" in pair
+            assert pair["edge_count"] >= 1
+            assert isinstance(pair["top_kinds"], list)
+
+    def test_get_architecture_overview_minimal_summary_label(self):
+        result = get_architecture_overview_func(
+            repo_root=str(self.root), detail_level="minimal"
+        )
+        assert "community pairs" in result["summary"]
 
 
 class TestBuildPostprocess:

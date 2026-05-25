@@ -43,10 +43,6 @@ import os
 from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as pkg_version
 from pathlib import Path
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from .graph import GraphStore
 
 logger = logging.getLogger(__name__)
 
@@ -320,21 +316,6 @@ def _handle_init(args: argparse.Namespace) -> None:
     print("Next steps:")
     print("  1. code-review-graph build    # build the knowledge graph")
     print("  2. Restart your AI coding tool to pick up the new config")
-
-
-def _cli_post_process(store: GraphStore) -> None:
-    """Run post-build pipeline and print a summary line for each step."""
-    from .postprocessing import run_post_processing
-
-    pp = run_post_processing(store)
-    if pp.get("signatures_computed"):
-        print(f"Signatures: {pp['signatures_computed']} nodes")
-    if pp.get("fts_indexed"):
-        print(f"FTS indexed: {pp['fts_indexed']} nodes")
-    if pp.get("flows_detected") is not None:
-        print(f"Flows: {pp['flows_detected']}")
-    if pp.get("communities_detected") is not None:
-        print(f"Communities: {pp['communities_detected']}")
 
 
 def _handle_data_dir_option(args, repo_root: Path) -> None:
@@ -923,7 +904,6 @@ def main() -> None:
             print(f"Full build: {parsed} files, {nodes} nodes, {edges} edges (postprocess={pp})")
             if result.get("errors"):
                 print(f"Errors: {len(result['errors'])}")
-            _cli_post_process(store)
 
         elif args.command == "update":
             pp = (
@@ -947,8 +927,6 @@ def main() -> None:
                 f"{nodes} nodes, {edges} edges"
                 f" (postprocess={pp})"
             )
-            if result.get("files_updated", 0) > 0:
-                _cli_post_process(store)
 
         elif args.command == "status":
             stats = store.get_stats()
@@ -1065,6 +1043,11 @@ def main() -> None:
 
         elif args.command == "detect-changes":
             from .changes import analyze_changes
+            from .context_savings import (
+                attach_context_savings,
+                estimate_file_tokens,
+                format_context_savings,
+            )
             from .incremental import get_changed_files, get_staged_and_unstaged
 
             base = args.base
@@ -1081,8 +1064,17 @@ def main() -> None:
                     repo_root=str(repo_root),
                     base=base,
                 )
+                attach_context_savings(
+                    result,
+                    original_tokens=estimate_file_tokens(repo_root, changed),
+                )
                 if args.brief:
                     print(result.get("summary", "No summary available."))
+                    savings_line = format_context_savings(
+                        result.get("context_savings")
+                    )
+                    if savings_line:
+                        print(savings_line)
                 else:
                     print(json.dumps(result, indent=2, default=str))
 

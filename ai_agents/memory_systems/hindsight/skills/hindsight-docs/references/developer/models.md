@@ -25,6 +25,7 @@ Used for fact extraction, entity resolution, mental model consolidation, and ans
 - Vertex AI
 - Groq
 - Ollama
+- Ollama Cloud
 - LM Studio
 - llama.cpp
 - MiniMax
@@ -105,6 +106,7 @@ Each provider has a recommended default model that's used when `HINDSIGHT_API_LL
 | `vertexai` | `gemini-2.0-flash-001` |
 | `groq` | `openai/gpt-oss-120b` |
 | `ollama` | `gemma3:12b` |
+| `ollama-cloud` | `gemma3:12b` |
 | `lmstudio` | `local-model` |
 | `llamacpp` | `gemma-4-e2b-it` (auto-downloaded GGUF) |
 | `minimax` | `MiniMax-M2.7` |
@@ -186,6 +188,11 @@ export HINDSIGHT_API_LLM_MODEL=claude-sonnet-4-20250514
 export HINDSIGHT_API_LLM_PROVIDER=ollama
 export HINDSIGHT_API_LLM_BASE_URL=http://localhost:11434/v1
 export HINDSIGHT_API_LLM_MODEL=llama3
+
+# Ollama Cloud (hosted Ollama endpoint, requires API key)
+export HINDSIGHT_API_LLM_PROVIDER=ollama-cloud
+export HINDSIGHT_API_LLM_API_KEY=your-ollama-cloud-api-key
+export HINDSIGHT_API_LLM_MODEL=gemma3:12b
 
 # LM Studio (local)
 export HINDSIGHT_API_LLM_PROVIDER=lmstudio

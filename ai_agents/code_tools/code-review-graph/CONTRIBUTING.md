@@ -23,7 +23,7 @@ uv run pytest tests/ --tb=short -q
 uv run pytest tests/ --tb=short -q
 
 # With coverage
-uv run pytest --cov=code_review_graph --cov-report=term-missing --cov-fail-under=50
+uv run pytest --cov=code_review_graph --cov-report=term-missing --cov-fail-under=65
 
 # Single test file
 uv run pytest tests/test_parser.py -v
@@ -60,7 +60,8 @@ uv run mypy code_review_graph/ --ignore-missing-imports --no-strict-optional
 code_review_graph/     # Core Python package
   parser.py            # Tree-sitter multi-language parser
   graph.py             # SQLite graph store
-  tools.py             # MCP tool implementations
+  tools/               # MCP tool implementations
+  context_savings.py   # Compact estimated context-savings metadata
   incremental.py       # Git diff + file watch logic
   embeddings.py        # Vector embedding support
   visualization.py     # D3.js HTML generator

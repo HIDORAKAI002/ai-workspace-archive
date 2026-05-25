@@ -58,12 +58,14 @@ const DISCORD_REALTIME_FALLBACK_TEXT = "I hit an error while checking that. Plea
 const DISCORD_REALTIME_PENDING_SPEAKER_CONTEXT_LIMIT = 32;
 const DISCORD_REALTIME_RECENT_AGENT_PROXY_CONSULT_LIMIT = 16;
 const DISCORD_REALTIME_RECENT_AGENT_PROXY_CONSULT_TTL_MS = 15_000;
+const DISCORD_REALTIME_IGNORED_WAKE_NAME_CONTEXT_TTL_MS = 10_000;
 const DISCORD_REALTIME_LOG_PREVIEW_CHARS = 500;
 const DISCORD_REALTIME_DEFAULT_MIN_BARGE_IN_AUDIO_END_MS = 250;
 const DISCORD_REALTIME_FORCED_CONSULT_FALLBACK_DELAY_MS = 200;
 const DISCORD_REALTIME_DUPLICATE_ERROR_SUPPRESS_MS = 60_000;
 const DISCORD_REALTIME_CONTROL_SPEECH_DEDUPE_MS = 5_000;
 const DISCORD_REALTIME_OUTPUT_PLAYBACK_WATCHDOG_MARGIN_MS = 1_500;
+const DISCORD_REALTIME_WAKE_NAME_FUZZY_PREFIX_WORDS = 3;
 const REALTIME_PCM16_BYTES_PER_SAMPLE = 2;
 const DISCORD_RAW_PCM_FRAME_BYTES = 3_840;
 const DISCORD_REALTIME_OUTPUT_PREROLL_FRAMES = 25;
@@ -139,6 +141,11 @@ type RecentAgentProxyConsultContext = {
   result?: RecentAgentProxyConsultResult;
 };
 
+type RecentIgnoredWakeNameSpeakerContext = {
+  context: DiscordRealtimeSpeakerContext;
+  createdAt: number;
+};
+
 function formatRealtimeLogPreview(text: string): string {
   const oneLine = text.replace(/\s+/g, " ").trim();
   if (oneLine.length <= DISCORD_REALTIME_LOG_PREVIEW_CHARS) {
@@ -175,6 +182,14 @@ function formatRealtimeInterruptionLog(event: RealtimeVoiceBridgeEvent): string 
     }
   }
   return undefined;
+}
+
+function formatRealtimeLifecycleLog(event: RealtimeVoiceBridgeEvent): string | undefined {
+  if (!event.type.startsWith("session.")) {
+    return undefined;
+  }
+  const detail = event.detail ? ` ${event.detail}` : "";
+  return `discord voice: realtime lifecycle ${event.direction}:${event.type}${detail}`;
 }
 
 function isRealtimeResponseCancelled(event: RealtimeVoiceBridgeEvent): boolean {
@@ -345,6 +360,19 @@ function normalizeWakeName(value: string): string | undefined {
   return normalized || undefined;
 }
 
+function normalizeWakeNameCandidate(value: string): string | undefined {
+  const normalized = value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return normalized || undefined;
+}
+
+function compactWakeName(value: string): string {
+  return value.replace(/[^a-z0-9]+/g, "");
+}
+
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -374,6 +402,188 @@ function stripLeadingWakeName(text: string, wakeName: string): string {
       "",
     )
     .trim();
+}
+
+type LeadingWakeNameCandidate = {
+  heardName: string;
+  endIndex: number;
+  strongBoundary: boolean;
+};
+
+type WakeNameTranscriptResult =
+  | { allowed: true; text: string; wakeName: string; heardName: string; match: "exact" | "fuzzy" }
+  | { allowed: false; text: string };
+type AllowedWakeNameTranscriptResult = Extract<WakeNameTranscriptResult, { allowed: true }>;
+
+function leadingWakeNameCandidates(text: string): LeadingWakeNameCandidate[] {
+  const opener = /^\s*(?:(?:hey|ok|okay)(?:\s*[-,:;]+\s*|\s+))?/i.exec(text);
+  const nameStart = opener?.[0].length ?? 0;
+  const candidates: LeadingWakeNameCandidate[] = [];
+  const tokenPattern = /[a-z0-9]+/gi;
+  tokenPattern.lastIndex = nameStart;
+
+  for (
+    let wordCount = 0;
+    wordCount < DISCORD_REALTIME_WAKE_NAME_FUZZY_PREFIX_WORDS;
+    wordCount += 1
+  ) {
+    const token = tokenPattern.exec(text);
+    if (!token) {
+      break;
+    }
+    const between = text.slice(
+      wordCount === 0 ? nameStart : candidates[wordCount - 1]?.endIndex,
+      token.index,
+    );
+    if (wordCount > 0 && !/^[\s'-]+$/.test(between)) {
+      break;
+    }
+    const endIndex = token.index + token[0].length;
+    const heardName = normalizeWakeNameCandidate(text.slice(nameStart, endIndex));
+    if (!heardName) {
+      break;
+    }
+    const boundary = text.slice(endIndex).match(/^\s*([,.:;!?-]|$)/);
+    candidates.push({
+      heardName,
+      endIndex,
+      strongBoundary: Boolean(boundary),
+    });
+  }
+
+  return candidates;
+}
+
+function levenshteinDistance(left: string, right: string): number {
+  if (left === right) {
+    return 0;
+  }
+  if (!left) {
+    return right.length;
+  }
+  if (!right) {
+    return left.length;
+  }
+
+  let previous = Array.from({ length: right.length + 1 }, (_, index) => index);
+  for (let leftIndex = 0; leftIndex < left.length; leftIndex += 1) {
+    const current = [leftIndex + 1];
+    for (let rightIndex = 0; rightIndex < right.length; rightIndex += 1) {
+      const cost = left[leftIndex] === right[rightIndex] ? 0 : 1;
+      current[rightIndex + 1] = Math.min(
+        current[rightIndex] + 1,
+        previous[rightIndex + 1] + 1,
+        previous[rightIndex] + cost,
+      );
+    }
+    previous = current;
+  }
+  return previous[right.length] ?? Math.max(left.length, right.length);
+}
+
+function hasOnlyVowelLikeSubstitutions(left: string, right: string): boolean {
+  if (left.length !== right.length) {
+    return false;
+  }
+  const vowels = new Set(["a", "e", "i", "o", "u", "y"]);
+  let substitutions = 0;
+  for (let index = 0; index < left.length; index += 1) {
+    const leftChar = left[index];
+    const rightChar = right[index];
+    if (leftChar === rightChar) {
+      continue;
+    }
+    if (!vowels.has(leftChar ?? "") || !vowels.has(rightChar ?? "")) {
+      return false;
+    }
+    substitutions += 1;
+  }
+  return substitutions > 0;
+}
+
+function commonPrefixLength(left: string, right: string): number {
+  const limit = Math.min(left.length, right.length);
+  for (let index = 0; index < limit; index += 1) {
+    if (left[index] !== right[index]) {
+      return index;
+    }
+  }
+  return limit;
+}
+
+function isFuzzyWakeNameMatch(candidate: LeadingWakeNameCandidate, wakeName: string): boolean {
+  const normalizedWakeName = normalizeWakeNameCandidate(wakeName);
+  if (!normalizedWakeName) {
+    return false;
+  }
+  const heardCompact = compactWakeName(candidate.heardName);
+  const wakeCompact = compactWakeName(normalizedWakeName);
+  if (!heardCompact || !wakeCompact || wakeCompact.length < 5) {
+    return false;
+  }
+  if (!candidate.strongBoundary) {
+    return false;
+  }
+  if (heardCompact[0] !== wakeCompact[0]) {
+    return false;
+  }
+  const distance = levenshteinDistance(heardCompact, wakeCompact);
+  if (distance <= 1) {
+    return true;
+  }
+  if (
+    distance === 2 &&
+    heardCompact.length >= 4 &&
+    wakeCompact.length >= 5 &&
+    (heardCompact.length !== wakeCompact.length ||
+      hasOnlyVowelLikeSubstitutions(heardCompact, wakeCompact) ||
+      commonPrefixLength(heardCompact, wakeCompact) >= 6)
+  ) {
+    return true;
+  }
+  if (
+    distance === 3 &&
+    heardCompact.length >= 7 &&
+    wakeCompact.length >= 7 &&
+    heardCompact.length !== wakeCompact.length &&
+    commonPrefixLength(heardCompact, wakeCompact) >= 5
+  ) {
+    return true;
+  }
+  return false;
+}
+
+function stripLeadingWakeNameCandidate(text: string, candidate: LeadingWakeNameCandidate): string {
+  return text
+    .slice(candidate.endIndex)
+    .replace(/^\s*(?:[-,:;.!?]+\s*)?/, "")
+    .trim();
+}
+
+function matchLeadingFuzzyWakeName(
+  text: string,
+  wakeNames: string[],
+): AllowedWakeNameTranscriptResult | undefined {
+  for (const candidate of leadingWakeNameCandidates(text)) {
+    for (const wakeName of wakeNames) {
+      const normalizedWakeName = normalizeWakeNameCandidate(wakeName);
+      if (!normalizedWakeName) {
+        continue;
+      }
+      const heardCompact = compactWakeName(candidate.heardName);
+      const wakeCompact = compactWakeName(normalizedWakeName);
+      if (heardCompact === wakeCompact || isFuzzyWakeNameMatch(candidate, wakeName)) {
+        return {
+          allowed: true,
+          text: stripLeadingWakeNameCandidate(text, candidate),
+          wakeName,
+          heardName: candidate.heardName,
+          match: heardCompact === wakeCompact ? "exact" : "fuzzy",
+        };
+      }
+    }
+  }
+  return undefined;
 }
 
 function resolveDiscordRealtimeWakeNames(params: {
@@ -432,6 +642,7 @@ export class DiscordRealtimeVoiceSession implements VoiceRealtimeSession {
   private wakeNames: string[] = [];
   private pendingAgentProxyConsultContexts: PendingAgentProxyConsultContext[] = [];
   private recentAgentProxyConsultContexts: RecentAgentProxyConsultContext[] = [];
+  private recentIgnoredWakeNameSpeakerContext: RecentIgnoredWakeNameSpeakerContext | undefined;
   private readonly pendingSpeakerTurns: PendingSpeakerTurn[] = [];
   private outputAudioTimestampMs = 0;
   private outputAudioDiscordBytes = 0;
@@ -591,6 +802,10 @@ export class DiscordRealtimeVoiceSession implements VoiceRealtimeSession {
         if (interruptionLog) {
           logger.info(interruptionLog);
         }
+        const lifecycleLog = formatRealtimeLifecycleLog(event);
+        if (lifecycleLog) {
+          logger.info(lifecycleLog);
+        }
       },
       onError: (error) => this.logRealtimeError(formatErrorMessage(error)),
       onClose: (reason) => {
@@ -624,6 +839,7 @@ export class DiscordRealtimeVoiceSession implements VoiceRealtimeSession {
     this.clearForcedConsultTimers();
     this.pendingAgentProxyConsultContexts = [];
     this.recentAgentProxyConsultContexts = [];
+    this.recentIgnoredWakeNameSpeakerContext = undefined;
     this.pendingSpeakerTurns.length = 0;
     this.queuedExactSpeechMessages = [];
     this.exactSpeechResponseActive = false;
@@ -1216,10 +1432,10 @@ export class DiscordRealtimeVoiceSession implements VoiceRealtimeSession {
     this.recordMeetingNotesUtterance(trimmed, meetingNotesTurn);
     const wakeNameResult = this.resolveWakeNameTranscript(trimmed);
     if (!wakeNameResult.allowed) {
+      this.rememberIgnoredWakeNameSpeakerContext(this.consumePendingSpeakerContext());
       logger.info(
         `discord voice: realtime wake-name gate ignored transcript chars=${trimmed.length} voiceSession=${this.params.entry.voiceSessionKey} agent=${this.params.entry.route.agentId} wakeNames=${this.wakeNames.join(",") || "none"}`,
       );
-      this.consumePendingSpeakerContext();
       return;
     }
     const acceptedText = wakeNameResult.text || trimmed;
@@ -1261,13 +1477,26 @@ export class DiscordRealtimeVoiceSession implements VoiceRealtimeSession {
     this.talkback.enqueue(acceptedText, this.consumePendingSpeakerContext());
   }
 
-  private resolveWakeNameTranscript(text: string): { allowed: boolean; text: string } {
+  private resolveWakeNameTranscript(text: string): WakeNameTranscriptResult {
     if (!this.requireWakeName) {
-      return { allowed: true, text };
+      return { allowed: true, text, wakeName: "", heardName: "", match: "exact" };
     }
     const wakeName = this.wakeNames.find((name) => includesWakeName(text, name));
     if (wakeName) {
-      return { allowed: true, text: stripLeadingWakeName(text, wakeName) };
+      return {
+        allowed: true,
+        text: stripLeadingWakeName(text, wakeName),
+        wakeName,
+        heardName: wakeName,
+        match: "exact",
+      };
+    }
+    const fuzzyWakeName = matchLeadingFuzzyWakeName(text, this.wakeNames);
+    if (fuzzyWakeName) {
+      logger.info(
+        `discord voice: realtime wake-name gate matched canonical=${fuzzyWakeName.wakeName} heard=${fuzzyWakeName.heardName} match=${fuzzyWakeName.match} voiceSession=${this.params.entry.voiceSessionKey} agent=${this.params.entry.route.agentId}`,
+      );
+      return fuzzyWakeName;
     }
     return { allowed: false, text };
   }
@@ -1319,13 +1548,17 @@ export class DiscordRealtimeVoiceSession implements VoiceRealtimeSession {
     if (!question) {
       return undefined;
     }
-    const context = this.consumePendingSpeakerContext();
     const skipReason = classifySkippableForcedAgentProxyTranscript(question);
     if (skipReason) {
+      const context = this.consumePendingSpeakerContext();
       logger.info(
         `discord voice: realtime forced agent consult skipped reason=${skipReason} chars=${question.length} speaker=${context?.speakerLabel ?? "unknown"} transcript=${formatRealtimeLogPreview(question)}`,
       );
       return undefined;
+    }
+    let context = this.consumePendingSpeakerContext();
+    if (!context) {
+      context = this.consumeRecentIgnoredWakeNameSpeakerContext();
     }
     if (!context) {
       const recent = this.findRecentAgentProxyConsultContext(question);
@@ -1458,6 +1691,30 @@ export class DiscordRealtimeVoiceSession implements VoiceRealtimeSession {
     const [turn] = this.pendingSpeakerTurns.splice(index, 1);
     this.prunePendingSpeakerTurns();
     return turn?.context;
+  }
+
+  private rememberIgnoredWakeNameSpeakerContext(
+    context: DiscordRealtimeSpeakerContext | undefined,
+  ): void {
+    if (!context) {
+      return;
+    }
+    this.recentIgnoredWakeNameSpeakerContext = {
+      context,
+      createdAt: Date.now(),
+    };
+  }
+
+  private consumeRecentIgnoredWakeNameSpeakerContext(): DiscordRealtimeSpeakerContext | undefined {
+    const recent = this.recentIgnoredWakeNameSpeakerContext;
+    this.recentIgnoredWakeNameSpeakerContext = undefined;
+    if (
+      !recent ||
+      Date.now() - recent.createdAt > DISCORD_REALTIME_IGNORED_WAKE_NAME_CONTEXT_TTL_MS
+    ) {
+      return undefined;
+    }
+    return recent.context;
   }
 
   private peekPendingSpeakerTurn(): PendingSpeakerTurn | undefined {

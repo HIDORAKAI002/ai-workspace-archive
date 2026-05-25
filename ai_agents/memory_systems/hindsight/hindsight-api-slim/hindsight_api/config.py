@@ -478,6 +478,7 @@ PROVIDER_DEFAULT_MODELS = {
     "zai": "glm-4.5-flash",
     "opencode-go": "deepseek-v4-flash",
     "ollama": "gemma3:12b",
+    "ollama-cloud": "gemma3:12b",
     "llamacpp": "gemma-4-e2b-it",
     "lmstudio": "local-model",
     "vertexai": "google/gemini-2.5-flash-lite",
@@ -1922,6 +1923,8 @@ class HindsightConfig:
             return "https://api.groq.com/openai/v1"
         elif provider == "ollama":
             return "http://localhost:11434/v1"
+        elif provider == "ollama-cloud":
+            return "https://ollama.com/v1"
         elif provider == "lmstudio":
             return "http://localhost:1234/v1"
         else:
