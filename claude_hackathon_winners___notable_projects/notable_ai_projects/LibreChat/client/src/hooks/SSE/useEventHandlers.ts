@@ -28,7 +28,7 @@ import {
   setDraft,
   scrollToEnd,
   getAllContentText,
-  addConvoToAllQueries,
+  upsertConvoInAllQueries,
   updateConvoInAllQueries,
   removeConvoFromAllQueries,
   findConversationInInfinite,
@@ -62,7 +62,6 @@ export type EventHandlerParams = {
   setConversation?: SetterOrUpdater<TConversation | null>;
   newConversation?: ConvoGenerator;
   setShowStopButton: SetterOrUpdater<boolean>;
-  setLatestMessage: SetterOrUpdater<TMessage | null>;
 };
 
 const createErrorMessage = ({
@@ -175,7 +174,6 @@ export default function useEventHandlers({
   setIsSubmitting,
   newConversation,
   setShowStopButton,
-  setLatestMessage,
 }: EventHandlerParams) {
   const queryClient = useQueryClient();
   const { announcePolite } = useLiveAnnouncer();
@@ -328,8 +326,6 @@ export default function useEventHandlers({
         ...responseMessage,
       };
 
-      logger.log('latest_message', 'syncHandler: setting latest message');
-      setLatestMessage(nextResponseMessage);
       setMessages([...messages, requestMessage, nextResponseMessage]);
 
       announcePolite({
@@ -358,7 +354,7 @@ export default function useEventHandlers({
         });
 
         if (requestMessage.parentMessageId === Constants.NO_PARENT) {
-          addConvoToAllQueries(queryClient, update);
+          upsertConvoInAllQueries(queryClient, update);
         } else {
           updateConvoInAllQueries(queryClient, update.conversationId!, (_c) => update, true);
         }
@@ -376,15 +372,7 @@ export default function useEventHandlers({
 
       setShowStopButton(true);
     },
-    [
-      queryClient,
-      setMessages,
-      isAddedRequest,
-      announcePolite,
-      setConversation,
-      setShowStopButton,
-      setLatestMessage,
-    ],
+    [queryClient, setMessages, isAddedRequest, announcePolite, setConversation, setShowStopButton],
   );
 
   const createdHandler = useCallback(
@@ -408,8 +396,6 @@ export default function useEventHandlers({
         messageId: userMessage.messageId + '_',
         conversationId: userMessage.conversationId ?? submission.initialResponse.conversationId,
       };
-      logger.log('latest_message', 'createdHandler: setting latest message');
-      setLatestMessage(initialResponse);
       if (isRegenerate) {
         setMessages([...messages, initialResponse]);
       } else {
@@ -443,7 +429,7 @@ export default function useEventHandlers({
 
         if (!isTemporary) {
           if (parentMessageId === Constants.NO_PARENT) {
-            addConvoToAllQueries(queryClient, update);
+            upsertConvoInAllQueries(queryClient, update);
           } else {
             updateConvoInAllQueries(queryClient, update.conversationId!, (_c) => update, true);
           }
@@ -477,7 +463,6 @@ export default function useEventHandlers({
       isAddedRequest,
       announcePolite,
       setConversation,
-      setLatestMessage,
       applyAgentTemplate,
     ],
   );
@@ -491,6 +476,7 @@ export default function useEventHandlers({
         isRegenerate = false,
         isTemporary: _isTemporary = false,
       } = submission;
+      const serverConversation = conversation as TConversation;
 
       try {
         // Handle early abort - aborted during tool loading before any messages saved
@@ -623,14 +609,14 @@ export default function useEventHandlers({
             if (prevState?.model != null && prevState.model !== submissionConvo.model) {
               update.model = prevState.model;
             }
-            const cachedConvo = queryClient.getQueryData<TConversation>([
-              QueryKeys.conversation,
-              conversation.conversationId,
-            ]);
-            if (!cachedConvo) {
-              queryClient.setQueryData(
+            if (conversation.conversationId) {
+              queryClient.setQueryData<TConversation>(
                 [QueryKeys.conversation, conversation.conversationId],
-                update,
+                (cachedConvo) =>
+                  ({
+                    ...cachedConvo,
+                    ...serverConversation,
+                  }) as TConversation,
               );
             }
             return update;
