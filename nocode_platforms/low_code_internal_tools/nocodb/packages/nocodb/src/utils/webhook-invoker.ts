@@ -1,6 +1,10 @@
 import { Logger } from '@nestjs/common';
-import { hasInputCalls, NOCO_SERVICE_USERS, ServiceUserType } from 'nocodb-sdk';
-import { useAgent } from 'request-filtering-agent';
+import {
+  hasInputCalls,
+  NOCO_SERVICE_USERS,
+  OperationSource,
+  ServiceUserType,
+} from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import { ncIsNullOrUndefined } from 'nocodb-sdk';
 import type { AxiosResponse } from 'axios';
@@ -849,6 +853,24 @@ export class WebhookInvoker {
           e?.message?.includes?.('maxBodyLength')
         ) {
           throw new Error(`Request body too large for ${reqPayload.url}`);
+        }
+
+        // Check for invalid header content (CRLF injection guard — axios >=1.15.0
+        // rejects header values containing \r or \n. Webhook header templates can
+        // resolve to multi-line values when bound to free-form record fields.)
+        if (e?.message?.includes?.('Invalid character in header content')) {
+          throw new Error(
+            `Webhook header contains invalid characters (CR/LF) for ${reqPayload.url} — check header templates`,
+          );
+        }
+
+        // Check for response size errors (axios >=1.15.1 enforces maxContentLength
+        // on streamed responses, which was previously silently ignored.)
+        if (
+          e?.code === 'ERR_FR_MAX_CONTENT_LENGTH_EXCEEDED' ||
+          e?.message?.includes?.('maxContentLength')
+        ) {
+          throw new Error(`Response body too large for ${reqPayload.url}`);
         }
 
         // Check for cancelled requests

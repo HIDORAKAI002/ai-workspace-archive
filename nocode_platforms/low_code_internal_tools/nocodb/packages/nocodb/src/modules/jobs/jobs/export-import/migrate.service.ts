@@ -2,9 +2,10 @@ import { Readable } from 'stream';
 import debug from 'debug';
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
-import { useAgent } from 'request-filtering-agent';
+import { OperationSource } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { Base, Source } from '~/models';
+import { getFilteredAgents } from '~/utils/ssrf';
 import { NcError } from '~/helpers/ncError';
 import { assertNotSandbox } from '~/helpers/sandboxGuards';
 import { ExportService } from '~/modules/jobs/jobs/export-import/export.service';
@@ -80,8 +81,10 @@ export class MigrateService {
       headers: {
         'Content-Type': 'application/octet-stream',
       },
-      httpAgent: useAgent(targetUrl),
-      httpsAgent: useAgent(targetUrl),
+      ...getFilteredAgents({
+        url: targetUrl,
+        source: OperationSource.MIGRATION,
+      }),
       data: stream,
       maxBodyLength: Infinity,
     }).catch((e) => {

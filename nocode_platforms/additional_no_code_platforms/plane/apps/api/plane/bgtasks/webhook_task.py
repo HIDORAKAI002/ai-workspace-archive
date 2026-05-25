@@ -334,7 +334,15 @@ def webhook_send_task(
         )
 
         # Send the webhook event
-        response = requests.post(webhook.url, headers=headers, json=payload, timeout=30)
+        # allow_redirects=False prevents SSRF via 3xx hops to internal addresses
+        # bypassing the validate_url() check above (GHSA-mq87-52pf-hm3h).
+        response = requests.post(
+            webhook.url,
+            headers=headers,
+            json=payload,
+            timeout=30,
+            allow_redirects=False,
+        )
 
         # Log the webhook request
         save_webhook_log(
