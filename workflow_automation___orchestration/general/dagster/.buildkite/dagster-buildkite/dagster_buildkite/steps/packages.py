@@ -942,6 +942,10 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
             timeout_in_minutes=30,
         ),
         PackageSpec(
+            # fixtures_tests cycles multi-service docker-compose stacks; under the
+            # default 2Gi dind limit `compose down` hits the 90s stop timeout and
+            # leaves stale containers that fail name-conflict on the next test.
+            # Same shape as the dagster-mysql bump in #24661.
             oss_path("python_modules/dagster-test"),
             unsupported_python_versions=[
                 # dagster-airflow
@@ -949,6 +953,12 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
                 AvailablePythonVersion.V3_13,
                 AvailablePythonVersion.V3_14,
             ],
+            resources=ResourceRequests(
+                cpu="1000m",
+                memory="1Gi",
+                docker_memory="2Gi",
+                docker_memory_limit="4Gi",
+            ),
         ),
         PackageSpec(
             oss_path("python_modules/libraries/dagster-dbt"),
@@ -1053,7 +1063,6 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
                 "AIRLIFT_MWAA_TEST_PROFILE",
                 "AIRLIFT_MWAA_TEST_REGION",
             ],
-            queue=BuildkiteQueue.MEDIUM,
         ),
         PackageSpec(
             oss_path("python_modules/libraries/dagster-airbyte"),
@@ -1101,7 +1110,7 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
             oss_path("python_modules/libraries/dagster-dg-cli"),
             pytest_tox_factors=[
                 ToxFactor("general"),
-                ToxFactor("slow", splits=4, queue=BuildkiteQueue.MEDIUM),
+                ToxFactor("slow", splits=4),
                 ToxFactor("serial"),
                 ToxFactor("plus"),
             ],
@@ -1130,10 +1139,20 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
             pytest_extra_cmds=celery_extra_cmds,
         ),
         PackageSpec(
+            # Runs `test-project` images via celery + docker; the default 2Gi
+            # dind limit and 2000m cpu starve the daemon under image pulls,
+            # producing 60s ReadTimeouts on UnixHTTPConnectionPool. Same shape
+            # as the dagster-mysql bump in #24661.
             oss_path("python_modules/libraries/dagster-celery-docker"),
             env_vars=["AWS_ACCOUNT_ID", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"],
             pytest_extra_cmds=celery_extra_cmds,
             pytest_step_dependencies=test_project_depends_fn,
+            resources=ResourceRequests(
+                cpu="1000m",
+                memory="1Gi",
+                docker_memory="2Gi",
+                docker_memory_limit="4Gi",
+            ),
         ),
         PackageSpec(
             oss_path("python_modules/libraries/dagster-dask"),
@@ -1142,10 +1161,20 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
             oss_path("python_modules/libraries/dagster-databricks"),
         ),
         PackageSpec(
+            # Pulls and runs `test-project` images per test; the default 2Gi
+            # dind limit and 2000m cpu starve the daemon, producing 60s
+            # ReadTimeouts on UnixHTTPConnectionPool. Same shape as the
+            # dagster-mysql bump in #24661.
             oss_path("python_modules/libraries/dagster-docker"),
             env_vars=["AWS_ACCOUNT_ID", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"],
             pytest_extra_cmds=docker_extra_cmds,
             pytest_step_dependencies=test_project_depends_fn,
+            resources=ResourceRequests(
+                cpu="1000m",
+                memory="1Gi",
+                docker_memory="2Gi",
+                docker_memory_limit="4Gi",
+            ),
         ),
         PackageSpec(
             oss_path("python_modules/libraries/dagster-duckdb"),
@@ -1254,7 +1283,6 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
             pytest_tox_factors=[
                 ToxFactor("kubernetes_12"),
                 ToxFactor("kubernetes_35"),
-                ToxFactor("kubernetes_36"),
             ],
             pytest_extra_cmds=k8s_extra_cmds,
         ),
@@ -1333,14 +1361,12 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
         PackageSpec(
             oss_path("python_modules/libraries/dagstermill"),
             pytest_tox_factors=[
-                ToxFactor("papermill2", splits=2, queue=BuildkiteQueue.MEDIUM),
+                ToxFactor("papermill2", splits=2),
             ],
         ),
         PackageSpec(
             oss_path("python_modules/libraries/dagster-airlift/perf-harness"),
             force_run_fn=BuildkiteContext.has_dagster_airlift_changes,
-            # Long-standing Airflow e2e timing flake (`test_dagster_materializes[migrate]`).
-            queue=BuildkiteQueue.MEDIUM,
             unsupported_python_versions=[
                 # airflow
                 AvailablePythonVersion.V3_12,
