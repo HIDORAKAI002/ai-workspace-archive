@@ -815,7 +815,8 @@ def ensure_text_search_extension(
 
     Args:
         database_url: SQLAlchemy database URL
-        text_search_extension: Configured text search extension ("native" or "vchord")
+        text_search_extension: Configured text search extension — one of
+            "native", "vchord", "pg_textsearch", or "pgroonga"
         schema: Target PostgreSQL schema name (None for public)
 
     Raises:
@@ -838,6 +839,12 @@ def ensure_text_search_extension(
         elif text_search_extension == "pg_textsearch":
             target_column_type = "text"
             target_index_type = "bm25"
+        elif text_search_extension == "pgroonga":
+            # pgroonga indexes the base text column directly. We keep a dummy
+            # TEXT column named search_vector for symmetry with pg_textsearch
+            # and so the column-type mismatch detection above keeps working.
+            target_column_type = "text"
+            target_index_type = "pgroonga"
         else:  # native
             target_column_type = "tsvector"
             target_index_type = "gin"
@@ -925,12 +932,17 @@ def ensure_text_search_extension(
         # If there's data in any mismatched table, raise error
         if tables_with_data:
             table_list = ", ".join([f"{table}({count} rows)" for table, count in tables_with_data])
-            # Detect current extension from column type
+            # Detect current extension from column type + index type. tsvector is
+            # unambiguous; text could be either pg_textsearch or pgroonga, so we
+            # disambiguate via the index type.
             current_col_type = mismatched_tables[0][1]
+            current_idx_type = mismatched_tables[0][2]
             if current_col_type == "tsvector":
                 current_ext = "native"
             elif current_col_type == "bm25vector":
                 current_ext = "vchord"
+            elif current_col_type == "text" and current_idx_type == "pgroonga":
+                current_ext = "pgroonga"
             elif current_col_type == "text":
                 current_ext = "pg_textsearch"
             else:
@@ -1000,21 +1012,50 @@ def ensure_text_search_extension(
                         WITH (text_config='english')
                     """)
                 )
-            else:  # native
-                logger.info(f"Creating tsvector column on {table_name}")
-                # Different GENERATED expression for each table
-                if table_name == "memory_units":
-                    generated_expr = "to_tsvector('english', COALESCE(text, '') || ' ' || COALESCE(context, ''))"
-                else:  # reflections
-                    generated_expr = "to_tsvector('english', COALESCE(name, '') || ' ' || content)"
+            elif text_search_extension == "pgroonga":
+                # Ensure pgroonga extension is available
+                try:
+                    conn.execute(text("CREATE EXTENSION IF NOT EXISTS pgroonga CASCADE"))
+                except Exception:
+                    # Extension might already exist or user lacks permissions — verify
+                    has_ext = conn.execute(text("SELECT 1 FROM pg_extension WHERE extname = 'pgroonga'")).fetchone()
+                    if not has_ext:
+                        raise
 
+                logger.info(f"Creating dummy TEXT search_vector on {table_name} for pgroonga")
+                # pgroonga indexes the base text column directly, but we keep a
+                # dummy search_vector column for symmetry with pg_textsearch and
+                # so the column-type mismatch detection above keeps working.
+                conn.execute(text(f"ALTER TABLE {schema_name}.{table_name} ADD COLUMN search_vector TEXT"))
+
+                # pgroonga index expression mirrors pg_textsearch
+                if table_name == "memory_units":
+                    index_expr = (
+                        "(COALESCE(text, '') || ' ' || COALESCE(context, '') || ' ' || COALESCE(text_signals, ''))"
+                    )
+                else:  # reflections
+                    index_expr = "(COALESCE(name, '') || ' ' || content)"
+
+                logger.info(f"Creating pgroonga index on {table_name}")
+                # TokenBigram is the polyglot default — falls back to whitespace
+                # tokenization for space-separated languages and bigram for CJK.
+                # NormalizerNFKC150 handles Unicode normalization (full/half-width,
+                # case folding, etc.) which materially improves Japanese recall.
                 conn.execute(
                     text(f"""
-                        ALTER TABLE {schema_name}.{table_name}
-                        ADD COLUMN search_vector tsvector
-                        GENERATED ALWAYS AS ({generated_expr}) STORED
+                        CREATE INDEX idx_{table_name.replace(".", "_")}_text_search
+                        ON {schema_name}.{table_name}
+                        USING pgroonga ({index_expr})
+                        WITH (tokenizer='TokenBigram', normalizer='NormalizerNFKC150')
                     """)
                 )
+            else:  # native
+                logger.info(f"Creating tsvector column on {table_name}")
+                # Plain tsvector column. The application populates search_vector
+                # at INSERT time via to_tsvector($lang, ...) using the configured
+                # HINDSIGHT_API_TEXT_SEARCH_EXTENSION_NATIVE_LANGUAGE — see
+                # ops_postgresql.insert_facts_batch.
+                conn.execute(text(f"ALTER TABLE {schema_name}.{table_name} ADD COLUMN search_vector tsvector"))
 
                 # Create GIN index
                 logger.info(f"Creating GIN index on {table_name}")

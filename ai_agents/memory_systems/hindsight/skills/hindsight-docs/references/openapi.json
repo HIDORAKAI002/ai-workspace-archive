@@ -4137,6 +4137,23 @@
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/ConsolidationRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Request"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -6519,6 +6536,31 @@
         "example": {
           "deleted_count": 3
         }
+      },
+      "ConsolidationRequest": {
+        "properties": {
+          "observation_scopes": {
+            "anyOf": [
+              {
+                "items": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observation Scopes",
+            "description": "Optional list of tag scopes to consolidate. Each scope is a list of tags. Only unconsolidated memories whose tags contain all tags in at least one scope will be processed. If omitted, all unconsolidated memories are processed."
+          }
+        },
+        "type": "object",
+        "title": "ConsolidationRequest",
+        "description": "Request model for consolidation trigger endpoint."
       },
       "ConsolidationResponse": {
         "properties": {

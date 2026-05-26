@@ -91,9 +91,14 @@ def _vector_index_using_clause(ext: str) -> str:
 
 def _detect_text_search_extension() -> str:
     """
-    Detect or validate text search extension: 'native', 'vchord', or 'pg_textsearch'.
-    Respects HINDSIGHT_API_TEXT_SEARCH_EXTENSION env var.
-    Creates the extension if needed.
+    Detect or validate text search extension: 'native', 'vchord', 'pg_textsearch',
+    or 'pgroonga'. Respects HINDSIGHT_API_TEXT_SEARCH_EXTENSION env var. Creates
+    the extension if needed.
+
+    pgroonga is treated as native here so the initial schema still creates valid
+    tsvector columns. ensure_text_search_extension() at startup converts the
+    schema to pgroonga structures (drops the tsvector column, builds a pgroonga
+    index on the base text column).
     """
     text_search_extension = os.getenv("HINDSIGHT_API_TEXT_SEARCH_EXTENSION", "native").lower()
 
@@ -123,9 +128,14 @@ def _detect_text_search_extension() -> str:
         return "pg_textsearch"
     elif text_search_extension == "native":
         return "native"
+    elif text_search_extension == "pgroonga":
+        # ensure_text_search_extension() at runtime converts to pgroonga.
+        # Treat as native here so the initial schema still creates valid columns.
+        return "native"
     else:
         raise ValueError(
-            f"Invalid HINDSIGHT_API_TEXT_SEARCH_EXTENSION: {text_search_extension}. Must be 'native', 'vchord', or 'pg_textsearch'"
+            f"Invalid HINDSIGHT_API_TEXT_SEARCH_EXTENSION: {text_search_extension}. "
+            "Must be 'native', 'vchord', 'pg_textsearch', or 'pgroonga'"
         )
 
 

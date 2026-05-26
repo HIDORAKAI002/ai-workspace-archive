@@ -321,6 +321,7 @@ async def run_reflect_agent(
     include_recall: bool = True,
     budget: str | None = None,
     max_context_tokens: int = 100_000,
+    llm_output_language: str | None = None,
 ) -> ReflectAgentResult:
     """
     Execute the reflect agent loop using native tool calling.
@@ -452,7 +453,10 @@ async def run_reflect_agent(
             llm_start = time.time()
             response, usage = await llm_config.call(
                 messages=[
-                    {"role": "system", "content": build_final_system_prompt(bank_profile.get("mission"))},
+                    {
+                        "role": "system",
+                        "content": build_final_system_prompt(bank_profile.get("mission"), llm_output_language),
+                    },
                     {"role": "user", "content": prompt},
                 ],
                 scope="reflect",
@@ -509,7 +513,10 @@ async def run_reflect_agent(
             llm_start = time.time()
             response, usage = await llm_config.call(
                 messages=[
-                    {"role": "system", "content": build_final_system_prompt(bank_profile.get("mission"))},
+                    {
+                        "role": "system",
+                        "content": build_final_system_prompt(bank_profile.get("mission"), llm_output_language),
+                    },
                     {"role": "user", "content": prompt},
                 ],
                 scope="reflect",
@@ -612,7 +619,10 @@ async def run_reflect_agent(
             llm_start = time.time()
             response, usage = await llm_config.call(
                 messages=[
-                    {"role": "system", "content": build_final_system_prompt(bank_profile.get("mission"))},
+                    {
+                        "role": "system",
+                        "content": build_final_system_prompt(bank_profile.get("mission"), llm_output_language),
+                    },
                     {"role": "user", "content": prompt},
                 ],
                 scope="reflect",
@@ -733,7 +743,10 @@ async def run_reflect_agent(
             llm_start = time.time()
             response, usage = await llm_config.call(
                 messages=[
-                    {"role": "system", "content": build_final_system_prompt(bank_profile.get("mission"))},
+                    {
+                        "role": "system",
+                        "content": build_final_system_prompt(bank_profile.get("mission"), llm_output_language),
+                    },
                     {"role": "user", "content": prompt},
                 ],
                 scope="reflect",

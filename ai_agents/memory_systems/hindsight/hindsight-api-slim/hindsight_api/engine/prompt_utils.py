@@ -21,3 +21,21 @@ def escape_for_prompt(text: str) -> str:
     text = _LONE_OPEN_BRACE.sub("{{", text)
     text = _LONE_CLOSE_BRACE.sub("}}", text)
     return text
+
+
+def output_language_directive(language: str | None) -> str:
+    """Return an LLM directive forcing all output into ``language``.
+
+    Used by retain (fact extraction), consolidation (observations), and reflect
+    (response synthesis) so HINDSIGHT_API_LLM_OUTPUT_LANGUAGE applies uniformly
+    across every LLM-generated artifact. Returns an empty string when
+    ``language`` is unset so the calling prompt stays unchanged.
+    """
+    if not language:
+        return ""
+    return (
+        f"\n\nIMPORTANT: Respond exclusively in {language}. "
+        f"Translate any source content into {language}. "
+        f"All output text — including fact text, observations, entity names, "
+        f"and the final response — must be in {language}."
+    )

@@ -104,7 +104,46 @@ class PostgreSQLOps(DataAccessOps):
                 FROM input_data
                 RETURNING id
             """
+        elif config.text_search_extension == "native":
+            # search_vector is a regular tsvector column populated here using the
+            # configured native dictionary. It used to be GENERATED ALWAYS with
+            # a hardcoded 'english', which prevented per-deployment language
+            # configuration. text_search_extension_native_language is validated
+            # in HindsightConfig.validate() as a PG identifier, so embedding it
+            # as a SQL literal is safe.
+            query = f"""
+                WITH input_data AS (
+                    SELECT * FROM unnest(
+                        $2::text[], $3::vector[], $4::timestamptz[], $5::timestamptz[], $6::timestamptz[], $7::timestamptz[],
+                        $8::text[], $9::text[], $10::jsonb[], $11::text[], $12::text[], $13::jsonb[], $14::jsonb[], $15::text[]
+                    ) AS t(text, embedding, event_date, occurred_start, occurred_end, mentioned_at,
+                           context, fact_type, metadata, chunk_id, document_id, tags_json,
+                           observation_scopes_json, text_signals)
+                )
+                INSERT INTO {table} (bank_id, text, embedding, event_date, occurred_start, occurred_end, mentioned_at,
+                                     context, fact_type, metadata, chunk_id, document_id, tags,
+                                     observation_scopes, text_signals, search_vector)
+                SELECT
+                    $1,
+                    text, embedding, event_date, occurred_start, occurred_end, mentioned_at,
+                    context, fact_type, metadata, chunk_id, document_id,
+                    COALESCE(
+                        (SELECT array_agg(elem) FROM jsonb_array_elements_text(tags_json) AS elem),
+                        '{{}}'::varchar[]
+                    ),
+                    observation_scopes_json,
+                    text_signals,
+                    to_tsvector(
+                        '{config.text_search_extension_native_language}'::regconfig,
+                        COALESCE(text, '') || ' ' || COALESCE(context, '') || ' ' || COALESCE(text_signals, '')
+                    )
+                FROM input_data
+                RETURNING id
+            """
         else:
+            # pg_textsearch and pgroonga: search_vector is a dummy TEXT column;
+            # the actual full-text index operates on the base text columns
+            # directly, so we don't populate search_vector at insert time.
             query = f"""
                 WITH input_data AS (
                     SELECT * FROM unnest(

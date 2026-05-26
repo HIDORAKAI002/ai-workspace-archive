@@ -1,6 +1,6 @@
 """Prompts for the consolidation engine."""
 
-from hindsight_api.engine.prompt_utils import escape_for_prompt
+from hindsight_api.engine.prompt_utils import escape_for_prompt, output_language_directive
 
 # Default mission when no bank-specific mission is set
 _DEFAULT_MISSION = "Track every detail: names, numbers, dates, places, and relationships. Prefer specifics over abstractions, never generalise."
@@ -85,12 +85,14 @@ Rules:
 def build_batch_consolidation_prompt(
     observations_mission: str | None = None,
     observation_capacity_note: str | None = None,
+    llm_output_language: str | None = None,
 ) -> str:
     """
     Build the consolidation prompt for batch mode (multiple facts per LLM call).
 
     The mission defines *what* to track (customisable per bank).
     Processing rules and output format are always present regardless of mission.
+    When ``llm_output_language`` is set, observations are emitted in that language.
     """
     mission = escape_for_prompt(observations_mission or _DEFAULT_MISSION)
 
@@ -102,5 +104,8 @@ def build_batch_consolidation_prompt(
         "You are a memory consolidation system. Synthesize facts into observations "
         "and merge with existing observations when appropriate.\n\n"
         f"## MISSION\n{mission}{capacity_section}\n\n"
-        f"{_PROCESSING_RULES}" + _BATCH_DATA_SECTION + _BATCH_OUTPUT_FORMAT
+        f"{_PROCESSING_RULES}"
+        + _BATCH_DATA_SECTION
+        + _BATCH_OUTPUT_FORMAT
+        + output_language_directive(llm_output_language)
     )

@@ -1078,7 +1078,14 @@ export const triggerConsolidation = <ThrowOnError extends boolean = false>(
     TriggerConsolidationResponses,
     TriggerConsolidationErrors,
     ThrowOnError
-  >({ url: "/v1/default/banks/{bank_id}/consolidate", ...options });
+  >({
+    url: "/v1/default/banks/{bank_id}/consolidate",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
 
 /**
  * List webhooks

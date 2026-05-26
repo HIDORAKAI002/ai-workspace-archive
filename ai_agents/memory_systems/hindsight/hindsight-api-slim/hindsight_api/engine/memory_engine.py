@@ -208,6 +208,9 @@ from .search.reranking import CrossEncoderReranker, apply_combined_scoring
 from .search.tags import TagGroup, TagsMatch, build_tags_where_clause
 from .task_backend import TaskBackend
 
+RetainOutboxCallback = Callable[[asyncpg.Connection], Awaitable[None]]
+RetainOutboxCallbackFactory = Callable[[list[RetainContentDict]], RetainOutboxCallback | None]
+
 
 def _is_oracledb_connection_error(e: Exception) -> bool:
     """Check if an exception is an Oracle connection/interface error."""
@@ -906,9 +909,8 @@ class MemoryEngine(MemoryEngineInterface):
             request_context=context,
             operation_id=operation_id,
             strategy=strategy,
-            outbox_callback=self._build_retain_outbox_callback(
+            outbox_callback_factory=self._build_retain_outbox_callback_factory(
                 bank_id=bank_id,
-                contents=contents,
                 operation_id=operation_id,
                 schema=_current_schema.get(),
             ),
@@ -1156,6 +1158,7 @@ class MemoryEngine(MemoryEngineInterface):
             bank_id=bank_id,
             request_context=internal_context,
             operation_id=task_dict.get("operation_id"),
+            observation_scopes=task_dict.get("observation_scopes"),
         )
 
         logger.info(f"[CONSOLIDATION] bank={bank_id} completed: {result.get('memories_processed', 0)} processed")
@@ -1425,10 +1428,10 @@ class MemoryEngine(MemoryEngineInterface):
     def _build_retain_outbox_callback(
         self,
         bank_id: str,
-        contents: list[dict],
+        contents: list[RetainContentDict],
         operation_id: str | None,
         schema: str | None = None,
-    ) -> "Callable[[asyncpg.Connection], Awaitable[None]] | None":
+    ) -> RetainOutboxCallback | None:
         """Build a transactional outbox callback for retain.completed webhook events.
 
         Returns a coroutine function that queues one webhook delivery row per content
@@ -1472,6 +1475,31 @@ class MemoryEngine(MemoryEngineInterface):
                 await webhook_manager.fire_event_with_conn(event, conn, schema=resolved_schema)
 
         return _callback
+
+    def _build_retain_outbox_callback_factory(
+        self,
+        bank_id: str,
+        operation_id: str | None,
+        schema: str | None = None,
+    ) -> RetainOutboxCallbackFactory:
+        """Build retain outbox callbacks for grouped retain batches.
+
+        The factory captures one operation_id so per-document webhook events from
+        the same logical retain operation keep a shared event operation_id.
+        """
+        op_id = operation_id or uuid.uuid4().hex
+
+        def _factory(
+            callback_contents: list[RetainContentDict],
+        ) -> RetainOutboxCallback | None:
+            return self._build_retain_outbox_callback(
+                bank_id=bank_id,
+                contents=callback_contents,
+                operation_id=op_id,
+                schema=schema,
+            )
+
+        return _factory
 
     async def _update_webhook_delivery_metadata(
         self, operation_id: str, status_code: int | None, response_body: str | None
@@ -2399,7 +2427,8 @@ class MemoryEngine(MemoryEngineInterface):
         document_tags: list[str] | None = None,
         return_usage: bool = False,
         operation_id: str | None = None,
-        outbox_callback: "Callable[[asyncpg.Connection], Awaitable[None]] | None" = None,
+        outbox_callback: RetainOutboxCallback | None = None,
+        outbox_callback_factory: RetainOutboxCallbackFactory | None = None,
         strategy: str | None = None,
     ):
         """
@@ -2487,6 +2516,9 @@ class MemoryEngine(MemoryEngineInterface):
                 if "document_id" not in item:
                     item["document_id"] = document_id
 
+        if outbox_callback is None and outbox_callback_factory is not None:
+            outbox_callback = outbox_callback_factory(contents)
+
         # Validate no duplicate document_ids in the batch
         # Having duplicate document_ids causes race conditions in document upserts during parallel processing
         doc_ids = [item.get("document_id") for item in contents if item.get("document_id")]
@@ -2573,6 +2605,7 @@ class MemoryEngine(MemoryEngineInterface):
                     # Outbox callback runs inside the last sub-batch's transaction so the
                     # webhook delivery row is committed atomically with the final retain data.
                     outbox_callback=outbox_callback if i == len(sub_batches) else None,
+                    outbox_callback_factory=outbox_callback_factory if i == len(sub_batches) else None,
                 )
                 # sub_results aligns 1:1 with sub_batch items; map each
                 # back to its source input via origin_indices so callers
@@ -2604,6 +2637,7 @@ class MemoryEngine(MemoryEngineInterface):
                 operation_id=operation_id,
                 strategy=strategy,
                 outbox_callback=outbox_callback,
+                outbox_callback_factory=outbox_callback_factory,
             )
 
         # Call post-operation hook if validator is configured
@@ -2632,7 +2666,7 @@ class MemoryEngine(MemoryEngineInterface):
         # Trigger consolidation as a tracked async operation if enabled
         # Resolve bank-specific config to check if observations are enabled for this bank
         config = await self._config_resolver.resolve_full_config(bank_id, request_context)
-        if config.enable_observations:
+        if config.enable_observations and config.enable_auto_consolidation:
             try:
                 await self.submit_async_consolidation(bank_id=bank_id, request_context=request_context)
             except Exception as e:
@@ -2653,7 +2687,8 @@ class MemoryEngine(MemoryEngineInterface):
         fact_type_override: str | None = None,
         document_tags: list[str] | None = None,
         operation_id: str | None = None,
-        outbox_callback: "Callable[[asyncpg.Connection], Awaitable[None]] | None" = None,
+        outbox_callback: RetainOutboxCallback | None = None,
+        outbox_callback_factory: RetainOutboxCallbackFactory | None = None,
         strategy: str | None = None,
     ) -> tuple[list[list[str]], "TokenUsage", int | None]:
         """
@@ -2716,6 +2751,7 @@ class MemoryEngine(MemoryEngineInterface):
                 operation_id=operation_id,
                 schema=_current_schema.get(),
                 outbox_callback=outbox_callback,
+                outbox_callback_factory=outbox_callback_factory,
                 db_semaphore=self._put_semaphore,
             )
 
@@ -4134,10 +4170,12 @@ class MemoryEngine(MemoryEngineInterface):
                 }
 
         if invalidated_obs > 0:
-            try:
-                await self.submit_async_consolidation(bank_id=bank_id, request_context=request_context)
-            except Exception as e:
-                logger.warning(f"Failed to submit consolidation after document deletion for bank {bank_id}: {e}")
+            config = await self._config_resolver.resolve_full_config(bank_id, request_context)
+            if config.enable_auto_consolidation:
+                try:
+                    await self.submit_async_consolidation(bank_id=bank_id, request_context=request_context)
+                except Exception as e:
+                    logger.warning(f"Failed to submit consolidation after document deletion for bank {bank_id}: {e}")
 
         return result
 
@@ -4289,10 +4327,12 @@ class MemoryEngine(MemoryEngineInterface):
                             )
 
         if invalidated_obs > 0:
-            try:
-                await self.submit_async_consolidation(bank_id=bank_id, request_context=request_context)
-            except Exception as e:
-                logger.warning(f"Failed to submit consolidation after document update for bank {bank_id}: {e}")
+            config = await self._config_resolver.resolve_full_config(bank_id, request_context)
+            if config.enable_auto_consolidation:
+                try:
+                    await self.submit_async_consolidation(bank_id=bank_id, request_context=request_context)
+                except Exception as e:
+                    logger.warning(f"Failed to submit consolidation after document update for bank {bank_id}: {e}")
 
         return True
 
@@ -4365,14 +4405,17 @@ class MemoryEngine(MemoryEngineInterface):
                 }
 
         if bank_id_for_consolidation:
-            try:
-                await self.submit_async_consolidation(
-                    bank_id=bank_id_for_consolidation, request_context=request_context
-                )
-            except Exception as e:
-                logger.warning(
-                    f"Failed to submit consolidation after memory deletion for bank {bank_id_for_consolidation}: {e}"
-                )
+            config = await self._config_resolver.resolve_full_config(bank_id_for_consolidation, request_context)
+            if config.enable_auto_consolidation:
+                try:
+                    await self.submit_async_consolidation(
+                        bank_id=bank_id_for_consolidation, request_context=request_context
+                    )
+                except Exception as e:
+                    logger.warning(
+                        f"Failed to submit consolidation after memory deletion"
+                        f" for bank {bank_id_for_consolidation}: {e}"
+                    )
 
         return result
 
@@ -4498,10 +4541,12 @@ class MemoryEngine(MemoryEngineInterface):
                 await bank_utils.drop_bank_vector_indexes(conn, bank_internal_id, ops=self._backend.ops)
 
         if invalidated_obs > 0:
-            try:
-                await self.submit_async_consolidation(bank_id=bank_id, request_context=request_context)
-            except Exception as e:
-                logger.warning(f"Failed to submit consolidation after bank deletion for bank {bank_id}: {e}")
+            config = await self._config_resolver.resolve_full_config(bank_id, request_context)
+            if config.enable_auto_consolidation:
+                try:
+                    await self.submit_async_consolidation(bank_id=bank_id, request_context=request_context)
+                except Exception as e:
+                    logger.warning(f"Failed to submit consolidation after bank deletion for bank {bank_id}: {e}")
 
         return result
 
@@ -4664,7 +4709,9 @@ class MemoryEngine(MemoryEngineInterface):
                     )
 
         if deleted_count > 0:
-            await self.submit_async_consolidation(bank_id=bank_id, request_context=request_context)
+            config = await self._config_resolver.resolve_full_config(bank_id, request_context)
+            if config.enable_auto_consolidation:
+                await self.submit_async_consolidation(bank_id=bank_id, request_context=request_context)
 
         return {"deleted_count": deleted_count}
 
@@ -6349,6 +6396,7 @@ class MemoryEngine(MemoryEngineInterface):
                         include_recall=include_recall,
                         budget=effective_budget,
                         max_context_tokens=max_context_tokens,
+                        llm_output_language=getattr(resolved_reflect_config, "llm_output_language", None),
                     ),
                     timeout=wall_timeout,
                 )
@@ -6948,10 +6996,8 @@ class MemoryEngine(MemoryEngineInterface):
                 bank_id,
             )
 
-            # Link stats — filter on ml.bank_id (indexed) instead of joining through mu.bank_id.
-            # With the idx_memory_links_bank_link_type index this turns a full-table hash join
-            # into an indexed scan + PK lookups.  link_counts and link_counts_by_fact_type are
-            # derived in Python from the breakdown.
+            # Link stats — filter on ml.bank_id directly instead of joining through mu.bank_id.
+            # link_counts and link_counts_by_fact_type are derived in Python from the breakdown.
             link_breakdown_stats = await conn.fetch(
                 f"""
                 SELECT mu.fact_type, ml.link_type, COUNT(*) as count
@@ -9714,6 +9760,7 @@ class MemoryEngine(MemoryEngineInterface):
         bank_id: str,
         *,
         request_context: "RequestContext",
+        observation_scopes: list[list[str]] | None = None,
     ) -> dict[str, Any]:
         """Submit a consolidation operation to run asynchronously.
 
@@ -9723,6 +9770,8 @@ class MemoryEngine(MemoryEngineInterface):
         Args:
             bank_id: Bank identifier
             request_context: Request context for authentication
+            observation_scopes: Optional list of tag scopes to consolidate. When provided,
+                only unconsolidated memories matching at least one scope are processed.
 
         Returns:
             Dict with operation_id
@@ -9744,13 +9793,19 @@ class MemoryEngine(MemoryEngineInterface):
             task_payload["_tenant_id"] = request_context.tenant_id
         if request_context.api_key_id:
             task_payload["_api_key_id"] = request_context.api_key_id
+        if observation_scopes is not None:
+            task_payload["observation_scopes"] = observation_scopes
+
+        # Skip bank-level deduplication when scoped — the caller wants a
+        # targeted run that should not be merged into a pending full-bank sweep.
+        dedupe = observation_scopes is None
 
         return await self._submit_async_operation(
             bank_id=bank_id,
             operation_type="consolidation",
             task_type="consolidation",
             task_payload=task_payload,
-            dedupe_by_bank=True,
+            dedupe_by_bank=dedupe,
         )
 
     async def submit_async_refresh_mental_model(
