@@ -62,6 +62,10 @@ const CENTRALIZED_BUILD_SCRIPTS = [
   "scripts/test-live-build-docker.sh",
 ] as const;
 
+function shellQuote(value: string): string {
+  return `'${value.replace(/'/gu, `'\\''`)}'`;
+}
+
 describe("docker build helper", () => {
   it("forces BuildKit for centralized Docker builds", () => {
     const helper = readFileSync(HELPER_PATH, "utf8");
@@ -107,6 +111,148 @@ describe("docker build helper", () => {
     expect(liveCliBackend).not.toContain(
       'echo "==> Reuse live-test image: $LIVE_IMAGE_NAME (OPENCLAW_SKIP_DOCKER_BUILD=1)"',
     );
+  });
+
+  it("removes functional Docker build package inputs after the build", () => {
+    const workDir = mkdtempSync(join(tmpdir(), "openclaw-docker-build-cleanup-"));
+
+    try {
+      const rootDir = process.cwd();
+      const script = `
+set -euo pipefail
+ROOT_DIR=${shellQuote(rootDir)}
+TMPDIR=${shellQuote(workDir)}
+export ROOT_DIR TMPDIR
+
+node() {
+  local script="$1"
+  shift
+  if [[ "$script" != "$ROOT_DIR/scripts/package-openclaw-for-docker.mjs" ]]; then
+    command node "$script" "$@"
+    return
+  fi
+
+  local output_dir=""
+  local output_name=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --output-dir)
+        output_dir="$2"
+        shift 2
+        ;;
+      --output-name)
+        output_name="$2"
+        shift 2
+        ;;
+      *)
+        shift
+        ;;
+    esac
+  done
+
+  mkdir -p "$output_dir"
+  printf fixture >"$output_dir/$output_name"
+  printf "%s\\n" "$output_dir/$output_name"
+}
+export -f node
+
+source "$ROOT_DIR/scripts/lib/docker-e2e-image.sh"
+
+docker_build_run() {
+  local build_context=""
+  local arg
+  for arg in "$@"; do
+    case "$arg" in
+      openclaw_package=*)
+        build_context="\${arg#openclaw_package=}"
+        ;;
+    esac
+  done
+
+  test -n "$build_context"
+  test -f "$build_context/openclaw-current.tgz"
+  printf "%s\\n" "$build_context" >"$TMPDIR/build-context-seen"
+}
+
+docker_e2e_build_or_reuse \\
+  openclaw-test-image \\
+  cleanup-proof \\
+  "$ROOT_DIR/scripts/e2e/Dockerfile" \\
+  "$ROOT_DIR" \\
+  functional
+
+test -f "$TMPDIR/build-context-seen"
+leftovers="$(find "$TMPDIR" -maxdepth 1 \\( \\
+  -name 'openclaw-docker-e2e-pack.*' \\
+  -o -name 'openclaw-docker-e2e-package-context.*' \\
+\\) -print)"
+if [[ -n "$leftovers" ]]; then
+  printf 'leftover functional build inputs:\\n%s\\n' "$leftovers" >&2
+  exit 1
+fi
+`;
+
+      execFileSync("bash", ["-lc", script], { encoding: "utf8" });
+    } finally {
+      rmSync(workDir, { recursive: true, force: true });
+    }
+  });
+
+  it("keeps caller-provided functional Docker build packages", () => {
+    const workDir = mkdtempSync(join(tmpdir(), "openclaw-docker-build-external-package-"));
+
+    try {
+      const rootDir = process.cwd();
+      const script = `
+set -euo pipefail
+ROOT_DIR=${shellQuote(rootDir)}
+TMPDIR=${shellQuote(workDir)}
+export ROOT_DIR TMPDIR
+
+external_dir="$TMPDIR/external-package"
+mkdir -p "$external_dir"
+printf fixture >"$external_dir/openclaw-current.tgz"
+OPENCLAW_CURRENT_PACKAGE_TGZ="$external_dir/openclaw-current.tgz"
+export OPENCLAW_CURRENT_PACKAGE_TGZ
+
+source "$ROOT_DIR/scripts/lib/docker-e2e-image.sh"
+
+docker_build_run() {
+  local build_context=""
+  local arg
+  for arg in "$@"; do
+    case "$arg" in
+      openclaw_package=*)
+        build_context="\${arg#openclaw_package=}"
+        ;;
+    esac
+  done
+
+  test -n "$build_context"
+  test -f "$build_context/openclaw-current.tgz"
+  printf "%s\\n" "$build_context" >"$TMPDIR/build-context-seen"
+}
+
+docker_e2e_build_or_reuse \\
+  openclaw-test-image \\
+  external-package-proof \\
+  "$ROOT_DIR/scripts/e2e/Dockerfile" \\
+  "$ROOT_DIR" \\
+  functional
+
+test -f "$TMPDIR/build-context-seen"
+test -f "$OPENCLAW_CURRENT_PACKAGE_TGZ"
+leftovers="$(find "$TMPDIR" -maxdepth 1 -name 'openclaw-docker-e2e-package-context.*' -print)"
+if [[ -n "$leftovers" ]]; then
+  printf 'leftover functional build context:\\n%s\\n' "$leftovers" >&2
+  exit 1
+fi
+`;
+
+      execFileSync("bash", ["-lc", script], { encoding: "utf8" });
+    } finally {
+      rmSync(workDir, { recursive: true, force: true });
+    }
   });
 
   it("includes procps in the shared Docker E2E image for process watchdogs", () => {

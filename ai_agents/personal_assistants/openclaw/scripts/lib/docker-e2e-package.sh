@@ -31,13 +31,19 @@ docker_e2e_prepare_package_tgz() {
 
   local pack_dir
   pack_dir="$(mktemp -d "${TMPDIR:-/tmp}/openclaw-docker-e2e-pack.XXXXXX")"
+  local pack_status=0
   package_tgz="$(
     node "$ROOT_DIR/scripts/package-openclaw-for-docker.mjs" \
       --output-dir "$pack_dir" \
       --output-name openclaw-current.tgz
-  )"
+  )" || pack_status="$?"
+  if [ "$pack_status" -ne 0 ]; then
+    rm -rf "$pack_dir"
+    return "$pack_status"
+  fi
   if [ -z "$package_tgz" ]; then
     echo "missing packed OpenClaw tarball" >&2
+    rm -rf "$pack_dir"
     return 1
   fi
   docker_e2e_abs_path "$package_tgz"
@@ -49,7 +55,12 @@ docker_e2e_prepare_package_context() {
   context_dir="$(mktemp -d "${TMPDIR:-/tmp}/openclaw-docker-e2e-package-context.XXXXXX")"
   # BuildKit named contexts must be directories, so expose the tarball as a
   # stable filename inside a tiny temporary context.
-  cp "$package_tgz" "$context_dir/openclaw-current.tgz"
+  local copy_status=0
+  cp "$package_tgz" "$context_dir/openclaw-current.tgz" || copy_status="$?"
+  if [ "$copy_status" -ne 0 ]; then
+    rm -rf "$context_dir"
+    return "$copy_status"
+  fi
   printf '%s\n' "$context_dir"
 }
 
