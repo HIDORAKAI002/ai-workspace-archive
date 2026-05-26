@@ -66,6 +66,42 @@
 
 namespace milvus::segcore {
 
+namespace {
+
+void
+InitEmptyVectorArrayRow(proto::schema::VectorField* row,
+                        DataType element_type) {
+    switch (element_type) {
+        case DataType::VECTOR_FLOAT: {
+            row->mutable_float_vector();
+            break;
+        }
+        case DataType::VECTOR_BINARY: {
+            row->mutable_binary_vector();
+            break;
+        }
+        case DataType::VECTOR_FLOAT16: {
+            row->mutable_float16_vector();
+            break;
+        }
+        case DataType::VECTOR_BFLOAT16: {
+            row->mutable_bfloat16_vector();
+            break;
+        }
+        case DataType::VECTOR_INT8: {
+            row->mutable_int8_vector();
+            break;
+        }
+        default: {
+            ThrowInfo(DataTypeInvalid,
+                      "unsupported ArrayOfVector element type {}",
+                      element_type);
+        }
+    }
+}
+
+}  // namespace
+
 void
 // Takes a non-const DataArray& because VARCHAR strings are moved (not copied)
 // into the PkType variant vector. Callers must ensure the DataArray is
@@ -490,7 +526,7 @@ CreateEmptyVectorDataArray(int64_t count, const FieldMeta& field_meta) {
             break;
         }
         case DataType::VECTOR_SPARSE_U32_F32: {
-            // does nothing here
+            vector_array->mutable_sparse_float_vector();
             break;
         }
         case DataType::VECTOR_INT8: {
@@ -508,6 +544,7 @@ CreateEmptyVectorDataArray(int64_t count, const FieldMeta& field_meta) {
             for (int i = 0; i < count; i++) {
                 auto* row = obj->mutable_data()->Add();
                 row->set_dim(dim);
+                InitEmptyVectorArrayRow(row, field_meta.get_element_type());
             }
             break;
         }
@@ -853,13 +890,13 @@ MergeDataArray(std::vector<MergeBase>& merge_bases,
             } else if (field_meta.get_data_type() == DataType::VECTOR_FLOAT16) {
                 auto data = VEC_FIELD_DATA(src_field_data, float16);
                 auto obj = vector_array->mutable_float16_vector();
-                obj->assign(data + physical_offset * dim * sizeof(float16),
+                obj->append(data + physical_offset * dim * sizeof(float16),
                             dim * sizeof(float16));
             } else if (field_meta.get_data_type() ==
                        DataType::VECTOR_BFLOAT16) {
                 auto data = VEC_FIELD_DATA(src_field_data, bfloat16);
                 auto obj = vector_array->mutable_bfloat16_vector();
-                obj->assign(data + physical_offset * dim * sizeof(bfloat16),
+                obj->append(data + physical_offset * dim * sizeof(bfloat16),
                             dim * sizeof(bfloat16));
             } else if (field_meta.get_data_type() == DataType::VECTOR_BINARY) {
                 AssertInfo(
@@ -868,7 +905,7 @@ MergeDataArray(std::vector<MergeBase>& merge_bases,
                 auto num_bytes = dim / 8;
                 auto data = VEC_FIELD_DATA(src_field_data, binary);
                 auto obj = vector_array->mutable_binary_vector();
-                obj->assign(data + physical_offset * num_bytes, num_bytes);
+                obj->append(data + physical_offset * num_bytes, num_bytes);
             } else if (field_meta.get_data_type() ==
                        DataType::VECTOR_SPARSE_U32_F32) {
                 auto* mutable_src_vec = src_field_data->mutable_vectors()
@@ -884,7 +921,7 @@ MergeDataArray(std::vector<MergeBase>& merge_bases,
             } else if (field_meta.get_data_type() == DataType::VECTOR_INT8) {
                 auto data = VEC_FIELD_DATA(src_field_data, int8);
                 auto obj = vector_array->mutable_int8_vector();
-                obj->assign(data + physical_offset * dim * sizeof(int8),
+                obj->append(data + physical_offset * dim * sizeof(int8),
                             dim * sizeof(int8));
             } else if (field_meta.get_data_type() == DataType::VECTOR_ARRAY) {
                 auto& data = src_field_data->vectors().vector_array();
