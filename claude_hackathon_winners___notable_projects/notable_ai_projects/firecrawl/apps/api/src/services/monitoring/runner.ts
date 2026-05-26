@@ -28,6 +28,7 @@ import {
 import { createWebhookSender, WebhookEvent } from "../webhook";
 import { sendMonitoringEmailSummary } from "../notification/monitoring_email";
 import {
+  getMonitorCheck,
   getMonitorForUpdate,
   getMonitorPage,
   countMonitorCheckPages,
@@ -64,6 +65,24 @@ export { isMonitorCheckStale, MONITOR_CHECK_STALE_TIMEOUT_MS };
 const MONITOR_DEFAULT_WAIT_FOR_MS = 5000;
 const MONITOR_MAX_WAIT_FOR_MS = 60000;
 const MONITOR_MAX_TIMEOUT_MS = MONITOR_MAX_WAIT_FOR_MS * 2;
+const MONITOR_NOTIFY_CLAIM_TTL_SECONDS = 7 * 24 * 60 * 60;
+const TERMINAL_CHECK_STATUSES = new Set([
+  "completed",
+  "partial",
+  "failed",
+  "skipped_overlap",
+]);
+
+async function claimMonitorNotification(checkId: string): Promise<boolean> {
+  const result = await redisEvictConnection.set(
+    `monitor-check-notify:${checkId}`,
+    "1",
+    "EX",
+    MONITOR_NOTIFY_CLAIM_TTL_SECONDS,
+    "NX",
+  );
+  return result === "OK";
+}
 
 type PageResult = MonitorCheckPageInsert & {
   emailStatus?: string;
@@ -837,12 +856,24 @@ export async function processMonitorCheckJob(
     throw new Error("Monitor not found");
   }
 
+  const initialCheck = await getMonitorCheck(
+    job.teamId,
+    job.monitorId,
+    job.checkId,
+  );
+  if (!initialCheck) {
+    throw new Error("Monitor check not found");
+  }
+  if (TERMINAL_CHECK_STATUSES.has(initialCheck.status)) {
+    return;
+  }
+
   await markMonitorRunning({
     monitorId: monitor.id,
     checkId: job.checkId,
   });
 
-  let check = await updateMonitorCheck(job.checkId, {
+  let check: MonitorCheckRow = await updateMonitorCheck(job.checkId, {
     status: "running",
     started_at: new Date().toISOString(),
   });
@@ -909,15 +940,37 @@ export async function processMonitorCheckJob(
       error: error instanceof Error ? error.message : String(error),
     });
 
-    await sendNotifications({
-      monitor,
-      check,
-      pages: [],
-    }).catch(err =>
-      logger.warn("Failed to send monitor failure notifications", {
-        error: err,
-      }),
-    );
+    if ((await claimMonitorNotification(check.id).catch(error => {
+      logger.warn("Failed to claim monitor notification; continuing without dedupe", {
+        error,
+        monitorId: monitor.id,
+        checkId: check.id,
+      });
+      return true;
+    }))) {
+      const notificationStatus = await sendNotifications({
+        monitor,
+        check,
+        pages: [],
+      }).catch(err => {
+        logger.warn("Failed to send monitor failure notifications", {
+          error: err,
+        });
+        return null;
+      });
+      if (notificationStatus) {
+        check = await updateMonitorCheck(check.id, {
+          notification_status: notificationStatus,
+        }).catch(updateError => {
+          logger.warn("Failed to record monitor failure notification status", {
+            error: updateError,
+            monitorId: monitor.id,
+            checkId: check.id,
+          });
+          return check;
+        });
+      }
+    }
 
     await updateMonitorScheduleAfterRun({
       monitor,
@@ -1066,46 +1119,49 @@ async function failStaleMonitorCheck(params: {
     error,
   });
 
-  const notificationStatus = await sendNotifications({
-    monitor: params.monitor,
-    check: finalized,
-    pages: [],
-  }).catch(notificationError => {
-    logger.warn("Failed to send stale monitor check notifications", {
-      error: notificationError,
-      monitorId: params.monitor.id,
-      checkId: params.check.id,
+  let withNotifications = finalized;
+  if (await claimMonitorNotification(params.check.id)) {
+    const notificationStatus = await sendNotifications({
+      monitor: params.monitor,
+      check: finalized,
+      pages: [],
+    }).catch(notificationError => {
+      logger.warn("Failed to send stale monitor check notifications", {
+        error: notificationError,
+        monitorId: params.monitor.id,
+        checkId: params.check.id,
+      });
+      return {
+        webhook: {
+          attempted: !!params.monitor.webhook,
+          success: false,
+          error:
+            notificationError instanceof Error
+              ? notificationError.message
+              : String(notificationError),
+        },
+        email: {
+          attempted: !!params.monitor.notification?.email?.enabled,
+          success: false,
+          error:
+            notificationError instanceof Error
+              ? notificationError.message
+              : String(notificationError),
+        },
+      };
     });
-    return {
-      webhook: {
-        attempted: !!params.monitor.webhook,
-        success: false,
-        error:
-          notificationError instanceof Error
-            ? notificationError.message
-            : String(notificationError),
-      },
-      email: {
-        attempted: !!params.monitor.notification?.email?.enabled,
-        success: false,
-        error:
-          notificationError instanceof Error
-            ? notificationError.message
-            : String(notificationError),
-      },
-    };
-  });
 
-  const withNotifications = await updateMonitorCheck(params.check.id, {
-    notification_status: notificationStatus,
-  }).catch(updateError => {
-    logger.warn("Failed to record stale monitor check notification status", {
-      error: updateError,
-      monitorId: params.monitor.id,
-      checkId: params.check.id,
+    withNotifications = await updateMonitorCheck(params.check.id, {
+      notification_status: notificationStatus,
+    }).catch(updateError => {
+      logger.warn("Failed to record stale monitor check notification status", {
+        error: updateError,
+        monitorId: params.monitor.id,
+        checkId: params.check.id,
+      });
+      return finalized;
     });
-    return finalized;
-  });
+  }
 
   if (params.monitor.current_check_id === params.check.id) {
     await updateMonitorScheduleAfterRun({
@@ -1218,60 +1274,62 @@ export async function reconcileRunningMonitorChecks(
         });
       }
 
-      let notificationStatus: { webhook?: unknown; email?: unknown } | null =
-        null;
-      try {
-        const pages = (await listMonitorCheckPages({
-          teamId: monitor.team_id,
-          monitorId: monitor.id,
-          checkId: check.id,
-          limit: 100,
-          skip: 0,
-        })) as PageResult[];
+      if (await claimMonitorNotification(check.id)) {
+        let notificationStatus: { webhook?: unknown; email?: unknown } | null =
+          null;
+        try {
+          const pages = (await listMonitorCheckPages({
+            teamId: monitor.team_id,
+            monitorId: monitor.id,
+            checkId: check.id,
+            limit: 100,
+            skip: 0,
+          })) as PageResult[];
 
-        notificationStatus = await sendNotifications({
-          monitor,
-          check: finalized,
-          pages,
-        });
+          notificationStatus = await sendNotifications({
+            monitor,
+            check: finalized,
+            pages,
+          });
 
-        finalized = await updateMonitorCheck(check.id, {
-          notification_status: notificationStatus,
-          webhook_payload: notificationStatus.webhook
-            ? { summary: toSummaryObject(finalized) }
-            : null,
-          email_payload: notificationStatus.email
-            ? { summary: toSummaryObject(finalized) }
-            : null,
-        });
-      } catch (error) {
-        logger.warn("Failed to send monitor check notifications", {
-          monitorId: monitor.id,
-          checkId: finalized.id,
-          error,
-        });
-        notificationStatus = {
-          webhook: {
-            attempted: !!monitor.webhook,
-            success: false,
-            error: error instanceof Error ? error.message : String(error),
-          },
-          email: {
-            attempted: !!monitor.notification?.email?.enabled,
-            success: false,
-            error: error instanceof Error ? error.message : String(error),
-          },
-        };
-        finalized = await updateMonitorCheck(check.id, {
-          notification_status: notificationStatus,
-        }).catch(updateError => {
-          logger.warn("Failed to record monitor check notification failure", {
+          finalized = await updateMonitorCheck(check.id, {
+            notification_status: notificationStatus,
+            webhook_payload: notificationStatus.webhook
+              ? { summary: toSummaryObject(finalized) }
+              : null,
+            email_payload: notificationStatus.email
+              ? { summary: toSummaryObject(finalized) }
+              : null,
+          });
+        } catch (error) {
+          logger.warn("Failed to send monitor check notifications", {
             monitorId: monitor.id,
             checkId: finalized.id,
-            error: updateError,
+            error,
           });
-          return finalized;
-        });
+          notificationStatus = {
+            webhook: {
+              attempted: !!monitor.webhook,
+              success: false,
+              error: error instanceof Error ? error.message : String(error),
+            },
+            email: {
+              attempted: !!monitor.notification?.email?.enabled,
+              success: false,
+              error: error instanceof Error ? error.message : String(error),
+            },
+          };
+          finalized = await updateMonitorCheck(check.id, {
+            notification_status: notificationStatus,
+          }).catch(updateError => {
+            logger.warn("Failed to record monitor check notification failure", {
+              monitorId: monitor.id,
+              checkId: finalized.id,
+              error: updateError,
+            });
+            return finalized;
+          });
+        }
       }
 
       await updateMonitorScheduleAfterRun({
