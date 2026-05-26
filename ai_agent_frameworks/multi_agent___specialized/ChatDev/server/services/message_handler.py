@@ -29,11 +29,21 @@ class MessageHandler:
             await self._handle_ping(session_id, websocket_manager)
         elif message_type == "get_status":
             await self._handle_get_status(session_id, websocket_manager)
+        elif message_type == "cancel":
+            await self._handle_cancel(session_id, websocket_manager)
         else:
             await websocket_manager.send_message(
                 session_id,
                 {"type": "error", "data": {"message": f"Unknown message type: {message_type}"}},
             )
+
+    async def _handle_cancel(self, session_id: str, websocket_manager):
+        if self.workflow_run_service:
+            self.workflow_run_service.request_cancel(session_id, reason="User requested cancellation")
+        await websocket_manager.send_message(
+            session_id,
+            {"type": "input_received", "data": {"message": "Cancellation requested"}},
+        )
 
     async def _handle_human_input(self, session_id: str, data: Dict[str, Any], websocket_manager):
         try:
