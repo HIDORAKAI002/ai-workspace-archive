@@ -32,9 +32,9 @@ type MockModelServer = {
 
 const activeRuns: PtyRun[] = [];
 const LOCAL_STARTUP_TIMEOUT_MS = 20_000;
-const LOCAL_OUTPUT_TIMEOUT_MS = 35_000;
+const LOCAL_OUTPUT_TIMEOUT_MS = 60_000;
 const LOCAL_EXIT_TIMEOUT_MS = 4_000;
-const LOCAL_TEST_TIMEOUT_MS = 60_000;
+const LOCAL_TEST_TIMEOUT_MS = 90_000;
 
 function resolveSpawnPty() {
   const runtime = nodePty as NodePtyRuntimeModule;
@@ -302,11 +302,14 @@ function buildLocalModeConfig(params: { workspaceDir: string; providerBaseUrl: s
       defaults: {
         workspace: params.workspaceDir,
         model: { primary: "tui-pty-mock/gpt-5.5" },
+        skills: [],
+        skipBootstrap: true,
       },
       list: [
         {
           id: "main",
           default: true,
+          skills: [],
           model: { primary: "tui-pty-mock/gpt-5.5" },
         },
       ],
@@ -353,6 +356,7 @@ async function startLocalModeTui() {
   const xdgCacheHome = path.join(tempDir, "xdg-cache");
   const configPath = path.join(tempDir, "openclaw.json");
   const mockModel = await startMockModelServer(replyText);
+  const config = buildLocalModeConfig({ workspaceDir, providerBaseUrl: mockModel.baseUrl });
   await Promise.all([
     mkdir(workspaceDir, { recursive: true }),
     mkdir(homeDir, { recursive: true }),
@@ -360,11 +364,7 @@ async function startLocalModeTui() {
     mkdir(xdgConfigHome, { recursive: true }),
     mkdir(xdgDataHome, { recursive: true }),
     mkdir(xdgCacheHome, { recursive: true }),
-    writeFile(
-      configPath,
-      `${JSON.stringify(buildLocalModeConfig({ workspaceDir, providerBaseUrl: mockModel.baseUrl }), null, 2)}\n`,
-      "utf8",
-    ),
+    writeFile(configPath, `${JSON.stringify(config, null, 2)}\n`, "utf8"),
   ]);
 
   const run = startPty(process.execPath, ["scripts/run-node.mjs", "tui", "--local"], {

@@ -149,6 +149,156 @@ describe("session cost usage", () => {
     });
   });
 
+  it("counts token usage for an unpriced (unconfigured all-zero) model as missing, not a confident $0", async () => {
+    const root = await makeSessionCostRoot("cost-unknown-pricing");
+    const sessionsDir = path.join(root, "agents", "main", "sessions");
+    await fs.mkdir(sessionsDir, { recursive: true });
+
+    // A real assistant turn that burned tokens. The transport recorded cost.total: 0,
+    // derived from an all-zero catalog price — exactly what codex/gpt-5.x models produce,
+    // since the Codex backend exposes no per-token price and the operator never set one.
+    const entry = {
+      type: "message",
+      timestamp: new Date().toISOString(),
+      message: {
+        role: "assistant",
+        provider: "openai",
+        model: "gpt-5.5",
+        usage: {
+          input: 881,
+          output: 6,
+          cacheRead: 22400,
+          cacheWrite: 0,
+          totalTokens: 23287,
+          cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 },
+        },
+      },
+    };
+
+    await fs.writeFile(
+      path.join(sessionsDir, "sess-1.jsonl"),
+      transcriptText("sess-1", entry),
+      "utf-8",
+    );
+
+    // No operator-configured pricing for this model, so its all-zero cost is unknown,
+    // not an intentional "free" price.
+    clearGatewayModelPricingCacheState();
+    await withStateDir(root, async () => {
+      const summary = await loadCostUsageSummary({ days: 30 });
+      expect(summary.totals.totalTokens).toBe(23287);
+      expect(summary.totals.totalCost).toBe(0);
+      // Unknown pricing must be surfaced as missing rather than reported as a
+      // confident $0 that would blind budget/spike monitoring to real spend.
+      expect(summary.totals.missingCostEntries).toBe(1);
+    });
+  });
+
+  it("counts token usage for a configured all-zero model as missing because pricing is still unknown", async () => {
+    const root = await makeSessionCostRoot("cost-configured-zero-unknown");
+    const sessionsDir = path.join(root, "agents", "main", "sessions");
+    await fs.mkdir(sessionsDir, { recursive: true });
+
+    // Same shape of turn, with a configured all-zero cost block. After config defaults,
+    // omitted cost and explicit all-zero cost are indistinguishable, so a zero-rate
+    // token-burning turn is still safer to report as missing than as complete $0 spend.
+    const entry = {
+      type: "message",
+      timestamp: new Date().toISOString(),
+      message: {
+        role: "assistant",
+        provider: "openai",
+        model: "gpt-5.5",
+        usage: {
+          input: 881,
+          output: 6,
+          cacheRead: 22400,
+          cacheWrite: 0,
+          totalTokens: 23287,
+          cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 },
+        },
+      },
+    };
+
+    await fs.writeFile(
+      path.join(sessionsDir, "sess-1.jsonl"),
+      transcriptText("sess-1", entry),
+      "utf-8",
+    );
+
+    // This mirrors normalized config where a model declaration without pricing has
+    // already received default zero rates.
+    const config = {
+      models: {
+        providers: {
+          openai: {
+            models: [
+              {
+                id: "gpt-5.5",
+                cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+              },
+            ],
+          },
+        },
+      },
+    } as unknown as OpenClawConfig;
+
+    clearGatewayModelPricingCacheState();
+    await withStateDir(root, async () => {
+      const summary = await loadCostUsageSummary({ days: 30, config });
+      expect(summary.totals.totalTokens).toBe(23287);
+      expect(summary.totals.totalCost).toBe(0);
+      expect(summary.totals.missingCostEntries).toBe(1);
+    });
+  });
+
+  it("treats a pre-upgrade (older-version) durable cache as stale so unpriced usage is rebuilt", async () => {
+    const root = await makeSessionCostRoot("cost-cache-upgrade");
+    const sessionsDir = path.join(root, "agents", "main", "sessions");
+    await fs.mkdir(sessionsDir, { recursive: true });
+    const sessionFile = path.join(sessionsDir, "sess-upgrade.jsonl");
+    const entry = {
+      type: "message",
+      timestamp: "2026-02-05T12:00:00.000Z",
+      message: {
+        role: "assistant",
+        provider: "openai",
+        model: "gpt-5.5",
+        usage: {
+          input: 881,
+          output: 6,
+          cacheRead: 22400,
+          cacheWrite: 0,
+          totalTokens: 23287,
+          cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 },
+        },
+      },
+    };
+    await fs.writeFile(sessionFile, transcriptText("sess-upgrade", entry), "utf-8");
+
+    clearGatewayModelPricingCacheState();
+    await withStateDir(root, async () => {
+      // Simulate a durable cache written by a build from before this change: refresh
+      // under the current code, then stamp the cache with an older semantics version.
+      await refreshCostUsageCache({ sessionFiles: [sessionFile] });
+      const cachePath = path.join(sessionsDir, ".usage-cost-cache.json");
+      const cache = JSON.parse(await fs.readFile(cachePath, "utf-8")) as { version: number };
+      cache.version = 3;
+      await fs.writeFile(cachePath, `${JSON.stringify(cache)}\n`, "utf-8");
+
+      // The pre-upgrade cache must be treated as stale (not served), forcing a rebuild
+      // under the new missing-cost semantics instead of reusing old complete-$0 totals.
+      const cached = await loadSessionCostSummaryFromCache({
+        sessionId: "sess-upgrade",
+        sessionFile,
+        startMs: Date.UTC(2026, 1, 5),
+        endMs: Date.UTC(2026, 1, 5) + 24 * 60 * 60 * 1000 - 1,
+        requestRefresh: false,
+      });
+      expect(cached.cacheStatus.status).toBe("stale");
+    });
+  });
+
   it("ignores compaction checkpoint transcript snapshots in daily totals and discovery", async () => {
     const root = await makeSessionCostRoot("cost-checkpoint");
     const sessionsDir = path.join(root, "agents", "main", "sessions");
