@@ -9,7 +9,16 @@ from unittest.mock import MagicMock, patch
 from code_review_graph import cli
 
 
-def test_get_version_logs_and_falls_back_to_dev(monkeypatch, caplog):
+def test_get_version_falls_back_to_package_attr_when_metadata_missing(
+    monkeypatch, caplog,
+):
+    """When importlib.metadata can't find the dist, fall back to __version__.
+
+    This matters on filesystems where iCloud / OneDrive leave orphan
+    dist-info dirs that confuse the metadata lookup. Before v2.3.5 the
+    fallback returned the literal string "dev", which produced confusing
+    output for installed users whose lookup happened to fail.
+    """
     def _raise_package_not_found(_dist_name: str) -> str:
         raise PackageNotFoundError("code-review-graph")
 
@@ -18,8 +27,26 @@ def test_get_version_logs_and_falls_back_to_dev(monkeypatch, caplog):
     with caplog.at_level(logging.DEBUG, logger="code_review_graph.cli"):
         version = cli._get_version()
 
-    assert version == "dev"
+    # Falls back to the package's __version__, not "dev"
+    from code_review_graph import __version__ as expected
+    assert version == expected
     assert "Package metadata unavailable" in caplog.text
+
+
+def test_get_version_returns_dev_when_both_sources_fail(monkeypatch, caplog):
+    """The literal "dev" fallback still fires when __version__ also fails."""
+    def _raise_package_not_found(_dist_name: str) -> str:
+        raise PackageNotFoundError("code-review-graph")
+
+    monkeypatch.setattr(cli, "pkg_version", _raise_package_not_found)
+
+    import code_review_graph
+    monkeypatch.delattr(code_review_graph, "__version__", raising=False)
+
+    with caplog.at_level(logging.DEBUG, logger="code_review_graph.cli"):
+        version = cli._get_version()
+
+    assert version == "dev"
 
 
 class TestServeCommand:
@@ -151,7 +178,13 @@ class TestBuildUpdateCommands:
 
 
 class TestDetectChangesCommand:
-    def test_brief_output_includes_one_estimated_savings_line(self, tmp_path, capsys):
+    def test_brief_output_includes_token_savings_panel(self, tmp_path, capsys):
+        """v2.3.5: --brief output renders a boxed Token Savings panel.
+
+        Replaces the v2.3.4 one-line `Estimated context saved: …` format.
+        The panel must include the title, the saved-tokens line, the
+        percent suffix, and box borders.
+        """
         repo = tmp_path / "repo"
         repo.mkdir()
         (repo / ".git").mkdir()
@@ -181,7 +214,13 @@ class TestDetectChangesCommand:
 
         output = capsys.readouterr().out
         assert "summary only" in output
-        assert output.count("Estimated context saved:") == 1
+        # Panel structure: title, the three core rows, and box borders.
+        assert "Token Savings" in output
+        assert "Full context would be:" in output
+        assert "Graph context used:" in output
+        assert "Saved:" in output
+        # Box drawing characters from format_context_savings_panel
+        assert "┌" in output and "┘" in output
 
     def test_json_output_includes_compact_savings_metadata(self, tmp_path, capsys):
         repo = tmp_path / "repo"

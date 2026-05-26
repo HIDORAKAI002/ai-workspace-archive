@@ -53,7 +53,6 @@ const configSchema = z.object({
   STRIPE_SECRET_KEY: z.string().optional(),
   AUTUMN_SECRET_KEY: z.string().optional(),
   AUTUMN_CHECK_ENABLED: z.string().optional(),
-  AUTUMN_CHECK_DRY_RUN: z.string().optional(),
   AUTUMN_CHECK_EXPERIMENT_PERCENT: z.coerce.number().default(100),
   AUTUMN_EXPERIMENT: z.string().optional(),
   AUTUMN_EXPERIMENT_PERCENT: z.coerce.number().default(100),
@@ -64,7 +63,11 @@ const configSchema = z.object({
   SEARCH_PREVIEW_TOKEN: z.string().optional(),
   SEARCH_SERVICE_API_SECRET: z.string().optional(),
   SEARCH_FEEDBACK_MAX_AGE_SEC: z.coerce.number().int().positive().default(120),
-  SEARCH_FEEDBACK_DAILY_CAP_CREDITS: z.coerce.number().int().nonnegative().default(100),
+  SEARCH_FEEDBACK_DAILY_CAP_CREDITS: z.coerce
+    .number()
+    .int()
+    .nonnegative()
+    .default(100),
 
   // OAuth token introspection
   OAUTH_INTROSPECT_URL: z.string().optional(),
@@ -280,6 +283,8 @@ const configSchema = z.object({
   AVGRAB_SERVICE_URL: z.string().optional(),
 
   NUQ_PREFETCH_WORKER_HEARTBEAT_URL: z.string().optional(),
+
+  ZDRCLEANER_HEARTBEAT_URL: z.string().optional(),
 });
 
 export const config = configSchema.parse(process.env);

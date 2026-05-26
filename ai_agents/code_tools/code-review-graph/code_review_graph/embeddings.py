@@ -13,6 +13,7 @@ from __future__ import annotations
 import hashlib
 import logging
 import os
+import re
 import sqlite3
 import struct
 import sys
@@ -758,19 +759,78 @@ def _cosine_similarity(a: list[float], b: list[float]) -> float:
     return dot / (norm_a * norm_b)
 
 
+_IDENTIFIER_SPLIT_RE = re.compile(r"([a-z])([A-Z])|[_./\-]+")
+
+
+def _split_identifier(name: str) -> str:
+    """Split snake_case / camelCase / PascalCase / dotted into space-separated words.
+
+    Examples:
+        get_route_handler -> "get route handler"
+        APIRoute          -> "API Route"
+        dispatch_request  -> "dispatch request"
+        full_dispatch_request -> "full dispatch request"
+    """
+    if not name:
+        return ""
+    # Insert space between lowercase->uppercase transitions, then collapse
+    # snake_case / dotted / hyphenated separators.
+    spaced = re.sub(r"([a-z])([A-Z])", r"\1 \2", name)
+    spaced = re.sub(r"[_./\-]+", " ", spaced)
+    return " ".join(spaced.split())
+
+
 def _node_to_text(node: GraphNode) -> str:
-    """Convert a node to a searchable text representation."""
-    parts = [node.name]
+    """Convert a node to a searchable text representation.
+
+    Designed so natural-language queries land on the right node, not just on
+    the enclosing class. We include the dotted ``Parent.name`` form, the
+    identifier split into words, an explicit ``"in <Parent>"`` phrase, the
+    enclosing module directory, and the language. Tested by the
+    ``multi_hop_retrieval`` benchmark — see ``docs/REPRODUCING.md``.
+    """
+    parts: list[str] = []
+
+    # 1. Dotted form first — strongest lexical signal for "method in class"
+    if node.parent_name and node.kind != "File":
+        parts.append(f"{node.parent_name}.{node.name}")
+
+    # 2. Bare name (always present)
+    parts.append(node.name)
+
+    # 3. Split-words form of the name (only if it differs from the bare name)
+    name_split = _split_identifier(node.name)
+    if name_split and name_split.lower() != node.name.lower():
+        parts.append(name_split)
+
+    # 4. Kind ("function", "class", "test", ...)
     if node.kind != "File":
         parts.append(node.kind.lower())
+
+    # 5. Parent context with the split form too
     if node.parent_name:
         parts.append(f"in {node.parent_name}")
+        parent_split = _split_identifier(node.parent_name)
+        if parent_split and parent_split.lower() != node.parent_name.lower():
+            parts.append(parent_split)
+
+    # 6. Signature bits
     if node.params:
         parts.append(node.params)
     if node.return_type:
         parts.append(f"returns {node.return_type}")
+
+    # 7. Module / directory context from the file path — gives queries a
+    # term like "routing" or "client" to anchor against.
+    if node.file_path:
+        parent_dir = Path(node.file_path).parent.name
+        if parent_dir and parent_dir not in (".", "src", "lib"):
+            parts.append(parent_dir)
+
+    # 8. Language
     if node.language:
         parts.append(node.language)
+
     return " ".join(parts)
 
 

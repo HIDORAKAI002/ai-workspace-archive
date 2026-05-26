@@ -81,7 +81,11 @@ const emptyTotals = (): CostUsageTotals => ({
   missingCostEntries: 0,
 });
 
-const USAGE_COST_CACHE_VERSION = 3;
+// Bump when the *meaning* of cached totals changes (not just their inputs), so durable
+// caches written by older builds are rebuilt instead of served stale. Bumped to 4:
+// unpriced (unknown) zero-cost usage now counts toward missingCostEntries, so a warm
+// cache from a pre-change build would otherwise keep reporting the old complete-$0 totals.
+const USAGE_COST_CACHE_VERSION = 4;
 const USAGE_COST_CACHE_FILE = ".usage-cost-cache.json";
 const USAGE_COST_CACHE_LOCK_WRITE_GRACE_MS = 10_000;
 const logger = createSubsystemLogger("usage-cost-cache");
@@ -1013,6 +1017,22 @@ const applyCostTotal = (totals: CostUsageTotals, costTotal: number | undefined) 
   totals.totalCost += costTotal;
 };
 
+// A resolved cost config only counts as "known" pricing when it carries at least one
+// positive per-token rate (or tiered pricing). An all-zero config is indistinguishable
+// from "pricing unknown": e.g. codex models ship cost {input:0,output:0,...} in the
+// generated models.json because the Codex backend exposes no per-token price. Treating
+// such a config as a real $0 makes usage-cost report confident zero spend, which
+// silently blinds every budget/spike safeguard that keys off totalCost.
+const isModelPricingKnown = (cost: ReturnType<typeof resolveModelCostConfig>): boolean => {
+  if (!cost) {
+    return false;
+  }
+  if (cost.tieredPricing && cost.tieredPricing.length > 0) {
+    return true;
+  }
+  return cost.input > 0 || cost.output > 0 || cost.cacheRead > 0 || cost.cacheWrite > 0;
+};
+
 async function canReadJsonlFromOffset(filePath: string, startOffset: number): Promise<boolean> {
   if (startOffset <= 0) {
     return true;
@@ -1098,6 +1118,20 @@ async function scanTranscriptFile(params: {
         // Clear costBreakdown so downstream aggregation uses the recomputed total
         // instead of the stale flat-rate breakdown from the transport layer.
         entry.costTotal = estimateUsageCost({ usage: entry.usage, cost });
+        entry.costBreakdown = undefined;
+      } else if (
+        !isModelPricingKnown(cost) &&
+        (entry.costTotal === undefined || entry.costTotal === 0) &&
+        computeUsageTokenTotals(entry.usage).totalTokens > 0
+      ) {
+        // Pricing for this model is unknown: it has no positive per-token rate and no
+        // trustworthy recorded cost. The transport either recorded nothing or a
+        // fabricated $0 derived from an all-zero/default catalog entry. Surface this
+        // token-burning turn as a missing-cost entry instead of recording a confident
+        // $0, so budget and spike safeguards that read totalCost are not left blind to
+        // it. A turn carrying a real positive recorded cost is preserved by the guard
+        // above.
+        entry.costTotal = undefined;
         entry.costBreakdown = undefined;
       } else if (entry.costTotal === undefined) {
         // Fill in missing cost estimates.

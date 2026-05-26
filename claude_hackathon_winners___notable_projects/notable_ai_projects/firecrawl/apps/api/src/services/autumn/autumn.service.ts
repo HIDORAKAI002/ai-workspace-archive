@@ -72,14 +72,6 @@ export function isAutumnCheckEnabled(orgId?: string): boolean {
   return orgBucket(orgId) < percent;
 }
 
-/**
- * When true, Autumn check results are logged but never used to gate requests.
- * The legacy credit system remains authoritative.
- */
-export function isAutumnCheckDryRun(): boolean {
-  return config.AUTUMN_CHECK_DRY_RUN === "true";
-}
-
 export function isAutumnRequestTrackEnabled(orgId?: string): boolean {
   if (orgId && AUTUMN_BYPASS_ORG_IDS.has(orgId)) return true;
   if (config.AUTUMN_REQUEST_TRACK_EXPERIMENT !== "true") return false;

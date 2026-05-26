@@ -171,6 +171,22 @@
       ]
     },
     {
+      "id": "capability:optimization",
+      "family": "capability",
+      "description": "Parallel execution, benchmarking, throughput, latency, and recursive decision-ledger skills.",
+      "modules": [
+        "optimization-workflows"
+      ]
+    },
+    {
+      "id": "capability:prediction-markets",
+      "family": "capability",
+      "description": "Public, non-advisory prediction-market and Itô basket research workflows with gated Itô API access.",
+      "modules": [
+        "prediction-market-skills"
+      ]
+    },
+    {
       "id": "capability:social",
       "family": "capability",
       "description": "Social publishing and distribution skills.",
@@ -588,6 +604,14 @@
       "description": "Traditional Chinese (zh-TW) translated reference docs installed to ~/.claude/docs/zh-TW/.",
       "modules": [
         "docs-zh-tw"
+      ]
+    },
+    {
+      "id": "locale:de-de",
+      "family": "locale",
+      "description": "German (de-DE) translated reference docs installed to ~/.claude/docs/de-DE/.",
+      "modules": [
+        "docs-de-de"
       ]
     }
   ]

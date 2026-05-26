@@ -55,6 +55,7 @@ import {
 } from "openclaw/plugin-sdk/diagnostic-runtime";
 import { isToolAllowed } from "openclaw/plugin-sdk/sandbox";
 import { pathExists } from "openclaw/plugin-sdk/security-runtime";
+import { asBoolean } from "openclaw/plugin-sdk/string-coerce-runtime";
 import { defaultCodexAppInventoryCache } from "./app-inventory-cache.js";
 import { handleCodexAppServerApprovalRequest } from "./approval-bridge.js";
 import {
@@ -83,6 +84,7 @@ import {
   resolveCodexComputerUseConfig,
   resolveCodexPluginsPolicy,
   resolveCodexAppServerRuntimeOptions,
+  shouldAutoApproveCodexAppServerApprovals,
   withMcpElicitationsApprovalPolicy,
   type CodexAppServerRuntimeOptions,
   type CodexPluginConfig,
@@ -2477,6 +2479,7 @@ export async function runCodexAppServerAttempt(
             threadId: thread.threadId,
             turnId,
             nativeHookRelay,
+            autoApprove: shouldAutoApproveCodexAppServerApprovals(appServer),
             signal: runAbortController.signal,
           });
         }
@@ -4990,8 +4993,7 @@ function readString(record: JsonObject, key: string): string | undefined {
 }
 
 function readBoolean(record: JsonObject, key: string): boolean | undefined {
-  const value = record[key];
-  return typeof value === "boolean" ? value : undefined;
+  return asBoolean(record[key]);
 }
 
 async function readMirroredSessionHistoryMessages(
@@ -5095,6 +5097,7 @@ function buildCodexSystemPromptReport(params: {
       chars: params.developerInstructions.length,
       projectContextChars: 0,
       nonProjectContextChars: params.developerInstructions.length,
+      hash: sha256Text(params.developerInstructions),
     },
     injectedWorkspaceFiles: buildCodexBootstrapInjectionStats({
       bootstrapFiles: params.workspaceBootstrapContext.bootstrapFiles,
@@ -5106,6 +5109,7 @@ function buildCodexSystemPromptReport(params: {
     }),
     skills: {
       promptChars: skillsPrompt.length,
+      hash: sha256Text(skillsPrompt),
       entries: buildCodexSkillReportEntries(skillsPrompt),
     },
     tools: {
@@ -5137,20 +5141,23 @@ function buildCodexToolReportEntry(tool: CodexDynamicToolSpec): CodexToolReportE
     return {
       name: tool.name,
       summaryChars: summary.length,
+      summaryHash: sha256Text(summary),
       schemaChars: 0,
+      schemaHash: stableJsonHash(null),
       propertiesCount: null,
     };
   }
   return {
     name: tool.name,
     summaryChars: summary.length,
+    summaryHash: sha256Text(summary),
     ...buildCodexToolSchemaStats(tool.inputSchema),
   };
 }
 
 function buildCodexToolSchemaStats(
   schema: JsonValue,
-): Pick<CodexToolReportEntry, "schemaChars" | "propertiesCount"> {
+): Pick<CodexToolReportEntry, "schemaChars" | "schemaHash" | "propertiesCount"> {
   const schemaChars = (() => {
     try {
       return JSON.stringify(schema).length;
@@ -5162,8 +5169,32 @@ function buildCodexToolSchemaStats(
     isJsonObject(schema) && isJsonObject(schema.properties) ? schema.properties : null;
   return {
     schemaChars,
+    schemaHash: stableJsonHash(schema),
     propertiesCount: properties ? Object.keys(properties).length : null,
   };
+}
+
+function sha256Text(value: string): string {
+  return createHash("sha256").update(value).digest("hex");
+}
+
+function normalizeForStableHash(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map((entry) => normalizeForStableHash(entry));
+  }
+  if (value && typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    return Object.fromEntries(
+      Object.keys(record)
+        .toSorted((left, right) => left.localeCompare(right))
+        .map((key) => [key, normalizeForStableHash(record[key])]),
+    );
+  }
+  return value;
+}
+
+function stableJsonHash(value: JsonValue): string {
+  return sha256Text(JSON.stringify(normalizeForStableHash(value)) ?? "null");
 }
 
 function buildCodexBootstrapInjectionStats(params: {
@@ -5636,6 +5667,7 @@ function handleApprovalRequest(params: {
   threadId: string;
   turnId: string;
   nativeHookRelay?: NativeHookRelayRegistrationHandle;
+  autoApprove?: boolean;
   signal?: AbortSignal;
 }): Promise<JsonValue | undefined> {
   return handleCodexAppServerApprovalRequest({
@@ -5645,6 +5677,7 @@ function handleApprovalRequest(params: {
     threadId: params.threadId,
     turnId: params.turnId,
     nativeHookRelay: params.nativeHookRelay,
+    autoApprove: params.autoApprove,
     signal: params.signal,
   });
 }

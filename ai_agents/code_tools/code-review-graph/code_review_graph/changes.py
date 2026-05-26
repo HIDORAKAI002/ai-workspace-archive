@@ -363,7 +363,23 @@ def analyze_changes(
         f"  - Overall risk score: {overall_risk:.2f}",
     ]
     if test_gaps:
-        gap_names = [g["name"] for g in test_gaps[:5]]
+        # Dedup by bare name in the human summary. The underlying test_gaps
+        # list keeps every entry (a downstream consumer needs precision via
+        # qualified_name), but a graph that ended up with the same function
+        # stored under two qualified_names (e.g. relative + absolute path
+        # variants) would otherwise print "X, X, Y, Y" — surfacing graph
+        # corruption as a UX bug. The root cause is path normalization;
+        # this is the defensive last line.
+        seen_names: set[str] = set()
+        gap_names: list[str] = []
+        for g in test_gaps:
+            n = g["name"]
+            if n in seen_names:
+                continue
+            seen_names.add(n)
+            gap_names.append(n)
+            if len(gap_names) >= 5:
+                break
         summary_parts.append(f"  - Untested: {', '.join(gap_names)}")
     if funcs_truncated:
         summary_parts.append(
