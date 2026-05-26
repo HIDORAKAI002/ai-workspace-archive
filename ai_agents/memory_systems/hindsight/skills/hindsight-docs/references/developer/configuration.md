@@ -140,15 +140,16 @@ If you need to switch from one extension to another:
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `HINDSIGHT_API_TEXT_SEARCH_EXTENSION` | Text search backend: `native`, `vchord`, `pg_textsearch`, or `pgroonga` | `native` |
+| `HINDSIGHT_API_TEXT_SEARCH_EXTENSION` | Text search backend: `native`, `vchord`, `pg_textsearch`, `pgroonga`, or `pg_search` | `native` |
 | `HINDSIGHT_API_TEXT_SEARCH_EXTENSION_NATIVE_LANGUAGE` | PostgreSQL text search dictionary used by the `native` backend (e.g. `english`, `french`, `simple`, `zhparser`) | `english` |
 | `HINDSIGHT_API_LLM_OUTPUT_LANGUAGE` | When set, forces every LLM-generated artifact (retain facts, consolidation observations, reflect responses) into this language. Free-form (e.g. `Spanish`, `Japanese`). | unset |
 
-Hindsight supports four backends for BM25 keyword retrieval:
+Hindsight supports five backends for BM25 keyword retrieval:
 - **native** — PostgreSQL's built-in full-text search (`tsvector` + GIN). Language configurable.
 - **vchord** — VectorChord BM25 (uses the `llmlingua2` multilingual tokenizer).
 - **pg_textsearch** — Timescale's pg_textsearch extension. English-only.
 - **pgroonga** — pgroonga full-text search. Multilingual / CJK out of the box.
+- **pg_search** — ParadeDB pg_search. True BM25; the only backend that is Citus-compatible.
 
 To switch backends: set `HINDSIGHT_API_TEXT_SEARCH_EXTENSION`. With existing data, you'll get an error and migration instructions; with an empty database the columns/indexes are recreated automatically on startup.
 
@@ -791,6 +792,7 @@ For advanced authentication (JWT, OAuth, multi-tenant schemas), implement a cust
 | `HINDSIGHT_API_PORT` | Server port | `8888` |
 | `HINDSIGHT_API_BASE_PATH` | Base path for API when behind reverse proxy (e.g., `/hindsight`) | `""` (root) |
 | `HINDSIGHT_API_WORKERS` | Number of uvicorn worker processes | `1` |
+| `HINDSIGHT_API_ACCESS_LOG` | Enable uvicorn access log (`true`, `1`, `yes`, `on` to enable) | `false` |
 | `HINDSIGHT_API_LOG_LEVEL` | Log level: `debug`, `info`, `warning`, `error` | `info` |
 | `HINDSIGHT_API_LOG_FORMAT` | Log format: `text` or `json` (structured logging for cloud platforms) | `text` |
 | `HINDSIGHT_API_LOG_JSON_FIELDS` | Comma-separated allowlist of JSON log fields to emit (e.g. `severity,message,tenant`). Available: `severity`, `message`, `timestamp`, `logger`, `tenant`, `exception`. Empty = all fields. | `""` (all) |
@@ -1069,9 +1071,11 @@ export HINDSIGHT_API_FILE_STORAGE_TYPE=native
 |----------|-------------|---------|
 | `HINDSIGHT_API_FILE_STORAGE_S3_BUCKET` | S3 bucket name | - |
 | `HINDSIGHT_API_FILE_STORAGE_S3_REGION` | AWS region | - |
-| `HINDSIGHT_API_FILE_STORAGE_S3_ENDPOINT` | Custom endpoint URL (for S3-compatible stores like MinIO, Cloudflare R2) | AWS default |
+| `HINDSIGHT_API_FILE_STORAGE_S3_ENDPOINT` | Custom endpoint URL (for S3-compatible stores like MinIO, Cloudflare R2, Tigris) | AWS default |
 | `HINDSIGHT_API_FILE_STORAGE_S3_ACCESS_KEY_ID` | AWS access key ID | - |
 | `HINDSIGHT_API_FILE_STORAGE_S3_SECRET_ACCESS_KEY` | AWS secret access key | - |
+
+For S3-compatible providers that don't expose AWS-style regions (MinIO, Cloudflare R2, Tigris), set `HINDSIGHT_API_FILE_STORAGE_S3_REGION=auto`. The value is required for SigV4 request signing but is ignored by the service.
 
 ```bash
 # AWS S3
@@ -1084,9 +1088,18 @@ export HINDSIGHT_API_FILE_STORAGE_S3_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPx
 # S3-compatible (MinIO, Cloudflare R2, etc.)
 export HINDSIGHT_API_FILE_STORAGE_TYPE=s3
 export HINDSIGHT_API_FILE_STORAGE_S3_BUCKET=my-bucket
+export HINDSIGHT_API_FILE_STORAGE_S3_REGION=auto
 export HINDSIGHT_API_FILE_STORAGE_S3_ENDPOINT=https://your-minio.example.com
 export HINDSIGHT_API_FILE_STORAGE_S3_ACCESS_KEY_ID=minioadmin
 export HINDSIGHT_API_FILE_STORAGE_S3_SECRET_ACCESS_KEY=minioadmin
+
+# Tigris (S3-compatible, single global endpoint)
+export HINDSIGHT_API_FILE_STORAGE_TYPE=s3
+export HINDSIGHT_API_FILE_STORAGE_S3_BUCKET=my-hindsight-bucket
+export HINDSIGHT_API_FILE_STORAGE_S3_REGION=auto
+export HINDSIGHT_API_FILE_STORAGE_S3_ENDPOINT=https://t3.storage.dev
+export HINDSIGHT_API_FILE_STORAGE_S3_ACCESS_KEY_ID=tid_your_access_key
+export HINDSIGHT_API_FILE_STORAGE_S3_SECRET_ACCESS_KEY=tsec_your_secret_key
 ```
 
 #### Google Cloud Storage
