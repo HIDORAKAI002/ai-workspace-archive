@@ -308,6 +308,8 @@ code-review-graph build --skip-flows           # Parse + signatures + FTS only
 code-review-graph build --skip-postprocess     # Raw parse only
 code-review-graph update                       # Incremental update
 code-review-graph update --base origin/main    # Custom base ref
+code-review-graph update --brief               # Update graph + show risk panel
+code-review-graph update --brief --verify      # ...and cross-check vs tiktoken
 code-review-graph postprocess                  # Re-run flows, communities, FTS
 
 # Monitor and inspect
@@ -320,7 +322,17 @@ code-review-graph visualize --serve            # Serve graph.html on localhost:8
 # Analysis
 code-review-graph detect-changes               # Risk-scored change analysis
 code-review-graph detect-changes --base HEAD~3 # Custom base ref
-code-review-graph detect-changes --brief       # Compact output
+code-review-graph detect-changes --brief       # Compact panel with token-savings estimate
+code-review-graph detect-changes --brief --verify  # ...and cross-check vs tiktoken
+
+# detect-changes vs update --brief — which one?
+# • detect-changes --brief: read-only. Asks "what's the impact of my current
+#   changes against the existing graph?" Fast (~1s). Use this when the graph
+#   is already up to date (the default, if you have hooks installed).
+# • update --brief: re-parses your changed files into the graph FIRST, then
+#   runs the same analysis at the end. Use this after a rebase, a big
+#   change set, or whenever you suspect the graph is stale.
+# Both end with an identical "Token Savings" panel.
 
 # Wiki
 code-review-graph wiki                         # Generate markdown wiki from communities

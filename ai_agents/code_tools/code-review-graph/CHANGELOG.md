@@ -2,6 +2,141 @@
 
 ## [Unreleased]
 
+## [2.3.5] - 2026-05-25
+
+**Real-time token savings, visible to humans.** The estimated context-savings
+metric introduced in 2.3.4 was JSON-only. In 2.3.5 it surfaces as a clean
+boxed panel on the CLI and is verifiable against a real tokenizer in one
+flag — so when you reach for `code-review-graph` to review a change, you
+can immediately *see* how much of your context window the graph just kept
+out. No breaking changes.
+
+### Added — Token Savings (headline feature)
+
+- **Boxed `Token Savings` panel on every `--brief` CLI call.** Both
+  `code-review-graph detect-changes --brief` and the new
+  `code-review-graph update --brief` print a four-line panel: the full-context
+  baseline, the graph response size, total saved tokens with percent, and a
+  per-category breakdown (Functions / Tests / Risk / Other) that **sums
+  exactly** to the graph response size — no padding, no rounding magic.
+
+  ```text
+  ┌─────────────────────── Token Savings ────────────────────────┐
+  │ Full context would be:     12,921 tokens                     │
+  │ Graph context used:           762 tokens                     │
+  │ Saved:                     12,159 tokens (~94%)              │
+  │ Breakdown: Functions 244 · Tests 191 · Risk 244 · Other 83   │
+  └──────────────────────────────────────────────────────────────┘
+  ```
+
+- **`--verify` flag** cross-checks the displayed numbers against OpenAI's
+  `cl100k_base` tokenizer (the GPT-4 family). Adds a second
+  `Verified (tiktoken)` row to the panel showing the real token counts.
+  Requires `pip install tiktoken`. A one-time calibration across 222 mixed
+  source files (Python/JS/TS/Go/Rust/RST/MD) committed in
+  `docs/REPRODUCING.md` shows the `chars/4` approximation stays within
+  **+0.5%** of real tokens in aggregate; per-repo bias is bounded to ±12%
+  and the **ratio** stays stable because both sides of the divide are
+  equally biased.
+
+- **`code-review-graph update --brief`** — incremental update plus the same
+  risk + Token Savings panel in one command. Distinct from
+  `detect-changes --brief` (which is read-only against the existing graph).
+  Use `update --brief` when the graph might be stale (post-rebase, large
+  change set); use `detect-changes --brief` when hooks/`crg-daemon` have
+  already kept the graph fresh.
+
+### Added — Reproducible benchmarks
+
+- **`docs/REPRODUCING.md`** — end-to-end reproduction recipe with canonical
+  numbers, the tiktoken calibration table, and an explicit explanation of
+  the three different "token" benchmarks in the codebase and what each
+  measures. Two people running the recipe on different machines on
+  different days now produce **identical** numbers, within float rounding.
+- **`multi_hop_retrieval` benchmark** — 11 hand-curated 2-step tool-chain
+  tasks (semantic_search → query_graph) across the 6 test repos. Average
+  score **0.909**. Per-task CSV in `evaluate/results/`.
+- **`code-review-graph embed` CLI subcommand** — explicit shell-level access
+  to embedding generation. Previously only reachable via MCP, which made
+  the benchmark recipe awkward.
+
+### Changed — Deterministic eval pipeline
+
+- **Every config under `code_review_graph/eval/configs/*.yaml` now pins an
+  upstream SHA.** Previously every config used `commit: HEAD`, which made
+  benchmarks drift whenever upstream pushed. Pinned SHAs: express
+  `b4ab7d65`, fastapi `0227991a`, flask `a29f88ce`, gin `5c00df8a`, httpx
+  `b55d4635`, code-review-graph `84bde354`.
+- **`nextjs.yaml` renamed to `code-review-graph.yaml`.** The historical
+  "nextjs" entry pointed at this repo, not a Next.js codebase. Renamed to
+  match reality.
+- **`eval/runner.py` uses full clones with explicit `returncode` checks.**
+  Previously `--depth 50` silently fell back to `HEAD~1..HEAD` whenever a
+  pinned test-commit SHA was past the shallow window, producing benchmark
+  numbers tied to whichever HEAD the clone happened to grab.
+- **Leiden community detection seeded** (`CRG_LEIDEN_SEED`, default `42`).
+  Previously unseeded — community IDs and sizes drifted run-to-run on the
+  same graph, breaking benchmark comparability.
+- **`eval/runner.py` resolves repo paths absolutely before storing.** The
+  parser previously stored file_path as the path you passed in, so eval
+  builds and CLI/MCP builds could disagree, producing duplicate nodes for
+  the same source location. Fixed by `.resolve()` in the runner.
+- **`eval/runner.py` calls `run_post_processing` after `full_build`.**
+  Previously the eval framework left FTS5 unpopulated (shadow tables
+  `nodes_fts_idx` and `nodes_fts_docsize` empty), so downstream search and
+  multi-hop benchmarks silently returned no results.
+
+### Changed — Search and embeddings
+
+- **`embeddings._node_to_text` is richer.** Embedded text per node now
+  includes the dotted form (`Parent.name`, e.g. `APIRoute.get_route_handler`),
+  the identifier split into words (`get route handler`), and the enclosing
+  module directory (`routing`, `dependencies`). Forces an automatic
+  re-embedding because the text hash changes. Lifts multi-hop benchmark
+  accuracy from **0.545 → 0.818**.
+- **Identifier-aware search boost** (`search.extract_query_identifiers`).
+  Natural-language queries like *"Who advances the gin middleware chain
+  via Context.Next"* now have their dotted / snake_case / CamelCase tokens
+  extracted and used to boost matching qualified-names by 2.0× in hybrid
+  search. Combined with the richer embed text, multi-hop accuracy reaches
+  **0.909** (10 of 11 tasks pass).
+
+### Fixed
+
+- **Test-gap dedup in the brief summary.** If duplicate `qualified_names`
+  ever slip into the graph (e.g. after a path-normalization mismatch),
+  the `Untested:` line in the human summary now collapses to unique names.
+  The underlying `test_gaps` list still carries every entry.
+- **`token_benchmark.py` warns when embeddings are missing.** The standalone
+  benchmark's default NL questions need semantic search to match anything;
+  without embeddings the benchmark used to silently report 0× reduction
+  ratios. Now logs an explicit warning pointing users to `embed`.
+
+### Documentation
+
+- **`docs/REPRODUCING.md`** (new). End-to-end recipe, canonical numbers,
+  the tiktoken calibration table, and a side-by-side explanation of the
+  three "token" benchmarks in the codebase.
+- **`README.md` Token Savings section** (new collapsible block under
+  Usage). Plain-English explanation of `detect-changes --brief` vs
+  `update --brief` — read-only vs re-parses-first — with a side-by-side
+  decision table.
+- **`docs/COMMANDS.md`** lists the new `--brief`, `--verify`, and `embed`
+  forms with an inline "which one?" comment block on the analysis pair.
+- **Updated benchmark headline** to reflect today's pinned-SHA snapshot:
+  range **38× – 528×** (median ~82×) across the 6 repos, **100% impact
+  recall**, **F1 0.71** across 13 commits. Old numbers (73× – 895×)
+  reflected pre-fix conditions (leftover build artifacts, smaller graph
+  responses) and have been superseded.
+- **9 Excalidraw diagrams** regenerated with current canonical numbers
+  (`diagrams/*.excalidraw`, source kept locally; PNG re-exports manual).
+
+### Demo
+
+- **`diagrams/context-savings-demo.gif`** — 44 s screencast showing both
+  CLI surfaces and the `--verify` cross-check. Rendered from
+  `diagrams/context-savings-demo.tape` (regenerable with `vhs`).
+
 ## [2.3.4] - 2026-05-25
 
 Focused reliability and token-efficiency release for MCP/CLI review workflows. No breaking changes.
