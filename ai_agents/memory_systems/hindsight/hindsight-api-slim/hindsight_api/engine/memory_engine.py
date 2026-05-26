@@ -4881,7 +4881,9 @@ class MemoryEngine(MemoryEngineInterface):
                     source_memory_ids.extend(unit["source_memory_ids"])
             source_memory_ids = list(set(source_memory_ids))  # Deduplicate
 
-            # Fetch links where BOTH endpoints are in the visible set (or source memories)
+            # Fetch non-entity links where BOTH endpoints are in the visible set (or
+            # source memories). Entity edges are derived below from unit_entities so
+            # we don't materialize them in memory_links anymore.
             # Cap at 10k edges — the UI can't usefully render more, and uncapped queries
             # on highly-connected graphs (e.g. 1000 nodes with 500k+ edges) are too slow.
             max_edges = 10000
@@ -4893,10 +4895,11 @@ class MemoryEngine(MemoryEngineInterface):
                            ml.to_unit_id,
                            ml.link_type,
                            ml.weight,
-                           e.canonical_name as entity_name
+                           NULL::text AS entity_name
                     FROM {fq_table("memory_links")} ml
-                    LEFT JOIN {fq_table("entities")} e ON ml.entity_id = e.id
-                    WHERE ml.from_unit_id = ANY($1::uuid[]) AND ml.to_unit_id = ANY($1::uuid[])
+                    WHERE ml.link_type <> 'entity'
+                      AND ml.from_unit_id = ANY($1::uuid[])
+                      AND ml.to_unit_id = ANY($1::uuid[])
                     ORDER BY ml.weight DESC NULLS LAST
                     LIMIT $2
                 """,
@@ -5034,16 +5037,21 @@ class MemoryEngine(MemoryEngineInterface):
                 }
             )
 
-        # Build observation-inferred links from inherited entities and shared source memories.
-        # Observations never have direct memory_links rows, so all their links must be derived.
+        # Build derived links: entity edges for all visible units (from unit_entities)
+        # and observation semantic edges via shared source memories.
+        # Observations never have direct memory_links rows, so all their links are derived.
         observation_units = [unit for unit in units if unit["fact_type"] == "observation"]
-        observation_ids = {unit["id"] for unit in observation_units}
 
-        # Entity links: pair observations that share at least one inherited entity
-        entity_to_observations: dict[str, list] = {}
-        for obs_id in observation_ids:
-            for entity_name in entity_map.get(obs_id, []):
-                entity_to_observations.setdefault(entity_name, []).append(obs_id)
+        # Entity links: pair any visible units that share at least one entity.
+        # Each unit links to up to max_neighbors_per_unit subsequent units in the
+        # per-entity list, so every unit that shares an entity with another visible
+        # unit gets edges (matches the historical writer cap, which was per-unit).
+        # Bounds total edges to ~N * cap per entity instead of N² for hot entities.
+        max_neighbors_per_unit = 10
+        entity_to_units_visible: dict[str, list] = {}
+        for unit_id in unit_ids:
+            for entity_name in entity_map.get(unit_id, []):
+                entity_to_units_visible.setdefault(entity_name, []).append(unit_id)
 
         # Semantic links: pair observations that share at least one source memory
         source_to_obs_for_semantic: dict = {}
@@ -5055,16 +5063,22 @@ class MemoryEngine(MemoryEngineInterface):
         observation_inferred_links = []
         seen_inferred: set[tuple] = set()
 
-        for entity_name, obs_ids in entity_to_observations.items():
-            for i, obs_a in enumerate(obs_ids):
-                for obs_b in obs_ids[i + 1 :]:
-                    pair = (min(str(obs_a), str(obs_b)), max(str(obs_a), str(obs_b)), "entity", entity_name)
+        for entity_name, ent_unit_ids in entity_to_units_visible.items():
+            n = len(ent_unit_ids)
+            for i, unit_a in enumerate(ent_unit_ids):
+                # Sliding window: link unit_a to its next max_neighbors_per_unit
+                # in the list. Each pair is also "incoming" for the later unit,
+                # so every unit ends up with up to ~2*max_neighbors_per_unit edges
+                # for this entity (its successors + its predecessors via their pairs).
+                for j in range(i + 1, min(i + 1 + max_neighbors_per_unit, n)):
+                    unit_b = ent_unit_ids[j]
+                    pair = (min(str(unit_a), str(unit_b)), max(str(unit_a), str(unit_b)), "entity", entity_name)
                     if pair not in seen_inferred:
                         seen_inferred.add(pair)
                         observation_inferred_links.append(
                             {
-                                "from_unit_id": obs_a,
-                                "to_unit_id": obs_b,
+                                "from_unit_id": unit_a,
+                                "to_unit_id": unit_b,
                                 "link_type": "entity",
                                 "weight": 1.0,
                                 "entity_name": entity_name,
@@ -6996,17 +7010,54 @@ class MemoryEngine(MemoryEngineInterface):
                 bank_id,
             )
 
-            # Link stats — filter on ml.bank_id directly instead of joining through mu.bank_id.
-            # link_counts and link_counts_by_fact_type are derived in Python from the breakdown.
-            link_breakdown_stats = await conn.fetch(
+            # Link stats — filter on ml.bank_id (indexed) instead of joining through mu.bank_id.
+            # With the idx_memory_links_bank_link_type index this turns a full-table hash join
+            # into an indexed scan + PK lookups.  link_counts and link_counts_by_fact_type are
+            # derived in Python from the breakdown.
+            non_entity_breakdown = await conn.fetch(
                 f"""
                 SELECT mu.fact_type, ml.link_type, COUNT(*) as count
                 FROM {fq_table("memory_links")} ml
                 JOIN {fq_table("memory_units")} mu ON ml.from_unit_id = mu.id
-                WHERE ml.bank_id = $1
+                WHERE ml.bank_id = $1 AND ml.link_type <> 'entity'
                 GROUP BY mu.fact_type, ml.link_type
                 """,
                 bank_id,
+            )
+
+            # Entity links are derived from unit_entities (no longer stored in memory_links).
+            # Replicate the historical writer cap: each unit linked bidirectionally to up to
+            # MAX_LINKS_PER_ENTITY others sharing each entity. Count per (unit, entity) the
+            # outgoing rows the writer would have produced — by fact_type of the source unit.
+            max_links_per_entity = 10
+            entity_breakdown = await conn.fetch(
+                f"""
+                WITH per_entity AS (
+                    SELECT ue.entity_id, COUNT(*) AS n
+                    FROM {fq_table("unit_entities")} ue
+                    JOIN {fq_table("memory_units")} mu ON mu.id = ue.unit_id
+                    WHERE mu.bank_id = $1
+                    GROUP BY ue.entity_id
+                )
+                SELECT mu.fact_type, SUM(LEAST(pe.n - 1, $2))::bigint AS count
+                FROM {fq_table("unit_entities")} ue
+                JOIN {fq_table("memory_units")} mu ON mu.id = ue.unit_id
+                JOIN per_entity pe ON pe.entity_id = ue.entity_id
+                WHERE mu.bank_id = $1
+                GROUP BY mu.fact_type
+                """,
+                bank_id,
+                max_links_per_entity,
+            )
+
+            link_breakdown_stats = [
+                {"fact_type": row["fact_type"], "link_type": row["link_type"], "count": row["count"]}
+                for row in non_entity_breakdown
+            ]
+            link_breakdown_stats.extend(
+                {"fact_type": row["fact_type"], "link_type": "entity", "count": int(row["count"] or 0)}
+                for row in entity_breakdown
+                if (row["count"] or 0) > 0
             )
 
             link_counts: dict[str, int] = {}

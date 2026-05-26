@@ -1585,39 +1585,32 @@ async def test_semantic_links_creation(memory, request_context):
 @pytest.mark.asyncio
 async def test_entity_links_creation(memory, request_context):
     """
-    Test that entity links are created between facts that mention the same entities.
-
-    Entity links connect facts that reference the same person, place, or concept.
-    This is core functionality and should work consistently.
+    Test that entity edges surface in the /graph response between facts that
+    mention the same entities, and that the /stats endpoint reports a non-zero
+    entity link count. Entity edges are derived on demand from unit_entities;
+    no rows of link_type='entity' are written to memory_links.
     """
     bank_id = f"test_entity_links_{datetime.now(timezone.utc).timestamp()}"
 
     try:
-        # Store facts that mention the same entities
         unit_ids_1 = await memory.retain_async(
             bank_id=bank_id,
             content="Alice joined Google as a software engineer in 2020.",
             context="career history",
             request_context=request_context,
         )
-
-        # Mentions same entity (Alice) - should create entity link
         unit_ids_2 = await memory.retain_async(
             bank_id=bank_id,
             content="Alice led the development of the new authentication system.",
             context="project updates",
             request_context=request_context,
         )
-
-        # Mentions same entity (Google) - should create entity link
         unit_ids_3 = await memory.retain_async(
             bank_id=bank_id,
             content="Google announced new cloud services at their annual conference.",
             context="tech news",
             request_context=request_context,
         )
-
-        # Different entities - no entity link expected
         unit_ids_4 = await memory.retain_async(
             bank_id=bank_id,
             content="Bob works at Meta on machine learning infrastructure.",
@@ -1626,57 +1619,76 @@ async def test_entity_links_creation(memory, request_context):
         )
 
         assert len(unit_ids_1) > 0 and len(unit_ids_2) > 0 and len(unit_ids_3) > 0 and len(unit_ids_4) > 0
+        all_unit_ids = {str(uid) for uid in unit_ids_1 + unit_ids_2 + unit_ids_3 + unit_ids_4}
 
-        logger.info(f"Created {len(unit_ids_1) + len(unit_ids_2) + len(unit_ids_3) + len(unit_ids_4)} facts")
-
-        # Query the memory_links table to verify entity links exist
+        # memory_links should NOT contain entity rows — they are derived on read.
         async with memory._pool.acquire() as conn:
-            all_unit_ids = unit_ids_1 + unit_ids_2 + unit_ids_3 + unit_ids_4
-
-            entity_links = await conn.fetch(
+            stored_entity_links = await conn.fetchval(
                 """
-                SELECT from_unit_id, to_unit_id, link_type, weight, entity_id
-                FROM memory_links
-                WHERE from_unit_id::text = ANY($1)
-                  AND link_type = 'entity'
-                ORDER BY from_unit_id, to_unit_id
+                SELECT COUNT(*) FROM memory_links
+                WHERE bank_id = $1 AND link_type = 'entity'
                 """,
-                all_unit_ids
+                bank_id,
             )
+        assert stored_entity_links == 0, "Entity edges must not be materialized in memory_links"
 
-            logger.info(f"Found {len(entity_links)} entity links")
+        # /graph derives entity edges from unit_entities — pairs that share an entity
+        # should appear as link_type='entity' edges.
+        graph = await memory.get_graph_data(bank_id=bank_id, request_context=request_context)
+        entity_edges = [edge["data"] for edge in graph["edges"] if edge["data"].get("linkType") == "entity"]
+        assert entity_edges, "Graph should surface entity edges for facts sharing an entity"
+        for edge in entity_edges:
+            assert edge["source"] != edge["target"]
+        # At least one edge must connect two facts we retained directly (proves the
+        # derivation works for non-observation units, not just for inherited entities).
+        retained_pair_edges = [
+            edge for edge in entity_edges if edge["source"] in all_unit_ids and edge["target"] in all_unit_ids
+        ]
+        assert retained_pair_edges, "Expected at least one entity edge between two directly retained units"
 
-            # Entity extraction is core functionality and should work
-            assert len(entity_links) > 0, "Should have created entity links between facts with shared entities (Alice, Google)"
+        # /stats should report a non-zero entity count under the same key as before.
+        stats = await memory.get_bank_stats(bank_id=bank_id, request_context=request_context)
+        assert stats["link_counts"].get("entity", 0) > 0, "Stats must report a non-zero entity link count"
 
-            # Verify link properties
-            entities_seen = set()
-            for link in entity_links:
-                entity_id = link['entity_id']
-                entities_seen.add(str(entity_id))
-                from_id = str(link['from_unit_id'])
-                to_id = str(link['to_unit_id'])
-                logger.info(f"  Link: {from_id[:8]}... -> {to_id[:8]}... via entity {str(entity_id)[:8]}...")
-                assert link['link_type'] == 'entity', "Link type should be 'entity'"
-                assert link['weight'] == 1.0, "Entity links should have weight 1.0"
-                assert entity_id is not None, "Entity links must reference an entity_id"
+    finally:
+        await memory.delete_bank(bank_id, request_context=request_context)
 
-            logger.info(f"Entity links created successfully for {len(entities_seen)} unique entities")
 
-            # Verify bidirectional links (entity links should be bidirectional)
-            link_pairs = set()
-            for link in entity_links:
-                from_id = str(link['from_unit_id'])
-                to_id = str(link['to_unit_id'])
-                entity_id = str(link['entity_id'])
-                link_pairs.add((from_id, to_id, entity_id))
+@pytest.mark.asyncio
+async def test_graph_entity_edges_cover_all_visible_units(memory, request_context):
+    """
+    Regression test: when a hot entity is shared by more than the per-entity
+    cap (default 10) visible units, every visible unit mentioning that entity
+    must still appear in at least one entity edge. The previous implementation
+    capped the per-entity list to the first 10 units before pairing, leaving
+    units #11+ without any entity edges in /graph.
+    """
+    bank_id = f"test_graph_entity_coverage_{datetime.now(timezone.utc).timestamp()}"
 
-            # Check that for each (A -> B) link, there's a (B -> A) link with same entity
-            for from_id, to_id, entity_id in link_pairs:
-                reverse_exists = (to_id, from_id, entity_id) in link_pairs
-                assert reverse_exists, f"Entity links should be bidirectional: missing reverse link for {from_id[:8]} -> {to_id[:8]}"
+    try:
+        # 15 facts all mentioning the same person — more than max_neighbors_per_unit=10.
+        contents = [
+            {"content": f"Alice completed task #{i} in the authentication module.", "context": "sprint log"}
+            for i in range(15)
+        ]
+        retained_lists = await memory.retain_batch_async(
+            bank_id=bank_id,
+            contents=contents,
+            request_context=request_context,
+        )
+        retained_unit_ids = {str(uid) for sublist in retained_lists for uid in sublist}
+        assert len(retained_unit_ids) >= 15, f"Expected >=15 units, got {len(retained_unit_ids)}"
 
-            logger.info("Entity links are properly bidirectional")
+        graph = await memory.get_graph_data(bank_id=bank_id, request_context=request_context)
+        entity_edges = [edge["data"] for edge in graph["edges"] if edge["data"].get("linkType") == "entity"]
+        assert entity_edges, "Graph should have entity edges for facts sharing an entity"
+
+        units_in_entity_edges = {edge["source"] for edge in entity_edges} | {edge["target"] for edge in entity_edges}
+        missing = retained_unit_ids - units_in_entity_edges
+        assert not missing, (
+            f"{len(missing)}/{len(retained_unit_ids)} retained units have no entity edges in /graph. "
+            f"The per-entity edge cap must not exclude units beyond the first N from pairing."
+        )
 
     finally:
         await memory.delete_bank(bank_id, request_context=request_context)
@@ -2002,11 +2014,12 @@ async def test_all_link_types_together(memory, request_context):
 
         logger.info(f"Created {len(unit_ids_1) + len(unit_ids_2) + len(unit_ids_3)} facts")
 
-        # Query for all link types
+        # Temporal/semantic/causal links live in memory_links; entity links are
+        # derived from unit_entities at read time, so check both surfaces.
         async with memory._pool.acquire() as conn:
             all_unit_ids = unit_ids_1 + unit_ids_2 + unit_ids_3
 
-            all_links = await conn.fetch(
+            stored_links = await conn.fetch(
                 """
                 SELECT link_type, COUNT(*) as count
                 FROM memory_links
@@ -2014,24 +2027,16 @@ async def test_all_link_types_together(memory, request_context):
                 GROUP BY link_type
                 ORDER BY link_type
                 """,
-                all_unit_ids
+                all_unit_ids,
             )
+            stored_by_type = {row["link_type"]: row["count"] for row in stored_links}
 
-            logger.info("Link types created:")
-            link_types_found = {}
-            for row in all_links:
-                link_type = row['link_type']
-                count = row['count']
-                link_types_found[link_type] = count
-                logger.info(f"  - {link_type}: {count} links")
+        assert "temporal" in stored_by_type, "Should have temporal links (facts with nearby dates)"
+        assert "semantic" in stored_by_type, "Should have semantic links (similar content about Python/auth)"
+        assert stored_by_type.get("entity", 0) == 0, "Entity links must not be materialized in memory_links"
 
-            # Should have temporal, semantic, and entity links
-            assert 'temporal' in link_types_found, "Should have temporal links (facts with nearby dates)"
-            assert 'semantic' in link_types_found, "Should have semantic links (similar content about Python/auth)"
-            assert 'entity' in link_types_found, "Should have entity links (all mention Alice)"
-
-            logger.info(f"Successfully created {len(link_types_found)} different link types")
-            logger.info("All major link types (temporal, semantic, entity) are working correctly")
+        stats = await memory.get_bank_stats(bank_id=bank_id, request_context=request_context)
+        assert stats["link_counts"].get("entity", 0) > 0, "Stats must report entity links (all facts mention Alice)"
 
     finally:
         await memory.delete_bank(bank_id, request_context=request_context)

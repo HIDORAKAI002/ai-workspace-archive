@@ -46,6 +46,10 @@ describe("package Telegram live Docker E2E", () => {
     expect(installRun).toContain(
       'timeout --kill-after=30s "$npm_install_timeout" npm install -g "$install_source" --no-fund --no-audit',
     );
+    expect(installRun).toContain("timeout --kill-after=1s 1s true >/dev/null 2>&1");
+    expect(installRun).toContain(
+      'timeout "$npm_install_timeout" npm install -g "$install_source" --no-fund --no-audit',
+    );
     expect(installRun).toContain('npm install -g "$install_source" --no-fund --no-audit');
     expect(installRun).toContain('"${package_mount_args[@]}"');
     expect(installRun).not.toContain('"${docker_env[@]}"');

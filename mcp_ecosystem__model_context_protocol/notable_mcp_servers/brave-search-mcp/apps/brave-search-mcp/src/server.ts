@@ -1,17 +1,22 @@
 import type { LocalWebFallbackExecutor, ToolInterceptor, ToolLogger } from './tools/tool-helpers.js';
 import path from 'node:path';
+import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { BraveSearch } from 'brave-search';
 import packageJson from '../package.json' with { type: 'json' };
+import { loadPolicyRulesSync } from './policy-loader.js';
 import { registerUiSearchTools } from './server-ui.js';
+import { AuditLoggingInterceptor } from './tools/AuditLoggingInterceptor.js';
 import { BraveImageSearchTool } from './tools/BraveImageSearchTool.js';
 import { BraveLLMContextSearchTool } from './tools/BraveLLMContextSearchTool.js';
 import { BraveLocalSearchTool } from './tools/BraveLocalSearchTool.js';
 import { BraveNewsSearchTool } from './tools/BraveNewsSearchTool.js';
 import { BraveVideoSearchTool } from './tools/BraveVideoSearchTool.js';
 import { BraveWebSearchTool } from './tools/BraveWebSearchTool.js';
+import { QueryPolicyInterceptor } from './tools/QueryPolicyInterceptor.js';
 import { buildToolErrorResult, executeTool } from './tools/tool-helpers.js';
+import { UsageGuardrailInterceptor } from './tools/UsageGuardrailInterceptor.js';
 
 const DIST_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'dist');
 const { version: SERVER_VERSION } = packageJson;
@@ -101,8 +106,44 @@ export class BraveMcpServer {
   }
 
   private buildInterceptors(): readonly ToolInterceptor[] {
-    // Future: read BRAVE_MCP_POLICY_FILE, BRAVE_MCP_REQUEST_LIMIT, etc. and build interceptors.
-    return [];
+    // Interceptor order matters: policy → guardrail → audit.
+    // - Policy runs first so denied queries never consume quota.
+    // - Guardrail runs second so rate-limited requests are still audited.
+    // - Audit runs last and is the only interceptor with a before() justification gate;
+    //   a request blocked earlier in the chain skips that gate. This means policy-denied
+    //   requests do not require a justification — intentional, since they are already
+    //   rejected on stronger grounds.
+    const interceptors: ToolInterceptor[] = [];
+    const policyFile = process.env.BRAVE_MCP_POLICY_FILE;
+    if (policyFile) {
+      const rules = loadPolicyRulesSync(policyFile);
+      const redactMode = (process.env.BRAVE_MCP_POLICY_REDACT ?? '').toLowerCase() === 'true';
+      interceptors.push(new QueryPolicyInterceptor(rules, redactMode));
+    }
+    const requestLimitStr = process.env.BRAVE_MCP_REQUEST_LIMIT;
+    if (requestLimitStr !== undefined) {
+      const requestLimit = /^\d+$/.test(requestLimitStr) ? Number(requestLimitStr) : 0;
+      if (requestLimit > 0) {
+        const windowStr = process.env.BRAVE_MCP_WINDOW_SECONDS ?? '0';
+        const cooldownStr = process.env.BRAVE_MCP_COOLDOWN_SECONDS ?? '0';
+        interceptors.push(new UsageGuardrailInterceptor({
+          requestLimit,
+          windowMs: /^\d+$/.test(windowStr) ? Number(windowStr) * 1000 : 0,
+          cooldownMs: /^\d+$/.test(cooldownStr) ? Number(cooldownStr) * 1000 : 0,
+        }));
+      }
+    }
+    const auditLoggingEnabled = (process.env.BRAVE_MCP_AUDIT_LOG ?? '').toLowerCase() === 'true';
+    const logRawInputs = (process.env.BRAVE_MCP_AUDIT_LOG_RAW ?? '').toLowerCase() === 'true';
+    const requireJustification = (process.env.BRAVE_MCP_REQUIRE_JUSTIFICATION ?? '').toLowerCase() === 'true';
+    if (auditLoggingEnabled || requireJustification) {
+      interceptors.push(new AuditLoggingInterceptor({
+        auditLoggingEnabled,
+        logRawInputs,
+        requireJustification,
+      }));
+    }
+    return interceptors;
   }
 
   private registerConfiguredTools(isUI: boolean): void {

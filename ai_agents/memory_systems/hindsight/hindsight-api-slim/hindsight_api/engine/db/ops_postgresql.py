@@ -141,9 +141,9 @@ class PostgreSQLOps(DataAccessOps):
                 RETURNING id
             """
         else:
-            # pg_textsearch and pgroonga: search_vector is a dummy TEXT column;
-            # the actual full-text index operates on the base text columns
-            # directly, so we don't populate search_vector at insert time.
+            # pg_textsearch, pgroonga, and pg_search: search_vector is a dummy
+            # TEXT column; the actual full-text index operates on the base text
+            # columns directly, so we don't populate search_vector at insert time.
             query = f"""
                 WITH input_data AS (
                     SELECT * FROM unnest(
@@ -288,29 +288,6 @@ class PostgreSQLOps(DataAccessOps):
             """,
             unit_ids,
             entity_ids,
-        )
-
-    async def fetch_entity_unit_fanout(
-        self,
-        conn: DatabaseConnection,
-        ue_table: str,
-        entity_id_list: list[UUID],
-        limit_per_entity: int,
-    ) -> list[ResultRow]:
-        return await conn.fetch(
-            f"""
-            SELECT e.entity_id, n.unit_id
-            FROM unnest($1::uuid[]) AS e(entity_id)
-            CROSS JOIN LATERAL (
-                SELECT ue.unit_id
-                FROM {ue_table} ue
-                WHERE ue.entity_id = e.entity_id
-                ORDER BY ue.unit_id DESC
-                LIMIT $2
-            ) n
-            """,
-            entity_id_list,
-            limit_per_entity,
         )
 
     async def fetch_unit_dates(

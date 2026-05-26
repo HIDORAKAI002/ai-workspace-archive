@@ -35,6 +35,12 @@ import {
   trackMonitorConfiguredInterest,
   trackMonitorDeactivatedInterest,
 } from "../../services/monitoring/interest";
+import {
+  getLatestWebhookLog,
+  getLatestWebhookLogsByJob,
+  type WebhookLogRow,
+} from "../../services/webhook/logs";
+import { WebhookEvent } from "../../services/webhook";
 
 const logger = _logger.child({ module: "monitor-controller" });
 
@@ -83,6 +89,38 @@ function serializeMonitor(monitor: any) {
     judgeEnabled: Boolean(monitor.judge_enabled),
     createdAt: monitor.created_at,
     updatedAt: monitor.updated_at,
+  };
+}
+
+function overlayWebhookLog<T extends { notificationStatus: any }>(
+  serialized: T,
+  log: WebhookLogRow | null,
+): T {
+  if (!log) return serialized;
+  const notificationStatus =
+    serialized.notificationStatus &&
+    typeof serialized.notificationStatus === "object"
+      ? serialized.notificationStatus
+      : {};
+  const existing =
+    notificationStatus.webhook && typeof notificationStatus.webhook === "object"
+      ? notificationStatus.webhook
+      : {};
+  return {
+    ...serialized,
+    notificationStatus: {
+      ...notificationStatus,
+      webhook: {
+        ...existing,
+        attempted: true,
+        success: log.success === true,
+        delivered: log.success === true,
+        queued: false,
+        statusCode: log.status_code ?? undefined,
+        error: log.error ?? undefined,
+        deliveredAt: log.created_at,
+      },
+    },
   };
 }
 
@@ -357,9 +395,19 @@ export async function listMonitorChecksController(
     status: query.status,
   });
 
+  const webhookLogs = await getLatestWebhookLogsByJob({
+    jobIds: checks.map(c => c.id),
+    event: WebhookEvent.MONITOR_CHECK_COMPLETED,
+  });
+
   res.status(200).json({
     success: true,
-    data: checks.map(serializeCheck),
+    data: checks.map(check =>
+      overlayWebhookLog(
+        serializeCheck(check),
+        webhookLogs.get(check.id) ?? null,
+      ),
+    ),
   });
 }
 
@@ -375,7 +423,7 @@ export async function getMonitorCheckController(
     return res.status(404).json({ success: false, error: "Check not found" });
   }
 
-  const [pages, totalPagesForFilter] = await Promise.all([
+  const [pages, totalPagesForFilter, webhookLog] = await Promise.all([
     listMonitorCheckPages({
       teamId: req.auth.team_id,
       monitorId,
@@ -387,6 +435,10 @@ export async function getMonitorCheckController(
     countMonitorCheckPages({
       checkId,
       status: query.status,
+    }),
+    getLatestWebhookLog({
+      jobId: checkId,
+      event: WebhookEvent.MONITOR_CHECK_COMPLETED,
     }),
   ]);
 
@@ -442,7 +494,7 @@ export async function getMonitorCheckController(
     success: true,
     next,
     data: {
-      ...serializeCheck(check),
+      ...overlayWebhookLog(serializeCheck(check), webhookLog),
       pages: pagesWithDiffs,
       next,
     },

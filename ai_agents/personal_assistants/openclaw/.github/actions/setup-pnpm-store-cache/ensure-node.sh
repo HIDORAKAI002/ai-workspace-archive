@@ -8,7 +8,10 @@ openclaw_node_version_matches() {
   fi
   case "$requested" in
     *x)
-      [[ "${actual%%.*}" == "${requested%%.*}" ]]
+      [[ "${actual%%.*}" == "${requested%%.*}" ]] || return 1
+      if [[ "${requested%%.*}" == "22" ]]; then
+        openclaw_node_version_at_least "$actual" "22.19.0"
+      fi
       ;;
     *.*.*)
       [[ "$actual" == "$requested" ]]
@@ -22,15 +25,45 @@ openclaw_node_version_matches() {
   esac
 }
 
+openclaw_node_version_at_least() {
+  local actual="$1"
+  local minimum="$2"
+  local actual_major actual_minor actual_patch minimum_major minimum_minor minimum_patch
+  IFS=. read -r actual_major actual_minor actual_patch <<< "$actual"
+  IFS=. read -r minimum_major minimum_minor minimum_patch <<< "$minimum"
+  actual_minor="${actual_minor:-0}"
+  actual_patch="${actual_patch:-0}"
+  minimum_minor="${minimum_minor:-0}"
+  minimum_patch="${minimum_patch:-0}"
+
+  if (( actual_major != minimum_major )); then
+    (( actual_major > minimum_major ))
+    return
+  fi
+  if (( actual_minor != minimum_minor )); then
+    (( actual_minor > minimum_minor ))
+    return
+  fi
+  (( actual_patch >= minimum_patch ))
+}
+
 openclaw_active_node_version() {
   node -p 'process.versions.node' 2>/dev/null || true
 }
 
 openclaw_prepend_node_bin() {
   local node_bin_dir="$1"
-  export PATH="$node_bin_dir:$PATH"
+  local shell_node_bin_dir="$node_bin_dir"
+  if command -v cygpath >/dev/null 2>&1; then
+    shell_node_bin_dir="$(cygpath -u "$node_bin_dir" 2>/dev/null || printf '%s' "$node_bin_dir")"
+  fi
+  export PATH="$shell_node_bin_dir:$PATH"
   if [[ -n "${GITHUB_PATH:-}" ]]; then
-    echo "$node_bin_dir" >> "$GITHUB_PATH"
+    local github_node_bin_dir="$shell_node_bin_dir"
+    if command -v cygpath >/dev/null 2>&1; then
+      github_node_bin_dir="$(cygpath -w "$shell_node_bin_dir" 2>/dev/null || printf '%s' "$shell_node_bin_dir")"
+    fi
+    echo "$github_node_bin_dir" >> "$GITHUB_PATH"
   fi
   hash -r
 }
@@ -49,6 +82,9 @@ openclaw_find_toolcache_node() {
     "/Users/runner/hostedtoolcache" \
     "/c/hostedtoolcache/windows"
   do
+    if [[ ! -d "$root" && "$root" == *\\* ]] && command -v cygpath >/dev/null 2>&1; then
+      root="$(cygpath -u "$root" 2>/dev/null || printf '%s' "$root")"
+    fi
     if [[ -d "$root/node" ]]; then
       roots+=("$root/node")
     elif [[ "$(basename "$root")" == "node" && -d "$root" ]]; then

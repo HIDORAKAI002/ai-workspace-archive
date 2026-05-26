@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-05-27 03:01 IST] Auto-Sync
+- **42 Repositories Updated:** GitHub MCP Server, Promptfoo, Guardrails AI, n8n, Dify, Activepieces, Windmill, Appsmith, Budibase, modelcontextprotocol/csharp-sdk, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, mikechao/brave-search-mcp, langchain-ai/langchain, langchain-ai/langgraph, crewAIInc/crewAI, run-llama/llama_index, mastra-ai/mastra, deepset-ai/haystack, BerriAI/litellm, stanfordnlp/dspy, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, anthropics/claude-code, arize-ai/phoenix, firecrawl/firecrawl, openai/openai-python, google-gemini/gemini-cli, vercel/ai, apache/airflow, dagster-io/dagster, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow, nousresearch/hermes-agent
+
 ## [2026-05-26 20:08 IST] Auto-Sync
 - **36 Repositories Updated:** Public APIs Directory, MCP Python SDK, Langfuse, Promptfoo, n8n, Dify, Activepieces, Windmill, Budibase, Plane, modelcontextprotocol/java-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, camel-ai/camel, openai/openai-agents-python, pydantic/pydantic-ai, mastra-ai/mastra, chatdev, BerriAI/litellm, stanfordnlp/dspy, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, weaviate/weaviate, infiniflow/ragflow, firecrawl/firecrawl, dagster-io/dagster, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight, lyogavin/airllm, ScrapeGraphAI/Scrapegraph-ai, nousresearch/hermes-agent
 

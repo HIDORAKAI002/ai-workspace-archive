@@ -1415,9 +1415,16 @@ async def _create_observation_directly(
                     tokenize($3, 'llmlingua2')::bm25_catalog.bm25vector)
             RETURNING id
         """
-    else:  # native or pg_textsearch
-        # Native PostgreSQL: search_vector is GENERATED ALWAYS, don't include it
-        # pg_textsearch: indexes operate on base columns directly, don't populate search_vector
+    else:  # native, pg_textsearch, pgroonga, or pg_search
+        # pg_textsearch / pgroonga / pg_search: indexes operate on base text
+        # columns directly, so the dummy search_vector column is left NULL.
+        # Native: the migration p4q5r6s7t8u9 dropped the GENERATED expression on
+        # search_vector to allow per-deployment language configuration; the
+        # batch insert path in ops_postgresql.insert_facts_batch now populates
+        # it via to_tsvector($lang, ...). This single-observation INSERT does
+        # not, so observations under the native backend currently land with
+        # NULL search_vector and are not BM25-searchable until reflected/
+        # re-ingested. Tracking a separate fix for that gap.
         query = f"""
             INSERT INTO {fq_table("memory_units")} (
                 id, bank_id, text, fact_type, embedding, proof_count, source_memory_ids, history,
