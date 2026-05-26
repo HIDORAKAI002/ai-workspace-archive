@@ -10,6 +10,7 @@ import {
 } from "../gateway/model-pricing-cache-state.js";
 import { createSuiteTempRootTracker } from "../test-helpers/temp-dir.js";
 import { withEnvAsync } from "../test-utils/env.js";
+import * as usageFormat from "../utils/usage-format.js";
 import {
   discoverAllSessions,
   loadCostUsageSummary,
@@ -147,6 +148,52 @@ describe("session cost usage", () => {
       expect(summary.totals.totalTokens).toBe(50);
       expect(summary.totals.totalCost).toBeCloseTo(0.03003, 5);
     });
+  });
+
+  it("reuses resolved model costs while scanning repeated session usage entries", async () => {
+    const root = await makeSessionCostRoot("cost-resolver-cache");
+    const sessionsDir = path.join(root, "agents", "main", "sessions");
+    await fs.mkdir(sessionsDir, { recursive: true });
+    const sessionFile = path.join(sessionsDir, "sess-1.jsonl");
+    const now = new Date().toISOString();
+    const entries = Array.from({ length: 12 }, () => ({
+      type: "message",
+      timestamp: now,
+      message: {
+        role: "assistant",
+        provider: "openai",
+        model: "gpt-5.4",
+        usage: { input: 10, output: 20, totalTokens: 30 },
+      },
+    }));
+    await fs.writeFile(sessionFile, entries.map((entry) => JSON.stringify(entry)).join("\n"));
+
+    const config = {
+      models: {
+        providers: {
+          openai: {
+            models: [
+              {
+                id: "gpt-5.4",
+                cost: { input: 1, output: 2, cacheRead: 0, cacheWrite: 0 },
+              },
+            ],
+          },
+        },
+      },
+    } as unknown as OpenClawConfig;
+
+    const costSpy = vi.spyOn(usageFormat, "resolveModelCostConfig");
+    try {
+      await withStateDir(root, async () => {
+        const summary = await loadCostUsageSummary({ days: 30, config });
+        expect(summary.totals.totalTokens).toBe(360);
+        expect(summary.totals.totalCost).toBeCloseTo(0.0006, 8);
+      });
+      expect(costSpy.mock.calls.length).toBeLessThanOrEqual(2);
+    } finally {
+      costSpy.mockRestore();
+    }
   });
 
   it("counts token usage for an unpriced (unconfigured all-zero) model as missing, not a confident $0", async () => {
@@ -512,6 +559,68 @@ describe("session cost usage", () => {
       expect(summary.totals.totalCost).toBeCloseTo(0.06, 5);
       expect(summary.cacheStatus?.status).toBe("fresh");
     });
+  });
+
+  it("limits transcript stat fanout when listing durable cost inputs", async () => {
+    const root = await makeSessionCostRoot("cost-cache-stat-fanout");
+    const sessionsDir = path.join(root, "agents", "main", "sessions");
+    await fs.mkdir(sessionsDir, { recursive: true });
+    await Promise.all(
+      Array.from({ length: 48 }, async (_, index) => {
+        const sessionId = `sess-stat-fanout-${index}`;
+        await fs.writeFile(
+          path.join(sessionsDir, `${sessionId}.jsonl`),
+          transcriptText(sessionId, {
+            type: "message",
+            timestamp: "2026-02-05T12:00:00.000Z",
+            message: {
+              role: "assistant",
+              usage: {
+                input: 1,
+                output: 1,
+                totalTokens: 2,
+                cost: { total: 0.002 },
+              },
+            },
+          }),
+          "utf-8",
+        );
+      }),
+    );
+
+    const originalStat = nodeFs.promises.stat.bind(nodeFs.promises);
+    let activeStats = 0;
+    let maxActiveStats = 0;
+    const statSpy = vi.spyOn(nodeFs.promises, "stat").mockImplementation(async (target) => {
+      const targetPath = String(target);
+      if (targetPath.startsWith(sessionsDir) && targetPath.endsWith(".jsonl")) {
+        activeStats += 1;
+        maxActiveStats = Math.max(maxActiveStats, activeStats);
+        try {
+          await new Promise((resolve) => setTimeout(resolve, 2));
+          return await originalStat(target);
+        } finally {
+          activeStats -= 1;
+        }
+      }
+      return await originalStat(target);
+    });
+
+    await withStateDir(root, async () => {
+      try {
+        const summary = await loadCostUsageSummaryFromCache({
+          startMs: Date.UTC(2026, 1, 5),
+          endMs: Date.UTC(2026, 1, 5) + 24 * 60 * 60 * 1000 - 1,
+          requestRefresh: false,
+        });
+        expect(summary.cacheStatus?.status).toBe("stale");
+      } finally {
+        statSpy.mockRestore();
+      }
+    });
+
+    expect(maxActiveStats).toBeGreaterThan(1);
+    expect(maxActiveStats).toBeLessThanOrEqual(32);
   });
 
   it("invalidates durable aggregate cache when pricing config changes", async () => {

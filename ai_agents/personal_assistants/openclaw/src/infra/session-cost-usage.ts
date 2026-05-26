@@ -21,6 +21,7 @@ import { createSubsystemLogger } from "../logging/subsystem.js";
 import { stripEnvelope, stripMessageIdHints } from "../shared/chat-envelope.js";
 import { asFiniteNumber } from "../shared/number-coercion.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
+import { runTasksWithConcurrency } from "../utils/run-with-concurrency.js";
 import { countToolResults, extractToolCallNames } from "../utils/transcript-tools.js";
 import {
   estimateUsageCost,
@@ -88,6 +89,7 @@ const emptyTotals = (): CostUsageTotals => ({
 const USAGE_COST_CACHE_VERSION = 4;
 const USAGE_COST_CACHE_FILE = ".usage-cost-cache.json";
 const USAGE_COST_CACHE_LOCK_WRITE_GRACE_MS = 10_000;
+const USAGE_COST_TRANSCRIPT_STAT_CONCURRENCY = 32;
 const logger = createSubsystemLogger("usage-cost-cache");
 
 type UsageCostRefreshState = {
@@ -366,24 +368,38 @@ async function writeUsageCostCache(cachePath: string, cache: UsageCostCacheFile)
   });
 }
 
-async function listUsageCountedTranscriptFiles(
+async function listUsageCountedTranscriptFileStats(
   agentId?: string,
+  params?: { minMtimeMs?: number },
 ): Promise<UsageCostTranscriptFile[]> {
   const sessionsDir = resolveSessionTranscriptsDirForAgent(agentId);
   const entries = await fs.promises.readdir(sessionsDir, { withFileTypes: true }).catch(() => []);
-  const files = await Promise.all(
-    entries
-      .filter((entry) => entry.isFile() && isUsageCountedSessionTranscriptFileName(entry.name))
-      .map(async (entry) => {
+  const tasks = entries
+    .filter((entry) => entry.isFile() && isUsageCountedSessionTranscriptFileName(entry.name))
+    .map(
+      (entry) => async (): Promise<UsageCostTranscriptFile | undefined> => {
         const filePath = path.join(sessionsDir, entry.name);
         const stats = await fs.promises.stat(filePath).catch(() => null);
         if (!stats) {
           return undefined;
         }
+        if (params?.minMtimeMs !== undefined && stats.mtimeMs < params.minMtimeMs) {
+          return undefined;
+        }
         return { filePath, size: stats.size, mtimeMs: stats.mtimeMs };
-      }),
-  );
-  return files.filter((file): file is UsageCostTranscriptFile => Boolean(file));
+      },
+    );
+  const { results } = await runTasksWithConcurrency({
+    tasks,
+    limit: USAGE_COST_TRANSCRIPT_STAT_CONCURRENCY,
+  });
+  return results.filter((file): file is UsageCostTranscriptFile => Boolean(file));
+}
+
+async function listUsageCountedTranscriptFiles(
+  agentId?: string,
+): Promise<UsageCostTranscriptFile[]> {
+  return await listUsageCountedTranscriptFileStats(agentId);
 }
 
 function isUsageCostCacheEntryFresh(params: {
@@ -1033,6 +1049,24 @@ const isModelPricingKnown = (cost: ReturnType<typeof resolveModelCostConfig>): b
   return cost.input > 0 || cost.output > 0 || cost.cacheRead > 0 || cost.cacheWrite > 0;
 };
 
+type UsageCostResolver = (params: {
+  provider?: string;
+  model?: string;
+}) => ReturnType<typeof resolveModelCostConfig>;
+
+function createUsageCostResolver(config?: OpenClawConfig): UsageCostResolver {
+  const cache = new Map<string, ReturnType<typeof resolveModelCostConfig>>();
+  return ({ provider, model }) => {
+    const key = `${provider ?? ""}\0${model ?? ""}`;
+    if (cache.has(key)) {
+      return cache.get(key);
+    }
+    const cost = resolveModelCostConfig({ provider, model, config });
+    cache.set(key, cost);
+    return cost;
+  };
+}
+
 async function canReadJsonlFromOffset(filePath: string, startOffset: number): Promise<boolean> {
   if (startOffset <= 0) {
     return true;
@@ -1092,10 +1126,12 @@ async function* readJsonlRecords(
 async function scanTranscriptFile(params: {
   filePath: string;
   config?: OpenClawConfig;
+  resolveCost?: UsageCostResolver;
   startOffset?: number;
   endOffset?: number;
   onEntry: (entry: ParsedTranscriptEntry) => void;
 }): Promise<void> {
+  const resolveCost = params.resolveCost ?? createUsageCostResolver(params.config);
   for await (const parsed of readJsonlRecords(
     params.filePath,
     params.startOffset,
@@ -1107,10 +1143,9 @@ async function scanTranscriptFile(params: {
     }
 
     if (entry.usage) {
-      const cost = resolveModelCostConfig({
+      const cost = resolveCost({
         provider: entry.provider,
         model: entry.model,
-        config: params.config,
       });
       if (cost?.tieredPricing && cost.tieredPricing.length > 0) {
         // When tiered pricing is configured, always recompute to override
@@ -1146,6 +1181,7 @@ async function scanTranscriptFile(params: {
 async function scanUsageFile(params: {
   filePath: string;
   config?: OpenClawConfig;
+  resolveCost?: UsageCostResolver;
   startOffset?: number;
   endOffset?: number;
   onEntry: (entry: ParsedUsageEntry) => void;
@@ -1153,6 +1189,7 @@ async function scanUsageFile(params: {
   await scanTranscriptFile({
     filePath: params.filePath,
     config: params.config,
+    resolveCost: params.resolveCost,
     startOffset: params.startOffset,
     endOffset: params.endOffset,
     onEntry: (entry) => {
@@ -1260,32 +1297,17 @@ export async function loadCostUsageSummary(params?: {
 
   const dailyMap = new Map<string, CostUsageTotals>();
   const totals = emptyTotals();
+  const resolveCost = createUsageCostResolver(params?.config);
 
-  const sessionsDir = resolveSessionTranscriptsDirForAgent(params?.agentId);
-  const entries = await fs.promises.readdir(sessionsDir, { withFileTypes: true }).catch(() => []);
-  const files = (
-    await Promise.all(
-      entries
-        .filter((entry) => entry.isFile() && isUsageCountedSessionTranscriptFileName(entry.name))
-        .map(async (entry) => {
-          const filePath = path.join(sessionsDir, entry.name);
-          const stats = await fs.promises.stat(filePath).catch(() => null);
-          if (!stats) {
-            return null;
-          }
-          // Include file if it was modified after our start time
-          if (stats.mtimeMs < sinceTime) {
-            return null;
-          }
-          return filePath;
-        }),
-    )
-  ).filter((filePath): filePath is string => Boolean(filePath));
+  const files = await listUsageCountedTranscriptFileStats(params?.agentId, {
+    minMtimeMs: sinceTime,
+  });
 
-  for (const filePath of files) {
+  for (const file of files) {
     await scanUsageFile({
-      filePath,
+      filePath: file.filePath,
       config: params?.config,
+      resolveCost,
       onEntry: (entry) => {
         const ts = entry.timestamp?.getTime();
         if (!ts || ts < sinceTime || ts > untilTime) {
@@ -1329,6 +1351,7 @@ export async function loadCostUsageSummary(params?: {
 async function scanUsageFileForCache(params: {
   file: UsageCostTranscriptFile;
   config?: OpenClawConfig;
+  resolveCost?: UsageCostResolver;
   previous?: UsageCostCacheFileEntry;
   includeSessionSummary?: boolean;
 }): Promise<UsageCostCacheFileEntry> {
@@ -1364,6 +1387,7 @@ async function scanUsageFileForCache(params: {
   await scanTranscriptFile({
     filePath: params.file.filePath,
     config: params.config,
+    resolveCost: params.resolveCost,
     startOffset,
     endOffset: params.file.size,
     onEntry: (entry) => {
@@ -1519,11 +1543,13 @@ export async function refreshCostUsageCache(params?: {
         return aSession - bSession || a.size - b.size || a.filePath.localeCompare(b.filePath);
       })
       .slice(0, maxFiles);
+    const resolveCost = createUsageCostResolver(params?.config);
 
     for (const file of staleFiles) {
       cache.files[file.filePath] = await scanUsageFileForCache({
         file,
         config: params?.config,
+        resolveCost,
         previous: cache.files[file.filePath],
         includeSessionSummary: sessionSummaryFiles.has(file.filePath),
       });
@@ -1843,33 +1869,22 @@ export async function discoverAllSessions(params?: {
   endMs?: number;
   includeFirstUserMessage?: boolean;
 }): Promise<DiscoveredSession[]> {
-  const sessionsDir = resolveSessionTranscriptsDirForAgent(params?.agentId);
-  const entries = await fs.promises.readdir(sessionsDir, { withFileTypes: true }).catch(() => []);
+  const files = await listUsageCountedTranscriptFileStats(params?.agentId, {
+    minMtimeMs: params?.startMs,
+  });
 
   const discovered = new Map<string, DiscoveredSession>();
 
-  for (const entry of entries) {
-    if (!entry.isFile() || !isUsageCountedSessionTranscriptFileName(entry.name)) {
-      continue;
-    }
-
-    const filePath = path.join(sessionsDir, entry.name);
-    const stats = await fs.promises.stat(filePath).catch(() => null);
-    if (!stats) {
-      continue;
-    }
-
-    // Filter by date range if provided
-    if (params?.startMs && stats.mtimeMs < params.startMs) {
-      continue;
-    }
+  for (const file of files) {
     // Do not exclude by endMs: a session can have activity in range even if it continued later.
+    const filePath = file.filePath;
+    const fileName = path.basename(filePath);
 
-    const sessionId = parseUsageCountedSessionIdFromFileName(entry.name);
+    const sessionId = parseUsageCountedSessionIdFromFileName(fileName);
     if (!sessionId) {
       continue;
     }
-    const isPrimaryTranscript = isPrimarySessionTranscriptFileName(entry.name);
+    const isPrimaryTranscript = isPrimarySessionTranscriptFileName(fileName);
 
     // Try to read first user message for label extraction
     let firstUserMessage: string | undefined;
@@ -1915,13 +1930,13 @@ export async function discoverAllSessions(params?: {
     const shouldReplace =
       !existing ||
       (isPrimaryTranscript && !existingIsPrimary) ||
-      (isPrimaryTranscript === existingIsPrimary && stats.mtimeMs >= existing.mtime);
+      (isPrimaryTranscript === existingIsPrimary && file.mtimeMs >= existing.mtime);
 
     if (shouldReplace) {
       discovered.set(sessionId, {
         sessionId,
         sessionFile: filePath,
-        mtime: stats.mtimeMs,
+        mtime: file.mtimeMs,
         firstUserMessage: firstUserMessage ?? existing?.firstUserMessage,
       });
       continue;
@@ -1975,10 +1990,12 @@ export async function loadSessionCostSummary(params: {
   const latencyValues: number[] = [];
   let lastUserTimestamp: number | undefined;
   const MAX_LATENCY_MS = 12 * 60 * 60 * 1000;
+  const resolveCost = createUsageCostResolver(params.config);
 
   await scanTranscriptFile({
     filePath: sessionFile,
     config: params.config,
+    resolveCost,
     onEntry: (entry) => {
       const ts = entry.timestamp?.getTime();
 
@@ -2264,10 +2281,12 @@ export async function loadSessionUsageTimeSeries(params: {
   const points: SessionUsageTimePoint[] = [];
   let cumulativeTokens = 0;
   let cumulativeCost = 0;
+  const resolveCost = createUsageCostResolver(params.config);
 
   await scanUsageFile({
     filePath: sessionFile,
     config: params.config,
+    resolveCost,
     onEntry: (entry) => {
       const ts = entry.timestamp?.getTime();
       if (!ts) {
@@ -2374,6 +2393,7 @@ export async function loadSessionLogs(params: {
     }
   }
   const limit = params.limit ?? 50;
+  const resolveCost = createUsageCostResolver(params.config);
 
   for await (const parsed of readJsonlRecords(sessionFile)) {
     try {
@@ -2488,10 +2508,9 @@ export async function loadSessionLogs(params: {
           if (breakdown?.total !== undefined) {
             cost = breakdown.total;
           } else {
-            const costConfig = resolveModelCostConfig({
+            const costConfig = resolveCost({
               provider: message.provider as string | undefined,
               model: message.model as string | undefined,
-              config: params.config,
             });
             cost = estimateUsageCost({ usage, cost: costConfig });
           }
