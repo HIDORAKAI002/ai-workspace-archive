@@ -759,7 +759,7 @@ const clearUploadedAttachments = () => {
 }
 
 // Reset the WebSocket connection and related state
-const resetConnectionState = ({ closeSocket = true } = {}) => {
+const resetConnectionState = ({ closeSocket = true, keepSession = false } = {}) => {
   if (closeSocket && ws) {
     try {
       ws.close()
@@ -769,20 +769,29 @@ const resetConnectionState = ({ closeSocket = true } = {}) => {
   }
 
   ws = null
-  sessionId = null
   isConnectionReady.value = false
-  shouldGlow.value = false
-  isWorkflowRunning.value = false
-  activeNodes.value = []
+
+  if (!keepSession) {
+    sessionId = null
+    isWorkflowRunning.value = false
+    activeNodes.value = []
+    shouldGlow.value = false
+    clearUploadedAttachments()
+    chatMessages.value = []
+    nodesLoadingMessagesMap.clear()
+    nameToSpriteMap.value.clear()
+    nodeSpriteMap.value.clear()
+  }
+
   if (attachmentHoverTimeout) {
     clearTimeout(attachmentHoverTimeout)
     attachmentHoverTimeout = null
   }
-  clearUploadedAttachments()
 }
 
 // Button state management
 const isWorkflowRunning = ref(false)
+const isReconnecting = ref(false)
 
 // Active node list
 const activeNodes = ref([])
@@ -1432,12 +1441,28 @@ const sendHumanInput = () => {
 }
 
 // Establish a WebSocket connection
-const establishWebSocketConnection = () => {
-  // Reset any previous state before creating a new socket
-  resetConnectionState()
+const establishWebSocketConnection = (options = {}) => {
+  let { sessionId: reconnectSid } = options
 
-  if (!selectedFile.value) {
-    return
+  // If no explicit sessionId, check URL for an existing session
+  if (!reconnectSid) {
+    const urlSession = route.query?.session
+    if (urlSession && typeof urlSession === 'string' && urlSession.trim()) {
+      reconnectSid = urlSession.trim()
+    }
+  }
+
+  const reconnecting = !!reconnectSid
+
+  if (reconnecting) {
+    isReconnecting.value = true
+    resetConnectionState({ closeSocket: true, keepSession: true })
+    status.value = 'Connecting...'
+  } else {
+    resetConnectionState()
+    if (!selectedFile.value) {
+      return
+    }
   }
 
   const apiBase = import.meta.env.VITE_API_BASE_URL || ''
@@ -1457,7 +1482,9 @@ const establishWebSocketConnection = () => {
     }
   }
 
-  const wsUrl = `${scheme}//${host}/ws`
+  const wsUrl = reconnecting
+    ? `${scheme}//${host}/ws?session_id=${encodeURIComponent(reconnectSid)}`
+    : `${scheme}//${host}/ws`
   const socket = new WebSocket(wsUrl)
   ws = socket
 
@@ -1485,12 +1512,15 @@ const establishWebSocketConnection = () => {
       }
 
       isConnectionReady.value = true
-      shouldGlow.value = true
-      status.value = 'Waiting for launch...'
 
-      nextTick(() => {
-        taskInputRef.value?.focus()
-      })
+      // For new connections, set initial state; reconnections are handled by session_resumed
+      if (!isReconnecting.value) {
+        shouldGlow.value = true
+        status.value = 'Waiting for launch...'
+        nextTick(() => {
+          taskInputRef.value?.focus()
+        })
+      }
     } else {
       processMessage(msg)
     }
@@ -1522,6 +1552,11 @@ const establishWebSocketConnection = () => {
 
 // Watch for file selection changes
 watch(selectedFile, (newFile) => {
+  // When reconnecting, selectedFile is set by session_resumed; skip the normal flow
+  if (isReconnecting.value) {
+    return
+  }
+
   taskPrompt.value = ''
   fileSearchQuery.value = newFile || ''
   isFileSearchDirty.value = false
@@ -1555,10 +1590,18 @@ watch(
   }
 )
 
-onMounted(() => {
+onMounted(async () => {
   document.addEventListener('click', handleClickOutside)
   document.addEventListener('keydown', handleKeydown)
-  loadWorkflows()
+  await loadWorkflows()
+  // If URL contains a session id, the watch on selectedFile (triggered by
+  // applyWorkflowFromRoute inside loadWorkflows) will call establishWebSocketConnection,
+  // which auto-detects the session param and reconnects.
+  // Fallback: if session is present but no workflow was in URL, connect directly.
+  const sessionParam = route.query?.session
+  if (sessionParam && typeof sessionParam === 'string' && sessionParam.trim() && !selectedFile.value) {
+    establishWebSocketConnection({ sessionId: sessionParam.trim() })
+  }
 })
 
 onUnmounted(() => {
@@ -1836,6 +1879,15 @@ const launchWorkflow = async () => {
 
       status.value = 'Running...'
       isWorkflowRunning.value = true
+
+      // Persist session id in URL for reconnection after refresh
+      router.push({
+        query: {
+          ...route.query,
+          workflow: selectedFile.value,
+          session: sessionId
+        }
+      })
     } else {
       const error = await response.json().catch(() => ({}))
       console.error('Failed to launch workflow:', error)
@@ -2025,6 +2077,68 @@ const animateSpriteAlongEdge = (edge) => {
 const processMessage = async (msg) => {
   console.log('Message: ', msg)
 
+  // Session resumed after reconnection — sync final UI state
+  if (msg.type === 'session_resumed') {
+    const data = msg.data
+    sessionId = data.session_id
+
+    // Restore workflow selection without clearing chat (messages were already replayed)
+    // Set selectedFile BEFORE clearing isReconnecting so the watch skips
+    if (data.yaml_file) {
+      selectedFile.value = data.yaml_file
+      fileSearchQuery.value = data.yaml_file
+      // Load YAML data and sprites (but don't clear chat)
+      try {
+        const yamlContentString = await fetchWorkflowYAML(data.yaml_file)
+        const parsedYaml = yaml.load(yamlContentString)
+        workflowYaml.value = parsedYaml || {}
+
+        const yamlNodes = Array.isArray(parsedYaml?.graph?.nodes) ? parsedYaml.graph.nodes : []
+        for (const node of yamlNodes) {
+          if (node.id && !nodeSpriteMap.value.has(node.id)) {
+            const spritePath = spriteFetcher.fetchSprite(node.id, 'D', 1)
+            nodeSpriteMap.value.set(node.id, spritePath)
+          }
+        }
+      } catch (e) {
+        console.error('Failed to load YAML on reconnect:', e)
+      }
+    }
+
+    isReconnecting.value = false
+
+    // Restore workflow status
+    const statusMap = {
+      'idle': 'Connected',
+      'running': 'Running...',
+      'waiting_for_input': 'Waiting for input...',
+      'completed': 'Completed',
+      'error': 'Error',
+      'cancelled': 'Cancelled',
+    }
+    status.value = statusMap[data.status] || 'Connected'
+
+    if (data.status === 'running' || data.status === 'waiting_for_input') {
+      isWorkflowRunning.value = true
+    }
+
+    if (data.status === 'waiting_for_input') {
+      shouldGlow.value = true
+    }
+
+    if (data.status === 'completed' || data.status === 'error' || data.status === 'cancelled') {
+      sessionIdToDownload = sessionId
+    }
+
+    if (data.current_node_id && !activeNodes.value.includes(data.current_node_id)) {
+      activeNodes.value.push(data.current_node_id)
+    }
+
+    isConnectionReady.value = true
+    addChatNotification(t('launch.reconnected'))
+    return
+  }
+
   // Prompt for human input
   if (msg.type === 'human_input_required') {
     const fullMessage = msg.data.task_description + '\n\n' + msg.data.input
@@ -2184,6 +2298,14 @@ const processMessage = async (msg) => {
     sessionIdToDownload = sessionId
   }
 
+  // Workflow cancelled (e.g., from server-side cancellation)
+  if (msg.type === 'workflow_cancelled') {
+    addChatNotification(msg.data?.message || t('launch.workflow_cancelled'))
+    status.value = 'Cancelled'
+    isWorkflowRunning.value = false
+    sessionIdToDownload = sessionId
+  }
+
   // Handle direct error messages (e.g., workflow execution errors)
   if (msg.type === 'error') {
     const errorMessage = msg.data?.message || 'Unknown error occurred'
@@ -2199,6 +2321,14 @@ const cancelWorkflow = () => {
   if (!isWorkflowRunning.value || !ws) {
     return
   }
+
+  // Send cancel request through WebSocket so the server stops the workflow
+  try {
+    ws.send(JSON.stringify({ type: 'cancel' }))
+  } catch (sendError) {
+    console.warn('Failed to send cancel message:', sendError)
+  }
+
   addChatNotification(t('launch.workflow_cancelled'))
   status.value = 'Cancelled'
   isWorkflowRunning.value = false
@@ -2213,12 +2343,6 @@ const cancelWorkflow = () => {
       nodeState.message.duration = formatDuration(nodeState.message.startedAt, endedAt)
       nodesLoadingMessagesMap.delete(nodeId)
     }
-  }
-
-  try {
-    ws.close()
-  } catch (closeError) {
-    console.warn('Failed to close WebSocket:', closeError)
   }
 }
 

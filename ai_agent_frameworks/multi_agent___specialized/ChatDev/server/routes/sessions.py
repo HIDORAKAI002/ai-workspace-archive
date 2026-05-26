@@ -1,4 +1,3 @@
-import atexit
 import re
 import shutil
 import tempfile
@@ -6,6 +5,7 @@ from pathlib import Path
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
+from starlette.background import BackgroundTask
 
 from server.settings import WARE_HOUSE_DIR
 from utils.exceptions import ResourceNotFoundError, ValidationError
@@ -64,13 +64,12 @@ async def download_session(session_id: str):
             if zip_path.exists():
                 zip_path.unlink()
 
-        atexit.register(cleanup_zip)
-
         return FileResponse(
             path=zip_path,
             filename=f"{dir_name}.zip",
             media_type="application/zip",
             headers={"Content-Disposition": f"attachment; filename={dir_name}.zip"},
+            background=BackgroundTask(cleanup_zip),
         )
     except ValidationError as exc:
         raise HTTPException(status_code=400, detail=str(exc))

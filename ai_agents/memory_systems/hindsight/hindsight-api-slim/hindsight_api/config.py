@@ -7,6 +7,7 @@ All environment variables and their defaults are defined here.
 import json
 import logging
 import os
+import re
 import sys
 from dataclasses import dataclass, field, fields
 from datetime import datetime, timezone
@@ -200,6 +201,7 @@ ENV_EMBEDDINGS_OPENAI_API_KEY = "HINDSIGHT_API_EMBEDDINGS_OPENAI_API_KEY"
 ENV_EMBEDDINGS_OPENAI_MODEL = "HINDSIGHT_API_EMBEDDINGS_OPENAI_MODEL"
 ENV_EMBEDDINGS_OPENAI_BASE_URL = "HINDSIGHT_API_EMBEDDINGS_OPENAI_BASE_URL"
 ENV_EMBEDDINGS_OPENAI_BATCH_SIZE = "HINDSIGHT_API_EMBEDDINGS_OPENAI_BATCH_SIZE"
+ENV_EMBEDDINGS_OPENAI_DIMENSIONS = "HINDSIGHT_API_EMBEDDINGS_OPENAI_DIMENSIONS"
 
 # Gemini/Vertex AI embeddings configuration
 ENV_EMBEDDINGS_GEMINI_API_KEY = "HINDSIGHT_API_EMBEDDINGS_GEMINI_API_KEY"
@@ -290,6 +292,8 @@ ENV_RERANKER_GOOGLE_SERVICE_ACCOUNT_KEY = "HINDSIGHT_API_RERANKER_GOOGLE_SERVICE
 
 ENV_VECTOR_EXTENSION = "HINDSIGHT_API_VECTOR_EXTENSION"
 ENV_TEXT_SEARCH_EXTENSION = "HINDSIGHT_API_TEXT_SEARCH_EXTENSION"
+ENV_TEXT_SEARCH_EXTENSION_NATIVE_LANGUAGE = "HINDSIGHT_API_TEXT_SEARCH_EXTENSION_NATIVE_LANGUAGE"
+ENV_LLM_OUTPUT_LANGUAGE = "HINDSIGHT_API_LLM_OUTPUT_LANGUAGE"
 
 ENV_HOST = "HINDSIGHT_API_HOST"
 ENV_PORT = "HINDSIGHT_API_PORT"
@@ -365,6 +369,7 @@ ENV_FILE_DELETE_AFTER_RETAIN = "HINDSIGHT_API_FILE_DELETE_AFTER_RETAIN"
 
 # Observations settings (consolidated knowledge from facts)
 ENV_ENABLE_OBSERVATIONS = "HINDSIGHT_API_ENABLE_OBSERVATIONS"
+ENV_ENABLE_AUTO_CONSOLIDATION = "HINDSIGHT_API_ENABLE_AUTO_CONSOLIDATION"
 ENV_CONSOLIDATION_BATCH_SIZE = "HINDSIGHT_API_CONSOLIDATION_BATCH_SIZE"
 ENV_CONSOLIDATION_MAX_MEMORIES_PER_ROUND = "HINDSIGHT_API_CONSOLIDATION_MAX_MEMORIES_PER_ROUND"
 ENV_CONSOLIDATION_LLM_BATCH_SIZE = "HINDSIGHT_API_CONSOLIDATION_LLM_BATCH_SIZE"
@@ -561,8 +566,14 @@ DEFAULT_RERANKER_GOOGLE_MODEL = "semantic-ranker-default-004"
 # Vector extension (pgvector, vchord, pgvectorscale, or AlloyDB ScaNN)
 DEFAULT_VECTOR_EXTENSION = "pgvector"  # Options: "pgvector", "vchord", "pgvectorscale", "scann"
 
-# Text search extension (native PostgreSQL, vchord BM25, or Timescale pg_textsearch)
-DEFAULT_TEXT_SEARCH_EXTENSION = "native"  # Options: "native", "vchord", "pg_textsearch"
+# Text search extension (native PostgreSQL, vchord BM25, Timescale pg_textsearch, or pgroonga)
+DEFAULT_TEXT_SEARCH_EXTENSION = "native"  # Options: "native", "vchord", "pg_textsearch", "pgroonga"
+
+# PostgreSQL text search dictionary used by the native tsvector backend. Only
+# affects text_search_extension == "native"; other backends use their own
+# tokenizers (vchord: llmlingua2, pg_textsearch: hardcoded english,
+# pgroonga: TokenBigram polyglot).
+DEFAULT_TEXT_SEARCH_EXTENSION_NATIVE_LANGUAGE = "english"
 
 # LiteLLM defaults
 DEFAULT_LITELLM_API_BASE = "http://localhost:4000"
@@ -623,6 +634,7 @@ DEFAULT_FILE_DELETE_AFTER_RETAIN = True  # Delete file bytes after retain (saves
 
 # Observations defaults (consolidated knowledge from facts)
 DEFAULT_ENABLE_OBSERVATIONS = True  # Observations enabled by default
+DEFAULT_ENABLE_AUTO_CONSOLIDATION = True  # Auto-consolidation after retain enabled by default
 DEFAULT_ENABLE_OBSERVATION_HISTORY = True  # Observation history tracking enabled by default
 DEFAULT_ENABLE_MENTAL_MODEL_HISTORY = True  # Mental model history tracking enabled by default
 # Each history entry snapshots previous_content + previous_reflect_response. Without
@@ -806,6 +818,13 @@ def _parse_positive_int(name: str, raw: str | None, default: int) -> int:
     return parsed
 
 
+def _parse_optional_positive_int(name: str, raw: str | None) -> int | None:
+    """Parse an optional env var that must be a positive integer when set."""
+    if raw is None or raw == "":
+        return None
+    return _parse_positive_int(name, raw, 1)
+
+
 def _validate_extraction_mode(mode: str) -> str:
     """Validate and normalize extraction mode."""
     mode_lower = mode.lower()
@@ -888,7 +907,15 @@ class HindsightConfig:
     migration_database_url: str | None
     database_schema: str
     vector_extension: str  # "pgvector", "vchord", "pgvectorscale", or "scann"
-    text_search_extension: str  # "native" or "vchord"
+    text_search_extension: str  # "native", "vchord", "pg_textsearch", or "pgroonga"
+    # PostgreSQL text search dictionary for the "native" backend (ignored by
+    # other backends). Only the "native" backend reads this field; pgroonga
+    # uses TokenBigram, vchord uses llmlingua2, pg_textsearch hardcodes english.
+    text_search_extension_native_language: str
+    # When set, every LLM-generated artifact (retain facts, consolidation
+    # observations, reflect responses) is forced into this language regardless
+    # of the source content. Unset preserves source language.
+    llm_output_language: str | None
 
     # LLM (default, used as fallback for per-operation config)
     llm_provider: str
@@ -1096,6 +1123,7 @@ class HindsightConfig:
 
     # Observations settings (consolidated knowledge from facts)
     enable_observations: bool
+    enable_auto_consolidation: bool
     enable_observation_history: bool
     enable_mental_model_history: bool
     mental_model_history_max_entries: int
@@ -1196,6 +1224,7 @@ class HindsightConfig:
     # Defaulted fields (source-compatible additions — existing direct constructor callers keep working).
     # Keep at the end of the dataclass; Python forbids non-default fields after default fields.
     embeddings_openai_batch_size: int = DEFAULT_EMBEDDINGS_OPENAI_BATCH_SIZE
+    embeddings_openai_dimensions: int | None = None
 
     # Class-level sets for configuration categorization
 
@@ -1256,6 +1285,7 @@ class HindsightConfig:
         "entities_allow_free_form",
         # Consolidation settings
         "enable_observations",
+        "enable_auto_consolidation",
         "consolidation_llm_batch_size",
         "consolidation_max_memories_per_round",
         "consolidation_source_facts_max_tokens",
@@ -1351,10 +1381,24 @@ class HindsightConfig:
         validate_extension(self.vector_extension)
 
         # Validate text_search_extension
-        valid_text_search = ("native", "vchord", "pg_textsearch")
+        valid_text_search = ("native", "vchord", "pg_textsearch", "pgroonga")
         if self.text_search_extension not in valid_text_search:
             raise ValueError(
                 f"Invalid text_search_extension: {self.text_search_extension}. Must be one of: {', '.join(valid_text_search)}"
+            )
+
+        # Validate text_search_extension_native_language as a PG identifier.
+        # Embedded directly into raw SQL via to_tsvector('<lang>', ...), so we
+        # reject anything that isn't a plain identifier to prevent injection.
+        # Intentionally permissive about which dictionaries exist — users may
+        # install custom ones like zhparser; we only check shape here. PG
+        # raises a clear error at query time if the dictionary is missing.
+        if not re.fullmatch(r"[a-zA-Z_][a-zA-Z0-9_]*", self.text_search_extension_native_language):
+            raise ValueError(
+                f"Invalid text_search_extension_native_language: "
+                f"{self.text_search_extension_native_language!r}. Must be a valid PostgreSQL identifier "
+                f"(letters, digits, underscores; not starting with a digit). Examples: 'english', "
+                f"'french', 'simple', 'zhparser'."
             )
 
         # When LLM provider is "none", force chunks-only mode and disable LLM-dependent features
@@ -1433,6 +1477,11 @@ class HindsightConfig:
             database_schema=os.getenv(ENV_DATABASE_SCHEMA, DEFAULT_DATABASE_SCHEMA),
             vector_extension=os.getenv(ENV_VECTOR_EXTENSION, DEFAULT_VECTOR_EXTENSION).lower(),
             text_search_extension=os.getenv(ENV_TEXT_SEARCH_EXTENSION, DEFAULT_TEXT_SEARCH_EXTENSION).lower(),
+            text_search_extension_native_language=os.getenv(
+                ENV_TEXT_SEARCH_EXTENSION_NATIVE_LANGUAGE,
+                DEFAULT_TEXT_SEARCH_EXTENSION_NATIVE_LANGUAGE,
+            ).lower(),
+            llm_output_language=(os.getenv(ENV_LLM_OUTPUT_LANGUAGE) or None),
             # LLM
             llm_provider=llm_provider,
             llm_api_key=os.getenv(ENV_LLM_API_KEY),
@@ -1554,6 +1603,10 @@ class HindsightConfig:
                 ENV_EMBEDDINGS_OPENAI_BATCH_SIZE,
                 os.getenv(ENV_EMBEDDINGS_OPENAI_BATCH_SIZE),
                 DEFAULT_EMBEDDINGS_OPENAI_BATCH_SIZE,
+            ),
+            embeddings_openai_dimensions=_parse_optional_positive_int(
+                ENV_EMBEDDINGS_OPENAI_DIMENSIONS,
+                os.getenv(ENV_EMBEDDINGS_OPENAI_DIMENSIONS),
             ),
             # Cohere embeddings (with backward-compatible fallback to shared API key)
             embeddings_cohere_api_key=os.getenv(ENV_EMBEDDINGS_COHERE_API_KEY) or os.getenv(ENV_COHERE_API_KEY),
@@ -1764,6 +1817,10 @@ class HindsightConfig:
             == "true",
             # Observations settings (consolidated knowledge from facts)
             enable_observations=os.getenv(ENV_ENABLE_OBSERVATIONS, str(DEFAULT_ENABLE_OBSERVATIONS)).lower() == "true",
+            enable_auto_consolidation=os.getenv(
+                ENV_ENABLE_AUTO_CONSOLIDATION, str(DEFAULT_ENABLE_AUTO_CONSOLIDATION)
+            ).lower()
+            == "true",
             enable_observation_history=os.getenv(
                 ENV_ENABLE_OBSERVATION_HISTORY, str(DEFAULT_ENABLE_OBSERVATION_HISTORY)
             ).lower()

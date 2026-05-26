@@ -182,6 +182,7 @@ class PostgreSQLDialect(SQLDialect):
         groups_clause: str = "",
         arm_index: int = 0,
         text_search_extension: str = "native",
+        bm25_language: str = "english",
         extra_where: str = "",
     ) -> str:
         if text_search_extension == "vchord":
@@ -193,10 +194,21 @@ class PostgreSQLDialect(SQLDialect):
             bm25_score_expr = f"-({text_param} <@> to_bm25query({text_param}, 'idx_memory_units_text_search'))"
             bm25_order_by = f"text <@> to_bm25query({text_param}, 'idx_memory_units_text_search') ASC"
             bm25_where_filter = ""
-        else:  # native tsvector
-            bm25_score_expr = f"ts_rank_cd(search_vector, to_tsquery('english', {text_param}))"
+        elif text_search_extension == "pgroonga":
+            # &@~ accepts pgroonga's query syntax (raw query text). pgroonga_score
+            # returns a non-negative relevance score (higher = better).
+            bm25_score_expr = "pgroonga_score(tableoid, ctid)"
             bm25_order_by = f"{bm25_score_expr} DESC"
-            bm25_where_filter = f"AND search_vector @@ to_tsquery('english', {text_param})"
+            bm25_where_filter = (
+                f"AND (COALESCE(text, '') || ' ' || COALESCE(context, '') || ' ' || COALESCE(text_signals, '')) "
+                f"&@~ {text_param}"
+            )
+        else:  # native tsvector
+            # bm25_language is validated as a PG identifier in HindsightConfig.validate(),
+            # so embedding it as a SQL literal here is safe.
+            bm25_score_expr = f"ts_rank_cd(search_vector, to_tsquery('{bm25_language}', {text_param}))"
+            bm25_order_by = f"{bm25_score_expr} DESC"
+            bm25_where_filter = f"AND search_vector @@ to_tsquery('{bm25_language}', {text_param})"
 
         return (
             f"(SELECT {cols},"
@@ -221,7 +233,7 @@ class PostgreSQLDialect(SQLDialect):
         *,
         text_search_extension: str = "native",
     ) -> str:
-        if text_search_extension in ("vchord", "pg_textsearch"):
+        if text_search_extension in ("vchord", "pg_textsearch", "pgroonga"):
             return query_text
         # native tsvector: join tokens with OR operator
         return " | ".join(tokens)

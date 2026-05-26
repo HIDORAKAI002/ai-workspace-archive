@@ -560,12 +560,16 @@ Just provide the direct answer with proper markdown formatting.
 CRITICAL: This is a NON-CONVERSATIONAL system. NEVER ask follow-up questions, offer to search again, suggest alternatives, or end with anything like "Would you like me to..." or "Let me know if...". The user cannot reply. Your answer must be complete and self-contained."""
 
 
-def build_final_system_prompt(mission: str | None = None) -> str:
-    """Build the final synthesis system prompt, using mission as role when set."""
-    from hindsight_api.engine.prompt_utils import escape_for_prompt
+def build_final_system_prompt(mission: str | None = None, llm_output_language: str | None = None) -> str:
+    """Build the final synthesis system prompt, using mission as role when set.
+
+    When ``llm_output_language`` is set, the response is forced into that
+    language regardless of the query/source language.
+    """
+    from hindsight_api.engine.prompt_utils import escape_for_prompt, output_language_directive
 
     role_section = escape_for_prompt(mission.strip()) if mission else _DEFAULT_FINAL_ROLE
-    return _FINAL_SYSTEM_PROMPT_BASE.format(role_section=role_section)
+    return _FINAL_SYSTEM_PROMPT_BASE.format(role_section=role_section) + output_language_directive(llm_output_language)
 
 
 # Backward-compatible constant for non-identity missions

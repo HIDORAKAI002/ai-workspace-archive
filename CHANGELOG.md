@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-05-26 20:08 IST] Auto-Sync
+- **36 Repositories Updated:** Public APIs Directory, MCP Python SDK, Langfuse, Promptfoo, n8n, Dify, Activepieces, Windmill, Budibase, Plane, modelcontextprotocol/java-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, camel-ai/camel, openai/openai-agents-python, pydantic/pydantic-ai, mastra-ai/mastra, chatdev, BerriAI/litellm, stanfordnlp/dspy, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, weaviate/weaviate, infiniflow/ragflow, firecrawl/firecrawl, dagster-io/dagster, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight, lyogavin/airllm, ScrapeGraphAI/Scrapegraph-ai, nousresearch/hermes-agent
+
 ## [2026-05-15 12:22 IST] Auto-Sync
 - **31 Repositories Updated:** Public APIs Directory, Awesome ChatGPT Prompts, Promptfoo, Dify, Langflow, Appsmith, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, camel-ai/camel, mastra-ai/mastra, BerriAI/litellm, ollama/ollama, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, ChatGPTNextWeb/NextChat, chroma-core/chroma, infiniflow/ragflow, arize-ai/phoenix, affaan-m/everything-claude-code, firecrawl/firecrawl, mindsdb/mindsdb, google-gemini/gemini-cli, googleapis/python-genai, apache/airflow, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, bytedance/deer-flow
 
