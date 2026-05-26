@@ -30,6 +30,7 @@ import type { MsgContext } from "../templating.js";
 import { setReplyPayloadMetadata, type GetReplyOptions, type ReplyPayload } from "../types.js";
 import { PROVIDER_CONVERSATION_STATE_ERROR_USER_MESSAGE } from "./provider-request-error-classifier.js";
 import { createReplyDispatcher, type ReplyDispatcher } from "./reply-dispatcher.js";
+import { resolveRoutedDeliveryThreadId } from "./routed-delivery-thread.js";
 import { buildTestCtx } from "./test-ctx.js";
 
 type AbortResult = { handled: boolean; aborted: boolean; stoppedSubagents?: number };
@@ -553,6 +554,7 @@ const automaticGroupReplyConfig = {
   },
 } as const satisfies OpenClawConfig;
 let dispatchReplyFromConfig: typeof import("./dispatch-from-config.js").dispatchReplyFromConfig;
+let dispatchFromConfigTesting: typeof import("./dispatch-from-config.js").testing;
 let resetInboundDedupe: typeof import("./inbound-dedupe.js").resetInboundDedupe;
 let tryDispatchAcpReplyHook: typeof import("../../plugin-sdk/acp-runtime.js").tryDispatchAcpReplyHook;
 let createReplyOperation: typeof import("./reply-run-registry.js").createReplyOperation;
@@ -563,7 +565,8 @@ type DispatchReplyArgs = Parameters<
 >[0];
 
 beforeAll(async () => {
-  ({ dispatchReplyFromConfig } = await import("./dispatch-from-config.js"));
+  ({ dispatchReplyFromConfig, testing: dispatchFromConfigTesting } =
+    await import("./dispatch-from-config.js"));
   await import("./dispatch-acp.js");
   await import("./dispatch-acp-command-bypass.js");
   await import("./dispatch-acp-tts.runtime.js");
@@ -1284,21 +1287,6 @@ describe("dispatchReplyFromConfig", () => {
   });
 
   it("falls back to thread-scoped session key when current ctx has no MessageThreadId", async () => {
-    setNoAbort();
-    mocks.routeReply.mockClear();
-    sessionStoreMocks.currentEntry = {
-      deliveryContext: {
-        channel: "discord",
-        to: "channel:CHAN1",
-        accountId: "default",
-      },
-      origin: {
-        threadId: "stale-origin-root",
-      },
-      lastThreadId: "stale-origin-root",
-    };
-    const cfg = emptyConfig;
-    const dispatcher = createDispatcher();
     const ctx = buildTestCtx({
       Provider: "webchat",
       Surface: "webchat",
@@ -1310,15 +1298,7 @@ describe("dispatchReplyFromConfig", () => {
       ExplicitDeliverRoute: true,
     });
 
-    const replyResolver = async () => ({ text: "hi" }) satisfies ReplyPayload;
-    await dispatchReplyFromConfig({ ctx, cfg, dispatcher, replyResolver });
-
-    const routeCall = firstRouteReplyCall() as
-      | { channel?: unknown; threadId?: unknown; to?: unknown }
-      | undefined;
-    expect(routeCall?.channel).toBe("discord");
-    expect(routeCall?.to).toBe("channel:CHAN1");
-    expect(routeCall?.threadId).toBe("post-root");
+    expect(resolveRoutedDeliveryThreadId({ ctx, sessionKey: ctx.SessionKey })).toBe("post-root");
   });
 
   it("uses Slack DM TransportThreadId when ReplyToId is the current message", async () => {
@@ -1965,7 +1945,7 @@ describe("dispatchReplyFromConfig", () => {
       await opts?.onPatchSummary?.({ phase: "end", summary: "1 modified" });
       await opts?.onCompactionStart?.();
       await opts?.onCompactionEnd?.();
-      await opts?.onToolResult?.({ text: "🔧 exec: ok" });
+      await opts?.onToolResult?.({ text: "exec: ok" });
       return { text: "done" } satisfies ReplyPayload;
     };
 
@@ -2001,43 +1981,129 @@ describe("dispatchReplyFromConfig", () => {
     expect(dispatcher.sendFinalReply).toHaveBeenCalledTimes(1);
   });
 
-  it("exposes live group tool-summary state to reply_dispatch hooks", async () => {
+  it("exposes live tool-summary state to reply_dispatch hooks", () => {
+    let shouldSendToolSummaries = false;
+    const event = dispatchFromConfigTesting.createReplyDispatchEvent({
+      shouldSendToolSummaries: () => shouldSendToolSummaries,
+    } as never) as { shouldSendToolSummaries: boolean };
+
+    expect(event.shouldSendToolSummaries).toBe(false);
+    shouldSendToolSummaries = true;
+    expect(event.shouldSendToolSummaries).toBe(true);
+  });
+
+  it("forwards direct native progress callbacks while verbose is off", async () => {
     setNoAbort();
     sessionStoreMocks.currentEntry = {
       verboseLevel: "off",
     };
-    const cfg = automaticGroupReplyConfig;
+    const cfg = emptyConfig;
     const dispatcher = createDispatcher();
     const ctx = buildTestCtx({
-      Provider: "matrix",
-      Surface: "matrix",
-      ChatType: "group",
-      From: "matrix:!room:test",
-      SessionKey: "agent:main:matrix:group:!room:test",
+      Provider: "telegram",
+      Surface: "telegram",
+      ChatType: "direct",
+      From: "telegram:123",
+      SessionKey: "agent:main:telegram:dm:123",
     });
-    let initialHookState: boolean | undefined;
-    let updatedHookState: boolean | undefined;
-    hookMocks.runner.runReplyDispatch.mockImplementationOnce(async (event: unknown) => {
-      const replyDispatchEvent = event as { shouldSendToolSummaries: boolean };
-      initialHookState = replyDispatchEvent.shouldSendToolSummaries;
-      sessionStoreMocks.currentEntry = {
-        verboseLevel: "on",
-      };
-      updatedHookState = replyDispatchEvent.shouldSendToolSummaries;
-      return undefined;
-    });
+    const onToolStart = vi.fn();
+    const onItemEvent = vi.fn();
+    const onCommandOutput = vi.fn();
+
+    const replyResolver = async (
+      _ctx: MsgContext,
+      opts?: GetReplyOptions,
+      _cfg?: OpenClawConfig,
+    ) => {
+      await opts?.onToolStart?.({ name: "exec", phase: "start" });
+      await opts?.onItemEvent?.({ itemId: "1", kind: "tool", progressText: "running exec" });
+      await opts?.onCommandOutput?.({ phase: "end", name: "exec", status: "ok", exitCode: 0 });
+      await opts?.onToolResult?.({ text: "🔧 exec: ok" });
+      return { text: "done" } satisfies ReplyPayload;
+    };
 
     await dispatchReplyFromConfig({
       ctx,
       cfg,
       dispatcher,
-      replyResolver: async () => ({ text: "hi" }) satisfies ReplyPayload,
-      replyOptions: { suppressDefaultToolProgressMessages: true },
+      replyResolver,
+      replyOptions: {
+        sourceReplyDeliveryMode: "message_tool_only",
+        suppressDefaultToolProgressMessages: true,
+        allowProgressCallbacksWhenSourceDeliverySuppressed: true,
+        onToolStart,
+        onItemEvent,
+        onCommandOutput,
+      },
     });
 
-    expect(initialHookState).toBe(false);
-    expect(updatedHookState).toBe(true);
-    expect(dispatcher.sendFinalReply).toHaveBeenCalledTimes(1);
+    expect(onToolStart).toHaveBeenCalledWith({ name: "exec", phase: "start" });
+    expect(onItemEvent).toHaveBeenCalledWith({
+      itemId: "1",
+      kind: "tool",
+      progressText: "running exec",
+    });
+    expect(onCommandOutput).toHaveBeenCalledWith({
+      phase: "end",
+      name: "exec",
+      status: "ok",
+      exitCode: 0,
+    });
+    expect(dispatcher.sendToolResult).not.toHaveBeenCalled();
+    expect(dispatcher.sendFinalReply).not.toHaveBeenCalled();
+  });
+
+  it("suppresses direct native progress callbacks when send policy denies delivery", async () => {
+    setNoAbort();
+    sessionStoreMocks.currentEntry = {
+      sendPolicy: "deny",
+      verboseLevel: "off",
+    };
+    const cfg = emptyConfig;
+    const dispatcher = createDispatcher();
+    const ctx = buildTestCtx({
+      Provider: "telegram",
+      Surface: "telegram",
+      ChatType: "direct",
+      From: "telegram:123",
+      SessionKey: "agent:main:telegram:dm:123",
+    });
+    const onToolStart = vi.fn();
+    const onItemEvent = vi.fn();
+    const onCommandOutput = vi.fn();
+
+    const replyResolver = async (
+      _ctx: MsgContext,
+      opts?: GetReplyOptions,
+      _cfg?: OpenClawConfig,
+    ) => {
+      await opts?.onToolStart?.({ name: "exec", phase: "start" });
+      await opts?.onItemEvent?.({ itemId: "1", kind: "tool", progressText: "running exec" });
+      await opts?.onCommandOutput?.({ phase: "end", name: "exec", status: "ok", exitCode: 0 });
+      await opts?.onToolResult?.({ text: "exec: ok" });
+      return { text: "done" } satisfies ReplyPayload;
+    };
+
+    await dispatchReplyFromConfig({
+      ctx,
+      cfg,
+      dispatcher,
+      replyResolver,
+      replyOptions: {
+        sourceReplyDeliveryMode: "message_tool_only",
+        suppressDefaultToolProgressMessages: true,
+        allowProgressCallbacksWhenSourceDeliverySuppressed: true,
+        onToolStart,
+        onItemEvent,
+        onCommandOutput,
+      },
+    });
+
+    expect(onToolStart).not.toHaveBeenCalled();
+    expect(onItemEvent).not.toHaveBeenCalled();
+    expect(onCommandOutput).not.toHaveBeenCalled();
+    expect(dispatcher.sendToolResult).not.toHaveBeenCalled();
+    expect(dispatcher.sendFinalReply).not.toHaveBeenCalled();
   });
 
   it("normalizes tool-result media before delivery and drops blocked file URLs", async () => {
@@ -4786,6 +4852,78 @@ describe("dispatchReplyFromConfig", () => {
     expect(replyResolver).not.toHaveBeenCalled();
   });
 
+  it("does not run plugin-owned binding delivery when the caller already aborted", async () => {
+    setNoAbort();
+    hookMocks.runner.hasHooks.mockImplementation(
+      ((hookName?: string) =>
+        hookName === "inbound_claim" || hookName === "message_received") as () => boolean,
+    );
+    hookMocks.registry.plugins = [{ id: "openclaw-codex-app-server", status: "loaded" }];
+    hookMocks.runner.runInboundClaimForPluginOutcome.mockResolvedValue({
+      status: "handled",
+      result: { handled: true, reply: { text: "should not send" } },
+    });
+    sessionBindingMocks.resolveByConversation.mockReturnValue({
+      bindingId: "binding-aborted-1",
+      targetSessionKey: "plugin-binding:codex:abc123",
+      targetKind: "session",
+      conversation: {
+        channel: "discord",
+        accountId: "default",
+        conversationId: "channel:1481858418548412579",
+      },
+      status: "active",
+      boundAt: 1710000000000,
+      metadata: {
+        pluginBindingOwner: "plugin",
+        pluginId: "openclaw-codex-app-server",
+        pluginRoot: "/workspace/openclaw-app-server",
+        data: {
+          kind: "codex-app-server-session",
+          version: 1,
+          sessionFile: "/tmp/session.jsonl",
+          workspaceDir: "/workspace/openclaw",
+        },
+      },
+    } satisfies SessionBindingRecord);
+    const abortController = new AbortController();
+    abortController.abort();
+    const cfg = emptyConfig;
+    const dispatcher = createDispatcher();
+    const ctx = buildTestCtx({
+      Provider: "discord",
+      Surface: "discord",
+      OriginatingChannel: "discord",
+      OriginatingTo: "discord:channel:1481858418548412579",
+      To: "discord:channel:1481858418548412579",
+      AccountId: "default",
+      SenderId: "user-9",
+      SenderUsername: "ada",
+      CommandAuthorized: true,
+      WasMentioned: false,
+      CommandBody: "who are you",
+      RawBody: "who are you",
+      Body: "who are you",
+      MessageSid: "msg-claim-plugin-aborted-1",
+      SessionKey: "agent:main:discord:channel:1481858418548412579",
+    });
+    const replyResolver = vi.fn(async () => ({ text: "should not run" }) satisfies ReplyPayload);
+
+    const result = await dispatchReplyFromConfig({
+      ctx,
+      cfg,
+      dispatcher,
+      replyOptions: { abortSignal: abortController.signal },
+      replyResolver,
+    });
+
+    expect(result).toEqual({ queuedFinal: false, counts: { tool: 0, block: 0, final: 0 } });
+    expect(sessionBindingMocks.touch).not.toHaveBeenCalled();
+    expect(hookMocks.runner.runInboundClaimForPluginOutcome).not.toHaveBeenCalled();
+    expect(replyResolver).not.toHaveBeenCalled();
+    expect(dispatcher.sendFinalReply).not.toHaveBeenCalled();
+  });
+
   it("lets authorized plugin-owned binding commands fall through to command processing", async () => {
     setNoAbort();
     expect(
@@ -5754,7 +5892,7 @@ describe("dispatchReplyFromConfig", () => {
     expect(callOrder).toEqual(["queued:The answer is 42", "dispatch:The answer is 42"]);
   });
 
-  it("waits for same-channel block dispatcher delivery before resolving block replies", async () => {
+  it("does not wait for same-channel block dispatcher delivery before resolving block replies", async () => {
     setNoAbort();
     const ctx = buildTestCtx({ Provider: "whatsapp" });
     const delivered: ReplyPayload[] = [];
@@ -5787,10 +5925,10 @@ describe("dispatchReplyFromConfig", () => {
       await deliveryStarted;
 
       expect(delivered).toEqual([{ text: "before tool" }]);
-      expect(blockReplySettled).toBe(false);
+      await blockReplyPromise;
+      expect(blockReplySettled).toBe(true);
 
       releaseDelivery?.();
-      await blockReplyPromise;
       return undefined;
     };
 
@@ -5802,6 +5940,177 @@ describe("dispatchReplyFromConfig", () => {
     });
 
     expect(blockReplySettled).toBe(true);
+    await dispatcher.waitForIdle();
+  });
+
+  it("waits for pending same-channel block delivery before completing block-only dispatch", async () => {
+    setNoAbort();
+    const ctx = buildTestCtx({ Provider: "whatsapp" });
+    const delivered: ReplyPayload[] = [];
+    let releaseDelivery: (() => void) | undefined;
+    let markDeliveryStarted: (() => void) | undefined;
+    const deliveryStarted = new Promise<void>((resolve) => {
+      markDeliveryStarted = resolve;
+    });
+    const deliveryGate = new Promise<void>((resolve) => {
+      releaseDelivery = resolve;
+    });
+    const dispatcher = createReplyDispatcher({
+      deliver: async (payload) => {
+        delivered.push(payload);
+        markDeliveryStarted?.();
+        await deliveryGate;
+      },
+    });
+    const replyResolver = async (
+      _ctx: MsgContext,
+      opts?: GetReplyOptions,
+    ): Promise<ReplyPayload | undefined> => {
+      await opts?.onBlockReply?.({ text: "only block" });
+      return undefined;
+    };
+
+    let dispatchSettled = false;
+    const dispatchPromise = dispatchReplyFromConfig({
+      ctx,
+      cfg: emptyConfig,
+      dispatcher,
+      replyResolver,
+    }).then((result) => {
+      dispatchSettled = true;
+      return result;
+    });
+
+    await deliveryStarted;
+
+    expect(delivered).toEqual([{ text: "only block" }]);
+    expect(dispatchSettled).toBe(false);
+
+    releaseDelivery?.();
+    await dispatchPromise;
+
+    expect(dispatchSettled).toBe(true);
+  });
+
+  it("waits for pending same-channel block delivery before forwarding tool progress", async () => {
+    setNoAbort();
+    const cfg = {
+      agents: { defaults: { verboseDefault: "on" } },
+    } as const satisfies OpenClawConfig;
+    const ctx = buildTestCtx({ Provider: "whatsapp" });
+    const delivered: ReplyPayload[] = [];
+    let releaseDelivery: (() => void) | undefined;
+    let markDeliveryStarted: (() => void) | undefined;
+    const deliveryStarted = new Promise<void>((resolve) => {
+      markDeliveryStarted = resolve;
+    });
+    const deliveryGate = new Promise<void>((resolve) => {
+      releaseDelivery = resolve;
+    });
+    const dispatcher = createReplyDispatcher({
+      deliver: async (payload) => {
+        delivered.push(payload);
+        markDeliveryStarted?.();
+        await deliveryGate;
+      },
+    });
+    const onToolStart = vi.fn();
+    let toolProgressSettled = false;
+    const replyResolver = async (
+      _ctx: MsgContext,
+      opts?: GetReplyOptions,
+    ): Promise<ReplyPayload | undefined> => {
+      await opts?.onBlockReply?.({ text: "before tool" });
+      const toolProgressPromise = Promise.resolve(opts?.onToolStart?.({ name: "lookup" })).then(
+        () => {
+          toolProgressSettled = true;
+        },
+      );
+
+      await deliveryStarted;
+
+      expect(delivered).toEqual([{ text: "before tool" }]);
+      expect(onToolStart).not.toHaveBeenCalled();
+      expect(toolProgressSettled).toBe(false);
+
+      releaseDelivery?.();
+      await toolProgressPromise;
+      return undefined;
+    };
+
+    await dispatchReplyFromConfig({
+      ctx,
+      cfg,
+      dispatcher,
+      replyResolver,
+      replyOptions: { onToolStart },
+    });
+
+    expect(toolProgressSettled).toBe(true);
+    expect(onToolStart).toHaveBeenCalledWith({ name: "lookup" });
+  });
+
+  it("does not synthesize tool-start capability while ordering item progress", async () => {
+    setNoAbort();
+    const cfg = {
+      agents: { defaults: { verboseDefault: "on" } },
+    } as const satisfies OpenClawConfig;
+    const ctx = buildTestCtx({ Provider: "whatsapp" });
+    const delivered: ReplyPayload[] = [];
+    let releaseDelivery: (() => void) | undefined;
+    let markDeliveryStarted: (() => void) | undefined;
+    const deliveryStarted = new Promise<void>((resolve) => {
+      markDeliveryStarted = resolve;
+    });
+    const deliveryGate = new Promise<void>((resolve) => {
+      releaseDelivery = resolve;
+    });
+    const dispatcher = createReplyDispatcher({
+      deliver: async (payload) => {
+        delivered.push(payload);
+        markDeliveryStarted?.();
+        await deliveryGate;
+      },
+    });
+    const onItemEvent = vi.fn();
+    let itemProgressSettled = false;
+    const replyResolver = async (
+      _ctx: MsgContext,
+      opts?: GetReplyOptions,
+    ): Promise<ReplyPayload | undefined> => {
+      await opts?.onBlockReply?.({ text: "before item" });
+      expect(opts?.onToolStart).toBeUndefined();
+      const itemProgressPromise = Promise.resolve(
+        opts?.onItemEvent?.({ itemId: "1", kind: "tool", progressText: "running" }),
+      ).then(() => {
+        itemProgressSettled = true;
+      });
+
+      await deliveryStarted;
+
+      expect(delivered).toEqual([{ text: "before item" }]);
+      expect(onItemEvent).not.toHaveBeenCalled();
+      expect(itemProgressSettled).toBe(false);
+
+      releaseDelivery?.();
+      await itemProgressPromise;
+      return undefined;
+    };
+
+    await dispatchReplyFromConfig({
+      ctx,
+      cfg,
+      dispatcher,
+      replyResolver,
+      replyOptions: { onItemEvent },
+    });
+
+    expect(itemProgressSettled).toBe(true);
+    expect(onItemEvent).toHaveBeenCalledWith({
+      itemId: "1",
+      kind: "tool",
+      progressText: "running",
+    });
   });
 
   it("forwards payload metadata into onBlockReplyQueued context", async () => {

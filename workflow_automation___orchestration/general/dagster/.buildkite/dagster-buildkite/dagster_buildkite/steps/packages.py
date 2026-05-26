@@ -18,15 +18,15 @@ from buildkite_shared.step_builders.step_builder import (
     TopLevelStepConfiguration,
     is_command_step,
 )
-from buildkite_shared.utils import oss_path
+from buildkite_shared.utils import (
+    connect_sibling_docker_container,
+    network_buildkite_container,
+    oss_path,
+)
 from dagster_buildkite.defines import GCP_CREDS_FILENAME, GCP_CREDS_LOCAL_FILE, OSS_ROOT
 from dagster_buildkite.steps.test_project import test_project_depends_fn
 from dagster_buildkite.steps.tox import ToxFactor, build_tox_step
-from dagster_buildkite.utils import (
-    connect_sibling_docker_container,
-    network_buildkite_container,
-    wait_for_mysql_container,
-)
+from dagster_buildkite.utils import wait_for_mysql_container
 
 _CORE_PACKAGES = [
     oss_path("python_modules/dagster"),
@@ -942,6 +942,10 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
             timeout_in_minutes=30,
         ),
         PackageSpec(
+            # fixtures_tests cycles multi-service docker-compose stacks; under the
+            # default 2Gi dind limit `compose down` hits the 90s stop timeout and
+            # leaves stale containers that fail name-conflict on the next test.
+            # Same shape as the dagster-mysql bump in #24661.
             oss_path("python_modules/dagster-test"),
             unsupported_python_versions=[
                 # dagster-airflow
@@ -949,6 +953,12 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
                 AvailablePythonVersion.V3_13,
                 AvailablePythonVersion.V3_14,
             ],
+            resources=ResourceRequests(
+                cpu="1000m",
+                memory="1Gi",
+                docker_memory="2Gi",
+                docker_memory_limit="4Gi",
+            ),
         ),
         PackageSpec(
             oss_path("python_modules/libraries/dagster-dbt"),
@@ -1053,7 +1063,6 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
                 "AIRLIFT_MWAA_TEST_PROFILE",
                 "AIRLIFT_MWAA_TEST_REGION",
             ],
-            queue=BuildkiteQueue.MEDIUM,
         ),
         PackageSpec(
             oss_path("python_modules/libraries/dagster-airbyte"),
@@ -1101,7 +1110,7 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
             oss_path("python_modules/libraries/dagster-dg-cli"),
             pytest_tox_factors=[
                 ToxFactor("general"),
-                ToxFactor("slow", splits=4, queue=BuildkiteQueue.MEDIUM),
+                ToxFactor("slow", splits=4),
                 ToxFactor("serial"),
                 ToxFactor("plus"),
             ],
@@ -1130,10 +1139,23 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
             pytest_extra_cmds=celery_extra_cmds,
         ),
         PackageSpec(
+            # Runs `test-project` images via celery + docker. The cpu=4000m bump
+            # from #24902 did not eliminate the 60s UnixHTTPConnectionPool
+            # ReadTimeouts (recurred on builds 152968, 152985, 153001, 153056
+            # within ~2h of merge). Per #24902's pre-committed escalation,
+            # bump docker_memory_limit 4Gi → 8Gi to give dind headroom for
+            # concurrent decompression and image-pull buffers.
             oss_path("python_modules/libraries/dagster-celery-docker"),
             env_vars=["AWS_ACCOUNT_ID", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"],
             pytest_extra_cmds=celery_extra_cmds,
             pytest_step_dependencies=test_project_depends_fn,
+            resources=ResourceRequests(
+                cpu="1000m",
+                memory="1Gi",
+                docker_cpu="4000m",
+                docker_memory="2Gi",
+                docker_memory_limit="8Gi",
+            ),
         ),
         PackageSpec(
             oss_path("python_modules/libraries/dagster-dask"),
@@ -1142,10 +1164,20 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
             oss_path("python_modules/libraries/dagster-databricks"),
         ),
         PackageSpec(
+            # Pulls and runs `test-project` images per test. Same dind
+            # saturation shape as dagster-celery-docker above — bump
+            # docker_memory_limit 4Gi → 8Gi alongside that package.
             oss_path("python_modules/libraries/dagster-docker"),
             env_vars=["AWS_ACCOUNT_ID", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"],
             pytest_extra_cmds=docker_extra_cmds,
             pytest_step_dependencies=test_project_depends_fn,
+            resources=ResourceRequests(
+                cpu="1000m",
+                memory="1Gi",
+                docker_cpu="4000m",
+                docker_memory="2Gi",
+                docker_memory_limit="8Gi",
+            ),
         ),
         PackageSpec(
             oss_path("python_modules/libraries/dagster-duckdb"),
@@ -1254,7 +1286,6 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
             pytest_tox_factors=[
                 ToxFactor("kubernetes_12"),
                 ToxFactor("kubernetes_35"),
-                ToxFactor("kubernetes_36"),
             ],
             pytest_extra_cmds=k8s_extra_cmds,
         ),
@@ -1333,14 +1364,12 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
         PackageSpec(
             oss_path("python_modules/libraries/dagstermill"),
             pytest_tox_factors=[
-                ToxFactor("papermill2", splits=2, queue=BuildkiteQueue.MEDIUM),
+                ToxFactor("papermill2", splits=2),
             ],
         ),
         PackageSpec(
             oss_path("python_modules/libraries/dagster-airlift/perf-harness"),
             force_run_fn=BuildkiteContext.has_dagster_airlift_changes,
-            # Long-standing Airflow e2e timing flake (`test_dagster_materializes[migrate]`).
-            queue=BuildkiteQueue.MEDIUM,
             unsupported_python_versions=[
                 # airflow
                 AvailablePythonVersion.V3_12,

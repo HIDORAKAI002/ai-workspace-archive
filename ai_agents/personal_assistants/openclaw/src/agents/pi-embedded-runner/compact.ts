@@ -170,7 +170,7 @@ import {
 import { splitSdkTools } from "./tool-split.js";
 import { readTranscriptFileState } from "./transcript-file-state.js";
 import type { EmbeddedPiCompactResult } from "./types.js";
-import { mapThinkingLevel } from "./utils.js";
+import { mapThinkingLevel, normalizeContextTokenBudget } from "./utils.js";
 import { flushPendingToolResultsAfterIdle } from "./wait-for-idle-before-flush.js";
 export type { CompactEmbeddedPiSessionParams } from "./compact.types.js";
 
@@ -499,6 +499,8 @@ async function compactEmbeddedPiSessionDirectOnce(
     defaultProvider: DEFAULT_PROVIDER,
     defaultModel: DEFAULT_MODEL,
   });
+  // Keep the configured provider for context-window policy, while auth/model loading below can
+  // route OpenAI compaction through Codex OAuth when that runtime owns the session credentials.
   const modelConfigProvider = resolvedCompactionTarget.provider ?? DEFAULT_PROVIDER;
   const modelId = resolvedCompactionTarget.model ?? DEFAULT_MODEL;
   const authProfileId = resolvedCompactionTarget.authProfileId;
@@ -697,10 +699,19 @@ async function compactEmbeddedPiSessionDirectOnce(
       modelContextWindow: runtimeModelWithContext.contextWindow,
       defaultTokens: DEFAULT_CONTEXT_TOKENS,
     });
+    const resolvedContextTokenBudget =
+      normalizeContextTokenBudget(ctxInfo.tokens) ?? DEFAULT_CONTEXT_TOKENS;
+    const requestedContextTokenBudget =
+      normalizeContextTokenBudget(params.contextTokenBudget) ??
+      normalizeContextTokenBudget(params.tokenBudget);
+    const contextTokenBudget = Math.min(
+      requestedContextTokenBudget ?? resolvedContextTokenBudget,
+      resolvedContextTokenBudget,
+    );
     const effectiveModel = applyAuthHeaderOverride(
       applyLocalNoAuthHeaderOverride(
-        ctxInfo.tokens < (runtimeModelWithContext.contextWindow ?? Infinity)
-          ? { ...runtimeModelWithContext, contextWindow: ctxInfo.tokens }
+        contextTokenBudget < (runtimeModelWithContext.contextWindow ?? Infinity)
+          ? { ...runtimeModelWithContext, contextWindow: contextTokenBudget }
           : runtimeModelWithContext,
         apiKeyInfo,
       ),
@@ -718,7 +729,7 @@ async function compactEmbeddedPiSessionDirectOnce(
         model: effectiveModel,
         modelApi: effectiveModel.api,
         harnessId: params.agentHarnessId,
-        harnessRuntime: params.agentHarnessId,
+        harnessRuntime: selectedHarnessRuntime,
         authProfileProvider: authProfileId?.split(":", 1)[0],
         sessionAuthProfileId: authProfileId,
         config: params.config,
@@ -761,7 +772,7 @@ async function compactEmbeddedPiSessionDirectOnce(
       modelId,
       modelCompat: extractModelCompat(effectiveModel),
       modelApi: model.api,
-      modelContextWindowTokens: ctxInfo.tokens,
+      modelContextWindowTokens: contextTokenBudget,
       skillsSnapshot: skillsSnapshotForRun,
       modelAuthMode: resolveModelAuthMode(model.provider, params.config, undefined, {
         workspaceDir: effectiveWorkspace,
@@ -1012,7 +1023,7 @@ async function compactEmbeddedPiSessionDirectOnce(
         agentId: sessionAgentId,
         sessionKey: params.sessionKey,
         config: params.config,
-        contextWindowTokens: ctxInfo.tokens,
+        contextWindowTokens: contextTokenBudget,
         allowSyntheticToolResults: transcriptPolicy.allowSyntheticToolResults,
         missingToolResultText:
           model.api === "openai-responses" ||
@@ -1037,7 +1048,7 @@ async function compactEmbeddedPiSessionDirectOnce(
           env: process.env,
           workspaceDir: effectiveWorkspace,
         }),
-        contextTokenBudget: ctxInfo.tokens,
+        contextTokenBudget,
       });
       // Sets compaction/pruning runtime state and returns extension factories
       // that must be passed to the resource loader for the safeguard to be active.
@@ -1064,7 +1075,7 @@ async function compactEmbeddedPiSessionDirectOnce(
       applyPiCompactionSettingsFromConfig({
         settingsManager,
         cfg: params.config,
-        contextTokenBudget: ctxInfo.tokens,
+        contextTokenBudget,
       });
       // contextEngineInfo is intentionally omitted: this guard runs inside the
       // compaction LLM session, which is not the user-facing agent session and

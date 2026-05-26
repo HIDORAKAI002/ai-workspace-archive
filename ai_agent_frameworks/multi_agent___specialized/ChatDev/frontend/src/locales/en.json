@@ -182,7 +182,8 @@
     "alert_download_failed": "Failed to download file, please try again.",
     "alert_download_logs_failed": "Download failed, please try again later",
     "no_initial_instructions": "No initial instructions provided",
-    "workflow_cancelled": "Workflow cancelled"
+    "workflow_cancelled": "Workflow cancelled",
+    "reconnected": "Reconnected to existing session"
   },
   "form_generator": {
     "advanced_settings": "Advanced Settings",

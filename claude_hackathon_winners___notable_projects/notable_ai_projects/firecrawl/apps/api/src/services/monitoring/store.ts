@@ -698,3 +698,19 @@ export async function claimDueMonitors(params: {
   throwIfError(error, "Failed to claim due monitors");
   return (data ?? []) as MonitorRow[];
 }
+
+export async function deferMonitorClaim(
+  monitorId: string,
+  until: Date,
+): Promise<void> {
+  const { error } = await supabase_service
+    .from("monitors")
+    .update({
+      locked_until: until.toISOString(),
+      locked_at: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", monitorId);
+
+  throwIfError(error, "Failed to defer monitor claim");
+}

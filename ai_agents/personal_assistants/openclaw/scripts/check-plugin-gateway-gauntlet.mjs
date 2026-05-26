@@ -453,12 +453,47 @@ export function runMeasuredCommandLive(params) {
     let spawnError = null;
     let timedOut = false;
     let settled = false;
+    let forceKillTimeout = null;
     const maxBufferBytes = params.maxBufferBytes ?? COMMAND_OUTPUT_MAX_BUFFER_BYTES;
+    const timeoutKillGraceMs = params.timeoutKillGraceMs ?? 5_000;
+    const spawnOptions = mode === "none" ? (params.spawnOptions ?? {}) : {};
+    const useProcessGroup =
+      process.platform !== "win32" &&
+      params.killProcessGroup !== false &&
+      spawnOptions.detached !== false;
     const child = spawn(command, args, {
       cwd: params.cwd,
       env: params.env,
-      ...(mode === "none" ? (params.spawnOptions ?? {}) : {}),
+      ...spawnOptions,
+      ...(useProcessGroup ? { detached: true } : {}),
     });
+    const killMeasuredProcess = (signal = "SIGTERM") => {
+      if (useProcessGroup && child.pid) {
+        try {
+          process.kill(-child.pid, signal);
+          return;
+        } catch {}
+      }
+      child.kill(signal);
+    };
+    const parentSignalHandlers = new Map();
+    const removeParentSignalHandlers = () => {
+      for (const [signal, handler] of parentSignalHandlers) {
+        process.off(signal, handler);
+      }
+      parentSignalHandlers.clear();
+    };
+    const parentSignals =
+      process.platform === "win32" ? ["SIGINT", "SIGTERM"] : ["SIGINT", "SIGTERM", "SIGHUP"];
+    for (const signal of parentSignals) {
+      const handler = () => {
+        killMeasuredProcess(signal);
+        removeParentSignalHandlers();
+        process.kill(process.pid, signal);
+      };
+      parentSignalHandlers.set(signal, handler);
+      process.once(signal, handler);
+    }
     const appendCapturedOutput = (streamName, chunk) => {
       const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
       const currentBytes = streamName === "stdout" ? stdoutBytes : stderrBytes;
@@ -513,7 +548,11 @@ export function runMeasuredCommandLive(params) {
               code: "ETIMEDOUT",
               message: `Command timed out after ${params.timeoutMs}ms`,
             };
-            child.kill();
+            killMeasuredProcess();
+            forceKillTimeout = setTimeout(() => {
+              killMeasuredProcess("SIGKILL");
+            }, timeoutKillGraceMs);
+            forceKillTimeout.unref?.();
           }, params.timeoutMs)
         : null;
     timeout?.unref?.();
@@ -525,6 +564,13 @@ export function runMeasuredCommandLive(params) {
       if (timeout) {
         clearTimeout(timeout);
       }
+      if (timedOut) {
+        killMeasuredProcess("SIGKILL");
+      }
+      if (forceKillTimeout) {
+        clearTimeout(forceKillTimeout);
+      }
+      removeParentSignalHandlers();
       const wallMs = performance.now() - started;
       const finalStatus = status ?? (signal || spawnError ? 1 : 0);
       const finalStderr = [
@@ -688,14 +734,18 @@ async function main() {
       limit: options.limit,
     });
     const rows = [];
+    const commandEnv = buildGauntletPrebuildEnv(env, {
+      includePrivateQa: !options.skipQa,
+      buildIds: selectedPlugins.map((plugin) => plugin.buildId),
+      skipDeclarationBuild: true,
+    });
     if (!options.skipPrebuild && (selectedPlugins.length > 0 || !options.skipQa)) {
       process.stderr.write("[plugin-gauntlet] prebuild\n");
-      const prebuildEnv = buildGauntletPrebuildEnv(env, { includePrivateQa: !options.skipQa });
       const prebuildCommand = createGauntletPrebuildCommand(repoRoot);
       rows.push(
         await runMeasuredCommandLive({
           cwd: repoRoot,
-          env: prebuildEnv,
+          env: commandEnv,
           logDir: path.join(options.outputDir, "logs", "prebuild"),
           command: prebuildCommand.command,
           args: prebuildCommand.args,
@@ -712,7 +762,7 @@ async function main() {
       runPluginLifecycle({
         repoRoot,
         outputDir: options.outputDir,
-        env,
+        env: commandEnv,
         plugins: selectedPlugins,
         rows,
         commandTimeoutMs: options.commandTimeoutMs,
@@ -722,7 +772,7 @@ async function main() {
       runSlashHelpProbes({
         repoRoot,
         outputDir: options.outputDir,
-        env,
+        env: commandEnv,
         plugins: selectedPlugins,
         rows,
         commandTimeoutMs: options.commandTimeoutMs,
@@ -734,7 +784,7 @@ async function main() {
         : runQaChunks({
             repoRoot,
             outputDir: options.outputDir,
-            env,
+            env: commandEnv,
             plugins: selectedPlugins,
             qaBaseline: options.qaBaseline,
             rows,

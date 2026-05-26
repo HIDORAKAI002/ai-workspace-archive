@@ -2833,6 +2833,11 @@ paths:
           nullable: true
           type: string
         style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConsolidationRequest'
       responses:
         "200":
           content:
@@ -4345,6 +4350,23 @@ components:
       required:
       - deleted_count
       title: ClearMemoryObservationsResponse
+    ConsolidationRequest:
+      description: Request model for consolidation trigger endpoint.
+      example:
+        observation_scopes:
+        - - observation_scopes
+          - observation_scopes
+        - - observation_scopes
+          - observation_scopes
+      properties:
+        observation_scopes:
+          items:
+            items:
+              type: string
+            type: array
+          nullable: true
+          type: array
+      title: ConsolidationRequest
     ConsolidationResponse:
       description: Response model for consolidation trigger endpoint.
       example:

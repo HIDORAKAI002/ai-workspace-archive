@@ -160,7 +160,8 @@
     "alert_download_failed": "下载文件失败，请重试。",
     "alert_download_logs_failed": "下载失败，请稍后重试",
     "no_initial_instructions": "未提供初始说明",
-    "workflow_cancelled": "工作流已取消"
+    "workflow_cancelled": "工作流已取消",
+    "reconnected": "已重新连接到现有会话"
   },
   "components": {
     "workflow_edge": {

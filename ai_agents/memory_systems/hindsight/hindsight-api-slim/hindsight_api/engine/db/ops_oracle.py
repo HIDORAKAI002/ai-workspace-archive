@@ -215,30 +215,6 @@ class OracleOps(DataAccessOps):
             list(zip(unit_ids, entity_ids)),
         )
 
-    async def fetch_entity_unit_fanout(
-        self,
-        conn: DatabaseConnection,
-        ue_table: str,
-        entity_id_list: list[UUID],
-        limit_per_entity: int,
-    ) -> list[ResultRow]:
-        # Query each entity individually
-        rows: list[ResultRow] = []
-        for eid in entity_id_list:
-            entity_rows = await conn.fetch(
-                f"""
-                SELECT $1 AS entity_id, ue.unit_id
-                FROM {ue_table} ue
-                WHERE ue.entity_id = $1
-                ORDER BY ue.unit_id DESC
-                LIMIT $2
-                """,
-                eid,
-                limit_per_entity,
-            )
-            rows.extend(entity_rows)
-        return rows
-
     async def fetch_unit_dates(
         self,
         conn: DatabaseConnection,

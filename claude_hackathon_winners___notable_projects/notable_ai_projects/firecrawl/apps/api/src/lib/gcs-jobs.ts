@@ -29,6 +29,7 @@ const storageManualRetries = new Storage({
 });
 
 const BACKOFF_PARAMS = [0, 250, 1000];
+const BACKOFF_SLOWDOWN_PARAMS = [0, 2000, 4000];
 
 type GCSOperationAttempt = {
   error: any;
@@ -87,8 +88,7 @@ async function saveJobToGCS(params: {
     zeroDataRetention: params.zeroDataRetention,
   });
 
-  const saveAttempts: GCSOperationAttempt[] = [];
-  const metadataAttempts: GCSOperationAttempt[] = [];
+  const attempts: GCSOperationAttempt[] = [];
 
   return await withSpan("firecrawl-gcs-save-job", async span => {
     setSpanAttributes(span, {
@@ -109,60 +109,42 @@ async function saveJobToGCS(params: {
     const bucket = storageManualRetries.bucket(config.GCS_BUCKET_NAME);
     const blob = bucket.file(filename);
 
+    let backoffUsed = BACKOFF_PARAMS;
+
+    const data = JSON.stringify(params.data);
+
     // Save job docs with retry
-    for (let i = 0; i < BACKOFF_PARAMS.length; i++) {
-      const backoffMs = BACKOFF_PARAMS[i];
+    // Due to retries and resumable uploads, this is:
+    //  if data is smaller than or exactly 3MB: best case 1 request, worst case 3 requests
+    //  if data is larger than 3MB: best case 2 requests, worst case 6 requests
+    for (let i = 0; i < backoffUsed.length; i++) {
+      const backoffMs = backoffUsed[i];
       if (backoffMs > 0) {
         await new Promise(resolve => setTimeout(resolve, backoffMs));
       }
 
       const saveStart = Date.now();
       try {
-        await blob.save(JSON.stringify(params.data), {
-          contentType: "application/json",
+        await blob.save(data, {
+          metadata: {
+            contentType: "application/json",
+            metadata: params.metadata,
+          },
+          resumable: data.length > 3 * 1024 * 1024, // 3MB, 5MB official limit
         });
-        saveAttempts.push({
+        attempts.push({
           error: null,
           timeMs: Date.now() - saveStart,
           backoffMs,
         });
         break;
       } catch (error) {
-        // TODO: determine what kind of errors we should backoff or instafail on
-        saveAttempts.push({ error, timeMs: Date.now() - saveStart, backoffMs });
-
-        if (i === BACKOFF_PARAMS.length - 1) {
-          setSpanAttributes(span, { "gcs.save_successful": false });
-          throw error;
+        if (error instanceof ApiError && error.code === 429) {
+          // switch to slower backoff parameters for rate limiting errors
+          backoffUsed = BACKOFF_SLOWDOWN_PARAMS;
         }
-      }
-    }
 
-    // Save job metadata with retry
-    for (let i = 0; i < BACKOFF_PARAMS.length; i++) {
-      const backoffMs = BACKOFF_PARAMS[i];
-      if (backoffMs > 0) {
-        await new Promise(resolve => setTimeout(resolve, backoffMs));
-      }
-
-      const metadataStart = Date.now();
-      try {
-        await blob.setMetadata({
-          metadata: params.metadata,
-        });
-        metadataAttempts.push({
-          error: null,
-          timeMs: Date.now() - metadataStart,
-          backoffMs,
-        });
-        break;
-      } catch (error) {
-        // TODO: determine what kind of errors we should backoff or instafail on
-        metadataAttempts.push({
-          error,
-          timeMs: Date.now() - metadataStart,
-          backoffMs,
-        });
+        attempts.push({ error, timeMs: Date.now() - saveStart, backoffMs });
 
         if (i === BACKOFF_PARAMS.length - 1) {
           setSpanAttributes(span, { "gcs.save_successful": false });
@@ -174,22 +156,20 @@ async function saveJobToGCS(params: {
     setSpanAttributes(span, { "gcs.save_successful": true });
   })
     .then(x => {
-      if (saveAttempts.length === 0 && metadataAttempts.length === 0) {
+      if (attempts.length === 0) {
         return x;
       }
 
-      if (saveAttempts.length === 1 && metadataAttempts.length === 1) {
+      if (attempts.length === 1) {
         logger.debug("Job saved to GCS", {
           canonicalLog: "gcs-jobs/save",
-          saveAttempts,
-          metadataAttempts,
+          attempts,
           success: true,
         });
       } else {
         logger.warn("Job saved to GCS with retries", {
           canonicalLog: "gcs-jobs/save",
-          saveAttempts,
-          metadataAttempts,
+          attempts,
           success: true,
         });
       }
@@ -199,8 +179,7 @@ async function saveJobToGCS(params: {
     .catch(error => {
       logger.error(`Job save to GCS failed`, {
         canonicalLog: "gcs-jobs/save",
-        saveAttempts,
-        metadataAttempts,
+        attempts,
         success: false,
         error,
       });

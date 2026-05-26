@@ -8,7 +8,10 @@ openclaw_node_version_matches() {
   fi
   case "$requested" in
     *x)
-      [[ "${actual%%.*}" == "${requested%%.*}" ]]
+      [[ "${actual%%.*}" == "${requested%%.*}" ]] || return 1
+      if [[ "${requested%%.*}" == "22" ]]; then
+        openclaw_node_version_at_least "$actual" "22.19.0"
+      fi
       ;;
     *.*.*)
       [[ "$actual" == "$requested" ]]
@@ -22,15 +25,45 @@ openclaw_node_version_matches() {
   esac
 }
 
+openclaw_node_version_at_least() {
+  local actual="$1"
+  local minimum="$2"
+  local actual_major actual_minor actual_patch minimum_major minimum_minor minimum_patch
+  IFS=. read -r actual_major actual_minor actual_patch <<< "$actual"
+  IFS=. read -r minimum_major minimum_minor minimum_patch <<< "$minimum"
+  actual_minor="${actual_minor:-0}"
+  actual_patch="${actual_patch:-0}"
+  minimum_minor="${minimum_minor:-0}"
+  minimum_patch="${minimum_patch:-0}"
+
+  if (( actual_major != minimum_major )); then
+    (( actual_major > minimum_major ))
+    return
+  fi
+  if (( actual_minor != minimum_minor )); then
+    (( actual_minor > minimum_minor ))
+    return
+  fi
+  (( actual_patch >= minimum_patch ))
+}
+
 openclaw_active_node_version() {
   node -p 'process.versions.node' 2>/dev/null || true
 }
 
 openclaw_prepend_node_bin() {
   local node_bin_dir="$1"
-  export PATH="$node_bin_dir:$PATH"
+  local shell_node_bin_dir="$node_bin_dir"
+  if command -v cygpath >/dev/null 2>&1; then
+    shell_node_bin_dir="$(cygpath -u "$node_bin_dir" 2>/dev/null || printf '%s' "$node_bin_dir")"
+  fi
+  export PATH="$shell_node_bin_dir:$PATH"
   if [[ -n "${GITHUB_PATH:-}" ]]; then
-    echo "$node_bin_dir" >> "$GITHUB_PATH"
+    local github_node_bin_dir="$shell_node_bin_dir"
+    if command -v cygpath >/dev/null 2>&1; then
+      github_node_bin_dir="$(cygpath -w "$shell_node_bin_dir" 2>/dev/null || printf '%s' "$shell_node_bin_dir")"
+    fi
+    echo "$github_node_bin_dir" >> "$GITHUB_PATH"
   fi
   hash -r
 }
@@ -49,6 +82,9 @@ openclaw_find_toolcache_node() {
     "/Users/runner/hostedtoolcache" \
     "/c/hostedtoolcache/windows"
   do
+    if [[ ! -d "$root" && "$root" == *\\* ]] && command -v cygpath >/dev/null 2>&1; then
+      root="$(cygpath -u "$root" 2>/dev/null || printf '%s' "$root")"
+    fi
     if [[ -d "$root/node" ]]; then
       roots+=("$root/node")
     elif [[ "$(basename "$root")" == "node" && -d "$root" ]]; then
@@ -69,6 +105,56 @@ openclaw_find_toolcache_node() {
   return 1
 }
 
+openclaw_resolve_node_download_version() {
+  local requested_node="$1"
+  if [[ "$requested_node" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    [[ "$requested_node" == v* ]] && printf '%s\n' "$requested_node" || printf 'v%s\n' "$requested_node"
+    return 0
+  fi
+
+  local prefix="${requested_node#v}"
+  prefix="${prefix%%[xX]*}"
+  prefix="v${prefix}"
+  [[ "$prefix" == *. ]] || prefix="${prefix}."
+  curl -fsSL https://nodejs.org/dist/index.json |
+    OPENCLAW_NODE_PREFIX="$prefix" python3 -c 'import json, os, sys
+prefix = os.environ["OPENCLAW_NODE_PREFIX"]
+for item in json.load(sys.stdin):
+    version = item.get("version", "")
+    if version.startswith(prefix):
+        print(version)
+        break
+'
+}
+
+openclaw_node_download_platform() {
+  local os_name arch_name
+  os_name="$(uname -s)"
+  arch_name="$(uname -m)"
+  case "$os_name:$arch_name" in
+    Linux:x86_64) printf 'linux-x64\n' ;;
+    Linux:aarch64 | Linux:arm64) printf 'linux-arm64\n' ;;
+    Darwin:x86_64) printf 'darwin-x64\n' ;;
+    Darwin:arm64) printf 'darwin-arm64\n' ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+openclaw_download_node() {
+  local requested_node="$1"
+  local version platform archive_url install_root
+  version="$(openclaw_resolve_node_download_version "$requested_node")"
+  platform="$(openclaw_node_download_platform)" || return 1
+  install_root="${RUNNER_TEMP:-/tmp}/openclaw-node-${version}-${platform}"
+  archive_url="https://nodejs.org/dist/${version}/node-${version}-${platform}.tar.xz"
+  mkdir -p "$install_root"
+  echo "Downloading Node ${version} from ${archive_url}"
+  curl -fsSL "$archive_url" | tar -xJ -C "$install_root" --strip-components=1
+  openclaw_prepend_node_bin "$install_root/bin"
+}
+
 openclaw_ensure_node() {
   local requested_node="${1:-}"
   requested_node="${requested_node#v}"
@@ -87,6 +173,8 @@ openclaw_ensure_node() {
   if [[ -n "$node_bin" ]]; then
     echo "Using Node $("$node_bin" -p 'process.versions.node') from $node_bin"
     openclaw_prepend_node_bin "$(dirname "$node_bin")"
+  else
+    openclaw_download_node "$requested_node" || true
   fi
 
   active_node_version="$(openclaw_active_node_version)"

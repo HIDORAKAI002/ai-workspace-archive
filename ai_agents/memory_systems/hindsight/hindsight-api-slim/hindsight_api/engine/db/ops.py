@@ -167,21 +167,6 @@ class DataAccessOps(ABC):
     # -- LATERAL / fan-out queries ---------------------------------------
 
     @abstractmethod
-    async def fetch_entity_unit_fanout(
-        self,
-        conn: DatabaseConnection,
-        ue_table: str,
-        entity_id_list: list[UUID],
-        limit_per_entity: int,
-    ) -> list[ResultRow]:
-        """Fetch unit_ids for a list of entities with per-entity row cap.
-
-        PG uses unnest + CROSS JOIN LATERAL with LIMIT.
-        Non-PG queries each entity individually.
-        """
-        ...
-
-    @abstractmethod
     async def fetch_unit_dates(
         self,
         conn: DatabaseConnection,

@@ -2,12 +2,16 @@ import type { AgentMessage } from "@earendil-works/pi-agent-core";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   applyExtraParamsToAgentMock,
+  applyPiCompactionSettingsFromConfigMock,
   buildEmbeddedSystemPromptMock,
   contextEngineCompactMock,
+  createPreparedEmbeddedPiSettingsManagerMock,
   createOpenClawCodingToolsMock,
+  enqueueCommandInLaneMock,
   ensureRuntimePluginsLoaded,
   estimateTokensMock,
   getMemorySearchManagerMock,
+  guardSessionManagerMock,
   hookRunner,
   listRegisteredPluginAgentPromptGuidanceMock,
   loadCompactHooksHarness,
@@ -378,6 +382,43 @@ describe("compactEmbeddedPiSessionDirect hooks", () => {
       senderName: "Alice",
       senderUsername: "alice_u",
       senderE164: "+15551234567",
+    });
+  });
+
+  it("uses the caller context token budget during runtime compaction", async () => {
+    await compactEmbeddedPiSessionDirect({
+      sessionId: "session-1",
+      sessionFile: "/tmp/session.jsonl",
+      workspaceDir: "/tmp/workspace",
+      contextTokenBudget: 64_000,
+    });
+
+    expectRecordFields(mockCallArg(createOpenClawCodingToolsMock), {
+      modelContextWindowTokens: 64_000,
+    });
+    expectRecordFields(mockCallArg(guardSessionManagerMock, 0, 1), {
+      contextWindowTokens: 64_000,
+    });
+    expectRecordFields(mockCallArg(createPreparedEmbeddedPiSettingsManagerMock), {
+      contextTokenBudget: 64_000,
+    });
+    expectRecordFields(mockCallArg(applyPiCompactionSettingsFromConfigMock), {
+      contextTokenBudget: 64_000,
+    });
+  });
+
+  it("clamps the caller context token budget to the compaction model", async () => {
+    resolveContextWindowInfoMock.mockReturnValueOnce({ tokens: 32_000 });
+
+    await compactEmbeddedPiSessionDirect({
+      sessionId: "session-1",
+      sessionFile: "/tmp/session.jsonl",
+      workspaceDir: "/tmp/workspace",
+      contextTokenBudget: 64_000,
+    });
+
+    expectRecordFields(mockCallArg(createOpenClawCodingToolsMock), {
+      modelContextWindowTokens: 32_000,
     });
   });
 
@@ -1447,6 +1488,37 @@ describe("compactEmbeddedPiSession hooks (ownsCompaction engine)", () => {
     });
   });
 
+  it("clamps caller context token budget before queued engine-owned compaction", async () => {
+    resolveContextWindowInfoMock.mockReturnValueOnce({ tokens: 32_000 });
+
+    await compactEmbeddedPiSession(
+      wrappedCompactionArgs({
+        contextTokenBudget: 64_000,
+        config: {
+          agents: {
+            defaults: {
+              compaction: {
+                model: "anthropic/claude-opus-4-6",
+              },
+            },
+          },
+        },
+      }),
+    );
+
+    const harnessArg = mockCallArg(maybeCompactAgentHarnessSessionMock) as Record<string, unknown>;
+    expect(harnessArg.contextTokenBudget).toBe(32_000);
+    const compactArg = mockCallArg(contextEngineCompactMock) as {
+      tokenBudget?: number;
+      runtimeContext?: Record<string, unknown>;
+    };
+    expect(compactArg.tokenBudget).toBe(32_000);
+    expectRecordFields(compactArg.runtimeContext, {
+      provider: "anthropic",
+      model: "claude-opus-4-6",
+    });
+  });
+
   it("passes resolved context-engine runtime context to harness compaction", async () => {
     maybeCompactAgentHarnessSessionMock.mockResolvedValueOnce({
       ok: true,
@@ -1481,6 +1553,39 @@ describe("compactEmbeddedPiSession hooks (ownsCompaction engine)", () => {
       authProfileId: "openai:p1",
       currentTokenCount: 333,
     });
+  });
+
+  it("fails deferred budget compaction when background maintenance is not scheduled", async () => {
+    const dispose = vi.fn(async () => {});
+    const maintain = vi.fn(async () => ({
+      changed: false,
+      bytesFreed: 0,
+      rewrittenEntries: 0,
+    }));
+    resolveContextEngineMock.mockResolvedValue({
+      info: { ownsCompaction: true, turnMaintenanceMode: "background" },
+      compact: contextEngineCompactMock,
+      dispose,
+      maintain,
+    } as never);
+    enqueueCommandInLaneMock.mockImplementationOnce(() => {
+      throw new Error("scheduler offline");
+    });
+
+    const result = await compactEmbeddedPiSession(
+      wrappedCompactionArgs({
+        trigger: "budget",
+        deferOwningContextEngineCompaction: true,
+      }),
+    );
+
+    expect(result.ok).toBe(false);
+    expect(result.compacted).toBe(false);
+    expect(result.reason).toBe("failed to schedule background context-engine maintenance");
+    expect(result.failure?.reason).toBe("deferred_compaction_not_scheduled");
+    expect(dispose).toHaveBeenCalledTimes(1);
+    expect(maintain).not.toHaveBeenCalled();
+    expect(contextEngineCompactMock).not.toHaveBeenCalled();
   });
 
   it("does not fall back to context-engine compaction for Codex native binding failures", async () => {

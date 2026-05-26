@@ -56,6 +56,16 @@ class WorkflowSession:
     cancel_event: Event = field(default_factory=Event)
     cancel_reason: Optional[str] = None
 
+    # Message buffer for reconnection replay
+    message_buffer: list = field(default_factory=list)
+
+    MAX_BUFFER_SIZE: int = 1000
+
+    def append_message(self, message: Dict[str, Any]) -> None:
+        if len(self.message_buffer) >= self.MAX_BUFFER_SIZE:
+            self.message_buffer.pop(0)
+        self.message_buffer.append(message)
+
 
 class WorkflowSessionStore:
     """In-memory registry that tracks workflow session metadata."""
@@ -129,3 +139,20 @@ class WorkflowSessionStore:
     def get_artifact_queue(self, session_id: str) -> Optional[ArtifactEventQueue]:
         session = self._sessions.get(session_id)
         return session.artifact_queue if session else None
+
+    def get_session_snapshot(self, session_id: str) -> Optional[Dict[str, Any]]:
+        session = self._sessions.get(session_id)
+        if not session:
+            return None
+        return {
+            "session_id": session.session_id,
+            "yaml_file": session.yaml_file,
+            "task_prompt": session.task_prompt,
+            "status": session.status.value,
+            "current_node_id": session.current_node_id,
+            "created_at": session.created_at,
+            "updated_at": session.updated_at,
+            "waiting_for_input": session.waiting_for_input,
+            "error_message": session.error_message,
+            "message_count": len(session.message_buffer),
+        }

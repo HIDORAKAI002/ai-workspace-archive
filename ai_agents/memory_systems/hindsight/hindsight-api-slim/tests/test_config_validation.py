@@ -204,3 +204,104 @@ def test_log_config_masks_read_database_url(monkeypatch, caplog):
 #
 # The config validation tests above ensure users get early feedback
 # about invalid configurations before runtime errors occur.
+
+
+# ---------------------------------------------------------------------------
+# Multilingual BM25 configuration
+# ---------------------------------------------------------------------------
+
+
+def test_native_language_defaults_to_english(monkeypatch):
+    from hindsight_api.config import HindsightConfig
+
+    monkeypatch.delenv("HINDSIGHT_API_TEXT_SEARCH_EXTENSION_NATIVE_LANGUAGE", raising=False)
+    monkeypatch.setenv("HINDSIGHT_API_LLM_PROVIDER", "mock")
+
+    config = HindsightConfig.from_env()
+    assert config.text_search_extension_native_language == "english"
+
+
+def test_native_language_loaded_from_env(monkeypatch):
+    from hindsight_api.config import HindsightConfig
+
+    monkeypatch.setenv("HINDSIGHT_API_TEXT_SEARCH_EXTENSION_NATIVE_LANGUAGE", "french")
+    monkeypatch.setenv("HINDSIGHT_API_LLM_PROVIDER", "mock")
+
+    config = HindsightConfig.from_env()
+    assert config.text_search_extension_native_language == "french"
+
+
+def test_native_language_lowercased(monkeypatch):
+    from hindsight_api.config import HindsightConfig
+
+    monkeypatch.setenv("HINDSIGHT_API_TEXT_SEARCH_EXTENSION_NATIVE_LANGUAGE", "Spanish")
+    monkeypatch.setenv("HINDSIGHT_API_LLM_PROVIDER", "mock")
+
+    config = HindsightConfig.from_env()
+    assert config.text_search_extension_native_language == "spanish"
+
+
+@pytest.mark.parametrize(
+    "bad_value",
+    ["en glish", "english;DROP TABLE", "english'", "1english", "english-extra", ""],
+)
+def test_native_language_rejects_invalid_identifiers(monkeypatch, bad_value):
+    """text_search_extension_native_language is embedded into raw SQL — non-identifiers must be rejected."""
+    from hindsight_api.config import HindsightConfig
+
+    monkeypatch.setenv("HINDSIGHT_API_TEXT_SEARCH_EXTENSION_NATIVE_LANGUAGE", bad_value)
+    monkeypatch.setenv("HINDSIGHT_API_LLM_PROVIDER", "mock")
+
+    with pytest.raises(ValueError, match="Invalid text_search_extension_native_language"):
+        HindsightConfig.from_env()
+
+
+def test_text_search_extension_accepts_pgroonga(monkeypatch):
+    from hindsight_api.config import HindsightConfig
+
+    monkeypatch.setenv("HINDSIGHT_API_TEXT_SEARCH_EXTENSION", "pgroonga")
+    monkeypatch.setenv("HINDSIGHT_API_LLM_PROVIDER", "mock")
+
+    config = HindsightConfig.from_env()
+    assert config.text_search_extension == "pgroonga"
+
+
+def test_text_search_extension_rejects_unknown(monkeypatch):
+    from hindsight_api.config import HindsightConfig
+
+    monkeypatch.setenv("HINDSIGHT_API_TEXT_SEARCH_EXTENSION", "bogus")
+    monkeypatch.setenv("HINDSIGHT_API_LLM_PROVIDER", "mock")
+
+    with pytest.raises(ValueError, match="Invalid text_search_extension"):
+        HindsightConfig.from_env()
+
+
+def test_llm_output_language_defaults_to_none(monkeypatch):
+    from hindsight_api.config import HindsightConfig
+
+    monkeypatch.delenv("HINDSIGHT_API_LLM_OUTPUT_LANGUAGE", raising=False)
+    monkeypatch.setenv("HINDSIGHT_API_LLM_PROVIDER", "mock")
+
+    config = HindsightConfig.from_env()
+    assert config.llm_output_language is None
+
+
+def test_llm_output_language_loaded_from_env(monkeypatch):
+    from hindsight_api.config import HindsightConfig
+
+    monkeypatch.setenv("HINDSIGHT_API_LLM_OUTPUT_LANGUAGE", "Japanese")
+    monkeypatch.setenv("HINDSIGHT_API_LLM_PROVIDER", "mock")
+
+    config = HindsightConfig.from_env()
+    assert config.llm_output_language == "Japanese"
+
+
+def test_llm_output_language_empty_string_is_unset(monkeypatch):
+    """Empty env var (e.g. from Helm) should be treated as unset, not literal ''."""
+    from hindsight_api.config import HindsightConfig
+
+    monkeypatch.setenv("HINDSIGHT_API_LLM_OUTPUT_LANGUAGE", "")
+    monkeypatch.setenv("HINDSIGHT_API_LLM_PROVIDER", "mock")
+
+    config = HindsightConfig.from_env()
+    assert config.llm_output_language is None

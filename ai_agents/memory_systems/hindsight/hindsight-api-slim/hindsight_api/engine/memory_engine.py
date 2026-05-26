@@ -208,6 +208,9 @@ from .search.reranking import CrossEncoderReranker, apply_combined_scoring
 from .search.tags import TagGroup, TagsMatch, build_tags_where_clause
 from .task_backend import TaskBackend
 
+RetainOutboxCallback = Callable[[asyncpg.Connection], Awaitable[None]]
+RetainOutboxCallbackFactory = Callable[[list[RetainContentDict]], RetainOutboxCallback | None]
+
 
 def _is_oracledb_connection_error(e: Exception) -> bool:
     """Check if an exception is an Oracle connection/interface error."""
@@ -906,9 +909,8 @@ class MemoryEngine(MemoryEngineInterface):
             request_context=context,
             operation_id=operation_id,
             strategy=strategy,
-            outbox_callback=self._build_retain_outbox_callback(
+            outbox_callback_factory=self._build_retain_outbox_callback_factory(
                 bank_id=bank_id,
-                contents=contents,
                 operation_id=operation_id,
                 schema=_current_schema.get(),
             ),
@@ -1156,6 +1158,7 @@ class MemoryEngine(MemoryEngineInterface):
             bank_id=bank_id,
             request_context=internal_context,
             operation_id=task_dict.get("operation_id"),
+            observation_scopes=task_dict.get("observation_scopes"),
         )
 
         logger.info(f"[CONSOLIDATION] bank={bank_id} completed: {result.get('memories_processed', 0)} processed")
@@ -1425,10 +1428,10 @@ class MemoryEngine(MemoryEngineInterface):
     def _build_retain_outbox_callback(
         self,
         bank_id: str,
-        contents: list[dict],
+        contents: list[RetainContentDict],
         operation_id: str | None,
         schema: str | None = None,
-    ) -> "Callable[[asyncpg.Connection], Awaitable[None]] | None":
+    ) -> RetainOutboxCallback | None:
         """Build a transactional outbox callback for retain.completed webhook events.
 
         Returns a coroutine function that queues one webhook delivery row per content
@@ -1472,6 +1475,31 @@ class MemoryEngine(MemoryEngineInterface):
                 await webhook_manager.fire_event_with_conn(event, conn, schema=resolved_schema)
 
         return _callback
+
+    def _build_retain_outbox_callback_factory(
+        self,
+        bank_id: str,
+        operation_id: str | None,
+        schema: str | None = None,
+    ) -> RetainOutboxCallbackFactory:
+        """Build retain outbox callbacks for grouped retain batches.
+
+        The factory captures one operation_id so per-document webhook events from
+        the same logical retain operation keep a shared event operation_id.
+        """
+        op_id = operation_id or uuid.uuid4().hex
+
+        def _factory(
+            callback_contents: list[RetainContentDict],
+        ) -> RetainOutboxCallback | None:
+            return self._build_retain_outbox_callback(
+                bank_id=bank_id,
+                contents=callback_contents,
+                operation_id=op_id,
+                schema=schema,
+            )
+
+        return _factory
 
     async def _update_webhook_delivery_metadata(
         self, operation_id: str, status_code: int | None, response_body: str | None
@@ -2399,7 +2427,8 @@ class MemoryEngine(MemoryEngineInterface):
         document_tags: list[str] | None = None,
         return_usage: bool = False,
         operation_id: str | None = None,
-        outbox_callback: "Callable[[asyncpg.Connection], Awaitable[None]] | None" = None,
+        outbox_callback: RetainOutboxCallback | None = None,
+        outbox_callback_factory: RetainOutboxCallbackFactory | None = None,
         strategy: str | None = None,
     ):
         """
@@ -2487,6 +2516,9 @@ class MemoryEngine(MemoryEngineInterface):
                 if "document_id" not in item:
                     item["document_id"] = document_id
 
+        if outbox_callback is None and outbox_callback_factory is not None:
+            outbox_callback = outbox_callback_factory(contents)
+
         # Validate no duplicate document_ids in the batch
         # Having duplicate document_ids causes race conditions in document upserts during parallel processing
         doc_ids = [item.get("document_id") for item in contents if item.get("document_id")]
@@ -2573,6 +2605,7 @@ class MemoryEngine(MemoryEngineInterface):
                     # Outbox callback runs inside the last sub-batch's transaction so the
                     # webhook delivery row is committed atomically with the final retain data.
                     outbox_callback=outbox_callback if i == len(sub_batches) else None,
+                    outbox_callback_factory=outbox_callback_factory if i == len(sub_batches) else None,
                 )
                 # sub_results aligns 1:1 with sub_batch items; map each
                 # back to its source input via origin_indices so callers
@@ -2604,6 +2637,7 @@ class MemoryEngine(MemoryEngineInterface):
                 operation_id=operation_id,
                 strategy=strategy,
                 outbox_callback=outbox_callback,
+                outbox_callback_factory=outbox_callback_factory,
             )
 
         # Call post-operation hook if validator is configured
@@ -2632,7 +2666,7 @@ class MemoryEngine(MemoryEngineInterface):
         # Trigger consolidation as a tracked async operation if enabled
         # Resolve bank-specific config to check if observations are enabled for this bank
         config = await self._config_resolver.resolve_full_config(bank_id, request_context)
-        if config.enable_observations:
+        if config.enable_observations and config.enable_auto_consolidation:
             try:
                 await self.submit_async_consolidation(bank_id=bank_id, request_context=request_context)
             except Exception as e:
@@ -2653,7 +2687,8 @@ class MemoryEngine(MemoryEngineInterface):
         fact_type_override: str | None = None,
         document_tags: list[str] | None = None,
         operation_id: str | None = None,
-        outbox_callback: "Callable[[asyncpg.Connection], Awaitable[None]] | None" = None,
+        outbox_callback: RetainOutboxCallback | None = None,
+        outbox_callback_factory: RetainOutboxCallbackFactory | None = None,
         strategy: str | None = None,
     ) -> tuple[list[list[str]], "TokenUsage", int | None]:
         """
@@ -2716,6 +2751,7 @@ class MemoryEngine(MemoryEngineInterface):
                 operation_id=operation_id,
                 schema=_current_schema.get(),
                 outbox_callback=outbox_callback,
+                outbox_callback_factory=outbox_callback_factory,
                 db_semaphore=self._put_semaphore,
             )
 
@@ -4134,10 +4170,12 @@ class MemoryEngine(MemoryEngineInterface):
                 }
 
         if invalidated_obs > 0:
-            try:
-                await self.submit_async_consolidation(bank_id=bank_id, request_context=request_context)
-            except Exception as e:
-                logger.warning(f"Failed to submit consolidation after document deletion for bank {bank_id}: {e}")
+            config = await self._config_resolver.resolve_full_config(bank_id, request_context)
+            if config.enable_auto_consolidation:
+                try:
+                    await self.submit_async_consolidation(bank_id=bank_id, request_context=request_context)
+                except Exception as e:
+                    logger.warning(f"Failed to submit consolidation after document deletion for bank {bank_id}: {e}")
 
         return result
 
@@ -4289,10 +4327,12 @@ class MemoryEngine(MemoryEngineInterface):
                             )
 
         if invalidated_obs > 0:
-            try:
-                await self.submit_async_consolidation(bank_id=bank_id, request_context=request_context)
-            except Exception as e:
-                logger.warning(f"Failed to submit consolidation after document update for bank {bank_id}: {e}")
+            config = await self._config_resolver.resolve_full_config(bank_id, request_context)
+            if config.enable_auto_consolidation:
+                try:
+                    await self.submit_async_consolidation(bank_id=bank_id, request_context=request_context)
+                except Exception as e:
+                    logger.warning(f"Failed to submit consolidation after document update for bank {bank_id}: {e}")
 
         return True
 
@@ -4365,14 +4405,17 @@ class MemoryEngine(MemoryEngineInterface):
                 }
 
         if bank_id_for_consolidation:
-            try:
-                await self.submit_async_consolidation(
-                    bank_id=bank_id_for_consolidation, request_context=request_context
-                )
-            except Exception as e:
-                logger.warning(
-                    f"Failed to submit consolidation after memory deletion for bank {bank_id_for_consolidation}: {e}"
-                )
+            config = await self._config_resolver.resolve_full_config(bank_id_for_consolidation, request_context)
+            if config.enable_auto_consolidation:
+                try:
+                    await self.submit_async_consolidation(
+                        bank_id=bank_id_for_consolidation, request_context=request_context
+                    )
+                except Exception as e:
+                    logger.warning(
+                        f"Failed to submit consolidation after memory deletion"
+                        f" for bank {bank_id_for_consolidation}: {e}"
+                    )
 
         return result
 
@@ -4498,10 +4541,12 @@ class MemoryEngine(MemoryEngineInterface):
                 await bank_utils.drop_bank_vector_indexes(conn, bank_internal_id, ops=self._backend.ops)
 
         if invalidated_obs > 0:
-            try:
-                await self.submit_async_consolidation(bank_id=bank_id, request_context=request_context)
-            except Exception as e:
-                logger.warning(f"Failed to submit consolidation after bank deletion for bank {bank_id}: {e}")
+            config = await self._config_resolver.resolve_full_config(bank_id, request_context)
+            if config.enable_auto_consolidation:
+                try:
+                    await self.submit_async_consolidation(bank_id=bank_id, request_context=request_context)
+                except Exception as e:
+                    logger.warning(f"Failed to submit consolidation after bank deletion for bank {bank_id}: {e}")
 
         return result
 
@@ -4664,7 +4709,9 @@ class MemoryEngine(MemoryEngineInterface):
                     )
 
         if deleted_count > 0:
-            await self.submit_async_consolidation(bank_id=bank_id, request_context=request_context)
+            config = await self._config_resolver.resolve_full_config(bank_id, request_context)
+            if config.enable_auto_consolidation:
+                await self.submit_async_consolidation(bank_id=bank_id, request_context=request_context)
 
         return {"deleted_count": deleted_count}
 
@@ -4834,7 +4881,9 @@ class MemoryEngine(MemoryEngineInterface):
                     source_memory_ids.extend(unit["source_memory_ids"])
             source_memory_ids = list(set(source_memory_ids))  # Deduplicate
 
-            # Fetch links where BOTH endpoints are in the visible set (or source memories)
+            # Fetch non-entity links where BOTH endpoints are in the visible set (or
+            # source memories). Entity edges are derived below from unit_entities so
+            # we don't materialize them in memory_links anymore.
             # Cap at 10k edges — the UI can't usefully render more, and uncapped queries
             # on highly-connected graphs (e.g. 1000 nodes with 500k+ edges) are too slow.
             max_edges = 10000
@@ -4846,10 +4895,11 @@ class MemoryEngine(MemoryEngineInterface):
                            ml.to_unit_id,
                            ml.link_type,
                            ml.weight,
-                           e.canonical_name as entity_name
+                           NULL::text AS entity_name
                     FROM {fq_table("memory_links")} ml
-                    LEFT JOIN {fq_table("entities")} e ON ml.entity_id = e.id
-                    WHERE ml.from_unit_id = ANY($1::uuid[]) AND ml.to_unit_id = ANY($1::uuid[])
+                    WHERE ml.link_type <> 'entity'
+                      AND ml.from_unit_id = ANY($1::uuid[])
+                      AND ml.to_unit_id = ANY($1::uuid[])
                     ORDER BY ml.weight DESC NULLS LAST
                     LIMIT $2
                 """,
@@ -4987,16 +5037,21 @@ class MemoryEngine(MemoryEngineInterface):
                 }
             )
 
-        # Build observation-inferred links from inherited entities and shared source memories.
-        # Observations never have direct memory_links rows, so all their links must be derived.
+        # Build derived links: entity edges for all visible units (from unit_entities)
+        # and observation semantic edges via shared source memories.
+        # Observations never have direct memory_links rows, so all their links are derived.
         observation_units = [unit for unit in units if unit["fact_type"] == "observation"]
-        observation_ids = {unit["id"] for unit in observation_units}
 
-        # Entity links: pair observations that share at least one inherited entity
-        entity_to_observations: dict[str, list] = {}
-        for obs_id in observation_ids:
-            for entity_name in entity_map.get(obs_id, []):
-                entity_to_observations.setdefault(entity_name, []).append(obs_id)
+        # Entity links: pair any visible units that share at least one entity.
+        # Each unit links to up to max_neighbors_per_unit subsequent units in the
+        # per-entity list, so every unit that shares an entity with another visible
+        # unit gets edges (matches the historical writer cap, which was per-unit).
+        # Bounds total edges to ~N * cap per entity instead of N² for hot entities.
+        max_neighbors_per_unit = 10
+        entity_to_units_visible: dict[str, list] = {}
+        for unit_id in unit_ids:
+            for entity_name in entity_map.get(unit_id, []):
+                entity_to_units_visible.setdefault(entity_name, []).append(unit_id)
 
         # Semantic links: pair observations that share at least one source memory
         source_to_obs_for_semantic: dict = {}
@@ -5008,16 +5063,22 @@ class MemoryEngine(MemoryEngineInterface):
         observation_inferred_links = []
         seen_inferred: set[tuple] = set()
 
-        for entity_name, obs_ids in entity_to_observations.items():
-            for i, obs_a in enumerate(obs_ids):
-                for obs_b in obs_ids[i + 1 :]:
-                    pair = (min(str(obs_a), str(obs_b)), max(str(obs_a), str(obs_b)), "entity", entity_name)
+        for entity_name, ent_unit_ids in entity_to_units_visible.items():
+            n = len(ent_unit_ids)
+            for i, unit_a in enumerate(ent_unit_ids):
+                # Sliding window: link unit_a to its next max_neighbors_per_unit
+                # in the list. Each pair is also "incoming" for the later unit,
+                # so every unit ends up with up to ~2*max_neighbors_per_unit edges
+                # for this entity (its successors + its predecessors via their pairs).
+                for j in range(i + 1, min(i + 1 + max_neighbors_per_unit, n)):
+                    unit_b = ent_unit_ids[j]
+                    pair = (min(str(unit_a), str(unit_b)), max(str(unit_a), str(unit_b)), "entity", entity_name)
                     if pair not in seen_inferred:
                         seen_inferred.add(pair)
                         observation_inferred_links.append(
                             {
-                                "from_unit_id": obs_a,
-                                "to_unit_id": obs_b,
+                                "from_unit_id": unit_a,
+                                "to_unit_id": unit_b,
                                 "link_type": "entity",
                                 "weight": 1.0,
                                 "entity_name": entity_name,
@@ -6349,6 +6410,7 @@ class MemoryEngine(MemoryEngineInterface):
                         include_recall=include_recall,
                         budget=effective_budget,
                         max_context_tokens=max_context_tokens,
+                        llm_output_language=getattr(resolved_reflect_config, "llm_output_language", None),
                     ),
                     timeout=wall_timeout,
                 )
@@ -6952,15 +7014,50 @@ class MemoryEngine(MemoryEngineInterface):
             # With the idx_memory_links_bank_link_type index this turns a full-table hash join
             # into an indexed scan + PK lookups.  link_counts and link_counts_by_fact_type are
             # derived in Python from the breakdown.
-            link_breakdown_stats = await conn.fetch(
+            non_entity_breakdown = await conn.fetch(
                 f"""
                 SELECT mu.fact_type, ml.link_type, COUNT(*) as count
                 FROM {fq_table("memory_links")} ml
                 JOIN {fq_table("memory_units")} mu ON ml.from_unit_id = mu.id
-                WHERE ml.bank_id = $1
+                WHERE ml.bank_id = $1 AND ml.link_type <> 'entity'
                 GROUP BY mu.fact_type, ml.link_type
                 """,
                 bank_id,
+            )
+
+            # Entity links are derived from unit_entities (no longer stored in memory_links).
+            # Replicate the historical writer cap: each unit linked bidirectionally to up to
+            # MAX_LINKS_PER_ENTITY others sharing each entity. Count per (unit, entity) the
+            # outgoing rows the writer would have produced — by fact_type of the source unit.
+            max_links_per_entity = 10
+            entity_breakdown = await conn.fetch(
+                f"""
+                WITH per_entity AS (
+                    SELECT ue.entity_id, COUNT(*) AS n
+                    FROM {fq_table("unit_entities")} ue
+                    JOIN {fq_table("memory_units")} mu ON mu.id = ue.unit_id
+                    WHERE mu.bank_id = $1
+                    GROUP BY ue.entity_id
+                )
+                SELECT mu.fact_type, SUM(LEAST(pe.n - 1, $2))::bigint AS count
+                FROM {fq_table("unit_entities")} ue
+                JOIN {fq_table("memory_units")} mu ON mu.id = ue.unit_id
+                JOIN per_entity pe ON pe.entity_id = ue.entity_id
+                WHERE mu.bank_id = $1
+                GROUP BY mu.fact_type
+                """,
+                bank_id,
+                max_links_per_entity,
+            )
+
+            link_breakdown_stats = [
+                {"fact_type": row["fact_type"], "link_type": row["link_type"], "count": row["count"]}
+                for row in non_entity_breakdown
+            ]
+            link_breakdown_stats.extend(
+                {"fact_type": row["fact_type"], "link_type": "entity", "count": int(row["count"] or 0)}
+                for row in entity_breakdown
+                if (row["count"] or 0) > 0
             )
 
             link_counts: dict[str, int] = {}
@@ -9714,6 +9811,7 @@ class MemoryEngine(MemoryEngineInterface):
         bank_id: str,
         *,
         request_context: "RequestContext",
+        observation_scopes: list[list[str]] | None = None,
     ) -> dict[str, Any]:
         """Submit a consolidation operation to run asynchronously.
 
@@ -9723,6 +9821,8 @@ class MemoryEngine(MemoryEngineInterface):
         Args:
             bank_id: Bank identifier
             request_context: Request context for authentication
+            observation_scopes: Optional list of tag scopes to consolidate. When provided,
+                only unconsolidated memories matching at least one scope are processed.
 
         Returns:
             Dict with operation_id
@@ -9744,13 +9844,19 @@ class MemoryEngine(MemoryEngineInterface):
             task_payload["_tenant_id"] = request_context.tenant_id
         if request_context.api_key_id:
             task_payload["_api_key_id"] = request_context.api_key_id
+        if observation_scopes is not None:
+            task_payload["observation_scopes"] = observation_scopes
+
+        # Skip bank-level deduplication when scoped — the caller wants a
+        # targeted run that should not be merged into a pending full-bank sweep.
+        dedupe = observation_scopes is None
 
         return await self._submit_async_operation(
             bank_id=bank_id,
             operation_type="consolidation",
             task_type="consolidation",
             task_payload=task_payload,
-            dedupe_by_bank=True,
+            dedupe_by_bank=dedupe,
         )
 
     async def submit_async_refresh_mental_model(

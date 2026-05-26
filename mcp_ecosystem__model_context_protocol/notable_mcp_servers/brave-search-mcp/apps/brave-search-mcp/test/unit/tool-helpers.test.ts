@@ -9,6 +9,7 @@ import {
   executeTool,
   freshnessInputSchema,
   getErrorMessage,
+  justificationInputSchema,
   webResultSchema,
   webSearchOutputSchema,
 } from '../../src/tools/tool-helpers.js';
@@ -252,6 +253,14 @@ describe('toolHelpers', () => {
     expect(freshnessInputSchema.safeParse(undefined).success).toBe(true);
   });
 
+  it('exports a shared optional justification schema', () => {
+    expect(justificationInputSchema.safeParse(undefined).success).toBe(true);
+    expect(justificationInputSchema.safeParse('business purpose').success).toBe(true);
+    expect(justificationInputSchema.description).toBe(
+      'Optional operator-facing reason for the request, used by audit logging and optional justification enforcement.',
+    );
+  });
+
   it('rejects malformed freshness ranges with the format message', () => {
     const result = freshnessInputSchema.safeParse('2026/01/01to2026/01/31');
     expect(result.success).toBe(false);
@@ -332,19 +341,25 @@ describe('toolHelpers', () => {
     });
 
     it('calls after() with outcome success after executeCore resolves', async () => {
-      const capturedOutcome: string[] = [];
+      const captured = vi.fn();
       const interceptors: ToolInterceptor[] = [
-        { async after(ctx) { capturedOutcome.push(ctx.outcome); } },
+        { async after(ctx) { captured(ctx); } },
       ];
       await executeTool({ toolName: 'test_tool', input: successInput, executeCore: makeSuccessCore(), interceptors });
-      expect(capturedOutcome).toEqual(['success']);
+      expect(captured).toHaveBeenCalledOnce();
+      expect(captured.mock.calls[0][0]).toMatchObject({
+        outcome: 'success',
+        input: { query: 'hello' },
+        effectiveInput: { query: 'hello' },
+        wasRedacted: false,
+      });
     });
 
     it('calls after() with outcome error when executeCore throws', async () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      const capturedOutcome: string[] = [];
+      const captured = vi.fn();
       const interceptors: ToolInterceptor[] = [
-        { async after(ctx) { capturedOutcome.push(ctx.outcome); } },
+        { async after(ctx) { captured(ctx); } },
       ];
       const result = await executeTool({
         toolName: 'test_tool',
@@ -352,21 +367,34 @@ describe('toolHelpers', () => {
         executeCore: async () => { throw new Error('fail'); },
         interceptors,
       });
-      expect(capturedOutcome).toEqual(['error']);
+      expect(captured).toHaveBeenCalledOnce();
+      expect(captured.mock.calls[0][0]).toMatchObject({
+        outcome: 'error',
+        effectiveInput: { query: 'hello' },
+        wasRedacted: false,
+        errorMessage: 'fail',
+      });
       expect(result.isError).toBe(true);
       consoleSpy.mockRestore();
     });
 
     it('calls after() with outcome denied when before() denies', async () => {
-      const capturedOutcome: string[] = [];
+      const captured = vi.fn();
       const interceptors: ToolInterceptor[] = [
         {
-          async before() { return { allow: false, reason: 'denied' }; },
-          async after(ctx) { capturedOutcome.push(ctx.outcome); },
+          async before() { return { allow: false, reason: 'denied', code: 'DENY_CODE' }; },
+          async after(ctx) { captured(ctx); },
         },
       ];
       await executeTool({ toolName: 'test_tool', input: successInput, executeCore: makeSuccessCore(), interceptors });
-      expect(capturedOutcome).toEqual(['denied']);
+      expect(captured).toHaveBeenCalledOnce();
+      expect(captured.mock.calls[0][0]).toMatchObject({
+        outcome: 'denied',
+        effectiveInput: { query: 'hello' },
+        wasRedacted: false,
+        denyCode: 'DENY_CODE',
+        denyReason: 'denied',
+      });
     });
 
     it('frozen input is a different object reference and mutations in before() do not affect executeCore input', async () => {
@@ -425,6 +453,80 @@ describe('toolHelpers', () => {
       expect(result.content[0]).toMatchObject({ type: 'text', text: 'ok' });
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringMatching(/Error in after\(\) interceptor/), expect.any(Error));
       consoleSpy.mockRestore();
+    });
+
+    it('passes redactedInput from before() to executeCore instead of original input', async () => {
+      const capturedInput: unknown[] = [];
+      const interceptors: ToolInterceptor[] = [
+        {
+          async before() {
+            return { allow: true, redactedInput: { query: '[REDACTED]' } };
+          },
+        },
+      ];
+      await executeTool({
+        toolName: 'test_tool',
+        input: { query: 'forbidden term' },
+        executeCore: async (input) => {
+          capturedInput.push(input);
+          return { content: [{ type: 'text' as const, text: 'ok' }] };
+        },
+        interceptors,
+      });
+      expect(capturedInput).toHaveLength(1);
+      expect((capturedInput[0] as Record<string, unknown>).query).toBe('[REDACTED]');
+    });
+
+    it('each successive before() hook receives input accumulated from prior redactions', async () => {
+      const seenBySecond: unknown[] = [];
+      const interceptors: ToolInterceptor[] = [
+        {
+          async before(ctx) {
+            return { allow: true, redactedInput: { ...ctx.input, query: '[REDACTED]' } };
+          },
+        },
+        {
+          async before(ctx) {
+            seenBySecond.push(ctx.input.query);
+          },
+        },
+      ];
+      await executeTool({
+        toolName: 'test_tool',
+        input: { query: 'secret' },
+        executeCore: makeSuccessCore(),
+        interceptors,
+      });
+      expect(seenBySecond[0]).toBe('[REDACTED]');
+    });
+
+    it('after() hooks always see the original input even when before() hooks returned redactedInput', async () => {
+      const seenInAfter: Array<{ input: unknown; effectiveInput: unknown; wasRedacted: boolean }> = [];
+      const interceptors: ToolInterceptor[] = [
+        {
+          async before(ctx) {
+            return { allow: true, redactedInput: { ...ctx.input, query: '[REDACTED]' } };
+          },
+          async after(ctx) {
+            seenInAfter.push({
+              input: ctx.input.query,
+              effectiveInput: ctx.effectiveInput.query,
+              wasRedacted: ctx.wasRedacted,
+            });
+          },
+        },
+      ];
+      await executeTool({
+        toolName: 'test_tool',
+        input: { query: 'original' },
+        executeCore: makeSuccessCore(),
+        interceptors,
+      });
+      expect(seenInAfter[0]).toEqual({
+        input: 'original',
+        effectiveInput: '[REDACTED]',
+        wasRedacted: true,
+      });
     });
   });
 });

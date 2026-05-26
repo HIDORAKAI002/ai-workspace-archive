@@ -1419,10 +1419,16 @@ type ApiTriggerConsolidationRequest struct {
 	ApiService *BanksAPIService
 	bankId string
 	authorization *string
+	consolidationRequest *ConsolidationRequest
 }
 
 func (r ApiTriggerConsolidationRequest) Authorization(authorization string) ApiTriggerConsolidationRequest {
 	r.authorization = &authorization
+	return r
+}
+
+func (r ApiTriggerConsolidationRequest) ConsolidationRequest(consolidationRequest ConsolidationRequest) ApiTriggerConsolidationRequest {
+	r.consolidationRequest = &consolidationRequest
 	return r
 }
 
@@ -1470,7 +1476,7 @@ func (a *BanksAPIService) TriggerConsolidationExecute(r ApiTriggerConsolidationR
 	localVarFormParams := url.Values{}
 
 	// to determine the Content-Type header
-	localVarHTTPContentTypes := []string{}
+	localVarHTTPContentTypes := []string{"application/json"}
 
 	// set Content-Type header
 	localVarHTTPContentType := selectHeaderContentType(localVarHTTPContentTypes)
@@ -1489,6 +1495,8 @@ func (a *BanksAPIService) TriggerConsolidationExecute(r ApiTriggerConsolidationR
 	if r.authorization != nil {
 		parameterAddToHeaderOrQuery(localVarHeaderParams, "authorization", r.authorization, "simple", "")
 	}
+	// body params
+	localVarPostBody = r.consolidationRequest
 	req, err := a.client.prepareRequest(r.ctx, localVarPath, localVarHTTPMethod, localVarPostBody, localVarHeaderParams, localVarQueryParams, localVarFormParams, formFiles)
 	if err != nil {
 		return localVarReturnValue, nil, err

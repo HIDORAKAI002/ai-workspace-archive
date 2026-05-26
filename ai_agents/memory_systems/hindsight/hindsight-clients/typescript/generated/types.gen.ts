@@ -938,6 +938,20 @@ export type ClearMemoryObservationsResponse = {
 };
 
 /**
+ * ConsolidationRequest
+ *
+ * Request model for consolidation trigger endpoint.
+ */
+export type ConsolidationRequest = {
+  /**
+   * Observation Scopes
+   *
+   * Optional list of tag scopes to consolidate. Each scope is a list of tags. Only unconsolidated memories whose tags contain all tags in at least one scope will be processed. If omitted, all unconsolidated memories are processed.
+   */
+  observation_scopes?: Array<Array<string>> | null;
+};
+
+/**
  * ConsolidationResponse
  *
  * Response model for consolidation trigger endpoint.
@@ -5703,7 +5717,10 @@ export type UpdateBankConfigResponses = {
 export type UpdateBankConfigResponse = UpdateBankConfigResponses[keyof UpdateBankConfigResponses];
 
 export type TriggerConsolidationData = {
-  body?: never;
+  /**
+   * Request
+   */
+  body?: ConsolidationRequest | null;
   headers?: {
     /**
      * Authorization

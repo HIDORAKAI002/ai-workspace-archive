@@ -91,9 +91,14 @@ def _vector_index_using_clause(ext: str) -> str:
 
 def _detect_text_search_extension() -> str:
     """
-    Detect or validate text search extension: 'native', 'vchord', or 'pg_textsearch'.
-    Respects HINDSIGHT_API_TEXT_SEARCH_EXTENSION env var.
+    Detect or validate text search extension: 'native', 'vchord', 'pg_textsearch',
+    'pgroonga', or 'pg_search'. Respects HINDSIGHT_API_TEXT_SEARCH_EXTENSION env var.
     Creates the extension if needed.
+
+    pgroonga is treated as native here so the initial schema still creates valid
+    tsvector columns. ensure_text_search_extension() at startup converts the
+    schema to pgroonga structures (drops the tsvector column, builds a pgroonga
+    index on the base text column).
     """
     text_search_extension = os.getenv("HINDSIGHT_API_TEXT_SEARCH_EXTENSION", "native").lower()
 
@@ -121,11 +126,28 @@ def _detect_text_search_extension() -> str:
                 # Extension truly doesn't exist - re-raise the error
                 raise
         return "pg_textsearch"
+    elif text_search_extension == "pg_search":
+        # ParadeDB pg_search — true BM25 over base columns, Citus-compatible.
+        try:
+            op.execute("CREATE EXTENSION IF NOT EXISTS pg_search CASCADE")
+        except Exception:
+            # Extension might already exist or user lacks permissions - verify it exists
+            conn = op.get_bind()
+            result = conn.execute(text("SELECT 1 FROM pg_extension WHERE extname = 'pg_search'")).fetchone()
+            if not result:
+                # Extension truly doesn't exist - re-raise the error
+                raise
+        return "pg_search"
     elif text_search_extension == "native":
+        return "native"
+    elif text_search_extension == "pgroonga":
+        # ensure_text_search_extension() at runtime converts to pgroonga.
+        # Treat as native here so the initial schema still creates valid columns.
         return "native"
     else:
         raise ValueError(
-            f"Invalid HINDSIGHT_API_TEXT_SEARCH_EXTENSION: {text_search_extension}. Must be 'native', 'vchord', or 'pg_textsearch'"
+            f"Invalid HINDSIGHT_API_TEXT_SEARCH_EXTENSION: {text_search_extension}. "
+            "Must be 'native', 'vchord', 'pg_textsearch', 'pgroonga', or 'pg_search'"
         )
 
 
@@ -284,8 +306,9 @@ def _pg_upgrade() -> None:
             ALTER TABLE memory_units
             ADD COLUMN search_vector bm25_catalog.bm25vector
         """)
-    elif text_search_ext == "pg_textsearch":
-        # Timescale pg_textsearch: dummy TEXT column for consistency (indexes operate on base columns directly)
+    elif text_search_ext in ("pg_textsearch", "pg_search"):
+        # Timescale pg_textsearch / ParadeDB pg_search: dummy TEXT column for
+        # consistency (indexes operate on base columns directly).
         op.execute("""
             ALTER TABLE memory_units
             ADD COLUMN search_vector TEXT
@@ -349,6 +372,14 @@ def _pg_upgrade() -> None:
             CREATE INDEX idx_memory_units_text_search ON memory_units
             USING bm25(text)
             WITH (text_config='english')
+        """)
+    elif text_search_ext == "pg_search":
+        # ParadeDB pg_search BM25 index on (id, text, context). The key_field
+        # reloption is required and must match the table's primary key column.
+        op.execute("""
+            CREATE INDEX idx_memory_units_text_search ON memory_units
+            USING bm25 (id, text, context)
+            WITH (key_field='id')
         """)
     else:  # native
         # Native PostgreSQL GIN index
