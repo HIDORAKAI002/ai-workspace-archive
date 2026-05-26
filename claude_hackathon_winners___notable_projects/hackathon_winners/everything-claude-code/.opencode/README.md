@@ -57,6 +57,19 @@ cd ECC
 opencode
 ```
 
+If you also want to apply the ECC home install
+(`node scripts/install-apply.js --target opencode --profile full`), build the
+plugin first so the compiled payload at `.opencode/dist/` exists:
+
+```bash
+node scripts/build-opencode.js   # or: npm run build:opencode
+node scripts/install-apply.js --target opencode --profile full
+```
+
+Without `.opencode/dist/index.js`, OpenCode will detect the slash commands
+but silently skip plugin hooks and tools. The installer now fails fast with
+a pointer to this command if the build step is missing.
+
 ## Features
 
 ### Agents (12)

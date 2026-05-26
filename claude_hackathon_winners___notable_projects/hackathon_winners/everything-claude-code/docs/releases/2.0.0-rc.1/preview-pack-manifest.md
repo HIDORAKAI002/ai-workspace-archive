@@ -42,6 +42,24 @@ surfaces, or posting announcements.
 | `docs/releases/2.0.0-rc.1/article-outline.md` | Longform launch outline | Must stay release-candidate framed until GA evidence exists |
 | `docs/releases/2.0.0-rc.1/telegram-handoff.md` | Internal/shareable handoff copy | Must not include private workspace or credential details |
 | `docs/releases/2.0.0-rc.1/demo-prompts.md` | Demo prompts and proof-of-work prompts | Must keep private Hermes workflows abstracted into public examples |
+| `docs/releases/2.0.0-rc.1/ito-prediction-market-skill-pack.md` | Public Itô skill-pack distribution note | Keeps Itô API access gated, non-advisory, and separate from ECC Tools billing |
+
+## Itô Skill Pack Boundary
+
+The preview pack includes six public teaser skills for prediction-market and
+Itô-adjacent workflows:
+
+- `skills/ito-market-intelligence/SKILL.md`
+- `skills/ito-basket-compare/SKILL.md`
+- `skills/ito-trade-planner/SKILL.md`
+- `skills/ito-data-atlas-agent/SKILL.md`
+- `skills/prediction-market-oracle-research/SKILL.md`
+- `skills/prediction-market-risk-review/SKILL.md`
+
+They are research, comparison, planning, and risk-review skills. They do not
+place trades, do not provide investment advice, and do not merge ECC Tools with
+Itô. Any Itô-backed data call requires explicit gated API access through
+`ITO_API_KEY`.
 
 ## Hermes Skill Boundary
 

@@ -29,7 +29,7 @@
 AI coding tools can end up re-reading large parts of your codebase on review tasks. `code-review-graph` fixes that. It builds a structural map of your code with [Tree-sitter](https://tree-sitter.github.io/tree-sitter/), tracks changes incrementally, and gives your AI assistant precise context via [MCP](https://modelcontextprotocol.io/) so it reads only what matters.
 
 <p align="center">
-  <img src="diagrams/diagram1_before_vs_after.png" alt="The Token Problem: 8.2x average token reduction across 6 real repositories" width="85%" />
+  <img src="diagrams/diagram1_before_vs_after.png" alt="The Token Problem: 38x to 528x token reduction across 6 real repositories" width="85%" />
 </p>
 
 ---
@@ -104,7 +104,7 @@ When hooks or watch mode are enabled, file saves and supported commit hooks trig
 Large monorepos are where token waste is most painful. The graph cuts through the noise — 27,700+ files excluded from review context, only ~15 files actually read.
 
 <p align="center">
-  <img src="diagrams/diagram6_monorepo_funnel.png" alt="Next.js monorepo: 27,732 files funnelled through code-review-graph down to ~15 files — 49x fewer tokens" width="80%" />
+  <img src="diagrams/diagram6_monorepo_funnel.png" alt="code-review-graph repo: 208,821 source tokens funnel down to ~2,495 token graph responses — 93x fewer tokens per question" width="80%" />
 </p>
 
 ### Broad language coverage + Jupyter notebooks
@@ -120,48 +120,49 @@ Parser support covers functions, classes, imports, call sites, inheritance, and 
 ## Benchmarks
 
 <p align="center">
-  <img src="diagrams/diagram5_benchmark_board.png" alt="Benchmarks across real repositories with 8.2x average context reduction and conservative impact analysis" width="85%" />
+  <img src="diagrams/diagram5_benchmark_board.png" alt="Benchmarks across 6 real repositories: 38x to 528x token reduction, 100% impact recall, 0.71 average F1" width="85%" />
 </p>
 
-All numbers come from the automated evaluation runner against 6 real open-source repositories (13 commits total). Reproduce with `code-review-graph eval --all`; the raw report is generated locally under `evaluate/reports/summary.md`.
+All numbers come from the automated evaluation runner against 6 real open-source repositories (13 commits total). Every config pins an upstream SHA, the Leiden community detector runs with a fixed seed, and embeddings are deterministic on CPU — so two runs on different machines produce identical numbers. The full reproduction recipe with expected outputs is in [`docs/REPRODUCING.md`](docs/REPRODUCING.md).
 
 <details>
-<summary><strong>Token efficiency: 8.2x average reduction (naive vs graph)</strong></summary>
+<summary><strong>Token efficiency: 38x – 528x fewer tokens per question (whole-corpus vs graph query)</strong></summary>
 <br>
 
-The graph replaces reading entire source files with a compact structural context covering blast radius, dependency chains, and test coverage gaps.
+For a typical agent question (`"how does authentication work"`, `"what is the main entry point"`, etc.), the graph returns ~2,000–3,500 tokens of targeted search hits + neighbor edges instead of forcing the agent to read every source file. The table below averages over the 5 sample questions defined in `code_review_graph/token_benchmark.py`.
 
-In v2.3.4, review and impact tools also return a compact `context_savings` estimate so MCP clients and CLI users can see the approximate context saved without adding bulky before/after dumps. The value is deliberately labelled estimated because it uses a conservative character-count approximation rather than model-specific tokenization.
+| Repo | Snapshot SHA | naive_corpus_tokens | avg graph_tokens | Reduction |
+|------|---|-----------------:|----------------:|----------:|
+| fastapi | `0227991a` | 951,071 | 2,169 | **528.4x** |
+| code-review-graph | `84bde354` | 208,821 | 2,495 | **93.0x** |
+| gin | `5c00df8a` | 166,868 | 1,990 | **91.8x** |
+| flask | `a29f88ce` | 125,022 | 1,986 | **71.4x** |
+| express | `b4ab7d65` | 135,955 | 3,465 | **40.6x** |
+| httpx | `b55d4635` | 89,492 | 2,438 | **38.0x** |
 
-| Repo | Commits | Avg Naive Tokens | Avg Graph Tokens | Reduction |
-|------|--------:|-----------------:|----------------:|----------:|
-| express | 2 | 693 | 983 | 0.7x |
-| fastapi | 2 | 4,944 | 614 | 8.1x |
-| flask | 2 | 44,751 | 4,252 | 9.1x |
-| gin | 3 | 21,972 | 1,153 | 16.4x |
-| httpx | 2 | 12,044 | 1,728 | 6.9x |
-| nextjs | 2 | 9,882 | 1,249 | 8.0x |
-| **Average** | **13** | | | **8.2x** |
+Range across the 6 repos: **38x – 528x** (median per-question reduction ~82x).
 
-**Why express shows <1x:** For single-file changes in small packages, the graph context (metadata, edges, review guidance) can exceed the raw file size. The graph approach pays off on multi-file changes where it prunes irrelevant code.
+The formal `eval/benchmarks/token_efficiency.py` benchmark measures a different scenario — full `get_review_context()` JSON versus just the changed-file content of a commit — and reports ratios below 1 for small commits, because the review-context response carries impact-radius edges plus source snippets that exceed a tiny single-file diff. That is not a bug; the two benchmarks answer different questions. See [`docs/REPRODUCING.md`](docs/REPRODUCING.md) for the full methodology.
+
+Since v2.3.4, review and impact tools attach a compact `context_savings` estimate so MCP clients can see the approximate context saved per call. In v2.3.5 the CLI surfaces this as the boxed `Token Savings` panel shown above (see "Token Savings panel" in the Usage section) and adds `--verify` to cross-check against OpenAI's `cl100k_base` tokenizer. Calibration data in [`docs/REPRODUCING.md`](docs/REPRODUCING.md) shows the estimate is within ~1% of real GPT-4 tokens in aggregate across 222 sample files.
 
 </details>
 
 <details>
-<summary><strong>Impact accuracy: 100% recall, 0.54 average F1</strong></summary>
+<summary><strong>Impact accuracy: 100% recall, 0.71 average F1</strong></summary>
 <br>
 
-In the current evaluation sample, blast-radius analysis reaches 100% recall. It over-predicts in some cases, which is a conservative trade-off: better to flag too many files than miss a broken dependency.
+Blast-radius analysis reaches 100% recall on every one of the 13 evaluation commits. It over-predicts in some cases, which is a conservative trade-off: better to flag too many files than miss a broken dependency.
 
 | Repo | Commits | Avg F1 | Avg Precision | Recall |
 |------|--------:|-------:|--------------:|-------:|
-| express | 2 | 0.667 | 0.50 | 1.0 |
-| fastapi | 2 | 0.584 | 0.42 | 1.0 |
-| flask | 2 | 0.475 | 0.34 | 1.0 |
-| gin | 3 | 0.429 | 0.29 | 1.0 |
-| httpx | 2 | 0.762 | 0.63 | 1.0 |
-| nextjs | 2 | 0.331 | 0.20 | 1.0 |
-| **Average** | **13** | **0.54** | **0.38** | **1.0** |
+| httpx | 2 | 0.864 | 0.786 | 1.0 |
+| fastapi | 2 | 0.834 | 0.750 | 1.0 |
+| code-review-graph | 2 | 0.734 | 0.584 | 1.0 |
+| express | 2 | 0.667 | 0.500 | 1.0 |
+| flask | 2 | 0.628 | 0.481 | 1.0 |
+| gin | 3 | 0.609 | 0.439 | 1.0 |
+| **Average** | **13** | **0.714** | **0.578** | **1.000** |
 
 </details>
 
@@ -260,7 +261,9 @@ code-review-graph visualize --format svg       # Export as SVG
 code-review-graph visualize --format obsidian  # Export as Obsidian vault
 code-review-graph visualize --format cypher    # Export as Neo4j Cypher
 code-review-graph wiki             # Generate markdown wiki from communities
-code-review-graph detect-changes   # Risk-scored change impact analysis
+code-review-graph detect-changes --brief         # Risk panel + token savings (read-only)
+code-review-graph update --brief                 # Refresh graph + same panel
+code-review-graph detect-changes --brief --verify  # Cross-check vs tiktoken
 code-review-graph register <path>  # Register repo in multi-repo registry
 code-review-graph unregister <id>  # Remove repo from registry
 code-review-graph repos            # List registered repositories
@@ -270,6 +273,36 @@ code-review-graph daemon status    # Show daemon status and repos
 code-review-graph eval             # Run evaluation benchmarks
 code-review-graph serve            # Start MCP server
 ```
+
+</details>
+
+<details>
+<summary><strong>Token Savings panel: <code>detect-changes --brief</code> vs <code>update --brief</code></strong></summary>
+<br>
+
+Both commands print the same compact panel showing how many tokens the
+graph saved you compared to handing the changed files to an agent raw.
+They differ in **one** thing: whether the graph gets refreshed first.
+
+```text
+┌─────────────────────── Token Savings ────────────────────────┐
+│ Full context would be:     12,921 tokens                     │
+│ Graph context used:           762 tokens                     │
+│ Saved:                     12,159 tokens (~94%)              │
+│ Breakdown: Functions 244 · Tests 191 · Risk 244 · Other 83   │
+└──────────────────────────────────────────────────────────────┘
+```
+
+| Command | What it does | When to use |
+|---|---|---|
+| `detect-changes --brief` | **Read-only.** Looks at your current changes, queries the **existing** graph, prints the panel. ~1 sec. | Most of the time — the hooks (or `crg-daemon`) keep the graph fresh in the background, so this is enough. |
+| `update --brief` | **Re-parses your changed files into the graph first**, then prints the same panel. ~5 sec. | After a rebase, a large change set, or any time you suspect the graph is stale. |
+
+Both end with the **same panel** because both call the same `analyze_changes()` step at the end. The difference is whether the graph itself got refreshed before that analysis ran.
+
+Add `--verify` to either command to cross-check the displayed numbers against OpenAI's `cl100k_base` tokenizer (the GPT-4 family). Requires `pip install tiktoken`. The estimate stays within ~1% of real tokens on a typical change set — see [`docs/REPRODUCING.md`](docs/REPRODUCING.md) for the calibration data.
+
+The same `context_savings` metadata is also attached automatically to the JSON responses of `get_impact_radius`, `get_review_context`, `detect_changes`, and `get_architecture_overview` MCP tools, so AI agents can surface the savings to humans in chat without any extra prompting.
 
 </details>
 

@@ -280,6 +280,37 @@
       "stability": "stable"
     },
     {
+      "id": "optimization-workflows",
+      "kind": "skills",
+      "description": "Parallel execution, benchmarking, data-throughput, latency, and recursive decision-ledger skills for faster evidence-backed work.",
+      "paths": [
+        "skills/benchmark-optimization-loop",
+        "skills/data-throughput-accelerator",
+        "skills/latency-critical-systems",
+        "skills/parallel-execution-optimizer",
+        "skills/recursive-decision-ledger"
+      ],
+      "targets": [
+        "claude",
+        "claude-project",
+        "cursor",
+        "antigravity",
+        "codex",
+        "opencode",
+        "codebuddy",
+        "joycode",
+        "qwen",
+        "zed"
+      ],
+      "dependencies": [
+        "workflow-quality",
+        "operator-workflows"
+      ],
+      "defaultInstall": false,
+      "cost": "medium",
+      "stability": "beta"
+    },
+    {
       "id": "security",
       "kind": "skills",
       "description": "Security review and security-focused framework guidance.",
@@ -425,6 +456,39 @@
       ],
       "dependencies": [
         "platform-configs"
+      ],
+      "defaultInstall": false,
+      "cost": "medium",
+      "stability": "beta"
+    },
+    {
+      "id": "prediction-market-skills",
+      "kind": "skills",
+      "description": "Public, non-advisory prediction-market and Itô basket research workflows with gated Itô API access.",
+      "paths": [
+        "skills/ito-basket-compare",
+        "skills/ito-data-atlas-agent",
+        "skills/ito-market-intelligence",
+        "skills/ito-trade-planner",
+        "skills/prediction-market-oracle-research",
+        "skills/prediction-market-risk-review"
+      ],
+      "targets": [
+        "claude",
+        "claude-project",
+        "cursor",
+        "antigravity",
+        "codex",
+        "opencode",
+        "codebuddy",
+        "joycode",
+        "qwen",
+        "zed"
+      ],
+      "dependencies": [
+        "research-apis",
+        "business-content",
+        "security"
       ],
       "defaultInstall": false,
       "cost": "medium",
@@ -834,6 +898,22 @@
       "description": "Traditional Chinese (zh-TW) translated reference docs for agents, commands, skills, and rules.",
       "paths": [
         "docs/zh-TW"
+      ],
+      "targets": [
+        "claude",
+        "claude-project"
+      ],
+      "dependencies": [],
+      "defaultInstall": false,
+      "cost": "heavy",
+      "stability": "stable"
+    },
+    {
+      "id": "docs-de-de",
+      "kind": "docs",
+      "description": "German (de-DE) translated reference docs for agents, commands, skills, and rules.",
+      "paths": [
+        "docs/de-DE"
       ],
       "targets": [
         "claude",

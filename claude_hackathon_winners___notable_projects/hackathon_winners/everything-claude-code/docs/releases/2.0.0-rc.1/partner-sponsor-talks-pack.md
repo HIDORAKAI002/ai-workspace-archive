@@ -154,7 +154,11 @@ agentic work more measurable and portable.
 ```text
 ECC v2.0.0-rc.1 preview pack is ready for final release review.
 
-The main point: ECC 2.0 is the harness-native operator system for agentic work.
+The main point: ECC 2.0 is a meta-harness for agentic work.
+
+It is the portable layer that keeps skills, hooks, MCP conventions, release
+gates, security checks, and team workflows reusable across the AI coding tools
+people actually use.
 
 It now has a reviewed public surface for:
 
@@ -164,12 +168,15 @@ It now has a reviewed public surface for:
 - Hermes as the optional operator shell;
 - release, security, queue, discussion, Linear, observability, and video-suite
   gates.
+- a gated Itô prediction-market skill pack for research, comparison, planning,
+  and risk review, with Itô API access kept separate and approval-based.
 
 The release is still approval-gated until the GitHub prerelease, npm package,
 plugin paths, final URLs, and billing claims have live evidence.
 
 Feedback wanted: install friction, cross-harness gaps, partner integrations,
-sponsor fit, and examples of teams using multiple AI coding harnesses.
+sponsor fit, prediction-market research use cases, and examples of teams using
+multiple AI coding harnesses.
 ```
 
 ## Video CTA Hooks
