@@ -18,15 +18,15 @@ from buildkite_shared.step_builders.step_builder import (
     TopLevelStepConfiguration,
     is_command_step,
 )
-from buildkite_shared.utils import oss_path
+from buildkite_shared.utils import (
+    connect_sibling_docker_container,
+    network_buildkite_container,
+    oss_path,
+)
 from dagster_buildkite.defines import GCP_CREDS_FILENAME, GCP_CREDS_LOCAL_FILE, OSS_ROOT
 from dagster_buildkite.steps.test_project import test_project_depends_fn
 from dagster_buildkite.steps.tox import ToxFactor, build_tox_step
-from dagster_buildkite.utils import (
-    connect_sibling_docker_container,
-    network_buildkite_container,
-    wait_for_mysql_container,
-)
+from dagster_buildkite.utils import wait_for_mysql_container
 
 _CORE_PACKAGES = [
     oss_path("python_modules/dagster"),
@@ -1139,10 +1139,12 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
             pytest_extra_cmds=celery_extra_cmds,
         ),
         PackageSpec(
-            # Runs `test-project` images via celery + docker; the default 2Gi
-            # dind limit and 2000m cpu starve the daemon under image pulls,
-            # producing 60s ReadTimeouts on UnixHTTPConnectionPool. Same shape
-            # as the dagster-mysql bump in #24661.
+            # Runs `test-project` images via celery + docker. The cpu=4000m bump
+            # from #24902 did not eliminate the 60s UnixHTTPConnectionPool
+            # ReadTimeouts (recurred on builds 152968, 152985, 153001, 153056
+            # within ~2h of merge). Per #24902's pre-committed escalation,
+            # bump docker_memory_limit 4Gi → 8Gi to give dind headroom for
+            # concurrent decompression and image-pull buffers.
             oss_path("python_modules/libraries/dagster-celery-docker"),
             env_vars=["AWS_ACCOUNT_ID", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"],
             pytest_extra_cmds=celery_extra_cmds,
@@ -1150,8 +1152,9 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
             resources=ResourceRequests(
                 cpu="1000m",
                 memory="1Gi",
+                docker_cpu="4000m",
                 docker_memory="2Gi",
-                docker_memory_limit="4Gi",
+                docker_memory_limit="8Gi",
             ),
         ),
         PackageSpec(
@@ -1161,10 +1164,9 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
             oss_path("python_modules/libraries/dagster-databricks"),
         ),
         PackageSpec(
-            # Pulls and runs `test-project` images per test; the default 2Gi
-            # dind limit and 2000m cpu starve the daemon, producing 60s
-            # ReadTimeouts on UnixHTTPConnectionPool. Same shape as the
-            # dagster-mysql bump in #24661.
+            # Pulls and runs `test-project` images per test. Same dind
+            # saturation shape as dagster-celery-docker above — bump
+            # docker_memory_limit 4Gi → 8Gi alongside that package.
             oss_path("python_modules/libraries/dagster-docker"),
             env_vars=["AWS_ACCOUNT_ID", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"],
             pytest_extra_cmds=docker_extra_cmds,
@@ -1172,8 +1174,9 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
             resources=ResourceRequests(
                 cpu="1000m",
                 memory="1Gi",
+                docker_cpu="4000m",
                 docker_memory="2Gi",
-                docker_memory_limit="4Gi",
+                docker_memory_limit="8Gi",
             ),
         ),
         PackageSpec(

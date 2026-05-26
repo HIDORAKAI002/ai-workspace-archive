@@ -1,5 +1,5 @@
 import os
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from enum import StrEnum
 from typing import Any, Self
 
@@ -113,10 +113,11 @@ class CommandStepBuilder:
         self._k8s_volume_mounts = []
         self._k8s_volumes = []
         self._docker_settings = None
-        # Concrete env vars set via `.with_env(...)`. Source of truth on both
-        # queue paths: on k8s these become podSpec container env entries; on
-        # docker they're merged into the docker plugin's `environment` list.
-        # Bare-name passthroughs belong in the agent/k8s secret envFrom chain,
+        # Concrete env vars set via `.with_env({...})`. Source of truth on
+        # both queue paths: on k8s these become podSpec container env
+        # entries; on docker they're merged into the docker plugin's
+        # `environment` list as `KEY=value`. Bare-name passthroughs belong
+        # in the `on_*_image(env=[...])` parameter / agent envFrom chain —
         # not here.
         self._env: dict[str, str] = {}
 
@@ -425,7 +426,7 @@ class CommandStepBuilder:
             "mount-buildkite-agent": True,
         }
 
-    def _base_k8s_settings(self) -> dict[str, Any]:
+    def _base_k8s_settings(self) -> Mapping[Any, Any]:
         buildkite_shell = "/bin/bash -e -c"
         assert self._docker_settings
         image = str(self._docker_settings["image"])
@@ -655,25 +656,28 @@ class CommandStepBuilder:
             # munging done below as well.
             if self._docker_settings:
                 k8s_settings = self._base_k8s_settings()
-                # Propagate concrete env vars (set via .with_env() or as
-                # KEY=value entries in the legacy docker-plugin `environment`
-                # list) into the pod's container env. Bare-name entries are
-                # passthroughs that arrive via envFrom k8s Secrets or via the
-                # SM_PLUGIN bootstrap hook, so they're skipped here.
+                # Propagate concrete env vars set via .with_env({...}) into
+                # the pod's container env. Intentionally do NOT auto-pickup
+                # KEY=value entries from self._docker_settings["environment"]:
+                # that list holds docker-plugin-specific settings like
+                # `DOCKER_CONFIG=/tmp/.docker` (added by with_ecr_passthru())
+                # which have no meaning on k8s and actively break ECR auth
+                # here — EKS pods get ECR auth via the ecr-docker-login
+                # initContainer writing /work/.docker/config.json, not via
+                # DOCKER_CONFIG redirection.
                 container_env = k8s_settings["podSpec"]["containers"][0]["env"]
                 container_env.extend({"name": k, "value": v} for k, v in self._env.items())
-                for entry in self._docker_settings.get("environment", []):
-                    if "=" in entry:
-                        k, v = entry.split("=", 1)
-                        container_env.append({"name": k, "value": v})
                 self._step["plugins"] = [{"kubernetes": k8s_settings}]
             if self._secrets:
-                # SM_PLUGIN runs as a buildkite-agent bootstrap hook, which
-                # executes inside the user container under agent-stack-k8s. The
-                # exported env vars are visible to subsequent command hooks.
-                self._step["plugins"].append(
+                # SM_PLUGIN runs as a buildkite-agent bootstrap hook inside
+                # the user container under agent-stack-k8s; exported env vars
+                # are visible to subsequent command hooks. setdefault guards
+                # the unusual case where a step has _secrets without
+                # _docker_settings.
+                self._step.setdefault("plugins", []).append(
                     {SM_PLUGIN: {"region": "us-west-1", "env": self._secrets}}
                 )
+
             return self._step
 
         # adding SM and DOCKER plugin in build allows secrets to be passed to docker envs
@@ -688,10 +692,11 @@ class CommandStepBuilder:
 
             # we need to dedup the env vars to make sure that the ones we set
             # aren't overridden by the ones that are already set in the parent env
-            # the last one wins
+            # the last one wins. Use split("=", 1) so values containing "="
+            # (e.g. JSON, query strings) don't blow up the unpacking.
             envvar_map = {}
-            for ev in self._docker_settings.get("environment", []):
-                k, v = ev.split("=") if "=" in ev else (ev, None)
+            for ev in env_list:
+                k, v = ev.split("=", 1) if "=" in ev else (ev, None)
                 envvar_map[k] = v
             self._docker_settings["environment"] = [
                 f"{k}={v}" if v is not None else k for k, v in envvar_map.items()
