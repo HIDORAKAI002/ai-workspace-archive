@@ -50,6 +50,7 @@ function runTests() {
     const components = listInstallComponents({ family: 'locale' });
     assert.ok(components.some(component => component.id === 'locale:ja'));
     assert.ok(components.some(component => component.id === 'locale:zh-cn'));
+    assert.ok(components.some(component => component.id === 'locale:de-de'));
     assert.ok(components.every(component => component.family === 'locale'));
   })) passed++; else failed++;
 
@@ -72,6 +73,59 @@ function runTests() {
       );
     } finally {
       fs.rmSync(homeDir, { recursive: true, force: true });
+    }
+  })) passed++; else failed++;
+
+  if (test('locale:de-de resolves to the German translated docs module', () => {
+    const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'locale-plan-de-'));
+    try {
+      const plan = resolveInstallPlan({
+        includeComponentIds: ['locale:de-de'],
+        target: 'claude',
+        homeDir,
+      });
+
+      assert.deepStrictEqual(plan.selectedModuleIds, ['docs-de-de']);
+      assert.ok(
+        plan.operations.some(operation => (
+          normalizePlanPath(operation.sourceRelativePath) === 'docs/de-DE'
+          && normalizePlanPath(operation.destinationPath).endsWith('/.claude/docs/de-DE')
+        )),
+        'Should map docs/de-DE to ~/.claude/docs/de-DE'
+      );
+    } finally {
+      fs.rmSync(homeDir, { recursive: true, force: true });
+    }
+  })) passed++; else failed++;
+
+  if (test('end-to-end: --locale de dry-run includes docs-de-de operations', () => {
+    const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'locale-dry-run-de-'));
+    const projectDir = fs.mkdtempSync(path.join(os.tmpdir(), 'locale-dry-run-de-project-'));
+
+    try {
+      const output = runInstallApply([
+        '--locale', 'de',
+        '--dry-run',
+        '--json',
+      ], {
+        cwd: projectDir,
+        env: { HOME: homeDir },
+      });
+      const json = JSON.parse(output);
+
+      assert.strictEqual(json.plan.mode, 'manifest');
+      assert.deepStrictEqual(json.plan.includedComponentIds, ['locale:de-de']);
+      assert.deepStrictEqual(json.plan.selectedModuleIds, ['docs-de-de']);
+      assert.ok(
+        json.plan.operations.some(operation => (
+          normalizePlanPath(operation.sourceRelativePath) === 'docs/de-DE/README.md'
+          && normalizePlanPath(operation.destinationPath).endsWith('/.claude/docs/de-DE/README.md')
+        )),
+        'Should copy translated README into ~/.claude/docs/de-DE'
+      );
+    } finally {
+      fs.rmSync(homeDir, { recursive: true, force: true });
+      fs.rmSync(projectDir, { recursive: true, force: true });
     }
   })) passed++; else failed++;
 

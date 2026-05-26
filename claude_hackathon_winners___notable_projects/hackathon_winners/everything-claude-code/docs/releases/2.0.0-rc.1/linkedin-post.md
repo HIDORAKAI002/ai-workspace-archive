@@ -4,7 +4,8 @@ ECC v2.0.0-rc.1 is ready for final release review as the first release-candidate
 
 The practical shift is simple: ECC is no longer framed as only a Claude Code plugin or config bundle.
 
-It is becoming a cross-harness operating system for agentic work:
+It is becoming a meta-harness for agentic work: the portable layer above the
+individual AI coding clients.
 
 - reusable skills instead of one-off prompts
 - hooks and tests instead of manual discipline
@@ -22,10 +23,18 @@ I did not publish private workspace state. I shipped the reusable layer:
 - Hermes import guidance for turning local operator patterns into public ECC skills
 - release-readiness gates for PRs, issues, discussions, Linear progress, legacy tails, observability, and supply-chain checks
 - a deterministic preview-pack smoke test so the public pack can be verified before a release action
+- a gated Itô prediction-market skill pack for research, comparison, planning,
+  and risk review, with Itô API access kept separate from ECC Tools and
+  approval-based
 
 The leverage is not just better prompting.
 
-It is reducing the number of isolated surfaces, turning repeated workflows into reusable skills, and making the operating system around the agent measurable.
+It is reducing the number of isolated surfaces, turning repeated workflows into
+reusable skills, and making the operating system around the agent measurable.
+
+That is the reason I like the phrase meta-harness. The goal is not to replace
+the harness. The goal is to make the workflow layer above the harness portable,
+auditable, and useful across teams.
 
 The supply-chain work became part of the release story too. After the Mini
 Shai-Hulud/TanStack campaign, rc.1 now includes IOC scanning, no-lifecycle CI

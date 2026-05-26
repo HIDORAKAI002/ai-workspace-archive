@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "totalCommands": 75,
+  "totalCommands": 76,
   "commands": [
     {
       "command": "aside",
@@ -424,6 +424,17 @@
       "path": "commands/loop-status.md"
     },
     {
+      "command": "marketing-campaign",
+      "description": "Plan and execute a full marketing campaign. Accepts a product brief and returns positioning, landing page copy, email sequence, social posts, ad variants, video scripts, and a content calendar. Can also review existing copy for conversion quality.",
+      "type": "testing",
+      "primaryAgents": [],
+      "allAgents": [],
+      "skills": [
+        "marketing-campaign"
+      ],
+      "path": "commands/marketing-campaign.md"
+    },
+    {
       "command": "model-route",
       "description": "Recommend the best model tier for the current task based on complexity, risk, and budget.",
       "type": "review",
@@ -808,7 +819,7 @@
       "planning": 2,
       "refactoring": 1,
       "review": 9,
-      "testing": 47
+      "testing": 48
     },
     "topAgents": [
       {

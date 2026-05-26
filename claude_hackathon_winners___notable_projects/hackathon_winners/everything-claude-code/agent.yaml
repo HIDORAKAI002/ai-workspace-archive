@@ -191,6 +191,7 @@ commands:
   - learn-eval
   - loop-start
   - loop-status
+  - marketing-campaign
   - model-route
   - multi-backend
   - multi-execute
