@@ -24,7 +24,14 @@ const FAKE_JUDGMENT = {
   meaningful: true as const,
   confidence: "high" as const,
   reason: "test",
-  fields: [],
+  meaningfulChanges: [
+    {
+      type: "changed" as const,
+      before: "old test",
+      after: "new test",
+      reason: "The tracked value changed.",
+    },
+  ],
 };
 
 const FRESH_PAGE = {

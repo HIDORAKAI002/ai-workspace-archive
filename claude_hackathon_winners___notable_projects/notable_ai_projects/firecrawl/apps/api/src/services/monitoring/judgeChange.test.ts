@@ -14,7 +14,7 @@ describe("judgeChange — input validation (no LLM call)", () => {
     });
     expect(result.meaningful).toBe(true);
     expect(result.confidence).toBe("low");
-    expect(result.fields).toEqual([]);
+    expect(result.meaningfulChanges).toEqual([]);
   });
 });
 

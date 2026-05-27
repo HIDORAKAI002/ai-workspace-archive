@@ -39,6 +39,7 @@ const configSchema = z.object({
   FIRECRAWL_DASHBOARD_URL: z.url().default("https://www.firecrawl.dev"),
   SUPPORT_AGENT_URL: z.string().url().optional(),
   SUPPORT_AGENT_VERCEL_BYPASS_SECRET: z.string().optional(),
+  RESEARCH_PROXY_URL: z.string().url().optional(),
 
   // Express
   EXPRESS_TRUST_PROXY: z.coerce.number().optional(),
