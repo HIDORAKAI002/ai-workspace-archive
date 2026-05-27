@@ -1,1 +1,0 @@
-- [ ] Place the newly added server in the right position alphabetically.
