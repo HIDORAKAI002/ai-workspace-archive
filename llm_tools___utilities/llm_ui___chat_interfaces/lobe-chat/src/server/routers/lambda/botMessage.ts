@@ -11,8 +11,10 @@ import {
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 
+import { getMessengerTelegramConfig } from '@/config/messenger';
 import type { DecryptedBotProvider } from '@/database/models/agentBotProvider';
 import { AgentBotProviderModel } from '@/database/models/agentBotProvider';
+import { MessengerAccountLinkModel } from '@/database/models/messengerAccountLink';
 import { MessengerInstallationModel } from '@/database/models/messengerInstallation';
 import { authedProcedure, router } from '@/libs/trpc/lambda';
 import { serverDatabase } from '@/libs/trpc/lambda/middleware';
@@ -27,6 +29,7 @@ import { SlackMessageService } from '@/server/services/bot/platforms/slack/servi
 import { TelegramApi } from '@/server/services/bot/platforms/telegram/api';
 import { TelegramMessageService } from '@/server/services/bot/platforms/telegram/service';
 import { WechatMessageService } from '@/server/services/bot/platforms/wechat/service';
+import { TELEGRAM_INSTALLATION_KEY } from '@/server/services/messenger/installations/telegram';
 
 // ── Middleware ────────────────────────────────────────────
 
@@ -165,6 +168,38 @@ const resolveMessengerInstall = async (
   service: MessageRuntimeService;
   settings: Record<string, unknown>;
 }> => {
+  // Telegram is env-backed and never lives in `messenger_installations`. The
+  // synthetic id surfaced by `listMessengers` would 404 on `findById`, so
+  // short-circuit here: pull the bot token from env config and gate on the
+  // caller having an account link (analogue of the per-row ownership check).
+  if (installationId === TELEGRAM_INSTALLATION_KEY) {
+    const telegramConfig = await getMessengerTelegramConfig();
+    if (!telegramConfig) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'Telegram messenger is not configured on this deployment',
+      });
+    }
+    const link = await new MessengerAccountLinkModel(ctx.serverDB, ctx.userId).findByPlatform(
+      'telegram',
+    );
+    if (!link) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message:
+          'You can only send through Telegram after linking your account. ' +
+          'Open the Telegram bot and run /start to create the link.',
+      });
+    }
+    return {
+      platform: 'telegram',
+      service: createServiceForCredentials('telegram', TELEGRAM_INSTALLATION_KEY, {
+        botToken: telegramConfig.botToken,
+      }),
+      settings: {},
+    };
+  }
+
   const gateKeeper = await KeyVaultsGateKeeper.initWithEnvKey().catch(() => undefined);
   const row = await MessengerInstallationModel.findById(ctx.serverDB, installationId, gateKeeper);
   if (!row) {
