@@ -736,8 +736,8 @@ def init_agent(
                 client_kwargs["default_headers"] = _codex_cloudflare_headers(api_key)
             elif "default_headers" not in client_kwargs:
                 # Fall back to profile.default_headers for providers that
-                # declare custom headers (e.g. Vercel AI Gateway attribution,
-                # Kimi User-Agent on non-kimi.com endpoints).
+                # declare custom headers (e.g. Kimi User-Agent on non-kimi.com
+                # endpoints).
                 try:
                     from providers import get_provider_profile as _gpf
                     _ph = _gpf(agent.provider)
@@ -1005,6 +1005,13 @@ def init_agent(
     
     # Track conversation messages for session logging
     agent._session_messages: List[Dict[str, Any]] = []
+    # Responses encrypted reasoning replay state.  Some OpenAI-compatible
+    # routes accept GPT-5 Responses requests but later reject replayed
+    # encrypted reasoning blobs (HTTP 400 ``invalid_encrypted_content``).
+    # When that happens we disable replay for the rest of the session and
+    # fall back to stateless continuity.  See
+    # agent/conversation_loop.py's invalid_encrypted_content retry branch.
+    agent._codex_reasoning_replay_enabled = True
     agent._memory_write_origin = "assistant_tool"
     agent._memory_write_context = "foreground"
     

@@ -75,6 +75,7 @@ _TELEGRAM_NOISY_STATUS_RE = re.compile(
     r"|configured\s+compression\s+model\s+.+\s+failed"
     r"|no\s+auxiliary\s+llm\s+provider\s+configured"
     r"|auto-lowered\s+compression\s+threshold"
+    r"|compacting\s+context\s+[—-]\s+summarizing\s+earlier\s+conversation"
     r"|preflight\s+compression"
     r"|rate\s+limited\.\s+waiting\s+\d"
     r"|retrying\s+in\s+\d"
@@ -818,7 +819,6 @@ if _config_path.exists():
                 "singularity_image": "TERMINAL_SINGULARITY_IMAGE",
                 "modal_image": "TERMINAL_MODAL_IMAGE",
                 "daytona_image": "TERMINAL_DAYTONA_IMAGE",
-                "vercel_runtime": "TERMINAL_VERCEL_RUNTIME",
                 "ssh_host": "TERMINAL_SSH_HOST",
                 "ssh_user": "TERMINAL_SSH_USER",
                 "ssh_port": "TERMINAL_SSH_PORT",
@@ -1078,14 +1078,19 @@ def _resolve_runtime_agent_kwargs() -> dict:
         resolve_runtime_provider,
         format_runtime_provider_error,
     )
-    from hermes_cli.auth import AuthError
+    from hermes_cli.auth import AuthError, is_rate_limited_auth_error
 
     try:
         runtime = resolve_runtime_provider()
     except AuthError as auth_exc:
-        # Primary provider auth failed (expired token, revoked key, etc.).
-        # Try the fallback provider chain before raising.
-        logger.warning("Primary provider auth failed: %s — trying fallback", auth_exc)
+        # Distinguish a transient rate-limit/quota cap (credentials are fine,
+        # re-auth cannot help) from a genuine auth failure (expired/revoked
+        # token). Both fall through to the fallback chain, but the log message
+        # must not mislabel a quota exhaustion as an auth failure (#32790).
+        if is_rate_limited_auth_error(auth_exc):
+            logger.warning("Primary provider rate-limited (429): %s — trying fallback", auth_exc)
+        else:
+            logger.warning("Primary provider auth failed: %s — trying fallback", auth_exc)
         fb_config = _try_resolve_fallback_provider()
         if fb_config is not None:
             return fb_config
@@ -1131,9 +1136,13 @@ def _try_resolve_fallback_provider() -> dict | None:
                     explicit_base_url=entry.get("base_url"),
                     explicit_api_key=explicit_api_key,
                 )
+                # Log the literal `provider` key from config, not the resolved
+                # runtime category — an Ollama fallback resolves through the
+                # OpenAI-compatible path and would otherwise be logged as
+                # "openrouter", contradicting the operator's config (#32790).
                 logger.info(
                     "Fallback provider resolved: %s model=%s",
-                    runtime.get("provider"),
+                    entry.get("provider") or runtime.get("provider"),
                     entry.get("model"),
                 )
                 return {
@@ -3223,9 +3232,21 @@ class GatewayRunner:
 
         self._busy_ack_ts[session_key] = now
 
-        # Build a status-rich acknowledgment
+        # Build a status-rich acknowledgment. Mobile chat defaults keep this
+        # terse; detailed iteration/tool state is still available in logs and
+        # can be opted in per platform via display.platforms.<platform>.busy_ack_detail.
+        from gateway.display_config import resolve_display_setting
         status_parts = []
-        if running_agent and running_agent is not _AGENT_PENDING_SENTINEL:
+        busy_ack_detail_enabled = bool(
+            resolve_display_setting(
+                _load_gateway_config(),
+                _platform_config_key(event.source.platform),
+                "busy_ack_detail",
+                True,
+            )
+        )
+
+        if busy_ack_detail_enabled and running_agent and running_agent is not _AGENT_PENDING_SENTINEL:
             try:
                 summary = running_agent.get_activity_summary()
                 iteration = summary.get("api_call_count", 0)
@@ -7025,6 +7046,13 @@ class GatewayRunner:
                 if _denied is not None:
                     return _denied
 
+            # Telegram sends /start for bot launches/deep-links. Treat it as a
+            # platform ping, not a user command: no help dump, no agent
+            # interrupt, no queued text.
+            if _cmd_def_inner and _cmd_def_inner.name == "start":
+                logger.info("Ignoring /start platform ping for active session %s", _quick_key)
+                return ""
+
             if _cmd_def_inner and _cmd_def_inner.name == "restart":
                 return await self._handle_restart_command(event)
 
@@ -7457,6 +7485,10 @@ class GatewayRunner:
         
         if canonical == "help":
             return await self._handle_help_command(event)
+
+        if canonical == "start":
+            logger.info("Ignoring /start platform ping for session %s", _quick_key)
+            return ""
 
         if canonical == "commands":
             return await self._handle_commands_command(event)
@@ -15863,9 +15895,13 @@ class GatewayRunner:
         # in chat platforms while opting into concise mid-turn updates.
         interim_assistant_messages_enabled = (
             source.platform != Platform.WEBHOOK
-            and is_truthy_value(
-                display_config.get("interim_assistant_messages"),
-                default=True,
+            and bool(
+                resolve_display_setting(
+                    user_config,
+                    platform_key,
+                    "interim_assistant_messages",
+                    True,
+                )
             )
         )
         
@@ -17402,6 +17438,15 @@ class GatewayRunner:
         # 0 = disable notifications.
         _NOTIFY_INTERVAL_RAW = _float_env("HERMES_AGENT_NOTIFY_INTERVAL", 180)
         _NOTIFY_INTERVAL = _NOTIFY_INTERVAL_RAW if _NOTIFY_INTERVAL_RAW > 0 else None
+        if not bool(
+            resolve_display_setting(
+                user_config,
+                platform_key,
+                "long_running_notifications",
+                True,
+            )
+        ):
+            _NOTIFY_INTERVAL = None
         _notify_start = time.time()
 
         async def _notify_long_running():

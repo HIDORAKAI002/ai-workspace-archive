@@ -957,6 +957,8 @@ export const FIELD_HELP: Record<string, string> = {
     "Default maximum output token budget applied to models under this provider when a model entry does not set maxTokens.",
   "models.providers.*.timeoutSeconds":
     "Optional per-provider model request timeout in seconds. For built-in providers, this can be set as a standalone overlay. For custom providers, set it alongside the provider baseUrl and models. Applies to provider HTTP fetches, including connect, headers, body, and total request abort handling, and also raises the LLM idle/stream watchdog ceiling for this provider above the implicit ~120s default. Use this for slow local or self-hosted model servers, or for cloud providers that buffer reasoning tokens silently on the wire (Gemini preview, large-tool-payload Claude/Opus), instead of changing global agent timeouts.",
+  "models.providers.*.region":
+    "Optional provider deployment/API region interpreted by providers that expose regional endpoints. Use provider docs for supported values; baseUrl overrides usually take precedence when both are set.",
   "models.providers.*.injectNumCtxForOpenAICompat":
     "Controls whether OpenClaw injects `options.num_ctx` for Ollama providers configured with the OpenAI-compatible adapter (`openai-completions`). Default is true. Set false only if your proxy/upstream rejects unknown `options` payload fields.",
   "models.providers.*.params":

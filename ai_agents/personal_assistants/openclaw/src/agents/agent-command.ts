@@ -336,6 +336,30 @@ function normalizeExplicitOverrideInput(raw: string, kind: "provider" | "model")
   return trimmed;
 }
 
+function createAgentCommandSessionWorkingCopy(params: {
+  sessionKey?: string;
+  sessionEntry?: SessionEntry;
+  sessionStore?: Record<string, SessionEntry>;
+}): {
+  sessionEntry?: SessionEntry;
+  sessionStore?: Record<string, SessionEntry>;
+} {
+  const result: {
+    sessionEntry?: SessionEntry;
+    sessionStore?: Record<string, SessionEntry>;
+  } = {};
+  if (params.sessionEntry) {
+    result.sessionEntry = { ...params.sessionEntry };
+  }
+  if (params.sessionStore || params.sessionKey) {
+    result.sessionStore = {};
+  }
+  if (params.sessionKey && result.sessionEntry && result.sessionStore) {
+    result.sessionStore[params.sessionKey] = result.sessionEntry;
+  }
+  return result;
+}
+
 async function prepareAgentCommandExecution(opts: AgentCommandOpts, runtime: RuntimeEnv) {
   const isRawModelRun = opts.modelRun === true || opts.promptMode === "none";
   const message = opts.message ?? "";
@@ -426,18 +450,16 @@ async function prepareAgentCommandExecution(opts: AgentCommandOpts, runtime: Run
     sessionId: opts.sessionId,
     sessionKey: explicitSessionKey,
     agentId: agentIdOverride,
+    clone: false,
   });
 
-  const {
-    sessionId,
+  const { sessionId, sessionKey, storePath, isNewSession, persistedThinking, persistedVerbose } =
+    sessionResolution;
+  const { sessionEntry: sessionEntryRaw, sessionStore } = createAgentCommandSessionWorkingCopy({
     sessionKey,
-    sessionEntry: sessionEntryRaw,
-    sessionStore,
-    storePath,
-    isNewSession,
-    persistedThinking,
-    persistedVerbose,
-  } = sessionResolution;
+    sessionEntry: sessionResolution.sessionEntry,
+    sessionStore: sessionResolution.sessionStore,
+  });
   const sessionAgentId =
     agentIdOverride ??
     resolveSessionAgentId({
@@ -865,7 +887,15 @@ async function agentCommandInternal(
     }
 
     // Persist explicit /command overrides to the session store when we have a key.
-    if (sessionStore && sessionKey && !suppressVisibleSessionEffects) {
+    const hasInitialSessionOverrides = Boolean(thinkOverride || verboseOverride);
+    const shouldPersistInitialSessionTouch =
+      opts.skipInitialSessionTouch !== true || hasInitialSessionOverrides;
+    if (
+      sessionStore &&
+      sessionKey &&
+      !suppressVisibleSessionEffects &&
+      shouldPersistInitialSessionTouch
+    ) {
       const now = Date.now();
       const entry = sessionStore[sessionKey] ??
         sessionEntry ?? { sessionId, updatedAt: now, sessionStartedAt: now };

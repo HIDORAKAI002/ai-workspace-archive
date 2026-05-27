@@ -3,12 +3,13 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   appendBoundedOutput,
   assertDiagnosticStabilityClean,
   assertResourceCeiling,
   cleanupKitchenSinkEnv,
+  createGatewayReadyLogScanner,
   extractPluginCommandNames,
   fetchJson,
   findDistCallGatewayModuleFiles,
@@ -22,6 +23,10 @@ import {
 } from "../../scripts/e2e/kitchen-sink-rpc-walk.mjs";
 
 const posixIt = process.platform === "win32" ? it.skip : it;
+
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 describe("kitchen-sink RPC isolated state", () => {
   it("cleans up the generated temporary home tree", async () => {
@@ -68,6 +73,44 @@ describe("kitchen-sink RPC gateway teardown", () => {
     expect(child.stdout.destroy).toHaveBeenCalledOnce();
     expect(child.stderr.destroy).toHaveBeenCalledOnce();
     expect(child.unref).toHaveBeenCalledOnce();
+  });
+});
+
+describe("kitchen-sink RPC gateway readiness logs", () => {
+  it("scans gateway readiness logs incrementally across appended chunks", () => {
+    const root = mkdtempSync(path.join(tmpdir(), "openclaw-kitchen-rpc-log-scan-"));
+    try {
+      const logPath = path.join(root, "gateway.log");
+      writeFileSync(logPath, "booting\n".repeat(1000));
+      const scanner = createGatewayReadyLogScanner(logPath, "[gateway] ready");
+
+      expect(scanner()).toBe(false);
+
+      writeFileSync(logPath, "[gateway] rea", { flag: "a" });
+      expect(scanner()).toBe(false);
+
+      writeFileSync(logPath, "dy\n", { flag: "a" });
+      expect(scanner()).toBe(true);
+      expect(scanner()).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("resets the readiness scanner after log rotation", () => {
+    const root = mkdtempSync(path.join(tmpdir(), "openclaw-kitchen-rpc-log-rotate-"));
+    try {
+      const logPath = path.join(root, "gateway.log");
+      writeFileSync(logPath, "older log contents without readiness\n");
+      const scanner = createGatewayReadyLogScanner(logPath, "[gateway] ready");
+
+      expect(scanner()).toBe(false);
+
+      writeFileSync(logPath, "[gateway] ready\n");
+      expect(scanner()).toBe(true);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 });
 
@@ -457,6 +500,29 @@ describe("kitchen-sink RPC process sampling", () => {
       }),
     ).resolves.toEqual({ ok: true, status: 200, body: { status: "live" } });
     expect(fetchImpl).toHaveBeenCalledTimes(2);
+  });
+
+  it("times out stalled HTTP probe response bodies", async () => {
+    vi.useFakeTimers();
+    const fetchImpl = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: () => new Promise(() => undefined),
+    });
+
+    const result = fetchJson("http://127.0.0.1:19680/readyz", {
+      attempts: 1,
+      fetchImpl,
+      timeoutMs: 100,
+    });
+    const rejection = expect(result).rejects.toMatchObject({
+      code: "ETIMEDOUT",
+      message: "fetch http://127.0.0.1:19680/readyz timed out after 100ms",
+    });
+
+    await vi.advanceTimersByTimeAsync(100);
+    await rejection;
+    expect(fetchImpl.mock.calls[0]?.[1]?.signal.aborted).toBe(true);
   });
 
   it("fails when the sampled RSS exceeds the configured ceiling", () => {

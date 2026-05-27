@@ -22,6 +22,7 @@ import type { LanguageModelCallOptions } from '../prompt/language-model-call-opt
 import { prepareToolChoice } from '../prompt/prepare-tool-choice';
 import { prepareTools } from '../prompt/prepare-tools';
 import { standardizePrompt } from '../prompt/standardize-prompt';
+import type { Telemetry } from '../telemetry/telemetry';
 import type {
   CallWarning,
   FinishReason,
@@ -40,6 +41,7 @@ import { now as originalNow } from '../util/now';
 import { calculateTokensPerSecond } from './calculate-tokens-per-second';
 import type { ContentPart } from './content-part';
 import { DefaultGeneratedFileWithType } from './generated-file';
+import type { OutputTokenTimingStats } from './step-result';
 import type {
   OnLanguageModelCallEndCallback,
   OnLanguageModelCallStartCallback,
@@ -111,6 +113,7 @@ export type LanguageModelStreamPart<TOOLS extends ToolSet = ToolSet> =
         inputTokensPerSecond: number | undefined;
         effectiveTotalTokensPerSecond: number;
         timeToFirstOutputTokenMs: number | undefined;
+        timeBetweenOutputTokensMs?: OutputTokenTimingStats;
       };
     }
   | {
@@ -205,6 +208,8 @@ export async function streamLanguageModelCall<
   providerOptions,
   repairToolCall,
   refineToolInput,
+  executeLanguageModelCallInTelemetryContext = async ({ execute }) =>
+    await execute(),
   callId,
   toolsContext,
   experimental_sandbox: sandbox,
@@ -229,6 +234,7 @@ export async function streamLanguageModelCall<
   providerOptions?: ProviderOptions;
   repairToolCall?: ToolCallRepairFunction<TOOLS> | undefined;
   refineToolInput?: ToolInputRefinement<TOOLS> | undefined;
+  executeLanguageModelCallInTelemetryContext?: Telemetry['executeLanguageModelCall'];
   callId?: string;
   /**
    * Tool context used to resolve per-call tool metadata such as function
@@ -329,16 +335,20 @@ export async function streamLanguageModelCall<
     stream: languageModelStream,
     response,
     request,
-  } = await resolvedModel.doStream({
-    ...callSettings,
-    tools: stepTools,
-    toolChoice: stepToolChoice,
-    responseFormat: await output?.responseFormat,
-    prompt: promptMessages,
-    providerOptions,
-    abortSignal,
-    headers,
-    includeRawChunks,
+  } = await executeLanguageModelCallInTelemetryContext({
+    callId: effectiveCallId,
+    execute: async () =>
+      await resolvedModel.doStream({
+        ...callSettings,
+        tools: stepTools,
+        toolChoice: stepToolChoice,
+        responseFormat: await output?.responseFormat,
+        prompt: promptMessages,
+        providerOptions,
+        abortSignal,
+        headers,
+        includeRawChunks,
+      }),
   });
 
   const standardizedStream = languageModelStream.pipeThrough(
@@ -403,14 +413,27 @@ function createLanguageModelV4StreamPartToLanguageModelStreamPartTransform<
   const reasoningPartIndexes = new Map<string, number>();
   let responseId = generateId();
   let timeToFirstOutputTokenMs: number | undefined;
+  let previousOutputTokenTimestampMs: number | undefined;
+  const timeBetweenOutputTokensMs: number[] = [];
 
   return new TransformStream<
     LanguageModelV4StreamPart,
     LanguageModelStreamPart<TOOLS>
   >({
     async transform(chunk, controller) {
-      if (timeToFirstOutputTokenMs == null && isChunkWithTokens(chunk)) {
-        timeToFirstOutputTokenMs = now() - callStartTimestampMs;
+      if (isChunkWithTokens(chunk)) {
+        const outputTokenTimestampMs = now();
+
+        if (timeToFirstOutputTokenMs == null) {
+          timeToFirstOutputTokenMs =
+            outputTokenTimestampMs - callStartTimestampMs;
+        } else if (previousOutputTokenTimestampMs != null) {
+          timeBetweenOutputTokensMs.push(
+            outputTokenTimestampMs - previousOutputTokenTimestampMs,
+          );
+        }
+
+        previousOutputTokenTimestampMs = outputTokenTimestampMs;
       }
 
       switch (chunk.type) {
@@ -548,6 +571,10 @@ function createLanguageModelV4StreamPartToLanguageModelStreamPartTransform<
               durationMs: responseTimeMs,
             }),
             timeToFirstOutputTokenMs,
+            timeBetweenOutputTokensMs:
+              timeBetweenOutputTokensMs.length > 0
+                ? calculateOutputTokenTimingStats(timeBetweenOutputTokensMs)
+                : undefined,
           };
 
           await notify({
@@ -734,6 +761,29 @@ function isChunkWithTokens(chunk: LanguageModelV4StreamPart): boolean {
     (chunk.type === 'reasoning-delta' && chunk.delta.length > 0) ||
     (chunk.type === 'tool-input-delta' && chunk.delta.length > 0)
   );
+}
+
+function calculateOutputTokenTimingStats(
+  timingsMs: number[],
+): OutputTokenTimingStats {
+  const sortedTimingsMs = [...timingsMs].sort((a, b) => a - b);
+  const sum = timingsMs.reduce((sum, timingMs) => sum + timingMs, 0);
+
+  return {
+    min: sortedTimingsMs[0],
+    p10: calculateNearestRankPercentile(sortedTimingsMs, 0.1),
+    median: calculateNearestRankPercentile(sortedTimingsMs, 0.5),
+    avg: sum / timingsMs.length,
+    p90: calculateNearestRankPercentile(sortedTimingsMs, 0.9),
+    max: sortedTimingsMs[sortedTimingsMs.length - 1],
+  };
+}
+
+function calculateNearestRankPercentile(
+  sortedValues: number[],
+  percentile: number,
+): number {
+  return sortedValues[Math.ceil(percentile * sortedValues.length) - 1];
 }
 
 /**
