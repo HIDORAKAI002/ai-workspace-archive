@@ -283,7 +283,7 @@ class SegmentInterface {
     }
 
     virtual void
-    LazyCheckSchema(SchemaPtr sch) = 0;
+    LazyCheckSchema(SchemaPtr sch, milvus::OpContext* op_ctx) = 0;
 
     // reopen segment with new schema
     virtual void
@@ -294,7 +294,21 @@ class SegmentInterface {
            const milvus::proto::segcore::SegmentLoadInfo& new_load_info) = 0;
 
     virtual void
+    Reopen(milvus::OpContext* op_ctx,
+           const milvus::proto::segcore::SegmentLoadInfo& new_load_info,
+           SchemaPtr new_schema) = 0;
+
+    virtual void
     SetLoadInfo(milvus::proto::segcore::SegmentLoadInfo load_info) = 0;
+
+    virtual void
+    SetCommitTimestamp(uint64_t ts) {
+    }
+
+    virtual uint64_t
+    GetCommitTimestamp() const {
+        return 0;
+    }
 
     virtual void
     Load(milvus::tracer::TraceContext& trace_ctx,
