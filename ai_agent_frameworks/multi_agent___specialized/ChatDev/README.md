@@ -343,7 +343,13 @@ By contributing to DevAll, you'll be recognized in our **Contributors** list bel
     <td align="center"><a href="https://github.com/Yanghuabei-design"><img src="https://github.com/Yanghuabei-design.png?size=100" width="64px;"/><br /><sub><b>Yanghuabei</b></sub></a></td>
     <td align="center"><a href="https://github.com/nregret"><img src="https://github.com/nregret.png?size=100" width="64px;"/><br /><sub><b>nregret</b></sub></a></td>
     <td align="center"><a href="https://github.com/kartik-mem0"><img src="https://github.com/kartik-mem0.png?size=100" width="64px;"/><br /><sub><b>kartik-mem0</b></sub></a></td>
-    <td align="center"><a href="https://github.com/voidborne-d"><img src="https://github.com/voidborne-d.png?size=100" width="64px;"/><br /><sub><b>voidborne-d</b></sub></a></td>
+    <td align="center"><a href="https://github.com/Yanghuabei-design"><img src="https://github.com/Yanghuabei-design.png?size=100" width="64px;"/><br /><sub><b>Yanghuabei-design</b></sub></a></td>
+    <td align="center"><a href="https://github.com/benjamin7007"><img src="https://github.com/benjamin7007.png?size=100" width="64px;"/><br /><sub><b>benjamin7007</b></sub></a></td>
+    <td align="center"><a href="https://github.com/gouziman"><img src="https://github.com/gouziman.png?size=100" width="64px;"/><br /><sub><b>gouziman</b></sub></a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/hobostay"><img src="https://github.com/hobostay.png?size=100" width="64px;"/><br /><sub><b>hobostay</b></sub></a></td>
+    <td align="center"><a href="https://github.com/token2everything"><img src="https://github.com/token2everything.png?size=100" width="64px;"/><br /><sub><b>token2everything</b></sub></a></td>
   </tr>
 </table>
 

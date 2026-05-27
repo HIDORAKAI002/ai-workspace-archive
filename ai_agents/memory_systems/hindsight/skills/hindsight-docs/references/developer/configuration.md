@@ -142,6 +142,7 @@ If you need to switch from one extension to another:
 |----------|-------------|---------|
 | `HINDSIGHT_API_TEXT_SEARCH_EXTENSION` | Text search backend: `native`, `vchord`, `pg_textsearch`, `pgroonga`, or `pg_search` | `native` |
 | `HINDSIGHT_API_TEXT_SEARCH_EXTENSION_NATIVE_LANGUAGE` | PostgreSQL text search dictionary used by the `native` backend (e.g. `english`, `french`, `simple`, `zhparser`) | `english` |
+| `HINDSIGHT_API_TEXT_SEARCH_EXTENSION_PG_SEARCH_TOKENIZER` | ParadeDB `pg_search` tokenizer used when creating BM25 indexes. Empty uses ParadeDB's default tokenizer (`unicode_words`). | unset |
 | `HINDSIGHT_API_LLM_OUTPUT_LANGUAGE` | When set, forces every LLM-generated artifact (retain facts, consolidation observations, reflect responses) into this language. Free-form (e.g. `Spanish`, `Japanese`). | unset |
 
 Hindsight supports five backends for BM25 keyword retrieval:
@@ -152,6 +153,8 @@ Hindsight supports five backends for BM25 keyword retrieval:
 - **pg_search** — ParadeDB pg_search. True BM25; the only backend that is Citus-compatible.
 
 To switch backends: set `HINDSIGHT_API_TEXT_SEARCH_EXTENSION`. With existing data, you'll get an error and migration instructions; with an empty database the columns/indexes are recreated automatically on startup.
+
+`HINDSIGHT_API_TEXT_SEARCH_EXTENSION_PG_SEARCH_TOKENIZER` only applies when `HINDSIGHT_API_TEXT_SEARCH_EXTENSION=pg_search`, and only when BM25 indexes are created. Changing it for an existing database requires rebuilding the `pg_search` indexes or recreating the database. Supported values are empty/unset, `unicode_words`, `simple`, `whitespace`, `literal`, `literal_normalized`, `chinese_compatible`, `icu`, `jieba`, `source_code`, `chinese_lindera`/`lindera(chinese)`, `japanese_lindera`/`lindera(japanese)`, `korean_lindera`/`lindera(korean)`, `ngram(min,max)`, and `edge_ngram(min,max)`.
 
 For non-English banks (especially CJK) and the language/extraction-language tradeoffs, see the [Multilingual Support](./multilingual) page.
 
@@ -1172,7 +1175,7 @@ Observations are deduplicated, evidence-grounded knowledge consolidated from mul
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `HINDSIGHT_API_ENABLE_OBSERVATIONS` | Enable observation consolidation | `true` |
-| `HINDSIGHT_API_ENABLE_AUTO_CONSOLIDATION` | Automatically trigger consolidation after retain, delete, and update operations. When `false`, consolidation only runs when explicitly triggered via the consolidate endpoint. Configurable per bank. | `true` |
+| `HINDSIGHT_API_ENABLE_AUTO_CONSOLIDATION` | Automatically trigger consolidation after retain, delete, and update operations. When `false`, consolidation only runs when explicitly triggered via the [consolidate endpoint](api/operations.md#consolidation). Configurable per bank. | `true` |
 | `HINDSIGHT_API_ENABLE_OBSERVATION_HISTORY` | Track history of changes to each observation (previous content + timestamp). Disable to reduce storage if audit trails are not needed. | `true` |
 | `HINDSIGHT_API_CONSOLIDATION_MAX_ATTEMPTS` | Outer retry attempts for the consolidation LLM batch call. Each attempt uses the inner retry budget (`HINDSIGHT_API_CONSOLIDATION_LLM_MAX_RETRIES`). Worst-case API calls per batch = `MAX_ATTEMPTS × (LLM_MAX_RETRIES + 1)`. | `3` |
 | `HINDSIGHT_API_CONSOLIDATION_BATCH_SIZE` | Memories to load per batch (internal optimization) | `50` |
@@ -1325,6 +1328,7 @@ Configuration for background task processing. By default, the API processes task
 | `HINDSIGHT_API_WORKER_RETAIN_MAX_SLOTS` | Reserved slots for retain tasks within `WORKER_MAX_SLOTS` | `0` |
 | `HINDSIGHT_API_WORKER_FILE_CONVERT_RETAIN_MAX_SLOTS` | Reserved slots for file_convert_retain tasks within `WORKER_MAX_SLOTS` | `0` |
 | `HINDSIGHT_API_WORKER_REFRESH_MENTAL_MODEL_MAX_SLOTS` | Reserved slots for refresh_mental_model tasks within `WORKER_MAX_SLOTS` | `0` |
+| `HINDSIGHT_API_WORKER_GRAPH_MAINTENANCE_MAX_SLOTS` | Reserved slots for graph_maintenance tasks within `WORKER_MAX_SLOTS` | `0` |
 
 :::note Slot reservations and shared pool
 Per-operation `*_MAX_SLOTS` values are **reservations within** `WORKER_MAX_SLOTS`, not additive pools. The sum of all reservations must not exceed `WORKER_MAX_SLOTS` (startup raises `ValueError` otherwise). Remaining capacity (`WORKER_MAX_SLOTS - sum of reservations`) forms a **shared pool** usable by any operation type on a first-come basis; operation types whose reserved capacity is full can also overflow into the shared pool. Consolidation's bank-serialization constraint (no two consolidation tasks for the same bank concurrently) is preserved regardless of which pool claims the slot.

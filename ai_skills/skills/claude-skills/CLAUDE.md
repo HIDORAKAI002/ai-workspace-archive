@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a **comprehensive skills library** for Claude AI and Claude Code - reusable, production-ready skill packages that bundle domain expertise, best practices, analysis tools, and strategic frameworks. The repository provides modular skills that teams can download and use directly in their workflows.
 
-**Current Scope:** 330 production-ready skills across 14 domains with ~451 Python automation tools, ~590 reference guides, 50+ agents (cs-* + 7 personas), and 81+ slash commands. **v2.8.0 (complete)** added 2 new top-level domains — **business-operations/** (7 internal-ops skills: orchestrator + process-mapper + vendor-management + capacity-planner + internal-comms + knowledge-ops + procurement-optimizer) and **commercial/** (8 per-deal-economics skills: orchestrator + pricing-strategist + deal-desk + partnerships-architect + channel-economics + commercial-policy + rfp-responder + commercial-forecaster) — with orchestrator skills using `context: fork` for chaining, Matt Pocock docs-anchored "Forcing-question library" in every SKILL.md, plus `/cs:grill-bizops` and `/cs:grill-commercial`. **v2.8.2** adds a productivity-shaped `handoff` skill (sibling to engineering/handoff) inspired by Matt Pocock — first-run setup with configurable save location, redaction linter, SessionStart + SessionEnd hooks, fidelity self-check, `--refresh` flag. **v2.8.1** upgraded the engineering role-skills (senior-fullstack / senior-frontend / senior-backend) with karpathy-coder + Matt Pocock decision engines + per-role forcing questions. v2.7.3 ports `alirezarezvani/aeo-box` — AEO (Answer Engine Optimization) skill into marketing-skill/ + security-guidance PreToolUse hook into engineering/. v2.7.0 added 13 Path-B skills across 3 top-level domains (productivity, marketing, research). v2.6.0 added 4 Matt Pocock-derived productivity skills.
+**Current Scope:** 338 production-ready skills across 16 domains with 533 Python automation tools, 676 reference guides, 51+ agents (cs-* + 7 personas), and 87+ slash commands, distributed as 62 marketplace plugins. **v2.9.0 (complete)** added the **research-ops/** top-level domain — enterprise Research Operations (orchestrator + clinical-research + research-finance + market-research + product-research), the managed counterpart to the academic research/ domain, with `context: fork` orchestration and a Matt Pocock "Forcing-question library" in every SKILL.md plus `/cs:grill-research-ops`. **v2.8.0 (complete)** added 2 new top-level domains — **business-operations/** (7 internal-ops skills: orchestrator + process-mapper + vendor-management + capacity-planner + internal-comms + knowledge-ops + procurement-optimizer) and **commercial/** (8 per-deal-economics skills: orchestrator + pricing-strategist + deal-desk + partnerships-architect + channel-economics + commercial-policy + rfp-responder + commercial-forecaster) — with orchestrator skills using `context: fork` for chaining, Matt Pocock docs-anchored "Forcing-question library" in every SKILL.md, plus `/cs:grill-bizops` and `/cs:grill-commercial`. **v2.8.2** adds a productivity-shaped `handoff` skill (sibling to engineering/handoff) inspired by Matt Pocock — first-run setup with configurable save location, redaction linter, SessionStart + SessionEnd hooks, fidelity self-check, `--refresh` flag. **v2.8.1** upgraded the engineering role-skills (senior-fullstack / senior-frontend / senior-backend) with karpathy-coder + Matt Pocock decision engines + per-role forcing questions. v2.7.3 ports `alirezarezvani/aeo-box` — AEO (Answer Engine Optimization) skill into marketing-skill/ + security-guidance PreToolUse hook into engineering/. v2.7.0 added 13 Path-B skills across 3 top-level domains (productivity, marketing, research). v2.6.0 added 4 Matt Pocock-derived productivity skills.
 
 **Key Distinction**: This is NOT a traditional application. It's a library of skill packages meant to be extracted and deployed by users into their own Claude workflows.
 
@@ -39,6 +39,7 @@ This repository uses **modular documentation**. For domain-specific guidance, se
 | **RA/QM Compliance** | [ra-qm-team/CLAUDE.md](ra-qm-team/CLAUDE.md) | ISO 13485, MDR, FDA, GDPR, ISO 27001 compliance |
 | **Business & Growth** | [business-growth/CLAUDE.md](business-growth/CLAUDE.md) | Customer success, sales engineering, revenue operations |
 | **Finance** | [finance/CLAUDE.md](finance/CLAUDE.md) | Financial analysis, DCF valuation, budgeting, forecasting, SaaS metrics |
+| **Research Operations** | [research-ops/CLAUDE.md](research-ops/CLAUDE.md) | Clinical study design, R&D finance, market research, product research (enterprise counterpart to academic research/) |
 | **Standards Library** | [standards/CLAUDE.md](standards/CLAUDE.md) | Communication, quality, git, security standards |
 | **Templates** | [templates/CLAUDE.md](templates/CLAUDE.md) | Template system usage |
 
@@ -49,17 +50,22 @@ This repository uses **modular documentation**. For domain-specific guidance, se
 ```
 claude-code-skills/
 ├── .claude-plugin/            # Plugin registry (marketplace.json)
-├── agents/                    # 27 agents (20 cs-* + 7 personas)
-├── commands/                  # 33 slash commands (changelog, tdd, saas-health, prd, code-to-prd, plugin-audit, sprint-plan, slo-design, etc.)
-├── engineering-team/          # 32 core engineering skills + Playwright Pro + Self-Improving Agent + Security Suite
-├── engineering/               # 44 POWERFUL-tier advanced skills (incl. AgentHub, self-eval, llm-wiki, tc-tracker, ship-gate, slo-architect, write-a-skill, caveman, grill-me, handoff)
-├── product-team/              # 13 product skills (incl. apple-hig-expert) + Python tools
-├── marketing-skill/           # 44 marketing skills (7 pods) + Python tools
-├── c-level-advisor/           # 28 C-level advisory skills (10 roles + orchestration)
+├── agents/                    # 32 standalone agents (cs-* + 7 personas); 51+ cs-* agents repo-wide
+├── commands/                  # slash commands (changelog, tdd, saas-health, prd, code-to-prd, plugin-audit, sprint-plan, slo-design, etc.); 87+ repo-wide
+├── engineering-team/          # 51 core engineering skills + Playwright Pro + Self-Improving Agent + Security Suite
+├── engineering/               # 78 POWERFUL-tier advanced skills (incl. AgentHub, autoresearch-agent, self-eval, llm-wiki, tc-tracker, ship-gate, slo-architect, write-a-skill, caveman, grill-me, handoff)
+├── product-team/              # 17 product skills (incl. apple-hig-expert) + Python tools
+├── marketing-skill/           # 46 marketing skills (8 pods) + Python tools
+├── c-level-advisor/           # 66 C-level advisory skills (full C-suite + founder-mode agents + orchestration)
 ├── project-management/        # 9 PM skills + bundled Atlassian Remote MCP (.mcp.json)
-├── ra-qm-team/                # 14 RA/QM compliance skills
+├── ra-qm-team/                # 18 RA/QM compliance skills
+├── compliance-os/             # 9 compliance-OS skills
 ├── business-growth/           # 5 business & growth skills + Python tools
-├── finance/                   # 3 finance skills + Python tools
+├── business-operations/       # 7 internal-ops skills (orchestrator + 6 sub-skills)
+├── commercial/                # 8 per-deal-economics skills (orchestrator + 7 sub-skills)
+├── finance/                   # 4 finance skills + Python tools
+├── research/                  # 8 academic research skills (orchestrator + 7 specialists)
+├── research-ops/              # 5 research-ops skills (orchestrator + clinical-research + research-finance + market-research + product-research)
 ├── eval-workspace/            # Skill evaluation results (Tessl)
 ├── standards/                 # 5 standards library files
 ├── templates/                 # Reusable templates
@@ -137,7 +143,18 @@ See [standards/git/git-workflow-standards.md](standards/git/git-workflow-standar
 
 ## Current Version
 
-**Version:** v2.8.4 (released — productivity/andreessen v1.0)
+**Version:** v2.9.0 (released — research-ops/ domain: enterprise Research Operations)
+
+**v2.9.0 highlights — research-ops/ domain (new top-level domain):**
+
+New `research-ops/` top-level domain — the enterprise / cross-functional counterpart to the academic `research/` domain (which finds literature, grants, patents). Single domain plugin (commercial/ + business-operations/ pattern): orchestrator (`context: fork`) + 4 managed sub-skills.
+
+- **`clinical-research`** — prospective clinical STUDY design (not regulatory submission, which stays in `ra-qm-team`). 3 stdlib tools: `sample_size_estimator.py` (closed-form power/n for means/proportions/survival with a built-in z-table, dropout inflation, "ESTIMATE — confirm with a biostatistician" banner), `endpoint_selector.py` (5-dimension scoring → PRIMARY/KEY-SECONDARY/EXPLORATORY, penalizes unvalidated surrogates), `phase_gate_scorer.py` (feasibility 0-100 → GO/GO-WITH-CONDITIONS/REDESIGN/NO-GO + named owner chain). Canon: ICH E8/E9/E9(R1), CONSORT, SPIRIT, FDA Multiple Endpoints, Cohen, Schoenfeld.
+- **`research-finance`** — internal R&D PROGRAM/portfolio finance (not corporate close `finance/`, not grant discovery `research/grants`). 3 tools: `program_budget_planner.py` (multi-period budget + F&A/MTDC split + assumptions block), `burn_runway_tracker.py` (trailing burn, runway, milestone-vs-cash), `capex_vs_opex_router.py` (IAS 38 / ASC 730 routing → CAPITALIZE-CANDIDATE/EXPENSE/FINANCE-OWNER-REVIEW, never auto-decides). Canon: IAS 38, ASC 730/985-20, 2 CFR 200, Cooper stage-gate, rNPV.
+- **`market-research`** — upstream sizing/survey/segmentation methodology (not campaign analytics `marketing-skill`). 3 tools: `market_sizer.py` (TAM/SAM/SOM both top-down AND bottoms-up + triangulation flag, never a single number), `sample_size_planner.py` (survey n + FPC + per-segment minima), `segmentation_scorer.py` (Kotler 5-criteria + substantiality/accessibility gate). Canon: Cochran, Dillman, Groves, Kotler, Bessemer/a16z sizing.
+- **`product-research`** — product/user research method + insight-repository discipline (not persona/journey/live-A-B `product-team`). 3 tools: `study_designer.py` (goal×stage → method + plan skeleton), `saturation_planner.py` (Nielsen-5 / Guest-12 with explicit confidence), `insight_synthesizer.py` (clusters coded observations, flags single-source anecdotes — never promotes them). Canon: Portigal, JTBD, Rohrer (NN/g), Nielsen, Guest et al., ResearchOps/Polaris.
+- **Hard rules:** clinical outputs are estimates + named clinical owner (never fact); finance surfaces assumptions and routes treatment to a named finance owner (never auto-decides); market sizes show method + assumptions (never a single number); product insights require recurrence across independent participants. `cs-research-ops-orchestrator` agent + `/cs:research-ops` router + `/cs:grill-research-ops` (Matt docs-anchored grilling) + 4 per-skill commands.
+- **Onboarding + customization + autoresearch (per sub-skill, isolated):** each sub-skill ships `onboard.py` (its own question set), `config_loader.py` (a customization config consumed by every tool, project>global>defaults precedence, `RESEARCH_OPS_NO_CONFIG=1` bypass), and `ar_evaluator.py` — an opt-in, locked-ground-truth bridge to `engineering/autoresearch-agent` (loop edits the skill's input file; metrics: clinical `feasibility_composite`↑, finance `runway_months`↑, market `tam_divergence`↓, product `validated_insights`↑). 24 stdlib tools total (12 analysis + 12 onboarding/customization/autoresearch; all pass `--help`/`--sample`), 12 reference docs (5-7 sources each). Marketplace 61 → 62 plugins; domains 15 → 16.
 
 **v2.8.3** shipped the Mistral Vibe cross-platform sync (`scripts/sync-vibe-skills.py`, `~/.vibe/skills/claude-skills/`) — bringing first-class tool support to 13 coding agents.
 
@@ -416,6 +433,6 @@ This repository publishes skills to **ClawHub** (clawhub.com) as the distributio
 
 ---
 
-**Last Updated:** May 24, 2026
-**Version:** v2.8.4
-**Status:** 330 skills deployed across 14 domains, 61 marketplace plugins, docs site live
+**Last Updated:** May 27, 2026
+**Version:** v2.9.0
+**Status:** 338 skills deployed across 16 domains, 62 marketplace plugins, docs site live

@@ -92,6 +92,8 @@ export function buildMatrixPartialStreamingPrompt(sutUserId: string, text: strin
 }
 
 export const MATRIX_QA_TOOL_PROGRESS_TASK_FILENAME = "QA_KICKOFF_TASK.md";
+export const MATRIX_QA_TOOL_PROGRESS_MENTION_FILENAME =
+  "matrix-progress-@room-@alice:matrix-qa.test-!room:matrix-qa.test.txt";
 
 export function buildMatrixToolProgressTaskContent(text: string) {
   return [
@@ -120,8 +122,10 @@ export function buildMatrixToolProgressErrorPrompt(sutUserId: string, text: stri
 
 export function buildMatrixToolProgressMentionSafetyPrompt(sutUserId: string, text: string) {
   return [
-    `${sutUserId} Tool progress QA check: read \`matrix-progress-@room-@alice:matrix-qa.test-!room:matrix-qa.test.txt\` before answering.`,
-    `After the read completes, reply exactly \`${text}\`.`,
+    `${sutUserId} Tool progress QA check: read the missing workspace file \`${MATRIX_QA_TOOL_PROGRESS_MENTION_FILENAME}\` before answering.`,
+    `The QA harness must observe that failed read in a Matrix tool-progress preview.`,
+    `Do not guess or send any marker before the tool result returns.`,
+    `After that read fails, reply exactly \`${text}\`.`,
   ].join(" ");
 }
 
@@ -131,9 +135,10 @@ export function buildMatrixBlockStreamingPrompt(
   secondText: string,
 ) {
   return [
-    `${sutUserId} Block streaming QA check: first reply with only this exact marker: \`${firstText}\`.`,
-    "Then use the read tool exactly once on `QA_KICKOFF_TASK.md`.",
-    `After that read completes, reply with only this exact marker: \`${secondText}\`.`,
+    `${sutUserId} Block streaming QA check: complete this whole sequence in one turn.`,
+    `Step 1: send an assistant text block containing only this exact marker: \`${firstText}\`.`,
+    "Step 2: do not stop after that marker. Use the read tool exactly once on `QA_KICKOFF_TASK.md`.",
+    `Step 3: after that read completes, send a final assistant text block containing only this exact marker: \`${secondText}\`.`,
   ].join("\n");
 }
 

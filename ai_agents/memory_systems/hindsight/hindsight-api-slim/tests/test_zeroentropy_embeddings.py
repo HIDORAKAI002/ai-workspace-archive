@@ -162,6 +162,29 @@ def test_zeroentropy_encode_documents_batches_and_sends_expected_payload():
     assert all(request.latency == "fast" for request in requests)
 
 
+def test_zeroentropy_omits_latency_when_unset():
+    import json
+
+    from hindsight_api.engine.embeddings import ZeroEntropyEmbeddings
+
+    seen_bodies: list[dict] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen_bodies.append(json.loads(request.content))
+        return httpx.Response(200, json={"results": [{"embedding": [1.0, 2.0]}]})
+
+    embeddings = ZeroEntropyEmbeddings(api_key="ze-test", dimensions=1280, latency=None)
+    embeddings._client = httpx.Client(
+        transport=httpx.MockTransport(handler),
+        headers={"Authorization": "Bearer ze-test", "Content-Type": "application/json"},
+    )
+    embeddings._dimension = 1280
+
+    embeddings.encode_documents(["alpha"])
+
+    assert "latency" not in seen_bodies[0]
+
+
 def test_zeroentropy_encode_query_sends_query_input_type():
     from hindsight_api.engine.embeddings import ZeroEntropyEmbeddings
 

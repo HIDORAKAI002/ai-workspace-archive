@@ -111,6 +111,46 @@ function modelIdNormalizationSnapshot() {
   };
 }
 
+function manifestModelCatalogSnapshot(model: {
+  id: string;
+  name?: string;
+  input?: Array<"text" | "image">;
+  reasoning?: boolean;
+  contextWindow?: number;
+}) {
+  return {
+    policyHash: "policy",
+    index: {
+      policyHash: "policy",
+      plugins: [
+        {
+          pluginId: "external-provider",
+          enabled: true,
+          origin: "global",
+        },
+      ],
+    },
+    plugins: [
+      {
+        id: "external-provider",
+        origin: "global",
+        modelCatalog: {
+          providers: {
+            external: {
+              models: [
+                {
+                  name: model.id,
+                  ...model,
+                },
+              ],
+            },
+          },
+        },
+      },
+    ],
+  };
+}
+
 function configuredModel(id: string) {
   return {
     id,
@@ -896,40 +936,13 @@ describe("loadModelCatalog", () => {
   });
 
   it("loads manifest catalog rows from the current metadata snapshot without provider runtime", () => {
-    const snapshot = {
-      policyHash: "policy",
-      index: {
-        policyHash: "policy",
-        plugins: [
-          {
-            pluginId: "external-provider",
-            enabled: true,
-            origin: "global",
-          },
-        ],
-      },
-      plugins: [
-        {
-          id: "external-provider",
-          origin: "global",
-          modelCatalog: {
-            providers: {
-              external: {
-                models: [
-                  {
-                    id: "external-fast",
-                    name: "External Fast",
-                    input: ["text", "image"],
-                    reasoning: true,
-                    contextWindow: 32000,
-                  },
-                ],
-              },
-            },
-          },
-        },
-      ],
-    };
+    const snapshot = manifestModelCatalogSnapshot({
+      id: "external-fast",
+      name: "External Fast",
+      input: ["text", "image"],
+      reasoning: true,
+      contextWindow: 32000,
+    });
     currentPluginMetadataSnapshotMock.mockReturnValue(snapshot);
 
     const result = loadManifestModelCatalog({ config: {} as OpenClawConfig });
@@ -946,6 +959,41 @@ describe("loadModelCatalog", () => {
         contextWindow: 32000,
       },
     ]);
+  });
+
+  it("reuses planned manifest catalog rows for the same config and metadata snapshot", () => {
+    const config = {} as OpenClawConfig;
+    const snapshot = manifestModelCatalogSnapshot({ id: "external-fast" });
+    currentPluginMetadataSnapshotMock.mockReturnValue(snapshot);
+
+    const first = loadManifestModelCatalog({ config });
+    const second = loadManifestModelCatalog({ config });
+
+    expect(second).toBe(first);
+    expect(first).toEqual([
+      {
+        provider: "external",
+        id: "external-fast",
+        name: "external-fast",
+        input: ["text"],
+        reasoning: false,
+      },
+    ]);
+    expect(loadPluginMetadataSnapshotMock).not.toHaveBeenCalled();
+  });
+
+  it("refreshes manifest catalog rows when the metadata snapshot changes", () => {
+    const config = {} as OpenClawConfig;
+    currentPluginMetadataSnapshotMock
+      .mockReturnValueOnce(manifestModelCatalogSnapshot({ id: "external-fast" }))
+      .mockReturnValue(manifestModelCatalogSnapshot({ id: "external-slow" }));
+
+    const first = loadManifestModelCatalog({ config });
+    const second = loadManifestModelCatalog({ config });
+
+    expect(second).not.toBe(first);
+    expect(first[0]?.id).toBe("external-fast");
+    expect(second[0]?.id).toBe("external-slow");
   });
 
   it("lets read-only manifest catalog reuse the current workspace-scoped snapshot", () => {
@@ -1031,6 +1079,100 @@ describe("loadModelCatalog", () => {
     expect(entry.input).toEqual(["text", "image"]);
     expect(entry.reasoning).toBe(true);
     expect(entry.contextWindow).toBe(128_000);
+  });
+
+  it("overlays configured model compat onto discovered catalog rows", async () => {
+    mockPiDiscoveryModels([
+      {
+        id: "Qwen/Qwen3-8B",
+        name: "Qwen3 8B",
+        provider: "vllm",
+        reasoning: false,
+        compat: { supportsStrictMode: false },
+      },
+    ]);
+
+    const result = await loadModelCatalog({
+      config: {
+        models: {
+          providers: {
+            vllm: {
+              baseUrl: "http://localhost:9000/v1",
+              api: "openai-completions",
+              models: [
+                {
+                  id: "vllm/Qwen/Qwen3-8B",
+                  name: "Configured Qwen3 8B",
+                  compat: { thinkingFormat: "qwen-chat-template" },
+                },
+              ],
+            },
+          },
+        },
+      } as unknown as OpenClawConfig,
+    });
+
+    const entry = requireCatalogEntry(result, "vllm", "Qwen/Qwen3-8B");
+    expect(result.filter((entry) => entry.provider === "vllm")).toHaveLength(1);
+    expect(entry.name).toBe("Qwen3 8B");
+    expect(entry.reasoning).toBe(true);
+    expect(entry.compat).toEqual(
+      expect.objectContaining({
+        supportsStrictMode: false,
+        thinkingFormat: "qwen-chat-template",
+      }),
+    );
+  });
+
+  it("overlays configured model compat onto persisted read-only catalog rows", async () => {
+    readFileMock.mockResolvedValue(
+      JSON.stringify({
+        providers: {
+          vllm: {
+            models: [
+              {
+                id: "Qwen/Qwen3-8B",
+                name: "Qwen3 8B",
+                reasoning: false,
+                compat: { supportsStrictMode: false },
+              },
+            ],
+          },
+        },
+      }),
+    );
+
+    const result = await loadModelCatalog({
+      config: {
+        models: {
+          providers: {
+            vllm: {
+              baseUrl: "http://localhost:9000/v1",
+              api: "openai-completions",
+              models: [
+                {
+                  id: "vllm/Qwen/Qwen3-8B",
+                  name: "Configured Qwen3 8B",
+                  compat: { thinkingFormat: "qwen-chat-template" },
+                },
+              ],
+            },
+          },
+        },
+      } as unknown as OpenClawConfig,
+      readOnly: true,
+    });
+
+    const entry = requireCatalogEntry(result, "vllm", "Qwen/Qwen3-8B");
+    expect(result.filter((entry) => entry.provider === "vllm")).toHaveLength(1);
+    expect(entry.name).toBe("Qwen3 8B");
+    expect(entry.reasoning).toBe(true);
+    expect(entry.compat).toEqual(
+      expect.objectContaining({
+        supportsStrictMode: false,
+        thinkingFormat: "qwen-chat-template",
+      }),
+    );
   });
 
   it("merges manifest model catalog rows on the normal catalog path", async () => {

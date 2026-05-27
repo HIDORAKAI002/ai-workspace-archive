@@ -38,6 +38,7 @@ from ..config import (
     DEFAULT_RERANKER_TEI_HTTP_TIMEOUT,
     DEFAULT_RERANKER_TEI_MAX_CONCURRENT,
     DEFAULT_RERANKER_ZEROENTROPY_MODEL,
+    DEFAULT_ZEROENTROPY_BASE_URL,
     ENV_RERANKER_ALIBABA_API_KEY,
     ENV_RERANKER_COHERE_API_KEY,
     ENV_RERANKER_COHERE_MODEL,
@@ -773,7 +774,7 @@ class ZeroEntropyCrossEncoder(CrossEncoderModel):
     See: https://docs.zeroentropy.dev/models
     """
 
-    DEFAULT_BASE_URL = "https://api.zeroentropy.dev"
+    DEFAULT_BASE_URL = DEFAULT_ZEROENTROPY_BASE_URL
     RERANK_PATH = "/v1/models/rerank"
 
     def __init__(

@@ -1,13 +1,13 @@
 ---
 title: "Slash Commands — AI Coding Agent Commands & Codex Shortcuts"
-description: "77 slash commands for Claude Code, Codex CLI, and Gemini CLI — sprint planning, tech debt analysis, PRDs, OKRs, and more."
+description: "84 slash commands for Claude Code, Codex CLI, and Gemini CLI — sprint planning, tech debt analysis, PRDs, OKRs, and more."
 ---
 
 <div class="domain-header" markdown>
 
 # :material-console: Slash Commands
 
-<p class="domain-count">77 commands for quick access to common operations</p>
+<p class="domain-count">84 commands for quick access to common operations</p>
 
 </div>
 
@@ -271,6 +271,12 @@ description: "77 slash commands for Claude Code, Codex CLI, and Gemini CLI — s
 
     Command: /cs:handoff <next-session-focus>
 
+-   :material-console:{ .lg .middle } **[`/cs-workflow-build`](cs-workflow-build.md)**
+
+    ---
+
+    Command: /cs:workflow-build <task-description>
+
 -   :material-console:{ .lg .middle } **[`/cs-write-a-skill`](cs-write-a-skill.md)**
 
     ---
@@ -474,5 +480,41 @@ description: "77 slash commands for Claude Code, Codex CLI, and Gemini CLI — s
     ---
 
     Run the rfp-responder skill on this input:
+
+-   :material-console:{ .lg .middle } **[`/cs-clinical-research`](cs-clinical-research.md)**
+
+    ---
+
+    Run the clinical-research skill on this input:
+
+-   :material-console:{ .lg .middle } **[`/cs-grill-research-ops`](cs-grill-research-ops.md)**
+
+    ---
+
+    Apply Matt Pocock's grill-with-docs discipline to this plan / problem:
+
+-   :material-console:{ .lg .middle } **[`/cs-market-research`](cs-market-research.md)**
+
+    ---
+
+    Run the market-research skill on this input:
+
+-   :material-console:{ .lg .middle } **[`/cs-product-research`](cs-product-research.md)**
+
+    ---
+
+    Run the product-research skill on this input:
+
+-   :material-console:{ .lg .middle } **[`/cs-research-finance`](cs-research-finance.md)**
+
+    ---
+
+    Run the research-finance skill on this input:
+
+-   :material-console:{ .lg .middle } **[`/cs-research-ops`](cs-research-ops.md)**
+
+    ---
+
+    Route this inquiry through the research-ops-skills orchestrator:
 
 </div>

@@ -60,6 +60,10 @@ import {
 import { activityController } from "../controllers/v1/activity";
 import { supportProxyController } from "../controllers/v2/support-proxy";
 import {
+  researchFlagMiddleware,
+  researchProxyController,
+} from "../controllers/v2/research-proxy";
+import {
   scrapeInteractController,
   scrapeStopInteractiveBrowserController,
 } from "../controllers/v2/scrape-browser";
@@ -564,6 +568,15 @@ v2Router.post(
   authMiddleware(RateLimiterMode.SupportDocsSearch),
   wrap(supportProxyController),
 );
+
+if (config.RESEARCH_PROXY_URL) {
+  v2Router.all(
+    "/research/*",
+    authMiddleware(RateLimiterMode.Research),
+    researchFlagMiddleware,
+    wrap(researchProxyController),
+  );
+}
 
 // Only register x402 routes if X402_PAY_TO_ADDRESS is configured
 if (isX402Enabled()) {

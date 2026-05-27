@@ -10,7 +10,6 @@ import { RateLimiterMode } from "../types";
 import { authenticateUser } from "../controllers/auth";
 import { createIdempotencyKey } from "../services/idempotency/create";
 import { validateIdempotencyKey } from "../services/idempotency/validate";
-import { checkTeamCredits } from "../services/billing/credit_billing";
 import { isUrlBlocked } from "../scraper/WebScraper/utils/blocklist";
 import { logger } from "../lib/logger";
 import {
@@ -120,32 +119,27 @@ export function checkCreditsMiddleware(
       }
 
       const requestedCredits = minimum ?? 1;
-      const useAutumnCheck = !!req.auth.org_id;
 
-      const autumnProperties = {
-        source: "checkCreditsMiddleware",
-        path: req.path,
-      };
-      const [legacyCheck, autumnResult] = await Promise.all([
-        checkTeamCredits(req.acuc ?? null, req.auth.team_id, requestedCredits),
-        useAutumnCheck
-          ? autumnService.checkCredits({
-              teamId: req.auth.team_id,
-              value: requestedCredits,
-              properties: autumnProperties,
-            })
-          : null,
-      ]);
-      let { success, remainingCredits, chunk } = legacyCheck;
+      const autumnResult = await autumnService.checkCredits({
+        teamId: req.auth.team_id,
+        value: requestedCredits,
+        properties: {
+          source: "checkCreditsMiddleware",
+          path: req.path,
+        },
+      });
 
-      if (autumnResult !== null) {
-        success = autumnResult.allowed;
-        remainingCredits = autumnResult.remaining;
+      // Autumn is the source of truth for credits. If it's unavailable
+      // (returns null), fail open — matches the behavior in browser.ts /
+      // scrape-browser.ts and avoids turning an Autumn outage into a
+      // customer outage.
+      if (autumnResult === null) {
+        req.account = { remainingCredits: Infinity };
+        return next();
       }
 
-      if (chunk) {
-        req.acuc = chunk;
-      }
+      const success = autumnResult.allowed;
+      const remainingCredits = autumnResult.remaining;
       req.account = { remainingCredits };
       if (!success) {
         if (

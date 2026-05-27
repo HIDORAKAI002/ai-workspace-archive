@@ -207,6 +207,8 @@ export default {
     'Repeated image safety rejections detected. Similar prompts may temporarily pause image generation.',
   'response.QuotaLimitReached':
     "Sorry, the token usage or request count has reached the quota limit for this key. Please increase the key's quota or try again later.",
+  'response.RateLimitExceeded':
+    "Sorry, the token usage or request count has reached the rate limit for this key. Please try again later or increase the key's quota.",
   'response.ServerAgentRuntimeError':
     'Sorry, the Agent service is currently unavailable. Please try again later or contact us via email for support.',
   'response.StreamChunkError':
@@ -223,6 +225,22 @@ export default {
     'The model "{{model}}" is no longer available. Please pick a current model from the model selector.',
   'response.UnknownChatFetchError':
     'Sorry, an unknown request error occurred. Please check the information below or try again.',
+  'response.CapabilityNotSupported':
+    'Sorry, this model does not support the requested capability (such as vision input or tool calling). Please switch to a model that supports it.',
+  'response.ContentModeration':
+    'Sorry, the content was rejected by the upstream safety filter. Please revise your prompt and try again.',
+  'response.InvalidRequestFormat':
+    'Sorry, the upstream provider rejected the request as malformed. Please check the input or try a different model.',
+  'response.NoAvailableChannel':
+    'Sorry, the proxy or router has no available channel for the requested model. Please switch the channel/key configuration or try again later.',
+  'response.OperationInactivityTimeout':
+    'The agent operation was idle for too long and was terminated. Please retry the request.',
+  'response.ProviderNetworkError':
+    'Connection to the provider timed out or was dropped. Please check your network and try again.',
+  'response.ProviderServiceUnavailable':
+    'The provider is temporarily overloaded or unavailable. Please try again shortly.',
+  'response.UserConfigError':
+    'Provider configuration is invalid (incorrect base URL, missing environment variable, virtual-key restriction, etc.). Please review the provider settings.',
   'stt.responseError': 'Service request failed, please check the configuration or try again',
   'supervisor.decisionFailed':
     'The group host is unable to function. Please check your host configuration to ensure the correct model, API Key, and API endpoint are set.',
