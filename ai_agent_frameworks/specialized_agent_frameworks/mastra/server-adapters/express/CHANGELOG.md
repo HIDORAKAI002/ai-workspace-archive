@@ -1,5 +1,25 @@
 # @mastra/express
 
+## 1.3.24-alpha.9
+
+### Patch Changes
+
+- Updated dependencies [[`d72dc4b`](https://github.com/mastra-ai/mastra/commit/d72dc4b12d832546c05c20255fa96fe4eb515900)]:
+  - @mastra/core@1.37.0-alpha.9
+  - @mastra/server@1.37.0-alpha.9
+
+## 1.3.24-alpha.8
+
+### Patch Changes
+
+- Improved agent thread subscription resilience by keeping server streams active during idle periods and allowing the JavaScript client to reconnect when subscription streams close or resubscribe requests fail. ([#17045](https://github.com/mastra-ai/mastra/pull/17045))
+
+  Enable automatic reconnection with `subscription.processDataStream({ onChunk: chunk => console.log(chunk), reconnect: true })`.
+
+- Updated dependencies [[`c35b962`](https://github.com/mastra-ai/mastra/commit/c35b9625c7e854fcfdeee226a3338a750d0ff211), [`c35b962`](https://github.com/mastra-ai/mastra/commit/c35b9625c7e854fcfdeee226a3338a750d0ff211), [`4084113`](https://github.com/mastra-ai/mastra/commit/408411370fc48a822e8b616b3b63f9409774e0e9), [`bc01b1b`](https://github.com/mastra-ai/mastra/commit/bc01b1bfafe381d90af909f8bce7eeb4eee779f2)]:
+  - @mastra/core@1.37.0-alpha.8
+  - @mastra/server@1.37.0-alpha.8
+
 ## 1.3.24-alpha.7
 
 ### Patch Changes

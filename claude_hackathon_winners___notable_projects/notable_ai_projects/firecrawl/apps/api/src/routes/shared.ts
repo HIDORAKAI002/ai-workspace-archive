@@ -24,10 +24,7 @@ import { validate as isUuid } from "uuid";
 
 import { config } from "../config";
 import { supabase_service } from "../services/supabase";
-import {
-  autumnService,
-  isAutumnCheckEnabled,
-} from "../services/autumn/autumn.service";
+import { autumnService } from "../services/autumn/autumn.service";
 
 export function checkCreditsMiddleware(
   _minimum?: number,
@@ -123,8 +120,7 @@ export function checkCreditsMiddleware(
       }
 
       const requestedCredits = minimum ?? 1;
-      const useAutumnCheck =
-        !!req.auth.org_id && isAutumnCheckEnabled(req.auth.org_id);
+      const useAutumnCheck = !!req.auth.org_id;
 
       const autumnProperties = {
         source: "checkCreditsMiddleware",

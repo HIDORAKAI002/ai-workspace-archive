@@ -1,5 +1,23 @@
 # @mastra/deployer
 
+## 1.37.0-alpha.9
+
+### Patch Changes
+
+- Updated dependencies [[`d72dc4b`](https://github.com/mastra-ai/mastra/commit/d72dc4b12d832546c05c20255fa96fe4eb515900)]:
+  - @mastra/core@1.37.0-alpha.9
+  - @mastra/server@1.37.0-alpha.9
+
+## 1.37.0-alpha.8
+
+### Patch Changes
+
+- Removed zod as a required peer dependency. Internal schemas now use plain JSON Schema objects instead of zod runtime. ([#16726](https://github.com/mastra-ai/mastra/pull/16726))
+
+- Updated dependencies [[`c35b962`](https://github.com/mastra-ai/mastra/commit/c35b9625c7e854fcfdeee226a3338a750d0ff211), [`c35b962`](https://github.com/mastra-ai/mastra/commit/c35b9625c7e854fcfdeee226a3338a750d0ff211), [`4084113`](https://github.com/mastra-ai/mastra/commit/408411370fc48a822e8b616b3b63f9409774e0e9), [`bc01b1b`](https://github.com/mastra-ai/mastra/commit/bc01b1bfafe381d90af909f8bce7eeb4eee779f2)]:
+  - @mastra/core@1.37.0-alpha.8
+  - @mastra/server@1.37.0-alpha.8
+
 ## 1.37.0-alpha.7
 
 ### Patch Changes

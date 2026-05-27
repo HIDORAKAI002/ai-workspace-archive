@@ -73,7 +73,7 @@ import {
 } from "./auth-bridge.js";
 import { CODEX_CONTROL_METHODS } from "./capabilities.js";
 import {
-  defaultCodexAppServerClientFactory,
+  defaultLeasedCodexAppServerClientFactory,
   type CodexAppServerClientFactory,
 } from "./client-factory.js";
 import {
@@ -170,7 +170,11 @@ import {
   type CodexAppServerThreadBinding,
 } from "./session-binding.js";
 import { readCodexMirroredSessionHistoryMessages } from "./session-history.js";
-import { clearSharedCodexAppServerClientIfCurrent } from "./shared-client.js";
+import {
+  clearSharedCodexAppServerClientIfCurrent,
+  releaseLeasedSharedCodexAppServerClient,
+  retireSharedCodexAppServerClientIfCurrent,
+} from "./shared-client.js";
 import {
   areCodexDynamicToolFingerprintsCompatible,
   buildDeveloperInstructions,
@@ -198,12 +202,13 @@ import {
 import {
   attachCodexMirrorIdentity,
   buildCodexUserPromptMessage,
+  buildResolvedCodexUserPromptMessage,
   mirrorCodexAppServerTranscript,
 } from "./transcript-mirror.js";
 import { createCodexUserInputBridge } from "./user-input-bridge.js";
 import { filterToolsForVisionInputs } from "./vision-tools.js";
 
-const CODEX_DYNAMIC_TOOL_TIMEOUT_MS = 30_000;
+const CODEX_DYNAMIC_TOOL_TIMEOUT_MS = 90_000;
 const CODEX_DYNAMIC_TOOL_MAX_TIMEOUT_MS = 600_000;
 const CODEX_DYNAMIC_IMAGE_GENERATION_TOOL_TIMEOUT_MS = 120_000;
 const CODEX_DYNAMIC_IMAGE_TOOL_TIMEOUT_MS = 60_000;
@@ -1054,7 +1059,7 @@ export async function runCodexAppServerAttempt(
   const preDynamicStartupStages = createCodexDynamicToolBuildStageTracker({
     enabled: profilerEnabled,
   });
-  const attemptClientFactory = options.clientFactory ?? defaultCodexAppServerClientFactory;
+  const attemptClientFactory = options.clientFactory ?? defaultLeasedCodexAppServerClientFactory;
   const pluginConfig = readCodexPluginConfig(options.pluginConfig);
   const computerUseConfig = resolveCodexComputerUseConfig({ pluginConfig });
   const configuredAppServer = resolveCodexAppServerRuntimeOptions({ pluginConfig });
@@ -1492,6 +1497,7 @@ export async function runCodexAppServerAttempt(
   let thread: CodexAppServerThreadLifecycleBinding;
   let trajectoryEndRecorded = false;
   let nativeHookRelay: NativeHookRelayRegistrationHandle | undefined;
+  let releaseSharedClientLease: (() => void) | undefined;
   let startupClientForCleanup: CodexAppServerClient | undefined;
   let sandboxExecEnvironmentAcquired = false;
   const releaseSandboxExecEnvironment = async () => {
@@ -1605,134 +1611,150 @@ export async function runCodexAppServerAttempt(
       operation: async () => {
         let attemptedClient: CodexAppServerClient | undefined;
         const startupAttempt = async () => {
-          const startupClient = await attemptClientFactory(
-            appServer.start,
-            startupAuthProfileId,
-            agentDir,
-            params.config,
-          );
-          attemptedClient = startupClient;
-          startupClientForCleanup = startupClient;
-          await ensureCodexComputerUse({
-            client: startupClient,
-            pluginConfig,
-            timeoutMs: appServer.requestTimeoutMs,
-            signal: runAbortController.signal,
-          });
-          let startupSandboxEnvironment: CodexSandboxExecEnvironment | undefined;
-          let startupSandboxEnvironmentAcquired = false;
-          const releaseStartupSandboxEnvironment = async () => {
-            if (startupSandboxEnvironmentAcquired) {
-              startupSandboxEnvironmentAcquired = false;
-              await releaseCodexSandboxExecServerEnvironment(sandbox);
-            }
-          };
-          releaseStartupResourcesOnTimeout = releaseStartupSandboxEnvironment;
+          let startupClientLease: (() => void) | undefined;
+          let startupAttemptSucceeded = false;
           try {
-            startupSandboxEnvironment = shouldRequireCodexSandboxExecServerEnvironment({
-              sandbox,
-              nativeToolSurfaceEnabled,
-              sandboxExecServerEnabled,
-            })
-              ? await ensureCodexSandboxExecServerEnvironment({
-                  client: startupClient,
-                  sandbox: sandbox ?? null,
-                  appServerStartOptions: appServer.start,
-                  timeoutMs: appServer.requestTimeoutMs,
-                  signal: runAbortController.signal,
-                })
-              : undefined;
-            startupSandboxEnvironmentAcquired = Boolean(startupSandboxEnvironment);
-            if (runAbortController.signal.aborted) {
-              await releaseStartupSandboxEnvironment();
-              throw new Error("codex app-server startup aborted");
-            }
-            if (
-              sandbox?.enabled &&
-              nativeToolSurfaceEnabled &&
-              sandboxExecServerEnabled &&
-              !startupSandboxEnvironment
-            ) {
-              throw new Error(
-                "Codex app-server did not register an OpenClaw sandbox exec-server environment.",
-              );
-            }
-          } catch (error) {
-            await releaseStartupSandboxEnvironment();
-            throw error;
-          }
-          const startupEnvironmentSelection = resolveCodexSandboxEnvironmentSelection(
-            startupSandboxEnvironment,
-            nativeToolSurfaceEnabled,
-          );
-          const startupExecutionCwd = resolveCodexAppServerExecutionCwd({
-            effectiveWorkspace,
-            environment: startupSandboxEnvironment,
-            nativeToolSurfaceEnabled,
-          });
-          const startupSandboxPolicy = startupSandboxEnvironment
-            ? resolveCodexExternalSandboxPolicyForOpenClawSandbox(sandbox)
-            : undefined;
-          const buildThreadLifecycleParams = () =>
-            ({
-              client: startupClient,
-              params: buildActiveRunAttemptParams(),
-              agentId: sessionAgentId,
-              cwd: startupExecutionCwd,
-              dynamicTools: toolBridge.specs,
-              appServer: pluginAppServer,
-              developerInstructions: promptBuild.developerInstructions,
-              config: threadConfig,
-              finalConfigPatch: nativeHookRelayConfig,
-              nativeCodeModeEnabled: nativeToolSurfaceEnabled,
-              nativeCodeModeOnlyEnabled: appServer.codeModeOnly,
-              userMcpServersEnabled: nativeToolSurfaceEnabled,
-              mcpServersFingerprint: bundleMcpThreadConfig.fingerprint,
-              mcpServersFingerprintEvaluated: bundleMcpThreadConfig.evaluated,
-              environmentSelection: startupEnvironmentSelection,
-              contextEngineProjection,
-              pluginThreadConfig: pluginThreadConfigRequired
-                ? {
-                    enabled: true,
-                    inputFingerprint: pluginThreadConfigInputFingerprint,
-                    enabledPluginConfigKeys,
-                    build: () =>
-                      buildCodexPluginThreadConfig({
-                        pluginConfig: pluginThreadConfigPluginConfig,
-                        request: (method, requestParams) =>
-                          startupClient.request(method, requestParams, {
-                            timeoutMs: appServer.requestTimeoutMs,
-                            signal: runAbortController.signal,
-                          }),
-                        appCache: defaultCodexAppInventoryCache,
-                        appCacheKey: pluginAppCacheKey,
-                      }),
-                  }
-                : undefined,
-            }) satisfies Parameters<typeof startOrResumeThread>[0];
-          try {
-            restartContextEngineCodexThread = () =>
-              startOrResumeThread(buildThreadLifecycleParams());
-            const startupThread = await startOrResumeThread(buildThreadLifecycleParams());
-            if (runAbortController.signal.aborted) {
-              await releaseStartupSandboxEnvironment();
-              throw new Error("codex app-server startup aborted");
-            }
-            startupSandboxEnvironmentAcquired = false;
-            return {
-              client: startupClient,
-              thread: startupThread,
-              sandboxEnvironment: startupSandboxEnvironment,
-              environmentSelection: startupEnvironmentSelection,
-              executionCwd: startupExecutionCwd,
-              sandboxPolicy: startupSandboxPolicy,
+            const startupClient = await attemptClientFactory(
+              appServer.start,
+              startupAuthProfileId,
+              agentDir,
+              params.config,
+            );
+            startupClientLease = () => {
+              releaseLeasedSharedCodexAppServerClient(startupClient);
             };
-          } catch (error) {
-            await releaseStartupSandboxEnvironment();
-            throw error;
+            releaseSharedClientLease = startupClientLease;
+            attemptedClient = startupClient;
+            startupClientForCleanup = startupClient;
+            await ensureCodexComputerUse({
+              client: startupClient,
+              pluginConfig,
+              timeoutMs: appServer.requestTimeoutMs,
+              signal: runAbortController.signal,
+            });
+            let startupSandboxEnvironment: CodexSandboxExecEnvironment | undefined;
+            let startupSandboxEnvironmentAcquired = false;
+            const releaseStartupSandboxEnvironment = async () => {
+              if (startupSandboxEnvironmentAcquired) {
+                startupSandboxEnvironmentAcquired = false;
+                await releaseCodexSandboxExecServerEnvironment(sandbox);
+              }
+            };
+            releaseStartupResourcesOnTimeout = releaseStartupSandboxEnvironment;
+            try {
+              startupSandboxEnvironment = shouldRequireCodexSandboxExecServerEnvironment({
+                sandbox,
+                nativeToolSurfaceEnabled,
+                sandboxExecServerEnabled,
+              })
+                ? await ensureCodexSandboxExecServerEnvironment({
+                    client: startupClient,
+                    sandbox: sandbox ?? null,
+                    appServerStartOptions: appServer.start,
+                    timeoutMs: appServer.requestTimeoutMs,
+                    signal: runAbortController.signal,
+                  })
+                : undefined;
+              startupSandboxEnvironmentAcquired = Boolean(startupSandboxEnvironment);
+              if (runAbortController.signal.aborted) {
+                await releaseStartupSandboxEnvironment();
+                throw new Error("codex app-server startup aborted");
+              }
+              if (
+                sandbox?.enabled &&
+                nativeToolSurfaceEnabled &&
+                sandboxExecServerEnabled &&
+                !startupSandboxEnvironment
+              ) {
+                throw new Error(
+                  "Codex app-server did not register an OpenClaw sandbox exec-server environment.",
+                );
+              }
+            } catch (error) {
+              await releaseStartupSandboxEnvironment();
+              throw error;
+            }
+            const startupEnvironmentSelection = resolveCodexSandboxEnvironmentSelection(
+              startupSandboxEnvironment,
+              nativeToolSurfaceEnabled,
+            );
+            const startupExecutionCwd = resolveCodexAppServerExecutionCwd({
+              effectiveWorkspace,
+              environment: startupSandboxEnvironment,
+              nativeToolSurfaceEnabled,
+            });
+            const startupSandboxPolicy = startupSandboxEnvironment
+              ? resolveCodexExternalSandboxPolicyForOpenClawSandbox(sandbox)
+              : undefined;
+            const buildThreadLifecycleParams = () =>
+              ({
+                client: startupClient,
+                params: buildActiveRunAttemptParams(),
+                agentId: sessionAgentId,
+                cwd: startupExecutionCwd,
+                dynamicTools: toolBridge.specs,
+                appServer: pluginAppServer,
+                developerInstructions: promptBuild.developerInstructions,
+                config: threadConfig,
+                finalConfigPatch: nativeHookRelayConfig,
+                nativeCodeModeEnabled: nativeToolSurfaceEnabled,
+                nativeCodeModeOnlyEnabled: appServer.codeModeOnly,
+                userMcpServersEnabled: nativeToolSurfaceEnabled,
+                mcpServersFingerprint: bundleMcpThreadConfig.fingerprint,
+                mcpServersFingerprintEvaluated: bundleMcpThreadConfig.evaluated,
+                environmentSelection: startupEnvironmentSelection,
+                contextEngineProjection,
+                pluginThreadConfig: pluginThreadConfigRequired
+                  ? {
+                      enabled: true,
+                      inputFingerprint: pluginThreadConfigInputFingerprint,
+                      enabledPluginConfigKeys,
+                      build: () =>
+                        buildCodexPluginThreadConfig({
+                          pluginConfig: pluginThreadConfigPluginConfig,
+                          request: (method, requestParams) =>
+                            startupClient.request(method, requestParams, {
+                              timeoutMs: appServer.requestTimeoutMs,
+                              signal: runAbortController.signal,
+                            }),
+                          appCache: defaultCodexAppInventoryCache,
+                          appCacheKey: pluginAppCacheKey,
+                        }),
+                    }
+                  : undefined,
+              }) satisfies Parameters<typeof startOrResumeThread>[0];
+            try {
+              restartContextEngineCodexThread = () =>
+                startOrResumeThread(buildThreadLifecycleParams());
+              const startupThread = await startOrResumeThread(buildThreadLifecycleParams());
+              if (runAbortController.signal.aborted) {
+                await releaseStartupSandboxEnvironment();
+                throw new Error("codex app-server startup aborted");
+              }
+              startupSandboxEnvironmentAcquired = false;
+              startupAttemptSucceeded = true;
+              return {
+                client: startupClient,
+                thread: startupThread,
+                sandboxEnvironment: startupSandboxEnvironment,
+                environmentSelection: startupEnvironmentSelection,
+                executionCwd: startupExecutionCwd,
+                sandboxPolicy: startupSandboxPolicy,
+              };
+            } catch (error) {
+              await releaseStartupSandboxEnvironment();
+              throw error;
+            } finally {
+              if (releaseStartupResourcesOnTimeout === releaseStartupSandboxEnvironment) {
+                releaseStartupResourcesOnTimeout = undefined;
+              }
+            }
           } finally {
-            if (releaseStartupResourcesOnTimeout === releaseStartupSandboxEnvironment) {
-              releaseStartupResourcesOnTimeout = undefined;
+            if (!startupAttemptSucceeded) {
+              if (releaseSharedClientLease === startupClientLease) {
+                releaseSharedClientLease = undefined;
+              }
+              startupClientLease?.();
             }
           }
         };
@@ -1993,6 +2015,7 @@ export async function runCodexAppServerAttempt(
   const fireTurnCompletionIdleTimeout = () => {
     if (
       completed ||
+      terminalTurnNotificationQueued ||
       runAbortController.signal.aborted ||
       !turnCompletionIdleWatchArmed ||
       activeAppServerTurnRequests > 0
@@ -2032,6 +2055,7 @@ export async function runCodexAppServerAttempt(
   const fireTurnTerminalIdleTimeout = () => {
     if (
       completed ||
+      terminalTurnNotificationQueued ||
       runAbortController.signal.aborted ||
       !turnTerminalIdleWatchArmed ||
       activeAppServerTurnRequests > 0
@@ -2535,7 +2559,7 @@ export async function runCodexAppServerAttempt(
       threadId: thread.threadId,
       ...(turnId ? { turnId } : {}),
     });
-    embeddedAgentLog.debug("codex app-server raw notification received", correlation);
+    embeddedAgentLog.trace("codex app-server raw notification received", correlation);
     if (notification.method === "turn/completed" && correlation.matchesActiveTurn === false) {
       if (correlation.matchesActiveThread) {
         embeddedAgentLog.warn(
@@ -2559,6 +2583,16 @@ export async function runCodexAppServerAttempt(
     }
     if (isTerminalTurnNotificationForTurn(notification, turnId)) {
       terminalTurnNotificationQueued = true;
+    }
+    // Touch idle-watch timestamps at receive time, not just after queued
+    // projection.  A queued terminal event should suppress short false-idle
+    // guards, while the full attempt watchdog still releases a wedged queue.
+    if (correlation.matchesActiveTurn !== false) {
+      const now = Date.now();
+      turnCompletionLastActivityAt = now;
+      turnCompletionLastActivityReason = `notification:${notification.method}`;
+      turnAttemptLastProgressAt = now;
+      turnAttemptLastProgressReason = `notification:${notification.method}`;
     }
     notificationQueue = notificationQueue.then(
       () => handleNotification(notification),
@@ -3104,6 +3138,8 @@ export async function runCodexAppServerAttempt(
         },
       });
       params.abortSignal?.removeEventListener("abort", abortFromUpstream);
+      releaseSharedClientLease?.();
+      releaseSharedClientLease = undefined;
       if (usageLimitError) {
         await markCodexAuthProfileBlockedFromRateLimits({
           params,
@@ -3123,6 +3159,8 @@ export async function runCodexAppServerAttempt(
     }
   }
   if (!turn) {
+    releaseSharedClientLease?.();
+    releaseSharedClientLease = undefined;
     throw new Error("codex app-server turn/start failed without an error");
   }
   turnId = turn.turn.id;
@@ -3217,9 +3255,11 @@ export async function runCodexAppServerAttempt(
     abort: () => runAbortController.abort("aborted"),
   };
   setActiveEmbeddedRun(params.sessionId, handle, params.sessionKey);
+  const notifyUserMessagePersisted = createCodexAppServerUserMessagePersistenceNotifier(params);
   void mirrorPromptAtTurnStartBestEffort({
     params,
     agentId: sessionAgentId,
+    notifyUserMessagePersisted,
     sessionKey: sandboxSessionKey,
     threadId: thread.threadId,
     turnId: activeTurnId,
@@ -3229,10 +3269,20 @@ export async function runCodexAppServerAttempt(
   touchTurnCompletionActivity("turn:start", { attemptProgress: true });
 
   const abortListener = () => {
+    const shouldRetireClient = timedOut;
+    if (shouldRetireClient) {
+      void retireCodexAppServerClientAfterTimedOutTurn(client, {
+        threadId: thread.threadId,
+        turnId: activeTurnId,
+        reason: String(runAbortController.signal.reason ?? "timeout"),
+      }).finally(() => {
+        resolveCompletion?.();
+      });
+      return;
+    }
     interruptCodexTurnBestEffort(client, {
       threadId: thread.threadId,
       turnId: activeTurnId,
-      timeoutMs: timedOut ? CODEX_APP_SERVER_INTERRUPT_TIMEOUT_MS : undefined,
     });
     resolveCompletion?.();
   };
@@ -3324,6 +3374,7 @@ export async function runCodexAppServerAttempt(
     await mirrorTranscriptBestEffort({
       params,
       agentId: sessionAgentId,
+      notifyUserMessagePersisted,
       result,
       sessionKey: contextSessionKey,
       threadId: thread.threadId,
@@ -3479,6 +3530,7 @@ export async function runCodexAppServerAttempt(
     notificationCleanup();
     requestCleanup();
     closeCleanup?.();
+    releaseSharedClientLease?.();
     if (nativeHookRelay) {
       if (shouldDelayNativeHookRelayUnregister) {
         // Codex hook subprocesses can outlive a completed app-server turn by a
@@ -4049,6 +4101,51 @@ async function unsubscribeCodexThreadBestEffort(
   }
 }
 
+async function retireCodexAppServerClientAfterTimedOutTurn(
+  client: CodexAppServerClient,
+  params: {
+    threadId: string;
+    turnId: string;
+    reason: string;
+  },
+): Promise<void> {
+  const retiredSharedClient = retireSharedCodexAppServerClientIfCurrent(client);
+  const detachedSharedClient = Boolean(retiredSharedClient);
+  interruptCodexTurnBestEffort(client, {
+    threadId: params.threadId,
+    turnId: params.turnId,
+    timeoutMs: CODEX_APP_SERVER_INTERRUPT_TIMEOUT_MS,
+  });
+  await unsubscribeCodexThreadBestEffort(client, {
+    threadId: params.threadId,
+    timeoutMs: CODEX_APP_SERVER_UNSUBSCRIBE_TIMEOUT_MS,
+  });
+  let closedClient = retiredSharedClient?.closed ?? false;
+  if (!detachedSharedClient) {
+    const close = (client as { close?: () => void }).close;
+    if (typeof close === "function") {
+      try {
+        close.call(client);
+        closedClient = true;
+      } catch (error) {
+        embeddedAgentLog.debug("codex app-server client close failed during timeout cleanup", {
+          threadId: params.threadId,
+          turnId: params.turnId,
+          error,
+        });
+      }
+    }
+  }
+  embeddedAgentLog.warn("codex app-server client retired after timed-out turn", {
+    threadId: params.threadId,
+    turnId: params.turnId,
+    reason: params.reason,
+    detachedSharedClient,
+    closedClient,
+    activeSharedClientLeases: retiredSharedClient?.activeLeases ?? 0,
+  });
+}
+
 type DynamicToolBuildParams = {
   params: EmbeddedRunAttemptParams;
   resolvedWorkspace: string;
@@ -4218,9 +4315,14 @@ async function buildDynamicTools(input: DynamicToolBuildParams) {
         : undefined,
     modelApi: params.model.api,
     modelContextWindowTokens: params.model.contextWindow,
-    modelAuthMode: resolveModelAuthMode(params.model.provider, params.config, undefined, {
-      workspaceDir: input.effectiveWorkspace,
-    }),
+    modelAuthMode: resolveModelAuthMode(
+      params.model.provider,
+      params.config,
+      params.toolAuthProfileStore ?? params.authProfileStore,
+      {
+        workspaceDir: input.effectiveWorkspace,
+      },
+    ),
     suppressManagedWebSearch: false,
     currentChannelId: params.currentChannelId,
     hookChannelId: resolveCodexAppServerHookChannelId(params, input.sandboxSessionKey),
@@ -5739,6 +5841,27 @@ function readNonEmptyString(value: unknown): string | undefined {
   return typeof value === "string" && value.trim().length > 0 ? value : undefined;
 }
 
+const CODEX_DELIVERY_HINT_LINES = [
+  "Delivery: to send a message, use the `message` tool.",
+  "Delivery: Final assistant text is not automatically delivered in this run. Use the `message` tool to send user-visible output.",
+] as const;
+
+function splitLeadingCodexDeliveryHint(prompt: string): {
+  deliveryHint?: string;
+  prompt: string;
+} {
+  const trimmedStart = prompt.trimStart();
+  const matchedHint = CODEX_DELIVERY_HINT_LINES.find((hint) => trimmedStart.startsWith(hint));
+  if (!matchedHint) {
+    return { prompt };
+  }
+  const remainder = trimmedStart
+    .slice(matchedHint.length)
+    .replace(/^\s*\n/, "")
+    .trimStart();
+  return { deliveryHint: matchedHint, prompt: remainder };
+}
+
 function buildCodexOpenClawPromptContext(params: {
   params: EmbeddedRunAttemptParams;
   skillsPrompt?: string;
@@ -5778,10 +5901,20 @@ function prependCodexOpenClawPromptContext(prompt: string, context: string | und
   if (!context?.trim()) {
     return prompt;
   }
-  const promptSection = prompt.startsWith("OpenClaw assembled context for this turn:")
-    ? prompt
-    : ["Current user request:", prompt].join("\n");
-  return [context.trim(), "", promptSection].join("\n");
+  const { deliveryHint, prompt: promptWithoutDeliveryHint } = splitLeadingCodexDeliveryHint(prompt);
+  const promptSection = promptWithoutDeliveryHint.startsWith(
+    "OpenClaw assembled context for this turn:",
+  )
+    ? promptWithoutDeliveryHint
+    : ["Current user request:", promptWithoutDeliveryHint].join("\n");
+  const deliverySection = deliveryHint
+    ? [
+        "OpenClaw delivery metadata:",
+        "This delivery metadata is runtime routing guidance, not the user's request.",
+        deliveryHint,
+      ].join("\n")
+    : undefined;
+  return [context.trim(), deliverySection, promptSection].filter(Boolean).join("\n\n");
 }
 
 function renderCodexWorkspaceBootstrapPromptContext(
@@ -5989,17 +6122,23 @@ function getCodexContextFileBasename(filePath: string): string {
 async function mirrorTranscriptBestEffort(params: {
   params: EmbeddedRunAttemptParams;
   agentId?: string;
+  notifyUserMessagePersisted: (message: Extract<AgentMessage, { role: "user" }>) => void;
   result: EmbeddedRunAttemptResult;
   sessionKey?: string;
   threadId: string;
   turnId: string;
 }): Promise<void> {
   try {
-    await mirrorCodexAppServerTranscript({
+    const messages = await resolveFinalCodexMirrorMessages({
+      params: params.params,
+      messagesSnapshot: params.result.messagesSnapshot,
+      turnId: params.turnId,
+    });
+    const mirrorResult = await mirrorCodexAppServerTranscript({
       sessionFile: params.params.sessionFile,
       agentId: params.agentId,
       sessionKey: params.sessionKey,
-      messages: params.result.messagesSnapshot,
+      messages,
       // Scope is thread-stable. Each entry in `messagesSnapshot` is tagged
       // with a per-turn `attachCodexMirrorIdentity` value carrying its own
       // turnId, so distinct turns produce distinct dedupe keys via the
@@ -6010,14 +6149,62 @@ async function mirrorTranscriptBestEffort(params: {
       idempotencyScope: `codex-app-server:${params.threadId}`,
       config: params.params.config,
     });
+    for (const message of mirrorResult.userMessagesPresent) {
+      params.notifyUserMessagePersisted(message);
+    }
   } catch (error) {
     embeddedAgentLog.warn("failed to mirror codex app-server transcript", { error });
   }
 }
 
+async function resolveFinalCodexMirrorMessages(params: {
+  params: EmbeddedRunAttemptParams;
+  messagesSnapshot: AgentMessage[];
+  turnId: string;
+}): Promise<AgentMessage[]> {
+  if (
+    params.params.suppressNextUserMessagePersistence ||
+    !params.params.userTurnTranscriptRecorder
+  ) {
+    return params.messagesSnapshot;
+  }
+  const resolvedPrompt = attachCodexMirrorIdentity(
+    await buildResolvedCodexUserPromptMessage(params.params),
+    `${params.turnId}:prompt`,
+  );
+  const firstUserIndex = params.messagesSnapshot.findIndex((message) => message.role === "user");
+  if (firstUserIndex === -1) {
+    return [resolvedPrompt, ...params.messagesSnapshot];
+  }
+  const messages = params.messagesSnapshot.slice();
+  messages[firstUserIndex] = resolvedPrompt;
+  return messages;
+}
+
+function createCodexAppServerUserMessagePersistenceNotifier(
+  runParams: EmbeddedRunAttemptParams,
+): (message: Extract<AgentMessage, { role: "user" }>) => void {
+  let notified = false;
+  return (message) => {
+    if (notified) {
+      return;
+    }
+    notified = true;
+    runParams.userTurnTranscriptRecorder?.markRuntimePersisted(message);
+    try {
+      runParams.onUserMessagePersisted?.(message);
+    } catch (error) {
+      embeddedAgentLog.warn("codex app-server user persistence notification failed", {
+        error: formatErrorMessage(error),
+      });
+    }
+  };
+}
+
 async function mirrorPromptAtTurnStartBestEffort(params: {
   params: EmbeddedRunAttemptParams;
   agentId?: string;
+  notifyUserMessagePersisted: (message: Extract<AgentMessage, { role: "user" }>) => void;
   sessionKey?: string;
   threadId: string;
   turnId: string;
@@ -6026,19 +6213,25 @@ async function mirrorPromptAtTurnStartBestEffort(params: {
     return;
   }
   try {
-    await mirrorCodexAppServerTranscript({
-      sessionFile: params.params.sessionFile,
-      agentId: params.agentId,
-      sessionKey: params.sessionKey,
-      messages: [
-        attachCodexMirrorIdentity(
-          buildCodexUserPromptMessage(params.params),
-          `${params.turnId}:prompt`,
-        ),
-      ],
-      idempotencyScope: `codex-app-server:${params.threadId}`,
-      config: params.params.config,
-    });
+    const mirrorPromise = (async () => {
+      const userPromptMessage = attachCodexMirrorIdentity(
+        await buildResolvedCodexUserPromptMessage(params.params),
+        `${params.turnId}:prompt`,
+      );
+      const mirrorResult = await mirrorCodexAppServerTranscript({
+        sessionFile: params.params.sessionFile,
+        agentId: params.agentId,
+        sessionKey: params.sessionKey,
+        messages: [userPromptMessage],
+        idempotencyScope: `codex-app-server:${params.threadId}`,
+        config: params.params.config,
+      });
+      for (const message of mirrorResult.userMessagesPresent) {
+        params.notifyUserMessagePersisted(message);
+      }
+    })();
+    params.params.userTurnTranscriptRecorder?.markRuntimePersistencePending(mirrorPromise);
+    await mirrorPromise;
   } catch (error) {
     embeddedAgentLog.warn("failed to mirror codex app-server prompt at turn start", { error });
   }
