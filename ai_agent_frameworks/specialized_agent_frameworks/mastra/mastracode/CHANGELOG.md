@@ -1,5 +1,38 @@
 # mastracode
 
+## 0.21.0-alpha.10
+
+### Patch Changes
+
+- Updated dependencies [[`d72dc4b`](https://github.com/mastra-ai/mastra/commit/d72dc4b12d832546c05c20255fa96fe4eb515900)]:
+  - @mastra/core@1.37.0-alpha.9
+
+## 0.21.0-alpha.9
+
+### Patch Changes
+
+- **Fixed tool approval and other in-app keyboard shortcuts in modern terminals.** ([#17071](https://github.com/mastra-ai/mastra/pull/17071))
+
+  In iTerm2, Ghostty, WezTerm, kitty and similar terminals, pressing `y` / `n` / `a` / `Y` on the tool approval dialog did nothing. The same was true for the `r` key on `/mcp` (reload servers), the `c` key on `/threads` (clone thread), and the space / enter shortcut on multi-step progress collapse.
+
+  The root cause was the Kitty keyboard protocol that pi-tui enables on supported terminals: printable keys arrive as CSI-u escape sequences (`\x1b[121u` for `y`) instead of raw bytes, so direct character comparisons silently dropped every press. Apple Terminal.app wasn't affected because it doesn't advertise the protocol.
+
+  All four surfaces now decode their shortcut keys through pi-tui's keyboard helpers so the same press works regardless of which keyboard protocol the terminal negotiates. `Shift+y` correctly maps to the uppercase `Y` YOLO shortcut; `Ctrl+Y` and `Alt+Y` no longer alias `Y`.
+
+## 0.21.0-alpha.8
+
+### Patch Changes
+
+- Mastra Code's `ask_user` interactive picker now wraps long option labels across multiple rows with a `↳` continuation marker, instead of truncating them at the box edge. Arrow keys still navigate item-to-item (not row-to-row), so picking remains predictable when options span multiple lines. ([#17054](https://github.com/mastra-ai/mastra/pull/17054))
+
+- Fixed Mastra Code type checking to avoid out-of-memory failures. ([#17070](https://github.com/mastra-ai/mastra/pull/17070))
+
+- Updated dependencies [[`9d2c663`](https://github.com/mastra-ai/mastra/commit/9d2c663b88f5b12bc3fea1c97f40b4eeb3665df1), [`c35b962`](https://github.com/mastra-ai/mastra/commit/c35b9625c7e854fcfdeee226a3338a750d0ff211), [`4084113`](https://github.com/mastra-ai/mastra/commit/408411370fc48a822e8b616b3b63f9409774e0e9)]:
+  - @mastra/fastembed@1.1.1-alpha.0
+  - @mastra/mcp@1.8.1-alpha.0
+  - @mastra/memory@1.20.0-alpha.2
+  - @mastra/core@1.37.0-alpha.8
+
 ## 0.21.0-alpha.7
 
 ### Patch Changes
