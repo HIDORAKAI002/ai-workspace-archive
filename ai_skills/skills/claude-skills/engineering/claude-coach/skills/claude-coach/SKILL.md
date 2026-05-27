@@ -7,7 +7,7 @@ Category: meta
 Author: claude-skills
 Dependencies: python3.11
 Version: 1.0.0
-version: 1.0.0
+version: 2.9.0
 license: MIT
 ---
 

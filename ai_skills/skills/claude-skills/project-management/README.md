@@ -500,5 +500,5 @@ mcp__atlassian__search_issues jql="project = PROJ AND status = 'In Progress'"
 ---
 
 **Last Updated:** January 2026
-**Skills Deployed:** 6/6 project management skills production-ready
+**Skills Deployed:** 9/9 project management skills production-ready
 **Key Feature:** Atlassian MCP integration for direct Jira/Confluence operations

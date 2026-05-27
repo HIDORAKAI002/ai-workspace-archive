@@ -75,6 +75,14 @@ SKILL_DOMAINS = {
     "commercial": {
         "category": "commercial",
         "description": "Per-deal-and-packaging Commercial skills (v2.8.0): pricing strategy, deal desk, partnerships, channel economics, commercial policy, RFP responder, commercial forecaster"
+    },
+    "research-ops": {
+        "category": "research-ops",
+        "description": "Enterprise Research Operations skills (v2.9.0): clinical study design, R&D program finance, market research methodology, product/user research"
+    },
+    "compliance-os": {
+        "category": "compliance",
+        "description": "Compliance-OS skills: ISO 13485 / ISO 27001 / SOC 2 / GDPR / FDA QSR / EU AI Act audit-prep + compliance-readiness orchestrator"
     }
 }
 

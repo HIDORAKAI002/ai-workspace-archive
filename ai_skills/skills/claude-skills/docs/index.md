@@ -1,6 +1,6 @@
 ---
-title: 330 Agent Skills for Codex, Gemini CLI & OpenClaw
-description: "330 production-ready Claude Code skills and agent plugins for 13 AI coding tools — v2.8.2 adds a productivity-shaped `handoff` skill (Matt Pocock-inspired: first-run setup, redaction linter, SessionStart + SessionEnd hooks, fidelity self-check, --refresh); v2.8.1 upgraded the engineering role-skills (senior-fullstack/frontend/backend) with karpathy-coder + Matt Pocock decision engines; v2.8.0 added two new top-level domains (business-operations + commercial, 15 skills); v2.7.3 added AEO (Answer Engine Optimization for ChatGPT / Perplexity / Claude / Gemini / Mistral citation) + security-guidance PreToolUse hook; v2.7.0 added the megaprompt-derived productivity / marketing / research stacks; v2.6.0 added the Matt Pocock productivity quartet. Engineering, product, marketing, compliance, and finance agent skills for Claude Code, OpenAI Codex, Gemini CLI, Hermes Agent, Mistral Vibe, Cursor, and OpenClaw."
+title: 338 Agent Skills for Codex, Gemini CLI & OpenClaw
+description: "338 production-ready Claude Code skills and agent plugins across 16 domains for 13 AI coding tools — v2.9.0 adds the research-ops domain (enterprise Research Operations: clinical-research + research-finance + market-research + product-research) with per-skill onboarding, customization, and an opt-in autoresearch bridge; v2.8.x added business-operations + commercial domains, productivity/handoff + andreessen; v2.7.3 added AEO (Answer Engine Optimization for ChatGPT / Perplexity / Claude / Gemini / Mistral citation) + security-guidance PreToolUse hook. Engineering, product, marketing, compliance, research, and finance agent skills for Claude Code, OpenAI Codex, Gemini CLI, Hermes Agent, Mistral Vibe, Cursor, and OpenClaw."
 hide:
   - toc
   - edit
@@ -14,7 +14,7 @@ hide:
 
 # Agent Skills
 
-330 production-ready skills, 50+ cs-* agents (incl. founder-mode C-suite, Matt Pocock productivity quartet + v2.8.2 productivity/handoff, v2.8.1 engineering role-skills, v2.7.0 megaprompt-derived research stack, v2.7.3 cs-aeo, and v2.8.0 business-operations + commercial), 7 personas, and an orchestration protocol for AI coding tools.
+338 production-ready skills across 16 domains, 51+ cs-* agents (incl. founder-mode C-suite, the v2.9.0 research-ops orchestrator, Matt Pocock productivity quartet, v2.8.0 business-operations + commercial, and v2.7.3 cs-aeo), 7 personas, and an orchestration protocol for AI coding tools.
 { .hero-subtitle }
 
 [Get Started](getting-started.md){ .md-button .md-button--primary }
@@ -49,15 +49,15 @@ hide:
 
 <div class="grid cards" markdown>
 
--   :material-toolbox:{ .lg .middle } **330 Skills**
+-   :material-toolbox:{ .lg .middle } **338 Skills**
 
     ---
 
-    Production-ready instruction packages with structured workflows, Python automation tools, and reference documentation across 14 domains. v2.8.2 adds productivity/handoff (Matt Pocock-inspired: first-run setup, redaction linter, SessionStart + SessionEnd hooks, fidelity self-check). v2.8.1 upgraded the engineering role-skills (senior-fullstack/frontend/backend). v2.8.0 added two new top-level domains: business-operations and commercial (15 skills). v2.7.3 added AEO and security-guidance PreToolUse hook. v2.7.0 added 13 Path-B skills. v2.6.0 added the Matt Pocock productivity quartet.
+    Production-ready instruction packages with structured workflows, 533 Python automation tools, and 676 reference docs across 16 domains. v2.9.0 adds the research-ops domain — enterprise Research Operations (clinical-research, research-finance, market-research, product-research) with per-skill onboarding, a customization config every tool reads, and an opt-in autoresearch bridge. v2.8.0 added business-operations + commercial; v2.7.3 added AEO + security-guidance PreToolUse hook.
 
     [:octicons-arrow-right-24: Browse skills](skills/index.md)
 
--   :material-robot:{ .lg .middle } **49+ Agents**
+-   :material-robot:{ .lg .middle } **51+ Agents**
 
     ---
 
@@ -81,7 +81,7 @@ hide:
 
     [:octicons-arrow-right-24: Learn patterns](orchestration.md)
 
--   :material-language-python:{ .lg .middle } **359 Python Tools**
+-   :material-language-python:{ .lg .middle } **533 Python Tools**
 
     ---
 
@@ -89,7 +89,7 @@ hide:
 
     [:octicons-arrow-right-24: Getting started](getting-started.md)
 
--   :material-puzzle-outline:{ .lg .middle } **30 Plugins**
+-   :material-puzzle-outline:{ .lg .middle } **62 Plugins**
 
     ---
 
@@ -97,7 +97,7 @@ hide:
 
     [:octicons-arrow-right-24: Plugin marketplace](plugins/index.md)
 
--   :material-console:{ .lg .middle } **33 Commands**
+-   :material-console:{ .lg .middle } **87+ Commands**
 
     ---
 
@@ -135,7 +135,7 @@ hide:
 
     Architecture, frontend, backend, fullstack, QA, DevOps, SecOps, AI/ML, data engineering, Playwright testing, self-improving agent
 
-    [:octicons-arrow-right-24: 37 skills](skills/engineering-team/index.md)
+    [:octicons-arrow-right-24: 51 skills](skills/engineering-team/index.md)
 
 -   :material-lightning-bolt:{ .lg .middle } **Engineering — Advanced**
 
@@ -143,7 +143,7 @@ hide:
 
     Agent designer, RAG architect, database designer, CI/CD builder, MCP server builder, security auditor, tech debt tracker
 
-    [:octicons-arrow-right-24: 45 skills](skills/engineering/index.md)
+    [:octicons-arrow-right-24: 78 skills](skills/engineering/index.md)
 
 -   :material-bullseye-arrow:{ .lg .middle } **Product**
 
@@ -151,7 +151,7 @@ hide:
 
     Product manager, agile PO, strategist, UX researcher, UI design system, landing pages, SaaS scaffolder, analytics, experiment designer
 
-    [:octicons-arrow-right-24: 16 skills](skills/product-team/index.md)
+    [:octicons-arrow-right-24: 17 skills](skills/product-team/index.md)
 
 -   :material-bullhorn:{ .lg .middle } **Marketing**
 
@@ -159,7 +159,7 @@ hide:
 
     Content, SEO, CRO, channels, growth, intelligence, sales — 7 specialist pods with 32 Python tools
 
-    [:octicons-arrow-right-24: 44 skills](skills/marketing-skill/index.md)
+    [:octicons-arrow-right-24: 46 skills](skills/marketing-skill/index.md)
 
 -   :material-clipboard-check:{ .lg .middle } **Project Management**
 
@@ -175,7 +175,7 @@ hide:
 
     Full C-suite (10 roles), orchestration, board meetings, culture frameworks, strategic alignment
 
-    [:octicons-arrow-right-24: 34 skills](skills/c-level-advisor/index.md)
+    [:octicons-arrow-right-24: 66 skills](skills/c-level-advisor/index.md)
 
 -   :material-shield-check:{ .lg .middle } **Regulatory & Quality**
 
@@ -183,7 +183,7 @@ hide:
 
     ISO 13485, MDR 2017/745, FDA, ISO 27001, GDPR, CAPA, risk management, quality documentation
 
-    [:octicons-arrow-right-24: 14 skills](skills/ra-qm-team/index.md)
+    [:octicons-arrow-right-24: 18 skills](skills/ra-qm-team/index.md)
 
 -   :material-trending-up:{ .lg .middle } **Business & Growth**
 
@@ -200,6 +200,14 @@ hide:
     Financial analyst, SaaS metrics coach — DCF valuation, budgeting, forecasting, ARR/MRR/churn/LTV
 
     [:octicons-arrow-right-24: 4 skills](skills/finance/index.md)
+
+-   :material-flask:{ .lg .middle } **Research Operations** ✨v2.9.0
+
+    ---
+
+    Enterprise Research Operations — clinical study design, R&D program finance, market sizing/survey methodology, product/user research. Per-skill onboarding + customization + opt-in autoresearch bridge.
+
+    [:octicons-arrow-right-24: 5 skills](skills/research-ops/index.md)
 
 </div>
 

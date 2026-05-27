@@ -53,4 +53,4 @@ or endorsed by Marc Andreessen or a16z.**
 
 ---
 
-**Version:** 1.0.0 · **License:** MIT
+**Version:** 2.9.0 · **License:** MIT

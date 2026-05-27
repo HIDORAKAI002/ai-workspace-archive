@@ -28,6 +28,7 @@ LANGUAGE_EXTENSIONS = {
     "swift": [".swift"],
     "kotlin": [".kt", ".kts"],
     "csharp": [".cs", ".csx", ".razor", ".cshtml"],
+    "java": [".java"],
 }
 
 # Code smell thresholds
@@ -135,6 +136,13 @@ def find_functions(content: str, language: str) -> List[Dict]:
             r"override|sealed|abstract|partial|new|readonly|extern)\s+)+"
             r"(?:[\w<>?,\s\[\]\.]+?\s+)?(\w+)\s*\(([^)]*)\)"
         ),
+        # Java: require at least one method modifier to distinguish
+        # declarations from invocations (mirrors the C# approach).
+        "java": (
+            r"(?:(?:public|private|protected|static|final|abstract|"
+            r"synchronized|native|default|strictfp)\s+)+"
+            r"(?:[\w<>?,\s\[\]\.]+?\s+)?(\w+)\s*\(([^)]*)\)"
+        ),
     }
 
     pattern = patterns.get(language, patterns["python"])
@@ -183,6 +191,7 @@ def find_classes(content: str, language: str) -> List[Dict]:
         "swift": r"class\s+(\w+)",
         "kotlin": r"class\s+(\w+)",
         "csharp": r"(?:class|struct|record|interface)\s+(\w+)",
+        "java": r"(?:class|interface|enum|record)\s+(\w+)",
     }
 
     pattern = patterns.get(language, patterns["python"])
@@ -211,6 +220,11 @@ def find_classes(content: str, language: str) -> List[Dict]:
             "csharp": (
                 r"(?:(?:public|private|protected|internal|static|async|virtual|"
                 r"override|sealed|abstract|partial)\s+)+"
+                r"(?:[\w<>?,\s\[\]\.]+?\s+)?\w+\s*\("
+            ),
+            "java": (
+                r"(?:(?:public|private|protected|static|final|abstract|"
+                r"synchronized|native|default|strictfp)\s+)+"
                 r"(?:[\w<>?,\s\[\]\.]+?\s+)?\w+\s*\("
             ),
         }
@@ -418,6 +432,88 @@ def check_csharp_specific_smells(content: str) -> List[Dict]:
     return smells
 
 
+def check_java_specific_smells(content: str) -> List[Dict]:
+    """Java-specific code smells documented in languages/java.md."""
+    smells: List[Dict] = []
+    # Java comment syntax matches C#, so the same stripper applies.
+    content = _strip_csharp_comments(content)
+
+    # Empty catch block — swallows the exception silently.
+    for match in re.finditer(r"catch\s*\([^)]*\)\s*\{\s*\}", content):
+        smells.append({
+            "type": "java_empty_catch",
+            "severity": "high",
+            "message": "Empty catch block swallows exceptions silently",
+            "location": f"offset {match.start()}",
+        })
+
+    # printStackTrace() as error handling — use a logger instead.
+    for match in re.finditer(r"\.printStackTrace\s*\(\s*\)", content):
+        smells.append({
+            "type": "java_print_stack_trace",
+            "severity": "medium",
+            "message": (
+                "'printStackTrace()' is not real error handling — log via a "
+                "proper logger or rethrow with context"
+            ),
+            "location": f"offset {match.start()}",
+        })
+
+    # InterruptedException caught without restoring the interrupt flag.
+    for match in re.finditer(
+        r"catch\s*\(\s*InterruptedException\s+(\w+)\s*\)\s*\{(.*?)\}",
+        content,
+        re.DOTALL,
+    ):
+        if "interrupt()" not in match.group(2):
+            smells.append({
+                "type": "java_swallowed_interrupt",
+                "severity": "high",
+                "message": (
+                    "InterruptedException caught without "
+                    "'Thread.currentThread().interrupt()' — breaks cooperative "
+                    "cancellation"
+                ),
+                "location": f"offset {match.start()}",
+            })
+
+    # Closeable resource instantiated outside try-with-resources (leak heuristic).
+    resource_hint = re.compile(
+        r"^(?!\s*try\b)\s*(?:final\s+)?[\w<>\[\]]+\s+\w+\s*=\s*new\s+"
+        r"(\w*(?:InputStream|OutputStream|Reader|Writer|Stream|Connection))\s*\(",
+        re.MULTILINE,
+    )
+    for match in resource_hint.finditer(content):
+        smells.append({
+            "type": "java_unclosed_resource",
+            "severity": "medium",
+            "message": (
+                f"'{match.group(1)}' looks like an AutoCloseable but is not in a "
+                "try-with-resources statement"
+            ),
+            "location": f"offset {match.start()}",
+        })
+
+    # Heavy object built per use instead of shared as a singleton.
+    # A `static` field assignment is the recommended singleton form — skip it.
+    heavy_object = re.compile(
+        r"^(?!.*\bstatic\b).*\bnew\s+(ObjectMapper|Gson)\s*\(\s*\)",
+        re.MULTILINE,
+    )
+    for match in heavy_object.finditer(content):
+        smells.append({
+            "type": "java_per_use_heavy_object",
+            "severity": "medium",
+            "message": (
+                f"'new {match.group(1)}()' is expensive — share a singleton "
+                "instance instead of constructing per call"
+            ),
+            "location": f"offset {match.start()}",
+        })
+
+    return smells
+
+
 def check_solid_violations(content: str) -> List[Dict]:
     """Check for potential SOLID principle violations."""
     violations = []
@@ -528,6 +624,8 @@ def analyze_file(filepath: Path) -> Dict:
     smells = check_code_smells(content, functions, classes)
     if language == "csharp":
         smells.extend(check_csharp_specific_smells(content))
+    if language == "java":
+        smells.extend(check_java_specific_smells(content))
     violations = check_solid_violations(content)
     score = calculate_quality_score(line_metrics, functions, classes, smells, violations)
 
