@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-05-27 16:21 IST] Auto-Sync
+- **31 Repositories Updated:** Public APIs Directory, MCP Official Servers, Keboola MCP, GitHub MCP Server, Awesome ChatGPT Prompts, Langfuse, n8n, Dify, Activepieces, Budibase, modelcontextprotocol/java-sdk, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, mastra-ai/mastra, deepset-ai/haystack, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, weaviate/weaviate, infiniflow/ragflow, firecrawl/firecrawl, vercel/ai, apache/airflow, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight, nousresearch/hermes-agent
+
 ## [2026-05-27 09:40 IST] Auto-Sync
 - **31 Repositories Updated:** Promptfoo, Dify, Langflow, Appsmith, modelcontextprotocol/csharp-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, microsoft/mcp-for-beginners, crewAIInc/crewAI, huggingface/smolagents, pydantic/pydantic-ai, mastra-ai/mastra, BerriAI/litellm, stanfordnlp/dspy, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, anthropics/claude-code, arize-ai/phoenix, firecrawl/firecrawl, danny-avila/LibreChat, anthropics/anthropic-sdk-typescript, google-gemini/gemini-cli, googleapis/python-genai, apache/airflow, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, bytedance/deer-flow, nousresearch/hermes-agent
 
