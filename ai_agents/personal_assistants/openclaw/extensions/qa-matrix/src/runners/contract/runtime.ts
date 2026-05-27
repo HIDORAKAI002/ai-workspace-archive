@@ -47,6 +47,7 @@ type MatrixQaGatewayChild = {
   ) => Promise<void>;
   restart(): Promise<void>;
   runtimeEnv?: NodeJS.ProcessEnv;
+  workspaceDir: string;
 };
 
 const DEFAULT_MATRIX_QA_RUN_TIMEOUT_MS = 30 * 60_000;
@@ -801,6 +802,7 @@ export async function runMatrixQaLive(params: {
                 observerUserId: provisioning.observer.userId,
                 gatewayRuntimeEnv: scenarioGateway.harness.gateway.runtimeEnv,
                 gatewayStateDir: scenarioGateway.harness.gateway.runtimeEnv?.OPENCLAW_STATE_DIR,
+                gatewayWorkspaceDir: scenarioGateway.harness.gateway.workspaceDir,
                 gatewayCall: async (method, params, opts) =>
                   await scenarioGateway.harness.gateway.call(method, params ?? {}, opts),
                 outputDir,
