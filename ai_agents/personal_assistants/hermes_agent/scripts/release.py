@@ -251,6 +251,7 @@ AUTHOR_MAP = {
     "harryykyle1@gmail.com": "hharry11",
     "wysie@users.noreply.github.com": "wysie",
     "ronhi@buildabear1.localdomain": "RonHillDev",  # PR #29523 salvage (machine-local commit email)
+    "hello@nami4d.tech": "Nami4D",  # PR #28490 salvage
     "jkausel@gmail.com": "jkausel-ai",
     "e.silacandmr@gmail.com": "Es1la",
     "51599529+stephen0110@users.noreply.github.com": "stephen0110",
@@ -1333,6 +1334,7 @@ AUTHOR_MAP = {
     "krislidimo@gmail.com": "krislidimo",  # PR #29775 (tighten Telegram table row-group spacing; drop redundant first bullet)
     "timothy.b.dixon@gmail.com": "Codename-11",  # PR #29302 (API server session controls — sessions/chat/fork/stream)
     "jpschwartz2@uwalumni.com": "Schwartz10",  # PR #29302 sub-PR (multimodal media in session chat API)
+    "JohnC1009@users.noreply.github.com": "JohnC1009",  # PR #32020 salvage (auth: global auth.json fallback in _load_provider_state)
 }
 
 
