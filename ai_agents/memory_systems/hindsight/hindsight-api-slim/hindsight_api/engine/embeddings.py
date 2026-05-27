@@ -33,13 +33,13 @@ from ..config import (
     DEFAULT_EMBEDDINGS_LOCAL_TRUST_REMOTE_CODE,
     DEFAULT_EMBEDDINGS_OPENAI_MODEL,
     DEFAULT_EMBEDDINGS_PROVIDER,
-    DEFAULT_EMBEDDINGS_ZEROENTROPY_BASE_URL,
     DEFAULT_EMBEDDINGS_ZEROENTROPY_BATCH_SIZE,
     DEFAULT_EMBEDDINGS_ZEROENTROPY_DIMENSIONS,
     DEFAULT_EMBEDDINGS_ZEROENTROPY_ENCODING_FORMAT,
     DEFAULT_EMBEDDINGS_ZEROENTROPY_LATENCY,
     DEFAULT_EMBEDDINGS_ZEROENTROPY_MODEL,
     DEFAULT_LITELLM_API_BASE,
+    DEFAULT_ZEROENTROPY_BASE_URL,
     ENV_EMBEDDINGS_COHERE_API_KEY,
     ENV_EMBEDDINGS_GEMINI_API_KEY,
     ENV_EMBEDDINGS_LOCAL_FORCE_CPU,
@@ -79,14 +79,8 @@ class _ZeroEntropyEmbedResult(BaseModel):
     embedding: list[float] | str
 
 
-class _ZeroEntropyEmbedUsage(BaseModel):
-    total_bytes: int | None = None
-    total_tokens: int | None = None
-
-
 class _ZeroEntropyEmbedResponse(BaseModel):
     results: list[_ZeroEntropyEmbedResult]
-    usage: _ZeroEntropyEmbedUsage | None = None
 
 
 class Embeddings(ABC):
@@ -760,14 +754,14 @@ class ZeroEntropyEmbeddings(Embeddings):
     VALID_DIMENSIONS = frozenset({2560, 1280, 640, 320, 160, 80, 40})
     VALID_ENCODING_FORMATS = frozenset({"float", "base64"})
     VALID_LATENCIES = frozenset({"fast", "slow"})
-    DEFAULT_BASE_URL = DEFAULT_EMBEDDINGS_ZEROENTROPY_BASE_URL
+    DEFAULT_BASE_URL = DEFAULT_ZEROENTROPY_BASE_URL
     EMBED_PATH = "/v1/models/embed"
 
     def __init__(
         self,
         api_key: str,
         model: str = DEFAULT_EMBEDDINGS_ZEROENTROPY_MODEL,
-        base_url: str = DEFAULT_EMBEDDINGS_ZEROENTROPY_BASE_URL,
+        base_url: str | None = None,
         dimensions: int = DEFAULT_EMBEDDINGS_ZEROENTROPY_DIMENSIONS,
         batch_size: int = DEFAULT_EMBEDDINGS_ZEROENTROPY_BATCH_SIZE,
         encoding_format: str = DEFAULT_EMBEDDINGS_ZEROENTROPY_ENCODING_FORMAT,
@@ -790,7 +784,8 @@ class ZeroEntropyEmbeddings(Embeddings):
 
         self.api_key = api_key
         self.model = model
-        self.base_url = base_url.rstrip("/")
+        self.base_url = base_url.rstrip("/") if base_url else self.DEFAULT_BASE_URL
+        self.embed_url = f"{self.base_url}{self.EMBED_PATH}"
         self.dimensions = dimensions
         self.batch_size = batch_size
         self.encoding_format = cast(ZeroEntropyEncodingFormat, encoding_format)
@@ -850,8 +845,6 @@ class ZeroEntropyEmbeddings(Embeddings):
             return []
 
         all_embeddings: list[list[float]] = []
-        embed_url = self._embed_url()
-
         for i in range(0, len(texts), self.batch_size):
             batch = texts[i : i + self.batch_size]
             request = _ZeroEntropyEmbedRequest(
@@ -864,7 +857,7 @@ class ZeroEntropyEmbeddings(Embeddings):
             )
 
             try:
-                response = self._client.post(embed_url, json=request.model_dump(exclude_none=True))
+                response = self._client.post(self.embed_url, json=request.model_dump(exclude_none=True))
                 response.raise_for_status()
             except httpx.HTTPError as e:
                 raise RuntimeError(f"ZeroEntropy embedding request failed: {e}") from e
@@ -878,13 +871,6 @@ class ZeroEntropyEmbeddings(Embeddings):
             all_embeddings.extend(self._parse_embedding(result.embedding) for result in parsed.results)
 
         return all_embeddings
-
-    def _embed_url(self) -> str:
-        if self.base_url.endswith(self.EMBED_PATH):
-            return self.base_url
-        if self.base_url.endswith("/v1"):
-            return f"{self.base_url}/models/embed"
-        return f"{self.base_url}{self.EMBED_PATH}"
 
     @staticmethod
     def _parse_embedding(embedding: list[float] | str) -> list[float]:
@@ -1439,7 +1425,7 @@ def create_embeddings_from_env() -> Embeddings:
         return ZeroEntropyEmbeddings(
             api_key=api_key,
             model=config.embeddings_zeroentropy_model,
-            base_url=config.embeddings_zeroentropy_base_url or DEFAULT_EMBEDDINGS_ZEROENTROPY_BASE_URL,
+            base_url=config.embeddings_zeroentropy_base_url,
             dimensions=config.embeddings_zeroentropy_dimensions,
             batch_size=config.embeddings_zeroentropy_batch_size,
             encoding_format=config.embeddings_zeroentropy_encoding_format,

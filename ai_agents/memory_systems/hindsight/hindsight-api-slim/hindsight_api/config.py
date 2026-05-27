@@ -15,6 +15,7 @@ from typing import Any, Literal
 
 from dotenv import find_dotenv, load_dotenv
 
+from ._pg_search import normalize_pg_search_tokenizer
 from ._vector_index import validate_extension
 from .utils import mask_network_location
 
@@ -302,6 +303,7 @@ ENV_RERANKER_GOOGLE_SERVICE_ACCOUNT_KEY = "HINDSIGHT_API_RERANKER_GOOGLE_SERVICE
 ENV_VECTOR_EXTENSION = "HINDSIGHT_API_VECTOR_EXTENSION"
 ENV_TEXT_SEARCH_EXTENSION = "HINDSIGHT_API_TEXT_SEARCH_EXTENSION"
 ENV_TEXT_SEARCH_EXTENSION_NATIVE_LANGUAGE = "HINDSIGHT_API_TEXT_SEARCH_EXTENSION_NATIVE_LANGUAGE"
+ENV_TEXT_SEARCH_EXTENSION_PG_SEARCH_TOKENIZER = "HINDSIGHT_API_TEXT_SEARCH_EXTENSION_PG_SEARCH_TOKENIZER"
 ENV_LLM_OUTPUT_LANGUAGE = "HINDSIGHT_API_LLM_OUTPUT_LANGUAGE"
 
 ENV_HOST = "HINDSIGHT_API_HOST"
@@ -442,6 +444,7 @@ WORKER_SLOT_RESERVATION_TYPES: dict[str, tuple[str, int]] = {
     "retain": ("HINDSIGHT_API_WORKER_RETAIN_MAX_SLOTS", 0),
     "file_convert_retain": ("HINDSIGHT_API_WORKER_FILE_CONVERT_RETAIN_MAX_SLOTS", 0),
     "refresh_mental_model": ("HINDSIGHT_API_WORKER_REFRESH_MENTAL_MODEL_MAX_SLOTS", 0),
+    "graph_maintenance": ("HINDSIGHT_API_WORKER_GRAPH_MAINTENANCE_MAX_SLOTS", 0),
 }
 ENV_RETAIN_MAX_CONCURRENT = "HINDSIGHT_API_RETAIN_MAX_CONCURRENT"
 
@@ -566,7 +569,8 @@ DEFAULT_RERANKER_OPENROUTER_MODEL = "cohere/rerank-v3.5"
 
 # ZeroEntropy defaults
 DEFAULT_EMBEDDINGS_ZEROENTROPY_MODEL = "zembed-1"
-DEFAULT_EMBEDDINGS_ZEROENTROPY_BASE_URL = "https://api.zeroentropy.dev"
+# Shared between embeddings (zembed-1) and reranker (zerank-*) — the host is the same.
+DEFAULT_ZEROENTROPY_BASE_URL = "https://api.zeroentropy.dev"
 # ZeroEntropy's API default is 2560, but Hindsight defaults to 1280 so the
 # provider works with pgvector HNSW's 2000-dimension index limit out of the box.
 DEFAULT_EMBEDDINGS_ZEROENTROPY_DIMENSIONS = 1280
@@ -595,6 +599,7 @@ DEFAULT_TEXT_SEARCH_EXTENSION = "native"  # Options: "native", "vchord", "pg_tex
 # tokenizers (vchord: llmlingua2, pg_textsearch: hardcoded english,
 # pgroonga: TokenBigram polyglot, pg_search: per-field Tantivy tokenizer).
 DEFAULT_TEXT_SEARCH_EXTENSION_NATIVE_LANGUAGE = "english"
+DEFAULT_TEXT_SEARCH_EXTENSION_PG_SEARCH_TOKENIZER = ""
 
 # LiteLLM defaults
 DEFAULT_LITELLM_API_BASE = "http://localhost:4000"
@@ -946,6 +951,9 @@ class HindsightConfig:
     # uses TokenBigram, vchord uses llmlingua2, pg_textsearch hardcodes english,
     # pg_search uses Tantivy per-field tokenizers.
     text_search_extension_native_language: str
+    # ParadeDB pg_search tokenizer used when building BM25 indexes. Empty keeps
+    # ParadeDB's default tokenizer.
+    text_search_extension_pg_search_tokenizer: str
     # When set, every LLM-generated artifact (retain facts, consolidation
     # observations, reflect responses) is forced into this language regardless
     # of the source content. Unset preserves source language.
@@ -1261,7 +1269,7 @@ class HindsightConfig:
     embeddings_openai_dimensions: int | None = None
     embeddings_zeroentropy_api_key: str | None = None
     embeddings_zeroentropy_model: str = DEFAULT_EMBEDDINGS_ZEROENTROPY_MODEL
-    embeddings_zeroentropy_base_url: str = DEFAULT_EMBEDDINGS_ZEROENTROPY_BASE_URL
+    embeddings_zeroentropy_base_url: str = DEFAULT_ZEROENTROPY_BASE_URL
     embeddings_zeroentropy_dimensions: int = DEFAULT_EMBEDDINGS_ZEROENTROPY_DIMENSIONS
     embeddings_zeroentropy_encoding_format: str = DEFAULT_EMBEDDINGS_ZEROENTROPY_ENCODING_FORMAT
     embeddings_zeroentropy_batch_size: int = DEFAULT_EMBEDDINGS_ZEROENTROPY_BATCH_SIZE
@@ -1444,6 +1452,10 @@ class HindsightConfig:
                 f"'french', 'simple', 'zhparser'."
             )
 
+        self.text_search_extension_pg_search_tokenizer = normalize_pg_search_tokenizer(
+            self.text_search_extension_pg_search_tokenizer
+        )
+
         # When LLM provider is "none", force chunks-only mode and disable LLM-dependent features
         if self.llm_provider == "none":
             self.retain_extraction_mode = "chunks"
@@ -1468,11 +1480,6 @@ class HindsightConfig:
                 f"provider: {self.retain_llm_provider or self.llm_provider})"
             )
 
-        if self.embeddings_provider.lower() == "zeroentropy":
-            valid_dimensions = frozenset({2560, 1280, 640, 320, 160, 80, 40})
-            if self.embeddings_zeroentropy_dimensions not in valid_dimensions:
-                values = ", ".join(str(dim) for dim in sorted(valid_dimensions, reverse=True))
-                raise ValueError(f"{ENV_EMBEDDINGS_ZEROENTROPY_DIMENSIONS} must be one of {values}")
         # Warn if local ML dependencies are missing when configured.
         # Don't hard-fail here — the actual ImportError fires at model init time
         # with a clear message. This early warning catches it before startup proceeds.
@@ -1529,6 +1536,10 @@ class HindsightConfig:
                 ENV_TEXT_SEARCH_EXTENSION_NATIVE_LANGUAGE,
                 DEFAULT_TEXT_SEARCH_EXTENSION_NATIVE_LANGUAGE,
             ).lower(),
+            text_search_extension_pg_search_tokenizer=os.getenv(
+                ENV_TEXT_SEARCH_EXTENSION_PG_SEARCH_TOKENIZER,
+                DEFAULT_TEXT_SEARCH_EXTENSION_PG_SEARCH_TOKENIZER,
+            ),
             llm_output_language=(os.getenv(ENV_LLM_OUTPUT_LANGUAGE) or None),
             # LLM
             llm_provider=llm_provider,
@@ -1675,7 +1686,7 @@ class HindsightConfig:
                 ENV_EMBEDDINGS_ZEROENTROPY_MODEL, DEFAULT_EMBEDDINGS_ZEROENTROPY_MODEL
             ),
             embeddings_zeroentropy_base_url=os.getenv(
-                ENV_EMBEDDINGS_ZEROENTROPY_BASE_URL, DEFAULT_EMBEDDINGS_ZEROENTROPY_BASE_URL
+                ENV_EMBEDDINGS_ZEROENTROPY_BASE_URL, DEFAULT_ZEROENTROPY_BASE_URL
             ),
             embeddings_zeroentropy_dimensions=_parse_positive_int(
                 ENV_EMBEDDINGS_ZEROENTROPY_DIMENSIONS,
@@ -1684,7 +1695,7 @@ class HindsightConfig:
             ),
             embeddings_zeroentropy_encoding_format=_parse_optional_choice(
                 ENV_EMBEDDINGS_ZEROENTROPY_ENCODING_FORMAT,
-                os.getenv(ENV_EMBEDDINGS_ZEROENTROPY_ENCODING_FORMAT) or DEFAULT_EMBEDDINGS_ZEROENTROPY_ENCODING_FORMAT,
+                os.getenv(ENV_EMBEDDINGS_ZEROENTROPY_ENCODING_FORMAT),
                 frozenset({"float", "base64"}),
             )
             or DEFAULT_EMBEDDINGS_ZEROENTROPY_ENCODING_FORMAT,
