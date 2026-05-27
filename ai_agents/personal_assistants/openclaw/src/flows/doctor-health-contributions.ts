@@ -509,7 +509,7 @@ async function runHooksModelHealth(ctx: DoctorHealthFlowContext): Promise<void> 
     defaultProvider: DEFAULT_PROVIDER,
     defaultModel: DEFAULT_MODEL,
   });
-  const catalog = await loadModelCatalog({ config: ctx.cfg });
+  const catalog = await loadModelCatalog({ config: ctx.cfg, readOnly: true });
   const status = getModelRefStatus({
     cfg: ctx.cfg,
     catalog,
@@ -816,6 +816,8 @@ async function runFinalConfigValidationHealth(ctx: DoctorHealthFlowContext): Pro
   }
 }
 
+async function runRuntimeToolSchemasHealth(): Promise<void> {}
+
 export function resolveDoctorHealthContributions(): DoctorHealthContribution[] {
   return [
     createDoctorHealthContribution({
@@ -953,6 +955,12 @@ export function resolveDoctorHealthContributions(): DoctorHealthContribution[] {
       id: "doctor:tool-result-cap",
       label: "Tool result cap",
       run: runToolResultCapHealth,
+    }),
+    createDoctorHealthContribution({
+      id: "doctor:runtime-tool-schemas",
+      label: "Runtime tool schemas",
+      healthCheckIds: ["core/doctor/runtime-tool-schemas"],
+      run: runRuntimeToolSchemasHealth,
     }),
     createDoctorHealthContribution({
       id: "doctor:systemd-linger",
