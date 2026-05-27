@@ -1,5 +1,33 @@
 # @mastra/playground-ui
 
+## 30.0.0-alpha.10
+
+### Patch Changes
+
+- Updated dependencies [[`d72dc4b`](https://github.com/mastra-ai/mastra/commit/d72dc4b12d832546c05c20255fa96fe4eb515900)]:
+  - @mastra/core@1.37.0-alpha.9
+  - @mastra/client-js@1.21.0-alpha.10
+  - @mastra/react@0.4.1-alpha.10
+
+## 30.0.0-alpha.9
+
+### Patch Changes
+
+- Updated dependencies [[`271d891`](https://github.com/mastra-ai/mastra/commit/271d8917e4323340f9fe549f3e8de55810dbbcbe)]:
+  - @mastra/client-js@1.21.0-alpha.9
+  - @mastra/react@0.4.1-alpha.9
+
+## 30.0.0-alpha.8
+
+### Patch Changes
+
+- Exported ContextMenu from the package entry so it can be imported alongside other Base UI primitives. ([#17062](https://github.com/mastra-ai/mastra/pull/17062))
+
+- Updated dependencies [[`c35b962`](https://github.com/mastra-ai/mastra/commit/c35b9625c7e854fcfdeee226a3338a750d0ff211), [`c35b962`](https://github.com/mastra-ai/mastra/commit/c35b9625c7e854fcfdeee226a3338a750d0ff211), [`9be1545`](https://github.com/mastra-ai/mastra/commit/9be1545475eb81a716169bb1281a37853cc739e0), [`4084113`](https://github.com/mastra-ai/mastra/commit/408411370fc48a822e8b616b3b63f9409774e0e9), [`bc01b1b`](https://github.com/mastra-ai/mastra/commit/bc01b1bfafe381d90af909f8bce7eeb4eee779f2), [`1120b4f`](https://github.com/mastra-ai/mastra/commit/1120b4fa928552c6ee1751efa5603d955841e766)]:
+  - @mastra/core@1.37.0-alpha.8
+  - @mastra/client-js@1.21.0-alpha.8
+  - @mastra/react@0.4.1-alpha.8
+
 ## 30.0.0-alpha.7
 
 ### Patch Changes
