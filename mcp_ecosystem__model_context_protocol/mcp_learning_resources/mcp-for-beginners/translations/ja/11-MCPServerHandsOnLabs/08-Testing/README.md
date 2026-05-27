@@ -1414,7 +1414,7 @@ class DebugTool:
 
 ## 🚀 次のステップ
 
-**[Lab 09: VS Code Integration](../09-VS-Code/README.md)** に進んで以下を学びましょう：
+**[Lab 09: VS Code 統合](../09-VS-Code/README.md)** に進んで以下を学びましょう：
 
 - MCPサーバー開発のためのVS Codeの設定  
 - VS Codeでのデバッグ環境のセットアップ  
@@ -1440,8 +1440,8 @@ class DebugTool:
 
 ---
 
-**前回**: [Lab 07: Semantic Search Integration](../07-Semantic-Search/README.md)  
-**次回**: [Lab 09: VS Code Integration](../09-VS-Code/README.md)  
+**前回**: [Lab 07: セマンティック検索の統合](../07-Semantic-Search/README.md)  
+**次回**: [Lab 09: VS Code 統合](../09-VS-Code/README.md)  
 
 ---
 
