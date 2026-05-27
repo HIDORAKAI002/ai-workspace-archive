@@ -1,4 +1,6 @@
 import { randomUUID } from "node:crypto";
+import { writeFile } from "node:fs/promises";
+import path from "node:path";
 import type { MatrixQaObservedEvent } from "../../substrate/events.js";
 import {
   MATRIX_QA_BLOCK_ROOM_KEY,
@@ -18,6 +20,7 @@ import {
   buildMatrixPartialStreamingPrompt,
   buildMatrixQuietStreamingPrompt,
   buildMatrixQaToken,
+  buildMatrixToolProgressTaskContent,
   buildMatrixToolProgressErrorPrompt,
   buildMatrixToolProgressMentionSafetyPrompt,
   buildMatrixToolProgressPrompt,
@@ -29,6 +32,7 @@ import {
   createMatrixQaScenarioClient,
   isMatrixQaExactMarkerReply,
   isMatrixQaMessageLikeKind,
+  MATRIX_QA_TOOL_PROGRESS_TASK_FILENAME,
   primeMatrixQaActorCursor,
   primeMatrixQaDriverScenarioClient,
   resolveMatrixQaNoReplyWindowMs,
@@ -787,16 +791,37 @@ function buildMatrixQaToolProgressTimeoutMessage(params: {
       );
     })
     .slice(-8);
+  const messageCandidates =
+    candidates.length === 0
+      ? params.events
+          .slice(params.startIndex)
+          .filter(
+            (event) =>
+              event.roomId === params.roomId &&
+              event.sender === params.sutUserId &&
+              event.type === "m.room.message" &&
+              isMatrixQaMessageLikeKind(event.kind),
+          )
+          .slice(-8)
+      : [];
   const candidateDetails =
     candidates.length === 0
       ? ["observed preview candidates: <none>"]
       : ["observed preview candidates:", ...candidates.map(describeMatrixQaToolProgressCandidate)];
+  const messageCandidateDetails =
+    messageCandidates.length === 0
+      ? []
+      : [
+          "observed message candidates:",
+          ...messageCandidates.map(describeMatrixQaToolProgressCandidate),
+        ];
   return [
     params.cause instanceof Error
       ? params.cause.message
       : `Matrix tool progress wait failed: ${String(params.cause)}`,
     `preview event: ${params.previewEventId}`,
     ...candidateDetails,
+    ...messageCandidateDetails,
   ].join("\n");
 }
 
@@ -842,6 +867,7 @@ async function runMatrixToolProgressScenario(
   params: {
     expectedPreviewKind: MatrixQaObservedEvent["kind"];
     finalText: string;
+    allowFinalOnly?: boolean;
     label: string;
     allowGenericProgressLine?: boolean;
     mentionSafety?: boolean;
@@ -851,6 +877,7 @@ async function runMatrixToolProgressScenario(
 ) {
   const { client, startSince } = await primeMatrixQaDriverScenarioClient(context);
   const startObservedIndex = context.observedEvents.length;
+  await writeMatrixToolProgressTaskFile(context, params.finalText);
   const triggerBody = params.triggerBodyBuilder(context.sutUserId, params.finalText);
   const driverEventId = await client.sendTextMessage({
     body: triggerBody,
@@ -870,9 +897,13 @@ async function runMatrixToolProgressScenario(
       predicate: (event) =>
         event.roomId === context.roomId &&
         event.sender === context.sutUserId &&
-        event.kind === params.expectedPreviewKind &&
-        (event.relatesTo === undefined ||
-          (event.relatesTo.relType === "m.replace" && matchesExpectedProgress(event.body))),
+        ((event.kind === params.expectedPreviewKind &&
+          (event.relatesTo === undefined ||
+            (event.relatesTo.relType === "m.replace" && matchesExpectedProgress(event.body)))) ||
+          (params.allowFinalOnly === true &&
+            event.relatesTo === undefined &&
+            isMatrixQaMessageLikeKind(event.kind) &&
+            doesMatrixQaReplyBodyMatchToken(event, params.finalText))),
       roomId: context.roomId,
       since: startSince,
       timeoutMs: context.timeoutMs,
@@ -890,6 +921,44 @@ async function runMatrixToolProgressScenario(
         }),
       );
     });
+  if (
+    params.allowFinalOnly === true &&
+    doesMatrixQaReplyBodyMatchToken(preview.event, params.finalText)
+  ) {
+    const unexpectedWorkingEvents = findMatrixQaUnexpectedWorkingEvents({
+      events: context.observedEvents,
+      finalEventId: preview.event.eventId,
+      startIndex: startObservedIndex,
+      sutUserId: context.sutUserId,
+    });
+    if (unexpectedWorkingEvents.length > 0) {
+      throw new Error(
+        `Matrix tool progress leaked outside preview event: ${unexpectedWorkingEvents.map((event) => `${event.eventId}:${event.body ?? ""}`).join("; ")}`,
+      );
+    }
+    advanceMatrixQaActorCursor({
+      actorId: "driver",
+      syncState: context.syncState,
+      nextSince: preview.since,
+      startSince,
+    });
+    const finalReply = buildMatrixReplyArtifact(preview.event, params.finalText);
+    return {
+      artifacts: {
+        driverEventId,
+        previewEventId: undefined,
+        reply: finalReply,
+        token: params.finalText,
+        triggerBody,
+      },
+      details: [
+        `driver event: ${driverEventId}`,
+        `scenario: ${params.label}`,
+        "preview event: <none>; final delivered before observable tool-progress preview",
+        ...buildMatrixReplyDetails("final reply", finalReply),
+      ].join("\n"),
+    } satisfies MatrixQaScenarioExecution;
+  }
   const previewRootEventId = getPreviewRootEventId(preview.event);
   const progress = matchesExpectedProgress(preview.event.body)
     ? preview
@@ -996,11 +1065,26 @@ async function runMatrixToolProgressScenario(
   } satisfies MatrixQaScenarioExecution;
 }
 
+async function writeMatrixToolProgressTaskFile(
+  context: MatrixQaScenarioContext,
+  finalText: string,
+) {
+  if (!context.gatewayWorkspaceDir) {
+    return;
+  }
+  await writeFile(
+    path.join(context.gatewayWorkspaceDir, MATRIX_QA_TOOL_PROGRESS_TASK_FILENAME),
+    `${buildMatrixToolProgressTaskContent(finalText)}\n`,
+    "utf8",
+  );
+}
+
 export async function runToolProgressPreviewScenario(context: MatrixQaScenarioContext) {
   return runMatrixToolProgressScenario(context, {
     expectedPreviewKind: "notice",
     finalText: buildMatrixQaToken("MATRIX_QA_TOOL_PROGRESS"),
     label: "tool progress preview",
+    allowFinalOnly: true,
     allowGenericProgressLine: true,
     progressPattern: /\b(?:tool:\s*)?read\s*:\s*from\b|\btool:\s*read\b/i,
     triggerBodyBuilder: buildMatrixToolProgressPrompt,
@@ -1033,7 +1117,8 @@ export async function runToolProgressPreviewOptOutScenario(context: MatrixQaScen
   const { client, startSince } = await primeMatrixQaDriverScenarioClient(context);
   const startObservedIndex = context.observedEvents.length;
   const finalText = buildMatrixQaToken("MATRIX_QA_TOOL_PROGRESS_OPTOUT");
-  const triggerBody = buildMatrixToolProgressPrompt(context.sutUserId, finalText);
+  await writeMatrixToolProgressTaskFile(context, finalText);
+  const triggerBody = buildMatrixToolProgressPrompt(context.sutUserId);
   const driverEventId = await client.sendTextMessage({
     body: triggerBody,
     mentionUserIds: [context.sutUserId],

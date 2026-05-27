@@ -113,6 +113,18 @@ class UnqualifiedTableError(Exception):
     pass
 
 
+class MentalModelRefreshError(Exception):
+    """Raised when refresh_mental_model cannot produce new content.
+
+    The previous content (if any) is preserved in the DB and the reflect_response
+    audit trail is persisted before this is raised, so the failure is recoverable
+    and auditable. Callers (worker queue, integration tests) should treat this
+    as a retryable condition.
+    """
+
+    pass
+
+
 def validate_sql_schema(sql: str) -> None:
     """
     Validate that SQL doesn't contain unqualified table references.
@@ -3166,7 +3178,11 @@ class MemoryEngine(MemoryEngineInterface):
             embedding_span.set_attribute("hindsight.query", query[:100])
 
             try:
-                query_embeddings = await embedding_utils.generate_embeddings_batch(self.embeddings, [query])
+                query_embeddings = await embedding_utils.generate_embeddings_batch(
+                    self.embeddings,
+                    [query],
+                    input_type="query",
+                )
                 query_embedding = query_embeddings[0]
                 step_duration = time.time() - step_start
                 log_buffer.append(f"  [1] Generate query embedding: {step_duration:.3f}s")
@@ -6264,7 +6280,11 @@ class MemoryEngine(MemoryEngineInterface):
 
         async def search_mental_models_fn(q: str, max_results: int = 5) -> dict[str, Any]:
             # Generate embedding for the query
-            embeddings = await embedding_utils.generate_embeddings_batch(self.embeddings, [q])
+            embeddings = await embedding_utils.generate_embeddings_batch(
+                self.embeddings,
+                [q],
+                input_type="query",
+            )
             query_embedding = embeddings[0]
             async with backend.acquire() as conn:
                 return await tool_search_mental_models(
@@ -8083,26 +8103,32 @@ class MemoryEngine(MemoryEngineInterface):
 
             # Refuse to overwrite existing content with an empty render.
             # The reflect agent can return an empty answer (small models, all
-            # tool-call retries failing, transient provider errors) and the
-            # delta merge can also fall back to that empty candidate. Writing
-            # "" to the DB would destroy the working document — and since the
-            # next refresh sees current_content == "" it would also skip the
-            # delta path, compounding the problem. Preserve what's there and
-            # surface the failure via reflect_response.
-            if not final_content.strip() and current_content:
+            # tool-call retries failing, transient provider errors, the cleaner
+            # regex eating a JSON-dump that the LLM put in the answer field).
+            # Writing "" to the DB would destroy the working document; on the
+            # other hand silently returning the previous content masks upstream
+            # failures from callers (workers, tests). So: preserve existing
+            # content in the DB (and audit the failure via reflect_response),
+            # then RAISE so the caller knows the refresh didn't happen.
+            if not final_content.strip():
                 logger.warning(
                     f"[MENTAL_MODELS] Refresh for {mental_model_id} produced empty content; "
-                    "preserving previous content (likely an upstream LLM failure)"
+                    "preserving previous content and raising MentalModelRefreshError."
                 )
                 reflect_response_payload["refresh_skipped"] = "empty_candidate"
                 # Persist the reflect_response (so the failure is auditable) and
                 # the source-query tracking, but do NOT touch content/structured.
-                return await self.update_mental_model(
+                await self.update_mental_model(
                     bank_id,
                     mental_model_id,
                     reflect_response=reflect_response_payload,
                     last_refreshed_source_query=current_source_query,
                     request_context=request_context,
+                )
+                raise MentalModelRefreshError(
+                    f"Refresh produced empty content for mental_model_id={mental_model_id} "
+                    "(likely an upstream LLM failure). Previous content preserved in DB; "
+                    "reflect_response.refresh_skipped == 'empty_candidate' for audit."
                 )
 
             # When delta is not applied (full mode, or delta fallback), parse the

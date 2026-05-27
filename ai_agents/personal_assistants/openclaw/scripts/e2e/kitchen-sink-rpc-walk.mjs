@@ -27,6 +27,7 @@ const INSTALL_TIMEOUT_MS = readPositiveInt(
   Math.max(COMMAND_TIMEOUT_MS, 600000),
 );
 const RPC_TIMEOUT_MS = readPositiveInt(process.env.OPENCLAW_KITCHEN_SINK_RPC_CALL_MS, 60000);
+const FETCH_TIMEOUT_MS = readPositiveInt(process.env.OPENCLAW_KITCHEN_SINK_RPC_FETCH_MS, 10000);
 const MAX_RSS_MIB = readPositiveInt(process.env.OPENCLAW_KITCHEN_SINK_MAX_RSS_MIB, 2048);
 const GATEWAY_TEARDOWN_GRACE_MS = 10000;
 const GATEWAY_TEARDOWN_KILL_GRACE_MS = 2000;
@@ -35,6 +36,7 @@ const OUTPUT_CAPTURE_CHARS = readPositiveInt(
   1024 * 1024,
 );
 const DEFAULT_PORT = 19000 + Math.floor(Math.random() * 1000);
+const LOG_SCAN_CHUNK_BYTES = 64 * 1024;
 
 let callGatewayModulePromise;
 
@@ -439,11 +441,27 @@ function isRetryableTransientNetworkError(error, seen = new Set()) {
 
 export async function fetchJson(url, options = {}) {
   const attempts = Math.max(1, options.attempts ?? 3);
+  const timeoutMs = Math.max(1, options.timeoutMs ?? FETCH_TIMEOUT_MS);
   let lastError;
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    const controller = new AbortController();
+    const timeoutError = Object.assign(new Error(`fetch ${url} timed out after ${timeoutMs}ms`), {
+      code: "ETIMEDOUT",
+    });
+    let timeout;
+    const timeoutPromise = new Promise((_, reject) => {
+      timeout = setTimeout(() => {
+        controller.abort(timeoutError);
+        reject(timeoutError);
+      }, timeoutMs);
+      timeout.unref?.();
+    });
     try {
-      const response = await (options.fetchImpl ?? fetch)(url);
-      const text = await response.text();
+      const response = await Promise.race([
+        (options.fetchImpl ?? fetch)(url, { signal: controller.signal }),
+        timeoutPromise,
+      ]);
+      const text = await Promise.race([response.text(), timeoutPromise]);
       let body = null;
       try {
         body = text ? JSON.parse(text) : null;
@@ -457,6 +475,10 @@ export async function fetchJson(url, options = {}) {
         throw error;
       }
       await delay(options.retryDelayMs ?? 250);
+    } finally {
+      if (timeout) {
+        clearTimeout(timeout);
+      }
     }
   }
   throw lastError ?? new Error(`fetch ${url} failed`);
@@ -579,9 +601,61 @@ function signalGateway(child, signal) {
   child.kill(signal);
 }
 
+export function createGatewayReadyLogScanner(logPath, marker = "[gateway] ready") {
+  let offset = 0;
+  let tail = "";
+  let found = false;
+
+  return () => {
+    if (found) {
+      return true;
+    }
+
+    let stat;
+    try {
+      stat = fs.statSync(logPath);
+    } catch {
+      offset = 0;
+      tail = "";
+      return false;
+    }
+
+    if (stat.size < offset) {
+      offset = 0;
+      tail = "";
+    }
+    if (stat.size === offset) {
+      return false;
+    }
+
+    const fd = fs.openSync(logPath, "r");
+    try {
+      const buffer = Buffer.allocUnsafe(Math.min(LOG_SCAN_CHUNK_BYTES, stat.size - offset));
+      while (offset < stat.size) {
+        const bytesToRead = Math.min(buffer.length, stat.size - offset);
+        const bytesRead = fs.readSync(fd, buffer, 0, bytesToRead, offset);
+        if (bytesRead <= 0) {
+          break;
+        }
+        offset += bytesRead;
+        const text = `${tail}${buffer.subarray(0, bytesRead).toString("utf8")}`;
+        if (text.includes(marker)) {
+          found = true;
+          return true;
+        }
+        tail = text.slice(-Math.max(0, marker.length - 1));
+      }
+      return false;
+    } finally {
+      fs.closeSync(fd);
+    }
+  };
+}
+
 async function waitForGatewayReady(child, port, logPath) {
   const started = Date.now();
   let lastError = "";
+  const logReportedReady = createGatewayReadyLogScanner(logPath);
   while (Date.now() - started < READY_TIMEOUT_MS) {
     if (child.exitCode !== null) {
       throw new Error(`gateway exited before ready\n${tailFile(logPath)}`);
@@ -595,7 +669,7 @@ async function waitForGatewayReady(child, port, logPath) {
     } catch (error) {
       lastError = error instanceof Error ? error.message : String(error);
     }
-    if (fs.existsSync(logPath) && fs.readFileSync(logPath, "utf8").includes("[gateway] ready")) {
+    if (logReportedReady()) {
       lastError = `${lastError}; gateway log reported ready before HTTP readiness`;
     }
     await delay(250);

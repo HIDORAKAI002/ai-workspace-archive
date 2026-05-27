@@ -1085,7 +1085,9 @@ export const agentHandlers: GatewayRequestHandlers = {
         let baseProvider: string | undefined;
         let baseModel: string | undefined;
         if (requestedSessionKeyRaw) {
-          const { cfg: sessCfg, entry: sessEntry } = loadSessionEntry(requestedSessionKeyRaw);
+          const { cfg: sessCfg, entry: sessEntry } = loadSessionEntry(requestedSessionKeyRaw, {
+            clone: false,
+          });
           const sessionAgentId = resolveAgentIdFromSessionKey(requestedSessionKeyRaw);
           const modelRef = resolveSessionModelRef(sessCfg, sessEntry, sessionAgentId);
           baseProvider = modelRef.provider;
@@ -1162,7 +1164,9 @@ export const agentHandlers: GatewayRequestHandlers = {
       const explicitVoiceWakeSessionTarget =
         !agentId && requestedSessionKeyRaw
           ? (() => {
-              const { cfg: sessionCfg, canonicalKey } = loadSessionEntry(requestedSessionKeyRaw);
+              const { cfg: sessionCfg, canonicalKey } = loadSessionEntry(requestedSessionKeyRaw, {
+                clone: false,
+              });
               const routedAgentId = resolveAgentIdFromSessionKey(canonicalKey);
               const defaultAgentId = normalizeAgentId(resolveDefaultAgentId(sessionCfg));
               if (routedAgentId !== defaultAgentId) {
@@ -1202,7 +1206,9 @@ export const agentHandlers: GatewayRequestHandlers = {
             }
           } else if ("sessionKey" in route) {
             if (classifySessionKeyShape(route.sessionKey) !== "malformed_agent") {
-              const canonicalRouteSession = loadSessionEntry(route.sessionKey).canonicalKey;
+              const canonicalRouteSession = loadSessionEntry(route.sessionKey, {
+                clone: false,
+              }).canonicalKey;
               const routedAgentId = resolveAgentIdFromSessionKey(canonicalRouteSession);
               if (knownAgents.includes(routedAgentId)) {
                 requestedSessionKey = canonicalRouteSession;
@@ -1230,6 +1236,7 @@ export const agentHandlers: GatewayRequestHandlers = {
       let isNewSession = false;
       let skipTimestampInjection = false;
       let shouldPrependStartupContext = false;
+      let skipAgentInitialSessionTouch = false;
 
       const resetCommandMatch = message.match(RESET_COMMAND_RE);
       if (resetCommandMatch && requestedSessionKey) {
@@ -1257,7 +1264,7 @@ export const agentHandlers: GatewayRequestHandlers = {
         if (postResetMessage) {
           message = postResetMessage;
         } else {
-          const resetLoadedSession = loadSessionEntry(requestedSessionKey);
+          const resetLoadedSession = loadSessionEntry(requestedSessionKey, { clone: false });
           const resetCfg = resetLoadedSession?.cfg ?? cfg;
           const resetSessionEntry = resetLoadedSession?.entry;
           const resetSpawnedBy = canonicalizeSpawnedByForAgent(
@@ -1317,7 +1324,9 @@ export const agentHandlers: GatewayRequestHandlers = {
       }
 
       if (requestedSessionKey) {
-        const { cfg, storePath, entry, canonicalKey } = loadSessionEntry(requestedSessionKey);
+        const { cfg, storePath, entry, canonicalKey } = loadSessionEntry(requestedSessionKey, {
+          clone: false,
+        });
         cfgForAgent = cfg;
         const now = Date.now();
         const resetPolicy = resolveSessionResetPolicy({
@@ -1548,42 +1557,47 @@ export const agentHandlers: GatewayRequestHandlers = {
         if (storePath && !suppressVisibleSessionEffects) {
           const requestedStoreKey = requestedSessionKey;
           let deniedBySendPolicy = false;
-          const persisted = await updateSessionStore(storePath, (store) => {
-            const { primaryKey } = migrateAndPruneGatewaySessionStoreKey({
-              cfg,
-              key: requestedStoreKey,
-              store,
-            });
-            const freshEntry = store[primaryKey];
-            patchBuild = buildSessionPatch(freshEntry);
-            const effectivePatch =
-              recoveredSessionStartedAt !== undefined &&
-              freshEntry?.sessionStartedAt === undefined &&
-              freshEntry?.sessionId === entry?.sessionId
-                ? { ...patchBuild.patch, sessionStartedAt: recoveredSessionStartedAt }
-                : patchBuild.patch;
-            const merged = mergeSessionEntry(freshEntry, effectivePatch);
-            const sendPolicy =
-              request.deliver === true
-                ? resolveSendPolicy({
-                    cfg,
-                    entry: merged,
-                    sessionKey: canonicalKey,
-                    channel: merged?.channel,
-                    chatType: merged?.chatType,
-                  })
-                : "allow";
-            if (sendPolicy === "deny") {
-              deniedBySendPolicy = true;
+          const persisted = await updateSessionStore(
+            storePath,
+            (store) => {
+              const { primaryKey } = migrateAndPruneGatewaySessionStoreKey({
+                cfg,
+                key: requestedStoreKey,
+                store,
+              });
+              const freshEntry = store[primaryKey];
+              patchBuild = buildSessionPatch(freshEntry);
+              const effectivePatch =
+                recoveredSessionStartedAt !== undefined &&
+                freshEntry?.sessionStartedAt === undefined &&
+                freshEntry?.sessionId === entry?.sessionId
+                  ? { ...patchBuild.patch, sessionStartedAt: recoveredSessionStartedAt }
+                  : patchBuild.patch;
+              const merged = mergeSessionEntry(freshEntry, effectivePatch);
+              const sendPolicy =
+                request.deliver === true
+                  ? resolveSendPolicy({
+                      cfg,
+                      entry: merged,
+                      sessionKey: canonicalKey,
+                      channel: merged?.channel,
+                      chatType: merged?.chatType,
+                    })
+                  : "allow";
+              if (sendPolicy === "deny") {
+                deniedBySendPolicy = true;
+                return merged;
+              }
+              store[primaryKey] = merged;
               return merged;
-            }
-            store[primaryKey] = merged;
-            return merged;
-          });
+            },
+            { takeCacheOwnership: true },
+          );
           if (persisted) {
             sessionEntry = persisted;
             resolvedSessionId = sessionEntry.sessionId;
           }
+          skipAgentInitialSessionTouch = touchInteraction;
           if (deniedBySendPolicy) {
             respond(
               false,
@@ -2056,6 +2070,7 @@ export const agentHandlers: GatewayRequestHandlers = {
               internalEvents: request.internalEvents,
               inputProvenance,
               sessionEffects,
+              skipInitialSessionTouch: skipAgentInitialSessionTouch,
               preserveUserFacingSessionModelState,
               sourceReplyDeliveryMode: request.sourceReplyDeliveryMode,
               disableMessageTool: request.disableMessageTool,
