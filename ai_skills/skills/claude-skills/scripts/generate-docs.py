@@ -24,6 +24,8 @@ DOMAINS = {
     "research": ("Research", 12, ":material-magnify:", "research-skills"),
     "business-operations": ("Business Operations", 13, ":material-cog-outline:", "business-operations-skills"),
     "commercial": ("Commercial", 14, ":material-handshake-outline:", "commercial-skills"),
+    "research-ops": ("Research Operations", 15, ":material-flask-outline:", "research-ops-skills"),
+    "compliance-os": ("Compliance OS", 16, ":material-shield-lock-outline:", "compliance-os"),
 }
 
 # Skills to skip (nested assets, samples, etc.)
@@ -629,6 +631,8 @@ description: "{agent_desc}"
         "finance": "finance",
         "business-operations": "business-operations",
         "commercial": "commercial",
+        "research-ops": "research-ops",
+        "compliance-os": "compliance-os",
     }
     seen_slugs = {entry[1] for entry in agent_entries}
     for skill_domain in DOMAINS:

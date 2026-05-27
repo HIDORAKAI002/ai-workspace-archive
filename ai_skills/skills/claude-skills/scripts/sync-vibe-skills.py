@@ -49,6 +49,8 @@ DOMAIN_DIRS = [
     "research",      # v2.7.0 — pulse, litreview, grants, dossier, patent, syllabus, notebooklm, research orchestrator
     "business-operations",  # v2.8.0 — process-mapper, vendor-management, capacity-planner, internal-comms, knowledge-ops, procurement-optimizer + orchestrator
     "commercial",    # v2.8.0 — pricing-strategist, deal-desk, partnerships-architect, channel-economics, commercial-policy, rfp-responder, commercial-forecaster + orchestrator
+    "research-ops",  # v2.9.0 — clinical-research, research-finance, market-research, product-research + orchestrator
+    "compliance-os",  # ISO 13485/27001, SOC 2, GDPR, FDA QSR, EU AI Act audit-prep + orchestrator
 ]
 
 

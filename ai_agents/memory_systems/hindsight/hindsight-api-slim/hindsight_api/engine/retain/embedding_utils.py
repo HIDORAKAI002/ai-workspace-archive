@@ -12,7 +12,8 @@ EmbeddingInputType = Literal["document", "query"]
 
 
 class EmbeddingsBackend(Protocol):
-    def encode(self, texts: list[str]) -> list[list[float]]: ...
+    """Minimal duck-typed surface used by retain/recall — the concrete `Embeddings`
+    ABC supplies default implementations that delegate to `encode()`."""
 
     def encode_query(self, texts: list[str]) -> list[list[float]]: ...
 
@@ -43,13 +44,9 @@ def generate_embedding(
 def _encode_with_input_type(
     embeddings_backend: EmbeddingsBackend, texts: list[str], input_type: EmbeddingInputType
 ) -> list[list[float]]:
-    encode_query = getattr(type(embeddings_backend), "encode_query", None)
-    if input_type == "query" and callable(encode_query):
+    if input_type == "query":
         return embeddings_backend.encode_query(texts)
-    encode_documents = getattr(type(embeddings_backend), "encode_documents", None)
-    if input_type == "document" and callable(encode_documents):
-        return embeddings_backend.encode_documents(texts)
-    return embeddings_backend.encode(texts)
+    return embeddings_backend.encode_documents(texts)
 
 
 async def generate_embeddings_batch(

@@ -72,9 +72,15 @@ RISK_PATTERNS = [
     },
     {
         "name": "console_log",
-        "pattern": r"console\.(log|debug|info|warn|error)\(|\bDebug\.WriteLine\(",
+        "pattern": (
+            r"console\.(log|debug|info|warn|error)\(|\bDebug\.WriteLine\(|"
+            r"\bSystem\.out\.print(?:ln)?\(|\.printStackTrace\("
+        ),
         "severity": "medium",
-        "message": "Debug output statement found (console.* / Debug.WriteLine)"
+        "message": (
+            "Debug output statement found "
+            "(console.* / Debug.WriteLine / System.out / printStackTrace)"
+        )
     },
     {
         "name": "debugger",
@@ -84,9 +90,15 @@ RISK_PATTERNS = [
     },
     {
         "name": "analyzer_disable",
-        "pattern": r"eslint-disable|#pragma\s+warning\s+disable|\[SuppressMessage",
+        "pattern": (
+            r"eslint-disable|#pragma\s+warning\s+disable|\[SuppressMessage|"
+            r"@SuppressWarnings"
+        ),
         "severity": "medium",
-        "message": "Static-analyzer rule disabled (ESLint / Roslyn / SuppressMessage)"
+        "message": (
+            "Static-analyzer rule disabled "
+            "(ESLint / Roslyn / SuppressMessage / @SuppressWarnings)"
+        )
     },
     {
         "name": "loose_type",

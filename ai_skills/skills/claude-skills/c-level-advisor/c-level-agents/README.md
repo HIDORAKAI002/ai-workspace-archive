@@ -83,6 +83,6 @@ Existing `cs-ceo-advisor` and `cs-cto-advisor` live in `/agents/c-level/` and in
 
 ---
 
-**Version:** 1.0.0
+**Version:** 2.9.0
 **Status:** Production Ready
 **License:** MIT

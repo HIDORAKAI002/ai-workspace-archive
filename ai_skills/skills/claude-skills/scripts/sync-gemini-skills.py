@@ -33,7 +33,9 @@ DOMAIN_MAP = {
     "marketing": "marketing-top-level",
     "research": "research",
     "business-operations": "business-operations",
-    "commercial": "commercial"
+    "commercial": "commercial",
+    "research-ops": "research-ops",
+    "compliance-os": "compliance-os"
 }
 
 

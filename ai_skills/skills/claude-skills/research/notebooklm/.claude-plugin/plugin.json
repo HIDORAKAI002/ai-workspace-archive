@@ -1,7 +1,7 @@
 {
   "name": "notebooklm",
   "description": "Browser automation skill for controlling Google's NotebookLM. Handles reading and querying notebooks, adding sources (URLs, text, files, YouTube links, synthesized content), generating Studio outputs (Audio Overview, infographics, slide decks, study guides, briefing docs, mind maps, timelines, FAQs), and creating new notebooks. Triggers on any phrase involving NotebookLM \u2014 'open NotebookLM', 'check my [name] notebook', 'pull info from NotebookLM', 'ask my notebook about X', 'add [source] to NotebookLM', 'create an infographic in NotebookLM', 'use NotebookLM Studio', 'generate a slide deck from my notebook', or any variation where the goal involves NotebookLM. Requires browser automation environment \u2014 fails gracefully when unavailable.",
-  "version": "2.7.0",
+  "version": "2.9.0",
   "author": {
     "name": "Alireza Rezvani",
     "url": "https://alirezarezvani.com"

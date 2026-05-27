@@ -86,12 +86,16 @@ export async function runCodeEvalTestForJobConfig(params: {
   mapping: ObservationVariableMapping[];
   scoreName: string;
   filter: FilterCondition[] | null;
-}): Promise<CodeEvalTestRunResult> {
+}): Promise<CodeEvalTestRunResult | null> {
   const observation = await getObservationForEvalByFilter({
     projectId: params.projectId,
     target: params.target,
     filter: params.filter,
   });
+
+  if (!observation) {
+    return null;
+  }
 
   return runCodeEvalTestForObservation({
     ...params,
@@ -190,7 +194,7 @@ async function getObservationForEvalByFilter(params: {
   projectId: string;
   target: EvalTargetObject;
   filter: FilterCondition[] | null;
-}): Promise<ObservationForEval> {
+}): Promise<ObservationForEval | null> {
   if (!isEventTarget(params.target) && !isExperimentTarget(params.target)) {
     throw new TRPCError({
       code: "BAD_REQUEST",
@@ -212,11 +216,7 @@ async function getObservationForEvalByFilter(params: {
     return observationForEvalSchema.parse(row);
   }
 
-  throw new TRPCError({
-    code: "PRECONDITION_FAILED",
-    message:
-      "No matching observation found to test this code evaluator. Adjust the filters and try again.",
-  });
+  return null;
 }
 
 async function getObservationForEvalById(params: {
@@ -227,7 +227,7 @@ async function getObservationForEvalById(params: {
   shouldReadFromObservationsTable?: boolean;
 }): Promise<ObservationForEval> {
   if (
-    env.LANGFUSE_ENABLE_EVENTS_TABLE_OBSERVATIONS !== "true" ||
+    env.LANGFUSE_ENABLE_EVENTS_TABLE_FLAGS !== "true" ||
     params.shouldReadFromObservationsTable
   ) {
     return getObservationForEvalByIdFromLegacyObservations(params);

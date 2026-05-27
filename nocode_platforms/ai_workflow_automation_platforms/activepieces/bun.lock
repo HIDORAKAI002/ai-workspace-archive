@@ -6150,6 +6150,16 @@
         "tslib": "2.6.2",
       },
     },
+    "packages/pieces/community/salesloft": {
+      "name": "@activepieces/piece-salesloft",
+      "version": "0.0.1",
+      "dependencies": {
+        "@activepieces/pieces-common": "workspace:*",
+        "@activepieces/pieces-framework": "workspace:*",
+        "@activepieces/shared": "workspace:*",
+        "tslib": "2.6.2",
+      },
+    },
     "packages/pieces/community/sap-ariba": {
       "name": "@activepieces/piece-sap-ariba",
       "version": "0.0.5",
@@ -7583,6 +7593,16 @@
     "packages/pieces/community/whatsscale": {
       "name": "@activepieces/piece-whatsscale",
       "version": "0.0.2",
+      "dependencies": {
+        "@activepieces/pieces-common": "workspace:*",
+        "@activepieces/pieces-framework": "workspace:*",
+        "@activepieces/shared": "workspace:*",
+        "tslib": "2.6.2",
+      },
+    },
+    "packages/pieces/community/wistia": {
+      "name": "@activepieces/piece-wistia",
+      "version": "0.0.1",
       "dependencies": {
         "@activepieces/pieces-common": "workspace:*",
         "@activepieces/pieces-framework": "workspace:*",
@@ -9821,6 +9841,8 @@
 
     "@activepieces/piece-salesforce": ["@activepieces/piece-salesforce@workspace:packages/pieces/community/salesforce"],
 
+    "@activepieces/piece-salesloft": ["@activepieces/piece-salesloft@workspace:packages/pieces/community/salesloft"],
+
     "@activepieces/piece-sap-ariba": ["@activepieces/piece-sap-ariba@workspace:packages/pieces/community/sap-ariba"],
 
     "@activepieces/piece-sardis": ["@activepieces/piece-sardis@workspace:packages/pieces/community/sardis"],
@@ -10112,6 +10134,8 @@
     "@activepieces/piece-whatsapp": ["@activepieces/piece-whatsapp@workspace:packages/pieces/community/whatsapp"],
 
     "@activepieces/piece-whatsscale": ["@activepieces/piece-whatsscale@workspace:packages/pieces/community/whatsscale"],
+
+    "@activepieces/piece-wistia": ["@activepieces/piece-wistia@workspace:packages/pieces/community/wistia"],
 
     "@activepieces/piece-wonderchat": ["@activepieces/piece-wonderchat@workspace:packages/pieces/community/wonderchat"],
 

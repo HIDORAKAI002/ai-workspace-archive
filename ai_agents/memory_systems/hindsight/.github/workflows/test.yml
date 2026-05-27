@@ -737,6 +737,9 @@ jobs:
     - name: Test Control Plane
       run: npm test --workspace=hindsight-control-plane
 
+    - name: Check i18n locale parity and hardcoded strings
+      run: npm run i18n:check --workspace=hindsight-control-plane
+
     - name: Build Control Plane
       run: npm run build --workspace=hindsight-control-plane
 
@@ -3284,6 +3287,9 @@ jobs:
 
     - name: Test Control Plane
       run: npm test --workspace=hindsight-control-plane
+
+    - name: Check i18n locale parity and hardcoded strings
+      run: npm run i18n:check --workspace=hindsight-control-plane
 
     - name: Build Control Plane
       run: npm run build --workspace=hindsight-control-plane

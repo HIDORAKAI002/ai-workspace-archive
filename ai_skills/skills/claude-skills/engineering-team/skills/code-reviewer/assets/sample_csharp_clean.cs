@@ -1,6 +1,6 @@
 // Sample C# file showing the fixed version of sample_csharp_smells.cs.
 // Same shape, but every smell has been resolved per the patterns documented
-// in references/coding_standards.md and references/common_antipatterns.md.
+// in rules/universal.md and languages/csharp.md.
 //
 // Run:
 //   python scripts/code_quality_checker.py assets/sample_csharp_clean.cs
