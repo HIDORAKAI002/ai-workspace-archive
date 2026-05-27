@@ -48,6 +48,18 @@ _DAGSTER_DBT_CORE_MAIN_CLI_TESTS = "dagster_dbt_tests/cli"
 
 _GRAPHQL_GRPC_RESOURCES = ResourceRequests(cpu="2000m", memory="4Gi")
 
+# clickhouse-server in dind via testcontainers. Default 2Gi dind limit OOMs the
+# server under load. cpu bumped 1000m->2000m: at 1000m the clickhouse-server boot
+# starves the dind daemon, so testcontainers' container bring-up intermittently
+# blows docker-py's 60s read timeout (UnixHTTPConnectionPool ... read timeout=60)
+# and the session fixture errors. Pairs with the /var/lib/docker emptyDir mount.
+_CLICKHOUSE_TESTCONTAINERS_RESOURCES = ResourceRequests(
+    cpu="2000m",
+    memory="1Gi",
+    docker_memory="2Gi",
+    docker_memory_limit="4Gi",
+)
+
 
 def _infer_package_type(directory: str | Path) -> str:
     directory = Path(directory)
@@ -248,9 +260,9 @@ class PackageSpec:
                                 base_label=split_label,
                                 command_type="pytest",
                                 python_version=py_version,
-                                env_vars=self.env_vars,
+                                env=self.env_vars,
                                 extra_commands_pre=extra_commands_pre,
-                                dependencies=dependencies,
+                                depends_on=dependencies,
                                 tox_file=self.tox_file,
                                 timeout_in_minutes=self.timeout_in_minutes,
                                 queue=(
@@ -671,13 +683,18 @@ def _example_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
             oss_path("examples/use_case_repository"),
             pytest_tox_factors=[ToxFactor("source")],
         ),
-        # Federation tutorial spins up multiple airflow instances, slow to run - use docker queue to ensure
-        # beefier instance
+        # Federation tutorial spins up two host-process airflow instances + dagster;
+        # needs a beefier main container than MEDIUM's c5a.large (2 vCPU / 4 Gi) provides.
         PackageSpec(
             oss_path("examples/airlift-federation-tutorial"),
             force_run_fn=BuildkiteContext.has_dagster_airlift_changes,
             timeout_in_minutes=30,
-            queue=BuildkiteQueue.DOCKER,
+            queue=BuildkiteQueue.KUBERNETES_EKS,
+            # Two airflow standalone stacks + dagster share one pod. 2 vCPU starved
+            # the SQLite writers under load (scheduler died with "database is
+            # locked", failing test_load_metrics); 4 vCPU matches the old c5.xlarge
+            # DOCKER-queue sizing this package ran on before #24950.
+            resources=ResourceRequests(cpu="4000m", memory="6Gi"),
             unsupported_python_versions=[
                 # airflow
                 AvailablePythonVersion.V3_12,
@@ -1052,12 +1069,6 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
         ),
         PackageSpec(
             oss_path("python_modules/libraries/dagster-airlift"),
-            unsupported_python_versions=[
-                # airflow
-                AvailablePythonVersion.V3_12,
-                AvailablePythonVersion.V3_13,
-                AvailablePythonVersion.V3_14,
-            ],
             env_vars=[
                 "AIRLIFT_MWAA_TEST_ENV_NAME",
                 "AIRLIFT_MWAA_TEST_PROFILE",
@@ -1209,7 +1220,8 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
         ),
         PackageSpec(
             oss_path("python_modules/libraries/dagster-clickhouse"),
-            queue=BuildkiteQueue.DOCKER,
+            queue=BuildkiteQueue.KUBERNETES_EKS,
+            resources=_CLICKHOUSE_TESTCONTAINERS_RESOURCES,
             unsupported_python_versions=[
                 AvailablePythonVersion.V3_12,
             ],
@@ -1217,7 +1229,8 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
         ),
         PackageSpec(
             oss_path("python_modules/libraries/dagster-clickhouse-pandas"),
-            queue=BuildkiteQueue.DOCKER,
+            queue=BuildkiteQueue.KUBERNETES_EKS,
+            resources=_CLICKHOUSE_TESTCONTAINERS_RESOURCES,
             unsupported_python_versions=[
                 AvailablePythonVersion.V3_12,
             ],
@@ -1225,7 +1238,8 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
         ),
         PackageSpec(
             oss_path("python_modules/libraries/dagster-clickhouse-polars"),
-            queue=BuildkiteQueue.DOCKER,
+            queue=BuildkiteQueue.KUBERNETES_EKS,
+            resources=_CLICKHOUSE_TESTCONTAINERS_RESOURCES,
             unsupported_python_versions=[
                 AvailablePythonVersion.V3_12,
             ],
@@ -1286,6 +1300,7 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
             pytest_tox_factors=[
                 ToxFactor("kubernetes_12"),
                 ToxFactor("kubernetes_35"),
+                ToxFactor("kubernetes_36"),
             ],
             pytest_extra_cmds=k8s_extra_cmds,
         ),
@@ -1378,6 +1393,8 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
             ],
         ),
         PackageSpec(
+            # Each split runs a host-process airflow + dagster pair; mirror the
+            # federation tutorial's sizing (minus one airflow instance).
             oss_path("python_modules/libraries/dagster-airlift/kitchen-sink"),
             force_run_fn=BuildkiteContext.has_dagster_airlift_changes,
             unsupported_python_versions=[
@@ -1386,7 +1403,11 @@ def _library_packages_with_custom_config(ctx: BuildkiteContext) -> list[PackageS
                 AvailablePythonVersion.V3_13,
                 AvailablePythonVersion.V3_14,
             ],
-            queue=BuildkiteQueue.DOCKER,
+            queue=BuildkiteQueue.KUBERNETES_EKS,
+            # One airflow standalone stack + dagster per split carries the same
+            # SQLite-lock risk as the federation tutorial, so match its 4 vCPU
+            # sizing rather than MEDIUM's 2 vCPU (#24950).
+            resources=ResourceRequests(cpu="4000m", memory="4Gi"),
             splits=2,
         ),
         # Runs against live dbt cloud instance, we only want to run on commits and on the
