@@ -51,6 +51,7 @@ from dagster_graphql.implementation.fetch_auto_materialize_asset_evaluations imp
     fetch_auto_materialize_asset_evaluations_for_evaluation_id,
 )
 from dagster_graphql.implementation.fetch_backfills import get_backfill, get_backfills
+from dagster_graphql.implementation.fetch_component_types import get_component_types_for_location
 from dagster_graphql.implementation.fetch_env_vars import get_utilized_env_vars_or_error
 from dagster_graphql.implementation.fetch_instigators import (
     get_instigation_states_by_repository_id,
@@ -90,6 +91,7 @@ from dagster_graphql.implementation.fetch_schedules import (
 from dagster_graphql.implementation.fetch_sensors import get_sensor_or_error, get_sensors_or_error
 from dagster_graphql.implementation.fetch_solids import get_graph_or_error
 from dagster_graphql.implementation.fetch_ticks import get_instigation_ticks
+from dagster_graphql.implementation.fetch_ui_definitions import get_ui_components_for_location
 from dagster_graphql.implementation.run_config_schema import resolve_run_config_schema_or_error
 from dagster_graphql.implementation.utils import (
     UserFacingGraphQLError,
@@ -117,6 +119,7 @@ from dagster_graphql.schema.backfill import (
     GraphenePartitionBackfillOrError,
     GraphenePartitionBackfillsOrError,
 )
+from dagster_graphql.schema.component_types import GrapheneComponentTypesOrError
 from dagster_graphql.schema.entity_key import GrapheneAssetKey
 from dagster_graphql.schema.env_vars import GrapheneEnvVarWithConsumersListOrError
 from dagster_graphql.schema.external import (
@@ -209,6 +212,7 @@ from dagster_graphql.schema.schedules import (
 )
 from dagster_graphql.schema.sensors import GrapheneSensorOrError, GrapheneSensorsOrError
 from dagster_graphql.schema.test import GrapheneTestFields
+from dagster_graphql.schema.ui_definitions import GrapheneUIComponentsOrError
 from dagster_graphql.schema.util import ResolveInfo, get_compute_log_manager, non_null_list
 
 
@@ -662,6 +666,26 @@ class GrapheneQuery(graphene.ObjectType):
     latestDefsStateInfo = graphene.Field(
         GrapheneDefsStateInfo,
         description="Retrieve the latest available DefsStateInfo for the current workspace.",
+    )
+
+    uiComponentsForLocationOrError = graphene.Field(
+        graphene.NonNull(GrapheneUIComponentsOrError),
+        locationName=graphene.NonNull(graphene.String),
+        description=(
+            "Retrieve all UI-defined components stored for a given code location. The"
+            " returned list is sourced from the instance's defs state storage and is"
+            " independent of whether the location is currently loaded."
+        ),
+    )
+
+    componentTypesForLocationOrError = graphene.Field(
+        graphene.NonNull(GrapheneComponentTypesOrError),
+        locationName=graphene.NonNull(graphene.String),
+        description=(
+            "Retrieve the JSON schemas and metadata for every Component class"
+            " installed in a given code location. Reads from the location's"
+            " repository metadata, so the location must be loaded."
+        ),
     )
 
     @capture_error
@@ -1407,3 +1431,13 @@ class GrapheneQuery(graphene.ObjectType):
             defs_state_storage.get_latest_defs_state_info() if defs_state_storage else None
         )
         return GrapheneDefsStateInfo(latest_info) if latest_info else None
+
+    @capture_error
+    def resolve_uiComponentsForLocationOrError(self, graphene_info: ResolveInfo, locationName: str):
+        return get_ui_components_for_location(graphene_info, locationName)
+
+    @capture_error
+    def resolve_componentTypesForLocationOrError(
+        self, graphene_info: ResolveInfo, locationName: str
+    ):
+        return get_component_types_for_location(graphene_info, locationName)
