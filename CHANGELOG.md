@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-05-28 13:24 IST] Auto-Sync
+- **35 Repositories Updated:** Public APIs Directory, Kubernetes MCP Server, Awesome ChatGPT Prompts, Promptfoo, Dify, Langflow, Budibase, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, crewAIInc/crewAI, Significant-Gravitas/AutoGPT, pydantic/pydantic-ai, mastra-ai/mastra, Swarms, BerriAI/litellm, stanfordnlp/dspy, ggml-org/llama.cpp, deepspeedai/DeepSpeed, vllm-project/vllm, anthropics/claude-code, chroma-core/chroma, milvus-io/milvus, infiniflow/ragflow, arize-ai/phoenix, firecrawl/firecrawl, danny-avila/LibreChat, apache/airflow, PrefectHQ/prefect, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, bytedance/deer-flow, nousresearch/hermes-agent
+
 ## [2026-05-28 06:02 IST] Auto-Sync
 - **35 Repositories Updated:** Langfuse, Promptfoo, n8n, Appsmith, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langgraph, crewAIInc/crewAI, pydantic/pydantic-ai, mastra-ai/mastra, BerriAI/litellm, stanfordnlp/dspy, ggml-org/llama.cpp, deepspeedai/DeepSpeed, vllm-project/vllm, lobehub/lobe-chat, cline/cline, chroma-core/chroma, weaviate/weaviate, arize-ai/phoenix, openai/openai-cookbook, firecrawl/firecrawl, googleapis/python-genai, vercel/ai, apache/airflow, dagster-io/dagster, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow, nousresearch/hermes-agent
 
