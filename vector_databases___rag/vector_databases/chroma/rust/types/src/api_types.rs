@@ -10,7 +10,8 @@ use crate::operator::SearchResult;
 use crate::operators_generated::{
     FUNCTION_DUMMY_ASYNC_ID, FUNCTION_DUMMY_ASYNC_NAME, FUNCTION_HTTP_GENERATE_ID,
     FUNCTION_HTTP_GENERATE_NAME, FUNCTION_RECORD_COUNTER_ID, FUNCTION_RECORD_COUNTER_NAME,
-    FUNCTION_STATISTICS_ID, FUNCTION_STATISTICS_NAME,
+    FUNCTION_REVISION_HISTORY_ID, FUNCTION_REVISION_HISTORY_NAME, FUNCTION_STATISTICS_ID,
+    FUNCTION_STATISTICS_NAME,
 };
 use crate::plan::PlanToProtoError;
 use crate::plan::ReadLevel;
@@ -1284,6 +1285,14 @@ impl ChromaError for ListCollectionVersionsError {
 pub const CHROMA_KEY: &str = "chroma:";
 pub const CHROMA_DOCUMENT_KEY: &str = "chroma:document";
 pub const CHROMA_URI_KEY: &str = "chroma:uri";
+/// Collection-metadata flag (a `MetadataValue::Bool(true)`) that opts a
+/// collection into chunk-sibling grouping during log partitioning: records
+/// whose ids share a base before a trailing `-{idx}` are kept in one
+/// partition so they materialize in WAL order. Foundation source
+/// collections set this so the attached function observes a trailing
+/// end-of-job marker after all sibling chunks. Read by the worker's
+/// `PartitionOperator`; set by the foundation `/init` endpoint.
+pub const CHROMA_GROUP_CHUNK_SIBLINGS_KEY: &str = "chroma:group_chunk_siblings";
 
 ////////////////////////// AddCollectionRecords //////////////////////////
 
@@ -2597,6 +2606,7 @@ impl AttachedFunctionApiResponse {
             id if id == FUNCTION_STATISTICS_ID => FUNCTION_STATISTICS_NAME.to_string(),
             id if id == FUNCTION_DUMMY_ASYNC_ID => FUNCTION_DUMMY_ASYNC_NAME.to_string(),
             id if id == FUNCTION_HTTP_GENERATE_ID => FUNCTION_HTTP_GENERATE_NAME.to_string(),
+            id if id == FUNCTION_REVISION_HISTORY_ID => FUNCTION_REVISION_HISTORY_NAME.to_string(),
             _ => {
                 return Err(GetAttachedFunctionError::UnknownFunctionId(af.function_id));
             }
