@@ -1303,5 +1303,137 @@
     "signingIn": "Connexion en cours...",
     "invalidKey": "Clé d'accès invalide",
     "connectFailed": "Impossible de se connecter au serveur"
+  },
+  "api": {
+    "errors": {
+      "auth": {
+        "accessKeyNotConfigured": "La clé d'accès n'est pas configurée",
+        "invalidRequestBody": "Corps de requête invalide",
+        "invalidAccessKey": "Clé d'accès invalide",
+        "unauthorized": "Non autorisé"
+      },
+      "validation": {
+        "bankIdRequired": "bank_id est obligatoire",
+        "bankAndDirectiveIdRequired": "bank_id et directive_id sont obligatoires",
+        "bankAndMentalModelIdRequired": "bank_id et mental_model_id sont obligatoires",
+        "bankAndModelIdRequired": "bank_id et model_id sont obligatoires",
+        "operationIdRequired": "operation_id est obligatoire",
+        "missingRequestData": "Données de requête manquantes",
+        "missingBankId": "bank_id manquant"
+      },
+      "generic": {
+        "failed": "Échec",
+        "unsupportedIndividualMemoryDelete": "La suppression d'une unité de mémoire individuelle n'est pas encore prise en charge. Utilisez plutôt l'option permettant d'effacer tous les souvenirs."
+      },
+      "banks": {
+        "fetch": "Impossible de récupérer les banques de mémoire",
+        "fetchFromApi": "Impossible de récupérer les banques de mémoire depuis l'API",
+        "create": "Impossible de créer la banque de mémoire",
+        "update": "Impossible de mettre à jour la banque de mémoire",
+        "delete": "Impossible de supprimer la banque de mémoire",
+        "exportTemplate": "Impossible d'exporter le modèle de banque de mémoire",
+        "importTemplate": "Impossible d'importer le modèle de banque de mémoire"
+      },
+      "bankConfig": {
+        "fetch": "Impossible de récupérer la configuration de la banque",
+        "update": "Impossible de mettre à jour la configuration de la banque",
+        "reset": "Impossible de réinitialiser la configuration de la banque"
+      },
+      "bankProfile": {
+        "fetch": "Impossible de récupérer le profil de la banque",
+        "update": "Impossible de mettre à jour le profil de la banque"
+      },
+      "memories": {
+        "list": "Impossible de lister les unités de mémoire",
+        "fetch": "Impossible de récupérer le souvenir",
+        "notFound": "Souvenir introuvable",
+        "retain": "Impossible d'exécuter Retain par lot",
+        "retainAsync": "Impossible d'exécuter Retain par lot de manière asynchrone",
+        "history": "Impossible de récupérer l'historique des observations"
+      },
+      "documents": {
+        "fetchList": "Impossible de récupérer les documents",
+        "fetch": "Impossible de récupérer le document",
+        "updateTags": "Impossible de mettre à jour les tags du document",
+        "delete": "Impossible de supprimer le document",
+        "chunks": "Impossible de récupérer les fragments du document",
+        "reprocess": "Impossible de retraiter le document"
+      },
+      "files": {
+        "upload": "Impossible de téléverser les fichiers"
+      },
+      "chunks": {
+        "fetch": "Impossible de récupérer le fragment"
+      },
+      "entities": {
+        "list": "Impossible de lister les entités",
+        "fetch": "Impossible de récupérer l'entité",
+        "graph": "Impossible de récupérer le graphe des entités",
+        "regenerateObservations": "Impossible de régénérer les observations de l'entité"
+      },
+      "graph": {
+        "fetch": "Impossible de récupérer les données du graphe"
+      },
+      "mentalModels": {
+        "list": "Impossible de lister les modèles mentaux",
+        "fetch": "Impossible de récupérer le modèle mental",
+        "create": "Impossible de créer le modèle mental",
+        "update": "Impossible de mettre à jour le modèle mental",
+        "delete": "Impossible de supprimer le modèle mental",
+        "refresh": "Impossible d'actualiser le modèle mental",
+        "history": "Impossible de récupérer l'historique du modèle mental",
+        "notFound": "Modèle mental introuvable",
+        "clear": "Impossible d'effacer le modèle mental"
+      },
+      "observations": {
+        "list": "Impossible de lister les observations",
+        "clear": "Impossible d'effacer les observations",
+        "fetch": "Impossible de récupérer l'observation"
+      },
+      "directives": {
+        "list": "Impossible de lister les directives",
+        "fetch": "Impossible de récupérer la directive",
+        "create": "Impossible de créer la directive",
+        "update": "Impossible de mettre à jour la directive",
+        "delete": "Impossible de supprimer la directive"
+      },
+      "operations": {
+        "fetch": "Impossible de récupérer les opérations",
+        "cancel": "Impossible d'annuler l'opération",
+        "status": "Impossible de récupérer l'état de l'opération",
+        "retry": "Impossible de relancer l'opération"
+      },
+      "auditLogs": {
+        "list": "Impossible de lister les journaux d'audit",
+        "stats": "Impossible de récupérer les statistiques des journaux d'audit"
+      },
+      "tags": {
+        "list": "Impossible de lister les tags"
+      },
+      "consolidation": {
+        "trigger": "Impossible de déclencher la consolidation",
+        "recover": "Impossible de récupérer la consolidation"
+      },
+      "recall": {
+        "failed": "Impossible d'exécuter Recall"
+      },
+      "reflect": {
+        "failed": "Impossible d'exécuter Reflect"
+      },
+      "stats": {
+        "fetch": "Impossible de récupérer les statistiques",
+        "memoriesTimeseries": "Impossible de récupérer la série temporelle des souvenirs"
+      },
+      "version": {
+        "fetch": "Impossible de récupérer la version"
+      },
+      "webhooks": {
+        "list": "Impossible de lister les webhooks",
+        "create": "Impossible de créer le webhook",
+        "update": "Impossible de mettre à jour le webhook",
+        "delete": "Impossible de supprimer le webhook",
+        "deliveries": "Impossible de récupérer les livraisons du webhook"
+      }
+    }
   }
 }

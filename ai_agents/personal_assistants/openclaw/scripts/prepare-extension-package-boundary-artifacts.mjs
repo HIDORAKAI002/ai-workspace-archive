@@ -195,10 +195,11 @@ function abortSiblingSteps(abortController) {
   }
 }
 
-function runNodeStep(label, args, timeoutMs, params = {}) {
+export function runNodeStep(label, args, timeoutMs, params = {}) {
   const abortController = params.abortController;
+  const spawnImpl = params.spawnImpl ?? spawn;
   return new Promise((resolvePromise, rejectPromise) => {
-    const child = spawn(process.execPath, args, {
+    const child = spawnImpl(process.execPath, args, {
       cwd: repoRoot,
       env: params.env ? { ...process.env, ...params.env } : process.env,
       signal: abortController?.signal,
@@ -212,8 +213,8 @@ function runNodeStep(label, args, timeoutMs, params = {}) {
       if (settled) {
         return;
       }
-      child.kill("SIGTERM");
       settled = true;
+      child.kill("SIGKILL");
       stdoutWriter.flush();
       stderrWriter.flush();
       abortSiblingSteps(abortController);

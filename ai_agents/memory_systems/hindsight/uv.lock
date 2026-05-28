@@ -1,5 +1,4 @@
 version = 1
-revision = 1
 requires-python = ">=3.11"
 resolution-markers = [
     "python_full_version >= '3.14' and sys_platform == 'win32'",
@@ -1471,7 +1470,7 @@ wheels = [
 
 [[package]]
 name = "hindsight-all"
-version = "0.7.0"
+version = "0.7.1"
 source = { editable = "hindsight-all" }
 dependencies = [
     { name = "hindsight-api-slim", extra = ["all"] },
@@ -1497,11 +1496,10 @@ requires-dist = [
     { name = "pytest", marker = "extra == 'test'", specifier = ">=7.0.0" },
     { name = "pytest-asyncio", marker = "extra == 'test'", specifier = ">=0.21.0" },
 ]
-provides-extras = ["local-llm", "test"]
 
 [[package]]
 name = "hindsight-all-slim"
-version = "0.7.0"
+version = "0.7.1"
 source = { editable = "hindsight-all-slim" }
 dependencies = [
     { name = "hindsight-api-slim" },
@@ -1523,11 +1521,10 @@ requires-dist = [
     { name = "pytest", marker = "extra == 'test'", specifier = ">=7.0.0" },
     { name = "pytest-asyncio", marker = "extra == 'test'", specifier = ">=0.21.0" },
 ]
-provides-extras = ["test"]
 
 [[package]]
 name = "hindsight-api"
-version = "0.7.0"
+version = "0.7.1"
 source = { editable = "hindsight-api" }
 dependencies = [
     { name = "hindsight-api-slim", extra = ["all"] },
@@ -1538,7 +1535,7 @@ requires-dist = [{ name = "hindsight-api-slim", extras = ["all"], editable = "hi
 
 [[package]]
 name = "hindsight-api-slim"
-version = "0.7.0"
+version = "0.7.1"
 source = { editable = "hindsight-api-slim" }
 dependencies = [
     { name = "aiohttp" },
@@ -1727,7 +1724,6 @@ requires-dist = [
     { name = "winloop", marker = "sys_platform == 'win32'", specifier = ">=0.1.0" },
     { name = "wsproto", specifier = ">=1.0.0" },
 ]
-provides-extras = ["local-ml", "local-llm", "embedded-db", "oracle", "all", "test"]
 
 [package.metadata.requires-dev]
 dev = [
@@ -1745,7 +1741,7 @@ dev = [
 
 [[package]]
 name = "hindsight-client"
-version = "0.7.0"
+version = "0.7.1"
 source = { editable = "hindsight-clients/python" }
 dependencies = [
     { name = "aiohttp" },
@@ -1775,11 +1771,10 @@ requires-dist = [
     { name = "typing-extensions", specifier = ">=4.7.1" },
     { name = "urllib3", specifier = ">=2.1.0,<3.0.0" },
 ]
-provides-extras = ["test"]
 
 [[package]]
 name = "hindsight-dev"
-version = "0.7.0"
+version = "0.7.1"
 source = { editable = "hindsight-dev" }
 dependencies = [
     { name = "hindsight-api" },
@@ -1817,7 +1812,6 @@ requires-dist = [
     { name = "rich", specifier = ">=13.0.0" },
     { name = "streamlit", specifier = ">=1.54.0" },
 ]
-provides-extras = ["test"]
 
 [package.metadata.requires-dev]
 dev = [
@@ -1827,7 +1821,7 @@ dev = [
 
 [[package]]
 name = "hindsight-embed"
-version = "0.7.0"
+version = "0.7.1"
 source = { editable = "hindsight-embed" }
 dependencies = [
     { name = "httpx" },

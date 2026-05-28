@@ -152,7 +152,11 @@ class RecallRequest(BaseModel):
     max_tokens: int = 4096
     trace: bool = False
     query_timestamp: str | None = Field(
-        default=None, description="ISO format date string (e.g., '2023-05-30T23:40:00')"
+        default=None,
+        description=(
+            "ISO format date string (e.g., '2023-05-30T23:40:00'). Used as the query-time anchor for "
+            "relative temporal expressions and recency scoring."
+        ),
     )
     include: IncludeOptions = FieldWithDefault(
         IncludeOptions,
@@ -2670,6 +2674,7 @@ def create_app(
                 tenant_extension=memory._tenant_extension,
                 max_slots=config.worker_max_slots,
                 slot_reservations=config.worker_slot_reservations,
+                consolidation_bank_priority=config.worker_consolidation_bank_priority or None,
             )
             poller_task = asyncio.create_task(poller.run())
             logging.info(f"Worker poller started (worker_id={worker_id})")

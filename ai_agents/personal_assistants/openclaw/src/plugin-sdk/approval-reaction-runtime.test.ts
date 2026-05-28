@@ -179,6 +179,63 @@ describe("plugin-sdk/approval-reaction-runtime", () => {
     });
   });
 
+  it("keeps plugin command actions visible without reaction bindings", () => {
+    const payload = buildApprovalPendingPromptPayload({
+      request: {
+        ...pluginRequest,
+        id: "plugin:agentkit",
+        request: {
+          ...pluginRequest.request,
+          title: "World proof required for exec",
+          actions: [
+            {
+              kind: "command",
+              label: "Verify once",
+              command: "/agentkit approve plugin:agentkit allow-once",
+              style: "success",
+            },
+            {
+              kind: "decision",
+              label: "Deny",
+              command: "/approve plugin:agentkit deny",
+              decision: "deny",
+              style: "danger",
+            },
+          ],
+        },
+      },
+      view: {
+        approvalKind: "plugin",
+        approvalId: "plugin:agentkit",
+        title: "World proof required for exec",
+        severity: "warning",
+        actions: [
+          {
+            kind: "command",
+            label: "Verify once",
+            command: "/agentkit approve plugin:agentkit allow-once",
+            style: "success",
+          },
+          {
+            kind: "decision",
+            decision: "deny",
+            label: "Deny",
+            command: "/approve plugin:agentkit deny",
+            style: "danger",
+          },
+        ],
+      } as never,
+      nowMs: 1_000,
+    });
+
+    expect(payload.text).toContain("Verify once: /agentkit approve plugin:agentkit allow-once");
+    expect(payload.text).toContain("/approve plugin:agentkit deny");
+    expect(payload.text).toContain("👎 Deny");
+    expect(payload.text).not.toContain("👍 Allow Once");
+    expect(payload.allowedDecisions).toEqual(["deny"]);
+    expect(payload.reactionBindings).toEqual([{ decision: "deny", emoji: "👎", label: "Deny" }]);
+  });
+
   it("renders the same request-only and view-taking prompt payloads", () => {
     const fromRequest = buildApprovalReactionPromptPayloadForRequest({
       request: execRequest,

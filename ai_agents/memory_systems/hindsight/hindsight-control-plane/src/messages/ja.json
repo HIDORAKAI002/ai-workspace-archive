@@ -1303,5 +1303,137 @@
     "signingIn": "サインイン中...",
     "invalidKey": "無効なアクセスキー",
     "connectFailed": "サーバーへの接続に失敗しました"
+  },
+  "api": {
+    "errors": {
+      "auth": {
+        "accessKeyNotConfigured": "アクセスキーが設定されていません",
+        "invalidRequestBody": "リクエスト本文が無効です",
+        "invalidAccessKey": "アクセスキーが無効です",
+        "unauthorized": "認証されていません"
+      },
+      "validation": {
+        "bankIdRequired": "bank_id は必須です",
+        "bankAndDirectiveIdRequired": "bank_id と directive_id は必須です",
+        "bankAndMentalModelIdRequired": "bank_id と mental_model_id は必須です",
+        "bankAndModelIdRequired": "bank_id と model_id は必須です",
+        "operationIdRequired": "operation_id は必須です",
+        "missingRequestData": "リクエストデータが不足しています",
+        "missingBankId": "bank_id がありません"
+      },
+      "generic": {
+        "failed": "失敗しました",
+        "unsupportedIndividualMemoryDelete": "個別のメモリユニット削除はまだサポートされていません。代わりにすべてのメモリをクリアしてください。"
+      },
+      "banks": {
+        "fetch": "メモリバンクの取得に失敗しました",
+        "fetchFromApi": "APIからメモリバンクを取得できませんでした",
+        "create": "メモリバンクの作成に失敗しました",
+        "update": "メモリバンクの更新に失敗しました",
+        "delete": "メモリバンクの削除に失敗しました",
+        "exportTemplate": "メモリバンクテンプレートのエクスポートに失敗しました",
+        "importTemplate": "メモリバンクテンプレートのインポートに失敗しました"
+      },
+      "bankConfig": {
+        "fetch": "バンク設定の取得に失敗しました",
+        "update": "バンク設定の更新に失敗しました",
+        "reset": "バンク設定のリセットに失敗しました"
+      },
+      "bankProfile": {
+        "fetch": "バンクプロフィールの取得に失敗しました",
+        "update": "バンクプロフィールの更新に失敗しました"
+      },
+      "memories": {
+        "list": "メモリユニットの一覧取得に失敗しました",
+        "fetch": "メモリの取得に失敗しました",
+        "notFound": "メモリが見つかりません",
+        "retain": "バッチRetainに失敗しました",
+        "retainAsync": "非同期バッチRetainに失敗しました",
+        "history": "観察履歴の取得に失敗しました"
+      },
+      "documents": {
+        "fetchList": "ドキュメントの取得に失敗しました",
+        "fetch": "ドキュメントの取得に失敗しました",
+        "updateTags": "ドキュメントタグの更新に失敗しました",
+        "delete": "ドキュメントの削除に失敗しました",
+        "chunks": "ドキュメントチャンクの取得に失敗しました",
+        "reprocess": "ドキュメントの再処理に失敗しました"
+      },
+      "files": {
+        "upload": "ファイルのアップロードに失敗しました"
+      },
+      "chunks": {
+        "fetch": "チャンクの取得に失敗しました"
+      },
+      "entities": {
+        "list": "エンティティの一覧取得に失敗しました",
+        "fetch": "エンティティの取得に失敗しました",
+        "graph": "エンティティグラフの取得に失敗しました",
+        "regenerateObservations": "エンティティ観察の再生成に失敗しました"
+      },
+      "graph": {
+        "fetch": "グラフデータの取得に失敗しました"
+      },
+      "mentalModels": {
+        "list": "メンタルモデルの一覧取得に失敗しました",
+        "fetch": "メンタルモデルの取得に失敗しました",
+        "create": "メンタルモデルの作成に失敗しました",
+        "update": "メンタルモデルの更新に失敗しました",
+        "delete": "メンタルモデルの削除に失敗しました",
+        "refresh": "メンタルモデルの更新に失敗しました",
+        "history": "メンタルモデル履歴の取得に失敗しました",
+        "notFound": "メンタルモデルが見つかりません",
+        "clear": "メンタルモデルのクリアに失敗しました"
+      },
+      "observations": {
+        "list": "観察の一覧取得に失敗しました",
+        "clear": "観察のクリアに失敗しました",
+        "fetch": "観察の取得に失敗しました"
+      },
+      "directives": {
+        "list": "ディレクティブの一覧取得に失敗しました",
+        "fetch": "ディレクティブの取得に失敗しました",
+        "create": "ディレクティブの作成に失敗しました",
+        "update": "ディレクティブの更新に失敗しました",
+        "delete": "ディレクティブの削除に失敗しました"
+      },
+      "operations": {
+        "fetch": "オペレーションの取得に失敗しました",
+        "cancel": "オペレーションのキャンセルに失敗しました",
+        "status": "オペレーションステータスの取得に失敗しました",
+        "retry": "オペレーションの再試行に失敗しました"
+      },
+      "auditLogs": {
+        "list": "監査ログの一覧取得に失敗しました",
+        "stats": "監査ログ統計の取得に失敗しました"
+      },
+      "tags": {
+        "list": "タグの一覧取得に失敗しました"
+      },
+      "consolidation": {
+        "trigger": "統合の開始に失敗しました",
+        "recover": "統合の復旧に失敗しました"
+      },
+      "recall": {
+        "failed": "Recallの実行に失敗しました"
+      },
+      "reflect": {
+        "failed": "Reflectの実行に失敗しました"
+      },
+      "stats": {
+        "fetch": "統計の取得に失敗しました",
+        "memoriesTimeseries": "メモリ時系列の取得に失敗しました"
+      },
+      "version": {
+        "fetch": "バージョンの取得に失敗しました"
+      },
+      "webhooks": {
+        "list": "Webhookの一覧取得に失敗しました",
+        "create": "Webhookの作成に失敗しました",
+        "update": "Webhookの更新に失敗しました",
+        "delete": "Webhookの削除に失敗しました",
+        "deliveries": "Webhook配信の取得に失敗しました"
+      }
+    }
   }
 }

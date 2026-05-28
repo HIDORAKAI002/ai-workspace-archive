@@ -54,6 +54,11 @@ const SCANNED_DIRECTORY_IGNORE_NAMES = new Set([
   "dist",
   "node_modules",
 ]);
+const PACKAGE_MANIFEST_CACHE_MAX_ENTRIES = 512;
+const packageManifestProcessCache = new Map<
+  string,
+  { mtimeMs: number; size: number; manifest: PackageManifest | null }
+>();
 
 export type PluginCandidate = {
   idHint: string;
@@ -558,6 +563,25 @@ function readTrustedPackageManifest(dir: string): PackageManifest | null {
   return tryReadJsonSync<PackageManifest>(path.join(dir, "package.json"));
 }
 
+function readPackageManifestStat(dir: string): { mtimeMs: number; size: number } | null {
+  try {
+    const stat = fs.statSync(path.join(dir, "package.json"));
+    return stat.isFile() ? { mtimeMs: stat.mtimeMs, size: stat.size } : null;
+  } catch {
+    return null;
+  }
+}
+
+function prunePackageManifestProcessCache(): void {
+  while (packageManifestProcessCache.size > PACKAGE_MANIFEST_CACHE_MAX_ENTRIES) {
+    const oldest = packageManifestProcessCache.keys().next().value;
+    if (oldest === undefined) {
+      return;
+    }
+    packageManifestProcessCache.delete(oldest);
+  }
+}
+
 function readCandidatePackageManifest(params: {
   dir: string;
   origin: PluginOrigin;
@@ -576,11 +600,23 @@ function readCandidatePackageManifest(params: {
   if (cached !== undefined) {
     return cached;
   }
+  const canUseProcessCache = params.origin === "bundled" || !params.rejectHardlinks;
+  const stat = readPackageManifestStat(params.dir);
+  const processCached =
+    canUseProcessCache && stat ? packageManifestProcessCache.get(cacheKey) : undefined;
+  if (processCached && processCached.mtimeMs === stat.mtimeMs && processCached.size === stat.size) {
+    params.packageManifestCache?.set(cacheKey, processCached.manifest);
+    return processCached.manifest;
+  }
   const manifest =
     params.origin === "bundled"
       ? readTrustedPackageManifest(params.dir)
       : readPackageManifest(params.dir, params.rejectHardlinks, params.rootRealPath);
   params.packageManifestCache?.set(cacheKey, manifest);
+  if (canUseProcessCache && stat) {
+    packageManifestProcessCache.set(cacheKey, { ...stat, manifest });
+    prunePackageManifestProcessCache();
+  }
   return manifest;
 }
 

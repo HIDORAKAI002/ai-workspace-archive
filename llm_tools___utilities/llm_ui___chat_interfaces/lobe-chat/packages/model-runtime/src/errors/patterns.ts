@@ -48,6 +48,18 @@ const sub = (value: string, opts?: { caseInsensitive?: boolean }): ErrorPattern[
  */
 export const ERROR_PATTERNS: ErrorPattern[] = [
   // ─────────────────────────────────────────────────────────────────────────
+  // DatabasePersistError — MUST stay first. Drizzle stringifies failed queries
+  // as `Failed query: <sql> params: <values>`, embedding arbitrary parameter
+  // text (model names, user messages, error_log rows) that otherwise trips
+  // unrelated provider patterns below. First-match-wins, so claim it up front.
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    code: AgentRuntimeErrorType.DatabasePersistError,
+    match: sub('Failed query:'),
+    note: 'Drizzle wrapper around a failed Postgres query / transaction.',
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────
   // ExceededContextWindow
   // ─────────────────────────────────────────────────────────────────────────
   {
@@ -205,6 +217,11 @@ export const ERROR_PATTERNS: ErrorPattern[] = [
     code: AgentRuntimeErrorType.InsufficientQuota,
     match: sub('reached your session usage limit, upgrade for higher limits'),
     note: 'Ollama cloud per-session cap',
+  },
+  {
+    code: AgentRuntimeErrorType.InsufficientQuota,
+    match: sub('Weekly usage limit reached'),
+    note: 'opencodecodingplan rolling weekly plan cap (resets in N days — not retryable)',
   },
   {
     code: AgentRuntimeErrorType.InsufficientQuota,
@@ -488,11 +505,32 @@ export const ERROR_PATTERNS: ErrorPattern[] = [
   { code: AgentRuntimeErrorType.ProviderNetworkError, match: sub('request to http://') },
   { code: AgentRuntimeErrorType.ProviderNetworkError, match: sub('request to https://') },
   { code: AgentRuntimeErrorType.ProviderNetworkError, match: sub('self-signed certificate') },
+  { code: AgentRuntimeErrorType.ProviderNetworkError, match: sub('Network connection lost') },
   {
     code: AgentRuntimeErrorType.ProviderNetworkError,
-    match: sub('Command aborted due to connection close'),
+    // OpenAI/Anthropic SDK APIConnectionError wrapper — the underlying
+    // ECONNREFUSED / socket failure is buried in the nested cause, only the
+    // generic "Connection error." surfaces on the top-level message.
+    match: sub('Connection error.'),
   },
-  { code: AgentRuntimeErrorType.ProviderNetworkError, match: sub('Network connection lost') },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // StateStorePersistError — Redis / Upstash agent-state store (NOT the LLM
+  // provider). ioredis aborts, request-size cap, suspended DB.
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    code: AgentRuntimeErrorType.StateStorePersistError,
+    match: sub('Command aborted due to connection close'),
+    note: 'ioredis aborts queued commands when the Upstash connection drops.',
+  },
+  {
+    code: AgentRuntimeErrorType.StateStorePersistError,
+    match: sub('max request size exceeded'),
+  },
+  {
+    code: AgentRuntimeErrorType.StateStorePersistError,
+    match: sub('database has been suspended'),
+  },
 
   // ─────────────────────────────────────────────────────────────────────────
   // NoAvailableChannel — router / proxy has no upstream
@@ -880,7 +918,69 @@ export const ERROR_PATTERNS: ErrorPattern[] = [
   },
 
   // ─────────────────────────────────────────────────────────────────────────
-  // ProviderBizError — generic upstream wrappers that don't fit elsewhere
+  // UpstreamGatewayError — proxy / gateway-layer failure (openresty, litellm,
+  // HTML error bodies, Cloudflare 525). Distinct from the provider's own
+  // service; usually transient. Split out of the ProviderBizError catch-all.
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    code: AgentRuntimeErrorType.UpstreamGatewayError,
+    match: sub('<center>openresty</center>'),
+    note: 'user-configured proxy returning HTML',
+  },
+  { code: AgentRuntimeErrorType.UpstreamGatewayError, match: sub('litellm.') },
+  { code: AgentRuntimeErrorType.UpstreamGatewayError, match: sub('403 <!DOCTYPE html>') },
+  { code: AgentRuntimeErrorType.UpstreamGatewayError, match: sub('404 <!DOCTYPE html>') },
+  {
+    code: AgentRuntimeErrorType.UpstreamGatewayError,
+    match: sub('525 <!DOCTYPE html>'),
+    note: 'Cloudflare 525 SSL handshake',
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // UpstreamMalformedResponse — provider returned a malformed / unparseable
+  // payload (Go re-marshal failure, bad tool-call JSON, upstream Python
+  // TypeError). Not retryable. Split out of ProviderBizError.
+  // ─────────────────────────────────────────────────────────────────────────
+  {
+    code: AgentRuntimeErrorType.UpstreamMalformedResponse,
+    match: sub('failed to marshal request body to JSON'),
+    note: 'upstream Go gateway re-marshal failure on non-UTF-8 / lone-surrogate bytes',
+  },
+  {
+    code: AgentRuntimeErrorType.UpstreamMalformedResponse,
+    match: sub('lone leading surrogate'),
+    note: 'invalid conversation JSON: lone surrogate in tool-call output',
+  },
+  {
+    code: AgentRuntimeErrorType.UpstreamMalformedResponse,
+    match: sub("Internal server error: unhashable type: '"),
+    note: 'nvidia / nvidia_custom upstream Python TypeError',
+  },
+  {
+    code: AgentRuntimeErrorType.UpstreamMalformedResponse,
+    match: sub('Failed to parse fc related info to json format'),
+    note: 'internlm tool-call parser failure',
+  },
+  {
+    code: AgentRuntimeErrorType.UpstreamMalformedResponse,
+    match: sub('codewhisperer#ValidationException'),
+    note: 'kiro / AWS CodeWhisperer proxy malformed payload',
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // UpstreamHttpError — bare upstream HTTP error with no further context.
+  // Split out of ProviderBizError. (400 / 422 here are candidates for a future
+  // `request`-category split; tracked separately.)
+  // ─────────────────────────────────────────────────────────────────────────
+  { code: AgentRuntimeErrorType.UpstreamHttpError, match: sub('400 status code') },
+  { code: AgentRuntimeErrorType.UpstreamHttpError, match: sub('403 status code') },
+  { code: AgentRuntimeErrorType.UpstreamHttpError, match: sub('404 status code') },
+  { code: AgentRuntimeErrorType.UpstreamHttpError, match: sub('413 Request Entity Too Large') },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // ProviderBizError — generic upstream wrappers that don't fit elsewhere. The
+  // final provider catch-all; `refineErrorCode` + the HTTP-status fallback try
+  // to reclassify these into a more specific code before this bucket is kept.
   // ─────────────────────────────────────────────────────────────────────────
   { code: AgentRuntimeErrorType.ProviderBizError, match: sub('Upstream request failed') },
   { code: AgentRuntimeErrorType.ProviderBizError, match: sub('Provider returned error') },
@@ -889,50 +989,39 @@ export const ERROR_PATTERNS: ErrorPattern[] = [
   { code: AgentRuntimeErrorType.ProviderBizError, match: sub('convert_request_failed') },
   { code: AgentRuntimeErrorType.ProviderBizError, match: sub('failed to parse request') },
   { code: AgentRuntimeErrorType.ProviderBizError, match: sub('upstream error: do request failed') },
-  // Upstream Go gateway re-marshal failure — non-UTF-8 / lone-surrogate bytes
-  // in model tool-call output.
-  {
-    code: AgentRuntimeErrorType.ProviderBizError,
-    match: sub('failed to marshal request body to JSON'),
-  },
   { code: AgentRuntimeErrorType.ProviderBizError, match: sub('Internal Server Error (ref:') },
-  { code: AgentRuntimeErrorType.ProviderBizError, match: sub('400 status code') },
-  { code: AgentRuntimeErrorType.ProviderBizError, match: sub('403 status code') },
-  { code: AgentRuntimeErrorType.ProviderBizError, match: sub('404 status code') },
-  { code: AgentRuntimeErrorType.ProviderBizError, match: sub('413 Request Entity Too Large') },
-  { code: AgentRuntimeErrorType.ProviderBizError, match: sub('403 <!DOCTYPE html>') },
-  {
-    code: AgentRuntimeErrorType.ProviderBizError,
-    match: sub('525 <!DOCTYPE html>'),
-    note: 'Cloudflare 525 SSL handshake',
-  },
-  {
-    code: AgentRuntimeErrorType.ProviderBizError,
-    match: sub('<center>openresty</center>'),
-    note: 'user-configured proxy returning HTML',
-  },
-  { code: AgentRuntimeErrorType.ProviderBizError, match: sub('litellm.') },
   { code: AgentRuntimeErrorType.ProviderBizError, match: sub('410 status code (no body)') },
   { code: AgentRuntimeErrorType.ProviderBizError, match: sub('402 status code') },
-  { code: AgentRuntimeErrorType.ProviderBizError, match: sub('404 <!DOCTYPE html>') },
-  // Nvidia / nvidia_custom upstream Python crash — "unhashable type" TypeError.
-  {
-    code: AgentRuntimeErrorType.ProviderBizError,
-    match: sub("Internal server error: unhashable type: '"),
-  },
   {
     code: AgentRuntimeErrorType.ProviderBizError,
     match: sub('[upstream:/v1/messages] Upstream returned HTTP'),
   },
   { code: AgentRuntimeErrorType.ProviderBizError, match: sub('上游请求参数无效') },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // ContextEnginePipelineError — a context-engine pipeline processor crashed.
+  // Sits before the generic JS-crash fallbacks so "Processor [X] execution
+  // failed: Cannot read properties …" is attributed to the pipeline, not the
+  // raw TypeError below.
+  // ─────────────────────────────────────────────────────────────────────────
   {
-    code: AgentRuntimeErrorType.ProviderBizError,
-    match: sub('Failed to parse fc related info to json format'),
-    note: 'internlm tool-call parser failure',
+    code: AgentRuntimeErrorType.ContextEnginePipelineError,
+    match: sub('Processor ['),
+    note: 'context-engine PipelineError: `Processor [<name>] execution failed`.',
   },
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // AgentRuntimeError — harness-side JS runtime crashes (V8 TypeError /
+  // RangeError). Our bugs, not upstream provider errors, so they stay LAST: a
+  // more specific provider/harness pattern above wins first, and only genuine
+  // bare crashes fall through to here.
+  // ─────────────────────────────────────────────────────────────────────────
+  { code: AgentRuntimeErrorType.AgentRuntimeError, match: sub('is not a function') },
+  { code: AgentRuntimeErrorType.AgentRuntimeError, match: sub('Cannot read properties of') },
+  { code: AgentRuntimeErrorType.AgentRuntimeError, match: sub('Maximum call stack size exceeded') },
   {
-    code: AgentRuntimeErrorType.ProviderBizError,
-    match: sub('codewhisperer#ValidationException'),
-    note: 'kiro / AWS CodeWhisperer proxy malformed payload',
+    code: AgentRuntimeErrorType.AgentRuntimeError,
+    match: sub('[object Object]'),
+    note: 'harness stringified an error object instead of extracting its message',
   },
 ];

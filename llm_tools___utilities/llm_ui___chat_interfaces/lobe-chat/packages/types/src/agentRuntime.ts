@@ -24,9 +24,11 @@ export const AgentRuntimeErrorType = {
   AgentRuntimeError: 'AgentRuntimeError', // Agent Runtime module runtime error
   /**
    * The `parent_id` referenced by an assistant / tool message no longer exists
-   * in the database — typically because the parent message was deleted during
-   * operation execution. The conversation chain is broken, so the runtime
-   * stops fail-fast instead of letting the next step hit another FK violation.
+   * in the database — usually because the user deleted the topic / parent
+   * message during operation execution. The conversation chain is broken, so
+   * the runtime stops fail-fast instead of letting the next step hit another
+   * FK violation. Attributed to `user` (expected on topic deletion), not a
+   * harness failure.
    */
   ConversationParentMissing: 'ConversationParentMissing',
   /**
@@ -83,6 +85,23 @@ export const AgentRuntimeErrorType = {
   CapabilityNotSupported: 'CapabilityNotSupported',
   /** Provider rejected the request as malformed (bad JSON, schema validation, etc.). */
   InvalidRequestFormat: 'InvalidRequestFormat',
+  /**
+   * Upstream proxy / gateway layer failed (openresty, litellm, HTML 5xx,
+   * Cloudflare 525) — distinct from the provider's own service. Split out of
+   * the `ProviderBizError` catch-all.
+   */
+  UpstreamGatewayError: 'UpstreamGatewayError',
+  /**
+   * Provider returned a malformed / unparseable payload (Go re-marshal failure,
+   * bad tool-call JSON, upstream Python TypeError). Not retryable. Split out of
+   * `ProviderBizError`.
+   */
+  UpstreamMalformedResponse: 'UpstreamMalformedResponse',
+  /**
+   * Bare upstream HTTP error with no further context (e.g. "400 status code").
+   * The residual provider bucket once the richer codes have had their pass.
+   */
+  UpstreamHttpError: 'UpstreamHttpError',
   /** User-side misconfiguration (wrong base URL, missing env var, virtual-key allowlist, etc.). */
   UserConfigError: 'UserConfigError',
   /** Gateway watchdog killed an idle agent operation — harness-side. */
@@ -95,6 +114,26 @@ export const AgentRuntimeErrorType = {
   InvalidBedrockCredentials: 'InvalidBedrockCredentials',
   InvalidVertexCredentials: 'InvalidVertexCredentials',
   StreamChunkError: 'StreamChunkError',
+  /**
+   * A persistence-layer query / transaction failed (Drizzle "Failed query:
+   * …"). Harness-side: the DB write/read or txn could not complete and
+   * surfaced as an unhandled error instead of being retried / degraded.
+   */
+  DatabasePersistError: 'DatabasePersistError',
+  /**
+   * The Redis / Upstash state store dropped a command mid-flight (ioredis
+   * "Command aborted due to connection close", request-size limit, suspended
+   * DB, …). Harness-side infra — the agent state layer, not the LLM provider.
+   */
+  StateStorePersistError: 'StateStorePersistError',
+  /**
+   * A context-engine pipeline processor threw while building the prompt
+   * context ("Processor [<name>] execution failed"). Harness-side bug in the
+   * context assembly stage — the `PipelineError` thrown by
+   * `packages/context-engine` (its `error.name` is `PipelineError`, aliased
+   * to this code in the spec table).
+   */
+  ContextEnginePipelineError: 'ContextEnginePipelineError',
 
   InvalidGithubToken: 'InvalidGithubToken',
   InvalidGithubCopilotToken: 'InvalidGithubCopilotToken',
@@ -102,6 +141,7 @@ export const AgentRuntimeErrorType = {
   ConnectionCheckFailed: 'ConnectionCheckFailed',
 
   // ******* Image Generation Error ******* //
+  ProviderContentPolicyViolation: 'ProviderContentPolicyViolation',
   ProviderNoImageGenerated: 'ProviderNoImageGenerated',
 
   InvalidComfyUIArgs: 'InvalidComfyUIArgs',

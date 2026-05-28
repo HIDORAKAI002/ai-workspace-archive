@@ -88,6 +88,10 @@ export class MessageCollector {
   ): void {
     if (processedIds.has(currentAssistant.id)) return;
 
+    // Mark visited up front so duplicated tool_call_ids (the same tool result
+    // reachable from multiple assistants) can't recurse forever.
+    processedIds.add(currentAssistant.id);
+
     // Add current assistant to chain
     assistantChain.push(currentAssistant);
 
@@ -115,6 +119,11 @@ export class MessageCollector {
       }
 
       for (const nextMsg of nextMessages) {
+        // Skip an already-collected follower: a duplicated tool_call_id can make
+        // collectToolMessages surface an earlier turn's tool result first, and
+        // returning after that no-op recursion would drop this assistant's real
+        // continuation under a later tool.
+        if (processedIds.has(nextMsg.id)) continue;
         // Only continue if the next assistant has the SAME agentId
         // Different agentId means it's a different agent responding (e.g., via speak tool)
         const isSameAgent = nextMsg.agentId === groupAgentId;

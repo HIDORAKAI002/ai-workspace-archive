@@ -1303,5 +1303,137 @@
     "signingIn": "Iniciando sesión...",
     "invalidKey": "Clave de acceso inválida",
     "connectFailed": "No se pudo conectar al servidor"
+  },
+  "api": {
+    "errors": {
+      "auth": {
+        "accessKeyNotConfigured": "La clave de acceso no está configurada",
+        "invalidRequestBody": "El cuerpo de la solicitud no es válido",
+        "invalidAccessKey": "La clave de acceso no es válida",
+        "unauthorized": "No autorizado"
+      },
+      "validation": {
+        "bankIdRequired": "bank_id es obligatorio",
+        "bankAndDirectiveIdRequired": "bank_id y directive_id son obligatorios",
+        "bankAndMentalModelIdRequired": "bank_id y mental_model_id son obligatorios",
+        "bankAndModelIdRequired": "bank_id y model_id son obligatorios",
+        "operationIdRequired": "operation_id es obligatorio",
+        "missingRequestData": "Faltan datos de la solicitud",
+        "missingBankId": "Falta bank_id"
+      },
+      "generic": {
+        "failed": "Error",
+        "unsupportedIndividualMemoryDelete": "La eliminación de unidades de memoria individuales aún no es compatible. Use la opción para borrar todas las memorias."
+      },
+      "banks": {
+        "fetch": "No se pudieron obtener los bancos de memoria",
+        "fetchFromApi": "No se pudieron obtener los bancos de memoria desde la API",
+        "create": "No se pudo crear el banco de memoria",
+        "update": "No se pudo actualizar el banco de memoria",
+        "delete": "No se pudo eliminar el banco de memoria",
+        "exportTemplate": "No se pudo exportar la plantilla del banco de memoria",
+        "importTemplate": "No se pudo importar la plantilla del banco de memoria"
+      },
+      "bankConfig": {
+        "fetch": "No se pudo obtener la configuración del banco",
+        "update": "No se pudo actualizar la configuración del banco",
+        "reset": "No se pudo restablecer la configuración del banco"
+      },
+      "bankProfile": {
+        "fetch": "No se pudo obtener el perfil del banco",
+        "update": "No se pudo actualizar el perfil del banco"
+      },
+      "memories": {
+        "list": "No se pudieron listar las unidades de memoria",
+        "fetch": "No se pudo obtener la memoria",
+        "notFound": "Memoria no encontrada",
+        "retain": "No se pudo ejecutar Retain por lotes",
+        "retainAsync": "No se pudo ejecutar Retain por lotes de forma asíncrona",
+        "history": "No se pudo obtener el historial de observaciones"
+      },
+      "documents": {
+        "fetchList": "No se pudieron obtener los documentos",
+        "fetch": "No se pudo obtener el documento",
+        "updateTags": "No se pudieron actualizar las etiquetas del documento",
+        "delete": "No se pudo eliminar el documento",
+        "chunks": "No se pudieron obtener los fragmentos del documento",
+        "reprocess": "No se pudo reprocesar el documento"
+      },
+      "files": {
+        "upload": "No se pudieron subir los archivos"
+      },
+      "chunks": {
+        "fetch": "No se pudo obtener el fragmento"
+      },
+      "entities": {
+        "list": "No se pudieron listar las entidades",
+        "fetch": "No se pudo obtener la entidad",
+        "graph": "No se pudo obtener el grafo de entidades",
+        "regenerateObservations": "No se pudieron regenerar las observaciones de la entidad"
+      },
+      "graph": {
+        "fetch": "No se pudieron obtener los datos del grafo"
+      },
+      "mentalModels": {
+        "list": "No se pudieron listar los modelos mentales",
+        "fetch": "No se pudo obtener el modelo mental",
+        "create": "No se pudo crear el modelo mental",
+        "update": "No se pudo actualizar el modelo mental",
+        "delete": "No se pudo eliminar el modelo mental",
+        "refresh": "No se pudo actualizar el modelo mental",
+        "history": "No se pudo obtener el historial del modelo mental",
+        "notFound": "Modelo mental no encontrado",
+        "clear": "No se pudo borrar el modelo mental"
+      },
+      "observations": {
+        "list": "No se pudieron listar las observaciones",
+        "clear": "No se pudieron borrar las observaciones",
+        "fetch": "No se pudo obtener la observación"
+      },
+      "directives": {
+        "list": "No se pudieron listar las directivas",
+        "fetch": "No se pudo obtener la directiva",
+        "create": "No se pudo crear la directiva",
+        "update": "No se pudo actualizar la directiva",
+        "delete": "No se pudo eliminar la directiva"
+      },
+      "operations": {
+        "fetch": "No se pudieron obtener las operaciones",
+        "cancel": "No se pudo cancelar la operación",
+        "status": "No se pudo obtener el estado de la operación",
+        "retry": "No se pudo reintentar la operación"
+      },
+      "auditLogs": {
+        "list": "No se pudieron listar los registros de auditoría",
+        "stats": "No se pudieron obtener las estadísticas de registros de auditoría"
+      },
+      "tags": {
+        "list": "No se pudieron listar las etiquetas"
+      },
+      "consolidation": {
+        "trigger": "No se pudo iniciar la consolidación",
+        "recover": "No se pudo recuperar la consolidación"
+      },
+      "recall": {
+        "failed": "No se pudo ejecutar Recall"
+      },
+      "reflect": {
+        "failed": "No se pudo ejecutar Reflect"
+      },
+      "stats": {
+        "fetch": "No se pudieron obtener las estadísticas",
+        "memoriesTimeseries": "No se pudo obtener la serie temporal de memorias"
+      },
+      "version": {
+        "fetch": "No se pudo obtener la versión"
+      },
+      "webhooks": {
+        "list": "No se pudieron listar los webhooks",
+        "create": "No se pudo crear el webhook",
+        "update": "No se pudo actualizar el webhook",
+        "delete": "No se pudo eliminar el webhook",
+        "deliveries": "No se pudieron obtener las entregas del webhook"
+      }
+    }
   }
 }

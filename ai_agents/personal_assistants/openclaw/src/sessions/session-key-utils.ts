@@ -95,6 +95,11 @@ function escapeRegExp(value: string): string {
 
 type PreservedSpan = { start: number; end: number; trim: boolean };
 
+function mayContainCasePreservingPeer(raw: string): boolean {
+  const folded = raw.toLowerCase();
+  return CASE_PRESERVING_PEERS.some((descriptor) => folded.includes(`${descriptor.channel}:`));
+}
+
 /**
  * Collect [start,end) index ranges in `raw` whose case must be preserved, per the
  * CASE_PRESERVING_PEERS registry. Spans may come from multiple descriptors; the
@@ -163,6 +168,9 @@ export function normalizeSessionKeyPreservingOpaquePeerIds(
   const raw = normalizeOptionalString(sessionKey);
   if (!raw) {
     return "";
+  }
+  if (!mayContainCasePreservingPeer(raw)) {
+    return raw.toLowerCase();
   }
   const spans = collectCasePreservedSpans(raw)
     .filter((span) => span.end > span.start)

@@ -1,8 +1,15 @@
 import type { SubscribeEmbeddedAgentSessionParams } from "../../embedded-agent-subscribe.types.js";
 import { log } from "../logger.js";
 
-export const EMBEDDED_ABORT_SETTLE_TIMEOUT_MS =
-  process.env.OPENCLAW_TEST_FAST === "1" ? 250 : 2_000;
+function resolveEmbeddedAbortSettleTimeoutMs(): number {
+  const override = Number(process.env.OPENCLAW_EMBEDDED_ABORT_SETTLE_TIMEOUT_MS);
+  if (Number.isFinite(override) && override > 0) {
+    return override;
+  }
+  return process.env.OPENCLAW_TEST_FAST === "1" ? 250 : 2_000;
+}
+
+export const EMBEDDED_ABORT_SETTLE_TIMEOUT_MS = resolveEmbeddedAbortSettleTimeoutMs();
 
 type IdleAwareAgent = {
   waitForIdle?: (() => Promise<void>) | undefined;
