@@ -1555,10 +1555,16 @@ export function extractOpenAICodexAccountId(token: string): string {
 }
 
 function createCodexRequestId(): string {
-  if (typeof globalThis.crypto?.randomUUID === "function") {
-    return globalThis.crypto.randomUUID();
+  const crypto = globalThis.crypto;
+  if (typeof crypto?.randomUUID === "function") {
+    return crypto.randomUUID();
   }
-  return `codex_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+  if (typeof crypto?.getRandomValues === "function") {
+    const bytes = crypto.getRandomValues(new Uint8Array(16));
+    const suffix = Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+    return `codex_${suffix}`;
+  }
+  throw new Error("Secure random request id generation is unavailable");
 }
 
 function buildBaseCodexHeaders(

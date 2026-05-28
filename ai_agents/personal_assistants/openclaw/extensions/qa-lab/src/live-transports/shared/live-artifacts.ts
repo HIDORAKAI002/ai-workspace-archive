@@ -1,10 +1,10 @@
 import { formatErrorMessage } from "openclaw/plugin-sdk/error-runtime";
 
-export function appendLiveLaneIssue(issues: string[], label: string, error: unknown) {
+export function appendQaLiveLaneIssue(issues: string[], label: string, error: unknown) {
   issues.push(`${label}: ${formatErrorMessage(error)}`);
 }
 
-export function buildLiveLaneArtifactsError(params: {
+export function buildQaLiveLaneArtifactsError(params: {
   heading: string;
   artifacts: Record<string, string>;
   details?: string[];
@@ -15,4 +15,13 @@ export function buildLiveLaneArtifactsError(params: {
     "Artifacts:",
     ...Object.entries(params.artifacts).map(([label, filePath]) => `- ${label}: ${filePath}`),
   ].join("\n");
+}
+
+export function printLiveTransportQaArtifacts(
+  laneLabel: string,
+  artifacts: Record<string, string>,
+) {
+  for (const [label, filePath] of Object.entries(artifacts)) {
+    process.stdout.write(`${laneLabel} ${label}: ${filePath}\n`);
+  }
 }

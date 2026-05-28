@@ -8,7 +8,7 @@ vi.mock("openclaw/plugin-sdk/ssrf-runtime", () => ({
   fetchWithSsrFGuard: ssrfMocks.fetchWithSsrFGuard,
 }));
 
-import { testing } from "./openai-codex-oauth-flow.runtime.js";
+import { openaiCodexOAuthProvider, testing } from "./openai-codex-oauth-flow.runtime.js";
 
 function timeoutError(): Error {
   return new DOMException("timed out", "TimeoutError");
@@ -19,6 +19,34 @@ afterEach(() => {
 });
 
 describe("OpenAI Codex OAuth flow", () => {
+  it("cancels provider login before opening the OAuth flow", async () => {
+    const controller = new AbortController();
+    controller.abort();
+
+    await expect(
+      openaiCodexOAuthProvider.login({
+        onAuth: vi.fn(),
+        onPrompt: vi.fn(async () => "unused-code"),
+        signal: controller.signal,
+      }),
+    ).rejects.toThrow("Login cancelled");
+  });
+
+  it("does not open the OAuth flow after cancellation during setup", async () => {
+    const controller = new AbortController();
+    const onAuth = vi.fn();
+    const loginPromise = openaiCodexOAuthProvider.login({
+      onAuth,
+      onPrompt: vi.fn(async () => "unused-code"),
+      signal: controller.signal,
+    });
+
+    controller.abort();
+
+    await expect(loginPromise).rejects.toThrow("Login cancelled");
+    expect(onAuth).not.toHaveBeenCalled();
+  });
+
   it("waits for Node OAuth runtime before creating an authorization flow", async () => {
     const flow = await testing.createAuthorizationFlow("openclaw-test");
     const url = new URL(flow.url);
@@ -61,6 +89,24 @@ describe("OpenAI Codex OAuth flow", () => {
     expect(result).toMatchObject({
       type: "failed",
       message: "OpenAI Codex token exchange timed out after 5ms",
+    });
+  });
+
+  it("cancels token exchange requests with the caller signal", async () => {
+    const controller = new AbortController();
+    controller.abort();
+
+    const result = await testing.exchangeAuthorizationCode(
+      "code",
+      "verifier",
+      testing.resolveRedirectUri("localhost"),
+      { signal: controller.signal, timeoutMs: 5 },
+    );
+
+    expect(ssrfMocks.fetchWithSsrFGuard).not.toHaveBeenCalled();
+    expect(result).toMatchObject({
+      type: "failed",
+      message: "Login cancelled",
     });
   });
 
