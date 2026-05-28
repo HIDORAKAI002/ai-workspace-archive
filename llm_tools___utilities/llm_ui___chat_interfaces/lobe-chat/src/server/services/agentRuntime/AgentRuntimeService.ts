@@ -19,13 +19,7 @@ import {
   invokeAgentSpanName,
   tracer as agentRuntimeTracer,
 } from '@lobechat/observability-otel/modules/agent-runtime';
-import {
-  AgentRuntimeErrorType,
-  ChatErrorType,
-  type ChatMessageError,
-  type ExecSubAgentTaskParams,
-  type UIChatMessage,
-} from '@lobechat/types';
+import { type ExecSubAgentTaskParams, type UIChatMessage } from '@lobechat/types';
 import debug from 'debug';
 import urlJoin from 'url-join';
 
@@ -34,6 +28,7 @@ import { type LobeChatDatabase } from '@/database/type';
 import { appEnv } from '@/envs/app';
 import { type AgentRuntimeCoordinatorOptions } from '@/server/modules/AgentRuntime';
 import { AgentRuntimeCoordinator, createStreamEventManager } from '@/server/modules/AgentRuntime';
+import { formatErrorForState } from '@/server/modules/AgentRuntime/formatErrorForState';
 import {
   createRuntimeExecutors,
   type RuntimeExecutorContext,
@@ -72,43 +67,6 @@ if (process.env.VERCEL) {
 }
 
 const log = debug('lobe-server:agent-runtime-service');
-
-/**
- * Formats an error into ChatMessageError structure
- * Handles various error formats from LLM execution and other sources
- */
-function formatErrorForState(error: unknown): ChatMessageError {
-  // Handle ChatCompletionErrorPayload format from LLM errors
-  // e.g., { errorType: 'InvalidProviderAPIKey', error: { ... }, provider: 'openai' }
-  if (error && typeof error === 'object' && 'errorType' in error) {
-    const payload = error as {
-      error?: unknown;
-      errorType: ChatMessageError['type'];
-      message?: string;
-    };
-    return {
-      body: payload.error || error,
-      message: payload.message || String(payload.errorType),
-      type: payload.errorType,
-    };
-  }
-
-  // Handle standard Error objects
-  if (error instanceof Error) {
-    return {
-      body: { name: error.name },
-      message: error.message,
-      type: ChatErrorType.InternalServerError,
-    };
-  }
-
-  // Fallback for unknown error types
-  return {
-    body: error,
-    message: String(error),
-    type: AgentRuntimeErrorType.AgentRuntimeError,
-  };
-}
 
 const toAgentSignalSnapshotEvents = (
   emission: Awaited<ReturnType<typeof emitAgentSignalSourceEvent>> | undefined,
@@ -775,6 +733,15 @@ export class AgentRuntimeService {
         const startAt = Date.now();
         const stepResult = await runtime.step(currentState, currentContext);
 
+        // Inner runtime.step() catches model-runtime exceptions and stuffs the
+        // raw error into newState.error without re-throwing — so the outer
+        // catch at the bottom of this method never sees them. Normalize +
+        // classify here so the raw error doesn't reach Redis state, the
+        // success-path trace finalize, or `persistCompletion`'s JSONB write.
+        if (stepResult.newState.error) {
+          stepResult.newState.error = formatErrorForState(stepResult.newState.error);
+        }
+
         // Check if the operation was interrupted while the step was executing
         // (e.g., user clicked abort during a long LLM call)
         const latestState = await this.coordinator.loadAgentState(operationId);
@@ -999,19 +966,23 @@ export class AgentRuntimeService {
           // Finalize tracing snapshot. The error catch below uses the same
           // recorder so propagated failures still write the canonical S3
           // snapshot instead of orphaning the partial ().
+          const newStateError = stepResult.newState.error;
           await this.traceRecorder.finalize(operationId, {
             appendEventsToLastStep: completionSignalEvents,
             completionReason: reason,
-            error: stepResult.newState.error
+            error: newStateError
               ? {
+                  attribution: newStateError.attribution,
+                  category: newStateError.category,
+                  countAsFailure: newStateError.countAsFailure,
+                  httpStatus: newStateError.httpStatus,
                   message:
-                    this.completionLifecycle.extractErrorMessage(stepResult.newState.error) ??
-                    JSON.stringify(stepResult.newState.error),
-                  type: String(
-                    stepResult.newState.error.type ??
-                      stepResult.newState.error.errorType ??
-                      'unknown',
-                  ),
+                    this.completionLifecycle.extractErrorMessage(newStateError) ??
+                    JSON.stringify(newStateError),
+                  numericId: newStateError.numericId,
+                  retryable: newStateError.retryable,
+                  severity: newStateError.severity,
+                  type: String(newStateError.type ?? newStateError.errorType ?? 'unknown'),
                 }
               : undefined,
             state: stepResult.newState,
@@ -1111,7 +1082,14 @@ export class AgentRuntimeService {
       await this.traceRecorder.finalize(operationId, {
         completionReason: 'error',
         error: {
+          attribution: formattedError.attribution,
+          category: formattedError.category,
+          countAsFailure: formattedError.countAsFailure,
+          httpStatus: formattedError.httpStatus,
           message: formattedError.message ?? String(formattedError.type),
+          numericId: formattedError.numericId,
+          retryable: formattedError.retryable,
+          severity: formattedError.severity,
           type: String(formattedError.type),
         },
         failedStep: { startedAt: stepStartAt, stepIndex },
