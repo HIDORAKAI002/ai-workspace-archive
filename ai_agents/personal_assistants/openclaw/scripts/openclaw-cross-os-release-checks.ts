@@ -266,7 +266,7 @@ export function resolveRunnerMatrix(params) {
     {
       os_id: "macos",
       display_name: "macOS",
-      runner: pick(params.macosRunner, params.varMacosRunner, "blacksmith-6vcpu-macos-latest"),
+      runner: pick(params.macosRunner, params.varMacosRunner, "blacksmith-6vcpu-macos-15"),
       artifact_name: "macos",
     },
   ];
@@ -3360,11 +3360,11 @@ async function runDashboardSmoke(params) {
   throw new Error(`Dashboard HTML did not become ready at ${dashboardUrl}.`);
 }
 
-export function hasChildExited(child) {
+function hasChildExited(child) {
   return child.exitCode !== null || (child.signalCode ?? null) !== null;
 }
 
-export async function stopGateway(gateway) {
+async function stopGateway(gateway) {
   try {
     if (!gateway?.child?.pid) {
       return;

@@ -871,7 +871,7 @@
     {
       "name": "code-reviewer",
       "category": "engineering",
-      "description": "Code review automation for TypeScript, JavaScript, Python, Go, Swift, Kotlin, C#, .NET, and Java. Analyzes PRs for complexity and risk, checks code quality for SOLID violations and code smells, generates review reports. Use when reviewing pull requests, analyzing code quality, identifying issues, generating review checklists."
+      "description": "Code review automation for TypeScript, JavaScript, Python, Go, Swift, Kotlin, C#, .NET, Java, C, C++, Rust, Ruby, PHP, and Dart/Flutter. Analyzes PRs for complexity and risk, checks code quality for SOLID violations and code smells, generates review reports. Use when reviewing pull requests, analyzing code quality, identifying issues, generating review checklists."
     },
     {
       "name": "coverage",

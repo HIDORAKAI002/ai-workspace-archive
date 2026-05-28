@@ -8,9 +8,11 @@ parallel, collect errors, and optionally display a tqdm progress bar.
 from __future__ import annotations
 
 import asyncio
+import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import TYPE_CHECKING, Any, TypeVar
 
+from pinecone._internal.adaptive import _AdaptiveLimiterRegistry
 from pinecone.models.batch import BatchError, BatchResult
 from pinecone.models.response_info import BatchResponseInfo
 
@@ -141,6 +143,8 @@ def batch_execute(
     show_progress: bool = True,
     desc: str = "Batches",
     executor: ThreadPoolExecutor | None = None,
+    limiter_registry: _AdaptiveLimiterRegistry | None = None,
+    host: str | None = None,
 ) -> BatchResult:
     """Execute *operation* on *items* in parallel batches.
 
@@ -162,6 +166,10 @@ def batch_execute(
             or torn down per call. Caller is responsible for ``shutdown()``.
             When ``None`` (default), a private executor is created and
             shut down at the end of this call.
+        limiter_registry (_AdaptiveLimiterRegistry | None): Optional registry
+            for adaptive concurrency. SDK-internal; not for user code.
+        host (str | None): Host key for the limiter registry lookup.
+            SDK-internal; not for user code.
 
     Returns:
         BatchResult with aggregated success/failure counts.
@@ -181,6 +189,37 @@ def batch_execute(
     lsn_reconciled_values: list[int] = []
     lsn_committed_values: list[int] = []
 
+    if limiter_registry is not None and host is not None:
+        limiter = limiter_registry.get(host, max_concurrency)
+    else:
+        limiter = None
+
+    condition = threading.Condition()
+    inflight = 0
+
+    def _acquire() -> None:
+        nonlocal inflight
+        if limiter is None:
+            return
+        with condition:
+            while inflight >= limiter.current_limit():
+                condition.wait()
+            inflight += 1
+
+    def _release() -> None:
+        nonlocal inflight
+        if limiter is None:
+            return
+        with condition:
+            inflight -= 1
+            condition.notify_all()
+
+    def _wrapped_op(batch: list[dict[str, Any]]) -> Any:
+        try:
+            return operation(batch)
+        finally:
+            _release()
+
     progress = _create_progress_bar(total_batches, desc, show_progress)
 
     own_executor = executor is None
@@ -188,9 +227,11 @@ def batch_execute(
         executor = ThreadPoolExecutor(max_workers=max_concurrency)
 
     try:
-        future_to_batch = {
-            executor.submit(operation, batch): (idx, batch) for idx, batch in enumerate(batches)
-        }
+        future_to_batch: dict[Any, tuple[int, list[dict[str, Any]]]] = {}
+        for idx, batch in enumerate(batches):
+            _acquire()
+            future = executor.submit(_wrapped_op, batch)
+            future_to_batch[future] = (idx, batch)
 
         for future in as_completed(future_to_batch):
             batch_idx, batch = future_to_batch[future]
@@ -242,6 +283,8 @@ async def async_batch_execute(
     max_concurrency: int = 4,
     show_progress: bool = True,
     desc: str = "Batches",
+    limiter_registry: _AdaptiveLimiterRegistry | None = None,
+    host: str | None = None,
 ) -> BatchResult:
     """Async version of :func:`batch_execute`.
 
@@ -258,6 +301,10 @@ async def async_batch_execute(
             (1-64, default 4).
         show_progress (bool): Display a tqdm progress bar when installed.
         desc (str): Label shown on the progress bar.
+        limiter_registry (_AdaptiveLimiterRegistry | None): Optional registry
+            for adaptive concurrency. SDK-internal; not for user code.
+        host (str | None): Host key for the limiter registry lookup.
+            SDK-internal; not for user code.
 
     Returns:
         BatchResult with aggregated success/failure counts.
@@ -277,14 +324,43 @@ async def async_batch_execute(
     lsn_reconciled_values: list[int] = []
     lsn_committed_values: list[int] = []
 
-    semaphore = asyncio.Semaphore(max_concurrency)
+    use_limiter = limiter_registry is not None and host is not None
+    if limiter_registry is not None and host is not None:
+        limiter = limiter_registry.get(host, max_concurrency)
+    else:
+        limiter = None
+    semaphore = asyncio.Semaphore(max_concurrency) if not use_limiter else None
+    inflight = 0
+    inflight_lock = asyncio.Lock()
+
     progress = _create_progress_bar(total_batches, desc, show_progress)
+
+    async def _acquire() -> None:
+        if semaphore is not None:
+            await semaphore.acquire()
+            return
+        # Limiter path: spin until inflight < current_limit
+        if limiter is None:
+            return
+        while True:
+            async with inflight_lock:
+                if inflight < limiter.current_limit():
+                    return
+            await asyncio.sleep(0.05)
+
+    async def _release() -> None:
+        if semaphore is not None:
+            semaphore.release()
 
     async def _run_batch(batch_idx: int, batch: list[dict[str, Any]]) -> None:
         # nonlocal is safe: asyncio coroutines run on a single thread,
         # so += and .append() cannot interleave between await points.
-        nonlocal successful_item_count
-        async with semaphore:
+        nonlocal successful_item_count, inflight
+        await _acquire()
+        if use_limiter:
+            async with inflight_lock:
+                inflight += 1
+        try:
             try:
                 batch_result = await operation(batch)
             except Exception as exc:
@@ -300,6 +376,12 @@ async def async_batch_execute(
                 successful_item_count += len(batch)
                 _collect_lsn(batch_result, lsn_reconciled_values, lsn_committed_values)
             progress.update(1)
+        finally:
+            if use_limiter:
+                async with inflight_lock:
+                    inflight -= 1
+            else:
+                await _release()
 
     try:
         tasks = [_run_batch(i, batch) for i, batch in enumerate(batches)]

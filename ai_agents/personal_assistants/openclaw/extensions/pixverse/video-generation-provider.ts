@@ -133,6 +133,13 @@ function appendOptionalNumber(body: Record<string, unknown>, key: string, value:
   }
 }
 
+function appendOptionalInt32Seed(body: Record<string, unknown>, value: unknown): void {
+  const seed = asFiniteNumber(value);
+  if (seed != null && Number.isSafeInteger(seed) && seed >= 0 && seed <= 2_147_483_647) {
+    body.seed = seed;
+  }
+}
+
 function appendOptionalString(body: Record<string, unknown>, key: string, value: unknown): void {
   const stringValue = normalizeOptionalString(value);
   if (stringValue) {
@@ -257,7 +264,7 @@ function buildVideoBody(
     "template_id",
     asFiniteNumber(options.template_id) ?? asFiniteNumber(options.templateId),
   );
-  appendOptionalNumber(body, "seed", options.seed);
+  appendOptionalInt32Seed(body, options.seed);
   if (req.audio !== undefined) {
     body.generate_audio_switch = req.audio;
   }

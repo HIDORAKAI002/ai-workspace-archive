@@ -32,6 +32,7 @@ export enum PlanLimitTypes {
   LIMIT_RLS_POLICIES_PER_TABLE = 'limit_rls_policies_per_table',
   LIMIT_DOCUMENT_PAGE_PER_BASE = 'limit_document_page_per_base',
   LIMIT_DOCS_PAGE_SIZE_KB = 'limit_docs_page_size_kb',
+  LIMIT_DOC_REVISION_HISTORY_DAYS = 'limit_doc_revision_history_days',
   LIMIT_WORKSPACE = 'limit_workspace',
   LIMIT_TRASH_RETENTION = 'limit_trash_retention',
   LIMIT_AI_INTEGRATIONS = 'limit_ai_integrations',
@@ -86,6 +87,7 @@ export enum PlanFeatureTypes {
   FEATURE_SYNC = 'feature_sync',
   FEATURE_UNIQUE = 'feature_unique',
   FEATURE_TOGGLE_FILTER = 'feature_toggle_filter',
+  FEATURE_TOGGLE_GROUPBY = 'feature_toggle_groupby',
   FEATURE_PINNED_FILTER = 'feature_pinned_filter',
   FEATURE_UUID_FIELD = 'feature_uuid_field',
   FEATURE_AUTONUMBER_FIELD = 'feature_autonumber_field',
@@ -296,6 +298,8 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
     'to add more document pages in a base.',
   [PlanLimitTypes.LIMIT_DOCS_PAGE_SIZE_KB]:
     'to increase the document page size limit.',
+  [PlanLimitTypes.LIMIT_DOC_REVISION_HISTORY_DAYS]:
+    'to keep document revision history for longer.',
   [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 'for extended trash retention.',
   [PlanLimitTypes.LIMIT_AI_INTEGRATIONS]: 'to add more AI integrations.',
 };
@@ -369,6 +373,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_UNIQUE]: 'to use unique constraint.',
   [PlanFeatureTypes.FEATURE_TOGGLE_FILTER]:
     'to enable or disable individual filters.',
+  [PlanFeatureTypes.FEATURE_TOGGLE_GROUPBY]:
+    'to enable or disable individual group-bys.',
   [PlanFeatureTypes.FEATURE_PINNED_FILTER]: 'to pin filters to the toolbar.',
   [PlanFeatureTypes.FEATURE_UUID_FIELD]: 'to use UUID fields.',
   [PlanFeatureTypes.FEATURE_AUTONUMBER_FIELD]: 'to use AutoNumber fields.',

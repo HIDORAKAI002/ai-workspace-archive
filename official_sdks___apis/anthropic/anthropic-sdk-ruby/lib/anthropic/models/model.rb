@@ -2,11 +2,14 @@
 
 module Anthropic
   module Models
-    # The model that will complete your prompt.\n\nSee
-    # [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+    # The model that will complete your prompt.
+    #
+    # See [models](https://docs.anthropic.com/en/docs/models-overview) for additional
     # details and options.
     module Model
       extend Anthropic::Internal::Type::Union
+
+      variant const: -> { Anthropic::Models::Model::CLAUDE_OPUS_4_8 }
 
       variant const: -> { Anthropic::Models::Model::CLAUDE_OPUS_4_7 }
 
@@ -52,6 +55,9 @@ module Anthropic
       end
 
       # @!group
+
+      # Frontier intelligence for long-running agents and coding
+      CLAUDE_OPUS_4_8 = :"claude-opus-4-8"
 
       # Frontier intelligence for long-running agents and coding
       CLAUDE_OPUS_4_7 = :"claude-opus-4-7"

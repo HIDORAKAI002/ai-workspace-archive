@@ -61,6 +61,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockToggleFilter = computed(() => true)
 
+  const blockToggleGroupBy = computed(() => true)
+
   const blockPinnedFilter = computed(() => true)
 
   const blockCellColoring = computed(() => true)
@@ -184,6 +186,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseToggleFilter = (..._args: any[]) => {}
 
+  const showUpgradeToUseToggleGroupBy = (..._args: any[]) => {}
+
   const showUpgradeToUsePinnedFilter = (..._args: any[]) => {}
 
   const showUpgradeToUseCellColoring = (..._args: any[]) => {}
@@ -227,6 +231,10 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseDocsResolveComments = (..._args: any[]) => {}
 
   const showUpgradeToUseDocsExportPdf = (..._args: any[]) => {}
+
+  const revisionRetentionLadder = computed<{ title: string; days: number }[]>(() => [])
+
+  const requiredPlanForRevisionAge = (..._args: any[]): string | null => null
 
   const showScriptPlanLimitExceededModal = (..._args: any[]) => {}
 
@@ -403,6 +411,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseRowColoring,
     blockToggleFilter,
     showUpgradeToUseToggleFilter,
+    blockToggleGroupBy,
+    showUpgradeToUseToggleGroupBy,
     blockPinnedFilter,
     showUpgradeToUsePinnedFilter,
     blockCellColoring,
@@ -432,6 +442,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseDocsInlineComments,
     showUpgradeToUseDocsResolveComments,
     showUpgradeToUseDocsExportPdf,
+    revisionRetentionLadder,
+    requiredPlanForRevisionAge,
     showScriptPlanLimitExceededModal,
     blockAddNewScript,
     blockAddNewDashboard,

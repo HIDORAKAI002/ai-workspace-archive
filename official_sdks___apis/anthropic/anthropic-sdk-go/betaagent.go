@@ -1705,12 +1705,14 @@ const (
 	BetaManagedAgentsMCPToolsetParamsTypeMCPToolset BetaManagedAgentsMCPToolsetParamsType = "mcp_toolset"
 )
 
-// The model that will power your agent.\n\nSee
-// [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+// The model that will power your agent.
+//
+// See [models](https://docs.anthropic.com/en/docs/models-overview) for additional
 // details and options.
 type BetaManagedAgentsModel = string
 
 const (
+	BetaManagedAgentsModelClaudeOpus4_8            BetaManagedAgentsModel = "claude-opus-4-8"
 	BetaManagedAgentsModelClaudeOpus4_7            BetaManagedAgentsModel = "claude-opus-4-7"
 	BetaManagedAgentsModelClaudeOpus4_6            BetaManagedAgentsModel = "claude-opus-4-6"
 	BetaManagedAgentsModelClaudeSonnet4_6          BetaManagedAgentsModel = "claude-sonnet-4-6"
@@ -1724,8 +1726,9 @@ const (
 
 // Model identifier and configuration.
 type BetaManagedAgentsModelConfig struct {
-	// The model that will power your agent.\n\nSee
-	// [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+	// The model that will power your agent.
+	//
+	// See [models](https://docs.anthropic.com/en/docs/models-overview) for additional
 	// details and options.
 	ID BetaManagedAgentsModel `json:"id" api:"required"`
 	// Inference speed mode. `fast` provides significantly faster output token
@@ -1763,8 +1766,9 @@ const (
 //
 // The property ID is required.
 type BetaManagedAgentsModelConfigParams struct {
-	// The model that will power your agent.\n\nSee
-	// [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+	// The model that will power your agent.
+	//
+	// See [models](https://docs.anthropic.com/en/docs/models-overview) for additional
 	// details and options.
 	ID BetaManagedAgentsModel `json:"id,omitzero" api:"required"`
 	// Inference speed mode. `fast` provides significantly faster output token

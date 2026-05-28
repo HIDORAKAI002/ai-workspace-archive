@@ -6,6 +6,7 @@ from collections.abc import Mapping
 from dataclasses import replace
 from typing import TYPE_CHECKING, Any
 
+from pinecone._internal.adaptive import _AdaptiveLimiterRegistry
 from pinecone._internal.config import PineconeConfig, RetryConfig
 from pinecone._internal.constants import CONTROL_PLANE_API_VERSION, DEFAULT_BASE_URL
 from pinecone._internal.indexes_helpers import IndexKwargs, async_poll_index_until_ready
@@ -124,6 +125,11 @@ class AsyncPinecone:
         if proxy_headers:
             raise NotImplementedError("proxy_headers is not yet supported for the async client")
 
+        self._limiter_registry = _AdaptiveLimiterRegistry()
+        augmented_retry_config = replace(
+            retry_config or RetryConfig(),
+            on_throttle=self._limiter_registry.report_throttled,
+        )
         config = PineconeConfig(
             api_key=api_key or "",
             host=host or "",
@@ -134,7 +140,7 @@ class AsyncPinecone:
             ssl_ca_certs=ssl_ca_certs,
             ssl_verify=ssl_verify,
             connection_pool_maxsize=connection_pool_maxsize,
-            retry_config=retry_config or RetryConfig(),
+            retry_config=augmented_retry_config,
         )
 
         if not config.api_key:
@@ -761,6 +767,7 @@ class AsyncPinecone:
             ssl_verify=self._config.ssl_verify,
             source_tag=self._config.source_tag,
             connection_pool_maxsize=self._config.connection_pool_maxsize,
+            _limiter_registry=self._limiter_registry,
         )
 
     def _build_index_kwargs(self, host: str) -> IndexKwargs:
@@ -861,7 +868,10 @@ class AsyncPinecone:
         from pinecone.async_client.async_index import AsyncIndex as _AsyncIndex
 
         resolved_host = await self._resolve_index_host(name=name, host=host)
-        return _AsyncIndex(**self._build_index_kwargs(resolved_host))
+        return _AsyncIndex(
+            **self._build_index_kwargs(resolved_host),
+            _limiter_registry=self._limiter_registry,
+        )
 
     async def close(self) -> None:
         """Close all open HTTP connections.

@@ -6,6 +6,7 @@ from collections.abc import Mapping
 from dataclasses import replace
 from typing import TYPE_CHECKING, Any, cast
 
+from pinecone._internal.adaptive import _AdaptiveLimiterRegistry
 from pinecone._internal.config import PineconeConfig, RetryConfig
 from pinecone._internal.constants import CONTROL_PLANE_API_VERSION, DEFAULT_BASE_URL
 from pinecone._internal.indexes_helpers import _LegacyIndexKwargs, poll_index_until_ready
@@ -117,6 +118,11 @@ class Pinecone:
         legacy_pool_threads = kwargs.pop("pool_threads", None)
         if kwargs:
             raise TypeError(f"Pinecone() got unexpected keyword arguments: {sorted(kwargs)!r}")
+        self._limiter_registry = _AdaptiveLimiterRegistry()
+        augmented_retry_config = replace(
+            retry_config or RetryConfig(),
+            on_throttle=self._limiter_registry.report_throttled,
+        )
         config = PineconeConfig(
             api_key=api_key or "",
             host=host or "",
@@ -128,7 +134,7 @@ class Pinecone:
             ssl_ca_certs=ssl_ca_certs,
             ssl_verify=ssl_verify,
             connection_pool_maxsize=connection_pool_maxsize,
-            retry_config=retry_config or RetryConfig(),
+            retry_config=augmented_retry_config,
         )
 
         if not config.api_key:
@@ -388,6 +394,7 @@ class Pinecone:
                 host=resolved_host,
                 api_key=self._config.api_key,
                 source_tag=self._config.source_tag or None,
+                on_throttle=self._limiter_registry.report_throttled,
             )
 
         from pinecone.index import Index as _Index

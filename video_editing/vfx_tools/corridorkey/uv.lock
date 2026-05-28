@@ -422,7 +422,7 @@ requires-dist = [
     { name = "rich", specifier = ">=13" },
     { name = "safetensors" },
     { name = "setuptools" },
-    { name = "timm", git = "https://github.com/Raiden129/pytorch-image-models-fix?branch=fix%2Fhiera-flash-attention-global-4d" },
+    { name = "timm", specifier = "==1.0.26" },
     { name = "torch", specifier = "==2.8.0" },
     { name = "torch", marker = "extra == 'cuda'", specifier = "==2.8.0", index = "https://download.pytorch.org/whl/cu128", conflict = { package = "corridorkey", extra = "cuda" } },
     { name = "torch", marker = "extra == 'rocm'", specifier = "==2.8.0", index = "https://download.pytorch.org/whl/rocm6.3", conflict = { package = "corridorkey", extra = "rocm" } },
@@ -2061,8 +2061,8 @@ wheels = [
 
 [[package]]
 name = "timm"
-version = "1.0.25"
-source = { git = "https://github.com/Raiden129/pytorch-image-models-fix?branch=fix%2Fhiera-flash-attention-global-4d#fc1dca92c5a44d5436605dacb19594117ce2eb0c" }
+version = "1.0.26"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "huggingface-hub" },
     { name = "pyyaml" },
@@ -2073,6 +2073,10 @@ dependencies = [
     { name = "torchvision", version = "0.23.0", source = { registry = "https://pypi.org/simple" }, marker = "extra == 'extra-11-corridorkey-mlx' or (extra == 'extra-11-corridorkey-cuda' and extra == 'extra-11-corridorkey-rocm') or (extra != 'extra-11-corridorkey-cuda' and extra != 'extra-11-corridorkey-rocm')" },
     { name = "torchvision", version = "0.23.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "extra == 'extra-11-corridorkey-cuda' or (extra == 'extra-11-corridorkey-mlx' and extra == 'extra-11-corridorkey-rocm')" },
     { name = "torchvision", version = "0.23.0+rocm6.3", source = { registry = "https://download.pytorch.org/whl/rocm6.3" }, marker = "(extra == 'extra-11-corridorkey-cuda' and extra == 'extra-11-corridorkey-mlx') or (extra != 'extra-11-corridorkey-mlx' and extra == 'extra-11-corridorkey-rocm') or (extra != 'extra-11-corridorkey-cuda' and extra == 'extra-11-corridorkey-rocm')" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/7b/1e/e924b3b2326a856aaf68586f9c52a5fc81ef45715eca408393b68c597e0e/timm-1.0.26.tar.gz", hash = "sha256:f66f082f2f381cf68431c22714c8b70f723837fa2a185b155961eab90f2d5b10", size = 2419859, upload-time = "2026-03-23T18:12:10.272Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/6f/e9/bebf3d50e3fc847378988235f87c37ad3ac26d386041ab915d15e92025cd/timm-1.0.26-py3-none-any.whl", hash = "sha256:985c330de5ccc3a2aa0224eb7272e6a336084702390bb7e3801f3c91603d3683", size = 2568766, upload-time = "2026-03-23T18:12:08.062Z" },
 ]
 
 [[package]]
