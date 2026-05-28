@@ -12,7 +12,9 @@ const loaders = {
   pt: () => import("../messages/pt.json"),
   ja: () => import("../messages/ja.json"),
   ko: () => import("../messages/ko.json"),
-  zh: () => import("../messages/zh.json"),
+  "zh-CN": () => import("../messages/zh-CN.json"),
+  "zh-TW": () => import("../messages/zh-TW.json"),
+  "yue-Hant": () => import("../messages/yue-Hant.json"),
 } as const;
 
 export default getRequestConfig(async ({ requestLocale }) => {

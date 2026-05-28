@@ -106,6 +106,25 @@ _PROTECTED_TABLES = frozenset(
 # Enable runtime SQL validation (can be disabled in production for performance)
 _VALIDATE_SQL_SCHEMAS = True
 
+# Consolidation retry: indefinite retry with capped exponential backoff.
+# Transient upstream outages (LLM provider down, DB flapping, tenant-ext
+# blip) must eventually recover; the worker should keep trying rather than
+# silently dead-lettering a bank's consolidation backlog. Deterministic
+# failures (integrity violations, embedding dimension mismatches) are
+# filtered upstream by `_is_non_retryable_task_error` and never reach the
+# retry path. The dedup-by-bank guard prevents per-op retries from
+# multiplying when a peer consolidation is already pending for the bank.
+_CONSOLIDATION_RETRY_BACKOFF_BASE_SECONDS = 60
+_CONSOLIDATION_RETRY_BACKOFF_MAX_SECONDS = 1800  # 30 min cap
+
+
+def _consolidation_retry_backoff_seconds(retry_count: int) -> int:
+    """Capped exponential backoff: 60, 120, 240, 480, 960, 1800, 1800, …"""
+    return min(
+        _CONSOLIDATION_RETRY_BACKOFF_BASE_SECONDS * (2**retry_count),
+        _CONSOLIDATION_RETRY_BACKOFF_MAX_SECONDS,
+    )
+
 
 class UnqualifiedTableError(Exception):
     """Raised when SQL contains unqualified table references."""
@@ -273,6 +292,12 @@ def _split_contents_into_sub_batches(
     would pass through as a ``1/1`` sub-batch holding the entire
     payload — which contradicts the splitter's log and lets the
     orchestrator OOM under realistic memory limits (see issue #1571).
+
+    Used by the in-process ``retain_batch_async`` path, which processes
+    the returned sub-batches SEQUENTIALLY with ``is_first_batch=(i==1)``.
+    The async submission path uses ``_split_contents_into_async_children``
+    instead, which never fragments a single item across children — see
+    that helper for the reasoning.
     """
     from .retain import fact_extraction
 
@@ -324,6 +349,66 @@ def _split_contents_into_sub_batches(
 
     _flush()
     return _SubBatchSplit(sub_batches=sub_batches, origin_indices=origin_indices)
+
+
+def _split_contents_into_async_children(
+    contents: list[RetainContentDict],
+    tokens_per_batch: int,
+) -> list[list[RetainContentDict]]:
+    """Pack retain contents into child operations for async submission.
+
+    Unlike ``_split_contents_into_sub_batches`` (used by the in-process
+    path), this NEVER fragments a single input item across multiple
+    children. Items where ``count_tokens(content) > tokens_per_batch``
+    are emitted as their own single-item child holding the FULL
+    un-chunked content; the in-process ``retain_batch_async`` then
+    re-chunks them SEQUENTIALLY inside one worker slot with correct
+    ``is_first_batch=(i==1)`` semantics.
+
+    The previous behavior — chunking oversized items into N independent
+    child async-operations sharing one ``document_id`` — let workers
+    claim siblings concurrently with no per-document gate (the busy-bank
+    guard in ``claim_tasks`` only covers consolidation). Each concurrent
+    child ran ``handle_document_tracking(is_first_batch=True)``, which
+    cascade-deletes the prior winner's ``memory_units`` for that
+    document. The loser's final ANN pass then attempted to insert
+    ``memory_links`` referencing now-deleted units → FK violations on
+    ``fk_memory_links_from_unit_id_memory_units``, partial document
+    state, and worker thread exhaustion from sentence-transformer pools
+    spun up per concurrent child. See issue #1795.
+
+    Items smaller than the budget are still packed together so genuinely
+    independent items keep cross-worker parallelism.
+    """
+    children: list[list[RetainContentDict]] = []
+    current: list[RetainContentDict] = []
+    current_tokens = 0
+
+    def _flush() -> None:
+        nonlocal current, current_tokens
+        if current:
+            children.append(current)
+            current = []
+            current_tokens = 0
+
+    for item in contents:
+        item_tokens = count_tokens(item.get("content", "") or "")
+
+        if item_tokens > tokens_per_batch:
+            # Oversized: flush in-flight items into their own child,
+            # then emit this item AS-IS (un-chunked) into its own child.
+            # The worker will sequentially chunk it inside retain_batch_async.
+            _flush()
+            children.append([item])
+            continue
+
+        if current and current_tokens + item_tokens > tokens_per_batch:
+            _flush()
+        current.append(item)
+        current_tokens += item_tokens
+
+    _flush()
+    return children
 
 
 def _is_invalid_embedding_dimension_error(e: Exception) -> bool:
@@ -394,6 +479,15 @@ def _resolve_thinking_budget(config_dict: dict, budget: "Budget | None", max_tok
 def utcnow():
     """Get current UTC time with timezone info."""
     return datetime.now(UTC)
+
+
+def _recall_scoring_now(question_date: datetime | None) -> datetime:
+    """Return the reference time for recall scoring boosts."""
+    if question_date is None:
+        return utcnow()
+    if question_date.tzinfo is None or question_date.utcoffset() is None:
+        return question_date.replace(tzinfo=UTC)
+    return question_date.astimezone(UTC)
 
 
 # Logger for memory system
@@ -670,6 +764,7 @@ class MemoryEngine(MemoryEngineInterface):
             api_key=memory_llm_api_key,
             base_url=memory_llm_base_url,
             model=memory_llm_model,
+            reasoning_effort=config.llm_reasoning_effort,
             extra_body=config.llm_extra_body,
             default_headers=config.llm_default_headers,
             litellmrouter_config=config.llm_litellmrouter_config,
@@ -701,6 +796,7 @@ class MemoryEngine(MemoryEngineInterface):
             api_key=retain_api_key,
             base_url=retain_base_url,
             model=retain_model,
+            reasoning_effort=config.llm_reasoning_effort,
             extra_body=config.llm_extra_body,
             default_headers=config.llm_default_headers,
             litellmrouter_config=config.retain_llm_litellmrouter_config or config.llm_litellmrouter_config,
@@ -727,6 +823,7 @@ class MemoryEngine(MemoryEngineInterface):
             api_key=reflect_api_key,
             base_url=reflect_base_url,
             model=reflect_model,
+            reasoning_effort=config.llm_reasoning_effort,
             extra_body=config.llm_extra_body,
             default_headers=config.llm_default_headers,
             litellmrouter_config=config.reflect_llm_litellmrouter_config or config.llm_litellmrouter_config,
@@ -753,6 +850,7 @@ class MemoryEngine(MemoryEngineInterface):
             api_key=consolidation_api_key,
             base_url=consolidation_base_url,
             model=consolidation_model,
+            reasoning_effort=config.llm_reasoning_effort,
             extra_body=config.llm_extra_body,
             default_headers=config.llm_default_headers,
             litellmrouter_config=config.consolidation_llm_litellmrouter_config or config.llm_litellmrouter_config,
@@ -1421,6 +1519,38 @@ class MemoryEngine(MemoryEngineInterface):
                             error_message=str(e),
                             schema=schema,
                         )
+
+                        # When another consolidation is already pending for the same
+                        # bank, skip the retry. The pending op will process the same
+                        # unconsolidated rows when it runs, so retrying ours just
+                        # multiplies retry budgets during a long transient outage
+                        # (every retain enqueues a fresh op, each independently
+                        # consuming `_retry_count` slots — a retry storm).
+                        bank_id_for_dedup = task_dict.get("bank_id", "")
+                        if bank_id_for_dedup and await self._has_other_pending_consolidation(
+                            bank_id=bank_id_for_dedup,
+                            operation_id=operation_id,
+                        ):
+                            logger.info(
+                                f"Consolidation {operation_id} for bank {bank_id_for_dedup} hit "
+                                f"transient error; another consolidation is already pending for "
+                                f"this bank — skipping retry."
+                            )
+                            raise
+
+                        # Indefinite retry with capped exponential backoff.
+                        # Transient outages (LLM provider down, DB flapping) must
+                        # eventually recover; the alternative (cap after 3 retries
+                        # and mark failed) silently dead-letters the bank's backlog.
+                        # The dedup-by-bank guard above prevents this from causing
+                        # a retry storm when multiple ops exist for the same bank.
+                        retry_count = task_dict.get("_retry_count", 0)
+                        backoff = _consolidation_retry_backoff_seconds(retry_count)
+                        raise RetryTaskAt(
+                            retry_at=datetime.now(UTC) + timedelta(seconds=backoff),
+                            message=str(e),
+                        )
+
                     # Retryable: use RetryTaskAt if under the retry limit, else re-raise (poller marks failed)
                     retry_count = task_dict.get("_retry_count", 0)
                     if retry_count < 3:
@@ -2890,7 +3020,7 @@ class MemoryEngine(MemoryEngineInterface):
                        Results are returned until token budget is reached, stopping before
                        including a fact that would exceed the limit
             enable_trace: Whether to return trace for debugging (deprecated)
-            question_date: Optional date when question was asked (for temporal filtering)
+            question_date: Optional date when question was asked (for temporal filtering and recency scoring)
             include_entities: Whether to include entity observations in the response
             max_entity_tokens: Maximum tokens for entity observations (default 500)
             include_chunks: Whether to include raw chunks in the response
@@ -3549,7 +3679,11 @@ class MemoryEngine(MemoryEngineInterface):
             if scored_results:
                 ce = reranker_instance.cross_encoder
                 is_passthrough = ce is not None and ce.provider_name == "rrf"
-                apply_combined_scoring(scored_results, now=utcnow(), is_passthrough_reranker=is_passthrough)
+                apply_combined_scoring(
+                    scored_results,
+                    now=_recall_scoring_now(question_date),
+                    is_passthrough_reranker=is_passthrough,
+                )
                 scored_results.sort(key=lambda x: x.weight, reverse=True)
                 log_buffer.append("  [4.6] Combined scoring: ce * recency_boost(0.2) * temporal_boost(0.2)")
 
@@ -9517,6 +9651,42 @@ class MemoryEngine(MemoryEngineInterface):
             )
         return [dict(row) for row in rows]
 
+    async def _has_other_pending_consolidation(
+        self,
+        *,
+        bank_id: str,
+        operation_id: str,
+    ) -> bool:
+        """Return True if any consolidation op other than ``operation_id`` is
+        ``pending`` for ``bank_id``.
+
+        Used by the task-retry path to skip retrying a transient consolidation
+        failure when another pending op already covers the same bank — the other
+        op will process the same unconsolidated rows when it runs.
+
+        A check failure (DB hiccup) returns ``False`` so the caller proceeds
+        with the normal retry path rather than swallowing a real failure.
+        """
+        backend = await self._get_backend()
+        try:
+            async with acquire_with_retry(backend) as conn:
+                existing = await conn.fetchval(
+                    f"""
+                    SELECT 1 FROM {fq_table("async_operations")}
+                    WHERE bank_id = $1
+                      AND operation_type = 'consolidation'
+                      AND status = 'pending'
+                      AND operation_id != $2
+                    LIMIT 1
+                    """,
+                    bank_id,
+                    uuid.UUID(operation_id),
+                )
+            return existing is not None
+        except Exception as e:
+            logger.warning(f"Failed to check for other pending consolidation ops for bank {bank_id}: {e}")
+            return False
+
     async def _submit_async_operation(
         self,
         bank_id: str,
@@ -9655,14 +9825,14 @@ class MemoryEngine(MemoryEngineInterface):
         config = get_config()
         tokens_per_batch = config.retain_batch_tokens
 
-        # Split into sub-batches based on token count. Oversized single
-        # items get chunked into per-chunk sub-batches by the helper
-        # (see issue #1571). origin_indices is unused here because
-        # submit_async_retain returns only the parent operation_id, not
-        # per-input results.
-        sub_batches = _split_contents_into_sub_batches(
-            cast(list[RetainContentDict], contents), tokens_per_batch
-        ).sub_batches
+        # Pack items into child operations by token budget. An oversized
+        # single item is emitted as its own un-chunked child rather than
+        # being fragmented across siblings — workers have no
+        # per-document serialization, so concurrent siblings would race
+        # on the same document_id and trigger FK violations in the final
+        # ANN pass (issue #1795). The worker's in-process splitter
+        # handles intra-document chunking sequentially.
+        sub_batches = _split_contents_into_async_children(cast(list[RetainContentDict], contents), tokens_per_batch)
 
         # Log splitting info if we actually split
         if len(sub_batches) > 1:
@@ -9670,13 +9840,13 @@ class MemoryEngine(MemoryEngineInterface):
             if len(sub_batches) <= 20:
                 logger.info(
                     f"Large async retain batch ({total_tokens:,} tokens from {len(contents)} items). "
-                    f"Split into {len(sub_batches)} sub-batches: {sub_batch_sizes} items each"
+                    f"Split into {len(sub_batches)} child operations: {sub_batch_sizes} items each"
                 )
             else:
                 logger.info(
                     f"Large async retain batch ({total_tokens:,} tokens from {len(contents)} items). "
-                    f"Split into {len(sub_batches)} sub-batches "
-                    f"(items per sub-batch: min={min(sub_batch_sizes)}, "
+                    f"Split into {len(sub_batches)} child operations "
+                    f"(items per child: min={min(sub_batch_sizes)}, "
                     f"max={max(sub_batch_sizes)}, total={sum(sub_batch_sizes)})"
                 )
 
@@ -9742,7 +9912,7 @@ class MemoryEngine(MemoryEngineInterface):
                     if len(sub_batches) > 1:
                         sub_batch_tokens = sum(count_tokens(item.get("content", "")) for item in sub_batch)
                         logger.info(
-                            f"Submitting sub-batch {i}/{len(sub_batches)}: {len(sub_batch)} items, {sub_batch_tokens:,} tokens"
+                            f"Submitting child {i}/{len(sub_batches)}: {len(sub_batch)} items, {sub_batch_tokens:,} tokens"
                         )
 
                     task_payload: dict[str, Any] = {"contents": sub_batch}

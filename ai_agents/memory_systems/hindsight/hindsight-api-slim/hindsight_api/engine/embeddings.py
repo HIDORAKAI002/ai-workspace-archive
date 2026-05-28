@@ -10,13 +10,11 @@ Configuration via environment variables - see hindsight_api.config for all env v
 """
 
 import base64
-import json
 import logging
 import os
 import struct
 import warnings
 from abc import ABC, abstractmethod
-from pathlib import Path
 from typing import Literal, cast
 from urllib.parse import parse_qs, urlparse, urlunparse
 
@@ -555,6 +553,10 @@ class CodexOAuthEmbeddings(OpenAIEmbeddings):
     can also authenticate against the standard OpenAI embeddings endpoint. This keeps
     embeddings on the user's existing Codex subscription/OAuth path without requiring
     a separate OpenAI/OpenRouter/Gemini/Cohere API key.
+
+    Token refresh is handled automatically: the manager proactively refreshes the
+    access_token before it expires and reactively refreshes on 401 responses from
+    the embeddings API.
     """
 
     def __init__(
@@ -564,9 +566,11 @@ class CodexOAuthEmbeddings(OpenAIEmbeddings):
         dimensions: int | None = None,
         max_retries: int = 3,
     ):
-        access_token = self._load_codex_access_token()
+        from .providers.codex_auth import CodexAuthManager
+
+        self._auth_manager = CodexAuthManager.from_file()
         super().__init__(
-            api_key=access_token,
+            api_key=self._auth_manager.access_token,
             model=model,
             base_url="https://api.openai.com/v1",
             batch_size=batch_size,
@@ -578,25 +582,34 @@ class CodexOAuthEmbeddings(OpenAIEmbeddings):
     def provider_name(self) -> str:
         return "openai-codex"
 
-    @staticmethod
-    def _load_codex_access_token() -> str:
-        """Load the Codex OAuth access token without logging or exposing it."""
-        auth_file = Path.home() / ".codex" / "auth.json"
-        if not auth_file.exists():
-            raise FileNotFoundError(f"Codex auth file not found: {auth_file}. Run 'codex auth login' to authenticate.")
+    def encode(self, texts: list[str]) -> list[list[float]]:
+        """Generate embeddings, refreshing the OAuth token if needed.
 
-        with open(auth_file) as f:
-            data = json.load(f)
+        Proactively refreshes before the call when the token is near expiry,
+        and reactively refreshes once on a 401 from the OpenAI embeddings API.
+        """
+        from openai import AuthenticationError
 
-        auth_mode = data.get("auth_mode")
-        if auth_mode != "chatgpt":
-            raise ValueError(f"Expected Codex auth_mode='chatgpt', got: {auth_mode}")
+        # Proactive refresh — cheap when fresh (JWT exp decode + compare).
+        self._auth_manager.ensure_fresh_token()
+        if self._auth_manager.access_token != self.api_key:
+            self.api_key = self._auth_manager.access_token
+            if self._client is not None:
+                self._client.api_key = self._auth_manager.access_token
 
-        access_token = (data.get("tokens") or {}).get("access_token")
-        if not access_token:
-            raise ValueError("No access_token found in Codex auth file. Run 'codex auth login' again.")
-
-        return access_token
+        try:
+            return super().encode(texts)
+        except AuthenticationError:
+            # Reactive refresh — token was valid by the JWT clock but the
+            # server rejected it (rotated server-side, race, etc.).
+            self._auth_manager.refresh_tokens(
+                reason="reactive (401 from embeddings API)",
+                force=True,
+            )
+            self.api_key = self._auth_manager.access_token
+            if self._client is not None:
+                self._client.api_key = self._auth_manager.access_token
+            return super().encode(texts)
 
 
 class CohereEmbeddings(Embeddings):
@@ -1414,6 +1427,7 @@ def create_embeddings_from_env() -> Embeddings:
             model=config.embeddings_openrouter_model,
             base_url="https://openrouter.ai/api/v1",
             batch_size=config.embeddings_openai_batch_size,
+            dimensions=config.embeddings_openai_dimensions,
         )
     elif provider == "zeroentropy":
         api_key = config.embeddings_zeroentropy_api_key

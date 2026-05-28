@@ -133,6 +133,7 @@ class WorkerPoller:
         tenant_extension: "TenantExtension | None" = None,
         max_slots: int = 10,
         slot_reservations: dict[str, int] | None = None,
+        consolidation_bank_priority: dict[str, int] | None = None,
     ):
         """
         Initialize the worker poller.
@@ -150,6 +151,11 @@ class WorkerPoller:
                 "retain": 3}). Reserved slots guarantee capacity for that operation type.
                 Remaining slots (max_slots - sum of reservations) form a shared pool usable
                 by any operation type. Defaults to {"consolidation": 2} if None.
+            consolidation_bank_priority: Per-bank priority for consolidation scheduling.
+                Maps bank name patterns to integer priorities (higher = claimed first).
+                Patterns support ``*`` as wildcard. A bare ``*`` key is the catch-all default.
+                When set, consolidation tasks are claimed in priority tiers rather than
+                pure created_at order. None or empty dict preserves current behavior.
         """
         self._backend = backend
         self._worker_id = worker_id
@@ -167,6 +173,9 @@ class WorkerPoller:
         self._max_slots = max_slots
         self._slot_reservations: dict[str, int] = (
             slot_reservations if slot_reservations is not None else {"consolidation": 2}
+        )
+        self._consolidation_bank_priority: dict[str, int] | None = (
+            consolidation_bank_priority if consolidation_bank_priority else None
         )
         # Cache of which optional PG routines are installed on the server
         # (probed once, memoised for the life of the poller).
@@ -468,6 +477,7 @@ class WorkerPoller:
                     self._worker_id,
                     reserved_limits,
                     shared_limit,
+                    consolidation_bank_priority=self._consolidation_bank_priority,
                 )
 
                 if not all_rows:
