@@ -65,6 +65,39 @@ import os
 import sys
 
 
+# Mouse-tracking residue suppression — runs BEFORE every other import on the
+# TUI hot path so the terminal stops emitting SGR/X10 mouse reports while the
+# Python launcher is still doing imports (≈100–300ms in cooked + echo mode,
+# before the Node TUI takes stdin into raw mode). During that window any
+# incoming bytes are echoed straight back to the user's shell scrollback as
+# ``^[[<…M`` text. The TUI itself runs `resetTerminalModes()` again in
+# `entry.tsx`; this is just the earlier cousin. ``HERMES_TUI_NO_EARLY_DISABLE``
+# escapes the behaviour for diagnostics.
+def _suppress_mouse_residue_early() -> None:
+    if os.environ.get("HERMES_TUI_NO_EARLY_DISABLE") == "1":
+        return
+    if not (os.environ.get("HERMES_TUI") == "1" or "--tui" in sys.argv[1:]):
+        return
+    try:
+        # Skip when stdout is redirected (`hermes --tui … >log`, CI capture):
+        # the bytes can't reach the terminal anyway and would just pollute
+        # the log with raw CSI.
+        if not os.isatty(1):
+            return
+        # Disable every mouse-tracking variant we know about. Idempotent and
+        # safe to send even when no tracking is currently asserted.
+        os.write(
+            1,
+            b"\x1b[?1003l\x1b[?1002l\x1b[?1001l\x1b[?1000l\x1b[?9l"
+            b"\x1b[?1006l\x1b[?1005l\x1b[?1015l\x1b[?1016l\x1b[?2029l",
+        )
+    except OSError:
+        pass
+
+
+_suppress_mouse_residue_early()
+
+
 def _is_termux_startup_environment_fast() -> bool:
     """Tiny Termux check for pre-import startup shortcuts."""
     prefix = os.environ.get("PREFIX", "")
@@ -2964,6 +2997,7 @@ def _model_flow_nous(config, current_model="", args=None):
     """Nous Portal provider: ensure logged in, then pick model."""
     from hermes_cli.auth import (
         get_provider_auth_state,
+        NOUS_INFERENCE_AUTH_MODE_LEGACY,
         _prompt_model_selection,
         _save_model_choice,
         _update_config_for_provider,
@@ -3059,8 +3093,21 @@ def _model_flow_nous(config, current_model="", args=None):
     # Fetch live pricing (non-blocking — returns empty dict on failure)
     pricing = get_pricing_for_provider("nous")
 
-    # Check if user is on free tier
-    free_tier = check_nous_free_tier()
+    # Force fresh account data for model selection so recent credit purchases
+    # are reflected immediately.
+    free_tier = check_nous_free_tier(force_fresh=True)
+    if not free_tier:
+        try:
+            refreshed_creds = resolve_nous_runtime_credentials(
+                min_key_ttl_seconds=5 * 60,
+                inference_auth_mode=NOUS_INFERENCE_AUTH_MODE_LEGACY,
+            )
+            if refreshed_creds:
+                creds = refreshed_creds
+        except Exception:
+            # Runtime inference has its own paid-entitlement recovery path; do
+            # not block model selection if this opportunistic remint fails.
+            pass
 
     # Resolve portal URL early — needed both for upgrade links and for the
     # freeRecommendedModels endpoint below.
@@ -3082,7 +3129,24 @@ def _model_flow_nous(config, current_model="", args=None):
     # newly-launched paid models surface in the picker too — independent
     # of CLI release cadence.
     unavailable_models: list[str] = []
+    unavailable_message = ""
     if free_tier:
+        try:
+            from hermes_cli.nous_account import (
+                format_nous_portal_entitlement_message,
+                get_nous_portal_account_info,
+            )
+
+            _account_info = get_nous_portal_account_info(force_fresh=True)
+            unavailable_message = (
+                format_nous_portal_entitlement_message(
+                    _account_info,
+                    capability="paid Nous models",
+                )
+                or ""
+            )
+        except Exception:
+            unavailable_message = ""
         model_ids, pricing = union_with_portal_free_recommendations(
             model_ids, pricing, _nous_portal_url,
         )
@@ -3104,7 +3168,7 @@ def _model_flow_nous(config, current_model="", args=None):
             from hermes_cli.auth import DEFAULT_NOUS_PORTAL_URL
 
             _url = (_nous_portal_url or DEFAULT_NOUS_PORTAL_URL).rstrip("/")
-            print(f"Upgrade at {_url} to access paid models.")
+            print(unavailable_message or f"Upgrade at {_url} to access paid models.")
         return
 
     print(
@@ -3117,6 +3181,7 @@ def _model_flow_nous(config, current_model="", args=None):
         pricing=pricing,
         unavailable_models=unavailable_models,
         portal_url=_nous_portal_url,
+        unavailable_message=unavailable_message,
     )
     if selected:
         _save_model_choice(selected)
@@ -8383,6 +8448,14 @@ def _cmd_update_check(branch: str = "main", *, branch_explicit: bool = False):
     """
     from hermes_cli.config import detect_install_method
     method = detect_install_method(PROJECT_ROOT)
+    if method == "docker":
+        # Docker can't ``git fetch`` from within the container.  Surface the
+        # same long-form ``docker pull`` guidance ``hermes update`` (apply
+        # path) uses — telling the user to "reinstall via curl" or that
+        # ".git is missing" would point them at the wrong remediation.
+        from hermes_cli.config import format_docker_update_message
+        print(format_docker_update_message())
+        sys.exit(1)
     if method == "pip":
         from hermes_cli.config import recommended_update_command
         from hermes_cli.banner import check_via_pypi
@@ -8683,11 +8756,26 @@ def cmd_update(args):
     runs the update, then restores stdio on the way out (even on
     ``sys.exit`` or unhandled exceptions).
     """
-    from hermes_cli.config import is_managed, managed_error
+    from hermes_cli.config import (
+        detect_install_method,
+        format_docker_update_message,
+        is_managed,
+        managed_error,
+    )
 
     if is_managed():
         managed_error("update Hermes Agent")
         return
+
+    # Docker users can't ``git pull`` — the image excludes ``.git`` from
+    # the build context.  Bail with a friendly explanation pointing at
+    # ``docker pull`` BEFORE any of the apply-path / check-path branches
+    # below get a chance to error out with misleading "Not a git
+    # repository" text.  See format_docker_update_message() for the full
+    # rationale and tag-pinning / config-persistence notes.
+    if detect_install_method(PROJECT_ROOT) == "docker":
+        print(format_docker_update_message())
+        sys.exit(1)
 
     if getattr(args, "check", False):
         # --check honors --branch so the "any new commits?" answer matches
@@ -11325,6 +11413,19 @@ def main():
         "--replace",
         action="store_true",
         help="Replace any existing gateway instance (useful for systemd)",
+    )
+    gateway_run.add_argument(
+        "--no-supervise",
+        action="store_true",
+        help=(
+            "Inside the s6-overlay Docker image, normally `gateway run` is "
+            "automatically redirected to the supervised s6 service (so the "
+            "gateway gets auto-restart on crash, plus a supervised dashboard "
+            "if HERMES_DASHBOARD is set). Pass --no-supervise to opt out and "
+            "get the historical pre-s6 foreground behavior: the gateway is "
+            "the container's main process and the container exits with the "
+            "gateway's exit code. No effect outside an s6 container."
+        ),
     )
     _add_accept_hooks_flag(gateway_run)
     _add_accept_hooks_flag(gateway_parser)
