@@ -51,6 +51,10 @@ jobs:
           echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
           echo "date=$DATE" >> "$GITHUB_OUTPUT"
 
+      - name: Install bubblewrap
+        # Required by CLAUDE_CODE_SUBPROCESS_ENV_SCRUB=1 for subprocess isolation.
+        run: sudo apt-get update && sudo apt-get install -y bubblewrap
+
       - name: Run Claude Code
         id: claude
         uses: anthropics/claude-code-action@787c5a0ce96a9a6cfb050ea0c8f4c05f2447c251 # v1.0.133
@@ -58,6 +62,12 @@ jobs:
           CLAUDE_CODE_SUBPROCESS_ENV_SCRUB: "1"
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Setting additional_permissions triggers the action to explicitly request
+          # contents/pull_requests/issues: write on the OIDC-minted app token, which
+          # the post-action "Commit and push" / "Open pull request" steps use via
+          # steps.claude.outputs.github_token.
+          additional_permissions: |
+            contents: write
           prompt: |
             /phoenix-skills-audit
 
@@ -85,7 +95,7 @@ jobs:
             even if there are no changes to apply. If there are no user-facing changes
             (only deps, refactors, frontend, feature flags), still write the summary file
             and have its first line be exactly: NO_CHANGES
-          claude_args: '--model claude-opus-4-7 --allowedTools Skill,Read,Glob,Grep,Edit,Write,Agent,"Bash(git fetch:*)","Bash(git log:*)","Bash(git diff:*)","Bash(git show:*)","Bash(date:*)","Bash(ls:*)"'
+          claude_args: '--model claude-opus-4-8 --allowedTools Skill,Read,Glob,Grep,Edit,Write,Agent,"Bash(git fetch:*)","Bash(git log:*)","Bash(git diff:*)","Bash(git show:*)","Bash(date:*)","Bash(ls:*)"'
 
       - name: Check for changes
         id: changes
@@ -104,7 +114,9 @@ jobs:
       - name: Commit and push
         if: steps.changes.outputs.has_changes == 'true'
         env:
-          GH_TOKEN: ${{ secrets.MY_RELEASE_PLEASE_TOKEN }}
+          # App token minted by the claude-code-action OIDC exchange — short-lived,
+          # auto-revoked at job end, and (unlike GITHUB_TOKEN) triggers downstream CI.
+          GH_TOKEN: ${{ steps.claude.outputs.github_token }}
           AUDIT_DATE: ${{ steps.branch.outputs.date }}
           AUDIT_BRANCH: ${{ steps.branch.outputs.branch }}
         run: |
@@ -116,7 +128,7 @@ jobs:
       - name: Open pull request
         if: steps.changes.outputs.has_changes == 'true'
         env:
-          GH_TOKEN: ${{ secrets.MY_RELEASE_PLEASE_TOKEN }}
+          GH_TOKEN: ${{ steps.claude.outputs.github_token }}
           AUDIT_DATE: ${{ steps.branch.outputs.date }}
           AUDIT_BRANCH: ${{ steps.branch.outputs.branch }}
           SUMMARY_FILE: ${{ steps.summary.outputs.path }}

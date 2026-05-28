@@ -2,8 +2,9 @@
 
 module Anthropic
   module Models
-    # The model that will complete your prompt.\n\nSee
-    # [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+    # The model that will complete your prompt.
+    #
+    # See [models](https://docs.anthropic.com/en/docs/models-overview) for additional
     # details and options.
     module Model
       extend Anthropic::Internal::Type::Union
@@ -16,6 +17,10 @@ module Anthropic
 
       TaggedSymbol = T.type_alias { T.all(Symbol, Anthropic::Model) }
       OrSymbol = T.type_alias { T.any(Symbol, String) }
+
+      # Frontier intelligence for long-running agents and coding
+      CLAUDE_OPUS_4_8 =
+        T.let(:"claude-opus-4-8", Anthropic::Model::TaggedSymbol)
 
       # Frontier intelligence for long-running agents and coding
       CLAUDE_OPUS_4_7 =

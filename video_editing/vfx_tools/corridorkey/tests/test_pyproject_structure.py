@@ -128,27 +128,6 @@ class TestConflicts:
 
 
 # ---------------------------------------------------------------------------
-# Requirement 6.2: timm git source override preserved
-# ---------------------------------------------------------------------------
-
-
-class TestTimmSourcePreserved:
-    """Validates: Requirements 6.2"""
-
-    def test_timm_source_is_git(self, pyproject: dict) -> None:
-        timm_src = pyproject["tool"]["uv"]["sources"]["timm"]
-        assert "git" in timm_src, "timm source should be a git override"
-
-    def test_timm_git_url(self, pyproject: dict) -> None:
-        timm_src = pyproject["tool"]["uv"]["sources"]["timm"]
-        assert timm_src["git"] == "https://github.com/Raiden129/pytorch-image-models-fix"
-
-    def test_timm_git_branch(self, pyproject: dict) -> None:
-        timm_src = pyproject["tool"]["uv"]["sources"]["timm"]
-        assert timm_src["branch"] == "fix/hiera-flash-attention-global-4d"
-
-
-# ---------------------------------------------------------------------------
 # Requirement 6.3: triton-windows platform-conditional dependency preserved
 # ---------------------------------------------------------------------------
 

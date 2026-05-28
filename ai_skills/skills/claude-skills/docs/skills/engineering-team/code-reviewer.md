@@ -1,6 +1,6 @@
 ---
 title: "Code Reviewer — Agent Skill & Codex Plugin"
-description: "Code review automation for TypeScript, JavaScript, Python, Go, Swift, Kotlin, C#, .NET, and Java. Analyzes PRs for complexity and risk, checks code. Agent skill for Claude Code, Codex CLI, Gemini CLI, OpenClaw."
+description: "Code review automation for TypeScript, JavaScript, Python, Go, Swift, Kotlin, C#, .NET, Java, C, C++, Rust, Ruby, PHP, and Dart/Flutter. Analyzes PRs for complexity and risk, checks code. Agent skill for Claude Code, Codex CLI, Gemini CLI, OpenClaw."
 ---
 
 # Code Reviewer
@@ -35,6 +35,12 @@ code-reviewer/
     kotlin.md                     ← Kotlin-specific rules + idioms
     csharp.md                     ← C# / .NET-specific rules + idioms
     java.md                       ← Java-specific rules + idioms
+    c.md                          ← C-specific rules + idioms
+    cpp.md                        ← C++-specific rules + idioms
+    rust.md                       ← Rust-specific rules + idioms
+    ruby.md                       ← Ruby-specific rules + idioms
+    php.md                        ← PHP-specific rules + idioms
+    dart.md                       ← Dart / Flutter-specific rules + idioms
 ```
 
 ### Loading order for every review
@@ -54,6 +60,12 @@ That's always exactly **2 additional files**, regardless of scope.
 | `.kt`, `.kts` | `languages/kotlin.md` |
 | `.cs`, `.csx`, `.razor`, `.cshtml` | `languages/csharp.md` |
 | `.java` | `languages/java.md` |
+| `.c`, `.h` | `languages/c.md` |
+| `.cpp`, `.cc`, `.cxx`, `.hpp`, `.hh`, `.hxx` | `languages/cpp.md` |
+| `.rs` | `languages/rust.md` |
+| `.rb`, `.rake`, `.gemspec`, `.ru` | `languages/ruby.md` |
+| `.php`, `.phtml` | `languages/php.md` |
+| `.dart` | `languages/dart.md` |
 
 ---
 
@@ -97,7 +109,8 @@ Analyzes source code for structural issues, code smells, and SOLID violations.
 # Analyze a directory
 python scripts/code_quality_checker.py /path/to/code
 
-# Analyze specific language (valid values: python, typescript, javascript, go, swift, kotlin, csharp, java)
+# Analyze specific language
+# Valid values: python, typescript, javascript, go, swift, kotlin, csharp, java, c, cpp, rust, ruby, php, dart
 python scripts/code_quality_checker.py . --language java
 
 # JSON output

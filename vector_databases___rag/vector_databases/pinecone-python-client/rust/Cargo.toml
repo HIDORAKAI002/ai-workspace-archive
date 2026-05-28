@@ -1,11 +1,11 @@
 [package]
 name = "pinecone-grpc"
-version = "9.0.0"
+version = "9.0.1"
 edition = "2021"
 
 [lib]
 name = "pinecone_grpc"
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 pyo3 = { version = "0.24", features = ["extension-module", "abi3-py310"] }
@@ -15,6 +15,7 @@ prost-types = "0.13"
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 uuid = { version = "1", features = ["v4"] }
 rand = "0.9"
+tracing = "0.1"
 http = "1"
 hyper-util = { version = "0.1", features = ["client-legacy"] }
 

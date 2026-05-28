@@ -302,6 +302,7 @@ export function resolvePluginDiscoveryProvidersRuntime(params: {
   config?: OpenClawConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
+  bundledProviderVitestCompat?: boolean;
   onlyPluginIds?: string[];
   includeUntrustedWorkspacePlugins?: boolean;
   requireCompleteDiscoveryEntryCoverage?: boolean;
@@ -309,13 +310,18 @@ export function resolvePluginDiscoveryProvidersRuntime(params: {
   pluginMetadataSnapshot?: PluginMetadataRegistryView;
 }): ProviderPlugin[] {
   const env = params.env ?? process.env;
+  const bundledProviderVitestCompat = params.bundledProviderVitestCompat ?? env.VITEST === "true";
   const entryResult = resolveProviderDiscoveryEntryPlugins({ ...params, env });
   const entryProviders = entryResult.providers.filter(hasProviderCatalogHook);
   const runtimeEntryProviders = resolveRuntimeEntryProviders(entryResult);
   if (params.discoveryEntriesOnly === true) {
     return entryProviders;
   }
-  if (entryResult.complete && runtimeEntryProviders.length === entryResult.providers.length) {
+  if (
+    entryResult.providers.length > 0 &&
+    entryResult.complete &&
+    runtimeEntryProviders.length === entryResult.providers.length
+  ) {
     return runtimeEntryProviders;
   }
   if (params.onlyPluginIds === undefined && runtimeEntryProviders.length > 0) {
@@ -328,6 +334,7 @@ export function resolvePluginDiscoveryProvidersRuntime(params: {
         ? resolvePluginProviders({
             ...params,
             env,
+            bundledProviderVitestCompat,
             onlyPluginIds: fullPluginIds,
           })
         : [];
@@ -340,6 +347,7 @@ export function resolvePluginDiscoveryProvidersRuntime(params: {
         ? resolvePluginProviders({
             ...params,
             env,
+            bundledProviderVitestCompat,
             onlyPluginIds: fullPluginIds,
           })
         : [];
@@ -355,6 +363,7 @@ export function resolvePluginDiscoveryProvidersRuntime(params: {
       return resolvePluginProviders({
         ...params,
         env,
+        bundledProviderVitestCompat,
         onlyPluginIds: fullPluginIds,
       });
     }
@@ -362,5 +371,6 @@ export function resolvePluginDiscoveryProvidersRuntime(params: {
   return resolvePluginProviders({
     ...params,
     env,
+    bundledProviderVitestCompat,
   });
 }

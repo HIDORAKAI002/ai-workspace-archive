@@ -145,6 +145,38 @@ describe("byteplus video generation provider", () => {
     expect(body.camera_fixed).toBe(false);
   });
 
+  it("drops malformed seed values before creating videos", async () => {
+    mockSuccessfulBytePlusTask({ model: "seedance-1-0-pro-250528" });
+
+    const provider = buildBytePlusVideoGenerationProvider();
+    await provider.generateVideo({
+      provider: "byteplus",
+      model: "seedance-1-0-pro-250528",
+      prompt: "A cinematic lobster montage",
+      providerOptions: {
+        seed: 1.5,
+      },
+      cfg: {},
+    });
+
+    expect(requireBytePlusPostBody()).not.toHaveProperty("seed");
+  });
+
+  it("drops out-of-range duration values before creating videos", async () => {
+    mockSuccessfulBytePlusTask({ model: "seedance-1-0-pro-250528" });
+
+    const provider = buildBytePlusVideoGenerationProvider();
+    await provider.generateVideo({
+      provider: "byteplus",
+      model: "seedance-1-0-pro-250528",
+      prompt: "A cinematic lobster montage",
+      durationSeconds: 99,
+      cfg: {},
+    });
+
+    expect(requireBytePlusPostBody()).not.toHaveProperty("duration");
+  });
+
   it("reports malformed create JSON with a provider-owned error", async () => {
     const release = vi.fn(async () => {});
     postJsonRequestMock.mockResolvedValue({

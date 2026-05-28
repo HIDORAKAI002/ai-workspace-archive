@@ -671,11 +671,13 @@ export interface BetaManagedAgentsMCPToolsetParams {
 }
 
 /**
- * The model that will power your agent.\n\nSee
- * [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+ * The model that will power your agent.
+ *
+ * See [models](https://docs.anthropic.com/en/docs/models-overview) for additional
  * details and options.
  */
 export type BetaManagedAgentsModel =
+  | 'claude-opus-4-8'
   | 'claude-opus-4-7'
   | 'claude-opus-4-6'
   | 'claude-sonnet-4-6'
@@ -692,8 +694,9 @@ export type BetaManagedAgentsModel =
  */
 export interface BetaManagedAgentsModelConfig {
   /**
-   * The model that will power your agent.\n\nSee
-   * [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+   * The model that will power your agent.
+   *
+   * See [models](https://docs.anthropic.com/en/docs/models-overview) for additional
    * details and options.
    */
   id: BetaManagedAgentsModel;
@@ -711,8 +714,9 @@ export interface BetaManagedAgentsModelConfig {
  */
 export interface BetaManagedAgentsModelConfigParams {
   /**
-   * The model that will power your agent.\n\nSee
-   * [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+   * The model that will power your agent.
+   *
+   * See [models](https://docs.anthropic.com/en/docs/models-overview) for additional
    * details and options.
    */
   id: BetaManagedAgentsModel;
