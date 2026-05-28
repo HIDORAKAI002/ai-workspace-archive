@@ -68,6 +68,49 @@ describeIf(ALLOW_TEST_SUITE_WEBSITE && !TEST_SELF_HOST)("/v2/monitor", () => {
     expect(del.body.success).toBe(true);
   });
 
+  it("accepts an origin field in the create body", async () => {
+    const create = await monitorCreateRaw(
+      {
+        name: "origin monitor",
+        schedule: { cron: "*/30 * * * *", timezone: "UTC" },
+        targets: [
+          {
+            type: "scrape",
+            urls: [createTestIdUrl()],
+          },
+        ],
+        origin: "python-sdk@4.28.0",
+      },
+      identity,
+    );
+
+    expect(create.statusCode).toBe(200);
+    expect(create.body.success).toBe(true);
+    const id = create.body.data.id;
+    await monitorDeleteRaw(id, identity);
+  });
+
+  it("still rejects unknown keys in the create body", async () => {
+    const create = await monitorCreateRaw(
+      {
+        name: "unknown key monitor",
+        schedule: { cron: "*/30 * * * *", timezone: "UTC" },
+        targets: [
+          {
+            type: "scrape",
+            urls: [createTestIdUrl()],
+          },
+        ],
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        nonsenseField: "value",
+      } as any,
+      identity,
+    );
+
+    expect(create.statusCode).toBe(400);
+    expect(create.body.success).toBe(false);
+  });
+
   it("rejects cron schedules under 15 minutes", async () => {
     const response = await monitorCreateRaw(
       {

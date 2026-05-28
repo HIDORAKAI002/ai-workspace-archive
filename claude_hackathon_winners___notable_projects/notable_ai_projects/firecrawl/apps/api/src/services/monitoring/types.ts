@@ -116,6 +116,7 @@ const createMonitorBaseSchema = z.strictObject({
   retentionDays: z.number().int().positive().max(365).optional().default(30),
   goal: z.string().max(2000).nullish(),
   judgeEnabled: z.boolean().optional(),
+  origin: z.string().optional().prefault("api"),
 });
 
 export const createMonitorSchema = createMonitorBaseSchema.transform(

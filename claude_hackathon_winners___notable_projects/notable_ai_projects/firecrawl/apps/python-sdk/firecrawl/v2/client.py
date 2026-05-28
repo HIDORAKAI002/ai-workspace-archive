@@ -842,6 +842,8 @@ class FirecrawlClient:
         webhook: Optional[Union[MonitorWebhookConfig, Dict[str, Any]]] = None,
         notification: Optional[MonitorNotification] = None,
         retention_days: Optional[int] = None,
+        goal: Optional[str] = None,
+        judge_enabled: Optional[bool] = None,
     ) -> Monitor:
         """Create a scheduled monitor."""
         if isinstance(schedule, dict):
@@ -853,6 +855,8 @@ class FirecrawlClient:
             webhook=webhook,
             notification=notification,
             retention_days=retention_days,
+            goal=goal,
+            judge_enabled=judge_enabled,
         )
         return monitor_module.create_monitor(self.http_client, request)
 
@@ -880,6 +884,8 @@ class FirecrawlClient:
         notification: Optional[Union[MonitorNotification, Dict[str, Any]]] = None,
         targets: Optional[List[Union[MonitorTarget, Dict[str, Any]]]] = None,
         retention_days: Optional[int] = None,
+        goal: Optional[str] = None,
+        judge_enabled: Optional[bool] = None,
     ) -> Monitor:
         """Update a monitor."""
         if isinstance(schedule, dict):
@@ -892,6 +898,8 @@ class FirecrawlClient:
             notification=notification,
             targets=targets,
             retention_days=retention_days,
+            goal=goal,
+            judge_enabled=judge_enabled,
         )
         return monitor_module.update_monitor(self.http_client, monitor_id, request)
 

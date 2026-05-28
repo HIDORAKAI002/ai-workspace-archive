@@ -227,14 +227,23 @@ type MonitorPageSnapshot struct {
 	JSON map[string]interface{} `json:"json,omitempty"`
 }
 
+// MonitorMeaningfulChange is a single goal-relevant change selected by the
+// monitor judge.
+type MonitorMeaningfulChange struct {
+	Type   string  `json:"type"`
+	Before *string `json:"before"`
+	After  *string `json:"after"`
+	Reason string  `json:"reason"`
+}
+
 // MonitorPageJudgment is the judge's verdict on whether a page change is
 // meaningful. Populated on monitor check pages when the monitor has a
 // goal set and judging is enabled.
 type MonitorPageJudgment struct {
-	Meaningful bool     `json:"meaningful"`
-	Confidence string   `json:"confidence"`
-	Reason     string   `json:"reason"`
-	Fields     []string `json:"fields"`
+	Meaningful        bool                      `json:"meaningful"`
+	Confidence        string                    `json:"confidence"`
+	Reason            string                    `json:"reason"`
+	MeaningfulChanges []MonitorMeaningfulChange `json:"meaningfulChanges"`
 }
 
 // MonitorCheckPage is a single page result in a monitor check.

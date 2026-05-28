@@ -401,6 +401,8 @@ class AsyncFirecrawlClient:
         webhook: Optional[Union[MonitorWebhookConfig, Dict[str, Any]]] = None,
         notification: Optional[MonitorNotification] = None,
         retention_days: Optional[int] = None,
+        goal: Optional[str] = None,
+        judge_enabled: Optional[bool] = None,
     ) -> Monitor:
         if isinstance(schedule, dict):
             schedule = MonitorSchedule(**schedule)
@@ -411,6 +413,8 @@ class AsyncFirecrawlClient:
             webhook=webhook,
             notification=notification,
             retention_days=retention_days,
+            goal=goal,
+            judge_enabled=judge_enabled,
         )
         return await async_monitor.create_monitor(self.async_http_client, request)
 
@@ -440,6 +444,8 @@ class AsyncFirecrawlClient:
         notification: Optional[Union[MonitorNotification, Dict[str, Any]]] = None,
         targets: Optional[List[Union[MonitorTarget, Dict[str, Any]]]] = None,
         retention_days: Optional[int] = None,
+        goal: Optional[str] = None,
+        judge_enabled: Optional[bool] = None,
     ) -> Monitor:
         if isinstance(schedule, dict):
             schedule = MonitorSchedule(**schedule)
@@ -451,6 +457,8 @@ class AsyncFirecrawlClient:
             notification=notification,
             targets=targets,
             retention_days=retention_days,
+            goal=goal,
+            judge_enabled=judge_enabled,
         )
         return await async_monitor.update_monitor(
             self.async_http_client,

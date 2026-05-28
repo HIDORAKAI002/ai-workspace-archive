@@ -74,10 +74,6 @@ describeIfGemini("judgeChange — live Gemini", () => {
         logger: buildLogger(),
         goal: "tell me when a new MacBook is announced",
         markdownDiff: {
-          previous:
-            "# MacBook lineup\n- MacBook Air M2\n- MacBook Pro M3\n\nUpdated 2026-05-19T18:42:00Z",
-          current:
-            "# MacBook lineup\n- MacBook Air M4 — NEW\n- MacBook Air M2\n- MacBook Pro M3\n\nUpdated 2026-05-19T18:43:01Z",
           diffText:
             "@@ -1,4 +1,5 @@\n # MacBook lineup\n+- MacBook Air M4 — NEW\n - MacBook Air M2\n - MacBook Pro M3\n \n-Updated 2026-05-19T18:42:00Z\n+Updated 2026-05-19T18:43:01Z",
         },
