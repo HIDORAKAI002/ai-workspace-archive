@@ -19,7 +19,9 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 
-# Language-specific file extensions
+# Language-specific file extensions.
+# `c` is declared before `cpp` so plain `.h` resolves to C, matching the
+# dispatch table in SKILL.md. C++ headers use `.hpp` / `.hh` / `.hxx`.
 LANGUAGE_EXTENSIONS = {
     "python": [".py"],
     "typescript": [".ts", ".tsx"],
@@ -29,6 +31,12 @@ LANGUAGE_EXTENSIONS = {
     "kotlin": [".kt", ".kts"],
     "csharp": [".cs", ".csx", ".razor", ".cshtml"],
     "java": [".java"],
+    "c": [".c", ".h"],
+    "cpp": [".cpp", ".cc", ".cxx", ".hpp", ".hh", ".hxx"],
+    "rust": [".rs"],
+    "ruby": [".rb", ".rake", ".gemspec", ".ru"],
+    "php": [".php", ".phtml"],
+    "dart": [".dart"],
 }
 
 # Code smell thresholds
@@ -143,6 +151,48 @@ def find_functions(content: str, language: str) -> List[Dict]:
             r"synchronized|native|default|strictfp)\s+)+"
             r"(?:[\w<>?,\s\[\]\.]+?\s+)?(\w+)\s*\(([^)]*)\)"
         ),
+        # C: require an opening brace after the parens so prototypes and
+        # call sites don't get matched. Return type / qualifiers come first.
+        # Skip C control-flow keywords that look like function calls.
+        "c": (
+            r"^(?:static\s+|inline\s+|extern\s+|const\s+|unsigned\s+|"
+            r"signed\s+|volatile\s+|register\s+)*"
+            r"(?:[\w\*]+\s+\**)+"
+            r"(?!(?:if|while|for|switch|return|sizeof)\b)"
+            r"(\w+)\s*\(([^)]*)\)\s*\{"
+        ),
+        # C++: like C but also catches `ClassName::method(...)` definitions
+        # and template return types like `std::vector<int>`.
+        "cpp": (
+            r"^(?:static\s+|inline\s+|extern\s+|const\s+|virtual\s+|"
+            r"explicit\s+|constexpr\s+|noexcept\s+)*"
+            r"(?:[\w:\*<>&,\s]+\s+\**)+"
+            r"(?!(?:if|while|for|switch|return|sizeof)\b)"
+            r"(\w+)(?:::\w+)?\s*\(([^)]*)\)\s*(?:const\s*)?"
+            r"(?:noexcept\s*)?(?:override\s*)?(?:final\s*)?\{"
+        ),
+        # Rust: `fn` keyword is always present and unambiguous.
+        "rust": (
+            r"(?:pub(?:\([^)]+\))?\s+)?(?:async\s+)?(?:unsafe\s+)?"
+            r"(?:extern\s+\"[^\"]+\"\s+)?fn\s+(\w+)\s*"
+            r"(?:<[^>]+>)?\s*\(([^)]*)\)"
+        ),
+        # Ruby: `def` keyword; params may be parenthesised or bare.
+        "ruby": (
+            r"def\s+(?:self\.)?(\w+[?!=]?)(?:\s*\(([^)]*)\)|\s*$|\s+\w)"
+        ),
+        # PHP: `function` keyword is always present.
+        "php": (
+            r"(?:(?:public|private|protected|static|abstract|final)\s+)*"
+            r"function\s+(\w+)\s*\(([^)]*)\)"
+        ),
+        # Dart: typed return followed by name and parens. Constructors
+        # (where name matches enclosing class) are not specially handled.
+        "dart": (
+            r"^\s*(?:static\s+|external\s+)*"
+            r"(?:Future<[^>]*>|Stream<[^>]*>|void|[\w<>?,\s]+?)\s+"
+            r"(\w+)\s*\(([^)]*)\)\s*(?:async\*?\s*|sync\*?\s*)?\{"
+        ),
     }
 
     pattern = patterns.get(language, patterns["python"])
@@ -192,6 +242,22 @@ def find_classes(content: str, language: str) -> List[Dict]:
         "kotlin": r"class\s+(\w+)",
         "csharp": r"(?:class|struct|record|interface)\s+(\w+)",
         "java": r"(?:class|interface|enum|record)\s+(\w+)",
+        # C has no classes; `struct` and `typedef struct` are the closest.
+        "c": r"(?:typedef\s+)?struct\s+(\w+)",
+        "cpp": r"(?:class|struct)\s+(\w+)",
+        # Rust uses `struct`, `enum`, `trait`, `union` for type definitions.
+        # `impl` blocks attach methods but are not type defs themselves.
+        "rust": r"(?:pub(?:\([^)]+\))?\s+)?(?:struct|enum|trait|union)\s+(\w+)",
+        "ruby": r"(?:class|module)\s+(\w+)",
+        "php": (
+            r"(?:abstract\s+|final\s+)?"
+            r"(?:class|interface|trait|enum)\s+(\w+)"
+        ),
+        # Dart 3 class modifiers: final / interface / base / sealed / mixin.
+        "dart": (
+            r"(?:abstract\s+|sealed\s+|final\s+|base\s+|interface\s+)?"
+            r"(?:class|mixin|enum|extension)\s+(\w+)"
+        ),
     }
 
     pattern = patterns.get(language, patterns["python"])
@@ -226,6 +292,33 @@ def find_classes(content: str, language: str) -> List[Dict]:
                 r"(?:(?:public|private|protected|static|final|abstract|"
                 r"synchronized|native|default|strictfp)\s+)+"
                 r"(?:[\w<>?,\s\[\]\.]+?\s+)?\w+\s*\("
+            ),
+            # C has no classes; struct members are typically function pointers
+            # rather than methods. Use the function definition pattern.
+            "c": (
+                r"^(?:static\s+|inline\s+)*(?:[\w\*]+\s+\**)+"
+                r"(?!(?:if|while|for|switch|return|sizeof)\b)"
+                r"\w+\s*\([^)]*\)\s*\{"
+            ),
+            "cpp": (
+                r"^(?:static\s+|inline\s+|virtual\s+|explicit\s+|"
+                r"constexpr\s+)*(?:[\w:\*<>&,\s]+\s+\**)+"
+                r"(?!(?:if|while|for|switch|return|sizeof)\b)"
+                r"\w+(?:::\w+)?\s*\([^)]*\)"
+            ),
+            "rust": (
+                r"(?:pub(?:\([^)]+\))?\s+)?(?:async\s+)?(?:unsafe\s+)?"
+                r"fn\s+\w+"
+            ),
+            "ruby": r"def\s+(?:self\.)?\w+[?!=]?",
+            "php": (
+                r"(?:(?:public|private|protected|static|abstract|final)\s+)*"
+                r"function\s+\w+\s*\("
+            ),
+            "dart": (
+                r"^\s*(?:static\s+|external\s+)*"
+                r"(?:Future<[^>]*>|Stream<[^>]*>|void|[\w<>?,\s]+?)\s+"
+                r"\w+\s*\([^)]*\)\s*(?:async\*?\s*|sync\*?\s*)?\{"
             ),
         }
         method_pattern = method_patterns.get(language, method_patterns["python"])

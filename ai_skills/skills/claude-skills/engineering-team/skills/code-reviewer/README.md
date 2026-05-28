@@ -1,6 +1,6 @@
 # code-reviewer
 
-Code review automation for TypeScript, JavaScript, Python, Go, Swift, Kotlin, C#, .NET, and Java. Analyzes PRs for complexity and risk, checks code quality for SOLID violations and code smells, and generates review reports.
+Code review automation for TypeScript, JavaScript, Python, Go, Swift, Kotlin, C#, .NET, Java, C, C++, Rust, Ruby, PHP, and Dart/Flutter. Analyzes PRs for complexity and risk, checks code quality for SOLID violations and code smells, and generates review reports.
 
 The full skill spec is [`SKILL.md`](./SKILL.md). This README is a quick reference for the 3 bundled scripts.
 
@@ -87,4 +87,4 @@ Rules are split so every review loads exactly two files — the cross-language
 baseline plus one language guide (see the dispatch table in [`SKILL.md`](./SKILL.md)):
 
 - [`rules/universal.md`](./rules/universal.md) — cross-language rules: security, async/concurrency, resource management, exception handling, performance
-- [`languages/`](./languages/) — one self-contained guide per language (`python`, `typescript`, `go`, `swift`, `kotlin`, `csharp`, `java`), each with Security / Async / Resource Management / Exception Handling / Performance / Idioms sections
+- [`languages/`](./languages/) — one self-contained guide per language (`python`, `typescript`, `go`, `swift`, `kotlin`, `csharp`, `java`, `c`, `cpp`, `rust`, `ruby`, `php`, `dart`), each with Security / Async / Resource Management / Exception Handling / Performance / Idioms sections

@@ -1,6 +1,6 @@
 {
   "source": "claude-code-skills",
-  "total_skills": 337,
+  "total_skills": 338,
   "domains": {
     "engineering": [
       {
@@ -384,6 +384,11 @@
         "path": "engineering/terraform-patterns"
       },
       {
+        "name": "workflow-builder",
+        "description": "Design and write deterministic multi-agent workflow scripts (.js files in .claude/workflows/) for Claude Code's Workflow tool. Use when a user wants to build, create, author, scaffold, or run a custom Claude Code workflow, orchestrate sub-agents (fan-out, pipeline, loop, judge-panel), or automate a repeatable multi-step task across fresh-context agents.",
+        "path": "engineering/workflow-builder"
+      },
+      {
         "name": "write-a-skill",
         "description": "Create new agent skills with proper structure, progressive disclosure, and bundled resources. Use when user wants to create, write, build, or author a new skill.",
         "path": "engineering/write-a-skill"
@@ -417,7 +422,7 @@
       },
       {
         "name": "code-reviewer",
-        "description": "Code review automation for TypeScript, JavaScript, Python, Go, Swift, Kotlin, C#, .NET, and Java. Analyzes PRs for complexity and risk, checks code quality for SOLID violations and code smells, generates review reports. Use when reviewing pull requests, analyzing code quality, identifying issues, generating review checklists.",
+        "description": "Code review automation for TypeScript, JavaScript, Python, Go, Swift, Kotlin, C#, .NET, Java, C, C++, Rust, Ruby, PHP, and Dart/Flutter. Analyzes PRs for complexity and risk, checks code quality for SOLID violations and code smells, generates review reports. Use when reviewing pull requests, analyzing code quality, identifying issues, generating review checklists.",
         "path": "engineering-team/code-reviewer"
       },
       {
