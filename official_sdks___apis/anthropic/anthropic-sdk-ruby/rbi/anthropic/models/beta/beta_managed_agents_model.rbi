@@ -5,8 +5,9 @@ module Anthropic
     BetaManagedAgentsModel = Beta::BetaManagedAgentsModel
 
     module Beta
-      # The model that will power your agent.\n\nSee
-      # [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+      # The model that will power your agent.
+      #
+      # See [models](https://docs.anthropic.com/en/docs/models-overview) for additional
       # details and options.
       module BetaManagedAgentsModel
         extend Anthropic::Internal::Type::Union
@@ -29,6 +30,13 @@ module Anthropic
             T.all(Symbol, Anthropic::Beta::BetaManagedAgentsModel)
           end
         OrSymbol = T.type_alias { T.any(Symbol, String) }
+
+        # Frontier intelligence for long-running agents and coding
+        CLAUDE_OPUS_4_8 =
+          T.let(
+            :"claude-opus-4-8",
+            Anthropic::Beta::BetaManagedAgentsModel::TaggedSymbol
+          )
 
         # Frontier intelligence for long-running agents and coding
         CLAUDE_OPUS_4_7 =
