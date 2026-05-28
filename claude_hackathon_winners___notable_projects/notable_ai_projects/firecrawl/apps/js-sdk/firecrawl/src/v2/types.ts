@@ -660,6 +660,25 @@ export interface MonitorEmailNotification {
   includeDiffs?: boolean;
 }
 
+/**
+ * Per-recipient opt-in state for monitor email notifications.
+ *
+ * External recipients (not members of the team that owns the monitor) must
+ * confirm their subscription via a one-time email before they receive any
+ * monitor notifications. Team members are auto-confirmed.
+ *
+ * - `pending`      → confirmation email sent, no notifications yet
+ * - `confirmed`    → notifications enabled
+ * - `unsubscribed` → recipient opted out and cannot be re-added without a new
+ *                    confirmation flow
+ */
+export interface MonitorEmailRecipientSubscription {
+  email: string;
+  status: "pending" | "confirmed" | "unsubscribed";
+  source: "team" | "opt_in" | "legacy";
+  confirmationEmailSent?: boolean;
+}
+
 export interface MonitorNotification {
   email?: MonitorEmailNotification;
 }
@@ -731,6 +750,13 @@ export interface Monitor {
   targets: MonitorTarget[];
   webhook?: MonitorWebhookConfig | null;
   notification?: MonitorNotification | null;
+  /**
+   * Present on create/update/get responses. Reflects the opt-in state of every
+   * email recipient currently configured on the monitor. Absent when the API
+   * has not reconciled recipients (e.g. team-default delivery with no
+   * explicit recipients).
+   */
+  emailRecipientSubscriptions?: MonitorEmailRecipientSubscription[];
   retentionDays: number;
   estimatedCreditsPerMonth?: number | null;
   lastCheckSummary?: MonitorSummary | null;

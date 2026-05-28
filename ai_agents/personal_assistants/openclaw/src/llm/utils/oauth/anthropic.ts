@@ -6,6 +6,12 @@
  */
 
 import type { Server } from "node:http";
+import {
+  buildOAuthRequestSignal,
+  createOAuthLoginCancelledError,
+  throwIfOAuthLoginAborted,
+  withOAuthLoginAbort,
+} from "./abort.js";
 import { oauthErrorHtml, oauthSuccessHtml } from "./oauth-page.js";
 import { generateOAuthState, generatePKCE } from "./pkce.js";
 import type {
@@ -191,7 +197,13 @@ async function startCallbackServer(expectedState: string): Promise<CallbackServe
   });
 }
 
-async function postJson(url: string, body: Record<string, string | number>): Promise<string> {
+async function postJson(
+  url: string,
+  body: Record<string, string | number>,
+  options: { signal?: AbortSignal; timeoutMs?: number } = {},
+): Promise<string> {
+  const timeoutMs = options.timeoutMs ?? 30_000;
+  throwIfOAuthLoginAborted(options.signal);
   const response = await fetch(url, {
     method: "POST",
     headers: {
@@ -199,7 +211,7 @@ async function postJson(url: string, body: Record<string, string | number>): Pro
       Accept: "application/json",
     },
     body: JSON.stringify(body),
-    signal: AbortSignal.timeout(30_000),
+    signal: buildOAuthRequestSignal({ signal: options.signal, timeoutMs }),
   });
 
   const responseBody = await response.text();
@@ -218,18 +230,26 @@ async function exchangeAuthorizationCode(
   state: string,
   verifier: string,
   redirectUri: string,
+  signal?: AbortSignal,
 ): Promise<OAuthCredentials> {
   let responseBody: string;
   try {
-    responseBody = await postJson(TOKEN_URL, {
-      grant_type: "authorization_code",
-      client_id: CLIENT_ID,
-      code,
-      state,
-      redirect_uri: redirectUri,
-      code_verifier: verifier,
-    });
+    responseBody = await postJson(
+      TOKEN_URL,
+      {
+        grant_type: "authorization_code",
+        client_id: CLIENT_ID,
+        code,
+        state,
+        redirect_uri: redirectUri,
+        code_verifier: verifier,
+      },
+      { signal },
+    );
   } catch (error) {
+    if (signal?.aborted) {
+      throw createOAuthLoginCancelledError();
+    }
     throw new Error(
       `Token exchange request failed. url=${TOKEN_URL}; redirect_uri=${redirectUri}; response_type=authorization_code; details=${formatErrorDetails(error)}`,
       { cause: error },
@@ -265,7 +285,9 @@ export async function loginAnthropic(options: {
   onPrompt: (prompt: OAuthPrompt) => Promise<string>;
   onProgress?: (message: string) => void;
   onManualCodeInput?: () => Promise<string>;
+  signal?: AbortSignal;
 }): Promise<OAuthCredentials> {
+  throwIfOAuthLoginAborted(options.signal);
   const { verifier, challenge } = await generatePKCE();
   const expectedState = generateOAuthState();
   const server = await startCallbackServer(expectedState);
@@ -275,6 +297,7 @@ export async function loginAnthropic(options: {
   let redirectUriForExchange = REDIRECT_URI;
 
   try {
+    throwIfOAuthLoginAborted(options.signal);
     const authParams = new URLSearchParams({
       code: "true",
       client_id: CLIENT_ID,
@@ -291,6 +314,7 @@ export async function loginAnthropic(options: {
       instructions:
         "Complete login in your browser. If the browser is on another machine, paste the final redirect URL here.",
     });
+    throwIfOAuthLoginAborted(options.signal);
 
     if (options.onManualCodeInput) {
       let manualInput: string | undefined;
@@ -306,7 +330,11 @@ export async function loginAnthropic(options: {
           server.cancelWait();
         });
 
-      const result = await server.waitForCode();
+      const result = await withOAuthLoginAbort(
+        server.waitForCode(),
+        options.signal,
+        server.cancelWait,
+      );
 
       if (manualError) {
         throw manualError;
@@ -326,7 +354,7 @@ export async function loginAnthropic(options: {
       }
 
       if (!code) {
-        await manualPromise;
+        await withOAuthLoginAbort(manualPromise, options.signal, server.cancelWait);
         if (manualError) {
           throw manualError;
         }
@@ -340,7 +368,11 @@ export async function loginAnthropic(options: {
         }
       }
     } else {
-      const result = await server.waitForCode();
+      const result = await withOAuthLoginAbort(
+        server.waitForCode(),
+        options.signal,
+        server.cancelWait,
+      );
       if (result?.code) {
         code = result.code;
         state = result.state;
@@ -349,10 +381,14 @@ export async function loginAnthropic(options: {
     }
 
     if (!code) {
-      const input = await options.onPrompt({
-        message: "Paste the authorization code or full redirect URL:",
-        placeholder: REDIRECT_URI,
-      });
+      const input = await withOAuthLoginAbort(
+        options.onPrompt({
+          message: "Paste the authorization code or full redirect URL:",
+          placeholder: REDIRECT_URI,
+        }),
+        options.signal,
+        server.cancelWait,
+      );
       const parsed = parseAuthorizationInput(input);
       if (parsed.state && parsed.state !== expectedState) {
         throw new Error("OAuth state mismatch");
@@ -370,7 +406,7 @@ export async function loginAnthropic(options: {
     }
 
     options.onProgress?.("Exchanging authorization code for tokens...");
-    return exchangeAuthorizationCode(code, state, verifier, redirectUriForExchange);
+    return exchangeAuthorizationCode(code, state, verifier, redirectUriForExchange, options.signal);
   } finally {
     server.server.close();
   }
@@ -427,6 +463,7 @@ export const anthropicOAuthProvider: OAuthProviderInterface = {
       onPrompt: callbacks.onPrompt,
       onProgress: callbacks.onProgress,
       onManualCodeInput: callbacks.onManualCodeInput,
+      signal: callbacks.signal,
     });
   },
 

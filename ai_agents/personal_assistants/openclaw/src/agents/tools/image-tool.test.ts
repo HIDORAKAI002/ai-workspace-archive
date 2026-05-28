@@ -97,6 +97,30 @@ vi.mock("../agent-tools.abort.js", () => ({
   wrapToolWithAbortSignal: vi.fn((tool) => tool),
 }));
 
+// Keep image-tool tests focused on root propagation; media-tool-shared
+// and channel-inbound tests cover the real bundled contract loader.
+vi.mock("../../media/channel-inbound-roots.js", () => ({
+  resolveChannelInboundAttachmentRootsForChannel: (params: {
+    cfg?: OpenClawConfig;
+    channelId?: string | null;
+    accountId?: string | null;
+  }) => {
+    const channelId = params.channelId?.trim();
+    if (!channelId) {
+      return undefined;
+    }
+    const channelConfig = params.cfg?.channels?.[channelId];
+    const accountConfig = params.accountId
+      ? channelConfig?.accounts?.[params.accountId]
+      : undefined;
+    const roots = [
+      ...(accountConfig?.attachmentRoots ?? []),
+      ...(channelConfig?.attachmentRoots ?? []),
+    ];
+    return channelId === "imessage" ? [...roots, "/Users/*/Library/Messages/Attachments"] : roots;
+  },
+}));
+
 vi.mock("../auth-profiles.js", () => ({
   externalCliDiscoveryForProviderAuth: () => undefined,
   ensureAuthProfileStore: (agentDir?: string) => {
@@ -624,12 +648,14 @@ function installFastLocalImageProviderStubs(...providers: MediaUnderstandingProv
           fileName: path.basename(mediaUrl),
         };
       },
-      optimizeImageBufferForWebMedia: async ({ buffer, contentType, fileName }) => ({
-        buffer,
-        contentType: contentType ?? "image/png",
-        kind: "image",
-        fileName,
-      }),
+      optimizeImageBufferForWebMedia: async ({ buffer, contentType, fileName }) => {
+        return {
+          buffer,
+          contentType: contentType ?? "image/png",
+          kind: "image",
+          fileName,
+        };
+      },
     }),
   });
 }
@@ -1769,7 +1795,7 @@ describe("image tool implicit imageModel config", () => {
         await fs.rm(attachmentRoot, { recursive: true, force: true });
       }
     });
-  }, 240_000);
+  });
 
   it("allows image paths from current iMessage wildcard attachment roots", async () => {
     await withTempAgentDir(async (agentDir) => {
@@ -1828,7 +1854,7 @@ describe("image tool implicit imageModel config", () => {
         await fs.rm(attachmentRootParent, { recursive: true, force: true });
       }
     });
-  }, 240_000);
+  });
 
   it("allows workspace images via createOpenClawCodingTools when workspace root is explicit", async () => {
     await withTempWorkspacePng(async ({ workspaceDir, imagePath }) => {
