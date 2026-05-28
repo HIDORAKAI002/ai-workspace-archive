@@ -9,8 +9,9 @@ import httpx
 from langgraph_sdk._async.http import HttpClient
 from langgraph_sdk._async.threads import ThreadsClient
 from langgraph_sdk.stream.controller import StreamController
+from langgraph_sdk.stream.transport.http import EventStreamHandle
 from streaming._events import lifecycle_event, values_event
-from streaming._fake_server import FakeServer
+from streaming._fake_server import FakeServer, _StreamScript
 
 
 async def test_shared_stream_serves_single_subscription():
@@ -201,3 +202,157 @@ async def test_values_projection_registers_via_delegation_not_controller_directl
     thread_count, ctrl_count = counts_during[0]
     assert thread_count == ctrl_count
     assert thread_count >= 1
+
+
+def _make_handle(
+    events: list[dict[str, Any]],
+    err: BaseException | None = None,
+) -> tuple[EventStreamHandle, asyncio.Queue]:
+    """Build a synthetic EventStreamHandle for reconnect tests.
+
+    Returns the handle and the underlying queue so callers can inject events
+    or the end sentinel directly from test code.
+    """
+    loop = asyncio.get_running_loop()
+    ready: asyncio.Future[None] = loop.create_future()
+    done: asyncio.Future[BaseException | None] = loop.create_future()
+    queue: asyncio.Queue = asyncio.Queue()
+
+    async def _pump() -> None:
+        ready.set_result(None)
+        for event in events:
+            await queue.put(event)
+        done.set_result(err)
+        await queue.put(None)  # sentinel
+
+    asyncio.create_task(_pump())  # noqa: RUF006
+
+    async def _aiter():
+        while True:
+            item = await queue.get()
+            if item is None:
+                return
+            yield item
+
+    async def _close() -> None:
+        if not done.done():
+            done.set_result(None)
+        await queue.put(None)
+
+    return EventStreamHandle(
+        events=_aiter(), ready=ready, done=done, close=_close
+    ), queue
+
+
+async def test_shared_stream_reconnects_with_since_after_transport_drop():
+    """StreamController reopens the stream with `since` after a post-ready drop."""
+    opened_params: list[dict[str, Any]] = []
+
+    handle1, _ = _make_handle(
+        [values_event(seq=1, values={"counter": 1})],
+        err=RuntimeError("scripted async stream failure"),
+    )
+    handle2, _ = _make_handle([values_event(seq=2, values={"counter": 2})])
+    handles = [handle1, handle2]
+
+    from unittest.mock import MagicMock
+
+    from langgraph_sdk.stream.transport.http import ProtocolSseTransport
+
+    transport = MagicMock(spec=ProtocolSseTransport)
+
+    def _open(params: dict[str, Any]) -> EventStreamHandle:
+        opened_params.append(dict(params))
+        return handles.pop(0)
+
+    transport.open_event_stream.side_effect = _open
+
+    async def gate() -> None:
+        return None
+
+    controller = StreamController(transport=transport, run_start_gate=gate)
+    sub = controller.register_subscription({"channels": ["values"]})
+    await controller.reconcile_stream({"channels": ["values"]})
+    controller.ensure_fanout_running()
+
+    first = await asyncio.wait_for(sub.queue.get(), timeout=1.0)
+    second = await asyncio.wait_for(sub.queue.get(), timeout=1.0)
+    end = await asyncio.wait_for(sub.queue.get(), timeout=1.0)
+    await controller.close()
+
+    assert first["seq"] == 1
+    assert second["seq"] == 2
+    assert end is None
+    assert opened_params[0]["channels"] == ["values"]
+    assert "since" not in opened_params[0]
+    assert opened_params[1]["channels"] == ["values"]
+    assert opened_params[1]["since"] == 1
+
+
+async def test_shared_stream_reconnect_dedupes_replayed_overlap():
+    """StreamController deduplicates events replayed on reconnect."""
+    handle1, _ = _make_handle(
+        [values_event(seq=1, values={"counter": 1})],
+        err=RuntimeError("scripted async stream failure"),
+    )
+    handle2, _ = _make_handle(
+        [
+            values_event(seq=1, values={"counter": 1}),  # replayed overlap
+            values_event(seq=2, values={"counter": 2}),
+        ]
+    )
+    handles = [handle1, handle2]
+
+    from unittest.mock import MagicMock
+
+    from langgraph_sdk.stream.transport.http import ProtocolSseTransport
+
+    transport = MagicMock(spec=ProtocolSseTransport)
+    transport.open_event_stream.side_effect = lambda _params: handles.pop(0)
+
+    async def gate() -> None:
+        return None
+
+    controller = StreamController(transport=transport, run_start_gate=gate)
+    sub = controller.register_subscription({"channels": ["values"]})
+    await controller.reconcile_stream({"channels": ["values"]})
+    controller.ensure_fanout_running()
+
+    received = [
+        await asyncio.wait_for(sub.queue.get(), timeout=1.0),
+        await asyncio.wait_for(sub.queue.get(), timeout=1.0),
+        await asyncio.wait_for(sub.queue.get(), timeout=1.0),
+    ]
+    await controller.close()
+
+    assert [event["seq"] for event in received if event is not None] == [1, 2]
+    assert received[-1] is None
+
+
+async def test_send_command_applied_through_seq_seeds_shared_stream_since():
+    fake = FakeServer()
+    fake.script_sequence([_StreamScript(events=[]), _StreamScript(events=[])])
+    fake.script_command_response(
+        {
+            "type": "success",
+            "id": None,
+            "result": {"run_id": "run-1"},
+            "meta": {"applied_through_seq": 17},
+        }
+    )
+    asgi = httpx.ASGITransport(app=fake.app)
+    async with httpx.AsyncClient(transport=asgi, base_url="http://test") as raw:
+        threads = ThreadsClient(HttpClient(raw))
+        async with threads.stream(thread_id="t-1", assistant_id="agent") as thread:
+            await thread.run.start(input={})
+            _ = [event async for event in thread.subscribe(["values"])]
+
+    # The shared SSE filter is a union of subscription params plus
+    # ``lifecycle`` (added by ``_compute_current_union`` so the fanout
+    # consumer can detect root-terminal events for projection-iterator
+    # termination). Match any request whose channels include ``values``.
+    values_requests = [
+        b for b in fake.stream_request_bodies if "values" in (b.get("channels") or [])
+    ]
+    assert len(values_requests) == 1
+    assert values_requests[0]["since"] == 17

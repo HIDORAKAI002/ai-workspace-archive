@@ -8928,6 +8928,11 @@ def _cmd_update_impl(args, gateway_mode: bool):
 
         if commit_count == 0:
             _invalidate_update_cache()
+
+            # Even if origin is up to date, the fork may be behind upstream
+            if is_fork and branch == "main":
+                _sync_with_upstream_if_needed(git_cmd, PROJECT_ROOT)
+
             # Restore stash and switch back to original branch if we moved
             if auto_stash_ref is not None:
                 _restore_stashed_changes(
@@ -12558,6 +12563,31 @@ Examples:
         help="Also delete the current copy and re-copy the bundled version",
     )
     skills_reset.add_argument(
+        "--yes",
+        "-y",
+        action="store_true",
+        help="Skip confirmation prompt when using --restore",
+    )
+
+    skills_repair_official = skills_subparsers.add_parser(
+        "repair-official",
+        help="Backfill or restore official optional skills from repo source",
+        description=(
+            "Repair official optional skill provenance. By default, only backfills "
+            "hub metadata for exact matches. Pass --restore to replace missing or "
+            "mutated active copies from optional-skills/, moving existing copies to "
+            "a restore backup first. Use name 'all' to repair every optional skill."
+        ),
+    )
+    skills_repair_official.add_argument(
+        "name", help="Official optional skill folder/frontmatter name, or 'all'"
+    )
+    skills_repair_official.add_argument(
+        "--restore",
+        action="store_true",
+        help="Restore from official optional source, backing up existing matching copies",
+    )
+    skills_repair_official.add_argument(
         "--yes",
         "-y",
         action="store_true",

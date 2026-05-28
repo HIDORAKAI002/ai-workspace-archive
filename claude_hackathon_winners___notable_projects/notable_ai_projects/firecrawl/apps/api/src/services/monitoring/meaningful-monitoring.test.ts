@@ -106,8 +106,12 @@ describe("computeAndPersistPageDiff — judge gating", () => {
     const callArgs = mockJudge.mock.calls[0][0];
     expect(callArgs.goal).toBe("tell me when the content changes");
     expect(callArgs.extractionPrompt).toBe("extract the heading");
-    expect(callArgs.markdownDiff.previous).toBe("old content");
-    expect(callArgs.markdownDiff.current).toBe("new content totally different");
+    expect(callArgs.markdownDiff.diffText).toContain("-old content");
+    expect(callArgs.markdownDiff.diffText).toContain(
+      "+new content totally different",
+    );
+    expect(callArgs.markdownDiff.previous).toBeUndefined();
+    expect(callArgs.markdownDiff.current).toBeUndefined();
   });
 
   it("returns no judgment if judge throws", async () => {

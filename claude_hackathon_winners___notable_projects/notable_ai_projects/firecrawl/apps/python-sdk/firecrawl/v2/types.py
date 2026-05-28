@@ -947,11 +947,20 @@ class Monitor(BaseModel):
     updated_at: str = Field(alias="updatedAt")
 
 
+class MonitorMeaningfulChange(BaseModel):
+    type: Literal["added", "removed", "changed"]
+    before: Optional[str] = None
+    after: Optional[str] = None
+    reason: str
+
+
 class MonitorPageJudgment(BaseModel):
+    model_config = {"populate_by_name": True}
+
     meaningful: bool
     confidence: Literal["high", "medium", "low"]
     reason: str
-    fields: List[str]
+    meaningful_changes: List[MonitorMeaningfulChange] = Field(default_factory=list, alias="meaningfulChanges")
 
 
 class MonitorCheck(BaseModel):

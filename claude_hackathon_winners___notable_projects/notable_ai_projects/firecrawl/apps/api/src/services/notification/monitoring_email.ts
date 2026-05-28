@@ -28,6 +28,11 @@ type MonitoringEmailPage = {
 const DIFF_MAX_LINES_PER_PAGE = 24;
 const DIFF_MAX_CHARS_PER_LINE = 200;
 
+function userFacingPageError(error?: string | null): string | null {
+  if (!error) return null;
+  return "Firecrawl could not check this page. Open the dashboard for details.";
+}
+
 function renderDiffBlock(diffText: string): string {
   const lines = diffText.split("\n");
   const truncated = lines.length > DIFF_MAX_LINES_PER_PAGE;
@@ -143,8 +148,9 @@ export function buildHtml(payload: MonitoringEmailPayload): string {
         page.diffText && page.diffText.trim().length > 0
           ? renderDiffBlock(page.diffText)
           : "";
+      const pageError = userFacingPageError(page.error);
       return `<li style="margin:0 0 14px;"><strong>${escapeHtml(page.status)}</strong>${badge}: <a href="${url}">${url}</a>${
-        page.error ? ` &mdash; ${escapeHtml(page.error)}` : ""
+        pageError ? ` &mdash; ${escapeHtml(pageError)}` : ""
       }${reason}${diffBlock}</li>`;
     })
     .join("");

@@ -115,6 +115,9 @@ export type MonitorCreateInput = {
       }
   >;
   retentionDays?: number;
+  goal?: string;
+  judgeEnabled?: boolean;
+  origin?: string;
 };
 
 export async function monitorCreateRaw(
