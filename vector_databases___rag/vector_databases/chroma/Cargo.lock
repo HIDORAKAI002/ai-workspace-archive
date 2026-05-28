@@ -3634,6 +3634,7 @@ dependencies = [
 name = "foundation-api"
 version = "1.0.0"
 dependencies = [
+ "async-trait",
  "axum 0.8.8",
  "chroma-api-types",
  "chroma-config",
@@ -3645,6 +3646,7 @@ dependencies = [
  "figment",
  "frontend-core",
  "mdac",
+ "opentelemetry",
  "serde",
  "serde_json",
  "thiserror 1.0.69",
@@ -3779,10 +3781,12 @@ dependencies = [
  "figment",
  "http-body-util",
  "mdac",
+ "opentelemetry",
  "serde",
  "serde_json",
  "thiserror 1.0.69",
  "tokio",
+ "tonic 0.14.5",
  "tower 0.5.3",
  "tower-http 0.6.8",
  "tracing",
@@ -6422,15 +6426,14 @@ checksum = "d6790f58c7ff633d8771f42965289203411a5e5c68388703c06e14f24770b41e"
 
 [[package]]
 name = "openssl"
-version = "0.10.76"
+version = "0.10.79"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "951c002c75e16ea2c65b8c7e4d3d51d5530d8dfa7d060b4776828c88cfb18ecf"
+checksum = "bf0b434746ee2832f4f0baf10137e1cabb18cbe6912c69e2e33263c45250f542"
 dependencies = [
  "bitflags",
  "cfg-if",
  "foreign-types",
  "libc",
- "once_cell",
  "openssl-macros",
  "openssl-sys",
 ]
@@ -6460,9 +6463,9 @@ checksum = "7c87def4c32ab89d880effc9e097653c8da5d6ef28e6b539d313baaacfbafcbe"
 
 [[package]]
 name = "openssl-sys"
-version = "0.9.112"
+version = "0.9.116"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "57d55af3b3e226502be1526dfdba67ab0e9c96fc293004e79576b2b9edb0dbdb"
+checksum = "f28a22dc7140cda5f096e5e7724a6962ca81a7f8bfd2979f9b18c11af56318c4"
 dependencies = [
  "cc",
  "libc",
@@ -7139,7 +7142,7 @@ version = "0.14.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "343d3bd7056eda839b03204e68deff7d1b13aba7af2b2fd16890697274262ee7"
 dependencies = [
- "heck 0.5.0",
+ "heck 0.4.1",
  "itertools 0.14.0",
  "log",
  "multimap",

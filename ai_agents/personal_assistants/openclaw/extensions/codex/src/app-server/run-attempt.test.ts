@@ -1,6 +1,5 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { SessionManager } from "@earendil-works/pi-coding-agent";
 import {
   abortAgentHarnessRun,
   embeddedAgentLog,
@@ -8,6 +7,7 @@ import {
   type AgentEventPayload,
   type EmbeddedRunAttemptParams,
 } from "openclaw/plugin-sdk/agent-harness-runtime";
+import { SessionManager } from "openclaw/plugin-sdk/agent-sessions";
 import {
   onInternalDiagnosticEvent,
   waitForDiagnosticEventsDrained,
@@ -27,6 +27,7 @@ import { CODEX_GPT5_BEHAVIOR_CONTRACT } from "../../prompt-overlay.js";
 import { defaultCodexAppInventoryCache } from "./app-inventory-cache.js";
 import * as authBridge from "./auth-bridge.js";
 import { resolveCodexAppServerEnvApiKeyCacheKey } from "./auth-bridge.js";
+import { CodexAppServerRpcError } from "./client.js";
 import { readCodexPluginConfig, resolveCodexAppServerRuntimeOptions } from "./config.js";
 import {
   CODEX_OPENCLAW_DYNAMIC_TOOL_NAMESPACE,
@@ -65,6 +66,7 @@ import {
 } from "./sandbox-exec-server.js";
 import { createSandboxContext } from "./sandbox-exec-server.test-helpers.js";
 import { readCodexAppServerBinding, writeCodexAppServerBinding } from "./session-binding.js";
+import * as sharedClientModule from "./shared-client.js";
 import { createCodexTestModel } from "./test-support.js";
 import { buildTurnStartParams, startOrResumeThread } from "./thread-lifecycle.js";
 
@@ -176,6 +178,19 @@ function createNamedDynamicTool(
   };
 }
 
+function setAgentWorkspaceForTest(params: EmbeddedRunAttemptParams, workspaceDir: string): void {
+  params.config = {
+    ...params.config,
+    agents: {
+      ...params.config?.agents,
+      defaults: {
+        ...params.config?.agents?.defaults,
+        workspace: workspaceDir,
+      },
+    },
+  } as EmbeddedRunAttemptParams["config"];
+}
+
 async function buildDynamicToolsForTest(
   params: EmbeddedRunAttemptParams,
   workspaceDir: string,
@@ -194,6 +209,7 @@ async function buildDynamicToolsForTest(
     params,
     resolvedWorkspace: workspaceDir,
     effectiveWorkspace: workspaceDir,
+    effectiveCwd: params.cwd ?? workspaceDir,
     sandboxSessionKey,
     sandbox: { enabled: false, backendId: "docker" } as never,
     nativeToolSurfaceEnabled: true,
@@ -884,6 +900,46 @@ describe("runCodexAppServerAttempt", () => {
     expect(binding.mcpServersFingerprint).toBe("mcp-v2");
   });
 
+  it("uses task cwd for Codex app-server requests while keeping bootstrap workspace separate", async () => {
+    const sessionFile = path.join(tempDir, "session.jsonl");
+    const workspaceDir = path.join(tempDir, "workspace");
+    const taskCwd = path.join(tempDir, "task-repo");
+    await fs.mkdir(workspaceDir, { recursive: true });
+    await fs.mkdir(taskCwd, { recursive: true });
+    await fs.writeFile(path.join(workspaceDir, "SOUL.md"), "workspace bootstrap", "utf8");
+    await fs.writeFile(path.join(taskCwd, "task-marker.txt"), "task marker", "utf8");
+    const appServer = createThreadLifecycleAppServerOptions();
+    const params = createParams(sessionFile, workspaceDir);
+    const requests: Array<{ method: string; params: unknown }> = [];
+
+    await startOrResumeThread({
+      client: {
+        getServerVersion: () => "0.132.0",
+        request: async (method: string, requestParams?: unknown) => {
+          requests.push({ method, params: requestParams });
+          if (method === "thread/start") {
+            return threadStartResult();
+          }
+          return {};
+        },
+      } as never,
+      params,
+      cwd: taskCwd,
+      dynamicTools: [],
+      appServer,
+      developerInstructions: "workspace bootstrap",
+    });
+    const threadStart = requests.find((request) => request.method === "thread/start");
+    expect((threadStart?.params as { cwd?: string } | undefined)?.cwd).toBe(taskCwd);
+
+    const turnStart = buildTurnStartParams(params, {
+      threadId: "thread-1",
+      cwd: taskCwd,
+      appServer,
+    });
+    expect(turnStart.cwd).toBe(taskCwd);
+  });
+
   it("starts a no-MCP Codex thread when MCP config is evaluated empty", async () => {
     const sessionFile = path.join(tempDir, "session.jsonl");
     const workspaceDir = path.join(tempDir, "workspace");
@@ -955,8 +1011,8 @@ describe("runCodexAppServerAttempt", () => {
           text: "Unscoped structured command guidance.",
         },
         {
-          text: "PI main command guidance.",
-          surfaces: ["pi_main"],
+          text: "OpenClaw main command guidance.",
+          surfaces: ["openclaw_main"],
         },
       ],
       handler: async () => ({ text: "ok" }),
@@ -969,7 +1025,7 @@ describe("runCodexAppServerAttempt", () => {
     expect(instructions).toContain("Codex app-server command guidance.");
     expect(instructions).not.toContain("Legacy global command guidance.");
     expect(instructions).not.toContain("Unscoped structured command guidance.");
-    expect(instructions).not.toContain("PI main command guidance.");
+    expect(instructions).not.toContain("OpenClaw main command guidance.");
   });
 
   it("keeps OpenClaw skills out of Codex developer instructions", async () => {
@@ -1566,7 +1622,11 @@ describe("runCodexAppServerAttempt", () => {
     expect(hookContext.sessionId).toBe("session-1");
     const threadStart = harness.requests.find((request) => request.method === "thread/start");
     const threadStartParams = threadStart?.params as { developerInstructions?: string } | undefined;
-    expect(threadStartParams?.developerInstructions).toContain("pre system\n\ncustom codex system");
+    const wrappedPluginSystemContext = (text: string) =>
+      `---\n\nOpenClaw plugin-injected system context. This block is not workspace file content.\n\n${text}\n\n---`;
+    expect(threadStartParams?.developerInstructions).toContain(
+      `${wrappedPluginSystemContext("pre system")}\n\ncustom codex system\n\n${wrappedPluginSystemContext("post system")}`,
+    );
     const turnStart = harness.requests.find((request) => request.method === "turn/start");
     const turnStartParams = turnStart?.params as
       | { input?: Array<{ text?: string; text_elements?: unknown[]; type?: string }> }
@@ -1702,7 +1762,7 @@ describe("runCodexAppServerAttempt", () => {
     expect(secondInputText).toContain("continue from there");
   });
 
-  it("passes stable workspace files as Codex developer instructions and keeps MEMORY.md as turn context", async () => {
+  it("passes stable workspace files as Codex developer instructions and routes MEMORY.md through tools", async () => {
     const sessionFile = path.join(tempDir, "session.jsonl");
     const workspaceDir = path.join(tempDir, "workspace");
     const agentsGuidance = "Follow AGENTS guidance.";
@@ -1720,9 +1780,16 @@ describe("runCodexAppServerAttempt", () => {
     await fs.writeFile(path.join(workspaceDir, "USER.md"), userProfile);
     await fs.writeFile(path.join(workspaceDir, "HEARTBEAT.md"), heartbeatChecklist);
     await fs.writeFile(path.join(workspaceDir, "MEMORY.md"), memorySummary);
+    testing.setOpenClawCodingToolsFactoryForTests(() => [
+      createRuntimeDynamicTool("memory_search"),
+      createRuntimeDynamicTool("memory_get"),
+    ]);
     const harness = createStartedThreadHarness();
+    const params = createParams(sessionFile, workspaceDir);
+    params.disableTools = false;
+    setAgentWorkspaceForTest(params, workspaceDir);
 
-    const run = runCodexAppServerAttempt(createParams(sessionFile, workspaceDir));
+    const run = runCodexAppServerAttempt(params);
     await harness.waitForMethod("turn/start");
     await new Promise<void>((resolve) => setImmediate(resolve));
     await harness.completeTurn({ threadId: "thread-1", turnId: "turn-1" });
@@ -1775,8 +1842,12 @@ describe("runCodexAppServerAttempt", () => {
     expect(inputText).not.toContain(toolGuidance);
     expect(inputText).not.toContain(userProfile);
     expect(inputText).not.toContain(heartbeatChecklist);
-    expect(inputText).toContain(memorySummary);
-    expect(inputText).toContain("Codex loads AGENTS.md natively");
+    expect(inputText).not.toContain(memorySummary);
+    expect(inputText).toContain("OpenClaw Workspace Memory");
+    expect(inputText).toContain("MEMORY.md exists in the active agent workspace");
+    expect(inputText).toContain("memory_search");
+    expect(inputText).toContain("memory_get");
+    expect(inputText).not.toContain("Codex loads AGENTS.md natively");
     expect(inputText).not.toContain(agentsGuidance);
     expect(inputText).toContain("Current user request:\nhello");
     expect(result.systemPromptReport?.systemPrompt.chars).toBe(
@@ -1809,7 +1880,7 @@ describe("runCodexAppServerAttempt", () => {
     });
     expect(fileStats.get("MEMORY.md")).toMatchObject({
       rawChars: memorySummary.length,
-      injectedChars: memorySummary.length,
+      injectedChars: 0,
       truncated: false,
     });
     expect(fileStats.get("HEARTBEAT.md")).toMatchObject({
@@ -1820,6 +1891,284 @@ describe("runCodexAppServerAttempt", () => {
     expect(fileStats.get("AGENTS.md")).toMatchObject({
       rawChars: agentsGuidance.length,
       injectedChars: agentsGuidance.length,
+      truncated: false,
+    });
+  });
+
+  it("injects bounded MEMORY.md when memory tools are unavailable", async () => {
+    const sessionFile = path.join(tempDir, "session.jsonl");
+    const workspaceDir = path.join(tempDir, "workspace");
+    const memorySummary = "Memory summary goes here.";
+    await fs.mkdir(workspaceDir, { recursive: true });
+    await fs.writeFile(path.join(workspaceDir, "MEMORY.md"), memorySummary);
+    const harness = createStartedThreadHarness();
+
+    const run = runCodexAppServerAttempt(createParams(sessionFile, workspaceDir));
+    await harness.waitForMethod("turn/start");
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    await harness.completeTurn({ threadId: "thread-1", turnId: "turn-1" });
+    const result = await run;
+
+    const turnStart = harness.requests.find((request) => request.method === "turn/start");
+    const turnStartParams = turnStart?.params as {
+      input?: Array<{ text?: string }>;
+    };
+    const inputText = turnStartParams.input?.[0]?.text ?? "";
+    expect(inputText).not.toContain("OpenClaw Workspace Memory");
+    expect(inputText).not.toContain("memory_search");
+    expect(inputText).toContain(memorySummary);
+
+    const fileStats = new Map(
+      result.systemPromptReport?.injectedWorkspaceFiles.map((file) => [file.name, file]) ?? [],
+    );
+    expect(fileStats.get("MEMORY.md")).toMatchObject({
+      rawChars: memorySummary.length,
+      injectedChars: memorySummary.length,
+      truncated: false,
+    });
+  });
+
+  it("routes MEMORY.md through memory_get when search is unavailable", async () => {
+    const sessionFile = path.join(tempDir, "session.jsonl");
+    const workspaceDir = path.join(tempDir, "workspace");
+    const memorySummary = "Memory summary goes here.";
+    await fs.mkdir(workspaceDir, { recursive: true });
+    await fs.writeFile(path.join(workspaceDir, "MEMORY.md"), memorySummary);
+    testing.setOpenClawCodingToolsFactoryForTests(() => [createRuntimeDynamicTool("memory_get")]);
+    const harness = createStartedThreadHarness();
+    const params = createParams(sessionFile, workspaceDir);
+    params.disableTools = false;
+    setAgentWorkspaceForTest(params, workspaceDir);
+
+    const run = runCodexAppServerAttempt(params);
+    await harness.waitForMethod("turn/start");
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    await harness.completeTurn({ threadId: "thread-1", turnId: "turn-1" });
+    const result = await run;
+
+    const turnStart = harness.requests.find((request) => request.method === "turn/start");
+    const turnStartParams = turnStart?.params as {
+      input?: Array<{ text?: string }>;
+    };
+    const inputText = turnStartParams.input?.[0]?.text ?? "";
+    expect(inputText).toContain("OpenClaw Workspace Memory");
+    expect(inputText).toContain("memory_get");
+    expect(inputText).not.toContain("memory_search");
+    expect(inputText).not.toContain(memorySummary);
+
+    const fileStats = new Map(
+      result.systemPromptReport?.injectedWorkspaceFiles.map((file) => [file.name, file]) ?? [],
+    );
+    expect(fileStats.get("MEMORY.md")).toMatchObject({
+      rawChars: memorySummary.length,
+      injectedChars: 0,
+      truncated: false,
+    });
+  });
+
+  it("reports MEMORY.md as truncated when no-tool fallback exceeds the bootstrap budget", async () => {
+    const sessionFile = path.join(tempDir, "session.jsonl");
+    const workspaceDir = path.join(tempDir, "workspace");
+    const soulGuidance = "Soul guidance ".repeat(80);
+    const memorySummary = "Memory summary goes here.";
+    await fs.mkdir(workspaceDir, { recursive: true });
+    await fs.writeFile(path.join(workspaceDir, "SOUL.md"), soulGuidance);
+    await fs.writeFile(path.join(workspaceDir, "MEMORY.md"), memorySummary);
+    const harness = createStartedThreadHarness();
+    const params = createParams(sessionFile, workspaceDir);
+    params.config = {
+      agents: {
+        defaults: {
+          bootstrapMaxChars: 1000,
+          bootstrapTotalMaxChars: 1000,
+        },
+      },
+    } as EmbeddedRunAttemptParams["config"];
+
+    const run = runCodexAppServerAttempt(params);
+    await harness.waitForMethod("turn/start");
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    await harness.completeTurn({ threadId: "thread-1", turnId: "turn-1" });
+    const result = await run;
+
+    const fileStats = new Map(
+      result.systemPromptReport?.injectedWorkspaceFiles.map((file) => [file.name, file]) ?? [],
+    );
+    expect(fileStats.get("MEMORY.md")).toMatchObject({
+      rawChars: memorySummary.length,
+      injectedChars: 0,
+      truncated: true,
+    });
+  });
+
+  it("keeps MEMORY.md out of the Codex workspace context budget", async () => {
+    const sessionFile = path.join(tempDir, "session.jsonl");
+    const workspaceDir = path.join(tempDir, "workspace");
+    const memorySummary = "Memory summary ".repeat(300);
+    const hookContext = "Hook context survives the memory budget.";
+    const hookPath = path.join(workspaceDir, "ZZZ.md");
+    await fs.mkdir(workspaceDir, { recursive: true });
+    await fs.writeFile(path.join(workspaceDir, "MEMORY.md"), memorySummary);
+    registerInternalHook("agent:bootstrap", (event) => {
+      const context = event.context as {
+        bootstrapFiles: Array<{ content: string; missing: boolean; name?: string; path: string }>;
+      };
+      context.bootstrapFiles = [
+        ...context.bootstrapFiles,
+        {
+          name: "ZZZ.md",
+          path: hookPath,
+          content: hookContext,
+          missing: false,
+        },
+      ];
+    });
+    const harness = createStartedThreadHarness();
+    const params = createParams(sessionFile, workspaceDir);
+    params.disableTools = false;
+    params.config = {
+      agents: {
+        defaults: {
+          workspace: workspaceDir,
+          bootstrapMaxChars: 1000,
+          bootstrapTotalMaxChars: 2000,
+        },
+      },
+    } as EmbeddedRunAttemptParams["config"];
+    testing.setOpenClawCodingToolsFactoryForTests(() => [
+      createRuntimeDynamicTool("memory_search"),
+      createRuntimeDynamicTool("memory_get"),
+    ]);
+
+    const run = runCodexAppServerAttempt(params);
+    await harness.waitForMethod("turn/start");
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    await harness.completeTurn({ threadId: "thread-1", turnId: "turn-1" });
+    const result = await run;
+
+    const turnStart = harness.requests.find((request) => request.method === "turn/start");
+    const turnStartParams = turnStart?.params as {
+      input?: Array<{ text?: string }>;
+    };
+    const inputText = turnStartParams.input?.[0]?.text ?? "";
+    expect(inputText).toContain("OpenClaw Workspace Memory");
+    expect(inputText).not.toContain(memorySummary);
+    expect(inputText).toContain(hookContext);
+
+    const fileStats = new Map(
+      result.systemPromptReport?.injectedWorkspaceFiles.map((file) => [file.name, file]) ?? [],
+    );
+    expect(fileStats.get("MEMORY.md")).toMatchObject({
+      rawChars: memorySummary.trimEnd().length,
+      injectedChars: 0,
+      truncated: false,
+    });
+    expect(fileStats.get("ZZZ.md")).toMatchObject({
+      rawChars: hookContext.length,
+      injectedChars: hookContext.length,
+      truncated: false,
+    });
+  });
+
+  it("keeps extra MEMORY.md bootstrap files in Codex workspace context", async () => {
+    const sessionFile = path.join(tempDir, "session.jsonl");
+    const workspaceDir = path.join(tempDir, "workspace");
+    const rootMemory = "Root memory should stay tool-routed.";
+    const nestedMemory = "Nested package memory remains prompt context.";
+    const nestedMemoryPath = path.join(workspaceDir, "packages/pkg/MEMORY.md");
+    await fs.mkdir(path.dirname(nestedMemoryPath), { recursive: true });
+    await fs.writeFile(path.join(workspaceDir, "MEMORY.md"), rootMemory);
+    await fs.writeFile(nestedMemoryPath, nestedMemory);
+    registerInternalHook("agent:bootstrap", (event) => {
+      const context = event.context as {
+        bootstrapFiles: Array<{ content: string; missing: boolean; name?: string; path: string }>;
+      };
+      context.bootstrapFiles = [
+        ...context.bootstrapFiles,
+        {
+          name: "MEMORY.md",
+          path: nestedMemoryPath,
+          content: nestedMemory,
+          missing: false,
+        },
+      ];
+    });
+    testing.setOpenClawCodingToolsFactoryForTests(() => [
+      createRuntimeDynamicTool("memory_search"),
+      createRuntimeDynamicTool("memory_get"),
+    ]);
+    const harness = createStartedThreadHarness();
+    const params = createParams(sessionFile, workspaceDir);
+    params.disableTools = false;
+    setAgentWorkspaceForTest(params, workspaceDir);
+
+    const run = runCodexAppServerAttempt(params);
+    await harness.waitForMethod("turn/start");
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    await harness.completeTurn({ threadId: "thread-1", turnId: "turn-1" });
+    const result = await run;
+
+    const turnStart = harness.requests.find((request) => request.method === "turn/start");
+    const turnStartParams = turnStart?.params as {
+      input?: Array<{ text?: string }>;
+    };
+    const inputText = turnStartParams.input?.[0]?.text ?? "";
+    expect(inputText).toContain("OpenClaw Workspace Memory");
+    expect(inputText).not.toContain(rootMemory);
+    expect(inputText).toContain(nestedMemory);
+
+    const files = result.systemPromptReport?.injectedWorkspaceFiles ?? [];
+    const rootMemoryStats = files.find(
+      (file) => file.path === path.join(workspaceDir, "MEMORY.md"),
+    );
+    const nestedMemoryStats = files.find((file) => file.path === nestedMemoryPath);
+    expect(rootMemoryStats).toMatchObject({
+      rawChars: rootMemory.length,
+      injectedChars: 0,
+      truncated: false,
+    });
+    expect(nestedMemoryStats).toMatchObject({
+      rawChars: nestedMemory.length,
+      injectedChars: nestedMemory.length,
+      truncated: false,
+    });
+  });
+
+  it("injects MEMORY.md when active workspace is not the memory tool workspace", async () => {
+    const sessionFile = path.join(tempDir, "session.jsonl");
+    const workspaceDir = path.join(tempDir, "workspace");
+    const memorySummary = "Memory summary goes here.";
+    await fs.mkdir(workspaceDir, { recursive: true });
+    await fs.writeFile(path.join(workspaceDir, "MEMORY.md"), memorySummary);
+    testing.setOpenClawCodingToolsFactoryForTests(() => [
+      createRuntimeDynamicTool("memory_search"),
+      createRuntimeDynamicTool("memory_get"),
+    ]);
+    const harness = createStartedThreadHarness();
+    const params = createParams(sessionFile, workspaceDir);
+    params.disableTools = false;
+    setAgentWorkspaceForTest(params, path.join(tempDir, "memory-workspace"));
+
+    const run = runCodexAppServerAttempt(params);
+    await harness.waitForMethod("turn/start");
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    await harness.completeTurn({ threadId: "thread-1", turnId: "turn-1" });
+    const result = await run;
+
+    const turnStart = harness.requests.find((request) => request.method === "turn/start");
+    const turnStartParams = turnStart?.params as {
+      input?: Array<{ text?: string }>;
+    };
+    const inputText = turnStartParams.input?.[0]?.text ?? "";
+    expect(inputText).not.toContain("OpenClaw Workspace Memory");
+    expect(inputText).toContain(memorySummary);
+
+    const fileStats = new Map(
+      result.systemPromptReport?.injectedWorkspaceFiles.map((file) => [file.name, file]) ?? [],
+    );
+    expect(fileStats.get("MEMORY.md")).toMatchObject({
+      rawChars: memorySummary.length,
+      injectedChars: memorySummary.length,
       truncated: false,
     });
   });
@@ -3487,6 +3836,134 @@ describe("runCodexAppServerAttempt", () => {
       ["thread/resume"],
       ["thread/resume", "turn/start", "thread/unsubscribe"],
     ]);
+  });
+
+  it("does not retire the shared Codex client when a spawned helper run fails with a logical thread/start error", async () => {
+    const clearSpy = vi.spyOn(sharedClientModule, "clearSharedCodexAppServerClientIfCurrent");
+    clearSpy.mockClear();
+    let failedClient: unknown;
+    setCodexAppServerClientFactoryForTest(async () => {
+      const c = {
+        request: vi.fn(async (method: string) => {
+          if (method === "thread/start") {
+            throw new CodexAppServerRpcError(
+              { message: "401 authentication_error: Invalid bearer token" },
+              "thread/start",
+            );
+          }
+          return {};
+        }),
+        addNotificationHandler: vi.fn(() => () => undefined),
+        addRequestHandler: vi.fn(() => () => undefined),
+      };
+      failedClient = c;
+      return c as never;
+    });
+    const params = createParams(
+      path.join(tempDir, "session.jsonl"),
+      path.join(tempDir, "workspace"),
+    );
+    params.spawnedBy = "agent:main:session-parent";
+
+    await expect(runCodexAppServerAttempt(params)).rejects.toThrow("Invalid bearer token");
+    const calledWithFailedClient = clearSpy.mock.calls.some(([arg]) => arg === failedClient);
+    expect(calledWithFailedClient).toBe(false);
+    clearSpy.mockRestore();
+  });
+
+  it("retires the shared Codex client when a spawned helper run times out during thread/start", async () => {
+    const clearSpy = vi.spyOn(sharedClientModule, "clearSharedCodexAppServerClientIfCurrent");
+    clearSpy.mockClear();
+    let failedClient: unknown;
+    setCodexAppServerClientFactoryForTest(async () => {
+      const c = {
+        request: vi.fn(async (method: string) => {
+          if (method === "thread/start") {
+            return await new Promise<never>(() => undefined);
+          }
+          return {};
+        }),
+        addNotificationHandler: vi.fn(() => () => undefined),
+        addRequestHandler: vi.fn(() => () => undefined),
+      };
+      failedClient = c;
+      return c as never;
+    });
+    const params = createParams(
+      path.join(tempDir, "session.jsonl"),
+      path.join(tempDir, "workspace"),
+    );
+    params.spawnedBy = "agent:main:session-parent";
+    params.timeoutMs = 1;
+
+    await expect(runCodexAppServerAttempt(params, { startupTimeoutFloorMs: 1 })).rejects.toThrow(
+      "codex app-server startup timed out",
+    );
+    const calledWithFailedClient = clearSpy.mock.calls.some(([arg]) => arg === failedClient);
+    expect(calledWithFailedClient).toBe(true);
+    clearSpy.mockRestore();
+  });
+
+  it("retires the shared Codex client when a spawned helper hits a thread/start write failure", async () => {
+    const clearSpy = vi.spyOn(sharedClientModule, "clearSharedCodexAppServerClientIfCurrent");
+    clearSpy.mockClear();
+    let failedClient: unknown;
+    setCodexAppServerClientFactoryForTest(async () => {
+      const c = {
+        request: vi.fn(async (method: string) => {
+          if (method === "thread/start") {
+            throw new Error("write EPIPE");
+          }
+          return {};
+        }),
+        addNotificationHandler: vi.fn(() => () => undefined),
+        addRequestHandler: vi.fn(() => () => undefined),
+      };
+      failedClient = c;
+      return c as never;
+    });
+    const params = createParams(
+      path.join(tempDir, "session.jsonl"),
+      path.join(tempDir, "workspace"),
+    );
+    params.spawnedBy = "agent:main:session-parent";
+
+    await expect(runCodexAppServerAttempt(params)).rejects.toThrow("write EPIPE");
+    const calledWithFailedClient = clearSpy.mock.calls.some(([arg]) => arg === failedClient);
+    expect(calledWithFailedClient).toBe(true);
+    clearSpy.mockRestore();
+  });
+
+  it("retires the shared Codex client when a top-level run fails with a logical thread/start error", async () => {
+    const clearSpy = vi.spyOn(sharedClientModule, "clearSharedCodexAppServerClientIfCurrent");
+    clearSpy.mockClear();
+    let failedClient: unknown;
+    setCodexAppServerClientFactoryForTest(async () => {
+      const c = {
+        request: vi.fn(async (method: string) => {
+          if (method === "thread/start") {
+            throw new CodexAppServerRpcError(
+              { message: "401 authentication_error: Invalid bearer token" },
+              "thread/start",
+            );
+          }
+          return {};
+        }),
+        addNotificationHandler: vi.fn(() => () => undefined),
+        addRequestHandler: vi.fn(() => () => undefined),
+      };
+      failedClient = c;
+      return c as never;
+    });
+    const params = createParams(
+      path.join(tempDir, "session.jsonl"),
+      path.join(tempDir, "workspace"),
+    );
+
+    await expect(runCodexAppServerAttempt(params)).rejects.toThrow("Invalid bearer token");
+    const calledWithFailedClient = clearSpy.mock.calls.some(([arg]) => arg === failedClient);
+    expect(calledWithFailedClient).toBe(true);
+    clearSpy.mockRestore();
   });
 
   it("passes configured app-server policy, sandbox, service tier, and model on resume", async () => {

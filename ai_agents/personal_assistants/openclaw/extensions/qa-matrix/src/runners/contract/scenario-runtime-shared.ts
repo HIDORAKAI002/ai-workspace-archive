@@ -137,8 +137,10 @@ export function buildMatrixBlockStreamingPrompt(
   return [
     `${sutUserId} Block streaming QA check: complete this whole sequence in one turn.`,
     `Step 1: send an assistant text block containing only this exact marker: \`${firstText}\`.`,
-    "Step 2: do not stop after that marker. Use the read tool exactly once on `QA_KICKOFF_TASK.md`.",
+    "That first marker block must be emitted before any tool call.",
+    "Step 2: after the first marker block, use the read tool exactly once on `QA_KICKOFF_TASK.md`.",
     `Step 3: after that read completes, send a final assistant text block containing only this exact marker: \`${secondText}\`.`,
+    "Never put both markers in the same assistant text block.",
   ].join("\n");
 }
 

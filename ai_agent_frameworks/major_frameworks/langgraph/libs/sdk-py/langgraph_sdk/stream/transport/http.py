@@ -13,8 +13,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
-from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
-from dataclasses import dataclass
+from collections.abc import AsyncIterator, Mapping
 from typing import Any, cast
 
 import httpx
@@ -22,39 +21,12 @@ import orjson
 from langchain_protocol import Event
 
 from langgraph_sdk.sse import BytesLineDecoder, SSEDecoder
+from langgraph_sdk.stream.transport.base import (
+    EventStreamHandle,
+    build_event_stream_body,
+)
 
-
-def _build_event_stream_body(params: dict[str, Any]) -> dict[str, Any]:
-    body: dict[str, Any] = {"channels": params["channels"]}
-    if params.get("namespaces") is not None:
-        body["namespaces"] = params["namespaces"]
-    if params.get("depth") is not None:
-        body["depth"] = params["depth"]
-    since = params.get("since")
-    if isinstance(since, int):
-        body["since"] = since
-    return body
-
-
-@dataclass
-class EventStreamHandle:
-    """Handle for one filtered SSE stream.
-
-    Attributes:
-        events: async iterator of typed `Event`s. Exhausts when the
-            stream closes (server hangup or `close()`).
-        ready: resolves once HTTP response headers arrive; rejects on
-            connection failure before headers.
-        done: resolves with `None` on clean end or cancellation, or with
-            the exception on a mid-stream transport error.
-        close: invoke to cancel the underlying task and free the
-            connection.
-    """
-
-    events: AsyncIterator[Event]
-    ready: asyncio.Future[None]
-    done: asyncio.Future[BaseException | None]
-    close: Callable[[], Awaitable[None]]
+_build_event_stream_body = build_event_stream_body
 
 
 class ProtocolSseTransport:
@@ -148,7 +120,7 @@ class ProtocolSseTransport:
                 async with self._client.stream(
                     "POST",
                     self._stream_url,
-                    content=orjson.dumps(_build_event_stream_body(params)),
+                    content=orjson.dumps(build_event_stream_body(params)),
                     headers=sse_headers,
                 ) as response:
                     response.raise_for_status()
@@ -174,16 +146,15 @@ class ProtocolSseTransport:
                         part = sse_decoder.decode(b"")
                         if part is not None and isinstance(part.data, dict):
                             await queue.put(cast("Event", part.data))
-            except asyncio.CancelledError:
+            except asyncio.CancelledError as err:
                 if not done.done():
-                    done.set_result(None)
+                    done.set_result(err)
                 raise
             except BaseException as err:
                 if not ready.done():
                     ready.set_exception(err)
                 if not done.done():
                     done.set_result(err)
-                # Do not re-raise; the error is surfaced via `done`.
             finally:
                 if not done.done():
                     done.set_result(None)

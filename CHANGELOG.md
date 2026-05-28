@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-05-28 06:02 IST] Auto-Sync
+- **35 Repositories Updated:** Langfuse, Promptfoo, n8n, Appsmith, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langgraph, crewAIInc/crewAI, pydantic/pydantic-ai, mastra-ai/mastra, BerriAI/litellm, stanfordnlp/dspy, ggml-org/llama.cpp, deepspeedai/DeepSpeed, vllm-project/vllm, lobehub/lobe-chat, cline/cline, chroma-core/chroma, weaviate/weaviate, arize-ai/phoenix, openai/openai-cookbook, firecrawl/firecrawl, googleapis/python-genai, vercel/ai, apache/airflow, dagster-io/dagster, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow, nousresearch/hermes-agent
+
 ## [2026-05-27 23:12 IST] Auto-Sync
 - **46 Repositories Updated:** Public APIs Directory, Kubernetes MCP Server, GitHub MCP Server, Langfuse, Promptfoo, n8n, Dify, Langflow, Activepieces, Trigger.dev, Windmill, Appsmith, ToolJet, Budibase, Plane, Claude Skills, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langgraph, mastra-ai/mastra, chatdev, stanfordnlp/dspy, ggml-org/llama.cpp, deepspeedai/DeepSpeed, vllm-project/vllm, lobehub/lobe-chat, milvus-io/milvus, weaviate/weaviate, infiniflow/ragflow, arize-ai/phoenix, openlit/openlit, openai/openai-cookbook, firecrawl/firecrawl, openai/openai-node, vercel/ai, apache/airflow, dagster-io/dagster, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight, nousresearch/hermes-agent
 

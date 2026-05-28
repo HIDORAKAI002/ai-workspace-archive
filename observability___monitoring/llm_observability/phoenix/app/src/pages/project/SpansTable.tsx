@@ -61,7 +61,6 @@ import { SpanStatusCodeIcon } from "@phoenix/components/trace/SpanStatusCodeIcon
 import { SpanTokenCosts } from "@phoenix/components/trace/SpanTokenCosts";
 import { SpanTokenCount } from "@phoenix/components/trace/SpanTokenCount";
 import { SELECTED_SPAN_NODE_ID_PARAM } from "@phoenix/constants/searchParams";
-import { useFeatureFlag } from "@phoenix/contexts/FeatureFlagsContext";
 import { useProjectContext } from "@phoenix/contexts/ProjectContext";
 import { useStreamState } from "@phoenix/contexts/StreamStateContext";
 import { useTracingContext } from "@phoenix/contexts/TracingContext";
@@ -212,7 +211,6 @@ export function SpansTable(props: SpansTableProps) {
   const [filterCondition, setFilterCondition] = useState<string>("");
   const { rootSpansOnly, setRootSpansOnly } = useSpanFilters();
   const projectId = useTracingContext((state) => state.projectId);
-  const isTracingUxEnabled = useFeatureFlag("tracing_ux");
 
   // Advertise the current rootSpansOnly state so the agent's context message
   // reflects whether the toggle is mounted on this tab.
@@ -254,7 +252,10 @@ export function SpansTable(props: SpansTableProps) {
           after: { type: "String", defaultValue: null }
           first: { type: "Int", defaultValue: 30 }
           rootSpansOnly: { type: "Boolean", defaultValue: true }
-          sort: { type: "SpanSort", defaultValue: { col: startTime, dir: desc } }
+          sort: {
+            type: "SpanSort"
+            defaultValue: { col: startTime, dir: desc }
+          }
           filterCondition: { type: "String", defaultValue: null }
         ) {
           name
@@ -870,20 +871,20 @@ export function SpansTable(props: SpansTableProps) {
     <Group orientation="horizontal" id="spans-table-layout">
       <Panel>
         <div css={spansTableCSS}>
-          {isTracingUxEnabled ? (
-            <View
-              paddingStart="size-200"
-              paddingEnd="size-200"
-              paddingTop="size-200"
-              paddingBottom="size-50"
-              flex="none"
-              overflow="visible"
-            >
-              <Suspense fallback={<ProjectTraceCountSparklineSkeleton />}>
-                <ProjectTraceCountSparkline />
-              </Suspense>
-            </View>
-          ) : null}
+          <View
+            paddingStart="size-200"
+            paddingEnd="size-200"
+            paddingTop="size-200"
+            paddingBottom="size-50"
+            flex="none"
+            overflow="visible"
+            position="relative"
+            zIndex={2}
+          >
+            <Suspense fallback={<ProjectTraceCountSparklineSkeleton />}>
+              <ProjectTraceCountSparkline />
+            </Suspense>
+          </View>
           <View
             paddingTop="size-100"
             paddingBottom="size-100"

@@ -2710,10 +2710,11 @@ class TestEventLogStorage:
         assert all([isinstance(event, dg.EventLogEntry) for event in event_list])
 
     # https://github.com/dagster-io/dagster/issues/5127
-    @pytest.mark.skip
     def test_watch_unwatch(self, storage):
         if not self.can_watch():
             pytest.skip("storage cannot watch runs")
+        if not isinstance(storage, SqlEventLogStorage):
+            pytest.skip("test only applies to SqlEventLogStorage polling watchers")
 
         # test for dead lock bug
 

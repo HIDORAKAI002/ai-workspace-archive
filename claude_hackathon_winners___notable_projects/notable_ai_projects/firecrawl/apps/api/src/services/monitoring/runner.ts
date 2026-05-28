@@ -62,9 +62,6 @@ const logger = _logger.child({ module: "monitoring-runner" });
 const poll = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 export { isMonitorCheckStale, MONITOR_CHECK_STALE_TIMEOUT_MS };
 
-const MONITOR_DEFAULT_WAIT_FOR_MS = 5000;
-const MONITOR_MAX_WAIT_FOR_MS = 60000;
-const MONITOR_MAX_TIMEOUT_MS = MONITOR_MAX_WAIT_FOR_MS * 2;
 const MONITOR_NOTIFY_CLAIM_TTL_SECONDS = 7 * 24 * 60 * 60;
 const TERMINAL_CHECK_STATUSES = new Set([
   "completed",
@@ -139,18 +136,9 @@ function withMonitorScrapeDefaults(
   const formats = Array.isArray(options.formats)
     ? normalizeMonitorFormats(options.formats)
     : options.formats;
-  const waitFor =
-    typeof options.waitFor === "number"
-      ? options.waitFor
-      : MONITOR_DEFAULT_WAIT_FOR_MS;
-  const timeout =
-    typeof options.timeout === "number"
-      ? Math.min(Math.max(options.timeout, waitFor * 2), MONITOR_MAX_TIMEOUT_MS)
-      : Math.min(waitFor * 2, MONITOR_MAX_TIMEOUT_MS);
-
   return {
     maxAge: 0,
-    ...withMarkdownFormat({ ...options, formats, waitFor, timeout }),
+    ...withMarkdownFormat({ ...options, formats }),
   };
 }
 
@@ -940,14 +928,19 @@ export async function processMonitorCheckJob(
       error: error instanceof Error ? error.message : String(error),
     });
 
-    if ((await claimMonitorNotification(check.id).catch(error => {
-      logger.warn("Failed to claim monitor notification; continuing without dedupe", {
-        error,
-        monitorId: monitor.id,
-        checkId: check.id,
-      });
-      return true;
-    }))) {
+    if (
+      await claimMonitorNotification(check.id).catch(error => {
+        logger.warn(
+          "Failed to claim monitor notification; continuing without dedupe",
+          {
+            error,
+            monitorId: monitor.id,
+            checkId: check.id,
+          },
+        );
+        return true;
+      })
+    ) {
       const notificationStatus = await sendNotifications({
         monitor,
         check,

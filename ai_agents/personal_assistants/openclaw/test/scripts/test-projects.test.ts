@@ -375,7 +375,7 @@ describe("scripts/test-projects changed-target routing", () => {
       findUnmatchedExplicitTestTargets(
         [
           "test/vitest/vitest.agents-core.config.ts",
-          "test/vitest/vitest.agents-pi-embedded.config.ts",
+          "test/vitest/vitest.agents-embedded-agent.config.ts",
           "test/vitest/vitest.agents-support.config.ts",
           "test/vitest/vitest.agents-tools.config.ts",
         ],
@@ -1051,7 +1051,7 @@ describe("scripts/test-projects changed-target routing", () => {
 
   it.each([
     "test/vitest/vitest.agents-core.config.ts",
-    "test/vitest/vitest.agents-pi-embedded.config.ts",
+    "test/vitest/vitest.agents-embedded-agent.config.ts",
     "test/vitest/vitest.agents-support.config.ts",
     "test/vitest/vitest.agents-tools.config.ts",
   ])("routes split agents vitest config %s to itself", (target) => {
@@ -1471,7 +1471,7 @@ describe("scripts/test-projects full-suite sharding", () => {
       "test/vitest/vitest.commands-light.config.ts",
       "test/vitest/vitest.commands.config.ts",
       "test/vitest/vitest.agents-core.config.ts",
-      "test/vitest/vitest.agents-pi-embedded.config.ts",
+      "test/vitest/vitest.agents-embedded-agent.config.ts",
       "test/vitest/vitest.agents-support.config.ts",
       "test/vitest/vitest.agents-tools.config.ts",
       "test/vitest/vitest.daemon.config.ts",
