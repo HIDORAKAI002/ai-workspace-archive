@@ -1666,6 +1666,7 @@ def create_cross_encoder_from_env() -> CrossEncoderModel:
             api_key=api_key,
             model=config.reranker_cohere_model,
             base_url=config.reranker_cohere_base_url,
+            timeout=config.reranker_cohere_timeout,
         )
     elif provider == "openrouter":
         api_key = config.reranker_openrouter_api_key
@@ -1678,6 +1679,7 @@ def create_cross_encoder_from_env() -> CrossEncoderModel:
             api_key=api_key,
             model=config.reranker_openrouter_model,
             base_url="https://openrouter.ai/api/v1/rerank",
+            timeout=config.reranker_openrouter_timeout,
         )
     elif provider == "flashrank":
         model = os.environ.get(ENV_RERANKER_FLASHRANK_MODEL, DEFAULT_RERANKER_FLASHRANK_MODEL)
@@ -1692,6 +1694,7 @@ def create_cross_encoder_from_env() -> CrossEncoderModel:
             api_key=config.reranker_litellm_api_key,
             model=config.reranker_litellm_model,
             max_tokens_per_doc=config.reranker_litellm_max_tokens_per_doc,
+            timeout=config.reranker_litellm_timeout,
         )
     elif provider == "litellm-sdk":
         api_key = config.reranker_litellm_sdk_api_key
@@ -1704,6 +1707,7 @@ def create_cross_encoder_from_env() -> CrossEncoderModel:
             model=config.reranker_litellm_sdk_model,
             api_base=config.reranker_litellm_sdk_api_base,
             max_tokens_per_doc=config.reranker_litellm_max_tokens_per_doc,
+            timeout=config.reranker_litellm_sdk_timeout,
         )
     elif provider == "zeroentropy":
         api_key = config.reranker_zeroentropy_api_key
@@ -1715,6 +1719,7 @@ def create_cross_encoder_from_env() -> CrossEncoderModel:
             api_key=api_key,
             model=config.reranker_zeroentropy_model,
             base_url=config.reranker_zeroentropy_base_url,
+            timeout=config.reranker_zeroentropy_timeout,
         )
     elif provider == "siliconflow":
         api_key = config.reranker_siliconflow_api_key
@@ -1726,6 +1731,7 @@ def create_cross_encoder_from_env() -> CrossEncoderModel:
             api_key=api_key,
             model=config.reranker_siliconflow_model,
             base_url=config.reranker_siliconflow_base_url,
+            timeout=config.reranker_siliconflow_timeout,
         )
     elif provider == "google":
         project_id = config.reranker_google_project_id
@@ -1738,6 +1744,7 @@ def create_cross_encoder_from_env() -> CrossEncoderModel:
             project_id=project_id,
             model=config.reranker_google_model,
             service_account_key=config.reranker_google_service_account_key,
+            timeout=config.reranker_google_timeout,
         )
     elif provider == "alibaba":
         api_key = config.reranker_alibaba_api_key
@@ -1746,6 +1753,7 @@ def create_cross_encoder_from_env() -> CrossEncoderModel:
         return AlibabaCloudCrossEncoder(
             api_key=api_key,
             model=config.reranker_alibaba_model,
+            timeout=config.reranker_alibaba_timeout,
         )
     elif provider == "rrf":
         return RRFPassthroughCrossEncoder()

@@ -1303,5 +1303,137 @@
     "signingIn": "Entrando...",
     "invalidKey": "Chave de acesso inválida",
     "connectFailed": "Falha ao conectar ao servidor"
+  },
+  "api": {
+    "errors": {
+      "auth": {
+        "accessKeyNotConfigured": "A chave de acesso não está configurada",
+        "invalidRequestBody": "O corpo da solicitação é inválido",
+        "invalidAccessKey": "A chave de acesso é inválida",
+        "unauthorized": "Não autorizado"
+      },
+      "validation": {
+        "bankIdRequired": "bank_id é obrigatório",
+        "bankAndDirectiveIdRequired": "bank_id e directive_id são obrigatórios",
+        "bankAndMentalModelIdRequired": "bank_id e mental_model_id são obrigatórios",
+        "bankAndModelIdRequired": "bank_id e model_id são obrigatórios",
+        "operationIdRequired": "operation_id é obrigatório",
+        "missingRequestData": "Dados da solicitação ausentes",
+        "missingBankId": "bank_id ausente"
+      },
+      "generic": {
+        "failed": "Falha",
+        "unsupportedIndividualMemoryDelete": "A exclusão de unidades de memória individuais ainda não é compatível. Use a opção para limpar todas as memórias."
+      },
+      "banks": {
+        "fetch": "Falha ao buscar bancos de memória",
+        "fetchFromApi": "Falha ao buscar bancos de memória na API",
+        "create": "Falha ao criar banco de memória",
+        "update": "Falha ao atualizar banco de memória",
+        "delete": "Falha ao excluir banco de memória",
+        "exportTemplate": "Falha ao exportar modelo do banco de memória",
+        "importTemplate": "Falha ao importar modelo do banco de memória"
+      },
+      "bankConfig": {
+        "fetch": "Falha ao buscar configuração do banco",
+        "update": "Falha ao atualizar configuração do banco",
+        "reset": "Falha ao redefinir configuração do banco"
+      },
+      "bankProfile": {
+        "fetch": "Falha ao buscar perfil do banco",
+        "update": "Falha ao atualizar perfil do banco"
+      },
+      "memories": {
+        "list": "Falha ao listar unidades de memória",
+        "fetch": "Falha ao buscar memória",
+        "notFound": "Memória não encontrada",
+        "retain": "Falha ao executar Retain em lote",
+        "retainAsync": "Falha ao executar Retain em lote assíncrono",
+        "history": "Falha ao buscar histórico de observações"
+      },
+      "documents": {
+        "fetchList": "Falha ao buscar documentos",
+        "fetch": "Falha ao buscar documento",
+        "updateTags": "Falha ao atualizar tags do documento",
+        "delete": "Falha ao excluir documento",
+        "chunks": "Falha ao buscar fragmentos do documento",
+        "reprocess": "Falha ao reprocessar documento"
+      },
+      "files": {
+        "upload": "Falha ao enviar arquivos"
+      },
+      "chunks": {
+        "fetch": "Falha ao buscar fragmento"
+      },
+      "entities": {
+        "list": "Falha ao listar entidades",
+        "fetch": "Falha ao buscar entidade",
+        "graph": "Falha ao buscar grafo de entidades",
+        "regenerateObservations": "Falha ao regenerar observações da entidade"
+      },
+      "graph": {
+        "fetch": "Falha ao buscar dados do grafo"
+      },
+      "mentalModels": {
+        "list": "Falha ao listar modelos mentais",
+        "fetch": "Falha ao buscar modelo mental",
+        "create": "Falha ao criar modelo mental",
+        "update": "Falha ao atualizar modelo mental",
+        "delete": "Falha ao excluir modelo mental",
+        "refresh": "Falha ao atualizar modelo mental",
+        "history": "Falha ao buscar histórico do modelo mental",
+        "notFound": "Modelo mental não encontrado",
+        "clear": "Falha ao limpar modelo mental"
+      },
+      "observations": {
+        "list": "Falha ao listar observações",
+        "clear": "Falha ao limpar observações",
+        "fetch": "Falha ao buscar observação"
+      },
+      "directives": {
+        "list": "Falha ao listar diretivas",
+        "fetch": "Falha ao buscar diretiva",
+        "create": "Falha ao criar diretiva",
+        "update": "Falha ao atualizar diretiva",
+        "delete": "Falha ao excluir diretiva"
+      },
+      "operations": {
+        "fetch": "Falha ao buscar operações",
+        "cancel": "Falha ao cancelar operação",
+        "status": "Falha ao buscar status da operação",
+        "retry": "Falha ao tentar operação novamente"
+      },
+      "auditLogs": {
+        "list": "Falha ao listar registros de auditoria",
+        "stats": "Falha ao buscar estatísticas dos registros de auditoria"
+      },
+      "tags": {
+        "list": "Falha ao listar tags"
+      },
+      "consolidation": {
+        "trigger": "Falha ao iniciar consolidação",
+        "recover": "Falha ao recuperar consolidação"
+      },
+      "recall": {
+        "failed": "Falha ao executar Recall"
+      },
+      "reflect": {
+        "failed": "Falha ao executar Reflect"
+      },
+      "stats": {
+        "fetch": "Falha ao buscar estatísticas",
+        "memoriesTimeseries": "Falha ao buscar série temporal de memórias"
+      },
+      "version": {
+        "fetch": "Falha ao buscar versão"
+      },
+      "webhooks": {
+        "list": "Falha ao listar webhooks",
+        "create": "Falha ao criar webhook",
+        "update": "Falha ao atualizar webhook",
+        "delete": "Falha ao excluir webhook",
+        "deliveries": "Falha ao buscar entregas do webhook"
+      }
+    }
   }
 }

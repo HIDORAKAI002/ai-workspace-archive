@@ -469,12 +469,22 @@ class DataAccessOps(ABC):
         worker_id: str,
         reserved_limits: dict[str, int],
         shared_limit: int,
+        *,
+        consolidation_bank_priority: dict[str, int] | None = None,
     ) -> list[ResultRow]:
         """Claim pending tasks from the async_operations table.
 
         PG implementation can use NOT EXISTS + FOR UPDATE SKIP LOCKED in one query.
         Oracle implementation uses two-step claims (query busy banks first, then
         claim excluding them) to avoid ORA-02014.
+
+        Args:
+            consolidation_bank_priority: Per-bank priority for consolidation scheduling.
+                Maps bank name patterns to integer priorities (higher = claimed first).
+                Patterns support ``*`` as wildcard (converted to SQL ``%`` for LIKE).
+                A bare ``*`` key is the catch-all default for unlisted banks.
+                When set, consolidation tasks are claimed in priority tiers.
+                None preserves current behavior (pure created_at ordering).
 
         Returns claimed rows with operation_id, operation_type, task_payload, retry_count.
         The caller is responsible for building ClaimedTask objects.
