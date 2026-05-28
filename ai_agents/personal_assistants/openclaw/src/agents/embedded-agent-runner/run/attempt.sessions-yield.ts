@@ -3,7 +3,15 @@ import { log } from "../logger.js";
 
 const SESSIONS_YIELD_INTERRUPT_CUSTOM_TYPE = "openclaw.sessions_yield_interrupt";
 const SESSIONS_YIELD_CONTEXT_CUSTOM_TYPE = "openclaw.sessions_yield";
-const SESSIONS_YIELD_ABORT_SETTLE_TIMEOUT_MS = process.env.OPENCLAW_TEST_FAST === "1" ? 250 : 2_000;
+function resolveSessionsYieldAbortSettleTimeoutMs(): number {
+  const override = Number(process.env.OPENCLAW_EMBEDDED_ABORT_SETTLE_TIMEOUT_MS);
+  if (Number.isFinite(override) && override > 0) {
+    return override;
+  }
+  return process.env.OPENCLAW_TEST_FAST === "1" ? 250 : 2_000;
+}
+
+const SESSIONS_YIELD_ABORT_SETTLE_TIMEOUT_MS = resolveSessionsYieldAbortSettleTimeoutMs();
 
 // Persist a hidden context reminder so the next turn knows why the runner stopped.
 function buildSessionsYieldContextMessage(message: string): string {

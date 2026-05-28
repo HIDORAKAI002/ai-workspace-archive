@@ -581,14 +581,14 @@ async function startGateway(runner, port, env, logPath) {
 }
 
 export async function stopGateway(child, options = {}) {
-  if (!child || child.exitCode !== null || child.signalCode !== null) {
+  if (!child || hasChildExited(child)) {
     return;
   }
   const teardownGraceMs = Math.max(0, options.teardownGraceMs ?? GATEWAY_TEARDOWN_GRACE_MS);
   const killGraceMs = Math.max(0, options.killGraceMs ?? GATEWAY_TEARDOWN_KILL_GRACE_MS);
   const exited = new Promise((resolve) => child.once("exit", resolve));
   const waitForExit = async (ms) =>
-    child.exitCode !== null || child.signalCode !== null
+    hasChildExited(child)
       ? true
       : await Promise.race([exited.then(() => true), delay(ms).then(() => false)]);
 
@@ -601,6 +601,10 @@ export async function stopGateway(child, options = {}) {
     return;
   }
   releaseUnsettledGatewayChild(child);
+}
+
+export function hasChildExited(child) {
+  return child.exitCode !== null || child.signalCode !== null;
 }
 
 function releaseUnsettledGatewayChild(child) {
@@ -671,16 +675,20 @@ export function createGatewayReadyLogScanner(logPath, marker = "[gateway] ready"
   };
 }
 
-async function waitForGatewayReady(child, port, logPath) {
+export async function waitForGatewayReady(child, port, logPath, options = {}) {
   const started = Date.now();
   let lastError = "";
+  const timeoutMs = Math.max(1, options.timeoutMs ?? READY_TIMEOUT_MS);
+  const pollDelayMs = Math.max(1, options.pollDelayMs ?? 250);
   const logReportedReady = createGatewayReadyLogScanner(logPath);
-  while (Date.now() - started < READY_TIMEOUT_MS) {
-    if (child.exitCode !== null) {
+  while (Date.now() - started < timeoutMs) {
+    if (hasChildExited(child)) {
       throw new Error(`gateway exited before ready\n${tailFile(logPath)}`);
     }
     try {
-      const readyz = await fetchJson(`http://127.0.0.1:${port}/readyz`);
+      const readyz = await fetchJson(`http://127.0.0.1:${port}/readyz`, {
+        fetchImpl: options.fetchImpl,
+      });
       if (readyz.ok) {
         return;
       }
@@ -691,7 +699,7 @@ async function waitForGatewayReady(child, port, logPath) {
     if (logReportedReady()) {
       lastError = `${lastError}; gateway log reported ready before HTTP readiness`;
     }
-    await delay(250);
+    await delay(pollDelayMs);
   }
   throw new Error(`gateway did not become ready: ${lastError}\n${tailFile(logPath)}`);
 }
