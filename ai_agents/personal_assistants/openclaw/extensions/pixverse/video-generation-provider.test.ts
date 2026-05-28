@@ -148,6 +148,40 @@ describe("pixverse video generation provider", () => {
     });
   });
 
+  it("drops malformed seed values before creating videos", async () => {
+    postJsonRequestMock.mockResolvedValue({
+      response: {
+        json: async () => ({
+          ErrCode: 0,
+          ErrMsg: "success",
+          Resp: { video_id: 123 },
+        }),
+      },
+      release: vi.fn(async () => {}),
+    });
+    fetchWithTimeoutMock.mockResolvedValueOnce({
+      json: async () => ({
+        ErrCode: 0,
+        ErrMsg: "success",
+        Resp: { id: 123, status: 1, url: "https://media.pixverse.ai/out.mp4" },
+      }),
+      headers: new Headers(),
+    });
+
+    const provider = buildPixVerseVideoGenerationProvider();
+    await provider.generateVideo({
+      provider: "pixverse",
+      model: "pixverse/v6",
+      prompt: "a quiet city street at sunrise",
+      cfg: {},
+      providerOptions: {
+        seed: 1.5,
+      },
+    });
+
+    expect(firstPostJsonRequest().body).not.toHaveProperty("seed");
+  });
+
   it("uploads local image input before submitting image-to-video", async () => {
     postMultipartRequestMock.mockResolvedValue({
       response: {

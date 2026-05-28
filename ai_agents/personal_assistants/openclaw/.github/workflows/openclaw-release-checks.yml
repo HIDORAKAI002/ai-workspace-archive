@@ -1156,6 +1156,9 @@ jobs:
     continue-on-error: true
     runs-on: ubuntu-24.04
     timeout-minutes: 60
+    concurrency:
+      group: openclaw-telegram-ci-credential
+      cancel-in-progress: false
     permissions:
       contents: read
       pull-requests: read

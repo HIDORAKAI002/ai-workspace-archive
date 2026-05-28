@@ -261,6 +261,9 @@ jobs:
     if: ${{ needs.resolve_request.outputs.should_run == 'true' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 180
+    concurrency:
+      group: openclaw-telegram-ci-credential
+      cancel-in-progress: false
     environment: qa-live-shared
     outputs:
       comparison_status: ${{ steps.run_mantis.outputs.comparison_status }}

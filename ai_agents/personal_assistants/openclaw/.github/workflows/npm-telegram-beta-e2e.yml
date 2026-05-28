@@ -111,6 +111,9 @@ jobs:
     runs-on: blacksmith-32vcpu-ubuntu-2404
     continue-on-error: ${{ inputs.advisory }}
     timeout-minutes: 60
+    concurrency:
+      group: openclaw-telegram-ci-credential
+      cancel-in-progress: false
     environment: qa-live-shared
     permissions:
       actions: read
