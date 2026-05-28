@@ -546,11 +546,13 @@ export async function processDiscordMessage(
     observer?.onFinalReplyStart?.();
   };
   let userFacingFinalDelivered = false;
+  let userFacingFinalDeliveryFailed = false;
   let pendingToolWarningFinal:
     | { payload: ReplyPayload; info: { kind: ReplyDispatchKind } }
     | undefined;
   const markUserFacingFinalDelivered = () => {
     userFacingFinalDelivered = true;
+    userFacingFinalDeliveryFailed = false;
     pendingToolWarningFinal = undefined;
     draftPreview.markFinalReplyDelivered();
     observer?.onFinalReplyDelivered?.();
@@ -630,7 +632,10 @@ export async function processDiscordMessage(
       !options?.allowFallbackOnlyToolWarning &&
       isFallbackOnlyToolWarningFinal(payload)
     ) {
-      if (!userFacingFinalDelivered) {
+      if (
+        !userFacingFinalDelivered &&
+        (!finalReplyStartNotified || userFacingFinalDeliveryFailed)
+      ) {
         pendingToolWarningFinal = { payload, info };
       }
       return { visibleReplySent: false };
@@ -839,6 +844,9 @@ export async function processDiscordMessage(
     return { visibleReplySent: true };
   };
   const onDiscordDeliveryError = (err: unknown, info: { kind: string }) => {
+    if (info.kind === "final" && finalReplyStartNotified && !userFacingFinalDelivered) {
+      userFacingFinalDeliveryFailed = true;
+    }
     runtime.error(
       danger(
         formatDiscordReplyDeliveryFailure({
@@ -865,17 +873,18 @@ export async function processDiscordMessage(
   let dispatchAborted = false;
   const deliverPendingToolWarningFinalIfNeeded = async () => {
     if (!pendingToolWarningFinal || userFacingFinalDelivered || isProcessAborted(abortSignal)) {
-      return;
+      return undefined;
     }
     const pending = pendingToolWarningFinal;
     pendingToolWarningFinal = undefined;
     try {
-      await deliverDiscordPayload(pending.payload, pending.info, {
+      return await deliverDiscordPayload(pending.payload, pending.info, {
         allowFallbackOnlyToolWarning: true,
       });
     } catch (err) {
       dispatchError = true;
       onDiscordDeliveryError(err, pending.info);
+      return { visibleReplySent: false };
     }
   };
   try {
@@ -898,6 +907,7 @@ export async function processDiscordMessage(
         humanDelay: resolveHumanDelayConfig(cfg, route.agentId),
         beforeDeliver: beforeDiscordPayloadDelivery,
         onReplyStart: onDiscordReplyStart,
+        onFreshSettledDelivery: deliverPendingToolWarningFinalIfNeeded,
       },
       delivery: {
         deliver: deliverDiscordPayload,
@@ -1067,7 +1077,6 @@ export async function processDiscordMessage(
       dispatchAborted = true;
       return;
     }
-    await deliverPendingToolWarningFinalIfNeeded();
   } catch (err) {
     if (isProcessAborted(abortSignal)) {
       dispatchAborted = true;

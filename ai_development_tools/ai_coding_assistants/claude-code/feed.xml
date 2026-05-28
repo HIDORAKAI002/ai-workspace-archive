@@ -6,7 +6,49 @@
   <author><name>Anthropic</name></author>
   <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md"/>
   <link rel="self" type="application/atom+xml" href="https://raw.githubusercontent.com/anthropics/claude-code/main/feed.xml"/>
-  <updated>2026-05-27T01:30:52Z</updated>
+  <updated>2026-05-28T00:52:02Z</updated>
+  <entry>
+    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.153</id>
+    <title>Claude Code v2.1.153</title>
+    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.153"/>
+    <updated>2026-05-28T00:52:02Z</updated>
+    <content type="html">&lt;p&gt;• Added skipLfs option to github/git plugin marketplace sources to skip Git LFS downloads during clone and update&lt;/p&gt;
+&lt;p&gt;• Claude Code now shows a one-time notice when your npm global install can't auto-update; /doctor lists the fixes&lt;/p&gt;
+&lt;p&gt;• Status line commands now receive COLUMNS and LINES environment variables so scripts can size output to the terminal width&lt;/p&gt;
+&lt;p&gt;• claude agents: autocomplete in the dispatch input now suggests native slash commands and bundled skills, not just project skills&lt;/p&gt;
+&lt;p&gt;• claude agents: PR column now shows PR #N for a single PR or N PRs for multiple&lt;/p&gt;
+&lt;p&gt;• claude doctor now shows the result of your last update attempt&lt;/p&gt;
+&lt;p&gt;• Combined the separate "needs authentication" startup notifications for MCP servers and connectors into a single message&lt;/p&gt;
+&lt;p&gt;• macOS: background agents now appear as "Claude Code" in Privacy &amp;amp; Security and keep their permission grants across upgrades&lt;/p&gt;
+&lt;p&gt;• Fixed stateful MCP servers without the optional GET SSE stream reconnect-looping on tools/list (regression in v2.1.147)&lt;/p&gt;
+&lt;p&gt;• Fixed a regression where a custom API gateway could receive the user's Anthropic OAuth credential instead of the gateway's own token&lt;/p&gt;
+&lt;p&gt;• Fixed subagent (Agent tool) frontmatter MCP servers ignoring --strict-mcp-config, --bare, remote mode, enterprise managed MCP config, and managed-settings MCP server allow/deny policies&lt;/p&gt;
+&lt;p&gt;• --strict-mcp-config no longer strips inline mcpServers from explicitly-passed agent definitions (--agents / SDK agents), and blocked subagent MCP servers now surface a visible warning&lt;/p&gt;
+&lt;p&gt;• Fixed the Windows PowerShell installer reporting "Installation complete!" when installation actually failed&lt;/p&gt;
+&lt;p&gt;• Fixed claude update installing the latest version instead of the configured release channel's version for npm installations&lt;/p&gt;
+&lt;p&gt;• Fixed excessive memory usage (multiple GB) when resuming a session by transcript file path on machines with many stored sessions&lt;/p&gt;
+&lt;p&gt;• Fixed claude agents and claude --bg running on a stale daemon started before binary-takeover support, even after upgrading&lt;/p&gt;
+&lt;p&gt;• Fixed a hang where the CLI could fail to exit when stdin was closed without EOF in stream-json mode, leaving a stale session marker behind&lt;/p&gt;
+&lt;p&gt;• Fixed malformed file:// links in Claude's responses not being clickable in the terminal&lt;/p&gt;
+&lt;p&gt;• Fixed claude --help rendering unwrapped output on terminals narrower than 92 columns&lt;/p&gt;
+&lt;p&gt;• Fixed MCP tool progress notifications not rendering in the collapsed tool view&lt;/p&gt;
+&lt;p&gt;• Fixed Agent tool with subagent_type: 'claude' running in an undocumented temporary worktree, which could silently discard outputs written to gitignored paths&lt;/p&gt;
+&lt;p&gt;• /bg while Claude is responding now continues the response in the background session instead of dropping it&lt;/p&gt;
+&lt;p&gt;• Fixed /btw keyboard shortcuts becoming unresponsive in background sessions while a task is running&lt;/p&gt;
+&lt;p&gt;• Fixed background sessions writing temp files to $CLAUDE_JOB_DIR triggering a "sensitive file" permission prompt&lt;/p&gt;
+&lt;p&gt;• Fixed recovering a background agent whose working directory was deleted showing a truncated stack trace instead of a clear error message&lt;/p&gt;
+&lt;p&gt;• Fixed EnterWorktree not being available immediately in background sessions (previously required ToolSearch first)&lt;/p&gt;
+&lt;p&gt;• Fixed cmd+k in iTerm2/Terminal.app not repainting attached background sessions&lt;/p&gt;
+&lt;p&gt;• Fixed the IME candidate window appearing at the bottom of the screen instead of next to the input caret in attached background sessions on Windows&lt;/p&gt;
+&lt;p&gt;• Fixed background-color bleed when attaching to a background agent from 256-color-only terminals after the agent had rendered file diffs&lt;/p&gt;
+&lt;p&gt;• Fixed /copy and copy-on-select silently failing to update the system clipboard when attached to a background session inside tmux&lt;/p&gt;
+&lt;p&gt;• Fixed opening claude agents with Remote Control enabled leaving zombie session entries on the Code tab after exiting&lt;/p&gt;
+&lt;p&gt;• Fixed /rename in background sessions not updating the session banner immediately&lt;/p&gt;
+&lt;p&gt;• Fixed Windows update rollback: if a Windows update fails, Claude Code now restores the original executable by copy and tells you how to recover&lt;/p&gt;
+&lt;p&gt;• [VSCode] Fixed Claude Code processes not shutting down cleanly when VS Code closed on Windows, causing false "unclean exit" reports and orphaned MCP servers&lt;/p&gt;
+&lt;p&gt;• /model now saves your selection as the default for new sessions (matching the IDE). Press s in the picker to switch models for the current session only.&lt;/p&gt;
+&lt;p&gt;• If you customized the modelPicker:setAsDefault keybinding, rename it to modelPicker:thisSessionOnly in keybindings.json (the d action was replaced by s)&lt;/p&gt;</content>
+  </entry>
   <entry>
     <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.152</id>
     <title>Claude Code v2.1.152</title>
@@ -593,48 +635,5 @@
 &lt;p&gt;• Fixed deniedMcpServers patterns with a *:// scheme wildcard not matching mixed-case hostnames&lt;/p&gt;
 &lt;p&gt;• Fixed harmless WebSocket warning being logged as an error in --debug during voice mode&lt;/p&gt;
 &lt;p&gt;• [VSCode] Fixed /clear not clearing the conversation context and displayed transcript&lt;/p&gt;</content>
-  </entry>
-  <entry>
-    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.128</id>
-    <title>Claude Code v2.1.128</title>
-    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.128"/>
-    <updated>2026-05-18T01:52:01Z</updated>
-    <content type="html">&lt;p&gt;• Bare /color (no args) now picks a random session color&lt;/p&gt;
-&lt;p&gt;• /mcp now shows the tool count for connected servers and flags servers that connected with 0 tools&lt;/p&gt;
-&lt;p&gt;• --plugin-dir now accepts .zip plugin archives in addition to directories&lt;/p&gt;
-&lt;p&gt;• --channels now works with console (API key) authentication — console orgs with managed settings must set channelsEnabled: true to enable&lt;/p&gt;
-&lt;p&gt;• Updated /model picker: collapsed duplicate Opus 4.7 entries, and current Opus now shows as "Opus" instead of "Opus 4.7"&lt;/p&gt;
-&lt;p&gt;• Subprocesses (Bash, hooks, MCP, LSP) no longer inherit OTEL_* environment variables, so OTEL-instrumented apps run via the Bash tool no longer pick up the CLI's own OTLP endpoint&lt;/p&gt;
-&lt;p&gt;• MCP: workspace is now a reserved server name — existing servers with that name will be skipped with a warning&lt;/p&gt;
-&lt;p&gt;• Reconnecting MCP servers no longer flood the conversation with full tool-name lists on every reconnect — re-announced tools are summarized by server prefix&lt;/p&gt;
-&lt;p&gt;• SDK hosts now receive a persistent localSettings suggestion for Bash permission prompts, so "Always allow" writes to .claude/settings.local.json&lt;/p&gt;
-&lt;p&gt;• EnterWorktree now creates the new branch from local HEAD as documented, instead of origin/&amp;lt;default-branch&amp;gt; — unpushed commits are no longer dropped&lt;/p&gt;
-&lt;p&gt;• Auto mode: when the classifier can't evaluate an action, the error now includes a hint (retry, /compact, or run with --debug)&lt;/p&gt;
-&lt;p&gt;• Fixed focus mode briefly dimming the previous response when submitting a new prompt&lt;/p&gt;
-&lt;p&gt;• Fixed stray "4;0;" desktop notification on every /exit in Kitty and other terminals that interpret OSC 9 as a notification&lt;/p&gt;
-&lt;p&gt;• Fixed Remote Control showing an empty "Opening your options…" message on rate limit instead of actionable upsell options&lt;/p&gt;
-&lt;p&gt;• Fixed drag-and-drop image upload hanging on "Pasting text…" when the image read fails&lt;/p&gt;
-&lt;p&gt;• Fixed crash loop when piping very large input (&amp;gt;10 MB) to claude -p via stdin&lt;/p&gt;
-&lt;p&gt;• Fixed long URLs not being individually clickable on every wrapped row in fullscreen mode&lt;/p&gt;
-&lt;p&gt;• Fixed /plugin Components panel showing "Marketplace 'inline' not found" for plugins loaded via --plugin-dir&lt;/p&gt;
-&lt;p&gt;• Fixed MCP tool results dropping images when the server returns both structured content and content blocks&lt;/p&gt;
-&lt;p&gt;• Fixed fenced code blocks inside list items carrying leading whitespace into the clipboard on copy-paste&lt;/p&gt;
-&lt;p&gt;• Fixed tab navigation in /config stranding focus — the tab header now stays focused so arrows and Esc keep working&lt;/p&gt;
-&lt;p&gt;• Fixed markdown link labels being lost on terminals without OSC 8 hyperlink support — links now render as label (url) instead of just the URL&lt;/p&gt;
-&lt;p&gt;• Fixed sessions on 1M-context models with a smaller autocompact window being falsely blocked with "Prompt is too long" before reaching the actual API limit&lt;/p&gt;
-&lt;p&gt;• Fixed parallel shell tool calls: a failing read-only command (grep, git diff, ls) no longer cancels sibling calls&lt;/p&gt;
-&lt;p&gt;• Fixed banner showing "with X effort" on models that don't support effort&lt;/p&gt;
-&lt;p&gt;• Fixed /fast on 3P providers fuzzy-matching to an unrelated skill instead of showing "not available"&lt;/p&gt;
-&lt;p&gt;• Fixed Bedrock default model resolving to global.* instead of the region-appropriate prefix&lt;/p&gt;
-&lt;p&gt;• Fixed vim mode: Space in NORMAL mode now moves the cursor right, matching standard vi/vim behavior&lt;/p&gt;
-&lt;p&gt;• Fixed terminal progress indicator (OSC 9;4) flickering off between tool calls — stays visible across the full turn&lt;/p&gt;
-&lt;p&gt;• Fixed /rename without args failing on resumed sessions whose last entry is a compact boundary&lt;/p&gt;
-&lt;p&gt;• Fixed stale "remote-control is active" status lines from prior sessions appearing after --resume/--continue&lt;/p&gt;
-&lt;p&gt;• Fixed stale installed_plugins.json entries pointing at deleted cache directories polluting PATH&lt;/p&gt;
-&lt;p&gt;• Fixed MCP stdio servers receiving corrupted arguments when CLAUDE_CODE_SHELL_PREFIX is set and an argument contains spaces or shell metacharacters&lt;/p&gt;
-&lt;p&gt;• Fixed sub-agent progress summaries missing the prompt cache (~3× cache_creation reduction)&lt;/p&gt;
-&lt;p&gt;• Fixed /plugin update never detecting new versions of npm-sourced plugins&lt;/p&gt;
-&lt;p&gt;• Fixed sub-agent summaries firing repeatedly while a sub-agent's transcript is static, capping worst-case token cost on idle sub-agents&lt;/p&gt;
-&lt;p&gt;• Headless --output-format stream-json: init.plugin_errors now includes --plugin-dir load failures in addition to dependency demotions&lt;/p&gt;</content>
   </entry>
 </feed>
