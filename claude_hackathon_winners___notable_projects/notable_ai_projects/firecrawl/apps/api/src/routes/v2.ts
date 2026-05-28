@@ -68,6 +68,7 @@ import {
   scrapeStopInteractiveBrowserController,
 } from "../controllers/v2/scrape-browser";
 import {
+  confirmMonitorEmailController,
   createMonitorController,
   deleteMonitorController,
   getMonitorCheckController,
@@ -75,6 +76,7 @@ import {
   listMonitorChecksController,
   listMonitorsController,
   runMonitorController,
+  unsubscribeMonitorEmailController,
   updateMonitorController,
 } from "../controllers/v2/monitor";
 
@@ -482,6 +484,14 @@ v2Router.get(
   "/monitor",
   authMiddleware(RateLimiterMode.CrawlStatus),
   wrap(listMonitorsController),
+);
+
+// Public, unauthenticated — token in body is the credential. Registered
+// before /monitor/:monitorId so "email" isn't parsed as a monitor UUID.
+v2Router.post("/monitor/email/confirm", wrap(confirmMonitorEmailController));
+v2Router.post(
+  "/monitor/email/unsubscribe",
+  wrap(unsubscribeMonitorEmailController),
 );
 
 v2Router.get(

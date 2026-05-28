@@ -874,6 +874,30 @@ class MonitorNotification(BaseModel):
     email: Optional[MonitorEmailNotification] = None
 
 
+class MonitorEmailRecipientSubscription(BaseModel):
+    """Per-recipient opt-in state for monitor email notifications.
+
+    External recipients (not members of the team that owns the monitor) must
+    confirm their subscription via a one-time email before they receive any
+    monitor notifications. Team members are auto-confirmed.
+
+    Statuses:
+      - ``pending``      - confirmation email sent, no notifications yet
+      - ``confirmed``    - notifications enabled
+      - ``unsubscribed`` - recipient opted out and cannot be re-added without
+                            a new confirmation flow
+    """
+
+    model_config = {"populate_by_name": True}
+
+    email: str
+    status: Literal["pending", "confirmed", "unsubscribed"]
+    source: Literal["team", "opt_in", "legacy"]
+    confirmation_email_sent: Optional[bool] = Field(
+        default=None, alias="confirmationEmailSent"
+    )
+
+
 class MonitorTarget(BaseModel):
     """A scrape or crawl target stored on a monitor."""
 
@@ -938,6 +962,12 @@ class Monitor(BaseModel):
     targets: List[Dict[str, Any]]
     webhook: Optional[Dict[str, Any]] = None
     notification: Optional[Dict[str, Any]] = None
+    # Present on create/update/get when the API has reconciled email
+    # recipients (i.e. notification.email.recipients is non-empty). Each
+    # entry reports a recipient's opt-in status.
+    email_recipient_subscriptions: Optional[List[MonitorEmailRecipientSubscription]] = (
+        Field(default=None, alias="emailRecipientSubscriptions")
+    )
     retention_days: int = Field(alias="retentionDays")
     estimated_credits_per_month: Optional[int] = Field(default=None, alias="estimatedCreditsPerMonth")
     last_check_summary: Optional[MonitorSummary] = Field(default=None, alias="lastCheckSummary")
