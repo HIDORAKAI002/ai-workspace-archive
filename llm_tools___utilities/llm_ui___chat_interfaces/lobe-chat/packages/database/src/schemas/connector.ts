@@ -1,0 +1,280 @@
+import {
+  boolean,
+  index,
+  jsonb,
+  pgTable,
+  text,
+  uniqueIndex,
+  uuid,
+  varchar,
+} from 'drizzle-orm/pg-core';
+
+import { timestamps, timestamptz } from './_helpers';
+import { users } from './user';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// user_connectors — types & consts
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface OIDCConfig {
+  scheme: 'pre_registration' | 'dcr' | 'client_id_metadata_document';
+
+  /**
+   * Client identifier.
+   * - pre_registration: filled in by the user
+   * - dcr: written back after dynamic registration succeeds
+   * - client_id_metadata_document: this value IS the metadata URL
+   */
+  clientId?: string;
+
+  /** OIDC discovery issuer URL — preferred over manual endpoint overrides */
+  issuer?: string;
+  authorizationEndpoint?: string;
+  tokenEndpoint?: string;
+
+  scopes?: string[];
+  redirectUri?: string;
+  /** Recommended for public clients */
+  usePKCE?: boolean;
+
+  /** DCR only (RFC 7591) — dynamic client registration endpoint */
+  registrationEndpoint?: string;
+}
+
+/**
+ * Decrypted shape of the `credentials` column.
+ * Encrypted at rest via KeyVaultsGateKeeper (same as messengerInstallations).
+ */
+export type ConnectorCredentials =
+  | {
+      type: 'oauth2';
+      accessToken: string;
+      refreshToken?: string;
+      clientSecret?: string;
+      /** DCR — token for managing the dynamic registration */
+      registrationAccessToken?: string;
+      expiresAt?: number;
+      scope?: string;
+      idToken?: string;
+    }
+  | { type: 'bearer'; token: string }
+  | { type: 'apikey'; apiKey: string }
+  | { type: 'header'; headers: Record<string, string> };
+
+export const ConnectorSourceType = {
+  builtin: 'builtin',
+  custom: 'custom',
+  marketplace: 'marketplace',
+} as const;
+
+export type ConnectorSourceType = (typeof ConnectorSourceType)[keyof typeof ConnectorSourceType];
+
+export const ConnectorStatus = {
+  connected: 'connected',
+  disconnected: 'disconnected',
+  error: 'error',
+} as const;
+
+export type ConnectorStatus = (typeof ConnectorStatus)[keyof typeof ConnectorStatus];
+
+export const ConnectorMcpConnectionType = {
+  cloud: 'cloud',
+  http: 'http',
+  stdio: 'stdio',
+} as const;
+
+export type ConnectorMcpConnectionType =
+  (typeof ConnectorMcpConnectionType)[keyof typeof ConnectorMcpConnectionType];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// user_connectors
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * One row per user-connector connection.
+ *
+ * Stores MCP connection parameters and OAuth/OIDC credentials for a single
+ * connector. Tool-level permission data lives in `user_connector_tools`.
+ *
+ * Credential values are AES-GCM encrypted via KeyVaultsGateKeeper before
+ * being written to `credentials`. `tokenExpiresAt` is promoted out of the
+ * encrypted blob so background token-refresh jobs can index on it without
+ * decrypting every row.
+ */
+export const userConnectors = pgTable(
+  'user_connectors',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+
+    userId: text('user_id')
+      .references(() => users.id, { onDelete: 'cascade' })
+      .notNull(),
+
+    // ── Connector identity ────────────────────────────────────────────────
+    /** Fixed slug for built-ins (e.g. "linear"); nanoid for custom ones */
+    identifier: varchar('identifier', { length: 255 }).notNull(),
+    name: varchar('name', { length: 255 }).notNull(),
+    /** 'builtin' | 'custom' | 'marketplace' */
+    sourceType: text('source_type').notNull(),
+
+    // ── MCP connection ────────────────────────────────────────────────────
+    mcpServerUrl: text('mcp_server_url'),
+    /** 'http' | 'stdio' | 'cloud' */
+    mcpConnectionType: text('mcp_connection_type'),
+    /** stdio only: { command, args?, env? } */
+    mcpStdioConfig: jsonb('mcp_stdio_config').$type<{
+      args?: string[];
+      command: string;
+      env?: Record<string, string>;
+    }>(),
+
+    // ── Connection state ──────────────────────────────────────────────────
+    /** 'connected' | 'disconnected' | 'error' */
+    status: text('status').notNull(),
+    isEnabled: boolean('is_enabled').notNull().default(true),
+
+    // ── OIDC/OAuth config (plaintext — non-sensitive) ─────────────────────
+    oidcConfig: jsonb('oidc_config').$type<OIDCConfig>(),
+
+    // ── Encrypted credentials ─────────────────────────────────────────────
+    credentials: text('credentials'),
+    tokenExpiresAt: timestamptz('token_expires_at'),
+
+    /** Safe non-sensitive metadata for display and future extensibility */
+    metadata: jsonb('metadata').$type<Record<string, unknown>>(),
+
+    ...timestamps,
+  },
+  (t) => [
+    uniqueIndex('user_connectors_user_identifier_unique').on(t.userId, t.identifier),
+    index('user_connectors_user_id_idx').on(t.userId),
+    /** Scanned by background token-refresh worker */
+    index('user_connectors_token_expires_at_idx').on(t.tokenExpiresAt),
+  ],
+);
+
+export type NewUserConnector = typeof userConnectors.$inferInsert;
+export type UserConnectorItem = typeof userConnectors.$inferSelect;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// user_connector_tools — types & consts
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const ToolCRUDType = {
+  delete: 'delete',
+  read: 'read',
+  update: 'update',
+  write: 'write',
+} as const;
+
+export type ToolCRUDType = (typeof ToolCRUDType)[keyof typeof ToolCRUDType];
+
+export const ConnectorToolPermission = {
+  auto: 'auto',
+  disabled: 'disabled',
+  needs_approval: 'needs_approval',
+} as const;
+
+export type ConnectorToolPermission =
+  (typeof ConnectorToolPermission)[keyof typeof ConnectorToolPermission];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// user_connector_tools
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Complete tool list for a user's connector — the single source of truth.
+ *
+ * Rows are batch-upserted when a connector is connected or its manifest is
+ * refreshed. On upsert, only manifest-derived fields (displayName, description,
+ * inputSchema, outputSchema, crudType, renderConfig) are overwritten;
+ * user-controlled fields (permission, isWorkArtifact, workArtifactConfig,
+ * limitConfig) are never overwritten so that user preferences survive
+ * manifest refreshes.
+ *
+ * `userId` is denormalised from `userConnectors` to avoid a join on the
+ * hot path that builds the tool list for an agent session.
+ */
+export const userConnectorTools = pgTable(
+  'user_connector_tools',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+
+    userConnectorId: uuid('user_connector_id')
+      .references(() => userConnectors.id, { onDelete: 'cascade' })
+      .notNull(),
+
+    /** Denormalised for query performance — avoids join when listing tools */
+    userId: text('user_id')
+      .references(() => users.id, { onDelete: 'cascade' })
+      .notNull(),
+
+    // ── Tool definition (synced from MCP manifest) ────────────────────────
+    toolName: varchar('tool_name', { length: 255 }).notNull(),
+    displayName: varchar('display_name', { length: 255 }),
+    description: text('description'),
+    /** JSON Schema describing the tool's input parameters */
+    inputSchema: jsonb('input_schema'),
+    /** JSON Schema describing the tool's output shape — not all servers provide this */
+    outputSchema: jsonb('output_schema'),
+
+    // ── CRUD type (synced from manifest) ─────────────────────────────────
+    /** Operation type: 'read' | 'write' | 'update' | 'delete' */
+    crudType: text('crud_type').notNull(),
+
+    // ── Render config (synced from manifest) ─────────────────────────────
+    /**
+     * UI rendering configuration for this tool.
+     * e.g. { streaming: true, expandDuringStreaming: true, render: {...} }
+     * Supports future dynamic render injection.
+     */
+    renderConfig: jsonb('render_config').$type<Record<string, unknown>>(),
+
+    // ── Permission control (user-configured) ──────────────────────────────
+    /**
+     * Three-state permission:
+     * - 'auto'            — allow AI to call without confirmation
+     * - 'needs_approval'  — require human approval before execution
+     * - 'disabled'        — not injected; AI cannot see or call this tool
+     */
+    permission: text('permission').notNull(),
+
+    // ── Work artifact (user-configured) ───────────────────────────────────
+    /** Whether this tool's output is considered a persistent work artifact */
+    isWorkArtifact: boolean('is_work_artifact').notNull().default(false),
+    /**
+     * Work artifact configuration for tools that produce persistent records.
+     * e.g. local file reads need no record; document creation stores
+     * { type: 'document', ... } so downstream can link the artifact.
+     */
+    workArtifactConfig: jsonb('work_artifact_config').$type<Record<string, unknown>>(),
+
+    // ── Limit config (user-configured) ────────────────────────────────────
+    /**
+     * Parameter-level input/output constraints.
+     * e.g. {
+     *   inputAllowlist: { command: ["ls", "cat", "grep"] },
+     *   inputLimit: { path: { deny: ["/etc/**"] } },
+     *   outputLimit: { maxLength: 10000, errorPatterns: ["secret:"] }
+     * }
+     */
+    limitConfig: jsonb('limit_config').$type<Record<string, unknown>>(),
+
+    /** Safe non-sensitive metadata for display and future extensibility */
+    metadata: jsonb('metadata').$type<Record<string, unknown>>(),
+
+    ...timestamps,
+  },
+  (t) => [
+    /** One permission row per (connector, tool) */
+    uniqueIndex('user_connector_tools_connector_tool_unique').on(
+      t.userConnectorId,
+      t.toolName,
+    ),
+    index('user_connector_tools_user_id_idx').on(t.userId),
+    index('user_connector_tools_connector_id_idx').on(t.userConnectorId),
+  ],
+);
+
+export type NewUserConnectorTool = typeof userConnectorTools.$inferInsert;
+export type UserConnectorToolItem = typeof userConnectorTools.$inferSelect;
