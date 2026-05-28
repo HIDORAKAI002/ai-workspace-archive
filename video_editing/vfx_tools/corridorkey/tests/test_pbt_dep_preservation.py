@@ -28,7 +28,7 @@ PYPROJECT_PATH = Path(__file__).resolve().parents[1] / "pyproject.toml"
 # Known original non-torch, non-torchvision base dependencies from the design doc.
 # These are the dependencies that MUST be preserved after the restructuring.
 KNOWN_ORIGINAL_NON_TORCH_DEPS: list[str] = [
-    "timm==1.0.24",
+    "timm==1.0.26",
     "numpy",
     "opencv-python",
     "tqdm",
