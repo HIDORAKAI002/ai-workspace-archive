@@ -19,6 +19,7 @@ import { lambdaQuery } from '@/libs/trpc/client';
 import { getDeviceIcon } from './getDeviceIcon';
 
 export interface DeviceChannel {
+  channel: string | null;
   connectedAt: string;
   hostname: string | null;
   platform: string | null;
@@ -97,7 +98,9 @@ const DeviceItem = memo<{ device: DeviceListItem }>(({ device }) => {
   // `listDevices` shape; fall back to a single synthetic channel when online.
   const channels =
     device.channels ??
-    (device.online ? [{ connectedAt: device.lastSeen, hostname: null, platform: null }] : []);
+    (device.online
+      ? [{ channel: null, connectedAt: device.lastSeen, hostname: null, platform: null }]
+      : []);
 
   const openEdit = () => {
     setName(device.friendlyName ?? '');
@@ -161,6 +164,7 @@ const DeviceItem = memo<{ device: DeviceListItem }>(({ device }) => {
                 >
                   <span className={styles.dotOnline} />
                   <Text style={{ fontSize: 12 }} type={'secondary'}>
+                    {channel.channel ? `${channel.channel} · ` : ''}
                     {t('devices.channel.connected', { time: dayjs(channel.connectedAt).fromNow() })}
                   </Text>
                 </Flexbox>

@@ -20,6 +20,7 @@ const PROFILE_TIMEOUT_MS = 5_000;
 
 /** A single live gateway WebSocket connection belonging to a device. */
 interface DeviceChannel {
+  channel: string | null;
   connectedAt: string;
   hostname: string | null;
   platform: string | null;
@@ -132,16 +133,28 @@ export const deviceRouter = router({
       deviceProxy.queryDeviceList(ctx.userId),
     ]);
 
-    // Group live gateway connections (channels) by the device they belong to.
+    // The gateway already groups by device, exposing live sessions as nested
+    // `channels`. Flatten them into the UI-facing channel shape; fall back to a
+    // single synthetic channel for a legacy gateway that omits the field.
     const channelsByDevice = new Map<string, DeviceChannel[]>();
     for (const conn of onlineList) {
-      const list = channelsByDevice.get(conn.deviceId) ?? [];
-      list.push({
-        connectedAt: conn.lastSeen,
-        hostname: conn.hostname ?? null,
-        platform: conn.platform ?? null,
-      });
-      channelsByDevice.set(conn.deviceId, list);
+      const channels: DeviceChannel[] =
+        conn.channels && conn.channels.length > 0
+          ? conn.channels.map((c) => ({
+              channel: c.channel ?? null,
+              connectedAt: c.connectedAt,
+              hostname: conn.hostname ?? null,
+              platform: conn.platform ?? null,
+            }))
+          : [
+              {
+                channel: null,
+                connectedAt: conn.lastSeen,
+                hostname: conn.hostname ?? null,
+                platform: conn.platform ?? null,
+              },
+            ];
+      channelsByDevice.set(conn.deviceId, channels);
     }
 
     const seen = new Set<string>();
