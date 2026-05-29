@@ -3,12 +3,46 @@
  */
 
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import type { CallerIdentity } from './auth/identity-context.js';
+import type { AuthConfig } from './config-loader.js';
 import process from 'node:process';
 import { serve } from '@hono/node-server';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import { resolveAuthenticatedHttpIdentity } from './auth/http-api-key.js';
+import { createRequestContext, runWithRequestContext } from './auth/identity-context.js';
+import { createJwtIdentityResolver } from './auth/jwt-bearer.js';
+import {
+  buildOAuthProtectedResourceMetadata,
+  buildOAuthUnauthorizedHeaders,
+  createOAuthIdentityResolver,
+  OAUTH_PROTECTED_RESOURCE_METADATA_PATH,
+} from './auth/oauth-resource-server.js';
+
+export interface StartServerOptions {
+  allowedHosts?: string[];
+  auth?: AuthConfig;
+}
+
+const HTTP_UNAUTHORIZED_HEADERS = {
+  'content-type': 'application/json',
+  'www-authenticate': 'Bearer realm="brave-search-mcp"',
+};
+
+const HTTP_ANONYMOUS_IDENTITY: CallerIdentity = {
+  transport: 'http',
+  authSource: 'none',
+};
+
+const CALLER_IDENTITY_CONTEXT_KEY = 'callerIdentity';
+
+interface HonoVariables {
+  Variables: {
+    callerIdentity: CallerIdentity;
+  };
+}
 
 /**
  * Starts an MCP server using the appropriate transport based on command-line arguments.
@@ -20,13 +54,14 @@ import { cors } from 'hono/cors';
 export async function startServer(
   createServer: () => McpServer,
   isHttp: boolean = false,
+  options?: StartServerOptions,
 ): Promise<void> {
   try {
     if (isHttp) {
-      await startStreamableHttpServer(createServer);
+      await startStreamableHttpServer(createServer, options);
     }
     else {
-      await startStdioServer(createServer);
+      await startStdioServer(createServer, options);
     }
   }
   catch (e) {
@@ -42,8 +77,16 @@ export async function startServer(
  */
 export async function startStdioServer(
   createServer: () => McpServer,
+  options?: StartServerOptions,
 ): Promise<void> {
-  await createServer().connect(new StdioServerTransport());
+  const callerId = options?.auth?.callerId;
+  const identity = callerId
+    ? { transport: 'stdio' as const, authSource: 'stdio-env' as const, callerId }
+    : { transport: 'stdio' as const, authSource: 'stdio-process' as const };
+
+  await runWithRequestContext(createRequestContext(identity), async () => {
+    await createServer().connect(new StdioServerTransport());
+  });
 }
 
 /**
@@ -59,16 +102,13 @@ export async function startStdioServer(
  */
 export async function startStreamableHttpServer(
   createServer: () => McpServer,
+  options?: StartServerOptions,
 ): Promise<void> {
   const port = Number.parseInt(process.env.PORT ?? '3001', 10);
   const hostname = process.env.HOST ?? '0.0.0.0';
-  const allowedHostsEnv = process.env.ALLOWED_HOSTS;
-  const allowedHosts = allowedHostsEnv
-    ?.split(',')
-    .map(value => value.trim())
-    .filter(Boolean);
+  const allowedHosts = options?.allowedHosts;
 
-  const app = new Hono();
+  const app = new Hono<HonoVariables>();
 
   // Enable CORS for all origins
   app.use('*', cors());
@@ -98,40 +138,95 @@ export async function startStreamableHttpServer(
   else if (hostname === '0.0.0.0' || hostname === '::') {
     console.warn(
       `Warning: Server is binding to ${hostname} without DNS rebinding protection. `
-      + 'Consider using the ALLOWED_HOSTS environment variable to restrict allowed hosts, '
+      + 'Consider using the ALLOWED_HOSTS environment variable in env mode or [server].allowedHosts in file mode to restrict allowed hosts, '
       + 'or use authentication to protect your server.',
     );
   }
+  const oauthConfig = options?.auth?.oauth;
+  const oauthIdentityResolver = oauthConfig
+    ? await createOAuthIdentityResolver(oauthConfig)
+    : undefined;
+  const httpApiKey = oauthIdentityResolver || options?.auth?.jwt ? undefined : options?.auth?.httpApiKey;
+  const jwtIdentityResolver = oauthIdentityResolver
+    ? undefined
+    : options?.auth?.jwt
+      ? await createJwtIdentityResolver(options.auth.jwt)
+      : undefined;
+
+  if (oauthConfig) {
+    app.get(OAUTH_PROTECTED_RESOURCE_METADATA_PATH, c =>
+      c.json(buildOAuthProtectedResourceMetadata(c.req.url, oauthConfig)));
+  }
+
+  app.use('/mcp', async (c, next) => {
+    const authorizationHeader = c.req.header('authorization');
+    let identity: CallerIdentity | undefined;
+
+    if (oauthIdentityResolver) {
+      identity = await oauthIdentityResolver(authorizationHeader);
+    }
+    else if (jwtIdentityResolver) {
+      identity = await jwtIdentityResolver(authorizationHeader);
+    }
+    else if (httpApiKey) {
+      identity = resolveAuthenticatedHttpIdentity(httpApiKey, authorizationHeader);
+    }
+    else {
+      identity = HTTP_ANONYMOUS_IDENTITY;
+    }
+
+    if (!identity) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        {
+          status: 401,
+          headers: oauthIdentityResolver
+            ? buildOAuthUnauthorizedHeaders(c.req.url)
+            : HTTP_UNAUTHORIZED_HEADERS,
+        },
+      );
+    }
+
+    c.set(CALLER_IDENTITY_CONTEXT_KEY, identity);
+    await next();
+  });
+
   // MCP endpoint - create a fresh transport and server per request (stateless)
   app.all('/mcp', async (c) => {
-    const server = createServer();
-    const transport = new WebStandardStreamableHTTPServerTransport({
-      sessionIdGenerator: undefined,
-    });
+    const identity = (c.get(CALLER_IDENTITY_CONTEXT_KEY) as CallerIdentity | undefined) ?? HTTP_ANONYMOUS_IDENTITY;
+    return runWithRequestContext(
+      createRequestContext(identity),
+      async () => {
+        const server = createServer();
+        const transport = new WebStandardStreamableHTTPServerTransport({
+          sessionIdGenerator: undefined,
+        });
 
-    try {
-      await server.connect(transport);
-      const response = await transport.handleRequest(c.req.raw);
+        try {
+          await server.connect(transport);
+          const response = await transport.handleRequest(c.req.raw);
 
-      // Clean up when the client disconnects (not immediately — the response
-      // may contain an SSE ReadableStream that's still being consumed)
-      c.req.raw.signal.addEventListener('abort', () => {
-        transport.close().catch(() => {});
-        server.close().catch(() => {});
-      });
+          // Clean up when the client disconnects (not immediately — the response
+          // may contain an SSE ReadableStream that's still being consumed)
+          c.req.raw.signal.addEventListener('abort', () => {
+            transport.close().catch(() => {});
+            server.close().catch(() => {});
+          });
 
-      return response;
-    }
-    catch (error) {
-      console.error('MCP error:', error);
-      transport.close().catch(() => {});
-      server.close().catch(() => {});
-      return c.json({
-        jsonrpc: '2.0',
-        error: { code: -32603, message: 'Internal server error' },
-        id: null,
-      }, 500);
-    }
+          return response;
+        }
+        catch (error) {
+          console.error('MCP error:', error);
+          transport.close().catch(() => {});
+          server.close().catch(() => {});
+          return c.json({
+            jsonrpc: '2.0',
+            error: { code: -32603, message: 'Internal server error' },
+            id: null,
+          }, 500);
+        }
+      },
+    );
   });
 
   let resolveServerStarted!: () => void;
