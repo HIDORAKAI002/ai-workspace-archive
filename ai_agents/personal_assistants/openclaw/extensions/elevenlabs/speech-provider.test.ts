@@ -195,7 +195,7 @@ describe("elevenlabs speech provider", () => {
 
     await provider.synthesize?.({
       text: "hello",
-      target: "audio",
+      target: "audio-file",
       cfg: {} as never,
       providerConfig: {
         apiKey: "xi-test",
