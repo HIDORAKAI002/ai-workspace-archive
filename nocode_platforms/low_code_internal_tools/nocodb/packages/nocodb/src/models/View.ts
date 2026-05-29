@@ -110,6 +110,7 @@ export default class View implements ViewType {
   type: ViewTypes;
   lock_type?: ViewType['lock_type'];
   row_coloring_mode?: ROW_COLORING_MODE;
+  allow_sync?: boolean;
   created_by?: string;
   owned_by?: string;
 
@@ -385,9 +386,21 @@ export default class View implements ViewType {
       // Include trashed columns so brand-new views still get a view-column
       // row for them (with show: false). Without this, restoring a trashed
       // column wouldn't surface it in views created during the trash window.
-      let columns: any[] = await (
-        await Model.getByIdOrName(context, { id: view.fk_model_id }, ncMeta)
-      ).getColumns(context, ncMeta, undefined, true, true);
+      const parentModel = await Model.getByIdOrName(
+        context,
+        { id: view.fk_model_id },
+        ncMeta,
+      );
+      if (!parentModel) {
+        NcError.get(context).tableNotFound(view.fk_model_id);
+      }
+      let columns: any[] = await parentModel.getColumns(
+        context,
+        ncMeta,
+        undefined,
+        true,
+        true,
+      );
 
       const levelIdMap = new Map<string, string>();
       let defaultLevelId: string | undefined;
@@ -1908,6 +1921,7 @@ export default class View implements ViewType {
       fk_custom_url_id?: string;
       fk_view_section_id?: string | null;
       row_coloring_mode?: ROW_COLORING_MODE;
+      allow_sync?: BoolType;
     },
     includeCreatedByAndUpdateBy = false,
     ncMeta = Noco.ncMeta,
@@ -1922,6 +1936,7 @@ export default class View implements ViewType {
       'meta',
       'uuid',
       'row_coloring_mode',
+      'allow_sync',
       ...(isEE ? ['fk_custom_url_id'] : []),
       ...(isEE ? ['fk_view_section_id'] : []),
       ...(includeCreatedByAndUpdateBy ? ['owned_by', 'created_by'] : []),
@@ -2456,38 +2471,14 @@ export default class View implements ViewType {
     tableId,
     ncMeta = Noco.ncMeta,
   ) {
-    const cachedList = await NocoCache.getList(context, CacheScope.VIEW, [
-      tableId,
-    ]);
-    let { list: sharedViews } = cachedList;
-    const { isNoneList } = cachedList;
-    if (!isNoneList && !sharedViews.length) {
-      sharedViews = await ncMeta.metaList2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.VIEWS,
-        {
-          xcCondition: {
-            _and: [
-              {
-                fk_model_id: {
-                  eq: tableId,
-                },
-                _not: {
-                  uuid: {
-                    eq: null,
-                  },
-                },
-              },
-              notDeletedXcCondition,
-            ],
-          },
-        },
-      );
-      await NocoCache.setList(context, CacheScope.VIEW, [tableId], sharedViews);
-    }
-    sharedViews = sharedViews.filter((v) => v.uuid !== null);
-    return sharedViews?.map((v) => new View(v));
+    // Reuse the full view list and filter — must NOT write to
+    // `view:{tableId}:list` ourselves, since that's the same key
+    // `View.list` reads from. Caching a shared-only subset here
+    // poisons every subsequent View.list call for this table:
+    // tables with no shared views end up with a `NONE` list cache,
+    // which then drops them from `getAccessibleTables`.
+    const views = await this.list(context, tableId, false, ncMeta);
+    return views.filter((v) => v.uuid !== null);
   }
 
   static async fixPVColumnForView(

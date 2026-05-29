@@ -2,7 +2,7 @@ import process from 'process';
 import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
 import { compareVersions, validate } from 'compare-versions';
-import { getCircularReplacer, ViewTypes } from 'nocodb-sdk';
+import { getCircularReplacer, OperationSource, ViewTypes } from 'nocodb-sdk';
 import { ConfigService } from '@nestjs/config';
 import dayjs from 'dayjs';
 import type { ErrorReportReqType } from 'nocodb-sdk';
@@ -181,8 +181,7 @@ export class UtilsService {
         : {},
       responseType: apiMeta.responseType || 'json',
       withCredentials: true,
-      httpAgent: useAgent(apiMeta.url),
-      httpsAgent: useAgent(apiMeta.url),
+      ...getFilteredAgents({ url: apiMeta.url, source: OperationSource.HOOKS }),
     };
     const data = await axios(_req);
     return data?.data;

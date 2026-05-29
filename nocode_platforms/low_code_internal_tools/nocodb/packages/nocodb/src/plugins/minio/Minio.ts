@@ -179,8 +179,7 @@ export default class Minio implements IStorageAdapterV2 {
   ): Promise<any> {
     try {
       const response = await axios.get(url, {
-        httpAgent: useAgent(url),
-        httpsAgent: useAgent(url),
+        ...getFilteredAgents({ url, source: OperationSource.PLUGINS }),
         responseType: buffer ? 'arraybuffer' : 'stream',
         maxContentLength: NC_ATTACHMENT_FIELD_SIZE,
       });
