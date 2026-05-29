@@ -17,6 +17,7 @@ import type {
   ViewType,
 } from 'nocodb-sdk';
 import type { Filter } from '~/models';
+import { getFilteredAgents } from '~/utils/ssrf';
 import { parseMetaProp } from '~/utils/modelUtils';
 import { NcError } from '~/helpers/ncError';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
@@ -38,7 +39,7 @@ import {
 } from '~/models';
 import Noco from '~/Noco';
 import { genJwt } from '~/services/users/helpers';
-import { addDummyRootAndNest } from '~/services/v3/filters-v3.service';
+import { addDummyRootAndNest } from '~/services/v3/filters-v3.helper';
 import { isEE, isOnPrem } from '~/utils';
 import { filterBuilder } from '~/utils/api-v3-data-transformation.builder';
 
@@ -172,12 +173,8 @@ export class WebhookInvoker {
           }, {})
         : {},
       withCredentials: true,
-      ...(process.env.NC_ALLOW_LOCAL_HOOKS !== 'true' &&
-      !ncIsNullOrUndefined(url)
-        ? {
-            httpAgent: useAgent(url),
-            httpsAgent: useAgent(url),
-          }
+      ...(!ncIsNullOrUndefined(url)
+        ? getFilteredAgents({ url, source: OperationSource.HOOKS })
         : {}),
       timeout: 30 * 1000,
     };

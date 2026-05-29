@@ -32,6 +32,30 @@ func shouldPanic(t *testing.T, name string, f func()) {
 	t.Errorf("%s should have panicked", name)
 }
 
+func TestComponentParam_DataCoordBumpSchemaVersionCompactionParams(t *testing.T) {
+	Init()
+	params := Get()
+	params.Reset(params.DataCoordCfg.BumpSchemaVersionCompactionEnabled.Key)
+	params.Reset(params.DataCoordCfg.BumpSchemaVersionCompactionTriggerInterval.Key)
+	params.Reset(params.DataCoordCfg.BumpSchemaVersionCompactionSlotUsage.Key)
+	t.Cleanup(func() {
+		params.Reset(params.DataCoordCfg.BumpSchemaVersionCompactionEnabled.Key)
+		params.Reset(params.DataCoordCfg.BumpSchemaVersionCompactionTriggerInterval.Key)
+		params.Reset(params.DataCoordCfg.BumpSchemaVersionCompactionSlotUsage.Key)
+	})
+
+	assert.False(t, params.DataCoordCfg.BumpSchemaVersionCompactionEnabled.GetAsBool())
+	assert.Equal(t, time.Second*20, params.DataCoordCfg.BumpSchemaVersionCompactionTriggerInterval.GetAsDuration(time.Second))
+	assert.EqualValues(t, 1, params.DataCoordCfg.BumpSchemaVersionCompactionSlotUsage.GetAsInt64())
+
+	params.Save(params.DataCoordCfg.BumpSchemaVersionCompactionSlotUsage.Key, "5")
+	assert.EqualValues(t, 5, params.DataCoordCfg.BumpSchemaVersionCompactionSlotUsage.GetAsInt64())
+	params.Save(params.DataCoordCfg.BumpSchemaVersionCompactionSlotUsage.Key, "0")
+	assert.EqualValues(t, 1, params.DataCoordCfg.BumpSchemaVersionCompactionSlotUsage.GetAsInt64())
+	params.Save(params.DataCoordCfg.BumpSchemaVersionCompactionSlotUsage.Key, "-1")
+	assert.EqualValues(t, 1, params.DataCoordCfg.BumpSchemaVersionCompactionSlotUsage.GetAsInt64())
+}
+
 func TestComponentParam(t *testing.T) {
 	Init()
 	params := Get()
@@ -703,6 +727,11 @@ func TestComponentParam(t *testing.T) {
 		assert.Equal(t, int64(2), Params.ClusteringCompactionWorkerPoolSize.GetAsInt64())
 
 		assert.Equal(t, 2, Params.BloomFilterApplyParallelFactor.GetAsInt())
+		assert.Equal(t, "dataNode.storage.format", Params.StorageFormat.Key)
+		assert.Equal(t, "parquet", Params.StorageFormat.GetValue())
+		params.Save(Params.StorageFormat.Key, "vortex")
+		assert.Equal(t, "vortex", Params.StorageFormat.GetValue())
+		params.Reset(Params.StorageFormat.Key)
 		assert.Equal(t, 16, Params.WorkerSlotUnit.GetAsInt())
 		assert.Equal(t, 0.25, Params.StandaloneSlotRatio.GetAsFloat())
 	})
