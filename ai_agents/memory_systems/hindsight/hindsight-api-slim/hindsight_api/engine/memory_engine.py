@@ -237,7 +237,7 @@ from .retain import bank_utils, embedding_utils
 from .retain.types import RetainContentDict
 from .search import think_utils
 from .search.reranking import CrossEncoderReranker, apply_combined_scoring
-from .search.tags import TagGroup, TagsMatch, build_tags_where_clause
+from .search.tags import TagGroup, TagsMatch, build_tag_groups_where_clause, build_tags_where_clause
 from .task_backend import TaskBackend
 
 RetainOutboxCallback = Callable[[asyncpg.Connection], Awaitable[None]]
@@ -737,6 +737,7 @@ class MemoryEngine(MemoryEngineInterface):
         self._db_statement_timeout = config.db_statement_timeout
         self._run_migrations = run_migrations
         self._retain_entity_lookup = config.retain_entity_lookup
+        self._retain_entity_resolution_batch_size = config.retain_entity_resolution_batch_size
 
         # Webhook manager (will be created in initialize() after pool is ready)
         self._webhook_manager = None
@@ -2304,6 +2305,7 @@ class MemoryEngine(MemoryEngineInterface):
         self.entity_resolver = EntityResolver(
             self._backend,
             entity_lookup=self._retain_entity_lookup,
+            entity_resolution_batch_size=self._retain_entity_resolution_batch_size,
         )
 
         # Initialize config resolver for hierarchical configuration
@@ -6602,6 +6604,7 @@ class MemoryEngine(MemoryEngineInterface):
             bank_id=bank_id,
             tags=tags,
             tags_match=tags_match,
+            tag_groups=tag_groups,
             active_only=True,
             request_context=request_context,
             isolation_mode=True,
@@ -8768,7 +8771,8 @@ class MemoryEngine(MemoryEngineInterface):
         bank_id: str,
         *,
         tags: list[str] | None = None,
-        tags_match: str = "any",
+        tags_match: TagsMatch = "any",
+        tag_groups: list[TagGroup] | None = None,
         active_only: bool = True,
         limit: int = 100,
         offset: int = 0,
@@ -8779,15 +8783,19 @@ class MemoryEngine(MemoryEngineInterface):
 
         Args:
             bank_id: Bank identifier
-            tags: Optional tags to filter by
-            tags_match: How to match tags - 'any', 'all', or 'exact'
+            tags: Optional flat tags to filter by
+            tags_match: How to match tags - 'any', 'all', 'any_strict', or 'all_strict'
+            tag_groups: Optional compound tag filter (mutually independent of tags;
+                if both are provided each applies its own OR-with-untagged wrapping
+                and the two are AND-ed together)
             active_only: Only return active directives (default True)
             limit: Maximum number of results
             offset: Offset for pagination
             request_context: Request context for authentication
-            isolation_mode: When True and tags=None, only return directives with no tags.
-                This prevents tag-scoped directives from leaking into untagged operations.
-                Default False (normal API behavior - returns all directives when tags=None)
+            isolation_mode: When True and both tags and tag_groups are None, only
+                return directives with no tags. This prevents tag-scoped directives
+                from leaking into untagged operations. Default False (normal API
+                behavior - returns all directives when no tag filter is supplied).
 
         Returns:
             List of directive dicts
@@ -8809,12 +8817,17 @@ class MemoryEngine(MemoryEngineInterface):
             if active_only:
                 filters.append("is_active = TRUE")
 
-            # Apply tags filter for directives:
+            # Apply tag filters for directives:
             # Directives have special scoping rules:
             #   - Untagged directives (tags=[] or null) always apply regardless of reflect tags
             #   - Tagged directives only apply when the reflect operation includes matching tags
-            #   - If tags=None and isolation_mode=True: only untagged directives (no leakage)
-            #   - If tags=None and isolation_mode=False: all directives (normal API behavior)
+            #   - If no tag filter is supplied and isolation_mode=True: only untagged directives
+            #   - If no tag filter is supplied and isolation_mode=False: all directives (normal API behavior)
+            #
+            # When `tags` and `tag_groups` are both supplied (engine-level callers only;
+            # the public reflect/recall API rejects the combo at the request validator),
+            # both filters apply independently — each wrapped in the untagged-OR rule —
+            # so the directive set is the intersection of what either filter would admit.
             if tags:
                 tags_clause, tags_params, param_idx = build_tags_where_clause(
                     tags=tags, param_offset=param_idx, table_alias="", match=tags_match
@@ -8824,7 +8837,16 @@ class MemoryEngine(MemoryEngineInterface):
                     scoped_clause = tags_clause.replace("AND ", "", 1)
                     filters.append(f"((tags IS NULL OR tags = '{{}}') OR ({scoped_clause}))")
                     params.extend(tags_params)
-            elif isolation_mode:
+            if tag_groups:
+                groups_clause, groups_params, param_idx = build_tag_groups_where_clause(
+                    tag_groups, param_offset=param_idx
+                )
+                if groups_clause:
+                    # Same untagged-OR rule as the flat-tags branch above.
+                    scoped_clause = groups_clause.replace("AND ", "", 1)
+                    filters.append(f"((tags IS NULL OR tags = '{{}}') OR ({scoped_clause}))")
+                    params.extend(groups_params)
+            if not tags and not tag_groups and isolation_mode:
                 # Isolation mode: only include directives with empty/null tags
                 # This ensures tag-scoped directives don't apply to untagged operations
                 filters.append("(tags IS NULL OR tags = '{}')")
