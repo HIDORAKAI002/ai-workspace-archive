@@ -390,8 +390,7 @@ export class DataAttachmentV3Service {
       responseType: 'stream',
       maxRedirects: NC_ATTACHMENT_URL_MAX_REDIRECT,
       maxContentLength: NC_ATTACHMENT_FIELD_SIZE,
-      httpAgent: useAgent(url),
-      httpsAgent: useAgent(url),
+      ...getFilteredAgents({ url, source: OperationSource.ATTACHMENTS }),
     });
 
     // Extract file information from response headers (axios >=1.14 widens

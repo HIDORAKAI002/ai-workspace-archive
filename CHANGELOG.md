@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-05-29 16:54 IST] Auto-Sync
+- **32 Repositories Updated:** Public APIs Directory, GitHub MCP Server, Awesome ChatGPT Prompts, Langfuse, Promptfoo, n8n, Dify, Trigger.dev, NocoDB, Directus, Claude Skills, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, huggingface/smolagents, BerriAI/litellm, ggml-org/llama.cpp, deepspeedai/DeepSpeed, vllm-project/vllm, lobehub/lobe-chat, chroma-core/chroma, milvus-io/milvus, weaviate/weaviate, infiniflow/ragflow, danny-avila/LibreChat, apache/airflow, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, vectorize-io/hindsight, bytedance/deer-flow, nousresearch/hermes-agent
+
 ## [2026-05-29 10:04 IST] Auto-Sync
 - **30 Repositories Updated:** Public APIs Directory, Promptfoo, Dify, Langflow, Windmill, Directus, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, mikechao/brave-search-mcp, langchain-ai/langgraph, pydantic/pydantic-ai, mastra-ai/mastra, BerriAI/litellm, stanfordnlp/dspy, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, anthropics/claude-code, arize-ai/phoenix, anthropics/anthropic-sdk-python, anthropics/anthropic-sdk-typescript, googleapis/python-genai, vercel/ai, apache/airflow, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, bytedance/deer-flow, nousresearch/hermes-agent
 

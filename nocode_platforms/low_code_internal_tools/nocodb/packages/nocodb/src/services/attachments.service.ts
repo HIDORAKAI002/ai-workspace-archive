@@ -1,7 +1,7 @@
 import path from 'path';
 import Url from 'url';
 import { Readable } from 'stream';
-import { AppEvents, PublicAttachmentScope } from 'nocodb-sdk';
+import { AppEvents, OperationSource, PublicAttachmentScope } from 'nocodb-sdk';
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { nanoid } from 'nanoid';
 import mime from 'mime/lite';
@@ -301,10 +301,8 @@ export class AttachmentsService {
                 source: OperationSource.ATTACHMENTS,
               }),
             });
-            mimeType = (response.headers['content-type'] as string)?.split(
-              ';',
-            )[0];
-            size = response.headers['content-length'] as string | undefined;
+            mimeType = response.headers['content-type']?.split(';')[0];
+            size = response.headers['content-length'];
 
             if (size && +size > NC_ATTACHMENT_FIELD_SIZE) {
               NcError.get().invalidRequestBody(
