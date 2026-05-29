@@ -59,6 +59,8 @@ Outputs: review verdict (approve / request changes / block), score, prioritized 
 | [`assets/sample_csharp_clean.cs`](./assets/sample_csharp_clean.cs) | Same code refactored per `rules/universal.md` + `languages/csharp.md` |
 | [`assets/sample_java_smells.java`](./assets/sample_java_smells.java) | Java file with every Java-specific pattern this skill detects, labelled inline |
 | [`assets/sample_java_clean.java`](./assets/sample_java_clean.java) | Same code refactored per `rules/universal.md` + `languages/java.md` |
+| [`assets/sample_c_smells.c`](./assets/sample_c_smells.c) | C file with every C-specific pattern this skill detects, labelled inline |
+| [`assets/sample_c_clean.c`](./assets/sample_c_clean.c) | Same code refactored per `rules/universal.md` + `languages/c.md` |
 | [`expected_outputs/*.json`](./expected_outputs/) | Expected `code_quality_checker.py --json` output for each fixture |
 
 Use them as a regression-detection harness:
@@ -76,7 +78,7 @@ diff /tmp/check.json expected_outputs/sample_java_smells_quality.json
 See [`SKILL.md`](./SKILL.md) for the full pattern list, severity tiers, and references. Quick summary:
 
 - **PR Analyzer** (`scripts/pr_analyzer.py`): hardcoded secrets / connection strings, SQL injection, debug statements (`console.*` / `System.out` / `printStackTrace`), analyzer suppressions (ESLint / Roslyn / `@SuppressWarnings`), `any` / `dynamic` overuse, TODO/FIXME, `unsafe` blocks, null-forgiving `!`, `async void`, blocking on `Task`.
-- **Code Quality Checker** (`scripts/code_quality_checker.py`): long methods, large files, god classes, deep nesting, too many parameters, high cyclomatic complexity, swallowed exceptions, missing `await`, undisposed `IDisposable`, `new HttpClient()` in method body, unused `using` directives. Language-specific smell packs for C# and Java (e.g. empty catch, `printStackTrace`, swallowed `InterruptedException`, unclosed resources, per-call `ObjectMapper` / `Gson`).
+- **Code Quality Checker** (`scripts/code_quality_checker.py`): long methods, large files, god classes, deep nesting, too many parameters, high cyclomatic complexity, swallowed exceptions, missing `await`, undisposed `IDisposable`, `new HttpClient()` in method body, unused `using` directives. Language-specific smell packs for C# (`async void`, blocking on `Task`), Java (empty catch, `printStackTrace`, swallowed `InterruptedException`, unclosed resources, per-call `ObjectMapper` / `Gson`), and C (banned functions `gets`/`strcpy`/`strcat`/`sprintf`/`vsprintf`, format-string vulnerability `printf(var)`, unbounded `scanf("%s")`, malloc-without-NULL-check, free-without-zeroing, `system()` with non-literal argument).
 - **Review Report Generator** (`scripts/review_report_generator.py`): combines the above into a single markdown or JSON verdict.
 
 ---
