@@ -16,7 +16,7 @@ import logging
 import time
 import uuid
 from collections.abc import Awaitable, Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta, timezone
 from typing import TYPE_CHECKING, Any, Literal, cast, overload
 
@@ -115,12 +115,17 @@ _VALIDATE_SQL_SCHEMAS = True
 # filtered upstream by `_is_non_retryable_task_error` and never reach the
 # retry path. The dedup-by-bank guard prevents per-op retries from
 # multiplying when a peer consolidation is already pending for the bank.
-_CONSOLIDATION_RETRY_BACKOFF_BASE_SECONDS = 60
+#
+# Base is intentionally short so a momentary 5xx clears in seconds, not
+# minutes; the cap is preserved so a genuine multi-hour outage doesn't hammer
+# the upstream. Issue #1842 observed banks sitting idle for whole minutes on
+# transient LLM blips because the prior 60s base overshot recovery by 10x+.
+_CONSOLIDATION_RETRY_BACKOFF_BASE_SECONDS = 5
 _CONSOLIDATION_RETRY_BACKOFF_MAX_SECONDS = 1800  # 30 min cap
 
 
 def _consolidation_retry_backoff_seconds(retry_count: int) -> int:
-    """Capped exponential backoff: 60, 120, 240, 480, 960, 1800, 1800, …"""
+    """Capped exponential backoff: 5, 10, 20, 40, 80, 160, 320, 640, 1280, 1800, 1800, …"""
     return min(
         _CONSOLIDATION_RETRY_BACKOFF_BASE_SECONDS * (2**retry_count),
         _CONSOLIDATION_RETRY_BACKOFF_MAX_SECONDS,
@@ -273,10 +278,18 @@ class _SubBatchSplit:
     user (such as ``retain_batch_async``) use this mapping to merge
     results belonging to the same original content back together when
     an oversized item was chunked across multiple sub-batches.
+
+    ``document_body_overrides[i]`` is the full original body of the
+    oversized item that produced ``sub_batches[i]``, or ``None`` when
+    the sub-batch was not produced by chunking an oversized item. The
+    orchestrator uses this as the ``documents.original_text`` payload
+    so that slicing an item across sub-batches does not persist a
+    partial body (see issue #1838).
     """
 
     sub_batches: list[list[RetainContentDict]]
     origin_indices: list[list[int]]
+    document_body_overrides: list[str | None] = field(default_factory=list)
 
 
 def _split_contents_into_sub_batches(
@@ -310,6 +323,7 @@ def _split_contents_into_sub_batches(
 
     sub_batches: list[list[RetainContentDict]] = []
     origin_indices: list[list[int]] = []
+    document_body_overrides: list[str | None] = []
     current_batch: list[RetainContentDict] = []
     current_batch_origins: list[int] = []
     current_batch_tokens = 0
@@ -319,6 +333,7 @@ def _split_contents_into_sub_batches(
         if current_batch:
             sub_batches.append(current_batch)
             origin_indices.append(current_batch_origins)
+            document_body_overrides.append(None)
             current_batch = []
             current_batch_origins = []
             current_batch_tokens = 0
@@ -334,12 +349,18 @@ def _split_contents_into_sub_batches(
             # original item's document_id and metadata so the
             # orchestrator's first-batch document tracking still
             # cascade-deletes the prior document version on slice 1.
+            # Each slice carries ``content_str`` as the document body
+            # override so the orchestrator writes the full original
+            # text to documents.original_text — not just its own slice
+            # (otherwise the last slice would clobber the body with a
+            # truncated payload; see issue #1838).
             _flush()
             chunks = fact_extraction.chunk_text(content_str, char_budget)
             for chunk in chunks:
                 chunk_item = cast(RetainContentDict, {**item, "content": chunk})
                 sub_batches.append([chunk_item])
                 origin_indices.append([original_idx])
+                document_body_overrides.append(content_str)
             continue
 
         if current_batch and current_batch_tokens + item_tokens > tokens_per_batch:
@@ -349,7 +370,11 @@ def _split_contents_into_sub_batches(
         current_batch_tokens += item_tokens
 
     _flush()
-    return _SubBatchSplit(sub_batches=sub_batches, origin_indices=origin_indices)
+    return _SubBatchSplit(
+        sub_batches=sub_batches,
+        origin_indices=origin_indices,
+        document_body_overrides=document_body_overrides,
+    )
 
 
 def _split_contents_into_async_children(
@@ -1553,10 +1578,17 @@ class MemoryEngine(MemoryEngineInterface):
                             message=str(e),
                         )
 
-                    # Retryable: use RetryTaskAt if under the retry limit, else re-raise (poller marks failed)
+                    # Retryable: use RetryTaskAt if under the retry limit, else re-raise (poller marks failed).
+                    # Retry count and backoff come from config (HINDSIGHT_API_WORKER_MAX_RETRIES and
+                    # HINDSIGHT_API_WORKER_TASK_RETRY_BACKOFF_SECONDS). Defaults of 3 x 60s give a
+                    # 4-minute total window; operators expecting a longer provider outage can raise them.
+                    config = get_config()
                     retry_count = task_dict.get("_retry_count", 0)
-                    if retry_count < 3:
-                        raise RetryTaskAt(retry_at=datetime.now(UTC) + timedelta(seconds=60), message=str(e))
+                    if retry_count < config.worker_max_retries:
+                        raise RetryTaskAt(
+                            retry_at=datetime.now(UTC) + timedelta(seconds=config.worker_task_retry_backoff_seconds),
+                            message=str(e),
+                        )
                     raise
 
     async def _fire_consolidation_webhook(
@@ -2740,6 +2772,7 @@ class MemoryEngine(MemoryEngineInterface):
             split = _split_contents_into_sub_batches(contents, tokens_per_batch)
             sub_batches = split.sub_batches
             origin_indices = split.origin_indices
+            document_body_overrides = split.document_body_overrides
 
             sub_batch_sizes = [len(b) for b in sub_batches]
             # Keep the per-sub-batch sizes log compact when an oversize
@@ -2787,6 +2820,7 @@ class MemoryEngine(MemoryEngineInterface):
                     # webhook delivery row is committed atomically with the final retain data.
                     outbox_callback=outbox_callback if i == len(sub_batches) else None,
                     outbox_callback_factory=outbox_callback_factory if i == len(sub_batches) else None,
+                    document_body_override=document_body_overrides[i - 1],
                 )
                 # sub_results aligns 1:1 with sub_batch items; map each
                 # back to its source input via origin_indices so callers
@@ -2880,6 +2914,7 @@ class MemoryEngine(MemoryEngineInterface):
         outbox_callback: RetainOutboxCallback | None = None,
         outbox_callback_factory: RetainOutboxCallbackFactory | None = None,
         strategy: str | None = None,
+        document_body_override: str | None = None,
     ) -> tuple[list[list[str]], "TokenUsage", int | None]:
         """
         Internal method for batch processing without chunking logic.
@@ -2943,6 +2978,7 @@ class MemoryEngine(MemoryEngineInterface):
                 outbox_callback=outbox_callback,
                 outbox_callback_factory=outbox_callback_factory,
                 db_semaphore=self._put_semaphore,
+                document_body_override=document_body_override,
             )
 
     def recall(
