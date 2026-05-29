@@ -395,6 +395,7 @@ ENV_ENABLE_AUTO_CONSOLIDATION = "HINDSIGHT_API_ENABLE_AUTO_CONSOLIDATION"
 ENV_CONSOLIDATION_BATCH_SIZE = "HINDSIGHT_API_CONSOLIDATION_BATCH_SIZE"
 ENV_CONSOLIDATION_MAX_MEMORIES_PER_ROUND = "HINDSIGHT_API_CONSOLIDATION_MAX_MEMORIES_PER_ROUND"
 ENV_CONSOLIDATION_LLM_BATCH_SIZE = "HINDSIGHT_API_CONSOLIDATION_LLM_BATCH_SIZE"
+ENV_CONSOLIDATION_LLM_PARALLELISM = "HINDSIGHT_API_CONSOLIDATION_LLM_PARALLELISM"
 ENV_CONSOLIDATION_MAX_TOKENS = "HINDSIGHT_API_CONSOLIDATION_MAX_TOKENS"
 ENV_CONSOLIDATION_SOURCE_FACTS_MAX_TOKENS = "HINDSIGHT_API_CONSOLIDATION_SOURCE_FACTS_MAX_TOKENS"
 ENV_CONSOLIDATION_SOURCE_FACTS_MAX_TOKENS_PER_OBSERVATION = (
@@ -441,6 +442,7 @@ ENV_WORKER_ENABLED = "HINDSIGHT_API_WORKER_ENABLED"
 ENV_WORKER_ID = "HINDSIGHT_API_WORKER_ID"
 ENV_WORKER_POLL_INTERVAL_MS = "HINDSIGHT_API_WORKER_POLL_INTERVAL_MS"
 ENV_WORKER_MAX_RETRIES = "HINDSIGHT_API_WORKER_MAX_RETRIES"
+ENV_WORKER_TASK_RETRY_BACKOFF_SECONDS = "HINDSIGHT_API_WORKER_TASK_RETRY_BACKOFF_SECONDS"
 ENV_WORKER_HTTP_PORT = "HINDSIGHT_API_WORKER_HTTP_PORT"
 ENV_WORKER_MAX_SLOTS = "HINDSIGHT_API_WORKER_MAX_SLOTS"
 
@@ -699,6 +701,10 @@ DEFAULT_CONSOLIDATION_MAX_MEMORIES_PER_ROUND = (
     100  # Max memories per consolidation round (0 = unlimited). Limits how long one bank holds a worker slot.
 )
 DEFAULT_CONSOLIDATION_LLM_BATCH_SIZE = 8  # Facts per LLM call (1 = no batching; >1 = batch mode)
+DEFAULT_CONSOLIDATION_LLM_PARALLELISM = (
+    4  # Max tag groups consolidated concurrently per op. Locks on overlapping write
+    # scopes degrade to sequential automatically; matches retain_max_concurrent.
+)
 DEFAULT_CONSOLIDATION_MAX_TOKENS = 512  # Max tokens for recall when finding related observations
 DEFAULT_CONSOLIDATION_RECALL_BUDGET = "low"  # Budget level for consolidation recall (low/mid/high)
 DEFAULT_CONSOLIDATION_SOURCE_FACTS_MAX_TOKENS = (
@@ -725,6 +731,7 @@ DEFAULT_WORKER_ENABLED = True  # API runs worker by default (standalone mode)
 DEFAULT_WORKER_ID = None  # Will use hostname if not specified
 DEFAULT_WORKER_POLL_INTERVAL_MS = 500  # Poll database every 500ms
 DEFAULT_WORKER_MAX_RETRIES = 3  # Max retries before marking task failed
+DEFAULT_WORKER_TASK_RETRY_BACKOFF_SECONDS = 60  # Seconds between retries on transient task failure
 DEFAULT_WORKER_HTTP_PORT = 8889  # HTTP port for worker metrics/health
 DEFAULT_WORKER_MAX_SLOTS = 10  # Total concurrent tasks per worker
 DEFAULT_RETAIN_MAX_CONCURRENT = 4  # Max concurrent retain DB phases (HNSW reads + writes). Limits I/O contention.
@@ -1237,6 +1244,7 @@ class HindsightConfig:
     consolidation_batch_size: int
     consolidation_max_memories_per_round: int
     consolidation_llm_batch_size: int
+    consolidation_llm_parallelism: int
     consolidation_max_tokens: int
     consolidation_recall_budget: str
     consolidation_source_facts_max_tokens: int
@@ -1299,6 +1307,7 @@ class HindsightConfig:
     worker_id: str | None
     worker_poll_interval_ms: int
     worker_max_retries: int
+    worker_task_retry_backoff_seconds: int
     worker_http_port: int
     worker_max_slots: int
     worker_slot_reservations: dict[str, int]
@@ -1404,6 +1413,7 @@ class HindsightConfig:
         "enable_observations",
         "enable_auto_consolidation",
         "consolidation_llm_batch_size",
+        "consolidation_llm_parallelism",
         "consolidation_max_memories_per_round",
         "consolidation_source_facts_max_tokens",
         "consolidation_source_facts_max_tokens_per_observation",
@@ -2028,6 +2038,15 @@ class HindsightConfig:
             consolidation_llm_batch_size=int(
                 os.getenv(ENV_CONSOLIDATION_LLM_BATCH_SIZE, str(DEFAULT_CONSOLIDATION_LLM_BATCH_SIZE))
             ),
+            consolidation_llm_parallelism=max(
+                1,
+                int(
+                    os.getenv(
+                        ENV_CONSOLIDATION_LLM_PARALLELISM,
+                        str(DEFAULT_CONSOLIDATION_LLM_PARALLELISM),
+                    )
+                ),
+            ),
             consolidation_max_tokens=int(
                 os.getenv(ENV_CONSOLIDATION_MAX_TOKENS, str(DEFAULT_CONSOLIDATION_MAX_TOKENS))
             ),
@@ -2063,6 +2082,12 @@ class HindsightConfig:
             worker_id=os.getenv(ENV_WORKER_ID) or DEFAULT_WORKER_ID,
             worker_poll_interval_ms=int(os.getenv(ENV_WORKER_POLL_INTERVAL_MS, str(DEFAULT_WORKER_POLL_INTERVAL_MS))),
             worker_max_retries=int(os.getenv(ENV_WORKER_MAX_RETRIES, str(DEFAULT_WORKER_MAX_RETRIES))),
+            worker_task_retry_backoff_seconds=int(
+                os.getenv(
+                    ENV_WORKER_TASK_RETRY_BACKOFF_SECONDS,
+                    str(DEFAULT_WORKER_TASK_RETRY_BACKOFF_SECONDS),
+                )
+            ),
             worker_http_port=int(os.getenv(ENV_WORKER_HTTP_PORT, str(DEFAULT_WORKER_HTTP_PORT))),
             worker_max_slots=int(os.getenv(ENV_WORKER_MAX_SLOTS, str(DEFAULT_WORKER_MAX_SLOTS))),
             worker_slot_reservations={

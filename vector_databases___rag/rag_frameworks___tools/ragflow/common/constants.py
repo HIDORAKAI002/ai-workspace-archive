@@ -154,6 +154,8 @@ class FileSource(StrEnum):
     MYSQL = "mysql"
     POSTGRESQL = "postgresql"
     DINGTALK_AI_TABLE = "dingtalk_ai_table"
+    ONEDRIVE = "onedrive"
+    OUTLOOK = "outlook"
 
 
 class PipelineTaskType(StrEnum):

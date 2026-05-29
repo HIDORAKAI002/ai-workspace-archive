@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-05-29 23:37 IST] Auto-Sync
+- **40 Repositories Updated:** MCP Python SDK, MCP TypeScript SDK, Tavily MCP, Langfuse, Promptfoo, n8n, Dify, Windmill, Appsmith, Budibase, Directus, modelcontextprotocol/rust-sdk, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langgraph, run-llama/llama_index, pydantic/pydantic-ai, mastra-ai/mastra, deepset-ai/haystack, VoltAgent, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, weaviate/weaviate, pinecone-io/pinecone-python-client, infiniflow/ragflow, arize-ai/phoenix, firecrawl/firecrawl, PrefectHQ/prefect, dagster-io/dagster, unslothai/unsloth, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow, nousresearch/hermes-agent
+
 ## [2026-05-29 16:54 IST] Auto-Sync
 - **32 Repositories Updated:** Public APIs Directory, GitHub MCP Server, Awesome ChatGPT Prompts, Langfuse, Promptfoo, n8n, Dify, Trigger.dev, NocoDB, Directus, Claude Skills, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, huggingface/smolagents, BerriAI/litellm, ggml-org/llama.cpp, deepspeedai/DeepSpeed, vllm-project/vllm, lobehub/lobe-chat, chroma-core/chroma, milvus-io/milvus, weaviate/weaviate, infiniflow/ragflow, danny-avila/LibreChat, apache/airflow, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, vectorize-io/hindsight, bytedance/deer-flow, nousresearch/hermes-agent
 
