@@ -137,6 +137,13 @@ function resolveBytePlusDurationSeconds(value: unknown): number | undefined {
   });
 }
 
+function readBytePlusDurationSeconds(value: unknown): number | undefined {
+  return asSafeIntegerInRange(value, {
+    min: BYTEPLUS_MIN_DURATION_SECONDS,
+    max: BYTEPLUS_MAX_DURATION_SECONDS,
+  });
+}
+
 async function pollBytePlusTask(params: {
   taskId: string;
   headers: Headers;
@@ -396,7 +403,7 @@ export function buildBytePlusVideoGenerationProvider(): VideoGenerationProvider 
             videoUrl,
             ratio: normalizeOptionalString(completed.ratio),
             resolution: normalizeOptionalString(completed.resolution),
-            duration: typeof completed.duration === "number" ? completed.duration : undefined,
+            duration: readBytePlusDurationSeconds(completed.duration),
           },
         };
       } finally {
