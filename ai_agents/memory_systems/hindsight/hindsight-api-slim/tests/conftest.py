@@ -95,7 +95,14 @@ def pg0_db_url(db_url, tmp_path_factory, worker_id):
             url = url_file.read_text().strip()
         else:
             # First worker - start pg0
-            pg0 = EmbeddedPostgres(name=pg0_instance_name, port=pg0_instance_port)
+            # Bump max_connections so 8 xdist workers * pool_max_size=15 fits well
+            # under the cap (postgres default is 100, which is easy to exhaust now
+            # that consolidation_llm_parallelism=4 increases peak conns per op).
+            pg0 = EmbeddedPostgres(
+                name=pg0_instance_name,
+                port=pg0_instance_port,
+                config={"max_connections": "300"},
+            )
 
             # Run ensure_running in a new event loop
             loop = asyncio.new_event_loop()
@@ -308,7 +315,7 @@ async def oracle_memory(oracle_db_url, embeddings, cross_encoder, query_analyzer
             cross_encoder=cross_encoder,
             query_analyzer=query_analyzer,
             pool_min_size=1,
-            pool_max_size=5,
+            pool_max_size=15,
             run_migrations=False,  # Already ran above
             task_backend=SyncTaskBackend(),
         )
@@ -430,7 +437,7 @@ async def memory(pg0_db_url, embeddings, cross_encoder, query_analyzer):
         cross_encoder=cross_encoder,
         query_analyzer=query_analyzer,
         pool_min_size=1,
-        pool_max_size=5,
+        pool_max_size=15,
         run_migrations=False,
         task_backend=SyncTaskBackend(),
     )
@@ -463,7 +470,7 @@ async def memory_real_llm(pg0_db_url, embeddings, cross_encoder, query_analyzer)
         cross_encoder=cross_encoder,
         query_analyzer=query_analyzer,
         pool_min_size=1,
-        pool_max_size=5,
+        pool_max_size=15,
         run_migrations=False,
         task_backend=SyncTaskBackend(),
     )
@@ -493,7 +500,7 @@ async def memory_no_llm_verify(pg0_db_url, embeddings, cross_encoder, query_anal
         cross_encoder=cross_encoder,
         query_analyzer=query_analyzer,
         pool_min_size=1,
-        pool_max_size=5,
+        pool_max_size=15,
         run_migrations=False,
         task_backend=SyncTaskBackend(),
         skip_llm_verification=True,  # Skip verification - will be overridden by test

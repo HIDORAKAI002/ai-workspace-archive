@@ -13,6 +13,7 @@ import { hideBin } from 'yargs/helpers';
 dotenv.config();
 
 const API_KEY = process.env.TAVILY_API_KEY;
+const IS_KEYLESS = !API_KEY;
 const HUMAN_ID = process.env.TAVILY_HUMAN_ID;
 const SESSION_ID = randomUUID();
 
@@ -84,7 +85,7 @@ class TavilyClient {
     this.server = new Server(
       {
         name: "tavily-mcp",
-        version: "0.2.19",
+        version: "0.2.20",
       },
       {
         capabilities: {
@@ -97,12 +98,17 @@ class TavilyClient {
       headers: {
         'accept': 'application/json',
         'content-type': 'application/json',
-        'Authorization': `Bearer ${API_KEY}`,
-        'X-Client-Source': 'MCP',
+        ...(IS_KEYLESS
+          ? { 'X-Tavily-Access-Mode': 'keyless', 'X-Client-Source': 'tavily-mcp-keyless' }
+          : { 'Authorization': `Bearer ${API_KEY}`, 'X-Client-Source': 'MCP' }),
         'X-Session-Id': SESSION_ID,
         ...(HUMAN_ID ? { 'X-Human-Id': HUMAN_ID } : {}),
       }
     });
+
+    if (IS_KEYLESS) {
+      console.error('[tavily-mcp] no TAVILY_API_KEY set; running in keyless mode. Search and extract are available; other tools will return a message explaining that an API key is required.');
+    }
 
     this.setupHandlers();
     this.setupErrorHandling();
@@ -437,14 +443,6 @@ class TavilyClient {
     });
 
     this.server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
-      // Check for API key at request time and return proper JSON-RPC error
-      if (!API_KEY) {
-        throw new McpError(
-          ErrorCode.InvalidRequest,
-          "TAVILY_API_KEY environment variable is required. Please set it before using this MCP server."
-        );
-      }
-
       try {
         let response: TavilyResponse;
         const args = request.params.arguments ?? {};
@@ -553,6 +551,14 @@ class TavilyClient {
         };
       } catch (error: any) {
         if (axios.isAxiosError(error)) {
+          if (isKeylessEnvelope(error.response?.data)) {
+            return {
+              content: [{
+                type: "text",
+                text: formatKeylessEnvelope(error.response!.data)
+              }]
+            };
+          }
           const toolName = request.params.name?.replace('tavily_', '') || '';
           const docsUrl = this.docsURLs[toolName] || '';
           const responseData = error.response?.data;
@@ -582,9 +588,8 @@ class TavilyClient {
   }
 
   async search(params: any): Promise<TavilyResponse> {
-    try {
       const endpoint = this.baseURLs.search;
-      
+
       const defaults = this.getDefaultParameters();
       
       // Prepare the request payload
@@ -604,7 +609,7 @@ class TavilyClient {
         start_date: params.start_date,
         end_date: params.end_date,
         exact_match: params.exact_match,
-        api_key: API_KEY,
+        ...(IS_KEYLESS ? {} : { api_key: API_KEY }),
       };
       
       // Apply default parameters
@@ -634,65 +639,30 @@ class TavilyClient {
       
       const response = await this.axiosInstance.post(endpoint, cleanedParams);
       return response.data;
-    } catch (error: any) {
-      if (error.response?.status === 401) {
-        throw new Error(`Invalid API key. Documentation: ${this.docsURLs.search}`);
-      } else if (error.response?.status === 429) {
-        throw new Error(`Usage limit exceeded. Documentation: ${this.docsURLs.search}`);
-      }
-      throw error;
-    }
   }
 
   async extract(params: any): Promise<TavilyResponse> {
-    try {
-      const response = await this.axiosInstance.post(this.baseURLs.extract, {
-        ...params,
-        api_key: API_KEY
-      });
-      return response.data;
-    } catch (error: any) {
-      if (error.response?.status === 401) {
-        throw new Error(`Invalid API key. Documentation: ${this.docsURLs.extract}`);
-      } else if (error.response?.status === 429) {
-        throw new Error(`Usage limit exceeded. Documentation: ${this.docsURLs.extract}`);
-      }
-      throw error;
-    }
+    const response = await this.axiosInstance.post(this.baseURLs.extract, {
+      ...params,
+      ...(IS_KEYLESS ? {} : { api_key: API_KEY })
+    });
+    return response.data;
   }
 
   async crawl(params: any): Promise<TavilyCrawlResponse> {
-    try {
-      const response = await this.axiosInstance.post(this.baseURLs.crawl, {
-        ...params,
-        api_key: API_KEY
-      });
-      return response.data;
-    } catch (error: any) {
-      if (error.response?.status === 401) {
-        throw new Error(`Invalid API key. Documentation: ${this.docsURLs.crawl}`);
-      } else if (error.response?.status === 429) {
-        throw new Error(`Usage limit exceeded. Documentation: ${this.docsURLs.crawl}`);
-      }
-      throw error;
-    }
+    const response = await this.axiosInstance.post(this.baseURLs.crawl, {
+      ...params,
+      ...(IS_KEYLESS ? {} : { api_key: API_KEY })
+    });
+    return response.data;
   }
 
   async map(params: any): Promise<TavilyMapResponse> {
-    try {
-      const response = await this.axiosInstance.post(this.baseURLs.map, {
-        ...params,
-        api_key: API_KEY
-      });
-      return response.data;
-    } catch (error: any) {
-      if (error.response?.status === 401) {
-        throw new Error(`Invalid API key. Documentation: ${this.docsURLs.map}`);
-      } else if (error.response?.status === 429) {
-        throw new Error(`Usage limit exceeded. Documentation: ${this.docsURLs.map}`);
-      }
-      throw error;
-    }
+    const response = await this.axiosInstance.post(this.baseURLs.map, {
+      ...params,
+      ...(IS_KEYLESS ? {} : { api_key: API_KEY })
+    });
+    return response.data;
   }
 
   async research(params: any): Promise<TavilyResearchResponse> {
@@ -706,7 +676,7 @@ class TavilyClient {
       const response = await this.axiosInstance.post(this.baseURLs.research, {
         input: params.input,
         model: params.model || 'auto',
-        api_key: API_KEY
+        ...(IS_KEYLESS ? {} : { api_key: API_KEY })
       });
 
       const requestId = response.data.request_id;
@@ -764,6 +734,40 @@ class TavilyClient {
       throw error;
     }
   }
+}
+
+function isKeylessEnvelope(data: any): boolean {
+  // Recognises the Tavily API's recoverable-error envelope shape.
+  // Used for keyless rate-limit caps and endpoints that require an API key.
+  return !!(data && typeof data === 'object'
+    && data.error && typeof data.error === 'object'
+    && typeof data.error.code === 'string');
+}
+
+function formatKeylessEnvelope(data: any): string {
+  // Render the Tavily API's recoverable-error envelope as plain text:
+  // the natural-language message, followed by retry-after (when present).
+  const err = data.error;
+  const lines: string[] = [String(err.message ?? '')];
+  if (err.retry_after_seconds != null) {
+    lines.push(`Retry after: ${err.retry_after_seconds}s`);
+  }
+  if (Array.isArray(err.next_actions) && err.next_actions.length > 0) {
+    lines.push('', 'Continuation options:');
+    for (const a of err.next_actions) {
+      if (a?.type === 'agentic_payment') {
+        lines.push(`- Agentic payment (${a.scheme ?? 'x402'}): ${a.details ?? ''}`);
+      } else if (a?.type === 'signup') {
+        lines.push(`- Sign up for a Tavily API key: ${a.url ?? ''}`);
+      } else if (a?.type === 'bonus_credits' && a.eligible) {
+        lines.push(`- Earn ${a.credits_on_completion ?? ''} bonus credits by POSTing answers to ${a.endpoint ?? ''}`);
+        if (Array.isArray(a.questions)) {
+          a.questions.forEach((q: string, i: number) => lines.push(`    ${i + 1}. ${q}`));
+        }
+      }
+    }
+  }
+  return lines.filter(Boolean).join('\n');
 }
 
 function formatResults(response: TavilyResponse): string {
