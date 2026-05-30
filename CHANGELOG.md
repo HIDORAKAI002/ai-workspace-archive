@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-05-30 06:18 IST] Auto-Sync
+- **38 Repositories Updated:** MCP TypeScript SDK, GitHub MCP Server, Promptfoo, NVIDIA NeMo Guardrails, n8n, Flowise, Langflow, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langchain, langchain-ai/langgraph, crewAIInc/crewAI, run-llama/llama_index, openai/openai-agents-python, pydantic/pydantic-ai, mastra-ai/mastra, BerriAI/litellm, ollama/ollama, ggml-org/llama.cpp, vllm-project/vllm, anthropics/claude-code, chroma-core/chroma, pinecone-io/pinecone-python-client, Arize-ai/openinference, abi/screenshot-to-code, firecrawl/firecrawl, danny-avila/LibreChat, google-gemini/gemini-cli, googleapis/python-genai, vercel/ai, apache/airflow, sgl-project/sglang, openclaw/openclaw, obra/superpowers, mastra-ai/mastra, nousresearch/hermes-agent
+
 ## [2026-05-29 23:37 IST] Auto-Sync
 - **40 Repositories Updated:** MCP Python SDK, MCP TypeScript SDK, Tavily MCP, Langfuse, Promptfoo, n8n, Dify, Windmill, Appsmith, Budibase, Directus, modelcontextprotocol/rust-sdk, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langgraph, run-llama/llama_index, pydantic/pydantic-ai, mastra-ai/mastra, deepset-ai/haystack, VoltAgent, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, weaviate/weaviate, pinecone-io/pinecone-python-client, infiniflow/ragflow, arize-ai/phoenix, firecrawl/firecrawl, PrefectHQ/prefect, dagster-io/dagster, unslothai/unsloth, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow, nousresearch/hermes-agent
 
