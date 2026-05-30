@@ -106,6 +106,18 @@ Available on:
 
 
 
+## 📑 Free write-ups for each technique
+
+Companion explainers on DiamantAI break down each technique with intuition and runnable examples:
+
+- [Introduction to prompt engineering](https://diamant-ai.com/tutorials/prompt-engineering-introduction-to-prompt-engineering)
+- [Basic prompt structures](https://diamant-ai.com/tutorials/prompt-engineering-basic-prompt-structures)
+- [Prompt templates and variables](https://diamant-ai.com/tutorials/prompt-engineering-prompt-templates-and-variables)
+- [Zero-shot prompting](https://diamant-ai.com/tutorials/prompt-engineering-zero-shot-prompting)
+- [**Browse all 38 prompt-engineering tutorials →**](https://diamant-ai.com/tutorials)
+
+Related deep dive: [Why AI experts are moving from prompt engineering to context engineering](https://diamant-ai.com/blog/why-ai-experts-are-moving-from-prompt-engineering-to-context-engineering)
+
 ## Related Projects
 
 🚀 Level up with my **[Agents Towards Production](https://github.com/NirDiamant/agents-towards-production)** repository. It delivers horizontal, code-first tutorials that cover every tool and step in the lifecycle of building production-grade GenAI agents, guiding you from spark to scale with proven patterns and reusable blueprints for real-world launches, making it the smartest place to start if you're serious about shipping agents to production.
@@ -113,6 +125,9 @@ Available on:
 📚 Explore my **[comprehensive guide on RAG techniques](https://github.com/NirDiamant/RAG_Techniques)** to learn how to enhance AI systems with external knowledge retrieval, complementing language model capabilities with rich, up-to-date information.
 
 🤖 Dive into my **[GenAI Agents Repository](https://github.com/NirDiamant/GenAI_Agents)** for a wide range of AI agent implementations and tutorials, from simple conversational bots to complex, multi-agent systems for various applications.
+
+
+🧠 Give your agents memory with **[Agent Memory Techniques](https://github.com/NirDiamant/Agent_Memory_Techniques)** — 30 runnable notebooks on conversation buffers, vector stores, knowledge graphs, episodic and semantic memory, plus Mem0, MemGPT/Letta, Zep, and Graphiti.
 
 ## A Community-Driven Knowledge Hub
 

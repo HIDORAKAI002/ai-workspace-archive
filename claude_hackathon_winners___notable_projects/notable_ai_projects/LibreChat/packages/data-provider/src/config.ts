@@ -1071,8 +1071,7 @@ export type TRumConfig = {
   enabled: boolean;
   url: string;
   serviceName: string;
-  authMode: 'publicToken' | 'userJwt';
-  authHeaderScheme?: 'Bearer' | 'Basic';
+  authMode: 'publicToken';
   publicToken?: string;
   tracePropagationTargets?: string[];
   consoleCapture?: boolean;
@@ -1081,6 +1080,8 @@ export type TRumConfig = {
   sampleRate?: number;
   environment?: string;
 };
+
+export type StartupConfigContext = 'share';
 
 export type TStartupConfig = {
   appTitle: string;
