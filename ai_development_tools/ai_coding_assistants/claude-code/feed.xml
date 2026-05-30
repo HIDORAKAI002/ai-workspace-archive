@@ -6,7 +6,46 @@
   <author><name>Anthropic</name></author>
   <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md"/>
   <link rel="self" type="application/atom+xml" href="https://raw.githubusercontent.com/anthropics/claude-code/main/feed.xml"/>
-  <updated>2026-05-29T01:42:17Z</updated>
+  <updated>2026-05-29T20:20:32Z</updated>
+  <entry>
+    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.157</id>
+    <title>Claude Code v2.1.157</title>
+    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.157"/>
+    <updated>2026-05-29T20:20:32Z</updated>
+    <content type="html">&lt;p&gt;• Plugins in .claude/skills directories are now automatically loaded, no marketplace required&lt;/p&gt;
+&lt;p&gt;• Added claude plugin init &amp;lt;name&amp;gt; to scaffold a new plugin in .claude/skills&lt;/p&gt;
+&lt;p&gt;• Added autocomplete for /plugin arguments: subcommands, installed plugin names, and plugins from known marketplaces&lt;/p&gt;
+&lt;p&gt;• claude agents: the agent field in settings.json is now honored for dispatched sessions, with --agent &amp;lt;name&amp;gt; to override it&lt;/p&gt;
+&lt;p&gt;• EnterWorktree can now switch between Claude-managed worktrees mid-session&lt;/p&gt;
+&lt;p&gt;• tool_decision telemetry events now include tool_parameters (bash commands, MCP/skill names) when OTEL_LOG_TOOL_DETAILS=1&lt;/p&gt;
+&lt;p&gt;• Worktrees managed by Claude are now left unlocked when the agent finishes, so git worktree remove/prune can clean them up&lt;/p&gt;
+&lt;p&gt;• Fixed unprocessable images (zero-byte, corrupt) attached via paste, MCP, or dialog crashing the request instead of becoming a text placeholder&lt;/p&gt;
+&lt;p&gt;• Fixed sandbox network permission prompts appearing in auto and bypass-permissions mode when using the desktop app, IDE extensions, or SDK&lt;/p&gt;
+&lt;p&gt;• Fixed claude agents completed sessions not retiring when an idle subagent was still parked or had leaked a backgrounded shell&lt;/p&gt;
+&lt;p&gt;• Fixed claude agents pressing Esc not cancelling a slow "opening…", leaving the list unresponsive&lt;/p&gt;
+&lt;p&gt;• Fixed background agent worktrees under .claude/worktrees/ being orphaned after the 30-day job retention sweep&lt;/p&gt;
+&lt;p&gt;• Fixed background sessions re-attached after a sleep/wake not telling the model the correct date&lt;/p&gt;
+&lt;p&gt;• Fixed copy-on-select in claude agents not reaching the system clipboard inside tmux with set-clipboard on (regression in 2.1.153)&lt;/p&gt;
+&lt;p&gt;• Fixed --resume not reporting background subagents that were running when the previous Claude Code process exited&lt;/p&gt;
+&lt;p&gt;• Fixed the --resume session picker leaving its contents on the terminal after exiting in fullscreen mode&lt;/p&gt;
+&lt;p&gt;• Fixed --worktree and --worktree --tmux returning to the canonical repo root instead of the current linked worktree&lt;/p&gt;
+&lt;p&gt;• Fixed the /model picker showing an incorrect "Newer version available" hint when the selected model is already the newest in its family; the pinned-model row now shows the model's description instead of its raw ID&lt;/p&gt;
+&lt;p&gt;• Fixed literal markdown markers (backticks, asterisks) appearing in the in-progress message text in fullscreen mode&lt;/p&gt;
+&lt;p&gt;• Fixed the terminal freezing after approving the managed-settings security dialog at startup&lt;/p&gt;
+&lt;p&gt;• Fixed a rare duplicate line appearing in scrollback after the terminal UI redraws&lt;/p&gt;
+&lt;p&gt;• Fixed right-click paste duplicating the clipboard in the VS Code, Cursor, and Windsurf integrated terminals&lt;/p&gt;
+&lt;p&gt;• WSL: fixed image paste (alt+v keybinding), screenshot paste on Windows 11, and added support for dragging images from Windows Explorer&lt;/p&gt;
+&lt;p&gt;• Improved performance of long and resumed conversations by eliminating redundant message-rendering recomputations&lt;/p&gt;
+&lt;p&gt;• /terminal-setup now disables GPU acceleration in VS Code/Cursor/Windsurf integrated terminals to prevent garbled-text rendering&lt;/p&gt;
+&lt;p&gt;• The Feature of the Week credit-claim status now appears as a notification in the status area instead of a line above the prompt&lt;/p&gt;
+&lt;p&gt;• claude agents: slash-command autocomplete in the dispatch input now matches substrings&lt;/p&gt;
+&lt;p&gt;• Removed the "bash commands will be sandboxed" startup banner — sandbox status still shows in /status and when a command is blocked&lt;/p&gt;
+&lt;p&gt;• Removed the "/ide for …" startup hint toast&lt;/p&gt;
+&lt;p&gt;• [IDE] Fixed clicking Stop while a background subagent is running not actually stopping it&lt;/p&gt;
+&lt;p&gt;• [VSCode] Fixed the fast mode indicator not appearing on Opus 4.8&lt;/p&gt;
+&lt;p&gt;• Pressing backspace right after a workflow trigger keyword now dismisses the workflow request (same as alt+w) instead of deleting a character&lt;/p&gt;
+&lt;p&gt;• Added a "Workflow keyword trigger" setting in /config to stop the word "workflow" in a prompt from triggering a dynamic workflow&lt;/p&gt;</content>
+  </entry>
   <entry>
     <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.156</id>
     <title>Claude Code v2.1.156</title>
@@ -617,39 +656,5 @@
 &lt;p&gt;• Fixed subagents not discovering project, user, or plugin skills via the Skill tool&lt;/p&gt;
 &lt;p&gt;• claude --help now lists --remote-control alongside --remote-control-session-name-prefix&lt;/p&gt;
 &lt;p&gt;• [VSCode] Fixed claudeCode.claudeProcessWrapper failing with "Unsupported platform" when the extension build doesn't bundle a Claude binary&lt;/p&gt;</content>
-  </entry>
-  <entry>
-    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.132</id>
-    <title>Claude Code v2.1.132</title>
-    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.132"/>
-    <updated>2026-05-18T01:52:01Z</updated>
-    <content type="html">&lt;p&gt;• Added CLAUDE_CODE_SESSION_ID environment variable to the Bash tool subprocess environment, matching the session_id passed to hooks&lt;/p&gt;
-&lt;p&gt;• Added CLAUDE_CODE_DISABLE_ALTERNATE_SCREEN=1 env var to opt out of the fullscreen alternate-screen renderer and keep the conversation in the terminal's native scrollback&lt;/p&gt;
-&lt;p&gt;• Added a "Pasting…" footer hint while a Ctrl+V image paste is being read from the clipboard&lt;/p&gt;
-&lt;p&gt;• Fixed external SIGINT (e.g. IDE stop button, kill -INT) not running graceful shutdown — terminal modes are now restored and the --resume hint is printed instead of an abrupt exit&lt;/p&gt;
-&lt;p&gt;• Fixed an uncaught exception when the terminal is closed or SSH disconnects mid-session under the native build&lt;/p&gt;
-&lt;p&gt;• Fixed --resume failing with no low surrogate in string when a tool error truncation split an emoji; pre-corrupted sessions are sanitized on load&lt;/p&gt;
-&lt;p&gt;• Fixed --permission-mode flag being ignored when resuming a plan-mode session with -p --continue/--resume, and plan mode not being re-applied after ExitPlanMode within the same session&lt;/p&gt;
-&lt;p&gt;• Fixed fullscreen mode showing a blank screen after laptop sleep/wake or Ctrl+Z/fg until the next keystroke or stream output&lt;/p&gt;
-&lt;p&gt;• Fixed cursor landing mid-grapheme on Ctrl+E/A/K/U/arrow keys when an Indic conjunct or ZWJ emoji wraps across lines&lt;/p&gt;
-&lt;p&gt;• Fixed vim operators corrupting text containing decomposed (NFD) accented characters&lt;/p&gt;
-&lt;p&gt;• Fixed pasting text starting with / silently swallowing the input or triggering an unknown-command reply&lt;/p&gt;
-&lt;p&gt;• Fixed pasting dumping stray escape sequences into the prompt when focus events or mouse-tracking reports interleave with the bracketed paste&lt;/p&gt;
-&lt;p&gt;• Fixed mouse wheel scrolling being too fast in Cursor and VS Code 1.92–1.104 due to an upstream xterm.js bug&lt;/p&gt;
-&lt;p&gt;• Fixed scroll-wheel handling in JetBrains IDE 2025.2 terminals (spurious arrow keys, wrong-direction events, runaway acceleration)&lt;/p&gt;
-&lt;p&gt;• Fixed /usage Ctrl+S hanging when copying the stats screenshot to the clipboard on Linux/X11&lt;/p&gt;
-&lt;p&gt;• Fixed /terminal-setup showing a contradictory error in Windows Terminal — Shift+Enter is natively supported there&lt;/p&gt;
-&lt;p&gt;• Fixed /effort picker not reflecting the CLAUDE_CODE_EFFORT_LEVEL env var override&lt;/p&gt;
-&lt;p&gt;• Fixed /status showing the wrong default model for some users&lt;/p&gt;
-&lt;p&gt;• Fixed slash command autocomplete popup being capped at ~3–5 visible commands instead of scaling with terminal height&lt;/p&gt;
-&lt;p&gt;• Fixed statusline context_window token counts reflecting cumulative session totals instead of current context usage&lt;/p&gt;
-&lt;p&gt;• Fixed Alt+T (thinking toggle) not working on macOS terminals without "Option as Meta" enabled (iTerm2, Terminal.app defaults)&lt;/p&gt;
-&lt;p&gt;• Fixed dead keyboard input on Windows after re-opening a background session from claude agents&lt;/p&gt;
-&lt;p&gt;• Fixed unbounded memory growth (10GB+ RSS) when a stdio MCP server writes non-protocol data to stdout&lt;/p&gt;
-&lt;p&gt;• Fixed MCP servers that connect but fail tools/list silently showing 0 tools — they now retry once and show "connected · tools fetch failed" in /mcp&lt;/p&gt;
-&lt;p&gt;• Fixed unauthorized claude.ai MCP connectors showing as "failed" instead of "needs auth", and headless -p mode retrying non-transient 4xx connection failures&lt;/p&gt;
-&lt;p&gt;• Improved visual consistency in slash command dialogs and /login, /upgrade, /extra-usage dialog spacing&lt;/p&gt;
-&lt;p&gt;• Updated the /tui fullscreen startup banner to describe additional renderer benefits (lower memory usage, mouse support, auto-copy on select)&lt;/p&gt;
-&lt;p&gt;• Fixed Bedrock and Vertex 400 errors when ENABLE_PROMPT_CACHING_1H is set&lt;/p&gt;</content>
   </entry>
 </feed>
