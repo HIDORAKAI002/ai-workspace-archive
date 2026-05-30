@@ -12,13 +12,14 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     import pandas as pd  # type: ignore[import-untyped]
 
+from pinecone._internal.adapters.imports_adapter import ImportsAdapter
 from pinecone._internal.adapters.vectors_adapter import VectorsAdapter, extract_response_info
 from pinecone._internal.batch import batch_execute
 from pinecone._internal.batching import chunked, validate_batch_size, with_progress
 from pinecone._internal.config import PineconeConfig
 from pinecone._internal.constants import DATA_PLANE_API_VERSION
-from pinecone._internal.data_plane_helpers import _validate_host
-from pinecone._internal.validation import require_in_range
+from pinecone._internal.data_plane_helpers import _build_search_records_body, _validate_host
+from pinecone._internal.validation import require_in_range, require_positive
 from pinecone._internal.vector_factory import VectorFactory
 from pinecone.errors.exceptions import (
     PineconeValueError,
@@ -26,6 +27,8 @@ from pinecone.errors.exceptions import (
 )
 from pinecone.grpc._protocol import GrpcChannelProtocol
 from pinecone.grpc.future import PineconeFuture
+from pinecone.models.imports.list import ImportList
+from pinecone.models.imports.model import ImportModel, StartImportResponse
 from pinecone.models.namespaces.models import (
     IndexedFields,
     ListNamespacesResponse,
@@ -33,8 +36,10 @@ from pinecone.models.namespaces.models import (
     NamespaceFieldConfig,
     NamespaceSchema,
 )
+from pinecone.models.vectors.query_aggregator import QueryNamespacesResults, QueryResultsAggregator
 from pinecone.models.vectors.responses import (
     DescribeIndexStatsResponse,
+    FetchByMetadataResponse,
     FetchResponse,
     ListItem,
     ListResponse,
@@ -45,7 +50,12 @@ from pinecone.models.vectors.responses import (
     UpsertRecordsResponse,
     UpsertResponse,
 )
-from pinecone.models.vectors.search import RerankConfig, SearchInputs, SearchRecordsResponse
+from pinecone.models.vectors.search import (
+    RerankConfig,
+    SearchInputs,
+    SearchQuery,
+    SearchRecordsResponse,
+)
 from pinecone.models.vectors.sparse import SparseValues
 from pinecone.models.vectors.usage import Usage
 from pinecone.models.vectors.vector import ScoredVector, Vector
@@ -234,6 +244,7 @@ class GrpcIndex:
         )
         self._http = HTTPClient(rest_config, DATA_PLANE_API_VERSION)
         self._adapter = VectorsAdapter()
+        self._imports_adapter = ImportsAdapter()
 
         logger.info("GrpcIndex client created for host %s", self._host)
 
@@ -470,6 +481,117 @@ class GrpcIndex:
             usage=usage,
         )
 
+    def query_namespaces(
+        self,
+        *,
+        vector: Sequence[float] | None = None,
+        namespaces: Sequence[str],
+        metric: str,
+        top_k: int | None = None,
+        filter: Mapping[str, Any] | None = None,
+        include_values: bool = False,
+        include_metadata: bool = False,
+        sparse_vector: SparseValues | Mapping[str, Any] | None = None,
+        scan_factor: float | None = None,
+        max_candidates: int | None = None,
+        timeout: float | None = None,
+    ) -> QueryNamespacesResults:
+        """Query multiple namespaces in parallel and return merged top results.
+
+        Fans out individual ``query()`` calls across all given namespaces
+        using a thread pool, then merges results via a heap-based aggregator
+        that returns the overall top-k matches ranked by the specified metric.
+
+        Args:
+            vector: Dense query vector values. Required for dense and hybrid
+                indexes; omit for sparse-only indexes (use *sparse_vector* instead).
+            namespaces: Namespaces to query (must be non-empty). Duplicates
+                are removed while preserving order.
+            metric: Distance metric — ``"cosine"``, ``"euclidean"``, or
+                ``"dotproduct"``.
+            top_k: Maximum number of results to return. Defaults to 10.
+            filter: Metadata filter expression applied to every namespace.
+            include_values: Whether to include vector values in results.
+            include_metadata: Whether to include metadata in results.
+            sparse_vector: Sparse query vector with indices and values.
+                Required for sparse-only indexes when *vector* is omitted.
+            scan_factor: DRN performance tuning — controls how much of the
+                index is scanned during a query. Higher values scan more
+                data and may improve recall at the cost of latency.
+            max_candidates: DRN performance tuning — maximum number of
+                candidate vectors to consider during the search phase.
+
+        Returns:
+            :class:`QueryNamespacesResults` with the merged top-k matches, total
+            usage, and per-namespace usage.
+
+        Raises:
+            :exc:`PineconeValueError`: If *namespaces* is empty, or if both
+                *vector* and *sparse_vector* are absent/empty.
+            :exc:`ValueError`: If *metric* is not a recognized value.
+            :exc:`ApiError`: If any individual namespace query fails.
+            :exc:`PineconeConnectionError`: If a network-level connection
+                fails (DNS, refused, transport error).
+            :exc:`PineconeTimeoutError`: If the request exceeds the configured timeout.
+
+        Examples:
+
+            .. code-block:: python
+
+                # Dense query
+                results = idx.query_namespaces(
+                    vector=[0.012, -0.087, 0.153],  # truncated; use your actual dimension
+                    namespaces=["articles-en", "articles-fr", "articles-de"],
+                    metric="cosine",
+                    top_k=10,
+                )
+
+                # Sparse-only query (sparse index)
+                results = idx.query_namespaces(
+                    sparse_vector={"indices": [0, 1, 2], "values": [0.1, 0.2, 0.3]},
+                    namespaces=["docs-en", "docs-fr"],
+                    metric="dotproduct",
+                    top_k=10,
+                )
+
+                for match in results.matches:
+                    print(match.id, match.score)
+        """
+        if not namespaces:
+            raise ValidationError("namespaces must be a non-empty list")
+        if not vector and not sparse_vector:
+            raise ValidationError("at least one of 'vector' or 'sparse_vector' must be provided")
+
+        valid_metrics = {"cosine", "euclidean", "dotproduct"}
+        if metric not in valid_metrics:
+            raise ValidationError(
+                f"Invalid metric {metric!r}. Must be one of: {', '.join(sorted(valid_metrics))}"
+            )
+
+        namespaces = list(dict.fromkeys(namespaces))
+        effective_top_k = top_k if top_k is not None else 10
+        aggregator = QueryResultsAggregator(metric=metric, top_k=effective_top_k)
+
+        query_kwargs: dict[str, Any] = {
+            "top_k": effective_top_k,
+            "filter": filter,
+            "include_values": include_values,
+            "include_metadata": include_metadata,
+            "sparse_vector": sparse_vector,
+            "scan_factor": scan_factor,
+            "max_candidates": max_candidates,
+            "timeout": timeout,
+        }
+        if vector is not None:
+            query_kwargs["vector"] = vector
+
+        with ThreadPoolExecutor(max_workers=min(len(namespaces), 32)) as pool:
+            futures = [pool.submit(self.query, namespace=ns, **query_kwargs) for ns in namespaces]
+            for ns, future in zip(namespaces, futures, strict=True):
+                aggregator.add_results(ns, future.result())
+
+        return aggregator.get_results()
+
     def fetch(
         self,
         *,
@@ -517,6 +639,51 @@ class GrpcIndex:
             namespace=result.get("namespace", ""),
             usage=usage,
         )
+
+    def fetch_by_metadata(
+        self,
+        *,
+        filter: Mapping[str, Any],
+        namespace: str = "",
+        limit: int | None = None,
+        pagination_token: str | None = None,
+        timeout: float | None = None,
+    ) -> FetchByMetadataResponse:
+        """Fetch vectors matching a metadata filter expression.
+
+        Delegates to the REST endpoint because the Pinecone gRPC API does not
+        expose a fetch-by-metadata operation.
+
+        Args:
+            filter: Metadata filter expression (required).
+            namespace: Namespace to fetch from. Defaults to the default namespace.
+            limit: Maximum number of vectors to return per page. When ``None``,
+                the server default (100) is used.
+            pagination_token: Token from a previous response to fetch the next page.
+            timeout (float | None): Per-call timeout in seconds.
+
+        Returns:
+            :class:`FetchByMetadataResponse` with matched vectors, namespace, usage,
+            and pagination token for the next page (if any).
+
+        Raises:
+            :exc:`ApiError`: If the API returns an error response.
+        """
+        if limit is not None:
+            require_positive("limit", limit)
+        body: dict[str, Any] = {"filter": filter}
+        if namespace:
+            body["namespace"] = namespace
+        if limit is not None:
+            body["limit"] = limit
+        if pagination_token is not None:
+            body["paginationToken"] = pagination_token
+
+        logger.info("Fetching vectors by metadata (via REST)")
+        response = self._http.post("/vectors/fetch_by_metadata", timeout=timeout, json=body)
+        result = self._adapter.to_fetch_by_metadata_response(response.content)
+        result.response_info = extract_response_info(response)
+        return result
 
     def delete(
         self,
@@ -1112,6 +1279,39 @@ class GrpcIndex:
             )
         )
 
+    def query_namespaces_async(
+        self,
+        *,
+        vector: Sequence[float] | None = None,
+        namespaces: Sequence[str],
+        metric: str,
+        top_k: int | None = None,
+        filter: Mapping[str, Any] | None = None,
+        include_values: bool = False,
+        include_metadata: bool = False,
+        sparse_vector: SparseValues | Mapping[str, Any] | None = None,
+        scan_factor: float | None = None,
+        max_candidates: int | None = None,
+        timeout: float | None = None,
+    ) -> PineconeFuture[QueryNamespacesResults]:
+        """Submit a query_namespaces call and return a :class:`PineconeFuture`."""
+        return PineconeFuture(
+            self._executor.submit(
+                self.query_namespaces,
+                vector=vector,
+                namespaces=namespaces,
+                metric=metric,
+                top_k=top_k,
+                filter=filter,
+                include_values=include_values,
+                include_metadata=include_metadata,
+                sparse_vector=sparse_vector,
+                scan_factor=scan_factor,
+                max_candidates=max_candidates,
+                timeout=timeout,
+            )
+        )
+
     def upsert_records(
         self,
         *,
@@ -1129,8 +1329,9 @@ class GrpcIndex:
             records: List of record dicts. Each must contain an ``_id`` or
                 ``id`` field. Additional fields are passed through for
                 server-side embedding.
-            namespace (str): Target namespace (required). Use ``""`` for the
-                default namespace.
+            namespace (str): Target namespace (required). Unlike :meth:`upsert`,
+                namespace has no default because the records API requires an
+                explicit namespace (must be non-empty).
 
         Returns:
             :class:`UpsertRecordsResponse` with the count of records submitted.
@@ -1198,14 +1399,15 @@ class GrpcIndex:
         self,
         *,
         namespace: str,
-        top_k: int,
+        top_k: int | None = None,
         inputs: SearchInputs | Mapping[str, Any] | None = None,
-        vector: Sequence[float] | None = None,
+        vector: Sequence[float] | Mapping[str, Any] | None = None,
         id: str | None = None,
         filter: Mapping[str, Any] | None = None,
         fields: Sequence[str] | None = None,
         rerank: RerankConfig | Mapping[str, Any] | None = None,
         match_terms: Mapping[str, Any] | None = None,
+        query: SearchQuery | Mapping[str, Any] | None = None,
         timeout: float | None = None,
     ) -> SearchRecordsResponse:
         """Search records by text, vector, or ID with optional reranking.
@@ -1236,6 +1438,9 @@ class GrpcIndex:
                 ``"all"``) and ``"terms"`` (list of strings). Only supported
                 for sparse indexes using ``pinecone-sparse-english-v0``.
                 ``None`` disables term matching.
+            query (dict[str, Any] | None): Legacy query body containing
+                ``top_k`` plus one of ``inputs``, ``vector``, or ``id``. Prefer
+                passing these fields directly.
 
         Returns:
             :class:`SearchRecordsResponse` with hits and usage statistics.
@@ -1286,37 +1491,24 @@ class GrpcIndex:
             raise ValidationError("namespace must be a string")
         if not namespace or not namespace.strip():
             raise ValidationError("namespace must be a non-empty string")
-        if top_k < 1:
-            raise ValidationError(f"top_k must be a positive integer, got {top_k}")
-        if rerank is not None:
-            if "model" not in rerank:
-                raise ValidationError("rerank requires 'model' to be specified")
-            if "rank_fields" not in rerank:
-                raise ValidationError("rerank requires 'rank_fields' to be specified")
-        if inputs is None and vector is None and id is None:
-            raise ValidationError(
-                "At least one of inputs, vector, or id must be provided as a query source"
-            )
+        body = _build_search_records_body(
+            method_name="GrpcIndex.search",
+            top_k=top_k,
+            inputs=inputs,
+            vector=vector,
+            id=id,
+            filter=filter,
+            fields=fields,
+            rerank=rerank,
+            match_terms=match_terms,
+            query=query,
+        )
 
-        query_body: dict[str, Any] = {"top_k": top_k}
-        if inputs is not None:
-            query_body["inputs"] = inputs
-        if vector is not None:
-            query_body["vector"] = vector
-        if id is not None:
-            query_body["id"] = id
-        if filter is not None:
-            query_body["filter"] = filter
-        if match_terms is not None:
-            query_body["match_terms"] = match_terms
-
-        body: dict[str, Any] = {"query": query_body}
-        if fields is not None:
-            body["fields"] = fields
-        if rerank is not None:
-            body["rerank"] = rerank
-
-        logger.info("Searching namespace %r with top_k=%d (via REST)", namespace, top_k)
+        logger.info(
+            "Searching namespace %r with top_k=%d (via REST)",
+            namespace,
+            body["query"]["top_k"],
+        )
         response = self._http.post(
             f"/records/namespaces/{namespace}/search", timeout=timeout, json=body
         )
@@ -1328,14 +1520,15 @@ class GrpcIndex:
         self,
         *,
         namespace: str,
-        top_k: int,
+        top_k: int | None = None,
         inputs: SearchInputs | Mapping[str, Any] | None = None,
-        vector: Sequence[float] | None = None,
+        vector: Sequence[float] | Mapping[str, Any] | None = None,
         id: str | None = None,
         filter: Mapping[str, Any] | None = None,
         fields: Sequence[str] | None = None,
         rerank: RerankConfig | Mapping[str, Any] | None = None,
         match_terms: Mapping[str, Any] | None = None,
+        query: SearchQuery | Mapping[str, Any] | None = None,
         timeout: float | None = None,
     ) -> SearchRecordsResponse:
         """Alias for :meth:`search`.
@@ -1352,6 +1545,7 @@ class GrpcIndex:
             fields=fields,
             rerank=rerank,
             match_terms=match_terms,
+            query=query,
             timeout=timeout,
         )
 
@@ -1544,6 +1738,247 @@ class GrpcIndex:
 
         logger.info("Deleting namespace %r via gRPC", effective)
         self._channel.delete_namespace(effective, timeout_s=timeout)
+
+    def _validate_import_id(self, id: str | int) -> str:
+        """Validate and normalize an import operation ID.
+
+        Args:
+            id: Import operation ID. If int, converted to str silently.
+
+        Returns:
+            The validated string ID.
+
+        Raises:
+            :exc:`PineconeValueError`: If the ID is empty or exceeds 1000 characters.
+        """
+        str_id = str(id) if isinstance(id, int) else id
+        if not str_id or len(str_id) > 1000:
+            raise ValidationError(
+                "import id must be between 1 and 1000 characters, "
+                f"got {len(str_id) if str_id else 0}"
+            )
+        return str_id
+
+    def start_import(
+        self,
+        uri: str,
+        *,
+        error_mode: str | None = None,
+        integration_id: str | None = None,
+    ) -> StartImportResponse:
+        """Start a bulk import operation from an external data source.
+
+        Initiates an asynchronous bulk import of vectors from cloud storage
+        into the index. The import runs server-side; use :meth:`describe_import`
+        to poll for progress and completion.
+
+        .. note::
+           The import URI must point to a directory of Parquet files in cloud
+           storage (``s3://`` or ``gs://``). Each Parquet file must follow the
+           Pinecone-required schema. See
+           `Pinecone import docs <https://docs.pinecone.io/guides/data/understanding-imports>`_
+           for the required Parquet schema and supported storage formats.
+
+        Args:
+            uri (str): Source URI for the import data (e.g.
+                ``"s3://my-bucket/vectors/"`` or ``"gs://my-bucket/vectors/"``).
+            error_mode (str | None): How to handle errors during import. Must be
+                ``"continue"`` or ``"abort"`` when supplied. Case-insensitive.
+                Optional; when omitted the backend default (``"continue"``) applies.
+            integration_id (str | None): Optional integration ID for the import.
+
+        Returns:
+            :class:`StartImportResponse` with the ID of the created import
+            operation.
+
+        Raises:
+            :exc:`PineconeValueError`: If ``error_mode`` is supplied but not
+                ``"continue"`` or ``"abort"``.
+            :exc:`ApiError`: If the API returns an error response.
+            :exc:`PineconeConnectionError`: If a network-level connection
+                fails (DNS, refused, transport error).
+            :exc:`PineconeTimeoutError`: If the request exceeds the configured timeout.
+
+        Examples:
+            .. code-block:: python
+
+                # Start an import and poll until complete
+                import time
+                response = idx.start_import(uri="s3://my-bucket/vectors/")
+                import_id = response.id
+
+                # Poll until the import finishes
+                import_op = idx.describe_import(import_id)
+                while import_op.status not in ("Completed", "Failed", "Cancelled"):
+                    time.sleep(10)
+                    import_op = idx.describe_import(import_id)
+                print(f"Status: {import_op.status}, records imported: {import_op.records_imported}")
+
+                # Abort on first error instead of continuing
+                response = idx.start_import(
+                    uri="s3://my-bucket/vectors/",
+                    error_mode="abort",
+                )
+
+        .. seealso::
+           - :meth:`upsert` — for upserting vectors directly in small
+             batches (single request per call).
+           - :meth:`upsert_records` — for indexes with integrated inference
+             (text in, server-side embedding).
+           - :meth:`upsert_from_dataframe` — for loading vectors from a
+             pandas DataFrame with automatic batching.
+        """
+        if error_mode is not None:
+            error_mode = error_mode.lower()
+            if error_mode not in ("continue", "abort"):
+                raise ValidationError(
+                    f"error_mode must be 'continue' or 'abort', got {error_mode!r}"
+                )
+
+        body: dict[str, Any] = {"uri": uri}
+        if error_mode is not None:
+            body["errorMode"] = {"onError": error_mode}
+        if integration_id is not None:
+            body["integrationId"] = integration_id
+
+        logger.info("Starting bulk import from %s", uri)
+        response = self._http.post("/bulk/imports", json=body)
+        return self._imports_adapter.to_start_import_response(response.content)
+
+    def describe_import(self, id: str | int) -> ImportModel:
+        """Describe a bulk import operation by ID.
+
+        Args:
+            id: Import operation ID. Integers are converted to strings silently.
+
+        Returns:
+            :class:`ImportModel` with the import operation details.
+
+        Raises:
+            :exc:`PineconeValueError`: If the ID is empty or exceeds 1000 characters.
+            :exc:`ApiError`: If the API returns an error response.
+            :exc:`PineconeConnectionError`: If a network-level connection
+                fails (DNS, refused, transport error).
+            :exc:`PineconeTimeoutError`: If the request exceeds the configured timeout.
+
+        Examples:
+            .. code-block:: python
+
+                import_op = idx.describe_import("import-123")
+                print(import_op.status, import_op.percent_complete)
+        """
+        str_id = self._validate_import_id(id)
+        logger.info("Describing import %s", str_id)
+        response = self._http.get(f"/bulk/imports/{str_id}")
+        return self._imports_adapter.to_import_model(response.content)
+
+    def cancel_import(self, id: str | int) -> None:
+        """Cancel a bulk import operation by ID.
+
+        Args:
+            id: Import operation ID. Integers are converted to strings silently.
+
+        Returns:
+            None — a successful cancellation returns no payload.
+
+        Raises:
+            :exc:`PineconeValueError`: If the ID is empty or exceeds 1000 characters.
+            :exc:`ApiError`: If the API returns an error response.
+            :exc:`PineconeConnectionError`: If a network-level connection
+                fails (DNS, refused, transport error).
+            :exc:`PineconeTimeoutError`: If the request exceeds the configured timeout.
+
+        Examples:
+            .. code-block:: python
+
+                idx.cancel_import("import-123")
+        """
+        str_id = self._validate_import_id(id)
+        logger.info("Cancelling import %s", str_id)
+        self._http.delete(f"/bulk/imports/{str_id}")
+
+    def list_imports(
+        self,
+        *,
+        limit: int | None = None,
+        pagination_token: str | None = None,
+    ) -> Iterator[ImportModel]:
+        """List bulk import operations, automatically following pagination.
+
+        Yields individual :class:`ImportModel` objects, fetching additional
+        pages transparently until all results have been returned.
+
+        Args:
+            limit (int | None): Maximum number of imports per page
+                (max 100, server default 100).
+            pagination_token (str | None): Token to resume pagination
+                from a previous call.
+
+        Yields:
+            :class:`ImportModel` for each import operation.
+
+        Raises:
+            :exc:`ApiError`: If the API returns an error response.
+
+        Examples:
+            .. code-block:: python
+
+                for imp in idx.list_imports():
+                    print(imp.id, imp.status)
+        """
+        params: dict[str, Any] = {}
+        if limit is not None:
+            params["limit"] = limit
+        if pagination_token is not None:
+            params["paginationToken"] = pagination_token
+
+        while True:
+            response = self._http.get("/bulk/imports", params=params)
+            import_list = self._imports_adapter.to_import_list(response.content)
+            yield from import_list
+            next_token = import_list.pagination.next if import_list.pagination else None
+            if next_token is None:
+                break
+            params["paginationToken"] = next_token
+
+    def list_imports_paginated(
+        self,
+        *,
+        limit: int | None = None,
+        pagination_token: str | None = None,
+    ) -> ImportList:
+        """Fetch a single page of bulk import operations.
+
+        Returns an :class:`ImportList` for one page. The caller is responsible
+        for managing the pagination token.
+
+        Args:
+            limit (int | None): Maximum number of imports to return in this page.
+            pagination_token (str | None): Token from a previous response to
+                fetch the next page.
+
+        Returns:
+            :class:`ImportList` with the import operations for the requested page.
+
+        Raises:
+            :exc:`ApiError`: If the API returns an error response.
+
+        Examples:
+
+            .. code-block:: python
+
+                page = idx.list_imports_paginated(limit=10)
+                for imp in page:
+                    print(imp.id, imp.status)
+        """
+        params: dict[str, Any] = {}
+        if limit is not None:
+            params["limit"] = limit
+        if pagination_token is not None:
+            params["paginationToken"] = pagination_token
+
+        response = self._http.get("/bulk/imports", params=params)
+        return self._imports_adapter.to_import_list(response.content)
 
     def close(self) -> None:
         """Close the underlying gRPC channel, REST client, and release resources."""

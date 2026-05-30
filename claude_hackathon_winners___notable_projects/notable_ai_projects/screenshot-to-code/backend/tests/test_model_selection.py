@@ -14,7 +14,7 @@ class TestModelSelectionAllKeys:
 
     @pytest.mark.asyncio
     async def test_gemini_anthropic_create(self):
-        """All keys: fixed order for four variants."""
+        """All keys text create: fixed order for four variants."""
         models = await self.model_selector.select_models(
             generation_type="create",
             input_mode="text",
@@ -32,6 +32,25 @@ class TestModelSelectionAllKeys:
         assert models == expected
 
     @pytest.mark.asyncio
+    async def test_gemini_anthropic_create_image(self):
+        """All keys image create: fixed order for four variants."""
+        models = await self.model_selector.select_models(
+            generation_type="create",
+            input_mode="image",
+            openai_api_key="key",
+            anthropic_api_key="key",
+            gemini_api_key="key",
+        )
+
+        expected = [
+            Llm.GEMINI_3_FLASH_PREVIEW_MINIMAL,
+            Llm.GPT_5_2_CODEX_HIGH,
+            Llm.GEMINI_3_FLASH_PREVIEW_HIGH,
+            Llm.GEMINI_3_1_PRO_PREVIEW_HIGH,
+        ]
+        assert models == expected
+
+    @pytest.mark.asyncio
     async def test_gemini_anthropic_update_text(self):
         """All keys text update: uses two fast edit variants."""
         models = await self.model_selector.select_models(
@@ -44,7 +63,7 @@ class TestModelSelectionAllKeys:
 
         expected = [
             Llm.GEMINI_3_FLASH_PREVIEW_MINIMAL,
-            Llm.GPT_5_4_2026_03_05_LOW,
+            Llm.GPT_5_4_MINI_LOW,
         ]
         assert models == expected
 
@@ -61,7 +80,7 @@ class TestModelSelectionAllKeys:
 
         expected = [
             Llm.GEMINI_3_FLASH_PREVIEW_MINIMAL,
-            Llm.GPT_5_4_2026_03_05_LOW,
+            Llm.GPT_5_4_MINI_LOW,
         ]
         assert models == expected
 
