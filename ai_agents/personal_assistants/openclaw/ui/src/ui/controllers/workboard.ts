@@ -191,6 +191,8 @@ export type WorkboardWorkspace = {
 
 export type WorkboardAutomation = {
   tenant?: string;
+  boardId?: string;
+  createdByCardId?: string;
   idempotencyKey?: string;
   skills?: string[];
   workspace?: WorkboardWorkspace;
@@ -448,6 +450,10 @@ function normalizeAutomation(value: unknown): WorkboardAutomation | undefined {
     : undefined;
   const automation: WorkboardAutomation = {
     ...(typeof value.tenant === "string" ? { tenant: value.tenant } : {}),
+    ...(typeof value.boardId === "string" ? { boardId: value.boardId } : {}),
+    ...(typeof value.createdByCardId === "string"
+      ? { createdByCardId: value.createdByCardId }
+      : {}),
     ...(typeof value.idempotencyKey === "string" ? { idempotencyKey: value.idempotencyKey } : {}),
     ...(normalizeStringArray(value.skills).length
       ? { skills: normalizeStringArray(value.skills) }
@@ -1449,6 +1455,31 @@ function buildWorkboardExecution(params: {
   };
 }
 
+async function abortWorkboardSessionRun(params: {
+  client: GatewayBrowserClient;
+  sessionKey: string;
+  runId?: string;
+}): Promise<boolean> {
+  let abortResult = await params.client.request("chat.abort", {
+    sessionKey: params.sessionKey,
+    ...(params.runId ? { runId: params.runId } : {}),
+  });
+  let aborted =
+    isRecord(abortResult) &&
+    (abortResult.aborted === true ||
+      (Array.isArray(abortResult.runIds) && abortResult.runIds.length > 0));
+  if (!aborted && params.runId) {
+    abortResult = await params.client.request("chat.abort", {
+      sessionKey: params.sessionKey,
+    });
+    aborted =
+      isRecord(abortResult) &&
+      (abortResult.aborted === true ||
+        (Array.isArray(abortResult.runIds) && abortResult.runIds.length > 0));
+  }
+  return aborted;
+}
+
 export async function startWorkboardCard(params: {
   host: WorkboardHost;
   client: GatewayBrowserClient | null;
@@ -1472,6 +1503,8 @@ export async function startWorkboardCard(params: {
   state.busyCardId = params.card.id;
   params.requestUpdate?.();
   let preflightCard: WorkboardCard | null = null;
+  let createdSessionKey: string | null = null;
+  let createdRunId: string | undefined;
   try {
     const shouldClearManualSchedule =
       mode === "manual" && params.card.metadata?.automation?.scheduledAt !== undefined;
@@ -1505,6 +1538,8 @@ export async function startWorkboardCard(params: {
       isRecord(created) && typeof created.runId === "string" && created.runId.trim()
         ? created.runId.trim()
         : undefined;
+    createdSessionKey = sessionKey;
+    createdRunId = runId;
     const initialRunFailed =
       mode === "autonomous" && isRecord(created) && created.runStarted === false;
     if (initialRunFailed) {
@@ -1559,6 +1594,17 @@ export async function startWorkboardCard(params: {
     replaceCard(state, normalizeCardPayload(payload));
     return sessionKey;
   } catch (error) {
+    if (mode === "autonomous" && createdSessionKey) {
+      try {
+        await abortWorkboardSessionRun({
+          client: params.client,
+          sessionKey: createdSessionKey,
+          runId: createdRunId,
+        });
+      } catch {
+        // Preserve the card-start failure; the user-facing repair is the rollback below.
+      }
+    }
     if (preflightCard) {
       try {
         const rollbackPayload = await params.client.request("workboard.cards.update", {
@@ -1598,23 +1644,11 @@ export async function stopWorkboardCard(params: {
   state.error = null;
   params.requestUpdate?.();
   try {
-    let abortResult = await params.client.request("chat.abort", {
+    const aborted = await abortWorkboardSessionRun({
+      client: params.client,
       sessionKey,
-      ...(workboardCardRunId(params.card) ? { runId: workboardCardRunId(params.card) } : {}),
+      runId: workboardCardRunId(params.card),
     });
-    let aborted =
-      isRecord(abortResult) &&
-      (abortResult.aborted === true ||
-        (Array.isArray(abortResult.runIds) && abortResult.runIds.length > 0));
-    if (!aborted && workboardCardRunId(params.card)) {
-      abortResult = await params.client.request("chat.abort", {
-        sessionKey,
-      });
-      aborted =
-        isRecord(abortResult) &&
-        (abortResult.aborted === true ||
-          (Array.isArray(abortResult.runIds) && abortResult.runIds.length > 0));
-    }
     if (!aborted) {
       return;
     }
