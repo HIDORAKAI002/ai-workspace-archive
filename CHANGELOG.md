@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-05-30 13:08 IST] Auto-Sync
+- **18 Repositories Updated:** Public APIs Directory, MCP Official Servers, Awesome ChatGPT Prompts, Dify, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, BerriAI/litellm, ggml-org/llama.cpp, deepspeedai/DeepSpeed, vllm-project/vllm, anthropics/claude-code, danny-avila/LibreChat, vercel/ai, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, nousresearch/hermes-agent
+
 ## [2026-05-30 06:18 IST] Auto-Sync
 - **38 Repositories Updated:** MCP TypeScript SDK, GitHub MCP Server, Promptfoo, NVIDIA NeMo Guardrails, n8n, Flowise, Langflow, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langchain, langchain-ai/langgraph, crewAIInc/crewAI, run-llama/llama_index, openai/openai-agents-python, pydantic/pydantic-ai, mastra-ai/mastra, BerriAI/litellm, ollama/ollama, ggml-org/llama.cpp, vllm-project/vllm, anthropics/claude-code, chroma-core/chroma, pinecone-io/pinecone-python-client, Arize-ai/openinference, abi/screenshot-to-code, firecrawl/firecrawl, danny-avila/LibreChat, google-gemini/gemini-cli, googleapis/python-genai, vercel/ai, apache/airflow, sgl-project/sglang, openclaw/openclaw, obra/superpowers, mastra-ai/mastra, nousresearch/hermes-agent
 

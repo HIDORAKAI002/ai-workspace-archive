@@ -598,6 +598,9 @@ describe("workboard controller", () => {
       if (method === "sessions.create") {
         return { key: "agent:main:dashboard:1", runId: "run-1" };
       }
+      if (method === "chat.abort") {
+        return { aborted: true, runIds: ["run-1"] };
+      }
       return {};
     });
 
@@ -610,6 +613,14 @@ describe("workboard controller", () => {
     expect(sessionKey).toBeNull();
     expect(client.request).toHaveBeenNthCalledWith(
       4,
+      "chat.abort",
+      {
+        sessionKey: "agent:main:dashboard:1",
+        runId: "run-1",
+      },
+    );
+    expect(client.request).toHaveBeenNthCalledWith(
+      5,
       "workboard.cards.update",
       expect.objectContaining({
         patch: expect.objectContaining({
