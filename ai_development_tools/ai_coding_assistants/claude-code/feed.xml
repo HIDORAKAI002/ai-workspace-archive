@@ -6,7 +6,14 @@
   <author><name>Anthropic</name></author>
   <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md"/>
   <link rel="self" type="application/atom+xml" href="https://raw.githubusercontent.com/anthropics/claude-code/main/feed.xml"/>
-  <updated>2026-05-29T20:20:32Z</updated>
+  <updated>2026-05-30T02:42:09Z</updated>
+  <entry>
+    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.158</id>
+    <title>Claude Code v2.1.158</title>
+    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.158"/>
+    <updated>2026-05-30T02:42:09Z</updated>
+    <content type="html">&lt;p&gt;• Auto mode is now available on Bedrock, Vertex, and Foundry for Opus 4.7 and Opus 4.8. Opt in by setting CLAUDE_CODE_ENABLE_AUTO_MODE=1&lt;/p&gt;</content>
+  </entry>
   <entry>
     <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.157</id>
     <title>Claude Code v2.1.157</title>
@@ -633,28 +640,5 @@
 &lt;p&gt;• Fixed MCP tool results being invisible when the server returns content blocks&lt;/p&gt;
 &lt;p&gt;• Improved error message when --worktree collides with an existing or stale worktree&lt;/p&gt;
 &lt;p&gt;• Changed plugin marketplace removal key to d (matching delete elsewhere) instead of r which collided with retry&lt;/p&gt;</content>
-  </entry>
-  <entry>
-    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.133</id>
-    <title>Claude Code v2.1.133</title>
-    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.133"/>
-    <updated>2026-05-18T01:52:01Z</updated>
-    <content type="html">&lt;p&gt;• Added worktree.baseRef setting (fresh | head) to choose whether --worktree, EnterWorktree, and agent-isolation worktrees branch from origin/&amp;lt;default&amp;gt; or local HEAD. Note: the default fresh changes EnterWorktree's base back to origin/&amp;lt;default&amp;gt; (it has been local HEAD since 2.1.128) — set worktree.baseRef: "head" to keep unpushed commits in new worktrees&lt;/p&gt;
-&lt;p&gt;• Added sandbox.bwrapPath and sandbox.socatPath managed settings (Linux/WSL) to specify custom bubblewrap and socat binary locations&lt;/p&gt;
-&lt;p&gt;• Added parentSettingsBehavior admin-tier key ('first-wins' | 'merge') to let admins opt SDK managedSettings (parent tier) into the policy merge&lt;/p&gt;
-&lt;p&gt;• Hooks now receive the active effort level via the effort.level JSON input field and the $CLAUDE_EFFORT environment variable, and Bash tool commands can read $CLAUDE_EFFORT&lt;/p&gt;
-&lt;p&gt;• Improved focus mode behavior&lt;/p&gt;
-&lt;p&gt;• Improved memory usage by releasing warm-spare background workers under memory pressure&lt;/p&gt;
-&lt;p&gt;• Fixed parallel sessions all dead-ending at 401 after a refresh-token race wiped shared credentials&lt;/p&gt;
-&lt;p&gt;• Fixed Edit/Write allow rules scoped to a drive root (C:\) or POSIX / matching incorrectly and always prompting&lt;/p&gt;
-&lt;p&gt;• Fixed an unhandled rejection (ECOMPROMISED) when a history or session-log file lock is compromised by clock skew or slow disk&lt;/p&gt;
-&lt;p&gt;• Fixed pressing Esc during conversation compaction showing a spurious "Error compacting conversation" notification&lt;/p&gt;
-&lt;p&gt;• Fixed HTTP(S)_PROXY / NO_PROXY / mTLS not being respected for the full MCP OAuth flow including discovery, dynamic client registration, token exchange, and token refresh&lt;/p&gt;
-&lt;p&gt;• Fixed Read/Write/Edit being denied on mapped network drives passed via --add-dir / SDK additionalDirectories&lt;/p&gt;
-&lt;p&gt;• Fixed Remote Control stop/interrupt from claude.ai not fully canceling the CLI session the same way local Esc does, causing queued messages to never advance after interrupting a stuck tool or prompt&lt;/p&gt;
-&lt;p&gt;• Fixed /effort in one session unexpectedly changing the effort level of other concurrent sessions, and a related issue where an IDE effort change could be silently dropped&lt;/p&gt;
-&lt;p&gt;• Fixed subagents not discovering project, user, or plugin skills via the Skill tool&lt;/p&gt;
-&lt;p&gt;• claude --help now lists --remote-control alongside --remote-control-session-name-prefix&lt;/p&gt;
-&lt;p&gt;• [VSCode] Fixed claudeCode.claudeProcessWrapper failing with "Unsupported platform" when the extension build doesn't bundle a Claude binary&lt;/p&gt;</content>
   </entry>
 </feed>
