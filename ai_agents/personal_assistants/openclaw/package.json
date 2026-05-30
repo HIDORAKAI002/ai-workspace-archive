@@ -925,6 +925,10 @@
       "types": "./dist/plugin-sdk/runtime-fetch.d.ts",
       "default": "./dist/plugin-sdk/runtime-fetch.js"
     },
+    "./plugin-sdk/inline-image-data-url-runtime": {
+      "types": "./dist/plugin-sdk/inline-image-data-url-runtime.d.ts",
+      "default": "./dist/plugin-sdk/inline-image-data-url-runtime.js"
+    },
     "./plugin-sdk/response-limit-runtime": {
       "types": "./dist/plugin-sdk/response-limit-runtime.d.ts",
       "default": "./dist/plugin-sdk/response-limit-runtime.js"
@@ -1937,7 +1941,6 @@
     "vitest": "4.1.7"
   },
   "optionalDependencies": {
-    "sharp": "0.34.5",
     "sqlite-vec": "0.1.9"
   },
   "overrides": {
