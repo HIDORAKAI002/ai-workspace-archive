@@ -50,16 +50,20 @@ export const BUILD_ALL_STEPS = [
         "packages/markdown-core/package.json",
         "packages/media-understanding-common/package.json",
         "packages/terminal-core/package.json",
+        "packages/model-catalog-core/package.json",
+        "packages/web-content-core/package.json",
         "packages/memory-host-sdk/package.json",
         "tsconfig.json",
         "tsconfig.plugin-sdk.dts.json",
         "src/plugin-sdk",
         "packages/llm-core/src",
         "packages/markdown-core/src",
+        "packages/model-catalog-core/src",
         "packages/memory-host-sdk/src",
         "packages/media-generation-core/src",
         "packages/media-understanding-common/src",
         "packages/terminal-core/src",
+        "packages/web-content-core/src",
         "src/types",
         "src/video-generation/dashscope-compatible.ts",
         "src/video-generation/types.ts",
@@ -169,6 +173,16 @@ export const BUILD_ALL_PROFILE_STEP_ENV = {
   ciArtifacts: {
     tsdown: {
       OPENCLAW_RUN_NODE_SKIP_DTS_BUILD: "1",
+    },
+  },
+  gatewayWatch: {
+    "runtime-postbuild": {
+      OPENCLAW_RUNTIME_POSTBUILD_STATIC_ASSETS: "0",
+    },
+  },
+  cliStartup: {
+    "runtime-postbuild": {
+      OPENCLAW_RUNTIME_POSTBUILD_STATIC_ASSETS: "0",
     },
   },
 };

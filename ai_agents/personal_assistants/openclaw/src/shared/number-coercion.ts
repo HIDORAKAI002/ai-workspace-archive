@@ -105,6 +105,15 @@ export function asDateTimestampMs(value: unknown): number | undefined {
   });
 }
 
+export function isFutureDateTimestampMs(
+  value: unknown,
+  opts: { nowMs?: number } = {},
+): value is number {
+  const timestampMs = asDateTimestampMs(value);
+  const nowMs = asDateTimestampMs(opts.nowMs ?? Date.now());
+  return timestampMs !== undefined && nowMs !== undefined && timestampMs > nowMs;
+}
+
 export function timestampMsToIsoString(value: unknown): string | undefined {
   const timestampMs = asDateTimestampMs(value);
   return timestampMs === undefined ? undefined : new Date(timestampMs).toISOString();
@@ -248,21 +257,40 @@ export function nonNegativeSecondsToSafeMilliseconds(value: unknown): number | u
   return Number.isSafeInteger(milliseconds) ? milliseconds : undefined;
 }
 
+export function resolveExpiresAtMsFromDurationMs(
+  value: unknown,
+  opts: { nowMs?: number; bufferMs?: number; minRemainingMs?: number } = {},
+): number | undefined {
+  const durationMs = asPositiveSafeInteger(value);
+  if (durationMs === undefined) {
+    return undefined;
+  }
+  const nowMs = asDateTimestampMs(opts.nowMs ?? Date.now());
+  const bufferMs = asFiniteNumber(opts.bufferMs ?? 0);
+  if (nowMs === undefined || bufferMs === undefined) {
+    return undefined;
+  }
+  const expiresAt = nowMs + durationMs - bufferMs;
+  if (!Number.isSafeInteger(expiresAt) || timestampMsToIsoString(expiresAt) === undefined) {
+    return undefined;
+  }
+  const minRemainingMs = opts.minRemainingMs;
+  if (minRemainingMs === undefined) {
+    return expiresAt;
+  }
+  const minExpiresAt = nowMs + minRemainingMs;
+  if (!Number.isSafeInteger(minExpiresAt) || timestampMsToIsoString(minExpiresAt) === undefined) {
+    return expiresAt;
+  }
+  return Math.max(expiresAt, minExpiresAt);
+}
+
 export function resolveExpiresAtMsFromDurationSeconds(
   value: unknown,
   opts: { nowMs?: number; bufferMs?: number; minRemainingMs?: number } = {},
 ): number | undefined {
   const durationMs = positiveSecondsToSafeMilliseconds(value);
-  if (durationMs === undefined) {
-    return undefined;
-  }
-  const nowMs = opts.nowMs ?? Date.now();
-  const expiresAt = nowMs + durationMs - (opts.bufferMs ?? 0);
-  if (!Number.isSafeInteger(expiresAt)) {
-    return undefined;
-  }
-  const minRemainingMs = opts.minRemainingMs;
-  return minRemainingMs === undefined ? expiresAt : Math.max(expiresAt, nowMs + minRemainingMs);
+  return durationMs === undefined ? undefined : resolveExpiresAtMsFromDurationMs(durationMs, opts);
 }
 
 export function resolveExpiresAtMsFromEpochSeconds(
@@ -278,6 +306,9 @@ export function resolveExpiresAtMsFromEpochSeconds(
   }
   const expiresAt = epochMs - (opts.bufferMs ?? 0);
   if (!Number.isSafeInteger(expiresAt)) {
+    return undefined;
+  }
+  if (timestampMsToIsoString(expiresAt) === undefined) {
     return undefined;
   }
   const maxMs = opts.maxMs;
@@ -302,7 +333,7 @@ export function resolveExpiresAtMsFromDurationOrEpoch(
   }
   const absoluteMillisecondsThreshold = opts.absoluteMillisecondsThreshold ?? 1_000_000_000_000;
   if (parsed < absoluteMillisecondsThreshold) {
-    return positiveSecondsToSafeMilliseconds(parsed);
+    return resolveExpiresAtMsFromEpochSeconds(parsed);
   }
-  return parsed;
+  return asDateTimestampMs(parsed);
 }

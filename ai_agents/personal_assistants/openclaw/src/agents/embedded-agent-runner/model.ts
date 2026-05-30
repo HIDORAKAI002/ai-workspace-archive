@@ -74,6 +74,12 @@ type ProviderRuntimeHooks = {
   normalizeProviderTransportWithPlugin: typeof normalizeProviderTransportWithPlugin;
 };
 
+type StaticCatalogFallbackModel = Model & {
+  compat?: ModelCompatConfig;
+  contextTokens?: number;
+  mediaInput?: ModelMediaInputConfig;
+};
+
 const TARGET_PROVIDER_RUNTIME_HOOKS: ProviderRuntimeHooks = {
   buildProviderUnknownModelHintWithPlugin,
   prepareProviderDynamicModel,
@@ -989,14 +995,16 @@ function resolveConfiguredFallbackModel(params: {
   }
   const staticCatalogModel = configuredModel
     ? undefined
-    : resolveBundledStaticCatalogModel({
+    : (resolveBundledStaticCatalogModel({
         provider,
         modelId,
         cfg,
         workspaceDir,
         includeRuntimeDiscovery: true,
-      });
+      }) as StaticCatalogFallbackModel | undefined);
   const metadataModel = configuredModel ?? staticCatalogModel;
+  const fallbackCompat = configuredModel?.compat ?? staticCatalogModel?.compat;
+  const fallbackMediaInput = configuredModel?.mediaInput ?? staticCatalogModel?.mediaInput;
   const providerHeaders = sanitizeModelHeaders(providerConfig?.headers, {
     stripSecretRefMarkers: true,
   });
@@ -1009,7 +1017,7 @@ function resolveConfiguredFallbackModel(params: {
     provider,
     modelId,
     providerParams: providerConfig?.params,
-    configuredParams: metadataModel?.params,
+    configuredParams: configuredModel?.params,
   });
   const fallbackTransport = resolveProviderTransport({
     provider,
@@ -1036,7 +1044,7 @@ function resolveConfiguredFallbackModel(params: {
   });
   const fallbackReasoning = resolveConfiguredFallbackReasoning({
     provider,
-    compat: metadataModel?.compat,
+    compat: fallbackCompat,
     reasoning: metadataModel?.reasoning,
   });
   return normalizeResolvedModel({
@@ -1080,8 +1088,8 @@ function resolveConfiguredFallbackModel(params: {
           ...(resolvedParams ? { params: resolvedParams } : {}),
           ...(requestTimeoutMs !== undefined ? { requestTimeoutMs } : {}),
           headers: requestConfig.headers,
-          compat: metadataModel?.compat,
-          mediaInput: metadataModel?.mediaInput,
+          compat: fallbackCompat,
+          mediaInput: fallbackMediaInput,
         } as Model,
         providerRequest,
       ),
@@ -1117,7 +1125,7 @@ function shouldCompareProviderRuntimeResolvedModel(params: {
 
 function resolveConfiguredFallbackReasoning(params: {
   provider: string;
-  compat?: { thinkingFormat?: string } | null;
+  compat?: unknown;
   reasoning?: boolean;
 }): boolean {
   return resolveConfiguredModelReasoning(params) ?? false;
@@ -1125,7 +1133,7 @@ function resolveConfiguredFallbackReasoning(params: {
 
 function resolveConfiguredModelReasoning(params: {
   provider: string;
-  compat?: { thinkingFormat?: string } | null;
+  compat?: unknown;
   reasoning?: boolean;
 }): boolean | undefined {
   if (params.reasoning !== undefined) {
@@ -1136,8 +1144,8 @@ function resolveConfiguredModelReasoning(params: {
 
 function resolveMergedConfiguredModelReasoning(params: {
   provider: string;
-  configuredCompat?: { thinkingFormat?: string } | null;
-  resolvedCompat?: { thinkingFormat?: string } | null;
+  configuredCompat?: unknown;
+  resolvedCompat?: unknown;
   configuredReasoning?: boolean;
   discoveredReasoning?: boolean;
 }): boolean {
@@ -1158,13 +1166,21 @@ function resolveMergedConfiguredModelReasoning(params: {
 
 function isVllmQwenThinkingCompat(params: {
   provider: string;
-  compat?: { thinkingFormat?: string } | null;
+  compat?: unknown;
 }): boolean {
-  const thinkingFormat = params.compat?.thinkingFormat;
+  const thinkingFormat = readCompatThinkingFormat(params.compat);
   return (
     normalizeProviderId(params.provider) === "vllm" &&
     (thinkingFormat === "qwen" || thinkingFormat === "qwen-chat-template")
   );
+}
+
+function readCompatThinkingFormat(compat: unknown): string | undefined {
+  if (!compat || typeof compat !== "object" || Array.isArray(compat)) {
+    return undefined;
+  }
+  const thinkingFormat = (compat as { thinkingFormat?: unknown }).thinkingFormat;
+  return typeof thinkingFormat === "string" ? thinkingFormat : undefined;
 }
 
 function mergeModelCompat(
@@ -1481,7 +1497,7 @@ export async function resolveModelAsync(
       cfg,
       workspaceDir,
     });
-    const staticMediaInput = (staticCatalogModel as ProviderRuntimeModel | undefined)?.mediaInput;
+    const staticMediaInput = staticCatalogModel?.mediaInput;
     const resolvedMediaInput = (model as ProviderRuntimeModel).mediaInput;
     const mediaInput = mergeModelMediaInput(staticMediaInput, resolvedMediaInput);
     if (mediaInput) {
