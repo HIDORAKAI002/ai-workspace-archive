@@ -6,7 +6,14 @@
   <author><name>Anthropic</name></author>
   <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md"/>
   <link rel="self" type="application/atom+xml" href="https://raw.githubusercontent.com/anthropics/claude-code/main/feed.xml"/>
-  <updated>2026-05-30T02:42:09Z</updated>
+  <updated>2026-05-31T19:42:41Z</updated>
+  <entry>
+    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.159</id>
+    <title>Claude Code v2.1.159</title>
+    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.159"/>
+    <updated>2026-05-31T19:42:41Z</updated>
+    <content type="html">&lt;p&gt;• Internal infrastructure improvements (no user-facing changes)&lt;/p&gt;</content>
+  </entry>
   <entry>
     <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.158</id>
     <title>Claude Code v2.1.158</title>
@@ -582,63 +589,5 @@
     <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.137"/>
     <updated>2026-05-18T01:52:01Z</updated>
     <content type="html">&lt;p&gt;• [VSCode] Fixed extension failing to activate on Windows&lt;/p&gt;</content>
-  </entry>
-  <entry>
-    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.136</id>
-    <title>Claude Code v2.1.136</title>
-    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.136"/>
-    <updated>2026-05-18T01:52:01Z</updated>
-    <content type="html">&lt;p&gt;• Added CLAUDE_CODE_ENABLE_FEEDBACK_SURVEY_FOR_OTEL to re-enable the session quality survey for enterprises capturing responses through OpenTelemetry&lt;/p&gt;
-&lt;p&gt;• Added settings.autoMode.hard_deny for auto mode classifier rules that block unconditionally regardless of user intent or allow exceptions&lt;/p&gt;
-&lt;p&gt;• Fixed MCP servers configured in .mcp.json, plugins, and claude.ai connectors silently disappearing after /clear in the VS Code extension, JetBrains plugin, and Agent SDK&lt;/p&gt;
-&lt;p&gt;• Fixed a rare login loop where a concurrent credential write could overwrite a freshly-rotated OAuth token and force re-login&lt;/p&gt;
-&lt;p&gt;• Fixed MCP OAuth refresh tokens being lost when multiple servers refresh concurrently — users with several remote MCP servers should no longer need daily re-authentication&lt;/p&gt;
-&lt;p&gt;• Fixed an API error (400) when extended thinking emitted a redacted thinking block after a tool call&lt;/p&gt;
-&lt;p&gt;• Fixed --resume / --continue not finding sessions when the project path contains underscores&lt;/p&gt;
-&lt;p&gt;• Fixed plan mode not blocking file writes when a matching Edit(...) allow rule exists&lt;/p&gt;
-&lt;p&gt;• WSL2: image paste from Windows clipboard now works via a PowerShell fallback when xclip/wl-paste cannot read image data&lt;/p&gt;
-&lt;p&gt;• Fixed plugin Stop/UserPromptSubmit hooks failing when cache cleanup deletes a version still in use by a running session&lt;/p&gt;
-&lt;p&gt;• Improved visual consistency across slash command dialogs: standardized footer hints, dialog spacing, and arrow-key styling, and the dialog frame now appears immediately during loading instead of popping in after&lt;/p&gt;
-&lt;p&gt;• Fixed colors appearing at wrong positions in bash command output and markdown code blocks&lt;/p&gt;
-&lt;p&gt;• Fixed ReasonML diffs rendering corrupted "undefined" text artifacts at word-diff boundaries&lt;/p&gt;
-&lt;p&gt;• Fixed worktree exit dialog warning about uncommitted files in the wrong directory after worktree removal&lt;/p&gt;
-&lt;p&gt;• Fixed @ file picker not matching files created mid-session in small non-git directories&lt;/p&gt;
-&lt;p&gt;• Fixed @-mention file picker not finding files in directories with more than 100 entries&lt;/p&gt;
-&lt;p&gt;• Fixed failed tool calls not being click-to-expand in fullscreen mode when their output was truncated&lt;/p&gt;
-&lt;p&gt;• Fixed Backspace and Ctrl+Backspace getting swapped after using Ctrl+G to open an external editor on terminals with persistent extended-key modes&lt;/p&gt;
-&lt;p&gt;• Fixed /usage weekly reset showing time of day instead of the calendar date&lt;/p&gt;
-&lt;p&gt;• Fixed welcome banner ellipsis causing column overflow on CJK terminals&lt;/p&gt;
-&lt;p&gt;• Fixed /insights crash when session history contains tool calls with malformed input fields&lt;/p&gt;
-&lt;p&gt;• Fixed a renderer crash when a tool's collapsibility classification changes mid-session&lt;/p&gt;
-&lt;p&gt;• Fixed a skills entry in plugin.json hiding the plugin's default skills/ directory, and listing a file path now shows an error instead of failing silently&lt;/p&gt;
-&lt;p&gt;• Fixed IDE shell-integration lock files not respecting CLAUDE_CONFIG_DIR&lt;/p&gt;
-&lt;p&gt;• Fixed trailing whitespace in copied terminal output during streaming&lt;/p&gt;
-&lt;p&gt;• Fixed plugin uninstall and enable/disable not matching slugs case-insensitively&lt;/p&gt;
-&lt;p&gt;• Fixed tool error truncation marker showing a negative count for surrogate-pair strings&lt;/p&gt;
-&lt;p&gt;• Fixed env vars from CLAUDE_ENV_FILE SessionStart hooks going stale after /resume or /clear&lt;/p&gt;
-&lt;p&gt;• Fixed /branch saving a multi-line session title when given a pasted multi-line name&lt;/p&gt;
-&lt;p&gt;• Fixed a stray leading space on the second line of wrapped text at the column boundary&lt;/p&gt;
-&lt;p&gt;• Fixed Esc not dismissing dialogs in /install-github-app, /desktop, /resume, and /web-setup&lt;/p&gt;
-&lt;p&gt;• Fixed /doctor MCP schema errors not naming the missing field or showing the source file path&lt;/p&gt;
-&lt;p&gt;• Fixed Bash permission prompts showing an internal parser diagnostic instead of a user-readable explanation&lt;/p&gt;
-&lt;p&gt;• Fixed plugin slash commands with spaces (e.g. /myplugin review) not resolving to their namespaced form&lt;/p&gt;
-&lt;p&gt;• Fixed AskUserQuestion discarding multi-select answers when supplied as an array&lt;/p&gt;
-&lt;p&gt;• Fixed /clear &amp;lt;name&amp;gt; not labeling the cleared session for /resume&lt;/p&gt;
-&lt;p&gt;• Fixed CronList output missing qualifiers and the scheduled prompt&lt;/p&gt;
-&lt;p&gt;• Fixed "Jump to bottom" overlay leaving color artifacts on CJK characters in fullscreen mode&lt;/p&gt;
-&lt;p&gt;• Fixed wide markdown tables leaving a stale bordered render in terminal scrollback while streaming&lt;/p&gt;
-&lt;p&gt;• Fixed pasted text being silently dropped when a long prompt with a pasted-text placeholder was auto-truncated&lt;/p&gt;
-&lt;p&gt;• Fixed /release-notes getting stuck on an old version after a failed changelog refresh&lt;/p&gt;
-&lt;p&gt;• Fixed /mcp server list not scrolling when there are more servers than fit in the terminal&lt;/p&gt;
-&lt;p&gt;• Fixed mid-input slash command autocomplete not working after an initial slash command&lt;/p&gt;
-&lt;p&gt;• Fixed scrolling to bottom re-engaging auto-follow with autoScrollEnabled: false&lt;/p&gt;
-&lt;p&gt;• Fixed prompt suggestions being auto-submitted by Enter on an empty input instead of requiring Tab or arrow to accept&lt;/p&gt;
-&lt;p&gt;• Fixed keyboard shortcut hints not reflecting rebound keys from keybindings.json&lt;/p&gt;
-&lt;p&gt;• Fixed /settings language change being reverted on Escape after confirming&lt;/p&gt;
-&lt;p&gt;• Fixed /terminal-setup only appearing in autocomplete on exact name match instead of partial prefixes&lt;/p&gt;
-&lt;p&gt;• Fixed "Chat about this" on an AskUserQuestion dialog erasing the question text&lt;/p&gt;
-&lt;p&gt;• Fixed MCP tool results being invisible when the server returns content blocks&lt;/p&gt;
-&lt;p&gt;• Improved error message when --worktree collides with an existing or stale worktree&lt;/p&gt;
-&lt;p&gt;• Changed plugin marketplace removal key to d (matching delete elsewhere) instead of r which collided with retry&lt;/p&gt;</content>
   </entry>
 </feed>
