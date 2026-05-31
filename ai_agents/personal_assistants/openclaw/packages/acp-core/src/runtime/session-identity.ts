@@ -1,9 +1,5 @@
-import type {
-  SessionAcpIdentity,
-  SessionAcpIdentitySource,
-  SessionAcpMeta,
-} from "../../config/sessions/types.js";
 import { normalizeText } from "../normalize-text.js";
+import type { SessionAcpIdentity, SessionAcpIdentitySource, SessionAcpMeta } from "../types.js";
 import type { AcpRuntimeHandle, AcpRuntimeStatus } from "./types.js";
 
 function normalizeIdentityState(value: unknown): SessionAcpIdentity["state"] | undefined {

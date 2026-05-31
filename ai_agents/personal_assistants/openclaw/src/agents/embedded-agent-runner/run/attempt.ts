@@ -1,5 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
+import { MAX_IMAGE_BYTES } from "@openclaw/media-core/constants";
+import { normalizeProviderId } from "@openclaw/model-catalog-core/provider-id";
 import { normalizeOptionalString } from "@openclaw/normalization-core/string-coerce";
 import { isAcpRuntimeSpawnAvailable } from "../../../acp/runtime/availability.js";
 import { buildHierarchyReinforcementMessage } from "../../../auto-reply/handoff-summarizer.js";
@@ -34,7 +36,6 @@ import { resolveHeartbeatSummaryForAgent } from "../../../infra/heartbeat-summar
 import { getMachineDisplayName } from "../../../infra/machine-name.js";
 import { createCodexNativeWebSearchWrapper } from "../../../llm/providers/stream-wrappers/openai.js";
 import type { AssistantMessage } from "../../../llm/types.js";
-import { MAX_IMAGE_BYTES } from "../../../media/constants.js";
 import { listRegisteredPluginAgentPromptGuidance } from "../../../plugins/command-registry-state.js";
 import { getCurrentPluginMetadataSnapshot } from "../../../plugins/current-plugin-metadata-snapshot.js";
 import { buildAgentHookContextChannelFields } from "../../../plugins/hook-agent-context.js";
@@ -149,7 +150,11 @@ import { isTimeoutError } from "../../failover-error.js";
 import { runAgentEndSideEffects } from "../../harness/agent-end-side-effects.js";
 import { resolveHeartbeatPromptForSystemPrompt } from "../../heartbeat-system-prompt.js";
 import { resolveImageSanitizationLimits } from "../../image-sanitization.js";
-import { filterLocalModelLeanTools, isLocalModelLeanEnabled } from "../../local-model-lean.js";
+import {
+  filterLocalModelLeanTools,
+  isLocalModelLeanEnabled,
+  resolveLocalModelLeanPreserveToolNames,
+} from "../../local-model-lean.js";
 import { resolveModelAuthMode } from "../../model-auth.js";
 import { resolveDefaultModelForAgent } from "../../model-selection.js";
 import { supportsModelTools } from "../../model-tool-support.js";
@@ -177,6 +182,12 @@ import {
   isSubagentEnvelopeSession,
   resolveSubagentCapabilityStore,
 } from "../../subagent-capabilities.js";
+import {
+  ackPendingAgentSteeringItems,
+  leasePendingAgentSteeringItems,
+  prependAgentSteeringPrompt,
+  releasePendingAgentSteeringItems,
+} from "../../subagent-registry.js";
 import { ensureSystemPromptCacheBoundary } from "../../system-prompt-cache-boundary.js";
 import { buildSystemPromptParams } from "../../system-prompt-params.js";
 import { buildSystemPromptReport } from "../../system-prompt-report.js";
@@ -301,6 +312,7 @@ import {
   rotateTranscriptAfterCompaction,
   shouldRotateCompactionTranscript,
 } from "../compaction-successor-transcript.js";
+import { releaseEmbeddedAttemptSessionLockForAbort } from "./attempt-abort.js";
 import { resolveAttemptWorkspaceBootstrapRouting } from "./attempt-bootstrap-routing.js";
 import { configureEmbeddedAttemptHttpRuntime } from "./attempt-http-runtime.js";
 import {
@@ -471,6 +483,31 @@ export {
 
 const MAX_BTW_SNAPSHOT_MESSAGES = 100;
 const PROMPT_TOOL_RESULT_AGGREGATE_CAP_MULTIPLIER = 4;
+
+function pluginMetadataSnapshotCoversProvider(
+  snapshot: PluginMetadataSnapshot | undefined,
+  provider: string,
+): snapshot is PluginMetadataSnapshot {
+  const normalizedProvider = normalizeProviderId(provider);
+  if (!snapshot || !normalizedProvider) {
+    return false;
+  }
+  return snapshot.manifestRegistry.plugins.some((plugin) => {
+    const ownsProvider = plugin.providers.some(
+      (providerId) => normalizeProviderId(providerId) === normalizedProvider,
+    );
+    if (ownsProvider) {
+      return true;
+    }
+    const modelCatalogProviderIds = [
+      ...Object.keys(plugin.modelCatalog?.providers ?? {}),
+      ...Object.keys(plugin.modelCatalog?.aliases ?? {}),
+    ];
+    return modelCatalogProviderIds.some(
+      (providerId) => normalizeProviderId(providerId) === normalizedProvider,
+    );
+  });
+}
 
 function summarizeMessagePayload(msg: AgentMessage): { textChars: number; imageBlocks: number } {
   const content = (msg as { content?: unknown }).content;
@@ -796,6 +833,7 @@ export async function runEmbeddedAttempt(
   const getCurrentAttemptPluginMetadataSnapshot = () => {
     if (!currentPluginMetadataSnapshotResolved) {
       currentPluginMetadataSnapshot = getCurrentPluginMetadataSnapshot({
+        allowScopedSnapshot: true,
         config: params.config,
         env: process.env,
         workspaceDir: effectiveWorkspace,
@@ -809,12 +847,16 @@ export async function runEmbeddedAttempt(
     if (providerRuntimeHandle?.plugin) {
       return providerRuntimeHandle;
     }
+    const pluginMetadataSnapshot = getCurrentAttemptPluginMetadataSnapshot();
     const resolvedHandle = resolveProviderRuntimePluginHandle({
       provider: params.provider,
       modelId: params.modelId,
       config: params.config,
       workspaceDir: effectiveWorkspace,
       env: process.env,
+      ...(pluginMetadataSnapshotCoversProvider(pluginMetadataSnapshot, params.provider)
+        ? { pluginMetadataSnapshot }
+        : {}),
     });
     if (resolvedHandle.plugin) {
       providerRuntimeHandle = resolvedHandle;
@@ -1085,6 +1127,11 @@ export async function runEmbeddedAttempt(
             ]),
           ]
         : toolsAllowWithForcedRuntimeTools;
+    const localModelLeanPreserveToolNames = resolveLocalModelLeanPreserveToolNames({
+      toolNames: effectiveToolsAllow,
+      forceMessageTool: params.forceMessageTool,
+      sourceReplyDeliveryMode: params.sourceReplyDeliveryMode,
+    });
     const shouldConstructTools =
       toolConstructionPlan.constructTools ||
       toolSearchControlsEnabledForRun ||
@@ -1178,6 +1225,7 @@ export async function runEmbeddedAttempt(
             forceMessageTool: params.forceMessageTool,
             enableHeartbeatTool: params.enableHeartbeatTool,
             forceHeartbeatTool: params.forceHeartbeatTool,
+            runtimeToolAllowlist: effectiveToolsAllow,
             authProfileStore: params.authProfileStore,
             recordToolPrepStage: (name) => corePluginToolStages.mark(name),
             onToolOutcome: params.onToolOutcome,
@@ -1374,7 +1422,7 @@ export async function runEmbeddedAttempt(
           cfg: params.config,
         })
       : undefined;
-    const bundleMcpRuntime = bundleMcpSessionRuntime
+    bundleMcpRuntime = bundleMcpSessionRuntime
       ? await materializeBundleMcpToolsForRun({
           runtime: bundleMcpSessionRuntime,
           reservedToolNames: [
@@ -1388,7 +1436,7 @@ export async function runEmbeddedAttempt(
       disableTools: params.disableTools || isRawModelRun,
       toolsAllow: params.toolsAllow,
     });
-    const bundleLspRuntime = bundleLspEnabled
+    bundleLspRuntime = bundleLspEnabled
       ? await createBundleLspToolRuntime({
           workspaceDir: effectiveWorkspace,
           cfg: params.config,
@@ -1445,6 +1493,7 @@ export async function runEmbeddedAttempt(
       tools: [...tools, ...normalizedBundledTools],
       config: params.config,
       agentId: sessionAgentId,
+      preserveToolNames: localModelLeanPreserveToolNames,
     });
     const uncompactedToolSchemaProjection = filterRuntimeCompatibleTools(
       projectedUncompactedEffectiveTools,
@@ -1516,6 +1565,7 @@ export async function runEmbeddedAttempt(
       tools: toolSearch.tools,
       config: params.config,
       agentId: sessionAgentId,
+      preserveToolNames: localModelLeanPreserveToolNames,
     });
     const toolSearchSchemaProjection = filterRuntimeCompatibleTools(projectedToolSearchTools);
     logRuntimeToolSchemaQuarantine({
@@ -2903,13 +2953,6 @@ export async function runEmbeddedAttempt(
       }
 
       let yieldAborted = false;
-      const getAbortReason = (signal: AbortSignal): unknown =>
-        "reason" in signal ? (signal as { reason?: unknown }).reason : undefined;
-      const makeTimeoutAbortReason = (): Error => {
-        const err = new Error("request timed out");
-        err.name = "TimeoutError";
-        return err;
-      };
       const abortCompaction = () => {
         if (!activeSession.isCompacting) {
           return;
@@ -2947,12 +2990,13 @@ export async function runEmbeddedAttempt(
             sessionFile: params.sessionFile,
             reason: "timeout",
           });
-          void sessionLockController.releaseHeldLockForAbort().catch((err) => {
-            log.warn(
-              `failed to release session lock on timeout abort: runId=${params.runId} ${String(err)}`,
-            );
-          });
         }
+        releaseEmbeddedAttemptSessionLockForAbort({
+          sessionLockController,
+          log,
+          runId: params.runId,
+          abortKind: isTimeout ? "timeout abort" : "abort",
+        });
       };
       abortRunForExternalSignal = abortRun;
       const idleTimeoutTrigger: ((error: Error) => void) | undefined = (error) => {
@@ -3139,7 +3183,6 @@ export async function runEmbeddedAttempt(
 
       let abortWarnTimer: NodeJS.Timeout | undefined;
       const isProbeSession = params.sessionId?.startsWith("probe-") ?? false;
-      const compactionTimeoutMs = resolveCompactionTimeoutMs(params.config);
       let abortTimer: NodeJS.Timeout | undefined;
       let compactionGraceUsed = false;
       const scheduleAbortTimer = (delayMs: number, reason: "initial" | "compaction-grace") => {
@@ -3292,6 +3335,23 @@ export async function runEmbeddedAttempt(
         }
       };
       let skipPromptSubmission = false;
+      let leasedSteering:
+        | {
+            leaseId: string;
+            runIds: readonly string[];
+          }
+        | undefined;
+      const releaseLeasedSteering = (error?: unknown) => {
+        if (!leasedSteering) {
+          return;
+        }
+        releasePendingAgentSteeringItems({
+          runIds: leasedSteering.runIds,
+          leaseId: leasedSteering.leaseId,
+          error: error ? formatErrorMessage(error) : undefined,
+        });
+        leasedSteering = undefined;
+      };
       try {
         const promptStartedAt = Date.now();
         if (emptyExplicitToolAllowlistError) {
@@ -3488,6 +3548,37 @@ export async function runEmbeddedAttempt(
             log.warn(orphanRepairMessage);
           } else {
             log.debug(orphanRepairMessage);
+          }
+        }
+        if (params.sessionKey && !isRawModelRun) {
+          const leaseId = `${params.runId}:agent-steering`;
+          const leased = leasePendingAgentSteeringItems({
+            requesterSessionKey: params.sessionKey,
+            leaseId,
+          });
+          if (leased) {
+            leasedSteering = {
+              leaseId,
+              runIds: leased.runIds,
+            };
+            effectivePrompt = prependAgentSteeringPrompt({
+              steeringPrompt: leased.prompt,
+              prompt: effectivePrompt,
+            });
+            promptForRuntimeContextSplit = prependAgentSteeringPrompt({
+              steeringPrompt: leased.prompt,
+              prompt: promptForRuntimeContextSplit,
+            });
+            if (transcriptPromptForRuntimeSplit !== undefined) {
+              transcriptPromptForRuntimeSplit = prependAgentSteeringPrompt({
+                steeringPrompt: leased.prompt,
+                prompt: transcriptPromptForRuntimeSplit,
+              });
+            }
+            log.debug(
+              `agent steering: injected ${leased.runIds.length} queued item(s) into parent turn ` +
+                `runId=${params.runId} sessionKey=${params.sessionKey}`,
+            );
           }
         }
         const promptForModelBeforeRuntimeContextSplit = effectivePrompt;
@@ -4079,12 +4170,22 @@ export async function runEmbeddedAttempt(
                   cleanupRuntimeContextMessage();
                 }
               }
+              if (leasedSteering) {
+                ackPendingAgentSteeringItems({
+                  runIds: leasedSteering.runIds,
+                  leaseId: leasedSteering.leaseId,
+                });
+                leasedSteering = undefined;
+              }
             } finally {
               cleanupProviderPromptHistoryTransform();
               cleanupModelPromptTransform();
             }
+          } else {
+            releaseLeasedSteering(promptError ?? "prompt submission skipped");
           }
         } catch (err) {
+          releaseLeasedSteering(err);
           yieldAborted =
             yieldDetected &&
             isRunnerAbortError(err) &&
