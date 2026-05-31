@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -15,26 +14,31 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-# /// script
-# requires-python = ">=3.10,<3.11"
-# dependencies = [
-#   "rich>=13.6.0",
-# ]
-# ///
 from __future__ import annotations
 
-from common_prek_utils import (
-    initialize_breeze_prek,
-    run_command_via_breeze_run,
-    validate_cmd_result,
-)
+import os
+import signal
+import time
 
-initialize_breeze_prek(__name__, __file__)
+from airflow.sdk.bases.operator import BaseOperator
+from airflow.sdk.definitions.dag import dag
 
-cmd_result = run_command_via_breeze_run(
-    ["python3", "/opt/airflow/scripts/in_container/run_generate_openapi_spec.py"],
-    backend="sqlite",
-    skip_environment_initialization=False,
-)
 
-validate_cmd_result(cmd_result)
+class SignalForwardOperator(BaseOperator):
+    """Send SIGTERM to the supervisor parent process to exercise signal forwarding."""
+
+    def execute(self, context):
+        print("EXECUTE_STARTED", flush=True)
+        os.kill(os.getppid(), signal.SIGTERM)
+        time.sleep(2)
+
+    def on_kill(self) -> None:
+        print("ON_KILL_CALLED_VIA_SIGNAL_FORWARDING", flush=True)
+
+
+@dag()
+def signal_forward_test():
+    SignalForwardOperator(task_id="signal_task")
+
+
+signal_forward_test()
