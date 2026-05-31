@@ -34,14 +34,6 @@ Welcome to one of the most extensive and dynamic collections of Prompt Engineeri
 
 <img src="images/collective-banner.png" alt="DiamantAI Collective - AI engineering jobs" width="600">
 
-## 💼 Apply for open AI engineering jobs
-
-**AI-first companies are hiring through the DiamantAI Collective.**
-
-[![See open jobs and apply](https://img.shields.io/badge/%E2%9E%A1%EF%B8%8F%20%20See%20open%20jobs%20and%20apply-7c3aed?style=for-the-badge)](https://europe-west1-prompt-eng-views-tracker.cloudfunctions.net/prompt-eng-tracker?notebook=main-readme--jobs-panel&click=jobs-panel-see-all-roles&target=https%3A%2F%2Fdiamant-ai.com%2Fjobs&text=See%20open%20jobs%20and%20apply)
-
----
-
 </div>
 
 ## 🎯 Sponsors
@@ -105,18 +97,6 @@ Available on:
 
 
 
-
-## 📑 Free write-ups for each technique
-
-Companion explainers on DiamantAI break down each technique with intuition and runnable examples:
-
-- [Introduction to prompt engineering](https://diamant-ai.com/tutorials/prompt-engineering-introduction-to-prompt-engineering)
-- [Basic prompt structures](https://diamant-ai.com/tutorials/prompt-engineering-basic-prompt-structures)
-- [Prompt templates and variables](https://diamant-ai.com/tutorials/prompt-engineering-prompt-templates-and-variables)
-- [Zero-shot prompting](https://diamant-ai.com/tutorials/prompt-engineering-zero-shot-prompting)
-- [**Browse all 38 prompt-engineering tutorials →**](https://diamant-ai.com/tutorials)
-
-Related deep dive: [Why AI experts are moving from prompt engineering to context engineering](https://diamant-ai.com/blog/why-ai-experts-are-moving-from-prompt-engineering-to-context-engineering)
 
 ## Related Projects
 
@@ -391,6 +371,14 @@ To begin exploring and implementing prompt engineering techniques:
 - [Hands-On Large Language Models](https://www.amazon.com/dp/1098150961?tag=diamantai-pe-20) by Jay Alammar and Maarten Grootendorst. Visual, practical LLM walkthroughs.
 - [Natural Language Processing with Transformers](https://www.amazon.com/dp/1098136799?tag=diamantai-pe-20) by Lewis Tunstall, Leandro von Werra, and Thomas Wolf. From the Hugging Face team.
 - [Designing Machine Learning Systems](https://www.amazon.com/dp/1098107969?tag=diamantai-pe-20) by Chip Huyen. ML systems in production, still the standard reference.
+
+## 💼 Apply for open AI engineering jobs
+
+**AI-first companies are hiring through the DiamantAI Collective.**
+
+[![See open jobs and apply](https://img.shields.io/badge/%E2%9E%A1%EF%B8%8F%20%20See%20open%20jobs%20and%20apply-7c3aed?style=for-the-badge)](https://europe-west1-prompt-eng-views-tracker.cloudfunctions.net/prompt-eng-tracker?notebook=main-readme--jobs-panel&click=jobs-panel-see-all-roles&target=https%3A%2F%2Fdiamant-ai.com%2Fjobs&text=See%20open%20jobs%20and%20apply)
+
+---
 
 ## Contributing
 
