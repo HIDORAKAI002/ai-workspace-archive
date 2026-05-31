@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-05-31 15:48 IST] Auto-Sync
+- **21 Repositories Updated:** Public APIs Directory, GitHub MCP Server, Awesome ChatGPT Prompts, Promptfoo, Langflow, Windmill, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, mastra-ai/mastra, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, traceloop/openllmetry, apache/airflow, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, nousresearch/hermes-agent
+
 ## [2026-05-31 09:08 IST] Auto-Sync
 - **16 Repositories Updated:** Promptfoo, n8n, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, mastra-ai/mastra, BerriAI/litellm, ggml-org/llama.cpp, openai/openai-cookbook, danny-avila/LibreChat, apache/airflow, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, nousresearch/hermes-agent
 
