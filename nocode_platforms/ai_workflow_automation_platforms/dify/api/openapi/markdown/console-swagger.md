@@ -599,6 +599,23 @@ Update API-based extension
 | ---- | ----------- |
 | 204 | Binding deleted successfully |
 
+### /app-dsl-version
+
+#### GET
+##### Summary
+
+Get current app DSL version for workflow clipboard compatibility
+
+##### Description
+
+Get current app DSL version
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | Success | [AppDslVersionResponse](#appdslversionresponse) |
+
 ### /app/prompt-templates
 
 #### GET
@@ -8241,6 +8258,23 @@ Stop workflow task
 | ---- | ----------- |
 | 200 | Success |
 
+### /trial-models
+
+#### GET
+##### Summary
+
+Get hosted trial model provider configuration for model-provider pages
+
+##### Description
+
+Get hosted trial model provider configuration
+
+##### Responses
+
+| Code | Description | Schema |
+| ---- | ----------- | ------ |
+| 200 | Success | [TrialModelsResponse](#trialmodelsresponse) |
+
 ### /website/crawl
 
 #### POST
@@ -11378,6 +11412,12 @@ Enum class for api provider schema type.
 | updated_by | string |  | No |
 | use_icon_as_answer_icon | boolean |  | No |
 | workflow | [WorkflowPartial](#workflowpartial) |  | No |
+
+#### AppDslVersionResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| app_dsl_version | string |  | Yes |
 
 #### AppExportQuery
 
@@ -15250,7 +15290,6 @@ Default configuration for form inputs.
 
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
-| app_dsl_version | string |  | Yes |
 | branding | [BrandingModel](#brandingmodel) |  | Yes |
 | enable_change_email | boolean |  | Yes |
 | enable_collaboration_mode | boolean |  | Yes |
@@ -15270,7 +15309,6 @@ Default configuration for form inputs.
 | plugin_manager | [PluginManagerModel](#pluginmanagermodel) |  | Yes |
 | sso_enforced_for_signin | boolean |  | Yes |
 | sso_enforced_for_signin_protocol | string |  | Yes |
-| trial_models | [ string ] |  | Yes |
 | webapp_auth | [WebAppAuthModel](#webappauthmodel) |  | Yes |
 
 #### Tag
@@ -15345,7 +15383,7 @@ Tag type
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
 | created_at | integer |  | No |
-| custom_config | object |  | No |
+| custom_config | [WorkspaceCustomConfigResponse](#workspacecustomconfigresponse) |  | No |
 | id | string |  | Yes |
 | in_trial | boolean |  | No |
 | name | string |  | No |
@@ -15496,6 +15534,12 @@ Tag type
 | provider_id | string |  | No |
 | tool_name | string |  | No |
 | type | string |  | No |
+
+#### TrialModelsResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| trial_models | [ string ] |  | Yes |
 
 #### TrialPipelineVariable
 
@@ -16462,6 +16506,13 @@ Workflow tool configuration
 | marked_name | string |  | No |
 
 #### WorkspaceCustomConfigPayload
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| remove_webapp_brand | boolean |  | No |
+| replace_webapp_logo | string |  | No |
+
+#### WorkspaceCustomConfigResponse
 
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
