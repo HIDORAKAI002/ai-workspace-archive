@@ -30,6 +30,19 @@ docker compose up -d
 
 If you already have a PostgreSQL instance, you can run just the app container:
 
+Need a hosted PostgreSQL database? We recommend [Neon](https://get.neon.com/VqfnMo4) for serverless Postgres with connection pooling and database branching.
+
+<div>
+  <p>Sponsored by</p>
+  <a href="https://get.neon.com/VqfnMo4">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/f/prompts.chat/main/public/sponsors/neon-dark.svg">
+      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/f/prompts.chat/main/public/sponsors/neon.svg">
+      <img width="250px" alt="Neon Logo fallback" src="https://raw.githubusercontent.com/f/prompts.chat/main/public/sponsors/neon-dark.svg">
+    </picture>
+  </a>
+</div>
+
 ```bash
 docker build -f docker/Dockerfile -t prompts.chat .
 docker run -d \
