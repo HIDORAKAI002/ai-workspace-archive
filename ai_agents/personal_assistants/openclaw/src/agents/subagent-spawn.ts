@@ -54,6 +54,7 @@ import { resolveSubagentCapabilities } from "./subagent-capabilities.js";
 import { getSubagentDepthFromSessionStore } from "./subagent-depth.js";
 import { buildSubagentInitialUserMessage } from "./subagent-initial-user-message.js";
 import { countActiveRunsForSession, registerSubagentRun } from "./subagent-registry.js";
+import { resolveSubagentRunTimerDelayMs } from "./subagent-run-timeout.js";
 import { resolveSubagentSpawnAcceptedNote } from "./subagent-spawn-accepted-note.js";
 import { resolveSubagentSpawnOwnership } from "./subagent-spawn-ownership.js";
 import { resolveSubagentTargetPolicy } from "./subagent-target-policy.js";
@@ -95,10 +96,10 @@ import {
   updateSessionStore,
   isAdminOnlyMethod,
 } from "./subagent-spawn.runtime.js";
-import {
-  type SpawnSubagentContextMode,
-  type SpawnSubagentMode,
-  type SpawnSubagentSandboxMode,
+import type {
+  SpawnSubagentContextMode,
+  SpawnSubagentMode,
+  SpawnSubagentSandboxMode,
 } from "./subagent-spawn.types.js";
 
 export {
@@ -261,10 +262,7 @@ function buildResolvedSubagentModelMetadata(
 }
 
 function resolveSubagentAgentGatewayTimeoutMs(runTimeoutSeconds: number): number {
-  const runTimeoutMs =
-    Number.isFinite(runTimeoutSeconds) && runTimeoutSeconds > 0
-      ? Math.floor(runTimeoutSeconds * 1000)
-      : 0;
+  const runTimeoutMs = resolveSubagentRunTimerDelayMs(runTimeoutSeconds) ?? 0;
   if (runTimeoutMs <= 0) {
     return DEFAULT_SUBAGENT_AGENT_GATEWAY_TIMEOUT_MS;
   }
@@ -550,15 +548,23 @@ function sanitizeMountPathHint(value?: string): string | undefined {
   if (!trimmed) {
     return undefined;
   }
-  // Prevent prompt injection via control/newline characters in system prompt hints.
-  // eslint-disable-next-line no-control-regex
-  if (/[\r\n\u0000-\u001F\u007F\u0085\u2028\u2029]/.test(trimmed)) {
+  if (hasPromptUnsafeControlCharacter(trimmed)) {
     return undefined;
   }
   if (!/^[A-Za-z0-9._\-/:]+$/.test(trimmed)) {
     return undefined;
   }
   return trimmed;
+}
+
+function hasPromptUnsafeControlCharacter(value: string): boolean {
+  for (const char of value) {
+    const code = char.charCodeAt(0);
+    if (code <= 0x1f || code === 0x7f || code === 0x85 || code === 0x2028 || code === 0x2029) {
+      return true;
+    }
+  }
+  return false;
 }
 
 async function cleanupProvisionalSession(

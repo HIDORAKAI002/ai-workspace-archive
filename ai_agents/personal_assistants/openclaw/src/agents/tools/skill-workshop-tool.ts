@@ -382,10 +382,15 @@ function listProposalEntries(params: {
         proposal.skillName,
         proposal.skillKey,
       ].some((value) => {
+        if (typeof value !== "string") {
+          return false;
+        }
         const lower = value.toLowerCase();
         return (
           lower.includes(query) ||
-          (!!normalizedQuery && normalizeProposalSearchText(lower).includes(normalizedQuery))
+          (normalizedQuery !== undefined &&
+            normalizedQuery.length > 0 &&
+            normalizeProposalSearchText(lower).includes(normalizedQuery))
         );
       });
     })
