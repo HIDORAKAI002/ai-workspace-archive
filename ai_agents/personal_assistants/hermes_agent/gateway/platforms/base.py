@@ -954,11 +954,13 @@ def _media_delivery_denied_paths() -> List[Path]:
     home = Path(os.path.expanduser("~"))
     for sub in _MEDIA_DELIVERY_DENIED_HOME_SUBPATHS:
         denied.append(home / sub)
-    # The Hermes home itself contains credentials (auth.json, .env) — only the
-    # cache subdirectories under it are explicitly allowlisted above.
+    # The Hermes home itself contains credentials (auth.json, .env) and
+    # configuration (config.yaml) — only the cache subdirectories under it
+    # are explicitly allowlisted above.
     denied.append(_HERMES_HOME / ".env")
     denied.append(_HERMES_HOME / "auth.json")
     denied.append(_HERMES_HOME / "credentials")
+    denied.append(_HERMES_HOME / "config.yaml")
     return denied
 
 
@@ -3736,6 +3738,7 @@ class BasePlatformAdapter(ABC):
 
             # Call the handler (this can take a while with tool calls)
             response = await self._message_handler(event)
+            is_ephemeral_response = isinstance(response, EphemeralReply)
 
             # Slash-command handlers may return an EphemeralReply sentinel to
             # request that their reply message auto-delete after a TTL (used
@@ -3793,12 +3796,16 @@ class BasePlatformAdapter(ABC):
                 if images:
                     logger.info("[%s] extract_images found %d image(s) in response (%d chars)", self.name, len(images), len(response))
 
-                # Auto-detect bare local file paths for native media delivery
-                # (helps small models that don't use MEDIA: syntax)
-                local_files, text_content = self.extract_local_files(text_content)
-                local_files = self.filter_local_delivery_paths(local_files)
-                if local_files:
-                    logger.info("[%s] extract_local_files found %d file(s) in response", self.name, len(local_files))
+                local_files = []
+                if not is_ephemeral_response:
+                    # Auto-detect bare local file paths for native media delivery
+                    # (helps small models that don't use MEDIA: syntax). Skip
+                    # system/command notices so config paths stay visible text
+                    # instead of becoming native uploads.
+                    local_files, text_content = self.extract_local_files(text_content)
+                    local_files = self.filter_local_delivery_paths(local_files)
+                    if local_files:
+                        logger.info("[%s] extract_local_files found %d file(s) in response", self.name, len(local_files))
                 
                 # Auto-TTS: if voice message, generate audio FIRST (before sending text)
                 # Gated via ``_should_auto_tts_for_chat``: fires when the chat has
