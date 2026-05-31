@@ -119,6 +119,52 @@ export default async function SelfHostingPage() {
             </ul>
           </div>
 
+          {/* Recommended Database */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <Database className="h-5 w-5" />
+              Recommended Database
+            </h3>
+            <div className="rounded-lg border p-4 space-y-4">
+              <p className="text-muted-foreground">
+                prompts.chat requires PostgreSQL. For a hosted database, we recommend{" "}
+                <Link
+                  href="https://get.neon.com/VqfnMo4"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:text-foreground"
+                >
+                  Neon
+                </Link>
+                {" "}for serverless Postgres, connection pooling, and database branching.
+              </p>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground mb-3">Sponsored by</p>
+                <Link
+                  href="https://get.neon.com/VqfnMo4"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex"
+                >
+                  <Image
+                    src="/sponsors/neon.svg"
+                    alt="Neon"
+                    width={250}
+                    height={72}
+                    className="h-10 w-auto dark:hidden"
+                  />
+                  <Image
+                    src="/sponsors/neon-dark.svg"
+                    alt="Neon"
+                    width={250}
+                    height={72}
+                    className="h-10 w-auto hidden dark:block"
+                  />
+                </Link>
+              </div>
+            </div>
+          </div>
+
           {/* Installation */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Quick Start</h3>

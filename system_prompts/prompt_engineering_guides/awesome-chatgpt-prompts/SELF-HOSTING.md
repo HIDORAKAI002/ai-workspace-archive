@@ -36,6 +36,21 @@ This guide explains how to deploy **prompts.chat** on your own private server fo
 - **PostgreSQL** database
 - **npm**
 
+## Recommended Database
+
+prompts.chat requires PostgreSQL. For a hosted PostgreSQL database, we recommend [Neon](https://get.neon.com/VqfnMo4): it provides serverless Postgres, connection pooling, and branching that work well for self-hosted prompts.chat deployments.
+
+<div>
+  <p>Sponsored by</p>
+  <a href="https://get.neon.com/VqfnMo4">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/f/prompts.chat/main/public/sponsors/neon-dark.svg">
+      <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/f/prompts.chat/main/public/sponsors/neon.svg">
+      <img width="250px" alt="Neon Logo fallback" src="https://raw.githubusercontent.com/f/prompts.chat/main/public/sponsors/neon-dark.svg">
+    </picture>
+  </a>
+</div>
+
 ## Environment Variables
 
 Create a `.env` file based on `.env.example`:

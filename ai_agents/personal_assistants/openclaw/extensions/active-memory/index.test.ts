@@ -2,6 +2,11 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import type { OpenClawPluginApi } from "openclaw/plugin-sdk/plugin-entry";
+import type { OpenKeyedStoreOptions } from "openclaw/plugin-sdk/plugin-state-runtime";
+import {
+  createPluginStateKeyedStoreForTests,
+  resetPluginStateStoreForTests,
+} from "openclaw/plugin-sdk/plugin-state-test-runtime";
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import plugin, { testing } from "./index.js";
 
@@ -156,6 +161,11 @@ describe("active-memory plugin", () => {
       },
       state: {
         resolveStateDir: () => stateDir,
+        openKeyedStore: (options: OpenKeyedStoreOptions) =>
+          createPluginStateKeyedStoreForTests("active-memory", {
+            ...options,
+            env: { ...process.env, OPENCLAW_STATE_DIR: stateDir },
+          }),
       },
       config: {
         current: () => configFile,
@@ -309,6 +319,7 @@ describe("active-memory plugin", () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
+    resetPluginStateStoreForTests();
     runEmbeddedAgent.mockReset();
     stateDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-active-memory-test-"));
     configFile = {
@@ -2947,7 +2958,9 @@ describe("active-memory plugin", () => {
     };
     plugin.register(api as unknown as OpenClawPluginApi);
     runEmbeddedAgent.mockImplementationOnce(async (params: { timeoutMs?: number }) => {
-      await new Promise((resolve) => setTimeout(resolve, (params.timeoutMs ?? 0) + 5));
+      await new Promise((resolve) => {
+        setTimeout(resolve, (params.timeoutMs ?? 0) + 5);
+      });
       return {
         payloads: [{ text: "late timeout payload that should never become memory context" }],
         meta: { aborted: true },
@@ -2990,7 +3003,9 @@ describe("active-memory plugin", () => {
     };
     plugin.register(api as unknown as OpenClawPluginApi);
     runEmbeddedAgent.mockImplementationOnce(async () => {
-      await new Promise((resolve) => setTimeout(resolve, CONFIGURED_TIMEOUT_MS + 5));
+      await new Promise((resolve) => {
+        setTimeout(resolve, CONFIGURED_TIMEOUT_MS + 5);
+      });
       return { payloads: [{ text: "remember the ramen place" }] };
     });
 
@@ -3120,7 +3135,9 @@ describe("active-memory plugin", () => {
           },
         },
       ]);
-      await new Promise((resolve) => setTimeout(resolve, 35));
+      await new Promise((resolve) => {
+        setTimeout(resolve, 35);
+      });
       return { payloads: [{ text: "User usually orders ramen." }] };
     });
 
@@ -3210,7 +3227,9 @@ describe("active-memory plugin", () => {
           },
         },
       ]);
-      await new Promise((resolve) => setTimeout(resolve, 35));
+      await new Promise((resolve) => {
+        setTimeout(resolve, 35);
+      });
       return { payloads: [{ text: "User usually orders ramen after late flights." }] };
     });
 
