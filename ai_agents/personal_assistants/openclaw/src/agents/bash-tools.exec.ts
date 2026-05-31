@@ -35,6 +35,7 @@ import {
 import { createLazyImportLoader } from "../shared/lazy-promise.js";
 import { normalizeDeliveryContext } from "../utils/delivery-context.js";
 import { splitShellArgs } from "../utils/shell-argv.js";
+import { stripMalformedXmlArgValueSuffixFromKeys } from "./agent-tools.params.js";
 import { markBackgrounded } from "./bash-process-registry.js";
 import { describeExecTool } from "./bash-tools.descriptions.js";
 import { processGatewayAllowlist } from "./bash-tools.exec-host-gateway.js";
@@ -75,6 +76,30 @@ export type {
   ExecToolDefaults,
   ExecToolDetails,
 } from "./bash-tools.exec-types.js";
+
+type ExecToolArgs = Record<string, unknown> & {
+  command: string;
+  workdir?: string;
+  env?: Record<string, string>;
+  yieldMs?: number;
+  background?: boolean;
+  timeout?: number;
+  pty?: boolean;
+  elevated?: boolean;
+  host?: string;
+  security?: string;
+  ask?: string;
+  node?: string;
+};
+
+const XML_ARG_VALUE_EXEC_PARAM_KEYS = [
+  "command",
+  "workdir",
+  "host",
+  "security",
+  "ask",
+  "node",
+] as const;
 
 function buildExecForegroundResult(params: {
   outcome: ExecProcessOutcome;
@@ -156,7 +181,7 @@ function shouldSkipScriptPreflightPathError(
     return true;
   }
   const errorCode = getNodeErrorCode(error);
-  return !!(errorCode && SKIPPABLE_SCRIPT_PREFLIGHT_FS_ERROR_CODES.has(errorCode));
+  return Boolean(errorCode && SKIPPABLE_SCRIPT_PREFLIGHT_FS_ERROR_CODES.has(errorCode));
 }
 
 function resolvePreflightRelativePath(params: { rootDir: string; absPath: string }): string | null {
@@ -422,8 +447,7 @@ function extractScriptTargetFromCommand(
       }
     };
 
-    for (let i = 0; i < value.length; i += 1) {
-      const ch = value[i];
+    for (const ch of value) {
       if (inSingle) {
         if (ch === "'") {
           inSingle = false;
@@ -669,8 +693,7 @@ function hasUnquotedScriptHint(raw: string): boolean {
     return false;
   };
 
-  for (let i = 0; i < raw.length; i += 1) {
-    const ch = raw[i];
+  for (const ch of raw) {
     if (escaped) {
       if (!inSingle && !inDouble) {
         token += ch;
@@ -1308,20 +1331,10 @@ export function createExecTool(
     },
     parameters: execSchema,
     execute: async (_toolCallId, args, signal, onUpdate) => {
-      const params = args as {
-        command: string;
-        workdir?: string;
-        env?: Record<string, string>;
-        yieldMs?: number;
-        background?: boolean;
-        timeout?: number;
-        pty?: boolean;
-        elevated?: boolean;
-        host?: string;
-        security?: string;
-        ask?: string;
-        node?: string;
-      };
+      const params = stripMalformedXmlArgValueSuffixFromKeys(
+        args as ExecToolArgs,
+        XML_ARG_VALUE_EXEC_PARAM_KEYS,
+      );
 
       if (!params.command) {
         throw new Error("Provide a command to start.");

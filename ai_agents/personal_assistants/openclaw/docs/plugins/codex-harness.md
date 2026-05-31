@@ -393,6 +393,9 @@ In `tools.exec.mode: "auto"`, OpenClaw does not preserve legacy unsafe Codex
 legacy `plugins.entries.codex.config.appServer.mode: "guardian"` preset still
 works, but `tools.exec.mode: "auto"` is the normalized OpenClaw surface.
 
+For the mode-level comparison with host exec approvals and ACPX permissions,
+see [Permission modes](/tools/permission-modes).
+
 For every app-server field, auth order, environment isolation, discovery, and
 timeout behavior, see [Codex harness reference](/plugins/codex-harness-reference).
 
@@ -523,7 +526,7 @@ Supported top-level Codex plugin fields:
 | -------------------------- | -------------- | ---------------------------------------------------------------------------------------- |
 | `codexDynamicToolsLoading` | `"searchable"` | Use `"direct"` to put OpenClaw dynamic tools directly in the initial Codex tool context. |
 | `codexDynamicToolsExclude` | `[]`           | Additional OpenClaw dynamic tool names to omit from Codex app-server turns.              |
-| `codexPlugins`             | disabled       | Native Codex plugin/app support for migrated source-installed curated plugins.           |
+| `codexPlugins`             | disabled       | Native Codex plugin/app support for configured first-party Codex plugins.                |
 
 Supported `appServer` fields:
 

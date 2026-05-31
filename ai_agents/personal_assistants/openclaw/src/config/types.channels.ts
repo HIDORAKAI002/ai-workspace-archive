@@ -8,6 +8,7 @@ import type { DiscordConfig } from "./types.discord.js";
 import type { GoogleChatConfig } from "./types.googlechat.js";
 import type { IMessageConfig } from "./types.imessage.js";
 import type { IrcConfig } from "./types.irc.js";
+import type { MentionPatternsPolicyConfig } from "./types.messages.js";
 import type { MSTeamsConfig } from "./types.msteams.js";
 import type { SignalConfig } from "./types.signal.js";
 import type { SlackConfig } from "./types.slack.js";
@@ -50,6 +51,7 @@ export type ExtensionChannelConfig = {
   defaultAccount?: string;
   dmPolicy?: string;
   groupPolicy?: GroupPolicy;
+  mentionPatterns?: MentionPatternsPolicyConfig;
   contextVisibility?: ContextVisibilityMode;
   healthMonitor?: ChannelHealthMonitorConfig;
   dm?: ExtensionNestedPolicyConfig;
@@ -93,6 +95,8 @@ export interface ChannelsConfig {
    * Channel sections are plugin-owned and keyed by arbitrary channel ids.
    * Keep the lookup permissive so augmented channel configs remain ergonomic at call sites.
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // Plugin-owned channel sections are open-world config; narrowing this breaks
+  // SDK config-write helpers that accept account-shaped channel records.
+  // oxlint-disable-next-line typescript/no-explicit-any
   [key: string]: any;
 }
