@@ -4,12 +4,7 @@ import { existsSync } from "node:fs";
 import { mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import {
-  completeSimple,
-  type Api,
-  type AssistantMessage,
-  type Model,
-} from "openclaw/plugin-sdk/llm";
+import { completeSimple, type AssistantMessage, type Model } from "openclaw/plugin-sdk/llm";
 import * as ts from "typescript";
 import { formatErrorMessage } from "../src/infra/errors.ts";
 
@@ -606,7 +601,9 @@ function buildBatchPrompt(items: readonly TranslationBatchItem[]): string {
 }
 
 function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }
 
 function formatDuration(ms: number): string {
@@ -882,7 +879,7 @@ async function syncControlUiRawCopyBaseline(options: { checkOnly: boolean; write
     await writeFile(RAW_COPY_BASELINE_PATH, expected, "utf8");
   }
   if (options.checkOnly && current !== expected) {
-    let currentEntries: RawCopyBaselineEntry[] = [];
+    let currentEntries: RawCopyBaselineEntry[];
     try {
       const parsed = JSON.parse(current) as Partial<RawCopyBaseline>;
       currentEntries = Array.isArray(parsed.entries) ? parsed.entries : [];

@@ -288,11 +288,6 @@ function readPnpmLockScopedVersionOverrides() {
   }
   return expandScopedOverrideChildren(overrides);
 }
-
-function setKey(values) {
-  return [...values].toSorted((left, right) => left.localeCompare(right)).join("\0");
-}
-
 function mergeOverrideEntry(merged, name, spec) {
   const current = merged[name];
   if (current === undefined) {
@@ -1239,7 +1234,7 @@ function updateOrCheckPackage(packageDir, check, changedPaths = []) {
     return;
   }
 
-  let current = "";
+  let current;
   try {
     current = readFileSync(shrinkwrapPath, "utf8");
   } catch {

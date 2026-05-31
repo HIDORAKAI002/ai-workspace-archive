@@ -309,7 +309,7 @@ function resolveJobLastRunStatus(job: CronJob): CronJobsLastRunStatusFilter {
 function sortJobs(jobs: CronJob[], sortBy: CronJobsSortBy, sortDir: CronSortDir) {
   const dir = sortDir === "desc" ? -1 : 1;
   return jobs.toSorted((a, b) => {
-    let cmp = 0;
+    let cmp;
     if (sortBy === "name") {
       const aName = typeof a.name === "string" ? a.name : "";
       const bName = typeof b.name === "string" ? b.name : "";
@@ -608,7 +608,7 @@ function tryCreateManualTaskRun(params: {
 }): string | undefined {
   const runId = createCronExecutionId(params.job.id, params.startedAt);
   try {
-    createRunningTaskRun({
+    const task = createRunningTaskRun({
       runtime: "cron",
       sourceId: params.job.id,
       ownerKey: "",
@@ -624,6 +624,13 @@ function tryCreateManualTaskRun(params: {
       lastEventAt: params.startedAt,
       progressSummary: CRON_TASK_RUNNING_PROGRESS_SUMMARY,
     });
+    if (!task) {
+      params.state.deps.log.warn(
+        { jobId: params.job.id },
+        "cron: task ledger record was not persisted",
+      );
+      return undefined;
+    }
     return runId;
   } catch (error) {
     params.state.deps.log.warn(

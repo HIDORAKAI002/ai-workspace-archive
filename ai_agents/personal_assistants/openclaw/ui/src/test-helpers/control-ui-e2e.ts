@@ -82,9 +82,19 @@ export type MockGatewayControls = {
   waitForRequest: (method: string) => Promise<MockGatewayRequest>;
 };
 
+const chromiumExecutableOverrideEnvKey = "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH";
+
 function resolveRepoRoot(): string {
   const here = path.dirname(fileURLToPath(import.meta.url));
   return path.resolve(here, "../../..");
+}
+
+export function resolvePlaywrightChromiumExecutablePath(
+  defaultExecutablePath: string,
+  env: NodeJS.ProcessEnv = process.env,
+): string {
+  const executableOverride = env[chromiumExecutableOverrideEnvKey]?.trim();
+  return executableOverride || defaultExecutablePath;
 }
 
 export function canRunPlaywrightChromium(chromiumExecutablePath: string): boolean {
@@ -389,6 +399,17 @@ function installControlUiMockGateway(input: {
           mainKey: "main",
           scope: "agent",
         };
+      case "agents.files.list":
+        return {
+          agentId:
+            isRecord(params) && typeof params.agentId === "string"
+              ? params.agentId
+              : scenario.defaultAgentId,
+          files: [],
+          workspace: "",
+        };
+      case "agents.files.get":
+        return null;
       case "chat.history":
         return {
           messages: scenario.historyMessages,

@@ -304,6 +304,12 @@ import {
   resolveTerminalAssistantTexts,
 } from "./attempt-trajectory-status.js";
 import {
+  requiresCompletionRequiredAsyncTaskWait,
+  waitForCompletionRequiredAsyncTasks,
+  type AsyncStartedToolMeta,
+  type CompletionRequiredAsyncTaskWaitResult,
+} from "./attempt.async-tasks.js";
+import {
   isPrimaryBootstrapRun,
   remapInjectedContextFilesToWorkspace,
 } from "./attempt.bootstrap-context.js";
@@ -1407,6 +1413,14 @@ export async function runEmbeddedAttempt(
       modelApi: params.model.api,
       model: params.model,
       runtimeHandle: getProviderRuntimeHandle(),
+      onPreNormalizationSchemaDiagnostics: (diagnostics, sourceTools) =>
+        logRuntimeToolSchemaQuarantine({
+          diagnostics,
+          tools: sourceTools,
+          runId: params.runId,
+          sessionKey: params.sessionKey,
+          sessionId: params.sessionId,
+        }),
     });
     const clientTools = toolsEnabled && !isRawModelRun ? params.clientTools : undefined;
     const bundleMcpEnabled = shouldCreateBundleMcpRuntimeForAttempt({
@@ -1447,13 +1461,21 @@ export async function runEmbeddedAttempt(
           ],
         })
       : undefined;
-    const allowedBundledTools = applyEmbeddedAttemptToolsAllow(
-      [...(bundleMcpRuntime?.tools ?? []), ...(bundleLspRuntime?.tools ?? [])],
+    const allowedBundleMcpTools = applyEmbeddedAttemptToolsAllow(
+      bundleMcpRuntime?.tools ?? [],
       effectiveToolsAllow,
       {
         toolMeta: (tool) => getPluginToolMeta(tool),
       },
     );
+    const allowedBundleLspTools = applyEmbeddedAttemptToolsAllow(
+      bundleLspRuntime?.tools ?? [],
+      effectiveToolsAllow,
+      {
+        toolMeta: (tool) => getPluginToolMeta(tool),
+      },
+    );
+    const allowedBundledTools = [...allowedBundleMcpTools, ...allowedBundleLspTools];
     const filteredBundledTools = applyFinalEffectiveToolPolicy({
       bundledTools: allowedBundledTools,
       config: params.config,
@@ -1487,6 +1509,14 @@ export async function runEmbeddedAttempt(
             modelApi: params.model.api,
             model: params.model,
             runtimeHandle: getProviderRuntimeHandle(),
+            onPreNormalizationSchemaDiagnostics: (diagnostics, sourceTools) =>
+              logRuntimeToolSchemaQuarantine({
+                diagnostics,
+                tools: sourceTools,
+                runId: params.runId,
+                sessionKey: params.sessionKey,
+                sessionId: params.sessionId,
+              }),
           })
         : filteredBundledTools;
     const projectedUncompactedEffectiveTools = filterLocalModelLeanTools({
@@ -3027,6 +3057,7 @@ export async function runEmbeddedAttempt(
         ? bindOwnedSessionTranscriptWrites(ownedTranscriptWriteContext, params.onBlockReplyFlush)
         : undefined;
 
+      let toolMetasForTerminal: readonly AsyncStartedToolMeta[] = [];
       const subscription = subscribeEmbeddedAgentSession(
         buildEmbeddedSubscriptionParams({
           session: activeSession,
@@ -3054,6 +3085,14 @@ export async function runEmbeddedAttempt(
           onAgentEvent: params.onAgentEvent,
           terminalLifecyclePhase: params.deferTerminalLifecycleEnd ? "finishing" : "end",
           onBeforeLifecycleTerminal: () => {
+            if (
+              requiresCompletionRequiredAsyncTaskWait({
+                sessionKey: params.sessionKey,
+                toolMetas: toolMetasForTerminal,
+              })
+            ) {
+              return;
+            }
             // Clear embedded-run activity before emitting terminal lifecycle events so
             // post-completion cleanup does not observe a logically finished run as active.
             clearActiveEmbeddedRun(
@@ -3100,6 +3139,7 @@ export async function runEmbeddedAttempt(
         getCompactionCount,
         getLastCompactionTokensAfter,
       } = subscription;
+      toolMetasForTerminal = toolMetas;
       isCompactionPendingForExternalSignal = subscription.isCompacting;
       isCompactionInFlightForExternalSignal = () => activeSession.isCompacting;
       toolSearchCatalogExecutor = async (toolParams) => {
@@ -3184,8 +3224,10 @@ export async function runEmbeddedAttempt(
       let abortWarnTimer: NodeJS.Timeout | undefined;
       const isProbeSession = params.sessionId?.startsWith("probe-") ?? false;
       let abortTimer: NodeJS.Timeout | undefined;
+      let runAbortDeadlineAtMs = Date.now() + params.timeoutMs;
       let compactionGraceUsed = false;
       const scheduleAbortTimer = (delayMs: number, reason: "initial" | "compaction-grace") => {
+        runAbortDeadlineAtMs = Date.now() + Math.max(1, delayMs);
         abortTimer = setTimeout(
           () => {
             const timeoutAction = resolveRunTimeoutDuringCompaction({
@@ -3812,7 +3854,8 @@ export async function runEmbeddedAttempt(
               reacquireAfterPrompt: () => sessionLockController.reacquireAfterPrompt(),
               sessionKey: params.sessionKey,
               sessionFile: params.sessionFile,
-              withSessionWriteLock: (run) => sessionLockController.withSessionWriteLock(run),
+              withSessionWriteLock: (run, options) =>
+                sessionLockController.withSessionWriteLock(run, options),
             });
           }
 
@@ -4242,6 +4285,62 @@ export async function runEmbeddedAttempt(
         await sessionLockController.waitForSessionEvents(activeSession);
         await sessionLockController.releaseForPrompt();
 
+        if (
+          requiresCompletionRequiredAsyncTaskWait({
+            sessionKey: params.sessionKey,
+            toolMetas,
+          })
+        ) {
+          const getAsyncStartedToolMetas = () =>
+            toolMetas
+              .filter(
+                (
+                  entry,
+                ): entry is {
+                  toolName: string;
+                  asyncStarted?: boolean;
+                  asyncTaskRunId?: string;
+                  asyncTaskId?: string;
+                } => typeof entry.toolName === "string" && entry.toolName.trim().length > 0,
+              )
+              .map((entry) => ({
+                toolName: entry.toolName,
+                asyncStarted: entry.asyncStarted,
+                asyncTaskRunId: entry.asyncTaskRunId,
+                asyncTaskId: entry.asyncTaskId,
+              }));
+          const completionRequiredAsyncDeadlineAtMs = Math.max(
+            Date.now(),
+            runAbortDeadlineAtMs - 500,
+          );
+          let asyncTaskWait: CompletionRequiredAsyncTaskWaitResult;
+          try {
+            asyncTaskWait = await waitForCompletionRequiredAsyncTasks({
+              getToolMetas: getAsyncStartedToolMetas,
+              sessionKey: params.sessionKey,
+              deadlineAtMs: completionRequiredAsyncDeadlineAtMs,
+              abortSignal: runAbortController.signal,
+            });
+          } catch (err) {
+            if (!timedOut || !isRunnerAbortError(err)) {
+              throw err;
+            }
+            asyncTaskWait = await waitForCompletionRequiredAsyncTasks({
+              getToolMetas: getAsyncStartedToolMetas,
+              sessionKey: params.sessionKey,
+              deadlineAtMs: Date.now(),
+            });
+          }
+          if (asyncTaskWait.timedOutRunIds.length > 0) {
+            promptError = new Error(
+              `Timed out waiting for async task completion: ${asyncTaskWait.timedOutRunIds.join(", ")}`,
+            );
+            promptErrorSource = "prompt";
+          } else if (asyncTaskWait.waitedRunIds.length > 0) {
+            await sessionLockController.waitForSessionEvents(activeSession);
+          }
+        }
+
         // Capture snapshot before compaction wait so we have complete messages if timeout occurs
         // Check compaction state before and after to avoid race condition where compaction starts during capture
         // Use session state (not subscription) for snapshot decisions - need instantaneous compaction status
@@ -4574,10 +4673,38 @@ export async function runEmbeddedAttempt(
 
       const toolMetasNormalized = toolMetas
         .filter(
-          (entry): entry is { toolName: string; meta?: string } =>
-            typeof entry.toolName === "string" && entry.toolName.trim().length > 0,
+          (
+            entry,
+          ): entry is {
+            toolName: string;
+            meta?: string;
+            asyncStarted?: boolean;
+            asyncTaskRunId?: string;
+            asyncTaskId?: string;
+          } => typeof entry.toolName === "string" && entry.toolName.trim().length > 0,
         )
-        .map((entry) => ({ toolName: entry.toolName, meta: entry.meta }));
+        .map((entry) => {
+          const normalized: {
+            toolName: string;
+            meta?: string;
+            asyncStarted?: true;
+            asyncTaskRunId?: string;
+            asyncTaskId?: string;
+          } = {
+            toolName: entry.toolName,
+            meta: entry.meta,
+          };
+          if (entry.asyncStarted === true) {
+            normalized.asyncStarted = true;
+          }
+          if (entry.asyncTaskRunId) {
+            normalized.asyncTaskRunId = entry.asyncTaskRunId;
+          }
+          if (entry.asyncTaskId) {
+            normalized.asyncTaskId = entry.asyncTaskId;
+          }
+          return normalized;
+        });
       if (cacheObservabilityEnabled) {
         const cacheBreakForLog = cacheBreak as PromptCacheBreak | null;
         if (cacheBreakForLog) {
@@ -5020,7 +5147,6 @@ export async function runEmbeddedAttempt(
       );
     }
     retainedSessionFileOwner?.release();
-    retainedSessionFileOwner = undefined;
     emitDiagnosticRunCompleted?.(
       aborted ? "aborted" : "error",
       promptError ?? new Error("run exited before diagnostic completion"),

@@ -18,6 +18,39 @@ describe("ensurePlaywrightChromium", () => {
     expect(spawnSync).not.toHaveBeenCalled();
   });
 
+  it("uses an explicit Chromium executable override", () => {
+    const spawnSync = vi.fn();
+
+    expect(
+      ensurePlaywrightChromium({
+        env: { PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH: " /snap/bin/chromium " },
+        executablePath: "/cache/chromium/chrome",
+        existsSync: (path: string) => path === "/snap/bin/chromium",
+        spawnSync,
+      }),
+    ).toBe(0);
+    expect(spawnSync).not.toHaveBeenCalled();
+  });
+
+  it("fails when the explicit Chromium executable override is missing", () => {
+    const logs: string[] = [];
+    const spawnSync = vi.fn();
+
+    expect(
+      ensurePlaywrightChromium({
+        env: { PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH: "/snap/bin/chromium" },
+        executablePath: "/cache/chromium/chrome",
+        existsSync: () => false,
+        log: (line: string) => logs.push(line),
+        spawnSync,
+      }),
+    ).toBe(1);
+    expect(spawnSync).not.toHaveBeenCalled();
+    expect(logs.join("\n")).toContain(
+      "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH points to /snap/bin/chromium",
+    );
+  });
+
   it("preserves the intentional missing-browser skip mode", () => {
     const logs: string[] = [];
     const spawnSync = vi.fn();
@@ -82,12 +115,7 @@ describe("ensurePlaywrightChromium", () => {
         platform: "win32",
       }),
     ).toEqual({
-      args: [
-        "/d",
-        "/s",
-        "/c",
-        'pnpm.cmd --dir ui exec playwright install chromium',
-      ],
+      args: ["/d", "/s", "/c", "pnpm.cmd --dir ui exec playwright install chromium"],
       command: "C:\\Windows\\System32\\cmd.exe",
       shell: false,
       windowsVerbatimArguments: true,

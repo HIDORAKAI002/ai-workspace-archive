@@ -60,6 +60,10 @@ type GithubCopilotTestProvider = {
   catalog: {
     run: (ctx: unknown) => Promise<ProviderCatalogResult>;
   };
+  resolveThinkingProfile: (ctx: {
+    modelId?: string;
+    compat?: { supportedReasoningEfforts?: readonly string[] };
+  }) => { levels: Array<{ id: string }> };
 };
 type GithubCopilotTestModelCatalogProvider = {
   liveCatalog: (ctx: unknown) => Promise<readonly UnifiedModelCatalogEntry[] | null | undefined>;
@@ -83,11 +87,6 @@ async function createAgentDir() {
   tempDirs.push(dir);
   return dir;
 }
-
-function registerProviderForTest() {
-  return registerProviderWithPluginConfig({});
-}
-
 function requireFirstMockArg<T>(
   mock: { mock: { calls: Array<[T, ...unknown[]]> } },
   label: string,
@@ -183,6 +182,17 @@ describe("github-copilot plugin", () => {
 
     expect(result).toBeNull();
     expect(mocks.resolveCopilotApiToken).not.toHaveBeenCalled();
+  });
+
+  it("exposes xhigh thinking for catalog-supported Copilot reasoning efforts", () => {
+    const provider = registerProviderWithPluginConfig({});
+
+    const profile = provider.resolveThinkingProfile({
+      modelId: "claude-opus-4.7-1m-internal",
+      compat: { supportedReasoningEfforts: ["low", "medium", "high", "xhigh"] },
+    });
+
+    expect(profile.levels.map((level) => level.id)).toContain("xhigh");
   });
 
   it("uses live plugin config to re-enable discovery after startup disable", async () => {

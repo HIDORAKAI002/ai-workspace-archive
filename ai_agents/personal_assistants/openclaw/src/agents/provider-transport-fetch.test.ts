@@ -22,7 +22,7 @@ const {
   withTrustedEnvProxyGuardedFetchModeMock,
   managedStreamCleanupRegistrations,
 } = vi.hoisted(() => {
-  const managedStreamCleanupRegistrations: Array<{
+  const managedStreamCleanupRegistrationsLocal: Array<{
     callback: (held: { finalize: () => Promise<void> }) => void;
     held: { finalize: () => Promise<void> };
     token: object;
@@ -32,7 +32,7 @@ const {
     constructor(private callback: (held: { finalize: () => Promise<void> }) => void) {}
 
     register(_target: object, held: { finalize: () => Promise<void> }, token?: object) {
-      managedStreamCleanupRegistrations.push({
+      managedStreamCleanupRegistrationsLocal.push({
         callback: this.callback,
         held,
         token: token ?? {},
@@ -40,9 +40,11 @@ const {
     }
 
     unregister(token: object) {
-      const index = managedStreamCleanupRegistrations.findIndex((entry) => entry.token === token);
+      const index = managedStreamCleanupRegistrationsLocal.findIndex(
+        (entry) => entry.token === token,
+      );
       if (index >= 0) {
-        managedStreamCleanupRegistrations.splice(index, 1);
+        managedStreamCleanupRegistrationsLocal.splice(index, 1);
       }
     }
   }
@@ -69,7 +71,7 @@ const {
       ...params,
       mode: "trusted_env_proxy",
     })),
-    managedStreamCleanupRegistrations,
+    managedStreamCleanupRegistrations: managedStreamCleanupRegistrationsLocal,
   };
 });
 
@@ -207,7 +209,7 @@ describe("buildGuardedModelFetch", () => {
     } as unknown as Model<"anthropic-messages">;
 
     const fetcher = buildGuardedModelFetch(model, undefined, { sanitizeSse: false });
-    let response = await fetcher("https://api.anthropic.com/v1/messages", {
+    const response = await fetcher("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: '{"stream":true}',
@@ -216,8 +218,6 @@ describe("buildGuardedModelFetch", () => {
     expect(reader).toBeDefined();
     const firstChunk = await reader?.read();
     expect(firstChunk?.done).toBe(false);
-
-    response = undefined as unknown as Response;
     const registration = managedStreamCleanupRegistrations.at(-1);
     expect(registration).toBeDefined();
     await registration?.held.finalize();

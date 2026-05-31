@@ -47,6 +47,11 @@ export type MediaGenerateBackgroundScheduler = (work: () => Promise<void>) => vo
 
 export type MediaGenerateAsyncStartCallback = (message: string) => Promise<void> | void;
 
+export function shouldDetachMediaGenerationTask(sessionKey: string | undefined): boolean {
+  const normalizedSessionKey = sessionKey?.trim();
+  return Boolean(normalizedSessionKey);
+}
+
 export type MediaGenerationExecutionResult = {
   provider: string;
   model: string;
@@ -144,6 +149,9 @@ function createMediaGenerationTaskRun(params: {
       lastEventAt: Date.now(),
       progressSummary: params.queuedProgressSummary,
     });
+    if (!task) {
+      return null;
+    }
     const handle = {
       taskId: task.taskId,
       runId,
