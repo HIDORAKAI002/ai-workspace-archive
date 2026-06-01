@@ -277,6 +277,7 @@ const PlusAction = memo(() => {
 
   const isMemoryEnabled = useMemoryEnabled(agentId);
   const [showTypoBar, setShowTypoBar] = useChatInputStore((s) => [s.showTypoBar, s.setShowTypoBar]);
+  const editor = useChatInputStore((s) => s.editor);
   const { canUploadImage, canUploadVideo } = useVisualMediaUploadAbility(model, provider);
   const enableFC = useModelSupportToolUse(model, provider);
   const handleOpenKnowledge = useCallback(() => {
@@ -288,6 +289,7 @@ const PlusAction = memo(() => {
     footer: knowledgeFooter,
     items: knowledgeItems,
   } = useKnowledgeControls({ openAttachKnowledgeModal: handleOpenKnowledge });
+  const closeDropdown = useCallback(() => setDropdownOpen(false), []);
   const {
     autoCount: skillAutoCount,
     editPluginDrawer: skillEditPluginDrawer,
@@ -295,7 +297,7 @@ const PlusAction = memo(() => {
     marketHeader: skillMarketHeader,
     marketItems: skillItems,
     pinnedCount: skillPinnedCount,
-  } = useToolsControls();
+  } = useToolsControls({ closeDropdown });
 
   const isModelBuiltinSearchInternal = useAiInfraStore(
     aiModelSelectors.isModelBuiltinSearchInternal(model, provider),
@@ -414,6 +416,7 @@ const PlusAction = memo(() => {
                 return false;
               }
               setDropdownOpen(false);
+              editor?.focus();
               await upload([file]);
               return false;
             }}
@@ -565,6 +568,7 @@ const PlusAction = memo(() => {
     activeSearchOption,
     canUploadImage,
     canUploadVideo,
+    editor,
     enableFC,
     enableKnowledgeBase,
     handleOpenTools,

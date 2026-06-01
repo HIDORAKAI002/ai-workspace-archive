@@ -111,6 +111,10 @@ fast-langdetect = { version = ">=1.0.0", optional = true }
 # chat UI
 chainlit = { version = "^2.11.0", optional = true }
 
+# hf classifier (local backend)
+transformers = { version = ">=4.35.0", optional = true }
+torch = { version = ">=2.0.0", optional = true }
+
 [tool.poetry.extras]
 sdd = ["presidio-analyzer", "presidio-anonymizer"]
 eval = ["tqdm", "numpy", "streamlit", "tornado"]
@@ -120,6 +124,7 @@ jailbreak = ["yara-python"]
 multilingual = ["fast-langdetect"]
 server = ["aiofiles", "openai", "fastapi", "starlette", "uvicorn", "watchdog"]
 chat-ui = ["chainlit"]
+hf-classifier = ["transformers", "torch"]
 # Poetry does not support recursive dependencies, so we need to add all the dependencies here.
 # I also support their decision. There is no PEP for recursive dependencies, but it has been supported in pip since version 21.2.
 # It is here for backward compatibility.
@@ -140,6 +145,8 @@ all = [
   "uvicorn",
   "watchdog",
   "chainlit",
+  "transformers",
+  "torch",
 ]
 
 [tool.poetry.group.dev]
