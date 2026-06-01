@@ -1037,7 +1037,7 @@ describe("runCodexAppServerAttempt context-engine lifecycle", () => {
       await vi.waitFor(
         () => {
           if (runError) {
-            throw runError;
+            throw toLintErrorObject(runError, "Non-Error thrown");
           }
           expect(harness.requests.map((request) => request.method)).toContain("turn/start");
         },
@@ -1709,3 +1709,17 @@ describe("runCodexAppServerAttempt context-engine lifecycle", () => {
     expect(maintain).not.toHaveBeenCalled();
   });
 });
+
+function toLintErrorObject(value: unknown, fallbackMessage: string): Error {
+  if (value instanceof Error) {
+    return value;
+  }
+  if (typeof value === "string") {
+    return new Error(value);
+  }
+  const error = new Error(fallbackMessage, { cause: value });
+  if ((typeof value === "object" && value !== null) || typeof value === "function") {
+    Object.assign(error, value);
+  }
+  return error;
+}

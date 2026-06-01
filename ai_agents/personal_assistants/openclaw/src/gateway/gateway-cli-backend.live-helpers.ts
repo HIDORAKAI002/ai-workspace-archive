@@ -422,7 +422,7 @@ async function connectClientOnce(params: {
           finish({ error: new Error("gateway event loop readiness timeout") });
         }
       },
-      (error) => {
+      (error: unknown) => {
         finish({ error: error instanceof Error ? error : new Error(String(error)) });
       },
     );

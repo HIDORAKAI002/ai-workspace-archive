@@ -1192,10 +1192,10 @@ class TranslationClient {
             clearInterval(heartbeat);
             resolve(extractTranslationResult(assistantMessage));
           })
-          .catch((error) => {
+          .catch((error: unknown) => {
             clearTimeout(timer);
             clearInterval(heartbeat);
-            reject(error);
+            reject(toLintErrorObject(error, "Non-Error rejection"));
           });
       });
     });
@@ -1660,8 +1660,22 @@ function isCliEntrypoint() {
 }
 
 if (isCliEntrypoint()) {
-  await main().catch((error) => {
+  await main().catch((error: unknown) => {
     console.error(formatErrorMessage(error));
     process.exit(1);
   });
+}
+
+function toLintErrorObject(value: unknown, fallbackMessage: string): Error {
+  if (value instanceof Error) {
+    return value;
+  }
+  if (typeof value === "string") {
+    return new Error(value);
+  }
+  const error = new Error(fallbackMessage, { cause: value });
+  if ((typeof value === "object" && value !== null) || typeof value === "function") {
+    Object.assign(error, value);
+  }
+  return error;
 }

@@ -696,7 +696,7 @@ describe("runCodexAppServerAttempt", () => {
       });
 
       await expect(
-        client.request("turn/start", turnParams).catch(async (error) => {
+        client.request("turn/start", turnParams).catch(async (error: unknown) => {
           await releaseCodexSandboxExecServerEnvironment(sandbox);
           throw error;
         }),
@@ -763,7 +763,7 @@ describe("runCodexAppServerAttempt", () => {
           nativeCodeModeOnlyEnabled: false,
           userMcpServersEnabled: false,
           environmentSelection,
-        }).catch(async (error) => {
+        }).catch(async (error: unknown) => {
           await releaseCodexSandboxExecServerEnvironment(sandbox);
           throw error;
         }),
@@ -1237,7 +1237,7 @@ describe("runCodexAppServerAttempt", () => {
     params.prompt = "already persisted prompt";
     params.suppressNextUserMessagePersistence = true;
     const readTranscript = async () =>
-      fs.readFile(sessionFile, "utf8").catch((error) => {
+      fs.readFile(sessionFile, "utf8").catch((error: unknown) => {
         if ((error as NodeJS.ErrnoException).code === "ENOENT") {
           return "";
         }

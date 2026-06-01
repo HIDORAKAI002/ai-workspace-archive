@@ -293,7 +293,7 @@ export function buildGatewayCronService(params: {
       config: getRuntimeConfig(),
       getCron: () => cron as PluginHookGatewayCronService,
     };
-    void hookRunner.runCronChanged(evt, hookCtx).catch((err) => {
+    void hookRunner.runCronChanged(evt, hookCtx).catch((err: unknown) => {
       cronLogger.warn(
         { err: formatErrorMessage(err), jobId: evt.jobId },
         "cron_changed hook failed",
@@ -501,7 +501,7 @@ export function buildGatewayCronService(params: {
             usage: evt.usage,
           },
           opts: { keepLines: runLogPrune.keepLines },
-        }).catch((err) => {
+        }).catch((err: unknown) => {
           cronLogger.warn(
             { err: String(err), storePath, jobId: evt.jobId },
             "cron: run log append failed",

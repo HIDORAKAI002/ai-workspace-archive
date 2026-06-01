@@ -288,7 +288,7 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch((error) => {
+main().catch((error: unknown) => {
   process.stderr.write(
     `${error instanceof Error ? error.stack || error.message : String(error)}\n`,
   );

@@ -56,7 +56,7 @@ OPENROUTER_MODELS: list[tuple[str, str]] = [
     # MoonshotAI
     ("moonshotai/kimi-k2.6",                   "recommended"),
     # MiniMax
-    ("minimax/minimax-m2.7",                   ""),
+    ("minimax/minimax-m3",                     ""),
     # Z-AI
     ("z-ai/glm-5.1",                           ""),
     # Xiaomi
@@ -173,7 +173,7 @@ _PROVIDER_MODELS: dict[str, list[str]] = {
         # MoonshotAI
         "moonshotai/kimi-k2.6",
         # MiniMax
-        "minimax/minimax-m2.7",
+        "minimax/minimax-m3",
         # Z-AI
         "z-ai/glm-5.1",
         # Xiaomi
@@ -295,16 +295,19 @@ _PROVIDER_MODELS: dict[str, list[str]] = {
         "kimi-k2-0905-preview",
     ],
     "minimax": [
+        "MiniMax-M3",
         "MiniMax-M2.7",
         "MiniMax-M2.5",
         "MiniMax-M2.1",
         "MiniMax-M2",
     ],
     "minimax-oauth": [
+        "MiniMax-M3",
         "MiniMax-M2.7",
         "MiniMax-M2.7-highspeed",
     ],
     "minimax-cn": [
+        "MiniMax-M3",
         "MiniMax-M2.7",
         "MiniMax-M2.5",
         "MiniMax-M2.1",

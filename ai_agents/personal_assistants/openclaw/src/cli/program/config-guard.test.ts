@@ -169,6 +169,11 @@ describe("ensureConfigReady", () => {
       expectedDoctorCalls: 0,
     },
     {
+      name: "skips doctor flow for agent without legacy state",
+      commandPath: ["agent"],
+      expectedDoctorCalls: 0,
+    },
+    {
       name: "runs doctor flow for commands that may mutate state without legacy state",
       commandPath: ["message"],
       expectedDoctorCalls: 1,
@@ -207,8 +212,23 @@ describe("ensureConfigReady", () => {
     expect(loadAndMaybeMigrateDoctorConfigMock).toHaveBeenCalledOnce();
   });
 
+  it("runs doctor flow before agent commands when the legacy plugin install index exists", async () => {
+    const root = useTempOpenClawHome();
+    writeStateMarker(root, "plugins/installs.json");
+
+    await runEnsureConfigReady(["agent"]);
+
+    expect(loadAndMaybeMigrateDoctorConfigMock).toHaveBeenCalledOnce();
+    expect(loadAndMaybeMigrateDoctorConfigMock).toHaveBeenCalledWith({
+      migrateState: true,
+      migrateLegacyConfig: false,
+      invalidConfigNote: false,
+    });
+  });
+
   it.each([
     ["Discord model picker preferences", "discord/model-picker-preferences.json"],
+    ["Discord thread bindings", "discord/thread-bindings.json"],
     ["Feishu dedupe sidecar", "feishu/dedup/default.json"],
     ["Telegram bot info cache", "telegram/bot-info-default.json"],
     ["Telegram update offset", "telegram/update-offset-default.json"],

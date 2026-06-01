@@ -111,4 +111,62 @@ describe("provider auth aliases", () => {
       2,
     );
   });
+
+  it("uses caller-provided metadata snapshots without loading plugin metadata", () => {
+    const env = { HOME: "/home/test" } as NodeJS.ProcessEnv;
+    const metadataSnapshot = {
+      plugins: [],
+    } as never;
+
+    expect(
+      resolveProviderIdForAuth("fixture", {
+        config: {
+          models: {
+            providers: {
+              fixture: {
+                baseUrl: "http://127.0.0.1:1234/v1",
+                api: "openai-responses",
+                models: [],
+              },
+            },
+          },
+        },
+        env,
+        metadataSnapshot,
+      }),
+    ).toBe("fixture");
+    expect(pluginRegistryMocks.loadPluginMetadataSnapshot).not.toHaveBeenCalled();
+  });
+
+  it("preserves metadata auth aliases even when the alias is configured as a provider", () => {
+    const env = { HOME: "/home/test" } as NodeJS.ProcessEnv;
+    const metadataSnapshot = {
+      plugins: [
+        {
+          id: "alias-owner",
+          origin: "global",
+          providerAuthAliases: { fixture: "provider-two" },
+        },
+      ],
+    } as never;
+
+    expect(
+      resolveProviderIdForAuth("fixture", {
+        config: {
+          models: {
+            providers: {
+              fixture: {
+                baseUrl: "http://127.0.0.1:1234/v1",
+                api: "openai-responses",
+                models: [],
+              },
+            },
+          },
+        },
+        env,
+        metadataSnapshot,
+      }),
+    ).toBe("provider-two");
+    expect(pluginRegistryMocks.loadPluginMetadataSnapshot).not.toHaveBeenCalled();
+  });
 });

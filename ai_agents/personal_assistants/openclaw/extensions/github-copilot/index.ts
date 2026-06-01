@@ -43,7 +43,7 @@ type GithubCopilotPluginConfig = {
 };
 
 function compatSupportsXHigh(
-  compat: { supportedReasoningEfforts?: readonly string[] } | null | undefined,
+  compat: { supportedReasoningEfforts?: readonly string[] | null } | null | undefined,
 ) {
   return (
     Array.isArray(compat?.supportedReasoningEfforts) &&
