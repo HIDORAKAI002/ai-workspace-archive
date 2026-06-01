@@ -141,9 +141,10 @@ type llamaServerRunner struct {
 	// used to map DeviceIDs to device names for VRAMByGPU lookups.
 	gpus []ml.DeviceInfo
 
-	ggml        *ggml.GGML
-	totalLayers uint64 // maximum offloadable model layers
-	loadStart   time.Time
+	ggml          *ggml.GGML
+	totalLayers   uint64 // maximum offloadable model layers
+	loadStart     time.Time
+	rawEmbeddings bool
 
 	sem *semaphore.Weighted
 
@@ -241,7 +242,21 @@ func (s *llamaServerRunner) tokenizerAddsBOS() bool {
 		return false
 	}
 
-	return s.ggml.KV().Bool("tokenizer.ggml.add_bos_token")
+	kv := s.ggml.KV()
+
+	if kv.String("tokenizer.ggml.pre") == "lfm2" {
+		return true
+	}
+
+	// llama.cpp forces add_bos on for Gemma4 at load time, even for GGUFs
+	// whose tokenizer.ggml.add_bos_token metadata is explicitly false. Some
+	// GGUFs omit tokenizer.ggml.pre and are still treated as Gemma4 from
+	// tokenizer.ggml.model.
+	if kv.String("tokenizer.ggml.pre") == "gemma4" || kv.String("tokenizer.ggml.model") == "gemma4" {
+		return true
+	}
+
+	return kv.Bool("tokenizer.ggml.add_bos_token")
 }
 
 func (s *llamaServerRunner) completionPromptForRequest(ctx context.Context, req CompletionRequest) (any, error) {
@@ -545,20 +560,32 @@ func appendBatchArgs(params []string, opts api.Options, embedding bool, numParal
 	return params
 }
 
-func appendFlashAttentionArgs(params []string, gpus []ml.DeviceInfo) []string {
+// LlamaServerFlashAttention resolves the flash-attention mode passed to llama-server.
+func LlamaServerFlashAttention(gpus []ml.DeviceInfo) ml.FlashAttentionType {
 	enabled := envconfig.FlashAttention(false)
 	userSet := enabled == envconfig.FlashAttention(true)
 	if userSet {
 		if enabled {
-			return append(params, "--flash-attn", "on")
+			return ml.FlashAttentionEnabled
 		}
-		return append(params, "--flash-attn", "off")
+		return ml.FlashAttentionDisabled
 	}
 
 	if !ml.FlashAttentionSupported(gpus) {
-		return append(params, "--flash-attn", "off")
+		return ml.FlashAttentionDisabled
 	}
-	return append(params, "--flash-attn", "auto")
+	return ml.FlashAttentionAuto
+}
+
+func appendFlashAttentionArgs(params []string, gpus []ml.DeviceInfo) []string {
+	switch LlamaServerFlashAttention(gpus) {
+	case ml.FlashAttentionEnabled:
+		return append(params, "--flash-attn", "on")
+	case ml.FlashAttentionDisabled:
+		return append(params, "--flash-attn", "off")
+	default:
+		return append(params, "--flash-attn", "auto")
+	}
 }
 
 func appendMainGPUArgs(params []string, opts api.Options) []string {
@@ -764,6 +791,7 @@ func NewLlamaServerRunner(
 		gpus:             gpus,
 		ggml:             f,
 		totalLayers:      f.KV().BlockCount() + 1,
+		rawEmbeddings:    legacyEmbeddingsWereRaw(f.KV()),
 		sem:              semaphore.NewWeighted(int64(numParallel)),
 		launch:           launch,
 		output:           memWriter,
@@ -785,6 +813,28 @@ func cloneStringMap(src map[string]string) map[string]string {
 		dst[k] = v
 	}
 	return dst
+}
+
+func legacyEmbeddingsWereRaw(kv ggml.KV) bool {
+	arch := kv.Architecture()
+	if _, ok := kv[fmt.Sprintf("%s.pooling_type", arch)]; !ok {
+		return false
+	}
+
+	// Legacy /api/embeddings returned runner output, so preserve only old raw embed paths.
+	switch arch {
+	case "bert":
+		if kv.String("tokenizer.ggml.model", "bert") != "bert" {
+			return true
+		}
+		return !kv.Bool("normalize_embeddings", true)
+	case "nomic-bert", "nomic-bert-moe":
+		return !kv.Bool("normalize_embeddings", false)
+	case "gemma3", "gemma-embedding", "qwen3":
+		return false
+	default:
+		return false
+	}
 }
 
 func (s *llamaServerRunner) startProcess() error {
@@ -2020,7 +2070,11 @@ func (s *llamaServerRunner) Embedding(ctx context.Context, input string) ([]floa
 
 	// Use "input" field (not "content") to get the OAI-compatible response format
 	// which includes tokens_evaluated for prompt token counting
-	data, err := json.Marshal(map[string]string{"input": input})
+	req := map[string]any{"input": input}
+	if s.rawEmbeddings {
+		req["embd_normalize"] = -1
+	}
+	data, err := json.Marshal(req)
 	if err != nil {
 		return nil, 0, fmt.Errorf("error marshaling embed data: %w", err)
 	}
