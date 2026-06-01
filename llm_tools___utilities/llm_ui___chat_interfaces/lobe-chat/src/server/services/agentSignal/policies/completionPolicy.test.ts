@@ -40,7 +40,7 @@ describe('createCompletionPolicy', () => {
     await expect(
       handler.handle({
         payload: {
-          agentId: BUILTIN_AGENT_SLUGS.selfIteration,
+          agentId: BUILTIN_AGENT_SLUGS.nightlyReview,
           operationId: 'op_1',
         },
       }),
@@ -58,20 +58,24 @@ describe('createCompletionPolicy', () => {
     expect(onSelfIterationCompleted).not.toHaveBeenCalled();
   });
 
-  it('invokes the callback for self-iteration runs', async () => {
+  it.each([
+    [BUILTIN_AGENT_SLUGS.nightlyReview],
+    [BUILTIN_AGENT_SLUGS.selfReflection],
+    [BUILTIN_AGENT_SLUGS.selfFeedbackIntent],
+  ])('invokes the callback for %s runs and forwards the agentId', async (slug) => {
     const onSelfIterationCompleted = vi.fn().mockResolvedValue(undefined);
     const [handler] = installAndCapture(createCompletionPolicy({ onSelfIterationCompleted }));
 
     await handler.handle({
       payload: {
-        agentId: BUILTIN_AGENT_SLUGS.selfIteration,
+        agentId: slug,
         operationId: 'op_3',
         topicId: 'topic_3',
       },
     });
 
     expect(onSelfIterationCompleted).toHaveBeenCalledWith({
-      agentId: BUILTIN_AGENT_SLUGS.selfIteration,
+      agentId: slug,
       operationId: 'op_3',
       topicId: 'topic_3',
     });
@@ -86,7 +90,7 @@ describe('createCompletionPolicy', () => {
     await expect(
       handler.handle({
         payload: {
-          agentId: BUILTIN_AGENT_SLUGS.selfIteration,
+          agentId: BUILTIN_AGENT_SLUGS.nightlyReview,
           operationId: 'op_4',
         },
       }),
@@ -101,7 +105,7 @@ describe('createCompletionPolicy', () => {
     const [handler] = installAndCapture(createCompletionPolicy({ onSelfIterationCompleted }));
 
     await handler.handle({ payload: { operationId: 'op_5' } });
-    await handler.handle({ payload: { agentId: BUILTIN_AGENT_SLUGS.selfIteration } });
+    await handler.handle({ payload: { agentId: BUILTIN_AGENT_SLUGS.nightlyReview } });
 
     expect(onSelfIterationCompleted).not.toHaveBeenCalled();
   });
