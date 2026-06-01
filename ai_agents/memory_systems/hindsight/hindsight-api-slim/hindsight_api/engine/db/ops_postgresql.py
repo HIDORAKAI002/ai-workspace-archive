@@ -200,6 +200,23 @@ class PostgreSQLOps(DataAccessOps):
         exists_clause: str,
         chunk_size: int = 5000,
     ) -> None:
+        # exists_clause is unused on PostgreSQL: the memory_links → memory_units
+        # FKs are DEFERRABLE INITIALLY DEFERRED, so an INSERT takes no lock on the
+        # referenced parent rows until COMMIT — a concurrent committed DELETE in
+        # that window (consolidation pruning observations, document re-tracking)
+        # trips fk_memory_links_{to,from}_unit_id_memory_units at COMMIT (#1882),
+        # and a WHERE EXISTS guard can't prevent it (the row passes the check,
+        # then is deleted before the deferred check runs). Instead a CTE locks the
+        # referenced units FOR KEY SHARE in the *same statement*: the lock blocks a
+        # concurrent DELETE until our transaction commits and is held through the
+        # deferred check, and the INSERT only takes links whose endpoints are in
+        # the locked set, so rows that already vanished are dropped. Folding it
+        # into the one INSERT keeps this to a single round-trip — no extra query
+        # and no surrounding transaction needed. (Oracle's immediate FK has no
+        # such window and uses exists_clause via its own bulk_insert_links.)
+        from ..schema import fq_table
+
+        mu_table = fq_table("memory_units")
         from_ids = [lnk[0] for lnk in sorted_links]
         to_ids = [lnk[1] for lnk in sorted_links]
         types = [lnk[2] for lnk in sorted_links]
@@ -208,24 +225,37 @@ class PostgreSQLOps(DataAccessOps):
 
         for chunk_start in range(0, len(sorted_links), chunk_size):
             chunk_end = min(chunk_start + chunk_size, len(sorted_links))
+            chunk_from = from_ids[chunk_start:chunk_end]
+            chunk_to = to_ids[chunk_start:chunk_end]
+            # Distinct referenced parents, sorted so concurrent inserters acquire
+            # the row-share locks in a consistent order (avoids deadlocks; same
+            # convention as the (from, to) link sort).
+            referenced = sorted({str(x) for x in chunk_from} | {str(x) for x in chunk_to})
             await conn.execute(
                 f"""
+                WITH locked AS (
+                    SELECT id FROM {mu_table}
+                    WHERE id = ANY($7::uuid[])
+                    ORDER BY id
+                    FOR KEY SHARE
+                )
                 INSERT INTO {table}
                     (from_unit_id, to_unit_id, link_type, weight, entity_id, bank_id)
                 SELECT f, t, tp, w, e, $6
                 FROM unnest($1::uuid[], $2::uuid[], $3::text[], $4::float8[], $5::uuid[])
-                    AS t(f, t, tp, w, e)
-                {exists_clause}
+                    AS u(f, t, tp, w, e)
+                WHERE f IN (SELECT id FROM locked) AND t IN (SELECT id FROM locked)
                 ON CONFLICT (from_unit_id, to_unit_id, link_type,
                              COALESCE(entity_id, '{nil_entity_uuid}'::uuid))
                 DO NOTHING
                 """,
-                from_ids[chunk_start:chunk_end],
-                to_ids[chunk_start:chunk_end],
+                chunk_from,
+                chunk_to,
                 types[chunk_start:chunk_end],
                 weights[chunk_start:chunk_end],
                 entity_ids[chunk_start:chunk_end],
                 bank_id,
+                referenced,
                 timeout=300,
             )
 
