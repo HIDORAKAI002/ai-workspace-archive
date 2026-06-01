@@ -9,6 +9,17 @@ import { resolvePnpmRunner } from "./pnpm-runner.mjs";
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const playwrightInstallArgs = ["--dir", "ui", "exec", "playwright", "install", "chromium"];
 const executableOverrideEnvKey = "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH";
+export const systemChromiumExecutableCandidates = [
+  "/snap/bin/chromium",
+  "/usr/bin/chromium-browser",
+  "/usr/bin/chromium",
+  "/usr/bin/google-chrome",
+  "/usr/bin/google-chrome-stable",
+];
+
+export function resolveSystemChromiumExecutablePath(existsSync = existsSyncImpl) {
+  return systemChromiumExecutableCandidates.find((candidate) => existsSync(candidate)) ?? "";
+}
 
 export function resolvePlaywrightInstallRunner(options = {}) {
   const env = options.env ?? process.env;
@@ -55,6 +66,13 @@ export function ensurePlaywrightChromium(options = {}) {
   }
 
   if (existsSync(executablePath)) {
+    return 0;
+  }
+
+  const systemExecutablePath =
+    options.systemExecutablePath ?? resolveSystemChromiumExecutablePath(existsSync);
+  if (systemExecutablePath) {
+    log(`[ui-e2e] Using system Chromium at ${systemExecutablePath}.`);
     return 0;
   }
 

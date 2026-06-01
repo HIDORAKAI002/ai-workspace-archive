@@ -443,17 +443,24 @@ export async function runCodexAppServerAttempt(
 
   const agentDir = params.agentDir ?? resolveAgentDir(params.config ?? {}, sessionAgentId);
   preDynamicStartupStages.mark("session-agent");
+  const activeContextEngine = isActiveHarnessContextEngine(params.contextEngine)
+    ? params.contextEngine
+    : undefined;
   let startupBinding = await readCodexAppServerBinding(params.sessionFile);
   preDynamicStartupStages.mark("read-binding");
   const startupBindingAuthProfileId = startupBinding?.authProfileId;
+  const initialStartupBindingHadInactiveContextEngine =
+    !activeContextEngine && Boolean(startupBinding?.contextEngine);
   startupBinding = await rotateOversizedCodexAppServerStartupBinding({
     binding: startupBinding,
     sessionFile: params.sessionFile,
     agentDir,
     codexHome: appServer.start.env?.CODEX_HOME,
     config: params.config,
-    contextEngineActive: isActiveHarnessContextEngine(params.contextEngine),
+    contextEngineActive: Boolean(activeContextEngine),
   });
+  const initialInactiveContextEngineBindingForcedFreshStart =
+    initialStartupBindingHadInactiveContextEngine && !startupBinding?.threadId;
   preDynamicStartupStages.mark("rotate-binding");
   const startupAuthProfileCandidate =
     params.runtimePlan?.auth.forwardedAuthProfileId ??
@@ -520,9 +527,6 @@ export async function runCodexAppServerAttempt(
   for (const diagnostic of bundleMcpThreadConfig.diagnostics) {
     embeddedAgentLog.warn(`bundle-mcp: ${diagnostic.pluginId}: ${diagnostic.message}`);
   }
-  const activeContextEngine = isActiveHarnessContextEngine(params.contextEngine)
-    ? params.contextEngine
-    : undefined;
   if (activeContextEngine) {
     assertContextEngineHostSupport({
       contextEngine: activeContextEngine,
@@ -684,6 +688,8 @@ export async function runCodexAppServerAttempt(
   let contextEngineProjection: CodexContextEngineThreadBootstrapProjection | undefined;
   let precomputedStaleBindingContinuityProjectionApplied = false;
   let staleBindingContinuityForcedFreshStart = false;
+  let inactiveContextEngineBindingForcedFreshStart =
+    initialInactiveContextEngineBindingForcedFreshStart;
   const applyFreshThreadContinuityProjection = () => {
     const projection = projectContextEngineAssemblyForCodex({
       assembledMessages: historyMessages,
@@ -875,6 +881,10 @@ export async function runCodexAppServerAttempt(
     if (activeContextEngine || !binding?.threadId) {
       return false;
     }
+    if (binding.contextEngine) {
+      inactiveContextEngineBindingForcedFreshStart = true;
+      return false;
+    }
     const projected = applyResumeStaleBindingContinuityProjection(binding);
     precomputedStaleBindingContinuityProjectionApplied = projected;
     return projected;
@@ -882,6 +892,7 @@ export async function runCodexAppServerAttempt(
   const applyNoContextEngineContinuityProjection = (
     action: "started" | "resumed",
     binding?: CodexAppServerThreadBinding,
+    rotatedContextEngineBinding = false,
   ) => {
     if (activeContextEngine || !historyMessages.some((message) => message.role === "user")) {
       return false;
@@ -891,6 +902,15 @@ export async function runCodexAppServerAttempt(
     }
     if (action === "started" && staleBindingContinuityForcedFreshStart) {
       return true;
+    }
+    if (
+      action === "started" &&
+      (inactiveContextEngineBindingForcedFreshStart || rotatedContextEngineBinding)
+    ) {
+      // A retired or changed context-engine binding already forced Codex onto a
+      // clean native thread; without the engine active, mirrored history would
+      // re-inject stale bootstrap context as a new user turn.
+      return false;
     }
     if (action === "resumed" && binding) {
       return applyResumeStaleBindingContinuityProjection(binding);
@@ -909,6 +929,8 @@ export async function runCodexAppServerAttempt(
       return;
     }
     const previousThreadId = startupBinding.threadId;
+    const hadInactiveContextEngineBinding =
+      !activeContextEngine && Boolean(startupBinding.contextEngine);
     const projectedTurnTokens = estimateCodexAppServerProjectedTurnTokens({
       prompt: codexTurnPromptText,
       developerInstructions: buildRenderedCodexDeveloperInstructions(),
@@ -925,7 +947,10 @@ export async function runCodexAppServerAttempt(
     if (startupBinding?.threadId) {
       return;
     }
-    staleBindingContinuityForcedFreshStart = precomputedStaleBindingContinuityProjectionApplied;
+    inactiveContextEngineBindingForcedFreshStart = hadInactiveContextEngineBinding;
+    staleBindingContinuityForcedFreshStart =
+      precomputedStaleBindingContinuityProjectionApplied &&
+      !inactiveContextEngineBindingForcedFreshStart;
     if (activeContextEngine) {
       contextEngineProjection = undefined;
       try {
@@ -1085,7 +1110,13 @@ export async function runCodexAppServerAttempt(
     params.abortSignal?.removeEventListener("abort", abortFromUpstream);
     throw error;
   }
-  if (applyNoContextEngineContinuityProjection(thread.lifecycle.action, thread)) {
+  if (
+    applyNoContextEngineContinuityProjection(
+      thread.lifecycle.action,
+      thread,
+      thread.lifecycle.rotatedContextEngineBinding === true,
+    )
+  ) {
     await rebuildCodexTurnPromptTextFromCurrentProjection();
   }
   trajectoryRecorder?.recordEvent("session.started", {

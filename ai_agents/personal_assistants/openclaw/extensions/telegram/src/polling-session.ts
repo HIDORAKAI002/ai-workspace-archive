@@ -374,7 +374,7 @@ export class TelegramPollingSession {
         bypassBackoff: false,
       }),
     })
-      .catch((err) => {
+      .catch((err: unknown) => {
         this.opts.log(`[telegram] reconnect delivery drain failed: ${formatErrorMessage(err)}`);
       })
       .finally(() => {

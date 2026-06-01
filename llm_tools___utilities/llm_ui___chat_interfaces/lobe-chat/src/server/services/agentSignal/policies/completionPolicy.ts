@@ -1,17 +1,19 @@
 import { AGENT_SIGNAL_SOURCE_TYPES } from '@lobechat/agent-signal/source';
-import { BUILTIN_AGENT_SLUGS } from '@lobechat/builtin-agents';
+import type { BuiltinAgentSlug } from '@lobechat/builtin-agents';
+import { SELF_ITERATION_AGENT_SLUGS } from '@lobechat/builtin-agents';
 
 import { defineAgentSignalHandlers, defineSourceHandler } from '../runtime/middleware';
 
 /**
  * Handles `agent.execution.completed` source events emitted after every execAgent run
- * (including builtin background agents). Routes builtin self-iteration runs to an
- * optional caller callback so side-effects (brief writing, receipt projection,
+ * (including builtin background agents). Routes builtin self-iteration runs
+ * (nightly-review / self-reflection / self-feedback-intent) to an optional
+ * caller callback so side-effects (brief writing, receipt projection,
  * idempotency marker) can happen asynchronously after the agent run finishes.
  *
- * Mode-specific dispatch (review / reflection / feedback) is deferred — the
- * caller can demultiplex by looking up the operation row and inspecting the
- * stored scope / iteration mode at callback time.
+ * Mode is carried by `agentId` itself — each self-iteration mode is a distinct
+ * builtin agent slug, so callers can dispatch on `agentId` without needing to
+ * read the operation row.
  *
  * The callback is fire-and-forget from the worker's perspective; failures are
  * logged but never re-trigger the source pipeline.
@@ -21,14 +23,18 @@ import { defineAgentSignalHandlers, defineSourceHandler } from '../runtime/middl
  * that need userId should look it up via the operations table by `operationId`.
  */
 export interface CompletionCallbackParams {
-  agentId: string;
+  /** Self-iteration agent slug — caller dispatches mode-specific behaviour from this. */
+  agentId: BuiltinAgentSlug;
   operationId: string;
   /** Optional topic id forwarded from the source payload. */
   topicId?: string;
 }
 
 export interface CreateCompletionPolicyOptions {
-  /** Called when a self-iteration run completes (any mode: review / reflection / feedback). */
+  /**
+   * Called when a self-iteration run completes. `params.agentId` identifies
+   * which mode (nightly-review / self-reflection / self-feedback-intent) ran.
+   */
   onSelfIterationCompleted?: (params: CompletionCallbackParams) => Promise<void>;
 }
 
@@ -41,11 +47,11 @@ export const createCompletionPolicy = (options: CreateCompletionPolicyOptions = 
         const { agentId, operationId, topicId } = source.payload;
 
         if (!agentId || !operationId) return;
-        if (agentId !== BUILTIN_AGENT_SLUGS.selfIteration) return;
+        if (!SELF_ITERATION_AGENT_SLUGS.has(agentId as BuiltinAgentSlug)) return;
         if (!options.onSelfIterationCompleted) return;
 
         const params: CompletionCallbackParams = {
-          agentId,
+          agentId: agentId as BuiltinAgentSlug,
           operationId,
           ...(topicId ? { topicId } : {}),
         };

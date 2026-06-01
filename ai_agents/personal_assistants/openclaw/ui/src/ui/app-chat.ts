@@ -8,6 +8,11 @@ import {
   releaseChatAttachmentPayloads,
 } from "./chat/attachment-payload-store.ts";
 import {
+  INTERRUPTED_MODEL_WAIT_ERROR,
+  persistStoredChatComposerQueue,
+  removeStoredChatComposerQueueItem,
+} from "./chat/composer-persistence.ts";
+import {
   handleChatDraftChange,
   handleChatInputHistoryKey,
   navigateChatInputHistory,
@@ -22,6 +27,11 @@ import type { ChatSideResult } from "./chat/side-result.ts";
 import { executeSlashCommand } from "./chat/slash-command-executor.ts";
 import { parseSlashCommand, refreshSlashCommands } from "./chat/slash-commands.ts";
 import { formatConnectError } from "./connect-error.ts";
+import {
+  controlUiNowMs,
+  recordControlUiPerformanceEvent,
+  roundedControlUiDurationMs,
+} from "./control-ui-performance.ts";
 import { resolveControlUiAuthHeader } from "./control-ui-auth.ts";
 import {
   abortChatRun,
@@ -45,8 +55,13 @@ import { normalizeBasePath } from "./navigation.ts";
 import {
   areUiSessionKeysEquivalent,
   DEFAULT_AGENT_ID,
+  isUiGlobalSessionKey,
   normalizeAgentId,
   parseAgentSessionKey,
+  resolveUiDefaultAgentId,
+  resolveUiGlobalAliasAgentId,
+  resolveUiKnownSelectedGlobalAgentId,
+  resolveUiSelectedGlobalAgentId,
 } from "./session-key.ts";
 import { isSessionRunActive } from "./session-run-state.ts";
 import { normalizeLowercaseStringOrEmpty, normalizeOptionalString } from "./string-coerce.ts";
@@ -68,7 +83,7 @@ export type ChatHost = ChatInputHistoryState & {
   lastError?: string | null;
   chatError?: string | null;
   basePath: string;
-  settings?: { token?: string | null };
+  settings?: { gatewayUrl?: string | null; token?: string | null };
   password?: string | null;
   hello: GatewayHelloOk | null;
   chatAvatarUrl: string | null;
@@ -91,6 +106,9 @@ export type ChatHost = ChatInputHistoryState & {
   chatSubmitGuards?: Map<string, Promise<void>>;
   assistantAgentId?: string | null;
   agentsList?: { defaultId?: string | null; mainKey?: string | null } | null;
+  eventLogBuffer?: unknown[];
+  eventLog?: unknown[];
+  tab?: string;
   /** Callback for slash-command side effects that need app-level access. */
   onSlashAction?: (action: string) => void | Promise<void>;
 };
@@ -219,10 +237,6 @@ function isBtwCommand(text: string) {
   return /^\/(?:btw|side)(?::|\s|$)/i.test(text.trim());
 }
 
-function isGlobalSessionKey(sessionKey: string | undefined | null): boolean {
-  return normalizeLowercaseStringOrEmpty(sessionKey) === "global";
-}
-
 function readHelloDefaultAgentId(host: Pick<ChatHost, "hello">): string | undefined {
   const snapshot = host.hello?.snapshot as
     | { sessionDefaults?: SessionDefaultsSnapshot }
@@ -230,50 +244,10 @@ function readHelloDefaultAgentId(host: Pick<ChatHost, "hello">): string | undefi
   return snapshot?.sessionDefaults?.defaultAgentId?.trim() || undefined;
 }
 
-function readHelloMainKey(host: Pick<ChatHost, "hello">): string | undefined {
-  const snapshot = host.hello?.snapshot as
-    | { sessionDefaults?: SessionDefaultsSnapshot }
-    | undefined;
-  return snapshot?.sessionDefaults?.mainKey?.trim() || undefined;
-}
-
-function resolveGlobalAliasAgentId(
-  host: Pick<ChatHost, "agentsList" | "hello">,
-  sessionKey: string | undefined | null,
-): string | undefined {
-  const parsed = parseAgentSessionKey(sessionKey);
-  if (!parsed) {
-    return undefined;
-  }
-  const rest = normalizeLowercaseStringOrEmpty(parsed.rest);
-  const configuredMainKey = normalizeLowercaseStringOrEmpty(
-    host.agentsList?.mainKey ?? readHelloMainKey(host) ?? "main",
-  );
-  return rest === "global" || rest === "main" || rest === configuredMainKey
-    ? normalizeAgentId(parsed.agentId)
-    : undefined;
-}
-
-function resolveSelectedGlobalAgentId(
-  host: Pick<ChatHost, "assistantAgentId" | "agentsList" | "hello">,
-): string | undefined {
-  const agentId =
-    host.assistantAgentId?.trim() ||
-    host.agentsList?.defaultId?.trim() ||
-    readHelloDefaultAgentId(host);
-  return agentId ? normalizeAgentId(agentId) : undefined;
-}
-
-function resolveDefaultAgentIdForList(host: Pick<ChatHost, "agentsList" | "hello">): string {
-  return normalizeAgentId(
-    host.agentsList?.defaultId ?? readHelloDefaultAgentId(host) ?? DEFAULT_AGENT_ID,
-  );
-}
-
 function scopedAgentIdForSession(host: ChatHost, sessionKey: string | undefined | null) {
-  return isGlobalSessionKey(sessionKey)
-    ? resolveSelectedGlobalAgentId(host)
-    : resolveGlobalAliasAgentId(host, sessionKey);
+  return isUiGlobalSessionKey(sessionKey)
+    ? resolveUiKnownSelectedGlobalAgentId(host)
+    : (resolveUiGlobalAliasAgentId(host, sessionKey) ?? undefined);
 }
 
 function visibleSessionMatches(
@@ -282,8 +256,8 @@ function visibleSessionMatches(
   agentId: string | undefined,
 ): boolean {
   if (host.sessionKey !== sessionKey) {
-    const hostAliasAgentId = resolveGlobalAliasAgentId(host, host.sessionKey);
-    if (!hostAliasAgentId || !isGlobalSessionKey(sessionKey)) {
+    const hostAliasAgentId = resolveUiGlobalAliasAgentId(host, host.sessionKey);
+    if (!hostAliasAgentId || !isUiGlobalSessionKey(sessionKey)) {
       return false;
     }
     const expectedAgentId = agentId ?? host.agentsList?.defaultId ?? readHelloDefaultAgentId(host);
@@ -291,10 +265,10 @@ function visibleSessionMatches(
       ? hostAliasAgentId === normalizeAgentId(expectedAgentId)
       : hostAliasAgentId === normalizeAgentId("main");
   }
-  if (!isGlobalSessionKey(sessionKey)) {
+  if (!isUiGlobalSessionKey(sessionKey)) {
     return true;
   }
-  const selectedAgentId = resolveSelectedGlobalAgentId(host);
+  const selectedAgentId = resolveUiKnownSelectedGlobalAgentId(host);
   const expectedAgentId = agentId ?? host.agentsList?.defaultId ?? readHelloDefaultAgentId(host);
   return expectedAgentId
     ? selectedAgentId === normalizeAgentId(expectedAgentId)
@@ -305,9 +279,9 @@ export function scopedAgentParamsForSession(
   host: Pick<ChatHost, "assistantAgentId" | "agentsList" | "hello">,
   sessionKey: string,
 ) {
-  const agentId = isGlobalSessionKey(sessionKey)
-    ? resolveSelectedGlobalAgentId(host)
-    : resolveGlobalAliasAgentId(host, sessionKey);
+  const agentId = isUiGlobalSessionKey(sessionKey)
+    ? resolveUiKnownSelectedGlobalAgentId(host)
+    : resolveUiGlobalAliasAgentId(host, sessionKey);
   return agentId ? { agentId } : {};
 }
 
@@ -320,10 +294,10 @@ export function scopedAgentListParamsForSession(
   const agentId =
     parsed?.agentId ??
     (normalizedSessionKey === "global"
-      ? resolveSelectedGlobalAgentId(host)
+      ? resolveUiKnownSelectedGlobalAgentId(host)
       : normalizedSessionKey === "unknown"
         ? undefined
-        : resolveDefaultAgentIdForList(host));
+        : resolveUiDefaultAgentId(host));
   return agentId ? { agentId: normalizeAgentId(agentId) } : {};
 }
 
@@ -419,6 +393,9 @@ function enqueuePendingSendMessage(
   text: string,
   attachments?: ChatAttachment[],
   refreshSessions?: boolean,
+  submittedAtMs = controlUiNowMs(),
+  sendState: ChatQueueItem["sendState"] =
+    host.connected && host.client ? "sending" : "waiting-reconnect",
 ): ChatQueueItem | null {
   const trimmed = text.trim();
   const hasAttachments = Boolean(attachments && attachments.length > 0);
@@ -433,11 +410,14 @@ function enqueuePendingSendMessage(
     refreshSessions,
     sendAttempts: 0,
     sendRunId: generateUUID(),
-    sendState: host.connected && host.client ? "sending" : "waiting-reconnect",
+    sendState,
+    sendSubmittedAtMs: submittedAtMs,
     sessionKey: host.sessionKey,
     agentId: scopedAgentIdForSession(host, host.sessionKey),
   };
   host.chatQueue = [...host.chatQueue, pending];
+  recordChatSendTiming(host, pending, "pending-visible", submittedAtMs);
+  scheduleChatScroll(host as unknown as Parameters<typeof scheduleChatScroll>[0], true);
   return pending;
 }
 
@@ -488,6 +468,10 @@ function updateQueuedMessageForSession(
   return nextItem;
 }
 
+function persistQueuedMessagesForSession(host: ChatHost, sessionKey: string) {
+  persistStoredChatComposerQueue(host, sessionKey, readChatQueueForSession(host, sessionKey));
+}
+
 function removeQueuedMessageWithoutReleasing(
   host: ChatHost,
   id: string,
@@ -501,6 +485,17 @@ function removeQueuedMessageWithoutReleasing(
     queue.filter((entry) => entry.id !== id),
   );
   return item;
+}
+
+function removeVisibleOrScopedQueuedMessageWithoutReleasing(
+  host: ChatHost,
+  id: string,
+  sessionKey: string | undefined,
+): ChatQueueItem | null {
+  return (
+    removeQueuedMessageWithoutReleasing(host, id) ??
+    (sessionKey ? removeQueuedMessageWithoutReleasing(host, id, sessionKey) : null)
+  );
 }
 
 function isRecoverableChatSendError(err: unknown, formattedError: string): boolean {
@@ -525,7 +520,85 @@ function restoreComposerAfterFailedSend(
   }
 }
 
+function cancelPendingSendBeforeRequest(
+  host: ChatHost,
+  queued: ChatQueueItem,
+  opts: {
+    previousAttachments?: ChatAttachment[];
+    previousDraft?: string;
+    restoreComposer?: boolean;
+  },
+) {
+  const removed = removeVisibleOrScopedQueuedMessageWithoutReleasing(
+    host,
+    queued.id,
+    queued.sessionKey,
+  );
+  const restoreComposer = opts.restoreComposer !== false && removed != null;
+  const willRestoreDraft =
+    restoreComposer && opts.previousDraft != null && !host.chatMessage.trim();
+  const willRestoreAttachments = Boolean(
+    restoreComposer &&
+      opts.previousAttachments?.length &&
+      host.chatAttachments.length === 0 &&
+      (willRestoreDraft || !host.chatMessage.trim()),
+  );
+  if (restoreComposer) {
+    if (willRestoreDraft) {
+      host.chatMessage = opts.previousDraft ?? "";
+    }
+    if (willRestoreAttachments) {
+      host.chatAttachments = opts.previousAttachments ?? [];
+    }
+  }
+  if (removed?.sessionKey) {
+    removeStoredChatComposerQueueItem(host, removed.sessionKey, removed.id);
+  }
+  if (removed && !willRestoreAttachments) {
+    releaseChatAttachmentPayloads(excludeComposerAttachments(host, removed.attachments));
+  }
+}
+
 type QueuedChatSendResult = "sent" | "pending" | "failed";
+
+type ChatSendTimingPhase =
+  | "pending-visible"
+  | "request-start"
+  | "ack"
+  | "queued-busy"
+  | "waiting-model"
+  | "waiting-reconnect"
+  | "failed";
+
+function recordChatSendTiming(
+  host: ChatHost,
+  item: Pick<
+    ChatQueueItem,
+    "sendRunId" | "sessionKey" | "agentId" | "sendAttempts" | "sendState" | "sendSubmittedAtMs"
+  >,
+  phase: ChatSendTimingPhase,
+  startedAtMs = item.sendSubmittedAtMs,
+  extra: Record<string, unknown> = {},
+) {
+  if (startedAtMs == null) {
+    return;
+  }
+  recordControlUiPerformanceEvent(
+    host as Parameters<typeof recordControlUiPerformanceEvent>[0],
+    "control-ui.chat.send",
+    {
+      phase,
+      durationMs: roundedControlUiDurationMs(controlUiNowMs() - startedAtMs),
+      runId: item.sendRunId,
+      sessionKey: item.sessionKey,
+      agentId: item.agentId,
+      sendAttempts: item.sendAttempts ?? 0,
+      sendState: item.sendState,
+      ...extra,
+    },
+    { console: false, maxBufferedEventsForType: 40 },
+  );
+}
 
 function ensureQueuedSendState(
   host: ChatHost,
@@ -582,15 +655,18 @@ async function sendQueuedChatMessage(
 
   const runId = prepared.sendRunId ?? generateUUID();
   const startedAt = Date.now();
+  const requestStartedAtMs = controlUiNowMs();
   updateQueuedMessageForSession(host, sessionKey, id, (item) => ({
     ...item,
     sendAttempts: (item.sendAttempts ?? 0) + 1,
     sendError: undefined,
     sendRunId: runId,
     sendState: "sending",
+    sendRequestStartedAtMs: requestStartedAtMs,
     sessionKey,
     agentId: prepared.agentId,
   }));
+  recordChatSendTiming(host, prepared, "request-start", prepared.sendSubmittedAtMs);
   host.chatSending = true;
   const isVisibleSession = () => visibleSessionMatches(host, sessionKey, prepared.agentId);
   if (isVisibleSession()) {
@@ -607,6 +683,10 @@ async function sendQueuedChatMessage(
       runId,
       sessionKey,
       agentId: prepared.agentId,
+    });
+    recordChatSendTiming(host, prepared, "ack", prepared.sendSubmittedAtMs, {
+      ackStatus: ack.status,
+      requestDurationMs: roundedControlUiDurationMs(controlUiNowMs() - requestStartedAtMs),
     });
     removeQueuedMessageWithoutReleasing(host, id, sessionKey);
     if (isVisibleSession()) {
@@ -632,10 +712,17 @@ async function sendQueuedChatMessage(
         );
         void loadChatHistory(host as unknown as ChatState);
       } else {
+        const hasAlreadyAdoptedRunStream =
+          host.chatRunId === ack.runId && typeof host.chatStream === "string";
         host.chatRunId = ack.runId;
-        host.chatStream = "";
-        (host as ChatHost & { chatStreamStartedAt?: number | null }).chatStreamStartedAt =
-          startedAt;
+        // Gateway can deliver the first delta before the chat.send ACK resolves.
+        // Preserve that adopted stream; resetting here makes first replies vanish
+        // until a later delta or final event arrives.
+        if (!hasAlreadyAdoptedRunStream) {
+          host.chatStream = "";
+          (host as ChatHost & { chatStreamStartedAt?: number | null }).chatStreamStartedAt =
+            startedAt;
+        }
       }
     }
     if (prepared.refreshSessions) {
@@ -665,6 +752,9 @@ async function sendQueuedChatMessage(
       if (isVisibleSession()) {
         setChatError(host, "Message will send when the Gateway reconnects.");
       }
+      recordChatSendTiming(host, prepared, "waiting-reconnect", prepared.sendSubmittedAtMs, {
+        error,
+      });
       return "pending";
     }
     updateQueuedMessageForSession(host, sessionKey, id, (item) => ({
@@ -676,6 +766,7 @@ async function sendQueuedChatMessage(
       setChatError(host, error);
       restoreComposerAfterFailedSend(host, opts ?? {});
     }
+    recordChatSendTiming(host, prepared, "failed", prepared.sendSubmittedAtMs, { error });
     return "failed";
   } finally {
     host.chatSending = false;
@@ -693,6 +784,7 @@ async function sendChatMessageNow(
     previousAttachments?: ChatAttachment[];
     restoreAttachments?: boolean;
     refreshSessions?: boolean;
+    submittedAtMs?: number;
   },
 ) {
   resetToolStream(host as unknown as Parameters<typeof resetToolStream>[0]);
@@ -701,7 +793,13 @@ async function sendChatMessageNow(
   const queued =
     opts?.queueItemId != null
       ? (host.chatQueue.find((item) => item.id === opts.queueItemId) ?? null)
-      : enqueuePendingSendMessage(host, message, opts?.attachments, opts?.refreshSessions);
+      : enqueuePendingSendMessage(
+          host,
+          message,
+          opts?.attachments,
+          opts?.refreshSessions,
+          opts?.submittedAtMs,
+        );
   if (!queued) {
     return false;
   }
@@ -935,6 +1033,7 @@ async function flushChatQueue(host: ChatHost) {
     (item) =>
       !item.pendingRunId &&
       item.sendState !== "sending" &&
+      item.sendState !== "waiting-model" &&
       item.sendState !== "failed" &&
       (item.sessionKey == null || item.sessionKey === host.sessionKey),
   );
@@ -986,8 +1085,8 @@ function isHistorySessionInfoForRequestedSession(
   }
   return Boolean(
     historySessionKey &&
-    isGlobalSessionKey(historySessionKey) &&
-    resolveGlobalAliasAgentId(host, requestedSessionKey),
+    isUiGlobalSessionKey(historySessionKey) &&
+    resolveUiGlobalAliasAgentId(host, requestedSessionKey),
   );
 }
 
@@ -998,8 +1097,8 @@ function findSelectedSessionRow(
   historySessionKey: string | undefined,
 ): GatewaySessionRow | undefined {
   const requestedGlobalAgentId =
-    historySessionKey && isGlobalSessionKey(historySessionKey)
-      ? resolveGlobalAliasAgentId(host, sessionKey)
+    historySessionKey && isUiGlobalSessionKey(historySessionKey)
+      ? resolveUiGlobalAliasAgentId(host, sessionKey)
       : undefined;
   return sessionsResult?.sessions.find((session) => {
     if (areUiSessionKeysEquivalent(session.key, sessionKey)) {
@@ -1007,7 +1106,7 @@ function findSelectedSessionRow(
     }
     return (
       requestedGlobalAgentId != null &&
-      resolveGlobalAliasAgentId(host, session.key) === requestedGlobalAgentId
+      resolveUiGlobalAliasAgentId(host, session.key) === requestedGlobalAgentId
     );
   });
 }
@@ -1182,7 +1281,13 @@ export async function retryReconnectableQueuedChatSends(host: ChatHost) {
 
 export async function retryQueuedChatMessage(host: ChatHost, id: string) {
   const item = host.chatQueue.find((entry) => entry.id === id);
-  if (!item || item.localCommandName || item.pendingRunId || item.sendState === "sending") {
+  if (
+    !item ||
+    item.localCommandName ||
+    item.pendingRunId ||
+    item.sendState === "sending" ||
+    item.sendState === "waiting-model"
+  ) {
     return;
   }
   updateQueuedMessage(host, id, (entry) => ({
@@ -1203,6 +1308,7 @@ export async function handleSendChat(
 ) {
   const previousDraft = host.chatMessage;
   const message = (messageOverride ?? host.chatMessage).trim();
+  const submittedAtMs = controlUiNowMs();
   const submittedSessionKey = host.sessionKey;
   const attachments = host.chatAttachments ?? [];
   const attachmentsToSend = messageOverride == null ? snapshotChatAttachments(attachments) : [];
@@ -1283,10 +1389,6 @@ export async function handleSendChat(
   const refreshSessions = isChatResetCommand(message);
   const submitKey = chatSubmitKey(host, "message", message, attachmentsToSend);
   await withChatSubmitGuard(host, submitKey, async () => {
-    const modelSwitchReady = waitForPendingChatModelSwitch(host, submittedSessionKey);
-    if (modelSwitchReady !== true && !(await modelSwitchReady)) {
-      return;
-    }
     if (host.sessionKey !== submittedSessionKey) {
       return;
     }
@@ -1294,22 +1396,69 @@ export async function handleSendChat(
       messageOverride == null
         ? clearSubmittedComposerState(host, previousDraft, attachmentsToSend)
         : {};
+    if (messageOverride == null) {
+      recordNonTranscriptInputHistory(host, message);
+    }
+
+    const modelSwitchReady = waitForPendingChatModelSwitch(host, submittedSessionKey);
+    const waitingForModel = modelSwitchReady !== true;
+    const queued = enqueuePendingSendMessage(
+      host,
+      message,
+      hasAttachments ? attachmentsToSend : undefined,
+      refreshSessions,
+      submittedAtMs,
+      waitingForModel ? "waiting-model" : undefined,
+    );
+    if (!queued) {
+      return;
+    }
+
+    if (modelSwitchReady !== true && !(await modelSwitchReady)) {
+      if (host.sessionKey === submittedSessionKey) {
+        cancelPendingSendBeforeRequest(host, queued, {
+          previousDraft: cleared.previousDraft,
+          previousAttachments: cleared.previousAttachments,
+        });
+      } else {
+        updateQueuedMessageForSession(host, submittedSessionKey, queued.id, (item) => ({
+          ...item,
+          sendError: INTERRUPTED_MODEL_WAIT_ERROR,
+          sendState: "failed",
+        }));
+        persistQueuedMessagesForSession(host, submittedSessionKey);
+      }
+      return;
+    }
+    if (host.sessionKey !== submittedSessionKey) {
+      updateQueuedMessageForSession(host, submittedSessionKey, queued.id, (item) => ({
+        ...item,
+        sendError: undefined,
+        sendState: undefined,
+      }));
+      persistQueuedMessagesForSession(host, submittedSessionKey);
+      return;
+    }
 
     if (isChatBusy(host)) {
-      if (messageOverride == null) {
-        recordNonTranscriptInputHistory(host, message);
-      }
-      enqueueChatMessage(host, message, attachmentsToSend, refreshSessions);
+      updateQueuedMessage(host, queued.id, (item) => ({
+        ...item,
+        sendError: undefined,
+        sendState: undefined,
+      }));
+      recordChatSendTiming(host, queued, "queued-busy", submittedAtMs);
       return;
     }
 
     await sendChatMessageNow(host, message, {
+      queueItemId: queued.id,
       previousDraft: cleared.previousDraft,
       restoreDraft: Boolean(messageOverride && opts?.restoreDraft),
       attachments: hasAttachments ? attachmentsToSend : undefined,
       previousAttachments: cleared.previousAttachments,
       restoreAttachments: Boolean(messageOverride && opts?.restoreDraft),
       refreshSessions,
+      submittedAtMs,
     });
   });
 }
@@ -1558,8 +1707,8 @@ function resolveAgentIdForSession(host: ChatHost): string | null {
   if (parsed?.agentId) {
     return parsed.agentId;
   }
-  if (isGlobalSessionKey(host.sessionKey)) {
-    return resolveSelectedGlobalAgentId(host) || DEFAULT_AGENT_ID;
+  if (isUiGlobalSessionKey(host.sessionKey)) {
+    return resolveUiSelectedGlobalAgentId(host) || DEFAULT_AGENT_ID;
   }
   return readHelloDefaultAgentId(host) || DEFAULT_AGENT_ID;
 }

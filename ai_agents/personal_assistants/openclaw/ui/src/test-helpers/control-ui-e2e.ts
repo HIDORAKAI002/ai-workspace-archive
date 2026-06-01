@@ -83,6 +83,13 @@ export type MockGatewayControls = {
 };
 
 const chromiumExecutableOverrideEnvKey = "PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH";
+const systemChromiumExecutableCandidates = [
+  "/snap/bin/chromium",
+  "/usr/bin/chromium-browser",
+  "/usr/bin/chromium",
+  "/usr/bin/google-chrome",
+  "/usr/bin/google-chrome-stable",
+] as const;
 
 function resolveRepoRoot(): string {
   const here = path.dirname(fileURLToPath(import.meta.url));
@@ -94,7 +101,16 @@ export function resolvePlaywrightChromiumExecutablePath(
   env: NodeJS.ProcessEnv = process.env,
 ): string {
   const executableOverride = env[chromiumExecutableOverrideEnvKey]?.trim();
-  return executableOverride || defaultExecutablePath;
+  if (executableOverride) {
+    return executableOverride;
+  }
+  if (existsSync(defaultExecutablePath)) {
+    return defaultExecutablePath;
+  }
+  return (
+    systemChromiumExecutableCandidates.find((candidate) => existsSync(candidate)) ??
+    defaultExecutablePath
+  );
 }
 
 export function canRunPlaywrightChromium(chromiumExecutablePath: string): boolean {
