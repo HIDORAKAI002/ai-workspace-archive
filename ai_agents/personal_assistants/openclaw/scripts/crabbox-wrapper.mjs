@@ -1880,15 +1880,18 @@ function isWorktreeClean() {
   return gitOutput(["status", "--porcelain=v1"]).stdout === "";
 }
 
-function shouldUseFullCheckoutForCleanSparseRemoteSync(commandArgs, _providerName) {
+function shouldUseFullCheckoutForCleanRemoteSync(commandArgs, _providerName) {
   if (commandArgs[0] !== "run") {
     return false;
   }
   if (hasOption(commandArgs, "--no-sync")) {
     return false;
   }
+  if (!isWorktreeClean()) {
+    return false;
+  }
 
-  return isSparseCheckout() && isWorktreeClean();
+  return isSparseCheckout() || isChangedGateCommand(runCommandArgs(commandArgs));
 }
 
 function prepareFullCheckoutForSync(options = {}) {
@@ -2099,7 +2102,7 @@ const scriptBootstrap = prepareAwsMacosScriptStdinBootstrap(normalizedArgs, prov
 normalizedArgs = scriptBootstrap.args;
 const scriptStdinPrepared = scriptBootstrap.prepared;
 try {
-  if (shouldUseFullCheckoutForCleanSparseRemoteSync(normalizedArgs, provider)) {
+  if (shouldUseFullCheckoutForCleanRemoteSync(normalizedArgs, provider)) {
     const runWords = runCommandArgs(normalizedArgs);
     const changedGateBase = isChangedGateCommand(runWords) ? mergeBaseForChangedGate() : "";
     const checkout = prepareFullCheckoutForSync({ changedGateBase });

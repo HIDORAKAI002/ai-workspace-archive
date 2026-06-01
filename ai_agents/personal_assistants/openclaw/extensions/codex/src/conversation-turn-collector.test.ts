@@ -186,6 +186,7 @@ describe("codex conversation turn collector", () => {
       await vi.advanceTimersByTimeAsync(100);
       await assertion;
     } finally {
+      vi.restoreAllMocks();
       vi.useRealTimers();
     }
   });
@@ -206,6 +207,7 @@ describe("codex conversation turn collector", () => {
 
       await expect(completion).resolves.toEqual({ replyText: "" });
     } finally {
+      vi.restoreAllMocks();
       vi.useRealTimers();
     }
   });

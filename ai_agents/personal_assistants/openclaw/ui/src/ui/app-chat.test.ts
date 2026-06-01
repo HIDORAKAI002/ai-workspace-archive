@@ -426,6 +426,50 @@ describe("refreshChat", () => {
     expect(requestUpdate).toHaveBeenCalled();
   });
 
+  it("records chat history timing when a reload resets active stream state", async () => {
+    const request = vi.fn((method: string) => {
+      if (method === "chat.history") {
+        return Promise.resolve({
+          messages: [{ role: "assistant", content: [{ type: "text", text: "ready" }] }],
+        });
+      }
+      return pendingPromise();
+    });
+    const host = makeHost({
+      client: { request } as unknown as ChatHost["client"],
+      sessionKey: "main",
+      chatRunId: "run-main",
+      chatStream: "partial",
+      eventLogBuffer: [],
+    });
+
+    await refreshChat(host, { awaitHistory: true, scheduleScroll: false });
+
+    expect(host.chatStream).toBeNull();
+    expect(eventPayloads(host, "control-ui.chat.history")).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          phase: "start",
+          sessionKey: "main",
+          previousRunId: "run-main",
+        }),
+        expect.objectContaining({
+          phase: "stream-reset",
+          sessionKey: "main",
+          previousRunId: "run-main",
+          activeRunId: "run-main",
+          visibleMessageCount: 1,
+        }),
+        expect.objectContaining({
+          phase: "applied",
+          sessionKey: "main",
+          previousRunId: "run-main",
+          resetStream: true,
+        }),
+      ]),
+    );
+  });
+
   it("drains a restored queue after refresh proves the selected session is idle", async () => {
     const request = vi.fn(async (method: string) => {
       if (method === "chat.history") {
@@ -1057,6 +1101,7 @@ describe("handleSendChat", () => {
   });
 
   afterEach(() => {
+    vi.restoreAllMocks();
     vi.unstubAllGlobals();
   });
 
@@ -1221,6 +1266,42 @@ describe("handleSendChat", () => {
     });
     expect(ack?.durationMs).toEqual(expect.any(Number));
     expect(ack?.requestDurationMs).toEqual(expect.any(Number));
+  });
+
+  it("records pending send paint timing before a delayed chat.send ACK", async () => {
+    vi.spyOn(window, "requestAnimationFrame").mockImplementation((callback) => {
+      queueMicrotask(() => callback(0));
+      return 1;
+    });
+    const chatSend = createDeferred<{ status: "started" }>();
+    const request = vi.fn((method: string) => {
+      if (method === "chat.send") {
+        return chatSend.promise;
+      }
+      throw new Error(`Unexpected request: ${method}`);
+    });
+    const host = makeHost({
+      client: { request } as unknown as ChatHost["client"],
+      chatMessage: "measure painted pending send",
+      eventLogBuffer: [],
+      tab: "debug",
+    });
+
+    const send = handleSendChat(host);
+
+    await vi.waitFor(() =>
+      expect(eventPayloads(host, "control-ui.chat.send").map((payload) => payload.phase)).toEqual(
+        expect.arrayContaining(["pending-visible", "request-start", "pending-painted"]),
+      ),
+    );
+
+    chatSend.resolve({ status: "started" });
+    await send;
+
+    const phasesAfterAck = eventPayloads(host, "control-ui.chat.send").map(
+      (payload) => payload.phase,
+    );
+    expect(phasesAfterAck).toEqual(expect.arrayContaining(["ack"]));
   });
 
   it("waits for an in-flight model picker update before sending chat", async () => {
