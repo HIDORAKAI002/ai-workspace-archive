@@ -104,7 +104,7 @@ test = [
     "rapidfuzz",
     "pytest-rerunfailures",
     "psutil",
-    "ruff==0.15.14",
+    "ruff==0.15.15",
 ]
 test-components = [
     "tomlkit",
@@ -135,10 +135,10 @@ pyright = [
     "types-toml",
 ]
 ruff = [
-    "ruff==0.15.14",
+    "ruff==0.15.15",
 ]
 ty = [
-    "ty==0.0.39",
+    "ty==0.0.40",
     ### Stub packages for type checking
     "pandas-stubs",  # version will be resolved against pandas
     "types-backports",  # version will be resolved against backports
