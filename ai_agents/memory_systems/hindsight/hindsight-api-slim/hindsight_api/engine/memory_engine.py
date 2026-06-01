@@ -22,7 +22,6 @@ from typing import TYPE_CHECKING, Any, Literal, cast, overload
 
 import asyncpg
 import httpx
-import tiktoken
 
 from .._vector_index import ann_search_tuning_settings, configured_vector_extension
 from ..config import (
@@ -221,7 +220,7 @@ from enum import Enum
 from ..metrics import get_metrics_collector
 from ..pg0 import EmbeddedPostgres, parse_pg0_url
 from .entity_resolver import EntityResolver
-from .llm_wrapper import LLMConfig, requires_api_key, sanitize_llm_output
+from .llm_wrapper import LLMConfig, requires_api_key, sanitize_llm_output, sanitize_text
 from .query_analyzer import QueryAnalyzer
 from .reflect import run_reflect_agent
 from .reflect.prompts import DELTA_SYSTEM_PROMPT, build_delta_prompt
@@ -244,6 +243,7 @@ from .search import think_utils
 from .search.reranking import CrossEncoderReranker, apply_combined_scoring
 from .search.tags import TagGroup, TagsMatch, build_tag_groups_where_clause, build_tags_where_clause
 from .task_backend import TaskBackend
+from .token_encoding import get_token_encoding
 
 RetainOutboxCallback = Callable[[asyncpg.Connection], Awaitable[None]]
 RetainOutboxCallbackFactory = Callable[[list[RetainContentDict]], RetainOutboxCallback | None]
@@ -521,16 +521,14 @@ logger = logging.getLogger(__name__)
 
 from .db_utils import acquire_with_retry
 
-# Cache tiktoken encoding for token budget filtering (module-level singleton)
-_TIKTOKEN_ENCODING = None
-
 
 def _get_tiktoken_encoding():
-    """Get cached tiktoken encoding (cl100k_base for GPT-4/3.5)."""
-    global _TIKTOKEN_ENCODING
-    if _TIKTOKEN_ENCODING is None:
-        _TIKTOKEN_ENCODING = tiktoken.get_encoding("cl100k_base")
-    return _TIKTOKEN_ENCODING
+    """Get cached tiktoken encoding (cl100k_base for GPT-4/3.5).
+
+    Returns a wrapper that tolerates special-token literals in user content
+    (see hindsight_api.engine.token_encoding).
+    """
+    return get_token_encoding()
 
 
 @dataclass(frozen=True)
@@ -2723,6 +2721,15 @@ class MemoryEngine(MemoryEngineInterface):
         # those mutations leak back to the caller's dicts.
         contents = cast(list[RetainContentDict], [dict(c) for c in contents])
 
+        # Sanitize content/context at ingress so lone UTF-16 surrogates (e.g. a
+        # half-emoji a client serialized as a `\udXXX` escape) cannot crash the
+        # embedder, cross-encoder, or logging with an HTTP 500 (see issue #1875).
+        for item in contents:
+            if "content" in item:
+                item["content"] = sanitize_text(item["content"]) or ""
+            if item.get("context"):
+                item["context"] = sanitize_text(item["context"]) or ""
+
         # Apply batch-level document_id to contents that don't have their own (backwards compatibility)
         if document_id:
             for item in contents:
@@ -2791,6 +2798,44 @@ class MemoryEngine(MemoryEngineInterface):
             # multiple sub-batches, unit_ids from every chunk get
             # appended back into that input's result slot.
             per_input_results: list[list[str]] = [[] for _ in contents]
+
+            # Per-document chunk_index offsets. When an oversized single item is
+            # sliced into several sub-batches that all share one document_id and
+            # run sequentially, each sub-batch must continue the document's
+            # chunk_index sequence rather than restart at 0 — otherwise the
+            # derived chunk_id ({bank}_{doc}_{index}) collides and later
+            # sub-batches overwrite earlier chunks, leaving only one sub-batch's
+            # worth of chunks/memories (issue #1888). Counting uses the same
+            # bank-resolved, strategy-applied chunk size the orchestrator chunks
+            # with, so the offsets match the chunk_index values it assigns.
+            from .retain import fact_extraction, fact_storage
+
+            sub_chunk_size = await self._resolve_retain_chunk_size(bank_id, request_context, strategy)
+            chunk_offsets: dict[str, int] = {}
+
+            # In update_mode="append", retain_batch prepends the existing document
+            # body to the FIRST sub-batch as an extra content item before chunking
+            # (see orchestrator.retain_batch), consuming chunks(existing_body)
+            # additional chunk_index slots ahead of that sub-batch's own content.
+            # Capture that chunk count per document up front — the first sub-batch
+            # overwrites documents.original_text when it commits, so it can't be
+            # read back afterwards — and fold it into the offset so later
+            # sub-batches continue past the prepended chunks instead of colliding.
+            append_prepend_chunks: dict[str, int] = {}
+            backend = await self._get_backend()
+            append_doc_ids: set[str] = set()
+            for item in contents:
+                item_doc_id = item.get("document_id")
+                if item.get("update_mode") == "append" and item_doc_id:
+                    append_doc_ids.add(item_doc_id)
+            for append_doc_id in append_doc_ids:
+                async with acquire_with_retry(backend) as conn:
+                    existing_text = await fact_storage.get_document_content(conn, bank_id, append_doc_id)
+                if existing_text:
+                    append_prepend_chunks[append_doc_id] = len(
+                        fact_extraction.chunk_text(existing_text, sub_chunk_size)
+                    )
+
             for i, (sub_batch, sub_origins) in enumerate(zip(sub_batches, origin_indices), 1):
                 # Checkpoint: abort if the operation was deleted (bank was deleted) between sub-batches.
                 if operation_id and not await self._check_op_alive(operation_id):
@@ -2805,6 +2850,14 @@ class MemoryEngine(MemoryEngineInterface):
                 logger.info(
                     f"Processing sub-batch {i}/{len(sub_batches)}: {len(sub_batch)} items, {sub_batch_tokens:,} tokens"
                 )
+
+                # Resolve the document this sub-batch writes to so we can offset
+                # its chunk_index past chunks already stored by earlier
+                # sub-batches of the same document. Only the oversized-single-item
+                # split shares a document_id across sub-batches; packed multi-item
+                # sub-batches carry distinct document_ids (offset stays 0).
+                sub_doc_id = document_id or (sub_batch[0].get("document_id") if len(sub_batch) == 1 else None)
+                sub_offset = chunk_offsets.get(sub_doc_id, 0) if sub_doc_id else 0
 
                 sub_results, sub_usage, sub_processed = await self._retain_batch_async_internal(
                     bank_id=bank_id,
@@ -2821,7 +2874,24 @@ class MemoryEngine(MemoryEngineInterface):
                     outbox_callback=outbox_callback if i == len(sub_batches) else None,
                     outbox_callback_factory=outbox_callback_factory if i == len(sub_batches) else None,
                     document_body_override=document_body_overrides[i - 1],
+                    chunk_index_offset=sub_offset,
                 )
+
+                # Advance the document's chunk_index cursor by the number of
+                # chunks this sub-batch produced (computed with the same chunk
+                # size the orchestrator uses), so the next sub-batch sharing the
+                # document continues the sequence.
+                if sub_doc_id:
+                    sub_chunk_count = sum(
+                        len(fact_extraction.chunk_text(item.get("content", "") or "", sub_chunk_size))
+                        for item in sub_batch
+                    )
+                    # retain_batch only prepends the existing body on the global
+                    # first sub-batch (is_first_batch == i == 1), so fold its chunk
+                    # count in only there.
+                    if i == 1:
+                        sub_chunk_count += append_prepend_chunks.get(sub_doc_id, 0)
+                    chunk_offsets[sub_doc_id] = sub_offset + sub_chunk_count
                 # sub_results aligns 1:1 with sub_batch items; map each
                 # back to its source input via origin_indices so callers
                 # iterating with ``zip(contents, results)`` still align.
@@ -2901,6 +2971,28 @@ class MemoryEngine(MemoryEngineInterface):
             return result, total_usage
         return result
 
+    async def _resolve_retain_chunk_size(
+        self,
+        bank_id: str,
+        request_context: "RequestContext",
+        strategy: str | None,
+    ) -> int:
+        """Resolve the effective ``retain_chunk_size`` for a bank.
+
+        Mirrors the bank-config + strategy resolution that
+        ``_retain_batch_async_internal`` applies before handing config to the
+        orchestrator, so chunk-count estimates used for per-document
+        chunk_index offsets match the chunk_index values the orchestrator
+        actually assigns.
+        """
+        from hindsight_api.config_resolver import apply_strategy
+
+        resolved_config = await self._config_resolver.resolve_full_config(bank_id, request_context)
+        effective_strategy = strategy or resolved_config.retain_default_strategy
+        if effective_strategy:
+            resolved_config = apply_strategy(resolved_config, effective_strategy)
+        return getattr(resolved_config, "retain_chunk_size", 3000)
+
     async def _retain_batch_async_internal(
         self,
         bank_id: str,
@@ -2915,6 +3007,7 @@ class MemoryEngine(MemoryEngineInterface):
         outbox_callback_factory: RetainOutboxCallbackFactory | None = None,
         strategy: str | None = None,
         document_body_override: str | None = None,
+        chunk_index_offset: int = 0,
     ) -> tuple[list[list[str]], "TokenUsage", int | None]:
         """
         Internal method for batch processing without chunking logic.
@@ -2979,6 +3072,7 @@ class MemoryEngine(MemoryEngineInterface):
                 outbox_callback_factory=outbox_callback_factory,
                 db_semaphore=self._put_semaphore,
                 document_body_override=document_body_override,
+                chunk_index_offset=chunk_index_offset,
             )
 
     def recall(
@@ -3090,6 +3184,12 @@ class MemoryEngine(MemoryEngineInterface):
         """
         # Authenticate tenant and set schema in context (for fq_table())
         await self._authenticate_tenant(request_context)
+
+        # Sanitize the query at ingress: a client may serialize a half-emoji as a
+        # lone UTF-16 surrogate, which crashes downstream logging, the embedder, and
+        # the cross-encoder tokenizer with an HTTP 500 (see issue #1875). Cleaning it
+        # here protects every sink that the query flows into.
+        query = sanitize_text(query) or ""
 
         # Default to all fact types if not specified
         if fact_type is None:
@@ -6472,6 +6572,11 @@ class MemoryEngine(MemoryEngineInterface):
                 - based_on: Empty dict (agent retrieves facts dynamically)
                 - structured_output: None (not yet supported for agentic reflect)
         """
+        # Sanitize at ingress so lone UTF-16 surrogates in the question/context cannot
+        # crash logging, recall's embedder, or the reflect LLM call (see issue #1875).
+        query = sanitize_text(query) or ""
+        context = sanitize_text(context)
+
         # Use cached LLM config
         if self._reflect_llm_config is None:
             raise ValueError("Memory LLM API key not set. Set HINDSIGHT_API_LLM_API_KEY environment variable.")
@@ -9781,31 +9886,6 @@ class MemoryEngine(MemoryEngineInterface):
 
         backend = await self._get_backend()
 
-        # Check for existing pending task if deduplication is enabled
-        # Note: We only check 'pending', not 'processing', because a processing task
-        # uses a watermark from when it started - new memories added after that point
-        # would need another consolidation run to be processed.
-        if dedupe_by_bank:
-            async with acquire_with_retry(backend) as conn:
-                existing = await conn.fetchrow(
-                    f"""
-                    SELECT operation_id FROM {fq_table("async_operations")}
-                    WHERE bank_id = $1 AND operation_type = $2 AND status = 'pending'
-                    LIMIT 1
-                    """,
-                    bank_id,
-                    operation_type,
-                )
-                if existing:
-                    logger.debug(
-                        f"{operation_type} task already pending for bank_id={bank_id}, "
-                        f"skipping duplicate (existing operation_id={existing['operation_id']})"
-                    )
-                    return {
-                        "operation_id": str(existing["operation_id"]),
-                        "deduplicated": True,
-                    }
-
         operation_id = uuid.uuid4()
 
         # Build full payload before INSERT so task_payload is included atomically.
@@ -9819,20 +9899,73 @@ class MemoryEngine(MemoryEngineInterface):
             **task_payload,
         }
 
-        # Insert operation record with task_payload in a single atomic statement
         async with acquire_with_retry(backend) as conn:
-            await conn.execute(
-                f"""
-                INSERT INTO {fq_table("async_operations")} (operation_id, bank_id, operation_type, result_metadata, status, task_payload)
-                VALUES ($1, $2, $3, $4, $5, $6::jsonb)
-                """,
-                operation_id,
-                bank_id,
-                operation_type,
-                json.dumps(result_metadata or {}, default=_json_default),
-                "pending",
-                json.dumps(full_payload, default=_json_default),
-            )
+            async with conn.transaction():
+                if dedupe_by_bank:
+                    # Serialize concurrent submits for this bank so the dedup
+                    # check-and-insert is atomic. A bare check-then-INSERT races
+                    # under READ COMMITTED: two /consolidate calls (or a manual
+                    # trigger racing a retain-driven submit / round-limit re-queue)
+                    # both see no pending row and both insert, leaking duplicate
+                    # pending ops that then pile up as retry_blocked and starve the
+                    # bank (issue #1842). Locking the bank row serializes submits for
+                    # this bank; it releases on commit below.
+                    #
+                    # FOR NO KEY UPDATE, not FOR UPDATE: async_operations has an FK to
+                    # banks, so every async-op insert for this bank (a scoped
+                    # consolidation, a batch-retain op, a webhook delivery, ...) takes a
+                    # FOR KEY SHARE lock on the bank row. FOR UPDATE conflicts with
+                    # FOR KEY SHARE and would block all of those during the submit;
+                    # FOR NO KEY UPDATE still conflicts with itself (so two submits
+                    # serialize) but not with FOR KEY SHARE (so those inserts proceed).
+                    # On Oracle this rewrites to FOR UPDATE, which there does not block
+                    # indexed-FK child inserts.
+                    await conn.execute(
+                        f"SELECT 1 FROM {fq_table('banks')} WHERE bank_id = $1 FOR NO KEY UPDATE",
+                        bank_id,
+                    )
+                    # Only check 'pending', not 'processing': a processing task uses a
+                    # watermark from when it started, so memories added after that need
+                    # a fresh run regardless.
+                    pending = await conn.fetch(
+                        f"""
+                        SELECT operation_id, task_payload FROM {fq_table("async_operations")}
+                        WHERE bank_id = $1 AND operation_type = $2 AND status = 'pending'
+                        """,
+                        bank_id,
+                        operation_type,
+                    )
+                    # Dedup only against an existing *unscoped* (full-bank) pending op.
+                    # A pending scoped consolidation covers only its tag subset, so it
+                    # must not swallow a full-bank sweep (#1842). The scope check is in
+                    # Python because the JSON predicate isn't portable — Oracle's
+                    # JSON_VALUE returns NULL for the array-valued observation_scopes.
+                    # (Scoped submits never reach here: they pass dedupe_by_bank=False.)
+                    for row in pending:
+                        row_payload = row["task_payload"]
+                        row_dict = json.loads(row_payload) if isinstance(row_payload, str) else (row_payload or {})
+                        if row_dict.get("observation_scopes") is None:
+                            logger.debug(
+                                f"{operation_type} task already pending for bank_id={bank_id}, "
+                                f"skipping duplicate (existing operation_id={row['operation_id']})"
+                            )
+                            return {
+                                "operation_id": str(row["operation_id"]),
+                                "deduplicated": True,
+                            }
+
+                await conn.execute(
+                    f"""
+                    INSERT INTO {fq_table("async_operations")} (operation_id, bank_id, operation_type, result_metadata, status, task_payload)
+                    VALUES ($1, $2, $3, $4, $5, $6::jsonb)
+                    """,
+                    operation_id,
+                    bank_id,
+                    operation_type,
+                    json.dumps(result_metadata or {}, default=_json_default),
+                    "pending",
+                    json.dumps(full_payload, default=_json_default),
+                )
 
         # For SyncTaskBackend: executes the task immediately.
         # For BrokerTaskBackend: no-op (submit_task's UPDATE skips rows whose

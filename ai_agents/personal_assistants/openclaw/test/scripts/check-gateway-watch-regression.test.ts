@@ -7,6 +7,7 @@ import {
   appendBoundedWatchLog,
   hasGatewayReadyLog,
   parseArgs,
+  runTimedWatch,
   shouldRefreshBuildStampForRestoredArtifacts,
   stopTimedWatchChild,
   updateWatchBuildDetection,
@@ -131,5 +132,51 @@ describe("check-gateway-watch-regression", () => {
     expect(child.stdout.destroy).toHaveBeenCalledOnce();
     expect(child.stderr.destroy).toHaveBeenCalledOnce();
     expect(child.unref).toHaveBeenCalledOnce();
+  });
+
+  it("removes the isolated watch home after spawn failures", async () => {
+    const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-gateway-watch-output-"));
+    const child = new EventEmitter() as EventEmitter & {
+      stderr: EventEmitter;
+      stdout: EventEmitter;
+    };
+    child.stderr = new EventEmitter();
+    child.stdout = new EventEmitter();
+
+    try {
+      const result = await runTimedWatch(
+        {
+          readySettleMs: 0,
+          readyTimeoutMs: 0,
+          sigkillGraceMs: 1,
+          windowMs: 0,
+        },
+        outputDir,
+        {
+          allocateLoopbackPort: async () => 19042,
+          sleep: async () => undefined,
+          spawn: () => {
+            process.nextTick(() => {
+              child.emit("error", new Error("spawn failed"));
+            });
+            return child;
+          },
+          stopTimedWatchChild: () =>
+            new Promise<never>(() => {
+              // Intentionally never resolves; the injected spawn error wins the race.
+            }),
+          waitForGatewayReady: async () => false,
+        },
+      );
+
+      const isolatedHomeDir = fs
+        .readFileSync(path.join(outputDir, "watch.home.txt"), "utf8")
+        .trim();
+      expect(result.spawnError).toBe("spawn failed");
+      expect(fs.existsSync(isolatedHomeDir)).toBe(false);
+      expect(fs.existsSync(path.join(outputDir, "watch.home.txt"))).toBe(true);
+    } finally {
+      fs.rmSync(outputDir, { recursive: true, force: true });
+    }
   });
 });

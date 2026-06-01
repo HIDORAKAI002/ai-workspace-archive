@@ -29,22 +29,22 @@
   </tr>
   <tr>
     <td align="center" width="200">
-      <a href="https://kone.vc/?utm_source=mcpservers">
-        <img src="https://kone.vc/logo.svg" width="140" alt="Kone.vc Logo">
-      </a>
-    </td>
-    <td>
-      <a href="https://kone.vc/?utm_source=mcpservers">Monetize your AI agent with contextual product recommendations</a>
-    </td>
-  </tr>
-  <tr>
-    <td align="center" width="200">
       <a href="https://docs.heyneo.com/neo-mcp">
         <img src="assets/neo.png" width="200" alt="Neo Logo">
       </a>
     </td>
     <td>
       <a href="https://docs.heyneo.com/neo-mcp">NEO MCP lets Claude Code, Cursor and VS Code hand off complex AI engineering tasks like AI model evals, AI agent optimization and more to NEO.</a>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="200">
+      <a href="https://capafy.ai/">
+        <img src="assets/capafy.png" width="200" alt="Capafy Logo">
+      </a>
+    </td>
+    <td>
+      <a href="https://capafy.ai/">Capafy - the Skill-based Agent Marketplace. Upload your Skill, run it as a product, and make real money every time someone uses it.</a>
     </td>
   </tr>
 </table>
