@@ -32,7 +32,7 @@ import {
   applyZdrScope,
   captureExceptionWithZdrCheck,
 } from "../../services/sentry";
-import { getSearchZDR } from "../../lib/zdr-helpers";
+import { getSearchForcedKind, getSearchZDR } from "../../lib/zdr-helpers";
 
 interface DocumentWithCostTracking {
   document: Document;
@@ -62,7 +62,7 @@ async function startX420ScrapeJob(
 ): Promise<string> {
   const jobId = uuidv7();
 
-  const zeroDataRetention = getSearchZDR(flags) === "forced";
+  const zeroDataRetention = getSearchForcedKind(flags) !== null;
   applyZdrScope(zeroDataRetention);
 
   logger.info("Adding scrape job [x402]", {
@@ -206,21 +206,17 @@ export async function x402SearchController(
   res: Response<SearchResponse>,
 ) {
   const jobId = uuidv7();
+  const searchZDRMode = getSearchZDR(req.acuc?.flags);
+  const teamForcedKind = getSearchForcedKind(req.acuc?.flags);
+  let zeroDataRetention = teamForcedKind !== null;
   let logger = _logger.child({
     jobId,
     teamId: req.auth.team_id,
     module: "api/v2",
     method: "x402SearchController",
-    zeroDataRetention: getSearchZDR(req.acuc?.flags) === "forced",
+    zeroDataRetention,
+    teamForcedKind,
   });
-
-  if (getSearchZDR(req.acuc?.flags) === "forced") {
-    return res.status(400).json({
-      success: false,
-      error:
-        "Your team has zero data retention enabled. This is not supported on search. Please contact support@firecrawl.com to unblock this feature.",
-    });
-  }
 
   const startTime = new Date().getTime();
   const isSearchPreview =
@@ -243,12 +239,20 @@ export async function x402SearchController(
       origin: req.body.origin,
     });
 
+    // Inject the team-forced enterprise mode so downstream billing,
+    // upstream routing, and ZDR cleanup all see it.
+    if (teamForcedKind) {
+      const existing = req.body.enterprise ?? [];
+      if (!existing.includes(teamForcedKind)) {
+        req.body.enterprise = [...existing, teamForcedKind];
+      }
+    }
+
     // Verify the team has searchZDR enabled before allowing enterprise ZDR/anon
     const isZDR = req.body.enterprise?.includes("zdr");
     const isAnon = req.body.enterprise?.includes("anon");
-    if (isZDR || isAnon) {
-      const searchMode = getSearchZDR(req.acuc?.flags);
-      if (searchMode !== "allowed" && searchMode !== "forced") {
+    if ((isZDR || isAnon) && !teamForcedKind) {
+      if (searchZDRMode !== "allowed") {
         return res.status(403).json({
           success: false,
           error:
@@ -256,6 +260,10 @@ export async function x402SearchController(
         });
       }
     }
+    zeroDataRetention =
+      teamForcedKind !== null || isZDR === true || isAnon === true;
+    logger = logger.child({ zeroDataRetention });
+    applyZdrScope(zeroDataRetention);
 
     await logRequest({
       id: jobId,
@@ -265,7 +273,7 @@ export async function x402SearchController(
       origin: req.body.origin ?? "api",
       integration: req.body.integration,
       target_hint: req.body.query,
-      zeroDataRetention: false, // not supported for x402 search
+      zeroDataRetention,
       api_key_id: req.acuc?.api_key_id ?? null,
     });
 
@@ -558,7 +566,7 @@ export async function x402SearchController(
               scrapeOptions: undefined,
             },
             credits_cost: credits_billed,
-            zeroDataRetention: false,
+            zeroDataRetention,
           },
           false,
         );
@@ -643,7 +651,7 @@ export async function x402SearchController(
         team_id: req.auth.team_id,
         options: { ...req.body, scrapeOptions: undefined, query: undefined },
         credits_cost: credits_billed,
-        zeroDataRetention: false, // not supported
+        zeroDataRetention,
       },
       false,
     );
@@ -674,7 +682,7 @@ export async function x402SearchController(
     }
 
     captureExceptionWithZdrCheck(error, {
-      extra: { zeroDataRetention: false },
+      extra: { zeroDataRetention },
     });
     logger.error("Unhandled error occurred in search [x402]", { error });
     return res.status(500).json({

@@ -262,6 +262,66 @@ class BrandingProfile(BaseModel):
     personality: Optional[Dict[str, Any]] = None
 
 
+RedactPIIEntity = Literal[
+    "PERSON",
+    "EMAIL",
+    "PHONE",
+    "LOCATION",
+    "FINANCIAL",
+    "SECRET",
+]
+
+PIISource = Literal["model", "heuristics", "unknown"]
+
+
+class PIISpan(BaseModel):
+    """A single PII detection in the source markdown."""
+
+    start: int
+    end: int
+    # Unified entity bucket. Present when `kind` maps onto one of the
+    # public entity buckets; omitted when fire-privacy returned a
+    # recognizer kind that doesn't map.
+    entity: Optional[RedactPIIEntity] = None
+    # Granular recognizer label from fire-privacy (e.g. PRIVATE_PERSON,
+    # EMAIL_ADDRESS). Prefer `entity` for taxonomy-level checks.
+    kind: str
+    source: PIISource
+    # Confidence in [0, 1] when the recognizer supplied one.
+    score: Optional[float] = None
+
+
+# ok      — redaction completed; redactedMarkdown is the result.
+# skipped — redaction was not performed; see `reason`.
+# failed  — redaction was attempted but did not produce a usable result;
+#           see `reason`. redactedMarkdown is None.
+PIIStatus = Literal["ok", "skipped", "failed"]
+
+# Always set when status != "ok".
+PIIReason = Literal[
+    "empty_input",
+    "too_large",
+    "upstream_skipped",
+    "service_unavailable",
+    "timeout",
+    "error",
+]
+
+
+class PIIBlock(BaseModel):
+    """Result of the PII redaction step."""
+
+    status: PIIStatus
+    reason: Optional[PIIReason] = None
+    redacted_markdown: Optional[str] = Field(default=None, alias="redactedMarkdown")
+    spans: List[PIISpan] = []
+    # Span count per public entity bucket. Spans whose `kind` doesn't
+    # map onto a bucket are not counted.
+    counts: Dict[RedactPIIEntity, int] = {}
+
+    model_config = {"populate_by_name": True}
+
+
 class Document(BaseModel):
     """A scraped document."""
 
@@ -282,6 +342,7 @@ class Document(BaseModel):
     warning: Optional[str] = None
     change_tracking: Optional[Dict[str, Any]] = None
     branding: Optional[BrandingProfile] = None
+    pii: Optional[PIIBlock] = None
 
     @property
     def metadata_typed(self) -> DocumentMetadata:
@@ -408,6 +469,7 @@ FormatString = Literal[
     "query",
     "audio",
     "video",
+    "pii",
     # snake_case versions (user-friendly)
     "raw_html",
     "change_tracking",
@@ -553,6 +615,25 @@ class ScrapeFormats(BaseModel):
         return normalized_formats
 
 
+class RedactPIIOptions(BaseModel):
+    """Tuning options for the PII redaction step."""
+
+    # accurate (default): model-only. Best precision, cleanest output.
+    # aggressive: model + Presidio + spaCy. Higher recall, lower precision.
+    # fast: Presidio only, no model call. Lower F1, ~2x throughput.
+    mode: Optional[Literal["accurate", "aggressive", "fast"]] = None
+    # Restrict redaction to these entity buckets. Unset means all entities.
+    entities: Optional[List[RedactPIIEntity]] = None
+    # tag (default): replace spans with `<KIND>` placeholders.
+    # mask: replace spans with `*` of equal length.
+    # remove: drop span characters entirely.
+    replace_style: Optional[Literal["tag", "mask", "remove"]] = Field(
+        default=None, alias="replaceStyle"
+    )
+
+    model_config = {"populate_by_name": True}
+
+
 class ScrapeOptions(BaseModel):
     """Options for scraping operations."""
 
@@ -591,8 +672,13 @@ class ScrapeOptions(BaseModel):
     min_age: Optional[int] = None
     store_in_cache: Optional[bool] = None
     lockdown: Optional[bool] = None
+    redact_pii: Optional[Union[bool, RedactPIIOptions]] = Field(
+        default=None, alias="redactPII"
+    )
     profile: Optional[Dict[str, Any]] = None
     integration: Optional[str] = None
+
+    model_config = {"populate_by_name": True}
 
     @field_validator("formats")
     @classmethod

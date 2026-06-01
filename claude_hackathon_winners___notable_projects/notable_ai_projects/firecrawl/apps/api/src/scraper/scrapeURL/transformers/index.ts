@@ -19,6 +19,7 @@ import { performAttributes } from "./performAttributes";
 import { deriveDiff } from "./diff";
 import { fetchAudio } from "./audio";
 import { fetchVideo } from "./video";
+import { performRedactPII } from "./redactPII";
 import { useIndex, useSearchIndex } from "../../../services/index";
 import { sendDocumentToIndex } from "../engines/index/index";
 import { sendDocumentToSearchIndex } from "./sendToSearchIndex";
@@ -85,6 +86,7 @@ async function deriveMarkdownFromHTML(
   // - json format requires markdown (for LLM extraction)
   // - summary format requires markdown (for summarization)
   // - question/highlights/query formats require markdown (for page-level answers)
+  // - redactPII needs markdown as its source text (spans are markdown char offsets)
   const hasMarkdown = hasFormatOfType(meta.options.formats, "markdown");
   const hasChangeTracking = hasFormatOfType(
     meta.options.formats,
@@ -95,6 +97,7 @@ async function deriveMarkdownFromHTML(
   const hasQuestion = hasFormatOfType(meta.options.formats, "question");
   const hasHighlights = hasFormatOfType(meta.options.formats, "highlights");
   const hasQuery = hasFormatOfType(meta.options.formats, "query");
+  const hasRedactPII = !!meta.options.redactPII;
   if (
     !hasMarkdown &&
     !hasChangeTracking &&
@@ -103,6 +106,7 @@ async function deriveMarkdownFromHTML(
     !hasQuestion &&
     !hasHighlights &&
     !hasQuery &&
+    !hasRedactPII &&
     !meta.options.onlyCleanContent
   ) {
     return document;
@@ -494,6 +498,18 @@ function coerceFieldsToFormats(meta: Meta, document: Document): Document {
     );
   }
 
+  // pii is a diagnostic/report format. Redaction itself is controlled by
+  // redactPII; include `pii` only when callers want spans/counts in the response.
+  const hasPii = hasFormatOfType(meta.options.formats, "pii");
+  const wantPii = !!(hasPii && meta.options.redactPII);
+  if (!wantPii && document.pii !== undefined) {
+    delete document.pii;
+  } else if (wantPii && document.pii === undefined) {
+    meta.logger.warn(
+      "Request had format: pii with redactPII: true, but there was no pii field in the result.",
+    );
+  }
+
   if (!hasChangeTracking && document.changeTracking !== undefined) {
     meta.logger.warn(
       "Removed changeTracking from Document because it wasn't in formats -- this is extremely wasteful and indicates a bug.",
@@ -553,6 +569,7 @@ const transformerStack: Transformer[] = [
   deriveHTMLFromRawHTML,
   deriveMarkdownFromHTML,
   performCleanContent,
+  performRedactPII,
   deriveLinksFromHTML,
   deriveImagesFromHTML,
   deriveBrandingFromActions,

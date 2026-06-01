@@ -14,7 +14,8 @@ export type FormatString =
   | "attributes"
   | "branding"
   | "audio"
-  | "video";
+  | "video"
+  | "pii";
 
 export interface Viewport {
   width: number;
@@ -205,12 +206,77 @@ export interface ScrapeOptions {
   minAge?: number;
   storeInCache?: boolean;
   lockdown?: boolean;
+  redactPII?: boolean | RedactPIIOptions;
   profile?: {
     name: string;
     saveChanges?: boolean;
   };
   integration?: string;
   origin?: string;
+}
+
+export type RedactPIIEntity =
+  | "PERSON"
+  | "EMAIL"
+  | "PHONE"
+  | "LOCATION"
+  | "FINANCIAL"
+  | "SECRET";
+
+export interface RedactPIIOptions {
+  /**
+   * accurate (default): model-only redaction. Best precision, cleanest output.
+   * aggressive: model + Presidio + spaCy. Higher recall at the cost of precision.
+   * fast: Presidio only, no model call. Lower F1, ~2x throughput.
+   */
+  mode?: "accurate" | "aggressive" | "fast";
+  /** Restrict redaction to these entity buckets. Unset means all entities. */
+  entities?: RedactPIIEntity[];
+  /**
+   * tag (default): replace spans with `<KIND>` placeholders.
+   * mask: replace spans with `*` of equal length.
+   * remove: drop span characters entirely.
+   */
+  replaceStyle?: "tag" | "mask" | "remove";
+}
+
+export type PIISource = "model" | "heuristics" | "unknown";
+
+export interface PIISpan {
+  start: number;
+  end: number;
+  /** Unified entity bucket. Omitted when `kind` doesn't map onto one. */
+  entity?: RedactPIIEntity;
+  /** Granular recognizer label from fire-privacy. */
+  kind: string;
+  source: PIISource;
+  /** Confidence in [0, 1] when supplied. */
+  score?: number;
+}
+
+/**
+ * - ok: redaction completed; redactedMarkdown is the result.
+ * - skipped: redaction was not performed; see `reason`.
+ * - failed: redaction was attempted but did not produce a usable result.
+ */
+export type PIIStatus = "ok" | "skipped" | "failed";
+
+/** Always set when status !== "ok". */
+export type PIIReason =
+  | "empty_input"
+  | "too_large"
+  | "upstream_skipped"
+  | "service_unavailable"
+  | "timeout"
+  | "error";
+
+export interface PIIBlock {
+  status: PIIStatus;
+  reason?: PIIReason;
+  redactedMarkdown: string | null;
+  spans: PIISpan[];
+  /** Span count per entity bucket. Only non-zero entries are present. */
+  counts: Partial<Record<RedactPIIEntity, number>>;
 }
 
 export type ParseFileData =
@@ -483,6 +549,7 @@ export interface Document {
   warning?: string;
   changeTracking?: Record<string, unknown>;
   branding?: BrandingProfile;
+  pii?: PIIBlock;
 }
 
 // Pagination configuration for auto-fetching pages from v2 endpoints that return a `next` URL
