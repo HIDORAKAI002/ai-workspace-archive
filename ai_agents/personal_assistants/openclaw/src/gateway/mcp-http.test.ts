@@ -140,6 +140,49 @@ function makeMockTool(overrides: Partial<MockGatewayTool> = {}): MockGatewayTool
   };
 }
 
+function makeMessageTool(overrides: Partial<MockGatewayTool> = {}): MockGatewayTool {
+  return makeMockTool({
+    name: "message",
+    description: "send a message",
+    ...overrides,
+  });
+}
+
+function makeCronTool(overrides: Partial<MockGatewayTool> = {}): MockGatewayTool {
+  return makeMockTool({
+    name: "cron",
+    description: "manage schedules",
+    ...overrides,
+  });
+}
+
+function mockScopedTools(tools: MockGatewayTool[]) {
+  resolveGatewayScopedToolsMock.mockReturnValue({
+    agentId: "main",
+    tools,
+  });
+}
+
+function jsonHeaders(headers: Record<string, string> = {}) {
+  return {
+    "content-type": "application/json",
+    ...headers,
+  };
+}
+
+function mcpToolsListBody(id = 1) {
+  return JSON.stringify({ jsonrpc: "2.0", id, method: "tools/list" });
+}
+
+function mcpToolCallBody(name: string, args: Record<string, unknown> = {}, id = 1) {
+  return JSON.stringify({
+    jsonrpc: "2.0",
+    id,
+    method: "tools/call",
+    params: { name, arguments: args },
+  });
+}
+
 function buildMockMcpToolSchema(tools: MockGatewayTool[]) {
   return buildMcpToolSchema(tools as unknown as Parameters<typeof buildMcpToolSchema>[0]);
 }
@@ -153,19 +196,7 @@ beforeEach(() => {
       params: args.params,
     }),
   );
-  resolveGatewayScopedToolsMock.mockReturnValue({
-    agentId: "main",
-    tools: [
-      {
-        name: "message",
-        description: "send a message",
-        parameters: { type: "object", properties: {} },
-        execute: async () => ({
-          content: [{ type: "text", text: "ok" }],
-        }),
-      },
-    ],
-  });
+  mockScopedTools([makeMessageTool()]);
 });
 
 afterEach(async () => {
@@ -308,8 +339,7 @@ describe("mcp loopback server", () => {
     const response = await sendRaw({
       port: server.port,
       token: runtime?.nonOwnerToken,
-      headers: {
-        "content-type": "application/json",
+      headers: jsonHeaders({
         "x-session-key": "agent:main:telegram:group:chat123",
         "x-openclaw-account-id": "work",
         "x-openclaw-message-channel": "telegram",
@@ -318,8 +348,8 @@ describe("mcp loopback server", () => {
         "x-openclaw-current-message-id": "reply-message-1",
         "x-openclaw-inbound-event-kind": "room_event",
         "x-openclaw-source-reply-delivery-mode": "message_tool_only",
-      },
-      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" }),
+      }),
+      body: mcpToolsListBody(),
     });
 
     expect(response.status).toBe(200);
@@ -359,7 +389,7 @@ describe("mcp loopback server", () => {
             ? { "x-openclaw-source-reply-delivery-mode": sourceReplyDeliveryMode }
             : {}),
         },
-        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" }),
+        body: mcpToolsListBody(),
       });
 
     expect((await sendToolsList("user_request")).status).toBe(200);
@@ -396,7 +426,7 @@ describe("mcp loopback server", () => {
         "content-type": "application/json",
         "x-session-key": "agent:main:main",
       },
-      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" }),
+      body: mcpToolsListBody(),
     });
     const payload = (await response.json()) as {
       result?: { tools?: Array<{ inputSchema?: Record<string, unknown> }> };
@@ -422,7 +452,7 @@ describe("mcp loopback server", () => {
           "x-session-key": "agent:main:matrix:dm:test",
           "x-openclaw-message-channel": "matrix",
         },
-        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" }),
+        body: mcpToolsListBody(),
       });
 
     expect((await sendToolsList(runtime?.ownerToken)).status).toBe(200);
@@ -446,7 +476,7 @@ describe("mcp loopback server", () => {
         "x-openclaw-message-channel": "matrix",
         "x-openclaw-sender-is-owner": "true",
       },
-      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" }),
+      body: mcpToolsListBody(),
     });
 
     expect(response.status).toBe(200);
@@ -458,35 +488,17 @@ describe("mcp loopback server", () => {
   });
 
   it("keeps all tools in loopback tool lists", async () => {
-    resolveGatewayScopedToolsMock.mockReturnValue({
-      agentId: "main",
-      tools: [
-        {
-          name: "message",
-          description: "send a message",
-          parameters: { type: "object", properties: {} },
-          execute: async () => ({
-            content: [{ type: "text", text: "ok" }],
-          }),
-        },
-        {
-          name: "cron",
-          description: "manage schedules",
-          parameters: { type: "object", properties: {} },
-          execute: async () => ({
-            content: [{ type: "text", text: "cron" }],
-          }),
-        },
-        {
-          name: "owner_probe",
-          description: "owner probe",
-          parameters: { type: "object", properties: {} },
-          execute: async () => ({
-            content: [{ type: "text", text: "owner" }],
-          }),
-        },
-      ],
-    });
+    mockScopedTools([
+      makeMessageTool(),
+      makeCronTool(),
+      makeMockTool({
+        name: "owner_probe",
+        description: "owner probe",
+        execute: async () => ({
+          content: [{ type: "text", text: "owner" }],
+        }),
+      }),
+    ]);
     server = await startMcpLoopbackServer(0);
     const runtime = getActiveMcpLoopbackRuntime();
 
@@ -497,7 +509,7 @@ describe("mcp loopback server", () => {
         "content-type": "application/json",
         "x-session-key": "agent:main:main",
       },
-      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" }),
+      body: mcpToolsListBody(),
     });
     const payload = (await response.json()) as {
       result?: { tools?: Array<{ name: string }> };
@@ -511,27 +523,7 @@ describe("mcp loopback server", () => {
   });
 
   it("keeps tools available to loopback callers", async () => {
-    resolveGatewayScopedToolsMock.mockReturnValue({
-      agentId: "main",
-      tools: [
-        {
-          name: "message",
-          description: "send a message",
-          parameters: { type: "object", properties: {} },
-          execute: async () => ({
-            content: [{ type: "text", text: "ok" }],
-          }),
-        },
-        {
-          name: "cron",
-          description: "manage schedules",
-          parameters: { type: "object", properties: {} },
-          execute: async () => ({
-            content: [{ type: "text", text: "cron" }],
-          }),
-        },
-      ],
-    });
+    mockScopedTools([makeMessageTool(), makeCronTool()]);
     server = await startMcpLoopbackServer(0);
     const runtime = getActiveMcpLoopbackRuntime();
 
@@ -542,7 +534,7 @@ describe("mcp loopback server", () => {
         "content-type": "application/json",
         "x-session-key": "agent:main:main",
       },
-      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" }),
+      body: mcpToolsListBody(),
     });
     const payload = (await response.json()) as {
       result?: { tools?: Array<{ name: string }> };
@@ -558,25 +550,7 @@ describe("mcp loopback server", () => {
     const cronExecute = vi.fn(async () => ({
       content: [{ type: "text", text: "CRON_EXECUTED" }],
     }));
-    resolveGatewayScopedToolsMock.mockReturnValue({
-      agentId: "main",
-      tools: [
-        {
-          name: "message",
-          description: "send a message",
-          parameters: { type: "object", properties: {} },
-          execute: async () => ({
-            content: [{ type: "text", text: "ok" }],
-          }),
-        },
-        {
-          name: "cron",
-          description: "manage schedules",
-          parameters: { type: "object", properties: {} },
-          execute: cronExecute,
-        },
-      ],
-    });
+    mockScopedTools([makeMessageTool(), makeCronTool({ execute: cronExecute })]);
     server = await startMcpLoopbackServer(0);
     const runtime = getActiveMcpLoopbackRuntime();
 
@@ -587,12 +561,7 @@ describe("mcp loopback server", () => {
         "content-type": "application/json",
         "x-session-key": "agent:main:main",
       },
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: 1,
-        method: "tools/call",
-        params: { name: "cron", arguments: {} },
-      }),
+      body: mcpToolCallBody("cron"),
     });
     const payload = (await response.json()) as {
       result?: { content?: Array<{ text?: string }>; isError?: boolean };
@@ -618,17 +587,7 @@ describe("mcp loopback server", () => {
         throw new Error("fuzzplugin loopback call name getter exploded");
       },
     });
-    resolveGatewayScopedToolsMock.mockReturnValue({
-      agentId: "main",
-      tools: [
-        unreadableName,
-        makeMockTool({
-          name: "message",
-          description: "send a message",
-          execute: messageExecute,
-        }),
-      ],
-    });
+    mockScopedTools([unreadableName, makeMessageTool({ execute: messageExecute })]);
     server = await startMcpLoopbackServer(0);
     const runtime = getActiveMcpLoopbackRuntime();
 
@@ -639,12 +598,7 @@ describe("mcp loopback server", () => {
         "content-type": "application/json",
         "x-session-key": "agent:main:main",
       },
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: 1,
-        method: "tools/call",
-        params: { name: "message", arguments: { body: "hello" } },
-      }),
+      body: mcpToolCallBody("message", { body: "hello" }),
     });
     const payload = (await response.json()) as {
       result?: { content?: Array<{ text?: string }>; isError?: boolean };
@@ -671,10 +625,7 @@ describe("mcp loopback server", () => {
         throw new Error("fuzzplugin loopback call parameters getter exploded");
       },
     });
-    resolveGatewayScopedToolsMock.mockReturnValue({
-      agentId: "main",
-      tools: [unreadableParameters],
-    });
+    mockScopedTools([unreadableParameters]);
     server = await startMcpLoopbackServer(0);
     const runtime = getActiveMcpLoopbackRuntime();
 
@@ -685,12 +636,7 @@ describe("mcp loopback server", () => {
         "content-type": "application/json",
         "x-session-key": "agent:main:main",
       },
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: 1,
-        method: "tools/call",
-        params: { name: "mockplugin_unreadable_parameters", arguments: {} },
-      }),
+      body: mcpToolCallBody("mockplugin_unreadable_parameters"),
     });
     const payload = (await response.json()) as {
       result?: { content?: Array<{ text?: string }>; isError?: boolean };
@@ -712,17 +658,7 @@ describe("mcp loopback server", () => {
       blocked: true,
       reason: "blocked by hook",
     });
-    resolveGatewayScopedToolsMock.mockReturnValue({
-      agentId: "main",
-      tools: [
-        {
-          name: "message",
-          description: "send a message",
-          parameters: { type: "object", properties: {} },
-          execute,
-        },
-      ],
-    });
+    mockScopedTools([makeMessageTool({ execute })]);
     server = await startMcpLoopbackServer(0);
     const runtime = getActiveMcpLoopbackRuntime();
 
@@ -733,12 +669,7 @@ describe("mcp loopback server", () => {
         "content-type": "application/json",
         "x-session-key": "agent:main:main",
       },
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: 1,
-        method: "tools/call",
-        params: { name: "message", arguments: { body: "hello" } },
-      }),
+      body: mcpToolCallBody("message", { body: "hello" }),
     });
     const payload = (await response.json()) as {
       result?: { content?: Array<{ text?: string }>; isError?: boolean };
@@ -761,17 +692,7 @@ describe("mcp loopback server", () => {
     const execute = vi.fn<MockGatewayTool["execute"]>(async () => ({
       content: [{ type: "text", text: "EXECUTED" }],
     }));
-    resolveGatewayScopedToolsMock.mockReturnValue({
-      agentId: "main",
-      tools: [
-        {
-          name: "message",
-          description: "send a message",
-          parameters: { type: "object", properties: {} },
-          execute,
-        },
-      ],
-    });
+    mockScopedTools([makeMessageTool({ execute })]);
     server = await startMcpLoopbackServer(0);
     const runtime = getActiveMcpLoopbackRuntime();
 
@@ -782,12 +703,7 @@ describe("mcp loopback server", () => {
         "content-type": "application/json",
         "x-session-key": "agent:main:main",
       },
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: 1,
-        method: "tools/call",
-        params: { name: "message", arguments: { body: "hello" } },
-      }),
+      body: mcpToolCallBody("message", { body: "hello" }),
     });
     const payload = (await response.json()) as {
       result?: { isError?: boolean };
@@ -833,7 +749,7 @@ describe("mcp loopback server", () => {
     const response = await sendRaw({
       port: server.port,
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" }),
+      body: mcpToolsListBody(),
     });
     expect(response.status).toBe(401);
   });
@@ -859,7 +775,7 @@ describe("mcp loopback server", () => {
         origin: "https://evil.example",
         "sec-fetch-site": "cross-site",
       },
-      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" }),
+      body: mcpToolsListBody(),
     });
 
     expect(response.status).toBe(403);
@@ -873,7 +789,7 @@ describe("mcp loopback server", () => {
         "content-type": "application/json",
         origin: "https://evil.example",
       },
-      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" }),
+      body: mcpToolsListBody(),
     });
 
     expect(response.status).toBe(403);
@@ -889,7 +805,7 @@ describe("mcp loopback server", () => {
         "content-type": "application/json",
         origin: "http://127.0.0.1:43123",
       },
-      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" }),
+      body: mcpToolsListBody(),
     });
 
     expect(response.status).toBe(200);
@@ -906,7 +822,7 @@ describe("mcp loopback server", () => {
         origin: `http://127.0.0.1:${server.port}`,
         "sec-fetch-site": "same-origin",
       },
-      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" }),
+      body: mcpToolsListBody(),
     });
 
     expect(response.status).toBe(200);
@@ -929,7 +845,7 @@ describe("mcp loopback server", () => {
         origin: "http://localhost:43123",
         "sec-fetch-site": "cross-site",
       },
-      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" }),
+      body: mcpToolsListBody(),
     });
 
     expect(response.status).toBe(200);
