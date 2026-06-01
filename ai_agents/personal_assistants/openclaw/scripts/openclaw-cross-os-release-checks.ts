@@ -3989,7 +3989,10 @@ async function withAllocatedGatewayPort(lane, callback) {
       await sleep(250 * attempt);
     }
   }
-  throw lastError ?? new Error("Failed to allocate a gateway port.");
+  throw toLintErrorObject(
+    lastError ?? new Error("Failed to allocate a gateway port."),
+    "Non-Error thrown",
+  );
 }
 
 function reservePort() {
@@ -4023,4 +4026,18 @@ function reservePort() {
 function isAddressInUseError(error) {
   const message = formatError(error);
   return message.includes("EADDRINUSE") || /address.+in use/iu.test(message);
+}
+
+function toLintErrorObject(value: unknown, fallbackMessage: string): Error {
+  if (value instanceof Error) {
+    return value;
+  }
+  if (typeof value === "string") {
+    return new Error(value);
+  }
+  const error = new Error(fallbackMessage, { cause: value });
+  if ((typeof value === "object" && value !== null) || typeof value === "function") {
+    Object.assign(error, value);
+  }
+  return error;
 }

@@ -713,7 +713,7 @@ export const testing = {
 };
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
-  await main().catch((error) => {
+  await main().catch((error: unknown) => {
     console.error(redactForDevToolLog(error instanceof Error ? error.message : String(error)));
     process.exitCode = 1;
   });

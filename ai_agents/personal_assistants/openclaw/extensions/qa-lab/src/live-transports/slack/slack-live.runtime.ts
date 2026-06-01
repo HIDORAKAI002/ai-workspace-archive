@@ -1760,9 +1760,11 @@ async function preserveSlackGatewayDebugArtifacts(params: {
   gatewayDebugDirPath: string;
   gatewayHarness: SlackQaGatewayHarness;
 }) {
-  await params.gatewayHarness.stop({ preserveToDir: params.gatewayDebugDirPath }).catch((error) => {
-    appendLiveLaneIssue(params.cleanupIssues, "gateway debug preservation failed", error);
-  });
+  await params.gatewayHarness
+    .stop({ preserveToDir: params.gatewayDebugDirPath })
+    .catch((error: unknown) => {
+      appendLiveLaneIssue(params.cleanupIssues, "gateway debug preservation failed", error);
+    });
 }
 
 export async function runSlackQaLive(params: {
@@ -2027,7 +2029,7 @@ export async function runSlackQaLive(params: {
           break;
         } finally {
           if (!preservedGatewayDebugArtifacts && gatewayHarness) {
-            await gatewayHarness.stop().catch((error) => {
+            await gatewayHarness.stop().catch((error: unknown) => {
               appendLiveLaneIssue(cleanupIssues, "gateway stop failed", error);
             });
             await new Promise((resolve) => {

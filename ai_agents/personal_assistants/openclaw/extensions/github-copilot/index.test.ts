@@ -52,7 +52,8 @@ const tempDirs: string[] = [];
 type RegisteredMemoryEmbeddingProvider = Parameters<
   OpenClawPluginApi["registerMemoryEmbeddingProvider"]
 >[0];
-type GithubCopilotTestProvider = {
+type RegisteredProvider = Parameters<OpenClawPluginApi["registerProvider"]>[0];
+type GithubCopilotTestProvider = RegisteredProvider & {
   auth: Array<{
     run: (ctx: unknown) => Promise<ProviderAuthResult | null>;
     runNonInteractive: (ctx: unknown) => Promise<OpenClawConfig | null>;
@@ -60,10 +61,7 @@ type GithubCopilotTestProvider = {
   catalog: {
     run: (ctx: unknown) => Promise<ProviderCatalogResult>;
   };
-  resolveThinkingProfile: (ctx: {
-    modelId?: string;
-    compat?: { supportedReasoningEfforts?: readonly string[] };
-  }) => { levels: Array<{ id: string }> };
+  resolveThinkingProfile: NonNullable<RegisteredProvider["resolveThinkingProfile"]>;
 };
 type GithubCopilotTestModelCatalogProvider = {
   liveCatalog: (ctx: unknown) => Promise<readonly UnifiedModelCatalogEntry[] | null | undefined>;
@@ -188,11 +186,12 @@ describe("github-copilot plugin", () => {
     const provider = registerProviderWithPluginConfig({});
 
     const profile = provider.resolveThinkingProfile({
+      provider: "github-copilot",
       modelId: "claude-opus-4.7-1m-internal",
       compat: { supportedReasoningEfforts: ["low", "medium", "high", "xhigh"] },
     });
 
-    expect(profile.levels.map((level) => level.id)).toContain("xhigh");
+    expect(profile?.levels.map((level) => level.id)).toContain("xhigh");
   });
 
   it("uses live plugin config to re-enable discovery after startup disable", async () => {

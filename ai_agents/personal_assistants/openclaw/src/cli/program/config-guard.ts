@@ -75,7 +75,10 @@ function hasLegacyIMessageStateFiles(stateDir: string): boolean {
 }
 
 function hasBundledChannelLegacyStateMigrationInputs(stateDir: string, oauthDir: string): boolean {
-  if (fileOrDirExists(path.join(stateDir, "discord", "model-picker-preferences.json"))) {
+  if (
+    fileOrDirExists(path.join(stateDir, "discord", "model-picker-preferences.json")) ||
+    fileOrDirExists(path.join(stateDir, "discord", "thread-bindings.json"))
+  ) {
     return true;
   }
   if (dirHasFile(path.join(stateDir, "feishu", "dedup"), (name) => name.endsWith(".json"))) {
@@ -110,16 +113,18 @@ function hasLegacyStateMigrationInputs(): boolean {
       path.join(stateDir, "agents"),
       path.join(stateDir, "flows", "registry.sqlite"),
       path.join(stateDir, "plugin-state", "state.sqlite"),
+      path.join(stateDir, "plugins", "installs.json"),
       path.join(stateDir, "sessions"),
       path.join(stateDir, "tasks", "runs.sqlite"),
     ].some(fileOrDirExists) || hasBundledChannelLegacyStateMigrationInputs(stateDir, oauthDir)
   );
 }
 
-function isReadOnlyStateMigrationCommand(commandPath: string[]): boolean {
+function shouldRunStateMigrationOnlyWithLegacyInputs(commandPath: string[]): boolean {
   const commandName = commandPath[0];
   const subcommandName = commandPath[1];
   return (
+    commandName === "agent" ||
     commandName === "status" ||
     (commandName === "tasks" &&
       (subcommandName === undefined || ALLOWED_INVALID_TASK_SUBCOMMANDS.has(subcommandName)))
@@ -160,7 +165,7 @@ export async function ensureConfigReady(params: {
   const commandPath = params.commandPath ?? [];
   let preflightSnapshot: Awaited<ReturnType<typeof readConfigFileSnapshot>> | null = null;
   const shouldConsiderStateMigration = shouldMigrateStateFromPath(commandPath);
-  const isReadOnlyMigrationCommand = isReadOnlyStateMigrationCommand(commandPath);
+  const requiresLegacyStateInput = shouldRunStateMigrationOnlyWithLegacyInputs(commandPath);
   const runStateMigrationPreflight = async () => {
     didRunDoctorConfigFlow = true;
     const runDoctorConfigPreflight = async () =>
@@ -176,7 +181,7 @@ export async function ensureConfigReady(params: {
   if (
     !didRunDoctorConfigFlow &&
     shouldConsiderStateMigration &&
-    (!isReadOnlyMigrationCommand || hasLegacyStateMigrationInputs())
+    (!requiresLegacyStateInput || hasLegacyStateMigrationInputs())
   ) {
     preflightSnapshot = await runStateMigrationPreflight();
   }
@@ -186,7 +191,7 @@ export async function ensureConfigReady(params: {
     !preflightSnapshot &&
     !didRunDoctorConfigFlow &&
     shouldConsiderStateMigration &&
-    isReadOnlyMigrationCommand &&
+    requiresLegacyStateInput &&
     snapshot.valid &&
     snapshotHasConfiguredSessionStore(snapshot)
   ) {

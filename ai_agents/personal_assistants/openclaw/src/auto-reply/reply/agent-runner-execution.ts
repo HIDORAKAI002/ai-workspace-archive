@@ -2580,7 +2580,7 @@ export async function runAgentTurnWithFallback(params: {
                                   text,
                                 });
                               })
-                              .catch((err) => {
+                              .catch((err: unknown) => {
                                 // Keep chain healthy after an error so later tool results still deliver.
                                 logVerbose(`tool result delivery failed: ${String(err)}`);
                               });

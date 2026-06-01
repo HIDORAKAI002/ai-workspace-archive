@@ -51,6 +51,22 @@ describe("ensurePlaywrightChromium", () => {
     );
   });
 
+  it("uses a system Chromium binary when Playwright Chromium is missing", () => {
+    const logs: string[] = [];
+    const spawnSync = vi.fn();
+
+    expect(
+      ensurePlaywrightChromium({
+        executablePath: "/cache/chromium/chrome",
+        existsSync: (path: string) => path === "/usr/bin/chromium-browser",
+        log: (line: string) => logs.push(line),
+        spawnSync,
+      }),
+    ).toBe(0);
+    expect(spawnSync).not.toHaveBeenCalled();
+    expect(logs.join("\n")).toContain("Using system Chromium at /usr/bin/chromium-browser");
+  });
+
   it("preserves the intentional missing-browser skip mode", () => {
     const logs: string[] = [];
     const spawnSync = vi.fn();
@@ -81,6 +97,7 @@ describe("ensurePlaywrightChromium", () => {
         platform: "linux",
         spawnSync,
         stdio: "pipe",
+        systemExecutablePath: "",
       }),
     ).toBe(0);
     expect(spawnSync).toHaveBeenCalledWith(
@@ -103,6 +120,7 @@ describe("ensurePlaywrightChromium", () => {
         existsSync: () => false,
         spawnSync: vi.fn(() => ({ status: 23 })),
         stdio: "pipe",
+        systemExecutablePath: "",
       }),
     ).toBe(23);
   });
