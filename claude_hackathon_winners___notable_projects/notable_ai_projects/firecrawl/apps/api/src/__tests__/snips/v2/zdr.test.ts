@@ -6,6 +6,7 @@ import {
   scrapeStatusRaw,
   zdrcleaner,
   idmux,
+  searchRaw,
 } from "./lib";
 import { describeIf, TEST_PRODUCTION } from "../lib";
 import {
@@ -148,4 +149,20 @@ describeIf(TEST_PRODUCTION)("Zero Data Retention", () => {
       600000 + 20000,
     );
   });
+
+  it("should allow search when searchZDR is forced", async () => {
+    const identity = await idmux({
+      name: "zdr/search-forced",
+      credits: 10000,
+      flags: { searchZDR: "forced" },
+    });
+
+    const response = await searchRaw(
+      { query: "firecrawl", limit: 1 },
+      identity,
+    );
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.success).toBe(true);
+  }, 60000);
 });

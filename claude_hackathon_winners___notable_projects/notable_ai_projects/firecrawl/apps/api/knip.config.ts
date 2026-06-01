@@ -19,6 +19,8 @@ const config: KnipConfig = {
     "src/services/billing/auto_charge.ts",
     "src/services/billing/issue_credits.ts",
     "src/services/billing/stripe.ts",
+    // Superseded by the integration proxy added in #3520; kept for now.
+    "src/controllers/v0/admin/rotate-api-key.ts",
   ],
   ignoreDependencies: ["undici-types", "stripe"],
 };

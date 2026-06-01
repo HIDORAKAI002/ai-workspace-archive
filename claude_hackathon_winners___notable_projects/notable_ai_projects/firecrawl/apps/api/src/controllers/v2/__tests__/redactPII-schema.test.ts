@@ -1,0 +1,236 @@
+import { scrapeRequestSchema } from "../types";
+
+describe("v2 scrapeRequestSchema — redactPII", () => {
+  const baseUrl = "https://example.com";
+
+  // ---- boolean form -------------------------------------------------------
+
+  it("accepts redactPII: true without requiring `pii` in formats", () => {
+    const result = scrapeRequestSchema.safeParse({
+      url: baseUrl,
+      formats: ["markdown"],
+      redactPII: true,
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      // `true` normalizes to a defaults object via the Zod transform.
+      expect(result.data.redactPII).toMatchObject({
+        mode: "accurate",
+        replaceStyle: "tag",
+      });
+    }
+  });
+
+  it("accepts redactPII: false with `pii` in formats", () => {
+    const result = scrapeRequestSchema.safeParse({
+      url: baseUrl,
+      formats: ["markdown", "pii"],
+      redactPII: false,
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.redactPII).toBeUndefined();
+    }
+  });
+
+  it("accepts redactPII unset (treated as off)", () => {
+    const result = scrapeRequestSchema.safeParse({
+      url: baseUrl,
+      formats: ["markdown"],
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.redactPII).toBeUndefined();
+    }
+  });
+
+  it("accepts redactPII: true with default formats", () => {
+    const result = scrapeRequestSchema.safeParse({
+      url: baseUrl,
+      redactPII: true,
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.formats).toEqual([{ type: "markdown" }]);
+      expect(result.data.redactPII).toMatchObject({
+        mode: "accurate",
+        replaceStyle: "tag",
+      });
+    }
+  });
+
+  // ---- object form --------------------------------------------------------
+
+  it("accepts an explicit mode in the object form", () => {
+    const result = scrapeRequestSchema.safeParse({
+      url: baseUrl,
+      formats: ["markdown", "pii"],
+      redactPII: { mode: "aggressive" },
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.redactPII).toMatchObject({
+        mode: "aggressive",
+        replaceStyle: "tag",
+      });
+    }
+  });
+
+  it("accepts each documented mode", () => {
+    for (const mode of ["accurate", "aggressive", "fast"] as const) {
+      const result = scrapeRequestSchema.safeParse({
+        url: baseUrl,
+        formats: ["markdown", "pii"],
+        redactPII: { mode },
+      });
+      expect(result.success).toBe(true);
+      if (result.success && result.data.redactPII) {
+        expect(result.data.redactPII.mode).toBe(mode);
+      }
+    }
+  });
+
+  it("rejects an unknown mode", () => {
+    const result = scrapeRequestSchema.safeParse({
+      url: baseUrl,
+      formats: ["markdown", "pii"],
+      redactPII: { mode: "model" }, // internal mode name, not exposed
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts an entities allowlist", () => {
+    const result = scrapeRequestSchema.safeParse({
+      url: baseUrl,
+      formats: ["markdown", "pii"],
+      redactPII: { entities: ["EMAIL", "PHONE"] },
+    });
+    expect(result.success).toBe(true);
+    if (result.success && result.data.redactPII) {
+      expect(result.data.redactPII.entities).toEqual(["EMAIL", "PHONE"]);
+    }
+  });
+
+  it("rejects an unknown entity", () => {
+    const result = scrapeRequestSchema.safeParse({
+      url: baseUrl,
+      formats: ["markdown", "pii"],
+      redactPII: { entities: ["EMAIL", "NICKNAME"] },
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts each replaceStyle", () => {
+    for (const replaceStyle of ["tag", "mask", "remove"] as const) {
+      const result = scrapeRequestSchema.safeParse({
+        url: baseUrl,
+        formats: ["markdown", "pii"],
+        redactPII: { replaceStyle },
+      });
+      expect(result.success).toBe(true);
+      if (result.success && result.data.redactPII) {
+        expect(result.data.redactPII.replaceStyle).toBe(replaceStyle);
+      }
+    }
+  });
+
+  it("rejects unknown fields in the object form (strict)", () => {
+    const result = scrapeRequestSchema.safeParse({
+      url: baseUrl,
+      formats: ["markdown", "pii"],
+      redactPII: { mode: "accurate", typo: "yes" },
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts the object form without requiring `pii` in formats", () => {
+    const result = scrapeRequestSchema.safeParse({
+      url: baseUrl,
+      formats: ["markdown"],
+      redactPII: { mode: "aggressive" },
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.redactPII).toMatchObject({
+        mode: "aggressive",
+        replaceStyle: "tag",
+      });
+    }
+  });
+
+  // ---- type rejection -----------------------------------------------------
+
+  it("rejects redactPII as a string", () => {
+    const result = scrapeRequestSchema.safeParse({
+      url: baseUrl,
+      formats: ["markdown", "pii"],
+      redactPII: "yes",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects redactPII as a number", () => {
+    const result = scrapeRequestSchema.safeParse({
+      url: baseUrl,
+      formats: ["markdown", "pii"],
+      redactPII: 1,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  // ---- onlyMainContent ------------------------------------------------------
+
+  it("preserves explicit onlyMainContent: false when redactPII is enabled", () => {
+    const result = scrapeRequestSchema.safeParse({
+      url: baseUrl,
+      formats: ["markdown"],
+      redactPII: true,
+      onlyMainContent: false,
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.onlyMainContent).toBe(false);
+    }
+  });
+
+  it("keeps the default onlyMainContent: true when redactPII is enabled", () => {
+    const result = scrapeRequestSchema.safeParse({
+      url: baseUrl,
+      redactPII: true,
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.onlyMainContent).toBe(true);
+    }
+  });
+
+  it("leaves onlyMainContent alone when redactPII is unset", () => {
+    const result = scrapeRequestSchema.safeParse({
+      url: baseUrl,
+      formats: ["markdown"],
+      onlyMainContent: false,
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.onlyMainContent).toBe(false);
+    }
+  });
+
+  // ---- formats schema -----------------------------------------------------
+
+  it("accepts `pii` as a string format", () => {
+    const result = scrapeRequestSchema.safeParse({
+      url: baseUrl,
+      formats: ["pii"],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts `pii` as an object format", () => {
+    const result = scrapeRequestSchema.safeParse({
+      url: baseUrl,
+      formats: [{ type: "pii" }],
+    });
+    expect(result.success).toBe(true);
+  });
+});

@@ -19,7 +19,7 @@ import {
 } from "../../services/sentry";
 import { executeSearch } from "../../search/execute";
 import type { BillingMetadata } from "../../services/billing/types";
-import { getSearchZDR } from "../../lib/zdr-helpers";
+import { getSearchForcedKind, getSearchZDR } from "../../lib/zdr-helpers";
 
 export async function searchController(
   req: RequestWithAuth<{}, SearchResponse, SearchRequest>,
@@ -30,28 +30,23 @@ export async function searchController(
   const controllerStartTime = new Date().getTime();
 
   const jobId = uuidv7();
+  const searchZDRMode = getSearchZDR(req.acuc?.flags);
+  const teamForcedKind = getSearchForcedKind(req.acuc?.flags);
   let logger = _logger.child({
     jobId,
     teamId: req.auth.team_id,
     module: "api/v2",
     method: "searchController",
-    zeroDataRetention: getSearchZDR(req.acuc?.flags) === "forced",
+    zeroDataRetention: teamForcedKind !== null,
+    teamForcedKind,
   });
-
-  if (getSearchZDR(req.acuc?.flags) === "forced") {
-    return res.status(400).json({
-      success: false,
-      error:
-        "Your team has zero data retention enabled. This is not supported on search. Please contact support@firecrawl.com to unblock this feature.",
-    });
-  }
 
   const middlewareTime = controllerStartTime - middlewareStartTime;
   const isSearchPreview =
     config.SEARCH_PREVIEW_TOKEN !== undefined &&
     config.SEARCH_PREVIEW_TOKEN === req.body.__searchPreviewToken;
 
-  let zeroDataRetention = false;
+  let zeroDataRetention = teamForcedKind !== null;
 
   try {
     req.body = searchRequestSchema.parse(req.body);
@@ -84,16 +79,25 @@ export async function searchController(
       origin: req.body.origin,
     });
 
+    // Inject the team-forced enterprise mode so downstream billing,
+    // upstream routing, and ZDR cleanup all see it.
+    if (teamForcedKind) {
+      const existing = req.body.enterprise ?? [];
+      if (!existing.includes(teamForcedKind)) {
+        req.body.enterprise = [...existing, teamForcedKind];
+      }
+    }
+
     const isZDR = req.body.enterprise?.includes("zdr");
     const isAnon = req.body.enterprise?.includes("anon");
     const isZDROrAnon = isZDR || isAnon;
     zeroDataRetention = isZDROrAnon ?? false;
-    applyZdrScope(isZDROrAnon ?? false);
+    logger = logger.child({ zeroDataRetention });
+    applyZdrScope(zeroDataRetention);
 
     // Verify the team has searchZDR enabled before allowing enterprise ZDR/anon
-    if (isZDROrAnon) {
-      const searchMode = getSearchZDR(req.acuc?.flags);
-      if (searchMode !== "allowed" && searchMode !== "forced") {
+    if (isZDROrAnon && !teamForcedKind) {
+      if (searchZDRMode !== "allowed") {
         return res.status(403).json({
           success: false,
           error:
@@ -111,7 +115,7 @@ export async function searchController(
         origin: req.body.origin ?? "api",
         integration: req.body.integration,
         target_hint: req.body.query,
-        zeroDataRetention: isZDROrAnon ?? false,
+        zeroDataRetention,
         api_key_id: req.acuc?.api_key_id ?? null,
       });
     }
@@ -142,7 +146,7 @@ export async function searchController(
         jobId,
         apiVersion: "v2",
         bypassBilling: !shouldBill,
-        zeroDataRetention: isZDROrAnon,
+        zeroDataRetention,
         billing,
         agentIndexOnly: (req as any).agentIndexOnly ?? false,
       },
@@ -180,7 +184,7 @@ export async function searchController(
         team_id: req.auth.team_id,
         options: req.body,
         credits_cost: shouldBill ? result.searchCredits : 0,
-        zeroDataRetention: isZDROrAnon ?? false,
+        zeroDataRetention,
       },
       false,
     );
