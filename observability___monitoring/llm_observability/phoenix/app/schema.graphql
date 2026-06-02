@@ -628,8 +628,8 @@ input CreateCodeEvaluatorInput {
   name: Identifier!
   sourceCode: String!
   language: Language!
+  sandboxConfigId: ID!
   description: String = null
-  sandboxConfigId: ID = null
   outputConfigs: [AnnotationConfigInput!] = null
   inputMapping: EvaluatorInputMappingInput = null
 }
@@ -2999,7 +2999,7 @@ input PromptInvocationParametersInput @oneOf {
 type PromptLabel implements Node {
   """The Globally Unique ID of this object"""
   id: ID!
-  name: Identifier!
+  name: String!
   description: String
   color: String
 }
@@ -4308,7 +4308,6 @@ type UpdateModelMutationPayload {
 
 input UpdateSandboxConfigInput {
   id: ID!
-  name: Identifier
   description: String
   config: SandboxConfigVariantInput
   timeout: Int
