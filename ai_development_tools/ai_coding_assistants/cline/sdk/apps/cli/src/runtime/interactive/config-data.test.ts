@@ -494,6 +494,93 @@ Find installable skills.`,
 		expect(plugin?.name).toBe("cline-sdk-portable-agents");
 	});
 
+	it("marks bundled package skills with their plugin owner", async () => {
+		const tempRoot = await mkdtemp(join(tmpdir(), "cli-config-data-"));
+		tempRoots.push(tempRoot);
+		const installRoot = join(
+			tempRoot,
+			".cline",
+			"plugins",
+			"_installed",
+			"git",
+			"github.com",
+			"demo",
+		);
+		const packageDir = join(installRoot, "package");
+		const skillPath = join(packageDir, "skills", "review", "SKILL.md");
+		const pluginPath = join(packageDir, "index.ts");
+		await mkdir(join(packageDir, "skills", "review"), { recursive: true });
+		await writeFile(
+			join(installRoot, "package.json"),
+			JSON.stringify(
+				{
+					name: "cline-installed-plugin-demo",
+					cline: {
+						plugins: [{ paths: ["./package/index.ts"] }],
+					},
+				},
+				null,
+				2,
+			),
+		);
+		await writeFile(
+			join(packageDir, "package.json"),
+			JSON.stringify(
+				{
+					name: "cline-sdk-portable-agents",
+				},
+				null,
+				2,
+			),
+		);
+		await writeFile(pluginPath, "export default {};\n");
+		await writeFile(
+			skillPath,
+			`---
+name: review
+---
+Review with the bundled skill.`,
+		);
+		const userInstructionService = {
+			listRuntimeCommands() {
+				return [];
+			},
+			listRecords(type: string) {
+				if (type !== "skill") {
+					return [];
+				}
+				return [
+					{
+						id: "review",
+						type: "skill",
+						filePath: skillPath,
+						item: {
+							name: "review",
+							disabled: false,
+							description: "Review code",
+							instructions: "Review with the bundled skill.",
+							frontmatter: {},
+						},
+					},
+				];
+			},
+		} as unknown as UserInstructionConfigService;
+		const loader = createInteractiveConfigDataLoader({
+			config: createConfig(tempRoot),
+			userInstructionService,
+		});
+
+		const data = await loader.loadConfigData({ includePluginTools: false });
+		const skill = data.skills.find((item) => item.path === skillPath);
+
+		expect(skill).toMatchObject({
+			name: "review",
+			pluginName: "cline-sdk-portable-agents",
+			pluginPath,
+			source: "workspace-plugin",
+		});
+	});
+
 	it("toggles MCP server enabled state through core settings", async () => {
 		const tempRoot = await mkdtemp(join(tmpdir(), "cli-config-data-"));
 		tempRoots.push(tempRoot);
@@ -536,6 +623,56 @@ Find installable skills.`,
 		expect(
 			nextData?.mcp.find((candidate) => candidate.name === "docs")?.enabled,
 		).toBe(false);
+	});
+
+	it("surfaces MCP OAuth status and errors", async () => {
+		const tempRoot = await mkdtemp(join(tmpdir(), "cli-config-data-"));
+		tempRoots.push(tempRoot);
+		const settingsPath = join(tempRoot, "cline_mcp_settings.json");
+		process.env.CLINE_MCP_SETTINGS_PATH = settingsPath;
+		await writeFile(
+			settingsPath,
+			`${JSON.stringify(
+				{
+					mcpServers: {
+						linear: {
+							transport: {
+								type: "streamableHttp",
+								url: "https://mcp.linear.app/mcp",
+							},
+							oauth: {
+								lastError: "OAuth authorization failed",
+							},
+						},
+						docs: {
+							transport: {
+								type: "sse",
+								url: "https://mcp.example.com/sse",
+							},
+							oauth: {
+								tokens: {
+									access_token: "token",
+								},
+							},
+						},
+					},
+				},
+				null,
+				2,
+			)}\n`,
+		);
+		const loader = createInteractiveConfigDataLoader({
+			config: createConfig(tempRoot),
+		});
+
+		const data = await loader.loadConfigData();
+		const linear = data.mcp.find((item) => item.name === "linear");
+		const docs = data.mcp.find((item) => item.name === "docs");
+
+		expect(linear?.description).toBe("streamableHttp, oauth error");
+		expect(linear?.loadError).toBe("OAuth authorization failed");
+		expect(docs?.description).toBe("sse, oauth authorized");
+		expect(docs?.loadError).toBeUndefined();
 	});
 
 	it("does not toggle workflow items", async () => {
