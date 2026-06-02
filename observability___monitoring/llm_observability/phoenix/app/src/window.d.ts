@@ -24,6 +24,7 @@ declare global {
       managementUrl?: string | null;
       supportEmail?: string | null;
       hasDbThreshold: boolean;
+      agentAssistantDisabled: boolean;
       /**
        * Mapping of auth error codes to user-friendly messages.
        * Passed from the backend to ensure single source of truth.

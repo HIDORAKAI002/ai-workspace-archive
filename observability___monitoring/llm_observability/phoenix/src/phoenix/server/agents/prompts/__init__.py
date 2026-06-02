@@ -46,6 +46,7 @@ _SAVE_PROMPT_TOOL_INSTRUCTIONS = get_template("tools/SAVE_PROMPT_TOOL_INSTRUCTIO
 _SET_VARIABLE_VALUES_TOOL_INSTRUCTIONS = get_template(
     "tools/SET_VARIABLE_VALUES_TOOL_INSTRUCTIONS.xml.j2"
 )
+_LOAD_DATASET_TOOL_INSTRUCTIONS = get_template("tools/LOAD_DATASET_TOOL_INSTRUCTIONS.xml.j2")
 _BATCH_SPAN_ANNOTATE_TOOL_INSTRUCTIONS = get_template(
     "tools/BATCH_SPAN_ANNOTATE_TOOL_INSTRUCTIONS.xml.j2"
 )
@@ -61,6 +62,18 @@ _TEST_CODE_EVALUATOR_DRAFT_TOOL_INSTRUCTIONS = get_template(
 _OPEN_CODE_EVALUATOR_FORM_TOOL_INSTRUCTIONS = get_template(
     "tools/OPEN_CODE_EVALUATOR_FORM_TOOL_INSTRUCTIONS.xml.j2"
 )
+_READ_LLM_EVALUATOR_DRAFT_TOOL_INSTRUCTIONS = get_template(
+    "tools/READ_LLM_EVALUATOR_DRAFT_TOOL_INSTRUCTIONS.xml.j2"
+)
+_EDIT_LLM_EVALUATOR_DRAFT_TOOL_INSTRUCTIONS = get_template(
+    "tools/EDIT_LLM_EVALUATOR_DRAFT_TOOL_INSTRUCTIONS.xml.j2"
+)
+_TEST_LLM_EVALUATOR_DRAFT_TOOL_INSTRUCTIONS = get_template(
+    "tools/TEST_LLM_EVALUATOR_DRAFT_TOOL_INSTRUCTIONS.xml.j2"
+)
+_OPEN_LLM_EVALUATOR_FORM_TOOL_INSTRUCTIONS = get_template(
+    "tools/OPEN_LLM_EVALUATOR_FORM_TOOL_INSTRUCTIONS.xml.j2"
+)
 _APP_CONTEXT_TEMPLATE = get_template("context/APP_CONTEXT_INSTRUCTIONS.xml.j2")
 _PROJECT_CONTEXT_TEMPLATE = get_template("context/PROJECT_CONTEXT_INSTRUCTIONS.xml.j2")
 _TRACE_CONTEXT_TEMPLATE = get_template("context/TRACE_CONTEXT_INSTRUCTIONS.xml.j2")
@@ -69,6 +82,7 @@ _PLAYGROUND_CONTEXT_TEMPLATE = get_template("context/PLAYGROUND_CONTEXT_INSTRUCT
 _CODE_EVALUATOR_CONTEXT_TEMPLATE = get_template(
     "context/CODE_EVALUATOR_CONTEXT_INSTRUCTIONS.xml.j2"
 )
+_LLM_EVALUATOR_CONTEXT_TEMPLATE = get_template("context/LLM_EVALUATOR_CONTEXT_INSTRUCTIONS.xml.j2")
 _DATASET_CONTEXT_TEMPLATE = get_template("context/DATASET_CONTEXT_INSTRUCTIONS.xml.j2")
 _GRAPHQL_MUTATIONS_TEMPLATE = get_template("context/GRAPHQL_MUTATIONS_INSTRUCTIONS.xml.j2")
 _SKILLS_TEMPLATE = get_template("skills/SKILLS_INSTRUCTIONS.xml.j2")
@@ -103,17 +117,23 @@ class AgentPrompts:
     write_prompt_tools_tool: Template = _WRITE_PROMPT_TOOLS_TOOL_INSTRUCTIONS
     run_playground_tool: Template = _RUN_PLAYGROUND_TOOL_INSTRUCTIONS
     set_variable_values_tool: Template = _SET_VARIABLE_VALUES_TOOL_INSTRUCTIONS
+    load_dataset_tool: Template = _LOAD_DATASET_TOOL_INSTRUCTIONS
     batch_span_annotate_tool: Template = _BATCH_SPAN_ANNOTATE_TOOL_INSTRUCTIONS
     read_code_evaluator_draft_tool: Template = _READ_CODE_EVALUATOR_DRAFT_TOOL_INSTRUCTIONS
     edit_code_evaluator_draft_tool: Template = _EDIT_CODE_EVALUATOR_DRAFT_TOOL_INSTRUCTIONS
     test_code_evaluator_draft_tool: Template = _TEST_CODE_EVALUATOR_DRAFT_TOOL_INSTRUCTIONS
     open_code_evaluator_form_tool: Template = _OPEN_CODE_EVALUATOR_FORM_TOOL_INSTRUCTIONS
+    read_llm_evaluator_draft_tool: Template = _READ_LLM_EVALUATOR_DRAFT_TOOL_INSTRUCTIONS
+    edit_llm_evaluator_draft_tool: Template = _EDIT_LLM_EVALUATOR_DRAFT_TOOL_INSTRUCTIONS
+    test_llm_evaluator_draft_tool: Template = _TEST_LLM_EVALUATOR_DRAFT_TOOL_INSTRUCTIONS
+    open_llm_evaluator_form_tool: Template = _OPEN_LLM_EVALUATOR_FORM_TOOL_INSTRUCTIONS
     app_context: Template = _APP_CONTEXT_TEMPLATE
     project_context: Template = _PROJECT_CONTEXT_TEMPLATE
     trace_context: Template = _TRACE_CONTEXT_TEMPLATE
     span_context: Template = _SPAN_CONTEXT_TEMPLATE
     playground_context: Template = _PLAYGROUND_CONTEXT_TEMPLATE
     code_evaluator_context: Template = _CODE_EVALUATOR_CONTEXT_TEMPLATE
+    llm_evaluator_context: Template = _LLM_EVALUATOR_CONTEXT_TEMPLATE
     dataset_context: Template = _DATASET_CONTEXT_TEMPLATE
     graphql_mutations: Template = _GRAPHQL_MUTATIONS_TEMPLATE
     skills: Template = _SKILLS_TEMPLATE
