@@ -44,6 +44,7 @@ final class ParseOptions
         private readonly ?bool $blockAds = null,
         private readonly ?string $proxy = null,
         private readonly ?string $integration = null,
+        private readonly ?bool $redactPII = null,
     ) {}
 
     /**
@@ -66,6 +67,7 @@ final class ParseOptions
         ?bool $blockAds = null,
         ?string $proxy = null,
         ?string $integration = null,
+        ?bool $redactPII = null,
     ): self {
         if ($timeout !== null && $timeout <= 0) {
             throw new FirecrawlException('timeout must be positive');
@@ -97,6 +99,7 @@ final class ParseOptions
             $blockAds,
             $proxy,
             $integration,
+            $redactPII,
         );
     }
 
@@ -130,6 +133,7 @@ final class ParseOptions
             'blockAds' => $this->blockAds,
             'proxy' => $this->proxy,
             'integration' => $this->integration,
+            'redactPII' => $this->redactPII,
         ];
 
         foreach ($fields as $key => $value) {

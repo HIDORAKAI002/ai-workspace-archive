@@ -38,6 +38,7 @@ final class ScrapeOptions
         /** @var array<string, string>|null */
         private readonly ?array $profile = null,
         private readonly ?bool $changeTracking = null,
+        private readonly ?bool $redactPII = null,
     ) {}
 
     /**
@@ -72,13 +73,14 @@ final class ScrapeOptions
         ?int $minAge = null,
         ?array $profile = null,
         ?bool $changeTracking = null,
+        ?bool $redactPII = null,
     ): self {
         return new self(
             $formats, $headers, $includeTags, $excludeTags, $onlyMainContent,
             $timeout, $waitFor, $mobile, $parsers, $actions, $location,
             $skipTlsVerification, $removeBase64Images, $blockAds, $proxy,
             $maxAge, $minAge, $storeInCache, $lockdown, $integration, $profile,
-            $changeTracking,
+            $changeTracking, $redactPII,
         );
     }
 
@@ -123,6 +125,7 @@ final class ScrapeOptions
             'integration' => $this->integration,
             'profile' => $this->profile,
             'changeTracking' => $this->changeTracking,
+            'redactPII' => $this->redactPII,
         ];
 
         foreach ($fields as $key => $value) {
@@ -176,6 +179,11 @@ final class ScrapeOptions
     public function getMobile(): ?bool
     {
         return $this->mobile;
+    }
+
+    public function getRedactPII(): ?bool
+    {
+        return $this->redactPII;
     }
 
     /** @return list<mixed>|null */

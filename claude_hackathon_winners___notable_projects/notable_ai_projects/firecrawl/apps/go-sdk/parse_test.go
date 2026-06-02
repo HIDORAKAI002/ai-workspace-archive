@@ -74,6 +74,7 @@ func TestParseSendsMultipartRequest(t *testing.T) {
 	doc, err := client.Parse(context.Background(), file, &ParseOptions{
 		Formats:         []string{"markdown"},
 		OnlyMainContent: Bool(true),
+		RedactPII:       Bool(true),
 	})
 	if err != nil {
 		t.Fatalf("Parse: %v", err)
@@ -87,6 +88,9 @@ func TestParseSendsMultipartRequest(t *testing.T) {
 	}
 	if !strings.Contains(gotOptions, `"onlyMainContent":true`) {
 		t.Errorf("options missing onlyMainContent: %q", gotOptions)
+	}
+	if !strings.Contains(gotOptions, `"redactPII":true`) {
+		t.Errorf("options missing redactPII: %q", gotOptions)
 	}
 	if gotFilename != "upload.html" {
 		t.Errorf("filename = %q, want upload.html", gotFilename)

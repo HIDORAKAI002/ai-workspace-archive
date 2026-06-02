@@ -63,3 +63,16 @@ func TestScrapeOptionsPreservesStringFormats(t *testing.T) {
 		t.Fatalf("serialized string formats = %s", payload)
 	}
 }
+
+func TestScrapeOptionsSerializesRedactPII(t *testing.T) {
+	payload, err := json.Marshal(ScrapeOptions{
+		RedactPII: Bool(true),
+	})
+	if err != nil {
+		t.Fatalf("Marshal ScrapeOptions: %v", err)
+	}
+
+	if !strings.Contains(string(payload), `"redactPII":true`) {
+		t.Fatalf("serialized redactPII = %s", payload)
+	}
+}

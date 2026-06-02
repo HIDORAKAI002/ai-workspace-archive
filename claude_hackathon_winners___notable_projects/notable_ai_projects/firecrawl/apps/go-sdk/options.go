@@ -90,6 +90,7 @@ type ScrapeOptions struct {
 	MaxAge              *int64                   `json:"maxAge,omitempty"`
 	StoreInCache        *bool                    `json:"storeInCache,omitempty"`
 	Lockdown            *bool                    `json:"lockdown,omitempty"`
+	RedactPII           *bool                    `json:"redactPII,omitempty"`
 	Integration         *string                  `json:"integration,omitempty"`
 	JsonOptions         *JsonOptions             `json:"jsonOptions,omitempty"`
 }

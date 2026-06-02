@@ -148,6 +148,18 @@ it('serializes lockdown in ScrapeOptions', function (): void {
     ]);
 });
 
+it('serializes redactPII in ScrapeOptions', function (): void {
+    $options = ScrapeOptions::with(
+        redactPII: true,
+    );
+
+    expect($options->getRedactPII())->toBeTrue();
+    expect($options->toArray())->toMatchArray([
+        'redactPII' => true,
+    ]);
+    expect(array_key_exists('formats', $options->toArray()))->toBeFalse();
+});
+
 it('serializes query format mode in ScrapeOptions', function (): void {
     $options = ScrapeOptions::with(
         formats: [QueryFormat::with('What is Firecrawl?', QueryFormat::MODE_DIRECT_QUOTE)],

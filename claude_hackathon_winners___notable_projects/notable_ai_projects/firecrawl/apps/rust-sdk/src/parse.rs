@@ -129,6 +129,9 @@ pub struct ParseOptions {
     pub proxy: Option<ParseProxyType>,
     /// Integration identifier.
     pub integration: Option<String>,
+    /// Redact personally identifiable information from returned content.
+    #[serde(rename = "redactPII")]
+    pub redact_pii: Option<bool>,
     /// Request origin identifier.
     pub origin: Option<String>,
     /// Zero data retention mode.

@@ -75,6 +75,10 @@ public class ScrapeOptions
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? StoreInCache { get; set; }
 
+    [JsonPropertyName("redactPII")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? RedactPII { get; set; }
+
     [JsonPropertyName("integration")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Integration { get; set; }
