@@ -78,9 +78,8 @@ export interface MastraChatProps {
   onSignalEcho?: (signalId: string) => void;
   onThreadSignalsUnsupported?: () => void;
   /**
-   * Opt into the agent-signals streaming path (sendSignal + subscribeToThread).
-   * Defaults to `false` so consumers stay on the legacy `streamUntilIdle` route
-   * unless they explicitly enable the signals path.
+   * Use the agent-signals streaming path (sendSignal + subscribeToThread).
+   * Defaults to `false`; set to `true` to opt into thread signals.
    */
   enableThreadSignals?: boolean;
 }
