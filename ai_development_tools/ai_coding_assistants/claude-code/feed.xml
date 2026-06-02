@@ -6,7 +6,35 @@
   <author><name>Anthropic</name></author>
   <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md"/>
   <link rel="self" type="application/atom+xml" href="https://raw.githubusercontent.com/anthropics/claude-code/main/feed.xml"/>
-  <updated>2026-06-02T02:10:17Z</updated>
+  <updated>2026-06-02T21:58:16Z</updated>
+  <entry>
+    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.161</id>
+    <title>Claude Code v2.1.161</title>
+    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.161"/>
+    <updated>2026-06-02T21:58:16Z</updated>
+    <content type="html">&lt;p&gt;• OTEL_RESOURCE_ATTRIBUTES values are now included as labels on metric datapoints, so you can slice usage metrics by custom dimensions like team or repo&lt;/p&gt;
+&lt;p&gt;• claude agents rows now show done/total before the detail when work is fanned out; peek shows the longest-running item&lt;/p&gt;
+&lt;p&gt;• /mcp now collapses claude.ai connectors you've never signed in to behind a "Show unused connectors" row&lt;/p&gt;
+&lt;p&gt;• Parallel tool calls: a failed Bash command no longer cancels other calls in the same batch — each tool returns its own result independently&lt;/p&gt;
+&lt;p&gt;• Fullscreen mode: clipboard now uses wl-copy/xclip/xsel on Linux when available, copies to both the clipboard and PRIMARY selection for middle-click paste, and the "hold {key} for native selection" hint now shows the correct key per terminal&lt;/p&gt;
+&lt;p&gt;• Fixed the /effort dialog, workflow animations, and prompt keyword shimmer not honoring the "Reduce motion" setting&lt;/p&gt;
+&lt;p&gt;• Fixed forceLoginOrgUUID/forceLoginMethod managed-settings policies blocking third-party provider sessions (Bedrock, Vertex, Foundry, Mantle) alongside the org pin (regression in 2.1.146)&lt;/p&gt;
+&lt;p&gt;• Fixed background subagent output corrupting claude -p stdout when using --output-format text or json&lt;/p&gt;
+&lt;p&gt;• Fixed /usage-credits starting a re-login for Team and Enterprise admins instead of pointing to the organization's usage settings page&lt;/p&gt;
+&lt;p&gt;• Fixed /autofix-pr reporting "cannot run on the default branch" when the session is inside a git worktree or another repository&lt;/p&gt;
+&lt;p&gt;• Fixed --resume picker not showing sessions from the current directory when it isn't a git worktree (e.g., jj workspaces)&lt;/p&gt;
+&lt;p&gt;• Fixed Windows hooks that invoke bash explicitly (e.g., /usr/bin/bash script.sh) failing with "command not found" or "cannot execute binary file"&lt;/p&gt;
+&lt;p&gt;• Fixed OpenTelemetry log events (user_prompt, api_request, tool_result, tool_decision) being silently dropped when emitted before telemetry initialization completed&lt;/p&gt;
+&lt;p&gt;• Fixed claude mcp list/get/add printing secrets to the terminal: ${VAR} references are no longer expanded, and credential headers and URL secrets are redacted&lt;/p&gt;
+&lt;p&gt;• Fixed Workflow agents spawned with isolation: "worktree" in background sessions being blocked from editing files inside their own worktree&lt;/p&gt;
+&lt;p&gt;• Fixed background sessions dispatched from claude agents booting on a stale model from the daemon's environment instead of the model in settings.json&lt;/p&gt;
+&lt;p&gt;• Fixed a potential crash when rendering Write tool results after resuming a session&lt;/p&gt;
+&lt;p&gt;• Fixed completed subagents getting stuck showing as running when an error occurs while finalizing their result&lt;/p&gt;
+&lt;p&gt;• Fixed EADDRINUSE errors from tools that bind Unix sockets under $TMPDIR when CLAUDE_CODE_TMPDIR is set to a deep path&lt;/p&gt;
+&lt;p&gt;• Improved terminal rendering performance by stabilizing the layout engine's JIT compilation profile&lt;/p&gt;
+&lt;p&gt;• Improved rendering performance for large file writes&lt;/p&gt;
+&lt;p&gt;• [VSCode] Added a tip suggesting disabling terminal GPU acceleration (or running /terminal-setup) to fix garbled glyphs&lt;/p&gt;</content>
+  </entry>
   <entry>
     <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.160</id>
     <title>Claude Code v2.1.160</title>
@@ -608,12 +636,5 @@
 &lt;p&gt;• Fixed claude_code.active_time.total OpenTelemetry metric not being emitted in --print mode&lt;/p&gt;
 &lt;p&gt;• Fixed claude plugin update not preserving cross-plugin symlinks inside a marketplace&lt;/p&gt;
 &lt;p&gt;• [VSCode] Press Cmd/Ctrl+Shift+T to reopen the most recently closed session tab, configurable via claudeCode.enableReopenClosedSessionShortcut&lt;/p&gt;</content>
-  </entry>
-  <entry>
-    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.138</id>
-    <title>Claude Code v2.1.138</title>
-    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.138"/>
-    <updated>2026-05-18T01:52:01Z</updated>
-    <content type="html">&lt;p&gt;• Internal fixes&lt;/p&gt;</content>
   </entry>
 </feed>
