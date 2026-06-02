@@ -131,11 +131,127 @@ def test_prepare_mcp_server_headers_case_insensitive_extra_headers():
         mcp_server_auth_headers=None,
         mcp_auth_header=None,
         oauth2_headers=None,
-        raw_headers={"authorization": "Bearer token"},
+        raw_headers={
+            "x-litellm-api-key": "Bearer sk-litellm-key",
+            "authorization": "Bearer token",
+        },
     )
 
     assert server_auth_header is None
     assert extra_headers == {"Authorization": "Bearer token"}
+
+
+def test_prepare_mcp_server_headers_passthrough_strips_authorization_without_admission_header():
+    try:
+        from litellm.proxy._experimental.mcp_server.server import (
+            _prepare_mcp_server_headers,
+        )
+    except ImportError:
+        pytest.skip("MCP server not available")
+
+    server = MCPServer(
+        server_id="server-passthrough-no-admission",
+        name="server",
+        transport=MCPTransport.http,
+        auth_type=MCPAuth.none,
+        extra_headers=["Authorization", "x-request-id"],
+        oauth_passthrough=True,
+    )
+
+    server_auth_header, extra_headers = _prepare_mcp_server_headers(
+        server=server,
+        mcp_server_auth_headers=None,
+        mcp_auth_header=None,
+        oauth2_headers=None,
+        raw_headers={
+            "authorization": "Bearer sk-litellm-key",
+            "x-request-id": "req-789",
+        },
+    )
+
+    assert server_auth_header is None
+    assert extra_headers == {"x-request-id": "req-789"}
+
+
+def test_prepare_mcp_server_headers_passthrough_forwards_authorization_for_anonymous_admission():
+    """Cold-start return per RFC 9728: client admits anonymously through
+    the pass-through fallback in :meth:`MCPRequestHandler.process_mcp_request`
+    (``user_api_key_auth.api_key is None``) and the ``Authorization`` bearer
+    is the upstream OAuth token — it must be forwarded, not stripped."""
+    try:
+        from litellm.proxy._experimental.mcp_server.server import (
+            _prepare_mcp_server_headers,
+        )
+    except ImportError:
+        pytest.skip("MCP server not available")
+
+    from litellm.proxy._types import UserAPIKeyAuth
+
+    server = MCPServer(
+        server_id="server-passthrough-anon-admission",
+        name="server",
+        transport=MCPTransport.http,
+        auth_type=MCPAuth.none,
+        extra_headers=["Authorization", "x-request-id"],
+        oauth_passthrough=True,
+    )
+
+    server_auth_header, extra_headers = _prepare_mcp_server_headers(
+        server=server,
+        mcp_server_auth_headers=None,
+        mcp_auth_header=None,
+        oauth2_headers=None,
+        raw_headers={
+            "authorization": "Bearer upstream-oauth-token",
+            "x-request-id": "req-790",
+        },
+        user_api_key_auth=UserAPIKeyAuth(),
+    )
+
+    assert server_auth_header is None
+    assert extra_headers == {
+        "Authorization": "Bearer upstream-oauth-token",
+        "x-request-id": "req-790",
+    }
+
+
+def test_prepare_mcp_server_headers_passthrough_strips_authorization_for_authenticated_admission():
+    """When admission validated ``Authorization`` as a LiteLLM key
+    (``user_api_key_auth.api_key`` is set, no explicit ``x-litellm-api-key``),
+    the bearer must still be stripped to avoid leaking the gateway key
+    upstream."""
+    try:
+        from litellm.proxy._experimental.mcp_server.server import (
+            _prepare_mcp_server_headers,
+        )
+    except ImportError:
+        pytest.skip("MCP server not available")
+
+    from litellm.proxy._types import UserAPIKeyAuth
+
+    server = MCPServer(
+        server_id="server-passthrough-authenticated",
+        name="server",
+        transport=MCPTransport.http,
+        auth_type=MCPAuth.none,
+        extra_headers=["Authorization", "x-request-id"],
+        oauth_passthrough=True,
+    )
+
+    server_auth_header, extra_headers = _prepare_mcp_server_headers(
+        server=server,
+        mcp_server_auth_headers=None,
+        mcp_auth_header=None,
+        oauth2_headers=None,
+        raw_headers={
+            "authorization": "Bearer sk-litellm-key",
+            "x-request-id": "req-791",
+        },
+        user_api_key_auth=UserAPIKeyAuth(api_key="sk-litellm-key"),
+    )
+
+    assert server_auth_header is None
+    assert extra_headers == {"x-request-id": "req-791"}
 
 
 def test_prepare_mcp_server_headers_oauth2_m2m_omits_litellm_caller_authorization():
@@ -514,6 +630,7 @@ async def test_mcp_get_prompt_success():
         mcp_auth_header=None,
         oauth2_headers=None,
         raw_headers=None,
+        user_api_key_auth=user_api_key_auth,
     )
     mock_manager.get_prompt_from_server.assert_awaited_once_with(
         server=server,
@@ -575,6 +692,7 @@ async def test_mcp_read_resource_success():
         mcp_auth_header=None,
         oauth2_headers=None,
         raw_headers=None,
+        user_api_key_auth=user_api_key_auth,
     )
     mock_manager.read_resource_from_server.assert_awaited_once_with(
         server=server,
@@ -4184,6 +4302,85 @@ def test_filter_tools_by_allowed_tools_no_filter():
     assert len(filtered_tools) == 2
 
 
+def test_filter_tools_enforced_empty_allowlist_blocks_all():
+    from mcp.types import Tool
+
+    from litellm.proxy._experimental.mcp_server.server import (
+        filter_tools_by_allowed_tools,
+    )
+    from litellm.types.mcp import MCPTransport
+    from litellm.types.mcp_server.mcp_server_manager import MCPServer
+
+    tools = [
+        Tool(
+            name="read_wiki_structure",
+            title=None,
+            description="",
+            inputSchema={"type": "object"},
+            outputSchema=None,
+            annotations=None,
+        ),
+    ]
+    server = MCPServer(
+        server_id="deepwiki",
+        name="deepwiki",
+        transport=MCPTransport.http,
+        allowed_tools=[],
+        mcp_info={"tool_allowlist_enforced": True},
+    )
+
+    assert filter_tools_by_allowed_tools(tools, server) == []
+
+
+def test_filter_tools_legacy_empty_allowlist_allows_all():
+    from mcp.types import Tool
+
+    from litellm.proxy._experimental.mcp_server.server import (
+        filter_tools_by_allowed_tools,
+    )
+    from litellm.types.mcp import MCPTransport
+    from litellm.types.mcp_server.mcp_server_manager import MCPServer
+
+    tools = [
+        Tool(
+            name="read_wiki_structure",
+            title=None,
+            description="",
+            inputSchema={"type": "object"},
+            outputSchema=None,
+            annotations=None,
+        ),
+    ]
+    server = MCPServer(
+        server_id="legacy",
+        name="legacy",
+        transport=MCPTransport.http,
+        allowed_tools=[],
+        mcp_info=None,
+    )
+
+    assert len(filter_tools_by_allowed_tools(tools, server)) == 1
+
+
+def test_check_allowed_or_banned_tools_enforced_empty_denies_calls():
+    from litellm.proxy._experimental.mcp_server.mcp_server_manager import (
+        MCPServerManager,
+    )
+    from litellm.types.mcp import MCPTransport
+    from litellm.types.mcp_server.mcp_server_manager import MCPServer
+
+    manager = MCPServerManager.__new__(MCPServerManager)
+    server = MCPServer(
+        server_id="deepwiki",
+        name="deepwiki",
+        transport=MCPTransport.http,
+        allowed_tools=[],
+        mcp_info={"tool_allowlist_enforced": True},
+    )
+
+    assert manager.check_allowed_or_banned_tools("read_wiki_structure", server) is False
+
+
 @pytest.mark.asyncio
 async def test_get_tools_from_mcp_servers_injects_stored_oauth2_token():
     """
@@ -4540,9 +4737,9 @@ class TestEnsureUpstreamInitializeInstructionsCached:
                 await global_mcp_server_manager._ensure_upstream_initialize_instructions_cached(
                     server
                 )
-                assert create.await_count == 1, (
-                    "Second probe within cooldown must not reconnect to upstream"
-                )
+                assert (
+                    create.await_count == 1
+                ), "Second probe within cooldown must not reconnect to upstream"
                 assert (
                     "empty-server"
                     not in global_mcp_server_manager._upstream_initialize_instructions_by_server_id
@@ -4567,7 +4764,9 @@ class TestEnsureUpstreamInitializeInstructionsCached:
 
         server = _make_instruction_server(server_id="boom-server", instructions=None)
         fake_client = MagicMock()
-        fake_client.run_with_session = AsyncMock(side_effect=RuntimeError("upstream down"))
+        fake_client.run_with_session = AsyncMock(
+            side_effect=RuntimeError("upstream down")
+        )
         fake_client._last_initialize_instructions = None
 
         create = AsyncMock(return_value=fake_client)
@@ -4579,9 +4778,9 @@ class TestEnsureUpstreamInitializeInstructionsCached:
                 await global_mcp_server_manager._ensure_upstream_initialize_instructions_cached(
                     server
                 )
-                assert create.await_count == 1, (
-                    "Second probe within cooldown must not reconnect after failure"
-                )
+                assert (
+                    create.await_count == 1
+                ), "Second probe within cooldown must not reconnect after failure"
                 assert (
                     "boom-server"
                     not in global_mcp_server_manager._upstream_initialize_instructions_by_server_id

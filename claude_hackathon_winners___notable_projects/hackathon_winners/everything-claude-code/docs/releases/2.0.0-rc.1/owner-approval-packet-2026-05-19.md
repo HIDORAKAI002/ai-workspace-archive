@@ -17,8 +17,10 @@ Source commit for the clean evidence baseline this packet extends:
 | Platform audit | ready true, 0 open PRs, 0 open issues, 0 discussion gaps, 0 dirty files | yes |
 | Preview pack smoke | ready true, digest `531328aaaa53`, 5/5 checks | yes |
 | Release approval gate | ready false, digest `ef8f49f727b7`, 4/6 checks pass; owner decisions and live URL readbacks pending | yes |
+| GitHub prerelease | live at <https://github.com/affaan-m/ECC/releases/tag/v2.0.0-rc.1>; prerelease true, draft false, published `2026-05-25T18:29:31Z` | yes |
+| npm `next` publish | live at <https://www.npmjs.com/package/ecc-universal/v/2.0.0-rc.1>; `next` points to `2.0.0-rc.1`, `latest` remains `1.10.0` | yes |
 | Video suite | ready true, 15/15 source assets, 13/13 suite artifacts, 12/12 publish candidates | yes |
-| Release surface tests | 27/27 passed after this packet was added | yes |
+| Release surface tests | 28/28 passed after the May 26 URL/package refresh | yes |
 | Full local suite | 2568/2568 passed before PR #2013 merged; focused GateGuard regression passed 91/91 again before PR #2011 merged | yes |
 | GitHub CI | PR #1998, PR #1999, PR #2000, PR #2001, PR #2002, PR #2004, PR #2008, post-PR #2006 `main`, PR #2009, post-PR #2009 `main`, post-PR #2011 `main`, and post-PR #2013 `main` all merged or advanced after green required checks | verify current head |
 
@@ -26,8 +28,8 @@ Source commit for the clean evidence baseline this packet extends:
 
 | Decision | Approve / defer / block | Evidence required first | Notes |
 | --- | --- | --- | --- |
-| GitHub prerelease | defer | final clean branch, URL ledger, release notes, attached video or video link | Approve only after final release notes contain live package/plugin/video URLs or explicitly marked blocked URLs. |
-| npm `next` publish | defer | `npm pack --dry-run`, `npm publish --tag next --dry-run`, registry dist-tag readback plan | Keep `ecc-universal@2.0.0-rc.1` on `next`; do not move `latest` during rc.1. |
+| GitHub prerelease | approve | live prerelease readback | Live at <https://github.com/affaan-m/ECC/releases/tag/v2.0.0-rc.1>. Remaining plugin/video/billing URLs stay approval-gated. |
+| npm `next` publish | approve | `npm pack --dry-run`, `npm publish --tag next`, registry dist-tag readback | `ecc-universal@2.0.0-rc.1` is published on `next`; `latest` remains `1.10.0` during rc.1. |
 | Claude plugin tag | defer | `claude plugin validate .claude-plugin/plugin.json`, `claude plugin tag .claude-plugin --dry-run` | Create and push the real tag only after release approval. |
 | Codex repo marketplace | defer | temp-home marketplace add smoke and current official Plugin Directory status | Claim repo-marketplace distribution only; do not claim official Plugin Directory listing without listing evidence. |
 | ECC Tools billing language | defer | live readiness readback for the target account and billing/product state | Do not announce native payments or Marketplace-managed Pro until the gate is live. |
@@ -42,7 +44,7 @@ Update these surfaces after the approved publication actions finish:
 | Surface | Final value source | Update targets |
 | --- | --- | --- |
 | GitHub prerelease URL | `gh release view v2.0.0-rc.1 --repo affaan-m/ECC --json url` | release notes, URL ledger, social copy |
-| npm rc package URL | `npm view ecc-universal@2.0.0-rc.1 version dist-tags --json` | URL ledger, quickstart, release notes |
+| npm rc package URL | `npm view ecc-universal@2.0.0-rc.1 name version dist.tarball dist.integrity time --json` | URL ledger, quickstart, release notes |
 | Claude plugin tag URL | pushed `ecc--v2.0.0-rc.1` tag or marketplace readback | URL ledger, plugin docs, release notes |
 | Codex repo-marketplace evidence | temp-home `codex plugin marketplace add <local-checkout>` readback | URL ledger, publication readiness |
 | Primary launch video URL | uploaded owner-approved primary launch video | GitHub release, X, LinkedIn, longform |

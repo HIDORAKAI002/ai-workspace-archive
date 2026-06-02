@@ -5,6 +5,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { graphql, useLazyLoadQuery } from "react-relay";
@@ -18,12 +19,30 @@ import type { BlockerFunction } from "react-router";
 import { useBlocker, useSearchParams } from "react-router";
 
 import { useAdvertiseAgentContext } from "@phoenix/agent/context/useAdvertiseAgentContext";
-import { OPEN_CODE_EVALUATOR_FORM_TOOL_NAME } from "@phoenix/agent/extensions/toolRegistry";
+import {
+  OPEN_CODE_EVALUATOR_FORM_TOOL_NAME,
+  OPEN_LLM_EVALUATOR_FORM_TOOL_NAME,
+} from "@phoenix/agent/extensions/toolRegistry";
 import {
   EDIT_CODE_EVALUATOR_DRAFT_TOOL_NAME,
   READ_CODE_EVALUATOR_DRAFT_TOOL_NAME,
   TEST_CODE_EVALUATOR_DRAFT_TOOL_NAME,
 } from "@phoenix/agent/tools/codeEvaluatorDraft";
+import {
+  EDIT_LLM_EVALUATOR_DRAFT_TOOL_NAME,
+  READ_LLM_EVALUATOR_DRAFT_TOOL_NAME,
+  TEST_LLM_EVALUATOR_DRAFT_TOOL_NAME,
+} from "@phoenix/agent/tools/llmEvaluatorDraft";
+import {
+  createLoadDatasetClientAction,
+  LOAD_DATASET_TOOL_NAME,
+} from "@phoenix/agent/tools/playgroundLoadDataset";
+import {
+  createListPlaygroundModelTargetsClientAction,
+  createSetPlaygroundModelClientAction,
+  LIST_PLAYGROUND_MODEL_TARGETS_TOOL_NAME,
+  SET_PLAYGROUND_MODEL_TOOL_NAME,
+} from "@phoenix/agent/tools/playgroundModel";
 import {
   createReadPlaygroundOutputClientAction,
   READ_PLAYGROUND_OUTPUT_TOOL_NAME,
@@ -68,6 +87,7 @@ import {
   View,
 } from "@phoenix/components";
 import { ConfirmNavigationDialog } from "@phoenix/components/ConfirmNavigation";
+import { useModelMenuData } from "@phoenix/components/generative";
 import { compactResizeHandleCSS } from "@phoenix/components/resize";
 import { StopPropagation } from "@phoenix/components/StopPropagation";
 import { TemplateFormats } from "@phoenix/components/templateEditor/constants";
@@ -91,6 +111,11 @@ import {
 import type { PlaygroundQuery } from "./__generated__/PlaygroundQuery.graphql";
 import { NUM_MAX_PLAYGROUND_INSTANCES } from "./constants";
 import { NoInstalledProvider } from "./NoInstalledProvider";
+import {
+  arePlaygroundInstancesForAgentEqual,
+  buildPlaygroundAgentContext,
+  getPlaygroundInstanceForAgent,
+} from "./playgroundAgentContextUtils";
 import { PlaygroundConfigButton } from "./PlaygroundConfigButton";
 import { PlaygroundCredentialsDropdown } from "./PlaygroundCredentialsDropdown";
 import { PlaygroundDatasetSection } from "./PlaygroundDatasetSection";
@@ -265,6 +290,8 @@ function PlaygroundContent() {
   const playgroundStore = usePlaygroundStore();
   const templateFormat = usePlaygroundContext((state) => state.templateFormat);
   const [searchParams, setSearchParams] = useSearchParams();
+  const searchParamsRef = useRef(searchParams);
+  searchParamsRef.current = searchParams;
   const storeDatasetId = usePlaygroundContext((state) => state.datasetId);
   const experimentId = searchParams.get("experimentId");
   const datasetId = experimentId
@@ -286,6 +313,11 @@ function PlaygroundContent() {
   >(null);
   const isCodeEvaluatorFormOpen =
     datasetId != null && codeEvaluatorFormDatasetId === datasetId;
+  const [llmEvaluatorFormDatasetId, setLlmEvaluatorFormDatasetId] = useState<
+    string | null
+  >(null);
+  const isLlmEvaluatorFormOpen =
+    datasetId != null && llmEvaluatorFormDatasetId === datasetId;
   const isRunning = usePlaygroundContext((state) =>
     state.instances.some((instance) => instance.activeRunId != null)
   );
@@ -298,6 +330,13 @@ function PlaygroundContent() {
   const anyDirtyPromptInstances = usePlaygroundContext((state) =>
     Object.values(state.dirtyInstances).some((dirty) => dirty)
   );
+  const playgroundInstancesForAgent = usePlaygroundContext(
+    (state) =>
+      state.instances.map((instance) =>
+        getPlaygroundInstanceForAgent(instance)
+      ),
+    arePlaygroundInstancesForAgentEqual
+  );
   const instanceIds = usePlaygroundContext(
     (state) => state.instances.map((instance) => instance.id),
     // only re-render when the instance ids change, not when the array is re-created
@@ -305,10 +344,22 @@ function PlaygroundContent() {
       left.length === right.length &&
       left.every((id, index) => id === right[index])
   );
+  const modelConfigByProvider = usePreferencesContext(
+    (state) => state.modelConfigByProvider
+  );
+  const awsBedrockModelPrefix = usePreferencesContext(
+    (state) => state.awsBedrockModelPrefix
+  );
+
+  const { availableBuiltinModels, availableCustomModels, modelCatalog } =
+    useModelMenuData();
 
   const advertisedPlaygroundContext = useMemo(
-    () => ({ type: "playground" as const, instanceIds }),
-    [instanceIds]
+    () =>
+      buildPlaygroundAgentContext({
+        instances: playgroundInstancesForAgent,
+      }),
+    [playgroundInstancesForAgent]
   );
   useAdvertiseAgentContext(advertisedPlaygroundContext);
 
@@ -331,6 +382,7 @@ function PlaygroundContent() {
       unregisterClientAction,
       setPendingPromptEdit,
       setPendingSavePrompt,
+      setPendingLoadDataset,
     } = agentStore.getState();
     registerClientAction(
       READ_PROMPT_TOOL_NAME,
@@ -371,12 +423,15 @@ function PlaygroundContent() {
       createSetVariableValuesClientAction({ playgroundStore })
     );
     registerClientAction(
-      READ_PROMPT_TOOLS_TOOL_NAME,
-      createReadPromptToolsClientAction({ playgroundStore })
-    );
-    registerClientAction(
-      WRITE_PROMPT_TOOLS_TOOL_NAME,
-      createWritePromptToolsClientAction({ playgroundStore })
+      LOAD_DATASET_TOOL_NAME,
+      createLoadDatasetClientAction({
+        playgroundStore,
+        setSearchParams,
+        getSearchParams: () => searchParamsRef.current,
+        setPendingLoadDataset,
+        shouldAutoAccept: () =>
+          agentStore.getState().permissions.edits === "bypass",
+      })
     );
     return () => {
       unregisterClientAction(READ_PROMPT_TOOL_NAME);
@@ -386,8 +441,7 @@ function PlaygroundContent() {
       unregisterClientAction(RUN_PLAYGROUND_TOOL_NAME);
       unregisterClientAction(READ_PLAYGROUND_OUTPUT_TOOL_NAME);
       unregisterClientAction(SET_VARIABLE_VALUES_TOOL_NAME);
-      unregisterClientAction(READ_PROMPT_TOOLS_TOOL_NAME);
-      unregisterClientAction(WRITE_PROMPT_TOOLS_TOOL_NAME);
+      unregisterClientAction(LOAD_DATASET_TOOL_NAME);
       for (const pendingEdit of Object.values(
         agentStore.getState().pendingPromptEditsByToolCallId
       )) {
@@ -402,8 +456,58 @@ function PlaygroundContent() {
           void pendingSave.cancel?.();
         }
       }
+      for (const pendingLoad of Object.values(
+        agentStore.getState().pendingLoadDatasetsByToolCallId
+      )) {
+        if (pendingLoad) {
+          void pendingLoad.cancel?.();
+        }
+      }
     };
-  }, [agentStore, playgroundStore]);
+  }, [agentStore, playgroundStore, setSearchParams]);
+
+  useEffect(() => {
+    const { registerClientAction, unregisterClientAction } =
+      agentStore.getState();
+    registerClientAction(
+      READ_PROMPT_TOOLS_TOOL_NAME,
+      createReadPromptToolsClientAction({ playgroundStore })
+    );
+    registerClientAction(
+      WRITE_PROMPT_TOOLS_TOOL_NAME,
+      createWritePromptToolsClientAction({ playgroundStore })
+    );
+    registerClientAction(
+      LIST_PLAYGROUND_MODEL_TARGETS_TOOL_NAME,
+      createListPlaygroundModelTargetsClientAction({
+        availableBuiltinModels,
+        availableCustomModels,
+      })
+    );
+    registerClientAction(
+      SET_PLAYGROUND_MODEL_TOOL_NAME,
+      createSetPlaygroundModelClientAction({
+        playgroundStore,
+        modelCatalog,
+        modelConfigByProvider,
+        awsBedrockModelPrefix,
+      })
+    );
+    return () => {
+      unregisterClientAction(READ_PROMPT_TOOLS_TOOL_NAME);
+      unregisterClientAction(WRITE_PROMPT_TOOLS_TOOL_NAME);
+      unregisterClientAction(LIST_PLAYGROUND_MODEL_TARGETS_TOOL_NAME);
+      unregisterClientAction(SET_PLAYGROUND_MODEL_TOOL_NAME);
+    };
+  }, [
+    agentStore,
+    availableBuiltinModels,
+    availableCustomModels,
+    awsBedrockModelPrefix,
+    modelCatalog,
+    modelConfigByProvider,
+    playgroundStore,
+  ]);
 
   useEffect(() => {
     const { registerClientAction, unregisterClientAction } =
@@ -444,8 +548,42 @@ function PlaygroundContent() {
         };
       }
     );
+    registerClientAction(
+      OPEN_LLM_EVALUATOR_FORM_TOOL_NAME,
+      async (): Promise<AgentClientActionResult> => {
+        if (isRunning) {
+          return {
+            ok: false,
+            error:
+              "The playground is running an experiment; wait for it to finish before opening the LLM-evaluator form.",
+          };
+        }
+        setLlmEvaluatorFormDatasetId(datasetId);
+        const isReady = await waitForRegisteredClientActions({
+          agentStore,
+          names: [
+            READ_LLM_EVALUATOR_DRAFT_TOOL_NAME,
+            EDIT_LLM_EVALUATOR_DRAFT_TOOL_NAME,
+            TEST_LLM_EVALUATOR_DRAFT_TOOL_NAME,
+          ],
+        });
+        if (!isReady) {
+          return {
+            ok: false,
+            error:
+              "The LLM-evaluator form opened, but its draft tools did not finish loading. Try opening the form again before reading the draft.",
+          };
+        }
+        return {
+          ok: true,
+          output:
+            "LLM-evaluator form opened for the current playground dataset; draft tools are ready.",
+        };
+      }
+    );
     return () => {
       unregisterClientAction(OPEN_CODE_EVALUATOR_FORM_TOOL_NAME);
+      unregisterClientAction(OPEN_LLM_EVALUATOR_FORM_TOOL_NAME);
     };
   }, [agentStore, datasetId, isRunning]);
 
@@ -585,6 +723,10 @@ function PlaygroundContent() {
                 isCodeEvaluatorFormOpen={isCodeEvaluatorFormOpen}
                 onCodeEvaluatorFormOpenChange={(isOpen) =>
                   setCodeEvaluatorFormDatasetId(isOpen ? datasetId : null)
+                }
+                isLlmEvaluatorFormOpen={isLlmEvaluatorFormOpen}
+                onLlmEvaluatorFormOpenChange={(isOpen) =>
+                  setLlmEvaluatorFormDatasetId(isOpen ? datasetId : null)
                 }
               />
             </Suspense>

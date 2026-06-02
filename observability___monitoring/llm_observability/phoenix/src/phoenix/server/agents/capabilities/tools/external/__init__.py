@@ -14,16 +14,23 @@ from phoenix.server.agents.capabilities.tools.external import (
     batch_span_annotate,
     clone_prompt_instance,
     edit_code_evaluator_draft,
+    edit_llm_evaluator_draft,
     edit_prompt_instance,
+    list_playground_model_targets,
+    load_dataset,
     open_code_evaluator_form,
+    open_llm_evaluator_form,
     read_code_evaluator_draft,
+    read_llm_evaluator_draft,
     read_playground_output,
     read_prompt_instance,
     read_prompt_tools,
     render_generative_ui,
     run_code_evaluator_draft,
+    run_llm_evaluator_draft,
     run_playground,
     save_prompt,
+    set_playground_model,
     set_spans_filter,
     set_time_range,
     set_variable_values,
@@ -40,14 +47,29 @@ from phoenix.server.agents.capabilities.tools.external.clone_prompt_instance imp
 from phoenix.server.agents.capabilities.tools.external.edit_code_evaluator_draft import (
     EditCodeEvaluatorDraftCapability,
 )
+from phoenix.server.agents.capabilities.tools.external.edit_llm_evaluator_draft import (
+    EditLlmEvaluatorDraftCapability,
+)
 from phoenix.server.agents.capabilities.tools.external.edit_prompt_instance import (
     EditPromptInstanceCapability,
+)
+from phoenix.server.agents.capabilities.tools.external.list_playground_model_targets import (
+    ListPlaygroundModelTargetsCapability,
+)
+from phoenix.server.agents.capabilities.tools.external.load_dataset import (
+    LoadDatasetCapability,
 )
 from phoenix.server.agents.capabilities.tools.external.open_code_evaluator_form import (
     OpenCodeEvaluatorFormCapability,
 )
+from phoenix.server.agents.capabilities.tools.external.open_llm_evaluator_form import (
+    OpenLlmEvaluatorFormCapability,
+)
 from phoenix.server.agents.capabilities.tools.external.read_code_evaluator_draft import (
     ReadCodeEvaluatorDraftCapability,
+)
+from phoenix.server.agents.capabilities.tools.external.read_llm_evaluator_draft import (
+    ReadLlmEvaluatorDraftCapability,
 )
 from phoenix.server.agents.capabilities.tools.external.read_playground_output import (
     ReadPlaygroundOutputCapability,
@@ -64,10 +86,16 @@ from phoenix.server.agents.capabilities.tools.external.render_generative_ui impo
 from phoenix.server.agents.capabilities.tools.external.run_code_evaluator_draft import (
     RunCodeEvaluatorDraftCapability,
 )
+from phoenix.server.agents.capabilities.tools.external.run_llm_evaluator_draft import (
+    RunLlmEvaluatorDraftCapability,
+)
 from phoenix.server.agents.capabilities.tools.external.run_playground import (
     RunPlaygroundCapability,
 )
 from phoenix.server.agents.capabilities.tools.external.save_prompt import SavePromptCapability
+from phoenix.server.agents.capabilities.tools.external.set_playground_model import (
+    SetPlaygroundModelCapability,
+)
 from phoenix.server.agents.capabilities.tools.external.set_spans_filter import (
     SetSpansFilterCapability,
 )
@@ -91,16 +119,23 @@ _EXTERNAL_TOOL_DEFINITIONS_BY_NAME: dict[str, ToolDefinition] = {
         bash.TOOL_DEFINITION,
         clone_prompt_instance.TOOL_DEFINITION,
         edit_code_evaluator_draft.TOOL_DEFINITION,
+        edit_llm_evaluator_draft.TOOL_DEFINITION,
         edit_prompt_instance.TOOL_DEFINITION,
+        load_dataset.TOOL_DEFINITION,
         open_code_evaluator_form.TOOL_DEFINITION,
+        open_llm_evaluator_form.TOOL_DEFINITION,
         read_code_evaluator_draft.TOOL_DEFINITION,
+        read_llm_evaluator_draft.TOOL_DEFINITION,
         read_prompt_instance.TOOL_DEFINITION,
         read_prompt_tools.TOOL_DEFINITION,
         read_playground_output.TOOL_DEFINITION,
+        list_playground_model_targets.TOOL_DEFINITION,
         render_generative_ui.RENDER_GENERATIVE_UI_TOOL_DEFINITION,
         run_code_evaluator_draft.TOOL_DEFINITION,
+        run_llm_evaluator_draft.TOOL_DEFINITION,
         run_playground.TOOL_DEFINITION,
         save_prompt.TOOL_DEFINITION,
+        set_playground_model.TOOL_DEFINITION,
         set_spans_filter.TOOL_DEFINITION,
         set_time_range.TOOL_DEFINITION,
         set_variable_values.TOOL_DEFINITION,
@@ -131,6 +166,10 @@ def get_external_tool_capability_function(
     ]
     dynamic_capabilities: list[AbstractDynamicCapability[AgentDependencies]] = [
         SetSpansFilterCapability(instructions=prompts.set_spans_filter_tool),
+        SetPlaygroundModelCapability(instructions=prompts.set_playground_model_tool),
+        ListPlaygroundModelTargetsCapability(
+            instructions=prompts.list_playground_model_targets_tool
+        ),
         ReadPromptInstanceCapability(instructions=prompts.read_prompt_instance_tool),
         ReadPromptToolsCapability(instructions=prompts.read_prompt_tools_tool),
         ReadPlaygroundOutputCapability(instructions=prompts.read_playground_output_tool),
@@ -140,10 +179,15 @@ def get_external_tool_capability_function(
         WritePromptToolsCapability(instructions=prompts.write_prompt_tools_tool),
         RunPlaygroundCapability(instructions=prompts.run_playground_tool),
         SetVariableValuesCapability(instructions=prompts.set_variable_values_tool),
+        LoadDatasetCapability(instructions=prompts.load_dataset_tool),
         OpenCodeEvaluatorFormCapability(instructions=prompts.open_code_evaluator_form_tool),
+        OpenLlmEvaluatorFormCapability(instructions=prompts.open_llm_evaluator_form_tool),
         ReadCodeEvaluatorDraftCapability(instructions=prompts.read_code_evaluator_draft_tool),
         EditCodeEvaluatorDraftCapability(instructions=prompts.edit_code_evaluator_draft_tool),
         RunCodeEvaluatorDraftCapability(instructions=prompts.test_code_evaluator_draft_tool),
+        ReadLlmEvaluatorDraftCapability(instructions=prompts.read_llm_evaluator_draft_tool),
+        EditLlmEvaluatorDraftCapability(instructions=prompts.edit_llm_evaluator_draft_tool),
+        RunLlmEvaluatorDraftCapability(instructions=prompts.test_llm_evaluator_draft_tool),
     ]
 
     def _build(ctx: RunContext[AgentDependencies]) -> AbstractCapability[AgentDependencies]:
@@ -159,20 +203,27 @@ __all__ = [
     "BashCapability",
     "ClonePromptInstanceCapability",
     "EditCodeEvaluatorDraftCapability",
+    "EditLlmEvaluatorDraftCapability",
     "EditPromptInstanceCapability",
+    "ListPlaygroundModelTargetsCapability",
+    "LoadDatasetCapability",
     "OpenCodeEvaluatorFormCapability",
+    "OpenLlmEvaluatorFormCapability",
     "ReadCodeEvaluatorDraftCapability",
+    "ReadLlmEvaluatorDraftCapability",
     "ReadPromptInstanceCapability",
     "ReadPromptToolsCapability",
     "ReadPlaygroundOutputCapability",
     "RenderGenerativeUICapability",
     "RunPlaygroundCapability",
     "SavePromptCapability",
+    "SetPlaygroundModelCapability",
     "SetSpansFilterCapability",
     "SetTimeRangeCapability",
     "SetVariableValuesCapability",
     "WritePromptToolsCapability",
     "RunCodeEvaluatorDraftCapability",
+    "RunLlmEvaluatorDraftCapability",
     "get_external_tool_capability_function",
     "get_external_tool_definition",
 ]

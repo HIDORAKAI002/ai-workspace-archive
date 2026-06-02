@@ -78,6 +78,8 @@ function buildExpectedPublishPaths(repoRoot) {
     "schemas",
     "agent.yaml",
     "VERSION",
+    "assets/ecc-icon.svg",
+    "assets/hero.png",
   ]
   const exclusionPaths = [
     "!**/__pycache__/**",
@@ -141,6 +143,8 @@ function main() {
         ".qwen/QWEN.md",
         ".claude-plugin/plugin.json",
         ".codex-plugin/plugin.json",
+        "assets/ecc-icon.svg",
+        "assets/hero.png",
         "schemas/install-state.schema.json",
         "skills/backend-patterns/SKILL.md",
       ]) {

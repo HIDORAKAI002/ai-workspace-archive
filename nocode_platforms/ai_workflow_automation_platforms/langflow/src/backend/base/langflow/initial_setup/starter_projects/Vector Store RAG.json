@@ -1643,7 +1643,7 @@
                   },
                   {
                     "name": "googleapiclient",
-                    "version": "2.196.0"
+                    "version": "2.197.0"
                   }
                 ],
                 "total_dependencies": 4
@@ -3097,7 +3097,7 @@
                   },
                   {
                     "name": "langchain_ibm",
-                    "version": null
+                    "version": "1.0.11"
                   }
                 ],
                 "total_dependencies": 12

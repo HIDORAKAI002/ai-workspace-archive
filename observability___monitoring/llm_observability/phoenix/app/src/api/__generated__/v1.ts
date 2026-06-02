@@ -1610,7 +1610,7 @@ export interface components {
          * ChatContext
          * @description Discriminated union of every UI-state context the agent understands.
          */
-        ChatContext: components["schemas"]["AppContext"] | components["schemas"]["ProjectContext"] | components["schemas"]["TraceContext"] | components["schemas"]["AgentSpanContext"] | components["schemas"]["PlaygroundContext"] | components["schemas"]["CodeEvaluatorContext"] | components["schemas"]["DatasetContext"] | components["schemas"]["GraphQLContext"] | components["schemas"]["WebAccessContext"];
+        ChatContext: components["schemas"]["AppContext"] | components["schemas"]["ProjectContext"] | components["schemas"]["TraceContext"] | components["schemas"]["AgentSpanContext"] | components["schemas"]["PlaygroundContext"] | components["schemas"]["CodeEvaluatorContext"] | components["schemas"]["LlmEvaluatorContext"] | components["schemas"]["DatasetContext"] | components["schemas"]["GraphQLContext"] | components["schemas"]["WebAccessContext"];
         /**
          * ChatRegenerateMessage
          * @description Regenerate message extended with Phoenix-specific fields.
@@ -2796,6 +2796,19 @@ export interface components {
             /** Next Cursor */
             next_cursor: string | null;
         };
+        /**
+         * LlmEvaluatorContext
+         * @description LLM-evaluator create/edit form mounted in the current browser route.
+         */
+        LlmEvaluatorContext: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "llm_evaluator";
+            /** Evaluatornodeid */
+            evaluatorNodeId?: string | null;
+        };
         /** LocalUser */
         LocalUser: {
             /** Id */
@@ -3118,6 +3131,21 @@ export interface components {
             message?: string | null;
         };
         /**
+         * PlaygroundBuiltinModelContext
+         * @description Built-in playground model selection.
+         */
+        PlaygroundBuiltinModelContext: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "builtin";
+            /** Provider */
+            provider: string;
+            /** Modelname */
+            modelName: string;
+        };
+        /**
          * PlaygroundContext
          * @description Playground prompt editor state mounted in the current browser route.
          */
@@ -3127,8 +3155,37 @@ export interface components {
              * @enum {string}
              */
             type: "playground";
-            /** Instanceids */
-            instanceIds: number[];
+            /** Instances */
+            instances?: components["schemas"]["PlaygroundInstanceContext"][];
+        };
+        /**
+         * PlaygroundCustomProviderModelContext
+         * @description Custom-provider playground model selection.
+         */
+        PlaygroundCustomProviderModelContext: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            type: "custom";
+            /** Customproviderid */
+            customProviderId: string;
+            /** Customprovidername */
+            customProviderName: string;
+            /** Provider */
+            provider: string;
+            /** Modelname */
+            modelName: string;
+        };
+        /**
+         * PlaygroundInstanceContext
+         * @description One mounted playground instance and its current model selection.
+         */
+        PlaygroundInstanceContext: {
+            /** Instanceid */
+            instanceId: number;
+            /** Model */
+            model?: (components["schemas"]["PlaygroundBuiltinModelContext"] | components["schemas"]["PlaygroundCustomProviderModelContext"]) | null;
         };
         /** Project */
         Project: {

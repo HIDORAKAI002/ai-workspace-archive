@@ -16,6 +16,8 @@ import {
 import type { PendingBatchSpanAnnotate } from "@phoenix/agent/tools/batchSpanAnnotate";
 import type { PendingCodeEvaluatorEdit } from "@phoenix/agent/tools/codeEvaluatorDraft";
 import type { PendingElicitation } from "@phoenix/agent/tools/elicit";
+import type { PendingLlmEvaluatorEdit } from "@phoenix/agent/tools/llmEvaluatorDraft";
+import type { PendingLoadDataset } from "@phoenix/agent/tools/playgroundLoadDataset";
 import type { PendingPromptEdit } from "@phoenix/agent/tools/playgroundPrompt";
 import type { PendingSavePrompt } from "@phoenix/agent/tools/playgroundSavePrompt";
 import { getDefaultInvocationConfig } from "@phoenix/pages/playground/providerAdapters";
@@ -45,21 +47,27 @@ export type AgentServerConfig = {
   assistantProjectName: string;
   /** Whether this Phoenix instance allows PXI web search/fetch. */
   webAccessEnabled: boolean;
+  assistantEnabled: boolean;
+  allowLocalTraces: boolean;
+  allowRemoteExport: boolean;
 };
 
-/**
- * Per-user PXI observability preferences persisted in local storage.
- *
- * These settings control where PXI traces are sent for the current browser
- * user and whether the one-time consent gate has been acknowledged.
- */
+export type AgentTraceConsentSettings = Pick<
+  AgentServerConfig,
+  "allowLocalTraces" | "allowRemoteExport"
+>;
+
+export type AgentTraceRecordingSettings = {
+  ingestTraces: boolean;
+  exportRemoteTraces: boolean;
+};
+
 export type AgentObservabilitySettings = {
   /** Whether PXI traces should be persisted in the current Phoenix instance. */
   storeLocalTraces: boolean;
   /** Whether PXI traces should also be exported to a remote collector. */
   exportRemoteTraces: boolean;
-  /** Whether the user has acknowledged the PXI consent gate. */
-  hasAcknowledgedConsent: boolean;
+  acknowledgedTraceConsent: AgentTraceConsentSettings | null;
 };
 
 export type AgentEditPermissionMode = "manual" | "bypass";
@@ -117,12 +125,15 @@ const DEFAULT_AGENT_SERVER_CONFIG: AgentServerConfig = {
   collectorEndpoint: null,
   assistantProjectName: "assistant_agent",
   webAccessEnabled: false,
+  assistantEnabled: false,
+  allowLocalTraces: false,
+  allowRemoteExport: false,
 };
 
 const DEFAULT_AGENT_OBSERVABILITY_SETTINGS: AgentObservabilitySettings = {
   storeLocalTraces: true,
   exportRemoteTraces: false,
-  hasAcknowledgedConsent: false,
+  acknowledgedTraceConsent: null,
 };
 
 const DEFAULT_AGENT_PERMISSIONS: AgentPermissions = {
@@ -165,6 +176,51 @@ function buildForkSummary(source: AgentSession): string {
     return base;
   }
   return base ? `${FORK_SUMMARY_PREFIX}${base}` : FORK_SUMMARY_PREFIX.trim();
+}
+
+export function getCurrentTraceConsentSettings(
+  agentsConfig: AgentServerConfig
+): AgentTraceConsentSettings {
+  return {
+    allowLocalTraces: agentsConfig.allowLocalTraces,
+    allowRemoteExport:
+      Boolean(agentsConfig.collectorEndpoint) && agentsConfig.allowRemoteExport,
+  };
+}
+
+export function hasAcknowledgedCurrentTraceConsent({
+  agentsConfig,
+  observability,
+}: {
+  agentsConfig: AgentServerConfig;
+  observability: AgentObservabilitySettings;
+}): boolean {
+  const acknowledgedTraceConsent = observability.acknowledgedTraceConsent;
+  if (!acknowledgedTraceConsent) {
+    return false;
+  }
+  const currentTraceConsent = getCurrentTraceConsentSettings(agentsConfig);
+  return (
+    (!currentTraceConsent.allowLocalTraces ||
+      acknowledgedTraceConsent.allowLocalTraces) &&
+    (!currentTraceConsent.allowRemoteExport ||
+      acknowledgedTraceConsent.allowRemoteExport)
+  );
+}
+
+export function getEffectiveTraceRecordingSettings({
+  agentsConfig,
+  observability,
+}: {
+  agentsConfig: AgentServerConfig;
+  observability: AgentObservabilitySettings;
+}): AgentTraceRecordingSettings {
+  const ceiling = getCurrentTraceConsentSettings(agentsConfig);
+  return {
+    ingestTraces: ceiling.allowLocalTraces && observability.storeLocalTraces,
+    exportRemoteTraces:
+      ceiling.allowRemoteExport && observability.exportRemoteTraces,
+  };
 }
 
 /**
@@ -224,6 +280,14 @@ export interface AgentState extends AgentProps {
   setDefaultModelConfig: (config: ModelConfig) => void;
   setObservability: (patch: Partial<AgentObservabilitySettings>) => void;
   setPermissions: (patch: Partial<AgentPermissions>) => void;
+  setAgentsConfig: (
+    patch: Partial<
+      Pick<
+        AgentServerConfig,
+        "assistantEnabled" | "allowLocalTraces" | "allowRemoteExport"
+      >
+    >
+  ) => void;
   acknowledgeConsent: () => void;
   clearAllSessions: () => void;
   setCapability: (params: {
@@ -323,6 +387,20 @@ export interface AgentState extends AgentProps {
   setPendingCodeEvaluatorEdit: (
     toolCallId: string,
     edit: PendingCodeEvaluatorEdit | null
+  ) => void;
+
+  // -- LLM-evaluator draft edit approvals advertised by edit_llm_evaluator_draft tool calls --
+  pendingLlmEvaluatorEditsByToolCallId: Partial<
+    Record<string, PendingLlmEvaluatorEdit>
+  >;
+  setPendingLlmEvaluatorEdit: (
+    toolCallId: string,
+    edit: PendingLlmEvaluatorEdit | null
+  ) => void;
+  pendingLoadDatasetsByToolCallId: Partial<Record<string, PendingLoadDataset>>;
+  setPendingLoadDataset: (
+    toolCallId: string,
+    pendingLoad: PendingLoadDataset | null
   ) => void;
 }
 
@@ -433,6 +511,8 @@ export const createAgentStore = (initialProps?: Partial<AgentProps>) => {
     pendingBatchSpanAnnotatesByToolCallId: {},
     pendingSavePromptsByToolCallId: {},
     pendingCodeEvaluatorEditsByToolCallId: {},
+    pendingLlmEvaluatorEditsByToolCallId: {},
+    pendingLoadDatasetsByToolCallId: {},
     setIsOpen: (isOpen) => {
       set({ isOpen }, false, { type: "setIsOpen" });
     },
@@ -678,12 +758,23 @@ export const createAgentStore = (initialProps?: Partial<AgentProps>) => {
         { type: "setPermissions" }
       );
     },
+    setAgentsConfig: (patch) => {
+      set(
+        (state) => ({
+          agentsConfig: { ...state.agentsConfig, ...patch },
+        }),
+        false,
+        { type: "setAgentsConfig" }
+      );
+    },
     acknowledgeConsent: () => {
       set(
         (state) => ({
           observability: {
             ...state.observability,
-            hasAcknowledgedConsent: true,
+            acknowledgedTraceConsent: getCurrentTraceConsentSettings(
+              state.agentsConfig
+            ),
           },
         }),
         false,
@@ -971,6 +1062,37 @@ export const createAgentStore = (initialProps?: Partial<AgentProps>) => {
         },
         false,
         { type: "setPendingCodeEvaluatorEdit" }
+      );
+    },
+
+    setPendingLlmEvaluatorEdit: (toolCallId, edit) => {
+      set(
+        (state) => {
+          const next = { ...state.pendingLlmEvaluatorEditsByToolCallId };
+          if (edit) {
+            next[toolCallId] = edit;
+          } else {
+            delete next[toolCallId];
+          }
+          return { pendingLlmEvaluatorEditsByToolCallId: next };
+        },
+        false,
+        { type: "setPendingLlmEvaluatorEdit" }
+      );
+    },
+    setPendingLoadDataset: (toolCallId, pendingLoad) => {
+      set(
+        (state) => {
+          const next = { ...state.pendingLoadDatasetsByToolCallId };
+          if (pendingLoad) {
+            next[toolCallId] = pendingLoad;
+          } else {
+            delete next[toolCallId];
+          }
+          return { pendingLoadDatasetsByToolCallId: next };
+        },
+        false,
+        { type: "setPendingLoadDataset" }
       );
     },
 

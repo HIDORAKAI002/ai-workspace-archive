@@ -356,6 +356,30 @@ test('codex plugin.json uses canonical ECC repo and display name', () => {
   assert.strictEqual(codexPlugin.interface.displayName, 'ECC');
 });
 
+test('codex plugin presentation assets exist and ship in npm package', () => {
+  assert.ok(Array.isArray(rootPackage.files), 'Expected package.json files array');
+  const packageFiles = new Set(rootPackage.files);
+
+  for (const field of ['composerIcon', 'logo']) {
+    const assetPath = codexPlugin.interface[field];
+    assert.ok(assetPath, `Expected interface.${field}`);
+    assert.ok(
+      assetPath.startsWith('./assets/'),
+      `Expected interface.${field} to point at a root assets path, got ${assetPath}`,
+    );
+
+    const packagePath = assetPath.replace(/^\.\//, '');
+    assert.ok(
+      fs.existsSync(path.join(repoRoot, packagePath)),
+      `Expected interface.${field} asset to exist: ${packagePath}`,
+    );
+    assert.ok(
+      packageFiles.has(packagePath),
+      `Expected package.json files to include interface.${field} asset: ${packagePath}`,
+    );
+  }
+});
+
 // ── .mcp.json at plugin root ──────────────────────────────────────────────────
 // Per official docs: keep .mcp.json at plugin root, NOT inside .codex-plugin/
 console.log('\n=== .mcp.json (plugin root) ===\n');

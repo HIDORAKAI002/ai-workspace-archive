@@ -34,6 +34,34 @@ import { parseElicitToolInput } from "@phoenix/agent/tools/elicit";
 import type { ElicitToolInput } from "@phoenix/agent/tools/elicit";
 import { parseEmptyToolInput } from "@phoenix/agent/tools/emptyToolInput";
 import {
+  EDIT_LLM_EVALUATOR_DRAFT_TOOL_NAME,
+  OPEN_LLM_EVALUATOR_FORM_TOOL_NAME,
+  parseEditLlmEvaluatorDraftInput,
+  parseReadLlmEvaluatorDraftInput,
+  parseTestLlmEvaluatorDraftInput,
+  READ_LLM_EVALUATOR_DRAFT_TOOL_NAME,
+  TEST_LLM_EVALUATOR_DRAFT_TOOL_NAME,
+  type EditLlmEvaluatorDraftActionContext,
+  type EditLlmEvaluatorDraftInput,
+  type OpenLlmEvaluatorFormInput,
+  type ReadLlmEvaluatorDraftInput,
+  type TestLlmEvaluatorDraftInput,
+} from "@phoenix/agent/tools/llmEvaluatorDraft";
+import {
+  LOAD_DATASET_TOOL_NAME,
+  parseLoadDatasetInput,
+  type LoadDatasetActionContext,
+  type LoadDatasetInput,
+} from "@phoenix/agent/tools/playgroundLoadDataset";
+import {
+  LIST_PLAYGROUND_MODEL_TARGETS_TOOL_NAME,
+  parseListPlaygroundModelTargetsInput,
+  parseSetPlaygroundModelInput,
+  SET_PLAYGROUND_MODEL_TOOL_NAME,
+  type ListPlaygroundModelTargetsInput,
+  type SetPlaygroundModelInput,
+} from "@phoenix/agent/tools/playgroundModel";
+import {
   parseReadPlaygroundOutputInput,
   READ_PLAYGROUND_OUTPUT_TOOL_NAME,
   type ReadPlaygroundOutputInput,
@@ -223,6 +251,7 @@ export type SetTimeRangeInput = {
 
 export {
   OPEN_CODE_EVALUATOR_FORM_TOOL_NAME,
+  OPEN_LLM_EVALUATOR_FORM_TOOL_NAME,
   TEST_CODE_EVALUATOR_DRAFT_TOOL_NAME,
 };
 
@@ -516,6 +545,84 @@ const clonePromptInstanceAgentTool =
     },
   });
 
+const setPlaygroundModelAgentTool =
+  createRegisteredAgentTool<SetPlaygroundModelInput>({
+    name: SET_PLAYGROUND_MODEL_TOOL_NAME,
+    parseInput: parseSetPlaygroundModelInput,
+    invalidInputErrorText: `Invalid ${SET_PLAYGROUND_MODEL_TOOL_NAME} input. Expected { instanceId?: number, target: { type: "builtin", provider: string, modelName: string } | { type: "custom", customProviderId: string, modelName: string } }.`,
+    execute: async ({ toolCall, input, addToolOutput, agentStore }) => {
+      const action =
+        agentStore.getState().registeredClientActions[
+          SET_PLAYGROUND_MODEL_TOOL_NAME
+        ];
+      if (!action) {
+        await addToolOutput({
+          state: "output-error",
+          tool: SET_PLAYGROUND_MODEL_TOOL_NAME,
+          toolCallId: toolCall.toolCallId,
+          errorText:
+            "The playground model selector is not mounted; cannot switch models.",
+        });
+        return;
+      }
+      const result = await action(input);
+      if (result.ok) {
+        await addToolOutput({
+          state: "output-available",
+          tool: SET_PLAYGROUND_MODEL_TOOL_NAME,
+          toolCallId: toolCall.toolCallId,
+          output: result.output ?? "Playground model updated.",
+        });
+      } else {
+        await addToolOutput({
+          state: "output-error",
+          tool: SET_PLAYGROUND_MODEL_TOOL_NAME,
+          toolCallId: toolCall.toolCallId,
+          errorText: result.error,
+        });
+      }
+    },
+  });
+
+const listPlaygroundModelTargetsAgentTool =
+  createRegisteredAgentTool<ListPlaygroundModelTargetsInput>({
+    name: LIST_PLAYGROUND_MODEL_TARGETS_TOOL_NAME,
+    parseInput: parseListPlaygroundModelTargetsInput,
+    invalidInputErrorText: `Invalid ${LIST_PLAYGROUND_MODEL_TARGETS_TOOL_NAME} input. Expected {}.`,
+    execute: async ({ toolCall, input, addToolOutput, agentStore }) => {
+      const action =
+        agentStore.getState().registeredClientActions[
+          LIST_PLAYGROUND_MODEL_TARGETS_TOOL_NAME
+        ];
+      if (!action) {
+        await addToolOutput({
+          state: "output-error",
+          tool: LIST_PLAYGROUND_MODEL_TARGETS_TOOL_NAME,
+          toolCallId: toolCall.toolCallId,
+          errorText:
+            "The playground model selector is not mounted; cannot list available models.",
+        });
+        return;
+      }
+      const result = await action(input);
+      if (result.ok) {
+        await addToolOutput({
+          state: "output-available",
+          tool: LIST_PLAYGROUND_MODEL_TARGETS_TOOL_NAME,
+          toolCallId: toolCall.toolCallId,
+          output: result.output ?? "Playground model targets listed.",
+        });
+      } else {
+        await addToolOutput({
+          state: "output-error",
+          tool: LIST_PLAYGROUND_MODEL_TARGETS_TOOL_NAME,
+          toolCallId: toolCall.toolCallId,
+          errorText: result.error,
+        });
+      }
+    },
+  });
+
 const editPromptAgentTool = createRegisteredAgentTool<EditPromptInput>({
   name: EDIT_PROMPT_TOOL_NAME,
   parseInput: parseEditPromptInput,
@@ -614,6 +721,59 @@ const savePromptAgentTool = createRegisteredAgentTool<SavePromptInput>({
       await addToolOutput({
         state: "output-error",
         tool: SAVE_PROMPT_TOOL_NAME,
+        toolCallId: toolCall.toolCallId,
+        errorText: result.error,
+      });
+    }
+  },
+});
+
+const loadDatasetAgentTool = createRegisteredAgentTool<LoadDatasetInput>({
+  name: LOAD_DATASET_TOOL_NAME,
+  parseInput: parseLoadDatasetInput,
+  invalidInputErrorText: `Invalid ${LOAD_DATASET_TOOL_NAME} input. Expected { datasetName: string, splitName?: string }.`,
+  uiBehavior: {
+    autoOpen: true,
+    scrollIntoViewOnMount: true,
+  },
+  execute: async ({
+    toolCall,
+    input,
+    sessionId,
+    addToolOutput,
+    agentStore,
+  }) => {
+    const action =
+      agentStore.getState().registeredClientActions[LOAD_DATASET_TOOL_NAME];
+    if (!action) {
+      await addToolOutput({
+        state: "output-error",
+        tool: LOAD_DATASET_TOOL_NAME,
+        toolCallId: toolCall.toolCallId,
+        errorText:
+          "The playground is not mounted; cannot load a dataset into the playground.",
+      });
+      return;
+    }
+    if (!sessionId) {
+      await addToolOutput({
+        state: "output-error",
+        tool: LOAD_DATASET_TOOL_NAME,
+        toolCallId: toolCall.toolCallId,
+        errorText: "Cannot load a dataset without an active session.",
+      });
+      return;
+    }
+    const context: LoadDatasetActionContext = {
+      toolCallId: toolCall.toolCallId,
+      sessionId,
+      addToolOutput,
+    };
+    const result = await action(input, context);
+    if (!result.ok) {
+      await addToolOutput({
+        state: "output-error",
+        tool: LOAD_DATASET_TOOL_NAME,
         toolCallId: toolCall.toolCallId,
         errorText: result.error,
       });
@@ -865,7 +1025,6 @@ const writePromptToolsAgentTool =
     },
   });
 
-/** Reads the current code-evaluator draft from the mounted form. */
 const readCodeEvaluatorDraftAgentTool =
   createRegisteredAgentTool<ReadCodeEvaluatorDraftInput>({
     name: READ_CODE_EVALUATOR_DRAFT_TOOL_NAME,
@@ -905,10 +1064,6 @@ const readCodeEvaluatorDraftAgentTool =
     },
   });
 
-/**
- * Proposes edits to the mounted code-evaluator draft as a pending change the
- * user accepts or rejects; requires an active session to attribute the edit.
- */
 const editCodeEvaluatorDraftAgentTool =
   createRegisteredAgentTool<EditCodeEvaluatorDraftInput>({
     name: EDIT_CODE_EVALUATOR_DRAFT_TOOL_NAME,
@@ -966,7 +1121,6 @@ const editCodeEvaluatorDraftAgentTool =
     },
   });
 
-/** Opens the code-evaluator form in the mounted dataset-backed playground. */
 const openCodeEvaluatorFormAgentTool =
   createRegisteredAgentTool<OpenCodeEvaluatorFormInput>({
     name: OPEN_CODE_EVALUATOR_FORM_TOOL_NAME,
@@ -1006,7 +1160,6 @@ const openCodeEvaluatorFormAgentTool =
     },
   });
 
-/** Runs the mounted code-evaluator draft against its test payload. */
 const testCodeEvaluatorDraftAgentTool =
   createRegisteredAgentTool<TestCodeEvaluatorDraftInput>({
     name: TEST_CODE_EVALUATOR_DRAFT_TOOL_NAME,
@@ -1046,6 +1199,180 @@ const testCodeEvaluatorDraftAgentTool =
     },
   });
 
+const editLlmEvaluatorDraftAgentTool =
+  createRegisteredAgentTool<EditLlmEvaluatorDraftInput>({
+    name: EDIT_LLM_EVALUATOR_DRAFT_TOOL_NAME,
+    parseInput: parseEditLlmEvaluatorDraftInput,
+    invalidInputErrorText: `Invalid ${EDIT_LLM_EVALUATOR_DRAFT_TOOL_NAME} input. Expected { operations: EditLlmEvaluatorDraftOperation[] }.`,
+    uiBehavior: {
+      autoOpen: true,
+      scrollIntoViewOnMount: true,
+    },
+    execute: async ({
+      toolCall,
+      input,
+      sessionId,
+      addToolOutput,
+      agentStore,
+    }) => {
+      const action =
+        agentStore.getState().registeredClientActions[
+          EDIT_LLM_EVALUATOR_DRAFT_TOOL_NAME
+        ];
+      if (!action) {
+        await addToolOutput({
+          state: "output-error",
+          tool: EDIT_LLM_EVALUATOR_DRAFT_TOOL_NAME,
+          toolCallId: toolCall.toolCallId,
+          errorText:
+            "The LLM-evaluator form is not mounted; cannot edit the draft.",
+        });
+        return;
+      }
+      if (!sessionId) {
+        await addToolOutput({
+          state: "output-error",
+          tool: EDIT_LLM_EVALUATOR_DRAFT_TOOL_NAME,
+          toolCallId: toolCall.toolCallId,
+          errorText:
+            "Cannot propose LLM-evaluator draft edits without an active session.",
+        });
+        return;
+      }
+      const context: EditLlmEvaluatorDraftActionContext = {
+        toolCallId: toolCall.toolCallId,
+        sessionId,
+        addToolOutput,
+      };
+      const result = await action(input, context);
+      if (!result.ok) {
+        await addToolOutput({
+          state: "output-error",
+          tool: EDIT_LLM_EVALUATOR_DRAFT_TOOL_NAME,
+          toolCallId: toolCall.toolCallId,
+          errorText: result.error,
+        });
+      }
+    },
+  });
+
+const openLlmEvaluatorFormAgentTool =
+  createRegisteredAgentTool<OpenLlmEvaluatorFormInput>({
+    name: OPEN_LLM_EVALUATOR_FORM_TOOL_NAME,
+    parseInput: parseEmptyToolInput,
+    invalidInputErrorText: `Invalid ${OPEN_LLM_EVALUATOR_FORM_TOOL_NAME} input. Expected {}.`,
+    execute: async ({ toolCall, input, addToolOutput, agentStore }) => {
+      const action =
+        agentStore.getState().registeredClientActions[
+          OPEN_LLM_EVALUATOR_FORM_TOOL_NAME
+        ];
+      if (!action) {
+        await addToolOutput({
+          state: "output-error",
+          tool: OPEN_LLM_EVALUATOR_FORM_TOOL_NAME,
+          toolCallId: toolCall.toolCallId,
+          errorText:
+            "The dataset-backed playground is not mounted; cannot open the evaluator form.",
+        });
+        return;
+      }
+      const result = await action(input);
+      if (result.ok) {
+        await addToolOutput({
+          state: "output-available",
+          tool: OPEN_LLM_EVALUATOR_FORM_TOOL_NAME,
+          toolCallId: toolCall.toolCallId,
+          output: result.output ?? "LLM-evaluator form opened.",
+        });
+      } else {
+        await addToolOutput({
+          state: "output-error",
+          tool: OPEN_LLM_EVALUATOR_FORM_TOOL_NAME,
+          toolCallId: toolCall.toolCallId,
+          errorText: result.error,
+        });
+      }
+    },
+  });
+
+const readLlmEvaluatorDraftAgentTool =
+  createRegisteredAgentTool<ReadLlmEvaluatorDraftInput>({
+    name: READ_LLM_EVALUATOR_DRAFT_TOOL_NAME,
+    parseInput: parseReadLlmEvaluatorDraftInput,
+    invalidInputErrorText: `Invalid ${READ_LLM_EVALUATOR_DRAFT_TOOL_NAME} input. Expected {}.`,
+    execute: async ({ toolCall, input, addToolOutput, agentStore }) => {
+      const action =
+        agentStore.getState().registeredClientActions[
+          READ_LLM_EVALUATOR_DRAFT_TOOL_NAME
+        ];
+      if (!action) {
+        await addToolOutput({
+          state: "output-error",
+          tool: READ_LLM_EVALUATOR_DRAFT_TOOL_NAME,
+          toolCallId: toolCall.toolCallId,
+          errorText:
+            "The LLM-evaluator form is not mounted; cannot read the draft.",
+        });
+        return;
+      }
+      const result = await action(input);
+      if (result.ok) {
+        await addToolOutput({
+          state: "output-available",
+          tool: READ_LLM_EVALUATOR_DRAFT_TOOL_NAME,
+          toolCallId: toolCall.toolCallId,
+          output: result.output ?? "LLM-evaluator draft read.",
+        });
+      } else {
+        await addToolOutput({
+          state: "output-error",
+          tool: READ_LLM_EVALUATOR_DRAFT_TOOL_NAME,
+          toolCallId: toolCall.toolCallId,
+          errorText: result.error,
+        });
+      }
+    },
+  });
+
+const testLlmEvaluatorDraftAgentTool =
+  createRegisteredAgentTool<TestLlmEvaluatorDraftInput>({
+    name: TEST_LLM_EVALUATOR_DRAFT_TOOL_NAME,
+    parseInput: parseTestLlmEvaluatorDraftInput,
+    invalidInputErrorText: `Invalid ${TEST_LLM_EVALUATOR_DRAFT_TOOL_NAME} input.`,
+    execute: async ({ toolCall, input, addToolOutput, agentStore }) => {
+      const action =
+        agentStore.getState().registeredClientActions[
+          TEST_LLM_EVALUATOR_DRAFT_TOOL_NAME
+        ];
+      if (!action) {
+        await addToolOutput({
+          state: "output-error",
+          tool: TEST_LLM_EVALUATOR_DRAFT_TOOL_NAME,
+          toolCallId: toolCall.toolCallId,
+          errorText:
+            "The LLM-evaluator form is not mounted; cannot test the draft.",
+        });
+        return;
+      }
+      const result = await action(input);
+      if (result.ok) {
+        await addToolOutput({
+          state: "output-available",
+          tool: TEST_LLM_EVALUATOR_DRAFT_TOOL_NAME,
+          toolCallId: toolCall.toolCallId,
+          output: result.output ?? "LLM-evaluator draft tested.",
+        });
+      } else {
+        await addToolOutput({
+          state: "output-error",
+          tool: TEST_LLM_EVALUATOR_DRAFT_TOOL_NAME,
+          toolCallId: toolCall.toolCallId,
+          errorText: result.error,
+        });
+      }
+    },
+  });
+
 /** Ordered registry of all frontend-executable tools. */
 const agentToolRegistry: RegisteredAgentTool<unknown>[] = [
   bashAgentTool as RegisteredAgentTool<unknown>,
@@ -1055,10 +1382,13 @@ const agentToolRegistry: RegisteredAgentTool<unknown>[] = [
   setSpansFilterAgentTool as RegisteredAgentTool<unknown>,
   readPromptAgentTool as RegisteredAgentTool<unknown>,
   clonePromptInstanceAgentTool as RegisteredAgentTool<unknown>,
+  listPlaygroundModelTargetsAgentTool as RegisteredAgentTool<unknown>,
+  setPlaygroundModelAgentTool as RegisteredAgentTool<unknown>,
   editPromptAgentTool as RegisteredAgentTool<unknown>,
   savePromptAgentTool as RegisteredAgentTool<unknown>,
   readPromptToolsAgentTool as RegisteredAgentTool<unknown>,
   writePromptToolsAgentTool as RegisteredAgentTool<unknown>,
+  loadDatasetAgentTool as RegisteredAgentTool<unknown>,
   runPlaygroundAgentTool as RegisteredAgentTool<unknown>,
   readPlaygroundOutputAgentTool as RegisteredAgentTool<unknown>,
   setVariableValuesAgentTool as RegisteredAgentTool<unknown>,
@@ -1067,6 +1397,10 @@ const agentToolRegistry: RegisteredAgentTool<unknown>[] = [
   readCodeEvaluatorDraftAgentTool as RegisteredAgentTool<unknown>,
   editCodeEvaluatorDraftAgentTool as RegisteredAgentTool<unknown>,
   testCodeEvaluatorDraftAgentTool as RegisteredAgentTool<unknown>,
+  editLlmEvaluatorDraftAgentTool as RegisteredAgentTool<unknown>,
+  openLlmEvaluatorFormAgentTool as RegisteredAgentTool<unknown>,
+  readLlmEvaluatorDraftAgentTool as RegisteredAgentTool<unknown>,
+  testLlmEvaluatorDraftAgentTool as RegisteredAgentTool<unknown>,
 ];
 
 /** Fast lookup map for runtime tool dispatch by name. */

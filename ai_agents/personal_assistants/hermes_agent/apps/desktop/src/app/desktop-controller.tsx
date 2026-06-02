@@ -32,6 +32,8 @@ import {
   $freshDraftReady,
   $gatewayState,
   $selectedStoredSessionId,
+  $sessions,
+  sessionPinId,
   setAwaitingResponse,
   setBusy,
   setCurrentBranch,
@@ -224,10 +226,14 @@ export function DesktopController() {
       return
     }
 
-    if ($pinnedSessionIds.get().includes(sessionId)) {
-      unpinSession(sessionId)
+    // Pin on the durable lineage-root id so the pin survives auto-compression.
+    const session = $sessions.get().find(s => s.id === sessionId || s._lineage_root_id === sessionId)
+    const pinId = session ? sessionPinId(session) : sessionId
+
+    if ($pinnedSessionIds.get().includes(pinId)) {
+      unpinSession(pinId)
     } else {
-      pinSession(sessionId)
+      pinSession(pinId)
     }
   }, [])
 
@@ -366,14 +372,22 @@ export function DesktopController() {
         target instanceof HTMLTextAreaElement ||
         target instanceof HTMLSelectElement
 
-      if (editing || event.defaultPrevented || event.repeat || event.altKey || event.ctrlKey || event.metaKey) {
+      if (event.defaultPrevented || event.repeat || event.altKey || event.code !== 'KeyN') {
         return
       }
 
-      if (event.shiftKey && event.code === 'KeyN') {
-        event.preventDefault()
-        startFreshSessionDraft()
+      // Two accelerators for "new session":
+      //   - Cmd/Ctrl+N (browser-like, works while typing in any input)
+      //   - Shift+N    (single-key, only when no input is focused)
+      const accelerator = event.metaKey || event.ctrlKey
+      const singleKey = !accelerator && !editing && event.shiftKey
+
+      if (!accelerator && !singleKey) {
+        return
       }
+
+      event.preventDefault()
+      startFreshSessionDraft()
     }
 
     window.addEventListener('keydown', onKeyDown)
@@ -531,6 +545,13 @@ export function DesktopController() {
               void refreshCurrentModel()
               void queryClient.invalidateQueries({ queryKey: ['model-options'] })
             }}
+            onMainModelChanged={(provider, model) => {
+              setCurrentProvider(provider)
+              setCurrentModel(model)
+              updateModelOptionsCache(provider, model, true)
+              void refreshCurrentModel()
+              void queryClient.invalidateQueries({ queryKey: ['model-options'] })
+            }}
           />
         </Suspense>
       )}
@@ -541,13 +562,6 @@ export function DesktopController() {
             initialSection={commandCenterInitialSection}
             onClose={closeOverlayToPreviousRoute}
             onDeleteSession={removeSession}
-            onMainModelChanged={(provider, model) => {
-              setCurrentProvider(provider)
-              setCurrentModel(model)
-              updateModelOptionsCache(provider, model, true)
-              void refreshCurrentModel()
-              void queryClient.invalidateQueries({ queryKey: ['model-options'] })
-            }}
             onNavigateRoute={path => navigate(path)}
             onOpenSession={sessionId => navigate(sessionRoute(sessionId))}
           />

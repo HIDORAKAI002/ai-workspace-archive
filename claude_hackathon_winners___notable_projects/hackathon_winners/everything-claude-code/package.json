@@ -53,6 +53,8 @@
     "AGENTS.md",
     "VERSION",
     "agent.yaml",
+    "assets/ecc-icon.svg",
+    "assets/hero.png",
     "agents/",
     "commands/",
     "docs/de-DE/",

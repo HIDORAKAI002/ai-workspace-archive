@@ -95,7 +95,7 @@ Together they make the work feel less like scattered chat windows and more like 
 
 The public docs and reusable surfaces are ready for review.
 
-The deeper local integrations stay local until they are sanitized, and publication still waits on the GitHub release, npm, plugin, and final URL gates.
+The deeper local integrations stay local until they are sanitized. The GitHub prerelease and npm `next` package are live; plugin, video, billing, and final outbound URLs still stay behind the approval gate.
 
 14/ Start here:
 

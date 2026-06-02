@@ -214,6 +214,10 @@ func (r *Router) Setup(engine *gin.Engine) {
 				datasets.GET("/:dataset_id/ingestions", r.datasetsHandler.ListIngestionLogs)
 				datasets.GET("/:dataset_id/ingestions/:log_id", r.datasetsHandler.GetIngestionLog)
 
+				// Metadata Config
+				datasets.GET("/:dataset_id/metadata/config", r.datasetsHandler.GetMetadataConfig)
+				datasets.PUT("/:dataset_id/metadata/config", r.datasetsHandler.UpdateMetadataConfig)
+
 				// Dataset documents
 				datasets.GET("/:dataset_id/documents", r.documentHandler.ListDocuments)
 
@@ -276,6 +280,7 @@ func (r *Router) Setup(engine *gin.Engine) {
 			{
 				mcp.POST("/servers", r.mcpHandler.CreateMCPServer)
 				mcp.GET("/servers", r.mcpHandler.ListMCPServers)
+				mcp.PUT("/servers/:mcp_id", r.mcpHandler.UpdateMCPServer)
 				mcp.DELETE("/servers/:mcp_id", r.mcpHandler.DeleteMCPServer)
 			}
 
@@ -314,7 +319,8 @@ func (r *Router) Setup(engine *gin.Engine) {
 				provider.GET("/:provider_name/instances", r.providerHandler.ListProviderInstances)
 				provider.GET("/:provider_name/instances/:instance_name", r.providerHandler.ShowProviderInstance)
 				provider.GET("/:provider_name/instances/:instance_name/balance", r.providerHandler.ShowInstanceBalance)
-				provider.GET("/:provider_name/instances/:instance_name/connection", r.providerHandler.CheckProviderConnection)
+				provider.GET("/:provider_name/instances/:instance_name/connection", r.providerHandler.CheckInstanceConnection)
+				provider.GET("/:provider_name/connection", r.providerHandler.CheckConnection)
 				provider.GET("/:provider_name/instances/:instance_name/tasks", r.providerHandler.ListTasks)
 				provider.GET("/:provider_name/instances/:instance_name/tasks/:task_id", r.providerHandler.ShowTask)
 				provider.PUT("/:provider_name/instances/:instance_name", r.providerHandler.AlterProviderInstance)

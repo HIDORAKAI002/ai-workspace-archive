@@ -1,0 +1,21 @@
+{
+  "name": "markdown-html-skills",
+  "description": "Convert long markdown files in a Claude project into world-class, single-file, lightly-interactive HTML. Foundation (v2.10.0): 2 skills — markdown-html-orchestrator (context: fork; deterministic doc-type classifier routing to converter sub-skills; refuses to silently chain) + design-system (one-time onboarding wizard that captures brand primary/accent + heading/body Google Fonts + design style + default output dir + syntax theme + TOC behavior + optional logo/company; WCAG-validated palette derivation in HSL space producing 12 CSS custom properties consumed by every converter; project>global>defaults precedence; MARKDOWN_HTML_NO_CONFIG=1 bypass). 6 stdlib-only Python tools (3 per skill), 6 references citing 5-7 sources each, 1 JSON schema asset. Inspired by Thariq Shihipar's argument (Claude Code HTML output, Medium 2026) that markdown collapses past 100 lines and HTML restores information density + visual clarity + shareability + lightweight interaction. Outputs are single self-contained .html files; only externals are Google Fonts and Prism.js CDN. Converter sub-skills (md-document, md-review, md-slides) land in v2.10.1 follow-up PRs. Distinct from Anthropic's official Playground plugin (which is interactive prompt-tuning controls with sliders/knobs/prompt-copy-back) and from marketing/landing/ (which is a landing-page generator).",
+  "version": "2.10.0",
+  "author": {
+    "name": "Alireza Rezvani",
+    "url": "https://alirezarezvani.com"
+  },
+  "homepage": "https://github.com/alirezarezvani/claude-skills/tree/main/markdown-html",
+  "repository": "https://github.com/alirezarezvani/claude-skills",
+  "license": "MIT",
+  "skills": [
+    "./skills/markdown-html-orchestrator",
+    "./skills/design-system"
+  ],
+  "source": {
+    "spec": "Thariq Shihipar — Claude Code HTML output essay (Medium, 2026). Argument: markdown collapses past 100 lines for agent-generated artifacts; HTML restores information density, visual clarity, shareability, and lightweight interaction.",
+    "build_pattern": "Path B (direct conversion). Orchestrator uses context: fork (research-ops shape). Shared design-system owns onboarding + 12 CSS custom properties read by all converters. Every SKILL.md ships a Forcing-question library section per Matt Pocock grill-with-docs discipline. Foundation PR ships orchestrator + design-system; converter sub-skills (md-document, md-review, md-slides) land in v2.10.1 follow-up PRs.",
+    "distinct_from": "Anthropic's official Playground plugin builds interactive prompt-tuning controls (sliders, knobs, prompt-copy-back); this plugin converts existing markdown documents to single-file HTML. Also distinct from marketing/landing/ which generates landing pages from scratch."
+  }
+}
