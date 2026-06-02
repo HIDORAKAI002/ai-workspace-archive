@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-06-02 21:32 IST] Auto-Sync
+- **43 Repositories Updated:** MCP TypeScript SDK, Kubernetes MCP Server, GitHub MCP Server, Langfuse, Promptfoo, n8n, Dify, Flowise, Activepieces, Trigger.dev, Windmill, Appsmith, Budibase, modelcontextprotocol/kotlin-sdk, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, crewAIInc/crewAI, huggingface/smolagents, mastra-ai/mastra, deepset-ai/haystack, Swarms, BerriAI/litellm, stanfordnlp/dspy, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, weaviate/weaviate, infiniflow/ragflow, arize-ai/phoenix, openlit/openlit, Arize-ai/openinference, affaan-m/everything-claude-code, googleapis/python-genai, dagster-io/dagster, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow, nousresearch/hermes-agent
+
 ## [2026-06-02 14:47 IST] Auto-Sync
 - **37 Repositories Updated:** Public APIs Directory, Kubernetes MCP Server, Awesome ChatGPT Prompts, Langfuse, Promptfoo, n8n, Dify, Activepieces, Trigger.dev, Windmill, Budibase, Claude Skills, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, crewAIInc/crewAI, pydantic/pydantic-ai, mastra-ai/mastra, Swarms, BerriAI/litellm, ggml-org/llama.cpp, deepspeedai/DeepSpeed, vllm-project/vllm, lobehub/lobe-chat, voideditor/void, weaviate/weaviate, infiniflow/ragflow, danny-avila/LibreChat, apache/airflow, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, ScrapeGraphAI/Scrapegraph-ai, nousresearch/hermes-agent
 
