@@ -5,6 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import { getAgentToolUIBehavior } from "@phoenix/agent/extensions/toolRegistry";
 import { BATCH_SPAN_ANNOTATE_TOOL_NAME } from "@phoenix/agent/tools/batchSpanAnnotate";
 import { EDIT_CODE_EVALUATOR_DRAFT_TOOL_NAME } from "@phoenix/agent/tools/codeEvaluatorDraft";
+import { EDIT_LLM_EVALUATOR_DRAFT_TOOL_NAME } from "@phoenix/agent/tools/llmEvaluatorDraft";
+import { LOAD_DATASET_TOOL_NAME } from "@phoenix/agent/tools/playgroundLoadDataset";
 import { EDIT_PROMPT_TOOL_NAME } from "@phoenix/agent/tools/playgroundPrompt";
 import { SAVE_PROMPT_TOOL_NAME } from "@phoenix/agent/tools/playgroundSavePrompt";
 import { Icon, Icons } from "@phoenix/components";
@@ -32,10 +34,21 @@ import {
   getEditCodeEvaluatorDraftToolPreview,
 } from "./EditCodeEvaluatorDraftToolDetails";
 import {
+  EditLLMEvaluatorDraftToolDetails,
+  formatEditLlmEvaluatorDraftState,
+  getEditLlmEvaluatorDraftToolPreview,
+} from "./EditLLMEvaluatorDraftToolDetails";
+import {
   EditPromptToolDetails,
   formatEditPromptState,
   getEditPromptToolPreview,
 } from "./EditPromptToolDetails";
+import {
+  formatLoadDatasetState,
+  getLoadDatasetStatusVariant,
+  getLoadDatasetToolPreview,
+  LoadDatasetToolDetails,
+} from "./LoadDatasetToolDetails";
 import {
   formatSavePromptState,
   getSavePromptStatusVariant,
@@ -213,7 +226,7 @@ export const toolPartCSS = css`
   }
 
   .tool-part__status[data-variant="warning"] {
-    color: var(--global-color-orange-600);
+    color: var(--global-color-warning);
   }
 
   .tool-part__status[data-variant="success"] {
@@ -282,7 +295,7 @@ export const toolPartCSS = css`
   }
 
   .tool-part__label[data-variant="warning"] {
-    color: var(--global-color-orange-600);
+    color: var(--global-color-warning);
   }
 
   .tool-part__label[data-variant="success"] {
@@ -644,6 +657,13 @@ function getToolPresentation(
         statusVariant: getSavePromptStatusVariant(part) ?? statusVariant,
         details: <SavePromptToolDetails part={part} />,
       };
+    case LOAD_DATASET_TOOL_NAME:
+      return {
+        preview: getLoadDatasetToolPreview(part),
+        stateLabel: formatLoadDatasetState(part),
+        statusVariant: getLoadDatasetStatusVariant(part) ?? statusVariant,
+        details: <LoadDatasetToolDetails part={part} />,
+      };
     case BATCH_SPAN_ANNOTATE_TOOL_NAME:
       return {
         preview: getBatchSpanAnnotateToolPreview(part),
@@ -657,6 +677,13 @@ function getToolPresentation(
         stateLabel: formatEditCodeEvaluatorDraftState(part),
         statusVariant,
         details: <EditCodeEvaluatorDraftToolDetails part={part} />,
+      };
+    case EDIT_LLM_EVALUATOR_DRAFT_TOOL_NAME:
+      return {
+        preview: getEditLlmEvaluatorDraftToolPreview(part),
+        stateLabel: formatEditLlmEvaluatorDraftState(part),
+        statusVariant,
+        details: <EditLLMEvaluatorDraftToolDetails part={part} />,
       };
     case NATIVE_WEB_SEARCH_TOOL_NAME:
     case NATIVE_WEB_FETCH_TOOL_NAME: {
