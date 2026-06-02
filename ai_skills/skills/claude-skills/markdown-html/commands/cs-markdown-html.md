@@ -1,0 +1,58 @@
+---
+description: Top-level markdown-to-HTML router. Classifies the input markdown (document / review / slides), checks the design-system onboarding gate + 100-line threshold, then forks context to the right converter sub-skill via the markdown-html-orchestrator skill. Returns a ≤100-word digest with input lines, output path, design style, top features used, and one forcing question.
+argument-hint: "<path to markdown file>"
+---
+
+# /cs:markdown-html — Markdown-to-HTML router
+
+Route this conversion through the `markdown-html-orchestrator` skill:
+
+**$ARGUMENTS**
+
+## Pre-flight gates (refuse and surface, never override)
+
+1. **Input < 100 lines.** Markdown still wins below the threshold (Shihipar). Refuse with the line count + recommendation to keep as markdown.
+2. **Design-system not onboarded.** Surface `python3 markdown-html/skills/design-system/scripts/onboard.py` and re-prompt after.
+3. **Output directory unwritable.** Refuse; let the user fix the path or re-onboard.
+
+## Routing (deterministic, two-signal threshold)
+
+| Signal class | Filename hints | Content signals | Sub-skill |
+|---|---|---|---|
+| DOCUMENT | `report.md`, `spec.md`, `rfc-*.md`, `*-doc.md`, `*-analysis.md`, `*-explainer.md` | `## Table of Contents`, `^# `, `^## `, table rows, GFM callouts | `md-document` |
+| REVIEW | `review.md`, `*-pr-*.md`, `*.diff.md`, `code-review*.md` | ` ```diff `, `^[-+]{3} `, `^@@`, `> [!BLOCKER]/[!MAJOR]/[!MINOR]/[!NIT]`, `LGTM`/`nit:`/`blocker:` | `md-review` |
+| SLIDES | `deck.md`, `slides.md`, `*-talk.md`, `presentation*.md` | `^---$` ≥ 3, `<!-- notes:`, H1 cadence ≥ 5 with median gap ≤ 12 lines | `md-slides` |
+
+Pipeline:
+
+```bash
+python3 markdown-html/skills/markdown-html-orchestrator/scripts/doctype_classifier.py \
+    --input "$ARGUMENTS" --output json \
+  | python3 markdown-html/skills/markdown-html-orchestrator/scripts/route_explainer.py
+
+python3 markdown-html/skills/markdown-html-orchestrator/scripts/output_path_resolver.py \
+    --input "$ARGUMENTS" --doctype <verdict>
+```
+
+1. Silent-route only when winner ≥ 3 AND (runner-up = 0 OR winner ≥ 2× runner-up).
+2. Single signal or tie → one clarifying question with a recommended answer.
+3. No signals → ask which lane, recommend `md-document` as the safe default.
+
+## Output (≤ 100-word digest)
+
+- Input lines + doctype
+- Output path (resolved by `output_path_resolver.py`)
+- Design style + brand primary applied (from `config_loader.py`)
+- Top 3 features used (sticky TOC, scrollspy, code-copy, severity badges, presenter mode, etc.)
+- One forcing question for the user (cite Shihipar / WCAG / Lupton / Tufte)
+
+## Hard rules
+
+- Never silently chain two converters. Pick one, finish, ask before chaining.
+- Never override a `REFUSE` from `route_explainer.py`.
+- Never invent brand colors when the user hasn't onboarded. Surface onboarding.
+- Output is single-file HTML. External CDN is limited to Google Fonts + Prism.js.
+
+## Foundation status (v2.10.0)
+
+The orchestrator + `design-system` are live. Converter sub-skills (`md-document`, `md-review`, `md-slides`) land in v2.10.1 follow-up PRs. Until then, this command runs the classifier + design-system gate and returns the routing brief; Claude does the rendering inline with the design-system tokens.
