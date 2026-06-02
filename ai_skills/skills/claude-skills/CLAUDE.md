@@ -40,6 +40,7 @@ This repository uses **modular documentation**. For domain-specific guidance, se
 | **Business & Growth** | [business-growth/CLAUDE.md](business-growth/CLAUDE.md) | Customer success, sales engineering, revenue operations |
 | **Finance** | [finance/CLAUDE.md](finance/CLAUDE.md) | Financial analysis, DCF valuation, budgeting, forecasting, SaaS metrics |
 | **Research Operations** | [research-ops/CLAUDE.md](research-ops/CLAUDE.md) | Clinical study design, R&D finance, market research, product research (enterprise counterpart to academic research/) |
+| **Markdown → HTML** | [markdown-html/CLAUDE.md](markdown-html/CLAUDE.md) | Markdown-to-interactive-HTML converter (orchestrator + design-system foundation; md-document/review/slides v2.10.1). Inspired by Shihipar's "Claude Code HTML output" essay |
 | **Standards Library** | [standards/CLAUDE.md](standards/CLAUDE.md) | Communication, quality, git, security standards |
 | **Templates** | [templates/CLAUDE.md](templates/CLAUDE.md) | Template system usage |
 
@@ -66,6 +67,7 @@ claude-code-skills/
 ├── finance/                   # 4 finance skills + Python tools
 ├── research/                  # 8 academic research skills (orchestrator + 7 specialists)
 ├── research-ops/              # 5 research-ops skills (orchestrator + clinical-research + research-finance + market-research + product-research)
+├── markdown-html/             # 2 markdown-to-HTML skills v2.10.0 foundation (orchestrator + design-system); md-document/review/slides land in v2.10.1
 ├── eval-workspace/            # Skill evaluation results (Tessl)
 ├── standards/                 # 5 standards library files
 ├── templates/                 # Reusable templates
@@ -143,7 +145,23 @@ See [standards/git/git-workflow-standards.md](standards/git/git-workflow-standar
 
 ## Current Version
 
-**Version:** v2.9.0 (released — research-ops/ domain: enterprise Research Operations)
+**Version:** v2.10.0 (foundation released — `markdown-html/` domain: markdown-to-interactive-HTML converter)
+
+**v2.10.0 foundation highlights — markdown-html/ domain (new top-level domain):**
+
+New `markdown-html/` top-level domain — operationalizes Thariq Shihipar's central claim from his Medium essay *Claude Code HTML output: Why Markdown Lost and How to Switch* (2026): **markdown collapses past ~100 lines for agent-generated artifacts; HTML restores information density, visual clarity, shareability, and lightweight interaction.** Foundation PR (v2.10.0) ships 2 of 5 planned skills; converters land in v2.10.1.
+
+- **`markdown-html-orchestrator`** (`context: fork`) — deterministic doctype classifier scores filename hints (2 points each) + content signals (1 point each) across three lanes (DOCUMENT / REVIEW / SLIDES). Silent-routes when winner ≥ 3 AND (runner-up = 0 OR winner ≥ 2× runner-up); below threshold asks one question with a recommended answer. Three pre-flight refusals: input < 100 lines (Shihipar threshold), design-system not onboarded, output dir unwritable. 3 stdlib tools: `doctype_classifier.py`, `route_explainer.py` (the "never silently chain" enforcer; also gates on design-system status), `output_path_resolver.py` (kebab slug + collision suffix). Canon: Shihipar; Tufte; Bret Victor; Maggie Appleton; Bartosz Ciechanowski; Amelia Wattenberger.
+- **`design-system`** — one-time onboarding wizard (10 questions: `default_output_dir`, brand primary/accent HEX, heading + body Google Fonts from 12 safe defaults, design style `editorial/technical/minimal/playful`, syntax theme `light/dark/auto`, TOC behavior `sticky-sidebar/collapsible-top/inline/none`, optional company name + logo URL). WCAG-AA-validated 12-token CSS custom-property palette derived in HSL space — primary's luminance branch decides whether bg = primary (dark-mode docs) or bg = near-neutral light (vibrant primary as accent); link contrast iteratively walked to 4.5:1. 3 stdlib tools: `onboard.py` (interactive + `--defaults/--set/--show/--reset/--scope`), `config_loader.py` (project > global > defaults, deep merge, `MARKDOWN_HTML_NO_CONFIG=1` bypass), `brand_palette_validator.py` (WCAG 2.2 §1.4.3/§1.4.11 + HSL derivation, 12 tokens: `--md-bg/surface/border/text/text-muted/accent/accent-soft/code-bg/link/link-hover/success/warn`). Refuses to save if body-text or link contrast fails AA 4.5:1, or if output dir is unwritable. Canon: WCAG 2.2; Ellen Lupton *Thinking with Type*; Adobe Spectrum; Sara Soueidan accessible color tokens; Material Design 3.
+- **`cs-markdown-html-orchestrator` agent + 3 slash commands:** `/cs:markdown-html <path>.md` (router), `/cs:grill-markdown-html <path>.md` (Matt-Pocock 5-question grill, one per turn with recommended answer + canon citation), `/cs:design-system` (surfaces onboarding). Forcing-question library in every SKILL.md.
+- **Hard rules:** refuse < 100 lines (Shihipar); refuse without onboarding; refuse unwritable save dir; single-file HTML only (Google Fonts + Prism.js CDN are the only permitted externals; no JS framework runtimes); never silently chain converters; customization must change behavior (not decoration).
+- **Coming in v2.10.1:** `md-document` (sticky TOC + collapsibles + search + code-copy + scrollspy), `md-review` (2-col diff + severity-tagged margin annotations + jump-nav), `md-slides` (arrow-key nav + presenter mode + print-to-PDF). All three import `design-system/scripts/config_loader.py` for shared tokens.
+- **6 stdlib-only Python tools** (3 per skill, all pass `--help` + `--sample`), **6 reference docs** each citing 5-7 authoritative sources, **1 JSON schema asset** for the customization config. Distinct from Anthropic's official Playground plugin (interactive prompt-tuning controls with sliders/knobs/prompt-copy-back) and from `marketing/landing/` (landing-page generator from scratch).
+- **Marketplace + Codex registry:** 63 → 64 plugins; 16 → 17 domains; new `documentation` category.
+
+---
+
+**Version:** v2.9.0 (research-ops/ domain: enterprise Research Operations)
 
 **v2.9.0 highlights — research-ops/ domain (new top-level domain):**
 
