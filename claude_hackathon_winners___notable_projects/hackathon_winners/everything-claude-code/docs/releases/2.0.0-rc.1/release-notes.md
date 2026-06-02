@@ -28,6 +28,8 @@ Claude Code remains a core target. Codex, OpenCode, Cursor, Gemini, and other ha
   IOC coverage, queue-zero/discussion checks, a detailed Linear roadmap gate,
   the May 18 operator dashboard snapshot, and a live/pending release URL
   ledger for announcement gating.
+- Published `ecc-universal@2.0.0-rc.1` to npm on the `next` dist-tag. The
+  `latest` tag remains on `1.10.0` during the rc.1 window.
 
 ## Since v1.10.0
 
@@ -58,8 +60,8 @@ feature branch:
 - gated Itô skill distribution as a public workflow teaser, not a live trading
   claim or a merge of ECC Tools and Itô ownership.
 - a release URL ledger that separates links which already resolve from links
-  that must wait for the GitHub release, npm rc package, plugin tag/directory,
-  and ECC Tools billing readback.
+  that must wait for the plugin tag/directory, video upload, and ECC Tools
+  billing readback.
 
 ## Why This Matters
 
@@ -107,9 +109,16 @@ What stays local:
 8. Treat `ecc2/` as an alpha control plane until release packaging and installer
    behavior is finalized.
 
-## Do Not Treat This As Published Yet
+## Publication State
 
-The release candidate copy is ready for final review, but the public release is
-still blocked on approval-gated actions: the GitHub prerelease, npm `next`
-publish, Claude plugin tag/marketplace path, Codex Plugin Directory status,
-final live URLs, and any billing or native-payments announcement.
+The GitHub prerelease and npm `next` package are live:
+
+- GitHub prerelease:
+  <https://github.com/affaan-m/ECC/releases/tag/v2.0.0-rc.1>
+- npm rc package:
+  <https://www.npmjs.com/package/ecc-universal/v/2.0.0-rc.1>
+
+This is still a release candidate, not a GA claim. Remaining public claims stay
+approval-gated until readback exists for the Claude plugin tag/marketplace path,
+Codex repo-marketplace or official Plugin Directory status, video upload URLs,
+ECC Tools billing/native-payments readiness, and final outbound copy.

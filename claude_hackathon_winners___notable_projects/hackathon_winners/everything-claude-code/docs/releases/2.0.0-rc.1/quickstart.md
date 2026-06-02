@@ -19,6 +19,15 @@ npm ci
 
 This installs the Node-based validation and packaging toolchain used by the public release surface.
 
+To install the rc.1 package from npm instead of working from a checkout:
+
+```bash
+npm install ecc-universal@next
+```
+
+`next` currently resolves to `ecc-universal@2.0.0-rc.1`; `latest` remains on
+`1.10.0` during the release-candidate window.
+
 ## Verify
 
 ```bash

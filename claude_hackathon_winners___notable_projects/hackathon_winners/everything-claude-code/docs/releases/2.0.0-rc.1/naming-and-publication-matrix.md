@@ -1,6 +1,7 @@
 # ECC v2.0.0-rc.1 Naming And Publication Matrix
 
-Snapshot date: 2026-05-19.
+Snapshot date: 2026-05-19. Publication state refreshed 2026-05-26 after the
+GitHub prerelease and npm `next` readbacks succeeded.
 
 This matrix records the rc.1 identity after the public repository rename to
 `affaan-m/ECC`. It is evidence for planning, not a publication action.
@@ -27,12 +28,12 @@ Reason:
 
 ## Current Values
 
-| Surface | Current value | Evidence command | 2026-05-18 result | Release decision |
+| Surface | Current value | Evidence command | Current result | Release decision |
 | --- | --- | --- | --- | --- |
 | Product display name | `ECC` | `rg -n "^# ECC\|displayName.*ECC\|affaan-m/ECC" README.md .codex-plugin/plugin.json docs/releases/2.0.0-rc.1` | Present across README, plugin manifests, release copy, and URL ledger | Keep for rc.1 and GA |
 | GitHub repo | `affaan-m/ECC` | `git remote get-url origin` | `https://github.com/affaan-m/ECC.git` | Keep for rc.1 and GA |
 | npm package | `ecc-universal` | `node -p "require('./package.json').name"` | `ecc-universal` | Keep for rc.1 |
-| npm package version | `2.0.0-rc.1` local, `1.10.0` registry latest | `node -p "require('./package.json').version"` and `npm view ecc-universal name version dist-tags --json` | Local rc.1 is ready; registry latest remains `1.10.0` and no `next` dist-tag exists yet | Publish rc as `next`, not `latest` |
+| npm package version | `2.0.0-rc.1` local, `1.10.0` registry latest, `2.0.0-rc.1` registry next | `node -p "require('./package.json').version"` and `npm view ecc-universal name version dist-tags --json` | Local rc.1 is ready; registry latest remains `1.10.0`; `next` points to `2.0.0-rc.1` | Keep rc on `next`, not `latest` |
 | Exact npm short name | `ecc` | `npm view ecc name version description repository.url --json` | Occupied by `ecc@0.0.2`, "Elliptic curve cryptography functions." | Do not use |
 | Scoped npm short name | `@affaan-m/ecc` | `npm view @affaan-m/ecc name version --json` | Registry 404 | Possible future scoped package if npm scope policy permits |
 | Former package name | `everything-claude-code` | `npm view everything-claude-code name version dist-tags --json` | Registry reports unpublished on 2026-02-07 | Do not revive for rc.1 |
@@ -50,21 +51,21 @@ Reason:
 
 | Path | Current evidence | Required next action | Blocker |
 | --- | --- | --- | --- |
-| GitHub release | `docs/releases/2.0.0-rc.1/` and release notes are in-tree | Re-run required command evidence from the final release commit, then create/verify `v2.0.0-rc.1` prerelease | No tag/release yet |
-| npm | `ecc-universal` local package version is `2.0.0-rc.1`; registry latest is `1.10.0` | Publish rc with `npm publish --tag next` after final `npm pack --dry-run` and release tests | Do not publish before final release commit |
+| GitHub release | `v2.0.0-rc.1` prerelease is live at <https://github.com/affaan-m/ECC/releases/tag/v2.0.0-rc.1> | Keep release notes aligned with the URL ledger; rerun evidence before any follow-up release edit | Remaining plugin, video, billing, and outbound URLs still gated |
+| npm | `ecc-universal@2.0.0-rc.1` is live on `next`; registry latest remains `1.10.0` | Keep rc on `next`; do not move `latest` before GA approval | Remaining plugin, video, billing, and outbound URLs still gated |
 | Claude plugin | `claude plugin validate .claude-plugin/plugin.json` passed; `claude plugin tag --help` confirms the release tag flow creates `{name}--v{version}` tags and can push them | Run `claude plugin tag .claude-plugin --dry-run` from the clean release commit, then tag/push only after release approval | No plugin release tag created in this pass |
 | Claude marketplace | `.claude-plugin/marketplace.json` points at `ecc` and the public repo | Verify marketplace update/install path after tag exists | External marketplace propagation not verified |
 | Codex plugin | `codex plugin marketplace` supports local and Git marketplace sources; `.codex-plugin/plugin.json` is present; `.agents/plugins/marketplace.json` exposes `ecc` from the repo root; temp-home local and GitHub-ref marketplace adds passed | Publish rc.1 docs with the repo-marketplace command, then monitor OpenAI's official Plugin Directory path | Do not claim official Plugin Directory listing before OpenAI submission evidence |
 | OpenCode package | `.opencode/package.json` builds from source and ships inside npm package | Re-run `npm run build:opencode` and package dry-run from release commit | OpenCode CLI 1.2.21 does not expose a separate plugin publication command in this pass |
 | ECC Tools billing claim | README and launch copy mention ECC Tools / marketplace context | ECC-Tools #89/#90/#91 add selected-target billing readback, selected-target announcement gating, and ignored `--env-file` support; #92 adds the non-breaking operator bearer path; #93 records the live selected-target gate pass | Billing evidence ready; repeat the live selected-target gate before any payment announcement |
-| Social and longform copy | X thread, LinkedIn copy, article outline, GitHub release copy exist | Replace any stale URLs, then publish only after release/npm/plugin URLs work | Public URLs not final until release actions complete |
+| Social and longform copy | X thread, LinkedIn copy, article outline, GitHub release copy exist | Replace stale URLs and publish only after the remaining plugin/video/billing/outbound gates are approved | GitHub prerelease and npm URLs are live; plugin, video, billing, and outbound URLs are not final |
 
 ## ITO-46 Blocker Register
 
 | Channel | Current status | Required metadata/evidence | Owner | Blocker or follow-up |
 | --- | --- | --- | --- | --- |
-| GitHub release | Approval-gated; no `v2.0.0-rc.1` prerelease yet | Tag, release URL, prerelease flag, final release notes, URL ledger | Release owner | Create only after final clean-checkout evidence |
-| npm | `ecc-universal@2.0.0-rc.1` dry-run passed; registry latest is `1.10.0` | Pack summary, publish dry-run, `next` dist-tag readback, registry signature evidence | Package owner | Do not publish before approval and final release commit |
+| GitHub release | Live prerelease at <https://github.com/affaan-m/ECC/releases/tag/v2.0.0-rc.1> | Tag, release URL, prerelease flag, final release notes, URL ledger | Release owner | Keep release edits behind final evidence and owner approval |
+| npm | `ecc-universal@2.0.0-rc.1` is published on `next`; registry latest is `1.10.0` | Pack summary, publish readback, `next` dist-tag readback, registry signature evidence | Package owner | Do not move rc.1 to `latest` before GA approval |
 | Short npm name | `ecc` is occupied; `@affaan-m/ecc` returns 404 | Name availability outputs and migration plan | Release owner | Keep `ecc-universal` for rc.1; scoped rename is post-rc only |
 | Claude plugin | `ecc@2.0.0-rc.1` validates; tag dry run would create `ecc--v2.0.0-rc.1` | `claude plugin validate .`, `claude plugin tag .claude-plugin --dry-run`, marketplace install/update smoke | Plugin owner | Real tag push and marketplace propagation require release approval |
 | Claude marketplace | Docs and CLI support GitHub, git URL, remote marketplace JSON, and local path sources | Public repo marketplace JSON, support/contact metadata, post-tag install smoke | Plugin owner | No external official listing has been submitted in this pass |
@@ -72,7 +73,7 @@ Reason:
 | Codex official Plugin Directory | OpenAI docs describe the curated official directory; ECC has not submitted or received listing evidence | Directory submission link or OpenAI approval path once available | Plugin owner | Track as an ITO-56/ITO-46 follow-up; do not claim an official listing |
 | OpenCode package | `npm run build:opencode` passed | Built `.opencode` package metadata inside npm tarball | Package owner | No separate public plugin channel identified; follows npm |
 | Billing/native payments | Marketplace Pro target readback, selected-target announcement preflight, env-file operator path, non-breaking operator bearer, and live selected-target gate have passed | 2026-05-20 selected-target readback, webhook provenance, selected-target announcement gate, ECC-Tools #91 `--env-file` support, ECC-Tools #92 operator bearer, ECC-Tools #93 live gate evidence | ECC Tools owner | Repeat the live gate immediately before rc.1 announcement; final copy still waits on release/plugin/live URL approvals |
-| Social/longform copy | Drafts exist | Final live GitHub, npm, Claude, Codex, billing URLs | Release owner | Publish only after release/package/plugin URLs exist |
+| Social/longform copy | Drafts exist; GitHub and npm links are live | Final live GitHub, npm, Claude, Codex, video, and billing URLs | Release owner | Publish only after remaining plugin/video/billing/outbound approvals exist |
 
 ## Package Rename After rc.1
 
@@ -110,7 +111,11 @@ npm view ecc name version description repository.url --json
 ecc@0.0.2 is occupied by an unrelated elliptic curve cryptography package.
 
 npm view ecc-universal name version dist-tags --json
-registry latest is 1.10.0; no rc dist-tag exists yet.
+registry latest is 1.10.0; next is 2.0.0-rc.1.
+
+npm view ecc-universal@2.0.0-rc.1 name version dist.tarball dist.integrity time --json
+registry returned version 2.0.0-rc.1, the rc tarball URL, and published time
+2026-05-26T00:36:22.940Z.
 
 claude plugin validate .claude-plugin/plugin.json
 Validation passed on Claude Code 2.1.143.

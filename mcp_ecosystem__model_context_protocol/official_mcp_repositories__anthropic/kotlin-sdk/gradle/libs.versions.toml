@@ -1,6 +1,6 @@
 [versions]
 # plugins version
-atomicfu = "0.32.1"
+atomicfu = "0.33.0"
 binaryCompatibilityValidatorPlugin = "0.18.1"
 detekt = "2.0.0-alpha.3"
 dokka = "2.2.0"
@@ -19,10 +19,10 @@ kotest = "6.1.11"
 kotlinx-io = "0.9.0"
 ktor = "3.4.3"
 logging = "8.0.03"
-mockk = "1.14.9"
+mockk = "1.14.11"
 serialization = "1.11.0"
 slf4j = "2.0.18"
-logback = "1.5.32"
+logback = "1.5.34"
 junit = "5.14.4"
 
 [libraries]
