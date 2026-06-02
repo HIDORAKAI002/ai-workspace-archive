@@ -70,6 +70,7 @@ class FirecrawlClientTest {
                 .onlyMainContent(true)
                 .timeout(30000)
                 .mobile(false)
+                .redactPII(true)
                 .build();
 
         assertEquals(List.of("markdown", "html", "video", queryFormat), options.getFormats());
@@ -78,6 +79,7 @@ class FirecrawlClientTest {
         assertTrue(options.getOnlyMainContent());
         assertEquals(30000, options.getTimeout());
         assertFalse(options.getMobile());
+        assertTrue(options.getRedactPII());
     }
 
     @Test
@@ -134,6 +136,7 @@ class FirecrawlClientTest {
         ScrapeOptions original = ScrapeOptions.builder()
                 .formats(List.of("markdown"))
                 .timeout(5000)
+                .redactPII(true)
                 .build();
 
         ScrapeOptions modified = original.toBuilder()
@@ -143,6 +146,7 @@ class FirecrawlClientTest {
         assertEquals(5000, original.getTimeout());
         assertEquals(10000, modified.getTimeout());
         assertEquals(List.of("markdown"), modified.getFormats());
+        assertTrue(modified.getRedactPII());
     }
 
     @Test
@@ -237,6 +241,16 @@ class FirecrawlClientTest {
                         .formats(List.of("video"))
                         .build()
         );
+    }
+
+    @Test
+    void testParseOptionsBuilderSupportsRedactPII() {
+        ParseOptions options = ParseOptions.builder()
+                .formats(List.of("markdown"))
+                .redactPII(true)
+                .build();
+
+        assertTrue(options.getRedactPII());
     }
 
     // ================================================================

@@ -56,6 +56,7 @@ public class ParseTests
             OnlyMainContent = true,
             Timeout = 30000,
             Proxy = "auto",
+            RedactPII = true,
         };
 
         var json = JsonSerializer.Serialize(options, FirecrawlHttpClient.JsonOptions);
@@ -63,6 +64,7 @@ public class ParseTests
         Assert.Contains("\"onlyMainContent\":true", json);
         Assert.Contains("\"timeout\":30000", json);
         Assert.Contains("\"proxy\":\"auto\"", json);
+        Assert.Contains("\"redactPII\":true", json);
     }
 
     [Fact]

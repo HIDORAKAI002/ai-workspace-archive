@@ -77,6 +77,10 @@ public class ParseOptions
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Integration { get; set; }
 
+    [JsonPropertyName("redactPII")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? RedactPII { get; set; }
+
     /// <summary>
     /// Validate the options against /v2/parse's supported surface.
     /// </summary>
