@@ -1,9 +1,9 @@
 # ECC v2.0.0-rc.1 Preview Pack Manifest
 
 This manifest defines the reviewed preview pack for `2.0.0-rc.1`. It is not a
-release action by itself. Use it to verify that the public launch surface is
-assembled before creating the GitHub prerelease, publishing npm, tagging plugin
-surfaces, or posting announcements.
+release action by itself. Use it to verify that the public launch surface stays
+assembled after the GitHub prerelease and npm `next` publish, and before
+tagging plugin surfaces, uploading video, or posting announcements.
 
 ## Pack Contents
 
@@ -14,13 +14,14 @@ surfaces, or posting announcements.
 | `skills/hermes-imports/SKILL.md` | Sanitized Hermes-to-ECC import workflow | Includes import rules, sanitization checklist, conversion pattern, and output contract |
 | `docs/architecture/cross-harness.md` | Shared substrate model for Claude Code, Codex, OpenCode, Cursor, Gemini, Hermes, and terminal-only use | Names portability boundaries and does not claim unsupported native parity |
 | `docs/architecture/harness-adapter-compliance.md` | Adapter matrix and scorecard | Verified by `npm run harness:adapters -- --check` |
+| `docs/architecture/platform-value-loop.md` | Product integration and full-stack platform thesis | Keeps external product skill packs, gated APIs, case studies, sponsorship, Pro, and consulting loops separate from unsupported GA/control-pane claims |
 | `docs/architecture/observability-readiness.md` | Local operator-readiness gate | Verified by `npm run observability:ready` |
 | `docs/architecture/progress-sync-contract.md` | GitHub, Linear, handoff, roadmap, and work-item sync boundary | Checked by `node scripts/platform-audit.js --json` |
 | `scripts/preview-pack-smoke.js` | Deterministic preview-pack smoke gate | Verified by `npm run preview-pack:smoke` |
-| `scripts/release-approval-gate.js` | Final owner-decision, live-URL, and launch-copy gate | Must return ready true before any release publish, package publish, plugin tag, video upload, announcement, or outbound batch |
-| `docs/releases/2.0.0-rc.1/release-notes.md` | GitHub release copy source | Must be refreshed with final live release/package/plugin URLs before publication |
+| `scripts/release-approval-gate.js` | Final owner-decision, live-URL, and launch-copy gate | Must return ready true before any additional release/package action, plugin tag, video upload, announcement, or outbound batch |
+| `docs/releases/2.0.0-rc.1/release-notes.md` | GitHub release copy source | Must stay aligned with live GitHub/npm URLs and remaining plugin/video/billing gates before publication |
 | `docs/releases/2.0.0-rc.1/quickstart.md` | Clone-to-first-workflow path | Covers clone, install, verify, first skill, and harness switch |
-| `docs/releases/2.0.0-rc.1/launch-checklist.md` | Operator launch checklist | Must remain approval-gated for release, package, plugin, and announcement actions |
+| `docs/releases/2.0.0-rc.1/launch-checklist.md` | Operator launch checklist | Must remain approval-gated for plugin, video, billing, and announcement actions |
 | `docs/releases/2.0.0-rc.1/publication-readiness.md` | Release gate | Requires fresh evidence from the exact release commit |
 | `docs/releases/2.0.0-rc.1/publication-evidence-2026-05-15.md` | Current May 15 queue, roadmap, security, supply-chain watch, no-lifecycle CI install hardening, AgentShield #86 evidence-pack provenance, ECC Tools billing-gate, Actions cache purge, and `ecc2` test evidence through PR #1941 | Must be superseded by a final clean-checkout evidence file before real publication |
 | `docs/releases/2.0.0-rc.1/publication-evidence-2026-05-16.md` | Current May 16/17 queue cleanup, recsys skill merge, GateGuard triage, PR #1947 supply-chain protection, AgentShield #87 plugin-cache confidence evidence, AgentShield #88 evidence-pack inspect/readback, AgentShield #89 evidence-pack fleet routing, AgentShield #90 fleet review items, AgentShield #91 policy export, AgentShield #92 policy promotion, ECC-Tools #76 fleet-summary consumption, ECC-Tools #77 hosted finding evidence paths, ECC-Tools #78 harness policy-route linking, dashboard refresh, and combined Node/Rust/release-surface gate evidence through the May 16 mirror | Must still be repeated from a strict clean checkout before real publication |
@@ -36,15 +37,20 @@ surfaces, or posting announcements.
 | `docs/releases/2.0.0-rc.1/video-suite-production.md` | Release video production manifest | Gates local media inventory, rough primary render, captions, timeline, self-eval, and no-private-path publication rules |
 | `docs/releases/2.0.0-rc.1/partner-sponsor-talks-pack.md` | Partner, sponsor, consulting, conference, podcast, and discussion copy | Must stay approval-gated and avoid live billing, release, package, or plugin claims without evidence |
 | `docs/releases/2.0.0-rc.1/naming-and-publication-matrix.md` | Naming, slug, and publication-path decision record | Keeps `ECC`, npm `ecc-universal`, and plugin slug `ecc` for rc.1 |
-| `docs/releases/2.0.0-rc.1/release-name-plugin-publication-checklist-2026-05-18.md` | Release name, package, Claude plugin, Codex plugin, and publication-order checklist | Freezes rc.1 identity and requires final commit evidence before release, npm, plugin, billing, or announcement actions |
-| `docs/releases/2.0.0-rc.1/x-thread.md` | X launch draft | Must replace placeholders with live URLs after release/package/plugin publication |
-| `docs/releases/2.0.0-rc.1/linkedin-post.md` | LinkedIn launch draft | Must replace placeholders with live URLs after release/package/plugin publication |
+| `docs/releases/2.0.0-rc.1/release-name-plugin-publication-checklist-2026-05-18.md` | Release name, package, Claude plugin, Codex plugin, and publication-order checklist | Freezes rc.1 identity and requires final commit evidence before plugin, billing, or announcement actions |
+| `docs/releases/2.0.0-rc.1/x-thread.md` | X launch draft | Must use live GitHub/npm URLs and keep remaining plugin/video/billing URLs gated |
+| `docs/releases/2.0.0-rc.1/linkedin-post.md` | LinkedIn launch draft | Must use live GitHub/npm URLs and keep remaining plugin/video/billing URLs gated |
 | `docs/releases/2.0.0-rc.1/article-outline.md` | Longform launch outline | Must stay release-candidate framed until GA evidence exists |
 | `docs/releases/2.0.0-rc.1/telegram-handoff.md` | Internal/shareable handoff copy | Must not include private workspace or credential details |
 | `docs/releases/2.0.0-rc.1/demo-prompts.md` | Demo prompts and proof-of-work prompts | Must keep private Hermes workflows abstracted into public examples |
 | `docs/releases/2.0.0-rc.1/ito-prediction-market-skill-pack.md` | Public Itô skill-pack distribution note | Keeps Itô API access gated, non-advisory, and separate from ECC Tools billing |
 
 ## Itô Skill Pack Boundary
+
+The general product-integration contract is recorded in
+`docs/architecture/platform-value-loop.md`. The Itô pack is the first worked
+example: useful public workflows, separate gated API access, and sanitized
+operator patterns feeding back into ECC without merging business ownership.
 
 The preview pack includes six public teaser skills for prediction-market and
 Itô-adjacent workflows:
@@ -115,16 +121,17 @@ cd ecc2 && cargo test
 
 ## Publication Blockers
 
-The preview pack is assembled, but publication is still blocked until these live
-surfaces exist and are recorded in a final evidence file:
+The preview pack is assembled, and the first release/package surfaces are now
+live. Full publication is still blocked until these live surfaces and decisions
+are recorded in a final evidence file:
 
 - final release URL ledger regenerated from the intended release commit;
 - `npm run release:approval-gate -- --format json` returning ready true after
   owner approvals and live URL readbacks are recorded;
 - final release name/plugin publication checklist rerun from the intended
   release commit;
-- GitHub prerelease `v2.0.0-rc.1`;
-- npm `ecc-universal@2.0.0-rc.1` on the `next` dist-tag;
+- GitHub prerelease `v2.0.0-rc.1` live readback;
+- npm `ecc-universal@2.0.0-rc.1` on the `next` dist-tag live readback;
 - Claude plugin tag / marketplace propagation for `ecc@ecc`;
 - Codex repo-marketplace distribution evidence plus official Plugin Directory
   availability status;
@@ -137,5 +144,6 @@ surfaces exist and are recorded in a final evidence file:
 ## Result
 
 The rc.1 preview pack is ready for a final clean-checkout release gate, but not
-for public publication without the approval-gated release, package, plugin, and
-announcement steps above.
+for full public publication without the remaining approval-gated release, package, plugin, and
+announcement steps above. GitHub and npm are now recorded; plugin, video,
+billing, and outbound approvals remain open.

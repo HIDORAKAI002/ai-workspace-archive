@@ -171,8 +171,9 @@ It now has a reviewed public surface for:
 - a gated Itô prediction-market skill pack for research, comparison, planning,
   and risk review, with Itô API access kept separate and approval-based.
 
-The release is still approval-gated until the GitHub prerelease, npm package,
-plugin paths, final URLs, and billing claims have live evidence.
+The GitHub prerelease and npm `next` package are live now. The release remains
+approval-gated for plugin paths, video URLs, final outbound URLs, and billing
+claims that have not been freshly rechecked.
 
 Feedback wanted: install friction, cross-harness gaps, partner integrations,
 sponsor fit, prediction-market research use cases, and examples of teams using
@@ -196,8 +197,9 @@ Use these with the release video suite:
 - The release URL ledger still has stale or placeholder links.
 - `npm run release:video-suite -- --format json` is not green against the
   intended video roots.
-- The GitHub prerelease, npm package, plugin path, or billing claim is described
-  as live without evidence.
+- The GitHub prerelease or npm package readback is contradicted, or a plugin
+  path, video URL, billing claim, or official directory listing is described as
+  live without evidence.
 - The message claims native payments are ready before ECC Tools billing readback
   passes.
 - The recipient needs a custom promise that is not covered by `SPONSORS.md`,

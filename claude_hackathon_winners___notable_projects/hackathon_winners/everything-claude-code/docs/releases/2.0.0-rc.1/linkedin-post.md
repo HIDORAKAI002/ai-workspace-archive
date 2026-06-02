@@ -43,9 +43,10 @@ persistence coverage.
 
 There is still more to harden before GA, especially around packaging, installers, and the `ecc2/` control plane. But rc.1 is enough to show the shape clearly.
 
-Public publication is still approval-gated until the GitHub release, npm
-`next` publish, plugin path, final URLs, and billing/native-payments claims have
-live evidence.
+The GitHub prerelease and npm `next` package are live now. Public publication
+still stays approval-gated for the plugin path, video URLs, final outbound URLs,
+and any billing/native-payments claim that has not been freshly rechecked.
 
 The release URL ledger now separates links that already resolve from links that
-must wait for the approval-gated release, package, plugin, and billing checks.
+must wait for the remaining approval-gated plugin, video, billing, and outbound
+checks.
