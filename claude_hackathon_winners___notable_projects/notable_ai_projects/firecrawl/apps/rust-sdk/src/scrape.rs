@@ -76,6 +76,10 @@ pub struct ScrapeOptions {
     /// Lockdown mode: serve only previously cached results, never make outbound requests.
     pub lockdown: Option<bool>,
 
+    /// Redact personally identifiable information from returned content.
+    #[serde(rename = "redactPII")]
+    pub redact_pii: Option<bool>,
+
     /// Persistent browser profile for maintaining state across scrapes.
     pub profile: Option<ProfileConfig>,
 
@@ -489,6 +493,18 @@ mod tests {
                 "query": "What is Firecrawl?"
             })
         );
+    }
+
+    #[test]
+    fn test_scrape_options_serializes_redact_pii() {
+        let options = ScrapeOptions {
+            redact_pii: Some(true),
+            ..Default::default()
+        };
+
+        let payload = serde_json::to_value(options).unwrap();
+        assert_eq!(payload["redactPII"], json!(true));
+        assert!(payload.get("formats").is_none());
     }
 
     #[tokio::test]

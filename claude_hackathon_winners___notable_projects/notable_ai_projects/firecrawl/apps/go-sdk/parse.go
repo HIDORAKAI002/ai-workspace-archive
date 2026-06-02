@@ -70,6 +70,7 @@ type ParseOptions struct {
 	BlockAds            *bool             `json:"blockAds,omitempty"`
 	Proxy               *string           `json:"proxy,omitempty"`
 	Integration         *string           `json:"integration,omitempty"`
+	RedactPII           *bool             `json:"redactPII,omitempty"`
 	JsonOptions         *JsonOptions      `json:"jsonOptions,omitempty"`
 }
 

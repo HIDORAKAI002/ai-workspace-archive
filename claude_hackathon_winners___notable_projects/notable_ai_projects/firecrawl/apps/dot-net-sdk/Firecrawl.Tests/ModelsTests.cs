@@ -16,7 +16,8 @@ public class ModelsTests
             Formats = new List<object> { "markdown", "html" },
             OnlyMainContent = true,
             Timeout = 30000,
-            Mobile = false
+            Mobile = false,
+            RedactPII = true
         };
 
         var json = JsonSerializer.Serialize(options, JsonOptions);
@@ -26,6 +27,7 @@ public class ModelsTests
         Assert.Contains("\"onlyMainContent\":true", json);
         Assert.Contains("\"timeout\":30000", json);
         Assert.Contains("\"mobile\":false", json);
+        Assert.Contains("\"redactPII\":true", json);
     }
 
     [Fact]

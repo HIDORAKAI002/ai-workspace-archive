@@ -1,5 +1,12 @@
 import { css } from "@emotion/react";
-import { Fragment, Suspense, useCallback, useEffect, useMemo } from "react";
+import {
+  Fragment,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { graphql, useLazyLoadQuery } from "react-relay";
 import {
   Group,
@@ -11,6 +18,12 @@ import type { BlockerFunction } from "react-router";
 import { useBlocker, useSearchParams } from "react-router";
 
 import { useAdvertiseAgentContext } from "@phoenix/agent/context/useAdvertiseAgentContext";
+import { OPEN_CODE_EVALUATOR_FORM_TOOL_NAME } from "@phoenix/agent/extensions/toolRegistry";
+import {
+  EDIT_CODE_EVALUATOR_DRAFT_TOOL_NAME,
+  READ_CODE_EVALUATOR_DRAFT_TOOL_NAME,
+  TEST_CODE_EVALUATOR_DRAFT_TOOL_NAME,
+} from "@phoenix/agent/tools/codeEvaluatorDraft";
 import {
   createReadPlaygroundOutputClientAction,
   READ_PLAYGROUND_OUTPUT_TOOL_NAME,
@@ -23,6 +36,12 @@ import {
   EDIT_PROMPT_TOOL_NAME,
   READ_PROMPT_TOOL_NAME,
 } from "@phoenix/agent/tools/playgroundPrompt";
+import {
+  createReadPromptToolsClientAction,
+  createWritePromptToolsClientAction,
+  READ_PROMPT_TOOLS_TOOL_NAME,
+  WRITE_PROMPT_TOOLS_TOOL_NAME,
+} from "@phoenix/agent/tools/playgroundPromptTools";
 import {
   createRunPlaygroundClientAction,
   RUN_PLAYGROUND_TOOL_NAME,
@@ -64,6 +83,10 @@ import { PlaygroundExamplePage } from "@phoenix/pages/playground/PlaygroundExamp
 import type { PromptParam } from "@phoenix/pages/playground/playgroundURLSearchParamsUtils";
 import { setPromptParams } from "@phoenix/pages/playground/playgroundURLSearchParamsUtils";
 import type { PlaygroundProps } from "@phoenix/store";
+import {
+  type AgentClientActionResult,
+  waitForRegisteredClientActions,
+} from "@phoenix/store/agentStore";
 
 import type { PlaygroundQuery } from "./__generated__/PlaygroundQuery.graphql";
 import { NUM_MAX_PLAYGROUND_INSTANCES } from "./constants";
@@ -258,6 +281,11 @@ function PlaygroundContent() {
     return serializedSplitIds.split("\0");
   }, [serializedSplitIds]);
   const isDatasetMode = datasetId != null;
+  const [codeEvaluatorFormDatasetId, setCodeEvaluatorFormDatasetId] = useState<
+    string | null
+  >(null);
+  const isCodeEvaluatorFormOpen =
+    datasetId != null && codeEvaluatorFormDatasetId === datasetId;
   const isRunning = usePlaygroundContext((state) =>
     state.instances.some((instance) => instance.activeRunId != null)
   );
@@ -283,6 +311,19 @@ function PlaygroundContent() {
     [instanceIds]
   );
   useAdvertiseAgentContext(advertisedPlaygroundContext);
+
+  const advertisedDatasetContext = useMemo(
+    () =>
+      datasetId
+        ? {
+            type: "dataset" as const,
+            datasetNodeId: datasetId,
+            datasetVersionNodeId: null,
+          }
+        : null,
+    [datasetId]
+  );
+  useAdvertiseAgentContext(advertisedDatasetContext);
 
   useEffect(() => {
     const {
@@ -329,6 +370,14 @@ function PlaygroundContent() {
       SET_VARIABLE_VALUES_TOOL_NAME,
       createSetVariableValuesClientAction({ playgroundStore })
     );
+    registerClientAction(
+      READ_PROMPT_TOOLS_TOOL_NAME,
+      createReadPromptToolsClientAction({ playgroundStore })
+    );
+    registerClientAction(
+      WRITE_PROMPT_TOOLS_TOOL_NAME,
+      createWritePromptToolsClientAction({ playgroundStore })
+    );
     return () => {
       unregisterClientAction(READ_PROMPT_TOOL_NAME);
       unregisterClientAction(CLONE_PROMPT_INSTANCE_TOOL_NAME);
@@ -337,6 +386,8 @@ function PlaygroundContent() {
       unregisterClientAction(RUN_PLAYGROUND_TOOL_NAME);
       unregisterClientAction(READ_PLAYGROUND_OUTPUT_TOOL_NAME);
       unregisterClientAction(SET_VARIABLE_VALUES_TOOL_NAME);
+      unregisterClientAction(READ_PROMPT_TOOLS_TOOL_NAME);
+      unregisterClientAction(WRITE_PROMPT_TOOLS_TOOL_NAME);
       for (const pendingEdit of Object.values(
         agentStore.getState().pendingPromptEditsByToolCallId
       )) {
@@ -353,6 +404,50 @@ function PlaygroundContent() {
       }
     };
   }, [agentStore, playgroundStore]);
+
+  useEffect(() => {
+    const { registerClientAction, unregisterClientAction } =
+      agentStore.getState();
+    if (!datasetId) {
+      return;
+    }
+    registerClientAction(
+      OPEN_CODE_EVALUATOR_FORM_TOOL_NAME,
+      async (): Promise<AgentClientActionResult> => {
+        if (isRunning) {
+          return {
+            ok: false,
+            error:
+              "The playground is running an experiment; wait for it to finish before opening the code-evaluator form.",
+          };
+        }
+        setCodeEvaluatorFormDatasetId(datasetId);
+        const isReady = await waitForRegisteredClientActions({
+          agentStore,
+          names: [
+            READ_CODE_EVALUATOR_DRAFT_TOOL_NAME,
+            EDIT_CODE_EVALUATOR_DRAFT_TOOL_NAME,
+            TEST_CODE_EVALUATOR_DRAFT_TOOL_NAME,
+          ],
+        });
+        if (!isReady) {
+          return {
+            ok: false,
+            error:
+              "The code-evaluator form opened, but its draft tools did not finish loading. Try opening the form again before reading the draft.",
+          };
+        }
+        return {
+          ok: true,
+          output:
+            "Code-evaluator form opened for the current playground dataset; draft tools are ready.",
+        };
+      }
+    );
+    return () => {
+      unregisterClientAction(OPEN_CODE_EVALUATOR_FORM_TOOL_NAME);
+    };
+  }, [agentStore, datasetId, isRunning]);
 
   const playgroundDatasetStateByDatasetId = usePlaygroundContext(
     (state) => state.stateByDatasetId
@@ -487,6 +582,10 @@ function PlaygroundContent() {
                 key={datasetId} // reset evaluator selection when dataset changes
                 datasetId={datasetId}
                 splitIds={splitIds}
+                isCodeEvaluatorFormOpen={isCodeEvaluatorFormOpen}
+                onCodeEvaluatorFormOpenChange={(isOpen) =>
+                  setCodeEvaluatorFormDatasetId(isOpen ? datasetId : null)
+                }
               />
             </Suspense>
           ) : (

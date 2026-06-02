@@ -1,3 +1,4 @@
+import { installTestStorage } from "@phoenix/__tests__/installTestStorage";
 import {
   createClonePromptInstanceClientAction,
   createEditPromptClientAction,
@@ -12,9 +13,11 @@ import {
   createPlaygroundStore,
 } from "@phoenix/store/playground";
 
+installTestStorage();
+
 describe("playground prompt agent tools", () => {
   beforeEach(() => {
-    localStorage.removeItem("arize-phoenix-agent");
+    localStorage.removeItem("arize-phoenix-assistant");
     _resetInstanceId();
     _resetMessageId();
   });

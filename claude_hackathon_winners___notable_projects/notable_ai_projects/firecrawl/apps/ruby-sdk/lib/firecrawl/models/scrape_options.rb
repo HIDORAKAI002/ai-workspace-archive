@@ -8,7 +8,7 @@ module Firecrawl
         formats headers include_tags exclude_tags only_main_content
         timeout wait_for mobile parsers actions location
         skip_tls_verification remove_base64_images block_ads proxy
-        max_age store_in_cache lockdown integration
+        max_age store_in_cache lockdown redact_pii integration
       ].freeze
 
       attr_reader(*FIELDS)
@@ -38,6 +38,7 @@ module Firecrawl
           "maxAge" => max_age,
           "storeInCache" => store_in_cache,
           "lockdown" => lockdown,
+          "redactPII" => redact_pii,
           "integration" => integration,
         }.compact
       end

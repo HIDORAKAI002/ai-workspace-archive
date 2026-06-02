@@ -12,7 +12,7 @@ describe("performRedactPII", () => {
     ({
       url: "https://example.com",
       options: {
-        formats: [{ type: "markdown" }, { type: "pii" }],
+        formats: [{ type: "markdown" }],
         redactPII: {
           mode: "accurate",
           replaceStyle: "tag",
@@ -54,7 +54,7 @@ describe("performRedactPII", () => {
     expect(document.pii?.redactedMarkdown).toBe("Hello <PERSON>");
   });
 
-  it("runs when redactPII is enabled without the pii format", async () => {
+  it("runs when redactPII is enabled with markdown output", async () => {
     mockedRedactText.mockResolvedValue({
       status: "ok",
       redactedMarkdown: "Hello <PERSON>",

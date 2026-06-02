@@ -935,13 +935,14 @@ defmodule Firecrawl do
     origin: [type: :string, doc: "Origin identifier for analytics and logging."],
     parsers: [type: {:list, :any}, doc: "Controls file parser behavior when relevant (for example PDF parser mode)."],
     proxy: [type: {:or, [{:in, [:basic, :auto]}, :string]}, doc: "Proxy mode for parse uploads. `/parse` supports only `basic` and `auto`."],
+    redact_pii: [type: :boolean, doc: "Redact personally identifiable information from returned content."],
     remove_base64_images: [type: :boolean, doc: "Remove base64-encoded images from output and keep alt text placeholders."],
     skip_tls_verification: [type: :boolean, doc: "Skip TLS certificate verification when making requests."],
     timeout: [type: :integer, doc: "Timeout in milliseconds for the request. Default is 30000 (30 seconds). Maximum is 300000 (300 seconds)."],
     zero_data_retention: [type: :boolean, doc: "If true, this will enable zero data retention for this parse. To enable this feature, please contact help@firecrawl.dev"]
   ])
 
-  @parse_file_key_mapping %{block_ads: "blockAds", exclude_tags: "excludeTags", formats: "formats", headers: "headers", include_tags: "includeTags", integration: "integration", only_main_content: "onlyMainContent", origin: "origin", parsers: "parsers", proxy: "proxy", remove_base64_images: "removeBase64Images", skip_tls_verification: "skipTlsVerification", timeout: "timeout", zero_data_retention: "zeroDataRetention"}
+  @parse_file_key_mapping %{block_ads: "blockAds", exclude_tags: "excludeTags", formats: "formats", headers: "headers", include_tags: "includeTags", integration: "integration", only_main_content: "onlyMainContent", origin: "origin", parsers: "parsers", proxy: "proxy", redact_pii: "redactPII", remove_base64_images: "removeBase64Images", skip_tls_verification: "skipTlsVerification", timeout: "timeout", zero_data_retention: "zeroDataRetention"}
 
   @doc """
   Upload and parse a file
@@ -1039,6 +1040,7 @@ defmodule Firecrawl do
     parsers: [type: {:list, :any}, doc: "Controls how files are processed during scraping. When \"pdf\" is included (default), the PDF content is extracted and converted to markdown format, with billing based on the number of pages (1 credit per page). When an empty array is passed, the PDF file is returned in base64 encoding with a flat rate of 1 credit for the entire PDF."],
     profile: [type: :keyword_list, doc: "Enable persistent browser storage across scrape and interact sessions. Pass a profile when scraping to preserve cookies, localStorage, and session data. Sessions with the same profile name share browser state."],
     proxy: [type: {:in, [:basic, :enhanced, :auto]}, doc: "Specifies the type of proxy to use.\n\n - **basic**: Proxies for scraping sites with none to basic anti-bot solutions. Fast and usually works.\n - **enhanced**: Enhanced proxies for scraping sites with advanced anti-bot solutions. Slower, but more reliable on certain sites. Costs up to 5 credits per request.\n - **auto**: Firecrawl will automatically retry scraping with enhanced proxies if the basic proxy fails. If the retry with enhanced is successful, 5 credits will be billed for the scrape. If the first attempt with basic is successful, only the regular cost will be billed."],
+    redact_pii: [type: :boolean, doc: "Redact personally identifiable information from returned content."],
     remove_base64_images: [type: :boolean, doc: "Removes all base 64 images from the markdown output, which may be overwhelmingly long. This does not affect html or rawHtml formats. The image's alt text remains in the output, but the URL is replaced with a placeholder."],
     skip_tls_verification: [type: :boolean, doc: "Skip TLS certificate verification when making requests."],
     store_in_cache: [type: :boolean, doc: "If true, the page will be stored in the Firecrawl index and cache. Setting this to false is useful if your scraping activity may have data protection concerns. Using some parameters associated with sensitive scraping (e.g. actions, headers) will force this parameter to be false."],
@@ -1048,7 +1050,7 @@ defmodule Firecrawl do
     zero_data_retention: [type: :boolean, doc: "If true, this will enable zero data retention for this scrape. To enable this feature, please contact help@firecrawl.dev"]
   ])
 
-  @scrape_and_extract_from_url_key_mapping %{url: "url", actions: "actions", block_ads: "blockAds", exclude_tags: "excludeTags", formats: "formats", headers: "headers", include_tags: "includeTags", location: "location", max_age: "maxAge", min_age: "minAge", mobile: "mobile", only_main_content: "onlyMainContent", parsers: "parsers", profile: "profile", proxy: "proxy", remove_base64_images: "removeBase64Images", skip_tls_verification: "skipTlsVerification", store_in_cache: "storeInCache", lockdown: "lockdown", timeout: "timeout", wait_for: "waitFor", zero_data_retention: "zeroDataRetention"}
+  @scrape_and_extract_from_url_key_mapping %{url: "url", actions: "actions", block_ads: "blockAds", exclude_tags: "excludeTags", formats: "formats", headers: "headers", include_tags: "includeTags", location: "location", max_age: "maxAge", min_age: "minAge", mobile: "mobile", only_main_content: "onlyMainContent", parsers: "parsers", profile: "profile", proxy: "proxy", redact_pii: "redactPII", remove_base64_images: "removeBase64Images", skip_tls_verification: "skipTlsVerification", store_in_cache: "storeInCache", lockdown: "lockdown", timeout: "timeout", wait_for: "waitFor", zero_data_retention: "zeroDataRetention"}
 
   @doc """
   Scrape a single URL and optionally extract information using an LLM
@@ -1104,6 +1106,7 @@ defmodule Firecrawl do
     parsers: [type: {:list, :any}, doc: "Controls how files are processed during scraping. When \"pdf\" is included (default), the PDF content is extracted and converted to markdown format, with billing based on the number of pages (1 credit per page). When an empty array is passed, the PDF file is returned in base64 encoding with a flat rate of 1 credit for the entire PDF."],
     profile: [type: :keyword_list, doc: "Enable persistent browser storage across scrape and interact sessions. Pass a profile when scraping to preserve cookies, localStorage, and session data. Sessions with the same profile name share browser state."],
     proxy: [type: {:in, [:basic, :enhanced, :auto]}, doc: "Specifies the type of proxy to use.\n\n - **basic**: Proxies for scraping sites with none to basic anti-bot solutions. Fast and usually works.\n - **enhanced**: Enhanced proxies for scraping sites with advanced anti-bot solutions. Slower, but more reliable on certain sites. Costs up to 5 credits per request.\n - **auto**: Firecrawl will automatically retry scraping with enhanced proxies if the basic proxy fails. If the retry with enhanced is successful, 5 credits will be billed for the scrape. If the first attempt with basic is successful, only the regular cost will be billed."],
+    redact_pii: [type: :boolean, doc: "Redact personally identifiable information from returned content."],
     remove_base64_images: [type: :boolean, doc: "Removes all base 64 images from the markdown output, which may be overwhelmingly long. This does not affect html or rawHtml formats. The image's alt text remains in the output, but the URL is replaced with a placeholder."],
     skip_tls_verification: [type: :boolean, doc: "Skip TLS certificate verification when making requests."],
     store_in_cache: [type: :boolean, doc: "If true, the page will be stored in the Firecrawl index and cache. Setting this to false is useful if your scraping activity may have data protection concerns. Using some parameters associated with sensitive scraping (e.g. actions, headers) will force this parameter to be false."],
@@ -1113,7 +1116,7 @@ defmodule Firecrawl do
     zero_data_retention: [type: :boolean, doc: "If true, this will enable zero data retention for this batch scrape. To enable this feature, please contact help@firecrawl.dev"]
   ])
 
-  @scrape_and_extract_from_urls_key_mapping %{ignore_invalid_urls: "ignoreInvalidURLs", max_concurrency: "maxConcurrency", urls: "urls", webhook: "webhook", actions: "actions", block_ads: "blockAds", exclude_tags: "excludeTags", formats: "formats", headers: "headers", include_tags: "includeTags", location: "location", max_age: "maxAge", min_age: "minAge", mobile: "mobile", only_main_content: "onlyMainContent", parsers: "parsers", profile: "profile", proxy: "proxy", remove_base64_images: "removeBase64Images", skip_tls_verification: "skipTlsVerification", store_in_cache: "storeInCache", lockdown: "lockdown", timeout: "timeout", wait_for: "waitFor", zero_data_retention: "zeroDataRetention"}
+  @scrape_and_extract_from_urls_key_mapping %{ignore_invalid_urls: "ignoreInvalidURLs", max_concurrency: "maxConcurrency", urls: "urls", webhook: "webhook", actions: "actions", block_ads: "blockAds", exclude_tags: "excludeTags", formats: "formats", headers: "headers", include_tags: "includeTags", location: "location", max_age: "maxAge", min_age: "minAge", mobile: "mobile", only_main_content: "onlyMainContent", parsers: "parsers", profile: "profile", proxy: "proxy", redact_pii: "redactPII", remove_base64_images: "removeBase64Images", skip_tls_verification: "skipTlsVerification", store_in_cache: "storeInCache", lockdown: "lockdown", timeout: "timeout", wait_for: "waitFor", zero_data_retention: "zeroDataRetention"}
 
   @doc """
   Scrape multiple URLs and optionally extract information using an LLM
