@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { client } from "@/lib/api";
+import { client, LLMRequestEntry } from "@/lib/api";
 import { useBank } from "@/lib/bank-context";
 import { DataView } from "./data-view";
+import { TraceDialog } from "./llm-requests-view";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -51,6 +52,7 @@ import {
   ChevronDown,
   Network,
   Eye,
+  Activity,
 } from "lucide-react";
 
 const ITEMS_PER_PAGE = 50;
@@ -124,6 +126,103 @@ function InfoCard({
       </div>
       <div className="p-4 space-y-4">{children}</div>
     </div>
+  );
+}
+
+interface RetainRun {
+  traceId: string;
+  entry: LLMRequestEntry;
+  calls: number;
+  tokens: number;
+  status: string;
+  start: string | null;
+}
+
+// Lists the retain traces that processed this document (one per retain/
+// re-retain run) and opens the trace dialog. Renders nothing when tracing was
+// off at retain time (no rows) — so it's invisible unless there's data.
+function DocumentRetainTraces({ bankId, documentId }: { bankId: string; documentId: string }) {
+  const t = useTranslations("documentsView");
+  const [runs, setRuns] = useState<RetainRun[]>([]);
+  const [loaded, setLoaded] = useState(false);
+  const [dialogEntry, setDialogEntry] = useState<LLMRequestEntry | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const data = await client.listLLMRequests(bankId, {
+          document_id: documentId,
+          group: true,
+          limit: 50,
+        });
+        if (cancelled) return;
+        const byTrace = new Map<string, LLMRequestEntry[]>();
+        for (const it of data.items || []) {
+          const key = it.trace_id || it.id;
+          if (!byTrace.has(key)) byTrace.set(key, []);
+          byTrace.get(key)!.push(it);
+        }
+        const list: RetainRun[] = [...byTrace.entries()].map(([traceId, rows]) => ({
+          traceId,
+          entry: rows[0],
+          calls: rows.length,
+          tokens: rows.reduce((s, r) => s + (r.total_tokens ?? 0), 0),
+          status: rows.some((r) => r.status === "error") ? "error" : "success",
+          start:
+            rows
+              .map((r) => r.started_at)
+              .filter(Boolean)
+              .sort()[0] ?? null,
+        }));
+        list.sort((a, b) => (b.start || "").localeCompare(a.start || ""));
+        setRuns(list);
+      } catch {
+        // Tracing may be disabled or the endpoint unavailable — stay hidden.
+      } finally {
+        if (!cancelled) setLoaded(true);
+      }
+    };
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [bankId, documentId]);
+
+  if (!loaded || runs.length === 0) return null;
+
+  return (
+    <InfoCard title={t("retainTracesTitle")} icon={<Activity className="w-3.5 h-3.5" />}>
+      <div className="space-y-1">
+        {runs.map((run) => (
+          <button
+            key={run.traceId}
+            type="button"
+            onClick={() => setDialogEntry(run.entry)}
+            className="w-full flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-sm text-left hover:bg-muted/50"
+          >
+            <span className="inline-flex items-center gap-2 min-w-0">
+              <span
+                className={`w-1.5 h-1.5 rounded-full shrink-0 ${run.status === "error" ? "bg-red-500" : "bg-green-500"}`}
+              />
+              <span className="font-mono text-xs">{run.entry.operation || "retain"}</span>
+              <span className="text-muted-foreground text-xs truncate">
+                {run.start ? new Date(run.start).toLocaleString() : ""}
+              </span>
+            </span>
+            <span className="text-muted-foreground text-xs font-mono shrink-0">
+              {t("retainTracesSummary", { calls: run.calls, tokens: run.tokens.toLocaleString() })}
+            </span>
+          </button>
+        ))}
+      </div>
+      <TraceDialog
+        bankId={bankId}
+        entry={dialogEntry}
+        open={!!dialogEntry}
+        onOpenChange={(o) => !o && setDialogEntry(null)}
+      />
+    </InfoCard>
   );
 }
 
@@ -1067,6 +1166,13 @@ export function DocumentsView() {
                       >
                         <MemoryComposition nodesByFactType={selectedDocument.nodes_by_fact_type} />
                       </InfoCard>
+
+                      {currentBank && selectedDocument?.id && (
+                        <DocumentRetainTraces
+                          bankId={currentBank}
+                          documentId={selectedDocument.id}
+                        />
+                      )}
                     </div>
                   </div>
                 </TabsContent>

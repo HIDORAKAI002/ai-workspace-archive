@@ -23,6 +23,7 @@ from hindsight_api.engine.audit import (
     AuditLogListResponse,
     AuditLogStatsResponse,
 )
+from hindsight_api.engine.llm_trace import LLMRequestListResponse, LLMRequestStatsResponse
 from hindsight_api.extensions import AuthenticationError
 
 
@@ -6210,6 +6211,11 @@ def _register_routes(app: FastAPI):
     # Response models live in engine/audit.py so the MemoryEngine read methods
     # (list_audit_logs / audit_log_stats) can build and return them directly.
 
+    # ---- LLM Request Traces ----
+    # Response models + queries live in the engine (engine/llm_trace.py and
+    # MemoryEngine.list_llm_requests / llm_request_stats). The handlers below
+    # only parse params, delegate to the engine, and map a missing bank to 404.
+
     @app.get(
         "/v1/default/banks/{bank_id}/audit-logs",
         summary="List audit logs",
@@ -6286,4 +6292,99 @@ def _register_routes(app: FastAPI):
             import traceback
 
             logger.error(f"Error getting audit log stats: {traceback.format_exc()}")
+            raise HTTPException(status_code=500, detail=str(e))
+
+    @app.get(
+        "/v1/default/banks/{bank_id}/llm-requests",
+        summary="List LLM request traces",
+        description="List traced LLM requests for a bank, ordered by most recent first. "
+        "Requires LLM request tracing to be enabled (HINDSIGHT_API_LLM_TRACE_ENABLED).",
+        operation_id="list_llm_requests",
+        tags=["LLM Traces"],
+        response_model=LLMRequestListResponse,
+    )
+    async def api_list_llm_requests(
+        bank_id: str,
+        status: str | None = Query(None, description="Filter by status (success, error)"),
+        operation: str | None = Query(None, description="Filter by operation (retain, reflect, consolidation)"),
+        scope: str | None = Query(None, description="Filter by call scope"),
+        provider: str | None = Query(None, description="Filter by LLM provider"),
+        trace_id: str | None = Query(None, description="Filter to one operation run (all LLM calls sharing a trace)"),
+        document_id: str | None = Query(None, description="Filter to LLM calls that processed a given document"),
+        memory_id: str | None = Query(
+            None, description="Filter to the operation run(s) that produced or consumed a given memory_unit"
+        ),
+        group: bool = Query(
+            False, description="Paginate by operation run (trace) instead of by call; returns whole runs"
+        ),
+        start_date: str | None = Query(None, description="Filter from this ISO datetime (inclusive)"),
+        end_date: str | None = Query(None, description="Filter until this ISO datetime (exclusive)"),
+        limit: int = Query(50, ge=1, le=500, description="Max items to return"),
+        offset: int = Query(0, ge=0, description="Offset for pagination"),
+        request_context: RequestContext = Depends(get_request_context),
+    ):
+        """List traced LLM requests for a bank."""
+        try:
+            result = await app.state.memory.list_llm_requests(
+                bank_id,
+                request_context=request_context,
+                status=status,
+                operation=operation,
+                scope=scope,
+                provider=provider,
+                trace_id=trace_id,
+                document_id=document_id,
+                memory_id=memory_id,
+                group=group,
+                start_date=datetime.fromisoformat(start_date.replace("Z", "+00:00")) if start_date else None,
+                end_date=datetime.fromisoformat(end_date.replace("Z", "+00:00")) if end_date else None,
+                limit=limit,
+                offset=offset,
+            )
+            if result is None:
+                raise HTTPException(status_code=404, detail=f"Bank '{bank_id}' not found")
+            return result
+        except OperationValidationError as e:
+            raise HTTPException(status_code=e.status_code, detail=e.reason)
+        except (AuthenticationError, HTTPException):
+            raise
+        except Exception as e:
+            import traceback
+
+            logger.error(f"Error listing LLM requests: {traceback.format_exc()}")
+            raise HTTPException(status_code=500, detail=str(e))
+
+    @app.get(
+        "/v1/default/banks/{bank_id}/llm-requests/stats",
+        summary="LLM request statistics",
+        description="Get LLM request counts grouped by time bucket and status for charting.",
+        operation_id="llm_request_stats",
+        tags=["LLM Traces"],
+        response_model=LLMRequestStatsResponse,
+    )
+    async def api_llm_request_stats(
+        bank_id: str,
+        operation: str | None = Query(None, description="Filter by operation"),
+        period: str = Query("7d", description="Time period: 1d, 7d, or 30d"),
+        request_context: RequestContext = Depends(get_request_context),
+    ):
+        """Get LLM request counts grouped by time bucket and status."""
+        try:
+            result = await app.state.memory.llm_request_stats(
+                bank_id,
+                request_context=request_context,
+                operation=operation,
+                period=period,
+            )
+            if result is None:
+                raise HTTPException(status_code=404, detail=f"Bank '{bank_id}' not found")
+            return result
+        except OperationValidationError as e:
+            raise HTTPException(status_code=e.status_code, detail=e.reason)
+        except (AuthenticationError, HTTPException):
+            raise
+        except Exception as e:
+            import traceback
+
+            logger.error(f"Error getting LLM request stats: {traceback.format_exc()}")
             raise HTTPException(status_code=500, detail=str(e))

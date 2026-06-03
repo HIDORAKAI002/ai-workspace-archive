@@ -75,6 +75,61 @@ export interface AuditStatsResponse {
   buckets: AuditStatsBucket[];
 }
 
+export interface LLMRequestEntry {
+  id: string;
+  bank_id: string | null;
+  operation: string | null;
+  scope: string | null;
+  trace_id: string | null;
+  span_id: string | null;
+  parent_span_id: string | null;
+  provider: string | null;
+  model: string | null;
+  status: string;
+  started_at: string | null;
+  ended_at: string | null;
+  duration_ms: number | null;
+  input_tokens: number | null;
+  output_tokens: number | null;
+  cached_tokens: number | null;
+  total_tokens: number | null;
+  input: unknown | null;
+  output: unknown | null;
+  error: string | null;
+  llm_info: Record<string, unknown>;
+  metadata: Record<string, unknown>;
+}
+
+export interface LLMRequestsResponse {
+  bank_id: string;
+  total: number;
+  limit: number;
+  offset: number;
+  items: LLMRequestEntry[];
+}
+
+export interface LLMRequestTokenSums {
+  input: number;
+  output: number;
+  cached: number;
+  total: number;
+}
+
+export interface LLMRequestStatsBucket {
+  time: string;
+  statuses: Record<string, number>;
+  total: number;
+  tokens: LLMRequestTokenSums;
+}
+
+export interface LLMRequestStatsResponse {
+  bank_id: string;
+  period: string;
+  trunc: string;
+  start: string;
+  buckets: LLMRequestStatsBucket[];
+}
+
 export type TagsMatch = "any" | "all" | "any_strict" | "all_strict";
 
 export type TagGroup =
@@ -1448,6 +1503,58 @@ export class ControlPlaneClient {
     const query = params.toString();
     return this.fetchApi<AuditStatsResponse>(
       bankApi(bankId, `/audit-logs/stats${query ? `?${query}` : ""}`)
+    );
+  }
+
+  /**
+   * List traced LLM requests for a bank
+   */
+  async listLLMRequests(
+    bankId: string,
+    options?: {
+      status?: string;
+      operation?: string;
+      scope?: string;
+      provider?: string;
+      trace_id?: string;
+      document_id?: string;
+      memory_id?: string;
+      group?: boolean;
+      start_date?: string;
+      end_date?: string;
+      limit?: number;
+      offset?: number;
+    }
+  ): Promise<LLMRequestsResponse> {
+    const params = new URLSearchParams();
+    if (options?.status) params.append("status", options.status);
+    if (options?.operation) params.append("operation", options.operation);
+    if (options?.scope) params.append("scope", options.scope);
+    if (options?.provider) params.append("provider", options.provider);
+    if (options?.trace_id) params.append("trace_id", options.trace_id);
+    if (options?.document_id) params.append("document_id", options.document_id);
+    if (options?.memory_id) params.append("memory_id", options.memory_id);
+    if (options?.group) params.append("group", "true");
+    if (options?.start_date) params.append("start_date", options.start_date);
+    if (options?.end_date) params.append("end_date", options.end_date);
+    if (options?.limit) params.append("limit", options.limit.toString());
+    if (options?.offset) params.append("offset", options.offset.toString());
+    const query = params.toString();
+    return this.fetchApi<LLMRequestsResponse>(
+      bankApi(bankId, `/llm-requests${query ? `?${query}` : ""}`)
+    );
+  }
+
+  async getLLMRequestStats(
+    bankId: string,
+    options?: { operation?: string; period?: string }
+  ): Promise<LLMRequestStatsResponse> {
+    const params = new URLSearchParams();
+    if (options?.operation) params.append("operation", options.operation);
+    if (options?.period) params.append("period", options.period);
+    const query = params.toString();
+    return this.fetchApi<LLMRequestStatsResponse>(
+      bankApi(bankId, `/llm-requests/stats${query ? `?${query}` : ""}`)
     );
   }
 }

@@ -23,7 +23,7 @@ const net = require('node:net')
 const path = require('node:path')
 const { fileURLToPath, pathToFileURL } = require('node:url')
 const { execFileSync, spawn } = require('node:child_process')
-const { isWindowsBinaryPathInWsl, isWslEnvironment } = require('./bootstrap-platform.cjs')
+const { detectRemoteDisplay, isWindowsBinaryPathInWsl, isWslEnvironment } = require('./bootstrap-platform.cjs')
 const { runBootstrap } = require('./bootstrap-runner.cjs')
 const { canImportHermesCli, verifyHermesCli } = require('./backend-probes.cjs')
 const {
@@ -73,6 +73,26 @@ const IS_MAC = process.platform === 'darwin'
 const IS_WINDOWS = process.platform === 'win32'
 const IS_WSL = isWslEnvironment()
 const APP_ROOT = app.getAppPath()
+
+// Remote displays (SSH X11 forwarding, VNC, RDP) make Chromium's GPU
+// compositor flicker — accelerated layers can't be presented cleanly over the
+// wire, so the window flashes during scroll/streaming/animation. Local
+// Windows/macOS (and WSLg, which renders locally via vGPU) composite on the
+// GPU and never see it. Fall back to software rendering when a remote display
+// is detected; it's rock-steady over the wire and the CPU cost is negligible
+// next to the connection's latency. Must run before app `ready` — these
+// switches only apply pre-launch. Override with HERMES_DESKTOP_DISABLE_GPU
+// (1/true → always disable, 0/false → keep GPU on).
+const REMOTE_DISPLAY_REASON = detectRemoteDisplay()
+if (REMOTE_DISPLAY_REASON) {
+  app.disableHardwareAcceleration()
+  // Belt-and-suspenders for X11/VNC, where the Viz compositor can still glitch
+  // with only --disable-gpu: force compositing onto the CPU too.
+  app.commandLine.appendSwitch('disable-gpu-compositing')
+  console.log(
+    `[hermes] remote display detected (${REMOTE_DISPLAY_REASON}); disabling GPU hardware acceleration to prevent flicker`
+  )
+}
 const SOURCE_REPO_ROOT = path.resolve(APP_ROOT, '../..')
 
 // Build-time install stamp -- the git ref this .exe was built against.
@@ -1390,6 +1410,18 @@ async function applyUpdatesPosixInApp(opts = {}) {
   const env = {
     HERMES_HOME,
     PATH: [extraPath, process.env.PATH].filter(Boolean).join(path.delimiter)
+  }
+
+  // `hermes update` reaps stale `hermes dashboard` backends (a code update
+  // leaves the running process serving old Python against the freshly-updated
+  // JS bundle). But OUR backend is one of those processes, and killing it
+  // mid-update produces the boot→kill→crash loop in #37532 — the desktop
+  // already restarts its own backend via the rebuild+relaunch below, so the
+  // reap must spare it. Hand the live backend's PID to the update process;
+  // _kill_stale_dashboard_processes reads HERMES_DESKTOP_CHILD_PID and excludes
+  // it while still reaping any genuinely-orphaned dashboards. (#37532)
+  if (hermesProcess && Number.isInteger(hermesProcess.pid)) {
+    env.HERMES_DESKTOP_CHILD_PID = String(hermesProcess.pid)
   }
 
   // Branch-pin so a non-main checkout doesn't get switched to main (and self-heal

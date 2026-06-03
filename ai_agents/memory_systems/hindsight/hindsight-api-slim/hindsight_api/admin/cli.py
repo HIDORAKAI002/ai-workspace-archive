@@ -56,6 +56,7 @@ BACKUP_TABLES = [
     "webhooks",
     "file_storage",
     "audit_log",
+    "llm_requests",
     "graph_maintenance_queue",
 ]
 

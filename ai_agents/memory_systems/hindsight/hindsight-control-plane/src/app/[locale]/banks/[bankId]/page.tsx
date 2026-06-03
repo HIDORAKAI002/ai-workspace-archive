@@ -18,6 +18,7 @@ import { BankOperationsView } from "@/components/bank-operations-view";
 import { MentalModelsView } from "@/components/mental-models-view";
 import { WebhooksView } from "@/components/webhooks-view";
 import { AuditLogsView } from "@/components/audit-logs-view";
+import { LLMRequestsView } from "@/components/llm-requests-view";
 import { useFeatures } from "@/lib/features-context";
 import { useBank } from "@/lib/bank-context";
 import { bankRoute } from "@/lib/bank-url";
@@ -44,7 +45,7 @@ import { Brain, Download, Trash2, Loader2, MoreVertical, Pencil, RotateCcw } fro
 
 type NavItem = "recall" | "reflect" | "data" | "documents" | "entities" | "profile";
 type DataSubTab = "world" | "experience" | "observations" | "mental-models";
-type BankConfigTab = "general" | "configuration" | "webhooks" | "audit-logs";
+type BankConfigTab = "general" | "configuration" | "webhooks" | "audit-logs" | "llm-requests";
 
 export default function BankPage() {
   const params = useParams();
@@ -334,6 +335,19 @@ export default function BankPage() {
                         <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
                       )}
                     </button>
+                    <button
+                      onClick={() => handleBankConfigTabChange("llm-requests")}
+                      className={`px-6 py-3 font-semibold text-sm transition-all relative ${
+                        bankConfigTab === "llm-requests"
+                          ? "text-primary"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {t("llmRequests")}
+                      {bankConfigTab === "llm-requests" && (
+                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+                      )}
+                    </button>
                   </div>
                 </div>
 
@@ -370,6 +384,14 @@ export default function BankPage() {
                         {t("auditLogsDescription")}
                       </p>
                       <AuditLogsView />
+                    </div>
+                  )}
+                  {bankConfigTab === "llm-requests" && (
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        {t("llmRequestsDescription")}
+                      </p>
+                      <LLMRequestsView />
                     </div>
                   )}
                 </div>

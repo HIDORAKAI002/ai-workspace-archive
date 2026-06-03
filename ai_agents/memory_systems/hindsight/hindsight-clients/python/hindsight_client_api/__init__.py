@@ -24,6 +24,7 @@ from hindsight_client_api.api.directives_api import DirectivesApi
 from hindsight_client_api.api.documents_api import DocumentsApi
 from hindsight_client_api.api.entities_api import EntitiesApi
 from hindsight_client_api.api.files_api import FilesApi
+from hindsight_client_api.api.llm_traces_api import LLMTracesApi
 from hindsight_client_api.api.memory_api import MemoryApi
 from hindsight_client_api.api.mental_models_api import MentalModelsApi
 from hindsight_client_api.api.monitoring_api import MonitoringApi
@@ -93,6 +94,11 @@ from hindsight_client_api.models.file_retain_response import FileRetainResponse
 from hindsight_client_api.models.graph_data_response import GraphDataResponse
 from hindsight_client_api.models.http_validation_error import HTTPValidationError
 from hindsight_client_api.models.include_options import IncludeOptions
+from hindsight_client_api.models.llm_request_entry import LLMRequestEntry
+from hindsight_client_api.models.llm_request_list_response import LLMRequestListResponse
+from hindsight_client_api.models.llm_request_stats_bucket import LLMRequestStatsBucket
+from hindsight_client_api.models.llm_request_stats_response import LLMRequestStatsResponse
+from hindsight_client_api.models.llm_request_token_sums import LLMRequestTokenSums
 from hindsight_client_api.models.list_chunks_response import ListChunksResponse
 from hindsight_client_api.models.list_documents_response import ListDocumentsResponse
 from hindsight_client_api.models.list_memory_units_response import ListMemoryUnitsResponse

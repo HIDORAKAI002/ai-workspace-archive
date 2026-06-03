@@ -73,6 +73,11 @@ results = await asyncio.gather(*tasks, return_exceptions=True)
 results = await asyncio.gather(*tasks, return_exceptions=True)
 ```
 
+### API Layer & Data Access
+- **No direct database access in `api/http.py`** (or any API router). HTTP handlers must not build SQL, call `acquire_with_retry` / `conn.fetch` / `conn.fetchrow` / `conn.execute`, or reference `fq_table(...)`. All persistence and queries live in `MemoryEngine` (the engine layer). A handler parses/validates the request, calls an engine method, shapes the HTTP response, and maps domain results to status codes (e.g. a `None` return → 404).
+- **Authentication/tenancy is enforced inside each engine method, not assumed by the handler.** Every engine method that touches bank-scoped data must authenticate via `request_context` — typically `await self._authenticate_tenant(request_context)` (often indirectly through `get_bank_profile(...)`) — so the correct tenant schema is resolved before any query runs. Handlers must thread `request_context` through to the engine method; never query a tenant-scoped table assuming the schema is already set.
+- Engine methods return typed models (Pydantic/dataclass), not raw dicts (see Type Safety).
+
 ### Branch Hygiene
 - **Always start new feature branches from `origin/main`** — rebase to ensure a clean base.
 - **Only include commits relevant to the PR/branch/feature** — no unrelated changes. If the branch contains commits that don't belong, they must be removed before merging.
@@ -142,6 +147,12 @@ If any files in `hindsight-api-slim/hindsight_api/api/` were changed:
 - Were the client SDKs regenerated? (`./scripts/generate-clients.sh`)
 - Were the control plane proxy routes updated? (`hindsight-control-plane/src/app/api/`)
 
+### 7b. Check API-layer data-access boundary
+
+For each changed handler in `hindsight-api-slim/hindsight_api/api/` (e.g. `http.py`, `mcp.py`):
+- **Flag any direct DB access in the handler** — `acquire_with_retry`, `conn.fetch` / `fetchrow` / `execute`, raw SQL strings, or `fq_table(...)`. These are a **must fix**: the query must be moved into a `MemoryEngine` method that returns a typed model, and the handler must call that method.
+- **Verify authentication is enforced in the engine** — the handler must delegate to an engine method that authenticates via `request_context` (`_authenticate_tenant`, typically through `get_bank_profile`). A handler that reads/writes tenant-scoped data without an engine method enforcing auth is a **must fix** (tenant data could leak across schemas).
+
 ### 8. Check code comments
 
 For each non-trivial change:
@@ -196,6 +207,8 @@ Present a clear summary organized by severity:
 - Raw dict usage for structured data (including internal code)
 - Multi-item tuple returns (including internal code)
 - Missing tests for new endpoints
+- Direct DB access (raw SQL / `acquire_with_retry` / `fq_table`) in an `api/` handler instead of a `MemoryEngine` method
+- Tenant-scoped data accessed without authentication enforced in the engine (`_authenticate_tenant` / `get_bank_profile`)
 - New integration missing tests, CI job, or release-integration.sh entry
 - New PostgreSQL table missing from `BACKUP_TABLES` in `admin/cli.py` (silent data loss on restore)
 

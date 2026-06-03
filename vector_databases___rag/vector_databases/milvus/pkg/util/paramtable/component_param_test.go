@@ -616,7 +616,7 @@ func TestComponentParam(t *testing.T) {
 		assert.Equal(t, 1024, Params.MaxFilesPerImportReq.GetAsInt())
 		assert.Equal(t, 1024, Params.MaxImportJobNum.GetAsInt())
 		assert.Equal(t, true, Params.WaitForIndex.GetAsBool())
-		assert.Equal(t, 1, Params.ImportFileNumPerSlot.GetAsInt())
+		assert.Equal(t, 4, Params.ImportFileNumPerSlot.GetAsInt())
 		assert.Equal(t, 160*1024*1024, Params.ImportMemoryLimitPerSlot.GetAsInt())
 
 		params.Save("datacoord.gracefulStopTimeout", "100")
@@ -654,6 +654,11 @@ func TestComponentParam(t *testing.T) {
 		assert.Equal(t, 5, Params.MixCompactionSlotUsage.GetAsInt())
 		params.Save("dataCoord.slot.l0DeleteCompactionUsage", "4")
 		assert.Equal(t, 4, Params.L0DeleteCompactionSlotUsage.GetAsInt())
+		assert.Equal(t, 16, Params.L0ManifestUpdatePoolSize.GetAsInt())
+		params.Save("dataCoord.compaction.levelzero.manifestUpdatePoolSize", "4")
+		assert.Equal(t, 4, Params.L0ManifestUpdatePoolSize.GetAsInt())
+		params.Save("dataCoord.compaction.levelzero.manifestUpdatePoolSize", "0")
+		assert.Equal(t, 1, Params.L0ManifestUpdatePoolSize.GetAsInt())
 		params.Save("datacoord.scheduler.taskSlowThreshold", "1000")
 		assert.Equal(t, 1000*time.Second, Params.TaskSlowThreshold.GetAsDuration(time.Second))
 

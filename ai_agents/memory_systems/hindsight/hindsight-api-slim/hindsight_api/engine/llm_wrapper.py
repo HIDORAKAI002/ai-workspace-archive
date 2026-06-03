@@ -114,6 +114,32 @@ def _semaphores_for_scope(scope: str) -> list[asyncio.Semaphore]:
     return [per_op, _global_llm_semaphore]
 
 
+def _request_params(
+    *,
+    max_completion_tokens: int | None = None,
+    temperature: float | None = None,
+    scope: str | None = None,
+    response_format: Any | None = None,
+    tool_choice: str | dict[str, Any] | None = None,
+) -> dict[str, Any] | None:
+    """Build the requested-params bag for tracing — only values the caller set.
+
+    Omitting unset values avoids the misleading nulls we used to record (e.g.
+    consolidation, which passes no token cap), while surfacing the real cap for
+    callers that do set one (e.g. retain's ``retain_max_completion_tokens``).
+    """
+    params: dict[str, Any] = {}
+    if max_completion_tokens is not None:
+        params["max_completion_tokens"] = max_completion_tokens
+    if temperature is not None:
+        params["temperature"] = temperature
+    if response_format is not None:
+        params["response_schema"] = getattr(response_format, "__name__", None) or "structured"
+    if tool_choice is not None and tool_choice != "auto":
+        params["tool_choice"] = tool_choice if isinstance(tool_choice, str) else "named"
+    return params or None
+
+
 def sanitize_text(text: str | None) -> str | None:
     """
     Sanitize text by removing characters that break downstream systems.
@@ -723,33 +749,67 @@ class LLMProvider:
         structured = "+structured" if response_format is not None else ""
         set_stage(f"llm.{self.provider}.{scope}{structured}")
 
-        async with AsyncExitStack() as stack:
-            for sem in _semaphores_for_scope(scope):
-                await stack.enter_async_context(sem)
+        # LLM call observability flows through the OTel GenAI recorder
+        # (tracing.get_span_recorder().record_llm_call). Provider implementations
+        # record successful calls; we forward failures here since they don't.
+        # The requested params are stashed in a contextvar (only what the caller
+        # actually set) so the recorder can attach them to either path.
+        from ..tracing import get_span_recorder
+        from .llm_trace import reset_request_context, set_request_context
 
-            # Delegate to provider implementation
-            result = await self._provider_impl.call(
-                messages=messages,
-                response_format=response_format,
+        call_start = time.monotonic()
+        request_token = set_request_context(
+            _request_params(
                 max_completion_tokens=max_completion_tokens,
                 temperature=temperature,
                 scope=scope,
-                max_retries=max_retries,
-                initial_backoff=initial_backoff,
-                max_backoff=max_backoff,
-                skip_validation=skip_validation,
-                strict_schema=strict_schema,
-                return_usage=return_usage,
+                response_format=response_format,
             )
+        )
+        try:
+            async with AsyncExitStack() as stack:
+                for sem in _semaphores_for_scope(scope):
+                    await stack.enter_async_context(sem)
 
-            # Backward compatibility: Update mock call tracking for mock provider
-            # This allows existing tests using LLMProvider._mock_calls to continue working
-            if self.provider == "mock":
-                from .providers.mock_llm import MockLLM
+                try:
+                    # Delegate to provider implementation
+                    result = await self._provider_impl.call(
+                        messages=messages,
+                        response_format=response_format,
+                        max_completion_tokens=max_completion_tokens,
+                        temperature=temperature,
+                        scope=scope,
+                        max_retries=max_retries,
+                        initial_backoff=initial_backoff,
+                        max_backoff=max_backoff,
+                        skip_validation=skip_validation,
+                        strict_schema=strict_schema,
+                        return_usage=return_usage,
+                    )
+                except Exception as e:
+                    get_span_recorder().record_llm_call(
+                        provider=self.provider,
+                        model=self.model,
+                        scope=scope,
+                        messages=messages,
+                        response_content=None,
+                        input_tokens=0,
+                        output_tokens=0,
+                        duration=time.monotonic() - call_start,
+                        error=e,
+                    )
+                    raise
 
-                if isinstance(self._provider_impl, MockLLM):
-                    # Sync the mock calls from provider implementation to wrapper
-                    self._mock_calls = self._provider_impl.get_mock_calls()
+                # Backward compatibility: Update mock call tracking for mock provider
+                # This allows existing tests using LLMProvider._mock_calls to continue working
+                if self.provider == "mock":
+                    from .providers.mock_llm import MockLLM
+
+                    if isinstance(self._provider_impl, MockLLM):
+                        # Sync the mock calls from provider implementation to wrapper
+                        self._mock_calls = self._provider_impl.get_mock_calls()
+        finally:
+            reset_request_context(request_token)
 
         return result
 
@@ -786,31 +846,61 @@ class LLMProvider:
 
         set_stage(f"llm.{self.provider}.{scope}+tools")
 
-        async with AsyncExitStack() as stack:
-            for sem in _semaphores_for_scope(scope):
-                await stack.enter_async_context(sem)
+        # Failures forwarded to the GenAI recorder; successes recorded by providers.
+        from ..tracing import get_span_recorder
+        from .llm_trace import reset_request_context, set_request_context
 
-            # Delegate to provider implementation
-            result = await self._provider_impl.call_with_tools(
-                messages=messages,
-                tools=tools,
+        call_start = time.monotonic()
+        request_token = set_request_context(
+            _request_params(
                 max_completion_tokens=max_completion_tokens,
                 temperature=temperature,
                 scope=scope,
-                max_retries=max_retries,
-                initial_backoff=initial_backoff,
-                max_backoff=max_backoff,
                 tool_choice=tool_choice,
             )
+        )
+        try:
+            async with AsyncExitStack() as stack:
+                for sem in _semaphores_for_scope(scope):
+                    await stack.enter_async_context(sem)
 
-            # Backward compatibility: Update mock call tracking for mock provider
-            # This allows existing tests using LLMProvider._mock_calls to continue working
-            if self.provider == "mock":
-                from .providers.mock_llm import MockLLM
+                try:
+                    # Delegate to provider implementation
+                    result = await self._provider_impl.call_with_tools(
+                        messages=messages,
+                        tools=tools,
+                        max_completion_tokens=max_completion_tokens,
+                        temperature=temperature,
+                        scope=scope,
+                        max_retries=max_retries,
+                        initial_backoff=initial_backoff,
+                        max_backoff=max_backoff,
+                        tool_choice=tool_choice,
+                    )
+                except Exception as e:
+                    get_span_recorder().record_llm_call(
+                        provider=self.provider,
+                        model=self.model,
+                        scope=scope,
+                        messages=messages,
+                        response_content=None,
+                        input_tokens=0,
+                        output_tokens=0,
+                        duration=time.monotonic() - call_start,
+                        error=e,
+                    )
+                    raise
 
-                if isinstance(self._provider_impl, MockLLM):
-                    # Sync the mock calls from provider implementation to wrapper
-                    self._mock_calls = self._provider_impl.get_mock_calls()
+                # Backward compatibility: Update mock call tracking for mock provider
+                # This allows existing tests using LLMProvider._mock_calls to continue working
+                if self.provider == "mock":
+                    from .providers.mock_llm import MockLLM
+
+                    if isinstance(self._provider_impl, MockLLM):
+                        # Sync the mock calls from provider implementation to wrapper
+                        self._mock_calls = self._provider_impl.get_mock_calls()
+        finally:
+            reset_request_context(request_token)
 
         return result
 
@@ -914,7 +1004,14 @@ class LLMProvider:
         # SDK will automatically check for authentication when first used
         # No need to verify here - let it fail gracefully on first call with helpful error
 
-    def with_config(self, config: Any) -> "ConfiguredLLMProvider":
+    def with_config(
+        self,
+        config: Any,
+        *,
+        bank_id: str | None = None,
+        operation: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> "ConfiguredLLMProvider":
         """
         Return a configured wrapper for a specific bank operation.
 
@@ -924,12 +1021,31 @@ class LLMProvider:
 
         Args:
             config: Resolved ``HindsightConfig`` for the current bank/request.
+            bank_id: Bank the operation runs for; attributed to LLM trace rows.
+            operation: Logical operation label ("retain", "reflect", ...) for
+                LLM trace rows.
+            metadata: Optional extra caller metadata stored on trace rows.
 
         Returns:
             A ``ConfiguredLLMProvider`` that delegates to this provider with
             the supplied config applied.
         """
-        return ConfiguredLLMProvider(self, config.llm_gemini_safety_settings)
+        trace_ctx = None
+        if bank_id is not None or operation is not None or metadata:
+            from .llm_trace import LLMTraceContext
+
+            # One trace + operation span per with_config() call — i.e. per
+            # operation invocation. Every LLM call made through this wrapper
+            # shares them, so a reflect/retain/consolidation run groups its
+            # calls as parent (operation) → children (LLM calls).
+            trace_ctx = LLMTraceContext(
+                bank_id=bank_id,
+                operation=operation,
+                metadata=dict(metadata or {}),
+                trace_id=str(uuid.uuid4()),
+                operation_span_id=str(uuid.uuid4()),
+            )
+        return ConfiguredLLMProvider(self, config.llm_gemini_safety_settings, trace_ctx)
 
     async def cleanup(self) -> None:
         """Clean up resources (e.g. stop llamacpp subprocess)."""
@@ -993,10 +1109,16 @@ class ConfiguredLLMProvider:
     any changes.
     """
 
-    def __init__(self, provider: "LLMProvider", gemini_safety_settings: list | None) -> None:
+    def __init__(
+        self,
+        provider: "LLMProvider",
+        gemini_safety_settings: list | None,
+        trace_ctx: Any | None = None,
+    ) -> None:
         # Use object.__setattr__ to avoid triggering __getattr__
         object.__setattr__(self, "_provider", provider)
         object.__setattr__(self, "_gemini_safety_settings", gemini_safety_settings)
+        object.__setattr__(self, "_trace_ctx", trace_ctx)
 
     # ── attribute passthrough ──────────────────────────────────────────────────
 
@@ -1009,10 +1131,12 @@ class ConfiguredLLMProvider:
         from .providers.gemini_llm import _safety_settings_ctx
 
         token = _safety_settings_ctx.set(object.__getattribute__(self, "_gemini_safety_settings"))
+        trace_token = self._bind_trace_context()
         try:
             return await object.__getattribute__(self, "_provider").call(messages=messages, **kwargs)
         finally:
             _safety_settings_ctx.reset(token)
+            self._reset_trace_context(trace_token)
 
     async def call_with_tools(
         self,
@@ -1023,12 +1147,38 @@ class ConfiguredLLMProvider:
         from .providers.gemini_llm import _safety_settings_ctx
 
         token = _safety_settings_ctx.set(object.__getattribute__(self, "_gemini_safety_settings"))
+        trace_token = self._bind_trace_context()
         try:
             return await object.__getattribute__(self, "_provider").call_with_tools(
                 messages=messages, tools=tools, **kwargs
             )
         finally:
             _safety_settings_ctx.reset(token)
+            self._reset_trace_context(trace_token)
+
+    def trace_context(self) -> Any | None:
+        """The operation-level LLM trace context (or None when untraced).
+
+        Lets the engine attach the operation's produced/consumed memory_ids to
+        this run's trace rows once they're known (after the LLM calls).
+        """
+        return object.__getattribute__(self, "_trace_ctx")
+
+    def _bind_trace_context(self) -> Any | None:
+        """Bind bank/operation attribution for the duration of one call."""
+        trace_ctx = object.__getattribute__(self, "_trace_ctx")
+        if trace_ctx is None:
+            return None
+        from .llm_trace import set_trace_context
+
+        return set_trace_context(trace_ctx)
+
+    def _reset_trace_context(self, trace_token: Any | None) -> None:
+        if trace_token is None:
+            return
+        from .llm_trace import reset_trace_context
+
+        reset_trace_context(trace_token)
 
 
 # Backwards compatibility alias

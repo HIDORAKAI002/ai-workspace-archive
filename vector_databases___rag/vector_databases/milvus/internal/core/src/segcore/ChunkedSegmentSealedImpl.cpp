@@ -405,7 +405,7 @@ ChunkedSegmentSealedImpl::init_storage_v1_pk_index(
     const std::shared_ptr<ChunkedColumnInterface>& column,
     DataType data_type,
     bool is_replace) {
-    if (schema_->get_primary_field_id() != field_id) {
+    if (schema_->get_primary_field_id().value_or(FieldId(-1)) != field_id) {
         return;
     }
     // Build compressed offset->pk for FillPrimaryKeys fast path
@@ -429,7 +429,7 @@ ChunkedSegmentSealedImpl::init_storage_v2_pk_index(
     FieldId field_id,
     const std::shared_ptr<ChunkedColumnInterface>& column,
     DataType data_type) {
-    if (schema_->get_primary_field_id() != field_id) {
+    if (schema_->get_primary_field_id().value_or(FieldId(-1)) != field_id) {
         return;
     }
     std::unique_ptr<Translator<storagev2translator::PkIndexCell>> translator =
@@ -521,7 +521,8 @@ ChunkedSegmentSealedImpl::LoadScalarIndex(LoadIndexInfo& info,
     auto field_id = FieldId(info.field_id);
     auto& field_meta = schema_->operator[](field_id);
 
-    auto is_pk = field_id == schema_->get_primary_field_id();
+    auto is_pk =
+        field_id == schema_->get_primary_field_id().value_or(FieldId(-1));
 
     LOG_INFO("LoadScalarIndex, fieldID:{}. segmentID:{}, is_pk:{}",
              info.field_id,
@@ -1552,7 +1553,7 @@ ChunkedSegmentSealedImpl::vector_search(SearchInfo& search_info,
             "finish_searching_vector_temperate_binlog_index");
     } else if (get_bit(index_ready_bitset_, field_id)) {
         if (search_info.global_refine_enable_ &&
-            IsIndexRefineEnabled(field_id)) {
+            IsIndexRefineEnabled(op_context, field_id)) {
             search_info.topk_ = GetEffectiveSearchTopk(search_info);
         }
         AssertInfo(vector_indexings_.is_ready(field_id),
@@ -1751,33 +1752,59 @@ ChunkedSegmentSealedImpl::get_emb_list(milvus::OpContext* op_ctx,
 
     auto metric_type = vec_index->GetMetricType();
 
-    // Build el_ids dataset from seg_offsets (seg_offsets are el_ids for VECTOR_ARRAY)
-    auto ids_ds = GenIdsDataset(count, seg_offsets);
+    ValidResult filter_result;
+    int64_t valid_count = count;
+    const bool* valid_data = nullptr;
+    const int64_t* valid_offsets = seg_offsets;
+    if (field_meta.is_nullable()) {
+        filter_result =
+            FilterVectorValidOffsets(op_ctx, field_id, seg_offsets, count);
+        if (filter_result.valid_data != nullptr) {
+            valid_count = filter_result.valid_count;
+            valid_data = filter_result.valid_data.get();
+            valid_offsets = filter_result.valid_offsets.data();
+        }
+    }
+
+    auto data_array =
+        CreateEmptyVectorDataArray(count, valid_count, valid_data, field_meta);
+    if (valid_count == 0) {
+        return data_array;
+    }
+
+    // Build el_ids dataset from valid_offsets. For nullable VECTOR_ARRAY,
+    // FilterVectorValidOffsets maps logical row offsets to the index's compact
+    // physical embedding-list ids.
+    auto ids_ds = GenIdsDataset(valid_count, valid_offsets);
 
     auto [raw_data, offsets] = vec_index->GetEmbListByIds(ids_ds, metric_type);
-    AssertInfo(offsets.size() == static_cast<size_t>(count + 1),
+    AssertInfo(offsets.size() == static_cast<size_t>(valid_count + 1),
                "GetEmbListByIds returned invalid offsets size {}, expected {}",
                offsets.size(),
-               count + 1);
+               valid_count + 1);
 
     auto dim = field_meta.get_dim();
     auto element_type = field_meta.get_element_type();
     const size_t vec_size_per_element =
         milvus::vector_bytes_per_element(element_type, dim);
 
-    auto data_array = std::make_unique<DataArray>();
-    data_array->set_field_id(field_meta.get_id().get());
-    data_array->set_type(static_cast<milvus::proto::schema::DataType>(
-        field_meta.get_data_type()));
-
     auto vector_array = data_array->mutable_vectors();
     auto obj = vector_array->mutable_vector_array();
-    obj->set_dim(dim);
-    obj->set_element_type(milvus::ToProtoDataType(element_type));
+
+    std::vector<int64_t> valid_logical_offsets;
+    if (valid_data != nullptr) {
+        valid_logical_offsets.reserve(valid_count);
+        for (int64_t i = 0; i < count; ++i) {
+            if (valid_data[i]) {
+                valid_logical_offsets.push_back(i);
+            }
+        }
+    }
 
     // Build a VectorFieldProto for each embedding list
-    for (int64_t i = 0; i < count; i++) {
-        auto* entry = obj->mutable_data()->Add();
+    for (int64_t i = 0; i < valid_count; i++) {
+        auto dst_index = valid_data != nullptr ? valid_logical_offsets[i] : i;
+        auto* entry = obj->mutable_data()->Mutable(dst_index);
         entry->set_dim(dim);
         size_t vec_start = offsets[i];
         size_t vec_count = offsets[i + 1] - offsets[i];
@@ -2427,9 +2454,9 @@ ChunkedSegmentSealedImpl::ChunkedSegmentSealedImpl(
     int64_t segment_id,
     bool is_sorted_by_pk)
     : segcore_config_(segcore_config),
-      field_data_ready_bitset_(schema->size()),
-      index_ready_bitset_(schema->size()),
-      binlog_index_bitset_(schema->size()),
+      field_data_ready_bitset_(schema->get_field_id_bitset_size()),
+      index_ready_bitset_(schema->get_field_id_bitset_size()),
+      binlog_index_bitset_(schema->get_field_id_bitset_size()),
       ngram_fields_(std::unordered_set<FieldId>(schema->size())),
       scalar_indexings_(std::unordered_map<FieldId, index::CacheIndexBasePtr>(
           schema->size())),
@@ -2986,7 +3013,7 @@ ChunkedSegmentSealedImpl::CreateTextIndex(FieldId field_id,
                     return iter;
                 });
             auto accessor =
-                SemiInlineGet(field_index_iter->second->PinCells(nullptr, {0}));
+                SemiInlineGet(field_index_iter->second->PinCells(op_ctx, {0}));
             auto ptr = accessor->get_cell_of(0);
             AssertInfo(ptr->HasRawData(),
                        "text raw data not found, trying to create text index "
@@ -3790,6 +3817,7 @@ ChunkedSegmentSealedImpl::IndexHasRawData(FieldId field_id) const {
 
 bool
 ChunkedSegmentSealedImpl::CalcDistByIDs(
+    milvus::OpContext* op_ctx,
     FieldId field_id,
     const knowhere::DataSetPtr& query_dataset,
     const int64_t* seg_offsets,
@@ -3801,7 +3829,7 @@ ChunkedSegmentSealedImpl::CalcDistByIDs(
     }
     auto field_indexing = vector_indexings_.get_field_indexing(field_id);
     auto accessor =
-        SemiInlineGet(field_indexing->indexing_->PinCells(nullptr, {0}));
+        SemiInlineGet(field_indexing->indexing_->PinCells(op_ctx, {0}));
     auto vec_index =
         dynamic_cast<index::VectorIndex*>(accessor->get_cell_of(0));
     if (vec_index == nullptr) {
@@ -3825,7 +3853,7 @@ ChunkedSegmentSealedImpl::CalcDistByIDs(
         labels = physical_offsets.data();
     }
     auto res = vec_index->CalcDistByIDs(
-        query_dataset, BitsetView(), labels, count, is_cosine, nullptr);
+        query_dataset, BitsetView(), labels, count, is_cosine, op_ctx);
     if (!res.has_value()) {
         return false;
     }
@@ -3838,13 +3866,14 @@ ChunkedSegmentSealedImpl::CalcDistByIDs(
 }
 
 bool
-ChunkedSegmentSealedImpl::IsIndexRefineEnabled(FieldId field_id) const {
+ChunkedSegmentSealedImpl::IsIndexRefineEnabled(milvus::OpContext* op_ctx,
+                                               FieldId field_id) const {
     if (!vector_indexings_.is_ready(field_id)) {
         return false;
     }
     auto field_indexing = vector_indexings_.get_field_indexing(field_id);
     auto accessor =
-        SemiInlineGet(field_indexing->indexing_->PinCells(nullptr, {0}));
+        SemiInlineGet(field_indexing->indexing_->PinCells(op_ctx, {0}));
     auto vec_index =
         dynamic_cast<index::VectorIndex*>(accessor->get_cell_of(0));
     return vec_index != nullptr && vec_index->IsIndexRefineEnabled();
@@ -4288,7 +4317,11 @@ ChunkedSegmentSealedImpl::load_field_data_common(
 
     if (column->IsNullable() && IsVectorDataType(data_type)) {
         bool lazy_inited = false;
-        if (statistics.has_value() && !statistics.value().empty()) {
+        // For VECTOR_ARRAY, Parquet num_values is the child vector count, not
+        // the outer row count. Empty non-null rows would corrupt physical row
+        // mapping if we derived valid counts from those statistics.
+        if (data_type != DataType::VECTOR_ARRAY && statistics.has_value() &&
+            !statistics.value().empty()) {
             const auto& stats = statistics.value();
             bool any_null = false;
             for (const auto& s : stats) {
@@ -4337,7 +4370,7 @@ ChunkedSegmentSealedImpl::load_field_data_common(
     }
 
     // set pks to offset
-    if (schema_->get_primary_field_id() == field_id) {
+    if (schema_->get_primary_field_id().value_or(FieldId(-1)) == field_id) {
         if (std::atomic_load(&segment_load_info_)->GetStorageVersion() >=
             STORAGE_V2) {
             init_storage_v2_pk_index(field_id, column, data_type);
@@ -4432,9 +4465,9 @@ ChunkedSegmentSealedImpl::ApplySchemaForReopen(SchemaPtr sch) {
         return;
     }
 
-    field_data_ready_bitset_.resize(sch->size());
-    index_ready_bitset_.resize(sch->size());
-    binlog_index_bitset_.resize(sch->size());
+    field_data_ready_bitset_.resize(sch->get_field_id_bitset_size());
+    index_ready_bitset_.resize(sch->get_field_id_bitset_size());
+    binlog_index_bitset_.resize(sch->get_field_id_bitset_size());
     schema_ = std::move(sch);
 }
 
