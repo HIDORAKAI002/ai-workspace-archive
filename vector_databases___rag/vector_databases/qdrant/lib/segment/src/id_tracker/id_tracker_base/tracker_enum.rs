@@ -14,7 +14,6 @@ use crate::id_tracker::mutable_id_tracker::MutableIdTracker;
 use crate::types::{PointIdType, SeqNumberType};
 
 #[derive(Debug)]
-#[allow(clippy::large_enum_variant)]
 pub enum IdTrackerEnum {
     MutableIdTracker(MutableIdTracker),
     ImmutableIdTracker(ImmutableIdTracker<MmapFile>),
@@ -219,6 +218,14 @@ impl IdTracker for IdTrackerEnum {
             IdTrackerEnum::MutableIdTracker(id_tracker) => id_tracker.immutable_files(),
             IdTrackerEnum::ImmutableIdTracker(id_tracker) => id_tracker.immutable_files(),
             IdTrackerEnum::InMemoryIdTracker(id_tracker) => id_tracker.immutable_files(),
+        }
+    }
+
+    fn clear_cache(&self) -> OperationResult<()> {
+        match self {
+            IdTrackerEnum::MutableIdTracker(id_tracker) => id_tracker.clear_cache(),
+            IdTrackerEnum::ImmutableIdTracker(id_tracker) => id_tracker.clear_cache(),
+            IdTrackerEnum::InMemoryIdTracker(id_tracker) => id_tracker.clear_cache(),
         }
     }
 }

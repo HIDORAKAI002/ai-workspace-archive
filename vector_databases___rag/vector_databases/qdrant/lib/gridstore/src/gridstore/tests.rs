@@ -1080,7 +1080,7 @@ fn test_live_reload() {
     storage.flusher()().unwrap();
 
     // Step 2: Open a reader
-    let mut reader = GridstoreReader::<Payload, MmapFile>::open(path.clone()).unwrap();
+    let mut reader = GridstoreReader::<Payload, MmapFile>::open(&MmapFs, path.clone()).unwrap();
     assert_eq!(reader.max_point_offset(), 2);
 
     // Step 3: Verify reader sees initial data
@@ -1090,7 +1090,7 @@ fn test_live_reload() {
     assert_eq!(v1.as_ref(), Some(&payload_1));
 
     // Step 4: live_reload when nothing changed should be a no-op
-    reader.live_reload().unwrap();
+    reader.live_reload(&MmapFs).unwrap();
     assert_eq!(reader.max_point_offset(), 2);
     let v0 = reader.get_value::<Random>(0, &hw_counter).unwrap();
     assert_eq!(v0.as_ref(), Some(&payload_0));
@@ -1106,7 +1106,7 @@ fn test_live_reload() {
     assert_eq!(reader.max_point_offset(), 2);
 
     // Step 6: live_reload should update max_point_offset and make new data accessible
-    reader.live_reload().unwrap();
+    reader.live_reload(&MmapFs).unwrap();
     assert_eq!(reader.max_point_offset(), 4);
     let v2 = reader.get_value::<Random>(2, &hw_counter).unwrap();
     assert_eq!(v2.as_ref(), Some(&payload_2));
@@ -1156,7 +1156,7 @@ fn test_live_reload_across_pages() {
     let initial_pages = storage.pages.read().num_pages();
 
     // Open reader
-    let mut reader = GridstoreReader::<Payload, MmapFile>::open(path.clone()).unwrap();
+    let mut reader = GridstoreReader::<Payload, MmapFile>::open(&MmapFs, path.clone()).unwrap();
     assert_eq!(reader.max_point_offset(), first_batch);
 
     // Verify reader can read all initial data
@@ -1182,7 +1182,7 @@ fn test_live_reload_across_pages() {
     assert_eq!(reader.max_point_offset(), first_batch);
 
     // Live reload should pick up new pages and data
-    reader.live_reload().unwrap();
+    reader.live_reload(&MmapFs).unwrap();
     assert_eq!(reader.max_point_offset(), first_batch + second_batch);
 
     // Verify all data is readable
@@ -1380,11 +1380,44 @@ fn test_for_each_in_batch_congruent_with_get_value() {
                 batch_results[idx] = value;
                 Ok(())
             },
-            &hw_counter,
+            hw_counter.payload_io_read_counter(),
         )
         .unwrap();
 
     for (i, (single, batch)) in single_results.iter().zip(&batch_results).enumerate() {
         assert_eq!(single, batch, "mismatch at idx {i} (offset {})", offsets[i]);
     }
+}
+
+/// Opening a [`GridstoreReader`] must not require a writable backend: a reader
+/// only reads. Backing it with the write-enforced `ReadOnly<MmapFile>` (which
+/// `debug_assert!`s every open is non-writable) only succeeds if the reader
+/// opens its pages and tracker read-only.
+#[test]
+fn read_only_reader_over_write_enforced_backend() {
+    use common::universal_io::{MmapFile, ReadOnly, UniversalRead, UniversalReadFileOps};
+
+    let hw_counter = HardwareCounterCell::new();
+
+    // Build a writable gridstore, write one value, flush, then drop it.
+    let (dir, mut storage) = empty_storage();
+    let mut payload = Payload::default();
+    payload
+        .0
+        .insert("k".to_string(), serde_json::Value::String("v".to_string()));
+    storage
+        .put_value(0, &payload, hw_counter.ref_payload_io_write_counter())
+        .unwrap();
+    storage.flusher()().unwrap();
+    drop(storage);
+
+    // Reopen read-only over the write-enforced backend.
+    type RoFs = <ReadOnly<MmapFile> as UniversalRead>::Fs;
+    let fs = RoFs::from_context(Default::default()).unwrap();
+    let reader =
+        GridstoreReader::<Payload, ReadOnly<MmapFile>>::open(&fs, dir.path().to_path_buf())
+            .unwrap();
+
+    let stored = reader.get_value::<Random>(0, &hw_counter).unwrap();
+    assert_eq!(stored, Some(payload));
 }

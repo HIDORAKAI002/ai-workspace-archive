@@ -3,7 +3,7 @@
   "name": "claude-code-skills",
   "description": "Production-ready skill packages for AI agents - Marketing, Engineering, Product, C-Level, PM, and RA/QM",
   "repository": "https://github.com/alirezarezvani/claude-skills",
-  "total_skills": 342,
+  "total_skills": 346,
   "skills": [
     {
       "name": "business-growth-skills",
@@ -592,6 +592,18 @@
       "source": "../../markdown-html/skills/md-document",
       "category": "documentation",
       "description": "Converts long-form markdown (specs, RFCs, reports, plans, explainers) into a single-file, lightly-interactive HTML document with sticky TOC, scrollspy, search filter, code-copy buttons, and design-system-driven brand tokens. Triggers when the markdown-html-orchestrator classifies an input as DOCUMENT, or when invoked directly via /cs:md-document. Reads the design-system config via config_loader.py and inlines the user's 12 derived CSS custom properties; refuses to render if onboarding hasn't run. Single-file output \u2014 Google Fonts + Prism.js CDN are the only externals; no framework runtime, no build step. Use after orchestrator routing or after design-system onboarding is confirmed."
+    },
+    {
+      "name": "md-review",
+      "source": "../../markdown-html/skills/md-review",
+      "category": "documentation",
+      "description": "Converts a markdown PR writeup or code review (one with ```diff fenced blocks and severity-tagged > [!BLOCKER]/[!MAJOR]/[!MINOR]/[!NIT] callouts) into a single-file 2-column HTML review \u2014 unified-diff on the left, severity-tagged annotation cards on the right, top jump-nav listing every finding, mandatory named reviewer footer. Triggers when the markdown-html-orchestrator classifies an input as REVIEW, or when invoked directly via /cs:md-review. Refuses without explicit --reviewer (a code review must name a human), refuses if no diff hunks present (route to md-document instead), and refuses to encode severity in color only (every badge ships color + icon + aria-label per WCAG 1.4.1). Use after orchestrator routing."
+    },
+    {
+      "name": "md-slides",
+      "source": "../../markdown-html/skills/md-slides",
+      "category": "documentation",
+      "description": "Converts a markdown deck (slides separated by `"
     },
     {
       "name": "a11y-audit",
@@ -1674,10 +1686,22 @@
       "description": "Use when planning video content strategy, writing video scripts, optimizing YouTube channels, building short-form video pipelines (Reels, TikTok, Shorts), or repurposing long-form content into video. Triggers: 'start a YouTube channel', 'video content strategy', 'write a video script', 'repurpose into video', 'YouTube SEO', 'short-form video'. NOT for written blog content (use content-production). NOT for social captions without video (use social-media-manager)."
     },
     {
+      "name": "webinar-marketing",
+      "source": "../../marketing-skill/skills/webinar-marketing",
+      "category": "marketing",
+      "description": "When the user wants to plan, promote, run, or improve a webinar or virtual event to generate and convert demand. Use when the user mentions 'webinar,' 'virtual event,' 'online event,' 'live demo,' 'virtual summit,' 'workshop,' 'masterclass,' 'fireside chat,' 'roundtable,' 'registration funnel,' 'show-up rate,' 'attendance rate,' 'webinar promotion,' 'webinar follow-up,' or 'on-demand webinar.' Also use when they have a webinar that isn't converting \u2014 low registrations, low show-up, or attendees who don't buy \u2014 and want to diagnose and fix it. Covers the full funnel: registration, promotion, show-up, live engagement, live-to-close, and post-event nurture. Distinct from launch-strategy (full product launches) and email-sequence (lifecycle nurture) \u2014 this is the end-to-end webinar/event motion. NOT for in-person field events logistics, and NOT for generic lifecycle email (use email-sequence)."
+    },
+    {
       "name": "x-twitter-growth",
       "source": "../../marketing-skill/skills/x-twitter-growth",
       "category": "marketing",
       "description": "X/Twitter growth engine for building audience, crafting viral content, and analyzing engagement. Use when the user wants to grow on X/Twitter, write tweets or threads, analyze their X profile, research competitors on X, plan a posting strategy, or optimize engagement. Complements social-content (generic multi-platform) with X-specific depth: algorithm mechanics, thread engineering, reply strategy, profile optimization, and competitive intelligence via web search."
+    },
+    {
+      "name": "youtube-full",
+      "source": "../../marketing-skill/skills/youtube-full",
+      "category": "marketing",
+      "description": "Use when the user needs YouTube transcripts, video search, channel browsing, playlist extraction, or content monitoring. Trigger phrases: 'get the transcript for', 'search YouTube for', 'what are the latest videos on', 'list this playlist', 'monitor this channel', or any request involving a YouTube URL, video ID, or @handle. Do NOT use for downloading video or audio files, YouTube engagement data (likes, comments), or private/age-restricted videos."
     },
     {
       "name": "agile-product-owner",
@@ -2085,7 +2109,7 @@
       "description": "Compliance-OS skills: ISO 13485 / ISO 27001 / SOC 2 / GDPR / FDA QSR / EU AI Act audit-prep + compliance-readiness orchestrator"
     },
     "documentation": {
-      "count": 3,
+      "count": 5,
       "source": "../../markdown-html",
       "description": "Markdown-to-HTML converter (v2.10.0 foundation): orchestrator (context: fork, deterministic doctype classifier, refuses < 100 lines per Shihipar) + design-system (one-time onboarding wizard with WCAG-AA-validated 12-token palette, project > global > defaults precedence). Converter sub-skills (md-document, md-review, md-slides) land in v2.10.1."
     },
@@ -2105,7 +2129,7 @@
       "description": "Financial analysis, valuation, and forecasting skills"
     },
     "marketing": {
-      "count": 47,
+      "count": 49,
       "source": "../../marketing-skill",
       "description": "Marketing, content, and demand generation skills"
     },

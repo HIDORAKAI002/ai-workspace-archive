@@ -50,6 +50,7 @@ where
             vector
         }
         VectorStorageDatatype::Uint8 => random_dense_byte_vector(rnd_gen, dim),
+        VectorStorageDatatype::Turbo4 => unreachable!(),
     }
 }
 
@@ -72,6 +73,7 @@ fn sames_count(a: &[Vec<ScoredPointOffset>], b: &[Vec<ScoredPointOffset>]) -> us
         .count()
 }
 
+#[cfg_attr(target_os = "windows", ignore = "slow on Windows, not OS-specific")]
 #[rstest]
 #[case::nearest_binary_dot(
     QueryVariant::Nearest,

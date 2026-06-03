@@ -285,6 +285,16 @@ impl<'a> NamedVectors<'a> {
             .collect()
     }
 
+    /// Materialise into a fully-owned `NamedVectors<'static>` by cloning
+    /// any borrowed keys/values into owned ones.
+    pub fn into_owned(self) -> NamedVectors<'static> {
+        let mut out = NamedVectors::default();
+        for (name, vector) in self {
+            out.insert(name.into_owned(), vector.to_owned());
+        }
+        out
+    }
+
     pub fn iter(&self) -> impl Iterator<Item = (&VectorName, VectorRef<'_>)> {
         self.map.iter().map(|(k, v)| (k.as_ref(), v.as_vec_ref()))
     }
@@ -346,6 +356,9 @@ impl<'a> NamedVectors<'a> {
             Some(VectorStorageDatatype::Float16) => config
                 .distance
                 .preprocess_vector::<VectorElementTypeHalf>(dense_vector),
+            Some(VectorStorageDatatype::Turbo4) => {
+                unimplemented!("turbo4 datatype storage not yet wired up")
+            }
         }
     }
 }

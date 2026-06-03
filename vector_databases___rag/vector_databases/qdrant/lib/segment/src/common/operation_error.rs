@@ -156,14 +156,18 @@ impl From<UniversalIoError> for OperationError {
             UniversalIoError::Io(err) => Self::from(err),
             UniversalIoError::Mmap(err) => Self::from(err),
 
-            UniversalIoError::BytemuckCast(_)
+            UniversalIoError::Bincode(_)
+            | UniversalIoError::BytemuckCast(_)
             | UniversalIoError::ZerocopySize(_)
             | UniversalIoError::IoUringNotSupported(_)
             | UniversalIoError::NotFound { .. }
             | UniversalIoError::OutOfBounds { .. }
             | UniversalIoError::InvalidFileIndex { .. }
             | UniversalIoError::Uninitialized { .. }
-            | UniversalIoError::QueueIsFull => Self::service_error(err.to_string()),
+            | UniversalIoError::QueueIsFull
+            | UniversalIoError::S3(_)
+            | UniversalIoError::S3Config { .. }
+            | UniversalIoError::TaskPanicked(_) => Self::service_error(err.to_string()),
         }
     }
 }

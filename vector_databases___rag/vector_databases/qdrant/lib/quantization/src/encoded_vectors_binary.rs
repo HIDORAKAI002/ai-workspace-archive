@@ -15,6 +15,7 @@ use fs_err as fs;
 use serde::{Deserialize, Serialize};
 use strum::EnumIter;
 
+use crate::encoded_storage::validate_storage_vector_size;
 use crate::encoded_vectors::validate_vector_parameters;
 use crate::vector_stats::{VectorElementStats, VectorStats};
 use crate::{
@@ -514,6 +515,12 @@ impl<TBitsStoreType: BitsStoreType, TStorage: EncodedStorage>
             encoded_vectors,
             bits_store_type: PhantomData,
         };
+
+        // Validate the storage's vector size against the metadata once here, so the size
+        // invariant the scoring hot path relies on (it XORs the stored vector against an
+        // equally-sized query) also holds in release builds without a per-score check.
+        validate_storage_vector_size(&result.encoded_vectors, result.quantized_vector_size())?;
+
         Ok(result)
     }
 
@@ -828,6 +835,10 @@ impl<TBitsStoreType: BitsStoreType, TStorage: EncodedStorage> EncodedVectors
 {
     type EncodedQuery = EncodedQueryBQ<TBitsStoreType>;
 
+    fn is_in_ram_or_mmap() -> bool {
+        TStorage::is_in_ram_or_mmap()
+    }
+
     fn is_on_disk(&self) -> bool {
         self.encoded_vectors.is_on_disk()
     }
@@ -842,11 +853,11 @@ impl<TBitsStoreType: BitsStoreType, TStorage: EncodedStorage> EncodedVectors
         )
     }
 
-    fn for_each_in_batch<F>(&self, offsets: &[PointOffsetType], callback: F)
-    where
-        F: FnMut(usize, &[u8]),
-    {
-        self.encoded_vectors.for_each_in_batch(offsets, callback);
+    fn iter_batch(
+        &self,
+        offsets: &[PointOffsetType],
+    ) -> impl Iterator<Item = (usize, Cow<'_, [u8]>)> {
+        self.encoded_vectors.iter_batch(offsets)
     }
 
     fn score(
@@ -1073,7 +1084,6 @@ unsafe extern "C" {
     ) -> u32;
 }
 
-#[allow(missing_docs)]
 #[cfg(target_arch = "x86_64")]
 #[target_feature(enable = "avx512vl")]
 #[target_feature(enable = "avx512vpopcntdq")]

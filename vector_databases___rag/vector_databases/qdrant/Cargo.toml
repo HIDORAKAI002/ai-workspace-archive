@@ -1,6 +1,6 @@
 [package]
 name = "qdrant"
-version = "1.18.1"
+version = "1.18.2"
 description = "Qdrant - Vector Search engine"
 authors = [
     "Andrey Vasnetsov <andrey@vasnetsov.com>",
@@ -87,6 +87,7 @@ tonic = { workspace = true }
 tonic-reflection = { workspace = true }
 tower = { version = "0.5.3", features = ["util"] }
 tower-layer = "0.3.3"
+http = { workspace = true }
 reqwest = { workspace = true }
 # rustls minor version must be synced with actix-web
 rustls = { version = "0.23.37", default-features = false, features = [
@@ -100,9 +101,6 @@ rustls-pemfile = "2.2.0"
 prometheus = { version = "0.14.0", default-features = false }
 validator = { workspace = true }
 jsonwebtoken = { version = "10.0", features = ["rust_crypto"] }
-
-murmur3 = { git = "https://github.com/qdrant/murmur3", rev = "2c39087" }
-
 tempfile = { workspace = true }
 
 # Consensus related crates
@@ -125,6 +123,7 @@ shard = { path = "lib/shard", default-features = false }
 collection = { path = "lib/collection" }
 storage = { path = "lib/storage" }
 api = { path = "lib/api" }
+bm25 = { path = "lib/bm25" }
 gpu = { path = "lib/gpu" }
 wal = { path = "lib/wal" }
 
@@ -219,7 +218,7 @@ chrono = { version = "0.4.44", features = ["serde"] }
 clap = { version = "4.6.1", features = ["derive", "env"] }
 criterion = "0.8.2"
 data-encoding = "2.11.0"
-ecow = { version = "0.2.6", features = ["serde"] }
+ecow = { version = "0.3.0", features = ["serde"] }
 env_logger = "0.11"
 fnv = "1.0"
 fs4 = "1.1.0"
@@ -234,7 +233,7 @@ half = { version = "2.7.1", features = [
     "serde",
     "num-traits",
 ] }
-http = "1.4.0"
+http = "1.4.1"
 humantime = "2.3.0"
 indexmap = { version = "2", features = ["serde"] }
 url = { version = "2.5.8", features = ["serde"] }
@@ -242,27 +241,30 @@ urlencoding = "2.1.3"
 indicatif = { version = "0.18.4", features = ["rayon"] }
 integer-encoding = "4.1.0"
 itertools = "0.14.0"
-log = "0.4.29"
+log = "0.4.31"
 memmap2 = "0.9.10"
 mockito = "1.7"
+murmur3_32 = "0.1"
 nix = { version = "0.31", features = ["fs", "feature"] }
 num-traits = "0.2.19"
+num_cpus = "1.17"
+object_store = { version = "0.13.2", features = ["aws", "gcp", "azure"] }
 ordered-float = { version = "5.3.0", features = ["serde", "schemars", "bytemuck"] }
 rayon = "1.12.0"
 parking_lot = { version = "0.12.5", features = ["arc_lock", "deadlock_detection", "serde"] }
 ph = "0.8.5"
 pprof = { version = "0.15.0", features = ["flamegraph", "prost-codec"] }
 proptest = { version = "1.11.0", default-features = false, features = ["std"] }
-prost = "0.12.6"
-prost-build = { version = "0.12.6", features = ["cleanup-markdown"] }
-prost-wkt-types = "0.5"
+prost = "0.14.0"
+prost-build = { version = "0.14.0", features = ["cleanup-markdown"] }
+prost-wkt-types = "0.7"
 prost-for-raft = { package = "prost", version = "=0.11.9" } # version of prost used by raft
 raft = { git = "https://github.com/tikv/raft-rs", rev = "aafb07c7bab439c6139926a77dfafc5b10e9bc84" ,features = ["prost-codec"], default-features = false }
 rand = "0.10.1"
 rand_distr = "0.6.0"
 rmp-serde = "~1.3"
 roaring = "0.11.4"
-reqwest = { version = "0.13.3", default-features = false, features = [
+reqwest = { version = "0.13.4", default-features = false, features = [
     "json",
     "http2",
     "stream",
@@ -285,6 +287,7 @@ serde_variant = "0.1.3"
 serde_with = "3.20.0"
 sha2 = "0.11.0"
 serde_json = { version = "~1.0", features = ["preserve_order"] }
+slab = "0.4.12"
 strum = { version = "0.28.0", features = ["derive"] }
 tap = "1.0.1"
 tar = "0.4.46"
@@ -292,13 +295,14 @@ tempfile = "3.27.0"
 tinyvec = { version = "1.11.0", features = ["alloc", "latest_stable_rust"] }
 tokio = { version = "1.52.3", features = ["full"] }
 tokio-util = { version = "0.7", features = ["io", "io-util", "rt"] }
-tonic = { version = "0.11.0", features = ["gzip", "tls"] }
-tonic-build = { version = "0.11.0", features = ["prost"] }
-tonic-reflection = "0.11.0"
+tonic = { version = "0.14.6", features = ["gzip", "tls-ring"] }
+tonic-prost = { version = "0.14.6" }
+tonic-prost-build = { version = "0.14.6" }
+tonic-reflection = "0.14.6"
 tracing = { version = "0.1", features = ["async-await"] }
 uuid = { version = "1.23", features = ["v4", "serde"] }
 validator = { version = "0.20.0", features = ["derive"] }
-zerocopy = { version = "0.8.48", features = ["derive"] }
+zerocopy = { version = "0.8.50", features = ["derive"] }
 atomic_refcell = "0.1.14"
 byteorder = "1.5.0"
 thiserror = "2.0.18"
@@ -308,8 +312,7 @@ dashmap = "6.2"
 walkdir = "2.5.0"
 
 [patch.crates-io]
-tonic = { git = "https://github.com/qdrant/tonic", branch = "v0.11.0-qdrant" }
-hyper = { git = "https://github.com/qdrant/hyper", branch = "v0.14.26-qdrant" }
+tonic = { git = "https://github.com/qdrant/tonic", branch = "v0.14.6-qdrant" }
 
 [[bin]]
 name = "schema_generator"
@@ -342,7 +345,7 @@ required-features = ["service_debug"]
 
 [workspace]
 members = [
-    "lib/api",
+    "lib/api", "lib/bm25",
     "lib/collection",
     "lib/common/*",
     "lib/edge",

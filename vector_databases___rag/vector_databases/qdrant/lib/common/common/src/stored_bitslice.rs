@@ -10,14 +10,36 @@ use std::path::Path;
 
 use bitvec::mem::BitRegister;
 use bitvec::order::Lsb0;
-use itertools::Itertools;
+use itertools::{Either, Itertools};
 
 use crate::bitvec::BitVec;
 use crate::generic_consts::Random;
 use crate::universal_io::{
     Flusher, OpenOptions, ReadRange, Result, TypedStorage, UniversalIoError, UniversalRead,
-    UniversalWrite,
+    UniversalReadFs, UniversalWrite,
 };
+
+/// `IterOnes` view over a `BitSlice<u64, Lsb0>` — type alias so `self_cell`
+/// can refer to it as a single-lifetime type constructor.
+type IterOnesView<'a> = bitvec::slice::IterOnes<'a, BitStore, Lsb0>;
+
+self_cell::self_cell!(
+    /// Owns a `BitVec` and the `IterOnes` cursor over it, so an owned-path
+    /// `iter_ones()` can return without collecting set positions into a `Vec`.
+    struct OwnedOnes {
+        owner: BitVec,
+        #[covariant]
+        dependent: IterOnesView,
+    }
+);
+
+impl Iterator for OwnedOnes {
+    type Item = u64;
+
+    fn next(&mut self) -> Option<u64> {
+        self.with_dependent_mut(|_, it| it.next()).map(|i| i as u64)
+    }
+}
 
 /// Number of bits per `BitStore` element.
 const BITS_PER_ELEMENT: u32 = BitStore::BITS;
@@ -43,13 +65,24 @@ pub struct StoredBitSlice<S> {
 
 impl<S: UniversalRead> StoredBitSlice<S> {
     /// Open a bitslice storage from the given path using backend `S`.
-    pub fn open(path: impl AsRef<Path>, options: OpenOptions) -> Result<Self> {
-        let storage = TypedStorage::open(path, options)?;
+    pub fn open(
+        fs: &S::Fs,
+        path: impl AsRef<Path>,
+        options: OpenOptions,
+        extra: <S::Fs as UniversalReadFs>::OpenExtra,
+    ) -> Result<Self> {
+        let storage = TypedStorage::open(fs, path, options, extra)?;
         let element_len = storage.len()?;
         Ok(Self {
             storage,
             element_len,
         })
+    }
+
+    pub fn reopen(&mut self) -> Result<()> {
+        self.storage.reopen()?;
+        self.element_len = self.storage.len()?;
+        Ok(())
     }
 
     /// Total number of bits available.
@@ -133,6 +166,23 @@ impl<S: UniversalRead> StoredBitSlice<S> {
     /// Count the number of set bits in the entire storage.
     pub fn count_ones(&self) -> Result<usize> {
         Ok(self.read_all()?.count_ones())
+    }
+
+    /// Iterate the bit indices of all set bits, in ascending order.
+    ///
+    /// Zero-copy on backends that support it (mmap): the iterator borrows the
+    /// mapped pages. On owned-read backends the iterator carries the materialized
+    /// `BitVec` alongside its `IterOnes` cursor via [`OwnedOnes`], so no
+    /// intermediate `Vec` of set positions is allocated. Reads the whole storage
+    /// including any trailing capacity, so callers that keep unused capacity
+    /// cleared get back exactly their set positions.
+    pub fn iter_ones(&self) -> Result<impl Iterator<Item = u64> + '_> {
+        let cow_bitslice = self.read_all()?;
+        let iter = match cow_bitslice {
+            Cow::Borrowed(bitslice) => Either::Left(bitslice.iter_ones().map(|i| i as u64)),
+            Cow::Owned(bitvec) => Either::Right(OwnedOnes::new(bitvec, |bv| bv.iter_ones())),
+        };
+        Ok(iter)
     }
 
     /// Get a single bit at the given bit index.
@@ -322,6 +372,7 @@ mod tests {
     use tempfile::NamedTempFile;
 
     use super::*;
+    use crate::universal_io::MmapFs;
 
     fn create_temp_file(data: &[u8]) -> NamedTempFile {
         let mut f = NamedTempFile::new().unwrap();
@@ -354,7 +405,7 @@ mod tests {
         let f = create_temp_file(&data);
 
         let storage: MmapBitSlice =
-            StoredBitSlice::open(f.path(), OpenOptions::new_for_test()).unwrap();
+            StoredBitSlice::open(&MmapFs, f.path(), OpenOptions::new_for_test(), ()).unwrap();
 
         assert_eq!(storage.element_len(), 2);
         assert_eq!(storage.bit_len(), 128);
@@ -408,7 +459,7 @@ mod tests {
         let f = create_temp_file(&data);
 
         let storage: MmapBitSlice =
-            StoredBitSlice::open(f.path(), OpenOptions::new_for_test()).unwrap();
+            StoredBitSlice::open(&MmapFs, f.path(), OpenOptions::new_for_test(), ()).unwrap();
 
         // Lsb0: 0xB2 = bits [0,1,0,0,1,1,0,1]
         assert_eq!(storage.get_bit(0).unwrap(), Some(false));
@@ -427,7 +478,7 @@ mod tests {
         let f = create_temp_file(&[0x00; 8]);
 
         let mut storage: MmapBitSlice =
-            StoredBitSlice::open(f.path(), OpenOptions::new_for_test()).unwrap();
+            StoredBitSlice::open(&MmapFs, f.path(), OpenOptions::new_for_test(), ()).unwrap();
 
         // Set bit 3
         storage.replace_bit(3, true).unwrap();
@@ -444,7 +495,7 @@ mod tests {
         let f = create_temp_file(&[0x00; 8]);
 
         let mut storage: MmapBitSlice =
-            StoredBitSlice::open(f.path(), OpenOptions::new_for_test()).unwrap();
+            StoredBitSlice::open(&MmapFs, f.path(), OpenOptions::new_for_test(), ()).unwrap();
 
         assert!(storage.replace_bit(storage.bit_len(), true).is_err());
     }
@@ -453,7 +504,7 @@ mod tests {
     fn test_replace_bit() {
         let f = create_temp_file(&[0xFF; 8]); // all bits set
         let mut storage: MmapBitSlice =
-            StoredBitSlice::open(f.path(), OpenOptions::new_for_test()).unwrap();
+            StoredBitSlice::open(&MmapFs, f.path(), OpenOptions::new_for_test(), ()).unwrap();
 
         // Replace bit 2 (was true) with false
         let old = storage.replace_bit(2, false).unwrap();
@@ -472,7 +523,7 @@ mod tests {
         let f = create_temp_file(&[0x00; (NUM_BITS / 8) as usize]);
 
         let mut storage: MmapBitSlice =
-            StoredBitSlice::open(f.path(), OpenOptions::new_for_test()).unwrap();
+            StoredBitSlice::open(&MmapFs, f.path(), OpenOptions::new_for_test(), ()).unwrap();
         assert_eq!(storage.bit_len(), NUM_BITS);
 
         /// Verify every bit in storage matches the predicate.
@@ -549,14 +600,14 @@ mod tests {
         let f = create_temp_file(&[0x00; 8]);
 
         let mut storage: MmapBitSlice =
-            StoredBitSlice::open(f.path(), OpenOptions::new_for_test()).unwrap();
+            StoredBitSlice::open(&MmapFs, f.path(), OpenOptions::new_for_test(), ()).unwrap();
 
         storage.replace_bit(0, true).unwrap();
         storage.flusher()().unwrap();
 
         // Reopen and verify persistence
         let storage2: MmapBitSlice =
-            StoredBitSlice::open(f.path(), OpenOptions::new_for_test()).unwrap();
+            StoredBitSlice::open(&MmapFs, f.path(), OpenOptions::new_for_test(), ()).unwrap();
         assert_eq!(storage2.get_bit(0).unwrap(), Some(true));
     }
 
@@ -565,7 +616,7 @@ mod tests {
         let f = create_temp_file(&[0u8; 16]); // 2 u64 elements
 
         let storage: MmapBitSlice =
-            StoredBitSlice::open(f.path(), OpenOptions::new_for_test()).unwrap();
+            StoredBitSlice::open(&MmapFs, f.path(), OpenOptions::new_for_test(), ()).unwrap();
 
         assert_eq!(storage.element_len(), 2);
         assert_eq!(storage.bit_len(), 128);
@@ -577,11 +628,26 @@ mod tests {
         let f = create_temp_file(&data);
 
         let storage: MmapBitSlice =
-            StoredBitSlice::open(f.path(), OpenOptions::new_for_test()).unwrap();
+            StoredBitSlice::open(&MmapFs, f.path(), OpenOptions::new_for_test(), ()).unwrap();
 
         let bs = storage.read_all().unwrap();
         assert_eq!(bs.len(), storage.bit_len() as usize);
         // With mmap backend, read_all returns Cow::Borrowed (zero-copy)
         assert!(matches!(bs, Cow::Borrowed(_)));
+    }
+
+    #[test]
+    fn test_owned_ones_walks_all_set_bits() {
+        // The owned path of `iter_ones` carries the BitVec alongside its
+        // IterOnes cursor via OwnedOnes. Verify the cursor actually advances
+        // and yields every set position — coszio's retracted from_fn shape
+        // failed this exact test (it re-yielded the first set bit forever).
+        let mut bv: BitVec = BitVec::repeat(false, 200);
+        for i in [1u64, 3, 4, 64, 65, 199] {
+            bv.set(i as usize, true);
+        }
+        let iter = OwnedOnes::new(bv, |bv| bv.iter_ones());
+        let collected: Vec<u64> = iter.collect();
+        assert_eq!(collected, vec![1, 3, 4, 64, 65, 199]);
     }
 }

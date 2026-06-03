@@ -4,7 +4,8 @@ use ahash::{AHashMap, AHashSet};
 use common::generic_consts::Random;
 use common::mmap::{Advice, AdviceSetting, create_and_ensure_length};
 use common::universal_io::{
-    OpenOptions, Populate, ReadRange, UniversalIoError, UniversalRead, UniversalWrite,
+    OpenOptions, Populate, ReadRange, UniversalIoError, UniversalRead, UniversalReadFs,
+    UniversalWrite,
 };
 use smallvec::SmallVec;
 
@@ -16,13 +17,16 @@ pub type BlockOffset = u32;
 pub type PageId = u32;
 
 /// OpenOptions for the tracker file (random access, no populate).
-fn tracker_open_options() -> OpenOptions {
+///
+/// `writeable` is `false` for read-only readers (so the backend may be
+/// write-enforced, e.g. `ReadOnly<MmapFile>`) and `true` for the writable
+/// tracker that appends pointers.
+fn tracker_open_options(writeable: bool) -> OpenOptions {
     OpenOptions {
-        writeable: true,
+        writeable,
         need_sequential: false,
         populate: Populate::No,
         advice: AdviceSetting::Advice(Advice::Random),
-        extra: Default::default(),
     }
 }
 
@@ -265,9 +269,9 @@ impl<S> Tracker<S> {
 impl<S: UniversalRead> Tracker<S> {
     /// Open an existing PageTracker at the given path
     /// If the file does not exist, return an error
-    pub fn open(path: &Path) -> Result<Self> {
+    pub fn open(fs: &S::Fs, path: &Path, writeable: bool) -> Result<Self> {
         let path = Self::tracker_file_name(path);
-        let storage = Self::open_storage(&path)?;
+        let storage = Self::open_storage(fs, &path, writeable)?;
         let header: TrackerHeader = Self::read_header(&storage)?;
         let pending_updates = AHashMap::new();
         Ok(Self {
@@ -284,9 +288,11 @@ impl<S: UniversalRead> Tracker<S> {
         Ok(header)
     }
 
-    fn open_storage(path: &Path) -> Result<S> {
-        let storage = match S::open(path, tracker_open_options()) {
+    fn open_storage(fs: &S::Fs, path: &Path, writeable: bool) -> Result<S> {
+        let storage = match fs.open(path, tracker_open_options(writeable), Default::default()) {
             Err(UniversalIoError::NotFound { .. }) => {
+                // If config exists and storage doesn't,
+                // it should be treated as inconsistent storage rather than a missing one
                 return Err(GridstoreError::service_error(format!(
                     "Tracker file does not exist: {}",
                     path.display()
@@ -321,7 +327,7 @@ impl<S: UniversalRead> Tracker<S> {
         } else {
             // reopen storage to make new data visible
             // For some storages it should be a no-op.
-            self.storage = Self::open_storage(&self.path)?;
+            self.storage.reopen()?;
 
             // Update in-memory state to reflect new pointers
             self.header = new_header;
@@ -465,7 +471,7 @@ where
 
     /// Create a new PageTracker at the given dir path
     /// The file is created with the default size if no size hint is given
-    pub fn new(path: &Path, size_hint: Option<usize>) -> Result<Self> {
+    pub fn new(fs: &S::Fs, path: &Path, size_hint: Option<usize>) -> Result<Self> {
         let path = Self::tracker_file_name(path);
         let size = size_hint.unwrap_or(Self::DEFAULT_SIZE).next_power_of_two();
         assert!(
@@ -473,7 +479,7 @@ where
             "Size hint is too small"
         );
         create_and_ensure_length(&path, size)?;
-        let storage = S::open(&path, tracker_open_options())?;
+        let storage = fs.open(&path, tracker_open_options(true), Default::default())?;
         let header = TrackerHeader::default();
         let pending_updates = AHashMap::new();
         let mut page_tracker = Self {
@@ -582,7 +588,7 @@ where
             self.storage.flusher()()?;
             let new_size = end_offset.next_power_of_two();
             create_and_ensure_length(&self.path, new_size)?;
-            self.storage = S::open(&self.path, tracker_open_options())?;
+            self.storage.reopen()?;
         }
 
         let pointer = OptionalPointer::from(pointer);
@@ -623,7 +629,7 @@ where
 mod tests {
     use std::path::PathBuf;
 
-    use common::universal_io::MmapFile;
+    use common::universal_io::{MmapFile, MmapFs};
     use rstest::rstest;
     use tempfile::Builder;
 
@@ -643,7 +649,7 @@ mod tests {
     fn test_page_tracker_files() {
         let file = Builder::new().prefix("test-tracker").tempdir().unwrap();
         let path = file.path();
-        let tracker = TestTracker::new(path, None).unwrap();
+        let tracker = TestTracker::new(&MmapFs, path, None).unwrap();
         let files = tracker.files();
         assert_eq!(files.len(), 1);
         assert_eq!(files[0], path.join(TestTracker::FILE_NAME));
@@ -653,7 +659,7 @@ mod tests {
     fn test_new_tracker() {
         let file = Builder::new().prefix("test-tracker").tempdir().unwrap();
         let path = file.path();
-        let tracker = TestTracker::new(path, None).unwrap();
+        let tracker = TestTracker::new(&MmapFs, path, None).unwrap();
         assert!(tracker.is_empty());
         assert_eq!(tracker.mapping_len().unwrap(), 0);
         assert_eq!(tracker.pointer_count(), 0);
@@ -666,7 +672,7 @@ mod tests {
     fn test_mapping_len_tracker(#[case] initial_tracker_size: usize) {
         let file = Builder::new().prefix("test-tracker").tempdir().unwrap();
         let path = file.path();
-        let mut tracker = TestTracker::new(path, Some(initial_tracker_size)).unwrap();
+        let mut tracker = TestTracker::new(&MmapFs, path, Some(initial_tracker_size)).unwrap();
         assert!(tracker.is_empty());
         tracker.set(0, ValuePointer::new(1, 1, 1));
 
@@ -690,7 +696,7 @@ mod tests {
     fn test_set_get_clear_tracker(#[case] initial_tracker_size: usize) {
         let file = Builder::new().prefix("test-tracker").tempdir().unwrap();
         let path = file.path();
-        let mut tracker = TestTracker::new(path, Some(initial_tracker_size)).unwrap();
+        let mut tracker = TestTracker::new(&MmapFs, path, Some(initial_tracker_size)).unwrap();
         tracker.set(0, ValuePointer::new(1, 1, 1));
         tracker.set(1, ValuePointer::new(2, 2, 2));
         tracker.set(2, ValuePointer::new(3, 3, 3));
@@ -751,7 +757,7 @@ mod tests {
 
         let value_count: usize = 1000;
 
-        let mut tracker = TestTracker::new(path, Some(initial_tracker_size)).unwrap();
+        let mut tracker = TestTracker::new(&MmapFs, path, Some(initial_tracker_size)).unwrap();
 
         for i in 0..value_count {
             // save only half of the values
@@ -768,7 +774,7 @@ mod tests {
         drop(tracker);
 
         // reopen the tracker
-        let tracker = TestTracker::open(path).unwrap();
+        let tracker = TestTracker::open(&MmapFs, path, true).unwrap();
         assert_eq!(tracker.mapping_len().unwrap(), value_count / 2);
         assert_eq!(tracker.pointer_count(), value_count as u32 - 1);
 
@@ -797,7 +803,7 @@ mod tests {
         let file = Builder::new().prefix("test-tracker").tempdir().unwrap();
         let path = file.path();
 
-        let mut tracker = TestTracker::new(path, Some(desired_tracker_size)).unwrap();
+        let mut tracker = TestTracker::new(&MmapFs, path, Some(desired_tracker_size)).unwrap();
         assert_eq!(tracker.mapping_len().unwrap(), 0);
         assert_eq!(tracker.mmap_file_size().unwrap(), actual_tracker_size);
 
@@ -816,7 +822,7 @@ mod tests {
         let file = Builder::new().prefix("test-tracker").tempdir().unwrap();
         let path = file.path();
 
-        let mut tracker = TestTracker::new(path, None).unwrap();
+        let mut tracker = TestTracker::new(&MmapFs, path, None).unwrap();
         assert_eq!(tracker.mapping_len().unwrap(), 0);
 
         let page_pointer = ValuePointer::new(1, 1, 1);

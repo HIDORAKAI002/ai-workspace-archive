@@ -12,7 +12,7 @@ use fs_err as fs;
 use serde::{Deserialize, Serialize};
 
 use crate::EncodingError;
-use crate::encoded_storage::{EncodedStorage, EncodedStorageBuilder};
+use crate::encoded_storage::{EncodedStorage, EncodedStorageBuilder, validate_storage_vector_size};
 use crate::encoded_vectors::{
     DistanceType, EncodedVectors, VectorParameters, validate_vector_parameters,
 };
@@ -320,6 +320,12 @@ impl<TStorage: EncodedStorage> EncodedVectorsU8<TStorage> {
             metadata,
             metadata_path: Some(meta_path.to_path_buf()),
         };
+
+        // Validate the storage's vector size against the metadata once here, so the size
+        // invariant the hot path in `score_bytes` relies on (it reads `actual_dim` bytes past a
+        // fixed offset) also holds in release builds without a per-score check.
+        validate_storage_vector_size(&result.encoded_vectors, result.quantized_vector_size())?;
+
         Ok(result)
     }
 
@@ -592,6 +598,10 @@ pub fn get_quantized_vector_size(vector_parameters: &VectorParameters) -> usize 
 impl<TStorage: EncodedStorage> EncodedVectors for EncodedVectorsU8<TStorage> {
     type EncodedQuery = EncodedQueryU8;
 
+    fn is_in_ram_or_mmap() -> bool {
+        TStorage::is_in_ram_or_mmap()
+    }
+
     fn is_on_disk(&self) -> bool {
         self.encoded_vectors.is_on_disk()
     }
@@ -602,11 +612,11 @@ impl<TStorage: EncodedStorage> EncodedVectors for EncodedVectorsU8<TStorage> {
         }
     }
 
-    fn for_each_in_batch<F>(&self, offsets: &[PointOffsetType], callback: F)
-    where
-        F: FnMut(usize, &[u8]),
-    {
-        self.encoded_vectors.for_each_in_batch(offsets, callback);
+    fn iter_batch(
+        &self,
+        offsets: &[PointOffsetType],
+    ) -> impl Iterator<Item = (usize, Cow<'_, [u8]>)> {
+        self.encoded_vectors.iter_batch(offsets)
     }
 
     fn score(
@@ -743,6 +753,9 @@ impl<TStorage: EncodedStorage> EncodedVectors for EncodedVectorsU8<TStorage> {
             .cpu_counter()
             .incr_delta(self.metadata.vector_parameters().dim);
 
+        // For storage-derived vectors this invariant is validated once at load time (see
+        // `load`), so we only assert it here in debug builds to also cover externally provided
+        // byte slices without adding overhead to this hot path in release builds.
         debug_assert!(bytes.len() >= ADDITIONAL_CONSTANT_SIZE + self.metadata.actual_dim());
 
         #[cfg(target_arch = "x86_64")]

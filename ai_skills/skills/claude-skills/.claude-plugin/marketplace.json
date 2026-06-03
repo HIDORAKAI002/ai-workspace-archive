@@ -4,12 +4,12 @@
     "name": "Alireza Rezvani",
     "url": "https://alirezarezvani.com"
   },
-  "description": "341 production-ready skill packages for Claude AI across 17 domains: engineering advanced (78, incl. v2.9.0 workflow-builder for Claude Code Workflow-tool authoring), engineering core (51), marketing (46 — incl. AEO/Answer Engine Optimization), c-level advisory (66), product (17), regulatory/QMS (18), compliance-os (9), project management (9), business growth (5), finance (4), productivity (6), marketing top-level (1), research (8), research-ops (5, v2.9.0), business-operations (7), commercial (8), and markdown-html (3, v2.10.1 — markdown-to-interactive-HTML converter). Includes 542 Python tools, 685 reference documents, 51+ agents, 88+ slash commands across 64 marketplace plugins.",
+  "description": "343 production-ready skill packages for Claude AI across 17 domains: engineering advanced (78, incl. v2.9.0 workflow-builder for Claude Code Workflow-tool authoring), engineering core (51), marketing (46 — incl. AEO/Answer Engine Optimization), c-level advisory (66), product (17), regulatory/QMS (18), compliance-os (9), project management (9), business growth (5), finance (4), productivity (6), marketing top-level (1), research (8), research-ops (5, v2.9.0), business-operations (7), commercial (8), and markdown-html (5, v2.10.3 — markdown-to-interactive-HTML converter complete: orchestrator + design-system + md-document long-form + md-review code-review + md-slides slide-deck). Includes 548 Python tools, 691 reference documents, 51+ agents, 90+ slash commands across 64 marketplace plugins.",
   "homepage": "https://github.com/alirezarezvani/claude-skills",
   "repository": "https://github.com/alirezarezvani/claude-skills",
   "metadata": {
-    "description": "341 production-ready skills across 17 domains (engineering, engineering-core, marketing, product, c-level, compliance-os, project management, RA/QM, business growth, finance, productivity, marketing top-level, research, research-ops, business-operations, commercial, markdown-html, plus standards). 542 Python tools, 685 reference guides, 51+ agents (cs-* + personas), 88+ slash commands across 64 marketplace plugins. v2.10.1 adds md-document to the markdown-html domain — the long-form markdown-to-single-file-HTML converter (sticky TOC + scrollspy + search filter + code-copy buttons + GFM tables/callouts + Prism.js autoloader; reads the design-system's WCAG-AA-validated 12-token palette so brand changes flow through to every conversion). v2.10.0 shipped the markdown-html foundation (orchestrator + design-system). v2.9.0 shipped the research-ops domain (clinical-research + research-finance + market-research + product-research + orchestrator) with per-skill onboarding, customization config, and an opt-in autoresearch bridge, plus the engineering workflow-builder skill. Compatible with Claude Code, Codex CLI, Gemini CLI, Cursor, OpenClaw, Hermes Agent, Mistral Vibe, and 5 more coding agents.",
-    "version": "2.10.1"
+    "description": "343 production-ready skills across 17 domains (engineering, engineering-core, marketing, product, c-level, compliance-os, project management, RA/QM, business growth, finance, productivity, marketing top-level, research, research-ops, business-operations, commercial, markdown-html, plus standards). 548 Python tools, 691 reference guides, 51+ agents (cs-* + personas), 90+ slash commands across 64 marketplace plugins. v2.10.3 completes the markdown-html domain with md-slides — slide-deck converter (arrow-key / Space / PgDn / Home/End / P keyboard navigation + presenter mode with split-view clock + speaker notes + next-slide preview + URL-hash deep linking like #3 for direct slide jumps + @media print page-per-slide for browser-native PDF export). Reuses md-document's markdown parser; vanilla JS only (no framework runtime); Prism.js opt-in via --syntax. Joins md-review (v2.10.2 code-review converter), md-document (v2.10.1 long-form converter), and the v2.10.0 foundation (orchestrator + design-system). Compatible with Claude Code, Codex CLI, Gemini CLI, Cursor, OpenClaw, Hermes Agent, Mistral Vibe, and 5 more coding agents.",
+    "version": "2.10.3"
   },
   "plugins": [
     {
@@ -1404,8 +1404,8 @@
     {
       "name": "markdown-html-skills",
       "source": "./markdown-html",
-      "description": "Convert long markdown files into world-class single-file interactive HTML. v2.10.1 ships md-document — the long-form converter (sticky TOC + scrollspy + search filter + code-copy buttons + GFM tables/callouts + fenced code with Prism.js autoloader + 12 brand CSS custom properties) on top of the v2.10.0 foundation: markdown-html-orchestrator (context: fork; deterministic doc-type classifier; refuses < 100 lines per Shihipar; refuses without onboarding) + design-system (10-question onboarding wizard; WCAG-AA-validated 12-token palette; project > global > defaults precedence; MARKDOWN_HTML_NO_CONFIG=1 bypass). 9 stdlib-only Python tools, 9 references citing 5-7 sources each, 2 template/schema assets. Inspired by Thariq Shihipar's Claude Code HTML output essay (Medium, 2026). Outputs are single self-contained .html files; only externals are Google Fonts CSS and Prism.js CDN. Converter sub-skills md-review + md-slides land in v2.10.2 follow-up PRs.",
-      "version": "2.10.1",
+      "description": "Convert long markdown files into world-class single-file interactive HTML — DOMAIN COMPLETE at v2.10.3 (5 skills). v2.10.3 adds md-slides — the slide-deck converter (arrow-key / Space / PgDn / Home / End / P keyboard navigation + presenter mode with split-view clock + speaker notes + next-slide preview + URL-hash deep linking like #3 + @media print page-per-slide for browser-native PDF export; reuses md-document's markdown parser; vanilla JS only; Prism.js opt-in via --syntax for code-heavy decks). Joins md-review (v2.10.2 code-review converter: 2-col diff + severity-tagged margin annotations + WCAG-1.4.1 badges + mandatory named reviewer footer), md-document (v2.10.1 long-form converter: sticky TOC + scrollspy + search + code-copy + Prism autoloader), markdown-html-orchestrator (v2.10.0 context: fork; deterministic doc-type classifier; refuses < 100 lines per Shihipar; refuses without onboarding), and design-system (v2.10.0 10-question onboarding wizard; WCAG-AA 12-token palette; project > global > defaults precedence; MARKDOWN_HTML_NO_CONFIG=1 bypass). 15 stdlib-only Python tools, 15 references citing 5-7 sources each, 4 template/schema assets. Inspired by Thariq Shihipar's Claude Code HTML output essay (Medium, 2026).",
+      "version": "2.10.3",
       "author": {
         "name": "Alireza Rezvani"
       },
@@ -1427,6 +1427,27 @@
         "context-fork"
       ],
       "category": "documentation"
+    },
+    {
+      "name": "youtube-full",
+      "source": "./marketing-skill/skills/youtube-full",
+      "description": "YouTube transcripts, video search, channel browsing, playlist extraction, and upload monitoring via TranscriptAPI. BYOK — 100 free credits. OSS fallbacks: youtube-transcript-api / yt-dlp.",
+      "version": "2.9.0",
+      "author": {
+        "name": "therohitdas"
+      },
+      "keywords": [
+        "youtube",
+        "transcript",
+        "video",
+        "channel",
+        "playlist",
+        "search",
+        "content-monitoring",
+        "marketing",
+        "transcriptapi"
+      ],
+      "category": "marketing"
     }
   ]
 }
