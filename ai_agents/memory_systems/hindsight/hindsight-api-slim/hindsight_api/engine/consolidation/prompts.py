@@ -65,7 +65,7 @@ _DECISION_GUIDE = """## DECISION GUIDE
 # Output format — JSON braces escaped as {{ }} so .format() leaves them literal
 _OUTPUT_SECTION = """## OUTPUT FORMAT
 
-Return a JSON object with three arrays: `creates`, `updates`, `deletes`.
+Return a JSON object with three arrays: `creates`, `updates`, `deletes`. Every entry must include a `reason`.
 
 ### Example 1 — Merging recurring claims into an existing observation
 
@@ -79,7 +79,7 @@ Existing observation:
 Expected output (one UPDATE, no creates — both new facts are additional evidence for the same canonical decision):
 
 {{"creates": [],
-  "updates": [{{"text": "Donald named Athena's sovereignty as a foundational principle of the Janus architecture.", "observation_id": "11111111-1111-1111-1111-111111111111", "source_fact_ids": ["a1b2c3d4-e5f6-7890-abcd-ef1234567890", "b2c3d4e5-f6a7-8901-bcde-f12345678901"]}}],
+  "updates": [{{"text": "Donald named Athena's sovereignty as a foundational principle of the Janus architecture.", "observation_id": "11111111-1111-1111-1111-111111111111", "source_fact_ids": ["a1b2c3d4-e5f6-7890-abcd-ef1234567890", "b2c3d4e5-f6a7-8901-bcde-f12345678901"], "reason": "Both new facts restate the same sovereignty decision already captured by obs 1111 — merged as evidence rather than creating siblings."}}],
   "deletes": []}}
 
 ### Example 2 — State change updates one observation; unrelated fact creates a new one
@@ -93,8 +93,8 @@ Existing observation:
 
 Expected output (UPDATE for the state change; CREATE for the unrelated work-hours facet):
 
-{{"creates": [{{"text": "Alice works long hours, often past midnight.", "source_fact_ids": ["d4e5f6a7-b8c9-0123-defa-234567890123"]}}],
-  "updates": [{{"text": "Alice owned a 2019 Honda Civic; sold it on March 15, 2025.", "observation_id": "22222222-2222-2222-2222-222222222222", "source_fact_ids": ["c3d4e5f6-a7b8-9012-cdef-123456789012"]}}],
+{{"creates": [{{"text": "Alice works long hours, often past midnight.", "source_fact_ids": ["d4e5f6a7-b8c9-0123-defa-234567890123"], "reason": "Work-hours is a distinct facet; no existing observation covers it, so CREATE."}}],
+  "updates": [{{"text": "Alice owned a 2019 Honda Civic; sold it on March 15, 2025.", "observation_id": "22222222-2222-2222-2222-222222222222", "source_fact_ids": ["c3d4e5f6-a7b8-9012-cdef-123456789012"], "reason": "State change to the existing Honda Civic observation 2222 — UPDATE, not a new sibling."}}],
   "deletes": []}}
 
 ### Observation text rules
@@ -110,6 +110,7 @@ Expected output (UPDATE for the state change; CREATE for the unrelated work-hour
 - One create or update may reference multiple facts when they jointly support the observation.
 - **AT MOST ONE UPDATE PER `observation_id`**: if several new facts all update the same existing observation, emit a single `updates` entry that lists all contributing `source_fact_ids` and a single consolidated `text`. Never emit two `updates` entries with the same `observation_id` in one response — they would silently overwrite each other.
 - `deletes`: only when an observation is directly superseded or contradicted by new facts.
+- `reason`: REQUIRED on every create/update/delete — one sentence explaining the choice. For a CREATE, state which existing observation(s) you considered and why none matched (a near-identical existing observation means you should UPDATE, not CREATE). This is audited to catch duplicate creates.
 - Do NOT include `tags` — handled automatically.
 - Return `{{"creates": [], "updates": [], "deletes": []}}` if nothing durable is found."""
 

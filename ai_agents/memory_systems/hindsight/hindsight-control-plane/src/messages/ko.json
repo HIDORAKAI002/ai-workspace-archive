@@ -149,6 +149,10 @@
     "clearObservationsDetailedWarning": "모든 관찰 메모리가 영구적으로 삭제됩니다. 이 작업은 되돌릴 수 없습니다.",
     "observationsNotEnabled": "관찰이 활성화되지 않음",
     "observationsDisabledMessage": "이 서버에서는 관찰 통합이 비활성화되어 있습니다. 활성화하려면 <envVar></envVar>를 설정하세요.",
+    "auditLogsNotEnabled": "감사 로그가 활성화되지 않음",
+    "auditLogsDisabledMessage": "이 서버에서는 감사 로깅이 비활성화되어 있습니다. 활성화하려면 <envVar></envVar>를 설정하세요.",
+    "llmRequestsNotEnabled": "LLM 요청이 활성화되지 않음",
+    "llmRequestsDisabledMessage": "이 서버에서는 LLM 요청 추적이 비활성화되어 있습니다. 활성화하려면 <envVar></envVar>를 설정하세요.",
     "deleteWillDeleteDetails": "{memories, plural, other {# 메모리}}, {documents, plural, other {# 문서}}, {links, plural, other {# 링크}}가 삭제됩니다.",
     "deleteWillDeleteObservations": "{count, plural, other {# 관찰}}이 삭제됩니다."
   },
@@ -405,7 +409,56 @@
     "subBatchesCount": "하위 배치 ({count})",
     "rawPayload": "원시 페이로드",
     "loadRaw": "원시 데이터 로드",
-    "rawPayloadHelp": "작업이 제출된 전체 매개변수를 표시합니다 (클 수 있음)."
+    "rawPayloadHelp": "작업이 제출된 전체 매개변수를 표시합니다 (클 수 있음).",
+    "operationCount": "{count}개 작업",
+    "unknown": "알 수 없음",
+    "notAvailable": "N/A",
+    "operationDetailsLoadError": "작업 세부 정보를 불러오지 못했습니다",
+    "status": {
+      "all": "전체",
+      "pending": "대기 중",
+      "processing": "처리 중",
+      "completed": "완료됨",
+      "failed": "실패함",
+      "cancelled": "취소됨"
+    },
+    "operationType": {
+      "all": "모든 유형",
+      "retain": "Retain",
+      "consolidation": "통합",
+      "refreshMentalModel": "멘탈 모델 새로고침",
+      "fileConvertRetain": "파일 변환 및 Retain",
+      "webhookDelivery": "Webhook 전달",
+      "graphMaintenance": "그래프 유지관리"
+    },
+    "table": {
+      "id": "작업 ID",
+      "type": "유형",
+      "created": "생성일",
+      "status": "상태",
+      "index": "인덱스",
+      "items": "항목"
+    },
+    "action": {
+      "cancel": "취소",
+      "retry": "다시 시도"
+    },
+    "pagination": "총 {total}개 중 {start}-{end}개 표시",
+    "paginationPrevious": "이전",
+    "paginationNext": "다음",
+    "emptyState": "작업이 없습니다",
+    "emptyStateWithStatus": "{status} 작업이 없습니다",
+    "field": {
+      "status": "상태",
+      "type": "유형",
+      "created": "생성일",
+      "updated": "업데이트됨",
+      "completed": "완료됨"
+    },
+    "metadata": "메타데이터",
+    "error": "오류",
+    "rawPayloadParentHelp": "이 작업은 상위 작업입니다. 원시 페이로드는 각 하위 배치에 저장됩니다. 하위 작업을 열어 페이로드를 확인하세요.",
+    "rawPayloadEmpty": "이 작업에 저장된 원시 페이로드가 없습니다."
   },
   "dataView": {
     "loadingMemories": "메모리 불러오는 중...",
@@ -558,7 +611,26 @@
     "retainTracesSummary": "{calls, plural, other {#회 호출}} · {tokens} 토큰",
     "loadingChunks": "청크를 불러오는 중...",
     "noChunksFound": "이 문서에 대한 청크를 찾을 수 없습니다",
-    "clickChunksTabToLoad": "청크 탭을 클릭하여 청크를 불러옵니다"
+    "clickChunksTabToLoad": "청크 탭을 클릭하여 청크를 불러옵니다",
+    "exportButton": "내보내기",
+    "importButton": "zip에서 가져오기",
+    "exporting": "내보내는 중…",
+    "importing": "가져오는 중…",
+    "exportSuccess": "문서를 내보냈습니다",
+    "importSuccess": "{imported}개 문서, {facts}개 사실을 가져왔습니다. {skipped}개 건너뜀",
+    "importFailed": "가져오기 실패",
+    "importTimeout": "가져오기가 예상보다 오래 걸리고 있습니다. 잠시 후 다시 확인하세요",
+    "exportDialogTitle": "문서 내보내기",
+    "exportDialogDescription": "이 뱅크의 문서와 추출된 사실을 .zip 파일로 다운로드합니다. 임베딩은 포함되지 않으며, 가져올 때 대상 뱅크의 모델로 다시 생성됩니다.",
+    "exportIncludeObservationsLabel": "통합된 관찰 포함",
+    "exportIncludeObservationsHint": "합성된 관찰도 내보냅니다. 끄면 대상 뱅크가 통합 과정에서 다시 생성합니다.",
+    "importDialogTitle": "문서 가져오기",
+    "importDialogDescription": "뱅크에서 내보낸 .zip 파일을 업로드하세요. 일반 문서 업로드가 아니며, 사실이 이 뱅크에서 다시 임베딩되고 연결됩니다. 가져오기는 백그라운드에서 실행됩니다.",
+    "actionsButton": "작업",
+    "importConflictLabel": "문서가 이미 있는 경우",
+    "importConflictSkip": "건너뛰기 — 기존 문서 유지",
+    "importConflictReplace": "교체 — 가져온 것으로 덮어쓰기",
+    "importConflictNewId": "둘 다 유지 — 새 id로 가져오기"
   },
   "entitiesView": {
     "viewRelations": "관계",
@@ -1284,7 +1356,8 @@
     "legendMany": "많음",
     "linkTypeSemantic": "의미",
     "linkTypeTemporal": "시간",
-    "linkTypeEntity": "엔티티"
+    "linkTypeEntity": "엔티티",
+    "linkTypeCausal": "인과"
   },
   "metadata": {
     "title": "Hindsight Cloud",
@@ -1393,7 +1466,8 @@
         "bankAndModelIdRequired": "bank_id와 model_id는 필수입니다",
         "operationIdRequired": "operation_id는 필수입니다",
         "missingRequestData": "요청 데이터가 누락되었습니다",
-        "missingBankId": "bank_id가 누락되었습니다"
+        "missingBankId": "bank_id가 누락되었습니다",
+        "fileRequired": "파일이 필요합니다"
       },
       "generic": {
         "failed": "실패했습니다",
@@ -1431,7 +1505,9 @@
         "updateTags": "문서 태그를 업데이트하지 못했습니다",
         "delete": "문서를 삭제하지 못했습니다",
         "chunks": "문서 청크를 가져오지 못했습니다",
-        "reprocess": "문서를 다시 처리하지 못했습니다"
+        "reprocess": "문서를 다시 처리하지 못했습니다",
+        "export": "문서 내보내기에 실패했습니다",
+        "import": "문서 가져오기에 실패했습니다"
       },
       "files": {
         "upload": "파일을 업로드하지 못했습니다"

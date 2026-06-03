@@ -149,6 +149,10 @@
     "clearObservationsDetailedWarning": "すべての観測メモリが完全に削除されます。この操作は元に戻せません。",
     "observationsNotEnabled": "観測は有効になっていません",
     "observationsDisabledMessage": "このサーバーでは観測の統合が無効になっています。有効にするには <envVar></envVar> を設定してください。",
+    "auditLogsNotEnabled": "監査ログは有効になっていません",
+    "auditLogsDisabledMessage": "このサーバーでは監査ログが無効になっています。有効にするには <envVar></envVar> を設定してください。",
+    "llmRequestsNotEnabled": "LLMリクエストは有効になっていません",
+    "llmRequestsDisabledMessage": "このサーバーではLLMリクエストのトレースが無効になっています。有効にするには <envVar></envVar> を設定してください。",
     "deleteWillDeleteDetails": "{memories, plural, other {# 件のメモリ}}、{documents, plural, other {# 件のドキュメント}}、および {links, plural, other {# 件のリンク}} が削除されます。",
     "deleteWillDeleteObservations": "{count, plural, other {# 件の観測}} が削除されます。"
   },
@@ -405,7 +409,56 @@
     "subBatchesCount": "サブバッチ ({count})",
     "rawPayload": "生のペイロード",
     "loadRaw": "生データを読み込む",
-    "rawPayloadHelp": "操作が送信された完全なパラメータを表示します (大きい場合があります)。"
+    "rawPayloadHelp": "操作が送信された完全なパラメータを表示します (大きい場合があります)。",
+    "operationCount": "{count} 件の操作",
+    "unknown": "不明",
+    "notAvailable": "N/A",
+    "operationDetailsLoadError": "操作の詳細を読み込めませんでした",
+    "status": {
+      "all": "すべて",
+      "pending": "保留中",
+      "processing": "処理中",
+      "completed": "完了",
+      "failed": "失敗",
+      "cancelled": "キャンセル済み"
+    },
+    "operationType": {
+      "all": "すべてのタイプ",
+      "retain": "Retain",
+      "consolidation": "統合",
+      "refreshMentalModel": "メンタルモデル更新",
+      "fileConvertRetain": "ファイル変換と Retain",
+      "webhookDelivery": "Webhook 配信",
+      "graphMaintenance": "グラフメンテナンス"
+    },
+    "table": {
+      "id": "操作 ID",
+      "type": "タイプ",
+      "created": "作成日時",
+      "status": "ステータス",
+      "index": "インデックス",
+      "items": "項目"
+    },
+    "action": {
+      "cancel": "キャンセル",
+      "retry": "再試行"
+    },
+    "pagination": "{total} 件中 {start}-{end} 件を表示",
+    "paginationPrevious": "前へ",
+    "paginationNext": "次へ",
+    "emptyState": "操作がありません",
+    "emptyStateWithStatus": "{status} の操作がありません",
+    "field": {
+      "status": "ステータス",
+      "type": "タイプ",
+      "created": "作成日時",
+      "updated": "更新日時",
+      "completed": "完了日時"
+    },
+    "metadata": "メタデータ",
+    "error": "エラー",
+    "rawPayloadParentHelp": "これは親操作です。生のペイロードは各サブバッチに保存されています。子操作を開いてペイロードを確認してください。",
+    "rawPayloadEmpty": "この操作に保存された生のペイロードはありません。"
   },
   "dataView": {
     "loadingMemories": "メモリを読み込み中...",
@@ -558,7 +611,26 @@
     "retainTracesSummary": "{calls, plural, other {# 回の呼び出し}} · {tokens} トークン",
     "loadingChunks": "チャンクを読み込み中...",
     "noChunksFound": "このドキュメントのチャンクは見つかりませんでした",
-    "clickChunksTabToLoad": "チャンクタブをクリックしてチャンクを読み込みます"
+    "clickChunksTabToLoad": "チャンクタブをクリックしてチャンクを読み込みます",
+    "exportButton": "エクスポート",
+    "importButton": "zip からインポート",
+    "exporting": "エクスポート中…",
+    "importing": "インポート中…",
+    "exportSuccess": "ドキュメントをエクスポートしました",
+    "importSuccess": "{imported} 件のドキュメント、{facts} 件のファクトをインポートしました。{skipped} 件をスキップ",
+    "importFailed": "インポートに失敗しました",
+    "importTimeout": "インポートに想定より時間がかかっています。しばらくしてからご確認ください",
+    "exportDialogTitle": "ドキュメントをエクスポート",
+    "exportDialogDescription": "このバンクのドキュメントと抽出済みファクトを .zip としてダウンロードします。埋め込みは含まれず、インポート時にインポート先バンクのモデルで再生成されます。",
+    "exportIncludeObservationsLabel": "統合された観測を含める",
+    "exportIncludeObservationsHint": "合成された観測もエクスポートします。オフの場合、インポート先バンクが統合時に再生成します。",
+    "importDialogTitle": "ドキュメントをインポート",
+    "importDialogDescription": "バンクからエクスポートした .zip をアップロードします。通常のドキュメントアップロードではなく、ファクトはこのバンクで再埋め込み・再リンクされます。インポートはバックグラウンドで実行されます。",
+    "actionsButton": "アクション",
+    "importConflictLabel": "ドキュメントが既に存在する場合",
+    "importConflictSkip": "スキップ — 既存のドキュメントを保持",
+    "importConflictReplace": "置換 — インポート版で上書き",
+    "importConflictNewId": "両方保持 — 新しい id でインポート"
   },
   "entitiesView": {
     "viewRelations": "関係",
@@ -1284,7 +1356,8 @@
     "legendMany": "多",
     "linkTypeSemantic": "セマンティック",
     "linkTypeTemporal": "時間",
-    "linkTypeEntity": "エンティティ"
+    "linkTypeEntity": "エンティティ",
+    "linkTypeCausal": "因果"
   },
   "metadata": {
     "title": "Hindsight Cloud",
@@ -1393,7 +1466,8 @@
         "bankAndModelIdRequired": "bank_id と model_id は必須です",
         "operationIdRequired": "operation_id は必須です",
         "missingRequestData": "リクエストデータが不足しています",
-        "missingBankId": "bank_id がありません"
+        "missingBankId": "bank_id がありません",
+        "fileRequired": "ファイルが必要です"
       },
       "generic": {
         "failed": "失敗しました",
@@ -1431,7 +1505,9 @@
         "updateTags": "ドキュメントタグの更新に失敗しました",
         "delete": "ドキュメントの削除に失敗しました",
         "chunks": "ドキュメントチャンクの取得に失敗しました",
-        "reprocess": "ドキュメントの再処理に失敗しました"
+        "reprocess": "ドキュメントの再処理に失敗しました",
+        "export": "ドキュメントのエクスポートに失敗しました",
+        "import": "ドキュメントのインポートに失敗しました"
       },
       "files": {
         "upload": "ファイルのアップロードに失敗しました"
