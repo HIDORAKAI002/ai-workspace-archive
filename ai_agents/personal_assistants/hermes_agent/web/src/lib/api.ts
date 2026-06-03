@@ -361,15 +361,58 @@ export const api = {
   deleteCronJob: (id: string, profile = "default") =>
     fetchJSON<{ ok: boolean }>(`/api/cron/jobs/${encodeURIComponent(id)}?profile=${encodeURIComponent(profile)}`, { method: "DELETE" }),
 
-  // Profiles (minimal)
+  // Profiles
   getProfiles: () =>
     fetchJSON<{ profiles: ProfileInfo[] }>("/api/profiles"),
-  createProfile: (body: { name: string; clone_from_default: boolean }) =>
-    fetchJSON<{ ok: boolean; name: string; path: string }>("/api/profiles", {
+  getActiveProfile: () =>
+    fetchJSON<ActiveProfileInfo>("/api/profiles/active"),
+  setActiveProfile: (name: string) =>
+    fetchJSON<{ ok: boolean; active: string }>("/api/profiles/active", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name }),
+    }),
+  createProfile: (body: {
+    name: string;
+    clone_from_default: boolean;
+    clone_all?: boolean;
+    no_skills?: boolean;
+    description?: string;
+    provider?: string;
+    model?: string;
+  }) =>
+    fetchJSON<{ ok: boolean; name: string; path: string; model_set?: boolean }>("/api/profiles", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     }),
+  updateProfileDescription: (name: string, description: string) =>
+    fetchJSON<{ ok: boolean; description: string; description_auto: boolean }>(
+      `/api/profiles/${encodeURIComponent(name)}/description`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ description }),
+      },
+    ),
+  describeProfileAuto: (name: string, overwrite = true) =>
+    fetchJSON<ProfileDescribeAutoResult>(
+      `/api/profiles/${encodeURIComponent(name)}/describe-auto`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ overwrite }),
+      },
+    ),
+  setProfileModel: (name: string, provider: string, model: string) =>
+    fetchJSON<{ ok: boolean; provider: string; model: string }>(
+      `/api/profiles/${encodeURIComponent(name)}/model`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider, model }),
+      },
+    ),
   renameProfile: (name: string, newName: string) =>
     fetchJSON<{ ok: boolean; name: string; path: string }>(
       `/api/profiles/${encodeURIComponent(name)}`,
@@ -495,6 +538,10 @@ export const api = {
     fetchJSON<ActionResponse>("/api/gateway/restart", { method: "POST" }),
   updateHermes: () =>
     fetchJSON<ActionResponse>("/api/hermes/update", { method: "POST" }),
+  checkHermesUpdate: (force = false) =>
+    fetchJSON<UpdateCheckResponse>(
+      `/api/hermes/update/check${force ? "?force=true" : ""}`,
+    ),
   getActionStatus: (name: string, lines = 200) =>
     fetchJSON<ActionStatusResponse>(
       `/api/actions/${encodeURIComponent(name)}/status?lines=${lines}`,
@@ -1009,6 +1056,18 @@ export interface HookCreate {
   approve?: boolean;
 }
 
+export interface UpdateCheckResponse {
+  install_method: string;
+  current_version: string;
+  // commits behind: >=1 known count, 0 up to date, -1 behind by unknown
+  // count (nix/pypi), or null when the check could not run.
+  behind: number | null;
+  update_available: boolean;
+  can_apply: boolean;
+  update_command: string;
+  message: string | null;
+}
+
 export interface SystemStats {
   os: string;
   os_release: string;
@@ -1154,6 +1213,8 @@ export interface EnvVarInfo {
   is_password: boolean;
   tools: string[];
   advanced: boolean;
+  /** True when this var is a messaging-platform credential owned by the Channels page. */
+  channel_managed?: boolean;
 }
 
 export interface SessionMessage {
@@ -1234,6 +1295,18 @@ export interface AnalyticsResponse {
   };
 }
 
+export interface ActiveProfileInfo {
+  active: string;
+  current: string;
+}
+
+export interface ProfileDescribeAutoResult {
+  ok: boolean;
+  reason: string;
+  description: string | null;
+  description_auto: boolean;
+}
+
 export interface ProfileInfo {
   name: string;
   path: string;
@@ -1242,6 +1315,13 @@ export interface ProfileInfo {
   provider: string | null;
   has_env: boolean;
   skill_count: number;
+  gateway_running: boolean;
+  description: string;
+  description_auto: boolean;
+  distribution_name: string | null;
+  distribution_version: string | null;
+  distribution_source: string | null;
+  has_alias: boolean;
 }
 
 export interface ModelsAnalyticsModelEntry {
