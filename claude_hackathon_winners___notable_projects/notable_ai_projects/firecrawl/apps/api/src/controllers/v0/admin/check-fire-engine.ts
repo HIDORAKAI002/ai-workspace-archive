@@ -16,7 +16,10 @@ export async function checkFireEngine(req: Request, res: Response) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 30000);
 
-    const urls = ["https://roastmywebsite.ai", "https://example.com"];
+    const urls = [
+      "https://firecrawl-test-site.vercel.app",
+      "https://example.com",
+    ];
     let lastError: any = null;
 
     for (const url of urls) {

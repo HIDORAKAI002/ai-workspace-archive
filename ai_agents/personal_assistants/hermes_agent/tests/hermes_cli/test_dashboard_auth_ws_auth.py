@@ -379,10 +379,16 @@ class TestWsHostOriginGuardOrigins:
     """The WS Origin guard must let the packaged desktop shell connect.
 
     Electron loads the packaged renderer over ``file://``, so its WebSocket
-    handshake carries ``Origin: file://`` (or the opaque ``null``). The
-    DNS-rebinding guard only needs to block cross-site http(s) origins. On a
-    loopback bind these non-web origins are trusted because the session token
-    is the real gate. Public/gated binds keep rejecting them.
+    handshake carries ``Origin: file://`` (or the opaque ``null``, or a custom
+    ``app://`` scheme). The DNS-rebinding guard only needs to block cross-site
+    http(s) origins — a malicious web page can never forge a non-web origin.
+
+    This guard runs only AFTER ``_ws_auth_ok`` has validated the WS credential
+    (session token on loopback / ``--insecure`` binds, single-use ``?ticket=``
+    on OAuth-gated binds), so a non-web origin is trusted in every mode: the
+    credential is the real gate, and a ``file://`` / ``null`` origin cannot
+    originate a DNS-rebinding browser attack. ``http(s)`` origins are still
+    match-checked against the bound host.
     """
 
     def _ws(self, *, origin, host):
@@ -413,10 +419,55 @@ class TestWsHostOriginGuardOrigins:
         ws = self._ws(origin="http://evil.test", host="127.0.0.1:8080")
         assert web_server._ws_host_origin_is_allowed(ws) is False
 
-    def test_gated_file_origin_rejected(self, gated_app):
-        # A public/gated bind has no legitimate file:// client.
-        ws = self._ws(origin="file://", host="fly-app.fly.dev")
+    def test_explicit_non_loopback_file_origin_allowed(self, insecure_explicit_host_app):
+        """Packaged Hermes Desktop also uses file:// when connecting to a
+        Tailscale/LAN dashboard bind.
+
+        The WebSocket route calls _ws_auth_ok before this guard, so in
+        non-gated mode the legacy session token remains the auth boundary.
+        """
+        ws = self._ws(origin="file://", host="100.64.0.10:9119")
+        assert web_server._ws_host_origin_is_allowed(ws) is True
+
+    def test_explicit_non_loopback_null_origin_allowed(self, insecure_explicit_host_app):
+        ws = self._ws(origin="null", host="100.64.0.10:9119")
+        assert web_server._ws_host_origin_is_allowed(ws) is True
+
+    def test_explicit_non_loopback_cross_site_http_origin_rejected(
+        self, insecure_explicit_host_app
+    ):
+        ws = self._ws(origin="http://localhost:9119", host="100.64.0.10:9119")
         assert web_server._ws_host_origin_is_allowed(ws) is False
+
+    def test_gated_file_origin_allowed(self, gated_app):
+        # The packaged desktop app drives a remote OAuth-GATED gateway over a
+        # file:// renderer origin. The WS route validates the single-use
+        # ?ticket= in _ws_auth_ok before this guard runs, and a file:// origin
+        # can't be a DNS-rebinding browser attack, so the Origin guard must let
+        # it through. This is the regression that broke desktop → hosted
+        # gateway connections — every WS upgrade got HTTP 403 even with a valid
+        # ticket.
+        ws = self._ws(origin="file://", host="fly-app.fly.dev")
+        assert web_server._ws_host_origin_is_allowed(ws) is True
+
+    def test_gated_null_origin_allowed(self, gated_app):
+        ws = self._ws(origin="null", host="fly-app.fly.dev")
+        assert web_server._ws_host_origin_is_allowed(ws) is True
+
+    def test_gated_app_scheme_origin_allowed(self, gated_app):
+        ws = self._ws(origin="app://.", host="fly-app.fly.dev")
+        assert web_server._ws_host_origin_is_allowed(ws) is True
+
+    def test_gated_cross_site_http_origin_still_host_checked(self, gated_app):
+        # An http(s) origin is still subjected to the same-host check even on a
+        # gated bind: a cross-site http origin whose netloc doesn't match the
+        # bound host is rejected. Real browser DNS-rebinding defence unchanged.
+        ws = self._ws(origin="https://evil.test", host="fly-app.fly.dev")
+        assert web_server._ws_host_origin_is_allowed(ws) is False
+
+    def test_gated_same_host_https_origin_allowed(self, gated_app):
+        ws = self._ws(origin="https://fly-app.fly.dev", host="fly-app.fly.dev")
+        assert web_server._ws_host_origin_is_allowed(ws) is True
 
 
 class TestSidecarUrl:

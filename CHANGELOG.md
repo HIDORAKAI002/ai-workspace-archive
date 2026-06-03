@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-06-03 10:59 IST] Auto-Sync
+- **28 Repositories Updated:** Awesome ChatGPT Prompts, Promptfoo, Dify, Activepieces, modelcontextprotocol/kotlin-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, crewAIInc/crewAI, pydantic/pydantic-ai, mastra-ai/mastra, Swarms, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, cline/cline, chroma-core/chroma, infiniflow/ragflow, arize-ai/phoenix, firecrawl/firecrawl, danny-avila/LibreChat, google-gemini/gemini-cli, apache/airflow, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, nousresearch/hermes-agent
+
 ## [2026-06-03 04:17 IST] Auto-Sync
 - **44 Repositories Updated:** MCP Python SDK, MCP TypeScript SDK, Promptfoo, n8n, Langflow, Activepieces, Trigger.dev, Windmill, Appsmith, Budibase, Directus, modelcontextprotocol/csharp-sdk, modelcontextprotocol/rust-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langgraph, crewAIInc/crewAI, mastra-ai/mastra, BerriAI/litellm, ollama/ollama, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, cline/cline, anthropics/claude-code, voideditor/void, chroma-core/chroma, pinecone-io/pinecone-python-client, arize-ai/phoenix, openlit/openlit, abi/screenshot-to-code, danny-avila/LibreChat, googleapis/python-genai, vercel/ai, apache/airflow, PrefectHQ/prefect, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight, nousresearch/hermes-agent
 

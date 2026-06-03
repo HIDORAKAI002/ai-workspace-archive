@@ -23,7 +23,7 @@ content-type: application/json
   "actions": [
     {
       "type": "executeJavascript",
-      "script": "window.location.href = 'https://roastmywebsite.ai'"
+      "script": "window.location.href = 'https://firecrawl-test-site.vercel.app'"
     },
     {
       "type": "wait",
