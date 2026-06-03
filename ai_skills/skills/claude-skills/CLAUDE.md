@@ -145,6 +145,26 @@ See [standards/git/git-workflow-standards.md](standards/git/git-workflow-standar
 
 ## Current Version
 
+**Version:** v2.10.1 (md-document — long-form converter for the markdown-html/ domain)
+
+**v2.10.1 highlights — md-document (long-form markdown → single-file HTML):**
+
+Adds the third skill to `markdown-html/` (foundation shipped in v2.10.0). The 90%-case converter: any markdown spec, plan, RFC, report, or explainer becomes a single-file, lightly-interactive HTML document with the user's onboarded brand.
+
+- **`md-document` skill** — three stdlib tools pipeline together (markdown_parser.py → html_renderer.py → interactivity_injector.py):
+  - **`markdown_parser.py`** — CommonMark subset → section AST (headings 1-6 with slug anchors, paragraphs with inline bold/italic/code/links/images, fenced code with language tag, GFM tables with per-column alignment, GFM callouts NOTE/TIP/IMPORTANT/WARNING/CAUTION, blockquotes, ordered + unordered lists, horizontal rules). Stdlib regex + state machine, no `markdown` dependency.
+  - **`html_renderer.py`** — section AST + design-system config → single-file HTML. Inlines the 12 derived CSS custom properties from `~/.config/markdown-html/design-system.json`, applies the user's `design_style` (editorial/technical/minimal/playful) via body-class CSS overrides, renders Google Fonts CDN link + Prism.js theme link per `code_theme`, emits sticky-sidebar / collapsible-top / inline / none TOC per `toc.behavior`. Smoke-tested: changing design_style actually changes max-width, line-height, callout shape, and code font-size — customization is in-use, not decorative.
+  - **`interactivity_injector.py`** — vanilla-JS payload injected before `</body>`: search filter on H2 sections (Esc clears), code-copy buttons (navigator.clipboard with execCommand fallback), smooth-scroll on TOC links, scrollspy via IntersectionObserver (sets `aria-current="location"` on the matching TOC entry). Idempotent (marker check). Feature subset selectable via `--features search,copycode,smoothscroll,scrollspy`.
+- **3 reference docs**, each citing 5-7 sources: `information_density_patterns.md` (Shihipar + Tufte + Wattenberger + Appleton + Ciechanowski + Bret Victor + Jakob Nielsen), `toc_and_nav_ux.md` (NN/g + WCAG 2.2 + ARIA APG + Vitepress/Docusaurus/mdBook convergence + GOV.UK design system + MDN IntersectionObserver), `single_file_html_discipline.md` (Shihipar + Tom MacWright's Big + Google Fonts API + Prism.js + Anil Dash's *The Web We Lost*).
+- **1 template asset** (`md_document_template.html`) documenting the canonical output shape for renderer reference.
+- **`/cs:md-document` slash command** ships the pre-flight gates + 3-tool pipeline + output digest.
+- **Empirical footprint**: ~150-line markdown → 11 KB HTML / 15 KB with JS; ~470-line markdown → 17 KB / 23 KB with JS. By comparison, equivalent Notion/Confluence/GitBook exports are 200 KB+ of CSS chrome.
+- **Plugin manifest:** `markdown-html-skills` plugin.json `skills` array now lists 3 paths (orchestrator + design-system + md-document). Marketplace + root CLAUDE.md counters updated: 64 plugins, 17 domains, **341 skills** (was 338 before v2.10.0). Cleans up stale 338/63 counters left by v2.10.0 PR #780.
+
+**Coming in v2.10.2:** `md-review` (2-col diff + severity-tagged margin annotations + jump-nav) and `md-slides` (arrow-key nav + presenter mode + print-to-PDF). Both will reuse `md-document`'s renderer scaffolding and `design-system/scripts/config_loader.py`.
+
+---
+
 **Version:** v2.10.0 (foundation released — `markdown-html/` domain: markdown-to-interactive-HTML converter)
 
 **v2.10.0 foundation highlights — markdown-html/ domain (new top-level domain):**
