@@ -4,6 +4,8 @@ import stripAnsi from 'strip-ansi';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AssistantMessageComponent } from '../../components/assistant-message.js';
 import { isChatBoundarySpacer } from '../../components/chat-boundary-spacer.js';
+import { NotificationSummaryComponent } from '../../components/notification-summary.js';
+import { NotificationComponent } from '../../components/notification.js';
 import { ReactiveSignalComponent } from '../../components/reactive-signal.js';
 import { StateSignalComponent } from '../../components/state-signal.js';
 import { SystemReminderComponent } from '../../components/system-reminder.js';
@@ -119,6 +121,21 @@ describe('handleMessageUpdate system reminders', () => {
     expect(rendered).toContain('Build is still running');
   });
 
+  it('does not render streamed GitHub subscribe operation signals', () => {
+    handleMessageUpdate(
+      ctx,
+      createAssistantMessage([
+        {
+          type: 'reactive_signal',
+          tagName: 'github-subscribe-pr',
+          message: 'Subscribe to GitHub PR #17241',
+        } as never,
+      ]),
+    );
+
+    expect(state.chatContainer.children).toHaveLength(0);
+  });
+
   it('keeps spacing when a streamed reminder is inserted before pending assistant text', () => {
     addUserMessage(state, {
       id: 'user-1',
@@ -146,6 +163,83 @@ describe('handleMessageUpdate system reminders', () => {
     ]);
     expect(isChatBoundarySpacer(state.chatContainer.children[1]!)).toBe(true);
     expect(state.chatContainer.children).toHaveLength(4);
+  });
+
+  it('renders a streamed notification summary as an inline component', () => {
+    handleMessageUpdate(
+      ctx,
+      createAssistantMessage([
+        {
+          type: 'notification_summary',
+          message: 'mastracode: 1',
+          pending: 1,
+          bySource: { mastracode: 1 },
+        } as never,
+      ]),
+    );
+
+    expect(state.chatContainer.children).toHaveLength(1);
+    const component = state.chatContainer.children[0];
+    expect(component).toBeInstanceOf(NotificationSummaryComponent);
+    const rendered = stripAnsi((component as NotificationSummaryComponent).render(80).join('\n'));
+    expect(rendered).toContain('Notification summary: 1 pending');
+    expect(rendered).toContain('mastracode: 1');
+  });
+
+  it('renders a streamed full notification as an inline component', () => {
+    handleMessageUpdate(
+      ctx,
+      createAssistantMessage([
+        {
+          type: 'notification',
+          message: 'CI failed on main',
+          source: 'github',
+          kind: 'ci-status',
+          priority: 'high',
+          status: 'delivered',
+        } as never,
+      ]),
+    );
+
+    expect(state.chatContainer.children).toHaveLength(1);
+    const component = state.chatContainer.children[0];
+    expect(component).toBeInstanceOf(NotificationComponent);
+    const rendered = stripAnsi((component as NotificationComponent).render(100).join('\n'));
+    expect(rendered).toContain('notification from github');
+    expect(rendered).toContain('╭');
+    expect(rendered).toContain('╰');
+    expect(rendered).toContain('high · ci-status · delivered');
+    expect(rendered).toContain('CI failed on main');
+  });
+
+  it('wraps long streamed full notifications within the terminal width', () => {
+    const originalColumns = process.stdout.columns;
+    process.stdout.columns = 80;
+
+    try {
+      handleMessageUpdate(
+        ctx,
+        createAssistantMessage([
+          {
+            type: 'notification',
+            message:
+              'mastra-ai/mastra#17449: feat(storage): add notification storage adapters was merged. This thread has been automatically unsubscribed from this PR. Resubscribe if you still need updates.',
+            source: 'github',
+            kind: 'pull-request-merged',
+            priority: 'high',
+            status: 'delivered',
+          } as never,
+        ]),
+      );
+    } finally {
+      process.stdout.columns = originalColumns;
+    }
+
+    const component = state.chatContainer.children[0];
+    expect(component).toBeInstanceOf(NotificationComponent);
+    const renderedLines = stripAnsi((component as NotificationComponent).render(80).join('\n')).split('\n');
+    expect(renderedLines.some(line => line.includes('automatically unsubscribed'))).toBe(true);
+    expect(Math.max(...renderedLines.map(line => line.length))).toBeLessThanOrEqual(80);
   });
 
   it('deduplicates repeated streamed reminders within the same assistant run', () => {
