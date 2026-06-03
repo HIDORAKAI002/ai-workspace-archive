@@ -498,6 +498,12 @@ ENV_AUDIT_LOG_ENABLED = "HINDSIGHT_API_AUDIT_LOG_ENABLED"
 ENV_AUDIT_LOG_ACTIONS = "HINDSIGHT_API_AUDIT_LOG_ACTIONS"
 ENV_AUDIT_LOG_RETENTION_DAYS = "HINDSIGHT_API_AUDIT_LOG_RETENTION_DAYS"
 
+# LLM request tracing settings
+ENV_LLM_TRACE_ENABLED = "HINDSIGHT_API_LLM_TRACE_ENABLED"
+ENV_LLM_TRACE_SCOPES = "HINDSIGHT_API_LLM_TRACE_SCOPES"
+ENV_LLM_TRACE_RETENTION_DAYS = "HINDSIGHT_API_LLM_TRACE_RETENTION_DAYS"
+ENV_LLM_TRACE_MAX_CHARS = "HINDSIGHT_API_LLM_TRACE_MAX_CHARS"
+
 # Disposition settings
 ENV_DISPOSITION_SKEPTICISM = "HINDSIGHT_API_DISPOSITION_SKEPTICISM"
 ENV_DISPOSITION_LITERALISM = "HINDSIGHT_API_DISPOSITION_LITERALISM"
@@ -788,6 +794,12 @@ DEFAULT_METRICS_INCLUDE_BANK_ID = False  # Disabled by default to avoid high-car
 DEFAULT_AUDIT_LOG_ENABLED = False  # Disabled by default
 DEFAULT_AUDIT_LOG_ACTIONS = ""  # Empty = audit all eligible actions
 DEFAULT_AUDIT_LOG_RETENTION_DAYS = -1  # -1 = keep forever
+
+# LLM request tracing defaults
+DEFAULT_LLM_TRACE_ENABLED = False  # Disabled by default
+DEFAULT_LLM_TRACE_SCOPES = ""  # Empty = trace all call scopes
+DEFAULT_LLM_TRACE_RETENTION_DAYS = -1  # -1 = keep forever
+DEFAULT_LLM_TRACE_MAX_CHARS = 50000  # Truncate stored input/output beyond this many chars
 
 # Default MCP tool descriptions (can be customized via env vars)
 DEFAULT_MCP_RETAIN_DESCRIPTION = """Store important information to long-term memory.
@@ -1348,6 +1360,12 @@ class HindsightConfig:
     audit_log_enabled: bool  # Master switch for audit logging
     audit_log_actions: list[str]  # Allowlist of action types (empty = all)
     audit_log_retention_days: int  # -1 = keep forever, >0 = delete after N days
+
+    # LLM request tracing configuration (static - server-level only)
+    llm_trace_enabled: bool  # Master switch for per-bank LLM request tracing
+    llm_trace_scopes: list[str]  # Allowlist of call scopes to trace (empty = all)
+    llm_trace_retention_days: int  # -1 = keep forever, >0 = delete after N days
+    llm_trace_max_chars: int  # Truncate stored input/output beyond this many chars
 
     # Webhook configuration (static - server-level only, not per-bank)
     webhook_url: str | None  # Global webhook URL (None = disabled)
@@ -2183,6 +2201,15 @@ class HindsightConfig:
             audit_log_retention_days=int(
                 os.getenv(ENV_AUDIT_LOG_RETENTION_DAYS, str(DEFAULT_AUDIT_LOG_RETENTION_DAYS))
             ),
+            # LLM request tracing configuration (static, server-level only)
+            llm_trace_enabled=os.getenv(ENV_LLM_TRACE_ENABLED, str(DEFAULT_LLM_TRACE_ENABLED)).lower() == "true",
+            llm_trace_scopes=[
+                s.strip() for s in os.getenv(ENV_LLM_TRACE_SCOPES, DEFAULT_LLM_TRACE_SCOPES).split(",") if s.strip()
+            ],
+            llm_trace_retention_days=int(
+                os.getenv(ENV_LLM_TRACE_RETENTION_DAYS, str(DEFAULT_LLM_TRACE_RETENTION_DAYS))
+            ),
+            llm_trace_max_chars=int(os.getenv(ENV_LLM_TRACE_MAX_CHARS, str(DEFAULT_LLM_TRACE_MAX_CHARS))),
             # Webhook configuration (static, server-level only)
             webhook_url=os.getenv(ENV_WEBHOOK_URL) or DEFAULT_WEBHOOK_URL,
             webhook_secret=os.getenv(ENV_WEBHOOK_SECRET) or DEFAULT_WEBHOOK_SECRET,

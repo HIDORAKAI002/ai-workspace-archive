@@ -17,20 +17,20 @@ import pprint
 import re  # noqa: F401
 import json
 
-from pydantic import BaseModel, ConfigDict, Field, StrictInt
-from typing import Any, ClassVar, Dict, List, Optional
+from pydantic import BaseModel, ConfigDict, StrictInt
+from typing import Any, ClassVar, Dict, List
 from typing import Optional, Set
 from typing_extensions import Self
 
-class TokenUsage(BaseModel):
+class LLMRequestTokenSums(BaseModel):
     """
-    Token usage metrics for LLM calls.  Tracks input/output tokens for a single request to enable per-request cost tracking and monitoring.
+    Token totals for a time bucket.
     """ # noqa: E501
-    input_tokens: Optional[StrictInt] = Field(default=0, description="Number of input/prompt tokens consumed")
-    output_tokens: Optional[StrictInt] = Field(default=0, description="Number of output/completion tokens generated")
-    total_tokens: Optional[StrictInt] = Field(default=0, description="Total tokens (input + output)")
-    cached_tokens: Optional[StrictInt] = Field(default=0, description="Cached/cache-read prompt tokens, when reported by the provider")
-    __properties: ClassVar[List[str]] = ["input_tokens", "output_tokens", "total_tokens", "cached_tokens"]
+    input: StrictInt
+    output: StrictInt
+    cached: StrictInt
+    total: StrictInt
+    __properties: ClassVar[List[str]] = ["input", "output", "cached", "total"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -50,7 +50,7 @@ class TokenUsage(BaseModel):
 
     @classmethod
     def from_json(cls, json_str: str) -> Optional[Self]:
-        """Create an instance of TokenUsage from a JSON string"""
+        """Create an instance of LLMRequestTokenSums from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self) -> Dict[str, Any]:
@@ -75,7 +75,7 @@ class TokenUsage(BaseModel):
 
     @classmethod
     def from_dict(cls, obj: Optional[Dict[str, Any]]) -> Optional[Self]:
-        """Create an instance of TokenUsage from a dict"""
+        """Create an instance of LLMRequestTokenSums from a dict"""
         if obj is None:
             return None
 
@@ -83,10 +83,10 @@ class TokenUsage(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
-            "input_tokens": obj.get("input_tokens") if obj.get("input_tokens") is not None else 0,
-            "output_tokens": obj.get("output_tokens") if obj.get("output_tokens") is not None else 0,
-            "total_tokens": obj.get("total_tokens") if obj.get("total_tokens") is not None else 0,
-            "cached_tokens": obj.get("cached_tokens") if obj.get("cached_tokens") is not None else 0
+            "input": obj.get("input"),
+            "output": obj.get("output"),
+            "cached": obj.get("cached"),
+            "total": obj.get("total")
         })
         return _obj
 

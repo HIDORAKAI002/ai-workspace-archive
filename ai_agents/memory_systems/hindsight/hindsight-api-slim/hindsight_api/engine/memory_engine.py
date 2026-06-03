@@ -40,6 +40,15 @@ from ..worker.stage import set_stage
 from .audit import AuditLogger, audit_context
 from .db import DatabaseBackend, create_database_backend
 from .db_budget import budgeted_operation
+from .llm_trace import (
+    LLMRequestEntry,
+    LLMRequestListResponse,
+    LLMRequestStatsBucket,
+    LLMRequestStatsResponse,
+    LLMRequestTokenSums,
+    LLMTraceRecorder,
+    trace_context_of,
+)
 from .operation_metadata import (
     BatchRetainChildMetadata,
     BatchRetainParentMetadata,
@@ -907,6 +916,21 @@ class MemoryEngine(MemoryEngineInterface):
             allowed_actions=config.audit_log_actions,
             retention_days=config.audit_log_retention_days,
         )
+
+        # Per-bank LLM request tracer (disabled by default). Registered as a
+        # GenAI span recorder so it captures the same record_llm_call(...) events
+        # providers already emit, alongside the OpenTelemetry exporter.
+        self._llm_recorder = LLMTraceRecorder(
+            pool_getter=lambda: self._backend,
+            schema_getter=get_current_schema,
+            enabled=config.llm_trace_enabled,
+            allowed_scopes=config.llm_trace_scopes,
+            retention_days=config.llm_trace_retention_days,
+            max_chars=config.llm_trace_max_chars,
+        )
+        from ..tracing import register_span_recorder
+
+        register_span_recorder(self._llm_recorder)
 
         # Backpressure mechanism: limit concurrent searches to prevent overwhelming the database
         # Configurable via HINDSIGHT_API_RECALL_MAX_CONCURRENT (default: 50)
@@ -2413,6 +2437,9 @@ class MemoryEngine(MemoryEngineInterface):
         # Start audit log retention sweep (if configured)
         self._audit_logger.start_retention_sweep()
 
+        # Start LLM trace retention sweep (if configured)
+        self._llm_recorder.start_retention_sweep()
+
         self._initialized = True
         logger.info("Memory system initialized (pool and task backend started)")
 
@@ -2478,6 +2505,12 @@ class MemoryEngine(MemoryEngineInterface):
 
         # Stop audit log retention sweep
         await self._audit_logger.stop_retention_sweep()
+
+        # Stop LLM trace retention sweep and unregister the recorder
+        await self._llm_recorder.stop_retention_sweep()
+        from ..tracing import unregister_span_recorder
+
+        unregister_span_recorder(self._llm_recorder)
 
         # Shutdown task backend
         await self._task_backend.shutdown()
@@ -3055,10 +3088,11 @@ class MemoryEngine(MemoryEngineInterface):
 
         # Create parent span for retain operation
         with create_operation_span("retain", bank_id):
-            return await orchestrator.retain_batch(
+            retain_llm = self._retain_llm_config.with_config(resolved_config, bank_id=bank_id, operation="retain")
+            result = await orchestrator.retain_batch(
                 pool=self._backend,
                 embeddings_model=self.embeddings,
-                llm_config=self._retain_llm_config.with_config(resolved_config),
+                llm_config=retain_llm,
                 entity_resolver=self.entity_resolver,
                 format_date_fn=self._format_readable_date,
                 bank_id=bank_id,
@@ -3076,6 +3110,14 @@ class MemoryEngine(MemoryEngineInterface):
                 document_body_override=document_body_override,
                 chunk_index_offset=chunk_index_offset,
             )
+            # Map the created facts onto this retain's trace so the trace view can
+            # show which memories the ingestion produced. result[0] is the
+            # per-content-item list of created unit ids (see retain_batch).
+            created_ids = [uid for group in result[0] for uid in group]
+            # Fire-and-forget: the mapping is patched on a background task so it
+            # never adds latency to the retain response.
+            self._llm_recorder.attach_memory_ids(trace_context_of(retain_llm), created=created_ids)
+            return result
 
     def recall(
         self,
@@ -6262,6 +6304,263 @@ class MemoryEngine(MemoryEngineInterface):
 
         return result
 
+    # ==================== LLM request tracing read methods ====================
+
+    # Column list shared by the flat and grouped llm_requests queries.
+    _LLM_REQUEST_COLUMNS = (
+        "id, bank_id, operation, scope, trace_id, span_id, parent_span_id, "
+        "provider, model, status, started_at, ended_at, duration_ms, "
+        "input_tokens, output_tokens, cached_tokens, total_tokens, "
+        "input, output, error, llm_info, metadata"
+    )
+
+    @staticmethod
+    def _llm_request_entry(conn: Any, row: Any) -> LLMRequestEntry:
+        """Map a llm_requests row (selected via _LLM_REQUEST_COLUMNS) to the model."""
+        return LLMRequestEntry(
+            id=str(row["id"]),
+            bank_id=row["bank_id"],
+            operation=row["operation"],
+            scope=row["scope"],
+            trace_id=row["trace_id"],
+            span_id=row["span_id"],
+            parent_span_id=row["parent_span_id"],
+            provider=row["provider"],
+            model=row["model"],
+            status=row["status"],
+            started_at=row["started_at"].isoformat() if row["started_at"] else None,
+            ended_at=row["ended_at"].isoformat() if row["ended_at"] else None,
+            duration_ms=row["duration_ms"],
+            input_tokens=row["input_tokens"],
+            output_tokens=row["output_tokens"],
+            cached_tokens=row["cached_tokens"],
+            total_tokens=row["total_tokens"],
+            input=conn.parse_json(row["input"]) if row["input"] is not None else None,
+            output=conn.parse_json(row["output"]) if row["output"] is not None else None,
+            error=row["error"],
+            llm_info=conn.parse_json(row["llm_info"]) if row["llm_info"] is not None else {},
+            metadata=conn.parse_json(row["metadata"]) if row["metadata"] is not None else {},
+        )
+
+    async def list_llm_requests(
+        self,
+        bank_id: str,
+        *,
+        request_context: "RequestContext",
+        status: str | None = None,
+        operation: str | None = None,
+        scope: str | None = None,
+        provider: str | None = None,
+        trace_id: str | None = None,
+        document_id: str | None = None,
+        memory_id: str | None = None,
+        start_date: datetime | None = None,
+        end_date: datetime | None = None,
+        group: bool = False,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> LLMRequestListResponse | None:
+        """List traced LLM requests for a bank, newest first.
+
+        When ``group`` is True, pagination is by operation run (all LLM calls
+        sharing a ``trace_id``) rather than by individual call: ``limit``/
+        ``offset`` and ``total`` count runs, and every returned run is complete
+        (never split across pages), so the UI can render parent → child without
+        gaps. When False, results are flat, paginated per call.
+
+        Returns None when the bank does not exist (the HTTP layer maps this to a
+        404). Authentication and tenant-schema resolution happen inside
+        ``get_bank_profile`` before any query runs, so the queries below are
+        scoped to the authenticated tenant's schema.
+        """
+        if await self.get_bank_profile(bank_id, request_context=request_context, create_if_missing=False) is None:
+            return None
+
+        where_clauses = ["bank_id = $1"]
+        params: list[Any] = [bank_id]
+        idx = 2
+        for column, value in (
+            ("status", status),
+            ("operation", operation),
+            ("scope", scope),
+            ("provider", provider),
+            ("trace_id", trace_id),
+        ):
+            if value:
+                where_clauses.append(f"{column} = ${idx}")
+                params.append(value)
+                idx += 1
+        if document_id is not None:
+            # document_id is carried in per-call metadata (set by the retain
+            # extraction path); a document accrues one trace per retain run.
+            where_clauses.append(f"metadata->>'document_id' = ${idx}")
+            params.append(document_id)
+            idx += 1
+        if memory_id is not None:
+            # Match the run(s) that produced this memory (metadata.memory_ids) or
+            # consumed it as a consolidation source (metadata.source_memory_ids),
+            # so a memory resolves both the trace that created it and the traces
+            # that used it. The `?` operator tests array membership on the jsonb;
+            # both clauses reference the same bind param.
+            where_clauses.append(f"(metadata->'memory_ids' ? ${idx} OR metadata->'source_memory_ids' ? ${idx})")
+            params.append(memory_id)
+            idx += 1
+        if start_date is not None:
+            where_clauses.append(f"started_at >= ${idx}")
+            params.append(start_date)
+            idx += 1
+        if end_date is not None:
+            where_clauses.append(f"started_at < ${idx}")
+            params.append(end_date)
+            idx += 1
+
+        where_sql = " AND ".join(where_clauses)
+        table = fq_table("llm_requests")
+        cols = self._LLM_REQUEST_COLUMNS
+
+        backend = await self._get_backend()
+        async with acquire_with_retry(backend) as conn:
+            if group:
+                # A "run" = one trace_id; untraced rows are each their own run.
+                run_key = "COALESCE(trace_id, 'single:' || id::text)"
+                count_row = await conn.fetchrow(
+                    f"SELECT COUNT(*) AS total FROM (SELECT 1 FROM {table} WHERE {where_sql} GROUP BY {run_key}) q",
+                    *params,
+                )
+                total = count_row["total"] if count_row else 0
+                # Page of runs, most-recently-active first.
+                key_rows = await conn.fetch(
+                    f"""
+                    SELECT {run_key} AS run_key, MAX(started_at) AS run_end
+                    FROM {table} WHERE {where_sql}
+                    GROUP BY {run_key}
+                    ORDER BY run_end DESC
+                    LIMIT ${idx} OFFSET ${idx + 1}
+                    """,
+                    *params,
+                    limit,
+                    offset,
+                )
+                run_keys = [r["run_key"] for r in key_rows]
+                rows = []
+                if run_keys:
+                    rows = await conn.fetch(
+                        f"""
+                        SELECT {cols} FROM {table}
+                        WHERE {where_sql} AND {run_key} = ANY(${idx}::text[])
+                        ORDER BY started_at DESC
+                        """,
+                        *params,
+                        run_keys,
+                    )
+            else:
+                count_row = await conn.fetchrow(f"SELECT COUNT(*) AS total FROM {table} WHERE {where_sql}", *params)
+                total = count_row["total"] if count_row else 0
+                rows = await conn.fetch(
+                    f"""
+                    SELECT {cols} FROM {table}
+                    WHERE {where_sql}
+                    ORDER BY started_at DESC
+                    LIMIT ${idx} OFFSET ${idx + 1}
+                    """,
+                    *params,
+                    limit,
+                    offset,
+                )
+
+            items = [self._llm_request_entry(conn, row) for row in rows]
+
+        return LLMRequestListResponse(bank_id=bank_id, total=total, limit=limit, offset=offset, items=items)
+
+    async def llm_request_stats(
+        self,
+        bank_id: str,
+        *,
+        request_context: "RequestContext",
+        operation: str | None = None,
+        period: str = "7d",
+    ) -> LLMRequestStatsResponse | None:
+        """LLM request counts and token sums grouped by day, for charting.
+
+        Returns None when the bank does not exist (mapped to 404 by the HTTP
+        layer). Auth/tenant resolution happen in ``get_bank_profile``.
+        """
+        if await self.get_bank_profile(bank_id, request_context=request_context, create_if_missing=False) is None:
+            return None
+
+        now = datetime.now(timezone.utc)
+        trunc = "day"
+        if period == "1d":
+            start = now - timedelta(days=1)
+        elif period == "30d":
+            start = now - timedelta(days=30)
+        else:  # 7d default
+            start = now - timedelta(days=7)
+
+        where_clauses = ["bank_id = $1", "started_at >= $2"]
+        params: list[Any] = [bank_id, start]
+        idx = 3
+        if operation:
+            where_clauses.append(f"operation = ${idx}")
+            params.append(operation)
+            idx += 1
+        where_sql = " AND ".join(where_clauses)
+        table = fq_table("llm_requests")
+
+        backend = await self._get_backend()
+        async with acquire_with_retry(backend) as conn:
+            rows = await conn.fetch(
+                f"""
+                SELECT date_trunc('{trunc}', started_at) AS bucket,
+                       status,
+                       COUNT(*) AS count,
+                       COALESCE(SUM(input_tokens), 0) AS input_tokens,
+                       COALESCE(SUM(output_tokens), 0) AS output_tokens,
+                       COALESCE(SUM(cached_tokens), 0) AS cached_tokens,
+                       COALESCE(SUM(total_tokens), 0) AS total_tokens
+                FROM {table}
+                WHERE {where_sql}
+                GROUP BY bucket, status
+                ORDER BY bucket ASC
+                """,
+                *params,
+            )
+
+        # Aggregate per bucket: call counts by status + summed token usage. Plain
+        # dicts here (status names / bucket keys are dynamic); materialized into
+        # typed models below.
+        statuses_by_bucket: dict[str, dict[str, int]] = {}
+        tokens_by_bucket: dict[str, dict[str, int]] = {}
+        order: list[str] = []
+        for row in rows:
+            key = row["bucket"].isoformat()
+            if key not in statuses_by_bucket:
+                statuses_by_bucket[key] = {}
+                tokens_by_bucket[key] = {"input": 0, "output": 0, "cached": 0, "total": 0}
+                order.append(key)
+            statuses_by_bucket[key][row["status"]] = row["count"]
+            tok = tokens_by_bucket[key]
+            tok["input"] += row["input_tokens"]
+            tok["output"] += row["output_tokens"]
+            tok["cached"] += row["cached_tokens"]
+            tok["total"] += row["total_tokens"]
+
+        return LLMRequestStatsResponse(
+            bank_id=bank_id,
+            period=period,
+            trunc=trunc,
+            start=start.isoformat(),
+            buckets=[
+                LLMRequestStatsBucket(
+                    time=k,
+                    statuses=statuses_by_bucket[k],
+                    total=sum(statuses_by_bucket[k].values()),
+                    tokens=LLMRequestTokenSums(**tokens_by_bucket[k]),
+                )
+                for k in order
+            ],
+        )
+
     # ==================== Audit log read methods ====================
 
     async def list_audit_logs(
@@ -6703,6 +7002,7 @@ class MemoryEngine(MemoryEngineInterface):
         created_after: datetime | None = None,
         created_before: datetime | None = None,
         _skip_span: bool = False,
+        _operation_label: str = "reflect",
     ) -> ReflectResult:
         """
         Reflect and formulate an answer using an agentic loop with tools.
@@ -6940,7 +7240,9 @@ class MemoryEngine(MemoryEngineInterface):
             try:
                 agent_result = await asyncio.wait_for(
                     run_reflect_agent(
-                        llm_config=self._reflect_llm_config.with_config(resolved_reflect_config),
+                        llm_config=self._reflect_llm_config.with_config(
+                            resolved_reflect_config, bank_id=bank_id, operation=_operation_label
+                        ),
                         bank_id=bank_id,
                         query=query,
                         bank_profile=profile,
@@ -8434,6 +8736,9 @@ class MemoryEngine(MemoryEngineInterface):
                 recall_max_tokens_override=recall_max_tokens_override,
                 recall_chunks_max_tokens_override=recall_chunks_max_tokens_override,
                 _skip_span=True,
+                # Attribute these LLM calls to the mental-model refresh, not a
+                # plain reflect, so traces group under the right operation.
+                _operation_label="refresh_mental_model",
             )
             # Forward the per-model max_tokens so the final synthesis is capped at the
             # user-configured limit rather than the reflect_async default.

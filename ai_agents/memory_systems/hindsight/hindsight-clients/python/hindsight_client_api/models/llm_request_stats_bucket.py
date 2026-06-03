@@ -17,20 +17,21 @@ import pprint
 import re  # noqa: F401
 import json
 
-from pydantic import BaseModel, ConfigDict, Field, StrictInt
-from typing import Any, ClassVar, Dict, List, Optional
+from pydantic import BaseModel, ConfigDict, StrictInt, StrictStr
+from typing import Any, ClassVar, Dict, List
+from hindsight_client_api.models.llm_request_token_sums import LLMRequestTokenSums
 from typing import Optional, Set
 from typing_extensions import Self
 
-class TokenUsage(BaseModel):
+class LLMRequestStatsBucket(BaseModel):
     """
-    Token usage metrics for LLM calls.  Tracks input/output tokens for a single request to enable per-request cost tracking and monitoring.
+    A single time bucket in LLM request stats.
     """ # noqa: E501
-    input_tokens: Optional[StrictInt] = Field(default=0, description="Number of input/prompt tokens consumed")
-    output_tokens: Optional[StrictInt] = Field(default=0, description="Number of output/completion tokens generated")
-    total_tokens: Optional[StrictInt] = Field(default=0, description="Total tokens (input + output)")
-    cached_tokens: Optional[StrictInt] = Field(default=0, description="Cached/cache-read prompt tokens, when reported by the provider")
-    __properties: ClassVar[List[str]] = ["input_tokens", "output_tokens", "total_tokens", "cached_tokens"]
+    time: StrictStr
+    statuses: Dict[str, StrictInt]
+    total: StrictInt
+    tokens: LLMRequestTokenSums
+    __properties: ClassVar[List[str]] = ["time", "statuses", "total", "tokens"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -50,7 +51,7 @@ class TokenUsage(BaseModel):
 
     @classmethod
     def from_json(cls, json_str: str) -> Optional[Self]:
-        """Create an instance of TokenUsage from a JSON string"""
+        """Create an instance of LLMRequestStatsBucket from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self) -> Dict[str, Any]:
@@ -71,11 +72,14 @@ class TokenUsage(BaseModel):
             exclude=excluded_fields,
             exclude_none=True,
         )
+        # override the default output from pydantic by calling `to_dict()` of tokens
+        if self.tokens:
+            _dict['tokens'] = self.tokens.to_dict()
         return _dict
 
     @classmethod
     def from_dict(cls, obj: Optional[Dict[str, Any]]) -> Optional[Self]:
-        """Create an instance of TokenUsage from a dict"""
+        """Create an instance of LLMRequestStatsBucket from a dict"""
         if obj is None:
             return None
 
@@ -83,10 +87,10 @@ class TokenUsage(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
-            "input_tokens": obj.get("input_tokens") if obj.get("input_tokens") is not None else 0,
-            "output_tokens": obj.get("output_tokens") if obj.get("output_tokens") is not None else 0,
-            "total_tokens": obj.get("total_tokens") if obj.get("total_tokens") is not None else 0,
-            "cached_tokens": obj.get("cached_tokens") if obj.get("cached_tokens") is not None else 0
+            "time": obj.get("time"),
+            "statuses": obj.get("statuses"),
+            "total": obj.get("total"),
+            "tokens": LLMRequestTokenSums.from_dict(obj["tokens"]) if obj.get("tokens") is not None else None
         })
         return _obj
 

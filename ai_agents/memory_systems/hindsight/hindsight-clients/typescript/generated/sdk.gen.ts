@@ -134,6 +134,9 @@ import type {
   ListEntitiesData,
   ListEntitiesErrors,
   ListEntitiesResponses,
+  ListLlmRequestsData,
+  ListLlmRequestsErrors,
+  ListLlmRequestsResponses,
   ListMemoriesData,
   ListMemoriesErrors,
   ListMemoriesResponses,
@@ -152,6 +155,9 @@ import type {
   ListWebhooksData,
   ListWebhooksErrors,
   ListWebhooksResponses,
+  LlmRequestStatsData,
+  LlmRequestStatsErrors,
+  LlmRequestStatsResponses,
   MetricsEndpointMetricsGetData,
   MetricsEndpointMetricsGetResponses,
   RecallMemoriesData,
@@ -1284,5 +1290,31 @@ export const auditLogStats = <ThrowOnError extends boolean = false>(
 ) =>
   (options.client ?? client).get<AuditLogStatsResponses, AuditLogStatsErrors, ThrowOnError>({
     url: "/v1/default/banks/{bank_id}/audit-logs/stats",
+    ...options,
+  });
+
+/**
+ * List LLM request traces
+ *
+ * List traced LLM requests for a bank, ordered by most recent first. Requires LLM request tracing to be enabled (HINDSIGHT_API_LLM_TRACE_ENABLED).
+ */
+export const listLlmRequests = <ThrowOnError extends boolean = false>(
+  options: Options<ListLlmRequestsData, ThrowOnError>
+) =>
+  (options.client ?? client).get<ListLlmRequestsResponses, ListLlmRequestsErrors, ThrowOnError>({
+    url: "/v1/default/banks/{bank_id}/llm-requests",
+    ...options,
+  });
+
+/**
+ * LLM request statistics
+ *
+ * Get LLM request counts grouped by time bucket and status for charting.
+ */
+export const llmRequestStats = <ThrowOnError extends boolean = false>(
+  options: Options<LlmRequestStatsData, ThrowOnError>
+) =>
+  (options.client ?? client).get<LlmRequestStatsResponses, LlmRequestStatsErrors, ThrowOnError>({
+    url: "/v1/default/banks/{bank_id}/llm-requests/stats",
     ...options,
   });
