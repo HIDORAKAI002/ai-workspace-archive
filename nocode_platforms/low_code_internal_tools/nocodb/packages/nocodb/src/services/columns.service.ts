@@ -5796,6 +5796,27 @@ export class ColumnsService implements IColumnsService {
     const refTable = await Model.getWithInfo(refContext, {
       id: ltarReq.childId,
     });
+
+    // Both sides need a primary key for the relation to be usable.
+    // Without one, downstream operations (delByPk LMT broadcast, BT/OO
+    // nested-record JSON construction, undo) can't address rows by id and
+    // will crash on `.primaryKey.<x>`. Fail fast with a clear message here
+    // instead of partially creating an unusable LTAR column.
+    if (!table.primaryKey) {
+      NcError.get(context).badRequest(
+        `Cannot create relation: table '${
+          table.title || table.table_name
+        }' has no primary key. Add a primary key column and try again.`,
+      );
+    }
+    if (!refTable.primaryKey) {
+      NcError.get(context).badRequest(
+        `Cannot create relation: table '${
+          refTable.title || refTable.table_name
+        }' has no primary key. Add a primary key column and try again.`,
+      );
+    }
+
     let refColumn: Column;
     const childView: View | null = ltarReq?.childViewId
       ? await View.getByTitleOrId(context, {
@@ -6448,7 +6469,6 @@ export class ColumnsService implements IColumnsService {
         columns: await table.getCachedColumns(context),
       });
 
-
       // todo: create index for virtual relations as well
       // create index for foreign key in pg
       if (param.source.type === 'pg') {
@@ -7097,7 +7117,11 @@ export class ColumnsService implements IColumnsService {
         ? source
         : await Source.get(childRefContext, childTable.source_id);
 
-    if (childSource && childSource.id !== source.id && childSource.is_schema_readonly) {
+    if (
+      childSource &&
+      childSource.id !== source.id &&
+      childSource.is_schema_readonly
+    ) {
       NcError.get(context).sourceMetaReadOnly(childSource.alias);
     }
 

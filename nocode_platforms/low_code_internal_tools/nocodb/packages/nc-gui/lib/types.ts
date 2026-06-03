@@ -725,7 +725,7 @@ interface CanvasGroup {
   groupIndex?: number
   column: ColumnType
   groups: Map<number, CanvasGroup>
-  chunkStates: Array<'loading' | 'loaded' | undefined>
+  chunkStates: Array<'loading' | 'loaded' | 'failed' | undefined>
   count: number
   isExpanded: boolean
   value: any
@@ -761,6 +761,12 @@ interface PermissionConfig {
   parentEffectiveValue?: string
   /** Current visibility value — editing options more permissive than this are disabled. */
   visibilityValue?: string
+  /**
+   * Multi-entity bulk mode. When set and length > 1, the underlying
+   * usePermissionSelector composable fans the set/drop API call out over every
+   * id. entityId is still used as the initial-state probe.
+   */
+  entityIds?: string[]
 }
 
 interface PermissionSelectorUser {

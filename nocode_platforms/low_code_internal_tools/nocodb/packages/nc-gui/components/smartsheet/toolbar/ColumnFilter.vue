@@ -165,10 +165,20 @@ const {
 
 const listViewStore = isList.value ? useListViewStoreOrThrow() : undefined
 const isListConfigured = computed(
-  () => (listViewStore?.isConfigured.value ?? false) && (listViewStore?.levels.value?.length ?? 0) > 1,
+  // A list view is level-scoped as soon as it has >= 1 level — the backend always
+  // scopes filters per fk_level_id (even the single root level). The previous `> 1`
+  // gate left single-level lists (and filters created before a 2nd level was added)
+  // with no fk_level_id, so the backend silently dropped them.
+  () => (listViewStore?.isConfigured.value ?? false) && (listViewStore?.levels.value?.length ?? 0) >= 1,
 )
 
-const levelId = computed(() => (isList.value && isListConfigured.value ? listViewStore?.selectedLevelId.value : undefined))
+const levelId = computed(() =>
+  isList.value && isListConfigured.value
+    ? // Fall back to selectedLevel.id (defaults to levels[0]) while selectedLevelId is
+      // still initializing, so a freshly-created filter is never left untagged.
+      listViewStore?.selectedLevelId.value ?? listViewStore?.selectedLevel.value?.id
+    : undefined,
+)
 
 const { getMetaByKey } = useMetas()
 
@@ -582,7 +592,11 @@ const scrollDownIfNeeded = () => {
  */
 const addFilter = async (filter?: Partial<FilterType>, isCopyFilter = false) => {
   const draft = levelId.value && !nested.value ? { ...(filter ?? {}), fk_level_id: levelId.value } : filter
-  await _addFilter(false, draft)
+  // `_addFilter` (useViewFilters) takes the draft as its single argument. Passing a
+  // leading `false` here made the draft the (ignored) 2nd arg, so the multi-level
+  // list view's `fk_level_id` was dropped — the filter was counted but never shown
+  // under its level tab nor applied. (Filter groups already pass the draft correctly.)
+  await _addFilter(draft)
 
   if (filter && !isCopyFilter) {
     selectFilterField(filters.value[filters.value.length - 1], filters.value.length - 1)
