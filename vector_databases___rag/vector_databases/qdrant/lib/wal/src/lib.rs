@@ -21,7 +21,7 @@ pub mod test_utils;
 #[cfg(test)]
 mod test_segment_recovery;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct WalOptions {
     /// The segment capacity. Defaults to 32MiB.
     pub segment_capacity: usize,
@@ -152,7 +152,16 @@ impl Wal {
             dir
         };
 
-        dir.try_lock()?;
+        // Use `fs4`'s `flock(2)`-based lock rather than `dir.try_lock()`.
+        //
+        // `dir.try_lock()` resolves to the inherent `fs_err`/`std` `File::try_lock`,
+        // which is gated to a fixed list of targets in stdlib and returns
+        // `ErrorKind::Unsupported` ("try_lock() not supported") on others — notably
+        // Android. `fs4::FileExt::try_lock` issues a direct `flock(LOCK_EX | LOCK_NB)`
+        // syscall, which Android supports. We call it via UFCS on the underlying
+        // `std::fs::File` because the trait method collides with the inherent one
+        // (which would otherwise win method resolution).
+        fs4::FileExt::try_lock(dir.file())?;
 
         // Holds open segments in the directory.
         let mut open_segments: Vec<OpenSegment> = Vec::new();
@@ -267,10 +276,10 @@ impl Wal {
         let start_index = self.open_segment_start_index();
 
         // If there is an empty closed segment, remove it before adding the new one.
-        if let Some(last_closed) = self.closed_segments.last()
-            && last_closed.segment.is_empty()
+        if let Some(empty_segment) = self
+            .closed_segments
+            .pop_if(|last_closed| last_closed.segment.is_empty())
         {
-            let empty_segment = self.closed_segments.pop().unwrap();
             empty_segment.segment.delete()?;
         }
 

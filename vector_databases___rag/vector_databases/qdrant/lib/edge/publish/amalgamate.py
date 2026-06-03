@@ -25,7 +25,7 @@ from pathlib import Path
 
 import tomlkit
 
-VERSION = "0.6.1"
+VERSION = "0.7.2"
 
 # Assume this script is in <root>/lib/edge/publish/.
 REPO_ROOT = Path(__file__).parent.parent.parent.parent
@@ -33,6 +33,7 @@ REPO_ROOT = Path(__file__).parent.parent.parent.parent
 AMALGAMATION = Path(__file__).parent / "qdrant-edge"
 
 PACKAGES_TO_INCLUDE = [
+    "bm25",
     "common",
     "edge",
     "gridstore",

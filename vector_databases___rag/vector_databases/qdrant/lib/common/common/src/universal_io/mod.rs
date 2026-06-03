@@ -6,20 +6,24 @@ mod error;
 mod io_uring;
 mod local_file_ops;
 mod mmap;
+mod simple_disk_cache;
 mod traits;
 mod types;
 mod wrappers;
 
-pub use self::error::UniversalIoError;
+pub use self::error::{IsNotFound, OkNotFound, UniversalIoError};
 #[cfg(target_os = "linux")]
-pub use self::io_uring::IoUringFile;
-pub use self::mmap::MmapFile;
+pub use self::io_uring::{IoUringFile, IoUringFs, IoUringOpenExtra};
+pub use self::mmap::{MmapFile, MmapFs};
+pub use self::simple_disk_cache::{
+    DiskCache, DiskCacheConfig, DiskCacheFs, DiskCacheFsContext, DiskCacheRemote,
+};
 pub use self::traits::{
-    BorrowedReadPipeline, OwnedReadPipeline, UniversalRead, UniversalReadFileOps, UniversalWrite,
-    UserData,
+    BorrowedReadPipeline, Item, OpenExtra, OwnedReadPipeline, UniversalRead, UniversalReadFileOps,
+    UniversalReadFs, UniversalWrite, UserData,
 };
 pub use self::types::{
-    ByteOffset, FileIndex, Flusher, OpenOptions, OpenOptionsExtra, Populate, ReadRange, Result,
-    UniversalKind, read_json_via,
+    ByteOffset, FileIndex, Flusher, OpenOptions, Populate, ReadRange, Result, UniversalKind,
+    read_bin_via, read_json_via, read_whole_via,
 };
 pub use self::wrappers::{ReadOnly, SliceBufferedUpdateWrapper, StoredStruct, TypedStorage};

@@ -2,8 +2,6 @@
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue)](https://www.linkedin.com/in/nir-diamant-759323134/)
 [![Twitter](https://img.shields.io/twitter/follow/NirDiamantAI?label=Follow%20@NirDiamantAI&style=social)](https://twitter.com/NirDiamantAI)
 [![Discord](https://img.shields.io/badge/Discord-Join%20our%20community-7289da?style=flat-square&logo=discord&logoColor=white)](https://discord.gg/cA6Aa4uyDX)
-[![DiamantAI Collective is hiring](https://img.shields.io/badge/%F0%9F%92%BC%20Hiring-DiamantAI%20Collective-7c3aed?style=flat-square)](https://europe-west1-prompt-eng-views-tracker.cloudfunctions.net/prompt-eng-tracker?notebook=main-readme--hiring-badge&click=top-badge-hiring&target=https%3A%2F%2Fdiamant-ai.com%2Fjobs&text=Hiring%20Badge)
-
 
 > 🌟 **Support This Project:** Your sponsorship fuels innovation in prompt engineering development.  **[Become a sponsor](https://github.com/sponsors/NirDiamant)** to help maintain and expand this valuable resource!
 
@@ -15,26 +13,17 @@ Welcome to one of the most extensive and dynamic collections of Prompt Engineeri
 
 ## 📖 Companion book by the same author
 
-<a href="https://europe-west1-rag-techniques-views-tracker.cloudfunctions.net/rag-techniques-tracker?notebook=prompt-engineering--readme&click=book-buy-amazon-image&target=https%3A%2F%2Fwww.amazon.com%2Fdp%2FB0D76734SZ%3Ftag%3Ddiamantai-pe-20&text=Best%20Seller%20Image"><img src="images/rag_book_best_seller.png" alt="RAG Made Simple - Amazon bestseller in Generative AI" width="500"></a>
+<a href="https://diamant-ai.com/rag-made-simple?code=RAGKING"><img src="images/rag_book_best_seller.png" alt="RAG Made Simple - Amazon bestseller in Generative AI" width="500"></a>
 
-**[RAG Made Simple](https://europe-west1-rag-techniques-views-tracker.cloudfunctions.net/rag-techniques-tracker?notebook=prompt-engineering--readme&click=book-buy-amazon-title&target=https%3A%2F%2Fwww.amazon.com%2Fdp%2FB0D76734SZ%3Ftag%3Ddiamantai-pe-20&text=RAG%20Made%20Simple)** - the production reference for RAG systems, built with the prompting techniques you learn in this repo.
-*1,500+ copies sold · Hit #1 in Generative AI on Amazon at launch · ⭐ 4.4 stars*
-**Kindle $9.99 · Paperback $24.99 · Free with Kindle Unlimited**
+**[RAG Made Simple](https://diamant-ai.com/rag-made-simple?code=RAGKING)** - the production reference for RAG systems, built with the prompting techniques you learn in this repo.
+*1,500+ copies sold · Hit #1 in Generative AI on Amazon at launch · ⭐ 4.6 stars*
+**PDF + EPUB · GitHub community offer: 33% off with code RAGKING**
 
-### 👉 [**Get RAG Made Simple on Amazon**](https://europe-west1-rag-techniques-views-tracker.cloudfunctions.net/rag-techniques-tracker?notebook=prompt-engineering--readme&click=book-buy-amazon-cta&target=https%3A%2F%2Fwww.amazon.com%2Fdp%2FB0D76734SZ%3Ftag%3Ddiamantai-pe-20&text=Get%20RAG%20Made%20Simple)
+### 👉 [**Get RAG Made Simple (33% off with code RAGKING)**](https://diamant-ai.com/rag-made-simple?code=RAGKING)
 
 </div>
-
 
 > **22 hands-on tutorials** covering everything from basic prompt templates to advanced techniques like chain-of-thought, self-consistency, and tree-of-thought prompting.
-
-<div align="center">
-
----
-
-<img src="images/collective-banner.png" alt="DiamantAI Collective - AI engineering jobs" width="600">
-
-</div>
 
 ## 🎯 Sponsors
 
@@ -48,7 +37,6 @@ Welcome to one of the most extensive and dynamic collections of Prompt Engineeri
 </a>
 
 </div>
-
 
 ## 📫 Stay Updated!
 
@@ -95,9 +83,6 @@ Available on:
 
 💡 **Subscribers to the DiamantAI newsletter receive an exclusive 33% (!) discount on the book.**
 
-
-
-
 ## Related Projects
 
 🚀 Level up with my **[Agents Towards Production](https://github.com/NirDiamant/agents-towards-production)** repository. It delivers horizontal, code-first tutorials that cover every tool and step in the lifecycle of building production-grade GenAI agents, guiding you from spark to scale with proven patterns and reusable blueprints for real-world launches, making it the smartest place to start if you're serious about shipping agents to production.
@@ -105,7 +90,6 @@ Available on:
 📚 Explore my **[comprehensive guide on RAG techniques](https://github.com/NirDiamant/RAG_Techniques)** to learn how to enhance AI systems with external knowledge retrieval, complementing language model capabilities with rich, up-to-date information.
 
 🤖 Dive into my **[GenAI Agents Repository](https://github.com/NirDiamant/GenAI_Agents)** for a wide range of AI agent implementations and tutorials, from simple conversational bots to complex, multi-agent systems for various applications.
-
 
 🧠 Give your agents memory with **[Agent Memory Techniques](https://github.com/NirDiamant/Agent_Memory_Techniques)** — 30 runnable notebooks on conversation buffers, vector stores, knowledge graphs, episodic and semantic memory, plus Mem0, MemGPT/Letta, Zep, and Graphiti.
 
@@ -118,7 +102,6 @@ Available on:
 Whether you're a novice eager to learn or an expert ready to share your knowledge, your insights can shape the future of prompt engineering. Join us to propose ideas, get feedback, and collaborate on innovative implementations. For contribution guidelines, please refer to our **[CONTRIBUTING.md](https://github.com/NirDiamant/Prompt_Engineering/blob/main/CONTRIBUTING.md)** file. Let's advance prompt engineering technology together!
 
 🔗 For discussions on GenAI, or to explore knowledge-sharing opportunities, feel free to **[connect on LinkedIn](https://www.linkedin.com/in/nir-diamant-759323134/)**.
-
 
 ## Key Features
 
@@ -371,12 +354,6 @@ To begin exploring and implementing prompt engineering techniques:
 - [Hands-On Large Language Models](https://www.amazon.com/dp/1098150961?tag=diamantai-pe-20) by Jay Alammar and Maarten Grootendorst. Visual, practical LLM walkthroughs.
 - [Natural Language Processing with Transformers](https://www.amazon.com/dp/1098136799?tag=diamantai-pe-20) by Lewis Tunstall, Leandro von Werra, and Thomas Wolf. From the Hugging Face team.
 - [Designing Machine Learning Systems](https://www.amazon.com/dp/1098107969?tag=diamantai-pe-20) by Chip Huyen. ML systems in production, still the standard reference.
-
-## 💼 Apply for open AI engineering jobs
-
-**AI-first companies are hiring through the DiamantAI Collective.**
-
-[![See open jobs and apply](https://img.shields.io/badge/%E2%9E%A1%EF%B8%8F%20%20See%20open%20jobs%20and%20apply-7c3aed?style=for-the-badge)](https://europe-west1-prompt-eng-views-tracker.cloudfunctions.net/prompt-eng-tracker?notebook=main-readme--jobs-panel&click=jobs-panel-see-all-roles&target=https%3A%2F%2Fdiamant-ai.com%2Fjobs&text=See%20open%20jobs%20and%20apply)
 
 ---
 

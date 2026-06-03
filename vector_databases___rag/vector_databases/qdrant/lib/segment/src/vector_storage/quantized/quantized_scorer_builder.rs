@@ -34,7 +34,6 @@ pub(super) struct QuantizedScorerBuilder<'a> {
 }
 
 impl<'a> QuantizedScorerBuilder<'a> {
-    #[allow(clippy::too_many_arguments)]
     pub fn new(
         quantized_storage: &'a QuantizedVectorStorage,
         quantization_config: &'a QuantizationConfig,
@@ -85,6 +84,9 @@ impl<'a> QuantizedScorerBuilder<'a> {
                     self.build_with_metric::<VectorElementTypeHalf, ManhattanMetric>()
                 }
             },
+            VectorStorageDatatype::Turbo4 => {
+                unimplemented!("turbo4 datatype storage not yet wired up")
+            }
         }
     }
 

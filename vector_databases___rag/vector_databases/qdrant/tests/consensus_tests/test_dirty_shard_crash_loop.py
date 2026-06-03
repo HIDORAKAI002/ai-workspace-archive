@@ -19,16 +19,8 @@ import time
 import pytest
 import requests
 
-from consensus_tests.fixtures import create_collection, upsert_random_points
-from consensus_tests.utils import (
-    get_collection_cluster_info,
-    get_pytest_current_test_name,
-    processes,
-    start_cluster,
-    start_peer,
-    wait_collection_exists_and_active_on_all_peers,
-    wait_for_peer_online,
-)
+from .fixtures import create_collection, upsert_random_points
+from .utils import *
 
 COLLECTION_NAME = "test_dirty_shard"
 N_PEERS = 3
@@ -93,16 +85,20 @@ def test_dirty_shard_survives_update_collection(tmp_path: pathlib.Path):
     assert r.status_code == 200, f"UpdateCollection failed: {r.text}"
 
     # Restart target briefly (no dirty flag) so it syncs the UpdateCollection entry
+    sync_log = f"peer_sync_{target_idx}.log"
     sync_uri = start_peer(
         peer_dirs[target_idx],
-        f"peer_sync_{target_idx}.log",
+        sync_log,
         bootstrap_uri,
         port=restart_port,
     )
-    # Under parallel pytest-xdist load the leader can take longer than the
-    # default 30s budget to replicate the UpdateCollection entry and let the
-    # rejoining peer report ready. Allow more time to avoid CPU-contention flakes.
-    wait_for_peer_online(sync_uri, wait_for_timeout=60)
+    online, exit_code = wait_for_peer_online_or_crash(sync_uri, processes[-1])
+    if not online:
+        log_content = read_log(sync_log)
+        pytest.fail(
+            f"Sync restart failed to come online (exit code {exit_code}).\n"
+            f"Log tail:\n{log_content[-1000:]}"
+        )
 
     # Kill again — the UpdateCollection entry is now committed in its WAL
     p = processes.pop()
@@ -130,7 +126,7 @@ def test_dirty_shard_survives_update_collection(tmp_path: pathlib.Path):
         port=restart_port,
     )
 
-    online, exit_code = wait_for_peer_online_or_crash(new_uri, processes[-1], timeout=60)
+    online, exit_code = wait_for_peer_online_or_crash(new_uri, processes[-1], timeout=30)
 
     if not online:
         log_content = read_log(restart_log)

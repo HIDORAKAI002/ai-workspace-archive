@@ -2,6 +2,7 @@ use std::sync::atomic::AtomicBool;
 
 use common::counter::hardware_counter::HardwareCounterCell;
 use common::types::PointOffsetType;
+use common::universal_io::MmapFile;
 use criterion::{BatchSize, Criterion, criterion_group, criterion_main};
 use dataset::Dataset;
 use indicatif::{ProgressBar, ProgressDrawTarget, ProgressStyle};
@@ -48,12 +49,12 @@ fn sparse_vector_index_search_benchmark(c: &mut Criterion) {
     let query_vectors = Csr::open(Dataset::NeurIps2023Queries.download().unwrap())
         .unwrap()
         .iter()
-        .map(|v| v.unwrap())
+        .unwrap()
         .collect_vec();
     sparse_vector_index_search_benchmark_impl(
         c,
         "neurips2023-1M",
-        dataset_vectors.iter().map(|v| v.unwrap()),
+        dataset_vectors.iter().unwrap(),
         &query_vectors,
     );
 }
@@ -104,7 +105,7 @@ fn sparse_vector_index_search_benchmark_impl(
     let sparse_index_config =
         SparseIndexConfig::new(Some(FULL_SCAN_THRESHOLD), SparseIndexType::Mmap, None);
     let pb = progress("Indexing (2/2)", vectors_len);
-    let sparse_vector_index_mmap: SparseVectorIndex<InvertedIndexCompressedMmap<f32>> =
+    let sparse_vector_index_mmap: SparseVectorIndex<InvertedIndexCompressedMmap<f32, MmapFile>> =
         SparseVectorIndex::open(SparseVectorIndexOpenArgs {
             config: sparse_index_config,
             id_tracker: sparse_vector_index.id_tracker().clone(),

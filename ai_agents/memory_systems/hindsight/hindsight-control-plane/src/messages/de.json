@@ -149,6 +149,10 @@
     "clearObservationsDetailedWarning": "Alle Beobachtungs-Erinnerungen werden dauerhaft gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.",
     "observationsNotEnabled": "Beobachtungen nicht aktiviert",
     "observationsDisabledMessage": "Die Beobachtungskonsolidierung ist auf diesem Server deaktiviert. Setzen Sie <envVar></envVar>, um sie zu aktivieren.",
+    "auditLogsNotEnabled": "Audit-Protokolle nicht aktiviert",
+    "auditLogsDisabledMessage": "Die Audit-Protokollierung ist auf diesem Server deaktiviert. Setzen Sie <envVar></envVar>, um sie zu aktivieren.",
+    "llmRequestsNotEnabled": "LLM Requests nicht aktiviert",
+    "llmRequestsDisabledMessage": "Das Tracing von LLM-Anfragen ist auf diesem Server deaktiviert. Setzen Sie <envVar></envVar>, um es zu aktivieren.",
     "deleteWillDeleteDetails": "Dadurch werden {memories, plural, one {# Erinnerung} other {# Erinnerungen}}, {documents, plural, one {# Dokument} other {# Dokumente}} und {links, plural, one {# Verknüpfung} other {# Verknüpfungen}} gelöscht.",
     "deleteWillDeleteObservations": "Dadurch werden {count, plural, one {# Beobachtung} other {# Beobachtungen}} gelöscht."
   },
@@ -405,7 +409,56 @@
     "subBatchesCount": "Teilbatches ({count})",
     "rawPayload": "Rohdaten-Payload",
     "loadRaw": "Rohdaten laden",
-    "rawPayloadHelp": "Zeigt die vollständigen Parameter, mit denen der Vorgang eingereicht wurde (kann groß sein)."
+    "rawPayloadHelp": "Zeigt die vollständigen Parameter, mit denen der Vorgang eingereicht wurde (kann groß sein).",
+    "operationCount": "{count} Vorgänge",
+    "unknown": "Unbekannt",
+    "notAvailable": "N/V",
+    "operationDetailsLoadError": "Vorgangsdetails konnten nicht geladen werden",
+    "status": {
+      "all": "Alle",
+      "pending": "Ausstehend",
+      "processing": "In Bearbeitung",
+      "completed": "Abgeschlossen",
+      "failed": "Fehlgeschlagen",
+      "cancelled": "Abgebrochen"
+    },
+    "operationType": {
+      "all": "Alle Typen",
+      "retain": "Retain",
+      "consolidation": "Konsolidierung",
+      "refreshMentalModel": "Mental-Model-Aktualisierung",
+      "fileConvertRetain": "Datei konvertieren und Retain",
+      "webhookDelivery": "Webhook-Zustellung",
+      "graphMaintenance": "Graph-Wartung"
+    },
+    "table": {
+      "id": "Vorgangs-ID",
+      "type": "Typ",
+      "created": "Erstellt",
+      "status": "Status",
+      "index": "Index",
+      "items": "Elemente"
+    },
+    "action": {
+      "cancel": "Abbrechen",
+      "retry": "Wiederholen"
+    },
+    "pagination": "Zeige {start}-{end} von {total}",
+    "paginationPrevious": "Zurück",
+    "paginationNext": "Weiter",
+    "emptyState": "Keine Vorgänge",
+    "emptyStateWithStatus": "Keine Vorgänge mit Status {status}",
+    "field": {
+      "status": "Status",
+      "type": "Typ",
+      "created": "Erstellt",
+      "updated": "Aktualisiert",
+      "completed": "Abgeschlossen"
+    },
+    "metadata": "Metadaten",
+    "error": "Fehler",
+    "rawPayloadParentHelp": "Dies ist ein übergeordneter Vorgang: Die Rohdaten-Payload wird in jedem Teilbatch gespeichert. Öffnen Sie einen untergeordneten Vorgang, um seine Payload zu prüfen.",
+    "rawPayloadEmpty": "Für diesen Vorgang ist keine Rohdaten-Payload gespeichert."
   },
   "dataView": {
     "loadingMemories": "Erinnerungen werden geladen...",
@@ -558,7 +611,26 @@
     "retainTracesSummary": "{calls, plural, one {# Aufruf} other {# Aufrufe}} · {tokens} Tokens",
     "loadingChunks": "Fragmente werden geladen...",
     "noChunksFound": "Keine Fragmente für dieses Dokument gefunden",
-    "clickChunksTabToLoad": "Klicken Sie auf den Tab „Fragmente“, um Fragmente zu laden"
+    "clickChunksTabToLoad": "Klicken Sie auf den Tab „Fragmente“, um Fragmente zu laden",
+    "exportButton": "Exportieren",
+    "importButton": "Aus ZIP importieren",
+    "exporting": "Exportieren…",
+    "importing": "Importieren…",
+    "exportSuccess": "Dokumente exportiert",
+    "importSuccess": "{imported} Dokument(e), {facts} Fakt(en) importiert; {skipped} übersprungen",
+    "importFailed": "Import fehlgeschlagen",
+    "importTimeout": "Der Import dauert länger als erwartet; bitte später erneut prüfen",
+    "exportDialogTitle": "Dokumente exportieren",
+    "exportDialogDescription": "Lade die Dokumente dieses Banks und ihre extrahierten Fakten als .zip-Archiv herunter. Embeddings sind nicht enthalten – beim Import werden sie mit dem Modell des Ziel-Banks neu erzeugt.",
+    "exportIncludeObservationsLabel": "Konsolidierte Beobachtungen einschließen",
+    "exportIncludeObservationsHint": "Auch synthetisierte Beobachtungen exportieren. Andernfalls erzeugt der Ziel-Bank sie bei der Konsolidierung neu.",
+    "importDialogTitle": "Dokumente importieren",
+    "importDialogDescription": "Lade ein zuvor aus einem Bank exportiertes .zip-Archiv hoch. Dies ist kein normaler Dokument-Upload – Fakten werden in diesem Bank neu eingebettet und verknüpft. Der Import läuft im Hintergrund.",
+    "actionsButton": "Aktionen",
+    "importConflictLabel": "Wenn ein Dokument bereits existiert",
+    "importConflictSkip": "Überspringen — vorhandenes Dokument behalten",
+    "importConflictReplace": "Ersetzen — durch das importierte überschreiben",
+    "importConflictNewId": "Beide behalten — unter neuer id importieren"
   },
   "entitiesView": {
     "viewRelations": "Beziehungen",
@@ -1284,7 +1356,8 @@
     "legendMany": "viele",
     "linkTypeSemantic": "semantisch",
     "linkTypeTemporal": "zeitlich",
-    "linkTypeEntity": "Entität"
+    "linkTypeEntity": "Entität",
+    "linkTypeCausal": "kausal"
   },
   "metadata": {
     "title": "Hindsight Cloud",
@@ -1393,7 +1466,8 @@
         "bankAndModelIdRequired": "bank_id und model_id sind erforderlich",
         "operationIdRequired": "operation_id ist erforderlich",
         "missingRequestData": "Anfragedaten fehlen",
-        "missingBankId": "bank_id fehlt"
+        "missingBankId": "bank_id fehlt",
+        "fileRequired": "Eine Datei ist erforderlich"
       },
       "generic": {
         "failed": "Fehlgeschlagen",
@@ -1431,7 +1505,9 @@
         "updateTags": "Dokument-Tags konnten nicht aktualisiert werden",
         "delete": "Dokument konnte nicht gelöscht werden",
         "chunks": "Dokument-Chunks konnten nicht abgerufen werden",
-        "reprocess": "Dokument konnte nicht erneut verarbeitet werden"
+        "reprocess": "Dokument konnte nicht erneut verarbeitet werden",
+        "export": "Dokumente konnten nicht exportiert werden",
+        "import": "Dokumente konnten nicht importiert werden"
       },
       "files": {
         "upload": "Dateien konnten nicht hochgeladen werden"

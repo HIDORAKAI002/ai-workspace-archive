@@ -1,25 +1,65 @@
 mod pipeline;
 
 use std::borrow::Cow;
+use std::io::ErrorKind;
+use std::ops::Range;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
-use std::{fs, slice};
+use std::{fs, io, slice};
 
 use memmap2::MmapRaw;
+use parking_lot::Mutex;
 
 use self::pipeline::{BorrowedMmapReadPipeline, OwnedMmapReadPipeline};
-use super::traits::UniversalReadFileOps;
+use super::traits::{UniversalReadFileOps, UniversalReadFs};
 use super::*;
+use crate::ext::aligned_vec::ACow;
 use crate::generic_consts::AccessPattern;
 use crate::mmap::{Advice, AdviceSetting, MULTI_MMAP_IS_SUPPORTED, Madviseable as _};
 
-#[derive(Debug)]
+/// Filesystem handle for local mmap-backed files. Stateless.
+#[derive(Debug, Default, Clone, Copy)]
+pub struct MmapFs;
+
+impl UniversalReadFileOps for MmapFs {
+    type ContextConfig = ();
+
+    fn from_context(_: ()) -> Result<Self> {
+        Ok(MmapFs)
+    }
+
+    fn list_files(&self, prefix_path: &Path) -> Result<Vec<PathBuf>> {
+        local_file_ops::local_list_files(prefix_path)
+    }
+
+    fn exists(&self, path: &Path) -> Result<bool> {
+        fs_err::exists(path).map_err(UniversalIoError::from)
+    }
+}
+
+impl UniversalReadFs for MmapFs {
+    type File = MmapFile;
+    type OpenExtra = ();
+
+    fn open(&self, path: impl AsRef<Path>, options: OpenOptions, _extra: ()) -> Result<MmapFile> {
+        MmapFile::open_inner(path, options)
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct MmapFile {
     path: PathBuf,
 
+    #[cfg_attr(target_os = "linux", expect(dead_code))]
+    writeable: bool,
+    #[cfg_attr(target_os = "linux", expect(dead_code))]
+    populate: bool,
+    #[cfg_attr(target_os = "linux", expect(dead_code))]
+    advice: AdviceSetting,
+
     // `mmap` and `mmap_seq` own the mmaps.
-    mmap: Arc<MmapRaw>,
-    mmap_seq: Option<MmapRaw>,
+    mmap: Arc<Mutex<MmapRaw>>,
+    mmap_seq: Option<Arc<Mutex<MmapRaw>>>,
 
     // `len`, `ptr`, `ptr_seq` contain the same values as `mmap`, `mmap_seq`,
     // but duplicated here to avoid `Arc`/`Option` overhead in hot loops.
@@ -36,39 +76,14 @@ struct SendSyncPtr(*mut u8);
 unsafe impl Send for SendSyncPtr {}
 unsafe impl Sync for SendSyncPtr {}
 
-impl UniversalReadFileOps for MmapFile {
-    fn list_files(prefix_path: &Path) -> Result<Vec<PathBuf>> {
-        local_file_ops::local_list_files(prefix_path)
-    }
-
-    fn exists(path: &Path) -> crate::universal_io::Result<bool> {
-        fs_err::exists(path).map_err(UniversalIoError::from)
-    }
-}
-
-impl UniversalRead for MmapFile {
-    type BorrowedReadPipeline<'a, T, U>
-        = BorrowedMmapReadPipeline<'a, T, U>
-    where
-        T: bytemuck::Pod,
-        U: UserData;
-
-    type OwnedReadPipeline<T, U>
-        = OwnedMmapReadPipeline<T, U>
-    where
-        T: bytemuck::Pod,
-        U: UserData;
-
-    fn open(path: impl AsRef<Path>, options: OpenOptions) -> Result<Self> {
+impl MmapFile {
+    /// Internal open helper, used by `MmapFs::open`.
+    pub(super) fn open_inner(path: impl AsRef<Path>, options: OpenOptions) -> Result<Self> {
         let OpenOptions {
             writeable,
             need_sequential,
             populate,
             advice,
-            extra:
-                OpenOptionsExtra {
-                    prevent_caching: _, // Whole point of mmap is to cache
-                },
         } = options;
 
         let populate = match populate {
@@ -103,8 +118,11 @@ impl UniversalRead for MmapFile {
 
         let mmap = Self {
             path: path.as_ref().into(),
-            mmap: Arc::new(mmap),
-            mmap_seq,
+            writeable,
+            populate,
+            advice,
+            mmap: Arc::new(Mutex::new(mmap)),
+            mmap_seq: mmap_seq.map(|mmap_seq_| Arc::new(Mutex::new(mmap_seq_))),
             len,
             ptr,
             ptr_seq,
@@ -112,11 +130,123 @@ impl UniversalRead for MmapFile {
 
         Ok(mmap)
     }
+}
 
-    fn read<P: AccessPattern, T: bytemuck::Pod>(&self, range: ReadRange) -> Result<Cow<'_, [T]>> {
+impl UniversalRead for MmapFile {
+    type Fs = MmapFs;
+
+    type BorrowedReadPipeline<'a, U>
+        = BorrowedMmapReadPipeline<'a, U>
+    where
+        Self: 'a,
+        U: UserData;
+
+    type OwnedReadPipeline<U>
+        = OwnedMmapReadPipeline<U>
+    where
+        U: UserData;
+
+    fn reopen(&mut self) -> Result<()> {
+        let old_len = self.len as u64;
+        let new_len = fs_err::File::open(self.path())?.metadata()?.len();
+        if new_len < old_len {
+            return Err(UniversalIoError::Io(io::Error::new(
+                ErrorKind::UnexpectedEof,
+                format!(
+                    "Reopen encountered a smaller file than expected; old_len: {old_len}, new_len: {new_len}"
+                ),
+            )));
+        }
+        if new_len == old_len {
+            return Ok(());
+        }
+
+        let mut mmap = self.mmap.lock();
+        let mut mmap_seq = self.mmap_seq.as_ref().map(|m| m.lock());
+        cfg_select! {
+            // in linux, we can use `MmapRaw::remap`
+            target_os = "linux" => {
+                // SAFETY:
+                // We use may_move = true, since `remap` can fail if we don't allow it.
+                // It is safe to allow moving since we are holding `&mut self`
+                let remap_options = memmap2::RemapOptions::new().may_move(true);
+                unsafe {
+                    mmap.remap(new_len as usize, remap_options)?;
+                    mmap_seq.as_mut().map(|m| m.remap(new_len as usize, remap_options)).transpose()?;
+                };
+
+                // Whether or not `remap` moved the memory region let's update the pointers
+                let ptr = SendSyncPtr(mmap.as_mut_ptr());
+                let ptr_seq = mmap_seq.as_ref().map(|m| SendSyncPtr(m.as_mut_ptr())).unwrap_or(ptr);
+                let len = new_len as usize;
+            }
+            // otherwise, let's open again
+            _ => {
+                *mmap = open_mmap(
+                    self.path.as_ref(),
+                    self.writeable,
+                    self.populate,
+                    self.advice,
+                )?;
+                let ptr = SendSyncPtr(mmap.as_mut_ptr());
+
+                let ptr_seq;
+                let len;
+                if let Some(mmap_seq) = mmap_seq.as_mut() {
+                    let mmap_seq_ = open_mmap(
+                        self.path(),
+                        false,
+                        false,
+                        AdviceSetting::Advice(Advice::Sequential),
+                    )?;
+                    **mmap_seq = mmap_seq_;
+
+                    len = std::cmp::min(mmap.len(), mmap_seq.len());
+                    ptr_seq = SendSyncPtr(mmap_seq.as_mut_ptr());
+                } else {
+                    len = mmap.len();
+                    ptr_seq = ptr;
+                }
+            }
+        }
+
+        self.ptr = ptr;
+        self.ptr_seq = ptr_seq;
+        self.len = len;
+
+        Ok(())
+    }
+
+    fn read_bytes<P: AccessPattern>(&self, range: Range<u64>, _align: usize) -> Result<ACow<'_>> {
         let mmap = self.as_bytes::<P>();
-        let items = read(mmap, range)?;
-        Ok(Cow::Borrowed(items))
+        let bytes = read_bytes(mmap, range)?;
+        Ok(ACow::Borrowed(bytes))
+    }
+
+    /// Override the default pipeline-based for better performance.
+    fn read_iter<P: AccessPattern, T: Item, U: UserData>(
+        &self,
+        ranges: impl IntoIterator<Item = (U, ReadRange)>,
+    ) -> Result<impl Iterator<Item = Result<(U, Cow<'_, [T]>)>>> {
+        let bytes = self.as_bytes::<P>();
+        Ok(ranges.into_iter().map(move |(user_data, range)| {
+            let items = read_bytemuck::<T>(bytes, range)?;
+            Ok((user_data, Cow::Borrowed(items)))
+        }))
+    }
+
+    /// Override the default pipeline-based for better performance.
+    fn read_multi_iter<'a, P: AccessPattern, T: Item, U: UserData>(
+        reads: impl IntoIterator<Item = (U, &'a Self, ReadRange)>,
+    ) -> Result<impl Iterator<Item = Result<(U, Cow<'a, [T]>)>>>
+    where
+        Self: 'a,
+    {
+        Ok(reads.into_iter().map(|(user_data, file, range)| {
+            let bytes = file.as_bytes::<P>();
+            let items = read_bytemuck::<T>(bytes, range)?;
+            Ok((user_data, Cow::Borrowed(items)))
+        }))
     }
 
     fn len<T>(&self) -> Result<u64> {
@@ -125,14 +255,14 @@ impl UniversalRead for MmapFile {
     }
 
     fn populate(&self) -> Result<()> {
-        self.mmap.populate();
+        self.mmap.lock().populate();
         Ok(())
     }
 
     fn clear_ram_cache(&self) -> Result<()> {
-        self.mmap.clear_cache();
+        self.mmap.lock().clear_cache();
         if let Some(mmap_seq) = &self.mmap_seq {
-            mmap_seq.clear_cache();
+            mmap_seq.lock().clear_cache();
         }
         Ok(())
     }
@@ -141,7 +271,6 @@ impl UniversalRead for MmapFile {
         UniversalKind::Mmap
     }
 }
-
 impl UniversalWrite for MmapFile {
     fn write<T: bytemuck::Pod>(&mut self, byte_offset: ByteOffset, items: &[T]) -> Result<()> {
         let mmap = self.as_bytes_mut();
@@ -166,6 +295,7 @@ impl UniversalWrite for MmapFile {
         let mmap = self.mmap.clone();
         let flusher = move || {
             // flushing empty mmap returns error on some platforms
+            let mmap = mmap.lock();
             if mmap.len() > 0 {
                 mmap.flush()?;
             }
@@ -247,17 +377,19 @@ impl MmapFile {
     /// ensuring all measurements go through the same mmap path.
     #[cfg(unix)]
     pub fn probe_memory_stats(path: impl AsRef<Path>) -> std::io::Result<(u64, u64)> {
-        let file: Self = MmapFile::open(
-            path,
-            OpenOptions {
-                writeable: false,
-                need_sequential: false,
-                populate: Populate::No,
-                advice: AdviceSetting::Advice(Advice::Normal),
-                extra: Default::default(),
-            },
-        )
-        .map_err(|e| std::io::Error::other(e.to_string()))?;
+        let fs = MmapFs;
+        let file = fs
+            .open(
+                path,
+                OpenOptions {
+                    writeable: false,
+                    need_sequential: false,
+                    populate: Populate::No,
+                    advice: AdviceSetting::Advice(Advice::Normal),
+                },
+                (),
+            )
+            .map_err(|e| std::io::Error::other(e.to_string()))?;
         let disk_bytes = file.disk_bytes()?;
         let resident_bytes = file.resident_bytes()?;
         Ok((disk_bytes, resident_bytes))
@@ -265,7 +397,7 @@ impl MmapFile {
 }
 
 impl MmapFile {
-    pub(super) fn as_bytes<P: AccessPattern>(&self) -> &[u8] {
+    pub(crate) fn as_bytes<P: AccessPattern>(&self) -> &[u8] {
         let ptr = if P::IS_SEQUENTIAL {
             self.ptr_seq
         } else {
@@ -280,10 +412,18 @@ impl MmapFile {
 }
 
 #[inline]
-pub(super) fn read<T>(bytes: &[u8], range: ReadRange) -> Result<&[T]>
-where
-    T: bytemuck::Pod,
-{
+pub(crate) fn read_bytes(bytes: &[u8], range: Range<u64>) -> Result<&[u8]> {
+    bytes
+        .get(range.start as usize..range.end as usize)
+        .ok_or_else(|| UniversalIoError::OutOfBounds {
+            start: range.start,
+            end: range.end,
+            elements: bytes.len(),
+        })
+}
+
+#[inline]
+pub(crate) fn read_bytemuck<T: Item>(bytes: &[u8], range: ReadRange) -> Result<&[T]> {
     let ReadRange {
         byte_offset,
         length: items,

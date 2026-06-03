@@ -6,7 +6,7 @@ use common::generic_consts::{AccessPattern, Random, Sequential};
 use common::maybe_uninit::maybe_uninit_fill_from;
 use common::mmap::AdviceSetting;
 use common::universal_io::{
-    MmapFile, ReadRange, TypedStorage, UniversalIoError, UniversalRead, read_json_via,
+    ReadRange, TypedStorage, UniversalIoError, UniversalRead, read_json_via,
 };
 use fs_err as fs;
 use num_traits::AsPrimitive;
@@ -25,7 +25,7 @@ use crate::vector_storage::{VectorOffset, VectorOffsetType};
 /// not refreshed afterwards. Mutating storage uses [`super::ChunkedVectors`]
 /// which wraps this and adds a writable status mmap.
 #[derive(Debug)]
-pub struct ChunkedVectorsRead<T: bytemuck::Pod, S: UniversalRead> {
+pub struct ChunkedVectorsRead<T: bytemuck::Pod + Send, S: UniversalRead> {
     pub(super) config: ChunkedVectorsConfig,
     /// Number of vectors currently stored. Snapshot for read-only mode; for
     /// [`super::ChunkedVectors`] this is kept in sync with the writable status
@@ -35,7 +35,7 @@ pub struct ChunkedVectorsRead<T: bytemuck::Pod, S: UniversalRead> {
     pub(super) directory: PathBuf,
 }
 
-impl<T: bytemuck::Pod, S: UniversalRead> ChunkedVectorsRead<T, S> {
+impl<T: bytemuck::Pod + Send, S: UniversalRead> ChunkedVectorsRead<T, S> {
     pub(super) fn config_file(directory: &Path) -> PathBuf {
         directory.join(CONFIG_FILE_NAME)
     }
@@ -44,8 +44,11 @@ impl<T: bytemuck::Pod, S: UniversalRead> ChunkedVectorsRead<T, S> {
         directory.join(STATUS_FILE_NAME)
     }
 
-    pub(super) fn load_config(config_file: &Path) -> OperationResult<Option<ChunkedVectorsConfig>> {
-        match read_json_via::<MmapFile, ChunkedVectorsConfig>(config_file) {
+    pub(super) fn load_config(
+        fs: &S::Fs,
+        config_file: &Path,
+    ) -> OperationResult<Option<ChunkedVectorsConfig>> {
+        match read_json_via::<S::Fs, ChunkedVectorsConfig>(fs, config_file) {
             Ok(config) => Ok(Some(config)),
             Err(UniversalIoError::NotFound { .. }) => Ok(None),
             Err(e) => Err(e.into()),
@@ -58,13 +61,14 @@ impl<T: bytemuck::Pod, S: UniversalRead> ChunkedVectorsRead<T, S> {
     /// will not create them.
     #[allow(dead_code)] // pending: read-only vector storage enum will use this
     pub fn open(
+        fs: &S::Fs,
         directory: &Path,
         dim: usize,
         advice: AdviceSetting,
         populate: Option<bool>,
     ) -> OperationResult<Self> {
         let config_file = Self::config_file(directory);
-        let config = Self::load_config(&config_file)?.ok_or_else(|| {
+        let config = Self::load_config(fs, &config_file)?.ok_or_else(|| {
             OperationError::service_error(format!(
                 "Config file {} is missing",
                 config_file.display(),
@@ -79,7 +83,7 @@ impl<T: bytemuck::Pod, S: UniversalRead> ChunkedVectorsRead<T, S> {
         }
 
         let len = read_status_len(&Self::status_file(directory))?;
-        let chunks = read_chunks(directory, advice, populate.unwrap_or_default(), false)?;
+        let chunks = read_chunks(fs, directory, advice, populate.unwrap_or_default(), false)?;
 
         Ok(Self {
             config,
@@ -291,7 +295,6 @@ impl<T: bytemuck::Pod, S: UniversalRead> ChunkedVectorsRead<T, S> {
     }
 }
 
-#[allow(dead_code)] // pending: read-only vector storage enum will use this
 fn read_status_len(status_file: &Path) -> OperationResult<usize> {
     let bytes = fs::read(status_file)?;
     let needed = std::mem::size_of::<usize>();

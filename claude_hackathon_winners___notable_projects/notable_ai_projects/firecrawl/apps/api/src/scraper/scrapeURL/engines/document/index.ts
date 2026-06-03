@@ -73,6 +73,21 @@ function getDocumentTypeFromContentType(
   return null;
 }
 
+function getContentTypeFromDocumentType(documentType: DocumentType): string {
+  switch (documentType) {
+    case DocumentType.Docx:
+      return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    case DocumentType.Doc:
+      return "application/msword";
+    case DocumentType.Odt:
+      return "application/vnd.oasis.opendocument.text";
+    case DocumentType.Rtf:
+      return "application/rtf";
+    case DocumentType.Xlsx:
+      return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+  }
+}
+
 function isValidDocumentContentType(contentType: string | null): boolean {
   if (!contentType) return false;
 
@@ -149,7 +164,9 @@ export async function scrapeDocument(meta: Meta): Promise<EngineScrapeResult> {
       url: response.url,
       statusCode: response.status,
       html,
-      contentType: response.headers.get("content-type") ?? undefined,
+      contentType:
+        response.headers.get("content-type") ??
+        getContentTypeFromDocumentType(documentType),
       proxyUsed,
     };
   } finally {

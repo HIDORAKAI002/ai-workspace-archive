@@ -1,9 +1,10 @@
+use std::borrow::Cow;
 use std::path::Path;
 
 use serde::de::DeserializeOwned;
 
 use super::UniversalIoError;
-use super::traits::UniversalRead;
+use super::traits::UniversalReadFs;
 use crate::mmap::{Advice, AdviceSetting};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -11,6 +12,10 @@ pub enum UniversalKind {
     Mmap,
     IoUring,
     DiskCache,
+    SimpleDiskCache,
+    S3,
+    Gcs,
+    Azure,
 }
 
 #[derive(Copy, Clone, Debug, Default)]
@@ -36,10 +41,13 @@ impl From<bool> for Populate {
     }
 }
 
-/// Options for [`UniversalRead::open`].
+/// Options for [`UniversalReadFs::open`].
 ///
-/// No `#[derive(Default)]`. Prefer specifying all options explicitly. (except
-/// for tests and [`OpenOptions::extra`]).
+/// No `#[derive(Default)]`. Prefer specifying all options explicitly (except
+/// for tests). Knobs in this struct are universal across backends —
+/// backend-specific per-open knobs (e.g. `io_uring`'s `prevent_caching`)
+/// live on [`UniversalReadFs::OpenExtra`](super::UniversalReadFs::OpenExtra)
+/// passed alongside this struct.
 #[derive(Copy, Clone, Debug)]
 pub struct OpenOptions {
     pub writeable: bool,
@@ -48,16 +56,6 @@ pub struct OpenOptions {
     pub populate: Populate,
     /// Use specific mmap advice.
     pub advice: AdviceSetting,
-    /// Rarely used options.
-    pub extra: OpenOptionsExtra,
-}
-
-/// Rarely used options.
-/// Usually [`Default::default()`] is fine.
-#[derive(Copy, Clone, Debug)]
-pub struct OpenOptionsExtra {
-    /// Whether to try to prevent caching for reads.
-    pub prevent_caching: bool,
 }
 
 impl OpenOptions {
@@ -69,16 +67,6 @@ impl OpenOptions {
             need_sequential: true,
             populate: Populate::Auto,
             advice: AdviceSetting::Global,
-            extra: Default::default(),
-        }
-    }
-}
-
-#[expect(clippy::derivable_impls, reason = "be explicit")]
-impl Default for OpenOptionsExtra {
-    fn default() -> Self {
-        OpenOptionsExtra {
-            prevent_caching: false,
         }
     }
 }
@@ -134,6 +122,22 @@ impl ReadRange {
         self.length = self.length.min(max_len);
         self
     }
+
+    /// Turn into a range of bytes, considering the read length, and size of T
+    pub fn into_byte_range<T: bytemuck::Pod>(self) -> std::ops::Range<u64> {
+        let ReadRange {
+            byte_offset,
+            length,
+        } = self;
+
+        let t_size = size_of::<T>() as u64;
+        let byte_len = length.checked_mul(t_size).expect("length overflow");
+        let byte_end = byte_offset
+            .checked_add(byte_len)
+            .expect("byte offset overflow");
+
+        byte_offset..byte_end
+    }
 }
 
 pub type ByteOffset = u64;
@@ -144,23 +148,55 @@ pub type Flusher = Box<dyn FnOnce() -> Result<()> + Send>;
 
 pub type Result<T, E = UniversalIoError> = std::result::Result<T, E>;
 
-/// Open a file via universal io, read it as a whole, and deserialize as JSON.
-///
-/// Uses a single logical read when the backend overrides [`UniversalRead::read_whole`].
-pub fn read_json_via<S, T>(path: impl AsRef<Path>) -> Result<T>
+pub fn read_whole_via<Fs, T>(
+    fs: &Fs,
+    path: impl AsRef<Path>,
+    callback: impl FnOnce(Cow<'_, [u8]>) -> Result<T, UniversalIoError>,
+) -> Result<T, UniversalIoError>
 where
-    S: UniversalRead,
-    T: DeserializeOwned,
+    Fs: UniversalReadFs,
 {
+    use super::UniversalRead;
     let options = OpenOptions {
         writeable: false,
         need_sequential: false,
         populate: Populate::No,
         advice: AdviceSetting::Advice(Advice::Sequential),
-        extra: Default::default(),
     };
-
-    let storage = S::open(path, options)?;
+    let storage = fs.open(path, options, Default::default())?;
     let bytes = storage.read_whole::<u8>()?;
-    serde_json::from_slice(&bytes).map_err(UniversalIoError::from)
+
+    let callback_t = callback(bytes)?;
+
+    storage.clear_ram_cache()?;
+
+    Ok(callback_t)
+}
+
+/// Open a file via universal io, read it as a whole, and deserialize as JSON.
+///
+/// Uses a single logical read when the backend overrides
+/// [`UniversalRead::read_whole`](super::UniversalRead::read_whole).
+pub fn read_json_via<Fs, T>(fs: &Fs, path: impl AsRef<Path>) -> Result<T>
+where
+    Fs: UniversalReadFs,
+    T: DeserializeOwned,
+{
+    read_whole_via(fs, path, |bytes| {
+        serde_json::from_slice(&bytes).map_err(UniversalIoError::from)
+    })
+}
+
+/// Open a file via universal io, read it as a whole, and deserialize as bincode.
+///
+/// Uses a single logical read when the backend overrides
+/// [`UniversalRead::read_whole`](super::UniversalRead::read_whole).
+pub fn read_bin_via<Fs, T>(fs: &Fs, path: impl AsRef<Path>) -> Result<T>
+where
+    Fs: UniversalReadFs,
+    T: DeserializeOwned,
+{
+    read_whole_via(fs, path, |bytes| {
+        bincode::deserialize(&bytes).map_err(UniversalIoError::from)
+    })
 }

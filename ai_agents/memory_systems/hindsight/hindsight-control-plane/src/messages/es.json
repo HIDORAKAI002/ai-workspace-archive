@@ -149,6 +149,10 @@
     "clearObservationsDetailedWarning": "Todas las memorias de observación se eliminarán permanentemente. Esta acción no se puede deshacer.",
     "observationsNotEnabled": "Observaciones no habilitadas",
     "observationsDisabledMessage": "La consolidación de observaciones está deshabilitada en este servidor. Establece <envVar></envVar> para habilitarla.",
+    "auditLogsNotEnabled": "Registros de auditoría no habilitados",
+    "auditLogsDisabledMessage": "El registro de auditoría está deshabilitado en este servidor. Establece <envVar></envVar> para habilitarlo.",
+    "llmRequestsNotEnabled": "Solicitudes LLM no habilitadas",
+    "llmRequestsDisabledMessage": "El rastreo de solicitudes LLM está deshabilitado en este servidor. Establece <envVar></envVar> para habilitarlo.",
     "deleteWillDeleteDetails": "Esto eliminará {memories, plural, one {# memoria} other {# memorias}}, {documents, plural, one {# documento} other {# documentos}} y {links, plural, one {# enlace} other {# enlaces}}.",
     "deleteWillDeleteObservations": "Esto eliminará {count, plural, one {# observación} other {# observaciones}}."
   },
@@ -405,7 +409,56 @@
     "subBatchesCount": "Sublotes ({count})",
     "rawPayload": "Carga útil sin procesar",
     "loadRaw": "Cargar sin procesar",
-    "rawPayloadHelp": "Muestra los parámetros completos con los que se envió la operación (puede ser grande)."
+    "rawPayloadHelp": "Muestra los parámetros completos con los que se envió la operación (puede ser grande).",
+    "operationCount": "{count} operaciones",
+    "unknown": "Desconocido",
+    "notAvailable": "N/D",
+    "operationDetailsLoadError": "No se pudieron cargar los detalles de la operación",
+    "status": {
+      "all": "Todos",
+      "pending": "Pendiente",
+      "processing": "En proceso",
+      "completed": "Completada",
+      "failed": "Fallida",
+      "cancelled": "Cancelada"
+    },
+    "operationType": {
+      "all": "Todos los tipos",
+      "retain": "Retener",
+      "consolidation": "Consolidación",
+      "refreshMentalModel": "Actualización del modelo mental",
+      "fileConvertRetain": "Convertir archivo y retener",
+      "webhookDelivery": "Entrega de webhook",
+      "graphMaintenance": "Mantenimiento del grafo"
+    },
+    "table": {
+      "id": "ID de operación",
+      "type": "Tipo",
+      "created": "Creada",
+      "status": "Estado",
+      "index": "Índice",
+      "items": "Elementos"
+    },
+    "action": {
+      "cancel": "Cancelar",
+      "retry": "Reintentar"
+    },
+    "pagination": "Mostrando {start}-{end} de {total}",
+    "paginationPrevious": "Anterior",
+    "paginationNext": "Siguiente",
+    "emptyState": "No hay operaciones",
+    "emptyStateWithStatus": "No hay operaciones con estado {status}",
+    "field": {
+      "status": "Estado",
+      "type": "Tipo",
+      "created": "Creada",
+      "updated": "Actualizada",
+      "completed": "Completada"
+    },
+    "metadata": "Metadatos",
+    "error": "Error",
+    "rawPayloadParentHelp": "Esta es una operación principal: la carga útil sin procesar se almacena en cada sublote. Abre una operación secundaria para inspeccionar su carga útil.",
+    "rawPayloadEmpty": "No hay carga útil sin procesar almacenada para esta operación."
   },
   "dataView": {
     "loadingMemories": "Cargando memorias...",
@@ -558,7 +611,26 @@
     "retainTracesSummary": "{calls, plural, one {# llamada} other {# llamadas}} · {tokens} tokens",
     "loadingChunks": "Cargando fragmentos...",
     "noChunksFound": "No se encontraron fragmentos para este documento",
-    "clickChunksTabToLoad": "Haz clic en la pestaña Fragmentos para cargar los fragmentos"
+    "clickChunksTabToLoad": "Haz clic en la pestaña Fragmentos para cargar los fragmentos",
+    "exportButton": "Exportar",
+    "importButton": "Importar desde zip",
+    "exporting": "Exportando…",
+    "importing": "Importando…",
+    "exportSuccess": "Documentos exportados",
+    "importSuccess": "Se importaron {imported} documento(s), {facts} hecho(s); {skipped} omitido(s)",
+    "importFailed": "La importación falló",
+    "importTimeout": "La importación está tardando más de lo esperado; vuelve a comprobar en breve",
+    "exportDialogTitle": "Exportar documentos",
+    "exportDialogDescription": "Descarga los documentos de este banco y sus hechos extraídos como un archivo .zip. No incluye embeddings: al importar se regeneran con el modelo del banco de destino.",
+    "exportIncludeObservationsLabel": "Incluir observaciones consolidadas",
+    "exportIncludeObservationsHint": "Exportar también las observaciones sintetizadas. Si se desactiva, el banco de destino las regenera durante la consolidación.",
+    "importDialogTitle": "Importar documentos",
+    "importDialogDescription": "Sube un archivo .zip exportado previamente de un banco. No es una carga de documentos normal: los hechos se vuelven a incrustar y enlazar en este banco. La importación se ejecuta en segundo plano.",
+    "actionsButton": "Acciones",
+    "importConflictLabel": "Si un documento ya existe",
+    "importConflictSkip": "Omitir — conservar el documento existente",
+    "importConflictReplace": "Reemplazar — sobrescribir con el importado",
+    "importConflictNewId": "Conservar ambos — importar con un nuevo id"
   },
   "entitiesView": {
     "viewRelations": "Relaciones",
@@ -1284,7 +1356,8 @@
     "legendMany": "muchos",
     "linkTypeSemantic": "semántico",
     "linkTypeTemporal": "temporal",
-    "linkTypeEntity": "entidad"
+    "linkTypeEntity": "entidad",
+    "linkTypeCausal": "causal"
   },
   "metadata": {
     "title": "Hindsight Cloud",
@@ -1393,7 +1466,8 @@
         "bankAndModelIdRequired": "bank_id y model_id son obligatorios",
         "operationIdRequired": "operation_id es obligatorio",
         "missingRequestData": "Faltan datos de la solicitud",
-        "missingBankId": "Falta bank_id"
+        "missingBankId": "Falta bank_id",
+        "fileRequired": "Se requiere un archivo"
       },
       "generic": {
         "failed": "Error",
@@ -1431,7 +1505,9 @@
         "updateTags": "No se pudieron actualizar las etiquetas del documento",
         "delete": "No se pudo eliminar el documento",
         "chunks": "No se pudieron obtener los fragmentos del documento",
-        "reprocess": "No se pudo reprocesar el documento"
+        "reprocess": "No se pudo reprocesar el documento",
+        "export": "No se pudieron exportar los documentos",
+        "import": "No se pudieron importar los documentos"
       },
       "files": {
         "upload": "No se pudieron subir los archivos"

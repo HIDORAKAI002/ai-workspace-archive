@@ -842,6 +842,8 @@ For advanced authentication (JWT, OAuth, multi-tenant schemas), implement a cust
 | `HINDSIGHT_API_RECALL_CONNECTION_BUDGET` | Max concurrent DB connections per recall operation | `4` |
 | `HINDSIGHT_API_RECALL_MAX_QUERY_TOKENS` | Maximum token length of a recall query; requests exceeding this limit are rejected with HTTP 400 | `500` |
 | `HINDSIGHT_API_RERANKER_MAX_CANDIDATES` | Max candidates to rerank per recall (RRF pre-filters the rest) | `300` |
+| `HINDSIGHT_API_BM25_MIN_SCORE` | Minimum BM25 score a row must exceed to enter fusion. Gates out zero-score, non-matching rows on backends (notably `vchord`) whose operator ranks every document instead of pre-filtering to query-term matches. `0` keeps only genuine term matches; raise it to require stronger matches. | `0` |
+| `HINDSIGHT_API_RECALL_MAX_CANDIDATES_PER_SOURCE` | Cap on candidates each retrieval source (semantic, BM25, graph, temporal) contributes to RRF, applied before the global reranker cap. Prevents one over-expanding backend from filling the reranker budget on its own. `0` disables the cap. | `0` |
 | `HINDSIGHT_API_MENTAL_MODEL_REFRESH_CONCURRENCY` | Max concurrent mental model refreshes | `8` |
 | `HINDSIGHT_API_ENABLE_MENTAL_MODEL_HISTORY` | Track history of content changes to each mental model (previous content + timestamp). Disable to reduce storage if audit trails are not needed. | `true` |
 | `HINDSIGHT_API_MENTAL_MODEL_HISTORY_MAX_ENTRIES` | Max entries retained in the per-mental-model history jsonb array. Older entries are dropped at write time. Prevents the array from crossing Postgres's hard 256MB jsonb size limit (which would otherwise make further UPDATEs to the row fail with SQLSTATE 54000). Each entry stores only the slim `{based_on}` slice of the prior `reflect_response` (the only field consumed by the control-plane UI's history view) so per-row size stays bounded and HOT updates apply. | `50` |
@@ -1019,6 +1021,8 @@ Configuration for the file upload and conversion pipeline (used by `POST /v1/def
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `HINDSIGHT_API_ENABLE_FILE_UPLOAD_API` | Enable the file upload API endpoint | `true` |
+| `HINDSIGHT_API_ENABLE_DOCUMENT_EXPORT_API` | Enable the [document export](./api/memory-banks.mdx#document-export--import) endpoint (`GET /document-transfer`) | `true` |
+| `HINDSIGHT_API_ENABLE_DOCUMENT_IMPORT_API` | Enable the [document import](./api/memory-banks.mdx#document-export--import) endpoint (`POST /document-transfer`) | `true` |
 | `HINDSIGHT_API_FILE_PARSER` | Server-side default parser or fallback chain (comma-separated, e.g. `iris,markitdown`) | `markitdown` |
 | `HINDSIGHT_API_FILE_PARSER_ALLOWLIST` | Comma-separated list of parsers clients are allowed to request. If not set, all registered parsers are allowed. | — |
 | `HINDSIGHT_API_FILE_CONVERSION_MAX_BATCH_SIZE` | Max files per upload request | `10` |

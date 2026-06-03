@@ -15,6 +15,7 @@ use common::mmap::{Advice, AdviceSetting};
 use common::progress_tracker::ProgressTracker;
 use common::storage_version::StorageVersion;
 use common::types::PointOffsetType;
+use common::universal_io::MmapFs;
 use fs_err as fs;
 use fs_err::File;
 use log::info;
@@ -120,6 +121,9 @@ fn open_mmap_vector_storage(
                 vector_config.distance,
                 populate,
             ),
+            VectorStorageDatatype::Turbo4 => {
+                unimplemented!("turbo4 datatype storage not yet wired up")
+            }
         }
     }
 }
@@ -368,6 +372,9 @@ pub(crate) fn create_sparse_vector_index(
         (SparseIndexType::Mmap, VectorStorageDatatype::Uint8) => {
             VectorIndexEnum::SparseCompressedMmapU8(SparseVectorIndex::open(args)?)
         }
+        (_, VectorStorageDatatype::Turbo4) => {
+            unimplemented!("turbo4 datatype storage not yet wired up")
+        }
     };
 
     Ok(vector_index)
@@ -595,6 +602,10 @@ fn create_segment(
         vector_data,
         segment_type,
         appendable_flag,
+        // Debug-only escape hatch — `QDRANT_APPEND_ONLY_MUTATIONS=1` flips
+        // newly built segments into append-only mode for test runs.
+        append_only_mutations: cfg!(debug_assertions)
+            && std::env::var("QDRANT_APPEND_ONLY_MUTATIONS").ok() == Some("1".to_string()),
         payload_index,
         payload_storage,
         segment_config: config.clone(),
@@ -609,7 +620,7 @@ fn create_segment_id_tracker(
 ) -> OperationResult<Arc<AtomicRefCell<IdTrackerEnum>>> {
     if !mutable_id_tracker {
         return Ok(sp(IdTrackerEnum::ImmutableIdTracker(
-            ImmutableIdTracker::open(segment_path)?,
+            ImmutableIdTracker::open(&MmapFs, segment_path)?,
         )));
     }
 

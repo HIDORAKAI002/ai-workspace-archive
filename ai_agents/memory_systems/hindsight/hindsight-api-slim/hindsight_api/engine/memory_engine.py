@@ -29,6 +29,7 @@ from ..config import (
     DEFAULT_RECALL_INCLUDE_CHUNKS,
     DEFAULT_RECALL_MAX_TOKENS,
     DEFAULT_REFLECT_SOURCE_FACTS_MAX_TOKENS,
+    HindsightConfig,
     get_config,
 )
 from ..db_url import to_libpq_url
@@ -224,6 +225,7 @@ if TYPE_CHECKING:
     from hindsight_api.models import RequestContext
 
     from .audit import AuditLogListResponse, AuditLogStatsResponse
+    from .transfer import ImportResult
 
 
 from enum import Enum
@@ -253,7 +255,17 @@ from .retain.types import RetainContentDict
 from .search import think_utils
 from .search.reranking import CrossEncoderReranker, apply_combined_scoring
 from .search.tags import TagGroup, TagsMatch, build_tag_groups_where_clause, build_tags_where_clause
+from .search.types import ScoredResult
 from .task_backend import TaskBackend
+
+# Recall ranking strategy: how the per-arm (semantic/bm25/graph/temporal) results are
+# fused and reranked into the final order.
+#   "cross_encoder" — RRF fusion + cross-encoder rerank (default, user-facing recall).
+#   "rrf"           — RRF fusion, no cross-encoder (RRF score is the order).
+#   "interleave"    — round-robin interleave fusion, no cross-encoder. Guarantees each
+#                     arm's top hits a slot (used by consolidation dedup recall, where RRF
+#                     buried the near-identical twin below budget). See interleave_fusion.
+RecallReranking = Literal["cross_encoder", "rrf", "interleave"]
 from .token_encoding import get_token_encoding
 
 RetainOutboxCallback = Callable[[asyncpg.Connection], Awaitable[None]]
@@ -1027,6 +1039,61 @@ class MemoryEngine(MemoryEngineInterface):
         _current_schema.set(tenant_context.schema_name)
         return tenant_context.schema_name
 
+    async def _handle_import_documents(self, task_dict: dict[str, Any]):
+        """Handler for async document-import tasks.
+
+        Retrieves the stashed archive, runs the deterministic import, records the
+        imported/skipped counts in the operation's ``result_metadata``, and
+        deletes the archive. ``execute_task`` marks the operation completed.
+        """
+        import json
+
+        bank_id = task_dict.get("bank_id")
+        storage_key = task_dict.get("storage_key")
+        on_conflict = task_dict.get("on_conflict", "skip")
+        operation_id = task_dict.get("operation_id")
+        if not bank_id or not storage_key:
+            raise ValueError("bank_id and storage_key are required for import_documents task")
+
+        from hindsight_api.models import RequestContext
+
+        context = RequestContext(
+            internal=True,
+            user_initiated=True,
+            tenant_id=task_dict.get("_tenant_id"),
+            api_key_id=task_dict.get("_api_key_id"),
+            retry_count=task_dict.get("_retry_count", 0),
+        )
+
+        archive_bytes = await self._file_storage.retrieve(storage_key)
+        result = await self._run_import_documents(bank_id, archive_bytes, on_conflict, context)
+
+        if operation_id:
+            counts = {
+                "documents_imported": result.documents_imported,
+                "documents_skipped": result.documents_skipped,
+                "facts_imported": result.facts_imported,
+                "observations_imported": result.observations_imported,
+                "observations_skipped": result.observations_skipped,
+                "skipped_document_ids": result.skipped_document_ids,
+                "remapped_document_ids": result.remapped_document_ids,
+            }
+            backend = await self._get_backend()
+            async with acquire_with_retry(backend) as conn:
+                await conn.execute(
+                    f"UPDATE {fq_table('async_operations')} "
+                    f"SET result_metadata = COALESCE(result_metadata, '{{}}'::jsonb) || $1::jsonb "
+                    f"WHERE operation_id = $2",
+                    json.dumps(counts, default=_json_default),
+                    uuid.UUID(operation_id),
+                )
+
+        # Best-effort cleanup of the transient upload.
+        try:
+            await self._file_storage.delete(storage_key)
+        except Exception:
+            logger.warning("Failed to delete import archive %s", storage_key, exc_info=True)
+
     async def _handle_batch_retain(self, task_dict: dict[str, Any]):
         """
         Handler for batch retain tasks.
@@ -1486,6 +1553,8 @@ class MemoryEngine(MemoryEngineInterface):
                     await self._handle_batch_retain(task_dict)
                 elif task_type == "file_convert_retain":
                     await self._handle_file_convert_retain(task_dict)
+                elif task_type == "import_documents":
+                    await self._handle_import_documents(task_dict)
                 elif task_type == "consolidation":
                     consolidation_result = await self._handle_consolidation(task_dict)
                 elif task_type == "graph_maintenance":
@@ -2983,28 +3052,43 @@ class MemoryEngine(MemoryEngineInterface):
             except Exception as e:
                 logger.warning(f"Post-retain hook error (non-fatal): {e}")
 
-        # Trigger consolidation as a tracked async operation if enabled
-        # Resolve bank-specific config to check if observations are enabled for this bank
-        config = await self._config_resolver.resolve_full_config(bank_id, request_context)
-        if config.enable_observations and config.enable_auto_consolidation:
-            try:
-                await self.submit_async_consolidation(bank_id=bank_id, request_context=request_context)
-            except Exception as e:
-                # Log but don't fail the retain - consolidation is non-critical
-                logger.warning(f"Failed to submit consolidation task for bank {bank_id}: {e}")
-
-        # Trigger graph maintenance if a document upsert in this retain
-        # enqueued any cleanup work. submit_async_graph_maintenance
-        # short-circuits when the queue is empty, so a regular non-upsert
-        # retain pays a single cheap indexed SELECT here.
-        try:
-            await self.submit_async_graph_maintenance(bank_id=bank_id, request_context=request_context)
-        except Exception as e:
-            logger.warning(f"Failed to submit graph maintenance task for bank {bank_id}: {e}")
+        # Same async side effects every fact insert triggers (retain or import).
+        await self._submit_post_insert_maintenance(bank_id, request_context)
 
         if return_usage:
             return result, total_usage
         return result
+
+    async def _submit_post_insert_maintenance(
+        self,
+        bank_id: str,
+        request_context: "RequestContext",
+        config: HindsightConfig | None = None,
+    ) -> None:
+        """Submit the async side effects that follow any fact insert (retain or import).
+
+        Shared by the retain pipeline and the document-import pipeline so imported
+        documents aren't second-class citizens:
+          * auto-consolidation (when observations + auto-consolidation are enabled
+            for the bank) so freshly inserted facts get observations;
+          * graph maintenance, which short-circuits when no cleanup work was
+            enqueued, so a plain insert pays a single cheap indexed SELECT here.
+
+        Both are non-critical: failures are logged, never raised, so they can't
+        fail the operation that produced the facts. Pass ``config`` when the caller
+        already resolved it to avoid a redundant lookup.
+        """
+        if config is None:
+            config = await self._config_resolver.resolve_full_config(bank_id, request_context)
+        if config.enable_observations and config.enable_auto_consolidation:
+            try:
+                await self.submit_async_consolidation(bank_id=bank_id, request_context=request_context)
+            except Exception as e:
+                logger.warning(f"Failed to submit consolidation task for bank {bank_id}: {e}")
+        try:
+            await self.submit_async_graph_maintenance(bank_id=bank_id, request_context=request_context)
+        except Exception as e:
+            logger.warning(f"Failed to submit graph maintenance task for bank {bank_id}: {e}")
 
     async def _resolve_retain_chunk_size(
         self,
@@ -3119,6 +3203,149 @@ class MemoryEngine(MemoryEngineInterface):
             self._llm_recorder.attach_memory_ids(trace_context_of(retain_llm), created=created_ids)
             return result
 
+    async def export_documents_async(
+        self,
+        bank_id: str,
+        request_context: "RequestContext",
+        document_ids: list[str] | None = None,
+        include_observations: bool = False,
+    ) -> bytes:
+        """Export documents from a bank into a transfer ZIP archive (no LLM, no embeddings).
+
+        See :mod:`hindsight_api.engine.transfer`. Embeddings and database ids are
+        not included; the archive carries extracted facts, entity canonical
+        names, causal links, and chunks so it can be replayed into another bank.
+        When ``include_observations`` is set, consolidated observations are also
+        exported (and restored on import) instead of being regenerated.
+        """
+        from .transfer import export_documents
+
+        await self._get_backend()
+        return await export_documents(self._backend, bank_id, document_ids, include_observations=include_observations)
+
+    async def import_documents_async(
+        self,
+        bank_id: str,
+        archive_bytes: bytes,
+        request_context: "RequestContext",
+        on_conflict: str = "skip",
+    ) -> dict[str, Any]:
+        """Submit an async document-import operation and return its ``operation_id``.
+
+        The archive is validated up front (so a bad zip fails fast), stashed in
+        file storage, and processed by a worker — or inline when the engine uses
+        a ``SyncTaskBackend`` (e.g. in tests). Poll the operations endpoint for
+        status; the imported/skipped counts land in ``result_metadata``.
+        Re-embeds facts and re-resolves entities — no LLM extraction is run.
+        """
+        from .transfer.importer import parse_archive
+
+        if on_conflict not in ("skip", "replace", "new-id"):
+            raise ValueError(f"Invalid on_conflict '{on_conflict}'; expected skip|replace|new-id")
+        # Validate synchronously so a malformed/unsupported archive surfaces as an
+        # immediate error to the caller rather than a background task failure.
+        parse_archive(archive_bytes)
+
+        await self._authenticate_tenant(request_context)
+        backend = await self._get_backend()
+        # Ensure the bank (and its per-bank vector indexes) exist before inserts.
+        await bank_utils.get_or_create_bank_profile(backend, bank_id)
+
+        # Stash the archive in file storage and reference it by key in the task
+        # payload, rather than base64-ing megabytes into the operation JSON.
+        storage_key = f"banks/{bank_id}/imports/{uuid.uuid4()}/transfer.zip"
+        await self._file_storage.store(
+            file_data=archive_bytes,
+            key=storage_key,
+            metadata={"content_type": "application/zip", "bank_id": bank_id},
+        )
+
+        task_payload: dict[str, Any] = {"storage_key": storage_key, "on_conflict": on_conflict}
+        if request_context.tenant_id:
+            task_payload["_tenant_id"] = request_context.tenant_id
+        if request_context.api_key_id:
+            task_payload["_api_key_id"] = request_context.api_key_id
+
+        return await self._submit_async_operation(
+            bank_id,
+            operation_type="import_documents",
+            task_type="import_documents",
+            task_payload=task_payload,
+        )
+
+    async def _run_import_documents(
+        self,
+        bank_id: str,
+        archive_bytes: bytes,
+        on_conflict: str,
+        request_context: "RequestContext",
+    ) -> "ImportResult":
+        """Run the deterministic import inline (shared by the worker handler).
+
+        After inserting, runs the same post-retain side effects as a normal
+        retain so imported documents aren't second-class citizens:
+          * retain.completed webhooks (one per imported document, fired
+            transactionally inside each document's insert);
+          * auto-consolidation (so imported facts get observations — when the
+            archive already carried observations, their sources are marked
+            consolidated, so consolidation safely skips them);
+          * graph maintenance (replace/new-id imports cascade-delete old data and
+            enqueue relink work).
+        """
+        from .transfer import import_documents
+
+        backend = await self._get_backend()
+        await bank_utils.get_or_create_bank_profile(backend, bank_id)
+        resolved_config = await self._config_resolver.resolve_full_config(bank_id, request_context)
+        outbox_factory = self._build_retain_outbox_callback_factory(
+            bank_id=bank_id, operation_id=None, schema=_current_schema.get()
+        )
+        result = await import_documents(
+            backend=backend,
+            embeddings_model=self.embeddings,
+            entity_resolver=self.entity_resolver,
+            config=resolved_config,
+            format_date_fn=self._format_readable_date,
+            bank_id=bank_id,
+            archive_bytes=archive_bytes,
+            on_conflict=on_conflict,
+            outbox_callback_factory=outbox_factory,
+        )
+
+        # Fire the post-retain extension hook (usage tracking / metrics /
+        # notifications) once per imported document, mirroring retain. Import runs
+        # no LLM extraction, so token counts are zero and processed_content_tokens
+        # is 0 ("nothing went through the extraction pipeline") — extensions that
+        # meter LLM/extraction cost therefore correctly bill an import as free.
+        if self._operation_validator:
+            from hindsight_api.extensions import RetainResult
+
+            for doc in result.imported_documents:
+                try:
+                    await self._operation_validator.on_retain_complete(
+                        RetainResult(
+                            bank_id=bank_id,
+                            contents=[{"content": doc.content}],
+                            request_context=request_context,
+                            document_id=doc.document_id,
+                            fact_type_override=None,
+                            unit_ids=[doc.unit_ids],
+                            success=True,
+                            error=None,
+                            llm_input_tokens=0,
+                            llm_output_tokens=0,
+                            llm_total_tokens=0,
+                            processed_content_tokens=0,
+                        )
+                    )
+                except Exception as e:
+                    logger.warning(f"Post-import hook error (non-fatal): {e}")
+
+        # Same async side effects every fact insert triggers (retain or import).
+        await self._submit_post_insert_maintenance(bank_id, request_context, config=resolved_config)
+
+        return result
+
     def recall(
         self,
         bank_id: str,
@@ -3185,6 +3412,7 @@ class MemoryEngine(MemoryEngineInterface):
         created_before: datetime | None = None,
         _connection_budget: int | None = None,
         _quiet: bool = False,
+        reranking: RecallReranking = "cross_encoder",
     ) -> RecallResultModel:
         """
         Recall memories using N*4-way parallel retrieval (N fact types × 4 retrieval methods).
@@ -3341,6 +3569,7 @@ class MemoryEngine(MemoryEngineInterface):
                             include_source_facts=include_source_facts,
                             max_source_facts_tokens=max_source_facts_tokens,
                             max_source_facts_tokens_per_observation=max_source_facts_tokens_per_observation,
+                            reranking=reranking,
                         )
                         break  # Success - exit retry loop
                     except Exception as e:
@@ -3472,6 +3701,7 @@ class MemoryEngine(MemoryEngineInterface):
         include_source_facts: bool = False,
         max_source_facts_tokens: int = 4096,
         max_source_facts_tokens_per_observation: int = -1,
+        reranking: RecallReranking = "cross_encoder",
     ) -> RecallResultModel:
         """
         Search implementation with modular retrieval and reranking.
@@ -3654,6 +3884,28 @@ class MemoryEngine(MemoryEngineInterface):
                     key=lambda r: r.combined_score if hasattr(r, "combined_score") else 0, reverse=True
                 )
 
+            # Cap each source independently before fusion so a single
+            # over-expanding backend (e.g. VectorChord returning hundreds of
+            # weak candidates) cannot fill the reranker's global budget on its
+            # own and crowd the other arms out of the final candidate pool.
+            per_source_cap = get_config().recall_max_candidates_per_source
+            if per_source_cap > 0:
+                from .search.fusion import cap_per_source
+
+                pre_cap_counts = (len(semantic_results), len(bm25_results), len(graph_results))
+                semantic_results = cap_per_source(semantic_results, per_source_cap)
+                bm25_results = cap_per_source(bm25_results, per_source_cap)
+                graph_results = cap_per_source(graph_results, per_source_cap)
+                if temporal_results:
+                    temporal_results = cap_per_source(temporal_results, per_source_cap)
+                if pre_cap_counts != (len(semantic_results), len(bm25_results), len(graph_results)):
+                    logger.debug(
+                        f"[RECALL {recall_id}] Per-source cap ({per_source_cap}) applied: "
+                        f"semantic {pre_cap_counts[0]}->{len(semantic_results)}, "
+                        f"bm25 {pre_cap_counts[1]}->{len(bm25_results)}, "
+                        f"graph {pre_cap_counts[2]}->{len(graph_results)}"
+                    )
+
             retrieval_duration = time.time() - retrieval_start
 
             step_duration = time.time() - step_start
@@ -3788,9 +4040,13 @@ class MemoryEngine(MemoryEngineInterface):
                     if _dur > 0:
                         tracer.add_phase_metric(f"retrieval_{_method}", _dur)
 
-            # Step 3: Merge with RRF
+            # Step 3: Merge ranked lists. RRF by default; interleave (round-robin) when
+            # requested by consolidation dedup recall — RRF averages a strong-in-one-arm
+            # result down and buried the near-identical "twin" observation below budget
+            # (semantic #1 -> outside the shown set), whereas interleave guarantees each
+            # arm's top hits a slot. See interleave_fusion docstring.
             step_start = time.time()
-            from .search.fusion import reciprocal_rank_fusion
+            from .search.fusion import interleave_fusion, reciprocal_rank_fusion
 
             fusion_span = tracer_otel.start_span("hindsight.recall_fusion")
             fusion_span.set_attribute("hindsight.bank_id", bank_id)
@@ -3801,16 +4057,16 @@ class MemoryEngine(MemoryEngineInterface):
 
             try:
                 # Merge 3 or 4 result lists depending on temporal constraint
+                result_lists = [semantic_results, bm25_results, graph_results]
                 if temporal_results:
-                    merged_candidates = reciprocal_rank_fusion(
-                        [semantic_results, bm25_results, graph_results, temporal_results]
-                    )
-                else:
-                    merged_candidates = reciprocal_rank_fusion([semantic_results, bm25_results, graph_results])
+                    result_lists.append(temporal_results)
+                fuse = interleave_fusion if reranking == "interleave" else reciprocal_rank_fusion
+                merged_candidates = fuse(result_lists)
 
                 step_duration = time.time() - step_start
                 log_buffer.append(
-                    f"  [3] RRF merge: {len(merged_candidates)} unique candidates in {step_duration:.3f}s"
+                    f"  [3] {'interleave' if reranking == 'interleave' else 'RRF'} merge: "
+                    f"{len(merged_candidates)} unique candidates in {step_duration:.3f}s"
                 )
             finally:
                 fusion_span.set_attribute("hindsight.merged_count", len(merged_candidates))
@@ -3835,26 +4091,42 @@ class MemoryEngine(MemoryEngineInterface):
 
             scored_results: list = []
             pre_filtered_count = 0
+            rerank_kind = "cross-encoder"
             try:
-                # Ensure reranker is initialized (for lazy initialization mode)
-                await reranker_instance.ensure_initialized()
-
-                # Pre-filter candidates to reduce reranking cost (RRF already provides good ranking)
-                # This is especially important for remote rerankers with network latency
+                # Pre-filter candidates by RRF before the (optional) cross-encoder.
+                # RRF already provides good ranking; this caps cross-encoder cost.
                 reranker_max_candidates = get_config().reranker_max_candidates
                 if len(merged_candidates) > reranker_max_candidates:
-                    # Sort by RRF score and take top candidates
                     merged_candidates.sort(key=lambda mc: mc.rrf_score, reverse=True)
                     pre_filtered_count = len(merged_candidates) - reranker_max_candidates
                     merged_candidates = merged_candidates[:reranker_max_candidates]
 
-                # Rerank using cross-encoder
-                scored_results = await reranker_instance.rerank(query, merged_candidates)
+                if reranking == "cross_encoder":
+                    # Ensure reranker is initialized (for lazy initialization mode)
+                    await reranker_instance.ensure_initialized()
+                    scored_results = await reranker_instance.rerank(query, merged_candidates)
+                else:
+                    # "rrf" / "interleave": skip the cross-encoder and keep the fusion order
+                    # (rrf_score is descending by fusion position for both). The cross-encoder
+                    # was observed to demote a near-identical existing observation (the dedup
+                    # "twin") far below the budget cutoff (semantic rank #1 -> reranked #37),
+                    # causing the LLM to never see it and create a duplicate.
+                    rerank_kind = f"{reranking}-passthrough"
+                    scored_results = [
+                        ScoredResult(
+                            candidate=mc,
+                            cross_encoder_score=0.0,
+                            cross_encoder_score_normalized=0.0,
+                            weight=0.0,
+                        )
+                        for mc in sorted(merged_candidates, key=lambda mc: mc.rrf_score, reverse=True)
+                    ]
 
                 step_duration = time.time() - step_start
                 pre_filter_note = f" (pre-filtered {pre_filtered_count})" if pre_filtered_count > 0 else ""
                 log_buffer.append(
-                    f"  [4] Reranking: {len(scored_results)} candidates scored in {step_duration:.3f}s{pre_filter_note}"
+                    f"  [4] Reranking [{rerank_kind}]: {len(scored_results)} candidates "
+                    f"scored in {step_duration:.3f}s{pre_filter_note}"
                 )
             finally:
                 rerank_span.set_attribute("hindsight.scored_count", len(scored_results))
@@ -3867,9 +4139,18 @@ class MemoryEngine(MemoryEngineInterface):
             # is_passthrough_reranker tells the scoring code to seed CE scores
             # from RRF rank — only meaningful when the configured reranker is
             # the slim/passthrough one that returns a constant score per pair.
-            if scored_results:
+            if scored_results and reranking == "interleave":
+                # Interleave order is authoritative for dedup recall: do NOT re-sort by the
+                # recency/temporal boosts — that re-sort is precisely what buried the twin
+                # under RRF. Seed weight from the interleave-position rrf_score so the order
+                # survives Step 5 truncation and the Step 6 token-budget cut.
+                for sr in scored_results:
+                    sr.weight = sr.candidate.rrf_score
+                log_buffer.append("  [4.6] Interleave order preserved (combined scoring skipped)")
+            elif scored_results:
                 ce = reranker_instance.cross_encoder
-                is_passthrough = ce is not None and ce.provider_name == "rrf"
+                # "rrf" mode is passthrough by construction; so is a configured "rrf" CE.
+                is_passthrough = (reranking == "rrf") or (ce is not None and ce.provider_name == "rrf")
                 apply_combined_scoring(
                     scored_results,
                     now=_recall_scoring_now(question_date),
@@ -3889,7 +4170,7 @@ class MemoryEngine(MemoryEngineInterface):
                 tracer.add_phase_metric(
                     "reranking",
                     step_duration,
-                    {"reranker_type": "cross-encoder", "candidates_reranked": len(scored_results)},
+                    {"reranker_type": rerank_kind, "candidates_reranked": len(scored_results)},
                 )
 
             # Step 5: Truncate to thinking_budget * 2 for token filtering
