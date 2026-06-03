@@ -24,7 +24,6 @@ fn open_options() -> OpenOptions {
         need_sequential: false,
         populate: Populate::No,
         advice: AdviceSetting::Advice(Advice::Random),
-        extra: Default::default(),
     }
 }
 
@@ -81,7 +80,7 @@ impl<S: UniversalWrite> Bitmask<S> {
     }
 
     /// Create a bitmask for one page
-    pub(crate) fn create(dir: &Path, config: StorageConfig) -> Result<Self> {
+    pub(crate) fn create(fs: &S::Fs, dir: &Path, config: StorageConfig) -> Result<Self> {
         debug_assert!(
             config.page_size_bytes % config.block_size_bytes * config.region_size_blocks == 0,
             "Page size must be a multiple of block size * region size"
@@ -93,7 +92,7 @@ impl<S: UniversalWrite> Bitmask<S> {
         let path = Self::bitmask_path(dir);
         create_and_ensure_length(&path, length)?;
 
-        let bitslice = StoredBitSlice::open(&path, open_options())?;
+        let bitslice = StoredBitSlice::open(fs, &path, open_options(), Default::default())?;
 
         let bit_len = bitslice.bit_len() as usize;
         assert_eq!(bit_len, length * 8, "Bitmask length mismatch");
@@ -102,7 +101,7 @@ impl<S: UniversalWrite> Bitmask<S> {
         let num_regions = bit_len / config.region_size_blocks;
         let region_gaps = vec![RegionGaps::all_free(config.region_size_blocks as u16); num_regions];
 
-        let regions_gaps = BitmaskGaps::create(dir, region_gaps.into_iter(), config.clone())?;
+        let regions_gaps = BitmaskGaps::create(fs, dir, region_gaps.into_iter(), config.clone())?;
 
         Ok(Self {
             config,
@@ -112,7 +111,7 @@ impl<S: UniversalWrite> Bitmask<S> {
         })
     }
 
-    pub(crate) fn open(dir: &Path, config: StorageConfig) -> Result<Self> {
+    pub(crate) fn open(fs: &S::Fs, dir: &Path, config: StorageConfig) -> Result<Self> {
         debug_assert!(
             config
                 .page_size_bytes
@@ -129,16 +128,17 @@ impl<S: UniversalWrite> Bitmask<S> {
         }
 
         let bitslice = StoredBitSlice::open(
+            fs,
             &path,
             OpenOptions {
                 writeable: true,
                 need_sequential: false,
                 populate: Populate::Auto,
                 advice: AdviceSetting::Advice(Advice::Random),
-                extra: Default::default(),
             },
+            Default::default(),
         )?;
-        let regions_gaps = BitmaskGaps::open(dir, config.clone())?;
+        let regions_gaps = BitmaskGaps::open(fs, dir, config.clone())?;
 
         Ok(Self {
             config,
@@ -208,7 +208,7 @@ impl<S: UniversalWrite> Bitmask<S> {
         let new_length = (previous_bit_len / u8::BITS as usize) + extra_length;
         create_and_ensure_length(&self.path, new_length)?;
 
-        self.bitslice = StoredBitSlice::open(&self.path, open_options())?;
+        self.bitslice.reopen()?;
 
         let current_bit_len = self.bitslice.bit_len() as usize;
 
@@ -577,6 +577,7 @@ mod tests {
 
     use bitvec::bits;
     use common::bitvec::BitVec;
+    use common::universal_io::MmapFs;
     use proptest::prelude::*;
     use rand::{RngExt, rng};
 
@@ -609,7 +610,7 @@ mod tests {
         };
 
         let mut bitmask: MmapBitmask =
-            super::Bitmask::create(dir.path(), options.try_into().unwrap()).unwrap();
+            super::Bitmask::create(&MmapFs, dir.path(), options.try_into().unwrap()).unwrap();
         bitmask.cover_new_page().unwrap();
 
         assert_eq!(bitmask.bitslice.bit_len() as u32, blocks_per_page * 2);

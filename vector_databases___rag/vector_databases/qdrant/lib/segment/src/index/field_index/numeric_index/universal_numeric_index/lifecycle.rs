@@ -3,11 +3,13 @@ use std::ops::BitOrAssign;
 use std::path::{Path, PathBuf};
 
 use common::bitvec::{BitSlice, BitSliceExt};
-use common::fs::{atomic_save_json, clear_disk_cache, read_json};
+use common::fs::{atomic_save_json, clear_disk_cache};
 use common::mmap::{AdviceSetting, MmapSlice, create_and_ensure_length};
-use common::stored_bitslice::MmapBitSlice;
+use common::stored_bitslice::{MmapBitSlice, StoredBitSlice};
 use common::types::PointOffsetType;
-use common::universal_io::{MmapFile, OpenOptions, Populate, TypedStorage};
+use common::universal_io::{
+    MmapFs, OkNotFound, OpenOptions, Populate, TypedStorage, UniversalRead, read_json_via,
+};
 use fs_err as fs;
 use memmap2::MmapMut;
 use serde::{Deserialize, Serialize};
@@ -26,8 +28,14 @@ struct UniversalNumericIndexConfig {
     max_values_per_point: usize,
 }
 
-impl<T: Encodable + Numericable + Default + StoredValue + bytemuck::Pod> UniversalNumericIndex<T> {
+impl<T, S> UniversalNumericIndex<T, S>
+where
+    T: Encodable + Numericable + Default + StoredValue + bytemuck::Pod,
+    S: UniversalRead,
+{
+    /// TODO: save using `S::Fs` too
     pub fn build(
+        fs: &S::Fs,
         in_memory_index: InMemoryNumericIndex<T>,
         path: &Path,
         is_on_disk: bool,
@@ -48,7 +56,8 @@ impl<T: Encodable + Numericable + Default + StoredValue + bytemuck::Pod> Univers
 
         in_memory_index.histogram.save(path)?;
 
-        StoredPointToValues::<T, MmapFile>::from_iter(
+        StoredPointToValues::<T, S>::from_iter(
+            fs,
             path,
             in_memory_index
                 .point_to_values
@@ -79,14 +88,15 @@ impl<T: Encodable + Numericable + Default + StoredValue + bytemuck::Pod> Univers
             )?;
 
             let mut deleted = MmapBitSlice::open(
+                &MmapFs,
                 &deleted_path,
                 OpenOptions {
                     writeable: true,
                     need_sequential: false,
                     populate: Populate::Auto,
                     advice: AdviceSetting::Global,
-                    extra: Default::default(),
                 },
+                (),
             )?;
             deleted.set_ascending_bits_batch(
                 in_memory_index
@@ -99,13 +109,14 @@ impl<T: Encodable + Numericable + Default + StoredValue + bytemuck::Pod> Univers
             deleted.flusher()()?;
         }
 
-        Self::open(path, is_on_disk, deleted_points)?.ok_or_else(|| {
+        Self::open(fs, path, is_on_disk, deleted_points)?.ok_or_else(|| {
             OperationError::service_error("Failed to open UniversalNumericIndex after building it")
         })
     }
 
     /// Open and load mmap numeric index from the given path
     pub fn open(
+        fs: &S::Fs,
         path: &Path,
         is_on_disk: bool,
         deleted_points: &BitSlice,
@@ -114,13 +125,14 @@ impl<T: Encodable + Numericable + Default + StoredValue + bytemuck::Pod> Univers
         let deleted_path = path.join(DELETED_PATH);
         let config_path = path.join(CONFIG_PATH);
 
-        // If config doesn't exist, assume the index doesn't exist on disk
-        if !config_path.is_file() {
+        let Some(config) =
+            read_json_via::<_, UniversalNumericIndexConfig>(fs, &config_path).ok_not_found()?
+        else {
+            // If config doesn't exist, assume the index doesn't exist on disk
             return Ok(None);
-        }
+        };
 
-        let histogram = Histogram::<T>::load(path)?;
-        let config: UniversalNumericIndexConfig = read_json(&config_path)?;
+        let histogram = Histogram::<T>::load_via(fs, path)?;
         let do_populate = !is_on_disk;
 
         let pairs_options = OpenOptions {
@@ -128,22 +140,22 @@ impl<T: Encodable + Numericable + Default + StoredValue + bytemuck::Pod> Univers
             need_sequential: false,
             populate: Populate::from(do_populate),
             advice: AdviceSetting::Global,
-            extra: Default::default(),
         };
-        let pairs = TypedStorage::open(pairs_path, pairs_options)?;
+        let pairs = TypedStorage::open(fs, pairs_path, pairs_options, Default::default())?;
 
-        let point_to_values = StoredPointToValues::open(path, do_populate)?;
+        let point_to_values = StoredPointToValues::open(fs, path, do_populate)?;
         let mut deleted = deleted_points.to_owned();
 
-        let deleted_payload_mmap = MmapBitSlice::open(
+        let deleted_payload_mmap = StoredBitSlice::<S>::open(
+            fs,
             &deleted_path,
             OpenOptions {
                 writeable: true,
                 need_sequential: false,
                 populate: Populate::Auto,
                 advice: AdviceSetting::Global,
-                extra: Default::default(),
             },
+            Default::default(),
         )?;
         let deleted_payloads_bitslice = deleted_payload_mmap.read_all()?;
 

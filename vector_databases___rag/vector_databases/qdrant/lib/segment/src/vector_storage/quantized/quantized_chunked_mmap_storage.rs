@@ -5,7 +5,7 @@ use common::counter::hardware_counter::HardwareCounterCell;
 use common::generic_consts::Random;
 use common::mmap::{Advice, AdviceSetting, MmapFlusher};
 use common::types::PointOffsetType;
-use common::universal_io::MmapFile;
+use common::universal_io::{MmapFile, MmapFs, UniversalKind};
 
 use crate::common::operation_error::OperationResult;
 use crate::vector_storage::VectorOffsetType;
@@ -23,6 +23,7 @@ impl QuantizedChunkedMmapStorage {
             AdviceSetting::Global
         };
         let data = ChunkedVectors::open(
+            MmapFs,
             path,
             quantized_vector_size,
             advice,
@@ -48,11 +49,11 @@ impl quantization::EncodedStorage for QuantizedChunkedMmapStorage {
             .unwrap_or_default()
     }
 
-    fn for_each_in_batch<F>(&self, offsets: &[PointOffsetType], callback: F)
-    where
-        F: FnMut(usize, &[u8]),
-    {
-        self.data.for_each_in_batch(offsets, callback);
+    fn iter_batch(
+        &self,
+        offsets: &[PointOffsetType],
+    ) -> impl Iterator<Item = (usize, Cow<'_, [u8]>)> {
+        self.data.iter(offsets)
     }
 
     fn upsert_vector(
@@ -64,6 +65,25 @@ impl quantization::EncodedStorage for QuantizedChunkedMmapStorage {
         self.data
             .insert(id as VectorOffsetType, vector, hw_counter)
             .map_err(std::io::Error::other)
+    }
+
+    fn is_in_ram_or_mmap() -> bool {
+        type StorageType = ChunkedVectors<u8, MmapFile>;
+
+        // This should produce compilation error, if `QuantizedChunkedMmapStorage::data` type is changed,
+        // to ensure that we always use correct type for this check
+        fn _static_assert_storage_type(storage: QuantizedChunkedMmapStorage) {
+            let _: StorageType = storage.data;
+        }
+
+        match StorageType::storage_kind() {
+            UniversalKind::IoUring |
+            UniversalKind::DiskCache | UniversalKind::S3 |
+            UniversalKind::Gcs |
+            UniversalKind::Azure => false,
+            UniversalKind::SimpleDiskCache | // FIXME: only `true` if it was entirely prefilled
+            UniversalKind::Mmap => true,
+        }
     }
 
     fn is_on_disk(&self) -> bool {
@@ -110,6 +130,7 @@ impl QuantizedChunkedMmapStorageBuilder {
             AdviceSetting::Global
         };
         let data = ChunkedVectors::open(
+            MmapFs,
             path,
             quantized_vector_size,
             advice,

@@ -1,21 +1,22 @@
-use std::borrow::Cow;
+use std::fmt::Debug;
+use std::io::{self, ErrorKind};
 use std::ops::Range;
 use std::path::{Path, PathBuf};
-use std::sync::OnceLock;
+use std::sync::{Arc, OnceLock};
 
-use fs_err as fs;
-use memmap2::MmapRaw;
 use parking_lot::Mutex;
-use roaring::RoaringBitmap;
 
 use super::BLOCK_SIZE;
-use super::config::DiskCacheConfig;
+use super::fs::DiskCacheFs;
+use crate::ext::aligned_vec::ACow;
 use crate::generic_consts::{AccessPattern, Sequential};
-use crate::mmap::{AdviceSetting, Madviseable};
-use crate::universal_io::pipeline::DiskCachePipeline;
+use crate::mmap::AdviceSetting;
+use crate::universal_io::simple_disk_cache::local_state::LocalState;
+use crate::universal_io::simple_disk_cache::pipeline::{DiskCachePipeline, OwnedDiskCachePipeline};
+use crate::universal_io::simple_disk_cache::{DiskCacheRemote, to_block_range};
 use crate::universal_io::{
-    OpenOptions, Populate, ReadRange, Result, UniversalIoError, UniversalKind, UniversalRead,
-    UniversalReadFileOps,
+    BorrowedReadPipeline, OpenOptions, OwnedReadPipeline, Populate, ReadRange, Result,
+    UniversalIoError, UniversalKind, UniversalRead, UniversalReadFs, UserData,
 };
 
 /// A lazily-populated local mirror of an immutable remote file.
@@ -23,103 +24,115 @@ use crate::universal_io::{
 /// The remote is assumed to be immutable for the lifetime of the file;
 /// this type implements [`UniversalRead`] only, but not [`UniversalWrite`].
 ///
+/// The local mirror can either be initialized lazily on first read (filling
+/// blocks on demand from the remote) or eagerly if populate is set.
+///
 /// WARN: There should be only a single instance of DiskCache per path.
-/// Initializing multiple instances will not reuse the same mmap and can cause UB.
-#[derive(Debug)]
-pub struct DiskCache<R> {
-    pub(super) remote: R,
-    /// Open options for when it gets initialized
-    open_options: OpenOptions,
-    /// Path to the local mmap file
-    local_path: PathBuf,
+/// Initializing multiple instances will try to re-read from remote.
+pub struct DiskCache<R>
+where
+    R: UniversalRead,
+{
+    /// Clone of the remote filesystem handle, used to lazily open `remote`.
+    remote_fs: R::Fs,
+    /// Backend-specific per-open extras for the remote.
+    remote_extra: <R::Fs as UniversalReadFs>::OpenExtra,
+    /// Path to the remote file. Used to lazily open `remote`.
+    remote_path: PathBuf,
+    /// Lazily-opened remote handle. Only initialized when needed (cache miss
+    /// or `len()` before local is set).
+    ///
+    // We could switch to LazyLock, but there is no fallible initialization
+    remote: OnceLock<R>,
+    /// Open options for when the local mmap is initialized.
+    pub(super) open_options: OpenOptions,
+    /// Path to the local mmap file.
+    pub(super) local_path: PathBuf,
+    /// Lazily-initialized local mirror.
     pub(super) local: OnceLock<LocalState>,
-    /// Prevents concurrent initialization of `local` across threads.
-    ///
-    /// TODO: Switch to [`OnceLock::get_or_try_init`][1] once it stabilizes
-    ///
-    /// [1]: https://github.com/rust-lang/rust/issues/109737
-    init_lock: Mutex<()>,
+    /// Guards initialization of `local` and carries the source of init.
+    init_lock: Arc<Mutex<InitSource<R>>>,
 }
 
-#[derive(Debug)]
-pub(super) struct LocalState {
-    pub mmap: MmapRaw,
-    /// Bitmask to know which blocks have been fetched so far.
-    pub fetched: Mutex<RoaringBitmap>,
-}
-
-impl LocalState {
-    /// # Safety
-    /// `byte_range` must have been populated first, caller must ensure `self.fetched` references the
-    /// blocks for the byte range.
-    pub(super) unsafe fn read_mmap_bytes(&self, byte_range: Range<u64>) -> &[u8] {
-        let bytes = unsafe { std::slice::from_raw_parts(self.mmap.as_ptr(), self.mmap.len()) };
-        &bytes[byte_range.start as usize..byte_range.end as usize]
-    }
-
-    /// # Safety
-    /// `DiskCache` is only used in immutable files. Since `blocks_range` can include already-fetched
-    /// data, it is possible that some sections get overwritten; however, it should be the same data,
-    /// so it is fine.
-    ///
-    /// Assumes the bytes slice covers the entirety of `blocks_range`.
-    pub(super) unsafe fn write_mmap_bytes(&self, bytes: &[u8], blocks_range: Range<u32>) {
-        let mut fetched = self.fetched.lock();
-        if fetched.contains_range(blocks_range.clone()) {
-            return;
-        }
-
-        let byte_offset = blocks_range.start as usize * BLOCK_SIZE;
-
-        let max_len = self.mmap.len().saturating_sub(byte_offset);
-        assert!(bytes.len() == max_len.min(blocks_range.len() * BLOCK_SIZE));
-
-        unsafe {
-            std::ptr::copy_nonoverlapping(
-                bytes.as_ptr(),
-                self.mmap.as_mut_ptr().add(byte_offset),
-                bytes.len(),
-            );
-        }
-        fetched.insert_range(blocks_range);
+impl<R> Debug for DiskCache<R>
+where
+    R: UniversalRead,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("DiskCache")
+            .field("remote_path", &self.remote_path)
+            .field("remote", &self.remote)
+            .field("open_options", &self.open_options)
+            .field("local_path", &self.local_path)
+            .field("local", &self.local)
+            .finish_non_exhaustive()
     }
 }
 
-impl<R: UniversalRead> DiskCache<R> {
-    /// Open an [`DiskCache`] with an explicit configuration
-    pub fn open_with_config(
-        config: &DiskCacheConfig,
-        path: impl AsRef<Path>,
+/// Where the [`LocalState`] comes from on first init.
+pub(super) enum InitSource<R: UniversalRead> {
+    /// Build an empty local mmap and let reads fill blocks on demand.
+    FromScratch,
+    /// Wait for the prefill pipeline.
+    FromPrefiller(R::OwnedReadPipeline<()>),
+}
+
+impl<R> DiskCache<R>
+where
+    R: DiskCacheRemote,
+{
+    pub(super) fn new(
+        remote_fs: R::Fs,
+        remote_extra: <R::Fs as UniversalReadFs>::OpenExtra,
+        remote_path: impl AsRef<Path>,
+        local_path: PathBuf,
         options: OpenOptions,
-    ) -> Result<Self> {
-        if options.writeable {
-            return Err(UniversalIoError::Uninitialized {
-                description:
-                    "DiskCache only supports immutable files, writeable option is not allowed"
-                        .to_string(),
-            });
+        init_source: InitSource<R>,
+    ) -> Self {
+        Self {
+            remote_fs,
+            remote_extra,
+            remote_path: remote_path.as_ref().to_owned(),
+            remote: OnceLock::new(),
+            open_options: options,
+            local_path,
+            local: OnceLock::new(),
+            init_lock: Arc::new(Mutex::new(init_source)),
         }
+    }
 
-        let remote_path = path.as_ref();
-        let local_path = config.local_path_for(remote_path)?;
+    /// Lazily open the remote handle. The remote is only needed for cache
+    /// misses and for `len()` before the local mmap exists.
+    pub(super) fn remote(&self) -> Result<&R> {
+        if let Some(r) = self.remote.get() {
+            return Ok(r);
+        }
 
         let remote_options = OpenOptions {
             writeable: false,
-            extra: OpenOptionsExtra { prevent_caching: true },
             populate: Populate::No,
             need_sequential: false,
             advice: AdviceSetting::Global,
         };
 
-        let remote = R::open(remote_path, remote_options)?;
+        let opened =
+            self.remote_fs
+                .open(&self.remote_path, remote_options, self.remote_extra.clone())?;
+        // If another thread set this concurrently, let our R be dropped.
+        //
+        // OnceLock::get_or_try_init would be better but it is not available on stable
+        let _ = self.remote.set(opened);
+        Ok(self.remote.get().expect("just set or already set"))
+    }
 
-        Ok(Self {
-            remote,
-            open_options: options,
-            local_path,
-            local: OnceLock::new(),
-            init_lock: Mutex::new(()),
-        })
+    /// Drop the cached remote handle, releasing any mapping it holds on the
+    /// remote file. The next access re-opens it lazily via [`Self::remote`].
+    ///
+    /// Test-only: required so tests can shrink the remote on Windows, where a
+    /// file with an active memory mapping cannot be resized.
+    #[cfg(test)]
+    pub(super) fn release_remote(&mut self) {
+        self.remote = OnceLock::new();
     }
 
     /// Return the cached [`LocalState`], initializing it on first call.
@@ -128,121 +141,91 @@ impl<R: UniversalRead> DiskCache<R> {
             return Ok(state);
         }
 
-        // Only first thread is able to initialize
-        let _guard = self.init_lock.lock();
-        if let Some(state) = self.local.get() {
-            return Ok(state);
-        }
+        self.init_local_state(true, None)?;
 
-        let state = self.init_local_state()?;
-        if self.local.set(state).is_err() {
-            unreachable!("OnceLock::set must succeed while holding init_lock");
-        }
         Ok(self.local.get().expect("just initialized"))
     }
 
-    fn init_local_state(&self) -> Result<LocalState> {
-        if let Some(parent) = self.local_path.parent() {
-            fs::create_dir_all(parent)?;
+    /// Initialize the local state depending on `InitSource`
+    ///
+    /// If `allow_from_scratch` is false, this method will avoid initializing if `InitSource::FromScratch` is set.
+    /// This is helpful for [`Self::reopen`] scenario where we can avoid work if no reads have taken place.
+    pub(super) fn init_local_state(
+        &self,
+        allow_from_scratch: bool,
+        known_length: Option<u64>,
+    ) -> Result<()> {
+        // Only the first thread is able to initialize.
+        let mut guard = self.init_lock.lock();
+        if self.local.get().is_some() {
+            return Ok(());
         }
 
-        let OpenOptions {
-            writeable: _,       // always needs to be writeable
-            need_sequential: _, // TODO: add sequential mmap
-            populate: _,        // this is handled in populate() function
-            advice,
-            prevent_caching: _, // TODO: use o_direct
-        } = self.open_options;
-
-        let file = fs::OpenOptions::new()
-            .read(true)
-            .write(true)
-            .create(true)
-            .truncate(true)
-            .open(&self.local_path)?;
-
-        let remote_len = self.remote.len::<u8>()?;
-        file.set_len(remote_len)?;
-        let mmap = MmapRaw::map_raw(&file)?;
-
-        mmap.madvise(advice.unwrap_or(AdviceSetting::Global).resolve())?;
-
-        Ok(LocalState {
-            mmap,
-            fetched: Mutex::new(RoaringBitmap::new()),
-        })
-    }
-}
-
-impl<R: UniversalReadFileOps> UniversalReadFileOps for DiskCache<R> {
-    fn list_files(prefix_path: &Path) -> Result<Vec<PathBuf>> {
-        R::list_files(prefix_path)
-    }
-
-    fn exists(path: &Path) -> Result<bool> {
-        R::exists(path)
-    }
-}
-
-impl<R> UniversalRead for DiskCache<R>
-where
-    R: UniversalRead,
-{
-    type ReadPipeline<'a, T, Meta>
-        = DiskCachePipeline<'a, T, Meta, R>
-    where
-        R: 'a,
-        T: bytemuck::Pod;
-
-    fn open(path: impl AsRef<Path>, options: OpenOptions) -> Result<Self> {
-        let config = DiskCacheConfig::global().ok_or_else(|| {
-            UniversalIoError::uninitialized(
-                "DiskCacheConfig must be initialized via `DiskCacheConfig::initialize_global` \
-                 before opening an DiskCache",
-            )
-        })?;
-        Self::open_with_config(config, path, options)
-    }
-
-    fn read<P, T>(&self, range: ReadRange) -> Result<Cow<'_, [T]>>
-    where
-        P: AccessPattern,
-        T: bytemuck::Pod,
-    {
-        let (_, read) = self
-            .read_iter::<P, T, _>(std::iter::once(((), range)))?
-            .next()
-            .expect("there's exactly one read")?;
-
-        Ok(read)
-    }
-
-    fn len<T>(&self) -> Result<u64> {
-        let t_size = size_of::<T>();
-        debug_assert!(t_size > 0, "zero-sized types are not supported");
-
-        let bytes_len = if let Some(local) = self.local.get() {
-            local.mmap.len() as u64
-        } else {
-            self.remote.len::<u8>()?
+        let local = match std::mem::replace(&mut *guard, InitSource::FromScratch) {
+            InitSource::FromScratch => {
+                if !allow_from_scratch {
+                    return Ok(());
+                }
+                self.new_local_state_from_scratch(known_length)?
+            }
+            InitSource::FromPrefiller(mut pipe) => {
+                match pipe.wait()? {
+                    Some((_, bytes)) => {
+                        let local = LocalState::new(
+                            &self.local_path,
+                            // TODO: if we want partial prefill, we should still create local state with
+                            // entire length of remote file, not the partial data.
+                            bytes.len() as u64,
+                            self.open_options,
+                        )?;
+                        let blocks_range = to_block_range(0..bytes.len() as u64);
+                        unsafe { local.write_mmap_bytes(&bytes, blocks_range) };
+                        local
+                    }
+                    None => {
+                        debug_assert!(
+                            false,
+                            "Looks like the request for prefill bytes was incorrect"
+                        );
+                        if !allow_from_scratch {
+                            return Ok(());
+                        }
+                        // init from scratch
+                        self.new_local_state_from_scratch(known_length)?
+                    }
+                }
+            }
         };
 
-        Ok(bytes_len / t_size as u64)
+        self.local
+            .set(local)
+            .expect("OnceLock::set must succeed while holding init_lock");
+
+        Ok(())
     }
 
-    fn populate(&self) -> Result<()> {
+    fn new_local_state_from_scratch(&self, known_length: Option<u64>) -> Result<LocalState> {
+        let len = match known_length {
+            Some(len) => len,
+            None => self.remote()?.len::<u8>()?,
+        };
+        LocalState::new(&self.local_path, len, self.open_options)
+    }
+
+    /// Make sure every byte in the range `byte_start..remote_len` is present on the local file
+    fn populate_from(&self, byte_start: u64) -> std::result::Result<(), UniversalIoError> {
         if crate::low_memory::low_memory_mode().skip_populate() {
             return Ok(());
         }
 
-        let remote_len = self.remote.len::<u8>()?;
+        let remote_len = self.remote()?.len::<u8>()?;
         if remote_len == 0 {
             return Ok(());
         }
 
-        let one_byte_per_block = (0..remote_len as usize)
+        let one_byte_per_block = (byte_start..remote_len)
             .step_by(BLOCK_SIZE)
-            .map(|byte_offset| ((), ReadRange::one(byte_offset as u64)));
+            .map(|byte_offset| ((), ReadRange::one(byte_offset)));
 
         for result in self.read_iter::<Sequential, u8, ()>(one_byte_per_block)? {
             result?;
@@ -250,10 +233,95 @@ where
 
         Ok(())
     }
+}
+
+impl<R> UniversalRead for DiskCache<R>
+where
+    R: DiskCacheRemote,
+{
+    type Fs = DiskCacheFs<R>;
+
+    type BorrowedReadPipeline<'a, U>
+        = DiskCachePipeline<'a, R, U>
+    where
+        R: 'a,
+        Self: 'a,
+        U: UserData;
+
+    type OwnedReadPipeline<U>
+        = OwnedDiskCachePipeline<R, U>
+    where
+        U: UserData;
+
+    fn reopen(&mut self) -> Result<()> {
+        // Wait for InitSource::Prefill, if set.
+        self.init_local_state(false, None)?;
+
+        if self.local.get().is_none() {
+            return Ok(());
+        }
+
+        // Reopen the remote so `len()` reflects the current file size
+        if let Some(remote) = self.remote.get_mut() {
+            remote.reopen()?;
+        }
+        let remote_len = self.remote()?.len::<u8>()?;
+
+        let local = self
+            .local
+            .get_mut()
+            .expect("We just ruled out `is_none` above, and we are holding &mut self");
+
+        let local_len = local.mmap().len::<u8>()?;
+        if local_len > remote_len {
+            return Err(UniversalIoError::Io(io::Error::new(
+                ErrorKind::UnexpectedEof,
+                format!(
+                    "Reopen encountered a smaller file than expected; old_len: {local_len}, new_len: {remote_len}"
+                ),
+            )));
+        }
+        if local_len == remote_len {
+            return Ok(());
+        }
+
+        local.resize(self.local_path.clone(), remote_len)?;
+
+        match self.open_options.populate {
+            Populate::Auto | Populate::No => {}
+            Populate::Blocking => self.populate_from(local_len)?,
+            Populate::PreferBackground => {
+                // TODO: prefill old_len..new_len on background
+            }
+        }
+
+        Ok(())
+    }
+
+    fn read_bytes<P: AccessPattern>(&self, range: Range<u64>, align: usize) -> Result<ACow<'_>> {
+        let mut pipeline = DiskCachePipeline::<R, ()>::new()?;
+        pipeline.schedule::<P>((), self, range, align)?;
+        let (_, bytes) = pipeline.wait()?.expect("there's exactly one read");
+        Ok(bytes)
+    }
+
+    fn len<T>(&self) -> Result<u64> {
+        let len = if let Some(local) = self.local.get() {
+            local.mmap().len::<T>()?
+        } else {
+            self.remote()?.len::<T>()?
+        };
+
+        Ok(len)
+    }
+
+    fn populate(&self) -> Result<()> {
+        self.populate_from(0)
+    }
 
     fn clear_ram_cache(&self) -> Result<()> {
         if let Some(state) = self.local.get() {
-            state.mmap.clear_cache();
+            state.mmap().clear_ram_cache()?;
         }
         Ok(())
     }
@@ -261,10 +329,4 @@ where
     fn kind() -> UniversalKind {
         UniversalKind::SimpleDiskCache
     }
-}
-
-pub(super) fn to_block_range(range: Range<u64>) -> Range<u32> {
-    let start = (range.start / BLOCK_SIZE as u64) as u32;
-    let end = range.end.div_ceil(BLOCK_SIZE as u64) as u32;
-    start..end
 }

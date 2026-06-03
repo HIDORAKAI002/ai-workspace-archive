@@ -8,6 +8,7 @@ use common::types::PointOffsetType;
 use common::universal_io::{Result, UniversalIoError};
 
 use super::posting_list_common::PostingListIter;
+use crate::SearchScratchArena;
 use crate::common::sparse_vector::RemappedSparseVector;
 use crate::common::types::DimOffset;
 use crate::index::inverted_index::inverted_index_ram::InvertedIndexRam;
@@ -36,12 +37,13 @@ pub trait InvertedIndex: Sized + Debug + 'static {
     fn open(path: &Path) -> Result<Self>;
 
     /// Save index
-    fn save(&self, path: &Path) -> std::io::Result<()>;
+    fn save(&self, path: &Path) -> Result<()>;
 
     /// Get posting list for dimension id
     fn get<'a>(
         &'a self,
         id: DimOffset,
+        arena: &'a SearchScratchArena,
         hw_counter: &'a HardwareCounterCell,
     ) -> Result<Self::Iter<'a>>;
 
@@ -72,10 +74,7 @@ pub trait InvertedIndex: Sized + Debug + 'static {
     );
 
     /// Create inverted index from ram index
-    fn from_ram_index<P: AsRef<Path>>(
-        ram_index: Cow<InvertedIndexRam>,
-        path: P,
-    ) -> std::io::Result<Self>;
+    fn from_ram_index<P: AsRef<Path>>(ram_index: Cow<InvertedIndexRam>, path: P) -> Result<Self>;
 
     /// Number of indexed vectors
     fn vector_count(&self) -> usize;
@@ -95,5 +94,13 @@ pub(crate) fn out_of_bounds(id: DimOffset, len: usize) -> UniversalIoError {
     UniversalIoError::Io(std::io::Error::new(
         std::io::ErrorKind::InvalidData,
         format!("DimOffset {id} out of bounds. Index contains {len} posting lists."),
+    ))
+}
+
+/// Error returned when on-disk index bytes fail length or alignment checks.
+pub(crate) fn corrupted_index() -> UniversalIoError {
+    UniversalIoError::Io(std::io::Error::new(
+        std::io::ErrorKind::InvalidData,
+        "Sparse index is corrupted",
     ))
 }

@@ -7,7 +7,7 @@ use common::counter::hardware_counter::HardwareCounterCell;
 use common::generic_consts::{AccessPattern, Random};
 use common::iterator_ext::IteratorExt;
 use common::types::PointOffsetType;
-use common::universal_io::MmapFile;
+use common::universal_io::{MmapFile, MmapFs};
 use fs_err as fs;
 use gridstore::Gridstore;
 use gridstore::config::{Compression, StorageOptions};
@@ -66,7 +66,10 @@ impl MmapSparseVectorStorage {
 
         // Deleted flags
         let deleted_path = path.join(DELETED_DIRNAME);
-        let deleted = BitvecFlags::new(DynamicStoredFlags::open(&deleted_path, populate)?)?;
+        let deleted = BitvecFlags::new(
+            MmapFs,
+            DynamicStoredFlags::open(&MmapFs, &deleted_path, populate)?,
+        )?;
 
         let deleted_count = deleted.count_trues();
         let next_point_offset = deleted
@@ -107,7 +110,10 @@ impl MmapSparseVectorStorage {
 
         // Deleted flags
         let deleted_path = path.join(DELETED_DIRNAME);
-        let deleted = BitvecFlags::new(DynamicStoredFlags::open(&deleted_path, populate)?)?;
+        let deleted = BitvecFlags::new(
+            MmapFs,
+            DynamicStoredFlags::open(&MmapFs, &deleted_path, populate)?,
+        )?;
 
         Ok(Self {
             storage,
@@ -212,7 +218,7 @@ impl SparseVectorStorage for MmapSparseVectorStorage {
                 }
                 Ok(())
             },
-            &HardwareCounterCell::disposable(),
+            HardwareCounterCell::disposable().vector_io_read(),
         )
     }
 }

@@ -3,7 +3,9 @@ use std::marker::PhantomData;
 use std::path::PathBuf;
 
 use common::generic_consts::{Random, Sequential};
-use common::universal_io::{OpenOptions, ReadRange, UniversalIoError, UniversalRead};
+use common::universal_io::{
+    OkNotFound, OpenOptions, ReadRange, UniversalIoError, UniversalRead, UniversalReadFs
+};
 use posting_list::{PostingList, PostingListView};
 use zerocopy::FromBytes;
 
@@ -42,18 +44,27 @@ struct HeadersBatch<'a> {
 
 impl<V: ZerocopyPostingValue, S: UniversalRead> UniversalPostings<V, S> {
     /// Open the postings file at `path` via the `S` storage backend.
-    pub fn open(path: impl Into<PathBuf>, options: OpenOptions) -> OperationResult<Self> {
+    ///
+    /// Returns `Ok(None)` if the file is not found
+    pub fn open(
+        fs: &S::Fs,
+        path: impl Into<PathBuf>,
+        options: OpenOptions,
+        extra: <S::Fs as UniversalReadFs>::OpenExtra,
+    ) -> OperationResult<Option<Self>> {
         let path = path.into();
-        let storage = S::open(&path, options)?;
+        let Some(storage) = fs.open(&path, options, extra).ok_not_found()? else {
+            return Ok(None);
+        };
 
         let header = storage.read::<Sequential, PostingsHeader>(ReadRange::one(0))?[0];
 
-        Ok(Self {
+        Ok(Some(Self {
             _path: path,
             storage,
             header,
             _value_type: PhantomData,
-        })
+        }))
     }
 
     /// Hint the storage backend to populate any RAM cache backing this file.

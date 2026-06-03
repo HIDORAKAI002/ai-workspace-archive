@@ -19,7 +19,7 @@ use fs_err as fs;
 use parking_lot::Mutex;
 use serde::{Deserialize, Serialize};
 
-use crate::encoded_storage::{EncodedStorage, EncodedStorageBuilder};
+use crate::encoded_storage::{EncodedStorage, EncodedStorageBuilder, validate_storage_vector_size};
 use crate::encoded_vectors::{EncodedVectors, VectorParameters, validate_vector_parameters};
 use crate::kmeans::kmeans;
 use crate::{ConditionalVariable, EncodingError};
@@ -148,6 +148,12 @@ impl<TStorage: EncodedStorage> EncodedVectorsPQ<TStorage> {
             metadata,
             metadata_path: Some(meta_path.to_path_buf()),
         };
+
+        // Validate the storage's vector size against the metadata once here, so the size
+        // invariant the scoring hot path relies on (it walks the query LUT one entry per stored
+        // byte) also holds in release builds without a per-score check.
+        validate_storage_vector_size(&result.encoded_vectors, result.quantized_vector_size())?;
+
         Ok(result)
     }
 
@@ -498,6 +504,10 @@ impl<TStorage: EncodedStorage> EncodedVectorsPQ<TStorage> {
 impl<TStorage: EncodedStorage> EncodedVectors for EncodedVectorsPQ<TStorage> {
     type EncodedQuery = EncodedQueryPQ;
 
+    fn is_in_ram_or_mmap() -> bool {
+        TStorage::is_in_ram_or_mmap()
+    }
+
     fn is_on_disk(&self) -> bool {
         self.encoded_vectors.is_on_disk()
     }
@@ -526,11 +536,11 @@ impl<TStorage: EncodedStorage> EncodedVectors for EncodedVectorsPQ<TStorage> {
         EncodedQueryPQ { lut }
     }
 
-    fn for_each_in_batch<F>(&self, offsets: &[PointOffsetType], callback: F)
-    where
-        F: FnMut(usize, &[u8]),
-    {
-        self.encoded_vectors.for_each_in_batch(offsets, callback);
+    fn iter_batch(
+        &self,
+        offsets: &[PointOffsetType],
+    ) -> impl Iterator<Item = (usize, Cow<'_, [u8]>)> {
+        self.encoded_vectors.iter_batch(offsets)
     }
 
     fn score(

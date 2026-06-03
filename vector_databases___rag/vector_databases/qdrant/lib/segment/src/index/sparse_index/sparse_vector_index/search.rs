@@ -82,9 +82,10 @@ impl<TInvertedIndex: InvertedIndex> SparseVectorIndex<TInvertedIndex> {
                 searcher.peek_top_iter(filtered_points, &is_stopped)?
             }
             None => {
-                let iter = id_tracker
-                    .point_mappings()
-                    .filter_deferred(searcher.iter_not_deleted(), DeferredBehavior::Exclude);
+                let iter = id_tracker.point_mappings().filter_deferred_and_deleted(
+                    searcher.iter_not_deleted(),
+                    DeferredBehavior::Exclude,
+                );
                 searcher.peek_top_iter(iter, &is_stopped)?
             }
         };
@@ -131,7 +132,7 @@ impl<TInvertedIndex: InvertedIndex> SparseVectorIndex<TInvertedIndex> {
         .collect_vec();
 
         let sparse_vector = self.indices_tracker.remap_vector(sparse_vector.clone());
-        let memory_handle = self.scores_memory_pool.get();
+        let mut scratch = self.search_scratch_pool.get();
         let mut hw_counter = vector_query_context.hardware_counter();
         let is_index_on_disk = self.config.index_type.is_on_disk();
         if is_index_on_disk {
@@ -144,7 +145,7 @@ impl<TInvertedIndex: InvertedIndex> SparseVectorIndex<TInvertedIndex> {
             sparse_vector,
             top,
             &self.inverted_index,
-            memory_handle,
+            &mut scratch,
             &is_stopped,
             &hw_counter,
         )?;
@@ -174,7 +175,7 @@ impl<TInvertedIndex: InvertedIndex> SparseVectorIndex<TInvertedIndex> {
         let is_stopped = vector_query_context.is_stopped();
 
         let sparse_vector = self.indices_tracker.remap_vector(sparse_vector.clone());
-        let memory_handle = self.scores_memory_pool.get();
+        let mut scratch = self.search_scratch_pool.get();
         let mut hw_counter = vector_query_context.hardware_counter();
         let is_index_on_disk = self.config.index_type.is_on_disk();
         if is_index_on_disk {
@@ -187,7 +188,7 @@ impl<TInvertedIndex: InvertedIndex> SparseVectorIndex<TInvertedIndex> {
             sparse_vector,
             top,
             &self.inverted_index,
-            memory_handle,
+            &mut scratch,
             &is_stopped,
             &hw_counter,
         )?;
