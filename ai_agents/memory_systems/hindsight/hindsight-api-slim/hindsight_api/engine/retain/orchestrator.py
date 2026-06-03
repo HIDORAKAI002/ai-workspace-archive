@@ -953,19 +953,29 @@ async def _streaming_retain_batch(
                 tags=source.tags,
                 observation_scopes=source.observation_scopes,
             )
-            extracted, processed, chunk_meta, usage = await _extract_and_embed(
-                [content],
-                llm_config,
-                agent_name,
-                config,
-                embeddings_model,
-                format_date_fn,
-                fact_type_override,
-                log_buffer,
-                pool,
-                operation_id,
-                schema,
-            )
+            # Attribute this chunk's extraction LLM call to its document, so the
+            # trace row carries document_id (a document accrues one such trace
+            # per retain/re-retain). Per-call: the operation-level trace context
+            # is shared across a batch's documents.
+            from ..llm_trace import reset_call_metadata, set_call_metadata
+
+            meta_token = set_call_metadata({"document_id": effective_doc_id})
+            try:
+                extracted, processed, chunk_meta, usage = await _extract_and_embed(
+                    [content],
+                    llm_config,
+                    agent_name,
+                    config,
+                    embeddings_model,
+                    format_date_fn,
+                    fact_type_override,
+                    log_buffer,
+                    pool,
+                    operation_id,
+                    schema,
+                )
+            finally:
+                reset_call_metadata(meta_token)
             await chunk_queue.put((global_idx, content, extracted, processed, chunk_meta, usage))
             # Memory: release the chunk text from the shared list now that it's
             # been extracted and queued. The queued RetainContent holds its own copy.
@@ -1718,20 +1728,28 @@ async def _try_delta_retain(
         logger.info("\n" + "\n".join(log_buffer) + "\n")
         return None
 
-    # Extract facts and generate embeddings (shared pipeline)
-    extracted_facts, processed_facts, new_chunk_metadata, usage = await _extract_and_embed(
-        delta_contents,
-        llm_config,
-        agent_name,
-        config,
-        embeddings_model,
-        format_date_fn,
-        fact_type_override,
-        log_buffer,
-        pool,
-        operation_id,
-        schema,
-    )
+    # Extract facts and generate embeddings (shared pipeline). Attribute these
+    # extraction calls to the document so the delta re-retain's trace also binds
+    # to it (a document accrues one trace per full/delta retain).
+    from ..llm_trace import reset_call_metadata, set_call_metadata
+
+    meta_token = set_call_metadata({"document_id": effective_doc_id})
+    try:
+        extracted_facts, processed_facts, new_chunk_metadata, usage = await _extract_and_embed(
+            delta_contents,
+            llm_config,
+            agent_name,
+            config,
+            embeddings_model,
+            format_date_fn,
+            fact_type_override,
+            log_buffer,
+            pool,
+            operation_id,
+            schema,
+        )
+    finally:
+        reset_call_metadata(meta_token)
 
     # Database transaction
     result_unit_ids: list[list[str]] = []

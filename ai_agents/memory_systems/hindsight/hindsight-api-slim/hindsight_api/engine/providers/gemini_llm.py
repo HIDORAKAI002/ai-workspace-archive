@@ -291,10 +291,12 @@ class GeminiLLM(LLMInterface):
                 # Extract token usage
                 input_tokens = 0
                 output_tokens = 0
+                cached_tokens = 0
                 if hasattr(response, "usage_metadata") and response.usage_metadata:
                     usage = response.usage_metadata
                     input_tokens = usage.prompt_token_count or 0
                     output_tokens = usage.candidates_token_count or 0
+                    cached_tokens = getattr(usage, "cached_content_token_count", 0) or 0
 
                 # Record metrics
                 duration = time.time() - start_time
@@ -330,6 +332,7 @@ class GeminiLLM(LLMInterface):
                     duration=duration,
                     finish_reason=finish_reason,
                     error=None,
+                    cached_tokens=cached_tokens,
                 )
 
                 # Log slow calls
@@ -345,6 +348,7 @@ class GeminiLLM(LLMInterface):
                         input_tokens=input_tokens,
                         output_tokens=output_tokens,
                         total_tokens=input_tokens + output_tokens,
+                        cached_tokens=cached_tokens,
                     )
                     return result, token_usage
                 return result

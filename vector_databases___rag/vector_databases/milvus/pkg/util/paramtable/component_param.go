@@ -32,6 +32,7 @@ import (
 
 	"github.com/milvus-io/milvus/pkg/v3/config"
 	"github.com/milvus-io/milvus/pkg/v3/log"
+	"github.com/milvus-io/milvus/pkg/v3/util/fips"
 	"github.com/milvus-io/milvus/pkg/v3/util/funcutil"
 	"github.com/milvus-io/milvus/pkg/v3/util/hardware"
 	"github.com/milvus-io/milvus/pkg/v3/util/metricsinfo"
@@ -129,6 +130,10 @@ func (p *ComponentParam) init(bt *BaseTable) {
 	p.ServiceParam.init(bt)
 
 	p.CommonCfg.init(bt)
+	if fips.MaybeEnableOpenSSLFIPS() && !p.MinioCfg.UseCRC32C.GetAsBool() {
+		log.Warn("FIPS mode requires CRC32C checksum for S3 PutObject requests; override minio.ssl.useCRC32C to true at runtime")
+		p.MinioCfg.UseCRC32C.SwapTempValue("true")
+	}
 	p.QuotaConfig.init(bt)
 	p.AutoIndexConfig.init(bt)
 	p.TraceCfg.init(bt)
@@ -5015,6 +5020,7 @@ type dataCoordConfig struct {
 	CompactionExpiryTolerance                  ParamItem `refreshable:"true"`
 	BumpSchemaVersionCompactionEnabled         ParamItem `refreshable:"true"`
 	BumpSchemaVersionCompactionTriggerInterval ParamItem `refreshable:"true"`
+	L0ManifestUpdatePoolSize                   ParamItem `refreshable:"true"`
 
 	SingleCompactionRatioThreshold    ParamItem `refreshable:"true"`
 	SingleCompactionDeltaLogMaxSize   ParamItem `refreshable:"true"`
@@ -5400,6 +5406,21 @@ mix is prioritized by level: mix compactions first, then L0 compactions, then cl
 		Export:       true,
 	}
 	p.CompactionMaxParallelTasks.Init(base.mgr)
+
+	p.L0ManifestUpdatePoolSize = ParamItem{
+		Key:          "dataCoord.compaction.levelzero.manifestUpdatePoolSize",
+		Version:      "3.0.0",
+		DefaultValue: "16",
+		Doc:          "The goroutine pool size for committing L0 compaction manifest updates inside DataCoord meta update.",
+		Export:       false,
+		Formatter: func(v string) string {
+			if getAsInt(v) < 1 {
+				return "1"
+			}
+			return v
+		},
+	}
+	p.L0ManifestUpdatePoolSize.Init(base.mgr)
 
 	p.MinSegmentToMerge = ParamItem{
 		Key:          "dataCoord.compaction.min.segment",
@@ -6291,7 +6312,7 @@ if param targetScalarIndexVersion is not set, the default value is -1, which mea
 		Key:          "dataCoord.import.fileNumPerSlot",
 		Version:      "2.5.15",
 		Doc:          "The files number per slot for pre-import/import task.",
-		DefaultValue: "1",
+		DefaultValue: "4",
 		PanicIfEmpty: false,
 		Export:       true,
 	}

@@ -650,6 +650,9 @@ class OpenAICompatibleLLM(LLMInterface):
                 input_tokens = usage.prompt_tokens or 0 if usage else 0
                 output_tokens = usage.completion_tokens or 0 if usage else 0
                 total_tokens = usage.total_tokens or 0 if usage else 0
+                cached_tokens = 0
+                if usage and getattr(usage, "prompt_tokens_details", None):
+                    cached_tokens = getattr(usage.prompt_tokens_details, "cached_tokens", 0) or 0
 
                 # Record LLM metrics
                 metrics = get_metrics_collector()
@@ -679,14 +682,12 @@ class OpenAICompatibleLLM(LLMInterface):
                     duration=duration,
                     finish_reason=finish_reason,
                     error=None,
+                    cached_tokens=cached_tokens,
                 )
 
                 # Log slow calls
                 if duration > 10.0 and usage:
                     ratio = max(1, output_tokens) / max(1, input_tokens)
-                    cached_tokens = 0
-                    if hasattr(usage, "prompt_tokens_details") and usage.prompt_tokens_details:
-                        cached_tokens = getattr(usage.prompt_tokens_details, "cached_tokens", 0) or 0
                     cache_info = f", cached_tokens={cached_tokens}" if cached_tokens > 0 else ""
                     logger.info(
                         f"slow llm call: scope={scope}, model={self.provider}/{self.model}, "
@@ -699,6 +700,7 @@ class OpenAICompatibleLLM(LLMInterface):
                         input_tokens=input_tokens,
                         output_tokens=output_tokens,
                         total_tokens=total_tokens,
+                        cached_tokens=cached_tokens,
                     )
                     return result, token_usage
                 return result

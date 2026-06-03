@@ -3,7 +3,7 @@
   "name": "claude-code-skills",
   "description": "Production-ready skill packages for AI agents - Marketing, Engineering, Product, C-Level, PM, and RA/QM",
   "repository": "https://github.com/alirezarezvani/claude-skills",
-  "total_skills": 341,
+  "total_skills": 342,
   "skills": [
     {
       "name": "business-growth-skills",
@@ -586,6 +586,12 @@
       "source": "../../markdown-html/skills/markdown-html-orchestrator",
       "category": "documentation",
       "description": "Use when a user wants to convert any markdown file in their Claude project into a single-file, lightly-interactive HTML \u2014 long-form documents (specs, plans, RFCs, reports, explainers), code reviews with diffs and severity-tagged annotations, or slide decks. Triggers on \"convert this markdown to HTML\", \"make this an HTML file\", \"turn this into an interactive document\", \"render this report as HTML\", \"PR writeup as HTML\", \"slides from this markdown\". Forks context to route to one of three converter sub-skills (md-document, md-review, md-slides) based on a deterministic doctype classifier, after the user has run the design-system onboarding once. Refuses if input is under 100 lines (per Shihipar \u2014 markdown still wins below the threshold) or design-system isn't onboarded. Distinct from Anthropic's official Playground plugin (which is interactive prompt-tuning controls with sliders/knobs/prompt-copy-back) and from marketing/landing/ (which is a landing-page generator)."
+    },
+    {
+      "name": "md-document",
+      "source": "../../markdown-html/skills/md-document",
+      "category": "documentation",
+      "description": "Converts long-form markdown (specs, RFCs, reports, plans, explainers) into a single-file, lightly-interactive HTML document with sticky TOC, scrollspy, search filter, code-copy buttons, and design-system-driven brand tokens. Triggers when the markdown-html-orchestrator classifies an input as DOCUMENT, or when invoked directly via /cs:md-document. Reads the design-system config via config_loader.py and inlines the user's 12 derived CSS custom properties; refuses to render if onboarding hasn't run. Single-file output \u2014 Google Fonts + Prism.js CDN are the only externals; no framework runtime, no build step. Use after orchestrator routing or after design-system onboarding is confirmed."
     },
     {
       "name": "a11y-audit",
@@ -2079,7 +2085,7 @@
       "description": "Compliance-OS skills: ISO 13485 / ISO 27001 / SOC 2 / GDPR / FDA QSR / EU AI Act audit-prep + compliance-readiness orchestrator"
     },
     "documentation": {
-      "count": 2,
+      "count": 3,
       "source": "../../markdown-html",
       "description": "Markdown-to-HTML converter (v2.10.0 foundation): orchestrator (context: fork, deterministic doctype classifier, refuses < 100 lines per Shihipar) + design-system (one-time onboarding wizard with WCAG-AA-validated 12-token palette, project > global > defaults precedence). Converter sub-skills (md-document, md-review, md-slides) land in v2.10.1."
     },
