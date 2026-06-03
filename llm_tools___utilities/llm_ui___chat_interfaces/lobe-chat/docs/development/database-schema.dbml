@@ -358,6 +358,22 @@ table agent_operations {
   }
 }
 
+table agent_shares {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  agent_id text [not null]
+  visibility text [not null, default: 'private']
+  share_config jsonb
+  user_view_count integer [not null, default: 0]
+  accessed_at "timestamp with time zone" [not null, default: `now()`]
+  created_at "timestamp with time zone" [not null, default: `now()`]
+  updated_at "timestamp with time zone" [not null, default: `now()`]
+
+  indexes {
+    agent_id [name: 'agent_shares_agent_id_unique', unique]
+    visibility [name: 'agent_shares_visibility_idx']
+  }
+}
+
 table agent_skills {
   id text [pk, not null]
   name text [not null]
@@ -1052,6 +1068,7 @@ table messages {
   reasoning jsonb
   search jsonb
   metadata jsonb
+  usage jsonb
   model text
   provider text
   favorite boolean [default: false]
@@ -1086,6 +1103,8 @@ table messages {
     agent_id [name: 'messages_agent_id_idx']
     group_id [name: 'messages_group_id_idx']
     message_group_id [name: 'messages_message_group_id_idx']
+    () [name: 'messages_usage_cost_idx']
+    () [name: 'messages_usage_total_tokens_idx']
   }
 }
 
@@ -1958,6 +1977,7 @@ table topics {
   usage jsonb
   model text
   provider text
+  sender_id text
   accessed_at "timestamp with time zone" [not null, default: `now()`]
   created_at "timestamp with time zone" [not null, default: `now()`]
   updated_at "timestamp with time zone" [not null, default: `now()`]
@@ -1974,6 +1994,7 @@ table topics {
     model [name: 'topics_model_idx']
     provider [name: 'topics_provider_idx']
     (user_id, completed_at) [name: 'topics_user_id_completed_at_idx']
+    sender_id [name: 'topics_sender_id_idx']
     () [name: 'topics_extract_status_gin_idx']
   }
 }
@@ -2267,6 +2288,74 @@ table user_memory_persona_documents {
   }
 }
 
+table workspace_audit_logs {
+  id text [pk, not null]
+  workspace_id text [not null]
+  user_id text
+  action text [not null]
+  resource_type text
+  resource_id text
+  metadata jsonb [default: `{}`]
+  ip_address text
+  created_at "timestamp with time zone" [not null, default: `now()`]
+
+  indexes {
+    workspace_id [name: 'workspace_audit_logs_workspace_id_idx']
+    action [name: 'workspace_audit_logs_action_idx']
+    created_at [name: 'workspace_audit_logs_created_at_idx']
+  }
+}
+
+table workspace_invitations {
+  id text [pk, not null]
+  workspace_id text [not null]
+  inviter_id text [not null]
+  email text
+  role text [not null, default: 'member']
+  token text [not null, unique]
+  status text [not null, default: 'pending']
+  expires_at "timestamp with time zone" [not null]
+  created_at "timestamp with time zone" [not null, default: `now()`]
+  updated_at "timestamp with time zone" [not null, default: `now()`]
+
+  indexes {
+    workspace_id [name: 'workspace_invitations_workspace_id_idx']
+    email [name: 'workspace_invitations_email_idx']
+    token [name: 'workspace_invitations_token_idx']
+  }
+}
+
+table workspace_members {
+  workspace_id text [not null]
+  user_id text [not null]
+  role text [not null, default: 'member']
+  joined_at "timestamp with time zone" [not null, default: `now()`]
+  updated_at "timestamp with time zone" [not null, default: `now()`]
+  deleted_at "timestamp with time zone"
+
+  indexes {
+    (workspace_id, user_id) [pk]
+    user_id [name: 'workspace_members_user_id_idx']
+  }
+}
+
+table workspaces {
+  id text [pk, not null]
+  slug varchar(100) [not null]
+  name varchar(255) [not null]
+  description varchar(1000)
+  avatar text
+  primary_owner_id text [not null]
+  settings jsonb [default: `{}`]
+  created_at "timestamp with time zone" [not null, default: `now()`]
+  updated_at "timestamp with time zone" [not null, default: `now()`]
+
+  indexes {
+    slug [name: 'workspaces_slug_idx', unique]
+    primary_owner_id [name: 'workspaces_primary_owner_id_idx']
+  }
+}
+
 ref: agent_skills.user_id - users.id
 
 ref: agent_skills.zip_file_hash - global_files.hash_id
@@ -2304,6 +2393,8 @@ ref: agents_files.agent_id > agents.id
 ref: agents_knowledge_bases.knowledge_base_id - knowledge_bases.id
 
 ref: agents_knowledge_bases.agent_id > agents.id
+
+ref: agents.id - agent_shares.agent_id
 
 ref: agents_to_sessions.session_id > sessions.id
 
