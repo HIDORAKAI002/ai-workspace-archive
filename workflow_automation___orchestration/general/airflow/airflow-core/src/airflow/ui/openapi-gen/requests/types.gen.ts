@@ -112,13 +112,34 @@ export type AssetStoreCollectionResponse = {
 };
 
 /**
+ * Writer info for the last write to an asset store entry.
+ */
+export type AssetStoreLastUpdatedBy = {
+    kind: AssetStoreWriterKind;
+    dag_id?: string | null;
+    run_id?: string | null;
+    task_id?: string | null;
+    map_index?: number | null;
+};
+
+/**
  * A single asset store key/value pair with metadata.
  */
 export type AssetStoreResponse = {
     key: string;
     value: JsonValue;
     updated_at: string;
+    last_updated_by?: AssetStoreLastUpdatedBy | null;
 };
+
+/**
+ * Identifies what kind of writer last updated an asset store entry.
+ *
+ * ``TASK`` — written by a task via the execution API.
+ * ``WATCHER`` — written by a ``BaseEventTrigger`` (no task instance).
+ * ``API`` — written directly through the Core API (e.g. manual admin write).
+ */
+export type AssetStoreWriterKind = 'task' | 'watcher' | 'api';
 
 /**
  * Asset watcher serializer for responses.
@@ -2389,7 +2410,7 @@ export type LightGridTaskInstanceSummary = {
 /**
  * Define all menu items defined in the menu.
  */
-export type MenuItem = 'Required Actions' | 'Assets' | 'Audit Log' | 'Config' | 'Connections' | 'Dags' | 'Docs' | 'Jobs' | 'Plugins' | 'Pools' | 'Providers' | 'Variables' | 'XComs';
+export type MenuItem = 'Required Actions' | 'Assets' | 'Audit Log' | 'Config' | 'Connections' | 'Dags' | 'Deadlines' | 'Docs' | 'Jobs' | 'Plugins' | 'Pools' | 'Providers' | 'Variables' | 'XComs';
 
 /**
  * Menu Item Collection serializer for responses.
