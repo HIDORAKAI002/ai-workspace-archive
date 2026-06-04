@@ -616,6 +616,33 @@ class ModelAssignment(BaseModel):
     base_url: str = ""
 
 
+def _apply_main_model_assignment(
+    model_cfg: "Any", provider: str, model: str, base_url: str = ""
+) -> dict:
+    """Apply a main-slot model assignment to a ``model`` config dict in place.
+
+    Sets ``provider``/``default``, then reconciles ``base_url``: custom/local
+    providers persist the supplied endpoint URL (the runtime resolver reads
+    ``model.base_url`` from config and ignores ``OPENAI_BASE_URL``), while every
+    other provider clears any stale URL so the resolver picks that provider's
+    own default endpoint. The hardcoded ``context_length`` override is always
+    dropped since the new model may have a different context window.
+
+    Returns the same dict (coerced to a fresh dict if the input wasn't one) so
+    callers can assign it straight back onto ``cfg["model"]``.
+    """
+    if not isinstance(model_cfg, dict):
+        model_cfg = {}
+    model_cfg["provider"] = provider
+    model_cfg["default"] = model
+    if provider.strip().lower() == "custom" and base_url.strip():
+        model_cfg["base_url"] = base_url.strip()
+    elif model_cfg.get("base_url"):
+        model_cfg["base_url"] = ""
+    model_cfg.pop("context_length", None)
+    return model_cfg
+
+
 _GATEWAY_HEALTH_URL = os.getenv("GATEWAY_HEALTH_URL")
 try:
     _GATEWAY_HEALTH_TIMEOUT = float(os.getenv("GATEWAY_HEALTH_TIMEOUT", "3"))
@@ -1014,6 +1041,51 @@ async def run_config_migrate():
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed: {exc}")
     return {"ok": True, "pid": proc.pid, "name": "config-migrate"}
+
+
+class DebugShareRequest(BaseModel):
+    # Redaction is ON by default — force-mode scrubs credential-shaped tokens
+    # out of log content before it leaves the machine. The toggle exists so an
+    # operator who knows the logs are clean can opt out for fuller fidelity.
+    redact: bool = True
+    # Recent log lines included in the summary tail (full logs are separate).
+    lines: int = 200
+
+
+@app.post("/api/ops/debug-share")
+async def run_debug_share_endpoint(body: DebugShareRequest | None = None):
+    """Upload a redacted debug report + full logs and return the paste URLs.
+
+    Unlike the other diagnostics actions (doctor, dump, prompt-size) this is
+    *synchronous*: the whole point of ``debug share`` is the set of shareable
+    URLs it produces, so we run the upload in a worker thread and return the
+    structured ``{urls, failures, redacted, ...}`` payload directly. The
+    dashboard renders those as real, copyable links instead of scraping a log
+    tail. Pastes auto-delete after 6 hours (handled inside the share core).
+    """
+    from hermes_cli.debug import build_debug_share
+
+    req = body or DebugShareRequest()
+    try:
+        result = await asyncio.to_thread(
+            build_debug_share,
+            log_lines=max(1, min(int(req.lines), 5000)),
+            redact=bool(req.redact),
+        )
+    except RuntimeError as exc:
+        # Required summary-report upload failed (offline / paste service down).
+        raise HTTPException(status_code=502, detail=f"Upload failed: {exc}")
+    except Exception as exc:
+        _log.exception("debug share failed")
+        raise HTTPException(status_code=500, detail=f"Failed: {exc}")
+
+    return {
+        "ok": True,
+        "urls": result.urls,
+        "failures": result.failures,
+        "redacted": result.redacted,
+        "auto_delete_seconds": result.auto_delete_seconds,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -1971,24 +2043,9 @@ async def set_model_assignment(body: ModelAssignment):
         if scope == "main":
             if not provider or not model:
                 raise HTTPException(status_code=400, detail="provider and model required for main")
-            model_cfg = cfg.get("model", {})
-            if not isinstance(model_cfg, dict):
-                model_cfg = {}
-            model_cfg["provider"] = provider
-            model_cfg["default"] = model
-            # Custom/local providers are defined by their endpoint URL, so a
-            # base_url must be persisted here — the runtime resolver reads
-            # model.base_url from config and no longer consults OPENAI_BASE_URL.
-            # For every other provider, clear any stale base_url so the
-            # resolver picks the provider's own default endpoint.
-            if provider.strip().lower() == "custom" and base_url:
-                model_cfg["base_url"] = base_url
-            elif "base_url" in model_cfg and model_cfg.get("base_url"):
-                model_cfg["base_url"] = ""
-            # Also clear hardcoded context_length override — new model may have
-            # a different context window.
-            if "context_length" in model_cfg:
-                model_cfg.pop("context_length", None)
+            model_cfg = _apply_main_model_assignment(
+                cfg.get("model", {}), provider, model, base_url
+            )
             cfg["model"] = model_cfg
 
             # When switching the main provider to Nous, mirror the CLI's
@@ -6236,15 +6293,7 @@ def _write_profile_model(profile_dir: Path, provider: str, model: str) -> None:
     token = set_hermes_home_override(str(profile_dir))
     try:
         cfg = load_config()
-        model_cfg = cfg.get("model", {})
-        if not isinstance(model_cfg, dict):
-            model_cfg = {}
-        model_cfg["provider"] = provider
-        model_cfg["default"] = model
-        if model_cfg.get("base_url"):
-            model_cfg["base_url"] = ""
-        model_cfg.pop("context_length", None)
-        cfg["model"] = model_cfg
+        cfg["model"] = _apply_main_model_assignment(cfg.get("model", {}), provider, model)
         save_config(cfg)
     finally:
         reset_hermes_home_override(token)
@@ -6965,6 +7014,28 @@ _VALID_CHANNEL_RE = re.compile(r"^[A-Za-z0-9._-]{1,128}$")
 _LOOPBACK_HOSTS = frozenset({"127.0.0.1", "::1", "localhost", "testclient"})
 
 
+def _ws_client_reason(ws: "WebSocket") -> Optional[str]:
+    """Return a rejection reason for the client IP, or None when allowed.
+
+    Reasons are short machine-parseable tokens logged on the rejection path
+    so a "WS keeps closing" report can be diagnosed from agent.log without a
+    repro. ``None`` means the peer IP passed this gate.
+
+    See :func:`_ws_client_is_allowed` for the full policy rationale.
+    """
+    if getattr(app.state, "auth_required", False):
+        return None
+    bound_host = (getattr(app.state, "bound_host", "") or "").strip().lower()
+    if bound_host and bound_host not in _LOOPBACK_HOSTS:
+        return None
+    client_host = ws.client.host if ws.client else ""
+    if not client_host:
+        return None
+    if client_host in _LOOPBACK_HOSTS:
+        return None
+    return f"peer_not_loopback peer={client_host} bound={bound_host or '?'}"
+
+
 def _ws_client_is_allowed(ws: "WebSocket") -> bool:
     """Check if the WebSocket client IP is acceptable.
 
@@ -7005,6 +7076,40 @@ def _ws_client_is_allowed(ws: "WebSocket") -> bool:
     return client_host in _LOOPBACK_HOSTS
 
 
+def _ws_host_origin_reason(ws: "WebSocket") -> Optional[str]:
+    """Return a Host/Origin rejection reason, or None when allowed.
+
+    Mirrors :func:`_ws_host_origin_is_allowed` but yields a short
+    machine-parseable token (``host_mismatch …`` / ``origin_mismatch …``)
+    on rejection so the close path can log *why* the upgrade was refused.
+    """
+    bound_host = getattr(app.state, "bound_host", None)
+    if not bound_host:
+        return None
+
+    host_header = ws.headers.get("host", "")
+    if not _is_accepted_host(host_header, bound_host):
+        return f"host_mismatch host={host_header or '?'} bound={bound_host}"
+
+    origin = ws.headers.get("origin", "")
+    if not origin:
+        return None
+
+    parsed = urllib.parse.urlparse(origin)
+    if parsed.scheme not in {"http", "https"}:
+        # Non-web origin (packaged Electron: file://, null, app://). The
+        # upstream credential check is the real auth boundary; trust it.
+        # See _ws_host_origin_is_allowed for the full rationale.
+        return None
+
+    if not parsed.netloc:
+        return f"origin_mismatch origin={origin} bound={bound_host}"
+
+    if not _is_accepted_host(parsed.netloc, bound_host):
+        return f"origin_mismatch origin={origin} bound={bound_host}"
+    return None
+
+
 def _ws_host_origin_is_allowed(ws: "WebSocket") -> bool:
     """Apply the dashboard Host/Origin guard to WebSocket upgrades.
 
@@ -7014,45 +7119,12 @@ def _ws_host_origin_is_allowed(ws: "WebSocket") -> bool:
     header on WebSocket handshakes; when present, require it to target the
     same bound dashboard host.
     """
-    bound_host = getattr(app.state, "bound_host", None)
-    if not bound_host:
-        return True
+    return _ws_host_origin_reason(ws) is None
 
-    host_header = ws.headers.get("host", "")
-    if not _is_accepted_host(host_header, bound_host):
-        return False
 
-    origin = ws.headers.get("origin", "")
-    if not origin:
-        return True
-
-    parsed = urllib.parse.urlparse(origin)
-    if parsed.scheme not in {"http", "https"}:
-        # Packaged Electron loads the desktop renderer over a non-web origin
-        # such as file://, null, or a custom app:// scheme. This helper is
-        # called only AFTER _ws_auth_ok has already accepted the WS credential,
-        # which is the real auth boundary in every mode:
-        #   * loopback bind          → legacy dashboard session token
-        #   * non-loopback --insecure → legacy session token (Tailscale / LAN)
-        #   * OAuth-gated public bind → single-use, 30s-TTL, identity-bound
-        #     ?ticket= minted at the cookie-authed POST /api/auth/ws-ticket
-        # A non-web origin can only be produced by a native client (the desktop
-        # shell); a DNS-rebinding attack always arrives from an http(s) origin
-        # and is still match-checked against the bound host below. So once the
-        # credential check upstream has passed, the Origin guard adds nothing
-        # for a non-web origin — trust it in every mode.
-        #
-        # (Earlier revisions restricted this to loopback, then to non-gated
-        # binds; both excluded the packaged desktop talking to a remote
-        # OAuth-gated gateway, whose file:// renderer origin then got rejected
-        # at the WS upgrade even with a valid ticket. The ticket is the gate,
-        # not the origin.)
-        return True
-
-    if not parsed.netloc:
-        return False
-
-    return _is_accepted_host(parsed.netloc, bound_host)
+def _ws_request_reason(ws: "WebSocket") -> Optional[str]:
+    """First Host/Origin or peer-IP rejection reason, or None when allowed."""
+    return _ws_host_origin_reason(ws) or _ws_client_reason(ws)
 
 
 def _ws_request_is_allowed(ws: "WebSocket") -> bool:
@@ -7060,8 +7132,25 @@ def _ws_request_is_allowed(ws: "WebSocket") -> bool:
     return _ws_host_origin_is_allowed(ws) and _ws_client_is_allowed(ws)
 
 
-def _ws_auth_ok(ws: "WebSocket") -> bool:
-    """Validate WS-upgrade auth in either loopback or gated mode.
+def _ws_auth_mode() -> str:
+    """Short label for the active WS auth mode — logged on every connection."""
+    if getattr(app.state, "auth_required", False):
+        return "gated"
+    bound_host = (getattr(app.state, "bound_host", "") or "").strip().lower()
+    if bound_host and bound_host not in _LOOPBACK_HOSTS:
+        return "insecure"
+    return "loopback"
+
+
+def _ws_auth_reason(ws: "WebSocket") -> tuple[Optional[str], str]:
+    """Validate WS-upgrade auth; return ``(reason, credential)``.
+
+    ``reason`` is None when the credential is accepted, else a short
+    machine-parseable token explaining the rejection (``no_credential``,
+    ``token_mismatch``, ``ticket_invalid``, ``internal_invalid``).
+    ``credential`` names which credential type was presented (``ticket``,
+    ``internal``, ``token``, or ``none``) so the accepted path can log *how*
+    a peer authed, not just that it did.
 
     Loopback / ``--insecure``: legacy ``?token=<_SESSION_TOKEN>`` query
     parameter, constant-time compared.
@@ -7082,9 +7171,8 @@ def _ws_auth_ok(ws: "WebSocket") -> bool:
     (the SPA bundle isn't carrying the token any longer, and a leaked
     ``_SESSION_TOKEN`` must not grant WS access once the gate is engaged).
 
-    Returns True if the WS should be accepted; callers close with the
-    appropriate WS code (4401) on False. Audit-logs the rejection so
-    operators can debug "WS keeps closing" issues from the log.
+    Audit-logs the rejection so operators can debug "WS keeps closing"
+    issues from the log.
     """
     auth_required = bool(getattr(app.state, "auth_required", False))
     if auth_required:
@@ -7104,7 +7192,7 @@ def _ws_auth_ok(ws: "WebSocket") -> bool:
         if internal:
             try:
                 consume_internal_credential(internal)
-                return True
+                return None, "internal"
             except TicketInvalid as exc:
                 audit_log(
                     AuditEvent.WS_TICKET_REJECTED,
@@ -7112,15 +7200,15 @@ def _ws_auth_ok(ws: "WebSocket") -> bool:
                     ip=(ws.client.host if ws.client else ""),
                     path=ws.url.path,
                 )
-                return False
+                return "internal_invalid", "internal"
 
         ticket = ws.query_params.get("ticket", "")
         if not ticket:
-            return False
+            return "no_credential", "none"
 
         try:
             consume_ticket(ticket)
-            return True
+            return None, "ticket"
         except TicketInvalid as exc:
             audit_log(
                 AuditEvent.WS_TICKET_REJECTED,
@@ -7128,10 +7216,19 @@ def _ws_auth_ok(ws: "WebSocket") -> bool:
                 ip=(ws.client.host if ws.client else ""),
                 path=ws.url.path,
             )
-            return False
+            return "ticket_invalid", "ticket"
 
     token = ws.query_params.get("token", "")
-    return hmac.compare_digest(token.encode(), _SESSION_TOKEN.encode())
+    if not token:
+        return "no_credential", "none"
+    if hmac.compare_digest(token.encode(), _SESSION_TOKEN.encode()):
+        return None, "token"
+    return "token_mismatch", "token"
+
+
+def _ws_auth_ok(ws: "WebSocket") -> bool:
+    """True when the WS-upgrade credential is accepted. See _ws_auth_reason."""
+    return _ws_auth_reason(ws)[0] is None
 
 # Per-channel subscriber registry used by /api/pub (PTY-side gateway → dashboard)
 # and /api/events (dashboard → browser sidebar).  Keyed by an opaque channel id
@@ -7283,22 +7380,58 @@ def _channel_or_close_code(ws: WebSocket) -> Optional[str]:
     return channel if _VALID_CHANNEL_RE.match(channel) else None
 
 
+def _ws_close_reason(text: str) -> str:
+    """Clamp a WS close reason to the protocol's 123-byte UTF-8 limit.
+
+    RFC 6455 caps the close-frame reason at 123 bytes; uvicorn raises if a
+    longer string is passed. Our reasons embed an attacker-controlled origin,
+    so truncate defensively rather than crash the close handler.
+    """
+    encoded = text.encode("utf-8", "replace")
+    if len(encoded) <= 123:
+        return text
+    return encoded[:120].decode("utf-8", "ignore") + "..."
+
+
 @app.websocket("/api/pty")
 async def pty_ws(ws: WebSocket) -> None:
+    peer = ws.client.host if ws.client else "?"
+
     if not _DASHBOARD_EMBEDDED_CHAT_ENABLED:
-        await ws.close(code=4403)
+        _log.info("pty refused: embedded chat disabled peer=%s", peer)
+        await ws.close(code=4404, reason="embedded chat disabled")
         return
 
-    # --- auth + loopback check (before accept so we can close cleanly) ---
-    if not _ws_auth_ok(ws):
-        await ws.close(code=4401)
+    # --- auth + host/origin/peer check (before accept so we can close
+    #     cleanly AND tell the client WHY via the close code + reason).
+    #     Each gate maps to a distinct close code so the log and the
+    #     browser banner agree on the cause:
+    #       4401 bad credential   4403 host/origin mismatch
+    #       4408 peer not allowed  4404 chat disabled
+    auth_reason, cred = _ws_auth_reason(ws)
+    mode = _ws_auth_mode()
+    if auth_reason is not None:
+        _log.warning(
+            "pty auth rejected reason=%s mode=%s cred=%s peer=%s",
+            auth_reason, mode, cred, peer,
+        )
+        await ws.close(code=4401, reason=_ws_close_reason(f"auth: {auth_reason}"))
         return
 
-    if not _ws_request_is_allowed(ws):
-        await ws.close(code=4403)
+    host_origin_reason = _ws_host_origin_reason(ws)
+    if host_origin_reason is not None:
+        _log.warning("pty refused: %s peer=%s", host_origin_reason, peer)
+        await ws.close(code=4403, reason=_ws_close_reason(host_origin_reason))
+        return
+
+    client_reason = _ws_client_reason(ws)
+    if client_reason is not None:
+        _log.warning("pty refused: %s", client_reason)
+        await ws.close(code=4408, reason=_ws_close_reason(client_reason))
         return
 
     await ws.accept()
+    _log.info("pty accepted peer=%s mode=%s cred=%s", peer, mode, cred)
 
     # On native Windows, the POSIX PTY bridge can't be imported.  Tell the
     # client and close cleanly rather than pretending the feature works.
