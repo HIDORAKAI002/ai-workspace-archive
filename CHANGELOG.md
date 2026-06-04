@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-06-04 20:42 IST] Auto-Sync
+- **35 Repositories Updated:** GitHub MCP Server, Promptfoo, NVIDIA NeMo Guardrails, n8n, Dify, Activepieces, Trigger.dev, Windmill, Budibase, Directus, Plane, modelcontextprotocol/java-sdk, modelcontextprotocol/rust-sdk, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, crewAIInc/crewAI, mastra-ai/mastra, deepset-ai/haystack, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, infiniflow/ragflow, arize-ai/phoenix, affaan-m/everything-claude-code, abi/screenshot-to-code, vercel/ai, apache/airflow, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight, nousresearch/hermes-agent
+
 ## [2026-06-04 13:57 IST] Auto-Sync
 - **33 Repositories Updated:** Public APIs Directory, MCP Official Servers, MCP Inspector, Awesome ChatGPT Prompts, n8n, Dify, Activepieces, Windmill, Appsmith, Budibase, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langchain, openai/openai-agents-python, mastra-ai/mastra, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, cline/cline, chroma-core/chroma, milvus-io/milvus, infiniflow/ragflow, arize-ai/phoenix, danny-avila/LibreChat, googleapis/python-genai, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, nousresearch/hermes-agent
 
