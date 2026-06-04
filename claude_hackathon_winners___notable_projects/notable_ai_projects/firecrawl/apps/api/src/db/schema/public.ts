@@ -152,6 +152,32 @@ export const deep_researches = pgTable("deep_researches", {
   options: jsonb("options"),
 });
 
+export const deterministic_json_scripts = pgTable(
+  "deterministic_json_scripts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    cache_key: text("cache_key").notNull().unique(),
+    code: text("code").notNull(),
+    url: text("url"),
+    model: text("model"),
+    cache_version: integer("cache_version"),
+    created_at: ts("created_at").notNull().defaultNow(),
+    updated_at: ts("updated_at").notNull().defaultNow(),
+    last_used_at: ts("last_used_at").notNull().defaultNow(),
+  },
+);
+
+export const deterministic_json_llm_cache = pgTable(
+  "deterministic_json_llm_cache",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    cache_key: text("cache_key").notNull().unique(),
+    response: text("response").notNull(),
+    created_at: ts("created_at").notNull().defaultNow(),
+    last_used_at: ts("last_used_at").notNull().defaultNow(),
+  },
+);
+
 export const eb_sync = pgTable("eb-sync", {
   id: bigintNum("id").notNull().generatedByDefaultAsIdentity(),
   created_at: ts("created_at").notNull().defaultNow(),

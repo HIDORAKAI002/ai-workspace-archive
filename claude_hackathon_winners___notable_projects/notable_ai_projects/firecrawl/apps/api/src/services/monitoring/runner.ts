@@ -7,6 +7,7 @@ import { processJobInternal } from "../worker/scrape-worker";
 import { NuQJob, crawlGroup, scrapeQueue } from "../worker/nuq";
 import { ScrapeJobData } from "../../types";
 import { getJobFromGCS } from "../../lib/gcs-jobs";
+import { includesFormat } from "../../lib/format-utils";
 import { computeAndPersistPageDiff } from "./diff-orchestrator";
 import { normalizeMonitorFormats } from "./diff";
 import { autumnService } from "../autumn/autumn.service";
@@ -216,10 +217,15 @@ function estimateActualCredits(doc: any, options: any): number {
     return doc.metadata.creditsUsed;
   }
   const formats = Array.isArray(options?.formats) ? options.formats : [];
-  const hasJson = formats.some((format: any) =>
-    typeof format === "string" ? format === "json" : format?.type === "json",
-  );
-  return hasJson ? 5 : 1;
+  // Only charge the JSON-extraction premium when extraction actually produced a
+  // document.json. When it failed, the page was still scraped, so fall back to
+  // the base scrape credit rather than billing for extraction that never ran.
+  // Deterministic JSON costs 7 (it generates a reusable extractor); plain JSON 5.
+  const producedJson = doc?.json != null;
+  if (!producedJson) return 1;
+  if (includesFormat(formats, "deterministicJson")) return 7;
+  if (includesFormat(formats, "json")) return 5;
+  return 1;
 }
 
 async function runSingleScrape(params: {
@@ -302,7 +308,7 @@ async function diffAndPersistPage(params: {
         (f: any) => f?.type === "changeTracking",
       )
     : undefined;
-  const { status, diffGcsKey, diffTextBytes, diffJsonBytes, judgment } =
+  const { status, diffGcsKey, diffTextBytes, diffJsonBytes, judgment, error } =
     await computeAndPersistPageDiff({
       teamId: params.monitor.team_id,
       monitorId: params.monitor.id,
@@ -350,6 +356,7 @@ async function diffAndPersistPage(params: {
     diff_text_bytes: diffTextBytes,
     diff_json_bytes: diffJsonBytes,
     status_code: getDocumentStatusCode(params.doc),
+    ...(error ? { error } : {}),
     metadata: {
       title: params.doc?.metadata?.title ?? null,
     },

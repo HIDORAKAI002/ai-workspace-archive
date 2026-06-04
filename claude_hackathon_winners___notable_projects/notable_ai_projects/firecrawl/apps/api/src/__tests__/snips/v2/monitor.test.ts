@@ -253,6 +253,70 @@ describeIf(ALLOW_TEST_SUITE_WEBSITE && !TEST_SELF_HOST)("/v2/monitor", () => {
   );
 
   it(
+    "runs a deterministicJson-mode monitor target",
+    async () => {
+      const jsonSchema = {
+        type: "object",
+        additionalProperties: false,
+        required: ["title"],
+        properties: {
+          title: {
+            type: "string",
+            description: "The page title, verbatim.",
+          },
+        },
+      };
+
+      const create = await monitorCreateRaw(
+        {
+          name: "deterministic-json monitor",
+          schedule: { cron: "*/30 * * * *", timezone: "UTC" },
+          targets: [
+            {
+              type: "scrape",
+              urls: [createTestIdUrl()],
+              scrapeOptions: {
+                formats: [
+                  "markdown",
+                  {
+                    type: "deterministicJson",
+                    prompt: "Extract the page title verbatim.",
+                    schema: jsonSchema,
+                  },
+                ],
+              },
+            },
+          ],
+        },
+        identity,
+      );
+      expect(create.statusCode).toBe(200);
+
+      const monitorId = create.body.data.id;
+      const run = await monitorRunRaw(monitorId, identity);
+      expect(run.statusCode).toBe(200);
+      const checkId = run.body.id;
+
+      let check: any;
+      for (let i = 0; i < 90; i++) {
+        const raw = await monitorCheckRaw(monitorId, checkId, identity);
+        expect(raw.statusCode).toBe(200);
+        check = raw.body.data;
+        if (["completed", "partial", "failed"].includes(check.status)) break;
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+      // Contract: deterministicJson is accepted, the reusable-json-mode extractor
+      // populates document.json via the code-sandbox, and the check flows through
+      // the JSON diff path (status "new" on first run) rather than crashing.
+      expect(["completed", "partial"]).toContain(check.status);
+      expect(check.pages[0].status).toBe("new");
+
+      await monitorDeleteRaw(monitorId, identity);
+    },
+    2 * scrapeTimeout,
+  );
+
+  it(
     "accepts changeTracking-json format on a monitor target",
     async () => {
       const jsonSchema = {

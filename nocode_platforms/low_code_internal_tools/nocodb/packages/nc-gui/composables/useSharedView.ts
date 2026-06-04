@@ -290,29 +290,11 @@ export function useSharedView() {
   ) => {
     if (!sharedView.value) return {}
 
-    return await $api.public.dataTableBulkDataList(sharedView.value.uuid!, bulkFilterList, {
-      ...param,
-    } as any)
-  }
-
-  const fetchBulkGroupData = async (
-    param: {
-      filtersArr?: FilterType[]
-      where?: string
-    },
-    bulkFilterList: Array<{
-      where: string
-      alias: string
-    }>,
-  ) => {
-    if (!sharedView.value) return {}
-
-    return await $api.public.dataTableBulkGroup(
+    return await $api.public.dataTableBulkDataList(
       sharedView.value.uuid!,
       bulkFilterList,
       {
         ...param,
-        filterArrJson: stringifyFilterOrSortArr(param.filtersArr ?? nestedFilters.value),
       } as any,
       {
         headers: {
@@ -470,7 +452,6 @@ export function useSharedView() {
     fetchAggregatedData,
     fetchBulkAggregatedData,
     fetchSharedViewAttachment,
-    fetchBulkGroupData,
     fetchBulkListData,
     paginationData,
     sorts,

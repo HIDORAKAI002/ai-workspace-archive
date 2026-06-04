@@ -2625,7 +2625,7 @@ describe('GeneralChatAgent', () => {
       ]);
     });
 
-    it('should skip tool in headless mode when global resolver with policy always triggers', async () => {
+    it('should resolve blocked tool in headless mode when global resolver with policy always triggers', async () => {
       const customResolver: GlobalInterventionAuditConfig = {
         type: 'customBlocker',
         policy: 'always',
@@ -2662,8 +2662,16 @@ describe('GeneralChatAgent', () => {
 
       const result = await agent.runner(context, state);
 
-      // Tool is skipped entirely in headless mode with 'always' policy
-      expect(result).toEqual([]);
+      // Headless/CLI has no human intervention UI, so return a blocked tool result for replan.
+      expect(result).toEqual([
+        {
+          payload: {
+            parentMessageId: 'msg-1',
+            toolsCalling: [blockedTool],
+          },
+          type: 'resolve_blocked_tools',
+        },
+      ]);
     });
 
     it('should execute tool in headless mode when global resolver with policy required triggers', async () => {
@@ -2898,10 +2906,49 @@ describe('GeneralChatAgent', () => {
         },
       ]);
     });
+
+    it('should still require intervention for default always blacklist tools in auto-run mode', async () => {
+      const agent = new GeneralChatAgent({
+        agentConfig: { maxSteps: 100 },
+        operationId: 'test-session',
+        modelRuntimeConfig: mockModelRuntimeConfig,
+      });
+
+      const alwaysTool: ChatToolPayload = {
+        id: 'call-1',
+        identifier: 'bash',
+        apiName: 'bash',
+        arguments: '{"command":"rm -rf /"}',
+        type: 'builtin',
+      };
+
+      const state = createMockState({
+        toolManifestMap: {
+          bash: { identifier: 'bash', humanIntervention: 'never' },
+        },
+        userInterventionConfig: { approvalMode: 'auto-run' },
+      });
+
+      const context = createMockContext('llm_result', {
+        hasToolsCalling: true,
+        toolsCalling: [alwaysTool],
+        parentMessageId: 'msg-1',
+      });
+
+      const result = await agent.runner(context, state);
+
+      expect(result).toEqual([
+        {
+          type: 'request_human_approve',
+          pendingToolsCalling: [alwaysTool],
+          reason: 'human_intervention_required',
+        },
+      ]);
+    });
   });
 
   describe('headless mode (for async tasks)', () => {
-    it('should execute all tools directly in headless mode including those requiring approval', async () => {
+    it('should resolve tool-level required tools in headless mode', async () => {
       const agent = new GeneralChatAgent({
         agentConfig: { maxSteps: 100 },
         operationId: 'test-session',
@@ -2936,19 +2983,19 @@ describe('GeneralChatAgent', () => {
 
       const result = await agent.runner(context, state);
 
-      // Should execute directly in headless mode
+      // Headless/CLI cannot request tool-level approval, so return a blocked tool result for replan.
       expect(result).toEqual([
         {
-          type: 'call_tool',
           payload: {
             parentMessageId: 'msg-1',
-            toolCalling: toolCall,
+            toolsCalling: [toolCall],
           },
+          type: 'resolve_blocked_tools',
         },
       ]);
     });
 
-    it('should execute tools with "always" policy in headless mode', async () => {
+    it('should resolve tools with "always" policy in headless mode', async () => {
       const agent = new GeneralChatAgent({
         agentConfig: { maxSteps: 100 },
         operationId: 'test-session',
@@ -2988,19 +3035,19 @@ describe('GeneralChatAgent', () => {
 
       const result = await agent.runner(context, state);
 
-      // Should execute directly in headless mode, even for 'always' policy
+      // Headless/CLI cannot ask a human to approve always-policy tools, so return results for replan.
       expect(result).toEqual([
         {
-          type: 'call_tool',
           payload: {
             parentMessageId: 'msg-1',
-            toolCalling: alwaysTool,
+            toolsCalling: [alwaysTool],
           },
+          type: 'resolve_blocked_tools',
         },
       ]);
     });
 
-    it('should skip security blacklisted tools in headless mode', async () => {
+    it('should resolve security blacklisted tools in headless mode', async () => {
       const agent = new GeneralChatAgent({
         agentConfig: { maxSteps: 100 },
         operationId: 'test-session',
@@ -3036,18 +3083,26 @@ describe('GeneralChatAgent', () => {
 
       const result = await agent.runner(context, state);
 
-      // Should return empty array (tool is skipped, not executed or pending)
-      expect(result).toEqual([]);
+      // Headless/CLI cannot wait on security blacklist approval, so return a blocked result for replan.
+      expect(result).toEqual([
+        {
+          payload: {
+            parentMessageId: 'msg-1',
+            toolsCalling: [blacklistedTool],
+          },
+          type: 'resolve_blocked_tools',
+        },
+      ]);
     });
 
-    it('should handle mixed tools in headless mode - execute safe ones, skip blacklisted', async () => {
+    it('should resolve all tools needing approval in headless mode', async () => {
       const agent = new GeneralChatAgent({
         agentConfig: { maxSteps: 100 },
         operationId: 'test-session',
         modelRuntimeConfig: mockModelRuntimeConfig,
       });
 
-      const safeTool: ChatToolPayload = {
+      const requiredTool: ChatToolPayload = {
         id: 'call-1',
         identifier: 'web-search',
         apiName: 'search',
@@ -3097,25 +3152,25 @@ describe('GeneralChatAgent', () => {
 
       const context = createMockContext('llm_result', {
         hasToolsCalling: true,
-        toolsCalling: [safeTool, blacklistedTool, alwaysTool],
+        toolsCalling: [requiredTool, blacklistedTool, alwaysTool],
         parentMessageId: 'msg-1',
       });
 
       const result = await agent.runner(context, state);
 
-      // Should execute safeTool and alwaysTool, skip blacklistedTool
+      // Headless/CLI batches all tools that need intervention into blocked results for replan.
       expect(result).toEqual([
         {
-          type: 'call_tools_batch',
           payload: {
             parentMessageId: 'msg-1',
-            toolsCalling: [safeTool, alwaysTool],
+            toolsCalling: [requiredTool, blacklistedTool, alwaysTool],
           },
+          type: 'resolve_blocked_tools',
         },
       ]);
     });
 
-    it('should execute multiple tools as batch in headless mode', async () => {
+    it('should resolve multiple tools requiring approval in headless mode', async () => {
       const agent = new GeneralChatAgent({
         agentConfig: { maxSteps: 100 },
         operationId: 'test-session',
@@ -3156,14 +3211,14 @@ describe('GeneralChatAgent', () => {
 
       const result = await agent.runner(context, state);
 
-      // Should execute both tools as batch in headless mode
+      // Headless/CLI returns blocked results for every tool that would otherwise need approval.
       expect(result).toEqual([
         {
-          type: 'call_tools_batch',
           payload: {
             parentMessageId: 'msg-1',
             toolsCalling: [tool1, tool2],
           },
+          type: 'resolve_blocked_tools',
         },
       ]);
     });
