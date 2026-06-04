@@ -29,6 +29,7 @@ from dagster._annotations import public
 from dagster._utils.pydantic_yaml import _parse_and_populate_model_with_annotated_errors
 from dagster.components.resolved.context import ResolutionContext
 from dagster.components.resolved.errors import ResolutionException
+from dagster.components.resolved.form_config import UNSET_DEFAULT_SENTINEL
 from dagster.components.resolved.model import Model, Resolver
 
 if TYPE_CHECKING:
@@ -128,9 +129,9 @@ class Resolvable:
 
     @classmethod
     def get_form_config(cls) -> "ComponentFormConfig | None":
-        """Return form metadata for this class to drive the UI definitions editor.
+        """Return form metadata for this class to drive the app-managed components editor.
 
-        Override on a :class:`Resolvable` subclass to mark it UI-editable
+        Override on a :class:`Resolvable` subclass to mark it app-managed
         and set its display label::
 
             @classmethod
@@ -187,12 +188,14 @@ class Resolvable:
 
 # marker type for skipping kwargs and triggering defaults
 # must be a string to make sure it is json serializable
-_Unset: Final[str] = "__DAGSTER_UNSET_DEFAULT__"
+_Unset: Final[str] = UNSET_DEFAULT_SENTINEL
 
 
 def derive_model_type(
     target_type: type[Resolvable],
 ) -> type[BaseModel]:
+    from dagster.components.resolved.form_config import APP_ID_SOURCE
+
     if target_type not in _DERIVED_MODEL_REGISTRY:
         form_config = target_type.get_form_config()
         schema_extra = form_config.to_component_json_schema_extra() if form_config else {}
@@ -201,11 +204,24 @@ def derive_model_type(
         model_fields: dict[
             str, Any
         ] = {}  # use Any to appease type checker when **-ing in to create_model
+        id_source_field: str | None = None
 
         for name, annotation_info in _get_annotations(target_type).items():
             field_resolver = _get_resolver(annotation_info.type, name)
             field_name = field_resolver.model_field_name or name
             field_type = field_resolver.model_field_type or annotation_info.type
+            if (field_resolver.json_schema_extra or {}).get(APP_ID_SOURCE) is True:
+                if annotation_info.has_default:
+                    raise ResolutionException(
+                        f"{target_type.__name__}.{name}: ComponentFormConfig(id_source=True) is "
+                        "only valid on required fields, but this field has a default value."
+                    )
+                if id_source_field is not None:
+                    raise ResolutionException(
+                        f"{target_type.__name__} marks both {id_source_field!r} and {name!r} as "
+                        "id_source; at most one field per component may set id_source=True."
+                    )
+                id_source_field = name
 
             field_infos = []
             if annotation_info.field_info:
