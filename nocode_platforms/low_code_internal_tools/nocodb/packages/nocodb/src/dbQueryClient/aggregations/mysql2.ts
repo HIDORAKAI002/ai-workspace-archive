@@ -10,11 +10,9 @@ import {
 } from 'nocodb-sdk';
 import type { Column } from '~/models';
 import type { Knex } from 'knex';
-
-import type CustomKnex from '~/db/CustomKnex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 
-export function genSqlite3AggregateQuery({
+export function genMysql2AggregatedQuery({
   column,
   baseModelSqlv2,
   aggregation,
@@ -22,6 +20,7 @@ export function genSqlite3AggregateQuery({
   parsedFormulaType,
   aggType,
   alias,
+  baseQuery,
 }: {
   column: Column;
   baseModelSqlv2: IBaseModelSqlV2;
@@ -36,10 +35,31 @@ export function genSqlite3AggregateQuery({
     | 'attachment'
     | 'unknown';
   alias?: string;
+  // Filtered FROM-table query. median / attachment-size build their own
+  // subquery, so they must run over the filtered row set — not the raw table —
+  // or filters / RLS / search / soft-delete are ignored.
+  baseQuery?: Knex.QueryBuilder;
 }) {
   let aggregationSql: Knex.Raw | undefined;
 
   const { dbDriver: knex } = baseModelSqlv2;
+
+  // Filtered derived table exposing the column value as a plain `nc_val` column.
+  // Used as the FROM source for the self-contained-subquery aggregates below so
+  // they honor filters; falls back to the raw table only when no baseQuery was
+  // supplied. (Inline aggregates keep using `column_query` over the outer query.)
+  const derivedInner = baseQuery
+    ? baseQuery
+        .clone()
+        .clearSelect()
+        .select(knex.raw(`(??) as nc_val`, [column_query]))
+    : undefined;
+  const subAggFrom: string | Knex.Raw = derivedInner
+    ? knex.raw(`(??) as nc_agg_sub`, [derivedInner])
+    : baseModelSqlv2.tnPath;
+  const subAggCol: string | Knex.QueryBuilder = derivedInner
+    ? 'nc_val'
+    : column_query;
 
   let condnValue: any = "''";
   if (
@@ -76,7 +96,7 @@ export function genSqlite3AggregateQuery({
       case CommonAggregations.CountEmpty:
         if ([UITypes.JSON].includes(column.uidt)) {
           aggregationSql = knex.raw(
-            `SUM(CASE WHEN json_array_length(??) IS NULL THEN 1 ELSE 0 END)`,
+            `SUM(CASE WHEN JSON_LENGTH(??) IS NULL THEN 1 ELSE 0 END)`,
             [column_query],
           );
           break;
@@ -124,9 +144,10 @@ export function genSqlite3AggregateQuery({
         break;
       case CommonAggregations.CountUnique:
         if ([UITypes.JSON].includes(column.uidt)) {
-          aggregationSql = knex.raw(`COUNT(DISTINCT json_extract(??, '$'))`, [
-            column_query,
-          ]);
+          aggregationSql = knex.raw(
+            `COUNT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT(??, '$')))`,
+            [column_query],
+          );
           break;
         }
         if (
@@ -159,20 +180,20 @@ export function genSqlite3AggregateQuery({
           break;
         }
         aggregationSql = knex.raw(
-          `COUNT(DISTINCT CASE WHEN (??) IS NOT NULL AND (??) != ${condnValue} THEN ?? END)`,
+          `COUNT(DISTINCT CASE WHEN ?? IS NOT NULL AND ?? != ${condnValue} THEN ?? END)`,
           [column_query, column_query, column_query],
         );
         break;
       case CommonAggregations.PercentEmpty:
         if ([UITypes.JSON].includes(column.uidt)) {
           aggregationSql = knex.raw(
-            `(SUM(CASE WHEN json_array_length(??) IS NULL THEN 1 ELSE 0 END) * 100.0 / IFNULL(COUNT(*), 0))`,
+            `(SUM(CASE WHEN JSON_LENGTH(??) IS NULL THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0))`,
             [column_query],
           );
           break;
         }
         aggregationSql = knex.raw(
-          `(SUM(CASE WHEN (??) IS NULL OR (??) = ${condnValue} THEN 1 ELSE 0 END) * 100.0 / IFNULL(COUNT(*), 0))`,
+          `(SUM(CASE WHEN (??) IS NULL OR (??) = ${condnValue} THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0))`,
           [column_query, column_query],
         );
         break;
@@ -202,22 +223,23 @@ export function genSqlite3AggregateQuery({
           )
         ) {
           aggregationSql = knex.raw(
-            `(SUM(CASE WHEN (??) IS NOT NULL THEN 1 ELSE 0 END) * 100.0 / IFNULL(COUNT(*), 0))`,
+            `(SUM(CASE WHEN (??) IS NOT NULL THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0))`,
             [column_query],
           );
           break;
         }
         aggregationSql = knex.raw(
-          `(SUM(CASE WHEN (??) IS NOT NULL AND (??) != ${condnValue} THEN 1 ELSE 0 END) * 100.0 / IFNULL(COUNT(*), 0))`,
+          `(SUM(CASE WHEN (??) IS NOT NULL AND (??) != ${condnValue} THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0))`,
           [column_query, column_query],
         );
         break;
       case CommonAggregations.PercentUnique:
         if ([UITypes.JSON].includes(column.uidt)) {
           aggregationSql = knex.raw(
-            `COUNT(DISTINCT json_extract((??), '$')) * 100.0 / IFNULL(COUNT(*), 0)`,
+            `COUNT(DISTINCT JSON_UNQUOTE(JSON_EXTRACT((??), '$'))) * 100.0 / NULLIF(COUNT(*), 0)`,
             [column_query],
           );
+
           break;
         }
         if (
@@ -244,13 +266,13 @@ export function genSqlite3AggregateQuery({
           )
         ) {
           aggregationSql = knex.raw(
-            `(COUNT(DISTINCT CASE WHEN (??) IS NOT NULL THEN (??) END) * 100.0 / IFNULL(COUNT(*), 0))`,
+            `(COUNT(DISTINCT CASE WHEN (??) IS NOT NULL THEN (??) END) * 100.0 / NULLIF(COUNT(*), 0))`,
             [column_query, column_query],
           );
           break;
         }
         aggregationSql = knex.raw(
-          `(COUNT(DISTINCT CASE WHEN (??) IS NOT NULL AND (??) != ${condnValue} THEN (??) END) * 100.0 / IFNULL(COUNT(*), 0))`,
+          `(COUNT(DISTINCT CASE WHEN (??) IS NOT NULL AND (??) != ${condnValue} THEN (??) END) * 100.0 / NULLIF(COUNT(*), 0))`,
           [column_query, column_query, column_query],
         );
         break;
@@ -283,49 +305,18 @@ export function genSqlite3AggregateQuery({
         aggregationSql = knex.raw(`MIN((??))`, [column_query]);
         break;
       case NumericalAggregations.Sum:
-        aggregationSql = knex.raw(`SUM((??))`, [column_query]);
+        aggregationSql = knex.raw(`SUM((??)) `, [column_query]);
         break;
-      case NumericalAggregations.StandardDeviation: {
-        const isRating = column.uidt === UITypes.Rating;
-        const filterClause = isRating
-          ? `WHERE (??) IS NOT NULL AND (??) != 0`
-          : `WHERE (??) IS NOT NULL`;
-        const filterBindings = isRating
-          ? [column_query, column_query]
-          : [column_query];
-        aggregationSql = knex.raw(
-          `(
-    SELECT
-      CASE
-        WHEN COUNT(*) > 0 THEN
-          SQRT(SUM(((??) - avg_value) * ((??) - avg_value)) / COUNT(*))
-        ELSE
-          NULL
-      END AS ??
-    FROM (
-      SELECT
-        (??),
-        (SELECT AVG((??)) FROM ?? ${filterClause}) AS avg_value
-      FROM
-        ??
-      ${filterClause}
-    )
-  )`,
-          [
-            column_query,
-            column_query,
-            alias,
-            column_query,
-            column_query,
-            baseModelSqlv2.tnPath,
-            ...filterBindings,
-            baseModelSqlv2.tnPath,
-            ...filterBindings,
-          ],
-        );
-
+      case NumericalAggregations.StandardDeviation:
+        if (column.uidt === UITypes.Rating) {
+          aggregationSql = knex.raw(
+            `STDDEV(CASE WHEN (??) != ${condnValue} THEN (??) ELSE NULL END)`,
+            [column_query, column_query],
+          );
+          break;
+        }
+        aggregationSql = knex.raw(`STDDEV((??))`, [column_query]);
         break;
-      }
       case NumericalAggregations.Range:
         if (column.uidt === UITypes.Rating) {
           aggregationSql = knex.raw(
@@ -340,16 +331,25 @@ export function genSqlite3AggregateQuery({
         ]);
         break;
       case NumericalAggregations.Median:
+        // Window-function median (MySQL 8.0+).
         aggregationSql = knex.raw(
-          `(SELECT AVG((??)) FROM (SELECT (??) FROM ?? ORDER BY (??) LIMIT 2 - (SELECT COUNT(*) FROM ??) % 2 OFFSET (SELECT (COUNT(*) - 1) / 2 FROM ??)))`,
-          [
-            column_query,
-            column_query,
-            baseModelSqlv2.tnPath,
-            column_query,
-            baseModelSqlv2.tnPath,
-            baseModelSqlv2.tnPath,
-          ],
+          `
+  (
+    SELECT AVG(nc_med_val)
+    FROM (
+      SELECT
+        (??) AS nc_med_val,
+        ROW_NUMBER() OVER (ORDER BY (??)) AS nc_med_rn,
+        COUNT(*) OVER () AS nc_med_cnt
+      FROM ??
+      WHERE (??) IS NOT NULL
+    ) AS nc_med_q
+    WHERE nc_med_rn IN (
+      FLOOR((nc_med_cnt + 1) / 2),
+      FLOOR((nc_med_cnt + 2) / 2)
+    )
+  )`,
+          [subAggCol, subAggCol, subAggFrom, subAggCol],
         );
         break;
       default:
@@ -358,25 +358,26 @@ export function genSqlite3AggregateQuery({
   } else if (aggType === 'boolean') {
     switch (aggregation) {
       case BooleanAggregations.Checked:
-        aggregationSql = knex.raw(`SUM(CASE WHEN ?? = 1 THEN 1 ELSE 0 END)`, [
-          column_query,
-        ]);
+        aggregationSql = knex.raw(
+          `SUM(CASE WHEN ?? = true THEN 1 ELSE 0 END)`,
+          [column_query],
+        );
         break;
       case BooleanAggregations.Unchecked:
         aggregationSql = knex.raw(
-          `SUM(CASE WHEN ?? = 0 OR ?? IS NULL THEN 1 ELSE 0 END)`,
+          `SUM(CASE WHEN ?? = false OR ?? IS NULL THEN 1 ELSE 0 END)`,
           [column_query, column_query],
         );
         break;
       case BooleanAggregations.PercentChecked:
         aggregationSql = knex.raw(
-          `(SUM(CASE WHEN ?? = 1 THEN 1 ELSE 0 END) * 100.0 / IFNULL(COUNT(*), 0))`,
+          `(SUM(CASE WHEN ?? = true THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0))`,
           [column_query],
         );
         break;
       case BooleanAggregations.PercentUnchecked:
         aggregationSql = knex.raw(
-          `(SUM(CASE WHEN ?? = 0 OR ?? IS NULL THEN 1 ELSE 0 END) * 100.0 / IFNULL(COUNT(*), 0))`,
+          `(SUM(CASE WHEN ?? = false OR ?? IS NULL THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(*), 0))`,
           [column_query, column_query],
         );
         break;
@@ -392,15 +393,15 @@ export function genSqlite3AggregateQuery({
         aggregationSql = knex.raw(`MAX(??)`, [column_query]);
         break;
       case DateAggregations.DateRange:
-        aggregationSql = knex.raw(
-          `CAST(JULIANDAY(MAX(??)) - JULIANDAY(MIN(??)) AS INTEGER)`,
-          [column_query, column_query],
-        );
+        aggregationSql = knex.raw(`TIMESTAMPDIFF(DAY, MIN(??), MAX(??))`, [
+          column_query,
+          column_query,
+        ]);
         break;
       case DateAggregations.MonthRange:
         aggregationSql = knex.raw(
-          `((strftime('%Y', MAX(??)) * 12 + strftime('%m', MAX(??))) - (strftime('%Y', MIN(??)) * 12 + strftime('%m', MIN(??))))`,
-          [column_query, column_query, column_query, column_query],
+          `PERIOD_DIFF(DATE_FORMAT(MAX(??), '%Y%m'), DATE_FORMAT(MIN(??), '%Y%m'))`,
+          [column_query, column_query],
         );
         break;
       default:
@@ -410,11 +411,9 @@ export function genSqlite3AggregateQuery({
     switch (aggregation) {
       case AttachmentAggregations.AttachmentSize:
         aggregationSql = knex.raw(
-          `(SELECT SUM(CAST(json_extract(value, '$.size') AS INTEGER)) FROM ??, json_each(??))`,
-          [baseModelSqlv2.tnPath, column_query],
+          `(SELECT SUM(JSON_EXTRACT(json_object, '$.size')) FROM ?? CROSS JOIN JSON_TABLE(CAST(?? AS JSON), '$[*]' COLUMNS (json_object JSON PATH '$')) AS json_array)`,
+          [subAggFrom, subAggCol],
         );
-        break;
-      default:
         break;
     }
   }
@@ -433,48 +432,4 @@ export function genSqlite3AggregateQuery({
   }
 
   return aggregationSql?.toQuery();
-}
-
-export function replaceDelimitedWithKeyValueSqlite3(params: {
-  knex: CustomKnex;
-  stack: { key: string; value: string }[];
-  needleColumn: string | Knex.QueryBuilder | Knex.RawBuilder;
-  delimiter?: string;
-}) {
-  const delimiter = params.delimiter ?? ',';
-  const knex = params.knex;
-
-  if (!params.stack || params.stack.length === 0) {
-    return knex.raw(`??`, [params.needleColumn]).toQuery();
-  }
-
-  // create union replace statement for each user
-  const mapUnion = params.stack
-    .map((row) => {
-      return knex
-        .raw(`select ? as nc_p_key, ? as nc_p_value`, [row.key, row.value])
-        .toQuery();
-    })
-    .join(' UNION ALL ');
-
-  const needleAsRows = knex
-    .raw(
-      `select ?? as nc_raw_needle, nc_t_stack_1.value as nc_p_needle from (json_each('["' || replace(??, '${delimiter}', ?) || '"]')) nc_t_stack_1`,
-      [params.needleColumn, params.needleColumn, `"${delimiter}"`],
-    )
-    .toQuery();
-
-  return knex
-    .raw(
-      [
-        `select nc_p_result from (`,
-        `  select nc_t_needle.nc_raw_needle, GROUP_CONCAT(coalesce(nc_t_stack.nc_p_value, nc_t_stack.nc_p_key), '${delimiter}') as nc_p_result`,
-        `  from (${needleAsRows}) nc_t_needle`,
-        `  left join (${mapUnion}) nc_t_stack`,
-        `    on nc_t_needle.nc_p_needle = nc_t_stack.nc_p_key`,
-        `  group by nc_t_needle.nc_raw_needle`,
-        `) nc_subquery`,
-      ].join(' '),
-    )
-    .toQuery();
 }
