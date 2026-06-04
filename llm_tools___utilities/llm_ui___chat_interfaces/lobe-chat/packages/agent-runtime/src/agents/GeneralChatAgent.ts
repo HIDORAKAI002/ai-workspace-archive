@@ -158,23 +158,13 @@ export class GeneralChatAgent implements Agent {
       let globalBlocked = false;
       let globalPolicy: HumanInterventionPolicy = 'always';
 
+      // Default global audits are ordered so always-block rules match first
       for (const globalResolver of globalResolvers) {
         if (await globalResolver.resolver(toolArgs, resolverMetadata)) {
           globalBlocked = true;
           globalPolicy = globalResolver.policy ?? 'always';
           break;
         }
-      }
-
-      // Phase 2: Headless mode - fully automated for async tasks
-      if (approvalMode === 'headless') {
-        if (globalBlocked && globalPolicy === 'always') {
-          // Skip 'always' blocked tools entirely (don't execute, don't wait for approval)
-          continue;
-        }
-        // All other tools execute directly (including overridable global blocks)
-        toolsToExecute.push(toolCalling);
-        continue;
       }
 
       // For non-headless modes: 'always' global block requires intervention unconditionally
@@ -200,6 +190,12 @@ export class GeneralChatAgent implements Agent {
         } else {
           toolsNeedingIntervention.push(toolCalling);
         }
+        continue;
+      }
+
+      // Phase 3.5: Headless mode auto-runs global blocks with non-always policy
+      if (approvalMode === 'headless' && globalBlocked && globalPolicy !== 'always') {
+        toolsToExecute.push(toolCalling);
         continue;
       }
 
@@ -515,13 +511,23 @@ export class GeneralChatAgent implements Agent {
           }
 
           // Request approval for tools that need intervention
-          // Runtime will execute this after safe tools and pause with status='waiting_for_human'
+          // Non-headless mode waits for human approval; headless mode returns blocked tool results.
           if (toolsNeedingIntervention.length > 0) {
-            instructions.push({
-              pendingToolsCalling: toolsNeedingIntervention,
-              reason: 'human_intervention_required',
-              type: 'request_human_approve',
-            });
+            if (state.userInterventionConfig?.approvalMode === 'headless') {
+              instructions.push({
+                payload: {
+                  parentMessageId,
+                  toolsCalling: toolsNeedingIntervention,
+                },
+                type: 'resolve_blocked_tools',
+              } satisfies AgentInstruction);
+            } else {
+              instructions.push({
+                pendingToolsCalling: toolsNeedingIntervention,
+                reason: 'human_intervention_required',
+                type: 'request_human_approve',
+              });
+            }
           }
 
           return instructions;
