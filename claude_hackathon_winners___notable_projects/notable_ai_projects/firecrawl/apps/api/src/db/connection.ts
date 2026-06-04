@@ -16,6 +16,7 @@ function makeDb(
   const pool = new Pool({
     connectionString,
     application_name: applicationName,
+    max: 20,
     min: 2,
     keepAlive: true,
   });
