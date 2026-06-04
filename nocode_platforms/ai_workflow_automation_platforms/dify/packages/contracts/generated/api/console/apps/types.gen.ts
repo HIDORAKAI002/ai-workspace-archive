@@ -1628,10 +1628,21 @@ export type WorkflowPreviousNodeOutputRef = {
 export type DeclaredOutputType = 'array' | 'boolean' | 'file' | 'number' | 'object' | 'string'
 
 export type AgentCliToolConfig = {
+  authorization_status?: AgentCliToolAuthorizationStatus
   command?: string | null
+  dangerous?: boolean
+  dangerous_acknowledged?: boolean
   description?: string | null
   enabled?: boolean
+  invoke_metadata?: {
+    [key: string]: unknown
+  }
   name?: string | null
+  permission?: {
+    [key: string]: unknown
+  }
+  pre_authorized?: boolean | null
+  risk_level?: AgentCliToolRiskLevel
   [key: string]: unknown
 }
 
@@ -1710,6 +1721,9 @@ export type HumanInputFormSubmissionData = {
   node_id: string
   node_title: string
   rendered_content: string
+  submitted_data?: {
+    [key: string]: JsonValue2
+  } | null
 }
 
 export type ExecutionContentType = 'human_input'
@@ -1764,6 +1778,10 @@ export type DeclaredOutputFileConfig = {
 export type AgentSecretRefConfig = {
   id?: string | null
   name?: string | null
+  permission?: {
+    [key: string]: unknown
+  }
+  permission_status?: string | null
   provider?: string | null
   type?: string | null
   [key: string]: unknown
@@ -1851,6 +1869,18 @@ export type AgentSoulDifyToolConfig = {
   tool_name: string
 }
 
+export type AgentCliToolAuthorizationStatus
+  = | 'allowed'
+    | 'authorized'
+    | 'denied'
+    | 'forbidden'
+    | 'not_required'
+    | 'pending'
+    | 'pre_authorized'
+    | 'unauthorized'
+
+export type AgentCliToolRiskLevel = 'dangerous' | 'safe' | 'unknown'
+
 export type AgentModerationIoConfig = {
   enabled?: boolean
   preset_response?: string | null
@@ -1864,6 +1894,8 @@ export type UserActionConfig = {
 }
 
 export type FormInputConfig = unknown
+
+export type JsonValue2 = unknown
 
 export type OutputErrorStrategy = 'default_value' | 'fail_branch' | 'stop'
 
