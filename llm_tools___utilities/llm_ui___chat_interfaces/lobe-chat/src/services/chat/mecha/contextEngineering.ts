@@ -40,6 +40,11 @@ import debug from 'debug';
 import { isCanUseFC } from '@/helpers/isCanUseFC';
 import { VARIABLE_GENERATORS } from '@/helpers/parserPlaceholder';
 import { lambdaClient } from '@/libs/trpc/client';
+import {
+  agentService,
+  AVAILABLE_AGENTS_CONTEXT_LIMIT,
+  AVAILABLE_AGENTS_CONTEXT_QUERY_LIMIT,
+} from '@/services/agent';
 import { notebookService } from '@/services/notebook';
 import { getAgentStoreState } from '@/store/agent';
 import { agentChatConfigSelectors, agentSelectors } from '@/store/agent/selectors';
@@ -457,13 +462,9 @@ export const contextEngineering = async ({
 
   if (shouldInjectAvailableAgents) {
     try {
-      // Over-fetch by 2: +1 reserved for the current agent (filtered out below
-      // so the model has no exposure to its own id and cannot self-delegate)
-      // and +1 to detect overflow for the `hasMore` flag.
-      const AVAILABLE_AGENTS_LIMIT = 10;
-      const recentAgents = await lambdaClient.agent.queryAgents.query({
-        limit: AVAILABLE_AGENTS_LIMIT + 2,
-      });
+      const recentAgents =
+        agentStoreState.availableAgents ??
+        (await agentService.queryAgents({ limit: AVAILABLE_AGENTS_CONTEXT_QUERY_LIMIT }));
 
       // Exclude current agent from `availableAgents`. The model is the current
       // agent — its identity/persona is already established by `systemRole`, so
@@ -471,8 +472,8 @@ export const contextEngineering = async ({
       // model never sees its own id in the agent-management context (so it
       // cannot accidentally call itself via `callAgent`).
       const otherAgents = agentId ? recentAgents.filter((a) => a.id !== agentId) : recentAgents;
-      const hasMoreAgents = otherAgents.length > AVAILABLE_AGENTS_LIMIT;
-      const availableAgents = otherAgents.slice(0, AVAILABLE_AGENTS_LIMIT).map((a) => ({
+      const hasMoreAgents = otherAgents.length > AVAILABLE_AGENTS_CONTEXT_LIMIT;
+      const availableAgents = otherAgents.slice(0, AVAILABLE_AGENTS_CONTEXT_LIMIT).map((a) => ({
         description: a.description ?? undefined,
         id: a.id,
         title: a.title ?? 'Untitled',
@@ -605,21 +606,22 @@ export const contextEngineering = async ({
   }
 
   // Resolve topic references from messages containing <refer_topic> tags
-  const topicReferences = await resolveTopicReferences(
-    messages,
-    async (topicId: string) => {
-      const topic = topicSelectors.getTopicById(topicId)(getChatStoreState());
-      return topic ?? null;
-    },
-    async (topicId: string) => {
-      const { messageService } = await import('@/services/message');
-      const msgs = await messageService.getMessages({ agentId, groupId, topicId });
-      return msgs.map((m) => ({
-        content: typeof m.content === 'string' ? m.content : '',
-        role: m.role,
-      }));
-    },
-  );
+  const topicReferences =
+    (await resolveTopicReferences(
+      messages,
+      async (topicId: string) => {
+        const topic = topicSelectors.getTopicById(topicId)(getChatStoreState());
+        return topic ?? null;
+      },
+      async (topicId: string) => {
+        const { messageService } = await import('@/services/message');
+        const msgs = await messageService.getMessages({ agentId, groupId, topicId });
+        return msgs.map((m) => ({
+          content: typeof m.content === 'string' ? m.content : '',
+          role: m.role,
+        }));
+      },
+    )) ?? [];
 
   // Build onboarding context if this is the web-onboarding agent.
   // Single combined trpc call — server runs state/soul/persona DB queries in parallel.
