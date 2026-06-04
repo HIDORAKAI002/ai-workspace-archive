@@ -1,13 +1,12 @@
 import {
   Box,
   ButtonLink,
-  Caption,
-  CaptionMono,
   Colors,
   Heading,
   Icon,
   Popover,
   Skeleton,
+  Text,
   useViewport,
 } from '@dagster-io/ui-components';
 import clsx from 'clsx';
@@ -178,7 +177,7 @@ export const RecentUpdatesTimeline = ({assetKey, events, loading}: Props) => {
           Recent updates
         </Heading>
         <Box flex={{direction: 'row', gap: 8, alignItems: 'center'}}>
-          <Caption color={Colors.textLighter()}>
+          <Text size={12} color="textLighter">
             {totalCount === 100
               ? hasBothEventTypes && count < totalCount
                 ? `Showing ${count} of last 100 updates`
@@ -188,9 +187,9 @@ export const RecentUpdatesTimeline = ({assetKey, events, loading}: Props) => {
                 : count === 1
                   ? 'Showing one update'
                   : `Showing all ${count} updates`}
-          </Caption>
+          </Text>
           {hasBothEventTypes && (
-            <Caption>
+            <Text size={12}>
               <ButtonLink
                 color={
                   eventFilter === 'materializations' ? Colors.textDefault() : Colors.textLighter()
@@ -210,7 +209,7 @@ export const RecentUpdatesTimeline = ({assetKey, events, loading}: Props) => {
               >
                 Observations
               </ButtonLink>
-            </Caption>
+            </Text>
           )}
         </Box>
       </Box>
@@ -301,10 +300,12 @@ export const RecentUpdatesTimeline = ({assetKey, events, loading}: Props) => {
         </div>
       </Box>
       <Box padding={{top: 4}} flex={{justifyContent: 'space-between'}}>
-        <Caption color={Colors.textLighter()}>
+        <Text size={12} color="textLighter">
           {formatDateTime(new Date(startTimestamp), {})}
-        </Caption>
-        <Caption color={Colors.textLighter()}>{formatDateTime(new Date(endTimestamp), {})}</Caption>
+        </Text>
+        <Text size={12} color="textLighter">
+          {formatDateTime(new Date(endTimestamp), {})}
+        </Text>
       </Box>
     </Box>
   );
@@ -386,9 +387,9 @@ const AssetUpdate = ({
             time: finalEvent?.timestamp,
           })}
         >
-          <Caption>
+          <Text size={12}>
             <Timestamp timestamp={{ms: Number(finalEvent?.timestamp)}} />
-          </Caption>
+          </Text>
         </Link>
       </Box>
       <div>
@@ -400,7 +401,9 @@ const AssetUpdate = ({
               assetKey={assetKey}
               event={{stepKey: finalEvent.stepKey, timestamp: finalEvent.timestamp}}
             >
-              <CaptionMono>{titleForRun(run)}</CaptionMono>
+              <Text size={12} family="mono">
+                {titleForRun(run)}
+              </Text>
             </AssetRunLink>
           </Box>
         ) : finalEvent && isRunlessEvent(finalEvent) ? (

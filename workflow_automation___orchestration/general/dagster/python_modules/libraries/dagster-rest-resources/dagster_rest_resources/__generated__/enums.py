@@ -618,7 +618,7 @@ class CustomRolePermission(str, Enum):
     MANAGE_BRANCH_DEPLOYMENTS = "MANAGE_BRANCH_DEPLOYMENTS"
     EDIT_EXTERNAL_ASSET_CONNECTIONS = "EDIT_EXTERNAL_ASSET_CONNECTIONS"
     EDIT_ISSUES = "EDIT_ISSUES"
-    EDIT_UI_DEFINITIONS = "EDIT_UI_DEFINITIONS"
+    EDIT_APP_MANAGED_COMPONENTS = "EDIT_APP_MANAGED_COMPONENTS"
 
 
 class CustomRoleDeploymentScope(str, Enum):
@@ -924,6 +924,10 @@ class IssueStatus(str, Enum):
     CLOSED = "CLOSED"
     TRIAGE = "TRIAGE"
     CANCELED = "CANCELED"
+
+
+class IssuePullRequestProvider(str, Enum):
+    GITHUB = "GITHUB"
 
 
 class ReexecutionStrategy(str, Enum):
