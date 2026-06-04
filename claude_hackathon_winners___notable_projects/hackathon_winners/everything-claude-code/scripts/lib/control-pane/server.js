@@ -12,9 +12,10 @@ const { renderControlPaneHtml } = require('./ui');
 function usage() {
   return [
     'Usage:',
-    '  node scripts/control-pane.js [--host 127.0.0.1] [--port 8765] [--db <ecc2.db>] [--config <ecc2.toml>] [--query <text>]',
+    '  node scripts/control-pane.js [--host 127.0.0.1] [--port 8765] [--db <ecc2.db>] [--state-db <state.db>] [--config <ecc2.toml>] [--query <text>]',
     '',
     'Options:',
+    '  --state-db <path>  Read agent work items from an ECC state-store database',
     '  --read-only        Disable action execution endpoints',
     '  --no-open          Do not open a browser after the server starts',
     '  --help             Show this help',
@@ -24,6 +25,15 @@ function usage() {
 function valueAfter(args, name) {
   const index = args.indexOf(name);
   return index >= 0 ? args[index + 1] : null;
+}
+
+function pathValueAfter(args, name) {
+  const value = valueAfter(args, name);
+  if (value === null) return null;
+  if (!value || value.startsWith('-')) {
+    throw new Error(`Invalid ${name} value: expected a path`);
+  }
+  return value;
 }
 
 function parseArgs(argv) {
@@ -41,6 +51,7 @@ function parseArgs(argv) {
     host,
     port,
     dbPath: valueAfter(args, '--db'),
+    stateDbPath: pathValueAfter(args, '--state-db'),
     configPath: valueAfter(args, '--config'),
     query: valueAfter(args, '--query') || '',
     openBrowser: !args.includes('--no-open'),
@@ -144,6 +155,7 @@ function createControlPaneServer(options = {}) {
     cwd: options.cwd || repoRoot,
     configPath: options.configPath,
     dbPath: options.dbPath,
+    stateDbPath: options.stateDbPath,
     env: options.env || process.env,
   });
   const baseQuery = options.query || '';
@@ -172,6 +184,7 @@ function createControlPaneServer(options = {}) {
           ok: true,
           repoRoot,
           dbPath: resolvedConfig.dbPath,
+          stateDbPath: resolvedConfig.stateDbPath,
           allowActions,
         });
         return;
@@ -181,6 +194,7 @@ function createControlPaneServer(options = {}) {
         const snapshot = await buildControlPaneSnapshot({
           repoRoot,
           dbPath: resolvedConfig.dbPath,
+          stateDbPath: resolvedConfig.stateDbPath,
           config: resolvedConfig,
           query: requestUrl.searchParams.get('query') || baseQuery,
           limit: requestUrl.searchParams.get('limit') || 12,

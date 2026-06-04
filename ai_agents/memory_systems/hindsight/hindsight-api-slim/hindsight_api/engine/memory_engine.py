@@ -225,7 +225,7 @@ if TYPE_CHECKING:
     from hindsight_api.models import RequestContext
 
     from .audit import AuditLogListResponse, AuditLogStatsResponse
-    from .transfer import ImportResult
+    from .transfer import BankImportResult, ImportResult
 
 
 from enum import Enum
@@ -3223,6 +3223,42 @@ class MemoryEngine(MemoryEngineInterface):
         await self._get_backend()
         return await export_documents(self._backend, bank_id, document_ids, include_observations=include_observations)
 
+    async def import_bank_async(
+        self,
+        archive_bytes: bytes,
+        request_context: "RequestContext",
+        *,
+        target_bank_id: str | None = None,
+        include_history: bool = False,
+    ) -> "BankImportResult":
+        """Restore a whole bank from an :func:`transfer.export_bank` archive.
+
+        Re-embeds facts with this instance's embedding model and rebuilds links and
+        indexes; restores bank config, mental models, directives and webhooks as
+        exported (no consolidation/webhooks — a migration restores exact state). The
+        target bank must not already exist (import restores a whole bank, not a merge).
+        """
+        from .transfer import import_bank
+        from .transfer.importer import parse_bank_archive
+
+        await self._authenticate_tenant(request_context)
+        backend = await self._get_backend()
+        # Parse up front so a bad archive fails fast and we can resolve the
+        # target bank's config before the restore.
+        parsed = parse_bank_archive(archive_bytes)
+        bank_id = target_bank_id or parsed.manifest.source_bank_id
+        resolved_config = await self._config_resolver.resolve_full_config(bank_id, request_context)
+        return await import_bank(
+            backend=backend,
+            embeddings_model=self.embeddings,
+            entity_resolver=self.entity_resolver,
+            config=resolved_config,
+            format_date_fn=self._format_readable_date,
+            archive_bytes=archive_bytes,
+            target_bank_id=target_bank_id,
+            include_history=include_history,
+        )
+
     async def import_documents_async(
         self,
         bank_id: str,
@@ -4097,7 +4133,13 @@ class MemoryEngine(MemoryEngineInterface):
                 # RRF already provides good ranking; this caps cross-encoder cost.
                 reranker_max_candidates = get_config().reranker_max_candidates
                 if len(merged_candidates) > reranker_max_candidates:
-                    merged_candidates.sort(key=lambda mc: mc.rrf_score, reverse=True)
+                    # Sort by RRF score (boosted per-strategy if configured) and take top
+                    # candidates. The weighted-RRF boost keeps boosted-arm candidates from
+                    # being trimmed out of the reranker's global budget.
+                    from .search.recall_boost import boosted_rrf_score
+
+                    strategy_boosts = get_config().recall_strategy_boosts
+                    merged_candidates.sort(key=lambda mc: boosted_rrf_score(mc, strategy_boosts), reverse=True)
                     pre_filtered_count = len(merged_candidates) - reranker_max_candidates
                     merged_candidates = merged_candidates[:reranker_max_candidates]
 
@@ -4156,8 +4198,18 @@ class MemoryEngine(MemoryEngineInterface):
                     now=_recall_scoring_now(question_date),
                     is_passthrough_reranker=is_passthrough,
                 )
+                # Per-strategy additive boost: nudge candidates surfaced by a
+                # prioritised retrieval arm up the final ordering.
+                strategy_boosts = get_config().recall_strategy_boosts
+                if strategy_boosts:
+                    from .search.recall_boost import additive_strategy_boost
+
+                    for sr in scored_results:
+                        sr.weight += additive_strategy_boost(sr.candidate.source_ranks, strategy_boosts)
                 scored_results.sort(key=lambda x: x.weight, reverse=True)
                 log_buffer.append("  [4.6] Combined scoring: ce * recency_boost(0.2) * temporal_boost(0.2)")
+                if strategy_boosts:
+                    log_buffer.append(f"  [4.7] Strategy boosts applied: {strategy_boosts}")
 
             # Add reranked results to tracer AFTER combined scoring (so normalized values are included)
             if tracer:

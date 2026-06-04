@@ -673,6 +673,13 @@ export class AgentModel {
     // `onConflictDoNothing`, the loser hits the `agents_slug_user_id_unique`
     // constraint; with it, the loser's `.returning()` is empty and we re-read
     // the row that won.
+    // Bare `onConflictDoNothing()` (no target) does NOT pin an arbiter index,
+    // so it works whether `agents_slug_user_id_unique` is the legacy full
+    // unique or the migration-0109 partial (WHERE workspace_id IS NULL) — this
+    // is the transition-safe form while 0109 rolls out. For this row only
+    // (slug, user_id) can collide (client_id / workspace_id are NULL, id is
+    // freshly generated). Tighten back to { target, where: isNull(workspaceId) }
+    // once 0109 has flipped the index in every environment.
     const result = await this.db
       .insert(agents)
       .values({
@@ -682,7 +689,7 @@ export class AgentModel {
         userId: this.userId,
         virtual: true,
       })
-      .onConflictDoNothing({ target: [agents.slug, agents.userId] })
+      .onConflictDoNothing()
       .returning();
 
     if (result[0]) return result[0];
