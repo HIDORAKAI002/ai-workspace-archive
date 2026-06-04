@@ -767,7 +767,7 @@ describe("V2 Types Validation", () => {
         deduplicateSimilarURLs: false,
         ignoreQueryParameters: true,
         regexOnFullURL: true,
-        delay: 1000,
+        delay: 1,
         prompt: "Extract blog posts",
         scrapeOptions: {
           formats: [{ type: "markdown" }],

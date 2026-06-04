@@ -1,13 +1,4 @@
-import {
-  Box,
-  ButtonLink,
-  Caption,
-  Checkbox,
-  Colors,
-  Icon,
-  Mono,
-  Tag,
-} from '@dagster-io/ui-components';
+import {Box, ButtonLink, Checkbox, Colors, Icon, Tag, Text} from '@dagster-io/ui-components';
 import * as React from 'react';
 import {Link} from 'react-router-dom';
 
@@ -110,7 +101,9 @@ export const RunsFeedRow = ({
           >
             <Box flex={{gap: 4, alignItems: 'center'}}>
               <Icon name={entry.__typename === 'PartitionBackfill' ? 'run_with_subruns' : 'run'} />
-              <Mono>{titleForRun(entry)}</Mono>
+              <Text size={14} family="mono">
+                {titleForRun(entry)}
+              </Text>
             </Box>
           </Link>
           <Box
@@ -129,14 +122,14 @@ export const RunsFeedRow = ({
             />
 
             {entry.runStatus === RunStatus.QUEUED ? (
-              <Caption>
+              <Text size={12}>
                 <ButtonLink
                   onClick={() => onShowDialog({type: 'queue-criteria', entry})}
                   color={Colors.textLight()}
                 >
                   View queue criteria
                 </ButtonLink>
-              </Caption>
+              </Text>
             ) : null}
           </Box>
         </Box>

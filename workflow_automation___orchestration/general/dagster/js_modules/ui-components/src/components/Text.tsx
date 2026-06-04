@@ -26,38 +26,6 @@ export const Body2 = ({className, ...props}: TextProps) => (
   <Text className={clsx('body2Global', styles.body2, className)} {...props} />
 );
 
-export const Caption = ({className, ...props}: TextProps) => (
-  <Text className={clsx('captionGlobal', styles.caption, className)} {...props} />
-);
-
-export const CaptionSubtitle = ({className, ...props}: TextProps) => (
-  <Text className={clsx(styles.captionSubtitle, className)} {...props} />
-);
-
-export const CaptionBolded = ({className, ...props}: TextProps) => (
-  <Text className={clsx(styles.captionBolded, className)} {...props} />
-);
-
-export const Mono = ({className, ...props}: TextProps) => (
-  <Text className={clsx(styles.mono, className)} {...props} />
-);
-
-export const CaptionMono = ({className, ...props}: TextProps) => (
-  <Text className={clsx(styles.captionMono, className)} {...props} />
-);
-
 export const BodyLarge = ({className, ...props}: TextProps) => (
   <Text className={clsx(styles.bodyLarge, className)} {...props} />
-);
-
-export const BodySmall = ({className, ...props}: TextProps) => (
-  <Text className={clsx(styles.bodySmall, className)} {...props} />
-);
-
-export const MonoLarge = ({className, ...props}: TextProps) => (
-  <Text className={clsx(styles.monoLarge, className)} {...props} />
-);
-
-export const MonoSmall = ({className, ...props}: TextProps) => (
-  <Text className={clsx(styles.monoSmall, className)} {...props} />
 );

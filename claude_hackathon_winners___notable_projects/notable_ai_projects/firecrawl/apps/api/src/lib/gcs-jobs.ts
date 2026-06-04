@@ -139,8 +139,11 @@ async function saveJobToGCS(params: {
         });
         break;
       } catch (error) {
-        if (error instanceof ApiError && error.code === 429) {
-          // switch to slower backoff parameters for rate limiting errors
+        if (
+          error instanceof ApiError &&
+          (error.code === 429 || error.code === 503)
+        ) {
+          // switch to slower backoff parameters for rate limiting or server overloaded errors
           backoffUsed = BACKOFF_SLOWDOWN_PARAMS;
         }
 
