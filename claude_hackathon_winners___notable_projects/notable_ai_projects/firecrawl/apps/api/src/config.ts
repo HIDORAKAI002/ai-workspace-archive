@@ -286,6 +286,12 @@ const configSchema = z.object({
   NUQ_PREFETCH_WORKER_HEARTBEAT_URL: z.string().optional(),
 
   ZDRCLEANER_HEARTBEAT_URL: z.string().optional(),
+
+  // Deterministic JSON extraction (reusable-json-mode)
+  EXTRACT_CODEGEN_MODEL: z.string().default("gemini-3.1-flash-lite"),
+  EXTRACT_ANCHOR_MODEL: z.string().default("openai/gpt-oss-120b"),
+  EXTRACT_LIGHT_MODEL: z.string().default("openai/gpt-oss-20b"),
+  CODE_SANDBOX_URL: z.string().default("ws://code-sandbox:3001"),
 });
 
 export const config = configSchema.parse(process.env);
