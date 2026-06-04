@@ -1,6 +1,7 @@
 import type { Chat } from "@ai-sdk/react";
 import type { UIMessage } from "ai";
 
+import { selectActiveContexts } from "@phoenix/agent/context/selectors";
 /**
  * Frontend registry for executing PXI tools whose model-facing definitions are
  * advertised by the server.
@@ -33,6 +34,12 @@ import {
 import { parseElicitToolInput } from "@phoenix/agent/tools/elicit";
 import type { ElicitToolInput } from "@phoenix/agent/tools/elicit";
 import { parseEmptyToolInput } from "@phoenix/agent/tools/emptyToolInput";
+import {
+  getRouteInfo,
+  GET_ROUTE_INFO_TOOL_NAME,
+  parseGetRouteInfoInput,
+  type GetRouteInfoInput,
+} from "@phoenix/agent/tools/getRouteInfo";
 import {
   EDIT_LLM_EVALUATOR_DRAFT_TOOL_NAME,
   OPEN_LLM_EVALUATOR_FORM_TOOL_NAME,
@@ -81,6 +88,7 @@ import {
 import {
   parseReadPromptToolsInput,
   parseWritePromptToolsInput,
+  type PromptToolsActionContext,
   READ_PROMPT_TOOLS_TOOL_NAME,
   type ReadPromptToolsInput,
   WRITE_PROMPT_TOOLS_TOOL_NAME,
@@ -469,6 +477,24 @@ const renderGenerativeUIAgentTool =
       });
     },
   });
+
+const getRouteInfoAgentTool = createRegisteredAgentTool<GetRouteInfoInput>({
+  name: GET_ROUTE_INFO_TOOL_NAME,
+  parseInput: parseGetRouteInfoInput,
+  invalidInputErrorText: `Invalid ${GET_ROUTE_INFO_TOOL_NAME} input. Expected { query?: string, path?: string, limit?: number }.`,
+  execute: async ({ toolCall, input, addToolOutput, agentStore }) => {
+    const result = await getRouteInfo({
+      input,
+      contexts: selectActiveContexts(agentStore.getState()),
+    });
+    await addToolOutput({
+      state: "output-available",
+      tool: GET_ROUTE_INFO_TOOL_NAME,
+      toolCallId: toolCall.toolCallId,
+      output: JSON.stringify(result, null, 2),
+    });
+  },
+});
 
 const readPromptAgentTool = createRegisteredAgentTool<ReadPromptInput>({
   name: READ_PROMPT_TOOL_NAME,
@@ -991,7 +1017,17 @@ const writePromptToolsAgentTool =
     name: WRITE_PROMPT_TOOLS_TOOL_NAME,
     parseInput: parseWritePromptToolsInput,
     invalidInputErrorText: `Invalid ${WRITE_PROMPT_TOOLS_TOOL_NAME} input. Expected { instanceId: number, expectedRevision: string, tools?: Array<{ id?: number | null, name: string, description?: string | null, parameters?: object | null, strict?: boolean | null }>, deleteToolIds?: number[] } with at least one tool to write or delete.`,
-    execute: async ({ toolCall, input, addToolOutput, agentStore }) => {
+    uiBehavior: {
+      autoOpen: true,
+      scrollIntoViewOnMount: true,
+    },
+    execute: async ({
+      toolCall,
+      input,
+      sessionId,
+      addToolOutput,
+      agentStore,
+    }) => {
       const action =
         agentStore.getState().registeredClientActions[
           WRITE_PROMPT_TOOLS_TOOL_NAME
@@ -1006,15 +1042,23 @@ const writePromptToolsAgentTool =
         });
         return;
       }
-      const result = await action(input);
-      if (result.ok) {
+      if (!sessionId) {
         await addToolOutput({
-          state: "output-available",
+          state: "output-error",
           tool: WRITE_PROMPT_TOOLS_TOOL_NAME,
           toolCallId: toolCall.toolCallId,
-          output: result.output ?? "Prompt tools written.",
+          errorText:
+            "Cannot propose prompt tool changes without an active session.",
         });
-      } else {
+        return;
+      }
+      const context: PromptToolsActionContext = {
+        toolCallId: toolCall.toolCallId,
+        sessionId,
+        addToolOutput,
+      };
+      const result = await action(input, context);
+      if (!result.ok) {
         await addToolOutput({
           state: "output-error",
           tool: WRITE_PROMPT_TOOLS_TOOL_NAME,
@@ -1378,6 +1422,7 @@ const agentToolRegistry: RegisteredAgentTool<unknown>[] = [
   bashAgentTool as RegisteredAgentTool<unknown>,
   askUserAgentTool as RegisteredAgentTool<unknown>,
   setTimeRangeAgentTool as RegisteredAgentTool<unknown>,
+  getRouteInfoAgentTool as RegisteredAgentTool<unknown>,
   renderGenerativeUIAgentTool as RegisteredAgentTool<unknown>,
   setSpansFilterAgentTool as RegisteredAgentTool<unknown>,
   readPromptAgentTool as RegisteredAgentTool<unknown>,
