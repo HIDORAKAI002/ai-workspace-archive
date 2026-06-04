@@ -290,7 +290,9 @@ export function formatsRequestJsonExtraction(formats: unknown): boolean {
     if (typeof entry === "string" && entry === "json") return true;
     if (entry && typeof entry === "object") {
       const obj = entry as { type?: unknown; modes?: unknown };
-      if (obj.type === "json") return true;
+      // Both json and deterministicJson populate document.json, so the JSON
+      // diff path applies to either.
+      if (obj.type === "json" || obj.type === "deterministicJson") return true;
       if (obj.type === "changeTracking") {
         const modes = Array.isArray(obj.modes) ? obj.modes : [];
         if (modes.includes("json")) return true;

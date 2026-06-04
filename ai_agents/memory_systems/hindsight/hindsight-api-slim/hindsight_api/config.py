@@ -346,6 +346,8 @@ ENV_RECALL_MAX_QUERY_TOKENS = "HINDSIGHT_API_RECALL_MAX_QUERY_TOKENS"
 ENV_MENTAL_MODEL_REFRESH_CONCURRENCY = "HINDSIGHT_API_MENTAL_MODEL_REFRESH_CONCURRENCY"
 ENV_LINK_EXPANSION_PER_ENTITY_LIMIT = "HINDSIGHT_API_LINK_EXPANSION_PER_ENTITY_LIMIT"
 ENV_LINK_EXPANSION_TIMEOUT = "HINDSIGHT_API_LINK_EXPANSION_TIMEOUT"
+ENV_BANK_STATS_CACHE_TTL_SECONDS = "HINDSIGHT_API_BANK_STATS_CACHE_TTL_SECONDS"
+ENV_BANK_STATS_CACHE_MAX_ENTRIES = "HINDSIGHT_API_BANK_STATS_CACHE_MAX_ENTRIES"
 
 # OpenTelemetry tracing configuration
 ENV_OTEL_TRACES_ENABLED = "HINDSIGHT_API_OTEL_TRACES_ENABLED"
@@ -758,6 +760,8 @@ DEFAULT_RECALL_MAX_QUERY_TOKENS = 500  # Maximum tokens allowed in recall query
 DEFAULT_MENTAL_MODEL_REFRESH_CONCURRENCY = 8  # Max concurrent mental model refreshes
 DEFAULT_LINK_EXPANSION_PER_ENTITY_LIMIT = 200  # Max target units per entity in graph expansion
 DEFAULT_LINK_EXPANSION_TIMEOUT = 10.0  # Timeout (seconds) for entity expansion query
+DEFAULT_BANK_STATS_CACHE_TTL_SECONDS = 60.0  # TTL for get_bank_stats result cache; 0 disables
+DEFAULT_BANK_STATS_CACHE_MAX_ENTRIES = 1024  # LRU bound across (schema, bank) keys
 
 # Retain settings
 DEFAULT_RETAIN_MAX_COMPLETION_TOKENS = 64000  # Max tokens for fact extraction LLM call
@@ -1322,6 +1326,8 @@ class HindsightConfig:
     mental_model_refresh_concurrency: int
     link_expansion_per_entity_limit: int
     link_expansion_timeout: float
+    bank_stats_cache_ttl_seconds: float
+    bank_stats_cache_max_entries: int
 
     # Retain settings
     retain_max_completion_tokens: int
@@ -2093,6 +2099,12 @@ class HindsightConfig:
                 os.getenv(ENV_LINK_EXPANSION_PER_ENTITY_LIMIT, str(DEFAULT_LINK_EXPANSION_PER_ENTITY_LIMIT))
             ),
             link_expansion_timeout=float(os.getenv(ENV_LINK_EXPANSION_TIMEOUT, str(DEFAULT_LINK_EXPANSION_TIMEOUT))),
+            bank_stats_cache_ttl_seconds=float(
+                os.getenv(ENV_BANK_STATS_CACHE_TTL_SECONDS, str(DEFAULT_BANK_STATS_CACHE_TTL_SECONDS))
+            ),
+            bank_stats_cache_max_entries=int(
+                os.getenv(ENV_BANK_STATS_CACHE_MAX_ENTRIES, str(DEFAULT_BANK_STATS_CACHE_MAX_ENTRIES))
+            ),
             # Optimization flags
             skip_llm_verification=os.getenv(ENV_SKIP_LLM_VERIFICATION, "false").lower() == "true",
             lazy_reranker=os.getenv(ENV_LAZY_RERANKER, "false").lower() == "true",

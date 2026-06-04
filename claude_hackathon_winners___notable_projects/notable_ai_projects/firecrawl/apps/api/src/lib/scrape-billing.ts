@@ -72,6 +72,10 @@ export async function calculateCreditsToBeBilled(
     creditsToBeBilled = 5;
   }
 
+  if (hasFormatOfType(options.formats, "deterministicJson")) {
+    creditsToBeBilled = 7;
+  }
+
   if (
     internalOptions.v1Agent?.model === "fire-1" ||
     internalOptions.v1JSONAgent?.model?.toLowerCase() === "fire-1"
