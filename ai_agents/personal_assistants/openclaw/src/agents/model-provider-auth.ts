@@ -76,6 +76,7 @@ const PROVIDER_AUTH_WARM_WORKER_TIMEOUT_MS = 120_000;
 const PROVIDER_AUTH_WARM_CANCEL_POLL_MS = 25;
 
 const configFingerprintCache = new WeakMap<OpenClawConfig, string>();
+/** Clears process-current warmed provider auth state. */
 export { clearCurrentProviderAuthState };
 
 function resolvePreparedStateForCaller(params: {
@@ -109,6 +110,7 @@ function resolveProviderAuthConfigFingerprint(cfg: OpenClawConfig | undefined): 
   return fingerprint;
 }
 
+/** Resolves whether auth is available for a model provider in the caller's runtime scope. */
 export async function hasAuthForModelProvider(params: {
   provider: string;
   modelApi?: string;
@@ -211,6 +213,7 @@ export async function hasAuthForModelProvider(params: {
   return false;
 }
 
+/** Creates a cached provider-auth checker bound to one agent/runtime context. */
 export function createProviderAuthChecker(params: {
   cfg?: OpenClawConfig;
   workspaceDir?: string;
@@ -296,6 +299,7 @@ function shouldOmitFalsePreparedAuthForProcessSyntheticProvider(params: {
     .some((ref) => eligibleRefs.has(normalizeProviderId(ref)));
 }
 
+/** Builds a provider auth snapshot for every configured agent. */
 export async function buildCurrentProviderAuthStateSnapshot(
   cfg: OpenClawConfig,
   options: {
@@ -384,6 +388,7 @@ export async function buildCurrentProviderAuthStateSnapshot(
   return serializeProviderAuthStates(states);
 }
 
+/** Warms process-current provider auth state on the main thread. */
 export async function warmCurrentProviderAuthState(
   cfg: OpenClawConfig,
   options: { isCancelled?: () => boolean } = {},
@@ -616,6 +621,7 @@ function runProviderAuthWarmWorker(params: {
   });
 }
 
+/** Warms process-current provider auth state in a worker thread. */
 export async function warmCurrentProviderAuthStateOffMainThread(
   cfg: OpenClawConfig,
   options: {
