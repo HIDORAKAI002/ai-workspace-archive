@@ -1,5 +1,13 @@
 # Cline CLI Changelog
 
+## 3.0.20
+
+- Installed plugin wrappers are now named from their source (npm package name, git repo, remote filename, official slug, or local directory) instead of an opaque hash, making installed plugins easier to identify.
+
+## 3.0.19
+
+- Fixed CLI auto-update to use `npm update` so updates apply reliably, while preserving the installed release channel (e.g. nightly).
+
 ## 3.0.18
 
 - Fix Slack channel mentions so replies post in the original message's thread.
