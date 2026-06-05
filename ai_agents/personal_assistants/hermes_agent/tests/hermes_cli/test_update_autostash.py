@@ -635,15 +635,16 @@ def test_cmd_update_no_checkout_when_already_on_main(monkeypatch, tmp_path):
 
 
 def test_cmd_update_managed_clone_cleans_instead_of_stashing(monkeypatch, tmp_path):
-    """On a non-fork (managed) clone, working-tree dirt is discarded via
+    """On an explicitly managed clone, working-tree dirt is discarded via
     _clean_managed_worktree, NOT preserved via stash/restore.
 
     The stash/restore cycle has clobbered freshly-pulled source files
-    (apps/desktop/ deletion → [UNRESOLVED_ENTRY] index.html). A managed clone
-    has nothing the user authored, so the correct move is to throw the
-    git-artifact dirt away and pull cleanly.
+    (apps/desktop/ deletion → [UNRESOLVED_ENTRY] index.html). A checkout with
+    the Desktop/bootstrap marker has nothing the user authored, so the correct
+    move is to throw the git-artifact dirt away and pull cleanly.
     """
     _setup_update_mocks(monkeypatch, tmp_path)
+    (tmp_path / ".hermes-bootstrap-complete").write_text("{}", encoding="utf-8")
     monkeypatch.setattr("shutil.which", lambda name: "/usr/bin/uv" if name == "uv" else None)
     # Official origin → not a fork.
     monkeypatch.setattr(
@@ -675,6 +676,45 @@ def test_cmd_update_managed_clone_cleans_instead_of_stashing(monkeypatch, tmp_pa
     assert len(clean_calls) == 1
     assert len(stash_calls) == 0
     assert len(restore_calls) == 0
+
+
+def test_cmd_update_official_checkout_without_managed_marker_stashes(monkeypatch, tmp_path):
+    """An upstream-origin source checkout is not safe to clean destructively
+    unless Hermes wrote an explicit managed-checkout marker."""
+    _setup_update_mocks(monkeypatch, tmp_path)
+    monkeypatch.setattr("shutil.which", lambda name: "/usr/bin/uv" if name == "uv" else None)
+    monkeypatch.setattr(
+        hermes_main,
+        "_get_origin_url",
+        lambda *a, **kw: "https://github.com/NousResearch/hermes-agent.git",
+    )
+    clean_calls = []
+    monkeypatch.setattr(
+        hermes_main,
+        "_clean_managed_worktree",
+        lambda *a, **kw: clean_calls.append(1) or True,
+    )
+    stash_calls = []
+    monkeypatch.setattr(
+        hermes_main,
+        "_stash_local_changes_if_needed",
+        lambda *a, **kw: stash_calls.append(1) or "abc123",
+    )
+    restore_calls = []
+    monkeypatch.setattr(
+        hermes_main,
+        "_restore_stashed_changes",
+        lambda *a, **kw: restore_calls.append(1) or True,
+    )
+
+    side_effect, _ = _make_update_side_effect(commit_count="0")
+    monkeypatch.setattr(hermes_main.subprocess, "run", side_effect)
+
+    hermes_main.cmd_update(SimpleNamespace())
+
+    assert len(clean_calls) == 0
+    assert len(stash_calls) == 1
+    assert len(restore_calls) == 1
 
 
 def test_cmd_update_fork_still_uses_stash(monkeypatch, tmp_path):
@@ -779,3 +819,50 @@ def test_cmd_update_skips_stash_restore_when_reset_fails(monkeypatch, tmp_path, 
 
     out = capsys.readouterr().out
     assert "preserved in stash" in out
+
+
+def test_bootstrap_marker_not_autostashed_by_update(tmp_path):
+    """#38529: the Desktop bootstrap marker must be git-ignored so that
+    ``hermes update``'s ``git stash push --include-untracked`` does not sweep it
+    into an autostash on every run.
+
+    Behavioral + hermetic: build a throwaway repo that adopts the project's real
+    ``.gitignore`` (the contract under test), drop the marker, and confirm the
+    same stash invocation the updater uses leaves it untouched.
+    """
+    import shutil
+    import subprocess
+
+    if shutil.which("git") is None:
+        pytest.skip("git not available")
+
+    repo_gitignore = Path(hermes_main.__file__).resolve().parents[1] / ".gitignore"
+
+    def git(*args):
+        return subprocess.run(
+            ["git", *args], cwd=tmp_path, capture_output=True, text=True, check=True
+        )
+
+    git("init", "-q")
+    git("config", "user.email", "t@example.com")
+    git("config", "user.name", "t")
+    (tmp_path / ".gitignore").write_text(repo_gitignore.read_text())
+    (tmp_path / "tracked.txt").write_text("x\n")
+    git("add", "-A")
+    git("commit", "-qm", "init")
+
+    marker = tmp_path / ".hermes-bootstrap-complete"
+    marker.write_text("")
+
+    # Exact flags used by hermes update (hermes_cli/main.py).
+    git("stash", "push", "--include-untracked", "-m", "hermes-update-autostash")
+
+    assert marker.exists(), (
+        ".hermes-bootstrap-complete was swept into the update autostash — it must "
+        "be listed in .gitignore so `git stash -u` skips it (#38529)."
+    )
+    # It must not even register as a dirty/untracked change.
+    status = subprocess.run(
+        ["git", "status", "--porcelain"], cwd=tmp_path, capture_output=True, text=True
+    ).stdout
+    assert ".hermes-bootstrap-complete" not in status
