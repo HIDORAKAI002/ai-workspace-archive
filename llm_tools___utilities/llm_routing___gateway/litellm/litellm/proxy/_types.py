@@ -1376,6 +1376,7 @@ class UpdateMCPServerRequest(LiteLLMPydanticObjectBase):
     authorization_url: Optional[str] = None
     token_url: Optional[str] = None
     registration_url: Optional[str] = None
+    oauth2_flow: Optional[Literal["client_credentials", "authorization_code"]] = None
     allow_all_keys: bool = False
     available_on_public_internet: bool = True
     delegate_auth_to_upstream: bool = False
@@ -1449,6 +1450,7 @@ class LiteLLM_MCPServerTable(LiteLLMPydanticObjectBase):
     authorization_url: Optional[str] = None
     token_url: Optional[str] = None
     registration_url: Optional[str] = None
+    oauth2_flow: Optional[Literal["client_credentials", "authorization_code"]] = None
     allow_all_keys: bool = False
     available_on_public_internet: bool = True
     delegate_auth_to_upstream: bool = False
@@ -3512,6 +3514,19 @@ class AllCallbacks(LiteLLMPydanticObjectBase):
             "TRACELOOP_API_KEY",
         ],
         ui_callback_name="Traceloop",
+    )
+
+    galileo: CallbackOnUI = CallbackOnUI(
+        litellm_callback_name="galileo",
+        litellm_callback_params=[
+            "GALILEO_API_KEY",
+            "GALILEO_PROJECT_ID",
+            "GALILEO_LOG_STREAM_ID",
+            "GALILEO_BASE_URL",
+            "GALILEO_USERNAME",
+            "GALILEO_PASSWORD",
+        ],
+        ui_callback_name="Galileo",
     )
 
 
