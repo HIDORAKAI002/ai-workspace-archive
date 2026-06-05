@@ -55,6 +55,11 @@ import {
   type TestLlmEvaluatorDraftInput,
 } from "@phoenix/agent/tools/llmEvaluatorDraft";
 import {
+  parseSetAppendedMessagesPathInput,
+  SET_APPENDED_MESSAGES_PATH_TOOL_NAME,
+  type SetAppendedMessagesPathInput,
+} from "@phoenix/agent/tools/playgroundAppendedMessagesPath";
+import {
   LOAD_DATASET_TOOL_NAME,
   parseLoadDatasetInput,
   type LoadDatasetActionContext,
@@ -74,16 +79,22 @@ import {
   type ReadPlaygroundOutputInput,
 } from "@phoenix/agent/tools/playgroundOutput";
 import {
+  ADD_PROMPT_INSTANCE_TOOL_NAME,
   CLONE_PROMPT_INSTANCE_TOOL_NAME,
   EDIT_PROMPT_TOOL_NAME,
+  parseAddPromptInstanceInput,
   parseClonePromptInstanceInput,
   parseEditPromptInput,
   parseReadPromptInput,
+  parseRemovePromptInstanceInput,
+  type AddPromptInstanceInput,
   type ClonePromptInstanceInput,
   READ_PROMPT_TOOL_NAME,
+  REMOVE_PROMPT_INSTANCE_TOOL_NAME,
   type EditPromptActionContext,
   type EditPromptInput,
   type ReadPromptInput,
+  type RemovePromptInstanceInput,
 } from "@phoenix/agent/tools/playgroundPrompt";
 import {
   parseReadPromptToolsInput,
@@ -95,6 +106,9 @@ import {
   type WritePromptToolsInput,
 } from "@phoenix/agent/tools/playgroundPromptTools";
 import {
+  CANCEL_PLAYGROUND_RUN_TOOL_NAME,
+  type CancelPlaygroundRunInput,
+  parseCancelPlaygroundRunInput,
   parseRunPlaygroundInput,
   RUN_PLAYGROUND_TOOL_NAME,
   type RunPlaygroundInput,
@@ -576,6 +590,102 @@ const clonePromptInstanceAgentTool =
     },
   });
 
+const addPromptInstanceAgentTool =
+  createRegisteredAgentTool<AddPromptInstanceInput>({
+    name: ADD_PROMPT_INSTANCE_TOOL_NAME,
+    parseInput: parseAddPromptInstanceInput,
+    invalidInputErrorText: `Invalid ${ADD_PROMPT_INSTANCE_TOOL_NAME} input. Expected {}.`,
+    execute: async ({ toolCall, input, addToolOutput, agentStore }) => {
+      const action =
+        agentStore.getState().registeredClientActions[
+          ADD_PROMPT_INSTANCE_TOOL_NAME
+        ];
+      if (!action) {
+        await addToolOutput({
+          state: "output-error",
+          tool: ADD_PROMPT_INSTANCE_TOOL_NAME,
+          toolCallId: toolCall.toolCallId,
+          errorText:
+            "The playground prompt editor is not mounted; cannot add prompt instances.",
+        });
+        return;
+      }
+      const result = await action(input);
+      if (result.ok) {
+        await addToolOutput({
+          state: "output-available",
+          tool: ADD_PROMPT_INSTANCE_TOOL_NAME,
+          toolCallId: toolCall.toolCallId,
+          output: result.output ?? "Prompt instance added.",
+        });
+      } else {
+        await addToolOutput({
+          state: "output-error",
+          tool: ADD_PROMPT_INSTANCE_TOOL_NAME,
+          toolCallId: toolCall.toolCallId,
+          errorText: result.error,
+        });
+      }
+    },
+  });
+
+const removePromptInstanceAgentTool =
+  createRegisteredAgentTool<RemovePromptInstanceInput>({
+    name: REMOVE_PROMPT_INSTANCE_TOOL_NAME,
+    parseInput: parseRemovePromptInstanceInput,
+    invalidInputErrorText: `Invalid ${REMOVE_PROMPT_INSTANCE_TOOL_NAME} input. Expected { instanceId: number }.`,
+    uiBehavior: {
+      autoOpen: true,
+      scrollIntoViewOnMount: true,
+    },
+    execute: async ({
+      toolCall,
+      input,
+      sessionId,
+      addToolOutput,
+      agentStore,
+    }) => {
+      const action =
+        agentStore.getState().registeredClientActions[
+          REMOVE_PROMPT_INSTANCE_TOOL_NAME
+        ];
+      if (!action) {
+        await addToolOutput({
+          state: "output-error",
+          tool: REMOVE_PROMPT_INSTANCE_TOOL_NAME,
+          toolCallId: toolCall.toolCallId,
+          errorText:
+            "The playground prompt editor is not mounted; cannot remove prompt instances.",
+        });
+        return;
+      }
+      if (!sessionId) {
+        await addToolOutput({
+          state: "output-error",
+          tool: REMOVE_PROMPT_INSTANCE_TOOL_NAME,
+          toolCallId: toolCall.toolCallId,
+          errorText:
+            "Cannot remove prompt instances without an active session.",
+        });
+        return;
+      }
+      const context: EditPromptActionContext = {
+        toolCallId: toolCall.toolCallId,
+        sessionId,
+        addToolOutput,
+      };
+      const result = await action(input, context);
+      if (!result.ok) {
+        await addToolOutput({
+          state: "output-error",
+          tool: REMOVE_PROMPT_INSTANCE_TOOL_NAME,
+          toolCallId: toolCall.toolCallId,
+          errorText: result.error,
+        });
+      }
+    },
+  });
+
 const setPlaygroundModelAgentTool =
   createRegisteredAgentTool<SetPlaygroundModelInput>({
     name: SET_PLAYGROUND_MODEL_TOOL_NAME,
@@ -847,6 +957,45 @@ const runPlaygroundAgentTool = createRegisteredAgentTool<RunPlaygroundInput>({
   },
 });
 
+const cancelPlaygroundRunAgentTool =
+  createRegisteredAgentTool<CancelPlaygroundRunInput>({
+    name: CANCEL_PLAYGROUND_RUN_TOOL_NAME,
+    parseInput: parseCancelPlaygroundRunInput,
+    invalidInputErrorText: `Invalid ${CANCEL_PLAYGROUND_RUN_TOOL_NAME} input. Expected {}.`,
+    execute: async ({ toolCall, input, addToolOutput, agentStore }) => {
+      const action =
+        agentStore.getState().registeredClientActions[
+          CANCEL_PLAYGROUND_RUN_TOOL_NAME
+        ];
+      if (!action) {
+        await addToolOutput({
+          state: "output-error",
+          tool: CANCEL_PLAYGROUND_RUN_TOOL_NAME,
+          toolCallId: toolCall.toolCallId,
+          errorText:
+            "The playground is not mounted; cannot cancel a playground run.",
+        });
+        return;
+      }
+      const result = await action(input);
+      if (result.ok) {
+        await addToolOutput({
+          state: "output-available",
+          tool: CANCEL_PLAYGROUND_RUN_TOOL_NAME,
+          toolCallId: toolCall.toolCallId,
+          output: result.output ?? "Playground run cancelled.",
+        });
+      } else {
+        await addToolOutput({
+          state: "output-error",
+          tool: CANCEL_PLAYGROUND_RUN_TOOL_NAME,
+          toolCallId: toolCall.toolCallId,
+          errorText: result.error,
+        });
+      }
+    },
+  });
+
 const readPlaygroundOutputAgentTool =
   createRegisteredAgentTool<ReadPlaygroundOutputInput>({
     name: READ_PLAYGROUND_OUTPUT_TOOL_NAME,
@@ -957,6 +1106,45 @@ const setTemplateVariablesPathAgentTool =
         await addToolOutput({
           state: "output-error",
           tool: SET_TEMPLATE_VARIABLES_PATH_TOOL_NAME,
+          toolCallId: toolCall.toolCallId,
+          errorText: result.error,
+        });
+      }
+    },
+  });
+
+const setAppendedMessagesPathAgentTool =
+  createRegisteredAgentTool<SetAppendedMessagesPathInput>({
+    name: SET_APPENDED_MESSAGES_PATH_TOOL_NAME,
+    parseInput: parseSetAppendedMessagesPathInput,
+    invalidInputErrorText: `Invalid ${SET_APPENDED_MESSAGES_PATH_TOOL_NAME} input. Expected { path: string | null }.`,
+    execute: async ({ toolCall, input, addToolOutput, agentStore }) => {
+      const action =
+        agentStore.getState().registeredClientActions[
+          SET_APPENDED_MESSAGES_PATH_TOOL_NAME
+        ];
+      if (!action) {
+        await addToolOutput({
+          state: "output-error",
+          tool: SET_APPENDED_MESSAGES_PATH_TOOL_NAME,
+          toolCallId: toolCall.toolCallId,
+          errorText:
+            "The playground is not mounted; cannot set the appended messages path.",
+        });
+        return;
+      }
+      const result = await action(input);
+      if (result.ok) {
+        await addToolOutput({
+          state: "output-available",
+          tool: SET_APPENDED_MESSAGES_PATH_TOOL_NAME,
+          toolCallId: toolCall.toolCallId,
+          output: result.output ?? "Appended messages path updated.",
+        });
+      } else {
+        await addToolOutput({
+          state: "output-error",
+          tool: SET_APPENDED_MESSAGES_PATH_TOOL_NAME,
           toolCallId: toolCall.toolCallId,
           errorText: result.error,
         });
@@ -1471,6 +1659,8 @@ const agentToolRegistry: RegisteredAgentTool<unknown>[] = [
   setSpansFilterAgentTool as RegisteredAgentTool<unknown>,
   readPromptAgentTool as RegisteredAgentTool<unknown>,
   clonePromptInstanceAgentTool as RegisteredAgentTool<unknown>,
+  addPromptInstanceAgentTool as RegisteredAgentTool<unknown>,
+  removePromptInstanceAgentTool as RegisteredAgentTool<unknown>,
   listPlaygroundModelTargetsAgentTool as RegisteredAgentTool<unknown>,
   setPlaygroundModelAgentTool as RegisteredAgentTool<unknown>,
   editPromptAgentTool as RegisteredAgentTool<unknown>,
@@ -1479,9 +1669,11 @@ const agentToolRegistry: RegisteredAgentTool<unknown>[] = [
   writePromptToolsAgentTool as RegisteredAgentTool<unknown>,
   loadDatasetAgentTool as RegisteredAgentTool<unknown>,
   runPlaygroundAgentTool as RegisteredAgentTool<unknown>,
+  cancelPlaygroundRunAgentTool as RegisteredAgentTool<unknown>,
   readPlaygroundOutputAgentTool as RegisteredAgentTool<unknown>,
   setVariableValuesAgentTool as RegisteredAgentTool<unknown>,
   setTemplateVariablesPathAgentTool as RegisteredAgentTool<unknown>,
+  setAppendedMessagesPathAgentTool as RegisteredAgentTool<unknown>,
   batchSpanAnnotateAgentTool as RegisteredAgentTool<unknown>,
   openCodeEvaluatorFormAgentTool as RegisteredAgentTool<unknown>,
   readCodeEvaluatorDraftAgentTool as RegisteredAgentTool<unknown>,

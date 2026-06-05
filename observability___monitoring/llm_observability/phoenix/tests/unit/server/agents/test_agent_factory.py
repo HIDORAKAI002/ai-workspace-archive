@@ -65,10 +65,14 @@ DYNAMIC_TOOL_INSTRUCTIONS: frozenset[str] = frozenset(
         _DEFAULT_PROMPTS.read_prompt_instance_tool.render(),
         _DEFAULT_PROMPTS.read_playground_output_tool.render(),
         _DEFAULT_PROMPTS.clone_prompt_instance_tool.render(),
+        _DEFAULT_PROMPTS.add_prompt_instance_tool.render(),
+        _DEFAULT_PROMPTS.remove_prompt_instance_tool.render(),
         _DEFAULT_PROMPTS.edit_prompt_instance_tool.render(),
         _DEFAULT_PROMPTS.save_prompt_tool.render(),
         _DEFAULT_PROMPTS.run_playground_tool.render(),
+        _DEFAULT_PROMPTS.cancel_playground_run_tool.render(),
         _DEFAULT_PROMPTS.set_variable_values_tool.render(),
+        _DEFAULT_PROMPTS.set_appended_messages_path_tool.render(),
         _DEFAULT_PROMPTS.load_dataset_tool.render(),
     }
 )
@@ -492,10 +496,14 @@ class TestPlaygroundTools:
         await agent.run("hello", deps=deps)
 
         assert "run_playground" not in _get_tool_names(captured_request.body)
+        assert "cancel_playground_run" not in _get_tool_names(captured_request.body)
         assert "read_playground_output" not in _get_tool_names(captured_request.body)
+        assert "add_prompt_instance" not in _get_tool_names(captured_request.body)
+        assert "remove_prompt_instance" not in _get_tool_names(captured_request.body)
         assert "save_prompt" not in _get_tool_names(captured_request.body)
         assert "set_variable_values" not in _get_tool_names(captured_request.body)
         assert "set_template_variables_path" not in _get_tool_names(captured_request.body)
+        assert "set_appended_messages_path" not in _get_tool_names(captured_request.body)
         assert "list_playground_model_targets" not in _get_tool_names(captured_request.body)
         assert "set_playground_model" not in _get_tool_names(captured_request.body)
         assert "load_dataset" not in _get_tool_names(captured_request.body)
@@ -527,10 +535,14 @@ class TestPlaygroundTools:
         await agent.run("hello", deps=deps)
 
         assert "run_playground" in _get_tool_names(captured_request.body)
+        assert "cancel_playground_run" in _get_tool_names(captured_request.body)
         assert "read_playground_output" in _get_tool_names(captured_request.body)
+        assert "add_prompt_instance" in _get_tool_names(captured_request.body)
+        assert "remove_prompt_instance" in _get_tool_names(captured_request.body)
         assert "save_prompt" in _get_tool_names(captured_request.body)
         assert "set_variable_values" in _get_tool_names(captured_request.body)
         assert "set_template_variables_path" in _get_tool_names(captured_request.body)
+        assert "set_appended_messages_path" in _get_tool_names(captured_request.body)
         assert "list_playground_model_targets" in _get_tool_names(captured_request.body)
         assert "set_playground_model" in _get_tool_names(captured_request.body)
         assert "load_dataset" in _get_tool_names(captured_request.body)

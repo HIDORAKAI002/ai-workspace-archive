@@ -34,6 +34,10 @@ import {
   TEST_LLM_EVALUATOR_DRAFT_TOOL_NAME,
 } from "@phoenix/agent/tools/llmEvaluatorDraft";
 import {
+  createSetAppendedMessagesPathClientAction,
+  SET_APPENDED_MESSAGES_PATH_TOOL_NAME,
+} from "@phoenix/agent/tools/playgroundAppendedMessagesPath";
+import {
   createLoadDatasetClientAction,
   LOAD_DATASET_TOOL_NAME,
 } from "@phoenix/agent/tools/playgroundLoadDataset";
@@ -48,12 +52,16 @@ import {
   READ_PLAYGROUND_OUTPUT_TOOL_NAME,
 } from "@phoenix/agent/tools/playgroundOutput";
 import {
+  ADD_PROMPT_INSTANCE_TOOL_NAME,
   CLONE_PROMPT_INSTANCE_TOOL_NAME,
+  createAddPromptInstanceClientAction,
   createClonePromptInstanceClientAction,
   createEditPromptClientAction,
   createReadPromptClientAction,
+  createRemovePromptInstanceClientAction,
   EDIT_PROMPT_TOOL_NAME,
   READ_PROMPT_TOOL_NAME,
+  REMOVE_PROMPT_INSTANCE_TOOL_NAME,
 } from "@phoenix/agent/tools/playgroundPrompt";
 import {
   createReadPromptToolsClientAction,
@@ -62,6 +70,8 @@ import {
   WRITE_PROMPT_TOOLS_TOOL_NAME,
 } from "@phoenix/agent/tools/playgroundPromptTools";
 import {
+  CANCEL_PLAYGROUND_RUN_TOOL_NAME,
+  createCancelPlaygroundRunClientAction,
   createRunPlaygroundClientAction,
   RUN_PLAYGROUND_TOOL_NAME,
 } from "@phoenix/agent/tools/playgroundRun";
@@ -105,7 +115,10 @@ import { usePreferencesContext } from "@phoenix/contexts/PreferencesContext";
 import { ConfirmExperimentNavigationDialog } from "@phoenix/pages/playground/ConfirmExperimentNavigationDialog";
 import { PlaygroundExamplePage } from "@phoenix/pages/playground/PlaygroundExamplePage";
 import type { PromptParam } from "@phoenix/pages/playground/playgroundURLSearchParamsUtils";
-import { setPromptParams } from "@phoenix/pages/playground/playgroundURLSearchParamsUtils";
+import {
+  resolvePlaygroundDatasetId,
+  setPromptParams,
+} from "@phoenix/pages/playground/playgroundURLSearchParamsUtils";
 import type { PlaygroundProps } from "@phoenix/store";
 import {
   type AgentClientActionResult,
@@ -129,6 +142,7 @@ import { PlaygroundOutput } from "./PlaygroundOutput";
 import { PlaygroundRunButton } from "./PlaygroundRunButton";
 import { PlaygroundTemplate } from "./PlaygroundTemplate";
 import { TemplateFormatRadioGroup } from "./TemplateFormatRadioGroup";
+import { useCancelPlaygroundRun } from "./useCancelPlaygroundRun";
 
 const playgroundWrapCSS = css`
   display: flex;
@@ -144,10 +158,10 @@ export function Playground(
   }
 ) {
   const [searchParams] = useSearchParams();
-  const experimentId = searchParams.get("experimentId");
-  const datasetId = experimentId
-    ? (props.datasetId ?? null)
-    : searchParams.get("datasetId");
+  const datasetId = resolvePlaygroundDatasetId({
+    searchParams,
+    storeDatasetId: props.datasetId ?? null,
+  });
 
   const { modelProviders } = useLazyLoadQuery<PlaygroundQuery>(
     graphql`
@@ -292,15 +306,16 @@ const DEFAULT_EXPANDED_PARAMS = ["input", "output"];
 function PlaygroundContent() {
   const agentStore = useAgentStore();
   const playgroundStore = usePlaygroundStore();
+  const cancelPlaygroundRun = useCancelPlaygroundRun();
   const templateFormat = usePlaygroundContext((state) => state.templateFormat);
   const [searchParams, setSearchParams] = useSearchParams();
   const searchParamsRef = useRef(searchParams);
   searchParamsRef.current = searchParams;
   const storeDatasetId = usePlaygroundContext((state) => state.datasetId);
-  const experimentId = searchParams.get("experimentId");
-  const datasetId = experimentId
-    ? storeDatasetId
-    : searchParams.get("datasetId");
+  const datasetId = resolvePlaygroundDatasetId({
+    searchParams,
+    storeDatasetId,
+  });
   // Only depend on the split-id subset of query params.
   const serializedSplitIds = searchParams.getAll("splitId").join("\0");
   // Keep splitIds referentially stable unless split-id values actually change.
@@ -385,6 +400,7 @@ function PlaygroundContent() {
       registerClientAction,
       unregisterClientAction,
       setPendingPromptEdit,
+      setPendingPromptInstanceRemoval,
       setPendingSavePrompt,
       setPendingLoadDataset,
       setPendingPromptToolWrite,
@@ -396,6 +412,19 @@ function PlaygroundContent() {
     registerClientAction(
       CLONE_PROMPT_INSTANCE_TOOL_NAME,
       createClonePromptInstanceClientAction({ playgroundStore })
+    );
+    registerClientAction(
+      ADD_PROMPT_INSTANCE_TOOL_NAME,
+      createAddPromptInstanceClientAction({ playgroundStore })
+    );
+    registerClientAction(
+      REMOVE_PROMPT_INSTANCE_TOOL_NAME,
+      createRemovePromptInstanceClientAction({
+        playgroundStore,
+        setPendingPromptInstanceRemoval,
+        shouldAutoAccept: () =>
+          agentStore.getState().permissions.edits === "bypass",
+      })
     );
     registerClientAction(
       EDIT_PROMPT_TOOL_NAME,
@@ -458,9 +487,18 @@ function PlaygroundContent() {
           agentStore.getState().permissions.edits === "bypass",
       })
     );
+    registerClientAction(
+      SET_APPENDED_MESSAGES_PATH_TOOL_NAME,
+      createSetAppendedMessagesPathClientAction({
+        playgroundStore,
+        getSearchParams: () => searchParamsRef.current,
+      })
+    );
     return () => {
       unregisterClientAction(READ_PROMPT_TOOL_NAME);
       unregisterClientAction(CLONE_PROMPT_INSTANCE_TOOL_NAME);
+      unregisterClientAction(ADD_PROMPT_INSTANCE_TOOL_NAME);
+      unregisterClientAction(REMOVE_PROMPT_INSTANCE_TOOL_NAME);
       unregisterClientAction(EDIT_PROMPT_TOOL_NAME);
       unregisterClientAction(SAVE_PROMPT_TOOL_NAME);
       unregisterClientAction(RUN_PLAYGROUND_TOOL_NAME);
@@ -470,11 +508,19 @@ function PlaygroundContent() {
       unregisterClientAction(LOAD_DATASET_TOOL_NAME);
       unregisterClientAction(READ_PROMPT_TOOLS_TOOL_NAME);
       unregisterClientAction(WRITE_PROMPT_TOOLS_TOOL_NAME);
+      unregisterClientAction(SET_APPENDED_MESSAGES_PATH_TOOL_NAME);
       for (const pendingEdit of Object.values(
         agentStore.getState().pendingPromptEditsByToolCallId
       )) {
         if (pendingEdit) {
           void pendingEdit.cancel?.();
+        }
+      }
+      for (const pendingRemoval of Object.values(
+        agentStore.getState().pendingPromptInstanceRemovalsByToolCallId
+      )) {
+        if (pendingRemoval) {
+          void pendingRemoval.cancel?.();
         }
       }
       for (const pendingSave of Object.values(
@@ -500,6 +546,21 @@ function PlaygroundContent() {
       }
     };
   }, [agentStore, playgroundStore, setSearchParams]);
+
+  useEffect(() => {
+    const { registerClientAction, unregisterClientAction } =
+      agentStore.getState();
+    registerClientAction(
+      CANCEL_PLAYGROUND_RUN_TOOL_NAME,
+      createCancelPlaygroundRunClientAction({
+        playgroundStore,
+        cancelRun: cancelPlaygroundRun,
+      })
+    );
+    return () => {
+      unregisterClientAction(CANCEL_PLAYGROUND_RUN_TOOL_NAME);
+    };
+  }, [agentStore, cancelPlaygroundRun, playgroundStore]);
 
   useEffect(() => {
     const { registerClientAction, unregisterClientAction } =

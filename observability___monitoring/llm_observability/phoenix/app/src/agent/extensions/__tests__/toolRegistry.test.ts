@@ -18,10 +18,15 @@ import {
 } from "@phoenix/agent/tools/playgroundModel";
 import { READ_PLAYGROUND_OUTPUT_TOOL_NAME } from "@phoenix/agent/tools/playgroundOutput";
 import {
+  ADD_PROMPT_INSTANCE_TOOL_NAME,
   CLONE_PROMPT_INSTANCE_TOOL_NAME,
   EDIT_PROMPT_TOOL_NAME,
+  REMOVE_PROMPT_INSTANCE_TOOL_NAME,
 } from "@phoenix/agent/tools/playgroundPrompt";
-import { RUN_PLAYGROUND_TOOL_NAME } from "@phoenix/agent/tools/playgroundRun";
+import {
+  CANCEL_PLAYGROUND_RUN_TOOL_NAME,
+  RUN_PLAYGROUND_TOOL_NAME,
+} from "@phoenix/agent/tools/playgroundRun";
 import {
   createSavePromptClientAction,
   SAVE_PROMPT_TOOL_NAME,
@@ -432,6 +437,207 @@ describe("toolRegistry", () => {
     );
   });
 
+  it("dispatches add_prompt_instance to the registered client action", async () => {
+    const store = createAgentStore();
+    const addToolOutput = vi.fn().mockResolvedValue(undefined);
+    const action = vi.fn().mockResolvedValue({ ok: true, output: "added" });
+    store
+      .getState()
+      .registerClientAction(ADD_PROMPT_INSTANCE_TOOL_NAME, action);
+
+    await handleRegisteredAgentToolCall({
+      toolCall: {
+        toolCallId: "tool-call-add-prompt",
+        toolName: ADD_PROMPT_INSTANCE_TOOL_NAME,
+        input: {},
+      },
+      sessionId: "session-1",
+      addToolOutput,
+      agentStore: store,
+    });
+
+    expect(action).toHaveBeenCalledWith({});
+    expect(addToolOutput).toHaveBeenCalledWith(
+      expect.objectContaining({
+        state: "output-available",
+        tool: ADD_PROMPT_INSTANCE_TOOL_NAME,
+        output: "added",
+      })
+    );
+  });
+
+  it("returns an error when add_prompt_instance has no mounted action", async () => {
+    const store = createAgentStore();
+    const addToolOutput = vi.fn().mockResolvedValue(undefined);
+
+    await handleRegisteredAgentToolCall({
+      toolCall: {
+        toolCallId: "tool-call-add-missing",
+        toolName: ADD_PROMPT_INSTANCE_TOOL_NAME,
+        input: {},
+      },
+      sessionId: "session-1",
+      addToolOutput,
+      agentStore: store,
+    });
+
+    expect(addToolOutput).toHaveBeenCalledWith(
+      expect.objectContaining({
+        state: "output-error",
+        tool: ADD_PROMPT_INSTANCE_TOOL_NAME,
+        toolCallId: "tool-call-add-missing",
+        errorText:
+          "The playground prompt editor is not mounted; cannot add prompt instances.",
+      })
+    );
+  });
+
+  it("normalizes empty add_prompt_instance inputs", async () => {
+    const store = createAgentStore();
+    const addToolOutput = vi.fn().mockResolvedValue(undefined);
+    const action = vi.fn().mockResolvedValue({ ok: true, output: "added" });
+    store
+      .getState()
+      .registerClientAction(ADD_PROMPT_INSTANCE_TOOL_NAME, action);
+
+    await handleRegisteredAgentToolCall({
+      toolCall: {
+        toolCallId: "tool-call-add-extra",
+        toolName: ADD_PROMPT_INSTANCE_TOOL_NAME,
+        input: { instanceId: 1 },
+      },
+      sessionId: "session-1",
+      addToolOutput,
+      agentStore: store,
+    });
+
+    expect(action).toHaveBeenCalledWith({});
+    expect(addToolOutput).toHaveBeenCalledWith(
+      expect.objectContaining({
+        state: "output-available",
+        tool: ADD_PROMPT_INSTANCE_TOOL_NAME,
+        toolCallId: "tool-call-add-extra",
+        output: "added",
+      })
+    );
+  });
+
+  it("rejects malformed add_prompt_instance input", async () => {
+    const store = createAgentStore();
+    const addToolOutput = vi.fn().mockResolvedValue(undefined);
+    const action = vi.fn();
+    store
+      .getState()
+      .registerClientAction(ADD_PROMPT_INSTANCE_TOOL_NAME, action);
+
+    await handleRegisteredAgentToolCall({
+      toolCall: {
+        toolCallId: "tool-call-add-malformed",
+        toolName: ADD_PROMPT_INSTANCE_TOOL_NAME,
+        input: "bad input",
+      },
+      sessionId: "session-1",
+      addToolOutput,
+      agentStore: store,
+    });
+
+    expect(action).not.toHaveBeenCalled();
+    expect(addToolOutput).toHaveBeenCalledWith(
+      expect.objectContaining({
+        state: "output-error",
+        tool: ADD_PROMPT_INSTANCE_TOOL_NAME,
+        toolCallId: "tool-call-add-malformed",
+        errorText: `Invalid ${ADD_PROMPT_INSTANCE_TOOL_NAME} input. Expected {}.`,
+      })
+    );
+  });
+
+  it("dispatches remove_prompt_instance to the registered client action", async () => {
+    const store = createAgentStore();
+    const addToolOutput = vi.fn().mockResolvedValue(undefined);
+    const action = vi.fn().mockResolvedValue({ ok: true });
+    store
+      .getState()
+      .registerClientAction(REMOVE_PROMPT_INSTANCE_TOOL_NAME, action);
+
+    await handleRegisteredAgentToolCall({
+      toolCall: {
+        toolCallId: "tool-call-remove-prompt",
+        toolName: REMOVE_PROMPT_INSTANCE_TOOL_NAME,
+        input: { instanceId: 1 },
+      },
+      sessionId: "session-1",
+      addToolOutput,
+      agentStore: store,
+    });
+
+    expect(action).toHaveBeenCalledWith(
+      { instanceId: 1 },
+      {
+        toolCallId: "tool-call-remove-prompt",
+        sessionId: "session-1",
+        addToolOutput,
+      }
+    );
+    expect(addToolOutput).not.toHaveBeenCalled();
+  });
+
+  it("returns an error when remove_prompt_instance has no mounted action", async () => {
+    const store = createAgentStore();
+    const addToolOutput = vi.fn().mockResolvedValue(undefined);
+
+    await handleRegisteredAgentToolCall({
+      toolCall: {
+        toolCallId: "tool-call-remove-missing",
+        toolName: REMOVE_PROMPT_INSTANCE_TOOL_NAME,
+        input: { instanceId: 1 },
+      },
+      sessionId: "session-1",
+      addToolOutput,
+      agentStore: store,
+    });
+
+    expect(addToolOutput).toHaveBeenCalledWith(
+      expect.objectContaining({
+        state: "output-error",
+        tool: REMOVE_PROMPT_INSTANCE_TOOL_NAME,
+        toolCallId: "tool-call-remove-missing",
+        errorText:
+          "The playground prompt editor is not mounted; cannot remove prompt instances.",
+      })
+    );
+  });
+
+  it("rejects invalid remove_prompt_instance input", async () => {
+    const store = createAgentStore();
+    const addToolOutput = vi.fn().mockResolvedValue(undefined);
+    const action = vi.fn();
+    store
+      .getState()
+      .registerClientAction(REMOVE_PROMPT_INSTANCE_TOOL_NAME, action);
+
+    await handleRegisteredAgentToolCall({
+      toolCall: {
+        toolCallId: "tool-call-remove-invalid",
+        toolName: REMOVE_PROMPT_INSTANCE_TOOL_NAME,
+        input: {},
+      },
+      sessionId: "session-1",
+      addToolOutput,
+      agentStore: store,
+    });
+
+    expect(action).not.toHaveBeenCalled();
+    expect(addToolOutput).toHaveBeenCalledWith(
+      expect.objectContaining({
+        state: "output-error",
+        tool: REMOVE_PROMPT_INSTANCE_TOOL_NAME,
+        toolCallId: "tool-call-remove-invalid",
+        errorText: `Invalid ${REMOVE_PROMPT_INSTANCE_TOOL_NAME} input. Expected { instanceId: number }.`,
+      })
+    );
+  });
+
   it("dispatches run_playground to the registered client action", async () => {
     const store = createAgentStore();
     const addToolOutput = vi.fn().mockResolvedValue(undefined);
@@ -455,6 +661,35 @@ describe("toolRegistry", () => {
         state: "output-available",
         tool: RUN_PLAYGROUND_TOOL_NAME,
         output: "started",
+      })
+    );
+  });
+
+  it("dispatches cancel_playground_run to the registered client action", async () => {
+    const store = createAgentStore();
+    const addToolOutput = vi.fn().mockResolvedValue(undefined);
+    const action = vi.fn().mockResolvedValue({ ok: true, output: "cancelled" });
+    store
+      .getState()
+      .registerClientAction(CANCEL_PLAYGROUND_RUN_TOOL_NAME, action);
+
+    await handleRegisteredAgentToolCall({
+      toolCall: {
+        toolCallId: "tool-call-cancel-playground-run",
+        toolName: CANCEL_PLAYGROUND_RUN_TOOL_NAME,
+        input: {},
+      },
+      sessionId: "session-1",
+      addToolOutput,
+      agentStore: store,
+    });
+
+    expect(action).toHaveBeenCalledWith({});
+    expect(addToolOutput).toHaveBeenCalledWith(
+      expect.objectContaining({
+        state: "output-available",
+        tool: CANCEL_PLAYGROUND_RUN_TOOL_NAME,
+        output: "cancelled",
       })
     );
   });
