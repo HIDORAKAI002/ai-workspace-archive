@@ -17,22 +17,21 @@ import pprint
 import re  # noqa: F401
 import json
 
-from pydantic import BaseModel, ConfigDict, StrictStr
+from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr
 from typing import Any, ClassVar, Dict, List, Optional
-from hindsight_client_api.models.validation_error_loc_inner import ValidationErrorLocInner
 from typing import Optional, Set
 from typing_extensions import Self
 
-class ValidationError(BaseModel):
+class OperationProgress(BaseModel):
     """
-    ValidationError
+    Last-known progress snapshot for a long-running async operation.  Written at coarse phase/batch boundaries by the worker (consolidation, batch retain). Lets an operator polling the operation status API distinguish a healthy long-running job (``processed`` advancing across polls) from a frozen one (same numbers, no movement in ``at``). Absent (``null``) on operations that never reached a checkpoint — completed-instantly or pre-feature rows.
     """ # noqa: E501
-    loc: List[ValidationErrorLocInner]
-    msg: StrictStr
-    type: StrictStr
-    input: Optional[Any] = None
-    ctx: Optional[Dict[str, Any]] = None
-    __properties: ClassVar[List[str]] = ["loc", "msg", "type", "input", "ctx"]
+    stage: StrictStr = Field(description="Coarse phase the operation last reported (e.g. 'processing_batch').")
+    at: StrictStr = Field(description="ISO-8601 timestamp when this snapshot was written.")
+    processed: Optional[StrictInt] = None
+    total: Optional[StrictInt] = None
+    detail: Optional[Dict[str, StrictInt]] = None
+    __properties: ClassVar[List[str]] = ["stage", "at", "processed", "total", "detail"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -52,7 +51,7 @@ class ValidationError(BaseModel):
 
     @classmethod
     def from_json(cls, json_str: str) -> Optional[Self]:
-        """Create an instance of ValidationError from a JSON string"""
+        """Create an instance of OperationProgress from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self) -> Dict[str, Any]:
@@ -73,23 +72,26 @@ class ValidationError(BaseModel):
             exclude=excluded_fields,
             exclude_none=True,
         )
-        # override the default output from pydantic by calling `to_dict()` of each item in loc (list)
-        _items = []
-        if self.loc:
-            for _item_loc in self.loc:
-                if _item_loc:
-                    _items.append(_item_loc.to_dict())
-            _dict['loc'] = _items
-        # set to None if input (nullable) is None
+        # set to None if processed (nullable) is None
         # and model_fields_set contains the field
-        if self.input is None and "input" in self.model_fields_set:
-            _dict['input'] = None
+        if self.processed is None and "processed" in self.model_fields_set:
+            _dict['processed'] = None
+
+        # set to None if total (nullable) is None
+        # and model_fields_set contains the field
+        if self.total is None and "total" in self.model_fields_set:
+            _dict['total'] = None
+
+        # set to None if detail (nullable) is None
+        # and model_fields_set contains the field
+        if self.detail is None and "detail" in self.model_fields_set:
+            _dict['detail'] = None
 
         return _dict
 
     @classmethod
     def from_dict(cls, obj: Optional[Dict[str, Any]]) -> Optional[Self]:
-        """Create an instance of ValidationError from a dict"""
+        """Create an instance of OperationProgress from a dict"""
         if obj is None:
             return None
 
@@ -97,11 +99,11 @@ class ValidationError(BaseModel):
             return cls.model_validate(obj)
 
         _obj = cls.model_validate({
-            "loc": [ValidationErrorLocInner.from_dict(_item) for _item in obj["loc"]] if obj.get("loc") is not None else None,
-            "msg": obj.get("msg"),
-            "type": obj.get("type"),
-            "input": obj.get("input"),
-            "ctx": obj.get("ctx")
+            "stage": obj.get("stage"),
+            "at": obj.get("at"),
+            "processed": obj.get("processed"),
+            "total": obj.get("total"),
+            "detail": obj.get("detail")
         })
         return _obj
 
