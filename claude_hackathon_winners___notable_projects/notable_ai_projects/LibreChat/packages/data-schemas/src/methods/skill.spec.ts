@@ -253,7 +253,9 @@ describe('skill validation helpers', () => {
           'user-invocable': true,
           effort: 5,
           version: '1.0.0',
+          license: 'MIT',
           hooks: { 'pre-run': 'echo hi' },
+          metadata: { owner: 'data-team' },
         }),
       ).toEqual([]);
     });
@@ -1386,6 +1388,40 @@ describe('SkillFile methods', () => {
     const files = await methods.listSkillFiles(skill._id);
     expect(files[0].storageKey).toBe('r/us-east-2/uploads/user123/parse.sh');
     expect(files[0].storageRegion).toBe('us-east-2');
+  });
+
+  it('throws an explicit error when the upsert returns no saved file row', async () => {
+    const { skill } = await methods.createSkill(makeSkillInput());
+    const missingUpsert = {
+      lean: jest.fn().mockResolvedValue({
+        value: null,
+        lastErrorObject: { updatedExisting: false },
+      }),
+    } as unknown as ReturnType<typeof SkillFile.findOneAndUpdate>;
+    const findOneAndUpdateSpy = jest
+      .spyOn(SkillFile, 'findOneAndUpdate')
+      .mockReturnValueOnce(missingUpsert);
+    const bumpSpy = jest.spyOn(Skill, 'findByIdAndUpdate');
+
+    try {
+      await expect(
+        methods.upsertSkillFile({
+          skillId: skill._id,
+          relativePath: 'scripts/parse.sh',
+          file_id: 'file-1',
+          filename: 'parse.sh',
+          filepath: '/tmp/v1',
+          source: 'local',
+          mimeType: 'text/plain',
+          bytes: 10,
+          author: owner._id,
+        }),
+      ).rejects.toMatchObject({ code: 'SKILL_FILE_UPSERT_NOT_FOUND' });
+      expect(bumpSpy).not.toHaveBeenCalled();
+    } finally {
+      findOneAndUpdateSpy.mockRestore();
+      bumpSpy.mockRestore();
+    }
   });
 
   it('clears codeEnvRef when a skill file is upserted (replacement)', async () => {
