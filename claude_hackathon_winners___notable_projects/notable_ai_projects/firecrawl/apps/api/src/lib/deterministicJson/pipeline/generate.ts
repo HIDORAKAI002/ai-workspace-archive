@@ -24,10 +24,12 @@ export async function generateExtractor(
     schemaJson: string;
     prompt: string;
     rejectionFeedback?: string;
+    previousCode?: string;
   },
   costTracking: CostTracking,
 ): Promise<string> {
   let feedback = args.rejectionFeedback;
+  let previousCode = args.previousCode;
   let lastIssues: GeneratedCodeIssue[] = [];
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
@@ -38,6 +40,7 @@ export async function generateExtractor(
         markdownPreview: args.markdownPreview,
         anchorHtml: args.anchorHtml,
         rejectionFeedback: feedback,
+        previousCode,
       }),
       costTracking,
     );
@@ -68,6 +71,8 @@ export async function generateExtractor(
 
     lastIssues = issues;
     feedback = formatGeneratedCodeIssues(issues);
+    // Repair our own latest attempt next round, not the stale code passed in.
+    if (code) previousCode = code;
     log(
       `rejecting extractor attempt ${attempt}: ${issues.length} issue(s)\n${feedback}`,
     );
