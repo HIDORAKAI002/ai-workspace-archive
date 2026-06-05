@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-06-05 10:20 IST] Auto-Sync
+- **29 Repositories Updated:** Supabase MCP, Promptfoo, Dify, Windmill, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, openai/openai-agents-python, pydantic/pydantic-ai, mastra-ai/mastra, BerriAI/litellm, stanfordnlp/dspy, ollama/ollama, vllm-project/vllm, lobehub/lobe-chat, cline/cline, anthropics/claude-code, infiniflow/ragflow, firecrawl/firecrawl, danny-avila/LibreChat, googleapis/python-genai, vercel/ai, apache/airflow, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, nousresearch/hermes-agent
+
 ## [2026-06-05 03:37 IST] Auto-Sync
 - **41 Repositories Updated:** Langfuse, Promptfoo, Guardrails AI, n8n, Activepieces, Windmill, Appsmith, Budibase, NocoDB, Directus, Plane, modelcontextprotocol/rust-sdk, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langchain, crewAIInc/crewAI, mastra-ai/mastra, deepset-ai/haystack, BerriAI/litellm, ollama/ollama, ggml-org/llama.cpp, deepspeedai/DeepSpeed, vllm-project/vllm, lobehub/lobe-chat, cline/cline, arize-ai/phoenix, firecrawl/firecrawl, danny-avila/LibreChat, anthropics/anthropic-sdk-python, googleapis/python-genai, vercel/ai, apache/airflow, PrefectHQ/prefect, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight, nousresearch/hermes-agent
 
