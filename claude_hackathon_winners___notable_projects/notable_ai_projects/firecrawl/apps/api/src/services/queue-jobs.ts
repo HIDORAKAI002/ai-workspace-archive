@@ -27,6 +27,16 @@ import { abTestJob } from "./ab-test";
 import { NuQJob, scrapeQueue } from "./worker/nuq";
 import { serializeTraceContext } from "../lib/otel-tracer";
 import { isSelfHosted } from "../lib/deployment";
+import { MONITOR_CHECK_STALE_TIMEOUT_MS } from "./monitoring/stale";
+
+// Queue-wait deadline for a backlogged job (how long its owner still cares about the result)
+function backlogTimeoutMs(data: ScrapeJobData): number {
+  if (data.crawl_id) return MAX_BACKLOG_TIMEOUT_MS;
+  if (data.monitoring) return MONITOR_CHECK_STALE_TIMEOUT_MS;
+  if (data.mode === "single_urls")
+    return data.scrapeOptions.timeout ?? 60 * 1000;
+  return 60 * 1000;
+}
 
 /**
  * Checks if a job is a crawl or batch scrape based on its options
@@ -61,10 +71,7 @@ async function _addScrapeJobToConcurrencyQueue(
       groupId: webScraperOptions.crawl_id ?? undefined,
       backlogged: true,
       backloggedTimesOutAt: new Date(
-        Date.now() +
-          (webScraperOptions.crawl_id
-            ? MAX_BACKLOG_TIMEOUT_MS
-            : (webScraperOptions.scrapeOptions?.timeout ?? 60 * 1000)),
+        Date.now() + backlogTimeoutMs(webScraperOptions),
       ),
     },
   );
@@ -77,9 +84,7 @@ async function _addScrapeJobToConcurrencyQueue(
       priority,
       listenable,
     },
-    webScraperOptions.crawl_id
-      ? MAX_BACKLOG_TIMEOUT_MS
-      : (webScraperOptions.scrapeOptions?.timeout ?? 60 * 1000),
+    backlogTimeoutMs(webScraperOptions),
   );
 }
 
@@ -101,12 +106,7 @@ async function _addScrapeJobsToConcurrencyQueue(
         ownerId: job.data.team_id ?? undefined,
         groupId: job.data.crawl_id ?? undefined,
         backlogged: true,
-        backloggedTimesOutAt: new Date(
-          Date.now() +
-            (job.data.crawl_id
-              ? MAX_BACKLOG_TIMEOUT_MS
-              : (job.data.scrapeOptions?.timeout ?? 60 * 1000)),
-        ),
+        backloggedTimesOutAt: new Date(Date.now() + backlogTimeoutMs(job.data)),
       },
     })),
   );
@@ -131,9 +131,7 @@ async function _addScrapeJobsToConcurrencyQueue(
         priority: job.priority,
         listenable: job.listenable ?? false,
       },
-      timeout: job.data.crawl_id
-        ? MAX_BACKLOG_TIMEOUT_MS
-        : (job.data.scrapeOptions?.timeout ?? 60 * 1000),
+      timeout: backlogTimeoutMs(job.data),
     });
   }
 
