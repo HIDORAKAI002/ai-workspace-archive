@@ -29,7 +29,7 @@ import {
   unpinSession
 } from '../store/layout'
 import { $filePreviewTarget, $previewTarget, closeActiveRightRailTab } from '../store/preview'
-import { $freshSessionRequest, normalizeProfileKey, refreshActiveProfile } from '../store/profile'
+import { $activeGatewayProfile, $freshSessionRequest, normalizeProfileKey, refreshActiveProfile } from '../store/profile'
 import {
   $activeSessionId,
   $currentCwd,
@@ -506,6 +506,25 @@ export function DesktopController() {
     startFreshSessionDraft()
   }, [freshSessionRequest, startFreshSessionDraft])
 
+  // Swapping the live gateway to another profile must re-pull that profile's
+  // global model + active-profile pill. Both are nanostores, so the blanket
+  // invalidateQueries() the profile store fires on swap doesn't touch them —
+  // without this the statusbar keeps showing the previous profile's model
+  // (the "forgets the LLM setting" report). gatewayState stays 'open' across a
+  // swap (background sockets persist), so the open→open effect won't re-run.
+  const activeGatewayProfile = useStore($activeGatewayProfile)
+  const lastGatewayProfileRef = useRef(activeGatewayProfile)
+
+  useEffect(() => {
+    if (activeGatewayProfile === lastGatewayProfileRef.current) {
+      return
+    }
+
+    lastGatewayProfileRef.current = activeGatewayProfile
+    void refreshCurrentModel()
+    void refreshActiveProfile()
+  }, [activeGatewayProfile, refreshCurrentModel])
+
   const composer = useComposerActions({
     activeSessionId,
     currentCwd,
@@ -681,6 +700,7 @@ export function DesktopController() {
             initialSection={commandCenterInitialSection}
             onClose={closeOverlayToPreviousRoute}
             onDeleteSession={removeSession}
+            onNavigateRoute={path => navigate(path)}
             onOpenSession={sessionId => navigate(sessionRoute(sessionId))}
           />
         </Suspense>
