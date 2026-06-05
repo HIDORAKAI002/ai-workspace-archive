@@ -442,7 +442,7 @@ function buildPostMarkdown(post: XTwitterPostData): string {
     lines.push(metrics.join(" | "));
   }
 
-  lines.push("", "## Post", "", formatBlockquote(post.text));
+  lines.push("", "## Post", "", escapeMarkdownBlock(post.text.trim()));
 
   const thread = (post.thread ?? []).filter(item => item.text?.trim());
   if (thread.length > 0) {
@@ -561,7 +561,7 @@ async function fetchPost(
         "Current public X/Twitter post data with metrics, thread, and top comments.",
     }),
     abortSignal: meta.abort.asSignal(),
-    prompt: `Fetch the public X/Twitter post${handlePart} with post id ${xUrl.postId} at ${xUrl.normalizedUrl}. Return the post text, author, URL, created date, likes, and retweets. If this post is part of a thread, return the unrolled thread in chronological order under thread. Return the top 5 public comments or replies to the post under comments. Use the current public X data available to x_search.`,
+    prompt: `Fetch the public X/Twitter post${handlePart} with post id ${xUrl.postId} at ${xUrl.normalizedUrl}. Return the post body in text as GitHub-flavored Markdown, preserving its original structure like headings and lists. Also return author, URL, created date, likes, and retweets. If this post is part of a thread, return the unrolled thread in chronological order under thread. Return the top 5 public comments or replies to the post under comments. Use the current public X data available to x_search.`,
   });
 
   return output as XTwitterPostData;
