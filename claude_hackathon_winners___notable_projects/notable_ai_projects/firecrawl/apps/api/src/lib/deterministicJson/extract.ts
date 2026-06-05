@@ -49,7 +49,10 @@ export async function extractDeterministicJson(
 
   let anchorHtml: string | undefined;
 
-  const generate = async (rejectionFeedback?: string): Promise<string> => {
+  const generate = async (
+    rejectionFeedback?: string,
+    previousCode?: string,
+  ): Promise<string> => {
     anchorHtml ??= await buildAnchorContext(
       {
         html,
@@ -66,6 +69,7 @@ export async function extractDeterministicJson(
         schemaJson,
         prompt,
         rejectionFeedback,
+        previousCode,
       },
       costTracking,
     );
@@ -94,7 +98,7 @@ export async function extractDeterministicJson(
       `extractor has ${broken.length} too-strict selector(s); regenerating once`,
     );
     try {
-      const repaired = await generate(tooStrictFeedback(broken));
+      const repaired = await generate(tooStrictFeedback(broken), code);
       if (tooStrictSelectors(repaired, html).length < broken.length) {
         return await run(repaired);
       }
@@ -122,7 +126,7 @@ export async function extractDeterministicJson(
     log("extractor run failed, regenerating once:", errorMessage(err));
     // Let a second failure propagate; the caller warns. An empty shape here
     // would instead read as "page had no data" and hide the real failure.
-    return await run(await generate(errorMessage(err)));
+    return await run(await generate(errorMessage(err), code));
   }
 }
 
