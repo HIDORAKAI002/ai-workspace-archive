@@ -548,6 +548,7 @@ export interface Translations {
     followUpPlaceholders: readonly string[]
     startVoice: string
     queueMessage: string
+    steer: string
     stop: string
     send: string
     speaking: string
@@ -580,6 +581,7 @@ export interface Translations {
     attachments: (count: number) => string
     editingInComposer: string
     editQueued: string
+    sendQueuedNext: string
     sendQueuedNow: string
     deleteQueued: string
     previewUnavailable: string
