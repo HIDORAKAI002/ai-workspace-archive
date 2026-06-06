@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-06-06 20:12 IST] Auto-Sync
+- **13 Repositories Updated:** Prompt Engineering Tutorials, n8n, Windmill, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, firecrawl/firecrawl, apache/airflow, sgl-project/sglang, openclaw/openclaw
+
 ## [2026-06-06 13:27 IST] Auto-Sync
 - **25 Repositories Updated:** Public APIs Directory, Awesome ChatGPT Prompts, Promptfoo, Dify, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, mastra-ai/mastra, BerriAI/litellm, ggml-org/llama.cpp, deepspeedai/DeepSpeed, vllm-project/vllm, lobehub/lobe-chat, anthropics/claude-code, milvus-io/milvus, arize-ai/phoenix, danny-avila/LibreChat, googleapis/python-genai, apache/airflow, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, bytedance/deer-flow, nousresearch/hermes-agent
 

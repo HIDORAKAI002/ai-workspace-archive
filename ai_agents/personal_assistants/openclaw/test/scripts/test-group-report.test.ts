@@ -1,4 +1,5 @@
 // Test Group Report tests cover test group report script behavior.
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -93,6 +94,28 @@ describe("scripts/test-group-report aggregation", () => {
         status: "passed",
       },
     ]);
+  });
+
+  it("fails missing report inputs instead of writing an empty green report", () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-test-group-report-"));
+    const missingReport = path.join(tempDir, "missing.json");
+    const output = path.join(tempDir, "group-report.json");
+    try {
+      const result = spawnSync(
+        process.execPath,
+        ["scripts/test-group-report.mjs", "--report", missingReport, "--output", output],
+        {
+          cwd: process.cwd(),
+          encoding: "utf8",
+        },
+      );
+
+      expect(result.status).toBe(1);
+      expect(result.stderr).toContain(`[test-group-report] missing JSON report for missing`);
+      expect(fs.existsSync(output)).toBe(false);
+    } finally {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
   });
 });
 
