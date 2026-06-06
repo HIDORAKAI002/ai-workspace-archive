@@ -28,6 +28,7 @@ const { detectRemoteDisplay, isWindowsBinaryPathInWsl, isWslEnvironment } = requ
 const { runBootstrap } = require('./bootstrap-runner.cjs')
 const { canImportHermesCli, verifyHermesCli } = require('./backend-probes.cjs')
 const { probeGatewayWebSocket } = require('./gateway-ws-probe.cjs')
+const { serializeJsonBody, setJsonRequestHeaders } = require('./oauth-net-request.cjs')
 const {
   authModeFromStatus,
   buildGatewayWsUrl,
@@ -1313,6 +1314,31 @@ function resolveUpdaterBinary() {
   return fileExists(candidate) ? candidate : null
 }
 
+function repairMacUpdaterHelper(updater) {
+  if (!IS_MAC || !updater) return
+
+  try {
+    execFileSync('/usr/bin/xattr', ['-cr', updater], { stdio: 'ignore' })
+  } catch (err) {
+    rememberLog(`[updates] macOS updater helper quarantine repair skipped: ${err.message}`)
+  }
+
+  try {
+    execFileSync('/usr/bin/codesign', ['--verify', updater], { stdio: 'ignore' })
+    return
+  } catch {
+    // Unsigned or invalid helper. Apply a local ad-hoc signature so Gatekeeper
+    // does not block the staged updater before it can run.
+  }
+
+  try {
+    execFileSync('/usr/bin/codesign', ['--force', '--sign', '-', updater], { stdio: 'ignore' })
+    rememberLog('[updates] repaired macOS updater helper signature')
+  } catch (err) {
+    rememberLog(`[updates] macOS updater helper signature repair skipped: ${err.message}`)
+  }
+}
+
 // Path to the venv shim whose lock decides whether `hermes update` can write
 // fresh entry points. On Windows this is the file the running backend
 // `hermes.exe` holds open; on POSIX it's never mandatory-locked.
@@ -1473,6 +1499,7 @@ async function applyUpdates(opts = {}) {
     }
 
     emitUpdateProgress({ stage: 'restart', message: 'Handing off to the Hermes updater…', percent: 100 })
+    repairMacUpdaterHelper(updater)
 
     const updateRoot = resolveUpdateRoot()
     const { branch: configuredBranch } = readDesktopUpdateConfig()
@@ -3467,7 +3494,7 @@ function fetchJsonViaOauthSession(url, options = {}) {
       reject(new Error(`Unsupported Hermes backend URL protocol: ${parsed.protocol}`))
       return
     }
-    const body = options.body === undefined ? undefined : Buffer.from(JSON.stringify(options.body))
+    const body = serializeJsonBody(options.body)
     const timeoutMs = resolveTimeoutMs(options.timeoutMs, DEFAULT_FETCH_TIMEOUT_MS)
 
     const request = electronNet.request({
@@ -3477,8 +3504,7 @@ function fetchJsonViaOauthSession(url, options = {}) {
       useSessionCookies: true,
       redirect: 'follow'
     })
-    request.setHeader('Content-Type', 'application/json')
-    if (body) request.setHeader('Content-Length', String(body.length))
+    setJsonRequestHeaders(request)
 
     let timedOut = false
     const timer = setTimeout(() => {
