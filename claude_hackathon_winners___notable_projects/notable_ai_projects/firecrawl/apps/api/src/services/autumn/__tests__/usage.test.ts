@@ -703,6 +703,38 @@ describe("getTeamBalance", () => {
     expect(result!.unlimited).toBe(true);
     expect(result!.usage).toBe(12345);
   });
+
+  // Autumn caps `balance.remaining` at 0, so the raw field can't show
+  // negative balances for teams in overage. We derive the signed value from
+  // granted - usage instead.
+  it("returns a negative remaining when usage exceeds granted (overage)", async () => {
+    mockEntitiesGet.mockResolvedValue({
+      balances: {
+        CREDITS: {
+          remaining: 0,
+          granted: 25250000,
+          usage: 29688178,
+          unlimited: false,
+          overage_allowed: false,
+          breakdown: [{ planId: "enterprise", includedGrant: 10000000 }],
+        },
+      },
+      subscriptions: [
+        {
+          status: "active",
+          currentPeriodStart: 1712444524000,
+          currentPeriodEnd: 1715036524000,
+        },
+      ],
+    });
+
+    const result = await getTeamBalance("team-1");
+
+    expect(result).not.toBeNull();
+    expect(result!.remaining).toBe(-4438178);
+    expect(result!.granted).toBe(25250000);
+    expect(result!.usage).toBe(29688178);
+  });
 });
 
 // ---------------------------------------------------------------------------

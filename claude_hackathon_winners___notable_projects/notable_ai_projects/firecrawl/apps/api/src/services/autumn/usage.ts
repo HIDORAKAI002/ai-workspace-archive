@@ -307,7 +307,7 @@ export async function getTeamBalance(
   }
 
   return {
-    remaining: creditBalance?.remaining ?? 0,
+    remaining: signedRemaining(creditBalance),
     granted: creditBalance?.granted ?? 0,
     planCredits,
     usage: creditBalance?.usage ?? 0,
@@ -317,6 +317,23 @@ export async function getTeamBalance(
       : null,
     periodEnd: periodEndEpoch ? new Date(periodEndEpoch).toISOString() : null,
   };
+}
+
+// Autumn caps `balance.remaining` at 0, so it can't surface negative balances
+// for teams in overage. `granted - usage` preserves the signed balance.
+function signedRemaining(
+  balance:
+    | {
+        granted?: number;
+        usage?: number;
+        remaining?: number;
+        unlimited?: boolean;
+      }
+    | undefined,
+): number {
+  if (!balance) return 0;
+  if (balance.unlimited === true) return balance.remaining ?? 0;
+  return (balance.granted ?? 0) - (balance.usage ?? 0);
 }
 
 // ---------------------------------------------------------------------------
