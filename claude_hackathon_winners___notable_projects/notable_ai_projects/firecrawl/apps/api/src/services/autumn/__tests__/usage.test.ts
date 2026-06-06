@@ -912,6 +912,33 @@ describe("getTeamHistoricalUsageByApiKey", () => {
     );
   });
 
+  it("labels unresolvable apiKeyIds as 'Unknown' instead of echoing raw values", async () => {
+    apiKeysData = [];
+
+    mockAggregate.mockResolvedValue({
+      list: [
+        {
+          period: Date.parse("2026-04-15T00:00:00.000Z"),
+          grouped_values: {
+            CREDITS: {
+              ba9045fffbd34fc8aabc2597df6ba044: 11,
+              "99999999": 7,
+            },
+          },
+        },
+      ],
+    });
+
+    await expect(getTeamHistoricalUsageByApiKey("team-1")).resolves.toEqual([
+      {
+        startDate: "2026-04-01T00:00:00.000Z",
+        endDate: null,
+        apiKey: "Unknown",
+        creditsUsed: 18,
+      },
+    ]);
+  });
+
   it("uses the next calendar month as endDate for grouped data when a month has zero usage", async () => {
     apiKeysData = [{ id: 101, name: "Default" }];
 

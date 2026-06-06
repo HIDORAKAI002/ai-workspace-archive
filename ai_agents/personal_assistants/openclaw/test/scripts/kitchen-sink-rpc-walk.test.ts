@@ -17,6 +17,8 @@ import {
   assertCommandResourceCeiling,
   assertDiagnosticStabilityClean,
   assertExpectedKitchenSinkToolEntries,
+  assertGatewayHealthPayload,
+  assertGatewayStatusPayload,
   assertKitchenSinkSearchInvokeResult,
   assertKitchenSinkTextInvokeResult,
   assertResourceCeiling,
@@ -298,6 +300,30 @@ describe("kitchen-sink RPC gateway teardown", () => {
 
       expect(calls).toBe(1);
       expect(Date.now() - startedAt).toBeLessThan(500);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it("requires /readyz body.ready before accepting gateway readiness", async () => {
+    const root = mkdtempSync(path.join(tmpdir(), "openclaw-kitchen-rpc-ready-body-"));
+    try {
+      const logPath = path.join(root, "gateway.log");
+      writeFileSync(logPath, "[gateway] ready\n");
+      const fetchImpl = vi
+        .fn()
+        .mockResolvedValueOnce(new Response('{"ready":false}', { status: 200 }))
+        .mockResolvedValueOnce(new Response('{"ready":true}', { status: 200 }));
+
+      await expect(
+        waitForGatewayReady({ exitCode: null, signalCode: null }, 9, logPath, {
+          fetchImpl,
+          pollDelayMs: 1,
+          timeoutMs: 100,
+        }),
+      ).resolves.toBeUndefined();
+
+      expect(fetchImpl).toHaveBeenCalledTimes(2);
     } finally {
       rmSync(root, { recursive: true, force: true });
     }
@@ -754,6 +780,57 @@ describe("kitchen-sink RPC diagnostics assertions", () => {
   });
 });
 
+describe("kitchen-sink RPC health/status assertions", () => {
+  it("rejects empty health and status RPC payloads", () => {
+    expect(() => assertGatewayHealthPayload({})).toThrow("health payload missing");
+    expect(() => assertGatewayStatusPayload({})).toThrow("status payload missing");
+  });
+
+  it("accepts minimally valid gateway health and status RPC payloads", () => {
+    expect(() =>
+      assertGatewayHealthPayload({
+        ok: true,
+        ts: Date.now(),
+        durationMs: 12,
+        channels: {},
+        channelOrder: [],
+        channelLabels: {},
+        heartbeatSeconds: 30,
+        defaultAgentId: "main",
+        agents: [],
+        sessions: {
+          path: "/tmp/openclaw-sessions.sqlite",
+          count: 0,
+          recent: [],
+        },
+      }),
+    ).not.toThrow();
+
+    expect(() =>
+      assertGatewayStatusPayload({
+        heartbeat: {
+          defaultAgentId: "main",
+          agents: [],
+        },
+        channelSummary: [],
+        queuedSystemEvents: [],
+        tasks: {},
+        taskAudit: {},
+        sessions: {
+          paths: [],
+          count: 0,
+          defaults: {
+            model: null,
+            contextTokens: null,
+          },
+          recent: [],
+          byAgent: [],
+        },
+      }),
+    ).not.toThrow();
+  });
+});
+
 describe("kitchen-sink RPC process sampling", () => {
   it("samples RSS on Windows instead of silently disabling the resource guard", async () => {
     const calls: Array<{ command: string; args: string[] }> = [];
@@ -1109,6 +1186,15 @@ describe("kitchen-sink RPC process sampling", () => {
 
   it("fails when process sampling does not capture RSS", () => {
     expect(() => assertResourceCeiling(null)).toThrow("gateway RSS sample was not captured");
+  });
+
+  it("fails zero-valued process RSS samples", () => {
+    expect(() => assertResourceCeiling({ rssMiB: 0 })).toThrow(
+      "gateway RSS sample was invalid: 0 MiB",
+    );
+    expect(() => assertCommandResourceCeiling({ aggregateRssMiB: 0, rssMiB: 128 })).toThrow(
+      "command aggregate RSS sample was invalid: 0 MiB",
+    );
   });
 
   it("fails missing command samples and command RSS spikes", () => {

@@ -994,10 +994,10 @@ export async function waitForGatewayReady(child, port, logPath, options = {}) {
         throw outcome.error;
       }
       const readyz = outcome.readyz;
-      if (readyz.ok) {
+      if (readyz.ok && readyz.body?.ready === true) {
         return;
       }
-      lastError = `/readyz HTTP ${readyz.status}`;
+      lastError = `/readyz HTTP ${readyz.status} body=${JSON.stringify(readyz.body)}`;
     } catch (error) {
       lastError = error instanceof Error ? error.message : String(error);
     }
@@ -1157,6 +1157,99 @@ export function assertDiagnosticStabilityClean(payload) {
         JSON.stringify(payload, null, 2),
       )}`,
     );
+  }
+}
+
+function assertObjectPayload(payload, label) {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    throw new Error(`${label} returned invalid payload: ${JSON.stringify(payload)}`);
+  }
+  return payload;
+}
+
+export function assertGatewayHealthPayload(payload) {
+  const health = assertObjectPayload(payload, "health");
+  const problems = [];
+  if (health.ok !== true) {
+    problems.push("ok=true");
+  }
+  if (!Number.isFinite(health.ts)) {
+    problems.push("numeric ts");
+  }
+  if (!Number.isFinite(health.durationMs)) {
+    problems.push("numeric durationMs");
+  }
+  if (!health.channels || typeof health.channels !== "object" || Array.isArray(health.channels)) {
+    problems.push("channels object");
+  }
+  if (!Array.isArray(health.channelOrder)) {
+    problems.push("channelOrder array");
+  }
+  if (!isNonEmptyString(health.defaultAgentId)) {
+    problems.push("defaultAgentId");
+  }
+  if (!Array.isArray(health.agents)) {
+    problems.push("agents array");
+  }
+  if (
+    !health.sessions ||
+    typeof health.sessions !== "object" ||
+    Array.isArray(health.sessions) ||
+    !isNonEmptyString(health.sessions.path) ||
+    !Number.isFinite(health.sessions.count) ||
+    !Array.isArray(health.sessions.recent)
+  ) {
+    problems.push("sessions summary");
+  }
+  if (problems.length > 0) {
+    throw new Error(`health payload missing ${problems.join(", ")}: ${JSON.stringify(payload)}`);
+  }
+}
+
+export function assertGatewayStatusPayload(payload) {
+  const status = assertObjectPayload(payload, "status");
+  const problems = [];
+  if (
+    !status.heartbeat ||
+    typeof status.heartbeat !== "object" ||
+    Array.isArray(status.heartbeat) ||
+    !isNonEmptyString(status.heartbeat.defaultAgentId) ||
+    !Array.isArray(status.heartbeat.agents)
+  ) {
+    problems.push("heartbeat summary");
+  }
+  if (!Array.isArray(status.channelSummary)) {
+    problems.push("channelSummary array");
+  }
+  if (!Array.isArray(status.queuedSystemEvents)) {
+    problems.push("queuedSystemEvents array");
+  }
+  if (!status.tasks || typeof status.tasks !== "object" || Array.isArray(status.tasks)) {
+    problems.push("tasks summary");
+  }
+  if (
+    !status.taskAudit ||
+    typeof status.taskAudit !== "object" ||
+    Array.isArray(status.taskAudit)
+  ) {
+    problems.push("taskAudit summary");
+  }
+  if (
+    !status.sessions ||
+    typeof status.sessions !== "object" ||
+    Array.isArray(status.sessions) ||
+    !Array.isArray(status.sessions.paths) ||
+    !Number.isFinite(status.sessions.count) ||
+    !Array.isArray(status.sessions.recent) ||
+    !Array.isArray(status.sessions.byAgent) ||
+    !status.sessions.defaults ||
+    typeof status.sessions.defaults !== "object" ||
+    Array.isArray(status.sessions.defaults)
+  ) {
+    problems.push("sessions summary");
+  }
+  if (problems.length > 0) {
+    throw new Error(`status payload missing ${problems.join(", ")}: ${JSON.stringify(payload)}`);
   }
 }
 
@@ -1506,13 +1599,18 @@ function assertProcessResourceCeiling(sample, { label, maxRssMiB, requireSample 
     }
     return;
   }
+  if (!Number.isFinite(sample.rssMiB) || sample.rssMiB <= 0) {
+    throw new Error(`${label} RSS sample was invalid: ${String(sample.rssMiB)} MiB`);
+  }
+  const aggregateRssMiB = sample.aggregateRssMiB ?? sample.rssMiB;
+  if (!Number.isFinite(aggregateRssMiB) || aggregateRssMiB <= 0) {
+    throw new Error(`${label} aggregate RSS sample was invalid: ${String(aggregateRssMiB)} MiB`);
+  }
   if (sample.rssMiB > maxRssMiB) {
     throw new Error(`${label} RSS exceeded ${maxRssMiB} MiB: ${sample.rssMiB} MiB`);
   }
-  if ((sample.aggregateRssMiB ?? sample.rssMiB) > maxRssMiB) {
-    throw new Error(
-      `${label} aggregate RSS exceeded ${maxRssMiB} MiB: ${sample.aggregateRssMiB} MiB`,
-    );
+  if (aggregateRssMiB > maxRssMiB) {
+    throw new Error(`${label} aggregate RSS exceeded ${maxRssMiB} MiB: ${aggregateRssMiB} MiB`);
   }
 }
 
@@ -1741,8 +1839,10 @@ export async function main() {
       throw new Error(`/readyz did not report ready: ${JSON.stringify(readyz)}`);
     }
 
-    await retryRpcCall("health", {}, rpcOptions);
-    await retryRpcCall("status", {}, rpcOptions);
+    const health = await retryRpcCall("health", {}, rpcOptions);
+    assertGatewayHealthPayload(health);
+    const status = await retryRpcCall("status", {}, rpcOptions);
+    assertGatewayStatusPayload(status);
     const channelStatus = await retryRpcCall(
       "channels.status",
       { probe: true, timeoutMs: 10000 },
