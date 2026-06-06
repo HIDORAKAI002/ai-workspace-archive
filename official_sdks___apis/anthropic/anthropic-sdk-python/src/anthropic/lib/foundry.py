@@ -8,7 +8,7 @@ from typing_extensions import Self, override
 
 import httpx
 
-from .._types import NOT_GIVEN, Omit, Timeout, NotGiven
+from .._types import NOT_GIVEN, Omit, Headers, Timeout, NotGiven
 from .._utils import is_given
 from .._client import Anthropic, AsyncAnthropic
 from .._compat import model_copy
@@ -196,12 +196,11 @@ class AnthropicFoundry(BaseFoundryClient[httpx.Client, Stream[Any]], Anthropic):
         return BetaFoundry(self)
 
     @override
-    def copy(  # type: ignore[override]  # pyright: ignore[reportIncompatibleMethodOverride] — subclass intentionally drops `credentials`
+    def copy(  # type: ignore[override]  # pyright: ignore[reportIncompatibleMethodOverride] — subclass intentionally drops `credentials` & `auth_token`
         self,
         *,
         api_key: str | None = None,
         azure_ad_token_provider: AzureADTokenProvider | None = None,
-        auth_token: str | None = None,
         webhook_key: str | None = None,
         base_url: str | httpx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
@@ -216,22 +215,35 @@ class AnthropicFoundry(BaseFoundryClient[httpx.Client, Stream[Any]], Anthropic):
         """
         Create a new client instance re-using the same options given to the current client with optional overriding.
         """
-        return super().copy(
-            api_key=api_key,
-            auth_token=auth_token,
-            webhook_key=webhook_key,
-            base_url=base_url,
-            timeout=timeout,
-            http_client=http_client,
-            max_retries=max_retries,
-            default_headers=default_headers,
-            set_default_headers=set_default_headers,
-            default_query=default_query,
-            set_default_query=set_default_query,
-            _extra_kwargs={
-                "azure_ad_token_provider": azure_ad_token_provider or self._azure_ad_token_provider,
-                **_extra_kwargs,
-            },
+        if default_headers is not None and set_default_headers is not None:
+            raise ValueError("The `default_headers` and `set_default_headers` arguments are mutually exclusive")
+
+        if default_query is not None and set_default_query is not None:
+            raise ValueError("The `default_query` and `set_default_query` arguments are mutually exclusive")
+
+        headers = self._custom_headers
+        if default_headers is not None:
+            headers = {**headers, **default_headers}
+        elif set_default_headers is not None:
+            headers = set_default_headers
+
+        params = self._custom_query
+        if default_query is not None:
+            params = {**params, **default_query}
+        elif set_default_query is not None:
+            params = set_default_query
+
+        return self.__class__(
+            api_key=api_key or self.api_key,
+            azure_ad_token_provider=azure_ad_token_provider or self._azure_ad_token_provider,
+            webhook_key=webhook_key or self.webhook_key,
+            base_url=str(base_url or self.base_url),
+            timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,
+            http_client=http_client or self._client,
+            max_retries=max_retries if is_given(max_retries) else self.max_retries,
+            default_headers=headers,
+            default_query=params,
+            **_extra_kwargs,
         )
 
     with_options = copy  # type: ignore[assignment]
@@ -268,6 +280,24 @@ class AnthropicFoundry(BaseFoundryClient[httpx.Client, Stream[Any]], Anthropic):
             raise ValueError("Unable to handle auth")
 
         return options
+
+    @property
+    @override
+    def auth_headers(self) -> dict[str, str]:
+        # Auth is attached per-request in `_prepare_options` (an `api-key` header for
+        # API-key auth, or a bearer `Authorization` header for the Azure AD token
+        # provider). Emitting nothing here stops the base client from sending an
+        # `X-Api-Key` derived from `self.api_key`: when only an Azure AD token
+        # provider is configured, `self.api_key` can be populated from an
+        # `ANTHROPIC_API_KEY` in the environment, which must not be sent to the
+        # Foundry endpoint.
+        return {}
+
+    @override
+    def _validate_headers(self, headers: Headers, custom_headers: Headers) -> None:
+        # Foundry attaches its own auth header in `_prepare_options`, so the base
+        # requirement that `X-Api-Key`/`Authorization` already be present does not apply.
+        return
 
 
 class AsyncAnthropicFoundry(BaseFoundryClient[httpx.AsyncClient, AsyncStream[Any]], AsyncAnthropic):
@@ -379,12 +409,11 @@ class AsyncAnthropicFoundry(BaseFoundryClient[httpx.AsyncClient, AsyncStream[Any
         return AsyncBetaFoundry(client=self)
 
     @override
-    def copy(  # type: ignore[override]  # pyright: ignore[reportIncompatibleMethodOverride] — subclass intentionally drops `credentials`
+    def copy(  # type: ignore[override]  # pyright: ignore[reportIncompatibleMethodOverride] — subclass intentionally drops `credentials` & `auth_token`
         self,
         *,
         api_key: str | None = None,
         azure_ad_token_provider: AsyncAzureADTokenProvider | None = None,
-        auth_token: str | None = None,
         webhook_key: str | None = None,
         base_url: str | httpx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
@@ -399,22 +428,35 @@ class AsyncAnthropicFoundry(BaseFoundryClient[httpx.AsyncClient, AsyncStream[Any
         """
         Create a new client instance re-using the same options given to the current client with optional overriding.
         """
-        return super().copy(
-            api_key=api_key,
-            auth_token=auth_token,
-            webhook_key=webhook_key,
-            base_url=base_url,
-            timeout=timeout,
-            http_client=http_client,
-            max_retries=max_retries,
-            default_headers=default_headers,
-            set_default_headers=set_default_headers,
-            default_query=default_query,
-            set_default_query=set_default_query,
-            _extra_kwargs={
-                "azure_ad_token_provider": azure_ad_token_provider or self._azure_ad_token_provider,
-                **_extra_kwargs,
-            },
+        if default_headers is not None and set_default_headers is not None:
+            raise ValueError("The `default_headers` and `set_default_headers` arguments are mutually exclusive")
+
+        if default_query is not None and set_default_query is not None:
+            raise ValueError("The `default_query` and `set_default_query` arguments are mutually exclusive")
+
+        headers = self._custom_headers
+        if default_headers is not None:
+            headers = {**headers, **default_headers}
+        elif set_default_headers is not None:
+            headers = set_default_headers
+
+        params = self._custom_query
+        if default_query is not None:
+            params = {**params, **default_query}
+        elif set_default_query is not None:
+            params = set_default_query
+
+        return self.__class__(
+            api_key=api_key or self.api_key,
+            azure_ad_token_provider=azure_ad_token_provider or self._azure_ad_token_provider,
+            webhook_key=webhook_key or self.webhook_key,
+            base_url=str(base_url or self.base_url),
+            timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,
+            http_client=http_client or self._client,
+            max_retries=max_retries if is_given(max_retries) else self.max_retries,
+            default_headers=headers,
+            default_query=params,
+            **_extra_kwargs,
         )
 
     with_options = copy  # type: ignore[assignment]
@@ -453,3 +495,15 @@ class AsyncAnthropicFoundry(BaseFoundryClient[httpx.AsyncClient, AsyncStream[Any
             raise ValueError("Unable to handle auth")
 
         return options
+
+    @property
+    @override
+    def auth_headers(self) -> dict[str, str]:
+        # See AnthropicFoundry.auth_headers: prevents leaking an environment
+        # ANTHROPIC_API_KEY as X-Api-Key to the Foundry endpoint.
+        return {}
+
+    @override
+    def _validate_headers(self, headers: Headers, custom_headers: Headers) -> None:
+        # Foundry attaches its own auth header in `_prepare_options`.
+        return
