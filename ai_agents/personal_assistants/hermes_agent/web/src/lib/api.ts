@@ -390,6 +390,8 @@ export const api = {
   // Cron jobs
   getCronJobs: (profile = "all") =>
     fetchJSON<CronJob[]>(`/api/cron/jobs?profile=${encodeURIComponent(profile)}`),
+  getCronDeliveryTargets: () =>
+    fetchJSON<{ targets: CronDeliveryTarget[] }>("/api/cron/delivery-targets"),
   createCronJob: (job: { prompt: string; schedule: string; name?: string; deliver?: string }, profile = "default") =>
     fetchJSON<CronJob>(`/api/cron/jobs?profile=${encodeURIComponent(profile)}`, {
       method: "POST",
@@ -1513,6 +1515,13 @@ export interface CronJob {
   last_error?: string | null;
 }
 
+export interface CronDeliveryTarget {
+  id: string;
+  name: string;
+  home_target_set: boolean;
+  home_env_var: string | null;
+}
+
 export interface SkillInfo {
   name: string;
   description: string;
@@ -1599,6 +1608,14 @@ export interface ModelAssignmentRequest {
   task?: string;
 }
 
+/** An auxiliary task still pinned to a provider that differs from the
+ *  newly-selected main provider after a main-model switch. */
+export interface StaleAuxAssignment {
+  task: string;
+  provider: string;
+  model: string;
+}
+
 export interface ModelAssignmentResponse {
   ok: boolean;
   scope?: string;
@@ -1606,6 +1623,10 @@ export interface ModelAssignmentResponse {
   model?: string;
   tasks?: string[];
   reset?: boolean;
+  /** Auxiliary slots still pinned to a different provider than the new main.
+   *  Switching main never clears aux pins; this lets the UI warn the user
+   *  their helper tasks aren't following the switch. Only set on scope:'main'. */
+  stale_aux?: StaleAuxAssignment[];
 }
 
 // ── OAuth provider types ────────────────────────────────────────────────
