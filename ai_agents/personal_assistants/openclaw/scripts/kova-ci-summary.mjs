@@ -32,6 +32,11 @@ const keyMetricIds = [
 
 const reportPath = path.resolve(args.report);
 const report = JSON.parse(await readFile(reportPath, "utf8"));
+const invalidReport = validateKovaSummaryReport(report);
+if (invalidReport) {
+  console.error(`error: invalid Kova report: ${invalidReport}`);
+  process.exit(1);
+}
 const markdown = renderSummary(report, {
   lane: args.lane || "kova",
   reportUrl: args.reportUrl || "",
@@ -152,6 +157,29 @@ function renderSummary(reportLocal, options) {
   return `${lines.join("\n").trimEnd()}\n`;
 }
 
+function validateKovaSummaryReport(reportLocal) {
+  if (!reportLocal || typeof reportLocal !== "object" || Array.isArray(reportLocal)) {
+    return "report must be an object";
+  }
+  const statuses = reportLocal.summary?.statuses;
+  if (
+    !statuses ||
+    typeof statuses !== "object" ||
+    Array.isArray(statuses) ||
+    Object.keys(statuses).length === 0
+  ) {
+    return "missing summary.statuses";
+  }
+  const records = Array.isArray(reportLocal.records) ? reportLocal.records : [];
+  const groups = Array.isArray(reportLocal.performance?.groups)
+    ? reportLocal.performance.groups
+    : [];
+  if (records.length === 0 && groups.length === 0) {
+    return "missing records or performance groups";
+  }
+  return null;
+}
+
 function collectViolations(records) {
   if (!Array.isArray(records)) {
     return [];
@@ -191,12 +219,16 @@ function value(input) {
 
 function parseArgs(argv) {
   const parsed = {};
+  const knownKeys = new Set(["report", "output", "lane", "reporturl", "artifacturl"]);
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (!arg.startsWith("--")) {
       usage(`unexpected argument: ${arg}`);
     }
     const key = arg.slice(2).replaceAll("-", "");
+    if (!knownKeys.has(key)) {
+      usage(`unknown argument: ${arg}`);
+    }
     const valueLocal = argv[index + 1];
     if (!valueLocal || valueLocal.startsWith("--")) {
       usage(`${arg} requires a value`);
@@ -215,7 +247,7 @@ function parseArgs(argv) {
 
 function usage(message, status = 2) {
   const text =
-    "usage: node scripts/kova-ci-summary.mjs --report <report.json> [--output <summary.md>] [--lane <name>]\n";
+    "usage: node scripts/kova-ci-summary.mjs --report <report.json> [--output <summary.md>] [--lane <name>] [--report-url <url>] [--artifact-url <url>]\n";
   if (message) {
     console.error(`error: ${message}`);
   }

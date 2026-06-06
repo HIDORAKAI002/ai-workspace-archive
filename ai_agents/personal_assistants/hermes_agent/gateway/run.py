@@ -3234,14 +3234,27 @@ class GatewayRunner:
 
     @staticmethod
     def _load_busy_text_mode() -> str:
-        """Load normal busy TEXT follow-up behavior from config/env."""
-        mode = os.getenv("HERMES_GATEWAY_BUSY_TEXT_MODE", "").strip().lower()
-        if not mode:
+        """Resolve normal busy TEXT follow-up behavior.
+
+        ``busy_input_mode`` is the single source of truth (default
+        ``interrupt``). The legacy ``busy_text_mode`` knob is honored only
+        when a user explicitly set it, so existing queue setups keep
+        working; new installs follow ``busy_input_mode``. Returns one of
+        ``interrupt`` | ``queue`` (``steer`` is handled upstream by
+        ``busy_input_mode`` and maps to non-queue text handling here).
+        """
+        # Legacy explicit override wins for backward compat.
+        legacy = os.getenv("HERMES_GATEWAY_BUSY_TEXT_MODE", "").strip().lower()
+        if not legacy:
             cfg = _load_gateway_runtime_config()
-            mode = str(cfg_get(cfg, "display", "busy_text_mode", default="") or "").strip().lower()
-        if mode == "interrupt":
+            legacy = str(cfg_get(cfg, "display", "busy_text_mode", default="") or "").strip().lower()
+        if legacy == "interrupt":
             return "interrupt"
-        return "queue"
+        if legacy == "queue":
+            return "queue"
+        # No explicit legacy knob → follow busy_input_mode.
+        input_mode = GatewayRunner._load_busy_input_mode()
+        return "queue" if input_mode == "queue" else "interrupt"
 
     @staticmethod
     def _load_restart_drain_timeout() -> float:
@@ -3429,7 +3442,7 @@ class GatewayRunner:
         running_agent = self._running_agents.get(session_key)
 
         effective_mode = self._busy_input_mode
-        busy_text_mode = getattr(self, "_busy_text_mode", "queue")
+        busy_text_mode = getattr(self, "_busy_text_mode", "interrupt")
         if (
             event.message_type == MessageType.TEXT
             and busy_text_mode == "queue"
@@ -6886,13 +6899,6 @@ class GatewayRunner:
                 logger.warning("Signal: SIGNAL_HTTP_URL or SIGNAL_ACCOUNT not configured")
                 return None
             return SignalAdapter(config)
-
-        elif platform == Platform.HOMEASSISTANT:
-            from gateway.platforms.homeassistant import HomeAssistantAdapter, check_ha_requirements
-            if not check_ha_requirements():
-                logger.warning("HomeAssistant: aiohttp not installed or HASS_TOKEN not set")
-                return None
-            return HomeAssistantAdapter(config)
 
         elif platform == Platform.EMAIL:
             from gateway.platforms.email import EmailAdapter, check_email_requirements
@@ -14961,11 +14967,15 @@ class GatewayRunner:
             return t("gateway.deny.denied_plural", count=count)
         return t("gateway.deny.denied_singular")
 
-    # Platforms where /update is allowed.  ACP, API server, and webhooks are
-    # programmatic interfaces that should not trigger system updates.
+    # Built-in messaging platforms where the ``/update`` command is allowed.
+    # ACP, API server, and webhooks are programmatic interfaces that should
+    # not trigger system updates.  Plugin-migrated platforms (discord,
+    # mattermost, teams, irc, line, …) are NOT listed here — they declare
+    # ``allow_update_command=True`` on their ``PlatformEntry`` and are
+    # honored via the registry fallback at ``_handle_update_command`` below.
     _UPDATE_ALLOWED_PLATFORMS = frozenset({
-        Platform.TELEGRAM, Platform.DISCORD, Platform.SLACK, Platform.WHATSAPP,
-        Platform.SIGNAL, Platform.MATTERMOST, Platform.MATRIX,
+        Platform.TELEGRAM, Platform.SLACK, Platform.WHATSAPP,
+        Platform.SIGNAL, Platform.MATRIX,
         Platform.HOMEASSISTANT, Platform.EMAIL, Platform.SMS, Platform.DINGTALK,
         Platform.FEISHU, Platform.WECOM, Platform.WECOM_CALLBACK, Platform.WEIXIN, Platform.BLUEBUBBLES, Platform.QQBOT, Platform.LOCAL,
     })
