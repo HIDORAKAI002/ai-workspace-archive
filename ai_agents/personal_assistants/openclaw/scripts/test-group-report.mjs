@@ -414,6 +414,19 @@ function readReportInput(entry) {
   };
 }
 
+export function readReportInputs(entries) {
+  const missing = [];
+  const reports = [];
+  for (const entry of entries) {
+    if (!fs.existsSync(entry.reportPath)) {
+      missing.push(entry);
+      continue;
+    }
+    reports.push(readReportInput(entry));
+  }
+  return { missing, reports };
+}
+
 function readGroupedReport(reportPath) {
   return JSON.parse(fs.readFileSync(reportPath, "utf8"));
 }
@@ -666,9 +679,16 @@ async function main() {
     process.exit(exitCode);
   }
 
-  const reportInputs = runEntries
-    .filter((entry) => fs.existsSync(entry.reportPath))
-    .map(readReportInput);
+  const reportInputsResult = readReportInputs(runEntries);
+  if (reportInputsResult.missing.length > 0) {
+    for (const entry of reportInputsResult.missing) {
+      console.error(
+        `[test-group-report] missing JSON report for ${entry.config}: ${entry.reportPath}`,
+      );
+    }
+    process.exit(1);
+  }
+  const reportInputs = reportInputsResult.reports;
   const report = buildGroupedTestReport({
     groupBy: args.groupBy,
     maxTestMs: args.maxTestMs,
