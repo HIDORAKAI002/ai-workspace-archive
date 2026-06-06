@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-06-06 13:27 IST] Auto-Sync
+- **25 Repositories Updated:** Public APIs Directory, Awesome ChatGPT Prompts, Promptfoo, Dify, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, mastra-ai/mastra, BerriAI/litellm, ggml-org/llama.cpp, deepspeedai/DeepSpeed, vllm-project/vllm, lobehub/lobe-chat, anthropics/claude-code, milvus-io/milvus, arize-ai/phoenix, danny-avila/LibreChat, googleapis/python-genai, apache/airflow, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, bytedance/deer-flow, nousresearch/hermes-agent
+
 ## [2026-06-06 06:42 IST] Auto-Sync
 - **34 Repositories Updated:** Public APIs Directory, MCP Python SDK, Prompt Engineering Tutorials, Promptfoo, NVIDIA NeMo Guardrails, Directus, modelcontextprotocol/csharp-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, crewAIInc/crewAI, mastra-ai/mastra, Swarms, BerriAI/litellm, jxnl/instructor, ollama/ollama, ggml-org/llama.cpp, vllm-project/vllm, arize-ai/phoenix, open-telemetry/opentelemetry-python, abi/screenshot-to-code, anthropics/anthropic-sdk-python, anthropics/anthropic-sdk-typescript, anthropics/anthropic-sdk-go, anthropics/anthropic-sdk-ruby, googleapis/python-genai, vercel/ai, PrefectHQ/prefect, dagster-io/dagster, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight, nousresearch/hermes-agent
 
