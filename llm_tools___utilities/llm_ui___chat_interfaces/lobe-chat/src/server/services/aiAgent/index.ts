@@ -46,6 +46,8 @@ import { AgentModel } from '@/database/models/agent';
 import { AgentOperationModel } from '@/database/models/agentOperation';
 import { AgentSkillModel } from '@/database/models/agentSkill';
 import { AiModelModel } from '@/database/models/aiModel';
+import { ConnectorModel } from '@/database/models/connector';
+import { ConnectorToolModel } from '@/database/models/connectorTool';
 import { DeviceModel } from '@/database/models/device';
 import { FileModel } from '@/database/models/file';
 import { MessageModel } from '@/database/models/message';
@@ -57,6 +59,7 @@ import { UserModel } from '@/database/models/user';
 import { UserPersonaModel } from '@/database/models/userMemory/persona';
 import { toolsEnv } from '@/envs/tools';
 import { shouldEnableBuiltinSkill } from '@/helpers/skillFilters';
+import { buildConnectorManifests } from '@/libs/mcp/buildConnectorManifests';
 import { signOperationJwt, signUserJWT } from '@/libs/trpc/utils/internalJwt';
 import type { EvalContext, ServerAgentToolsContext } from '@/server/modules/Mecha';
 import { createServerAgentToolsEngine } from '@/server/modules/Mecha';
@@ -246,6 +249,8 @@ export class AiAgentService {
   private readonly agentModel: AgentModel;
   private readonly agentService: AgentService;
   private readonly messageModel: MessageModel;
+  private readonly connectorModel: ConnectorModel;
+  private readonly connectorToolModel: ConnectorToolModel;
   private readonly pluginModel: PluginModel;
   private readonly taskModel: TaskModel;
   private readonly threadModel: ThreadModel;
@@ -265,6 +270,8 @@ export class AiAgentService {
     this.agentModel = new AgentModel(db, userId);
     this.agentService = new AgentService(db, userId);
     this.messageModel = new MessageModel(db, userId);
+    this.connectorModel = new ConnectorModel(db, userId);
+    this.connectorToolModel = new ConnectorToolModel(db, userId);
     this.pluginModel = new PluginModel(db, userId);
     this.taskModel = new TaskModel(db, userId);
     this.threadModel = new ThreadModel(db, userId);
@@ -1173,6 +1180,35 @@ export class AiAgentService {
       const installedPlugins = await this.pluginModel.query();
       log('execAgent: got %d installed plugins', installedPlugins.length);
 
+      // 5a-1. Resolve connectors — connector identifier takes priority over plugin
+      const connectors =
+        agentPlugins.length > 0 ? await this.connectorModel.queryByIdentifiers(agentPlugins) : [];
+
+      // Only connectors WITH a real MCP endpoint (mcpServerUrl or stdio) can replace plugins in the
+      // manifest. Connectors WITHOUT an endpoint (e.g. Lobehub/Klavis OAuth skills synced via
+      // syncToolsFromClient) must continue using their original plugin executor path — otherwise
+      // after humanIntervention approval the runtime tries to call mcpServerUrl='' and returns empty.
+      const connectorsMcp = connectors.filter(
+        (c) => c.mcpServerUrl || c.mcpConnectionType === 'stdio',
+      );
+      const connectorIdentifierSet = new Set(connectorsMcp.map((c) => c.identifier));
+
+      // Filter out plugin entries that are now handled by real MCP connectors
+      const pluginsWithoutConnectors = installedPlugins.filter(
+        (p) => !connectorIdentifierSet.has(p.identifier),
+      );
+
+      // Fetch ALL tools for all real-MCP connectors (including disabled tools) so that
+      // buildConnectorManifests can show blocking descriptions for disabled tools.
+      // The runtime hot-path still uses queryByConnectorIds (non-disabled only) elsewhere.
+      const connectorTools =
+        connectorsMcp.length > 0
+          ? await this.connectorToolModel.queryAllByConnectorIds(connectorsMcp.map((c) => c.id))
+          : [];
+
+      const connectorManifests = buildConnectorManifests(connectorsMcp, connectorTools);
+      log('execAgent: got %d connector manifests', connectorManifests.length);
+
       // 5b. Get model abilities from model-bank for function calling support check
       const isModelSupportToolUse = (m: string, p: string) => {
         const info = builtinModels.find((item) => item.id === m && item.providerId === p);
@@ -1194,6 +1230,54 @@ export class AiAgentService {
         log('execAgent: failed to fetch klavis manifests: %O', error);
       }
       log('execAgent: got %d klavis manifests', klavisManifests.length);
+
+      // 5d-1. Patch Lobehub/Klavis manifests with connector tool permissions.
+      // This enables needs_approval (→ humanIntervention: 'required') and disabled
+      // (→ blocking description) for skills that are managed via the connector system.
+      // The humanIntervention system already handles headless auto-rejection for qstash.
+      if (lobehubSkillManifests.length > 0 || klavisManifests.length > 0) {
+        try {
+          const { patchManifestWithPermissions } =
+            await import('@/libs/mcp/connectorPermissionCheck');
+          const { ConnectorToolModel } = await import('@/database/models/connectorTool');
+          const allIdentifiers = [
+            ...lobehubSkillManifests.map((m) => m.identifier),
+            ...klavisManifests.map((m) => m.identifier),
+          ];
+          const connectorEntries =
+            allIdentifiers.length > 0
+              ? await this.connectorModel.queryByIdentifiers(allIdentifiers)
+              : [];
+
+          if (connectorEntries.length > 0) {
+            const toolModel = new ConnectorToolModel(this.db, this.userId);
+            const connectorToolsMap = new Map<string, Map<string, string>>();
+            await Promise.all(
+              connectorEntries.map(async (c) => {
+                const tools = await toolModel.queryByConnector(c.id);
+                const perms = new Map(tools.map((t) => [t.toolName, t.permission]));
+                connectorToolsMap.set(c.identifier, perms);
+              }),
+            );
+
+            lobehubSkillManifests = lobehubSkillManifests.map((m) => {
+              const perms = connectorToolsMap.get(m.identifier);
+              return perms && perms.size > 0
+                ? (patchManifestWithPermissions(m as any, perms as any) as any)
+                : m;
+            });
+
+            klavisManifests = klavisManifests.map((m) => {
+              const perms = connectorToolsMap.get(m.identifier);
+              return perms && perms.size > 0
+                ? (patchManifestWithPermissions(m as any, perms as any) as any)
+                : m;
+            });
+          }
+        } catch (err) {
+          log('execAgent: failed to patch manifests with connector permissions: %O', err);
+        }
+      }
 
       await throwIfExecutionAborted('tool discovery');
 
@@ -1226,7 +1310,7 @@ export class AiAgentService {
       const deviceOnline = onlineDevices.length > 0;
 
       const toolsContext: ServerAgentToolsContext = {
-        installedPlugins,
+        installedPlugins: pluginsWithoutConnectors,
         isModelSupportToolUse,
       };
 
@@ -1306,7 +1390,7 @@ export class AiAgentService {
               : undefined;
 
       const toolsEngine = createServerAgentToolsEngine(toolsContext, {
-        additionalManifests: [...lobehubSkillManifests, ...klavisManifests],
+        additionalManifests: [...lobehubSkillManifests, ...klavisManifests, ...connectorManifests],
         agentConfig: {
           chatConfig: agentConfig.chatConfig ?? undefined,
           plugins: agentPlugins,
@@ -1338,6 +1422,8 @@ export class AiAgentService {
           // Include LobeHub Skills and Klavis tools so they are passed to generateToolsDetailed
           ...lobehubSkillManifests.map((m) => m.identifier),
           ...klavisManifests.map((m) => m.identifier),
+          // Connector manifests are also injected as additionalManifests
+          ...connectorManifests.map((m) => m.identifier),
         ]),
       ];
       log('execAgent: agent configured plugins: %O', pluginIds);
@@ -1427,6 +1513,11 @@ export class AiAgentService {
         for (const plugin of installedPlugins) {
           if (plugin.customParams?.mcp?.type === 'stdio' && manifestMap.has(plugin.identifier)) {
             toolExecutorMap[plugin.identifier] = 'client';
+          }
+        }
+        for (const connector of connectorsMcp) {
+          if (connector.mcpConnectionType === 'stdio' && manifestMap.has(connector.identifier)) {
+            toolExecutorMap[connector.identifier] = 'client';
           }
         }
       }
