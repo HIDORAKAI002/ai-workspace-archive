@@ -3,29 +3,10 @@
 [![Twitter](https://img.shields.io/twitter/follow/NirDiamantAI?label=Follow%20@NirDiamantAI&style=social)](https://twitter.com/NirDiamantAI)
 [![Discord](https://img.shields.io/badge/Discord-Join%20our%20community-7289da?style=flat-square&logo=discord&logoColor=white)](https://discord.gg/cA6Aa4uyDX)
 
-> 🌟 **Support This Project:** Your sponsorship fuels innovation in prompt engineering development.  **[Become a sponsor](https://github.com/sponsors/NirDiamant)** to help maintain and expand this valuable resource!
-
 # Prompt Engineering Techniques: Comprehensive Repository for Development and Implementation 🖋️
 
 Welcome to one of the most extensive and dynamic collections of Prompt Engineering tutorials and implementations available today. This repository serves as a comprehensive resource for learning, building, and sharing prompt engineering techniques, ranging from basic concepts to advanced strategies for leveraging large language models.
 
-<div align="center">
-
-## 📖 Companion book by the same author
-
-<a href="https://europe-west1-rag-techniques-views-tracker.cloudfunctions.net/rag-techniques-tracker?notebook=prompt-engineering--readme&amp;click=book-buy-gumroad-rag-image&amp;target=https%3A%2F%2Fdiamant-ai.com%2Frag-made-simple%3Fcode%3DRAGKING&amp;retarget=0&amp;text=image%20rag%20book"><img src="images/rag_book_best_seller.png" alt="RAG Made Simple - Amazon bestseller in Generative AI" width="500"></a>
-
-**[RAG Made Simple](https://europe-west1-rag-techniques-views-tracker.cloudfunctions.net/rag-techniques-tracker?notebook=prompt-engineering--readme&click=book-buy-gumroad-rag-name&target=https%3A%2F%2Fdiamant-ai.com%2Frag-made-simple%3Fcode%3DRAGKING&retarget=0&text=name%20rag%20book)** - the production reference for RAG systems, built with the prompting techniques you learn in this repo.
-*1,500+ copies sold · Hit #1 in Generative AI on Amazon at launch · ⭐ 4.6 stars*
-**PDF + EPUB · GitHub community price: 33% off with code RAGKING**
-
-### 👉 [**Get RAG Made Simple (33% off with code RAGKING)**](https://europe-west1-rag-techniques-views-tracker.cloudfunctions.net/rag-techniques-tracker?notebook=prompt-engineering--readme&click=book-buy-gumroad-rag-title&target=https%3A%2F%2Fdiamant-ai.com%2Frag-made-simple%3Fcode%3DRAGKING&retarget=0&text=title%20rag%20book)
-
-📖 *Not ready to buy? [**Read Chapter 1 free**](https://europe-west1-rag-techniques-views-tracker.cloudfunctions.net/rag-techniques-tracker?notebook=prompt-engineering--readme&click=free-chapter&target=https%3A%2F%2Fdiamant-ai.com%2Frag-made-simple%2Fchapter-1&retarget=0&text=read%20chapter%201%20free) - the full first chapter, no signup.*
-
-📣 *Teach, write, or run a dev community? Earn 25% recommending RAG Made Simple to your audience: [become an affiliate](https://europe-west1-rag-techniques-views-tracker.cloudfunctions.net/rag-techniques-tracker?notebook=prompt-engineering--readme&click=affiliate-signup&target=https%3A%2F%2Fnirdiamant.gumroad.com%2Faffiliates&retarget=0&text=become%20an%20affiliate).*
-
-</div>
 
 > **22 hands-on tutorials** covering everything from basic prompt templates to advanced techniques like chain-of-thought, self-consistency, and tree-of-thought prompting.
 
@@ -68,44 +49,27 @@ Our goal is to provide a valuable resource for everyone - from beginners taking 
 
 Furthermore, this repository serves as a platform for showcasing innovative prompt engineering techniques. Whether you've developed a novel approach or found an innovative application for existing techniques, we encourage you to share your work with the community.
 
-## 📖 Get the Fully Explained Version of This Repo
+## 📖 The book version of this repo
 
-This repository contains **22 hands-on Jupyter Notebook tutorials** covering **key prompt engineering techniques**.
-If you want to go **deeper** with **full explanations, intuitive insights, and structured exercises**, check out the **expanded version in book format**:
+**[Prompt Engineering from Zero to Hero](https://europe-west1-rag-techniques-views-tracker.cloudfunctions.net/rag-techniques-tracker?notebook=prompt-engineering--readme&click=book-buy-pe-gumroad&target=https%3A%2F%2Fnirdiamant.gumroad.com%2Fl%2Fmtxrfk&retarget=0&text=book-buy-pe-gumroad)** - all 22 techniques from this repo, fully explained with step-by-step breakdowns and hands-on exercises.
 
-📚 **Prompt Engineering from Zero to Hero**
-- 📖 **All 22 techniques from this repo**, fully explained in depth
-- 🧠 **Step-by-step breakdowns** of key concepts & best practices
-- 🏋️ **Hands-on exercises** to sharpen your skills
-- 🎯 **Designed for learners who want a structured, guided approach**
-- 📄 **Instant access on any device – computer, tablet, or phone**
-
-Available on:
-- 📕 **[Amazon Kindle](https://www.amazon.com/dp/B0DZ85RPB5)** — $9.99
-- 📗 **[Amazon Paperback](https://www.amazon.com/dp/B0DZ9RVKMJ)** — $24.99
-- 📄 **[Gumroad (PDF)](https://nirdiamant.gumroad.com/l/mtxrfk)** — Full PDF version
-
-💡 **Subscribers to the DiamantAI newsletter receive an exclusive 33% (!) discount on the book.**
+[Amazon Kindle - $9.99](https://europe-west1-rag-techniques-views-tracker.cloudfunctions.net/rag-techniques-tracker?notebook=prompt-engineering--readme&click=book-buy-pe-kindle&target=https%3A%2F%2Fwww.amazon.com%2Fdp%2FB0DZ85RPB5&retarget=0&text=book-buy-pe-kindle) · [Paperback](https://europe-west1-rag-techniques-views-tracker.cloudfunctions.net/rag-techniques-tracker?notebook=prompt-engineering--readme&click=book-buy-pe-paper&target=https%3A%2F%2Fwww.amazon.com%2Fdp%2FB0DZ9RVKMJ&retarget=0&text=book-buy-pe-paper) · [Gumroad PDF](https://europe-west1-rag-techniques-views-tracker.cloudfunctions.net/rag-techniques-tracker?notebook=prompt-engineering--readme&click=book-buy-pe-gumroad&target=https%3A%2F%2Fnirdiamant.gumroad.com%2Fl%2Fmtxrfk&retarget=0&text=book-buy-pe-gumroad)
 
 ## Related Projects
 
-🚀 Level up with my **[Agents Towards Production](https://github.com/NirDiamant/agents-towards-production)** repository. It delivers horizontal, code-first tutorials that cover every tool and step in the lifecycle of building production-grade GenAI agents, guiding you from spark to scale with proven patterns and reusable blueprints for real-world launches, making it the smartest place to start if you're serious about shipping agents to production.
+🔍 **[RAG Techniques](https://github.com/NirDiamant/RAG_Techniques)** - 40+ notebooks on retrieval-augmented generation.
 
-📚 Explore my **[comprehensive guide on RAG techniques](https://github.com/NirDiamant/RAG_Techniques)** to learn how to enhance AI systems with external knowledge retrieval, complementing language model capabilities with rich, up-to-date information.
+🤖 **[GenAI Agents](https://github.com/NirDiamant/GenAI_Agents)** - implementations and tutorials for building AI agent systems.
 
-🤖 Dive into my **[GenAI Agents Repository](https://github.com/NirDiamant/GenAI_Agents)** for a wide range of AI agent implementations and tutorials, from simple conversational bots to complex, multi-agent systems for various applications.
+🚀 **[Agents Towards Production](https://github.com/NirDiamant/agents-towards-production)** - code-first tutorials for shipping production-grade agents.
 
-🧠 Give your agents memory with **[Agent Memory Techniques](https://github.com/NirDiamant/Agent_Memory_Techniques)** — 30 runnable notebooks on conversation buffers, vector stores, knowledge graphs, episodic and semantic memory, plus Mem0, MemGPT/Letta, Zep, and Graphiti.
+🧠 **[Agent Memory Techniques](https://github.com/NirDiamant/Agent_Memory_Techniques)** - 30 notebooks on agent memory: vector stores, graphs, Mem0, Zep.
 
-## A Community-Driven Knowledge Hub
+## Join the community
 
-**This repository grows stronger with your contributions!** Join our vibrant Discord community — the central hub for shaping and advancing this project together 🤝
+Contributions make this better - propose ideas, share techniques, or give feedback via **[CONTRIBUTING.md](https://github.com/NirDiamant/Prompt_Engineering/blob/main/CONTRIBUTING.md)**.
 
-**[DiamantAI Discord Community](https://discord.gg/cA6Aa4uyDX)**
-
-Whether you're a novice eager to learn or an expert ready to share your knowledge, your insights can shape the future of prompt engineering. Join us to propose ideas, get feedback, and collaborate on innovative implementations. For contribution guidelines, please refer to our **[CONTRIBUTING.md](https://github.com/NirDiamant/Prompt_Engineering/blob/main/CONTRIBUTING.md)** file. Let's advance prompt engineering technology together!
-
-🔗 For discussions on GenAI, or to explore knowledge-sharing opportunities, feel free to **[connect on LinkedIn](https://www.linkedin.com/in/nir-diamant-759323134/)**.
+**[r/EducationalAI](https://www.reddit.com/r/EducationalAI/)** · **[Discord](https://discord.gg/cA6Aa4uyDX)** · **[LinkedIn](https://www.linkedin.com/in/nir-diamant-759323134/)**
 
 ## Key Features
 
@@ -360,6 +324,12 @@ To begin exploring and implementing prompt engineering techniques:
 - [Designing Machine Learning Systems](https://www.amazon.com/dp/1098107969?tag=diamantai-pe-20) by Chip Huyen. ML systems in production, still the standard reference.
 
 ---
+
+## 📚 More from the same author
+
+**[RAG Made Simple](https://europe-west1-rag-techniques-views-tracker.cloudfunctions.net/rag-techniques-tracker?notebook=prompt-engineering--readme&click=book-buy-gumroad-rag-cta&target=https%3A%2F%2Fdiamant-ai.com%2Frag-made-simple%3Fcode%3DRAGKING&retarget=0&text=book-buy-gumroad-rag-cta)** - the 400-page visual guide to RAG, the retrieval layer behind advanced agents. 33% off with code RAGKING.
+
+*Run a course, newsletter, or dev community? You can [earn 25% recommending the books](https://europe-west1-rag-techniques-views-tracker.cloudfunctions.net/rag-techniques-tracker?notebook=prompt-engineering--readme&click=affiliate-signup&target=https%3A%2F%2Fnirdiamant.gumroad.com%2Faffiliates&retarget=0&text=affiliate-signup) to your audience.*
 
 ## Contributing
 
