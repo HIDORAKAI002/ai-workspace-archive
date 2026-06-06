@@ -117,6 +117,33 @@ describe("scripts/test-group-report aggregation", () => {
       fs.rmSync(tempDir, { recursive: true, force: true });
     }
   });
+
+  it.each([
+    ["missing testResults array", {}],
+    ["empty testResults array", { testResults: [] }],
+  ])("fails malformed report inputs with %s", (reason, payload) => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-test-group-report-"));
+    const reportPath = path.join(tempDir, "malformed.json");
+    const output = path.join(tempDir, "group-report.json");
+    fs.writeFileSync(reportPath, `${JSON.stringify(payload)}\n`, "utf8");
+    try {
+      const result = spawnSync(
+        process.execPath,
+        ["scripts/test-group-report.mjs", "--report", reportPath, "--output", output],
+        {
+          cwd: process.cwd(),
+          encoding: "utf8",
+        },
+      );
+
+      expect(result.status).toBe(1);
+      expect(result.stderr).toContain("[test-group-report] invalid JSON report for malformed");
+      expect(result.stderr).toContain(reason);
+      expect(fs.existsSync(output)).toBe(false);
+    } finally {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
 });
 
 describe("scripts/test-group-report comparison", () => {
@@ -361,6 +388,33 @@ describe("scripts/test-group-report arg parsing", () => {
         `${flag} must be a positive integer`,
       );
     }
+  });
+
+  it("rejects missing report path, config, and numeric option values", () => {
+    for (const flag of ["--config", "--report", "--group-by", "--output"]) {
+      expect(() => parseTestGroupReportArgs([flag, "--limit", "5"])).toThrow(
+        `${flag} requires a value`,
+      );
+    }
+    for (const flag of [
+      "--limit",
+      "--top-files",
+      "--max-test-ms",
+      "--timeout-ms",
+      "--kill-grace-ms",
+      "--concurrency",
+    ]) {
+      expect(() => parseTestGroupReportArgs([flag])).toThrow(`${flag} requires a value`);
+      expect(() => parseTestGroupReportArgs([flag, "--output", "report.json"])).toThrow(
+        `${flag} requires a value`,
+      );
+    }
+    expect(() => parseTestGroupReportArgs(["--compare", "before.json", "--limit"])).toThrow(
+      "--compare requires a value",
+    );
+    expect(() => parseTestGroupReportArgs(["--compare", "--limit", "5"])).toThrow(
+      "--compare requires a value",
+    );
   });
 });
 
