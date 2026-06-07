@@ -1,4 +1,5 @@
 // Kitchen Sink Rpc Walk tests cover kitchen sink rpc walk script behavior.
+import { createHash } from "node:crypto";
 import { EventEmitter } from "node:events";
 import fs, {
   existsSync,
@@ -16,10 +17,13 @@ import {
   appendBoundedOutput,
   assertChannelAccountRunning,
   assertCommandResourceCeiling,
+  assertCreatedKitchenSinkSession,
   assertDiagnosticStabilityClean,
   assertExpectedKitchenSinkToolEntries,
   assertGatewayHealthPayload,
   assertGatewayStatusPayload,
+  assertKitchenSinkImageJobInvokeResult,
+  assertKitchenSinkUiDescriptors,
   assertKitchenSinkSearchInvokeResult,
   assertKitchenSinkTextInvokeResult,
   assertResourceCeiling,
@@ -33,6 +37,7 @@ import {
   findErrorLogFindings,
   findDistCallGatewayModuleFiles,
   hasChildExited,
+  listKitchenSinkToolInvokeNames,
   makeEnv,
   readPositiveInt,
   readBoundedResponseText,
@@ -695,6 +700,18 @@ describe("kitchen-sink RPC payload unwrapping", () => {
     expect(unwrapRpcPayload({ data: 0 })).toBe(0);
   });
 
+  it("rejects error envelopes without success payload fields", () => {
+    const error = captureSyncError(() =>
+      unwrapRpcPayload({ error: { message: "session store unavailable" } }),
+    );
+
+    expect(error.message).toContain("gateway RPC returned error envelope");
+    expect(error.message).toContain("session store unavailable");
+    expect(unwrapRpcPayload({ error: { message: "ignored" }, payload: { ok: true } })).toEqual({
+      ok: true,
+    });
+  });
+
   it("bounds failed RPC payload diagnostics", () => {
     const error = captureSyncError(() =>
       unwrapRpcPayload({
@@ -778,6 +795,14 @@ describe("kitchen-sink RPC command catalog assertions", () => {
     ).toEqual(["kitchen_sink_text", "kitchen_sink_search", "kitchen_sink_image_job"]);
   });
 
+  it("invokes every advertised Kitchen Sink tool during the RPC walk", () => {
+    expect(listKitchenSinkToolInvokeNames().toSorted()).toEqual([
+      "kitchen_sink_image_job",
+      "kitchen_sink_search",
+      "kitchen_sink_text",
+    ]);
+  });
+
   it("requires provenance for effective Kitchen Sink plugin tools too", () => {
     expect(() =>
       assertExpectedKitchenSinkToolEntries(
@@ -859,7 +884,12 @@ describe("kitchen-sink RPC command catalog assertions", () => {
     ).toThrow("did not report a configured Kitchen Sink speech provider");
   });
 
-  it("checks search and text tool invocation fixtures separately", () => {
+  it("checks search, text, and image job tool invocation fixtures separately", () => {
+    const pngBytes = Buffer.from(
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=",
+      "base64",
+    );
+    const pngSha256 = createHash("sha256").update(pngBytes).digest("hex");
     expect(() =>
       assertKitchenSinkSearchInvokeResult({
         ok: true,
@@ -874,6 +904,27 @@ describe("kitchen-sink RPC command catalog assertions", () => {
         output: {
           route: "tool:kitchen_sink_text",
           text: "Kitchen Sink text provider produced a deterministic reply.",
+        },
+      }),
+    ).not.toThrow();
+    expect(() =>
+      assertKitchenSinkImageJobInvokeResult({
+        ok: true,
+        source: "plugin",
+        output: {
+          ok: true,
+          route: "tool:kitchen_sink_image_job",
+          job: { status: "completed", route: "tool:kitchen_sink_image_job" },
+          mediaUrl: `data:image/png;base64,${pngBytes.toString("base64")}`,
+          image: {
+            mimeType: "image/png",
+            metadata: {
+              assetName: "kitchen_sink_office.png",
+              height: 1024,
+              sha256: pngSha256,
+              width: 1024,
+            },
+          },
         },
       }),
     ).not.toThrow();
@@ -902,6 +953,28 @@ describe("kitchen-sink RPC command catalog assertions", () => {
         output: { text: "Kitchen Sink prompt echoed tool:kitchen_sink_text" },
       }),
     ).toThrow("Kitchen Sink text tool output missed expected fixture");
+
+    expect(() =>
+      assertKitchenSinkImageJobInvokeResult({
+        ok: true,
+        source: "plugin",
+        output: {
+          ok: true,
+          route: "tool:kitchen_sink_image_job",
+          job: { status: "completed", route: "tool:kitchen_sink_image_job" },
+          mediaUrl: "data:image/png;base64,fixture",
+          image: {
+            mimeType: "image/png",
+            metadata: {
+              assetName: "kitchen_sink_office.png",
+              height: 1024,
+              sha256: "not-a-real-hash",
+              width: 1024,
+            },
+          },
+        },
+      }),
+    ).toThrow("Kitchen Sink image job tool output missed expected fixture");
   });
 
   it("bounds failed tool invocation diagnostics", () => {
@@ -919,6 +992,46 @@ describe("kitchen-sink RPC command catalog assertions", () => {
     expect(error.message).toContain("truncated");
     expect(error.message).not.toContain("DO_NOT_DUMP_TOOL_MIDDLE");
     expect(error.message.length).toBeLessThan(1400);
+  });
+
+  it("requires sessions.create to return the requested Kitchen Sink session", () => {
+    expect(() =>
+      assertCreatedKitchenSinkSession({
+        ok: true,
+        key: "agent:main:kitchen-sink-rpc",
+        sessionId: "session-1",
+      }),
+    ).not.toThrow();
+
+    expect(() =>
+      assertCreatedKitchenSinkSession({
+        ok: true,
+        key: "agent:main:stale-session",
+        sessionId: "session-1",
+      }),
+    ).toThrow("sessions.create did not return the requested Kitchen Sink session");
+    expect(() =>
+      assertCreatedKitchenSinkSession({
+        ok: true,
+        key: "agent:main:kitchen-sink-rpc",
+      }),
+    ).toThrow("sessions.create did not return the requested Kitchen Sink session");
+  });
+
+  it("requires Kitchen Sink UI descriptor coverage", () => {
+    expect(() =>
+      assertKitchenSinkUiDescriptors({
+        ok: true,
+        descriptors: [{ pluginId: "openclaw-kitchen-sink-fixture", id: "kitchen-sink-panel" }],
+      }),
+    ).not.toThrow();
+
+    expect(() => assertKitchenSinkUiDescriptors({})).toThrow(
+      "plugins.uiDescriptors returned invalid payload",
+    );
+    expect(() => assertKitchenSinkUiDescriptors({ ok: true, descriptors: [] })).toThrow(
+      "plugins.uiDescriptors did not report Kitchen Sink descriptor",
+    );
   });
 });
 
