@@ -7316,6 +7316,21 @@ class GatewayRunner:
             if normalized_user_id:
                 check_ids.add(normalized_user_id)
 
+        # SimpleX: SIMPLEX_ALLOWED_USERS accepts either the numeric contactId
+        # or the contact's display name. The adapter sets user_id=contactId for
+        # stability across renames, but the SimpleX UI never surfaces the
+        # numeric id — operators only see display names, so that's what they
+        # naturally put in the env var. Match both so the allowlist works
+        # regardless of which form was chosen.
+        # Plugin platform: compare by value since Platform.SIMPLEX is not a
+        # hardcoded enum member (it's a dynamic plugin platform).
+        if (
+            source.platform is not None
+            and source.platform.value == "simplex"
+            and source.user_name
+        ):
+            check_ids.add(source.user_name)
+
         return bool(check_ids & allowed_ids)
 
     def _get_unauthorized_dm_behavior(self, platform: Optional[Platform]) -> str:
@@ -9430,11 +9445,41 @@ class GatewayRunner:
 
         # First-message onboarding -- only on the very first interaction ever
         if not history and not self.session_store.has_any_sessions():
-            context_prompt += (
+            # Default first-contact note: a brief self-introduction.
+            _intro_note = (
                 "\n\n[System note: This is the user's very first message ever. "
                 "Briefly introduce yourself and mention that /help shows available commands. "
                 "Keep the introduction concise -- one or two sentences max.]"
             )
+            # Opt-in structured profile-build path. When enabled (default
+            # "ask") and not yet offered on this install, swap the plain intro
+            # for a consent-gated directive that offers to build a user
+            # profile and persists confirmed facts via memory(target="user").
+            # The offer fires at most once (onboarding.seen flag); set
+            # onboarding.profile_build: off in config.yaml to disable.
+            try:
+                from agent.onboarding import (
+                    PROFILE_BUILD_FLAG,
+                    is_seen,
+                    mark_seen,
+                    profile_build_directive,
+                    profile_build_mode,
+                )
+                _onb_cfg = _load_gateway_config()
+                if (
+                    profile_build_mode(_onb_cfg) == "ask"
+                    and not is_seen(_onb_cfg, PROFILE_BUILD_FLAG)
+                ):
+                    context_prompt += profile_build_directive()
+                    mark_seen(_hermes_home / "config.yaml", PROFILE_BUILD_FLAG)
+                else:
+                    context_prompt += _intro_note
+            except Exception as _pb_err:
+                logger.debug(
+                    "Profile-build onboarding directive failed, using plain intro: %s",
+                    _pb_err,
+                )
+                context_prompt += _intro_note
         
         # One-time prompt if no home channel is set for this platform
         # Skip for webhooks - they deliver directly to configured targets (github_comment, etc.)
