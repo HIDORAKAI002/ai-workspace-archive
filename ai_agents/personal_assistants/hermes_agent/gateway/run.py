@@ -14976,7 +14976,7 @@ class GatewayRunner:
     _UPDATE_ALLOWED_PLATFORMS = frozenset({
         Platform.TELEGRAM, Platform.SLACK, Platform.WHATSAPP,
         Platform.SIGNAL, Platform.MATRIX,
-        Platform.HOMEASSISTANT, Platform.EMAIL, Platform.SMS, Platform.DINGTALK,
+        Platform.EMAIL, Platform.SMS, Platform.DINGTALK,
         Platform.FEISHU, Platform.WECOM, Platform.WECOM_CALLBACK, Platform.WEIXIN, Platform.BLUEBUBBLES, Platform.QQBOT, Platform.LOCAL,
     })
 
@@ -19706,7 +19706,7 @@ async def start_gateway(config: Optional[GatewayConfig] = None, replace: bool = 
     # Centralized logging — agent.log (INFO+), errors.log (WARNING+),
     # and gateway.log (INFO+, gateway-component records only).
     # Idempotent, so repeated calls from AIAgent.__init__ won't duplicate.
-    from hermes_logging import setup_logging
+    from hermes_logging import setup_logging, _safe_stderr
     setup_logging(hermes_home=_hermes_home, mode="gateway")
 
     # Optional stderr handler — level driven by -v/-q flags on the CLI.
@@ -19718,7 +19718,7 @@ async def start_gateway(config: Optional[GatewayConfig] = None, replace: bool = 
         from agent.redact import RedactingFormatter
 
         _stderr_level = {0: logging.WARNING, 1: logging.INFO}.get(verbosity, logging.DEBUG)
-        _stderr_handler = logging.StreamHandler()
+        _stderr_handler = logging.StreamHandler(_safe_stderr())
         _stderr_handler.setLevel(_stderr_level)
         _stderr_handler.setFormatter(RedactingFormatter('%(levelname)s %(name)s: %(message)s'))
         logging.getLogger().addHandler(_stderr_handler)
