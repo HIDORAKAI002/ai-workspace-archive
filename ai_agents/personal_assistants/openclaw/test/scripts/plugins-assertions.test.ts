@@ -208,6 +208,61 @@ test -d "$OPENCLAW_PLUGINS_TMP_DIR"
     }
   });
 
+  it("scans plugin assertion logs without echoing whole files on failure", async () => {
+    const root = mkdtempSync(path.join(tmpdir(), "openclaw-plugin-update-log-"));
+    try {
+      const passRoot = path.join(root, "pass");
+      mkdirSync(passRoot, { recursive: true });
+      writeFileSync(
+        path.join(passRoot, "plugins-dir-update.log"),
+        `Skipping "demo-plugin-dir" (source: path).\n${"x".repeat(256 * 1024)}`,
+        "utf8",
+      );
+      const pass = await runAssertionAsync(["plugin-dir-update-skipped"], {
+        OPENCLAW_PLUGINS_TMP_DIR: passRoot,
+      });
+      expect(pass.status).toBe(0);
+
+      const failRoot = path.join(root, "fail");
+      mkdirSync(failRoot, { recursive: true });
+      writeFileSync(
+        path.join(failRoot, "plugins-dir-update.log"),
+        `${"x".repeat(256 * 1024)}\nmissing marker tail`,
+        "utf8",
+      );
+      const fail = await runAssertionAsync(["plugin-dir-update-skipped"], {
+        OPENCLAW_PLUGINS_TMP_DIR: failRoot,
+      });
+      expect(fail.status).toBe(1);
+      expect(fail.stderr).toContain("Output tail:");
+      expect(fail.stderr).toContain("missing marker tail");
+      expect(fail.stderr.length).toBeLessThan(20 * 1024);
+
+      const invalidRoot = path.join(root, "invalid");
+      const invalidHome = path.join(root, "home");
+      mkdirSync(invalidRoot, { recursive: true });
+      mkdirSync(invalidHome, { recursive: true });
+      writeFileSync(
+        path.join(invalidRoot, "plugins-invalid-openclaw-extensions.log"),
+        `openclaw.extensions[1]\n${"x".repeat(256 * 1024)}\nmissing validation tail`,
+        "utf8",
+      );
+      writeJson(path.join(invalidRoot, "plugins-invalid-openclaw-extensions-list.json"), {
+        plugins: [],
+      });
+      const invalid = await runAssertionAsync(["invalid-openclaw-extensions"], {
+        HOME: invalidHome,
+        OPENCLAW_PLUGINS_TMP_DIR: invalidRoot,
+      });
+      expect(invalid.status).toBe(1);
+      expect(invalid.stderr).toContain("malformed metadata install output");
+      expect(invalid.stderr).toContain("missing validation tail");
+      expect(invalid.stderr.length).toBeLessThan(20 * 1024);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it("cleans npm fixture registry children when readiness times out", () => {
     const root = mkdtempSync(path.join(tmpdir(), "openclaw-plugin-npm-fixture-cleanup-"));
     try {
@@ -408,6 +463,40 @@ test -d "$OPENCLAW_PLUGINS_TMP_DIR"
 
       expect(result.status).not.toBe(0);
       expect(result.stderr).toContain("managed install path still exists after uninstall");
+    } finally {
+      rmSync(root, { force: true, recursive: true });
+    }
+  });
+
+  it("rejects unreadable config during plugin uninstall proof", () => {
+    const root = mkdtempSync(path.join(tmpdir(), "openclaw-plugins-assertions-"));
+    const home = path.join(root, "home");
+    const scratchRoot = path.join(root, "scratch");
+    const removedInstallPath = path.join(home, ".openclaw", "extensions", "demo-plugin-tgz");
+
+    try {
+      writeJson(path.join(scratchRoot, "plugins2-uninstalled.json"), { plugins: [] });
+      writeFileSync(
+        path.join(scratchRoot, "plugins2-install-path.txt"),
+        removedInstallPath,
+        "utf8",
+      );
+      writeJson(path.join(home, ".openclaw", "plugins", "installs.json"), {
+        installRecords: {},
+      });
+      writeFileSync(path.join(home, ".openclaw", "openclaw.json"), "{ malformed\n", "utf8");
+
+      const result = spawnSync(process.execPath, [ASSERTIONS_SCRIPT, "plugin-tgz-removed"], {
+        encoding: "utf8",
+        env: {
+          ...process.env,
+          HOME: home,
+          OPENCLAW_PLUGINS_TMP_DIR: scratchRoot,
+        },
+      });
+
+      expect(result.status).not.toBe(0);
+      expect(result.stderr).toContain("failed to read OpenClaw config");
     } finally {
       rmSync(root, { force: true, recursive: true });
     }
