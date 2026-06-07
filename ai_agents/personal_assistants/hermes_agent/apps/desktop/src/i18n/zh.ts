@@ -696,7 +696,15 @@ export const zh: Translations = {
       ready: '就绪',
       nousIncluded: '包含在 Nous 订阅中；登录 Nous Portal 即可激活。',
       noApiKeyRequired: '不需要 API 密钥。',
-      postSetup: step => `此提供方需要额外设置步骤 (${step})。暂时请在 CLI 中运行 hermes tools。`
+      postSetupHint: step => `此后端需要一次性安装 (${step})。将在此机器上执行，可能需要几分钟。`,
+      postSetupRun: '运行设置',
+      postSetupRunning: '安装中…',
+      postSetupStarting: '启动中…',
+      postSetupCompleteTitle: '设置完成',
+      postSetupCompleteMessage: step => `已安装 ${step}。`,
+      postSetupErrorTitle: '设置完成但有错误',
+      postSetupErrorMessage: step => `请检查 ${step} 日志。`,
+      postSetupFailed: step => `运行 ${step} 设置失败`
     }
   },
 
@@ -1470,7 +1478,7 @@ export const zh: Translations = {
     },
     startingSignIn: provider => `正在为 ${provider} 启动登录...`,
     verifyingCode: provider => `正在通过 ${provider} 验证你的代码...`,
-    connectedProvider: provider => `${provider} 已连接。`,
+    connectedProvider: provider => `${provider} 已连接`,
     connectedPicking: provider => `${provider} 已连接。正在选择默认模型...`,
     signInFailed: '登录失败，请重试。',
     pickDifferentProvider: '选择其他提供方',
@@ -1494,7 +1502,7 @@ export const zh: Translations = {
     free: '免费',
     price: (input, output) => `${input} 输入 / ${output} 输出每 Mtok`,
     change: '更改',
-    startChatting: '开始对话',
+    startChatting: '开始',
     docs: provider => `${provider} 文档`
   },
 
