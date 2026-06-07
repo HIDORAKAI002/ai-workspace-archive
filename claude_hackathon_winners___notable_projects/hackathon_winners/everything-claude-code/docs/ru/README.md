@@ -222,7 +222,7 @@ npx ecc consult "security reviews" --target claude
 
 ```bash
 # Добавьте marketplace
-/plugin marketplace add https://github.com/affaan-m/everything-claude-code
+/plugin marketplace add https://github.com/affaan-m/ECC
 
 # Установите плагин
 /plugin install ecc@ecc
@@ -763,7 +763,7 @@ Duplicate hooks file detected: ./hooks/hooks.json resolves to already-loaded fil
 
 ```bash
 # Добавить этот репозиторий как marketplace
-/plugin marketplace add https://github.com/affaan-m/everything-claude-code
+/plugin marketplace add https://github.com/affaan-m/ECC
 
 # Установить плагин
 /plugin install ecc@ecc
@@ -832,13 +832,15 @@ cp -r everything-claude-code/rules/php ~/.claude/rules/ecc/
 
 # Сначала скопировать навыки (основной рабочий интерфейс)
 # Рекомендуется для новых пользователей: только core/general skills
-mkdir -p ~/.claude/skills/ecc
-cp -r everything-claude-code/.agents/skills/* ~/.claude/skills/ecc/
-cp -r everything-claude-code/skills/search-first ~/.claude/skills/ecc/
+mkdir -p ~/.claude/skills
+cp -r everything-claude-code/.agents/skills/* ~/.claude/skills/
+cp -r everything-claude-code/skills/search-first ~/.claude/skills/
+# Claude Code загружает навыки только из прямых подкаталогов ~/.claude/skills.
+# Не вкладывайте ручную установку в ~/.claude/skills/ecc/.
 
 # Опционально: добавляйте нишевые/framework-specific skills только при необходимости
 # for s in django-patterns django-tdd laravel-patterns springboot-patterns; do
-# cp -r everything-claude-code/skills/$s ~/.claude/skills/ecc/
+# cp -r everything-claude-code/skills/$s ~/.claude/skills/
 # done
 
 # Опционально: сохранить поддерживаемую slash-command совместимость во время миграции
