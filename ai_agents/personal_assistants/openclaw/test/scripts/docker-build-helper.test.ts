@@ -754,6 +754,8 @@ TMPDIR=${shellQuote(workDir)}
 export ROOT_DIR TMPDIR
 export PATH="$TMPDIR/bin"
 export DOCKER_COMMAND_TIMEOUT=7s
+unset OPENCLAW_DOCKER_E2E_DISABLE_RESOURCE_LIMITS
+unset OPENCLAW_DOCKER_E2E_MEMORY OPENCLAW_DOCKER_E2E_CPUS OPENCLAW_DOCKER_E2E_PIDS_LIMIT
 
 source "$ROOT_DIR/scripts/lib/docker-e2e-container.sh"
 
@@ -765,7 +767,59 @@ set -e
 stderr="$(<"$TMPDIR/stderr")"
 [[ "$status" = "13" ]]
 [[ "$stderr" = *"timeout command not found; using Node watchdog for Docker command timeout 7s"* ]]
-[[ "$(<"$TMPDIR/docker-seen")" = "run -i demo|payload" ]]
+[[ "$(<"$TMPDIR/docker-seen")" = "run --memory 8g --cpus 16 --pids-limit 2048 -i demo|payload" ]]
+`;
+
+      execFileSync("bash", ["-lc", script], { encoding: "utf8" });
+    } finally {
+      rmSync(workDir, { recursive: true, force: true });
+    }
+  });
+
+  it("adds default Docker run resource limits without overriding explicit limits", () => {
+    const workDir = mkdtempSync(join(tmpdir(), "openclaw-docker-resource-limits-"));
+
+    try {
+      const binDir = join(workDir, "bin");
+      mkdirSync(binDir);
+      writeFileSync(
+        join(binDir, "timeout"),
+        `#!/bin/bash
+set -euo pipefail
+if [[ "$1" = "--kill-after=1s" ]]; then
+  exit 0
+fi
+shift 2
+"$@"
+`,
+      );
+      chmodSync(join(binDir, "timeout"), 0o755);
+      const rootDir = process.cwd();
+      const script = `
+set -euo pipefail
+ROOT_DIR=${shellQuote(rootDir)}
+TMPDIR=${shellQuote(workDir)}
+export ROOT_DIR TMPDIR
+export PATH="$TMPDIR/bin:$PATH"
+unset OPENCLAW_DOCKER_E2E_DISABLE_RESOURCE_LIMITS
+unset OPENCLAW_DOCKER_E2E_MEMORY OPENCLAW_DOCKER_E2E_CPUS OPENCLAW_DOCKER_E2E_PIDS_LIMIT
+
+docker() {
+  printf "%s\\n" "$*" >>"$TMPDIR/docker-seen"
+}
+export -f docker
+
+source "$ROOT_DIR/scripts/lib/docker-e2e-container.sh"
+
+docker_e2e_docker_cmd run demo
+OPENCLAW_DOCKER_E2E_MEMORY=12g OPENCLAW_DOCKER_E2E_CPUS=4 OPENCLAW_DOCKER_E2E_PIDS_LIMIT=512 docker_e2e_docker_cmd run demo
+docker_e2e_docker_cmd run --memory 2g --cpus 3 --pids-limit 99 demo
+OPENCLAW_DOCKER_E2E_DISABLE_RESOURCE_LIMITS=1 docker_e2e_docker_cmd run demo
+
+[[ "$(sed -n '1p' "$TMPDIR/docker-seen")" = "run --memory 8g --cpus 16 --pids-limit 2048 demo" ]]
+[[ "$(sed -n '2p' "$TMPDIR/docker-seen")" = "run --memory 12g --cpus 4 --pids-limit 512 demo" ]]
+[[ "$(sed -n '3p' "$TMPDIR/docker-seen")" = "run --memory 2g --cpus 3 --pids-limit 99 demo" ]]
+[[ "$(sed -n '4p' "$TMPDIR/docker-seen")" = "run demo" ]]
 `;
 
       execFileSync("bash", ["-lc", script], { encoding: "utf8" });
@@ -915,6 +969,8 @@ TMPDIR=${shellQuote(workDir)}
 export ROOT_DIR TMPDIR
 export PATH="$TMPDIR/bin"
 export OPENCLAW_DOCKER_E2E_RUN_TIMEOUT=13s
+unset OPENCLAW_DOCKER_E2E_DISABLE_RESOURCE_LIMITS
+unset OPENCLAW_DOCKER_E2E_MEMORY OPENCLAW_DOCKER_E2E_CPUS OPENCLAW_DOCKER_E2E_PIDS_LIMIT
 
 docker() {
   printf "%s\\n" "$*" >>"$TMPDIR/docker-seen"
@@ -925,8 +981,8 @@ source "$ROOT_DIR/scripts/lib/docker-e2e-container.sh"
 
 docker_e2e_docker_run_cmd run demo
 
-[[ "$(<"$TMPDIR/timeout-seen")" = "gtimeout:--kill-after=30s 13s|docker run demo" ]]
-[[ "$(<"$TMPDIR/docker-seen")" = "run demo" ]]
+[[ "$(<"$TMPDIR/timeout-seen")" = "gtimeout:--kill-after=30s 13s|docker run --memory 8g --cpus 16 --pids-limit 2048 demo" ]]
+[[ "$(<"$TMPDIR/docker-seen")" = "run --memory 8g --cpus 16 --pids-limit 2048 demo" ]]
 `;
 
       execFileSync("bash", ["-lc", script], { encoding: "utf8" });
@@ -1008,6 +1064,8 @@ TMPDIR=${shellQuote(workDir)}
 export ROOT_DIR TMPDIR
 export PATH="$TMPDIR/bin"
 export OPENCLAW_DOCKER_E2E_RUN_TIMEOUT=15s
+unset OPENCLAW_DOCKER_E2E_DISABLE_RESOURCE_LIMITS
+unset OPENCLAW_DOCKER_E2E_MEMORY OPENCLAW_DOCKER_E2E_CPUS OPENCLAW_DOCKER_E2E_PIDS_LIMIT
 
 dirname() {
   /usr/bin/dirname "$@"
@@ -1026,8 +1084,8 @@ source "$ROOT_DIR/scripts/lib/docker-e2e-package.sh"
 
 docker_e2e_docker_run_cmd run demo
 
-[[ "$(<"$TMPDIR/timeout-seen")" = "gtimeout:--kill-after=30s 15s|docker run demo" ]]
-[[ "$(<"$TMPDIR/docker-seen")" = "run demo" ]]
+[[ "$(<"$TMPDIR/timeout-seen")" = "gtimeout:--kill-after=30s 15s|docker run --memory 8g --cpus 16 --pids-limit 2048 demo" ]]
+[[ "$(<"$TMPDIR/docker-seen")" = "run --memory 8g --cpus 16 --pids-limit 2048 demo" ]]
 `;
 
       execFileSync("bash", ["-lc", script], { encoding: "utf8" });
@@ -1364,6 +1422,18 @@ grep -qx -- "OPENCLAW_E2E_COMMAND_TIMEOUT=23s" "$TMPDIR/package-args"
     );
     expect(runner).toContain(
       'DOCKER_ENV_ARGS+=(-e "OPENCLAW_PLUGIN_LIFECYCLE_TIMEOUT_KILL_GRACE_MS=$OPENCLAW_PLUGIN_LIFECYCLE_TIMEOUT_KILL_GRACE_MS")',
+    );
+    expect(runner).toContain('if [ -n "${OPENCLAW_PLUGIN_LIFECYCLE_MAX_RSS_KB:-}" ]; then');
+    expect(runner).toContain(
+      'DOCKER_ENV_ARGS+=(-e "OPENCLAW_PLUGIN_LIFECYCLE_MAX_RSS_KB=$OPENCLAW_PLUGIN_LIFECYCLE_MAX_RSS_KB")',
+    );
+    expect(runner).toContain('if [ -n "${OPENCLAW_PLUGIN_LIFECYCLE_MAX_WALL_MS:-}" ]; then');
+    expect(runner).toContain(
+      'DOCKER_ENV_ARGS+=(-e "OPENCLAW_PLUGIN_LIFECYCLE_MAX_WALL_MS=$OPENCLAW_PLUGIN_LIFECYCLE_MAX_WALL_MS")',
+    );
+    expect(runner).toContain('if [ -n "${OPENCLAW_PLUGIN_LIFECYCLE_MAX_CPU_CORE_RATIO:-}" ]; then');
+    expect(runner).toContain(
+      'DOCKER_ENV_ARGS+=(-e "OPENCLAW_PLUGIN_LIFECYCLE_MAX_CPU_CORE_RATIO=$OPENCLAW_PLUGIN_LIFECYCLE_MAX_CPU_CORE_RATIO")',
     );
     expect(runner).toContain('docker_e2e_run_with_harness \\\n  "${DOCKER_ENV_ARGS[@]}"');
   });
@@ -1769,6 +1839,22 @@ test -f "$TMPDIR/docker-cmd-seen"
     }
   });
 
+  it("threads the live plugin tool output cap into the Docker harness", () => {
+    const runner = readFileSync(LIVE_PLUGIN_TOOL_DOCKER_E2E_PATH, "utf8");
+
+    expect(runner).toContain(
+      'AGENT_OUTPUT_MAX_BYTES="${OPENCLAW_LIVE_PLUGIN_TOOL_AGENT_OUTPUT_MAX_BYTES:-1048576}"',
+    );
+    expect(runner).toContain(
+      '-e "OPENCLAW_LIVE_PLUGIN_TOOL_AGENT_OUTPUT_MAX_BYTES=$AGENT_OUTPUT_MAX_BYTES"',
+    );
+    expect(runner).toContain("OPENCLAW_LIVE_PLUGIN_TOOL_AGENT_OUTPUT_DUMP_BYTES");
+    expect(runner).toContain('tail -c "$agent_output_dump_bytes" /tmp/openclaw-agent.json');
+    const dumpLogsStart = runner.indexOf("openclaw_e2e_dump_logs \\");
+    const dumpLogsEnd = runner.indexOf("\n}", dumpLogsStart);
+    expect(runner.slice(dumpLogsStart, dumpLogsEnd)).not.toContain("/tmp/openclaw-agent.json");
+  });
+
   it("cleans every prepared Docker package tarball on every runner exit path", () => {
     const paths = packageBackedDockerRunnerPaths();
 
@@ -1802,8 +1888,37 @@ test -f "$TMPDIR/docker-cmd-seen"
     expect(helper).toContain("docker_e2e_run_logged_print_with_harness()");
     expect(helper).toContain("run_logged_print_heartbeat \\");
     expect(helper).toContain("OPENCLAW_DOCKER_E2E_LOG_HEARTBEAT_SECONDS");
+    expect(readFileSync("scripts/lib/docker-e2e-logs.sh", "utf8")).toContain(
+      "OPENCLAW_DOCKER_E2E_LOG_PRINT_BYTES",
+    );
     expect(runner).toContain("docker_e2e_run_logged_print_with_harness \\");
     expect(runner).not.toContain("docker_e2e_run_logged_with_harness plugins-run");
+  });
+
+  it("bounds printed Docker E2E logs to the configured tail", () => {
+    const workDir = mkdtempSync(join(tmpdir(), "openclaw-docker-e2e-log-print-tail-"));
+
+    try {
+      const rootDir = process.cwd();
+      const script = `
+set -euo pipefail
+ROOT_DIR=${shellQuote(rootDir)}
+TMPDIR=${shellQuote(workDir)}
+export ROOT_DIR TMPDIR
+export OPENCLAW_DOCKER_E2E_LOG_PRINT_BYTES=64
+
+source "$ROOT_DIR/scripts/lib/docker-e2e-logs.sh"
+
+output="$(run_logged_print_heartbeat plugins-run 30 bash -c 'printf "DO_NOT_PRINT_OLD_LOG_START"; printf "%0200d" 0; printf "recent container log tail\\\\n"')"
+[[ "$output" = *"truncated: showing last 64"* ]]
+[[ "$output" = *"recent container log tail"* ]]
+[[ "$output" != *"DO_NOT_PRINT_OLD_LOG_START"* ]]
+`;
+
+      execFileSync("bash", ["-lc", script], { encoding: "utf8" });
+    } finally {
+      rmSync(workDir, { recursive: true, force: true });
+    }
   });
 
   it("prints heartbeat progress for long successful Docker E2E log captures", () => {
@@ -1882,6 +1997,71 @@ output="$(run_logged_print_heartbeat plugins-run 08 bash -c 'printf "captured co
     }
   });
 
+  it("normalizes zero-padded Docker E2E stats heartbeat intervals", () => {
+    const workDir = mkdtempSync(join(tmpdir(), "openclaw-docker-e2e-stats-zero-heartbeat-"));
+
+    try {
+      const rootDir = process.cwd();
+      const script = `
+set -euo pipefail
+ROOT_DIR=${shellQuote(rootDir)}
+TMPDIR=${shellQuote(workDir)}
+export ROOT_DIR TMPDIR
+
+source "$ROOT_DIR/scripts/lib/docker-e2e-image.sh"
+
+docker_e2e_docker_cmd() {
+  case "$1" in
+    inspect) return 0 ;;
+    stats) printf '{"MemUsage":"1MiB / 2MiB","CPUPerc":"0.1%%"}\\n'; return 0 ;;
+    *) return 0 ;;
+  esac
+}
+
+sleep() {
+  SECONDS=$((SECONDS + \${1%%.*}))
+  command sleep 0.01
+}
+
+stats_log="$TMPDIR/stats.log"
+run_log="$TMPDIR/run.log"
+sampler_log="$TMPDIR/sampler.log"
+printf "container output\\n" >"$run_log"
+
+(
+  command sleep 30
+) &
+docker_pid="$!"
+
+docker_e2e_sample_stats_until_exit demo "$docker_pid" "$stats_log" "$run_log" "Docker stats" 08 >"$sampler_log" 2>&1 &
+sampler_pid="$!"
+
+for _ in {1..200}; do
+  if grep -q "Docker stats still running (8s elapsed," "$sampler_log"; then
+    break
+  fi
+  if ! kill -0 "$sampler_pid" 2>/dev/null; then
+    break
+  fi
+  command sleep 0.01
+done
+
+kill "$docker_pid" 2>/dev/null || true
+wait "$docker_pid" 2>/dev/null || true
+wait "$sampler_pid"
+output="$(cat "$sampler_log")"
+
+[[ "$output" = *"Docker stats still running (8s elapsed,"* ]]
+[[ "$output" != *"value too great for base"* ]]
+[[ -s "$stats_log" ]]
+`;
+
+      execFileSync("bash", ["-lc", script], { encoding: "utf8" });
+    } finally {
+      rmSync(workDir, { recursive: true, force: true });
+    }
+  });
+
   it("includes procps in the shared Docker E2E image for process watchdogs", () => {
     const dockerfile = readFileSync("scripts/e2e/Dockerfile", "utf8");
 
@@ -1932,6 +2112,51 @@ output="$(run_logged_print_heartbeat plugins-run 08 bash -c 'printf "captured co
       );
       expect(runner, path).not.toContain(`${resourceAssertion}\n\nexit "$run_status"`);
     }
+  });
+
+  it("keeps Open WebUI Docker E2E resource-guarded", () => {
+    const runner = readFileSync(OPENWEBUI_DOCKER_E2E_PATH, "utf8");
+
+    expect(runner).toContain("OPENCLAW_OPENWEBUI_MAX_MEMORY_MIB");
+    expect(runner).toContain("OPENCLAW_OPENWEBUI_MAX_CPU_PERCENT");
+    expect(runner).toContain('STATS_LOG="$(mktemp');
+    expect(runner).toContain('PROBE_LOG="$(mktemp');
+    expect(runner).toContain('STATS_STOP_FILE="$(mktemp');
+    expect(runner).toContain("sample_openwebui_stats_once()");
+    expect(runner).toContain("start_openwebui_stats_sampler()");
+    expect(runner).toContain("start_openwebui_stats_sampler\n");
+    expect(runner).toContain('for container_name in "$GW_NAME" "$OW_NAME"; do');
+    expect(runner).toContain('"$GW_NAME" \\');
+    expect(runner).toContain('"$OW_NAME" \\');
+    expect(runner).toContain('"$container_name" >>"$STATS_LOG"');
+    expect(runner).toContain("assert_openwebui_stats()");
+    expect(runner).toContain(
+      'node scripts/e2e/lib/docker-stats/assert-resource-ceiling.mjs "$STATS_LOG" "$MAX_MEMORY_MIB" "$MAX_CPU_PERCENT" openwebui',
+    );
+    expect(runner).toMatch(
+      /cleanup\(\) \{[\s\S]*rm -f "\$STATS_STOP_FILE"[\s\S]*wait "\$stats_pid"/u,
+    );
+    expect(runner).toMatch(/cleanup\(\) \{[\s\S]*rm -f "\$STATS_LOG" "\$PROBE_LOG"/u);
+    expect(runner).toContain('node /app/scripts/e2e/openwebui-probe.mjs >"$PROBE_LOG" 2>&1 &');
+    expect(runner).toMatch(
+      /sample_openwebui_stats_once\nstop_openwebui_stats_samplers\nassert_openwebui_stats\necho "OK"/u,
+    );
+  });
+
+  it("forwards every kitchen-sink RPC runtime env knob into Docker", () => {
+    const runner = readFileSync(KITCHEN_SINK_RPC_DOCKER_E2E_PATH, "utf8");
+    const walk = readFileSync("scripts/e2e/kitchen-sink-rpc-walk.mjs", "utf8");
+    const consumed = new Set(
+      [...walk.matchAll(/\b(?:env|process\.env)\.(OPENCLAW_KITCHEN_SINK_[A-Z0-9_]+)/gu)].map(
+        (match) => match[1],
+      ),
+    );
+    const forwarded = new Set(
+      [...runner.matchAll(/\b(OPENCLAW_KITCHEN_SINK_[A-Z0-9_]+)\b/gu)].map((match) => match[1]),
+    );
+    const missing = [...consumed].filter((envName) => !forwarded.has(envName)).toSorted();
+
+    expect(missing).toEqual([]);
   });
 
   it("bounds kitchen-sink plugin CLI commands inside the Docker sweep", () => {

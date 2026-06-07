@@ -621,7 +621,15 @@ export const zhHant = defineLocale({
       ready: '就緒',
       nousIncluded: '包含在 Nous 訂閱中；登入 Nous Portal 即可啟用。',
       noApiKeyRequired: '不需要 API 金鑰。',
-      postSetup: step => `此提供方需要額外設定步驟 (${step})。暫時請在 CLI 中執行 hermes tools。`
+      postSetupHint: step => `此後端需要一次性安裝 (${step})。將在此機器上執行，可能需要幾分鐘。`,
+      postSetupRun: '執行設定',
+      postSetupRunning: '安裝中…',
+      postSetupStarting: '啟動中…',
+      postSetupCompleteTitle: '設定完成',
+      postSetupCompleteMessage: step => `已安裝 ${step}。`,
+      postSetupErrorTitle: '設定完成但有錯誤',
+      postSetupErrorMessage: step => `請檢查 ${step} 日誌。`,
+      postSetupFailed: step => `執行 ${step} 設定失敗`
     }
   },
 
@@ -1391,7 +1399,7 @@ export const zhHant = defineLocale({
     },
     startingSignIn: provider => `正在為 ${provider} 啟動登入...`,
     verifyingCode: provider => `正在透過 ${provider} 驗證您的代碼...`,
-    connectedProvider: provider => `${provider} 已連線。`,
+    connectedProvider: provider => `${provider} 已連線`,
     connectedPicking: provider => `${provider} 已連線。正在選擇預設模型...`,
     signInFailed: '登入失敗，請重試。',
     pickDifferentProvider: '選擇其他提供方',
@@ -1417,7 +1425,7 @@ export const zhHant = defineLocale({
     free: '免費',
     price: (input, output) => `${input} 輸入 / ${output} 輸出 每 Mtok`,
     change: '變更',
-    startChatting: '開始聊天',
+    startChatting: '開始',
     docs: provider => `${provider} 文件`
   },
 

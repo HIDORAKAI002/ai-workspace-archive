@@ -637,8 +637,16 @@ export const ja = defineLocale({
       ready: '準備完了',
       nousIncluded: 'Nous サブスクリプションに含まれています。有効にするには Nous Portal にサインインしてください。',
       noApiKeyRequired: 'API キーは不要です。',
-      postSetup: step =>
-        `このプロバイダーは追加のセットアップ手順 (${step}) が必要です。今は CLI で hermes tools を実行してください。`
+      postSetupHint: step =>
+        `このバックエンドは一度だけインストールが必要です (${step})。このマシン上で実行され、数分かかる場合があります。`,
+      postSetupRun: 'セットアップを実行',
+      postSetupRunning: 'インストール中…',
+      postSetupStarting: '開始中…',
+      postSetupCompleteTitle: 'セットアップ完了',
+      postSetupCompleteMessage: step => `${step} をインストールしました。`,
+      postSetupErrorTitle: 'セットアップはエラーで終了しました',
+      postSetupErrorMessage: step => `${step} のログを確認してください。`,
+      postSetupFailed: step => `${step} のセットアップの実行に失敗しました`
     }
   },
 
@@ -1430,7 +1438,7 @@ export const ja = defineLocale({
     },
     startingSignIn: provider => `${provider} のサインインを開始中...`,
     verifyingCode: provider => `${provider} でコードを確認中...`,
-    connectedProvider: provider => `${provider} が接続されました。`,
+    connectedProvider: provider => `${provider} が接続されました`,
     connectedPicking: provider => `${provider} が接続されました。デフォルトモデルを選択中...`,
     signInFailed: 'サインインに失敗しました。再試行してください。',
     pickDifferentProvider: '別のプロバイダーを選択',
@@ -1456,7 +1464,7 @@ export const ja = defineLocale({
     free: '無料',
     price: (input, output) => `${input} 入力 / ${output} 出力 per Mtok`,
     change: '変更',
-    startChatting: 'チャットを始める',
+    startChatting: '始める',
     docs: provider => `${provider} ドキュメント`
   },
 
