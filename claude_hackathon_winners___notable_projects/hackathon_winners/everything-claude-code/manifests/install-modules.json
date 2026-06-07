@@ -53,7 +53,9 @@
       "kind": "commands",
       "description": "Core slash-command library and command docs.",
       "paths": [
-        "commands"
+        "commands",
+        "scripts/harness-audit.js",
+        "scripts/skills-health.js"
       ],
       "targets": [
         "claude",
@@ -560,8 +562,6 @@
       "kind": "orchestration",
       "description": "Worktree/tmux orchestration runtime and workflow docs.",
       "paths": [
-        "commands/multi-workflow.md",
-        "commands/sessions.md",
         "scripts/lib/orchestration-session.js",
         "scripts/lib/tmux-worktree-orchestrator.js",
         "scripts/orchestrate-codex-worker.sh",
@@ -619,6 +619,7 @@
       "kind": "skills",
       "description": "Agentic engineering, autonomous loops, agent harness construction, and LLM pipeline optimization skills.",
       "paths": [
+        "scripts/claw.js",
         "skills/agent-architecture-audit",
         "skills/agent-harness-construction",
         "skills/agentic-engineering",
