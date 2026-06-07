@@ -23,6 +23,72 @@ const {
   output
 } = require('../lib/utils');
 
+const COUNTER_FILE_PREFIX = 'claude-tool-count-';
+const DEFAULT_COMPACT_STATE_TTL_DAYS = 14;
+
+function getCounterRetentionDays() {
+  const raw = process.env.COMPACT_STATE_TTL_DAYS;
+  if (!raw) return DEFAULT_COMPACT_STATE_TTL_DAYS;
+  const parsed = Number.parseInt(raw, 10);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : DEFAULT_COMPACT_STATE_TTL_DAYS;
+}
+
+/**
+ * Sweep stale counter files from the temp dir.
+ *
+ * Each session writes `claude-tool-count-<sessionId>` into the OS temp
+ * dir; nothing else removes them. Without a sweep these files accumulate
+ * one-per-session forever. This helper removes counters whose mtime is
+ * older than `retentionDays`, while preserving the active session's
+ * counter (which is about to be re-written by the caller).
+ *
+ * The helper never throws; per the always-exit-0 hook contract any
+ * filesystem failure is swallowed and logged to stderr.
+ *
+ * @param {string} tempDir - The temp directory to sweep.
+ * @param {number} retentionDays - Files older than this many days are removed.
+ * @param {string} currentCounterFile - Absolute path of the active session's
+ *   counter file; preserved unconditionally.
+ */
+function cleanupOldCounters(tempDir, retentionDays, currentCounterFile) {
+  let entries;
+  try {
+    entries = fs.readdirSync(tempDir, { withFileTypes: true });
+  } catch (err) {
+    log(`[StrategicCompact] Skipping counter sweep; readdir failed: ${err.message}`);
+    return;
+  }
+
+  const cutoffMs = Date.now() - retentionDays * 24 * 60 * 60 * 1000;
+  const currentBasename = path.basename(currentCounterFile);
+
+  for (const entry of entries) {
+    if (!entry.isFile()) continue;
+    if (!entry.name.startsWith(COUNTER_FILE_PREFIX)) continue;
+    if (entry.name === currentBasename) continue;
+
+    const fullPath = path.join(tempDir, entry.name);
+    let stats;
+    try {
+      stats = fs.statSync(fullPath);
+    } catch {
+      continue;
+    }
+
+    // Strict "older than" semantics per the docstring: a file whose mtime
+    // sits exactly on the cutoff boundary has age == retentionDays, which
+    // is not *older than* retentionDays, so preserve it. Use >= so only
+    // strictly older files (mtimeMs < cutoffMs) fall through to deletion.
+    if (stats.mtimeMs >= cutoffMs) continue;
+
+    try {
+      fs.rmSync(fullPath, { force: true });
+    } catch (err) {
+      log(`[StrategicCompact] Warning: failed to prune stale counter ${fullPath}: ${err.message}`);
+    }
+  }
+}
+
 async function resolveSessionId() {
   // Claude Code passes hook input via stdin JSON; session_id is the
   // canonical field. Fall back to the legacy env var, then 'default'.
@@ -43,7 +109,13 @@ async function main() {
   // legacy env var, or 'default' as fallback.
   const rawSessionId = await resolveSessionId();
   const sessionId = rawSessionId.replace(/[^a-zA-Z0-9_-]/g, '') || 'default';
-  const counterFile = path.join(getTempDir(), `claude-tool-count-${sessionId}`);
+  const tempDir = getTempDir();
+  const counterFile = path.join(tempDir, `${COUNTER_FILE_PREFIX}${sessionId}`);
+
+  // Sweep stale counter files (concern 1 of #2156). Cheap, swallows errors,
+  // skips the active session's file. See cleanupOldCounters for details.
+  cleanupOldCounters(tempDir, getCounterRetentionDays(), counterFile);
+
   const rawThreshold = parseInt(process.env.COMPACT_THRESHOLD || '50', 10);
   const threshold = Number.isFinite(rawThreshold) && rawThreshold > 0 && rawThreshold <= 10000
     ? rawThreshold

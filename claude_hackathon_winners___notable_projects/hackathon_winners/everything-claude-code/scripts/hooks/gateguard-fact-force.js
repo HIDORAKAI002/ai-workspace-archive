@@ -46,12 +46,61 @@ const ROUTINE_BASH_SESSION_KEY = '__bash_session__';
 const EDIT_WRITE_HOOK_ID = 'pre:edit-write:gateguard-fact-force';
 const BASH_HOOK_ID = 'pre:bash:gateguard-fact-force';
 const ECC_DISABLE_VALUES = new Set(['0', 'false', 'off', 'disabled', 'disable']);
+const ECC_ENABLE_VALUES = new Set(['1', 'true', 'on', 'enabled', 'enable', 'yes']);
 
 // SQL-keyword + dd patterns stay as a single regex — they are stable
 // phrases without shell-flag ordering concerns. Quoted strings are
 // stripped before this regex runs so a commit message mentioning
 // "drop table" no longer triggers a false positive.
 const DESTRUCTIVE_SQL_DD = /\b(drop\s+table|delete\s+from|truncate|dd\s+if=)\b/i;
+
+// Operator-supplied additional destructive patterns. Lazily compiled from
+// `GATEGUARD_BASH_EXTRA_DESTRUCTIVE` (regex source) on first use, then
+// memoized keyed by the env-var value so a test or long-running process
+// that flips the env between calls re-reads it without paying for a
+// recompile on every invocation. A malformed regex is treated as
+// "not configured" (the gate falls back to the built-in patterns) and
+// the parse failure is logged once via `[gateguard-fact-force]` to
+// stderr — hooks must never crash tool execution because of operator
+// config errors.
+let extraDestructiveCacheKey = null;
+let extraDestructiveCacheRegex = null;
+let extraDestructiveWarnLogged = false;
+function getExtraDestructiveRegex() {
+  const raw = process.env.GATEGUARD_BASH_EXTRA_DESTRUCTIVE || '';
+  if (!raw) {
+    extraDestructiveCacheKey = '';
+    extraDestructiveCacheRegex = null;
+    return null;
+  }
+  if (raw === extraDestructiveCacheKey) {
+    return extraDestructiveCacheRegex;
+  }
+  // The env value just changed; reset the once-per-pattern warning gate
+  // so a subsequent *different* invalid regex is also reported once. The
+  // previous shape kept the flag sticky and silently swallowed the
+  // second bad pattern in a long-running process.
+  extraDestructiveCacheKey = raw;
+  extraDestructiveWarnLogged = false;
+  try {
+    extraDestructiveCacheRegex = new RegExp(raw, 'i');
+  } catch (err) {
+    extraDestructiveCacheRegex = null;
+    if (!extraDestructiveWarnLogged) {
+      try {
+        process.stderr.write(
+          `[gateguard-fact-force] ignoring invalid GATEGUARD_BASH_EXTRA_DESTRUCTIVE regex: ${err.message}\n`
+        );
+      } catch (_) { /* stderr write failure is non-fatal */ }
+      extraDestructiveWarnLogged = true;
+    }
+  }
+  return extraDestructiveCacheRegex;
+}
+
+function isRoutineBashGateDisabled() {
+  return ECC_ENABLE_VALUES.has(normalizeEnvValue(process.env.GATEGUARD_BASH_ROUTINE_DISABLED));
+}
 
 /**
  * Strip the contents of single- and double-quoted strings so phrases
@@ -269,7 +318,14 @@ function isDestructiveGit(tokens) {
   }
 
   if (command === 'checkout') {
-    return rest.includes('--');
+    // `git checkout -- <path>`, `git checkout .`, and the force forms
+    // (`--force` / `-f`) all discard uncommitted working-tree changes,
+    // mirroring the `switch` handler below.
+    return rest.some(t => {
+      if (t === '--' || t === '.' || t === '--force') return true;
+      if (!t.startsWith('-') || t.startsWith('--')) return false;
+      return t.slice(1).includes('f');
+    });
   }
 
   if (command === 'clean') {
@@ -414,9 +470,17 @@ function isDestructiveBash(command) {
   const flattened = explodeSubshells(stripQuotedStrings(raw));
   if (DESTRUCTIVE_SQL_DD.test(flattened)) return true;
 
+  // Operator-supplied additional destructive patterns. Same scope as the
+  // built-in SQL/dd regex: matched against the quote-stripped, subshell-
+  // exploded command so a phrase inside `$(...)` or backticks is caught.
+  const extra = getExtraDestructiveRegex();
+  if (extra && extra.test(flattened)) return true;
+
   const segments = collectExecutableBodies(raw).flatMap(splitCommandSegments);
   for (const segment of segments) {
-    if (DESTRUCTIVE_SQL_DD.test(stripQuotedStrings(segment))) return true;
+    const stripped = stripQuotedStrings(segment);
+    if (DESTRUCTIVE_SQL_DD.test(stripped)) return true;
+    if (extra && extra.test(stripped)) return true;
     const tokens = tokenize(segment);
     if (isDestructiveRm(tokens)) return true;
     if (isDestructiveGit(tokens)) return true;
@@ -881,6 +945,14 @@ function run(rawInput) {
         return denyResult(destructiveBashMsg(), { includeRecoveryHint: false });
       }
       return rawInput; // allow retry after facts presented
+    }
+
+    // Operator opt-out: skip the routine-bash gate entirely. The destructive
+    // gate above still fires. This is the documented escape hatch for hosts
+    // (Cursor, OpenCode, etc.) where the once-per-session routine gate is
+    // friction without signal.
+    if (isRoutineBashGateDisabled()) {
+      return rawInput; // routine gate opted out via env
     }
 
     if (!isChecked(ROUTINE_BASH_SESSION_KEY)) {
