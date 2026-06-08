@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-06-09 02:19 IST] Auto-Sync
+- **41 Repositories Updated:** MCP TypeScript SDK, Keboola MCP, Kubernetes MCP Server, Exa MCP Server, Langfuse, Promptfoo, n8n, Activepieces, Trigger.dev, Windmill, Appsmith, Directus, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langchain, deepset-ai/haystack, browser-use/browser-use, Swarms, VoltAgent, BerriAI/litellm, ollama/ollama, ggml-org/llama.cpp, deepspeedai/DeepSpeed, vllm-project/vllm, lobehub/lobe-chat, infiniflow/ragflow, firecrawl/firecrawl, danny-avila/LibreChat, google-gemini/gemini-cli, vercel/ai, apache/airflow, PrefectHQ/prefect, dagster-io/dagster, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, vectorize-io/hindsight, bytedance/deer-flow, nousresearch/hermes-agent
+
 ## [2026-06-08 19:30 IST] Auto-Sync
 - **28 Repositories Updated:** MCP Python SDK, Langfuse, n8n, Dify, Activepieces, Trigger.dev, Budibase, NocoDB, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, microsoft/mcp-for-beginners, mastra-ai/mastra, deepset-ai/haystack, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, milvus-io/milvus, infiniflow/ragflow, danny-avila/LibreChat, apache/airflow, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow, nousresearch/hermes-agent
 
