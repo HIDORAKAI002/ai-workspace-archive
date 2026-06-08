@@ -470,7 +470,7 @@ describe("V1 Types Validation", () => {
         deduplicateSimilarURLs: false,
         ignoreQueryParameters: true,
         regexOnFullURL: true,
-        delay: 1000,
+        delay: 5,
         scrapeOptions: {
           formats: ["markdown"],
         },

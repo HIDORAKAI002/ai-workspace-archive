@@ -43,6 +43,7 @@ export type LockCreditsParams = {
   lockId?: string;
   expiresAt?: number;
   properties?: Record<string, unknown>;
+  featureId?: string;
 };
 
 export type FinalizeCreditsLockParams = {
@@ -57,6 +58,7 @@ export type TrackCreditsParams = {
   value: number;
   properties?: Record<string, unknown>;
   requestScoped?: boolean;
+  featureId?: string;
 };
 
 export type CreateEntityResult =
