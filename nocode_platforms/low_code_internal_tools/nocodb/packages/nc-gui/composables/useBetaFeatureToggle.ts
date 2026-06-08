@@ -58,7 +58,7 @@ const FEATURES = [
   {
     id: 'sync_beta_feature',
     title: 'Advanced Sync Features',
-    description: 'Enable sync beta features like custom sync, multi source sync, etc.',
+    description: 'Enable sync beta features like multi source sync, etc.',
     enabled: false,
     version: 1,
     isEngineering: true,
@@ -182,6 +182,18 @@ const FEATURES = [
     enabled: true,
     version: 2,
     isEngineering: false,
+  },
+  {
+    id: 'white_label',
+    title: 'White Label',
+    description: 'Customize favicon, logo and branding for self-hosted instances.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+    isOnPrem: true,
+    isCloud: false,
+    isAdvanced: true,
   },
   {
     id: 'mssql_source',
