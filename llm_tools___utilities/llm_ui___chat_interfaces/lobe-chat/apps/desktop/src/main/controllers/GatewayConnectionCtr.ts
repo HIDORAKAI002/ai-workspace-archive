@@ -361,8 +361,66 @@ export default class GatewayConnectionCtr extends ControllerModule {
         return this.workspaceCtr.initWorkspace(params as InitWorkspaceParams);
       }
 
-      case 'gitInfo': {
-        return this.gitCtr.gitInfo(params as { isGithub?: boolean; scope: string });
+      case 'getGitBranch': {
+        return this.gitCtr.getGitBranch((params as { path: string }).path);
+      }
+
+      case 'getLinkedPullRequest': {
+        return this.gitCtr.getLinkedPullRequest(params as { branch: string; path: string });
+      }
+
+      case 'getGitWorkingTreeStatus': {
+        return this.gitCtr.getGitWorkingTreeStatus((params as { path: string }).path);
+      }
+
+      case 'getGitAheadBehind': {
+        return this.gitCtr.getGitAheadBehind((params as { path: string }).path);
+      }
+
+      case 'listGitBranches': {
+        return this.gitCtr.listGitBranches((params as { path: string }).path);
+      }
+
+      case 'checkoutGitBranch': {
+        return this.gitCtr.checkoutGitBranch(
+          params as { branch: string; create?: boolean; path: string },
+        );
+      }
+
+      case 'pullGitBranch': {
+        return this.gitCtr.pullGitBranch(params as { path: string });
+      }
+
+      case 'pushGitBranch': {
+        return this.gitCtr.pushGitBranch(params as { path: string });
+      }
+
+      case 'getGitWorkingTreePatches': {
+        return this.gitCtr.getGitWorkingTreePatches((params as { path: string }).path);
+      }
+
+      case 'getGitWorkingTreeFiles': {
+        return this.gitCtr.getGitWorkingTreeFiles((params as { path: string }).path);
+      }
+
+      case 'getProjectFileIndex': {
+        return this.localFileCtr.getProjectFileIndex(params as { scope?: string });
+      }
+
+      case 'getGitBranchDiff': {
+        return this.gitCtr.getGitBranchDiff(params as { baseRef?: string; path: string });
+      }
+
+      case 'listGitRemoteBranches': {
+        return this.gitCtr.listGitRemoteBranches((params as { path: string }).path);
+      }
+
+      case 'revertGitFile': {
+        return this.gitCtr.revertGitFile(params as { filePath: string; path: string });
+      }
+
+      case 'statPath': {
+        return this.workspaceCtr.statPath(params as { path: string });
       }
 
       default: {
