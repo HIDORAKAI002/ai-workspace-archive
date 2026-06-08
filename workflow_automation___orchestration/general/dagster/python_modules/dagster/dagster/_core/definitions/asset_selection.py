@@ -53,6 +53,10 @@ def is_coercible_to_asset_selection(
     )
 
 
+def _wildcard_to_regex(pattern: str) -> re.Pattern[str]:
+    return re.compile("^" + re.escape(pattern).replace("\\*", ".*") + "$")
+
+
 class DagsterInvalidAssetSelectionError(DagsterError):
     """An error raised when an invalid asset selection is provided."""
 
@@ -964,6 +968,38 @@ class GroupsAssetSelection(AssetSelection):
 
 @whitelist_for_serdes
 @record
+class GroupWildCardAssetSelection(AssetSelection):
+    """Selection of assets whose group_name matches a wildcard pattern.
+
+    Patterns use ``*`` to match any sequence of characters (including ``/``),
+    so ``marketing/*`` matches both ``marketing/foo`` and
+    ``marketing/foo/bar``.
+    """
+
+    selected_group_wildcard: str
+    include_sources: bool
+
+    def resolve_inner(
+        self, asset_graph: BaseAssetGraph, allow_missing: bool
+    ) -> AbstractSet[AssetKey]:
+        regex = _wildcard_to_regex(self.selected_group_wildcard)
+        return {
+            node.key
+            for node in asset_graph.asset_nodes
+            if node.group_name is not None
+            and regex.match(node.group_name)
+            and (self.include_sources or node.is_materializable)
+        }
+
+    def to_serializable_asset_selection(self, asset_graph: BaseAssetGraph) -> "AssetSelection":
+        return self
+
+    def to_selection_str(self) -> str:
+        return f'group:"{self.selected_group_wildcard}"'
+
+
+@whitelist_for_serdes
+@record
 class KindAssetSelection(AssetSelection):
     include_sources: bool
     kind_str: str | None
@@ -1486,7 +1522,7 @@ class KeyWildCardAssetSelection(AssetSelection):
     def resolve_inner(
         self, asset_graph: BaseAssetGraph, allow_missing: bool
     ) -> AbstractSet[AssetKey]:
-        regex = re.compile("^" + re.escape(self.selected_key_wildcard).replace("\\*", ".*") + "$")
+        regex = _wildcard_to_regex(self.selected_key_wildcard)
         return {
             key for key in asset_graph.get_all_asset_keys() if regex.match(key.to_user_string())
         }
