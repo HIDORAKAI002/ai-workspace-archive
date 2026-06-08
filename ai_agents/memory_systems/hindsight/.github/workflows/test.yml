@@ -101,6 +101,9 @@ jobs:
           docs:
             - 'hindsight-docs/**'
             - '*.md'
+            # Integration changes can add/rename integrations, which the docs
+            # build's integrations check validates against integrations.json.
+            - 'hindsight-integrations/**'
           embed:
             - 'hindsight-embed/**'
           all-npm:
@@ -920,6 +923,7 @@ jobs:
     - uses: actions/checkout@v6
       with:
         ref: ${{ github.event.pull_request.head.sha || '' }}
+        fetch-depth: 0 # fetch tags so check-released-integrations can see them
 
     - name: Set up Node.js
       uses: actions/setup-node@v6
@@ -927,6 +931,12 @@ jobs:
         node-version: '20'
         cache: 'npm'
         cache-dependency-path: package-lock.json
+
+    # Fail fast before the (slow) build: every integrations.json entry must have a
+    # doc page, and every released integration tag must be in integrations.json.
+    # Needs no npm install (pure Node) and uses the tags fetched above.
+    - name: Check integrations (single source of truth)
+      run: node hindsight-docs/scripts/check-integrations.mjs
 
     - name: Install dependencies
       run: npm ci --workspace=hindsight-docs

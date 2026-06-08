@@ -1,6 +1,6 @@
 # Advanced MCP Security with Azure Content Safety
 
-> **OWASP MCP Risk Addressed**: [MCP06 - Prompt Injection via Contextual Payloads](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)
+> **OWASP MCP Risk Addressed**: [MCP06 - Intent Flow Subversion](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)
 
 Azure Content Safety provides several powerful tools that can enhance the security of your MCP implementations. For hands-on implementation experience, see [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/) Camp 3: I/O Security.
 

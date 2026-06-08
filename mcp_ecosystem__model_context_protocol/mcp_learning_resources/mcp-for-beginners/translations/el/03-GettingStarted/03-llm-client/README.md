@@ -457,7 +457,7 @@ let tools = mcp_client.list_tools(Default::default()).await?;
 
     Ο παραπάνω κώδικας παίρνει μια απάντηση από τον MCP διακομιστή και τη μετατρέπει σε μορφή ορισμού εργαλείου που καταλαβαίνει το LLM.
 
-1. Ας ενημερώσουμε τη μέθοδο `run` για να καταγράψουμε τις δυνατότητες του διακομιστή:
+2. Ας ενημερώσουμε τη μέθοδο `run` για να καταγράψουμε τις δυνατότητες του διακομιστή:
 
     ```typescript
     async run() {
@@ -499,7 +499,7 @@ let tools = mcp_client.list_tools(Default::default()).await?;
 
     Στη συνάρτηση `convert_to_llm_tools` παίρνουμε μια απάντηση εργαλείου MCP και την μετατρέπουμε σε μορφή κατανοητή από το LLM.
 
-1. Στη συνέχεια, ας ενημερώσουμε τον κώδικα του πελάτη ώστε να χρησιμοποιήσει αυτή τη συνάρτηση ως εξής:
+2. Στη συνέχεια, ας ενημερώσουμε τον κώδικα του πελάτη ώστε να χρησιμοποιήσει αυτή τη συνάρτηση ως εξής:
 
     ```python
     functions = []
@@ -541,7 +541,7 @@ ChatCompletionsToolDefinition ConvertFrom(string name, string description, JsonE
 - Δημιουργήσει μια λειτουργία `ConvertFrom` που παίρνει όνομα, περιγραφή και σχήμα εισόδου.
 - Ορίσει λειτουργικότητα που δημιουργεί ένα `FunctionDefinition` και το περνά σε ένα `ChatCompletionsDefinition`. Αυτό είναι κάτι που καταλαβαίνει το LLM.
 
-1. Ας δούμε πώς μπορούμε να ενημερώσουμε υπάρχοντα κώδικα για να επωφεληθούμε αυτής της λειτουργίας:
+2. Ας δούμε πώς μπορούμε να ενημερώσουμε υπάρχοντα κώδικα για να επωφεληθούμε αυτής της λειτουργίας:
 
     ```csharp
     async Task<List<ChatCompletionsToolDefinition>> GetMcpTools()
@@ -711,7 +711,7 @@ async fn format_tools(tools: &ListToolsResult) -> Result<Vec<Value>, Box<dyn Err
         // ΠΡΕΠΕΙ ΝΑ ΓΙΝΕΙ
         ```
 
-1. Ενημερώστε τη μέθοδο `run` ώστε να περιλαμβάνει κλήσεις στο LLM και κλήση της `callTools`:
+2. Ενημερώστε τη μέθοδο `run` ώστε να περιλαμβάνει κλήσεις στο LLM και κλήση της `callTools`:
 
     ```typescript
 
@@ -863,7 +863,7 @@ class MyClient {
 
         let results: any[] = [];
     
-        // 1. Περάστε από την απάντηση LLM, για κάθε επιλογή, ελέγξτε αν έχει κλήσεις εργαλείων
+        // 3. Περάστε από την απάντηση LLM, για κάθε επιλογή, ελέγξτε αν έχει κλήσεις εργαλείων
         (await response).choices.map(async (choice: { message: any; }) => {
           const message = choice.message;
           if (message.tool_calls) {
@@ -897,7 +897,7 @@ client.connectToServer(transport);
     import json
     ```
 
-1. Στη συνέχεια, προσθέτουμε τη συνάρτηση που θα καλέσει το LLM:
+2. Στη συνέχεια, προσθέτουμε τη συνάρτηση που θα καλέσει το LLM:
 
     ```python
     # llm
@@ -954,7 +954,7 @@ client.connectToServer(transport);
     - Μετά, ελέγχουμε το αποτέλεσμα για να δούμε ποιες συναρτήσεις πρέπει να καλέσουμε, αν υπάρχουν.
     - Τέλος, περνάμε έναν πίνακα συναρτήσεων για κλήση.
 
-1. Τελικό βήμα, ενημερώνουμε τον κύριο κώδικά μας:
+3. Τελικό βήμα, ενημερώνουμε τον κύριο κώδικά μας:
 
     ```python
     prompt = "Add 2 to 20"
@@ -1016,7 +1016,7 @@ client.connectToServer(transport);
     - Δημιουργήσει ένα αντικείμενο επιλογών που περιλαμβάνει το μοντέλο και τα εργαλεία.
     - Έκανε ένα αίτημα προς το LLM.
 
-1. Ένα τελευταίο βήμα, ας δούμε αν το LLM θεωρεί ότι πρέπει να καλέσουμε μια συνάρτηση:
+2. Ένα τελευταίο βήμα, ας δούμε αν το LLM θεωρεί ότι πρέπει να καλέσουμε μια συνάρτηση:
 
     ```csharp
     // 4. Check if the response contains a function call
@@ -1166,7 +1166,7 @@ for (int i = 0; i < response.ToolCalls.Count; i++)
 
 }
 
-// 5. Print the generic response
+// 6. Print the generic response
 Console.WriteLine($"Assistant response: {content}");
 ```
 

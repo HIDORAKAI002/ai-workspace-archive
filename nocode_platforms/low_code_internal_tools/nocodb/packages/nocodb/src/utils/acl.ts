@@ -303,6 +303,9 @@ const permissionScopes = {
     'dataImportPreview',
     'dataImportFile',
 
+    // Web Bookmark (doc editor)
+    'webBookmarkFetch',
+
     // etc
     'fetchViaUrl',
 
@@ -559,6 +562,7 @@ const rolePermissions:
 
       // etc
       fetchViaUrl: true,
+      webBookmarkFetch: true,
 
       // Sort/Filter/ViewColumn/View operations for personal views (middleware handles ownership check)
       sortCreate: true,
@@ -837,6 +841,9 @@ const permissionDescriptions: Record<string, string> = {
   ssoClientGet: 'view SSO client details',
   ssoClientTest: 'test an SSO client',
 
+  whiteLabelGet: 'view white-label configuration',
+  whiteLabelUpdate: 'update white-label configuration',
+
   apiTokenList: 'view list of API tokens',
   apiTokenCreate: 'create a new API token',
   apiTokenUpdate: 'update an API token',
@@ -1036,6 +1043,8 @@ const permissionDescriptions: Record<string, string> = {
 
   dataImportPreview: 'preview file for import',
   dataImportFile: 'import file into a table',
+
+  webBookmarkFetch: 'fetch link metadata for a doc bookmark block',
 
   bookmarkList: 'view list of bookmarks',
   bookmarkCheck: 'check bookmark status of items',

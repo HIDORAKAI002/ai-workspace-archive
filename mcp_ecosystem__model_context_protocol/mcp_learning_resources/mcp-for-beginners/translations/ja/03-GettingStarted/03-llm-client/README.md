@@ -457,7 +457,7 @@ let tools = mcp_client.list_tools(Default::default()).await?;
 
     上記コードはMCPサーバーのレスポンスを受け、LLMが理解できるツール定義形式に変換します。
 
-1. 続けて `run` メソッドを更新しサーバー機能を一覧表示するようにします：
+2. 続けて `run` メソッドを更新しサーバー機能を一覧表示するようにします：
 
     ```typescript
     async run() {
@@ -499,7 +499,7 @@ let tools = mcp_client.list_tools(Default::default()).await?;
 
     上記の `convert_to_llm_tools` 関数では、MCPツールのレスポンスを受けLLMが理解できる形式に変換しています。
 
-1. つづいて、クライアントコードを更新しこの関数を利用するようにします：
+2. つづいて、クライアントコードを更新しこの関数を利用するようにします：
 
     ```python
     functions = []
@@ -541,7 +541,7 @@ ChatCompletionsToolDefinition ConvertFrom(string name, string description, JsonE
 - 名前、説明、入力スキーマを受け取り変換する `ConvertFrom` 関数を作成しました。
 - これにより、LLMが理解する `FunctionDefinition` が作成され、`ChatCompletionsDefinition` に渡されます。
 
-1. 既存コードをこの関数を使うように更新します：
+2. 既存コードをこの関数を使うように更新します：
 
     ```csharp
     async Task<List<ChatCompletionsToolDefinition>> GetMcpTools()
@@ -711,7 +711,7 @@ async fn format_tools(tools: &ListToolsResult) -> Result<Vec<Value>, Box<dyn Err
         // やること
         ```
 
-1. `run` メソッドを更新し、LLMの呼び出しおよび `callTools` も含めるようにします：
+2. `run` メソッドを更新し、LLMの呼び出しおよび `callTools` も含めるようにします：
 
     ```typescript
 
@@ -863,7 +863,7 @@ class MyClient {
 
         let results: any[] = [];
     
-        // 1. LLMの応答を順に処理し、各選択肢がツール呼び出しを含んでいるか確認する
+        // 3. LLMの応答を順に処理し、各選択肢がツール呼び出しを含んでいるか確認する
         (await response).choices.map(async (choice: { message: any; }) => {
           const message = choice.message;
           if (message.tool_calls) {
@@ -897,7 +897,7 @@ client.connectToServer(transport);
     import json
     ```
 
-1. LLMを呼び出す関数を追加します：
+2. LLMを呼び出す関数を追加します：
 
     ```python
     # llm
@@ -954,7 +954,7 @@ client.connectToServer(transport);
     - 結果を確認し、呼ぶべき関数があれば判別しています。
     - 呼び出す関数の配列を渡しています。
 
-1. 最後にメインコードを更新します：
+3. 最後にメインコードを更新します：
 
     ```python
     prompt = "Add 2 to 20"
@@ -1016,7 +1016,7 @@ client.connectToServer(transport);
     - モデルとツールを指定したオプションオブジェクトを作成。
     - LLMへリクエストを送信しています。
 
-1. 最後に、LLMが関数呼び出しが必要かどうかを判断している箇所：
+2. 最後に、LLMが関数呼び出しが必要かどうかを判断している箇所：
 
     ```csharp
     // 4. Check if the response contains a function call
@@ -1166,7 +1166,7 @@ for (int i = 0; i < response.ToolCalls.Count; i++)
 
 }
 
-// 5. Print the generic response
+// 6. Print the generic response
 Console.WriteLine($"Assistant response: {content}");
 ```
 

@@ -457,7 +457,7 @@ let tools = mcp_client.list_tools(Default::default()).await?;
 
     اوپر دیا گیا کوڈ MCP سرور سے حاصل جوابی ڈیٹا لیتا ہے اور اسے ایسے ٹول تعریف فارمیٹ میں بدلتا ہے جو ایل ایل ایم سمجھ سکتا ہے۔
 
-1. اب `run` طریقہ کو اپ ڈیٹ کریں تاکہ سرور کی صلاحیتوں کی فہرست بنائی جائے:
+2. اب `run` طریقہ کو اپ ڈیٹ کریں تاکہ سرور کی صلاحیتوں کی فہرست بنائی جائے:
 
     ```typescript
     async run() {
@@ -499,7 +499,7 @@ let tools = mcp_client.list_tools(Default::default()).await?;
 
     `convert_to_llm_tools` فنکشن MCP ٹول کے جواب کو لیتا ہے اور اسے ایل ایل ایم کے لیے قابل فہم فارمیٹ میں تبدیل کرتا ہے۔
 
-1. پھر کلائنٹ کوڈ میں اس فنکشن کو استعمال کریں:
+2. پھر کلائنٹ کوڈ میں اس فنکشن کو استعمال کریں:
 
     ```python
     functions = []
@@ -541,7 +541,7 @@ ChatCompletionsToolDefinition ConvertFrom(string name, string description, JsonE
 - `ConvertFrom` فنکشن بنایا جو نام، تفصیل اور ان پٹ اسکیمہ لیتا ہے۔
 - ایک فنکشنلٹی بنائی جو `FunctionDefinition` تخلیق کرتی ہے جو `ChatCompletionsDefinition` کو پاس ہوتی ہے، جو ایل ایل ایم سمجھ سکتا ہے۔
 
-1. اب موجودہ کوڈ کو اس فنکشن کے فائدے کے لیے اپ ڈیٹ کریں:
+2. اب موجودہ کوڈ کو اس فنکشن کے فائدے کے لیے اپ ڈیٹ کریں:
 
     ```csharp
     async Task<List<ChatCompletionsToolDefinition>> GetMcpTools()
@@ -711,7 +711,7 @@ async fn format_tools(tools: &ListToolsResult) -> Result<Vec<Value>, Box<dyn Err
         // جاری ہے
         ```
 
-1. `run` طریقہ کو اپ ڈیٹ کریں تاکہ ایل ایل ایم کالز اور `callTools` شامل ہوں:
+2. `run` طریقہ کو اپ ڈیٹ کریں تاکہ ایل ایل ایم کالز اور `callTools` شامل ہوں:
 
     ```typescript
 
@@ -863,7 +863,7 @@ class MyClient {
 
         let results: any[] = [];
     
-        // 1. ایل ایل ایم جواب کا جائزہ لیں، ہر انتخاب کے لیے چیک کریں کہ کیا اس میں ٹول کالز ہیں
+        // 3. ایل ایل ایم جواب کا جائزہ لیں، ہر انتخاب کے لیے چیک کریں کہ کیا اس میں ٹول کالز ہیں
         (await response).choices.map(async (choice: { message: any; }) => {
           const message = choice.message;
           if (message.tool_calls) {
@@ -897,7 +897,7 @@ client.connectToServer(transport);
     import json
     ```
 
-1. پھر وہ فنکشن شامل کریں جو ایل ایل ایم کو کال کرے گا:
+2. پھر وہ فنکشن شامل کریں جو ایل ایل ایم کو کال کرے گا:
 
     ```python
     # ایل ایل ایم
@@ -954,7 +954,7 @@ client.connectToServer(transport);
     - نتیجہ دیکھا کہ کون سے فنکشنز کال کیے جانے چاہئیں۔
     - آخر میں بُلائے جانے والے فنکشنز کی فہرست پاس کی۔
 
-1. آخری مرحلہ، اپنے مرکزی کوڈ کو اپ ڈیٹ کریں:
+3. آخری مرحلہ، اپنے مرکزی کوڈ کو اپ ڈیٹ کریں:
 
     ```python
     prompt = "Add 2 to 20"
@@ -1016,7 +1016,7 @@ client.connectToServer(transport);
     - ماڈل اور ٹولز کی وضاحت کرتے ہوئے آپشنز آبجیکٹ تشکیل دیا۔
     - ایل ایل ایم کو درخواست کی۔
 
-1. ایک آخری قدم، دیکھیں کہ کیا ایل ایل ایم سمجھتا ہے کہ فنکشن کال کرنی چاہیے:
+2. ایک آخری قدم، دیکھیں کہ کیا ایل ایل ایم سمجھتا ہے کہ فنکشن کال کرنی چاہیے:
 
     ```csharp
     // 4. Check if the response contains a function call
@@ -1166,7 +1166,7 @@ for (int i = 0; i < response.ToolCalls.Count; i++)
 
 }
 
-// 5. Print the generic response
+// 6. Print the generic response
 Console.WriteLine($"Assistant response: {content}");
 ```
 

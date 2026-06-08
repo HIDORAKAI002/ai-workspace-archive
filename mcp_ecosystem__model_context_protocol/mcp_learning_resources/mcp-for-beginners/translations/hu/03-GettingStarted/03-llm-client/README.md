@@ -457,7 +457,7 @@ A következő lépés a szerver képességeinek átalakítása oly módon, hogy 
   
    A fenti kód az MCP szerver válaszát átalakítja egy olyan eszköz definíciós formátumba, amit az LLM megért.
 
-1. Frissítsük a `run` metódust is, hogy listázza a szerver képességeit:
+2. Frissítsük a `run` metódust is, hogy listázza a szerver képességeit:
 
     ```typescript
     async run() {
@@ -499,7 +499,7 @@ A következő lépés a szerver képességeinek átalakítása oly módon, hogy 
   
    A fenti `convert_to_llm_tools` függvényben az MCP eszköz választ átalakítjuk olyan formátumra, amit az LLM megért.
 
-1. Ezután frissítsük a kliens kódot, hogy ezt a függvényt használja:
+2. Ezután frissítsük a kliens kódot, hogy ezt a függvényt használja:
 
     ```python
     functions = []
@@ -541,7 +541,7 @@ Az előző kódban:
 - Létrehoztunk egy `ConvertFrom` függvényt, amely nevet, leírást és input sémát vesz.
 - Meghatároztunk egy funkciót, amely létrehoz egy FunctionDefinition-t, ami átadásra kerül egy ChatCompletionsDefinition-nek. Ez utóbbit az LLM megérti.
 
-1. Nézzük meg, hogyan frissíthetjük a meglévő kódot, hogy kihasználja ezt a függvényt:
+2. Nézzük meg, hogyan frissíthetjük a meglévő kódot, hogy kihasználja ezt a függvényt:
 
     ```csharp
     async Task<List<ChatCompletionsToolDefinition>> GetMcpTools()
@@ -712,7 +712,7 @@ Ebben a részben a felhasználói kérések kezelésével foglalkozunk.
         // TODO
         ```
   
-1. Frissítsük a `run` metódust, hogy tartalmazza az LLM-et meghívó hívásokat és a `callTools` meghívását:
+2. Frissítsük a `run` metódust, hogy tartalmazza az LLM-et meghívó hívásokat és a `callTools` meghívását:
 
     ```typescript
 
@@ -864,7 +864,7 @@ class MyClient {
 
         let results: any[] = [];
     
-        // 1. Átnézni az LLM válaszát, minden választásnál ellenőrizni, hogy vannak-e eszköz hívások
+        // 3. Átnézni az LLM válaszát, minden választásnál ellenőrizni, hogy vannak-e eszköz hívások
         (await response).choices.map(async (choice: { message: any; }) => {
           const message = choice.message;
           if (message.tool_calls) {
@@ -898,7 +898,7 @@ client.connectToServer(transport);
     import json
     ```
   
-1. Ezután adjuk hozzá azt a függvényt, amely meghívja az LLM-et:
+2. Ezután adjuk hozzá azt a függvényt, amely meghívja az LLM-et:
 
     ```python
     # llm
@@ -955,7 +955,7 @@ Az előző kódban:
 - Megvizsgáltuk az eredményt, hogy melyik függvényt kell meghívni, ha van ilyen.
 - Végül továbbadtuk a meghívandó függvények tömbjét.
 
-1. Utolsó lépésként frissítsük a fő kódot:
+3. Utolsó lépésként frissítsük a fő kódot:
 
     ```python
     prompt = "Add 2 to 20"
@@ -1017,7 +1017,7 @@ Az előző kódban:
 - Létrehoztunk egy opció objektumot, amely beállítja a modellt és az eszközöket.
 - Küldtünk egy kérést az LLM felé.
 
-1. Egy utolsó lépés, nézzük meg, ha az LLM szerint hívni kell egy függvényt:
+2. Egy utolsó lépés, nézzük meg, ha az LLM szerint hívni kell egy függvényt:
 
     ```csharp
     // 4. Check if the response contains a function call
@@ -1167,7 +1167,7 @@ for (int i = 0; i < response.ToolCalls.Count; i++)
 
 }
 
-// 5. Print the generic response
+// 6. Print the generic response
 Console.WriteLine($"Assistant response: {content}");
 ```
   

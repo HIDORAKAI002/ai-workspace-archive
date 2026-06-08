@@ -457,7 +457,7 @@ let tools = mcp_client.list_tools(Default::default()).await?;
 
     โค้ดข้างต้นรับการตอบสนองจาก MCP Server และแปลงเป็นรูปแบบการกำหนดเครื่องมือที่ LLM เข้าใจ
 
-1. อัปเดตเมทอด `run` ต่อไปเพื่อแสดงรายการความสามารถของเซิร์ฟเวอร์:
+2. อัปเดตเมทอด `run` ต่อไปเพื่อแสดงรายการความสามารถของเซิร์ฟเวอร์:
 
     ```typescript
     async run() {
@@ -499,7 +499,7 @@ let tools = mcp_client.list_tools(Default::default()).await?;
 
     ในฟังก์ชัน `convert_to_llm_tools` เรารับการตอบสนองจาก MCP tool และแปลงเป็นรูปแบบที่ LLM เข้าใจได้
 
-1. ต่อไป อัปเดตโค้ดไคลเอนต์ของเราให้ใช้ฟังก์ชันนี้ดังนี้:
+2. ต่อไป อัปเดตโค้ดไคลเอนต์ของเราให้ใช้ฟังก์ชันนี้ดังนี้:
 
     ```python
     functions = []
@@ -541,7 +541,7 @@ ChatCompletionsToolDefinition ConvertFrom(string name, string description, JsonE
 - สร้างฟังก์ชัน `ConvertFrom` ที่รับชื่อ คำอธิบาย และสคีมาอินพุต
 - กำหนดฟังก์ชันที่สร้าง `FunctionDefinition` ซึ่งถูกส่งต่อให้กับ `ChatCompletionsDefinition` ซึ่ง LLM เข้าใจได้
 
-1. มาดูวิธีอัปเดตโค้ดที่มีอยู่ให้ใช้ฟังก์ชันนี้:
+2. มาดูวิธีอัปเดตโค้ดที่มีอยู่ให้ใช้ฟังก์ชันนี้:
 
     ```csharp
     async Task<List<ChatCompletionsToolDefinition>> GetMcpTools()
@@ -711,7 +711,7 @@ async fn format_tools(tools: &ListToolsResult) -> Result<Vec<Value>, Box<dyn Err
         // งานที่ต้องทำ
         ```
 
-1. อัปเดตเมทอด `run` เพื่อรวมการเรียก LLM และเรียก `callTools` ดังนี้:
+2. อัปเดตเมทอด `run` เพื่อรวมการเรียก LLM และเรียก `callTools` ดังนี้:
 
     ```typescript
 
@@ -863,7 +863,7 @@ class MyClient {
 
         let results: any[] = [];
     
-        // 1. ตรวจสอบการตอบกลับของ LLM สำหรับแต่ละตัวเลือก ตรวจสอบว่ามีการเรียกใช้เครื่องมือหรือไม่
+        // 3. ตรวจสอบการตอบกลับของ LLM สำหรับแต่ละตัวเลือก ตรวจสอบว่ามีการเรียกใช้เครื่องมือหรือไม่
         (await response).choices.map(async (choice: { message: any; }) => {
           const message = choice.message;
           if (message.tool_calls) {
@@ -897,7 +897,7 @@ client.connectToServer(transport);
     import json
     ```
 
-1. ถัดไปเพิ่มฟังก์ชันที่เรียก LLM:
+2. ถัดไปเพิ่มฟังก์ชันที่เรียก LLM:
 
     ```python
     # llm
@@ -954,7 +954,7 @@ client.connectToServer(transport);
     - ตรวจสอบผลลัพธ์ว่าเราควรเรียกฟังก์ชันใดบ้างหรือไม่
     - ส่งต่ออาร์เรย์ฟังก์ชันที่จะเรียก
 
-1. ขั้นตอนสุดท้าย อัปเดตโค้ดหลักของเรา:
+3. ขั้นตอนสุดท้าย อัปเดตโค้ดหลักของเรา:
 
     ```python
     prompt = "Add 2 to 20"
@@ -1016,7 +1016,7 @@ client.connectToServer(transport);
     - สร้างอ็อปชันที่ระบุโมเดลและเครื่องมือ
     - ส่งคำขอไปยัง LLM
 
-1. ขั้นตอนสุดท้าย ตรวจสอบว่า LLM คิดว่าเราควรเรียกฟังก์ชันหรือไม่:
+2. ขั้นตอนสุดท้าย ตรวจสอบว่า LLM คิดว่าเราควรเรียกฟังก์ชันหรือไม่:
 
     ```csharp
     // 4. Check if the response contains a function call
@@ -1166,7 +1166,7 @@ for (int i = 0; i < response.ToolCalls.Count; i++)
 
 }
 
-// 5. Print the generic response
+// 6. Print the generic response
 Console.WriteLine($"Assistant response: {content}");
 ```
 

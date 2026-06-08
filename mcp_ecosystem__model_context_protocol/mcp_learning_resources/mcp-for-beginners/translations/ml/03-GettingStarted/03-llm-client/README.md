@@ -457,7 +457,7 @@ let tools = mcp_client.list_tools(Default::default()).await?;
   
     മുകളിൽ കാണുന്ന കോഡ് MCP സേർവറിന്റെ റിസ്പോൺസ് LLM മനസ്സിലാക്കുന്ന ടൂൾ ഡെഫിനിഷൻ ഫോർമാറ്റിലേക്ക് മാറ്റുന്നു.
 
-1. പിന്നീട് `run` മെത്തഡ് ഇങ്ങനെ അപ്‌ഡേറ്റ് ചെയ്യാം, സെർവർ കഴിവുകൾ ലിസ്റ്റ് ചെയ്യാൻ:
+2. പിന്നീട് `run` മെത്തഡ് ഇങ്ങനെ അപ്‌ഡേറ്റ് ചെയ്യാം, സെർവർ കഴിവുകൾ ലിസ്റ്റ് ചെയ്യാൻ:
 
     ```typescript
     async run() {
@@ -499,7 +499,7 @@ let tools = mcp_client.list_tools(Default::default()).await?;
   
     `convert_to_llm_tools` ഫംഗ്ഷൻ MCP ടൂൾ റിസ്പോൺസ് LLM മനസ്സിലാക്കുന്ന ഫോർമാറ്റിലേക്ക് മാറ്റുന്നു.
 
-1. പിന്നീട്, ഈ ഫംഗ്ഷൻ ഉപയോഗിച്ച് ക്ലയന്റ് കോഡ് ഇങ്ങനെ അപ്‌ഡേറ്റ് ചെയ്യാം:
+2. പിന്നീട്, ഈ ഫംഗ്ഷൻ ഉപയോഗിച്ച് ക്ലയന്റ് കോഡ് ഇങ്ങനെ അപ്‌ഡേറ്റ് ചെയ്യാം:
 
     ```python
     functions = []
@@ -541,7 +541,7 @@ ChatCompletionsToolDefinition ConvertFrom(string name, string description, JsonE
 - നാമം, വിവരം, ഇൻപുട്ട് സ്കീമ ഉപഗ്രഹിച്ച് `ConvertFrom` ഫംഗ്ഷൻ സൃഷ്‌ടിച്ചു.
 - ഇത് FunctionDefinition സൃഷ്‌ടിക്കുന്നു, ChatCompletionsDefinition-നു പാസ് ചെയ്യുന്നു. LLM ഈ ഫോർമാറ്റ് മനസ്സിലാക്കും.
 
-1. ഈ ഫംഗ്ഷൻ ഉപയോഗിക്കാൻ കയറിയിരിക്കുന്ന കോഡ് ഇങ്ങനെ അപ്‌ഡേറ്റ് ചെയ്യാം:
+2. ഈ ഫംഗ്ഷൻ ഉപയോഗിക്കാൻ കയറിയിരിക്കുന്ന കോഡ് ഇങ്ങനെ അപ്‌ഡേറ്റ് ചെയ്യാം:
 
     ```csharp
     async Task<List<ChatCompletionsToolDefinition>> GetMcpTools()
@@ -711,7 +711,7 @@ async fn format_tools(tools: &ListToolsResult) -> Result<Vec<Value>, Box<dyn Err
         // ചെയ്യേണ്ടത്
         ```
   
-1. `run` മെത്തഡ് ഇങ്ങനെ അപ്‌ഡേറ്റ് ചെയ്യുക, LLM വിളിക്കുകയും `callTools` ഉപയോഗിക്കുകയും ചെയ്യാൻ:
+2. `run` മെത്തഡ് ഇങ്ങനെ അപ്‌ഡേറ്റ് ചെയ്യുക, LLM വിളിക്കുകയും `callTools` ഉപയോഗിക്കുകയും ചെയ്യാൻ:
 
     ```typescript
 
@@ -863,7 +863,7 @@ class MyClient {
 
         let results: any[] = [];
     
-        // 1. LLM പ്രതികരണം വഴി പോകുക, ഓരോ തിരഞ്ഞെടുപ്പിനും ടൂൾ കോളുകൾ ഉണ്ടോ എന്ന് പരിശോധിക്കുക
+        // 3. LLM പ്രതികരണം വഴി പോകുക, ഓരോ തിരഞ്ഞെടുപ്പിനും ടൂൾ കോളുകൾ ഉണ്ടോ എന്ന് പരിശോധിക്കുക
         (await response).choices.map(async (choice: { message: any; }) => {
           const message = choice.message;
           if (message.tool_calls) {
@@ -897,7 +897,7 @@ client.connectToServer(transport);
     import json
     ```
   
-1. LLM-നെ വിളിക്കുന്ന ഫംഗ്ഷൻ ചേർക്കുക:
+2. LLM-നെ വിളിക്കുന്ന ഫംഗ്ഷൻ ചേർക്കുക:
 
     ```python
     # എൽഎൽഎം
@@ -954,7 +954,7 @@ client.connectToServer(transport);
     - ഫലത്തെ പരിശോധിച്ച് ഏതെല്ലാം ഫംഗ്ഷനുകൾ വിളിക്കണമെന്ന് നോക്കുന്നു.
     - അവസാനമായി, വിളിക്കേണ്ട ഫംഗ്ഷനുകളുടെ ലിസ്റ്റ് നൽകുന്നു.
 
-1. അവസാന ഘട്ടം, പ്രധാന കോഡ് അപ്‌ഡേറ്റ് ചെയ്യുക:
+3. അവസാന ഘട്ടം, പ്രധാന കോഡ് അപ്‌ഡേറ്റ് ചെയ്യുക:
 
     ```python
     prompt = "Add 2 to 20"
@@ -1016,7 +1016,7 @@ client.connectToServer(transport);
     - മോഡൽ, ടൂളുകൾ ഉൾപ്പടെ ഓപ്ഷൻസ് ഒബ്ജക്റ്റ് സൃഷ്‌ടിച്ചു  
     - LLM-നെ അഭ്യർത്ഥന അയച്ചു
 
-1. LLM ഫംഗ്ഷൻ കോളുകൾ നിർദ്ദേശിക്കുന്നുണ്ടോ എന്ന് പരിശോധിക്കുക:
+2. LLM ഫംഗ്ഷൻ കോളുകൾ നിർദ്ദേശിക്കുന്നുണ്ടോ എന്ന് പരിശോധിക്കുക:
 
     ```csharp
     // 4. Check if the response contains a function call
@@ -1167,7 +1167,7 @@ for (int i = 0; i < response.ToolCalls.Count; i++)
 
 }
 
-// 5. Print the generic response
+// 6. Print the generic response
 Console.WriteLine($"Assistant response: {content}");
 ```
   

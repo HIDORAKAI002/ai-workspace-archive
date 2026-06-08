@@ -457,7 +457,7 @@ let tools = mcp_client.list_tools(Default::default()).await?;
 
     الكود أعلاه يأخذ استجابة من خادم MCP ويحوله إلى صيغة تعريف أداة يفهمها LLM.
 
-1. لنُحدث طريقة `run` لاحقًا لسرد قدرات الخادم:
+2. لنُحدث طريقة `run` لاحقًا لسرد قدرات الخادم:
 
     ```typescript
     async run() {
@@ -499,7 +499,7 @@ let tools = mcp_client.list_tools(Default::default()).await?;
 
     في الدالة أعلاه `convert_to_llm_tools` نأخذ استجابة أداة MCP ونحولها إلى صيغة يمكن لـ LLM فهمها.
 
-1. بعد ذلك، لنُحدث كود العميل للاستفادة من هذه الدالة كما يلي:
+2. بعد ذلك، لنُحدث كود العميل للاستفادة من هذه الدالة كما يلي:
 
     ```python
     functions = []
@@ -541,7 +541,7 @@ ChatCompletionsToolDefinition ConvertFrom(string name, string description, JsonE
 - أنشأنا دالة `ConvertFrom` التي تأخذ الاسم، والوصف، ومخطط الإدخال.
 - عرّفنا وظيفة تُنشئ `FunctionDefinition` يتم تمريرها إلى `ChatCompletionsDefinition`. هذا الأخير هو شيء يفهمه LLM.
 
-1. لنر كيف يمكن تحديث بعض الكود الحالي للاستفادة من الدالة أعلاه:
+2. لنر كيف يمكن تحديث بعض الكود الحالي للاستفادة من الدالة أعلاه:
 
     ```csharp
     async Task<List<ChatCompletionsToolDefinition>> GetMcpTools()
@@ -711,7 +711,7 @@ async fn format_tools(tools: &ListToolsResult) -> Result<Vec<Value>, Box<dyn Err
         // يجب القيام به
         ```
 
-1. حدّث طريقة `run` لتشمل استدعاءات إلى LLM واستدعاء `callTools`:
+2. حدّث طريقة `run` لتشمل استدعاءات إلى LLM واستدعاء `callTools`:
 
     ```typescript
 
@@ -863,7 +863,7 @@ class MyClient {
 
         let results: any[] = [];
     
-        // 1. مراجعة استجابة LLM، لكل خيار، التحقق إذا كان يحتوي على استدعاءات أدوات
+        // 3. مراجعة استجابة LLM، لكل خيار، التحقق إذا كان يحتوي على استدعاءات أدوات
         (await response).choices.map(async (choice: { message: any; }) => {
           const message = choice.message;
           if (message.tool_calls) {
@@ -897,7 +897,7 @@ client.connectToServer(transport);
     import json
     ```
 
-1. بعد ذلك، أضف الدالة التي ستستدعي LLM:
+2. بعد ذلك، أضف الدالة التي ستستدعي LLM:
 
     ```python
     # نموذج اللغة الكبير
@@ -954,7 +954,7 @@ client.connectToServer(transport);
     - بعد ذلك، نقوم بفحص النتيجة لنرى الدوال التي يجب استدعاؤها، إن وجدت.
     - أخيرًا، نمرر مصفوفة الدوال التي يجب استدعاؤها.
 
-1. الخطوة النهائية، لنُحدّث الكود الرئيسي:
+3. الخطوة النهائية، لنُحدّث الكود الرئيسي:
 
     ```python
     prompt = "Add 2 to 20"
@@ -1016,7 +1016,7 @@ client.connectToServer(transport);
     - أنشأنا كائن خيارات يحدد النموذج والأدوات.
     - أجرينا طلبًا نحو LLM.
 
-1. خطوة أخيرة، لنر إذا كان LLM يظن أننا يجب أن نستدعي دالة:
+2. خطوة أخيرة، لنر إذا كان LLM يظن أننا يجب أن نستدعي دالة:
 
     ```csharp
     // 4. Check if the response contains a function call
@@ -1166,7 +1166,7 @@ for (int i = 0; i < response.ToolCalls.Count; i++)
 
 }
 
-// 5. Print the generic response
+// 6. Print the generic response
 Console.WriteLine($"Assistant response: {content}");
 ```
 
