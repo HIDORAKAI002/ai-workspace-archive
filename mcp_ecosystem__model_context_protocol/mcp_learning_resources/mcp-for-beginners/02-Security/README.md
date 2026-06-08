@@ -50,9 +50,9 @@ The [MCP Security Summit Workshop](https://azure-samples.github.io/sherpa/) prov
 |------|-------|---------------------|
 | **Base Camp** | MCP fundamentals & authentication vulnerabilities | MCP01, MCP07 |
 | **Camp 1: Identity** | OAuth 2.1, Azure Managed Identity, Key Vault | MCP01, MCP02, MCP07 |
-| **Camp 2: Gateway** | API Management, Private Endpoints, governance | MCP02, MCP07, MCP09 |
-| **Camp 3: I/O Security** | Prompt injection, PII protection, content safety | MCP03, MCP05, MCP06 |
-| **Camp 4: Monitoring** | Log Analytics, dashboards, threat detection | MCP08 |
+| **Camp 2: Gateway** | API Management, Private Endpoints, governance | MCP02, MCP06, MCP07, MCP09 |
+| **Camp 3: I/O Security** | Prompt injection, PII protection, content safety | MCP03, MCP05, MCP06, MCP10 |
+| **Camp 4: Monitoring** | Log Analytics, dashboards, threat detection | MCP04, MCP08 |
 | **The Summit** | Red Team / Blue Team integration test | All |
 
 **Get Started**: [https://azure-samples.github.io/sherpa/](https://azure-samples.github.io/sherpa/)
@@ -66,11 +66,11 @@ The [OWASP MCP Azure Security Guide](https://microsoft.github.io/mcp-azure-secur
 | **MCP01** | Token Mismanagement & Secret Exposure | Azure Key Vault, Managed Identity |
 | **MCP02** | Privilege Escalation via Scope Creep | RBAC, Conditional Access |
 | **MCP03** | Tool Poisoning | Tool validation, integrity verification |
-| **MCP04** | Supply Chain Attacks | GitHub Advanced Security, dependency scanning |
+| **MCP04** | Software Supply Chain Attacks & Dependency Tampering | GitHub Advanced Security, dependency scanning |
 | **MCP05** | Command Injection & Execution | Input validation, sandboxing |
-| **MCP06** | Prompt Injection via Contextual Payloads | Azure AI Content Safety, Prompt Shields |
+| **MCP06** | Intent Flow Subversion | Azure AI Content Safety, Prompt Shields |
 | **MCP07** | Insufficient Authentication & Authorization | Azure Entra ID, OAuth 2.1 with PKCE |
-| **MCP08** | Lack of Audit & Telemetry | Azure Monitor, Application Insights |
+| **MCP08** | Lack of Audit and Telemetry | Azure Monitor, Application Insights |
 | **MCP09** | Shadow MCP Servers | API Center governance, network isolation |
 | **MCP10** | Context Injection & Over-Sharing | Data classification, minimal exposure |
 
@@ -489,6 +489,7 @@ For comprehensive security guidance, refer to these specialized documents in thi
 - **[Azure Content Safety Implementation](./azure-content-safety-implementation.md)** - Practical implementation examples for Azure Content Safety integration  
 - **[MCP Security Controls 2025](./mcp-security-controls-2025.md)** - Latest security controls and techniques for MCP deployments
 - **[MCP Best Practices Quick Reference](./mcp-best-practices.md)** - Quick reference guide for essential MCP security practices
+- **[BlueHat 2026: Securing the future of AI: Securing MCP with defense in depth patterns](https://www.youtube.com/watch?v=cVWB58kEt-Y)** - Defense-in-depth patterns from the Microsoft Security Response Center (MSRC)
 
 ### **Hands-On Security Training**
 

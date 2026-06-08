@@ -457,7 +457,7 @@ let tools = mcp_client.list_tools(Default::default()).await?;
 
 以上代碼將從 MCP 服務器的響應轉換為 LLM 能理解的工具定義格式。
 
-1. 接著，讓我們更新 `run` 方法以列出服務器能力：
+2. 接著，讓我們更新 `run` 方法以列出服務器能力：
 
     ```typescript
     async run() {
@@ -499,7 +499,7 @@ let tools = mcp_client.list_tools(Default::default()).await?;
 
 在上述函數 `convert_to_llm_tools` 中，我們接收 MCP 工具響應並將其轉換為 LLM 能夠理解的格式。
 
-1. 接著，讓我們更新客戶端代碼來使用此函數，如下所示：
+2. 接著，讓我們更新客戶端代碼來使用此函數，如下所示：
 
     ```python
     functions = []
@@ -541,7 +541,7 @@ ChatCompletionsToolDefinition ConvertFrom(string name, string description, JsonE
 - 創建了一個函數 `ConvertFrom`，接收名稱、描述和輸入結構。
 - 定義功能以創建一個 `FunctionDefinition`，該定義會被傳遞到 `ChatCompletionsDefinition`。後者是 LLM 可理解的格式。
 
-1. 接下來，讓我們看看如何更新現有代碼以利用上述函數：
+2. 接下來，讓我們看看如何更新現有代碼以利用上述函數：
 
     ```csharp
     async Task<List<ChatCompletionsToolDefinition>> GetMcpTools()
@@ -711,7 +711,7 @@ async fn format_tools(tools: &ListToolsResult) -> Result<Vec<Value>, Box<dyn Err
         // 待辦事項
         ```
 
-1. 更新 `run` 方法，新增對 LLM 的呼叫及調用 `callTools`：
+2. 更新 `run` 方法，新增對 LLM 的呼叫及調用 `callTools`：
 
     ```typescript
 
@@ -863,7 +863,7 @@ class MyClient {
 
         let results: any[] = [];
     
-        // 1. 檢查 LLM 回應，對每個選項，確認是否有工具呼叫
+        // 3. 檢查 LLM 回應，對每個選項，確認是否有工具呼叫
         (await response).choices.map(async (choice: { message: any; }) => {
           const message = choice.message;
           if (message.tool_calls) {
@@ -897,7 +897,7 @@ client.connectToServer(transport);
     import json
     ```
 
-1. 接著，新增調用 LLM 的函數：
+2. 接著，新增調用 LLM 的函數：
 
     ```python
     # 大型語言模型
@@ -954,7 +954,7 @@ client.connectToServer(transport);
 - 檢查結果以辨識是否有函數應該被調用。
 - 最終，傳遞應調用的函數陣列。
 
-1. 最後，更新主代碼：
+3. 最後，更新主代碼：
 
     ```python
     prompt = "Add 2 to 20"
@@ -1016,7 +1016,7 @@ client.connectToServer(transport);
 - 創建了包含模型和工具的選項對象。
 - 發起了向 LLM 的請求。
 
-1. 最後一步，檢查 LLM 是否認為應該調用函數：
+2. 最後一步，檢查 LLM 是否認為應該調用函數：
 
     ```csharp
     // 4. Check if the response contains a function call
@@ -1166,7 +1166,7 @@ for (int i = 0; i < response.ToolCalls.Count; i++)
 
 }
 
-// 5. Print the generic response
+// 6. Print the generic response
 Console.WriteLine($"Assistant response: {content}");
 ```
 

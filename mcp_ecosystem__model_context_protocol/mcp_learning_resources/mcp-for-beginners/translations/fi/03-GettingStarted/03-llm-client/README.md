@@ -457,7 +457,7 @@ Seuraava vaihe palvelimen kyvykkyyksien listaamisen jälkeen on muuntaa ne LLM:n
   
     Ylläoleva koodi ottaa MCP-palvelimen vastauksen ja muuntaa sen työkalumäärittelyksi, jonka LLM ymmärtää.
 
-1. Päivitetään seuraavaksi `run`-metodia, jotta se listaa palvelimen kyvykkyydet:
+2. Päivitetään seuraavaksi `run`-metodia, jotta se listaa palvelimen kyvykkyydet:
 
     ```typescript
     async run() {
@@ -499,7 +499,7 @@ Seuraava vaihe palvelimen kyvykkyyksien listaamisen jälkeen on muuntaa ne LLM:n
   
     Funktiossa `convert_to_llm_tools` otamme MCP-työkaluvastauksen ja muunnetaan sen muotoon, jonka LLM ymmärtää.
 
-1. Päivitetään seuraavaksi asiakkaan koodi hyödyntämään tätä funktiota näin:
+2. Päivitetään seuraavaksi asiakkaan koodi hyödyntämään tätä funktiota näin:
 
     ```python
     functions = []
@@ -541,7 +541,7 @@ Edellä olevassa koodissa olemme:
 - Luoneet funktion `ConvertFrom`, joka ottaa nimen, kuvauksen ja syötteen skeeman.
 - Määritelleet toiminnallisuuden, joka luo `FunctionDefinition`in, joka välitetään `ChatCompletionsDefinition`:lle, ja jälkimmäinen on jotain, mitä LLM ymmärtää.
 
-1. Päivitetään jotakin olemassaolevaa koodia hyödyntämään tätä funktiota:
+2. Päivitetään jotakin olemassaolevaa koodia hyödyntämään tätä funktiota:
 
     ```csharp
     async Task<List<ChatCompletionsToolDefinition>> GetMcpTools()
@@ -712,7 +712,7 @@ Tässä osassa käsittelemme käyttäjän pyyntöjä.
         // TEE
         ```
   
-1. Päivitä `run`-metodi mukaan lukien LLM-kutsut ja `callTools`:
+2. Päivitä `run`-metodi mukaan lukien LLM-kutsut ja `callTools`:
 
     ```typescript
 
@@ -864,7 +864,7 @@ class MyClient {
 
         let results: any[] = [];
     
-        // 1. Käy läpi LLM vastaus, jokaiselle vaihtoehdolle tarkista onko siinä työkalukutsuja
+        // 3. Käy läpi LLM vastaus, jokaiselle vaihtoehdolle tarkista onko siinä työkalukutsuja
         (await response).choices.map(async (choice: { message: any; }) => {
           const message = choice.message;
           if (message.tool_calls) {
@@ -898,7 +898,7 @@ client.connectToServer(transport);
     import json
     ```
   
-1. Lisää funktio, joka kutsuu LLM:ää:
+2. Lisää funktio, joka kutsuu LLM:ää:
 
     ```python
     # llm
@@ -955,7 +955,7 @@ client.connectToServer(transport);
     - Tarkastelleet tulosta nähdäkseni, mitä funktioita pitäisi kutsua, jos yhtään.
     - Lopuksi välitämme luettelon kutsuttavista funktioista.
 
-1. Päivitetään lopuksi pääkoodimme:
+3. Päivitetään lopuksi pääkoodimme:
 
     ```python
     prompt = "Add 2 to 20"
@@ -1017,7 +1017,7 @@ client.connectToServer(transport);
     - Rakensin optio-olion, joka määrittää mallin ja työkalut.
     - Tein pyynnön LLM:lle.
 
-1. Vielä yksi vaihe: katsotaan, jos LLM katsoo meidän kutsuvan funktiota:
+2. Vielä yksi vaihe: katsotaan, jos LLM katsoo meidän kutsuvan funktiota:
 
     ```csharp
     // 4. Check if the response contains a function call
@@ -1167,7 +1167,7 @@ for (int i = 0; i < response.ToolCalls.Count; i++)
 
 }
 
-// 5. Print the generic response
+// 6. Print the generic response
 Console.WriteLine($"Assistant response: {content}");
 ```
   

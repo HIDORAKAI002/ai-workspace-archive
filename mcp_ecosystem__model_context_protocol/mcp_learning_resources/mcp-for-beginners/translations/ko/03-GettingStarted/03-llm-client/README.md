@@ -457,7 +457,7 @@ let tools = mcp_client.list_tools(Default::default()).await?;
   
     위 코드는 MCP 서버 응답을 받아 LLM이 이해할 수 있는 도구 정의 형식으로 변환합니다.
 
-1. 다음으로 `run` 메서드를 업데이트하여 서버 기능을 나열해 봅시다:
+2. 다음으로 `run` 메서드를 업데이트하여 서버 기능을 나열해 봅시다:
 
     ```typescript
     async run() {
@@ -499,7 +499,7 @@ let tools = mcp_client.list_tools(Default::default()).await?;
   
     위 함수 `convert_to_llm_tools`는 MCP 도구 응답을 받아 LLM이 이해할 수 있는 형식으로 변환합니다.
 
-1. 다음으로 이 함수를 활용하도록 클라이언트 코드를 업데이트합니다:
+2. 다음으로 이 함수를 활용하도록 클라이언트 코드를 업데이트합니다:
 
     ```python
     functions = []
@@ -541,7 +541,7 @@ ChatCompletionsToolDefinition ConvertFrom(string name, string description, JsonE
 - 이름, 설명, 입력 스키마를 받아 변환하는 `ConvertFrom` 함수를 만들었습니다.
 - 이 함수는 `FunctionDefinition`을 생성하며, 이는 `ChatCompletionsDefinition`에 전달됩니다. 후자는 LLM이 이해하는 형식입니다.
 
-1. 위 함수를 활용하도록 기존 코드를 업데이트해 봅시다:
+2. 위 함수를 활용하도록 기존 코드를 업데이트해 봅시다:
 
     ```csharp
     async Task<List<ChatCompletionsToolDefinition>> GetMcpTools()
@@ -712,7 +712,7 @@ async fn format_tools(tools: &ListToolsResult) -> Result<Vec<Value>, Box<dyn Err
         // 할 일
         ```
   
-1. `run` 메서드를 업데이트하여 LLM 호출과 `callTools` 호출을 포함시킵니다:
+2. `run` 메서드를 업데이트하여 LLM 호출과 `callTools` 호출을 포함시킵니다:
 
     ```typescript
 
@@ -864,7 +864,7 @@ class MyClient {
 
         let results: any[] = [];
     
-        // 1. LLM 응답을 확인하고, 각 선택지에 도구 호출이 있는지 검사합니다
+        // 3. LLM 응답을 확인하고, 각 선택지에 도구 호출이 있는지 검사합니다
         (await response).choices.map(async (choice: { message: any; }) => {
           const message = choice.message;
           if (message.tool_calls) {
@@ -898,7 +898,7 @@ client.connectToServer(transport);
     import json
     ```
   
-1. LLM을 호출하는 함수를 추가합시다:
+2. LLM을 호출하는 함수를 추가합시다:
 
     ```python
     # llm
@@ -955,7 +955,7 @@ client.connectToServer(transport);
     - 결과를 검사하여 호출해야 할 함수가 있으면 호출합니다.
     - 호출할 함수 목록 배열을 전달합니다.
 
-1. 마지막으로 메인 코드를 업데이트합시다:
+3. 마지막으로 메인 코드를 업데이트합시다:
 
     ```python
     prompt = "Add 2 to 20"
@@ -1017,7 +1017,7 @@ client.connectToServer(transport);
     - 모델과 도구를 지정하는 옵션 객체를 만들었습니다.
     - LLM에 요청을 보냈습니다.
 
-1. 마지막 단계로 LLM이 함수 호출이 필요하다고 판단하는지 확인합니다:
+2. 마지막 단계로 LLM이 함수 호출이 필요하다고 판단하는지 확인합니다:
 
     ```csharp
     // 4. Check if the response contains a function call
@@ -1167,7 +1167,7 @@ for (int i = 0; i < response.ToolCalls.Count; i++)
 
 }
 
-// 5. Print the generic response
+// 6. Print the generic response
 Console.WriteLine($"Assistant response: {content}");
 ```
   

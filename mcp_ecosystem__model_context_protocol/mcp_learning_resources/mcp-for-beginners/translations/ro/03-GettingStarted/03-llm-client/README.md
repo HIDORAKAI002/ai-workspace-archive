@@ -457,7 +457,7 @@ Următorul pas după listarea capabilităților serverului este să le convertim
 
     Codul de mai sus ia un răspuns de la Serverul MCP și îl convertește într-un format de definiție de unealtă pe care LLM-ul îl poate înțelege.
 
-1. Să actualizăm metoda `run` pentru a lista capabilitățile serverului:
+2. Să actualizăm metoda `run` pentru a lista capabilitățile serverului:
 
     ```typescript
     async run() {
@@ -499,7 +499,7 @@ Următorul pas după listarea capabilităților serverului este să le convertim
 
     În funcția `convert_to_llm_tools` luăm un răspuns de unealtă MCP și îl convertim într-un format pe care LLM-ul îl poate înțelege.
 
-1. Apoi, să actualizăm codul clientului nostru pentru a folosi această funcție astfel:
+2. Apoi, să actualizăm codul clientului nostru pentru a folosi această funcție astfel:
 
     ```python
     functions = []
@@ -541,7 +541,7 @@ ChatCompletionsToolDefinition ConvertFrom(string name, string description, JsonE
 - Creat o funcție `ConvertFrom` care primește numele, descrierea și schema de intrare.
 - Definit funcționalitatea care creează un `FunctionDefinition` care este transmis către un `ChatCompletionsDefinition`. Acesta din urmă este ceva ce LLM-ul poate înțelege.
 
-1. Să vedem cum putem actualiza codul existent să profite de această funcție:
+2. Să vedem cum putem actualiza codul existent să profite de această funcție:
 
     ```csharp
     async Task<List<ChatCompletionsToolDefinition>> GetMcpTools()
@@ -711,7 +711,7 @@ Perfect, suntem pregătiți să gestionăm orice cerere de la utilizator, așa c
         // DE FĂCUT
         ```
 
-1. Actualizează metoda `run` să includă apelurile către LLM și apelarea `callTools`:
+2. Actualizează metoda `run` să includă apelurile către LLM și apelarea `callTools`:
 
     ```typescript
 
@@ -863,7 +863,7 @@ class MyClient {
 
         let results: any[] = [];
     
-        // 1. Parcurge răspunsul LLM, pentru fiecare opțiune, verifică dacă are apeluri către instrumente
+        // 3. Parcurge răspunsul LLM, pentru fiecare opțiune, verifică dacă are apeluri către instrumente
         (await response).choices.map(async (choice: { message: any; }) => {
           const message = choice.message;
           if (message.tool_calls) {
@@ -897,7 +897,7 @@ client.connectToServer(transport);
     import json
     ```
 
-1. Apoi, să adăugăm funcția care va apela LLM-ul:
+2. Apoi, să adăugăm funcția care va apela LLM-ul:
 
     ```python
     # llm
@@ -954,7 +954,7 @@ client.connectToServer(transport);
     - Apoi inspectăm rezultatul pentru a vedea ce funcții ar trebui apelate, dacă există.
     - În final, transmitem un array de funcții de apelat.
 
-1. Pasul final, să actualizăm codul principal:
+3. Pasul final, să actualizăm codul principal:
 
     ```python
     prompt = "Add 2 to 20"
@@ -1016,7 +1016,7 @@ client.connectToServer(transport);
     - Construim un obiect de opțiuni specificând modelul și uneltele.
     - Făcut o cerere către LLM.
 
-1. Un ultim pas, să vedem dacă LLM crede că trebuie să apelăm o funcție:
+2. Un ultim pas, să vedem dacă LLM crede că trebuie să apelăm o funcție:
 
     ```csharp
     // 4. Check if the response contains a function call
@@ -1166,7 +1166,7 @@ for (int i = 0; i < response.ToolCalls.Count; i++)
 
 }
 
-// 5. Print the generic response
+// 6. Print the generic response
 Console.WriteLine($"Assistant response: {content}");
 ```
 

@@ -87,6 +87,7 @@ export enum PlanFeatureTypes {
   FEATURE_SYNC = 'feature_sync',
   FEATURE_TABLE_SYNC = 'feature_table_sync',
   FEATURE_TABLE_SYNC_AUTO = 'feature_table_sync_auto',
+  FEATURE_CUSTOM_SYNC = 'feature_custom_sync',
   FEATURE_UNIQUE = 'feature_unique',
   FEATURE_TOGGLE_FILTER = 'feature_toggle_filter',
   FEATURE_TOGGLE_GROUPBY = 'feature_toggle_groupby',
@@ -123,6 +124,8 @@ export enum PlanFeatureTypes {
   FEATURE_FIELD_VISIBILITY = 'feature_field_visibility',
   FEATURE_BOOKMARKS = 'feature_bookmarks',
   FEATURE_MSSQL = 'feature_mssql',
+  /** On-prem Enterprise: instance-wide white-labeling (logo, product name, brand color, favicon) */
+  FEATURE_WHITE_LABEL = 'feature_white_label',
 }
 
 export enum PlanTitles {
@@ -375,6 +378,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_SYNC]: 'to use App Sync.',
   [PlanFeatureTypes.FEATURE_TABLE_SYNC]: 'to use NocoDB Sync.',
   [PlanFeatureTypes.FEATURE_TABLE_SYNC_AUTO]: 'to use automatic NocoDB Sync.',
+  [PlanFeatureTypes.FEATURE_CUSTOM_SYNC]: 'to use Custom Sync.',
   [PlanFeatureTypes.FEATURE_UNIQUE]: 'to use unique constraint.',
   [PlanFeatureTypes.FEATURE_TOGGLE_FILTER]:
     'to enable or disable individual filters.',
@@ -419,6 +423,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_BOOKMARKS]: 'to use bookmarks.',
   [PlanFeatureTypes.FEATURE_MSSQL]:
     'to connect Microsoft SQL Server sources.',
+  [PlanFeatureTypes.FEATURE_WHITE_LABEL]:
+    'to white-label this instance with your own logo, product name, and brand color.',
 };
 
 export const getUpgradeMessage = (

@@ -457,7 +457,7 @@ Järgmine samm pärast serveri võimete loetlemist on nende konverteerimine LLM 
 
     Ülaltoodud kood võtab MCP serveri vastuse ja konverteerib selle LLM-i mõistetavaks tööriistamääratluseks.
 
-1. Värskendame seejärel `run` meetodit, et loetleda serveri võimeid:
+2. Värskendame seejärel `run` meetodit, et loetleda serveri võimeid:
 
     ```typescript
     async run() {
@@ -499,7 +499,7 @@ Järgmine samm pärast serveri võimete loetlemist on nende konverteerimine LLM 
 
     Ülaltoodud funktsioonis `convert_to_llm_tools` võtame MCP tööriista vastuse ja konverteerime selle LLM-i mõistetavasse vormingusse.
 
-1. Seejärel uuendame oma kliendi koodi, et kasutada seda funktsiooni nii:
+2. Seejärel uuendame oma kliendi koodi, et kasutada seda funktsiooni nii:
 
     ```python
     functions = []
@@ -541,7 +541,7 @@ Eelnevas koodis oleme:
 - Loonud funktsiooni `ConvertFrom`, mis võtab nime, kirjelduse ja sisendi skeemi.
 - Määratlenud funktsionaalsuse, mis loob FunctionDefinitioni, mis omakorda antakse ChatCompletionsDefinitionile. Viimane on LLM-i jaoks mõistetav.
 
-1. Vaatame, kuidas me saame ülaltoodud funktsiooni kasutama hakata olemasolevat koodi:
+2. Vaatame, kuidas me saame ülaltoodud funktsiooni kasutama hakata olemasolevat koodi:
 
     ```csharp
     async Task<List<ChatCompletionsToolDefinition>> GetMcpTools()
@@ -711,7 +711,7 @@ Selles koodiosas käsitleme kasutaja päringuid.
         // TODO
         ```
 
-1. Uuendame `run` meetodit, et lisada LLM-i kutsed ja `callTools` kutsumine:
+2. Uuendame `run` meetodit, et lisada LLM-i kutsed ja `callTools` kutsumine:
 
     ```typescript
 
@@ -863,7 +863,7 @@ class MyClient {
 
         let results: any[] = [];
     
-        // 1. Läbi LLM-i vastus, kontrolli iga valiku puhul, kas sellel on tööriista kutsed
+        // 3. Läbi LLM-i vastus, kontrolli iga valiku puhul, kas sellel on tööriista kutsed
         (await response).choices.map(async (choice: { message: any; }) => {
           const message = choice.message;
           if (message.tool_calls) {
@@ -897,7 +897,7 @@ client.connectToServer(transport);
     import json
     ```
 
-1. Seejärel lisame funktsiooni, mis kutsub LLM-i:
+2. Seejärel lisame funktsiooni, mis kutsub LLM-i:
 
     ```python
     # llm
@@ -954,7 +954,7 @@ client.connectToServer(transport);
     - Seejärel kontrollime tulemust, et näha, milliseid funktsioone tuleks kutsuda, kui üldse.
     - Lõpuks edastame tabeli funktsioonidega kutsumiseks.
 
-1. Viimane samm, uuendame oma põhikoodi:
+3. Viimane samm, uuendame oma põhikoodi:
 
     ```python
     prompt = "Add 2 to 20"
@@ -1016,7 +1016,7 @@ client.connectToServer(transport);
     - Koostanud valikud, mis määratlevad mudeli ja tööriistad
     - Tehakse päring LLM-ile
 
-1. Viimane samm, vaatame, kas LLM arvab, et me peaksime funktsiooni kutsuma:
+2. Viimane samm, vaatame, kas LLM arvab, et me peaksime funktsiooni kutsuma:
 
     ```csharp
     // 4. Check if the response contains a function call
@@ -1166,7 +1166,7 @@ for (int i = 0; i < response.ToolCalls.Count; i++)
 
 }
 
-// 5. Print the generic response
+// 6. Print the generic response
 Console.WriteLine($"Assistant response: {content}");
 ```
 
