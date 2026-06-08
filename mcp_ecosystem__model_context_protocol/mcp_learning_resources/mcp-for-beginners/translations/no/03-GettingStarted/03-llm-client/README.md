@@ -457,7 +457,7 @@ Neste steg etter å ha listet serverfunksjonene er å konvertere dem til et form
 
     Koden over tar en respons fra MCP-serveren og konverterer den til et verktøydefinisjonsformat som LLM forstår.
 
-1. Oppdater så `run`-metoden for å liste serverfunksjonene:
+2. Oppdater så `run`-metoden for å liste serverfunksjonene:
 
     ```typescript
     async run() {
@@ -499,7 +499,7 @@ Neste steg etter å ha listet serverfunksjonene er å konvertere dem til et form
 
     I funksjonen over, `convert_to_llm_tools`, tar vi en MCP-verktøyrespons og konverterer den til et format LLM kan forstå.
 
-1. Deretter oppdaterer vi klientkoden for å bruke denne funksjonen slik:
+2. Deretter oppdaterer vi klientkoden for å bruke denne funksjonen slik:
 
     ```python
     functions = []
@@ -541,7 +541,7 @@ I koden over har vi:
 - Opprettet en funksjon `ConvertFrom` som tar navn, beskrivelse og inntaksskjema.
 - Definert funksjonalitet som lager en FunctionDefinition som sendes til en ChatCompletionsDefinition. Sistnevnte kan LLM forstå.
 
-1. La oss se hvordan vi kan oppdatere eksisterende kode for å utnytte denne funksjonen:
+2. La oss se hvordan vi kan oppdatere eksisterende kode for å utnytte denne funksjonen:
 
     ```csharp
     async Task<List<ChatCompletionsToolDefinition>> GetMcpTools()
@@ -711,7 +711,7 @@ I denne delen av koden håndterer vi brukerforespørsler.
         // TODO
         ```
 
-1. Oppdater `run`-metoden for å inkludere kall til LLM og `callTools`:
+2. Oppdater `run`-metoden for å inkludere kall til LLM og `callTools`:
 
     ```typescript
 
@@ -863,7 +863,7 @@ class MyClient {
 
         let results: any[] = [];
     
-        // 1. Gå gjennom LLM-responsen, for hvert valg, sjekk om det har verktøysanrop
+        // 3. Gå gjennom LLM-responsen, for hvert valg, sjekk om det har verktøysanrop
         (await response).choices.map(async (choice: { message: any; }) => {
           const message = choice.message;
           if (message.tool_calls) {
@@ -897,7 +897,7 @@ client.connectToServer(transport);
     import json
     ```
 
-1. Deretter legger vi til funksjonen som kaller LLM:
+2. Deretter legger vi til funksjonen som kaller LLM:
 
     ```python
     # llm
@@ -954,7 +954,7 @@ client.connectToServer(transport);
     - Deretter inspisert resultatet for å se hvilke funksjoner vi bør kalle, om noen.
     - Til slutt sendt en liste over funksjoner som skal kalles.
 
-1. Siste steg, oppdater hovedkoden vår:
+3. Siste steg, oppdater hovedkoden vår:
 
     ```python
     prompt = "Add 2 to 20"
@@ -1016,7 +1016,7 @@ client.connectToServer(transport);
     - Opprettet en options-objekt som spesifiserer modell og verktøy.
     - Gjort en forespørsel mot LLM.
 
-1. En siste ting, la oss se om LLM mener vi skal kalle en funksjon:
+2. En siste ting, la oss se om LLM mener vi skal kalle en funksjon:
 
     ```csharp
     // 4. Check if the response contains a function call
@@ -1166,7 +1166,7 @@ for (int i = 0; i < response.ToolCalls.Count; i++)
 
 }
 
-// 5. Print the generic response
+// 6. Print the generic response
 Console.WriteLine($"Assistant response: {content}");
 ```
 

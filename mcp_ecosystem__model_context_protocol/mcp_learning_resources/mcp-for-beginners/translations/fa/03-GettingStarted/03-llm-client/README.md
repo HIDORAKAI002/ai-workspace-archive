@@ -457,7 +457,7 @@ let tools = mcp_client.list_tools(Default::default()).await?;
 
     کد بالا پاسخ از سرور MCP را می‌گیرد و آن را به فرمت تعریف ابزار تبدیل می‌کند که LLM می‌تواند بفهمد.
 
-1. حالا متد `run` را برای فهرست کردن قابلیت‌های سرور به روز کنیم:
+2. حالا متد `run` را برای فهرست کردن قابلیت‌های سرور به روز کنیم:
 
     ```typescript
     async run() {
@@ -499,7 +499,7 @@ let tools = mcp_client.list_tools(Default::default()).await?;
 
     در تابع `convert_to_llm_tools` پاسخ ابزار MCP را می‌گیریم و آن را به فرمتی تبدیل می‌کنیم که LLM متوجه شود.
 
-1. سپس کد کلاینت خود را به گونه‌ای به‌روزرسانی کنیم که از این تابع بهره ببرد:
+2. سپس کد کلاینت خود را به گونه‌ای به‌روزرسانی کنیم که از این تابع بهره ببرد:
 
     ```python
     functions = []
@@ -541,7 +541,7 @@ ChatCompletionsToolDefinition ConvertFrom(string name, string description, JsonE
 - تابع `ConvertFrom` را ساختیم که نام، توضیح و ساختار ورودی می‌گیرد.
 - عملکردی تعریف کردیم که یک `FunctionDefinition` ایجاد می‌کند که به `ChatCompletionsDefinition` ارسال می‌شود. مورد اخیر را LLM می‌فهمد.
 
-1. ببینیم چگونه می‌توانیم برخی کدهای موجود را برای بهره بردن از این تابع به‌روزرسانی کنیم:
+2. ببینیم چگونه می‌توانیم برخی کدهای موجود را برای بهره بردن از این تابع به‌روزرسانی کنیم:
 
     ```csharp
     async Task<List<ChatCompletionsToolDefinition>> GetMcpTools()
@@ -711,7 +711,7 @@ async fn format_tools(tools: &ListToolsResult) -> Result<Vec<Value>, Box<dyn Err
         // انجام شود
         ```
 
-1. متد `run` را بروز کنیم تا شامل فراخوانی‌های LLM و `callTools` شود:
+2. متد `run` را بروز کنیم تا شامل فراخوانی‌های LLM و `callTools` شود:
 
     ```typescript
 
@@ -863,7 +863,7 @@ class MyClient {
 
         let results: any[] = [];
     
-        // ۱. بررسی پاسخ LLM، برای هر گزینه، چک کنید آیا فراخوانی ابزار دارد
+        // ۳. بررسی پاسخ LLM، برای هر گزینه، چک کنید آیا فراخوانی ابزار دارد
         (await response).choices.map(async (choice: { message: any; }) => {
           const message = choice.message;
           if (message.tool_calls) {
@@ -897,7 +897,7 @@ client.connectToServer(transport);
     import json
     ```
 
-1. سپس تابعی که LLM را فراخوانی می‌کند اضافه کنیم:
+2. سپس تابعی که LLM را فراخوانی می‌کند اضافه کنیم:
 
     ```python
     # مدل زبان بزرگ
@@ -954,7 +954,7 @@ client.connectToServer(transport);
     - نتیجه را بررسی می‌کنیم تا ببینیم کدام توابع باید فراخوانی شوند، اگر باشد.
     - نهایتاً فهرستی از توابع برای فراخوانی می‌فرستیم.
 
-1. آخرین مرحله، کد اصلی خود را بروز کنیم:
+3. آخرین مرحله، کد اصلی خود را بروز کنیم:
 
     ```python
     prompt = "Add 2 to 20"
@@ -1016,7 +1016,7 @@ client.connectToServer(transport);
     - شی گزینه‌ای تعریف کردیم با مدل و ابزارها.
     - درخواست به سمت LLM ساخته‌ایم.
 
-1. یک قدم آخر، ببینیم آیا LLM فکر می‌کند باید تابعی را فراخوانی کنیم:
+2. یک قدم آخر، ببینیم آیا LLM فکر می‌کند باید تابعی را فراخوانی کنیم:
 
     ```csharp
     // 4. Check if the response contains a function call
@@ -1166,7 +1166,7 @@ for (int i = 0; i < response.ToolCalls.Count; i++)
 
 }
 
-// 5. Print the generic response
+// 6. Print the generic response
 Console.WriteLine($"Assistant response: {content}");
 ```
 

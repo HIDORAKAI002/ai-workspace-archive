@@ -457,7 +457,7 @@ Hatua inayofuata baada ya kuorodhesha uwezo wa seva ni kuubadilisha kuwa muundo 
 
     Msimbo huu unaochukua jibu kutoka MCP Server na kuubadilisha kuwa muundo wa zana ambayo LLM inaweza kuelewa.
 
-1. Sasa tutaendeleza njia `run` kuorodhesha uwezo wa seva:
+2. Sasa tutaendeleza njia `run` kuorodhesha uwezo wa seva:
 
     ```typescript
     async run() {
@@ -499,7 +499,7 @@ Hatua inayofuata baada ya kuorodhesha uwezo wa seva ni kuubadilisha kuwa muundo 
 
     Katika kazi `convert_to_llm_tools` hapo juu tunachukua majibu ya zana ya MCP na kuyaibadilisha kwa muundo LLM inaweza kuelewa.
 
-1. Kisha, tusaidie mteja wetu kutumia kazi hii kama ifuatavyo:
+2. Kisha, tusaidie mteja wetu kutumia kazi hii kama ifuatavyo:
 
     ```python
     functions = []
@@ -541,7 +541,7 @@ Katika msimbo uliopita tumefanya:
 - Kuunda kazi `ConvertFrom` inayoonyesha, jina, maelezo na muundo wa kuingiza.
 - Kuanzisha utendaji unaounda `FunctionDefinition` inayotumiwa na `ChatCompletionsDefinition`. Hii ni kitu ambacho LLM inaweza kuelewa.
 
-1. Tazama jinsi tunavyoweza kusasisha msimbo uliopo kuchukua faida ya kazi hii:
+2. Tazama jinsi tunavyoweza kusasisha msimbo uliopo kuchukua faida ya kazi hii:
 
     ```csharp
     async Task<List<ChatCompletionsToolDefinition>> GetMcpTools()
@@ -711,7 +711,7 @@ Katika sehemu hii ya msimbo, tutashughulikia maombi ya watumiaji.
         // KUFANYA
         ```
 
-1. Sasisha njia `run` kujumuisha miito kwa LLM na kuitwa kwa `callTools`:
+2. Sasisha njia `run` kujumuisha miito kwa LLM na kuitwa kwa `callTools`:
 
     ```typescript
 
@@ -863,7 +863,7 @@ class MyClient {
 
         let results: any[] = [];
     
-        // 1. Pitia jibu la LLM, kwa kila chaguo, angalia kama lina simu za zana
+        // 3. Pitia jibu la LLM, kwa kila chaguo, angalia kama lina simu za zana
         (await response).choices.map(async (choice: { message: any; }) => {
           const message = choice.message;
           if (message.tool_calls) {
@@ -897,7 +897,7 @@ client.connectToServer(transport);
     import json
     ```
 
-1. Kisha, ongeza kazi itakayotoa wito kwa LLM:
+2. Kisha, ongeza kazi itakayotoa wito kwa LLM:
 
     ```python
     # llm
@@ -954,7 +954,7 @@ client.connectToServer(transport);
     - Halafu, tunachunguza matokeo kuona ni kazi gani tunapaswa kuita, ikiwa zipo.
     - Hatimaye, tunapita safu ya kazi za kuita.
 
-1. Hatua ya mwisho, sasisha msimbo wetu mkuu:
+3. Hatua ya mwisho, sasisha msimbo wetu mkuu:
 
     ```python
     prompt = "Add 2 to 20"
@@ -1016,7 +1016,7 @@ client.connectToServer(transport);
     - Kujenga chaguo specifying modeli na zana.
     - Kufanya ombi kwa LLM.
 
-1. Hatua ya mwisho, tazama ikiwa LLM inaona tunapaswa kuita kazi:
+2. Hatua ya mwisho, tazama ikiwa LLM inaona tunapaswa kuita kazi:
 
     ```csharp
     // 4. Check if the response contains a function call
@@ -1166,7 +1166,7 @@ for (int i = 0; i < response.ToolCalls.Count; i++)
 
 }
 
-// 5. Print the generic response
+// 6. Print the generic response
 Console.WriteLine($"Assistant response: {content}");
 ```
 

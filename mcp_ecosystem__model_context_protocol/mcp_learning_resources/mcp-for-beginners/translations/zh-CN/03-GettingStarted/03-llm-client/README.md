@@ -457,7 +457,7 @@ let tools = mcp_client.list_tools(Default::default()).await?;
 
 上述代码将 MCP 服务器的响应转换为 LLM 能理解的工具定义格式。
 
-1. 接下来更新 `run` 方法，列出服务器能力：
+2. 接下来更新 `run` 方法，列出服务器能力：
 
     ```typescript
     async run() {
@@ -499,7 +499,7 @@ let tools = mcp_client.list_tools(Default::default()).await?;
 
 函数 `convert_to_llm_tools` 接收 MCP 工具响应，并转换为 LLM 能理解的格式。
 
-1. 接着更新客户端代码，使用该函数：
+2. 接着更新客户端代码，使用该函数：
 
     ```python
     functions = []
@@ -541,7 +541,7 @@ ChatCompletionsToolDefinition ConvertFrom(string name, string description, JsonE
 - 创建了函数 `ConvertFrom`，接受名称、描述和输入架构。
 - 定义功能生成 `FunctionDefinition`，传入 `ChatCompletionsDefinition`，后者为 LLM 可识别格式。
 
-1. 接着更新一些现有代码以利用该函数：
+2. 接着更新一些现有代码以利用该函数：
 
     ```csharp
     async Task<List<ChatCompletionsToolDefinition>> GetMcpTools()
@@ -711,7 +711,7 @@ async fn format_tools(tools: &ListToolsResult) -> Result<Vec<Value>, Box<dyn Err
         // 待办事项
         ```
 
-1. 更新 `run` 方法，增加对 LLM 的调用和 `callTools` 调用：
+2. 更新 `run` 方法，增加对 LLM 的调用和 `callTools` 调用：
 
     ```typescript
 
@@ -863,7 +863,7 @@ class MyClient {
 
         let results: any[] = [];
     
-        // 1. 遍历 LLM 响应，对于每个选项，检查是否有工具调用
+        // 3. 遍历 LLM 响应，对于每个选项，检查是否有工具调用
         (await response).choices.map(async (choice: { message: any; }) => {
           const message = choice.message;
           if (message.tool_calls) {
@@ -897,7 +897,7 @@ client.connectToServer(transport);
     import json
     ```
 
-1. 再添加调用 LLM 的函数：
+2. 再添加调用 LLM 的函数：
 
     ```python
     # 大语言模型
@@ -954,7 +954,7 @@ client.connectToServer(transport);
 - 检查结果判断是否需要调用函数。
 - 最后传入需要调用的函数数组。
 
-1. 最后，更新主代码：
+3. 最后，更新主代码：
 
     ```python
     prompt = "Add 2 to 20"
@@ -1016,7 +1016,7 @@ client.connectToServer(transport);
 - 构建包含模型和工具的选项对象。
 - 向 LLM 发出请求。
 
-1. 最后，检查 LLM 是否建议调用函数：
+2. 最后，检查 LLM 是否建议调用函数：
 
     ```csharp
     // 4. Check if the response contains a function call
@@ -1166,7 +1166,7 @@ for (int i = 0; i < response.ToolCalls.Count; i++)
 
 }
 
-// 5. Print the generic response
+// 6. Print the generic response
 Console.WriteLine($"Assistant response: {content}");
 ```
 

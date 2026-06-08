@@ -457,7 +457,7 @@ let tools = mcp_client.list_tools(Default::default()).await?;
   
     הקוד שלעיל לוקח תגובה משרת MCP וממיר אותה לפורמט הגדרת כלי שה-LLM מבין.
 
-1. בוא נעדכן את מתודת `run` להלן כדי לרשום את יכולות השרת:
+2. בוא נעדכן את מתודת `run` להלן כדי לרשום את יכולות השרת:
 
     ```typescript
     async run() {
@@ -499,7 +499,7 @@ let tools = mcp_client.list_tools(Default::default()).await?;
   
     בפונקציה `convert_to_llm_tools` שלמעלה לוקחים תגובת כלי MCP וממירים אותה לפורמט שה-LLM יכול להבין.
 
-1. לאחר מכן, נעדכן את קוד הלקוח שלנו להשתמש בפונקציה ככה:
+2. לאחר מכן, נעדכן את קוד הלקוח שלנו להשתמש בפונקציה ככה:
 
     ```python
     functions = []
@@ -541,7 +541,7 @@ ChatCompletionsToolDefinition ConvertFrom(string name, string description, JsonE
 - יצירת פונקציית `ConvertFrom` שלוקחת שם, תיאור וסכימת קלט.  
 - הגדרת פונקציונליות שיוצרת Definition של פונקציה שעוברת ל-ChatCompletionsDefinition. האחרונה היא משהו שה-LLM מבין.
 
-1. בוא נראה כיצד ניתן לעדכן קוד קיים כדי לנצל פונקציה זו:
+2. בוא נראה כיצד ניתן לעדכן קוד קיים כדי לנצל פונקציה זו:
 
     ```csharp
     async Task<List<ChatCompletionsToolDefinition>> GetMcpTools()
@@ -712,7 +712,7 @@ async fn format_tools(tools: &ListToolsResult) -> Result<Vec<Value>, Box<dyn Err
         // משהו לעשות
         ```
   
-1. עדכן את מתודת `run` לכלול קריאות ל-LLM ולקריאה ל-`callTools`:
+2. עדכן את מתודת `run` לכלול קריאות ל-LLM ולקריאה ל-`callTools`:
 
     ```typescript
 
@@ -864,7 +864,7 @@ class MyClient {
 
         let results: any[] = [];
     
-        // 1. מעבר על תגובת ה-LLM, עבור כל בחירה, בדוק אם יש קריאות לכלים
+        // 3. מעבר על תגובת ה-LLM, עבור כל בחירה, בדוק אם יש קריאות לכלים
         (await response).choices.map(async (choice: { message: any; }) => {
           const message = choice.message;
           if (message.tool_calls) {
@@ -898,7 +898,7 @@ client.connectToServer(transport);
     import json
     ```
   
-1. לאחר מכן, נוסיף את הפונקציה שקוראת ל-LLM:
+2. לאחר מכן, נוסיף את הפונקציה שקוראת ל-LLM:
 
     ```python
     # llm
@@ -955,7 +955,7 @@ client.connectToServer(transport);
     - בדקנו את התוצאה כדי לראות אילו פונקציות לקרוא, אם בכלל.  
     - לבסוף, העברנו מערך של פונקציות לקריאה.
 
-1. שלב סופי, נעדכן את הקוד הראשי שלנו:
+3. שלב סופי, נעדכן את הקוד הראשי שלנו:
 
     ```python
     prompt = "Add 2 to 20"
@@ -1017,7 +1017,7 @@ client.connectToServer(transport);
     - בניית אובייקט אפשרויות שמגדיר מודל וכלים.  
     - ביצוע בקשה ל-LLM.
 
-1. צעד אחרון, בוא נראה אם ה-LLM חושב שצריך לקרוא לפונקציה:
+2. צעד אחרון, בוא נראה אם ה-LLM חושב שצריך לקרוא לפונקציה:
 
     ```csharp
     // 4. Check if the response contains a function call
@@ -1167,7 +1167,7 @@ for (int i = 0; i < response.ToolCalls.Count; i++)
 
 }
 
-// 5. Print the generic response
+// 6. Print the generic response
 Console.WriteLine($"Assistant response: {content}");
 ```
   

@@ -457,7 +457,7 @@ let tools = mcp_client.list_tools(Default::default()).await?;
 
     இந்த குறியீடு MCP சர்வர் பதிலை பெற்று அதனை LLM புரிந்து கொள்ளும் கருவி வரையறை வடிவமாக மாற்றுகிறது.
 
-1. அடுத்து `run` முறையை சர்வர் திறன்களை பட்டியலிட மாற்றலாம்:
+2. அடுத்து `run` முறையை சர்வர் திறன்களை பட்டியலிட மாற்றலாம்:
 
     ```typescript
     async run() {
@@ -499,7 +499,7 @@ let tools = mcp_client.list_tools(Default::default()).await?;
 
     `convert_to_llm_tools`   என்பது MCP கருவி பதிலை பெற்று LLM புரிந்து கொள்ளும் வடிவமாக மாற்றுகிறது.
 
-1. அடுத்து எங்கள் கிளையண்ட் குறியீட்டை இதைப் பயன்படுத்த மாற்றுவோம்:
+2. அடுத்து எங்கள் கிளையண்ட் குறியீட்டை இதைப் பயன்படுத்த மாற்றுவோம்:
 
     ```python
     functions = []
@@ -541,7 +541,7 @@ ChatCompletionsToolDefinition ConvertFrom(string name, string description, JsonE
 - `ConvertFrom` என்ற செயல்பாடு உருவாக்கப்பட்டுள்ளது, இது பெயர், விளக்கம் மற்றும் உள்ளீடு திட்டவட்டத்தை எடுத்துக்கொள்கிறது.
 - `FunctionDefinition` உருவாக்கி அதை `ChatCompletionsDefinition`க்கு வழங்குகிறது. இது LLM புரிந்துகொள்ளக்கூடிய வடிவம்.
 
-1. இதை பயனுள்ளதாக மாற்ற `run` போன்ற கொடிகளை மாற்றுவோம்:
+2. இதை பயனுள்ளதாக மாற்ற `run` போன்ற கொடிகளை மாற்றுவோம்:
 
     ```csharp
     async Task<List<ChatCompletionsToolDefinition>> GetMcpTools()
@@ -711,7 +711,7 @@ async fn format_tools(tools: &ListToolsResult) -> Result<Vec<Value>, Box<dyn Err
         // செய்யவேண்டியது
         ```
 
-1. `run` முறையை LLM அழைப்பும் `callTools` அழைப்பும் சேர்க்கும் முறையில் புதுப்பிக்கவும்:
+2. `run` முறையை LLM அழைப்பும் `callTools` அழைப்பும் சேர்க்கும் முறையில் புதுப்பிக்கவும்:
 
     ```typescript
 
@@ -863,7 +863,7 @@ class MyClient {
 
         let results: any[] = [];
     
-        // 1. LLM பதிலையெல்லா கவனித்துப் பார்க்கவும், ஒவ்வொரு தேர்விலும் கருவி அழைப்புகள் உள்ளதா என்று சோதிக்கவும்
+        // 3. LLM பதிலையெல்லா கவனித்துப் பார்க்கவும், ஒவ்வொரு தேர்விலும் கருவி அழைப்புகள் உள்ளதா என்று சோதிக்கவும்
         (await response).choices.map(async (choice: { message: any; }) => {
           const message = choice.message;
           if (message.tool_calls) {
@@ -897,7 +897,7 @@ client.connectToServer(transport);
     import json
     ```
 
-1. LLM அழைக்கும் செயல்பாட்டை சேர்க்கவும்:
+2. LLM அழைக்கும் செயல்பாட்டை சேர்க்கவும்:
 
     ```python
     # LLM
@@ -954,7 +954,7 @@ client.connectToServer(transport);
     - பதிலைத் தீவிரமாகப் பற்றி தேவையான செயல்பாடுகளை அழைக்க முடிவு செய்தோம்.
     - கடைசியில் அழைக்கவேண்டிய செயல்பாடுகளின் பட்டியலை வழங்கினோம்.
 
-1. இறுதி படி, பிரதானக் குறியீட்டை புதுப்பிக்கவும்:
+3. இறுதி படி, பிரதானக் குறியீட்டை புதுப்பிக்கவும்:
 
     ```python
     prompt = "Add 2 to 20"
@@ -1016,7 +1016,7 @@ client.connectToServer(transport);
     - மாடல் மற்றும் கருவிகளை குறிப்பிடும் விருப்பங்கள் உருவாக்கப்பட்டன.
     - LLM க்கு கோரிக்கை அனுப்பினோம்.
 
-1. கடைசி படி, LLM செயல்பாட்டை அழைக்க வேண்டுமா என்று பார்க்கலாம்:
+2. கடைசி படி, LLM செயல்பாட்டை அழைக்க வேண்டுமா என்று பார்க்கலாம்:
 
     ```csharp
     // 4. Check if the response contains a function call
@@ -1166,7 +1166,7 @@ for (int i = 0; i < response.ToolCalls.Count; i++)
 
 }
 
-// 5. Print the generic response
+// 6. Print the generic response
 Console.WriteLine($"Assistant response: {content}");
 ```
 

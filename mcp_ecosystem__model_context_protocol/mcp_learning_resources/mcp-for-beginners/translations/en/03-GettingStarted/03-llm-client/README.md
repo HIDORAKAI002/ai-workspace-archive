@@ -457,7 +457,7 @@ Next step after listing server capabilities is to convert them into a format tha
 
     The above code takes a response from the MCP Server and converts that to a tool definition format the LLM can understand.
 
-1. Let's update the `run` method next to list server capabilities:
+2. Let's update the `run` method next to list server capabilities:
 
     ```typescript
     async run() {
@@ -499,7 +499,7 @@ Next step after listing server capabilities is to convert them into a format tha
 
     In the function above `convert_to_llm_tools` we take an MCP tool response and convert it to a format that the LLM can understand.
 
-1. Next, let's update our client code to leverage this function like so:
+2. Next, let's update our client code to leverage this function like so:
 
     ```python
     functions = []
@@ -541,7 +541,7 @@ In the preceding code we've:
 - Created a function `ConvertFrom` that takes, name, description and input schema.
 - Defined functionality that creates a FunctionDefinition that gets passed to a ChatCompletionsDefinition. The latter is something the LLM can understand.
 
-1. Let's see how we can update some existing code to take advantage of this function above:
+2. Let's see how we can update some existing code to take advantage of this function above:
 
     ```csharp
     async Task<List<ChatCompletionsToolDefinition>> GetMcpTools()
@@ -711,7 +711,7 @@ In this part of the code, we will handle user requests.
         // TODO
         ```
 
-1. Update the `run` method to include calls to the LLM and calling `callTools`:
+2. Update the `run` method to include calls to the LLM and calling `callTools`:
 
     ```typescript
 
@@ -863,7 +863,7 @@ class MyClient {
 
         let results: any[] = [];
     
-        // 1. Go through the LLM response, for each choice, check if it has tool calls
+        // 3. Go through the LLM response, for each choice, check if it has tool calls
         (await response).choices.map(async (choice: { message: any; }) => {
           const message = choice.message;
           if (message.tool_calls) {
@@ -897,7 +897,7 @@ client.connectToServer(transport);
     import json
     ```
 
-1. Next, let's add the function that will call the LLM:
+2. Next, let's add the function that will call the LLM:
 
     ```python
     # llm
@@ -954,7 +954,7 @@ client.connectToServer(transport);
     - Then, we're inspecting the result to see what functions we should call, if any.
     - Finally, we pass an array of functions to call.
 
-1. Final step, let's update our main code:
+3. Final step, let's update our main code:
 
     ```python
     prompt = "Add 2 to 20"
@@ -1016,7 +1016,7 @@ client.connectToServer(transport);
     - Constructor an options object specifying model and tools.
     - Made a request towards the LLM.
 
-1. One last step, let's see if the LLM thinks we should call a function:
+2. One last step, let's see if the LLM thinks we should call a function:
 
     ```csharp
     // 4. Check if the response contains a function call
@@ -1166,7 +1166,7 @@ for (int i = 0; i < response.ToolCalls.Count; i++)
 
 }
 
-// 5. Print the generic response
+// 6. Print the generic response
 Console.WriteLine($"Assistant response: {content}");
 ```
 

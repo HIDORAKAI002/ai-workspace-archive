@@ -457,7 +457,7 @@ Dalším krokem po vypsání schopností serveru je jejich převod do formátu, 
 
     Výše uvedený kód vezme odpověď z MCP serveru a převede ji na formát definice nástroje, kterému LLM rozumí.
 
-1. Aktualizujme následující metodu `run`, aby vypsala schopnosti serveru:
+2. Aktualizujme následující metodu `run`, aby vypsala schopnosti serveru:
 
     ```typescript
     async run() {
@@ -499,7 +499,7 @@ Dalším krokem po vypsání schopností serveru je jejich převod do formátu, 
 
     V této funkci `convert_to_llm_tools` vezmeme odpověď nástroje MCP a převedeme ji do formátu, kterému LLM rozumí.
 
-1. Dále aktualizujme kód klienta, aby využíval tuto funkci takto:
+2. Dále aktualizujme kód klienta, aby využíval tuto funkci takto:
 
     ```python
     functions = []
@@ -541,7 +541,7 @@ V předchozím kódu jsme:
 - Vytvořili funkci `ConvertFrom`, která přijímá název, popis a vstupní schéma.
 - Definovali funkcionalitu, která vytvoří `FunctionDefinition`, která je předána do `ChatCompletionsDefinition`. To je formát, který LLM dokáže zpracovat.
 
-1. Podívejme se, jak můžeme aktualizovat existující kód k využití této funkce:
+2. Podívejme se, jak můžeme aktualizovat existující kód k využití této funkce:
 
     ```csharp
     async Task<List<ChatCompletionsToolDefinition>> GetMcpTools()
@@ -711,7 +711,7 @@ V této části kódu budeme zpracovávat uživatelské požadavky.
         // TODO
         ```
 
-1. Aktualizujte metodu `run`, aby zahrnovala volání LLM a následně volání `callTools`:
+2. Aktualizujte metodu `run`, aby zahrnovala volání LLM a následně volání `callTools`:
 
     ```typescript
 
@@ -863,7 +863,7 @@ class MyClient {
 
         let results: any[] = [];
     
-        // 1. Projděte odpověď LLM, pro každou volbu zkontrolujte, zda obsahuje volání nástrojů
+        // 3. Projděte odpověď LLM, pro každou volbu zkontrolujte, zda obsahuje volání nástrojů
         (await response).choices.map(async (choice: { message: any; }) => {
           const message = choice.message;
           if (message.tool_calls) {
@@ -897,7 +897,7 @@ client.connectToServer(transport);
     import json
     ```
 
-1. Dále přidejme funkci, která bude volat LLM:
+2. Dále přidejme funkci, která bude volat LLM:
 
     ```python
     # llm
@@ -954,7 +954,7 @@ client.connectToServer(transport);
     - Prohlížíme si výsledek, abychom zjistili, jaké funkce případně zavolat.
     - Nakonec voláme příslušné funkce.
 
-1. Posledním krokem je aktualizace hlavního kódu:
+3. Posledním krokem je aktualizace hlavního kódu:
 
     ```python
     prompt = "Add 2 to 20"
@@ -1016,7 +1016,7 @@ client.connectToServer(transport);
     - Vytvořili objekt možností specifikující model a nástroje.
     - Odeslali požadavek na LLM.
 
-1. Jeden poslední krok, podívejme se, zda LLM soudí, že bychom měli zavolat funkci:
+2. Jeden poslední krok, podívejme se, zda LLM soudí, že bychom měli zavolat funkci:
 
     ```csharp
     // 4. Check if the response contains a function call
@@ -1166,7 +1166,7 @@ for (int i = 0; i < response.ToolCalls.Count; i++)
 
 }
 
-// 5. Print the generic response
+// 6. Print the generic response
 Console.WriteLine($"Assistant response: {content}");
 ```
 

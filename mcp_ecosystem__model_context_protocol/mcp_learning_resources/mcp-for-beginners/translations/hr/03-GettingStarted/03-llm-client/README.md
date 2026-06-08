@@ -457,7 +457,7 @@ Sljedeći korak nakon izlistavanja sposobnosti servera je pretvoriti ih u format
 
     Gornji kod uzima odgovor s MCP servera i pretvara ga u definiciju alata koju LLM može razumjeti.
 
-1. Sljedeće, ažurirajmo `run` metodu da izlista sposobnosti servera:
+2. Sljedeće, ažurirajmo `run` metodu da izlista sposobnosti servera:
 
     ```typescript
     async run() {
@@ -499,7 +499,7 @@ Sljedeći korak nakon izlistavanja sposobnosti servera je pretvoriti ih u format
 
     U funkciji `convert_to_llm_tools` uzimamo odgovor MCP alata i pretvaramo ga u format koji LLM može razumjeti.
 
-1. Zatim ažurirajmo naš klijentski kod da koristi ovu funkciju ovako:
+2. Zatim ažurirajmo naš klijentski kod da koristi ovu funkciju ovako:
 
     ```python
     functions = []
@@ -541,7 +541,7 @@ U prethodnom kodu smo:
 - Kreirali funkciju `ConvertFrom` koja prima ime, opis i ulaznu shemu
 - Definirali funkcionalnost koja kreira `FunctionDefinition` koja se prosljeđuje `ChatCompletionsDefinition`. Ovo zadnje LLM razumije.
 
-1. Pogledajmo kako možemo osuvremeniti postojeći kod koristeći ovu funkciju:
+2. Pogledajmo kako možemo osuvremeniti postojeći kod koristeći ovu funkciju:
 
     ```csharp
     async Task<List<ChatCompletionsToolDefinition>> GetMcpTools()
@@ -711,7 +711,7 @@ U ovom dijelu koda obradit ćemo korisničke zahtjeve.
         // ZA UČINITI
         ```
 
-1. Ažurirajmo `run` metodu da uključi pozive LLM-u i pozivanje `callTools`:
+2. Ažurirajmo `run` metodu da uključi pozive LLM-u i pozivanje `callTools`:
 
     ```typescript
 
@@ -863,7 +863,7 @@ class MyClient {
 
         let results: any[] = [];
     
-        // 1. Prođi kroz odgovor LLM-a, za svaki izbor provjeri ima li poziva alata
+        // 3. Prođi kroz odgovor LLM-a, za svaki izbor provjeri ima li poziva alata
         (await response).choices.map(async (choice: { message: any; }) => {
           const message = choice.message;
           if (message.tool_calls) {
@@ -897,7 +897,7 @@ client.connectToServer(transport);
     import json
     ```
 
-1. Zatim, dodajmo funkciju koja će pozivati LLM:
+2. Zatim, dodajmo funkciju koja će pozivati LLM:
 
     ```python
     # llm
@@ -954,7 +954,7 @@ client.connectToServer(transport);
     - Pregledavamo rezultat da vidimo koje funkcije treba pozvati, ako ih ima.
     - Na kraju prosljeđujemo niz funkcija koje treba pozvati.
 
-1. Završni korak, ažurirajmo glavni kod:
+3. Završni korak, ažurirajmo glavni kod:
 
     ```python
     prompt = "Add 2 to 20"
@@ -1016,7 +1016,7 @@ client.connectToServer(transport);
     - Konstruktor options objekta s modelom i alatima.
     - Poslali zahtjev prema LLM-u.
 
-1. Još jedan korak, pogledajmo ako LLM smatra da treba pozvati funkciju:
+2. Još jedan korak, pogledajmo ako LLM smatra da treba pozvati funkciju:
 
     ```csharp
     // 4. Check if the response contains a function call
@@ -1166,7 +1166,7 @@ for (int i = 0; i < response.ToolCalls.Count; i++)
 
 }
 
-// 5. Print the generic response
+// 6. Print the generic response
 Console.WriteLine($"Assistant response: {content}");
 ```
 

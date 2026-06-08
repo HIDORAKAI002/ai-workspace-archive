@@ -457,7 +457,7 @@ Kitas žingsnis po galimybių išvardinimo yra jų konvertavimas į formatą, ku
 
     Aukščiau pateiktas kodas paima MCP serverio atsakymą ir paverčia jį į įrankio apibrėžimo formatą, kurį LLM gali suprasti.
 
-1. Tada atnaujinkime `run` metodą, kad išvardintume serverio galimybes:
+2. Tada atnaujinkime `run` metodą, kad išvardintume serverio galimybes:
 
     ```typescript
     async run() {
@@ -499,7 +499,7 @@ Kitas žingsnis po galimybių išvardinimo yra jų konvertavimas į formatą, ku
 
     Funkcijoje `convert_to_llm_tools` gauname MCP įrankio atsakymą ir paverčiame jį į formatą, kurį LLM gali suprasti.
 
-1. Tada atnaujinkime savo kliento kodą, kad panaudotume šią funkciją taip:
+2. Tada atnaujinkime savo kliento kodą, kad panaudotume šią funkciją taip:
 
     ```python
     functions = []
@@ -541,7 +541,7 @@ Ankstesniame kode mes:
 - Sukūrėme funkciją `ConvertFrom`, kuri priima pavadinimą, aprašymą ir įvesties schemą.
 - Apibrėžėme funkcionalumą, kuris sukuria `FunctionDefinition`, perduodamą į `ChatCompletionsDefinition`. Pastarasis yra formatas, kurį LLM supranta.
 
-1. Pažiūrėkime, kaip galime atnaujinti esamą kodą, kad panaudotume šią funkciją:
+2. Pažiūrėkime, kaip galime atnaujinti esamą kodą, kad panaudotume šią funkciją:
 
     ```csharp
     async Task<List<ChatCompletionsToolDefinition>> GetMcpTools()
@@ -711,7 +711,7 @@ Puiku, dabar pasiruošę apdoroti vartotojo užklausas, tad pereikime prie to.
         // TODO
         ```
 
-1. Atnaujinkite `run` metodą, kad įtrauktumėte kvietimus LLM ir `callTools`:
+2. Atnaujinkite `run` metodą, kad įtrauktumėte kvietimus LLM ir `callTools`:
 
     ```typescript
 
@@ -863,7 +863,7 @@ class MyClient {
 
         let results: any[] = [];
     
-        // 1. Peržiūrėkite LLM atsakymą, kiekvienam pasirinkimui patikrinkite, ar yra įrankių kvietimų
+        // 3. Peržiūrėkite LLM atsakymą, kiekvienam pasirinkimui patikrinkite, ar yra įrankių kvietimų
         (await response).choices.map(async (choice: { message: any; }) => {
           const message = choice.message;
           if (message.tool_calls) {
@@ -897,7 +897,7 @@ client.connectToServer(transport);
     import json
     ```
 
-1. Toliau pridėkime funkciją, kuri kvies LLM:
+2. Toliau pridėkime funkciją, kuri kvies LLM:
 
     ```python
     # llm
@@ -954,7 +954,7 @@ client.connectToServer(transport);
     - Tuomet apžiūrėjome rezultatą, ar reikėtų iškviesti kokias nors funkcijas.
     - Galiausiai perduodame funkcijų masyvą, kurias reikėtų kviesti.
 
-1. Galutinis žingsnis, atnaujinkime pagrindinį kodą:
+3. Galutinis žingsnis, atnaujinkime pagrindinį kodą:
 
     ```python
     prompt = "Add 2 to 20"
@@ -1016,7 +1016,7 @@ client.connectToServer(transport);
     - Sukūrėme parinkčių objektą su modeliu ir įrankiais.
     - Atlikome užklausą LLM.
 
-1. Paskutinis žingsnis - patikrinkime, ar LLM mano, kad reikia kviesti kokią nors funkciją:
+2. Paskutinis žingsnis - patikrinkime, ar LLM mano, kad reikia kviesti kokią nors funkciją:
 
     ```csharp
     // 4. Check if the response contains a function call
@@ -1166,7 +1166,7 @@ for (int i = 0; i < response.ToolCalls.Count; i++)
 
 }
 
-// 5. Print the generic response
+// 6. Print the generic response
 Console.WriteLine($"Assistant response: {content}");
 ```
 

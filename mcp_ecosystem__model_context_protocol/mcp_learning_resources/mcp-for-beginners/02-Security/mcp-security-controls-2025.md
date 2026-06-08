@@ -144,7 +144,7 @@ Session Lifecycle:
 ## 4. **AI-Specific Security Controls**
 
 **OWASP MCP Risks Addressed**:
-- [MCP06 - Prompt Injection via Contextual Payloads](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)
+- [MCP06 - Intent Flow Subversion](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)
 - [MCP03 - Tool Poisoning](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp03-tool-poisoning/)
 - [MCP05 - Command Injection & Execution](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp05-command-injection/)
 
@@ -282,7 +282,7 @@ Access Control:
 
 ## 7. **Supply Chain Security Controls**
 
-**OWASP MCP Risk Addressed**: [MCP04 - Supply Chain Attacks](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp04-supply-chain/)
+**OWASP MCP Risk Addressed**: [MCP04 - Software Supply Chain Attacks & Dependency Tampering](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp04-supply-chain/)
 
 ### **Dependency Verification**
 
@@ -325,7 +325,7 @@ AI Components:
 
 ## 8. **Monitoring & Detection Controls**
 
-**OWASP MCP Risk Addressed**: [MCP08 - Lack of Audit & Telemetry](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp08-telemetry/)
+**OWASP MCP Risk Addressed**: [MCP08 - Lack of Audit and Telemetry](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp08-telemetry/)
 
 ### **Security Information and Event Management (SIEM)**
 
