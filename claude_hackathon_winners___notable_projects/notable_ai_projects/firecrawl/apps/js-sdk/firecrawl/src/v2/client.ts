@@ -32,6 +32,7 @@ import {
   listBrowsers,
 } from "./methods/browser";
 import { getConcurrency, getCreditUsage, getQueueStatus, getTokenUsage, getCreditUsageHistorical, getTokenUsageHistorical } from "./methods/usage";
+import { ResearchClient } from "./methods/research";
 import {
   createMonitor as createMonitorMethod,
   deleteMonitor as deleteMonitorMethod,
@@ -119,6 +120,7 @@ export type FirecrawlClientInput = FirecrawlClientOptions | string;
 
 export class FirecrawlClient {
   private readonly http: HttpClient;
+  private _research?: ResearchClient;
 
   private isCloudService(url: string): boolean {
     return url.includes('api.firecrawl.dev');
@@ -232,6 +234,16 @@ export class FirecrawlClient {
    */
   async search(query: string, req: Omit<SearchRequest, "query"> = {}): Promise<SearchData> {
     return search(this.http, { query, ...req });
+  }
+
+  // Research
+  /**
+   * Access the v2 research endpoints (arXiv papers + GitHub history/readmes).
+   * Example: `firecrawl.research.searchPapers("diffusion models")`.
+   */
+  get research(): ResearchClient {
+    if (!this._research) this._research = new ResearchClient(this.http);
+    return this._research;
   }
 
   // Map

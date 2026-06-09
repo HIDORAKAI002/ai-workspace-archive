@@ -36,8 +36,8 @@ export async function researchProxyController(
     return;
   }
 
-  const subPath = req.path.replace(/^\/research/, "") || "/";
-  const url = new URL(base.replace(/\/+$/, "") + subPath);
+  const fullPath = req.baseUrl + req.path || "/";
+  const url = new URL(base.replace(/\/+$/, "") + fullPath);
   for (const [k, v] of Object.entries(req.query)) {
     if (Array.isArray(v)) {
       v.forEach(vv => url.searchParams.append(k, String(vv)));

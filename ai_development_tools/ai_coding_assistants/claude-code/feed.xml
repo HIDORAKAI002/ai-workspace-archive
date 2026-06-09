@@ -6,7 +6,43 @@
   <author><name>Anthropic</name></author>
   <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md"/>
   <link rel="self" type="application/atom+xml" href="https://raw.githubusercontent.com/anthropics/claude-code/main/feed.xml"/>
-  <updated>2026-06-06T23:41:47Z</updated>
+  <updated>2026-06-08T21:57:10Z</updated>
+  <entry>
+    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.169</id>
+    <title>Claude Code v2.1.169</title>
+    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.169"/>
+    <updated>2026-06-08T21:57:10Z</updated>
+    <content type="html">&lt;p&gt;• Added --safe-mode flag (and CLAUDE_CODE_SAFE_MODE) to start Claude Code with all customizations (CLAUDE.md, plugins, skills, hooks, MCP servers) disabled for troubleshooting&lt;/p&gt;
+&lt;p&gt;• Added /cd command to move a session to a new working directory without breaking the prompt cache mid-session&lt;/p&gt;
+&lt;p&gt;• Added a disableBundledSkills setting and CLAUDE_CODE_DISABLE_BUNDLED_SKILLS environment variable to hide bundled skills, workflows, and built-in slash commands from the model&lt;/p&gt;
+&lt;p&gt;• Fixed Up/Down arrows jumping to command history past the wrapped rows of a long input line — they now move through each visual row first, and history recall enters at the near edge&lt;/p&gt;
+&lt;p&gt;• Fixed enterprise managed MCP policies (allowedMcpServers/deniedMcpServers) not being enforced on reconnect, IDE-typed configs, --mcp-config servers during the first session after install, or before remote settings loaded; also fixed slow cold starts for orgs without remote settings&lt;/p&gt;
+&lt;p&gt;• Fixed a ~30-50ms UI stall at the start of each turn for macOS users logged in with claude.ai credentials&lt;/p&gt;
+&lt;p&gt;• Fixed claude -p being slow or appearing to hang on Windows while waiting for the slash-command/skill scan (regression in 2.1.161)&lt;/p&gt;
+&lt;p&gt;• Fixed Remote Control getting stuck on "reconnecting" after resuming a session when an OAuth token refresh happened at the same time&lt;/p&gt;
+&lt;p&gt;• Fixed Git Credential Manager's "Connect to GitHub" popup appearing on Windows at startup when background git commands ran without cached credentials&lt;/p&gt;
+&lt;p&gt;• Fixed footer hints (e.g. "esc to interrupt") not showing for users with a custom statusline&lt;/p&gt;
+&lt;p&gt;• Fixed stale permission and dialog prompts reappearing every time you reattached to a remote session whose worker had died while waiting on them&lt;/p&gt;
+&lt;p&gt;• Fixed claude agents --json omitting blocked and just-dispatched background sessions; added --all to include completed sessions, plus new id and state fields&lt;/p&gt;
+&lt;p&gt;• Fixed agents view leaving a stale/garbled frame after navigating back from an agent on WSL in Windows Terminal&lt;/p&gt;
+&lt;p&gt;• Fixed background agents ignoring project-level settings env values (e.g. ANTHROPIC_MODEL) when dispatched onto a pre-warmed worker&lt;/p&gt;
+&lt;p&gt;• Fixed MCPB plugin cache being spuriously invalidated on Windows, causing unnecessary re-extraction&lt;/p&gt;
+&lt;p&gt;• Fixed plugin .in_use PID lock files accumulating without bound; stale markers from crashed sessions are now swept once per day&lt;/p&gt;
+&lt;p&gt;• Fixed untrusted project settings being able to set OTEL client-certificate paths without trust confirmation&lt;/p&gt;
+&lt;p&gt;• /workflows now opens immediately even while a turn is in progress&lt;/p&gt;
+&lt;p&gt;• Improved TaskCreate reliability: malformed inputs are repaired automatically and validation errors for unloaded tools include the schema&lt;/p&gt;
+&lt;p&gt;• Improved the error message shown when your organization has disabled API key authentication, with guidance based on where the active API key comes from&lt;/p&gt;
+&lt;p&gt;• Reduced CPU usage while responses stream and during spinner animations&lt;/p&gt;
+&lt;p&gt;• Restored a default 5-minute idle timeout on Vertex/Foundry so a stalled stream aborts instead of hanging indefinitely; set API_FORCE_IDLE_TIMEOUT=0 to opt out&lt;/p&gt;
+&lt;p&gt;• Remote-managed settings with an invalid entry now apply their remaining valid policies and surface the validation error, instead of silently dropping the whole payload&lt;/p&gt;
+&lt;p&gt;• Background sessions now preserve --ide, --chrome, --bare, --remote-control, and other flags across retire→wake, and respawn state validation was hardened&lt;/p&gt;
+&lt;p&gt;• Background sessions are now told that shared-checkout edits are blocked until they enter a worktree, avoiding a wasted rejected edit before EnterWorktree&lt;/p&gt;
+&lt;p&gt;• The "CLAUDE.md is too long" warning threshold now scales with the model's context window&lt;/p&gt;
+&lt;p&gt;• Auto-updater on Windows now stops retrying within a session once claude.exe is held by another process&lt;/p&gt;
+&lt;p&gt;• Improved color contrast for skill tags in the slash-command menu&lt;/p&gt;
+&lt;p&gt;• Promo credit claims for Apple/Google-billed subscribers without a payment method now explain where to add one&lt;/p&gt;
+&lt;p&gt;• Added a tip suggesting claude agents when running multiple concurrent sessions&lt;/p&gt;</content>
+  </entry>
   <entry>
     <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.168</id>
     <title>Claude Code v2.1.168</title>
@@ -453,31 +489,5 @@
 &lt;p&gt;• Fixed slash commands followed by a tab or newline being treated as an unknown command&lt;/p&gt;
 &lt;p&gt;• Fixed several spacing and layout glitches in the /plugin, /status, /mobile, /sandbox, and /permissions menus&lt;/p&gt;
 &lt;p&gt;• Fixed stripped images prompting the model to repeatedly re-read media that was no longer present&lt;/p&gt;</content>
-  </entry>
-  <entry>
-    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.145</id>
-    <title>Claude Code v2.1.145</title>
-    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.145"/>
-    <updated>2026-05-19T21:31:01Z</updated>
-    <content type="html">&lt;p&gt;• Added claude agents --json to list live Claude sessions as JSON for scripting (tmux-resurrect, status bars, session pickers)&lt;/p&gt;
-&lt;p&gt;• Added agent_id and parent_agent_id attributes to claude_code.tool OTEL spans, and fixed trace parenting so background subagent spans nest under the dispatching Agent tool span&lt;/p&gt;
-&lt;p&gt;• Status line JSON input now includes GitHub repo and PR information when detected&lt;/p&gt;
-&lt;p&gt;• /plugin Discover and Browse screens now show a plugin's commands, agents, skills, hooks, and MCP/LSP servers before installation&lt;/p&gt;
-&lt;p&gt;• claude agents terminal tab title now shows the awaiting-input count so an alt-tabbed window tells you when an agent needs attention&lt;/p&gt;
-&lt;p&gt;• Slash command and @-mention suggestion list now supports mouse hover and click in fullscreen mode&lt;/p&gt;
-&lt;p&gt;• Stop and SubagentStop hook input now includes background_tasks and session_crons fields&lt;/p&gt;
-&lt;p&gt;• Fixed a permission-prompt bypass where bare variable assignments to non-allowlisted environment variables in Bash commands were auto-approved&lt;/p&gt;
-&lt;p&gt;• Fixed MCP prompt slash commands showing raw server validation errors when a required argument is omitted — the error now names the missing argument and shows expected usage&lt;/p&gt;
-&lt;p&gt;• Fixed the spinner and elapsed-time display freezing until a keypress after the terminal was resized or refocused&lt;/p&gt;
-&lt;p&gt;• Fixed the cross-project resume hint failing in default Windows PowerShell 5.1 — Windows now uses ; as the command separator&lt;/p&gt;
-&lt;p&gt;• Fixed voice push-to-talk not working in the agent view's reply pane&lt;/p&gt;
-&lt;p&gt;• Fixed task lists rendering in random order when several tasks are created at once&lt;/p&gt;
-&lt;p&gt;• Fixed stale "Failed to install Anthropic marketplace" banner showing when the marketplace is already installed&lt;/p&gt;
-&lt;p&gt;• Fixed the PR badge in the footer not updating immediately after gh pr create and other PR-state-changing commands run in-session&lt;/p&gt;
-&lt;p&gt;• Fixed Agent Teams teammates with non-ASCII names failing every API call due to invalid header encoding&lt;/p&gt;
-&lt;p&gt;• Fixed /review using a deprecated projectCards GraphQL query that errored on repos with Classic Projects&lt;/p&gt;
-&lt;p&gt;• Fixed claude plugin validate not flagging skills: entries that point at a file instead of a directory — the error now suggests the parent directory&lt;/p&gt;
-&lt;p&gt;• Fixed an infinite loop where a skill using context: fork could repeatedly re-invoke itself instead of running&lt;/p&gt;
-&lt;p&gt;• Improved the Read tool to return a truncated first page with a "PARTIAL view" notice instead of a hard error when a whole-file read exceeds the token limit&lt;/p&gt;</content>
   </entry>
 </feed>
