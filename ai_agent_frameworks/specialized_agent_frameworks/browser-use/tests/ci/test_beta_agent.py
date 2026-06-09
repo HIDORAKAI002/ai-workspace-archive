@@ -2772,7 +2772,7 @@ def test_beta_agent_sdk_browser_payload_includes_profile_domains_window_and_prox
 
 
 async def test_beta_agent_runs_through_sdk_and_reuses_session_for_followup(monkeypatch):
-	from browser_use.beta import Agent
+	from browser_use.beta import Agent, BrowserProfile, BrowserSession
 
 	class LLM:
 		model = 'fake'
@@ -2821,11 +2821,13 @@ async def test_beta_agent_runs_through_sdk_and_reuses_session_for_followup(monke
 	fake_sdk = FakeSdk()
 
 	async def fake_ensure_sdk_client(self):
+		self._sdk_client = fake_sdk
 		return fake_sdk
 
 	monkeypatch.setattr(Agent, '_ensure_sdk_client', fake_ensure_sdk_client)
 
-	agent = Agent(task='answer first', llm=LLM(), directly_open_url=False)
+	browser_session = BrowserSession(browser_profile=BrowserProfile(keep_alive=True), id='browser-session-1')
+	agent = Agent(task='answer first', llm=LLM(), browser_session=browser_session, directly_open_url=False)
 	first = await agent.run(max_steps=7)
 	followup = await agent.follow_up('answer second', max_steps=5)
 
@@ -5781,6 +5783,18 @@ def test_beta_agent_sync_state_counts_terminal_histories_monotonically():
 async def test_beta_agent_close_kills_non_keep_alive_browser_session():
 	from browser_use.beta import Agent
 
+	class FakeSdk:
+		def __init__(self):
+			self.calls = []
+			self.close_calls = 0
+
+		async def call(self, method, params=None):
+			self.calls.append((method, params or {}))
+			return {'ok': True}
+
+		async def close(self):
+			self.close_calls += 1
+
 	class BrowserProfile:
 		keep_alive = False
 
@@ -5795,9 +5809,23 @@ async def test_beta_agent_close_kills_non_keep_alive_browser_session():
 
 	session = BrowserSession()
 	agent = Agent(task='close session', browser_session=session, directly_open_url=False)
+	fake_sdk = FakeSdk()
+	agent._sdk_client = fake_sdk
+	agent._sdk_agent_id = 'agent-1'
+	agent._sdk_browser_id = 'browser-1'
+	agent.terminal_session_id = 'session-1'
 
 	await agent.close()
 
+	assert fake_sdk.calls == [
+		('agent.close', {'agent_id': 'agent-1'}),
+		('browser.close', {'browser_id': 'browser-1'}),
+	]
+	assert fake_sdk.close_calls == 1
+	assert agent._sdk_client is None
+	assert agent._sdk_agent_id is None
+	assert agent._sdk_browser_id is None
+	assert agent.terminal_session_id is None
 	assert session.kill_calls == 1
 
 	class KeepAliveProfile:
@@ -5806,9 +5834,20 @@ async def test_beta_agent_close_kills_non_keep_alive_browser_session():
 	keep_alive_session = BrowserSession()
 	keep_alive_session.browser_profile = KeepAliveProfile()
 	keep_alive_agent = Agent(task='keep session', browser_session=keep_alive_session, directly_open_url=False)
+	keep_alive_sdk = FakeSdk()
+	keep_alive_agent._sdk_client = keep_alive_sdk
+	keep_alive_agent._sdk_agent_id = 'agent-keep'
+	keep_alive_agent._sdk_browser_id = 'browser-keep'
+	keep_alive_agent.terminal_session_id = 'session-keep'
 
 	await keep_alive_agent.close()
 
+	assert keep_alive_sdk.calls == []
+	assert keep_alive_sdk.close_calls == 0
+	assert keep_alive_agent._sdk_client is keep_alive_sdk
+	assert keep_alive_agent._sdk_agent_id == 'agent-keep'
+	assert keep_alive_agent._sdk_browser_id == 'browser-keep'
+	assert keep_alive_agent.terminal_session_id == 'session-keep'
 	assert keep_alive_session.kill_calls == 0
 
 
@@ -5838,6 +5877,50 @@ async def test_beta_agent_close_logs_cleanup_errors_without_raising(monkeypatch)
 
 	assert await agent.close() is None
 	assert logger.errors == ['Error during cleanup: cleanup failed']
+
+
+async def test_beta_agent_finalize_run_cleanup_closes_sdk_resources():
+	from browser_use.beta import Agent
+
+	class FakeSdk:
+		def __init__(self):
+			self.calls = []
+			self.close_calls = 0
+
+		async def call(self, method, params=None):
+			self.calls.append((method, params or {}))
+			return {'ok': True}
+
+		async def close(self):
+			self.close_calls += 1
+
+	class BrowserProfile:
+		keep_alive = False
+
+	class BrowserSession:
+		browser_profile = BrowserProfile()
+
+		async def kill(self):
+			return None
+
+	agent = Agent(task='finalize session', browser_session=BrowserSession(), directly_open_url=False)
+	fake_sdk = FakeSdk()
+	agent._sdk_client = fake_sdk
+	agent._sdk_agent_id = 'agent-finalize'
+	agent._sdk_browser_id = 'browser-finalize'
+	agent.terminal_session_id = 'session-finalize'
+
+	await agent._finalize_run_cleanup()
+
+	assert fake_sdk.calls == [
+		('agent.close', {'agent_id': 'agent-finalize'}),
+		('browser.close', {'browser_id': 'browser-finalize'}),
+	]
+	assert fake_sdk.close_calls == 1
+	assert agent._sdk_client is None
+	assert agent._sdk_agent_id is None
+	assert agent._sdk_browser_id is None
+	assert agent.terminal_session_id is None
 
 
 async def test_beta_agent_check_stop_or_pause_matches_browser_use_lifecycle():

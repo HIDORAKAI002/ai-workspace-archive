@@ -147,6 +147,7 @@ export const listMonitorChecksQuerySchema = z.object({
       "failed",
       "partial",
       "skipped_overlap",
+      "skipped_no_credits",
     ])
     .optional(),
 });
@@ -200,7 +201,8 @@ export type MonitorCheckRow = {
     | "completed"
     | "failed"
     | "partial"
-    | "skipped_overlap";
+    | "skipped_overlap"
+    | "skipped_no_credits";
   scheduled_for: string | null;
   started_at: string | null;
   finished_at: string | null;

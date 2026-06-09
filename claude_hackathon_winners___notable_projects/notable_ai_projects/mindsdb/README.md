@@ -24,30 +24,58 @@
 
 ---
 
-## MINDS PLATFORM 
+# MINDS-COWORK PLATFORM 
 
-Minds Platform is dedicated to building an open foundation for frontier Artificial Intelligence, designed for developers, businesses, and individuals seeking AI systems they can truly control, extend and deploy anywhere (VPC, on-prem or Cloud).
-
-We believe useful AI systems require two fundamental capabilities: the ability to perform meaningful actions autonomously **(Automation)** and the ability to find and retrieve the right information **(Semantic Search)**. Our products are designed around these two foundations: 
-
-* [Minds Anton](https://github.com/mindsdb/anton) - Self-improving **Automation** Agent that can get any type of work done. Tell it what you need in plain language and it takes it from there - creating reports, organizing data, sending emails, calling APIs, building dashboards, scheduling tasks, etc. 
-
-* [Minds Query Engine](https://github.com/mindsdb/engine) - **Semantic Search** query engine, used to index and organize large amounts of data from hundreds of structured and unstructured datasources.
+Minds Platform is dedicated to building a general-purpose AI designed for knowledge workers — creators, strategists, and operators — and individuals seeking AI systems they can truly control to help them get work done, with full flexibility to extend and deploy anywhere (VPC, on-prem, or cloud).
 
 
-# USE CASES
 
-| Use Case | Solution |
-|---|---|
-| Automated reporting, recurring workflows, and operational task execution | **Anton** |
-| Embeddable conversational business intelligence | **Query Engine** |
-| Search across large knowledge bases; documents, tickets, etc | **Query Engine** |
-| Search and Analyze data across large knowledge bases; documents, tickets, etc | **Anton +  Query Engine** |
-| AI operations assistants for sales, support, finance, and engineering teams | **Anton** |
-| Large scale Enterprise AI systems combining memory, retrieval, reasoning, and execution | **Anton + Query Engine** |
+## USE CASES
+
+
+**For every knowledge worker**
+- **Automate** any repetitive multi-step task that involves reading and writing (reports, monitoring, workflows)
+- **Build** internal AI tools/artifacts without engineering and deploy to your team (apps, decks, docs, analyses)
+
 ---
 
-# DEPLOY ANYWHERE
+## GET STARTED
+
+### Desktop App:
+Simplest way to use this is the latest build App, available on web or desktop:
+
+- **web**: Click [here to register/login](https://mindshub.ai) the Minds-cowork app, packaged and ready for you in one click.
+
+- **macOS**: Click [here to download](https://downloads.mindsdb.com/anton/mac/anton-latest.pkg) the Minds-cowork for MacOS.
+
+- **Windows**: Click [here to download](https://downloads.mindsdb.com/anton/windows/anton-latest.exe) the Minds-cowork for Windows.
+ 
+
+### Build from source:
+**1. Clone the repository**
+```bash
+git clone --recurse-submodules https://github.com/mindsdb/minds-platform.git
+cd minds-platform
+```
+
+**2. Install dependencies**
+```bash
+make setup
+```
+
+**3. Run**
+
+| Mode | Command |
+|---|---|
+| Desktop app (Electron) with hot reload | `make dev` |
+| Web app in browser with hot reload | `make dev-web` |
+| Production build | `make build` |
+| Package for macOS | `make dist-mac` |
+| Package for Windows | `make dist-win` |
+
+---
+
+## DEPLOY ANYWHERE
 
 Minds Platform is designed for flexible deployment across:
 

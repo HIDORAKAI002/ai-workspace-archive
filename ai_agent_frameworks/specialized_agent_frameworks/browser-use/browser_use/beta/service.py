@@ -4844,6 +4844,7 @@ class Agent(Generic[Context, AgentStructuredOutput]):
 		self._unregister_run_signal_handler()
 		await self._stop_eventbus_after_run()
 		await self._close_browser_resources()
+		await self._close_sdk_client_if_not_keep_alive()
 
 	async def _finalize_exceptional_run(self, max_steps: int, agent_run_error: str) -> None:
 		"""Mirror Browser Use run finalization for exceptions that escape Rust execution."""
@@ -6139,17 +6140,48 @@ class Agent(Generic[Context, AgentStructuredOutput]):
 	async def close(self):
 		"""Close Browser Use session resources when the caller did not request keep-alive."""
 		await self._close_browser_resources()
-		if self._sdk_client is not None:
-			await self._sdk_client.close()
-			self._sdk_client = None
+		await self._close_sdk_client_if_not_keep_alive()
 		return None
+
+	def _should_keep_browser_alive(self) -> bool:
+		profile = getattr(self.browser_session, 'browser_profile', None) or self.browser_profile
+		return bool(getattr(profile, 'keep_alive', False))
+
+	async def _close_sdk_browser_resources(self) -> None:
+		"""Close Rust-owned SDK agent/browser resources when this run is not keep-alive."""
+		if self._should_keep_browser_alive() or self._sdk_client is None:
+			return
+		if isinstance(self._sdk_client, RustSdkClient) and self._sdk_client.process is None:
+			return
+		client = self._sdk_client
+		agent_id = self._sdk_agent_id
+		browser_id = self._sdk_browser_id
+		if agent_id:
+			with suppress(Exception):
+				await client.call('agent.close', {'agent_id': agent_id})
+		if browser_id:
+			with suppress(Exception):
+				await client.call('browser.close', {'browser_id': browser_id})
+		self._sdk_agent_id = None
+		self._sdk_browser_id = None
+		self.terminal_session_id = None
+
+	async def _close_sdk_client_if_not_keep_alive(self) -> None:
+		if self._should_keep_browser_alive() or self._sdk_client is None:
+			return
+		try:
+			await self._sdk_client.close()
+		except Exception as exc:
+			self.logger.error(f'Error closing Rust SDK client: {exc}')
+		else:
+			self._sdk_client = None
 
 	async def _close_browser_resources(self):
 		"""Close Browser Use session resources without tearing down the Rust SDK process."""
 		try:
+			await self._close_sdk_browser_resources()
 			if self.browser_session is not None:
-				profile = getattr(self.browser_session, 'browser_profile', None) or self.browser_profile
-				if not getattr(profile, 'keep_alive', False):
+				if not self._should_keep_browser_alive():
 					kill = getattr(self.browser_session, 'kill', None)
 					if callable(kill):
 						result = kill()

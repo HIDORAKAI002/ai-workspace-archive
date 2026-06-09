@@ -1,94 +1,52 @@
-PYTEST_ARGS = -v -xrs --disable-warnings -n 1 --dist loadfile
-PYTEST_ARGS_DEBUG = --runslow -vs -rs
-DSI_PYTEST_ARGS = --run-dsi-tests
-DSI_REPORT_ARGS = --json-report --json-report-file=reports/report.json
-SHELL := /usr/bin/env bash
+FRONTEND := frontend
+API      := backend/core_api
+AGENT    := backend/core_agent
 
-install_mindsdb:
-	pip install -e .
-	pip install -r requirements/requirements-dev.txt
-	pre-commit install
+_NPM_STAMP := $(FRONTEND)/node_modules/.package-lock.json
+_API_STAMP  := $(API)/.venv
+_AGENT_STAMP := $(AGENT)/.venv
 
-install_handler:
-	@if [[ -n "$(HANDLER_NAME)" ]]; then\
-		pip install -e .[$(HANDLER_NAME)];\
-	else\
-		echo 'Please set $$HANDLER_NAME to the handler to install.';\
-	fi
-precommit:
-	pre-commit install
-	pre-commit run --files $$(git diff --cached --name-only)
+.PHONY: setup dev dev-web build dist-mac dist-win docker-build docker-up docker-down
 
-format:
-	pre-commit run --hook-stage manual
+$(_NPM_STAMP): $(FRONTEND)/package-lock.json
+	npm --prefix $(FRONTEND) ci
 
-run_mindsdb:
-	python -m mindsdb
+$(_API_STAMP): $(API)/uv.lock
+	uv sync --directory $(API)
 
-check:
-	python tests/scripts/check_requirements.py
-	python tests/scripts/check_print_statements.py
-	pre-commit install
-	pre-commit run --files $$(git diff --cached --name-only)
+$(_AGENT_STAMP): $(AGENT)/uv.lock
+	uv sync --directory $(AGENT)
 
-build_docker:
-	docker buildx build -t mdb --load -f docker/mindsdb.Dockerfile .
+setup: $(_NPM_STAMP) $(_API_STAMP) $(_AGENT_STAMP)
 
-run_docker: build_docker
-	docker run -it -p 47334:47334 mdb
+dev: $(_NPM_STAMP) $(_API_STAMP) $(_AGENT_STAMP)
+	@trap 'kill 0' SIGINT SIGTERM EXIT; \
+	uv run --directory $(API) uvicorn cowork.server:app --reload \
+		--reload-dir $(CURDIR)/$(API)/cowork \
+		--reload-dir $(CURDIR)/$(AGENT)/anton & \
+	npm --prefix $(FRONTEND) run dev
 
-integration_tests:
-	pytest $(PYTEST_ARGS) tests/integration/ -k "not test_auth"
-	pytest $(PYTEST_ARGS) tests/integration/ -k test_auth  # Run this test separately because it alters the auth requirements, which breaks other tests
+dev-web: $(_NPM_STAMP) $(_API_STAMP) $(_AGENT_STAMP)
+	@trap 'kill 0' SIGINT SIGTERM EXIT; \
+	uv run --directory $(API) uvicorn cowork.server:app --reload \
+		--reload-dir $(CURDIR)/$(API)/cowork \
+		--reload-dir $(CURDIR)/$(AGENT)/anton & \
+	cd $(FRONTEND) && BUILD_TARGET=web npm run dev:renderer -- --open
 
-integration_tests_slow:
-	pytest --runslow $(PYTEST_ARGS) tests/integration/ -k "not test_auth"
-	pytest --runslow $(PYTEST_ARGS) tests/integration/ -k test_auth
+build: $(_NPM_STAMP)
+	npm --prefix $(FRONTEND) run build
 
-integration_tests_debug:
-	pytest $(PYTEST_ARGS_DEBUG) tests/integration/
+dist-mac: $(_NPM_STAMP)
+	npm --prefix $(FRONTEND) run dist:mac
 
-datasource_integration_tests:
-	@echo "--- Running Datasource Integration (DSI) Tests ---"
-	# Ensure the reports directory exists before running tests
-	mkdir -p reports
-	# Added DSI_REPORT_ARGS to generate JSON report
-	pytest $(PYTEST_ARGS) $(DSI_PYTEST_ARGS) $(DSI_REPORT_ARGS) tests/integration/handlers/
+dist-win: $(_NPM_STAMP)
+	npm --prefix $(FRONTEND) run dist:win
 
-datasource_integration_tests_debug:
-	@echo "--- Running Datasource Integration (DSI) Tests (Debug) ---"
-	mkdir -p reports
-	pytest $(PYTEST_ARGS_DEBUG) $(DSI_PYTEST_ARGS) $(DSI_REPORT_ARGS) tests/integration/handlers/
+docker-build:
+	docker compose build
 
-unit_tests:
-	# We have to run executor tests separately because they do weird things that break everything else
-	env PYTHONPATH=./ pytest $(PYTEST_ARGS) tests/unit/executor/
-	@set -o pipefail; \
-	mkdir -p reports; \
-	COVERAGE_FILE=.coverage.unit PYTHONPATH=./ pytest $(PYTEST_ARGS) --ignore=tests/unit/executor tests/unit/ \
-		--junitxml=pytest.xml \
-		--cov=mindsdb \
-		--cov-report=term \
-		--cov-report=xml:coverage.xml \
-		--cov-branch | tee pytest-coverage.txt
+docker-up:
+	docker compose up
 
-unit_tests_slow:
-	env PYTHONPATH=./ pytest --runslow $(PYTEST_ARGS) tests/unit/executor/  # We have to run executor tests separately because they do weird things that break everything else
-	@set -o pipefail; \
-	mkdir -p reports; \
-	COVERAGE_FILE=.coverage.unit PYTHONPATH=./ pytest --runslow $(PYTEST_ARGS) --ignore=tests/unit/executor tests/unit/ \
-		--junitxml=pytest.xml \
-		--cov=mindsdb \
-		--cov-report=term \
-		--cov-report=xml:coverage.xml \
-		--cov-branch | tee pytest-coverage.txt
-
-unit_tests_debug:
-	env PYTHONPATH=./ pytest $(PYTEST_ARGS_DEBUG) tests/unit/executor/
-	pytest $(PYTEST_ARGS_DEBUG) --ignore=tests/unit/executor tests/unit/
-
-.PHONY: tests-artifacts
-tests-artifacts:
-	./scripts/test-artifacts.sh
-
-.PHONY: install_mindsdb install_handler precommit format run_mindsdb check build_docker run_docker integration_tests integration_tests_slow integration_tests_debug datasource_integration_tests datasource_integration_tests_debug unit_tests unit_tests_slow unit_tests_debug
+docker-down:
+	docker compose down

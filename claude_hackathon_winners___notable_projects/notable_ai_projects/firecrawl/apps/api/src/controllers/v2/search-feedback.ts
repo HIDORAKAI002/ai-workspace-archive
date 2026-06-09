@@ -11,6 +11,7 @@ import { and, eq, gte } from "drizzle-orm";
 import { db, dbRr } from "../../db/connection";
 import * as schema from "../../db/schema";
 import { captureExceptionWithZdrCheck } from "../../services/sentry";
+import { getScrapeZDR, getSearchZDR } from "../../lib/zdr-helpers";
 import {
   RequestWithAuth,
   SearchFeedbackErrorCode,
@@ -153,6 +154,25 @@ export async function searchFeedbackController(
       });
     }
     throw error;
+  }
+
+  // ZDR teams must not have any feedback persisted. Short-circuit with a
+  // success-shaped response so clients behave normally, but record nothing
+  // and refund nothing.
+  const searchZDR = getSearchZDR(req.acuc?.flags);
+  const isZDR =
+    getScrapeZDR(req.acuc?.flags) !== "disabled" ||
+    searchZDR === "allowed" ||
+    searchZDR === "forced-zdr" ||
+    searchZDR === "forced-anon";
+  if (isZDR) {
+    return res.status(200).json({
+      success: true,
+      feedbackId: "00000000-0000-0000-0000-000000000000",
+      creditsRefunded: 0,
+      creditsRefundedToday: 0,
+      dailyRefundCap: config.SEARCH_FEEDBACK_DAILY_CAP_CREDITS,
+    });
   }
 
   if (config.USE_DB_AUTHENTICATION !== true) {

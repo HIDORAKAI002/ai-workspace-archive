@@ -14,6 +14,7 @@ import type {
   GetEntityParams,
   GetOrCreateCustomerParams,
   LockCreditsParams,
+  LockCreditsResult,
   TrackCreditsParams,
   TrackParams,
 } from "./types";
@@ -397,8 +398,7 @@ export class AutumnService {
   }
 
   /**
-   * Reserves a team's credits in Autumn without letting Autumn gate usage.
-   * Returns the lock ID on success, or null if no lock was acquired.
+   * Attempts to reserve a team's credits in Autumn. See {@link LockCreditsResult}.
    */
   async lockCredits({
     teamId,
@@ -407,9 +407,9 @@ export class AutumnService {
     expiresAt,
     properties,
     featureId = CREDITS_FEATURE_ID,
-  }: LockCreditsParams): Promise<string | null> {
+  }: LockCreditsParams): Promise<LockCreditsResult> {
     if (!autumnClient || this.isPreviewTeam(teamId)) {
-      return null;
+      return { status: "skipped" };
     }
     const resolvedLockId = lockId ?? `billing_${randomUUID()}`;
 
@@ -434,7 +434,7 @@ export class AutumnService {
           value,
           lockId: resolvedLockId,
         });
-        return null;
+        return { status: "denied" };
       }
 
       logger.info("Autumn lockCredits succeeded", {
@@ -445,7 +445,7 @@ export class AutumnService {
         lockId: resolvedLockId,
         properties,
       });
-      return resolvedLockId;
+      return { status: "locked", lockId: resolvedLockId };
     } catch (error) {
       logger.error(
         "Autumn lockCredits failed — billing API may be unavailable, falling back",
@@ -456,7 +456,7 @@ export class AutumnService {
           error,
         },
       );
-      return null;
+      return { status: "skipped" };
     }
   }
 
