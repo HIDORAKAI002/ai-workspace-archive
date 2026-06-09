@@ -2,7 +2,6 @@ import { NuQJob } from "../worker/nuq";
 import { ScrapeJobData } from "../../types";
 import { logger as _logger } from "../../lib/logger";
 import { createWebhookSender, WebhookEvent } from "../webhook";
-import { billTeam } from "../billing/credit_billing";
 import { computeAndPersistPageDiff } from "./diff-orchestrator";
 import { derivePageIsMeaningful } from "./page-events";
 import {
@@ -12,8 +11,6 @@ import {
   insertMonitorCheckPages,
   upsertMonitorPage,
 } from "./store";
-
-const JUDGE_CREDIT_COST = 1;
 
 const logger = _logger.child({ module: "monitoring-results" });
 
@@ -175,6 +172,10 @@ export async function recordMonitorScrapeSuccess(
     metadata: {
       title: doc?.metadata?.title ?? null,
       statusCode: getDocumentStatusCode(doc),
+      contentType: doc?.metadata?.contentType ?? null,
+      numPages: doc?.metadata?.numPages ?? null,
+      proxyUsed: doc?.metadata?.proxyUsed ?? null,
+      postprocessorsUsed: doc?.metadata?.postprocessorsUsed ?? null,
       creditsUsed: doc?.metadata?.creditsUsed ?? null,
     },
   });
@@ -197,6 +198,10 @@ export async function recordMonitorScrapeSuccess(
       ...(error ? { error } : {}),
       metadata: {
         title: doc?.metadata?.title ?? null,
+        contentType: doc?.metadata?.contentType ?? null,
+        numPages: doc?.metadata?.numPages ?? null,
+        proxyUsed: doc?.metadata?.proxyUsed ?? null,
+        postprocessorsUsed: doc?.metadata?.postprocessorsUsed ?? null,
         creditsUsed: doc?.metadata?.creditsUsed ?? null,
       },
       judgment: judgment ?? null,
@@ -215,25 +220,6 @@ export async function recordMonitorScrapeSuccess(
     judgmentMeaningful: judgment?.meaningful,
   });
 
-  if (judgment) {
-    try {
-      await billTeam(
-        job.data.team_id,
-        undefined,
-        JUDGE_CREDIT_COST,
-        job.data.apiKeyId ?? null,
-        { endpoint: "monitor", jobId: monitoring.checkId },
-        logger,
-      );
-    } catch (error) {
-      logger.warn("Failed to bill judge credit", {
-        error,
-        monitorId: monitoring.monitorId,
-        checkId: monitoring.checkId,
-      });
-    }
-  }
-
   await sendMonitorPageWebhook({
     teamId: job.data.team_id,
     monitorId: monitoring.monitorId,
@@ -251,6 +237,7 @@ export async function recordMonitorScrapeSuccess(
 export async function recordMonitorScrapeFailure(
   job: NuQJob<ScrapeJobData>,
   error: unknown,
+  creditsUsed?: number | null,
 ): Promise<void> {
   const monitoring = job.data.monitoring;
   if (!monitoring || job.data.mode !== "single_urls") return;
@@ -266,6 +253,9 @@ export async function recordMonitorScrapeFailure(
       status: "error",
       current_scrape_id: job.id,
       error: error instanceof Error ? error.message : String(error),
+      metadata: {
+        creditsUsed: creditsUsed ?? null,
+      },
     },
   ]);
 

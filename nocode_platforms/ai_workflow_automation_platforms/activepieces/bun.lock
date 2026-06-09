@@ -1215,6 +1215,16 @@
         "tslib": "^2.3.0",
       },
     },
+    "packages/pieces/community/bocha-search": {
+      "name": "@activepieces/piece-bocha-search",
+      "version": "0.0.1",
+      "dependencies": {
+        "@activepieces/pieces-common": "workspace:*",
+        "@activepieces/pieces-framework": "workspace:*",
+        "@activepieces/shared": "workspace:*",
+        "tslib": "2.6.2",
+      },
+    },
     "packages/pieces/community/bokio": {
       "name": "@activepieces/piece-bokio",
       "version": "0.0.5",
@@ -1412,6 +1422,16 @@
     "packages/pieces/community/canny": {
       "name": "@activepieces/piece-canny",
       "version": "0.1.3",
+      "dependencies": {
+        "@activepieces/pieces-common": "workspace:*",
+        "@activepieces/pieces-framework": "workspace:*",
+        "@activepieces/shared": "workspace:*",
+        "tslib": "2.6.2",
+      },
+    },
+    "packages/pieces/community/canva": {
+      "name": "@activepieces/piece-canva",
+      "version": "0.0.1",
       "dependencies": {
         "@activepieces/pieces-common": "workspace:*",
         "@activepieces/pieces-framework": "workspace:*",
@@ -2120,7 +2140,7 @@
     },
     "packages/pieces/community/deepgram": {
       "name": "@activepieces/piece-deepgram",
-      "version": "0.1.4",
+      "version": "0.1.5",
       "dependencies": {
         "@activepieces/pieces-common": "workspace:*",
         "@activepieces/pieces-framework": "workspace:*",
@@ -3196,7 +3216,7 @@
     },
     "packages/pieces/community/google-gemini": {
       "name": "@activepieces/piece-google-gemini",
-      "version": "0.1.8",
+      "version": "0.1.9",
       "dependencies": {
         "@activepieces/pieces-common": "workspace:*",
         "@activepieces/pieces-framework": "workspace:*",
@@ -9059,6 +9079,8 @@
 
     "@activepieces/piece-bluesky": ["@activepieces/piece-bluesky@workspace:packages/pieces/community/bluesky"],
 
+    "@activepieces/piece-bocha-search": ["@activepieces/piece-bocha-search@workspace:packages/pieces/community/bocha-search"],
+
     "@activepieces/piece-bokio": ["@activepieces/piece-bokio@workspace:packages/pieces/community/bokio"],
 
     "@activepieces/piece-bolna": ["@activepieces/piece-bolna@workspace:packages/pieces/community/bolna"],
@@ -9096,6 +9118,8 @@
     "@activepieces/piece-campaign-monitor": ["@activepieces/piece-campaign-monitor@workspace:packages/pieces/community/campaign-monitor"],
 
     "@activepieces/piece-canny": ["@activepieces/piece-canny@workspace:packages/pieces/community/canny"],
+
+    "@activepieces/piece-canva": ["@activepieces/piece-canva@workspace:packages/pieces/community/canva"],
 
     "@activepieces/piece-capsule-crm": ["@activepieces/piece-capsule-crm@workspace:packages/pieces/community/capsule-crm"],
 

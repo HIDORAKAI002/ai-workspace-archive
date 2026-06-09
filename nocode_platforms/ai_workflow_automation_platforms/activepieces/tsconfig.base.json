@@ -164,6 +164,9 @@
       "@activepieces/piece-bettermode": [
         "packages/pieces/community/bettermode/src/index.ts"
       ],
+      "@activepieces/piece-bocha-search": [
+        "packages/pieces/community/bocha-search/src/index.ts"
+      ],
       "@activepieces/piece-bigcommerce": [
         "packages/pieces/community/bigcommerce/src/index.ts"
       ],
@@ -221,6 +224,9 @@
       ],
       "@activepieces/piece-campaign-monitor": [
         "packages/pieces/community/campaign-monitor/src/index.ts"
+      ],
+      "@activepieces/piece-canva": [
+        "packages/pieces/community/canva/src/index.ts"
       ],
       "@activepieces/piece-capsule-crm": [
         "packages/pieces/community/capsule-crm/src/index.ts"

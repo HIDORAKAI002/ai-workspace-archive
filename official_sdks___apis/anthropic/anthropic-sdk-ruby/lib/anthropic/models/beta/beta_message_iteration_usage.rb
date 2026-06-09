@@ -28,6 +28,15 @@ module Anthropic
         #   @return [Integer]
         required :input_tokens, Integer
 
+        # @!attribute model
+        #   The model that will complete your prompt.
+        #
+        #   See [models](https://docs.anthropic.com/en/docs/models-overview) for additional
+        #   details and options.
+        #
+        #   @return [Symbol, String, Anthropic::Models::Model]
+        required :model, union: -> { Anthropic::Model }
+
         # @!attribute output_tokens
         #   The number of output tokens which were used.
         #
@@ -40,7 +49,10 @@ module Anthropic
         #   @return [Symbol, :message]
         required :type, const: :message
 
-        # @!method initialize(cache_creation:, cache_creation_input_tokens:, cache_read_input_tokens:, input_tokens:, output_tokens:, type: :message)
+        # @!method initialize(cache_creation:, cache_creation_input_tokens:, cache_read_input_tokens:, input_tokens:, model:, output_tokens:, type: :message)
+        #   Some parameter documentations has been truncated, see
+        #   {Anthropic::Models::Beta::BetaMessageIterationUsage} for more details.
+        #
         #   Token usage for a sampling iteration.
         #
         #   @param cache_creation [Anthropic::Models::Beta::BetaCacheCreation, nil] Breakdown of cached tokens by TTL
@@ -50,6 +62,8 @@ module Anthropic
         #   @param cache_read_input_tokens [Integer] The number of input tokens read from the cache.
         #
         #   @param input_tokens [Integer] The number of input tokens which were used.
+        #
+        #   @param model [Symbol, String, Anthropic::Models::Model] The model that will complete your prompt.
         #
         #   @param output_tokens [Integer] The number of output tokens which were used.
         #

@@ -2,9 +2,23 @@ jest.mock("uuid", () => ({
   v7: () => "test-uuid-v7",
 }));
 
-import { isMonitorCheckStale, MONITOR_CHECK_STALE_TIMEOUT_MS } from "./runner";
+import {
+  estimateActualCredits,
+  isMonitorCheckStale,
+  MONITOR_CHECK_STALE_TIMEOUT_MS,
+} from "./runner";
 
 describe("monitoring runner", () => {
+  describe("estimateActualCredits", () => {
+    it("prefers scrape-reported credits when present", () => {
+      expect(estimateActualCredits({ metadata: { creditsUsed: 9 } })).toBe(9);
+    });
+
+    it("falls back to one credit when scrape metadata is missing credits", () => {
+      expect(estimateActualCredits({ metadata: { numPages: 4 } })).toBe(1);
+    });
+  });
+
   describe("isMonitorCheckStale", () => {
     const now = new Date("2026-05-06T12:00:00.000Z");
 
