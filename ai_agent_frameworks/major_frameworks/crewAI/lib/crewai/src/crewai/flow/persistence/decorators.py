@@ -35,7 +35,7 @@ from crewai_core.printer import PRINTER
 from pydantic import BaseModel
 
 from crewai.flow.persistence.base import FlowPersistence
-from crewai.flow.persistence.sqlite import SQLiteFlowPersistence
+from crewai.flow.persistence.factory import default_flow_persistence
 
 
 if TYPE_CHECKING:
@@ -67,7 +67,6 @@ def _stamp_persistence_metadata(
 
 
 _PRESERVED_FLOW_ATTRS: Final[tuple[str, ...]] = (
-    "__is_start_method__",
     "__trigger_methods__",
     "__condition_type__",
     "__trigger_condition__",
@@ -172,7 +171,9 @@ def persist(
 
     Args:
         persistence: Optional FlowPersistence implementation to use.
-                    If not provided, uses SQLiteFlowPersistence.
+                    If not provided, uses ``default_flow_persistence()`` (the
+                    registered factory when present, else the built-in SQLite
+                    fallback).
         verbose: Whether to log persistence operations. Defaults to False.
 
     Returns:
@@ -191,7 +192,9 @@ def persist(
     """
 
     def decorator(target: type | Callable[..., T]) -> type | Callable[..., T]:
-        actual_persistence = persistence or SQLiteFlowPersistence()
+        actual_persistence = (
+            persistence if persistence is not None else default_flow_persistence()
+        )
 
         if isinstance(target, type):
             _stamp_persistence_metadata(target, actual_persistence, verbose)
@@ -211,11 +214,11 @@ def persist(
                 for name, method in target.__dict__.items()
                 if callable(method)
                 and (
-                    hasattr(method, "__is_start_method__")
-                    or hasattr(method, "__trigger_methods__")
+                    hasattr(method, "__trigger_methods__")
                     or hasattr(method, "__condition_type__")
                     or hasattr(method, "__is_flow_method__")
                     or hasattr(method, "__is_router__")
+                    or hasattr(method, "__flow_method_definition__")
                 )
             }
 
