@@ -29,6 +29,7 @@ import {
 import { createWebhookSender, WebhookEvent } from "../webhook";
 import { sendMonitoringEmailSummary } from "../notification/monitoring_email";
 import {
+  calculateMonitorCheckActualCredits,
   getMonitorCheck,
   getMonitorForUpdate,
   getMonitorPage,
@@ -215,9 +216,11 @@ function getDocumentStatusCode(doc: any): number | null {
     : null;
 }
 
-function estimateActualCredits(doc: any, options: any): number {
-  if (typeof doc?.metadata?.creditsUsed === "number") {
-    return doc.metadata.creditsUsed;
+export function estimateActualCredits(doc: any, options?: any): number {
+  // Prefer the credits the scrape path actually recorded when present.
+  const creditsUsed = doc?.metadata?.creditsUsed;
+  if (typeof creditsUsed === "number" && Number.isFinite(creditsUsed)) {
+    return creditsUsed;
   }
   const formats = Array.isArray(options?.formats) ? options.formats : [];
   // Only charge the JSON-extraction premium when extraction actually produced a
@@ -257,6 +260,12 @@ async function runSingleScrape(params: {
     api_key_id: null,
   });
 
+  const internalOptions = {
+    teamId: params.monitor.team_id,
+    saveScrapeResultToGCS: !!config.GCS_FIRE_ENGINE_BUCKET_NAME,
+    bypassBilling: true,
+    zeroDataRetention: false,
+  };
   const job: NuQJob<ScrapeJobData> = {
     id: scrapeId,
     status: "active",
@@ -267,12 +276,7 @@ async function runSingleScrape(params: {
       url: params.url,
       team_id: params.monitor.team_id,
       scrapeOptions,
-      internalOptions: {
-        teamId: params.monitor.team_id,
-        saveScrapeResultToGCS: !!config.GCS_FIRE_ENGINE_BUCKET_NAME,
-        bypassBilling: true,
-        zeroDataRetention: false,
-      },
+      internalOptions,
       skipNuq: true,
       origin: "monitor",
       integration: null,
@@ -287,7 +291,7 @@ async function runSingleScrape(params: {
   return {
     scrapeId,
     doc,
-    credits: estimateActualCredits(doc, scrapeOptions),
+    credits: estimateActualCredits(doc, params.target.scrapeOptions),
   };
 }
 
@@ -299,6 +303,7 @@ async function diffAndPersistPage(params: {
   scrapeId: string;
   doc: any;
   source: "explicit" | "discovered";
+  creditsUsed?: number;
 }): Promise<PageResult> {
   const previous = await getMonitorPage({
     monitorId: params.monitor.id,
@@ -342,6 +347,11 @@ async function diffAndPersistPage(params: {
     metadata: {
       title: params.doc?.metadata?.title ?? null,
       statusCode: getDocumentStatusCode(params.doc),
+      contentType: params.doc?.metadata?.contentType ?? null,
+      numPages: params.doc?.metadata?.numPages ?? null,
+      proxyUsed: params.doc?.metadata?.proxyUsed ?? null,
+      postprocessorsUsed: params.doc?.metadata?.postprocessorsUsed ?? null,
+      creditsUsed: params.creditsUsed ?? null,
     },
   });
 
@@ -362,6 +372,11 @@ async function diffAndPersistPage(params: {
     ...(error ? { error } : {}),
     metadata: {
       title: params.doc?.metadata?.title ?? null,
+      contentType: params.doc?.metadata?.contentType ?? null,
+      numPages: params.doc?.metadata?.numPages ?? null,
+      proxyUsed: params.doc?.metadata?.proxyUsed ?? null,
+      postprocessorsUsed: params.doc?.metadata?.postprocessorsUsed ?? null,
+      creditsUsed: params.creditsUsed ?? null,
     },
     judgment,
     emailStatus: status,
@@ -398,6 +413,7 @@ async function runScrapeTarget(params: {
           scrapeId: result.scrapeId,
           doc: result.doc,
           source: "explicit",
+          creditsUsed: result.credits,
         }),
       );
     } catch (error) {
@@ -544,7 +560,8 @@ async function runCrawlTarget(params: {
     if (!doc) continue;
     const url = getDocumentUrl(doc, (job.data as any)?.url ?? body.url);
     seen.add(hashMonitorUrl(url).toString("hex"));
-    credits += estimateActualCredits(doc, body.scrapeOptions);
+    const pageCredits = estimateActualCredits(doc, body.scrapeOptions);
+    credits += pageCredits;
     pages.push(
       await diffAndPersistPage({
         monitor: params.monitor,
@@ -554,6 +571,7 @@ async function runCrawlTarget(params: {
         scrapeId: job.id,
         doc,
         source: "discovered",
+        creditsUsed: pageCredits,
       }),
     );
   }
@@ -1362,7 +1380,10 @@ export async function reconcileRunningMonitorChecks(
         countMonitorCheckPages({ checkId: check.id, status: "error" }),
       ]);
       const totalPages = same + changed + newCount + removed + errorCount;
-      const actualCredits = totalPages;
+      const actualCredits = await calculateMonitorCheckActualCredits({
+        checkId: check.id,
+        targets: monitor.targets,
+      });
 
       let finalized = await updateMonitorCheck(check.id, {
         status: errorCount > 0 ? "partial" : "completed",

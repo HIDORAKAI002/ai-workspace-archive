@@ -3,8 +3,8 @@ import { v7 as uuidv7 } from "uuid";
 import { and, asc, count, desc, eq, isNull, ne } from "drizzle-orm";
 import { db, dbRr } from "../../db/connection";
 import * as schema from "../../db/schema";
-import { includesFormat } from "../../lib/format-utils";
 import { monitoringClaimDueMonitors } from "../../db/rpc";
+import { shouldParsePDF } from "../../controllers/v2/types";
 import {
   getNextMonitorRunAt,
   estimateRunsPerMonth,
@@ -32,48 +32,248 @@ function ensureTargetIds(targets: Array<Record<string, any>>): MonitorTarget[] {
   })) as MonitorTarget[];
 }
 
-// Per-page credit cost for a target's extraction mode. Mirrors
-// estimateActualCredits in runner.ts so the reserved/estimated credits match
-// what a check actually bills: deterministic JSON = 7, other JSON (plain or
-// changeTracking-json) = 5, otherwise the base scrape = 1.
-function perPageCredits(target: MonitorTarget): number {
-  const formats = Array.isArray(target.scrapeOptions?.formats)
-    ? (target.scrapeOptions!.formats as any[])
-    : [];
-  if (includesFormat(formats, "deterministicJson")) return 7;
-  const hasJson =
-    includesFormat(formats, "json") ||
-    formats.some(
-      format =>
-        format?.type === "changeTracking" &&
-        Array.isArray(format?.modes) &&
-        format.modes.includes("json"),
-    );
-  return hasJson ? 5 : 1;
+const BASE_SCRAPE_CREDITS_PER_PAGE = 1;
+const JSON_SCRAPE_CREDITS_PER_PAGE = 5;
+const DETERMINISTIC_JSON_SCRAPE_CREDITS_PER_PAGE = 7;
+const SCRAPE_OPTION_CREDIT_BONUS = 4;
+const JUDGE_CREDITS_PER_PAGE = 1;
+const REMOVED_PAGE_CREDITS = 0;
+const X_TWITTER_POSTPROCESSOR_CREDIT_BONUS = 29;
+const DEFAULT_CRAWL_LIMIT_FOR_ESTIMATE = 10000;
+const MONITOR_CHECK_PAGE_BATCH_SIZE = 1000;
+
+type MonitorCreditMetadata = {
+  creditsUsed?: unknown;
+  numPages?: unknown;
+  proxyUsed?: unknown;
+  postprocessorsUsed?: unknown;
+};
+
+function formatType(format: unknown): string | null {
+  if (typeof format === "string") return format;
+  if (
+    format &&
+    typeof format === "object" &&
+    "type" in format &&
+    typeof format.type === "string"
+  ) {
+    return format.type;
+  }
+  return null;
 }
 
-function estimateTargetCredits(target: MonitorTarget): number {
-  const perPage = perPageCredits(target);
+function hasFormatOfType(formats: unknown, type: string): boolean {
+  return (
+    Array.isArray(formats) &&
+    formats.some(format => formatType(format) === type)
+  );
+}
+
+function hasAnyFormatOfType(formats: unknown, types: string[]): boolean {
+  return types.some(type => hasFormatOfType(formats, type));
+}
+
+function requestsJsonChangeTracking(formats: unknown): boolean {
+  if (!Array.isArray(formats)) return false;
+  return formats.some(format => {
+    if (
+      !format ||
+      typeof format !== "object" ||
+      !("type" in format) ||
+      format.type !== "changeTracking"
+    ) {
+      return false;
+    }
+    const modes = "modes" in format ? format.modes : undefined;
+    return Array.isArray(modes) && modes.includes("json");
+  });
+}
+
+function estimateBaseCreditsPerPage(
+  options: MonitorTarget["scrapeOptions"],
+  params: { includeProxy?: boolean } = {},
+): number {
+  const formats = options?.formats;
+  const includeProxy = params.includeProxy ?? true;
+  const usesDeterministicJson = hasFormatOfType(formats, "deterministicJson");
+  const usesJsonCredits =
+    hasFormatOfType(formats, "json") || requestsJsonChangeTracking(formats);
+  let credits = BASE_SCRAPE_CREDITS_PER_PAGE;
+
+  if (options?.lockdown) {
+    credits += SCRAPE_OPTION_CREDIT_BONUS;
+  }
+
+  // Deterministic JSON generates a reusable extractor and costs more than plain
+  // JSON; both override the base scrape credit (mirrors estimateActualCredits).
+  if (usesDeterministicJson) {
+    credits = DETERMINISTIC_JSON_SCRAPE_CREDITS_PER_PAGE;
+  } else if (usesJsonCredits) {
+    credits = JSON_SCRAPE_CREDITS_PER_PAGE;
+  }
+
+  if (hasAnyFormatOfType(formats, ["question", "query"])) {
+    credits += SCRAPE_OPTION_CREDIT_BONUS;
+  }
+
+  if (hasFormatOfType(formats, "highlights")) {
+    credits += SCRAPE_OPTION_CREDIT_BONUS;
+  }
+
+  if (hasFormatOfType(formats, "audio")) {
+    credits += SCRAPE_OPTION_CREDIT_BONUS;
+  }
+
+  if (hasFormatOfType(formats, "video")) {
+    credits += SCRAPE_OPTION_CREDIT_BONUS;
+  }
+
+  if (
+    includeProxy &&
+    (options?.proxy === "stealth" || options?.proxy === "enhanced")
+  ) {
+    credits += SCRAPE_OPTION_CREDIT_BONUS;
+  }
+
+  return credits;
+}
+
+function estimateTargetBaseCredits(target: MonitorTarget): number {
+  const creditsPerPage = estimateBaseCreditsPerPage(target.scrapeOptions);
   if (target.type === "scrape") {
-    return target.urls.length * perPage;
+    return target.urls.length * creditsPerPage;
   }
 
   const limit =
     typeof target.crawlOptions?.limit === "number"
       ? target.crawlOptions.limit
-      : 10000;
-  return Math.max(1, limit) * perPage;
+      : DEFAULT_CRAWL_LIMIT_FOR_ESTIMATE;
+  return Math.max(1, limit) * creditsPerPage;
+}
+
+function estimateTargetPageCount(target: MonitorTarget): number {
+  if (target.type === "scrape") {
+    return target.urls.length;
+  }
+
+  const limit =
+    typeof target.crawlOptions?.limit === "number"
+      ? target.crawlOptions.limit
+      : DEFAULT_CRAWL_LIMIT_FOR_ESTIMATE;
+  return Math.max(1, limit);
 }
 
 export function estimateMonitorCreditsPerRun(
   targets: MonitorTarget[],
   judgeEnabled: boolean = false,
 ): number {
-  const scrapeCredits = targets.reduce(
-    (sum, target) => sum + estimateTargetCredits(target),
+  const baseCredits = targets.reduce(
+    (sum, target) => sum + estimateTargetBaseCredits(target),
     0,
   );
-  return judgeEnabled ? scrapeCredits * 2 : scrapeCredits;
+  const judgeCredits = judgeEnabled
+    ? targets.reduce(
+        (sum, target) =>
+          sum + estimateTargetPageCount(target) * JUDGE_CREDITS_PER_PAGE,
+        0,
+      )
+    : 0;
+  return baseCredits + judgeCredits;
+}
+
+export function calculateMonitorCheckActualCreditsFromPages(
+  pages: Array<{
+    target_id?: string | null;
+    metadata?: unknown;
+    judgment?: unknown;
+    status?: string;
+  }>,
+  targets: MonitorTarget[] = [],
+): number {
+  const baseCreditsByTarget = new Map(
+    targets.map(target => [
+      target.id,
+      estimateBaseCreditsPerPage(target.scrapeOptions, {
+        includeProxy: false,
+      }),
+    ]),
+  );
+  const targetsById = new Map(targets.map(target => [target.id, target]));
+
+  function fallbackBaseCreditsForPage(page: (typeof pages)[number]): number {
+    if (page.status === "removed") {
+      return REMOVED_PAGE_CREDITS;
+    }
+
+    if (page.status === "error") {
+      return BASE_SCRAPE_CREDITS_PER_PAGE;
+    }
+
+    const metadata = page.metadata as MonitorCreditMetadata | null;
+    const target = targetsById.get(page.target_id ?? "");
+    let credits =
+      baseCreditsByTarget.get(page.target_id ?? "") ??
+      BASE_SCRAPE_CREDITS_PER_PAGE;
+
+    // Monitor-specific fallback only: new rows should prefer metadata.creditsUsed
+    // when the scrape path provides it. If it is missing, use retained monitor
+    // metadata to avoid obvious undercounts for PDFs and special postprocessors.
+    if (
+      target &&
+      shouldParsePDF(target.scrapeOptions?.parsers as any) &&
+      typeof metadata?.numPages === "number" &&
+      metadata.numPages > 1
+    ) {
+      credits += metadata.numPages - 1;
+    }
+
+    const requestedPremiumProxy =
+      target?.scrapeOptions?.proxy === "stealth" ||
+      target?.scrapeOptions?.proxy === "enhanced";
+    const usedPremiumProxy =
+      metadata?.proxyUsed === "stealth" || metadata?.proxyUsed === "enhanced";
+    if (
+      usedPremiumProxy ||
+      (metadata?.proxyUsed == null && requestedPremiumProxy)
+    ) {
+      credits += SCRAPE_OPTION_CREDIT_BONUS;
+    }
+
+    if (
+      Array.isArray(metadata?.postprocessorsUsed) &&
+      metadata.postprocessorsUsed.includes("x-twitter")
+    ) {
+      credits += X_TWITTER_POSTPROCESSOR_CREDIT_BONUS;
+    }
+
+    return credits;
+  }
+
+  function judgeCreditsForPage(page: (typeof pages)[number]): number {
+    if (page.judgment == null) {
+      return 0;
+    }
+
+    // A persisted judgment means the judge ran for this page. Charge for that
+    // invocation whether the verdict was meaningful or not.
+    return JUDGE_CREDITS_PER_PAGE;
+  }
+
+  return pages.reduce((total, page) => {
+    const metadata = page.metadata as MonitorCreditMetadata | null;
+    const recordedCredits = metadata?.creditsUsed;
+    let baseCredits = fallbackBaseCreditsForPage(page);
+
+    if (
+      typeof recordedCredits === "number" &&
+      Number.isFinite(recordedCredits)
+    ) {
+      baseCredits = recordedCredits;
+    }
+
+    const judgeCredits = judgeCreditsForPage(page);
+    return total + baseCredits + judgeCredits;
+  }, 0);
 }
 
 function toMonitorSummary(check: MonitorCheckRow): MonitorSummary {
@@ -642,6 +842,40 @@ export async function countMonitorCheckPages(params: {
   );
 
   return row?.value ?? 0;
+}
+
+export async function calculateMonitorCheckActualCredits(params: {
+  checkId: string;
+  targets: MonitorTarget[];
+}): Promise<number> {
+  let total = 0;
+  let offset = 0;
+
+  while (true) {
+    const batch = await run(
+      () =>
+        dbRr
+          .select({
+            target_id: schema.monitor_check_pages.target_id,
+            metadata: schema.monitor_check_pages.metadata,
+            judgment: schema.monitor_check_pages.judgment,
+            status: schema.monitor_check_pages.status,
+          })
+          .from(schema.monitor_check_pages)
+          .where(eq(schema.monitor_check_pages.check_id, params.checkId))
+          .orderBy(asc(schema.monitor_check_pages.id))
+          .limit(MONITOR_CHECK_PAGE_BATCH_SIZE)
+          .offset(offset),
+      "Failed to calculate monitor check credits",
+    );
+
+    total += calculateMonitorCheckActualCreditsFromPages(batch, params.targets);
+
+    if (batch.length < MONITOR_CHECK_PAGE_BATCH_SIZE) break;
+    offset += MONITOR_CHECK_PAGE_BATCH_SIZE;
+  }
+
+  return total;
 }
 
 export async function getMonitorPage(params: {
