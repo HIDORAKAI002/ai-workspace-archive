@@ -65,11 +65,14 @@ export { isMonitorCheckStale, MONITOR_CHECK_STALE_TIMEOUT_MS };
 
 const MONITOR_NOTIFY_CLAIM_TTL_SECONDS = 7 * 24 * 60 * 60;
 const MONITOR_CHECK_PAGE_SCAN_LIMIT = 100_000;
+const MONITOR_CHECK_NO_CREDITS_ERROR =
+  "Monitor check skipped: insufficient credits.";
 const TERMINAL_CHECK_STATUSES = new Set([
   "completed",
   "partial",
   "failed",
   "skipped_overlap",
+  "skipped_no_credits",
 ]);
 
 async function claimMonitorNotification(checkId: string): Promise<boolean> {
@@ -943,7 +946,7 @@ export async function processMonitorCheckJob(
 
   let lockId: string | null = null;
   try {
-    lockId = await autumnService.lockCredits({
+    const lock = await autumnService.lockCredits({
       teamId: monitor.team_id,
       value: check.estimated_credits ?? 1,
       lockId: `monitor_${check.id}`,
@@ -954,6 +957,27 @@ export async function processMonitorCheckJob(
         jobId: check.id,
       },
     });
+
+    if (lock.status === "denied") {
+      check = await updateMonitorCheck(check.id, {
+        status: "skipped_no_credits",
+        finished_at: new Date().toISOString(),
+        actual_credits: 0,
+        billing_status: "not_applicable",
+        error: MONITOR_CHECK_NO_CREDITS_ERROR,
+      });
+
+      await updateMonitorScheduleAfterRun({ monitor, check });
+
+      logger.info("Skipped monitor check: insufficient credits", {
+        monitorId: monitor.id,
+        checkId: check.id,
+        teamId: monitor.team_id,
+      });
+      return;
+    }
+
+    lockId = lock.status === "locked" ? lock.lockId : null;
 
     check = await updateMonitorCheck(check.id, {
       autumn_lock_id: lockId,

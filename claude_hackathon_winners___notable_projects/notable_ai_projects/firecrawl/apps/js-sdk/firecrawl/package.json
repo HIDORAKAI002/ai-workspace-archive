@@ -1,6 +1,6 @@
 {
   "name": "@mendable/firecrawl-js",
-  "version": "4.25.2",
+  "version": "4.25.3",
   "description": "JavaScript SDK for Firecrawl API",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -48,7 +48,7 @@
     "ts-jest": "^29.4.5",
     "tsup": "^8.5.0",
     "typescript": "^5.4.5",
-    "uuid": "^9.0.1"
+    "uuid": "^14.0.0"
   },
   "keywords": [
     "firecrawl",

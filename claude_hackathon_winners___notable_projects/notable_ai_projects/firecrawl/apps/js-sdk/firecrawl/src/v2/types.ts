@@ -1155,3 +1155,161 @@ export interface BrowserListResponse {
   sessions?: BrowserSession[];
   error?: string;
 }
+
+// ---------- Research (v2) ----------
+
+/**
+ * Source identifiers grouped by namespace. Currently only `arxiv` is
+ * populated; each value is an array of ids in that namespace.
+ */
+export type IdMap = Record<string, string[]>;
+
+/** Per-candidate ranking signals (present on similarity results). */
+export interface PaperSignals {
+  /** Raw structural strength (co-citation / coupling counts, or seed overlap). */
+  structural: number;
+  /** Semantic score from the intent abstract search (0 if absent). */
+  semantic: number;
+  /** Citation-graph PageRank of the candidate. */
+  pagerank: number;
+  /** Number of distinct seeds connected to this candidate. */
+  seed_overlap: number;
+}
+
+/** A ranked paper. `paper_id` is canonical; arXiv lives in `ids`. */
+export interface PaperResult {
+  /** Canonical paper id — the Milvus INT64 primary key as a decimal string. */
+  paper_id: string;
+  ids?: IdMap;
+  title: string;
+  abstract: string;
+  /** Final ranking score (post-rerank when enabled). Not normalized. */
+  score: number;
+  /** Present on similarity results. */
+  signals?: PaperSignals;
+}
+
+export interface PaperMetadata {
+  paper_id: string;
+  ids?: IdMap;
+  title: string;
+  abstract: string;
+  /** Comma-joined author names. Omitted if unknown. */
+  authors?: string;
+  /** arXiv categories. Omitted if unknown. */
+  categories?: string[];
+  /** Original creation date string (format varies). Omitted if unknown. */
+  created_date?: string;
+  /** Last-updated date string. Omitted if unknown. */
+  update_date?: string;
+}
+
+export interface Passage {
+  /** In-body passage text (may be markdown, including tables). */
+  text: string;
+  /** Dense similarity score for the passage. */
+  score: number;
+}
+
+export interface SearchPapersResponse {
+  results: PaperResult[];
+}
+
+export interface PaperMetadataResponse {
+  paper: PaperMetadata;
+}
+
+export interface ReadPaperResponse {
+  paper: PaperMetadata;
+  /** Resolved canonical paper id (empty string if not found via id-key). */
+  paper_id: string;
+  /** Echo of the read query. */
+  query: string;
+  /** Top matching in-body passages. */
+  passages: Passage[];
+}
+
+export interface SimilarPapersResponse {
+  /** Ranked related papers; each carries `signals`. */
+  results: PaperResult[];
+  /** Number of resolved candidates considered before truncation to `k`. */
+  pool_size: number;
+  /** True if more resolved candidates existed than were returned. */
+  truncated: boolean;
+  /** Human-readable note when no results are produced. */
+  note?: string | null;
+}
+
+/** Component scores; each field is present only when that signal contributed. */
+export interface GitHubScoreBreakdown {
+  rrf?: number;
+  semantic?: number;
+  lexical?: number;
+  fusion?: number;
+}
+
+export interface GitHubSearchItem {
+  resultType: "github_history" | "repo_readme";
+  /** `owner/name`. */
+  repo: string;
+  url: string;
+  /** History page type (e.g. `issue`, `pull`). Omitted for readmes. */
+  pageType?: string;
+  /** Issue/PR number. Omitted for readmes. */
+  number?: number;
+  /** Number of matched segments/chunks. Omitted when not applicable. */
+  segmentCount?: number;
+  /** Readme URL (readme results). Omitted otherwise. */
+  readmeUrl?: string;
+  /** Short matched excerpt. */
+  snippet: string;
+  /** Full matched content in markdown. Omitted unless available. */
+  contentMd?: string;
+  scores: GitHubScoreBreakdown;
+}
+
+export interface GitHubSearchResponse {
+  results: GitHubSearchItem[];
+}
+
+/** Options for `research.searchPapers`. */
+export interface SearchPapersOptions {
+  /** Number of results to return (1–500, default 40). */
+  k?: number;
+  /** Author substring filter(s); ALL must match (case-insensitive). */
+  authors?: string[];
+  /** arXiv category filter(s) (e.g. `cs.LG`); ALL must match. */
+  categories?: string[];
+  /** Inclusive lower bound on created/updated date (ISO `YYYY-MM-DD`). */
+  from?: string;
+  /** Inclusive upper bound on created/updated date (lexicographic). */
+  to?: string;
+}
+
+/** Options for `research.getPaper`. */
+export interface GetPaperOptions {
+  /** When present, switches to read mode and returns in-body passages. */
+  query?: string;
+  /** Passage count (read mode only; 1–50, default 4). Requires `query`. */
+  k?: number;
+}
+
+/** Options for `research.similarPapers`. */
+export interface SimilarPapersOptions {
+  /** Natural-language intent used to semantically rerank candidates. Required. */
+  intent: string;
+  /** Traversal mode (default `similar`). */
+  mode?: "similar" | "citers" | "references";
+  /** Number of related papers to return (1–500, default 40). */
+  k?: number;
+  /** Apply an additional ZeroEntropy rerank over the fused candidates. */
+  rerank?: boolean;
+  /** Additional seed paper reference(s), same format as `id`. */
+  anchor?: string[];
+}
+
+/** Options for `research.searchGithub`. */
+export interface SearchGithubOptions {
+  /** Number of results to return (1–100, default 20). */
+  k?: number;
+}

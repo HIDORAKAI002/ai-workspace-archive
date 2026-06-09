@@ -46,6 +46,19 @@ export type LockCreditsParams = {
   featureId?: string;
 };
 
+/**
+ * Outcome of an Autumn credit lock attempt.
+ *
+ * - `denied`: Autumn refused (`allowed: false`); the caller must NOT proceed.
+ * - `skipped`: billing not in effect (no client, preview team, or API fallback);
+ *   the caller should proceed without a lock.
+ * - `locked`: reserved; `lockId` must be finalized later.
+ */
+export type LockCreditsResult =
+  | { status: "locked"; lockId: string }
+  | { status: "denied" }
+  | { status: "skipped" };
+
 export type FinalizeCreditsLockParams = {
   lockId: string;
   action: "confirm" | "release";
