@@ -1,6 +1,7 @@
 import type { AgentRuntimeContext, AgentState } from '@lobechat/agent-runtime';
 import { BUILTIN_AGENT_SLUGS, getAgentRuntimeConfig } from '@lobechat/builtin-agents';
 import { builtinSkills } from '@lobechat/builtin-skills';
+import { CloudSandboxManifest } from '@lobechat/builtin-tool-cloud-sandbox';
 import { LobeAgentManifest } from '@lobechat/builtin-tool-lobe-agent';
 import { LocalSystemManifest } from '@lobechat/builtin-tool-local-system';
 import { MessageToolIdentifier } from '@lobechat/builtin-tool-message';
@@ -33,8 +34,8 @@ import type {
   ExecAgentResult,
   ExecGroupAgentParams,
   ExecGroupAgentResult,
-  ExecSubAgentTaskParams,
-  ExecSubAgentTaskResult,
+  ExecSubAgentParams,
+  ExecSubAgentResult,
   LobeAgentAgencyConfig,
   MessagePluginItem,
   UserInterventionConfig,
@@ -60,6 +61,7 @@ import { TopicModel } from '@/database/models/topic';
 import { UserModel } from '@/database/models/user';
 import { UserPersonaModel } from '@/database/models/userMemory/persona';
 import { toolsEnv } from '@/envs/tools';
+import { resolveRuntimeMode } from '@/helpers/executionTarget';
 import { shouldEnableBuiltinSkill } from '@/helpers/skillFilters';
 import { buildConnectorManifests } from '@/libs/mcp/buildConnectorManifests';
 import { signOperationJwt, signUserJWT } from '@/libs/trpc/utils/internalJwt';
@@ -69,7 +71,11 @@ import { createServerAgentToolsEngine } from '@/server/modules/Mecha';
 import type { ServerUserMemoryConfig } from '@/server/modules/Mecha/ContextEngineering/types';
 import { AgentService } from '@/server/services/agent';
 import { AgentDocumentsService } from '@/server/services/agentDocuments';
-import type { AgentRuntimeServiceOptions } from '@/server/services/agentRuntime';
+import type {
+  AgentExecutionParams,
+  AgentExecutionResult,
+  AgentRuntimeServiceOptions,
+} from '@/server/services/agentRuntime';
 import { AgentRuntimeService } from '@/server/services/agentRuntime';
 import { getAbortError, isAbortError, throwIfAborted } from '@/server/services/agentRuntime/abort';
 import { hookDispatcher } from '@/server/services/agentRuntime/hooks';
@@ -296,7 +302,17 @@ export class AiAgentService {
     this.topicModel = new TopicModel(db, userId, wsId);
     this.agentRuntimeService = new AgentRuntimeService(db, userId, {
       ...options?.runtimeOptions,
-      execSubAgentTask: this.execSubAgentTask.bind(this),
+      // ── Runtime delegate ─────────────────────────────────────────────────
+      // Operations the runtime delegates back UP to this layer. The dependency
+      // arrow is one-way (AiAgentService → AgentRuntimeService), so the runtime
+      // can't import us; instead we hand it the callbacks it needs to trigger
+      // high-level pipelines mid-step. See AgentRuntimeDelegate. New high-level
+      // capabilities the runtime calls into go in this `delegate` object.
+      //
+      // `execSubAgent` is an auto-bound arrow field, so no `.bind(this)`.
+      delegate: {
+        execSubAgent: this.execSubAgent,
+      },
       workspaceId: wsId,
     });
     this.marketService = new MarketService({ userInfo: { userId } });
@@ -384,6 +400,18 @@ export class AiAgentService {
       log('execAgent: resolveWorkspaceInit failed: %O', error);
       return empty;
     }
+  }
+
+  /**
+   * Execute a single agent step against this service's runtime.
+   *
+   * Delegates to the internal AgentRuntimeService, which is already wired with
+   * the `execSubAgent` fork callback. The QStash step worker drives stepping
+   * through here so `lobe-agent.callSubAgent` can fork sub-agents — building a
+   * bare runtime there would lose the callback and fail with SUB_AGENT_UNAVAILABLE.
+   */
+  executeStep(params: AgentExecutionParams): Promise<AgentExecutionResult> {
+    return this.agentRuntimeService.executeStep(params);
   }
 
   /**
@@ -1621,10 +1649,46 @@ export class AiAgentService {
         canUseDevice,
         disableLocalSystem,
       });
+      // Resolve effective runtimeMode once, mirroring AgentToolsEngine's derivation:
+      // executionTarget wins; falls back to per-platform chatConfig.runtimeEnv.runtimeMode
+      // for legacy agents that predate the unified executionTarget field.
+      const agentRuntimeMode = resolveRuntimeMode(
+        agentConfig.agencyConfig,
+        agentConfig.chatConfig?.runtimeEnv?.runtimeMode?.[gatewayConfigured ? 'desktop' : 'web'],
+        gatewayConfigured,
+      );
+      // When sandbox is not the active runtime, remove lobe-cloud-sandbox from the
+      // manifest map. The initial seed via getEnabledPluginManifests (which includes
+      // defaultToolIds) may have already placed it there, and the allowedBuiltinTools
+      // loop below only guards the discoverable-builtin append path. Deleting here
+      // covers both sources in a single point.
+      if (agentRuntimeMode !== 'cloud') {
+        delete toolManifestMap[CloudSandboxManifest.identifier];
+      }
       for (const tool of allowedBuiltinTools) {
+        // lobe-cloud-sandbox is only activator-discoverable when runtimeMode resolves
+        // to 'cloud'. Handles both executionTarget='sandbox' (new) and the legacy
+        // chatConfig.runtimeEnv.runtimeMode='cloud' path via resolveRuntimeMode.
+        if (tool.identifier === CloudSandboxManifest.identifier && agentRuntimeMode !== 'cloud')
+          continue;
         if (tool.discoverable !== false && !toolManifestMap[tool.identifier]) {
           toolManifestMap[tool.identifier] = tool.manifest as LobeToolManifest;
         }
+      }
+
+      // lobe-local-system has `discoverable: isDesktop` in builtinTools, which
+      // evaluates to false on the Node.js server side, so it never enters the
+      // loop above. Explicitly inject it only when the device gateway is
+      // configured AND the runtime mode is 'local' — skip for sandbox/none
+      // targets to avoid leaking local-system into non-local sessions.
+      if (
+        canUseDevice &&
+        !disableLocalSystem &&
+        gatewayConfigured &&
+        agentRuntimeMode === 'local' &&
+        !toolManifestMap[LocalSystemManifest.identifier]
+      ) {
+        toolManifestMap[LocalSystemManifest.identifier] = LocalSystemManifest as LobeToolManifest;
       }
 
       // Include lobehub skill and klavis manifests for activator discovery
@@ -2683,7 +2747,9 @@ export class AiAgentService {
    * 2. Delegate to execAgent with threadId in appContext
    * 3. Store operationId in Thread metadata
    */
-  async execSubAgentTask(params: ExecSubAgentTaskParams): Promise<ExecSubAgentTaskResult> {
+  // Arrow field (not a method) so it stays bound to this instance when handed to
+  // AgentRuntimeService as the `execSubAgent` fork callback — no `.bind(this)`.
+  execSubAgent = async (params: ExecSubAgentParams): Promise<ExecSubAgentResult> => {
     const {
       groupId,
       topicId,
@@ -2696,7 +2762,7 @@ export class AiAgentService {
     } = params;
 
     log(
-      'execSubAgentTask: agentId=%s, groupId=%s, topicId=%s, instruction=%s',
+      'execSubAgent: agentId=%s, groupId=%s, topicId=%s, instruction=%s',
       agentId,
       groupId,
       topicId,
@@ -2729,7 +2795,7 @@ export class AiAgentService {
       throw new Error('Failed to create thread for task execution');
     }
 
-    log('execSubAgentTask: created thread %s', thread.id);
+    log('execSubAgent: created thread %s', thread.id);
 
     // 2. Update Thread status to processing with startedAt timestamp
     const startedAt = new Date().toISOString();
@@ -2765,7 +2831,7 @@ export class AiAgentService {
         ).findById(parentOperationId);
         inheritedTrigger = parentOp?.trigger ?? undefined;
       } catch (error) {
-        log('execSubAgentTask: failed to read parent operation trigger: %O', error);
+        log('execSubAgent: failed to read parent operation trigger: %O', error);
       }
     }
 
@@ -2784,7 +2850,7 @@ export class AiAgentService {
     });
 
     log(
-      'execSubAgentTask: delegated to execAgent, operationId=%s, success=%s',
+      'execSubAgent: delegated to execAgent, operationId=%s, success=%s',
       result.operationId,
       result.success,
     );
@@ -2840,7 +2906,7 @@ export class AiAgentService {
       success: result.success ?? false,
       threadId: thread.id,
     };
-  }
+  };
 
   /**
    * Create step lifecycle callbacks for updating Thread metadata
@@ -2879,13 +2945,9 @@ export class AiAgentService {
               totalToolCalls: accumulatedToolCalls,
             },
           });
-          log(
-            'execSubAgentTask: updated thread %s metadata after step %d',
-            threadId,
-            state.stepCount,
-          );
+          log('execSubAgent: updated thread %s metadata after step %d', threadId, state.stepCount);
         } catch (error) {
-          log('execSubAgentTask: failed to update thread metadata: %O', error);
+          log('execSubAgent: failed to update thread metadata: %O', error);
         }
       },
 
@@ -2919,7 +2981,7 @@ export class AiAgentService {
 
         // Log error when task fails
         if (reason === 'error' && finalState.error) {
-          console.error('execSubAgentTask: task failed for thread %s:', threadId, finalState.error);
+          console.error('execSubAgent: task failed for thread %s:', threadId, finalState.error);
         }
 
         try {
@@ -2933,7 +2995,7 @@ export class AiAgentService {
             await this.messageModel.update(sourceMessageId, {
               content: lastAssistantMessage.content,
             });
-            log('execSubAgentTask: updated task message %s with summary', sourceMessageId);
+            log('execSubAgent: updated task message %s with summary', sourceMessageId);
           }
 
           // Format error for proper serialization (Error objects don't serialize with JSON.stringify)
@@ -2956,13 +3018,13 @@ export class AiAgentService {
           });
 
           log(
-            'execSubAgentTask: thread %s completed with status %s, reason: %s',
+            'execSubAgent: thread %s completed with status %s, reason: %s',
             threadId,
             status,
             reason,
           );
         } catch (error) {
-          console.error('execSubAgentTask: failed to update thread on completion: %O', error);
+          console.error('execSubAgent: failed to update thread on completion: %O', error);
         }
       },
     };

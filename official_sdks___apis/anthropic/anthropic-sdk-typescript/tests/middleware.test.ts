@@ -9,6 +9,7 @@ import {
   RetryableError,
 } from '@anthropic-ai/sdk';
 import type { Middleware } from '@anthropic-ai/sdk';
+import { BetaFallbackState, betaRefusalFallbackMiddleware } from '@anthropic-ai/sdk/lib/middleware';
 import { wrapFetchWithMiddleware } from '@anthropic-ai/sdk/core/middleware';
 import { Stream as SSEStream } from '@anthropic-ai/sdk/core/streaming';
 import { WorkloadIdentityError } from '@anthropic-ai/sdk/lib/credentials/types';
@@ -704,6 +705,81 @@ describe('middleware', () => {
     expect(await client.request({ path: '/foo', method: 'get' })).toEqual({ a: 1 });
   });
 
+  describe('ctx.logger', () => {
+    const makeCapturingLogger = () => {
+      const logged: unknown[][] = [];
+      const logger = {
+        error: (...args: unknown[]) => logged.push(['error', ...args]),
+        warn: (...args: unknown[]) => logged.push(['warn', ...args]),
+        info: (...args: unknown[]) => logged.push(['info', ...args]),
+        debug: (...args: unknown[]) => logged.push(['debug', ...args]),
+      };
+      return { logger, logged };
+    };
+
+    test('forwards to the client-configured logger', async () => {
+      const { logger, logged } = makeCapturingLogger();
+      const middleware: Middleware = async (request, next, ctx) => {
+        ctx.logger.warn('from middleware', request.method);
+        return next(request);
+      };
+
+      const client = new Anthropic({
+        apiKey: 'my-anthropic-api-key',
+        fetch: async () => jsonResponse(),
+        middleware: [middleware],
+        logger,
+        logLevel: 'warn',
+      });
+
+      await client.request({ path: '/foo', method: 'get' });
+      expect(logged).toContainEqual(['warn', 'from middleware', 'GET']);
+    });
+
+    test('respects the client log level, picking up later changes', async () => {
+      const { logger, logged } = makeCapturingLogger();
+      const middleware: Middleware = async (request, next, ctx) => {
+        ctx.logger.debug('debug from middleware');
+        return next(request);
+      };
+
+      const client = new Anthropic({
+        apiKey: 'my-anthropic-api-key',
+        fetch: async () => jsonResponse(),
+        middleware: [middleware],
+        logger,
+        logLevel: 'warn',
+      });
+
+      await client.request({ path: '/foo', method: 'get' });
+      expect(logged).toEqual([]);
+
+      // the logger is resolved per request, so a level change applies
+      client.logLevel = 'debug';
+      await client.request({ path: '/foo', method: 'get' });
+      expect(logged).toContainEqual(['debug', 'debug from middleware']);
+    });
+
+    test('is a safe no-op when logging is off', async () => {
+      const { logger, logged } = makeCapturingLogger();
+      const middleware: Middleware = async (request, next, ctx) => {
+        ctx.logger.error('never logged');
+        return next(request);
+      };
+
+      const client = new Anthropic({
+        apiKey: 'my-anthropic-api-key',
+        fetch: async () => jsonResponse(),
+        middleware: [middleware],
+        logger,
+        logLevel: 'off',
+      });
+
+      expect(await client.request({ path: '/foo', method: 'get' })).toEqual({ a: 1 });
+      expect(logged).toEqual([]);
+    });
+  });
+
   describe('ctx.parse', () => {
     test('parses a JSON body and leaves the response readable for the client', async () => {
       let parsed: unknown;
@@ -1136,6 +1212,34 @@ describe('middleware', () => {
       ]);
     });
 
+    test('ctx.logger forwards to the client logger on token-exchange requests', async () => {
+      const logged: unknown[][] = [];
+      const middleware: Middleware = async (request, next, ctx) => {
+        if (request.url.includes('/v1/oauth/token')) {
+          ctx.logger.warn('token exchange seen');
+        }
+        return next(request);
+      };
+
+      const client = new Anthropic({
+        apiKey: null,
+        authToken: null,
+        config: oidcConfig,
+        fetch: tokenExchangeFetch,
+        middleware: [middleware],
+        logger: {
+          error: () => {},
+          warn: (...args: unknown[]) => logged.push(args),
+          info: () => {},
+          debug: () => {},
+        },
+        logLevel: 'warn',
+      });
+
+      await client.request({ path: '/foo', method: 'get' });
+      expect(logged).toContainEqual(['token exchange seen']);
+    });
+
     test('middleware-set headers reach the token endpoint', async () => {
       let tokenHeader: string | null = null;
       const middleware: Middleware = async (request, next) => {
@@ -1448,6 +1552,38 @@ describe('wrapFetchWithMiddleware', () => {
     expect(urls).toEqual(['https://example.com/path', 'https://example.com/str']);
   });
 
+  test('without a client, ctx.logger falls back to console at the default level', async () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const originalEnv = process.env['ANTHROPIC_LOG'];
+    try {
+      const middleware: Middleware = async (request, next, ctx) => {
+        ctx.logger.error('an error');
+        ctx.logger.warn('a warning');
+        ctx.logger.info('some info');
+        return next(request);
+      };
+      const wrapped = wrapFetchWithMiddleware(async () => jsonResponse(), [middleware]);
+
+      process.env['ANTHROPIC_LOG'] = 'error';
+      await wrapped('https://example.com/path');
+      expect(errorSpy).toHaveBeenCalledWith('an error');
+      expect(warnSpy).not.toHaveBeenCalled();
+
+      delete process.env['ANTHROPIC_LOG'];
+      await wrapped('https://example.com/path');
+      expect(warnSpy).toHaveBeenCalledWith('a warning');
+    } finally {
+      if (originalEnv !== undefined) {
+        process.env['ANTHROPIC_LOG'] = originalEnv;
+      } else {
+        delete process.env['ANTHROPIC_LOG'];
+      }
+      errorSpy.mockRestore();
+      warnSpy.mockRestore();
+    }
+  });
+
   test('with no middleware passes arguments through to fetch untouched', async () => {
     let seenUrl: string | URL | Request | undefined;
     let seenInit: RequestInit | undefined;
@@ -1462,5 +1598,523 @@ describe('wrapFetchWithMiddleware', () => {
     await wrapped(url, init);
     expect(seenUrl).toBe(url);
     expect(seenInit).toBe(init);
+  });
+});
+
+describe('backend middleware', () => {
+  const clientWithBackend = (
+    backend: ReadonlyArray<Middleware>,
+    options: ConstructorParameters<typeof Anthropic>[0],
+  ) => {
+    class BackendTestClient extends Anthropic {
+      protected override backendMiddleware(): ReadonlyArray<Middleware> {
+        return backend;
+      }
+    }
+    return new BackendTestClient(options);
+  };
+
+  test('composes innermost: client middleware, then per-request middleware, then backend', async () => {
+    const order: string[] = [];
+    const make = (name: string): Middleware => {
+      return async (request, next) => {
+        order.push(`${name}:in`);
+        const response = await next(request);
+        order.push(`${name}:out`);
+        return response;
+      };
+    };
+
+    const client = clientWithBackend([make('backend')], {
+      apiKey: 'my-anthropic-api-key',
+      fetch: async () => jsonResponse(),
+      middleware: [make('client')],
+    });
+
+    await client.request({ path: '/foo', method: 'get', middleware: [make('request')] });
+    expect(order).toEqual([
+      'client:in',
+      'request:in',
+      'backend:in',
+      'backend:out',
+      'request:out',
+      'client:out',
+    ]);
+  });
+
+  test('user middleware observes the canonical request; the wire receives the adapted request', async () => {
+    let userSawUrl: string | undefined;
+    let userSawSignature: string | null = null;
+    let wireUrl: string | undefined;
+    let wireSignature: string | null = null;
+
+    const userMiddleware: Middleware = async (request, next) => {
+      userSawUrl = request.url;
+      userSawSignature = request.headers.get('x-signature');
+      return next(request);
+    };
+    const adapt: Middleware = async (request, next) => {
+      const headers = new Headers(request.headers);
+      headers.set('x-signature', 'signed');
+      return next({ ...request, url: request.url.replace('/foo', '/backend/foo'), headers });
+    };
+
+    const client = clientWithBackend([adapt], {
+      apiKey: 'my-anthropic-api-key',
+      fetch: async (url: string | URL | Request, init?: RequestInit) => {
+        wireUrl = url.toString();
+        wireSignature = (init!.headers as Headers).get('x-signature');
+        return jsonResponse();
+      },
+      middleware: [userMiddleware],
+    });
+
+    await client.request({ path: '/foo', method: 'get' });
+    expect(userSawUrl).toEqual('https://api.anthropic.com/foo');
+    expect(userSawSignature).toBeNull();
+    expect(wireUrl).toEqual('https://api.anthropic.com/backend/foo');
+    expect(wireSignature).toEqual('signed');
+  });
+
+  test('observes user middleware mutations and re-runs on every next() call', async () => {
+    const adaptedBodies: string[] = [];
+    const adapt: Middleware = async (request, next) => {
+      adaptedBodies.push(String(request.body));
+      return next(request);
+    };
+    const mutateAndRetryOnce: Middleware = async (request, next) => {
+      const mutated = { ...request, body: JSON.stringify({ mutated: true }) };
+      const response = await next(mutated);
+      return response.status === 503 ? next(mutated) : response;
+    };
+
+    let fetchCalls = 0;
+    const client = clientWithBackend([adapt], {
+      apiKey: 'my-anthropic-api-key',
+      maxRetries: 0,
+      fetch: async () => {
+        fetchCalls++;
+        return fetchCalls === 1 ? new Response(undefined, { status: 503 }) : jsonResponse();
+      },
+      middleware: [mutateAndRetryOnce],
+    });
+
+    await client.request({ path: '/foo', method: 'post', body: { original: true } });
+    expect(adaptedBodies).toEqual(['{"mutated":true}', '{"mutated":true}']);
+    expect(fetchCalls).toEqual(2);
+  });
+
+  test('the response it returns is what user middleware and the client observe', async () => {
+    let userSawNormalized: boolean | undefined;
+    const normalize: Middleware = async (request, next) => {
+      await next(request);
+      return jsonResponse({ normalized: true });
+    };
+    const userMiddleware: Middleware = async (request, next) => {
+      const response = await next(request);
+      userSawNormalized = ((await response.clone().json()) as { normalized: boolean }).normalized;
+      return response;
+    };
+
+    const client = clientWithBackend([normalize], {
+      apiKey: 'my-anthropic-api-key',
+      fetch: async () => jsonResponse({ normalized: false }),
+      middleware: [userMiddleware],
+    });
+
+    expect(await client.request({ path: '/foo', method: 'get' })).toEqual({ normalized: true });
+    expect(userSawNormalized).toBe(true);
+  });
+
+  test('errors propagate as-is without retries or wrapping, even with no user middleware', async () => {
+    class SigningError extends Error {}
+    let attempts = 0;
+    let fetchCalls = 0;
+    const expectedError = new SigningError('credentials unavailable');
+    const failingBackend: Middleware = async () => {
+      attempts++;
+      throw expectedError;
+    };
+
+    const client = clientWithBackend([failingBackend], {
+      apiKey: 'my-anthropic-api-key',
+      maxRetries: 1,
+      fetch: async () => {
+        fetchCalls++;
+        return jsonResponse();
+      },
+    });
+
+    const err = await client.request({ path: '/foo', method: 'get' }).then(
+      () => null,
+      (e) => e,
+    );
+    expect(err).toBe(expectedError);
+    expect(attempts).toEqual(1);
+    expect(fetchCalls).toEqual(0);
+  });
+
+  test('a RetryableError is retried', async () => {
+    let attempts = 0;
+    const flakyBackend: Middleware = async (request, next) => {
+      attempts++;
+      if (attempts === 1) throw new RetryableError('credential cache miss');
+      return next(request);
+    };
+
+    const client = clientWithBackend([flakyBackend], {
+      apiKey: 'my-anthropic-api-key',
+      maxRetries: 1,
+      fetch: async () => jsonResponse(),
+    });
+
+    expect(await client.request({ path: '/foo', method: 'get' })).toEqual({ a: 1 });
+    expect(attempts).toEqual(2);
+  });
+
+  test('fetch connection errors keep the retry policy when only backend middleware is present', async () => {
+    let fetchCalls = 0;
+    const passthrough: Middleware = (request, next) => next(request);
+
+    const client = clientWithBackend([passthrough], {
+      apiKey: 'my-anthropic-api-key',
+      maxRetries: 1,
+      fetch: async () => {
+        fetchCalls++;
+        throw new TypeError('fetch failed');
+      },
+    });
+
+    const err = await client.request({ path: '/foo', method: 'get' }).then(
+      () => null,
+      (e) => e,
+    );
+    expect(err).toBeInstanceOf(APIConnectionError);
+    expect(err.cause).toHaveProperty('message', 'fetch failed');
+    expect(fetchCalls).toEqual(2);
+  });
+
+  test('the request timeout does not cover backend middleware work', async () => {
+    const abortError = () => {
+      const err = new Error('This operation was aborted');
+      err.name = 'AbortError';
+      return err;
+    };
+
+    // slow backend adaptation (e.g. credential resolution), fast fetch:
+    // adaptation work doesn't count against the timeout
+    const slowBackend: Middleware = async (request, next) => {
+      await new Promise((resolve) => setTimeout(resolve, 30));
+      return next(request);
+    };
+
+    const client = clientWithBackend([slowBackend], {
+      apiKey: 'my-anthropic-api-key',
+      timeout: 5,
+      maxRetries: 0,
+      fetch: async (_url, { signal } = {}) => {
+        if (signal?.aborted) throw abortError();
+        return jsonResponse();
+      },
+    });
+    expect(await client.request({ path: '/foo', method: 'get' })).toEqual({ a: 1 });
+  });
+});
+
+describe('betaRefusalFallbackMiddleware', () => {
+  let warn: jest.SpyInstance;
+  beforeEach(() => {
+    warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+  afterEach(() => warn.mockRestore());
+
+  const message = (model: string, overrides: Record<string, unknown> = {}) =>
+    jsonResponse({
+      id: 'msg_1',
+      type: 'message',
+      role: 'assistant',
+      model,
+      content: [],
+      stop_reason: 'end_turn',
+      stop_sequence: null,
+      usage: { input_tokens: 1, output_tokens: 1 },
+      ...overrides,
+    });
+  const refusal = (model: string, fallback_credit_token: string | null = null) =>
+    message(model, {
+      stop_reason: 'refusal',
+      stop_details: { type: 'refusal', reason: 'other', explanation: null, fallback_credit_token },
+    });
+
+  const params = {
+    model: 'primary-model',
+    max_tokens: 1024,
+    messages: [{ role: 'user' as const, content: 'hi' }],
+  };
+
+  const makeClient = (responses: Response[], middleware: Middleware) => {
+    const bodies: Record<string, unknown>[] = [];
+    const client = new Anthropic({
+      apiKey: 'my-anthropic-api-key',
+      fetch: async (_url, init) => {
+        bodies.push(JSON.parse(init!.body as string));
+        return responses.shift()!;
+      },
+      middleware: [middleware],
+    });
+    return { client, bodies };
+  };
+
+  test('retries a refusal with the fallback params and credit token', async () => {
+    const { client, bodies } = makeClient(
+      [refusal('primary-model', 'credit-token'), message('fallback-model')],
+      betaRefusalFallbackMiddleware([{ model: 'fallback-model' }]),
+    );
+
+    const result = await client.beta.messages.create(params);
+    expect(result.model).toEqual('fallback-model');
+    expect(result.stop_reason).toEqual('end_turn');
+    expect(bodies.map((b) => b['model'])).toEqual(['primary-model', 'fallback-model']);
+    expect(bodies[1]!['fallback_credit_token']).toEqual('credit-token');
+  });
+
+  test('pins the conversation to the accepted fallback via fallbackState', async () => {
+    const { client, bodies } = makeClient(
+      [refusal('primary-model'), message('fallback-model'), message('fallback-model')],
+      betaRefusalFallbackMiddleware([{ model: 'fallback-model' }]),
+    );
+
+    const fallbackState = new BetaFallbackState();
+    await client.beta.messages.create(params, { fallbackState });
+    expect(fallbackState.index).toEqual(0);
+
+    // the follow-up goes straight to the pinned fallback in a single request
+    await client.beta.messages.create(params, { fallbackState });
+    expect(bodies.map((b) => b['model'])).toEqual(['primary-model', 'fallback-model', 'fallback-model']);
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  test('throws if fallbackState.index is out of bounds for the chain', async () => {
+    const { client, bodies } = makeClient(
+      [message('fallback-model')],
+      betaRefusalFallbackMiddleware([{ model: 'fallback-model' }]),
+    );
+
+    const fallbackState = new BetaFallbackState();
+    fallbackState.index = 1;
+    await expect(client.beta.messages.create(params, { fallbackState })).rejects.toThrow(
+      'fallbackState.index 1 is out of bounds for a chain of 1 fallback(s)',
+    );
+    expect(bodies).toHaveLength(0);
+  });
+
+  test('warns once when falling back without a fallbackState', async () => {
+    // an injected logger rather than the console.warn spy: the SDK caches
+    // bound console methods across tests, so per-test console spies go stale
+    const logger = { error: jest.fn(), warn: jest.fn(), info: jest.fn(), debug: jest.fn() };
+    const responses = [
+      refusal('primary-model'),
+      message('fallback-model'),
+      refusal('primary-model'),
+      message('fallback-model'),
+    ];
+    const client = new Anthropic({
+      apiKey: 'my-anthropic-api-key',
+      fetch: async () => responses.shift()!,
+      logger,
+      middleware: [betaRefusalFallbackMiddleware([{ model: 'fallback-model' }])],
+    });
+
+    await client.beta.messages.create(params);
+    await client.beta.messages.create(params);
+    expect(logger.warn).toHaveBeenCalledTimes(1);
+    expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('fallbackState'));
+  });
+
+  test('the missing-fallbackState warning respects the client logLevel', async () => {
+    const logger = { error: jest.fn(), warn: jest.fn(), info: jest.fn(), debug: jest.fn() };
+    const responses = [refusal('primary-model'), message('fallback-model')];
+    const client = new Anthropic({
+      apiKey: 'my-anthropic-api-key',
+      fetch: async () => responses.shift()!,
+      logger,
+      logLevel: 'off',
+      middleware: [betaRefusalFallbackMiddleware([{ model: 'fallback-model' }])],
+    });
+
+    await client.beta.messages.create(params);
+    expect(logger.warn).not.toHaveBeenCalled();
+  });
+
+  test('a separate conversation is unaffected by another state', async () => {
+    const { client, bodies } = makeClient(
+      [refusal('primary-model'), message('fallback-model'), message('primary-model')],
+      betaRefusalFallbackMiddleware([{ model: 'fallback-model' }]),
+    );
+
+    await client.beta.messages.create(params, { fallbackState: new BetaFallbackState() });
+    await client.beta.messages.create(params, { fallbackState: new BetaFallbackState() });
+    expect(bodies.map((b) => b['model'])).toEqual(['primary-model', 'fallback-model', 'primary-model']);
+  });
+
+  test('leaves accepted requests and the response untouched', async () => {
+    const { client, bodies } = makeClient(
+      [message('primary-model')],
+      betaRefusalFallbackMiddleware([{ model: 'fallback-model' }]),
+    );
+
+    const fallbackState = new BetaFallbackState();
+    const result = await client.beta.messages.create(params, { fallbackState });
+    expect(result.model).toEqual('primary-model');
+    expect(bodies).toHaveLength(1);
+    expect(bodies[0]!['fallback_credit_token']).toBeUndefined();
+    expect(fallbackState.index).toBeUndefined();
+  });
+
+  test('throws when the request carries a server-side fallbacks param', async () => {
+    const { client, bodies } = makeClient(
+      [message('primary-model')],
+      betaRefusalFallbackMiddleware([{ model: 'fallback-model' }]),
+    );
+
+    await expect(
+      client.beta.messages.create({ ...params, fallbacks: [{ model: 'server-fallback-model' }] }),
+    ).rejects.toThrow(
+      'Sending the `fallbacks:` request param is not supported when using the `betaRefusalFallbackMiddleware`.',
+    );
+    expect(bodies).toHaveLength(0);
+  });
+
+  test('ignores the non-beta client.messages endpoint', async () => {
+    const { client, bodies } = makeClient(
+      [refusal('primary-model', 'credit-token'), message('fallback-model')],
+      betaRefusalFallbackMiddleware([{ model: 'fallback-model' }]),
+    );
+
+    // client.messages posts to /v1/messages (no ?beta=true); the refusal must
+    // pass through untouched rather than walk the fallback chain.
+    const result = await client.messages.create(params);
+    expect(result.stop_reason).toEqual('refusal');
+    expect(bodies).toHaveLength(1);
+    expect(bodies[0]!['fallback_credit_token']).toBeUndefined();
+  });
+
+  test('walks each hop through the chain until a model accepts', async () => {
+    const { client, bodies } = makeClient(
+      [
+        refusal('primary-model'),
+        refusal('mid-model'),
+        message('last-model', { content: [{ type: 'text', text: 'ok' }] }),
+      ],
+      betaRefusalFallbackMiddleware([{ model: 'mid-model' }, { model: 'last-model' }]),
+    );
+
+    const fallbackState = new BetaFallbackState();
+    const result = await client.beta.messages.create(params, { fallbackState });
+    expect(result.model).toEqual('last-model');
+    expect(fallbackState.index).toEqual(1);
+    expect(bodies.map((b) => b['model'])).toEqual(['primary-model', 'mid-model', 'last-model']);
+    // Seam blocks accumulate in hop order and are prepended ahead of the
+    // serving hop's own content — pins ordering and hop-2 from/to threading.
+    expect(result.content).toEqual([
+      { type: 'fallback', from: { model: 'primary-model' }, to: { model: 'mid-model' } },
+      { type: 'fallback', from: { model: 'mid-model' }, to: { model: 'last-model' } },
+      { type: 'text', text: 'ok' },
+    ]);
+  });
+
+  test('a pinned start seams from the pinned entry, not the original body model', async () => {
+    const { client, bodies } = makeClient(
+      [refusal('mid-model'), message('last-model', { content: [{ type: 'text', text: 'ok' }] })],
+      betaRefusalFallbackMiddleware([{ model: 'mid-model' }, { model: 'last-model' }]),
+    );
+
+    const fallbackState = new BetaFallbackState();
+    fallbackState.index = 0;
+    const result = await client.beta.messages.create(params, { fallbackState });
+    expect(bodies.map((b) => b['model'])).toEqual(['mid-model', 'last-model']);
+    expect(result.content).toEqual([
+      { type: 'fallback', from: { model: 'mid-model' }, to: { model: 'last-model' } },
+      { type: 'text', text: 'ok' },
+    ]);
+  });
+
+  test('returns the final refusal once the chain is exhausted', async () => {
+    const { client, bodies } = makeClient(
+      [refusal('primary-model'), refusal('fallback-model')],
+      betaRefusalFallbackMiddleware([{ model: 'fallback-model' }]),
+    );
+
+    const result = await client.beta.messages.create(params);
+    expect(result.model).toEqual('fallback-model');
+    expect(result.stop_reason).toEqual('refusal');
+    expect(bodies).toHaveLength(2);
+  });
+
+  describe('beta header', () => {
+    const makeHeaderClient = (responses: Response[], middleware: Middleware) => {
+      const betaHeaders: (string | null)[] = [];
+      const client = new Anthropic({
+        apiKey: 'my-anthropic-api-key',
+        fetch: async (_url, init) => {
+          betaHeaders.push(new Headers(init!.headers).get('anthropic-beta'));
+          return responses.shift()!;
+        },
+        middleware: [middleware],
+      });
+      return { client, betaHeaders };
+    };
+
+    test('sends the fallback-credit beta on the original and fallback requests', async () => {
+      const { client, betaHeaders } = makeHeaderClient(
+        [refusal('primary-model', 'credit-token'), message('fallback-model')],
+        betaRefusalFallbackMiddleware([{ model: 'fallback-model' }]),
+      );
+
+      await client.beta.messages.create(params);
+      expect(betaHeaders).toEqual(['fallback-credit-2026-06-01', 'fallback-credit-2026-06-01']);
+    });
+
+    test('the betas option replaces the default', async () => {
+      const { client, betaHeaders } = makeHeaderClient(
+        [message('primary-model')],
+        betaRefusalFallbackMiddleware([{ model: 'fallback-model' }], {
+          betas: ['fallback-credit-2027-01-01', 'interleaved-thinking-2025-05-14'],
+        }),
+      );
+
+      await client.beta.messages.create(params);
+      expect(betaHeaders).toEqual(['fallback-credit-2027-01-01, interleaved-thinking-2025-05-14']);
+    });
+
+    test('betas: [] sends no beta header', async () => {
+      const { client, betaHeaders } = makeHeaderClient(
+        [message('primary-model')],
+        betaRefusalFallbackMiddleware([{ model: 'fallback-model' }], { betas: [] }),
+      );
+
+      await client.beta.messages.create(params);
+      expect(betaHeaders).toEqual([null]);
+    });
+
+    test('does not duplicate a beta already on the request', async () => {
+      const { client, betaHeaders } = makeHeaderClient(
+        [message('primary-model')],
+        betaRefusalFallbackMiddleware([{ model: 'fallback-model' }]),
+      );
+
+      await client.beta.messages.create({ ...params, betas: ['fallback-credit-2026-06-01'] });
+      expect(betaHeaders).toEqual(['fallback-credit-2026-06-01']);
+    });
+
+    test('appends to betas already on the request', async () => {
+      const { client, betaHeaders } = makeHeaderClient(
+        [message('primary-model')],
+        betaRefusalFallbackMiddleware([{ model: 'fallback-model' }]),
+      );
+
+      await client.beta.messages.create({ ...params, betas: ['interleaved-thinking-2025-05-14'] });
+      expect(betaHeaders).toEqual(['interleaved-thinking-2025-05-14, fallback-credit-2026-06-01']);
+    });
   });
 });
