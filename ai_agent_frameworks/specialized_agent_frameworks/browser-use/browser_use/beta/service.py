@@ -88,6 +88,7 @@ AgentNewStepCallback = (
 AgentDoneCallback = Callable[[AgentHistoryList], Awaitable[None]] | Callable[[AgentHistoryList], None]
 logger = logging.getLogger(__name__)
 TERMINAL_INSTALL_COMMAND = 'curl -fsSL https://browser-use.com/terminal/install.sh | sh'
+AGENT_TOOLS_DIR_ENV = 'BUT_AGENT_TOOLS_DIR'
 
 try:
 	from lmnr import Laminar  # type: ignore
@@ -217,6 +218,82 @@ def _find_packaged_browser_use_terminal_binary() -> str | None:
 		return binary_path('browser-use-terminal')
 	except Exception:
 		return None
+
+
+def _apply_agent_tools_env(env: dict[str, str]) -> None:
+	agent_tools_dir = _find_agent_tools_dir(env.get(AGENT_TOOLS_DIR_ENV))
+	if agent_tools_dir is None:
+		return
+	env[AGENT_TOOLS_DIR_ENV] = str(agent_tools_dir)
+	_prepend_env_path(env, agent_tools_dir)
+
+
+def _find_agent_tools_dir(preferred_dir: str | None = None) -> Path | None:
+	if preferred_dir:
+		preferred_path = Path(preferred_dir).expanduser()
+		return preferred_path if _agent_tools_dir_contains_ripgrep(preferred_path) else None
+
+	env_binary = os.environ.get('BROWSER_USE_TERMINAL_BINARY')
+	if env_binary:
+		agent_tools_dir = _agent_tools_dir_for_terminal_binary(env_binary)
+		if agent_tools_dir:
+			return agent_tools_dir
+
+	packaged_dir = _find_packaged_agent_tools_dir()
+	if packaged_dir:
+		return packaged_dir
+
+	try:
+		terminal_binary = find_browser_use_terminal_binary()
+	except BetaAgentError:
+		return None
+	return _agent_tools_dir_for_terminal_binary(terminal_binary)
+
+
+def _find_packaged_agent_tools_dir() -> Path | None:
+	try:
+		from browser_use_core import agent_tools_dir
+	except Exception:
+		agent_tools_dir = None
+
+	if agent_tools_dir is not None:
+		try:
+			candidate = Path(agent_tools_dir())
+		except Exception:
+			candidate = None
+		if candidate and _agent_tools_dir_contains_ripgrep(candidate):
+			return candidate
+
+	try:
+		from browser_use_core import binary_path
+	except Exception:
+		return None
+
+	try:
+		binary = Path(binary_path('browser-use-terminal'))
+	except Exception:
+		return None
+	candidate = binary.parent / 'agent-tools'
+	return candidate if _agent_tools_dir_contains_ripgrep(candidate) else None
+
+
+def _agent_tools_dir_for_terminal_binary(binary_path: str | Path) -> Path | None:
+	candidate = Path(binary_path).expanduser().parent / 'agent-tools'
+	return candidate if _agent_tools_dir_contains_ripgrep(candidate) else None
+
+
+def _agent_tools_dir_contains_ripgrep(directory: Path) -> bool:
+	return (directory / _agent_tools_ripgrep_name()).exists()
+
+
+def _agent_tools_ripgrep_name() -> str:
+	return 'rg.exe' if os.name == 'nt' else 'rg'
+
+
+def _prepend_env_path(env: dict[str, str], directory: Path) -> None:
+	directory_str = str(directory)
+	path_parts = [part for part in env.get('PATH', '').split(os.pathsep) if part and part != directory_str]
+	env['PATH'] = os.pathsep.join([directory_str, *path_parts])
 
 
 def _terminal_supports_sdk_server(binary: Path) -> bool:
@@ -1162,6 +1239,11 @@ def _llm_env_overrides(llm: Any) -> dict[str, str]:
 			overrides['OPENROUTER_BASE_URL'] = base_url
 	elif provider == 'deepseek' and api_key:
 		overrides['DEEPSEEK_API_KEY'] = api_key
+	elif provider == 'browser-use':
+		if api_key:
+			overrides['LLM_BROWSER_BROWSER_USE_API_KEY'] = api_key
+		if base_url:
+			overrides['LLM_BROWSER_BROWSER_USE_BASE_URL'] = base_url.rstrip('/').removesuffix('/v1')
 	return overrides
 
 
@@ -6635,6 +6717,7 @@ class Agent(Generic[Context, AgentStructuredOutput]):
 		browser_mode = self._browser_mode()
 		env['LLM_BROWSER_BROWSER_MODE'] = browser_mode
 		env.setdefault('BROWSER_USE_PYTHON', sys.executable)
+		_apply_agent_tools_env(env)
 		cdp_url = _extract_cdp_url(self.browser_session) or _extract_profile_cdp_url(self.browser_profile)
 		if cdp_url:
 			env['BU_CDP_URL'] = cdp_url
