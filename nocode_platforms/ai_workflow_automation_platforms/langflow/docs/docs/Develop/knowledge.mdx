@@ -49,15 +49,83 @@ import PartialKbSummary from '@site/docs/_partial-kb-summary.mdx';
 
 <PartialKbSummary />
 
-### Knowledge base storage locations
+### Create a knowledge base
 
-Each knowledge base is a [ChromaDB](https://docs.trychroma.com/docs/overview/introduction) vector database.
-Each database is stored in a separate directory that contains the following:
+In this example, you'll create a knowledge base of chunked customer orders.
+To follow along with this example, download [`customer-orders.csv`](/files/customer_orders.csv) to your local machine, or adapt the steps for your own structured data.
 
-- **Vector embeddings**: Embeddings are stored using the Chroma vector database.
-- **Metadata files**: Configuration and embedding model information.
-- **Source data**: The original data used to create the knowledge base.
+1. On the [**Projects** page](/concepts-flows#projects) page, click <Icon name="Library" aria-hidden="true"/>**Knowledge** below the list of projects to view and manage your knowledge bases.
 
+2. To create a new knowledge base, click <Icon name="Plus" aria-hidden="true"/>**Add Knowledge**.
+3. In the **Create Knowledge Base** pane, enter a name for your knowledge base, select an embedding model, and select a **DB Provider**.
+    <PartialGlobalModelProviders />
+    The **DB Provider** determines where embeddings are stored. It defaults to the provider configured in **Settings → DB Providers**. Existing knowledge bases keep their original backend, so changing the global DB Provider only affects new knowledge bases.
+
+    Once you create a knowledge base, you cannot change its embedding model or DB provider. If you need to change either, you must delete and recreate the knowledge base.
+
+4. Optional: Add **Custom Metadata Fields** to tag every chunk with additional context. For example, if you're ingesting files from multiple teams, add a field `team` with a value of `support`. When the **Knowledge Base** component searches, you can then filter results to only return chunks where `team` equals `support` to keep results scoped to the support team's content.
+
+5. To configure sources for your knowledge base, click **Configure Sources**.
+Optionally, to create an empty knowledge base, click **Create**.
+6. In the **Configure Sources** pane, configure the sources for your knowledge base's data, and also how the embedded data will be chunked for vector search retrieval.
+    For this example, click <Icon name="Upload" aria-hidden="true"/>**Add Sources**, and then select the downloaded [`customer-orders.csv`](/files/customer_orders.csv) file from your local machine.
+    The default settings for **Chunk Size**, **Chunk Overlap**, and **Separator** are fine.
+    To continue, click **Next Step**.
+7. The **Review & Build** pane allows you to preview your first chunk before you commit to spending tokens to embed all of the data into the knowledge base.
+    A typical chunk size is 512–1000 characters. Smaller chunks support more granular retrieval but they can lose context across chunks.
+    If the chunk isn't what you want to embed, click **Back** to configure your chunking strategy.
+    To embed this data, click **Create**.
+8. Your data is embedded as a **Knowledge**.
+    When it is available to use, the **Status** changes to **Ready**.
+
+To use the new knowledge base in a flow, see [Use the Knowledge Base component in a flow](/knowledge-base).
+
+### Manage knowledge bases
+
+On the [**Projects** page](/concepts-flows#projects) page, click <Icon name="Library" aria-hidden="true"/>**Knowledge** below the list of projects to view and manage your knowledge bases.
+
+For each knowledge base, you can see the following information:
+
+* Name
+* Embedding model
+* Size on disk
+* Number of words, characters, and chunks
+* The average length and size of chunks
+* The knowledge base's status
+
+The icon next to the knowledge base name indicates the source file type:
+
+* <Icon name="File" aria-hidden="true"/> Red — PDF
+* <Icon name="FileChartColumn" aria-hidden="true"/> Green — CSV
+* <Icon name="FileType" aria-hidden="true"/> Purple — plain text (`.txt`)
+* <Icon name="FileText" aria-hidden="true"/> Fuchsia — Markdown (`.md`, `.mdx`)
+* <Icon name="FileCode" aria-hidden="true"/> Yellow — HTML
+* <Icon name="FileCode" aria-hidden="true"/> Blue — code files (`.py`, `.js`, `.ts`)
+* <Icon name="FileJson" aria-hidden="true"/> Indigo — JSON
+* <Icon name="Layers" aria-hidden="true"/> — multiple source types
+
+Chunking behavior is determined by the embedding model, and the embedding model is set when you create the knowledge base.
+If you need to change the embedding model, you must delete and recreate the knowledge base.
+
+To update a knowledge base with , click <Icon name="EllipsisVertical" aria-hidden="true"/> **More**, and then select <Icon name="RefreshCW" aria-hidden="true"/> **Update Knowledge Base**.
+
+To view a knowledge base's chunks, click <Icon name="EllipsisVertical" aria-hidden="true"/> **More**, and then select <Icon name="Layers" aria-hidden="true"/> **View Chunks**.
+
+To delete a knowledge base, click <Icon name="EllipsisVertical" aria-hidden="true"/> **More**, and then click <Icon name="Trash2" aria-hidden="true"/> **Delete**.
+If any flows use the deleted knowledge base, you must update them to use a different knowledge base.
+
+For more information on using knowledge bases in a flow, see the [**Knowledge Base** component](/knowledge-base) documentation.
+
+### Configure vector database providers
+
+**DB Providers** are the vector databases where your knowledge bases store and search embeddings.
+To configure these providers, go to **Settings → DB Providers**.
+The selected provider applies to all new knowledge bases you create.
+Existing knowledge bases continue to use the provider that was active when they were created.
+
+#### Chroma (default)
+
+By default, knowledge bases use [ChromaDB](https://docs.trychroma.com/docs/overview/introduction) as a local vector store, with no additional setup required.
 Knowledge bases are stored local to your Langflow instance.
 The default storage location depends on your operating system and installation method:
 
@@ -76,54 +144,99 @@ To change the default `knowledge_bases` directory path, set the `LANGFLOW_KNOWLE
 export LANGFLOW_KNOWLEDGE_BASES_DIR="/path/to/parent/directory"
 ```
 
-### Create a knowledge base
+#### Chroma Cloud
 
-In this example, you'll create a knowledge base of chunked customer orders.
-To follow along with this example, download [`customer-orders.csv`](/files/customer_orders.csv) to your local machine, or adapt the steps for your own structured data.
+To use [Chroma Cloud](https://docs.trychroma.com/docs/overview/introduction) as a database provider, you need a Chroma Cloud account and an API key from Chroma Cloud.
 
-1. On the [**Projects** page](/concepts-flows#projects) page, click <Icon name="Library" aria-hidden="true"/>**Knowledge** below the list of projects to view and manage your knowledge bases.
+1. From your Chroma Cloud dashboard, copy your **API Key**, **Tenant**, and **Database** names.
+2. To connect Chroma Cloud to Langflow, click **Settings**, and then click **DB Providers**.
+3. Select **Chroma Cloud**.
+4. Enter the following values:
 
-2. To create a new knowledge base, click <Icon name="Plus" aria-hidden="true"/>**Add Knowledge**.
-3. In the **Create Knowledge Base** pane, enter a name for your knowledge base, and select an embedding model.
-    <PartialGlobalModelProviders />
-4. To configure sources for your knowledge base, click **Configure Sources**.
-Optionally, to create an empty knowledge base, click **Create**.
-5. In the **Configure Sources** pane, configure the sources for your knowledge base's data, and also how the embedded data will be chunked for vector search retrieval.
-    For this example, click <Icon name="Upload" aria-hidden="true"/>**Add Sources**, and then select the downloaded [`customer-orders.csv`](/files/customer_orders.csv) file from your local machine.
-    The default settings for **Chunk Size**, **Chunk Overlap**, and **Separator** are fine.
-    To continue, click **Next Step**.
-6. The **Review & Build** pane allows you to preview your first chunk before you commit to spending tokens to embedall of the data into the knowledge base.
-    If the chunk isn't what you want to embed, click **Back** to configure your chunking strategy.
-    To embed this data, click **Create**.
-7. Your data is embedded as a **Knowledge**.
-    When it is available to use, the **Status** changes to **Ready**.
+    - **API Key**: Enter your Chroma Cloud API key.
+    - **Tenant**: Optionally, enter your tenant name. If blank, defaults to the tenant associated with your API key.
+    - **Database**: Optionally, enter your database name. If blank, defaults to `default_database`.
+    - **Region**: Optionally, enter your cloud region.
 
-To use the new knowledge base in a flow, see [Use the Knowledge Base component in a flow](/knowledge-base).
+5. Click **Save and Use Chroma Cloud**.
 
-### Manage knowledge bases
+    Optionally, click **Test Connection** to verify that Langflow can reach your Chroma Cloud instance before saving.
 
-On the [**Projects** page](/concepts-flows#projects) page, click <Icon name="Library" aria-hidden="true"/>**Knowledge** below the list of projects to view and manage your knowledge bases.
+    The Chroma Cloud database is now connected to Langflow as a knowledge base provider.
+    To create a knowledge base using this provider, see [Create a knowledge base](#create-a-knowledge-base).
 
-For each knowledge base, you can see the following information:
+#### OpenSearch
 
-* Name
-* Embedding model
-* Size on disk
-* Number of words, characters, and chunks
-* The average length and size of chunks
-* The knowledge base's status
+To use OpenSearch as a database provider, you need a running OpenSearch cluster that is accessible to your Langflow instance.
+This example uses an OpenSearch container running locally, but you can also use a remote OpenSearch instance.
 
-Chunking behavior is determined by the embedding model, and the embedding model is set when you create the knowledge base.
-If you need to change the embedding model, you must delete and recreate the knowledge base.
+1. For this example, start a local OpenSearch container with security disabled. This allows you to connect without a username, password, or TLS. This configuration is for example purposes only; it _isn't_ recommended in production environments.
 
-To update a knowledge base with , click <Icon name="EllipsisVertical" aria-hidden="true"/> **More**, and then select <Icon name="RefreshCW" aria-hidden="true"/> **Update Knowledge Base**.
+    ```bash
+    podman run -d \
+      --name opensearch \
+      -p 9200:9200 \
+      -p 9600:9600 \
+      -e "discovery.type=single-node" \
+      -e "plugins.security.disabled=true" \
+      -e "OPENSEARCH_INITIAL_ADMIN_PASSWORD=YOUR_OPENSEARCH_PASSWORD" \
+      opensearchproject/opensearch:latest
+    ```
 
-To view a knowledge base's chunks, click <Icon name="EllipsisVertical" aria-hidden="true"/> **More**, and then select <Icon name="Layers" aria-hidden="true"/> **View Chunks**.
+    :::note
+    OpenSearch 3.x requires `OPENSEARCH_INITIAL_ADMIN_PASSWORD` to be set even when security is disabled.
 
-To delete a knowledge base, click <Icon name="EllipsisVertical" aria-hidden="true"/> **More**, and then click <Icon name="Trash2" aria-hidden="true"/> **Delete**.
-If any flows use the deleted knowledge base, you must update them to use a different knowledge base.
+    If the password fails validation, container startup exits immediately with `Password failed validation`.
 
-For more information on using knowledge bases in a flow, see the [**Knowledge Base** component](/knowledge-base) documentation.
+    The password must adhere to the https://docs.opensearch.org/latest/security/configuration/demo-configuration/#setting-up-a-custom-admin-password[OpenSearch password complexity requirements].
+    :::
+
+2. Verify the cluster is reachable:
+
+    ```bash
+    curl -s http://localhost:9200
+    ```
+
+    A successful response indicates that the container has started and can receive requests:
+
+    ```json
+    {
+      "name" : "your-node-name",
+      "cluster_name" : "docker-cluster",
+      "version" : {
+        "distribution" : "opensearch",
+        "number" : "3.6.0"
+      },
+      "tagline" : "The OpenSearch Project: https://opensearch.org/"
+    }
+    ```
+
+    If you get no response or a connection error, the container might still be starting. Wait a few seconds and try again.
+
+3. To connect the OpenSearch database to Langflow as a knowledge base, click **Settings**, and then click **DB Providers**.
+4. Select **OpenSearch**.
+5. Enter the following values for the local OpenSearch container:
+
+    - **Cluster URL**: Enter `http://localhost:9200`.
+    - **Username**: Leave blank if security is disabled. Otherwise, enter your basic auth username.
+    - **Password**: Leave blank if security is disabled. Otherwise, enter your basic auth password.
+    - **Default Index name**: Enter `langflow_knowledge`. The OpenSearch index to write and read from. This index is created in the later ingestion step, so it isn't immediately available.
+    - **Vector field**: Enter `vector_field`. The document field for storing the embedding vector.
+    - **Text field**: Enter `text`. The document field for storing the chunk text.
+    - **Use TLS (HTTPS)**: Turn off. Enable if your cluster uses HTTPS.
+    - **Verify TLS certificate**: Turn off. Enable if your cluster uses CA-signed certificates.
+
+    :::tip
+    The knowledge base name doesn't need to match the OpenSearch index name — it is the internal label used to scope searches within the shared OpenSearch index.
+    :::
+
+6. Click **Save and Use OpenSearch**.
+
+    Optionally, click **Test Connection** to verify that Langflow can reach your OpenSearch cluster before saving.
+
+    The OpenSearch database is now connected to Langflow as a knowledge base provider.
+
+To create a knowledge base using this provider, see [Create a knowledge base](#create-a-knowledge-base).
 
 ## See also
 

@@ -441,6 +441,16 @@
       "icon": "/img/icons/mcp.png"
     },
     {
+      "id": "gemini-spark",
+      "name": "Gemini Spark",
+      "description": "Persistent memory for Google's Gemini Spark assistant via MCP. Spark calls Hindsight's recall and retain tools through its built-in MCP client — works with Hindsight Cloud or self-hosted via an OAuth proxy.",
+      "type": "official",
+      "by": "hindsight",
+      "category": "tool",
+      "link": "/sdks/integrations/gemini-spark",
+      "icon": "/img/icons/mcp.png"
+    },
+    {
       "id": "outsystems",
       "name": "OutSystems",
       "description": "Add Hindsight memory banks to OutSystems applications or agents.",

@@ -244,7 +244,8 @@ const openingMessage = (s: AgentStoreState) => currentAgentConfig(s)?.openingMes
  * collapses the agent to chat mode.
  */
 const currentAgentMode = (s: AgentStoreState): AgentMode | undefined => {
-  const chatConfig = currentAgentConfig(s)?.chatConfig;
+  const config = currentAgentConfig(s);
+  const chatConfig = config?.chatConfig;
   return chatConfig?.enableAgentMode === false ? undefined : 'auto';
 };
 

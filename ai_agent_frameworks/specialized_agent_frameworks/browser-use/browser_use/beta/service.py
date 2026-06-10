@@ -2921,30 +2921,49 @@ def _optional_positive_int(value: Any) -> int | None:
 	return integer if integer > 0 else None
 
 
-def _input_usage_buckets(usage: dict[str, Any]) -> tuple[int, int, int]:
-	cache_read_tokens = _int_field(usage, ('cache_read_input_tokens', 'input_cached_tokens', 'cached_input_tokens'))
+def _cache_creation_usage_tokens(usage: dict[str, Any]) -> tuple[int, int, int]:
+	cache_creation = usage.get('cache_creation')
+	if isinstance(cache_creation, dict):
+		cache_creation_5m_tokens = _int_value(cache_creation.get('ephemeral_5m_input_tokens'))
+		cache_creation_1h_tokens = _int_value(cache_creation.get('ephemeral_1h_input_tokens'))
+		return cache_creation_5m_tokens + cache_creation_1h_tokens, cache_creation_5m_tokens, cache_creation_1h_tokens
+
 	cache_creation_tokens = _int_field(
 		usage, ('cache_creation_input_tokens', 'prompt_cache_creation_tokens', 'input_cache_creation_tokens')
 	)
+	return cache_creation_tokens, 0, 0
+
+
+def _input_usage_buckets(usage: dict[str, Any]) -> tuple[int, int, int, int, int]:
+	cache_read_tokens = _int_field(usage, ('cache_read_input_tokens', 'input_cached_tokens', 'cached_input_tokens'))
+	cache_creation_tokens, cache_creation_5m_tokens, cache_creation_1h_tokens = _cache_creation_usage_tokens(usage)
 	input_tokens = _int_value(usage.get('input_tokens'))
 	if 'cache_read_input_tokens' in usage or 'cache_creation_input_tokens' in usage:
 		input_tokens += cache_read_tokens
-	return input_tokens, cache_read_tokens, cache_creation_tokens
+	return input_tokens, cache_read_tokens, cache_creation_tokens, cache_creation_5m_tokens, cache_creation_1h_tokens
 
 
 def _chat_invoke_usage_from_payload(usage: dict[str, Any]) -> ChatInvokeUsage | None:
-	input_tokens, cached_input_tokens, cache_creation_tokens = _input_usage_buckets(usage)
+	input_tokens, cached_input_tokens, cache_creation_tokens, cache_creation_5m_tokens, cache_creation_1h_tokens = (
+		_input_usage_buckets(usage)
+	)
 	completion_tokens = _usage_completion_tokens(usage)
 	total_tokens = _usage_total_tokens(usage, input_tokens, cache_creation_tokens, completion_tokens)
 	if input_tokens == 0 and completion_tokens == 0 and total_tokens == 0:
 		return None
+	pricing_multiplier = _float_value(usage.get('pricing_multiplier'))
+	if not pricing_multiplier and usage.get('inference_geo') == 'us':
+		pricing_multiplier = 1.1
 	return ChatInvokeUsage(
 		prompt_tokens=input_tokens,
 		prompt_cached_tokens=cached_input_tokens or None,
 		prompt_cache_creation_tokens=cache_creation_tokens or None,
+		prompt_cache_creation_5m_tokens=cache_creation_5m_tokens or None,
+		prompt_cache_creation_1h_tokens=cache_creation_1h_tokens or None,
 		prompt_image_tokens=_optional_positive_int(usage.get('prompt_image_tokens') or usage.get('image_tokens')),
 		completion_tokens=completion_tokens,
 		total_tokens=total_tokens,
+		pricing_multiplier=pricing_multiplier or None,
 	)
 
 
@@ -2990,7 +3009,7 @@ def _usage_from_events(events: list[dict[str, Any]], model: str) -> UsageSummary
 		payload = _event_payload(event)
 		if event_type == 'model.usage':
 			usage = _model_usage_payload(payload)
-			event_input_tokens, event_cached_input_tokens, event_cache_creation_tokens = _input_usage_buckets(usage)
+			event_input_tokens, event_cached_input_tokens, event_cache_creation_tokens, _, _ = _input_usage_buckets(usage)
 			event_completion_tokens = _usage_completion_tokens(usage)
 			input_tokens += event_input_tokens
 			cached_input_tokens += event_cached_input_tokens
@@ -3004,14 +3023,14 @@ def _usage_from_events(events: list[dict[str, Any]], model: str) -> UsageSummary
 			token_usage = _token_count_usage(payload)
 			if token_usage is None:
 				continue
-			total_input_tokens, total_cached_input_tokens, total_cache_creation_tokens = _input_usage_buckets(token_usage)
+			total_input_tokens, total_cached_input_tokens, total_cache_creation_tokens, _, _ = _input_usage_buckets(token_usage)
 			total_completion_tokens = _usage_completion_tokens(token_usage)
 			total_usage_tokens = _usage_total_tokens(
 				token_usage, total_input_tokens, total_cache_creation_tokens, total_completion_tokens
 			)
 			last_usage = _token_count_last_usage(payload)
 			if isinstance(last_usage, dict):
-				last_input_tokens, last_cached_input_tokens, last_cache_creation_tokens = _input_usage_buckets(last_usage)
+				last_input_tokens, last_cached_input_tokens, last_cache_creation_tokens, _, _ = _input_usage_buckets(last_usage)
 				last_completion_tokens = _usage_completion_tokens(last_usage)
 				token_count_input_tokens += last_input_tokens
 				token_count_cached_input_tokens += last_cached_input_tokens
@@ -3194,14 +3213,16 @@ def _terminal_turn_usage_payload(events: list[dict[str, Any]]) -> dict[str, Any]
 	return raw_usage if isinstance(raw_usage, dict) else None
 
 
-def _terminal_laminar_usage_summary(raw_usage: dict[str, Any] | None) -> dict[str, int | float] | None:
+def _terminal_laminar_usage_summary(raw_usage: dict[str, Any] | None) -> dict[str, Any] | None:
 	if raw_usage is None:
 		return None
-	input_tokens, cached_input_tokens, cache_creation_tokens = _input_usage_buckets(raw_usage)
+	input_tokens, cached_input_tokens, cache_creation_tokens, cache_creation_5m_tokens, cache_creation_1h_tokens = (
+		_input_usage_buckets(raw_usage)
+	)
 	output_tokens = _usage_completion_tokens(raw_usage)
 	total_tokens = _usage_total_tokens(raw_usage, input_tokens, cache_creation_tokens, output_tokens)
 	cost = _float_value(raw_usage.get('cost_usd') or raw_usage.get('cost') or raw_usage.get('total_cost'))
-	summary: dict[str, int | float] = {
+	summary: dict[str, Any] = {
 		'input_tokens': input_tokens,
 		'cached_input_tokens': cached_input_tokens,
 		'output_tokens': output_tokens,
@@ -3209,15 +3230,24 @@ def _terminal_laminar_usage_summary(raw_usage: dict[str, Any] | None) -> dict[st
 	}
 	if cache_creation_tokens:
 		summary['cache_creation_input_tokens'] = cache_creation_tokens
+	if cache_creation_5m_tokens or cache_creation_1h_tokens:
+		summary['cache_creation'] = {
+			'ephemeral_5m_input_tokens': cache_creation_5m_tokens,
+			'ephemeral_1h_input_tokens': cache_creation_1h_tokens,
+		}
 	reasoning_output_tokens = _reasoning_output_tokens(raw_usage)
 	if reasoning_output_tokens:
 		summary['reasoning_output_tokens'] = reasoning_output_tokens
 	if cost:
 		summary['cost_usd'] = cost
+	if raw_usage.get('inference_geo') is not None:
+		summary['inference_geo'] = raw_usage['inference_geo']
+	if raw_usage.get('pricing_multiplier') is not None:
+		summary['pricing_multiplier'] = raw_usage['pricing_multiplier']
 	return summary
 
 
-def _terminal_laminar_usage_cost(model: str, usage: dict[str, int | float] | None) -> dict[str, float] | None:
+def _terminal_laminar_usage_cost(model: str, usage: dict[str, Any] | None) -> dict[str, float] | None:
 	if not usage:
 		return None
 	pricing = CUSTOM_MODEL_PRICING.get(model) or CUSTOM_MODEL_PRICING.get(model.replace('.', '-'))
@@ -3225,13 +3255,27 @@ def _terminal_laminar_usage_cost(model: str, usage: dict[str, int | float] | Non
 		return None
 	input_tokens = int(usage.get('input_tokens') or 0)
 	cached_tokens = int(usage.get('cached_input_tokens') or 0)
-	cache_creation_tokens = int(usage.get('cache_creation_input_tokens') or 0)
+	cache_creation_tokens, cache_creation_5m_tokens, cache_creation_1h_tokens = _cache_creation_usage_tokens(usage)
 	output_tokens = int(usage.get('output_tokens') or 0)
 	uncached_tokens = max(0, input_tokens - cached_tokens)
 	input_cost = uncached_tokens * float(pricing.get('input_cost_per_token') or 0.0)
 	cache_read_cost = cached_tokens * float(pricing.get('cache_read_input_token_cost') or 0.0)
-	cache_creation_cost = cache_creation_tokens * float(pricing.get('cache_creation_input_token_cost') or 0.0)
+	if cache_creation_5m_tokens or cache_creation_1h_tokens:
+		cache_creation_cost = cache_creation_5m_tokens * float(pricing.get('cache_creation_input_token_cost') or 0.0)
+		cache_creation_cost += cache_creation_1h_tokens * float(
+			pricing.get('cache_creation_1h_input_token_cost') or pricing.get('cache_creation_input_token_cost') or 0.0
+		)
+	else:
+		cache_creation_cost = cache_creation_tokens * float(pricing.get('cache_creation_input_token_cost') or 0.0)
 	output_cost = output_tokens * float(pricing.get('output_cost_per_token') or 0.0)
+	pricing_multiplier = _float_value(usage.get('pricing_multiplier'))
+	if not pricing_multiplier and usage.get('inference_geo') == 'us':
+		pricing_multiplier = 1.1
+	if pricing_multiplier:
+		input_cost *= pricing_multiplier
+		cache_read_cost *= pricing_multiplier
+		cache_creation_cost *= pricing_multiplier
+		output_cost *= pricing_multiplier
 	total_cost = input_cost + cache_read_cost + cache_creation_cost + output_cost
 	if total_cost <= 0:
 		return None
