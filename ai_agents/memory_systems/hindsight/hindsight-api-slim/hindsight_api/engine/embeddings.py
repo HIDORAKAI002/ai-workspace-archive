@@ -57,6 +57,7 @@ from ..config import (
     ENV_EMBEDDINGS_ZEROENTROPY_ENCODING_FORMAT,
     ENV_LLM_API_KEY,
 )
+from .bank_attribution import apply_bank_attribution
 
 logger = logging.getLogger(__name__)
 
@@ -705,6 +706,7 @@ class OpenAIEmbeddings(Embeddings):
             }
             if self.dimensions is not None:
                 request["dimensions"] = self.dimensions
+            apply_bank_attribution(request)
 
             response = self._client.embeddings.create(**request)
 

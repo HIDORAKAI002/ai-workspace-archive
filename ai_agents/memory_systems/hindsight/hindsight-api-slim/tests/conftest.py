@@ -532,3 +532,21 @@ async def memory_no_llm_verify(pg0_db_url, embeddings, cross_encoder, query_anal
             await mem.close()
     except Exception:
         pass
+
+
+@pytest_asyncio.fixture
+async def api_client(memory):
+    """General-purpose HTTP test client over the `memory` fixture's app.
+
+    Use for any integration test that exercises the FastAPI surface without
+    needing audit-logging side effects. See `audit_api_client` for the
+    audit-enabled variant.
+    """
+    import httpx
+
+    from hindsight_api.api import create_app
+
+    app = create_app(memory, initialize_memory=False)
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+        yield client

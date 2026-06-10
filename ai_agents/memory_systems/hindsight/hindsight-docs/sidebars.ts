@@ -138,6 +138,19 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
+      label: 'Security',
+      collapsible: false,
+      items: [
+        {
+          type: 'doc',
+          id: 'developer/memory-defense/index',
+          label: 'Memory Defense',
+          customProps: { icon: 'lu-shield' },
+        },
+      ],
+    },
+    {
+      type: 'category',
       label: 'Clients',
       collapsible: false,
       items: [

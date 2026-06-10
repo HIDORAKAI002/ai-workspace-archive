@@ -33,6 +33,7 @@ import httpx
 from openai import APIConnectionError, APIStatusError, AsyncOpenAI, LengthFinishReasonError
 
 from hindsight_api.config import DEFAULT_LLM_TIMEOUT, ENV_LLM_TIMEOUT
+from hindsight_api.engine.bank_attribution import apply_bank_attribution
 from hindsight_api.engine.llm_interface import LLMInterface, OutputTooLongError
 from hindsight_api.engine.response_models import LLMToolCall, LLMToolCallResult, TokenUsage
 from hindsight_api.metrics import get_metrics_collector
@@ -595,6 +596,8 @@ class OpenAICompatibleLLM(LLMInterface):
                     call_params["messages"] = _ensure_json_word_in_user_message(call_params["messages"])
                     call_params["response_format"] = {"type": "json_object"}
 
+        apply_bank_attribution(call_params)
+
         last_exception = None
 
         for attempt in range(max_retries + 1):
@@ -944,6 +947,8 @@ class OpenAICompatibleLLM(LLMInterface):
             call_params["seed"] = DEFAULT_LLM_SEED
         if extra_body:
             call_params["extra_body"] = extra_body
+
+        apply_bank_attribution(call_params)
 
         last_exception = None
 
