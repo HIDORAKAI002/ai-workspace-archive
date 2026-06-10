@@ -14,8 +14,7 @@ export type FormatString =
   | "attributes"
   | "branding"
   | "audio"
-  | "video"
-  | "pii";
+  | "video";
 
 export interface Viewport {
   width: number;
@@ -238,45 +237,6 @@ export interface RedactPIIOptions {
    * remove: drop span characters entirely.
    */
   replaceStyle?: "tag" | "mask" | "remove";
-}
-
-export type PIISource = "model" | "heuristics" | "unknown";
-
-export interface PIISpan {
-  start: number;
-  end: number;
-  /** Unified entity bucket. Omitted when `kind` doesn't map onto one. */
-  entity?: RedactPIIEntity;
-  /** Granular recognizer label from fire-privacy. */
-  kind: string;
-  source: PIISource;
-  /** Confidence in [0, 1] when supplied. */
-  score?: number;
-}
-
-/**
- * - ok: redaction completed; redactedMarkdown is the result.
- * - skipped: redaction was not performed; see `reason`.
- * - failed: redaction was attempted but did not produce a usable result.
- */
-export type PIIStatus = "ok" | "skipped" | "failed";
-
-/** Always set when status !== "ok". */
-export type PIIReason =
-  | "empty_input"
-  | "too_large"
-  | "upstream_skipped"
-  | "service_unavailable"
-  | "timeout"
-  | "error";
-
-export interface PIIBlock {
-  status: PIIStatus;
-  reason?: PIIReason;
-  redactedMarkdown: string | null;
-  spans: PIISpan[];
-  /** Span count per entity bucket. Only non-zero entries are present. */
-  counts: Partial<Record<RedactPIIEntity, number>>;
 }
 
 export type ParseFileData =
@@ -549,7 +509,6 @@ export interface Document {
   warning?: string;
   changeTracking?: Record<string, unknown>;
   branding?: BrandingProfile;
-  pii?: PIIBlock;
 }
 
 // Pagination configuration for auto-fetching pages from v2 endpoints that return a `next` URL

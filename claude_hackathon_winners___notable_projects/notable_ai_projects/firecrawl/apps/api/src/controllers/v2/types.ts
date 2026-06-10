@@ -459,8 +459,7 @@ export type FormatObject =
   | QueryFormatWithOptions
   | { type: "branding" }
   | { type: "audio" }
-  | { type: "video" }
-  | { type: "pii" };
+  | { type: "video" };
 
 const pdfModeSchema = z.enum(["fast", "auto", "ocr"]);
 
@@ -635,7 +634,6 @@ const baseScrapeOptions = z.strictObject({
           queryFormatWithOptions,
           z.strictObject({ type: z.literal("audio") }),
           z.strictObject({ type: z.literal("video") }),
-          z.strictObject({ type: z.literal("pii") }),
         ])
         .array()
         .optional()
@@ -1187,58 +1185,6 @@ export const mapRequestSchema = strictWithMessage(mapRequestSchemaBase);
 export type MapRequest = z.infer<typeof mapRequestSchema>;
 export type MapRequestInput = z.input<typeof mapRequestSchema>;
 
-export type PIISource = "model" | "heuristics" | "unknown";
-
-export type PIISpan = {
-  start: number;
-  end: number;
-  // Unified entity bucket. Present when `kind` maps onto one of the public
-  // entity buckets; omitted when fire-privacy returned a recognizer kind we
-  // don't expose (e.g. ORGANIZATION, DATE_TIME). Spans without an entity
-  // are dropped under any `entities` allowlist.
-  entity?: RedactPIIEntity;
-  // Granular recognizer label from fire-privacy (e.g. PRIVATE_PERSON,
-  // EMAIL_ADDRESS, ACCOUNT_NUMBER). Useful for audit / debugging; prefer
-  // `entity` for taxonomy-level checks.
-  kind: string;
-  source: PIISource;
-  // Confidence in [0, 1] when fire-privacy returned a score. Omitted when
-  // the recognizer didn't supply one.
-  score?: number;
-};
-
-// `ok`      — redaction completed; redactedMarkdown is the result.
-// `skipped` — redaction was not performed; see `reason` for why.
-//             redactedMarkdown may be the original text or null.
-// `failed`  — redaction was attempted but did not produce a usable result;
-//             see `reason`. redactedMarkdown is null.
-type PIIStatus = "ok" | "skipped" | "failed";
-
-// Why redaction was skipped or failed. Always set when status !== "ok".
-//   empty_input         — no markdown to redact, or markdown was whitespace
-//   too_large           — input exceeded the redaction-side byte ceiling
-//   upstream_skipped    — fire-privacy reported model_status: "skipped"
-//   service_unavailable — fire-privacy returned 503
-//   timeout             — request exceeded the redaction timeout budget
-//   error               — any other failure (5xx, invalid JSON, network)
-export type PIIReason =
-  | "empty_input"
-  | "too_large"
-  | "upstream_skipped"
-  | "service_unavailable"
-  | "timeout"
-  | "error";
-
-export type PIIBlock = {
-  status: PIIStatus;
-  reason?: PIIReason;
-  redactedMarkdown: string | null;
-  spans: PIISpan[];
-  // Count of spans per public entity bucket. Spans whose `kind` doesn't
-  // map onto a bucket are not counted. Only non-zero entries are present.
-  counts: Partial<Record<RedactPIIEntity, number>>;
-};
-
 export type Document = {
   title?: string;
   description?: string;
@@ -1258,7 +1204,6 @@ export type Document = {
   highlights?: string;
   branding?: BrandingProfile;
   warning?: string;
-  pii?: PIIBlock;
   attributes?: {
     selector: string;
     attribute: string;

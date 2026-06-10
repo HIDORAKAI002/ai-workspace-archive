@@ -3327,6 +3327,7 @@ export async function runEmbeddedAttempt(
 
       const {
         assistantTexts,
+        getLastAssistantTextMessageIndex,
         toolMetas,
         getAcceptedSessionSpawns,
         runToolLifecycle,
@@ -5246,6 +5247,7 @@ export async function runEmbeddedAttempt(
         messagesSnapshot,
         ...(beforeAgentFinalizeRevisionReason ? { beforeAgentFinalizeRevisionReason } : {}),
         assistantTexts,
+        lastAssistantTextMessageIndex: getLastAssistantTextMessageIndex(),
         toolMetas: toolMetasNormalized,
         acceptedSessionSpawns,
         lastAssistant,

@@ -9,21 +9,13 @@ export async function performRedactPII(
   if (!meta.options.redactPII) return document;
 
   // PII redaction requires markdown to redact. If the markdown derivation step
-  // ran and produced nothing, we surface that as `skipped` rather than calling
-  // fire-privacy with an empty body.
+  // ran and produced nothing, fail closed without calling fire-privacy.
   if (typeof document.markdown !== "string") {
-    document.pii = {
-      status: "skipped",
-      reason: "empty_input",
-      redactedMarkdown: null,
-      spans: [],
-      counts: {},
-    };
     document.markdown = "";
     return document;
   }
 
-  document.pii = await redactText({
+  const result = await redactText({
     text: document.markdown,
     url: meta.url,
     logger: meta.logger,
@@ -34,11 +26,10 @@ export async function performRedactPII(
   });
 
   // Swap raw markdown for the redacted version. Caller asked for PII
-  // redaction; leaving the leaky one in `document.markdown` next to
-  // `document.pii.redactedMarkdown` is a footgun. On `failed` /
-  // `skipped: too_large` (redactedMarkdown === null), fail closed with
+  // redaction; leaving the leaky one in `document.markdown` is a footgun.
+  // On `failed` / `skipped: too_large` (redactedMarkdown === null), fail closed with
   // an empty string so later transformers still receive markdown-shaped input.
-  document.markdown = document.pii.redactedMarkdown ?? "";
+  document.markdown = result.redactedMarkdown ?? "";
 
   return document;
 }
