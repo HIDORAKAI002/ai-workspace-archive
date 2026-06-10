@@ -72,6 +72,7 @@ DYNAMIC_TOOL_INSTRUCTIONS: frozenset[str] = frozenset(
         _DEFAULT_PROMPTS.run_playground_tool.render(),
         _DEFAULT_PROMPTS.cancel_playground_run_tool.render(),
         _DEFAULT_PROMPTS.set_variable_values_tool.render(),
+        _DEFAULT_PROMPTS.set_playground_experiment_recording_tool.render(),
         _DEFAULT_PROMPTS.set_appended_messages_path_tool.render(),
         _DEFAULT_PROMPTS.load_dataset_tool.render(),
     }
@@ -502,6 +503,7 @@ class TestPlaygroundTools:
         assert "remove_prompt_instance" not in _get_tool_names(captured_request.body)
         assert "save_prompt" not in _get_tool_names(captured_request.body)
         assert "set_variable_values" not in _get_tool_names(captured_request.body)
+        assert "set_playground_experiment_recording" not in _get_tool_names(captured_request.body)
         assert "set_template_variables_path" not in _get_tool_names(captured_request.body)
         assert "set_appended_messages_path" not in _get_tool_names(captured_request.body)
         assert "list_playground_model_targets" not in _get_tool_names(captured_request.body)
@@ -541,6 +543,7 @@ class TestPlaygroundTools:
         assert "remove_prompt_instance" in _get_tool_names(captured_request.body)
         assert "save_prompt" in _get_tool_names(captured_request.body)
         assert "set_variable_values" in _get_tool_names(captured_request.body)
+        assert "set_playground_experiment_recording" in _get_tool_names(captured_request.body)
         assert "set_template_variables_path" in _get_tool_names(captured_request.body)
         assert "set_appended_messages_path" in _get_tool_names(captured_request.body)
         assert "list_playground_model_targets" in _get_tool_names(captured_request.body)
@@ -713,6 +716,7 @@ class TestCodeEvaluatorFormToolGates:
         assert "read_code_evaluator_draft" in tool_names
         assert "edit_code_evaluator_draft" in tool_names
         assert "test_code_evaluator_draft" in tool_names
+        assert "submit_code_evaluator_draft" in tool_names
 
     async def test_create_form_hides_write_tools_without_usable_sandbox(
         self,
@@ -736,6 +740,7 @@ class TestCodeEvaluatorFormToolGates:
         assert "read_code_evaluator_draft" in tool_names
         assert "edit_code_evaluator_draft" not in tool_names
         assert "test_code_evaluator_draft" not in tool_names
+        assert "submit_code_evaluator_draft" not in tool_names
 
     async def test_edit_form_advertises_edit_without_usable_sandbox(
         self,
@@ -759,6 +764,7 @@ class TestCodeEvaluatorFormToolGates:
         assert "read_code_evaluator_draft" in tool_names
         assert "edit_code_evaluator_draft" in tool_names
         assert "test_code_evaluator_draft" not in tool_names
+        assert "submit_code_evaluator_draft" in tool_names
 
     async def test_write_and_preview_tools_hidden_for_viewers(
         self,
@@ -783,6 +789,7 @@ class TestCodeEvaluatorFormToolGates:
         assert "read_code_evaluator_draft" in tool_names
         assert "edit_code_evaluator_draft" not in tool_names
         assert "test_code_evaluator_draft" not in tool_names
+        assert "submit_code_evaluator_draft" not in tool_names
 
 
 class TestLlmEvaluatorFormToolGates:
@@ -807,6 +814,7 @@ class TestLlmEvaluatorFormToolGates:
         assert "read_llm_evaluator_draft" not in tool_names
         assert "edit_llm_evaluator_draft" not in tool_names
         assert "test_llm_evaluator_draft" not in tool_names
+        assert "submit_llm_evaluator_draft" not in tool_names
 
     async def test_open_form_hidden_for_viewer(
         self,
@@ -908,6 +916,7 @@ class TestLlmEvaluatorFormToolGates:
         assert "read_llm_evaluator_draft" not in tool_names
         assert "edit_llm_evaluator_draft" not in tool_names
         assert "test_llm_evaluator_draft" not in tool_names
+        assert "submit_llm_evaluator_draft" not in tool_names
 
     async def test_edit_form_advertises_edit_but_hides_test_without_usable_model_provider(
         self,
@@ -931,6 +940,7 @@ class TestLlmEvaluatorFormToolGates:
         assert "read_llm_evaluator_draft" in tool_names
         assert "edit_llm_evaluator_draft" in tool_names
         assert "test_llm_evaluator_draft" not in tool_names
+        assert "submit_llm_evaluator_draft" in tool_names
 
     async def test_create_form_hides_write_tools_without_usable_model_provider(
         self,
@@ -954,6 +964,7 @@ class TestLlmEvaluatorFormToolGates:
         assert "read_llm_evaluator_draft" in tool_names
         assert "edit_llm_evaluator_draft" not in tool_names
         assert "test_llm_evaluator_draft" not in tool_names
+        assert "submit_llm_evaluator_draft" not in tool_names
 
     async def test_create_form_advertises_write_tools_with_usable_model_provider(
         self,
@@ -977,6 +988,7 @@ class TestLlmEvaluatorFormToolGates:
         assert "read_llm_evaluator_draft" in tool_names
         assert "edit_llm_evaluator_draft" in tool_names
         assert "test_llm_evaluator_draft" in tool_names
+        assert "submit_llm_evaluator_draft" in tool_names
 
     async def test_write_tools_hidden_for_viewer(
         self,
@@ -1001,6 +1013,7 @@ class TestLlmEvaluatorFormToolGates:
         assert "read_llm_evaluator_draft" in tool_names
         assert "edit_llm_evaluator_draft" not in tool_names
         assert "test_llm_evaluator_draft" not in tool_names
+        assert "submit_llm_evaluator_draft" not in tool_names
 
 
 class TestLlmEvaluatorAuthoringSkillLoadContract:

@@ -1354,11 +1354,14 @@ export const transactionsSchema = z.object({
   enabled: z.boolean().optional().default(true),
 });
 
+export const DEFAULT_MEMORY_MAX_INPUT_TOKENS = 12000;
+
 export const memorySchema = z.object({
   disabled: z.boolean().optional(),
   validKeys: z.array(z.string()).optional(),
   tokenLimit: z.number().optional(),
   charLimit: z.number().optional().default(10000),
+  maxInputTokens: z.number().int().positive().optional().default(DEFAULT_MEMORY_MAX_INPUT_TOKENS),
   personalize: z.boolean().default(true),
   messageWindowSize: z.number().optional().default(5),
   agent: z
@@ -1612,6 +1615,7 @@ const sharedOpenAIModels = [
 ];
 
 const sharedAnthropicModels = [
+  'claude-fable-5',
   'claude-opus-4-8',
   'claude-opus-4-7',
   'claude-sonnet-4-6',
@@ -1636,6 +1640,7 @@ const sharedAnthropicModels = [
 ];
 
 export const bedrockModels = [
+  'anthropic.claude-fable-5',
   'anthropic.claude-opus-4-8',
   'anthropic.claude-opus-4-7',
   'anthropic.claude-sonnet-4-6',

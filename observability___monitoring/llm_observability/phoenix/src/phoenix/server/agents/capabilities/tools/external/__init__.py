@@ -35,11 +35,14 @@ from phoenix.server.agents.capabilities.tools.external import (
     run_playground,
     save_prompt,
     set_appended_messages_path,
+    set_playground_experiment_recording,
     set_playground_model,
     set_spans_filter,
     set_template_variables_path,
     set_time_range,
     set_variable_values,
+    submit_code_evaluator_draft,
+    submit_llm_evaluator_draft,
     write_prompt_tools,
 )
 from phoenix.server.agents.capabilities.tools.external.add_prompt_instance import (
@@ -114,6 +117,9 @@ from phoenix.server.agents.capabilities.tools.external.save_prompt import SavePr
 from phoenix.server.agents.capabilities.tools.external.set_appended_messages_path import (
     SetAppendedMessagesPathCapability,
 )
+from phoenix.server.agents.capabilities.tools.external.set_playground_experiment_recording import (
+    SetPlaygroundExperimentRecordingCapability,
+)
 from phoenix.server.agents.capabilities.tools.external.set_playground_model import (
     SetPlaygroundModelCapability,
 )
@@ -128,6 +134,12 @@ from phoenix.server.agents.capabilities.tools.external.set_time_range import (
 )
 from phoenix.server.agents.capabilities.tools.external.set_variable_values import (
     SetVariableValuesCapability,
+)
+from phoenix.server.agents.capabilities.tools.external.submit_code_evaluator_draft import (
+    SubmitCodeEvaluatorDraftCapability,
+)
+from phoenix.server.agents.capabilities.tools.external.submit_llm_evaluator_draft import (
+    SubmitLlmEvaluatorDraftCapability,
 )
 from phoenix.server.agents.capabilities.tools.external.write_prompt_tools import (
     WritePromptToolsCapability,
@@ -161,9 +173,12 @@ _EXTERNAL_TOOL_DEFINITIONS_BY_NAME: dict[str, ToolDefinition] = {
         remove_prompt_instance.TOOL_DEFINITION,
         run_code_evaluator_draft.TOOL_DEFINITION,
         run_llm_evaluator_draft.TOOL_DEFINITION,
+        submit_code_evaluator_draft.TOOL_DEFINITION,
+        submit_llm_evaluator_draft.TOOL_DEFINITION,
         run_playground.TOOL_DEFINITION,
         save_prompt.TOOL_DEFINITION,
         set_appended_messages_path.TOOL_DEFINITION,
+        set_playground_experiment_recording.TOOL_DEFINITION,
         set_playground_model.TOOL_DEFINITION,
         set_spans_filter.TOOL_DEFINITION,
         set_template_variables_path.TOOL_DEFINITION,
@@ -213,6 +228,9 @@ def get_external_tool_capability_function(
         RunPlaygroundCapability(instructions=prompts.run_playground_tool),
         CancelPlaygroundRunCapability(instructions=prompts.cancel_playground_run_tool),
         SetVariableValuesCapability(instructions=prompts.set_variable_values_tool),
+        SetPlaygroundExperimentRecordingCapability(
+            instructions=prompts.set_playground_experiment_recording_tool
+        ),
         SetTemplateVariablesPathCapability(instructions=prompts.set_template_variables_path_tool),
         SetAppendedMessagesPathCapability(instructions=prompts.set_appended_messages_path_tool),
         LoadDatasetCapability(instructions=prompts.load_dataset_tool),
@@ -221,9 +239,11 @@ def get_external_tool_capability_function(
         ReadCodeEvaluatorDraftCapability(instructions=prompts.read_code_evaluator_draft_tool),
         EditCodeEvaluatorDraftCapability(instructions=prompts.edit_code_evaluator_draft_tool),
         RunCodeEvaluatorDraftCapability(instructions=prompts.test_code_evaluator_draft_tool),
+        SubmitCodeEvaluatorDraftCapability(instructions=prompts.submit_code_evaluator_draft_tool),
         ReadLlmEvaluatorDraftCapability(instructions=prompts.read_llm_evaluator_draft_tool),
         EditLlmEvaluatorDraftCapability(instructions=prompts.edit_llm_evaluator_draft_tool),
         RunLlmEvaluatorDraftCapability(instructions=prompts.test_llm_evaluator_draft_tool),
+        SubmitLlmEvaluatorDraftCapability(instructions=prompts.submit_llm_evaluator_draft_tool),
     ]
 
     def _build(ctx: RunContext[AgentDependencies]) -> AbstractCapability[AgentDependencies]:
@@ -258,6 +278,7 @@ __all__ = [
     "RunPlaygroundCapability",
     "SavePromptCapability",
     "SetAppendedMessagesPathCapability",
+    "SetPlaygroundExperimentRecordingCapability",
     "SetPlaygroundModelCapability",
     "SetSpansFilterCapability",
     "SetTemplateVariablesPathCapability",
@@ -266,6 +287,8 @@ __all__ = [
     "WritePromptToolsCapability",
     "RunCodeEvaluatorDraftCapability",
     "RunLlmEvaluatorDraftCapability",
+    "SubmitCodeEvaluatorDraftCapability",
+    "SubmitLlmEvaluatorDraftCapability",
     "get_external_tool_capability_function",
     "get_external_tool_definition",
 ]

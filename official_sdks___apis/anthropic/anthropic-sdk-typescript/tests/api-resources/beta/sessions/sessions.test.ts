@@ -97,6 +97,7 @@ describe('resource sessions', () => {
           'created_at[gte]': '2019-12-27T18:11:19.117Z',
           'created_at[lt]': '2019-12-27T18:11:19.117Z',
           'created_at[lte]': '2019-12-27T18:11:19.117Z',
+          deployment_id: 'deployment_id',
           include_archived: true,
           limit: 0,
           memory_store_id: 'memory_store_id',

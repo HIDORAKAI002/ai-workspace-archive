@@ -7,6 +7,7 @@ from jinja2 import Template
 from phoenix.server.agents.prompts.templating import get_template
 
 _BASE_INSTRUCTIONS = get_template("base/BASE_INSTRUCTIONS.xml.j2")
+_BASE_SUBAGENT_INSTRUCTIONS = get_template("base/BASE_SUBAGENT_INSTRUCTIONS.xml.j2")
 _DOCS_TOOL_INSTRUCTIONS = get_template("tools/DOCS_TOOL_INSTRUCTIONS.xml.j2")
 _BASH_TOOL_INSTRUCTIONS = get_template("tools/BASH_TOOL_INSTRUCTIONS.xml.j2")
 _ASK_USER_TOOL_INSTRUCTIONS = get_template("tools/ASK_USER_TOOL_INSTRUCTIONS.xml.j2")
@@ -56,6 +57,9 @@ _SAVE_PROMPT_TOOL_INSTRUCTIONS = get_template("tools/SAVE_PROMPT_TOOL_INSTRUCTIO
 _SET_VARIABLE_VALUES_TOOL_INSTRUCTIONS = get_template(
     "tools/SET_VARIABLE_VALUES_TOOL_INSTRUCTIONS.xml.j2"
 )
+_SET_PLAYGROUND_EXPERIMENT_RECORDING_TOOL_INSTRUCTIONS = get_template(
+    "tools/SET_PLAYGROUND_EXPERIMENT_RECORDING_TOOL_INSTRUCTIONS.xml.j2"
+)
 _SET_TEMPLATE_VARIABLES_PATH_TOOL_INSTRUCTIONS = get_template(
     "tools/SET_TEMPLATE_VARIABLES_PATH_TOOL_INSTRUCTIONS.xml.j2"
 )
@@ -90,6 +94,12 @@ _TEST_LLM_EVALUATOR_DRAFT_TOOL_INSTRUCTIONS = get_template(
 _OPEN_LLM_EVALUATOR_FORM_TOOL_INSTRUCTIONS = get_template(
     "tools/OPEN_LLM_EVALUATOR_FORM_TOOL_INSTRUCTIONS.xml.j2"
 )
+_SUBMIT_CODE_EVALUATOR_DRAFT_TOOL_INSTRUCTIONS = get_template(
+    "tools/SUBMIT_CODE_EVALUATOR_DRAFT_TOOL_INSTRUCTIONS.xml.j2"
+)
+_SUBMIT_LLM_EVALUATOR_DRAFT_TOOL_INSTRUCTIONS = get_template(
+    "tools/SUBMIT_LLM_EVALUATOR_DRAFT_TOOL_INSTRUCTIONS.xml.j2"
+)
 _APP_CONTEXT_TEMPLATE = get_template("context/APP_CONTEXT_INSTRUCTIONS.xml.j2")
 _PROJECT_CONTEXT_TEMPLATE = get_template("context/PROJECT_CONTEXT_INSTRUCTIONS.xml.j2")
 _TRACE_CONTEXT_TEMPLATE = get_template("context/TRACE_CONTEXT_INSTRUCTIONS.xml.j2")
@@ -105,6 +115,10 @@ _SKILLS_TEMPLATE = get_template("skills/SKILLS_INSTRUCTIONS.xml.j2")
 _LOAD_SKILL_TEMPLATE = get_template("skills/LOAD_SKILL.xml.j2")
 _LOAD_SKILL_TOOL_TEMPLATE = get_template("skills/LOAD_SKILL_TOOL.xml.j2")
 _READ_SKILL_RESOURCE_TOOL_TEMPLATE = get_template("skills/READ_SKILL_RESOURCE_TOOL.xml.j2")
+_CALL_SUBAGENT_TOOL_INSTRUCTIONS = get_template("tools/CALL_SUBAGENT_TOOL_INSTRUCTIONS.xml.j2")
+_RUN_GRAPHQL_QUERY_TOOL_INSTRUCTIONS = get_template(
+    "tools/RUN_GRAPHQL_QUERY_TOOL_INSTRUCTIONS.xml.j2"
+)
 
 SUMMARIZATION_INSTRUCTIONS_TEMPLATE = get_template(
     "summarization/SUMMARIZATION_PROMPT_INSTRUCTIONS.xml.j2"
@@ -113,7 +127,7 @@ SUMMARIZATION_INSTRUCTIONS_TEMPLATE = get_template(
 
 @dataclass(frozen=True)
 class AgentPrompts:
-    """Typed bundle of every prompt template the chat agent uses."""
+    """Every prompt template the chat agent uses."""
 
     base: Template = _BASE_INSTRUCTIONS
     docs_tool: Template = _DOCS_TOOL_INSTRUCTIONS
@@ -137,6 +151,9 @@ class AgentPrompts:
     run_playground_tool: Template = _RUN_PLAYGROUND_TOOL_INSTRUCTIONS
     cancel_playground_run_tool: Template = _CANCEL_PLAYGROUND_RUN_TOOL_INSTRUCTIONS
     set_variable_values_tool: Template = _SET_VARIABLE_VALUES_TOOL_INSTRUCTIONS
+    set_playground_experiment_recording_tool: Template = (
+        _SET_PLAYGROUND_EXPERIMENT_RECORDING_TOOL_INSTRUCTIONS
+    )
     set_template_variables_path_tool: Template = _SET_TEMPLATE_VARIABLES_PATH_TOOL_INSTRUCTIONS
     set_appended_messages_path_tool: Template = _SET_APPENDED_MESSAGES_PATH_TOOL_INSTRUCTIONS
     load_dataset_tool: Template = _LOAD_DATASET_TOOL_INSTRUCTIONS
@@ -145,10 +162,12 @@ class AgentPrompts:
     edit_code_evaluator_draft_tool: Template = _EDIT_CODE_EVALUATOR_DRAFT_TOOL_INSTRUCTIONS
     test_code_evaluator_draft_tool: Template = _TEST_CODE_EVALUATOR_DRAFT_TOOL_INSTRUCTIONS
     open_code_evaluator_form_tool: Template = _OPEN_CODE_EVALUATOR_FORM_TOOL_INSTRUCTIONS
+    submit_code_evaluator_draft_tool: Template = _SUBMIT_CODE_EVALUATOR_DRAFT_TOOL_INSTRUCTIONS
     read_llm_evaluator_draft_tool: Template = _READ_LLM_EVALUATOR_DRAFT_TOOL_INSTRUCTIONS
     edit_llm_evaluator_draft_tool: Template = _EDIT_LLM_EVALUATOR_DRAFT_TOOL_INSTRUCTIONS
     test_llm_evaluator_draft_tool: Template = _TEST_LLM_EVALUATOR_DRAFT_TOOL_INSTRUCTIONS
     open_llm_evaluator_form_tool: Template = _OPEN_LLM_EVALUATOR_FORM_TOOL_INSTRUCTIONS
+    submit_llm_evaluator_draft_tool: Template = _SUBMIT_LLM_EVALUATOR_DRAFT_TOOL_INSTRUCTIONS
     app_context: Template = _APP_CONTEXT_TEMPLATE
     project_context: Template = _PROJECT_CONTEXT_TEMPLATE
     trace_context: Template = _TRACE_CONTEXT_TEMPLATE
@@ -162,9 +181,20 @@ class AgentPrompts:
     load_skill: Template = _LOAD_SKILL_TEMPLATE
     load_skill_tool: Template = _LOAD_SKILL_TOOL_TEMPLATE
     read_skill_resource_tool: Template = _READ_SKILL_RESOURCE_TOOL_TEMPLATE
+    call_subagent_tool: Template = _CALL_SUBAGENT_TOOL_INSTRUCTIONS
+
+
+@dataclass(frozen=True)
+class ServerAgentPrompts:
+    """Every prompt template the server agent uses."""
+
+    base: Template = _BASE_SUBAGENT_INSTRUCTIONS
+    run_graphql_query_tool: Template = _RUN_GRAPHQL_QUERY_TOOL_INSTRUCTIONS
+    docs_tool: Template = _DOCS_TOOL_INSTRUCTIONS
 
 
 __all__ = [
     "AgentPrompts",
+    "ServerAgentPrompts",
     "SUMMARIZATION_INSTRUCTIONS_TEMPLATE",
 ]

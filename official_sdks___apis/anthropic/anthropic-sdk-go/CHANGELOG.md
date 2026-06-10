@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.50.1 (2026-06-09)
+
+Full Changelog: [v1.50.0...v1.50.1](https://github.com/anthropics/anthropic-sdk-go/compare/v1.50.0...v1.50.1)
+
+### Bug Fixes
+
+* **api:** add `frontier_llm` refusal category ([9ebbaf7](https://github.com/anthropics/anthropic-sdk-go/commit/9ebbaf76a334618a062f787bd4937e3370cb117c))
+
+## 1.50.0 (2026-06-09)
+
+Full Changelog: [v1.49.0...v1.50.0](https://github.com/anthropics/anthropic-sdk-go/compare/v1.49.0...v1.50.0)
+
+### Features
+
+* **api:** add support for Managed Agents deployments and environment variable credentials ([f72e1d8](https://github.com/anthropics/anthropic-sdk-go/commit/f72e1d84cf3b6d2319c083d8ae814dcae236f217))
+
 ## 1.49.0 (2026-06-09)
 
 Full Changelog: [v1.48.0...v1.49.0](https://github.com/anthropics/anthropic-sdk-go/compare/v1.48.0...v1.49.0)
