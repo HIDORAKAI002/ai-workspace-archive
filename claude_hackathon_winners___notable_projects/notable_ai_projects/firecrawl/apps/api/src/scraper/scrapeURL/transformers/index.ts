@@ -506,18 +506,6 @@ function coerceFieldsToFormats(meta: Meta, document: Document): Document {
     );
   }
 
-  // Redaction itself is controlled by redactPII. Keep internal redaction
-  // details only when explicitly requested.
-  const hasPii = hasFormatOfType(meta.options.formats, "pii");
-  const wantPii = !!(hasPii && meta.options.redactPII);
-  if (!wantPii && document.pii !== undefined) {
-    delete document.pii;
-  } else if (wantPii && document.pii === undefined) {
-    meta.logger.warn(
-      "Redaction details were requested, but there was no pii field in the result.",
-    );
-  }
-
   if (!hasChangeTracking && document.changeTracking !== undefined) {
     meta.logger.warn(
       "Removed changeTracking from Document because it wasn't in formats -- this is extremely wasteful and indicates a bug.",

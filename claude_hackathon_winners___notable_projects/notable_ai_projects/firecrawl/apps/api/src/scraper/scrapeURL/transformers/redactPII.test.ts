@@ -51,7 +51,6 @@ describe("performRedactPII", () => {
     );
 
     expect(document.markdown).toBe("Hello <PERSON>");
-    expect(document.pii?.redactedMarkdown).toBe("Hello <PERSON>");
   });
 
   it("runs when redactPII is enabled with markdown output", async () => {
@@ -74,7 +73,6 @@ describe("performRedactPII", () => {
 
     expect(mockedRedactText).toHaveBeenCalledTimes(1);
     expect(document.markdown).toBe("Hello <PERSON>");
-    expect(document.pii?.redactedMarkdown).toBe("Hello <PERSON>");
   });
 
   it("keeps markdown as an empty string when redaction cannot produce safe output", async () => {
@@ -94,7 +92,6 @@ describe("performRedactPII", () => {
     );
 
     expect(document.markdown).toBe("");
-    expect(document.pii?.redactedMarkdown).toBeNull();
   });
 
   it("keeps downstream markdown consumers safe when source markdown is missing", async () => {
@@ -102,12 +99,5 @@ describe("performRedactPII", () => {
 
     expect(mockedRedactText).not.toHaveBeenCalled();
     expect(document.markdown).toBe("");
-    expect(document.pii).toEqual({
-      status: "skipped",
-      reason: "empty_input",
-      redactedMarkdown: null,
-      spans: [],
-      counts: {},
-    });
   });
 });
