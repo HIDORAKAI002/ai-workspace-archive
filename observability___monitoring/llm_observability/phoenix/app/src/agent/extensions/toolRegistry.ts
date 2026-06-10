@@ -16,6 +16,7 @@ import {
   editCodeEvaluatorDraftAgentTool,
   openCodeEvaluatorFormAgentTool,
   readCodeEvaluatorDraftAgentTool,
+  submitCodeEvaluatorDraftAgentTool,
   testCodeEvaluatorDraftAgentTool,
 } from "@phoenix/agent/tools/codeEvaluatorDraft";
 import { askUserAgentTool } from "@phoenix/agent/tools/elicit";
@@ -24,9 +25,11 @@ import {
   editLlmEvaluatorDraftAgentTool,
   openLlmEvaluatorFormAgentTool,
   readLlmEvaluatorDraftAgentTool,
+  submitLlmEvaluatorDraftAgentTool,
   testLlmEvaluatorDraftAgentTool,
 } from "@phoenix/agent/tools/llmEvaluatorDraft";
 import { setAppendedMessagesPathAgentTool } from "@phoenix/agent/tools/playgroundAppendedMessagesPath";
+import { setPlaygroundExperimentRecordingAgentTool } from "@phoenix/agent/tools/playgroundExperimentRecording";
 import { loadDatasetAgentTool } from "@phoenix/agent/tools/playgroundLoadDataset";
 import {
   listPlaygroundModelTargetsAgentTool,
@@ -84,16 +87,19 @@ const clientActionTools: AgentToolDefinition[] = [
   cancelPlaygroundRunAgentTool,
   readPlaygroundOutputAgentTool,
   setVariableValuesAgentTool,
+  setPlaygroundExperimentRecordingAgentTool,
   setTemplateVariablesPathAgentTool,
   setAppendedMessagesPathAgentTool,
   openCodeEvaluatorFormAgentTool,
   readCodeEvaluatorDraftAgentTool,
   editCodeEvaluatorDraftAgentTool,
   testCodeEvaluatorDraftAgentTool,
+  submitCodeEvaluatorDraftAgentTool,
   openLlmEvaluatorFormAgentTool,
   readLlmEvaluatorDraftAgentTool,
   editLlmEvaluatorDraftAgentTool,
   testLlmEvaluatorDraftAgentTool,
+  submitLlmEvaluatorDraftAgentTool,
 ];
 
 /**

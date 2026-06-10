@@ -3,6 +3,7 @@ from __future__ import annotations
 from openinference.instrumentation import OITracer, TraceConfig
 from opentelemetry.trace import NoOpTracerProvider, Tracer, TracerProvider
 from pydantic_ai import Agent, DeferredToolRequests, RunContext
+from pydantic_ai.agent.abstract import AbstractAgent
 from pydantic_ai.capabilities import (
     AbstractCapability,
     CapabilityFunc,
@@ -23,12 +24,13 @@ from phoenix.server.agents.capabilities.skills import SkillsToolset
 from phoenix.server.agents.capabilities.tools.external import (
     get_external_tool_capability_function,
 )
+from phoenix.server.agents.capabilities.tools.internal import CallSubAgentCapability
 from phoenix.server.agents.prompts import AgentPrompts
 from phoenix.server.agents.pydantic_ai import (
     OpenInferenceAgentWrapper,
     OpenInferenceCapabilityWrapper,
 )
-from phoenix.server.agents.skills import build_skills
+from phoenix.server.agents.skills import get_skills_for_contexts
 from phoenix.server.agents.types import AgentDependencies, AgentOutput
 from phoenix.server.agents.web_access import (
     build_web_fetch_capability,
@@ -43,13 +45,7 @@ def get_skills_capability_function(
     def _build(ctx: RunContext[AgentDependencies]) -> AbstractCapability[AgentDependencies]:
         return SkillsCapability(
             toolset=SkillsToolset(
-                skills=build_skills(
-                    include_playground=ctx.deps.contexts.playground is not None,
-                    include_llm_evaluator_authoring=(
-                        ctx.deps.contexts.dataset is not None
-                        or ctx.deps.contexts.llm_evaluator is not None
-                    ),
-                ),
+                skills=get_skills_for_contexts(ctx.deps.contexts),
                 load_skill_template=prompts.load_skill,
                 load_skill_tool_template=prompts.load_skill_tool,
                 read_skill_resource_tool_template=prompts.read_skill_resource_tool,
@@ -67,6 +63,7 @@ def build_agent(
     docs_mcp_server: MCPServerStreamableHTTP | None = None,
     enable_web_access: bool = False,
     tracer_provider: TracerProvider | None = None,
+    server_agent: AbstractAgent[None, str] | None = None,
 ) -> OpenInferenceAgentWrapper[AgentDependencies, AgentOutput]:
     resolved_prompts = prompts or AgentPrompts()
     provider = tracer_provider or NoOpTracerProvider()
@@ -103,6 +100,13 @@ def build_agent(
             capabilities.append(web_search)
         if (web_fetch := build_web_fetch_capability(model)) is not None:
             capabilities.append(web_fetch)
+    if server_agent is not None:
+        capabilities.append(
+            CallSubAgentCapability(
+                server_agent=server_agent,
+                instructions=resolved_prompts.call_subagent_tool.render(),
+            )
+        )
 
     traced_capability = OpenInferenceCapabilityWrapper(
         wrapped=CombinedCapability(capabilities=capabilities),
