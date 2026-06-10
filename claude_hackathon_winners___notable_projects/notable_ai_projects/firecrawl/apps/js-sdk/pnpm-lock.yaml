@@ -4,6 +4,10 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  diff@>=4.0.0 <4.0.4: '>=4.0.4'
+  follow-redirects@<1.16.0: '>=1.16.0 <2.0.0'
+
 importers:
 
   .:
