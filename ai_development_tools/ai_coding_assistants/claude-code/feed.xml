@@ -6,13 +6,22 @@
   <author><name>Anthropic</name></author>
   <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md"/>
   <link rel="self" type="application/atom+xml" href="https://raw.githubusercontent.com/anthropics/claude-code/main/feed.xml"/>
-  <updated>2026-06-08T21:57:10Z</updated>
+  <updated>2026-06-09T17:23:03Z</updated>
+  <entry>
+    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.170</id>
+    <title>Claude Code v2.1.170</title>
+    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.170"/>
+    <updated>2026-06-09T17:23:03Z</updated>
+    <content type="html">&lt;p&gt;• Introducing Claude Fable 5: a Mythos-class model that we’ve made safe for general use. Fable’s capabilities exceed those of any model we’ve ever made generally available. Update to version 2.1.170 for access. https://www.anthropic.com/news/claude-fable-5-mythos-5&lt;/p&gt;
+&lt;p&gt;• Fixed sessions not saving transcripts (and not appearing in --resume) when launched from the VS Code integrated terminal or any shell that inherited Claude Code environment variables.&lt;/p&gt;</content>
+  </entry>
   <entry>
     <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.169</id>
     <title>Claude Code v2.1.169</title>
     <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.169"/>
     <updated>2026-06-08T21:57:10Z</updated>
-    <content type="html">&lt;p&gt;• Added --safe-mode flag (and CLAUDE_CODE_SAFE_MODE) to start Claude Code with all customizations (CLAUDE.md, plugins, skills, hooks, MCP servers) disabled for troubleshooting&lt;/p&gt;
+    <content type="html">&lt;p&gt;• Self-hosted runner: added a post-session lifecycle hook that runs after the session ends and before the workspace is deleted, so you can snapshot uncommitted work or export logs; also made the child-process SIGTERM→SIGKILL window configurable (default unchanged at 5s)&lt;/p&gt;
+&lt;p&gt;• Added --safe-mode flag (and CLAUDE_CODE_SAFE_MODE) to start Claude Code with all customizations (CLAUDE.md, plugins, skills, hooks, MCP servers) disabled for troubleshooting&lt;/p&gt;
 &lt;p&gt;• Added /cd command to move a session to a new working directory without breaking the prompt cache mid-session&lt;/p&gt;
 &lt;p&gt;• Added a disableBundledSkills setting and CLAUDE_CODE_DISABLE_BUNDLED_SKILLS environment variable to hide bundled skills, workflows, and built-in slash commands from the model&lt;/p&gt;
 &lt;p&gt;• Fixed Up/Down arrows jumping to command history past the wrapped rows of a long input line — they now move through each visual row first, and history recall enters at the near edge&lt;/p&gt;
@@ -450,44 +459,5 @@
     <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.148"/>
     <updated>2026-05-22T01:16:46Z</updated>
     <content type="html">&lt;p&gt;• Fixed the Bash tool returning exit code 127 on every command for some users (a regression introduced in 2.1.147)&lt;/p&gt;</content>
-  </entry>
-  <entry>
-    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.147</id>
-    <title>Claude Code v2.1.147</title>
-    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.147"/>
-    <updated>2026-05-21T20:39:15Z</updated>
-    <content type="html">&lt;p&gt;• Pinned background sessions (Ctrl+T in claude agents) now stay alive when idle, are restarted in place to apply Claude Code updates, and are shed under memory pressure only after non-pinned sessions&lt;/p&gt;
-&lt;p&gt;• Renamed /simplify to /code-review. It now reports correctness bugs at a chosen effort level (e.g., /code-review high); pass --comment to post findings as inline GitHub PR comments. The old cleanup-and-fix behavior has been removed&lt;/p&gt;
-&lt;p&gt;• Improved auto-updater: retries transient network failures, reports specific error categories and OS error codes on failure, and shows the current version when an update fails&lt;/p&gt;
-&lt;p&gt;• Improved diff rendering performance for large file edits&lt;/p&gt;
-&lt;p&gt;• Prompt history no longer records consecutive duplicate entries — recalling a prompt with arrow-up and submitting it again won't add another copy&lt;/p&gt;
-&lt;p&gt;• Fixed enterprise login restrictions (forceLoginOrgUUID and forceLoginMethod managed-settings) not being enforced against third-party-provider and API-key sessions&lt;/p&gt;
-&lt;p&gt;• Fixed &amp;amp; in ! command output displaying as &amp;amp;amp;, which broke copy-pasting URLs from commands like gcloud auth login on headless machines&lt;/p&gt;
-&lt;p&gt;• Fixed unknown slash commands silently doing nothing in headless/SDK mode — they now show an error message&lt;/p&gt;
-&lt;p&gt;• Fixed /help rendering a broken tab header and showing only one command per page on small terminals when not in fullscreen mode&lt;/p&gt;
-&lt;p&gt;• Fixed shell snapshot dropping user functions whose names start with a single underscore, which broke aliases referencing them&lt;/p&gt;
-&lt;p&gt;• Fixed plugin agents that declare multiple Agent(...) types in tools: frontmatter dropping all but the last entry&lt;/p&gt;
-&lt;p&gt;• Fixed hook if conditions like PowerShell(git push*) never matching — only PowerShell(*) worked&lt;/p&gt;
-&lt;p&gt;• Fixed PowerShell tool dropping output for commands that rely on the default formatter&lt;/p&gt;
-&lt;p&gt;• Fixed: on Windows, "Yes, and don't ask again" for a PowerShell script invocation now writes a rule that actually matches on subsequent runs&lt;/p&gt;
-&lt;p&gt;• Fixed PowerShell tool failing on Windows with exit code 1 when pwsh is installed via winget or the Microsoft Store&lt;/p&gt;
-&lt;p&gt;• Fixed /effort opening with the slider on the wrong level — it now starts at your current effort&lt;/p&gt;
-&lt;p&gt;• Fixed paginating MCP servers dropping resources, templates, and prompts past page 1&lt;/p&gt;
-&lt;p&gt;• Fixed full-screen strobing in attached background sessions on Windows Terminal while Claude is streaming&lt;/p&gt;
-&lt;p&gt;• Fixed: on Windows, removing a background-job worktree no longer follows NTFS junctions into the main repo&lt;/p&gt;
-&lt;p&gt;• Fixed /background refusing sessions whose only typed input was a skill or custom slash command&lt;/p&gt;
-&lt;p&gt;• Fixed auto mode suppressing AskUserQuestion when the user or a skill explicitly relies on it; the auto-mode classifier now sees the user's answers as intent signal&lt;/p&gt;
-&lt;p&gt;• Fixed /theme "New custom theme" and color editor dialogs not responding to Esc&lt;/p&gt;
-&lt;p&gt;• Fixed an uncaught exception at the end of streaming sessions when running via the Agent SDK&lt;/p&gt;
-&lt;p&gt;• Fixed a rare hang when waiting for scroll to settle on Windows&lt;/p&gt;
-&lt;p&gt;• Fixed stale and doubled rows in the agent view list on Windows when background session results contain wide (CJK) characters&lt;/p&gt;
-&lt;p&gt;• Fixed pasted text being delivered to agents as an unreadable [Pasted text #N] placeholder instead of the actual content&lt;/p&gt;
-&lt;p&gt;• Fixed plugin component counts in claude plugin details and /plugin being doubled when a plugin's manifest listed paths overlapping its default directories&lt;/p&gt;
-&lt;p&gt;• Fixed backgrounded sessions re-prompting for tool permissions you already granted with "don't ask again"&lt;/p&gt;
-&lt;p&gt;• Fixed GNOME Terminal right-click and middle-click paste not inserting text&lt;/p&gt;
-&lt;p&gt;• Fixed CLAUDE_CODE_SUBAGENT_MODEL not applying to teammate processes spawned by agent teams&lt;/p&gt;
-&lt;p&gt;• Fixed slash commands followed by a tab or newline being treated as an unknown command&lt;/p&gt;
-&lt;p&gt;• Fixed several spacing and layout glitches in the /plugin, /status, /mobile, /sandbox, and /permissions menus&lt;/p&gt;
-&lt;p&gt;• Fixed stripped images prompting the model to repeatedly re-read media that was no longer present&lt;/p&gt;</content>
   </entry>
 </feed>
