@@ -1,10 +1,6 @@
 import { Logger } from "winston";
 import { config } from "../config";
 import {
-  PIIBlock,
-  PIIReason,
-  PIISource,
-  PIISpan,
   RedactPIIOptions,
   type RedactPIIEntity,
 } from "../controllers/v2/types";
@@ -26,6 +22,35 @@ type RedactOptions = {
   // wouldn't trigger this code path at all (transformer skips when
   // meta.options.redactPII is falsy).
   options?: RedactPIIOptions;
+};
+
+type RedactionSource = "model" | "heuristics" | "unknown";
+
+type RedactionSpan = {
+  start: number;
+  end: number;
+  entity?: RedactPIIEntity;
+  kind: string;
+  source: RedactionSource;
+  score?: number;
+};
+
+type RedactionStatus = "ok" | "skipped" | "failed";
+
+type RedactionReason =
+  | "empty_input"
+  | "too_large"
+  | "upstream_skipped"
+  | "service_unavailable"
+  | "timeout"
+  | "error";
+
+type RedactionResult = {
+  status: RedactionStatus;
+  reason?: RedactionReason;
+  redactedMarkdown: string | null;
+  spans: RedactionSpan[];
+  counts: Partial<Record<RedactPIIEntity, number>>;
 };
 
 // Mode + replaceStyle map to fire-privacy's `mode` and `operator` fields.
@@ -60,9 +85,8 @@ const MAX_REDACT_BYTES = 250_000;
 const CHUNK_CONCURRENCY = 3;
 
 // Maps a span's `kind` (as returned by either OPF or Presidio) onto the
-// unified entity bucket we expose to callers. Kinds we don't recognize
-// fall through unmapped — entity filtering treats them as "not in any
-// bucket" and drops them when an entity allowlist is in play.
+// unified entity bucket used by redactPII options. Kinds we don't recognize
+// fall through unmapped and drop when an entity allowlist is in play.
 const KIND_TO_ENTITY: Record<string, RedactPIIEntity> = {
   // Person
   PRIVATE_PERSON: "PERSON",
@@ -94,19 +118,19 @@ const KIND_TO_ENTITY: Record<string, RedactPIIEntity> = {
   MEDICAL_LICENSE: "SECRET",
 };
 
-// Classify fire-privacy's per-span `source` string into the public
-// taxonomy. OPF spans always carry `openai-privacy-filter`; Presidio
-// recognizer names end in `Recognizer`. Anything else is opaque.
-function classifySource(raw: unknown): PIISource {
+// Classify fire-privacy's per-span `source` string into an internal taxonomy.
+// OPF spans always carry `openai-privacy-filter`; Presidio recognizer names
+// end in `Recognizer`. Anything else is opaque.
+function classifySource(raw: unknown): RedactionSource {
   if (typeof raw !== "string") return "unknown";
   if (raw === "openai-privacy-filter") return "model";
   if (raw.endsWith("Recognizer")) return "heuristics";
   return "unknown";
 }
 
-function coerceSpans(value: unknown): PIISpan[] {
+function coerceSpans(value: unknown): RedactionSpan[] {
   if (!Array.isArray(value)) return [];
-  const out: PIISpan[] = [];
+  const out: RedactionSpan[] = [];
   for (const raw of value) {
     if (typeof raw !== "object" || raw === null) continue;
     const r = raw as Record<string, unknown>;
@@ -118,7 +142,7 @@ function coerceSpans(value: unknown): PIISpan[] {
       continue;
     }
     const entity = KIND_TO_ENTITY[r.kind];
-    const span: PIISpan = {
+    const span: RedactionSpan = {
       start: r.start,
       end: r.end,
       kind: r.kind,
@@ -135,9 +159,9 @@ function coerceSpans(value: unknown): PIISpan[] {
 // spans unchanged. When set, keeps only spans with a mapped `entity`
 // that's in the allowlist — unmapped spans drop.
 function filterByEntities(
-  spans: PIISpan[],
+  spans: RedactionSpan[],
   entities: readonly RedactPIIEntity[] | undefined,
-): PIISpan[] {
+): RedactionSpan[] {
   if (!entities || entities.length === 0) return spans;
   const allow = new Set(entities);
   return spans.filter(s => s.entity !== undefined && allow.has(s.entity));
@@ -152,7 +176,7 @@ function filterByEntities(
 //   remove → drop the chars entirely
 function renderRedacted(
   text: string,
-  spans: PIISpan[],
+  spans: RedactionSpan[],
   replaceStyle: RedactPIIOptions["replaceStyle"],
 ): string {
   if (spans.length === 0) return text;
@@ -180,7 +204,7 @@ function renderRedacted(
 }
 
 function countByEntity(
-  spans: PIISpan[],
+  spans: RedactionSpan[],
 ): Partial<Record<RedactPIIEntity, number>> {
   const out: Partial<Record<RedactPIIEntity, number>> = {};
   for (const span of spans) {
@@ -195,14 +219,14 @@ function countByEntity(
 type ChunkResult =
   | {
       ok: true;
-      spans: PIISpan[];
+      spans: RedactionSpan[];
       redactedText: string;
       // Sticky upstream-skip flag: true if the model returned
       // model_status === "skipped" for this chunk. Surfaces on the
       // merged block when any chunk was skipped upstream.
       upstreamSkipped: boolean;
     }
-  | { ok: false; reason: PIIReason };
+  | { ok: false; reason: RedactionReason };
 
 async function redactOnce(
   chunk: Chunk,
@@ -233,7 +257,7 @@ async function redactOnce(
     });
   } catch (err) {
     clearTimeout(timer);
-    const reason: PIIReason = timedOut ? "timeout" : "error";
+    const reason: RedactionReason = timedOut ? "timeout" : "error";
     logger?.warn("fire-privacy request failed", {
       reason,
       url,
@@ -246,7 +270,7 @@ async function redactOnce(
   clearTimeout(timer);
 
   if (!response.ok) {
-    const reason: PIIReason =
+    const reason: RedactionReason =
       response.status === 503 ? "service_unavailable" : "error";
     logger?.warn("fire-privacy returned non-2xx", {
       reason,
@@ -321,7 +345,9 @@ async function runChunks(
   return results;
 }
 
-export async function redactText(opts: RedactOptions): Promise<PIIBlock> {
+export async function redactText(
+  opts: RedactOptions,
+): Promise<RedactionResult> {
   const { text, logger } = opts;
   const timeoutMs = opts.timeoutMs ?? config.FIRE_PRIVACY_TIMEOUT_MS;
   const options: RedactPIIOptions = opts.options ?? {

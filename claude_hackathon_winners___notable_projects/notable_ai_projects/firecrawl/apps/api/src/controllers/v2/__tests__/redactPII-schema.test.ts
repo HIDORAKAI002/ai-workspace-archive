@@ -59,6 +59,15 @@ describe("v2 scrapeRequestSchema — redactPII", () => {
     }
   });
 
+  it("rejects the removed pii format", () => {
+    const result = scrapeRequestSchema.safeParse({
+      url: baseUrl,
+      formats: ["pii"],
+      redactPII: true,
+    });
+    expect(result.success).toBe(false);
+  });
+
   // ---- object form --------------------------------------------------------
 
   it("accepts an explicit mode in the object form", () => {
