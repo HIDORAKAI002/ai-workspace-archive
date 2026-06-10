@@ -794,6 +794,7 @@ class DiscordAdapter(BasePlatformAdapter):
                 # Must run BEFORE the user allowlist check so that bots
                 # permitted by DISCORD_ALLOW_BOTS are not rejected for
                 # not being in DISCORD_ALLOWED_USERS (fixes #4466).
+                _role_authorized = False
                 if getattr(message.author, "bot", False):
                     allow_bots = os.getenv("DISCORD_ALLOW_BOTS", "none").lower().strip()
                     if allow_bots == "none":
@@ -817,6 +818,7 @@ class DiscordAdapter(BasePlatformAdapter):
                         is_dm=_is_dm,
                     ):
                         return
+                    _role_authorized = bool(getattr(self, "_allowed_role_ids", set()))
                 
                 # Multi-agent filtering: if the message mentions specific bots
                 # but NOT this bot, the sender is talking to another agent —
@@ -858,7 +860,7 @@ class DiscordAdapter(BasePlatformAdapter):
                         if "*" not in _free_channels and not (_channel_ids & _free_channels):
                             return
 
-                await self._handle_message(message)
+                await self._handle_message(message, role_authorized=_role_authorized)
 
             @self._client.event
             async def on_voice_state_update(member, before, after):
@@ -4726,7 +4728,7 @@ class DiscordAdapter(BasePlatformAdapter):
                     raise Exception(f"HTTP {resp.status}")
                 return await resp.read()
 
-    async def _handle_message(self, message: DiscordMessage) -> None:
+    async def _handle_message(self, message: DiscordMessage, role_authorized: bool = False) -> None:
         """Handle incoming Discord messages."""
         # In server channels (not DMs), require the bot to be @mentioned
         # UNLESS the channel is in the free-response list or the message is
@@ -4910,6 +4912,7 @@ class DiscordAdapter(BasePlatformAdapter):
             guild_id=str(guild.id) if guild else None,
             parent_chat_id=parent_channel_id,
             message_id=str(message.id),
+            role_authorized=role_authorized,
         )
 
         # Build media URLs -- download image attachments to local cache so the
@@ -5635,6 +5638,7 @@ def _define_discord_view_classes() -> None:
             self.allowed_role_ids = allowed_role_ids or set()
             self.resolved = False
             self._selected_provider: str = ""
+            self._pending_expensive_model: str = ""
 
             self._build_provider_select()
 
@@ -5717,6 +5721,41 @@ def _define_discord_view_classes() -> None:
             cancel_btn.callback = self._on_cancel
             self.add_item(cancel_btn)
 
+        def _build_expensive_confirm(self, model_id: str):
+            """Build confirmation buttons for unusually expensive models."""
+            self.clear_items()
+            self._pending_expensive_model = model_id
+
+            confirm_btn = discord.ui.Button(
+                label="Switch anyway",
+                style=discord.ButtonStyle.red,
+                custom_id="model_expensive_confirm",
+            )
+            confirm_btn.callback = self._on_expensive_confirm
+            self.add_item(confirm_btn)
+
+            cancel_btn = discord.ui.Button(
+                label="Cancel",
+                style=discord.ButtonStyle.grey,
+                custom_id="model_expensive_cancel",
+            )
+            cancel_btn.callback = self._on_cancel
+            self.add_item(cancel_btn)
+
+        async def _expensive_warning_for(self, model_id: str):
+            try:
+                from hermes_cli.model_cost_guard import expensive_model_warning
+
+                # Pricing lookup can hit models.dev / a /models endpoint on a
+                # cache miss — keep it off the event loop.
+                return await asyncio.to_thread(
+                    expensive_model_warning,
+                    model_id,
+                    provider=self._selected_provider,
+                )
+            except Exception:
+                return None
+
         async def _on_provider_selected(self, interaction: discord.Interaction):
             if not self._check_auth(interaction):
                 await interaction.response.send_message(
@@ -5746,7 +5785,11 @@ def _define_discord_view_classes() -> None:
                 view=self,
             )
 
-        async def _on_model_selected(self, interaction: discord.Interaction):
+        async def _switch_selected_model(
+            self,
+            interaction: discord.Interaction,
+            model_id: str,
+        ):
             if self.resolved:
                 await interaction.response.send_message(
                     "Already resolved~", ephemeral=True
@@ -5759,7 +5802,6 @@ def _define_discord_view_classes() -> None:
                 return
 
             self.resolved = True
-            model_id = interaction.data["values"][0]
             self.clear_items()
             await interaction.response.edit_message(
                 embed=discord.Embed(
@@ -5786,6 +5828,50 @@ def _define_discord_view_classes() -> None:
                     color=discord.Color.green(),
                 ),
                 view=None,
+            )
+
+        async def _on_model_selected(self, interaction: discord.Interaction):
+            if self.resolved:
+                await interaction.response.send_message(
+                    "Already resolved~", ephemeral=True
+                )
+                return
+            if not self._check_auth(interaction):
+                await interaction.response.send_message(
+                    "You're not authorized~", ephemeral=True
+                )
+                return
+
+            model_id = interaction.data["values"][0]
+            warning = await self._expensive_warning_for(model_id)
+            if warning is not None:
+                self._build_expensive_confirm(model_id)
+                await interaction.response.edit_message(
+                    embed=discord.Embed(
+                        title="⚠ Expensive Model Warning",
+                        description=warning.message,
+                        color=discord.Color.red(),
+                    ),
+                    view=self,
+                )
+                return
+
+            await self._switch_selected_model(interaction, model_id)
+
+        async def _on_expensive_confirm(self, interaction: discord.Interaction):
+            if not self._check_auth(interaction):
+                await interaction.response.send_message(
+                    "You're not authorized~", ephemeral=True
+                )
+                return
+            if not self._pending_expensive_model:
+                await interaction.response.send_message(
+                    "Model selection expired.", ephemeral=True
+                )
+                return
+            await self._switch_selected_model(
+                interaction,
+                self._pending_expensive_model,
             )
 
         async def _on_back(self, interaction: discord.Interaction):

@@ -20,6 +20,7 @@ import type { Document, ScrapeOptions } from "../../controllers/v2/types";
 import type { CostTracking } from "../../lib/cost-tracking";
 import type { Logger } from "winston";
 import { saveExtractResult } from "../../lib/extract/extract-redis";
+import { trackFirstSurfaceUse } from "../posthog";
 configDotenv();
 
 const previewTeamId = "3adefd26-77ec-5968-8dcf-c94b5630d1de";
@@ -182,6 +183,19 @@ export async function logRequest(request: LoggedRequest) {
     teamId: request.team_id,
     zeroDataRetention: request.zeroDataRetention,
   });
+
+  // Emit a one-time PostHog milestone the first time this team uses each
+  // surface (playground / sdk / mcp / cli / api / ...). Fire-and-forget.
+  // Skip zero-data-retention requests — don't send their metadata to PostHog.
+  if (!request.zeroDataRetention) {
+    trackFirstSurfaceUse({
+      teamId: request.team_id,
+      origin: request.origin,
+      kind: request.kind,
+      apiVersion: request.api_version,
+      apiKeyId: request.api_key_id,
+    });
+  }
 
   // Sanitize user-provided fields (most likely sources of null bytes)
   const sanitizedOrigin = sanitizeString(request.origin);

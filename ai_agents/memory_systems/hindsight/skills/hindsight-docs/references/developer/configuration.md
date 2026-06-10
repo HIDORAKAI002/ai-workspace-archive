@@ -163,7 +163,7 @@ For non-English banks (especially CJK) and the language/extraction-language trad
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `HINDSIGHT_API_LLM_PROVIDER` | Provider: `openai`, `openai-codex`, `claude-code`, `anthropic`, `gemini`, `groq`, `minimax`, `deepseek`, `zai`, `opencode-go`, `fireworks`, `ollama`, `ollama-cloud`, `lmstudio`, `llamacpp`, `vertexai`, `bedrock`, `litellm`, `litellmrouter`, `volcano`, `openrouter`, `none` | `openai` |
+| `HINDSIGHT_API_LLM_PROVIDER` | Provider: `openai`, `openai-codex`, `claude-code`, `anthropic`, `gemini`, `groq`, `minimax`, `deepseek`, `zai`, `opencode-go`, `nous`, `fireworks`, `ollama`, `ollama-cloud`, `lmstudio`, `llamacpp`, `vertexai`, `bedrock`, `litellm`, `litellmrouter`, `volcano`, `openrouter`, `none` | `openai` |
 | `HINDSIGHT_API_LLM_API_KEY` | API key for LLM provider | - |
 | `HINDSIGHT_API_LLM_MODEL` | Model name | `gpt-5-mini` |
 | `HINDSIGHT_API_LLM_BASE_URL` | Custom LLM endpoint | Provider default |
@@ -173,8 +173,10 @@ For non-English banks (especially CJK) and the language/extraction-language trad
 | `HINDSIGHT_API_LLM_MAX_BACKOFF` | Max retry backoff cap in seconds | `60.0` |
 | `HINDSIGHT_API_LLM_TIMEOUT` | LLM request timeout in seconds | `120` |
 | `HINDSIGHT_API_LLM_REASONING_EFFORT` | Reasoning effort for providers/models that support it (for example `low`, `medium`, `high`, `xhigh`) | `low` |
+| `HINDSIGHT_API_LLM_SEND_BANK_AS_USER` | Tag outbound LLM and embedding calls with `user=<bank_id>` so gateways (OpenRouter usage accounting, LiteLLM, Helicone) can attribute spend per bank. When enabled, the bank id is transmitted to the upstream provider as the end-user identifier. | `false` |
 | `HINDSIGHT_API_LLM_GROQ_SERVICE_TIER` | Groq service tier: `on_demand`, `flex`, `auto` | `auto` |
 | `HINDSIGHT_API_LLM_OPENAI_SERVICE_TIER` | OpenAI service tier: `flex` for 50% cost savings (OpenAI Flex Processing) | None (default) |
+| `HINDSIGHT_API_LLM_BEDROCK_SERVICE_TIER` | Bedrock service tier: `flex` for 50% cost savings (best-effort inference), `priority` (guaranteed throughput), or `reserved` (provisioned capacity) | Unset (default tier) |
 | `HINDSIGHT_API_LLM_EXTRA_BODY` | JSON dict of extra request-body params (e.g. `temperature`, `top_p`, `max_tokens`) merged into every LLM call. Applied across the OpenAI-compatible, Fireworks, Anthropic, Gemini/VertexAI and LiteLLM (incl. Bedrock/Router) providers. Each provider merges them in its own native parameter space, so use that provider's field names (e.g. `max_tokens` for OpenAI/Anthropic vs `max_output_tokens` for Gemini). Also useful for custom model servers (e.g. vLLM `chat_template_kwargs`). | `null` |
 | `HINDSIGHT_API_LLM_DEFAULT_HEADERS` | JSON dict passed as `default_headers` to provider SDK clients. Used by operators routing through proxies / request-tracing middleware (e.g. Cloudflare AI Gateway, Helicone, corporate proxies). Currently wired into the Anthropic provider; other providers can opt in. | `null` |
 | `HINDSIGHT_API_LLM_STRICT_SCHEMA` | Grammar-enforce structured output via `json_schema` `strict: true` instead of the soft "schema-in-prompt + `json_object`" path. Use it with weaker self-hosted models that return prose preambles, markdown ` ```json ` fences, or invalid JSON — which otherwise fail to parse and wedge retain/consolidation. Applies to OpenAI-compatible backends (OpenAI, llama.cpp, vLLM) and LiteLLM; Gemini already enforces its native `response_schema` regardless, and providers without a strict mode ignore it. | `false` |
@@ -288,12 +290,21 @@ export HINDSIGHT_API_LLM_API_KEY=your-opencode-go-api-key
 export HINDSIGHT_API_LLM_MODEL=deepseek-v4-flash
 # Default base_url: https://opencode.ai/zen/go/v1 (override with HINDSIGHT_API_LLM_BASE_URL if needed)
 
+# Nous Portal (OpenAI-compatible; no API key — uses your `hermes portal` login)
+export HINDSIGHT_API_LLM_PROVIDER=nous
+export HINDSIGHT_API_LLM_MODEL=deepseek/deepseek-v4-flash
+# No API key needed — reads a rotating JWT from ~/.hermes/auth.json (run `hermes portal` first).
+# Default base_url: https://inference-api.nousresearch.com/v1 (override with HINDSIGHT_API_LLM_BASE_URL if needed)
+# See the "Nous Portal Setup" section in the Models guide for the login flow.
+
 # AWS Bedrock (native support - no API key needed, uses AWS credentials)
 export HINDSIGHT_API_LLM_PROVIDER=bedrock
 export HINDSIGHT_API_LLM_MODEL=us.amazon.nova-2-lite-v1:0
 export AWS_ACCESS_KEY_ID=your-access-key
 export AWS_SECRET_ACCESS_KEY=your-secret-key
 export AWS_REGION_NAME=us-east-1
+# Optional: Use Flex tier for 50% cost savings (with variable latency)
+# export HINDSIGHT_API_LLM_BEDROCK_SERVICE_TIER=flex
 
 # LiteLLM (100+ providers via LiteLLM SDK)
 # Azure OpenAI via LiteLLM
@@ -771,6 +782,7 @@ ZeroEntropy's `zembed-1` supports Matryoshka dimensions: `2560`, `1280`, `640`, 
 | `HINDSIGHT_API_RERANKER_OPENROUTER_API_KEY` | OpenRouter API key for reranking (falls back to `HINDSIGHT_API_OPENROUTER_API_KEY`, then `HINDSIGHT_API_LLM_API_KEY`) | - |
 | `HINDSIGHT_API_RERANKER_OPENROUTER_MODEL` | OpenRouter rerank model | `cohere/rerank-v3.5` |
 | `HINDSIGHT_API_RERANKER_OPENROUTER_TIMEOUT` | HTTP request timeout for OpenRouter reranker (seconds). | `60.0` |
+| `HINDSIGHT_API_RERANKER_OPENROUTER_BASE_URL` | Rerank endpoint URL (point at a Cohere-compatible gateway/proxy for metering) | `https://openrouter.ai/api/v1/rerank` |
 | `HINDSIGHT_API_RERANKER_COHERE_API_KEY` | Cohere API key for reranking (falls back to `HINDSIGHT_API_COHERE_API_KEY`) | - |
 | `HINDSIGHT_API_RERANKER_COHERE_MODEL` | Cohere rerank model | `rerank-english-v3.0` |
 | `HINDSIGHT_API_RERANKER_COHERE_BASE_URL` | Custom base URL for any Cohere-compatible `/rerank` endpoint (Azure AI Foundry, Jina, Voyage, self-hosted BGE, etc.). When set, the `cohere` provider bypasses the Cohere SDK and calls the endpoint directly via HTTP. | - |
@@ -927,6 +939,13 @@ curl -H "Authorization: Bearer your-secret-api-key" \
 
 Requests without a valid API key receive a `401 Unauthorized` response.
 
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `HINDSIGHT_API_TENANT_EXTENSION` | Dotted path to the loaded tenant extension. Set to `hindsight_api.extensions.builtin.tenant:ApiKeyTenantExtension` to require an API key on every request. | *(none; auth disabled)* |
+| `HINDSIGHT_API_TENANT_API_KEY` | Shared API key checked by the built-in API-key extension. Sent by clients as `Authorization: Bearer <key>`. | *(none)* |
+
+If you are enabling Memory Defense, see `docs/developer/memory-defense/` for the policy schema, detector catalog, and audit trail.
+
 :::tip Custom Authentication
 For advanced authentication (JWT, OAuth, multi-tenant schemas), implement a custom `TenantExtension`. See the [Extensions documentation](./extensions.md) for details.
 :::
@@ -1012,7 +1031,9 @@ Controls the retain (memory ingestion) pipeline.
 | `HINDSIGHT_API_RETAIN_BATCH_POLL_INTERVAL_SECONDS` | Batch API polling interval in seconds | `60` |
 | `HINDSIGHT_API_STORE_DOCUMENT_TEXT` | Persist the raw source text alongside extracted memories. Set to `false` to skip storing it. Static, server-level. | `true` |
 
-> **Batch-capable providers.** `HINDSIGHT_API_RETAIN_BATCH_ENABLED=true` only works with a retain LLM provider that implements a batch API: `openai`, `groq`, and `fireworks`. Batch always requires async retain (`async=true`); a sync retain with batch enabled errors. Other providers fail fast at startup.
+> **Batch-capable providers.** `HINDSIGHT_API_RETAIN_BATCH_ENABLED=true` only works with a retain LLM provider that implements a batch API: `openai`, `groq`, `gemini`, and `fireworks`. Batch always requires async retain (`async=true`); a sync retain with batch enabled errors. Other providers fail fast at startup.
+>
+> **Gemini** uses the [Gemini Batch API](https://ai.google.dev/gemini-api/docs/batch-api) (flat 50% input + output discount, 24h SLA — typically minutes). It needs no extra settings beyond `HINDSIGHT_API_RETAIN_BATCH_ENABLED=true` and an API-key `gemini` provider; Vertex AI (`vertexai`) is not batch-capable.
 
 #### Fireworks batch inference
 
@@ -1581,7 +1602,7 @@ For a server handling many concurrent requests, lower values (down to `1`) favor
 
 ### Audit Logging
 
-Audit logging captures mutating operations (retain, recall, reflect, bank config updates, etc.) into an `audit_log` table, queryable via the `/audit-logs` endpoint.
+Audit logging captures mutating operations (retain, recall, reflect, bank config updates, [Memory Defense](memory-defense/index.md) redact/block actions, etc.) into an `audit_log` table, queryable via the `/audit-logs` endpoint.
 
 **Audit logging is disabled by default.** With `HINDSIGHT_API_AUDIT_LOG_ENABLED=false`, the `audit_log` table stays empty and `/audit-logs` returns `{"total": 0, "items": []}` regardless of activity. Set the flag to `true` and restart the API to start capturing events.
 
@@ -1773,6 +1794,7 @@ Configuration fields are categorized for security:
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `HINDSIGHT_API_ENABLE_BANK_CONFIG_API` | Enable per-bank config API | `true` |
+| `HINDSIGHT_API_ENABLE_BANK_LLM_HEALTH` | Enable the per-bank LLM connectivity probe (`POST /v1/default/banks/{bank_id}/health/llm`). It makes a real provider call, so it is **off by default** — enable it to expose the endpoint. Returns status only — never the provider/model/endpoint. | `false` |
 | `HINDSIGHT_API_DEFAULT_BANK_TEMPLATE` | Bank template manifest (JSON) applied automatically to every newly-created bank. See below. | _(unset)_ |
 
 ##### `HINDSIGHT_API_DEFAULT_BANK_TEMPLATE`
