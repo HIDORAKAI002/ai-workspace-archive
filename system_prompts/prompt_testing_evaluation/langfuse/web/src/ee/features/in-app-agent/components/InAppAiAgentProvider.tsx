@@ -18,12 +18,13 @@ import { env } from "@/src/env.mjs";
 import {
   createInAppAgentConversationId,
   createInAppAgentMessageId,
-} from "@/src/features/in-app-agent/ids";
+} from "@/src/ee/features/in-app-agent/ids";
 import {
   AgUiMessageSchema,
   type AgUiMessage,
   type InAppAgentRuntimeState,
-} from "@/src/features/in-app-agent/schema";
+} from "@/src/ee/features/in-app-agent/schema";
+import { useHasEntitlement } from "@/src/features/entitlements/hooks";
 import { showErrorToast } from "@/src/features/notifications/showErrorToast";
 import { api } from "@/src/utils/api";
 
@@ -102,8 +103,9 @@ export function InAppAiAgentProvider({
   const routerProjectId = router.query.projectId;
   const projectId =
     typeof routerProjectId === "string" ? routerProjectId : undefined;
+  const hasInAppAgentEntitlement = useHasEntitlement("in-app-agent");
 
-  if (!projectId) {
+  if (!projectId || !hasInAppAgentEntitlement) {
     return <>{children}</>;
   }
 
@@ -400,12 +402,16 @@ function InAppAiAgentProviderInner({
 
   const selectConversation = useCallback(
     (conversationId: string | null) => {
+      if (isRunning || conversationId === selectedConversationId) {
+        return;
+      }
+
       setError(null);
       resetAgent();
       setMessages([]);
       setSelectedConversationId(conversationId);
     },
-    [resetAgent, setSelectedConversationId],
+    [isRunning, resetAgent, selectedConversationId, setSelectedConversationId],
   );
 
   const submit = useCallback(

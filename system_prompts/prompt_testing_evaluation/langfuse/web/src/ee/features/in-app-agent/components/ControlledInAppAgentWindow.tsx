@@ -11,21 +11,25 @@ import { useInAppAiAgent } from "./InAppAiAgentProvider";
 import {
   AgUiMessageSchema,
   type AgUiMessage,
-} from "@/src/features/in-app-agent/schema";
+} from "@/src/ee/features/in-app-agent/schema";
 
-type ControlledInAppAgentWindowProps =
-  | {
-      isExpanded: boolean;
-      showCloseButton: false;
-      onExpandedChange: (isExpanded: boolean) => void;
-      onClose?: () => void;
-    }
-  | {
-      isExpanded: boolean;
-      showCloseButton?: true;
-      onExpandedChange: (isExpanded: boolean) => void;
-      onClose: () => void;
-    };
+type ControlledInAppAgentWindowBaseProps = {
+  zIndex?: number;
+  isExpanded: boolean;
+  onExpandedChange: (isExpanded: boolean) => void;
+};
+
+type ControlledInAppAgentWindowProps = ControlledInAppAgentWindowBaseProps &
+  (
+    | {
+        showCloseButton: false;
+        onClose?: () => void;
+      }
+    | {
+        showCloseButton?: true;
+        onClose: () => void;
+      }
+  );
 
 export function ControlledInAppAgentWindow(
   props: ControlledInAppAgentWindowProps,
@@ -223,6 +227,7 @@ export function ControlledInAppAgentWindow(
       messages={drawerMessages}
       conversations={conversations}
       hasMoreConversations={hasMoreConversations}
+      zIndex={props.zIndex}
       isLoadingMoreConversations={isLoadingMoreConversations}
       selectedConversationId={selectedConversationId}
       onLoadMoreConversations={loadMoreConversations}
