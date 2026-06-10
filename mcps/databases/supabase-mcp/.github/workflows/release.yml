@@ -5,6 +5,11 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      force_publish:
+        description: 'Skip release-please and publish current package.json versions'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -32,33 +37,56 @@ jobs:
         with:
           token: ${{ steps.generate-token.outputs.token }}
 
-      # Everything below only runs when a release PR is merged.
-      # Shared setup steps gate on releases_created (true if any package released).
+      - name: Validate force publish ref
+        if: ${{ inputs.force_publish == true }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          if [ "$REF_TYPE" != "tag" ]; then
+            echo "Select a release tag instead of a branch when running force_publish."
+            exit 1
+          fi
+          if gh api --silent "repos/$GITHUB_REPOSITORY/releases/tags/$REF_NAME"; then
+            echo "Force publishing from release tag $REF_NAME."
+            exit 0
+          fi
+          echo "Selected tag $REF_NAME is not associated with a GitHub Release."
+          exit 1
+
+      # Everything below runs when a release PR is merged, or when
+      # force_publish is manually enabled for retrying current package versions.
+      # Shared setup steps gate on releases_created (true if any package released)
+      # or force_publish.
       # Per-package publish steps gate on <path>--release_created so only the
-      # released package(s) are published each run.
+      # released package(s) are published each run. force_publish runs all
+      # publish steps; already-published npm versions and MCP registry
+      # versions are skipped below.
       # Ref: https://github.com/googleapis/release-please-action#path-outputs
 
       - name: Checkout repository
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
-        if: ${{ steps.release.outputs.releases_created }}
+        if: ${{ steps.release.outputs.releases_created || inputs.force_publish == true }}
 
       - name: Setup tools
         uses: jdx/mise-action@5228313ee0372e111a38da051671ca30fc5a96db # v3.6.3
-        if: ${{ steps.release.outputs.releases_created }}
+        if: ${{ steps.release.outputs.releases_created || inputs.force_publish == true }}
         with:
           install: true
           cache: true
 
       - name: Install dependencies
-        if: ${{ steps.release.outputs.releases_created }}
+        if: ${{ steps.release.outputs.releases_created || inputs.force_publish == true }}
         run: pnpm install --frozen-lockfile
 
       - name: Build packages
-        if: ${{ steps.release.outputs.releases_created }}
+        if: ${{ steps.release.outputs.releases_created || inputs.force_publish == true }}
         run: pnpm --filter @supabase/mcp-utils --filter @supabase/mcp-server-supabase --filter @supabase/mcp-server-postgrest build
 
       - name: Publish @supabase/mcp-utils to npm
-        if: ${{ steps.release.outputs['packages/mcp-utils--release_created'] }}
+        if: ${{ steps.release.outputs['packages/mcp-utils--release_created'] || inputs.force_publish == true }}
         working-directory: packages/mcp-utils
         run: |
           set -euo pipefail
@@ -78,7 +106,7 @@ jobs:
           pnpm publish --no-git-checks --ignore-scripts --access public --provenance
 
       - name: Publish @supabase/mcp-server-supabase to npm
-        if: ${{ steps.release.outputs['packages/mcp-server-supabase--release_created'] }}
+        if: ${{ steps.release.outputs['packages/mcp-server-supabase--release_created'] || inputs.force_publish == true }}
         working-directory: packages/mcp-server-supabase
         run: |
           set -euo pipefail
@@ -98,7 +126,7 @@ jobs:
           pnpm publish --no-git-checks --ignore-scripts --access public --provenance
 
       - name: Publish @supabase/mcp-server-postgrest to npm
-        if: ${{ steps.release.outputs['packages/mcp-server-postgrest--release_created'] }}
+        if: ${{ steps.release.outputs['packages/mcp-server-postgrest--release_created'] || inputs.force_publish == true }}
         working-directory: packages/mcp-server-postgrest
         run: |
           set -euo pipefail
@@ -117,14 +145,47 @@ jobs:
           rm -f "$NPM_VIEW_STDERR"
           pnpm publish --no-git-checks --ignore-scripts --access public --provenance
 
+      # The MCP registry rejects re-publishing an existing version.
+      # Probe the registry first and gate both login and publish on the result.
+      - name: Check MCP registry version
+        id: mcp-registry-check
+        if: ${{ steps.release.outputs['packages/mcp-server-supabase--release_created'] || inputs.force_publish == true }}
+        working-directory: packages/mcp-server-supabase
+        run: |
+          set -euo pipefail
+          ALREADY_PUBLISHED=$(node -e '
+            const { name, version } = require("./server.json");
+            const url = `https://registry.modelcontextprotocol.io/v0/servers?search=${encodeURIComponent(name)}&version=${encodeURIComponent(version)}`;
+            fetch(url)
+              .then((res) => {
+                if (!res.ok) throw new Error(`Registry query failed: ${res.status} ${res.statusText}`);
+                return res.json();
+              })
+              .then((data) => {
+                const exists = (data.servers ?? []).some(
+                  (entry) => entry.server?.name === name && entry.server?.version === version
+                );
+                process.stdout.write(exists ? "true" : "false");
+              })
+              .catch((err) => {
+                console.error(err.message);
+                process.exit(1);
+              });
+          ')
+          echo "already_published=$ALREADY_PUBLISHED" >> "$GITHUB_OUTPUT"
+          if [ "$ALREADY_PUBLISHED" = "true" ]; then
+            VERSION=$(node -p "require('./server.json').version")
+            echo "MCP registry version $VERSION already published, skipping."
+          fi
+
       - name: Authenticate to MCP registry
-        if: ${{ steps.release.outputs['packages/mcp-server-supabase--release_created'] }}
+        if: ${{ steps.mcp-registry-check.outputs.already_published == 'false' }}
         working-directory: packages/mcp-server-supabase
         env:
           DOMAIN_VERIFICATION_KEY: ${{ secrets.DOMAIN_VERIFICATION_KEY }}
         run: pnpm registry:login
 
       - name: Publish to MCP registry
-        if: ${{ steps.release.outputs['packages/mcp-server-supabase--release_created'] }}
+        if: ${{ steps.mcp-registry-check.outputs.already_published == 'false' }}
         working-directory: packages/mcp-server-supabase
         run: pnpm registry:publish
