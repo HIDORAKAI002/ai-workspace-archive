@@ -1,4 +1,5 @@
 from collections.abc import Iterable
+from pathlib import Path
 from typing import Any
 from unittest.mock import patch
 
@@ -34,6 +35,20 @@ from langchain.agents.middleware.summarization import (
 )
 from langchain.chat_models import init_chat_model
 from tests.unit_tests.agents.model import FakeToolCallingModel
+
+
+def _langchain_pyproject_major_version() -> int:
+    """Read the `langchain` package major version from `pyproject.toml`."""
+    pyproject = next(
+        parent / "pyproject.toml"
+        for parent in Path(__file__).parents
+        if (parent / "pyproject.toml").exists()
+    )
+    for line in pyproject.read_text().splitlines():
+        if line.startswith("version = "):
+            return int(line.split('"')[1].split(".")[0])
+    msg = "Could not find project version in pyproject.toml"
+    raise AssertionError(msg)
 
 
 class MockChatModel(BaseChatModel):
@@ -1157,6 +1172,44 @@ def test_trigger_copies_mutable_inputs() -> None:
     state = {"messages": [HumanMessage(content="1"), HumanMessage(content="2")]}
     result = middleware.before_model(state, Runtime())
     assert result is None
+
+
+def test_trigger_clauses_are_canonical_representation() -> None:
+    """Test `_trigger_clauses` is the canonical AND/OR trigger representation."""
+    middleware = SummarizationMiddleware(
+        model=FakeToolCallingModel(),
+        trigger=[("messages", 5), {"tokens": 1000}, {"tokens": 2000, "messages": 10}],
+    )
+
+    assert middleware._trigger_clauses == [
+        {"messages": 5},
+        {"tokens": 1000},
+        {"tokens": 2000, "messages": 10},
+    ]
+
+
+def test_trigger_conditions_legacy_tuple_view_remove_in_2_0() -> None:
+    """Test `_trigger_conditions` remains a temporary tuple-shaped compatibility view."""
+    assert _langchain_pyproject_major_version() < 2, (
+        "Remove `_trigger_conditions` and this compatibility test in LangChain 2.0."
+    )
+    middleware = SummarizationMiddleware(
+        model=FakeToolCallingModel(),
+        trigger=[("messages", 5), {"tokens": 1000}, {"tokens": 2000, "messages": 10}],
+    )
+
+    assert middleware._trigger_conditions == [("messages", 5), ("tokens", 1000)]
+
+
+def test_compound_trigger_has_no_legacy_tuple_projection() -> None:
+    """Test compound AND clauses are not misrepresented as legacy OR tuples."""
+    middleware = SummarizationMiddleware(
+        model=FakeToolCallingModel(),
+        trigger={"tokens": 1000, "messages": 5},
+    )
+
+    assert middleware._trigger_clauses == [{"tokens": 1000, "messages": 5}]
+    assert middleware._trigger_conditions == []
 
 
 def test_and_trigger_conditions() -> None:
