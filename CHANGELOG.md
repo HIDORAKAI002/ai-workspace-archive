@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-06-10 19:19 IST] Auto-Sync
+- **36 Repositories Updated:** Keboola MCP, GitHub MCP Server, Langfuse, Promptfoo, n8n, Dify, Langflow, Activepieces, Trigger.dev, Appsmith, ToolJet, Budibase, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, camel-ai/camel, mastra-ai/mastra, deepset-ai/haystack, BerriAI/litellm, ggml-org/llama.cpp, deepspeedai/DeepSpeed, vllm-project/vllm, lobehub/lobe-chat, infiniflow/ragflow, openlit/openlit, firecrawl/firecrawl, vercel/ai, apache/airflow, dagster-io/dagster, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow, nousresearch/hermes-agent
+
 ## [2026-06-10 12:34 IST] Auto-Sync
 - **33 Repositories Updated:** Awesome ChatGPT Prompts, Promptfoo, Dify, Flowise, Langflow, Activepieces, Plane, modelcontextprotocol/rust-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langchain, run-llama/llama_index, pydantic/pydantic-ai, browser-use/browser-use, BerriAI/litellm, deepspeedai/DeepSpeed, vllm-project/vllm, lobehub/lobe-chat, cline/cline, chroma-core/chroma, milvus-io/milvus, infiniflow/ragflow, affaan-m/everything-claude-code, danny-avila/LibreChat, googleapis/python-genai, apache/airflow, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, bytedance/deer-flow, nousresearch/hermes-agent
 
