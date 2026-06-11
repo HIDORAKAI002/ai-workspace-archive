@@ -52,7 +52,9 @@
       "empty": "No memory banks yet.",
       "create": "Create new bank",
       "switchTitle": "Switch memory bank",
-      "returnTo": "Return to {bank}"
+      "returnTo": "Return to {bank}",
+      "copyName": "Copy name",
+      "copied": "Copied to clipboard"
     },
     "viewOnGitHub": "View on GitHub"
   },
@@ -422,7 +424,16 @@
     "memoryDefenseAction_redact": "Redact",
     "memoryDefenseAction_block": "Block",
     "memoryDefenseSecretLeakTitle": "Secret leak prevention",
-    "memoryDefenseSecretLeakDescription": "Scan retained content for secrets. 44 patterns covering common provider keys, AWS, and PII."
+    "memoryDefenseSecretLeakDescription": "Scan retained content for secrets. 44 patterns covering common provider keys, AWS, and PII.",
+    "memoryDefenseEnterpriseTitle": "Memory Defense Enterprise",
+    "memoryDefenseEnterpriseSubtitle": "Detect more, redact smarter, and audit everything — available in Hindsight Cloud.",
+    "memoryDefenseEnterpriseFeatureDetectSecrets": "Advanced secret detection: 200+ patterns covering provider keys, AWS, GitHub, and CI tokens",
+    "memoryDefenseEnterpriseFeatureBase64": "Base64 decoding: catch secrets hidden inside encoded payloads",
+    "memoryDefenseEnterpriseFeatureLlm": "LLM screening: catch novel exfiltration patterns regex can't",
+    "memoryDefenseEnterpriseFeaturePromptInjection": "Prompt injection detection: block attempts to override agent behavior",
+    "memoryDefenseEnterpriseFeatureSizeAnomaly": "Size anomaly: reject suspiciously large payloads",
+    "memoryDefenseEnterpriseFeatureProtectedKeys": "Protected tag namespaces: enforce immutable identity tags",
+    "memoryDefenseEnterpriseCta": "Request a Demo"
   },
   "bankOperations": {
     "title": "Background Operations",
@@ -577,7 +588,13 @@
     "sourceFactsLabel": "source facts",
     "errorLoadingData": "Error loading {factType} data",
     "all": "All",
-    "memoryComposition": "Memory composition"
+    "memoryComposition": "Memory composition",
+    "scopeLabel": "Scope",
+    "scopeAll": "All scopes",
+    "scopeGlobal": "Global (no tags)",
+    "groupByScope": "Group by scope",
+    "scopeSearch": "Search scopes…",
+    "scopeNoResults": "No scopes found"
   },
   "documentsView": {
     "loadingDocuments": "Loading documents...",
@@ -665,7 +682,8 @@
     "importConflictSkip": "Skip — keep the existing document",
     "importConflictReplace": "Replace — overwrite with the imported one",
     "importConflictNewId": "Keep both — import under a new id",
-    "textNotStoredWarning": "Source text isn't stored on this server — only the extracted memories are kept."
+    "textNotStoredWarning": "Source text isn't stored on this server — only the extracted memories are kept.",
+    "labelObservationScopes": "Observation scopes"
   },
   "entitiesView": {
     "viewRelations": "Relations",
@@ -1267,7 +1285,12 @@
     "editFieldEntities": "Entities",
     "editEntityPlaceholder": "Add entity…",
     "editEntityRemove": "Remove {entity}",
-    "editedBadge": "Edited"
+    "editedBadge": "Edited",
+    "curationInvalidateTitle": "Invalidate memory",
+    "curationInvalidateExplain": "This moves the memory to the invalidated archive. It will no longer surface in recall or reflect, but is kept for audit and can be restored later.",
+    "curationReasonPlaceholder": "Reason (optional)",
+    "curationCancel": "Cancel",
+    "curationInvalidate": "Invalidate"
   },
   "documentChunkModal": {
     "documentTitle": "Document Details",

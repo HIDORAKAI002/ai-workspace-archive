@@ -12,6 +12,12 @@ export const MIGRATED_PAGES: Record<string, string> = {
   api_ref: "api-reference",
   // Legacy alias: older bookmarks used the hyphenated ?page=api-reference form.
   "api-reference": "api-reference",
+  "llm-playground": "playground",
+  projects: "projects",
+  "access-groups": "access-groups",
+  budgets: "budgets",
+  workflows: "workflows",
+  "guardrails-monitor": "guardrails-monitor",
 };
 
 function uiBase(): string {

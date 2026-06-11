@@ -29,9 +29,14 @@ class DefenseAction(str, Enum):
 
 _VALID_ACTIONS = {a.value for a in DefenseAction}
 
-# Detector identifiers valid as ``policy.rules[*].on``. The OSS extension only
-# screens for sensitive data (secrets/PII), so that's the only accepted value.
-_VALID_DETECTORS = {"sensitive_data"}
+# ``policy.rules[*].on`` names a detector. The OSS extension only screens for
+# ``sensitive_data``; any other name is a silent no-op here and is dispatched
+# by whichever extension is loaded (e.g. hindsight-cloud screens cloud-only
+# detectors). The parser therefore does NOT validate ``on`` against a fixed
+# list — pinning the OSS roster to cloud's would force an OSS bump for every
+# new cloud detector just to avoid 422-ing a write it never interprets. We
+# only require ``on`` to be a non-empty string; entitlement and dispatch are
+# the loaded extension's ``screen()`` job.
 
 
 @dataclass(frozen=True)
@@ -64,8 +69,8 @@ class RedactionResult:
 def parse_policy(raw: dict | None) -> DefensePolicy:
     """Parse a raw bank-config dict into a frozen DefensePolicy.
 
-    Raises ValueError for unknown detectors or actions; the HTTP layer
-    converts those into a 422 response.
+    Raises ValueError for a missing/empty ``on`` or an unknown action; the
+    HTTP layer converts those into a 422 response.
     """
     if raw is None:
         return DefensePolicy()
@@ -73,8 +78,8 @@ def parse_policy(raw: dict | None) -> DefensePolicy:
     rules: list[PolicyRule] = []
     for item in raw.get("rules", []) or []:
         on_raw = item.get("on")
-        if on_raw not in _VALID_DETECTORS:
-            raise ValueError(f"invalid on {on_raw!r}; must be one of {sorted(_VALID_DETECTORS)}")
+        if not isinstance(on_raw, str) or not on_raw:
+            raise ValueError(f"invalid on {on_raw!r}; must be a non-empty string")
         action_raw = item.get("action")
         if action_raw not in _VALID_ACTIONS:
             raise ValueError(f"invalid action {action_raw!r}; must be one of {sorted(_VALID_ACTIONS)}")

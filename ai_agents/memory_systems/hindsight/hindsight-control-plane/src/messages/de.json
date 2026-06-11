@@ -52,7 +52,9 @@
       "empty": "Noch keine Speicherbänke vorhanden.",
       "create": "Neue Bank erstellen",
       "switchTitle": "Speicherbank wechseln",
-      "returnTo": "Zurück zu {bank}"
+      "returnTo": "Zurück zu {bank}",
+      "copyName": "Name kopieren",
+      "copied": "In Zwischenablage kopiert"
     },
     "viewOnGitHub": "Auf GitHub ansehen"
   },
@@ -422,7 +424,16 @@
     "memoryDefenseAction_redact": "Schwärzen",
     "memoryDefenseAction_block": "Blockieren",
     "memoryDefenseSecretLeakTitle": "Geheimnislecks verhindern",
-    "memoryDefenseSecretLeakDescription": "Gespeicherte Inhalte auf Geheimnisse prüfen. 44 Muster für gängige Anbieter-Schlüssel, AWS und persönliche Daten."
+    "memoryDefenseSecretLeakDescription": "Gespeicherte Inhalte auf Geheimnisse prüfen. 44 Muster für gängige Anbieter-Schlüssel, AWS und persönliche Daten.",
+    "memoryDefenseEnterpriseTitle": "Memory Defense Enterprise",
+    "memoryDefenseEnterpriseSubtitle": "Mehr erkennen, intelligenter redigieren, alles auditieren — verfügbar in Hindsight Cloud.",
+    "memoryDefenseEnterpriseFeatureDetectSecrets": "Erweiterte Geheimnis-Erkennung: 200+ Muster für Anbieter-Schlüssel, AWS, GitHub und CI-Token",
+    "memoryDefenseEnterpriseFeatureBase64": "Base64-Decodierung: erkennt Geheimnisse in codierten Nutzlasten",
+    "memoryDefenseEnterpriseFeatureLlm": "LLM-Screening: erkennt neuartige Exfiltrationsmuster, die Regex nicht erfasst",
+    "memoryDefenseEnterpriseFeaturePromptInjection": "Prompt-Injection-Erkennung: blockiert Versuche, das Verhalten des Agenten zu überschreiben",
+    "memoryDefenseEnterpriseFeatureSizeAnomaly": "Größenanomalie: lehnt verdächtig große Nutzlasten ab",
+    "memoryDefenseEnterpriseFeatureProtectedKeys": "Geschützte Tag-Namespaces: erzwingt unveränderliche Identitäts-Tags",
+    "memoryDefenseEnterpriseCta": "Demo anfragen"
   },
   "bankOperations": {
     "title": "Hintergrundoperationen",
@@ -577,7 +588,13 @@
     "sourceFactsLabel": "Quellfakten",
     "errorLoadingData": "Fehler beim Laden der {factType}-Daten",
     "all": "Alle",
-    "memoryComposition": "Speicherzusammensetzung"
+    "memoryComposition": "Speicherzusammensetzung",
+    "scopeLabel": "Bereich",
+    "scopeAll": "Alle Bereiche",
+    "scopeGlobal": "Global (keine Tags)",
+    "groupByScope": "Nach Bereich gruppieren",
+    "scopeSearch": "Bereiche suchen…",
+    "scopeNoResults": "Keine Bereiche gefunden"
   },
   "documentsView": {
     "loadingDocuments": "Dokumente werden geladen...",
@@ -665,7 +682,8 @@
     "importConflictSkip": "Überspringen — vorhandenes Dokument behalten",
     "importConflictReplace": "Ersetzen — durch das importierte überschreiben",
     "importConflictNewId": "Beide behalten — unter neuer id importieren",
-    "textNotStoredWarning": "Der Quelltext wird auf diesem Server nicht gespeichert – nur die extrahierten Erinnerungen werden behalten."
+    "textNotStoredWarning": "Der Quelltext wird auf diesem Server nicht gespeichert – nur die extrahierten Erinnerungen werden behalten.",
+    "labelObservationScopes": "Beobachtungsbereiche"
   },
   "entitiesView": {
     "viewRelations": "Beziehungen",
@@ -1267,7 +1285,12 @@
     "editFieldEntities": "Entities",
     "editEntityPlaceholder": "Add entity…",
     "editEntityRemove": "Remove {entity}",
-    "editedBadge": "Edited"
+    "editedBadge": "Edited",
+    "curationInvalidateTitle": "Erinnerung ungültig machen",
+    "curationInvalidateExplain": "Dadurch wird die Erinnerung in das Archiv für ungültige Einträge verschoben. Sie erscheint nicht mehr in Recall oder Reflect, bleibt aber zur Prüfung erhalten und kann später wiederhergestellt werden.",
+    "curationReasonPlaceholder": "Grund (optional)",
+    "curationCancel": "Abbrechen",
+    "curationInvalidate": "Ungültig machen"
   },
   "documentChunkModal": {
     "documentTitle": "Dokumentdetails",

@@ -52,7 +52,9 @@
       "empty": "メモリバンクがありません。",
       "create": "新しいバンクを作成",
       "switchTitle": "メモリバンクを切り替え",
-      "returnTo": "{bank}に戻る"
+      "returnTo": "{bank}に戻る",
+      "copyName": "名前をコピー",
+      "copied": "クリップボードにコピーしました"
     },
     "viewOnGitHub": "GitHubで表示"
   },
@@ -422,7 +424,16 @@
     "memoryDefenseAction_redact": "マスク",
     "memoryDefenseAction_block": "ブロック",
     "memoryDefenseSecretLeakTitle": "シークレット漏洩防止",
-    "memoryDefenseSecretLeakDescription": "保持されたコンテンツのシークレットをスキャンします。一般的なプロバイダーキー、AWS、個人情報をカバーする44パターン。"
+    "memoryDefenseSecretLeakDescription": "保持されたコンテンツのシークレットをスキャンします。一般的なプロバイダーキー、AWS、個人情報をカバーする44パターン。",
+    "memoryDefenseEnterpriseTitle": "Memory Defense Enterprise",
+    "memoryDefenseEnterpriseSubtitle": "より多くを検出し、よりスマートに編集し、すべてを監査 — Hindsight Cloudで利用可能。",
+    "memoryDefenseEnterpriseFeatureDetectSecrets": "高度なシークレット検出:プロバイダーキー、AWS、GitHub、CIトークンをカバーする200以上のパターン",
+    "memoryDefenseEnterpriseFeatureBase64": "Base64デコード:エンコードされたペイロード内の隠されたシークレットを検出",
+    "memoryDefenseEnterpriseFeatureLlm": "LLMスクリーニング:正規表現では捉えられない新しいエクスフィルトレーションパターンを検出",
+    "memoryDefenseEnterpriseFeaturePromptInjection": "プロンプトインジェクション検出:エージェントの動作を上書きする試みをブロック",
+    "memoryDefenseEnterpriseFeatureSizeAnomaly": "サイズ異常:疑わしく大きいペイロードを拒否",
+    "memoryDefenseEnterpriseFeatureProtectedKeys": "保護されたタグ名前空間:不変のアイデンティティタグを強制",
+    "memoryDefenseEnterpriseCta": "デモをリクエスト"
   },
   "bankOperations": {
     "title": "バックグラウンド操作",
@@ -577,7 +588,13 @@
     "sourceFactsLabel": "ソースファクト",
     "errorLoadingData": "{factType}データの読み込みエラー",
     "all": "すべて",
-    "memoryComposition": "メモリ構成"
+    "memoryComposition": "メモリ構成",
+    "scopeLabel": "スコープ",
+    "scopeAll": "すべてのスコープ",
+    "scopeGlobal": "グローバル（タグなし）",
+    "groupByScope": "スコープでグループ化",
+    "scopeSearch": "スコープを検索…",
+    "scopeNoResults": "スコープが見つかりません"
   },
   "documentsView": {
     "loadingDocuments": "ドキュメントを読み込み中...",
@@ -665,7 +682,8 @@
     "importConflictSkip": "スキップ — 既存のドキュメントを保持",
     "importConflictReplace": "置換 — インポート版で上書き",
     "importConflictNewId": "両方保持 — 新しい id でインポート",
-    "textNotStoredWarning": "このサーバーでは元のテキストは保存されません。抽出されたメモリのみが保持されます。"
+    "textNotStoredWarning": "このサーバーでは元のテキストは保存されません。抽出されたメモリのみが保持されます。",
+    "labelObservationScopes": "観測スコープ"
   },
   "entitiesView": {
     "viewRelations": "関係",
@@ -1267,7 +1285,12 @@
     "editFieldEntities": "Entities",
     "editEntityPlaceholder": "Add entity…",
     "editEntityRemove": "Remove {entity}",
-    "editedBadge": "Edited"
+    "editedBadge": "Edited",
+    "curationInvalidateTitle": "メモリを無効化",
+    "curationInvalidateExplain": "メモリを無効化アーカイブに移動します。recall や reflect には表示されなくなりますが、監査用に保持され、後で復元できます。",
+    "curationReasonPlaceholder": "理由（任意）",
+    "curationCancel": "キャンセル",
+    "curationInvalidate": "無効化"
   },
   "documentChunkModal": {
     "documentTitle": "ドキュメント詳細",
