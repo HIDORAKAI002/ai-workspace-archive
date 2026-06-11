@@ -1,10 +1,8 @@
 "use client";
 
 import ModelsAndEndpointsView from "@/app/(dashboard)/models-and-endpoints/ModelsAndEndpointsView";
-import PlaygroundPage from "@/app/(dashboard)/playground/page";
 import AdminPanel from "@/components/AdminPanel";
 import AgentsPanel from "@/components/agents";
-import BudgetPanel from "@/components/budgets/budget_panel";
 import CacheDashboard from "@/components/cache_dashboard";
 import ClaudeCodePluginsPanel from "@/components/claude_code_plugins";
 import { teamListCall as v2TeamListCall } from "@/app/(dashboard)/hooks/teams/useTeams";
@@ -13,7 +11,6 @@ import useProxySettings from "@/app/(dashboard)/hooks/proxySettings/useProxySett
 import LoadingScreen from "@/components/common_components/LoadingScreen";
 import { CostTrackingSettings } from "@/components/CostTrackingSettings";
 import GeneralSettings from "@/components/general_settings";
-import GuardrailsMonitorView from "@/components/GuardrailsMonitor/GuardrailsMonitorView";
 import GuardrailsPanel from "@/components/guardrails";
 import PoliciesPanel from "@/components/policies";
 import { Team } from "@/components/key_team_helpers/key_list";
@@ -35,12 +32,9 @@ import TransformRequestPanel from "@/components/transform_request";
 import UIThemeSettings from "@/components/ui_theme_settings";
 import Usage from "@/components/usage";
 import UserDashboard from "@/components/user_dashboard";
-import { AccessGroupsPage } from "@/components/AccessGroups/AccessGroupsPage";
-import { ProjectsPage } from "@/components/Projects/ProjectsPage";
 import VectorStoreManagement from "@/components/vector_store_management";
 import ToolPoliciesView from "@/components/ToolPoliciesView";
 import { MemoryView } from "@/components/MemoryView";
-import WorkflowRuns from "@/components/workflow_runs";
 import SpendLogsTable from "@/components/view_logs";
 import ViewUserDashboard from "@/components/view_users";
 import { useAuth } from "@/contexts/AuthContext";
@@ -354,8 +348,6 @@ function CreateKeyPageContent() {
               premiumUser={premiumUser}
               teams={teams}
             />
-          ) : page == "llm-playground" ? (
-            <PlaygroundPage />
           ) : page == "users" ? (
             <ViewUserDashboard
               userID={userID}
@@ -390,8 +382,6 @@ function CreateKeyPageContent() {
             <AdminPanel proxySettings={proxySettings} />
           ) : page == "logging-and-alerts" ? (
             <Settings userID={userID} userRole={userRole} accessToken={accessToken} premiumUser={premiumUser} />
-          ) : page == "budgets" ? (
-            <BudgetPanel accessToken={accessToken} />
           ) : page == "guardrails" ? (
             <GuardrailsPanel accessToken={accessToken} userRole={userRole} />
           ) : page == "policies" ? (
@@ -451,20 +441,12 @@ function CreateKeyPageContent() {
             <TagManagement accessToken={accessToken} userRole={userRole} userID={userID} />
           ) : page == "skills" || page == "claude-code-plugins" ? (
             <ClaudeCodePluginsPanel accessToken={accessToken} userRole={userRole} />
-          ) : page == "access-groups" ? (
-            <AccessGroupsPage />
-          ) : page == "projects" ? (
-            <ProjectsPage />
           ) : page == "vector-stores" ? (
             <VectorStoreManagement accessToken={accessToken} userRole={userRole} userID={userID} />
           ) : page == "tool-policies" ? (
             <ToolPoliciesView accessToken={accessToken} userRole={userRole} />
-          ) : page == "workflows" ? (
-            <WorkflowRuns accessToken={accessToken} />
           ) : page == "memory" ? (
             <MemoryView accessToken={accessToken} userID={userID} userRole={userRole} />
-          ) : page == "guardrails-monitor" ? (
-            <GuardrailsMonitorView accessToken={accessToken} />
           ) : page == "new_usage" ? (
             <NewUsagePage teams={(teams as Team[]) ?? []} organizations={(organizations as Organization[]) ?? []} />
           ) : (
