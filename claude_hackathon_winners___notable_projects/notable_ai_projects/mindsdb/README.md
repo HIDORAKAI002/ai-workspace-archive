@@ -12,8 +12,10 @@
   <a href="https://hub.docker.com/r/mindsdb/mindsdb" target="_blank">
   <img src="https://img.shields.io/docker/pulls/mindsdb/mindsdb.svg?logo=docker&label=Docker%20pulls&cacheSeconds=86400" alt="Docker pulls" />
   </a>
-
+<br/>
   <p align="center">
+	<a href="https://docs.mindsdb.com">Documentation</a>
+    ·
     <a href="https://mindshub.ai">Try it</a>
     ·
     <a href="https://mindsdb.com/contact?utm_medium=community&utm_source=github&utm_campaign=mindsdb%20repo">Contact us for a demo</a>
@@ -22,7 +24,10 @@
   </p>
 </div>
 
----
+
+
+<img width="780" height="475" alt="cowork-select" src="https://github.com/user-attachments/assets/40ca52fc-df7c-4385-8571-828283fb3033" />
+
 
 # MINDS-COWORK PLATFORM 
 

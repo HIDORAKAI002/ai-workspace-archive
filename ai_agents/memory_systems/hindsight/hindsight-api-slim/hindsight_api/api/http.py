@@ -6,20 +6,20 @@ the FastAPI application with all API endpoints.
 """
 
 import asyncio
-import contextlib
 import json
 import logging
 import re
 import uuid
-from collections.abc import AsyncIterator, Awaitable
+from collections.abc import Awaitable
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Any, Literal, TypeVar
 
 from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, Query, Request, UploadFile
 from fastapi.middleware.gzip import GZipMiddleware
 
-from hindsight_api.cancellation import CancellationToken, OperationCancelledError
+from hindsight_api.api.disconnect import ClientDisconnectCancellationMiddleware, get_scope_cancellation_token
+from hindsight_api.cancellation import OperationCancelledError
 from hindsight_api.engine.audit import (
     AuditEntry,
     AuditLogger,
@@ -83,7 +83,7 @@ def FieldWithDefault(default_factory: Callable, **kwargs) -> Any:
 
 
 from hindsight_api.config import get_config
-from hindsight_api.engine.memory_engine import Budget, _current_schema, _get_tiktoken_encoding, fq_table
+from hindsight_api.engine.memory_engine import Budget, _current_schema, _get_tiktoken_encoding
 from hindsight_api.engine.providers.none_llm import LLMNotAvailableError
 from hindsight_api.engine.response_models import VALID_RECALL_FACT_TYPES, MemoryFact, TokenUsage
 from hindsight_api.engine.search.tags import TagGroup, TagsMatch
@@ -93,49 +93,8 @@ from hindsight_api.models import RequestContext
 
 logger = logging.getLogger(__name__)
 
-# Starlette surfaces client disconnects through an async receive check. A
-# one-second poll stops abandoned long-running recalls without busy-waiting.
-_CLIENT_DISCONNECT_POLL_INTERVAL_SECONDS = 1.0
 # 499 is the de facto reverse-proxy status for "client closed request".
 _CLIENT_CLOSED_REQUEST_STATUS_CODE = 499
-_CLIENT_DISCONNECTED_REASON = "client disconnected"
-
-
-@asynccontextmanager
-async def _cancel_on_client_disconnect(
-    http_request: Request,
-    request_context: RequestContext,
-    *,
-    poll_interval: float = _CLIENT_DISCONNECT_POLL_INTERVAL_SECONDS,
-) -> AsyncIterator[CancellationToken]:
-    """Attach a cancellation token that fires when the HTTP client disconnects.
-
-    The engine checks ``request_context`` at each pipeline stage boundary and
-    raises ``OperationCancelledError`` once this token fires, so an abandoned
-    request stops consuming CPU/DB resources instead of running to completion
-    (issue #2122). A background task polls ``request.is_disconnected()``; the
-    token is restored to its previous value on exit so nested scopes compose.
-    """
-    token = CancellationToken()
-    previous_token = request_context.cancellation
-    request_context.cancellation = token
-
-    async def _watch() -> None:
-        while True:
-            if await http_request.is_disconnected():
-                token.cancel(_CLIENT_DISCONNECTED_REASON)
-                return
-            await asyncio.sleep(poll_interval)
-
-    watcher = asyncio.create_task(_watch())
-    try:
-        yield token
-    finally:
-        watcher.cancel()
-        with contextlib.suppress(asyncio.CancelledError):
-            await watcher
-        request_context.cancellation = previous_token
-
 
 _T = TypeVar("_T")
 
@@ -147,22 +106,30 @@ async def run_cancellable_on_disconnect(
     *,
     operation: str,
     bank_id: str,
-    poll_interval: float = _CLIENT_DISCONNECT_POLL_INTERVAL_SECONDS,
 ) -> _T:
     """Run an engine coroutine, aborting it with 499 if the client disconnects.
 
-    Shared by the recall and reflect handlers: it attaches the disconnect-driven
-    cancellation token (which the engine checks at its stage/iteration
-    boundaries) and translates the resulting ``OperationCancelledError`` into the
-    de facto 499 status so abandoned work stops instead of running to completion
-    (issue #2122).
+    Shared by the recall and reflect handlers. The actual disconnect detection
+    lives in ``ClientDisconnectCancellationMiddleware`` (a pure-ASGI middleware
+    installed outside the ``BaseHTTPMiddleware`` layer), which attaches a
+    :class:`CancellationToken` to the ASGI scope and trips it on
+    ``http.disconnect``. Here we simply hand that token to the engine via
+    ``RequestContext`` — the engine checks it at stage/iteration boundaries — and
+    translate the resulting ``OperationCancelledError`` into 499 so abandoned
+    work stops instead of running to completion (issue #2122).
+
+    Note: ``Request.is_disconnected()`` is deliberately NOT used — it silently
+    never fires behind ``BaseHTTPMiddleware``, which is why the original #2127
+    implementation did not actually cancel anything in this app.
     """
-    async with _cancel_on_client_disconnect(http_request, request_context, poll_interval=poll_interval):
-        try:
-            return await coro
-        except OperationCancelledError as e:
-            logger.info(f"[{operation.upper()} CANCELLED] bank={bank_id} reason={e.reason}")
-            raise HTTPException(status_code=_CLIENT_CLOSED_REQUEST_STATUS_CODE, detail=e.reason) from e
+    token = get_scope_cancellation_token(http_request.scope)
+    if token is not None:
+        request_context.cancellation = token
+    try:
+        return await coro
+    except OperationCancelledError as e:
+        logger.info(f"[{operation.upper()} CANCELLED] bank={bank_id} reason={e.reason}")
+        raise HTTPException(status_code=_CLIENT_CLOSED_REQUEST_STATUS_CODE, detail=e.reason) from e
 
 
 class EntityIncludeOptions(BaseModel):
@@ -298,7 +265,7 @@ class RecallResult(BaseModel):
 
     id: str
     text: str
-    type: str | None = None  # fact type: world, experience, opinion, observation
+    type: str | None = None  # fact type: world, experience, observation
     entities: list[str] | None = None  # Entity names mentioned in this fact
     context: str | None = None
     occurred_start: str | None = None  # ISO format date when the event started
@@ -885,7 +852,7 @@ class ReflectFact(BaseModel):
     text: str = Field(
         description="Fact text. When type='observation', this contains markdown-formatted consolidated knowledge"
     )
-    type: str | None = None  # fact type: world, experience, opinion, observation
+    type: str | None = None  # fact type: world, experience, observation
     context: str | None = None
     occurred_start: str | None = None
     occurred_end: str | None = None
@@ -2770,7 +2737,6 @@ def _make_audited_http(audit_logger_getter: Callable[[], AuditLogger | None]):
     from datetime import datetime as _dt
     from datetime import timezone as _tz
     from functools import wraps
-    from typing import Callable as _Callable
 
     def audited(action: str, *, request_param: str | None = "request"):
         """Decorator that wraps an HTTP handler with audit logging.
@@ -3114,8 +3080,6 @@ def create_app(
         # Replace UUIDs and numeric IDs with placeholders
         import re
 
-        from starlette.requests import Request
-
         path = request.url.path
         # Replace UUIDs
         path = re.sub(r"/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", "/{id}", path)
@@ -3144,6 +3108,13 @@ def create_app(
         if root_router:
             app.include_router(root_router)
             logging.info("HTTP extension root router mounted")
+
+    # Client-disconnect cancellation for recall/reflect. Added LAST so it sits
+    # OUTSIDE the @app.middleware("http") (BaseHTTPMiddleware) layers above —
+    # that placement is mandatory: BaseHTTPMiddleware breaks
+    # Request.is_disconnected(), so the only way to observe an abandoned request
+    # is to own the raw ASGI receive channel from outside it (issue #2122).
+    app.add_middleware(ClientDisconnectCancellationMiddleware)
 
     return app
 
@@ -3309,7 +3280,7 @@ def _register_routes(app: FastAPI):
         "/v1/default/banks/{bank_id}/graph",
         response_model=GraphDataResponse,
         summary="Get memory graph data",
-        description="Retrieve graph data for visualization, optionally filtered by type (world/experience/opinion).",
+        description="Retrieve graph data for visualization, optionally filtered by type (world/experience/observation).",
         operation_id="get_graph",
         tags=["Memory"],
     )
@@ -3376,7 +3347,7 @@ def _register_routes(app: FastAPI):
 
         Args:
             bank_id: Memory Bank ID (from path)
-            type: Filter by fact type (world, experience, opinion)
+            type: Filter by fact type (world, experience, observation)
             q: Search query for full-text search (searches text and context)
             consolidation_state: Filter by consolidation state for source memories
                 (world/experience). One of 'failed', 'pending', or 'done'.
@@ -3726,11 +3697,11 @@ def _register_routes(app: FastAPI):
         "/v1/default/banks/{bank_id}/reflect",
         response_model=ReflectResponse,
         summary="Reflect and generate answer",
-        description="Reflect and formulate an answer using bank identity, world facts, and opinions.\n\n"
+        description="Reflect and formulate an answer using bank identity, world facts, observations, and mental models.\n\n"
         "This endpoint:\n"
         "1. Retrieves experience (conversations and events)\n"
         "2. Retrieves world facts relevant to the query\n"
-        "3. Retrieves existing opinions (bank's perspectives)\n"
+        "3. Retrieves observations and mental models (bank's synthesized perspectives)\n"
         "4. Uses LLM to formulate a contextual answer\n"
         "5. Returns plain text answer and the facts used",
         operation_id="reflect",
@@ -6611,7 +6582,6 @@ def _register_routes(app: FastAPI):
                 _validate_parsers(_resolve_parser(request_data.parser), "request-level parser")
 
             # Prepare file items and calculate total batch size
-            import io
 
             file_items = []
             total_batch_size = 0
@@ -6690,14 +6660,14 @@ def _register_routes(app: FastAPI):
         "/v1/default/banks/{bank_id}/memories",
         response_model=DeleteResponse,
         summary="Clear memory bank memories",
-        description="Delete memory units for a memory bank. Optionally filter by type (world, experience, opinion) to delete only specific types. This is a destructive operation that cannot be undone. The bank profile (disposition and background) will be preserved.",
+        description="Delete memory units for a memory bank. Optionally filter by type (world, experience, observation) to delete only specific types. This is a destructive operation that cannot be undone. The bank profile (disposition and background) will be preserved.",
         operation_id="clear_bank_memories",
         tags=["Memory"],
     )
     @audited("clear_memories", request_param=None)
     async def api_clear_bank_memories(
         bank_id: str,
-        type: str | None = Query(None, description="Optional fact type filter (world, experience, opinion)"),
+        type: str | None = Query(None, description="Optional fact type filter (world, experience, observation)"),
         request_context: RequestContext = Depends(get_request_context),
     ):
         """Clear memories for a memory bank, optionally filtered by type."""

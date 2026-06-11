@@ -6,7 +6,8 @@ import {
   type CSSProperties,
 } from "react";
 import { createPortal } from "react-dom";
-import { Bot } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { BotMessageSquare } from "lucide-react";
 
 import { Button } from "@/src/components/ui/button";
 import {
@@ -29,10 +30,13 @@ import { cn } from "@/src/utils/tailwind";
 const IN_APP_AI_AGENT_WINDOW_Z_INDEX = 51;
 
 export const InAppAiAgentButton = () => {
+  const session = useSession();
   const { organization } = useQueryProjectOrOrganization();
   const { isAvailable, open, setOpen, isExpanded, setIsExpanded } =
     useInAppAiAgent();
   const hasInAppAgentEntitlement = useHasEntitlement("in-app-agent");
+  const isInAppAgentEnabled =
+    session.data?.user?.featureFlags.inAppAgent === true;
   const { setOpen: setSupportDrawerOpen } = useSupportDrawer();
   const buttonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -103,7 +107,7 @@ export const InAppAiAgentButton = () => {
     };
   }, [isExpanded, open]);
 
-  if (!isAvailable || !hasInAppAgentEntitlement) {
+  if (!isAvailable || !hasInAppAgentEntitlement || !isInAppAgentEnabled) {
     return null;
   }
 
@@ -122,8 +126,8 @@ export const InAppAiAgentButton = () => {
   return (
     <>
       <SidebarMenuButton ref={buttonRef} isActive={open} onClick={handleClick}>
-        <Bot className="h-4 w-4" />
-        AI Assistant
+        <BotMessageSquare className="h-4 w-4" />
+        Assistant
       </SidebarMenuButton>
       {open && portalContainer
         ? createPortal(
@@ -163,7 +167,7 @@ export const InAppAiAgentButton = () => {
           </DialogHeader>
           <DialogBody>
             <AIFeaturesDisabledNotice organizationId={organization?.id}>
-              The AI assistant requires AI features to be enabled for this
+              The assistant requires AI features to be enabled for this
               organization.
             </AIFeaturesDisabledNotice>
           </DialogBody>

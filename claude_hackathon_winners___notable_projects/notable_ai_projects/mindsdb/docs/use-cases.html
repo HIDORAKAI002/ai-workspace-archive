@@ -43,6 +43,45 @@
   .brand { font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-3); display: flex; align-items: center; gap: 8px; }
   .brand-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent-glow); }
   .nav-links { display: flex; gap: 24px; margin-left: auto; }
+  /* ── Mobile nav ── */
+  .hamburger {
+    display: none;
+    flex-direction: column; justify-content: center; gap: 5px;
+    width: 36px; height: 36px;
+    background: none; border: none; cursor: pointer;
+    padding: 4px; margin-left: auto; flex-shrink: 0;
+  }
+  .hamburger span {
+    display: block; width: 20px; height: 1.5px;
+    background: var(--ink-3); border-radius: 2px;
+    transition: transform 200ms, opacity 200ms, width 200ms;
+    transform-origin: center;
+  }
+  nav[data-open] .hamburger span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+  nav[data-open] .hamburger span:nth-child(2) { opacity: 0; width: 0; }
+  nav[data-open] .hamburger span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+  @media (max-width: 640px) {
+    .hamburger { display: flex; }
+    .nav-links {
+      display: none;
+      position: absolute; top: 52px; left: 0; right: 0;
+      flex-direction: column; gap: 0;
+      background: rgba(8,13,24,0.97);
+      backdrop-filter: saturate(160%) blur(16px);
+      -webkit-backdrop-filter: saturate(160%) blur(16px);
+      border-bottom: 1px solid var(--line);
+      padding: 8px 0;
+      z-index: 39;
+    }
+    nav[data-open] .nav-links { display: flex; }
+    .nav-links a {
+      padding: 12px 24px;
+      font-size: 14px;
+      border-left: 2px solid transparent;
+    }
+    .nav-links a.active { border-color: var(--accent); background: var(--accent-bg); }
+  }
+
   .nav-links a { font-size: 13px; color: var(--ink-3); transition: color 120ms; }
   .nav-links a:hover { color: var(--ink); opacity: 1; }
   .nav-links a.active { color: var(--accent); }
@@ -177,10 +216,13 @@
     <div class="nav-links">
       <a href="index.html">Docs</a>
       <a href="setup.html">Setup</a>
-      <a href="api.html">API</a>
       <a href="use-cases.html" class="active">Use Cases</a>
+      <a href="api.html">API</a>
       <a href="https://github.com/mindsdb/minds-platform">GitHub ↗</a>
     </div>
+    <button class="hamburger" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </nav>
 
@@ -333,5 +375,16 @@
   Minds Platform · Open Source · <a href="https://github.com/mindsdb/minds-platform">github.com/mindsdb/minds-platform</a>
 </footer>
 
+<script>
+  document.querySelector('.hamburger').addEventListener('click', function() {
+    const nav = this.closest('nav');
+    nav.toggleAttribute('data-open');
+  });
+  document.querySelectorAll('.nav-links a').forEach(function(a) {
+    a.addEventListener('click', function() {
+      document.querySelector('nav').removeAttribute('data-open');
+    });
+  });
+</script>
 </body>
 </html>

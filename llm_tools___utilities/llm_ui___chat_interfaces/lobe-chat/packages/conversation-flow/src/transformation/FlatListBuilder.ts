@@ -527,12 +527,7 @@ export class FlatListBuilder {
       if (!nextContinuation) return;
 
       if (this.shouldDrainParentContinuations(nextContinuation.parentId, processedIds)) {
-        this.buildFlatListRecursive(
-          nextContinuation.parentId,
-          flatList,
-          processedIds,
-          allMessages,
-        );
+        this.buildFlatListRecursive(nextContinuation.parentId, flatList, processedIds, allMessages);
         continue;
       }
 
@@ -586,7 +581,9 @@ export class FlatListBuilder {
 
     if (this.isAgentCouncilMode(parentMessage)) return true;
 
-    const taskChildren = children.filter((childId) => this.messageMap.get(childId)?.role === 'task');
+    const taskChildren = children.filter(
+      (childId) => this.messageMap.get(childId)?.role === 'task',
+    );
     return taskChildren.length > 1;
   }
 
