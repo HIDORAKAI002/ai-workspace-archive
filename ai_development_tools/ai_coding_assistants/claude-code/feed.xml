@@ -6,7 +6,15 @@
   <author><name>Anthropic</name></author>
   <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md"/>
   <link rel="self" type="application/atom+xml" href="https://raw.githubusercontent.com/anthropics/claude-code/main/feed.xml"/>
-  <updated>2026-06-10T20:44:09Z</updated>
+  <updated>2026-06-11T05:41:48Z</updated>
+  <entry>
+    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.173</id>
+    <title>Claude Code v2.1.173</title>
+    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.173"/>
+    <updated>2026-06-11T05:41:48Z</updated>
+    <content type="html">&lt;p&gt;• Fixed Fable 5 model names with a [1m] suffix not being normalized — Fable 5 includes 1M context by default, so the suffix is now stripped automatically&lt;/p&gt;
+&lt;p&gt;• Fixed a spurious "sandbox dependencies missing" startup warning on Windows when sandbox was enabled in settings&lt;/p&gt;</content>
+  </entry>
   <entry>
     <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.172</id>
     <title>Claude Code v2.1.172</title>
@@ -456,37 +464,5 @@
     <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.150"/>
     <updated>2026-05-23T04:03:45Z</updated>
     <content type="html">&lt;p&gt;• Internal infrastructure improvements (no user-facing changes)&lt;/p&gt;</content>
-  </entry>
-  <entry>
-    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.149</id>
-    <title>Claude Code v2.1.149</title>
-    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.149"/>
-    <updated>2026-05-22T22:09:22Z</updated>
-    <content type="html">&lt;p&gt;• /usage now shows a per-category breakdown of what's driving your limits usage — skills, subagents, plugins, and per-MCP-server cost&lt;/p&gt;
-&lt;p&gt;• /diff detail view can now be scrolled with the keyboard (arrows, j/k, PgUp/PgDn, Space, Home/End)&lt;/p&gt;
-&lt;p&gt;• Markdown output now renders GFM task list checkboxes (- [ ] todo / - [x] done) instead of plain bullets&lt;/p&gt;
-&lt;p&gt;• Enterprise: added the allowAllClaudeAiMcps managed setting to load claude.ai cloud MCP connectors alongside managed-mcp.json&lt;/p&gt;
-&lt;p&gt;• Fixed a PowerShell permission bypass: built-in cd functions (cd.., cd\, cd~, X:) changed the working directory undetected, letting a later command read outside the workspace&lt;/p&gt;
-&lt;p&gt;• Fixed the sandbox write allowlist in git worktrees covering the entire main repository root instead of only the shared .git directory (with hooks/ and config denied)&lt;/p&gt;
-&lt;p&gt;• Fixed PowerShell prefix/wildcard allow rules (e.g. PowerShell(dotnet.exe build *)) not pre-approving native executables and scripts&lt;/p&gt;
-&lt;p&gt;• Fixed a permission-analysis gap where the parser trusted stale variable-tracking values for PWD/OLDPWD/DIRSTACK across cd/pushd/popd&lt;/p&gt;
-&lt;p&gt;• Fixed find in the Bash tool exhausting the macOS system file/vnode table and crashing the host on large directory trees&lt;/p&gt;
-&lt;p&gt;• Fixed the managed-settings approval dialog leaving the terminal frozen after accepting at startup&lt;/p&gt;
-&lt;p&gt;• Fixed /ultraplan and remote session creation failing with "Could not capture uncommitted changes" when the working tree has no real changes&lt;/p&gt;
-&lt;p&gt;• Fixed otelHeadersHelper failing silently when the script path contains spaces; helper failures are now reported in /doctor and the debug log&lt;/p&gt;
-&lt;p&gt;• Fixed the thinking spinner staying amber across tool calls and onto fresh thinking bursts&lt;/p&gt;
-&lt;p&gt;• Fixed collapsed Bash output reporting the wrong hidden-line count for outputs with many short lines&lt;/p&gt;
-&lt;p&gt;• Fixed slash-command argument-hint clipping trailing typed characters when the hint overflows the input box&lt;/p&gt;
-&lt;p&gt;• Fixed argument-hint and progressive arg suggestions not appearing after Tab-completing a skill whose frontmatter name: differs from its directory basename&lt;/p&gt;
-&lt;p&gt;• Fixed the status bar showing the user's baseline /effort setting instead of the effort level applied by skill/agent effort: frontmatter&lt;/p&gt;
-&lt;p&gt;• Fixed Ctrl+O transcript view freezing at the moment it was opened instead of tailing new messages&lt;/p&gt;
-&lt;p&gt;• Fixed editing a recalled prompt-history entry losing the edit when navigating further up/down with arrow keys&lt;/p&gt;
-&lt;p&gt;• Fixed /config exit summary reporting phantom changes to auto-compact and theme when toggling unrelated settings&lt;/p&gt;
-&lt;p&gt;• Fixed /insights crashing when cached session-meta files are missing optional fields&lt;/p&gt;
-&lt;p&gt;• Fixed malformed PowerShell and History tool calls with missing input being misclassified as reads in transcript collapsing&lt;/p&gt;
-&lt;p&gt;• Fixed renaming a Remote Control session from claude.ai or the Claude mobile app not updating the local session name for claude --resume&lt;/p&gt;
-&lt;p&gt;• Fixed a race where a just-submitted prompt could appear twice in the up-arrow history&lt;/p&gt;
-&lt;p&gt;• Fixed tapping the "Jump to bottom" pill in fullscreen mode not dismissing it immediately&lt;/p&gt;
-&lt;p&gt;• Improved /feedback reports to include the conversation that happened before context compaction, making issues from earlier in long sessions easier to triage&lt;/p&gt;</content>
   </entry>
 </feed>
