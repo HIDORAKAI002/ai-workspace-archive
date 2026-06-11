@@ -278,6 +278,7 @@
 - [LangChain.js Tracing](https://arize.com/docs/phoenix/integrations/typescript/langchain/langchain-js): Auto-instrument LangChain.js chains and agents
 - [Mastra Tracing](https://arize.com/docs/phoenix/integrations/typescript/mastra/mastra-tracing): Auto-instrument Mastra agent workflows
 - [MCP Tracing (TypeScript)](https://arize.com/docs/phoenix/integrations/typescript/mcp/mcp-tracing-typescript): Trace MCP interactions in TypeScript
+- [OpenAI Agents SDK (TypeScript)](https://arize.com/docs/phoenix/integrations/typescript/openai-agents): Trace @openai/agents runs, handoffs, and guardrails with @arizeai/openinference-instrumentation-openai-agents
 - [TanStack AI Tracing](https://arize.com/docs/phoenix/integrations/typescript/tanstack-ai/tanstack-ai-tracing): Auto-instrument TanStack AI chat, tool calls, and agent loops
 - [Vercel AI SDK Tracing](https://arize.com/docs/phoenix/integrations/typescript/vercel/vercel-ai-sdk-tracing-js): Auto-instrument Vercel AI SDK
 
@@ -651,6 +652,7 @@
 - [Code Readability Evaluation](https://arize.com/docs/phoenix/cookbook/evaluation/code-readability-evaluation): >-
 - [More Cookbooks](https://arize.com/docs/phoenix/cookbook/evaluation/cookbooks): Use Phoenix Evals to evaluate your application for faithfulness, toxicity, relevance of retrieved documents
 - [Evaluate a Talk-to-Your-Data Agent](https://arize.com/docs/phoenix/cookbook/evaluation/evaluate-an-agent): Evaluate a Talk-to-Your-Data Agent
+- [Trace-level Evaluation: Beyond Input/Output Checks](https://arize.com/docs/phoenix/cookbook/evaluation/trace-level-evaluation): Evaluate an agent's intermediate reasoning, tool selection, and decision path — not just its final answer.
 - [Evaluate RAG](https://arize.com/docs/phoenix/cookbook/evaluation/evaluate-rag): Building a RAG pipeline and evaluating it with Phoenix Evals
 - [OpenAI Agents SDK Cookbook](https://arize.com/docs/phoenix/cookbook/evaluation/openai-agents-sdk-cookbook): This guide shows you how to create and evaluate agents with Phoenix to improve performance
 - [Relevance Classification Evaluation](https://arize.com/docs/phoenix/cookbook/evaluation/relevance-classification-evaluation): Evaluate the relevance of documents retrieved by RAG applications using Phoenix's evaluation framework
