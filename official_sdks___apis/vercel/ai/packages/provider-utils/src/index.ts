@@ -32,6 +32,7 @@ export { injectJsonInstructionIntoMessages } from './inject-json-instruction';
 export * from './is-abort-error';
 export { isBrowserRuntime } from './is-browser-runtime';
 export { isBuffer } from './is-buffer';
+export { isSameOrigin } from './is-same-origin';
 export { isNonNullable } from './is-non-nullable';
 export { isProviderReference } from './is-provider-reference';
 export { isUrlSupported } from './is-url-supported';
@@ -60,6 +61,7 @@ export {
   createProviderExecutedToolFactory,
   type ProviderExecutedToolFactory,
 } from './provider-executed-tool-factory';
+export { cancelResponseBody } from './cancel-response-body';
 export {
   DEFAULT_MAX_DOWNLOAD_SIZE,
   readResponseWithSizeLimit,

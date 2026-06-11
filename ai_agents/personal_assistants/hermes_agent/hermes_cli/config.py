@@ -877,7 +877,9 @@ DEFAULT_CONFIG = {
         #                      Toolsets are never touched; messaging platforms
         #                      unaffected.
         #   "focus"          — auto + collapse the toolset to the lean coding
-        #                      set (+ enabled MCP servers). Explicit opt-in.
+        #                      set (+ enabled MCP servers) + demote non-coding
+        #                      skill categories to names-only in the prompt's
+        #                      skill index. Explicit opt-in.
         #   "on"             — force the prompt posture everywhere.
         #   "off"            — disable entirely.
         "coding_context": "auto",
@@ -1365,6 +1367,20 @@ DEFAULT_CONFIG = {
             "base_url": "",
             "api_key": "",
             "timeout": 600,
+            "extra_body": {},
+        },
+        # Monitor — urgency/importance classifier used by the important-mail
+        # monitor catalog automation (cron/scripts/classify_items.py). Scores
+        # candidate items 0-10 against the user's criteria so only above-
+        # threshold items get delivered. "auto" = main chat model; override to
+        # a cheap fast model (e.g. openrouter google/gemini-3-flash-preview,
+        # haiku) since per-item scoring is high-volume and a small model is fine.
+        "monitor": {
+            "provider": "auto",
+            "model": "",
+            "base_url": "",
+            "api_key": "",
+            "timeout": 60,
             "extra_body": {},
         },
     },

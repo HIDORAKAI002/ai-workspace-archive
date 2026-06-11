@@ -227,6 +227,21 @@ For other LLM providers, see our [supported models documentation](https://docs.b
 </details>
 
 <details>
+<summary><b>Can I use Claude / GPT / Gemini through ChatBrowserUse?</b></summary>
+
+Yes. `ChatBrowserUse` accepts provider-prefixed model ids, so a single `BROWSER_USE_API_KEY` reaches all of them — no separate OpenAI/Anthropic/Google keys required:
+
+```python
+from browser_use import Agent, ChatBrowserUse
+
+llm = ChatBrowserUse(model='anthropic/claude-sonnet-4-6')  # or 'openai/gpt-5.5', 'google/gemini-3-pro'
+agent = Agent(task='...', llm=llm)
+```
+
+For the best speed and cost we still recommend the default `bu-*` models.
+</details>
+
+<details>
 <summary><b>Should I use the Browser Use system prompt with the open-source preview model?</b></summary>
 
 Yes. If you use `ChatBrowserUse(model='browser-use/bu-30b-a3b-preview')` with a normal `Agent(...)`, Browser Use still sends its default agent system prompt for you.

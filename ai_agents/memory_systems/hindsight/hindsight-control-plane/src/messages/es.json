@@ -52,7 +52,9 @@
       "empty": "Aún no hay bancos de memoria.",
       "create": "Crear nuevo banco",
       "switchTitle": "Cambiar banco de memoria",
-      "returnTo": "Volver a {bank}"
+      "returnTo": "Volver a {bank}",
+      "copyName": "Copiar nombre",
+      "copied": "Copiado al portapapeles"
     },
     "viewOnGitHub": "Ver en GitHub"
   },
@@ -422,7 +424,16 @@
     "memoryDefenseAction_redact": "Redactar",
     "memoryDefenseAction_block": "Bloquear",
     "memoryDefenseSecretLeakTitle": "Prevención de fugas de secretos",
-    "memoryDefenseSecretLeakDescription": "Analiza el contenido retenido en busca de secretos. 44 patrones que cubren claves comunes de proveedores, AWS e información personal."
+    "memoryDefenseSecretLeakDescription": "Analiza el contenido retenido en busca de secretos. 44 patrones que cubren claves comunes de proveedores, AWS e información personal.",
+    "memoryDefenseEnterpriseTitle": "Memory Defense Enterprise",
+    "memoryDefenseEnterpriseSubtitle": "Detecta más, redacta más inteligentemente y audita todo: disponible en Hindsight Cloud.",
+    "memoryDefenseEnterpriseFeatureDetectSecrets": "Detección avanzada de secretos: más de 200 patrones que cubren claves de proveedores, AWS, GitHub y tokens de CI",
+    "memoryDefenseEnterpriseFeatureBase64": "Decodificación Base64: detecta secretos ocultos en cargas útiles codificadas",
+    "memoryDefenseEnterpriseFeatureLlm": "Análisis con LLM: detecta patrones de exfiltración novedosos que las regex no pueden",
+    "memoryDefenseEnterpriseFeaturePromptInjection": "Detección de inyección de prompts: bloquea intentos de anular el comportamiento del agente",
+    "memoryDefenseEnterpriseFeatureSizeAnomaly": "Anomalía de tamaño: rechaza cargas útiles sospechosamente grandes",
+    "memoryDefenseEnterpriseFeatureProtectedKeys": "Espacios de nombres de etiquetas protegidos: aplica etiquetas de identidad inmutables",
+    "memoryDefenseEnterpriseCta": "Solicitar una demo"
   },
   "bankOperations": {
     "title": "Operaciones en segundo plano",
@@ -577,7 +588,13 @@
     "sourceFactsLabel": "hechos fuente",
     "errorLoadingData": "Error al cargar datos de {factType}",
     "all": "Todos",
-    "memoryComposition": "Composición de memorias"
+    "memoryComposition": "Composición de memorias",
+    "scopeLabel": "Ámbito",
+    "scopeAll": "Todos los ámbitos",
+    "scopeGlobal": "Global (sin etiquetas)",
+    "groupByScope": "Agrupar por ámbito",
+    "scopeSearch": "Buscar ámbitos…",
+    "scopeNoResults": "No se encontraron ámbitos"
   },
   "documentsView": {
     "loadingDocuments": "Cargando documentos...",
@@ -665,7 +682,8 @@
     "importConflictSkip": "Omitir — conservar el documento existente",
     "importConflictReplace": "Reemplazar — sobrescribir con el importado",
     "importConflictNewId": "Conservar ambos — importar con un nuevo id",
-    "textNotStoredWarning": "El texto original no se almacena en este servidor: solo se conservan las memorias extraídas."
+    "textNotStoredWarning": "El texto original no se almacena en este servidor: solo se conservan las memorias extraídas.",
+    "labelObservationScopes": "Ámbitos de observación"
   },
   "entitiesView": {
     "viewRelations": "Relaciones",
@@ -1267,7 +1285,12 @@
     "editFieldEntities": "Entities",
     "editEntityPlaceholder": "Add entity…",
     "editEntityRemove": "Remove {entity}",
-    "editedBadge": "Edited"
+    "editedBadge": "Edited",
+    "curationInvalidateTitle": "Invalidar memoria",
+    "curationInvalidateExplain": "Esto mueve la memoria al archivo de elementos invalidados. Ya no aparecerá en Recall ni Reflect, pero se conserva para auditoría y puede restaurarse más tarde.",
+    "curationReasonPlaceholder": "Motivo (opcional)",
+    "curationCancel": "Cancelar",
+    "curationInvalidate": "Invalidar"
   },
   "documentChunkModal": {
     "documentTitle": "Detalles del documento",
