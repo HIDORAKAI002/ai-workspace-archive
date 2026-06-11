@@ -6,17 +6,20 @@ the FastAPI application with all API endpoints.
 """
 
 import asyncio
+import contextlib
 import json
 import logging
 import re
 import uuid
+from collections.abc import AsyncIterator, Awaitable
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
-from typing import Any, Literal
+from typing import Any, Literal, TypeVar
 
 from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, Query, Request, UploadFile
 from fastapi.middleware.gzip import GZipMiddleware
 
+from hindsight_api.cancellation import CancellationToken, OperationCancelledError
 from hindsight_api.engine.audit import (
     AuditEntry,
     AuditLogger,
@@ -89,6 +92,77 @@ from hindsight_api.metrics import create_metrics_collector, get_metrics_collecto
 from hindsight_api.models import RequestContext
 
 logger = logging.getLogger(__name__)
+
+# Starlette surfaces client disconnects through an async receive check. A
+# one-second poll stops abandoned long-running recalls without busy-waiting.
+_CLIENT_DISCONNECT_POLL_INTERVAL_SECONDS = 1.0
+# 499 is the de facto reverse-proxy status for "client closed request".
+_CLIENT_CLOSED_REQUEST_STATUS_CODE = 499
+_CLIENT_DISCONNECTED_REASON = "client disconnected"
+
+
+@asynccontextmanager
+async def _cancel_on_client_disconnect(
+    http_request: Request,
+    request_context: RequestContext,
+    *,
+    poll_interval: float = _CLIENT_DISCONNECT_POLL_INTERVAL_SECONDS,
+) -> AsyncIterator[CancellationToken]:
+    """Attach a cancellation token that fires when the HTTP client disconnects.
+
+    The engine checks ``request_context`` at each pipeline stage boundary and
+    raises ``OperationCancelledError`` once this token fires, so an abandoned
+    request stops consuming CPU/DB resources instead of running to completion
+    (issue #2122). A background task polls ``request.is_disconnected()``; the
+    token is restored to its previous value on exit so nested scopes compose.
+    """
+    token = CancellationToken()
+    previous_token = request_context.cancellation
+    request_context.cancellation = token
+
+    async def _watch() -> None:
+        while True:
+            if await http_request.is_disconnected():
+                token.cancel(_CLIENT_DISCONNECTED_REASON)
+                return
+            await asyncio.sleep(poll_interval)
+
+    watcher = asyncio.create_task(_watch())
+    try:
+        yield token
+    finally:
+        watcher.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await watcher
+        request_context.cancellation = previous_token
+
+
+_T = TypeVar("_T")
+
+
+async def run_cancellable_on_disconnect(
+    http_request: Request,
+    request_context: RequestContext,
+    coro: Awaitable[_T],
+    *,
+    operation: str,
+    bank_id: str,
+    poll_interval: float = _CLIENT_DISCONNECT_POLL_INTERVAL_SECONDS,
+) -> _T:
+    """Run an engine coroutine, aborting it with 499 if the client disconnects.
+
+    Shared by the recall and reflect handlers: it attaches the disconnect-driven
+    cancellation token (which the engine checks at its stage/iteration
+    boundaries) and translates the resulting ``OperationCancelledError`` into the
+    de facto 499 status so abandoned work stops instead of running to completion
+    (issue #2122).
+    """
+    async with _cancel_on_client_disconnect(http_request, request_context, poll_interval=poll_interval):
+        try:
+            return await coro
+        except OperationCancelledError as e:
+            logger.info(f"[{operation.upper()} CANCELLED] bank={bank_id} reason={e.reason}")
+            raise HTTPException(status_code=_CLIENT_CLOSED_REQUEST_STATUS_CODE, detail=e.reason) from e
 
 
 class EntityIncludeOptions(BaseModel):
@@ -3465,6 +3539,7 @@ def _register_routes(app: FastAPI):
     async def api_recall(
         bank_id: str,
         request: RecallRequest,
+        http_request: Request,
         request_context: RequestContext = Depends(get_request_context),
         _precheck: None = Depends(precheck_for("recall")),
     ):
@@ -3520,25 +3595,34 @@ def _register_routes(app: FastAPI):
                 "recall", bank_id=bank_id, source="api", budget=request.budget.value, max_tokens=request.max_tokens
             ):
                 recall_start = time.time()
-                core_result = await app.state.memory.recall_async(
+                # Cancel the recall if the client disconnects: the engine checks
+                # request_context at each stage boundary and aborts abandoned
+                # work rather than running it to completion (issue #2122).
+                core_result = await run_cancellable_on_disconnect(
+                    http_request,
+                    request_context,
+                    app.state.memory.recall_async(
+                        bank_id=bank_id,
+                        query=request.query,
+                        budget=request.budget,
+                        max_tokens=request.max_tokens,
+                        enable_trace=request.trace,
+                        fact_type=fact_types,
+                        question_date=question_date,
+                        include_entities=include_entities,
+                        max_entity_tokens=max_entity_tokens,
+                        include_chunks=include_chunks,
+                        max_chunk_tokens=max_chunk_tokens,
+                        include_source_facts=include_source_facts,
+                        max_source_facts_tokens=max_source_facts_tokens,
+                        max_source_facts_tokens_per_observation=max_source_facts_tokens_per_observation,
+                        request_context=request_context,
+                        tags=request.tags,
+                        tags_match=request.tags_match,
+                        tag_groups=request.tag_groups,
+                    ),
+                    operation="recall",
                     bank_id=bank_id,
-                    query=request.query,
-                    budget=request.budget,
-                    max_tokens=request.max_tokens,
-                    enable_trace=request.trace,
-                    fact_type=fact_types,
-                    question_date=question_date,
-                    include_entities=include_entities,
-                    max_entity_tokens=max_entity_tokens,
-                    include_chunks=include_chunks,
-                    max_chunk_tokens=max_chunk_tokens,
-                    include_source_facts=include_source_facts,
-                    max_source_facts_tokens=max_source_facts_tokens,
-                    max_source_facts_tokens_per_observation=max_source_facts_tokens_per_observation,
-                    request_context=request_context,
-                    tags=request.tags,
-                    tags_match=request.tags_match,
-                    tag_groups=request.tag_groups,
                 )
 
             # Convert core MemoryFact objects to API RecallResult objects (excluding internal metrics)
@@ -3656,6 +3740,7 @@ def _register_routes(app: FastAPI):
     async def api_reflect(
         bank_id: str,
         request: ReflectRequest,
+        http_request: Request,
         request_context: RequestContext = Depends(get_request_context),
         _precheck: None = Depends(precheck_for("reflect")),
     ):
@@ -3669,20 +3754,30 @@ def _register_routes(app: FastAPI):
 
             # Use the memory system's reflect_async method (record metrics)
             with metrics.record_operation("reflect", bank_id=bank_id, source="api", budget=request.budget.value):
-                core_result = await app.state.memory.reflect_async(
+                # Cancel the reflect if the client disconnects: the agent loop
+                # checks request_context between iterations and the nested recall
+                # checks at its stage boundaries, so abandoned work stops instead
+                # of running to completion (issue #2122).
+                core_result = await run_cancellable_on_disconnect(
+                    http_request,
+                    request_context,
+                    app.state.memory.reflect_async(
+                        bank_id=bank_id,
+                        query=query,
+                        budget=request.budget,
+                        context=None,  # Deprecated, now concatenated with query
+                        max_tokens=request.max_tokens,
+                        response_schema=request.response_schema,
+                        request_context=request_context,
+                        tags=request.tags,
+                        tags_match=request.tags_match,
+                        tag_groups=request.tag_groups,
+                        fact_types=request.fact_types,
+                        exclude_mental_models=request.exclude_mental_models,
+                        exclude_mental_model_ids=request.exclude_mental_model_ids,
+                    ),
+                    operation="reflect",
                     bank_id=bank_id,
-                    query=query,
-                    budget=request.budget,
-                    context=None,  # Deprecated, now concatenated with query
-                    max_tokens=request.max_tokens,
-                    response_schema=request.response_schema,
-                    request_context=request_context,
-                    tags=request.tags,
-                    tags_match=request.tags_match,
-                    tag_groups=request.tag_groups,
-                    fact_types=request.fact_types,
-                    exclude_mental_models=request.exclude_mental_models,
-                    exclude_mental_model_ids=request.exclude_mental_model_ids,
                 )
 
             # Build based_on (memories + mental_models + directives) if facts are requested
