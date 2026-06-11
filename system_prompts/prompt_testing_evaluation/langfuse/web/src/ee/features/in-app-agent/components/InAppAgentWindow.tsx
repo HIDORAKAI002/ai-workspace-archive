@@ -6,9 +6,9 @@ import {
   History,
   Maximize2,
   Minimize2,
+  Minus,
   Plus,
   SendHorizontal,
-  X,
 } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import {
@@ -19,6 +19,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/src/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/src/components/ui/tooltip";
 import { cn } from "@/src/utils/tailwind";
 import {
   InAppAgentMessage,
@@ -27,7 +32,34 @@ import {
 } from "./InAppAgentMessage";
 import type { InAppAgentMessageFeedbackValue } from "@/src/ee/features/in-app-agent/schema";
 
-const AUTO_SCROLL_THRESHOLD_PX = 200;
+const AUTO_SCROLL_THRESHOLD_PX = 50;
+const SCROLL_DIRECTION_TOLERANCE_PX = 1;
+const CONVERSATION_STARTERS = [
+  [
+    "Get started with Langfuse",
+    "Where should I start with setting up Langfuse?",
+  ],
+  ["Optimize my setup", "What should I improve in my Langfuse setup?"],
+  [
+    "Find problematic traces",
+    "Show me patterns in failed or low-scoring traces.",
+  ],
+  [
+    "Investigate unusual patterns",
+    "Are there unusual latency or cost patterns recently?",
+  ],
+] as const;
+
+function scrollViewportToBottom(viewport: HTMLDivElement | null) {
+  if (!viewport) {
+    return;
+  }
+
+  viewport.scrollTo({
+    top: viewport.scrollHeight,
+    behavior: "auto",
+  });
+}
 
 export type InAppAgentWindowMessage = {
   id: string;
@@ -94,38 +126,50 @@ export function InAppAgentWindow(props: InAppAgentWindowProps) {
     zIndex,
   } = props;
   const viewportRef = useRef<HTMLDivElement>(null);
-  const scrollPositionRef = useRef<{
-    scrollHeight: number;
-    scrollTop: number;
-    clientHeight: number;
-  } | null>(null);
+  const isAutoScrollAttachedRef = useRef(true);
+  const previousScrollTopRef = useRef(0);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [input, setInput] = useState("");
+  const hasUserMessage = messages.some((message) => message.role === "user");
+
+  const submitInput = (content: string) => {
+    const trimmedContent = content.trim();
+
+    if (!trimmedContent || isInputDisabled) {
+      return;
+    }
+
+    Promise.resolve(onSubmit(trimmedContent))
+      .then((submitted) => {
+        if (submitted) {
+          isAutoScrollAttachedRef.current = true;
+
+          setInput((currentInput) =>
+            currentInput.trim() === trimmedContent ? "" : currentInput,
+          );
+
+          window.requestAnimationFrame(() =>
+            scrollViewportToBottom(viewportRef.current),
+          );
+        }
+      })
+      .catch(() => undefined);
+  };
 
   useEffect(() => {
-    const viewport = viewportRef.current;
-
-    if (!viewport) {
+    if (!isAutoScrollAttachedRef.current) {
       return;
     }
 
-    const scrollPosition = scrollPositionRef.current;
-    const isNearBottom =
-      !scrollPosition ||
-      scrollPosition.scrollHeight -
-        scrollPosition.scrollTop -
-        scrollPosition.clientHeight <=
-        AUTO_SCROLL_THRESHOLD_PX;
-
-    if (!isNearBottom) {
-      return;
-    }
-
-    viewport.scrollTo({
-      top: viewport.scrollHeight,
-      behavior: "smooth",
-    });
+    scrollViewportToBottom(viewportRef.current);
   }, [messages]);
+
+  useEffect(() => {
+    isAutoScrollAttachedRef.current = true;
+    previousScrollTopRef.current = 0;
+
+    scrollViewportToBottom(viewportRef.current);
+  }, [selectedConversationId]);
 
   useEffect(() => {
     const input = inputRef.current;
@@ -140,6 +184,7 @@ export function InAppAgentWindow(props: InAppAgentWindowProps) {
 
   return (
     <section
+      aria-label="Assistant"
       className={cn(
         "bg-background flex min-w-0 flex-col overflow-hidden rounded-xl border shadow/5",
         isExpanded
@@ -149,38 +194,46 @@ export function InAppAgentWindow(props: InAppAgentWindowProps) {
     >
       <header className="bg-header flex min-h-11.25 shrink-0 items-center justify-between gap-2 border-b px-3 py-1">
         <div className="flex min-w-0 flex-1 items-center gap-2">
-          <p className="shrink-0 truncate text-sm font-semibold">
-            AI Assistant
-          </p>
+          <p className="shrink-0 truncate text-sm font-semibold">Assistant</p>
           <span className="text-muted-foreground rounded border px-1.5 py-1 text-xs leading-none font-medium">
             Beta
           </span>
         </div>
         <div className="flex shrink-0 items-center gap-0.5">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="size-6 shrink-0"
-            onClick={onNewConversation}
-            disabled={isInputDisabled}
-            aria-label="Start new AI agent conversation"
-          >
-            <Plus className="size-3" />
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+          <Tooltip delayDuration={100} disableHoverableContent>
+            <TooltipTrigger asChild>
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
                 className="size-6 shrink-0"
+                onClick={onNewConversation}
                 disabled={isInputDisabled}
-                aria-label="Conversation history"
+                aria-label="Start new conversation"
               >
-                <History className="size-3" />
+                <Plus className="size-3" />
               </Button>
-            </DropdownMenuTrigger>
+            </TooltipTrigger>
+            <TooltipContent>Start new conversation</TooltipContent>
+          </Tooltip>
+          <DropdownMenu>
+            <Tooltip delayDuration={100} disableHoverableContent>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="size-6 shrink-0"
+                    disabled={isInputDisabled}
+                    aria-label="Conversation history"
+                  >
+                    <History className="size-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent>Conversation history</TooltipContent>
+            </Tooltip>
             <DropdownMenuContent
               align="end"
               className="max-h-80 w-64 overflow-y-auto"
@@ -222,31 +275,43 @@ export function InAppAgentWindow(props: InAppAgentWindowProps) {
               ) : null}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="size-6"
-            aria-label={isExpanded ? "Collapse window" : "Expand window"}
-            onClick={() => onExpandedChange(!isExpanded)}
-          >
-            {isExpanded ? (
-              <Minimize2 className="size-3" />
-            ) : (
-              <Maximize2 className="size-3" />
-            )}
-          </Button>
+          <Tooltip delayDuration={100} disableHoverableContent>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="size-6"
+                aria-label={isExpanded ? "Collapse window" : "Expand window"}
+                onClick={() => onExpandedChange(!isExpanded)}
+              >
+                {isExpanded ? (
+                  <Minimize2 className="size-3" />
+                ) : (
+                  <Maximize2 className="size-3" />
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {isExpanded ? "Collapse window" : "Expand window"}
+            </TooltipContent>
+          </Tooltip>
           {props.showCloseButton !== false ? (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="size-6"
-              aria-label="Close assistant"
-              onClick={props.onClose}
-            >
-              <X className="size-3" />
-            </Button>
+            <Tooltip delayDuration={100} disableHoverableContent>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-6"
+                  aria-label="Minimize assistant"
+                  onClick={props.onClose}
+                >
+                  <Minus className="size-3" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Minimize assistant</TooltipContent>
+            </Tooltip>
           ) : null}
         </div>
       </header>
@@ -256,11 +321,22 @@ export function InAppAgentWindow(props: InAppAgentWindowProps) {
           className="min-h-0 flex-1 overflow-y-auto"
           onScroll={(event) => {
             const viewport = event.currentTarget;
-            scrollPositionRef.current = {
-              scrollHeight: viewport.scrollHeight,
-              scrollTop: viewport.scrollTop,
-              clientHeight: viewport.clientHeight,
-            };
+            const distanceFromBottom =
+              viewport.scrollHeight -
+              viewport.scrollTop -
+              viewport.clientHeight;
+            const isNearBottom = distanceFromBottom <= AUTO_SCROLL_THRESHOLD_PX;
+            const scrolledUp =
+              viewport.scrollTop <
+              previousScrollTopRef.current - SCROLL_DIRECTION_TOLERANCE_PX;
+
+            if (scrolledUp && !isNearBottom) {
+              isAutoScrollAttachedRef.current = false;
+            } else if (isNearBottom) {
+              isAutoScrollAttachedRef.current = true;
+            }
+
+            previousScrollTopRef.current = viewport.scrollTop;
           }}
         >
           <div
@@ -270,8 +346,8 @@ export function InAppAgentWindow(props: InAppAgentWindowProps) {
               isExpanded ? "px-0" : "px-3",
             )}
           >
-            {messages.length === 0 ? (
-              <div className="flex h-full w-full flex-1 flex-col items-center justify-center">
+            {!hasUserMessage ? (
+              <div className="flex h-full w-full flex-1 flex-col items-center justify-center px-2">
                 <div>
                   <BotMessageSquare className="text-muted-foreground mx-auto h-8 w-8" />
                 </div>
@@ -280,10 +356,28 @@ export function InAppAgentWindow(props: InAppAgentWindowProps) {
                 </p>
                 <p className="text-muted-foreground/60 mt-2 max-w-xs text-center text-sm leading-relaxed">
                   I can help you with any questions you have about Langfuse or
-                  assist you in exploring your event data.
+                  assist you in exploring your data.
                   <br />
-                  Just ask me anything!
+                  What do you want to do?
                 </p>
+                <div className="mt-6 flex max-w-sm flex-wrap items-center justify-center gap-2">
+                  {CONVERSATION_STARTERS.map(([label, message]) => (
+                    <button
+                      key={label}
+                      type="button"
+                      className={cn(
+                        "bg-card dark:bg-header text-foreground border-border hover:bg-muted/60 border text-[0.775rem] leading-none shadow-xs transition-colors disabled:cursor-not-allowed disabled:opacity-60",
+                        isExpanded
+                          ? "rounded-2xl px-3 py-2"
+                          : "rounded-xl px-2 py-1.5",
+                      )}
+                      disabled={isInputDisabled}
+                      onClick={() => submitInput(message)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
               </div>
             ) : null}
 
@@ -341,7 +435,11 @@ export function InAppAgentWindow(props: InAppAgentWindowProps) {
           </div>
         </div>
         <div
-          className={cn("p-1.5", isExpanded ? "pt-0" : "bg-header border-t")}
+          className={cn(
+            "p-1.5",
+            isExpanded ? "pt-0" : "bg-header",
+            !isExpanded && hasUserMessage && "border-t",
+          )}
         >
           <form
             className={cn(
@@ -356,25 +454,11 @@ export function InAppAgentWindow(props: InAppAgentWindowProps) {
             }}
             onSubmit={(event) => {
               event.preventDefault();
-
-              const content = input.trim();
-
-              if (!content || isInputDisabled) {
-                return;
-              }
-
-              Promise.resolve(onSubmit(content))
-                .then((submitted) => {
-                  if (submitted) {
-                    setInput((currentInput) =>
-                      currentInput.trim() === content ? "" : currentInput,
-                    );
-                  }
-                })
-                .catch(() => undefined);
+              submitInput(input);
             }}
           >
             <textarea
+              autoFocus={!isExpanded}
               ref={inputRef}
               value={input}
               onChange={(event) => setInput(event.target.value)}
@@ -389,8 +473,8 @@ export function InAppAgentWindow(props: InAppAgentWindowProps) {
                 }
               }}
               disabled={isInputDisabled}
-              aria-label="Ask about Langfuse"
-              placeholder="Ask about Langfuse..."
+              aria-label="Ask the assistant a question"
+              placeholder="Ask the assistant a question..."
               rows={1}
               className={cn(
                 "bg-background placeholder:text-muted-foreground w-full flex-1 resize-none overflow-y-auto rounded-md text-sm leading-5 disabled:cursor-not-allowed disabled:opacity-60",
