@@ -41,7 +41,9 @@ import {
   ChevronDown,
   ChevronRight,
   LogOut,
+  Copy,
 } from "lucide-react";
+import { toast } from "sonner";
 import { useTheme } from "@/lib/theme-context";
 import { useFeatures } from "@/lib/features-context";
 import Image from "next/image";
@@ -527,7 +529,7 @@ function BankSelectorInner() {
                             : `?view=${view}`;
                           router.push(bankRoute(value, queryString));
                         }}
-                        className="relative overflow-hidden py-2.5 mb-0.5"
+                        className="relative overflow-hidden py-2.5 mb-0.5 group"
                       >
                         {/* Background bar — proportional to memory count */}
                         <div
@@ -544,6 +546,26 @@ function BankSelectorInner() {
                           <span className="truncate flex-1 font-medium" title={bank.bank_id}>
                             {bank.bank_id}
                           </span>
+                          <button
+                            type="button"
+                            aria-label={tNavBank("copyName")}
+                            title={tNavBank("copyName")}
+                            className="inline-flex h-6 w-6 items-center justify-center rounded hover:bg-accent-foreground/10 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity shrink-0"
+                            onMouseDown={(e) => {
+                              // Stop cmdk from intercepting before onClick fires.
+                              e.stopPropagation();
+                              e.preventDefault();
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigator.clipboard.writeText(bank.bank_id).then(
+                                () => toast.success(tNavBank("copied")),
+                                () => toast.error(tNavBank("copied"))
+                              );
+                            }}
+                          >
+                            <Copy className="h-3.5 w-3.5" />
+                          </button>
                           <span className="shrink-0 tabular-nums text-[11px] text-muted-foreground/70">
                             {bank.fact_count > 0 ? (
                               <>

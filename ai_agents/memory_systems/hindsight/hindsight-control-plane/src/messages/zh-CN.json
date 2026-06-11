@@ -52,7 +52,9 @@
       "empty": "还没有记忆库。",
       "create": "创建新记忆库",
       "switchTitle": "切换记忆库",
-      "returnTo": "返回 {bank}"
+      "returnTo": "返回 {bank}",
+      "copyName": "复制名称",
+      "copied": "已复制到剪贴板"
     },
     "viewOnGitHub": "在 GitHub 查看"
   },
@@ -422,7 +424,16 @@
     "memoryDefenseAction_redact": "脱敏",
     "memoryDefenseAction_block": "拦截",
     "memoryDefenseSecretLeakTitle": "密钥泄露防护",
-    "memoryDefenseSecretLeakDescription": "扫描保留内容中的密钥。44 种模式,涵盖常见提供商密钥、AWS 和个人信息。"
+    "memoryDefenseSecretLeakDescription": "扫描保留内容中的密钥。44 种模式,涵盖常见提供商密钥、AWS 和个人信息。",
+    "memoryDefenseEnterpriseTitle": "Memory Defense Enterprise",
+    "memoryDefenseEnterpriseSubtitle": "检测更多、智能编辑、全面审计 — Hindsight Cloud 中提供。",
+    "memoryDefenseEnterpriseFeatureDetectSecrets": "高级密钥检测:200+ 模式,涵盖提供商密钥、AWS、GitHub 和 CI 令牌",
+    "memoryDefenseEnterpriseFeatureBase64": "Base64 解码:捕获编码负载中隐藏的密钥",
+    "memoryDefenseEnterpriseFeatureLlm": "LLM 筛查:捕获正则表达式无法识别的新型外泄模式",
+    "memoryDefenseEnterpriseFeaturePromptInjection": "提示词注入检测:阻止覆盖代理行为的尝试",
+    "memoryDefenseEnterpriseFeatureSizeAnomaly": "大小异常:拒绝可疑的过大负载",
+    "memoryDefenseEnterpriseFeatureProtectedKeys": "受保护的标签命名空间:强制使用不可变的身份标签",
+    "memoryDefenseEnterpriseCta": "申请演示"
   },
   "bankOperations": {
     "title": "后台操作",
@@ -577,7 +588,13 @@
     "sourceFactsLabel": "来源事实",
     "errorLoadingData": "加载 {factType} 数据出错",
     "all": "全部",
-    "memoryComposition": "记忆构成"
+    "memoryComposition": "记忆构成",
+    "scopeLabel": "范围",
+    "scopeAll": "所有范围",
+    "scopeGlobal": "全局（无标签）",
+    "groupByScope": "按范围分组",
+    "scopeSearch": "搜索范围…",
+    "scopeNoResults": "未找到范围"
   },
   "documentsView": {
     "loadingDocuments": "正在加载文档...",
@@ -665,7 +682,8 @@
     "importConflictSkip": "跳过 — 保留现有文档",
     "importConflictReplace": "替换 — 用导入的覆盖",
     "importConflictNewId": "两者都保留 — 以新 id 导入",
-    "textNotStoredWarning": "此服务器不存储原始文本，仅保留提取的记忆。"
+    "textNotStoredWarning": "此服务器不存储原始文本，仅保留提取的记忆。",
+    "labelObservationScopes": "观测范围"
   },
   "entitiesView": {
     "viewRelations": "关系",
@@ -1267,7 +1285,12 @@
     "editFieldEntities": "Entities",
     "editEntityPlaceholder": "Add entity…",
     "editEntityRemove": "Remove {entity}",
-    "editedBadge": "Edited"
+    "editedBadge": "Edited",
+    "curationInvalidateTitle": "使记忆失效",
+    "curationInvalidateExplain": "这会将该记忆移至已失效归档。它将不再出现在 Recall 或 Reflect 中，但会保留以供审计，并可在以后恢复。",
+    "curationReasonPlaceholder": "原因（可选）",
+    "curationCancel": "取消",
+    "curationInvalidate": "失效"
   },
   "documentChunkModal": {
     "documentTitle": "文档详情",
