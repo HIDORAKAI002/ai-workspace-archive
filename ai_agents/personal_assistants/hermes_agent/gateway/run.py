@@ -1425,6 +1425,33 @@ def _build_media_placeholder(event) -> str:
     return "\n".join(parts)
 
 
+def _build_document_context_note(display_name: str, agent_path: str, mtype: str) -> str:
+    """Context note prepended to a user turn when they attach a document.
+
+    Text documents (``text/*``) have their content inlined upstream by the
+    platform adapter, so the note just confirms that and records the path.
+
+    Binary documents (PDF, DOCX, XLSX, …) cannot be inlined as text. The note
+    must tell the agent to *extract* the text itself before answering — earlier
+    wording ("Ask the user what they'd like you to do with it") steered the
+    model into punting back to the user, which is why attached PDFs/DOCX looked
+    "unreadable" to the agent even though it has the tools to read them.
+    """
+    if mtype.startswith("text/"):
+        return (
+            f"[The user sent a text document: '{display_name}'. "
+            f"Its content has been included below. "
+            f"The file is also saved at: {agent_path}]"
+        )
+    return (
+        f"[The user sent a document: '{display_name}'. It is saved at: {agent_path}. "
+        f"Its text is not inlined here (it's a binary format such as PDF or DOCX). "
+        f"To read it, extract the document's text yourself — for example with the "
+        f"terminal tool or the ocr-and-documents skill — before answering, instead "
+        f"of asking the user to paste the contents.]"
+    )
+
+
 def _format_duration(seconds: float) -> str:
     total = int(round(seconds))
     if total < 0:
@@ -7171,6 +7198,37 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
         if canonical == "kanban":
             return await self._handle_kanban_command(event)
 
+        if canonical == "suggestions":
+            return await self._handle_suggestions_command(event)
+
+        if canonical == "blueprint":
+            _blueprint_result = await self._handle_blueprint_command(event)
+            _blueprint_seed = getattr(_blueprint_result, "agent_seed", None)
+            if _blueprint_seed:
+                # Blueprint matched — rewrite the turn to the seed and fall
+                # through to _handle_message_with_agent so the agent asks the
+                # user for each slot value conversationally and then calls the
+                # cronjob tool (the /steer fall-through pattern). The seed
+                # enters as a normal user turn, preserving role alternation.
+                # Send the "Setting up X…" ack first so the user gets the same
+                # immediate feedback CLI users see, instead of silence until
+                # the agent's first question.
+                _ack = getattr(_blueprint_result, "text", "") or ""
+                if _ack:
+                    try:
+                        adapter = self.adapters.get(source.platform)
+                        if adapter:
+                            _ack_meta = self._thread_metadata_for_source(source)
+                            await adapter.send(str(source.chat_id), _ack, metadata=_ack_meta)
+                    except Exception:
+                        logger.debug("blueprint ack send failed", exc_info=True)
+                try:
+                    event.text = _blueprint_seed
+                except Exception:
+                    return getattr(_blueprint_result, "text", "") or None
+            else:
+                return getattr(_blueprint_result, "text", "") or None
+
         if canonical == "retry":
             return await self._handle_retry_command(event)
         
@@ -7669,7 +7727,11 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
                 _note = (
                     f"[The user sent an audio file attachment: '{_display}'. "
                     f"It is saved at: {_agent_path}. "
-                    f"Ask the user what they'd like you to do with it, or pass the path to a transcription or media tool.]"
+                    f"Its content is not inlined here. If the user's request involves "
+                    f"what the audio contains, transcribe or process it yourself — for "
+                    f"example by passing the path to a transcription or media tool — "
+                    f"instead of asking the user to describe it. Only ask what to do "
+                    f"with it if their intent is genuinely unclear.]"
                 )
                 message_text = f"{_note}\n\n{message_text}"
 
@@ -7701,18 +7763,7 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
                 # cache directories are auto-mounted at /root/.hermes/cache/* by get_cache_directory_mounts().
                 agent_path = to_agent_visible_cache_path(path)
 
-                if mtype.startswith("text/"):
-                    context_note = (
-                        f"[The user sent a text document: '{display_name}'. "
-                        f"Its content has been included below. "
-                        f"The file is also saved at: {agent_path}]"
-                    )
-                else:
-                    context_note = (
-                        f"[The user sent a document: '{display_name}'. "
-                        f"The file is saved at: {agent_path}. "
-                        f"Ask the user what they'd like you to do with it.]"
-                    )
+                context_note = _build_document_context_note(display_name, agent_path, mtype)
                 message_text = f"{context_note}\n\n{message_text}"
 
         if getattr(event, "reply_to_text", None) and event.reply_to_message_id:
@@ -9236,6 +9287,71 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
 
 
 
+
+    async def _handle_suggestions_command(self, event: MessageEvent) -> str:
+        """Handle /suggestions in the gateway.
+
+        Delegates to the shared handler so CLI and gateway never drift. The
+        origin is built from the event source so an accepted suggestion's job
+        delivers back to this chat/thread.
+        """
+        args = (event.get_command_args() or "").strip()
+        source = event.source
+        origin = None
+        try:
+            platform = getattr(source.platform, "value", None) or str(getattr(source, "platform", "") or "")
+            chat_id = getattr(source, "chat_id", None)
+            if platform and chat_id:
+                origin = {
+                    "platform": platform,
+                    "chat_id": str(chat_id),
+                    "chat_name": getattr(source, "chat_name", None),
+                    "thread_id": getattr(source, "thread_id", None),
+                }
+        except Exception:
+            origin = None
+        try:
+            from hermes_cli.suggestions_cmd import handle_suggestions_command
+
+            return handle_suggestions_command(args, origin=origin, surface="gateway")
+        except Exception as e:
+            logger.debug("suggestions command failed: %s", e)
+            return f"Suggestions command failed: {e}"
+
+    async def _handle_blueprint_command(self, event: MessageEvent):
+        """Handle /blueprint in the gateway.
+
+        Delegates to the shared handler so CLI, TUI, and gateway never drift.
+        Returns a BlueprintCommandResult: ``text`` is shown to the user, and if
+        ``agent_seed`` is set the dispatch site rewrites ``event.text`` to the
+        seed and falls through to the agent (the ``/steer`` pattern) so the
+        agent gathers the slot values conversationally. Origin is built from the
+        event source so a directly created blueprint job delivers back to this chat.
+        """
+        args = (event.get_command_args() or "").strip()
+        source = event.source
+        origin = None
+        try:
+            platform = getattr(source.platform, "value", None) or str(getattr(source, "platform", "") or "")
+            chat_id = getattr(source, "chat_id", None)
+            if platform and chat_id:
+                origin = {
+                    "platform": platform,
+                    "chat_id": str(chat_id),
+                    "chat_name": getattr(source, "chat_name", None),
+                    "thread_id": getattr(source, "thread_id", None),
+                }
+        except Exception:
+            origin = None
+        try:
+            from hermes_cli.blueprint_cmd import handle_blueprint_command
+
+            return handle_blueprint_command(args, origin=origin, surface="gateway")
+        except Exception as e:
+            logger.debug("blueprint command failed: %s", e)
+            from hermes_cli.blueprint_cmd import BlueprintCommandResult
+
+            return BlueprintCommandResult(f"Cron blueprint command failed: {e}")
 
     # ────────────────────────────────────────────────────────────────
     # /goal — persistent cross-turn goals (Ralph-style loop)

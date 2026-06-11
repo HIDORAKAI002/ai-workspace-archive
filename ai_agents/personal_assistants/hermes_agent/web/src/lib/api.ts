@@ -432,7 +432,7 @@ export const api = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ config }),
     }),
-  getConfigRaw: () => fetchJSON<{ yaml: string }>("/api/config/raw"),
+  getConfigRaw: () => fetchJSON<{ yaml: string; path?: string }>("/api/config/raw"),
   saveConfigRaw: (yaml_text: string) =>
     fetchJSON<{ ok: boolean }>("/api/config/raw", {
       method: "PUT",
@@ -496,6 +496,19 @@ export const api = {
     fetchJSON<CronJob>(`/api/cron/jobs/${encodeURIComponent(id)}/trigger?profile=${encodeURIComponent(profile)}`, { method: "POST" }),
   deleteCronJob: (id: string, profile = "default") =>
     fetchJSON<{ ok: boolean }>(`/api/cron/jobs/${encodeURIComponent(id)}?profile=${encodeURIComponent(profile)}`, { method: "DELETE" }),
+
+  // Automation Blueprints — parameterized automation blueprints
+  getAutomationBlueprints: () =>
+    fetchJSON<{ blueprints: AutomationBlueprint[] }>("/api/cron/blueprints"),
+  instantiateAutomationBlueprint: (
+    body: { blueprint: string; values: Record<string, string> },
+    profile = "default",
+  ) =>
+    fetchJSON<CronJob>(`/api/cron/blueprints/instantiate?profile=${encodeURIComponent(profile)}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }),
 
   // Profiles
   getProfiles: () =>
@@ -1823,6 +1836,29 @@ export interface CronDeliveryTarget {
   name: string;
   home_target_set: boolean;
   home_env_var: string | null;
+}
+
+export interface AutomationBlueprintField {
+  name: string;
+  type: "time" | "enum" | "text" | "weekdays";
+  label: string;
+  default: string | null;
+  options: string[];
+  optional: boolean;
+  /** When false, options are suggestions — any value is accepted. */
+  strict?: boolean;
+  help: string;
+}
+
+export interface AutomationBlueprint {
+  key: string;
+  title: string;
+  description: string;
+  category: string;
+  tags: string[];
+  fields: AutomationBlueprintField[];
+  command: string;
+  appUrl: string;
 }
 
 export interface SkillInfo {
