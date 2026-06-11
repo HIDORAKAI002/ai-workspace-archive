@@ -35,7 +35,7 @@ from langchain_openrouter.chat_models import (
     _wrap_messages_for_sdk,
 )
 
-MODEL_NAME = "openai/gpt-4o-mini"
+MODEL_NAME = "openai/gpt-5.5"
 
 
 def _make_model(**kwargs: Any) -> ChatOpenRouter:
@@ -492,6 +492,7 @@ class TestSerialization:
         """Test that ChatOpenRouter declares itself as serializable."""
         assert ChatOpenRouter.is_lc_serializable() is True
 
+    @pytest.mark.filterwarnings("ignore:The function `load` is in beta")
     def test_dumpd_load_roundtrip(self) -> None:
         """Test that dumpd/load round-trip preserves model config."""
         model = _make_model(temperature=0.7, max_tokens=100)
@@ -1625,11 +1626,11 @@ class TestCreateChatResult:
         model = _make_model()
         response = {
             **_SIMPLE_RESPONSE_DICT,
-            "model": "openai/gpt-4o",
+            "model": MODEL_NAME,
         }
         result = model._create_chat_result(response)
         assert result.llm_output is not None
-        assert result.llm_output["model_name"] == "openai/gpt-4o"
+        assert result.llm_output["model_name"] == MODEL_NAME
 
     def test_system_fingerprint_in_metadata(self) -> None:
         """Test that system_fingerprint is included in response_metadata."""
