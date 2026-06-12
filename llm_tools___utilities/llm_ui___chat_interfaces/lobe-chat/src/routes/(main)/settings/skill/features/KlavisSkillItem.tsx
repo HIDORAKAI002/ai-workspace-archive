@@ -24,13 +24,14 @@ const POLL_TIMEOUT_MS = 15_000;
 
 interface KlavisSkillItemProps {
   isSelected?: boolean;
+  onDelete?: () => void;
   onSelect?: () => void;
   server?: KlavisServer;
   serverType: KlavisServerType;
 }
 
 const KlavisSkillItem = memo<KlavisSkillItemProps>(
-  ({ serverType, server, isSelected, onSelect }) => {
+  ({ serverType, server, isSelected, onSelect, onDelete }) => {
     const { t } = useTranslation('setting');
     const { allowed: canCreate, reason: createReason } = usePermission('create_content');
     const { allowed: canEdit, reason: editReason } = usePermission('edit_own_content');
