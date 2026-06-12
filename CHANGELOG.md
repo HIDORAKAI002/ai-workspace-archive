@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-06-13 00:44 IST] Auto-Sync
+- **42 Repositories Updated:** MCP Python SDK, MCP TypeScript SDK, Keboola MCP, Kubernetes MCP Server, Langfuse, Promptfoo, NVIDIA NeMo Guardrails, n8n, Dify, Activepieces, Trigger.dev, Windmill, Directus, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langchain, crewAIInc/crewAI, pydantic/pydantic-ai, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, cline/cline, infiniflow/ragflow, arize-ai/phoenix, openlit/openlit, abi/screenshot-to-code, firecrawl/firecrawl, mindsdb/mindsdb, googleapis/python-genai, vercel/ai, apache/airflow, PrefectHQ/prefect, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow, nousresearch/hermes-agent
+
 ## [2026-06-12 18:00 IST] Auto-Sync
 - **37 Repositories Updated:** Public APIs Directory, MCP Python SDK, Keboola MCP, Kubernetes MCP Server, AI Tools System Prompts, n8n, Dify, Activepieces, Trigger.dev, Claude Skills, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, camel-ai/camel, mastra-ai/mastra, deepset-ai/haystack, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, milvus-io/milvus, infiniflow/ragflow, arize-ai/phoenix, Jenqyang/Awesome-AI-Agents, abi/screenshot-to-code, firecrawl/firecrawl, chenglou/pretext, vercel/ai, apache/airflow, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow, nousresearch/hermes-agent
 
