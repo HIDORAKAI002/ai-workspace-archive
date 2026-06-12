@@ -21,6 +21,12 @@ vi.mock('@/database/models/thread', () => ({
   ThreadModel: vi.fn().mockImplementation(() => mockThreadModel),
 }));
 
+vi.mock('@/database/models/agentOperation', () => ({
+  AgentOperationModel: vi.fn().mockImplementation(() => ({
+    findById: vi.fn().mockResolvedValue({ trigger: 'cli' }),
+  })),
+}));
+
 // Mock other models
 vi.mock('@/database/models/agent', () => ({
   AgentModel: vi.fn().mockImplementation(() => ({
@@ -115,7 +121,7 @@ describe('AiAgentService.execSubAgent', () => {
     service = new AiAgentService(mockDb, userId);
   });
 
-  describe('successful task execution', () => {
+  describe('successful isolated execution', () => {
     it('should create Thread with correct parameters', async () => {
       // Mock execAgent to return success
       vi.spyOn(service, 'execAgent').mockResolvedValue({
@@ -208,6 +214,7 @@ describe('AiAgentService.execSubAgent', () => {
         agentId: 'agent-1',
         appContext: {
           groupId: 'group-1',
+          isSubAgent: false,
           threadId: 'thread-123',
           topicId: 'topic-1',
         },
@@ -221,6 +228,46 @@ describe('AiAgentService.execSubAgent', () => {
           approvalMode: 'headless',
         },
       });
+    });
+
+    it('should run deferred lobe-agent children through execVirtualSubAgent', async () => {
+      const execAgentSpy = vi.spyOn(service, 'execAgent').mockResolvedValue({
+        agentId: 'agent-1',
+        assistantMessageId: 'assistant-msg-1',
+        autoStarted: true,
+        createdAt: new Date().toISOString(),
+        message: 'Agent operation created successfully',
+        messageId: 'queue-msg-1',
+        operationId: 'op-123',
+        status: 'created',
+        success: true,
+        timestamp: new Date().toISOString(),
+        topicId: 'topic-1',
+        userMessageId: 'user-msg-1',
+      });
+
+      await service.execVirtualSubAgent({
+        agentId: 'agent-1',
+        instruction: 'Nested research task',
+        parentMessageId: 'tool-msg-1',
+        parentOperationId: 'parent-op-1',
+        topicId: 'topic-1',
+      });
+
+      expect(execAgentSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          appContext: expect.objectContaining({
+            isSubAgent: true,
+            threadId: 'thread-123',
+            topicId: 'topic-1',
+          }),
+          hooks: expect.arrayContaining([
+            expect.objectContaining({ id: 'sub-agent-bridge', type: 'onComplete' }),
+          ]),
+          parentOperationId: 'parent-op-1',
+          trigger: 'cli',
+        }),
+      );
     });
 
     it('should store operationId and startedAt in Thread metadata', async () => {
@@ -409,7 +456,7 @@ describe('AiAgentService.execSubAgent', () => {
           parentMessageId: 'parent-msg-1',
           topicId: 'topic-1',
         }),
-      ).rejects.toThrow('Failed to create thread for task execution');
+      ).rejects.toThrow('Failed to create thread for agent execution');
     });
 
     it('should throw error when Thread creation throws', async () => {
@@ -427,7 +474,7 @@ describe('AiAgentService.execSubAgent', () => {
     });
   });
 
-  describe('task message summary update', () => {
+  describe('source message summary update', () => {
     it('should pass sourceMessageId (parentMessageId) to callbacks for summary update', async () => {
       const execAgentSpy = vi.spyOn(service, 'execAgent').mockResolvedValue({
         agentId: 'agent-1',
