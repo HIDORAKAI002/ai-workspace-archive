@@ -81,7 +81,8 @@ import asyncio
 async def main():
     agent = Agent(
         task="Find the number of stars of the browser-use repo",
-        llm=ChatBrowserUse(model='bu-3-max'),
+        llm=ChatBrowserUse(model='openai/gpt-5.5'),
+        # llm=ChatBrowserUse(model='bu-2-0'),  # Browser Use's own optimized model
         # llm=ChatOpenAI(model='gpt-5.5'),
         # llm=ChatAnthropic(model='claude-opus-4-8'),  # Sonnet also works well.
         browser_profile=BrowserProfile(
@@ -213,17 +214,7 @@ curl -o ~/.claude/skills/browser-use/SKILL.md \
 
 We optimized **ChatBrowserUse()** specifically for browser automation tasks. On avg it completes tasks 3-5x faster than other models with SOTA accuracy.
 
-**bu-3 pricing (per 1M tokens):**
-- Input tokens: $2.00
-- Cached input tokens: $0.20
-- Output tokens: $11.00
-
-**bu-3-max pricing (per 1M tokens):**
-- Input tokens: $2.50
-- Cached input tokens: $0.25
-- Output tokens: $50.00
-
-For other LLM providers, see our [supported models documentation](https://docs.browser-use.com/supported-models).
+For pricing and other LLM providers, see our [supported models documentation](https://docs.browser-use.com/supported-models).
 </details>
 
 <details>
