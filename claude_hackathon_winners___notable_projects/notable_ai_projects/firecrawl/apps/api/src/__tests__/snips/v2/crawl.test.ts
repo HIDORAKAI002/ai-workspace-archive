@@ -217,6 +217,44 @@ describe("Crawl tests", () => {
   // );
 
   concurrentIf(ALLOW_TEST_SUITE_WEBSITE)(
+    "crawl status returns createdAt, completedAt, and duration",
+    async () => {
+      const beforeCrawl = Date.now();
+
+      const results = await crawl(
+        {
+          url: base,
+          limit: 3,
+        },
+        identity,
+      );
+
+      const afterCrawl = Date.now();
+
+      expect(results.success).toBe(true);
+      if (results.success) {
+        expect(typeof results.createdAt).toBe("string");
+        expect(typeof results.completedAt).toBe("string");
+        expect(typeof results.duration).toBe("number");
+
+        const createdAtMs = new Date(results.createdAt!).getTime();
+        const completedAtMs = new Date(results.completedAt!).getTime();
+
+        expect(createdAtMs).not.toBeNaN();
+        expect(completedAtMs).not.toBeNaN();
+        expect(completedAtMs).toBeGreaterThanOrEqual(createdAtMs);
+        expect(createdAtMs).toBeGreaterThanOrEqual(beforeCrawl - 1000);
+        expect(completedAtMs).toBeLessThanOrEqual(afterCrawl + 1000);
+
+        expect(results.duration).toBeGreaterThanOrEqual(0);
+        const expectedDuration = (completedAtMs - createdAtMs) / 1000;
+        expect(Math.abs(results.duration! - expectedDuration)).toBeLessThan(1);
+      }
+    },
+    10 * scrapeTimeout,
+  );
+
+  concurrentIf(ALLOW_TEST_SUITE_WEBSITE)(
     "delay parameter works",
     async () => {
       await crawl(

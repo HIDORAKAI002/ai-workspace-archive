@@ -1,6 +1,6 @@
 ---
 name: "status"
-description: "Memory health dashboard showing line counts, topic files, capacity, stale entries, and recommendations."
+description: "Memory health dashboard showing line counts, topic files, capacity, stale entries, and recommendations. Use when the user runs /si:status or asks how full or healthy the agent memory is."
 ---
 
 # /si:status — Memory Health Dashboard

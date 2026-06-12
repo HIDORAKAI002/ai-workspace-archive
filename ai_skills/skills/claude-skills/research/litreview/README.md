@@ -55,7 +55,7 @@ research/litreview/
 - **Consensus MCP** (required) — literature search
 - **`docx` Node.js library** (required) — `npm install docx`
 - **DOCX skill** (reference) — hyperlink / table / list / validation patterns
-- **DOCX validation script** — `python scripts/office/validate.py output.docx`
+- **DOCX validation step** — zip-integrity check: `python3 -c "import zipfile,sys; zipfile.ZipFile(sys.argv[1]).testzip()" output.docx` (no output = intact), then confirm required sections present
 
 ## Quick start
 

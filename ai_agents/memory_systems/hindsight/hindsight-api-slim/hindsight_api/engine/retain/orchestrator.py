@@ -126,6 +126,16 @@ async def _fire_memory_defense_webhook(
                 matched_types=decision.matched_types or None,
                 message=decision.message or None,
                 hits=hits,
+                # Optional SIEM-enrichment fields populated by downstream
+                # extensions (e.g. hindsight-cloud's _CloudDefenseDecision
+                # subclass). Read via getattr so OSS doesn't need to know
+                # about extension subclasses. Combined with the manager's
+                # exclude_none serialization, missing values stay absent
+                # from the wire entirely rather than appearing as null.
+                severity=getattr(decision, "severity", None),
+                api_key_name=getattr(decision, "api_key_name", None),
+                memory_unit_id=getattr(decision, "memory_unit_id", None),
+                receipt_uri=getattr(decision, "receipt_uri", None),
             ),
         )
         await webhook_manager.fire_event_with_conn(event, conn, schema=schema)

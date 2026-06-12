@@ -5,6 +5,23 @@ All notable changes to the Claude Skills Library will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] — newgen audit follow-up: P0 fixes, path sweep, CI guards
+
+### Deprecated / Removed Skills (migration notes)
+
+Three skills were retired or merged in the newgen-audit follow-up (PR #835). If
+you installed or pinned any of these, migrate as follows:
+
+| Removed skill | Why | Migrate to |
+|---|---|---|
+| `engineering/skills/command-guide` | Documented a different repository's commands and agents; instructed models to invoke agents that don't exist here | No replacement needed — the root `commands/` folder and each plugin's own commands are the canonical command surface |
+| `marketing-skill/skills/ai-seo` | Near-total overlap with the newer, tool-backed AEO skill | `marketing-skill/skills/aeo` — unique ai-seo content was preserved in `aeo/references/bot_access_and_monitoring.md` and `aeo/references/extractable_content_patterns.md` |
+| `engineering/skills/release-manager` | 489-line SemVer/Git-Flow textbook duplicating changelog-generator; its readiness checker crashed | `engineering/skills/changelog-generator` — now includes `version_bumper.py`, hotfix/rollback procedures, and the severity-SLA table. For release-readiness audits use `engineering/skills/ship-gate` |
+
+Also restructured (no content change): `engineering/universal-scraping-architect`
+moved its SKILL.md from plugin root to the standard `skills/universal-scraping-architect/`
+layout. Marketplace source path is unchanged.
+
 ## [Unreleased] — code-reviewer: C-specific smell detector + fixtures
 
 ### Added — language-specific smell pack for C (this PR)

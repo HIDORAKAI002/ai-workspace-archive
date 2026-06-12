@@ -433,7 +433,7 @@ export const zWorkspaceCustomConfigResponse = z.object({
  */
 export const zTenantInfoResponse = z.object({
   created_at: z.int().nullish(),
-  custom_config: zWorkspaceCustomConfigResponse.optional(),
+  custom_config: zWorkspaceCustomConfigResponse.nullish(),
   id: z.string(),
   in_trial: z.boolean().nullish(),
   name: z.string().nullish(),
@@ -465,7 +465,7 @@ export const zIconInfo = z.object({
  */
 export const zUpdateSnippetPayload = z.object({
   description: z.string().max(2000).nullish(),
-  icon_info: zIconInfo.optional(),
+  icon_info: zIconInfo.nullish(),
   name: z.string().min(1).max(255).nullish(),
 })
 
@@ -493,7 +493,7 @@ export const zInputFieldDefinition = z.object({
 export const zCreateSnippetPayload = z.object({
   description: z.string().max(2000).nullish(),
   graph: z.record(z.string(), z.unknown()).nullish(),
-  icon_info: zIconInfo.optional(),
+  icon_info: zIconInfo.nullish(),
   input_fields: z.array(zInputFieldDefinition).nullish(),
   name: z.string().min(1).max(255),
   type: z.enum(['group', 'node']).optional().default('node'),
@@ -699,7 +699,7 @@ export const zLoadBalancingPayload = z.object({
 export const zParserPostModels = z.object({
   config_from: z.string().nullish(),
   credential_id: z.string().nullish(),
-  load_balancing: zLoadBalancingPayload.optional(),
+  load_balancing: zLoadBalancingPayload.nullish(),
   model: z.string(),
   model_type: zModelType,
 })
@@ -726,8 +726,8 @@ export const zParserPermissionChange = z.object({
  * PluginPermissionSettingsPayload
  */
 export const zPluginPermissionSettingsPayload = z.object({
-  debug_permission: zDebugPermission.optional(),
-  install_permission: zInstallPermission.optional(),
+  debug_permission: zDebugPermission.optional().default('everyone'),
+  install_permission: zInstallPermission.optional().default('everyone'),
 })
 
 /**
@@ -815,7 +815,7 @@ export const zMcpProviderCreatePayload = z.object({
   icon: z.string(),
   icon_background: z.string().optional().default(''),
   icon_type: z.string(),
-  identity_mode: zIdentityMode.optional(),
+  identity_mode: zIdentityMode.nullish(),
   name: z.string(),
   server_identifier: z.string(),
   server_url: z.string(),
@@ -831,7 +831,7 @@ export const zMcpProviderUpdatePayload = z.object({
   icon: z.string(),
   icon_background: z.string().optional().default(''),
   icon_type: z.string(),
-  identity_mode: zIdentityMode.optional(),
+  identity_mode: zIdentityMode.nullish(),
   name: z.string(),
   provider_id: z.string(),
   server_identifier: z.string(),
@@ -854,8 +854,8 @@ export const zUpgradeMode = z.enum(['all', 'exclude', 'partial'])
 export const zPluginAutoUpgradeSettingsPayload = z.object({
   exclude_plugins: z.array(z.string()).optional(),
   include_plugins: z.array(z.string()).optional(),
-  strategy_setting: zStrategySetting.optional(),
-  upgrade_mode: zUpgradeMode.optional(),
+  strategy_setting: zStrategySetting.optional().default('fix_only'),
+  upgrade_mode: zUpgradeMode.optional().default('exclude'),
   upgrade_time_of_day: z.int().optional().default(0),
 })
 
@@ -941,12 +941,12 @@ export const zGetWorkspacesCurrentAgentProvidersResponse = z.array(
 )
 
 export const zGetWorkspacesCurrentCustomizedSnippetsQuery = z.object({
-  creators: z.array(z.string()).nullish(),
-  is_published: z.boolean().nullish(),
-  keyword: z.string().nullish(),
+  creators: z.array(z.string()).optional(),
+  is_published: z.boolean().optional(),
+  keyword: z.string().optional(),
   limit: z.int().gte(1).lte(100).optional().default(20),
   page: z.int().gte(1).lte(99999).optional().default(1),
-  tag_ids: z.array(z.string()).nullish(),
+  tag_ids: z.array(z.string()).optional(),
 })
 
 /**
@@ -987,10 +987,7 @@ export const zDeleteWorkspacesCurrentCustomizedSnippetsBySnippetIdPath = z.objec
 /**
  * Snippet deleted successfully
  */
-export const zDeleteWorkspacesCurrentCustomizedSnippetsBySnippetIdResponse = z.record(
-  z.string(),
-  z.never(),
-)
+export const zDeleteWorkspacesCurrentCustomizedSnippetsBySnippetIdResponse = z.void()
 
 export const zGetWorkspacesCurrentCustomizedSnippetsBySnippetIdPath = z.object({
   snippet_id: z.string(),
@@ -1052,7 +1049,7 @@ export const zPostWorkspacesCurrentCustomizedSnippetsBySnippetIdUseCountIncremen
 export const zGetWorkspacesCurrentDatasetOperatorsResponse = zAccountWithRoleList
 
 export const zGetWorkspacesCurrentDefaultModelQuery = z.object({
-  model_type: z.string(),
+  model_type: z.enum(['llm', 'moderation', 'rerank', 'speech2text', 'text-embedding', 'tts']),
 })
 
 /**
@@ -1104,7 +1101,7 @@ export const zPostWorkspacesCurrentEndpointsEnableResponse = zEndpointEnableResp
 
 export const zGetWorkspacesCurrentEndpointsListQuery = z.object({
   page: z.int().gte(1),
-  page_size: z.int(),
+  page_size: z.int().gt(0),
 })
 
 /**
@@ -1114,7 +1111,7 @@ export const zGetWorkspacesCurrentEndpointsListResponse = zEndpointListResponse
 
 export const zGetWorkspacesCurrentEndpointsListPluginQuery = z.object({
   page: z.int().gte(1),
-  page_size: z.int(),
+  page_size: z.int().gt(0),
   plugin_id: z.string(),
 })
 
@@ -1216,7 +1213,9 @@ export const zPutWorkspacesCurrentMembersByMemberIdUpdateRoleResponse = z.record
 )
 
 export const zGetWorkspacesCurrentModelProvidersQuery = z.object({
-  model_type: z.string().nullish(),
+  model_type: z
+    .enum(['llm', 'moderation', 'rerank', 'speech2text', 'text-embedding', 'tts'])
+    .optional(),
 })
 
 /**
@@ -1246,17 +1245,14 @@ export const zDeleteWorkspacesCurrentModelProvidersByProviderCredentialsPath = z
 /**
  * Credential deleted successfully
  */
-export const zDeleteWorkspacesCurrentModelProvidersByProviderCredentialsResponse = z.record(
-  z.string(),
-  z.never(),
-)
+export const zDeleteWorkspacesCurrentModelProvidersByProviderCredentialsResponse = z.void()
 
 export const zGetWorkspacesCurrentModelProvidersByProviderCredentialsPath = z.object({
   provider: z.string(),
 })
 
 export const zGetWorkspacesCurrentModelProvidersByProviderCredentialsQuery = z.object({
-  credential_id: z.string().nullish(),
+  credential_id: z.string().optional(),
 })
 
 /**
@@ -1332,10 +1328,7 @@ export const zDeleteWorkspacesCurrentModelProvidersByProviderModelsPath = z.obje
 /**
  * Model deleted successfully
  */
-export const zDeleteWorkspacesCurrentModelProvidersByProviderModelsResponse = z.record(
-  z.string(),
-  z.never(),
-)
+export const zDeleteWorkspacesCurrentModelProvidersByProviderModelsResponse = z.void()
 
 export const zGetWorkspacesCurrentModelProvidersByProviderModelsPath = z.object({
   provider: z.string(),
@@ -1373,20 +1366,17 @@ export const zDeleteWorkspacesCurrentModelProvidersByProviderModelsCredentialsPa
 /**
  * Credential deleted successfully
  */
-export const zDeleteWorkspacesCurrentModelProvidersByProviderModelsCredentialsResponse = z.record(
-  z.string(),
-  z.never(),
-)
+export const zDeleteWorkspacesCurrentModelProvidersByProviderModelsCredentialsResponse = z.void()
 
 export const zGetWorkspacesCurrentModelProvidersByProviderModelsCredentialsPath = z.object({
   provider: z.string(),
 })
 
 export const zGetWorkspacesCurrentModelProvidersByProviderModelsCredentialsQuery = z.object({
-  config_from: z.string().nullish(),
-  credential_id: z.string().nullish(),
+  config_from: z.string().optional(),
+  credential_id: z.string().optional(),
   model: z.string(),
-  model_type: z.string(),
+  model_type: z.enum(['llm', 'moderation', 'rerank', 'speech2text', 'text-embedding', 'tts']),
 })
 
 /**
@@ -1653,7 +1643,7 @@ export const zGetWorkspacesCurrentPluginMarketplacePkgResponse = z.record(z.stri
 
 export const zGetWorkspacesCurrentPluginParametersDynamicOptionsQuery = z.object({
   action: z.string(),
-  credential_id: z.string().nullish(),
+  credential_id: z.string().optional(),
   parameter: z.string(),
   plugin_id: z.string(),
   provider: z.string(),
