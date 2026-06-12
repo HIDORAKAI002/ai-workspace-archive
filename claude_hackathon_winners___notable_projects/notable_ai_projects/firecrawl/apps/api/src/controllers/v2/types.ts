@@ -1197,6 +1197,7 @@ export type Document = {
   screenshot?: string;
   audio?: string;
   video?: string;
+  videos?: VideoItem[];
   extract?: any;
   json?: any;
   summary?: string;
@@ -1298,6 +1299,22 @@ export type Document = {
     description: string;
     url: string;
   };
+};
+
+export type VideoItem = {
+  url: string;
+  sourceURL: string;
+  source: string;
+  kind?: string;
+  provider?: string;
+  title?: string;
+  thumbnail?: string;
+  description?: string;
+  duration?: string;
+  mimeType?: string;
+  width?: number;
+  height?: number;
+  metadata?: Record<string, unknown>;
 };
 
 export type ErrorResponse = {
