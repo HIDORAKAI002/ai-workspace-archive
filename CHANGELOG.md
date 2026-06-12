@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-06-12 18:00 IST] Auto-Sync
+- **37 Repositories Updated:** Public APIs Directory, MCP Python SDK, Keboola MCP, Kubernetes MCP Server, AI Tools System Prompts, n8n, Dify, Activepieces, Trigger.dev, Claude Skills, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, camel-ai/camel, mastra-ai/mastra, deepset-ai/haystack, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, milvus-io/milvus, infiniflow/ragflow, arize-ai/phoenix, Jenqyang/Awesome-AI-Agents, abi/screenshot-to-code, firecrawl/firecrawl, chenglou/pretext, vercel/ai, apache/airflow, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow, nousresearch/hermes-agent
+
 ## [2026-06-12 11:17 IST] Auto-Sync
 - **34 Repositories Updated:** Awesome ChatGPT Prompts, Promptfoo, Dify, Activepieces, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langchain, pydantic/pydantic-ai, mastra-ai/mastra, browser-use/browser-use, BerriAI/litellm, ollama/ollama, ggml-org/llama.cpp, deepspeedai/DeepSpeed, vllm-project/vllm, lobehub/lobe-chat, anthropics/claude-code, milvus-io/milvus, infiniflow/ragflow, arize-ai/phoenix, firecrawl/firecrawl, danny-avila/LibreChat, openai/openai-node, googleapis/python-genai, vercel/ai, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow, nousresearch/hermes-agent
 
