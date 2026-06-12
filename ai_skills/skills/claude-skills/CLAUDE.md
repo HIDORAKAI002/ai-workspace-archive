@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a **comprehensive skills library** for Claude AI and Claude Code - reusable, production-ready skill packages that bundle domain expertise, best practices, analysis tools, and strategic frameworks. The repository provides modular skills that teams can download and use directly in their workflows.
 
-**Current Scope:** 338 production-ready skills across 16 domains with 533 Python automation tools, 676 reference guides, 51+ agents (cs-* + 7 personas), and 87+ slash commands, distributed as 62 marketplace plugins. **v2.9.0 (complete)** added the **research-ops/** top-level domain — enterprise Research Operations (orchestrator + clinical-research + research-finance + market-research + product-research), the managed counterpart to the academic research/ domain, with `context: fork` orchestration and a Matt Pocock "Forcing-question library" in every SKILL.md plus `/cs:grill-research-ops`. **v2.8.0 (complete)** added 2 new top-level domains — **business-operations/** (7 internal-ops skills: orchestrator + process-mapper + vendor-management + capacity-planner + internal-comms + knowledge-ops + procurement-optimizer) and **commercial/** (8 per-deal-economics skills: orchestrator + pricing-strategist + deal-desk + partnerships-architect + channel-economics + commercial-policy + rfp-responder + commercial-forecaster) — with orchestrator skills using `context: fork` for chaining, Matt Pocock docs-anchored "Forcing-question library" in every SKILL.md, plus `/cs:grill-bizops` and `/cs:grill-commercial`. **v2.8.2** adds a productivity-shaped `handoff` skill (sibling to engineering/handoff) inspired by Matt Pocock — first-run setup with configurable save location, redaction linter, SessionStart + SessionEnd hooks, fidelity self-check, `--refresh` flag. **v2.8.1** upgraded the engineering role-skills (senior-fullstack / senior-frontend / senior-backend) with karpathy-coder + Matt Pocock decision engines + per-role forcing questions. v2.7.3 ports `alirezarezvani/aeo-box` — AEO (Answer Engine Optimization) skill into marketing-skill/ + security-guidance PreToolUse hook into engineering/. v2.7.0 added 13 Path-B skills across 3 top-level domains (productivity, marketing, research). v2.6.0 added 4 Matt Pocock-derived productivity skills.
+**Current Scope:** 345 production-ready skills across 17 domains with 579 Python automation tools, 705 reference guides, 93 agents (cs-* + 7 personas), and 99 slash commands, distributed as 78 marketplace plugins. Headline counters are derived from the tree by `scripts/derive_counters.py` (run with `--check` to verify the docs still match). **v2.9.0 (complete)** added the **research-ops/** top-level domain — enterprise Research Operations (orchestrator + clinical-research + research-finance + market-research + product-research), the managed counterpart to the academic research/ domain, with `context: fork` orchestration and a Matt Pocock "Forcing-question library" in every SKILL.md plus `/cs:grill-research-ops`. **v2.8.0 (complete)** added 2 new top-level domains — **business-operations/** (7 internal-ops skills: orchestrator + process-mapper + vendor-management + capacity-planner + internal-comms + knowledge-ops + procurement-optimizer) and **commercial/** (8 per-deal-economics skills: orchestrator + pricing-strategist + deal-desk + partnerships-architect + channel-economics + commercial-policy + rfp-responder + commercial-forecaster) — with orchestrator skills using `context: fork` for chaining, Matt Pocock docs-anchored "Forcing-question library" in every SKILL.md, plus `/cs:grill-bizops` and `/cs:grill-commercial`. **v2.8.2** adds a productivity-shaped `handoff` skill (sibling to engineering/handoff) inspired by Matt Pocock — first-run setup with configurable save location, redaction linter, SessionStart + SessionEnd hooks, fidelity self-check, `--refresh` flag. **v2.8.1** upgraded the engineering role-skills (senior-fullstack / senior-frontend / senior-backend) with karpathy-coder + Matt Pocock decision engines + per-role forcing questions. v2.7.3 ports `alirezarezvani/aeo-box` — AEO (Answer Engine Optimization) skill into marketing-skill/ + security-guidance PreToolUse hook into engineering/. v2.7.0 added 13 Path-B skills across 3 top-level domains (productivity, marketing, research). v2.6.0 added 4 Matt Pocock-derived productivity skills.
 
 **Key Distinction**: This is NOT a traditional application. It's a library of skill packages meant to be extracted and deployed by users into their own Claude workflows.
 
@@ -20,6 +20,13 @@ The following exist on the maintainer's disk but are excluded from the public Gi
 - `tests/` — pytest suite (run locally; not in CI)
 - `.autoresearch/` — autoresearch agent workspace
 - `AUDIT_REPORT.md` — internal audit snapshots
+
+**Distinct from the above:** the top-level `audit/` directory (e.g.
+`audit/newgen-2026-06/`) is an **intentional, public** audit record — rubric +
+per-domain reports with per-skill verification criteria that follow-up PRs use
+as acceptance gates. It is excluded from headline counters by
+`scripts/derive_counters.py`, but it is committed and visible to cloners.
+`AUDIT_REPORT.md` (gitignored, above) is the older internal-snapshot format.
 
 In-repo references to paths under these folders (e.g. `documentation/implementation/...`) resolve locally for the maintainer but appear as dead links on GitHub. This is intentional.
 
@@ -95,6 +102,13 @@ skill-name/
 
 **Branch Strategy:** feature → dev → main (PR only)
 
+> **⛔ HARD RULE — PR TARGET IS ALWAYS `dev`, NEVER `main`.**
+> Every PR (human or AI-created) must use `--base dev`. Nothing merges into `main`
+> directly — `main` only receives periodic `dev → main` promotion PRs opened by the
+> maintainer. If you find a PR targeting `main`, retarget it to `dev` before review.
+> AI agents (Claude Code included): set the base branch explicitly when creating PRs;
+> never rely on the repository default branch.
+
 **Branch Protection Active:** Main branch requires PR approval. Direct pushes blocked.
 
 ### Quick Start
@@ -159,7 +173,7 @@ Completes the `markdown-html/` domain at 5 skills. The Tier-3 use case from Shih
 - **1 template asset** documenting the canonical single-file deck shape.
 - **`/cs:md-slides` slash command** with 6 pre-flight gates + pipeline + output digest.
 - **Empirical footprint**: 5-slide sample deck (3 with presenter notes) → 12.2 KB single-file HTML with keyboard nav + presenter mode + print-to-PDF. By comparison, equivalent Google Slides / Keynote / reveal.js multi-file exports are 200 KB+ of CSS/JS chrome.
-- **Plugin manifest:** `markdown-html-skills` plugin.json `skills` array now lists 5 paths (orchestrator + design-system + md-document + md-review + md-slides). Marketplace counters updated: 64 plugins, 17 domains, **343 skills**, **548 Python tools**, **691 references**, **90+ slash commands**.
+- **Plugin manifest:** `markdown-html-skills` plugin.json `skills` array now lists 5 paths (orchestrator + design-system + md-document + md-review + md-slides). Marketplace counters updated (trued up 2026-06-10 via `scripts/derive_counters.py`): 77 plugins, 17 domains, **345 skills**, **579 Python tools**, **702 references**, **99 slash commands**.
 - **Domain status: COMPLETE.** All 5 planned skills shipped across 4 PRs (#780 foundation, #793 md-document, #795 md-review, this PR md-slides). The markdown-html/ domain operationalizes Shihipar's central claim — markdown collapses past 100 lines; HTML restores density, clarity, shareability, and lightweight interaction — across all three layout families (long-form documents, code reviews, slide decks).
 
 ---
@@ -510,6 +524,6 @@ This repository publishes skills to **ClawHub** (clawhub.com) as the distributio
 
 ---
 
-**Last Updated:** May 27, 2026
-**Version:** v2.9.0
-**Status:** 338 skills deployed across 16 domains, 62 marketplace plugins, docs site live
+**Last Updated:** June 10, 2026
+**Version:** v2.10.3
+**Status:** 345 skills deployed across 17 domains, 78 marketplace plugins, docs site live (counters derived via `scripts/derive_counters.py`)

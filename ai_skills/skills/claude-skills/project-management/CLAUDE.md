@@ -21,23 +21,25 @@ This guide covers the 9 production-ready project management skills, 12 Python au
 
 **Purpose:** Direct integration with Jira and Confluence via Model Context Protocol (MCP)
 
-**Capabilities:**
-- Create, read, update Jira issues
-- Manage Confluence pages and spaces
-- Automate workflows and transitions
-- Generate reports and dashboards
-- Bulk operations on issues
+**Canonical tool list:** [references/atlassian-mcp-tools.md](references/atlassian-mcp-tools.md) — the single source of truth for real tool names. Never invent tool names; if a capability isn't in that list (project creation, sprint management, field configuration, automation rules, space creation, …), it is NOT available via MCP — use the Atlassian web UI or REST API.
 
-**Setup:** Atlassian MCP server configured in Claude Code settings
+**Capabilities (real tools, camelCase):**
+- Jira issues: `createJiraIssue`, `getJiraIssue`, `editJiraIssue`, `searchJiraIssuesUsingJql`, `transitionJiraIssue`, `addCommentToJiraIssue`, `createIssueLink`
+- Confluence pages: `createConfluencePage`, `getConfluencePage`, `updateConfluencePage`, `searchConfluenceUsingCql`, `getConfluencePageDescendants`
+- Discovery: `getAccessibleAtlassianResources` (get `cloudId` first), `getVisibleJiraProjects`, `getConfluenceSpaces`
+
+**Setup:** Bundled `.mcp.json` registers the `atlassian` SSE server; tools surface as `mcp__atlassian__<toolName>`.
 
 **Usage Pattern:**
-```bash
-# Jira operations via MCP
-mcp__atlassian__create_issue project="PROJ" summary="New feature" type="Story"
-
-# Confluence operations via MCP
-mcp__atlassian__create_page space="TEAM" title="Sprint Retrospective"
 ```
+# Jira: create an issue (call getAccessibleAtlassianResources first to obtain cloudId)
+mcp__atlassian__createJiraIssue (cloudId, projectKey="PROJ", issueTypeName="Story", summary="New feature")
+
+# Confluence: create a page (body must be storage-format XHTML or ADF, not wiki markup)
+mcp__atlassian__createConfluencePage (cloudId, space, title="Sprint Retrospective", body=<storage-format XHTML>)
+```
+
+**Not available via MCP** (use web UI/REST API): project creation, sprints, boards, filters, space creation, page deletion, labels, field/workflow/permission configuration, user provisioning, automation rules.
 
 ## Skill-Specific Guidance
 
@@ -121,24 +123,26 @@ mcp__atlassian__create_page space="TEAM" title="Sprint Retrospective"
 ### Pattern 1: Sprint Planning
 
 ```bash
-# 1. Create sprint in Jira (via MCP)
-mcp__atlassian__create_sprint board="TEAM-board" name="Sprint 23" start="2025-11-06"
+# 1. Create the sprint in the Jira board UI (sprint creation is NOT available via MCP —
+#    use Jira Software UI or REST /rest/agile/1.0/sprint)
 
 # 2. Generate user stories (product-team integration)
 python ../product-team/agile-product-owner/scripts/user_story_generator.py sprint 30
 
-# 3. Import stories to Jira
-# (Manual or via Jira API integration)
+# 3. Import stories to Jira via MCP: one mcp__atlassian__createJiraIssue call per story
+#    (cloudId, projectKey, issueTypeName="Story", summary, description)
 ```
 
 ### Pattern 2: Documentation Workflow
 
 ```bash
-# 1. Create Confluence page template
-mcp__atlassian__create_page space="DOCS" title="Feature Spec" template="feature-spec"
+# 1. Scaffold storage-format XHTML, then create the Confluence page via MCP
+python skills/atlassian-templates/scripts/template_scaffolder.py meeting-notes
+#    → pass the emitted markup as the body of mcp__atlassian__createConfluencePage
 
-# 2. Link to Jira epic
-mcp__atlassian__link_issue issue="PROJ-123" confluence_page_id="456789"
+# 2. Link the page to a Jira issue: paste the page URL into the issue via
+#    mcp__atlassian__editJiraIssue or as a comment via mcp__atlassian__addCommentToJiraIssue
+#    (read existing links with mcp__atlassian__getJiraIssueRemoteIssueLinks)
 ```
 
 ## Python Automation Tools
@@ -175,7 +179,7 @@ python atlassian-templates/scripts/template_scaffolder.py meeting-notes
 
 ---
 
-**Last Updated:** May 10, 2026
+**Last Updated:** June 10, 2026
 **Skills Deployed:** 9/9 PM skills production-ready
 **Total Tools:** 12 Python automation tools
 **Agent:** cs-project-manager | **Commands:** 3

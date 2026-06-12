@@ -236,7 +236,7 @@ new Table({
 
 After save:
 ```bash
-python scripts/office/validate.py output.docx
+python3 -c "import zipfile,sys; zipfile.ZipFile(sys.argv[1]).testzip()" output.docx
 ```
 
 If validation fails: unpack DOCX (it's a ZIP), fix the offending XML, repack.
@@ -268,7 +268,7 @@ Reference the **docx skill** (`docx/SKILL.md` in this repo if installed) for ful
 - [ ] All Consensus URLs full (no truncation)
 - [ ] `LevelFormat.BULLET` for lists (no unicode bullets)
 - [ ] Tables have both `columnWidths` AND cell `width`
-- [ ] `python scripts/office/validate.py output.docx` PASSes
+- [ ] `python3 -c "import zipfile,sys; zipfile.ZipFile(sys.argv[1]).testzip()" output.docx` PASSes
 
 ## Citations (7 sources)
 
