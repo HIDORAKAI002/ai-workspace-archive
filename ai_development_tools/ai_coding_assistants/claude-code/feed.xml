@@ -6,7 +6,33 @@
   <author><name>Anthropic</name></author>
   <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md"/>
   <link rel="self" type="application/atom+xml" href="https://raw.githubusercontent.com/anthropics/claude-code/main/feed.xml"/>
-  <updated>2026-06-11T05:41:48Z</updated>
+  <updated>2026-06-12T04:23:45Z</updated>
+  <entry>
+    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.175</id>
+    <title>Claude Code v2.1.175</title>
+    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.175"/>
+    <updated>2026-06-12T04:23:45Z</updated>
+    <content type="html">&lt;p&gt;• Added enforceAvailableModels managed setting — when enabled, the availableModels allowlist also constrains the Default model (a Default that would resolve to a disallowed model now falls back to the first allowed model), and user or project settings can no longer widen a managed availableModels list&lt;/p&gt;</content>
+  </entry>
+  <entry>
+    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.174</id>
+    <title>Claude Code v2.1.174</title>
+    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.174"/>
+    <updated>2026-06-12T01:16:30Z</updated>
+    <content type="html">&lt;p&gt;• Added wheelScrollAccelerationEnabled setting to disable mouse-wheel scroll acceleration in fullscreen mode&lt;/p&gt;
+&lt;p&gt;• Fixed the /model picker hiding the model family that Default resolves to — Opus now appears as its own row on Max/Team Premium/Enterprise plans, Sonnet on Pro/Team plans, and Opus on pay-as-you-go API accounts&lt;/p&gt;
+&lt;p&gt;• Fixed /model picker showing a hardcoded Sonnet version label when ANTHROPIC_DEFAULT_SONNET_MODEL pins a different Sonnet&lt;/p&gt;
+&lt;p&gt;• Fixed the "Fable 5 is now consuming usage credits" banner incorrectly showing for enterprise accounts with usage-based billing&lt;/p&gt;
+&lt;p&gt;• Fixed Bedrock GovCloud regions (us-gov-*) deriving the wrong inference profile prefix (global instead of us-gov), causing 400 errors on derived model IDs&lt;/p&gt;
+&lt;p&gt;• Fixed background sessions inheriting another session's ANTHROPIC_* provider env (gateway URL, custom headers, /model aliases) from the shell that started the background daemon&lt;/p&gt;
+&lt;p&gt;• Fixed a 1-2 second pause when exiting Claude Code shortly after a shell command was interrupted or killed on macOS and Linux&lt;/p&gt;
+&lt;p&gt;• Fixed git commit co-author attribution showing an incorrect model name for some models&lt;/p&gt;
+&lt;p&gt;• Fixed the /advisor dialog pre-selecting a saved advisor model that is blocked by the availableModels allowlist&lt;/p&gt;
+&lt;p&gt;• Fixed skill hot-reload re-sending the entire skill listing when a single skill changed; only changed skills are now re-announced&lt;/p&gt;
+&lt;p&gt;• Fixed Workflow tool agent() subagents missing per-agent attribution headers&lt;/p&gt;
+&lt;p&gt;• [VSCode] Added usage attribution to the Account &amp;amp; usage dialog (/usage) showing cache misses, long context, subagents, and per-skill/agent/plugin/MCP breakdowns over the last 24h or 7d&lt;/p&gt;
+&lt;p&gt;• Fixed pre-warmed background workers failing with "Could not resolve authentication method" when claimed after sitting idle&lt;/p&gt;</content>
+  </entry>
   <entry>
     <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.173</id>
     <title>Claude Code v2.1.173</title>
@@ -418,51 +444,5 @@
 &lt;p&gt;• [VSCode] Fixed Claude Code processes not shutting down cleanly when VS Code closed on Windows, causing false "unclean exit" reports and orphaned MCP servers&lt;/p&gt;
 &lt;p&gt;• /model now saves your selection as the default for new sessions (matching the IDE). Press s in the picker to switch models for the current session only.&lt;/p&gt;
 &lt;p&gt;• If you customized the modelPicker:setAsDefault keybinding, rename it to modelPicker:thisSessionOnly in keybindings.json (the d action was replaced by s)&lt;/p&gt;</content>
-  </entry>
-  <entry>
-    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.152</id>
-    <title>Claude Code v2.1.152</title>
-    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.152"/>
-    <updated>2026-05-27T01:30:52Z</updated>
-    <content type="html">&lt;p&gt;• /code-review --fix now applies review findings to your working tree after the review, surfacing reuse, simplification, and efficiency suggestions; /simplify now invokes /code-review --fix&lt;/p&gt;
-&lt;p&gt;• Skills and slash commands can now set disallowed-tools in frontmatter to remove tools from the model while the skill is active&lt;/p&gt;
-&lt;p&gt;• Added /reload-skills command to re-scan skill directories without restarting the session&lt;/p&gt;
-&lt;p&gt;• SessionStart hooks can now return reloadSkills: true to re-scan skill directories, making skills installed by the hook available in the same session&lt;/p&gt;
-&lt;p&gt;• SessionStart hooks can now set the session title via hookSpecificOutput.sessionTitle on startup and resume&lt;/p&gt;
-&lt;p&gt;• Added a MessageDisplay hook event that lets hooks transform or hide assistant message text as it is displayed&lt;/p&gt;
-&lt;p&gt;• Added pluginSuggestionMarketplaces managed setting: admins can allowlist org marketplaces whose plugins may be suggested via context-aware tips&lt;/p&gt;
-&lt;p&gt;• claude plugin marketplace remove now accepts --scope user|project|local for symmetry with marketplace add, install, and uninstall&lt;/p&gt;
-&lt;p&gt;• Claude Code now switches to your configured --fallback-model for the rest of the session when the primary model is not found, instead of failing every request&lt;/p&gt;
-&lt;p&gt;• Auto mode no longer requires opt-in consent&lt;/p&gt;
-&lt;p&gt;• Vim mode: / in NORMAL mode now opens reverse history search (like Ctrl+R), matching bash/zsh vi-mode&lt;/p&gt;
-&lt;p&gt;• The /usage breakdown now includes large session files; files are scanned with a streaming read so memory usage stays flat&lt;/p&gt;
-&lt;p&gt;• Thinking summaries in the collapsed group now stay readable for at least 3 seconds, render as markdown, and cap at 10 lines (Ctrl+O shows the full thinking)&lt;/p&gt;
-&lt;p&gt;• In fullscreen mode, the "Thinking for Ns" indicator now counts up live while the model is thinking, and keeps its value if you interrupt mid-thought&lt;/p&gt;
-&lt;p&gt;• Simplified the Workflow tool's inline progress display — live agent counts now show only in the persistent workflow status row below the prompt&lt;/p&gt;
-&lt;p&gt;• The post-response timer now shows "Waiting for N background agents/workflows to finish" when backgrounded agents or workflows are still running, and reports the cumulative time once their results are processed&lt;/p&gt;
-&lt;p&gt;• Added the session entrypoint as an OpenTelemetry metric attribute (app.entrypoint, opt-in via OTEL_METRICS_INCLUDE_ENTRYPOINT=true)&lt;/p&gt;
-&lt;p&gt;• Fixed terminal styling degrading in very long sessions by recycling the renderer's style pool&lt;/p&gt;
-&lt;p&gt;• Fixed the sandbox-enabled warning not appearing in condensed startup mode — it now shows in every layout&lt;/p&gt;
-&lt;p&gt;• Fixed the loading spinner showing "still thinking"/"almost done thinking" while a tool is running, and reset the thinking status to "thinking" after each tool&lt;/p&gt;
-&lt;p&gt;• Fixed focus mode showing a spurious "N messages hidden" count on turns with no hidden activity&lt;/p&gt;
-&lt;p&gt;• Fixed clicking a link inside an expanded tool result collapsing the section instead of opening the link&lt;/p&gt;
-&lt;p&gt;• Fixed markdown table cell borders inheriting the color of inline code, wrapped continuation lines losing their style, and empty header cells showing a label in the narrow-terminal stacked layout&lt;/p&gt;
-&lt;p&gt;• Fixed plugin MCP servers with the same command but different environment variables being incorrectly deduplicated&lt;/p&gt;
-&lt;p&gt;• Fixed /doctor reporting "marketplace not found" or "plugin not found" for stale enabledPlugins entries referencing removed marketplaces or dropped plugins&lt;/p&gt;
-&lt;p&gt;• Fixed plugins that track a git branch silently no longer receiving updates after the plugin registry was rebuilt&lt;/p&gt;
-&lt;p&gt;• Fixed remote MCP servers failing to connect in Claude Code Remote sessions when the egress proxy is enabled&lt;/p&gt;
-&lt;p&gt;• Fixed the effort-change confirmation dialog appearing when the conversation has no messages or when switching between effort levels that resolve to the same underlying value&lt;/p&gt;
-&lt;p&gt;• Fixed the Agent tool description referencing an agent list that is never delivered when running with --bare or with attachments disabled&lt;/p&gt;
-&lt;p&gt;• Fixed a background worker crash in claude agents when accepting a stale permission prompt after a subagent was cancelled&lt;/p&gt;
-&lt;p&gt;• Fixed cache_creation_input_tokens reporting as 0 in transcript and result usage when the API reports cache writes only via the nested cache_creation breakdown&lt;/p&gt;
-&lt;p&gt;• Fixed the PushNotification tool incorrectly reporting "Mobile push not sent (Remote Control inactive)" in SDK-hosted sessions when Remote Control is enabled&lt;/p&gt;
-&lt;p&gt;• Fixed sessions getting stuck after a model or login switch left stale thinking-block signatures in history; now stripped proactively with a retry safety-net&lt;/p&gt;</content>
-  </entry>
-  <entry>
-    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.150</id>
-    <title>Claude Code v2.1.150</title>
-    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.150"/>
-    <updated>2026-05-23T04:03:45Z</updated>
-    <content type="html">&lt;p&gt;• Internal infrastructure improvements (no user-facing changes)&lt;/p&gt;</content>
   </entry>
 </feed>
