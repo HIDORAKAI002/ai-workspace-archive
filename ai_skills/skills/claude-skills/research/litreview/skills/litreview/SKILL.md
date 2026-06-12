@@ -1,6 +1,6 @@
 ---
 name: litreview
-description: "Academic literature orientation skill that searches papers via Consensus, builds a strategic search plan using PICO (default) or SPIDER / Decomposition / hybrid as fallbacks, and synthesizes findings into a professionally formatted Word document (.docx) research guide. Grill-me intake (research question specificity + framework hint + tentative depth) before the recon search; a second forcing checkpoint after Phase 2 confirms framework + sub-areas + depth before searches consume budget. Configurable depth (5/10/20 queries) controls coverage vs. speed. Output is a 'launching pad' — not a finished review, but an orientation guide that lets a researcher dive in confidently. Triggers: 'litreview on [topic]', 'literature review on [topic]', 'I'm starting a literature review on X', 'I'm writing a paper on X', 'help me research X', 'I'm doing research on X', 'can you help me research X'. Do NOT trigger for single one-off paper searches where the user just wants a quick list — that's a plain Consensus search."
+description: "Academic literature orientation skill that searches papers via Consensus, builds a strategic search plan using PICO (default) or SPIDER / Decomposition / hybrid as fallbacks, and synthesizes findings into a formatted Word (.docx) research guide. Grill-me intake (research question specificity + framework hint + tentative depth) before the recon search; a second forcing checkpoint after Phase 2 confirms framework + sub-areas + depth before searches consume budget. Configurable depth (5/10/20 queries) controls coverage vs. speed. Output is a 'launching pad' — an orientation guide that lets a researcher dive in confidently, not a finished review. Use when the user starts literature-oriented research (e.g., 'litreview on [topic]', 'literature review on [topic]', 'I'm starting a literature review on X', 'I'm writing a paper on X', 'help me research X', 'I'm doing research on X', 'can you help me research X'). Do NOT use for single one-off paper searches wanting a quick list — that's a plain Consensus search."
 license: MIT
 metadata:
   source_spec: "megaprompts/09-litreview-megaprompt.md"
@@ -204,7 +204,7 @@ Document the key `docx` library patterns:
 - Lists: `LevelFormat.BULLET` (never unicode bullets)
 - Hyperlinks: `ExternalHyperlink` with `style: "Hyperlink"`, full URL (never truncated)
 - Tables: dual widths (`columnWidths` + cell `width`), `ShadingType.CLEAR`
-- Validation step after save (`python scripts/office/validate.py output.docx`)
+- Validation step after save (zip-integrity check: `python3 -c "import zipfile,sys; zipfile.ZipFile(sys.argv[1]).testzip()" output.docx` — no output = intact — then confirm the required sections are present)
 
 Reference the **docx skill** for setup patterns and best practices.
 

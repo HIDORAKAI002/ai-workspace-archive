@@ -1,0 +1,20 @@
+# By-design exceptions for scripts/smoke_scripts.py (gate G8).
+# Format: <path relative to repo root>  # reason
+# These scripts intentionally do not implement a CLI `--help` contract.
+
+# Fixed-contract evaluators: argv contract is fixed by engineering/autoresearch-agent
+# (called as `evaluator.py <target-file>`; exit code IS the metric channel).
+engineering/autoresearch-agent/evaluators/benchmark_size.py  # fixed-contract autoresearch evaluator
+engineering/autoresearch-agent/evaluators/benchmark_speed.py  # fixed-contract autoresearch evaluator
+engineering/autoresearch-agent/evaluators/build_speed.py  # fixed-contract autoresearch evaluator
+engineering/autoresearch-agent/evaluators/llm_judge_content.py  # fixed-contract autoresearch evaluator
+engineering/autoresearch-agent/evaluators/llm_judge_copy.py  # fixed-contract autoresearch evaluator
+engineering/autoresearch-agent/evaluators/llm_judge_prompt.py  # fixed-contract autoresearch evaluator
+engineering/autoresearch-agent/evaluators/memory_usage.py  # fixed-contract autoresearch evaluator
+engineering/autoresearch-agent/evaluators/test_pass_rate.py  # fixed-contract autoresearch evaluator
+
+# Claude Code hooks: invoked by the hook runner with a JSON payload on stdin,
+# not as CLI tools (exit 2 is a signaling channel for PreToolUse).
+engineering/security-guidance/hooks/security_reminder_hook.py  # PreToolUse stdin hook
+productivity/handoff/hooks/session_start.py  # SessionStart stdin hook
+productivity/handoff/hooks/session_end.py  # SessionEnd stdin hook

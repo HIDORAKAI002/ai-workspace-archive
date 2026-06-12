@@ -1,6 +1,6 @@
 ---
 name: "review"
-description: "Analyze auto-memory for promotion candidates, stale entries, consolidation opportunities, and health metrics."
+description: "Analyze auto-memory for promotion candidates, stale entries, consolidation opportunities, and health metrics. Use when the user runs /si:review or asks what has been learned and what should be promoted or pruned."
 ---
 
 # /si:review — Analyze Auto-Memory
