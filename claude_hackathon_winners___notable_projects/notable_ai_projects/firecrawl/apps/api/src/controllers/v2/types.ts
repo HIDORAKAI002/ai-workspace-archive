@@ -1453,6 +1453,9 @@ export type CrawlStatusResponse =
       total: number;
       creditsUsed: number;
       expiresAt: string;
+      createdAt?: string;
+      completedAt?: string;
+      duration?: number;
       next?: string;
       data: Document[];
       warning?: string;
@@ -1465,6 +1468,9 @@ export type CrawlStatusResponse =
       total: number;
       creditsUsed: number;
       expiresAt: string;
+      createdAt?: string;
+      completedAt?: string;
+      duration?: number;
       data: Document[];
     };
 

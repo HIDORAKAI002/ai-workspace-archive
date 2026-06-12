@@ -206,6 +206,24 @@ export async function getDoneJobsOrdered(
   );
 }
 
+export async function getLastDoneJobTimestamp(
+  id: string,
+): Promise<number | null> {
+  await redisEvictConnection.expire(
+    "crawl:" + id + ":jobs_donez_ordered",
+    24 * 60 * 60,
+  );
+  const result = await redisEvictConnection.zrange(
+    "crawl:" + id + ":jobs_donez_ordered",
+    -1,
+    -1,
+    "WITHSCORES",
+  );
+  if (!result || result.length < 2) return null;
+  const score = parseInt(result[1], 10);
+  return Number.isFinite(score) ? score : null;
+}
+
 export async function getDoneJobsOrderedUntil(
   id: string,
   until: number = Infinity,
