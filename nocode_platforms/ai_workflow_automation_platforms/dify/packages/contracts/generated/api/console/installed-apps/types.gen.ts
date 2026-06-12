@@ -143,9 +143,7 @@ export type DeleteInstalledAppsByInstalledAppIdData = {
 }
 
 export type DeleteInstalledAppsByInstalledAppIdResponses = {
-  204: {
-    [key: string]: never
-  }
+  204: void
 }
 
 export type DeleteInstalledAppsByInstalledAppIdResponse
@@ -261,9 +259,9 @@ export type GetInstalledAppsByInstalledAppIdConversationsData = {
     installed_app_id: string
   }
   query?: {
-    last_id?: string | null
+    last_id?: string
     limit?: number
-    pinned?: boolean | null
+    pinned?: boolean
   }
   url: '/installed-apps/{installed_app_id}/conversations'
 }
@@ -288,9 +286,7 @@ export type DeleteInstalledAppsByInstalledAppIdConversationsByCIdData = {
 }
 
 export type DeleteInstalledAppsByInstalledAppIdConversationsByCIdResponses = {
-  204: {
-    [key: string]: never
-  }
+  204: void
 }
 
 export type DeleteInstalledAppsByInstalledAppIdConversationsByCIdResponse
@@ -356,7 +352,7 @@ export type GetInstalledAppsByInstalledAppIdMessagesData = {
   }
   query: {
     conversation_id: string
-    first_id?: string | null
+    first_id?: string
     limit?: number
   }
   url: '/installed-apps/{installed_app_id}/messages'
@@ -468,7 +464,7 @@ export type GetInstalledAppsByInstalledAppIdSavedMessagesData = {
     installed_app_id: string
   }
   query?: {
-    last_id?: string | null
+    last_id?: string
     limit?: number
   }
   url: '/installed-apps/{installed_app_id}/saved-messages'
@@ -510,9 +506,7 @@ export type DeleteInstalledAppsByInstalledAppIdSavedMessagesByMessageIdData = {
 }
 
 export type DeleteInstalledAppsByInstalledAppIdSavedMessagesByMessageIdResponses = {
-  204: {
-    [key: string]: never
-  }
+  204: void
 }
 
 export type DeleteInstalledAppsByInstalledAppIdSavedMessagesByMessageIdResponse

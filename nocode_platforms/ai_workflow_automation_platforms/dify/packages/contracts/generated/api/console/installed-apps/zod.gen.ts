@@ -155,7 +155,7 @@ export const zDeleteInstalledAppsByInstalledAppIdPath = z.object({
 /**
  * App uninstalled successfully
  */
-export const zDeleteInstalledAppsByInstalledAppIdResponse = z.record(z.string(), z.never())
+export const zDeleteInstalledAppsByInstalledAppIdResponse = z.void()
 
 export const zPatchInstalledAppsByInstalledAppIdPath = z.object({
   installed_app_id: z.string(),
@@ -234,9 +234,9 @@ export const zGetInstalledAppsByInstalledAppIdConversationsPath = z.object({
 })
 
 export const zGetInstalledAppsByInstalledAppIdConversationsQuery = z.object({
-  last_id: z.string().nullish(),
+  last_id: z.string().optional(),
   limit: z.int().gte(1).lte(100).optional().default(20),
-  pinned: z.boolean().nullish(),
+  pinned: z.boolean().optional(),
 })
 
 /**
@@ -255,10 +255,7 @@ export const zDeleteInstalledAppsByInstalledAppIdConversationsByCIdPath = z.obje
 /**
  * Conversation deleted successfully
  */
-export const zDeleteInstalledAppsByInstalledAppIdConversationsByCIdResponse = z.record(
-  z.string(),
-  z.never(),
-)
+export const zDeleteInstalledAppsByInstalledAppIdConversationsByCIdResponse = z.void()
 
 export const zPostInstalledAppsByInstalledAppIdConversationsByCIdNameBody
   = zConversationRenamePayload
@@ -302,7 +299,7 @@ export const zGetInstalledAppsByInstalledAppIdMessagesPath = z.object({
 
 export const zGetInstalledAppsByInstalledAppIdMessagesQuery = z.object({
   conversation_id: z.string(),
-  first_id: z.string().nullish(),
+  first_id: z.string().optional(),
   limit: z.int().gte(1).lte(100).optional().default(20),
 })
 
@@ -376,7 +373,7 @@ export const zGetInstalledAppsByInstalledAppIdSavedMessagesPath = z.object({
 })
 
 export const zGetInstalledAppsByInstalledAppIdSavedMessagesQuery = z.object({
-  last_id: z.string().nullish(),
+  last_id: z.string().optional(),
   limit: z.int().gte(1).lte(100).optional().default(20),
 })
 
@@ -407,10 +404,7 @@ export const zDeleteInstalledAppsByInstalledAppIdSavedMessagesByMessageIdPath = 
 /**
  * Saved message deleted successfully
  */
-export const zDeleteInstalledAppsByInstalledAppIdSavedMessagesByMessageIdResponse = z.record(
-  z.string(),
-  z.never(),
-)
+export const zDeleteInstalledAppsByInstalledAppIdSavedMessagesByMessageIdResponse = z.void()
 
 export const zPostInstalledAppsByInstalledAppIdTextToAudioBody = zTextToAudioPayload
 

@@ -6,7 +6,7 @@ export type ClientOptions = {
 
 export type TenantInfoResponse = {
   created_at?: number | null
-  custom_config?: WorkspaceCustomConfigResponse
+  custom_config?: WorkspaceCustomConfigResponse | null
   id: string
   in_trial?: boolean | null
   name?: string | null
@@ -32,7 +32,7 @@ export type CreateSnippetPayload = {
   graph?: {
     [key: string]: unknown
   } | null
-  icon_info?: IconInfo
+  icon_info?: IconInfo | null
   input_fields?: Array<InputFieldDefinition> | null
   name: string
   type?: 'group' | 'node'
@@ -77,7 +77,7 @@ export type SnippetImportPayload = {
 
 export type UpdateSnippetPayload = {
   description?: string | null
-  icon_info?: IconInfo
+  icon_info?: IconInfo | null
   name?: string | null
 }
 
@@ -223,7 +223,7 @@ export type ParserDeleteModels = {
 export type ParserPostModels = {
   config_from?: string | null
   credential_id?: string | null
-  load_balancing?: LoadBalancingPayload
+  load_balancing?: LoadBalancingPayload | null
   model: string
   model_type: ModelType
 }
@@ -459,7 +459,7 @@ export type McpProviderCreatePayload = {
   icon: string
   icon_background?: string
   icon_type: string
-  identity_mode?: IdentityMode
+  identity_mode?: IdentityMode | null
   name: string
   server_identifier: string
   server_url: string
@@ -478,7 +478,7 @@ export type McpProviderUpdatePayload = {
   icon: string
   icon_background?: string
   icon_type: string
-  identity_mode?: IdentityMode
+  identity_mode?: IdentityMode | null
   name: string
   provider_id: string
   server_identifier: string
@@ -752,12 +752,12 @@ export type GetWorkspacesCurrentCustomizedSnippetsData = {
   body?: never
   path?: never
   query?: {
-    creators?: Array<string> | null
-    is_published?: boolean | null
-    keyword?: string | null
+    creators?: Array<string>
+    is_published?: boolean
+    keyword?: string
     limit?: number
     page?: number
-    tag_ids?: Array<string> | null
+    tag_ids?: Array<string>
   }
   url: '/workspaces/current/customized-snippets'
 }
@@ -866,9 +866,7 @@ export type DeleteWorkspacesCurrentCustomizedSnippetsBySnippetIdError
   = DeleteWorkspacesCurrentCustomizedSnippetsBySnippetIdErrors[keyof DeleteWorkspacesCurrentCustomizedSnippetsBySnippetIdErrors]
 
 export type DeleteWorkspacesCurrentCustomizedSnippetsBySnippetIdResponses = {
-  204: {
-    [key: string]: never
-  }
+  204: void
 }
 
 export type DeleteWorkspacesCurrentCustomizedSnippetsBySnippetIdResponse
@@ -1026,7 +1024,7 @@ export type GetWorkspacesCurrentDefaultModelData = {
   body?: never
   path?: never
   query: {
-    model_type: string
+    model_type: 'llm' | 'moderation' | 'rerank' | 'speech2text' | 'text-embedding' | 'tts'
   }
   url: '/workspaces/current/default-model'
 }
@@ -1393,7 +1391,7 @@ export type GetWorkspacesCurrentModelProvidersData = {
   body?: never
   path?: never
   query?: {
-    model_type?: string | null
+    model_type?: 'llm' | 'moderation' | 'rerank' | 'speech2text' | 'text-embedding' | 'tts'
   }
   url: '/workspaces/current/model-providers'
 }
@@ -1435,9 +1433,7 @@ export type DeleteWorkspacesCurrentModelProvidersByProviderCredentialsData = {
 }
 
 export type DeleteWorkspacesCurrentModelProvidersByProviderCredentialsResponses = {
-  204: {
-    [key: string]: never
-  }
+  204: void
 }
 
 export type DeleteWorkspacesCurrentModelProvidersByProviderCredentialsResponse
@@ -1449,7 +1445,7 @@ export type GetWorkspacesCurrentModelProvidersByProviderCredentialsData = {
     provider: string
   }
   query?: {
-    credential_id?: string | null
+    credential_id?: string
   }
   url: '/workspaces/current/model-providers/{provider}/credentials'
 }
@@ -1543,9 +1539,7 @@ export type DeleteWorkspacesCurrentModelProvidersByProviderModelsData = {
 }
 
 export type DeleteWorkspacesCurrentModelProvidersByProviderModelsResponses = {
-  204: {
-    [key: string]: never
-  }
+  204: void
 }
 
 export type DeleteWorkspacesCurrentModelProvidersByProviderModelsResponse
@@ -1597,9 +1591,7 @@ export type DeleteWorkspacesCurrentModelProvidersByProviderModelsCredentialsData
 }
 
 export type DeleteWorkspacesCurrentModelProvidersByProviderModelsCredentialsResponses = {
-  204: {
-    [key: string]: never
-  }
+  204: void
 }
 
 export type DeleteWorkspacesCurrentModelProvidersByProviderModelsCredentialsResponse
@@ -1611,10 +1603,10 @@ export type GetWorkspacesCurrentModelProvidersByProviderModelsCredentialsData = 
     provider: string
   }
   query: {
-    config_from?: string | null
-    credential_id?: string | null
+    config_from?: string
+    credential_id?: string
     model: string
-    model_type: string
+    model_type: 'llm' | 'moderation' | 'rerank' | 'speech2text' | 'text-embedding' | 'tts'
   }
   url: '/workspaces/current/model-providers/{provider}/models/credentials'
 }
@@ -2031,7 +2023,7 @@ export type GetWorkspacesCurrentPluginParametersDynamicOptionsData = {
   path?: never
   query: {
     action: string
-    credential_id?: string | null
+    credential_id?: string
     parameter: string
     plugin_id: string
     provider: string
