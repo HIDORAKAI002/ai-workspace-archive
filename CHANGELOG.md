@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-06-14 03:35 IST] Auto-Sync
+- **17 Repositories Updated:** Promptfoo, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, pydantic/pydantic-ai, browser-use/browser-use, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, chroma-core/chroma, firecrawl/firecrawl, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, bytedance/deer-flow, nousresearch/hermes-agent
+
 ## [2026-06-13 20:53 IST] Auto-Sync
 - **13 Repositories Updated:** punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, pydantic/pydantic-ai, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, googleapis/python-genai, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, bytedance/deer-flow, nousresearch/hermes-agent
 
