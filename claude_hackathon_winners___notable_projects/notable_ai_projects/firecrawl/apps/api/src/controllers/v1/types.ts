@@ -1310,6 +1310,7 @@ export type TeamFlags = {
   // POST /v2/search/:jobId/feedback returns 403 TEAM_OPTED_OUT when true.
   searchFeedbackOptOut?: boolean;
   researchBeta?: boolean;
+  highlightsBeta?: boolean;
 } | null;
 
 export type AuthCreditUsageChunkFromTeam = Omit<

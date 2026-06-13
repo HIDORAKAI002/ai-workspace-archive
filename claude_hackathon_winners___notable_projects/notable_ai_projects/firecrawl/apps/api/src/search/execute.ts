@@ -13,6 +13,7 @@ import {
   mergeScrapedContent,
   calculateScrapeCredits,
 } from "./scrape";
+import { applySearchHighlights, highlightsEnvReady } from "./highlights";
 import { trackSearchResults, trackSearchRequest } from "../lib/tracking";
 import type { BillingMetadata } from "../services/billing/types";
 
@@ -30,6 +31,7 @@ interface SearchOptions {
   excludeDomains?: string[];
   enterprise?: ("default" | "anon" | "zdr")[];
   scrapeOptions?: ScrapeOptions;
+  highlights?: boolean;
   timeout: number;
 }
 
@@ -183,6 +185,17 @@ export async function executeSearch(
       );
       scrapeCredits = calculateScrapeCredits(allDocsWithCostTracking);
     }
+  }
+
+  // Experimental highlights beta: replace provider snippets with index-backed
+  // highlights. Gated on (1) the request opting in, (2) the team's highlightsBeta
+  // flag, and (3) all required envs being present (index DB, GCS, model). Any
+  // gate failing => silently keep the provider snippets.
+  // Runs after scraping (mergeScrapedContent rebuilds the result objects, so
+  // highlight mutations must come last to survive). Uses the user's original
+  // query, not the domain-filtered upstream query.
+  if (options.highlights && flags?.highlightsBeta === true && highlightsEnvReady()) {
+    await applySearchHighlights(searchResponse, query, logger);
   }
 
   const scrapeFormats = scrapeOptions?.formats
