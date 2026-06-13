@@ -416,19 +416,21 @@ async function buildMetaObject(
     }
   }
 
+  const normalizedOptions = {
+    ...options,
+    skipTlsVerification:
+      options.skipTlsVerification ??
+      ((options.headers && Object.keys(options.headers).length > 0) ||
+      (options.actions && options.actions.length > 0)
+        ? false
+        : true),
+  };
+
   return {
     id,
     url,
     rewrittenUrl: rewriteUrl(url),
-    options: {
-      ...options,
-      skipTlsVerification:
-        options.skipTlsVerification ??
-        ((options.headers && Object.keys(options.headers).length > 0) ||
-        (options.actions && options.actions.length > 0)
-          ? false
-          : true),
-    },
+    options: normalizedOptions,
     internalOptions,
     logger,
     abortHandle,
@@ -445,7 +447,7 @@ async function buildMetaObject(
           }
         : undefined,
     ),
-    featureFlags: buildFeatureFlags(url, options, internalOptions),
+    featureFlags: buildFeatureFlags(url, normalizedOptions, internalOptions),
     mock:
       options.useMock !== undefined
         ? await loadMock(options.useMock, _logger)

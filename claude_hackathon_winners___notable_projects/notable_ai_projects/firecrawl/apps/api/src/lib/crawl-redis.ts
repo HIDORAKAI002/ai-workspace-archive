@@ -19,6 +19,9 @@ export type StoredCrawl = {
   createdAt: number;
   maxConcurrency?: number;
   zeroDataRetention?: boolean;
+  // which queue backend this crawl's group + jobs live on; a crawl never
+  // spans backends. Absent on crawls created before the FDB rollout (= pg).
+  queueBackend?: "pg" | "fdb";
 };
 
 export async function saveCrawl(id: string, crawl: StoredCrawl) {

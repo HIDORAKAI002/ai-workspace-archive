@@ -11,7 +11,7 @@ import { configDotenv } from "dotenv";
 import { toLegacyDocument } from "../v1/types";
 import type { DBScrape, PseudoJob } from "../v1/crawl-status";
 import { getJobFromGCS } from "../../lib/gcs-jobs";
-import { scrapeQueue, NuQJob } from "../../services/worker/nuq";
+import { scrapeQueue, NuQJob } from "../../services/worker/nuq-router";
 import { includesFormat } from "../../lib/format-utils";
 import { getScrapeZDR } from "../../lib/zdr-helpers";
 import { applyAgentAuthDiscoveryHeader } from "../../lib/agent-auth-discovery";

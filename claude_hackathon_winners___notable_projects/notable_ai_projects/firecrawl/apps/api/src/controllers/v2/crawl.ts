@@ -20,7 +20,10 @@ import { generateCrawlerOptionsFromPrompt } from "../../scraper/scrapeURL/transf
 import { CostTracking } from "../../lib/cost-tracking";
 import { checkPermissions } from "../../lib/permissions";
 import { buildPromptWithWebsiteStructure } from "../../lib/map-utils";
-import { crawlGroup } from "../../services/worker/nuq";
+import {
+  crawlGroup,
+  resolveNewGroupBackend,
+} from "../../services/worker/nuq-router";
 import { logRequest } from "../../services/logging/log_job";
 import { getScrapeZDR } from "../../lib/zdr-helpers";
 
@@ -215,10 +218,16 @@ export async function crawlController(
     });
   }
 
+  sc.queueBackend = await resolveNewGroupBackend(sc.team_id);
   await crawlGroup.addGroup(
     id,
     sc.team_id,
     (req.acuc?.flags?.crawlTtlHours ?? 24) * 60 * 60 * 1000,
+    {
+      backend: sc.queueBackend,
+      maxConcurrency: sc.maxConcurrency,
+      delaySeconds: sc.crawlerOptions?.delay,
+    },
   );
 
   await saveCrawl(id, sc);

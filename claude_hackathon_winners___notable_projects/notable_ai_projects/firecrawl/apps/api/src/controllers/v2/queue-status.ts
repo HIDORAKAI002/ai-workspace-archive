@@ -4,6 +4,13 @@ import { RequestWithAuth } from "./types";
 import { AuthCreditUsageChunkFromTeam } from "../v1/types";
 import { Response } from "express";
 import { getRedisConnection } from "../../services/queue-service";
+import { fdbQueueEnabled } from "../../services/worker/nuq-router";
+import {
+  nuqFdbHealthCheck,
+  scrapeQueueFdb,
+  withFdbTimeout,
+} from "../../services/worker/nuq-fdb";
+import { logger } from "../../lib/logger";
 import {
   cleanOldConcurrencyLimitedJobs,
   cleanOldConcurrencyLimitEntries,
@@ -19,6 +26,8 @@ type QueueStatusResponse = {
   maxConcurrency: number;
   mostRecentSuccess: string | null;
 };
+
+const FDB_OPTIONAL_COUNT_TIMEOUT_MS = 500;
 
 export async function queueStatusController(
   req: RequestWithAuth<{}, undefined, QueueStatusResponse>,
@@ -42,11 +51,37 @@ export async function queueStatusController(
   }
 
   await cleanOldConcurrencyLimitEntries(req.auth.team_id);
-  const activeJobsOfTeam = await getConcurrencyLimitActiveJobsCount(
+  let activeJobsOfTeam = await getConcurrencyLimitActiveJobsCount(
     req.auth.team_id,
   );
   await cleanOldConcurrencyLimitedJobs(req.auth.team_id);
-  const queuedJobsOfTeam = await getConcurrencyQueueJobsCount(req.auth.team_id);
+  let queuedJobsOfTeam = await getConcurrencyQueueJobsCount(req.auth.team_id);
+
+  // during the FDB migration a team can have load on both ledgers
+  if (fdbQueueEnabled()) {
+    try {
+      if (await nuqFdbHealthCheck(FDB_OPTIONAL_COUNT_TIMEOUT_MS)) {
+        const [fdbActive, fdbPending] = await Promise.all([
+          withFdbTimeout(
+            scrapeQueueFdb.getTeamActiveCount(req.auth.team_id),
+            FDB_OPTIONAL_COUNT_TIMEOUT_MS,
+          ),
+          withFdbTimeout(
+            scrapeQueueFdb.getTeamPendingCount(req.auth.team_id),
+            FDB_OPTIONAL_COUNT_TIMEOUT_MS,
+          ),
+        ]);
+        activeJobsOfTeam += fdbActive;
+        queuedJobsOfTeam += fdbPending;
+      }
+    } catch (error) {
+      logger.warn("Failed to read FDB queue counts, falling back to Redis", {
+        module: "queue-status",
+        version: "v2",
+        error,
+      });
+    }
+  }
 
   const mostRecentSuccess = await getRedisConnection().get(
     "most-recent-success:" + req.auth.team_id,

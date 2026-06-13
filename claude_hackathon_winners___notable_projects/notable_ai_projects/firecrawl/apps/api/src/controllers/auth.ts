@@ -1,6 +1,6 @@
 import * as crypto from "crypto";
 import { RateLimiterRedis } from "rate-limiter-flexible";
-import { validate } from "uuid";
+import { isValidUuid } from "../lib/owner-id";
 import { config } from "../config";
 import { logger } from "../lib/logger";
 import { parseApi } from "../lib/parseApi";
@@ -23,7 +23,7 @@ import { AuthCreditUsageChunk, AuthCreditUsageChunkFromTeam } from "./v1/types";
 
 function normalizedApiIsUuid(potentialUuid: string): boolean {
   // Check if the string is a valid UUID
-  return validate(potentialUuid);
+  return isValidUuid(potentialUuid);
 }
 
 export async function setCachedACUC(
