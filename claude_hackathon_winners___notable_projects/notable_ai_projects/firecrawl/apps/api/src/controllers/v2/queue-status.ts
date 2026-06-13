@@ -4,7 +4,7 @@ import { RequestWithAuth } from "./types";
 import { AuthCreditUsageChunkFromTeam } from "../v1/types";
 import { Response } from "express";
 import { getRedisConnection } from "../../services/queue-service";
-import { fdbQueueEnabled } from "../../services/worker/nuq-router";
+import { isFdbTeam } from "../../services/worker/nuq-router";
 import {
   nuqFdbHealthCheck,
   scrapeQueueFdb,
@@ -58,7 +58,7 @@ export async function queueStatusController(
   let queuedJobsOfTeam = await getConcurrencyQueueJobsCount(req.auth.team_id);
 
   // during the FDB migration a team can have load on both ledgers
-  if (fdbQueueEnabled()) {
+  if (await isFdbTeam(req.auth.team_id)) {
     try {
       if (await nuqFdbHealthCheck(FDB_OPTIONAL_COUNT_TIMEOUT_MS)) {
         const [fdbActive, fdbPending] = await Promise.all([

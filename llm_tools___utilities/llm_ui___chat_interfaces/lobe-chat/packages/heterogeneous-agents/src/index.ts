@@ -38,6 +38,7 @@ export type {
   StreamContentIntent,
   SubagentIntent,
   SubagentReduceCtx,
+  SubagentRunSnapshot,
   SubagentRunsState,
 } from './subagentCoordinator';
 export {
@@ -45,6 +46,7 @@ export {
   type EventScope,
   getEventScope,
   reduceSubagentRuns,
+  rehydrateSubagentRunsState,
 } from './subagentCoordinator';
 export type {
   AgentEventAdapter,
