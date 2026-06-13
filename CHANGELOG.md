@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-06-13 14:13 IST] Auto-Sync
+- **23 Repositories Updated:** Public APIs Directory, Awesome ChatGPT Prompts, Promptfoo, Dify, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langchain, crewAIInc/crewAI, openai/openai-agents-python, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, chroma-core/chroma, openai/openai-cookbook, firecrawl/firecrawl, apache/airflow, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, nousresearch/hermes-agent
+
 ## [2026-06-13 07:23 IST] Auto-Sync
 - **34 Repositories Updated:** Public APIs Directory, MCP Inspector, Promptfoo, Langflow, Activepieces, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, arben-adm/mcp-sequential-thinking, langchain-ai/langchain, langchain-ai/langgraph, openai/openai-agents-python, pydantic/pydantic-ai, mastra-ai/mastra, browser-use/browser-use, Swarms, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, cline/cline, anthropics/claude-code, chroma-core/chroma, milvus-io/milvus, arize-ai/phoenix, firecrawl/firecrawl, openai/openai-node, googleapis/python-genai, apache/airflow, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow, nousresearch/hermes-agent
 

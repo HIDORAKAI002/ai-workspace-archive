@@ -17,11 +17,12 @@ import {
   didBrowserSessionUsePrompt,
   clearBrowserSessionPromptFlag,
 } from "../../lib/browser-sessions";
+import {} from "../../lib/concurrency-limit";
 import {
-  getConcurrencyLimitActiveJobsCount,
-  pushConcurrencyLimitActiveJob,
-  removeConcurrencyLimitActiveJob,
-} from "../../lib/concurrency-limit";
+  getCombinedTeamActiveCount,
+  mirrorExternalSlotAcquire,
+  mirrorExternalSlotRelease,
+} from "../../services/worker/nuq-router";
 import {
   browserServiceRequest,
   BrowserServiceError,
@@ -402,7 +403,7 @@ export async function scrapeStopInteractiveBrowserController(
   const claimed = await claimBrowserSessionDestroyed(session.id);
 
   invalidateActiveBrowserSessionCount(session.team_id).catch(() => {});
-  removeConcurrencyLimitActiveJob(session.team_id, session.id).catch(error => {
+  mirrorExternalSlotRelease(session.team_id, session.id).catch(error => {
     logger.error(
       "Failed to remove concurrency limiter entry for browser session",
       {
@@ -533,9 +534,7 @@ async function createSessionForScrape(
 
   // Active session limit — uses the same concurrency pool as scrape/crawl
   const concurrencyLimit = req.acuc?.concurrency ?? 2;
-  const activeCount = await getConcurrencyLimitActiveJobsCount(
-    req.auth.team_id,
-  );
+  const activeCount = await getCombinedTeamActiveCount(req.auth.team_id);
   if (activeCount >= concurrencyLimit) {
     return {
       status: 429,
@@ -738,11 +737,9 @@ async function createSessionForScrape(
 
     // Register in the shared concurrency limiter so this session counts
     // against the team's concurrent job limit while it's active.
-    pushConcurrencyLimitActiveJob(
-      req.auth.team_id,
-      sessionId,
-      ttl * 1000,
-    ).catch(() => {});
+    mirrorExternalSlotAcquire(req.auth.team_id, sessionId, ttl * 1000).catch(
+      () => {},
+    );
 
     return { session };
   } catch (err) {

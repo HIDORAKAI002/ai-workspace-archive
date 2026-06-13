@@ -152,4 +152,32 @@ describe("WebCrawler", () => {
       filteredLinks.denialReasons.has("https://sub.example.com/blog"),
     ).toBe(true);
   });
+
+  it("can validate the source URL without applying maxDiscoveryDepth", async () => {
+    const initialUrl = "https://example.com/blog";
+
+    crawler = new WebCrawler({
+      jobId: "TEST",
+      initialUrl,
+      includes: ["^/blog"],
+      excludes: [],
+      limit: 10,
+      maxCrawledDepth: 10,
+      maxDiscoveryDepth: 0,
+      currentDiscoveryDepth: 0,
+    });
+
+    const discoveryResult = await crawler["filterLinks"]([initialUrl], 1, 10);
+    expect(discoveryResult.links).toEqual([]);
+
+    const sourceValidationResult = await crawler["filterLinks"](
+      [initialUrl],
+      1,
+      10,
+      false,
+      false,
+      true,
+    );
+    expect(sourceValidationResult.links).toEqual([initialUrl]);
+  });
 });
