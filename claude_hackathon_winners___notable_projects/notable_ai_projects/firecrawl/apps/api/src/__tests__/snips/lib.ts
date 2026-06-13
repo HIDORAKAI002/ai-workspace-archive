@@ -9,7 +9,6 @@ import { TeamFlags } from "../../controllers/v1/types";
 // =========================================
 
 export const TEST_API_URL = config.TEST_API_URL;
-export const TEST_URL = TEST_API_URL; // backwards compat temp
 
 const stripTrailingSlash = (url: string) => {
   if (url.length < 1) throw new Error("Invalid URL supplied");
