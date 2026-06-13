@@ -316,6 +316,7 @@ import {
 } from "./attempt-trajectory-status.js";
 import {
   requiresCompletionRequiredAsyncTaskWait,
+  shouldWaitForCompletionRequiredAsyncTasks,
   waitForCompletionRequiredAsyncTasks,
   type AsyncStartedToolMeta,
   type CompletionRequiredAsyncTaskWaitResult,
@@ -1238,6 +1239,7 @@ export async function runEmbeddedAttempt(
                 : undefined,
             sessionId: params.sessionId,
             runId: params.runId,
+            oneShotCliRun: params.oneShotCliRun,
             toolSearchCatalogRef,
             agentDir,
             cwd: effectiveCwd,
@@ -1801,6 +1803,8 @@ export async function runEmbeddedAttempt(
       workspaceDir: effectiveWorkspace,
       cwd: effectiveCwd,
       runtime: {
+        sessionKey: params.sessionKey,
+        sessionId: params.sessionId,
         host: machineName,
         os: `${os.type()} ${os.release()}`,
         arch: os.arch(),
@@ -4571,9 +4575,10 @@ export async function runEmbeddedAttempt(
         await sessionLockController.releaseForPrompt();
 
         if (
-          requiresCompletionRequiredAsyncTaskWait({
+          shouldWaitForCompletionRequiredAsyncTasks({
             sessionKey: params.sessionKey,
             toolMetas,
+            yieldDetected: yieldAborted,
           })
         ) {
           const getAsyncStartedToolMetas = () =>

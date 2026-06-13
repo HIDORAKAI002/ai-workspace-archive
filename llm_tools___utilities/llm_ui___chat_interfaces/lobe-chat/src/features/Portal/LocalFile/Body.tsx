@@ -1,6 +1,16 @@
 import { isDesktop } from '@lobechat/const';
 import type { MarkdownProps } from '@lobehub/ui';
-import { ActionIcon, Center, Empty, Flexbox, Icon, Markdown, Segmented, Text } from '@lobehub/ui';
+import {
+  ActionIcon,
+  Center,
+  Empty,
+  Flexbox,
+  Icon,
+  Image,
+  Markdown,
+  Segmented,
+  Text,
+} from '@lobehub/ui';
 import { createStaticStyles, cssVar } from 'antd-style';
 import { CodeIcon, EyeIcon, RefreshCwIcon } from 'lucide-react';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
@@ -44,7 +54,13 @@ const ImagePreview = memo<ImagePreviewProps>(({ blob, filename }) => {
 
   return (
     <Center height={'100%'} style={{ overflow: 'auto' }} width={'100%'}>
-      <img alt={filename} src={imageSrc} style={{ maxWidth: '100%', objectFit: 'contain' }} />
+      <Image
+        alt={filename}
+        objectFit={'contain'}
+        src={imageSrc}
+        style={{ maxWidth: '100%' }}
+        variant={'borderless'}
+      />
     </Center>
   );
 });
@@ -399,6 +415,13 @@ const Body = memo(() => {
   const openLocalFiles = useChatStore(chatPortalSelectors.openLocalFiles);
   const activeFile = useChatStore(chatPortalSelectors.currentLocalFile);
   const activeTopicId = useChatStore((s) => s.activeTopicId);
+  const clearPortalStack = useChatStore((s) => s.clearPortalStack);
+
+  useEffect(() => {
+    if (openLocalFiles.length > 0 && activeFile) return;
+
+    clearPortalStack();
+  }, [activeFile, clearPortalStack, openLocalFiles.length]);
 
   if (openLocalFiles.length === 0) return null;
   if (!activeFile) return null;

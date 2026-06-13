@@ -748,6 +748,7 @@ export const zhHant = defineLocale({
     back: '返回',
     searchPlaceholder: '搜尋工作階段、檢視和動作',
     goTo: '前往',
+    goToSession: '前往工作階段',
     commandCenter: '命令中心',
     appearance: '外觀',
     settings: '設定',
@@ -998,6 +999,9 @@ export const zhHant = defineLocale({
     deleting: '刪除中…',
     createDesc: '設定檔是獨立的 Hermes 環境：各自擁有獨立的設定、技能和 SOUL.md。',
     nameLabel: '名稱',
+    cloneFrom: '複製來源',
+    cloneFromNone: '無（空白）',
+    cloneFromDesc: '從選取的來源設定檔複製設定、技能和 SOUL.md。',
     cloneFromDefault: '從預設設定檔複製設定',
     cloneFromDefaultDesc: '從您的預設設定檔複製設定、技能和 SOUL.md。',
     invalidName: hint => `設定檔名稱無效。${hint}`,
@@ -1740,6 +1744,7 @@ export const zhHant = defineLocale({
   assistant: {
     thread: {
       loadingSession: '正在載入工作階段',
+      showEarlier: '顯示較早的訊息',
       loadingResponse: 'Hermes 正在載入回覆',
       thinking: '思考中',
       today: time => `今天，${time}`,
@@ -1769,6 +1774,7 @@ export const zhHant = defineLocale({
       gatewayDisconnected: 'Hermes 閘道未連線',
       sendFailed: '無法傳送核准回應',
       run: '執行',
+      command: '指令',
       moreOptions: '更多核准選項',
       allowSession: '允許本工作階段',
       alwaysAllowMenu: '一律允許…',

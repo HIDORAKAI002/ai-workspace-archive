@@ -10,22 +10,23 @@ backend-only changes prefer [../cli/index.md](../cli/index.md).
 
 ## Prerequisites
 
+- Complete [Step 0.0](../SKILL.md#00-resolve-the-current-test-environment) (resolve ports) and [Step -1](../SKILL.md#step--1--plan-approval-for-non-trivial-tests) (plan approval) first.
 - Local dev server running — [../references/dev-server.md](../references/dev-server.md)
-- Web auth injected into agent-browser — [../references/auth.md](../references/auth.md):
-
-```bash
-pbpaste | ./.agents/skills/agent-testing/scripts/setup-auth.sh web # after copying the Cookie header
-```
+- Web auth verified in agent-browser — see [auth decision flow](../references/auth.md#web--decision-flow).
 
 ## Option A — agent-browser with injected auth (recommended)
 
 ```bash
 SESSION=lobehub-dev
 
-agent-browser --session $SESSION open "http://localhost:3010/"
+agent-browser --session $SESSION open "$SERVER_URL/"
 agent-browser --session $SESSION snapshot -i
 # interact via refs — full command reference: ../references/agent-browser.md
 ```
+
+Use this session as the evidence source. Do not use ordinary Chrome screenshots
+or Chrome Network records as proof for Web tests; ordinary Chrome is only a
+source for copying cookies into agent-browser.
 
 ### Watch the API while driving the UI
 

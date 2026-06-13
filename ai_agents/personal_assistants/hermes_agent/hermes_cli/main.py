@@ -2199,6 +2199,18 @@ def cmd_chat(args):
     if getattr(args, "yolo", False):
         os.environ["HERMES_YOLO_MODE"] = "1"
 
+    # --safe-mode: troubleshooting mode that disables ALL customizations.
+    # Inspired by Claude Code v2.1.169's --safe-mode (June 2026): run with a
+    # pristine environment to isolate whether a problem comes from the user's
+    # setup (config, rules files, plugins, MCP servers) or from Hermes itself.
+    # Implemented as a superset of --ignore-user-config + --ignore-rules plus
+    # plugin/MCP discovery suppression (HERMES_SAFE_MODE is checked by
+    # hermes_cli/plugins.py and tools/mcp_tool.py).
+    if getattr(args, "safe_mode", False):
+        os.environ["HERMES_SAFE_MODE"] = "1"
+        os.environ["HERMES_IGNORE_USER_CONFIG"] = "1"
+        os.environ["HERMES_IGNORE_RULES"] = "1"
+
     # --ignore-user-config: make load_cli_config() / load_config() skip the
     # user's ~/.hermes/config.yaml and return built-in defaults. Set BEFORE
     # importing cli (which runs `CLI_CONFIG = load_cli_config()` at module
@@ -2256,8 +2268,8 @@ def cmd_chat(args):
         "checkpoints": getattr(args, "checkpoints", False),
         "pass_session_id": getattr(args, "pass_session_id", False),
         "max_turns": getattr(args, "max_turns", None),
-        "ignore_rules": getattr(args, "ignore_rules", False),
-        "ignore_user_config": getattr(args, "ignore_user_config", False),
+        "ignore_rules": getattr(args, "ignore_rules", False) or getattr(args, "safe_mode", False),
+        "ignore_user_config": getattr(args, "ignore_user_config", False) or getattr(args, "safe_mode", False),
         "compact": getattr(args, "compact", False),
     }
     # Filter out None values
@@ -9848,19 +9860,20 @@ def cmd_profile(args):
 
         try:
             clone_from = getattr(args, "clone_from", None)
+            clone_config = clone or clone_from is not None
 
             profile_dir = create_profile(
                 name=name,
                 clone_from=clone_from,
                 clone_all=clone_all,
-                clone_config=clone,
+                clone_config=clone_config,
                 no_alias=no_alias,
                 no_skills=no_skills,
                 description=getattr(args, "description", None),
             )
             print(f"\nProfile '{name}' created at {profile_dir}")
 
-            if clone or clone_all:
+            if clone_config or clone_all:
                 source_label = (
                     getattr(args, "clone_from", None) or get_active_profile_name()
                 )
@@ -9874,8 +9887,8 @@ def cmd_profile(args):
                         f"Cloned config, .env, SOUL.md, and skills from {source_label}."
                     )
 
-            # Auto-clone Honcho config for the new profile (only with --clone/--clone-all)
-            if clone or clone_all:
+            # Auto-clone Honcho config for the new profile (only with clone operations)
+            if clone_config or clone_all:
                 try:
                     from plugins.memory.honcho.cli import clone_honcho_for_profile
 
@@ -9884,10 +9897,10 @@ def cmd_profile(args):
                 except Exception:
                     pass  # Honcho plugin not installed or not configured
 
-            # Seed bundled skills (skip if --clone-all already copied them, or
-            # if --no-skills was passed — in which case seed_profile_skills()
-            # honors the marker file and returns skipped_opt_out=True).
-            if not clone_all:
+            # Seed bundled skills for fresh profiles only. Clone operations
+            # already copied the source profile's skills, including any
+            # user-installed or intentionally removed skills.
+            if not (clone_config or clone_all):
                 result = seed_profile_skills(profile_dir)
                 if result and result.get("skipped_opt_out"):
                     print(
