@@ -12,14 +12,18 @@ async-trait = { workspace = true }
 axum = { workspace = true }
 figment = { workspace = true }
 opentelemetry = { workspace = true }
+reqwest = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
 tower-http = { workspace = true }
 tracing = { workspace = true }
+tree-sitter = "0.26"
+tree-sitter-md = "0.5"
 uuid = { workspace = true }
 
+chroma = { workspace = true }
 chroma-api-types = { workspace = true }
 chroma-config = { workspace = true }
 chroma-error = { workspace = true, features = ["validator", "http"] }
@@ -29,3 +33,6 @@ chroma-tracing = { workspace = true, features = ["middleware"] }
 chroma-types = { workspace = true }
 frontend-core = { workspace = true }
 mdac = { workspace = true }
+
+[dev-dependencies]
+httpmock = "0.8.2"

@@ -49,6 +49,11 @@ DEFAULT_RUN_CONTEXT: dict[str, Any] = {
     "subagent_enabled": False,
 }
 STREAM_UPDATE_MIN_INTERVAL_SECONDS = 0.35
+# Stream modes requested from the runtime, and the SSE event names under which
+# the message-tuple stream may arrive: the embedded runtime (and LangGraph
+# Platform) deliver the requested "messages-tuple" mode as event "messages".
+STREAM_MODES = ["messages-tuple", "values"]
+MESSAGE_STREAM_EVENTS = ("messages-tuple", "messages")
 THREAD_BUSY_MESSAGE = "This conversation is already processing another request. Please wait for it to finish and try again."
 
 CHANNEL_CAPABILITIES = {
@@ -56,7 +61,7 @@ CHANNEL_CAPABILITIES = {
     "discord": {"supports_streaming": False},
     "feishu": {"supports_streaming": True},
     "slack": {"supports_streaming": False},
-    "telegram": {"supports_streaming": False},
+    "telegram": {"supports_streaming": True},
     "wechat": {"supports_streaming": False},
     "wecom": {"supports_streaming": True},
 }
@@ -608,8 +613,14 @@ async def _ingest_inbound_files(thread_id: str, msg: InboundMessage) -> list[dic
         write_upload_file_no_symlink,
     )
 
-    uploads_dir = ensure_uploads_dir(thread_id)
-    seen_names = {entry.name for entry in uploads_dir.iterdir() if entry.is_file()}
+    def _prepare_uploads_dir() -> tuple[Path, set[str]]:
+        # Worker thread: ensure_uploads_dir's mkdir and the iterdir enumeration are
+        # blocking filesystem IO that must stay off the event loop.
+        target = ensure_uploads_dir(thread_id)
+        existing = {entry.name for entry in target.iterdir() if entry.is_file()}
+        return target, existing
+
+    uploads_dir, seen_names = await asyncio.to_thread(_prepare_uploads_dir)
 
     created: list[dict[str, Any]] = []
     file_reader = INBOUND_FILE_READERS.get(msg.channel_name, _read_http_inbound_file)
@@ -657,7 +668,7 @@ async def _ingest_inbound_files(thread_id: str, msg: InboundMessage) -> list[dic
 
             dest = uploads_dir / safe_name
             try:
-                dest = write_upload_file_no_symlink(uploads_dir, safe_name, data)
+                dest = await asyncio.to_thread(write_upload_file_no_symlink, uploads_dir, safe_name, data)
             except UnsafeUploadPathError:
                 logger.warning("[Manager] skipping inbound file with unsafe destination: %s", safe_name)
                 continue
@@ -1129,7 +1140,7 @@ class ChannelManager:
             "input": {"messages": [human_message]},
             "config": run_config,
             "context": run_context,
-            "stream_mode": ["messages-tuple", "values"],
+            "stream_mode": list(STREAM_MODES),
             "multitask_strategy": "reject",
         }
         if owner_headers := _owner_headers(msg):
@@ -1144,7 +1155,7 @@ class ChannelManager:
                 event = getattr(chunk, "event", "")
                 data = getattr(chunk, "data", None)
 
-                if event == "messages-tuple":
+                if event in MESSAGE_STREAM_EVENTS:
                     accumulated_text, current_message_id = _accumulate_stream_text(streamed_buffers, current_message_id, data)
                     if accumulated_text:
                         latest_text = accumulated_text
