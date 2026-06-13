@@ -208,9 +208,6 @@ importers:
       ollama-ai-provider:
         specifier: ^1.2.0
         version: 1.2.0(zod@4.1.12)
-      openai:
-        specifier: ^5.20.2
-        version: 5.20.2(ws@8.20.1(bufferutil@4.0.9)(utf-8-validate@5.0.10))(zod@4.1.12)
       parse-diff:
         specifier: ^0.11.1
         version: 0.11.1
@@ -10711,6 +10708,7 @@ snapshots:
     optionalDependencies:
       ws: 8.20.1(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       zod: 4.1.12
+    optional: true
 
   ox@0.11.3(typescript@5.9.2)(zod@3.25.76):
     dependencies:

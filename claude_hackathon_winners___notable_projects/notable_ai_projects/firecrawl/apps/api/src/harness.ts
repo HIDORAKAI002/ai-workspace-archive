@@ -864,14 +864,14 @@ async function startServices(command?: string[]): Promise<Services> {
 
   const nuqWorkers = Array.from({ length: NUQ_WORKER_COUNT }, (_, i) =>
     execForward(
-      `nuq-worker-${i}`,
+      `${config.NUQ_BACKEND === "fdb" ? "nuq-fdb-worker" : "nuq-worker"}-${i}`,
       process.argv[2] === "--start-docker"
-        ? "node dist/src/services/worker/nuq-worker.js"
-        : "pnpm nuq-worker:production",
+        ? `node dist/src/services/worker/${config.NUQ_BACKEND === "fdb" ? "nuq-fdb-worker" : "nuq-worker"}.js`
+        : `pnpm ${config.NUQ_BACKEND === "fdb" ? "nuq-fdb-worker" : "nuq-worker"}:production`,
       {
         NUQ_WORKER_PORT: String(NUQ_WORKER_START_PORT + i),
         NUQ_REDUCE_NOISE: "true",
-        NUQ_POD_NAME: `nuq-worker-${i}`,
+        NUQ_POD_NAME: `${config.NUQ_BACKEND === "fdb" ? "nuq-fdb-worker" : "nuq-worker"}-${i}`,
       },
     ),
   );

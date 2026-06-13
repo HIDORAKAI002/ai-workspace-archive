@@ -79,6 +79,64 @@ export const createSubagentRunsState = (): SubagentRunsState => ({
   runs: new Map(),
 });
 
+/**
+ * DB-derived snapshot of one in-flight subagent run, used to rebuild a
+ * {@link SubagentRun} after the in-memory coordinator state was lost.
+ *
+ * Why this exists: the desktop renderer keeps one long-lived `SubagentRunsState`
+ * closure for a whole CC run, so its `runs` map always has the entry for an
+ * active spawn. The server (`HeterogeneousPersistenceHandler`) keeps per-operation
+ * state in a module-level map that a COLD serverless replica starts empty — and
+ * if that empty state reaches `reduce`, the next subagent event hits the
+ * `!existing` branch of `ensureRun` and forks a BRAND-NEW thread for a
+ * `parentToolCallId` that already has one (the "大量无意义的 Subagent" bug). The
+ * server rebuilds main-agent state from DB on cold start; this lets it rebuild
+ * the subagent runs the same way.
+ *
+ * Only the fields needed to keep the run attached to its EXISTING thread are
+ * required. `currentSubagentMessageId` is intentionally NOT recoverable from DB
+ * (CC's per-turn `message.id` is not persisted) — leaving it empty makes the
+ * first post-rehydration subagent event read as a turn boundary, cutting a fresh
+ * in-thread assistant chained off `lastChainParentId`. That is correct and safe:
+ * it reuses the thread (no duplicate) and never appends to a half-written turn.
+ */
+export interface SubagentRunSnapshot {
+  /** Latest in-thread assistant id (where a continuation turn would otherwise append). */
+  currentAssistantId: string;
+  /** Chain anchor for the next turn's assistant — last tool row of the thread, else the assistant. */
+  lastChainParentId?: string;
+  /** Every inner tool_call_id already persisted in the thread (delayed tool_results resolve via this). */
+  lifetimeToolCallIds?: string[];
+  /** The spawn tool_use id (`thread.metadata.sourceToolCallId`) — the run key. */
+  parentToolCallId: string;
+  /** The existing isolation Thread this run owns. */
+  threadId: string;
+}
+
+/**
+ * Rebuild a {@link SubagentRunsState} from DB-derived snapshots of in-flight
+ * runs. Use on a cold start so a continuing subagent reuses its existing thread
+ * instead of forking a new one. `accContent` / `accReasoning` / per-turn
+ * `toolState` start empty — the next turn boundary opens a fresh in-thread
+ * assistant, and inner tool_results still resolve through `lifetimeToolCallIds`.
+ */
+export const rehydrateSubagentRunsState = (snapshots: SubagentRunSnapshot[]): SubagentRunsState => {
+  const runs = new Map<string, SubagentRun>();
+  for (const s of snapshots) {
+    runs.set(s.parentToolCallId, {
+      accContent: '',
+      accReasoning: '',
+      currentAssistantId: s.currentAssistantId,
+      currentSubagentMessageId: '',
+      lastChainParentId: s.lastChainParentId ?? s.currentAssistantId,
+      lifetimeToolCallIds: new Set(s.lifetimeToolCallIds ?? []),
+      threadId: s.threadId,
+      toolState: { payloads: [], persistedIds: new Set(), toolMsgIdByCallId: new Map() },
+    });
+  }
+  return { runs };
+};
+
 // ─── Reduce context (per event) ───
 
 /**
