@@ -27,9 +27,11 @@ Join our [Discord server](https://discord.com/invite/hgjA78638n/?utm_source=Gith
 | [Fixer](https://fixer.io/?utm_source=Github&utm_medium=Referral&utm_campaign=Public-apis-repo-Best-sellers) | Fixer is a simple and lightweight API for current and historical foreign exchange (forex) rates. |[<img src="https://run.pstmn.io/button.svg" alt="Run In Postman" style="width: 128px; height: 32px;">](https://god.gw.postman.com/run-collection/10131015-0d9c66b3-5f1a-42ed-a5ca-379217bd629d?action=collection%2Ffork&source=rip_markdown&collection-url=entityId%3D10131015-0d9c66b3-5f1a-42ed-a5ca-379217bd629d%26entityType%3Dcollection%26workspaceId%3D2b7498b6-6d91-4fa8-817f-608441fe42a8)|
 | [Aviationstack](https://aviationstack.com/?utm_source=Github&utm_medium=Referral&utm_campaign=Public-apis-repo-Best-sellers) | Free, real-time flight status and global Aviation data API |[<img src="https://run.pstmn.io/button.svg" alt="Run In Postman" style="width: 128px; height: 32px;">](https://god.gw.postman.com/run-collection/10131015-72ee0d35-018e-4370-a2b6-a66d3ebd5b5a?action=collection/fork)|
 | [Zenserp](https://zenserp.com/?utm_source=Github&utm_medium=Referral&utm_campaign=Public-apis-repo-Best-sellers) | Fast, Accurate Google Search Data Built for Developers |[<img src="https://run.pstmn.io/button.svg" alt="Run In Postman" style="width: 128px; height: 32px;">](https://god.gw.postman.com/run-collection/10131015-a3d63243-081e-4961-a2f0-39c7a9394b8d?action=collection/fork)|
+| [Filestack](https://www.filestack.com/signup-start/) | Powerful API to upload, transform & deliver any file into your app |[<img src="https://run.pstmn.io/button.svg" alt="Run In Postman" style="width: 128px; height: 32px;">](www.postman.com/filestack-wolfpack/filestack/overview?sideView=agentMode)|
 | [Screenshotlayer](https://screenshotlayer.com/?utm_source=Github&utm_medium=Referral&utm_campaign=Public-apis-repo-Best-sellers) | Capture highly customizable screenshots of any website |[Documentation](https://docs.apilayer.com/screenshotlayer/docs/api-documentation?utm_source=Github&utm_medium=Referral&utm_campaign=Public-apis-repo-Best-sellers)|
 | [Exchangerate Host](https://exchangerate.host/?utm_source=Github&utm_medium=Referral&utm_campaign=Public-apis-repo-Best-sellers) | Real-time current and historical foreign exchange and crypto rates |[Documentation](https://docs.apilayer.com/Exchangerate/docs/api-documentation?utm_source=Github&utm_medium=Referral&utm_campaign=Public-apis-repo-Best-sellers)|
 | [Mailboxlayer](https://mailboxlayer.com/?utm_source=Github&utm_medium=Referral&utm_campaign=Public-apis-repo-Best-sellers) | Email Validation & Verification JSON API for Developers |[Documentation](https://docs.apilayer.com/mailboxlayer/docs/api-documentation?utm_source=Github&utm_medium=Referral&utm_campaign=Public-apis-repo-Best-sellers)|
+
 
 <br >
 
@@ -1188,6 +1190,7 @@ API | Description | Auth | HTTPS | CORS |
 | [COVID-19 Tracker Canada](https://api.covid19tracker.ca/docs/1.0/overview) | Details on Covid-19 cases across Canada | No | Yes | Unknown |
 | [COVID-19 Tracker Sri Lanka](https://www.hpb.health.gov.lk/en/api-documentation) | Provides situation of the COVID-19 patients reported in Sri Lanka | No | Yes | Unknown |
 | [COVID-ID](https://data.covid19.go.id/public/api/prov.json) | Indonesian government Covid data per province | No | Yes | Yes |
+| [Cure Cancer With AI](https://www.curecancerwithai.com/developers) | Oncology research, clinical trials, FDA approvals, news, and MAMMAL predictions | `apiKey` | Yes | No |
 | [Dataflow Kit COVID-19](https://covid-19.dataflowkit.com) | COVID-19 live statistics into sites per hour | No | Yes | Unknown |
 | [Edamam](https://developer.edamam.com/) | Food and nutrition data API with recipe search | `apiKey` | Yes | Unknown |
 | [FoodData Central](https://fdc.nal.usda.gov/) | National Nutrient Database for Standard Reference | `apiKey` | Yes | Unknown |
@@ -1332,6 +1335,7 @@ API | Description | Auth | HTTPS | CORS |
 | [News](https://newsapi.org/) | Headlines currently published on a range of news sources and blogs | `apiKey` | Yes | Unknown |
 | [NewsData](https://newsdata.io/docs) | News data API for live-breaking news and headlines from reputed  news sources | `apiKey` | Yes | Unknown |
 | [NewsX](https://rapidapi.com/machaao-inc-machaao-inc-default/api/newsx/) | Get or Search Latest Breaking News with ML Powered Summaries 🤖 | `apiKey` | Yes | Unknown |
+| [Noozra](https://noozra.com/api) | Free news headlines from 200+ curated RSS sources | No | Yes | Yes |
 | [NPR One](http://dev.npr.org/api/) | Personalized news listening experience from NPR | `OAuth` | Yes | Unknown |
 | [Spaceflight News](https://spaceflightnewsapi.net) | Spaceflight related news 🚀 | No | Yes | Yes |
 | [The Guardian](http://open-platform.theguardian.com/) | Access all the content the Guardian creates, categorised by tags and section | `apiKey` | Yes | Unknown |
@@ -1357,7 +1361,9 @@ API | Description | Auth | HTTPS | CORS |
 | [Enigma Public](https://developers.enigma.com/docs) | Broadest collection of public data | `apiKey` | Yes | Yes |
 | [French Address Search](https://geo.api.gouv.fr/adresse) | Address search via the French Government | No | Yes | Unknown |
 | [GENESIS](https://www.destatis.de/EN/Service/OpenData/api-webservice.html) | Federal Statistical Office Germany | `OAuth` | Yes | Unknown |
+| [InfraNode](https://infranode.dev) | Unified German city open data: weather, air quality, EV chargers, transit, demographics | `apiKey` | Yes | Unknown |
 | [Joshua Project](https://api.joshuaproject.net/) | People groups of the world with the fewest followers of Christ | `apiKey` | Yes | Unknown |
+| [K-Data Gate](https://kdata-gate.vercel.app/docs) | Korean market data: K-beauty/K-food products, Naver trends, stocks, real estate, weather | `apiKey` | Yes | Unknown |
 | [Kaggle](https://www.kaggle.com/docs/api) | Create and interact with Datasets, Notebooks, and connect with Kaggle | `apiKey` | Yes | Unknown |
 | [LinkPreview](https://www.linkpreview.net) | Get JSON formatted summary with title, description and preview image for any requested URL | `apiKey` | Yes | Yes |
 | [Lowy Asia Power Index](https://github.com/0x0is1/lowy-index-api-docs) | Get measure resources and influence to rank the relative power of states in Asia | No | Yes | Unknown |

@@ -1525,6 +1525,7 @@ export type TeamFlags = {
   debugBranding?: boolean;
   maxBrowserSessions?: number;
   researchBeta?: boolean;
+  highlightsBeta?: boolean;
 } | null;
 
 interface RequestWithMaybeACUC<
@@ -1905,6 +1906,10 @@ export const searchRequestSchema = z
     timeout: z.int().positive().finite().prefault(60000),
     ignoreInvalidURLs: z.boolean().optional().prefault(false),
     asyncScraping: z.boolean().optional().prefault(false),
+    // Experimental: replace each result's snippet with query-relevant
+    // highlights pulled from our index (last 30 days), out-of-line from
+    // scrapeURL. Falls back to the provider snippet when the URL isn't indexed.
+    highlights: z.boolean().optional().prefault(false),
     __searchPreviewToken: z.string().optional(),
     scrapeOptions: baseScrapeOptions
       .extend({

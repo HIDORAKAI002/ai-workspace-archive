@@ -85,6 +85,11 @@ const configSchema = z.object({
   DATABASE_REPLICA_URL: z.string().optional(),
   INDEX_DATABASE_URL: z.string().optional(),
   INDEX_CACHE_REDIS_URL: z.string().optional(),
+  // Negative (miss) caching TTL for index URL->id lookups, in ms. 0 disables
+  // it; the cache then only shields lookups that find data. A positive value
+  // (e.g. 600000 = 10min) also short-circuits repeat lookups for URLs with no
+  // index entry. Kept short so any missed cache-clear self-heals quickly.
+  INDEX_CACHE_NEGATIVE_TTL_MS: z.coerce.number().default(0),
   REDIS_URL: z.string().optional(),
   REDIS_EVICT_URL: z.string().optional(),
   REDIS_RATE_LIMIT_URL: z.string().optional(),
@@ -102,6 +107,9 @@ const configSchema = z.object({
   // ClickHouse (Search Analytics)
   CLICKHOUSE_ANALYTICS_URL: z.string().optional(),
   CLICKHOUSE_ANALYTICS_DATABASE: z.string().optional(),
+
+  // Search highlights (beta): semantic highlight model endpoint
+  HIGHLIGHT_MODEL_URL: z.string().optional(),
 
   // Fire Engine
   FIRE_ENGINE_BETA_URL: z.string().optional(),

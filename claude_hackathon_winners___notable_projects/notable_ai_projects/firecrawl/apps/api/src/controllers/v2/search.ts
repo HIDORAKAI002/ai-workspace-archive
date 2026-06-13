@@ -135,6 +135,7 @@ export async function searchController(
         excludeDomains: req.body.excludeDomains,
         enterprise: req.body.enterprise,
         scrapeOptions: req.body.scrapeOptions,
+        highlights: req.body.highlights,
         timeout: req.body.timeout,
       },
       {
