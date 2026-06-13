@@ -10,10 +10,7 @@ import { useTranslation } from 'react-i18next';
 
 import { useChatStore } from '@/store/chat';
 import { operationSelectors } from '@/store/chat/selectors';
-import {
-  AI_RUNTIME_OPERATION_TYPES,
-  type OperationType,
-} from '@/store/chat/slices/operation/types';
+import { AI_RUNTIME_OPERATION_TYPES } from '@/store/chat/slices/operation/types';
 import { shinyTextStyles } from '@/styles';
 import {
   calculateOperationUsageMetrics,
@@ -23,7 +20,12 @@ import {
 } from '@/utils/operationUsageMetrics';
 
 import { contextSelectors, dataSelectors, useConversationStore } from '../store';
-import { parseStatusPhrases, pickStableStatusPhrase } from './OpStatusTray/logic';
+import { type ActivityKey, resolveOperationActivity } from '../utils/operationActivity';
+import { parseStatusPhrases, pickRotatingStatusPhrase } from './OpStatusTray/logic';
+
+// Cycle the generating phrase like a carousel so a long-running task doesn't
+// stare back with the same line the whole time.
+const STATUS_PHRASE_ROTATION_MS = 4000;
 
 const styles = createStaticStyles(({ css, cssVar }) => ({
   container: css`
@@ -112,6 +114,22 @@ const styles = createStaticStyles(({ css, cssVar }) => ({
     text-overflow: ellipsis;
     white-space: nowrap;
   `,
+  statusPhrase: css`
+    @keyframes op-status-tray-phrase-enter {
+      from {
+        transform: translateY(3px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    display: inline-block;
+    animation: op-status-tray-phrase-enter 0.4s ease;
+  `,
   timerValue: css`
     flex: none;
     color: ${cssVar.colorTextTertiary};
@@ -193,34 +211,6 @@ const normalizeStepCount = (stepCount: unknown) => {
   return Math.max(0, Math.floor(stepCount));
 };
 
-type ActivityKey = 'compressing' | 'generating' | 'reasoning' | 'searching' | 'toolCalling';
-
-/**
- * Map a running sub-operation type to the streaming phase shown on the left.
- * Container ops (AI_RUNTIME) and bookkeeping ops return undefined.
- */
-const resolveActivity = (type: OperationType): ActivityKey | undefined => {
-  if (type === 'reasoning') return 'reasoning';
-  if (
-    type === 'toolCalling' ||
-    type === 'executeToolCall' ||
-    type === 'createToolMessage' ||
-    type === 'pluginApi' ||
-    type.startsWith('builtinTool')
-  )
-    return 'toolCalling';
-  if (type === 'rag' || type === 'searchWorkflow') return 'searching';
-  if (type === 'contextCompression' || type === 'generateSummary') return 'compressing';
-  if (
-    type === 'callLLM' ||
-    type === 'groupAgentStream' ||
-    type === 'createAssistantMessage' ||
-    type === 'supervisorDecision'
-  )
-    return 'generating';
-  return undefined;
-};
-
 interface OpStatusTrayProps {
   /**
    * Square the top corners when another panel sits flush above this one.
@@ -254,7 +244,7 @@ const OpStatusTray = memo<OpStatusTrayProps>(({ topAttached }) => {
     for (const op of ops) {
       if (op.status !== 'running' || op.metadata.isAborting) continue;
 
-      const mapped = resolveActivity(op.type);
+      const mapped = resolveOperationActivity(op.type);
       if (mapped && op.metadata.startTime > latestActivityStart) {
         latestActivityStart = op.metadata.startTime;
         activity = mapped;
@@ -320,10 +310,12 @@ const OpStatusTray = memo<OpStatusTrayProps>(({ topAttached }) => {
       returnObjects: true,
     }),
   );
+  const rotationStep = Math.floor(elapsed / STATUS_PHRASE_ROTATION_MS);
   const randomGeneratingStatus =
-    pickStableStatusPhrase(
+    pickRotatingStatusPhrase(
       generatingPhrases,
       operationState.statusSeed ?? String(operationState.startTime),
+      rotationStep,
     ) ?? t('chat:opStatusTray.status.generating');
   const statusText =
     operationState.activity === 'generating'
@@ -402,7 +394,11 @@ const OpStatusTray = memo<OpStatusTrayProps>(({ topAttached }) => {
     >
       <span className={cx(styles.metric, styles.statusMetric)}>
         <ActivityGlyph />
-        <span className={cx(styles.statusText, shinyTextStyles.shinyText)}>{statusText}...</span>
+        <span className={styles.statusText}>
+          <span className={styles.statusPhrase} key={statusText}>
+            <span className={shinyTextStyles.shinyText}>{statusText}...</span>
+          </span>
+        </span>
         <span className={styles.timerValue}>{formatElapsedClockTime(elapsed)}</span>
       </span>
 
