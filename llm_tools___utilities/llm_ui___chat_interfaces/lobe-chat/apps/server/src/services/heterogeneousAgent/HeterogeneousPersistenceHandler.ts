@@ -6,9 +6,14 @@ import type {
   MainAgentRunState,
   MainAgentTurnToolState,
   SubagentIntent,
+  SubagentRunSnapshot,
   ToolCallPayload,
 } from '@lobechat/heterogeneous-agents';
-import { createMainAgentRunState, reduceMainAgent } from '@lobechat/heterogeneous-agents';
+import {
+  createMainAgentRunState,
+  reduceMainAgent,
+  rehydrateSubagentRunsState,
+} from '@lobechat/heterogeneous-agents';
 import {
   AgentRuntimeErrorType,
   type ChatMessageError,
@@ -219,6 +224,7 @@ export class HeterogeneousPersistenceHandler {
 
     await this.refreshToolMessageIndex(state);
     await this.refreshMainStateFromDb(state);
+    await this.refreshSubagentRunsFromDb(state);
 
     for (const event of params.events) {
       const key = eventKey(event);
@@ -549,6 +555,96 @@ export class HeterogeneousPersistenceHandler {
     }
   }
 
+  /**
+   * Rebuild the in-flight subagent runs (`state.main.subagents`) from DB.
+   *
+   * The shared reducer keys runs by `parentToolCallId` and only lazy-creates a
+   * thread when the run is ABSENT from this map. On a cold serverless replica
+   * `createMainAgentRunState` seeds an empty map, so a subagent event whose
+   * thread already exists (created by an earlier batch / another replica) would
+   * fork a brand-new thread — the "大量无意义的 Subagent" bug. `refreshMainStateFromDb`
+   * rebuilds the main-agent half; this rebuilds the subagent half the same way.
+   *
+   * Merge semantics: only runs MISSING from the in-memory map are rehydrated, so
+   * a warm replica's live per-turn accumulators (`accContent`, current
+   * `toolState`) are never clobbered by the DB projection. Finalized runs are
+   * excluded (their thread is `Active`, not `Processing`), so a completed spawn
+   * is never resurrected.
+   *
+   * Best-effort: any DB hiccup (or a partial test mock without the query
+   * methods) leaves `state.main.subagents` untouched rather than aborting the
+   * whole ingest.
+   */
+  private async refreshSubagentRunsFromDb(state: OperationState): Promise<void> {
+    try {
+      const threads = await this.deps.threadModel.queryByTopicId(state.topicId);
+      const existing = state.main.subagents.runs;
+      const snapshots: SubagentRunSnapshot[] = [];
+
+      for (const thread of threads ?? []) {
+        if (thread.type !== ThreadType.Isolation) continue;
+        if (thread.status !== ThreadStatus.Processing) continue;
+        const meta = thread.metadata as { operationId?: string; sourceToolCallId?: string } | null;
+        // Operation-scoped: only rehydrate threads THIS operation created.
+        // Topics are reused across turns, so a prior run that crashed / was
+        // cancelled without an ingested terminal event can leave its subagent
+        // thread stuck in `Processing`. Without this guard the next operation
+        // would merge that unrelated thread into its reducer state and then
+        // finalize/mutate it on its own terminal drain. Threads written before
+        // this field existed have no `operationId` and are skipped (safe — we
+        // can't attribute them, and the live run re-creates what it needs).
+        if (meta?.operationId !== state.operationId) continue;
+        const parentToolCallId = meta?.sourceToolCallId;
+        if (!parentToolCallId || existing.has(parentToolCallId)) continue;
+
+        const messages = await this.deps.messageModel.query({
+          threadId: thread.id,
+          topicId: state.topicId,
+        });
+        const snapshot = this.buildSubagentSnapshot(parentToolCallId, thread.id, messages);
+        if (snapshot) snapshots.push(snapshot);
+      }
+
+      if (snapshots.length === 0) return;
+
+      // Union: rehydrated (missing) runs + the in-memory ones (which win, since
+      // they carry live accumulators the DB hasn't caught up to yet).
+      const merged = rehydrateSubagentRunsState(snapshots);
+      for (const [parentToolCallId, run] of existing) merged.runs.set(parentToolCallId, run);
+      state.main = { ...state.main, subagents: merged };
+    } catch (err) {
+      log('refreshSubagentRunsFromDb failed op=%s err=%O', state.operationId, err);
+    }
+  }
+
+  /**
+   * Reconstruct one {@link SubagentRunSnapshot} from a thread's persisted
+   * messages (ordered `createdAt` asc by the query). Returns undefined when the
+   * thread has no assistant yet — without one there is nothing to attach a
+   * continuation turn to, and the first-event path will (correctly) seed it.
+   */
+  private buildSubagentSnapshot(
+    parentToolCallId: string,
+    threadId: string,
+    messages: Array<{ id: string; parentId?: string | null; role: string; tool_call_id?: string }>,
+  ): SubagentRunSnapshot | undefined {
+    const assistants = messages.filter((m) => m.role === 'assistant');
+    const currentAssistant = assistants.at(-1);
+    if (!currentAssistant) return undefined;
+
+    const toolRows = messages.filter((m) => m.role === 'tool' && m.tool_call_id);
+    const childTools = toolRows.filter((m) => m.parentId === currentAssistant.id);
+    const lastChainParentId = childTools.at(-1)?.id ?? currentAssistant.id;
+
+    return {
+      currentAssistantId: currentAssistant.id,
+      lastChainParentId,
+      lifetimeToolCallIds: toolRows.map((m) => m.tool_call_id!),
+      parentToolCallId,
+      threadId,
+    };
+  }
+
   private async syncAssistantPointerForAdvancedStep(state: OperationState): Promise<void> {
     const topic = await this.deps.topicModel.findById(state.topicId);
     const running = topic?.metadata?.runningOperation;
@@ -844,6 +940,10 @@ export class HeterogeneousPersistenceHandler {
         await this.deps.threadModel.create({
           id: intent.threadId,
           metadata: {
+            // Stamp the owning hetero operation so `refreshSubagentRunsFromDb`
+            // only rehydrates threads from THIS run — never a stale Processing
+            // thread a prior crashed/cancelled run left on the same topic.
+            operationId: state.operationId,
             sourceToolCallId: intent.sourceToolCallId,
             startedAt: new Date().toISOString(),
             subagentType: intent.subagentType,
