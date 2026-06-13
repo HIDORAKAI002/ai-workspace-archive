@@ -9,6 +9,12 @@ const delimitedList = (separator = ",") => {
   });
 };
 
+const emptyStringAsUndefined = <T extends z.ZodTypeAny>(schema: T) =>
+  z.preprocess(value => (value === "" ? undefined : value), schema.optional());
+
+const emptyStringAsDefault = <T extends z.ZodTypeAny>(schema: T) =>
+  z.preprocess(value => (value === "" ? undefined : value), schema);
+
 // Ethereum address schema: validates 0x followed by 40 hex characters
 const ethereumAddress = z
   .string()
@@ -96,6 +102,19 @@ const configSchema = z.object({
   NUQ_DATABASE_URL: z.string().optional(),
   NUQ_DATABASE_URL_LISTEN: z.string().optional(),
   NUQ_RABBITMQ_URL: z.string().optional(),
+  FDB_CLUSTER_FILE: emptyStringAsUndefined(z.string()),
+  NUQ_BACKEND: emptyStringAsUndefined(z.enum(["pg", "fdb"])),
+  NUQ_FDB_READY_SHARDS: emptyStringAsDefault(
+    z.coerce.number().int().positive().default(2048),
+  ),
+  // 1 = strict (priority, FIFO) promotion order per team; raise for teams with
+  // extreme finish rates at the cost of approximate cross-shard ordering
+  NUQ_FDB_TEAM_PENDING_SHARDS: emptyStringAsDefault(
+    z.coerce.number().int().positive().default(1),
+  ),
+  NUQ_FDB_TIME_BUCKETS: emptyStringAsDefault(
+    z.coerce.number().int().positive().default(16),
+  ),
 
   // Google Cloud Storage
   GCS_BUCKET_NAME: z.string().optional(),

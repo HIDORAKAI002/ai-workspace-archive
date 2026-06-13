@@ -27,6 +27,15 @@ RUN apt-get update && apt-get install -y \
     python3 \
     && rm -rf /var/lib/apt/lists/*
 
+# FoundationDB client library (libfdb_c + headers), needed by the
+# `foundationdb` npm package at install time on arches without prebuilds
+ARG FDB_VERSION=7.3.63
+RUN ARCH=$(dpkg --print-architecture) && \
+    case "$ARCH" in arm64) FDB_ARCH=aarch64 ;; *) FDB_ARCH=$ARCH ;; esac && \
+    curl -fsSL -o /tmp/fdb-clients.deb \
+      "https://github.com/apple/foundationdb/releases/download/${FDB_VERSION}/foundationdb-clients_${FDB_VERSION}-1_${FDB_ARCH}.deb" && \
+    dpkg -i /tmp/fdb-clients.deb && rm /tmp/fdb-clients.deb
+
 # Install Rust
 ENV RUSTUP_HOME=/usr/local/rustup \
     CARGO_HOME=/usr/local/cargo \
@@ -58,7 +67,16 @@ FROM base AS runtime
 RUN apt-get update && apt-get install -y \
     git \
     procps \
+    curl \
     && rm -rf /var/lib/apt/lists/*
+
+# FoundationDB client library (libfdb_c + fdbcli)
+ARG FDB_VERSION=7.3.63
+RUN ARCH=$(dpkg --print-architecture) && \
+    case "$ARCH" in arm64) FDB_ARCH=aarch64 ;; *) FDB_ARCH=$ARCH ;; esac && \
+    curl -fsSL -o /tmp/fdb-clients.deb \
+      "https://github.com/apple/foundationdb/releases/download/${FDB_VERSION}/foundationdb-clients_${FDB_VERSION}-1_${FDB_ARCH}.deb" && \
+    dpkg -i /tmp/fdb-clients.deb && rm /tmp/fdb-clients.deb
 
 EXPOSE 8080
 WORKDIR /app

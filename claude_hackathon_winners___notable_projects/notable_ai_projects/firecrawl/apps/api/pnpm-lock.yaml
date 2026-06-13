@@ -160,6 +160,9 @@ importers:
       express-ws:
         specifier: ^5.0.2
         version: 5.0.2(bufferutil@4.0.9)(express@4.22.0)(utf-8-validate@5.0.10)
+      foundationdb:
+        specifier: ^2.0.1
+        version: 2.0.1
       geoip-country:
         specifier: ^5.0.202510312342
         version: 5.0.202510312342
@@ -3789,6 +3792,9 @@ packages:
   fd-package-json@2.0.0:
     resolution: {integrity: sha512-jKmm9YtsNXN789RS/0mSzOC1NUq9mkVd65vbSSVsKdjGvYXBuE4oWe2QOEoFeRmJg+lPuZxpmrfFclNhoRMneQ==}
 
+  fdb-tuple@1.0.0:
+    resolution: {integrity: sha512-8jSvKPCYCgTpi9Pt87qlfTk6griyMx4Gk3Xv31Dp72Qp8b6XgIyFsMm8KzPmFJ9iJ8K4pGvRxvOS8D0XGnrkjw==}
+
   fecha@4.2.3:
     resolution: {integrity: sha512-OP2IUU6HeYKJi3i0z4A19kHMQoLVs4Hc+DPqqxI2h/DPZHTm/vjsfC6P0b4jCMy14XizLBqvndQ+UilD7707Jw==}
 
@@ -3860,6 +3866,10 @@ packages:
   forwarded@0.2.0:
     resolution: {integrity: sha512-buRG0fpBtRHSTCOASe6hD258tEubFoRLb4ZNA6NxMVHNw2gOcwHo9wyablzMzOA5z9xA9L1KNjk/Nt6MT9aYow==}
     engines: {node: '>= 0.6'}
+
+  foundationdb@2.0.1:
+    resolution: {integrity: sha512-ZMmpAoEI88H8d4DWk6MzXf4Kw9pGaQrxNygVdz/7g+qwlMrjHvmxUQsQz1zG4176+B0YNY+ufgmcT40kEv/TnQ==}
+    engines: {node: '>=14.0.0'}
 
   four-flap-bigint-buffer@1.1.6:
     resolution: {integrity: sha512-hJOBnKk2e89/FCSXU0UN7B2CpMnqtN6RrIKzoG3qWSjLUXGCTEU86aTdNEio/1Eu2NyExIAVJUyHuZvmEA9iuw==}
@@ -9411,6 +9421,8 @@ snapshots:
     dependencies:
       walk-up-path: 4.0.0
 
+  fdb-tuple@1.0.0: {}
+
   fecha@4.2.3: {}
 
   fetch-blob@3.2.0:
@@ -9494,6 +9506,11 @@ snapshots:
   forwarded-parse@2.1.2: {}
 
   forwarded@0.2.0: {}
+
+  foundationdb@2.0.1:
+    dependencies:
+      fdb-tuple: 1.0.0
+      node-gyp-build: 4.8.4
 
   four-flap-bigint-buffer@1.1.6:
     dependencies:
@@ -10623,8 +10640,7 @@ snapshots:
       detect-libc: 2.1.2
     optional: true
 
-  node-gyp-build@4.8.4:
-    optional: true
+  node-gyp-build@4.8.4: {}
 
   node-int64@0.4.0: {}
 

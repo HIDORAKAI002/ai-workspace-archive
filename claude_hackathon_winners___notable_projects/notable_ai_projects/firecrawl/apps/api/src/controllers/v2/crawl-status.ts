@@ -29,7 +29,7 @@ import {
   NuQJob,
   NuQJobStatus,
   crawlGroup,
-} from "../../services/worker/nuq";
+} from "../../services/worker/nuq-router";
 import { ScrapeJobSingleUrls } from "../../types";
 import { redisEvictConnection } from "../../../src/services/redis";
 import { isBaseDomain, extractBaseDomain } from "../../lib/url-utils";

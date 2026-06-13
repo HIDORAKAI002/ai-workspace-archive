@@ -4,7 +4,13 @@ import "../sentry";
 import { setSentryServiceTag } from "../sentry";
 import { logger as _logger } from "../../lib/logger";
 import { processJobInternal } from "./scrape-worker";
-import { scrapeQueue, nuqGetLocalMetrics, nuqHealthCheck } from "./nuq";
+import {
+  nuqGetLocalMetrics,
+  nuqHealthCheck,
+  scrapeQueue as scrapeQueuePg,
+} from "./nuq";
+import { scrapeQueue, fdbQueueEnabled } from "./nuq-router";
+import { getNuqFdbSweeper, nuqFdbHealthCheck } from "./nuq-fdb";
 import { jobDurationSeconds } from "../../lib/job-metrics";
 import { register } from "prom-client";
 import Express from "express";
@@ -35,7 +41,10 @@ import { initializeEngineForcing } from "../../scraper/WebScraper/utils/engine-f
       .send(nuqGetLocalMetrics() + "\n" + (await register.metrics())),
   );
   app.get("/health", async (_, res) => {
-    if (await nuqHealthCheck()) {
+    const pgHealthy = await nuqHealthCheck();
+    const fdbHealthy =
+      config.NUQ_BACKEND !== "fdb" || (await nuqFdbHealthCheck());
+    if (pgHealthy && fdbHealthy) {
       res.status(200).send("OK");
     } else {
       res.status(500).send("Not OK");
@@ -56,6 +65,20 @@ import { initializeEngineForcing } from "../../scraper/WebScraper/utils/engine-f
   }
 
   let noJobTimeout = 1500;
+
+  // the FDB backend has no pg_cron: one worker at a time holds the sweeper
+  // lease and runs lease/timeout/group sweeps for everyone
+  if (fdbQueueEnabled()) {
+    try {
+      getNuqFdbSweeper().start();
+    } catch (error) {
+      if (config.NUQ_BACKEND === "fdb") throw error;
+      _logger.warn("Failed to start FDB sweeper, continuing with PG", {
+        module: "nuq-worker",
+        error,
+      });
+    }
+  }
 
   while (!isShuttingDown) {
     const job = await scrapeQueue.getJobToProcess();
@@ -137,7 +160,17 @@ import { initializeEngineForcing } from "../../scraper/WebScraper/utils/engine-f
   _logger.info("NuQ worker shutting down");
 
   server.close(async () => {
-    await scrapeQueue.shutdown();
+    if (fdbQueueEnabled()) {
+      try {
+        getNuqFdbSweeper().stop();
+      } catch (error) {
+        _logger.warn("Failed to stop FDB sweeper", {
+          module: "nuq-worker",
+          error,
+        });
+      }
+    }
+    await scrapeQueuePg.shutdown();
     _logger.info("NuQ worker shut down");
     process.exit(0);
   });

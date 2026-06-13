@@ -115,6 +115,7 @@
     "escape-html": "^1.0.3",
     "express": "4.22.0",
     "express-ws": "^5.0.2",
+    "foundationdb": "^2.0.1",
     "geoip-country": "^5.0.202510312342",
     "git-diff": "^2.0.6",
     "he": "^1.2.0",
