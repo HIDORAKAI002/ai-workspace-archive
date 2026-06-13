@@ -262,19 +262,23 @@ async function runConnect(options: ConnectOptions, isDaemonChild: boolean) {
 
   // Handle tool call requests
   client.on('tool_call_request', async (request: ToolCallRequestMessage) => {
-    const { requestId, timeout, toolCall } = request;
+    const { operationId, requestId, timeout, toolCall } = request;
     if (isDaemonChild) {
-      appendLog(`[TOOL] ${toolCall.apiName} (${requestId})`);
+      appendLog(
+        `[TOOL] ${toolCall.apiName}${operationId ? ` op=${operationId}` : ''} (${requestId})`,
+      );
     } else {
-      log.toolCall(toolCall.apiName, requestId, toolCall.arguments);
+      log.toolCall(toolCall.apiName, requestId, toolCall.arguments, operationId);
     }
 
     const result = await executeToolCall(toolCall.apiName, toolCall.arguments, timeout);
 
     if (isDaemonChild) {
-      appendLog(`[RESULT] ${result.success ? 'OK' : 'FAIL'} (${requestId})`);
+      appendLog(
+        `[RESULT] ${result.success ? 'OK' : 'FAIL'}${operationId ? ` op=${operationId}` : ''} (${requestId})`,
+      );
     } else {
-      log.toolResult(requestId, result.success, result.content);
+      log.toolResult(requestId, result.success, result.content, operationId);
     }
 
     client.sendToolCallResponse({

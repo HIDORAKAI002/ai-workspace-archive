@@ -773,6 +773,7 @@ export const ja = defineLocale({
     back: '戻る',
     searchPlaceholder: 'セッション、ビュー、アクションを検索',
     goTo: '移動',
+    goToSession: 'セッションへ移動',
     commandCenter: 'コマンドセンター',
     appearance: '外観',
     settings: '設定',
@@ -1040,6 +1041,9 @@ export const ja = defineLocale({
     deleting: '削除中...',
     createDesc: 'プロファイルは独立した Hermes 環境です：設定、スキル、SOUL.md が別々になります。',
     nameLabel: '名前',
+    cloneFrom: '複製元',
+    cloneFromNone: 'なし（空）',
+    cloneFromDesc: '選択したプロファイルから設定、スキル、SOUL.md をコピーします。',
     cloneFromDefault: 'デフォルトプロファイルから設定を複製',
     cloneFromDefaultDesc: 'デフォルトプロファイルから設定、スキル、SOUL.md をコピーします。',
     invalidName: hint => `無効なプロファイル名。${hint}`,
@@ -1796,6 +1800,7 @@ export const ja = defineLocale({
   assistant: {
     thread: {
       loadingSession: 'セッションを読み込み中',
+      showEarlier: '以前のメッセージを表示',
       loadingResponse: 'Hermes が応答を読み込み中',
       thinking: '考え中',
       today: time => `今日 ${time}`,
@@ -1825,6 +1830,7 @@ export const ja = defineLocale({
       gatewayDisconnected: 'Hermes ゲートウェイが接続されていません',
       sendFailed: '承認応答を送信できませんでした',
       run: '実行',
+      command: 'コマンド',
       moreOptions: 'その他の承認オプション',
       allowSession: 'このセッションで許可',
       alwaysAllowMenu: '常に許可…',

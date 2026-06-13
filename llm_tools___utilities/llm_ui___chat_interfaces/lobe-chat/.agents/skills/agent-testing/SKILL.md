@@ -19,8 +19,22 @@ also run as full cloud automation. Every test session follows the same
 four-step contract:
 
 ```
-Step 0: Env + Auth  →  Step 1: Pick surface  →  Step 2: Run  →  Step 3: Structured report
+Step -1: Plan approval  →  Step 0: Env + Auth  →  Step 1: Pick surface  →  Step 2: Run  →  Step 3: Structured report
 ```
+
+## Step -1 — Plan approval for non-trivial tests
+
+Skip directly to Step 0 if: the test is a single re-run after a fix, the plan
+was already agreed on, or the user gave exact commands.
+
+Otherwise, propose a test plan (surface, cases, expected evidence, assumptions)
+and use the runtime structured question tool (`request_user_input` /
+ask-user-question equivalent) with two fixed choices:
+
+1. `开始执行 (Recommended)` — 测试方案没问题，开始执行
+2. `先讨论下` — 方案有问题，先讨论下
+
+Wait for the user's choice before proceeding.
 
 ## Step 0 — Environment setup + auth check (mandatory)
 
@@ -28,6 +42,36 @@ Step 0 is about getting the environment ready: **dependencies are healthy**
 and **auth is green**. A test run that dies halfway on a missing dependency or
 a login wall wastes the whole session — clear both gates BEFORE writing a
 single test step.
+
+### 0.0 Resolve the current test environment
+
+Before starting a dev server, checking auth, opening agent-browser, or writing
+test steps, print and confirm the current local test environment:
+
+```bash
+./.agents/skills/agent-testing/scripts/test-env.sh
+```
+
+This command is the source of truth for local test ports. It reads the current
+shell plus `.env` files using the same precedence as `scripts/runWithEnv.mts`,
+then prints:
+
+- `APP_URL`
+- `PORT`
+- `SERVER_URL`
+- `AUTH_TRUSTED_ORIGINS`
+- `SPA_PORT`
+- `MOBILE_SPA_PORT`
+- `DESKTOP_PORT`
+
+For commands that need these values, export them from the same resolver:
+
+```bash
+eval "$(./.agents/skills/agent-testing/scripts/test-env.sh --exports)"
+```
+
+Do not rely on hard-coded port tables. If the printed values do not match the
+running dev server, fix/export the env first, then continue.
 
 ### 0.1 Dependencies are installed — root AND standalone apps
 
@@ -142,27 +186,35 @@ eval "$(../.agents/skills/agent-testing/scripts/init-dev-env.sh env)"
 BASE_URL=http://localhost:3010 HEADLESS=true bun run test:smoke
 ```
 
-### 0.4 Auth is green
+### 0.4 Auth is green for the selected surface
 
-**Auth is the gate for all automated testing.**
+**Auth is the gate for automated testing, but the gate is surface-scoped.**
+Pick the intended surface first when it is already clear from the task, then
+check only that surface. Do not block a Web test on CLI device-code auth or an
+Electron login state unless the test spans those surfaces.
 
 ```bash
-./.agents/skills/agent-testing/scripts/setup-auth.sh status
+./.agents/skills/agent-testing/scripts/setup-auth.sh status --surface web
 ```
 
-| Surface  | Mechanism                                         | One-key path                   | Standard check             |
-| -------- | ------------------------------------------------- | ------------------------------ | -------------------------- |
-| CLI      | OIDC Device Code Flow (`apps/cli/.lobehub-dev`)   | `setup-auth.sh cli`            | `setup-auth.sh status`     |
-| Web      | better-auth cookie injection into `agent-browser` | `pbpaste \| setup-auth.sh web` | `setup-auth.sh web-verify` |
-| Electron | App's own persistent login state                  | Log in once in the app         | `app-probe.sh auth`        |
-| Bot      | Native apps already logged in                     | —                              | per-platform screenshot    |
+Use `status` with no `--surface` only for cross-surface test plans.
+
+| Surface  | Mechanism                                         | One-key path                   | Standard check                            |
+| -------- | ------------------------------------------------- | ------------------------------ | ----------------------------------------- |
+| CLI      | OIDC Device Code Flow (`apps/cli/.lobehub-dev`)   | `setup-auth.sh cli`            | `setup-auth.sh status --surface cli`      |
+| Web      | better-auth cookie injection into `agent-browser` | `pbpaste \| setup-auth.sh web` | `setup-auth.sh status --surface web`      |
+| Electron | App's own persistent login state                  | Log in once in the app         | `setup-auth.sh status --surface electron` |
+| Bot      | Native apps already logged in                     | —                              | per-platform screenshot                   |
 
 Login-state checks are standardized — do NOT hand-roll `window.__LOBE_STORES`
 eval snippets; use `scripts/app-probe.sh auth` (returns `{ isSignedIn, userId }`,
 works for Electron CDP and web sessions via `AB_TARGET`).
 
-If `status` is not all green, fix auth first (the steps that need a human must be
-requested from the user explicitly). Full background and failure modes:
+For Web tests, the test surface is always `agent-browser --session lobehub-dev`.
+The user's normal Chrome is only a source for copying the Cookie header when
+`status --surface web` fails. If Chrome is already logged in, do not open a
+login page; verify agent-browser first, then request the Network `Cookie:`
+header only if that verification fails. Full background and failure modes:
 [references/auth.md](./references/auth.md).
 
 ## Step 1 — Pick the surface by change scope
@@ -237,6 +289,7 @@ All under `.agents/skills/agent-testing/scripts/`:
 
 | Script                    | Usage                                                                        |
 | ------------------------- | ---------------------------------------------------------------------------- |
+| `test-env.sh`             | Print/export the resolved local test env and ports                           |
 | `setup-auth.sh`           | One-stop auth setup & status check (`status` / `cli` / `web`)                |
 | `init-dev-env.sh`         | Self-contained local dev env (`setup-db` / `seed-user` / `dev-next` / `dev`) |
 | `app-probe.sh`            | LobeHub app probes: `auth` / `route` / `ops` / `goto <path>` / `errors`      |
@@ -284,6 +337,13 @@ Two hard rules worth front-loading:
   must use Markdown image syntax like `![case 1](assets/case1.png)`. Do not
   use bare file paths, Markdown links, or local file links as the primary
   visual evidence; those make the report unreadable without opening each asset.
+- **Final replies must include visual evidence links.** When a run includes UI
+  screenshots or GIFs, include the report directory and the most important
+  visual artifacts in the final chat response. Each item must include a stable
+  label, an evidence caption describing the observed UI outcome, and a
+  repo-relative path, for example:
+  `[Image #1 - error toast shows provider auth failure](<report-dir>/assets/foo.png)`.
+  Use repo-relative paths, not absolute paths.
 - **Time-based behavior needs a GIF, not a screenshot.** If a case asserts
   change over time (streaming output, a ticking timer, loading states,
   animations), record it with `scripts/record-gif.sh` and embed the GIF —

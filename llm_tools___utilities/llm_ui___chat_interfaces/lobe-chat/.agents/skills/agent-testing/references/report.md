@@ -64,7 +64,10 @@ output):
    not acceptable as primary visual evidence.
 
 4. **Set the verdict** in both `report.md` and `result.json`, then link the
-   report directory in your final answer to the user.
+   report directory in your final answer to the user. If UI evidence exists,
+   list the key screenshot/GIF links in the final chat response. Use Markdown
+   link text as the evidence caption, for example:
+   `[Image #1 - observed outcome](<report-dir>/assets/case1.png)`.
 
 ## Report language (hard rule)
 
