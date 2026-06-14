@@ -1438,18 +1438,77 @@ describe('TopicModel - Query', () => {
     });
   });
 
-  describe('queryAll', () => {
-    it('should return all topics', async () => {
+  describe('queryTopics', () => {
+    it('should return all topics when no status filter is given', async () => {
       await serverDB.insert(topics).values([
         { id: 'topic1', sessionId, userId },
         { id: 'topic2', sessionId, userId },
       ]);
 
-      const result = await topicModel.queryAll();
+      const result = await topicModel.queryTopics();
 
       expect(result).toHaveLength(2);
-      expect(result[0].id).toBe('topic1');
-      expect(result[1].id).toBe('topic2');
+      expect(result.map((t) => t.id).sort()).toEqual(['topic1', 'topic2']);
+    });
+
+    it('should filter by status', async () => {
+      await serverDB.insert(topics).values([
+        { id: 'running1', sessionId, status: 'running', userId },
+        { id: 'done1', sessionId, status: 'completed', userId },
+      ]);
+
+      const result = await topicModel.queryTopics({ statuses: ['running'] });
+
+      expect(result.map((t) => t.id)).toEqual(['running1']);
+    });
+
+    it('should only return topics owned by the model user', async () => {
+      await serverDB.insert(topics).values([
+        { id: 'mine-running', sessionId, status: 'running', userId },
+        { id: 'mine-done', sessionId, status: 'completed', userId },
+        { id: 'others-running', sessionId, status: 'running', userId: userId2 },
+      ]);
+
+      const all = await topicModel.queryTopics();
+      expect(all.map((t) => t.id).sort()).toEqual(['mine-done', 'mine-running']);
+
+      // a status filter must not leak another user's topics
+      const running = await topicModel.queryTopics({ statuses: ['running'] });
+      expect(running.map((t) => t.id)).toEqual(['mine-running']);
+    });
+
+    it('should not leak workspace topics into the personal scope', async () => {
+      await serverDB.insert(workspaces).values({
+        id: 'qt-workspace',
+        name: 'QT Workspace',
+        primaryOwnerId: userId,
+        slug: 'qt-workspace',
+      });
+      await serverDB.insert(sessions).values({
+        id: 'qt-workspace-session',
+        userId,
+        workspaceId: 'qt-workspace',
+      });
+      await serverDB.insert(topics).values([
+        { id: 'qt-personal', sessionId, status: 'running', userId, workspaceId: null },
+        {
+          id: 'qt-workspace-topic',
+          sessionId: 'qt-workspace-session',
+          status: 'running',
+          userId,
+          workspaceId: 'qt-workspace',
+        },
+      ]);
+
+      // topicModel is scoped to the personal context (no workspaceId)
+      const personal = await topicModel.queryTopics({ statuses: ['running'] });
+      expect(personal.map((t) => t.id)).toEqual(['qt-personal']);
+
+      // a workspace-scoped model only sees that workspace's topics
+      const workspaceScoped = await new TopicModel(serverDB, userId, 'qt-workspace').queryTopics({
+        statuses: ['running'],
+      });
+      expect(workspaceScoped.map((t) => t.id)).toEqual(['qt-workspace-topic']);
     });
   });
 

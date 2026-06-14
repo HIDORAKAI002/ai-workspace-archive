@@ -677,12 +677,25 @@ def _build_gateway_agent_history(
             clean_msg = {k: v for k, v in msg.items() if k not in {"timestamp", "observed"}}
             agent_history.append(clean_msg)
         elif content:
+            # Strip gateway-injected auto-continue notes that were persisted
+            # as part of user messages during interrupted turns.  Keep the
+            # user's real text after the note, but never replay the recovery
+            # instruction itself — that is what caused infinite re-execution
+            # loops for interrupted long-running tools.
+            if role == "user":
+                content = _strip_auto_continue_noise(content)
+                if not content:
+                    continue
             # Simple text message - just need role and content.
             if msg.get("mirror"):
                 mirror_src = msg.get("mirror_source", "another session")
                 content = f"[Delivered from {mirror_src}] {content}"
             entry = _build_replay_entry(role, content, msg)
             agent_history.append(entry)
+
+    # Strip interrupted tool-call tails so the LLM doesn't re-execute
+    # tools that were killed mid-flight.
+    agent_history = _strip_interrupted_tool_tails(agent_history)
 
     observed_context = "\n".join(observed_group_context).strip() or None
     return agent_history, observed_context
@@ -748,6 +761,99 @@ _AUTO_APPEND_MEDIA_TOOL_NAMES = {
     "text_to_speech_tool",
     "image_generate",
 }
+
+# ---- helpers: detect interrupted tool tails & auto-continue noise ----------
+
+def _is_interrupted_tool_result(content: Any) -> bool:
+    """Return True if a tool result indicates the tool was interrupted."""
+    if not isinstance(content, str):
+        return False
+    lowered = content.lower()
+    if "[command interrupted]" in lowered:
+        return True
+    if "exit_code" in lowered and ("130" in lowered or "-1" in lowered):
+        return "interrupt" in lowered
+    return False
+
+
+def _strip_interrupted_tool_tails(
+    agent_history: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    """Strip interrupted assistant→tool sequences from replay history.
+
+    Older interrupted gateway turns can be followed by a queued real user
+    message, so the interrupted assistant/tool block is not necessarily the
+    final tail by the time we rebuild replay history.  Remove any contiguous
+    assistant(tool_calls) + tool-result block that contains an interrupted tool
+    result, while preserving successful tool-call sequences intact.
+    """
+    if not agent_history:
+        return agent_history
+
+    cleaned: List[Dict[str, Any]] = []
+    i = 0
+    n = len(agent_history)
+    while i < n:
+        msg = agent_history[i]
+        if msg.get("role") == "assistant" and "tool_calls" in msg:
+            j = i + 1
+            tool_results: List[Dict[str, Any]] = []
+            while j < n and agent_history[j].get("role") == "tool":
+                tool_results.append(agent_history[j])
+                j += 1
+            if tool_results and any(
+                _is_interrupted_tool_result(m.get("content", ""))
+                for m in tool_results
+            ):
+                logger.debug(
+                    "Stripping interrupted assistant→tool replay block "
+                    "(indices %d–%d, tool_results=%d)",
+                    i, j - 1, len(tool_results),
+                )
+                i = j
+                continue
+        if msg.get("role") == "tool" and _is_interrupted_tool_result(msg.get("content", "")):
+            logger.debug("Stripping orphan interrupted tool result from replay history")
+            i += 1
+            continue
+        cleaned.append(msg)
+        i += 1
+
+    return cleaned
+
+
+_AUTO_CONTINUE_NOTE_PREFIX = "[System note: Your previous turn"
+_AUTO_CONTINUE_FALLBACK_PREFIX = "[System note: A new message"
+
+
+def _is_auto_continue_noise(content: Any) -> bool:
+    """Return True if this user-message content is a gateway-injected
+    auto-continue note that should NOT be replayed as a real user turn."""
+    if not isinstance(content, str):
+        return False
+    return (
+        content.startswith(_AUTO_CONTINUE_NOTE_PREFIX)
+        or content.startswith(_AUTO_CONTINUE_FALLBACK_PREFIX)
+    )
+
+
+def _strip_auto_continue_noise(content: Any) -> Any:
+    """Remove persisted gateway auto-continue note prefix from user text.
+
+    Older gateway builds prepended the recovery note directly to the user
+    message, so the transcript row can contain both the synthetic note and
+    the user's real question.  Strip one or more leading synthetic notes while
+    preserving any real text that follows.
+    """
+    if not _is_auto_continue_noise(content):
+        return content
+    text = str(content)
+    while _is_auto_continue_noise(text):
+        end = text.find("]")
+        if end < 0:
+            return ""
+        text = text[end + 1 :].lstrip()
+    return text
 
 # Tools in this set return their deliverable artifact as a JSON payload with a
 # local-file path field rather than a literal ``MEDIA:`` tag (e.g. image_generate
@@ -8769,6 +8875,20 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
                 _response_time, _api_calls, _resp_len,
             )
 
+            # Re-baseline the cached agent's message_count snapshot now that
+            # this turn has completed and the agent has flushed its rows to
+            # the SessionDB.  The cross-process coherence guard (#45966)
+            # snapshots the count at agent-BUILD time (before this turn's own
+            # writes) and never refreshes it on reuse — so without this, this
+            # process's own turn would grow the count and the next turn would
+            # see a mismatch and rebuild the agent every turn, destroying
+            # prompt caching.  Refreshing here makes the guard fire only on a
+            # DIFFERENT process's writes.  Uses the (possibly compaction-
+            # updated) live session_id.  Fail-safe inside the helper.
+            self._refresh_agent_cache_message_count(
+                session_key, session_entry.session_id
+            )
+
             # Successful turn — clear any stuck-loop counter for this session.
             # This ensures the counter only accumulates across CONSECUTIVE
             # restarts where the session was active (never completed).
@@ -12678,6 +12798,57 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
         if release_running_state:
             self._release_running_agent_state(session_key)
 
+    def _refresh_agent_cache_message_count(
+        self, session_key: str, session_id: Optional[str]
+    ) -> None:
+        """Re-baseline a cached agent's stored message_count after THIS turn.
+
+        The cross-process coherence guard (#45966) compares the session's
+        on-disk ``message_count`` against the count snapshotted next to the
+        cached agent, and rebuilds the agent on a mismatch.  But the snapshot
+        is taken at agent-BUILD time — before this turn writes its own user +
+        assistant (+ tool) rows — and the cache entry is never rewritten on a
+        reuse.  So without this re-baseline, THIS process's own turn would
+        grow ``message_count`` and the very next turn would see a mismatch
+        and rebuild the agent — every turn, for every conversation — silently
+        destroying the per-conversation prompt caching the cache exists to
+        protect.
+
+        Call this once a turn has completed and the agent has flushed its
+        rows to the SessionDB.  It snapshots the now-current count (which
+        includes this process's own writes) so the guard only fires when a
+        DIFFERENT process changes the transcript out from under us.  The
+        ``_sig`` is left untouched; only the count element is refreshed, and
+        only when the same agent is still cached (no rebuild/eviction raced
+        in between).  Fail-safe: any DB error leaves the snapshot as-is, which
+        at worst costs one unnecessary rebuild on the next turn.
+        """
+        if self._session_db is None or not session_id:
+            return
+        _cache_lock = getattr(self, "_agent_cache_lock", None)
+        _cache = getattr(self, "_agent_cache", None)
+        if not _cache_lock or _cache is None:
+            return
+        try:
+            _sess_row = self._session_db.get_session(session_id)
+            _live = _sess_row.get("message_count", 0) if _sess_row else None
+        except Exception:
+            return
+        if _live is None:
+            return
+        with _cache_lock:
+            cached = _cache.get(session_key)
+            # Only re-baseline a live 3-tuple entry; skip pending sentinels,
+            # legacy 2-tuples (they intentionally opt out of the guard), and
+            # the case where the entry was evicted/rebuilt mid-turn.
+            if (
+                isinstance(cached, tuple)
+                and len(cached) > 2
+                and cached[0] is not _AGENT_PENDING_SENTINEL
+            ):
+                if cached[2] != _live:
+                    _cache[session_key] = (cached[0], cached[1], _live)
+
     def _evict_cached_agent(self, session_key: str) -> None:
         """Remove a cached agent for a session (called on /new, /model, etc).
 
@@ -14201,20 +14372,57 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
             agent = None
             _cache_lock = getattr(self, "_agent_cache_lock", None)
             _cache = getattr(self, "_agent_cache", None)
+
+            # Detect cross-process writes: when another process (e.g. hermes
+            # dashboard) appends to the same session in the shared SessionDB,
+            # the cached agent's in-memory transcript becomes stale.  Compare
+            # the session's current message_count against the count recorded
+            # when the agent was cached; on mismatch, invalidate the cache
+            # so a fresh agent re-reads from disk. (#45966)
+            _current_msg_count = None
+            if self._session_db is not None and session_id:
+                try:
+                    _sess_row = self._session_db.get_session(session_id)
+                    if _sess_row:
+                        _current_msg_count = _sess_row.get("message_count", 0)
+                except Exception:
+                    pass
+
             if _cache_lock and _cache is not None:
                 with _cache_lock:
                     cached = _cache.get(session_key)
                     if cached and cached[1] == _sig:
-                        agent = cached[0]
-                        # Refresh LRU order so the cap enforcement evicts
-                        # truly-oldest entries, not the one we just used.
-                        if hasattr(_cache, "move_to_end"):
-                            try:
-                                _cache.move_to_end(session_key)
-                            except KeyError:
-                                pass
-                        self._init_cached_agent_for_turn(agent, _interrupt_depth)
-                        logger.debug("Reusing cached agent for session %s", session_key)
+                        # cached[2] is the message_count at cache time;
+                        # stale when a second process appended rows.
+                        _cached_mc = cached[2] if len(cached) > 2 else None
+                        if (
+                            _cached_mc is not None
+                            and _current_msg_count is not None
+                            and _current_msg_count != _cached_mc
+                        ):
+                            # Cross-process write detected — discard stale
+                            # agent so it rebuilds from fresh DB transcript.
+                            logger.info(
+                                "Agent cache invalidated for session %s: "
+                                "message_count changed (%s -> %s), "
+                                "possible cross-process write",
+                                session_key, _cached_mc, _current_msg_count,
+                            )
+                            evicted = self._agent_cache.pop(session_key, None)
+                            _ev_agent = evicted[0] if isinstance(evicted, tuple) and evicted else None
+                            if _ev_agent and _ev_agent is not _AGENT_PENDING_SENTINEL:
+                                self._cleanup_agent_resources(_ev_agent)
+                        else:
+                            agent = cached[0]
+                            # Refresh LRU order so the cap enforcement evicts
+                            # truly-oldest entries, not the one we just used.
+                            if hasattr(_cache, "move_to_end"):
+                                try:
+                                    _cache.move_to_end(session_key)
+                                except KeyError:
+                                    pass
+                            self._init_cached_agent_for_turn(agent, _interrupt_depth)
+                            logger.debug("Reusing cached agent for session %s", session_key)
 
             if agent is None:
                 # Config changed or first message — create fresh agent
@@ -14252,7 +14460,7 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
                 )
                 if _cache_lock and _cache is not None:
                     with _cache_lock:
-                        _cache[session_key] = (agent, _sig)
+                        _cache[session_key] = (agent, _sig, _current_msg_count)
                         self._enforce_agent_cache_cap()
                 logger.debug("Created new agent for session %s (sig=%s)", session_key, _sig)
 
@@ -14566,6 +14774,11 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
                 except Exception as _e:
                     logger.error("Failed to send approval request: %s", _e)
 
+            # Keep real user text separate from API-only recovery guidance.  If
+            # an auto-continue note is prepended below, persist the original
+            # message so stale guidance never replays as user-authored text.
+            _persist_user_message_override: Optional[Any] = None
+
             # Prepend pending model switch note so the model knows about the switch
             _pending_notes = getattr(self, '_pending_model_notes', {})
             _msn = _pending_notes.pop(session_key, None) if session_key else None
@@ -14626,21 +14839,23 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
                     if _reason == "shutdown_timeout"
                     else "a gateway interruption"
                 )
+                _persist_user_message_override = message
                 message = (
-                    f"[System note: Your previous turn in this session was interrupted "
-                    f"by {_reason_phrase}. The conversation history below is intact. "
-                    f"If it contains unfinished tool result(s), process them first and "
-                    f"summarize what was accomplished, then address the user's new "
-                    f"message below.]\n\n"
+                    f"[System note: A new message has arrived. The previous turn "
+                    f"was interrupted by {_reason_phrase}. "
+                    f"Address the user's NEW message below FIRST. "
+                    f"Do NOT re-execute old tool calls — skip any unfinished "
+                    f"work from the conversation history and focus on what the "
+                    f"user is asking now.]\n\n"
                     + message
                 )
             elif _has_fresh_tool_tail:
+                _persist_user_message_override = message
                 message = (
-                    "[System note: Your previous turn was interrupted before you could "
-                    "process the last tool result(s). The conversation history contains "
-                    "tool outputs you haven't responded to yet. Please finish processing "
-                    "those results and summarize what was accomplished, then address the "
-                    "user's new message below.]\n\n"
+                    "[System note: A new message has arrived. The conversation "
+                    "history contains pending tool outputs from an interrupted turn. "
+                    "IGNORE those pending results. Address the user's NEW message "
+                    "below FIRST. Do NOT re-execute old tool calls from the history.]\n\n"
                     + message
                 )
 
@@ -14698,7 +14913,9 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
                     "conversation_history": agent_history,
                     "task_id": session_id,
                 }
-                if observed_group_context:
+                if _persist_user_message_override is not None:
+                    _conversation_kwargs["persist_user_message"] = _persist_user_message_override
+                elif observed_group_context:
                     _conversation_kwargs["persist_user_message"] = message
                 result = agent.run_conversation(_api_run_message, **_conversation_kwargs)
             finally:
