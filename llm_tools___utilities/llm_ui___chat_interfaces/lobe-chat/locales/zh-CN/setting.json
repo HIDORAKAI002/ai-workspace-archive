@@ -1982,7 +1982,6 @@
   "workspace.wizard.step1.slug.invalidReserved": "该 Slug 已被保留。请选择另一个。",
   "workspace.wizard.step1.slug.label": "工作区 URL",
   "workspace.wizard.step1.slug.placeholder": "example-team",
-  "workspace.wizard.step1.slug.prefix": "lobehub.com/",
   "workspace.wizard.step1.slug.required": "工作区 URL 是必需的",
   "workspace.wizard.step1.slug.taken": "此 URL 已被占用",
   "workspace.wizard.step1.subtitle": "与您的队友解锁代理协作",
