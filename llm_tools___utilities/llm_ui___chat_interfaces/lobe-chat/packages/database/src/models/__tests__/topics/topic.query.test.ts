@@ -1535,6 +1535,74 @@ describe('TopicModel - Query', () => {
       expect(result).toHaveLength(1);
       expect(result[0].id).toBe('title-match-topic');
     });
+
+    it('should match topics by agentId when the scope provides one (no sessionId)', async () => {
+      await serverDB.transaction(async (tx) => {
+        await tx.insert(agents).values([{ id: 'search-agent', userId }]);
+        await tx.insert(topics).values([
+          // New agent system: topic carries agentId but no sessionId.
+          { id: 'agent-topic', title: 'Hello world', agentId: 'search-agent', userId },
+          { id: 'other-topic', title: 'Hello world', sessionId, userId },
+        ]);
+      });
+
+      const result = await topicModel.queryByKeyword('hello', { agentId: 'search-agent' });
+
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('agent-topic');
+    });
+
+    it('should not fall back to the session when scoped by agentId (stays consistent with the list)', async () => {
+      // The agent scope mirrors `query` exactly: it matches by agentId only,
+      // with NO sessionId fallback. A legacy row that another agent owns but
+      // shares the resolved session must not leak into this agent's search,
+      // and un-backfilled rows the list hides must not appear here either.
+      await serverDB.transaction(async (tx) => {
+        await tx.insert(agents).values([
+          { id: 'search-agent', userId },
+          { id: 'other-agent', userId },
+        ]);
+        await tx.insert(topics).values([
+          { id: 'agent-topic', title: 'Hello world', agentId: 'search-agent', userId },
+          // Same session mapping, but already stamped for a DIFFERENT agent.
+          {
+            id: 'other-agent-topic',
+            title: 'Hello world',
+            agentId: 'other-agent',
+            sessionId,
+            userId,
+          },
+          // Legacy, un-backfilled (agentId null) — the list doesn't show it either.
+          { id: 'legacy-topic', title: 'Hello legacy', sessionId, userId },
+        ]);
+      });
+
+      const result = await topicModel.queryByKeyword('hello', {
+        agentId: 'search-agent',
+        containerId: sessionId,
+      });
+
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('agent-topic');
+    });
+
+    it('should not leak other agents topics when scoped by agentId', async () => {
+      await serverDB.transaction(async (tx) => {
+        await tx.insert(agents).values([
+          { id: 'search-agent', userId },
+          { id: 'other-agent', userId },
+        ]);
+        await tx.insert(topics).values([
+          { id: 'agent-topic', title: 'Hello world', agentId: 'search-agent', userId },
+          { id: 'other-agent-topic', title: 'Hello world', agentId: 'other-agent', userId },
+        ]);
+      });
+
+      const result = await topicModel.queryByKeyword('hello', { agentId: 'search-agent' });
+
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('agent-topic');
+    });
   });
 
   describe('queryRecent', () => {
