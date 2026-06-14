@@ -8,7 +8,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "artillery": "^2.0.30"
+    "artillery": "^2.0.32"
   },
   "pnpm": {
     "overrides": {
