@@ -62,6 +62,7 @@ import (
 	"github.com/milvus-io/milvus/pkg/v3/util/merr"
 	"github.com/milvus-io/milvus/pkg/v3/util/metric"
 	"github.com/milvus-io/milvus/pkg/v3/util/paramtable"
+	"github.com/milvus-io/milvus/pkg/v3/util/rbacutil"
 	"github.com/milvus-io/milvus/pkg/v3/util/timestamptz"
 	"github.com/milvus-io/milvus/pkg/v3/util/tsoutil"
 	"github.com/milvus-io/milvus/pkg/v3/util/typeutil"
@@ -73,8 +74,6 @@ const (
 
 	// enableMultipleVectorFields indicates whether to enable multiple vector fields.
 	enableMultipleVectorFields = true
-
-	defaultMaxArrayCapacity = 4096
 
 	defaultMaxSearchRequest = 1024
 
@@ -484,6 +483,7 @@ func validateMaxLengthPerRow(collectionName string, field *schemapb.FieldSchema)
 }
 
 func getMaxCapacityPerRow(collectionName string, field *schemapb.FieldSchema) (int64, error) {
+	maxArrayCapacity := Params.ProxyCfg.MaxArrayCapacity.GetAsInt64()
 	exist := false
 	var maxCapacityPerRow int64
 	for _, param := range field.TypeParams {
@@ -496,8 +496,8 @@ func getMaxCapacityPerRow(collectionName string, field *schemapb.FieldSchema) (i
 		if err != nil {
 			return 0, merr.WrapErrParameterInvalidMsg("the value for %s of field %s must be an integer", common.MaxCapacityKey, field.GetName())
 		}
-		if maxCapacityPerRow > defaultMaxArrayCapacity || maxCapacityPerRow <= 0 {
-			return 0, merr.WrapErrParameterInvalidMsg("the maximum capacity specified for a Array should be in (0, 4096]")
+		if maxCapacityPerRow > maxArrayCapacity || maxCapacityPerRow <= 0 {
+			return 0, merr.WrapErrParameterInvalidMsg("the maximum capacity specified for a Array should be in (0, %d]", maxArrayCapacity)
 		}
 		exist = true
 	}
@@ -1582,6 +1582,10 @@ func validateNameWithCustomChars(entity string, nameType string, allowedChars st
 
 func ValidateRoleName(entity string) error {
 	return validateNameWithCustomChars(entity, "role name", Params.ProxyCfg.RoleNameValidationAllowedChars.GetValue())
+}
+
+func ValidateRoleDescription(description string) error {
+	return rbacutil.ValidateRoleDescription(description, Params.ProxyCfg.MaxRoleDescriptionLength.GetAsInt())
 }
 
 func IsDefaultRole(roleName string) bool {
