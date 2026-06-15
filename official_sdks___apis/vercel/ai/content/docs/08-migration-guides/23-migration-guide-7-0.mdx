@@ -293,8 +293,58 @@ const result = await generateText({
 const result = await generateText({
   model: yourModel,
   prompt: 'Hello!',
-  experimental_onStart: ({ instructions }) => {
+  onStart: ({ instructions }) => {
     console.log(instructions);
+  },
+});
+```
+
+#### `experimental_onStart` Renamed to `onStart`
+
+The generation start callback for `generateText`, `streamText`, and agents has
+been renamed from `experimental_onStart` to `onStart`.
+
+```tsx filename="AI SDK 6"
+const result = await generateText({
+  model: yourModel,
+  prompt: 'Hello!',
+  experimental_onStart: () => {
+    console.log('Generation started');
+  },
+});
+```
+
+```tsx filename="AI SDK 7"
+const result = await generateText({
+  model: yourModel,
+  prompt: 'Hello!',
+  onStart: () => {
+    console.log('Generation started');
+  },
+});
+```
+
+#### `experimental_onStepStart` Renamed to `onStepStart`
+
+The per-step start callback for `generateText`, `streamText`, and agents has
+been renamed from `experimental_onStepStart` to `onStepStart`.
+
+```tsx filename="AI SDK 6"
+const result = await generateText({
+  model: yourModel,
+  prompt: 'Hello!',
+  experimental_onStepStart: ({ stepNumber }) => {
+    console.log(`Step ${stepNumber} started`);
+  },
+});
+```
+
+```tsx filename="AI SDK 7"
+const result = await generateText({
+  model: yourModel,
+  prompt: 'Hello!',
+  onStepStart: ({ stepNumber }) => {
+    console.log(`Step ${stepNumber} started`);
   },
 });
 ```
@@ -669,9 +719,9 @@ const result = await generateText({
 
 The telemetry integration callback for individual reranking model calls has been renamed from `onRerankFinish` to `onRerankEnd`.
 
-This also applies to the `type` field published on `AI_SDK_TELEMETRY_DIAGNOSTIC_CHANNEL`: diagnostic-channel subscribers now receive `onRerankEnd` instead of `onRerankFinish`.
+This also applies to the `type` field emitted on `AI_SDK_TELEMETRY_TRACING_CHANNEL`: tracing-channel subscribers now receive `onRerankEnd` instead of `onRerankFinish`.
 
-Update telemetry integrations and diagnostic-channel subscribers to use `onRerankEnd`.
+Update telemetry integrations and tracing-channel subscribers to use `onRerankEnd`.
 
 ```tsx filename="AI SDK 6"
 import type { Telemetry } from 'ai';
@@ -697,9 +747,9 @@ const telemetry: Telemetry = {
 
 The telemetry integration callback for individual embedding model calls has been renamed from `onEmbedFinish` to `onEmbedEnd`.
 
-This also applies to the `type` field published on `AI_SDK_TELEMETRY_DIAGNOSTIC_CHANNEL`: diagnostic-channel subscribers now receive `onEmbedEnd` instead of `onEmbedFinish`.
+This also applies to the `type` field emitted on `AI_SDK_TELEMETRY_TRACING_CHANNEL`: tracing-channel subscribers now receive `onEmbedEnd` instead of `onEmbedFinish`.
 
-Update telemetry integrations and diagnostic-channel subscribers to use `onEmbedEnd`.
+Update telemetry integrations and tracing-channel subscribers to use `onEmbedEnd`.
 
 ```tsx filename="AI SDK 6"
 import type { Telemetry } from 'ai';

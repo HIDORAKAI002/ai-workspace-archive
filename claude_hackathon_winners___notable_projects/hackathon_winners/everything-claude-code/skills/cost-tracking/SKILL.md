@@ -1,7 +1,8 @@
 ---
 name: cost-tracking
 description: Track and report Claude Code token usage, spending, and budgets from a local cost-tracking database. Use when the user asks about costs, spending, usage, tokens, budgets, or cost breakdowns by project, tool, session, or date.
-origin: community
+metadata:
+  origin: community
 ---
 
 # Cost Tracking
