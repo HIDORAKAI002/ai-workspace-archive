@@ -1869,6 +1869,7 @@ async function runEmbeddedAgentInternal(
             bootstrapContextRunKind: params.bootstrapContextRunKind,
             jobId: params.jobId,
             toolsAllow: params.toolsAllow,
+            cleanupBundleMcpOnRunEnd: params.cleanupBundleMcpOnRunEnd,
             disableMessageTool: params.disableMessageTool,
             forceMessageTool: params.forceMessageTool,
             enableHeartbeatTool: params.enableHeartbeatTool,
@@ -3344,13 +3345,15 @@ async function runEmbeddedAgentInternal(
                 ? [silentToolResultReplyPayload]
                 : payloadsWithToolMedia;
           const payloadCount = payloadsForTerminalPath?.length ?? 0;
-          const emptyAssistantReplyIsSilent = shouldTreatEmptyAssistantReplyAsSilent({
-            allowEmptyAssistantReplyAsSilent: params.allowEmptyAssistantReplyAsSilent,
-            payloadCount,
-            aborted,
-            timedOut,
-            attempt,
-          });
+          const emptyAssistantReplyIsSilent =
+            Boolean(silentToolResultReplyPayload) ||
+            shouldTreatEmptyAssistantReplyAsSilent({
+              allowEmptyAssistantReplyAsSilent: params.allowEmptyAssistantReplyAsSilent,
+              payloadCount,
+              aborted,
+              timedOut,
+              attempt,
+            });
           const nextPlanningOnlyRetryInstruction = emptyAssistantReplyIsSilent
             ? null
             : resolvePlanningOnlyRetryInstruction({
