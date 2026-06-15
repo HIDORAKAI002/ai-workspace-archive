@@ -1,5 +1,53 @@
 # @ai-sdk/harness
 
+## 1.0.0-beta.15
+
+### Patch Changes
+
+- Updated dependencies [b097c52]
+  - ai@7.0.0-beta.178
+
+## 1.0.0-beta.14
+
+### Patch Changes
+
+- b8396f0: trigger initial beta release
+- Updated dependencies [b8396f0]
+  - @ai-sdk/provider-utils@5.0.0-beta.49
+  - @ai-sdk/provider@4.0.0-beta.19
+  - ai@7.0.0-beta.177
+
+## 1.0.0-canary.13
+
+### Patch Changes
+
+- ai@7.0.0-canary.176
+
+## 1.0.0-canary.12
+
+### Patch Changes
+
+- Updated dependencies [6ec57f5]
+  - ai@7.0.0-canary.175
+
+## 1.0.0-canary.11
+
+### Patch Changes
+
+- be83911: fix(harness): reject bridge startup when the WebSocket port cannot be bound
+
+## 1.0.0-canary.10
+
+### Patch Changes
+
+- ai@7.0.0-canary.174
+
+## 1.0.0-canary.9
+
+### Patch Changes
+
+- ai@7.0.0-canary.173
+
 ## 1.0.0-canary.8
 
 ### Patch Changes

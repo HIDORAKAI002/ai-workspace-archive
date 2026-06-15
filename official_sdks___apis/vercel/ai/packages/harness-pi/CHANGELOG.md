@@ -1,5 +1,51 @@
 # @ai-sdk/harness-pi
 
+## 1.0.0-beta.11
+
+### Patch Changes
+
+- @ai-sdk/harness@1.0.0-beta.15
+
+## 1.0.0-beta.10
+
+### Patch Changes
+
+- b8396f0: trigger initial beta release
+- Updated dependencies [b8396f0]
+  - @ai-sdk/harness@1.0.0-beta.14
+  - @ai-sdk/provider-utils@5.0.0-beta.49
+
+## 1.0.0-canary.9
+
+### Patch Changes
+
+- @ai-sdk/harness@1.0.0-canary.13
+
+## 1.0.0-canary.8
+
+### Patch Changes
+
+- @ai-sdk/harness@1.0.0-canary.12
+
+## 1.0.0-canary.7
+
+### Patch Changes
+
+- Updated dependencies [be83911]
+  - @ai-sdk/harness@1.0.0-canary.11
+
+## 1.0.0-canary.6
+
+### Patch Changes
+
+- @ai-sdk/harness@1.0.0-canary.10
+
+## 1.0.0-canary.5
+
+### Patch Changes
+
+- @ai-sdk/harness@1.0.0-canary.9
+
 ## 1.0.0-canary.4
 
 ### Patch Changes

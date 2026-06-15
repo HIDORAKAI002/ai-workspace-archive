@@ -1,5 +1,21 @@
 # @ai-sdk/fireworks
 
+## 3.0.0-beta.58
+
+### Patch Changes
+
+- b8396f0: trigger initial beta release
+- Updated dependencies [b8396f0]
+  - @ai-sdk/openai-compatible@3.0.0-beta.57
+  - @ai-sdk/provider-utils@5.0.0-beta.49
+  - @ai-sdk/provider@4.0.0-beta.19
+
+## 3.0.0-canary.57
+
+### Patch Changes
+
+- 38010a1: Enable `includeUsage` for Fireworks so streaming responses report token usage
+
 ## 3.0.0-canary.56
 
 ### Patch Changes

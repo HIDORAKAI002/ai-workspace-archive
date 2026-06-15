@@ -1,5 +1,26 @@
 # @ai-sdk/mcp
 
+## 2.0.0-beta.66
+
+### Patch Changes
+
+- b8396f0: trigger initial beta release
+- Updated dependencies [b8396f0]
+  - @ai-sdk/provider-utils@5.0.0-beta.49
+  - @ai-sdk/provider@4.0.0-beta.19
+
+## 2.0.0-canary.65
+
+### Patch Changes
+
+- b29e087: fix (mcp): handle SSE messages without explicit event fields
+
+## 2.0.0-canary.64
+
+### Patch Changes
+
+- 024a6b4: fix(mcp): validate oauth metadata issuer during discovery
+
 ## 2.0.0-canary.63
 
 ### Patch Changes
