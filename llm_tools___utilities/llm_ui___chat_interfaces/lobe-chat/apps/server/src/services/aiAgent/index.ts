@@ -87,7 +87,14 @@ import { AgentRuntimeService } from '@/server/services/agentRuntime';
 import { getAbortError, isAbortError, throwIfAborted } from '@/server/services/agentRuntime/abort';
 import { hookDispatcher } from '@/server/services/agentRuntime/hooks';
 import type { AgentHook } from '@/server/services/agentRuntime/hooks/types';
-import type { StepLifecycleCallbacks } from '@/server/services/agentRuntime/types';
+import type {
+  ExecGroupMemberParams,
+  ExecGroupMemberResult,
+  GroupActionMemberBridgeParams,
+  GroupActionMemberMode,
+  GroupActionOnComplete,
+  StepLifecycleCallbacks,
+} from '@/server/services/agentRuntime/types';
 import { enqueueAgentSignalSourceEvent } from '@/server/services/agentSignal';
 import {
   isAgentSignalEnabledForUser,
@@ -187,6 +194,14 @@ interface InternalExecAgentParams extends ExecAgentParams {
   disableTools?: boolean;
   /** Discord context for injecting channel/guild info into agent system message */
   discordContext?: any;
+  /**
+   * Inject a user-role message into the LLM context for this turn WITHOUT
+   * persisting it (no DB row, no Agent Signal). Used for ephemeral orchestration
+   * instructions — e.g. a group supervisor's `<speaker>` instruction to a member —
+   * so it drives the member's response without polluting the group conversation.
+   * Requires `suppressUserMessage` (the turn runs off existing history).
+   */
+  ephemeralUserMessage?: string;
   /** Eval context for injecting environment prompts into system message */
   evalContext?: EvalContext;
   /** External files to upload to S3 and attach to the user message */
@@ -320,6 +335,7 @@ export class AiAgentService {
       delegate: {
         execSubAgent: this.execSubAgent,
         execVirtualSubAgent: this.execVirtualSubAgent,
+        execGroupMember: this.execGroupMember,
       },
       workspaceId: wsId,
     });
@@ -602,6 +618,16 @@ export class AiAgentService {
   }
 
   /**
+   * Group-action member completion bridge entry point — driven by the QStash
+   * `group-member-callback` webhook (queue mode). Forwards to the workspace-scoped
+   * runtime so the member-anchor backfill + K=N barrier + resume/finish read the
+   * same workspace rows. See `AgentRuntimeService.completeGroupActionMember`.
+   */
+  completeGroupActionMember(params: GroupActionMemberBridgeParams): Promise<boolean> {
+    return this.agentRuntimeService.completeGroupActionMember(params);
+  }
+
+  /**
    * Execute agent with just a prompt
    *
    * This is a simplified API that requires agent identifier (id or slug) and prompt.
@@ -652,6 +678,7 @@ export class AiAgentService {
       resume,
       resumeApproval,
       suppressUserMessage,
+      ephemeralUserMessage,
     } = params;
 
     // Validate that either agentId or slug is provided
@@ -2391,7 +2418,7 @@ export class AiAgentService {
     // - videoList: video-capable models render these as video parts
     // - fileList: MessageContentProcessor injects content via filesPrompts() XML
     const userMessage = {
-      content: prompt,
+      content: ephemeralUserMessage ?? prompt,
       fileList: runAttachments.fileList,
       id: userMessageRecord?.id,
       imageList: runAttachments.imageList,
@@ -2399,8 +2426,11 @@ export class AiAgentService {
       videoList: runAttachments.videoList,
     };
 
-    // Combine history messages with user message
-    const allMessages = runFromHistory ? historyMessages : [...historyMessages, userMessage];
+    // Combine history messages with the user message. An ephemeral message is
+    // injected into the LLM context even under runFromHistory (suppressUserMessage)
+    // — it drives this turn but was never persisted (id is undefined).
+    const allMessages =
+      runFromHistory && !ephemeralUserMessage ? historyMessages : [...historyMessages, userMessage];
 
     log('execAgent: prepared evalContext for executor');
 
@@ -2416,7 +2446,10 @@ export class AiAgentService {
         // Pass assistant message ID so agent runtime knows which message to update
         assistantMessageId: assistantMessageRecord.id,
         isFirstMessage: true,
-        message: runFromHistory ? [{ content: '' }] : [{ content: prompt }],
+        message:
+          runFromHistory && !ephemeralUserMessage
+            ? [{ content: '' }]
+            : [{ content: ephemeralUserMessage ?? prompt }],
         // Pass user message ID as parentMessageId for reference
         parentMessageId: parentMessageId ?? userMessageRecord?.id ?? '',
         // Include tools for initial LLM call
@@ -2903,9 +2936,195 @@ export class AiAgentService {
       resumeParentOnComplete: true,
     });
 
+  /**
+   * Fork a single group member ("call agent member") under a `lobe-group-management`
+   * tool call. Dispatches to the in-group (non-isolated, shared group session)
+   * or isolated (own thread) path, installing the group-action member completion
+   * bridge. Invoked once per member by the runtime's `agentMember` runner.
+   *
+   * Arrow field (not a method) so it stays bound when handed to the runtime
+   * delegate.
+   */
+  execGroupMember = async (params: ExecGroupMemberParams): Promise<ExecGroupMemberResult> => {
+    if (params.mode === 'isolated') {
+      // Isolated members reuse the sub-agent isolation-thread machinery, swapping
+      // in the group-action member bridge (K=N barrier + resume/finish).
+      const result = await this.execAgentThreadRun(
+        {
+          agentId: params.agentId,
+          groupId: params.groupId,
+          instruction: params.instruction ?? 'Please complete the assigned task.',
+          parentMessageId: params.anchorMessageId,
+          parentOperationId: params.parentOperationId,
+          timeout: params.timeout,
+          title: params.instruction?.slice(0, 50),
+          topicId: params.topicId,
+        },
+        {
+          bridgeHookFactory: (threadId) =>
+            this.createGroupActionMemberBridgeHook({
+              anchorMessageId: params.anchorMessageId,
+              expectedMembers: params.expectedMembers,
+              groupToolMessageId: params.groupToolMessageId,
+              mode: 'isolated',
+              onComplete: params.onComplete,
+              parentOperationId: params.parentOperationId,
+              threadId,
+            }),
+          isSubAgent: true,
+          logScope: 'execVirtualSubAgent',
+          resumeParentOnComplete: true,
+        },
+      );
+
+      // Enforce the requested timeout: if the member op is still running when the
+      // deadline passes, the watchdog interrupts it and bridges a `timeout`
+      // completion so the supervisor doesn't stay parked indefinitely.
+      if (result.success && result.operationId && params.timeout && params.timeout > 0) {
+        await this.agentRuntimeService.scheduleGroupMemberTimeout(
+          {
+            anchorMessageId: params.anchorMessageId,
+            expectedMembers: params.expectedMembers,
+            groupToolMessageId: params.groupToolMessageId,
+            memberOperationId: result.operationId,
+            mode: 'isolated',
+            onComplete: params.onComplete,
+            parentOperationId: params.parentOperationId,
+          },
+          params.timeout,
+        );
+      }
+
+      return {
+        error: result.error,
+        operationId: result.operationId,
+        started: result.success ?? false,
+        threadId: result.threadId,
+      };
+    }
+
+    return this.execAgentMember(params);
+  };
+
+  /**
+   * Run a group member in the shared group session (non-isolated). The member's
+   * turns land directly in the group conversation; the supervisor's instruction
+   * is injected as a `<speaker name="Supervisor" />`-tagged prompt. Registers the
+   * group-action member bridge that backfills the member anchor and
+   * resumes/finishes the parked supervisor once the K=N member barrier passes.
+   */
+  private async execAgentMember(params: ExecGroupMemberParams): Promise<ExecGroupMemberResult> {
+    const {
+      agentId,
+      anchorMessageId,
+      disableTools,
+      expectedMembers,
+      groupId,
+      groupToolMessageId,
+      instruction,
+      onComplete,
+      parentOperationId,
+      topicId,
+    } = params;
+
+    log(
+      'execAgentMember: agentId=%s, groupId=%s, topicId=%s, instruction=%s',
+      agentId,
+      groupId,
+      topicId,
+      (instruction ?? '').slice(0, 50),
+    );
+
+    // Dispatch beforeCallAgent hook on the supervisor operation.
+    hookDispatcher
+      .dispatch(parentOperationId, 'beforeCallAgent', {
+        agentId,
+        instruction: (instruction ?? '').slice(0, 200),
+        operationId: parentOperationId,
+        userId: this.userId,
+      })
+      .catch(() => {});
+
+    // Inherit the supervisor op's trigger so member rows stay attributable.
+    let inheritedTrigger: string | undefined;
+    try {
+      const parentOp = await new AgentOperationModel(
+        this.db,
+        this.userId,
+        this.workspaceId,
+      ).findById(parentOperationId);
+      inheritedTrigger = parentOp?.trigger ?? undefined;
+    } catch (error) {
+      log('execAgentMember: failed to read parent operation trigger: %O', error);
+    }
+
+    const speakerInstruction = instruction
+      ? `<speaker name="Supervisor" />\n${instruction}`
+      : 'Please respond to the group conversation based on the current context.';
+
+    const appContext: NonNullable<InternalExecAgentParams['appContext']> = {
+      groupId,
+      scope: 'group',
+      topicId,
+    };
+
+    // The member runs as a child op of the supervisor and lands its turns in the
+    // shared group conversation (no isolation thread). The bridge backfills the
+    // member anchor (a short receipt) and resumes/finishes the supervisor.
+    //
+    // The supervisor instruction is injected as an EPHEMERAL user message
+    // (`suppressUserMessage` + `ephemeralUserMessage`): it drives the member's
+    // response but is NOT persisted as a `role: 'user'` row, mirroring the
+    // client orchestration where the supervisor instruction is virtual. Without
+    // this, every server-side speak/broadcast/delegate would leak the
+    // orchestration prompt into the group conversation as a real message.
+    const result = await this.execAgent({
+      agentId,
+      appContext,
+      autoStart: true,
+      disableTools,
+      ephemeralUserMessage: speakerInstruction,
+      hooks: [
+        this.createGroupActionMemberBridgeHook({
+          anchorMessageId,
+          expectedMembers,
+          groupToolMessageId,
+          mode: 'in_group',
+          onComplete,
+          parentOperationId,
+        }),
+      ],
+      parentMessageId: anchorMessageId,
+      parentOperationId,
+      prompt: speakerInstruction,
+      suppressUserMessage: true,
+      trigger: inheritedTrigger,
+      userInterventionConfig: { approvalMode: 'headless' },
+    });
+
+    log(
+      'execAgentMember: delegated to execAgent, operationId=%s, success=%s',
+      result.operationId,
+      result.success,
+    );
+
+    return {
+      error: result.error,
+      operationId: result.operationId,
+      started: result.success ?? false,
+    };
+  }
+
   private async execAgentThreadRun(
     params: ExecSubAgentParams | ExecVirtualSubAgentParams,
     options: {
+      /**
+       * Override the default sub-agent completion bridge with a custom hook
+       * (e.g. the group-action member bridge for isolated executeAgentTask(s)).
+       * Receives the freshly-created isolation thread id. Only used when
+       * `resumeParentOnComplete` is set.
+       */
+      bridgeHookFactory?: (threadId: string) => AgentHook;
       isSubAgent: boolean;
       logScope: 'execSubAgent' | 'execVirtualSubAgent';
       resumeParentOnComplete?: boolean;
@@ -2973,7 +3192,9 @@ export class AiAgentService {
       options.resumeParentOnComplete && parentOperationId
         ? [
             ...threadHooks,
-            this.createSubAgentBridgeHook(parentOperationId, parentMessageId, thread.id),
+            options.bridgeHookFactory
+              ? options.bridgeHookFactory(thread.id)
+              : this.createSubAgentBridgeHook(parentOperationId, parentMessageId, thread.id),
           ]
         : threadHooks;
 
@@ -3384,6 +3605,76 @@ export class AiAgentService {
         // publish failure as a silently-dropped 401, stranding the parent.
         fallback: 'none' as const,
         url: '/api/agent/webhooks/subagent-callback',
+      },
+    };
+  }
+
+  /**
+   * Completion bridge for the group orchestration "call agent member" path.
+   *
+   * Fires on a member op's completion and delegates to
+   * `AgentRuntimeService.completeGroupActionMember`: backfill the member anchor,
+   * enforce the K=N member barrier, then resume/finish the parked supervisor.
+   * Transport mirrors {@link createSubAgentBridgeHook} — in-process in local
+   * mode, QStash → `/api/agent/webhooks/group-member-callback` in queue mode.
+   */
+  private createGroupActionMemberBridgeHook(params: {
+    anchorMessageId: string;
+    expectedMembers: number;
+    groupToolMessageId: string;
+    mode: GroupActionMemberMode;
+    onComplete: GroupActionOnComplete;
+    parentOperationId: string;
+    threadId?: string;
+  }): AgentHook {
+    const {
+      anchorMessageId,
+      expectedMembers,
+      groupToolMessageId,
+      mode,
+      onComplete,
+      parentOperationId,
+      threadId,
+    } = params;
+    return {
+      handler: async (event) => {
+        try {
+          await this.agentRuntimeService.completeGroupActionMember({
+            anchorMessageId,
+            expectedMembers,
+            finalState: event.finalState,
+            groupToolMessageId,
+            mode,
+            onComplete,
+            operationId: event.operationId,
+            parentOperationId,
+            reason: event.reason ?? 'done',
+            threadId,
+          });
+        } catch (error) {
+          console.error(
+            'Group-member bridge: failed to complete bridge for parent %s: %O',
+            parentOperationId,
+            error,
+          );
+        }
+      },
+      id: 'group-member-bridge',
+      type: 'onComplete' as const,
+      webhook: {
+        body: {
+          anchorMessageId,
+          expectedMembers,
+          groupToolMessageId,
+          mode,
+          onComplete,
+          parentOperationId,
+          threadId,
+        },
+        delivery: 'qstash' as const,
+        eventFields: ['operationId', 'reason', 'status'],
+        fallback: 'none' as const,
+        url: '/api/agent/webhooks/group-member-callback',
       },
     };
   }
