@@ -37,6 +37,7 @@ import { briefRouter } from './brief';
 import { changelogRouter } from './changelog';
 import { chunkRouter } from './chunk';
 import { comfyuiRouter } from './comfyui';
+import { composioRouter } from './composio';
 import { configRouter } from './config';
 import { connectorRouter } from './connector';
 import { deviceRouter } from './device';
@@ -50,7 +51,6 @@ import { generationTopicRouter } from './generationTopic';
 import { homeRouter } from './home';
 import { imageRouter } from './image';
 import { importerRouter } from './importer';
-import { klavisRouter } from './klavis';
 import { knowledgeRouter } from './knowledge';
 import { knowledgeBaseRouter } from './knowledgeBase';
 import { llmGenerationTracingRouter } from './llmGenerationTracing';
@@ -115,7 +115,8 @@ export const lambdaRouter = router({
   home: homeRouter,
   image: imageRouter,
   importer: importerRouter,
-  klavis: klavisRouter,
+  composio: composioRouter,
+
   knowledge: knowledgeRouter,
   knowledgeBase: knowledgeBaseRouter,
   llmGenerationTracing: llmGenerationTracingRouter,
