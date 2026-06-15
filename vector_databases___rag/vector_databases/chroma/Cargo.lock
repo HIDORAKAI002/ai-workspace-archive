@@ -3652,9 +3652,11 @@ dependencies = [
 name = "foundation-api"
 version = "1.0.0"
 dependencies = [
+ "async-stream",
  "async-trait",
  "axum 0.8.8",
  "chroma",
+ "chroma-agent",
  "chroma-api-types",
  "chroma-config",
  "chroma-error",
@@ -3664,11 +3666,13 @@ dependencies = [
  "chroma-types",
  "figment",
  "frontend-core",
+ "futures",
  "httpmock",
  "mdac",
  "opentelemetry",
  "regex",
  "reqwest 0.13.2",
+ "schemars",
  "serde",
  "serde_json",
  "thiserror 1.0.69",

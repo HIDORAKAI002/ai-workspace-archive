@@ -8,12 +8,15 @@ name = "foundation_service"
 path = "src/bin/foundation_service.rs"
 
 [dependencies]
+async-stream = { workspace = true }
 async-trait = { workspace = true }
 axum = { workspace = true }
 figment = { workspace = true }
+futures = { workspace = true }
 opentelemetry = { workspace = true }
 regex = { workspace = true }
-reqwest = { workspace = true }
+reqwest = { workspace = true, features = ["json", "stream"] }
+schemars = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
@@ -26,6 +29,7 @@ uuid = { workspace = true }
 validator = { workspace = true }
 
 chroma = { workspace = true }
+chroma-agent = { workspace = true }
 chroma-api-types = { workspace = true }
 chroma-config = { workspace = true }
 chroma-error = { workspace = true, features = ["validator", "http"] }
