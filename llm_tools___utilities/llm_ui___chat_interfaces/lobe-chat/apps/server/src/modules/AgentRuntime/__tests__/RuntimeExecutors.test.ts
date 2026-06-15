@@ -76,11 +76,11 @@ vi.mock('model-bank', () => ({
   LOBE_DEFAULT_MODEL_LIST: mockBuiltinModels,
 }));
 
-// klavisEnv uses @t3-oss/env-nextjs which throws in jsdom (treats it as client context)
-vi.mock('@/config/klavis', () => ({
-  getKlavisConfig: vi.fn(),
-  getServerKlavisApiKey: vi.fn().mockReturnValue(undefined),
-  klavisEnv: { KLAVIS_API_KEY: undefined },
+// composioEnv uses @t3-oss/env-nextjs which throws in jsdom (treats it as client context)
+vi.mock('@/config/composio', () => ({
+  getComposioConfig: vi.fn(),
+  getServerComposioApiKey: vi.fn().mockReturnValue(undefined),
+  composioEnv: { COMPOSIO_API_KEY: undefined },
 }));
 
 // fileEnv uses @t3-oss/env-core; stub the only field the runtime reads so the

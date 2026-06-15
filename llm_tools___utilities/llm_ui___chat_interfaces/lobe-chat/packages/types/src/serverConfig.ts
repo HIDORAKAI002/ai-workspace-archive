@@ -62,6 +62,7 @@ export interface GlobalServerConfig {
   defaultAgent?: PartialDeep<UserDefaultAgent>;
   disableEmailPassword?: boolean;
   enableBusinessFeatures?: boolean;
+  enableComposio?: boolean;
   /**
    * @deprecated
    */
@@ -71,7 +72,6 @@ export interface GlobalServerConfig {
    * Whether Gateway mode is available for app-level agent execution.
    */
   enableGatewayMode?: boolean;
-  enableKlavis?: boolean;
   enableLobehubSkill?: boolean;
   enableMagicLink?: boolean;
   enableMarketTrustedClient?: boolean;

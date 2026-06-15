@@ -12,7 +12,7 @@ import {
 
 import { type ToolStoreState } from '../../initialState';
 import { agentSkillsSelectors } from '../agentSkills/selectors';
-import { KlavisServerStatus } from '../klavisStore';
+import { ComposioServerStatus } from '../composioStore';
 
 export interface LobeToolMetaWithAvailability extends LobeToolMeta {
   /**
@@ -52,25 +52,24 @@ const toSkillMetaWithAvailability = (s: BuiltinSkill): LobeToolMetaWithAvailabil
   availableInWeb: isBuiltinSkillAvailableInCurrentEnv(s.identifier),
 });
 
-const getKlavisMetas = (s: ToolStoreState): LobeToolMeta[] =>
-  (s.servers || [])
-    .filter((server) => server.status === KlavisServerStatus.CONNECTED && server.tools?.length)
+const getComposioMetas = (s: ToolStoreState): LobeToolMeta[] =>
+  (s.composioServers || [])
+    .filter((server) => server.status === ComposioServerStatus.ACTIVE && server.tools?.length)
     .map((server) => ({
-      author: 'Klavis',
+      author: 'Composio',
       // Use identifier as storage identifier (e.g., 'google-calendar')
       identifier: server.identifier,
       meta: {
         avatar: '☁️',
-        description: `LobeHub Mcp Server: ${server.serverName}`,
-        tags: ['klavis', 'mcp'],
-        // title still uses serverName to display friendly name
-        title: server.serverName,
+        description: `LobeHub Mcp Server: ${server.label}`,
+        tags: ['composio', 'mcp'],
+        title: server.label,
       },
       type: 'builtin' as const,
     }));
 
-const getKlavisMetasWithAvailability = (s: ToolStoreState): LobeToolMetaWithAvailability[] =>
-  getKlavisMetas(s).map((meta) => ({ ...meta, availableInWeb: true }));
+const getComposioMetasWithAvailability = (s: ToolStoreState): LobeToolMetaWithAvailability[] =>
+  getComposioMetas(s).map((meta) => ({ ...meta, availableInWeb: true }));
 
 // Set form for O(1) lookup inside the filter loop.
 const RUNTIME_MANAGED_TOOL_IDS = new Set(runtimeManagedToolIds);
@@ -129,7 +128,7 @@ const buildVisibleMetaList = (
     .map(toSkillMeta);
   const agentSkillMetas = agentSkillsSelectors.agentSkillMetaList(s);
 
-  return [...skillMetas, ...agentSkillMetas, ...builtinMetas, ...getKlavisMetas(s)];
+  return [...skillMetas, ...agentSkillMetas, ...builtinMetas, ...getComposioMetas(s)];
 };
 
 /**
@@ -180,7 +179,7 @@ const allMetaList = (s: ToolStoreState): LobeToolMetaWithAvailability[] => {
     .agentSkillMetaList(s)
     .map((meta) => ({ ...meta, availableInWeb: true }));
 
-  return [...skillMetas, ...agentSkillMetas, ...builtinMetas, ...getKlavisMetasWithAvailability(s)];
+  return [...skillMetas, ...agentSkillMetas, ...builtinMetas, ...getComposioMetasWithAvailability(s)];
 };
 
 /**
@@ -210,7 +209,7 @@ const discoverableMetaList = (s: ToolStoreState): LobeToolMeta[] => {
     })
     .map(toBuiltinMeta);
 
-  return [...skillMetas, ...agentSkillMetas, ...builtinMetas, ...getKlavisMetas(s)];
+  return [...skillMetas, ...agentSkillMetas, ...builtinMetas, ...getComposioMetas(s)];
 };
 
 /**
@@ -229,7 +228,7 @@ const installedAllMetaList = (s: ToolStoreState): LobeToolMetaWithAvailability[]
     })
     .map(toBuiltinMetaWithAvailability);
 
-  return [...builtinMetas, ...getKlavisMetasWithAvailability(s)];
+  return [...builtinMetas, ...getComposioMetasWithAvailability(s)];
 };
 
 const MANUAL_MODE_EXCLUDE_TOOL_IDS = new Set(manualModeExcludeToolIds);

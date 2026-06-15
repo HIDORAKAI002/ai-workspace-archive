@@ -155,6 +155,48 @@ describe('AgentSlice Actions', () => {
     });
   });
 
+  describe('useFetchAgentConfig', () => {
+    it('adopts the fetched agent as active when none is active yet', async () => {
+      vi.mocked(agentService.getAgentConfigById).mockResolvedValue({
+        id: 'agent-1',
+        title: 'Setup',
+      } as any);
+
+      const { result } = renderHook(() => useAgentStore(), { wrapper: withSWR });
+
+      renderHook(() => result.current.useFetchAgentConfig(true, 'agent-1'), { wrapper: withSWR });
+
+      await waitFor(() => {
+        expect(result.current.agentMap['agent-1']).toMatchObject({ id: 'agent-1', title: 'Setup' });
+      });
+      expect(result.current.activeAgentId).toBe('agent-1');
+    });
+
+    it('does not hijack activeAgentId when another agent is already active', async () => {
+      // The active agent is owned by the route-level sync; simulate the routed agent.
+      useAgentStore.setState({ activeAgentId: 'routed-agent' });
+
+      vi.mocked(agentService.getAgentConfigById).mockResolvedValue({
+        id: 'inbox-agent',
+        title: 'Lobe AI',
+      } as any);
+
+      const { result } = renderHook(() => useAgentStore(), { wrapper: withSWR });
+
+      // A background / secondary config fetch for a different agent (e.g. the
+      // inbox config requested by the home input or another open tab).
+      renderHook(() => result.current.useFetchAgentConfig(true, 'inbox-agent'), {
+        wrapper: withSWR,
+      });
+
+      await waitFor(() => {
+        expect(result.current.agentMap['inbox-agent']).toMatchObject({ id: 'inbox-agent' });
+      });
+      // The background fetch only populates agentMap; it must not steal the active agent.
+      expect(result.current.activeAgentId).toBe('routed-agent');
+    });
+  });
+
   describe('invalidateAvailableAgents', () => {
     it('should clear cached available agents', () => {
       const { result } = renderHook(() => useAgentStore());

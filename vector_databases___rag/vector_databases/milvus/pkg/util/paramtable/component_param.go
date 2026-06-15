@@ -2064,6 +2064,7 @@ type proxyConfig struct {
 	GinLogSkipPaths                   ParamItem `refreshable:"false"`
 	MaxUserNum                        ParamItem `refreshable:"true"`
 	MaxRoleNum                        ParamItem `refreshable:"true"`
+	MaxRoleDescriptionLength          ParamItem `refreshable:"true"`
 	NameValidationAllowedChars        ParamItem `refreshable:"true"`
 	RoleNameValidationAllowedChars    ParamItem `refreshable:"true"`
 	MaxTaskNum                        ParamItem `refreshable:"false"`
@@ -2086,6 +2087,7 @@ type proxyConfig struct {
 	ResolveAliasForPrivilege          ParamItem `refreshable:"true"`
 	MaxVarCharLength                  ParamItem `refreshable:"false"`
 	MaxTextLength                     ParamItem `refreshable:"false"`
+	MaxArrayCapacity                  ParamItem `refreshable:"true"`
 	MaxIndexParamsSize                ParamItem `refreshable:"true"`
 	MaxResultEntries                  ParamItem `refreshable:"true"`
 	EnableCachedServiceProvider       ParamItem `refreshable:"true"`
@@ -2304,6 +2306,16 @@ please adjust in embedded Milvus: false`,
 		PanicIfEmpty: true,
 	}
 	p.MaxRoleNum.Init(base.mgr)
+
+	p.MaxRoleDescriptionLength = ParamItem{
+		Key:          "proxy.maxRoleDescriptionLength",
+		DefaultValue: "1024",
+		Version:      "3.0.0",
+		PanicIfEmpty: true,
+		Doc:          "Maximum role description length in bytes.",
+		Export:       true,
+	}
+	p.MaxRoleDescriptionLength.Init(base.mgr)
 
 	p.NameValidationAllowedChars = ParamItem{
 		Key:          "proxy.nameValidation.allowedChars",
@@ -2572,6 +2584,22 @@ please adjust in embedded Milvus: false`,
 		Doc:          "maximum number of characters for a row of the text field",
 	}
 	p.MaxTextLength.Init(base.mgr)
+
+	p.MaxArrayCapacity = ParamItem{
+		Key:          "proxy.maxArrayCapacity",
+		Version:      "2.6.19",
+		DefaultValue: "4096",
+		PanicIfEmpty: true,
+		Doc:          "maximum number of elements in an array field for a single row",
+		Export:       true,
+		Formatter: func(v string) string {
+			if getAsInt64(v) <= 0 {
+				return "4096"
+			}
+			return v
+		},
+	}
+	p.MaxArrayCapacity.Init(base.mgr)
 
 	p.MaxIndexParamsSize = ParamItem{
 		Key:          "proxy.maxIndexParamsSize",

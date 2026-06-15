@@ -14,7 +14,7 @@
   </a>
 <br/>
   <p align="center">
-	<a href="https://docs.mindsdb.com">Documentation</a>
+	<a href="https://docs.mindshub.ai/">Documentation</a>
     ·
     <a href="https://mindshub.ai">Try it</a>
     ·

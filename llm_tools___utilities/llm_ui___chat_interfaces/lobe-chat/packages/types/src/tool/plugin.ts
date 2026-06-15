@@ -13,19 +13,18 @@ export interface CustomPluginMetadata {
 export interface CustomPluginParams {
   apiMode?: 'openapi' | 'simple';
   avatar?: string;
+  /**
+   * Composio integration parameters
+   */
+  composio?: {
+    appSlug: string;
+    authConfigId: string;
+    connectedAccountId: string;
+    redirectUrl?: string;
+    status: string;
+  };
   description?: string;
   enableSettings?: boolean;
-  /**
-   * Klavis integration parameters
-   */
-  klavis?: {
-    instanceId: string;
-    isAuthenticated: boolean;
-    oauthUrl?: string;
-    serverName: string;
-    serverUrl: string;
-  };
-
   manifestMode?: 'local' | 'url';
   manifestUrl?: string;
   /**
