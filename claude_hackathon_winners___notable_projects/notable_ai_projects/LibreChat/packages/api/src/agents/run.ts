@@ -2,6 +2,7 @@ import { logger } from '@librechat/data-schemas';
 import { Run, Providers, Constants } from '@librechat/agents';
 import {
   KnownEndpoints,
+  EModelEndpoint,
   MAX_SUBAGENT_DEPTH,
   MAX_SUBAGENT_RUN_CONFIGS,
   extractEnvVariable,
@@ -33,9 +34,12 @@ import type { BaseMessage } from '@librechat/agents/langchain/messages';
 import type { AppConfig, IUser } from '@librechat/data-schemas';
 import type { SubagentUsageEvent } from '~/agents/usage';
 import type * as t from '~/types';
+import { getLLMConfig as getAnthropicLLMConfig } from '~/endpoints/anthropic/llm';
 import { getProviderConfig } from '~/endpoints/config/providers';
+import { extractDefaultParams } from '~/endpoints/openai/llm';
 import { resolveHeaders, createSafeUser } from '~/utils/env';
 import { getOpenAIConfig } from '~/endpoints/openai/config';
+import { resolveConfigHeaders } from '~/utils/headers';
 import { applyTestRunHook } from '~/agents/testHook';
 import { isUserProvided } from '~/utils/common';
 
@@ -456,6 +460,37 @@ function resolveSummarizationProvider(
             body: headerContext.requestBody,
           })
         : undefined;
+    /**
+     * Native Anthropic custom endpoints must build their config with the
+     * Anthropic client (`/v1/messages`), not `getOpenAIConfig` (which would emit
+     * OpenAI-shaped requests). The self-summarize case is handled earlier by
+     * `isSameEndpointAsAgent`; this covers summarizing against a *different*
+     * Anthropic-native custom endpoint.
+     */
+    if (customEndpointConfig.provider === EModelEndpoint.anthropic) {
+      const { llmConfig } = getAnthropicLLMConfig(apiKey, {
+        modelOptions: {},
+        proxy: process.env.PROXY ?? undefined,
+        reverseProxyUrl: baseURL,
+        headers: resolvedHeaders,
+        addParams: customEndpointConfig.addParams,
+        dropParams: customEndpointConfig.dropParams,
+        defaultParams: extractDefaultParams(customEndpointConfig.customParams?.paramDefinitions),
+      });
+      const { apiKey: resolvedApiKey, ...llmConfigOverrides } = llmConfig as Record<
+        string,
+        unknown
+      >;
+      const clientOverrides: SummarizationClientOverrides = { ...llmConfigOverrides };
+      if (typeof resolvedApiKey === 'string') {
+        clientOverrides.apiKey = resolvedApiKey;
+      }
+      /** Strip the default model so the user-supplied `summarization.model` wins. */
+      delete clientOverrides.model;
+      delete clientOverrides.modelName;
+      return { provider: Providers.ANTHROPIC, clientOverrides };
+    }
+
     /**
      * Run the endpoint config through `getOpenAIConfig` so summarization
      * inherits the same `headers`, `defaultQuery`, `addParams`/`dropParams`,
@@ -887,18 +922,17 @@ export async function createRun({
       .trim();
 
     /**
-     * Resolve request-based headers for Custom Endpoints. Note: if this is added to
-     *  non-custom endpoints, needs consideration of varying provider header configs.
-     *  This is done at this step because the request body may contain dynamic values
-     *  that need to be resolved after agent initialization.
+     * Resolve request-based headers across provider-specific header locations
+     * (OpenAI `configuration.defaultHeaders`, Anthropic `clientOptions.defaultHeaders`,
+     * Google `customHeaders`). Done at this step because the request body may
+     * contain dynamic values (e.g. conversationId) that are only known after
+     * agent initialization.
      */
-    if (llmConfig?.configuration?.defaultHeaders != null) {
-      llmConfig.configuration.defaultHeaders = resolveHeaders({
-        headers: llmConfig.configuration.defaultHeaders as Record<string, string>,
-        user: createSafeUser(user),
-        body: requestBody,
-      });
-    }
+    resolveConfigHeaders({
+      llmConfig,
+      user: createSafeUser(user),
+      body: requestBody,
+    });
 
     /** Resolves issues with new OpenAI usage field */
     if (

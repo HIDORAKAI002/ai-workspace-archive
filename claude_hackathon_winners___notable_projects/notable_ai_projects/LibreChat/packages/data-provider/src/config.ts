@@ -585,6 +585,15 @@ export const defaultAssistantsVersion = {
 export const baseEndpointSchema = z.object({
   streamRate: z.number().optional(),
   baseURL: z.string().optional(),
+  /**
+   * Custom request headers forwarded to the provider on every request. Values
+   * support the same placeholder resolution as custom endpoints — env vars
+   * (`${VAR}`), user fields (`{{LIBRECHAT_USER_*}}`), and request-body fields
+   * (`{{LIBRECHAT_BODY_CONVERSATIONID}}`). Primarily for routing built-in
+   * providers through an AI gateway / reverse proxy that consumes metadata
+   * headers (provider-native request shaping is preserved).
+   */
+  headers: z.record(z.string()).optional(),
   titlePrompt: z.string().optional(),
   titleModel: z.string().optional(),
   titleConvo: z.boolean().optional(),
@@ -832,6 +841,14 @@ export const endpointSchema = baseEndpointSchema.merge(
     }),
     iconURL: z.string().optional(),
     modelDisplayLabel: z.string().optional(),
+    /**
+     * Forces the endpoint to use a provider's native client / request format
+     * instead of the default OpenAI-compatible client. Currently supports
+     * `anthropic`, for endpoints that speak the Anthropic `/v1/messages` API
+     * (Anthropic itself or Anthropic-compatible gateways). Omit for
+     * OpenAI-compatible endpoints.
+     */
+    provider: z.literal(EModelEndpoint.anthropic).optional(),
     headers: z.record(z.string()).optional(),
     addParams: addParamsSchema.optional(),
     dropParams: z.array(z.string()).optional(),
