@@ -4,7 +4,7 @@ use reqwest::Response;
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 
-use crate::error::{FirecrawlAPIError, FirecrawlError};
+use crate::error::FirecrawlError;
 
 pub(crate) const API_VERSION: &str = "/v2";
 const CLOUD_API_URL: &str = "https://api.firecrawl.dev";
@@ -89,32 +89,9 @@ impl Client {
         let url = api_url.as_ref().trim_end_matches('/').to_string();
         let api_key = api_key.map(|k| k.as_ref().to_string());
 
-        // Reject empty or missing API key for cloud service
-        if url == CLOUD_API_URL {
-            match &api_key {
-                None => {
-                    return Err(FirecrawlError::APIError(
-                        "Configuration".to_string(),
-                        FirecrawlAPIError {
-                            success: false,
-                            error: "API key is required for cloud service".to_string(),
-                            details: None,
-                        },
-                    ));
-                }
-                Some(key) if key.trim().is_empty() => {
-                    return Err(FirecrawlError::APIError(
-                        "Configuration".to_string(),
-                        FirecrawlAPIError {
-                            success: false,
-                            error: "API key cannot be empty for cloud service".to_string(),
-                            details: None,
-                        },
-                    ));
-                }
-                _ => {}
-            }
-        }
+        // An empty/missing API key is allowed: scrape, search, and interact fall
+        // back to the keyless free tier (rate-limited per IP). Other methods
+        // return 401 from the API until a key is provided.
 
         Ok(Client {
             api_key,
@@ -134,10 +111,12 @@ impl Client {
         // Static string is always valid ASCII
         headers.insert("Content-Type", HeaderValue::from_static("application/json"));
         if let Some(api_key) = self.api_key.as_ref() {
-            // API key is validated at client creation, so this should always succeed.
-            // Use if-let to gracefully handle edge cases without panicking.
-            if let Ok(value) = format!("Bearer {}", api_key).parse() {
-                headers.insert("Authorization", value);
+            // Omit the Authorization header entirely when no key is set so that
+            // scrape/search/interact can use the keyless free tier.
+            if !api_key.trim().is_empty() {
+                if let Ok(value) = format!("Bearer {}", api_key).parse() {
+                    headers.insert("Authorization", value);
+                }
             }
         }
         if let Some(key) = idempotency_key {
