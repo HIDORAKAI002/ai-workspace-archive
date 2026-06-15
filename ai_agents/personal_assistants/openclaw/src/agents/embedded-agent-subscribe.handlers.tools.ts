@@ -35,6 +35,11 @@ import type { PluginHookAfterToolCallEvent } from "../plugins/types.js";
 import { createLazyImportLoader } from "../shared/lazy-promise.js";
 import { truncateUtf16Safe } from "../utils.js";
 import { normalizeAcceptedSessionSpawnResult } from "./accepted-session-spawn.js";
+import {
+  consumeAdjustedParamsForToolCall,
+  consumePreExecutionBlockedToolCall,
+  consumeStructuredReplaySafeToolCall,
+} from "./agent-tools.before-tool-call.state.js";
 import { REQUIRED_PARAM_GROUPS, type RequiredParamGroup } from "./agent-tools.params.js";
 import type { ApplyPatchSummary } from "./apply-patch.js";
 import type { ExecToolDetails } from "./bash-tools.exec-types.js";
@@ -70,7 +75,6 @@ import { normalizeToolName } from "./tool-policy.js";
 
 type ExecApprovalReplyModule = typeof import("../infra/exec-approval-reply.js");
 type HookRunnerGlobalModule = typeof import("../plugins/hook-runner-global.js");
-type BeforeToolCallModule = typeof import("./agent-tools.before-tool-call.js");
 type ChannelToolProgress = {
   text: string;
 };
@@ -80,9 +84,6 @@ const execApprovalReplyModuleLoader = createLazyImportLoader<ExecApprovalReplyMo
 );
 const hookRunnerGlobalModuleLoader = createLazyImportLoader<HookRunnerGlobalModule>(
   () => import("../plugins/hook-runner-global.js"),
-);
-const beforeToolCallModuleLoader = createLazyImportLoader<BeforeToolCallModule>(
-  () => import("./agent-tools.before-tool-call.js"),
 );
 const LIVE_EXEC_OUTPUT_MAX_CHARS = 8000;
 const LIVE_EXEC_UPDATE_MIN_INTERVAL_MS = 250;
@@ -111,10 +112,6 @@ function loadExecApprovalReply(): Promise<ExecApprovalReplyModule> {
 
 function loadHookRunnerGlobal(): Promise<HookRunnerGlobalModule> {
   return hookRunnerGlobalModuleLoader.load();
-}
-
-function loadBeforeToolCall(): Promise<BeforeToolCallModule> {
-  return beforeToolCallModuleLoader.load();
 }
 
 function getRequiredParamGroupsForTool(
@@ -199,6 +196,7 @@ const TOOL_START_WARNING_RAW_PREVIEW_MAX_CHARS = TOOL_START_WARNING_PREVIEW_MAX_
 type ToolStartRecord = {
   startTime: number;
   args: unknown;
+  hasRepliedRef?: { value: boolean };
 };
 
 /** Track tool execution start data for after_tool_call hook. */
@@ -232,13 +230,17 @@ function buildToolCallSummary(
   toolName: string,
   args: unknown,
   meta: string | undefined,
-  replaySafe: boolean,
+  instanceReplaySafe: boolean,
+  structuredReplaySafe: boolean,
 ): ToolCallSummary {
   const mutation = buildToolMutationState(toolName, args, meta);
   return {
     meta,
-    replaySafe: replaySafe && !mutation.mutatingAction,
+    instanceReplaySafe,
     mutatingAction: mutation.mutatingAction,
+    replaySafe:
+      (instanceReplaySafe && !mutation.mutatingAction) ||
+      (structuredReplaySafe && mutation.replaySafe),
     actionFingerprint: mutation.actionFingerprint,
     fileTarget: mutation.fileTarget,
   };
@@ -554,6 +556,16 @@ function collectMessagingMediaUrlsFromRecord(record: Record<string, unknown>): s
   }
 
   return urls;
+}
+
+function readMessagingText(record: Record<string, unknown>): string | undefined {
+  for (const key of ["content", "message", "text", "body"]) {
+    const value = readStringValue(record[key]);
+    if (value) {
+      return value;
+    }
+  }
+  return undefined;
 }
 
 function collectMessagingMediaUrlsFromToolResult(result: unknown): string[] {
@@ -928,7 +940,13 @@ export function handleToolExecutionStart(
 
     // Track start time and args for after_tool_call hook.
     const startedAt = Date.now();
-    toolStartData.set(buildToolStartKey(runId, toolCallId), { startTime: startedAt, args });
+    toolStartData.set(buildToolStartKey(runId, toolCallId), {
+      startTime: startedAt,
+      args,
+      ...(ctx.params.hasRepliedRef
+        ? { hasRepliedRef: { value: ctx.params.hasRepliedRef.value } }
+        : {}),
+    });
     traceToolExecutionStart({ ctx, toolName, toolCallId, args });
 
     if (toolName === "read") {
@@ -995,11 +1013,14 @@ export function handleToolExecutionStart(
         detailMode: ctx.params.toolProgressDetail ?? "explain",
       }),
     );
-    const replaySafe =
+    const instanceReplaySafe =
       evt.replaySafe === true ||
       ctx.params.replaySafeToolNames?.has(rawToolName) === true ||
       ctx.params.replaySafeToolNames?.has(toolName) === true;
-    ctx.state.toolMetaById.set(toolCallId, buildToolCallSummary(toolName, args, meta, replaySafe));
+    ctx.state.toolMetaById.set(
+      toolCallId,
+      buildToolCallSummary(toolName, args, meta, instanceReplaySafe, false),
+    );
     ctx.log.debug(
       `embedded run tool start: runId=${ctx.params.runId} tool=${toolName} toolCallId=${toolCallId}`,
     );
@@ -1097,9 +1118,8 @@ export function handleToolExecutionStart(
         if (sendTarget) {
           ctx.state.pendingMessagingTargets.set(toolCallId, sendTarget);
         }
-        // Field names vary by tool: Discord/Slack use "content", sessions_send uses "message"
-        const text = (argsRecord.content as string) ?? (argsRecord.message as string);
-        if (text && typeof text === "string") {
+        const text = readMessagingText(argsRecord);
+        if (text) {
           ctx.state.pendingMessagingTexts.set(toolCallId, text);
           ctx.log.debug(`Tracking pending messaging text: tool=${toolName} len=${text.length}`);
         }
@@ -1215,12 +1235,7 @@ export function handleToolExecutionUpdate(
 /** Handles a tool-execution result and commits replay, media, hook, and error state. */
 export async function handleToolExecutionEnd(
   ctx: ToolHandlerContext,
-  evt: AgentEvent & {
-    toolName: string;
-    toolCallId: string;
-    isError: boolean;
-    result?: unknown;
-  },
+  evt: Extract<AgentEvent, { type: "tool_execution_end" }>,
 ) {
   const rawToolName = evt.toolName;
   const toolName = normalizeToolName(rawToolName);
@@ -1251,15 +1266,37 @@ export async function handleToolExecutionEnd(
   const startData = toolStartData.get(toolStartKey);
   toolStartData.delete(toolStartKey);
   ctx.state.execLiveUpdateStateById?.delete(toolCallId);
-  const callSummary = ctx.state.toolMetaById.get(toolCallId);
-  const completedReplayUnsafeAction = !isToolError && callSummary?.replaySafe !== true;
-  const meta = callSummary?.meta;
+  const initialCallSummary = ctx.state.toolMetaById.get(toolCallId);
+  const initialArgs =
+    startData?.args && typeof startData.args === "object"
+      ? (startData.args as Record<string, unknown>)
+      : {};
+  const adjustedArgs = consumeAdjustedParamsForToolCall(toolCallId, runId);
+  const executionPrevented = consumePreExecutionBlockedToolCall(toolCallId, runId);
+  const structuredReplaySafe = consumeStructuredReplaySafeToolCall(toolCallId, runId);
+  const startArgs =
+    adjustedArgs && typeof adjustedArgs === "object"
+      ? (adjustedArgs as Record<string, unknown>)
+      : initialArgs;
+  const callSummary = buildToolCallSummary(
+    toolName,
+    startArgs,
+    initialCallSummary?.meta,
+    initialCallSummary?.instanceReplaySafe === true,
+    structuredReplaySafe,
+  );
+  // Older/custom event producers omit executionStarted. Treat omission as
+  // executed; only an explicit false can prove preparation stopped the call.
+  const executionStarted = evt.executionStarted !== false && !executionPrevented;
+  const attemptedMutatingAction = callSummary.mutatingAction && executionStarted;
+  const attemptedPotentialSideEffect = !callSummary.replaySafe && executionStarted;
+  const meta = callSummary.meta;
   const asyncStarted = !isToolError && isAsyncStartedToolResult(sanitizedResult);
   const asyncTaskIds = asyncStarted ? readAsyncStartedTaskIds(sanitizedResult) : {};
   ctx.state.toolMetas.push({
     toolName,
     meta,
-    replaySafe: callSummary?.replaySafe === true,
+    replaySafe: callSummary.replaySafe,
     ...(asyncStarted ? { asyncStarted: true, ...asyncTaskIds } : {}),
   });
   const acceptedSessionSpawn =
@@ -1281,9 +1318,9 @@ export async function handleToolExecutionEnd(
       error: errorMessage,
       timedOut: isToolResultTimedOut(sanitizedResult) || undefined,
       middlewareError: isMiddlewareToolResultError(sanitizedResult) || undefined,
-      mutatingAction: callSummary?.mutatingAction,
-      actionFingerprint: callSummary?.actionFingerprint,
-      fileTarget: callSummary?.fileTarget,
+      mutatingAction: attemptedMutatingAction,
+      actionFingerprint: attemptedMutatingAction ? callSummary.actionFingerprint : undefined,
+      fileTarget: attemptedMutatingAction ? callSummary.fileTarget : undefined,
     };
   } else if (ctx.state.lastToolError) {
     // Keep unresolved mutating failures until the same action succeeds.
@@ -1305,7 +1342,7 @@ export async function handleToolExecutionEnd(
   if (asyncStarted) {
     ctx.state.hadDeterministicSideEffect = true;
   }
-  if (completedReplayUnsafeAction || acceptedSessionSpawn || asyncStarted) {
+  if (attemptedPotentialSideEffect || acceptedSessionSpawn || asyncStarted) {
     ctx.state.replayState = mergeEmbeddedRunReplayState(ctx.state.replayState, {
       replayInvalid: true,
       hadPotentialSideEffects: true,
@@ -1313,43 +1350,46 @@ export async function handleToolExecutionEnd(
   }
 
   // Commit messaging tool evidence on success, discard on error.
-  const pendingText = ctx.state.pendingMessagingTexts.get(toolCallId);
-  const pendingTarget = ctx.state.pendingMessagingTargets.get(toolCallId);
-  const pendingMediaUrls = ctx.state.pendingMessagingMediaUrls.get(toolCallId) ?? [];
-  const startArgs =
-    startData?.args && typeof startData.args === "object"
-      ? (startData.args as Record<string, unknown>)
-      : {};
+  const messagingArgs = applyCurrentMessageProvider(toolName, startArgs, ctx.params.messageChannel);
   const isMessagingSend =
-    pendingMediaUrls.length > 0 ||
-    (isMessagingTool(toolName) && isMessagingToolSendAction(toolName, startArgs));
+    isMessagingTool(toolName) && isMessagingToolSendAction(toolName, startArgs);
+  const messageText = isMessagingSend ? readMessagingText(startArgs) : undefined;
+  const argumentMediaUrls = isMessagingSend ? collectMessagingMediaUrlsFromRecord(startArgs) : [];
+  const messageTarget = isMessagingSend
+    ? extractMessagingToolSend(toolName, messagingArgs, {
+        config: ctx.params.config,
+        currentChannelId: ctx.params.currentChannelId,
+        currentMessagingTarget: ctx.params.currentMessagingTarget,
+        currentThreadId:
+          ctx.params.currentThreadId ?? parseSessionThreadInfoFast(ctx.params.sessionKey).threadId,
+        currentMessageId: ctx.params.currentMessageId,
+        replyToMode: ctx.params.replyToMode,
+        hasRepliedRef: startData?.hasRepliedRef,
+      })
+    : undefined;
   const committedMediaUrls =
     !isToolError && isMessagingSend
-      ? [...pendingMediaUrls, ...collectMessagingMediaUrlsFromToolResult(result)]
+      ? [...argumentMediaUrls, ...collectMessagingMediaUrlsFromToolResult(result)]
       : [];
-  if (pendingText) {
-    ctx.state.pendingMessagingTexts.delete(toolCallId);
-    if (!isToolError) {
-      ctx.state.messagingToolSentTexts.push(pendingText);
-      ctx.state.messagingToolSentTextsNormalized.push(normalizeTextForComparison(pendingText));
-      ctx.log.debug(`Committed messaging text: tool=${toolName} len=${pendingText.length}`);
-      ctx.trimMessagingToolSent();
-    }
-  }
-  if (pendingTarget) {
-    ctx.state.pendingMessagingTargets.delete(toolCallId);
-    if (!isToolError) {
-      const extractionResult = applyToolSendReceiptForExtraction(result, toolSendReceiptResult);
-      const confirmedTarget = extractMessagingToolSendResult(pendingTarget, extractionResult);
-      ctx.state.messagingToolSentTargets.push({
-        ...confirmedTarget,
-        ...(pendingText ? { text: pendingText } : {}),
-        ...(committedMediaUrls.length > 0 ? { mediaUrls: committedMediaUrls.slice() } : {}),
-      });
-      ctx.trimMessagingToolSent();
-    }
-  }
+  ctx.state.pendingMessagingTexts.delete(toolCallId);
+  ctx.state.pendingMessagingTargets.delete(toolCallId);
   ctx.state.pendingMessagingMediaUrls.delete(toolCallId);
+  if (!isToolError && messageText) {
+    ctx.state.messagingToolSentTexts.push(messageText);
+    ctx.state.messagingToolSentTextsNormalized.push(normalizeTextForComparison(messageText));
+    ctx.log.debug(`Committed messaging text: tool=${toolName} len=${messageText.length}`);
+    ctx.trimMessagingToolSent();
+  }
+  if (!isToolError && messageTarget) {
+    const extractionResult = applyToolSendReceiptForExtraction(result, toolSendReceiptResult);
+    const confirmedTarget = extractMessagingToolSendResult(messageTarget, extractionResult);
+    ctx.state.messagingToolSentTargets.push({
+      ...confirmedTarget,
+      ...(messageText ? { text: messageText } : {}),
+      ...(committedMediaUrls.length > 0 ? { mediaUrls: committedMediaUrls.slice() } : {}),
+    });
+    ctx.trimMessagingToolSent();
+  }
   if (!isToolError && isMessagingSend) {
     if (committedMediaUrls.length > 0) {
       ctx.state.messagingToolSentMediaUrls.push(...committedMediaUrls);
@@ -1374,7 +1414,7 @@ export async function handleToolExecutionEnd(
   }
 
   // Track committed reminders only when cron.add completed successfully.
-  if (!isToolError && toolName === "cron" && isCronAddAction(startData?.args)) {
+  if (!isToolError && toolName === "cron" && isCronAddAction(startArgs)) {
     ctx.state.successfulCronAdds += 1;
   }
   if (!isToolError && toolName === HEARTBEAT_RESPONSE_TOOL_NAME) {
@@ -1629,16 +1669,10 @@ export async function handleToolExecutionEnd(
   // Run after_tool_call plugin hook (fire-and-forget)
   const hookRunnerAfter = ctx.hookRunner ?? (await loadHookRunnerGlobal()).getGlobalHookRunner();
   if (hookRunnerAfter?.hasHooks("after_tool_call")) {
-    const { consumeAdjustedParamsForToolCall } = await loadBeforeToolCall();
-    const adjustedArgs = consumeAdjustedParamsForToolCall(toolCallId, runId);
-    const afterToolCallArgs =
-      adjustedArgs && typeof adjustedArgs === "object"
-        ? (adjustedArgs as Record<string, unknown>)
-        : startArgs;
     const durationMs = startData?.startTime != null ? Date.now() - startData.startTime : undefined;
     const hookEvent: PluginHookAfterToolCallEvent = {
       toolName,
-      params: afterToolCallArgs,
+      params: startArgs,
       runId,
       toolCallId,
       result: sanitizedResult,
