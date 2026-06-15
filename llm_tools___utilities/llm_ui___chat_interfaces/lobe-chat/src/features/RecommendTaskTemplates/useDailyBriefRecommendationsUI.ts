@@ -7,6 +7,7 @@ import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import useSWR from 'swr';
 
+import { taskTemplateKeys } from '@/libs/swr/keys';
 import { taskTemplateService } from '@/services/taskTemplate';
 import { useBriefStore } from '@/store/brief';
 import { briefListSelectors } from '@/store/brief/selectors';
@@ -56,7 +57,7 @@ export function useDailyBriefRecommendationsUI(
 
   const { data, isLoading, mutate } = useSWR(
     swrEnabled
-      ? ['taskTemplate.listDailyRecommend', swrKey, refreshSeed, recommendationCount]
+      ? taskTemplateKeys.listDailyRecommend(swrKey, refreshSeed, recommendationCount)
       : null,
     async () =>
       taskTemplateService.listDailyRecommend(interestKeys ?? [], {
@@ -113,9 +114,9 @@ export function useDailyBriefRecommendationsUI(
     }
     return sources;
   }, [templates]);
-  const useFetchUserKlavisServers = useToolStore((s) => s.useFetchUserKlavisServers);
+  const useFetchUserComposioConnections = useToolStore((s) => s.useFetchUserComposioConnections);
   const useFetchLobehubSkillConnections = useToolStore((s) => s.useFetchLobehubSkillConnections);
-  useFetchUserKlavisServers(requiredSources.has('klavis'));
+  useFetchUserComposioConnections(requiredSources.has('composio'));
   useFetchLobehubSkillConnections(requiredSources.has('lobehub'));
 
   if (!swrEnabled) return { mode: 'hidden' };

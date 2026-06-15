@@ -299,7 +299,17 @@ export class AgentSliceActionImpl {
         onData: (data) => {
           if (!data) return;
           this.#get().internal_dispatchAgentMap(agentId, data);
-          this.#set({ activeAgentId: data.id }, false, 'fetchAgentConfig');
+          // Only adopt the fetched agent as the active one when nothing is
+          // active yet. The active agent is owned by the route-level sync
+          // (AgentIdSync on desktop/mobile, the popup pages' own setState).
+          // A background or secondary config fetch — e.g. the inbox config
+          // requested by the home input, a side-panel copilot, or another
+          // open tab — must NOT hijack `activeAgentId` away from the routed
+          // agent, which would otherwise flash the conversation header/welcome
+          // back to the inbox ("Lobe AI") agent.
+          if (!this.#get().activeAgentId) {
+            this.#set({ activeAgentId: data.id }, false, 'fetchAgentConfig');
+          }
           this.#clearAgentConfigError(agentId);
         },
         onError: (error) => {

@@ -3,6 +3,8 @@
 //! Response parsing is split into a pure [`parse_anthropic_response`] helper so
 //! it can be tested without network access.
 
+use std::str::FromStr;
+
 use async_trait::async_trait;
 use serde_json::{json, Value};
 
@@ -82,12 +84,38 @@ pub enum AnthropicModel {
 }
 
 impl AnthropicModel {
+    /// Every known model. Keep in sync with the enum variants; this backs
+    /// [`from_str`](Self::from_str) so parsing stays a single source of truth.
+    pub const ALL: [AnthropicModel; 2] = [AnthropicModel::Opus4_5, AnthropicModel::Sonnet4_5];
+
     /// The API model identifier sent on the wire.
     pub fn id(self) -> &'static str {
         match self {
             AnthropicModel::Opus4_5 => "claude-opus-4-5-20251101",
             AnthropicModel::Sonnet4_5 => "claude-sonnet-4-5-20250929",
         }
+    }
+}
+
+/// Error returned by [`AnthropicModel::from_str`] when a string names no known
+/// model.
+#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
+#[error("unknown Anthropic model: {0}")]
+pub struct UnknownAnthropicModel(pub String);
+
+impl FromStr for AnthropicModel {
+    type Err = UnknownAnthropicModel;
+
+    /// Resolves a model from its exact wire [`id`](Self::id),
+    /// case-insensitively. Only full snapshot ids are accepted; family
+    /// shorthands like `opus` are intentionally rejected because they are
+    /// ambiguous across snapshots.
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let s = s.trim();
+        Self::ALL
+            .into_iter()
+            .find(|model| model.id().eq_ignore_ascii_case(s))
+            .ok_or_else(|| UnknownAnthropicModel(s.to_string()))
     }
 }
 
@@ -142,6 +170,15 @@ impl AnthropicAgentInferenceModel {
         Ok(Self::new(api_key, model))
     }
 
+    /// Reuse a shared [`reqwest::Client`] instead of the per-instance one built
+    /// by [`new`](Self::new). Cloning a client shares its connection pool, so a
+    /// caller that builds a model per request can avoid spawning a fresh pool
+    /// each time.
+    pub fn with_client(mut self, client: reqwest::Client) -> Self {
+        self.client = client;
+        self
+    }
+
     /// Replace the request config (max tokens, temperature, thinking budget,
     /// betas).
     pub fn with_config(mut self, config: AnthropicRequestConfig) -> Self {
@@ -157,14 +194,22 @@ impl AnthropicAgentInferenceModel {
     }
 
     fn request_body(&self, ctx: &InferenceContext<'_>) -> Value {
-        json!({
+        let mut body = json!({
             "model": self.model.id(),
             "max_tokens": ctx.max_tokens.unwrap_or(self.config.max_tokens),
             "temperature": self.config.temperature,
             "thinking": { "type": "enabled", "budget_tokens": self.config.thinking_budget },
             "tools": ctx.toolset.get_formats(ProviderFormat::Anthropic),
             "messages": ctx.trajectory.to_provider_format(ProviderFormat::Anthropic),
-        })
+        });
+
+        // Anthropic takes the system prompt as a top-level field; omit it when
+        // unset rather than sending `null`.
+        if let Some(system) = &ctx.system {
+            body["system"] = json!(system);
+        }
+
+        body
     }
 }
 
@@ -284,6 +329,23 @@ mod tests {
     }
 
     #[test]
+    fn model_from_str_matches_wire_id_only() {
+        // Every variant's wire id round-trips back to the variant, ignoring
+        // surrounding whitespace and case.
+        for model in AnthropicModel::ALL {
+            assert_eq!(model.id().parse::<AnthropicModel>(), Ok(model));
+            assert_eq!(
+                format!("  {}  ", model.id().to_ascii_uppercase()).parse::<AnthropicModel>(),
+                Ok(model)
+            );
+        }
+        // Ambiguous family shorthands and unknown ids are rejected.
+        for s in ["opus", "opus-4.5", "sonnet", "haiku", ""] {
+            assert!(s.parse::<AnthropicModel>().is_err());
+        }
+    }
+
+    #[test]
     fn beta_header_value_renders_and_omits() {
         assert_eq!(
             AnthropicBetas::default().header_value().as_deref(),
@@ -299,6 +361,53 @@ mod tests {
             Some("interleaved-thinking-2025-05-14,interleaved-thinking-2025-05-14")
         );
         assert_eq!(AnthropicBetas(vec![]).header_value(), None);
+    }
+
+    #[test]
+    fn request_body_includes_system_only_when_set() {
+        let model = AnthropicAgentInferenceModel::new("test-key", AnthropicModel::Sonnet4_5);
+        let toolset = weather_toolset();
+        let trajectory = {
+            let mut builder = TrajectoryBuilder::new();
+            let mut obs = ObservationBuilder::new();
+            obs.push_user("hi");
+            builder.push_observation(obs.build());
+            builder.build()
+        };
+
+        let ctx = InferenceContext {
+            trajectory: trajectory.clone(),
+            toolset: &toolset,
+            max_tokens: None,
+            system: None,
+        };
+        assert!(model.request_body(&ctx).get("system").is_none());
+
+        let ctx = InferenceContext {
+            trajectory,
+            toolset: &toolset,
+            max_tokens: None,
+            system: Some("Be terse.".to_string()),
+        };
+        assert_eq!(model.request_body(&ctx)["system"], json!("Be terse."));
+    }
+
+    #[test]
+    fn with_client_yields_a_usable_model() {
+        let shared = reqwest::Client::new();
+        let model = AnthropicAgentInferenceModel::new("test-key", AnthropicModel::Opus4_5)
+            .with_client(shared.clone());
+        let toolset = weather_toolset();
+        let ctx = InferenceContext {
+            trajectory: TrajectoryBuilder::new().build(),
+            toolset: &toolset,
+            max_tokens: None,
+            system: None,
+        };
+        assert_eq!(
+            model.request_body(&ctx)["model"],
+            json!("claude-opus-4-5-20251101")
+        );
     }
 
     #[test]
@@ -375,13 +484,20 @@ mod tests {
 
         let mut builder = TrajectoryBuilder::new();
         let mut prompt = ObservationBuilder::new();
-        prompt.push_user("What's the weather in Paris? Use the get_weather tool.");
+        prompt.push_user("What's the weather in Paris?");
         builder.push_observation(prompt.build());
 
+        // Exercise the system-prompt wire path end-to-end: steer tool use via
+        // the system prompt rather than the user turn.
         let ctx = InferenceContext {
             trajectory: builder.build(),
             toolset: &toolset,
             max_tokens: None,
+            system: Some(
+                "You are a weather assistant. Always call the get_weather tool to answer \
+                 weather questions."
+                    .to_string(),
+            ),
         };
 
         let action = model

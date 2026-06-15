@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-06-15 13:14 IST] Auto-Sync
+- **20 Repositories Updated:** Keboola MCP, Awesome ChatGPT Prompts, n8n, Dify, Windmill, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, jxnl/instructor, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, chroma-core/chroma, milvus-io/milvus, infiniflow/ragflow, mindsdb/mindsdb, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice
+
 ## [2026-06-15 06:18 IST] Auto-Sync
 - **13 Repositories Updated:** Activepieces, Trigger.dev, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langchain, ggml-org/llama.cpp, lobehub/lobe-chat, danny-avila/LibreChat, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, nousresearch/hermes-agent
 

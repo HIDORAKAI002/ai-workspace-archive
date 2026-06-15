@@ -1,5 +1,6 @@
 export * from './agentDocument';
 export * from './bot';
+export * from './composio';
 export * from './currency';
 export * from './desktop';
 export * from './desktopGlobalShortcuts';
@@ -9,7 +10,6 @@ export * from './empty';
 export * from './fetch';
 export * from './file';
 export * from './interests';
-export * from './klavis';
 export * from './layoutTokens';
 export * from './llmGenerationTracing';
 export * from './lobehubSkill';
