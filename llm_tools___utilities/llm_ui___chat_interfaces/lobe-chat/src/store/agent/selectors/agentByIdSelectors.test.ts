@@ -155,4 +155,37 @@ describe('agentByIdSelectors', () => {
       );
     });
   });
+
+  describe('getAgentConfigErrorById', () => {
+    it('returns the recorded error for the agent', () => {
+      const state = createState({ agentConfigErrorMap: { 'agent-1': 'boom' } });
+
+      expect(agentByIdSelectors.getAgentConfigErrorById('agent-1')(state)).toBe('boom');
+    });
+
+    it('returns undefined for another agent or an empty id', () => {
+      const state = createState({ agentConfigErrorMap: { 'agent-1': 'boom' } });
+
+      expect(agentByIdSelectors.getAgentConfigErrorById('agent-2')(state)).toBeUndefined();
+      expect(agentByIdSelectors.getAgentConfigErrorById('')(state)).toBeUndefined();
+    });
+  });
+
+  describe('getAgentTTSVoiceById', () => {
+    it('returns the configured openai voice', () => {
+      const state = createState({
+        agentMap: {
+          'agent-1': { tts: { ttsService: 'openai', voice: { openai: 'nova' } } },
+        },
+      });
+
+      expect(agentByIdSelectors.getAgentTTSVoiceById('agent-1', 'en-US')(state)).toBe('nova');
+    });
+
+    it('falls back to a default voice when the agent config is missing', () => {
+      const state = createState({ agentMap: {} });
+
+      expect(agentByIdSelectors.getAgentTTSVoiceById('missing', 'en-US')(state)).toBeTruthy();
+    });
+  });
 });
