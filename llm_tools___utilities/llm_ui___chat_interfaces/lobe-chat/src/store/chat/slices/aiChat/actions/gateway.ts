@@ -23,7 +23,7 @@ import { settingsSelectors } from '@/store/user/selectors';
 import { createGatewayEventHandler } from './gatewayEventHandler';
 
 /**
- * When the agent runs against the local machine ("本机"), resolve this desktop's
+ * When the agent runs against the local machine, resolve this desktop's
  * own gateway deviceId so it can be passed as the run's `deviceId`. The server
  * then presets `activeDeviceId` and injects `lobe-local-system` into the very
  * first LLM payload — skipping the extra `activateDevice` round-trip the model

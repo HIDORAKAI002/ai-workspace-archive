@@ -99,6 +99,7 @@ import {
   toClientToolDefinitions,
   toToolDefinitions,
 } from "../../agent-tool-definition-adapter.js";
+import { recordStructuredReplayTrustForToolCall } from "../../agent-tools.before-tool-call.js";
 import {
   createOpenClawCodingTools,
   resolveProcessToolScopeKey,
@@ -1310,6 +1311,7 @@ export async function runEmbeddedAttempt(
             authProfileStore: params.authProfileStore,
             recordToolPrepStage: (name) => corePluginToolStages.mark(name),
             onToolOutcome: params.onToolOutcome,
+            allocateToolOutcomeOrdinal: params.allocateToolOutcomeOrdinal,
             skillsSnapshot: skillsSnapshotForRun,
             onYield: (message) => {
               yieldDetected = true;
@@ -1626,6 +1628,7 @@ export async function runEmbeddedAttempt(
         agentId: sessionAgentId,
       }),
       onToolOutcome: params.onToolOutcome,
+      allocateToolOutcomeOrdinal: params.allocateToolOutcomeOrdinal,
     };
     const codeModeTools = codeModeControlsEnabledForRun
       ? createCodeModeTools({
@@ -2199,6 +2202,7 @@ export async function runEmbeddedAttempt(
         provider: params.provider,
         modelId: params.modelId,
         model: params.model,
+        runId: params.runId,
       });
       const resourceLoader = createEmbeddedAgentResourceLoader({
         cwd: effectiveCwd,
@@ -2338,6 +2342,7 @@ export async function runEmbeddedAttempt(
               runId: params.runId,
               loopDetection: clientToolLoopDetection,
               onToolOutcome: params.onToolOutcome,
+              allocateToolOutcomeOrdinal: params.allocateToolOutcomeOrdinal,
             },
           )
         : [];
@@ -2410,7 +2415,9 @@ export async function runEmbeddedAttempt(
                   toolCall.name,
                 );
                 // Catalog entries already own before_tool_call wrapping.
-                const definition = tool ? toToolDefinitions([tool])[0] : undefined;
+                const definition = tool
+                  ? toToolDefinitions([tool], catalogToolHookContext)[0]
+                  : undefined;
                 const hydratedTool = definition ? wrapToolDefinition(definition) : undefined;
                 if (hydratedTool) {
                   log.info(`tool-search: hydrated deferred directory tool ${toolCall.name}`);
@@ -3452,7 +3459,10 @@ export async function runEmbeddedAttempt(
           onAssistantMessageStart: params.onAssistantMessageStart,
           onExecutionPhase: params.onExecutionPhase,
           onAgentEvent: params.onAgentEvent,
-          terminalLifecyclePhase: params.deferTerminalLifecycleEnd ? "finishing" : "end",
+          terminalLifecyclePhase:
+            (params.deferTerminalLifecycle ?? params.deferTerminalLifecycleEnd)
+              ? "finishing"
+              : "end",
           isTerminalAborted: () => aborted,
           resolveTerminalStopReason: () =>
             isAgentRunRestartAbortReason(runAbortController.signal.reason)
@@ -3528,6 +3538,13 @@ export async function runEmbeddedAttempt(
       isCompactionInFlightForExternalSignal = () => activeSession.isCompacting;
       toolSearchCatalogExecutor = async (toolParams) => {
         try {
+          if (toolParams.source === "openclaw" && toolParams.sourceName === "core") {
+            recordStructuredReplayTrustForToolCall(
+              toolParams.toolCallId,
+              toolParams.tool as never,
+              params.runId,
+            );
+          }
           const result = await runToolLifecycle({
             toolName: toolParams.toolName,
             toolCallId: toolParams.toolCallId,
@@ -5241,7 +5258,9 @@ export async function runEmbeddedAttempt(
 
       const acceptedSessionSpawns = getAcceptedSessionSpawns();
       const observedReplayMetadata = buildAttemptReplayMetadata({
-        toolMetas: toolMetasNormalized,
+        // Structured start arguments already updated replayState for mutations and async work.
+        // Reclassifying by tool name would incorrectly mark read-only cron actions as unsafe.
+        toolMetas: [],
         didSendViaMessagingTool: didSendViaMessagingTool(),
         messagingToolSentTexts: getMessagingToolSentTexts(),
         messagingToolSentMediaUrls: getMessagingToolSentMediaUrls(),

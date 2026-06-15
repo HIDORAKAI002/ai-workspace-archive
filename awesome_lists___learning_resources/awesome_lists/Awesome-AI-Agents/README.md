@@ -95,6 +95,7 @@ Open-source Large Language Model (LLM) driven Multi-Agent that can automatically
 - [swarm-orchestrator](https://github.com/moonrunnerkc/swarm-orchestrator) - Contract-first multi-agent orchestrator that races persona candidates per typed obligation, verifies before commit, and logs every action in an append-only hash-chained ledger; deterministic offline default with optional Claude, Codex, Copilot, and local LLM (Ollama, llama.cpp, vLLM) providers. Ships with a GitHub Action. ![GitHub Repo stars](https://img.shields.io/github/stars/moonrunnerkc/swarm-orchestrator?style=social)
 - [OpenBusiness](https://github.com/wanikua/OpenBusiness) - Multi-agent pipeline that turns a company name + domain into an evidence-labeled business model report; runs JTBD, value proposition, GTM, unit economics, moat, canvas synthesis, and an assumption stress test, tagging every claim verified, inferred, or missing. Built on LangGraph; deterministic unit economics in Python. ![GitHub Repo stars](https://img.shields.io/github/stars/wanikua/OpenBusiness?style=social)
 - [NextRole](https://github.com/tam159/next-role) - A supervisor agent coordinates three sub-agents (hiring-recon, resume-tailor, interview-coach) to turn a CV and job description into a tailored resume, interview-prep doc, and day-of battlecard. ![GitHub Repo stars](https://img.shields.io/github/stars/tam159/next-role?style=social)
+- [OpenAcme](https://github.com/sandydasari/openacme) - Local-first AI workforce platform — named agents with roles, personas, tools, memory, and per-agent MCP servers that self-organize through task delegation. Any agent can assign work to another; the scheduler wakes coworkers when dependencies clear. ![GitHub Repo stars](https://img.shields.io/github/stars/sandydasari/openacme?style=social)
 
 ### Agent Society Simulation
 
@@ -116,6 +117,9 @@ Exploring endless possibilities with open-source agent social simulation.
 - [CoWorker Protocol](https://github.com/ZiwayZhao/agent-coworker) - P2P agent collaboration over XMTP with schema-based skill invocation, E2E encryption, and revocable trust. Agents share capabilities without exposing code. ![GitHub Repo stars](https://img.shields.io/github/stars/ZiwayZhao/agent-coworker?style=social)
 
 ### Tools
+
+- [Perseus](https://github.com/tcconnally/perseus) - Live workspace context engine for AI agents. Renders AGENTS.md at session start. Plug-in for Claude Code, Codex, Hermes.
+
 - [mem0](https://github.com/mem0ai/mem0) - Mem0 provides a smart, self-improving memory layer for Large Language Models, enabling personalized AI experiences across applications. ![GitHub Repo stars](https://img.shields.io/github/stars/mem0ai/mem0?style=social)
 - [Agent Brain](https://github.com/kaderosio/agent-brain) - 7-layer cognitive memory system for AI agents with perception gate, dream cycle, and predictive capabilities. Self-hostable via Docker. ![GitHub Repo stars](https://img.shields.io/github/stars/kaderosio/agent-brain?style=social)
 - [codex-profiles](https://github.com/Ducksss/codex-profiles) - Bash CLI for switching OpenAI Codex CLI/Desktop accounts with isolated `CODEX_HOME` profiles. ![GitHub Repo stars](https://img.shields.io/github/stars/Ducksss/codex-profiles?style=social)
@@ -228,6 +232,7 @@ Benchmarks to evaluate LLM-as-Agent across a variety of environments.
 - [open-operator-evals](https://github.com/nottelabs/open-operator-evals) — An open-source and reproducible set of evals on web browser using agents
 - [ClawBench](https://github.com/reacher-z/ClawBench) - Browser-agent benchmark of 153 everyday tasks on 144 live production websites across 15 categories; a submission-interception layer blocks the final write request for safe evaluation on real sites. ![GitHub Repo stars](https://img.shields.io/github/stars/reacher-z/ClawBench?style=social)
 - [Cross-Agent Review Queue 2026](https://huggingface.co/datasets/neogenesislab/cross-agent-review-queue-2026) - Open dataset of cross-agent collaboration review transcripts (Codex <-> Claude reviewer / architect / implementer handoffs) with structured fields for owner-goal restatement, review lens, and result code (NEW_SIGNAL / NO_NEW_SIGNAL); useful for multi-agent handoff and review-quality evaluation.
+- [Future AGI](https://github.com/future-agi/future-agi) - Open-source platform to simulate, evaluate, trace, guardrail, and optimize LLM and AI agent apps, with 70+ eval metrics and OpenTelemetry-native tracing across 50+ frameworks. ![GitHub Repo stars](https://img.shields.io/github/stars/future-agi/future-agi?style=social)
 
 
 ## Platforms/API
@@ -291,4 +296,5 @@ Able to connect LLM with the real world.
 - [awesome-ai-agents](https://github.com/slavakurilyak/awesome-ai-agents) - Awesome list of 100+ agentic AI resources
 - [Best-AI-Agents](https://github.com/SamurAIGPT/Best-AI-Agents) - A list of top AI agents
 - [ai-agent-roadmap](https://github.com/Yuan-ManX/ai-agent-roadmap) - Explore the latest AI Agent Framework!
+- [rag-architect](https://github.com/greynewell/rag-architect) - Hermes Agent profile and skill pack for designing production RAG agents, evaluation plans, observability specs, and implementation-ready issue templates. ![GitHub Repo stars](https://img.shields.io/github/stars/greynewell/rag-architect?style=social)
 - [Inspired projects by babyagi](https://github.com/yoheinakajima/babyagi/blob/main/docs/inspired-projects.md)
