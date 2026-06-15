@@ -10,9 +10,10 @@ import { PlusIcon } from 'lucide-react';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { contextSelectors, useConversationStore } from '@/features/Conversation/store';
 import { useMarketAuth } from '@/layout/AuthProvider/MarketAuth';
 import { useAgentStore } from '@/store/agent';
-import { agentSelectors } from '@/store/agent/selectors';
+import { agentByIdSelectors } from '@/store/agent/selectors';
 import { useToolStore } from '@/store/tool';
 import { type ComposioServer } from '@/store/tool/slices/composioStore';
 import { ComposioServerStatus, composioStoreSelectors } from '@/store/tool/slices/composioStore';
@@ -279,7 +280,8 @@ MarketToolAuthItem.displayName = 'MarketToolAuthItem';
 const ToolAuthAlert = memo(() => {
   const { t } = useTranslation('chat');
 
-  const plugins = useAgentStore(agentSelectors.currentAgentPlugins, isEqual);
+  const agentId = useConversationStore(contextSelectors.agentId);
+  const plugins = useAgentStore(agentByIdSelectors.getAgentPluginsById(agentId), isEqual);
   const composioServers = useToolStore(composioStoreSelectors.getServers, isEqual);
   const { isAuthenticated: isMarketAuthenticated } = useMarketAuth();
 

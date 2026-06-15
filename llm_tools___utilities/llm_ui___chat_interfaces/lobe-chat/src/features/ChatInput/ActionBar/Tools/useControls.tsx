@@ -82,6 +82,7 @@ interface SkillConfigureConfig {
 }
 
 type SkillMenuItem = NonNullable<ItemType> & {
+  extra?: ReactNode;
   popoverContent?: ReactNode;
   searchText?: string;
 };
@@ -478,7 +479,16 @@ export const useControls = ({ closeDropdown }: { closeDropdown?: () => void } = 
   }, []);
 
   const renderPolicyMenu = useCallback(
-    (id: string, deleteConfig?: SkillDeleteConfig, configureConfig?: SkillConfigureConfig) => {
+    (
+      id: string,
+      deleteConfig?: SkillDeleteConfig,
+      configureConfig?: SkillConfigureConfig,
+      // When true, hide the Pinned/Auto activation options and show only the
+      // configure/delete actions. Used for integrations that exist but aren't
+      // connected yet (pending auth / re-authorize), where activation is
+      // meaningless but the user still needs a way to remove the entry.
+      deleteOnly = false,
+    ) => {
       const mode: SkillPolicyMode = checkedSet.has(id) ? 'pinned' : 'auto';
       const renderCheck = (value: SkillPolicyMode) =>
         mode === value ? (
@@ -513,23 +523,27 @@ export const useControls = ({ closeDropdown }: { closeDropdown?: () => void } = 
           onClick={(event) => event.stopPropagation()}
           onContextMenu={(event) => event.stopPropagation()}
         >
-          {renderPolicyItem(
-            'pinned',
-            <Icon
-              className={cx(mode === 'pinned' ? styles.iconPinned : styles.iconDefault)}
-              icon={Pin}
-              size={15}
-            />,
+          {!deleteOnly &&
+            renderPolicyItem(
+              'pinned',
+              <Icon
+                className={cx(mode === 'pinned' ? styles.iconPinned : styles.iconDefault)}
+                icon={Pin}
+                size={15}
+              />,
+            )}
+          {!deleteOnly &&
+            renderPolicyItem(
+              'auto',
+              <Icon
+                className={cx(mode === 'auto' ? styles.iconAuto : styles.iconDefault)}
+                icon={Zap}
+                size={15}
+              />,
+            )}
+          {!deleteOnly && (configureConfig || deleteConfig) && (
+            <div className={cx(styles.deleteDivider)} />
           )}
-          {renderPolicyItem(
-            'auto',
-            <Icon
-              className={cx(mode === 'auto' ? styles.iconAuto : styles.iconDefault)}
-              icon={Zap}
-              size={15}
-            />,
-          )}
-          {(configureConfig || deleteConfig) && <div className={cx(styles.deleteDivider)} />}
           {configureConfig && (
             <button
               className={cx(styles.policyItem)}
@@ -803,13 +817,37 @@ export const useControls = ({ closeDropdown }: { closeDropdown?: () => void } = 
     [allLobehubSkillServers],
   );
 
-  // Composio server list items - only show installed or recommended
+  // Remove a Composio connection AND drop its identifier from the agent's
+  // plugins. `ComposioServerItem.handleConnect` optimistically adds the new
+  // server id to `plugins` before OAuth completes, so deleting the connection
+  // alone would leave an orphan id behind — which both keeps the row counted as
+  // pinned and makes a later reconnect's toggle flip the freshly-connected skill
+  // back off. `togglePlugin(id, false)` is a no-op when the id is absent.
+  const removeComposioServer = useCallback(
+    async (identifier: string) => {
+      await removeComposioConnection(identifier);
+      // Best-effort cleanup: dropping the optimistic plugin id must never break
+      // the delete itself, so swallow any failure here.
+      try {
+        await togglePlugin(identifier, false);
+      } catch (error) {
+        console.error('[Composio] Failed to unpin plugin after delete:', error);
+      }
+    },
+    [removeComposioConnection, togglePlugin],
+  );
+
+  // Composio server list items - show installed, recommended, or any id that
+  // still lingers in the agent's plugins (so an orphaned, never-authorized
+  // entry can be removed even when it isn't a recommended app).
   const composioServerItems = useMemo(
     () =>
       isComposioEnabledInEnv
         ? COMPOSIO_APP_TYPES.filter(
             (type) =>
-              installedComposioIds.has(type.identifier) || recommendedComposioIds.has(type.identifier),
+              installedComposioIds.has(type.identifier) ||
+              recommendedComposioIds.has(type.identifier) ||
+              checkedSet.has(type.identifier),
           ).map((type) => {
             const server = getServerByName(type.identifier);
             const icon = (
@@ -832,7 +870,7 @@ export const useControls = ({ closeDropdown }: { closeDropdown?: () => void } = 
                 badge: <Icon icon={McpIcon} size={12} />,
                 deleteConfig: {
                   displayName: type.label,
-                  onDelete: () => removeComposioConnection(server.identifier),
+                  onDelete: () => removeComposioServer(server.identifier),
                 },
                 extraTag: type.author === 'LobeHub' ? officialTag : undefined,
                 icon,
@@ -843,21 +881,60 @@ export const useControls = ({ closeDropdown }: { closeDropdown?: () => void } = 
               });
             }
 
+            const serverItem = (
+              <ComposioServerItem
+                agentId={agentId}
+                appSlug={type.appSlug}
+                identifier={type.identifier}
+                label={type.label}
+                server={server}
+              />
+            );
+
+            // Expose a delete-only menu (via the "..." button and right-click)
+            // whenever the entry is removable but not yet connected, while
+            // keeping the Connect/Re-authorize action. This covers two states:
+            //   - a server exists but isn't ACTIVE (pending auth / re-authorize)
+            //   - no server yet, but the id already lingers in the agent's
+            //     plugins (added optimistically, never authorized)
+            // so an accidental or failed authorization can always be cleaned up.
+            const removableId = server?.identifier ?? type.identifier;
+            if (server || checkedSet.has(type.identifier)) {
+              return {
+                extra: renderPolicyMenu(
+                  removableId,
+                  {
+                    displayName: type.label,
+                    onDelete: () => removeComposioServer(removableId),
+                  },
+                  undefined,
+                  true,
+                ),
+                icon,
+                key: removableId,
+                label: (
+                  <span
+                    onContextMenu={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      openSkillPolicyMenu(removableId);
+                    }}
+                  >
+                    {serverItem}
+                  </span>
+                ),
+                popoverContent,
+                searchText: `${type.label} ${removableId}`,
+              } as SkillMenuItem;
+            }
+
             return {
               icon,
               key: type.identifier,
-              label: (
-                <ComposioServerItem
-                  agentId={agentId}
-                  appSlug={type.appSlug}
-                  identifier={type.identifier}
-                  label={type.label}
-                  server={server}
-                />
-              ),
+              label: serverItem,
               popoverContent,
               searchText: type.label,
-            };
+            } as SkillMenuItem;
           })
         : [],
     [
@@ -868,7 +945,10 @@ export const useControls = ({ closeDropdown }: { closeDropdown?: () => void } = 
       t,
       createManagedSkillItem,
       getServerByName,
-      removeComposioConnection,
+      removeComposioServer,
+      renderPolicyMenu,
+      openSkillPolicyMenu,
+      checkedSet,
     ],
   );
 
@@ -1232,8 +1312,12 @@ export const useControls = ({ closeDropdown }: { closeDropdown?: () => void } = 
     });
   }, [lobehubSkillItems, composioServerItems, installedLobehubIds, installedComposioIds]);
 
-  // Distinguish community plugins and custom plugins
-  const communityPlugins = list.filter((item) => item.type !== 'customPlugin');
+  // Distinguish community plugins and custom plugins.
+  // Whitelist `type === 'plugin'` (matching /settings/skill) so connected
+  // integrations (Composio/LobeHub Skill gateway plugins with other sources like
+  // 'self'/'builtin') don't leak in here and duplicate the brand-icon items
+  // already rendered under the LobeHub group.
+  const communityPlugins = list.filter((item) => item.type === 'plugin');
   const customPlugins = list.filter((item) => item.type === 'customPlugin');
 
   // Function to map plugins to list items
@@ -1315,14 +1399,23 @@ export const useControls = ({ closeDropdown }: { closeDropdown?: () => void } = 
   ];
 
   const normalizedSearchKeyword = searchKeyword.trim().toLowerCase();
+  // Deduplicate by key: the same app can be sourced from more than one list
+  // (e.g. a Composio/LobeHub integration item plus an installed plugin sharing
+  // the same identifier), which would otherwise render the row twice. Keep the
+  // first occurrence so the richer integration item (LobeHub group, listed
+  // first) wins over a generic plugin duplicate.
+  const seenSkillKeys = new Set<string>();
   const allSkillItems = [
     ...lobehubGroupChildren,
     ...communityGroupChildren,
     ...customGroupChildren,
-  ].filter(
-    (item): item is SkillMenuItem =>
-      Boolean(item) && (item as { type?: string }).type !== 'divider',
-  );
+  ].filter((item): item is SkillMenuItem => {
+    if (!item || (item as { type?: string }).type === 'divider') return false;
+    const key = String(item.key);
+    if (seenSkillKeys.has(key)) return false;
+    seenSkillKeys.add(key);
+    return true;
+  });
   const filterBySearch = (items: SkillMenuItem[]) => {
     if (!normalizedSearchKeyword) return items;
 

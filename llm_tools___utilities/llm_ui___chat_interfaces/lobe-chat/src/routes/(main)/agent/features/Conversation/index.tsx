@@ -6,7 +6,7 @@ import DragUploadZone, { type DroppedFolder, useUploadFiles } from '@/components
 import Loading from '@/components/Loading/BrandTextLoading';
 import { insertLocalFolderMentions } from '@/features/ChatInput/InputEditor/insertLocalFolderMentions';
 import { useAgentStore } from '@/store/agent';
-import { agentChatConfigSelectors, agentSelectors } from '@/store/agent/selectors';
+import { agentByIdSelectors, chatConfigByIdSelectors } from '@/store/agent/selectors';
 import { useChatStore } from '@/store/chat';
 
 import ConversationArea from './ConversationArea';
@@ -19,10 +19,16 @@ const wrapperStyle: React.CSSProperties = {
 };
 
 const ChatConversation = memo(() => {
-  const model = useAgentStore(agentSelectors.currentAgentModel);
-  const provider = useAgentStore(agentSelectors.currentAgentModelProvider);
-  const isHeterogeneous = useAgentStore(agentSelectors.isCurrentAgentHeterogeneous);
-  const isLocalSystemEnabled = useAgentStore(agentChatConfigSelectors.isLocalSystemEnabled);
+  // ChatConversation sits above the ConversationProvider, so read the routed
+  // agent from the chat store (set by AgentIdSync, not the hijack-prone agent
+  // store) and feed it to the scoped `*ById` selectors.
+  const agentId = useChatStore((s) => s.activeAgentId) || '';
+  const model = useAgentStore(agentByIdSelectors.getAgentModelById(agentId));
+  const provider = useAgentStore(agentByIdSelectors.getAgentModelProviderById(agentId));
+  const isHeterogeneous = useAgentStore(agentByIdSelectors.isAgentHeterogeneousById(agentId));
+  const isLocalSystemEnabled = useAgentStore(
+    chatConfigByIdSelectors.isLocalSystemEnabledById(agentId),
+  );
 
   const { handleUploadFiles } = useUploadFiles({ model, provider });
 
