@@ -10,7 +10,12 @@ import { indexGetRecent5 } from "../db/rpc";
 import { parseMarkdown } from "../lib/html-to-markdown";
 import { htmlTransform } from "../scraper/scrapeURL/lib/removeUnwantedElements";
 import type { ScrapeOptions } from "../controllers/v2/types";
-import { generateSemanticHighlights } from "./highlight-model";
+import { generateHighlightsBatch } from "./highlight-model";
+import { selectHighlightIndices } from "./highlight-budget";
+import {
+  parseMarkdownToSentences,
+  assembleAnswer,
+} from "../lib/highlight-spans";
 import { config } from "../config";
 
 // How far back into the index we're willing to reach for highlight source text.
@@ -19,11 +24,15 @@ const HIGHLIGHTS_INDEX_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 /**
  * Whether the deployment has every dependency the highlights beta needs: the
  * index DB (to find cached content), the GCS index bucket (to fetch it), and the
- * highlight model endpoint (to score it). Missing any => silently skip.
+ * highlight model service URL + token (to score it). Missing any => silently
+ * skip.
  */
 export function highlightsEnvReady(): boolean {
   return (
-    useIndex && !!config.GCS_INDEX_BUCKET_NAME && !!config.HIGHLIGHT_MODEL_URL
+    useIndex &&
+    !!config.GCS_INDEX_BUCKET_NAME &&
+    !!config.HIGHLIGHT_MODEL_URL &&
+    !!config.HIGHLIGHT_MODEL_TOKEN
   );
 }
 
@@ -115,89 +124,96 @@ async function getIndexedMarkdownForURL(
   }
 }
 
-async function highlightOne(
-  url: string,
-  query: string,
-  logger: Logger,
-  apply: (highlights: string) => void,
-  counters: { indexHits: number; replaced: number },
-): Promise<void> {
-  const markdown = await getIndexedMarkdownForURL(url, logger);
-  if (!markdown) {
-    return;
-  }
-  counters.indexHits++;
-
-  const highlights = await generateSemanticHighlights(markdown, query, {
-    logger,
-  });
-  if (highlights && highlights.trim() !== "") {
-    apply(highlights);
-    counters.replaced++;
-  }
-}
-
 /**
- * For each search result, in parallel: look up the URL in our index (last 30
- * days), and if present, replace the provider snippet with query-relevant
- * highlights generated from the indexed content. Mutates `response` in place.
- * Results not in the index keep their original snippet.
+ * For each search result: look up the URL in our index (last 30 days), and if
+ * present, replace the provider snippet with query-relevant highlights generated
+ * from the indexed content. Index lookups run in parallel; each hit's markdown
+ * is split into the same candidate spans the highlight model was trained on
+ * (parseMarkdownToSentences), every hit is scored in a single batch call, and
+ * the selected span indices are reassembled with assembleAnswer (structure-aware
+ * — rebuilds tables/code). Mutates `response` in place. Results not in the index
+ * keep their original snippet.
  */
 export async function applySearchHighlights(
   response: SearchV2Response,
   query: string,
   logger: Logger,
 ): Promise<{ attempted: number; indexHits: number; replaced: number }> {
-  const counters = { indexHits: 0, replaced: 0 };
-  const tasks: Promise<void>[] = [];
   const start = Date.now();
 
-  // Web results carry the snippet in `description` — replace it in place.
+  // Collect every result we could highlight, each with a setter for its snippet
+  // field: web results carry it in `description`, news results in `snippet`.
+  const targets: { url: string; apply: (h: string) => void }[] = [];
   for (const result of response.web ?? []) {
     if (!result.url) continue;
-    tasks.push(
-      highlightOne(
-        result.url,
-        query,
-        logger,
-        h => {
-          result.description = h;
-        },
-        counters,
-      ),
-    );
+    targets.push({
+      url: result.url,
+      apply: h => {
+        result.description = h;
+      },
+    });
   }
-
-  // News results carry the snippet in `snippet` — replace it in place.
   for (const result of response.news ?? []) {
     if (!result.url) continue;
-    const url = result.url;
-    tasks.push(
-      highlightOne(
-        url,
-        query,
-        logger,
-        h => {
-          result.snippet = h;
-        },
-        counters,
-      ),
-    );
+    targets.push({
+      url: result.url,
+      apply: h => {
+        result.snippet = h;
+      },
+    });
   }
 
-  const attempted = tasks.length;
-  await Promise.all(tasks);
+  const attempted = targets.length;
+  if (attempted === 0) {
+    return { attempted, indexHits: 0, replaced: 0 };
+  }
+
+  // Look up indexed markdown for every URL in parallel, then split each hit into
+  // candidate spans. Keep the parsed sentences around so we can reassemble the
+  // model's selected indices back into structured markdown.
+  const markdowns = await Promise.all(
+    targets.map(t => getIndexedMarkdownForURL(t.url, logger)),
+  );
+  const hits: {
+    apply: (h: string) => void;
+    sentences: ReturnType<typeof parseMarkdownToSentences>;
+  }[] = [];
+  markdowns.forEach((markdown, i) => {
+    if (!markdown) return;
+    const sentences = parseMarkdownToSentences(markdown);
+    if (sentences.length === 0) return;
+    hits.push({ apply: targets[i].apply, sentences });
+  });
+  const indexHits = hits.length;
+
+  // Score every hit in one batch call (candidate spans as explicit `lines`),
+  // then for each page: budget the scored spans (neighbor + group policy) and
+  // reassemble the chosen indices into a snippet.
+  let replaced = 0;
+  if (indexHits > 0) {
+    const perPageSpans = await generateHighlightsBatch(
+      hits.map(h => ({ query, lines: h.sentences.map(s => s.text) })),
+      { logger },
+    );
+    perPageSpans.forEach((spans, i) => {
+      if (!spans || spans.length === 0) return;
+      const lineLengths = hits[i].sentences.map(s => s.text.length);
+      const indices = selectHighlightIndices(lineLengths, spans);
+      if (indices.length === 0) return;
+      const snippet = assembleAnswer(hits[i].sentences, indices);
+      if (snippet.trim() !== "") {
+        hits[i].apply(snippet);
+        replaced++;
+      }
+    });
+  }
 
   logger.info("Search highlights applied", {
     attempted,
-    indexHits: counters.indexHits,
-    replaced: counters.replaced,
+    indexHits,
+    replaced,
     timeTakenMs: Date.now() - start,
   });
 
-  return {
-    attempted,
-    indexHits: counters.indexHits,
-    replaced: counters.replaced,
-  };
+  return { attempted, indexHits, replaced };
 }

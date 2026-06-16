@@ -6,7 +6,35 @@
   <author><name>Anthropic</name></author>
   <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md"/>
   <link rel="self" type="application/atom+xml" href="https://raw.githubusercontent.com/anthropics/claude-code/main/feed.xml"/>
-  <updated>2026-06-12T21:53:21Z</updated>
+  <updated>2026-06-15T21:35:48Z</updated>
+  <entry>
+    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.178</id>
+    <title>Claude Code v2.1.178</title>
+    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.178"/>
+    <updated>2026-06-15T21:35:48Z</updated>
+    <content type="html">&lt;p&gt;• Added Tool(param:value) syntax for permission rules to match a tool's input parameters (with * wildcard), e.g. Agent(model:opus) to block Opus subagents&lt;/p&gt;
+&lt;p&gt;• Skills in nested .claude/skills directories now load when working on files there; on a name clash, the nested skill appears as &amp;lt;dir&amp;gt;:&amp;lt;name&amp;gt; so both stay available&lt;/p&gt;
+&lt;p&gt;• Nested .claude/ directories: the agent, workflow, and output-style closest to the working directory now wins when names collide; project-scope workflow saves now target the closest existing .claude/workflows/&lt;/p&gt;
+&lt;p&gt;• Improved auto mode: subagent spawns are now evaluated by the classifier before launch, closing a gap where a subagent could request a blocked action without review&lt;/p&gt;
+&lt;p&gt;• Improved /doctor with consistent flat tree layout across all sections, clearer section status icons, and highlighted command names&lt;/p&gt;
+&lt;p&gt;• Improved the skill listing truncation warning to show how many skill descriptions are affected&lt;/p&gt;
+&lt;p&gt;• Changed the workflow prompt keyword to use a purple shimmer highlight and trigger only on explicit phrases like "run a workflow" or "workflow:", not on any mention of the word&lt;/p&gt;
+&lt;p&gt;• Improved Remote Control error messages: connection failures now show a persistent red "/rc failed" indicator in the footer, and the "not yet enabled" error now explains whether it's a gate, a check failure, stale entitlement, or org policy&lt;/p&gt;
+&lt;p&gt;• /bug now requires a description before submitting, and no longer uses model-refusal text as the GitHub issue title&lt;/p&gt;
+&lt;p&gt;• Fixed a crash (out-of-memory) when the CLI inherits a stale websocket/OAuth file-descriptor environment variable from a parent process&lt;/p&gt;
+&lt;p&gt;• Fixed Claude in Chrome silently failing to connect when the OAuth token belongs to a different account than the Claude Code login&lt;/p&gt;
+&lt;p&gt;• Fixed nested .claude/skills skills with directory-qualified names being blocked by permission prompts in non-interactive runs&lt;/p&gt;
+&lt;p&gt;• Fixed several subagent issues: viewing a subagent's transcript now shows tool results and live progress, messages sent while it finishes its turn are no longer dropped, and backgrounding a running subagent (ctrl+b) no longer restarts it from scratch&lt;/p&gt;
+&lt;p&gt;• Fixed claude agents workers failing with 401 Invalid bearer token when the daemon was started from a shell with a custom API gateway via ANTHROPIC_BASE_URL and ANTHROPIC_AUTH_TOKEN&lt;/p&gt;
+&lt;p&gt;• Fixed compaction not honoring --fallback-model: compaction now falls back to the configured fallback model chain on overload or model-availability errors&lt;/p&gt;
+&lt;p&gt;• Fixed model requests continuing to fail with auth errors after credentials were refreshed outside the session, due to a stale cached request configuration&lt;/p&gt;
+&lt;p&gt;• Fixed background sessions created with /bg or ←← after a turn finished showing "Working" forever in the agents list&lt;/p&gt;
+&lt;p&gt;• Fixed CLAUDE_CODE_PLUGIN_KEEP_MARKETPLACE_ON_FAILURE=1 preventing fresh marketplace installs from cloning&lt;/p&gt;
+&lt;p&gt;• Fixed MCP server-level specs (mcp__server, mcp__server__*, mcp__*) in subagent disallowedTools being silently ignored&lt;/p&gt;
+&lt;p&gt;• Fixed vim mode undo: u now steps through NORMAL/VISUAL-mode commands one at a time instead of merging commands in quick succession into a single undo step&lt;/p&gt;
+&lt;p&gt;• Fixed statusline links with custom URI schemes (e.g. vscode://) not opening when clicked in claude agents&lt;/p&gt;
+&lt;p&gt;• [VSCode] Fixed pressing Esc to dismiss a CJK IME candidate window canceling the running Claude task&lt;/p&gt;</content>
+  </entry>
   <entry>
     <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.176</id>
     <title>Claude Code v2.1.176</title>
@@ -380,55 +408,5 @@
     <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.156"/>
     <updated>2026-05-29T01:42:17Z</updated>
     <content type="html">&lt;p&gt;• Fixed an issue when using Opus 4.8 where thinking blocks were modified, leading to API errors.&lt;/p&gt;</content>
-  </entry>
-  <entry>
-    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.154</id>
-    <title>Claude Code v2.1.154</title>
-    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.154"/>
-    <updated>2026-05-28T18:00:47Z</updated>
-    <content type="html">&lt;p&gt;• Opus 4.8 is here! Now defaults to high effort · /effort xhigh for your hardest tasks&lt;/p&gt;
-&lt;p&gt;• Introducing dynamic workflows: ask Claude to create a workflow and it orchestrates work across tens to hundreds of agents in the background, so you can take on larger, more complex tasks. Run /workflows to view your runs&lt;/p&gt;
-&lt;p&gt;• Fast mode on Opus 4.8 is now available at a fraction of its previous cost: 2x the standard rate for 2.5x the speed&lt;/p&gt;
-&lt;p&gt;• The lean system prompt is now the default for all models except Haiku, Sonnet, and Opus 4.7 and earlier&lt;/p&gt;
-&lt;p&gt;• Claude now reserves the multiple-choice question prompt for decisions it genuinely cannot make itself, instead of asking when it already has enough context to proceed&lt;/p&gt;
-&lt;p&gt;• /simplify now runs a cleanup-only review (reuse, simplification, efficiency, altitude) and applies the fixes, instead of running the full /code-review --fix bug-hunting review&lt;/p&gt;
-&lt;p&gt;• Renamed the /effort slider labels from "Speed"/"Intelligence" to "Faster"/"Smarter" for clarity&lt;/p&gt;
-&lt;p&gt;• claude agents: type ! &amp;lt;command&amp;gt; to run a shell command as a background session you can attach to and detach from. Also available as claude --bg --exec '&amp;lt;command&amp;gt;'&lt;/p&gt;
-&lt;p&gt;• claude agents: /logout now signs you out instead of being sent to a background session&lt;/p&gt;
-&lt;p&gt;• ←← to open the agents view now works on Bedrock, Vertex, Foundry, and with telemetry disabled&lt;/p&gt;
-&lt;p&gt;• Claude in Chrome: pick which connected browser to use via /chrome → "Select browser…", or in-chat when a browser action runs with multiple connected&lt;/p&gt;
-&lt;p&gt;• Plugins can now declare defaultEnabled: false in plugin.json or a marketplace entry; enable them with /plugin or claude plugin enable. Dependencies of enabled plugins are still enabled automatically&lt;/p&gt;
-&lt;p&gt;• The /plugin Discover tab now pins plugins whose relevance signals match the current directory with a "suggested for this directory" annotation&lt;/p&gt;
-&lt;p&gt;• Streaming tool execution is now always enabled, including when telemetry is disabled or on Bedrock/Vertex/Foundry (previously behind a feature flag)&lt;/p&gt;
-&lt;p&gt;• Stdio MCP server subprocesses now receive CLAUDE_CODE_SESSION_ID and CLAUDECODE=1 in their environment&lt;/p&gt;
-&lt;p&gt;• claude mcp list/get now show unapproved .mcp.json servers as ⏸ Pending approval instead of auto-approving and connecting when output is piped&lt;/p&gt;
-&lt;p&gt;• /remote-control autocomplete now shows "Disconnect Remote Control" when Remote Control is already active&lt;/p&gt;
-&lt;p&gt;• Added Claude Opus 4.8 support and 4.7 → 4.8 migration guidance to the /claude-api skill&lt;/p&gt;
-&lt;p&gt;• Deprecated CLAUDE_CODE_OPUS_4_6_FAST_MODE_OVERRIDE (will be removed on 06/01). To use fast mode on Opus 4.6, switch with /model claude-opus-4-6[1m] and then /fast on&lt;/p&gt;
-&lt;p&gt;• Improved the auto-mode classifier's detection of data exfiltration, particularly bulk transfers of repository contents&lt;/p&gt;
-&lt;p&gt;• Fixed rm -rf $HOME not being blocked as a dangerous path when HOME has a trailing slash&lt;/p&gt;
-&lt;p&gt;• Fixed $TMPDIR resolving to different directories in sandboxed vs unsandboxed Bash commands within the same session&lt;/p&gt;
-&lt;p&gt;• Fixed unreadable highlighted-row text in claude agents when the Claude Code theme doesn't match the terminal background&lt;/p&gt;
-&lt;p&gt;• Fixed background-agent completion notifications triggering premature "out of context" behavior on some 1M-context models&lt;/p&gt;
-&lt;p&gt;• Fixed background-session classifier losing the user's goal when a scheduled /command fires&lt;/p&gt;
-&lt;p&gt;• Fixed pinned background sessions respawning every minute after a Claude Code update, causing repeated agent-start notifications and process churn at idle&lt;/p&gt;
-&lt;p&gt;• Fixed background sessions stuck at "blocked", "running", or "working" not retiring after the idle grace period&lt;/p&gt;
-&lt;p&gt;• Fixed subagents in background sessions bypassing the worktree-isolation guard and writing to the shared checkout&lt;/p&gt;
-&lt;p&gt;• Fixed orphaned claude --bg-pty-host processes spinning at 100% CPU after the daemon exits on macOS&lt;/p&gt;
-&lt;p&gt;• Fixed number key shortcuts not working for options shown below the divider in option dialogs&lt;/p&gt;
-&lt;p&gt;• Fixed worktree.baseRef: "head" resolving to the main checkout's HEAD instead of the current worktree's HEAD when spawning subagents or calling EnterWorktree from inside a linked worktree&lt;/p&gt;
-&lt;p&gt;• Fixed a stray leading space on wrapped lines when the previous line ended exactly at the terminal width&lt;/p&gt;
-&lt;p&gt;• Fixed intermittent terminal rendering corruption in VS Code by capping the number of distinct colors the thinking spinner produces&lt;/p&gt;
-&lt;p&gt;• Fixed plan file names including [Image #N] / [Pasted text #N] placeholders when a plan-mode prompt starts with pasted images or text&lt;/p&gt;
-&lt;p&gt;• Fixed a phantom expand/click affordance on colored tool output: short ANSI-colored lines that fit on screen no longer show a "ctrl+o to expand" hint&lt;/p&gt;
-&lt;p&gt;• Fixed a single invalid allowedMcpServers/deniedMcpServers entry in managed settings discarding all managed-settings policy; the bad entry is now dropped with a claude doctor warning&lt;/p&gt;
-&lt;p&gt;• Fixed API 400 errors on models that don't support the effort parameter when CLAUDE_CODE_ALWAYS_ENABLE_EFFORT is set&lt;/p&gt;
-&lt;p&gt;• Windows: Fixed update failures caused by claude.exe being in use showing a generic error instead of telling you to close other sessions and retry&lt;/p&gt;
-&lt;p&gt;• Removed the stale "&amp;amp; for background" hint from the shortcuts help panel&lt;/p&gt;
-&lt;p&gt;• [VSCode] Auto mode no longer requires the bypass-permissions setting to appear in the mode picker, and a dismissable notice on the new-session screen explains auto mode the first time it's active&lt;/p&gt;
-&lt;p&gt;• Fixed the task panel below the prompt showing a stray unselectable "main" row when only a workflow is running&lt;/p&gt;
-&lt;p&gt;• Fixed /mcp tools list and tool detail rendering when MCP servers have long or multi-line tool names or long descriptions&lt;/p&gt;
-&lt;p&gt;• Fixed the /model picker not showing fast mode pricing on the Default option for API (pay-as-you-go) users when fast mode is on&lt;/p&gt;
-&lt;p&gt;• Fixed auto mode incorrectly blocking actions with "could not evaluate this action" when the safety classifier ran out of output tokens while reasoning&lt;/p&gt;</content>
   </entry>
 </feed>
