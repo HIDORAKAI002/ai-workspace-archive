@@ -1,50 +1,50 @@
-# Azure உள்ளடக்க பாதுகாப்புடன் மேம்பட்ட MCP பாதுகாப்பு
+# Azure உள்ளடக்க பாதுகாப்புடன் உயர் MCP பாதுகாப்பு
 
-> **OWASP MCP அபாயத்தை அணுகியது**: [MCP06 - Contextual Payloads மூலம் Prompt Injection](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)
+> **OWASP MCP ஆபத்து முகாமைத்துவம்**: [MCP06 - நோக்க வழி தள்ளுபடி](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)
 
-Azure உள்ளடக்க பாதுகாப்பு உங்கள் MCP செயல்பாடுகளின் பாதுகாப்பை மேம்படுத்த கூடிய பல சக்திவாய்ந்த கருவிகளை வழங்குகிறது. நேரடி செயல்பாட்டு அனுபவத்திற்காக, [MCP Security Summit வேலைமுறைப் பாடம் (Sherpa)](https://azure-samples.github.io/sherpa/) முகாம் 3: I/O பாதுகாப்பைப் பாருங்களேன்.
+Azure உள்ளடக்க பாதுகாப்பு உங்கள் MCP அமலாக்கங்களின் பாதுகாப்பை மேம்படுத்த பல சக்திவாய்ந்த கருவிகளை வழங்குகிறது. கையேடு நடைமுறை அனுபவத்திற்காக, [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/) முகாம் 3: I/O Security ஐப் பார்க்கவும்.
 
-## Prompt உடைப்பாணிகள்
+## ப்ராம்ட் பாதுகாப்புகள்
 
-Microsoft இன் AI Prompt உடைப்பாணிகள் நேரடி மற்றும் மறைமுக prompt injection தாக்குதல்களுக்குப் வலுவான பாதுகாப்பை வழங்குகின்றன:
+Microsoft இன் AI ப்ராம்ட் பாதுகாப்புகள் நேரடி மற்றும் மறைமுக ப்ராம்ட் இன்ஜெக்ஷன் தாக்குதல்களை எதிர்க்க வலுவான பாதுகாப்பை வழங்குகின்றன:
 
-1. **மேம்பட்ட கண்டறிதல்**: உள்ளடக்கத்தில் உள்ள தீனமான指令களை கண்டறிய மெஷின் லெர்னிங் பயன்படுத்துகிறது.
-2. **ஒளிபடுதல்**: AI அமைப்புக்கள் செல்லுபடியாகும்指令க்கும் வெளி இடுக்கிகளைக்குமான வேறுபாட்டை உதவுவதற்காக உள்ளீட்டு உரையை மாற்றுகிறது.
-3. **குறியீட்டானிகள் மற்றும் தரவுமுத்திரை**: நம்பகத்தக்க மற்றும் நம்பமுடாத தரவுகளுக்கிடையேயான எல்லைகளை குறிக்கிறது.
-4. **உள்ளடக்க பாதுகாப்பு ஒருங்கிணைப்பு**: Azure AI உள்ளடக்க பாதுகாப்புடன் இணைந்து jailbreak முயற்சிகள் மற்றும் தீங்கான உள்ளடக்கங்களை கண்டறிகிறது.
-5. **தொடர்ச்சியான மேம்படுத்தல்கள்**: Microsoft புதுப்பிக்கப்படும் ஆபத்துக்களை எதிர்கொள்ள பாதுகாப்பு முறைகளை தொடர்ச்சியாக மேம்படுத்துகிறது.
+1. **முன்னேற்ற கண்டறிதல்**: உள்ளடக்கத்தில் உள்ள தீங்கான அதளைகளை கண்டறிய இயந்திர கற்றலை பயன்படுத்துகிறது.
+2. **ஒளிபடக் காட்டுதல்**: உள்ளீடு உரையை மாற்றி AI அமைப்புக்கள் செல்லுபடியாகும் வழிமுறைகள் மற்றும் வெளிப்புற உள்ளீடுகளை வேறுபடுத்த உதவுகிறது.
+3. **அடைவுச் சின்னங்கள் மற்றும் தரவுக்குறியீடு**: நம்பகமான மற்றும் நம்பமுடியாத தரவுகளுக்கிடையேயான எல்லைகளை குறிக்கிறது.
+4. **உள்ளடக்க பாதுகாப்பு ஒருங்கிணைப்பு**: Azure AI Content Safety உடன் கூடி ஜெயில்பிரேக் முயற்சிகள் மற்றும் தீங்கு விளைவிக்கும் உள்ளடக்கங்களை கண்டறிகிறது.
+5. **தொடர்ச்சியான புதுப்பிப்புகள்**: Microsoft தொடர்ந்து உருவாகும் அச்சுறுத்தல்களுக்கு எதிராக பாதுகாப்பு வடிவமைப்புகளை புதுப்பிக்கிறது.
 
-## MCP உடன் Azure உள்ளடக்க பாதுகாப்பை செயல்படுத்துதல்
+## MCP உடன் Azure Content Safety ஐ செயல்படுத்தல்
 
-இந்த முறையில் பல அடுக்கு பாதுகாப்புகள் வழங்கப்படுகின்றன:
-- செயலாக்கத்திற்கு முன் உள்ளீடுகளை ஸ்கேன் செய்தல்
-- திருப்புவதற்கு முன் வெளிப்படுத்தல்களை சரிபார்த்தல்
-- அறிந்த தீங்கான வடிவங்களுக்கான தடுப்பு பட்டியல்களை பயன்படுத்துதல்
-- Azure இன் தொடர்ந்து புதுப்பிக்கப்படும் உள்ளடக்க பாதுகாப்பு மாதிரிகளை நம்புதல்
+இந்த அணுகுமுறை பன்முக பாதுகாப்பை வழங்குகிறது:
+- செயலாக்கத்திற்கு முன்னர் உள்ளீடுகளை ஸ்கேன் செய்வது
+- திருப்பி தருவதற்கு முன் வெளியீடுகளை சரிபார்த்தல்
+- அறியப்பட்ட தீங்கு விளைவிக்கும் மாதிரிகளுக்கு தடை பட்டியல்களை பயன்படுத்துதல்
+- Azure இன் தொடர்ந்து புதுப்பிக்கப்படும் உள்ளடக்க பாதுகாப்பு மாடல்களை பயன்படுத்துதல்
 
-## Azure உள்ளடக்க பாதுகாப்பு வளங்கள்
+## Azure Content Safety வளங்கள்
 
-உங்கள் MCP சர்வர்களுடன் Azure உள்ளடக்க பாதுகாப்பை செயல்படுத்துவது பற்றி மேலும் அறிய இதைப் பரிசீலிக்கவும்:
+MCP சர்வர்களுடன் Azure Content Safety செயல்படுத்தல் பற்றி மேலும் அறிய, இந்த அதிகாரபூர்வ வளங்களைப் பார்க்கவும்:
 
-1. [Azure AI Content Safety ஆவணம்](https://learn.microsoft.com/azure/ai-services/content-safety/) - Azure உள்ளடக்க பாதுகாப்புக்கான அங்கீகாரம் ஆவணம்.
-2. [Prompt Shield ஆவணம்](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/prompt-shield) - prompt injection தாக்குதல்களை தடுக்கும் முறைகள்.
-3. [Content Safety API குறிப்பு](https://learn.microsoft.com/rest/api/contentsafety/) - Content Safety செயல்படுத்துவதற்கான விரிவான API குறிப்பு.
-4. [Quickstart: Azure Content Safety C# உடன்](https://learn.microsoft.com/azure/ai-services/content-safety/quickstart-csharp) - C# பயன்படுத்தி விரைவான செயல்பாட்டு வழிகாட்டு.
-5. [Content Safety Client நூலகங்கள்](https://learn.microsoft.com/azure/ai-services/content-safety/quickstart-client-libraries-rest-api) - பல நிரலைக் மொழிகளுக்கான கிளயண்ட் நூலகங்கள்.
-6. [Jailbreak முயற்சிகளை கண்டறிதல்](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection) - Jailbreak முயற்சிகளை கண்டறிய மற்றும் தடுப்பதில் குறிப்புகள்.
-7. [Content Safetyக்கும் சிறந்த நடைமுறைகள்](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/best-practices) - உள்ளடக்க பாதுகாப்பை திறம்பட செயல்படுத்த சிறந்த நடைமுறைகள்.
+1. [Azure AI Content Safety ஆவணம்](https://learn.microsoft.com/azure/ai-services/content-safety/) - Azure Content Safety க்கான அதிகாரப்பூர்வ ஆவணம்.
+2. [ப்ராம்ட் பாதுகாப்பு ஆவணம்](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/prompt-shield) - ப்ராம்ட் இன்ஜெக்ஷன் தாக்குதல்களைத் தடுக்கும் முறைகள்.
+3. [Content Safety API குறிப்பு](https://learn.microsoft.com/rest/api/contentsafety/) - Content Safety ஐ செயல்படுத்த விரிவான API குறிப்பு.
+4. [விரைவு தொடக்கம்: C# உடன் Azure Content Safety](https://learn.microsoft.com/azure/ai-services/content-safety/quickstart-csharp) - C# பயன்படுத்தி விரைவான செயல்பாட்டு வழிகாட்டி.
+5. [Content Safety கிளைண்ட் நூலகங்கள்](https://learn.microsoft.com/azure/ai-services/content-safety/quickstart-client-libraries-rest-api) - பல நிரலாக்க மொழிகளுக்கான கிளைண்ட் நூலகங்கள்.
+6. [ஜெயில்பிரேக் முயற்சிகளை கண்டறிதல்](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection) - ஜெயில்பிரேக் முயற்சிகளை கண்டறிய மற்றும் தடுக்கும் குறிப்புறைகள்.
+7. [Content Safety க்கான சிறந்த நடைமுறைகள்](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/best-practices) - உள்ளடக்க பாதுகாப்பை பயனுள்ளதாக அமல்படுத்த சிறந்த நடைமுறைகள்.
 
-மேலும் ஆழமான செயல்பாட்டிற்கு, எமது [Azure Content Safety Implementation வழிகாட்டி](./azure-content-safety-implementation.md) என்பதைக் காண்க.
+மேலும் விரிவான செயல்பாட்டிற்காக, எங்கள் [Azure Content Safety செயல்பாட்டு வழிகாட்டி](./azure-content-safety-implementation.md) பார்க்கவும்.
 
-## அடுத்து என்ன
+## அடுத்தது என்ன
 
-- வாசிக்கவும்: [Azure Content Safety Implementation](./azure-content-safety-implementation.md)
-- திரும்பவும்: [பாதுகாப்பு தொகுதி அவலோகம்](./README.md)
-- தொடரவும்: [தொகுதி 3: தொடங்குதல்](../03-GettingStarted/README.md)
+- படிக்க: [Azure Content Safety செயல்பாடு](./azure-content-safety-implementation.md)
+- திரும்ப: [பாதுகாப்பு மொடியூல் கண்ணோட்டம்](./README.md)
+- தொடர: [மொடியூல் 3: துவக்கம்](../03-GettingStarted/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**குறிப்பு**:
-இந்த ஆவணம் AI மொழி மாற்ற சேவை [Co-op Translator](https://github.com/Azure/co-op-translator) மூலம் மொழி மாற்றப்பட்டது. நாம் துல்லியத்திற்காக முயல்வினும், தானியங்கி மொழி மாற்றங்களில் பிழைகள் அல்லது தவறுகள் இருக்கக்கூடும் என்பதை தயவுசெய்து கவனத்தில் கொள்ளவும். இயல்பான மொழியில் உள்ள மூல ஆவணம் அதிகாரப்பூர்வ மூலமாகக் கருதப்பட வேண்டும். முக்கியமான தகவல்களுக்கு, நிபுணர் மனித மொழி மாற்றத்தை பரிந்துரைக்கிறோம். இந்த மொழி மாற்றத்தைப் பயன்படுத்துவதால் ஏற்படும் எந்தவொரு தவறான புரிதல்களுக்கும் அல்லதுMissinterpretationsக்கும் நாங்கள் பொறுப்பல்ல.
+**மறுப்பு**:
+இந்த ஆவணம் AI மொழிபெயர்ப்பு சேவை [Co-op Translator](https://github.com/Azure/co-op-translator) பயன்படுத்தி மொழிபெயர்க்கப்பட்டுள்ளது. நாங்கள் துல்லியத்திற்காக முயற்சி செய்துள்ளோம், ஆனால் தானாக செய்யப்படும் மொழிபெயர்ப்புகளில் பிழைகள் அல்லது தவறுகள் இருக்கலாம் என்பதை கவனத்தில் கொள்ளவும். அசல் ஆவணம் அதன் தாய்மொழியில் அதிகாரப்பூர்வ ஆதாரமாக கருதப்பட வேண்டும். முக்கியமான தகவல்களுக்கு, தொழில்நுட்பமான மனித மொழிபெயர்ப்பு பரிந்துரைக்கப்படுகிறது. இந்த மொழிபெயர்ப்பைப் பயன்படுத்துவதால் ஏற்படும் எந்த தவறான புரிதல்கள் அல்லது தவறான விளக்கத்திற்கும் நாங்கள் பொறுப்பில்வில்லை.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

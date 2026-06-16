@@ -1586,6 +1586,49 @@ function runTests() {
       'custom phrase inside command substitution should be gated');
   })) passed++; else failed++;
 
+  // --- find -exec destructive detection ---
+
+  if (test('denies find -exec rm {} \\; as destructive', () => {
+    expectDestructiveDeny('find . -name "*.tmp" -exec rm {} \\;',
+      'find -exec rm');
+  })) passed++; else failed++;
+
+  if (test('denies find -exec rm -rf {} \\; as destructive', () => {
+    expectDestructiveDeny('find . -name "*.tmp" -exec rm -rf {} \\;',
+      'find -exec rm -rf');
+  })) passed++; else failed++;
+
+  if (test('denies find -exec rmdir {} \\; as destructive', () => {
+    expectDestructiveDeny('find . -name "*.tmp" -exec rmdir {} \\;',
+      'find -exec rmdir');
+  })) passed++; else failed++;
+
+  if (test('denies find -exec unlink {} \\; as destructive', () => {
+    expectDestructiveDeny('find . -name "*.tmp" -exec unlink {} \\;',
+      'find -exec unlink');
+  })) passed++; else failed++;
+
+  if (test('denies find -exec git reset --hard {} \\; as destructive', () => {
+    expectDestructiveDeny('find . -name "*.tmp" -exec git reset --hard {} \\;',
+      'find -exec git reset --hard');
+  })) passed++; else failed++;
+
+  if (test('allows find -exec echo {} \\; (non-destructive, routine gate)', () => {
+    clearState();
+    const input = { tool_name: 'Bash', tool_input: { command: 'find . -name "*.tmp" -exec echo {} \\;' } };
+    const result = runBashHook(input);
+    assert.strictEqual(result.code, 0, 'exit code should be 0');
+    const output = parseOutput(result.stdout);
+    assert.ok(output, 'should produce JSON output');
+    // Should be denied by routine gate (first bash), not destructive gate
+    assert.strictEqual(output.hookSpecificOutput.permissionDecision, 'deny',
+      'should be denied by routine gate');
+    assert.ok(!output.hookSpecificOutput.permissionDecisionReason.includes('Destructive'),
+      'should not be the destructive deny message');
+    assert.ok(!output.hookSpecificOutput.permissionDecisionReason.includes('rollback'),
+      'should not mention rollback');
+  })) passed++; else failed++;
+
   // --- Issue #2078 review fix: warning emitted once per *distinct*
   // invalid regex, not once per process. Verifies the same-process
   // path that the reviewers (CodeRabbit + cubic) flagged.
@@ -1743,6 +1786,70 @@ function runTests() {
     assert.strictEqual(output.hookSpecificOutput.permissionDecision, 'deny');
     assert.ok(output.hookSpecificOutput.permissionDecisionReason.includes('rollback'),
       'destructive gate is exempt from dampening');
+  })) passed++; else failed++;
+
+  // --- Novos comandos Git read-only ---
+  console.log('\n  Novos comandos Git read-only:');
+
+  clearState();
+  if (test('allows git diff --cached', () => {
+    expectAllow('git diff --cached', 'git diff --cached');
+  })) passed++; else failed++;
+
+  clearState();
+  if (test('allows git diff --staged', () => {
+    expectAllow('git diff --staged', 'git diff --staged');
+  })) passed++; else failed++;
+
+  clearState();
+  if (test('allows git diff --stat', () => {
+    expectAllow('git diff --stat', 'git diff --stat');
+  })) passed++; else failed++;
+
+  clearState();
+  if (test('allows git diff --name-only --cached', () => {
+    expectAllow('git diff --name-only --cached', 'git diff --name-only --cached');
+  })) passed++; else failed++;
+
+  clearState();
+  if (test('allows git show --stat', () => {
+    expectAllow('git show --stat', 'git show --stat');
+  })) passed++; else failed++;
+
+  clearState();
+  if (test('allows git show --name-only', () => {
+    expectAllow('git show --name-only', 'git show --name-only');
+  })) passed++; else failed++;
+
+  clearState();
+  if (test('allows git show HEAD --stat', () => {
+    expectAllow('git show HEAD --stat', 'git show HEAD --stat');
+  })) passed++; else failed++;
+
+  clearState();
+  if (test('allows git show HEAD --name-only', () => {
+    expectAllow('git show HEAD --name-only', 'git show HEAD --name-only');
+  })) passed++; else failed++;
+
+  // Garantir que comandos destrutivos continuam negados
+  clearState();
+  if (test('still denies git reset --hard', () => {
+    expectDestructiveDeny('git reset --hard', 'git reset --hard');
+  })) passed++; else failed++;
+
+  clearState();
+  if (test('still denies git checkout -f', () => {
+    expectDestructiveDeny('git checkout -f main', 'git checkout -f');
+  })) passed++; else failed++;
+
+  clearState();
+  if (test('still denies git clean -fd', () => {
+    expectDestructiveDeny('git clean -fd', 'git clean -fd');
+  })) passed++; else failed++;
+
+  clearState();
+  if (test('still denies git push --force', () => {
+    expectDestructiveDeny('git push --force origin main', 'git push --force');
   })) passed++; else failed++;
 
   // Cleanup only the temp directory created by this test file.

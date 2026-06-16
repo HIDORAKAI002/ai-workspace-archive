@@ -1,40 +1,40 @@
 # Pokročilá bezpečnost MCP s Azure Content Safety
 
-> **Řešené riziko OWASP MCP**: [MCP06 - Injekce promptu prostřednictvím kontextových dat](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)
+> **Řešené riziko OWASP MCP**: [MCP06 - Zneužití toku záměrů](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)
 
-Azure Content Safety poskytuje několik výkonných nástrojů, které mohou zvýšit bezpečnost vašich implementací MCP. Pro praktickou zkušenost s implementací viz [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/) Camp 3: I/O Security.
+Azure Content Safety nabízí několik výkonných nástrojů, které mohou posílit zabezpečení vašich implementací MCP. Pro praktické zkušenosti s implementací si prohlédněte [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/) Camp 3: I/O Security.
 
-## Ochranné štíty promptů
+## Prompt Shields
 
-AI Prompt Shields od Microsoftu poskytují robustní ochranu proti přímým i nepřímým útokům injekce promptu díky:
+AI Prompt Shields od Microsoftu poskytují robustní ochranu proti přímým i nepřímým útokům typu prompt injection díky:
 
-1. **Pokročilé detekci**: Používá strojové učení k identifikaci škodlivých instrukcí vložených do obsahu.
-2. **Zdůraznění**: Přeměňuje vstupní text, aby AI systémy mohly rozlišit platné instrukce od vnějších vstupů.
-3. **Oddělovačům a datovým značkám**: Označuje hranice mezi důvěryhodnými a nedůvěryhodnými daty.
-4. **Integraci s Content Safety**: Pracuje s Azure AI Content Safety pro detekci pokusů o jailbreak a škodlivého obsahu.
-5. **Průběžným aktualizacím**: Microsoft pravidelně aktualizuje ochranné mechanismy proti nově vznikajícím hrozbám.
+1. **Pokročilé detekci**: Využívá strojové učení k identifikaci škodlivých instrukcí vložených do obsahu.
+2. **Zvýraznění (Spotlighting)**: Transformuje vstupní text, aby AI systémy rozlišily platné instrukce od externích vstupů.
+3. **Ohraničení a označení dat (Delimiters and Datamarking)**: Označuje hranice mezi důvěryhodnými a nedůvěryhodnými daty.
+4. **Integraci s Content Safety**: Spolupracuje s Azure AI Content Safety pro detekci pokusů o jailbreak a škodlivého obsahu.
+5. **Průběžné aktualizace**: Microsoft pravidelně aktualizuje ochranné mechanismy proti nově vznikajícím hrozbám.
 
 ## Implementace Azure Content Safety s MCP
 
-Tento přístup poskytuje vícenásobnou ochranu:
-- Skénování vstupů před zpracováním
-- Validace výstupů před odesláním zpět
+Tento přístup poskytuje vícestupňovou ochranu:
+- Skenování vstupů před zpracováním
+- Validaci výstupů před vrácením
 - Používání blokovacích seznamů pro známé škodlivé vzory
-- Využití neustále aktualizovaných modelů obsahu Azure
+- Využití neustále aktualizovaných modelů Content Safety Azure
 
-## Zdroje Azure Content Safety
+## Zdroje pro Azure Content Safety
 
-Pro více informací o implementaci Azure Content Safety se svými MCP servery konzultujte tyto oficiální zdroje:
+Chcete-li se dozvědět více o implementaci Azure Content Safety na vašich MCP serverech, využijte tyto oficiální zdroje:
 
 1. [Dokumentace Azure AI Content Safety](https://learn.microsoft.com/azure/ai-services/content-safety/) - Oficiální dokumentace Azure Content Safety.
-2. [Dokumentace Prompt Shield](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/prompt-shield) - Naučte se, jak zabránit útokům injekce promptu.
-3. [Referenční API Content Safety](https://learn.microsoft.com/rest/api/contentsafety/) - Detailní API reference pro implementaci Content Safety.
-4. [Rychlý start: Azure Content Safety s C#](https://learn.microsoft.com/azure/ai-services/content-safety/quickstart-csharp) - Rychlý průvodce implementací v C#.
-5. [Klientské knihovny Content Safety](https://learn.microsoft.com/azure/ai-services/content-safety/quickstart-client-libraries-rest-api) - Klientské knihovny pro různé programovací jazyky.
-6. [Detekce pokusů o jailbreak](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection) - Specifické pokyny pro detekci a prevenci pokusů o jailbreak.
-7. [Nejlepší postupy pro Content Safety](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/best-practices) - Nejlepší postupy pro efektivní implementaci bezpečnosti obsahu.
+2. [Dokumentace Prompt Shield](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/prompt-shield) - Naučte se, jak zabránit útokům typu prompt injection.
+3. [Reference API Content Safety](https://learn.microsoft.com/rest/api/contentsafety/) - Podrobná reference API pro implementaci Content Safety.
+4. [Rychlý start: Azure Content Safety s C#](https://learn.microsoft.com/azure/ai-services/content-safety/quickstart-csharp) - Rychlý průvodce implementací pomocí C#.
+5. [Knihovny klienta Content Safety](https://learn.microsoft.com/azure/ai-services/content-safety/quickstart-client-libraries-rest-api) - Knihovny klienta pro různé programovací jazyky.
+6. [Detekce pokusů o jailbreak](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection) - Specifické pokyny k detekci a prevenci pokusů o jailbreak.
+7. [Nejlepší postupy pro Content Safety](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/best-practices) - Nejlepší postupy pro efektivní implementaci content safety.
 
-Pro podrobnější implementaci viz náš [Průvodce implementací Azure Content Safety](./azure-content-safety-implementation.md).
+Pro podrobnější implementaci si přečtěte náš [Průvodce implementací Azure Content Safety](./azure-content-safety-implementation.md).
 
 ## Co dál
 
@@ -45,6 +45,6 @@ Pro podrobnější implementaci viz náš [Průvodce implementací Azure Content
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Prohlášení o vyloučení odpovědnosti**:  
-Tento dokument byl přeložen pomocí AI překladatelské služby [Co-op Translator](https://github.com/Azure/co-op-translator). Přestože usilujeme o přesnost, mějte prosím na paměti, že automatické překlady mohou obsahovat chyby nebo nepřesnosti. Původní dokument v jeho mateřském jazyce by měl být považován za autoritativní zdroj. Pro důležité informace se doporučuje profesionální lidský překlad. Nejsme odpovědní za jakékoliv nedorozumění nebo nesprávné výklady vzniklé použitím tohoto překladu.
+**Prohlášení o omezení odpovědnosti**:
+Tento dokument byl přeložen pomocí AI překladatelské služby [Co-op Translator](https://github.com/Azure/co-op-translator). Přestože usilujeme o co největší přesnost, mějte prosím na paměti, že automatizované překlady mohou obsahovat chyby nebo nepřesnosti. Originální dokument v jeho mateřském jazyce by měl být považován za autoritativní zdroj. Pro kritické informace se doporučuje profesionální lidský překlad. Nejsme odpovědní za jakékoli nedorozumění nebo nesprávné interpretace vzniklé použitím tohoto překladu.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

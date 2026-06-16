@@ -715,7 +715,7 @@ In this part of the code, we will handle user requests.
 
     ```typescript
 
-    // 1. Create messages that are input for the LLM
+    // 1. Create messages that serve as input for the LLM
     const prompt = "What is the sum of 2 and 3?"
 
     const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [

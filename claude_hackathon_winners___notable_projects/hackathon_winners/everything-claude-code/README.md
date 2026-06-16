@@ -20,7 +20,7 @@
 > [!WARNING]
 > **Official sources only.** Install ECC only from verified channels: the GitHub repository [github.com/affaan-m/ECC](https://github.com/affaan-m/ECC), the npm packages [`ecc-universal`](https://www.npmjs.com/package/ecc-universal) and [`ecc-agentshield`](https://www.npmjs.com/package/ecc-agentshield), the [GitHub App](https://github.com/apps/ecc-tools), the plugin slug `ecc@ecc`, and the project website [ecc.tools](https://ecc.tools). Third-party re-uploads and unofficial mirrors are not maintained or reviewed by the project and may contain malware.
 
-> **211.9K+ stars** | **32.5K+ forks** | **230+ contributors** | **12+ language ecosystems** | **Cross-harness agent workflows**
+**211.9K+ stars** | **32.5K+ forks** | **230+ contributors** | **12+ language ecosystems** | **Cross-harness agent workflows**
 
 ---
 
@@ -428,7 +428,7 @@ If you stacked methods, clean up in this order:
 /plugin list ecc@ecc
 ```
 
-**That's it!** You now have access to 67 agents, 270 skills, and 92 legacy command shims.
+**That's it!** You now have access to 67 agents, 271 skills, and 92 legacy command shims.
 
 ### Dashboard GUI
 
@@ -1517,7 +1517,7 @@ The configuration is automatically detected from `.opencode/opencode.json`.
 |---------|---------------------|----------|--------|
 | Agents | PASS: 67 agents     | PASS: 12 agents | **Claude Code leads** |
 | Commands | PASS: 92 commands   | PASS: 35 commands | **Claude Code leads** |
-| Skills | PASS: 270 skills    | PASS: 37 skills | **Claude Code leads** |
+| Skills | PASS: 271 skills    | PASS: 37 skills | **Claude Code leads** |
 | Hooks | PASS: 8 event types | PASS: 11 events | **OpenCode has more!** |
 | Rules | PASS: 29 rules      | PASS: 13 instructions | **Claude Code leads** |
 | MCP Servers | PASS: 14 servers    | PASS: Full | **Full parity** |
@@ -1678,7 +1678,7 @@ ECC is the **first plugin to maximize every major AI coding tool**. Here's how e
 |---------|-----------------------|------------|-----------|----------|----------------|
 | **Agents** | 67                    | Shared (AGENTS.md) | Shared (AGENTS.md) | 12 | N/A |
 | **Commands** | 92                    | Shared | Instruction-based | 35 | 5 prompts |
-| **Skills** | 270                   | Shared | 10 (native format) | 37 | Via instructions |
+| **Skills** | 271                   | Shared | 10 (native format) | 37 | Via instructions |
 | **Hook Events** | 8 types               | 15 types | None yet | 11 types | None |
 | **Hook Scripts** | 20+ scripts           | 16 scripts (DRY adapter) | N/A | Plugin hooks | N/A |
 | **Rules** | 34 (common + lang)    | 34 (YAML frontmatter) | Instruction-based | 13 instructions | 1 always-on file |
@@ -1805,6 +1805,17 @@ These configs work for my workflow. You should:
 2. Modify for your stack
 3. Remove what you don't use
 4. Add your own patterns
+
+---
+
+## Security
+
+ECC takes supply-chain and agent safety seriously.
+
+- **Official sources only.** Install ECC only from the verified channels listed in the banner at the top of this README — the [GitHub repo](https://github.com/affaan-m/ECC), the `ecc-universal` / `ecc-agentshield` npm packages, the [GitHub App](https://github.com/apps/ecc-tools), the plugin slug `ecc@ecc`, and [ecc.tools](https://ecc.tools). Third-party re-uploads and mirrors are unreviewed and may ship malware.
+- **Report a vulnerability.** Use the private process in [SECURITY.md](SECURITY.md) (GitHub private vulnerability reporting). Please do not open public issues for security reports.
+- **Built-in guardrails.** GateGuard gates destructive shell commands (including `rm`, force/path `git checkout`, and destructive `find -exec`) before they run; the supply-chain IOC scanner runs in CI; and [AgentShield](#agentshield--security-auditor) audits your own agent, hook, MCP, permission, and secret surfaces (`/security-scan`).
+- **Deep dive.** See the [Security Guide](./the-security-guide.md).
 
 ---
 

@@ -1,7 +1,7 @@
-# 🔧 Module 3: Advanced MCP Development with AI Toolkit
+# 🔧 Module 3: Advanced MCP Development with Microsoft Foundry Toolkit
 
 ![Duration](https://img.shields.io/badge/Duration-20_minutes-blue?style=flat-square)
-![AI Toolkit](https://img.shields.io/badge/AI_Toolkit-Required-orange?style=flat-square)
+![Microsoft Foundry Toolkit](https://img.shields.io/badge/Microsoft_Foundry_Toolkit-Required-orange?style=flat-square)
 ![Python](https://img.shields.io/badge/Python-3.10+-green?style=flat-square)
 ![MCP SDK](https://img.shields.io/badge/MCP_SDK-1.9.3-purple?style=flat-square)
 ![Inspector](https://img.shields.io/badge/MCP_Inspector-0.14.0-blue?style=flat-square)
@@ -10,7 +10,7 @@
 
 By the end of this lab, you will be able to:
 
-- ✅ Create custom MCP servers using the AI Toolkit
+- ✅ Create custom MCP servers using the Microsoft Foundry Toolkit
 - ✅ Configure and use the latest MCP Python SDK (v1.9.3)
 - ✅ Set up and utilize the MCP Inspector for debugging
 - ✅ Debug MCP servers in both Agent Builder and Inspector environments
@@ -19,7 +19,7 @@ By the end of this lab, you will be able to:
 ## 📋 Prerequisites
 
 - Completion of Lab 2 (MCP Fundamentals)
-- VS Code with AI Toolkit extension installed
+- VS Code with Microsoft Foundry Toolkit extension installed
 - Python 3.10+ environment
 - Node.js and npm for Inspector setup
 
@@ -27,7 +27,7 @@ By the end of this lab, you will be able to:
 
 In this lab, you'll create a **Weather MCP Server** that demonstrates:
 - Custom MCP server implementation
-- Integration with AI Toolkit Agent Builder
+- Integration with Microsoft Foundry Toolkit Agent Builder
 - Professional debugging workflows
 - Modern MCP SDK usage patterns
 
@@ -51,7 +51,7 @@ A powerful debugging tool that provides:
 
 ### Step 1: Create a WeatherAgent in Agent Builder
 
-1. **Launch Agent Builder** in VS Code through the AI Toolkit extension
+1. **Launch Agent Builder** in VS Code through the Microsoft Foundry Toolkit extension
 2. **Create a new agent** with the following configuration:
    - Agent Name: `WeatherAgent`
 
@@ -354,7 +354,7 @@ How's the weather like in Seattle
 
 By completing this lab, you have:
 
-- [x] **Created a custom MCP server** using AI Toolkit templates
+- [x] **Created a custom MCP server** using Microsoft Foundry Toolkit templates
 - [x] **Upgraded to the latest MCP SDK** (v1.9.3) for enhanced functionality
 - [x] **Configured professional debugging workflows** for both Agent Builder and Inspector
 - [x] **Set up the MCP Inspector** for interactive server testing
@@ -367,12 +367,12 @@ By completing this lab, you have:
 | **MCP Python SDK v1.9.3** | Latest protocol implementation | Modern server development |
 | **MCP Inspector 0.14.0** | Interactive debugging tool | Real-time server testing |
 | **VS Code Debugging** | Integrated development environment | Professional debugging workflow |
-| **Agent Builder Integration** | Direct AI Toolkit connection | End-to-end agent testing |
+| **Agent Builder Integration** | Direct Microsoft Foundry Toolkit connection | End-to-end agent testing |
 
 ## 📚 Additional Resources
 
 - [MCP Python SDK Documentation](https://modelcontextprotocol.io/docs/sdk/python)
-- [AI Toolkit Extension Guide](https://code.visualstudio.com/docs/ai/ai-toolkit)
+- [Microsoft Foundry Toolkit Extension Guide](https://code.visualstudio.com/docs/ai/ai-toolkit)
 - [VS Code Debugging Documentation](https://code.visualstudio.com/docs/editor/debugging)
 - [Model Context Protocol Specification](https://modelcontextprotocol.io/docs/concepts/architecture)
 

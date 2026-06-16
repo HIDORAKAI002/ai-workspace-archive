@@ -136,7 +136,7 @@ Sampling messages aren't constrained to just text but you can also send, images 
 }
 ```
 
-> NOTE: for more detailed info on Sampling, check out the [official docs](https://modelcontextprotocol.io/specification/2025-06-18/client/sampling)
+> NOTE: for more detailed info on Sampling, check out the [official docs](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling)
 
 ## How to Configure Sampling in the Client
 

@@ -50,9 +50,9 @@ The [MCP Security Summit Workshop](https://azure-samples.github.io/sherpa/) prov
 |------|-------|---------------------|
 | **Base Camp** | MCP fundamentals & authentication vulnerabilities | MCP01, MCP07 |
 | **Camp 1: Identity** | OAuth 2.1, Azure Managed Identity, Key Vault | MCP01, MCP02, MCP07 |
-| **Camp 2: Gateway** | API Management, Private Endpoints, governance | MCP02, MCP07, MCP09 |
-| **Camp 3: I/O Security** | Prompt injection, PII protection, content safety | MCP03, MCP05, MCP06 |
-| **Camp 4: Monitoring** | Log Analytics, dashboards, threat detection | MCP08 |
+| **Camp 2: Gateway** | API Management, Private Endpoints, governance | MCP02, MCP06, MCP07, MCP09 |
+| **Camp 3: I/O Security** | Prompt injection, PII protection, content safety | MCP03, MCP05, MCP06, MCP10 |
+| **Camp 4: Monitoring** | Log Analytics, dashboards, threat detection | MCP04, MCP08 |
 | **The Summit** | Red Team / Blue Team integration test | All |
 
 **Get Started**: [https://azure-samples.github.io/sherpa/](https://azure-samples.github.io/sherpa/)
@@ -66,11 +66,11 @@ The [OWASP MCP Azure Security Guide](https://microsoft.github.io/mcp-azure-secur
 | **MCP01** | Token Mismanagement & Secret Exposure | Azure Key Vault, Managed Identity |
 | **MCP02** | Privilege Escalation via Scope Creep | RBAC, Conditional Access |
 | **MCP03** | Tool Poisoning | Tool validation, integrity verification |
-| **MCP04** | Supply Chain Attacks | GitHub Advanced Security, dependency scanning |
+| **MCP04** | Software Supply Chain Attacks & Dependency Tampering | GitHub Advanced Security, dependency scanning |
 | **MCP05** | Command Injection & Execution | Input validation, sandboxing |
-| **MCP06** | Prompt Injection via Contextual Payloads | Azure AI Content Safety, Prompt Shields |
+| **MCP06** | Intent Flow Subversion | Azure AI Content Safety, Prompt Shields |
 | **MCP07** | Insufficient Authentication & Authorization | Azure Entra ID, OAuth 2.1 with PKCE |
-| **MCP08** | Lack of Audit & Telemetry | Azure Monitor, Application Insights |
+| **MCP08** | Lack of Audit and Telemetry | Azure Monitor, Application Insights |
 | **MCP09** | Shadow MCP Servers | API Center governance, network isolation |
 | **MCP10** | Context Injection & Over-Sharing | Data classification, minimal exposure |
 
@@ -187,19 +187,19 @@ Modern MCP implementations face sophisticated AI-specific attack vectors that tr
 #### **Additional AI Attack Vectors**
 
 - **Cross-Domain Prompt Injection (XPIA)**: Sophisticated attacks that leverage content from multiple domains to bypass security controls
-- **Dynamic Capability Modification**: Real-time changes to tool capabilities that evade initial security assessments
-- **Context Window Poisoning**: Attacks that manipulate large context windows to hide malicious instructions
-- **Model Confusion Attacks**: Exploiting model limitations to create unpredictable or unsafe behaviors
+- **Dynamic Capability Modification**: Real-time changes to tool capabilities that bypass initial security assessments  
+- **Context Window Poisoning**: Attacks that manipulate large context windows to hide malicious instructions  
+- **Model Confusion Attacks**: Exploiting model limitations to create unpredictable or unsafe behaviors  
 
 
 ### AI Security Risk Impact
 
-**High-Impact Consequences:**
-- **Data Exfiltration**: Unauthorized access and theft of sensitive enterprise or personal data
+**High-Impact Consequences:**  
+- **Data Exfiltration**: Unauthorized access and theft of sensitive enterprise or personal data  
 - **Privacy Breaches**: Exposure of personally identifiable information (PII) and confidential business data  
-- **System Manipulation**: Unintended modifications to critical systems and workflows
-- **Credential Theft**: Compromise of authentication tokens and service credentials
-- **Lateral Movement**: Use of compromised AI systems as pivots for broader network attacks
+- **System Manipulation**: Unintended modifications to critical systems and workflows  
+- **Credential Theft**: Compromise of authentication tokens and service credentials  
+- **Lateral Movement**: Use of compromised AI systems as pivots for broader network attacks  
 
 ### Microsoft AI Security Solutions
 
@@ -209,30 +209,30 @@ Microsoft **AI Prompt Shields** provide comprehensive defense against both direc
 
 ##### **Core Protection Mechanisms:**
 
-1. **Advanced Detection & Filtering**
-   - Machine learning algorithms and NLP techniques detect malicious instructions in external content
-   - Real-time analysis of documents, web pages, emails, and data sources for embedded threats
-   - Contextual understanding of legitimate vs. malicious prompt patterns
+1. **Advanced Detection & Filtering**  
+   - Machine learning algorithms and NLP techniques detect malicious instructions in external content  
+   - Real-time analysis of documents, web pages, emails, and data sources for embedded threats  
+   - Contextual understanding of legitimate vs. malicious prompt patterns  
 
 2. **Spotlighting Techniques**  
-   - Distinguishes between trusted system instructions and potentially compromised external inputs
-   - Text transformation methods that enhance model relevance while isolating malicious content
-   - Helps AI systems maintain proper instruction hierarchy and ignore injected commands
+   - Distinguishes between trusted system instructions and potentially compromised external inputs  
+   - Text transformation methods that enhance model relevance while isolating malicious content  
+   - Helps AI systems maintain proper instruction hierarchy and ignore injected commands  
 
-3. **Delimiter & Datamarking Systems**
-   - Explicit boundary definition between trusted system messages and external input text
-   - Special markers highlight boundaries between trusted and untrusted data sources
-   - Clear separation prevents instruction confusion and unauthorized command execution
+3. **Delimiter & Datamarking Systems**  
+   - Explicit boundary definition between trusted system messages and external input text  
+   - Special markers highlight boundaries between trusted and untrusted data sources  
+   - Clear separation prevents instruction confusion and unauthorized command execution  
 
-4. **Continuous Threat Intelligence**
-   - Microsoft continuously monitors emerging attack patterns and updates defenses
-   - Proactive threat hunting for new injection techniques and attack vectors
-   - Regular security model updates to maintain effectiveness against evolving threats
+4. **Continuous Threat Intelligence**  
+   - Microsoft continuously monitors emerging attack patterns and updates defenses  
+   - Proactive threat hunting for new injection techniques and attack vectors  
+   - Regular security model updates to maintain effectiveness against evolving threats  
 
-5. **Azure Content Safety Integration**
-   - Part of comprehensive Azure AI Content Safety suite
-   - Additional detection for jailbreak attempts, harmful content, and security policy violations
-   - Unified security controls across AI application components
+5. **Azure Content Safety Integration**  
+   - Part of comprehensive Azure AI Content Safety suite  
+   - Additional detection for jailbreak attempts, harmful content, and security policy violations  
+   - Unified security controls across AI application components  
 
 **Implementation Resources**: [Microsoft Prompt Shields Documentation](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection)
 
@@ -247,18 +247,18 @@ Microsoft **AI Prompt Shields** provide comprehensive defense against both direc
 
 #### **Attack Scenarios & Risks**
 
-- **Session Hijack Prompt Injection**: Attackers with stolen session IDs inject malicious events into servers sharing session state, potentially triggering harmful actions or accessing sensitive data
-- **Direct Impersonation**: Stolen session IDs enable direct MCP server calls that bypass authentication, treating attackers as legitimate users
-- **Compromised Resumable Streams**: Attackers can terminate requests prematurely, causing legitimate clients to resume with potentially malicious content
+- **Session Hijack Prompt Injection**: Attackers with stolen session IDs inject malicious events into servers sharing session state, potentially triggering harmful actions or accessing sensitive data  
+- **Direct Impersonation**: Stolen session IDs enable direct MCP server calls that bypass authentication, treating attackers as legitimate users  
+- **Compromised Resumable Streams**: Attackers can terminate requests prematurely, causing legitimate clients to resume with potentially malicious content  
 
 #### **Security Controls for Session Management**
 
-**Critical Requirements:**
-- **Authorization Verification**: MCP servers implementing authorization **MUST** verify ALL inbound requests and **MUST NOT** rely on sessions for authentication
-- **Secure Session Generation**: Use cryptographically secure, non-deterministic session IDs generated with secure random number generators
-- **User-Specific Binding**: Bind session IDs to user-specific information using formats like `<user_id>:<session_id>` to prevent cross-user session abuse
-- **Session Lifecycle Management**: Implement proper expiration, rotation, and invalidation to limit vulnerability windows
-- **Transport Security**: Mandatory HTTPS for all communication to prevent session ID interception
+**Critical Requirements:**  
+- **Authorization Verification**: MCP servers implementing authorization **MUST** verify ALL inbound requests and **MUST NOT** rely on sessions for authentication  
+- **Secure Session Generation**: Use cryptographically secure, non-deterministic session IDs generated with secure random number generators  
+- **User-Specific Binding**: Bind session IDs to user-specific information using formats like `<user_id>:<session_id>` to prevent cross-user session abuse  
+- **Session Lifecycle Management**: Implement proper expiration, rotation, and invalidation to limit vulnerability windows  
+- **Transport Security**: Mandatory HTTPS for all communication to prevent session ID interception  
 
 ### Confused Deputy Problem
 
@@ -266,16 +266,16 @@ The **confused deputy problem** occurs when MCP servers act as authentication pr
 
 #### **Attack Mechanics & Risks**
 
-- **Cookie-based Consent Bypass**: Previous user authentication creates consent cookies that attackers exploit through malicious authorization requests with crafted redirect URIs
+- **Cookie-based Consent Bypass**: Previous user authentication creates consent cookies that attackers exploit through malicious authorization requests with crafted redirect URIs  
 - **Authorization Code Theft**: Existing consent cookies may cause authorization servers to skip consent screens, redirecting codes to attacker-controlled endpoints  
-- **Unauthorized API Access**: Stolen authorization codes enable token exchange and user impersonation without explicit approval
+- **Unauthorized API Access**: Stolen authorization codes enable token exchange and user impersonation without explicit approval  
 
 #### **Mitigation Strategies**
 
-**Mandatory Controls:**
-- **Explicit Consent Requirements**: MCP proxy servers using static client IDs **MUST** obtain user consent for each dynamically registered client
-- **OAuth 2.1 Security Implementation**: Follow current OAuth security best practices including PKCE (Proof Key for Code Exchange) for all authorization requests
-- **Strict Client Validation**: Implement rigorous validation of redirect URIs and client identifiers to prevent exploitation
+**Mandatory Controls:**  
+- **Explicit Consent Requirements**: MCP proxy servers using static client IDs **MUST** obtain user consent for each dynamically registered client  
+- **OAuth 2.1 Security Implementation**: Follow current OAuth security best practices including PKCE (Proof Key for Code Exchange) for all authorization requests  
+- **Strict Client Validation**: Implement rigorous validation of redirect URIs and client identifiers to prevent exploitation  
 
 ### Token Passthrough Vulnerabilities  
 
@@ -283,18 +283,18 @@ The **confused deputy problem** occurs when MCP servers act as authentication pr
 
 #### **Security Implications**
 
-- **Control Circumvention**: Direct client-to-API token usage bypasses critical rate limiting, validation, and monitoring controls
-- **Audit Trail Corruption**: Upstream-issued tokens make client identification impossible, breaking incident investigation capabilities
-- **Proxy-based Data Exfiltration**: Unvalidated tokens enable malicious actors to use servers as proxies for unauthorized data access
-- **Trust Boundary Violations**: Downstream services' trust assumptions may be violated when token origins cannot be verified
-- **Multi-service Attack Expansion**: Compromised tokens accepted across multiple services enable lateral movement
+- **Control Circumvention**: Direct client-to-API token usage bypasses critical rate limiting, validation, and monitoring controls  
+- **Audit Trail Corruption**: Upstream-issued tokens make client identification impossible, breaking incident investigation capabilities  
+- **Proxy-based Data Exfiltration**: Unvalidated tokens enable malicious actors to use servers as proxies for unauthorized data access  
+- **Trust Boundary Violations**: Downstream services' trust assumptions may be violated when token origins cannot be verified  
+- **Multi-service Attack Expansion**: Compromised tokens accepted across multiple services enable lateral movement  
 
 #### **Required Security Controls**
 
-**Non-negotiable Requirements:**
-- **Token Validation**: MCP servers **MUST NOT** accept tokens not explicitly issued for the MCP server
-- **Audience Verification**: Always validate token audience claims match the MCP server's identity
-- **Proper Token Lifecycle**: Implement short-lived access tokens with secure rotation practices
+**Non-negotiable Requirements:**  
+- **Token Validation**: MCP servers **MUST NOT** accept tokens not explicitly issued for the MCP server  
+- **Audience Verification**: Always validate token audience claims match the MCP server's identity  
+- **Proper Token Lifecycle**: Implement short-lived access tokens with secure rotation practices  
 
 
 ## Supply Chain Security for AI Systems
@@ -303,66 +303,66 @@ Supply chain security has evolved beyond traditional software dependencies to en
 
 ### Expanded AI Supply Chain Components
 
-**Traditional Software Dependencies:**
-- Open-source libraries and frameworks
+**Traditional Software Dependencies:**  
+- Open-source libraries and frameworks  
 - Container images and base systems  
-- Development tools and build pipelines
-- Infrastructure components and services
+- Development tools and build pipelines  
+- Infrastructure components and services  
 
-**AI-Specific Supply Chain Elements:**
-- **Foundation Models**: Pre-trained models from various providers requiring provenance verification
-- **Embedding Services**: External vectorization and semantic search services
+**AI-Specific Supply Chain Elements:**  
+- **Foundation Models**: Pre-trained models from various providers requiring provenance verification  
+- **Embedding Services**: External vectorization and semantic search services  
 - **Context Providers**: Data sources, knowledge bases, and document repositories  
-- **Third-party APIs**: External AI services, ML pipelines, and data processing endpoints
-- **Model Artifacts**: Weights, configurations, and fine-tuned model variants
-- **Training Data Sources**: Datasets used for model training and fine-tuning
+- **Third-party APIs**: External AI services, ML pipelines, and data processing endpoints  
+- **Model Artifacts**: Weights, configurations, and fine-tuned model variants  
+- **Training Data Sources**: Datasets used for model training and fine-tuning  
 
 ### Comprehensive Supply Chain Security Strategy
 
-#### **Component Verification & Trust**
-- **Provenance Validation**: Verify the origin, licensing, and integrity of all AI components before integration
-- **Security Assessment**: Conduct vulnerability scans and security reviews for models, data sources, and AI services
-- **Reputation Analysis**: Evaluate the security track record and practices of AI service providers
-- **Compliance Verification**: Ensure all components meet organizational security and regulatory requirements
+#### **Component Verification & Trust**  
+- **Provenance Validation**: Verify the origin, licensing, and integrity of all AI components before integration  
+- **Security Assessment**: Conduct vulnerability scans and security reviews for models, data sources, and AI services  
+- **Reputation Analysis**: Evaluate the security track record and practices of AI service providers  
+- **Compliance Verification**: Ensure all components meet organizational security and regulatory requirements  
 
 #### **Secure Deployment Pipelines**  
-- **Automated CI/CD Security**: Integrate security scanning throughout automated deployment pipelines
-- **Artifact Integrity**: Implement cryptographic verification for all deployed artifacts (code, models, configurations)
-- **Staged Deployment**: Use progressive deployment strategies with security validation at each stage
-- **Trusted Artifact Repositories**: Deploy only from verified, secure artifact registries and repositories
+- **Automated CI/CD Security**: Integrate security scanning throughout automated deployment pipelines  
+- **Artifact Integrity**: Implement cryptographic verification for all deployed artifacts (code, models, configurations)  
+- **Staged Deployment**: Use progressive deployment strategies with security validation at each stage  
+- **Trusted Artifact Repositories**: Deploy only from verified, secure artifact registries and repositories  
 
-#### **Continuous Monitoring & Response**
-- **Dependency Scanning**: Ongoing vulnerability monitoring for all software and AI component dependencies
-- **Model Monitoring**: Continuous assessment of model behavior, performance drift, and security anomalies
-- **Service Health Tracking**: Monitor external AI services for availability, security incidents, and policy changes
-- **Threat Intelligence Integration**: Incorporate threat feeds specific to AI and ML security risks
+#### **Continuous Monitoring & Response**  
+- **Dependency Scanning**: Ongoing vulnerability monitoring for all software and AI component dependencies  
+- **Model Monitoring**: Continuous assessment of model behavior, performance drift, and security anomalies  
+- **Service Health Tracking**: Monitor external AI services for availability, security incidents, and policy changes  
+- **Threat Intelligence Integration**: Incorporate threat feeds specific to AI and ML security risks  
 
-#### **Access Control & Least Privilege**
-- **Component-level Permissions**: Restrict access to models, data, and services based on business necessity
-- **Service Account Management**: Implement dedicated service accounts with minimal required permissions
-- **Network Segmentation**: Isolate AI components and limit network access between services
-- **API Gateway Controls**: Use centralized API gateways to control and monitor access to external AI services
+#### **Access Control & Least Privilege**  
+- **Component-level Permissions**: Restrict access to models, data, and services based on business necessity  
+- **Service Account Management**: Implement dedicated service accounts with minimal required permissions  
+- **Network Segmentation**: Isolate AI components and limit network access between services  
+- **API Gateway Controls**: Use centralized API gateways to control and monitor access to external AI services  
 
-#### **Incident Response & Recovery**
-- **Rapid Response Procedures**: Established processes for patching or replacing compromised AI components
-- **Credential Rotation**: Automated systems for rotating secrets, API keys, and service credentials
-- **Rollback Capabilities**: Ability to quickly revert to previous known-good versions of AI components
-- **Supply Chain Breach Recovery**: Specific procedures for responding to upstream AI service compromises
+#### **Incident Response & Recovery**  
+- **Rapid Response Procedures**: Established processes for patching or replacing compromised AI components  
+- **Credential Rotation**: Automated systems for rotating secrets, API keys, and service credentials  
+- **Rollback Capabilities**: Ability to quickly revert to previous known-good versions of AI components  
+- **Supply Chain Breach Recovery**: Specific procedures for responding to upstream AI service compromises  
 
 ### Microsoft Security Tools & Integration
 
-**GitHub Advanced Security** provides comprehensive supply chain protection including:
-- **Secret Scanning**: Automated detection of credentials, API keys, and tokens in repositories
-- **Dependency Scanning**: Vulnerability assessment for open-source dependencies and libraries
-- **CodeQL Analysis**: Static code analysis for security vulnerabilities and coding issues
-- **Supply Chain Insights**: Visibility into dependency health and security status
+**GitHub Advanced Security** provides comprehensive supply chain protection including:  
+- **Secret Scanning**: Automated detection of credentials, API keys, and tokens in repositories  
+- **Dependency Scanning**: Vulnerability assessment for open-source dependencies and libraries  
+- **CodeQL Analysis**: Static code analysis for security vulnerabilities and coding issues  
+- **Supply Chain Insights**: Visibility into dependency health and security status  
 
-**Azure DevOps & Azure Repos Integration:**
-- Seamless security scanning integration across Microsoft development platforms
-- Automated security checks in Azure Pipelines for AI workloads
-- Policy enforcement for secure AI component deployment
+**Azure DevOps & Azure Repos Integration:**  
+- Seamless security scanning integration across Microsoft development platforms  
+- Automated security checks in Azure Pipelines for AI workloads  
+- Policy enforcement for secure AI component deployment  
 
-**Microsoft Internal Practices:**
+**Microsoft Internal Practices:**  
 Microsoft implements extensive supply chain security practices across all products. Learn about proven approaches in [The Journey to Secure the Software Supply Chain at Microsoft](https://devblogs.microsoft.com/engineering-at-microsoft/the-journey-to-secure-the-software-supply-chain-at-microsoft/).
 
 
@@ -372,53 +372,53 @@ MCP implementations inherit and build upon your organization's existing security
 
 ### Core Security Fundamentals
 
-#### **Secure Development Practices**
-- **OWASP Compliance**: Protect against [OWASP Top 10](https://owasp.org/www-project-top-ten/) web application vulnerabilities
-- **AI-Specific Protections**: Implement controls for [OWASP Top 10 for LLMs](https://genai.owasp.org/download/43299/?tmstv=1731900559)
-- **Secure Secrets Management**: Use dedicated vaults for tokens, API keys, and sensitive configuration data
-- **End-to-End Encryption**: Implement secure communications across all application components and data flows
-- **Input Validation**: Rigorous validation of all user inputs, API parameters, and data sources
+#### **Secure Development Practices**  
+- **OWASP Compliance**: Protect against [OWASP Top 10](https://owasp.org/www-project-top-ten/) web application vulnerabilities  
+- **AI-Specific Protections**: Implement controls for [OWASP Top 10 for LLMs](https://genai.owasp.org/download/43299/?tmstv=1731900559)  
+- **Secure Secrets Management**: Use dedicated vaults for tokens, API keys, and sensitive configuration data  
+- **End-to-End Encryption**: Implement secure communications across all application components and data flows  
+- **Input Validation**: Rigorous validation of all user inputs, API parameters, and data sources  
 
-#### **Infrastructure Hardening**
-- **Multi-Factor Authentication**: Mandatory MFA for all administrative and service accounts
+#### **Infrastructure Hardening**  
+- **Multi-Factor Authentication**: Mandatory MFA for all administrative and service accounts  
 - **Patch Management**: Automated, timely patching for operating systems, frameworks, and dependencies  
-- **Identity Provider Integration**: Centralized identity management through enterprise identity providers (Microsoft Entra ID, Active Directory)
-- **Network Segmentation**: Logical isolation of MCP components to limit lateral movement potential
-- **Principle of Least Privilege**: Minimal required permissions for all system components and accounts
+- **Identity Provider Integration**: Centralized identity management through enterprise identity providers (Microsoft Entra ID, Active Directory)  
+- **Network Segmentation**: Logical isolation of MCP components to limit lateral movement potential  
+- **Principle of Least Privilege**: Minimal required permissions for all system components and accounts  
 
-#### **Security Monitoring & Detection**
-- **Comprehensive Logging**: Detailed logging of AI application activities, including MCP client-server interactions
-- **SIEM Integration**: Centralized security information and event management for anomaly detection
-- **Behavioral Analytics**: AI-powered monitoring to detect unusual patterns in system and user behavior
-- **Threat Intelligence**: Integration of external threat feeds and indicators of compromise (IOCs)
-- **Incident Response**: Well-defined procedures for security incident detection, response, and recovery
+#### **Security Monitoring & Detection**  
+- **Comprehensive Logging**: Detailed logging of AI application activities, including MCP client-server interactions  
+- **SIEM Integration**: Centralized security information and event management for anomaly detection  
+- **Behavioral Analytics**: AI-powered monitoring to detect unusual patterns in system and user behavior  
+- **Threat Intelligence**: Integration of external threat feeds and indicators of compromise (IOCs)  
+- **Incident Response**: Well-defined procedures for security incident detection, response, and recovery  
 
-#### **Zero Trust Architecture**
-- **Never Trust, Always Verify**: Continuous verification of users, devices, and network connections
-- **Micro-Segmentation**: Granular network controls that isolate individual workloads and services
-- **Identity-Centric Security**: Security policies based on verified identities rather than network location
-- **Continuous Risk Assessment**: Dynamic security posture evaluation based on current context and behavior
-- **Conditional Access**: Access controls that adapt based on risk factors, location, and device trust
+#### **Zero Trust Architecture**  
+- **Never Trust, Always Verify**: Continuous verification of users, devices, and network connections  
+- **Micro-Segmentation**: Granular network controls that isolate individual workloads and services  
+- **Identity-Centric Security**: Security policies based on verified identities rather than network location  
+- **Continuous Risk Assessment**: Dynamic security posture evaluation based on current context and behavior  
+- **Conditional Access**: Access controls that adapt based on risk factors, location, and device trust  
 
 ### Enterprise Integration Patterns
 
-#### **Microsoft Security Ecosystem Integration**
-- **Microsoft Defender for Cloud**: Comprehensive cloud security posture management
-- **Azure Sentinel**: Cloud-native SIEM and SOAR capabilities for AI workload protection
-- **Microsoft Entra ID**: Enterprise identity and access management with conditional access policies
-- **Azure Key Vault**: Centralized secrets management with hardware security module (HSM) backing
-- **Microsoft Purview**: Data governance and compliance for AI data sources and workflows
+#### **Microsoft Security Ecosystem Integration**  
+- **Microsoft Defender for Cloud**: Comprehensive cloud security posture management  
+- **Azure Sentinel**: Cloud-native SIEM and SOAR capabilities for AI workload protection  
+- **Microsoft Entra ID**: Enterprise identity and access management with conditional access policies  
+- **Azure Key Vault**: Centralized secrets management with hardware security module (HSM) backing  
+- **Microsoft Purview**: Data governance and compliance for AI data sources and workflows  
 
-#### **Compliance & Governance**
-- **Regulatory Alignment**: Ensure MCP implementations meet industry-specific compliance requirements (GDPR, HIPAA, SOC 2)
-- **Data Classification**: Proper categorization and handling of sensitive data processed by AI systems
-- **Audit Trails**: Comprehensive logging for regulatory compliance and forensic investigation
-- **Privacy Controls**: Implementation of privacy-by-design principles in AI system architecture
-- **Change Management**: Formal processes for security reviews of AI system modifications
+#### **Compliance & Governance**  
+- **Regulatory Alignment**: Ensure MCP implementations meet industry-specific compliance requirements (GDPR, HIPAA, SOC 2)  
+- **Data Classification**: Proper categorization and handling of sensitive data processed by AI systems  
+- **Audit Trails**: Comprehensive logging for regulatory compliance and forensic investigation  
+- **Privacy Controls**: Implementation of privacy-by-design principles in AI system architecture  
+- **Change Management**: Formal processes for security reviews of AI system modifications  
 
 These foundational practices create a robust security baseline that enhances the effectiveness of MCP-specific security controls and provides comprehensive protection for AI-driven applications.
-## Key Security Takeaways
 
+## Key Security Takeaways
 - **Layered Security Approach**: Combine foundational security practices (secure coding, least privilege, supply chain verification, continuous monitoring) with AI-specific controls for comprehensive protection
 
 - **AI-Specific Threat Landscape**: MCP systems face unique risks including prompt injection, tool poisoning, session hijacking, confused deputy problems, token passthrough vulnerabilities, and excessive permissions that require specialized mitigations
@@ -488,6 +488,7 @@ For comprehensive security guidance, refer to these specialized documents in thi
 - **[Azure Content Safety Implementation](./azure-content-safety-implementation.md)** - Practical implementation examples for Azure Content Safety integration  
 - **[MCP Security Controls 2025](./mcp-security-controls-2025.md)** - Latest security controls and techniques for MCP deployments
 - **[MCP Best Practices Quick Reference](./mcp-best-practices.md)** - Quick reference guide for essential MCP security practices
+- **[BlueHat 2026: Securing the future of AI: Securing MCP with defense in depth patterns](https://www.youtube.com/watch?v=cVWB58kEt-Y)** - Defense-in-depth patterns from the Microsoft Security Response Center (MSRC)
 
 ### **Hands-On Security Training**
 
@@ -504,5 +505,5 @@ Next: [Chapter 3: Getting Started](../03-GettingStarted/README.md)
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
 **Disclaimer**:
-This document has been translated using the AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). While we strive for accuracy, please be aware that automated translations may contain errors or inaccuracies. The original document in its native language should be considered the authoritative source. For critical information, professional human translation is recommended. We are not liable for any misunderstandings or misinterpretations arising from the use of this translation.
+This document has been translated using AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). While we strive for accuracy, please be aware that automated translations may contain errors or inaccuracies. The original document in its native language should be considered the authoritative source. For critical information, professional human translation is recommended. We are not liable for any misunderstandings or misinterpretations arising from the use of this translation.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

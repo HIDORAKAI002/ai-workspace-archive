@@ -546,8 +546,18 @@
           <tr><td><code>make docker-build</code></td><td>Build the api and web Docker images.</td></tr>
           <tr><td><code>make docker-up</code></td><td>Start the Docker stack (<code>docker compose up</code>).</td></tr>
           <tr><td><code>make docker-down</code></td><td>Stop and remove containers.</td></tr>
+          <tr><td><code>make flush</code></td><td>Wipe all local installs + app data for a fresh start (see below).</td></tr>
         </tbody>
       </table>
+
+      <h2>Reset to a clean slate</h2>
+      <p><code>make flush</code> returns the machine to a pre-install state. It uninstalls the local runtime &mdash; the <code>cowork-server</code> uv tool <em>and</em> the <code>backend/core_api/.venv</code> + <code>backend/core_agent/.venv</code> &mdash; and deletes all app state: <code>~/.anton</code> (provider keys / <code>.env</code>) and <code>~/.cowork</code> (database, hermes, projects).</p>
+      <p>Use it to test the from-scratch install flow or to recover from a broken install. It prompts for confirmation before deleting; pass <code>FORCE=1</code> to skip the prompt in scripts/CI. The next <code>make setup</code> (or app launch) reinstalls everything.</p>
+      <div class="note">
+        <strong>Destructive.</strong> This permanently deletes your conversations and saved provider keys. There is no undo.
+      </div>
+      <pre><code>make flush          # prompts before wiping
+make flush FORCE=1  # no prompt (CI / scripts)</code></pre>
     </section>
   </main>
 </div>

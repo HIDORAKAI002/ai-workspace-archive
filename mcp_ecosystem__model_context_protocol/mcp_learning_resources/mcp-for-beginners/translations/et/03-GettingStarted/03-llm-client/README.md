@@ -1,52 +1,52 @@
-# Kliendi loomine koos LLM-iga
+# Kliendi loomine LLM-iga
 
-Siiani olete näinud, kuidas luua serverit ja klienti. Klient on suutnud serverit selgesõnaliselt kutsuda, et loetleda selle tööriistu, ressursse ja käivitusi. Kuid see pole väga praktiline lähenemine. Teie kasutajad elavad agendi ajastul ja ootavad, et nad saaksid kasutada käivitusi ja suhelda LLM-iga. Neid ei huvita, kas kasutate MCP-d oma võimete salvestamiseks; nad ootavad lihtsalt loomulikus keeles suhtlemist. Kuidas seda siis lahendada? Lahendus on lisada kliendile LLM.
+Nii kaugele olete näinud, kuidas luua server ja klient. Klient on suutnud serverit otseselt kutsuda, et loetleda selle tööriistu, ressursse ja viipasid. Kuid see pole väga praktiline lähenemine. Teie kasutajad elavad agendi-ajastus ja eeldavad, et saavad kasutada viipasid ja suhelda LLM-iga. Neid ei huvita, kas te kasutate MCP-d oma võimekuse salvestamiseks; nad lihtsalt ootavad loomulikus keeles suhtlemist. Kuidas me selle lahendame? Lahendus on lisada LLM kliendile.
 
 ## Ülevaade
 
-Selles õppetükis keskendume LLM-i lisamisele teie kliendile ja näitame, kuidas see pakub teie kasutajale palju paremat kogemust.
+Selles õppetükis keskendume LLM-i lisamisele teie kliendile ja näitame, kuidas see annab kasutajale palju parema kogemuse.
 
 ## Õpieesmärgid
 
-Selle õppetüki lõpuks suudate:
+Selle õppetüki lõpuks oskate:
 
-- Luua kliendi, millel on LLM.
+- Luua kliendi koos LLM-iga.
 - Sujuvalt suhelda MCP serveriga, kasutades LLM-i.
-- Pakkuda paremat lõppkasutajakogemust kliendi poolel.
+- Pakku paremat lõppkasutaja kogemust kliendi poolel.
 
 ## Lähenemine
 
-Püüame mõista, millist lähenemist tuleb võtta. LLM-i lisamine tundub lihtne, kuid kas me seda tegelikult teeme?
+Proovime mõista, millist lähenemist tuleb võtta. LLM-i lisamine tundub lihtne, kuid kas me seda tegelikult teeme?
 
-Siin on, kuidas klient serveriga suhtleb:
+Nii suhtleb klient serveriga:
 
 1. Luua ühendus serveriga.
 
-1. Loetleda võimed, käivitused, ressursid ja tööriistad ning salvestada nende skeemid.
+1. Loetleda võimekused, viibad, ressursid ja tööriistad ning salvestada nende skeemid.
 
-1. Lisada LLM ja edastada salvestatud võimed ja nende skeemid vormingus, mida LLM mõistab.
+1. Lisada LLM ja anda salvestatud võimekused ning nende skeemid vormingus, mida LLM mõistab.
 
-1. Käsitleda kasutaja käivitust, edastades selle LLM-ile koos kliendi poolt loetletud tööriistadega.
+1. Käsitleda kasutaja viipa, edastades selle LLM-ile koos kliendi poolt loetletud tööriistadega.
 
-Suurepärane, nüüd kui mõistame, kuidas seda kõrgetasandiliselt teha, proovime seda järgnevates harjutustes.
+Suurepärane, nüüd, kui me mõistame suurt pilti, proovime seda allolevas ülesandes.
 
-## Harjutus: Kliendi loomine koos LLM-iga
+## Harjutus: Kliendi loomine LLM-iga
 
-Selles harjutuses õpime lisama LLM-i meie kliendile.
+Selles harjutuses õpime lisama LLM-i oma kliendile.
 
-### Autentimine GitHubi isikliku juurdepääsu tokeniga
+### Autentimine GitHubi isikliku ligipääsutunnusega
 
-GitHubi tokeni loomine on lihtne protsess. Siin on, kuidas seda teha:
+GitHubi tunnuse loomine on lihtne protsess. Siin on, kuidas seda teha:
 
-- Minge GitHubi seadistustesse – klõpsake paremas ülanurgas oma profiilipildil ja valige Settings.
-- Navigeerige arendaja seadistustesse – kerige alla ja klõpsake Developer Settings.
-- Valige Isikliku juurdepääsu tokenid – klõpsake Fine-grained tokens ja seejärel Generate new token.
-- Konfigureerige token – lisage viide, määrake aegumiskuupäev ja valige vajalikud õigused. Selles juhus kindlasti lisage Models luba.
-- Genereerige ja kopeerige token – klõpsake Generate token ja kindlasti kopeerige see kohe, kuna seda ei saa hiljem enam näha.
+- Minge GitHubi sätetesse – klõpsake paremas ülanurgas oma profiilipildil ja valige Settings.
+- Navigeerige arendussätete lehele – kerige alla ja klõpsake Developer Settings.
+- Valige Personal Access Tokens – klõpsake Fine-grained tokens ja seejärel Generate new token.
+- Konfigureerige oma tunnus – lisage viide, määrake aegumiskuupäev ja valige vajalikud õigused (scopes). Selles juhul kindlasti lisage Models õigused.
+- Genereerige ja kopeerige tunnus – klõpsake Generate token ning kopeerige see kohe, kuna te ei näe seda enam kunagi.
 
 ### -1- Ühenduse loomine serveriga
 
-Loome esmalt kliendi:
+Loome kõigepealt oma kliendi:
 
 #### TypeScript
 
@@ -83,11 +83,11 @@ class MCPClient {
 }
 ```
 
-Eelnevas koodis oleme:
+Eelnevas koodis me oleme:
 
-- Impordinud vajalikud raamatukogud
-- Loonud klassi kahem liikmega, `client` ja `openai`, mis aitavad meil hallata klienti ja suhelda LLM-iga vastavalt.
-- Konfigureerinud LLM-i eksemplari kasutamaks GitHub Models, määrates `baseUrl` viitama inference API-le.
+- Importinud vajalikud teegid
+- Loonud klassi kahe liikmega `client` ja `openai`, mis aitavad meil hallata klienti ja suhelda vastavalt LLM-iga.
+- Konfigureerinud oma LLM eksemplari kasutama GitHub Models, määrates `baseUrl` inference API aadressiks.
 
 #### Python
 
@@ -108,7 +108,7 @@ async def run():
         async with ClientSession(
             read, write
         ) as session:
-            # Ühenduse algväärtustamine
+            # Alusta ühendust
             await session.initialize()
 
 
@@ -119,9 +119,9 @@ if __name__ == "__main__":
 
 ```
 
-Eelnevas koodis oleme:
+Eelnevas koodis me oleme:
 
-- Impordinud MCP jaoks vajalikud moodulid
+- Importinud MCP jaoks vajalikud teegid
 - Loonud kliendi
 
 #### .NET
@@ -146,7 +146,7 @@ await using var mcpClient = await McpClient.CreateAsync(clientTransport);
 
 #### Java
 
-Esiteks peate lisama LangChain4j sõltuvused oma `pom.xml` faili. Lisage need sõltuvused, et lubada MCP integratsioon ja GitHub Models tugi:
+Esiteks peate lisama oma `pom.xml` faili LangChain4j sõltuvused. Lisage need sõltuvused, et lubada MCP integreerimine ja GitHub Models tugi:
 
 ```xml
 <properties>
@@ -201,7 +201,7 @@ import java.util.List;
 
 public class LangChain4jClient {
     
-    public static void main(String[] args) throws Exception {        // Konfigureeri LLM kasutama GitHubi mudeleid
+    public static void main(String[] args) throws Exception {        // Määra LLM kasutama GitHubi mudeleid
         ChatLanguageModel model = OpenAiOfficialChatModel.builder()
                 .isGitHubModels(true)
                 .apiKey(System.getenv("GITHUB_TOKEN"))
@@ -225,20 +225,20 @@ public class LangChain4jClient {
 }
 ```
 
-Eelnevas koodis oleme:
+Eelnevas koodis me oleme:
 
-- **Lisanud LangChain4j sõltuvused**: Nõutud MCP integratsiooni, ametliku OpenAI kliendi ja GitHub Models toe jaoks
-- **Importinud LangChain4j teegid**: MCP integratsiooni ja OpenAI vestlusmudeli toimivuse jaoks
-- **Loonud `ChatLanguageModel`**: Konfigureeritud kasutama GitHub Models teie GitHubi tokeniga
-- **Seadistanud HTTP transpordi**: Kasutades Server-Sent Events (SSE) MCP serveriga ühenduse loomiseks
-- **Loonud MCP kliendi**: Mis haldab suhtlust serveriga
-- **Kasutades LangChain4j sisseehitatud MCP tuge**: Mis lihtsustab LLM-ide ja MCP serverite integreerimist
+- **Lisanud LangChain4j sõltuvused**: MCP integreerimiseks, OpenAI ametlikuks kliendiks ja GitHub Models toeks
+- **Importinud LangChain4j teegid**: MCP integreerimiseks ja OpenAI vestlusmudeli funktsionaalsuseks
+- **Loonud `ChatLanguageModel`**: konfigureeritud kasutama GitHub Models oma GitHubi nimetusega
+- **Määranud HTTP transpordi**: kasutades Server-Sent Events (SSE), et ühendada MCP serveriga
+- **Loonud MCP kliendi**: mis haldab suhtlust serveriga
+- **Kasutanud LangChain4j sisseehitatud MCP tuge**: mis lihtsustab LLM-ide ja MCP serverite vahelist integratsiooni
 
 #### Rust
 
-See näide eeldab, et teil jookseb Rust-põhine MCP server. Kui teil seda pole, vaadake tagasi [01-first-server](../01-first-server/README.md) õppetükki, et luua server.
+See näide eeldab, et teil on Rust-põhine MCP server töötamas. Kui teil seda pole, vaadake tagasi [01-first-server](../01-first-server/README.md) õppetükile, et server luua.
 
-Kui teil on Rust MCP server, avage terminal ja navigeerige samasse kausta, kus server asub. Seejärel käivitage järgmine käsk, et luua uus LLM kliendi projekt:
+Kui teil on Rust MCP server, avage terminal ja navigeerige serveri kausta. Käivitage järgmine käsk, et luua uus LLM kliendiprojekt:
 
 ```bash
 mkdir calculator-llmclient
@@ -257,7 +257,7 @@ tokio = { version = "1.46.1", features = ["rt-multi-thread"] }
 ```
 
 > [!NOTE]
-> Rusti jaoks ametlikku OpenAI raamatukogu ei ole, kuid `async-openai` pakett on [ühisuse hooldatud teek](https://platform.openai.com/docs/libraries/rust#rust), mida sageli kasutatakse.
+> Rustile ametlikku OpenAI teeki ei ole, kuid `async-openai` crate on [kogukonna hooldatav teek](https://platform.openai.com/docs/libraries/rust#rust), mida sageli kasutatakse.
 
 Avage `src/main.rs` fail ja asendage selle sisu järgmise koodiga:
 
@@ -278,7 +278,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // Algne sõnum
     let mut messages = vec![json!({"role": "user", "content": "What is the sum of 3 and 2?"})];
 
-    // Sea üles OpenAI klient
+    // OpenAI kliendi seadistamine
     let api_key = std::env::var("OPENAI_API_KEY")?;
     let openai_client = Client::with_config(
         OpenAIConfig::new()
@@ -286,7 +286,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             .with_api_key(api_key),
     );
 
-    // Sea üles MCP klient
+    // MCP kliendi seadistamine
     let server_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .unwrap()
@@ -301,28 +301,28 @@ async fn main() -> Result<(), Box<dyn Error>> {
         )
         .await?;
 
-    // TEHA: Hangi MCP tööriistade nimekiri
+    // TODO: Hankida MCP tööriistade nimekiri
 
-    // TEHA: LLM vestlus tööriistakõnedega
+    // TODO: Suurkeele mudeli vestlus tööriistakutsega
 
     Ok(())
 }
 ```
 
-See kood seadistab lihtsa Rusti rakenduse, mis ühendub MCP serveri ja GitHub Modelsiga LLM-interaktsioonide jaoks.
+See kood seab üles lihtsa Rusti rakenduse, mis ühendub MCP serveri ja GitHub Modelsiga LLM suhtluseks.
 
 > [!IMPORTANT]
-> Veenduge, et olete seadistanud keskkonnamuutuja `OPENAI_API_KEY` oma GitHubi tokeni väärtusega enne rakenduse käivitamist.
+> Veenduge, et olete seadistanud keskkonnamuutuja `OPENAI_API_KEY` oma GitHubi tunnusega enne rakenduse käivitamist.
 
-Suurepärane, järgmise sammuna loetleme serveri võimed.
+Suurepärane, järgmise sammuna loetleme serveri võimekused.
 
-### -2- Serveri võimete loetelu
+### -2- Serveri võimekuste loetelu
 
-Nüüd ühendume serveriga ja küsime selle võimeid:
+Nüüd loome ühenduse serveriga ja küsime selle võimekusi:
 
 #### Typescript
 
-Lisage samasse klassi järgmised meetodid:
+Selles samas klassis lisage järgmised meetodid:
 
 ```typescript
 async connectToServer(transport: Transport) {
@@ -334,26 +334,26 @@ async connectToServer(transport: Transport) {
 async run() {
     console.log("Asking server for available tools");
 
-    // tööriistade loetelu
+    // tööriistade nimekirja koostamine
     const toolsResult = await this.client.listTools();
 }
 ```
 
-Eelnevas koodis oleme:
+Eelnevas koodis me oleme:
 
-- Lisanud koodi ühenduse loomiseks serveriga, `connectToServer`.
-- Loonud `run` meetodi, mis haldab meie rakenduse voogu. Seni loetleb see ainult tööriistu, kuid lisame peagi rohkem.
+- Lisanud koodi serveriga ühenduse loomiseks, `connectToServer`.
+- Loonud meetodi `run`, mis vastutab meie rakenduse voolu haldamise eest. Seni loetleb see ainult tööriistad, kuid lisame peagi rohkem.
 
 #### Python
 
 ```python
-# Loetle olemasolevad ressursid
+# Loetle saadaolevad ressursid
 resources = await session.list_resources()
 print("LISTING RESOURCES")
 for resource in resources:
     print("Resource: ", resource)
 
-# Loetle olemasolevad tööriistad
+# Loetle saadaolevad tööriistad
 tools = await session.list_tools()
 print("LISTING TOOLS")
 for tool in tools.tools:
@@ -361,9 +361,9 @@ for tool in tools.tools:
     print("Tool", tool.inputSchema["properties"])
 ```
 
-Siin on, mida lisasime:
+Siin on, mida me lisasime:
 
-- Loetlesime ressursse ja tööriistu ning printisime need. Tööriistade puhul loetleme ka `inputSchema`, mida kasutame hiljem.
+- Loetlesime ressursid ja tööriistad ning trükkisime need välja. Tööriistade puhul loetleme ka `inputSchema`, mida kasutame hiljem.
 
 #### .NET
 
@@ -388,47 +388,47 @@ async Task<List<ChatCompletionsToolDefinition>> GetMcpTools()
 }
 ```
 
-Eelnevas koodis oleme:
+Eelnevas koodis me oleme:
 
-- Loetlenud MCP serveri saadaolevad tööriistad
-- Iga tööriista kohta loetlenud nime, kirjelduse ja tema skeemi. Viimast kasutame tööriistade kutsumiseks peagi.
+- Loetlenud MCP serveris olevad tööriistad
+- Iga tööriista kohta loetlenud nime, kirjelduse ja selle skeemi. Viimane on midagi, mida kasutame tööriistade kutsumiseks.
 
 #### Java
 
 ```java
-// Loo tööriista pakkuja, mis avastab automaatselt MCP tööriistad
+// Loo tööriistapakkuja, mis avastab automaatselt MCP tööriistad
 ToolProvider toolProvider = McpToolProvider.builder()
         .mcpClients(List.of(mcpClient))
         .build();
 
-// MCP tööriista pakkuja tegeleb automaatselt:
-// - Saadavalolevate tööriistade loetelu MCP serverist
+// MCP tööriistapakkuja haldab automaatselt:
+// - MCP serverist saadaolevate tööriistade loetelu
 // - MCP tööriista skeemide teisendamine LangChain4j formaati
-// - Tööriista täitmise ja vastuste haldamine
+// - Tööriistade käivitamise ja vastuste haldamine
 ```
 
-Eelnevas koodis oleme:
+Eelnevas koodis me oleme:
 
-- Loonud `McpToolProvider`, mis automaatselt avastab ja registreerib kõik MCP serveri tööriistad
-- Tööriista pakkuja käsitleb MCP tööriistade skeemide ja LangChain4j tööriistavormingu vahelisi konversioone sisemiselt
-- See lähenemine abstraktiseerib manuaalse tööriistade loendi ja konversiooni protsessi
+- Loonud `McpToolProvider`, mis automaatselt leiab ja registreerib kõik MCP serveri tööriistad
+- Tööriistapakkuja teisendab MCP tööriistade skeemid LangChain4j tööriistade formaati sisemiselt
+- See lähenemine varjab käsitsi tööriistade loetlemise ja teisendamise protsessi
 
 #### Rust
 
-MCP serverilt tööriistade saamine toimub `list_tools` meetodiga. Oma `main` funktsioonis, pärast MCP kliendi seadistamist, lisage järgmine kood:
+Tööriistade hankimine MCP serverist toimub meetodiga `list_tools`. Oma `main` funktsioonis, pärast MCP kliendi seadistamist, lisage järgmine kood:
 
 ```rust
-// Hangi MCP tööriistade loend
+// Hangi MCP tööriistade nimekiri
 let tools = mcp_client.list_tools(Default::default()).await?;
 ```
 
-### -3- Serveri võimete konverteerimine LLM tööriistadeks
+### -3- Serveri võimekuste teisendamine LLM tööriistadeks
 
-Järgmine samm pärast serveri võimete loetlemist on nende konverteerimine LLM mõistetavasse vormingusse. Kui see tehtud, saame neid võimeid pakkuda oma LLM tööriistadena.
+Järgmine samm pärast serveri võimekuste loetlemist on nende teisendamine vormingusse, mida LLM saab mõista. Kui see tehtud, saame pakkuda neid võimekusi tööriistadena oma LLM-ile.
 
 #### TypeScript
 
-1. Lisage järgmine kood MCP serveri vastuse teisendamiseks tööriista vormingusse, mida LLM saab kasutada:
+1. Lisage järgmine kood, et teisendada MCP serveri vastus tööriista formaadiks, mida LLM saab kasutada:
 
     ```typescript
     openAiToolAdapter(tool: {
@@ -436,11 +436,11 @@ Järgmine samm pärast serveri võimete loetlemist on nende konverteerimine LLM 
         description?: string;
         input_schema: any;
         }) {
-        // Loo zod skeem sisendiskeemi põhjal
+        // Loo zod skeem sisendskeemi põhjal
         const schema = z.object(tool.input_schema);
     
         return {
-            type: "function" as const, // Määra tüüp ekspliciitselt "function" väärtuseks
+            type: "function" as const, // Sea tüüp selgelt "function" väärtuseks
             function: {
             name: tool.name,
             description: tool.description,
@@ -455,9 +455,9 @@ Järgmine samm pärast serveri võimete loetlemist on nende konverteerimine LLM 
 
     ```
 
-    Ülaltoodud kood võtab MCP serveri vastuse ja konverteerib selle LLM-i mõistetavaks tööriistamääratluseks.
+    Ülaltoodud kood võtab MCP serveri vastuse ja teisendab selle selliseks tööriista definitsiooni formaadiks, mida LLM mõistab.
 
-2. Värskendame seejärel `run` meetodit, et loetleda serveri võimeid:
+2. Uuendame nüüd `run` meetodit, et loetleda serveri võimekusi:
 
     ```typescript
     async run() {
@@ -473,11 +473,11 @@ Järgmine samm pärast serveri võimete loetlemist on nende konverteerimine LLM 
     }
     ```
 
-    Eelnevas koodis uuendasime `run` meetodit, et läbida tulemust ja iga kirje puhul kutsuda `openAiToolAdapter`.
+    Eelnevas koodis uuendasime `run` meetodit, kasutades tulemuse läbimist ja iga üksuse jaoks kutsudes `openAiToolAdapter`.
 
 #### Python
 
-1. Loome esmalt järgmise teisendusfunktsiooni
+1. Loome esmalt järgmise teisendaja funktsiooni
 
     ```python
     def convert_to_llm_tool(tool):
@@ -497,9 +497,9 @@ Järgmine samm pärast serveri võimete loetlemist on nende konverteerimine LLM 
         return tool_schema
     ```
 
-    Ülaltoodud funktsioonis `convert_to_llm_tools` võtame MCP tööriista vastuse ja konverteerime selle LLM-i mõistetavasse vormingusse.
+    Funktsioonis `convert_to_llm_tools` teisendame MCP tööriistavastuse tegemaks seda LLM-i arusaadavaks.
 
-2. Seejärel uuendame oma kliendi koodi, et kasutada seda funktsiooni nii:
+2. Järgmiseks uuendame oma kliendi koodi, kasutades seda funktsiooni nii:
 
     ```python
     functions = []
@@ -509,11 +509,11 @@ Järgmine samm pärast serveri võimete loetlemist on nende konverteerimine LLM 
         functions.append(convert_to_llm_tool(tool))
     ```
 
-    Siin lisame kutse `convert_to_llm_tool` funktsioonile, et MCP tööriista vastus konverteeritaks LLM-i sisendiks.
+    Siin lisame funktsiooni `convert_to_llm_tool` kutse, mis teisendab MCP tööriista vastuse hilisemaks LLM sisendiks.
 
 #### .NET
 
-1. Lisame koodi, et konverteerida MCP tööriistavastus LLM-i mõistetavaks:
+1. Lisame koodi, mis teisendab MCP tööriistavastuse vormingusse, mida LLM mõistab
 
 ```csharp
 ChatCompletionsToolDefinition ConvertFrom(string name, string description, JsonElement jsonElement)
@@ -536,12 +536,12 @@ ChatCompletionsToolDefinition ConvertFrom(string name, string description, JsonE
 }
 ```
 
-Eelnevas koodis oleme:
+Eelnevas koodis me oleme:
 
 - Loonud funktsiooni `ConvertFrom`, mis võtab nime, kirjelduse ja sisendi skeemi.
-- Määratlenud funktsionaalsuse, mis loob FunctionDefinitioni, mis omakorda antakse ChatCompletionsDefinitionile. Viimane on LLM-i jaoks mõistetav.
+- Määratlenud funktsionaalsuse, mis loob `FunctionDefinition`-i, mis antakse edasi `ChatCompletionsDefinition`-ile. Viimane on midagi, mida LLM mõistab.
 
-2. Vaatame, kuidas me saame ülaltoodud funktsiooni kasutama hakata olemasolevat koodi:
+2. Uuendame olemasolevat koodi nii, et kasutaks seda funktsiooni eelnevalt:
 
     ```csharp
     async Task<List<ChatCompletionsToolDefinition>> GetMcpTools()
@@ -587,7 +587,7 @@ Eelnevas koodis oleme:
 #### Java
 
 ```java
-// Loo vestlusroboti liides loomuliku keele suhtluseks
+// Loo Bot-liides loomuliku keele suhtlemiseks
 public interface Bot {
     String chat(String prompt);
 }
@@ -599,16 +599,16 @@ Bot bot = AiServices.builder(Bot.class)
         .build();
 ```
 
-Eelnevas koodis oleme:
+Eelnevas koodis me oleme:
 
-- Määratlenud lihtsa `Bot` liidese loomuliku keele interaktsioonide jaoks
-- Kasutanud LangChain4j `AiServices`i, et automaatselt siduda LLM MCP tööriistapakkujaga
-- Raamistik haldab automaatselt tööriista skeemi konversiooni ja funktsioonikutsed taustal
-- See lähenemine elimineerib manuaalse tööriistade teisendamise – LangChain4j haldab kogu MCP tööriistade LLM-ga ühilduvaks muutmise keerukuse
+- Määratlenud lihtsa `Bot` liidese loomuliku keele põhisteks interaktsioonideks
+- Kasutanud LangChain4j `AiServices`-i, et automaatselt siduda LLM MCP tööriistapakkujaga
+- Raamistik haldab automaatselt tööriistade skeemi teisendamist ja funktsioonide väljakutset tagapõhjal
+- See lähenemine elimineerib käsitsi tööriistade konverteerimise – LangChain4j haldab kogu kompleksust MCP tööriistade LLM-iga ühilduvasse formaati teisendamisel
 
 #### Rust
 
-MCP tööriistade vastuse konverteerimiseks LLM-i mõistetavasse vormi lisame abifunktsiooni, mis vormistab tööriistade nimekirja. Lisage järgmine kood faili `main.rs` pärast `main` funktsiooni. Seda kutsutakse LLM-i päringutel:
+MCP tööriistavastuse teisendamiseks LLM arusaadavasse formaati lisame abifunktsiooni, mis vormindab tööriistade nimekirja. Lisage järgmine kood oma `main.rs` faili `main` funktsiooni alla. Seda kutsutakse LLM päringute tegemisel:
 
 ```rust
 async fn format_tools(tools: &ListToolsResult) -> Result<Vec<Value>, Box<dyn Error>> {
@@ -643,15 +643,15 @@ async fn format_tools(tools: &ListToolsResult) -> Result<Vec<Value>, Box<dyn Err
 }
 ```
 
-Suurepärane, oleme kokku seadnud kasutajapäringute käsitlemise, nüüd tegeleme sellega edasi.
+Suurepärane, meil on valmis kasutajapäringute töötlemiseks, seega lähme nüüd sellele juurde.
 
-### -4- Kasutaja käivituse päringu käsitlemine
+### -4- Kasutajaviiba päringu käsitlemine
 
-Selles koodiosas käsitleme kasutaja päringuid.
+Selles koodiosas käitleme kasutajate päringuid.
 
 #### TypeScript
 
-1. Lisage meetod, mida kasutatakse meie LLM-i kutsumiseks:
+1. Lisage meetod, mida kasutatakse LLM-i kutsumiseks:
 
     ```typescript
     async callTools(
@@ -674,16 +674,16 @@ Selles koodiosas käsitleme kasutaja päringuid.
         console.log("Tool result: ", toolResult);
 
         // 3. Tee midagi tulemusega
-        // TODO
+        // TEE
 
         }
     }
     ```
 
-    Eelnevas koodis:
+    Eelnevas koodis me:
 
-    - Lisati meetod `callTools`.
-    - Meetod võtab LLM vastuse ja kontrollib, milliseid tööriistu on kutsutud, kui üldse:
+    - Lisasime meetodi `callTools`.
+    - Meetod võtab LLM vastuse ja kontrollib, milliseid tööriistu on kutsutud, kui neid on:
 
         ```typescript
         for (const tool_call of tool_calls) {
@@ -696,10 +696,10 @@ Selles koodiosas käsitleme kasutaja päringuid.
         }
         ```
 
-    - Kutsub tööriista, kui LLM näitab, et seda tuleks kutsuda:
+    - Kutsub tööriista, kui LLM näitab, et see tuleks kutsuda:
 
         ```typescript
-        // 2. Kutsu serveri tööriista
+        // 2. Kutsuge serveri tööriista
         const toolResult = await this.client.callTool({
             name: toolName,
             arguments: JSON.parse(args),
@@ -707,15 +707,15 @@ Selles koodiosas käsitleme kasutaja päringuid.
 
         console.log("Tool result: ", toolResult);
 
-        // 3. Tee midagi tulemusega
-        // TODO
+        // 3. Tehke tulemusega midagi
+        // TEGEMATA
         ```
 
-2. Uuendame `run` meetodit, et lisada LLM-i kutsed ja `callTools` kutsumine:
+2. Uuendame `run` meetodit, lisades LLM-ile kutsumise ja `callTools` meetodi kasutamise:
 
     ```typescript
 
-    // 1. Loo sõnumid, mis on LLM-i sisendiks
+    // 1. Loo sõnumid, mis on LLM sisendiks
     const prompt = "What is the sum of 2 and 3?"
 
     const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
@@ -727,7 +727,7 @@ Selles koodiosas käsitleme kasutaja päringuid.
 
     console.log("Querying LLM: ", messages[0].content);
 
-    // 2. Kutsuge LLM-i
+    // 2. Kutsu LLM-i
     let response = this.openai.chat.completions.create({
         model: "gpt-4.1-mini",
         max_tokens: 1000,
@@ -737,7 +737,7 @@ Selles koodiosas käsitleme kasutaja päringuid.
 
     let results: any[] = [];
 
-    // 3. Läbi vaadata LLM-i vastus, iga valiku puhul kontrollida, kas selles on tööriistakutseid
+    // 3. Läbige LLM vastus, iga valiku puhul kontrollige, kas selles on tööriistakutseid
     (await response).choices.map(async (choice: { message: any; }) => {
         const message = choice.message;
         if (message.tool_calls) {
@@ -747,7 +747,7 @@ Selles koodiosas käsitleme kasutaja päringuid.
     });
     ```
 
-Suurepärane, siin on kogu kood koos:
+Suurepärane, vaatame kogu koodi täies mahus:
 
 ```typescript
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
@@ -761,7 +761,7 @@ class MyClient {
     private client: Client;
     constructor(){
         this.openai = new OpenAI({
-            baseURL: "https://models.inference.ai.azure.com", // Võib-olla tuleb tulevikus muuta see url: https://models.github.ai/inference
+            baseURL: "https://models.inference.ai.azure.com", // võib tulevikus vaja minna seda url-i muuta: https://models.github.ai/inference
             apiKey: process.env.GITHUB_TOKEN,
         });
 
@@ -791,11 +791,11 @@ class MyClient {
         description?: string;
         input_schema: any;
           }) {
-          // Loo zod skeem sisend_skeemi põhjal
+          // Loo zod skeem sisendskeemi põhjal
           const schema = z.object(tool.input_schema);
       
           return {
-            type: "function" as const, // Sea tüübiks selgesõnaliselt "function"
+            type: "function" as const, // Määra tüübiks selgelt "function"
             function: {
               name: tool.name,
               description: tool.description,
@@ -828,7 +828,7 @@ class MyClient {
           console.log("Tool result: ", toolResult);
     
           // 3. Tee midagi tulemusega
-          // TEGEMATA
+          // TODO
     
          }
     }
@@ -863,7 +863,7 @@ class MyClient {
 
         let results: any[] = [];
     
-        // 3. Läbi LLM-i vastus, kontrolli iga valiku puhul, kas sellel on tööriista kutsed
+        // 3. Läbi LLM vastuse, kontrolli iga valikut, kas seal on tööriista kutsed
         (await response).choices.map(async (choice: { message: any; }) => {
           const message = choice.message;
           if (message.tool_calls) {
@@ -886,10 +886,10 @@ client.connectToServer(transport);
 
 #### Python
 
-1. Lisame mõned impordid, mis on vajalikud LLM-i kutsumiseks:
+1. Lisame importid, mida on vaja LLM-i kutsumiseks
 
     ```python
-    # lsu
+    # llm
     import os
     from azure.ai.inference import ChatCompletionsClient
     from azure.ai.inference.models import SystemMessage, UserMessage
@@ -897,7 +897,7 @@ client.connectToServer(transport);
     import json
     ```
 
-2. Seejärel lisame funktsiooni, mis kutsub LLM-i:
+2. Lisame funktsiooni, mis LLM-i kutsub:
 
     ```python
     # llm
@@ -947,14 +947,14 @@ client.connectToServer(transport);
         return functions_to_call
     ```
 
-    Eelnevas koodis oleme:
+    Eelnevas koodis me oleme:
 
-    - Edastanud oma funktsioonid, mille leidsime MCP serverist ja konverteerisime, LLM-ile.
+    - Edastanud LLM-ile funktsioonid, mida MCP serverist leidsime ja teisendasime.
     - Seejärel kutsusime LLM-i nende funktsioonidega.
-    - Seejärel kontrollime tulemust, et näha, milliseid funktsioone tuleks kutsuda, kui üldse.
-    - Lõpuks edastame tabeli funktsioonidega kutsumiseks.
+    - Seejärel kontrollime tulemust, et näha, milliseid funktsioone kutsuda, kui üldse kutsuda.
+    - Lõpuks edastame massiivi funktsioonikutsudest.
 
-3. Viimane samm, uuendame oma põhikoodi:
+3. Viimane samm, uuendame meie põhikoodi:
 
     ```python
     prompt = "Add 2 to 20"
@@ -962,20 +962,20 @@ client.connectToServer(transport);
     # küsi LLM-ilt, milliseid tööriistu kasutada, kui üldse
     functions_to_call = call_llm(prompt, functions)
 
-    # kutsu soovitatud funktsioonid
+    # kutsu soovitatud funktsioonid esile
     for f in functions_to_call:
         result = await session.call_tool(f["name"], arguments=f["args"])
         print("TOOLS result: ", result.content)
     ```
 
-    Seal oli lõppsamm, ülaltoodud koodis me:
+    Seal, see oli lõppsamm, ülalolevas koodis me:
 
-    - Kutsub MCP tööriista kaudu `call_tool` kasutades LLM-i otsust meie käivituse põhjal.
-    - Trükib tööriistakutse tulemuse MCP serverisse.
+    - Kutsub MCP tööriista `call_tool` abil, kasutades LLM-i poolt viipa põhjal soovitatud funktsiooni.
+    - Trükib välja tööriista kõne tulemuse MCP serverisse.
 
 #### .NET
 
-1. Näitame koodi LLM käivituse päringu tegemiseks:
+1. Näitame koodi LLM-viiba päringu tegemiseks:
 
     ```csharp
     var tools = await GetMcpTools();
@@ -1009,14 +1009,14 @@ client.connectToServer(transport);
 
     ```
 
-    Eelnevas koodis oleme:
+    Eelnevas koodis me oleme:
 
-    - Laadinud tööriistad MCP serverist `var tools = await GetMcpTools()`
-    - Määratlenud kasutajakäivituse `userMessage`
-    - Koostanud valikud, mis määratlevad mudeli ja tööriistad
-    - Tehakse päring LLM-ile
+    - Hangi tööriistad MCP serverist, `var tools = await GetMcpTools()`.
+    - Määratlesi kasutajaviiba `userMessage`.
+    - Konstrukteerisid valikud, mis määravad mudeli ja tööriistad.
+    - Tegid päringu LLM-ile.
 
-2. Viimane samm, vaatame, kas LLM arvab, et me peaksime funktsiooni kutsuma:
+2. Viimane samm, näeme, kas LLM arvab, et peaksime funktsiooni kutsuma:
 
     ```csharp
     // 4. Check if the response contains a function call
@@ -1039,12 +1039,12 @@ client.connectToServer(transport);
     }
     ```
 
-    Eelnevas koodis oleme:
+    Eelnevas koodis me oleme:
 
-    - Läbinud funktsioonikutsed
-    - Iga tööriistakutse puhul tõlkinud nime ja argumendid ning kutsunud tööriista MCP serveris MCP kliendi abil. Lõpuks trükinud tulemused.
+    - Läbisin funktsiooni kutsete nimekirja.
+    - Iga tööriista kõne puhul parsin nime ja argumendid ning kutsun tööriista MCP serveris külge MCP kliendi abil. Lõpuks trükime välja tulemused.
 
-Siin on kogu kood koos:
+Siin on kogu kood:
 
 ```csharp
 using Azure;
@@ -1174,7 +1174,7 @@ Console.WriteLine($"Assistant response: {content}");
 
 ```java
 try {
-    // Täida loomuliku keele päringud, mis automaatselt kasutavad MCP tööriistu
+    // Täida looduskeelseid päringuid, mis automaatselt kasutavad MCP tööriistu
     String response = bot.chat("Calculate the sum of 24.5 and 17.3 using the calculator service");
     System.out.println(response);
 
@@ -1188,17 +1188,17 @@ try {
 }
 ```
 
-Eelnevas koodis oleme:
+Eelnevas koodis me oleme:
 
-- Kasutanud lihtsaid loomuliku keele käivitusi MCP serveri tööriistadega suhtlemiseks
+- Kasutanud lihtsaid loomuliku keele viipasid MCP serveri tööriistadega suhtlemiseks
 - LangChain4j raamistik haldab automaatselt:
-  - Kasutaja käivituste konverteerimist tööriistakutseteks, kui vaja
-  - Õigete MCP tööriistade kutsumist vastavalt LLM otsusele
-  - Vestluse sujuvat juhtimist LLM-i ja MCP serveri vahel
-- `bot.chat()` meetod tagastab loomulikus keeles vastuseid, mis võivad sisaldada MCP tööriistade tulemusi
-- See lähenemine tagab sujuva kasutajakogemuse, kus kasutajad ei pea teadma MCP sisekujundust
+  - Kasutajaviipade teisendamist tööriistakutseteks vajadusel
+  - Sobivate MCP tööriistade kutsumist LLM-i otsuse põhjal
+  - Konversatsioonivoo haldamist LLM ja MCP serveri vahel
+- Meetod `bot.chat()` tagastab loomuliku keele vastuseid, mis võivad sisaldada MCP tööriistade käivitamise tulemusi
+- See lähenemine tagab sujuva kasutajakogemuse, kus kasutajad ei pea teadma aluseks olevat MCP teostust
 
-Täielik kodeks näide:
+Täielik koodi näide:
 
 ```java
 public class LangChain4jClient {
@@ -1249,9 +1249,9 @@ public class LangChain4jClient {
 
 #### Rust
 
-Siin toimub suurem osa tööst. Kutsub LLM-i esialgse kasutajakäivitusega, seejärel töötleb vastust, et näha, kas tuleb tööriistu kutsuda. Kui jah, kutsume need tööriistad ja jätkame vestlust LLM-iga, kuni tööriistakutsed puuduvad ja meil on lõplik vastus.
+Siin toimub enamik tööd. Me kutsume LLM-i esialgse kasutaja viibaga, seejärel töötleme vastuse, et näha, kas mõnda tööriista tuleb kutsuda. Kui jah, kutsume need tööriistad ja jätkame vestlust LLM-iga, kuni enam tööriistakutseid ei ole ja meil on lõplik vastus.
 
-Teeme mitu LLM kutsungit, seega defineerime funktsiooni, mis käsitleb LLM kutsungit. Lisage järgmine funktsioon oma `main.rs` faili:
+Kuna me teeme mitu LLM kutset, defineerime funktsiooni, mis haldab LLM-i kutset. Lisage järgmine funktsioon oma `main.rs` faili:
 
 ```rust
 async fn call_llm(
@@ -1271,8 +1271,8 @@ async fn call_llm(
 }
 ```
 
-See funktsioon võtab LLM kliendi, sõnumite nimekirja (sealhulgas kasutaja käivituse), MCP serveri tööriistad ja saadab päringu LLM-ile, tagastades vastuse.
-LLM vastus sisaldab massiivi `choices`. Me peame töötlema tulemust, et näha, kas esinevad `tool_calls`. See annab meile teada, et LLM soovib kutsuda konkreetset tööriista koos argumentidega. Lisage järgmine kood oma `main.rs` faili lõppu, et määratleda funktsioon LLM vastuse käsitlemiseks:
+See funktsioon võtab LLM kliendi, sõnumite nimekirja (kaasates kasutaja viiba), tööriistad MCP serverist ja saadab LLM-ile päringu ning tagastab vastuse.
+LLMi vastus sisaldab `choices` massiivi. Me peame vastuse töötlema, et näha, kas leidub mõni `tool_calls`. See annab meile teada, et LLM palub konkreetset tööriista argumendiga käivitada. Lisage järgmine kood oma `main.rs` faili lõppu, et määratleda funktsioon LLMi vastuse käsitlemiseks:
 
 ```rust
 async fn process_llm_response(
@@ -1291,16 +1291,16 @@ async fn process_llm_response(
         return Ok(());
     };
 
-    // Prindi sisu, kui see on saadaval
+    // Trüki sisu, kui see on saadaval
     if let Some(content) = message.get("content").and_then(|c| c.as_str()) {
         println!("🤖 {}", content);
     }
 
-    // Käsitle tööriista kutsed
+    // Töötle tööriistakõnesid
     if let Some(tool_calls) = message.get("tool_calls").and_then(|tc| tc.as_array()) {
         messages.push(message.clone()); // Lisa assistendi sõnum
 
-        // Täida iga tööriista kutse
+        // Käivita iga tööriistakõne
         for tool_call in tool_calls {
             let (tool_id, name, args) = extract_tool_call_info(tool_call)?;
             println!("⚡ Calling tool: {}", name);
@@ -1335,9 +1335,9 @@ async fn process_llm_response(
 }
 ```
 
-Kui `tool_calls` esinevad, eraldab see tööriista info, kutsub MCP serverit tööriista päringuga ja lisab tulemused vestluse sõnumitesse. Seejärel jätkab see vestlust LLM-iga ning sõnumid uuendatakse abilise vastuse ja tööriista väljakutse tulemustega.
+Kui `tool_calls` on olemas, võtab see välja tööriista info, kutsub MCP serverit tööriista taotlusega ja lisab tulemused vestluse sõnumitesse. Seejärel jätkub vestlus LLMiga ning sõnumid uuendatakse assistendi vastuse ja tööriista kutse tulemustega.
 
-Selleks, et eraldada tööriistakõne teave, mida LLM tagastab MCP kõnede jaoks, lisame teise abifunktsiooni, mis ekstraheerib kõik vajaliku kõne tegemiseks. Lisage järgmine kood oma `main.rs` faili lõppu:
+Et võtta välja tööriista kutse infot, mida LLM tagastab MCP kutsete jaoks, lisame teise abifunktsiooni, mis ekstraheerib kõik vajaliku kutse tegemiseks. Lisage järgmine kood oma `main.rs` faili lõppu:
 
 ```rust
 fn extract_tool_call_info(tool_call: &Value) -> Result<(String, String, String), Box<dyn Error>> {
@@ -1361,7 +1361,7 @@ fn extract_tool_call_info(tool_call: &Value) -> Result<(String, String, String),
 }
 ```
 
-Kõik tükid paigas, saame nüüd töödelda esialgset kasutaja soovikut ja kutsuda LLM-i. Uuendage oma `main` funktsiooni järgmise koodiga:
+Kõik vajalik on paigas, nüüd saame käsitleda algset kasutajapäringut ja kutsuda LLMi. Uuendage oma `main` funktsiooni, et see sisaldaks järgmist koodi:
 
 ```rust
 // LLM vestlus tööriistakõnedega
@@ -1376,13 +1376,13 @@ process_llm_response(
 .await?;
 ```
 
-See saadab LLM-ile esialgse kasutajakäsu, mis palub kahe arvu summat ning töötleb vastuse tööriistakõnede dünaamiliseks käsitlemiseks.
+See teeb päringu LLMile algse kasutajapäringuga, kus küsitakse kahe arvu summat, ja töötleb vastust dünaamiliselt tööriistakutsete käsitlemiseks.
 
-Suurepärane, sa tegid selle!
+Suurepärane, see õnnestus!
 
-## Ülesanne
+## Kodutöö
 
-Võtke harjutuse kood ja arendage serverit edasi, lisades mõningaid tööriistu. Seejärel looge klient koos LLM-iga, nagu harjutuses, ning testige seda erinevate päringutega, et veenduda, et kõik teie serveritööriistad kutsutakse dünaamiliselt. Selline kliendi ülesehitus annab lõppkasutajale hea kasutajakogemuse, kuna ta saab kasutada juhiseid päringutena, täpsete kliendikäskluste asemel, olles samal ajal teadmatu mistahes MCP serveri kutsest.
+Võtke harjutusest kood ja looge server mõne lisatööriistaga. Seejärel looge klient LLMiga, nagu harjutuses, ja testige seda erinevate päringutega, et veenduda, et kõik teie serveritööriistad kutsutakse dünaamiliselt. Selline kliendi ülesehitamine tagab suurepärase kasutajakogemuse, kuna kasutajad saavad kasutada päringuid täpse kliendikäskluse asemel ja olla teadmatud mingist MCP serveri kutsest.
 
 ## Lahendus
 
@@ -1390,10 +1390,10 @@ Võtke harjutuse kood ja arendage serverit edasi, lisades mõningaid tööriistu
 
 ## Peamised mõtted
 
-- LLM lisamine oma kliendile annab kasutajatele parema võimaluse suhelda MCP serveritega.
-- Peate teisendama MCP serveri vastuse LLM arusaadavaks vormiks.
+- LLMi lisamine kliendile annab kasutajatele parema võimaluse suhelda MCP serveritega.
+- MCP serveri vastus tuleb ümber tõlkida formaati, mida LLM suudab mõista.
 
-## Näidised
+## Näited
 
 - [Java kalkulaator](../samples/java/calculator/README.md)
 - [.Net kalkulaator](../../../../03-GettingStarted/samples/csharp)
@@ -1406,11 +1406,11 @@ Võtke harjutuse kood ja arendage serverit edasi, lisades mõningaid tööriistu
 
 ## Mis järgmiseks
 
-- Järgmine: [Serveri kasutamine Visual Studio Code’is](../04-vscode/README.md)
+- Järgmine: [Serveri kasutamine Visual Studio Code'iga](../04-vscode/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Tähelepanek**:  
-See dokument on tõlgitud kasutades tehisintellektil põhinevat tõlketeenust [Co-op Translator](https://github.com/Azure/co-op-translator). Kuigi püüame täpsust, palun arvestage, et automaatsed tõlked võivad sisaldada vigu või ebatäpsusi. Originaaldokument selles emakeeles tuleks pidada autoriteetseks allikaks. Kriitilise teabe puhul on soovitatav kasutada professionaalset inimtõlget. Me ei vastuta käesoleva tõlke kasutamisest tulenevate arusaamatuste või valesti tõlgendamise eest.
+**Lahtiütlus**:
+See dokument on tõlgitud kasutades AI tõlketeenust [Co-op Translator](https://github.com/Azure/co-op-translator). Kuigi me püüdleme täpsuse poole, palun pange tähele, et automatiseeritud tõlgetes võib esineda vigu või ebatäpsusi. Originaaldokument selle emakeeles tuleks pidada autoriteetseks allikaks. Olulise teabe puhul soovitatakse kasutada professionaalset inimtõlget. Me ei vastuta selle tõlkega seotud eksimustest või valesti mõistmistest.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

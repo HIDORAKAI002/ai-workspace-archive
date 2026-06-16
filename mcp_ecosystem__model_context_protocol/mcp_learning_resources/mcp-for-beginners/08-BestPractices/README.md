@@ -2364,7 +2364,7 @@ Implement the tool schemas, error handling, and a workflow pattern that best sui
 
 ## Resources 
 
-1. Join the MCP community on the [Azure AI Foundry Discord Community](https://aka.ms/foundrydevs) to stay updated on the latest developments 
+1. Join the MCP community on the [Microsoft Foundry Discord Community](https://aka.ms/foundrydevs) to stay updated on the latest developments 
 2. Contribute to open-source [MCP projects](https://github.com/modelcontextprotocol)
 3. Apply MCP principles in your own organization's AI initiatives
 4. Explore specialized MCP implementations for your industry. 

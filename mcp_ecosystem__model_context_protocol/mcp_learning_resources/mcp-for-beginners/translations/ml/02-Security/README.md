@@ -1,509 +1,510 @@
-# MCP സുരക്ഷ: AI സിസ്റ്റങ്ങൾക്കായുള്ള വിപുലമായ സംരക്ഷണം
+# MCP Security: AI സംവിധത്തുകൾക്കായി സമഗ്രമായ സംരക്ഷണം
 
 [![MCP Security Best Practices](../../../translated_images/ml/03.175aed6dedae133f.webp)](https://youtu.be/88No8pw706o)
 
-_(ഈ പാഠത്തിന്റെ വീഡിയോ കാണാൻ മുകളിൽ ചിത്രം ക്ലിക്കുചെയ്യുക)_
+_(ഈ പാഠത്തിന്റെ വിഡിയോ കാണാൻ മുകളിൽ നൽകിയിരിക്കുന്ന ചിത്രം ക്ലിക്ക് ചെയ്യുക)_
 
-സുരക്ഷ AI സിസ്റ്റം ഡിസൈനിന്റെ അടിസ്ഥാനമാണ്, അതുകൊണ്ടുതന്നെ ഞങ്ങൾ അതിനെ നമ്മുടെ രണ്ടാം വിഭാഗമായി മുൻഗണന നൽകുന്നു. ഇത് Microsoft-ന്റെ [Secure Future Initiative](https://www.microsoft.com/security/blog/2025/04/17/microsofts-secure-by-design-journey-one-year-of-success/) നുള്ള **Secure by Design** സിദ്ധാന്തവുമായി പൊരുത്തപ്പെടുന്നു.
+സുരക്ഷ AI സംവിധാനം രൂപകൽപ്പനയിൽ അടിസ്ഥാനമാണ്, അതുകൊണ്ട് അതിനെ ഞങ്ങൾ രണ്ടാം ഭാഗമായാണ് മുൻനിരയാക്കുന്നത്. ഇത് Microsoft-ന്റെ [Secure Future Initiative](https://www.microsoft.com/security/blog/2025/04/17/microsofts-secure-by-design-journey-one-year-of-success/) നിന്നുള്ള **Secure by Design** തത്വവത്ക്കരണവുമായി പൊരുത്തപ്പെടുന്നു.
 
-Model Context Protocol (MCP) ശക്തമായ പുതിയ ശേഷികളുമായി AI-ആധാരിത അപ്ലിക്കേഷനുകളിലേക്ക് എത്തുമ്പോൾ, പരമ്പരാഗത സോഫ്റ്റ്‌വെയർ അപകടങ്ങളിൽ നിന്നും കൂടിയൊരു സുരക്ഷാ വെല്ലുവിളികൾ ഉൾക്കൊള്ളിക്കുന്നു. MCP സിസ്റ്റങ്ങൾ നിലവിലുള്ള സുരക്ഷാ പ്രശ്നങ്ങൾ (സുരക്ഷിത കോഡിംഗ്, കുറഞ്ഞ പ്രിവിലേജ്, സപ്ലൈ ചെയിൻ സുരക്ഷ) കൂടാതെ പുതിയ AI-നിർദ്ദേശിത ഭീഷണികൾക്കും (prompt injection, tool poisoning, session hijacking, confused deputy attacks, token passthrough അപായങ്ങൾ, dynamic capability modification) നേരിട്ട് സായുധമാണ്.
+Model Context Protocol (MCP) AI-ഓടുകൂടിയ ആപ്ലിക്കേഷൻമാർക്ക് ശക്തമായ പുതുവായ സാധ്യതകൾ നൽകുന്നു, എന്നാൽ പരമ്പരാഗത സോഫ്റ്റ്വെയർ അപകടങ്ങളിൽക്കാൾ വിപുലമായ വ്യത്യസ്ത സുരക്ഷാ വെല്ലുവിളികളും හරിവൻ വരുത്തുന്നു. MCP സിസ്റ്റങ്ങൾ സ്ഥിരം സുരക്ഷാ ചിന്തനങ്ങളായ (സുരക്ഷിത കോഡിംഗ്, ഏറ്റവും കുറഞ്ഞ അവകാശം, സപ്ലൈ ചെയിൻ സുരക്ഷ) കൂടാതെ പ്രോംപ്റ്റ് ഇൻജക്ഷൻ, ടൂൾ വിഷപ്പാട്, സെഷൻ ഹൈജാക്കിംഗ്, കഞ്ചകംപ്പെട്ട ഡെപ്യൂട്ടി ആക്രമണങ്ങൾ, ടോക്കൺ പാസ്ത്രൂ വികൃതി, ഡൈനാമിക് കഴിവുകൾ മാറ്റം എന്നിവയെ ഉൾപ്പെടുന്ന നൂതന AI-സংশ്ലിഷ്ട ഭീഷണികൾ നേരിടുന്നു.
 
-ഈ പാഠം MCP നടപ്പാക്കലുകളിൽ ഏറ്റവും പ്രധാനപ്പെട്ട സുരക്ഷാ അപകടങ്ങൾ പരിശോധിക്കുന്നു—authentication, authorization, അധിക അനുമതികൾ, അകമ്പടി prompt injection, സെഷൻ സുരക്ഷ, confused deputy പ്രശ്നങ്ങൾ, ടോക്കൺ മാനേജ്‌മെന്റ്, സപ്ലൈ ചെയിൻ സംശയാസ്പദതകൾ എന്നിവ ഉൾപ്പെടെ. നിങ്ങൾക്ക് ഈ അപകടങ്ങൾ കുറയ്ക്കാൻ ചട്ടങ്ങളും മികച്ച പ്രവർത്തനരീതികളും കൂടി മനസിലാകും, കൂടാതെ Microsoft നിർമിച്ച Prompt Shields, Azure Content Safety, GitHub Advanced Security പോലുള്ള പരിഹാരങ്ങൾ MCP ഡിപ്ലോയ്മെന്റ് ശക്തിപ്പെടുത്താൻ ഉപകരിക്കും.
+ഈ പാഠം MCP കൃത്യവില്പനകളിലെ മത്സരാവധി സുരക്ഷാ അപകടങ്ങളെക്കുറിച്ച് പരിശോധിക്കുന്നു—പ്രമേയമാകുന്നവയിൽ പ്രാമാണീകരണം, അധികാരം, അനാവശ്യ അധികാരണങ്ങൾ, അപ്രദ്യക്ഷ പ്രോംപ്റ്റ് ഇൻജക്ഷൻ, സെഷൻ സുരക്ഷ, കഞ്ചകംപ്പെട്ട ഡെപ്യൂട്ടി പ്രശ്‌നങ്ങൾ, ടോക്കൺ മാനേജ്മെന്റ്, സപ്ലൈ ചെയിൻ ദുരുപയോഗങ്ങൾ എന്നിവയടങ്ങുന്നു. Microsoft-ന്റെ Prompt Shields, Azure Content Safety, GitHub Advanced Security പോലുള്ള പരിഹാരങ്ങൾ ഉപയോഗിച്ച് MCP ഡിപ്ലോയ്മെന്റ് ശക്തിപ്പെടുത്തുന്നതിനും അപകടങ്ങൾ കുറയ്ക്കുന്നതിനും നിങ്ങൾക്ക് പ്രവര്‍ത്തന നയങ്ങളും മികച്ച പ്രക്രിയകളും പഠിപ്പിക്കും.
 
 ## പഠന ലക്ഷ്യങ്ങൾ
 
-ഈ പാഠം അവസാനിക്കുമ്പോൾ, നിങ്ങൾക്ക് സാധിക്കും:
+ഈ പാഠം പൂർത്തിയാക്കിയപ്പോഴേക്കും നിങ്ങൾക്ക് കഴിയും:
 
-- **MCP-നിർദ്ദേശിത ഭീഷണികൾ തിരിച്ചറിയുക**: prompt injection, tool poisoning, അധിക അനുമതികൾ, സെഷൻ ഹിജാക്കിംഗ്, confused deputy പ്രശ്നങ്ങൾ, token passthrough അപായങ്ങൾ, സപ്ലൈ ചെയിൻ അപകടങ്ങൾ എന്നിവ ഉൾപ്പെടെ MCP സിസ്റ്റങ്ങളിലെ അപൂർവ്വ സുരക്ഷാ ഭീഷണികൾ തിരിച്ചറിയുക
-- **സുരക്ഷാ നിയന്ത്രണങ്ങൾ പ്രയോഗിക്കുക**: ശക്തമായ authentication, കുറഞ്ഞ പ്രിവിലേജ് ആക്‌സസ്, സുരക്ഷിത ടോക്കൺ മാനേജ്‌മെന്റ്, സെഷൻ സുരക്ഷാ നിയന്ത്രണങ്ങൾ, സപ്ലൈ ചെയിൻ പരിശോധന തുടങ്ങി ഫലപ്രദമായ പരിഹാരങ്ങൾ നടപ്പിലാക്കുക
-- **Microsoft സുരക്ഷാ പരിഹാരങ്ങൾ ഉപയോഗിക്കുക**: MCP ജോലിബാരത്തിന് Microsoft Prompt Shields, Azure Content Safety, GitHub Advanced Security സ്ഥാപിച്ച് ഉപയോഗിക്കാൻ പഠിക്കുക
-- **ടൂൾ സുരക്ഷ സ്ഥിരീകരിക്കുക**: ടൂൾ_Metadataാ സ്ഥിരീകരണത്തിന്റെ പ്രാധാന്യം, ഡൈനാമിക് മാറ്റങ്ങൾ നിരീക്ഷിക്കൽ, അകമ്പടി prompt injection ആക്രമണങ്ങളിൽ പ്രതിരോധം മനസിലാക്കുക
-- **മെച്ചപ്പെട്ട പ്രവർത്തനരീതികൾ സംയോജിപ്പിക്കുക**: സ്റ്റാൻഡേർഡ് സുരക്ഷാ അടിസ്ഥാനങ്ങൾ (സുരക്ഷിത കോഡിംഗ്, സെർവർ ഹാർഡനിംഗ്, സീറോ ട്രസ്റ്റ്) MCP-നിർദ്ദേശിത നിയന്ത്രണങ്ങളുമായി സംയോജിപ്പിച്ച് സമഗ്ര സംരക്ഷണം ഉറപ്പാക്കുക
+- **MCP-സവിശേഷ ഭീഷണികൾ തിരിച്ചറിയുക**: MCP സിസ്റ്റങ്ങളിലെ പ്രത്യേക സുരക്ഷാ അപകടങ്ങൾ തിരിച്ചറിയുക, ഉദാഹരണത്തിന് പ്രോംപ്റ്റ് ഇൻജക്ഷൻ, ടൂൾ വിഷപ്പാട്, അധികമായ അനുമതികൾ, സെഷൻ ഹൈജാക്കിംഗ്, കഞ്ചകംപ്പെട്ട ഡെപ്യൂട്ടി പ്രശ്‌നങ്ങൾ, ടോക്കൺ പാസ്ത്രൂ ദുരുപയോഗങ്ങൾ, സപ്ലൈ ചെയിൻ જોખിമുകൾ
+- **സുരക്ഷാ നിയന്ത്രണങ്ങൾ പ്രയോഗിക്കുക**: ഉറച്ച പ്രാമാണീകരണം, ഏറ്റവും കുറഞ്ഞ അവകാശം, സുരക്ഷിത ടോക്കൺ മാനേജ്മെന്റ്, സെഷൻ സുരക്ഷ നിയന്ത്രണങ്ങൾ, സപ്ലൈ ചെയിൻ പരിശോധന എന്നിവ ഉൾപ്പെടെയുള്ള ഫലപ്രദമായ നഷ്ടപരിഹാരങ്ങൾ നടപ്പിലാക്കുക
+- **Microsoft സുരക്ഷാ പരിഹാരങ്ങൾ ഉപയോഗിക്കുക**: MCP ഭാര വില്പന സംരക്ഷണത്തിനായി Microsoft Prompt Shields, Azure Content Safety, GitHub Advanced Security എന്നിവയെ മനസ്സിലാക്കി വിനിയോഗിക്കുക
+- **ടൂൾ സുരക്ഷ സ്ഥിരീകരിക്കുക**: ടൂൾ മെടാഡേറ്റാ സ്ഥിരീകരണപ്രാധാന്യം, ഡൈനാമിക് മാറ്റങ്ങൾ നിരീക്ഷിക്കൽ, പ്രോംപ്റ്റ് ഇൻജക്ഷൻ നേരിടൽ എന്നിവ തിരിച്ചറിയുക
+- **മികച്ച പ്രക്രിയകൾ സംയോജിപ്പിക്കുക**: സ്ഥിരതയുള്ള സുരക്ഷാ അടിസ്ഥാനങ്ങൾ (സുരക്ഷിത കോഡിംഗ്, സെർവർ ശക്തിപ്പെടുത്തൽ, സീറോ ട്രസ്റ്റ്) MCP-സവിശേഷ നിയന്ത്രണങ്ങളുമായി സംയോജിപ്പിച്ച് സമഗ്ര സംരക്ഷണം ഉറപ്പാക്കുക
 
-# MCP സുരക്ഷാ ഘടനയും നിയന്ത്രണങ്ങളും
+# MCP Security ആർക്കിടെക്ചർ & നിയന്ത്രണങ്ങൾ
 
-ആധുനിക MCP നടപ്പാക്കലുകൾ പരമ്പരാഗത സോഫ്റ്റ്‌വെയർ സുരക്ഷയുമായി കൂടാതെ AI-നിർദ്ദേശിത ഭീഷണികളെയും അഭിമുഖീകരിക്കുന്ന പ്രവർത്തനമനുസരിച്ച ഘടനാപരമായ സുരക്ഷ ആവശ്യമാണ്. വേഗത്തിൽ വളർന്നുവരുന്ന MCP നിർദ്ദേശികലം തുടർന്നു വികസിച്ച് എന്റർപ്രൈസ് സുരക്ഷാ ഘടനകൾക്കും മികച്ച സെക്യൂരിറ്റി നിലവാരങ്ങൾക്കും അനുസരിക്കുന്നു.
+ആധുനിക MCP കൃത്യവില്പനകൾ പരമ്പരാഗത സോഫ്റ്റ്വെയർ സുരക്ഷയും AI-സവിശേഷ ഭീഷണികളും പരിഗണിക്കുന്ന കൂടുതൽ പാളി സുരക്ഷാ സമീപനങ്ങൾ ആവശ്യപ്പെടുന്നു. വേഗത്തിൽ പുരോഗമിക്കുന്ന MCP വിവരണക്കളർ സർക്കാർ സുരക്ഷാ നിയന്ത്രണങ്ങൾ മെച്ചപ്പെടുത്തുകയും ബിസിനസ് സുരക്ഷാ തുറമുഖങ്ങളുമായി നല്ല ഇന്റഗ്രേഷൻ നൽകുകയും ചെയ്യും.
 
-[Microsoft Digital Defense Report](https://aka.ms/mddr) ന്റെ ഗവേഷണം തെളിയിക്കുന്നു, **റിപ്പോർട്ട് ചെയ്ത 98% സുരക്ഷാ ലംഘനങ്ങൾ ശക്തമായ സുരക്ഷാ വ്യവസ്ഥകൾ പാലിച്ചാൽ തടയാം**. ഏറ്റവും ഫലപ്രദമായ സംരക്ഷണ തന്ത്രം അടിസ്ഥാന സുരക്ഷാ പ്രവർത്തനങ്ങളും MCP-നിർദ്ദേശിത നിയന്ത്രണങ്ങളും സംയോജിപ്പിച്ചാണ്—സ്ഥാപിത സുരക്ഷാ നടപടികൾ ആകെ സുരക്ഷാ അപകടം കുറയ്ക്കുന്നതിൽ ഏറ്റവും കാര്യക്ഷമമാണ്.
+[Microsoft Digital Defense Report](https://aka.ms/mddr)യിലെ ഗവേഷണം പ്രകാരം **റിപ്പോർട്ട് ചെയ്ത breach-കളിൽ 98% പ്രതിരോധിക്കാനാകും ശക്തമായ സുരക്ഷാ ശീലങ്ങൾ പാലിച്ചാൽ**. ഏറ്റവും ഫലപ്രദമായ സംരക്ഷണ തന്ത്രം അടിസ്ഥാന സുരക്ഷാ രീതികൾ MCP-സവിശേഷ നിയന്ത്രണങ്ങളുമായി സംയോജിപ്പിക്കുകയാണ്—രണ്ടും ചേർത്ത് നിജപരമായി സുരക്ഷാ അപകടങ്ങൾ കുറയ്ക്കുന്നു.
 
-## നിലവിലെ സുരക്ഷാ ദൃശ്യഭൂമി
+## ഇപ്പോഴുള്ള സുരക്ഷാ സ്ഥിതിവിവരം
 
-> **കുറിപ്പ്:** ഈ വിവരങ്ങൾ MCP സുരക്ഷ സ്റ്റാൻഡേർഡുകളെ  **ഫെബ്രുവരി 5, 2026**,  **MCP Specification 2025-11-25** നുമായി പൊരുത്തം പുലർത്തുന്നതായി പ്രതിപാദിക്കുന്നു. MCP പ്രോട്ടോക്കോൾ വേഗത്തിൽ വികസിക്കുകയാണ്, ഭാവിയിലെ നടപ്പാക്കലുകൾ പുതിയ authentication മാതൃകകളും ശക്തിപ്പെടുത്തപ്പെട്ട നിയന്ത്രണങ്ങളും ഉൾപ്പെടുത്താവുന്നതാണ്. ഏറ്റവും പുതിയ മാർഗനിർദേശങ്ങൾക്കായി ഇപ്പോഴത്തെ [MCP Specification](https://spec.modelcontextprotocol.io/), [MCP GitHub repository](https://github.com/modelcontextprotocol), [security best practices documentation](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices) സന്ദർശിക്കുക.
+> **കുറിപ്പ്:** ഈ വിവരങ്ങൾ MCP സുരക്ഷാ മാനദണ്ഡങ്ങൾ **2026 ഫെബ്രുവരി 5** വരെയാണ് ഉൾപ്പെടുത്തിയത്, അത് **MCP Specification 2025-11-25** -ന് അനുയായിയാണ്. MCP പ്രോട്ടോക്കോൾ വേഗത്തിൽ പുരോഗമിക്കുന്നു, ഭാവിയിലെ കൃത്യവില്പനകൾ പുതിയ പ്രാമാണീകരണ മാതൃകകളും മെച്ചപ്പെട്ട നിയന്ത്രണങ്ങളും അവതരിപ്പിക്കാം. ഇപ്പോഴത്തെ ഏറ്റവും പുതിയ മാർഗദർശകങ്ങൾക്കായി [MCP Specification](https://spec.modelcontextprotocol.io/), [MCP GitHub repository](https://github.com/modelcontextprotocol), [security best practices documentation](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices) എന്നിവ കാണുക.
 
-## 🏔️ MCP Security Summit വേർക്ക്ഷോപ്പ് (Sherpa)
+## 🏔️ MCP Security Summit Workshop (Sherpa)
 
-**പ്രായോഗിക സുരക്ഷാ പരിശീലനത്തിനായി**, Microsoft Azure-ൽ MCP സെർവറുകളുടെ സുരക്ഷ ഉറപ്പാക്കാനുള്ള സമഗ്രവുമായ MCP Security Summit വേർക്ക്ഷോപ്പ് (Sherpa) ൽ പങ്കെടുക്കുന്നത് ഞങ്ങൾ ഊഷ്മളമായി ശിപാർശ ചെയ്യുന്നു.
+**മുഖ്യമായി പരീക്ഷണാത്മക സുരക്ഷാ പരിശീലനത്തിനായി** ഞങ്ങൾ **MCP Security Summit Workshop** (Sherpa) - മൈക്രോസോഫ്റ്റ് Azure-ൽ MCP സെർവറുകളെ സുരക്ഷിതമാക്കാനുള്ള സമഗ്രവും മാർഗ്ഗനിർദ്ദേശം നൽകുന്ന പ്രവർത്തകരെയും ശിപാർശ ചെയ്യുന്നു.
 
-### വേർക്ക്ഷോപ്പ് അവലോകനം
+### വർക്ക്‌ഷോപ്പ് അവലോകനം
 
-[MCP Security Summit Workshop](https://azure-samples.github.io/sherpa/) ഒരു "Vulnerable → Exploit → Fix → Validate" രീതിയിൽ പ്രായോഗികവും ഫലപ്രദവുമായ സുരക്ഷാ പരിശീലനം നൽകുന്നു. നിങ്ങൾക്ക്:
+[MCP Security Summit Workshop](https://azure-samples.github.io/sherpa/) ഒരു പരീക്ഷണപഠന രീതി പിന്തുടരുന്നു: "ദുർബലത → എക്സ്പ്ലോയിറ്റ് → പരിഹാരം → സാധുത" . നിങ്ങള്‍:
 
-- **ഭംഗം വീട് പഠിക്കുക**: ഇച്ഛാപൂർവം അശ്രദ്ധാകരമായ സെർവറുകളെ ഉപയോഗിച്ച് ഭേദഗതി കണ്ടെത്തുക
-- **Azure-നെ ജനനിരൂപിക്കുക**: Azure Entra ID, Key Vault, API Management, AI Content Safety എന്നിവ ഉപയോഗിക്കുക
-- **Multiple Security Layers പിന്തുടരുക**: വിവിധ ക്യാമ്പുകൾ വഴി സമഗ്ര സുരക്ഷാ ഘടന നിർമ്മിക്കുക
-- **OWASP മാനദണ്ഡങ്ങൾ പാലിക്കുക**: ഓരോ സാങ്കേതികവും [OWASP MCP Azure Security Guide](https://microsoft.github.io/mcp-azure-security-guide/) നുമായി പൊരുത്തപ്പെട്ടു നടപ്പിലാക്കുക
-- **പ്രോഡക്ഷൻ കോഡ് നേടുക**: പ്രവർത്തനക്ഷമവും പരീക്ഷReadonlyവുമായ നടപ്പാക്കലുകൾ കൈവശം വെക്കുക
+- **തകരാറുകൾ വഴിതെറ്റിച്ചുകൊണ്ട് പഠിക്കൂ**: മനസ്ക്കരിച്ചില്ലാത്ത സെർവറുകളിൽ ദുർബലതകൾ പ്രവർത്തിപ്പിച്ച് നേരിട്ടല്ല അനുഭവിക്കുക
+- **Azure-നേറ്റീവ് സുരക്ഷ ഉപയോഗിക്കുക**: Azure Entra ID, Key Vault, API Management, AI Content Safety ഉൾക്കൊള്ളുക
+- **ഡെഫൻസ്-ഇൻ-ഡെപ്ത് പാലിക്കുക**: ബോട്ടാക്ഷനും സമഗ്ര സുരക്ഷാ పొരളികൾ സൃഷ്ടിക്കുന്ന ക്യാമ്പുകൾ വഴി മുന്നേറുക
+- **OWASP സ്റ്റാൻഡേർഡുകൾ പാലിക്കുക**: ഓരോ സാങ്കേതിക വിദ്യയും [OWASP MCP Azure Security Guide](https://microsoft.github.io/mcp-azure-security-guide/)നെ പിന്തുടരുന്നു
+- **പ്രൊഡക്ഷൻ പ്രവൃത്തികൾ നേടുക**: പ്രവർത്തിക്കുന്ന, പരീക്ഷിച്ചിരുന്നു എടുക്കുവാൻ കഴിയുന്ന നടപ്പിലാക്കലുകൾ കൈവശം വയ്ക്കുക
 
-### കാമ്പ്‌മാർഗ്  
+### യാത്രാ മാർഗ്ഗം
 
-| ക്യാമ്പ് | കേന്ദ്രീകൃത വിഷയം | ഉൾപ്പെടുത്തിയ OWASP അപകടങ്ങൾ |
-|------|-------------------|----------------------------|
-| **Base Camp** | MCP അടിസ്ഥാനങ്ങൾ & authentication അപായങ്ങൾ | MCP01, MCP07 |
-| **Camp 1: Identity** | OAuth 2.1, Azure Managed Identity, Key Vault | MCP01, MCP02, MCP07 |
-| **Camp 2: Gateway** | API Management, Private Endpoints, ഭരണനയം | MCP02, MCP07, MCP09 |
-| **Camp 3: I/O Security** | Prompt injection, PII സംരക്ഷണം, content safety | MCP03, MCP05, MCP06 |
-| **Camp 4: Monitoring** | ലോഗ് അനലിറ്റിക്സ്, ഡാഷ്ബോർഡുകൾ, ഭീഷണി കണ്ടെത്തൽ | MCP08 |
-| **The Summit** | Red Team / Blue Team സംയോജിത പരിശോധന | എല്ലാവരും |
+| ക്യാമ്പ് | ശ്രദ്ധ | OWASP ഭീഷണികൾ ഉൾക്കൊള്ളുന്നു |
+|------|-------|---------------------|
+| **ബേസ് ക്യാമ്പ്** | MCP അടിസ്ഥാനങ്ങൾ & പ്രാമാണീകരണ ദുർബലതകൾ | MCP01, MCP07 |
+| **ക്യാമ്പ് 1: ഐഡന്റിറ്റി** | OAuth 2.1, Azure Managed Identity, Key Vault | MCP01, MCP02, MCP07 |
+| **ക്യാമ്പ് 2: ഗേറ്റ്ഏ വേ** | API Management, പ്രൈവറ്റ് എണ്ട്പോയിന്റുകൾ, ഗവൺമെന്റ് | MCP02, MCP06, MCP07, MCP09 |
+| **ക്യാമ്പ് 3: I/O സുരക്ഷ** | പ്രോംപ്റ്റ് ഇൻജക്ഷൻ, PII സംരക്ഷണം, ഉള്ളടക്ക സുരക്ഷ | MCP03, MCP05, MCP06, MCP10 |
+| **ക്യാമ്പ് 4: നിരീക്ഷണം** | ലോഗ് അനലിറ്റിക്സ്, ഡാഷ്ബോർഡുകൾ, ഭീഷണിവിവര ശേഖരണം | MCP04, MCP08 |
+| **സമ്മിറ്റ്** | റെഡ് ടീം / ബ്ലൂ ടീം സംയോജിത പരീക്ഷ | എല്ലാം |
 
-**പ്രാരംഭിക്കുക**: [https://azure-samples.github.io/sherpa/](https://azure-samples.github.io/sherpa/)
+**തുടങ്ങുക**: [https://azure-samples.github.io/sherpa/](https://azure-samples.github.io/sherpa/)
 
-## OWASP MCP ടോപ്പ് 10 സുരക്ഷാ അപകടങ്ങൾ
+## OWASP MCP Top 10 Security Risks
 
-[OWASP MCP Azure Security Guide](https://microsoft.github.io/mcp-azure-security-guide/) MCP നടപ്പാക്കലിൽ പ്രധാനപ്പെട്ട പത്ത് സുരക്ഷാ അപകടങ്ങൾ വിവരിക്കുന്നു:
+[OWASP MCP Azure Security Guide](https://microsoft.github.io/mcp-azure-security-guide/) MCP നടപ്പിലാക്കലുകൾക്കുള്ള പത്തു ഏറ്റവും ഗൗരവമുള്ള സുരക്ഷാ അപകടങ്ങളെ വിശദീകരിക്കുന്നു:
 
-| അപകടം | വിവരണം | Azure പരിഹാരം |
+| അപകടം | വിവരണം | Azure പ്രതിരോധം |
 |------|-------------|------------------|
-| **MCP01** | ടോക്കൺ ദുരുപയോഗവും രഹസ്യ വെളിച്ചം | Azure Key Vault, Managed Identity |
-| **MCP02** | Scope Creepൽ പ്രിവിലേജ് വർധന | RBAC, Conditional Access |
-| **MCP03** | ടൂൾ പിഴവ് | ടൂൾ സ്ഥിരീകരണം, സംരക്ഷിതത്വ പരിശോധന |
-| **MCP04** | സപ്ലൈ ചെയിൻ ആക്രമണം | GitHub Advanced Security, ആധാര പരിശോധന |
-| **MCP05** | കമാൻഡ് ഇൻജക്ഷൻ & എക്സിക്യൂഷൻ | ഇൻപുട്ട് പരിശുദ്ധീകരണം, സാൻഡ്‌ബോക്സിംഗ് |
-| **MCP06** | Contextual പayload-വഴി prompt injection | Azure AI Content Safety, Prompt Shields |
-| **MCP07** | അപര്യാപ്തമായ authentication & authorization | Azure Entra ID, OAuth 2.1 with PKCE |
-| **MCP08** | ഓഡിറ്റ് & ടെലിമെട്രി ഇല്ലാതെ Føющиеся വെല്ലുവിളികൾ | Azure Monitor, Application Insights |
-| **MCP09** | ഷാഡോ MCP സെർവറുകൾ | API Center ഭരണനയം, നെറ്റ്‌വർക്കിൽ ഐസൊലേഷൻ |
-| **MCP10** | Context injection & Over-Sharing | ഡാറ്റ ക്ലാസിഫിക്കേഷൻ, കുറഞ്ഞ വെളിച്ചം |
+| **MCP01** | ടോക്കൺ മെസ്മാനേജ്‌മെന്റ് & രഹസ്യ പരാതികൾ | Azure Key Vault, Managed Identity |
+| **MCP02** | സ്‌കോപ്പ് ക്രീപ്പ് മൂലമുള്ള അധികാര ഉയർച്ച | RBAC, Conditional Access |
+| **MCP03** | ടൂൾ വിഷപ്പാട് | ടൂൾ സ്ഥിരീകരണം, അഖണ്ഡത പരിശോധന |
+| **MCP04** | സോഫ്റ്റ്വെയർ സപ്ലൈ ചെയിൻ ആക്രമണங்கள் & ആശ്രിതവികൃതികൾ | GitHub Advanced Security, ആശ്രിത സ്കാനിംഗ് |
+| **MCP05** | കമാൻഡ് ഇൻജക്ഷൻ & നിർവഹണം | ഇൻപുട്ട് പരിശോധന, സെൻഡ്ബോക്സിംഗ് |
+| **MCP06** | ഉദ്ദേശധാരാ മറിപ്പ് | Azure AI Content Safety, Prompt Shields |
+| **MCP07** | അപര്യാപ്തമായ പ്രാമാണീകരണം & അധികാരം | Azure Entra ID, PKCE ഉപയോഗിച്ച OAuth 2.1 |
+| **MCP08** | ഓഡിറ്റ് & ടെലിമെട്രി അഭാവം | Azure Monitor, Application Insights |
+| **MCP09** | ഷാഡോ MCP സെർവർസ് | API സെന്റർ ഗവൺമെന്റ്, നെറ്റ്‌വർക്കു വേർപാട് |
+| **MCP10** | കോൺടെക്സ്റ്റ് ഇൻജക്ഷൻ & അധിക പങ്കുവെച്ചൽ | ഡാറ്റ ക്ലാസിഫിക്കേഷൻ, കുറഞ്ഞ എക്‌സ്‌പോഷർ |
 
-### MCP Authentication ന്റെ പരിണാമം
+### MCP പ്രാമാണീകരണത്തിന്റെ പരിണാമം
 
-MCP നിർദ്ദേശികൽ authentication, authorization സമീപനങ്ങളിൽ വൻ പരിണാമങ്ങളാണ് ഉണ്ടായത്:
+MCP വ്യവസ്ഥാപനങ്ങൾ പ്രാമാണീകരണത്തിലും അധികാരത്തിലും അങ്ങയുടെ പുരോഗതി നേടി:
 
-- **മുമ്പത്തെ സമീപനം**: പ്രാദേശികമായി OAuth 2.0 Authorization Servers ആയി പ്രവർത്തിക്കുന്ന MCP സെർവർ ഉണ്ടാക്കാൻ ഡെവലപ്പർമാർക്ക് തങ്ങളുടെ authentication സെർവർ നിർമ്മിക്കേണ്ടി വന്നിരുന്നു
-- **ഇപ്പോൾ നിലവിലുള്ള സ്റ്റാൻഡേർഡ് (2025-11-25)**: MCP സെർവറുകൾ authentication പുറമെ നിന്നും വാങ്ങുവാൻ (ഉദാ. Microsoft Entra ID) അനുവദിക്കുന്ന പുതിയ നിർദ്ദേശികൽ, സുരക്ഷ മെച്ചപ്പെടുത്തുകയും നടപ്പാക്കൽ ലളിതമാക്കുകയും ചെയ്തു
-- **ട്രാൻസ്പോർട്ട് ലെയർ സുരക്ഷ**: പ്രാദേശിക (STDIO) കൂടാതെ ദൂരസ്ഥം (Streamable HTTP) കണക്ഷനുകൾക്ക് ആവശ്യമായ രാവിലെ-സുരക്ഷാ നിലപാടുകൾ ഉൾപ്പെടുത്തിയിരിക്കുന്നു
+- **ആദ്യകാല സമീപനം**: തുടക്കത്തിൽ ഡെവലപ്പർമാർക്ക് ഇഷ്ടാനുസൃതമായ പ്രാമാണീകരണ സെർവർ നിർമ്മിക്കേണ്ടതായിരുന്നു, MCP സെർവറുകൾ OAuth 2.0 Authorization Server ആയി നേരിട്ട് യൂസർ പ്രാമാണീകരണം കൈകാര്യം ചെയ്യുക
+- **ഇപ്പോൾ നിലവിലുള്ള മാനദണ്ഡം (2025-11-25)**: MCP സെർവറുകൾ മൈക്രോസോഫ്റ്റ് Entra ID പോലുള്ള ബാഹ്യ ഐഡന്റിറ്റി പ്രൊവൈഡർമാർക്ക് പ്രാമാണീകരണം നിയോഗിക്കാനാകുന്നു, സുരക്ഷ നില മെച്ചപ്പെടുത്തുകയും നടപ്പിലാക്കൽ ലളിതമാക്കുകയും ചെയ്യുന്നു
+- **ട്രാൻസ്പോർട്ട് ലെയർ സുരക്ഷ**: പ്രാദേശിക (STDIO) കൂടാതെ റിമോട്ട് (Streamable HTTP) കണക്ഷനുകൾക്കും അനുയോജ്യമായ മുൻകൂർ പ്രാമാണീകരണ മാതൃകകളോടെ സുരക്ഷിത ട്രാൻസ്പോർട്ട് മെക്കാനിസം ഉൾക്കൊള്ളുന്നു
 
-## Authentication & Authorization സുരക്ഷ
+## പ്രാമാണീകരണം & അധികാര സുരക്ഷ
 
-### ഇപ്പോഴുള്ള സുരക്ഷാ വെല്ലുവിളികൾ
+### നിലവിലുള്ള സുരക്ഷാ വെല്ലുവിളികൾ
 
-ആധുനിക MCP നടപ്പാക്കലുകൾക്ക് authentication, authorization മേഖലകളിൽ നിരവധി വെല്ലുവിളികൾ നേരിടേണ്ടി വരുന്നു:
+ആധുനിക MCP നടപ്പിലാക്കലുകൾക്ക് പലപ്രകാരമുള്ള പ്രാമാണീകരണ-അധികാര വെല്ലുവിളികൾ നേരിടേണ്ടിവരുന്നു:
 
-### അപകടങ്ങളും ഭീഷണികളും
+### അപകടങ്ങളും ഭീഷണികൾ
 
-- **authorization ലാജിക് തെറ്റായ ക്രമനിർമ്മാണം**: MCP സെർവർ authorization തെറ്റായ വിധത്തിൽ നടപ്പിലാക്കുന്നത് വിപരീതമായി സെൻസിറ്റീവ് ഡാറ്റ കാണിച്ചേക്കും നിയന്ത്രണം തെറ്റായി വിഭജിച്ചേക്കും ഇടയാക്കുന്നു
-- **OAuth ടോക്കൺ നഷ്ടപ്പെടൽ**: പ്രാദേശിക MCP സെർവർ ടോക്കൺ കൈവശം വെച്ചാൽ ആക്രമിക്കുന്നവർ സെർവറുകളുടെ പകർപ്പാകാനാകും, പരമ്പരാഗത സേവനങ്ങളിലേക്ക് ആക്‌സസ് ലഭിക്കും
-- **ടോക്കൺ പാസ്ത്രൂ അപായങ്ങൾ**: ടോക്കണുകൾ ശരിയായി കൈകാര്യം ചെയ്യാതിരിക്കുക സുരക്ഷാ നിയന്ത്രണങ്ങൾ ലംഘിക്കാൻ വഴിയൊരുക്കും, ഉത്തരവാദിത്തം ഇല്ലാതാക്കും
-- **അധിക അനുമതികൾ**: MCP സെർവറുകൾ അത്യധികം അനുമതി ലഭിക്കുന്നത് കുറഞ്ഞ പ്രിവിലേജ് സിദ്ധാന്തം ലംഘിക്കുകയും ആക്രമണ പരിധി വർധിപ്പിക്കുകയും ചെയ്യും
+- **തരതമ്യതരമായ അധികാര വൃത്താന്തം**: MCP സെർവറുകളിലെ പട്ടാളംതിരുത്തലുകളുടെ പിഴവുകൾ ചിലവു വന്ന ഡാറ്റ പുറത്ത് വിടുന്നതിനും തെറ്റായി ആക്സസ് നിയന്ത്രണം പ്രയോഗിക്കുന്നതിനും കാരണമാകും
+- **OAuth ടോക്കൺ കള്ളപ്പെടുത്തൽ**: പ്രാദേശിക MCP സെർവർ ടോക്കൺ മോഷണം ആക്രമകർക്കു സെർവർ മോശിപ്പിച്ച് ഡൗൺസ്ട്രീം സേവനങ്ങളിൽ പ്രവേശനം നൽകുന്നു
+- **ടോക്കൺ പാസ്ത്രൂ ദുരുപയോഗം**: തെറ്റായ ടോക്കൺ കൈകാര്യം സുരക്ഷാ നിയന്ത്രണങ്ങൾ മറികടക്കും, ഉത്തരവാദിത്തം ഇല്ലാതാക്കും
+- **അധികമായ അനുമതികൾ**: അധികാരമുള്ള MCP സെർവർ সবচেয়ে കുറഞ്ഞ അവകാശം തത്വം ലംഘിച്ച് ആക്രമണ സാധ്യത വർദ്ധിപ്പിക്കുന്നു
 
-#### ടോക്കൺ പാസ്ത്രൂ: ഗുരുതരമായ വിരുദ്ധ മാതൃക
+#### ടോക്കൺ പാസ്ത്രൂ: ഒരു നിർണ്ണായക വിരുദ്ധ മാതൃക
 
-**ഇപ്പോൾ നിലവിലുള്ള MCP authorization നിർദ്ദേശികലിൽ ടോക്കൺ പാസ്ത്രൂ തകർപ്പിക്കുന്നത് കൃത്യമായി നിരോധിച്ചിരിക്കുന്നു**, കാരണം അതിന്റെ സുരക്ഷാ പ്രബലയുള്ള നഷ്‌ടങ്ങൾ ഉണ്ടാകാം:
+നിലവിലെ MCP പ്രാമാണീകരണ വിശദീകരണത്തിൽ **ടോക്കൺ പാസ്ത്രൂ എക്സ്പ്ലിസിറ്റ് ആയി നിരോധിച്ചിരിക്കുന്നു**, കാരണം അതിന്റെ ഗുരുതര സുരക്ഷാ ചീത്തലുക്കൾ:
 
-##### സുരക്ഷാ നിയന്ത്രണം മറികടക്കൽ  
-- MCP സെർവറുകളും ഡൗൺസ്റ്റ്രീം API വയ്ക്കും നിരക്ക് പരിധിയിക്കൽ, അഭ്യർത്ഥന പരിശോധന, ട്രാഫിക് നിരീക്ഷണം പോലുള്ള പ്രധാന നിയന്ത്രണങ്ങൾ ടോക്കൺ ശരിയായി പരിശോധിക്കൽ ആശ്രയിച്ചിരിക്കുന്നു  
-- ക്ലയന്റ് നേരിട്ടു API ടോക്കൺ ഉപയോഗിക്കുന്നത് ഈ നിർബന്ധിത സംരക്ഷണങ്ങളെ շրջക്കയറ്റുന്നു, സുരക്ഷാ ഘടനയ്ക്ക് ഭീഷണി സൃഷ്ടിക്കുന്നു
+##### സുരക്ഷാ നിയന്ത്രണങ്ങൾ മറികടക്കൽ
+- MCP സെർവർ-ഡൗൺസ്ട്രീം APIകൾ നിരപ്പ് നിയന്ത്രണം, അഭ്യർത്ഥന പരിശോധന, ട്രാഫിക് നിരീക്ഷണം തുടങ്ങിയ നിർണായക സുരക്ഷാ നിയന്ത്രണങ്ങൾ നടപ്പിലാക്കുന്നു
+- ക്ലയന്റ് നേരിട്ട് API ടോക്കൺ ഉപയോഗിക്കുന്നത് ഈ സംരക്ഷണങ്ങളെ മറികടക്കുന്നു, സുരക്ഷാ ആർക്കിടെക്ചർ ദുർബലമാക്കുന്നു
 
-##### ഉത്തരവാദിത്തം & ഓഡിറ്റ് വെല്ലുവിളികൾ  
-- MCP സെർവർ സമാഹൃത ടോക്കണക്കോട് തികച്ചും വ്യത്യസ്തമായ ക്ലയന്റ് ടോക്കണുകൾക്കിടയിൽ വ്യത്യാസം കണ്ടെത്താൻ ഇല്ലാതാകുന്നു, അതിനാൽ ഓഡിറ്റ് രേഖകൾ തെറ്റായി കാണിക്കും  
-- ഡൗൺസ്റ്റ്രീം റിസോഴ്സ് സർവർ ലോഗുകൾ MCP സെർറിന്റെ ഇടനിലക്കാർ എന്നതിനെതിരെയുള്ള അഭ്യർത്ഥന ഉറവിടങ്ങളെ ഉദ്ദേശിക്കാതെ കാട്ടും  
-- സംഭവാന്വേഷണവും പാലന പരിശോധനയും ഏറെ ബുദ്ധിമുട്ടുപെടും
+##### ഉത്തരവാദിത്തവും ഓഡിറ്റ് വെല്ലുവിളികളും  
+- MCP സെർവർ ക്ലയന്റുകൾ പുറത്തിറങ്ങിയ ടോക്കണുകൾ ഉപയോഗിക്കുന്നതിനെ വേർതിരിക്കാൻ കഴിയില്ല, ഓഡിറ്റ് ട്രെയിലുകൾ നষ্টമാകും
+- ഡൗൺസ്ട്രീം റിസോഴ്സ് സെർവർ ലോഗുകൾ തെറ്റായ അഭ്യർത്ഥന ഉറവിടങ്ങൾ കാണിക്കുന്നു, യഥാർത്ഥ MCP സെർവർ ഇടനിലക്കാർ മറഞ്ഞുപോകുന്നു
+- സംഭവാന്വേഷണവും അനുസരണ ഓഡിറ്റിംഗും പ്രയാസമേറിയിരിക്കും
 
-##### ഡാറ്റ നഷ്ടപ്പെടൽ അപകടങ്ങൾ  
-- അസാധുവാക്കിയ ടോക്കൺ അവകാശങ്ങൾ ഉപയോഗിച്ച് ആര്യാക്കൾ MCP സെർവർ പ്രോക്സിയെന്നുപയോഗിച്ച് ഡാറ്റ ചോർത്ത് കൊണ്ട് പോകാൻ ശ്രമിക്കും  
-- വിശ്വാസ പരിധി ലംഘനം വഴി സുരക്ഷാ നിയന്ത്രണങ്ങൾ ഒഴിവാക്കപ്പെടും
+##### ഡാറ്റ എക്സ്ഫില്ട്രേഷൻ അപകടങ്ങൾ
+- പരിശോധിക്കാത്ത ടോക്കൺ അവകാശങ്ങൾ ഉപയോഗിച്ച് മോഷിത ടോക്കണുകളുള്ള ദുർവിനിയോഗക്കാർ MCP സെർവറുകളെ ഡാറ്റ പകർച്ചയ്ക്ക് പ്രോക്സികളായി ഉപയോഗിക്കാം
+- വിശ്വാസ പരിധി ലംഘിച്ച് അനധികൃത ആക്സസ്സ് മാതൃകകൾ എൻറ്റർ ചെയ്യും
 
-##### മൾട്ടി-സർവീസ് ആക്രമണ വഴി  
-- പിടികൂടിയ ടോക്കണുകൾ ഭിന്ന സേവനങ്ങൾ സ്വീകരിക്കാം, ഇതു വഴി ബന്ധപ്പെട്ടു പ്രവർത്തിക്കുന്ന സംവിധാനങ്ങൾ ലംഘിതമാകും  
-- ടോക്കൺ ഉറവിടങ്ങൾ സ്ഥിരീകരിക്കാത്തപ്പോൾ സേവനങ്ങളിലുടനീളം വിശ്വാസം നഷ്ടപ്പെടും
+##### ബഹുസേവന ആക്രമണ മാർഗ്ഗങ്ങൾ
+- കള്ളപ്പെട്ട ടോക്കണുകൾ വിവിധ സേവനങ്ങൾ സ്വീകരിച്ചാൽ ബന്ധപ്പെടുന്ന സിസ്റ്റങ്ങൾ തമ്മിൽ ലാറ്ററൽ മൂവ്മെന്റ് സാധ്യമാകും
+- ടോക്കൺ ഉറവിടങ്ങൾ സ്ഥിരീകരിക്കാൻ കഴിയാതെ സേവനങ്ങൾ തമ്മിലുള്ള വിശ്വാസം പാലനമല്ലാതാകും
 
-### സുരക്ഷാ നിയന്ത്രണങ്ങൾ & പരിഹാരങ്ങൾ
+### സുരക്ഷാ നിയന്ത്രണങ്ങളും നഷ്ടപരിഹാരങ്ങളും
 
-**മൂല്യവത്തായ സുരക്ഷ ആവശ്യങ്ങൾ:**
+**സ്വയം നിർബന്ധിത സുരക്ഷാ ആവശ്യങ്ങൾ:**
 
-> **ഉടമ്പടി:** MCP സെർവർ ഗണ്യമായ രൂപത്തിൽ MCP സെർവറിന് നൽകപ്പെട്ട ടോക്കണുകൾ മാത്രമേ സ്വീകരിക്കരുത്
+> **ആവശ്യമാണ്**: MCP സെർവർ നൽകാത്ത ടോക്കണുകൾ **ഒന്നും സ്വീകരിക്കരുത്**
 
-#### Authentication & Authorization നിയന്ത്രണങ്ങൾ
+#### പ്രാമാണീകരണവും അധികാര നിയന്ത്രണങ്ങളും
 
-- **കൃത്യമായ Authorization പരിശോധന**: MCP സെർവർ authorization ലോഗിക് വിശദമായ ഓഡിറ്റുകൾ നടത്തുക, നിർദ്ദേശിച്ച ഉപഭോക്താക്കളും ക്ലയന്റുകളും മാത്രം സെൻസിറ്റീവ് റിസോഴ്സുകൾ ആക്‌സസ് ചെയ്യുന്നതായി ഉറപ്പാക്കുക  
-  - **നടപ്പിലാക്കൽ ഗൈഡ്**: [Azure API Management as Authentication Gateway for MCP Servers](https://techcommunity.microsoft.com/blog/integrationsonazureblog/azure-api-management-your-auth-gateway-for-mcp-servers/4402690)  
+- **കഠിനമായ അധികാര വിശകലനം**: MCP സെർവർ അധികാര പ്രവർത്തനങ്ങൾ സമഗ്ര പരിശോധന നടത്തി സുരക്ഷിതമായി തടയുക, വേണ്ടപ്പെട്ട ഉപയോക്താക്കളും ക്ലയന്റുകളും മാത്രമേ സവിശേഷ നിബന്ധനകളിൽ പ്രവേശനം ലഭിക്കുകയുള്ളു  
+  - **നടപടി മാർഗ്ഗനിർദ്ദേശം**: [Azure API Management MCP സർവറുകൾക്ക് പ്രാമാണീകരണ ഗേറ്റ്വേ ആയി](https://techcommunity.microsoft.com/blog/integrationsonazureblog/azure-api-management-your-auth-gateway-for-mcp-servers/4402690)  
   - **ഐഡന്റിറ്റി സംയോജനം**: [Microsoft Entra ID ഉപയോഗിച്ച് MCP Server Authentication](https://den.dev/blog/mcp-server-auth-entra-id-session/)
 
-- **സുരക്ഷിത ടോക്കൺ മാനേജ്‌മെന്റ്**: [Microsoft-ന്റെ ടോക്കൺ സ്ഥിരീകരണവും ജീവിതചക്ര പരിപാലനവും](https://learn.microsoft.com/en-us/entra/identity-platform/access-tokens) നടപ്പിലാക്കുക  
-  - ടോക്കൺ പ്രേക്ഷക അവകാശങ്ങൾ MCP സെർവർ ഐഡന്റിറ്റിയുമായി പൊരുത്തപ്പെടുന്നുവെന്ന് സ്ഥിരീകരിക്കുക  
-  - ടോക്കൺ തിരിപ്പ്, കാലഹരണ നയങ്ങൾ ശരിയായി നടപ്പിലാക്കുക  
-  - ടോക്കൺ പുനരാവർത്തന ആക്രമണങ്ങൾ തടയുകയും അന്യായ ഉപയോഗം ഒഴിവാക്കുകയും ചെയ്യുക
+- **സുരക്ഷിത ടോക്കൺ മാനേജ്മെന്റ്**: [Microsoft ന്റെ ടോക്കൺ പരിശോധനയും ജീവിതചക്രം മികച്ച പ്രയോഗങ്ങളും](https://learn.microsoft.com/en-us/entra/identity-platform/access-tokens) നടപ്പിലാക്കുക  
+  - ടോക്കൺ ഓഡിയൻസ് അവകാശങ്ങൾ MCP സെർവർ ഐഡന്റിറ്റിയുമായി പൊരുത്തപ്പെടുന്നുവെന്ന് പരിശോധിക്കുക  
+  - ടോക്കൺ റൊട്ടേഷൻ, കാലഹരണ നയം ശരിയായ വിധത്തിൽ നടപ്പിലാക്കുക  
+  - ടോക്കൺ വീണ്ടും ഉപയോഗം തടയുക
 
-- **സംരക്ഷിത ടോക്കൺ സ്റ്റോറെജ്**: ടോക്കണുകൾέραക്സിൽയും ട്രാൻസിറ്റിലും എൻക്യൂഷൻ ഉപയോഗിച്ച് സുരക്ഷിതമായി സംഭരിച്ചു  
-  - **മികച്ച പ്രവർത്തനരീതികൾ**: [Secure Token Storage and Encryption Guidelines](https://youtu.be/uRdX37EcCwg?si=6fSChs1G4glwXRy2)
+- **സംരക്ഷിത ടോക്കൺ സൂക്ഷിച്ചത**: വിശ്രമത്തിലും ട്രാൻസിറ്റിലും എൻക്രിപ്ഷൻ ഉപയോഗിച്ച് ടോക്കണുകൾ സുരക്ഷിതമായി സൂക്ഷിക്കുക  
+  - **മികച്ച പ്രക്രിയകൾ**: [സുരക്ഷിത ടോക്കൺ സൂക്ഷിക്കൽ & എൻക്രിപ്ഷൻ മാർഗ്ഗനിർദ്ദേശങ്ങൾ](https://youtu.be/uRdX37EcCwg?si=6fSChs1G4glwXRy2)
 
-#### ആക്‌സസ് കൺട്രോൾ നടപ്പാക്കൽ
+#### ആക്സസ് നിയന്ത്രണ നടപ്പാക്കൽ
 
-- **കുറഞ്ഞ പ്രിവിലേജ് സിദ്ധാന്തം**: MCP സെർവറുകൾക്ക് ആവശ്യമായ ഏറ്റവും കുറഞ്ഞ അനുമതികൾ മാത്രമേ നൽകേണ്ടു  
-  - റഗുലർ അനുമതി അവലോക്കനങ്ങളും അപ്ഡേറ്റുകളും പ്രിവിലേജ് ക്രിമി തടയാൻ  
-  - **Microsoft ഡോക്യുമെന്റേഷൻ**: [Secure Least-Privileged Access](https://learn.microsoft.com/entra/identity-platform/secure-least-privileged-access)
+- **കുറഞ്ഞ അവകാശ തത്വം**: MCP സെർവർ들에게 വേണ്ട പ്രവർത്തനങ്ങൾക്ക് മാത്രമേ കുറഞ്ഞ അനുമതികൾ നൽകപ്പെടൂ  
+  - അധികാര വളർച്ച തടയാൻ അനുമതി നിരീക്ഷണവും പുതുക്കലുകളും നിർബന്ധമാണ്  
+  - **Microsoft രേഖകൾ**: [സുരക്ഷിത ഏറ്റവും കുറഞ്ഞ അവകാശ ഉപയോഗം](https://learn.microsoft.com/entra/identity-platform/secure-least-privileged-access)
 
-- **റോൾ അടിസ്ഥാന ആക്‌സസ് കൺട്രോൾ (RBAC)**: സൂക്ഷ്മമായ റോൾ നിയോഗം നടപ്പിലാക്കുക  
-  - പ്രത്യേക റിസോഴ്സുകളുടെയും പ്രവർത്തനങ്ങളുടെയും പരിധികൾക്കായി റോളുകൾ ഹരമായ പൊടി നിർവാഹിക്കുക  
-  - വ്യാപകമായ, ആവശ്യമില്ലാത്ത അനുമതികൾ ഒഴിവാക്കുക
+- **രോൾ അടിസ്ഥാന ആക്സസ് നിയന്ത്രണം (RBAC)**: സൂക്ഷ്മമായ പദവി നീക്കങ്ങൾ നടപ്പാക്കുക  
+  - പ്രത്യേക വിഭവങ്ങൾക്കും ക്രിയകൾക്കും മാത്രം കർശനമായി പദവികൾ ദിയ്ക്കുക  
+  - വ്യാപകമായ അനാവശ്യ അനുഗ്രഹങ്ങൾ ഒഴിവാക്കുക
 
-- **തുടർന്ന് അനുമതി നിരീക്ഷണം**: ആക്‌സസ് auditing, മോനിറ്ററിംഗ് തുടർച്ചയായി നടപ്പിലാക്കുക  
-  - അനുമതി ഉപയോഗ കാഴ്ചപ്പാടുകൾ സവിശേഷതകൾക്കായി നിരീക്ഷിക്കുക  
-  - അധികം ഉപയോഗം ഇല്ലാതാക്കുക, അപ്രമാനിത അവകാശങ്ങൾ ഉടൻ പരിഹരിക്കുക
+- **നിരന്തര അനുമതി നിരീക്ഷണം**: ആക്സസ് പരിശോധനയും നിരീക്ഷണവും തുടർച്ചയായി നടപ്പിലാക്കുക  
+  - അനധികൃത ഉപയോഗ പാറ്റർണുകൾ നിരീക്ഷിക്കുക  
+  - അധികമോ ഉപയോഗിക്കാത്ത അവകാശങ്ങൾ ഉടൻ പരിഹരിക്കുക
 
-## AI-നിർദ്ദേശിത സുരക്ഷാ ഭീഷണികൾ
+## AI-സവിശേഷ സുരക്ഷാ ഭീഷണികൾ
 
-### Prompt Injection & Tool Manipulation ആക്രമണങ്ങൾ
+### പ്രോംപ്റ്റ് ഇൻജക്ഷൻ & ടൂൾ മാനിപ്പുലേഷൻ ആക്രമണങ്ങൾ
 
-ആധുനിക MCP നടപ്പാക്കലുകൾ പരമ്പരാഗത സുരക്ഷാ നടപടികൾ പൂർണ്ണമായി മറികടക്കാൻ കഴിയാത്ത സങ്കീർണമായ AI-നിർദ്ദേശിത ആക്രമണ മാർഗ്ഗങ്ങളിൽനിന്നും നേരിടുന്നു:
+ആധുനിക MCP നടപ്പിലാക്കലുകൾ സങ്കീർണമായ AI-കേന്ദ്രിത ആക്രമണ മാർഗ്ഗങ്ങളെ നേരിടുന്നു, ഇത് പരമ്പരാഗത സുരക്ഷാ ഉപാധികൾ പൂരിപ്പിക്കാൻ കഴിയാത്തതാണ്:
 
-#### **അകമ്പടി Prompt Injection (Cross-Domain Prompt Injection)**
+#### **അപ്രത്യക്ഷ പ്രോംപ്റ്റ് ഇൻജക്ഷൻ (Cross-Domain Prompt Injection)**
 
-**അകമ്പടി Prompt Injection** MCP സജ്ജീകരിച്ച AI സിസ്റ്റങ്ങളിൽ ഏറ്റവും ഗൗരവമുള്ള ദുര്ജനതകളിലൊന്നാണ്. ആക്രമകർ ബാഹ്യ ഉള്ളടക്കങ്ങളിൽ (ഡോക്കുമെന്റുകൾ, വെബ്പേജുകൾ, ഇമെയിലുകൾ, ഡാറ്റാ ഉറവിടങ്ങൾ) ദുര്‍ബല നിർദ്ദേശങ്ങൾ ഒളിപ്പിച്ച് AI സിസ്റ്റങ്ങൾ അവയെ സാധുവായ കമാൻഡുകളായി പരിഗണിക്കാൻ ഇടയാക്കുന്നു.
+**അപ്രത്യക്ഷ പ്രോംപ്റ്റ് ഇൻജക്ഷൻ** MCP-സാധ്യ AI സിസ്റ്റങ്ങളിൽ ഏറ്റവും പ്രധാനപ്പെട്ട ദുർബലതകളിലൊന്നായി കണക്കാക്കപ്പെടുന്നു. ആക്രമകർ വ്യാജ നിർദ്ദേശങ്ങൾ പുറം ഉള്ളടക്കങ്ങളിൽ - ഡോക്യുമെന്റുകൾ, വെബ് പേജുകൾ, ഇമെയിലുകൾ, ഡാറ്റാ സ്രോതസുകൾ എന്നിവയിലായി ഒളിപ്പിക്കുകയും, AI സിസ്റ്റങ്ങൾ അവയ്ക്കു ശരിയായ കമാണ്ടുകൾ പോലെ പ്രതികരിക്കുന്നു.
 
-**ആക്രമണ സിദ്ധാന്തങ്ങൾ:**
-- **ഡോക്കുമെന്റ്-അധിഷ്ഠിത ഇൻജക്ഷൻ**: പ്രോസസ് ചെയ്ത ഡോക്കുമെന്റുകളിൽ ഒളിഞ്ഞ കാട്ട് AI അനാവശ്യ പ്രവർത്തനങ്ങൾ തീർത്തു  
-- **വെബ് ഉള്ളടക്ക ഉപയോഗം**: compromised വെബ് പേജുകളിൽ ട<|vq_lbr_audio_66411|><|vq_lbr_audio_102052|><|vq_lbr_audio_77696|><|vq_lbr_audio_13759|><|vq_lbr_audio_59947|><|vq_lbr_audio_23033|><|vq_lbr_audio_6445|><|vq_lbr_audio_85992|><|vq_lbr_audio_68299|><|vq_lbr_audio_53779|><|vq_lbr_audio_65909|><|vq_lbr_audio_20448|><|vq_lbr_audio_118834|><|vq_lbr_audio_32945|><|vq_lbr_audio_113251|><|vq_lbr_audio_114365|><|vq_lbr_audio_93655|><|vq_lbr_audio_44944|><|vq_lbr_audio_35574|><|vq_lbr_audio_82603|><|vq_lbr_audio_75499|><|vq_lbr_audio_57168|><|vq_lbr_audio_125353|><|vq_lbr_audio_34482|><|vq_lbr_audio_35053|><|vq_lbr_audio_15629|><|vq_lbr_audio_110283|><|vq_lbr_audio_115782|><|vq_lbr_audio_31755|><|vq_lbr_audio_117349|><|vq_lbr_audio_24286|><|vq_lbr_audio_120871|><|vq_lbr_audio_67182|><|vq_lbr_audio_111121|><|vq_lbr_audio_43745|><|vq_lbr_audio_4351|><|vq_lbr_audio_27411|><|vq_lbr_audio_62352|><|vq_lbr_audio_66975|><|vq_lbr_audio_86379|><|vq_lbr_audio_27971|><|vq_lbr_audio_71246|><|vq_lbr_audio_794|><|vq_lbr_audio_1187|><|vq_lbr_audio_98156|><|vq_lbr_audio_107983|><|vq_lbr_audio_85698|><|vq_lbr_audio_11339|><|vq_lbr_audio_83723|><|vq_lbr_audio_47955|><|vq_lbr_audio_16639|><|vq_lbr_audio_51655|><|vq_lbr_audio_5173|><|vq_lbr_audio_103818|><|vq_lbr_audio_50780|><|vq_lbr_audio_28362|><|vq_lbr_audio_117651|><|vq_lbr_audio_20821|><|vq_lbr_audio_67688|><|vq_lbr_audio_69825|><|vq_lbr_audio_57810|><|vq_lbr_audio_7070|><|vq_lbr_audio_85824|><|vq_lbr_audio_44808|><|vq_lbr_audio_123973|><|vq_lbr_audio_25894|><|vq_lbr_audio_127185|><|vq_lbr_audio_129932|><|vq_lbr_audio_65549|><|vq_lbr_audio_2389|><|vq_lbr_audio_32480|><|vq_lbr_audio_86726|><|vq_lbr_audio_81942|><|vq_lbr_audio_23924|><|vq_lbr_audio_61954|><|vq_lbr_audio_88241|><|vq_lbr_audio_93937|><|vq_lbr_audio_110043|><|vq_lbr_audio_79753|><|vq_lbr_audio_14376|><|vq_lbr_audio_8555|><|vq_lbr_audio_43109|><|vq_lbr_audio_35108|><|vq_lbr_audio_48193|><|vq_lbr_audio_12813|><|vq_lbr_audio_115356|><|vq_lbr_audio_53597|><|vq_lbr_audio_29185|><|vq_lbr_audio_9727|><|vq_lbr_audio_108723|><|vq_lbr_audio_99375|><|vq_lbr_audio_81253|><|vq_lbr_audio_91222|><|vq_lbr_audio_108318|><|vq_lbr_audio_114111|><|vq_lbr_audio_77794|><|vq_lbr_audio_50936|><|vq_lbr_audio_12986|><|vq_lbr_audio_9468|><|vq_lbr_audio_11892|><|vq_lbr_audio_32550|><|vq_lbr_audio_17790|><|vq_lbr_audio_47100|><|vq_lbr_audio_69060|><|vq_lbr_audio_72927|><|vq_lbr_audio_57831|><|vq_lbr_audio_43140|><|vq_lbr_audio_68086|><|vq_lbr_audio_101557|><|vq_lbr_audio_43614|><|vq_lbr_audio_85961|><|vq_lbr_audio_111249|><|vq_lbr_audio_69166|><|vq_lbr_audio_121222|><|vq_lbr_audio_104739|><|vq_lbr_audio_16041|><|vq_lbr_audio_41453|><|vq_lbr_audio_79106|><|vq_lbr_audio_61322|><|vq_lbr_audio_101365|><|vq_lbr_audio_90081|><|vq_lbr_audio_92394|><|vq_lbr_audio_67931|><|vq_lbr_audio_130994|><|vq_lbr_audio_87738|><|vq_lbr_audio_11459|><|vq_lbr_audio_12066|><|vq_lbr_audio_127337|><|vq_lbr_audio_47031|><|vq_lbr_audio_80787|><|vq_lbr_audio_73417|><|vq_lbr_audio_58205|><|vq_lbr_audio_114545|><|vq_lbr_audio_95650|><|vq_lbr_audio_8331|><|vq_lbr_audio_62071|><|vq_lbr_audio_123361|><|vq_lbr_audio_122759|><|vq_lbr_audio_22665|><|vq_lbr_audio_99111|><|vq_lbr_audio_10683|><|vq_lbr_audio_81977|><|vq_lbr_audio_111765|><|vq_lbr_audio_10000|><|vq_lbr_audio_22329|><|vq_lbr_audio_78505|><|vq_lbr_audio_20922|><|vq_lbr_audio_99510|><|vq_lbr_audio_8641|><|vq_lbr_audio_95668|><|vq_lbr_audio_101169|><|vq_lbr_audio_128869|><|vq_lbr_audio_61196|><|vq_lbr_audio_127776|><|vq_lbr_audio_34972|><|vq_lbr_audio_43946|><|vq_lbr_audio_45925|><|vq_lbr_audio_3528|><|vq_lbr_audio_39357|><|vq_lbr_audio_6062|><|vq_lbr_audio_24863|><|vq_lbr_audio_37826|><|vq_lbr_audio_14869|><|vq_lbr_audio_84567|><|vq_lbr_audio_109970|><|vq_lbr_audio_114616|><|vq_lbr_audio_10809|><|vq_lbr_audio_123544|><|vq_lbr_audio_97461|><|vq_lbr_audio_14292|><|vq_lbr_audio_110556|><|vq_lbr_audio_19704|><|vq_lbr_audio_111352|><|vq_lbr_audio_130653|><|vq_lbr_audio_25398|><|vq_lbr_audio_92801|><|vq_lbr_audio_19656|><|vq_lbr_audio_89941|><|vq_lbr_audio_52157|><|vq_lbr_audio_42753|><|vq_lbr_audio_120711|><|vq_lbr_audio_124561|><|vq_lbr_audio_109643|><|vq_lbr_audio_54698|><|vq_lbr_audio_115044|><|vq_lbr_audio_21553|><|vq_lbr_audio_28223|><|vq_lbr_audio_118184|><|vq_lbr_audio_72249|><|vq_lbr_audio_56156|><|vq_lbr_audio_27109|><|vq_lbr_audio_42589|><|vq_lbr_audio_31323|><|vq_lbr_audio_88260|><|vq_lbr_audio_32454|><|vq_lbr_audio_106271|><|vq_lbr_audio_41993|><|vq_lbr_audio_58528|><|vq_lbr_audio_19878|><|vq_lbr_audio_51882|><|vq_lbr_audio_63676|><|vq_lbr_audio_18459|><|vq_lbr_audio_97007|><|vq_lbr_audio_42138|><|vq_lbr_audio_84271|><|vq_lbr_audio_112143|><|vq_lbr_audio_75211|><|vq_lbr_audio_23052|><|vq_lbr_audio_96868|><|vq_lbr_audio_105593|><|vq_lbr_audio_59725|><|vq_lbr_audio_62119|><|vq_lbr_audio_8826|><|vq_lbr_audio_14470|><|vq_lbr_audio_30385|><|vq_lbr_audio_9391|><|vq_lbr_audio_88382|><|vq_lbr_audio_10589|><|vq_lbr_audio_89247|><|vq_lbr_audio_68438|><|vq_lbr_audio_20491|><|vq_lbr_audio_30445|><|vq_lbr_audio_44945|><|vq_lbr_audio_63193|><|vq_lbr_audio_16656|><|vq_lbr_audio_28901|><|vq_lbr_audio_102526|><|vq_lbr_audio_93451|><|vq_lbr_audio_39985|><|vq_lbr_audio_122601|><|vq_lbr_audio_54831|><|vq_lbr_audio_31433|><|vq_lbr_audio_24314|><|vq_lbr_audio_113288|><|vq_lbr_audio_112856|><|vq_lbr_audio_124162|><|vq_lbr_audio_18473|><|vq_lbr_audio_41603|><|vq_lbr_audio_107181|><|vq_lbr_audio_82851|><|vq_lbr_audio_106393|><|vq_lbr_audio_917|><|vq_lbr_audio_9647|><|vq_lbr_audio_65924|><|vq_lbr_audio_22205|><|vq_lbr_audio_121456|><|vq_lbr_audio_2187|><|vq_lbr_audio_28612|><|vq_lbr_audio_24530|><|vq_lbr_audio_25454|><|vq_lbr_audio_96916|><|vq_lbr_audio_88823|><|vq_lbr_audio_29894|><|vq_lbr_audio_93653|><|vq_lbr_audio_124565|><|vq_lbr_audio_75077|><|vq_lbr_audio_102260|><|vq_lbr_audio_52532|><|vq_lbr_audio_29334|><|vq_lbr_audio_97290|><|vq_lbr_audio_25069|><|vq_lbr_audio_58662|><|vq_lbr_audio_27637|><|vq_lbr_audio_26424|><|vq_lbr_audio_44624|><|vq_lbr_audio_110872|><|vq_lbr_audio_50352|><|vq_lbr_audio_34104|><|vq_lbr_audio_121448|><|vq_lbr_audio_30150|><|vq_lbr_audio_53074|><|vq_lbr_audio_52386|><|vq_lbr_audio_843|><|vq_lbr_audio_92176|><|vq_lbr_audio_65011|><|vq_lbr_audio_3808|><|vq_lbr_audio_7259|><|vq_lbr_audio_20744|><|vq_lbr_audio_82191|><|vq_lbr_audio_89897|><|vq_lbr_audio_33694|><|vq_lbr_audio_111725|><|vq_lbr_audio_121341|><|vq_lbr_audio_38696|><|vq_lbr_audio_30372|><|vq_lbr_audio_117111|><|vq_lbr_audio_24366|><|vq_lbr_audio_24366|><|vq_lbr_audio_24366|><|vq_lbr_audio_24366|><|vq_lbr_audio_24366|><|vq_lbr_audio_24366|><|vq_lbr_audio_24366|><|vq_lbr_audio_24366|><|vq_lbr_audio_24366|><|vq_lbr_audio_24366|><|vq_lbr_audio_24366|><|vq_lbr_audio_24366|><|vq_lbr_audio_24366|><|vq_lbr_audio_24366|><|vq_lbr_audio_24366|><|vq_lbr_audio_24366|><|vq_lbr_audio_24366|><|vq_lbr_audio_24366|><|vq_lbr_audio_24366|><|vq_lbr_audio_24366|><|vq_lbr_audio_24366|><|vq_lbr_audio_24366|><|vq_lbr_audio_24366|><|vq_lbr_audio_24366|><|vq_lbr_audio_24366|><|vq_lbr_audio_24366|><|vq_lbr_audio_119371|><|vq_lbr_audio_111998|><|vq_lbr_audio_49234|><|vq_lbr_audio_7729|><|vq_lbr_audio_86327|><|vq_lbr_audio_88310|><|vq_lbr_audio_108865|><|vq_lbr_audio_71854|><|vq_lbr_audio_23651|><|vq_lbr_audio_21628|><|vq_lbr_audio_79449|><|vq_lbr_audio_99584|><|vq_lbr_audio_113311|><|vq_lbr_audio_60094|><|vq_lbr_audio_13807|><|vq_lbr_audio_8467|><|vq_lbr_audio_66782|><|vq_lbr_audio_45221|><|vq_lbr_audio_81310|><|vq_lbr_audio_109258|><|vq_lbr_audio_123325|><|vq_lbr_audio_77138|><|vq_lbr_audio_104056|><|vq_lbr_audio_121271|><|vq_lbr_audio_44815|><|vq_lbr_audio_17175|><|vq_lbr_audio_7477|><|vq_lbr_audio_27665|><|vq_lbr_audio_109558|><|vq_lbr_audio_35332|><|vq_lbr_audio_93759|><|vq_lbr_audio_18140|><|vq_lbr_audio_11998|><|vq_lbr_audio_34075|><|vq_lbr_audio_13151|><|vq_lbr_audio_37642|><|vq_lbr_audio_60618|><|vq_lbr_audio_82235|><|vq_lbr_audio_85174|><|vq_lbr_audio_5226|><|vq_lbr_audio_69869|><|vq_lbr_audio_19614|><|vq_lbr_audio_511|><|vq_lbr_audio_73796|><|vq_lbr_audio_26190|><|vq_lbr_audio_67858|><|vq_lbr_audio_58267|><|vq_lbr_audio_23732|><|vq_lbr_audio_25935|><|vq_lbr_audio_29908|><|vq_lbr_audio_13144|><|vq_lbr_audio_28300|><|vq_lbr_audio_60069|><|vq_lbr_audio_112048|><|vq_lbr_audio_42641|><|vq_lbr_audio_12358|><|vq_lbr_audio_88635|><|vq_lbr_audio_38376|><|vq_lbr_audio_101512|><|vq_lbr_audio_46484|><|vq_lbr_audio_46484|><|vq_lbr_audio_110882|><|vq_lbr_audio_59268|><|vq_lbr_audio_92228|><|vq_lbr_audio_6227|><|vq_lbr_audio_108306|><|vq_lbr_audio_8771|><|vq_lbr_audio_130449|><|vq_lbr_audio_92578|><|vq_lbr_audio_93148|><|vq_lbr_audio_52533|><|vq_lbr_audio_95741|><|vq_lbr_audio_60049|><|vq_lbr_audio_120311|><|vq_lbr_audio_101896|><|vq_lbr_audio_10085|><|vq_lbr_audio_90007|><|vq_lbr_audio_104798|><|vq_lbr_audio_104615|><|vq_lbr_audio_26262|><|vq_lbr_audio_98876|><|vq_lbr_audio_14849|><|vq_lbr_audio_7886|><|vq_lbr_audio_65168|><|vq_lbr_audio_65789|><|vq_lbr_audio_107860|><|vq_lbr_audio_53320|><|vq_lbr_audio_38817|><|vq_lbr_audio_58318|><|vq_lbr_audio_60567|><|vq_lbr_audio_13150|><|vq_lbr_audio_94175|><|vq_lbr_audio_118718|><|vq_lbr_audio_23882|><|vq_lbr_audio_9530|><|vq_lbr_audio_40204|><|vq_lbr_audio_109428|><|vq_lbr_audio_122835|><|vq_lbr_audio_12382|><|vq_lbr_audio_10778|><|vq_lbr_audio_15060|><|vq_lbr_audio_22012|><|vq_lbr_audio_73766|><|vq_lbr_audio_93854|><|vq_lbr_audio_117846|><|vq_lbr_audio_85449|><|vq_lbr_audio_101703|><|vq_lbr_audio_3287|><|vq_lbr_audio_62170|><|vq_lbr_audio_44478|><|vq_lbr_audio_123723|><|vq_lbr_audio_71210|><|vq_lbr_audio_93796|><|vq_lbr_audio_52224|><|vq_lbr_audio_38783|><|vq_lbr_audio_12124|><|vq_lbr_audio_24366|><|vq_lbr_audio_25123|><|vq_lbr_audio_85861|><|vq_lbr_audio_48564|><|vq_lbr_audio_73376|><|vq_lbr_audio_119156|><|vq_lbr_audio_70864|><|vq_lbr_audio_25267|><|vq_lbr_audio_50036|><|vq_lbr_audio_119814|><|vq_lbr_audio_115754|><|vq_lbr_audio_92262|><|vq_lbr_audio_36497|><|vq_lbr_audio_118593|><|vq_lbr_audio_62149|><|vq_lbr_audio_120258|><|vq_lbr_audio_82820|><|vq_lbr_audio_6829|><|vq_lbr_audio_24366|><|vq_lbr_audio_82509|><|vq_lbr_audio_4620|><|vq_lbr_audio_125535|><|vq_lbr_audio_125665|><|vq_lbr_audio_126202|><|vq_lbr_audio_24847|><|vq_lbr_audio_88796|><|vq_lbr_audio_17582|><|vq_lbr_audio_68319|><|vq_lbr_audio_34831|><|vq_lbr_audio_111991|><|vq_lbr_audio_123867|><|vq_lbr_audio_14434|><|vq_lbr_audio_69427|><|vq_lbr_audio_108508|><|vq_lbr_audio_23000|><|vq_lbr_audio_108118|><|vq_lbr_audio_21677|><|vq_lbr_audio_51150|><|vq_lbr_audio_87633|><|vq_lbr_audio_83226|><|vq_lbr_audio_126060|><|vq_lbr_audio_114967|><|vq_lbr_audio_38937|><|vq_lbr_audio_121313|><|vq_lbr_audio_8449|><|vq_lbr_audio_103223|><|vq_lbr_audio_36861|><|vq_lbr_audio_33117|><|vq_lbr_audio_66320|><|vq_lbr_audio_122184|><|vq_lbr_audio_66645|><|vq_lbr_audio_104624|><|vq_lbr_audio_4748|><|vq_lbr_audio_92869|><|vq_lbr_audio_43936|><|vq_lbr_audio_16462|><|vq_lbr_audio_58087|><|vq_lbr_audio_22288|><|vq_lbr_audio_51512|><|vq_lbr_audio_73622|><|vq_lbr_audio_33096|><|vq_lbr_audio_13898|><|vq_lbr_audio_83370|><|vq_lbr_audio_41102|><|vq_lbr_audio_50774|><|vq_lbr_audio_15593|><|vq_lbr_audio_46658|><|vq_lbr_audio_44163|><|vq_lbr_audio_121489|><|vq_lbr_audio_101473|><|vq_lbr_audio_82642|><|vq_lbr_audio_39199|><|vq_lbr_audio_53850|><|vq_lbr_audio_63501|><|vq_lbr_audio_16153|><|vq_lbr_audio_92711|><|vq_lbr_audio_4737|><|vq_lbr_audio_44865|><|vq_lbr_audio_62226|><|vq_lbr_audio_100673|><|vq_lbr_audio_50308|><|vq_lbr_audio_127105|><|vq_lbr_audio_14228|><|vq_lbr_audio_94888|><|vq_lbr_audio_128712|><|vq_lbr_audio_123193|><|vq_lbr_audio_92231|><|vq_lbr_audio_112905|><|vq_lbr_audio_109509|><|vq_lbr_audio_88017|><|vq_lbr_audio_24366|><|vq_lbr_audio_15566|><|vq_lbr_audio_111083|><|vq_lbr_audio_51030|><|vq_lbr_audio_76254|><|vq_lbr_audio_72228|><|vq_lbr_audio_31819|><|vq_lbr_audio_2473|><|vq_lbr_audio_56041|><|vq_lbr_audio_51259|><|vq_lbr_audio_91207|><|vq_lbr_audio_48209|><|vq_lbr_audio_15942|><|vq_lbr_audio_35260|><|vq_lbr_audio_35575|><|vq_lbr_audio_46314|><|vq_lbr_audio_122338|><|vq_lbr_audio_49488|><|vq_lbr_audio_37400|><|vq_lbr_audio_88110|><|vq_lbr_audio_126570|><|vq_lbr_audio_45284|><|vq_lbr_audio_37016|><|vq_lbr_audio_18194|><|vq_lbr_audio_84189|><|vq_lbr_audio_73394|><|vq_lbr_audio_127279|><|vq_lbr_audio_31592|><|vq_lbr_audio_13518|><|vq_lbr_audio_20916|><|vq_lbr_audio_26875|><|vq_lbr_audio_5958|><|vq_lbr_audio_129444|><|vq_lbr_audio_15566|><|vq_lbr_audio_106747|><|vq_lbr_audio_109598|><|vq_lbr_audio_9675|><|vq_lbr_audio_44765|><|vq_lbr_audio_82691|><|vq_lbr_audio_106988|><|vq_lbr_audio_31106|><|vq_lbr_audio_128052|><|vq_lbr_audio_91114|><|vq_lbr_audio_36867|><|vq_lbr_audio_26830|><|vq_lbr_audio_3983|><|vq_lbr_audio_116344|><|vq_lbr_audio_73010|><|vq_lbr_audio_37852|><|vq_lbr_audio_50858|><|vq_lbr_audio_8948|><|vq_lbr_audio_24366|><|vq_lbr_audio_121588|><|vq_lbr_audio_125283|><|vq_lbr_audio_93323|><|vq_lbr_audio_74384|><|vq_lbr_audio_90895|><|vq_lbr_audio_108675|><|vq_lbr_audio_2806|><|vq_lbr_audio_87773|><|vq_lbr_audio_15257|><|vq_lbr_audio_25872|><|vq_lbr_audio_120245|><|vq_lbr_audio_79210|><|vq_lbr_audio_4108|><|vq_lbr_audio_38937|><|vq_lbr_audio_115787|><|vq_lbr_audio_4061|><|vq_lbr_audio_103543|><|vq_lbr_audio_72989|><|vq_lbr_audio_21633|><|vq_lbr_audio_127631|><|vq_lbr_audio_53365|><|vq_lbr_audio_100581|><|vq_lbr_audio_38843|><|vq_lbr_audio_33668|><|vq_lbr_audio_121195|><|vq_lbr_audio_479|><|vq_lbr_audio_52190|><|vq_lbr_audio_106479|><|vq_lbr_audio_43476|><|vq_lbr_audio_90946|><|vq_lbr_audio_130572|><|vq_lbr_audio_67704|><|vq_lbr_audio_124089|><|vq_lbr_audio_122581|><|vq_lbr_audio_21094|><|vq_lbr_audio_116039|><|vq_lbr_audio_104291|><|vq_lbr_audio_5618|><|vq_lbr_audio_53131|><|vq_lbr_audio_10809|><|vq_lbr_audio_27612|><|vq_lbr_audio_67460|><|vq_lbr_audio_23342|><|vq_lbr_audio_62915|><|vq_lbr_audio_17085|><|vq_lbr_audio_122209|><|vq_lbr_audio_29921|><|vq_lbr_audio_65844|><|vq_lbr_audio_60510|><|vq_lbr_audio_6912|><|vq_lbr_audio_80533|><|vq_lbr_audio_23868|><|vq_lbr_audio_16398|><|vq_lbr_audio_60003|><|vq_lbr_audio_18496|><|vq_lbr_audio_80639|><|vq_lbr_audio_125536|><|vq_lbr_audio_68241|><|vq_lbr_audio_25312|><|vq_lbr_audio_11812|><|vq_lbr_audio_113712|><|vq_lbr_audio_114014|><|vq_lbr_audio_106661|><|vq_lbr_audio_32700|><|vq_lbr_audio_93265|><|vq_lbr_audio_31797|><|vq_lbr_audio_23116|><|vq_lbr_audio_48349|><|vq_lbr_audio_120045|><|vq_lbr_audio_98747|><|vq_lbr_audio_48022|><|vq_lbr_audio_40643|><|vq_lbr_audio_117563|><|vq_lbr_audio_97225|><|vq_lbr_audio_116570|><|vq_lbr_audio_11582|><|vq_lbr_audio_112122|><|vq_lbr_audio_62852|><|vq_lbr_audio_43613|><|vq_lbr_audio_33744|><|vq_lbr_audio_41219|><|vq_lbr_audio_34452|><|vq_lbr_audio_74333|><|vq_lbr_audio_6065|><|vq_lbr_audio_5126|><|vq_lbr_audio_57586|><|vq_lbr_audio_79337|><|vq_lbr_audio_67509|><|vq_lbr_audio_97684|><|vq_lbr_audio_65922|><|vq_lbr_audio_23362|><|vq_lbr_audio_49289|><|vq_lbr_audio_93724|><|vq_lbr_audio_106089|><|vq_lbr_audio_31209|><|vq_lbr_audio_55812|><|vq_lbr_audio_18906|><|vq_lbr_audio_33157|><|vq_lbr_audio_123800|><|vq_lbr_audio_96029|><|vq_lbr_audio_17251|><|vq_lbr_audio_14870|><|vq_lbr_audio_34576|><|vq_lbr_audio_3453|><|vq_lbr_audio_89868|><|vq_lbr_audio_21342|><|vq_lbr_audio_90462|><|vq_lbr_audio_52758|><|vq_lbr_audio_39873|><|vq_lbr_audio_43252|><|vq_lbr_audio_36796|><|vq_lbr_audio_30930|><|vq_lbr_audio_36794|><|vq_lbr_audio_66645|><|vq_lbr_audio_115271|><|vq_lbr_audio_16762|><|vq_lbr_audio_96098|><|vq_lbr_audio_82287|><|vq_lbr_audio_96571|><|vq_lbr_audio_16811|><|vq_lbr_audio_102968|><|vq_lbr_audio_107581|><|vq_lbr_audio_45675|><|vq_lbr_audio_23892|><|vq_lbr_audio_34758|><|vq_lbr_audio_3680|><|vq_lbr_audio_73740|><|vq_lbr_audio_77452|><|vq_lbr_audio_105041|><|vq_lbr_audio_47879|><|vq_lbr_audio_93846|><|vq_lbr_audio_60889|><|vq_lbr_audio_20743|><|vq_lbr_audio_5958|><|vq_lbr_audio_91811|><|vq_lbr_audio_95795|><|vq_lbr_audio_70656|><|vq_lbr_audio_115465|><|vq_lbr_audio_26420|><|vq_lbr_audio_11474|><|vq_lbr_audio_54175|><|vq_lbr_audio_70052|><|vq_lbr_audio_66179|><|vq_lbr_audio_108313|><|vq_lbr_audio_115740|><|vq_lbr_audio_49688|><|vq_lbr_audio_115628|><|vq_lbr_audio_28214|><|vq_lbr_audio_11611|><|vq_lbr_audio_67844|><|vq_lbr_audio_45102|><|vq_lbr_audio_26243|><|vq_lbr_audio_115594|><|vq_lbr_audio_104626|><|vq_lbr_audio_26222|><|vq_lbr_audio_15586|><|vq_lbr_audio_73545|><|vq_lbr_audio_83726|><|vq_lbr_audio_78381|><|vq_lbr_audio_3038|><|vq_lbr_audio_130175|><|vq_lbr_audio_8336|><|vq_lbr_audio_52069|><|vq_lbr_audio_106519|><|vq_lbr_audio_17659|><|vq_lbr_audio_2152|><|vq_lbr_audio_61390|><|vq_lbr_audio_120230|><|vq_lbr_audio_65302|><|vq_lbr_audio_104778|><|vq_lbr_audio_89414|><|vq_lbr_audio_31691|><|vq_lbr_audio_16081|><|vq_lbr_audio_119178|><|vq_lbr_audio_12789|><|vq_lbr_audio_5276|><|vq_lbr_audio_20481|><|vq_lbr_audio_29926|><|vq_lbr_audio_124776|><|vq_lbr_audio_56086|><|vq_lbr_audio_21462|><|vq_lbr_audio_36953|><|vq_lbr_audio_100367|><|vq_lbr_audio_40360|><|vq_lbr_audio_22580|><|vq_lbr_audio_107158|><|vq_lbr_audio_29699|><|vq_lbr_audio_26894|><|vq_lbr_audio_28869|><|vq_lbr_audio_37461|><|vq_lbr_audio_107481|><|vq_lbr_audio_66790|><|vq_lbr_audio_47630|><|vq_lbr_audio_74833|><|vq_lbr_audio_32261|><|vq_lbr_audio_128273|><|vq_lbr_audio_82031|><|vq_lbr_audio_65889|><|vq_lbr_audio_52626|><|vq_lbr_audio_99431|><|vq_lbr_audio_12710|><|vq_lbr_audio_118623|><|vq_lbr_audio_22254|><|vq_lbr_audio_56074|><|vq_lbr_audio_32687|><|vq_lbr_audio_37138|><|vq_lbr_audio_77451|><|vq_lbr_audio_41285|><|vq_lbr_audio_116987|><|vq_lbr_audio_20796|><|vq_lbr_audio_4365|><|vq_lbr_audio_31691|><|vq_lbr_audio_78605|><|vq_lbr_audio_94875|><|vq_lbr_audio_130065|><|vq_lbr_audio_107737|><|vq_lbr_audio_64149|><|vq_lbr_audio_118230|><|vq_lbr_audio_66166|><|vq_lbr_audio_6078|><|vq_lbr_audio_125827|><|vq_lbr_audio_126744|><|vq_lbr_audio_33573|><|vq_lbr_audio_105421|><|vq_lbr_audio_27128|><|vq_lbr_audio_99178|><|vq_lbr_audio_58875|><|vq_lbr_audio_76937|><|vq_lbr_audio_89898|><|vq_lbr_audio_18416|><|vq_lbr_audio_5459|><|vq_lbr_audio_67797|><|vq_lbr_audio_103222|><|vq_lbr_audio_41426|><|vq_lbr_audio_17306|><|vq_lbr_audio_53074|><|vq_lbr_audio_31622|><|vq_lbr_audio_116960|><|vq_lbr_audio_126622|><|vq_lbr_audio_100727|><|vq_lbr_audio_93835|><|vq_lbr_audio_73595|><|vq_lbr_audio_24366|><|vq_lbr_audio_120203|><|vq_lbr_audio_127838|><|vq_lbr_audio_122973|><|vq_lbr_audio_64500|><|vq_lbr_audio_30102|><|vq_lbr_audio_56628|><|vq_lbr_audio_60992|><|vq_lbr_audio_118720|><|vq_lbr_audio_93288|><|vq_lbr_audio_46114|><|vq_lbr_audio_85633|><|vq_lbr_audio_128712|><|vq_lbr_audio_45503|><|vq_lbr_audio_12360|><|vq_lbr_audio_15315|><|vq_lbr_audio_125148|><|vq_lbr_audio_716|><|vq_lbr_audio_108824|><|vq_lbr_audio_83722|><|vq_lbr_audio_128310|><|vq_lbr_audio_99172|><|vq_lbr_audio_32544|><|vq_lbr_audio_19524|><|vq_lbr_audio_48833|><|vq_lbr_audio_3366|><|vq_lbr_audio_87817|><|vq_lbr_audio_49851|><|vq_lbr_audio_73540|><|vq_lbr_audio_79103|><|vq_lbr_audio_78140|><|vq_lbr_audio_33483|><|vq_lbr_audio_123254|><|vq_lbr_audio_43573|><|vq_lbr_audio_31817|><|vq_lbr_audio_122035|><|vq_lbr_audio_54546|><|vq_lbr_audio_4438|><|vq_lbr_audio_19929|><|vq_lbr_audio_7206|><|vq_lbr_audio_55668|><|vq_lbr_audio_109194|><|vq_lbr_audio_105928|><|vq_lbr_audio_12742|><|vq_lbr_audio_36936|><|vq_lbr_audio_37977|><|vq_lbr_audio_50602|><|vq_lbr_audio_9456|><|vq_lbr_audio_91516|><|vq_lbr_audio_95369|><|vq_lbr_audio_29073|><|vq_lbr_audio_79641|><|vq_lbr_audio_56668|><|vq_lbr_audio_19506|><|vq_lbr_audio_1940|><|vq_lbr_audio_80497|><|vq_lbr_audio_120414|><|vq_lbr_audio_110363|><|vq_lbr_audio_18507|><|vq_lbr_audio_8320|><|vq_lbr_audio_7832|><|vq_lbr_audio_78402|><|vq_lbr_audio_60228|><|vq_lbr_audio_90196|><|vq_lbr_audio_112836|><|vq_lbr_audio_87270|><|vq_lbr_audio_60788|><|vq_lbr_audio_71395|><|vq_lbr_audio_95115|><|vq_lbr_audio_26566|><|vq_lbr_audio_120888|><|vq_lbr_audio_26972|><|vq_lbr_audio_18583|><|vq_lbr_audio_72412|><|vq_lbr_audio_121855|><|vq_lbr_audio_124619|><|vq_lbr_audio_25916|><|vq_lbr_audio_28057|><|vq_lbr_audio_5820|><|vq_lbr_audio_103533|><|vq_lbr_audio_83638|><|vq_lbr_audio_112269|><|vq_lbr_audio_66561|><|vq_lbr_audio_10190|><|vq_lbr_audio_86348|><|vq_lbr_audio_113761|><|vq_lbr_audio_73389|><|vq_lbr_audio_15558|><|vq_lbr_audio_39639|><|vq_lbr_audio_69569|><|vq_lbr_audio_3358|><|vq_lbr_audio_57053|><|vq_lbr_audio_13602|><|vq_lbr_audio_95315|><|vq_lbr_audio_70195|><|vq_lbr_audio_105332|><|vq_lbr_audio_13557|><|vq_lbr_audio_2914|><|vq_lbr_audio_72301|><|vq_lbr_audio_34409|><|vq_lbr_audio_47816|><|vq_lbr_audio_110423|><|vq_lbr_audio_6300|><|vq_lbr_audio_75396|><|vq_lbr_audio_108166|><|vq_lbr_audio_10983|><|vq_lbr_audio_28060|><|vq_lbr_audio_8410|><|vq_lbr_audio_103065|><|vq_lbr_audio_124150|><|vq_lbr_audio_23711|><|vq_lbr_audio_1585|><|vq_lbr_audio_86731|><|vq_lbr_audio_24366|><|vq_lbr_audio_20937|><|vq_lbr_audio_10883|><|vq_lbr_audio_95093|><|vq_lbr_audio_99009|><|vq_lbr_audio_255|><|vq_lbr_audio_3240|><|vq_lbr_audio_44956|><|vq_lbr_audio_27677|><|vq_lbr_audio_114582|><|vq_lbr_audio_78455|><|vq_lbr_audio_81111|><|vq_lbr_audio_36368|><|vq_lbr_audio_17711|><|vq_lbr_audio_126994|><|vq_lbr_audio_118295|><|vq_lbr_audio_16041|><|vq_lbr_audio_24366|><|vq_lbr_audio_104 Stirling ARCscan, ongoing updates.
+**അക്രമി രംഗങ്ങൾ:**
+- **ഡോക്യുമെന്റ് അധിഷ്ഠിത ഇൻജക്ഷൻ**: പ്രോസസ്‌ ചെയ്ത ഡോക്യുമെന്റുകളിൽ ഒളിച്ചിരിക്കുന്ന ദുർബല നിർദ്ദേശങ്ങൾ AI-നെ അനുകൂലമല്ലാത്ത പ്രവർത്തനങ്ങൾക്ക് പ്രേരിപ്പിക്കുക
+- **വെബ് ഉള്ളടക്ക ദുർവിനിയോഗം**: AI പെരുമാറ്റം നിയന്ത്രിക്കാൻ വെബ് പേജുകളിൽ ഒളിച്ചിരിക്കുന്ന പ്രോംപ്റ്റുകൾ ഉപയോഗിക്കുക
+- **ഇമെയിൽ ആക്രമണങ്ങൾ**: AI സഹായി വെളിപ്പെടുത്തൽ, അനധികൃത പ്രവർത്തനങ്ങൾ നടത്തുന്നതിന് ഇമെയിലിൽ ദുർബല പ്രോംപ്റ്റ് ഉൾപ്പെടുത്തൽ
+- **ഡാറ്റാ സ്രോതസ്സ് അശുദ്ധീകരണം**: എംസിപി സിസ്റ്റങ്ങളെ ബാധിക്കാൻ दूർവിനിയോഗിക്കപ്പെട്ട ഡാറ്റാബേസുകളും API-കളും
 
-Life raft said after the drought kisses whole ".
+**ഉണ്ടാകുന്ന ഫലങ്ങൾ**: ഡാറ്റാ ചോർത്ത്, സ്വകാര്യതാ ലംഘനം, ഹാനികരമായ ഉള്ളടക്ക സൃഷ്ടി, ഉപയോക്തൃ ഇടപെടൽ രണ്ടാമാൻ പറ്റൽ. വിശദീകരണത്തിനായി [Prompt Injection in MCP (Simon Willison)](https://simonwillison.net/2025/Apr/9/mcp-prompt-injection/) കാണുക.
 
-The direction toward the flowered family of fireworms ' fence rice is going to be a Name.
+![Prompt Injection Attack Diagram](../../../translated_images/ml/prompt-injection.ed9fbfde297ca877.webp)
 
-The new controller is by growl. Fishonians in the Spring, it throws here and there.
+#### **ടൂൾ വിഷപ്പാട് ആക്രമണങ്ങൾ**
 
-Moonlight red cap black polka dots ' cage alerty. The sky tree meanwhile and the sky tablet is sleeping.
+**ടൂൾ വിഷപ്പാട്** MCP ടൂളുകൾ നിർവ്വചിക്കുന്ന മെടാഡേറ്റയിൽ ലക്ഷ്യം വെച്ച ആക്രമണമാണ്, LLM-കൾ ടൂൾ വിവരണങ്ങളും പാരാമീറ്ററും വ്യാഖ്യാനിക്കുന്ന രീതിയിൽ ഉപയോഗിച്ച് നിർവ്വഹണ തീരുമാനങ്ങൾ എടുക്കുന്നുണ്ടാകുന്ന ദുർബലത.
 
-### SHORT ANSWER:
+**ആക്രമണ മാർഗ്ഗങ്ങൾ:**
+- **മെടാഡേറ്റാ മാനിപ്പുലേഷൻ**: ആക്രമകർ ടൂൾ വിവരണം, പാരാമീറ്റർ നിർവ്വചനങ്ങൾ, ഉപയോഗ ഉദാഹരണങ്ങളിൽ ദുർബല നിർദ്ദേശങ്ങൾ ഇണചേര്ക്കുക
+- **അദൃശ്യ നിർദ്ദേശങ്ങൾ**: മനുഷ്യ ഉപയോക്താവിന് കാണാനാകാത്ത പ്രോംപ്റ്റുകൾ AI മോഡലുകൾ പ്രോസസ്സ് ചെയ്യുന്നു
+- **ഡൈനാമിക് ടൂൾ മാറ്റം ("റഗ് പുൾസ്")**: ഉപയോക്താക്കൾ അംഗീകരിച്ച ടൂൾ പിന്നീട് ദുർബല പ്രവർത്തനങ്ങൾ നടത്താൻ മാറ്റം വരുത്തുകയും ഉപയോക്തൃ അനിവാര്യതയ്ക്ക് കാരണമെന്നും
+- **പാരാമീറ്റർ ഇൻജക്ഷൻ**: മോഡൽ പെരുമാറ്റത്തെ ബാധിക്കുന്ന ടൂൾ പാരാമീറ്റർ സ്കീമകളിൽ ദുർബല ഉള്ളടക്കങ്ങൾ ഉൾപ്പെടുത്തൽ
 
-**OWASP MCP Top 10 Security Risks**
+**ഹോസ്റ്റഡ് സെർവർ അപകടങ്ങൾ**: MCP റിമോട്ട് സെർവറുകൾക്ക് ഉയർന്ന അപകടം ഉണ്ട്, കാരണം ഉപയോക്തൃ അംഗീകാരത്തിന് ശേഷം ടൂൾ നിർവ്വചനങ്ങൾ പുതുക്കാം, മുൻപ് സുരക്ഷിതമായ ടൂളുകൾ ദുർബലമാക്കപ്പെടാനുള്ള സാഹചര്യം. സമഗ്ര വിശകലനത്തിന് [Tool Poisoning Attacks (Invariant Labs)](https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks) കാണുക.
 
-| Risk | Description | Azure Mitigation |
-|------|-------------|------------------|
-| MCP01 | Token Mismanagement & Secret Exposure | Azure Key Vault, Managed Identity |
-| MCP02 | Privilege Escalation via Scope Creep | RBAC, Conditional Access |
-| MCP03 | Tool Poisoning | Tool validation, integrity verification |
-| MCP04 | Supply Chain Attacks | GitHub Advanced Security, dependency scanning |
-| MCP05 | Command Injection & Execution | Input validation, sandboxing |
-| MCP06 | Prompt Injection via Contextual Payloads | Azure AI Content Safety, Prompt Shields |
-| MCP07 | Insufficient Authentication & Authorization | Azure Entra ID, OAuth 2.1 with PKCE |
-| MCP08 | Lack of Audit & Telemetry | Azure Monitor, Application Insights |
-| MCP09 | Shadow MCP Servers | API Center governance, network isolation |
-| MCP10 | Context Injection & Over-Sharing | Data classification, minimal exposure |
-- **ഡൈനാമിക് ശേഷി മാറ്റം**: തുടക്കമുള്ള സുരക്ഷാ വിലയীৰണങ്ങളിൽ നിന്നു രക്ഷപെടുന്ന ഉപകരണ ശേഷികളിൽ യഥാർത്ഥ സമയ മാറ്റങ്ങൾ
-- **കോൺടെക്സ്‌റ്റ് വിംഡോ വിഷബാധ**: ദുഷ്‌പ്രേരക നിർദ്ദേശങ്ങൾ മറയ്ക്കുന്നതിനായി വലിപ്പമുള്ള കോൺടെക്സ്‌റ് വിംഡോകൾ മാനിപ്പുലേറ്റ് ചെയ്യുന്ന ആക്രമണങ്ങൾ
-- **മോഡൽ കൺഫ്യൂഷൻ ആക്രമണങ്ങൾ**: മോഡലുകളുടെ പരിധികൾ പ്രയോജനപ്പെടുത്തി അപ്രതീക്ഷിതമോ സുരക്ഷിതമല്ലാത്ത പെരുമാറ്റങ്ങൾ സൃഷ്ടിക്കൽ
+![Tool Injection Attack Diagram](../../../translated_images/ml/tool-injection.3b0b4a6b24de6bef.webp)
+
+#### **അധിക AI ആക്രമണ മാർഗ്ഗങ്ങൾ**
+
+- **ക്രോസ്-ഡൊമെയ്ൻ പ്രോംപ്റ്റ് ഇൻജക്ഷൻ (XPIA)**: സുരക്ഷാ നിയന്ത്രണങ്ങൾ മറികടക്കാൻ പല ഡൊമെയ്‌നുകളിൽ നിന്നുള്ള ഉള്ളടക്കം ഉപയോഗിക്കുന്ന പരിണമിച്ച ആക്രമണങ്ങൾ
+- **ഡൈനാമിക് ശേഷി മാറ്റം**: പ്രാഥമിക സുരക്ഷാ മൂല്യനിരീക്ഷണങ്ങളിൽ നിന്നു രക്ഷപെട്ട് ടൂൾ ശേഷികളിൽ实时 മാറ്റങ്ങൾ  
+- **കൺടെക്സ്റ്റ് വിൻഡോ വിഷം ചേരിക്കൽ**: ദോഷകരമായ നിർദേശങ്ങൾ മറച്ചുവെയ്ക്കാനുള്ള വലിയ കോൺടക്സ്റ്റ് വിൻഡോകൾ മേധാവിത്വത്തിലുള്ള ആക്രമണങ്ങൾ  
+- **മോഡൽ കണ്‍ഫ്യൂഷൻ ആക്രമണങ്ങൾ**: മോഡൽ പരിധികൾ ഉപയോഗിച്ച് അനിഷ്ടകരമോ അപകടകാരിയുമായ പെരുമാറ്റങ്ങൾ സൃഷ്ടിക്കൽ
 
 
-### AI സുരക്ഷാ അപകട ഫലങ്ങൾ
+### AI സുരക്ഷാ സാധ്യതയുടെ പ്രതിഫലം
 
-**ഉയർന്ന പ്രഭാവമുള്ള ഫലങ്ങൾ:**
-- **ഡാറ്റ എക്‌സ്ഫില്ട്രേഷൻ**: അനധികൃത പ്രവേശനം മടുത്തും സ്വകാര്യ എന്റർപ്രൈസ് അല്ലെങ്കിൽ വ്യക്തിഗത ഡാറ്റ നഷ്ടപ്പെടൽ
-- **സ്വകാര്യത ലംഘനങ്ങൾ**: വ്യക്തിഗതമായി തിരിച്ചറിയാവുന്ന വിവരങ്ങൾ (PII)യും രഹസ്യമായ ബിസിനസ് ഡാറ്റയും വെളിപ്പെടുത്തൽ  
-- **സിസ്റ്റം മാനിപ്പുലേഷൻ**: പ്രധാന സിസ്റ്റങ്ങളിലെയും വർക്ക്‌ഫ്ലോകളിലെയും അജ്ഞാതമാക്കിയ മാറ്റങ്ങൾ
-- **അംഗീകൃത മോഷണം**: പ്രാമാണീകരണ ടോക്കണുകളും സർവ്വീസ് ക്രെഡൻഷ്യലുകളും കാരണമായി വന്ന നഷ്ടം
-- **ദിശാന്തര ലംഘനം**: വിപുലമായ നെറ്റ്‌വർക്ക് ആക്രമണങ്ങൾക്ക് വേണ്ടി ലോചിത AI സിസ്റ്റങ്ങൾ ഉപയോഗിക്കൽ
+**ഉയർന്ന പ്രതികരണഫലങ്ങൾ:**
+- **ഡേറ്റാ പുറന്തള്ളൽ**: അനധികൃത പ്രവേശനം വഴി സൈനിക തഥ്വങ്ങൾ അല്ലെങ്കിൽ വ്യക്തിഗത ഡേറ്റാ തട്ടിപ്പ്  
+- **സ്വകാര്യത ലംഘനങ്ങൾ**: വ്യക്തിഗത തിരിച്ചറിയാവുന്ന വിവരങ്ങളും (PII) രഹസ്യമായ ബിസിനസ് വിവരങ്ങളും പുറത്ത് വിടൽ  
+- **സിസ്റ്റം മാറ്റം**: പ്രധാന സിസ്റ്റങ്ങളെയും പ്രവൃത്തിഗതികളെയും അനാപേക്ഷിതമായി മാറ്റം വരുത്തൽ  
+- **പ്രമുഖ രേഖകളുടെ മോഷണം**: സാക്ഷ്യപത്ര ടോക്കണുകളും സേവന രേഖകളും ലംഘനം  
+- **പശ്ചാത്തല സഞ്ചാരം**: വ്യാപക നെറ്റ്വർക്ക് ആക്രമണങ്ങൾക്ക് വിരൽപ്പൊടികൾ ആയി കൃത്രിമ ബുദ്ധിമുട്ട് പണിയൽ
+
 
 ### Microsoft AI സുരക്ഷാ പരിഹാരങ്ങൾ
 
-#### **AI പ്രോംപ്റ്റ് ഷീൽഡുകൾ: ഇൻജക്ഷൻ ആക്രമണങ്ങൾക്ക് എതിരെയുള്ള പുരോഗമിത സംരക്ഷണം**
+#### **AI പ്രോംപ്റ്റ് ഷീൽഡുകൾ: ഇൻജക്ഷൻ ആക്രമണങ്ങൾക്കെതിരെയുള്ള പ്രഗത്ഭ സംരക്ഷണം**
 
-Microsoft **AI പ്രോംപ്റ്റ് ഷീൽഡുകൾ** ഒരുাধিক സുരക്ഷാ പാളികളിലൂടെ നേരിട്ടും പരോക്ഷമായും പ്രോംപ്റ്റ് ഇൻജക്ഷൻ ആക്രമണങ്ങളിൽ നിന്ന് സമഗ്ര പ്രതിരോധം നൽകുന്നു:
+Microsoft **AI പ്രോംപ്റ്റ് ഷീൽഡുകൾ** നേരിട്ടുള്ളയും പരോക്ഷവുമായ പ്രോംപ്റ്റ് ഇൻജക്ഷൻ ആക്രമണങ്ങൾക്കെതിരെ വിവിധ സുരക്ഷാ തലങ്ങൾ ഒരുക്കുന്നു:
 
-##### **പ്രധാന സംരക്ഷണ മികാനിസങ്ങൾ:**
+##### **പ്രധാന സംരക്ഷണ രീതി:**
 
-1. **പുരോഗമിത കണ്ടെത്തലും ഫിൽറ്ററിംഗും**
-   - മെഷീൻ ലേണിങ് ആൽഗോരിതങ്ങളും NLP സാങ്കേതിക വിദ്യകളും പുറത്തുള്ള കോൺടെൻറിൽ ദുഷ്‌പ്രേരക നിർദ്ദേശങ്ങൾ കണ്ടെത്തുന്നു
-   - രേഖകൾ, വെബ് പേജുകൾ, ഇമെയിലുകൾ, ഡാറ്റാ ഉറവിടങ്ങൾ എന്നിവയിൽ എൻബെഡ് ചെയ്ത ഭീഷണികൾ യഥാർത്ഥ സമയ വിശകലനം
-   - സാധുവായ പ്രോംപ്റ്റ് മാതൃകകളും ദുഷ്‌പ്രേരക മാതൃകകളും തമ്മിലുള്ള സാഹചര്യപരമായ മനസ്സിലാക്കൽ
+1. **പ്രഗത്ഭമായ കണ്ടെത്തലും ഫിൽട്ടറിംഗും**  
+   - യന്ത്ര പഠന ആൽഗോറിദങ്ങൾക്കും NLP സാങ്കേതികവിദ്യകൾക്കും പുറമെ ദോഷകരമായ നിർദേശങ്ങൾ രേഖചെയ്യുന്ന വസ്തുക്കൾ കണ്ടെത്തുന്നു  
+   - രേഖകൾ, വെബ് പേജുകൾ, ഇമെയിലുകൾ, ഡേറ്റാ സ്രോതസ്സുകളിലെ ഭീഷണി പരിശോധികൾ实时 നടത്തുന്നു  
+   - സാധുവായ പ്രോംപ്റ്റ് മാതൃകകളും ദോഷകരവുമായ മാതൃകകളുമായുള്ള സാന്നിധ്യ മാനസികം
 
-2. **സ്പോട്ട്‌ലൈറ്റിംഗ് സാങ്കേതികികൾ**  
-   - വിശ്വസനീയമായ സിസ്റ്റം നിർദ്ദേശങ്ങളേയും സംശയാസ്പദമായ പുറത്തുള്ള ഇൻപുട്ടുകളേയും വ്യത്യസ്തമാക്കുന്നു
-   - മോഡലിന്റെ പ്രസക്തി മെച്ചപ്പെടുത്തുന്നതിനും ദുഷ്‌പ്രേരക ഉള്ളടക്കം വേർതിരിക്കുന്നതും സഹായിക്കുന്ന ടെക്സ്റ്റ് മാര്പ്പുകൾ
-   - AI സിസ്റ്റങ്ങൾ ശരിയായ നിർദേശം പരിധി പാലിക്കുകയും ഇൻജെക്റ്റു ചെയ്ത നിർദ്ദേശങ്ങൾ അവഗണിക്കുകയും ചെയ്യാൻ സഹായിക്കുന്നു
+2. **സ്പോട്ട്ലൈറ്റിംഗ് സാങ്കേതിക വിദ്യകൾ**  
+   - വിശ്വസനീയമായ സംവിധാന നിർദേശങ്ങന്മാരായതിനും സാധ്യതയുള്ള ദുഷ്ട പ്രാബല്യത്തിനും ഇടയിൽ വ്യത്യാസമുണ്ട്  
+   - ടെക്സ്റ്റ് പരിവർത്തന രീതികൾ മോഡൽ പ്രസക്തി വർദ്ധിപ്പിക്കുകയും ദോഷകരമായ ഉള്ളടക്കം വേർതിരിക്കുകയും ചെയ്യുന്നു  
+   - AI സിസ്റ്റങ്ങൾക്കുള്ള നിർദ്ദേശങ്ങളുടെ ക്രമം സത്യമായും നിലനിർ‍ത്താനും ഇൻജക്റ്റ് ചെയ്ത കമാൻഡുകൾ അവഗണിക്കാനും സഹായിക്കുന്നു
 
-3. **ഡെലിമിറ്റർ & ഡേറ്റാമാർക്കിംഗ് സിസ്റ്റങ്ങൾ**
-   - വിശ്വസനീയമായ സിസ്റ്റം സന്ദേശങ്ങളുടെയും പുറപ്പെട്ട ഇൻപുട്ട് ടെക്സ്റ്റിന്റെയും മധ്യത്തിൽ വ്യക്തമായ അതിരുകൾ നിർവചിക്കുന്നു
-   - വിശ്വസനീയവും അവിശ്വസനീയവുമായ ഡാറ്റാ ഉറവിടങ്ങൾ തമ്മിൽ അതിരുകൾ ചിത്രീകരിക്കുന്ന പ്രത്യേക മാർക്കറുകൾ
-   - നിർദേശം പിശക് ഒഴിവാക്കാനും അനധികൃത കമാന്റ് നടത്തലുകൾ തടയാനും വ്യക്തമായ വേർതിരിച്ചുകൊടുക്കൽ
+3. **ഡെലിമിറ്റർ & ഡേറ്റാമാർക്കിംഗ് സംവിധാനങ്ങൾ**  
+   - വിശ്വസനീയമായ സംവിധാന സന്ദേശങ്ങളുമായും പുറത്തുള്ള ഇൻപുട്ട് ടെക്സ്റ്റുമായും സ്പഷ്ടമായ അതിരുകൾ നിർവചിക്കുന്നു  
+   - പ്രത്യേക മാർക്കറുകൾ വിശ്വസനീയവും അമ്പരപ്പുള്ള സ്രോതസ്സുകൾ തമ്മിലുള്ള അതിരുകൾ ഹെല്പ് ചെയ്യുന്നു  
+   - വ്യക്തമായ വേർതിരിക്കൽ നിർദ്ദേശം കുഴപ്പം ഒഴിവാക്കുകയും അനധികൃത കമാൻഡുകൾ നിർവഹണം തടയുകയും ചെയ്യുന്നു
 
-4. **സതത ഭീഷണി ബുദ്ധിവിൽക്കൽ**
-   - Microsoft ഉയരുന്ന ആക്രമണ മാതൃകകൾ നിരന്തരം നിരീക്ഷിച്ച് പ്രതിരോധങ്ങൾ പുതുക്കുന്നു
-   - പുതിയ ഇൻജക്ഷൻ സാങ്കേതികവിദ്യകളും ആക്രമണ ദിശകളും മുൻകൈയ്‌ക്കുറിച്ചുള്ള ഭീഷണി വേട്ട
-   - മാറുന്ന ഭീഷണികളോട് പ്രതിരോധം നിലനിറുത്താൻ പതിവായി സുരക്ഷാ മോഡൽ അപ്‌ഡേറ്റുകൾ
+4. **നിലവിലും ഭീഷണി വിവരശാസ്ത്രം**  
+   - Microsoft നിരന്തരമായി ഉയരുന്ന ആക്രമണ മാതൃകകൾ നിരീക്ഷിക്കുകയും പ്രതിരോധങ്ങൾ പുതുക്കുകയും ചെയ്യുന്നു  
+   - പുതിയ ഇൻജക്ഷൻ സാങ്കേതികവിദ്യകൾക്കും ആക്രമണ വഴികൾക്കും പ്രോആക്ടീവ് ഭീഷണി തേട്ടിംഗ് നടത്തുന്നു  
+   - ഭീഷണി മാറുന്ന സുരക്ഷാ മോഡലുകൾ നിരന്തരം അപ്ഡേറ്റ് ചെയ്യുന്നു
 
-5. **Azure Content Safety ഇന്റഗ്രേഷൻ**
-   - സമഗ്ര Azure AI Content Safety സ്യൂട്ട്的一 ഭാഗം
-   - ജയിൽ ബ്രേക്ക് ശ്രമങ്ങൾ, പരിഹാസകരമായ ഉള്ളടക്കം, സുരക്ഷാ നയം ലംഘനങ്ങൾ എന്നിവയിൽ അധിക കണ്ടെത്തൽ
-   - AI ആപ്ലിക്കേഷനിലെ ഘടകങ്ങൾക്കിടയിൽ ഏകീകൃത സുരക്ഷാ നിയന്ത്രണങ്ങൾ
+5. **ഏഴുറ കോൺ്റെന്റ് സേഫ്റ്റി ഇന്റഗ്രേഷൻ**  
+   - സമഗ്രമായ Azure AI Content Safety പാക്കജിന്റെ ഭാഗം  
+   - ജെയിൽബ്രേക്ക് ശ്രമങ്ങൾ, ഹാനികരമായ ഉള്ളടക്കങ്ങൾ, സുരക്ഷാ നയം ലംഘനങ്ങൾ എന്നിവയ്ക്കുള്ള അധിക കണ്ടെത്തൽ  
+   - AI അപ്ലിക്കേഷൻ ഘടകങ്ങളിലെ ഏകീകൃത സുരക്ഷ പ്രകടനങ്ങൾ
 
-**അന്വേഷണ വിഭവങ്ങൾ**: [Microsoft Prompt Shields Documentation](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection)
+**നിയന്ത്രണ സ്രോതസ്സ്**: [Microsoft Prompt Shields Documentation](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection)
 
 ![Microsoft Prompt Shields Protection](../../../translated_images/ml/prompt-shield.ff5b95be76e9c78c.webp)
 
 
-## പുരോഗമിച്ച MCP സുരക്ഷാ ഭീഷണികൾ
+## പ്രഗത്ഭ MCP സുരക്ഷാ ഭീഷണികൾ
 
-### സെഷൻ ഹൈജാക്കിംഗ് വെളിപ്പെടുത്തലുകൾ
+### സെഷൻ ഹൈജാക്കിംഗ് ദുര്‍ബലതകൾ
 
-**സെഷൻ ഹൈജാക്കിംഗ്** സ്റ്റേറ്റ്ഫുള് MCP നടപ്പാക്കലുകളിൽ പ്രധാന ആക്രമണ മാർഗം ആകുന്നു, കൂടാതെ അനധികൃത കക്ഷികൾ സാധുവായ സെഷൻ ഐഡികളേറ്റിന്റെ ദൗത്യം കൈക്കൊണ്ട് ഉപഭോക്താക്കളായി ഉറപ്പിച്ച് അനധികൃത പ്രവർത്തനങ്ങൾ നടത്തുന്നത്.
+**സെഷൻ ഹൈജാക്കിംഗ്** നിയമാനുസൃത സെഷൻ തിരിച്ചറിയൽ ലഭിച്ച ശേഷം അവ അനധികൃതമായി ഉപയോഗിച്ച് ക്ലയന്റിനെ അനുകരിച്ച് അനധികൃത നടപടികൾ നടത്താനുള്ള MCP സ്റ്റേറ്റ്‌ഫുൾ വിജയിലൊരു മേൽപ്പരിഗണനയാണ്.
 
-#### **ആക്രമണ കാഴ്ചപ്പാടുകളും അപകടങ്ങളും**
+#### **ആക്രമണ സാഹചര്യങ്ങൾ & അപകടങ്ങൾ**
 
-- **സെഷൻ ഹൈജാക്ക് പ്രോംപ്റ്റ് ഇൻജക്ഷൻ**: കവർച്ചചെയ്ത സെഷൻ ഐഡിയുള്ള ആക്രമികൾ സെഷൻ നില പങ്കിടുന്ന സെർവർകളിലേക്ക് ദുഷ്‌പ്രേരക സംഭവങ്ങൾ ഇൻജെക്ട് ചെയ്ത് ഹാനികരമായ പ്രവർത്തനങ്ങൾക്കോ സംവേദനാർത്ഥിയായ ഡാറ്റാ ലഭിക്കലിനോ ഇടയാക്കുന്നു
-- **നേരിട്ട് ഇംപേഴ്സനേഷൻ**: മോഷ്ടിച്ച സെഷൻ ഐഡികൾ പ്രാമാണീകരണം ഒഴിവാക്കി നേരിട്ടുള്ള MCP സെർവർ വിളികളും നടത്താൻ അനുവദിക്കുന്നു, ആക്രമികളെ സാധുവായ ഉപയോക്താക്കളായി പരിഗണിക്കുന്നു
-- **കവർച്ചചെയ്ത റീസൂമബിൾ സ്ട്രീമുകൾ**: ആക്രമികൾ ആവശ്യങ്ങൾ സമയത്തും അവസാനിപ്പിച്ച്, സാധുവായ ഉപയോക്താക്കളുടെ റീസൂംസിൽ സാധ്യമായ ദുഷ്‌പ്രേരക ഉള്ളടക്കം എത്തിച്ചേരുന്നു
+- **സെഷൻ ഹൈജാക്ക് പ്രോംപ്റ്റ് ഇൻജക്ഷൻ**: കവർന്ന സെഷൻ ഐഡികൾ ഉപയോഗിച്ച് സെഷൻ സ്റ്റേറ്റ് പങ്കുവെക്കുന്ന സർവറുകളിൽ ആക്രമകാർ ദോഷകരമായ സംഭവങ്ങൾ ഇൻജക്റ്റ് ചെയ്യുന്നു, ഇത് ഹാനികരമായ പ്രവർത്തനങ്ങൾക്കോ നിർവചിത ഡേറ്റാ പ്രവേശനത്തിനോ കാരണമാകാം  
+- **നേരിട്ടുള്ള അനുകരണം**: കവർന്ന സെഷൻ ഐഡികൾ MCP സർവർ കോളുകൾക്ക് ഉള്ളടക്കമുള്ള അവകാശം ലഭിക്കാതെ നേരിട്ട് ഉപയോഗിക്കുന്നു, ആക്രമകനെ ശരിയായ ഉപയോക്താവായി പരിഗണിക്കുന്നു  
+- **സംശുദ്ധമായ റിസ്യൂമബിൾ സ്റ്റ്രീംസ്**: പ്രവേശിക്കാനുള്ള അഭ്യർത്ഥനകൾ വിരമിക്കുന്നതിനും, ക്ലയന്റിനെ ദോഷകരമായ ഉള്ളടക്കത്തോടെ തുടർച്ച നൽകുന്നതിനും ആക്രമകർക്കാവും കഴിയും
 
-#### **സെഷൻ മാനേജുമെന്റിനുള്ള സുരക്ഷാ നിയന്ത്രണങ്ങൾ**
+#### **സെഷൻ മാനേജ്മെന്റിനുള്ള സുരക്ഷാ നിയന്ത്രണങ്ങൾ**
 
-**ആവശ്യമുള്ള നിർദ്ദേശങ്ങൾ:**
-- **അംഗീകൃത പരിശോധന**: MCP സെർവർ ആണ് ശാശ്വതമായി എല്ലാ ഇൻബൗണ്ട് ആവശ്യകതകൾ പരിശോധിക്കണം, സെഷനുകൾ വഴി പ്രാമാണീകരണം ആശ്രയിക്കരുത്
-- **സുരക്ഷിത സെഷൻ ജനറേഷൻ**: സുരക്ഷിതമായ ക്രിപ്‌റ്റോഗ്രാഫിക് രഹസ്യസംഖ്യ ജനറേറ്റർമാർ ഉപയോഗിച്ച് നിർണ്ണായകമല്ലാത്ത സെഷൻ ഐഡികൾ ഉപയോഗിക്കുക
-- **ഉപയോക്തൃ-സ്പെസിഫിക് ബൈൻഡിംഗ്**: സെഷൻ ഐഡികളെ `<user_id>:<session_id>` പോലുള്ള ഘടനകളിൽ ഉപയോക്തൃ-സ്പെസിഫിക് വിവരങ്ങളുമായി ബന്ധിപ്പിക്കുക, ഇങ്ങനെ ഉപയോക്തൃ ഇടപെടൽ തടയാം
-- **സെഷൻ ലൈഫ്‌സൈക്കിൾ മാനേജുമെന്റ്**: കാലാനുസൃത കാലഹരണവും റൊട്ടേഷനും അസാധുവാക്കലും നടപ്പിലാക്കുക അപകടങ്ങൾ കുറക്കാൻ
-- **ട്രാൻസ്പോർട്ട് സുരക്ഷ**: സെഷൻ ഐഡി ഇടപെടൽ തടയാൻ എല്ലാ കമ്മ്യൂണിക്കേഷനും https നിർബന്ധം
+**അത്യാവശ്യ ആവശ്യങ്ങൾ:**  
+- **അധികാര പരിശോധന**: MCP സർവർ എല്ലാ പ്രാഥമിക അഭ്യർത്ഥനകളും പരിശോധിക്കണം; സെഷന്റക്കുള്ള اعتماد ഏർപ്പെടുത്തൽ ഉപയോഗിക്കരുത്  
+- **സുരക്ഷിത സെഷൻ നിർമ്മാണം**: ക്രിപ്റ്റോഗ്രാഫിക് ആയി സുരക്ഷിതവും അനിശ്ചിതമുമായ സെഷൻ ഐഡികൾ ഉപയോഗിക്കുക  
+- **ഉപയോക്തൃ-നിശ്ചിത ബന്ധനം**: സെഷൻ ഐഡികൾ ഉപയോക്തൃനിഷ്ഠ വിവരം ഉപയോജിച്ച് `<user_id>:<session_id>` പോലുള്ള ഫോർമാറ്റിൽ ബന്ധിപ്പിക്കുക  
+- **സെഷൻ ജീവിതചക്രം**: കാലഹരണപ്പെടൽ, റൊട്ടേഷൻ, അസാധുവാക്കൽ എന്നിവ ശരിയായി നടപ്പിലാക്കുക  
+- **ട്രാൻസ്പോർട്ട് സുരക്ഷ**: എല്ലാ ആശയവിനിമയത്തിനും HTTPS ഉപയോഗിക്കുക, സെഷൻ ഐഡി പിടിച്ചെടുക്കൽ തടയാൻ
 
-### കൺഫ്യൂസ്ഡ് ഡെപ്യൂട്ടി പ്രശ്നം
+### കണ്ഫ്യൂസ്ഡ് ഡെപ്യൂട്ടി പ്രശ്നം
 
-**കൺഫ്യൂസ്ഡ് ഡെപ്യൂട്ടി പ്രശ്നം** MCP സെർവർകൾ ക്ലയന്റുകളും മൂന്നാം പാകിയുള്ള സേവനങ്ങളും ഇടയിൽ പ്രാമാണീകരണ പ്രോക്സി പോലെ പ്രവർത്തിക്കുമ്പോൾ, സ്ഥിരമായ ക്ലയന്റ് ഐഡി ഉപയോഗിച്ച് അനുമതി ഒഴിവാക്കലിന് അവസരങ്ങൾ സൃഷ്ടിക്കുന്നു.
+MCP സർവറുകൾ ക്ലയന്റുകളും മൂന്നു-കക്ഷി സേവനങ്ങളും തമ്മിലുള്ള കൂൾ സാക്ഷ്യാനുമതി പ്രോക്സികളായി പ്രവർത്തിക്കുമ്പോൾ സംഭവിക്കുന്ന, സ്ഥിരമായ ക്ലയന്റ് ഐഡി ദുരുപയോഗത്തിലൂടെ അധികാരം മറികടക്കാനുള്ള അവസരങ്ങളുണ്ടാക്കുന്ന പ്രശ്നം.
 
-#### **ആക്രമണ രീതികളും അപകടങ്ങളും**
+#### **ആക്രമണ രീതി & അപകടങ്ങൾ**
 
-- **കുക്കി അടിസ്ഥാന കൗൺസെന്റ് ഒഴിവാക്കൽ**: മുമ്പുണ്ടായ ഉപയോക്തൃ പ്രാമാണീകരണം കൗൺസെന്റ് കുക്കികൾ നിർമ്മിക്കുകയും ആക്രമികൾ ദോഷപരമായ അനുമതി അഭ്യർത്ഥനകളിലൂടെ ഈ കുക്കികൾ ഉപയോഗിച്ച് വ്യാജ റീഡയറക്ട് URI ഉപയോഗിച്ച് ദോഷം ചെയ്യുന്നു
-- **അനുമതി കോഡ് മോഷണം**: നിലവിലുള്ള കൗൺസെന്റ് കുക്കി അനുമതി സർവറുകൾ കൗൺസെന്റ് സ്ക്രീനുകൾ വിടാറാക്കുകയും കോഡുകൾ ആക്രമി നിയന്ത്രിത എന്റ്പോയിന്റുകളിലേക്ക് റീഡയറക്ട് ചെയ്യപ്പെടുന്നു  
-- **അനധികൃത API പ്രവേശനം**: മോഷ്ടിച്ച അനുമതി കോഡുകൾ ടോക്കൺ എക്‌സ്‌ചേഞ്ചിനും കയറ്റം ചെയ്യുകയും വ്യക്തമായ അംഗീകാരം കൂടാതെ ഉപയോക്തൃ ഇമ്പേഴ്സനേഷൻ നടത്താൻ നൽകുന്നു
+- **കുക്കി അടിസ്ഥാനമുള്ള സമ്മതം മറികടക്കൽ**: മുമ്പത്തെ ഉപയോക്തൃ അംഗീകാരം സൃഷ്ടിച്ച സമ്മത കുക്കികൾ ആക്രമകർ ദുരുപയോഗിക്കുന്നു, പ്രത്യേകമായി വിഭ്രാന്തമായ റീഡയറക്ട് URI ഉപയോഗിച്ച്  
+- **അധികാര കോഡ് മോഷണം**: നിലവിലുള്ള സമ്മത കുക്കികൾ അംഗീകരണ സ്ക്രീനുകൾ ഒഴിവാക്കുകയും കോഡുകൾ ആക്രമകന്റെ നിയന്ത്രണത്തിലുളള എന്റ്പോയിന്റിലേയ്ക്ക് റീഡയറക്ട് ചെയ്യുകയും ചെയ്യാം  
+- **അനധികൃത API പ്രവേശനം**: മോഷ്ടിച്ച കോഡുകൾ ഉപയോഗിച്ച് ടോക്കൺ പദവാര്ഥം നടത്താനും ഉപയോക്തൃ അനുകരണം നടത്താനും സാധിക്കും, വ്യക്തിയായ അംഗീകാരം ഇല്ലാതെ
 
-#### **പരിഹാര തന്ത്രങ്ങൾ**
+#### **പരിഹാര മാർഗങൾ**
 
-**അനിവാര്യ നിയന്ത്രണങ്ങൾ:**
-- **സ്പഷ്ട കൗൺസെന്റ് ആവശ്യക്കൽ**: സ്ഥിരമായ ക്ലയന്റ് ഐഡികൾ ഉപയോഗിക്കുന്ന MCP പ്രോക്സി സർവർകൾക്ക് 动态 രജിസ്റ്റർ ചെയ്‌ത വറായി ഓരോ ക്ലയന്റിനും ഉപയോക്തൃ സമ്മതം വാങ്ങണം
-- **OAuth 2.1 സുരക്ഷാ നടപ്പാക്കൽ**: എല്ലാ അനുമതി അഭ്യർത്ഥനകൾക്കും PKCE ഉൾപ്പെടെ നിലവിലുള്ള OAuth സുരക്ഷാ മികച്ച രീതികൾ പാലിക്കുക
-- **ക്ലയന്റ് കർശന പരിശോധന**: റീഡയറക്ട് URIകളും ക്ലയന്റ് ഐഡിഫയർസും കർശനമായി പരിശോധിക്കുക അപകൃത ഉപയോഗം തടയാൻ
+**ആവശ്യ നിയന്ത്രണങ്ങൾ:**  
+- **സ്പഷ്ടമായ സമ്മത ആവശ്യങ്ങൾ**: സ്ഥിരമായ ക്ലയന്റ് ഐഡി ഉപയോഗിക്കുന്ന MCP പ്രോക്സികൾ ഓരോ ഡൈനാമിക് രജിസ്റ്റർ ചെയ്ത ക്ലയന്റിനും ഉപയോക്തൃ സമ്മതം നേടണം  
+- **OAuth 2.1 സുരക്ഷാ നടപ്പാക്കൽ**: എല്ലാ അംഗീകാരം അഭ്യർത്ഥനകൾക്കും PKCE ഉൾപ്പെടെ നിലവിലെ OAuth മികച്ച പ്രവൃത്തികൾ അനുസരിക്കുക  
+- **ക്ലയന്റ് പരിശോധന കർശനമാക്കൽ**: റീഡയറക്ട് URI-യും ക്ലയന്റ് തിരിച്ചറിയലും കൃത്യമായി പരിശോധന നടത്തുക
 
-### ടോക്കൺ പാസ്‌ത്രൂ വെളിപ്പെടുത്തലുകൾ  
+### ടോകൺ പാസ്‌ത്രൂ ദുര്‍ബലതകൾ  
 
-**ടോക്കൺ പാസ്‌ത്രൂ** MCP സർവറുകൾ ക്ലയന്റ് ടോക്കണുകൾ ശരിയായ പരിശോധനയ്‌ക്കില്ലാതെ സ്വീകരിച്ച് താഴെ നോക്കേണ്ട API-കളിലേക്ക് മുൻകാലവിധേയമാക്കിയ രൂപത്തിൽ എന്നതിൽ വ്യക്തമായ ഒരു വിരുദ്ധ മാതൃക ആകുന്നു, MCP അംഗീകാരം നിർദ്ദേശങ്ങൾ ലംഘിക്കുന്നു.
+**ടോകൺ പാസ്‌ത്രൂ** MCP സർവറുകൾ ക്ലയന്റ് ടോകണ്‍ ശരിയായ പരിശോധന കൂടാതെ സ്വീകരിച്ച് അത് ഡൌൺസ്ട്രീം API-കളിലേക്ക് അയക്കുന്നതാണ്, ഇത് MCP അംഗീകാരം വ്യവസ്ഥകൾ ലംഘിക്കുന്നു.
 
-#### **സുരക്ഷാ പ്രത്യാഘാതങ്ങൾ**
+#### **സുരക്ഷാ ഫലങ്ങൾ**
 
-- **നിയന്ത്രണ പരാജയം**: നേരിട്ട് ക്ലയന്റിൽ നിന്ന് API ടോക്കൺ ഉപയോഗം നിർണായക നിരക്ക് നിയന്ത്രണങ്ങൾ, പരിശോധന, നിരീക്ഷണം ഒഴിവാക്കുന്നു
-- **ഓഡിറ്റ് ട്രെയിൽ കേടാക്കൽ**: മുകളിൽ നിന്ന് നല്‍കിയ ടോക്കണുകൾ ഉപയോഗിച്ച് ക്ലയന്റ് തിരിച്ചറിയാൻ സാധിക്കാതെ സംഭവങ്ങൾ അന്വേഷിക്കാനാകുന്നില്ല
-- **പ്രോക്സി അടിസ്ഥാന ഡാറ്റാ എക്‌സ്ഫില്ട്രേഷൻ**: പരിശോധനയില്ലാത്ത ടോക്കണുകൾ അയയ്ക്കുന്നവരെ അനധികൃത ഡാറ്റാ പ്രവേശനത്തിന് MCP സർവറുകൾ പ്രോക്സി ആയി ഉപയോഗിക്കാനിടയുണ്ട്
-- **വിശ്വാസ പരിധി ലംഘനം**: ടോക്കൺ മൂലങ്ങൾ സ്ഥിരീകരിക്കാൻ കഴിയാതെ അവലംബിച്ച സേവനങ്ങളുടെ വിശ്വാസം തകർക്കപ്പെടുന്നു
-- **ബഹുസേവന ആക്രമണ വിപുലീകരണം**: നിരവധി സേവനങ്ങളിൽ സ്വീകരിച്ച ടോക്കണുകൾ വഴി ദിശാന്തര ലംഘനങ്ങൾക്ക് വഴിവെക്കുന്നു
+- **നിയന്ത്രണം വളഞ്ഞുതീർൽ**: നേരിട്ട് ക്ലയന്റ് മുതൽ API വരെ ടോകൺ ഉപയോഗിക്കുന്നത് നിർണായകമായ നിരക്ക് പരിധീകരണവും പരിശോധനകളും നിരീക്ഷണങ്ങളും മറികടക്കുന്നു  
+- **ഓഡിറ്റ് ട്രെയിൽ കവർച്ച**: മുകളിൽ നിന്നുള്ള ടോകണുകൾ ഉപയോഗിക്കുമ്പോൾ ക്ലയന്റ് തിരിച്ചറിവ് അസാധ്യമായി മാറും, അപകടം പരിശോധനയ്ക്കുള്ള കഴിവ് തകരാറിലാകും  
+- **പ്രോക്സി അടിസ്ഥാന ഡേറ്റാ പുറന്തള്ളൽ**: പരിശോധനയില്ലാത്ത ടോകണുകൾ മൂലം ദുഷ്ടകാരികൾ അനധികൃത ഡേറ്റാ ആക്‌സസ്‌ക്ക് MCP സർവറുകളെയെ പ്രോക്സിയായി ഉപയോഗിക്കുന്നു  
+- **വിശ്വാസ പരിധി ലംഘനം**: ടോകൺ ഉറവിടങ്ങൾ സ്ഥിരീകരിക്കാനാകാത്തതിനാൽ ഡൗൺസ്ട്രീം സർവീസുകളുടെ വിശ്വാസ സ്ഥാപനം ലംഘിക്കും  
+- **വിവിധ സർവീസുകളിലേക്കുള്ള ആക്രമണ വ്യാപനം**: കവർന്ന ടോകണുകൾ നിരവധി സർവീസുകളിലായി സ്വീകരിക്കപ്പെട്ടാൽ മുന്നോട്ടുള്ള ആക്രമണങ്ങൾക്കും വഴിയൊരുക്കും
 
-#### **അനിവാര്യമായ സുരക്ഷാ നിയന്ത്രണങ്ങൾ**
+#### **ആവശ്യ सुरക്ഷാ നിയന്ത്രണങ്ങൾ**
 
-**മാറ്റുവെക്കാനാകാത്ത മാനദണ്ഡങ്ങൾ:**
-- **ടോക്കൺ പരിശോധന**: MCP സർവർ ടോക്കണുകൾ എപ്പോഴും MCP സർവർക്ക് മാത്രമേ നൽകപ്പെട്ടുള്ളവ സ്വീകരിക്കരുത്
-- **ആഡിയോയൻസ് പരിശോധന**: ടോക്കൺ ആഡിയോയൻസ് দাবি MCP സർവറിന്റെ ഐഡന്റിറ്റി പോലെയാണെന്ന് 항상 സ്ഥിരീകരിക്കുക
-- **ശരിയായ ടോക്കൺ ലൈഫ്‌സൈക്കിൾ**: സുരക്ഷിതമായി ചുരുങ്ങിയകാലം ബാധകമായ ആക്‌സസ് ടോക്കണുകൾ ഉപയോഗിച്ച് റൊട്ടേഷൻ നടത്തുക
+**അഘട്യമാണ്:**
+- **ടോകൺ പരിശോധന**: MCP സർവർക്ക് MCP സർവറിന് പ്രത്യേകമായി നൽകിയ ടോകണുകൾ മാത്രമേ സ്വീകരിക്കാനാകൂ  
+- **പ്രേക്ഷക പരിശോധന**: ടോകൺ പ്രേക്ഷക അവകാശങ്ങൾ MCP സർവറിന്റെ തിരിച്ചറിയലുമായി പൊരുത്തപ്പെടുന്നുളളതാണെന്ന് ഉറപ്പ് വരുത്തുക  
+- **ശരിയായ ടോകൺ ജീവിതചക്രം**: കുറഞ്ഞ കാലയളവുള്ള ആക്‌സസ് ടോകണുകൾ സുരക്ഷിതമായി റൊട്ടേഷൻ ചെയ്തുകൊണ്ടിരിക്കുക  
 
 
-## AI സിസ്റ്റങ്ങളിലേക്കുള്ള സപ്ലൈ ചെയിൻ സുരക്ഷ
+## AI സിസ്റ്റമുകൾക്കുള്ള സപ്ലൈ ചെയിൻ സുരക്ഷ
 
-സപ്ലൈ ചെയിൻ സുരക്ഷ പരമ്പരാഗത സോഫ്‌റ്റ്‌വെയർ ആശ്രിതത്വങ്ങൾക്കു മീതെ ഉയർന്നു സമ്പൂർണ AI പരിസ്ഥിതിയേയും ഉൾക്കൊള്ളുന്നു. ആധുനിക MCP നടപ്പാക്കലുകൾ എല്ലാ AI-ബന്ധിത ഘടകങ്ങളും കർശനമായി പരിശോധന നടത്തുകയും നിരീക്ഷിക്കുകയും വേണം, കാരണം ഇതൊക്കെ പലയിടത്തും സുരക്ഷാ വീഴ്ചകൾക്കു വഴിവച്ചേക്കാവുന്നുണ്ട്.
+സോഫ്റ്റ്‌വെയർ ആശ്രിതത്വങ്ങൾക്കു മുകളിലായി സപ്ലൈ ചെയിൻ സുരക്ഷ വികസിച്ചിട്ടുണ്ട്, മുഴുവൻ AI ഘടകങ്ങളെയും ഉൾക്കൊള്ളുന്നു. ഓരോ AI ഘടകവും സിസ്റ്റം സ്‌ഥിരത ലംഘന സാധ്യത സൃഷ്ടിക്കാറുണ്ട്; അതിനാൽ MCP മേൽപ്പടികളിൽ എല്ലാ AI ഘടകങ്ങളും കൃത്യമായി പരിശോദിക്കാനും നിരീക്ഷിക്കാനും വേണം.
 
 ### വിപുലീകരിച്ച AI സപ്ലൈ ചെയിൻ ഘടകങ്ങൾ
 
-**പരമ്പരാഗത സോഫ്‌റ്റ്‌വെയർ ആശ്രിതത്വങ്ങൾ:**
-- ഒപ്പൺ സോഴ്സ് ലൈബ്രറികളയും ഫ്രെയിംവർക്കുകളും
-- കൺറ്റെയിനർ ഇമേജുകളും അടിസ്ഥാന സിസ്റ്റങ്ങളും  
-- വികസന ഉപകരണങ്ങളും ബിൽഡ് പൈപ്പ്ലൈനുകളും
+**സാംപ്രദായിക സോഫ്റ്റ്‌വെയർ ആശ്രിതത്വങ്ങൾ:**
+- ഒപ്പൺസോഴ്‌സ് ലൈബ്രറികളും ഫ്രെയിംവർക്കുകളും  
+- കണ്ടെയ്‌നർ ഇമേജുകളും അടിസ്ഥാന പ്രവർത്തനങ്ങളുമ്  
+- വികസന ഉപകരണങ്ങൾ, ബിൽഡ് പൈപ്പ്‌ലൈനുകൾ  
 - ഇൻഫ്രാസ്ട്രക്ചർ ഘടകങ്ങളും സേവനങ്ങളും
 
-**AI-സവിശേഷ സപ്ലൈ ചെയിൻ ഘടികങ്ങൾ:**
-- **ഫൗണ്ടേഷൻ മോഡലുകൾ**: വിവിധ പ്രദാതാക്കൾ നല്‍കുന്ന പ്രീ-ട്രെയിൻ ചെയ്ത മോഡലുകൾ, ഉറവിട സ്ഥിരീകരണം ആവശ്യമായത്
-- **എംബെഡ്ഡിങ് സേവനങ്ങൾ**: പുറത്തുള്ള വെക്ടറൈസേഷൻ, സെമാന്റിക് സെർച്ച് സേവനങ്ങൾ
-- **കോൺടെക്സ്‌റ്റ് പ്രൊവൈഡറുകൾ**: ഡാറ്റാ ഉറവിടങ്ങൾ, നോളജ് ബെസുകൾ, ഡോക്യൂമെന്റ് റപ്പോസിറ്ററികൾ  
-- **മൂന്നാം കക്ഷി APIകൾ**: പുറമേ AI സേവനങ്ങൾ, ML പൈപ്പ്ലൈനുകൾ, ഡാറ്റാ പ്രോസസ്സിങ് എൻഡ്‌പോയിന്റുകൾ
-- **മോഡൽ ആർട്ടിഫാക്റ്റുകൾ**: വെയിറ്റുകൾ, കോൺഫിഗറേഷനുകൾ, ഫൈൻ-ട്യൂണുചെയ്ത മോഡൽ വകഭേദങ്ങൾ
-- **ട്രെയിനിംഗ് ഡാറ്റ സ്രോതസ്സ്**: മോഡൽ പരിശീലനത്തിനും ഫൈൻ-ട്യൂണിങ്ങിനും ഉപയോഗിക്കുന്ന ഡാറ്റാസെറ്റുകൾ
+**AI-നിഷ്ഠ സപ്ലൈ ചെയിൻ ഘടകങ്ങൾ:**
+- **ഫൗണ്ടേഷൻ മോഡലുകൾ**: വിവിധ വിതരണവരിൽ നിന്നുള്ള മുൻപരിശീലന മോഡലുകൾ, പ്രാവൃത്ത ഉറവിട പരിശോധനയോടെ  
+- **എംബഡ്ഡിങ് സერვീസുകൾ**: പുറത്തുള്ള വെക്ടർലൈസേഷൻ, സെമാന്റിക് തിരച്ചിലുകൾ  
+- **കോൺടെക്സ്റ്റ് പ്രൊവൈഡറുകൾ**: ഡേറ്റാ സ്രോതസ്സുകൾ, നോളജ് ബേസുകൾ, രേഖാ ശേഖരങ്ങൾ  
+- **മുന്നത്തുണി APIs**: അറഎച്ച് എഐ സേവനങ്ങൾ, ML പൈപ്പ്‌ലൈനുകൾ, ഡേറ്റാ പ്രോസസ്സിംഗ് എന്റ്പോയിന്റുകൾ  
+- **മോഡൽ ആർട്ടിഫാക്ട്സ്**: ഭാരം, കോൺഫിഗറേഷനുകൾ, ഫൈനട്യൂൺ ചെയ്ത മോഡൽ വകഭേദങ്ങൾ  
+- **തയ്യാറാക്കൽ ഡാറ്റാ സ്രോതസ്സുകൾ**: മോഡൽ പരിശീലനത്തിനും ഫൈനട്യൂണിംഗിനും ഉപയോഗിച്ച ഡാറ്റാസെറ്റുകൾ
 
 ### സമഗ്ര സപ്ലൈ ചെയിൻ സുരക്ഷാ തന്ത്രം
 
-#### **ഘടക പരിശോധന & വിശ്വസ്തത**
-- **ഉറവിടം പരിശോധന**: സകല AI ഘടകങ്ങളും സംയോജിപ്പിക്കുന്നതിന് മുമ്പ് അവയുടെ ഉറവിടം, ലൈസൻസ്, അസക്തി പരിശോധിക്കുക
-- **സുരക്ഷാ വിലയിരുത്തൽ**: മോഡലുകൾ, ഡാറ്റാ ഉറവിടങ്ങൾ, AI സേവനങ്ങൾ എന്നിവയ്ക്ക് വ്യവ്വന്ധനാന്വേഷണം നടത്തുക
-- **ഭക്ഷ്യതാ വിശകലനം**: AI സേവന ദാതാക്കളുടെയും അവരുടെ സുരക്ഷാ രീതികളുടെയും വിശ്വാസ്യത വിലയിരുത്തുക
-- **അനുപാലന പരിശോധന**: എല്ലാ ഘടകങ്ങളും സ്ഥാപന സുരക്ഷാ, നിയമാനുസൃത ആവശ്യങ്ങൾ പാലിക്കുന്നുണ്ടെന്ന് ഉറപ്പാക്കുക
+#### **ഘടക പരിശോധന & വിശ്വാസം**
+- **ഊർജ്ജസ്ഥലം പരിശോദനം**: ഏകോപനം മുൻപ് എല്ലാ AI ഘടകങ്ങളുടെ ഉറവിടം, ലൈസൻസ്, അന്തൃസ്ഥിതി പരിശോധിക്കുക  
+- **സുരക്ഷാ മൂല്യനിർണ്ണയം**: മോഡലുകൾ, ഡാറ്റാ സ്രോതസ്സുകൾ, AI സേവനങ്ങൾ എന്നിവയ്ക്ക് സുരക്ഷാ സ്കാനുകളും അവലോകനങ്ങളും നടത്തുക  
+- **കരുതലും വിശ്വസ്യതയും**: AI സേവന ദാതാക്കളുടെയും സുരക്ഷാ ചരിത്രവും പ്രവൃത്തിവിധാനങ്ങളും വിലയിരുത്തുക  
+- **അനുസൃത പരിശോധന**: എല്ലാ ഘടകങ്ങളും സ്ഥാപന സുരക്ഷാ നയങ്ങളും നിയമപരമായ ആവശ്യകതകളും പാലിക്കുന്നതായി ഉറപ്പ് വരുത്തുക
 
-#### **സുരക്ഷിത വിന്യസന പൈപ്പ്ലൈനുകൾ**  
-- **താന്മയ CI/CD സുരക്ഷ**: താന്മയ വിന്യാസ പൈപ്പ്ലൈനുകളിലെ സുരക്ഷാ സ്‌കാനിംഗിനെ സംയോജിപ്പിക്കുക
-- **ആർട്ടിഫാക്റ്റ് അസക്തി**: വിന്യസിച്ച എല്ലാ ആർട്ടിഫാക്റ്റുകളിലും (കോഡ്, മോഡലുകൾ, കോൺഫിഗറേഷനുകൾ) ക്രിപ്‌റ്റോഗ്രാഫിക് പരിശോധന നടപ്പിലാക്കുക
-- **പടികൾ അനുസരിച്ച് വിന്യാസം**: ഓരോ ഘട്ടത്തിലും സുരക്ഷാ പരിശോധനയോടെ മുന്നേറ്റ വിന്യാസ തന്ത്രങ്ങൾ പാലിക്കുക
-- **വിശ്വാസയോഗ്യ ആർട്ടിഫാക്റ്റ് സംഭരണങ്ങൾ**: പരിശോധിച്ച, സുരക്ഷിത ആർട്ടിഫാക്റ്റ് രജിസ്ട്രികളും സംഭരണങ്ങളും മാത്രം ഉപയോഗിക്കുക
+#### **സുരക്ഷിത വിനിയോഗ മനത്തരം**  
+- **സ്വയമേവ CI/CD സുരക്ഷ**: സ്വയമേധയാ ഞൊടിയിടയിൽ സുരക്ഷാ ആക്രമണ പരിശോധന നടത്തി വിനിയോഗം  
+- **ആർട്ടിഫാക്ട് അഖണ്ഡത**: കോഡ്, മോഡലുകൾ, കോൺഫിഗറേഷനുകൾ എന്നിവയുടെ ക്രിപ്റ്റോഗ്രാഫിക് പരിശോധന നടപ്പിലാക്കുക  
+- **ഘട്ടംഘട്ട വിനിയോഗം**: ഓരോ ഘട്ടത്തിലും സുരക്ഷാ പരിശോധന നടത്തിയും മുന്നോട്ടു നീങ്ങുക  
+- **വിശ്വാസമുള്ള ആർട്ടിഫാക്ട് റിപ്പോസിറ്ററികൾ**: സ്ഥിരീകരിച്ച, സുരക്ഷിത റിപ്പോസിറ്ററികളിൽ നിന്ന് മാത്രമേ വിനിയോഗം നടത്തപ്പെടുകയുള്ളു
 
-#### **നിരന്തര നിരീക്ഷണം & പ്രതികരണം**
-- **ആശ്രിതത്വ സ്‌കാനിംഗ്**: എല്ലാ സോഫ്റ്റ്‌വെയർ, AI ഘടക ആശ്രിതത്വങ്ങൾക്കുമുള്ള നിരന്തര ഭേദഗതി നിരീക്ഷണം
-- **മോഡൽ നിരീക്ഷണം**: മോഡൽ പെരുമാറ്റം, പ്രകടനത്തിൽ വ്യതി, സുരക്ഷാ അസാധാരണതകൾ നിരന്തരം വിലയിരുത്തുക
-- **സേവന ആരോഗ്യ ട്രാക്കിംഗ്**: പുറത്തുള്ള AI സേവനങ്ങളുടെ ലഭ്യത, സുരക്ഷാ സംഭവങ്ങൾ, നയം മാറ്റങ്ങൾ നിരീക്ഷിക്കുക
-- **ഭീഷണി ബുദ്ധിവിൽക്കൽ സംയോജനം**: AI, ML സുരക്ഷാ അപകടങ്ങൾ സംബന്ധിച്ച ഭീഷണി ഫീഡുകൾ ഏകീകരിക്കുക
+#### **നിലവിലുള്ള നിരീക്ഷണവും പ്രതികരണവും**
+- **അശ്രിതത്വ പരിശോധന**: എല്ലാ സോഫ്റ്റ്‌വെയറി AI ഘടകങ്ങളുടെ ദുര്‍ബലത നിരീക്ഷണം തുടര്ന്ന് നടത്തുക  
+- **മോഡൽ നിരീക്ഷണം**: മോഡൽ പെരുമാറ്റം, പ്രകടനത്തിലെ മാറ്റങ്ങൾ, സുരക്ഷാ അസാധാരണങ്ങൾ നിരന്തരം പരിശോധിക്കുക  
+- **സേവന ആരോഗ്യം ട്രാക്കിംഗ്**: പുറത്തുള്ള AI സേവനങ്ങളുടെ ലഭ്യത, സുരക്ഷാ സംഭവം, നയ മാറ്റങ്ങൾ നിരീക്ഷിക്കുക  
+- **ഭീഷണി വിവരശാസ്ത്ര സംയോജനം**: AI, ML സുരക്ഷാ ഭീഷണികൾക്കുള്ള പ്രത്യേക ഭീഷണി ഫീഡുകൾ ഉൾപ്പെടുത്തുക
 
-#### **പ്രവേശന നിയന്ത്രണവും കുറഞ്ഞ അനുമതിയും**
-- **ഘടക-നിലവാര അനുമതികൾ**: ബിസിനസ് ആവശ്യകതകളുടെ അടിസ്ഥാനത്തിൽ മോഡലുകൾ, ഡാറ്റ, സേവനങ്ങൾ നിയന്ത്രിക്കുക
-- **സേവന അക്കൗണ്ട് മാനേജുമെന്റ്**: കുറഞ്ഞ അനുമതി ഉള്ള സമർപ്പിത സേവന അക്കൗണ്ടുകൾ രൂപപ്പെടുത്തുക
-- **നെറ്റ്‌വർക്ക് വിഭाजन**: AI ഘടകങ്ങളെ പെര്‍ മറ്റ് സേവനങ്ങളിൽ നിന്ന് വേർതിരിച്ചു നെറ്റ്‌വർക്ക് പ്രവേശനം കുറയ്ക്കുക
-- **API ഗേറ്റ്‌വേ നിയന്ത്രണങ്ങൾ**: പുറത്തുള്ള AI സേവനങ്ങൾക്ക് പ്രവേശനം നിയന്ത്രിക്കാൻ കേന്ദ്രികൃത API ഗേറ്റ്‌വേകൾ ഉപയോഗിക്കുക
+#### **പ്രവേശന നിയന്ത്രണവും കുറഞ്ഞ അനുവാദവും**
+- **ഘടകനിരൂപണ അനുമതികൾ**: ബിസിനസ് ആവശ്യകത അടിസ്ഥാനമാക്കി മോഡലുകൾ, ഡാറ്റ, സേവനങ്ങൾക്ക് പ്രവേശനം നിയന്ത്രിക്കുക  
+- **സേവന അക്കൗണ്ട് മാനേജ്‌മെന്റ്**: ഏറ്റവും കുറഞ്ഞ ആറാംവക അനുമതിയോടെ പ്രത്യേകം സേവന അക്കൗണ്ടുകൾ നിശ്ചയിക്കുക  
+- **നെറ്റ്‌വർക്ക് വിഭജനം**: AI ഘടകങ്ങളെ വേർതിരിച്ച് സേവനങ്ങൾ തമ്മിൽ നെറ്റ്‌വർക്ക് ആക്‌സസ് നിയന്ത്രിക്കുക  
+- **API ഗേറ്റ്‌വേ നിയന്ത്രണങ്ങൾ**: പുറം AI സേവനങ്ങളിൽ പ്രവേശനം നിയന്ത്രിക്കാൻ  കേന്ദ്രകൃത API ഗേറ്റ്‌വേകൾ ഉപയോഗിക്കുക
 
-#### **സംഭവ പ്രതികരണം & പുനരുദ്ധാരണം**
-- **വേഗത്തിലുള്ള പ്രതികരണ നടപടികൾ**: കവർച്ചചെയ്ത AI ഘടകങ്ങളുടെ പാച്ചിംഗ് അല്ലെങ്കിൽ പകരം വയ്ക്കൽ നടപടികൾ സ്ഥാപിക്കുക
-- **ക്രെഡൻഷ്യൽ റൊട്ടേഷൻ**: രഹസ്യങ്ങൾ, API കീകൾ, സർവീസ് ക്രെഡൻഷ്യലുകൾ ഓട്ടോമെടികായി മാറുന്ന സിസ്റ്റം
-- **റോൾബാക്ക് കഴിവുകൾ**: മുൻപ് അറിയപ്പെട്ട നല്ല പതിപ്പുകളിലേക്ക് വേഗത്തിൽ മടങ്ങാൻ കഴിവ്
-- **സപ്ലൈ ചെയിൻ ലംഘന പുനരുദ്ധാരണം**: ഉയർന്ന AI സേവന കവർച്ചകൾക്ക് പ്രതികരിക്കാനുള്ള പ്രത്യേക നടപടികൾ
+#### **സംഭവം പ്രതികരണവും പുനഃസ്ഥാപനവും**
+- **വേഗതയുള്ള പ്രതികരണ നടപടികൾ**: കവർന്ന AI ഘടകങ്ങളുടെ പുറകാക്കലിനോ മാറ്റിനോ തയ്യാറായ നടപടികൾ  
+- **സാക്ഷ്യ പുനഃചക്രീകരണം**: രഹസ്യങ്ങൾ, API കീകൾ, സേവന രേഖകൾ എന്നിവയുടെ തുൻ മടക്കം നടപടി സംവിധാനം  
+- **റോൾബാക്ക് ശേഷി**: മുൻപ് അറിയപ്പെട്ട നല്ല പതിപ്പുകളിലേക്ക് പരമാവധി വേഗത്തിൽ മടങ്ങാനുള്ള കഴിവ്  
+- **സപ്ലൈ ചെയിൻ ലംഘന പുനഃസ്ഥാപനം**: മേൽവിലാസ AI സേവന അഴിമതിക്കുള്ള പ്രത്യേക പ്രതികരണ രീതി
 
-### Microsoft സുരക്ഷാ ഉപകരങ്ങളും ഇന്റഗ്രേഷനും
+### Microsoft സുരക്ഷാ ഉപകരണങ്ങളും ഏകീകരണവും
 
-**GitHub Advanced Security** സമഗ്ര സപ്ലൈ ചെയിൻ സംരക്ഷണം നൽകുന്നു, ഉൾപ്പെടെ:
-- **റഹസ്യ സ്‌കാനിംഗ്**: രഹസ്യങ്ങൾ, API കീകൾ, ടോക്കണുകൾ റപ്പോസിറ്ററികളിൽ സ്വയം കണ്ടെത്തൽ
-- **ആശ്രിതത്വ സ്‌കാനിംഗ്**: ഒപ്പൺ സോഴ്സ് ആശ്രിതത്വങ്ങൾക്കും ലൈബ്രറികൾക്കും ഭേദഗതി വിലയിരുത്തൽ
-- **CodeQL വിശകലനം**: സ്മൃതി കേടുപാടുകൾക്കും കോഡിംഗ് പ്രശ്നങ്ങൾക്കും സ്റ്റാറ്റിക് കോഡ് വിശകലനം
-- **സപ്ലൈ ചെയിൻ洞察ണം**: ആശ്രിതത്വാരോഗ്യവും സുരക്ഷാ നിലയും കാണാനാക്കുന്ന സംവിധാനം
+**GitHub Advanced Security** സമഗ്രസപ്ലൈ ചെയിൻ സംരക്ഷണം നൽകുന്നു:  
+- **രഹസ്യ സ്കാനിംഗ്**: സൂത്രധാരങ്ങൾ, API കീകൾ, ടോക്കണുകൾ സ്വയം കണ്ടെത്തൽ  
+- **അശ്രിതത്വ സ്കാനിംഗ്**: ഒപ്പൺസോഴ്‌സ് ആശ്രിതത്വങ്ങളുടെ ദുര്‍ബലത വിലയിരുത്തല്  
+- **CodeQL വിശകലനം**: സ്റ്റാറ്റിക് കോഡ് വിശകലനം സുരക്ഷാ  ദുര്‍ബലതകൾക്കും കോഡിങ് പ്രശ്നങ്ങൾക്കും  
+- **സപ്ലൈ ചെയിൻ അറിവുകൾ**: ആശ്രിതത്വത്തിന്റെ ആരോഗ്യവും സുരക്ഷാ നിലയും അതിരുകളിലേക്ക് ദൃശ്യീകരണം
 
-**Azure DevOps & Azure Repos ഇന്റഗ്രേഷൻ:**
-- Microsoft വികസന പ്ലാറ്റ്‌ഫോമുകളിലുടനീളം സമന്വിത സുരക്ഷാ സ്‌കാനിംഗും
-- Azure പൈപ്പ്ലൈനുകളിൽ AI വാർക്ക് ലോഡുകളുടെ സുരക്ഷാ പരിശോധന ഓട്ടോമേഷൻ
-- സുരക്ഷിത AI ഘടക വിന്യാസത്തിനുള്ള നയം നിർവ്വഹണം
+**Azure DevOps & Azure Repos സംയോജനം:**  
+- Microsoft വികസന പ്ലാറ്റ്‌ഫോമുകളിൽ സമഗ്രസുരക്ഷാ സ്കാനിംഗ്  
+- AI പ്രവൃത്തി ഭാരം Azure പൈപ്പ്ലൈനുകളിൽ സ്വയംालित സുരക്ഷപരിശോധന  
+- AI ഘടകങ്ങളുടെ സുരക്ഷിത വിനിയോഗത്തിനുള്ള നയം പാലനം
 
-**Microsoft ആഭ്യന്തര രീതി:**
-Microsoft എല്ലാ ഉൽ‌പന്നങ്ങളിലും വ്യാപകമായ സപ്ലൈ ചെയിൻ സുരക്ഷാ പ്രഥമികതകൾ പ്രയോഗിക്കുന്നു. [The Journey to Secure the Software Supply Chain at Microsoft](https://devblogs.microsoft.com/engineering-at-microsoft/the-journey-to-secure-the-software-supply-chain-at-microsoft/) ൽ തെളിവുകൾ പഠിക്കൂ.
+**Microsoft ആഭ്യന്തര രീതികൾ:**  
+Microsoft എല്ലാ ഉൽപ്പന്നങ്ങളിലും സപ്ലൈ ചെയിൻ സുരക്ഷിത പ്രവൃത്തികൾ നടപ്പിലാക്കുന്നു. [The Journey to Secure the Software Supply Chain at Microsoft](https://devblogs.microsoft.com/engineering-at-microsoft/the-journey-to-secure-the-software-supply-chain-at-microsoft/) ൽ വിശേഷങ്ങൾ പഠിക്കാം.
 
 
-## ഫൗണ്ടേഷൻ സുരക്ഷാ മികച്ച രീതികൾ
+## ഫൗണ്ടേഷൻ സുരക്ഷാ മികച്ച പ്രകടനങ്ങൾ
 
-MCP നടപ്പാക്കലുകൾ നിങ്ങളുടെ സ്ഥാപനത്തിന്റെ നിലവിലുള്ള സുരക്ഷാ നിലക്ക് പിറകിലാണ്, അതു മെച്ചപ്പെടുത്തുന്നതാണ് ലക്ഷ്യം. അടിസ്ഥാന സുരക്ഷയുടെ ശക്തിമൂല്യം AI സിസ്റ്റങ്ങളും MCP വിന്യാസങ്ങളും മുഴുവനായി മുന്നേറിയ സുരക്ഷ നൽകുന്നു.
+MCP നടപ്പാക്കലുകൾ നിങ്ങളുടെ സ്ഥാപനത്തിന്റെ നിലവിലുള്ള സുരക്ഷാ നില ഉൾക്കൊണ്ട് അത് മെച്ചപ്പെടുത്തുകയും ചെയ്യും. ഫൗണ്ടേഷൻ സുരക്ഷാ തന്നെ ശക്തിപ്പെടുത്തുന്നത് AI സിസ്റ്റങ്ങളും MCP വിനിയോഗങ്ങളും സുപര്യവശ്യമായ സുരക്ഷാ വർദ്ധന നൽകി വരുത്തും.
 
-### പ്രധാന സുരക്ഷാ അടിസ്ഥാനങ്ങൾ
+### അടിസ്ഥാന സുരക്ഷാ നിർമാണങ്ങൾ
 
-#### **സുരക്ഷിത വികസന രീതികൾ**
-- **OWASP അനുസരണം**: [OWASP Top 10](https://owasp.org/www-project-top-ten/) വെബ് അപേക്ഷാ രഹസ്യവിരുദ്ധതകളെതിരെ സംരക്ഷണം
-- **AI-സവിശേഷ സംരക്ഷണങ്ങൾ**: [OWASP Top 10 for LLMs](https://genai.owasp.org/download/43299/?tmstv=1731900559) നയിച്ചിരിക്കുന്ന നിയന്ത്രണങ്ങൾ നടപ്പിലാക്കുക
-- **സുരക്ഷിത രഹസ്യ മാനേജുമെന്റ്**: ടോക്കണുകൾ, API കീകൾ, സങ്കീർണ്ണ കോൺഫിഗറേഷൻ ഡാറ്റയ്ക്ക് പ്രത്യേക വോൾട്ടുകൾ ഉപയോഗിക്കുക
-- **എൻഡ്-ടു-എൻഡ് എൻക്രിപ്ഷൻ**: എല്ലാ ആപ്ലിക്കേഷൻ ഘടകങ്ങളിലും ഡാറ്റാ പ്രവാഹങ്ങളിലും സുരക്ഷിത കമ്മ്യൂണിക്കേഷൻ
-- **ഇൻപുട്ട് പരിശോധന**: എല്ലാറ്റവണയും ഉപയോക്തൃ ഇൻപുട്ടുകൾ, API പാരാമീറ്ററുകൾ, ഡാറ്റാ ഉറവിടങ്ങൾ കർശനമായി പരിശോധന
+#### **സുരക്ഷിത വികസന രീതികൾ**  
+- **OWASP പാലനം**: [OWASP Top 10](https://owasp.org/www-project-top-ten/) വെബ് ആപ്ലിക്കേഷൻ ദുര്‍ബലതകളെ നേരിടുക  
+- **AI-നിഷ്ഠ സംരക്ഷണം**: [OWASP Top 10 for LLMs](https://genai.owasp.org/download/43299/?tmstv=1731900559) നിയന്ത്രണങ്ങൾ നടപ്പിലാക്കുക  
+- **സുരക്ഷിത റഹസ്യ മാനേജ്‌മെന്റ്**: ടോക്കണുകൾ, API കീകൾ, രഹസ്യ കോൺഫിഗറേഷൻ ഡാറ്റക്ക് പ്രത്യേക വാൾട്ടുകൾ ഉപയോഗിക്കുക  
+- **എന്നും-എന്നും എൻക്രിപ്ഷൻ**: എല്ലാ അപ്ലിക്കേഷൻ ഘടകങ്ങളിലും ഡാറ്റ പ്രവാഹങ്ങളിലും സുരക്ഷിത ആശയവിനിമയം ഉറപ്പാക്കുക  
+- **ഇൻപുട്ട് പരിശോദനം**: എല്ലാ ഉപയോക്തൃ ഇൻപുട്ടുകളും API പാരാമീറ്ററുകളും ഡാറ്റ സ്രോതസ്സുകളും കൃത്യമായി പരിശോധിക്കുക
 
-#### **ഇൻഫ്രാസ്ട്രക്ചർ ഹാർഡنین്ഗ്**
-- **ബഹുമൂല്യ പ്രാമാണീകരണം**: എല്ലാ അഡ്മിനിസ്ട്രേറ്റീവ്, സർവീസ് അക്കൗണ്ടുകൾക്കുമുള്ള കാർഡ് പ്രാമാണീകരണം (MFA) നിർബന്ധം
-- **പാച്ച് മാനേജുമെന്റ്**: ഓപ്പറേറ്റിംഗ് സിസ്റ്റങ്ങൾ, ഫ്രെയിംവർക്ക്, ആശ്രിതത്വങ്ങൾ ഓട്ടോമേറ്റഡ് സമയബന്ധിത പാച്ചിംഗ്  
-- **അടenty സംസ്ഥാനപ്രവർത്തനം**: സ്ഥാപനം-നിരീക്ഷണ സ്ഥാപനങ്ങൾ (Microsoft Entra ID, Active Directory) ഉപയോഗിച്ച് കേന്ദ്രികൃത ഐഡന്റിറ്റി മാനേജുമെന്റ്
-- **നെറ്റ്‌വർക്ക് വിഭജന**: MCP ഘടകങ്ങളെ ലോറാജിക്കൽ വിഭജനം നൽകി ദിശാന്തര പ്രസ്ഥാനം കുറയ്ക്കുക
-- **കുറഞ്ഞ അനുമതിയുടെ സിദ്ധാന്തം**: എല്ലാ ഘടകങ്ങളുടെയും അക്കൗണ്ടുകളുടെയും ഏറ്റവും കുറഞ്ഞ അനുമതികൾ മാത്രം അനുവദിക്കുക
+#### **ഇൻഫ്രാസ്ട്രക്ചർ ഉറച്ചുനിർത്തൽ**  
+- **ബഹു-ഘടക തിരിച്ചറിയൽ**: എല്ലാ അഡ്മിനിസ്‌ട്രേറ്റീവ്, സേവന അക്കൗണ്ടും MFA നിർബന്ധം  
+- **പാച്ച് മാനേജ്‌മെന്റ്**: ഓപ്പറേറ്റിങ് സിസ്റ്റങ്ങൾ, ഫ്രെയിംവർക്കുകൾ, ആശ്രിതത്വങ്ങൾ തയ്യാറായി ന്യൂനമാക്കൽ  
+- **ഐഡന്റിറ്റി പ്രൊവൈഡർ സംയോജനം**: എന്റർപ്രൈസ് ഐഡന്റിറ്റി പ്രൊവൈഡറുകൾ (Microsoft Entra ID, Active Directory) വഴി കേന്ദ്രകൃത തിരിച്ചറിയൽ  
+- **നെറ്റ്‌വർക്ക് വിഭജനം**: MCP ഘടകങ്ങളെ വേർതിരിച്ച് പൂർണ്ണമായി ലാറ്ററൽ മൂവ്മെന്റ് തടയൽ  
+- **കുറഞ്ഞ അനുവാദ സിദ്ധാന്തം**: എല്ലാ ഘടകങ്ങൾക്കും അക്കൗണ്ടുകൾക്കും കുറഞ്ഞ ആവശ്യമായ അനുമതികൾ
 
-#### **സുരക്ഷാ നിരീക്ഷണവും കണ്ടെത്തലും**
-- **സമഗ്ര ലോഗിംഗ്**: AI ആപ്ലിക്കേഷൻ പ്രവർത്തനങ്ങൾ, MCP ക്ലയന്റ്-സർവർ ഇടപെടലുകൾ വിശദമായി ലോഗ് ചെയ്യുക
-- **SIEM ഇന്റഗ്രേഷൻ**: അസാധാരണ തീരുമാനം കണ്ടെത്തുന്നതിനായി സെൻട്രലൈസ്ഡ് സുരക്ഷാ വിവര & ഇവന്റ് മാനേജ്‌മെന്റ്
-- **പെരുമാറ്റ വിശകലനം**: സിസ്റ്റം, ഉപയോക്തൃ പെരുമാറ്റത്തിലെ അസാധാരണ മാതൃകകൾ തിരിച്ചറിയാൻ AI-സഹായിത നിരീക്ഷണം
-- **ഭീഷണി ബുദ്ധിവിൽക്കൽ**: പുറത്തുള്ള ഭീഷണി ഫീഡുകൾ, IOCs സംയോജിപ്പിക്കൽ
-- **സംഭവ പ്രതികരണം**: സുരക്ഷാ സംഭവങ്ങൾ കണ്ടെത്തൽ, പ്രതികരണം, പുനരുദ്ധാരണത്തിന് നന്നായി നിർവ്വചിച്ച നടപടികൾ
+#### **സുരക്ഷാ നിരീക്ഷണവും കണ്ടെത്തലുമ്**  
+- **സമഗ്ര ലോഗിംഗ്**: AI അപ്ലിക്കേഷൻ പ്രവർത്തനങ്ങളും MCP ക്ലയന്റ്-സർവർ ഇടപാടുകളും വിശദമായി രേഖപ്പെടുത്തൽ  
+- **SIEM സംയോജനം**: കേന്ദ്രകൃത സുരക്ഷ വിവര-പരിചരണവും സംഭവം മാനേജ്മെനും അസാധാരണഫലശേഖരത്തിനും  
+- **പ്രവർത്തന വിശകലനം**: AI-അധിഷ്ഠിത നിരീക്ഷണം, സിസ്റ്റം പുരോഗതിയിലും ഉപയോക്തൃ പെരുമാറ്റത്തിലും അപൂർവ്വതകൾ കണ്ടെത്തൽ  
+- **ഭീഷണി വിവരശാസ്ത്രം**: പുറം ഭീഷണി ഫീഡുകളും ഓസിന്‌സ് ഉൾപ്പെടുത്തൽ  
+- **സംഭവം പ്രതികരണം**: സുരക്ഷാ സംഭവം കണ്ടെത്തൽ, പ്രതികരണം, പുനഃസ്ഥാപനത്തിനുള്ള വ്യക്തമായ നടപടികൾ
 
-#### **സീറോ ട്രസ്റ്റ് ആർക്കിടെക്ചർ**
-- **ഒന്നും വിശ്വസിക്കരുത്, എപ്പോഴും സ്ഥിരീകരിക്കൂ**: ഉപയോക്താക്കൾ, ഉപകരണങ്ങൾ, നെറ്റ്‌വർക്ക് ബന്ധങ്ങൾ തുടർച്ചയായി പരിശോധിക്കൽ
-- **മൈക്രോ-വിഭജനങ്ങൾ**: വ്യക്തിഗത വർക്ക് ലോഡുകളും സേവനങ്ങളും വേർതിരിച്ച് നിയന്ത്രിക്കുന്ന സങ്കീർണ നെറ്റ്‌വർക്ക് നിയന്ത്രണങ്ങൾ
-- **ഐഡന്റിറ്റി-കേന്ദ്രിത സുരക്ഷ**: നെറ്റ്‌വർക്ക് പ്രദേശമല്ല, സ്ഥിരീകരിത ഉപയോഗക്കാരുടെ അടിസ്ഥാനത്തിൽ സുരക്ഷാ നയങ്ങൾ
-- **നിരന്തര അപകടം വിലയിരുത്തൽ**: നിലവിലെ സാഹചര്യവും പെരുമാറ്റവും അടിസ്ഥാനമാക്കിയുള്ള വ്യത്യസ്ത സുരക്ഷാ നില വിലയിരുത്തൽ
-- **അവസ്ഥാപിത പ്രവേശനം**: അപകടാംശങ്ങൾ, സ്ഥലം, ഉപകരണം വിശ്വാസം എന്നിവ അനുസരിച്ചുള്ള പ്രവേശന നിയന്ത്രണം
+#### **സീറോ ട്രസ്റ്റ് ആർക്കിടെക്ചർ**  
+- **ഒ ഒരിക്കലും വിശ്വസിക്കരുത്, എല്ലാതവണയും പരിശോധിക്കൂ**: ഉപയോക്താക്കളെയും ഉപകരണങ്ങളെയും നെറ്റ്‌വർക്ക് കണക്ഷനുകളെയും തുടർച്ചയായി പരിശോധിക്കുക  
+- **മൈക്രോ-സെഗ്‌മെന്റേഷൻ**: വ്യക്തിബന്ധ ആയ നെറ്റ്‌വർക്ക് നിയന്ത്രണങ്ങൾ, വ്യത്യസ്ത ജോലികൾ, സേവനങ്ങൾ വേർതിരിയ്ക്കുക  
+- **ഐഡന്റിറ്റി-കേന്ദ്രിക സുരക്ഷ**: നെറ്റ്‌വർക്ക് സ്ഥാനം അല്ല, സ്ഥിരീകരിച്ച ഐഡന്റിറ്റികളിൽ ആശ്രയിച്ച സുരക്ഷാ നയങ്ങൾ  
+- **നിരന്തര റിസ്ക് വിചാരണം**: നിലവിലെ സാഹചര്യത്തിലും പെരുമാറ്റത്തിലും അടിസ്ഥാനമാക്കിയുള്ള ഇടിവിളക്കമുള്ള സുരക്ഷ  
+- **ശരിയായ പ്രവേശന നിയന്ത്രണം**: അപകടസാധ്യതകൾ, സ്ഥലം, ഉപകരണ വിശ്വസ്യത എന്നിവയുടെ അടിസ്ഥാനത്തിൽ അഡ്ജസ്റ്റ് ചെയ്യുന്ന പാലനങ്ങൾ
 
-### എന്റർപ്രൈസ് ഇന്റഗ്രേഷൻ മാതൃകകൾ
+### എന്റർപ്രൈസ് ഏകീകരണ മാതൃകകൾ
 
-#### **Microsoft സുരക്ഷാ പരിസ്ഥിതി ഇന്റഗ്രേഷൻ**
-- **Microsoft Defender for Cloud**: സമഗ്ര ക്ലൗഡ് സുരക്ഷാ നില മാനേജുമെന്റ്
-- **Azure Sentinel**: AI പ്രവർത്തന സംരക്ഷണത്തിനുള്ള ക്ലൗഡ്-നെറ്റീവ് SIEM & SOAR സൗകര്യങ്ങൾ
-- **Microsoft Entra ID**: വ്യവസായ ഐഡന്റിറ്റി, പ്രവേശന നിയന്ത്രണ നയങ്ങൾ
-- **Azure Key Vault**: ഹാർഡ്‌വേർ സുരക്ഷാ ഘടകം (HSM) പിന്തുണയുള്ള കേന്ദ്രിത രഹസ്യ മാനേജുമെന്റ്
-- **Microsoft Purview**: AI ഡാറ്റാ ഉറവിടങ്ങൾക്കും വർക്ക്‌ഫ്ലോകൾക്കും ഡാറ്റ ഗവൺമെന്റ്, അനുസരണ വ്യവസ്ഥ
+#### **Microsoft സുരക്ഷാ പരിസ്ഥിതി ഏകീകരണം**  
+- **Microsoft Defender for Cloud**: വീട്ടമ്മാന സുരക്ഷാ നില മാനേജ്മെന്‍റ്  
+- **Azure Sentinel**: ക്ലൗഡ്-നേറ്റീവ് SIEM, SOAR സാങ്കേതിക വിദ്യകൾ AI പ്രവർത്തന സംരക്ഷണത്തിന്  
+- **Microsoft Entra ID**: എന്റർപ്രൈസ് തിരിച്ചറിയൽ/പ്രവേശന മാനേജ്മെൻറ്, ശരം-അനുമതി നയങ്ങൾ  
+- **Azure Key Vault**: ഒരു കേന്ദ്രകൃത രഹസ്യ മാനേജ്‌മെന്റിനായി ഹാർഡ്‌വെയർ സెక്യൂരിറ്റി മോഡ്യൂൾ പിന്തുണ  
+- **Microsoft Purview**: AI ഡാറ്റാ സ്രോതസ്സുകളും പ്രവൃത്തി ഗതികളും മുതൽ ഡാറ്റാ ഗവർണൻസ്, അനുസരണങ്ങൾ
 
-#### **നിയമാനുസൃത & ഭരണം**
-- **നിയമാനുസൃത തരണം**: MCP നടപ്പാക്കലുകൾ വ്യവസായനിഷ്‌ഠമായ നിയമങ്ങൾ (GDPR, HIPAA, SOC 2) പാലിക്കുന്നു എന്ന ഉറപ്പ്
-- **ഡാറ്റ വർഗ്ഗീകരണം**: AI സിസ്റ്റങ്ങൾ കൈകാര്യം ചെയ്യുന്ന സംവേദനീയ ഡാറ്റയുടെ ശരിയായ വിഭാഗീകരണവും കൈകാര്യം ചെയ്യലും
-- **ഓഡിറ്റ് ട്രെയിൽസ്**: നിയമാനുസൃത അനുസരണം, ഫോറൻസിക് അന്വേഷണംക്കായി സമഗ്ര ലോഗിംഗ്
-- **സ്വകാര്യത നിയന്ത്രണങ്ങൾ**: AI സിസ്റ്റം ആർക്കിടെക്ചറിൽ സ്വകാര്യത-ബൈ-ഡിസൈൻ സിദ്ധാന്തങ്ങൾ നടപ്പിലാക്കൽ
-- **മാറ്റം മാനേജുമെന്റ്**: AI സിസ്റ്റം മാറ്റങ്ങളിൽ സുരക്ഷാ ആലോചനകള്‍ക്ക് നന്നായി രൂപപ്പെടുത്തിയ പ്രക്രിയകൾ
+#### **അനുസരണം & ഭരണനിർവഹണം**  
+- **നിയമാനുസൃത പൊരുത്തം**: MCP നടപ്പാക്കൽ വ്യവസായം അനുസരിച്ച് (GDPR, HIPAA, SOC 2) തികയും  
+- **ഡാറ്റാ വർഗ്ഗീകരണം**: AI പ്രവർത്തനങ്ങളിൽ ഉപയോഗിക്കുന്ന സാന്റിവ് ഡാറ്റ ശരിയായി വർഗ്ഗീകരിച്ച് കൈകാര്യം ചെയ്യൽ  
+- **ഓഡിറ്റ് ട്രെയിൽ**: നിയമാനുസൃത അനുസരണത്തിനും ഫോറൻസിക് പരിശോധനക്കും സമഗ്രമായ രേഖകൾ  
+- **സ്വകാര്യ നിയന്ത്രണങ്ങൾ**: AI സിസ്റ്റം ആർക്കിടെക്ചറിൽ സ്വകാര്യത-മുൻഗണനയുടെ സിദ്ധാന്തം നടപ്പിലാക്കൽ  
+- **മാറ്റ നിയന്ത്രണം**: AI സിസ്റ്റം മാറ്റങ്ങൾക്ക് കർശനമായ സുരക്ഷാ അവലോകന പ്രക്രിയ
 
-ഈ അടിസ്ഥാന രീതികൾ MCP-നിഷ്‌ടമായ സുരക്ഷാ നിയന്ത്രണങ്ങളുടെ ഫലപ്രാപ്തി വർദ്ധിപ്പിക്കുകയും AI-നടത്തിച്ച ആപ്ലിക്കേഷനുകൾക്ക് സമഗ്ര സംരക്ഷണം നൽകാനും കാരണമാകുന്നു.
-## പ്രധാന സുരക്ഷാ നിർദ്ദേശങ്ങൾ
+ഈ അടിസ്ഥാന രീതികൾ ശക്തമായ സുരക്ഷാ അടിസ്ഥാനമാറ്റം സൃഷ്ടിച്ച് MCP-വിശേഷ സുരക്ഷാ നിയന്ത്രണങ്ങളുടെ ഫലപ്രാപ്തി വർധിപ്പിക്കുകയും AI-നിർബന്ധിത അപ്ലിക്കേഷനുകൾക്ക് സമഗ്ര സംരക്ഷണം നൽകുകയും ചെയ്യുന്നു.
 
-- **പാളി ചേർത്ത സുരക്ഷാ സമീപനം**: അടിസ്ഥാന സുരക്ഷാ പ്രാക്ടീസുകളെ (സുരക്ഷിത കോഡിംഗ്, കുറഞ്ഞ പ്രിവിലേജ്, വിതരണ ശൃംഖല പരിശോധന, തുടർച്ചയായ നിരീക്ഷണം) AI-സ്പെസിഫിക് നിയന്ത്രണങ്ങളുമായി സംയോജിപ്പിച്ച് സമഗ്ര സംരക്ഷണം
+## പ്രധാന സുരക്ഷാ താഴ്ന്നൊരുമിച്ചുള്ള കണ്ടെത്തലുകൾ
+- **പാളികളായ സുരക്ഷ സമീപനം**: അടിസ്ഥാന സുരക്ഷാ കാര്യ clasp കേന്ദ്രങ്ങൾ (സുരക്ഷിത കോഡിങ്, കുറഞ്ഞ അധികാരം, വിതരണ ശൃംഖല പരിശോധന, നിരന്തരം നിരീക്ഷണം) AI-നിര്ദിഷ്ട നിയന്ത്രണങ്ങളുമായി ചേർത്ത് സമഗ്ര സംരക്ഷണം നൽകുക
 
-- **AI-സ്പെസിഫിക് ഭീഷണി ഭൂപടം**: MCP സിസ്റ്റങ്ങളുണ്ടാക്കുന്ന പ്രത്യേക അപകടങ്ങൾ, പ്രോം프트 ഇൻജെക്‌ഷൻ, ടൂൾ വിഷബാധ, സെഷൻ ഹൈജാക്കിംഗ്, കുഴഞ്ഞ സഹായി പ്രശ്നങ്ങൾ, ടോക്കൺ പാസ്ട്രൂ ഹൈലുൻറബിൾറ്റീസ്, അധികാനുമതികൾ എന്നിവ ഉൾപ്പെടുന്നു, ഇവയ്ക്ക് പ്രത്യേക പരിഹാരങ്ങൾ ആവശ്യമാണ്
+- **AI-നിർദ്ദിഷ്ട ഭീഷണി അന്തരീക്ഷം**: MCP സംവിധാനങ്ങൾക്ക് പ്രത്യേക അപകടങ്ങൾ ഉണ്ടാകുന്നു, അതായത് പ്രോംപ്റ്റ് ഇൻജക്ഷൻ, ഉപകരണം വിഷ വിരുത്തൽ, സെഷൻ ഹൈജാക്കിംഗ്, ഗളനമായ ഡെപ്പ്യൂട്ടി പ്രശ്നങ്ങൾ, ടോക്കൺ പാസ്സത്രൂ തോറ്റുകളെ, അനാവശ്യ അധികാരങ്ങൾ എന്നിവയ്ക്കായി പ്രത്യേക പരിഹാരങ്ങൾ ആവശ്യമുണ്ട്
 
-- **പ്രാമാണീകരണവും അതോറൈസേഷനും**: ഉറപ്പുള്ള പ്രാമാണീകരണം എക്സ്റ്റേണൽ ഐഡന്റിറ്റി പ്രൊവൈഡർമാർ (Microsoft Entra ID) ഉപയോഗിച്ച് നടപ്പിലാക്കി, ടോക്കൺ പരിശോധന കർശനമായി നടപ്പിലാക്കി, MCP സർവറിനായി വ്യക്തമായി പുറത്തിറക്കാത്ത ടോക്കണുകൾ സ്വീകരിക്കരുത്
+- **പ്രാമാണീകരണവും അനുമതിയും ഉത്തമമായിത്തീരുമെന്ന ഉറപ്പ്**: ബാഹ്യ ഐഡന്റിറ്റി പ്രൊവൈഡറുകൾ ഉപയോഗിച്ചുള്ള ദൃഢമായ പ്രാമാണീകരണം നടപ്പാക്കുക (Microsoft Entra ID), ശുദ്ധമായ ടോക്കൺ പരിശോധന നിർബന്ധിക്കുക, നിങ്ങളുടെ MCP സെർവറിന് വ്യക്തമായി പുറപ്പെടുവിക്കാത്ത ടോക്കണുകൾ ഒരിക്കലും സ്വീകരിക്കരുത്
 
-- **AI ആക്രമണം തടയൽ**: Microsoft Prompt Shields, Azure Content Safety തുടങ്ങിയവ ഉപയോഗിച്ച് പരോക്ഷ പ്രോം프트 ഇൻജെക്‌ഷനിനും ടൂൾ വിഷബാധയ്ക്കും എതിരായി സംരക്ഷിക്കുന്നത്, ടൂൾ മെറ്റാഡേറ്റ പരിശോധിച്ച് ഡൈനാമിക് മാറ്റങ്ങൾ നിരീക്ഷിക്കുന്നു
+- **AI ആക്രമണ പ്രതിരോധം**: പ്രത്യക്ഷമല്ലാത്ത പ്രോംപ്റ്റ് ഇൻജക്ഷനും ഉപകരണ വിഷ വിച്ഛേദ പ്രവർത്തനങ്ങൾക്കെതിരെ Microsoft Prompt Shields, Azure Content Safety എന്നിവ വിനിയോഗിക്കുക, ഉപകരണ മെറ്റാഡാറ്റ പരിശോധനയും ഡൈനാമിക്ക് മാറ്റങ്ങൾ നിരീക്ഷണവും നടത്തി
 
-- **സെഷൻ & ട്രാൻസ്പോർട്ട് സുരക്ഷ**: ക്രിപ്‌ടോഗ്രാഫിക് സുരക്ഷിതവും നിഗമനാതീതവുമായ സെഷൻ ഐ.ഡി.കൾ ഉപയോക്തൃ ഐഡന്റിറ്റിയിലേക്കു കണ്ണിതരുത്തി ഉപയോഗിക്കുക, സെഷൻ ജീവചരിത്രം ശരിയായി കൈകാര്യം ചെയ്യുക, പ്രാമാണീകരണത്തിന് സെഷനുകൾ ഉപയോഗിക്കരുത്
+- **സെഷനും ട്രാൻസ്പോർട്ടും സുരക്ഷ**: ക്രിപ്‌റ്റോഗ്രഫിക്ക് സുരക്ഷിതവും നിർണ്ണായകമല്ലാത്തതുമായ സെഷൻ ഐഡികൾ ഉപയോക്തൃ തിരിച്ചറിയലിലേക്കുഅടയ്‌ക്കുക, ശരിയായ സെഷൻ ലൈഫ്‌സൈക്കിൾ മാനേജ്മെന്റ് നടപ്പാക്കുക, സെഷനുകൾ പ്രാമാണീകരണത്തിനായി ഒരിക്കലും ഉപയോഗിക്കരുത്
 
-- **OAuth സുരക്ഷ മെച്ചപ്പെട്ട പ്രാക്ടീസുകൾ**: കുഴഞ്ഞ സഹായി ആക്രമണങ്ങൾ തടയാൻ ഡൈനാമിക് രജിസ്റ്റർ ചെയ്ത ക്ലയന്റുകൾക്ക് വ്യക്തമായ ഉപയോക്തൃ സമ്മതം ആവശ്യപ്പെടുക, PKCE ഉപയോഗിച്ച് കർശനമായ OAuth 2.1 നടപ്പാക്കി, റീഡિરക്ട് URI കർശനമായി പരിശോധിക്കുക  
+- **OAuth സുരക്ഷയിലെ മികച്ച ക്രമങ്ങൾ**: ഡൈനാമിക്കായി രജിസ്റ്റർ ചെയ്ത ക്ലയന്റുകൾക്ക് വ്യക്തമായ ഉപയോക്തൃ സമ്മതം വഴി ഗളനമായ ഡെപ്പ്യൂട്ടി ആക്രമണങ്ങൾ തടയുക, PKCE ഉപയോഗിച്ച് ശരിയായ OAuth 2.1 നടപ്പാക്കുക, ബഹുദൂര സൂചിപ്പിക്കൽ URI പരിശോധന തുടരുക  
 
-- **ടോക്കൺ സുരക്ഷാ പ്രിന്‍സിപ്പിൾസ്**: ടോക്കൺ പാസ്റ്റ്രൂ ആന്റി-പാറ്റേൺസ് ഒഴിവാക്കി, ടോക്കൺ പ്രേക്ഷകൻ ക്ലെയിംസുകൾ സരിയായി പരിശോധിക്കുക, ചെറുനാളുകൾകൊണ്ടുള്ള ടോക്കണുകൾ സുരക്ഷിത റൊട്ടേഷനോടെ നടപ്പിലാക്കുക, വിശ്വാസ പരിധികൾ വ്യക്തമായി സൂക്ഷിക്കുക
+- **ടോക്കൺ സുരക്ഷാ സിദ്ധാന്തങ്ങൾ**: ടോക്കൺ പാസ്സത്രൂ തെറ്റുകൾ ഒഴിവാക്കുക, ടോക്കൺ പ്രേക്ഷകരുടെ അവകാശങ്ങൾ പരിശോധിക്കുക, സുരക്ഷിത പുനഃചക്രീകരണത്തോടെ ചെറുകാലം ഉപയോഗിക്കുന്ന ടോക്കണുകൾ നടപ്പാക്കുക, വിശ്വസനീയമായ അതിരുകൾ പാലിക്കുക
 
-- **സമഗ്ര വിതരണ ശൃംഖല സുരക്ഷ**: എല്ലാ AI പരിസ്ഥിതി ഘടകങ്ങളെയും (മോഡലുകൾ, എമ്പെഡിംഗുകൾ, കണ്ടക്‌സ് പ്രൊവൈഡറുകൾ, എക്സ്റ്റേണൽ APIകൾ) പരമ്പരാഗത സോഫ്റ്റ്വെയർ ആശ്രിതങ്ങളാണെന്ന തോതിൽ സമഗ്രമായി സുരക്ഷാപരിചരണം നടത്തുക
+- **സമഗ്ര വിതരണ ശൃംഖല സുരക്ഷ**: എല്ലാ AI ഇക്കോസിസ്റ്റം ഘടകങ്ങൾ (മോഡലുകൾ, എംബഡ്ഡിംഗുകൾ, കോൺടെക്സ്റ്റ് പ്രൊവൈഡറുകൾ, ബാഹ്യ APIകളുടെ) പ്രമാണുകൾ പോലെയുള്ള സുരക്ഷ തുടർന്നു പാലിക്കുക
 
-- **തുടർച്ചായ പുരോഗതി**: വേഗത്തിൽ മാറുന്ന MCP വിശദാംശങ്ങൾ ബാലോസ്‌പെടുത്തുക, സുരക്ഷാ സമൂഹ സ്റ്റാൻഡേർഡുകളിൽ സംഭാവന നൽകി, പ്രോട്ടോക്കോൾ പകുതിയിൽ സുരക്ഷാപരിഭാവങ്ങൾ ഇനിദിവസം പരിഷ്കരിക്കുക
+- **നിരന്തര പരിണതി**: വേഗത്തിൽ മാറുന്ന MCP സ്പെസിഫിക്കേഷനുകളുമായി സഹകരിക്കൂ, സുരക്ഷാ കമ്മ്യൂണിറ്റി സ്റ്റാൻഡേർഡുകളിൽ സംഭാവന നൽകൂ, പ്രോട്ടോക്കോൾ മച്ചുറച്ച് സുരക്ഷ നിലനിർത്തുക
 
-- **Microsoft സുരക്ഷ സംയോജനം**: Microsoft-ന്റെ സമഗ്ര സുരക്ഷാ പരിസരങ്ങൾ (Prompt Shields, Azure Content Safety, GitHub Advanced Security, Entra ID) ഉപയോഗിച്ച് MCP വിനിയോഗ സംരക്ഷണം മെച്ചപ്പെടുത്തുക
+- **മൈക്രോസോഫ്‌റ്റ് സുരക്ഷ സംയോജനം**: Microsoftന്റെ സമഗ്ര സുരക്ഷാ പരിസരാവളം (Prompt Shields, Azure Content Safety, GitHub Advanced Security, Entra ID) ഉപയോഗിച്ചുള്ള മെച്ചപ്പെട്ട MCP വിന്യാസ സംരക്ഷണം
 
-## സമഗ്ര ഇൻഫർമേഷൻ സ്രോതസ്സ്
+## സമഗ്ര സ്രോതസ്സ്
 
-### **അധികൃത MCP സുരക്ഷാ ഡോക്യുമെന്റേഷൻ**
-- [MCP സ്പെസിഫിക്കേഷൻ (നിലവിൽ: 2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
-- [MCP സുരക്ഷാ മെച്ചപ്പെട്ട പ്രാക്ടീസുകൾ](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices)
-- [MCP അതോറൈസേഷൻ സ്പെസിഫിക്കേഷൻ](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
-- [MCP GitHub റിപ്പൊസിറ്ററി](https://github.com/modelcontextprotocol)
+### **അധികൃത MCP സുരക്ഷാ രേഖകൾ**
+- [MCP Specification (Current: 2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices)
+- [MCP Authorization Specification](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- [MCP GitHub Repository](https://github.com/modelcontextprotocol)
 
-### **OWASP MCP സുരക്ഷാ സ്രോതസ്സ്**
-- [OWASP MCP Azure സുരക്ഷാ ഗൈഡ്](https://microsoft.github.io/mcp-azure-security-guide/) - സമഗ്രമായ OWASP MCP Top 10, Azure നടപ്പാക്കലിനുള്ള മാർഗ്ഗനിർദേശങ്ങൾ
-- [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/) - പ്രഥമ OWASP MCP സുരക്ഷാ അപകടങ്ങൾ
-- [MCP സുരക്ഷാ സമ്മിറ്റ് വർക്ക്ഷോപ്പ് (Sherpa)](https://azure-samples.github.io/sherpa/) - Azure-ൽ MCP സുരക്ഷിതമാക്കാനുള്ള കൈകാര്യം പരിശീലനം
+### **OWASP MCP സുരക്ഷാ വർക്ക்ஷോപ്പ്**
+- [OWASP MCP Azure Security Guide](https://microsoft.github.io/mcp-azure-security-guide/) - Azure നടപ്പാക്കലുള്ള സമഗ്ര OWASP MCP Top 10
+- [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/) - ഔദ്യോഗിക OWASP MCP സുരക്ഷാ അപകടങ്ങൾ
+- [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/) - Azureയിൽ MCP-നുള്ള ഹാൻഡ്‌സ്ഒൺ സുരക്ഷ പരിശീലനം
 
-### **സുരക്ഷ സ്റ്റാൻഡേർഡുകളും മെച്ചപ്പെട്ട പ്രാക്ടീസുകളും**
-- [OAuth 2.0 സുരക്ഷ മെച്ചപ്പെട്ട പ്രാക്ടീസുകൾ (RFC 9700)](https://datatracker.ietf.org/doc/html/rfc9700)
-- [OWASP Top 10 വെബ് ആപ്ലിക്കേഷൻ സുരക്ഷ](https://owasp.org/www-project-top-ten/)
-- [OWASP Top 10 വലിയ ഭാഷാ മോഡലുകൾക്ക്](https://genai.owasp.org/download/43299/?tmstv=1731900559)
-- [Microsoft ഡിജിറ്റൽ പ്രതിരോധ റിപ്പോർട്ട്](https://aka.ms/mddr)
+### **സുരക്ഷ സ്റ്റാൻഡേർഡുകളും മികച്ച പ്രാക്ടീസുകളും**
+- [OAuth 2.0 Security Best Practices (RFC 9700)](https://datatracker.ietf.org/doc/html/rfc9700)
+- [OWASP Top 10 Web Application Security](https://owasp.org/www-project-top-ten/)
+- [OWASP Top 10 for Large Language Models](https://genai.owasp.org/download/43299/?tmstv=1731900559)
+- [Microsoft Digital Defense Report](https://aka.ms/mddr)
 
-### **AI സുരക്ഷാ ഗവേഷണം & വിശകലനം**
-- [MCP-യിലെ പ്രോംപ്റ്റ് ഇൻജെക്‌ഷൻ (സിമൺ വില്ലിസൺ)](https://simonwillison.net/2025/Apr/9/mcp-prompt-injection/)
-- [ടൂൾ വിഷബാധ ആക്രമണങ്ങൾ (Invariant Labs)](https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks)
-- [MCP സുരക്ഷാ ഗവേഷണ സംക്ഷിപ്തം (Wiz Security)](https://www.wiz.io/blog/mcp-security-research-briefing#remote-servers-22)
+### **AI സുരക്ഷാ ഗവേഷണവും വിശകലനവും**
+- [Prompt Injection in MCP (Simon Willison)](https://simonwillison.net/2025/Apr/9/mcp-prompt-injection/)
+- [Tool Poisoning Attacks (Invariant Labs)](https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks)
+- [MCP Security Research Briefing (Wiz Security)](https://www.wiz.io/blog/mcp-security-research-briefing#remote-servers-22)
 
 ### **Microsoft സുരക്ഷാ പരിഹാരങ്ങൾ**
-- [Microsoft Prompt Shields ഡോക്യുമെന്റേഷൻ](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection)
-- [Azure Content Safety സേവനം](https://learn.microsoft.com/azure/ai-services/content-safety/)
-- [Microsoft Entra ID സുരക്ഷ](https://learn.microsoft.com/entra/identity-platform/secure-least-privileged-access)
-- [Azure ടോക്കൺ മാനേജ്മെന്റ് മെച്ചപ്പെട്ട പ്രാക്ടീസുകൾ](https://learn.microsoft.com/entra/identity-platform/access-tokens)
-- [GitHub അഡ്വാൻസ്ഡ് സുരക്ഷ](https://github.com/security/advanced-security)
+- [Microsoft Prompt Shields Documentation](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection)
+- [Azure Content Safety Service](https://learn.microsoft.com/azure/ai-services/content-safety/)
+- [Microsoft Entra ID Security](https://learn.microsoft.com/entra/identity-platform/secure-least-privileged-access)
+- [Azure Token Management Best Practices](https://learn.microsoft.com/entra/identity-platform/access-tokens)
+- [GitHub Advanced Security](https://github.com/security/advanced-security)
 
-### **നടപടിയും ട്യൂട്ടോറിയലുകളും**
-- [Azure API മാനേജ്മെന്റ് MCP പ്രാമാണീകരണ ഗേറ്റ്വെ ആയി](https://techcommunity.microsoft.com/blog/integrationsonazureblog/azure-api-management-your-auth-gateway-for-mcp-servers/4402690)
-- [Microsoft Entra ID Authentication MCP സർവറുകൾക്കായി](https://den.dev/blog/mcp-server-auth-entra-id-session/)
-- [സുരക്ഷിത ടോക്കൺ സംഭരണം এবং എൻക്രിപ്ഷൻ (വീഡിയോ)](https://youtu.be/uRdX37EcCwg?si=6fSChs1G4glwXRy2)
+### **നടപ്പിലാക്കൽ മാർഗ്ഗനിർദ്ദേശങ്ങളും ട്യൂട്ടോറിയലുകളും**
+- [Azure API Management as MCP Authentication Gateway](https://techcommunity.microsoft.com/blog/integrationsonazureblog/azure-api-management-your-auth-gateway-for-mcp-servers/4402690)
+- [Microsoft Entra ID Authentication with MCP Servers](https://den.dev/blog/mcp-server-auth-entra-id-session/)
+- [Secure Token Storage and Encryption (Video)](https://youtu.be/uRdX37EcCwg?si=6fSChs1G4glwXRy2)
 
 ### **DevOps & വിതരണ ശൃംഖല സുരക്ഷ**
-- [Azure DevOps സുരക്ഷ](https://azure.microsoft.com/products/devops)
-- [Azure Repos സുരക്ഷ](https://azure.microsoft.com/products/devops/repos/)
-- [Microsoft വിതരണ ശൃംഖല സുരക്ഷ യാത്ര](https://devblogs.microsoft.com/engineering-at-microsoft/the-journey-to-secure-the-software-supply-chain-at-microsoft/)
+- [Azure DevOps Security](https://azure.microsoft.com/products/devops)
+- [Azure Repos Security](https://azure.microsoft.com/products/devops/repos/)
+- [Microsoft Supply Chain Security Journey](https://devblogs.microsoft.com/engineering-at-microsoft/the-journey-to-secure-the-software-supply-chain-at-microsoft/)
 
-## **കൂടുതൽ സുരക്ഷാ ഡോക്യുമെന്റേഷൻ**
+## **കൂടുതൽ സുരക്ഷാ രേഖകൾ**
 
-സമഗ്ര സുരക്ഷാ മാർഗ്ഗ നിർദേശങ്ങൾക്ക്, ഈ വിഭാഗത്തിലുള്ള പ്രത്യേക ഡോക്യുമെന്റുകൾ കാണുക:
+സമഗ്ര സുരക്ഷാ മാർഗനിർദ്ദേശങ്ങൾക്ക്, ഈ മേഖലയിലെ പ്രത്യേക രേഖകൾ കാണുക:
 
-- **[MCP സുരക്ഷ മെച്ചപ്പെട്ട പ്രാക്ടീസുകൾ 2025](./mcp-security-best-practices-2025.md)** - MCP നടപ്പാക്കലിനുള്ള സമ്പൂർണ സുരക്ഷാ മികച്ച പ്രാക്ടീസുകൾ  
-- **[Azure Content Safety നടപ്പാക്കൽ](./azure-content-safety-implementation.md)** - Azure Content Safety സംയോജനത്തിന് പ്രായോഗിക ഉദാഹരണങ്ങൾ  
-- **[MCP സുരക്ഷ നിയന്ത്രണങ്ങൾ 2025](./mcp-security-controls-2025.md)** - MCP വിനിയോഗത്തിനുള്ള ഏറ്റവും പുതിയ സുരക്ഷാ നിയന്ത്രണങ്ങളും സാങ്കേതിക വിദ്യകളും  
-- **[MCP മികച്ച പ്രാക്ടീസുകൾ ക്വിക്ക് റഫറൻസ്](./mcp-best-practices.md)** - MCP സുരക്ഷ അടിസ്ഥാനങ്ങൾക്കുള്ള ദ്രുത പരാമർശ ഗൈഡ്  
+- **[MCP Security Best Practices 2025](./mcp-security-best-practices-2025.md)** - MCP നടപ്പിലാക്കലിനു സമഗ്ര സുരക്ഷ മാനദണ്ഡങ്ങൾ
+- **[Azure Content Safety Implementation](./azure-content-safety-implementation.md)** - Azure Content Safety സംയോജനത്തിനുള്ള പ്രായോഗിക ഉദാഹരണങ്ങൾ  
+- **[MCP Security Controls 2025](./mcp-security-controls-2025.md)** - MCP വിന്യാസങ്ങൾക്ക് പുതിയ സുരക്ഷാനിർദ്ദേശങ്ങളും സാങ്കേതിക വിദ്യകളും
+- **[MCP Best Practices Quick Reference](./mcp-best-practices.md)** - MCPക്കും പ്രധാന സുരക്ഷാമാർഗ്ഗങ്ങളും കുറിച്ച് ദ്രുത റഫറൻസ് ഗൈഡ്
+- **[BlueHat 2026: Securing the future of AI: Securing MCP with defense in depth patterns](https://www.youtube.com/watch?v=cVWB58kEt-Y)** - Microsoft Security Response Center (MSRC) ന്റെ ഡിഫൻസ്-ഇൻ-ഡെപ്ത് മാതൃകകൾ
 
-### **കൈകാര്യം സുരക്ഷാ പരിശീലനം**
+### **ഹാൻഡ്‌സ്-ഓൺ സുരക്ഷ പരിശീലനം**
 
-- **[MCP സുരക്ഷാ സമ്മിറ്റ് വർക്ക്ഷോപ്പ് (Sherpa)](https://azure-samples.github.io/sherpa/)** - MCP സർവറുകളുടെ Azure-ൽ സുരക്ഷ പുതുക്കുന്നതിനുള്ള സമഗ്രമായ കൈകാര്യം വർക്ക്ഷോപ്പ്, ബേസ് ക്യാമ്പ് മുതൽ സമ്മിറ്റ് വരെ പുരോഗമിക്കുന്ന ക്യാമ്പുകൾ
-- **[OWASP MCP Azure സുരക്ഷാ ഗൈഡ്](https://microsoft.github.io/mcp-azure-security-guide/)** - എല്ലാ OWASP MCP Top 10 അപകടങ്ങളുടെയും റഫറൻസ് ആർക്കിടെക്ചർ, നടപ്പാക്കൽ മാർഗ്ഗനിർദ്ദേശങ്ങൾ
+- **[MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/)** - Azureയിൽ MCP സെർവർസിന്റെ സുരക്ഷ ഉറപ്പാക്കുന്നതിന് പടിയിറങ്ങുന്ന ക്യാമ്പുകളിൽ നിവർത്തിയുള്ള ഹാൻഡ്‌സ്-ഓൺ വർക്ക്ഷോപ്പ്
+- **[OWASP MCP Azure Security Guide](https://microsoft.github.io/mcp-azure-security-guide/)** - എല്ലാ OWASP MCP Top 10 അപകടങ്ങൾക്കും റഫറൻസ് ആർക്കിടെക്ചർ, നടപ്പാക്കൽ മാർഗ്ഗനിർദ്ദേശങ്ങൾ
 
 ---
 
 ## അടുത്തത്
 
-അടുത്തത്: [അധ്യായം 3: തുടങ്ങൽ](../03-GettingStarted/README.md)
+അടുത്തത്: [അദ്ധ്യായം 3: തുടങ്ങുക](../03-GettingStarted/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**അസംബന്ധമായ കുറിച്ചെഴുത്ത്**:  
-ഈ രേഖ [കോ-ഓപ്പ് ട്രാൻസ്ലേറ്റർ](https://github.com/Azure/co-op-translator) എന്ന എ.ഐ. വിവർത്തന സേവനം ഉപയോഗിച്ച് പരിഭാഷപ്പെടുത്തിയതാണ്. ഞങ്ങൾ കൃത്യതയ്ക്ക് ശ്രമിച്ചിട്ടുണ്ടെങ്കിലും, സ്വയംഭവ വിവർത്തനങ്ങളിൽ പിഴവുകൾ അല്ലെങ്കിൽ തെറ്റായ വിവരങ്ങൾ ഉണ്ടാകാവുന്നതാണ്. മാതൃഭാഷയിൽ ഉള്ള അസൽ രേഖയാണ് വിശ്വാസയോഗ്യമായ ഉറവിടം എന്ന് കണക്കാക്കണം. നിർണായക വിവരങ്ങൾക്ക്, വിദഗ്ധ മനുഷ്യൻ നടത്തിയ വിവർത്തനം ശുപാർശ ചെയ്യുന്നു. ഈ വിവർത്തനം ഉപയോഗിച്ചതിലൂടെ ഉണ്ടാകുന്ന തെറ്റിദ്ധാരണയുകൾ അല്ലെങ്കിൽ തെറ്റായ വ്യാഖ്യാനങ്ങൾക്കുള്ള ഉത്തരവാദിത്തം ഞങ്ങൾക്ക് ഉണ്ടായിരിക്കും എന്ന് കരുതരുത്.
+**അറിയിപ്പ്**:
+ഈ രേഖ AI പരിഭാഷാ സേവനം [Co-op Translator](https://github.com/Azure/co-op-translator) ഉപയോഗിച്ച് പരിഭാഷപ്പെടുത്തിയതാണ്. ഞങ്ങൾ കൃത്യതയ്ക്കായി ശ്രമിക്കുന്നുവെങ്കിലും, ഓട്ടോമേറ്റഡ് പരിഭാഷകളിൽ പിഴവുകൾ അല്ലെങ്കിൽ തെറ്റായ വിവരങ്ങൾ ഉണ്ടാകാൻ സാധ്യതയുണ്ട്. അതിന്റെ സ്വാഭാവിക ഭാഷയിലുള്ള അസൽ രേഖയാണ് പ്രാമാണികമായ ഉറവിടമായി പരിഗണിക്കേണ്ടത്. നിർണായകമായ വിവരങ്ങൾക്ക്, പ്രൊഫഷണൽ മനുഷ്യ പരിഭാഷ ശുപാർശ ചെയ്യുന്നു. ഈ പരിഭാഷ ഉപയോഗിച്ച് ഉണ്ടാകുന്ന തെറ്റിദ്ധാരണകൾ അല്ലെങ്കിൽ തെറ്റായ വ്യാഖ്യാനങ്ങൾക്കായി ഞങ്ങൾ ഉത്തരവാദികളല്ല.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

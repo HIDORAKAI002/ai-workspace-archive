@@ -1,7 +1,7 @@
 {
     "name": "mcp-stdio-server-example",
     "version": "1.0.0",
-    "description": "Example MCP server using stdio transport (updated for MCP 2025-06-18)",
+    "description": "Example MCP server using stdio transport (aligned with MCP Specification 2025-11-25)",
     "type": "module",
     "bin": {
         "mcp-stdio-server": "./build/index.js"
@@ -15,7 +15,7 @@
         "build"
     ],
     "dependencies": {
-        "@modelcontextprotocol/sdk": "^1.8.0",
+        "@modelcontextprotocol/sdk": ">=1.26.0",
         "zod": "^3.24.2"
     },
     "devDependencies": {

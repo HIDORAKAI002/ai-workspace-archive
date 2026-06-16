@@ -2,6 +2,96 @@
 
 This document serves as a record of all significant changes made to the Model Context Protocol (MCP) for Beginners curriculum. Changes are documented in reverse chronological order (newest changes first).
 
+## June 16, 2026
+
+### MCP Specification Alignment & Sample Validation
+
+Validated the curriculum against the current **MCP Specification 2025-11-25** and the latest official SDKs, then corrected the remaining stale specification references and confirmed the core samples still build and run.
+
+#### Specification Version Corrections (2025-06-18 / 2025-03-26 → 2025-11-25)
+
+Updated English content where it still claimed an older spec revision was the *current/latest* standard, and repointed links to the canonical `modelcontextprotocol.io` spec paths:
+- **05-AdvancedTopics/mcp-security/README.md**: Updated the "Current Standard" banner, introduction, core security principles heading, mandatory requirements heading, Microsoft Entra ID section, References & Resources links, and closing security notice (8 references) to 2025-11-25
+- **05-AdvancedTopics/mcp-transport/README.md**: Updated the Additional Resources spec link and the "Current Standard" banner to 2025-11-25
+- **05-AdvancedTopics/mcp-realtimesearch/README.md**: Replaced the outdated `2025-03-26` security-and-trust link with the current 2025-11-25 security best practices page
+- **03-GettingStarted/14-sampling/README.md**: Updated the official sampling docs link to 2025-11-25
+- **03-GettingStarted/05-stdio-server/README.md**: Updated the present-tense "current MCP specification" reference and the Additional Resources spec link to 2025-11-25 (historical SSE-deprecation notes left intact for accuracy)
+
+#### Sample Validation Against Current SDKs
+
+- **TypeScript (03-GettingStarted/01-first-server/solution/typescript)**: `npm install` resolved `@modelcontextprotocol/sdk@1.29.0`; `tsc --noEmit` passed with no type errors — existing `McpServer`/`StdioServerTransport` APIs remain valid
+- **Python (03-GettingStarted/01-first-server/solution/python)**: Validated in an isolated `.venv` with `mcp[cli]` (1.27.2); `py_compile` passed and `FastMCP.list_tools()` correctly returned the `add` and `subtract` tools
+- Confirmed all sample `@modelcontextprotocol/sdk` version ranges (`>=1.26.0` / `^1.26.0` / `^1.27.0`) resolve cleanly to the current `1.29.0` with no breaking API changes
+
+#### Dependency Pin Alignment (closing version gaps)
+
+Bumped outdated SDK pins so every sample tracks the current MCP release, matching the repo-wide convention:
+- **03-GettingStarted/05-stdio-server/solution/typescript/package.json**: Bumped `@modelcontextprotocol/sdk` from `^1.8.0` → `>=1.26.0` and updated the stale `"updated for MCP 2025-06-18"` package description to `"aligned with MCP Specification 2025-11-25"`
+- **10-StreamliningAIWorkflows.../lab3/code/weather_mcp/pyproject.toml** and **lab4/code/github_mcp_server/pyproject.toml**: Bumped the exact pin `mcp==1.23.0` → `mcp>=1.26.0`; regenerated both `uv.lock` files (`uv lock`) so the lockfiles resolve to the current `mcp 1.27.2` and stay in sync with the manifests
+
+#### Curriculum Gap Analysis — Latest Spec Feature Coverage
+
+Verified the curriculum already covers all primitives introduced/expanded in MCP 2025-11-25, so no content gaps remain:
+- **Sampling**: Lesson 03-GettingStarted/14-sampling plus 05-AdvancedTopics/mcp-sampling
+- **Elicitation (incl. URL mode)**: Documented in 01-CoreConcepts and 05-AdvancedTopics/mcp-protocol-features
+- **Roots**: Documented in 00-Introduction, 01-CoreConcepts, and 05-AdvancedTopics/mcp-root-contexts
+- **Tasks (experimental, long-running operations)**: Documented in 01-CoreConcepts and 05-AdvancedTopics/mcp-protocol-features
+- **Tool Annotations** (`readOnlyHint` / `destructiveHint`): Documented in 01-CoreConcepts and 05-AdvancedTopics/mcp-protocol-features
+
+### Security Hardening & Dependency Vulnerability Remediation
+
+Ran a full security pass across every dependency manifest and the sample source code, then remediated all reported npm advisories and one code-level finding. After remediation, `npm audit` reports **0 vulnerabilities** in every audited directory.
+
+#### npm Dependency Vulnerabilities (transitive) — Fixed
+
+Audited all 15 committed `package-lock.json` files. Vulnerabilities were limited to transitive dependencies pulled in by the MCP Inspector dev tool, the OpenAI client, and the MCP SDK; all are now resolved without breaking the samples:
+- **10-StreamliningAIWorkflows.../lab4/code/github_mcp_server/inspector** and **lab3/code/weather_mcp/inspector**: Bumped `@modelcontextprotocol/inspector` (`0.16.6` / `0.14.1` → `0.22.0`), which cleared the bundled `ajv`, `brace-expansion`, `diff`, `path-to-regexp` and `ws` advisories. Added an npm `overrides` entry forcing the patched `shell-quote@1.8.4` to eliminate the remaining critical advisory carried by `concurrently`; regenerated both lockfiles (now 0 vulnerabilities)
+- **03-GettingStarted/samples/typescript**: `npm audit fix` updated the transitive `qs` (moderate) to a patched release
+- **03-GettingStarted/samples/javascript**: `npm audit fix` updated the transitive `hono` (moderate) to a patched release
+- **03-GettingStarted/03-llm-client/solution/typescript**: `npm audit fix` updated the transitive `form-data` (high) to a patched release
+- **03-GettingStarted/11-simple-auth/solution/typescript**: Generated the missing `package-lock.json` so the project is reproducible and auditable (0 vulnerabilities)
+
+#### Code-Level Security Fix (OWASP A03: Injection)
+
+- **10-StreamliningAIWorkflows.../lab4/code/github_mcp_server/src/server.py**: Removed `shell=True` from the `open_in_vscode` tool. The previous `subprocess.run(["start", "", vscode_path, folder_path], shell=True)` allowed shell metacharacters in a folder path to be interpreted by `cmd.exe` (command-injection vector). It now launches the resolved `Code.exe` directly with the folder as an argument — no shell — which is functionally equivalent and safe
+
+#### Python Dependency Audit
+
+- Audited every Python requirements set with `pip-audit`. `05-AdvancedTopics` and `03-GettingStarted/samples/python` reported **no known vulnerabilities** (their `mcp` / `httpx` / `pydantic` / `python-dotenv` ranges resolve to current patched releases)
+- **09-CaseStudy/docs-mcp/solution/python/requirements.txt**: `pip-audit` flagged the transitive dependency **`werkzeug` 3.1.1** with three `safe_join` Windows device-name DoS advisories — `CVE-2025-66221`, `CVE-2026-21860`, and `CVE-2026-27199` (all fixed in 3.1.6). Added an explicit security pin `werkzeug>=3.1.6` so the patched release is resolved; verified the constraint resolves cleanly with the `chainlit` / `mcp` / `semantic-kernel` stack
+
+### Product Name Rebranding
+
+Updated all curriculum content to reflect Microsoft's product rebranding:
+
+#### Azure AI Foundry → Microsoft Foundry
+- **SUPPORT.md**: Updated Discord community link
+- **AGENTS.md**: Updated Discord server reference
+- **README.md**: Updated technology ecosystem references
+- **study_guide.md**: Updated case study references
+- **05-AdvancedTopics/README.md**: Updated Module 5.13 title and description
+- **05-AdvancedTopics/mcp-integration/README.md**: Updated section header and description
+- **05-AdvancedTopics/mcp-foundry-agent-integration/README.md**: Full module title and content update
+- **05-AdvancedTopics/mcp-security-entra/README.md**: Updated cross-reference link
+- **07-LessonsfromEarlyAdoption/README.md**: Updated case study references
+- **07-LessonsfromEarlyAdoption/microsoft-mcp-servers.md**: Updated Section 9 header, badges, and capabilities
+- **08-BestPractices/README.md**: Updated Discord community link
+- **09-CaseStudy/docs-mcp/solution/scenario3/README.md**: Updated Discord channel reference
+- **09-CaseStudy/docs-mcp/solution/python/README.md**: Updated model deployment reference
+- **11-MCPServerHandsOnLabs/00-Introduction/README.md**: Updated AI Services table
+- **11-MCPServerHandsOnLabs/03-Setup/README.md**: Updated resource references
+
+#### AI Toolkit / AITK → Microsoft Foundry Toolkit Extension for VS Code
+- **README.md**: Updated main curriculum references
+- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/README.md**: Updated module title, overview, and all module headers
+- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab1/README.md**: Updated title, learning objectives, setup instructions, and resources
+- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab2/README.md**: Updated title, learning objectives, MCP hosts table, and cross-references
+- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/README.md**: Updated title, badges, prerequisites, and resources
+- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/README.md**: Updated Agent Builder references and feedback link
+- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab4/README.md**: Updated prerequisites and extension references
+
+---
+
 ## April 11, 2026
 
 ### New Lesson, Documentation Fixes, and Dependency Updates
