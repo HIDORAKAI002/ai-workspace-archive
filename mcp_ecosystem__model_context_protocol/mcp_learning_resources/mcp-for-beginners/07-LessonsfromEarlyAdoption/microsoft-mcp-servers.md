@@ -343,20 +343,20 @@ What makes this really powerful is that it bridges the gap between natural langu
 
 **Featured example**: I'm a big fan of using Dev Box for personal development. My lightbulb moment here was when James Montemagno explained how great Dev Box is for conference demos, since it's got a super-fast ethernet connection regardless of the conference / hotel / airplane wifi I may be using at the moment. In fact, I recently did some conference demo practice while my laptop was tethered to my phone hotspot while riding on a bus from Bruges to Antwerp! But my next step here is to dig into more team managing multiple development environments and standardized demo environments. And another big use case I've been hearing from customers and coworkers, of course, is using Dev Box for preconfigured development environments. In both cases, using an MCP to configure and manage Dev Boxes lets you use natural language interaction, all while staying in your development environment.
 
-### 9. 🤖 Azure AI Foundry MCP Server
+### 9. 🤖 Microsoft Foundry MCP Server
 
-[![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Azure_AI_Foundry_MCP-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=Azure%20Foundry%20MCP%20Server&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22uvx%22%2C%22args%22%3A%5B%22--prerelease%3Dallow%22%2C%22--from%22%2C%22git%2Bhttps%3A%2F%2Fgithub.com%2Fazure-ai-foundry%2Fmcp-foundry.git%22%2C%22run-azure-ai-foundry-mcp%22%5D%7D) [![Install in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install_Azure_AI_Foundry_MCP-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=Azure%20Foundry%20MCP%20Server&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22uvx%22%2C%22args%22%3A%5B%22--prerelease%3Dallow%22%2C%22--from%22%2C%22git%2Bhttps%3A%2F%2Fgithub.com%2Fazure-ai-foundry%2Fmcp-foundry.git%22%2C%22run-azure-ai-foundry-mcp%22%5D%7D&quality=insiders) [![GitHub](https://img.shields.io/badge/GitHub-View_Repository-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/azure-ai-foundry/mcp-foundry)
+[![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_Microsoft_Foundry_MCP-0098FF?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=Azure%20Foundry%20MCP%20Server&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22uvx%22%2C%22args%22%3A%5B%22--prerelease%3Dallow%22%2C%22--from%22%2C%22git%2Bhttps%3A%2F%2Fgithub.com%2Fazure-ai-foundry%2Fmcp-foundry.git%22%2C%22run-azure-ai-foundry-mcp%22%5D%7D) [![Install in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install_Microsoft_Foundry_MCP-24bfa5?style=flat-square&logo=visualstudiocode&logoColor=white)](https://insiders.vscode.dev/redirect/mcp/install?name=Azure%20Foundry%20MCP%20Server&config=%7B%22type%22%3A%22stdio%22%2C%22command%22%3A%22uvx%22%2C%22args%22%3A%5B%22--prerelease%3Dallow%22%2C%22--from%22%2C%22git%2Bhttps%3A%2F%2Fgithub.com%2Fazure-ai-foundry%2Fmcp-foundry.git%22%2C%22run-azure-ai-foundry-mcp%22%5D%7D&quality=insiders) [![GitHub](https://img.shields.io/badge/GitHub-View_Repository-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/azure-ai-foundry/mcp-foundry)
 
-**What it does**: The Azure AI Foundry MCP Server provides developers with comprehensive access to Azure's AI ecosystem, including model catalogs, deployment management, knowledge indexing with Azure AI Search, and evaluation tools. This experimental server bridges the gap between AI development and Azure's powerful AI infrastructure, making it easier to build, deploy, and evaluate AI applications.
+**What it does**: The Microsoft Foundry MCP Server provides developers with comprehensive access to Azure's AI ecosystem, including model catalogs, deployment management, knowledge indexing with Azure AI Search, and evaluation tools. This experimental server bridges the gap between AI development and Azure's powerful AI infrastructure, making it easier to build, deploy, and evaluate AI applications.
 
 **Why it's useful**: This server transforms how you work with Azure AI services by bringing enterprise-grade AI capabilities directly into your development workflow. Instead of switching between the Azure portal, documentation, and your IDE, you can discover models, deploy services, manage knowledge bases, and evaluate AI performance through natural language commands. It's particularly powerful for developers building RAG (Retrieval-Augmented Generation) applications, managing multi-model deployments, or implementing comprehensive AI evaluation pipelines.
 
 **Key developer capabilities**:
-- **🔍 Model Discovery & Deployment**: Explore Azure AI Foundry's model catalog, get detailed model information with code samples, and deploy models to Azure AI Services
+- **🔍 Model Discovery & Deployment**: Explore Microsoft Foundry's model catalog, get detailed model information with code samples, and deploy models to Azure AI Services
 - **📚 Knowledge Management**: Create and manage Azure AI Search indexes, add documents, configure indexers, and build sophisticated RAG systems
 - **⚡ AI Agent Integration**: Connect with Azure AI Agents, query existing agents, and evaluate agent performance in production scenarios
 - **📊 Evaluation Framework**: Run comprehensive text and agent evaluations, generate markdown reports, and implement quality assurance for AI applications
-- **🚀 Prototyping Tools**: Get setup instructions for GitHub-based prototyping and access Azure AI Foundry Labs for cutting-edge research models
+- **🚀 Prototyping Tools**: Get setup instructions for GitHub-based prototyping and access Microsoft Foundry Labs for cutting-edge research models
 
 **Real-world developer use**: "Deploy a Phi-4 model to Azure AI Services for my application", "Create a new search index for my documentation RAG system", "Evaluate my agent's responses against quality metrics", or "Find the best reasoning model for my complex analysis tasks"
 
@@ -364,7 +364,7 @@ What makes this really powerful is that it bridges the gap between natural langu
 
 > "I'm building a customer support agent. Help me find a good reasoning model from the catalog, deploy it to Azure AI Services, create a knowledge base from our documentation, set up an evaluation framework to test response quality, and then help me prototype the integration with GitHub token for testing."
 
-The Azure AI Foundry MCP Server will:
+The Microsoft Foundry MCP Server will:
 - Query the model catalog to recommend optimal reasoning models based on your requirements
 - Provide deployment commands and quota information for your preferred Azure region
 - Set up Azure AI Search indexes with proper schema for your documentation

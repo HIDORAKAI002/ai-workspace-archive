@@ -763,7 +763,7 @@ When implementing MCP-based web search solutions, remember these important princ
 
 5. **Robust Consent Flows**: Build robust consent and authorization flows that clearly explain what each tool does before authorizing its use, especially for tools that interact with external web resources.
 
-For complete details on MCP security and trust considerations, refer to the [official documentation](https://modelcontextprotocol.io/specification/2025-03-26#security-and-trust-%26-safety).
+For complete details on MCP security and trust considerations, refer to the [official documentation](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices).
 
 ## What's next 
 

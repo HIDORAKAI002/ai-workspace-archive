@@ -12,20 +12,20 @@
     "language_code": "ar"
   },
   "02-Security/README.md": {
-    "original_hash": "af06ead89d1af282d9898a2531a57842",
-    "translation_date": "2026-02-09T09:26:22+00:00",
+    "original_hash": "50fdf805206539d10e18ac760ebb219f",
+    "translation_date": "2026-06-08T09:15:54+00:00",
     "source_file": "02-Security/README.md",
     "language_code": "ar"
   },
   "02-Security/azure-content-safety-implementation.md": {
-    "original_hash": "83015d26c7efa6f0b982e01f90e2ef1c",
-    "translation_date": "2026-02-09T09:24:23+00:00",
+    "original_hash": "8a0d109865c20bf60fa2608afd809db8",
+    "translation_date": "2026-06-08T09:16:28+00:00",
     "source_file": "02-Security/azure-content-safety-implementation.md",
     "language_code": "ar"
   },
   "02-Security/azure-content-safety.md": {
-    "original_hash": "51c5134333a072ebf647acad9a43b3e0",
-    "translation_date": "2026-02-09T09:24:09+00:00",
+    "original_hash": "a7000604c41e662be7718c08a351581c",
+    "translation_date": "2026-06-08T09:17:00+00:00",
     "source_file": "02-Security/azure-content-safety.md",
     "language_code": "ar"
   },
@@ -42,8 +42,8 @@
     "language_code": "ar"
   },
   "02-Security/mcp-security-controls-2025.md": {
-    "original_hash": "9b2c76b3456098efc83a6fc167d54e2f",
-    "translation_date": "2026-02-09T09:27:14+00:00",
+    "original_hash": "88dacbc737603686b60f1d16ba39cd8c",
+    "translation_date": "2026-06-08T09:12:17+00:00",
     "source_file": "02-Security/mcp-security-controls-2025.md",
     "language_code": "ar"
   },
@@ -138,8 +138,8 @@
     "language_code": "ar"
   },
   "03-GettingStarted/03-llm-client/README.md": {
-    "original_hash": "a9f961c28ecf88d4e37e06c6e78c22ea",
-    "translation_date": "2026-04-11T21:51:03+00:00",
+    "original_hash": "3b5e39c78f62deafcb60929f8036daf3",
+    "translation_date": "2026-06-16T08:26:36+00:00",
     "source_file": "03-GettingStarted/03-llm-client/README.md",
     "language_code": "ar"
   },

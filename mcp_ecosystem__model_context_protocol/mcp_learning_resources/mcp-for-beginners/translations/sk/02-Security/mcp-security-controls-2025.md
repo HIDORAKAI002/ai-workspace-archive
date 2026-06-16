@@ -1,76 +1,76 @@
-# MCP Bezpečnostné opatrenia - Aktualizácia február 2026
+# MCP bezpečnostné kontroly - aktualizácia február 2026
 
-> **Aktuálny štandard**: Tento dokument odráža bezpečnostné požiadavky [MCP špecifikácie 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/) a oficiálne [Najlepšie bezpečnostné postupy MCP](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices).
+> **Aktuálny štandard**: Tento dokument odráža bezpečnostné požiadavky špecifikácie [MCP 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/) a oficiálne [MCP bezpečnostné najlepšie postupy](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices).
 
-Model Context Protocol (MCP) sa významne vyvinul s vylepšenými bezpečnostnými opatreniami, ktoré riešia tradičnú softvérovú bezpečnosť aj špecifické hrozby umelej inteligencie. Tento dokument poskytuje komplexné bezpečnostné opatrenia pre bezpečné implementácie MCP v súlade s rámcom OWASP MCP Top 10.
+Model Context Protocol (MCP) sa významne vyvinul s rozšírenými bezpečnostnými kontrolami riešiacimi tradičné bezpečnostné hrozby softvéru aj hrozby špecifické pre AI. Tento dokument poskytuje komplexné bezpečnostné kontroly pre bezpečné implementácie MCP v súlade s rámcom OWASP MCP Top 10.
 
-## 🏔️ Praktický tréning bezpečnosti
+## 🏔️ Praktický bezpečnostný tréning
 
-Pre praktické skúsenosti s implementáciou bezpečnosti odporúčame **[MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/)** – komplexnú sprievodnú expedíciu zabezpečenia MCP serverov v Azure pomocou metodológie „zraniteľný → zneužitý → opravený → overený“.
+Pre praktické skúsenosti s implementáciou bezpečnosti odporúčame **[MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/)** - komplexnú sprievodnú expedíciu zabezpečenia MCP serverov v Azure použitím metodológie "vulnerable → exploit → fix → validate".
 
-Všetky bezpečnostné opatrenia v tomto dokumente sú v súlade s **[OWASP MCP Azure Security Guide](https://microsoft.github.io/mcp-azure-security-guide/)**, ktorý poskytuje referenčné architektúry a usmernenia pre implementáciu špecifickú pre Azure pre OWASP MCP Top 10 riziká.
+Všetky bezpečnostné kontroly v tomto dokumente sú v súlade s **[OWASP MCP Azure Security Guide](https://microsoft.github.io/mcp-azure-security-guide/)**, ktorý poskytuje referenčné architektúry a odporúčania na implementáciu špecifické pre Azure pre riziká OWASP MCP Top 10.
 
 ## **POVINNÉ bezpečnostné požiadavky**
 
 ### **Kritické zákazy zo špecifikácie MCP:**
 
-> **ZAKÁZANÉ**: MCP servery **NESMÚ** akceptovať žiadne tokeny, ktoré neboli explicitne vydané pre MCP server  
+> **ZAKÁZANÉ**: MCP servery **NESMÚ** akceptovať žiadne tokeny, ktoré neboli výslovne vydané pre MCP server  
 >
-> **ZAKÁZANÉ**: MCP servery **NESMÚ** používať sessions na autentifikáciu  
+> **ZAKÁZANÉ**: MCP servery **NESMÚ** používať relácie (sessions) na autentifikáciu  
 >
-> **POVINNÉ**: MCP servery implementujúce autorizáciu **MUSIA** overovať VŠETKY prichádzajúce požiadavky  
+> **POVINNÉ**: MCP servery implementujúce autorizáciu **MUSIA** overiť VŠETKY prichádzajúce požiadavky  
 >
-> **POVINNÉ**: MCP proxy servery používajúce statické klientské ID **MUSIA** získať súhlas používateľa pre každý dynamicky registrovaný klient
+> **POVINNÉ**: MCP proxy servery používajúce statické klientské ID **MUSIA** získavať súhlas používateľa pre každého dynamicky registrovaného klienta
 
 ---
 
-## 1. **Opatrenia pre autentifikáciu a autorizáciu**
+## 1. **Kontroly autentifikácie & autorizácie**
 
-### **Integrácia s externým poskytovateľom identity**
+### **Integrácia externého poskytovateľa identity**
 
-**Aktuálny MCP štandard (2025-11-25)** umožňuje MCP serverom delegovať autentifikáciu na externých poskytovateľov identity, čo predstavuje významné bezpečnostné zlepšenie:
+**Aktuálny štandard MCP (2025-11-25)** umožňuje MCP serverom delegovať autentifikáciu na externých poskytovateľov identity, čo predstavuje významné bezpečnostné zlepšenie:
 
 **Riziko OWASP MCP riešené**: [MCP07 - Nedostatočná autentifikácia a autorizácia](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp07-authz/)
 
-**Bezpečnostné výhody:**
-1. **Eliminácia rizík vlastnej autentifikácie**: Znižuje povrch zraniteľnosti vyhýbaním sa vlastným implementáciám autentifikácie  
-2. **Enterprise bezpečnosť**: Využíva osvedčených poskytovateľov identity ako Microsoft Entra ID s pokročilými bezpečnostnými funkciami  
-3. **Centralizovaná správa identity**: Zjednodušuje správu životného cyklu používateľa, kontrolu prístupu a audity súladu  
-4. **Viacfaktorová autentifikácia**: Dedí schopnosti MFA od podnikového poskytovateľa identity  
-5. **Podmienené prístupové politiky**: Využíva riadenie prístupu založené na rizikách a adaptívnu autentifikáciu  
+**Bezpečnostné prínosy:**
+1. **Eliminácia rizík vlastnej autentifikácie**: Znižuje povrch zraniteľnosti vyhýbaním sa vlastným implementáciám autentifikácie
+2. **Podniková bezpečnosť**: Využíva etablovaných poskytovateľov identity ako Microsoft Entra ID s pokročilými bezpečnostnými funkciami
+3. **Centralizovaná správa identity**: Zjednodušuje riadenie životného cyklu používateľov, kontrolu prístupu a audit zhody
+4. **Viacfaktorová autentifikácia**: Dedičnosť MFA schopností od podnikových poskytovateľov identity
+5. **Politiky podmienečného prístupu**: Využitie rizikovo založených kontrol prístupu a adaptívnej autentifikácie
 
 **Požiadavky na implementáciu:**
-- **Validácia publika tokenu**: Overiť, že všetky tokeny sú explicitne vydané pre MCP server  
-- **Overenie vydavateľa**: Overiť, že vydavateľ tokenu zodpovedá očakávanému poskytovateľovi identity  
-- **Overenie podpisu**: Kryptografické overenie integrity tokenu  
-- **Dodržiavanie doby platnosti**: Prísne dodržiavanie limitov životnosti tokenu  
-- **Validácia rozsahu**: Zabezpečiť, že tokeny obsahujú vhodné oprávnenia pre požadované operácie  
+- **Validácia publiká tokenu**: Overenie, že všetky tokeny sú výslovne vydané pre MCP server
+- **Overenie vydavateľa**: Validácia, že vydavateľ tokenu zodpovedá očakávanému poskytovateľovi identity
+- **Overenie podpisu**: Kryptografické overenie integrity tokenu
+- **Vynucovanie expirácie**: Prísne vynucovanie časových limitov platnosti tokenu
+- **Validácia rozsahu právomocí**: Zabezpečenie, že tokeny obsahujú vhodné povolenia pre požadované operácie
 
 ### **Bezpečnosť logiky autorizácie**
 
-**Kritické opatrenia:**
-- **Komplexné audity autorizácie**: Pravidelné bezpečnostné revízie všetkých rozhodovacích bodov autorizácie  
-- **Predvolené odmietnutie (fail-safe)**: Odmietnutie prístupu, keď sa nedá jednoznačne rozhodnúť o autorizácii  
-- **Hranice oprávnení**: Jasné oddelenie rôznych úrovní privilégií a prístupu k prostriedkom  
-- **Auditovanie zaznamenávania**: Kompletné logovanie všetkých rozhodnutí o autorizácii pre bezpečnostné sledovanie  
-- **Pravidelné kontroly prístupu**: Periodické overovanie oprávnení používateľov a prideľovania privilégií  
+**Kritické kontroly:**
+- **Komplexné audity autorizácie**: Pravidelné bezpečnostné revízie všetkých rozhodovacích bodov autorizácie
+- **Fail-safe predvolené nastavenia**: Zamietnutie prístupu, keď logika autorizácie nedokáže spraviť jednoznačné rozhodnutie
+- **Hraničné povolenia**: Jasné rozhranie medzi rôznymi úrovňami privilégií a prístupom k zdrojom
+- **Auditné záznamy**: Kompletné logovanie všetkých rozhodnutí o autorizácii pre bezpečnostné monitorovanie
+- **Pravidelné kontroly prístupov**: Periodická validácia používateľských oprávnení a prideľovania privilégií
 
-## 2. **Ochrana tokenov a opatrenia proti passtrough**
+## 2. **Bezpečnosť tokenov & kontroly zabraňujúce passthrough**
 
-**Riziko OWASP MCP riešené**: [MCP01 - Nesprávne nakladanie s tokenmi a únik tajomstiev](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp01-token-mismanagement/)
+**Riziko OWASP MCP riešené**: [MCP01 - Nesprávna správa tokenov a odhalenie tajomstiev](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp01-token-mismanagement/)
 
-### **Prevencia presmerovania tokenov**
+### **Prevencia token passthrough**
 
-**Presmerovanie tokenov je v MCP Authorization Specification explicitne zakázané** z dôvodu kritických bezpečnostných rizík:
+**Token passthrough je výslovne zakázaný** v MCP Authorization Specification kvôli kritickým bezpečnostným rizikám:
 
 **Riešené bezpečnostné riziká:**
-- **Obchádzanie kontroly**: Obchádza základné bezpečnostné opatrenia ako obmedzovanie rýchlosti, validáciu požiadaviek a monitorovanie prevádzky  
-- **Narušenie zodpovednosti**: Znemožňuje identifikáciu klienta, čo ničí audítorské stopy a vyšetrovanie incidentov  
-- **Prenos exfiltrácie cez proxy**: Umožňuje škodlivým aktérom použiť servery ako proxy na neautorizovaný prístup k dátam  
-- **Porušenie hraníc dôvery**: Narušuje dôveru downstream služieb voči pôvodu tokenov  
-- **Laterálny pohyb**: Kompromitované tokeny naprieč viacerými službami umožňujú širšie rozšírenie útokov  
+- **Obchádzanie kontrol**: Obchádza podstatné bezpečnostné kontroly ako limitovanie rýchlosti, validáciu požiadaviek a monitorovanie prevádzky
+- **Nedostatočná zodpovednosť**: Znemožňuje identifikáciu klienta, poškodzujúc auditné stopy a vyšetrovanie incidentov
+- **Proxy založená exfiltrácia**: Umožňuje škodlivým aktérom používať servery ako proxy pre neautorizovaný prístup k údajom
+- **Porušenie dôveryhodnosti hraníc**: Narušuje predpoklady downstream služieb o pôvode tokenov
+- **Laterálny pohyb**: Kompromitované tokeny na viacerých službách umožňujú rozsiahlejšie útoky
 
-**Bezpečnostné opatrenia implementácie:**
+**Kontroly implementácie:**
 ```yaml
 Token Validation Requirements:
   audience_validation: MANDATORY
@@ -86,25 +86,26 @@ Token Lifecycle Management:
   replay_protection: "Implemented via nonce/timestamp"
 ```
 
-### **Vzory bezpečného spravovania tokenov**
 
-**Najlepšie postupy:**
-- **Krátkodobé tokeny**: Minimalizovať čas expozície častou rotáciou tokenov  
-- **Vydávanie na požiadanie (Just-in-Time)**: Vydávať tokeny len vtedy, keď sú potrebné pre konkrétne operácie  
-- **Bezpečné uloženie**: Používať hardvérové bezpečnostné moduly (HSM) alebo bezpečné úložiská kľúčov  
-- **Pripútanie tokenu**: Pripájať tokeny ku konkrétnym klientom, sessions alebo operáciám, kde je to možné  
-- **Monitorovanie a upozorňovanie**: Detekcia zneužitia tokenov alebo neautorizovaných vzorcov prístupu v reálnom čase  
+### **Bezpečné vzory správy tokenov**
 
-## 3. **Bezpečnosť sessions**
+**Najlepšie praktiky:**
+- **Krátkodobé tokeny**: Minimalizovať expozičné okno častou rotáciou tokenov
+- **Vydávanie na požiadanie**: Vydávať tokeny iba keby sú potrebné na konkrétne operácie
+- **Bezpečné ukladanie**: Použiť hardvérové bezpečnostné moduly (HSM) alebo bezpečné kľúčové úložiská
+- **Väzba tokenov**: Viazať tokeny na konkrétnych klientov, relácie alebo operácie, kde je to možné
+- **Monitorovanie a upozorňovanie**: Detekcia v reálnom čase zneužitia tokenov alebo neautorizovaných prístupov
 
-### **Prevencia unesenia sessions**
+## 3. **Kontroly bezpečnosti relácií**
 
-**Rizikové vektory:**
-- **Násilná injekcia v promptoch počas session**: Škodlivé udalosti vkladané do zdieľaného stavu session  
-- **Imitácia session**: Neoprávnené použitie ukradnutých ID session na obídenie autentifikácie  
-- **Útoky na obnovenie streamu**: Zneužitie obnovy serverových udalostí na vkladanie škodlivého obsahu  
+### **Prevencia prebratia relácie**
 
-**Povinné opatrenia pre sessions:**
+**Adresované útokové vektory:**
+- **Podvrhnutie vstupov do relácie**: Škodlivé udalosti injektované do zdieľaného stavu relácie
+- **Impersonácia relácie**: Neoprávnené použitie ukradnutých ID relácie pre obídenie autentifikácie
+- **Útoky na obnovu streamov**: Zneužitie obnovenia udalostí zo serverov na injektovanie škodlivého obsahu
+
+**Povinné kontroly relácií:**
 ```yaml
 Session ID Generation:
   randomness_source: "Cryptographically secure RNG"
@@ -123,34 +124,34 @@ Session Lifecycle:
   invalidation: "Immediate on security events"
   cleanup: "Automated expired session removal"
 ```
+  
+**Bezpečnosť prenosu:**
+- **Vynucovanie HTTPS**: Všetka komunikácia relácie cez TLS 1.3
+- **Bezpečné atribúty cookie**: HttpOnly, Secure, SameSite=Strict
+- **Pripnutie (pinning) certifikátu**: Pre kritické spojenia na zabránenie MITM útokom
 
-**Zabezpečenie prenosu:**
-- **Vynútenie HTTPS**: Všetka session komunikácia cez TLS 1.3  
-- **Bezpečné atribúty cookies**: HttpOnly, Secure, SameSite=Strict  
-- **Pinovanie certifikátu**: Pre kritické spojenia na prevenciu MITM útokov  
+### **Zváženia stavových a bezstavových implementácií**
 
-### **Štátové vs. bezštátové implementácie**
+**Pre stavové implementácie:**
+- Zdieľaný stav relácie vyžaduje dodatočnú ochranu proti injekčným útokom
+- Správa relácií založená na čakacích radoch potrebuje overovanie integrity
+- Viaceré inštancie serverov vyžadujú bezpečnú synchronizáciu stavu relácií
 
-**Pre štátové implementácie:**
-- Zdieľaný stav sessions vyžaduje dodatočnú ochranu proti injekciám  
-- Riadenie sessions založené na frontách potrebuje overenie integrity  
-- Viaceré inštancie servera vyžadujú bezpečnú synchronizáciu stavu sessions  
+**Pre bezstavové implementácie:**
+- Správa relácie pomocou JWT alebo podobných tokenov
+- Kryptografické overenie integrity stavu relácie
+- Znížený povrch útoku, ale vyžaduje robustnú validáciu tokenov
 
-**Pre bezštátové implementácie:**
-- Správa sessions založená na JWT alebo podobných tokenoch  
-- Kryptografické overenie integrity stavu session  
-- Znížený povrch útoku, no vyžaduje robustnú validáciu tokenov  
+## 4. **AI-špecifické bezpečnostné kontroly**
 
-## 4. **Špecifické bezpečnostné opatrenia pre AI**
+**OWASP MCP riešené riziká**:
+- [MCP06 - Subverzia toku zámyslov](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)
+- [MCP03 - Otrava nástrojov](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp03-tool-poisoning/)
+- [MCP05 - Vkladanie príkazov a ich vykonávanie](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp05-command-injection/)
 
-**OWASP MCP riešené riziká**:  
-- [MCP06 - Injekcia promptov cez kontextové zaťaženia](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)  
-- [MCP03 - Otrava nástrojov](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp03-tool-poisoning/)  
-- [MCP05 - Injekcia a vykonávanie príkazov](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp05-command-injection/)
+### **Ochrana proti injektážam vstupov**
 
-### **Obrana proti injekcii promptov**
-
-**Integrácia Microsoft Prompt Shields:**  
+**Integrácia Microsoft Prompt Shields:**
 ```yaml
 Detection Mechanisms:
   - "Advanced ML-based instruction detection"
@@ -167,16 +168,16 @@ Integration Points:
   - "Real-time content filtering"
   - "Threat intelligence updates"
 ```
-
-**Bezpečnostné opatrenia:**  
-- **Sanitizácia vstupu**: Komplexná validácia a filtrovanie všetkých vstupov používateľa  
-- **Definícia hraníc obsahu**: Jasné oddelenie medzi systémovými inštrukciami a používateľským obsahom  
-- **Hierarchia pokynov**: Správne pravidlá prednosti pre konfliktné inštrukcie  
-- **Monitorovanie výstupov**: Detekcia potenciálne škodlivých alebo manipulovaných výstupov  
+  
+**Kontroly implementácie:**
+- **Sanitácia vstupov**: Komplexná validácia a filtrovanie všetkých používateľských vstupov
+- **Definícia hraníc obsahu**: Jasné oddelenie systémových inštrukcií a používateľského obsahu
+- **Hierarchia inštrukcií**: Správne pravidlá prednosti pri konfliktných inštrukciách
+- **Monitorovanie výstupov**: Detekcia potenciálne škodlivých alebo manipulovaných výstupov
 
 ### **Prevencia otravy nástrojov**
 
-**Bezpečnostný rámec pre nástroje:**  
+**Rámec bezpečnosti nástrojov:**
 ```yaml
 Tool Definition Protection:
   validation:
@@ -197,18 +198,18 @@ Tool Definition Protection:
     - "Anomaly detection for execution patterns"
     - "Automated alerting for suspicious modifications"
 ```
+  
+**Dynamická správa nástrojov:**
+- **Kontrola schvaľovania**: Výslovný súhlas používateľa pre zmeny nástrojov
+- **Schopnosť navratu**: Možnosť vrátenia k predchádzajúcim verziám nástrojov
+- **Audit zmien**: Kompletná história úprav definícií nástrojov
+- **Hodnotenie rizík**: Automatizované vyhodnocovanie bezpečnostného stavu nástrojov
 
-**Dynamické riadenie nástrojov:**  
-- **Schvaľovacie workflowy**: Explicitný súhlas používateľa pre zmeny nástrojov  
-- **Možnosti návratu (rollback)**: Schopnosť vrátiť sa k predchádzajúcim verziám nástrojov  
-- **Auditovanie zmien**: Kompletná história zmien definícií nástrojov  
-- **Hodnotenie rizík**: Automatizované hodnotenie bezpečnostného stavu nástroja  
-
-## 5. **Prevencia útokov zmätku (Confused Deputy Attack)**
+## 5. **Prevencia útokov „confused deputy“**
 
 ### **Bezpečnosť OAuth proxy**
 
-**Opatrenia proti útokom:**  
+**Kontroly prevencie útokov:**
 ```yaml
 Client Registration:
   static_client_protection:
@@ -223,18 +224,18 @@ Client Registration:
     - "Authorization code binding"
     - "Nonce verification for ID tokens"
 ```
-
-**Požiadavky na implementáciu:**  
-- **Overenie súhlasu používateľa**: Nikdy nepreskakovať obrazovky so súhlasom pre dynamickú registráciu klienta  
-- **Validácia redirect URI**: Prísna validácia povolených destinácií pomocou whitelistu  
-- **Ochrana autorizačných kódov**: Krátkodobé kódy s vynútenou jednorazovou použiteľnosťou  
-- **Overenie identity klienta**: Robustná validácia prihlasovacích dát a metadát klienta  
+  
+**Požiadavky na implementáciu:**
+- **Overenie súhlasu používateľa**: Nikdy nevynechávať obrazovky súhlasu pri dynamickej registrácii klienta
+- **Validácia URI presmerovania**: Prísna validácia cieľových adresátov podľa whitelistu
+- **Ochrana autorizačného kódu**: Krátkodobé kódy s vynucením jednorazovosti
+- **Overenie identity klienta**: Robustné overovanie poverení a metadát klienta
 
 ## 6. **Bezpečnosť vykonávania nástrojov**
 
 ### **Sandboxing a izolácia**
 
-**Izolácia založená na kontajneroch:**  
+**Izolácia založená na kontajneroch:**
 ```yaml
 Execution Environment:
   containerization: "Docker/Podman with security profiles"
@@ -250,16 +251,16 @@ Execution Environment:
     syscall_filtering: "Seccomp profiles for syscall restriction"
     filesystem: "Read-only root with minimal writable areas"
 ```
+  
+**Izolácia procesov:**
+- **Oddelené kontexty procesov**: Každé vykonávanie nástroja v izolovanom procesnom priestore
+- **Medziprocesová komunikácia**: Bezpečné IPC mechanizmy s validáciou
+- **Monitorovanie procesov**: Analýza správania počas behu a detekcia anomálií
+- **Vynucovanie zdrojov**: Prísne limity na CPU, pamäť a I/O operácie
 
-**Izolácia procesov:**  
-- **Oddelené kontexty procesov**: Každé spustenie nástroja v izolovanom procesnom priestore  
-- **Medzi-procesová komunikácia (IPC)**: Bezpečné mechanizmy IPC s validáciou  
-- **Monitorovanie procesov**: Analýza správania počas behu a detekcia anomálií  
-- **Vynucovanie zdrojov**: Prísne limity na CPU, pamäť a vstupno-výstupné operácie  
+### **Implementácia princípu najmenších právomocí**
 
-### **Implementácia princípu najmenej privilégií**
-
-**Správa oprávnení:**  
+**Správa povolení:**
 ```yaml
 Access Control:
   file_system:
@@ -279,14 +280,14 @@ Access Control:
     - "No hardware device access"
     - "Restricted environment variable access"
 ```
-
+  
 ## 7. **Kontroly bezpečnosti dodávateľského reťazca**
 
-**Riziko OWASP MCP riešené**: [MCP04 - Útoky na dodávateľský reťazec](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp04-supply-chain/)
+**Riziko OWASP MCP riešené**: [MCP04 - Útoky na dodávateľský reťazec softvéru a manipulácia so závislosťami](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp04-supply-chain/)
 
-### **Verifikácia závislostí**
+### **Overovanie závislostí**
 
-**Komplexná bezpečnosť komponentov:**  
+**Komplexná bezpečnosť komponentov:**
 ```yaml
 Software Dependencies:
   scanning: 
@@ -314,22 +315,22 @@ AI Components:
     - "Data handling compliance verification"
     - "Incident response capability evaluation"
 ```
-
+  
 ### **Kontinuálne monitorovanie**
 
-**Detekcia hrozieb na dodávateľskom reťazci:**  
-- **Monitorovanie stavu závislostí**: Neustále hodnotenie všetkých závislostí z hľadiska bezpečnostných otázok  
-- **Integrácia spravodajstva o hrozbách**: Aktuálne informácie o nových hrozbách v dodávateľskom reťazci  
-- **Behaviorálna analýza**: Detekcia neobvyklých správaní v externých komponentoch  
-- **Automatická reakcia**: Okamžité zadržanie kompromitovaných komponentov  
+**Detekcia hrozieb v dodávateľskom reťazci:**
+- **Monitorovanie stavu závislostí**: Neustále hodnotenie všetkých závislostí a ich bezpečnostných problémov
+- **Integrácia spravodajstva o hrozbách**: Aktualizácie v reálnom čase o vznikajúcich hrozbách v dodávateľskom reťazci
+- **Analýza správania**: Detekcia neobvyklého správania v externých komponentoch
+- **Automatická reakcia**: Okamžité izolovanie kompromitovaných komponentov
 
 ## 8. **Kontroly monitorovania a detekcie**
 
 **Riziko OWASP MCP riešené**: [MCP08 - Nedostatok auditu a telemetrie](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp08-telemetry/)
 
-### **Správa bezpečnostných informácií a udalostí (SIEM)**
+### **SIEM (Security Information and Event Management)**
 
-**Komplexná stratégia logovania:**  
+**Komplexná stratégia logovania:**
 ```yaml
 Authentication Events:
   - "All authentication attempts (success/failure)"
@@ -349,20 +350,20 @@ Security Events:
   - "Session hijacking indicators"
   - "Unusual access patterns and anomalies"
 ```
-
+  
 ### **Detekcia hrozieb v reálnom čase**
 
-**Behaviorálna analytika:**  
-- **Analytika správania používateľov (UBA)**: Detekcia neobvyklých vzorcov prístupu používateľov  
-- **Analytika správania entít (EBA)**: Monitorovanie správania MCP serverov a nástrojov  
-- **Strojové učenie pre detekciu anomálií**: Identifikácia bezpečnostných hrozieb s využitím AI  
-- **Korelácia spravodajstva o hrozbách**: Porovnávanie pozorovaných aktivít s známymi vzormi útokov  
+**Behaviorálna analytika:**
+- **Analytika správania používateľov (UBA)**: Detekcia nezvyčajných vzorcov prístupu používateľov
+- **Analytika správania entít (EBA)**: Monitorovanie správania MCP serverov a nástrojov
+- **Detekcia anomálií strojovým učením**: AI-poháňaná identifikácia bezpečnostných hrozieb
+- **Korelácia so spravodajstvom o hrozbách**: Porovnávanie sledovaných aktivít so známymi vzormi útokov
 
-## 9. **Reakcia na incidenty a zotavenie**
+## 9. **Reakcia na incidenty a obnova**
 
 ### **Automatizované reakčné schopnosti**
 
-**Okamžité reakčné opatrenia:**  
+**Okamžité akcie reakcie:**
 ```yaml
 Threat Containment:
   session_management:
@@ -386,69 +387,69 @@ Recovery Procedures:
     - "Configuration rollback"
     - "Service restart procedures"
 ```
-
+  
 ### **Forenzné schopnosti**
 
-**Podpora vyšetrovania:**  
-- **Udržanie audítornej stopy**: Nemenné logovanie s kryptografickou integritou  
-- **Zber dôkazov**: Automatizované zhromažďovanie relevantných bezpečnostných artefaktov  
-- **Obnova časovej osi udalostí**: Detailné sledovanie udalostí vedúcich k bezpečnostným incidentom  
-- **Vyhodnotenie dopadu**: Posúdenie rozsahu kompromitácie a expozície údajov  
+**Podpora vyšetrovania:**
+- **Zachovanie auditných stôp**: Nemenné logovanie s kryptografickou integritou
+- **Zber dôkazov**: Automatizovaný zber relevantných bezpečnostných artefaktov
+- **Rekonštrukcia časovej osi**: Detailná sekvencia udalostí vedúcich k bezpečnostným incidentom
+- **Hodnotenie dopadov**: Vyhodnotenie rozsahu kompromitácie a odhalenia údajov
 
 ## **Kľúčové princípy bezpečnostnej architektúry**
 
-### **Obrana v hĺbke (Defense in Depth)**
-- **Viacnásobné bezpečnostné vrstvy**: Žiadny jediný bod zlyhania v bezpečnostnej architektúre  
-- **Redundantné opatrenia**: Prekrývajúce sa bezpečnostné mechanizmy pre kritické funkcie  
-- **Mechanizmy fail-safe**: Bezpečné predvolené nastavenia pri chybách alebo útokoch  
+### **Obrana v hĺbke**
+- **Viaceré bezpečnostné vrstvy**: Žiadny jediný bod zlyhania v bezpečnostnej architektúre
+- **Redundantné kontroly**: Prekrývajúce sa bezpečnostné opatrenia pre kritické funkcie
+- **Fail-safe mechanizmy**: Bezpečné predvolené nastavenia v prípade chýb alebo útokov
 
-### **Implementácia prístupu Zero Trust**
-- **Nikdy neveriť, vždy overovať**: Neustále overovanie všetkých entít a požiadaviek  
-- **Princíp najmenej privilégií**: Minimálne prístupové práva pre všetky komponenty  
-- **Mikrosegmentácia**: Detailné sieťové a prístupové kontroly  
+### **Implementácia Zero Trust**
+- **Nikdy never, vždy overuj**: Neustále overovanie všetkých entít a požiadaviek
+- **Princíp najmenších právomocí**: Minimálne prístupové práva pre všetky komponenty
+- **Mikrosegmentácia**: Granulárna sieťová a prístupová kontrola
 
-### **Kontinuálny bezpečnostný rozvoj**
-- **Adaptácia na hrozby v prostredí**: Pravidelné aktualizácie na riešenie nových hrozieb  
-- **Efektívnosť bezpečnostných opatrení**: Neustále hodnotenie a zlepšovanie kontrol  
-- **Súlad so špecifikáciami**: Zladenie s vyvíjajúcimi sa MCP bezpečnostnými normami  
+### **Kontinuálny vývoj bezpečnosti**
+- **Adaptácia na hrozby**: Pravidelné aktualizácie adresujúce vznikajúce hrozby
+- **Efektívnosť bezpečnostných kontrol**: Neustále hodnotenie a zdokonaľovanie opatrení
+- **Súlad so špecifikáciami**: Zladenie s vyvíjajúcimi sa bezpečnostnými štandardmi MCP
 
 ---
 
-## **Zdroje pre implementáciu**
+## **Zdroje implementácie**
 
-### **Oficiálna dokumentácia MCP**
-- [MCP Špecifikácia (2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)  
-- [Najlepšie bezpečnostné postupy MCP](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices)  
-- [Specifikácia autorizácie MCP](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)  
+### **Oficiálna MCP dokumentácia**
+- [MCP špecifikácia (2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [MCP bezpečnostné najlepšie postupy](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices)
+- [MCP Authorization Specification](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
 
 ### **Bezpečnostné zdroje OWASP MCP**
-- [OWASP MCP Azure Security Guide](https://microsoft.github.io/mcp-azure-security-guide/) - Komplexný OWASP MCP Top 10 s implementáciou pre Azure  
-- [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/) - Oficiálne bezpečnostné riziká OWASP MCP  
-- [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/) - Praktický tréning bezpečnosti MCP na Azure  
+- [OWASP MCP Azure Security Guide](https://microsoft.github.io/mcp-azure-security-guide/) - Komplexný OWASP MCP Top 10 s implementáciou v Azure
+- [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/) - Oficiálne OWASP MCP bezpečnostné riziká
+- [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/) - Praktický bezpečnostný tréning MCP na Azure
 
 ### **Microsoft bezpečnostné riešenia**
-- [Microsoft Prompt Shields](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection)  
-- [Azure Content Safety](https://learn.microsoft.com/azure/ai-services/content-safety/)  
-- [GitHub Advanced Security](https://github.com/security/advanced-security)  
-- [Azure Key Vault](https://learn.microsoft.com/azure/key-vault/)  
+- [Microsoft Prompt Shields](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection)
+- [Azure Content Safety](https://learn.microsoft.com/azure/ai-services/content-safety/)
+- [GitHub Advanced Security](https://github.com/security/advanced-security)
+- [Azure Key Vault](https://learn.microsoft.com/azure/key-vault/)
 
 ### **Bezpečnostné štandardy**
-- [OAuth 2.0 Najlepšie bezpečnostné postupy (RFC 9700)](https://datatracker.ietf.org/doc/html/rfc9700)  
-- [OWASP Top 10 pre veľké jazykové modely](https://genai.owasp.org/)  
-- [NIST Cybersecurity Framework](https://www.nist.gov/cyberframework)  
+- [OAuth 2.0 Security Best Practices (RFC 9700)](https://datatracker.ietf.org/doc/html/rfc9700)
+- [OWASP Top 10 pre veľké jazykové modely](https://genai.owasp.org/)
+- [NIST Cybersecurity Framework](https://www.nist.gov/cyberframework)
 
 ---
 
-> **Dôležité**: Tieto bezpečnostné opatrenia odrážajú aktuálnu MCP špecifikáciu (2025-11-25). Vždy overte podľa najnovšej [oficiálnej dokumentácie](https://spec.modelcontextprotocol.io/), pretože štandardy sa rýchlo vyvíjajú.
+> **Dôležité**: Tieto bezpečnostné kontroly odrážajú aktuálnu špecifikáciu MCP (2025-11-25). Vždy overujte podľa najnovšej [oficiálnej dokumentácie](https://spec.modelcontextprotocol.io/), pretože štandardy sa rýchlo vyvíjajú.
 
-## Čo nasleduje
+## Čo ďalej
 
 - Návrat na: [Prehľad bezpečnostného modulu](./README.md)
-- Pokračovať na: [Module 3: Začíname](../03-GettingStarted/README.md)
+- Pokračujte na: [Modul 3: Začíname](../03-GettingStarted/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Upozornenie**:  
-Tento dokument bol preložený použitím AI prekladateľskej služby [Co-op Translator](https://github.com/Azure/co-op-translator). Aj keď sa snažíme o presnosť, prosím, berte na vedomie, že automatizované preklady môžu obsahovať chyby alebo nepresnosti. Originálny dokument v jeho pôvodnom jazyku by mal byť považovaný za autoritatívny zdroj. Pre kritické informácie sa odporúča profesionálny ľudský preklad. Nenesieme zodpovednosť za akékoľvek nedorozumenia alebo nesprávne výklady vzniknuté použitím tohto prekladu.
+**Vyhlásenie o zodpovednosti**:
+Tento dokument bol preložený pomocou AI prekladateľskej služby [Co-op Translator](https://github.com/Azure/co-op-translator). Hoci sa snažíme o presnosť, vezmite prosím na vedomie, že automatické preklady môžu obsahovať chyby alebo nepresnosti. Pôvodný dokument v jeho natívnom jazyku by mal byť považovaný za autoritatívny zdroj. Pre kritické informácie sa odporúča profesionálny ľudský preklad. Nie sme zodpovední za žiadne nedorozumenia alebo nesprávne interpretácie vyplývajúce z použitia tohto prekladu.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

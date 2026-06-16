@@ -1,50 +1,50 @@
-# Pažangi MCP sauga su Azure Content Safety
+# Išplėstinė MCP sauga su Azure Content Safety
 
-> **OWASP MCP rizikos sprendimas**: [MCP06 - Užklausos injekcija per kontekstinius duomenis](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)
+> **OWASP MCP rizikos sprendimas**: [MCP06 - Ketinimų srauto pervertinimas](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)
 
-Azure Content Safety siūlo kelis galingus įrankius, kurie gali pagerinti jūsų MCP įgyvendinimų saugumą. Norėdami praktinių įgyvendinimo žinių, žiūrėkite [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/) 3 stovyklą: I/O saugumas.
+Azure Content Safety suteikia kelis galingus įrankius, kurie gali sustiprinti jūsų MCP įgyvendinimų saugumą. Dėl praktinės įgyvendinimo patirties žr. [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/) 3 stovyklą: I/O sauga.
 
 ## Užklausų skydai
 
-„Microsoft“ AI Užklausų skydai suteikia patikimą apsaugą nuo tiesioginių ir netiesioginių užklausų injekcijų atakų per:
+„Microsoft“ AI užklausų skydai suteikia tvirtą apsaugą tiek nuo tiesioginių, tiek nuo netiesioginių užklausų įpurškimo atakų:
 
-1. **Pažangią aptikimą**: Naudoja mašininį mokymąsi, kad identifikuotų kenksmingas instrukcijas, įterptas į turinį.
-2. **Išryškinimą**: Keičia įvesties tekstą, kad AI sistemos galėtų atskirti galiojančias instrukcijas nuo išorinių įvesties duomenų.
-3. **Ribų ir duomenų žymėjimą**: Žymi ribas tarp patikimų ir nepatikimų duomenų.
-4. **Content Safety integraciją**: Veikia kartu su Azure AI Content Safety, kad aptiktų atjungimo bandymus ir kenksmingą turinį.
-5. **Nuolatinius atnaujinimus**: „Microsoft“ reguliariai atnaujina apsaugos mechanizmus prieš naujus grėsmes.
+1. **Išplėstinė aptikimas**: naudoja mašininį mokymąsi, kad atpažintų kenksmingas instrukcijas, įterptas į turinį.
+2. **Ryškus žymėjimas**: transformuoja įvesties tekstą, kad AI sistemos galėtų atskirti galiojančias instrukcijas nuo išorinių įvedimų.
+3. **Ribos žymėjimas ir duomenų žymėjimas**: žymi ribas tarp patikimų ir nepatikimų duomenų.
+4. **Content Safety integracija**: bendradarbiauja su Azure AI Content Safety, kad aptiktų pabėgimo iš sistemos bandymus ir kenksmingą turinį.
+5. **Nuolatiniai atnaujinimai**: „Microsoft“ reguliariai atnaujina apsaugos mechanizmus prieš naujai atsirandančias grėsmes.
 
 ## Azure Content Safety įgyvendinimas su MCP
 
-Šis metodas suteikia kelių sluoksnių apsaugą:
-- Skenuoja įvestis prieš apdorojimą
-- Tvirtina išvestis prieš grąžinimą
-- Naudoja blokavimo sąrašus žinomiems kenksmingiems šablonams
-- Pasinaudoja Azure nuolat atnaujinamais turinio saugumo modeliais
+Šis požiūris suteikia daugiasluoksnę apsaugą:
+- Įėjimų nuskaitymas prieš apdorojimą
+- Išėjimų patvirtinimas prieš grąžinimą
+- Blokavimo sąrašų naudojimas žinomiems kenksmingiems modeliams
+- Naudojimasis Azure nuolat atnaujinamais turinio saugumo modeliais
 
 ## Azure Content Safety ištekliai
 
-Norėdami sužinoti daugiau apie Azure Content Safety įgyvendinimą su jūsų MCP serveriais, naudokitės šiomis oficialiomis nuorodomis:
+Norėdami sužinoti daugiau apie Azure Content Safety įgyvendinimą su jūsų MCP serveriais, kreipkitės į šiuos oficialius išteklius:
 
 1. [Azure AI Content Safety dokumentacija](https://learn.microsoft.com/azure/ai-services/content-safety/) - Oficialioji Azure Content Safety dokumentacija.
-2. [Užklausų skydų dokumentacija](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/prompt-shield) - Sužinokite, kaip išvengti užklausų injekcijos atakų.
+2. [Prompt Shield dokumentacija](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/prompt-shield) - Sužinokite, kaip apsisaugoti nuo užklausų įpurškimo atakų.
 3. [Content Safety API nuoroda](https://learn.microsoft.com/rest/api/contentsafety/) - Išsami API nuoroda Content Safety įgyvendinimui.
-4. [Greita pradžia: Azure Content Safety su C#](https://learn.microsoft.com/azure/ai-services/content-safety/quickstart-csharp) - Greitas įgyvendinimo vadovas naudojant C#.
+4. [Greitas pradėjimas: Azure Content Safety su C#](https://learn.microsoft.com/azure/ai-services/content-safety/quickstart-csharp) - Greitas įgyvendinimo vadovas naudojant C#.
 5. [Content Safety klientų bibliotekos](https://learn.microsoft.com/azure/ai-services/content-safety/quickstart-client-libraries-rest-api) - Klientų bibliotekos įvairioms programavimo kalboms.
-6. [Atjungimo bandymų aptikimas](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection) - Specifinės gairės apie atjungimo bandymų aptikimą ir prevenciją.
-7. [Geriausios turinio saugumo praktikos](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/best-practices) - Geriausios praktikos veiksmingam turinio saugumo įgyvendinimui.
+6. [Pabėgimo iš sistemos bandymų aptikimas](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection) - Specifinės gairės, kaip aptikti ir užkirsti kelią pabėgimo bandymams.
+7. [Geriausios praktikos turinio saugumui](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/best-practices) - Geriausios praktikos efektyviam turinio saugumo įgyvendinimui.
 
-Išsamesniam įgyvendinimui žr. mūsų [Azure Content Safety įgyvendinimo vadovą](./azure-content-safety-implementation.md).
+Dėl išsamesnio įgyvendinimo žr. mūsų [Azure Content Safety įgyvendinimo vadovas](./azure-content-safety-implementation.md).
 
 ## Kas toliau
 
 - Skaityti: [Azure Content Safety įgyvendinimas](./azure-content-safety-implementation.md)
 - Grįžti į: [Saugumo modulio apžvalga](./README.md)
-- Toliau į: [3 modulis: Pradžia](../03-GettingStarted/README.md)
+- Tęsti į: [3 modulis: Pradžia](../03-GettingStarted/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Svarbu**:
-Šis dokumentas buvo išverstas naudojant dirbtinio intelekto vertimo paslaugą [Co-op Translator](https://github.com/Azure/co-op-translator). Nors siekiame tikslumo, prašome atkreipti dėmesį, kad automatiniai vertimai gali turėti klaidų ar netikslumų. Originalus dokumentas jo gimtąja kalba turėtų būti laikomas autoritetingu šaltiniu. Esant svarbiai informacijai, rekomenduojamas profesionalus žmonių vertimas. Mes neatsakome už bet kokius nesusipratimus ar neteisingus aiškinimus, kilusius dėl šio vertimo naudojimo.
+**Atsakomybės apribojimas**:
+Šis dokumentas buvo išverstas naudojant dirbtinio intelekto vertimo paslaugą [Co-op Translator](https://github.com/Azure/co-op-translator). Nors siekiame tikslumo, prašome atkreipti dėmesį, kad automatiniai vertimai gali turėti klaidų ar netikslumų. Originalus dokumentas jo gimtąja kalba laikomas autoritetingu šaltiniu. Svarbiai informacijai rekomenduojama naudoti profesionalų žmogiškąjį vertimą. Mes neatsakome už jokius nesusipratimus ar neteisingą interpretaciją, kilusią naudojantis šiuo vertimu.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

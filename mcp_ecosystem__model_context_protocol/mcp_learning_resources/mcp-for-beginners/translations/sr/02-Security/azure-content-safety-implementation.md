@@ -1,55 +1,55 @@
-# Имплементација Azure Content Safety са MCP
+# Имплементација заштите садржаја Azure са MCP
 
-> **OWASP MCP Ризик који се третира**: [MCP06 - Prompt Injection преко Contextual Payloads](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)
+> **OWASP MCP Ризик који се решава**: [MCP06 - Намерна саботажа протока](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)
 
-Да бисте оснажили MCP безбедност против prompt injection-а, тровања алата и других AI-специфичних слабости, топло се препоручује интеграција Azure Content Safety. Овај водич за имплементацију је у складу са [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/) Камп 3: I/O Безбедност.
+Да бисте ојачали безбедност MCP-а против убацивања упита, тровања алата и других AI-специфичних рањивости, препоручује се интеграција Azure Content Safety. Овај водич за имплементацију је у складу са [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/) Камп 3: Безбедност улазно-излазних операција.
 
 ## Интеграција са MCP сервером
 
-Да бисте интегрисали Azure Content Safety са вашим MCP сервером, додајте content safety филтер као middleware у ваш pipeline обраде захтева:
+Да бисте интегрисали Azure Content Safety са вашим MCP сервером, додајте филтер за заштиту садржаја као middleware у ваш процес обраде захтева:
 
 1. Иницијализујте филтер при покретању сервера  
 2. Верификујте све долазне захтеве алата пре обраде  
-3. Проверавајте све одлазне одговоре пре него што их вратите клијентима  
-4. Логовање и упозорења о прекршајима безбедности  
-5. Имплементирајте одговарајућу обраду грешака за пропале content safety провере  
+3. Проверавајте све излазне одговоре пре враћања клијентима  
+4. Логујте и упозоравајте на прекршаје безбедности  
+5. Имплементирајте одговарајућу обраду грешака за неуспеле провере безбедности садржаја  
 
-Ово пружа јаку одбрану против:  
-- Напада prompt injection-а  
-- Пokušaja тровања алата  
-- Експлоатације података путем злонамерних уноса  
+Ово пружа робусну одбрану од:  
+- Напада убацивањем упита  
+- Покушаја тровања алата  
+- Изношења података путем злонамерних уноса  
 - Генерисања штетног садржаја  
 
 ## Најбоље праксе за интеграцију Azure Content Safety
 
-1. **Прилагођене блок-листе**: Направите прилагођене блок-листе посебно за MCP injection шаблоне  
-2. **Подешавање озбиљности (Severity)**: Прилагодите прагове озбиљности у складу са вашим специфичним случајем коришћења и толеранцијом ризика  
-3. **Комплетна покривеност**: Примена content safety провера на све уносе и излазе  
-4. **Оптимизација перформанси**: Размотри кеширање за поновљене content safety провере  
-5. **Механизми резервне опције**: Дефинишите јасне fallback понашања када content safety сервиси нису доступни  
-6. **Повратна информација корисницима**: Обезбедите јасан фидбек корисницима када садржај буде блокиран због безбедносних разлога  
-7. **Континуирано унапређење**: Редовно ажурирајте блок-листе и шаблоне на основу нових претњи  
+1. **Прилагођене забрањене листе**: Креирајте прилагођене забране посебно за обрасце убацивања у MCP  
+2. **Подешавање тежине**: Прилагодите праг тежине у зависности од ваше специфичне употребе и толеранције ризика  
+3. **Свеобухватна покривеност**: Примените проверу садржаја на све уносе и излазе  
+4. **Оптимизација перформанси**: Размотрите имплементацију кеширања за понављане провере безбедности садржаја  
+5. **Механизми резервне мере**: Дефинишите јасна понашања резервних режима када услуге безбедности садржаја нису доступне  
+6. **Повратне информације корисницима**: Пружите јасан одговор корисницима када је садржај блокиран због безбедносних разлога  
+7. **Континуирано унапређење**: Редовно ажурирајте забрањене листе и обрасце на основу нових претњи  
 
 ## Додатни ресурси
 
-### OWASP MCP Упутства за безбедност  
-- [OWASP MCP Azure Security Guide](https://microsoft.github.io/mcp-azure-security-guide/) - Свеобухватан OWASP MCP Топ 10 са Azure имплементацијом  
-- [MCP06 - Prompt Injection](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/) - Детаљни шаблони за ублажавање prompt injection-а  
-- [MCP Security Summit Workshop](https://azure-samples.github.io/sherpa/) - Hands-on Камп 3: I/O Безбедност покрива content safety  
+### OWASP MCP смернице безбедности
+- [OWASP MCP Azure Security Guide](https://microsoft.github.io/mcp-azure-security-guide/) - Комплетан OWASP MCP Top 10 са Azure имплементацијом  
+- [MCP06 - Убацивање упита](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/) - Детаљни обрасци за ублажавање убацивања упита  
+- [MCP Security Summit Workshop](https://azure-samples.github.io/sherpa/) - Практични камп 3: Безбедност улазно-излазних операција обухвата заштиту садржаја  
 
-### Azure документација  
-- [Azure Content Safety Преглед](https://learn.microsoft.com/azure/ai-services/content-safety/)  
-- [Prompt Shields документација](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection)  
-- [Azure AI Content Safety Quickstart](https://learn.microsoft.com/azure/ai-services/content-safety/quickstart-text)  
+### Документација Azure
+- [Преглед Azure Content Safety](https://learn.microsoft.com/azure/ai-services/content-safety/)  
+- [Документација Prompt Shields](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection)  
+- [Azure AI Content Safety Почетак рада](https://learn.microsoft.com/azure/ai-services/content-safety/quickstart-text)  
 
 ## Шта следи
 
-- Вратите се на: [Security Module Overview](./README.md)  
-- Наставите на: [Module 3: Getting Started](../03-GettingStarted/README.md)
+- Вратите се на: [Преглед модула безбедности](./README.md)  
+- Наставите на: [Модул 3: Почетак рада](../03-GettingStarted/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Резервисање одговорности**:
-Овај документ је преведен уз помоћ AI сервиса за превођење [Co-op Translator](https://github.com/Azure/co-op-translator). Иако тежимо тачности, молимо вас да имате у виду да аутоматизовани преводи могу садржати грешке или неточности. Оригинални документ на његовом језику сматра се ауторитетним извором. За критичне информације препоручује се професионални људски превод. Нисмо одговорни за било каква неспоразума или погрешна тумачења настала коришћењем овог превода.
+**Изјава о одрицању одговорности**:
+Овај документ је преведен коришћењем услуге за аутоматски превод [Co-op Translator](https://github.com/Azure/co-op-translator). Иако тежимо тачности, имајте у виду да аутоматски преводи могу садржати грешке или нетачности. Оригинални документ на његовом изворном језику треба сматрати ауторитативним извором. За критичне информације препоручује се професионални људски превод. Нисмо одговорни за било каква неспоразума или погрешна тумачења која произилазе из коришћења овог превода.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

@@ -1,74 +1,74 @@
 # MCP Güvenlik Kontrolleri - Şubat 2026 Güncellemesi
 
-> **Mevcut Standart**: Bu belge, [MCP Spesifikasyonu 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/) güvenlik gereksinimlerini ve resmi [MCP Güvenlik En İyi Uygulamaları](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices) yansıtılmaktadır.
+> **Mevcut Standart**: Bu belge, [MCP Spesifikasyonu 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/) güvenlik gereksinimlerini ve resmi [MCP Güvenlik En İyi Uygulamaları](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices) yansıtıyor.
 
-Model Context Protocol (MCP), geleneksel yazılım güvenliği ve yapay zekaya özgü tehditlere yönelik gelişmiş güvenlik kontrolleriyle önemli ölçüde olgunlaştı. Bu belge, OWASP MCP Top 10 çerçevesine uyumlu güvenli MCP uygulamaları için kapsamlı güvenlik kontrolleri sunar.
+Model Context Protocol (MCP), hem geleneksel yazılım güvenliği hem de AI'ya özgü tehditleri ele alan geliştirilmiş güvenlik kontrolleriyle önemli ölçüde olgunlaşmıştır. Bu belge, OWASP MCP Top 10 çerçevesiyle uyumlu güvenli MCP uygulamaları için kapsamlı güvenlik kontrolleri sağlar.
 
 ## 🏔️ Pratik Güvenlik Eğitimi
 
-Pratik, uygulamalı güvenlik uygulama deneyimi için **[MCP Güvenlik Zirvesi Atölyesi (Sherpa)](https://azure-samples.github.io/sherpa/)** öneriyoruz - "zayıf → sömürü → düzelt → doğrula" metodolojisini kullanarak Azure'da MCP sunucularının güvence altına alınmasına yönelik kapsamlı rehberli bir keşif.
+Pratik, uygulamalı güvenlik uygulama deneyimi için, **[MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/)** - "zayıf → istismar → düzelt → doğrula" metodolojisi kullanılarak Azure'da MCP sunucularını güvence altına almaya yönelik kapsamlı bir rehberli keşif turunu öneririz.
 
-Bu belgedeki tüm güvenlik kontrolleri, OWASP MCP Top 10 risklerine yönelik referans mimariler ve Azure'a özgü uygulama rehberliği sağlayan **[OWASP MCP Azure Güvenlik Kılavuzu](https://microsoft.github.io/mcp-azure-security-guide/)** ile uyumludur.
+Bu belgede yer alan tüm güvenlik kontrolleri, **[OWASP MCP Azure Güvenlik Kılavuzu](https://microsoft.github.io/mcp-azure-security-guide/)** ile uyumludur; bu kılavuz, OWASP MCP Top 10 riskleri için referans mimariler ve Azure özgü uygulama rehberliği sağlar.
 
 ## **ZORUNLU Güvenlik Gereksinimleri**
 
 ### **MCP Spesifikasyonundan Kritik Yasaklar:**
 
-> **YASAKLANMIŞTIR**: MCP sunucuları, açıkça MCP sunucusu için verilmemiş herhangi bir tokenı kabul **ETMEMELİDİR**  
+> **YASAK**: MCP sunucuları açıkça MCP sunucusu için verilmemiş herhangi bir belirteci kabul ETMEMELİDİR  
 >
-> **YASAK**: MCP sunucuları kimlik doğrulama için oturumları **KULLANMAMALIDIR**  
+> **YASAK**: MCP sunucuları kimlik doğrulama için oturum kullanmamalıdır  
 >
 > **GEREKLİ**: Yetkilendirme uygulayan MCP sunucuları TÜM gelen istekleri doğrulamalıdır  
 >
-> **ZORUNLU**: Statik istemci kimlikleri kullanan MCP vekil sunucuları, her dinamik olarak kayıtlı istemci için kullanıcı onayı almalıdır
+> **ZORUNLU**: Statik istemci kimlikleri kullanan MCP proxy sunucuları her dinamik olarak kayıtlı istemci için kullanıcı onayı almalıdır
 
 ---
 
 ## 1. **Kimlik Doğrulama ve Yetkilendirme Kontrolleri**
 
-### **Harici Kimlik Sağlayıcı Entegrasyonu**
+### **Dış Kimlik Sağlayıcı Entegrasyonu**
 
-**Mevcut MCP Standardı (2025-11-25)**, MCP sunucularının kimlik doğrulamayı harici kimlik sağlayıcılarına devretmesine izin vererek önemli bir güvenlik gelişmesi sağlamaktadır:
+**Mevcut MCP Standardı (2025-11-25)**, MCP sunucularının kimlik doğrulamayı dış kimlik sağlayıcılarına devretmesine izin verir; bu önemli bir güvenlik iyileştirmesidir:
 
-**Adreslenen OWASP MCP Riski**: [MCP07 - Yetersiz Kimlik Doğrulama ve Yetkilendirme](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp07-authz/)
+**Ele Alınan OWASP MCP Riski**: [MCP07 - Yetersiz Kimlik Doğrulama ve Yetkilendirme](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp07-authz/)
 
 **Güvenlik Faydaları:**
-1. **Özel Kimlik Doğrulama Risklerini Ortadan Kaldırır**: Özel kimlik doğrulama uygulamalarından kaynaklanan savunmasızlık alanını azaltır  
-2. **Kurumsal Düzeyde Güvenlik**: Microsoft Entra ID gibi gelişmiş güvenlik özelliklerine sahip köklü kimlik sağlayıcılarını kullanır  
-3. **Merkezi Kimlik Yönetimi**: Kullanıcı yaşam döngüsü yönetimi, erişim kontrolü ve uyumluluk denetimini basitleştirir  
-4. **Çok Faktörlü Kimlik Doğrulama**: Kurumsal kimlik sağlayıcılarından MFA yetenekleri kazanır  
-5. **Koşullu Erişim Politikaları**: Risk tabanlı erişim kontrollerinden ve uyarlanabilir kimlik doğrulamadan yararlanır
+1. **Özel Kimlik Doğrulama Risklerini Ortadan Kaldırır**: Özel kimlik doğrulama uygulamalarını önleyerek güvenlik açığı yüzeyini azaltır
+2. **Kurumsal Düzeyde Güvenlik**: Microsoft Entra ID gibi gelişmiş güvenlik özelliklerine sahip köklü kimlik sağlayıcılarından yararlanır
+3. **Merkezi Kimlik Yönetimi**: Kullanıcı yaşam döngüsü yönetimi, erişim kontrolü ve uyumluluk denetimini kolaylaştırır
+4. **Çok Faktörlü Kimlik Doğrulama**: Kurumsal kimlik sağlayıcılarından MFA yeteneklerini devralır
+5. **Koşullu Erişim Politikaları**: Risk tabanlı erişim kontrolleri ve uyarlanabilir kimlik doğrulamadan faydalanır
 
 **Uygulama Gereksinimleri:**
-- **Token Hedef Kitle Doğrulaması**: Tüm tokenların açıkça MCP sunucusu için verilmiş olduğunun doğrulanması  
-- **Yayımlayan Doğrulaması**: Token yayımlayanın beklenen kimlik sağlayıcı ile eşleşmesi  
-- **İmza Doğrulaması**: Token bütünlüğünün kriptografik doğrulaması  
-- **Süre Sonu Uygulaması**: Token ömür sınırlarının sıkı şekilde uygulanması  
-- **Kapsam Doğrulaması**: Tokenların talep edilen işlemler için uygun izinleri içerdiğinin temini
+- **Belirteç Hedef Kitle Doğrulaması**: Tüm belirteçlerin açıkça MCP sunucusu için verildiğini doğrulayın
+- **Verici Doğrulaması**: Belirteç vericisinin beklenen kimlik sağlayıcısı ile eşleştiğini doğrulayın
+- **İmza Doğrulaması**: Belirteç bütünlüğünün kriptografik doğrulaması
+- **Süre Sonu Uygulaması**: Belirteç yaşam süresi sınırlarının sıkı şekilde uygulanması
+- **Kapsam Doğrulaması**: Belirteçlerin istenen işlemler için uygun izinleri içerdiğinden emin olun
 
 ### **Yetkilendirme Mantığı Güvenliği**
 
 **Kritik Kontroller:**
-- **Kapsamlı Yetkilendirme Denetimleri**: Tüm yetkilendirme karar noktalarının düzenli güvenlik incelemeleri  
-- **Güvenli Varsayılanlar**: Yetkilendirme mantığı kesin karar veremediğinde erişimi reddet  
-- **İzin Sınırları**: Farklı ayrıcalık seviyeleri ve kaynak erişimi arasında net ayrım  
-- **Denetim Kayıtları**: Tüm yetkilendirme kararlarının güvenlik izleme için tam kaydı  
-- **Düzenli Erişim İncelemeleri**: Kullanıcı izinleri ve ayrıcalık atamalarının periyodik doğrulaması
+- **Kapsamlı Yetkilendirme Denetimleri**: Tüm yetkilendirme karar noktalarının düzenli güvenlik incelemeleri
+- **Arızaya Karşı Güvenli Varsayılanlar**: Yetkilendirme mantığı net karar veremezse erişimi reddet
+- **İzin Sınırları**: Farklı ayrıcalık seviyeleri ve kaynak erişimi arasında net ayrım
+- **Denetim Kaydı**: Güvenlik izleme için tüm yetkilendirme kararlarının eksiksiz kaydı
+- **Düzenli Erişim İncelemeleri**: Kullanıcı izinlerinin ve ayrıcalık atamalarının periyodik doğrulaması
 
-## 2. **Token Güvenliği ve Passthrough Karşıtı Kontroller**
+## 2. **Belirteç Güvenliği ve Geçiş İzni Engelleme Kontrolleri**
 
-**Adreslenen OWASP MCP Riski**: [MCP01 - Token Yanlış Yönetimi ve Gizli Bilgi Açığa Çıkması](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp01-token-mismanagement/)
+**Ele Alınan OWASP MCP Riski**: [MCP01 - Belirteç Yönetimi Hataları ve Gizli Bilgi Açığa Çıkması](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp01-token-mismanagement/)
 
-### **Token Passthrough Engelleme**
+### **Belirteç Geçişinin Önlenmesi**
 
-MCP Yetkilendirme Spesifikasyonunda kritik güvenlik riskleri nedeniyle **token passthrough kesinlikle yasaktır**:
+Belirteç geçişi MCP Yetkilendirme Spesifikasyonunda kritik güvenlik riskleri nedeniyle açıkça yasaktır:
 
-**Adreslenen Güvenlik Riskleri:**
-- **Kontrol Bypassı**: Oran sınırlaması, istek doğrulama ve trafik izleme gibi temel güvenlik kontrollerini atlatır  
-- **Hesap Verebilirlik Bozulması**: İstemci tanımlaması imkansız hale gelir, denetim kayıtlarının ve olay araştırmasının bozulmasına yol açar  
-- **Vekil Sunucu Üzerinden Sızdırma**: Kötü niyetli aktörlerin sunucuları yetkisiz veri erişimi için vekil olarak kullanmasına imkan tanır  
-- **Güven Sınırı İhlalleri**: Alt hizmetlerin token kaynağına ilişkin güven varsayımlarını bozar  
-- **Yanal Hareketlilik**: Birden fazla hizmetteki ele geçirilmiş tokenlar daha geniş saldırı yayılımına olanak tanır
+**Ele Alınan Güvenlik Riskleri:**
+- **Kontrol Atlatma**: Oran sınırlaması, istek doğrulama ve trafik izlemesi gibi temel güvenlik kontrollerini geçersiz kılar
+- **Hesap Verebilirlik Bozukluğu**: İstemci tanımlamayı imkansız hale getirerek denetim izlerini ve olay incelemelerini bozar
+- **Proxy Tabanlı Veri Çıkarma**: Kötü niyetli aktörlerin sunucuları izinsiz veri erişimi için proxy olarak kullanmasına izin verir
+- **Güven Sınırı İhlalleri**: Aşağıdaki hizmetlerin belirteç kaynaklarına ilişkin güven varsayımlarını bozar
+- **Yanal Hareket**: Ele geçirilmiş belirteçlerin birden çok hizmette genişletilmiş saldırı yapmasına olanak tanır
 
 **Uygulama Kontrolleri:**
 ```yaml
@@ -86,23 +86,23 @@ Token Lifecycle Management:
   replay_protection: "Implemented via nonce/timestamp"
 ```
 
-### **Güvenli Token Yönetim Modelleri**
+### **Güvenli Belirteç Yönetim Desenleri**
 
 **En İyi Uygulamalar:**
-- **Kısa Ömürlü Tokenlar**: Sık token yenilenmesiyle maruz kalma süresini minimize et  
-- **Anlık İhtiyaç Doğrultusunda Token Verme**: Tokenları sadece belirli işlemler için gerektiğinde oluştur  
-- **Güvenli Depolama**: Donanım güvenlik modülleri (HSM) veya güvenli anahtar kasaları kullan  
-- **Token Bağlama**: Mümkün olan yerlerde tokenları belirli istemcilere, oturumlara veya işlemlere bağla  
-- **İzleme ve Uyarı**: Token kötüye kullanımı veya yetkisiz erişim modellerinin gerçek zamanlı tespiti
+- **Kısa Ömürlü Belirteçler**: Belirteç döndürme ile maruz kalma süresini minimize edin
+- **Tam Zamanında Verme**: Belirteçleri yalnızca belirli işlemler için gerektiğinde verin
+- **Güvenli Depolama**: Donanım güvenlik modülleri (HSM) veya güvenli anahtar kasaları kullanın
+- **Belirteç Bağlama**: Belirteçleri mümkün olduğunda belirli istemcilere, oturumlara veya işlemlere bağlayın
+- **İzleme ve Alarm**: Belirteç kötüye kullanımı veya izinsiz erişim kalıplarının gerçek zamanlı tespiti
 
 ## 3. **Oturum Güvenliği Kontrolleri**
 
-### **Oturum Kaçırma Önleme**
+### **Oturum Ele Geçirme Önleme**
 
-**Adreslenen Saldırı Yöntemleri:**
-- **Oturum Kaçırma İstemci Uyarısı Enjeksiyonu**: Paylaşılan oturum durumuna kötü amaçlı olayların enjekte edilmesi  
-- **Oturum Taklidi**: Çalınan oturum kimliklerinin kimlik doğrulamayı atlama amaçlı yetkisiz kullanımı  
-- **Devam Ettirilebilir Akış Saldırıları**: Sunucu tarafından gönderilen olayların kötü amaçlı içerik enjekte edilerek yeniden başlatılması
+**Ele Alınan Saldırı Vektörleri:**
+- **Oturum Ele Geçirme İstemi Enjeksiyonu**: Paylaşılan oturum durumuna kötü niyetli olayların enjekte edilmesi
+- **Oturum Taklidi**: Çalınan oturum kimliklerinin yetkisiz kullanımı ile kimlik doğrulamanın atlanması
+- **Devam Ettirilebilir Akış Saldırıları**: Kötü niyetli içerik enjeksiyonu için sunucu tarafından gönderilen olay devamlarının kullanılması
 
 **Zorunlu Oturum Kontrolleri:**
 ```yaml
@@ -125,30 +125,30 @@ Session Lifecycle:
 ```
 
 **İletim Güvenliği:**
-- **HTTPS Zorunluluğu**: Tüm oturum iletişimi TLS 1.3 üzerinden  
-- **Güvenli Çerez Özellikleri**: HttpOnly, Secure, SameSite=Strict  
-- **Sertifika Pinleme**: Ortadaki adam saldırılarını önlemek için kritik bağlantılarda
+- **HTTPS Zorlaması**: Tüm oturum iletişimleri TLS 1.3 üzerinden
+- **Güvenli Çerez Özellikleri**: HttpOnly, Secure, SameSite=Strict
+- **Sertifika Sabitleme**: MITM saldırılarını önlemek için kritik bağlantılarda
 
-### **Durumlu ve Durumsuz Yaklaşımlar**
+### **Durumlu ve Durumsuz Düşünceler**
 
-**Durumlu Uygulamalar İçin:**
-- Paylaşılan oturum durumu enjeksiyon saldırılarına karşı ek koruma gerektirir  
-- Kuyruk temelli oturum yönetiminde bütünlük doğrulaması gerekir  
-- Birden çok sunucu örneği güvenli oturum durumu senkronizasyonu ister
+**Durumlu Uygulamalar için:**
+- Paylaşılan oturum durumu enjeksiyon saldırılarına karşı ek koruma gerektirir
+- Kuyruk tabanlı oturum yönetimi bütünlük doğrulaması gerektirir
+- Birden çok sunucu örneği güvenli oturum durumu eşitlemesi gerektirir
 
-**Durumsuz Uygulamalar İçin:**
-- JWT veya benzeri token tabanlı oturum yönetimi  
-- Oturum durumunun kriptografik bütünlük doğrulaması  
-- Saldırı yüzeyi az ama sağlam token doğrulaması gerektirir
+**Durumsuz Uygulamalar için:**
+- JWT veya benzeri belirteç tabanlı oturum yönetimi
+- Oturum durumu bütünlüğünün kriptografik doğrulaması
+- Azalmış saldırı yüzeyi ancak sağlam belirteç doğrulaması gerektirir
 
-## 4. **Yapay Zeka-Özel Güvenlik Kontrolleri**
+## 4. **AI'ya Özgü Güvenlik Kontrolleri**
 
-**Adreslenen OWASP MCP Riskleri**:  
-- [MCP06 - Bağlamsal Yük ile İstemci Enjeksiyonu](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)  
-- [MCP03 - Araç Zehirlenmesi](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp03-tool-poisoning/)  
-- [MCP05 - Komut Enjeksiyonu ve Çalıştırma](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp05-command-injection/)
+**Ele Alınan OWASP MCP Riskleri**:  
+- [MCP06 - İstek Akışı Ters Çevirme](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)  
+- [MCP03 - Araç Zehirleme](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp03-tool-poisoning/)  
+- [MCP05 - Komut Enjeksiyonu ve Yürütme](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp05-command-injection/)
 
-### **İstemci Enjeksiyon Koruması**
+### **İstek Enjeksiyon Savunması**
 
 **Microsoft Prompt Shields Entegrasyonu:**  
 ```yaml
@@ -167,14 +167,14 @@ Integration Points:
   - "Real-time content filtering"
   - "Threat intelligence updates"
 ```
-
-**Uygulama Kontrolleri:**
-- **Girdi Temizleme**: Tüm kullanıcı girdilerinin kapsamlı doğrulaması ve filtrelenmesi  
-- **İçerik Sınırı Tanımı**: Sistem talimatları ile kullanıcı içerikleri arasında net ayrım  
+  
+**Uygulama Kontrolleri:**  
+- **Girdi Temizleme**: Tüm kullanıcı girdilerinin kapsamlı doğrulama ve filtrelemesi  
+- **İçerik Sınırlarının Tanımlanması**: Sistem talimatları ile kullanıcı içeriği arasında net ayrım  
 - **Talimat Hiyerarşisi**: Çelişen talimatlar için uygun öncelik kuralları  
-- **Çıktı İzleme**: Potansiyel zararlı veya manipüle edilmiş çıktıların tespiti
+- **Çıktı İzleme**: Potansiyel olarak zararlı veya manipüle edilmiş çıktıların tespiti  
 
-### **Araç Zehirlenmesi Önleme**
+### **Araç Zehirleme Önleme**
 
 **Araç Güvenlik Çerçevesi:**  
 ```yaml
@@ -197,16 +197,16 @@ Tool Definition Protection:
     - "Anomaly detection for execution patterns"
     - "Automated alerting for suspicious modifications"
 ```
-
-**Dinamik Araç Yönetimi:**
-- **Onay Akışları**: Araç değişiklikleri için açık kullanıcı onayı  
+  
+**Dinamik Araç Yönetimi:**  
+- **Onay İş Akışları**: Araç değişiklikleri için açık kullanıcı onayı  
 - **Geri Alma Yeteneği**: Önceki araç sürümlerine geri dönme imkanı  
-- **Değişiklik Denetimi**: Araç tanım değişikliklerinin tam geçmişi  
-- **Risk Değerlendirmesi**: Araç güvenlik duruşunun otomatik değerlendirilmesi
+- **Değişiklik Denetimi**: Araç tanımı değişikliklerinin tam geçmişi  
+- **Risk Değerlendirmesi**: Araç güvenlik duruşunun otomatik değerlendirmesi  
 
-## 5. **Confused Deputy Saldırısı Önleme**
+## 5. **Karışık Temsilci (Confused Deputy) Saldırı Önlemesi**
 
-### **OAuth Vekil Sunucu Güvenliği**
+### **OAuth Proxy Güvenliği**
 
 **Saldırı Önleme Kontrolleri:**  
 ```yaml
@@ -223,16 +223,16 @@ Client Registration:
     - "Authorization code binding"
     - "Nonce verification for ID tokens"
 ```
+  
+**Uygulama Gereksinimleri:**  
+- **Kullanıcı Onayı Doğrulaması**: Dinamik istemci kaydı için onay ekranlarını asla atlamayın  
+- **Yönlendirme URI Doğrulaması**: Yönlendirme hedeflerinin sıkı beyaz liste tabanlı doğrulaması  
+- **Yetkilendirme Kodu Koruması**: Tek kullanımlık sıkı süreli kodlar  
+- **İstemci Kimliği Doğrulaması**: İstemci kimlik bilgileri ve meta verilerinin güçlü doğrulaması  
 
-**Uygulama Gereksinimleri:**
-- **Kullanıcı Onayı Doğrulaması**: Dinamik istemci kaydı için asla onay ekranları atlanmamalı  
-- **Yönlendirme URI Doğrulaması**: Yönlendirme hedeflerinin sıkı beyaz liste doğrulaması  
-- **Yetkilendirme Kodu Koruması**: Tek kullanımlık ve kısa ömürlü kodlar  
-- **İstemci Kimlik Doğrulaması**: İstemci kimlik bilgileri ve meta verilerinin sağlam doğrulanması
+## 6. **Araç Yürütme Güvenliği**
 
-## 6. **Araç Çalıştırma Güvenliği**
-
-### **Sandboxing ve İzolasyon**
+### **Sandbox ve İzolasyon**
 
 **Konteyner Tabanlı İzolasyon:**  
 ```yaml
@@ -250,12 +250,12 @@ Execution Environment:
     syscall_filtering: "Seccomp profiles for syscall restriction"
     filesystem: "Read-only root with minimal writable areas"
 ```
-
-**İşlem İzolasyonu:**
-- **Ayrı İşlem Bağlamları**: Her araç çalıştırma izole edilmiş işlem alanında  
-- **İşlemler Arası İletişim (IPC)**: Doğrulama ile güvenli IPC mekanizmaları  
-- **İşlem İzleme**: Çalışma zamanı davranış analizi ve anomali tespiti  
-- **Kaynak Kısıtlamaları**: CPU, bellek ve G/Ç işlemlerinde katı sınırlar
+  
+**İşlem İzolasyonu:**  
+- **Ayrı İşlem Bağlamları**: Her araç yürütmesi izole işlem alanında  
+- **İşlemler Arası İletişim**: Doğrulamalı güvenli IPC mekanizmaları  
+- **İşlem İzleme**: Çalışma zamanı davranış analizleri ve anomali tespiti  
+- **Kaynak Kısıtlamaları**: CPU, bellek ve G/Ç işlemleri için sert sınırlar  
 
 ### **Asgari Ayrıcalık Uygulaması**
 
@@ -279,10 +279,10 @@ Access Control:
     - "No hardware device access"
     - "Restricted environment variable access"
 ```
-
+  
 ## 7. **Tedarik Zinciri Güvenlik Kontrolleri**
 
-**Adreslenen OWASP MCP Riski**: [MCP04 - Tedarik Zinciri Saldırıları](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp04-supply-chain/)
+**Ele Alınan OWASP MCP Riski**: [MCP04 - Yazılım Tedarik Zinciri Saldırıları ve Bağımlılık Tahrifatı](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp04-supply-chain/)
 
 ### **Bağımlılık Doğrulaması**
 
@@ -314,22 +314,22 @@ AI Components:
     - "Data handling compliance verification"
     - "Incident response capability evaluation"
 ```
-
+  
 ### **Sürekli İzleme**
 
-**Tedarik Zinciri Tehdit Tespiti:**
-- **Bağımlılık Sağlığı İzleme**: Tüm bağımlılıkların sürekli güvenlik değerlendirmesi  
+**Tedarik Zinciri Tehdit Tespiti:**  
+- **Bağımlılık Sağlığı İzleme**: Tüm bağımlılıkların güvenlik sorunları için sürekli değerlendirilmesi  
 - **Tehdit İstihbaratı Entegrasyonu**: Ortaya çıkan tedarik zinciri tehditlerine gerçek zamanlı güncellemeler  
-- **Davranış Analizi**: Dış bileşenlerdeki olağan dışı davranışların tespiti  
-- **Otomatik Müdahale**: Ele geçirilmiş bileşenlerin hemen izole edilmesi
+- **Davranışsal Analiz**: Dış bileşenlerde olağandışı davranış tespiti  
+- **Otomatik Müdahale**: Ele geçirilmiş bileşenlerin derhal kontrol altına alınması  
 
 ## 8. **İzleme ve Tespit Kontrolleri**
 
-**Adreslenen OWASP MCP Riski**: [MCP08 - Denetim ve Telemetri Eksikliği](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp08-telemetry/)
+**Ele Alınan OWASP MCP Riski**: [MCP08 - Denetim ve Telemetri Eksikliği](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp08-telemetry/)
 
 ### **Güvenlik Bilgi ve Olay Yönetimi (SIEM)**
 
-**Kapsamlı Günlükleme Stratejisi:**  
+**Kapsamlı Kayıt Stratejisi:**  
 ```yaml
 Authentication Events:
   - "All authentication attempts (success/failure)"
@@ -349,20 +349,20 @@ Security Events:
   - "Session hijacking indicators"
   - "Unusual access patterns and anomalies"
 ```
-
+  
 ### **Gerçek Zamanlı Tehdit Tespiti**
 
-**Davranışsal Analitik:**
-- **Kullanıcı Davranış Analitiği (UBA)**: Olağan dışı kullanıcı erişim kalıplarının tespiti  
-- **Varlık Davranış Analitiği (EBA)**: MCP sunucu ve araç davranışlarının izlenmesi  
-- **Makine Öğrenmeli Anomali Tespiti**: Yapay zeka destekli güvenlik tehdidi belirleme  
-- **Tehdit İstihbaratı Korelasyonu**: Gözlemlenen faaliyetlerin bilinen saldırı kalıplarıyla eşleştirilmesi
+**Davranışsal Analitik:**  
+- **Kullanıcı Davranış Analitiği (UBA)**: Olağandışı kullanıcı erişim kalıplarının tespiti  
+- **Varlık Davranış Analitiği (EBA)**: MCP sunucusu ve araç davranışlarının izlenmesi  
+- **Makine Öğrenimi Anomali Tespiti**: Güvenlik tehditlerinin AI destekli tanımlanması  
+- **Tehdit İstihbaratı Korelasyonu**: Gözlemlenen faaliyetlerin bilinen saldırı kalıplarıyla eşleştirilmesi  
 
 ## 9. **Olay Müdahalesi ve Kurtarma**
 
 ### **Otomatik Müdahale Yetkinlikleri**
 
-**Hızlı Yanıt Eylemleri:**  
+**Anında Yanıt Eylemleri:**  
 ```yaml
 Threat Containment:
   session_management:
@@ -386,31 +386,31 @@ Recovery Procedures:
     - "Configuration rollback"
     - "Service restart procedures"
 ```
-
+  
 ### **Adli Bilişim Yetkinlikleri**
 
-**Soruşturma Desteği:**
-- **Denetim Kaydı Koruması**: Kriptografik bütünlükle değiştirilemez günlükler  
-- **Delil Toplama**: İlgili güvenlik verilerinin otomatik toplanması  
-- **Zaman Çizelgesi Yeniden İnşası**: Güvenlik olaylarına yol açan detaylı olay sıralaması  
-- **Etkilenme Değerlendirmesi**: İhlal kapsamı ve veri sızıntısı analizi
+**Soruşturma Desteği:**  
+- **Denetim İzinin Korunması**: Kriptografik bütünlükle değiştirilemez kayıtlar  
+- **Delil Toplama**: İlgili güvenlik eserlerinin otomatik toplanması  
+- **Zaman Çizelgesi Yeniden Yapılandırması**: Güvenlik olaylarına yol açan ayrıntılı olay dizisi  
+- **Etkilenme Değerlendirmesi**: İhlal kapsamı ve veri açığa çıkışının değerlendirilmesi
 
-## **Temel Güvenlik Mimari İlkeleri**
+## **Ana Güvenlik Mimari İlkeleri**
 
-### **Derinlemesine Savunma**
-- **Birden Çok Güvenlik Katmanı**: Güvenlik mimarisinde tek bir başarısızlık noktası yok  
+### **Derinlikli Savunma**
+- **Çok Katmanlı Güvenlik**: Güvenlik mimarisinde tek hata noktası yok  
 - **Yedekli Kontroller**: Kritik fonksiyonlar için örtüşen güvenlik önlemleri  
-- **Güvenli Varsayılanlar**: Sistem hataları veya saldırılar karşısında güvenli ön tanımlı durumlar
+- **Arızaya Karşı Güvenli Mekanizmalar**: Sistemler hata veya saldırıya maruz kaldığında güvenli varsayılanlar  
 
-### **Sıfır Güven İlkesi**
-- **Asla Güvenme, Sürekli Doğrula**: Tüm varlıkların ve isteklerin sürekli doğrulanması  
-- **Asgari Ayrıcalık Prensibi**: Tüm bileşenlere azami kısıtlı erişim  
-- **Mikro Segmentasyon**: İnce taneli ağ ve erişim kontrolleri
+### **Sıfır Güven Uygulaması**
+- **Asla Güvenme, Her Zaman Doğrula**: Tüm varlıklar ve istekler için sürekli doğrulama  
+- **Asgari Ayrıcalık İlkesi**: Tüm bileşenler için en az erişim hakları  
+- **Mikro Bölümlendirme**: İnce taneli ağ ve erişim kontrolleri  
 
 ### **Sürekli Güvenlik Evrimi**
-- **Tehdit Ortamına Uyum**: Gelişmekte olan tehditlere düzenli güncellemeler  
-- **Güvenlik Kontrol Etkinliği**: Kontrollerin sürekli değerlendirilmesi ve iyileştirilmesi  
-- **Spesifikasyon Uyumu**: Değişen MCP güvenlik standartlarına uygunluk
+- **Tehdit Manzarasına Uyum**: Ortaya çıkan tehditleri ele almak için düzenli güncellemeler  
+- **Güvenlik Kontrol Etkinliği**: Kontrollerin sürekli değerlendirilmesi ve geliştirilmesi  
+- **Spesifikasyon Uyum**: Gelişen MCP güvenlik standartlarıyla uyumlu  
 
 ---
 
@@ -422,14 +422,14 @@ Recovery Procedures:
 - [MCP Yetkilendirme Spesifikasyonu](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
 
 ### **OWASP MCP Güvenlik Kaynakları**
-- [OWASP MCP Azure Güvenlik Kılavuzu](https://microsoft.github.io/mcp-azure-security-guide/) - Azure uygulaması ile kapsamlı OWASP MCP Top 10  
-- [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/) - Resmi OWASP MCP güvenlik riskleri  
-- [MCP Güvenlik Zirvesi Atölyesi (Sherpa)](https://azure-samples.github.io/sherpa/) - Azure için MCP pratik güvenlik eğitimi
+- [OWASP MCP Azure Güvenlik Kılavuzu](https://microsoft.github.io/mcp-azure-security-guide/) - OWASP MCP Top 10 ve Azure uygulaması
+- [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/) - Resmi OWASP MCP güvenlik riskleri
+- [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/) - Azure üzerinde MCP için uygulamalı güvenlik eğitimi
 
 ### **Microsoft Güvenlik Çözümleri**
 - [Microsoft Prompt Shields](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection)
 - [Azure Content Safety](https://learn.microsoft.com/azure/ai-services/content-safety/)
-- [GitHub İleri Düzey Güvenlik](https://github.com/security/advanced-security)
+- [GitHub Gelişmiş Güvenlik](https://github.com/security/advanced-security)
 - [Azure Key Vault](https://learn.microsoft.com/azure/key-vault/)
 
 ### **Güvenlik Standartları**
@@ -439,16 +439,16 @@ Recovery Procedures:
 
 ---
 
-> **Önemli**: Bu güvenlik kontrolleri mevcut MCP spesifikasyonunu (2025-11-25) yansıtır. Standartlar hızla evrildiği için her zaman en güncel [resmi dokümantasyon](https://spec.modelcontextprotocol.io/) ile karşılaştırın.
+> **Önemli**: Bu güvenlik kontrolleri mevcut MCP spesifikasyonunu (2025-11-25) yansıtmaktadır. Standartlar hızla değişmeye devam ettiğinden, her zaman en güncel [resmi dokümantasyon](https://spec.modelcontextprotocol.io/) ile doğrulayın.
 
-## Sonraki Adım
+## Sonraki Adımlar
 
-- Dön: [Güvenlik Modülü Genel Bakış](./README.md)
-- Devam et: [Module 3: Getting Started](../03-GettingStarted/README.md)
+- Geri dön: [Güvenlik Modülü Genel Bakış](./README.md)  
+- Devam et: [Modül 3: Başlarken](../03-GettingStarted/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
 **Feragatname**:
-Bu belge, AI çeviri hizmeti [Co-op Translator](https://github.com/Azure/co-op-translator) kullanılarak çevrilmiştir. Doğruluğa özen göstersek de, otomatik çevirilerin hata veya yanlışlık içerebileceğini lütfen unutmayın. Orijinal belge, kendi ana dilinde yetkili kaynak olarak kabul edilmelidir. Kritik bilgiler için profesyonel insan çevirisi tavsiye edilir. Bu çevirinin kullanımı sonucunda oluşabilecek herhangi bir yanlış anlama veya yanlış yorumdan sorumlu değiliz.
+Bu belge, AI çeviri hizmeti [Co-op Translator](https://github.com/Azure/co-op-translator) kullanılarak çevrilmiştir. Doğruluk için çaba sarf etsek de, otomatik çevirilerin hata veya yanlışlık içerebileceğini lütfen unutmayınız. Orijinal belge, kendi dilinde yetkili kaynak olarak kabul edilmelidir. Kritik bilgiler için profesyonel insan çevirisi önerilir. Bu çevirinin kullanımı sonucu ortaya çıkabilecek yanlış anlamalardan veya yanlış yorumlamalardan sorumlu değiliz.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

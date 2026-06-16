@@ -1,76 +1,76 @@
-# MCP varnostne kontrole - posodobitev februar 2026
+# MCP varnostni ukrepi - posodobitev februar 2026
 
-> **Trenutni standard**: Ta dokument odraža varnostne zahteve [MCP specifikacije 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/) in uradne [MCP varnostne najboljše prakse](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices).
+> **Trenutni standard**: Ta dokument odraža [MCP specifikacijo 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/) varnostne zahteve in uradne [MCP varnostne najboljše prakse](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices).
 
-Protokol Model Context (MCP) je zrel z izboljšanimi varnostnimi kontrolami, ki obravnavajo tako tradicionalno varnost programske opreme kot AI-specifične grožnje. Ta dokument zagotavlja celovite varnostne kontrole za varne implementacije MCP, usklajene s okvirjem OWASP MCP Top 10.
+Model Context Protocol (MCP) je znatno dozorel z izboljšanimi varnostnimi ukrepi, ki naslavljajo tako tradicionalno varnost programske opreme kot tudi specifične grožnje umetne inteligence. Ta dokument zagotavlja celovite varnostne ukrepe za varne implementacije MCP, usklajene z okvirjem OWASP MCP Top 10.
 
-## 🏔️ Praktično varnostno usposabljanje
+## 🏔️ Praktična varnostna usposabljanja
 
-Za praktične, praktične izkušnje z varnostno implementacijo priporočamo **[MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/)** – celovito vodeno odpravo do varnosti MCP strežnikov v Azure z metodologijo "ranljiv → izkoriščen → popravljeno → preverjeno".
+Za praktične izkušnje z varnostno implementacijo priporočamo **[delavnico MCP Security Summit (Sherpa)](https://azure-samples.github.io/sherpa/)** – celovito vodeno odpravo za zavarovanje MCP strežnikov v Azure z metodologijo "ranljiv → izkoristi → popravi → potrdi".
 
-Vse varnostne kontrole v tem dokumentu so usklajene z **[OWASP MCP Azure Security Guide](https://microsoft.github.io/mcp-azure-security-guide/)**, ki nudi referenčne arhitekture in smernice za implementacijo specifične za Azure za tveganja OWASP MCP Top 10.
+Vsi varnostni ukrepi v tem dokumentu so usklajeni z **[OWASP MCP Azure Security Guide](https://microsoft.github.io/mcp-azure-security-guide/)**, ki ponuja referenčne arhitekture in smernice za specifične implementacije Azure za OWASP MCP Top 10 tveganja.
 
 ## **OBVEZNE varnostne zahteve**
 
 ### **Kritične prepovedi iz MCP specifikacije:**
 
-> **ZAPOVEDANO NE**: MCP strežniki **NE SMEMO** sprejemati nobenih žetonov, ki niso izrecno izdani za MCP strežnik  
->
-> **PREPOVEDANO**: MCP strežniki **NE SMEMO** uporabljati sej za preverjanje pristnosti  
->
-> **ZAHETNO**: MCP strežniki, ki izvajajo avtorizacijo, **MORAJO** preveriti VSE dohodne zahteve  
->
-> **OBVEZNO**: MCP proxy strežniki, ki uporabljajo statične ID-je odjemalcev, **MORAJO** pridobiti soglasje uporabnika za vsakega dinamično registriranega odjemalca
+> **PREPOVEDANO**: MCP strežniki **NE SMEJO** sprejemati nobenih žetonov, ki niso izrecno izdani za MCP strežnik  
+>  
+> **PREPOVEDANO**: MCP strežniki **NE SMEJO** uporabljati sej za avtentikacijo  
+>  
+> **ZAHETNO**: MCP strežniki, ki izvajajo avtorizacijo, **MORJO** preverjati VSE dohodne zahteve  
+>  
+> **OBVEZNO**: MCP proxy strežniki, ki uporabljajo statične ID-je odjemalcev, **MORJO** pridobiti soglasje uporabnika za vsakega dinamično registriranega odjemalca
 
 ---
 
-## 1. **Kontrole preverjanja pristnosti in avtorizacije**
+## 1. **Ukrepi za avtentikacijo in avtorizacijo**
 
-### **Integracija zunanjega ponudnika identitete**
+### **Integracija zunanjih ponudnikov identitet**
 
-**Trenutni MCP standard (2025-11-25)** dovoljuje MCP strežnikom delegiranje preverjanja pristnosti zunanjim ponudnikom identitete, kar predstavlja pomembno varnostno izboljšavo:
+**Trenutni MCP standard (2025-11-25)** omogoča MCP strežnikom delegiranje avtentikacije zunanjim ponudnikom identitet, kar predstavlja pomembno izboljšavo varnosti:
 
-**Rešeno tveganje OWASP MCP**: [MCP07 - Nezadostna preverba pristnosti in avtorizacija](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp07-authz/)
+**Rešeno OWASP MCP tveganje**: [MCP07 - Nezadostna avtentikacija in avtorizacija](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp07-authz/)
 
 **Varnostne koristi:**
-1. **Odpravlja tveganja lastnih implementacij preverjanja pristnosti**: zmanjša ranljivosti z izogibanjem lastnim rešitvam  
-2. **Varnost na ravni podjetja**: uporaba uveljavljenih ponudnikov, kot je Microsoft Entra ID, z naprednimi varnostnimi funkcijami  
-3. **Centralizirano upravljanje identitet**: poenostavi upravljanje življenjskega cikla uporabnika, nadzor dostopa in revizije skladnosti  
-4. **Večfaktorsko preverjanje pristnosti (MFA)**: deduje zmožnosti MFA od ponudnikov identitete podjetja  
-5. **Politike pogojnega dostopa**: koristi nadzoru dostopa na podlagi tveganj in prilagodljivi pristnosti
+1. **Odprava tveganj lastnih avtentikacij**: zmanjša ranljivost s tem, da se izogne lastni implementaciji avtentikacije
+2. **Varnost na ravni podjetja**: izkorišča uveljavljene ponudnike identitet, kot je Microsoft Entra ID, z naprednimi varnostnimi funkcijami
+3. **Centralizirano upravljanje identitet**: poenostavi upravljanje življenjskega cikla uporabnikov, nadzor dostopa in skladnost s pravili
+4. **Večfaktorska avtentikacija**: deduje zmogljivosti MFA od podjetniških ponudnikov identitet
+5. **Pogojevalne politike dostopa**: koristi od nadzorov dostopa na podlagi tveganja in prilagodljive avtentikacije
 
 **Zahteve za implementacijo:**
-- **Preverjanje občinstva žetona**: Preverite, da so vsi žetoni izrecno izdani za MCP strežnik  
-- **Preverjanje izdajatelja**: Potrdite, da izdajatelj žetona ustreza pričakovanemu ponudniku identitete  
-- **Preverjanje podpisa**: Kriptografska potrditev integritete žetona  
-- **Uveljavljanje poteka**: Strogo upoštevanje časovnih omejitev žetona  
-- **Preverjanje obsega**: Zagotovite, da žetoni vsebujejo ustrezna dovoljenja za zahtevane operacije  
+- **Validacija občinstva žetona**: preverjanje, da so vsi žetoni izrecno izdani za MCP strežnik
+- **Preverjanje izdajatelja**: potrjevanje, da izdajatelj žetona ustreza pričakovanemu ponudniku identitete
+- **Preverjanje podpisa**: kriptografska validacija integritete žetona
+- **Uveljavljanje poteka veljavnosti**: stroga kontrola omejitev življenjske dobe žetona
+- **Validacija obsega**: zagotavljanje, da vsebujejo žetoni ustrezna dovoljenja za zahtevane operacije
 
 ### **Varnost avtorizacijske logike**
 
-**Ključne kontrole:**
-- **Celovite avtorizacijske revizije**: Redni varnostni pregledi vseh točk odločanja o avtorizaciji  
-- **Varne privzete nastavitve**: Zavrnitev dostopa, kadar logika avtorizacije ne more sprejeti dokončne odločitve  
-- **Meje dovoljenj**: Jasna ločitev med različnimi ravnmi privilegijev in dostopom do virov  
-- **Revizijsko beleženje**: Popolno beleženje vseh odločitev o avtorizaciji za varnostni nadzor  
-- **Redni pregledi dostopa**: Občasna potrditev uporabniških dovoljenj in dodelitev privilegijev  
+**Kritični ukrepi:**
+- **Celovite revizije avtorizacije**: redni varnostni pregledi vseh odločitev o avtorizaciji
+- **Privzeti varnostni ukrepi**: zavrnitev dostopa, kadar logika avtorizacije ne more sprejeti dokončne odločitve
+- **Meje dovoljenj**: jasna ločitev med različnimi ravnmi privilegijev in dostopa do virov
+- **Revizijsko beleženje**: popolno beleženje vseh odločitev o avtorizaciji za varnostni nadzor
+- **Redni pregledi dostopa**: obdobna preverjanja uporabniških dovoljenj in dodeljenih privilegijev
 
-## 2. **Varnost žetonov in kontrole preprečevanja prejema naprej**
+## 2. **Varnost žetonov in ukrepi proti posredovanju (passthrough)**
 
-**Rešeno tveganje OWASP MCP**: [MCP01 - Slabo upravljanje žetonov in razkritje skrivnosti](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp01-token-mismanagement/)
+**Rešeno OWASP MCP tveganje**: [MCP01 - Nepravilno upravljanje žetonov in razkritje skrivnosti](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp01-token-mismanagement/)
 
 ### **Preprečevanje posredovanja žetonov**
 
 **Posredovanje žetonov je izrecno prepovedano** v MCP specifikaciji avtorizacije zaradi kritičnih varnostnih tveganj:
 
-**Obravnavana varnostna tveganja:**
-- **Obhod nadzora**: Zaobide ključne varnostne kontrole, kot so omejevanje hitrosti, preverjanje zahtevkov in nadzor prometa  
-- **Zlom odgovornosti**: Onemogoča identifikacijo odjemalca, pokvari revizijske evidence in preiskave incidentov  
-- **Izsiljevanje prek proxyja**: Omogoča zlonam uporabo strežnikov kot proxyjev za nepooblaščen dostop do podatkov  
-- **Kršitve zaupanja**: Presek zaupanja med storitvami o viru žetonov  
-- **Lateralno širjenje**: Ogroženi žetoni v več storitvah omogočajo širše širjenje napadov  
+**Naslovljena varnostna tveganja:**
+- **Obhod varnostnih ukrepov**: zaobide bistvene varnostne ukrepe, kot so omejevanje hitrosti, validacija zahtev in nadzor prometa
+- **Zlom odgovornosti**: onemogoča identifikacijo odjemalca, kar pokvari revizijske sledi in preiskave incidentov
+- **Izsiljevanje prek proxy strežnikov**: omogoča zlonamernim akterjem uporabo strežnikov kot proxijev za nepooblaščen dostop do podatkov
+- **Kršenje zaupanja v meje**: krši predpostavke nadaljnjih storitev glede izvorov žetonov
+- **Bočno premikanje**: kompromitirani žetoni med več storitvami omogočajo širše napade
 
-**Implementacijske kontrole:**  
+**Ukrepanje za implementacijo:**
 ```yaml
 Token Validation Requirements:
   audience_validation: MANDATORY
@@ -85,26 +85,26 @@ Token Lifecycle Management:
   transmission_security: "TLS 1.3 minimum"
   replay_protection: "Implemented via nonce/timestamp"
 ```
-  
-### **Varne prakse upravljanja žetonov**
+
+### **Varnostni vzorci upravljanja žetonov**
 
 **Najboljše prakse:**
-- **Kratkotrajni žetoni**: Zmanjšajte čas izpostavljenosti z pogosto rotacijo žetonov  
-- **Izdaja "prav v pravem času"**: Izdajajte žetone samo, ko so potrebni za določene operacije  
-- **Varen način shranjevanja**: Uporabljajte varnostne strojne module (HSM) ali varne ključnice  
-- **Povezovanje žetonov**: Povežite žetone s specifičnimi odjemalci, sejami ali operacijami, kjer je to možno  
-- **Nadzor in opozarjanje**: Zaznavanje v realnem času zlorabe žetonov ali nepooblaščenih vzorcev dostopa  
+- **Kratkotrajni žetoni**: zmanjšanje okna izpostavljenosti z pogosto rotacijo žetonov
+- **Izdaja „just-in-time“**: izdaja žetonov samo, ko so potrebni za specifične operacije
+- **Varen shranjevanje**: uporaba strojno varnih modulov (HSM) ali varnih zakladnic ključev
+- **Povezava žetonov**: kjer je mogoče, veže žetone na specifične odjemalce, seje ali operacije
+- **Nadzor in opozarjanje**: zaznavanje zlorabe žetonov oz. nepooblaščenega dostopa v realnem času
 
-## 3. **Varnost sej**
+## 3. **Varnost seje**
 
-### **Preprečevanje prevzema seje**
+### **Preprečevanje prevzema sej**
 
-**Ciljne poti napadov:**
-- **Vbrizgavanje zlonamernih zahtevkov v sejo**: Zlonamerna dejanja vdelana v skupno stanje seje  
-- **Napadi predstavljanje seje**: Neavtorizirana uporaba ukradenih ID-jev sej za obhod preverjanja pristnosti  
-- **Napadi z nadaljevanjem pretoka**: Izkoriščanje obnovitve dogodkov s strežnika za vbrizgavanje zlonamerne vsebine  
+**Napadalni vektorji:**
+- **Vstavljanje zlonamernih ukazov v sejo**: vnos zlonamernih dogodkov v deljeno stanje seje
+- **Impersonacija seje**: nepooblaščena uporaba ukradenih ID-jev sej za obhod avtentikacije
+- **Napadi z nadaljevanjem toka**: izkoriščanje ponovnega vzpostavljanja strežnikovih dogodkov za vnos škodljive vsebine
 
-**Obvezne kontrole sej:**  
+**Obvezni ukrepi za sejo:**
 ```yaml
 Session ID Generation:
   randomness_source: "Cryptographically secure RNG"
@@ -123,32 +123,32 @@ Session Lifecycle:
   invalidation: "Immediate on security events"
   cleanup: "Automated expired session removal"
 ```
-  
-**Varnost prenosa:**  
-- **Uporaba HTTPS**: Vsa komunikacija seje prek TLS 1.3  
-- **Varnostne lastnosti piškotkov**: HttpOnly, Secure, SameSite=Strict  
-- **Pripenjanje certifikatov**: Za kritične povezave za preprečevanje MITM napadov  
 
-### **Razmisleki o stanju seje: z državo ali brez nje**
+**Varnost prenosa:**
+- **Zahteva HTTPS**: vsa komunikacija sej preko TLS 1.3
+- **Varnostne atribute piškotkov**: HttpOnly, Secure, SameSite=Strict
+- **Pinanje certifikatov**: za kritične povezave, da se preprečijo MITM napadi
 
-**Za implementacije z državo:**
-- Skupno stanje seje zahteva dodatno zaščito pred vbrizgavanjem  
-- Upravljanje sej na osnovi čakalnih vrst potrebuje preverjanje integritete  
-- Več strežniških instanc zahteva varno sinhronizacijo stanja sej  
+### **Razlike med stanjem slušnih in brezstanjskimi implementacijami**
 
-**Za implementacije brez države:**
-- Upravljanje sej z JWT ali podobnimi žetoni  
-- Kriptografska verifikacija integritete stanja seje  
-- Zmanjšana površina napada, a zahteva robustno preverjanje žetonov  
+**Za implementacije s stanjem:**
+- Deljeno stanje seje zahteva dodatno zaščito pred injekcijskimi napadi
+- Upravljanje sej na osnovi čakalnih vrst potrebuje preverjanje celovitosti
+- Več strežnikov zahteva varno sinhronizacijo stanja sej
 
-## 4. **AI-specifične varnostne kontrole**
+**Za brezstanjskih implementacij:**
+- Upravljanje sej na osnovi JWT ali podobnih žetonov
+- Kriptografska validacija integritete stanja sej
+- Zmanjšana površina napada, vendar zahteva robustno validacijo žetonov
+
+## 4. **Varnostni ukrepi specifični za umetno inteligenco**
 
 **Rešena OWASP MCP tveganja**:  
-- [MCP06 - Vbrizgavanje zahtevkov preko kontekstualnih vsebin](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)  
-- [MCP03 - Zastrupitev orodij](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp03-tool-poisoning/)  
-- [MCP05 - Vbrizgavanje in izvajanje ukazov](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp05-command-injection/)  
+- [MCP06 - Podtikanje namena (Intent Flow Subversion)](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)  
+- [MCP03 - Zastrupljanje orodij (Tool Poisoning)](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp03-tool-poisoning/)  
+- [MCP05 - Injekcija ukazov in izvrševanje](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp05-command-injection/)
 
-### **Obramba pred vbrizgavanjem zahtevkov**
+### **Obramba pred vnosom ukazov (prompt injection)**
 
 **Integracija Microsoft Prompt Shields:**  
 ```yaml
@@ -167,16 +167,16 @@ Integration Points:
   - "Real-time content filtering"
   - "Threat intelligence updates"
 ```
-  
-**Implementacijske kontrole:**  
-- **Sanitacija vnosa**: Celovita validacija in filtriranje vseh uporabniških vhodov  
-- **Določitev meja vsebine**: Jasna ločitev med sistemskimi navodili in uporabniško vsebino  
-- **Hierarhija navodil**: Pravilna prednostna pravila za nasprotujoča si navodila  
-- **Nadzor izhodov**: Zaznavanje potencialno škodljivih ali manipuliranih izhodov  
 
-### **Preprečevanje zastrupitve orodij**
+**Ukrepi za implementacijo:**
+- **Čiščenje vhodnih podatkov**: popolna validacija in filtriranje vseh uporabniških vhodov
+- **Določitev mej vsebine**: jasna ločitev med sistemskimi navodili in uporabniško vsebino
+- **Hierarhija navodil**: pravilno določanje prednostnih pravil pri konfliktnih navodilih
+- **Nadzor izhodnih vsebin**: zaznavanje potencialno škodljivih ali manipuliranih izhodov
 
-**Okvir varnosti orodij:**  
+### **Preprečevanje zastrupljanja orodij**
+
+**Okvir za varnost orodij:**  
 ```yaml
 Tool Definition Protection:
   validation:
@@ -197,18 +197,18 @@ Tool Definition Protection:
     - "Anomaly detection for execution patterns"
     - "Automated alerting for suspicious modifications"
 ```
-  
-**Dinamično upravljanje orodij:**  
-- **Delovni tok odobritve**: Izrecno soglasje uporabnika za spremembe orodij  
-- **Možnost povrnitve sprememb**: Možnost vrnitve na prejšnje različice orodij  
-- **Revizijska sled sprememb**: Popolna zgodovina sprememb definicij orodij  
-- **Ocena tveganj**: Samodejna evalvacija varnostnega stanja orodij  
 
-## 5. **Preprečevanje napada z zmedeno podelitvijo (Confused Deputy)**
+**Dinamično upravljanje orodij:**
+- **Potrditev s strani uporabnika**: izrecno soglasje uporabnika za spremembe orodij
+- **Možnosti vračanja**: sposobnost povrnitve na prejšnje različice orodij
+- **Revizija sprememb**: popolna zgodovina sprememb definicij orodij
+- **Ocena tveganj**: avtomatizirana ocena varnostnega stanja orodij
 
-### **Varnost OAuth proxyja**
+## 5. **Preprečevanje napadov z zmedenim namestnikom (Confused Deputy Attack)**
 
-**Kontrole za preprečevanje napadov:**  
+### **Varnost OAuth proxy strežnikov**
+
+**Ukrepi za preprečevanje napadov:**
 ```yaml
 Client Registration:
   static_client_protection:
@@ -223,14 +223,14 @@ Client Registration:
     - "Authorization code binding"
     - "Nonce verification for ID tokens"
 ```
-  
-**Zahteve za implementacijo:**  
-- **Preverjanje uporabniškega soglasja**: Nikoli ne preskočite zaslona za soglasje pri dinamični registraciji odjemalcev  
-- **Validacija URI za preusmeritev**: Stroga validacija dovoljenih destinacij preusmeritev  
-- **Zaščita pred uporabo avtorizacijskih kod**: Kratkoročne kode z enkratno uporabo  
-- **Preverjanje identitete odjemalca**: Robustna validacija poverilnic odjemalca in metapodatkov  
 
-## 6. **Varnost izvajanja orodij**
+**Zahteve za implementacijo:**
+- **Preverjanje soglasja uporabnika**: nikoli ne preskakujte zaslonov za soglasje pri dinamični registraciji odjemalcev
+- **Validacija Redirect URI**: stroga validacija dovoljenih ciljev preusmeritev na podlagi bele liste
+- **Zaščita avtorizacijskih kod**: kratkoročne kode z enkratno uporabo
+- **Preverjanje identitete odjemalca**: robustno preverjanje poverilnic odjemalcev in metapodatkov
+
+## 6. **Varnost izvrševanja orodij**
 
 ### **Sandboxing in izolacija**
 
@@ -250,14 +250,14 @@ Execution Environment:
     syscall_filtering: "Seccomp profiles for syscall restriction"
     filesystem: "Read-only root with minimal writable areas"
 ```
-  
-**Izolacija procesov:**  
-- **Ločeni procesni konteksti**: Izvajanje vsakega orodja v izoliranem procesu  
-- **Medprocesna komunikacija**: Varnostni mehanizmi IPC z validacijo  
-- **Nadzor procesov**: Analiza vedenja med izvajanjem in zaznavanje anomalij  
-- **Uveljavljanje omejitev virov**: Stroge omejitve za CPU, pomnilnik in I/O operacije  
 
-### **Implementacija principa najmanjših privilegijev**
+**Izolacija procesov:**
+- **Ločeni procesni konteksti**: vsakokratno izvajanje orodij v izoliranem procesu
+- **Medprocesna komunikacija**: varni IPC mehanizmi z validacijo
+- **Nadzor procesov**: analiza vedenja med izvajanjem in zaznavanje anomalij
+- **Uveljavljanje virov**: stroge omejitve za CPU, pomnilnik in I/O operacije
+
+### **Implementacija najmanjših privilegijev**
 
 **Upravljanje dovoljenj:**  
 ```yaml
@@ -279,10 +279,10 @@ Access Control:
     - "No hardware device access"
     - "Restricted environment variable access"
 ```
-  
+
 ## 7. **Varnost dobavne verige**
 
-**Rešeno tveganje OWASP MCP**: [MCP04 - Napadi na dobavno verigo](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp04-supply-chain/)
+**Rešeno OWASP MCP tveganje**: [MCP04 - Napadi na dobavno verigo programske opreme in manipulacije z odvisnostmi](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp04-supply-chain/)
 
 ### **Preverjanje odvisnosti**
 
@@ -314,20 +314,20 @@ AI Components:
     - "Data handling compliance verification"
     - "Incident response capability evaluation"
 ```
-  
-### **Nenehno spremljanje**
 
-**Zaznavanje groženj v dobavni verigi:**  
-- **Spremljanje zdravja odvisnosti**: Kontinuirana ocena vseh odvisnosti glede varnostnih težav  
-- **Integracija z obveščevalnimi podatki o grožnjah**: Posodobitve v realnem času o novih grožnjah v dobavnih verigah  
-- **Vedenjska analiza**: Zaznavanje nenavadnega vedenja v zunanjih komponentah  
-- **Samodejni odziv**: Takojšnja zajezitev ogroženih komponent  
+### **Neprestani nadzor**
 
-## 8. **Kontrole spremljanja in zaznavanja**
+**Zaznavanje groženj v dobavni verigi:**
+- **Nadzor zdravja odvisnosti**: stalno ocenjevanje vseh odvisnosti zaradi varnostnih težav
+- **Integracija obveščevalcev o grožnjah**: posodobitve v realnem času o nastajajočih grožnjah dobavne verige
+- **Vedenjska analiza**: zaznavanje nenavadnega vedenja v zunanjih komponentah
+- **Avtomatiziran odziv**: takojšnja zajezitev kompromitiranih komponent
 
-**Rešeno tveganje OWASP MCP**: [MCP08 - Pomanjkanje revizije in telemetrije](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp08-telemetry/)
+## 8. **Nadzorni in zaznavni ukrepi**
 
-### **Sistem za upravljanje varnostnih informacij in dogodkov (SIEM)**
+**Rešeno OWASP MCP tveganje**: [MCP08 - Pomanjkanje nadzora in telemetrije](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp08-telemetry/)
+
+### **Sistem za upravljanje informacij o varnosti in dogodkih (SIEM)**
 
 **Celovita strategija beleženja:**  
 ```yaml
@@ -349,20 +349,20 @@ Security Events:
   - "Session hijacking indicators"
   - "Unusual access patterns and anomalies"
 ```
-  
+
 ### **Zaznavanje groženj v realnem času**
 
-**Vedenjska analitika:**  
-- **Analitika vedenja uporabnikov (UBA)**: Zaznavanje nenavadnih vzorcev uporabniških dostopov  
-- **Analitika vedenja entitet (EBA)**: Nadzor nad vedenjem strežnika MCP in orodij  
-- **Zaznavanje anomalij z uporabo strojnega učenja**: AI-podprta identifikacija varnostnih groženj  
-- **Korelacija z obveščevalnimi podatki o grožnjah**: Ujemanje opazovanih aktivnosti z znanimi vzorci napadov  
+**Analiza vedenja:**
+- **Analitika uporabniškega vedenja (UBA)**: zaznavanje nenavadnih vzorcev dostopa uporabnikov
+- **Analitika vedenja entitet (EBA)**: nadzor vedenja MCP strežnikov in orodij
+- **Zaznavanje anomalij z učenjem stroja**: AI-podprto prepoznavanje varnostnih groženj
+- **Korelacija z obveščevalnimi podatki o grožnjah**: ujemanje opaženih aktivnosti z znanimi vzorci napadov
 
-## 9. **Odziv na incidente in okrevanje**
+## 9. **Odzivanje na incidente in okrevanje**
 
-### **Avtomatizirane zmožnosti odziva**
+### **Avtomatizirane odzivne zmogljivosti**
 
-**Neposredni ukrepi odziva:**  
+**Takojšnji odzivni ukrepi:**  
 ```yaml
 Threat Containment:
   session_management:
@@ -386,69 +386,69 @@ Recovery Procedures:
     - "Configuration rollback"
     - "Service restart procedures"
 ```
-  
+
 ### **Forenzične zmogljivosti**
 
-**Podpora preiskavi:**  
-- **Ohranjanje revizijske sledi**: Neizbrisno beleženje s kriptografsko integriteto  
-- **Zbiranje dokazov**: Samodejno zbiranje relevantnih varnostnih materialov  
-- **Rekonstrukcija časovnice**: Podroben zapis dogodkov, ki so vodili do varnostnih incidentov  
-- **Ocena vpliva**: Presoja obsega kompromisa in razkritja podatkov  
+**Podpora pri preiskavah:**
+- **Ohranjanje revizijskih sledi**: nerazdirljivo beleženje s kriptografsko integriteto
+- **Zbiranje dokazov**: avtomatizirano zbiranje relevantnih varnostnih artefaktov
+- **Rekonstrukcija časovnice**: podroben zaporedni prikaz dogodkov, ki so vodili do incidentov
+- **Ocena vpliva**: vrednotenje obsega kompromisa in razkritja podatkov
 
 ## **Ključna načela varnostne arhitekture**
 
-### **Obramba v globino**  
-- **Več plasti varnosti**: Brez same točke odpovedi v varnostni arhitekturi  
-- **Redundantne kontrole**: Prekrivajoči varnostni ukrepi za kritične funkcije  
-- **Varne privzete nastavitve**: Varne nastavitve v primeru napak ali napadov  
+### **Obramba v globini**
+- **Več plasti varnosti**: ni enotne točke odpovedi v varnostni arhitekturi
+- **Redundantni ukrepi**: prekrivajoči se varnostni mehanizmi za kritične funkcije
+- **Mehanizmi s privzetimi varnostmi**: varne privzete nastavitve ob napakah ali napadih
 
-### **Izvedba načela ničelnega zaupanja**  
-- **Nikoli ne zaupaj, vedno preveri**: Neprestano preverjanje vseh entitet in zahtevkov  
-- **Pravilo najmanjših privilegiijev**: Minimalne pravice za vse komponente  
-- **Mikrosegmentacija**: Natančen nadzor omrežja in dostopa  
+### **Implementacija ničelnega zaupanja (Zero Trust)**
+- **Nikoli ne zaupaj, vedno preverjaj**: neprekinjena validacija vseh entitet in zahtevkov
+- **Načelo najmanjših privilegijev**: minimalna dostopna pravica za vse komponente
+- **Mikrosegmentacija**: granularni nadzor omrežja in dostopa
 
-### **Nadaljnji razvoj varnosti**  
-- **Prilagajanje groženjskemu okolju**: Redne posodobitve za obravnavo novih groženj  
-- **Učinkovitost varnostnih kontrol**: Neprestano vrednotenje in izboljševanje kontrol  
-- **Skladnost s specifikacijami**: Usklajenost z razvijajočimi se MCP varnostnimi standardi  
+### **Neprestana varnostna evolucija**
+- **Prilagajanje groženjski pokrajini**: redne posodobitve za naslovitev novih groženj
+- **Učinkovitost varnostnih ukrepov**: stalna ocena in izboljšanje ukrepov
+- **Skladnost s specifikacijami**: usklajenost z razvijajočimi se MCP varnostnimi standardi
 
 ---
 
 ## **Viri za implementacijo**
 
 ### **Uradna MCP dokumentacija**
-- [MCP specifikacija (2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)  
-- [MCP varnostne najboljše prakse](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices)  
-- [MCP specifikacija avtorizacije](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)  
+- [MCP specifikacija (2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [MCP varnostne najboljše prakse](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices)
+- [MCP specifikacija avtorizacije](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
 
 ### **OWASP MCP varnostni viri**
-- [OWASP MCP Azure Security Guide](https://microsoft.github.io/mcp-azure-security-guide/) - Celovit OWASP MCP Top 10 z Azure implementacijo  
-- [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/) - Uradna OWASP MCP varnostna tveganja  
-- [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/) - Praktično varnostno usposabljanje za MCP v Azure  
+- [OWASP MCP Azure Security Guide](https://microsoft.github.io/mcp-azure-security-guide/) – celovit OWASP MCP Top 10 z implementacijo za Azure
+- [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/) – uradna OWASP MCP varnostna tveganja
+- [Delavnica MCP Security Summit (Sherpa)](https://azure-samples.github.io/sherpa/) – praktično varnostno usposabljanje za MCP na Azure
 
 ### **Microsoft varnostne rešitve**
-- [Microsoft Prompt Shields](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection)  
-- [Azure Content Safety](https://learn.microsoft.com/azure/ai-services/content-safety/)  
-- [GitHub Advanced Security](https://github.com/security/advanced-security)  
-- [Azure Key Vault](https://learn.microsoft.com/azure/key-vault/)  
+- [Microsoft Prompt Shields](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection)
+- [Azure Content Safety](https://learn.microsoft.com/azure/ai-services/content-safety/)
+- [GitHub Advanced Security](https://github.com/security/advanced-security)
+- [Azure Key Vault](https://learn.microsoft.com/azure/key-vault/)
 
 ### **Varnostni standardi**
-- [OAuth 2.0 varnostne najboljše prakse (RFC 9700)](https://datatracker.ietf.org/doc/html/rfc9700)  
-- [OWASP Top 10 za velike jezikovne modele](https://genai.owasp.org/)  
-- [NIST okvir za kibernetsko varnost](https://www.nist.gov/cyberframework)  
+- [OAuth 2.0 Varnostne najboljše prakse (RFC 9700)](https://datatracker.ietf.org/doc/html/rfc9700)
+- [OWASP Top 10 za velike jezikovne modele](https://genai.owasp.org/)
+- [NIST okvir za kibernetsko varnost](https://www.nist.gov/cyberframework)
 
 ---
 
-> **Pomembno**: Te varnostne kontrole odražajo trenutni MCP standard (2025-11-25). Vedno preverite proti najnovejši [uradni dokumentaciji](https://spec.modelcontextprotocol.io/), saj se standardi hitro razvijajo.
+> **Pomembno**: Ti varnostni ukrepi odražajo trenutno MCP specifikacijo (2025-11-25). Vedno preverite najnovejšo [uradno dokumentacijo](https://spec.modelcontextprotocol.io/), saj se standardi hitro razvijajo.
 
 ## Kaj sledi
 
-- Vrni se na: [Pregled modulov varnosti](./README.md)
-- Nadaljujte na: [Module 3: Getting Started](../03-GettingStarted/README.md)
+- Vrni se na: [Pregled varnostnega modula](./README.md)
+- Nadaljuj na: [Modul 3: Začetek](../03-GettingStarted/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Izjava o omejitvi odgovornosti**:  
-Ta dokument je bil preveden z uporabo storitve za avtomatski prevod AI [Co-op Translator](https://github.com/Azure/co-op-translator). Čeprav si prizadevamo za natančnost, upoštevajte, da lahko avtomatizirani prevodi vsebujejo napake ali netočnosti. Izvirni dokument v njegovem izvorno jeziku velja za verodostojen vir. Za ključne informacije priporočamo strokovni človeški prevod. Nismo odgovorni za morebitne nesporazume ali napačne interpretacije, ki izhajajo iz uporabe tega prevoda.
+**Omejitev odgovornosti**:
+Ta dokument je bil preveden z uporabo AI prevajalske storitve [Co-op Translator](https://github.com/Azure/co-op-translator). Čeprav si prizadevamo za natančnost, vas prosimo, da upoštevate, da avtomatizirani prevodi lahko vsebujejo napake ali netočnosti. Izvirni dokument v njegovem izvirnem jeziku je treba obravnavati kot avtoritativni vir. Za kritične informacije je priporočljiv strokovni človeški prevod. Ne odgovarjamo za morebitna nesporazume ali napačne interpretacije, ki izhajajo iz uporabe tega prevoda.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

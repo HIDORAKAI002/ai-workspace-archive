@@ -262,7 +262,7 @@ Follow modules in sequential order (00-11) for optimal learning:
 - **Documentation**: https://modelcontextprotocol.io/
 - **Specification**: https://spec.modelcontextprotocol.io/
 - **Community**: https://github.com/orgs/modelcontextprotocol/discussions
-- **Discord**: Microsoft Azure AI Foundry Discord server
+- **Discord**: Microsoft Foundry Discord server
 - **Related Courses**: See README.md for other Microsoft learning paths
 
 ### Common Troubleshooting
