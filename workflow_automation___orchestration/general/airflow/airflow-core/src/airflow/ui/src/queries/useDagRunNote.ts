@@ -16,27 +16,26 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { Button } from "@chakra-ui/react";
-import { useTranslation } from "react-i18next";
+import type { DAGRunResponse } from "openapi/requests/types.gen";
 
-import { StateBadge } from "src/components/StateBadge";
+import { useNoteEditor } from "./useNoteEditor";
+import { usePatchDagRun } from "./usePatchDagRun";
 
-type Props = {
-  readonly needsReview: boolean;
-  readonly onToggle: () => void;
-};
+/**
+ * Note-editing state and save logic for a Dag run.
+ * Used by both the detail-page NotePreview and the list-page RunNoteButton
+ * so mutation + cache invalidation stays in one place.
+ */
+export const useDagRunNote = (dagRun: DAGRunResponse) => {
+  const { isPending, mutate } = usePatchDagRun({
+    dagId: dagRun.dag_id,
+    dagRunId: dagRun.dag_run_id,
+  });
 
-export const RequiredActionFilter = ({ needsReview, onToggle }: Props) => {
-  const { t: translate } = useTranslation("hitl");
-
-  return (
-    <Button
-      data-testid="dags-needs-review-filter"
-      onClick={onToggle}
-      variant={needsReview ? "solid" : "outline"}
-    >
-      <StateBadge state="awaiting_input" />
-      {translate("requiredAction_other")}
-    </Button>
-  );
+  return useNoteEditor({
+    isPending,
+    mutateNote: (note, options) =>
+      mutate({ dagId: dagRun.dag_id, dagRunId: dagRun.dag_run_id, requestBody: { note } }, options),
+    savedNote: dagRun.note,
+  });
 };

@@ -16,27 +16,10 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { Button } from "@chakra-ui/react";
-import { useTranslation } from "react-i18next";
+import { PiNoteBold, PiNoteBlankBold } from "react-icons/pi";
 
-import { StateBadge } from "src/components/StateBadge";
+/** Filled note icon when a note exists, blank otherwise. */
+const NoteIcon = ({ hasNote }: { readonly hasNote: boolean }) =>
+  hasNote ? <PiNoteBold /> : <PiNoteBlankBold />;
 
-type Props = {
-  readonly needsReview: boolean;
-  readonly onToggle: () => void;
-};
-
-export const RequiredActionFilter = ({ needsReview, onToggle }: Props) => {
-  const { t: translate } = useTranslation("hitl");
-
-  return (
-    <Button
-      data-testid="dags-needs-review-filter"
-      onClick={onToggle}
-      variant={needsReview ? "solid" : "outline"}
-    >
-      <StateBadge state="awaiting_input" />
-      {translate("requiredAction_other")}
-    </Button>
-  );
-};
+export default NoteIcon;

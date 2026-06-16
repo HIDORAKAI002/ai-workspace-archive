@@ -16,27 +16,27 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { Button } from "@chakra-ui/react";
 import { useTranslation } from "react-i18next";
 
-import { StateBadge } from "src/components/StateBadge";
+import type { TaskInstanceResponse } from "openapi/requests/types.gen";
+import EditableMarkdownButton from "src/components/EditableMarkdownButton";
+import { useTaskInstanceNote } from "src/queries/useTaskInstanceNote";
 
-type Props = {
-  readonly needsReview: boolean;
-  readonly onToggle: () => void;
-};
-
-export const RequiredActionFilter = ({ needsReview, onToggle }: Props) => {
-  const { t: translate } = useTranslation("hitl");
+const TaskInstanceNoteButton = ({ taskInstance }: { readonly taskInstance: TaskInstanceResponse }) => {
+  const { t: translate } = useTranslation();
+  const { isPending, note, onOpen, onSave, setNote } = useTaskInstanceNote(taskInstance);
 
   return (
-    <Button
-      data-testid="dags-needs-review-filter"
-      onClick={onToggle}
-      variant={needsReview ? "solid" : "outline"}
-    >
-      <StateBadge state="awaiting_input" />
-      {translate("requiredAction_other")}
-    </Button>
+    <EditableMarkdownButton
+      header={translate("note.taskInstance")}
+      isPending={isPending}
+      mdContent={note}
+      onConfirm={onSave}
+      onOpen={onOpen}
+      placeholder={translate("note.placeholder")}
+      setMdContent={setNote}
+    />
   );
 };
+
+export default TaskInstanceNoteButton;

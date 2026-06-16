@@ -16,27 +16,27 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { Button } from "@chakra-ui/react";
 import { useTranslation } from "react-i18next";
 
-import { StateBadge } from "src/components/StateBadge";
+import type { DAGRunResponse } from "openapi/requests/types.gen";
+import EditableMarkdownButton from "src/components/EditableMarkdownButton";
+import { useDagRunNote } from "src/queries/useDagRunNote";
 
-type Props = {
-  readonly needsReview: boolean;
-  readonly onToggle: () => void;
-};
-
-export const RequiredActionFilter = ({ needsReview, onToggle }: Props) => {
-  const { t: translate } = useTranslation("hitl");
+const RunNoteButton = ({ dagRun }: { readonly dagRun: DAGRunResponse }) => {
+  const { t: translate } = useTranslation();
+  const { isPending, note, onOpen, onSave, setNote } = useDagRunNote(dagRun);
 
   return (
-    <Button
-      data-testid="dags-needs-review-filter"
-      onClick={onToggle}
-      variant={needsReview ? "solid" : "outline"}
-    >
-      <StateBadge state="awaiting_input" />
-      {translate("requiredAction_other")}
-    </Button>
+    <EditableMarkdownButton
+      header={translate("note.dagRun")}
+      isPending={isPending}
+      mdContent={note}
+      onConfirm={onSave}
+      onOpen={onOpen}
+      placeholder={translate("note.placeholder")}
+      setMdContent={setNote}
+    />
   );
 };
+
+export default RunNoteButton;
