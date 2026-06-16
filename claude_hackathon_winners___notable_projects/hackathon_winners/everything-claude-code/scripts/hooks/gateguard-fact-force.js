@@ -461,6 +461,75 @@ function collectExecutableBodies(raw) {
   return bodies;
 }
 
+/**
+ * Detect destructive commands inside `find ... -exec` invocations.
+ * Handles `-exec rm {} \;`, `-exec rm -rf {} \;`, `-exec rmdir {} \;`,
+ * `-exec unlink {} \;`, `-exec git reset --hard {} \;`.
+ *
+ * @param {string} command
+ * @returns {boolean}
+ */
+function isDestructiveFindExec(command) {
+  const raw = String(command || '');
+  const trimmed = raw.trim();
+  if (!trimmed) {
+    return false;
+  }
+
+  // Tokenize the whole command line
+  const tokens = tokenize(trimmed);
+  if (!tokens || tokens.length === 0) {
+    return false;
+  }
+
+  // Must start with `find`
+  if (commandBasename(tokens[0]) !== 'find') {
+    return false;
+  }
+
+  // Find the `-exec` token
+  const execIndex = tokens.indexOf('-exec');
+  if (execIndex === -1) {
+    return false;
+  }
+
+  // Collect tokens after `-exec` until we hit a terminator (`;`, `\;`, or `+`)
+  const execTokens = [];
+  for (let i = execIndex + 1; i < tokens.length; i++) {
+    const token = tokens[i];
+    if (token === ';' || token === '\\;' || token === '+') {
+      break;
+    }
+    execTokens.push(token);
+  }
+
+  if (execTokens.length === 0) {
+    return false;
+  }
+
+  const baseCmd = commandBasename(execTokens[0]);
+
+  // Directly destructive commands inside -exec
+  if (baseCmd === 'rmdir' || baseCmd === 'unlink') {
+    return true;
+  }
+
+  // `rm` with any flags (including none) inside -exec is destructive
+  if (baseCmd === 'rm') {
+    return true;
+  }
+
+  // `git reset --hard` inside -exec
+  if (baseCmd === 'git') {
+    const sub = findGitSubcommand(execTokens);
+    if (sub && sub.command === 'reset' && sub.rest.includes('--hard')) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 function isDestructiveBash(command) {
   // The SQL/dd phrases live in command bodies, not as flag-bearing
   // arguments, so we still match them by regex — but on the input
@@ -475,6 +544,9 @@ function isDestructiveBash(command) {
   // exploded command so a phrase inside `$(...)` or backticks is caught.
   const extra = getExtraDestructiveRegex();
   if (extra && extra.test(flattened)) return true;
+
+  // Check for destructive find -exec patterns
+  if (isDestructiveFindExec(raw)) return true;
 
   const segments = collectExecutableBodies(raw).flatMap(splitCommandSegments);
   for (const segment of segments) {
@@ -781,7 +853,10 @@ function isReadOnlyGitIntrospection(command) {
   }
 
   if (subcommand === 'diff') {
-    return args.length <= 1 && args.every(arg => ['--name-only', '--name-status'].includes(arg));
+    const allowedDiffArgs = new Set(['--name-only', '--name-status', '--cached', '--staged', '--stat']);
+    // git diff without arguments is read-only introspection
+    if (args.length === 0) return true;
+    return args.length <= 2 && args.every(arg => allowedDiffArgs.has(arg));
   }
 
   if (subcommand === 'log') {
@@ -789,7 +864,25 @@ function isReadOnlyGitIntrospection(command) {
   }
 
   if (subcommand === 'show') {
-    return args.length === 1 && !args[0].startsWith('--') && /^[a-zA-Z0-9._:/ -]+$/.test(args[0]);
+    // Permite: git show <ref>, git show --stat, git show --name-only,
+    // git show <ref> --stat, git show <ref> --name-only
+    if (args.length === 0) return false;
+    if (args.length === 1) {
+      const arg = args[0];
+      if (arg === '--stat' || arg === '--name-only') return true;
+      // ref
+      return !arg.startsWith('--') && /^[a-zA-Z0-9._:/ -]+$/.test(arg);
+    }
+    if (args.length === 2) {
+      const [first, second] = args;
+      // ref + flag
+      if (!first.startsWith('--') && /^[a-zA-Z0-9._:/ -]+$/.test(first) &&
+          (second === '--stat' || second === '--name-only')) {
+        return true;
+      }
+      return false;
+    }
+    return false;
   }
 
   if (subcommand === 'branch') {

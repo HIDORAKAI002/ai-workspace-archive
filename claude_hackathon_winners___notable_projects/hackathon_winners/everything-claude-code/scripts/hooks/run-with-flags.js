@@ -100,9 +100,8 @@ function getPluginRoot() {
   return path.resolve(__dirname, '..', '..');
 }
 
-
 //Safely extract target context from hook stdin JSON for dry-run preview.
- 
+
 function extractTargetContext(raw) {
   const result = { tool: '', filePath: '', command: '' };
   if (!raw || typeof raw !== 'string') return result;
@@ -118,18 +117,16 @@ function extractTargetContext(raw) {
       }
     }
   } catch {
+    // best-effort field extraction; ignore malformed input
   }
   return result;
 }
 
 // Build the [DryRun] preview line for stderr.
- 
+
 function buildDryRunPreview(hookId, relScriptPath, profilesCsv, raw) {
   const ctx = extractTargetContext(raw);
-  const parts = [
-    `[DryRun] Hook "${hookId}" would execute: ${relScriptPath}`,
-    `(enabled=true, profiles=${profilesCsv || 'default'})`,
-  ];
+  const parts = [`[DryRun] Hook "${hookId}" would execute: ${relScriptPath}`, `(enabled=true, profiles=${profilesCsv || 'default'})`];
 
   if (ctx.tool) {
     parts.push(`tool=${ctx.tool}`);
