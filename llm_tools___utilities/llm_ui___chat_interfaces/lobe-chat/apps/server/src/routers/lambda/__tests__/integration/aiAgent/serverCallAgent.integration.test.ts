@@ -38,7 +38,7 @@ vi.mock('@/server/services/file', () => ({
   })),
 }));
 
-let mockResponsesCreate: ReturnType<typeof vi.spyOn>;
+let mockResponsesCreate: any;
 let serverDB: LobeChatDatabase;
 let userId: string;
 let parentAgentId: string;
@@ -199,7 +199,12 @@ beforeEach(async () => {
   parentAgentId = insertedAgents[0].id;
   targetAgentId = insertedAgents[1].id;
 
-  mockResponsesCreate = vi.spyOn(OpenAI.Responses.prototype, 'create');
+  // `create` is overloaded (streaming / non-streaming); its precise spy type
+  // isn't assignable to the generic MockInstance fallback, so widen via unknown.
+  mockResponsesCreate = vi.spyOn(
+    OpenAI.Responses.prototype,
+    'create',
+  ) as unknown as typeof mockResponsesCreate;
 });
 
 afterEach(async () => {

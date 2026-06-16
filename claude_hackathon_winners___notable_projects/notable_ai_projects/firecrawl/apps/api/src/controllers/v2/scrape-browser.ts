@@ -49,6 +49,7 @@ import {
   KEYLESS_CREDITS_MESSAGE,
   adjustKeylessCredits,
   keylessTeamUuid,
+  logKeylessCreditUsage,
   reserveKeylessCredits,
 } from "../../lib/keyless";
 import { enqueueBrowserSessionActivity } from "../../lib/browser-session-activity";
@@ -482,6 +483,7 @@ export async function scrapeStopInteractiveBrowserController(
   adjustKeylessCredits(req.auth.team_id, creditsBilled - reservedCredits).catch(
     () => {},
   );
+  logKeylessCreditUsage(req.auth.team_id, creditsBilled).catch(() => {});
 
   logger.info("Browser session destroyed", {
     sessionDurationMs: durationMs,
