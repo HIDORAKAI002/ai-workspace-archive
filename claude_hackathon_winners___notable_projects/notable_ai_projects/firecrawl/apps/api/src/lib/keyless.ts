@@ -4,6 +4,7 @@ import { config } from "../config";
 import { db } from "../db/connection";
 import * as schema from "../db/schema";
 import { redisRateLimitClient } from "../services/rate-limiter";
+import { isKeylessIpSuspicious } from "./spur";
 
 // Keyless free tier: scrape, search, and interact can be used without an API key
 // from the official MCP server, CLI, or SDKs. It's gated per-IP/day by TWO
@@ -13,8 +14,8 @@ import { redisRateLimitClient } from "../services/rate-limiter";
 // the `keyless/consume` canonical log are the real abuse controls.
 
 // No defaults: the keyless free tier is OFF unless BOTH limits are configured.
-export const KEYLESS_REQUESTS_PER_DAY = config.KEYLESS_REQUESTS_PER_DAY;
-export const KEYLESS_CREDITS_PER_DAY = config.KEYLESS_CREDITS_PER_DAY;
+const KEYLESS_REQUESTS_PER_DAY = config.KEYLESS_REQUESTS_PER_DAY;
+const KEYLESS_CREDITS_PER_DAY = config.KEYLESS_CREDITS_PER_DAY;
 
 // The tier is "configured" when BOTH limits are set — even to 0. Unset means the
 // feature is off (callers get a plain Unauthorized); 0 means it's on but the
@@ -31,13 +32,13 @@ const DAY_SECONDS = 86400;
 // Keyless teams reuse the `preview_` prefix so billing (autumn `isPreviewTeam`)
 // and GCS persistence are skipped automatically, with a dedicated infix so the
 // IP can be recovered when charging credits after a request completes.
-export const KEYLESS_TEAM_PREFIX = "preview_keyless_";
+const KEYLESS_TEAM_PREFIX = "preview_keyless_";
 
 export function keylessTeamId(ip: string): string {
   return `${KEYLESS_TEAM_PREFIX}${ip}`;
 }
 
-export function keylessIpFromTeamId(teamId: string): string | null {
+function keylessIpFromTeamId(teamId: string): string | null {
   return teamId.startsWith(KEYLESS_TEAM_PREFIX)
     ? teamId.slice(KEYLESS_TEAM_PREFIX.length)
     : null;
@@ -72,16 +73,14 @@ export function keylessTeamUuid(
  * is treated as IPv4.
  */
 export function isKeylessIpEligible(ip: string): boolean {
-  const normalized = ip.startsWith("::ffff:")
-    ? ip.slice("::ffff:".length)
-    : ip;
+  const normalized = ip.startsWith("::ffff:") ? ip.slice("::ffff:".length) : ip;
   return isIPv4(normalized);
 }
 
 const requestsKey = (ip: string) => `keyless_requests:${ip}`;
 const creditsKey = (ip: string) => `keyless_credits:${ip}`;
 
-export type KeylessConsumeResult = {
+type KeylessConsumeResult = {
   ok: boolean;
   reason?: "requests" | "credits";
   requestsUsed: number;
@@ -130,6 +129,12 @@ export async function checkKeylessEligibility(
   if (!isKeylessConfigured()) return { eligible: false, reason: "disabled" };
   if (!ip || !isKeylessIpEligible(ip)) {
     return { eligible: false, reason: "ineligible_ip" };
+  }
+  // Optional Spur Context check (only when SPUR_API_KEY is set): treat IPs on
+  // anonymizing/rotating infrastructure as ineligible so the hosted MCP issues
+  // an OAuth challenge instead of serving keyless that auth would then reject.
+  if (await isKeylessIpSuspicious(ip)) {
+    return { eligible: false, reason: "suspicious" };
   }
   try {
     const requestsUsed = parseInt(

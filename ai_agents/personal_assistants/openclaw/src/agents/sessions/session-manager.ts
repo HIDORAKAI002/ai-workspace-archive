@@ -18,6 +18,7 @@ import {
 } from "node:fs";
 import { readdir, readFile, stat } from "node:fs/promises";
 import { join, resolve } from "node:path";
+import { isProxy } from "node:util/types";
 import {
   appendJsonlEntrySync,
   appendSerializedJsonlEntrySync,
@@ -163,6 +164,10 @@ export type SessionEntry =
 
 /** Raw file entry (includes header) */
 export type FileEntry = SessionHeader | SessionEntry;
+
+type AppendPersistenceOptions = {
+  invalidateSerializedPrefixCache?: boolean;
+};
 
 /** Tree node for getTree() - defensive copy of session structure */
 export interface SessionTreeNode {
@@ -562,7 +567,7 @@ function hasCacheableSessionHeader(entries: FileEntry[]): boolean {
 function rememberWrittenSessionEntries(
   filePath: string,
   expectedContent?: string,
-): { snapshot: SessionFileSnapshot | undefined; verifiedWrite: boolean } {
+): { snapshot: SessionFileSnapshot | undefined; verifiedWrite: boolean; stableRead: boolean } {
   const resolvedPath = resolve(filePath);
   // Full rewrites break append continuity used by the pre-run repair cache,
   // even when the filesystem preserves the inode and the rewritten file grows.
@@ -572,11 +577,11 @@ function rememberWrittenSessionEntries(
     beforeReadSnapshot = readSessionFileSnapshot(resolvedPath);
   } catch {
     sessionEntriesCache.delete(resolvedPath);
-    return { snapshot: undefined, verifiedWrite: false };
+    return { snapshot: undefined, verifiedWrite: false, stableRead: false };
   }
   if (beforeReadSnapshot.size > MAX_CACHED_SESSION_BYTES) {
     sessionEntriesCache.delete(resolvedPath);
-    return { snapshot: beforeReadSnapshot, verifiedWrite: false };
+    return { snapshot: beforeReadSnapshot, verifiedWrite: false, stableRead: false };
   }
 
   let content: string;
@@ -586,14 +591,14 @@ function rememberWrittenSessionEntries(
     afterReadSnapshot = readSessionFileSnapshot(resolvedPath);
   } catch {
     sessionEntriesCache.delete(resolvedPath);
-    return { snapshot: undefined, verifiedWrite: false };
+    return { snapshot: undefined, verifiedWrite: false, stableRead: false };
   }
   if (
     (expectedContent !== undefined && content !== expectedContent) ||
     !isSameSessionFileSnapshot(beforeReadSnapshot, afterReadSnapshot)
   ) {
     sessionEntriesCache.delete(resolvedPath);
-    return { snapshot: afterReadSnapshot, verifiedWrite: false };
+    return { snapshot: afterReadSnapshot, verifiedWrite: false, stableRead: false };
   }
   rememberSessionEntries(
     resolvedPath,
@@ -604,6 +609,7 @@ function rememberWrittenSessionEntries(
   return {
     snapshot: afterReadSnapshot,
     verifiedWrite: expectedContent !== undefined,
+    stableRead: true,
   };
 }
 
@@ -613,14 +619,32 @@ function rememberAppendedSessionEntry(
   beforeAppendSnapshot: SessionFileSnapshot | undefined,
   serializedAppend: string,
   cacheOwnedAppend: boolean,
-): { snapshot: SessionFileSnapshot | undefined; cacheAdvanced: boolean } {
+  publishOwnedAppend: boolean,
+  invalidateSerializedPrefixCache: boolean,
+): {
+  snapshot: SessionFileSnapshot | undefined;
+  cacheAdvanced: boolean;
+  ownedAppendVerified: boolean;
+} {
   const resolvedPath = resolve(filePath);
+  const appendedByteLength = BigInt(Buffer.byteLength(serializedAppend, "utf8"));
+  const isVerifiedOwnedAppend = (snapshot: SessionFileSnapshot | undefined) =>
+    Boolean(
+      publishOwnedAppend &&
+      beforeAppendSnapshot &&
+      snapshot &&
+      snapshot.dev === beforeAppendSnapshot.dev &&
+      snapshot.ino === beforeAppendSnapshot.ino &&
+      snapshot.size === beforeAppendSnapshot.size + appendedByteLength,
+    );
   if (!cacheOwnedAppend) {
     sessionEntriesCache.delete(resolvedPath);
     invalidateSessionFileRepairCache(resolvedPath);
+    const snapshot = readSessionFileSnapshotIfExists(resolvedPath);
     return {
-      snapshot: readSessionFileSnapshotIfExists(resolvedPath),
+      snapshot,
       cacheAdvanced: false,
+      ownedAppendVerified: isVerifiedOwnedAppend(snapshot),
     };
   }
   if (
@@ -633,16 +657,16 @@ function rememberAppendedSessionEntry(
     return {
       snapshot: readSessionFileSnapshotIfExists(resolvedPath),
       cacheAdvanced: false,
+      ownedAppendVerified: false,
     };
   }
 
   const cached = sessionEntriesCache.get(resolvedPath);
   const snapshot = readSessionFileSnapshotIfExists(resolvedPath);
-  // Owned transcript writes serialize appenders under the session lock. Full
-  // rewrites refresh the cache explicitly, so identity and size are sufficient
-  // to advance this append-only snapshot without reading the whole file.
-  const expectedSize =
-    beforeAppendSnapshot.size + BigInt(Buffer.byteLength(serializedAppend, "utf8"));
+  // Owned transcript writes serialize appenders under the session lock. Plain
+  // appends can advance by stat identity/size; extension-owned message payloads
+  // may run JSON hooks that rewrite same-size prefix bytes, so they drop cache.
+  const expectedSize = beforeAppendSnapshot.size + appendedByteLength;
   if (
     !snapshot ||
     !cached ||
@@ -655,11 +679,16 @@ function rememberAppendedSessionEntry(
   ) {
     sessionEntriesCache.delete(resolvedPath);
     invalidateSessionFileRepairCache(resolvedPath);
-    return { snapshot, cacheAdvanced: false };
+    return { snapshot, cacheAdvanced: false, ownedAppendVerified: false };
+  }
+  if (invalidateSerializedPrefixCache) {
+    sessionEntriesCache.delete(resolvedPath);
+    invalidateSessionFileRepairCache(resolvedPath);
+    return { snapshot, cacheAdvanced: false, ownedAppendVerified: true };
   }
   if (snapshot.size > MAX_CACHED_SESSION_BYTES) {
     sessionEntriesCache.delete(resolvedPath);
-    return { snapshot, cacheAdvanced: false };
+    return { snapshot, cacheAdvanced: false, ownedAppendVerified: true };
   }
 
   const persistedEntry = JSON.parse(
@@ -671,7 +700,7 @@ function rememberAppendedSessionEntry(
   sessionEntriesCache.delete(resolvedPath);
   sessionEntriesCache.set(resolvedPath, cached);
   trimSessionEntriesCache();
-  return { snapshot, cacheAdvanced: true };
+  return { snapshot, cacheAdvanced: true, ownedAppendVerified: true };
 }
 
 function publishRememberedSessionFileSnapshot(
@@ -686,6 +715,92 @@ function publishRememberedSessionFileSnapshot(
     sessionEntriesCache.delete(resolve(filePath));
     invalidateSessionFileRepairCache(filePath);
   }
+}
+
+function jsonSerializationCanRunUserCode(value: unknown, ancestors = new Set<object>()): boolean {
+  if (typeof value === "bigint") {
+    return Object.getOwnPropertyDescriptor(BigInt.prototype, "toJSON") !== undefined;
+  }
+  if ((typeof value !== "object" && typeof value !== "function") || value === null) {
+    return false;
+  }
+
+  try {
+    if (isProxy(value) || ancestors.has(value)) {
+      return true;
+    }
+    const prototype = Object.getPrototypeOf(value);
+    if (prototype !== Object.prototype && prototype !== Array.prototype && prototype !== null) {
+      return true;
+    }
+    const descriptors = Object.getOwnPropertyDescriptors(value);
+    if (
+      descriptors.toJSON ||
+      (prototype !== null && Object.getOwnPropertyDescriptor(prototype, "toJSON")) ||
+      Object.values(descriptors).some(
+        (descriptor) => descriptor.get !== undefined || descriptor.set !== undefined,
+      )
+    ) {
+      return true;
+    }
+
+    ancestors.add(value);
+    try {
+      if (Array.isArray(value)) {
+        for (let index = 0; index < value.length; index += 1) {
+          const descriptor = Object.getOwnPropertyDescriptor(value, String(index));
+          if (
+            !descriptor ||
+            descriptor.get !== undefined ||
+            descriptor.set !== undefined ||
+            ("value" in descriptor && jsonSerializationCanRunUserCode(descriptor.value, ancestors))
+          ) {
+            return true;
+          }
+        }
+        return false;
+      }
+
+      return Object.values(descriptors).some(
+        (descriptor) =>
+          descriptor.enumerable &&
+          "value" in descriptor &&
+          jsonSerializationCanRunUserCode(descriptor.value, ancestors),
+      );
+    } finally {
+      ancestors.delete(value);
+    }
+  } catch {
+    return true;
+  }
+}
+
+function hasOwnProperty(value: object, key: string): boolean {
+  return Object.hasOwn(value, key);
+}
+
+function hasAssistantToolCallArguments(message: Extract<Message, { role: "assistant" }>): boolean {
+  if (!Array.isArray(message.content)) {
+    return false;
+  }
+  return message.content.some(
+    (part) => part.type === "toolCall" && hasOwnProperty(part, "arguments"),
+  );
+}
+
+function messageSerializesOwnedValues(
+  message: Message | CustomMessage | BashExecutionMessage,
+): boolean {
+  if (message.role === "toolResult") {
+    return hasOwnProperty(message, "details");
+  }
+  if (message.role === "assistant") {
+    return hasAssistantToolCallArguments(message);
+  }
+  if (message.role === "custom") {
+    return hasOwnProperty(message, "details");
+  }
+  return false;
 }
 
 function readSessionFileSnapshotIfExists(filePath: string): SessionFileSnapshot | undefined {
@@ -1300,7 +1415,7 @@ export class SessionManager {
     return this.sessionFile;
   }
 
-  persist(entry: SessionEntry): void {
+  persist(entry: SessionEntry, options?: AppendPersistenceOptions): void {
     if (!this.shouldPersist || !this.sessionFile) {
       return;
     }
@@ -1323,18 +1438,24 @@ export class SessionManager {
         publishRememberedSessionFileSnapshot(this.sessionFile, rememberedWrite.snapshot);
       }
     } else {
-      // Serialize before taking the prefix snapshot. Custom toJSON methods are
-      // user code and can mutate the transcript; the cache must validate the
-      // prefix state that immediately precedes the exact bytes being appended.
+      // Serialization can execute extension/provider code through toJSON or
+      // getters. A same-size rewrite from that code can preserve the stat key,
+      // so only inert plain JSON entries may advance the metadata-keyed cache.
+      const serializationCanRunUserCode = jsonSerializationCanRunUserCode(entry);
       const serializedEntry = serializeJsonlEntry(entry);
       const beforeAppendSnapshot = readSessionFileSnapshotIfExists(this.sessionFile);
-      const cacheOwnedAppend = Boolean(
-        beforeAppendSnapshot &&
-        canAdvanceOwnedSessionEntryCache({
-          sessionFile: this.sessionFile,
-          snapshot: beforeAppendSnapshot,
-        }),
-      );
+      const invalidateSerializedPrefixCache =
+        options?.invalidateSerializedPrefixCache === true || serializationCanRunUserCode;
+      const canPublishOwnedAppend =
+        !serializationCanRunUserCode &&
+        Boolean(
+          beforeAppendSnapshot &&
+          canAdvanceOwnedSessionEntryCache({
+            sessionFile: this.sessionFile,
+            snapshot: beforeAppendSnapshot,
+          }),
+        );
+      const cacheOwnedAppend = canPublishOwnedAppend && !invalidateSerializedPrefixCache;
       const serializedAppend = appendSerializedJsonlEntrySync(this.sessionFile, serializedEntry, {
         prefixNewline: sessionFileNeedsAppendSeparator(this.sessionFile, beforeAppendSnapshot),
       });
@@ -1344,9 +1465,11 @@ export class SessionManager {
         beforeAppendSnapshot,
         serializedAppend,
         cacheOwnedAppend,
+        canPublishOwnedAppend,
+        invalidateSerializedPrefixCache,
       );
       this.sessionFileSnapshot = rememberedAppend.snapshot;
-      if (rememberedAppend.cacheAdvanced) {
+      if (rememberedAppend.ownedAppendVerified) {
         publishRememberedSessionFileSnapshot(this.sessionFile, rememberedAppend.snapshot);
       }
     }
@@ -1371,11 +1494,11 @@ export class SessionManager {
     }
   }
 
-  private appendEntry(entry: SessionEntry): void {
+  private appendEntry(entry: SessionEntry, options?: AppendPersistenceOptions): void {
     this.fileEntries.push(entry);
     this.byId.set(entry.id, entry);
     this.leafId = entry.id;
-    this.persist(entry);
+    this.persist(entry, options);
   }
 
   /** Append a message as child of current leaf, then advance leaf. Returns entry id.
@@ -1384,7 +1507,12 @@ export class SessionManager {
    * so it is easier to find them.
    * These need to be appended via appendCompaction() and appendBranchSummary() methods.
    */
-  appendMessage(message: Message | CustomMessage | BashExecutionMessage): string {
+  appendMessage(
+    message: Message | CustomMessage | BashExecutionMessage,
+    options?: AppendPersistenceOptions,
+  ): string {
+    const invalidateSerializedPrefixCache =
+      options?.invalidateSerializedPrefixCache === true || messageSerializesOwnedValues(message);
     const entry: SessionMessageEntry = {
       type: "message",
       id: generateId(this.byId),
@@ -1392,7 +1520,10 @@ export class SessionManager {
       timestamp: new Date().toISOString(),
       message,
     };
-    this.appendEntry(entry);
+    this.appendEntry(entry, {
+      ...options,
+      invalidateSerializedPrefixCache,
+    });
     return entry.id;
   }
 
@@ -1442,7 +1573,9 @@ export class SessionManager {
       details,
       fromHook,
     };
-    this.appendEntry(entry);
+    this.appendEntry(entry, {
+      invalidateSerializedPrefixCache: fromHook === true || details !== undefined,
+    });
     return entry.id;
   }
 
@@ -1456,7 +1589,7 @@ export class SessionManager {
       parentId: this.leafId,
       timestamp: new Date().toISOString(),
     };
-    this.appendEntry(entry);
+    this.appendEntry(entry, { invalidateSerializedPrefixCache: true });
     return entry.id;
   }
 
@@ -1511,7 +1644,7 @@ export class SessionManager {
       parentId: this.leafId,
       timestamp: new Date().toISOString(),
     };
-    this.appendEntry(entry);
+    this.appendEntry(entry, { invalidateSerializedPrefixCache: true });
     return entry.id;
   }
 
@@ -1718,7 +1851,9 @@ export class SessionManager {
       details,
       fromHook,
     };
-    this.appendEntry(entry);
+    this.appendEntry(entry, {
+      invalidateSerializedPrefixCache: fromHook === true || details !== undefined,
+    });
     return entry.id;
   }
 
