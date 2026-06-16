@@ -1,3 +1,8 @@
 chainlit
 mcp
 semantic-kernel
+
+# Security pin: force the patched Werkzeug (a transitive dependency) to resolve
+# the safe_join Windows device-name DoS advisories
+# CVE-2025-66221 / CVE-2026-21860 / CVE-2026-27199 (fixed in 3.1.6)
+werkzeug>=3.1.6

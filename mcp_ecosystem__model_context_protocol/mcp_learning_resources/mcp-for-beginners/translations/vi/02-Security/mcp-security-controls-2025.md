@@ -1,76 +1,76 @@
-# Kiểm Soát Bảo Mật MCP - Cập Nhật Tháng Hai 2026
+# Kiểm Soát Bảo Mật MCP - Cập Nhật Tháng 2 Năm 2026
 
-> **Tiêu Chuẩn Hiện Tại**: Tài liệu này phản ánh các yêu cầu bảo mật của [Đặc tả MCP 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/) và [Thực hành Bảo mật MCP Chính thức](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices).
+> **Tiêu Chuẩn Hiện Tại**: Tài liệu này phản ánh các yêu cầu bảo mật của [Đặc Tả MCP 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/) và [Thực Hành Tốt Nhất Bảo Mật MCP](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices) chính thức.
 
-Giao thức Context Mô hình (MCP) đã phát triển đáng kể với các kiểm soát bảo mật nâng cao, giải quyết cả bảo mật phần mềm truyền thống và các mối đe dọa đặc thù AI. Tài liệu này cung cấp các kiểm soát bảo mật toàn diện cho các triển khai MCP an toàn, phù hợp với khuôn khổ OWASP MCP Top 10.
+Model Context Protocol (MCP) đã phát triển đáng kể với các biện pháp kiểm soát bảo mật nâng cao nhằm giải quyết cả các vấn đề bảo mật phần mềm truyền thống và các mối đe dọa đặc thù AI. Tài liệu này cung cấp các kiểm soát bảo mật toàn diện cho triển khai MCP an toàn theo khung OWASP MCP Top 10.
 
 ## 🏔️ Đào Tạo Thực Hành Bảo Mật
 
-Để có kinh nghiệm triển khai bảo mật thực tiễn, chúng tôi khuyến nghị **[Hội thảo MCP Security Summit (Sherpa)](https://azure-samples.github.io/sherpa/)** - một chuyến thám hiểm có hướng dẫn toàn diện để bảo mật máy chủ MCP trên Azure theo phương pháp "lỗ hổng → khai thác → sửa lỗi → xác thực".
+Để có trải nghiệm thực hành triển khai bảo mật, chúng tôi khuyến nghị **[Hội Thảo MCP Security Summit (Sherpa)](https://azure-samples.github.io/sherpa/)** - một chuyến thám hiểm có hướng dẫn đầy đủ để bảo vệ các máy chủ MCP trên Azure theo phương pháp “lỗ hổng → khai thác → vá → kiểm tra”.
 
-Tất cả các kiểm soát bảo mật trong tài liệu này phù hợp với **[Hướng Dẫn Bảo Mật Azure MCP của OWASP](https://microsoft.github.io/mcp-azure-security-guide/)**, cung cấp kiến trúc tham khảo và hướng dẫn triển khai cụ thể cho Azure đối với các rủi ro trong OWASP MCP Top 10.
+Tất cả các kiểm soát bảo mật trong tài liệu này phù hợp với **[Hướng Dẫn Bảo Mật MCP Azure OWASP](https://microsoft.github.io/mcp-azure-security-guide/)**, cung cấp kiến trúc tham khảo và hướng dẫn triển khai đặc thù Azure cho các rủi ro OWASP MCP Top 10.
 
 ## **Yêu Cầu Bảo Mật BẮT BUỘC**
 
-### **Các Cấm Kỵ Quan Trọng từ Đặc tả MCP:**
+### **Các Điều Cấm Quan Trọng từ Đặc Tả MCP:**
 
-> **CẤM:** Máy chủ MCP **KHÔNG ĐƯỢC** chấp nhận bất kỳ token nào không được cấp rõ ràng cho máy chủ MCP  
+> **CẤM**: Máy chủ MCP **KHÔNG ĐƯỢC** chấp nhận bất kỳ token nào không được cấp rõ ràng cho máy chủ MCP
 >
-> **CẤM:** Máy chủ MCP **KHÔNG ĐƯỢC** sử dụng phiên làm phương thức xác thực  
+> **CẤM**: Máy chủ MCP **KHÔNG ĐƯỢC** sử dụng phiên đăng nhập cho xác thực  
 >
-> **BẮT BUỘC:** Máy chủ MCP thực hiện ủy quyền **PHẢI** xác minh TẤT CẢ các yêu cầu đến  
+> **BẮT BUỘC**: Máy chủ MCP triển khai ủy quyền **PHẢI** xác minh TẤT CẢ các yêu cầu đến
 >
-> **BẮT BUỘC:** Máy chủ MCP proxy sử dụng ID client tĩnh **PHẢI** lấy sự đồng ý của người dùng cho từng client đăng ký động
+> **BẮT BUỘC**: Máy chủ proxy MCP sử dụng ID client tĩnh **PHẢI** có được sự đồng ý của người dùng cho từng client đăng ký động
 
 ---
 
 ## 1. **Kiểm Soát Xác Thực & Ủy Quyền**
 
-### **Tích hợp Nhà Cung Cấp Danh Tính Bên Ngoài**
+### **Tích Hợp Nhà Cung Cấp Danh Tính Bên Ngoài**
 
-**Tiêu chuẩn MCP Hiện tại (2025-11-25)** cho phép máy chủ MCP ủy quyền xác thực cho nhà cung cấp danh tính bên ngoài, đại diện cho cải tiến bảo mật đáng kể:
+**Tiêu chuẩn MCP Hiện tại (2025-11-25)** cho phép máy chủ MCP ủy quyền xác thực cho các nhà cung cấp danh tính bên ngoài, tạo nên sự cải thiện bảo mật đáng kể:
 
-**Rủi ro MCP của OWASP được giải quyết**: [MCP07 - Xác thực & Ủy quyền không đầy đủ](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp07-authz/)
+**Rủi ro OWASP MCP Được Giải Quyết**: [MCP07 - Xác Thực & Ủy Quyền Không Đầy Đủ](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp07-authz/)
 
-**Lợi ích Bảo mật:**
-1. **Loại bỏ Rủi ro Xác thực Tự triển khai**: Giảm bề mặt lỗ hổng bằng cách tránh các triển khai xác thực tùy chỉnh
-2. **Bảo mật Cấp Doanh Nghiệp**: Tận dụng các nhà cung cấp danh tính đã thiết lập như Microsoft Entra ID với các tính năng bảo mật nâng cao
-3. **Quản lý Danh tính Tập trung**: Đơn giản hóa quản lý vòng đời người dùng, kiểm soát truy cập và kiểm toán tuân thủ
-4. **Xác thực đa yếu tố**: Kế thừa khả năng MFA từ nhà cung cấp danh tính doanh nghiệp
-5. **Chính sách Truy cập Có Điều kiện**: Lợi ích từ kiểm soát truy cập dựa trên rủi ro và xác thực thích ứng
+**Lợi Ích Bảo Mật:**
+1. **Loại Bỏ Rủi Ro Xác Thực Tùy Chỉnh**: Giảm bề mặt dễ tổn thương bằng cách tránh triển khai xác thực tự chế
+2. **Bảo Mật Cấp Doanh Nghiệp**: Tận dụng các nhà cung cấp danh tính đã được thiết lập như Microsoft Entra ID với các tính năng bảo mật tiên tiến
+3. **Quản Lý Danh Tính Tập Trung**: Đơn giản hóa quản lý vòng đời người dùng, kiểm soát truy cập và kiểm toán tuân thủ
+4. **Xác Thực Đa Yếu Tố**: Kế thừa khả năng MFA từ nhà cung cấp danh tính doanh nghiệp
+5. **Chính Sách Truy Cập Có Điều Kiện**: Lợi ích từ kiểm soát truy cập dựa trên rủi ro và xác thực thích ứng
 
-**Yêu cầu Triển khai:**
-- **Xác thực Đối tượng Token**: Xác minh tất cả các token được cấp rõ ràng cho máy chủ MCP
-- **Xác minh Nhà phát hành**: Xác thực nhà phát hành token phù hợp với nhà cung cấp danh tính mong đợi
-- **Xác minh Chữ ký**: Xác thực mật mã tính toàn vẹn token
-- **Áp dụng Hết hạn**: Thi hành nghiêm ngặt giới hạn thời gian sử dụng token
-- **Xác thực Phạm vi**: Đảm bảo token chứa các quyền thích hợp cho các thao tác được yêu cầu
+**Yêu Cầu Triển Khai:**
+- **Xác Thực Đối Tượng Token**: Xác minh tất cả token được cấp rõ ràng cho máy chủ MCP
+- **Xác Thực Nhà Phát Hành**: Xác minh nhà phát hành token khớp với nhà cung cấp danh tính mong đợi
+- **Xác Thực Chữ Ký**: Xác minh mật mã tính toàn vẹn token
+- **Tuân Thủ Hạn Định Token**: Thực thi nghiêm ngặt giới hạn thời gian sử dụng token
+- **Xác Thực Phạm Vi**: Đảm bảo token có các quyền phù hợp với các thao tác yêu cầu
 
-### **Bảo mật Logic Ủy quyền**
+### **Bảo Mật Logic Ủy Quyền**
 
-**Kiểm soát Quan trọng:**
-- **Kiểm toán Ủy quyền Toàn diện**: Đánh giá bảo mật định kỳ tất cả các điểm quyết định ủy quyền
-- **Mặc định An toàn**: Từ chối truy cập khi logic ủy quyền không thể đưa ra quyết định rõ ràng
-- **Ranh giới Quyền hạn**: Phân tách rõ ràng các mức đặc quyền và quyền truy cập tài nguyên khác nhau
-- **Ghi log Kiểm toán**: Ghi lại đầy đủ tất cả quyết định ủy quyền để theo dõi bảo mật
-- **Rà soát Truy cập Định kỳ**: Xác thực định kỳ quyền và gán đặc quyền người dùng
+**Kiểm Soát Quan Trọng:**
+- **Kiểm Toán Ủy Quyền Toàn Diện**: Đánh giá bảo mật định kỳ tất cả các điểm quyết định ủy quyền
+- **Mặc Định An Toàn**: Từ chối truy cập khi logic ủy quyền không thể đưa ra quyết định rõ ràng
+- **Giới Hạn Quyền Hạn**: Phân tách rõ ràng các cấp độ đặc quyền và truy cập tài nguyên
+- **Ghi Nhật Ký Kiểm Toán**: Ghi lại đầy đủ mọi quyết định ủy quyền để giám sát bảo mật
+- **Đánh Giá Truy Cập Định Kỳ**: Xác nhận định kỳ quyền hạn người dùng và phân bổ đặc quyền
 
-## 2. **Kiểm Soát Bảo Mật Token & Chống Token Passthrough**
+## 2. **Bảo Mật Token & Kiểm Soát Chống Chuyển Tiếp**
 
-**Rủi ro MCP của OWASP được giải quyết**: [MCP01 - Quản lý Token sai & Lộ bí mật](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp01-token-mismanagement/)
+**Rủi ro OWASP MCP Được Giải Quyết**: [MCP01 - Quản Lý Token Kém & Lộ Bí Mật](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp01-token-mismanagement/)
 
-### **Ngăn chặn Token Passthrough**
+### **Phòng Ngừa Chuyển Tiếp Token**
 
-**Token passthrough bị cấm tuyệt đối** trong Đặc tả Ủy quyền MCP do các rủi ro bảo mật nghiêm trọng:
+**Chuyển tiếp token bị nghiêm cấm** trong Đặc Tả Ủy Quyền MCP do các rủi ro bảo mật nghiêm trọng:
 
-**Rủi ro Bảo mật Được giải quyết:**
-- **Vượt qua Kiểm soát**: Bỏ qua các kiểm soát thiết yếu như giới hạn tốc độ, xác thực yêu cầu, giám sát lưu lượng
-- **Mất Trách nhiệm**: Làm không thể xác định client, làm hỏng các dấu vết kiểm toán và điều tra sự cố
-- **Trục lợi Bằng Proxy**: Cho phép tác nhân độc hại dùng máy chủ làm proxy truy cập dữ liệu trái phép
-- **Vi phạm Ranh giới Tin cậy**: Phá vỡ giả định tin cậy của dịch vụ hạ nguồn về nguồn gốc token
-- **Di chuyển Ngang hàng**: Token bị đánh cắp có thể mở rộng tấn công qua nhiều dịch vụ
+**Rủi Ro Bảo Mật Được Giải Quyết:**
+- **Vượt Qua Kiểm Soát**: Bỏ qua các kiểm soát bảo mật cần thiết như giới hạn tần suất, xác minh yêu cầu, và giám sát lưu lượng
+- **Phá Vỡ Trách Nhiệm**: Không thể nhận diện client, làm hỏng hồ sơ kiểm toán và điều tra sự cố
+- **Truy Cập Dữ Liệu Qua Proxy**: Cho phép kẻ xấu dùng máy chủ làm proxy truy cập dữ liệu trái phép
+- **Vi Phạm Ranh Giới Tin Cậy**: Phá vỡ giả định tin cậy của dịch vụ hạ nguồn đối với nguồn token
+- **Di Chuyển Bên Trong Mạng**: Token bị xâm nhập được sử dụng trên nhiều dịch vụ cho phép mở rộng tấn công
 
-**Kiểm soát Triển khai:**
+**Kiểm Soát Triển Khai:**
 ```yaml
 Token Validation Requirements:
   audience_validation: MANDATORY
@@ -86,25 +86,25 @@ Token Lifecycle Management:
   replay_protection: "Implemented via nonce/timestamp"
 ```
 
-### **Mẫu Quản lý Token An toàn**
+### **Mô Hình Quản Lý Token An Toàn**
 
-**Thực hành Tốt nhất:**
-- **Token Ngắn hạn**: Giảm thời gian phơi nhiễm bằng cách xoay token thường xuyên
-- **Cấp Phát Đúng Lúc**: Cấp token chỉ khi cần cho các thao tác cụ thể
-- **Lưu trữ An toàn**: Sử dụng mô-đun bảo mật phần cứng (HSM) hoặc kho khóa bảo mật
-- **Ràng buộc Token**: Ràng buộc token với client, phiên hoặc thao tác cụ thể khi có thể
-- **Giám sát & Cảnh báo**: Phát hiện thời gian thực khi token bị sử dụng sai hoặc truy cập trái phép
+**Thực Hành Tốt Nhất:**
+- **Token Sống Ngắn**: Giảm thời gian rủi ro với việc xoay vòng token thường xuyên
+- **Cấp Token Đúng Lúc**: Cấp token chỉ khi cần cho các thao tác cụ thể
+- **Lưu Trữ An Toàn**: Sử dụng module bảo mật phần cứng (HSM) hoặc khoá bảo mật an toàn
+- **Ràng Buộc Token**: Ràng buộc token với client, phiên hoặc thao tác cụ thể khi có thể
+- **Giám Sát & Cảnh Báo**: Phát hiện thời gian thực các hành vi sử dụng token sai hoặc truy cập trái phép
 
 ## 3. **Kiểm Soát Bảo Mật Phiên**
 
-### **Ngăn chặn Chiếm đoạt Phiên**
+### **Phòng Ngừa Chiếm Đoạt Phiên**
 
-**Các Đường tấn công Được giải quyết:**
-- **Chèn Prompt Chiếm đoạt Phiên**: Các sự kiện độc hại được chèn vào trạng thái phiên chia sẻ
-- **Giả mạo Phiên**: Sử dụng trái phép ID phiên bị đánh cắp để bỏ qua xác thực
-- **Tấn công Tiếp tục Stream**: Lợi dụng việc tiếp tục sự kiện gửi từ server để chèn nội dung độc hại
+**Hướng Tấn Công Được Giải Quyết:**
+- **Chèn Prompt Chiếm Đoạt Phiên**: Sự kiện độc hại được chèn vào trạng thái phiên chia sẻ
+- **Giả Mạo Phiên**: Sử dụng trái phép ID phiên bị đánh cắp để vượt qua xác thực
+- **Tấn Công Tạm Dừng Stream**: Khai thác tiếp tục sự kiện gửi từ server để chèn nội dung độc hại
 
-**Kiểm soát Phiên Bắt buộc:**
+**Kiểm Soát Phiên Bắt Buộc:**
 ```yaml
 Session ID Generation:
   randomness_source: "Cryptographically secure RNG"
@@ -124,33 +124,33 @@ Session Lifecycle:
   cleanup: "Automated expired session removal"
 ```
 
-**Bảo mật Vận chuyển:**
-- **Bắt buộc HTTPS**: Tất cả giao tiếp phiên phải qua TLS 1.3
-- **Thuộc tính Cookie An toàn**: HttpOnly, Secure, SameSite=Strict
-- **Khóa Chứng thực**: Đối với các kết nối quan trọng để phòng ngừa MITM
+**Bảo Mật Truyền Tải:**
+- **Bắt Buộc HTTPS**: Tất cả truyền thông phiên qua TLS 1.3
+- **Thuộc Tính Cookie An Toàn**: HttpOnly, Secure, SameSite=Strict
+- **Gán Chứng Chỉ**: Cho các kết nối quan trọng để ngăn tấn công MITM
 
-### **Cân nhắc Stateful so với Stateless**
+### **Xem Xét Stateful vs Stateless**
 
-**Đối với triển khai Stateful:**
-- Trạng thái phiên chia sẻ cần biện pháp bảo vệ bổ sung chống chèn mã độc
-- Quản lý phiên theo hàng đợi cần xác minh tính toàn vẹn
-- Nhiều instance server cần đồng bộ trạng thái phiên an toàn
+**Với Triển Khai Stateful:**
+- Trạng thái phiên chia sẻ cần thêm biện pháp bảo vệ chống chèn
+- Quản lý phiên dựa trên hàng đợi đòi hỏi xác minh tính toàn vẹn
+- Nhiều máy chủ yêu cầu đồng bộ trạng thái phiên an toàn
 
-**Đối với triển khai Stateless:**
-- Quản lý phiên dựa trên token JWT hoặc tương tự
+**Với Triển Khai Stateless:**
+- Quản lý phiên dựa trên JWT hoặc token tương tự
 - Xác minh mật mã tính toàn vẹn trạng thái phiên
-- Giảm bề mặt tấn công nhưng đòi hỏi xác thực token mạnh mẽ
+- Giảm bề mặt tấn công nhưng yêu cầu kiểm tra token nghiêm ngặt
 
-## 4. **Kiểm Soát Bảo Mật Đặc thù AI**
+## 4. **Kiểm Soát Bảo Mật Đặc Thù AI**
 
-**Rủi ro MCP của OWASP được giải quyết**:
-- [MCP06 - Chèn lệnh Prompt qua Payload ngữ cảnh](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)
-- [MCP03 - Độc hại công cụ](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp03-tool-poisoning/)
-- [MCP05 - Chèn & thực thi lệnh](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp05-command-injection/)
+**Rủi ro OWASP MCP Được Giải Quyết**:
+- [MCP06 - Thao Túng Luồng Ý Định](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)
+- [MCP03 - Độc Hại Công Cụ](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp03-tool-poisoning/)
+- [MCP05 - Chèn Lệnh & Thực Thi](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp05-command-injection/)
 
-### **Phòng chống Chèn prompt**
+### **Phòng Thủ Chèn Prompt**
 
-**Tích hợp Microsoft Prompt Shields:**
+**Tích Hợp Microsoft Prompt Shields:**
 ```yaml
 Detection Mechanisms:
   - "Advanced ML-based instruction detection"
@@ -168,15 +168,15 @@ Integration Points:
   - "Threat intelligence updates"
 ```
 
-**Kiểm soát Triển khai:**
-- **Xử lý Đầu vào**: Xác thực và lọc kỹ lưỡng tất cả đầu vào người dùng
-- **Định nghĩa Ranh giới Nội dung**: Phân tách rõ ràng giữa hướng dẫn hệ thống và nội dung người dùng
-- **Cấp bậc Hướng dẫn**: Quy tắc ưu tiên hợp lý cho các hướng dẫn xung đột
-- **Giám sát Đầu ra**: Phát hiện các kết quả có thể gây hại hoặc bị thao túng
+**Kiểm Soát Triển Khai:**
+- **Làm Sạch Đầu Vào**: Kiểm tra và lọc kỹ lưỡng tất cả dữ liệu đầu vào người dùng
+- **Định Nghĩa Ranh Giới Nội Dung**: Tách biệt rõ ràng giữa hướng dẫn hệ thống và nội dung người dùng
+- **Thứ Tự Hướng Dẫn**: Quy tắc ưu tiên thích hợp cho các hướng dẫn mâu thuẫn
+- **Giám Sát Đầu Ra**: Phát hiện các đầu ra khả nghi hoặc bị thao túng
 
-### **Ngăn chặn Độc hại Công cụ**
+### **Phòng Ngừa Độc Hại Công Cụ**
 
-**Khung An toàn Công cụ:**
+**Khung Bảo Mật Công Cụ:**
 ```yaml
 Tool Definition Protection:
   validation:
@@ -198,17 +198,17 @@ Tool Definition Protection:
     - "Automated alerting for suspicious modifications"
 ```
 
-**Quản lý Công cụ Động:**
-- **Quy trình Phê duyệt**: Bắt buộc sự đồng ý rõ ràng của người dùng cho các thay đổi công cụ
-- **Khả năng Quay lại**: Dùng lại phiên bản công cụ trước đó khi cần
-- **Kiểm toán Thay đổi**: Lịch sử đầy đủ các sửa đổi định nghĩa công cụ
-- **Đánh giá Rủi ro**: Tự động đánh giá tình trạng bảo mật công cụ
+**Quản Lý Công Cụ Động:**
+- **Quy Trình Phê Duyệt**: Đồng ý rõ ràng của người dùng cho các thay đổi công cụ
+- **Khả Năng Quay Lại**: Có thể phục hồi về phiên bản công cụ trước đó
+- **Kiểm Toán Thay Đổi**: Lưu trữ lịch sử đầy đủ các sửa đổi định nghĩa công cụ
+- **Đánh Giá Rủi Ro**: Đánh giá tự động trạng thái bảo mật công cụ
 
-## 5. **Phòng chống Tấn công Confused Deputy**
+## 5. **Phòng Ngừa Tấn Công Confused Deputy**
 
-### **Bảo mật Proxy OAuth**
+### **Bảo Mật OAuth Proxy**
 
-**Kiểm soát Ngăn chặn Tấn công:**
+**Kiểm Soát Ngăn Ngừa Tấn Công:**
 ```yaml
 Client Registration:
   static_client_protection:
@@ -224,17 +224,17 @@ Client Registration:
     - "Nonce verification for ID tokens"
 ```
 
-**Yêu cầu Triển khai:**
-- **Xác minh Sự đồng ý Người dùng**: Không được bỏ qua màn hình đồng ý cho đăng ký client động
-- **Xác thực Redirect URI**: Kiểm tra whitelist nghiêm ngặt các đích chuyển hướng
-- **Bảo vệ Mã Ủy quyền**: Mã ngắn hạn, chỉ dùng một lần
-- **Xác minh Danh tính Client**: Xác thực chắc chắn thông tin và metadata của client
+**Yêu Cầu Triển Khai:**
+- **Xác Minh Sự Đồng Ý Người Dùng**: Không bao giờ bỏ qua màn hình đồng ý khi đăng ký client động
+- **Xác Thực Redirect URI**: Kiểm tra nghiêm ngặt dựa trên danh sách trắng các đích chuyển hướng
+- **Bảo Vệ Mã Ủy Quyền**: Mã có tuổi thọ ngắn và chỉ dùng một lần
+- **Xác Thực Danh Tính Client**: Kiểm tra chéo các chứng chỉ và metadata của client
 
-## 6. **Bảo mật Thực thi Công cụ**
+## 6. **Bảo Mật Thực Thi Công Cụ**
 
-### **Cách ly & Sandbox**
+### **Cách Ly & Bao Vây**
 
-**Cách ly dựa trên Container:**
+**Cách Ly Dựa Trên Container:**
 ```yaml
 Execution Environment:
   containerization: "Docker/Podman with security profiles"
@@ -251,15 +251,15 @@ Execution Environment:
     filesystem: "Read-only root with minimal writable areas"
 ```
 
-**Cách ly Quy trình:**
-- **Ngữ cảnh Quy trình Riêng biệt**: Mỗi lần thực thi công cụ trong không gian quy trình riêng
-- **Giao tiếp Liên Quy trình**: Cơ chế IPC an toàn có xác thực
-- **Giám sát Quy trình**: Phân tích hành vi thời gian chạy và phát hiện bất thường
-- **Áp dụng Tài nguyên**: Giới hạn cứng CPU, bộ nhớ và I/O
+**Cách Ly Quy Trình:**
+- **Ngữ Cảnh Quy Trình Riêng Biệt**: Mỗi lần thực thi công cụ trong không gian quy trình cách ly
+- **Giao Tiếp Liên Quy Trình**: Cơ chế IPC an toàn với xác thực
+- **Giám Sát Quy Trình**: Phân tích hành vi thời gian chạy và phát hiện bất thường
+- **Thực Thi Tài Nguyên**: Giới hạn cứng về CPU, bộ nhớ và I/O
 
-### **Triển khai Nguyên tắc Quyền tối thiểu**
+### **Triển Khai Nguyên Tắc Quyền Tối Thiểu**
 
-**Quản lý Quyền:**
+**Quản Lý Quyền Hạn:**
 ```yaml
 Access Control:
   file_system:
@@ -280,13 +280,13 @@ Access Control:
     - "Restricted environment variable access"
 ```
 
-## 7. **Kiểm soát Bảo mật Chuỗi Cung ứng**
+## 7. **Kiểm Soát Bảo Mật Chuỗi Cung Ứng**
 
-**Rủi ro MCP của OWASP được giải quyết**: [MCP04 - Tấn công Chuỗi Cung ứng](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp04-supply-chain/)
+**Rủi ro OWASP MCP Được Giải Quyết**: [MCP04 - Tấn Công Chuỗi Cung Ứng Phần Mềm & Giả Mạo Phụ Thuộc](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp04-supply-chain/)
 
-### **Xác minh Phụ thuộc**
+### **Xác Thực Phụ Thuộc**
 
-**An toàn Toàn diện Thành phần:**
+**Bảo Mật Thành Phần Toàn Diện:**
 ```yaml
 Software Dependencies:
   scanning: 
@@ -315,21 +315,21 @@ AI Components:
     - "Incident response capability evaluation"
 ```
 
-### **Giám sát Liên tục**
+### **Giám Sát Liên Tục**
 
-**Phát hiện Mối đe dọa Chuỗi Cung ứng:**
-- **Giám sát Sức khỏe Phụ thuộc**: Đánh giá liên tục các phụ thuộc về vấn đề bảo mật
-- **Tích hợp Thông tin Mối đe dọa**: Cập nhật thời gian thực các mối đe dọa chuỗi cung ứng mới nổi
-- **Phân tích Hành vi**: Phát hiện hành vi bất thường của các thành phần bên ngoài
-- **Phản ứng Tự động**: Ngăn chặn ngay lập tức các thành phần bị xâm phạm
+**Phát Hiện Mối Đe Dọa Chuỗi Cung Ứng:**
+- **Giám Sát Tình Trạng Phụ Thuộc**: Đánh giá liên tục mọi phụ thuộc về các vấn đề bảo mật
+- **Tích Hợp Tình Báo Mối Đe Dọa**: Cập nhật thời gian thực về các mối đe dọa chuỗi cung ứng mới nổi
+- **Phân Tích Hành Vi**: Phát hiện hành vi bất thường trong thành phần bên ngoài
+- **Phản Ứng Tự Động**: Ngăn chặn ngay lập tức các thành phần bị xâm phạm
 
-## 8. **Kiểm soát Giám sát & Phát hiện**
+## 8. **Kiểm Soát Giám Sát & Phát Hiện**
 
-**Rủi ro MCP của OWASP được giải quyết**: [MCP08 - Thiếu Audit & Telemetry](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp08-telemetry/)
+**Rủi ro OWASP MCP Được Giải Quyết**: [MCP08 - Thiếu Giám Sát & Telemetry](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp08-telemetry/)
 
-### **Quản lý Thông tin và Sự kiện Bảo mật (SIEM)**
+### **Quản Lý Thông Tin & Sự Kiện Bảo Mật (SIEM)**
 
-**Chiến lược Ghi log Toàn diện:**
+**Chiến Lược Ghi Nhật Ký Toàn Diện:**
 ```yaml
 Authentication Events:
   - "All authentication attempts (success/failure)"
@@ -350,19 +350,19 @@ Security Events:
   - "Unusual access patterns and anomalies"
 ```
 
-### **Phát hiện Mối đe dọa Thời gian Thực**
+### **Phát Hiện Mối Đe Dọa Thời Gian Thực**
 
-**Phân tích Hành vi:**
-- **Phân tích Hành vi Người dùng (UBA)**: Phát hiện các mẫu truy cập người dùng bất thường
-- **Phân tích Hành vi Thực thể (EBA)**: Giám sát hành vi máy chủ MCP và công cụ
-- **Phát hiện Bất thường bằng Máy học**: AI nhận biết các mối đe dọa bảo mật
-- **Tương quan Thông tin Mối đe dọa**: So khớp hành động quan sát với mô hình tấn công đã biết
+**Phân Tích Hành Vi:**
+- **Phân Tích Hành Vi Người Dùng (UBA)**: Phát hiện mô hình truy cập người dùng bất thường
+- **Phân Tích Hành Vi Thực Thể (EBA)**: Giám sát hành vi máy chủ MCP và công cụ
+- **Phát Hiện Bất Thường Bằng Máy Học**: Dùng AI nhận diện mối đe dọa bảo mật
+- **Tương Quan Tình Báo Mối Đe Dọa**: Đối chiếu hoạt động quan sát với mẫu tấn công đã biết
 
-## 9. **Ứng phó Sự cố & Phục hồi**
+## 9. **Phản Ứng & Phục Hồi Sự Cố**
 
-### **Khả năng Ứng phó Tự động**
+### **Khả Năng Phản Ứng Tự Động**
 
-**Các Hành động Phản hồi Ngay lập tức:**
+**Hành Động Phản Ứng Ngay Lập Tức:**
 ```yaml
 Threat Containment:
   session_management:
@@ -387,68 +387,68 @@ Recovery Procedures:
     - "Service restart procedures"
 ```
 
-### **Khả năng Pháp y**
+### **Khả Năng Điều Tra Pháp Y**
 
-**Hỗ trợ Điều tra:**
-- **Bảo tồn Dấu vết Kiểm toán**: Ghi log bất biến với tính toàn vẹn mật mã
-- **Thu thập Chứng cứ**: Tự động thu thập các hiện vật bảo mật liên quan
-- **Xây dựng Dòng Thời gian**: Trình tự chi tiết các sự kiện dẫn đến sự cố bảo mật
-- **Đánh giá Tác động**: Đánh giá phạm vi xâm phạm và lộ dữ liệu
+**Hỗ Trợ Điều Tra:**
+- **Bảo Tồn Hồ Sơ Kiểm Toán**: Nhật ký bất biến với tính toàn vẹn mật mã
+- **Thu Thập Bằng Chứng**: Tự động thu thập các hiện vật bảo mật liên quan
+- **Phục Hồi Dòng Thời Gian**: Trình tự sự kiện chi tiết dẫn đến sự cố bảo mật
+- **Đánh Giá Tác Động**: Đánh giá phạm vi bị xâm phạm và lộ dữ liệu
 
-## **Nguyên tắc Kiến trúc Bảo mật Chính**
+## **Nguyên Tắc Kiến Trúc Bảo Mật Chính**
 
-### **Phòng thủ Nhiều tầng**
-- **Nhiều Lớp Bảo mật**: Không có điểm thất bại đơn lẻ trong kiến trúc bảo mật
-- **Kiểm soát Dự phòng**: Các biện pháp bảo mật chồng chéo đối với các chức năng quan trọng
-- **Cơ chế An toàn Mặc định**: Thiết lập mặc định an toàn khi hệ thống gặp lỗi hoặc tấn công
+### **Phòng Thủ Tầng Nấc**
+- **Nhiều Lớp Bảo Mật**: Không có điểm lỗi đơn lẻ trong kiến trúc bảo mật
+- **Kiểm Soát Dự Phòng**: Biện pháp bảo mật chồng chéo cho các chức năng quan trọng
+- **Cơ Chế An Toàn Khi Lỗi**: Mặc định bảo mật khi hệ thống gặp lỗi hoặc bị tấn công
 
-### **Triển khai Zero Trust**
-- **Không bao giờ tin tưởng, luôn xác minh**: Liên tục kiểm tra tất cả thực thể và yêu cầu
-- **Nguyên tắc Quyền Tối thiểu**: Quyền truy cập tối thiểu cho tất cả thành phần
-- **Phân đoạn vi mô (Micro-segmentation)**: Kiểm soát mạng và truy cập chi tiết
+### **Triển Khai Zero Trust**
+- **Không Bao Giờ Tin, Luôn Xác Minh**: Xác nhận liên tục mọi thực thể và yêu cầu
+- **Nguyên Tắc Quyền Tối Thiểu**: Quyền truy cập tối thiểu cho tất cả thành phần
+- **Phân Vùng Mạng Chi Tiết**: Kiểm soát mạng và truy cập mức độ hạt nhân
 
-### **Phát triển Bảo mật Liên tục**
-- **Thích nghi với Cảnh quan Mối đe dọa**: Cập nhật thường xuyên để đối phó mối đe dọa mới
-- **Hiệu quả Kiểm soát Bảo mật**: Đánh giá và cải thiện liên tục các kiểm soát
-- **Tuân thủ Đặc tả**: Phù hợp với tiêu chuẩn bảo mật MCP đang phát triển
+### **Sự Tiến Hóa Bảo Mật Liên Tục**
+- **Thích Nghi Cảnh Quan Mối Đe Dọa**: Cập nhật thường xuyên để xử lý các mối đe dọa mới
+- **Hiệu Quả Kiểm Soát Bảo Mật**: Đánh giá và cải tiến các kiểm soát liên tục
+- **Tuân Thủ Đặc Tả**: Đồng bộ với tiêu chuẩn bảo mật MCP đang phát triển
 
 ---
 
 ## **Tài Nguyên Triển Khai**
 
-### **Tài liệu MCP Chính thức**
-- [Đặc tả MCP (2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
-- [Thực hành Bảo mật MCP](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices)
-- [Đặc tả Ủy quyền MCP](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+### **Tài Liệu MCP Chính Thức**
+- [Đặc Tả MCP (2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [Thực Hành Tốt Nhất Bảo Mật MCP](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices)
+- [Đặc Tả Ủy Quyền MCP](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
 
-### **Tài nguyên Bảo mật MCP OWASP**
-- [Hướng dẫn Bảo mật Azure MCP của OWASP](https://microsoft.github.io/mcp-azure-security-guide/) - Toàn diện OWASP MCP Top 10 với triển khai Azure
-- [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/) - Rủi ro bảo mật MCP chính thức của OWASP
-- [Hội thảo MCP Security Summit (Sherpa)](https://azure-samples.github.io/sherpa/) - Đào tạo thực hành bảo mật MCP trên Azure
+### **Tài Nguyên Bảo Mật MCP OWASP**
+- [Hướng Dẫn Bảo Mật MCP Azure OWASP](https://microsoft.github.io/mcp-azure-security-guide/) - OWASP MCP Top 10 và triển khai trên Azure
+- [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/) - Rủi ro bảo mật MCP chính thức OWASP
+- [Hội Thảo MCP Security Summit (Sherpa)](https://azure-samples.github.io/sherpa/) - Đào tạo bảo mật thực hành MCP trên Azure
 
-### **Giải pháp Bảo mật Microsoft**
+### **Giải Pháp Bảo Mật Microsoft**
 - [Microsoft Prompt Shields](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection)
 - [Azure Content Safety](https://learn.microsoft.com/azure/ai-services/content-safety/)
 - [GitHub Advanced Security](https://github.com/security/advanced-security)
 - [Azure Key Vault](https://learn.microsoft.com/azure/key-vault/)
 
-### **Tiêu chuẩn Bảo mật**
-- [Thực hành Bảo mật OAuth 2.0 (RFC 9700)](https://datatracker.ietf.org/doc/html/rfc9700)
-- [OWASP Top 10 cho Mô hình Ngôn ngữ Lớn](https://genai.owasp.org/)
-- [Khung An ninh mạng NIST](https://www.nist.gov/cyberframework)
+### **Tiêu Chuẩn Bảo Mật**
+- [Thực Hành Tốt Nhất Bảo Mật OAuth 2.0 (RFC 9700)](https://datatracker.ietf.org/doc/html/rfc9700)
+- [OWASP Top 10 cho Mô Hình Ngôn Ngữ Lớn](https://genai.owasp.org/)
+- [Khung An Ninh Mạng NIST](https://www.nist.gov/cyberframework)
 
 ---
 
-> **Quan trọng**: Các kiểm soát bảo mật này phản ánh đặc tả MCP hiện tại (2025-11-25). Luôn xác minh đối chiếu với [tài liệu chính thức](https://spec.modelcontextprotocol.io/) mới nhất vì các tiêu chuẩn tiếp tục phát triển nhanh chóng.
+> **Quan Trọng**: Các kiểm soát bảo mật này phản ánh đặc tả MCP hiện tại (2025-11-25). Luôn kiểm tra đối chiếu với [tài liệu chính thức](https://spec.modelcontextprotocol.io/) mới nhất vì tiêu chuẩn tiếp tục phát triển nhanh chóng.
 
-## Tiếp theo là gì
+## Tiếp Theo
 
-- Quay lại: [Tổng quan Mô-đun Bảo mật](./README.md)
-- Tiếp tục tới: [Module 3: Bắt đầu](../03-GettingStarted/README.md)
+- Quay lại: [Tổng Quan Mô-đun Bảo Mật](./README.md)
+- Tiếp tục: [Mô-đun 3: Bắt Đầu](../03-GettingStarted/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Tuyên bố miễn trừ trách nhiệm**:  
-Tài liệu này đã được dịch bằng dịch vụ dịch thuật AI [Co-op Translator](https://github.com/Azure/co-op-translator). Mặc dù chúng tôi nỗ lực đảm bảo độ chính xác, xin lưu ý rằng bản dịch tự động có thể chứa lỗi hoặc sai sót. Tài liệu gốc bằng ngôn ngữ bản địa nên được xem là nguồn tham khảo chính xác nhất. Đối với thông tin quan trọng, khuyến nghị sử dụng dịch vụ dịch thuật chuyên nghiệp do con người thực hiện. Chúng tôi không chịu trách nhiệm về bất kỳ sự hiểu lầm hay giải thích sai nào phát sinh từ việc sử dụng bản dịch này.
+**Tuyên bố miễn trừ trách nhiệm**:
+Tài liệu này đã được dịch bằng dịch vụ dịch thuật AI [Co-op Translator](https://github.com/Azure/co-op-translator). Mặc dù chúng tôi cố gắng đảm bảo độ chính xác, xin lưu ý rằng bản dịch tự động có thể chứa lỗi hoặc sai sót. Tài liệu gốc bằng ngôn ngữ gốc nên được coi là nguồn tin chính thức. Đối với thông tin quan trọng, nên sử dụng dịch vụ dịch thuật chuyên nghiệp bởi con người. Chúng tôi không chịu trách nhiệm về bất kỳ hiểu lầm hoặc giải thích sai nào phát sinh từ việc sử dụng bản dịch này.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

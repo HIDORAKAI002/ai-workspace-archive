@@ -825,7 +825,7 @@ The examples provided demonstrate production-ready patterns for implementing cus
 
 ## **Additional Resources**
 
-- [MCP Specification 2025-06-18](https://spec.modelcontextprotocol.io/specification/2025-06-18/)
+- [MCP Specification 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/)
 - [Azure Event Grid Documentation](https://docs.microsoft.com/azure/event-grid/)
 - [Azure Event Hubs Documentation](https://docs.microsoft.com/azure/event-hubs/)
 - [Azure Functions Event Grid Trigger](https://docs.microsoft.com/azure/azure-functions/functions-bindings-event-grid)
@@ -836,7 +836,7 @@ The examples provided demonstrate production-ready patterns for implementing cus
 ---
 
 > *This guide focuses on practical implementation patterns for production MCP systems. Always validate transport implementations against your specific requirements and Azure service limits.*
-> **Current Standard**: This guide reflects [MCP Specification 2025-06-18](https://spec.modelcontextprotocol.io/specification/2025-06-18/) transport requirements and advanced transport patterns for enterprise environments.
+> **Current Standard**: This guide reflects [MCP Specification 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/) transport requirements and advanced transport patterns for enterprise environments.
 
 
 ## What's Next

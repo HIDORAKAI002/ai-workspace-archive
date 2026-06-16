@@ -51,4 +51,4 @@ const open = defineModel<boolean>('open', { default: false })
 ## Reference
 
 - ECC skills: `frontend-patterns`, `vite-patterns`.
-- Docs: https://vuejs.org/api/sfc-script-setup.html · https://vuejs.org/guide/essentials/reactivity-fundamentals.html · https://eslint.vuejs.org/
+- Docs: <https://vuejs.org/api/sfc-script-setup.html> · <https://vuejs.org/guide/essentials/reactivity-fundamentals.html> · <https://eslint.vuejs.org/>

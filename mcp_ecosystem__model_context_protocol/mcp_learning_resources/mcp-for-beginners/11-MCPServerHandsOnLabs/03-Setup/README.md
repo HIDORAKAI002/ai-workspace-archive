@@ -310,7 +310,7 @@ Our MCP server requires these Azure resources:
 
 | **Resource** | **Purpose** | **Estimated Cost** |
 |--------------|-------------|-------------------|
-| **Azure AI Foundry** | AI model hosting and management | $10-50/month |
+| **Microsoft Foundry** | AI model hosting and management | $10-50/month |
 | **OpenAI Deployment** | Text embedding model (text-embedding-3-small) | $5-20/month |
 | **Application Insights** | Monitoring and telemetry | $5-15/month |
 | **Resource Group** | Resource organization | Free |
@@ -332,7 +332,7 @@ cd infra
 
 The deployment script will:
 1. Create a unique resource group
-2. Deploy Azure AI Foundry resources
+2. Deploy Microsoft Foundry resources
 3. Deploy the text-embedding-3-small model
 4. Configure Application Insights
 5. Create a service principal for authentication
@@ -865,7 +865,7 @@ With your environment ready, continue to **[Lab 04: Database Design and Schema](
 - [VS Code Documentation](https://code.visualstudio.com/docs) - Editor configuration and extensions
 
 ### Azure Services
-- [Azure AI Foundry Documentation](https://docs.microsoft.com/azure/ai-foundry/) - AI service configuration
+- [Microsoft Foundry Documentation](https://docs.microsoft.com/azure/ai-foundry/) - AI service configuration
 - [Azure OpenAI Service](https://docs.microsoft.com/azure/cognitive-services/openai/) - AI model deployment
 - [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) - Monitoring setup
 

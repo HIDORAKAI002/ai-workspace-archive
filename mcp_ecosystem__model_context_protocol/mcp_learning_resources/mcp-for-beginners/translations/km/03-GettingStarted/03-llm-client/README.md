@@ -1,52 +1,52 @@
 # បង្កើត client ជាមួយ LLM
 
-ដូចដែលអ្នកបានឃើញរហូតមកនេះ អ្នកបានឃើញពីរបៀបបង្កើតម៉ាស៊ីនបម្រើ និង client ។ Client បានអាចហៅម៉ាស៊ីនបម្រើជាតំណាងដើម្បីបង្ហាញបញ្ជីឧបករណ៍ វត្ថុធនធាន និងស្នើសុំ។ ទោះជាយ៉ាងណាក៏ដោយ វាគឺមិនមែនជាវិធីដែលមានប្រយោជន៍ខ្លាំងទេ។ អ្នកប្រើប្រាស់របស់អ្នករស់នៅក្នុងយុគសម័យភ្នាក់ងារ agentic ហើយរំពឹងថានឹងប្រើស្នើសុំ និងទំនាក់ទំនងជាមួយ LLM ជំនួស។ ពួកគេមិនខ្វល់ថាតើអ្នកប្រើ MCP ដើម្បីផ្ទុកសមត្ថភាពរបស់អ្នក ឬពុំមែនទេ ពួកគេខំរង់ចាំក្នុងការតភ្ជាប់ប្រើភាសាធម្មជាតិរបស់មនុស្ស។ តើយើងត្រូវដោះស្រាយដូចម្តេច? ដំណោះស្រាយគឺបន្ថែម LLM ទៅ client។
+មកដល់ឡើងនេះ អ្នកបានឃើញពីវិធីបង្កើតម៉ាស៊ីនបម្រើ និង client។ Client អាចហៅម៉ាស៊ីនបម្រើដោយច្បាស់ដើម្បីបង្ហាញបញ្ជីឧបករណ៍ ប្រាក់ធនធាន និងការបញ្ចូលបញ្ជា។ ទោះបីជាយ៉ាងណា វាមិនមែនជាវិធីសាស្រ្តដែលមានប្រយោជន៍ខ្លាំងទេ។ អ្នកប្រើប្រាស់របស់អ្នករស់នៅក្នុងយុគសម័យភ្នាក់ងារនិងរំពឹងថានឹងប្រើប្រាស់ការបញ្ចូលបញ្ជានិងទំនាក់ទំនងជាមួយ LLM។ ពួកគេចង់បានត្រឹមតែការប្រាស្រ័យប្រយោលតាមភាសាធម្មជាតិ ដោយមិនព្រួយថាតើអ្នកប្រើ MCP ដើម្បីរក្សាទុកសមត្ថភាពរបស់អ្នកឬក៏ទេ។ ដូច្នេះ តើយើងដោះស្រាយវាដូចម្តេច? ដំណោះស្រាយគឺបន្ថែម LLM ទៅ client។
 
 ## ទិដ្ឋភាពទូទៅ
 
-ក្នុងមេរៀននេះយើងផ្តោតលើការបន្ថែម LLM ទៅ client របស់អ្នក និងបង្ហាញពីរបៀបដែលវាផ្តល់បទពិសោធដោយប្រសើរជាងសម្រាប់អ្នកប្រើប្រាស់។
+នៅមេរៀននេះ យើងផ្តោតលើការបន្ថែម LLM ទៅ client របស់អ្នក ហើយបង្ហាញពីរបៀបដែលវាបង្កើតបទពិសោធន៍ល្អជាងសម្រាប់អ្នកប្រើរបស់អ្នក។
 
-## គោលបំណងរៀន
+## គោលបំណងការសិក្សា
 
-នៅចុងបញ្ចប់មេរៀននេះ អ្នកនឹងអាច៖
+នៅចុងបញ្ចប់មេរៀននេះ អ្នកនឹងអាច:
 
 - បង្កើត client ជាមួយ LLM។
-- ទំនាក់ទំនងដោយរលូនជាមួយម៉ាស៊ីនបម្រើ MCP ដោយប្រើ LLM។
-- ផ្តល់បទពិសោធន៍ប្រើប្រាស់ល្អជាងសម្រាប់អ្នកប្រើក្រោយ client។
+- ទំនាក់ទំនងជាស្ទើរតែមិនមានបញ្ហាជាមួយម៉ាស៊ីនបម្រើ MCP ដោយប្រើ LLM។
+- ផ្តល់បទពិសោធន៍ល្អជាងសម្រាប់អ្នកប្រើចុងក្រោយនៅផ្នែក client។
 
-## វិធីសាស្ត្រ
+## វិធីសាស្រ្ត
 
-សូមយល់ដឹងវិធីសាស្ត្រដែលយើងត្រូវយក។ ការបន្ថែម LLM សម្លេងមើលទៅសាមញ្ញ ប៉ុន្តើយើងពិតៗត្រូវធ្វើដូចនេះឬ? 
+មកយល់ដឹងពីវិធីសាស្រ្តដែលយើងត្រូវអនុវត្ត។ ការ​បន្ថែម LLM តាមបែបសាមញ្ញ ប៉ុន្តែតើយើងពិតជានឹងធ្វើវាទេ?
 
-នេះជារបៀប client នឹងទំនាក់ទំនងជាមួយម៉ាស៊ីនបម្រើ៖
+នេះជារបៀបដែល client នឹងនៅក្នុងទំនាក់ទំនងជាមួយម៉ាស៊ីនបម្រើ៖
 
 1. បង្កើតការតភ្ជាប់ជាមួយម៉ាស៊ីនបម្រើ។
 
-1. បញ្ជីសមត្ថភាព ស្នើសុំ វត្ថុធនធាន និងឧបករណ៍ ហើយរក្សាទុកផែនទីរបស់ពួកវា។
+1. បង្ហាញបញ្ជីសមត្ថភាព បញ្ចូលបញ្ជា ប្រាក់ធនធាន និងឧបករណ៍ និងរក្សាទុកស្ពេក្រមរបស់ពួកវា។
 
-1. បន្ថែម LLM ហើយផ្តល់សមត្ថភាពដែលបានរក្សាទុក និងផែនទីរបស់ពួកវាជារបៀបដែល LLM យល់។
+1. បន្ថែម LLM ហើយផ្ញើសមត្ថភាព និងស្ពេខ្រមដែលបានរក្សាទុកទៅ LLM ក្នុងទ្រង់ទ្រាយដែល LLM អាចយល់បាន។
 
-1. ឆ្លើយតបទៅនឹងស្នើសុំអ្នកប្រើដោយបញ្ជូនវាទៅ LLM រួមជាមួយឧបករណ៍ដែលបានបញ្ជីដោយ client។
+1. កែលម្អការបញ្ចូលបញ្ជារបស់អ្នកប្រើដោយផ្ញើវាទៅ LLM រួមជាមួយឧបករណ៍ដែលបានបញ្ជីដោយ client។
 
-ល្អ ប៉ុន្តែនៅពេលយើងយល់រួចទេពីរបៀបទូទៅ ប្រសិនចង់ចាប់ផ្តើមសាកល្បងនោះមកសាកល្បងនៅលើហាត់ប្រាណខាងក្រោម។
+អស្ចារ្យ ទទួលយល់រួចរាល់ពីរបៀបធ្វើការលើកនេះដូចម្តេច នៅពេលនេះមកសាកល្បងវានៅលំហាត់ខាងក្រោម។
 
-## ហាត់ប្រាណ៖ បង្កើត client ជាមួយ LLM
+## លំហាត់៖ បង្កើត client ជាមួយ LLM
 
-ក្នុងហាត់ប្រាណនេះយើង​នឹងរៀនបន្ថែម LLM ទៅ client របស់យើង។
+នៅលំហាត់នេះ យើងនឹងរៀនបន្ថែម LLM ទៅ client របស់យើង។
 
-### អះអាងភាពតាមរយៈ Token ផ្ទាល់ខ្លួន GitHub
+### ការផ្ទៀងផ្ទាត់ដោយប្រើ GitHub Personal Access Token
 
-ការបង្កើត token GitHub គឺជាដំណើរការងាយស្រួល។ នេះជារបៀបដែលអ្នកអាចធ្វើបាន៖
+ការបង្កើត token GitHub គឺជាដំណើរការងាយស្រួល។ នេះជាវិធីដែលអ្នកអាចធ្វើបាន៖
 
-- ទៅកាន់ GitHub Settings – ចុចរូបតំណាងប្រវត្តិរូបនៅកំពូលកែងស្ដាំ រួចជ្រើស Settings។
-- ទៅកាន់ Developer Settings – រំកិលចុះក្រោម ហើយចុច Developer Settings។
-- ជ្រើស Personal Access Tokens – ចុច Fine-grained tokens រួចចុច Generate new token។
-- កំណត់ Token របស់អ្នក – បន្ថែមសម្គាល់សម្រាប់យោង កំណត់កាលបរិច្ឆេទផុតកំណត់ ហើយជ្រើសរើសសិទ្ធិដែលចាំបាច់ (permissions)។ ក្នុងករណីនេះ ត្រូវប្រាកដថាបន្ថែមសិទ្ធិ Models។
-- បង្កើត ហើយចម្លង Token – ចុច Generate token ហើយប្រាកដចម្លងភ្លាម ព្រោះអ្នកមិនអាចមើលវាម្តងទៀតបានទេ។
+- ទៅកាន់ GitHub Settings – ចុចលើរូបប្រវត្តិរូបអ្នកនៅខាងស្តាំលើ និងជ្រើស Settings។
+- ទៅកាន់ Developer Settings – ធ្វើការរុករកចុះក្រោម ហើយចុចលើ Developer Settings។
+- ជ្រើស Personal Access Tokens – ចុចលើ Fine-grained tokens បន្ទាប់មក Generate new token។
+- កំណត់ token របស់អ្នក – បន្ថែមកំណត់សំគាល់សម្រាប់យោង កំណត់កាលបរិច្ឆេទផុٹ និងជ្រើស scope (សិទ្ធិ) ដែលត្រូវការ។ ក្នុងករណីនេះ សូមប្រាកដថាបន្ថែមសិទ្ធិ Models។
+- បង្កើតនិងចម្លង token – ចុច Generate token ហើយផ្ទៀងផ្ទាត់ចម្លងវាបន្ទាប់ពីបង្កើត ព្រោះអ្នកនឹងមិនអាចមើលវិញទេ។
 
 ### -1- តភ្ជាប់ទៅម៉ាស៊ីនបម្រើ
 
-សូមបង្កើត client របស់យើងជាមុន៖
+មកបង្កើត client របស់យើងជាដំបូង៖
 
 #### TypeScript
 
@@ -55,7 +55,7 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 import OpenAI from "openai";
-import { z } from "zod"; // នាំចូល zod សម្រាប់ផ្ទៀងផ្ទាត់សណ្ឋាន
+import { z } from "zod"; // នាំចូល zod សម្រាប់ផ្ទៀងផ្ទាត់ schema
 
 class MCPClient {
     private openai: OpenAI;
@@ -85,9 +85,9 @@ class MCPClient {
 
 ក្នុងកូដខាងលើ យើងបាន៖
 
-- យកបណ្ណាល័យដែលចាំបាច់
-- បង្កើតថ្នាក់មួយមានសមាសភាគពីរគឺ `client` និង `openai` ដែលជួយគ្រប់គ្រង client និងទំនាក់ទំនងជាមួយ LLM យ៉ាងស្រួល។
-- កំណត់ instance របស់ LLM ដើម្បីប្រើ GitHub Models ដោយកំណត់ `baseUrl` តាម API inference។
+- នាំចូលបណ្ណាល័យដែលត្រូវការ
+- បង្កើតថ្នាក់មួយ ដែលមានសមាសភាពពីរគឺ `client` និង `openai` ដែលជួយគ្រប់គ្រង client និងទំនាក់ទំនងជាមួយ LLM ដោយឡែក
+- កំណត់ instance LLM របស់យើង ដើម្បីប្រើ GitHub Models ដោយកំណត់ `baseUrl` ទៅ API inference
 
 #### Python
 
@@ -95,11 +95,11 @@ class MCPClient {
 from mcp import ClientSession, StdioServerParameters, types
 from mcp.client.stdio import stdio_client
 
-# បង្កើតប៉ារ៉ាម៉ែត IV សម្រាប់ការតភ្ជាប់ stdio
+# បង្កើតប៉ារ៉ាម៉ែត្រម៉ាស៊ីនម៉ាស៊ីនសម្រាប់ការតភ្ជាប់ stdio
 server_params = StdioServerParameters(
-    command="mcp",  # ឯកសារដំណើរការ
-    args=["run", "server.py"],  # ប៉ារ៉ាម៉ែតបញ្ជាកម្មបន្ទាត់បន្ថែម
-    env=None,  # ខណៈការបរិបទបរិយាកាសជាជម្រើស
+    command="mcp",  # អាចអនុវត្តបាន
+    args=["run", "server.py"],  # អាគុយម៉ង់បន្ទាត់បញ្ជា​ជាជម្រើស
+    env=None,  # អថេរស្ថាន(environment)ជាជម្រើស
 )
 
 
@@ -121,8 +121,8 @@ if __name__ == "__main__":
 
 ក្នុងកូដខាងលើ យើងបាន៖
 
-- យកបណ្ណាល័យដែលចាំបាច់សម្រាប់ MCP
-- បង្កើត client មួយ
+- នាំចូលបណ្ណាល័យដែលត្រូវការសម្រាប់ MCP
+- បង្កើត client
 
 #### .NET
 
@@ -146,7 +146,7 @@ await using var mcpClient = await McpClient.CreateAsync(clientTransport);
 
 #### Java
 
-ជាពិសេស អ្នកត្រូវបន្ថែម LangChain4j dependencies ទៅក្នុង `pom.xml` របស់អ្នក។ បន្ថែម dependencies ទាំងនេះដើម្បីអាចធ្វើ MCP integration និងគាំទ្រ GitHub Models៖
+ជាមុនសិន អ្នកត្រូវបន្ថែម dependencies LangChain4j ទៅឯកសារ `pom.xml` របស់អ្នក។ បន្ថែម dependencies ទាំងនេះ ដើម្បីអនុវិទ្យាសមាគម MCP និងគាំទ្រ GitHub Models៖
 
 ```xml
 <properties>
@@ -183,7 +183,7 @@ await using var mcpClient = await McpClient.CreateAsync(clientTransport);
 </dependencies>
 ```
 
-បន្ទាប់មក បង្កើតថ្នាក់ client Java របស់អ្នក៖
+បន្ទាប់មកបង្កើតថ្នាក់ client Java របស់អ្នក៖
 
 ```java
 import dev.langchain4j.mcp.McpToolProvider;
@@ -201,7 +201,7 @@ import java.util.List;
 
 public class LangChain4jClient {
     
-    public static void main(String[] args) throws Exception {        // កំណត់រចនាសម្ព័ន្ធ LLM ដើម្បីប្រើម៉ូឌែល GitHub
+    public static void main(String[] args) throws Exception {        // កំណត់រចនាសម្ព័ន្ធ LLM ដើម្បីប្រើម៉ូដែល GitHub
         ChatLanguageModel model = OpenAiOfficialChatModel.builder()
                 .isGitHubModels(true)
                 .apiKey(System.getenv("GITHUB_TOKEN"))
@@ -209,7 +209,7 @@ public class LangChain4jClient {
                 .modelName("gpt-4.1-nano")
                 .build();
 
-        // បង្កើតការដឹកជញ្ជូន MCP សម្រាប់ភ្ជាប់ទៅម៉ាស៊ីនបម្រើ
+        // បង្កើតការដឹកជញ្ជូន MCP សម្រាប់ភ្ជាប់ទៅម៉ាស៊ែរ
         McpTransport transport = new HttpMcpTransport.Builder()
                 .sseUrl("http://localhost:8080/sse")
                 .timeout(Duration.ofSeconds(60))
@@ -217,7 +217,7 @@ public class LangChain4jClient {
                 .logResponses(true)
                 .build();
 
-        // បង្កើតអ្នកប្រើ MCP
+        // បង្កើតអតិថិជន MCP
         McpClient mcpClient = new DefaultMcpClient.Builder()
                 .transport(transport)
                 .build();
@@ -227,18 +227,18 @@ public class LangChain4jClient {
 
 ក្នុងកូដខាងលើ យើងបាន៖
 
-- **បន្ថែម LangChain4j dependencies**៖ ជាចាំបាច់សម្រាប់ MCP integration, client ផ្លូវការរបស់ OpenAI, និងគាំទ្រ GitHub Models
-- **យកបណ្ណាល័យ LangChain4j**៖ សម្រាប់ការបញ្ចូល MCP និងមូឌែលសន្ទនារ OpenAI
-- **បង្កើត ChatLanguageModel**៖ កំណត់ឱ្យប្រើ GitHub Models ជាមួយសំបុត្ររបស់ GitHub របស់អ្នក
-- **កំណត់ការដឹកជញ្ជូន HTTP**៖ ប្រើ Server-Sent Events (SSE) ដើម្បីភ្ជាប់ទៅម៉ាស៊ីនបម្រើ MCP
-- **បង្កើត MCP client**៖ ដែលគ្រប់គ្រងការទំនាក់ទំនងជាមួយម៉ាស៊ីនបម្រើ
-- **ប្រើគាំទ្រលំនាំដើមរបស់ LangChain4j សម្រាប់ MCP**៖ ដែលធ្វើឱ្យការរួមបញ្ចូលរវាង LLM និងម៉ាស៊ីនបម្រើ MCP រលូនជាងមុន
+- **បន្ថែម dependencies LangChain4j**៖ ដែលត្រូវការសម្រាប់ MCP សមាគម OpenAI និងគាំទ្រ GitHub Models
+- **នាំចូលបណ្ណាល័យ LangChain4j**៖ សម្រាប់ MCP សមាគម និងមុខងារ OpenAI chat model
+- **បង្កើត `ChatLanguageModel`**៖ កំណត់ប្រើ GitHub Models ជាមួយ token GitHub របស់អ្នក
+- **កំណត់ HTTP transport**៖ ប្រើ Server-Sent Events (SSE) ដើម្បីតភ្ជាប់ទៅម៉ាស៊ីនបម្រើ MCP
+- **បង្កើត client MCP**៖ ដើម្បីគ្រប់គ្រងការទំនាក់ទំនងជាមួយម៉ាស៊ីនបម្រើ
+- **ប្រើការគាំទ្ររបស់ LangChain4j ជូន MCP**៖ ដែលធ្វើឲ្យការចូលរួមរវាង LLM និងម៉ាស៊ីនបម្រើ MCP ងាយស្រួល
 
 #### Rust
 
-ឧទាហរណ៍នេះសន្មតថាអ្នកមានម៉ាស៊ីនបម្រើ MCP ដែលផ្ដល់សេវាលើ Rust រួចហើយ។ ប្រសិនបើមិនមាន សូមយោងត្រលប់ទៅមេរៀន [01-first-server](../01-first-server/README.md) ដើម្បីបង្កើតម៉ាស៊ីនបម្រើ។
+ឧទាហរណ៍នេះសន្មតថា អ្នកមានម៉ាស៊ីនបម្រើ MCP បង្កើតពី Rust រួច។ ប្រសិនបើមិនមាន សូមតាមបទយកការណ៍ [01-first-server](../01-first-server/README.md) ដើម្បីបង្កើតម៉ាស៊ីនបម្រើ។
 
-ពេលដែលមានម៉ាស៊ីនបម្រើ MCP Rust រួចហើយ បើក terminal ហើយចូលទៅថតដូចម៉ាស៊ីនបម្រើ រួចបញ្ចូលពាក្យបញ្ជាខាងក្រោមដើម្បីបង្កើត project client LLM ថ្មី៖
+ពេលដែលអ្នកមានម៉ាស៊ីនបម្រើ MCP របស់ Rust រួច បើក terminal ហើយចូលទៅកាន់ថតដែលមានម៉ាស៊ីនបម្រើ។ បន្ទាប់មករត់បញ្ជា ខាងក្រោម ដើម្បីបង្កើត project client LLM ថ្មី៖
 
 ```bash
 mkdir calculator-llmclient
@@ -246,7 +246,7 @@ cd calculator-llmclient
 cargo init
 ```
 
-បន្ថែម dependencies ខាងក្រោមទៅក្នុងឯកសារ `Cargo.toml` របស់អ្នក៖
+បន្ថែម dependencies ខាងក្រោមទៅឯកសារ `Cargo.toml` របស់អ្នក៖
 
 ```toml
 [dependencies]
@@ -257,9 +257,9 @@ tokio = { version = "1.46.1", features = ["rt-multi-thread"] }
 ```
 
 > [!NOTE]
-> មិនមានបណ្ណាល័យផ្លូវការរបស់ Rust សម្រាប់ OpenAI ទេ ទោះជាយ៉ាងណា `async-openai` crate គឺជាបណ្ណាល័យដែលគ្រប់គ្រងដោយសហគមន៍ ([community maintained library](https://platform.openai.com/docs/libraries/rust#rust)) ដែលត្រូវបានប្រើជាញឹកញាប់។
+> មិនមានបណ្ណាល័យ Rust ផ្លូវការសម្រាប់ OpenAI ទេ ប៉ុន្ដែ `async-openai` គឺជាបណ្ណាល័យដែលសហគមន៍ថែរក្សា ([community maintained library](https://platform.openai.com/docs/libraries/rust#rust)) ដែលត្រូវបានប្រើប្រាស់ទូទៅ។
 
-បើកឯកសារ `src/main.rs` ហើយជំនួសខ្លឹមសាររបស់វាដោយកូដខាងក្រោម៖
+បើកឯកសារ `src/main.rs` ហើយជំនួសខ្លឹមសាររបស់វាជាមួយកូដខាងក្រោម៖
 
 ```rust
 use async_openai::{Client, config::OpenAIConfig};
@@ -278,7 +278,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // សារដំបូង
     let mut messages = vec![json!({"role": "user", "content": "What is the sum of 3 and 2?"})];
 
-    // ការតំឡើងអតិថិជន OpenAI
+    // ការដាក់តម្លើងអតិថិជន OpenAI
     let api_key = std::env::var("OPENAI_API_KEY")?;
     let openai_client = Client::with_config(
         OpenAIConfig::new()
@@ -286,7 +286,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             .with_api_key(api_key),
     );
 
-    // ការតំឡើងអតិថិជន MCP
+    // ការដាក់តម្លើងអតិថិជន MCP
     let server_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .unwrap()
@@ -301,28 +301,28 @@ async fn main() -> Result<(), Box<dyn Error>> {
         )
         .await?;
 
-    // TODO: ទទួលយកបញ្ជីឧបករណ៍ MCP
+    // TODO: ទទួលបានបញ្ជីឧបករណ៍ MCP
 
-    // TODO: ការសន្ទនាដោយ LLM ជាមួយការហៅឧបករណ៍
+    // TODO: ការសន្ទនាប្រព័ន្ធ LLM ជាមួយការហៅឧបករណ៍
 
     Ok(())
 }
 ```
 
-កូដនេះកំណត់កម្មវិធី Rust សាមញ្ញមួយដែលនឹងភ្ជាប់ទៅម៉ាស៊ីនបម្រើ MCP និង GitHub Models សម្រាប់ទំនាក់ទំនង LLM។
+កូដនេះកំណត់កម្មវិធី Rust មូលដ្ឋាន ដែលនឹងភ្ជាប់ទៅម៉ាស៊ីនបម្រើ MCP និង GitHub Models សម្រាប់ការទំនាក់ទំនង LLM។
 
 > [!IMPORTANT]
-> សូមប្រាកដថាត្រូវកំណត់ environment variable `OPENAI_API_KEY` ជាមួយសំបុត្ររបស់ GitHub មុនចាប់ផ្តើមកម្មវិធី។
+> សូមប្រាកដថា បានកំណត់អថេរ environment `OPENAI_API_KEY` ជាមួយ token GitHub របស់អ្នក មុនពេលដំណើរការ​កម្មវិធី។
 
-ល្អ សម្រាប់ជំហានបន្ទាប់ យើងត្រូវបញ្ជីសមត្ថភាពនៅលើម៉ាស៊ីនបម្រើ។
+អស្ចារ្យ សម្រាប់ជំហានបន្ទាប់ យើងមកបង្ហាញបញ្ជីសមត្ថភាពនៅម៉ាស៊ីនបម្រើ។
 
-### -2- បញ្ជីសមត្ថភាពម៉ាស៊ីនបម្រើ
+### -2- បង្ហាញបញ្ជីសមត្ថភាពម៉ាស៊ីនបម្រើ
 
-ឥឡូវនេះ យើងនឹងភ្ជាប់ទៅម៉ាស៊ីនបម្រើ ហើយស្នើរសុំសមត្ថភាពរបស់វា៖
+ឥឡូវនេះ យើងនឹងភ្ជាប់ទៅម៉ាស៊ីនបម្រើ ហើយសួរអំពីសមត្ថភាពរបស់វា៖
 
 #### Typescript
 
-ក្នុងថ្នាក់ដដែលនេះ បន្ថែមវិធីសាស្ត្រខាងក្រោម៖
+នៅក្នុងថ្នាក់ដូចគ្នា បន្ថែមមេធដ្ឋានខាងក្រោម៖
 
 ```typescript
 async connectToServer(transport: Transport) {
@@ -334,15 +334,15 @@ async connectToServer(transport: Transport) {
 async run() {
     console.log("Asking server for available tools");
 
-    // រាយបញ្ជីឧបករណ៍
+    // បញ្ជីឧបករណ៍
     const toolsResult = await this.client.listTools();
 }
 ```
 
 ក្នុងកូដខាងលើ យើងបាន៖
 
-- បន្ថែមកូដសម្រាប់ភ្ជាប់ទៅម៉ាស៊ីនបម្រើ `connectToServer`
-- បង្កើតវិធីសាស្ត្រ `run` ដែលទទួលបន្ទុកលំហូរកម្មវិធី។ ដល់ពេលនេះ វាទើបតែបញ្ជីឧបករណ៍ ប៉ុន្តាយើងនឹងបន្ថែមទៀតនៅពេលក្រោយ។
+- បន្ថែមកូដសម្រាប់ភ្ជាប់ទៅម៉ាស៊ីនបម្រើ `connectToServer`។
+- បង្កើតមេធដ្ឋាន `run` មួយ សម្រាប់គ្រប់គ្រងសំណើរអ៊ឹមភ្លឺមេរោងចក្រ។ បច្ចុប្បន្នវា បញ្ជីឧបករណ៍តែមួយ ប៉ុន្តែយើងនឹងបន្ថែមច្រើនទៀតពេលក្រោយ។
 
 #### Python
 
@@ -361,9 +361,9 @@ for tool in tools.tools:
     print("Tool", tool.inputSchema["properties"])
 ```
 
-នេះគឺជារឿងដែលយើងបានបន្ថែម៖
+នេះជា​អ្វីដែលយើងបានបន្ថែម៖
 
-- បញ្ជីវត្ថុធនធាន និងឧបករណ៍ ហើយបោះពុម្ពវាទៅ។ សម្រាប់ឧបករណ៍ យើងក៏បញ្ជី `inputSchema` ដែលយើងប្រើក្រោយ។
+- បង្ហាញប្រាក់ធនធាន និងឧបករណ៍ ហើយបង្ហាញវាចេញ។ សម្រាប់ឧបករណ៍ យើងក៏បង្ហាញ `inputSchema` ដែលយើងប្រើនៅពេលក្រោយ។
 
 #### .NET
 
@@ -390,45 +390,45 @@ async Task<List<ChatCompletionsToolDefinition>> GetMcpTools()
 
 ក្នុងកូដខាងលើ យើងបាន៖
 
-- បញ្ជីឧបករណ៍ដែលមាននៅលើម៉ាស៊ីនបម្រើ MCP
-- សម្រាប់ឧបករណ៍នីមួយៗ បញ្ជីឈ្មោះ ការពិពណ៌នា និងផែនទីរបស់វា។ ពួកនេះគឺអ្វីដែលយើងនឹងប្រើដើម្បីហៅឧបករណ៍ភ្លាមៗ។
+- បង្ហាញឧបករណ៍ដែលអាចប្រើបាននៅលើម៉ាស៊ីនបម្រើ MCP
+- សម្រាប់ឧបករណ៍មួយៗ បង្ហាញឈ្មោះ ការពិពណ៌នា និងស្ពេក្រម input របស់វា។ វាអ្វីដែលយើងនឹងប្រើហៅឧបករណ៍នៅពេលក្រោយ។
 
 #### Java
 
 ```java
-// បង្កើតអ្នកផ្តល់ឧបករណ៍ដែលស្វែងរកឧបករណ៍ MCP ដោយស្វayani
+// បង្កើតអ្នកផ្តល់ឧបករណ៍មួយដែលរកឃើញឧបករណ៍ MCP ដោយស្វ័យប្រវត្តិ
 ToolProvider toolProvider = McpToolProvider.builder()
         .mcpClients(List.of(mcpClient))
         .build();
 
-// អ្នកផ្តល់ឧបករណ៍ MCP ដឹកនាំដោយស្វ័យប្រវត្តិ៖
-// - បញ្ជីឧបករណ៍ដែលមានពីម៉ាស៊ីនមេ MCP
-// - បម្លែងគ្រោងសchemaឧបករណ៍ MCP ទៅទ្រង់ទ្រាយ LangChain4j
-// - គ្រប់គ្រងការប្រតិបត្តិឧបករណ៍ និងចម្លើយ
+// អ្នកផ្តល់ឧបករណ៍ MCP គឺដំណើរការដោយស្វ័យប្រវត្តិ:
+// - បង្ហាញបញ្ជីឧបករណ៍ដែលមានពីម៉ាស៊ីនបម្រើ MCP
+// - បម្លែងស្គីម៉ាឧបករណ៍ MCP ទៅជារូបមន្ត LangChain4j
+// - គ្រប់គ្រងការប្រតិបត្តិឧបករណ៍ និងការឆ្លើយតប
 ```
 
 ក្នុងកូដខាងលើ យើងបាន៖
 
-- បង្កើត `McpToolProvider` ដែលស្វ័យប្រវត្តិស្វែងរក និងចុះបញ្ជីឧបករណ៍ទាំងអស់ពីម៉ាស៊ីនបម្រើ MCP
-- កម្មវិធីផ្គត់ផ្គង់ឧបករណ៍គ្រប់គ្រងការបម្លែងគ្នារវាងផែនទីឧបករណ៍ MCP និងលំនាំឧបករណ៍ LangChain4j ក្រៅផ្ទៃ
-- វិធីសាស្ត្រនេះគឺបិទខ្ទប់ពីការបញ្ជី និងបម្លែងឧបករណ៍ដោយដៃ
+- បង្កើត `McpToolProvider` មួយ ដែលស្វែងរក និងចុះបញ្ជីឧបករណ៍ទាំងអស់ពីម៉ាស៊ីនបម្រើ MCP ដោយស្វ័យប្រវត្តិ
+- អ្នកផ្តល់ឧបករណ៍នេះ គ្រប់គ្រងការបំលាស់ប្តូររវាងស្ពេក្រមឧបករណ៍ MCP និងទ្រង់ទ្រាយឧបករណ៍ LangChain4j ខាងក្នុង
+- វិធីសាស្រ្តនេះបំពានពីការបញ្ជីឧបករណ៍ និងបំលាស់ប្តូរដោយដៃ
 
 #### Rust
 
-ការទាញយកឧបករណ៍ពីម៉ាស៊ីនបម្រើ MCP ត្រូវបានបំពេញដោយវិធីសាស្ត្រ `list_tools`។ ក្នុងមុខងារ `main` របស់អ្នក បន្ទាប់ពីកំណត់ MCP client សូមបន្ថែមកូដខាងក្រោម៖
+ការទាញយកឧបករណ៍ពីម៉ាស៊ីនបម្រើ MCP ត្រូវបានអនុវត្តដោយមុខងារ `list_tools`។ នៅក្នុងមុខងារ `main` របស់អ្នក បន្ទាប់ពីកំណត់ client MCP សូមបន្ថែមកូដខាងក្រោម៖
 
 ```rust
 // ទទួលបានបញ្ជីឧបករណ៍ MCP
 let tools = mcp_client.list_tools(Default::default()).await?;
 ```
 
-### -3- បម្លែងសមត្ថភាពម៉ាស៊ីនបម្រើទៅឧបករណ៍ LLM
+### -3- បំលែងសមត្ថភាពម៉ាស៊ីនបម្រើទៅជា​ឧបករណ៍ LLM
 
-ជំហានបន្ទាប់ បន្ទាប់ពីបញ្ជីសមត្ថភាពម៉ាស៊ីនបម្រើ គឺបម្លែងវាទៅទ្រង់ទ្រាយដែល LLM យល់។ បន្ទាប់ពីធ្វើបច្ចុប្បន្នភាព យើងអាចផ្តល់សមត្ថភាពទាំងនេះជាឧបករណ៍ទៅ LLM របស់យើងបាន។
+ជំហានបន្ទាប់ បន្ទាប់ពីបង្ហាញបញ្ជីសមត្ថភាពម៉ាស៊ីនបម្រើ គឺបំលែងវាទៅក្នុងទ្រង់ទ្រាយដែល LLM អាចយល់បាន។ បន្ទាប់មកយើងអាចផ្តល់សមត្ថភាពទាំងនេះជាឧបករណ៍ទៅ LLM របស់យើង។
 
 #### TypeScript
 
-1. បន្ថែមកូដខាងក្រោមសម្រាប់បម្លែងចម្លើយពីម៉ាស៊ីនបម្រើ MCP ទៅទ្រង់ទ្រាយឧបករណ៍ដែល LLM អាចប្រើបាន៖
+1. បន្ថែមកូដខាងក្រោម ដើម្បីបំលែងចម្លើយពីម៉ាស៊ីនបម្រើ MCP ទៅទ្រង់ទ្រាយឧបករណ៍ដែល LLM អាចប្រើបាន៖
 
     ```typescript
     openAiToolAdapter(tool: {
@@ -436,7 +436,7 @@ let tools = mcp_client.list_tools(Default::default()).await?;
         description?: string;
         input_schema: any;
         }) {
-        // បង្កើតស្គីម zod ដោយផ្អែកលើ input_schema
+        // បង្កើតស្កីម៉ា zod ដោយផ្អែកលើ input_schema
         const schema = z.object(tool.input_schema);
     
         return {
@@ -455,9 +455,9 @@ let tools = mcp_client.list_tools(Default::default()).await?;
 
     ```
 
-    កូដខាងលើ ពីមួយចម្លើយមកពីម៉ាស៊ីនបម្រើ MCP នេះ បម្លែងវាទៅជាកំណត់ឧបករណ៍ដែល LLM យល់។
+    កូដខាងលើយកចម្លើយពីម៉ាស៊ីនបម្រើ MCP ហើយបំលែងវាទៅកំណត់អក្សរឧបករណ៍ដែល LLM អាចយល់បាន។
 
-2. ឥឡូវសុំធ្វើបច្ចុប្បន្នភាពវិធីសាស្រ្ត `run` ដើម្បីបញ្ជីសមត្ថភាពម៉ាស៊ីនបម្រើ៖
+2. យើងមកផ្លាស់ប្ដូរ method `run` បន្ថែមដើម្បីបង្ហាញសមត្ថភាពម៉ាស៊ីនបម្រើ៖
 
     ```typescript
     async run() {
@@ -473,11 +473,11 @@ let tools = mcp_client.list_tools(Default::default()).await?;
     }
     ```
 
-    ក្នុងកូដនេះ យើងបានធ្វើបច្ចុប្បន្នភាព `run` ដើម្បីផ្លាស់ប្តូរដំណើរការដំណើរការ និងសម្រាប់គ្រប់ចំណុចហៅ `openAiToolAdapter`។
+    ក្នុងកូដខាងលើ យើងបានកែប្រែ method `run` ដើម្បីផ្លាស់ប្តូររង្វាស់នៃលទ្ធផល ហើយសម្រាប់ការចូលសម្តីនីមួយ ប្រើ `openAiToolAdapter`។
 
 #### Python
 
-1. ជាដំបូង សូមបង្កើតមុខងារបម្លែងនេះ ៖
+1. ជាដំណាក់កាលដំបូង បង្កើតមុខងារបំលែងខាងក្រោម៖
 
     ```python
     def convert_to_llm_tool(tool):
@@ -497,9 +497,9 @@ let tools = mcp_client.list_tools(Default::default()).await?;
         return tool_schema
     ```
 
-    ក្នុងមុខងារ `convert_to_llm_tools` ខាងលើ យើងយកចម្លើយឧបករណ៍ MCP ហើយបម្លែងវាទៅទ្រង់ទ្រាយដែល LLM យល់។
+    ក្នុងមុខងារ `convert_to_llm_tools` ខាងលើ យើងយកចម្លើយឧបករណ៍ MCP ហើយបំលែងវាទៅទ្រង់ទ្រាយដែល LLM អាចយល់បាន។
 
-2. បន្ទាប់មក សូមធ្វើបច្ចុប្បន្នភាពកូដ client របស់យើង ដូចរបៀបខាងក្រោម៖
+2. បន្ទាប់មក កែប្រែកូដ client របស់យើង ដូចខាងក្រោម៖
 
     ```python
     functions = []
@@ -509,11 +509,11 @@ let tools = mcp_client.list_tools(Default::default()).await?;
         functions.append(convert_to_llm_tool(tool))
     ```
 
-    នៅទីនេះ យើងបន្ថែមហៅមុខងារ `convert_to_llm_tool` ដើម្បីបម្លែងចម្លើយឧបករណ៍ MCP ទៅអ្វីដែលយើងអាចផ្តល់ឲ្យ LLM នៅពេលក្រោយ។
+    នៅទីនេះ យើងបន្ថែមការហៅទៅកាន់ `convert_to_llm_tool` ដើម្បីបំលែងចម្លើយឧបករណ៍ MCP ទៅជារបស់ដែលយើងអាចផ្តល់ទៅ LLM នៅពេលក្រោយ។
 
 #### .NET
 
-1. សូមបន្ថែមកូដសម្រាប់បម្លែងចម្លើយឧបករណ៍ MCP ទៅអ្វីដែល LLM អាចយល់៖
+1. hãy thêm code để chuyển đổi phản hồi công cụ MCP sang định dạng LLM có thể hiểu được
 
 ```csharp
 ChatCompletionsToolDefinition ConvertFrom(string name, string description, JsonElement jsonElement)
@@ -536,12 +536,12 @@ ChatCompletionsToolDefinition ConvertFrom(string name, string description, JsonE
 }
 ```
 
-ក្នុងកូដខាងលើ យើងបាន៖
+Trong đoạn code trên chúng ta đã:
 
-- បង្កើតមុខងារ `ConvertFrom` ដែលទទួលបាន ឈ្មោះ ការពិពណ៌នា និងផែនទីបញ្ចូល។
-- កំណត់មុខងារដែលបង្កើត `FunctionDefinition` ដែលផ្ញើទៅ `ChatCompletionsDefinition`។ ដែលអត្ថន័យថាជាអ្វីដែល LLM អាចយល់បាន។
+- Tạo một hàm `ConvertFrom` nhận tên, mô tả và schema đầu vào.
+- Định nghĩa chức năng tạo `FunctionDefinition` được chuyền vào `ChatCompletionsDefinition`. Cái sau là thứ LLM có thể hiểu.
 
-2. យើងមកមើលវិធីធ្វើបច្ចុប្បន្នភាពកូដដែលមានស្រាប់ ដើម្បីប្រើប្រាស់មុខងារខាងលើ៖
+2. Hãy xem cách cập nhật một số đoạn mã hiện có để tận dụng hàm trên:
 
     ```csharp
     async Task<List<ChatCompletionsToolDefinition>> GetMcpTools()
@@ -587,28 +587,28 @@ ChatCompletionsToolDefinition ConvertFrom(string name, string description, JsonE
 #### Java
 
 ```java
-// បង្កើតផ្ទៃចុះBotសម្រាប់ការប្រាស្រ័យទាក់ទងភាសា​ធម្មជាតិ
+// បង្កើតចំណុចប្រទាក់បុតសម្រាប់អន្តរកម្មភាសាបានយ៉ាងធម្មជាតិ
 public interface Bot {
     String chat(String prompt);
 }
 
-// កំណត់សេវាកម្មAIជាមួយឧបករណ៍LLM និង MCP
+// កំណត់រចនាសម្ព័ន្ធសេវាកម្ម AI ជាមួយឧបករណ៍ LLM និង MCP
 Bot bot = AiServices.builder(Bot.class)
         .chatLanguageModel(model)
         .toolProvider(toolProvider)
         .build();
 ```
 
-ក្នុងកូដខាងលើ យើងបាន៖
+Trong đoạn mã trên chúng ta đã:
 
-- កំណត់ `Bot` interface សាមញ្ញសម្រាប់ការប្រាស្រ័យភាសាធម្មជាតិ
-- ប្រើសេវាកម្ម AiServices របស់ LangChain4j ដើម្បីភ្ជាប់ LLM ជាស្វ័យប្រវត្តិ ជាមួយអ្នកផ្គត់ផ្គង់ឧបករណ៍ MCP
-- ស៊ុមភាគស្វ័យប្រវត្តិគ្រប់គ្រងការបម្លែងផែនទីឧបករណ៍ និងការហៅមុខងារខាងក្រោយ
-- វិធីសាស្រ្តនេះដោះស្រាយការបម្លែងឧបករណ៍ដោយដៃ - LangChain4j គ្រប់គ្រងភាពស្មុគស្មាញទាំងអស់ក្នុងការបម្លែងឧបករណ៍ MCP ទៅទ្រង់ទ្រាយដែលសមរភាពជាមួយ LLM
+- Định nghĩa một interface `Bot` đơn giản cho tương tác ngôn ngữ tự nhiên
+- Sử dụng `AiServices` của LangChain4j để tự động kết nối LLM với nhà cung cấp công cụ MCP
+- Framework tự động xử lý chuyển đổi schema công cụ và gọi chức năng phía sau
+- Cách tiếp cận này loại bỏ việc chuyển đổi công cụ thủ công — LangChain4j xử lý độ phức tạp chuyển đổi công cụ MCP sang định dạng tương thích LLM
 
 #### Rust
 
-ដើម្បីបម្លែងចម្លើយឧបករណ៍ MCP ទៅទ្រង់ទ្រាយដែល LLM យល់ យើងនឹងបន្ថែមមុខងារជំនួយមួយដែលរៀបចំបញ្ជីឧបករណ៍។ សូមបន្ថែមកូដខាងក្រោមទៅក្នុងឯកសារ `main.rs` របស់អ្នកក្រោមមុខងារ `main`។ វានឹងត្រូវហៅពេលធ្វើសំណើទៅ LLM៖
+Để chuyển đổi phản hồi công cụ MCP sang định dạng mà LLM có thể hiểu, chúng tôi sẽ thêm một hàm trợ giúp để định dạng danh sách công cụ. Thêm mã sau vào tập tin `main.rs` bên dưới hàm `main`. Hàm này sẽ được gọi khi thực hiện yêu cầu đến LLM:
 
 ```rust
 async fn format_tools(tools: &ListToolsResult) -> Result<Vec<Value>, Box<dyn Error>> {
@@ -643,15 +643,15 @@ async fn format_tools(tools: &ListToolsResult) -> Result<Vec<Value>, Box<dyn Err
 }
 ```
 
-ល្អណាស់ យើងបានរៀបចំសម្រាប់ដោះស្រាយសំណើរអ្នកប្រើរួចហើយ យើងត្រូវចាប់ផ្តើមផ្នែកនោះនៅជំហានបន្ទាប់។
+អស្ចារ្យ ខណៈនេះយើងកំពុងតែកំណត់សម្ភារៈដើម្បីដោះសោនឹងសំណើរអ្នកប្រើ បើដូចនេះ យើងទៅកាន់ជំហានបន្ទាប់។
 
-### -4- ដោះស្រាយសំណើរអ្នកប្រើ
+### -4- ដោះសោនឹងសំណើរបញ្ចូលពីអ្នកប្រើ
 
-ក្នុងផ្នែកនេះនៃកូដ យើងនឹងដោះស្រាយសំណើរពីអ្នកប្រើ។
+នៅផ្នែកនេះនៃកូដ យើងនឹងដោះសោនឹងសំណើរអ្នកប្រើ។
 
 #### TypeScript
 
-1. បន្ថែមមុខងារដែលនឹងប្រើសម្រាប់ហៅ LLM៖
+1. បន្ថែមមេធដ្ឋានមួយ ដែលនឹងប្រើសម្រាប់ហៅ LLM៖
 
     ```typescript
     async callTools(
@@ -665,7 +665,7 @@ async fn format_tools(tools: &ListToolsResult) -> Result<Vec<Value>, Box<dyn Err
         console.log(`Calling tool ${toolName} with args ${JSON.stringify(args)}`);
 
 
-        // 2. ហៅឧបករណ៍របស់ម៉ាស៊ីនមេ
+        // 2. ហៅឧបករណ៍ម៉ាស៊ីនមេ
         const toolResult = await this.client.callTool({
             name: toolName,
             arguments: JSON.parse(args),
@@ -682,8 +682,8 @@ async fn format_tools(tools: &ListToolsResult) -> Result<Vec<Value>, Box<dyn Err
 
     ក្នុងកូដខាងលើ យើងបាន៖
 
-    - បន្ថែមមុខងារ `callTools`។
-    - មុខងារនេះទទួលបញ្ជាលទ្ធផល LLM ហើយពិនិត្យថាតើមានឧបករណ៍ណាដែលត្រូវហៅ ឬបើមិនមាន:
+    - បន្ថែមមេធដ្ឋាន `callTools`។
+    - មេធដ្ឋាននេះទទួលបានចម្លើយ LLM ហើយពិនិត្យមើលថាតើឧបករណ៍ណាត្រូវបានហៅ ប្រសិនបើមាន៖
 
         ```typescript
         for (const tool_call of tool_calls) {
@@ -696,10 +696,10 @@ async fn format_tools(tools: &ListToolsResult) -> Result<Vec<Value>, Box<dyn Err
         }
         ```
 
-    - ហៅឧបករណ៍ ប្រសិនបើ LLM បង្ហាញថាត្រូវហៅវា៖
+    - ហៅឧបករណ៍ ប្រសិនបើ LLM បង្ហាញថាត្រូវហៅ៖
 
         ```typescript
-        // ២. ហៅឧបករណ៍ម៉ាស៊ីនមេ
+        // 2. ហៅឧបករណ៍របស់ម៉ាស៊ីនបម្រើ
         const toolResult = await this.client.callTool({
             name: toolName,
             arguments: JSON.parse(args),
@@ -707,15 +707,15 @@ async fn format_tools(tools: &ListToolsResult) -> Result<Vec<Value>, Box<dyn Err
 
         console.log("Tool result: ", toolResult);
 
-        // ៣. អនុវត្តអ្វីមួយជាមួយលទ្ធផល
-        // ត្រូវធ្វើ
+        // 3. ធ្វើអ្វីមួយជាមួយលទ្ធផល
+        // TODO
         ```
 
-2. បច្ចុប្បន្នភាពមុខងារ `run` ដើម្បីរួមបញ្ចូលការហៅទៅ LLM និងហៅ `callTools`:
+2. កែប្រែ method `run` ដើម្បីរួមបញ្ចូលការហៅ LLM និងហៅ `callTools`៖
 
     ```typescript
 
-    // 1. បង្កើតសារដែលជាការបញ្ចូលសម្រាប់ LLM
+    // 1. បង្កើតសារដើម្បីបញ្ចូលសម្រាប់ LLM
     const prompt = "What is the sum of 2 and 3?"
 
     const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
@@ -727,7 +727,7 @@ async fn format_tools(tools: &ListToolsResult) -> Result<Vec<Value>, Box<dyn Err
 
     console.log("Querying LLM: ", messages[0].content);
 
-    // 2. ហៅ LLM
+    // 2. เรียกใช้ LLM
     let response = this.openai.chat.completions.create({
         model: "gpt-4.1-mini",
         max_tokens: 1000,
@@ -737,7 +737,7 @@ async fn format_tools(tools: &ListToolsResult) -> Result<Vec<Value>, Box<dyn Err
 
     let results: any[] = [];
 
-    // 3. ឆែកឆែកចម្លើយពី LLM សម្រាប់ជម្រើសមួយៗ ត្រួតពិនិត្យថាតើមានការហៅឧបករណ៍ទេ
+    // 3. យកចម្លើយពី LLM, សម្រាប់ជម្រើសនីមួយៗ, ពិនិត្យមើលថាវាមានការហៅឧបករណ៍ឬទេ
     (await response).choices.map(async (choice: { message: any; }) => {
         const message = choice.message;
         if (message.tool_calls) {
@@ -747,21 +747,21 @@ async fn format_tools(tools: &ListToolsResult) -> Result<Vec<Value>, Box<dyn Err
     });
     ```
 
-ល្អ សូមបង្ហាញកូដពេញលេញ៖
+អស្ចារ្យ អ្នកអាចមើលកូដទាំងមូល៖
 
 ```typescript
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 import OpenAI from "openai";
-import { z } from "zod"; // នាំចូល zod សម្រាប់ការផ្ទៀងផ្ទាត់ schema
+import { z } from "zod"; // នាំចូល zod សម្រាប់ការត្រួតពិនិត្យ schema
 
 class MyClient {
     private openai: OpenAI;
     private client: Client;
     constructor(){
         this.openai = new OpenAI({
-            baseURL: "https://models.inference.ai.azure.com", // អាចត្រូវការផ្លាស់ប្តូរទៅ url នេះនៅអនាគត: https://models.github.ai/inference
+            baseURL: "https://models.inference.ai.azure.com", // ប្រហែលជាត្រូវប្តូរទៅ url នេះក្នុងអនាគត: https://models.github.ai/inference
             apiKey: process.env.GITHUB_TOKEN,
         });
 
@@ -791,11 +791,11 @@ class MyClient {
         description?: string;
         input_schema: any;
           }) {
-          // បង្កើត schema zod អាស្រ័យលើ input_schema
+          // បង្កើត schema zod អ basé លើ input_schema
           const schema = z.object(tool.input_schema);
       
           return {
-            type: "function" as const, // កំណត់ប្រភេទជាផ្សាយថា "function"
+            type: "function" as const, // កំណត់ប្រភេទយ៉ាងច្បាស់ទៅ "function"
             function: {
               name: tool.name,
               description: tool.description,
@@ -819,7 +819,7 @@ class MyClient {
           console.log(`Calling tool ${toolName} with args ${JSON.stringify(args)}`);
     
     
-          // 2. ហៅឧបករណ៍របស់ម៉ាស៊ីនបម្រើ
+          // 2. ហៅឧបករណ៍ពីម៉ាស៊ីនបម្រើ
           const toolResult = await this.client.callTool({
             name: toolName,
             arguments: JSON.parse(args),
@@ -828,7 +828,7 @@ class MyClient {
           console.log("Tool result: ", toolResult);
     
           // 3. ធ្វើអ្វីមួយជាមួយលទ្ធផល
-          // ត្រូវធ្វើ
+          // អញ្ជើញធ្វើ
     
          }
     }
@@ -863,7 +863,7 @@ class MyClient {
 
         let results: any[] = [];
     
-        // 3. ឆ្លងកាត់ចំលើយ LLM សម្រាប់ជម្រើសមួយៗ បញ្ចាក់ថាមានការហៅឧបករណ៍ឬអត់
+        // 3. ឆ្លងកាត់ការឆ្លើយតប LLM, សម្រាប់ជម្រើសនីមួយៗ, ពិនិត្យមើលថាតើវាមានការហៅឧបករណ៍ឬអត់
         (await response).choices.map(async (choice: { message: any; }) => {
           const message = choice.message;
           if (message.tool_calls) {
@@ -886,7 +886,7 @@ client.connectToServer(transport);
 
 #### Python
 
-1. សូមបន្ថែមការនាំចូលដែលចាំបាច់ដើម្បីហៅ LLM៖
+1. បន្ថែមការនាំចូលខាងក្រោមដែលត្រូវការ ដើម្បីហៅ LLM
 
     ```python
     # llm
@@ -897,7 +897,7 @@ client.connectToServer(transport);
     import json
     ```
 
-2. បន្ទាប់មក បន្ថែមមុខងារដែលនឹងហៅ LLM៖
+2. បន្ទាប់មក បន្ថែមមុខងារ ដែលនឹងហៅ LLM៖
 
     ```python
     # llm
@@ -927,7 +927,7 @@ client.connectToServer(transport);
             ],
             model=model_name,
             tools = functions,
-            # ប៉ារ៉ាម៉ែត្រជាជម្រើស
+            # ប៉ារ៉ាម៉ែត្រជាជ្រើស
             temperature=1.,
             max_tokens=1000,
             top_p=1.    
@@ -949,33 +949,33 @@ client.connectToServer(transport);
 
     ក្នុងកូដខាងលើ យើងបាន៖
 
-    - ផ្ញើមុខងាររបស់យើង ដែលបានស្វែងរកលើម៉ាស៊ីនបម្រើ MCP ហើយបានបម្លែងទៅ LLM។
-    - បន្ទាប់ហៅ LLM ជាមួយមុខងារដែលបានផ្ញើ។
-    - ពិនិត្យផលបញ្ជាលទផលដើម្បីមើលថាមុខងារណាដែលត្រូវហៅ បើមាន។
-    - ចុងក្រោយ យើងបញ្ជូនសំណុំមុខងារដើម្បីហៅ។
+    - ផ្ញើមុខងារយើងបានរកឃើញលើម៉ាស៊ីនបម្រើ MCP និងបំលែងទៅ LLM។
+    - បន្ទាប់ហៅ LLM ជាមួយមុខងារនោះ។
+    - ពិនិត្យលទ្ធផលមើលថាត្រូវហៅមុខងារណា ប្រសិនបើមាន។
+    - ចុងក្រោយ ផ្ញើវិធីហៅមុខងារច្រើន។
 
-3. ជំហានចុងក្រោយ សូមបច្ចុប្បន្នភាពកូដដើមរបស់យើង៖
+3. ជំហានចុងក្រោយ កែប្រែ​កូដ​មេផង៖
 
     ```python
     prompt = "Add 2 to 20"
 
-    # សួរទៅកាន់ LLM ថា ឧបករណ៍អ្វីខ្លះដែលអាចប្រើបាន ប្រសិនបើមាន
+    # សួរអំពីឧបករណ៍ដែល LLM អាចប្រើបាន ទាំងអស់ ប្រសិនបើមាន
     functions_to_call = call_llm(prompt, functions)
 
-    # ហៅមុខងារដែលបានស្នើបន្ទាន់
+    # ហៅមុខងារដែលបានស្នើ​ណា
     for f in functions_to_call:
         result = await session.call_tool(f["name"], arguments=f["args"])
         print("TOOLS result: ", result.content)
     ```
 
-    នេះជាជំហានចុងក្រោយ ក្នុងកូដខាងលើ យើង៖
+នៅទីនេះ ជំហានចុងក្រោយ ក្នុងកូដខាងលើយើងបាន៖
 
-    - ហៅឧបករណ៍ MCP តាម `call_tool` ប្រើមុខងារដែល LLM គិតថាចាំបាច់ហៅដោយផ្អែកលើស្នើសុំរបស់យើង។
-    - បោះពុម្ពលទ្ធផលការហៅឧបករណ៍ទៅម៉ាស៊ីនបម្រើ MCP។
+- ហៅឧបករណ៍ MCP ក្រោម function `call_tool` ដោយប្រើមុខងារដែល LLM គិតថាត្រូវហៅ ដោយផ្អែកលើបញ្ចូលរបស់យើង។
+- បោះពុម្ពលទ្ធផលការហៅឧបករណ៍ទៅម៉ាស៊ីនបម្រើ MCP។
 
 #### .NET
 
-1. សូមបង្ហាញកូដសម្រាប់ធ្វើសំណើ LLM prompt៖
+1. សូមបង្ហាញកូដសម្រាប់ធ្វើសំណើរបញ្ចូលទៅ LLM៖
 
     ```csharp
     var tools = await GetMcpTools();
@@ -1009,14 +1009,14 @@ client.connectToServer(transport);
 
     ```
 
-    ក្នុងកូដខាងលើ យើងបាន៖
+ក្នុងកូដខាងលើ យើងបាន៖
 
-    - ទាញយកឧបករណ៍ពីម៉ាស៊ីនបម្រើ MCP, `var tools = await GetMcpTools()`
-    - កំណត់សំណើអ្នកប្រើ `userMessage`
-    - បង្កើតអុបសិនប្រ៉ាប់ specifying model និងឧបករណ៍
-    - បំពេញសំណើទៅ LLM
+- ទាញយកឧបករណ៍ពីម៉ាស៊ីនបម្រើ MCP `var tools = await GetMcpTools()`
+- កំណត់បញ្ចូលអ្នកប្រើ `userMessage`
+- បង្កើត object options ដែលបញ្ជាក់ម៉ូដែល និងឧបករណ៍
+- ប្រើសំណើទៅ LLM
 
-2. ជំហានចុងក្រោយ ត្រូវមើលថាតើ LLM គិតថាត្រូវហៅមុខងារមួយ៖
+2. ជំហានចុងក្រោយ មកមើលថាតើ LLM សន្មតថាត្រូវហៅមុខងារឬអត់៖
 
     ```csharp
     // 4. Check if the response contains a function call
@@ -1039,12 +1039,12 @@ client.connectToServer(transport);
     }
     ```
 
-    ក្នុងកូដខាងលើ យើងបាន៖
+ក្នុងកូដខាងលើ យើងបាន:
 
-    - ដំណើរការលើបញ្ជីការហៅមុខងារ
-    - សម្រាប់រាល់ការហៅឧបករណ៍ នាំឈ្មោះ និងបរិមាណ ហើយហៅឧបករណ៍លើម៉ាស៊ីនបម្រើ MCP ដោយប្រើ MCP client។ ចុងក្រោយបោះពុម្ពលទ្ធផល។
+- តួរមួយសម្រាប់មុខងារហៅ
+- សម្រាប់មុខងារប្រើប្រាស់នីមួយៗ វាពិនិត្យឈ្មោះ និង arguments ហើយហៅឧបករណ៍លើម៉ាស៊ីនបម្រើ MCP ដោយប្រើ client MCP។ ដោយសារចុងក្រោយ បោះពុម្ពលទ្ធផល។
 
-នេះគឺជាកូដពេញលេញ៖
+នេះជាកូដពេញលេញ៖
 
 ```csharp
 using Azure;
@@ -1174,7 +1174,7 @@ Console.WriteLine($"Assistant response: {content}");
 
 ```java
 try {
-    // បំពេញការស្នើសុំភាសาธรรมชาติដែលប្រើឧបករណ៍ MCP អូតូម៉ាទិច
+    // អនុវត្តការស្នើសុំភាសាប្រពៃណីដែលប្រើឧបករណ៍ MCP ដោយស្វ័យប្រវត្តិ
     String response = bot.chat("Calculate the sum of 24.5 and 17.3 using the calculator service");
     System.out.println(response);
 
@@ -1190,13 +1190,13 @@ try {
 
 ក្នុងកូដខាងលើ យើងបាន៖
 
-- ប្រើស្នើសុំភាសាធម្មជាតិសាមញ្ញ សម្រាប់ទំនាក់ទំនងជាមួយឧបករណ៍ MCP server
-- បណ្ដុំគ្រប់គ្រង LangChain4j ធ្វើស្វ័យប្រវត្តិក្នុង៖
-  - បម្លែងស្នើសុំអ្នកប្រើទៅហៅឧបករណ៍ពេលចាំបាច់
-  - ហៅឧបករណ៍ MCP ដែលសមរភាព ដោយផ្អែកលើការសម្រេចចិត្តរបស់ LLM
-  - គ្រប់គ្រងលំហូរសន្ទនារវាង LLM និងម៉ាស៊ីនបម្រើ MCP
-- វិធីសាស្រ្ត `bot.chat()` បញ្ចូនចម្លើយភាសាធម្មជាតិក្នុងនោះអាចមានលទ្ធផលពីការប្រតិបត្តិឧបករណ៍ MCP
-- វិធីសាស្រ្តនេះផ្តល់បទពិសោធន៍អ្នកប្រើដោយរលូន ដែលអ្នកប្រើមិនចាំបាច់ដឹងអំពីការអនុវត្ត MCP ជាឯកតាជាក់លាក់ទេ
+- ប្រើបញ្ចូលភាសាធម្មជាតិគ្រឹះសម្រាប់ធ្វើទំនាក់ទំនងជាមួយឧបករណ៍ម៉ាស៊ីនបម្រើ MCP
+- រចនាសម្ព័ន្ធ LangChain4j ដំណើរការជាស្វ័យប្រវត្តិ៖
+  - បំលែងបញ្ចូលអ្នកប្រើទៅហៅឧបករណ៍ តាមការប្រើប្រាស់
+  - ហៅឧបករណ៍ MCP ដែលសមរម្យដោយសារសេចក្តីសម្រេចពី LLM
+  - គ្រប់គ្រងលំហូរការសន្ទនា រវាង LLM និងម៉ាស៊ីនបម្រើ MCP
+- មេធដ្ឋាន `bot.chat()` ត្រឡប់មកនូវចម្លើយភាសាធម្មជាតិ ដែលអាចមានលទ្ធផលពីការប្រតិបត្ដិឧបករណ៍ MCP
+- វិធីសាស្រ្តនេះផ្តល់ការបទពិសោធន៍ល្អ ដោយអ្នកប្រើមិនចាំបាច់ដឹងពីការអនុវត្ត MCP ខាងក្រោម
 
 ឧទាហរណ៍កូដពេញលេញ៖
 
@@ -1249,9 +1249,9 @@ public class LangChain4jClient {
 
 #### Rust
 
-ទីនេះគឺជាកន្លែងដែលការងារច្រើនកើតមាន។ យើងនឹងហៅ LLM ជាមួយស្នើសុំដំបូងពីអ្នកប្រើ បន្ទាប់មកដោះស្រាយចម្លើយ ដើម្បីមើលថាតើមានឧបករណ៍ណាត្រូវហៅទេ។ បើមាន អ្នកនឹងហៅឧបករណ៍ទាំងនេះ ហើយបន្តសន្ទនាជាមួយ LLM រហូតដល់មិនចាំបាច់ហៅឧបករណ៍បន្ថែមទៀត ហើយយើងមានចម្លើយចុងក្រោយ។
+នេះជាកន្លែងដែលការងារចម្បងកើតឡើង។ យើងនឹងហៅ LLM ជាមួយបញ្ចូលជាលើកដំបូងពីអ្នកប្រើ បន្ទាប់មកដំណើរការឆ្លើយតប ដើម្បីមើលថាតើមានឧបករណ៍ណាត្រូវហៅទេ។ ប្រសិនបើមាន យើងនឹងហៅឧបករណ៍ទាំងនោះ ហើយបន្តជជែកជាមួយ LLM រហូតដល់មិនចាំបាច់ហៅឧបករណ៍បន្ថែម ហើយទទួលបានចម្លើយចុងក្រោយ។
 
-យើងនឹងធ្វើការហៅច្រើនដងទៅ LLM ដូច្នេះសូមកំណត់មុខងារមួយដែលគ្រប់គ្រងការហៅ LLM។ បន្ថែមមុខងារខាងក្រោមទៅក្នុងឯកសារ `main.rs` របស់អ្នក៖
+យើងនឹងធ្វើការហៅជាច្រើនទៅ LLM ដូច្នេះ សូមកំណត់មុខងារមួយ ដែលនឹងគ្រប់គ្រងការហៅ LLM។ បន្ថែមមុខងារខាងក្រោមទៅឯកសារ `main.rs` របស់អ្នក៖
 
 ```rust
 async fn call_llm(
@@ -1271,8 +1271,8 @@ async fn call_llm(
 }
 ```
 
-មុខងារនេះទទួល client LLM បញ្ជីសារផ្សេងៗ (រួមទាំងស្នើសុំអ្នកប្រើ) ឧបករណ៍ពីម៉ាស៊ីនបម្រើ MCP ហើយបញ្ជូនសំណើទៅ LLM ហើយបញ្ចូនតបស្នូលត្រឡប់វិញ។
-ការឆ្លើយតបពី LLM នឹងមានអារេមួយនៃ `choices`។ យើងត្រូវតែដំណើរការកាលបរិច្ឆេទដើម្បីឃើញថា មាន `tool_calls` មួយណាមានអវត្តមានឬអត់។ វាឲ្យដឹងថា LLM កំពុងស្នើសុំឲ្យហៅឧបករណ៍ជាក់លាក់មួយជាមួយនឹងអាគុយម៉ង់។ បន្ថែមកូដខាងក្រោមនៅចុងឯកសារ `main.rs` របស់អ្នក ដើម្បីកំណត់មុខងារមួយដើម្បីដោះស្រាយការឆ្លើយតបពី LLM៖
+មុខងារនេះទទួល client LLM បញ្ជីសារ (រួមមានបញ្ចូលអ្នកប្រើ) ឧបករណ៍ពីម៉ាស៊ីនបម្រើ MCP ហើយផ្ញើសំណើទៅ LLM មកវិញ ត្រឡប់ចម្លើយ។
+ការឆ្លើយតបពី LLM នឹងមានអារេ `choices`។ យើងត្រូវការប្រតិបត្តិលទ្ធផលដើម្បីមើលថាតើមាន `tool_calls` ណាមួយអត់។ វាធ្វើឲ្យយើងដឹងថា LLM កំពុងស្នើឲ្យហៅឧបករណ៍ជាក់លាក់មួយជាមួយអាគុយម៉ង់។ បន្ថែមកូដខាងក្រោមទៅចុងឯកសារ `main.rs` របស់អ្នកដើម្បីកំណត់មុខងារមួយសម្រាប់គ្រប់គ្រងការឆ្លើយតបរបស់ LLM៖
 
 ```rust
 async fn process_llm_response(
@@ -1291,16 +1291,16 @@ async fn process_llm_response(
         return Ok(());
     };
 
-    // បោះពុម្ពមាតិកាប្រសិនបើមាន
+    // បោះពុម្ពមាតិកាបើមាន
     if let Some(content) = message.get("content").and_then(|c| c.as_str()) {
         println!("🤖 {}", content);
     }
 
-    // គ្រប់គ្រងការហៅឧបករណ៍
+    // ដោះស្រាយការហៅឧបករណ៍
     if let Some(tool_calls) = message.get("tool_calls").and_then(|tc| tc.as_array()) {
-        messages.push(message.clone()); // បន្ថែមសាររបស់ជំនួយការ
+        messages.push(message.clone()); // បន្ថែមសារ​ជំនួយការ
 
-        // បញ្ចូលការហៅឧបករណ៍នីមួយៗ
+        // ដឹកនាំការហៅឧបករណ៍រៀងរាល់ការហៅ
         for tool_call in tool_calls {
             let (tool_id, name, args) = extract_tool_call_info(tool_call)?;
             println!("⚡ Calling tool: {}", name);
@@ -1312,7 +1312,7 @@ async fn process_llm_response(
                 })
                 .await?;
 
-            // បន្ថែមលទ្ធផលឧបករណ៍ទៅសារនានា
+            // បន្ថែមលទ្ធផលឧបករណ៍ទៅសារហ្ស
             messages.push(json!({
                 "role": "tool",
                 "tool_call_id": tool_id,
@@ -1320,7 +1320,7 @@ async fn process_llm_response(
             }));
         }
 
-        // បន្តការពិភាក្សាជាមួយលទ្ធផលឧបករណ៍
+        // បន្តការជជែកជាមួយលទ្ធផលឧបករណ៍
         let response = call_llm(openai_client, messages, mcp_tools).await?;
         Box::pin(process_llm_response(
             &response,
@@ -1335,9 +1335,9 @@ async fn process_llm_response(
 }
 ```
 
-បើមាន `tool_calls` វានឹងដកសេចក្ដីព័ត៌មានឧបករណ៍ដោយហៅម៉ាសុីន MCP ជាមួយសំណើឧបករណ៍ ហើយបន្ថែមលទ្ធផលទៅក្នុងសារសន្ទនានោះ។ បន្ទាប់មកវាត្រូវបន្តសន្ទនាជាមួយ LLM ហើយសារត្រូវបានអាប់ដេតជាមួយនឹងការឆ្លើយតបពីជំនួយការនិងលទ្ធផលហៅឧបករណ៍។
+ប្រសិនបើមាន `tool_calls`, វានាំយកព័ត៌មានឧបករណ៍ ហៅម៉ាស៊ីនមេ MCP ជាមួយសំណើឧបករណ៍ ហើយបន្ថែមលទ្ធផលទៅសារសន្ទនាគ្នា។ បន្ទាប់មកវាបន្តសន្ទនាជាមួយ LLM ហើយសារត្រូវបានធ្វើបច្ចុប្បន្នភាពជាមួយការឆ្លើយតបរបស់ជំនួយករ និងលទ្ធផលហៅឧបករណ៍។
 
-ដើម្បីដកសេចក្ដីព័ត៌មានហៅឧបករណ៍ដែល LLM ឆ្លើយតបសម្រាប់ការហៅ MCP មិញ ត្រូវបន្ថែមមុខងារជួយមួយទៀត ដើម្បីដកយកអ្វីៗទាំងអស់ដែលត្រូវបានប្រើឲ្យសម្រេចការហៅ។ បន្ថែមកូដខាងក្រោមនៅចុងឯកសារ `main.rs` របស់អ្នក៖
+ដើម្បីយកព័ត៌មានហៅឧបករណ៍ដែល LLM បង្រួមសម្រាប់ការហៅ MCP យើងនឹងបន្ថែមមុខងារជួយមួយទៀតដើម្បីយកអ្វីគ្រប់យ៉ាងដែលចាំបាច់សម្រាប់ធ្វើការហៅ។ បន្ថែមកូដខាងក្រោមទៅចុងឯកសារ `main.rs` របស់អ្នក៖
 
 ```rust
 fn extract_tool_call_info(tool_call: &Value) -> Result<(String, String, String), Box<dyn Error>> {
@@ -1361,7 +1361,7 @@ fn extract_tool_call_info(tool_call: &Value) -> Result<(String, String, String),
 }
 ```
 
-ជាមួយនឹងផ្នែកគ្រប់យ៉ាង ក្នុងកន្លែង យើងអាចដោះស្រាយសំណើផ្ដើមពីអ្នកប្រើ និងហៅ LLM។ អាប់ដេតមុខងារ `main` របស់អ្នក ដោយបញ្ចូលកូដដូចខាងក្រោម៖
+ជាមួយនឹងគ្រប់ផ្នែកបានតំរូវទុកហើយ ឥឡូវនេះយើងអាចគ្រប់គ្រងស្នើរសុំដំបូងពីអ្នកប្រើ និងហៅ LLM។ ធ្វើបច្ចុប្បន្នភាពមុខងារ `main` របស់អ្នកដោយរួមបញ្ចូលកូដដូចខាងក្រោម៖
 
 ```rust
 // ការសន្ទនារបស់ LLM ជាមួយការហៅឧបករណ៍
@@ -1376,41 +1376,41 @@ process_llm_response(
 .await?;
 ```
 
-នេះនឹងស្នើសុំ LLM ជាមួយសំណើផ្ដើមរបស់អ្នកប្រើសួរនូវផលបូកនៃលេខពីរមួយ ហើយវានឹងដំណើរការឆ្លើយតបដើម្បីគ្រប់គ្រងការហៅឧបករណ៍ឲ្យមានលំនាំ។
+នេះនឹងស្វែងរក LLM ជាមួយស្នើរសុំដំបូងពីអ្នកប្រើដែលស្នើសុំផលបូកពីចំនួនពីរម៉ាត់ និងវានឹងដំណើរការឆ្លើយតបដើម្បីគ្រប់គ្រងករណីហៅឧបករណ៍បានឲ្យមានឥទ្ធិពលតាមកាល។
 
-ល្អមែន អ្នកបានធ្វើបានទៀតហើយ!
+ល្អហើយ អ្នកបានធ្វើវា!
 
-## កិច្ចតំណែង
+## កិច្ចការសម្ភាសន៍
 
-យកកូដពីលំហាត់ហើយបង្កើតម៉ាសុីនមួយជាមួយឧបករណ៍បន្ថែមច្រើនទៀត។ បន្ទាប់មកបង្កើតអតិថិជនមួយជាមួយ LLM ដូចក្នុងលំហាត់ហើយសាកល្បងវាជាមួយសំណួរផ្សេងៗ ដើម្បីធ្វើឲ្យប្រាកដថាឧបករណ៍ម៉ាសុីនរបស់អ្នកទាំងអស់ត្រូវបានហៅដោយឌីណាមិច។ វិធីសាស្រ្តបង្កើតអតិថិជននេះមានន័យថា អ្នកប្រើចុងក្រោយនឹងទទួលបានបទពិសោធន៍ល្អ ពីព្រោះពួកគេអាចប្រើសំណួរ ជំនួសការបញ្ជាទិញអតិថិជនច្បាស់លាស់ ហើយមិនដឹងថាមានម៉ាសុីន MCP ត្រូវបានហៅឡើយ។
+យកកូដពីលំហាត់នេះ ហើយសាងសង់ម៉ាស៊ីនមេជាមួយឧបករណ៍បន្ថែមមួយចំនួនទៀត។ បន្ទាប់មកបង្កើតអតិថិជនមួយជាមួយ LLM ដូចក្នុងលំហាត់ ហើយសាកល្បងវាជាមួយសំណើរផ្សេងៗ ដើម្បីធ្វើឲ្យប្រាកដថាឧបករណ៍ម៉ាស៊ីនមេគ្រប់គ្រាន់ត្រូវបានហៅយ៉ាងឥទ្ធិពល។ វិធីសង្គ្រេបសាងសង់អតិថិជនមួយនេះមានន័យថាអ្នកប្រើលីចុងសាកសមនឹងមានបទពិសោធន៍ល្អព្រោះពួកគេអាចប្រើសំណើរប្រភេទ prompt មិនមែនបញ្ជាគ្រឿងចក្រ client ច្បាស់លាស់ទេ ហើយមិនត្រូវដឹងពីការហៅម៉ាស៊ីនមេ MCP ត្រូវបានធ្វើឡើយ។
 
-## ដំណោះស្រាយ
+## គម្រោងដំណោះស្រាយ
 
 [ដំណោះស្រាយ](./solution/README.md)
 
-## ចំណុចសំខាន់ៗ
+## បទពិសោធន៍សំខាន់ៗ
 
-- ការបន្ថែម LLM ទៅអតិថិជនរបស់អ្នកផ្តល់អនុសាសន៍ល្អសម្រាប់អ្នកប្រើក្នុងការប្រាស្រ័យទាក់ទងជាមួយម៉ាសុីន MCP។
-- អ្នកត្រូវបំលែងចម្លើយពីម៉ាសុីន MCP ទៅជា​រូបមន្តមួយដែល LLM អាចយល់បាន។
+- ការបន្ថែម LLM ទៅអតិថិជនរបស់អ្នកផ្តល់នូវវិធីល្អរហូតសម្រាប់អ្នកប្រើក្នុងការបញ្ចូលទៅ MCP Servers។
+- អ្នកត្រូវបម្លែងការឆ្លើយតបរបស់ MCP Server អោយជារបស់ដែល LLM អាចយល់បាន។
 
-## គំរូ
+## ឧទាហរណ៍
 
-- [ម៉ាសុីនគណនា Java](../samples/java/calculator/README.md)
-- [ម៉ាសុីនគណនា .Net](../../../../03-GettingStarted/samples/csharp)
-- [ម៉ាសុីនគណនា JavaScript](../samples/javascript/README.md)
-- [ម៉ាសុីនគណនា TypeScript](../samples/typescript/README.md)
-- [ម៉ាសុីនគណនា Python](../../../../03-GettingStarted/samples/python)
-- [ម៉ាសុីនគណនា Rust](../../../../03-GettingStarted/samples/rust)
+- [កម្មវិធីគណនា Java](../samples/java/calculator/README.md)
+- [កម្មវិធីគណនា .Net](../../../../03-GettingStarted/samples/csharp)
+- [កម្មវិធីគណនា JavaScript](../samples/javascript/README.md)
+- [កម្មវិធីគណនា TypeScript](../samples/typescript/README.md)
+- [កម្មវិធីគណនា Python](../../../../03-GettingStarted/samples/python)
+- [កម្មវិធីគណនា Rust](../../../../03-GettingStarted/samples/rust)
 
-## កំណត់ហេតុបន្ថែម
+## ធនធានបន្ថែម
 
-## តើមានអ្វីបន្ទាប់
+## អ្វីទៅជាជំហ៊ានបន្ទាប់
 
-- បន្ទាប់: [ការប្រើម៉ាសុីនដោយប្រើ Visual Studio Code](../04-vscode/README.md)
+- បន្ទាប់៖ [ប្រើម៉ាស៊ីនមេលើ Visual Studio Code](../04-vscode/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**ការបដិសេធ**ៈ  
-ឯកសារនេះត្រូវបានបកប្រែដោយប្រើសេវាកម្មបកប្រែដោយប្រព័ន្ធ AI [Co-op Translator](https://github.com/Azure/co-op-translator)។ ខណៈដែលយើងខិតខំបំពេញភាពត្រឹមត្រូវ សូមជ្រាបថាការបកប្រែដោយស្វ័យប្រវត្តិក៏អាចមានកំហុស ឬភាពមិនត្រឹមត្រូវ។ ឯកសារដើមនៅក្នុងភាសាមOwnត្រាជាដើមគួរត្រូវបានគិតថាជាដើមកំណែតែមួយដែលមានសម្បទាន៍។ សម្រាប់ព័ត៌មានសំខាន់ យើងផ្ញើផ្តល់អនុសាសន៍ឱ្យបកប្រែដោយមនុស្សជំនាញ។ យើងមិនទទួលខុសត្រូវចំពោះការយល់ច្រឡំ ឬការបកប្រែខុសផ្សេងណាមួយដូចដែលបានកើតឡើងពីការប្រើប្រាស់ការបកប្រែនេះឡើយ។
+**ការបដិសេធ**:
+ឯកសារនេះត្រូវបានបម្លែងភាសា ដោយប្រើសេវាបម្លែងភាសា AI [Co-op Translator](https://github.com/Azure/co-op-translator)។ ទោះយើងខ្ញុំមានក្តីប្រាថ្នាឱ្យបានច្បាស់លាស់ តែសូមយល់ដឹងថាការបម្លែងដោយស្វ័យប្រវត្តិក៏អាចមានកំហុសឬភាពមិនត្រឹមត្រូវ។ ឯកសារដើមជាភាសាទីតាំងគួរត្រូវបានគេប្រើជាប្រភពច្បាស់លាស់។ សម្រាប់ព័ត៌មានសំខាន់ៗ សូមណែនាំឱ្យប្រើប្រាស់ការប្រែដោយមនុស្សជំនាញ។ យើងខ្ញុំមិនទទួលខុសត្រូវចំពោះការយល់ច្រឡំ ឬការបកស្រាយខុសបន្ទាប់ពីការប្រើប្រាស់ការបម្លែងនេះនោះទេ។
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

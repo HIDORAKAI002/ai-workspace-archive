@@ -93,9 +93,9 @@ In the preceding code we've:
 
 You're encouraged to implement the actual tool handling logic based on your specific MCP server setup.
 
-## Microsoft AI Foundry Integration
+## Microsoft Foundry Integration
 
-Azure AI Foundry provides a platform for building and deploying AI agents. Integrating MCP with AI Foundry allows you to leverage its capabilities while maintaining the flexibility of MCP.
+Microsoft Foundry provides a platform for building and deploying AI agents. Integrating MCP with Microsoft Foundry allows you to leverage its capabilities while maintaining the flexibility of MCP.
 
 In the below code, we develop an Agent integration that processes requests and handles tool calls using MCP.
 

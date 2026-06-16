@@ -1,50 +1,50 @@
-# សុវត្ថិភាព MCP ជាថ្មី​ជាមួយ Azure Content Safety
+# សុវត្ថិភាព MCP ជាន់ខ្ពស់ជាមួយ Azure Content Safety
 
-> **គ្រោះថ្នាក់ OWASP MCP ដែលបានដោះស្រាយ**: [MCP06 - ការវាយប្រហារជំរុញតាមរយៈបណ្តាញប្រកាស Contextual Payloads](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)
+> **ហានិភ័យ OWASP MCP ដែលត្រូវបានដោះស្រាយ**៖ [MCP06 - ការបំលែងចរាចរណ៍បំណង](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)
 
-Azure Content Safety ផ្ដល់ឧបករណ៍ដ៏មានឥទ្ធិពលមួយចំនួនដែលអាចបន្ថែមសុវត្ថិភាពនៃការ​អនុវត្ត MCP របស់អ្នក។ សម្រាប់បទពិសោធន៍អនុវត្តដោយដៃ សូមមើល [សិក្ខាសាលាសុវត្ថិភាព MCP Summit (Sherpa)](https://azure-samples.github.io/sherpa/) ដំបូង 3: សុវត្ថិភាព I/O ។
+Azure Content Safety ផ្តល់ឧបករណ៍ដ៏មានភាពល្អឥតខ្ចោះជាច្រើន ដែលអាចបង្កើនសុវត្ថិភាពសម្រាប់ការអនុវត្ត MCP របស់អ្នក។ សម្រាប់បទពិសោធន៍អនុវត្តដោយដៃស្ទាត់ សូមមើល [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/) ហារី​ទី 3៖ សុវត្ថិភាព I/O។
 
-## កន្ទុយការពារ Prompt
+## គម្លាត Prompt
 
-កន្ទុយការពារ AI Prompt របស់ Microsoft ផ្ដល់ការការពារដ៏រឹងមាំប្រឆាំងនឹងការវាយប្រហារជំរុញតាម Prompt ដោយផ្លាស់ប្តូរផ្លូវចំពោះការវាយប្រហារផ្ទាល់ និងអព្ចារ្យតាមរយៈ៖
+គម្លាត AI Prompt របស់ Microsoft ផ្តល់ការការពារដ៏មាំមួនទល់នឹងការវាយប្រហារជាក់ស្តែង និងគន្លងបញ្ចូលបំណងទាំងពីរតាមរយៈ៖
 
-1. **ការរកឃើញជំនាញខ្ពស់**៖ ប្រើម៉ាស៊ីន​ហ្វឹកហាត់ ដើម្បីសម្គាល់សេចក្តីណែនាំដែលមានគ្រោះថ្នាក់បញ្ចូលនៅក្នុងមាតិកា។
-2. **ការភ្លឺច្បាស់**៖ បម្លែងអត្ថបទបញ្ចូលដើម្បីជួយប្រព័ន្ធ AI ឆៀងខុសត្រូវចំពោះសេចក្តីណែនាំត្រឹមត្រូវ និងព័ត៌មានខាងក្រៅ។
-3. **Delimiters និង Datamarking**៖ រៀបចំសញ្ញាព្រំដែនរវាងទិន្នន័យដែលទុកចិត្ត និងទិន្នន័យមិនទុកចិត្ត។
-4. **ការត្រូវមាន Azure Content Safety**៖ ធ្វើការជាមួយ Azure AI Content Safety ដើម្បីរកឃើញការព្យាយាមបំប្លែងចេញ និងមាតិកាដែលធ្វើហានិភ័យ។
-5. **ការធ្វើបច្ចុប្បន្នភាពជាបន្ត**៖ Microsoft ធ្វើបច្ចុប្បន្នភាពយ៉ាងទៀងទាត់នូវគ្រប់គ្រងការការពារក្នុងការប្រយុទ្ធប្រឆាំងគ្រោះថ្នាក់ថ្មីៗ។
+1. **ការរកឃើញខ្ពស់**៖ ប្រើការសិក្សាម៉ាស៊ីនដើម្បីកំណត់ការណែនាំមានគ្រោះថ្នាក់ដែលបញ្ចូលក្នុងមាតិកា។
+2. **ការបំភ្លឺ**៖ បម្លែងអត្ថបទបញ្ចូលដើម្បីជួយប្រព័ន្ធ AI ចាត់ទុកខុសគ្នារវាងការណែនាំត្រឹមត្រូវ និងបញ្ចូលពីខាងក្រៅ។
+3. **សញ្ញាព្រំដែន និងស្នាមទិន្នន័យ**៖ កំណត់ព្រំដែនរវាងទិន្នន័យដែលទុកចិត្ត និងមិនទុកចិត្ត។
+4. **ការបញ្ចូល Content Safety**៖ ធ្វើការជាមួយ Azure AI Content Safety ដើម្បីរកឃើញការព្យាយាមភក់ចេញពីកង្វល់ និងមាតិកាដែលគ្រោះថ្នាក់។
+5. **ការអាប់ដេតបន្តបន្ទាប់**៖ Microsoft បន្តធ្វើបច្ចុប្បន្នភាពមធ្យោបាយការពារទល់នឹងគ្រោះថ្នាក់កើតឡើងថ្មីៗ។
 
 ## ការអនុវត្ត Azure Content Safety ជាមួយ MCP
 
-វិធីសាស្ត្រនេះផ្ដល់ការការពារជាច្រើនស្រទាប់៖
+វិធីនេះផ្តល់ការការពារជាស្រទាប់ច្រើន៖
 - ស្កេនបញ្ចូលមុនពេលដំណើរការ
-- ផ្ទៀងផ្ទាត់លទ្ធផលមុនសង
-- ប្រើបញ្ជីរារាំងសម្រាប់រាងខូចដែលបានស្គាល់
-- ប្រើម៉ូដែលសុវត្ថិភាពមាតិកា Azure ដែលធ្វើបច្ចុប្បន្នភាពជាបន្ត
+- ផ្ទៀងផ្ទាត់ចេញមុនពេលត្រឡប់
+- ប្រើបញ្ជីរាំងខ្សែសម្រាប់លំនាំអាក្រក់ដែលបានគិតឃើញ
+- អនុវត្តម៉ូឌែលសុវត្ថិភាពមាតិការបស់ Azure ដែលទាន់សម័យបន្តបន្ទាប់
 
-## ប្រភពរបស់ Azure Content Safety
+## ធនធាន Azure Content Safety
 
-ដើម្បីស្វែងយល់បន្ថែមពីការអនុវត្ត Azure Content Safety ជាមួយម៉ាស៊ីន MCP របស់អ្នក សូមពិនិត្យប្រភពផ្លូវការទាំងនេះ៖
+ដើម្បីសិក្សាបន្ថែមអំពីការអនុវត្ត Azure Content Safety ជាមួយម៉ាស៊ីនម៉ោល MCP របស់អ្នក សូមពិនិត្យធនធានផ្លូវការទាំងនេះ៖
 
-1. [ឯកសារជាផ្លូវការអំពី Azure AI Content Safety](https://learn.microsoft.com/azure/ai-services/content-safety/) - ឯកសារផ្លូវការសម្រាប់ Azure Content Safety។
-2. [ឯកសារកន្ទុយការពារ Prompt](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/prompt-shield) - រៀនអំពីរបៀបពារការវាយប្រហារជំរុញទំរង់ Prompt។
+1. [ឯកសារព័ត៌មាន Azure AI Content Safety](https://learn.microsoft.com/azure/ai-services/content-safety/) - ឯកសារផ្លូវការសម្រាប់ Azure Content Safety។
+2. [ឯកសារគម្លាត Prompt](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/prompt-shield) - រៀនពីរបៀបការពារការវាយប្រហារបំណង។
 3. [យោង API Content Safety](https://learn.microsoft.com/rest/api/contentsafety/) - យោង API លម្អិតសម្រាប់អនុវត្ត Content Safety។
-4. [Quickstart: Azure Content Safety ជាមួយ C#](https://learn.microsoft.com/azure/ai-services/content-safety/quickstart-csharp) - មគ្គុទេសក៍បន្ទាន់អនុវត្តដោយប្រើ C#។
-5. [បណ្ណាល័យ Client Content Safety](https://learn.microsoft.com/azure/ai-services/content-safety/quickstart-client-libraries-rest-api) - បណ្ណាល័យ client សម្រាប់ភាសាកម្មវិធីផ្សេងៗ។
-6. [រកឃើញការព្យាយាមបំប្លែងចេញ](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection) - ការណែនាំជាក់លាក់អំពីការរកឃើញ និងការពារ jailbreak។
-7. [ពិធីសាស្ត្រល្អបំផុតសម្រាប់ Content Safety](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/best-practices) - ពិធីសាស្ត្រល្អបំផុតសម្រាប់អនុវត្ត Content Safety យ៉ាងមានប្រសិទ្ធភាព។
+4. [Quickstart: Azure Content Safety ជាមួយ C#](https://learn.microsoft.com/azure/ai-services/content-safety/quickstart-csharp) - មាគ្វីអនុវត្តរហ័សជាមួយ C#។
+5. [បណ្ណាល័យអ្នកអតិថិជន Content Safety](https://learn.microsoft.com/azure/ai-services/content-safety/quickstart-client-libraries-rest-api) - បណ្ណាល័យរបស់អ្នកអតិថិជនសម្រាប់ភាសាកម្មវិធីផ្សេងៗ។
+6. [រកឃើញការព្យាយាមភក់ចេញពីកង្វល់](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection) - មគ្គុទ្ទេសក៍ពិសេសសម្រាប់រកឃើញនិងការពារការព្យាយាមភក់ចេញ។
+7. [អនុវត្តផែនការល្អបំផុតសម្រាប់ Content Safety](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/best-practices) - ផែនការល្អបំផុតសម្រាប់អនុវត្តសុវត្ថិភាពមាតិកា។
 
-សម្រាប់ការអនុវត្តជាមុន អាចមើល [មគ្គុទេសក៍អនុវត្ត Azure Content Safety](./azure-content-safety-implementation.md) របស់យើង។
+សម្រាប់ការអនុវត្តជ្រៅជាងនេះ សូមមើល [មគ្គុទ្ទេសក៍អនុវត្ត Azure Content Safety](./azure-content-safety-implementation.md)។
 
-## តើអ្វីទៅជាដំណាក់កាលបន្ទាប់
+## តទៅយ៉ាងដូចម្តេច
 
-- អាន៖ [ការអនុវត្ត Azure Content Safety](./azure-content-safety-implementation.md)
-- ត្រឡប់ទៅ៖ [ទិដ្ឋភាពទូទៅសុវត្ថិភាពម៉ូឌុល](./README.md)
-- បន្តទៅ៖ [ម៉ូឌុល 3៖ ការចាប់ផ្តើម](../03-GettingStarted/README.md)
+- អាន៖ [អនុវត្ត Azure Content Safety](./azure-content-safety-implementation.md)
+- ត្រឡប់ទៅ៖ [ទិដ្ឋភាពទូទៅផ្នែកសុវត្ថិភាព](./README.md)
+- បន្តទៅ៖ [ផ្នែក 3៖ ចាប់ផ្តើម](../03-GettingStarted/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**ការបដិសេធ**៖  
-ឯកសារនេះត្រូវបានបកប្រែដោយប្រើសេវាកម្មបកប្រែ AI [Co-op Translator](https://github.com/Azure/co-op-translator)។ ខណៈពេលដែលយើងខិតខំប្រឹងប្រែងដើម្បីភាពត្រឹមត្រូវ សូមដឹងថាការបកប្រែដោយស្វ័យប្រវត្តិអាចមានកំហុសឬការខ្វះខាតបាន។ ឯកសារដើមក្នុងភាសាមួយដែលមានដើមគួរតែត្រូវបានទុកចិត្តជាដើមដែលមានអំណាច។ សម្រាប់ព័ត៌មានសំខាន់ៗ សូមផ្តល់អាទិភាពដល់ការបកប្រែដោយមនុស្សវិជ្ជាជីវៈ។ យើងមិនមែនជាអ្នកទទួលខុសត្រូវចំពោះការយល់ច្រឡំឬការបកប្រែខុសណាមួយដែលកើតមានពីការប្រើប្រាស់ការបកប្រែនេះឡើយ។
+**ការបដិសេធ**:
+ឯកសារនេះត្រូវបានបម្លែងភាសា ដោយប្រើសេវាបម្លែងភាសា AI [Co-op Translator](https://github.com/Azure/co-op-translator)។ ទោះយើងខ្ញុំមានក្តីប្រាថ្នាឱ្យបានច្បាស់លាស់ តែសូមយល់ដឹងថាការបម្លែងដោយស្វ័យប្រវត្តិក៏អាចមានកំហុសឬភាពមិនត្រឹមត្រូវ។ ឯកសារដើមជាភាសាទីតាំងគួរត្រូវបានគេប្រើជាប្រភពច្បាស់លាស់។ សម្រាប់ព័ត៌មានសំខាន់ៗ សូមណែនាំឱ្យប្រើប្រាស់ការប្រែដោយមនុស្សជំនាញ។ យើងខ្ញុំមិនទទួលខុសត្រូវចំពោះការយល់ច្រឡំ ឬការបកស្រាយខុសបន្ទាប់ពីការប្រើប្រាស់ការបម្លែងនេះនោះទេ។
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

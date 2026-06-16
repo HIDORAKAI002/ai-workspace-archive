@@ -1,4 +1,4 @@
-# 🚀 Module 1: AI Toolkit Fundamentals
+# 🚀 Module 1: Microsoft Foundry Toolkit Fundamentals
 
 [![Duration](https://img.shields.io/badge/Duration-15%20minutes-blue.svg)]()
 [![Difficulty](https://img.shields.io/badge/Difficulty-Beginner-green.svg)]()
@@ -7,16 +7,16 @@
 ## 📋 Learning Objectives
 
 By the end of this module, you will be able to:
-- ✅ Install and configure AI Toolkit for Visual Studio Code
+- ✅ Install and configure Microsoft Foundry Toolkit Extension for VS Code
 - ✅ Navigate the Model Catalog and understand different model sources
 - ✅ Use the Playground for model testing and experimentation
 - ✅ Create custom AI agents using Agent Builder
 - ✅ Compare model performance across different providers
 - ✅ Apply best practices for prompt engineering
 
-## 🧠 Introduction to AI Toolkit (AITK)
+## 🧠 Introduction to Microsoft Foundry Toolkit
 
-The **AI Toolkit for Visual Studio Code** is Microsoft's flagship extension that transforms VS Code into a comprehensive AI development environment. It bridges the gap between AI research and practical application development, making generative AI accessible to developers of all skill levels.
+The **Microsoft Foundry Toolkit Extension for VS Code** is Microsoft's flagship extension that transforms VS Code into a comprehensive AI development environment. It bridges the gap between AI research and practical application development, making generative AI accessible to developers of all skill levels.
 
 ### 🌟 Key Capabilities
 
@@ -29,7 +29,7 @@ The **AI Toolkit for Visual Studio Code** is Microsoft's flagship extension that
 | **⚡ Batch Processing** | Run multiple prompts simultaneously | Efficient testing workflows |
 | **📊 Model Evaluation** | Built-in metrics (F1, relevance, similarity, coherence) | Performance assessment |
 
-### 🎯 Why AI Toolkit Matters
+### 🎯 Why Microsoft Foundry Toolkit Matters
 
 - **🚀 Accelerated Development**: From idea to prototype in minutes
 - **🔄 Unified Workflow**: One interface for multiple AI providers
@@ -38,12 +38,12 @@ The **AI Toolkit for Visual Studio Code** is Microsoft's flagship extension that
 
 ## 🛠️ Prerequisites & Setup
 
-### 📦 Install AI Toolkit Extension
+### 📦 Install Microsoft Foundry Toolkit Extension
 
 **Step 1: Access Extensions Marketplace**
 1. Open Visual Studio Code
 2. Navigate to the Extensions view (`Ctrl+Shift+X` or `Cmd+Shift+X`)
-3. Search for "AI Toolkit"
+3. Search for "Microsoft Foundry Toolkit"
 
 **Step 2: Choose Your Version**
 - **🟢 Release**: Recommended for production use
@@ -51,10 +51,10 @@ The **AI Toolkit for Visual Studio Code** is Microsoft's flagship extension that
 
 **Step 3: Install and Activate**
 
-![AI Toolkit Extension](../../images/10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab1/aitkext.png)
+![Microsoft Foundry Toolkit Extension](../../images/10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab1/aitkext.png)
 
 ### ✅ Verification Checklist
-- [ ] AI Toolkit icon appears in the VS Code sidebar
+- [ ] Microsoft Foundry Toolkit icon appears in the VS Code sidebar
 - [ ] Extension is enabled and activated
 - [ ] No installation errors in the output panel
 
@@ -68,7 +68,7 @@ The Model Catalog is your gateway to the AI ecosystem. It aggregates models from
 
 **🔍 Navigation Guide:**
 
-Click on **MODELS - Catalog** in the AI Toolkit sidebar
+Click on **MODELS - Catalog** in the Microsoft Foundry Toolkit sidebar
 
 ![Model Catalog](../../images/10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab1/aimodel.png)
 
@@ -145,7 +145,7 @@ The Playground is your AI experimentation lab. Here's how to maximize its potent
 
 ### 🏗️ Step 1: Understanding Agent Builder
 
-Agent Builder is where AI Toolkit truly shines. It allows you to create purpose-built AI assistants that combine the power of large language models with custom instructions, specific parameters, and specialized knowledge.
+Agent Builder is where Microsoft Foundry Toolkit truly shines. It allows you to create purpose-built AI assistants that combine the power of large language models with custom instructions, specific parameters, and specialized knowledge.
 
 **🧠 Agent Architecture Components:**
 - **Core Model**: The foundation LLM (GPT-4, Groks, Phi, etc.)
@@ -257,17 +257,17 @@ Test your understanding:
 
 ### 📚 Additional Resources
 
-- **AI Toolkit Documentation**: [Official Microsoft Docs](https://github.com/microsoft/vscode-ai-toolkit)
+- **Microsoft Foundry Toolkit Documentation**: [Official Microsoft Docs](https://github.com/microsoft/vscode-ai-toolkit)
 - **Prompt Engineering Guide**: [Best Practices](https://platform.openai.com/docs/guides/prompt-engineering)
-- **Models in AI Toolkit**: [Models in Develpment](https://github.com/microsoft/vscode-ai-toolkit/blob/main/doc/models.md)
+- **Models in Microsoft Foundry Toolkit**: [Models in Develpment](https://github.com/microsoft/vscode-ai-toolkit/blob/main/doc/models.md)
 
-**🎉 Congratulations!** You've mastered the fundamentals of AI Toolkit and are ready to build more advanced AI applications!
+**🎉 Congratulations!** You've mastered the fundamentals of Microsoft Foundry Toolkit and are ready to build more advanced AI applications!
 
 ### 🔜 Continue to Next Module
 
-Ready for more advanced capabilities? Continue to **[Module 2: MCP with AI Toolkit Fundamentals](../lab2/README.md)** where you'll learn how to:
+Ready for more advanced capabilities? Continue to **[Module 2: MCP with Microsoft Foundry Toolkit Fundamentals](../lab2/README.md)** where you'll learn how to:
 - Connect your agents to external tools using Model Context Protocol (MCP)
 - Build browser automation agents with Playwright
-- Integrate MCP servers with your AI Toolkit agents
+- Integrate MCP servers with your Microsoft Foundry Toolkit agents
 - Supercharge your agents with external data and capabilities
 

@@ -173,7 +173,7 @@ Our MCP server implements a layered architecture optimized for database integrat
 |-------------|-------------------|-------------|
 | **Database** | Azure Database for PostgreSQL | Managed database service |
 | **Container** | Azure Container Apps | Serverless container hosting |
-| **AI Services** | Azure AI Foundry | OpenAI models and endpoints |
+| **AI Services** | Microsoft Foundry | OpenAI models and endpoints |
 | **Monitoring** | Application Insights | Observability and diagnostics |
 | **Security** | Azure Key Vault | Secrets and configuration management |
 

@@ -1,55 +1,55 @@
-# Kutekeleza Usalama wa Maudhui wa Azure na MCP
+# Kutekeleza Usalama wa Maudhui wa Azure kwa MCP
 
-> **Hatari ya OWASP MCP Iliyoshughulikiwa**: [MCP06 - Sindano ya Maagizo kupitia Mizigo ya Muktadha](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)
+> **Hatari ya OWASP MCP Iliyoshughulikiwa**: [MCP06 - Kupinduliwa kwa Mtiririko wa Makusudi](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)
 
-Ili kuimarisha usalama wa MCP dhidi ya sindano ya maagizo, sumu ya zana, na udhaifu mwingine maalum kwa AI, inashauriwa sana kuingiza Azure Content Safety. Mwongozo huu wa utekelezaji unalingana na [Warsha ya Mkutano wa Usalama wa MCP (Sherpa)](https://azure-samples.github.io/sherpa/) Kambi 3: Usalama wa I/O.
+Ili kuimarisha usalama wa MCP dhidi ya sindano ya maelekezo, sumu ya zana, na hatari nyingine maalum za AI, kuingiza Azure Content Safety kunapendekezwa sana. Mwongozo huu wa utekelezaji unalingana na [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/) Camp 3: Usalama wa I/O.
 
-## Uingiliano na Server ya MCP
+## Uunganisho na Seva ya MCP
 
-Ili kuunganisha Azure Content Safety na server yako ya MCP, ongeza kichujio cha usalama wa maudhui kama kipenyeza kati katika njia yako ya usindikaji wa maombi:
+Ili kuunganisha Azure Content Safety na seva yako ya MCP, ongeza kichujio cha usalama wa maudhui kama middleware katika mfululizo wa usindikaji wa maombi:
 
-1. Anzisha kichujio wakati wa kuanzisha server
-2. Thibitisha maombi yote yanayoingia ya zana kabla ya kusindika
+1. Anzisha kichujio wakati seva inapoanza
+2. Thibitisha maombi yote ya zana yanayoingia kabla ya kusindika
 3. Angalia majibu yote yanayotoka kabla ya kuyarejesha kwa wateja
-4. Rejesha kumbukumbu na toa tahadhari juu ya ukiukaji wa usalama
-5. Tekeleza usimamizi unaofaa wa makosa kwa kwa ukaguzi wa usalama wa maudhui uliofeli
+4. Rekodi na toa tahadhari kuhusu ukiukaji wa usalama
+5. Tekeleza usimamizi unaofaa wa makosa kwa ukaguzi wa usalama wa maudhui ulioshindwa
 
-Hii inatoa kinga imara dhidi ya:
-- Shambulio la sindano ya maagizo
+Hii hutoa ulinzi thabiti dhidi ya:
+- Mashambulizi ya sindano ya maelekezo
 - Jaribio la sumu ya zana
-- Utoaji wa data kupitia ingizo hatarishi
-- Uzalishaji wa maudhui hatarishi
+- Uondoaji wa data kupitia maingizo ya hatari
+- Uundaji wa maudhui hatari
 
-## Misingi Bora ya Uingiliano wa Azure Content Safety
+## Miongozo Bora ya Uingizaji wa Azure Content Safety
 
-1. **Orodha Maalum za Kuzuia**: Tengeneza orodha maalum za kuzuiwa hasa kwa mifumo ya sindano ya MCP
-2. **Kurekebisha Ukali**: Rekebisha viwango vya ukali kwa kuzingatia matumizi yako maalum na uvumilivu wa hatari
-3. **Ufunikaji Kamili**: Tumia ukaguzi wa usalama wa maudhui kwa ingizo na matokeo yote
-4. **Uboreshaji wa Utendaji**: Fikiria kutekeleza uhifadhi wa matokeo kwa ukaguzi wa usalama wa maudhui unaorudiwa mara kwa mara
-5. **Mbinu za Rudufu**: Tambua tabia wazi za rudufu wakati huduma za usalama wa maudhui hazipatikani
-6. **Mawasiliano kwa Watumiaji**: Toa mrejesho wazi kwa watumiaji wakati maudhui yanazuia kutokana na wasiwasi wa usalama
-7. **Uboreshaji Endelevu**: Sasisha mara kwa mara orodha za kuzuiwa na mifumo kwa kuzingatia vitisho vinavyoibuka
+1. **Orodha za Kuzuia Maalum**: Unda orodha za kuzuia maalum hasa kwa mifumo ya sindano ya MCP
+2. **Marekebisho ya Ukali**: Rekebisha vizingiti vya ukali kulingana na matumizi yako maalum na uvumilivu wa hatari
+3. **Ufunikaji Kamili**: Wekeza ukaguzi wa usalama wa maudhui kwa maingizo na matokeo yote
+4. **Uboreshaji wa Utendaji**: Fikiria kutekeleza caching kwa ukaguzi wa mara kwa mara wa usalama wa maudhui
+5. **Mekanismo za Kurudi Nyuma**: Bainisha tabia wazi za kurudi nyuma pale huduma za usalama wa maudhui zitakapokosekana
+6. **Maoni kwa Watumiaji**: Toa maoni wazi kwa watumiaji wakati maudhui yanazuiawa kwa sababu za usalama
+7. **Uboreshaji Endelevu**: Sasisha mara kwa mara orodha za kuzuia na mifumo kwa misingi ya vitisho vinavyoibuka
 
 ## Rasilimali Zaidi
 
 ### Mwongozo wa Usalama wa OWASP MCP
-- [Mwongozo wa Usalama wa OWASP MCP Azure](https://microsoft.github.io/mcp-azure-security-guide/) - Orodha kamili ya Juu 10 ya OWASP MCP na utekelezaji wa Azure
-- [MCP06 - Sindano ya Maagizo](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/) - Mifumo ya kina ya kupunguza sindano ya maagizo
-- [Warsha ya Mkutano wa Usalama wa MCP](https://azure-samples.github.io/sherpa/) - Kambi 3 ya vitendo: Usalama wa I/O inahusu usalama wa maudhui
+- [MWONGOZO WA USALAMA WA OWASP MCP AZURE](https://microsoft.github.io/mcp-azure-security-guide/) - Orodha kamili ya OWASP MCP Top 10 na utekelezaji wa Azure
+- [MCP06 - Sindano ya Maelekezo](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/) - Mifumo ya kina ya kupunguza sindano ya maelekezo
+- [Warsha ya MCP Security Summit](https://azure-samples.github.io/sherpa/) - Camp 3 ya vitendo: Usalama wa I/O unahusisha usalama wa maudhui
 
 ### Nyaraka za Azure
 - [Muhtasari wa Azure Content Safety](https://learn.microsoft.com/azure/ai-services/content-safety/)
-- [Nyaraka za Kinga za Maagizo](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection)
-- [Mwanzo wa Haraka wa Azure AI Content Safety](https://learn.microsoft.com/azure/ai-services/content-safety/quickstart-text)
+- [Nyaraka za Prompt Shields](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection)
+- [Azure AI Content Safety Quickstart](https://learn.microsoft.com/azure/ai-services/content-safety/quickstart-text)
 
-## Nini Kinachofuata
+## Kinachofuata
 
-- Rudi kwa: [Muhtasari wa Moduli ya Usalama](./README.md)
-- Endelea kwa: [Moduli 3: Kuanzia](../03-GettingStarted/README.md)
+- Rudi kwenye: [Muhtasari wa Moduli ya Usalama](./README.md)
+- Endelea kwenye: [Moduli 3: Kuanza](../03-GettingStarted/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Kiarifahisho**:
-Hati hii imetafsiriwa kwa kutumia huduma ya tafsiri ya AI [Co-op Translator](https://github.com/Azure/co-op-translator). Ingawa tunajitahidi kuhakikisha usahihi, tafadhali fahamu kuwa tafsiri za kiotomatiki zinaweza kuwa na makosa au kasoro. Hati asili katika lugha yake ya kawaida inapaswa kuchukuliwa kama chanzo cha kuaminika. Kwa taarifa muhimu, tafsiri ya kitaalamu ya binadamu inapendekezwa. Hatuhamijwi jukumu lolote kwa mkanganyiko au kutoelewana kunakotokana na matumizi ya tafsiri hii.
+**Kionyozo**:
+Hati hii imetafsiriwa kwa kutumia huduma ya tafsiri ya AI [Co-op Translator](https://github.com/Azure/co-op-translator). Ingawa tunajitahidi kupata usahihi, tafadhali fahamu kwamba tafsiri za kiotomatiki zinaweza kuwa na makosa au upungufu wa usahihi. Hati ya asili katika lugha yake halisi inapaswa kuchukuliwa kama chanzo cha mamlaka. Kwa taarifa muhimu, tafsiri ya kitaalamu inayofanywa na binadamu inapendekezwa. Hatutojibu kwa kuelewa vibaya au tafsiri potofu zinazotokea kutokana na matumizi ya tafsiri hii.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

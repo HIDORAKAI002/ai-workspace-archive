@@ -1,50 +1,50 @@
-# Розширений захист MCP за допомогою Azure Content Safety
+# Розширена безпека MCP з Azure Content Safety
 
-> **Виправлена загроза MCP від OWASP**: [MCP06 - Ін’єкції в підказки через контекстні навантаження](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)
+> **Вирішена ризик OWASP MCP**: [MCP06 - Підміна потоку намірів](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)
 
-Azure Content Safety пропонує кілька потужних інструментів, які можуть посилити безпеку ваших реалізацій MCP. Для практичного досвіду впровадження див. [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/) Camp 3: I/O Security.
+Azure Content Safety надає кілька потужних інструментів, які можуть підвищити безпеку ваших реалізацій MCP. Для практичного досвіду впровадження дивіться [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/) Camp 3: I/O Security.
 
-## Захист підказок
+## Захист підказок (Prompt Shields)
 
-AI Prompt Shields від Microsoft забезпечують надійний захист від прямих та непрямих атак ін’єкції в підказки за допомогою:
+AI Prompt Shields від Microsoft забезпечують надійний захист від як прямих, так і непрямих атак підміни підказок за допомогою:
 
-1. **Розвиненого виявлення**: Використовує машинне навчання для ідентифікації шкідливих інструкцій, вбудованих у контент.
-2. **Виокремлення**: Трансформує вхідний текст, допомагаючи AI-системам розрізняти дійсні інструкції та зовнішній ввід.
-3. **Роздільників і маркування даних**: Позначає межі між довіреними та недовіреними даними.
-4. **Інтеграції з Content Safety**: Працює з Azure AI Content Safety для виявлення спроб «виходу з-під контролю» (jailbreak) та небезпечного контенту.
-5. **Безперервних оновлень**: Microsoft регулярно оновлює механізми захисту від нових загроз.
+1. **Розширене виявлення**: Використовує машинне навчання для ідентифікації шкідливих інструкцій, вбудованих у вміст.
+2. **Підсвічування**: Трансформує вхідний текст, щоб допомогти системам ШІ відрізняти дійсні інструкції від зовнішніх введень.
+3. **Роздільники та маркування даних**: Позначає межі між довіреними та недовіреними даними.
+4. **Інтеграція Content Safety**: Працює з Azure AI Content Safety для виявлення спроб зламу та шкідливого вмісту.
+5. **Постійні оновлення**: Microsoft регулярно оновлює механізми захисту від нових загроз.
 
 ## Впровадження Azure Content Safety з MCP
 
 Цей підхід забезпечує багаторівневий захист:
-- Сканування вхідних даних до обробки
-- Перевірка вихідних даних перед поверненням
-- Використання чорних списків для відомих шкідливих зразків
-- Використання моделей безпеки контенту Azure, які постійно оновлюються
+- Сканування вводів перед обробкою
+- Перевірка виводів перед поверненням
+- Використання блоклистів для відомих шкідливих патернів
+- Використання постійно оновлюваних моделей безпеки вмісту Azure
 
 ## Ресурси Azure Content Safety
 
-Щоб дізнатися більше про впровадження Azure Content Safety з вашими серверами MCP, зверніться до цих офіційних ресурсів:
+Щоб дізнатися більше про впровадження Azure Content Safety з вашими серверами MCP, ознайомтесь з цими офіційними ресурсами:
 
-1. [Azure AI Content Safety Documentation](https://learn.microsoft.com/azure/ai-services/content-safety/) - Офіційна документація Azure Content Safety.
-2. [Prompt Shield Documentation](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/prompt-shield) - Дізнайтеся, як запобігти атакам ін’єкції в підказки.
-3. [Content Safety API Reference](https://learn.microsoft.com/rest/api/contentsafety/) - Детальна документація API для реалізації Content Safety.
-4. [Quickstart: Azure Content Safety with C#](https://learn.microsoft.com/azure/ai-services/content-safety/quickstart-csharp) - Швидкий старт впровадження з використанням C#.
+1. [Azure AI Content Safety Documentation](https://learn.microsoft.com/azure/ai-services/content-safety/) - Офіційна документація для Azure Content Safety.
+2. [Prompt Shield Documentation](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/prompt-shield) - Дізнайтесь, як запобігти атакам підміни підказок.
+3. [Content Safety API Reference](https://learn.microsoft.com/rest/api/contentsafety/) - Детальна API-документація для впровадження Content Safety.
+4. [Quickstart: Azure Content Safety with C#](https://learn.microsoft.com/azure/ai-services/content-safety/quickstart-csharp) - Швидкий посібник із впровадження з використанням C#.
 5. [Content Safety Client Libraries](https://learn.microsoft.com/azure/ai-services/content-safety/quickstart-client-libraries-rest-api) - Клієнтські бібліотеки для різних мов програмування.
-6. [Detecting Jailbreak Attempts](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection) - Конкретні вказівки щодо виявлення та запобігання спробам виходу з-під контролю.
-7. [Best Practices for Content Safety](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/best-practices) - Кращі практики для ефективного впровадження безпеки контенту.
+6. [Detecting Jailbreak Attempts](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection) - Специфічні рекомендації з виявлення та запобігання спробам зламу.
+7. [Best Practices for Content Safety](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/best-practices) - Кращі практики для ефективного впровадження безпеки вмісту.
 
-Для детального впровадження дивіться наш [Azure Content Safety Implementation guide](./azure-content-safety-implementation.md).
+Для більш глибокого впровадження дивіться наш [Посібник із впровадження Azure Content Safety](./azure-content-safety-implementation.md).
 
 ## Що далі
 
-- Читати: [Azure Content Safety Implementation](./azure-content-safety-implementation.md)
-- Повернутися до: [Security Module Overview](./README.md)
-- Продовжити: [Module 3: Getting Started](../03-GettingStarted/README.md)
+- Читати: [Впровадження Azure Content Safety](./azure-content-safety-implementation.md)
+- Повернутися до: [Огляд модуля безпеки](./README.md)
+- Продовжити до: [Модуль 3: Початок роботи](../03-GettingStarted/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
 **Відмова від відповідальності**:
-Цей документ було перекладено за допомогою сервісу автоматичного перекладу [Co-op Translator](https://github.com/Azure/co-op-translator). Хоча ми прагнемо до точності, будь ласка, майте на увазі, що автоматичні переклади можуть містити помилки або неточності. Оригінальний документ рідною мовою слід вважати авторитетним джерелом. Для критично важливої інформації рекомендується звертатися до професійного людського перекладу. Ми не несемо відповідальності за будь-які непорозуміння або неправильні тлумачення, які можуть виникнути внаслідок використання цього перекладу.
+Цей документ було перекладено за допомогою сервісу штучного інтелекту для перекладу [Co-op Translator](https://github.com/Azure/co-op-translator). Хоча ми прагнемо до точності, будь ласка, майте на увазі, що автоматичні переклади можуть містити помилки або неточності. Оригінальний документ рідною мовою слід вважати авторитетним джерелом. Для критично важливої інформації рекомендується професійний людський переклад. Ми не несемо відповідальності за будь-які непорозуміння або неправильні тлумачення, що виникли внаслідок використання цього перекладу.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

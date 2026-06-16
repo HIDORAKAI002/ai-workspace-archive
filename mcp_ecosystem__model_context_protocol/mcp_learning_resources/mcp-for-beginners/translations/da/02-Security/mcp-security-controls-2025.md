@@ -1,74 +1,74 @@
-# MCP Sikkerhedskontroller - Opdatering februar 2026
+# MCP Sikkerhedskontroller - Opdatering Februar 2026
 
 > **Nuværende Standard**: Dette dokument afspejler [MCP Specification 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/) sikkerhedskrav og officielle [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices).
 
-Model Context Protocol (MCP) er modnet betydeligt med forbedrede sikkerhedskontroller, der adresserer både traditionel softwaresikkerhed og AI-specifikke trusler. Dette dokument giver omfattende sikkerhedskontroller for sikre MCP-implementeringer i overensstemmelse med OWASP MCP Top 10-rammeværket.
+Model Context Protocol (MCP) er blevet betydeligt mere moden med forbedrede sikkerhedskontroller, der adresserer både traditionel softwaresikkerhed og AI-specifikke trusler. Dette dokument indeholder omfattende sikkerhedskontroller for sikre MCP-implementeringer i overensstemmelse med OWASP MCP Top 10 rammeværket.
 
 ## 🏔️ Praktisk Sikkerhedstræning
 
-For praktisk, hands-on erfaring med sikkerhedsimplementering anbefaler vi **[MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/)** - en omfattende guidet ekspedition til sikring af MCP-servere i Azure med en "sårbar → udnyttelse → rettelse → validering" metode.
+For praktisk erfaring med sikkerhedsimplementering anbefaler vi **[MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/)** - en omfattende guidet ekspedition til sikring af MCP-servere i Azure med en "sårbar → udnyttelse → fix → validering" metode.
 
-Alle sikkerhedskontroller i dette dokument er i overensstemmelse med **[OWASP MCP Azure Security Guide](https://microsoft.github.io/mcp-azure-security-guide/)**, som tilbyder referencearkitekturer og Azure-specifik implementeringsvejledning til OWASP MCP Top 10 risici.
+Alle sikkerhedskontroller i dette dokument er i overensstemmelse med **[OWASP MCP Azure Security Guide](https://microsoft.github.io/mcp-azure-security-guide/)**, som giver referencearkitekturer og Azure-specifikke implementeringsvejledninger for OWASP MCP Top 10 risiciene.
 
 ## **OBLIGATORISKE Sikkerhedskrav**
 
 ### **Kritiske Forbud fra MCP Specification:**
 
-> **FORBUDT**: MCP-servere **MÅ IKKE** acceptere nogen tokens, der ikke eksplicit er udstedt til MCP-serveren  
+> **FORBUDT**: MCP-servere **MÅ IKKE** acceptere tokens, der ikke eksplicit er udstedt til MCP-serveren  
 >
-> **FORBUDT**: MCP-servere **MÅ IKKE** bruge sessions til godkendelse  
+> **FORBUDT**: MCP-servere **MÅ IKKE** anvende sessioner til autentifikation  
 >
-> **KRÆVET**: MCP-servere, der implementerer autorisation, **SKAL** verificere ALLE indgående anmodninger  
+> **KRÆVET**: MCP-servere, der implementerer autorisation, **SKAL** verificere ALLE indgående forespørgsler  
 >
-> **OBLIGATORISK**: MCP-proxyservere, der bruger statiske klient-id'er, **SKAL** indhente brugerens samtykke for hver dynamisk registreret klient
+> **OBLIGATORISK**: MCP-proxyservere, der bruger statiske klient-ID’er, **SKAL** indhente brugerens samtykke for hver dynamisk registreret klient
 
 ---
 
-## 1. **Godkendelses- og Autorisationskontroller**
+## 1. **Autentifikations- & Autorisationskontroller**
 
 ### **Integration af Ekstern Identitetsudbyder**
 
-**Nuværende MCP Standard (2025-11-25)** tillader MCP-servere at delegere godkendelse til eksterne identitetsudbydere, hvilket udgør en betydelig sikkerhedsforbedring:
+**Nuværende MCP Standard (2025-11-25)** tillader MCP-servere at delegere autentifikation til eksterne identitetsudbydere, hvilket repræsenterer en betydelig sikkerhedsforbedring:
 
-**OWASP MCP Risiko Adresseret**: [MCP07 - Utilstrækkelig Godkendelse & Autorisation](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp07-authz/)
+**OWASP MCP Risiko adresseret**: [MCP07 - Utilstrækkelig Autentifikation & Autorisation](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp07-authz/)
 
-**Sikkerhedsfordele:**
-1. **Eliminerer Risiko ved Tilpasset Godkendelse**: Mindsker angrebsfladen ved at undgå tilpassede godkendelsesimplementeringer  
-2. **Virksomhedsklasse Sikkerhed**: Udnytter etablerede identitetsudbydere som Microsoft Entra ID med avancerede sikkerhedsfunktioner  
-3. **Centraliseret Identitetsstyring**: Forenkler brugerens livscyklusadministration, adgangskontrol og revisionssporing  
-4. **Multi-Faktor Godkendelse**: Arver MFA-muligheder fra virksomhedens identitetsudbydere  
-5. **Betingede Adgangspolitikker**: Drager fordel af risikobaserede adgangskontroller og adaptiv godkendelse  
+**Sikkerhedsfordele:**  
+1. **Eliminerer tilpassede autentifikationsrisici**: Reducerer sårbarhedsfladen ved at undgå brugerdefinerede autentifikationsimplementeringer  
+2. **Enterprise-klasse sikkerhed**: Udnytter etablerede identitetsudbydere som Microsoft Entra ID med avancerede sikkerhedsfunktioner  
+3. **Centraliseret identitetsstyring**: Forenkler brugerlivscyklusstyring, adgangskontrol og compliance audit  
+4. **Multi-factor autentifikation**: Arver MFA-kapaciteter fra virksomhedens identitetsudbydere  
+5. **Conditional Access-politikker**: Drager fordel af risikobaserede adgangskontroller og adaptiv autentifikation
 
 **Implementeringskrav:**  
-- **Validering af Token Målgruppe**: Verificer at alle tokens er eksplicit udstedt til MCP-serveren  
-- **Udstederverifikation**: Bekræft at token-udsteder matcher den forventede identitetsudbyder  
-- **Signaturverifikation**: Kryptografisk validering af tokens integritet  
-- **Udløbsbegrænsning**: Striks håndhævelse af tokenets gyldighedsperiode  
-- **Scope Validering**: Sikre at tokens indeholder passende tilladelser for de anmodede handlinger  
+- **Validering af token-modtager**: Verificer at alle tokens eksplicit er udstedt til MCP-serveren  
+- **Udstederverifikation**: Valider at tokenudsteder matcher den forventede identitetsudbyder  
+- **Signaturverifikation**: Kryptografisk validering af tokenets integritet  
+- **Udløbsstyring**: Streng håndhævelse af tokenets levetidsgrænser  
+- **Scope-validering**: Sikre at tokens indeholder passende tilladelser til de ønskede handlinger
 
 ### **Sikkerhed i Autorisationslogik**
 
-**Kritiske Kontroller:**  
-- **Omfattende Autorisationsrevisioner**: Regelmæssige sikkerhedsgennemgange af alle autorisationsbeslutningspunkter  
-- **Failsafe Standardindstillinger**: Afvis adgang, når autorisationslogik ikke kan træffe en endelig beslutning  
-- **Tilladelsesgrænser**: Klar adskillelse mellem forskellige privilegieniveauer og ressourceadgang  
-- **Audit-Logging**: Fuldstændig logning af alle autorisationsbeslutninger for sikkerhedsovervågning  
-- **Regelmæssige Adgangsgennemgange**: Periodisk validering af brugerrettigheder og privilege tildelinger  
+**Kritiske kontroller:**  
+- **Omfattende autorisationsrevisionsgennemgange**: Regelmæssige sikkerhedsrevisioner af alle autorisationsbeslutningspunkter  
+- **Fail-safe standarder**: Nægt adgang, hvis autorisationslogikken ikke kan træffe en entydig beslutning  
+- **Tilladelsesgrænser**: Klar opdeling mellem forskellige privilegieniveauer og ressourceadgang  
+- **Audit logging**: Fuldstændig logning af alle autorisationsbeslutninger til sikkerhedsovervågning  
+- **Regelmæssige adgangsgennemgange**: Periodisk validering af brugerrettigheder og privilegietildelinger
 
-## 2. **Tokensikkerhed & Anti-Passthrough Kontroller**
+## 2. **Token-sikkerhed & Anti-Passthrough Kontroller**
 
-**OWASP MCP Risiko Adresseret**: [MCP01 - Tokenfejlhåndtering & Hemmelighedseksponering](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp01-token-mismanagement/)
+**OWASP MCP Risiko adresseret**: [MCP01 - Tokenfejl håndtering & Hemmelighedsafsløring](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp01-token-mismanagement/)
 
 ### **Forebyggelse af Token Passthrough**
 
 **Token passthrough er udtrykkeligt forbudt** i MCP Authorization Specification på grund af kritiske sikkerhedsrisici:
 
-**Adresserede Sikkerhedsrisici:**  
-- **Omgåelse af Kontroller**: Omgår væsentlige sikkerhedskontroller som ratebegrænsning, anmodningsvalidering og trafikovervågning  
-- **Ansvarsbrud**: Gør klientidentifikation umulig, hvilket ødelægger revisionsspor og hændelsesundersøgelser  
-- **Proxy-baseret Udslusning**: Gør det muligt for ondsindede aktører at bruge servere som proxyer til uautoriseret dataadgang  
-- **Brud på Tillidsgrænser**: Bryder downstream servicees antagelser om token oprindelse  
-- **Lateral Bevægelse**: Kompromitterede tokens på tværs af flere tjenester muliggør bredere angrebsudvidelse  
+**Adresserede sikkerhedsrisici:**  
+- **Kontrolomgåelse**: Omgår væsentlige sikkerhedskontroller som ratebegrænsning, forespørgselsvalidering og trafikovervågning  
+- **Ansvarsforfald**: Umuliggør klientidentifikation og korrumperer revisionsspor og hændelsesundersøgelser  
+- **Proxy-baseret dataudtræk**: Muliggør ondsindede aktører at bruge servere som proxyer til uautoriseret dataadgang  
+- **Tillidsbrud i grænseområder**: Bryder antagelser om tokenets oprindelse hos nedstrøms tjenester  
+- **Lateral bevægelse**: Kompromitterede tokens på tværs af flere tjenester muliggør bredere angrebsudvidelse
 
 **Implementeringskontroller:**  
 ```yaml
@@ -86,25 +86,25 @@ Token Lifecycle Management:
   replay_protection: "Implemented via nonce/timestamp"
 ```
   
-### **Sikre Tokenstyringsmønstre**
+### **Mønstre for sikker tokenhåndtering**
 
-**Bedste Praksis:**  
-- **Kortløbende Tokens**: Minimer eksponeringsvinduet med hyppig tokenrotation  
-- **Just-in-Time Udstedelse**: Udsted tokens kun, når de er nødvendige for specifikke handlinger  
-- **Sikker Opbevaring**: Brug hardware security modules (HSM'er) eller sikre nøglebede  
-- **Tokenbinding**: Bind tokens til specifikke klienter, sessioner eller handlinger, hvor det er muligt  
-- **Overvågning & Alarm**: Realtidsdetektion af tokenmisbrug eller uautoriserede adgangsmønstre  
+**Bedste praksis:**  
+- **Kortlivede tokens**: Minimer udsættelsestidspunkt med hyppig tokenrotation  
+- **Just-in-time udstedelse**: Udsted tokens kun, når de er nødvendige til specifikke handlinger  
+- **Sikker lagring**: Brug hardware-sikkerhedsmoduler (HSM'er) eller sikre nøglebunker  
+- **Token binding**: Bind tokens til specifikke klienter, sessioner eller handlinger hvor muligt  
+- **Overvågning & alarmering**: Realtidsdetektion af tokenmisbrug eller uautoriserede adgangsmønstre
 
 ## 3. **Sessionssikkerhedskontroller**
 
 ### **Forebyggelse af Session Hijacking**
 
-**Angrebsvektorer Adresseret:**  
-- **Session Hijack Prompt Injection**: Ondsindede hændelser injiceret i delt sessionstilstand  
-- **Session Impersonation**: Uautoriseret brug af stjålne session IDs til at omgå godkendelse  
-- **Genoptagelige Stream Angreb**: Udnyttelse af server-sent event genoptagelse til ondsindet indholdsindsprøjtning  
+**Angrebsvektorer adresseret:**  
+- **Session hijack prompt-injektion**: Ondsindede begivenheder injiceret i delt sessionsstatus  
+- **Session efterligning**: Uautoriseret brug af stjålne session-ID’er til at omgå autentifikation  
+- **Genoptagelige stream-angreb**: Udnyttelse af server-sendte event-genoptagelser til ondsindet indholdsindsprøjtning
 
-**Obligatoriske Sessionkontroller:**  
+**Obligatoriske sessionskontroller:**  
 ```yaml
 Session ID Generation:
   randomness_source: "Cryptographically secure RNG"
@@ -124,29 +124,29 @@ Session Lifecycle:
   cleanup: "Automated expired session removal"
 ```
   
-**Transport Sikkerhed:**  
-- **HTTPS Håndhævelse**: Al sessionkommunikation over TLS 1.3  
-- **Sikre Cookie-Attributter**: HttpOnly, Secure, SameSite=Strict  
-- **Certifikat Pinning**: For kritiske forbindelser for at forhindre MITM-angreb  
+**Transport sikkerhed:**  
+- **HTTPS-håndhævelse**: Al sessionkommunikation over TLS 1.3  
+- **Sikre cookieattributter**: HttpOnly, Secure, SameSite=Strict  
+- **Certifikatspærring**: For kritiske forbindelser for at forhindre MITM-angreb
 
-### **Stateless vs Stateful Overvejelser**
+### **Stateful vs Stateless Overvejelser**
 
-**For Stateful Implementeringer:**  
-- Delt sessionstilstand kræver yderligere beskyttelse mod injektionsangreb  
-- Kø-baseret sessionstyring kræver integritetsverifikation  
-- Flere serverinstanser kræver sikker sessionssynkronisering  
+**For Stateful implementeringer:**  
+- Delt sessionsstatus kræver ekstra beskyttelse mod injektionsangreb  
+- Købaseret sessionstyring kræver integritetsverifikation  
+- Flere serverinstanser kræver sikker sessionsstatus-synkronisering
 
-**For Stateless Implementeringer:**  
-- JWT eller tilsvarende tokenbaseret sessionstyring  
-- Kryptografisk verifikation af sessionstilstandens integritet  
-- Reduceret angrebsflade men kræver robust tokenvalidering  
+**For Stateless implementeringer:**  
+- JWT eller lignende tokenbaseret sessionstyring  
+- Kryptografisk verifikation af sessionsstatus integritet  
+- Reduceret angrebsflade, men kræver robust tokenvalidering
 
 ## 4. **AI-Specifikke Sikkerhedskontroller**
 
-**OWASP MCP Risici Adresseret**:  
-- [MCP06 - Prompt Injection via Kontekstbaserede Payloads](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)  
-- [MCP03 - Værktøjsforgiftning](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp03-tool-poisoning/)  
-- [MCP05 - Kommandoindsprøjtning & Eksekvering](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp05-command-injection/)  
+**OWASP MCP Risici adresseret**:  
+- [MCP06 - Intent Flow Subversion](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)  
+- [MCP03 - Tool Poisoning](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp03-tool-poisoning/)  
+- [MCP05 - Command Injection & Execution](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp05-command-injection/)
 
 ### **Forsvar mod Prompt Injection**
 
@@ -169,14 +169,14 @@ Integration Points:
 ```
   
 **Implementeringskontroller:**  
-- **Inputrengøring**: Omfattende validering og filtrering af alle brugerinput  
-- **Indholdsafgrænsning**: Klar adskillelse mellem systeminstruktioner og brugers indhold  
+- **Inputrensning**: Omfattende validering og filtrering af alle brugerinput  
+- **Indholdsgrænse-definition**: Klar adskillelse mellem systeminstruktioner og brugerindhold  
 - **Instruktionshierarki**: Korrekte præcedensregler for modstridende instruktioner  
-- **Outputovervågning**: Detektion af potentielt skadelige eller manipulerede outputs  
+- **Outputovervågning**: Detektion af potentielt skadelige eller manipulerede output
 
-### **Forebyggelse af Værktøjsforgiftning**
+### **Forebyggelse af Tool Poisoning**
 
-**Værktøjssikkerhedsramme:**  
+**Tool Security Framework:**  
 ```yaml
 Tool Definition Protection:
   validation:
@@ -198,17 +198,17 @@ Tool Definition Protection:
     - "Automated alerting for suspicious modifications"
 ```
   
-**Dynamisk Værktøjsstyring:**  
-- **Godkendelsesworkflows**: Udtrykkeligt brugerens samtykke ved værktøjsændringer  
-- **Rollback-funktioner**: Mulighed for at gå tilbage til tidligere versioner  
-- **Ændringsrevision**: Fuld historik over værktøjsdefinitionsændringer  
-- **Risikoevaluering**: Automatiseret vurdering af værktøjssikkerhedstilstand  
+**Dynamisk tool-administration:**  
+- **Godkendelsesworkflows**: Udtrykkeligt bruger-samtykke ved værktøjsændringer  
+- **Rollback-funktioner**: Mulighed for at rulle tilbage til tidligere versioner af værktøjer  
+- **Ændringsrevision**: Fuld historik over ændringer i værktøjsdefinitioner  
+- **Risikovurdering**: Automatisk evaluering af tool-sikkerhedsstilling
 
-## 5. **Forebyggelse af Forvirret Deputeret-angreb**
+## 5. **Forebyggelse af Confused Deputy Angreb**
 
 ### **OAuth Proxy Sikkerhed**
 
-**Forebyggende Kontroller:**  
+**Angrebsforebyggende kontroller:**  
 ```yaml
 Client Registration:
   static_client_protection:
@@ -225,16 +225,16 @@ Client Registration:
 ```
   
 **Implementeringskrav:**  
-- **Verifikation af Brugerens Samtykke**: Spring aldrig samtykkeskærme over ved dynamisk klientregistrering  
-- **Validering af Redirect URI**: Striks whitelist-baseret validering af omdirigeringsdestinationer  
-- **Beskyttelse af Autorisationskoder**: Kortlivede koder med håndhævelse af enkeltbrug  
-- **Verifikation af Klientidentitet**: Robust validering af klientlegitimationsoplysninger og metadata  
+- **Brugersamtykke verifikation**: Spring aldrig samtykkeskærme over ved dynamisk klientregistrering  
+- **Redirect URI validering**: Streng whitelist-baseret validering af redirect-destinationer  
+- **Beskyttelse af autorisationskoder**: Kortvarige koder med enkeltbrugsvilkår  
+- **Verifikation af klientidentitet**: Robust validering af klientlegitimationsoplysninger og metadata
 
-## 6. **Værktøjseksekveringssikkerhed**
+## 6. **Sikkerhed ved Eksekvering af Værktøjer**
 
 ### **Sandboxing & Isolation**
 
-**Containerbaseret Isolation:**  
+**Containerbaseret isolation:**  
 ```yaml
 Execution Environment:
   containerization: "Docker/Podman with security profiles"
@@ -252,10 +252,10 @@ Execution Environment:
 ```
   
 **Procesisolation:**  
-- **Separate Proceskontekster**: Hver værktøjseksekvering i isoleret procesområde  
-- **Inter-Proces Kommunikation**: Sikker IPC med validering  
-- **Procesovervågning**: Runtime adfærdsanalyse og anomalidetektion  
-- **Ressourcehåndhævelse**: Stramme grænser for CPU, hukommelse og I/O-operationer  
+- **Separate proceskontekster**: Hver værktøjsudførelse i isoleret procesrum  
+- **Inter-proces kommunikation**: Sikre IPC-mekanismer med validering  
+- **Procesovervågning**: Kørselsadfærdsanalyse og anomalidetektion  
+- **Ressourcehåndhævelse**: Stramme grænser for CPU, hukommelse og I/O-operationer
 
 ### **Implementering af Mindste Privilegium**
 
@@ -280,13 +280,13 @@ Access Control:
     - "Restricted environment variable access"
 ```
   
-## 7. **Sikkerhedskontroller for Forsyningskæden**
+## 7. **Sikkerhedskontroller for Leverandørkæden**
 
-**OWASP MCP Risiko Adresseret**: [MCP04 - Forsyningskædeangreb](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp04-supply-chain/)
+**OWASP MCP Risiko adresseret**: [MCP04 - Software Leverandørkædeangreb & Afhængighedstampering](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp04-supply-chain/)
 
 ### **Afhængighedsverifikation**
 
-**Omfattende KomponentSikkerhed:**  
+**Omfattende komponent-sikkerhed:**  
 ```yaml
 Software Dependencies:
   scanning: 
@@ -317,19 +317,19 @@ AI Components:
   
 ### **Kontinuerlig Overvågning**
 
-**Trusselsdetektion i Forsyningskæden:**  
-- **Overvågning af Afhængigheders Sundhed**: Kontinuerlig vurdering af alle afhængigheder for sikkerhedsproblemer  
-- **Integration af Trusselsintelligens**: Realtidsopdateringer om nye forsyningskædetrusler  
+**Trusseldetektion i leverandørkæden:**  
+- **Afhængighedshelbredsmonitorering**: Kontinuerlig vurdering af alle afhængigheder for sikkerhedsproblemer  
+- **Trusselsintelligensintegration**: Realtidsopdateringer om nye trusler i leverandørkæden  
 - **Adfærdsanalyse**: Detektion af usædvanlig adfærd i eksterne komponenter  
-- **Automatiseret Respons**: Øjeblikkelig inddæmning af kompromitterede komponenter  
+- **Automatisk respons**: Øjeblikkelig indeslutning af kompromitterede komponenter
 
-## 8. **Overvågnings- og Detektionskontroller**
+## 8. **Overvågnings- & Detektionskontroller**
 
-**OWASP MCP Risiko Adresseret**: [MCP08 - Manglende Revision og Telemetri](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp08-telemetry/)
+**OWASP MCP Risiko adresseret**: [MCP08 - Manglende Revision og Telemetri](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp08-telemetry/)
 
 ### **Security Information and Event Management (SIEM)**
 
-**Omfattende Logningsstrategi:**  
+**Omfattende loggingsstrategi:**  
 ```yaml
 Authentication Events:
   - "All authentication attempts (success/failure)"
@@ -350,19 +350,19 @@ Security Events:
   - "Unusual access patterns and anomalies"
 ```
   
-### **Realtids Trusselsdetektion**
+### **Realtidstrusseldetektion**
 
 **Adfærdsanalyse:**  
-- **Brugeradfærdsanalyse (UBA)**: Detektion af usædvanlige brugeradgangsmønstre  
-- **Enhedsadfærdsanalyse (EBA)**: Overvågning af MCP-server og værktøjsadfærd  
-- **Maskinlæringsbaseret Anomalidetektion**: AI-drevet identifikation af sikkerhedstrusler  
-- **Trusselsintelligenskorrelation**: Matcher observerede aktiviteter med kendte angrebsmønstre  
+- **User Behavior Analytics (UBA)**: Detektion af usædvanlige brugeradgangsmønstre  
+- **Entity Behavior Analytics (EBA)**: Overvågning af MCP-server og værktøjsadfærd  
+- **Maskinlæringsbaseret anomalidetektion**: AI-drevet identifikation af sikkerhedstrusler  
+- **Trusselsintelligenskorrelation**: Sammenkobling af observerede aktiviteter med kendte angrebsmønstre
 
-## 9. **Hændelseshåndtering & Genopretning**
+## 9. **Hændelsesrespons & Genopretning**
 
-### **Automatiserede Responsfunktioner**
+### **Automatiske Responsmuligheder**
 
-**Øjeblikkelige Responshandlinger:**  
+**Øjeblikkelige reaktionstiltag:**  
 ```yaml
 Threat Containment:
   session_management:
@@ -387,30 +387,30 @@ Recovery Procedures:
     - "Service restart procedures"
 ```
   
-### **Forensiske Kapabiliteter**
+### **Rettsmedicinske kapaciteter**
 
-**Undersøgelsessupport:**  
-- **Bevarelse af Revisionsspor**: Uforanderlig logning med kryptografisk integritet  
-- **Indsamling af Beviser**: Automatisk indsamling af relevante sikkerhedsartefakter  
-- **Tidslinjerekonstruktion**: Detaljeret sekvens af begivenheder, der ledte til sikkerhedshændelser  
-- **Impact Vurdering**: Evaluering af kompromittens omfang og dataeksponering  
+**Undersøgelsesstøtte:**  
+- **Bevaring af revisionsspor**: Uforanderlig logning med kryptografisk integritet  
+- **Bevisindsamling**: Automatisk indsamling af relevante sikkerhedsartefakter  
+- **Tidslinjegenskabelse**: Detaljeret sekvens af hændelser som førte til sikkerhedshændelser  
+- **Konsekvensvurdering**: Vurdering af omfang af kompromittering og dataeksponering
 
-## **Nøgleprincipper for Sikkerhedsarkitektur**
+## **Nøgler til Sikkerhedsarkitekturprincipper**
 
 ### **Forsvar i Dybden**  
-- **Flere Sikkerhedslag**: Intet enkelt fejlpunkt i sikkerhedsarkitekturen  
-- **Redundante Kontroller**: Overlappende sikkerhedsforanstaltninger for kritiske funktioner  
-- **Failsafe Mekanismer**: Sikre standardindstillinger ved systemfejl eller angreb  
+- **Flere sikkerhedslag**: Ingen enkelt fejlpunkt i sikkerhedsarkitekturen  
+- **Redundante kontroller**: Overlappende sikkerhedsforanstaltninger for kritiske funktioner  
+- **Fail-safe mekanismer**: Sikre standarder ved systemfejl eller angreb
 
 ### **Zero Trust Implementering**  
-- **Aldrig Stol på, Altid Verificer**: Kontinuerlig validering af alle enheder og anmodninger  
-- **Princip om Mindste Privilegium**: Minimale adgangsrettigheder for alle komponenter  
-- **Mikrosegmentering**: Granulære netværks- og adgangskontroller  
+- **Aldrig stole på, altid verificere**: Løbende validering af alle enheder og forespørgsler  
+- **Mindste privilegiumsprincippet**: Minimale adgangsrettigheder til alle komponenter  
+- **Mikrosegmentering**: Granulær netværks- og adgangskontrol
 
 ### **Kontinuerlig Sikkerhedsevolution**  
-- **Tilpasning til Trusselslandskab**: Regelmæssige opdateringer til adressering af nye trusler  
-- **Effektivitet af Sikkerhedskontroller**: Løbende evaluering og forbedring af kontroller  
-- **Overholdelse af Specifikationer**: Overensstemmelse med udviklende MCP sikkerhedsstandarder  
+- **Tilpasning til trusselslandskabet**: Regelmæssige opdateringer for at håndtere nye trusler  
+- **Evaluering af kontrolers effektivitet**: Løbende vurdering og forbedring af kontroller  
+- **Overholdelse af standarder**: Justering til MCP sikkerhedsstandarder i udvikling
 
 ---
 
@@ -419,36 +419,36 @@ Recovery Procedures:
 ### **Officiel MCP Dokumentation**  
 - [MCP Specification (2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)  
 - [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices)  
-- [MCP Authorization Specification](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)  
+- [MCP Authorization Specification](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
 
 ### **OWASP MCP Sikkerhedsressourcer**  
 - [OWASP MCP Azure Security Guide](https://microsoft.github.io/mcp-azure-security-guide/) - Omfattende OWASP MCP Top 10 med Azure-implementering  
 - [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/) - Officielle OWASP MCP sikkerhedsrisici  
-- [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/) - Praktisk sikkerhedstræning for MCP på Azure  
+- [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/) - Praktisk sikkerhedstræning for MCP på Azure
 
 ### **Microsoft Sikkerhedsløsninger**  
 - [Microsoft Prompt Shields](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection)  
 - [Azure Content Safety](https://learn.microsoft.com/azure/ai-services/content-safety/)  
 - [GitHub Advanced Security](https://github.com/security/advanced-security)  
-- [Azure Key Vault](https://learn.microsoft.com/azure/key-vault/)  
+- [Azure Key Vault](https://learn.microsoft.com/azure/key-vault/)
 
 ### **Sikkerhedsstandarder**  
 - [OAuth 2.0 Security Best Practices (RFC 9700)](https://datatracker.ietf.org/doc/html/rfc9700)  
-- [OWASP Top 10 for Store Sprogmodeller](https://genai.owasp.org/)  
-- [NIST Cybersecurity Framework](https://www.nist.gov/cyberframework)  
+- [OWASP Top 10 for Large Language Models](https://genai.owasp.org/)  
+- [NIST Cybersecurity Framework](https://www.nist.gov/cyberframework)
 
 ---
 
-> **Vigtigt**: Disse sikkerhedskontroller afspejler den aktuelle MCP-specifikation (2025-11-25). Bekræft altid mod den nyeste [officielle dokumentation](https://spec.modelcontextprotocol.io/), da standarderne fortsat udvikler sig hurtigt.
+> **Vigtigt**: Disse sikkerhedskontroller afspejler den nuværende MCP-specifikation (2025-11-25). Verificer altid imod den nyeste [officielle dokumentation](https://spec.modelcontextprotocol.io/), da standarderne udvikler sig hurtigt.
 
 ## Hvad er Næste Skridt
 
-- Gå tilbage til: [Security Module Overview](./README.md)
-- Fortsæt til: [Modul 3: Kom godt i gang](../03-GettingStarted/README.md)
+- Gå tilbage til: [Security Module Overview](./README.md)  
+- Fortsæt til: [Module 3: Getting Started](../03-GettingStarted/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Ansvarsfraskrivelse**:  
-Dette dokument er blevet oversat ved hjælp af AI-oversættelsestjenesten [Co-op Translator](https://github.com/Azure/co-op-translator). Selvom vi bestræber os på nøjagtighed, bedes du være opmærksom på, at automatiserede oversættelser kan indeholde fejl eller unøjagtigheder. Det oprindelige dokument på dets modersmål bør anses for at være den autoritative kilde. For kritisk information anbefales professionel menneskelig oversættelse. Vi påtager os ikke ansvar for eventuelle misforståelser eller fejltolkninger som følge af brugen af denne oversættelse.
+**Ansvarsfraskrivelse**:
+Dette dokument er blevet oversat ved hjælp af AI-oversættelsestjenesten [Co-op Translator](https://github.com/Azure/co-op-translator). Selvom vi bestræber os på nøjagtighed, skal du være opmærksom på, at automatiserede oversættelser kan indeholde fejl eller unøjagtigheder. Det originale dokument på dets oprindelige sprog bør betragtes som den autoritative kilde. For kritisk information anbefales professionel menneskelig oversættelse. Vi påtager os intet ansvar for misforståelser eller fejltolkninger, der opstår som følge af brugen af denne oversættelse.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

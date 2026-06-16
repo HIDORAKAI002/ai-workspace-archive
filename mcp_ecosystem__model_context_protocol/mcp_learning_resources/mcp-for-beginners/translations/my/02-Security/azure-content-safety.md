@@ -1,50 +1,50 @@
-# Azure Content Safety နှင့် အဆင့်မြင့် MCP လုံခြုံမှု
+# Azure Content Safety ဖြင့် အဆင့်မြင့် MCP လုံခြုံရေး
 
-> **OWASP MCP အန္တရာယ် ဖြေရှင်းမှု**: [MCP06 - Contextual Payloads မှတဆင့် Prompt Injection](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)
+> **OWASP MCP မှ တုံ့ပြန်လျက်ရှိသော အန္တရာယ်**: [MCP06 - ရည်ရွယ်ချက် လွှဲပြောင်းမှု](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)
 
-Azure Content Safety သည် သင့် MCP အကောင်အထည်ဖော်မှုများ၏ လုံခြုံမှုကို မြှင့်တင်ရန် အင်အားကြီးသောကိရိယာများကို ပေးသည်။ လက်တွေ့ အကောင်အထည်ဖော်မှု အတွေ့အကြုံရရှိရန် [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/) Camp 3: I/O Security ကို ကြည့်ပါ။
+Azure Content Safety သည် သင့် MCP အကောင်အထည်ဖော်မှုများ၏ လုံခြုံရေးကိုအားကောင်းစွာတိုးတက်စေနိုင်သည့် စွမ်းဆောင်ရည်မြင့်ကိရိယာများစွာကို ပံ့ပိုးပေးသည်။ လက်တွေ့အသုံးပြုမှုအတွေ့အကြုံအတွက် [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/) Camp 3: I/O Security ကို ကြည့်ပါ။
 
 ## Prompt Shields
 
-Microsoft ၏ AI Prompt Shields သည် တိုက်ရိုက်နှင့် မတိုက်ရိုက် prompt injection ကာကွယ်မှုအား များစွာပေးသည့် ကာကွယ်မှုများကို ပံ့ပိုးပေးသည်-
+Microsoft ၏ AI Prompt Shields သည် တိုက်ရိုက်အပြီးနှင့် ပုဂ္ဂိုလ်တစ်ယောက်မှ မကောင်းသော prompt ထည့်သွင်းမှုတိုက်ခိုက်မှုများအား ခိုင်မာစွာ ကာကွယ်ပေးသည်-
 
-1. **အဆင့်မြင့်ရှာဖွေမှု**: အကြောင်းအရာအတွင်း ထည့်သွင်းထားသော မကောင်းမွန်သောညွှန်ကြားချက်များကို စက်သင်ယူမှုဖြင့် ဖော်ထုတ်သည်။
-2. **Spotlighting**: AI စနစ်များအား အတည်ပြုညွှန်ကြားချက်များနှင့် ပြင်ပထည့်သွင်းချက်များကို ခွဲနိုင်ရန် အကူအညီပြုရန် အထွက်စာသားကို ပြောင်းလဲပေးသည်။
-3. **Delimiters နှင့် Datamarking**: ယုံကြည်စိတ်ချရသော ဒေတာနှင့် မယုံကြည်ရသော ဒေတာအကြား အနားစွန်းများကို အမှတ်တံဆိပ်ဖြင့် ဖော်ပြသည်။
-4. **Content Safety Integration**: jailbreak ကြိုးစားမှုများနှင့် အန္တရာယ်ရှိသော အကြောင်းအရာများကို ရှာဖွေဖို့ Azure AI Content Safety နှင့် ပူးပေါင်းလုပ်ဆောင်သည်။
-5. **ဆက်လက်မွမ်းမံမှုများ**: Microsoft သည် အသစ်ထွက်ပေါ်လာသော မုန်တိုင်းအန္တရာယ်များအပေါ် ကာကွယ်မှု မက်ခရနစ်များကို မကြာခဏ အပ်ဒိတ်လုပ်သည်။
+1. **တိုးတက်သော စစ်ဆေးမှု**: အကြောင်းအရာထဲတွင် ထည့်သွင်းထားသော မကောင်းသောညွှန်ကြားချက်များကို စက်သင်ကြားခြင်းဖြင့် မှတ်မိစစ်ဆေးသည်။
+2. **ဖော်ပြမှု (Spotlighting)**: AI စနစ်များအတွက် မှန်ကန်သောညွှန်ကြားချက်များနှင့် ပြင်ပထည့်သွင်းချက်များကို ခြားနားစေသည်။
+3. **အတွင်း နယ်နိမိတ်များနှင့် ဒေတာတံဆိပ်ခတ်ခြင်း**: ယုံကြည်နိုင်သော ဒေတာနှင့် မယုံကြည်ရသော ဒေတာများအကြား နယ်နိမိတ်များကို မှတ်သားသည်။
+4. **Content Safety ပေါင်းစပ်ခြင်း**: Azure AI Content Safety ဖြစ်ပေါ်မှုမှားထွက်နော် နှင့် အဆိုးကျိုးဖြစ်စေသည့်အကြောင်းအရာများကို ရှာဖွေသည်။
+5. **မပြတ်တမ်း အပ်ဒိတ်များ**: Microsoft သည် ခိုင်မာသောလုံခြုံရေးစနစ်များကို ပုံမှန် အပ်ဒိတ်လုပ်ပေးသည်။
 
-## MCP နှင့် Azure Content Safety ကို မည်သို့ အကောင်အထည်ဖော်မည်
+## Azure Content Safety ကို MCP နဲ့ အကောင်အထည်ဖော်ခြင်း
 
-ဤနည်းလမ်းသည် အလွှာအများအပြားသော ကာကွယ်မှုကို ပေးသည်-
-- ကိုင်တွယ်မှုမပြုမီ ဝင်ရောက်သော အချက်အလက်များကို စစ်ဆေးခြင်း
-- ပြန်ပေးပို့မည့် အချက်အလက်များကို အတည်ပြုခြင်း
-- ကြိုတင်သိထားသော အန္တရာယ်ရှိမှုပုံစံများအား blocklists အသုံးပြုခြင်း
-- Azure ၏ ဆက်လက်မွမ်းမံနေသည့် content safety မော်ဒယ်များကို အကျိုးပြုဖော်ဆောင်ခြင်း
+ဒီနည်းလမ်းက လုံခြုံရေးအဆင့်များစွာ ပေးသည်။
+- လုပ်ဆောင်စဉ်မတိုင်မီ ထည့်သွင်းချက်များ စစ်ဆေးခြင်း
+- ထွက်ရှိမှုများကို ပြန်လည်ထုတ်ပြန်ရရှိမည့်အချိန်တွင် စစ်ဆေးတင်ပြခြင်း
+- အဆိုးကျိုးရှိသော စနစ်များအတွက် blocklist များကို အသုံးပြုခြင်း
+- Azure ၏ မပြတ်တမ်းအပ်ဒိတ်လုပ်သော content safety မော်ဒယ်များကို အသုံးပြုခြင်း
 
 ## Azure Content Safety အရင်းအမြစ်များ
 
-သင့် MCP ဆာဗာများနှင့် Azure Content Safety ကို အကောင်အထည်ဖော်နည်းပိုမိုလေ့လာလိုပါက အောက်ပါ တရားဝင်အရင်းအမြစ်များကို ရှာဖွေကြည့်ပါ-
+သင့် MCP ဆာဗာများတွင် Azure Content Safety ကို အကောင်အထည်ဖော်ရန် ပိုမိုသိရှိလိုပါက အောက်ပါ အတည်ပြုအရင်းအမြစ်များကို ကြည့်ရှုပါ။
 
-1. [Azure AI Content Safety Documentation](https://learn.microsoft.com/azure/ai-services/content-safety/) - Azure Content Safety အတွက် တရားဝင်စာတမ်းများ။
-2. [Prompt Shield Documentation](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/prompt-shield) - prompt injection ကာကွယ်နည်းလမ်းများ။
-3. [Content Safety API Reference](https://learn.microsoft.com/rest/api/contentsafety/) - Content Safety ကို အကောင်အထည်ဖော်ရန် အသေးစိတ် API ကိုးကားချက်။
-4. [Quickstart: Azure Content Safety with C#](https://learn.microsoft.com/azure/ai-services/content-safety/quickstart-csharp) - C# ဖြင့် အကောင်အထည်ဖော်ခြင်း လမ်းညွှန်ချက်။
-5. [Content Safety Client Libraries](https://learn.microsoft.com/azure/ai-services/content-safety/quickstart-client-libraries-rest-api) - မတူညီသော programming ဘာသာစကားများအတွက် client libraries။
-6. [Detecting Jailbreak Attempts](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection) - jailbreak ကြိုးစားမှုများကို ရှာဖွေရန်နှင့် ကာကွယ်ရန် အထူးသတိပြုချက်။
-7. [Best Practices for Content Safety](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/best-practices) - Content Safety ကို ထိရောက်စွာ အကောင်အထည်ဖော်ရန်အတွက် အကောင်းဆုံး လေ့လာမှုနည်းလမ်းများ။
+1. [Azure AI Content Safety စာတမ်းများ](https://learn.microsoft.com/azure/ai-services/content-safety/) - Azure Content Safety အတွက် တရားဝင် စာတမ်းများ။
+2. [Prompt Shield စာတမ်းများ](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/prompt-shield) - prompt injection တိုက်ခိုက်မှုများကို မဖြစ်စေရန် သင်ယူပါ။
+3. [Content Safety API ကိုရင်းမြစ်](https://learn.microsoft.com/rest/api/contentsafety/) - Content Safety ကို အကောင်အထည်ဖော်ရာ API အသုံးပြုသူလမ်းညွှန်။
+4. [Quickstart: Azure Content Safety နှင့် C# ဖြင့်](https://learn.microsoft.com/azure/ai-services/content-safety/quickstart-csharp) - C# ဖြင့် လျင်မြန်စွာ အကောင်အထည်ဖော်ခြင်း လမ်းညွှန်။
+5. [Content Safety Client Libraries](https://learn.microsoft.com/azure/ai-services/content-safety/quickstart-client-libraries-rest-api) - ဘာသာစကားအမျိုးမျိုးအတွက် Client Libraries များ။
+6. [Jailbreak လုပ်ရန် ကြိုးစားမှုတွေ ရှာဖွေခြင်း](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection) - jailbreak မဖြစ်စေဖို့ ဉပမာပြချက်များ။
+7. [Content Safety အတွက် အကောင်းဆုံး လေ့လာမှုများ](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/best-practices) - content safety ကို ထိရောက်စွာ အကောင်အထည်ဖေါ်ရာ အကောင်းဆုံး လေ့လာမှုများ။
 
-ပိုမိုအသေးစိတ် အကောင်အထည်ဖော်မှုအတွက် ကျွန်ုပ်တို့၏ [Azure Content Safety Implementation guide](./azure-content-safety-implementation.md) ကို ကြည့်ပါ။
+ပိုမိုအသေးစိတ် အကောင်အထည်ဖော်ခြင်းအတွက် ကျွန်ုပ်တို့၏ [Azure Content Safety Implementation လမ်းညွှန်](./azure-content-safety-implementation.md) ကို ကြည့်ပါ။
 
-## ရုပ်သိမ်းရန်
+## နောက်တစ်ဆင့်
 
-- ဖတ်ရန်: [Azure Content Safety Implementation](./azure-content-safety-implementation.md)
-- ပြန်သွားရန်: [Security Module Overview](./README.md)
-- ဆက်ရန်: [Module 3: Getting Started](../03-GettingStarted/README.md)
+- ဖတ်ပါ: [Azure Content Safety Implementation](./azure-content-safety-implementation.md)
+- ပြန်သွားပါ: [Security Module Overview](./README.md)
+- ဆက်လက်ပါ: [Module 3: Getting Started](../03-GettingStarted/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**အသိပေးချက်**  
-ဤစာရွက်စာတမ်းကို AI ဘာသာပြန်ဝန်ဆောင်မှု [Co-op Translator](https://github.com/Azure/co-op-translator) ဖြင့် ဘာသာပြန်ထားပါသည်။ တိကျမှုအတွက် ကြိုးပမ်းပါသော်လည်း၊ စက်မှ ဘာသာပြန်ထားမှုများတွင် အမှားများ သို့မဟုတ်မှားယွင်းချက်များ ပါနိုင်ကြောင်း သတိပြုပါရန် ဖြစ်ပါသည်။ မူရင်းစာရွက်စာတမ်းကို၎င်း ကနဦးဘာသာဖြင့်သာ ယုံကြည်ရမည့် အရင်းအမြစ်အဖြစ် စဉ်းစားသင့်ပါသည်။ အရေးပါသော သတင်းအချက်အလက်များအတွက် ပရော်ဖက်ရှင်နယ် လူသားဘာသာပြန်ခြင်းကို အကြံပြုပါသည်။ ဤဘာသာပြန်ချက်ကို အသုံးပြုပြီး ဖြစ်ပေါ်လာသည့် နားမလည်မှုများ သို့မဟုတ် မှားယွင်းသုံးသပ်မှုများအတွက် ကျနော်တို့ မည်သည့် တာဝန်မှလည်း မယူဆောင်ပါ။
+**ပြောကြားချက်**
+ဤစာတမ်းကို AI ဘာသာပြန်ဝန်ဆောင်မှု [Co-op Translator](https://github.com/Azure/co-op-translator) အသုံးပြု၍ ဘာသာပြန်ထားပါသည်။ ကျွန်ုပ်တို့သည် တိကျမှန်ကန်မှုအတွက် ကြိုးပမ်းနေသော်လည်း၊ စက်ကိရိယာဘာသာပြန်ခြင်းများတွင် အမှားများ သို့မဟုတ် မှားယွင်းချက်များ ပါဝင်နိုင်ကြောင်း သတိပြုပါရန် လိုအပ်ပါသည်။ မူလစာတမ်းကို မူရင်းဘာသာဖြင့်သာ ယုံကြည်စိတ်ချရသော အချက်အလက်အဖြစ် သတ်မှတ်သင့်သည်။ အရေးကြီးသည့် သတင်းအချက်အလက်များအတွက် ပရော်ဖက်ရှင်နယ် လူသားဘာသာပြန်သူဝန်ဆောင်မှုကို အကြံပြုပါသည်။ ဤဘာသာပြန်ချက်ကို အသုံးပြုခြင်းမှ ဖြစ်ပေါ်လာသော နားလည်မှုကွာခြားမှုများ သို့မဟုတ် မမှန်ကန်သော အသုံးပြုမှုများအတွက် ကျွန်ုပ်တို့ တာဝန်မခံပါ။
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

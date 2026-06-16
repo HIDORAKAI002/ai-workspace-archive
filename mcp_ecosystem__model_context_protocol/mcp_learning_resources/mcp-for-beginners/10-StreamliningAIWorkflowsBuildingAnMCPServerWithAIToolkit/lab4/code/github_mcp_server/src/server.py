@@ -127,8 +127,9 @@ async def open_in_vscode(folder_path: str, use_insiders: bool = False) -> str:
                         break
             
             if os.path.exists(vscode_path):
-                subprocess.run(["start", "", vscode_path, str(folder_path)], 
-                              check=True, shell=True)
+                # Launch the resolved executable directly (no shell) to avoid
+                # command injection via shell metacharacters in folder_path.
+                subprocess.run([vscode_path, str(folder_path)], check=True)
             else:
                 # Fallback to command line approach
                 cmd = "code-insiders" if use_insiders else "code"

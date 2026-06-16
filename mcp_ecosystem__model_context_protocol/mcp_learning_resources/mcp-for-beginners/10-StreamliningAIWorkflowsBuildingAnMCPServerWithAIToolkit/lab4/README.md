@@ -22,7 +22,7 @@ By the end of this lab, you will be able to:
 
 - Completion of Labs 1-3 (MCP fundamentals and advanced development)
 - GitHub Copilot subscription ([free signup available](https://github.com/github-copilot/signup))
-- VS Code with AI Toolkit and GitHub Copilot extensions
+- VS Code with Microsoft Foundry Toolkit and GitHub Copilot extensions
 - Git CLI installed and configured
 
 ## 🏗️ Project Overview
@@ -52,7 +52,7 @@ A **GitHub Clone MCP Server** (`git_mcp_server`) that provides:
 
 ### Step 1: Create GitHub Agent in Agent Builder
 
-1. **Launch Agent Builder** through the AI Toolkit extension
+1. **Launch Agent Builder** through the Microsoft Foundry Toolkit extension
 2. **Create a new agent** with the following configuration:
    ```
    Agent Name: GitHubAgent
@@ -161,11 +161,11 @@ Scenario : Basic Clone and Open
 
 **Dear Workshop Participant,**
 
-Congratulations on completing all four modules of the Model Context Protocol workshop! You've come a long way from understanding basic AI Toolkit concepts to building production-ready MCP servers that solve real-world development challenges.
+Congratulations on completing all four modules of the Model Context Protocol workshop! You've come a long way from understanding basic Microsoft Foundry Toolkit concepts to building production-ready MCP servers that solve real-world development challenges.
 
 ### 🚀 Your Learning Path Recap:
 
-**[Module 1](../lab1/README.md)**: You began by exploring AI Toolkit fundamentals, model testing, and creating your first AI agent.
+**[Module 1](../lab1/README.md)**: You began by exploring Microsoft Foundry Toolkit fundamentals, model testing, and creating your first AI agent.
 
 **[Module 2](../lab2/README.md)**: You learned MCP architecture, integrated Playwright MCP, and built your first browser automation agent.
 
@@ -175,7 +175,7 @@ Congratulations on completing all four modules of the Model Context Protocol wor
 
 ### 🌟 What You've Mastered:
 
-- ✅ **AI Toolkit Ecosystem**: Models, agents, and integration patterns
+- ✅ **Microsoft Foundry Toolkit Ecosystem**: Models, agents, and integration patterns
 - ✅ **MCP Architecture**: Client-server design, transport protocols, and security
 - ✅ **Developer Tools**: From Playground to Inspector to production deployment
 - ✅ **Custom Development**: Building, testing, and deploying your own MCP servers

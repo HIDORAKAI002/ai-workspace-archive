@@ -1,21 +1,21 @@
-# Model Context Protocol (MCP) Integration with Azure AI Foundry
+# Model Context Protocol (MCP) Integration with Microsoft Foundry
 
-This guide demonstrates how to integrate Model Context Protocol (MCP) servers with Azure AI Foundry agents, enabling powerful tool orchestration and enterprise AI capabilities.
+This guide demonstrates how to integrate Model Context Protocol (MCP) servers with Microsoft Foundry agents, enabling powerful tool orchestration and enterprise AI capabilities.
 
 ## Introduction
 
-Model Context Protocol (MCP) is an open standard that enables AI applications to securely connect to external data sources and tools. When integrated with Azure AI Foundry, MCP allows agents to access and interact with various external services, APIs, and data sources in a standardized way.
+Model Context Protocol (MCP) is an open standard that enables AI applications to securely connect to external data sources and tools. When integrated with Microsoft Foundry, MCP allows agents to access and interact with various external services, APIs, and data sources in a standardized way.
 
-This integration combines the flexibility of MCP's tool ecosystem with Azure AI Foundry's robust agent framework, providing enterprise-grade AI solutions with extensive customization capabilities.
+This integration combines the flexibility of MCP's tool ecosystem with Microsoft Foundry's robust agent framework, providing enterprise-grade AI solutions with extensive customization capabilities.
 
-**Note:** If you want to use MCP in Azure AI Foundry Agent Service, currently only the following regions are supported: westus, westus2, uaenorth, southindia and switzerlandnorth
+**Note:** If you want to use MCP in Microsoft Foundry Agent Service, currently only the following regions are supported: westus, westus2, uaenorth, southindia and switzerlandnorth
 
 ## Learning Objectives
 
 By the end of this guide, you will be able to:
 
 - Understand the Model Context Protocol and its benefits
-- Set up MCP servers for use with Azure AI Foundry agents
+- Set up MCP servers for use with Microsoft Foundry agents
 - Create and configure agents with MCP tool integration
 - Implement practical examples using real MCP servers
 - Handle tool responses and citations in agent conversations
@@ -24,7 +24,7 @@ By the end of this guide, you will be able to:
 
 Before starting, ensure you have:
 
-- An Azure subscription with AI Foundry access
+- An Azure subscription with Microsoft Foundry access
 - Python 3.10+ or .NET 8.0+
 - Azure CLI installed and configured
 - Appropriate permissions to create AI resources
@@ -38,7 +38,7 @@ Model Context Protocol is a standardized way for AI applications to connect to e
 - **Flexibility**: Support for various data sources, APIs, and custom tools
 - **Extensibility**: Easy to add new capabilities and integrations
 
-## Setting Up MCP with Azure AI Foundry
+## Setting Up MCP with Microsoft Foundry
 
 ### Environment Configuration
 
@@ -363,15 +363,15 @@ To further enhance your MCP integration:
 
 ## Additional Resources
 
-- [Azure AI Foundry Documentation](https://learn.microsoft.com/azure/ai-foundry/)
+- [Microsoft Foundry Documentation](https://learn.microsoft.com/azure/ai-foundry/)
 - [Model Context Protocol Samples](https://learn.microsoft.com/azure/ai-foundry/agents/how-to/tools/model-context-protocol-samples)
-- [Azure AI Foundry Agents Overview](https://learn.microsoft.com/azure/ai-foundry/agents/)
+- [Microsoft Foundry Agents Overview](https://learn.microsoft.com/azure/ai-foundry/agents/)
 - [MCP Specification](https://spec.modelcontextprotocol.io/)
 
 ## Support
 
 For additional support and questions:
-- Review the [Azure AI Foundry documentation](https://learn.microsoft.com/azure/ai-foundry/)
+- Review the [Microsoft Foundry documentation](https://learn.microsoft.com/azure/ai-foundry/)
 - Check the [MCP community resources](https://modelcontextprotocol.io/)
 
 ## What's next 

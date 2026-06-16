@@ -287,7 +287,7 @@ Azure MCP Server ([https://aka.ms/azmcp](https://aka.ms/azmcp)) is Microsoft’s
 
 > **🎯 Production Ready Tool**
 > 
-> This is a real MCP server you can use today! Learn more about the Azure AI Foundry MCP Server in our [**Microsoft MCP Servers Guide**](microsoft-mcp-servers.md).
+> This is a real MCP server you can use today! Learn more about the Microsoft Foundry MCP Server in our [**Microsoft MCP Servers Guide**](microsoft-mcp-servers.md).
 
 
 - Fully managed MCP server hosting with built-in scaling, monitoring, and security
@@ -346,19 +346,19 @@ There are two distinct components to NLWeb.
 - [Azure MCP Documentation](https://aka.ms/azmcp)
 - [NLWeb](https://github.com/microsoft/NlWeb)
 
-### Case Study 7: Azure AI Foundry MCP Server – Enterprise AI Agent Integration
+### Case Study 7: Microsoft Foundry MCP Server – Enterprise AI Agent Integration
 
-Azure AI Foundry MCP servers demonstrate how MCP can be used to orchestrate and manage AI agents and workflows in enterprise environments. By integrating MCP with Azure AI Foundry, organizations can standardize agent interactions, leverage Foundry's workflow management, and ensure secure, scalable deployments.
+Microsoft Foundry MCP servers demonstrate how MCP can be used to orchestrate and manage AI agents and workflows in enterprise environments. By integrating MCP with Microsoft Foundry, organizations can standardize agent interactions, leverage Foundry's workflow management, and ensure secure, scalable deployments.
 
 > **🎯 Production Ready Tool**
 > 
-> This is a real MCP server you can use today! Learn more about the Azure AI Foundry MCP Server in our [**Microsoft MCP Servers Guide**](microsoft-mcp-servers.md#9--azure-ai-foundry-mcp-server).
+> This is a real MCP server you can use today! Learn more about the Microsoft Foundry MCP Server in our [**Microsoft MCP Servers Guide**](microsoft-mcp-servers.md#9--microsoft-foundry-mcp-server).
 
 **Key Features:**
 - Comprehensive access to Azure's AI ecosystem, including model catalogs and deployment management
 - Knowledge indexing with Azure AI Search for RAG applications
 - Evaluation tools for AI model performance and quality assurance
-- Integration with Azure AI Foundry Catalog and Labs for cutting-edge research models
+- Integration with Microsoft Foundry Catalog and Labs for cutting-edge research models
 - Agent management and evaluation capabilities for production scenarios
 
 **Results:**
@@ -369,12 +369,12 @@ Azure AI Foundry MCP servers demonstrate how MCP can be used to orchestrate and 
 - Accelerated AI adoption while maintaining control over complex agent-driven processes
 
 **References:**
-- [Azure AI Foundry MCP Server GitHub Repository](https://github.com/azure-ai-foundry/mcp-foundry)
+- [Microsoft Foundry MCP Server GitHub Repository](https://github.com/azure-ai-foundry/mcp-foundry)
 - [Integrating Azure AI Agents with MCP (Microsoft Foundry Blog)](https://devblogs.microsoft.com/foundry/integrating-azure-ai-agents-mcp/)
 
 ### Case Study 8: Foundry MCP Playground – Experimentation and Prototyping
 
-The Foundry MCP Playground offers a ready-to-use environment for experimenting with MCP servers and Azure AI Foundry integrations. Developers can quickly prototype, test, and evaluate AI models and agent workflows using resources from the Azure AI Foundry Catalog and Labs. The playground streamlines setup, provides sample projects, and supports collaborative development, making it easy to explore best practices and new scenarios with minimal overhead. It is especially useful for teams looking to validate ideas, share experiments, and accelerate learning without the need for complex infrastructure. By lowering the barrier to entry, the playground helps foster innovation and community contributions in the MCP and Azure AI Foundry ecosystem.
+The Foundry MCP Playground offers a ready-to-use environment for experimenting with MCP servers and Microsoft Foundry integrations. Developers can quickly prototype, test, and evaluate AI models and agent workflows using resources from the Microsoft Foundry Catalog and Labs. The playground streamlines setup, provides sample projects, and supports collaborative development, making it easy to explore best practices and new scenarios with minimal overhead. It is especially useful for teams looking to validate ideas, share experiments, and accelerate learning without the need for complex infrastructure. By lowering the barrier to entry, the playground helps foster innovation and community contributions in the MCP and Microsoft Foundry ecosystem.
 
 **References:**
 

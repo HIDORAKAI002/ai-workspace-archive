@@ -1,50 +1,50 @@
-# Προηγμένη Ασφάλεια MCP με Azure Content Safety
+# Προηγμένη Ασφάλεια MCP με το Azure Content Safety
 
-> **OWASP MCP Αντιμετωπιζόμενο Κίνδυνο**: [MCP06 - Έγχυση Εντολών μέσω Περιεχομένου Στοίχισης](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)
+> **Διευθετημένος Κίνδυνος OWASP MCP**: [MCP06 - Παραβίαση Ροής Προθέσεων](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)
 
-Το Azure Content Safety παρέχει διάφορα ισχυρά εργαλεία που μπορούν να ενισχύσουν την ασφάλεια των υλοποιήσεων MCP σας. Για πρακτική εμπειρία υλοποίησης, δείτε το [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/) Camp 3: Ασφάλεια Εισόδου/Εξόδου.
+Το Azure Content Safety παρέχει πολλά ισχυρά εργαλεία που μπορούν να βελτιώσουν την ασφάλεια των υλοποιήσεών σας MCP. Για πρακτική εμπειρία υλοποίησης, δείτε το [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/), Camp 3: I/O Security.
 
-## Ασπίδες Εντολών (Prompt Shields)
+## Ασπίδες Προτροπής
 
-Οι Ασπίδες Εντολών AI της Microsoft παρέχουν ισχυρή προστασία ενάντια σε άμεσες και έμμεσες επιθέσεις έγχυσης εντολών (prompt injection) μέσω:
+Οι AI Prompt Shields της Microsoft παρέχουν ισχυρή προστασία κατά των άμεσων και έμμεσων επιθέσεων έγχυσης προτροπής μέσω:
 
-1. **Προηγμένης Ανίχνευσης**: Χρησιμοποιεί μηχανική μάθηση για τον εντοπισμό κακόβουλων οδηγιών ενσωματωμένων στο περιεχόμενο.
-2. **Φωτισμού (Spotlighting)**: Μετασχηματίζει το κείμενο εισόδου για να βοηθήσει τα συστήματα AI να διακρίνουν ανάμεσα σε έγκυρες οδηγίες και εξωτερικές εισόδους.
-3. **Οριοθετητών και Σηματοδότησης Δεδομένων (Delimiters and Datamarking)**: Επισημαίνει τα όρια μεταξύ αξιόπιστων και μη αξιόπιστων δεδομένων.
-4. **Ενσωμάτωσης Content Safety**: Συνεργάζεται με το Azure AI Content Safety για την ανίχνευση απόπειρας παραβίασης (jailbreak) και επιβλαβούς περιεχομένου.
-5. **Συνεχούς Ενημέρωσης**: Η Microsoft ενημερώνει τακτικά τους μηχανισμούς προστασίας έναντι νέων απειλών.
+1. **Προηγμένη Ανίχνευση**: Χρησιμοποιεί μηχανική μάθηση για τον εντοπισμό κακόβουλων εντολών ενσωματωμένων στο περιεχόμενο.
+2. **Φωτισμός**: Μετατρέπει το εισαγόμενο κείμενο ώστε να βοηθά τα συστήματα AI να διαχωρίζουν τις έγκυρες εντολές από εξωτερικές εισροές.
+3. **Οριοθέτες και Σήμανση Δεδομένων**: Επισημαίνει τα όρια μεταξύ αξιόπιστων και μη αξιόπιστων δεδομένων.
+4. **Ενσωμάτωση Content Safety**: Συνεργάζεται με το Azure AI Content Safety για την ανίχνευση προσπαθειών παραβίασης και επιβλαβούς περιεχομένου.
+5. **Συνεχής Ενημέρωση**: Η Microsoft ενημερώνει τακτικά τους μηχανισμούς προστασίας κατά των νέων απειλών.
 
-## Εφαρμογή Azure Content Safety με MCP
+## Υλοποίηση του Azure Content Safety με MCP
 
-Αυτή η προσέγγιση παρέχει πολυεπίπεδη ασφάλεια:
+Αυτή η προσέγγιση παρέχει προστασία πολλαπλών επιπέδων:
 - Σάρωση εισόδων πριν την επεξεργασία
 - Επικύρωση εξόδων πριν την επιστροφή
-- Χρήση λιστών αποκλεισμού για γνωστά επιβλαβή πρότυπα
-- Αξιοποίηση των μοντέλων ασφαλείας περιεχομένου του Azure που ενημερώνονται συνεχώς
+- Χρήση μαύρων λιστών για γνωστά επιβλαβή μοτίβα
+- Αξιοποίηση των συνεχώς ενημερωμένων μοντέλων ασφάλειας περιεχομένου του Azure
 
 ## Πόροι Azure Content Safety
 
-Για να μάθετε περισσότερα σχετικά με την εφαρμογή του Azure Content Safety με τους MCP διακομιστές σας, συμβουλευτείτε αυτούς τους επίσημους πόρους:
+Για να μάθετε περισσότερα σχετικά με την υλοποίηση του Azure Content Safety με τους διακομιστές MCP σας, συμβουλευτείτε αυτούς τους επίσημους πόρους:
 
 1. [Τεκμηρίωση Azure AI Content Safety](https://learn.microsoft.com/azure/ai-services/content-safety/) - Επίσημη τεκμηρίωση για το Azure Content Safety.
-2. [Τεκμηρίωση Ασπίδας Εντολών (Prompt Shield)](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/prompt-shield) - Μάθετε πώς να αποτρέψετε επιθέσεις έγχυσης εντολών.
-3. [Αναφορά API Content Safety](https://learn.microsoft.com/rest/api/contentsafety/) - Αναλυτική αναφορά API για την εφαρμογή Content Safety.
-4. [Γρήγορη Έναρξη: Azure Content Safety με C#](https://learn.microsoft.com/azure/ai-services/content-safety/quickstart-csharp) - Οδηγός γρήγορης υλοποίησης με χρήση C#.
+2. [Τεκμηρίωση Prompt Shield](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/prompt-shield) - Μάθετε πώς να αποτρέπετε επιθέσεις έγχυσης προτροπής.
+3. [Αναφορά API Content Safety](https://learn.microsoft.com/rest/api/contentsafety/) - Λεπτομερής αναφορά API για την υλοποίηση του Content Safety.
+4. [Γρήγορη Εκκίνηση: Azure Content Safety με C#](https://learn.microsoft.com/azure/ai-services/content-safety/quickstart-csharp) - Οδηγός γρήγορης υλοποίησης με C#.
 5. [Βιβλιοθήκες Πελατών Content Safety](https://learn.microsoft.com/azure/ai-services/content-safety/quickstart-client-libraries-rest-api) - Βιβλιοθήκες πελατών για διάφορες γλώσσες προγραμματισμού.
-6. [Ανίχνευση Απόπειρας Παραβίασης](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection) - Ειδικές οδηγίες για την ανίχνευση και αποτροπή απόπειρας παραβίασης.
-7. [Καλές Πρακτικές για Content Safety](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/best-practices) - Καλές πρακτικές για την αποτελεσματική εφαρμογή του content safety.
+6. [Ανίχνευση Προσπαθειών Jailbreak](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection) - Ειδικές οδηγίες για την ανίχνευση και πρόληψη προσπαθειών jailbreak.
+7. [Βέλτιστες Πρακτικές για Content Safety](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/best-practices) - Βέλτιστες πρακτικές για αποτελεσματική υλοποίηση ασφάλειας περιεχομένου.
 
-Για πιο λεπτομερή υλοποίηση, δείτε τον [Οδηγό Εφαρμογής Azure Content Safety](./azure-content-safety-implementation.md).
+Για πιο λεπτομερή υλοποίηση, δείτε τον [οδηγό υλοποίησης Azure Content Safety](./azure-content-safety-implementation.md).
 
 ## Τι Ακολουθεί
 
-- Διάβασε: [Εφαρμογή Azure Content Safety](./azure-content-safety-implementation.md)
-- Επιστροφή στο: [Επισκόπηση Μονάδας Ασφάλειας](./README.md)
-- Συνέχεια στο: [Μονάδα 3: Ξεκινώντας](../03-GettingStarted/README.md)
+- Διαβάστε: [Υλοποίηση Azure Content Safety](./azure-content-safety-implementation.md)
+- Επιστροφή σε: [Επισκόπηση Μονάδας Ασφαλείας](./README.md)
+- Συνέχεια σε: [Μονάδα 3: Ξεκινώντας](../03-GettingStarted/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Αποποίηση Ευθυνών**:  
-Αυτό το έγγραφο έχει μεταφραστεί χρησιμοποιώντας την υπηρεσία μετάφρασης με τεχνητή νοημοσύνη [Co-op Translator](https://github.com/Azure/co-op-translator). Παρόλο που προσπαθούμε για ακρίβεια, παρακαλούμε να γνωρίζετε ότι οι αυτόματες μεταφράσεις ενδέχεται να περιέχουν σφάλματα ή ανακρίβειες. Το πρωτότυπο έγγραφο στη μητρική του γλώσσα πρέπει να θεωρείται η αυθεντική πηγή. Για κρίσιμες πληροφορίες συνιστάται επαγγελματική ανθρώπινη μετάφραση. Δεν ευθυνόμαστε για τυχόν παρεξηγήσεις ή λανθασμένες ερμηνείες που προκύπτουν από τη χρήση αυτής της μετάφρασης.
+**Αποποίηση ευθυνών**:
+Αυτό το έγγραφο έχει μεταφραστεί χρησιμοποιώντας την υπηρεσία μετάφρασης με τεχνητή νοημοσύνη [Co-op Translator](https://github.com/Azure/co-op-translator). Ενώ επιδιώκουμε την ακρίβεια, παρακαλούμε να έχετε υπόψη ότι οι αυτοματοποιημένες μεταφράσεις ενδέχεται να περιέχουν λάθη ή ανακρίβειες. Το πρωτότυπο έγγραφο στη μητρική του γλώσσα πρέπει να θεωρείται η αυθεντική πηγή. Για κρίσιμες πληροφορίες, συνιστάται επαγγελματική ανθρώπινη μετάφραση. Δεν φέρουμε ευθύνη για τυχόν παρεξηγήσεις ή λανθασμένες ερμηνείες που προκύπτουν από τη χρήση αυτής της μετάφρασης.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

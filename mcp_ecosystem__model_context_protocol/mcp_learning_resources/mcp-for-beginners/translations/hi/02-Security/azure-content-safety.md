@@ -1,50 +1,50 @@
-# Azure Content Safety के साथ उन्नत MCP सुरक्षा
+# Azure कंटेंट सुरक्षा के साथ उन्नत MCP सुरक्षा
 
-> **OWASP MCP जोखिम जो संबोधित किया गया है**: [MCP06 - संदर्भ payload के माध्यम से प्रॉम्प्ट इंजेक्शन](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)
+> **OWASP MCP जोखिम पता चला**: [MCP06 - इरादे का बहाव सबवर्ज़न](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)
 
-Azure Content Safety कई शक्तिशाली उपकरण प्रदान करता है जो आपके MCP इंप्लीमेंटेशन की सुरक्षा को बढ़ा सकते हैं। अभ्यासात्मक कार्यान्वयन अनुभव के लिए, देखें [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/) कैम्प 3: I/O सुरक्षा।
+Azure कंटेंट सुरक्षा कई शक्तिशाली उपकरण प्रदान करता है जो आपके MCP कार्यान्वयन की सुरक्षा बढ़ा सकते हैं। व्यावहारिक कार्यान्वयन अनुभव के लिए देखें [MCP सुरक्षा सम्मेलन कार्यशाला (शेरपा)](https://azure-samples.github.io/sherpa/) कैंप 3: I/O सुरक्षा।
 
-## प्रॉम्प्ट शील्ड
+## प्रॉम्प्ट शील्ड्स
 
-Microsoft के AI प्रॉम्प्ट शील्ड सीधे और अप्रत्यक्ष प्रॉम्प्ट इंजेक्शन हमलों के खिलाफ मजबूत सुरक्षा प्रदान करते हैं:
+Microsoft के AI प्रॉम्प्ट शील्ड्स सीधी और अप्रत्यक्ष प्रॉम्प्ट इंजेक्शन हमलों के खिलाफ मजबूत सुरक्षा प्रदान करते हैं:
 
 1. **उन्नत पहचान**: सामग्री में निहित दुर्भावनापूर्ण निर्देशों की पहचान के लिए मशीन लर्निंग का उपयोग करता है।
-2. **स्पॉटलाइटिंग**: AI सिस्टम को मान्य निर्देश और बाहरी इनपुट के बीच अंतर करने में मदद के लिए इनपुट टेक्स्ट को रूपांतरित करता है।
-3. **डेलीमीटर और डेटा मार्किंग**: भरोसेमंद और अविश्वसनीय डेटा के बीच सीमाएँ चिह्नित करता है।
-4. **कंटेंट सेफ्टी इंटीग्रेशन**: Azure AI कंटेंट सेफ्टी के साथ मिलकर जेलब्रेक प्रयासों और हानिकारक सामग्री का पता लगाता है।
-5. **निरंतर अपडेट्स**: Microsoft उभरते खतरों के खिलाफ सुरक्षा तंत्र को नियमित रूप से अपडेट करता है।
+2. **स्पॉटलाइटिंग**: इनपुट टेक्स्ट को परिवर्तित करता है ताकि AI सिस्टम मान्य निर्देशों और बाहरी इनपुट के बीच अंतर कर सकें।
+3. **डेलिमिटर्स और डाटा मार्किंग**: विश्वसनीय और अविश्वसनीय डाटा के बीच सीमाएं चिह्नित करता है।
+4. **कंटेंट सुरक्षा एकीकरण**: Azure AI कंटेंट सुरक्षा के साथ काम करता है ताकि जेलब्रेक प्रयासों और हानिकारक सामग्री का पता लगाया जा सके।
+5. **लगातार अपडेट्स**: Microsoft नियमित रूप से उभरते खतरों के खिलाफ सुरक्षा तंत्र को अपडेट करता है।
 
-## MCP के साथ Azure Content Safety को लागू करना
+## MCP के साथ Azure कंटेंट सुरक्षा को लागू करना
 
-यह तरीका बहु-स्तरीय सुरक्षा प्रदान करता है:
-- प्रक्रिया से पहले इनपुट की स्कैनिंग
-- परिणामों को लौटाने से पहले उनकी जांच
-- ज्ञात हानिकारक पैटर्न के लिए ब्लॉकलिस्ट का उपयोग
-- Azure के लगातार अपडेट होने वाले कंटेंट सेफ्टी मॉडल का लाभ उठाना
+यह दृष्टिकोण बहु-स्तर की सुरक्षा प्रदान करता है:
+- प्रक्रिया से पहले इनपुट्स को स्कैन करना
+- लौटाने से पहले आउटपुट्स को सत्यापित करना
+- ज्ञात हानिकारक पैटर्न के लिए ब्लॉकलिस्ट्स का उपयोग करना
+- Azure के लगातार अपडेट हो रहे कंटेंट सुरक्षा मॉडल का लाभ उठाना
 
-## Azure Content Safety संसाधन
+## Azure कंटेंट सुरक्षा संसाधन
 
-अपने MCP सर्वर के साथ Azure Content Safety को लागू करने के बारे में अधिक जानने के लिए, इन आधिकारिक संसाधनों से परामर्श करें:
+अपने MCP सर्वरों के साथ Azure कंटेंट सुरक्षा को लागू करने के बारे में अधिक जानने के लिए, इन आधिकारिक संसाधनों से परामर्श करें:
 
-1. [Azure AI Content Safety Documentation](https://learn.microsoft.com/azure/ai-services/content-safety/) - Azure Content Safety के लिए आधिकारिक दस्तावेज़।
-2. [Prompt Shield Documentation](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/prompt-shield) - प्रॉम्प्ट इंजेक्शन हमलों को रोकने के बारे में जानें।
-3. [Content Safety API Reference](https://learn.microsoft.com/rest/api/contentsafety/) - कंटेंट सेफ्टी को लागू करने के लिए विस्तृत API संदर्भ।
-4. [Quickstart: Azure Content Safety with C#](https://learn.microsoft.com/azure/ai-services/content-safety/quickstart-csharp) - C# का उपयोग करके त्वरित कार्यान्वयन मार्गदर्शिका।
-5. [Content Safety Client Libraries](https://learn.microsoft.com/azure/ai-services/content-safety/quickstart-client-libraries-rest-api) - विभिन्न प्रोग्रामिंग भाषाओं के लिए क्लाइंट लाइब्रेरी।
-6. [Detecting Jailbreak Attempts](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection) - जेलब्रेक प्रयासों का पता लगाने और रोकने के लिए विशिष्ट मार्गदर्शन।
-7. [Best Practices for Content Safety](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/best-practices) - कंटेंट सेफ्टी को प्रभावी ढंग से लागू करने के लिए सर्वोत्तम प्रथाएँ।
+1. [Azure AI कंटेंट सुरक्षा प्रलेखन](https://learn.microsoft.com/azure/ai-services/content-safety/) - Azure कंटेंट सुरक्षा के लिए आधिकारिक प्रलेखन।
+2. [प्रॉम्प्ट शील्ड प्रलेखन](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/prompt-shield) - प्रॉम्प्ट इंजेक्शन हमलों को रोकने के बारे में जानें।
+3. [कंटेंट सुरक्षा API संदर्भ](https://learn.microsoft.com/rest/api/contentsafety/) - कंटेंट सुरक्षा को लागू करने के लिए विस्तृत API संदर्भ।
+4. [त्वरित प्रारंभ: C# के साथ Azure कंटेंट सुरक्षा](https://learn.microsoft.com/azure/ai-services/content-safety/quickstart-csharp) - C# का उपयोग करके त्वरित कार्यान्वयन गाइड।
+5. [कंटेंट सुरक्षा क्लाइंट लाइब्रेरीज़](https://learn.microsoft.com/azure/ai-services/content-safety/quickstart-client-libraries-rest-api) - विभिन्न प्रोग्रामिंग भाषाओं के लिए क्लाइंट लाइब्रेरीज़।
+6. [जेलब्रेक प्रयासों का पता लगाना](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection) - जेलब्रेक प्रयासों का पता लगाने और रोकने के लिए विशिष्ट मार्गदर्शन।
+7. [कंटेंट सुरक्षा के लिए सर्वोत्तम प्रथाएँ](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/best-practices) - प्रभावी रूप से कंटेंट सुरक्षा लागू करने के लिए सर्वोत्तम प्रथाएँ।
 
-अधिक गहराई से कार्यान्वयन के लिए, देखें हमारा [Azure Content Safety Implementation guide](./azure-content-safety-implementation.md)।
+अधिक गहन कार्यान्वयन के लिए देखें हमारा [Azure कंटेंट सुरक्षा कार्यान्वयन गाइड](./azure-content-safety-implementation.md)।
 
-## आगे क्या है
+## अगला क्या है
 
-- पढ़ें: [Azure Content Safety Implementation](./azure-content-safety-implementation.md)
-- वापस जाएं: [Security Module Overview](./README.md)
-- आगे बढ़ें: [Module 3: Getting Started](../03-GettingStarted/README.md)
+- पढ़ें: [Azure कंटेंट सुरक्षा कार्यान्वयन](./azure-content-safety-implementation.md)
+- वापस जाएं: [सुरक्षा मॉड्यूल अवलोकन](./README.md)
+- जारी रखें: [मॉड्यूल 3: शुरुआत करना](../03-GettingStarted/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
 **अस्वीकरण**:
-यह दस्तावेज़ AI अनुवाद सेवा [Co-op Translator](https://github.com/Azure/co-op-translator) का उपयोग करके अनुवादित किया गया है। हम सटीकता के लिए प्रयासरत हैं, लेकिन कृपया ध्यान दें कि स्वचालित अनुवादों में त्रुटियाँ या असंगतियॉं हो सकती हैं। मूल दस्तावेज़ को उसकी मूल भाषा में अधिकृत स्रोत माना जाना चाहिए। महत्वपूर्ण जानकारी के लिए पेशेवर मानव अनुवाद की सिफारिश की जाती है। इस अनुवाद के उपयोग से होने वाली किसी भी गलतफहमी या गलती के लिए हम जिम्मेदार नहीं हैं।
+इस दस्तावेज़ का अनुवाद AI अनुवाद सेवा [Co-op Translator](https://github.com/Azure/co-op-translator) का उपयोग करके किया गया है। जबकि हम सटीकता के लिए प्रयास करते हैं, कृपया ध्यान दें कि स्वचालित अनुवादों में त्रुटियाँ या अशुद्धियाँ हो सकती हैं। मूल दस्तावेज़ अपनी मूल भाषा में ही प्रामाणिक स्रोत माना जाना चाहिए। महत्वपूर्ण जानकारी के लिए, पेशेवर मानव अनुवाद की सिफारिश की जाती है। इस अनुवाद के उपयोग से उत्पन्न किसी भी गलतफहमी या गलत व्याख्या के लिए हम उत्तरदायी नहीं हैं।
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

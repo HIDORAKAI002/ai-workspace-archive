@@ -1,4 +1,4 @@
-# 🌐 Module 2: MCP with AI Toolkit Fundamentals
+# 🌐 Module 2: MCP with Microsoft Foundry Toolkit Fundamentals
 
 [![Duration](https://img.shields.io/badge/Duration-20%20minutes-blue.svg)]()
 [![Difficulty](https://img.shields.io/badge/Difficulty-Intermediate-yellow.svg)]()
@@ -9,14 +9,14 @@
 By the end of this module, you will be able to:
 - ✅ Understand Model Context Protocol (MCP) architecture and benefits
 - ✅ Explore Microsoft's MCP server ecosystem
-- ✅ Integrate MCP servers with AI Toolkit Agent Builder
+- ✅ Integrate MCP servers with Microsoft Foundry Toolkit Agent Builder
 - ✅ Build a functional browser automation agent using Playwright MCP
 - ✅ Configure and test MCP tools within your agents
 - ✅ Export and deploy MCP-powered agents for production use
 
 ## 🎯 Building on Module 1
 
-In Module 1, we mastered AI Toolkit basics and created our first Python Agent. Now we'll **supercharge** your agents by connecting them to external tools and services through the revolutionary **Model Context Protocol (MCP)**. 
+In Module 1, we mastered Microsoft Foundry Toolkit basics and created our first Python Agent. Now we'll **supercharge** your agents by connecting them to external tools and services through the revolutionary **Model Context Protocol (MCP)**. 
 
 Think of this as upgrading from a basic calculator to a full computer - your AI agents will gain the ability to:
 - 🌐 Browse and interact with websites
@@ -66,7 +66,7 @@ graph TB
 
 | Component | Role | Examples |
 |-----------|------|----------|
-| **MCP Hosts** | Applications that consume MCP services | Claude Desktop, VS Code, AI Toolkit |
+| **MCP Hosts** | Applications that consume MCP services | Claude Desktop, VS Code, Microsoft Foundry Toolkit |
 | **MCP Clients** | Protocol handlers (1:1 with servers) | Built into host applications |
 | **MCP Servers** | Expose capabilities via standard protocol | Playwright, Files, Azure, GitHub |
 | **Transport Layer** | Communication methods | stdio, HTTP, WebSockets |
@@ -189,7 +189,7 @@ Beyond Microsoft's servers, the MCP ecosystem includes:
 ### 🚀 Phase 1: Agent Foundation Setup
 
 #### Step 1: Initialize Your Agent
-1. **Open AI Toolkit Agent Builder**
+1. **Open Microsoft Foundry Toolkit Agent Builder**
 2. **Create New Agent** with the following configuration:
    - **Name**: `BrowserAgent`
    - **Model**: Choose GPT-4o 
@@ -207,7 +207,7 @@ Beyond Microsoft's servers, the MCP ecosystem includes:
 ![AddMCP](../../images/10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab2/AddMCP.png)
 
 **🔍 Understanding Tool Types:**
-- **Built-in Tools**: Pre-configured AI Toolkit functions
+- **Built-in Tools**: Pre-configured Microsoft Foundry Toolkit functions
 - **MCP Servers**: External service integrations
 - **Custom APIs**: Your own service endpoints
 - **Function Calling**: Direct model function access
@@ -347,7 +347,7 @@ Agent Builder supports multiple deployment options:
 **✅ Skills Mastered:**
 - [ ] Understanding MCP architecture and benefits
 - [ ] Navigating Microsoft's MCP server ecosystem
-- [ ] Integrating Playwright MCP with AI Toolkit
+- [ ] Integrating Playwright MCP with Microsoft Foundry Toolkit
 - [ ] Building sophisticated browser automation agents
 - [ ] Advanced prompt engineering for web automation
 
@@ -363,7 +363,7 @@ Agent Builder supports multiple deployment options:
 
 ### 🔜 Continue to Next Module
 
-Ready to take your MCP skills to the next level? Proceed to **[Module 3: Advanced MCP Development with AI Toolkit](../lab3/README.md)** where you'll learn how to:
+Ready to take your MCP skills to the next level? Proceed to **[Module 3: Advanced MCP Development with Microsoft Foundry Toolkit](../lab3/README.md)** where you'll learn how to:
 - Create your own custom MCP servers
 - Configure and use the latest MCP Python SDK
 - Set up the MCP Inspector for debugging

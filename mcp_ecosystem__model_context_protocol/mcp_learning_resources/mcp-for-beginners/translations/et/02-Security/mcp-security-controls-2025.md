@@ -1,76 +1,76 @@
-# MCP turvakontrollid – 2026. aasta veebruari uuendus
+# MCP turvakontrollid – 2026. aasta veebruari värskendus
 
-> **Kehtiv standard**: See dokument kajastab [MCP spetsifikatsiooni 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/) turvanõudeid ja ametlikke [MCP turvalisuse parimaid tavasid](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices).
+> **Kehtiv standard**: See dokument peegeldab [MCP spetsifikatsiooni 2025-11-25](https://spec.modelcontextprotocol.io/specification/2025-11-25/) turvanõudeid ja ametlikke [MCP turvalisuse parimaid tavasid](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices).
 
-Model Context Protocol (MCP) on oluliselt arenenud, pakkudes täiustatud turvakontrolle, mis käsitlevad nii traditsioonilist tarkvara turvet kui ka AI-spetsiifilisi ohte. See dokument annab põhjalikud turvakontrollid turvaliste MCP rakenduste jaoks, mis on kooskõlas OWASP MCP Top 10 raamistiku juhistega.
+Model Context Protocol (MCP) on märkimisväärselt küpsenud, sisaldades täiustatud turvakontrolle, mis käsitlevad nii traditsioonilist tarkvara turvalisust kui ka AI-spetsiifilisi ohte. See dokument pakub põhjalikke turvakontrolle turvaliste MCP rakenduste jaoks, mis on kooskõlas OWASP MCP Top 10 raamistikuga.
 
-## 🏔️ Praktiline turbeõpe
+## 🏔️ Praktiline turvakoolitus
 
-Praktilise turvarakenduse kogemuse saamiseks soovitame **[MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/)** – põhjalikku juhendatud ekspeditsiooni MCP serverite turvamiseks Azure’is, kasutades meetodit „haavatav → ära kasuta → paranda → valiideeri“.
+Praktilise, käsitsi turvalisuse rakendamise kogemuse saamiseks soovitame **[MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/)** – põhjalikku juhendatud tegevust MCP serverite turvamiseks Azure'is, kasutades meetodit „haavatav → ära kasutada → parandada → valideerida“.
 
-Kõik selles dokumendis olevad turvakontrollid on kooskõlas **[OWASP MCP Azure turbejuhendiga](https://microsoft.github.io/mcp-azure-security-guide/)**, mis pakub viiterahistikku ja Azure-spetsiifilisi rakendusjuhiseid OWASP MCP Top 10 riskide jaoks.
+Kõik selles dokumendis olevad turvakontrollid on kooskõlas **[OWASP MCP Azure Security Guide](https://microsoft.github.io/mcp-azure-security-guide/)** juhendiga, mis pakub viitearhitektuure ja Azure-spetsiifilisi rakendussoovitusi OWASP MCP Top 10 riskide jaoks.
 
-## **Nõutavad turvanõuded**
+## **KOHUSTUSLIKUD turvanõuded**
 
-### **MCP spetsifikatsioonist tulenevad kriitilised keelud:**
+### **Olulised keelud MCP spetsifikatsioonist:**
 
-> **KEELATUD**: MCP serverid **EI TOHI** vastu võtta ühtegi märki, mida ei ole selgesõnaliselt MCP serverile väljastatud  
+> **KEELATUD**: MCP serverid **EI TOHI** aktsepteerida ühtegi tokenit, mis ei ole otseselt väljastatud MCP serverile  
 >
 > **KEELATUD**: MCP serverid **EI TOHI** kasutada sessioone autentimiseks  
 >
 > **NÕUTUD**: MCP serverid, mis rakendavad autoriseerimist, **PEAVAD** kontrollima KÕIKI sissetulevaid päringuid  
 >
-> **KOHUSTUSLIK**: MCP puhverserverid, mis kasutavad staatilisi kliendi ID-sid, **PEAVAD** hankima kasutaja nõusoleku iga dünaamiliselt registreeritud kliendi puhul
+> **KOHUSTUSLIK**: MCP proxy serverid, mis kasutavad staatilisi klientide ID-sid, **PEAVAD** kasutajalt saama nõusoleku iga dünaamiliselt registreeritud kliendi jaoks
 
 ---
 
 ## 1. **Autentimise ja autoriseerimise kontrollid**
 
-### **Välise identiteediteenuse pakkuja integreerimine**
+### **Väline identiteedipakkuja integratsioon**
 
-**Kehtiv MCP standard (2025-11-25)** lubab MCP serveritel delegeerida autentimise välistele identiteediteenuse pakkujatele, mis tähistab olulist turvaparendust:
+**Kehtiv MCP standard (2025-11-25)** lubab MCP serveritel delegeerida autentimine välistele identiteedipakkujatele, mis on oluline turvalisuse täiustus:
 
-**OWASP MCP käsitletud risk**: [MCP07 - Ebapiisav autentimine ja autoriseerimine](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp07-authz/)
+**OWASP MCP risk lahendatud**: [MCP07 - Ebapiisav autentimine ja autoriseerimine](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp07-authz/)
 
 **Turvalisuse eelised:**
-1. **Eemaldab kohandatud autentimise riskid**: vähendab haavatavust, vältides kohandatud autentimislahendusi  
-2. **Ettevõtte tasemel turvalisus**: kasutab tuntud identiteediteenuse pakkujaid nagu Microsoft Entra ID, millel on täiustatud turvaomadused  
-3. **Keskne identiteedihaldus**: lihtsustab kasutajate elutsükli haldust, juurdepääsu kontrolli ja nõuetele vastavuse auditeerimist  
-4. **Mitme faktoriga autentimine**: pärib MFA võimekusest ettevõtte identiteediteenuse pakkujatelt  
-5. **Tingimuslik juurdepääsu poliitika**: kasu riskipõhistest ligipääsukontrollidest ja adaptiivsest autentimisest  
+1. **Eemaldab kohandatud autentimise riskid**: vähendab haavatavust, vältides kohandatud autentimise lahendusi  
+2. **Ettevõtte taseme turvalisus**: kasutab tuntud identiteedipakkujaid nagu Microsoft Entra ID kõrgtasemel turvaomadustega  
+3. **Keskne identiteedihaldus**: lihtsustab kasutaja elutsükli haldust, juurdepääsu juhtimist ja vastavuse auditit  
+4. **Mitmefaktoriline autentimine**: toetub ettevõtte identiteedipakkujate MFA funktsionaalsusele  
+5. **Tingimuslikud juurdepääsupoliitikad**: kasutab riskipõhiseid juurdepääsu kontrollimeetmeid ja adaptiivset autentimist  
 
-**Rakendusnõuded:**
-- **Märgi sihtrühma valideerimine**: kinnita, et kõik märgid on selgesõnaliselt MCP serverile väljastatud  
-- **Väljastaja valideerimine**: kontrolli, et märgi väljastaja vastab oodatud identiteediteenuse pakkujale  
-- **Allkirja valideerimine**: krüptograafiline tokeni terviklikkuse kontroll  
-- **Kehtivuse range täitmine**: ranged eeskirjad märgi eluea piiramiseks  
-- **Laienduste valideerimine**: tagada, et märgid sisaldavad nõutud õigusi päringute teostamiseks  
+**Rakendamise nõuded:**
+- **Tokeni sihtmärgi valideerimine**: kontrolli, et kõik tokenid oleksid selgelt MCP serverile väljastatud  
+- **Väljastaja kontroll**: kinnita, et tokeni väljastaja vastab oodatud identiteedipakkujale  
+- **Allkirja valideerimine**: tokeni terviklikkuse krüptograafiline kontroll  
+- **Aegumise järelvalve**: tokeni eluea piirangute ranged nõuded  
+- **Ulatuvuse valideerimine**: veendu, et tokenites oleksid sobivad õigused nõutud toiminguteks  
 
 ### **Autoriseerimise loogika turvalisus**
 
-**Kriitilised kontrolid:**
-- **Kõikehõlmavad autoriseerimise auditid**: regulaarsed turvakontrollid kõigi autoriseerimisotsuste punktide üle  
-- **Vea turvalisuse põhiseaded**: juurdepääsu keelamine, kui autoriseerimisloogika ei saa üheselt otsustada  
-- **Õiguste piirangud**: selge lahusus erinevate privileegitasemete ja ressursside juurdepääsu vahel  
-- **Auditeerimise logimine**: kõigi autoriseerimisotsuste täielik logimine turvaseire jaoks  
-- **Regulaarsed ligipääsukontrollid**: perioodilised kasutajate õiguste ja privileegide kinnitused  
+**Olulised kontrollid:**
+- **Põhjalikud autoriseerimise auditid**: regulaarsed turvakontrollid kõigi autoriseerimisotsuste puhul  
+- **Ohutud vaikimisi valikud**: juurdepääsu keelamine, kui autoriseerimisloogika ei suuda kindlat otsust langetada  
+- **Õiguste piirmäärad**: selge eristamine erinevate privileegitasemete ja ressursside juurdepääsu vahel  
+- **Audiitorite logimine**: täielik logimine kõigist autoriseerimisotsustest turvaseireks  
+- **Regulaarsed juurdepääsu ülevaated**: perioodilised kasutajate õiguste ja privileegide kontrollid  
 
-## 2. **Märgi turvalisus ja anti-passthrough kontrollid**
+## 2. **Tokeni turvalisus ja anti-passthrough kontrollid**
 
-**OWASP MCP käsitletud risk**: [MCP01 - Märgihalduse vea ja saladuse lekkimine](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp01-token-mismanagement/)
+**OWASP MCP risk lahendatud**: [MCP01 - Tokenite valehaldus ja saladuste lekkimine](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp01-token-mismanagement/)
 
-### **Märgi läbipääsu takistamine**
+### **Tokenite läbikandmise vältimine**
 
-**MCP autoriseerimise spetsifikatsioon keelab selgesõnaliselt märgi läbipääsu**, kuna see põhjustab kriitilisi turvariske:
+Tokenite läbikandmine on MCP autoriseerimise spetsifikatsioonis rangelt keelatud kriitiliste turvariskide tõttu:
 
-**Kaasatud turvariskid:**
-- **Kontrollide möödaviimine**: võimaldab mööda minna olulistest turvakontrollidest nagu kiirusepiirang, päringu valideerimine ja liikluse jälgimine  
-- **Vastutuse kaotus**: muutes kliendi tuvastamise võimatuks, kahjustab auditijälgi ja intsidentide uurimist  
-- **Puhverserveri kaudu andmete väljapääs**: lubab pahatahtlikel isikutel kasutada servereid volitamata andmetele ligi pääsemiseks  
-- **Usalduspiiride rikkumine**: rikub pärinevate märgiste osas alamteenuste usalduspõhimõtteid  
-- **Horisontaalne levik**: kompromiteeritud märgid mitmetes teenustes võimaldavad laiemaid ründelaineid  
+**Lahendatud turvariskid:**
+- **Kontrolli eiramine**: möödapääseb olulistest turvakontrollidest nagu päringute piiramine, valideerimine ja liikluse jälgimine  
+- **Arvestusvõime kahjustumine**: klientide tuvastamine võimatu, rikub auditeid ja intsidentide uurimist  
+- **Proksina andmete vargus**: võimaldab pahatahtlikel kasutada servereid volitamata andmele juurdepääsuks  
+- **Usalduse rikkumine**: rikub downstream teenuste usalduse eeldusi tokenite päritolu kohta  
+- **Lateral liikumine**: kompromiteeritud tokenid võimaldavad rünnakut laiendada mitmetele teenustele  
 
-**Rakenduskontrollid:**
+**Rakenduse kontrollid:**
 ```yaml
 Token Validation Requirements:
   audience_validation: MANDATORY
@@ -86,25 +86,25 @@ Token Lifecycle Management:
   replay_protection: "Implemented via nonce/timestamp"
 ```
 
-### **Turvalised märgihalduse mustrid**
+### **Turvalised tokenihalduse mustrid**
 
-**Parimad praktikad:**
-- **Lühiajalised märgid**: vähenda ohtu sagedase märgivahetusega  
-- **Pärimise hetkel väljastamine**: väljastada märgid täpselt spetsiifilisteks toiminguteks vajadusel  
-- **Turvaline salvestus**: kasuta riistvaralisi turvameetmeid (HSMid) või turvalisi võtmekappe  
-- **Märgi sidumine**: sidu märgid võimalusel kindlate klientide, sessioonide või toimingutega  
-- **Jälgimine ja häired**: reaalajatuvastus märgi väärkasutuse või volitamata ligipääsu mustrite kohta  
+**Parimad tavad:**
+- **Lühiajalised tokenid**: minimeeri kokkupuuteaeg sagedase tokenite vahetusega  
+- **Vajaliku ajal väljastamine**: anna tokenid välja ainult spetsiifiliste toimingute jaoks  
+- **Turvaline säilitamine**: kasuta riistvarapõhiseid turvalisi mooduleid (HSM) või turvalisi võtmekambreid  
+- **Tokeni sidumine**: seo tokenid konkreetsete klientide, sessioonide või toimingutega võimaluse korral  
+- **Jälgimine ja häired**: reaalajas tokenite väärkasutuse või volitamata juurdepääsu mustrite tuvastamine  
 
 ## 3. **Sessiooni turvakontrollid**
 
-### **Sessiooni kõrvalehiilu vältimine**
+### **Sessioonikaaperdamise vältimine**
 
-**Ründevektorid:**
-- **Sessiooni kõrvalehiilu promptide süstimine**: pahatahtlikud sündmused jagatud sessiooniseisundisse sisestatuna  
-- **Sessiooni vargus**: volitamata kasutamine varastatud sessiooni ID-de abil autentimismehhanismide läbipääsuks  
-- **Taasilmumisega voogude ründed**: serveri poolt saadetud sündmuste jätkamise ära kasutamine pahatahtlike andmete süstimiseks  
+**Rünnaku vektorid:**
+- **Sessioonikaaperdamise prompti süstimine**: pahatahtlikud sündmused süstitud jagatud sessiooni olekusse  
+- **Sessiooni imiteerimine**: varastatud sessiooni ID-de volitamata kasutamine autentimise mööda minemiseks  
+- **Jätkatavad voo rünnakud**: serverist saadetavate sündmuste (SSE) rünnakud pahatahtliku sisu süstimiseks  
 
-**Nõutavad sessiooni kontrollid:**
+**Kohustuslikud sessioonikontrollid:**
 ```yaml
 Session ID Generation:
   randomness_source: "Cryptographically secure RNG"
@@ -124,33 +124,33 @@ Session Lifecycle:
   cleanup: "Automated expired session removal"
 ```
 
-**Transporti kaitse:**
-- **HTTPS-i kohustuslik kasutamine**: kõik sessioonisuhtlus TLS 1.3 üle  
-- **Turvalised küpsise atribuudid**: HttpOnly, Secure, SameSite=Strict  
-- **Sertifikaadi sidumine (pinning)**: kriitiliste ühenduste kaitseks mees vahelt rünnakute eest  
+**Andmeside turvalisus:**
+- **HTTPS range nõue**: kogu sessiooni suhtlus TLS 1.3 üle  
+- **Turvalised küpsistenäitajad**: HttpOnly, Secure, SameSite=Strict  
+- **Sertifikaadi kinnitamine**: kriitiliste ühenduste jaoks MITM rünnakute vältimiseks  
 
-### **Oleksusstaatiliste vs olekuta rakenduste kaalutlused**
+### **Seisundihoidlike ja seisundivabade kaalutlused**
 
-**Oleksusstaatiliste rakenduste puhul:**
-- Jagatud sessiooniseisundi täiendav kaitse süstimisrünnakute vastu  
-- Järjekaupõhise sessioonihalduse tervikluse kontrollimine  
-- Mitme serveri näite nõue sessiooniseisundi turvaliseks sünkroniseerimiseks  
+**Seisundihoidlikud rakendused:**
+- Jagatud sessiooni olek vajab täiendavat kaitset süstimisrünnakute eest  
+- Järjekorrapõhine sessioonihaldus vajab terviklikkuse kontrolli  
+- Mitme serveri puhul vajalik turvaline sessiooni oleku sünkroonimine  
 
-**Olekuta rakenduste puhul:**
-- JWT või sarnane märgil põhinev sessioonihaldus  
-- Sessiooniseisundi krüptograafiline terviklikkuse kontroll  
-- Vähendatud ründe pind, kuid vajab tugevat märgi valideerimist  
+**Seisundivabad rakendused:**
+- JWT või sarnane tokenipõhine sessioonihaldus  
+- Krüptograafiline sessiooni oleku terviklikkuse kontroll  
+- Vähendatud ründevektor, kuid nõuab robustset tokeni valideerimist  
 
 ## 4. **AI-spetsiifilised turvakontrollid**
 
-**OWASP MCP käsitletud riskid**:
-- [MCP06 - Promptide süstimine kontekstuaalsete koormustega](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)
+**OWASP MCP riskid lahendatud**:
+- [MCP06 - Käitumisvoo manipulatsioon](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp06-prompt-injection/)
 - [MCP03 - Tööriistamürgitus](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp03-tool-poisoning/)
-- [MCP05 - Käskude süstimine ja täitmine](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp05-command-injection/)
+- [MCP05 - Käskude süstimine ja käitamine](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp05-command-injection/)
 
-### **Promptide süstimise kaitse**
+### **Prompti süstimise kaitse**
 
-**Microsoft Prompt Shields integratsioon:**
+**Microsoft Prompt Shields integreerimine:**
 ```yaml
 Detection Mechanisms:
   - "Advanced ML-based instruction detection"
@@ -168,15 +168,15 @@ Integration Points:
   - "Threat intelligence updates"
 ```
 
-**Rakenduskontrollid:**
-- **Sisendi puhastamine**: kõikehõlmav valideerimine ja filtreerimine kõigile kasutajasissetulekutest  
-- **Sisupiiride määratlemine**: selge eristamine süsteemi käskluste ja kasutaja sisu vahel  
-- **Juhiste hierarhia**: konfliktsete juhiste puhul korrektne prioriteetide rakendamine  
-- **Väljundite jälgimine**: potentsiaalselt kahjulike või manipuleeritud väljundite avastamine  
+**Rakenduse kontrollid:**
+- **Sisendi puhastamine**: põhjalik kõikide kasutajasisestuste valideerimine ja filtreerimine  
+- **Sisu piiri määratlus**: selge eristamine süsteemi juhiste ja kasutaja sisu vahel  
+- **Juhiste hierarhia**: õiged prioriteedireeglid konfliktsete juhiste korral  
+- **Väljundi jälgimine**: potentsiaalselt kahjuliku või manipuleeritud väljundi tuvastamine  
 
 ### **Tööriistamürgituse vältimine**
 
-**Tööriistade turbekonveier:**
+**Tööriista turvalisuse raamistik:**
 ```yaml
 Tool Definition Protection:
   validation:
@@ -199,16 +199,16 @@ Tool Definition Protection:
 ```
 
 **Dünaamiline tööriistade haldus:**
-- **Kinnitamisvood**: tööriistade muudatusteks vajaliku kasutaja selge nõusolek  
-- **Tagasikerimise võimalus**: võimalus naasta varasemate tööriista versioonide juurde  
-- **Muudatuste auditeerimine**: täielik ajalugu tööriistade definitsioonide muudatustest  
-- **Riskihindamine**: automaatne tööriistade turvaseisundi hindamine  
+- **Kinnituse töövood**: kasutaja selge nõusolek tööriista muudatuste jaoks  
+- **Tagasipööramise võimalus**: võime kasutada varasemaid tööriista versioone  
+- **Muudatuste audit**: täielik ajalugu tööriista definitsiooni muudatustest  
+- **Riskihindamine**: tööriista turvasteisu automaatne hindamine  
 
-## 5. **Segaduses esindaja ründe vältimine**
+## 5. **Segadust põhjustava asutaja rünnaku vältimine**
 
-### **OAuth puhverserveri turvalisus**
+### **OAuth proxü turvalisus**
 
-**Ründe ennetuskontrollid:**
+**Rünnakute vältimise kontrollid:**
 ```yaml
 Client Registration:
   static_client_protection:
@@ -224,17 +224,17 @@ Client Registration:
     - "Nonce verification for ID tokens"
 ```
 
-**Rakendusnõuded:**
-- **Kasutaja nõusoleku kontroll**: dünaamilise kliendi registreerimisel ärge vahele jätke nõusolekuekraane  
-- **Ümbersuunamise URI valideerimine**: rangelt valge nimekirja alusel lubatud sihtkohtade kontroll  
-- **Autoriseerimiskoodi kaitse**: lühiajalised ja korduskasutust keelavad koodid  
-- **Kliendi identiteedi valideerimine**: tugeva kliendi mandaadi ja metaandmete kontroll  
+**Rakendamise nõuded:**
+- **Kasutaja nõusoleku kontroll**: dünaamiliste klientide registreerimisel ei tohi nõusoleku ekraane vahele jätta  
+- **Redirect URI valideerimine**: rangelt musta nimekirja põhine kontroll suunamiskohtadele  
+- **Autoriseerimiskoodi kaitse**: lühiajalised koodid ühe kasutuskorraga  
+- **Kliendi identiteedi valideerimine**: tugev kontroll kliendi mandaadi ja metaandmete osas  
 
 ## 6. **Tööriistade täitmise turvalisus**
 
-### **Hõivutud ala ja isoleerimine**
+### **Hoonestamine ja isoleerimine**
 
-**Konteinerymootoripõhine isolatsioon:**
+**Konteineripõhine isoleerimine:**
 ```yaml
 Execution Environment:
   containerization: "Docker/Podman with security profiles"
@@ -251,13 +251,13 @@ Execution Environment:
     filesystem: "Read-only root with minimal writable areas"
 ```
 
-**Protsessi isolatsioon:**
-- **Eraldatud protsessikontextid**: iga tööriistatäide üksikasjalikus eraldatud protsessiruumis  
-- **Protsessidevaheline suhtlus**: turvalised IPC-mehhanismid valideerimisega  
-- **Protsessi jälgimine**: jooksva käitumise analüüs ja anomaaliate avastamine  
-- **Ressursside piiramine**: ranges ulatuses CPU, mälu ja I/O kasutuspiirangud  
+**Protsesside isoleerimine:**
+- **Eraldatud protsessikontekstid**: iga tööriista täitmine isoleeritud protsessiruumis  
+- **Protsessidevaheline suhtlus**: turvalised IPC mehhanismid valideerimisega  
+- **Protsessi jälgimine**: käitumise analüüs ja anomaaliate tuvastamine  
+- **Resursside piiramine**: karmid piirangud CPU, mälu ja I/O kasutusele  
 
-### **Vähima privileegiga rakendus**
+### **Vähima privileegiga prinsiiip**
 
 **Õiguste haldus:**
 ```yaml
@@ -282,7 +282,7 @@ Access Control:
 
 ## 7. **Tarneahela turvakontrollid**
 
-**OWASP MCP käsitletud risk**: [MCP04 - Tarneahela ründed](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp04-supply-chain/)
+**OWASP MCP risk lahendatud**: [MCP04 - Tarkvara tarneahela ründed ja sõltuvuste muutmine](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp04-supply-chain/)
 
 ### **Sõltuvuste valideerimine**
 
@@ -315,21 +315,21 @@ AI Components:
     - "Incident response capability evaluation"
 ```
 
-### **Pidev jälgimine**
+### **Jätkuv jälgimine**
 
 **Tarneahela ohu tuvastamine:**
-- **Sõltuvuste tervise jälgimine**: kogu sõltuvuste turvariskide pidev hindamine  
-- **Ohuteabe integreerimine**: reaalaja uuendused tekkivate tarneahela ohtude kohta  
-- **Käitumusanalüüs**: ebahariliku käitumise avastamine väliskomponentides  
-- **Automaatne reageerimine**: kompromiteeritud komponentide kohene piiramine  
+- **Sõltuvuste tervise jälgimine**: pidev kõigi sõltuvuste turvaanalüüs  
+- **Ohuinfo integreerimine**: reaalajas värskendused uute tarneahela ohtude kohta  
+- **Käitumisanalüüs**: ebatavalise käitumise tuvastamine välises komponentides  
+- **Automaatne reageerimine**: kompromiteeritud komponentide kiire piiramine  
 
-## 8. **Jälgimise ja tuvastamise kontrollid**
+## 8. **Jälgimis- ja tuvastuskontrollid**
 
-**OWASP MCP käsitletud risk**: [MCP08 - Auditite ja telemeetria puudumine](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp08-telemetry/)
+**OWASP MCP risk lahendatud**: [MCP08 - Auditite ja telemeetri puudumine](https://microsoft.github.io/mcp-azure-security-guide/mcp/mcp08-telemetry/)
 
-### **Turvainformatsiooni ja sündmuste haldus (SIEM)**
+### **Turva info- ja sündmuste haldus (SIEM)**
 
-**Põhjalik logimisstrateegia:**
+**Põhjalik logimise strateegia:**
 ```yaml
 Authentication Events:
   - "All authentication attempts (success/failure)"
@@ -350,19 +350,19 @@ Security Events:
   - "Unusual access patterns and anomalies"
 ```
 
-### **Reaalaja ohutuvastus**
+### **Reaalaja ohutuvas tuvastamine**
 
-**Käitumise analüütika:**
-- **Kasutajakäitumise analüüs (UBA)**: ebatavaliste kasutajate ligipääsumustrite avastamine  
-- **Entiteedi käitumise analüüs (EBA)**: MCP serveri ja tööriistade käitumise jälgimine  
-- **Masinõppe anomaalia tuvastus**: AI abil tuvastatud turvaohud  
-- **Ohuteabe korrelatsioon**: jälgitavate tegevuste võrdlus tuntud ründemustritega  
+**Käitumisanalüütika:**
+- **Kasutaja käitumise analüüs (UBA)**: ebatavaliste juurdepääsumustrite tuvastamine  
+- **Üksuse käitumise analüüs (EBA)**: MCP serveri ja tööriistade käitumise jälgimine  
+- **Masinõppega anomaaliate tuvastus**: tehisintellektil põhinev turvaohtude identifitseerimine  
+- **Ohuinfo korrelatsioon**: vaadeldud tegevuste võrdlemine teadaolevate rünnakumustritega  
 
 ## 9. **Intsidentidele reageerimine ja taastumine**
 
-### **Automaatse reageerimise võimekus**
+### **Automaatne reageerimine**
 
-**Kohesed reageerimismeetmed:**
+**Kohesed reageerimistoimingud:**
 ```yaml
 Threat Containment:
   session_management:
@@ -387,68 +387,68 @@ Recovery Procedures:
     - "Service restart procedures"
 ```
 
-### **Forensika võimekused**
+### **Forensika võimekus**
 
-**Uurimistugi:**
-- **Auditeerimisjälje säilitamine**: muutumatu logimine krüptograafilise terviklikkusega  
-- **Tõendite kogumine**: automaatne oluliste turbekujujate kogumine  
-- **Ajavahemiku taastamine**: üksikasjalik sündmuste järjekord turvaintsidentide eel  
-- **Mõju hindamine**: kompromissi ulatuse ja andmete lekkimise hindamine  
+**Uurimise tugi:**
+- **Auditeitluse säilitamine**: muutumatu logimine krüptograafilise terviklikkusega  
+- **Tõendite kogumine**: automatiseeritud turvaartefaktide kogumine  
+- **Ajaskaala taastamine**: üksikasjalik sündmuste jada turvaintsidentideni  
+- **Mõjuhinnang**: kompromisside ulatuse ja andmete lekkimise hindamine  
 
-## **Olulised turbelahenduse põhimõtted**
+## **Olulised turvarhitektuuri põhimõtted**
 
 ### **Sügav kaitse**
-- **Mitmekihilised turvameetmed**: puudub üksik tõrkevõimalus turve arhitektuuris  
-- **Redundantsed kontrollid**: kriitiliste funktsioonide üle kattuvad turvameetmed  
-- **Vea turvalisus**: turvalised vaikeväärtused süsteemivigade või rünnakute korral  
+- **Mitmekordsed turvakihtid**: turvarahust ei saa saada ainsat rikete punkti  
+- **Redundantsts kontrollid**: ülekattev turvameetmete komplekt kriitilistele funktsioonidele  
+- **Ohutud vaikimisi seaded**: turvaline vaikimisi seadistus vigade ja rünnakute korral  
 
-### **Zero Trust rakendus**
-- **Ära kunagi usalda, kontrolli alati**: pidev kõigi osapoolte ja päringute valideerimine  
-- **Vähima privileegi printsiip**: kõigi komponentide minimaalsete ligipääsuõiguste rakendamine  
-- **Mikrosegmentatsioon**: peenhäälestatud võrgukaitse ja juurdepääsukontrollid  
+### **Nullusaldus-printsiip**
+- **Ära kunagi usalda, alati kontrolli**: pidev kõigi osapoolte ja päringute valideerimine  
+- **Vähima privileegiga põhimõte**: minimaalne juurdepääs kõigile komponentidele  
+- **Mikrosegmenteerimine**: detailne võrgutus ja juurdepääsu kontrollid  
 
-### **Turve pidev areng**
-- **Ohumaastiku kohandamine**: regulaarsed uuendused tekkivate ohtude vastu  
-- **Turvakontrollide tõhususe jälgimine**: kontrollide pidev hindamine ja parendamine  
-- **Spetsifikatsioonide järgimine**: MCP turvastandarditesse muutuste integreerimine  
+### **Jätkuv turvalisuse areng**
+- **Ohumaastiku kohandumine**: regulaarne värskendamine uute ohtude lahendamiseks  
+- **Turvakontrollide efektiivsus**: pidev kontroll ja täiustamine  
+- **Spetsifikatsiooni vastavus**: MCP turvastandardite arenguga kooskõlas olemine  
 
 ---
 
 ## **Rakendusressursid**
 
 ### **Ametlik MCP dokumentatsioon**
-- [MCP Spetsifikatsioon (2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
-- [MCP turbe head tavad](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices)
+- [MCP spetsifikatsioon (2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [MCP turvalisuse parimad tavad](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices)
 - [MCP autoriseerimise spetsifikatsioon](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
 
-### **OWASP MCP turberessursid**
-- [OWASP MCP Azure turbejuhend](https://microsoft.github.io/mcp-azure-security-guide/) – põhjalik OWASP MCP Top 10 koos Azure juurutamisega  
+### **OWASP MCP turvavahendid**
+- [OWASP MCP Azure Security Guide](https://microsoft.github.io/mcp-azure-security-guide/) – põhjalik OWASP MCP Top 10 koos Azure rakendusjuhistega  
 - [OWASP MCP Top 10](https://owasp.org/www-project-mcp-top-10/) – ametlikud OWASP MCP turvariskid  
-- [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/) – praktiline turbeõpe MCP jaoks Azure’is  
+- [MCP Security Summit Workshop (Sherpa)](https://azure-samples.github.io/sherpa/) – praktiline turvakoolitus MCP jaoks Azure'is  
 
-### **Microsofti turbelahendused**
+### **Microsofti turvalahendused**
 - [Microsoft Prompt Shields](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection)
 - [Azure Content Safety](https://learn.microsoft.com/azure/ai-services/content-safety/)
 - [GitHub Advanced Security](https://github.com/security/advanced-security)
 - [Azure Key Vault](https://learn.microsoft.com/azure/key-vault/)
 
 ### **Turvastandardid**
-- [OAuth 2.0 turbehead tavad (RFC 9700)](https://datatracker.ietf.org/doc/html/rfc9700)
-- [OWASP Top 10 suurtel keelemudelitel](https://genai.owasp.org/)
-- [NIST küberjulgeoleku raamistik](https://www.nist.gov/cyberframework)
+- [OAuth 2.0 turvalisuse parimad tavad (RFC 9700)](https://datatracker.ietf.org/doc/html/rfc9700)
+- [OWASP Top 10 suurtele keelemudelitele](https://genai.owasp.org/)
+- [NIST küberkaitse raamistik](https://www.nist.gov/cyberframework)
 
 ---
 
-> **Oluline**: Need turvakontrollid kajastavad kehtivat MCP spetsifikatsiooni (2025-11-25). Kontrollige alati uusimaid [ametlikke dokumente](https://spec.modelcontextprotocol.io/), kuna standardid arenevad kiiresti.
+> **Oluline**: Need turvakontrollid peegeldavad kehtivat MCP spetsifikatsiooni (2025-11-25). Kontrollige alati uusimat [ametlikku dokumentatsiooni](https://spec.modelcontextprotocol.io/), kuna standardid arenevad kiiresti.
 
-## Mis järgneb
+## Mis järgmiseks
 
-- Tagasi: [Turbe mooduli ülevaade](./README.md)
-- Jätka: [Moodul 3: Alustamine](../03-GettingStarted/README.md)
+- Tagasi: [Turvamooduli ülevaade](./README.md)
+- Jätka: [Moodul 3: Algus](../03-GettingStarted/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Vastutusest loobumine**:
-See dokument on tõlgitud kasutades tehisintellektil põhinevat tõlketeenust [Co-op Translator](https://github.com/Azure/co-op-translator). Kuigi püüame täpsust, palun pidage meeles, et automaatsed tõlked võivad sisaldada vigu või ebatäpsusi. Originaaldokument selle emakeeles tuleks pidada autoriteetseks allikaks. Olulise teabe puhul on soovitatav kasutada professionaalset inimtõlget. Me ei vastuta selle tõlke kasutamisest tulenevate arusaamatuste või valesti mõistmiste eest.
+**Lahtiütlus**:
+See dokument on tõlgitud kasutades AI tõlketeenust [Co-op Translator](https://github.com/Azure/co-op-translator). Kuigi me püüdleme täpsuse poole, palun pange tähele, et automatiseeritud tõlgetes võib esineda vigu või ebatäpsusi. Originaaldokument selle emakeeles tuleks pidada autoriteetseks allikaks. Olulise teabe puhul soovitatakse kasutada professionaalset inimtõlget. Me ei vastuta selle tõlkega seotud eksimustest või valesti mõistmistest.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

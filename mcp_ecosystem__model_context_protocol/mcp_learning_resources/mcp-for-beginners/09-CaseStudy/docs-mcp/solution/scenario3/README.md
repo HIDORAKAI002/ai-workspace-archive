@@ -67,7 +67,7 @@ To get started, follow these steps. For each step, you can add a screenshot from
 
 5. **Live Query:**
 
-   > Let's take a live query from the [#get-help](https://discord.gg/D6cRhjHWSC) section in Azure AI Foundry Discord ([view original message](https://discord.com/channels/1113626258182504448/1385498306720829572)):
+   > Let's take a live query from the [#get-help](https://discord.gg/D6cRhjHWSC) section in Microsoft Foundry Discord ([view original message](https://discord.com/channels/1113626258182504448/1385498306720829572)):
    
    *"I am seeking answers on how to deploy a multi-agent solution with AI agents developed on the Azure AI Foundry. I see that there is no direct deployment method, such as Copilot Studio channels. So, what are the different ways to do this deployment for enterprise users to interact and get the job done?
 There are numerous articles/blogs available who says we can use Azure Bot service to do this job which can act as a bridge between MS teams and Azure AI Foundry Agents, well is this going to work if I setup an Azure bot which connects to the Orchestrator Agent on Azure AI foundry via Azure function to perform the orchestration or I need to create Azure function for each of the AI agents part of multi agent solution to do the orchestration at the Bot framework? Any other suggestions are most welcome.
