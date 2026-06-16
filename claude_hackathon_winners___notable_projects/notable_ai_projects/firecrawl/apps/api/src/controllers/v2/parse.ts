@@ -29,6 +29,7 @@ import { getScrapeZDR } from "../../lib/zdr-helpers";
 import {
   KEYLESS_CREDITS_MESSAGE,
   adjustKeylessCredits,
+  logKeylessCreditUsage,
   reserveKeylessCredits,
 } from "../../lib/keyless";
 import { projectScrapeCredits } from "../../lib/keyless-credit-projection";
@@ -656,10 +657,14 @@ export async function parseController(
 
       if (reservedKeylessCredits > 0 && !reconciledKeylessCredits) {
         reconciledKeylessCredits = true;
+        const actualKeylessCredits = doc?.metadata?.creditsUsed ?? 0;
         adjustKeylessCredits(
           req.auth.team_id,
-          (doc?.metadata?.creditsUsed ?? 0) - reservedKeylessCredits,
+          actualKeylessCredits - reservedKeylessCredits,
         ).catch(() => {});
+        logKeylessCreditUsage(req.auth.team_id, actualKeylessCredits).catch(
+          () => {},
+        );
       }
 
       const totalRequestTime = new Date().getTime() - middlewareStartTime;
