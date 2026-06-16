@@ -250,8 +250,35 @@ export async function checkKeylessEligibility(
 }
 
 /**
+ * Append a row to `keyless_credit_usage` recording the actual credits a completed
+ * keyless request consumed (per-IP keyless team UUID + raw IP), for abuse
+ * monitoring. No-op for non-keyless teams, non-positive credits, or when DB auth
+ * is off. Best-effort — never throws.
+ */
+export async function logKeylessCreditUsage(
+  teamId: string,
+  credits: number,
+): Promise<void> {
+  const ip = keylessIpFromTeamId(teamId);
+  if (!ip || !Number.isFinite(credits) || credits <= 0) return;
+  const teamUuid = keylessTeamUuid(teamId);
+  if (config.USE_DB_AUTHENTICATION !== true || !teamUuid) return;
+  try {
+    await db.insert(schema.keyless_credit_usage).values({
+      team_id: teamUuid,
+      ip,
+      credits_used: Math.ceil(credits),
+    });
+  } catch {
+    // Logging is best-effort.
+  }
+}
+
+/**
  * Add the actual credits a completed request consumed to the IP's daily credit
- * counter. No-op for non-keyless teams. Best-effort; never throws.
+ * counter. No-op for non-keyless teams. Best-effort; never throws. Used by the
+ * worker for the non-reserved path; the controllers reserve up front and call
+ * `logKeylessCreditUsage` directly at reconciliation.
  */
 export async function chargeKeylessCredits(
   teamId: string,
@@ -271,18 +298,6 @@ export async function chargeKeylessCredits(
     // extra free credits today.
   }
 
-  // Log the usage to keyless_credit_usage (per-IP keyless team UUID + raw IP)
-  // for abuse monitoring. Best-effort — never block the request.
-  const teamUuid = keylessTeamUuid(teamId);
-  if (config.USE_DB_AUTHENTICATION === true && teamUuid) {
-    try {
-      await db.insert(schema.keyless_credit_usage).values({
-        team_id: teamUuid,
-        ip,
-        credits_used: inc,
-      });
-    } catch {
-      // Logging is best-effort.
-    }
-  }
+  // Log the usage to keyless_credit_usage for abuse monitoring. Best-effort.
+  await logKeylessCreditUsage(teamId, credits);
 }

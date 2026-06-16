@@ -30,6 +30,7 @@ import { getSearchForcedKind } from "../../lib/zdr-helpers";
 import {
   KEYLESS_CREDITS_MESSAGE,
   adjustKeylessCredits,
+  logKeylessCreditUsage,
   reserveKeylessCredits,
 } from "../../lib/keyless";
 import { projectSearchTotalCredits } from "../../lib/keyless-credit-projection";
@@ -254,6 +255,9 @@ export async function searchController(
         req.auth.team_id,
         result.totalCredits - reservedKeylessCredits,
       ).catch(() => {});
+      logKeylessCreditUsage(req.auth.team_id, result.totalCredits).catch(
+        () => {},
+      );
     }
 
     const endTime = new Date().getTime();

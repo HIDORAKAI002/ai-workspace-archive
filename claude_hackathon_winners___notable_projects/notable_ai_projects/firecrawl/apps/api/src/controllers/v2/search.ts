@@ -10,6 +10,7 @@ import { billTeam } from "../../services/billing/credit_billing";
 import {
   KEYLESS_CREDITS_MESSAGE,
   adjustKeylessCredits,
+  logKeylessCreditUsage,
   reserveKeylessCredits,
 } from "../../lib/keyless";
 import { v7 as uuidv7 } from "uuid";
@@ -212,6 +213,9 @@ export async function searchController(
         req.auth.team_id,
         result.totalCredits - reservedKeylessCredits,
       ).catch(() => {});
+      logKeylessCreditUsage(req.auth.team_id, result.totalCredits).catch(
+        () => {},
+      );
     }
 
     const endTime = new Date().getTime();
