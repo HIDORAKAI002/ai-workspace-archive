@@ -262,6 +262,70 @@ class BrandingProfile(BaseModel):
     personality: Optional[Dict[str, Any]] = None
 
 
+class ProductPrice(BaseModel):
+    """A monetary price for a product or variant."""
+
+    model_config = {"extra": "allow", "populate_by_name": True}
+
+    amount: float
+    currency: Optional[str] = None
+    formatted: Optional[str] = None
+
+
+class ProductAvailability(BaseModel):
+    """Availability information for a product or variant."""
+
+    model_config = {"extra": "allow", "populate_by_name": True}
+
+    in_stock: bool = Field(alias="inStock")
+    text: Optional[str] = None
+
+
+class ProductImage(BaseModel):
+    """An image associated with a product or variant."""
+
+    model_config = {"extra": "allow", "populate_by_name": True}
+
+    url: str
+    alt: Optional[str] = None
+
+
+class ProductSale(BaseModel):
+    """Sale information for a variant, holding the pre-sale price."""
+
+    model_config = {"extra": "allow", "populate_by_name": True}
+
+    original_price: ProductPrice = Field(alias="originalPrice")
+
+
+class ProductVariant(BaseModel):
+    """A purchasable variant of a product (e.g. a size/color combination)."""
+
+    model_config = {"extra": "allow", "populate_by_name": True}
+
+    id: Optional[str] = None
+    sku: Optional[str] = None
+    title: Optional[str] = None
+    values: Optional[Dict[str, Any]] = None
+    price: Optional[ProductPrice] = None
+    sale: Optional[ProductSale] = None
+    availability: ProductAvailability
+    images: Optional[List[ProductImage]] = None
+
+
+class ProductProfile(BaseModel):
+    """Structured product information extracted from a website."""
+
+    model_config = {"extra": "allow", "populate_by_name": True}
+
+    title: str
+    brand: Optional[str] = None
+    category: Optional[str] = None
+    url: str
+    description: Optional[str] = None
+    variants: List[ProductVariant] = Field(default_factory=list)
+
+
 RedactPIIEntity = Literal[
     "PERSON",
     "EMAIL",
@@ -292,6 +356,7 @@ class Document(BaseModel):
     warning: Optional[str] = None
     change_tracking: Optional[Dict[str, Any]] = None
     branding: Optional[BrandingProfile] = None
+    product: Optional[ProductProfile] = None
 
     @property
     def metadata_typed(self) -> DocumentMetadata:
@@ -415,6 +480,7 @@ FormatString = Literal[
     "json",
     "attributes",
     "branding",
+    "product",
     "query",
     "audio",
     "video",

@@ -2,7 +2,7 @@ import { RateLimiterMode } from "../../types";
 import { getACUCTeam } from "../auth";
 import { AuthCreditUsageChunkFromTeam, RequestWithAuth } from "./types";
 import { Response } from "express";
-import { getRedisConnection } from "../../services/queue-service";
+import { redisEvictConnection } from "../../services/redis";
 import { isFdbTeam } from "../../services/worker/nuq-router";
 import {
   nuqFdbHealthCheck,
@@ -82,7 +82,10 @@ export async function queueStatusController(
     }
   }
 
-  const mostRecentSuccess = await getRedisConnection().get(
+  // most-recent-success is written by the scrape worker via redisEvictConnection
+  // (REDIS_EVICT_URL), which is a different instance from getRedisConnection()
+  // (REDIS_URL). Read it from the same connection it is written to.
+  const mostRecentSuccess = await redisEvictConnection.get(
     "most-recent-success:" + req.auth.team_id,
   );
 

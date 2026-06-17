@@ -13,6 +13,7 @@ export type FormatString =
   | "json"
   | "attributes"
   | "branding"
+  | "product"
   | "audio"
   | "video";
 
@@ -427,6 +428,46 @@ export interface BrandingProfile {
   [key: string]: unknown;
 }
 
+export interface ProductPrice {
+  amount: number;
+  currency?: string;
+  formatted?: string;
+}
+
+export interface ProductAvailability {
+  inStock: boolean;
+  text?: string;
+}
+
+export interface ProductImage {
+  url: string;
+  alt?: string;
+}
+
+export interface ProductSale {
+  originalPrice: ProductPrice;
+}
+
+export interface ProductVariant {
+  id?: string;
+  sku?: string;
+  title?: string;
+  values?: Record<string, unknown>;
+  price?: ProductPrice;
+  sale?: ProductSale;
+  availability: ProductAvailability;
+  images?: ProductImage[];
+}
+
+export interface ProductProfile {
+  title: string;
+  brand?: string;
+  category?: string;
+  url: string;
+  description?: string;
+  variants: ProductVariant[];
+}
+
 export interface DocumentMetadata {
   // Common metadata fields
   title?: string;
@@ -509,6 +550,7 @@ export interface Document {
   warning?: string;
   changeTracking?: Record<string, unknown>;
   branding?: BrandingProfile;
+  product?: ProductProfile;
 }
 
 // Pagination configuration for auto-fetching pages from v2 endpoints that return a `next` URL
