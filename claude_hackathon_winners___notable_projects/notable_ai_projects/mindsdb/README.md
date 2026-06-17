@@ -16,17 +16,15 @@
   <p align="center">
 	<a href="https://docs.mindshub.ai/">Documentation</a>
     ·
-    <a href="https://mindshub.ai">Try it</a>
+    <a href="https://docs.mindshub.ai/setup.html">Try it</a>
     ·
     <a href="https://mindsdb.com/contact?utm_medium=community&utm_source=github&utm_campaign=mindsdb%20repo">Contact us for a demo</a>
-    ·
-    <a href="https://mindsdb.com/joincommunity?utm_medium=community&utm_source=github&utm_campaign=mindsdb%20repo">Community Slack</a>
+    
   </p>
 </div>
 
 
-
-<img width="780" height="475" alt="cowork-select" src="https://github.com/user-attachments/assets/40ca52fc-df7c-4385-8571-828283fb3033" />
+<img width="1198" height="697" alt="image" src="https://github.com/user-attachments/assets/769e6463-0a9d-45ae-83d1-ef9e234775d3" />
 
 
 # MINDS-COWORK PLATFORM 
