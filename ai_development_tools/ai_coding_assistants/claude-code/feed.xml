@@ -6,7 +6,22 @@
   <author><name>Anthropic</name></author>
   <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md"/>
   <link rel="self" type="application/atom+xml" href="https://raw.githubusercontent.com/anthropics/claude-code/main/feed.xml"/>
-  <updated>2026-06-15T21:35:48Z</updated>
+  <updated>2026-06-16T20:22:06Z</updated>
+  <entry>
+    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.179</id>
+    <title>Claude Code v2.1.179</title>
+    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.179"/>
+    <updated>2026-06-16T20:22:06Z</updated>
+    <content type="html">&lt;p&gt;• Fixed mid-stream connection drops: partial responses are now preserved instead of showing a raw error, and the spinner no longer gets stuck at "running tool"&lt;/p&gt;
+&lt;p&gt;• Fixed mouse-wheel scrolling in WSL2 under Windows Terminal and VS Code (regression in 2.1.172)&lt;/p&gt;
+&lt;p&gt;• Fixed a sandbox denyRead/allowRead glob over a large directory tree making the Bash tool description enormous and the session unusable on Linux&lt;/p&gt;
+&lt;p&gt;• Fixed the feedback survey capturing a single-digit reply as a session rating immediately after a turn completes&lt;/p&gt;
+&lt;p&gt;• Fixed the welcome screen stacking multiple promotional banners — at most one promo now shows per session&lt;/p&gt;
+&lt;p&gt;• Fixed Ctrl+O not showing the subagent's transcript when viewing a subagent&lt;/p&gt;
+&lt;p&gt;• Fixed clicking the prompt input not returning focus from the subagent/footer panel&lt;/p&gt;
+&lt;p&gt;• Fixed remote session background tasks appearing stuck as "still running" between turns&lt;/p&gt;
+&lt;p&gt;• Improved plugin loading performance in remote sessions&lt;/p&gt;</content>
+  </entry>
   <entry>
     <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.178</id>
     <title>Claude Code v2.1.178</title>
@@ -29,6 +44,7 @@
 &lt;p&gt;• Fixed compaction not honoring --fallback-model: compaction now falls back to the configured fallback model chain on overload or model-availability errors&lt;/p&gt;
 &lt;p&gt;• Fixed model requests continuing to fail with auth errors after credentials were refreshed outside the session, due to a stale cached request configuration&lt;/p&gt;
 &lt;p&gt;• Fixed background sessions created with /bg or ←← after a turn finished showing "Working" forever in the agents list&lt;/p&gt;
+&lt;p&gt;• Fixed Linux sandbox failing to start when .claude/skills or .claude/hooks is a symlink&lt;/p&gt;
 &lt;p&gt;• Fixed CLAUDE_CODE_PLUGIN_KEEP_MARKETPLACE_ON_FAILURE=1 preventing fresh marketplace installs from cloning&lt;/p&gt;
 &lt;p&gt;• Fixed MCP server-level specs (mcp__server, mcp__server__*, mcp__*) in subagent disallowedTools being silently ignored&lt;/p&gt;
 &lt;p&gt;• Fixed vim mode undo: u now steps through NORMAL/VISUAL-mode commands one at a time instead of merging commands in quick succession into a single undo step&lt;/p&gt;
@@ -401,12 +417,5 @@
 &lt;p&gt;• [VSCode] Fixed the fast mode indicator not appearing on Opus 4.8&lt;/p&gt;
 &lt;p&gt;• Pressing backspace right after a workflow trigger keyword now dismisses the workflow request (same as alt+w) instead of deleting a character&lt;/p&gt;
 &lt;p&gt;• Added a "Workflow keyword trigger" setting in /config to stop the word "workflow" in a prompt from triggering a dynamic workflow&lt;/p&gt;</content>
-  </entry>
-  <entry>
-    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.156</id>
-    <title>Claude Code v2.1.156</title>
-    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.156"/>
-    <updated>2026-05-29T01:42:17Z</updated>
-    <content type="html">&lt;p&gt;• Fixed an issue when using Opus 4.8 where thinking blocks were modified, leading to API errors.&lt;/p&gt;</content>
   </entry>
 </feed>

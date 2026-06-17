@@ -61,6 +61,7 @@ OPENROUTER_MODELS: list[tuple[str, str]] = [
     # MiniMax
     ("minimax/minimax-m3",                     ""),
     # Z-AI
+    ("z-ai/glm-5.2",                           ""),
     ("z-ai/glm-5.1",                           ""),
     # Xiaomi
     ("xiaomi/mimo-v2.5-pro",                   ""),
@@ -109,6 +110,7 @@ def _codex_curated_models() -> list[str]:
 # (grok-4, grok-4-0709, grok-4-fast{,-reasoning,-non-reasoning},
 #  grok-4-1-fast{,-reasoning,-non-reasoning}, grok-code-fast-1 → grok-4.3).
 _XAI_STATIC_FALLBACK: list[str] = [
+    "grok-build-0.1",
     "grok-4.3",
     "grok-4.20-0309-reasoning",
     "grok-4.20-0309-non-reasoning",
@@ -116,7 +118,7 @@ _XAI_STATIC_FALLBACK: list[str] = [
 ]
 
 
-_XAI_TOP_MODEL = "grok-4.3"
+_XAI_TOP_MODEL = "grok-build-0.1"
 
 
 def _xai_promote_top(ids: list[str]) -> list[str]:
@@ -182,6 +184,7 @@ _PROVIDER_MODELS: dict[str, list[str]] = {
         # MiniMax
         "minimax/minimax-m3",
         # Z-AI
+        "z-ai/glm-5.2",
         "z-ai/glm-5.1",
         # Xiaomi
         "xiaomi/mimo-v2.5-pro",
@@ -2368,7 +2371,7 @@ def provider_model_ids(provider: Optional[str], *, force_refresh: bool = False) 
             if not base_url:
                 base_url = _p.base_url
             if api_key:
-                live = _p.fetch_models(api_key=api_key)
+                live = _p.fetch_models(api_key=api_key, base_url=base_url or None)
                 if live:
                     # Merge static curated list with live API results so
                     # models that the live endpoint omits (stale cache,
