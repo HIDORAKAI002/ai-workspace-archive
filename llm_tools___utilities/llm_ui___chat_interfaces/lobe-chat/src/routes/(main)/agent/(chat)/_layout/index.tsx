@@ -13,7 +13,7 @@ import { systemStatusSelectors } from '@/store/global/selectors';
 import HeaderSlot from './HeaderSlot';
 
 const ChatLayout = memo(() => {
-  const showHeader = useGlobalStore(systemStatusSelectors.showChatHeader);
+  const showChatHeader = useGlobalStore(systemStatusSelectors.showChatHeader);
 
   return (
     <HeaderSlot.Provider>
@@ -25,7 +25,7 @@ const ChatLayout = memo(() => {
         width={'100%'}
       >
         <Flexbox flex={1} style={{ minHeight: 0, minWidth: 0 }}>
-          {showHeader && <ChatHeader />}
+          {showChatHeader && <ChatHeader />}
           <Flexbox flex={1} style={{ minHeight: 0, position: 'relative' }}>
             <Outlet />
           </Flexbox>

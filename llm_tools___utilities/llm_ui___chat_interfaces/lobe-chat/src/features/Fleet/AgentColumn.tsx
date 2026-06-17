@@ -21,7 +21,13 @@ import { useTranslation } from 'react-i18next';
 
 import { useAgentDisplayMeta } from '@/features/AgentTasks/shared/useAgentDisplayMeta';
 import StatusDot from '@/features/AgentTopicManager/StatusDot';
-import { ChatInput, ChatList, ConversationProvider } from '@/features/Conversation';
+import {
+  ChatInput,
+  ChatList,
+  ConversationProvider,
+  conversationSelectors,
+  useConversationStore,
+} from '@/features/Conversation';
 import OpStatusTray from '@/features/Conversation/ChatInput/OpStatusTray';
 import { useOperationState } from '@/hooks/useOperationState';
 import { useChatStore } from '@/store/chat';
@@ -92,6 +98,13 @@ const styles = createStaticStyles(({ css, cssVar }) => ({
     padding-inline: 8px 6px;
     border-block-end: 1px solid ${cssVar.colorBorderSecondary};
   `,
+  list: css`
+    /* Owns the flexible space so the seamless tray + reply bar below keep their
+       natural height instead of being squeezed (and clipped) by the list. */
+    position: relative;
+    flex: 1;
+    min-height: 0;
+  `,
   replyBar: css`
     flex: none;
     padding-block: 8px;
@@ -114,6 +127,10 @@ const styles = createStaticStyles(({ css, cssVar }) => ({
 
     /* opaque chip so the conversation behind never bleeds through the button */
     background: ${cssVar.colorBgContainer};
+
+    /* lifted above the floating status tray (translateY set inline) so it never
+       overlaps and cuts into the tray's top border */
+    transition: transform 0.2s ${cssVar.motionEaseInOut};
 
     button {
       pointer-events: auto;
@@ -190,6 +207,91 @@ const WorkingDirRow = memo<{ workingDirectory: string }>(({ workingDirectory }) 
 WorkingDirRow.displayName = 'FleetWorkingDirRow';
 
 /**
+ * Expanded reply input. The running-op status tray is owned by ChatInput's own
+ * floating overlay (so it carries proper card chrome + top border), so we don't
+ * render a second tray here. The collapse button is lifted above that overlay by
+ * its measured height, keeping it clear of the tray's top edge.
+ *
+ * `onCollapse` is omitted for a brand-new (empty) conversation — there's nothing
+ * to collapse back to yet, so the input just stays open until the first message.
+ */
+const ReplyPanel = memo<{ onCollapse?: () => void }>(({ onCollapse }) => {
+  const { t } = useTranslation('electron');
+  const overlayHeight = useConversationStore(conversationSelectors.chatInputOverlayHeight);
+
+  return (
+    <Flexbox className={styles.replyOpen}>
+      {onCollapse && (
+        <Flexbox
+          horizontal
+          className={styles.replyClose}
+          style={{ transform: overlayHeight ? `translateY(-${overlayHeight}px)` : undefined }}
+        >
+          <Button icon={ChevronDownIcon} size={'small'} type={'text'} onClick={onCollapse}>
+            {t('fleet.collapseReply')}
+          </Button>
+        </Flexbox>
+      )}
+      <ChatInput isConfigLoading={false} />
+    </Flexbox>
+  );
+});
+
+ReplyPanel.displayName = 'FleetReplyPanel';
+
+/**
+ * Bottom reply affordance for a column. Lives inside ConversationProvider so it
+ * reads the conversation's *real* loaded state — never the raw dbMessagesMap
+ * (where `undefined` means "still loading", not "empty"), which would blank the
+ * area out during load.
+ *
+ * - Empty/new conversation → input shown directly (type immediately), no collapse.
+ * - Has messages → "回复" button; expanding shows the input with a collapse button.
+ * - Still loading an existing conversation → keep the "回复" button as a stable
+ *   placeholder so the reply area never disappears.
+ */
+const ReplyArea = memo(() => {
+  const { t } = useTranslation('electron');
+  const [replyOpen, setReplyOpen] = useState(false);
+
+  // `messagesInit` mirrors ChatList's own "loaded" gate; a topic-less column is
+  // treated as ready-and-empty immediately (nothing to fetch).
+  const isNewConversation = useConversationStore((s) => !s.context.topicId);
+  const messagesInit = useConversationStore(conversationSelectors.messagesInit);
+  const messageCount = useConversationStore(
+    (s) => conversationSelectors.displayMessageIds(s).length,
+  );
+
+  const isReady = isNewConversation || messagesInit;
+  const isEmptyConversation = isReady && messageCount === 0;
+  const inputExpanded = replyOpen || isEmptyConversation;
+
+  return (
+    <>
+      {/* Seamless inline tray only when collapsed — when expanded, ChatInput's
+          own overlay hosts the tray, so a second one here would duplicate it. */}
+      {!inputExpanded && <OpStatusTray seamless />}
+      {inputExpanded ? (
+        <ReplyPanel onCollapse={isEmptyConversation ? undefined : () => setReplyOpen(false)} />
+      ) : (
+        <Flexbox className={styles.replyBar}>
+          <Button
+            block
+            icon={MessageCirclePlus}
+            variant={'filled'}
+            onClick={() => setReplyOpen(true)}
+          >
+            {t('fleet.reply')}
+          </Button>
+        </Flexbox>
+      )}
+    </>
+  );
+});
+
+ReplyArea.displayName = 'FleetReplyArea';
+
+/**
  * Lightweight drag visual rendered into the DragOverlay portal — the column
  * header on a lifted card with a centered "moving" hint instead of the live
  * conversation, so dragging stays cheap and isn't clipped by a band's overflow.
@@ -257,7 +359,6 @@ const AgentColumn = memo<AgentColumnProps>(({ column, status }) => {
   const togglePin = useFleetStore((s) => s.togglePin);
   const isPinned = useFleetStore((s) => s.pinnedKeys.includes(column.key));
   const [dragWidth, setDragWidth] = useState<number | null>(null);
-  const [replyOpen, setReplyOpen] = useState(false);
   const width = dragWidth ?? storedWidth ?? DEFAULT_COLUMN_WIDTH;
 
   const chatKey = useMemo(() => messageMapKey(context), [context]);
@@ -372,34 +473,10 @@ const AgentColumn = memo<AgentColumnProps>(({ column, status }) => {
             replaceMessages(next, { context: ctx });
           }}
         >
-          <ChatList disableActionsBar />
-          <OpStatusTray />
-          {messages === undefined ? null : replyOpen ? (
-            <Flexbox className={styles.replyOpen}>
-              <Flexbox horizontal className={styles.replyClose}>
-                <Button
-                  icon={ChevronDownIcon}
-                  size={'small'}
-                  type={'text'}
-                  onClick={() => setReplyOpen(false)}
-                >
-                  {t('fleet.collapseReply')}
-                </Button>
-              </Flexbox>
-              <ChatInput isConfigLoading={false} />
-            </Flexbox>
-          ) : (
-            <Flexbox className={styles.replyBar}>
-              <Button
-                block
-                icon={MessageCirclePlus}
-                variant={'filled'}
-                onClick={() => setReplyOpen(true)}
-              >
-                {t('fleet.reply')}
-              </Button>
-            </Flexbox>
-          )}
+          <Flexbox className={styles.list}>
+            <ChatList disableActionsBar />
+          </Flexbox>
+          <ReplyArea />
         </ConversationProvider>
       </Flexbox>
 

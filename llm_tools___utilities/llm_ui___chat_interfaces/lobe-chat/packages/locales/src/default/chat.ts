@@ -28,6 +28,9 @@ export default {
     "Hi, I’m **{{name}}**. One sentence is enough—you're in control.",
   'agentDefaultMessageWithoutEdit':
     "Hi, I’m **{{name}}**. One sentence is enough—you're in control.",
+  'agentDocument.backToChat': 'Back to chat',
+  'agentDocument.linkCopied': 'Link copied',
+  'agentDocument.openAsPage': 'Open as full page',
   'agentProfile.files_one': '{{count}} file',
   'agentProfile.files_other': '{{count}} files',
   'agentProfile.knowledgeBases_one': '{{count}} knowledge base',
@@ -487,7 +490,10 @@ export default {
   'memory.on.desc': 'Allow AI to actively search and manage your memories during conversation.',
   'memory.on.title': 'Enable Memory Tool',
   'memory.title': 'Memory',
-  'gatewayMode.title': 'Gateway Mode',
+  'gatewayMode.beta': 'Beta',
+  'gatewayMode.cardTitle': 'Agent Gateway Mode',
+  'gatewayMode.desc':
+    "Run agents in the cloud through LobeHub's Agent Gateway. Tasks keep running even after you close the page.",
   'search.grounding.imageSearchQueries': 'Image Search Keywords',
   'search.grounding.imageTitle': 'Found {{count}} images',
   'chatMode.agent': 'Agent',
@@ -966,6 +972,7 @@ export default {
   'toolAuth.hint':
     "When Skills aren't authorized or configured, the related Skills won't work and the Agent's capabilities may be limited or run into errors.",
   'task.title': 'Tasks',
+  'toolAuth.remove': 'Remove',
   'toolAuth.signIn': 'Sign In',
   'toolAuth.title': 'Authorize Skills for this Agent',
   'topic.checkOpenNewTopic': 'Start a new topic?',

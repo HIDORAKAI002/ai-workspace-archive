@@ -11,12 +11,12 @@ import { useTranslation } from 'react-i18next';
 
 import CodeEditorPane from '@/components/CodeEditorPane';
 import FloatingChatPanel from '@/features/FloatingChatPanel';
+import WideScreenContainer from '@/features/WideScreenContainer';
 import { useClientDataSWR } from '@/libs/swr';
 import { portalKeys } from '@/libs/swr/keys';
 import { documentService } from '@/services/document';
 import { useAgentStore } from '@/store/agent';
 import { useChatStore } from '@/store/chat';
-import { chatPortalSelectors } from '@/store/chat/selectors';
 import { useDocumentStore } from '@/store/document';
 import { useUserStore } from '@/store/user';
 import { labPreferSelectors } from '@/store/user/selectors';
@@ -27,6 +27,11 @@ import {
   parseSkillMarkdownMetadata,
 } from '@/utils/skillMarkdown';
 
+import {
+  useDocumentViewFullPage,
+  useResolvedAgentDocumentId,
+  useResolvedDocumentId,
+} from './documentViewContext';
 import EditorCanvas from './EditorCanvas';
 import TodoList from './TodoList';
 
@@ -35,6 +40,11 @@ const styles = createStaticStyles(({ css }) => ({
     overflow: auto;
     flex: 1;
     padding-inline: 16px;
+  `,
+  contentFull: css`
+    /* Width is handled by WideScreenContainer; keep only the scroll host. */
+    overflow: auto;
+    flex: 1;
   `,
   frontmatter: css`
     margin-block: 16px 12px;
@@ -310,8 +320,9 @@ const HighlightEditor = memo<HighlightEditorProps>(({ content, documentId, langu
 HighlightEditor.displayName = 'HighlightEditor';
 
 const DocumentBody = memo(() => {
-  const documentId = useChatStore(chatPortalSelectors.portalDocumentId);
-  const agentDocumentId = useChatStore(chatPortalSelectors.portalAgentDocumentId);
+  const documentId = useResolvedDocumentId();
+  const agentDocumentId = useResolvedAgentDocumentId();
+  const fullPage = useDocumentViewFullPage();
   const activeAgentId = useAgentStore((s) => s.activeAgentId);
   const activeTopicId = useChatStore((s) => s.activeTopicId);
   const enableFloatingChatPanel = useUserStore(
@@ -341,26 +352,34 @@ const DocumentBody = memo(() => {
     [mutateDocumentMeta],
   );
 
+  const editorContent = (
+    <>
+      {documentId && isSkillMarkdown && (
+        <SkillFrontmatterBlock documentId={documentId} frontmatter={skillFrontmatter} />
+      )}
+      {renderMode.mode === 'highlight' && documentId ? (
+        <HighlightEditor
+          content={documentMeta?.content ?? ''}
+          documentId={documentId}
+          key={documentId}
+          language={renderMode.language}
+          onSaved={handleHighlightSaved}
+        />
+      ) : (
+        <EditorCanvas />
+      )}
+    </>
+  );
+
   return (
     <Flexbox flex={1} height={'100%'} style={{ overflow: 'hidden' }}>
-      <div className={styles.content}>
-        {documentId && isSkillMarkdown && (
-          <SkillFrontmatterBlock documentId={documentId} frontmatter={skillFrontmatter} />
-        )}
-        {renderMode.mode === 'highlight' && documentId ? (
-          <HighlightEditor
-            content={documentMeta?.content ?? ''}
-            documentId={documentId}
-            key={documentId}
-            language={renderMode.language}
-            onSaved={handleHighlightSaved}
-          />
-        ) : (
-          <EditorCanvas />
-        )}
+      <div className={fullPage ? styles.contentFull : styles.content}>
+        {fullPage ? <WideScreenContainer>{editorContent}</WideScreenContainer> : editorContent}
       </div>
       <TodoList />
-      {enableFloatingChatPanel && activeAgentId && (
+      {/* The full-page route surfaces chat through the working sidebar, so the
+          floating panel only belongs to the compact in-chat portal. */}
+      {!fullPage && enableFloatingChatPanel && activeAgentId && (
         <FloatingChatPanel
           agentDocumentId={agentDocumentId}
           agentId={activeAgentId}

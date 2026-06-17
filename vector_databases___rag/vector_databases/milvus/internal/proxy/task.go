@@ -547,6 +547,11 @@ func (t *createCollectionTask) PreExecute(ctx context.Context) error {
 		return err
 	}
 
+	// validate namespace sharding
+	if err := common.ValidateNamespaceShardingEnabled(t.GetProperties()...); err != nil {
+		return err
+	}
+
 	// Validate timezone
 	tz, exist := funcutil.TryGetAttrByKeyFromRepeatedKV(common.TimezoneKey, t.GetProperties())
 	if exist && !timestamptz.IsTimezoneValid(tz) {
@@ -960,6 +965,9 @@ func validateAddFieldRequest(schema *schemapb.CollectionSchema, newFieldSchema *
 	schemaWithNewField.Fields = append(schemaWithNewField.GetFields(), proto.Clone(newFieldSchema).(*schemapb.FieldSchema))
 	if err := validateTextStorageV3Enabled(schemaWithNewField); err != nil {
 		return err
+	}
+	if newFieldSchema.GetDataType() == schemapb.DataType_Text && newFieldSchema.GetDefaultValue() != nil {
+		return merr.WrapErrParameterInvalidMsg("default value is not supported when adding TEXT field, field name = %s", newFieldSchema.GetName())
 	}
 	if funcutil.SliceContain([]string{common.RowIDFieldName, common.TimeStampFieldName, common.MetaFieldName, common.NamespaceFieldName, common.VirtualPKFieldName}, newFieldSchema.GetName()) {
 		return merr.WrapErrParameterInvalidMsg("not support to add system field, field name = %s", newFieldSchema.GetName())
@@ -2177,6 +2185,9 @@ func (t *alterCollectionTask) PreExecute(ctx context.Context) error {
 				"cannot delete %s; external source/spec are immutable post-create except via RefreshExternalCollection",
 				key)
 		}
+	}
+	if err := common.ValidateNamespaceShardingEnabledNotAltered(t.GetProperties(), t.GetDeleteKeys()); err != nil {
+		return err
 	}
 
 	collSchema, err := globalMetaCache.GetCollectionSchema(ctx, t.GetDbName(), t.CollectionName)
