@@ -232,9 +232,9 @@ export default {
 
   'cmdk.search.assistants': 'Agents',
 
-  'cmdk.search.chatGroup': 'Agent Team',
+  'cmdk.search.chatGroup': 'Group',
 
-  'cmdk.search.chatGroups': 'Agent Teams',
+  'cmdk.search.chatGroups': 'Groups',
 
   'cmdk.search.communityAgent': 'Community Agent',
 
@@ -454,7 +454,7 @@ export default {
   'new': 'New',
   'pro': 'Pro',
   'noContent': 'No content',
-  'oauth': 'SSO Login',
+  'oauth': 'SSO Sign-in',
   'officialSite': 'Official Website',
   'ok': 'OK',
   'or': 'or',
