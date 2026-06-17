@@ -56,7 +56,7 @@ ECC v2.0.0 adds the public Hermes operator story on top of that reusable layer: 
 <td width="25%" align="center">
   <a href="https://github.com/sponsors/affaan-m">
     <strong> Sponsor</strong><br />
-    <sub>Fund the OSS · From $5/mo</sub>
+    <sub>Fund the OSS · From $10/mo</sub>
   </a>
 </td>
 <td width="25%" align="center">
@@ -93,6 +93,12 @@ ECC v2.0.0 adds the public Hermes operator story on top of that reusable layer: 
   <a href="https://www.greptile.com/go/ecc">
     <img src="assets/images/sponsors/greptile.png" width="96" alt="Greptile logo" /><br />
     <strong>Greptile</strong>
+  </a>
+</td>
+<td align="center" width="220">
+  <a href="https://www.atlascloud.ai/developer">
+    <img src="assets/images/sponsors/atlascloud.png" width="96" alt="Atlas Cloud logo" /><br />
+    <strong>Atlas Cloud</strong>
   </a>
 </td>
 </tr>
