@@ -17,6 +17,8 @@ from models.agent import (
 )
 from models.agent_config_entities import (
     AgentFileRefConfig,
+    DeclaredArrayItem,
+    DeclaredOutputChildConfig,
     DeclaredOutputConfig,
     DeclaredOutputType,
     WorkflowNodeJobConfig,
@@ -112,7 +114,7 @@ def test_load_workflow_composer_returns_empty_state(monkeypatch):
     effective = result["effective_declared_outputs"]
     assert [o["name"] for o in effective] == ["text", "files", "json"]
     files_output = next(o for o in effective if o["name"] == "files")
-    assert files_output["array_item"] == {"type": "file", "description": None}
+    assert files_output["array_item"] == {"type": "file", "description": None, "children": []}
 
 
 def test_load_workflow_composer_serializes_existing_binding(monkeypatch):
@@ -457,6 +459,125 @@ def test_composer_save_helpers_create_and_rebind_agents(monkeypatch):
     assert new_version_binding.current_snapshot_id == "new-version-1"
 
 
+def test_node_job_only_updates_inline_agent_soul(monkeypatch):
+    fake_session = FakeSession()
+    monkeypatch.setattr(composer_service.db, "session", fake_session)
+    inline_agent = SimpleNamespace(
+        id="inline-agent-1",
+        scope=AgentScope.WORKFLOW_ONLY,
+        active_config_snapshot_id="inline-version-1",
+        active_config_has_model=False,
+        updated_by=None,
+    )
+    current_snapshot = AgentConfigSnapshot(
+        id="inline-version-1",
+        tenant_id="tenant-1",
+        agent_id="inline-agent-1",
+        version=1,
+        config_snapshot='{"prompt":{"system_prompt":"old"}}',
+    )
+    next_snapshot = AgentConfigSnapshot(
+        id="inline-version-2",
+        tenant_id="tenant-1",
+        agent_id="inline-agent-1",
+        version=2,
+    )
+
+    monkeypatch.setattr(AgentComposerService, "_require_version", lambda **kwargs: current_snapshot)
+    monkeypatch.setattr(AgentComposerService, "_update_current_version", lambda **kwargs: next_snapshot)
+    monkeypatch.setattr(AgentComposerService, "_require_agent", lambda **kwargs: inline_agent)
+
+    binding = WorkflowAgentNodeBinding(
+        tenant_id="tenant-1",
+        app_id="app-1",
+        workflow_id="workflow-1",
+        workflow_version="draft",
+        node_id="node-1",
+        binding_type=WorkflowAgentBindingType.INLINE_AGENT,
+        agent_id="inline-agent-1",
+        current_snapshot_id="inline-version-1",
+    )
+    payload = ComposerSavePayload.model_validate(
+        {
+            "variant": ComposerVariant.WORKFLOW.value,
+            "save_strategy": ComposerSaveStrategy.NODE_JOB_ONLY.value,
+            "agent_soul": {
+                "model": {
+                    "plugin_id": "langgenius/openai/openai",
+                    "model_provider": "openai",
+                    "model": "gpt-4o",
+                },
+                "prompt": {"system_prompt": "new"},
+            },
+            "node_job": {"workflow_prompt": "use prior output"},
+        }
+    )
+
+    updated_binding = AgentComposerService._save_node_job_only(
+        tenant_id="tenant-1",
+        app_id="app-1",
+        workflow_id="workflow-1",
+        node_id="node-1",
+        account_id="account-1",
+        binding=binding,
+        payload=payload,
+    )
+
+    assert updated_binding.current_snapshot_id == "inline-version-2"
+    assert updated_binding.node_job_config_dict["workflow_prompt"] == "use prior output"
+    assert updated_binding.updated_by == "account-1"
+    assert inline_agent.active_config_snapshot_id == "inline-version-2"
+    assert inline_agent.active_config_has_model is True
+    assert inline_agent.updated_by == "account-1"
+
+
+def test_node_job_only_rejects_inline_binding_pointing_to_roster_agent(monkeypatch):
+    fake_session = FakeSession()
+    monkeypatch.setattr(composer_service.db, "session", fake_session)
+    current_snapshot = AgentConfigSnapshot(
+        id="inline-version-1",
+        tenant_id="tenant-1",
+        agent_id="agent-1",
+        version=1,
+        config_snapshot='{"prompt":{"system_prompt":"old"}}',
+    )
+    next_snapshot = AgentConfigSnapshot(id="inline-version-2", tenant_id="tenant-1", agent_id="agent-1", version=2)
+    roster_agent = SimpleNamespace(id="agent-1", scope=AgentScope.ROSTER)
+
+    monkeypatch.setattr(AgentComposerService, "_require_version", lambda **kwargs: current_snapshot)
+    monkeypatch.setattr(AgentComposerService, "_update_current_version", lambda **kwargs: next_snapshot)
+    monkeypatch.setattr(AgentComposerService, "_require_agent", lambda **kwargs: roster_agent)
+
+    binding = WorkflowAgentNodeBinding(
+        tenant_id="tenant-1",
+        app_id="app-1",
+        workflow_id="workflow-1",
+        workflow_version="draft",
+        node_id="node-1",
+        binding_type=WorkflowAgentBindingType.INLINE_AGENT,
+        agent_id="agent-1",
+        current_snapshot_id="inline-version-1",
+    )
+    payload = ComposerSavePayload.model_validate(
+        {
+            "variant": ComposerVariant.WORKFLOW.value,
+            "save_strategy": ComposerSaveStrategy.NODE_JOB_ONLY.value,
+            "agent_soul": {"prompt": {"system_prompt": "new"}},
+        }
+    )
+
+    with pytest.raises(ValueError, match="workflow-only agent"):
+        AgentComposerService._save_node_job_only(
+            tenant_id="tenant-1",
+            app_id="app-1",
+            workflow_id="workflow-1",
+            node_id="node-1",
+            account_id="account-1",
+            binding=binding,
+            payload=payload,
+        )
+
+
 def test_composer_create_agents_syncs_active_config_has_model(monkeypatch):
     fake_session = FakeSession()
     monkeypatch.setattr(composer_service.db, "session", fake_session)
@@ -649,6 +770,7 @@ def test_roster_list_and_invite_options(monkeypatch):
         lambda version_ids: {"version-1": version, "version-2": unconfigured_version},
     )
     monkeypatch.setattr(service, "_load_published_references_by_agent_id", lambda **kwargs: {})
+    monkeypatch.setattr(service, "_load_published_active_snapshot_agent_ids", lambda **kwargs: {"agent-1"})
 
     listed = service.list_roster_agents(tenant_id="tenant-1", page=1, limit=20)
     invited = service.list_invite_options(tenant_id="tenant-1", page=1, limit=20, app_id="app-1")
@@ -661,6 +783,8 @@ def test_roster_list_and_invite_options(monkeypatch):
     assert listed["data"][0]["created_at"] == int(created_at.timestamp())
     assert listed["data"][0]["updated_at"] == int(updated_at.timestamp())
     assert listed["data"][0]["active_config_snapshot"]["created_at"] == int(version_created_at.timestamp())
+    assert listed["data"][0]["active_config_is_published"] is True
+    assert listed["data"][1]["active_config_is_published"] is False
     assert invited["data"][0]["is_in_current_workflow"] is True
     assert invited["data"][0]["existing_node_ids"] == ["node-1"]
 
@@ -690,12 +814,48 @@ def test_invite_options_uses_db_filtered_pagination(monkeypatch):
         },
     )
     monkeypatch.setattr(service, "_load_published_references_by_agent_id", lambda **kwargs: {})
+    monkeypatch.setattr(service, "_load_published_active_snapshot_agent_ids", lambda **kwargs: set())
 
     result = service.list_invite_options(tenant_id="tenant-1", page=1, limit=1)
 
     assert result["total"] == 1
     assert result["has_more"] is False
     assert [item["id"] for item in result["data"]] == ["agent-2"]
+
+
+def test_active_config_is_published_flags_handle_matching_and_empty_snapshots():
+    agent = Agent(
+        id="agent-1",
+        tenant_id="tenant-1",
+        name="Published",
+        description="",
+        agent_kind=AgentKind.DIFY_AGENT,
+        scope=AgentScope.ROSTER,
+        source=AgentSource.AGENT_APP,
+        status=AgentStatus.ACTIVE,
+        active_config_snapshot_id="version-1",
+    )
+    draft_agent = Agent(
+        id="agent-2",
+        tenant_id="tenant-1",
+        name="Draft",
+        description="",
+        agent_kind=AgentKind.DIFY_AGENT,
+        scope=AgentScope.ROSTER,
+        source=AgentSource.AGENT_APP,
+        status=AgentStatus.ACTIVE,
+        active_config_snapshot_id=None,
+    )
+    service = AgentRosterService(FakeSession(scalars=[["agent-1"], ["agent-1"]]))
+
+    flags = service.load_active_config_is_published_by_agent_id(tenant_id="tenant-1", agents=[agent, draft_agent])
+
+    assert flags == {"agent-1": True, "agent-2": False}
+    assert service.active_config_is_published(tenant_id="tenant-1", agent=agent) is True
+    assert AgentRosterService(FakeSession()).load_active_config_is_published_by_agent_id(
+        tenant_id="tenant-1",
+        agents=[draft_agent],
+    ) == {"agent-2": False}
 
 
 def test_published_references_include_app_display_fields_and_sort_by_updated_at():
@@ -1042,7 +1202,7 @@ def test_composer_validator_accepts_valid_shell_env_and_cli():
         {
             "env": {
                 "variables": [{"name": "MY_VAR", "value": "v"}],
-                "secret_refs": [{"name": "API_TOKEN", "id": "credential-1"}],
+                "secret_refs": [{"name": "API_TOKEN", "value": "credential-1"}],
             },
             "tools": {
                 "cli_tools": [
@@ -1051,7 +1211,7 @@ def test_composer_validator_accepts_valid_shell_env_and_cli():
                         "command": "apt-get install -y jq",
                         "env": {
                             "variables": [{"name": "JQ_COLOR", "value": "1"}],
-                            "secret_refs": [{"name": "JQ_TOKEN", "id": "credential-2"}],
+                            "secret_refs": [{"name": "JQ_TOKEN", "value": "credential-2"}],
                         },
                     },
                     {
@@ -1067,8 +1227,10 @@ def test_composer_validator_accepts_valid_shell_env_and_cli():
     )
     assert {variable.name for variable in config.env.variables} == {"MY_VAR"}
     assert {secret.name for secret in config.env.secret_refs} == {"API_TOKEN"}
+    assert config.env.secret_refs[0].value == "credential-1"
     assert config.tools.cli_tools[0].env.variables[0].name == "JQ_COLOR"
     assert config.tools.cli_tools[0].env.secret_refs[0].name == "JQ_TOKEN"
+    assert config.tools.cli_tools[0].env.secret_refs[0].value == "credential-2"
 
 
 class TestAgentAppBackingAgent:
@@ -1263,7 +1425,22 @@ class TestWorkflowAgentDraftBindingSync:
             node_job_config=WorkflowNodeJobConfig(
                 workflow_prompt="Summarize the upstream result.",
                 declared_outputs=[
-                    DeclaredOutputConfig(name="summary", type=DeclaredOutputType.STRING, description="Short summary")
+                    DeclaredOutputConfig(name="summary", type=DeclaredOutputType.STRING, description="Short summary"),
+                    DeclaredOutputConfig(
+                        name="profile",
+                        type=DeclaredOutputType.OBJECT,
+                        children=[
+                            DeclaredOutputChildConfig(name="email", type=DeclaredOutputType.STRING),
+                            DeclaredOutputChildConfig(
+                                name="addresses",
+                                type=DeclaredOutputType.ARRAY,
+                                array_item=DeclaredArrayItem(
+                                    type=DeclaredOutputType.OBJECT,
+                                    children=[DeclaredOutputChildConfig(name="city", type=DeclaredOutputType.STRING)],
+                                ),
+                            ),
+                        ],
+                    ),
                 ],
             ),
         )
@@ -1279,6 +1456,9 @@ class TestWorkflowAgentDraftBindingSync:
         assert node_data["agent_declared_outputs"][0]["name"] == "summary"
         assert node_data["agent_declared_outputs"][0]["type"] == "string"
         assert node_data["agent_declared_outputs"][0]["description"] == "Short summary"
+        profile_output = node_data["agent_declared_outputs"][1]
+        assert profile_output["children"][0]["name"] == "email"
+        assert profile_output["children"][1]["array_item"]["children"][0]["name"] == "city"
         assert "agent_declared_outputs" not in workflow.graph_dict["nodes"][0]["data"]
 
     def test_creates_roster_binding_from_agent_node_graph(self):
@@ -2112,6 +2292,117 @@ def test_save_workflow_composer_guards_drive_refs_for_existing_agent_strategies(
             tenant_id="t-1", app_id="app-1", node_id="n-1", account_id="acc-1", payload=payload
         )
     assert guarded["agent_id"] == "agent-1"
+
+
+def test_save_workflow_composer_guards_drive_refs_for_inline_node_job_only(monkeypatch):
+    payload = ComposerSavePayload.model_validate(
+        {
+            "variant": "workflow",
+            "save_strategy": "node_job_only",
+            "agent_soul": _drive_soul().model_dump(mode="json"),
+            "soul_lock": {"locked": False},
+        }
+    )
+    binding = WorkflowAgentNodeBinding(
+        tenant_id="t-1",
+        app_id="app-1",
+        workflow_id="wf-1",
+        workflow_version="draft",
+        node_id="n-1",
+        binding_type=WorkflowAgentBindingType.INLINE_AGENT,
+        agent_id="agent-1",
+        current_snapshot_id="version-1",
+    )
+    monkeypatch.setattr(composer_service.db, "session", FakeSession())
+    monkeypatch.setattr(
+        AgentComposerService, "_get_draft_workflow", classmethod(lambda cls, **kwargs: SimpleNamespace(id="wf-1"))
+    )
+    monkeypatch.setattr(AgentComposerService, "_get_workflow_binding", classmethod(lambda cls, **kwargs: binding))
+    monkeypatch.setattr(AgentComposerService, "_save_node_job_only", classmethod(lambda cls, **kwargs: binding))
+    monkeypatch.setattr(
+        AgentComposerService,
+        "_get_agent_if_present",
+        classmethod(lambda cls, **kwargs: SimpleNamespace(id="agent-1", active_config_snapshot_id="version-1")),
+    )
+    monkeypatch.setattr(
+        AgentComposerService,
+        "_get_version_if_present",
+        classmethod(lambda cls, **kwargs: SimpleNamespace(id="version-1")),
+    )
+    monkeypatch.setattr(
+        AgentComposerService, "_serialize_workflow_state", classmethod(lambda cls, **kwargs: {"state": "ok"})
+    )
+    monkeypatch.setattr(
+        AgentComposerService, "collect_validation_findings", classmethod(lambda cls, **kwargs: {"warnings": []})
+    )
+    guarded: dict[str, str] = {}
+
+    def fake_guard(cls, *, tenant_id, agent_id, agent_soul):
+        guarded["tenant_id"] = tenant_id
+        guarded["agent_id"] = agent_id
+
+    monkeypatch.setattr(AgentComposerService, "_require_drive_refs_resolved", classmethod(fake_guard))
+
+    result = AgentComposerService.save_workflow_composer(
+        tenant_id="t-1", app_id="app-1", node_id="n-1", account_id="acc-1", payload=payload
+    )
+
+    assert result == {"state": "ok", "validation": {"warnings": []}}
+    assert guarded == {"tenant_id": "t-1", "agent_id": "agent-1"}
+
+
+def test_save_workflow_composer_skips_drive_refs_for_roster_node_job_only(monkeypatch):
+    payload = ComposerSavePayload.model_validate(
+        {
+            "variant": "workflow",
+            "save_strategy": "node_job_only",
+            "agent_soul": _drive_soul().model_dump(mode="json"),
+            "soul_lock": {"locked": False},
+        }
+    )
+    binding = WorkflowAgentNodeBinding(
+        tenant_id="t-1",
+        app_id="app-1",
+        workflow_id="wf-1",
+        workflow_version="draft",
+        node_id="n-1",
+        binding_type=WorkflowAgentBindingType.ROSTER_AGENT,
+        agent_id="agent-1",
+        current_snapshot_id="version-1",
+    )
+    monkeypatch.setattr(composer_service.db, "session", FakeSession())
+    monkeypatch.setattr(
+        AgentComposerService, "_get_draft_workflow", classmethod(lambda cls, **kwargs: SimpleNamespace(id="wf-1"))
+    )
+    monkeypatch.setattr(AgentComposerService, "_get_workflow_binding", classmethod(lambda cls, **kwargs: binding))
+    monkeypatch.setattr(AgentComposerService, "_save_node_job_only", classmethod(lambda cls, **kwargs: binding))
+    monkeypatch.setattr(
+        AgentComposerService,
+        "_get_agent_if_present",
+        classmethod(lambda cls, **kwargs: SimpleNamespace(id="agent-1", active_config_snapshot_id="version-1")),
+    )
+    monkeypatch.setattr(
+        AgentComposerService,
+        "_get_version_if_present",
+        classmethod(lambda cls, **kwargs: SimpleNamespace(id="version-1")),
+    )
+    monkeypatch.setattr(
+        AgentComposerService, "_serialize_workflow_state", classmethod(lambda cls, **kwargs: {"state": "ok"})
+    )
+    monkeypatch.setattr(
+        AgentComposerService, "collect_validation_findings", classmethod(lambda cls, **kwargs: {"warnings": []})
+    )
+
+    def fail_guard(cls, *, tenant_id, agent_id, agent_soul):
+        raise AssertionError("roster node-job-only saves must not validate agent drive refs")
+
+    monkeypatch.setattr(AgentComposerService, "_require_drive_refs_resolved", classmethod(fail_guard))
+
+    result = AgentComposerService.save_workflow_composer(
+        tenant_id="t-1", app_id="app-1", node_id="n-1", account_id="acc-1", payload=payload
+    )
+
+    assert result == {"state": "ok", "validation": {"warnings": []}}
 
 
 def test_remove_drive_refs_noop_when_skill_slug_unmatched(monkeypatch):
