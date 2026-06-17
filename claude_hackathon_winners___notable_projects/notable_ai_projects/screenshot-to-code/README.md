@@ -2,7 +2,9 @@
 
 Convert screenshots, mockups, Figma designs, and screen recordings into clean, functional code using AI. The easiest way to try this is using <a href="https://screenshottocode.com/?utm_source=github&utm_medium=readme&utm_campaign=oss_readme&utm_content=top_cta" target="_blank" rel="noopener noreferrer">the official, hosted product at screenshottocode.com →</a>
 
-https://github.com/user-attachments/assets/85b911c0-efea-4957-badb-daa97ec402ad
+
+https://github.com/user-attachments/assets/ec08a5e6-9606-41c5-b03a-1bf47dfeba75
+
 
 Supported stacks:
 
@@ -16,7 +18,7 @@ Supported stacks:
 Default AI models:
 
 - Gemini 3 Flash Preview and Gemini 3.1 Pro Preview - the best models
-- GPT-5.5, GPT-5.2 Codex, and GPT-5.4 Mini
+- GPT-5.5 and GPT-5.4 Mini
 - Claude Opus 4.6, Claude Opus 4.8
 - z-image-turbo (using Replicate) for image generation
 
@@ -46,7 +48,7 @@ the best results and lets you compare multiple models per generation.
 
 | Key | Required? | What it unlocks |
 |-----|-----------|-----------------|
-| `OPENAI_API_KEY` | One of these three | GPT code-gen variants (GPT-5.5, GPT-5.2 Codex) |
+| `OPENAI_API_KEY` | One of these three | GPT code-gen variants (GPT-5.5, GPT-5.4 Mini) |
 | `ANTHROPIC_API_KEY` | One of these three | Claude code-gen variants (Opus 4.8, Fable 5, Sonnet 4.6) |
 | `GEMINI_API_KEY` | One of these three — **strongly recommended** | Gemini code-gen variants (3 Flash, 3.1 Pro); extracts real assets from the screenshot; required for video mode |
 | `REPLICATE_API_KEY` | **Strongly recommended** | Image editing, background removal, and Replicate-backed image generation — without it, `edit_image` and `remove_background` are unavailable, and image generation falls back to OpenAI if configured |
