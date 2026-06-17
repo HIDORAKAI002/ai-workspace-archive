@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Firecrawl\Models\CreditUsage;
 use Firecrawl\Models\Document;
+use Firecrawl\Models\Product;
 use Firecrawl\Models\MapData;
 use Firecrawl\Models\BatchScrapeJob;
 use Firecrawl\Models\CrawlJob;
@@ -102,6 +103,85 @@ it('hydrates video URL in Document', function (): void {
 
     expect($doc->getMarkdown())->toBe('# Video');
     expect($doc->getVideo())->toBe('https://storage.googleapis.com/firecrawl/video.mp4');
+});
+
+it('hydrates product into Product model in Document', function (): void {
+    $doc = Document::fromArray([
+        'markdown' => '# Product',
+        'product' => [
+            'title' => 'Running Shoe',
+            'brand' => 'Acme',
+            'category' => 'Footwear',
+            'url' => 'https://example.com/shoe',
+            'description' => 'A fast running shoe.',
+            'variants' => [
+                [
+                    'id' => 'v1',
+                    'sku' => 'SHOE-RED-42',
+                    'title' => 'Red / 42',
+                    'values' => ['color' => 'red', 'size' => '42'],
+                    'price' => ['amount' => 99.99, 'currency' => 'USD', 'formatted' => '$99.99'],
+                    'sale' => ['originalPrice' => ['amount' => 129.99, 'currency' => 'USD']],
+                    'availability' => ['inStock' => false, 'text' => 'Sold out'],
+                    'images' => [['url' => 'https://example.com/shoe-red.jpg']],
+                ],
+                [
+                    'id' => 'v2',
+                    'title' => 'Blue / 42',
+                    'values' => ['color' => 'blue', 'size' => '42', 'limited' => true],
+                ],
+            ],
+        ],
+    ]);
+
+    $product = $doc->getProduct();
+
+    expect($product)->toBeInstanceOf(Product::class);
+    expect($product->getTitle())->toBe('Running Shoe');
+    expect($product->getBrand())->toBe('Acme');
+    expect($product->getCategory())->toBe('Footwear');
+    expect($product->getUrl())->toBe('https://example.com/shoe');
+    expect($product->getDescription())->toBe('A fast running shoe.');
+    expect($product->getVariants())->toHaveCount(2);
+
+    $v1 = $product->getVariants()[0];
+    expect($v1['id'])->toBe('v1');
+    expect($v1['values'])->toBe(['color' => 'red', 'size' => '42']);
+    expect($v1['price'])->toBe(['amount' => 99.99, 'currency' => 'USD', 'formatted' => '$99.99']);
+    expect($v1['sale'])->toBe(['originalPrice' => ['amount' => 129.99, 'currency' => 'USD']]);
+    expect($v1['availability'])->toBe(['inStock' => false, 'text' => 'Sold out']);
+    expect($v1['images'])->toBe([['url' => 'https://example.com/shoe-red.jpg']]);
+
+    // Availability is always present, even when omitted from the payload.
+    $v2 = $product->getVariants()[1];
+    expect($v2['values'])->toBe(['color' => 'blue', 'size' => '42', 'limited' => true]);
+    expect($v2['availability'])->toBe(['inStock' => false]);
+    expect(array_key_exists('sale', $v2))->toBeFalse();
+    expect(array_key_exists('price', $v2))->toBeFalse();
+});
+
+it('returns null product when absent in Document', function (): void {
+    $doc = Document::fromArray(['markdown' => '# No product']);
+
+    expect($doc->getProduct())->toBeNull();
+});
+
+it('coerces non-string scalar identity fields without a TypeError under strict_types', function (): void {
+    // Defensive: upstream data could carry a non-string scalar (e.g. a numeric
+    // brand). Under declare(strict_types=1) these must be cast, not passed raw.
+    $product = Product::fromArray([
+        'title' => 'Widget',
+        'url' => 'https://example.com/widget',
+        'brand' => 1234,
+        'category' => 56.7,
+        'description' => true,
+        'variants' => [],
+    ]);
+
+    expect($product->getBrand())->toBe('1234');
+    expect($product->getCategory())->toBe('56.7');
+    expect($product->getDescription())->toBe('1');
+    expect($product->getVariants())->toBe([]);
 });
 
 it('preserves positional integration in ScrapeOptions::with', function (): void {

@@ -204,6 +204,19 @@ Document doc = client.scrape("https://example.com/product",
 System.out.println(doc.getJson());
 ```
 
+#### Product Extraction
+
+Use the `product` format to get structured product data (title, brand, and variants, each with their own price and availability) from product pages, available on the document's `getProduct()`. It is the deterministic counterpart to the LLM-powered `json` format.
+
+```java
+Document doc = client.scrape("https://example.com/product",
+    ScrapeOptions.builder()
+        .formats(List.of("product"))
+        .build());
+
+System.out.println(doc.getProduct());
+```
+
 #### Scrape-Bound Interactive Session
 
 Run browser automation against the page context captured by a scrape job:

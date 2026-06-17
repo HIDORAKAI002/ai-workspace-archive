@@ -22,6 +22,54 @@ type Document struct {
 	Warning        string                   `json:"warning,omitempty"`
 	ChangeTracking map[string]interface{}   `json:"changeTracking,omitempty"`
 	Branding       map[string]interface{}   `json:"branding,omitempty"`
+	Product        *ProductProfile          `json:"product,omitempty"`
+}
+
+// ProductProfile represents structured product data extracted from a page
+// via the `product` scrape format.
+type ProductProfile struct {
+	Title         string               `json:"title"`
+	Brand         string               `json:"brand,omitempty"`
+	Category      string               `json:"category,omitempty"`
+	URL           string               `json:"url"`
+	Description   string               `json:"description,omitempty"`
+	Variants      []ProductVariant     `json:"variants,omitempty"`
+}
+
+// ProductImage is a single product image.
+type ProductImage struct {
+	URL string `json:"url"`
+	Alt string `json:"alt,omitempty"`
+}
+
+// ProductPrice represents a price for a product or variant.
+type ProductPrice struct {
+	Amount    float64 `json:"amount"`
+	Currency  string  `json:"currency,omitempty"`
+	Formatted string  `json:"formatted,omitempty"`
+}
+
+// ProductAvailability represents stock availability for a product or variant.
+type ProductAvailability struct {
+	InStock bool   `json:"inStock"`
+	Text    string `json:"text,omitempty"`
+}
+
+// ProductSale represents sale information for a product variant.
+type ProductSale struct {
+	OriginalPrice ProductPrice `json:"originalPrice"`
+}
+
+// ProductVariant represents a single purchasable variant of a product.
+type ProductVariant struct {
+	ID           string              `json:"id,omitempty"`
+	SKU          string              `json:"sku,omitempty"`
+	Title        string              `json:"title,omitempty"`
+	Values       map[string]any      `json:"values,omitempty"`
+	Price        *ProductPrice       `json:"price,omitempty"`
+	Sale         *ProductSale        `json:"sale,omitempty"`
+	Availability ProductAvailability `json:"availability"`
+	Images       []ProductImage      `json:"images,omitempty"`
 }
 
 // PaperResult represents a ranked research paper result.
