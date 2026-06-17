@@ -15,6 +15,7 @@ import {
   BusinessDesktopRoutesWithMainLayout,
   BusinessDesktopRoutesWithoutMainLayout,
 } from '@/business/client/BusinessDesktopRoutes';
+import { agentDocumentRouteMeta } from '@/features/AgentDocumentPage/routeMeta';
 import { taskRouteMeta, tasksRouteMeta } from '@/features/AgentTasks/routeMeta';
 import { fleetRouteMeta } from '@/features/Fleet/routeMeta';
 import { pageRouteMeta } from '@/features/Pages/routeMeta';
@@ -63,6 +64,23 @@ export const sharedMainAreaChildren: RouteObject[] = [
               () => import('@/routes/(main)/agent/(chat)/_layout'),
               'Desktop > Chat > ChatLayout',
             ),
+          },
+          {
+            children: [
+              {
+                element: dynamicElement(
+                  () => import('@/routes/(main)/agent/docs/[docId]'),
+                  'Desktop > Chat > Document',
+                ),
+                handle: { meta: agentDocumentRouteMeta },
+                path: ':docId',
+              },
+            ],
+            element: dynamicLayout(
+              () => import('@/routes/(main)/agent/docs/_layout'),
+              'Desktop > Chat > DocumentLayout',
+            ),
+            path: 'docs',
           },
           {
             element: dynamicElement(
