@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-06-17 19:45 IST] Auto-Sync
+- **37 Repositories Updated:** MCP Python SDK, Keboola MCP, Kubernetes MCP Server, GitHub MCP Server, Langfuse, NVIDIA NeMo Guardrails, n8n, Dify, Activepieces, Trigger.dev, Windmill, Budibase, modelcontextprotocol/modelcontextprotocol, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, langchain-ai/langgraph, camel-ai/camel, microsoft/semantic-kernel, mastra-ai/mastra, deepset-ai/haystack, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, weaviate/weaviate, infiniflow/ragflow, open-telemetry/opentelemetry-python, vercel/ai, apache/airflow, unslothai/unsloth, sgl-project/sglang, openclaw/openclaw, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow, nousresearch/hermes-agent
+
 ## [2026-06-17 12:59 IST] Auto-Sync
 - **31 Repositories Updated:** MCP Official Servers, Kubernetes MCP Server, Awesome ChatGPT Prompts, Dify, Windmill, modelcontextprotocol/rust-sdk, punkpeye/awesome-mcp-servers, appcypher/awesome-mcp-servers, wong2/awesome-mcp-servers, mastra-ai/mastra, BerriAI/litellm, ggml-org/llama.cpp, vllm-project/vllm, lobehub/lobe-chat, cline/cline, milvus-io/milvus, infiniflow/ragflow, traceloop/openllmetry, arize-ai/phoenix, open-telemetry/opentelemetry-python, BradyFU/Awesome-Multimodal-Large-Language-Models, danny-avila/LibreChat, apache/airflow, sgl-project/sglang, openclaw/openclaw, shanraisshan/claude-code-best-practice, obra/superpowers, mastra-ai/mastra, vectorize-io/hindsight, bytedance/deer-flow, nousresearch/hermes-agent
 

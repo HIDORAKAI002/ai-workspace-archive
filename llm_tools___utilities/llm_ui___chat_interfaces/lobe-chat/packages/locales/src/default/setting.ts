@@ -413,8 +413,8 @@ export default {
   'danger.clear.confirm': "Clear all chat data? This can't be undone.",
   'danger.clear.desc':
     'Delete all data, including agents, files, messages, and skills. Your account will NOT be deleted.',
-  'danger.clear.success': 'All session messages have been cleared',
-  'danger.clear.title': 'Wipe Data',
+  'danger.clear.success': 'All conversation messages have been cleared',
+  'danger.clear.title': 'Clear Data',
   'danger.reset.action': 'Reset Now',
   'danger.reset.confirm': 'Reset all settings?',
   'danger.reset.currentVersion': 'Current Version',
@@ -436,9 +436,9 @@ export default {
   'header.global': 'Global Settings',
   'header.group': 'Group Settings',
   'header.groupDesc': 'Manage group and chat preferences',
-  'header.session': 'Session Settings',
-  'header.sessionDesc': 'Agent Profile and session preferences',
-  'header.sessionWithName': 'Session Settings · {{name}}',
+  'header.session': 'Agent Settings',
+  'header.sessionDesc': 'Agent Profile and chat preferences',
+  'header.sessionWithName': 'Agent Settings · {{name}}',
   'header.title': 'Settings',
   'hotkey.clearBinding': 'Clear binding',
   'hotkey.conflicts': 'Conflicts with existing hotkeys',
@@ -504,7 +504,7 @@ export default {
   'llm.fetcher.noLatestTime': 'No list available yet',
   'llm.helpDoc': 'Configuration Guide',
   'llm.modelList.desc':
-    'Select the models to display in the session. The selected models will be displayed in the model list.',
+    'Select the models to display in conversations. The selected models will be displayed in the model list.',
   'llm.modelList.placeholder': 'Please select a model from the list',
   'llm.modelList.title': 'Model List',
   'llm.modelList.total': '{{count}} models available in total',
@@ -794,14 +794,14 @@ export default {
   'settingGroup.scene.options.productive': 'Productive',
   'settingGroup.scene.title': 'Group scenario',
   'settingGroup.submit': 'Update Group',
-  'settingGroup.systemPrompt.placeholder': 'Please enter the host system prompt',
-  'settingGroup.systemPrompt.title': 'Host System Prompt',
+  'settingGroup.systemPrompt.placeholder': 'Please enter the Orchestrator system prompt',
+  'settingGroup.systemPrompt.title': 'Orchestrator System Prompt',
   'settingGroup.title': 'Group Information',
   'settingGroupChat.allowDM.desc':
     'When turned off, you can still send direct messages to the agent',
   'settingGroupChat.allowDM.title': 'Allow Direct Messages from Agent',
   'settingGroupChat.enableSupervisor.desc':
-    'Enable the moderator feature to manage Group conversations',
+    'Enable the Orchestrator feature to manage Group conversations',
   'settingGroupChat.enableSupervisor.title': 'Enable Orchestrator',
   'settingGroupChat.maxResponseInRow.desc':
     'Select how many consecutive messages a member can reply with. Set to 0 to disable this limit.',
@@ -825,9 +825,10 @@ export default {
   'settingGroupChat.revealDM.title': 'Show Private Messages',
   'settingGroupChat.submit': 'Update Settings',
   'settingGroupChat.systemPrompt.desc':
-    'Custom system prompt for the group chat host. This may affect the default host behavior.',
-  'settingGroupChat.systemPrompt.placeholder': 'Please enter a custom host system prompt...',
-  'settingGroupChat.systemPrompt.title': 'Host System Prompt',
+    'Custom system prompt for the group chat Orchestrator. This may affect the default Orchestrator behavior.',
+  'settingGroupChat.systemPrompt.placeholder':
+    'Please enter a custom Orchestrator system prompt...',
+  'settingGroupChat.systemPrompt.title': 'Orchestrator System Prompt',
   'settingGroupChat.title': 'Chat Settings',
   'settingGroupMembers.addToGroup': 'Add to Group',
   'settingGroupMembers.availableAgents': 'Available Agents',
@@ -1610,8 +1611,7 @@ When I am ___, I need ___
     'All agents, skills, and their configurations',
   'workspace.general.delete.confirm.warning.items.billing':
     'Subscription, budget settings, and auto top-up',
-  'workspace.general.delete.confirm.warning.items.conversations':
-    'All sessions, messages, topics, and tasks',
+  'workspace.general.delete.confirm.warning.items.conversations': 'All messages, topics, and tasks',
   'workspace.general.delete.confirm.warning.items.files':
     'Uploaded files, generations, and knowledge base data',
   'workspace.general.delete.confirm.warning.items.members':
@@ -1622,7 +1622,7 @@ When I am ___, I need ___
     'This cannot be undone. Spend and top-up history will be retained for audit only.',
   'workspace.general.delete.cta': 'Delete Workspace',
   'workspace.general.delete.description':
-    'Permanently delete this workspace and everything inside it — agents, sessions, messages, files, members, and invitations. This action cannot be reversed.',
+    'Permanently delete this workspace and everything inside it — agents, messages, files, members, and invitations. This action cannot be reversed.',
   'workspace.general.delete.failed': 'Failed to delete workspace',
   'workspace.general.delete.hint':
     'Cancel any active subscription before deletion. Billing history is kept for audit.',
@@ -2190,7 +2190,7 @@ When I am ___, I need ___
   'workspaceSetting.storage.comingSoon': 'Workspace-scoped data import & export is coming soon.',
   'workspaceSetting.storage.danger.clear.desc':
     'Delete all data in this workspace, including agents, files, messages, and skills. The workspace itself will NOT be deleted.',
-  'workspaceSetting.storage.danger.clear.title': 'Wipe Workspace Data',
+  'workspaceSetting.storage.danger.clear.title': 'Clear Workspace Data',
   'workspaceSetting.storage.danger.reset.desc':
     'Restore all workspace settings to defaults. Workspace data will not be deleted.',
   'workspaceSetting.storage.danger.reset.title': 'Reset Workspace Settings',
