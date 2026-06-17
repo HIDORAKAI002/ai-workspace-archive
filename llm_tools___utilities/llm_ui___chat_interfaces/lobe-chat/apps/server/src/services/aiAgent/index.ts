@@ -1898,9 +1898,17 @@ export class AiAgentService {
       // `isDesktop` uses `gatewayConfigured` as a proxy: a device-gateway
       // deployment serves desktop-class users, so the unset-target default
       // resolves to `local` there and `none` otherwise.
+      //
+      // Chat mode is orthogonal to `executionTarget` (the UI toggle only writes
+      // `enableAgentMode`), so a default/stored `local` target would otherwise
+      // resolve a device and `buildStepToolDelta` would re-inject local-system.
+      // Pass `chatConfig` so the plan degrades to `none` in chat mode — the
+      // chat-mode derivation lives in `resolveExecutionPlan` (`resolveToolMode`),
+      // the same source of truth the tools engine uses.
       executionPlan = resolveExecutionPlan({
         agencyConfig: agentConfig.agencyConfig,
         canUseDevice,
+        chatConfig: agentConfig.chatConfig ?? undefined,
         isDesktop: gatewayConfigured,
         onlineDeviceIds: onlineDevices.map((device) => device.deviceId),
         requestedDeviceId,

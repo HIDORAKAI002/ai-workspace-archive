@@ -45,6 +45,7 @@ from .audit import AuditLogger, audit_context
 from .bank_stats_cache import BankStatsCache
 from .db import DatabaseBackend, create_database_backend
 from .db_budget import budgeted_operation
+from .llm_interface import ProviderRateLimitResetError
 from .llm_trace import (
     LLMRequestEntry,
     LLMRequestListResponse,
@@ -744,6 +745,37 @@ def _resolve_refresh_tag_filtering(
     return RefreshTagFiltering(tags=model_tags, tags_match=tags_match, tag_groups=None)
 
 
+@dataclass
+class ResolvedDispositionMission:
+    """Disposition + mission after overlaying resolved bank config on the legacy columns."""
+
+    disposition: dict[str, int]
+    mission: str
+
+
+def _overlay_bank_config_disposition_mission(
+    disposition: dict[str, int], mission: str, config_dict: dict[str, Any]
+) -> ResolvedDispositionMission:
+    """Overlay resolved bank config on top of the legacy banks.disposition /
+    banks.mission column values.
+
+    ``reflect_mission`` and ``disposition_*`` in the resolved bank config take
+    precedence over the legacy DB columns. Shared by ``get_bank_profile`` and
+    ``list_banks`` so the single-bank and list paths return identical
+    disposition + mission for the same bank.
+    """
+    resolved_mission = config_dict.get("reflect_mission") or mission
+    cfg_skep = config_dict.get("disposition_skepticism")
+    cfg_lit = config_dict.get("disposition_literalism")
+    cfg_emp = config_dict.get("disposition_empathy")
+    resolved_disposition = {
+        "skepticism": cfg_skep if cfg_skep is not None else disposition["skepticism"],
+        "literalism": cfg_lit if cfg_lit is not None else disposition["literalism"],
+        "empathy": cfg_emp if cfg_emp is not None else disposition["empathy"],
+    }
+    return ResolvedDispositionMission(disposition=resolved_disposition, mission=resolved_mission)
+
+
 class MemoryEngine(MemoryEngineInterface):
     """
     Advanced memory system using temporal and semantic linking with PostgreSQL.
@@ -933,6 +965,7 @@ class MemoryEngine(MemoryEngineInterface):
             default_headers=config.llm_default_headers,
             litellmrouter_config=config.llm_litellmrouter_config,
             bedrock_service_tier=config.llm_bedrock_service_tier,
+            gemini_service_tier=config.llm_gemini_service_tier,
         )
 
         # Store client and model for convenience (deprecated: use _llm_config.call() instead)
@@ -966,6 +999,7 @@ class MemoryEngine(MemoryEngineInterface):
             default_headers=config.llm_default_headers,
             litellmrouter_config=config.retain_llm_litellmrouter_config or config.llm_litellmrouter_config,
             bedrock_service_tier=config.llm_bedrock_service_tier,
+            gemini_service_tier=config.llm_gemini_service_tier,
         )
 
         # Reflect LLM config - for think/observe operations (can use lighter models)
@@ -994,6 +1028,7 @@ class MemoryEngine(MemoryEngineInterface):
             default_headers=config.llm_default_headers,
             litellmrouter_config=config.reflect_llm_litellmrouter_config or config.llm_litellmrouter_config,
             bedrock_service_tier=config.llm_bedrock_service_tier,
+            gemini_service_tier=config.llm_gemini_service_tier,
         )
 
         # Consolidation LLM config - for mental model consolidation (can use efficient models)
@@ -1022,6 +1057,7 @@ class MemoryEngine(MemoryEngineInterface):
             default_headers=config.llm_default_headers,
             litellmrouter_config=config.consolidation_llm_litellmrouter_config or config.llm_litellmrouter_config,
             bedrock_service_tier=config.llm_bedrock_service_tier,
+            gemini_service_tier=config.llm_gemini_service_tier,
         )
 
         # Initialize cross-encoder reranker (cached for performance)
@@ -1752,6 +1788,9 @@ class MemoryEngine(MemoryEngineInterface):
 
                 audit_entry.response = {"status": "completed", "operation_id": operation_id}
 
+            except ProviderRateLimitResetError as e:
+                logger.warning(f"Task deferred until provider quota resets at {e.retry_at}: {e}")
+                raise DeferOperation(exec_date=e.retry_at, reason=str(e)) from e
             except RetryTaskAt:
                 # Task-owned retry: let the poller handle scheduling
                 raise
@@ -2751,7 +2790,15 @@ class MemoryEngine(MemoryEngineInterface):
 
         self._parser_registry = FileParserRegistry()
         try:
-            self._parser_registry.register(MarkitdownParser())
+            self._parser_registry.register(
+                MarkitdownParser(
+                    ocr_enabled=config.file_parser_markitdown_ocr_enabled,
+                    ocr_api_key=config.file_parser_markitdown_ocr_api_key,
+                    ocr_base_url=config.file_parser_markitdown_ocr_base_url,
+                    ocr_model=config.file_parser_markitdown_ocr_model,
+                    ocr_prompt=config.file_parser_markitdown_ocr_prompt,
+                )
+            )
             logger.debug("Registered markitdown parser")
         except ImportError:
             logger.warning("markitdown not available - file parsing disabled")
@@ -8112,25 +8159,15 @@ class MemoryEngine(MemoryEngineInterface):
 
         # reflect_mission and disposition in config take precedence over the legacy DB columns
         config_dict = await self._config_resolver.get_bank_config(bank_id, request_context)
-        mission = config_dict.get("reflect_mission") or profile["mission"]
-
-        # Overlay disposition from config if explicitly set; fall back to DB values
         db_disp = profile["disposition"]
         db_disp_dict = db_disp.model_dump() if hasattr(db_disp, "model_dump") else dict(db_disp)
-        cfg_skep = config_dict.get("disposition_skepticism")
-        cfg_lit = config_dict.get("disposition_literalism")
-        cfg_emp = config_dict.get("disposition_empathy")
-        disposition = {
-            "skepticism": cfg_skep if cfg_skep is not None else db_disp_dict["skepticism"],
-            "literalism": cfg_lit if cfg_lit is not None else db_disp_dict["literalism"],
-            "empathy": cfg_emp if cfg_emp is not None else db_disp_dict["empathy"],
-        }
+        resolved = _overlay_bank_config_disposition_mission(db_disp_dict, profile["mission"], config_dict)
 
         return {
             "bank_id": bank_id,
             "name": profile["name"],
-            "disposition": disposition,
-            "mission": mission,
+            "disposition": resolved.disposition,
+            "mission": resolved.mission,
         }
 
     async def _ensure_bank_exists(
@@ -8345,6 +8382,17 @@ class MemoryEngine(MemoryEngineInterface):
                 BankListContext(banks=banks, request_context=request_context)
             )
             banks = result.banks
+        # Overlay resolved bank config (reflect_mission + disposition_*) on top of the
+        # legacy banks.disposition / banks.mission columns, mirroring get_bank_profile so
+        # the list and get paths return identical disposition + mission for a bank.
+        # Resolve every bank's config in one batch (single config-column query + a single
+        # tenant-config resolve) rather than one round-trip per bank.
+        configs = await self._config_resolver.get_bank_configs([bank["bank_id"] for bank in banks], request_context)
+        for bank in banks:
+            resolved = _overlay_bank_config_disposition_mission(
+                bank["disposition"], bank["mission"], configs.get(bank["bank_id"], {})
+            )
+            bank["disposition"], bank["mission"] = resolved.disposition, resolved.mission
         return banks
 
     # ==================== Reflect Methods ====================

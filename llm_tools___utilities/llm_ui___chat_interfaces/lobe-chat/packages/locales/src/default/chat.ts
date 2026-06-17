@@ -33,8 +33,8 @@ export default {
   'agentDocument.openAsPage': 'Open as full page',
   'agentProfile.files_one': '{{count}} file',
   'agentProfile.files_other': '{{count}} files',
-  'agentProfile.knowledgeBases_one': '{{count}} knowledge base',
-  'agentProfile.knowledgeBases_other': '{{count}} knowledge bases',
+  'agentProfile.knowledgeBases_one': '{{count}} library',
+  'agentProfile.knowledgeBases_other': '{{count}} libraries',
   'agentProfile.skills_one': '{{count}} skill',
   'agentProfile.skills_other': '{{count}} skills',
   'agentSignal.receipts.agentSignalLabel': 'Agent Signal',
@@ -57,7 +57,7 @@ export default {
   'chatList.expandMessage': 'Expand Message',
   'chatList.longMessageDetail': 'View Details',
   'chatList.refreshing': 'Fetching latest messages...',
-  'clearCurrentMessages': 'Clear current session messages',
+  'clearCurrentMessages': 'Clear current conversation messages',
   'compressedHistory': 'Compressed History',
   'compression.cancel': 'Uncompress',
   'compression.cancelConfirm':
@@ -65,7 +65,7 @@ export default {
   'compression.history': 'History',
   'compression.summary': 'Summary',
   'confirmClearCurrentMessages':
-    'You are about to clear the current session messages. Once cleared, they cannot be retrieved. Please confirm your action.',
+    'You are about to clear the current conversation messages. Once cleared, they cannot be retrieved. Please confirm your action.',
   'confirmRemoveChatGroupItemAlert':
     'This Group will be deleted. Group-specific assistants will also be deleted, while external assistants will not be affected.',
   'confirmRemoveGroupItemAlert':
@@ -128,9 +128,9 @@ export default {
   'group.profile.externalAgentWarning':
     'This is an external agent. Changes made here will directly modify the original agent configuration.',
   'group.profile.groupSettings': 'Group Settings',
-  'group.profile.supervisor': 'Supervisor',
+  'group.profile.supervisor': 'Orchestrator',
   'group.profile.supervisorPlaceholder':
-    'The supervisor coordinates different agents. Setting supervisor information here enables more precise workflow coordination.',
+    'The Orchestrator coordinates different agents. Setting Orchestrator information here enables more precise workflow coordination.',
   'group.removeMember': 'Remove Member',
   'group.title': 'Group',
   'groupDescription': 'Group description',
@@ -653,7 +653,7 @@ export default {
   'stt.action': 'Voice Input',
   'stt.loading': 'Recognizing...',
   'stt.prettifying': 'Polishing...',
-  'supervisor.label': 'Supervisor',
+  'supervisor.label': 'Orchestrator',
   'supervisor.todoList.allComplete': 'All tasks completed',
   'supervisor.todoList.title': 'Tasks Completed',
   'tab.groupProfile': 'Group Profile',
@@ -924,7 +924,7 @@ export default {
   'tokenDetails.chats': 'Chat Messages',
   'tokenDetails.historySummary': 'History Summary',
   'tokenDetails.rest': 'Remaining',
-  'tokenDetails.supervisor': 'Group Host',
+  'tokenDetails.supervisor': 'Orchestrator',
   'tokenDetails.systemRole': 'Role Settings',
   'tokenDetails.title': 'Context Details',
   'tokenDetails.tools': 'Skill Settings',
@@ -980,7 +980,7 @@ export default {
   'topic.openNewTopic': 'Open New Topic',
   'topic.defaultTitle': 'Untitled Topic',
   'topic.recent': 'Recent Topics',
-  'topic.saveCurrentMessages': 'Save current session as topic',
+  'topic.saveCurrentMessages': 'Save current conversation as topic',
   'topic.viewAll': 'View All Topics',
   'translate.action': 'Translate',
   'translate.clear': 'Clear Translation',
@@ -1081,7 +1081,7 @@ export default {
   'workflow.toolDisplayName.showAgentMarketplace': 'Assembled agent team',
   'workflow.toolDisplayName.submitAgentPick': 'Picked agents',
   'workflow.toolDisplayName.searchAgent': 'Searched agents',
-  'workflow.toolDisplayName.searchKnowledgeBase': 'Searched knowledge base',
+  'workflow.toolDisplayName.searchKnowledgeBase': 'Searched library',
   'workflow.toolDisplayName.searchLocalFiles': 'Searched files',
   'workflow.toolDisplayName.searchSkill': 'Searched skills',
   'workflow.toolDisplayName.searchUserMemory': 'Searched memory',
@@ -1224,5 +1224,4 @@ export default {
   'workingPanel.documents.unsaved': 'Unsaved changes',
   'workingPanel.title': 'Working Panel',
   'you': 'You',
-  'zenMode': 'Zen Mode',
 };
