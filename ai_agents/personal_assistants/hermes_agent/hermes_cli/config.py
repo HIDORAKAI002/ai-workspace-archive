@@ -1104,6 +1104,11 @@ DEFAULT_CONFIG = {
         "min_interval_hours": 24,
     },
 
+    # Maximum characters loaded from a single automatic context file such as
+    # SOUL.md, AGENTS.md, CLAUDE.md, .hermes.md, or .cursorrules before Hermes
+    # applies head/tail truncation. This is separate from read_file tool limits.
+    "context_file_max_chars": 20_000,
+
     # Maximum characters returned by a single read_file call.  Reads that
     # exceed this are rejected with guidance to use offset+limit.
     # 100K chars ≈ 25–35K tokens across typical tokenisers.
@@ -2265,6 +2270,17 @@ DEFAULT_CONFIG = {
     # Gateway settings — control how messaging platforms (Telegram, Discord,
     # Slack, etc.) deliver agent-produced files as native attachments.
     "gateway": {
+        # Inject a human-readable timestamp prefix (e.g.
+        # "[Tue 2026-04-28 13:40:53 CEST]") onto user messages IN THE MODEL'S
+        # CONTEXT so the agent has temporal awareness of when each message was
+        # sent. Off by default — when off, the model sees clean message text.
+        # Persisted transcripts always stay clean (the timestamp is stored as
+        # message metadata regardless of this toggle), so turning it on later
+        # surfaces send-times for past messages too.
+        "message_timestamps": {
+            "enabled": False,
+        },
+
         # When false (default), any file path the agent emits is delivered
         # as a native attachment as long as it isn't under the credential /
         # system-path denylist (/etc, /proc, ~/.ssh, ~/.aws, ~/.hermes/.env,
