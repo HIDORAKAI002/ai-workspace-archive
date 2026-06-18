@@ -1,130 +1,131 @@
-# Model Context Protocol (MCP) för nybörjare - Studieguide
+# Model Context Protocol (MCP) för nybörjare - Studieguiden
 
-Denna studieguide ger en översikt över repositories struktur och innehåll för kursen "Model Context Protocol (MCP) för nybörjare". Använd denna guide för att navigera i repositoryt effektivt och få ut det mesta av de tillgängliga resurserna.
+Denna studieguiden ger en översikt över repots struktur och innehåll för "Model Context Protocol (MCP) för nybörjare"-kursen. Använd den här guiden för att navigera i repot effektivt och få ut maximalt av de tillgängliga resurserna.
 
-## Översikt av repository
+## Översikt av repot
 
-Model Context Protocol (MCP) är ett standardiserat ramverk för interaktioner mellan AI-modeller och klientapplikationer. Ursprungligen skapat av Anthropic, underhålls MCP nu av den bredare MCP-gemenskapen genom den officiella GitHub-organisationen. Detta repository tillhandahåller en omfattande kurs med praktiska kodexempel i C#, Java, JavaScript, Python och TypeScript, avsedd för AI-utvecklare, systemarkitekter och mjukvaruingenjörer.
+Model Context Protocol (MCP) är ett standardiserat ramverk för interaktioner mellan AI-modeller och klientapplikationer. Ursprungligen skapat av Anthropic, underhålls MCP nu av det bredare MCP-communityt genom den officiella GitHub-organisationen. Detta repo erbjuder en omfattande kursplan med praktiska kodexempel i C#, Java, JavaScript, Python och TypeScript, designad för AI-utvecklare, systemarkitekter och mjukvaruingenjörer.
 
-## Visuell kursöversikt
+## Visuell kurskarta
 
 ```mermaid
 mindmap
-  root((MCP för nybörjare))
+  root((MCP för Nybörjare))
     00. Introduktion
       ::icon(fa fa-book)
       (Protokollöversikt)
-      (Fördelar med standardisering)
-      (Verkliga användningsfall)
-      (Grunderna i AI-integration)
-    01. Kärnbegrepp
+      (Standardiseringsfördelar)
+      (Verkliga Användningsfall)
+      (Grunder för AI-Integration)
+    01. Kärnkoncept
       ::icon(fa fa-puzzle-piece)
-      (Klient-server-arkitektur)
+      (Klient-Server Arkitektur)
       (Protokollkomponenter)
       (Meddelandemönster)
       (Transportmekanismer)
       (Uppgifter - Experimentella)
-      (Verktygsannoteringar)
+      (Verktygsanteckningar)
     02. Säkerhet
       ::icon(fa fa-shield)
-      (AI-specifika hot)
+      (AI-specifika Hot)
       (Bästa praxis 2025)
-      (Azure innehållssäkerhet)
-      (Autentisering & auktorisering)
+      (Azure Innehållssäkerhet)
+      (Autentisering & Auktorisering)
       (Microsoft Prompt-skydd)
-      (OWASP MCP topp 10)
-      (Sherpa säkerhetsworkshop)
-    03. Komma igång
+      (OWASP MCP Topp 10)
+      (Sherpa Säkerhetsworkshop)
+    03. Komma Igång
       ::icon(fa fa-rocket)
-      (Första serverimplementationen)
+      (Första Serverimplementeringen)
       (Klientutveckling)
-      (LLM-klientintegration)
-      (VS Code-tillägg)
-      (SSE-serveruppsättning)
-      (HTTP-strömning)
-      (Integrering av AI-verktyg)
+      (LLM Klientintegration)
+      (VS Code Tillägg)
+      (SSE Serverinställning)
+      (HTTP Streaming)
+      (AI Verktygskit Integration)
       (Testningsramverk)
-      (Avancerad serveranvändning)
+      (Avancerad Serveranvändning)
       (Enkel autentisering)
-      (Distributionsstrategier)
-      (MCP hostars uppsättning)
-      (MCP-inspektör)
-    04. Praktisk implementering
+      (Implementeringsstrategier)
+      (MCP Värdinställningar)
+      (MCP Inspektör)
+    04. Praktisk Implementation
       ::icon(fa fa-code)
       (SDK:er för flera språk)
-      (Testning & felsökning)
+      (Testning & Felsökning)
       (Promptmallar)
       (Exempelprojekt)
       (Produktionsmönster)
-      (Pagineringstrategier)
-    05. Avancerade ämnen
+      (Pagineringsstrategier)
+    05. Avancerade Ämnen
       ::icon(fa fa-graduation-cap)
       (Kontextteknik)
-      (Foundry-agentintegration)
-      (Multimodala AI-arbetsflöden)
-      (OAuth2-autentisering)
-      (Sökning i realtid)
-      (Strömningsprotokoll)
+      (Foundry Agent Integration)
+      (Multimodala AI Arbetsflöden)
+      (OAuth2 Autentisering)
+      ( Realtidssökning)
+      (Streamingprotokoll)
       (Rotkontexter)
-      (Routingstrategier)
-      (Samplingstekniker)
-      (Skaleringslösningar)
+      (Rutteringsstrategier)
+      (Uttagningsmetoder)
+      (Skalningslösningar)
       (Säkerhetshärdning)
-      (Integrering med Entra ID)
+      (Entra ID Integration)
       (Webbsök MCP)
-      (Djupdykning i protokollfunktioner)
-      (Motstridiga multi-agent resonemang)
+      (Djupdykning i Protokollfunktioner)
+      (Adversariell Multi-Agent Resonemang)
       
-    06. Community
+    06. Gemenskap
       ::icon(fa fa-users)
       (Kodbidrag)
       (Dokumentation)
-      (MCP-klientekosystem)
-      (MCP-serverregister)
-      (Verktyg för bildgenerering)
-      (GitHub-samarbete)
-    07. Tidigt antagande
+      (MCP Klientekosystem)
+      (MCP Serverregister)
+      (Bildgenereringsverktyg)
+      (GitHub Samarbete)
+    07. Tidig Antagning
       ::icon(fa fa-lightbulb)
-      (Produktionsdistributioner)
-      (Microsoft MCP-servrar)
-      (Azure MCP-tjänst)
+      (Produktionsimplementeringar)
+      (Microsoft MCP Servrar)
+      (Azure MCP Tjänst)
       (Företagsfallstudier)
-      (Framtida färdplan)
-    08. Bästa praxis
+      (Framtida Plan)
+    08. Bästa Praxis
       ::icon(fa fa-check)
       (Prestandaoptimering)
-      (Felförtålighet)
+      (Fel tolerans)
       (Systemresiliens)
-      (Övervakning & observabilitet)
+      (Övervakning & Observerbarhet)
     09. Fallstudier
       ::icon(fa fa-file-text)
       (Azure API-hantering)
-      (AI resebyrå)
-      (Azure DevOps-integration)
+      (AI Resebyrå)
+      (Azure DevOps Integration)
       (Dokumentation MCP)
-      (GitHub MCP-register)
-      (VS Code-integration)
-      (Verkliga implementationer)
-    10. Praktisk workshop
+      (GitHub MCP Register)
+      (VS Code Integration)
+      (Verkliga Implementationer)
+    10. Praktisk Workshop
       ::icon(fa fa-laptop)
-      (MCP server-grunder)
-      (Avancerad utveckling)
-      (Integrering av AI-verktyg)
-      (Produktionsdistribution)
-      (4-lab struktur)
-    11. Databasintegrationslabbar
+      (MCP Server Grunder)
+      (Avancerad Utveckling)
+      (AI Verktygskitsintegration)
+      (Produktionsimplementering)
+      (4-Labb Struktur)
+    11. Databasintegrationslabb
       ::icon(fa fa-database)
-      (PostgreSQL-integration)
-      (Detaljhandelsanalys användningsfall)
+      (PostgreSQL Integration)
+      (Användningsfall för Retail Analytics)
       (Radnivåsäkerhet)
-      (Semantisk sökning)
-      (Produktionsdistribution)
-      (13-lab struktur)
-      (Praktiskt lärande)
+      (Semantisk Sökning)
+      (Produktionsimplementering)
+      (13-Labb Struktur)
+      (Praktiskt Lärande)
 ```
-## Repositorystruktur
 
-Repositoryt är organiserat i elva huvudsektioner, där varje fokuserar på olika aspekter av MCP:
+## Repos struktur
+
+Repot är organiserat i elva huvudsektioner, var och en fokuserad på olika aspekter av MCP:
 
 1. **Introduktion (00-Introduction/)**
    - Översikt av Model Context Protocol
@@ -138,152 +139,152 @@ Repositoryt är organiserat i elva huvudsektioner, där varje fokuserar på olik
 
 3. **Säkerhet (02-Security/)**
    - Säkerhetshot i MCP-baserade system
-   - Bästa praxis för att säkra implementationer
-   - Autentiserings- och auktoriseringsstrategier
+   - Bästa praxis för säkra implementationer
+   - Autentisering och auktoriseringsstrategier
    - **Omfattande säkerhetsdokumentation**:
      - MCP Security Best Practices 2025
      - Azure Content Safety Implementation Guide
      - MCP Security Controls and Techniques
      - MCP Best Practices Quick Reference
    - **Viktiga säkerhetsämnen**:
-     - Promptinjektion och verktygsförgiftning
-     - Sessionkapning och confused deputy-problem
-     - Sårbarheter vid token-vidarebefordran
+     - Prompt-injektion och verktygsförgiftning
+     - Sessionskapning och confused deputy-problem
+     - Token passthrough-sårbarheter
      - Överdrivna behörigheter och åtkomstkontroll
-     - Leveranskedjesäkerhet för AI-komponenter
+     - Leverantörskedjesäkerhet för AI-komponenter
      - Microsoft Prompt Shields-integration
 
-4. **Komma igång (03-GettingStarted/)**
+4. **Kom igång (03-GettingStarted/)**
    - Miljösetup och konfiguration
    - Skapa grundläggande MCP-servrar och klienter
    - Integration med befintliga applikationer
    - Innehåller sektioner för:
-     - Första serverimplementationen
+     - Första server-implementationen
      - Klientutveckling
      - LLM-klientintegration
      - VS Code-integration
-     - Server-Sent Events (SSE) server
+     - Server-Sent Events (SSE)-server
      - Avancerad serveranvändning
-     - HTTP-streaming
+     - HTTP-strömning
      - AI Toolkit-integration
      - Teststrategier
      - Driftsättningsriktlinjer
 
-5. **Praktisk implementation (04-PracticalImplementation/)**
-   - Använda SDK:er i olika programmeringsspråk
-   - Felsökning, testning och valideringstekniker
-   - Skapa återanvändbara promptmallar och arbetsflöden
+5. **Praktisk implementering (04-PracticalImplementation/)**
+   - Användning av SDK:er i olika programspråk
+   - Debugging, testning och valideringstekniker
+   - Skapa återanvändbara prompt-mallar och arbetsflöden
    - Exempelprojekt med implementationsexempel
 
 6. **Avancerade ämnen (05-AdvancedTopics/)**
-   - Tekniker för kontextengineering
+   - Kontextsdesigntekniker
    - Foundry-agentintegration
    - Multimodala AI-arbetsflöden
-   - OAuth2-autentiseringsdemos
+   - OAuth2-autentiseringsexempel
    - Realtidssökning
-   - Realtidsstreaming
-   - Implementering av root-kontekster
-   - Rutteringsstrategier
-   - Sampeltekniker
+   - Realtidsströmning
+   - Root contexts-implementationer
+   - Routingstrategier
+   - Samplingstekniker
    - Skalningsmetoder
    - Säkerhetsaspekter
    - Entra ID-säkerhetsintegration
-   - Webb-sökintegration
-   - Adversarial multi-agent resonemang (debattmönster)
+   - Webbsökning-integration
+   - Adversariell multi-agent-resonemang (debattmönster)
 
 7. **Community-bidrag (06-CommunityContributions/)**
    - Hur man bidrar med kod och dokumentation
-   - Samarbete via GitHub
+   - Samarbeta via GitHub
    - Communitydrivna förbättringar och feedback
-   - Användning av olika MCP-klienter (Claude Desktop, Cline, VSCode)
+   - Använda olika MCP-klienter (Claude Desktop, Cline, VSCode)
    - Arbeta med populära MCP-servrar inklusive bildgenerering
 
 8. **Lärdomar från tidig adoption (07-LessonsfromEarlyAdoption/)**
-   - Riktiga implementationer och framgångshistorier
+   - Verkliga implementationer och framgångshistorier
    - Bygga och driftsätta MCP-baserade lösningar
    - Trender och framtida roadmap
-   - **Microsoft MCP Servers Guide**: Omfattande guide till 10 produktionsfärdiga Microsoft MCP-servrar inklusive:
+   - **Microsoft MCP Servers Guide**: Omfattande guide till 10 produktionsklara Microsoft MCP-servrar inklusive:
      - Microsoft Learn Docs MCP Server
-     - Azure MCP Server (15+ specialiserade anslutningar)
+     - Azure MCP Server (15+ specialiserade connectors)
      - GitHub MCP Server
      - Azure DevOps MCP Server
      - MarkItDown MCP Server
      - SQL Server MCP Server
      - Playwright MCP Server
      - Dev Box MCP Server
-     - Azure AI Foundry MCP Server
+     - Microsoft Foundry MCP Server
      - Microsoft 365 Agents Toolkit MCP Server
 
 9. **Bästa praxis (08-BestPractices/)**
-   - Prestandaoptimering och justering
-   - Design för feltoleranta MCP-system
-   - Testning och återhämtningsstrategier
+   - Prestandaoptimering och finjustering
+   - Design av feltoleranta MCP-system
+   - Testning och resiliensstrategier
 
 10. **Fallstudier (09-CaseStudy/)**
-    - **Sju omfattande fallstudier** som demonstrerar MCP:s mångsidighet i olika scenarier:
+    - **Sju omfattande fallstudier** som visar MCP:s mångsidighet i olika scenarier:
     - **Azure AI Travel Agents**: Multi-agent orkestrering med Azure OpenAI och AI Search
-    - **Azure DevOps Integration**: Automatisera arbetsflöden med YouTube-datauppdateringar
-    - **Dokumenthämtning i realtid**: Python-konsultklient med HTTP-streaming
+    - **Azure DevOps-integration**: Automatisering av arbetsflöden med YouTube-datauppdateringar
+    - **Realtidsdokumenthämtning**: Python-konsolklient med HTTP-strömning
     - **Interaktiv studieplansgenerator**: Chainlit webbapp med konverserande AI
-    - **Dokumentation i redigerare**: VS Code-integration med GitHub Copilot-arbetsflöden
-    - **Azure API Management**: Enterprise API-integration med MCP-server-skapande
-    - **GitHub MCP Registry**: Ekosystemutveckling och agent-plattform
-    - Implementationsexempel som sträcker sig över företagsintegration, utvecklarproduktivitet och ekosystemutveckling
+    - **Dokumentation i editorn**: VS Code-integration med GitHub Copilot-arbetsflöden
+    - **Azure API Management**: Företags-API-integration med MCP-serveruppbyggnad
+    - **GitHub MCP Registry**: Ekosystemutveckling och agentisk integrationsplattform
+    - Implementationsexempel inom företagsintegration, utvecklarproduktivitet och ekosystemutveckling
 
 11. **Praktisk workshop (10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/)**
     - Omfattande praktisk workshop som kombinerar MCP med AI Toolkit
-    - Bygga intelligenta applikationer som kopplar AI-modeller med verkliga verktyg
-    - Praktiska moduler som täcker grunder, egen serverutveckling och produktionsdriftsättningsstrategier
-    - **Labstruktur**:
-      - Lab 1: MCP Servergrunder
+    - Bygga intelligenta applikationer som kopplar samman AI-modeller med verkliga verktyg
+    - Praktiska moduler som täcker grunder, anpassad serverutveckling och produktionsdriftsättningsstrategier
+    - **Lab-struktur**:
+      - Lab 1: MCP Server Fundamentals
       - Lab 2: Avancerad MCP-serverutveckling
       - Lab 3: AI Toolkit-integration
-      - Lab 4: Produktion och skalning
-    - Labbaserat lärande med steg-för-steg-instruktioner
+      - Lab 4: Produktionsdriftsättning och skalning
+    - Lab-baserat lärande med steg-för-steg-instruktioner
 
-12. **MCP Server-databasintegrationslaborationer (11-MCPServerHandsOnLabs/)**
-    - **Omfattande 13-laborationers lärandeväg** för att bygga produktionsfärdiga MCP-servrar med PostgreSQL-integration
-    - **Verklighetsbaserad detaljhandelsanalys** med Zava Retail use case
-    - **Enterprise-nivåmönster** inklusive Row Level Security (RLS), semantisk sökning och multi-tenant dataåtkomst
-    - **Komplett labstruktur**:
-      - **Labs 00-03: Grunder** - Introduktion, Arkitektur, Säkerhet, Miljösetup
-      - **Labs 04-06: Bygga MCP-server** - Databasdesign, MCP-server-implementation, verktygsutveckling
-      - **Labs 07-09: Avancerade funktioner** - Semantisk sökning, testning & felsökning, VS Code-integration
-      - **Labs 10-12: Produktion & bästa praxis** - Driftsättning, övervakning, optimering
-    - **Teknologier som täcks**: FastMCP-ramverk, PostgreSQL, Azure OpenAI, Azure Container Apps, Application Insights
-    - **Lärandemål**: Produktionsfärdiga MCP-servrar, databasintegrationsmönster, AI-baserad analys, företagsäkerhet
+12. **MCP-server databasintegrationslabs (11-MCPServerHandsOnLabs/)**
+    - **Omfattande 13-labbar lång inlärningsväg** för att bygga produktionsklara MCP-servrar med PostgreSQL-integration
+    - **Verkliga detaljhandelsanalysimplementationer** med Zava Retail-användningsfall
+    - **Företagsmönster** inklusive Row Level Security (RLS), semantisk sökning och multi-tenant-dataåtkomst
+    - **Fullständig labbstruktur**:
+      - **Labbar 00-03: Grunder** - Introduktion, arkitektur, säkerhet, miljösetup
+      - **Labbar 04-06: Bygga MCP-servern** - Databasedesign, MCP-serverimplementation, verktygsutveckling
+      - **Labbar 07-09: Avancerade funktioner** - Semantisk sökning, testning & debugging, VS Code-integration
+      - **Labbar 10-12: Produktion & bästa praxis** - Driftsättning, övervakning, optimering
+    - **Täckta teknologier**: FastMCP-ramverket, PostgreSQL, Azure OpenAI, Azure Container Apps, Application Insights
+    - **Lärandemål**: Produktionsklara MCP-servrar, databasintegrationsmönster, AI-driven analys, företagsäkerhet
 
 ## Ytterligare resurser
 
-Repositoryt inkluderar stödresurser:
+Repostrukturen innehåller stödresurser:
 
-- **Mapp för bilder**: Innehåller diagram och illustrationer som används genom hela kursen
-- **Översättningar**: Flerspråkigt stöd med automatiska översättningar av dokumentation
+- **Mapp med bilder**: Innehåller diagram och illustrationer som används genom kursplanen
+- **Översättningar**: Flerspråkigt stöd med automatiska översättningar av dokumentationen
 - **Officiella MCP-resurser**:
   - [MCP Documentation](https://modelcontextprotocol.io/)
   - [MCP Specification](https://spec.modelcontextprotocol.io/)
   - [MCP GitHub Repository](https://github.com/modelcontextprotocol)
 
-## Hur du använder detta repository
+## Hur du använder detta repo
 
-1. **Sekventiell inlärning**: Följ kapitlen i ordning (00 till 11) för en strukturerad inlärningsupplevelse.
-2. **Språkspecifikt fokus**: Om du är intresserad av ett visst programmeringsspråk, utforska mappstrukturen för exempel i ditt föredragna språk.
-3. **Praktisk implementation**: Börja med avsnittet "Komma igång" för att sätta upp din miljö och skapa din första MCP-server och klient.
-4. **Avancerad fördjupning**: När du är bekväm med grunderna, fördjupa dig i avancerade ämnen för att utöka din kunskap.
-5. **Community-engagemang**: Gå med i MCP-gemenskapen via GitHub-diskussioner och Discord-kanaler för att koppla ihop med experter och andra utvecklare.
+1. **Sekventiellt lärande**: Följ kapitlen i ordning (00 till 11) för en strukturerad inlärningsupplevelse.
+2. **Språkspecifikt fokus**: Om du är intresserad av ett särskilt programspråk, utforska samples-mapparna för implementationer i ditt favoritspråk.
+3. **Praktisk implementering**: Börja med "Kom igång"-sektionen för att ställa in miljön och skapa din första MCP-server och klient.
+4. **Avancerad utforskning**: När du är bekväm med grunderna, fördjupa dig i avancerade ämnen för att bredda din kunskap.
+5. **Community-engagemang**: Gå med i MCP-communityt via GitHub-diskussioner och Discord-kanaler för att knyta kontakt med experter och andra utvecklare.
 
 ## MCP-klienter och verktyg
 
-Kursen täcker flera MCP-klienter och verktyg:
+Kursplanen täcker olika MCP-klienter och verktyg:
 
 1. **Officiella klienter**:
-   - Visual Studio Code
+   - Visual Studio Code 
    - MCP i Visual Studio Code
    - Claude Desktop
-   - Claude i VSCode
+   - Claude i VSCode 
    - Claude API
 
-2. **Communityklienter**:
+2. **Community-klienter**:
    - Cline (terminalbaserad)
    - Cursor (kodredigerare)
    - ChatMCP
@@ -297,18 +298,18 @@ Kursen täcker flera MCP-klienter och verktyg:
 
 ## Populära MCP-servrar
 
-Repositoryt introducerar olika MCP-servrar, inklusive:
+Repostrukturen introducerar olika MCP-servrar, inklusive:
 
 1. **Officiella Microsoft MCP-servrar**:
    - Microsoft Learn Docs MCP Server
-   - Azure MCP Server (15+ specialiserade anslutningar)
+   - Azure MCP Server (15+ specialiserade connectors)
    - GitHub MCP Server
    - Azure DevOps MCP Server
    - MarkItDown MCP Server
    - SQL Server MCP Server
    - Playwright MCP Server
    - Dev Box MCP Server
-   - Azure AI Foundry MCP Server
+   - Microsoft Foundry MCP Server
    - Microsoft 365 Agents Toolkit MCP Server
 
 2. **Officiella referensservrar**:
@@ -334,15 +335,15 @@ Repositoryt introducerar olika MCP-servrar, inklusive:
 
 ## Bidra
 
-Detta repository välkomnar bidrag från gemenskapen. Se avsnittet Community Contributions för vägledning om hur du effektivt kan bidra till MCP-ekosystemet.
+Detta repo välkomnar bidrag från communityt. Se sektionen Community Contributions för vägledning om hur du effektivt kan bidra till MCP-ekosystemet.
 
 ----
 
-*Denna studieguide uppdaterades senast den 5 februari 2026 och speglar den senaste MCP Specification 2025-11-25 och ger en översikt över repositoryt per detta datum. Repositoryinnehåll kan uppdateras efter detta datum.*
+*Denna studieguiden uppdaterades senast den 5 februari 2026, återspeglar den senaste MCP Specification 2025-11-25 och ger en översikt av repots innehåll vid detta datum. Repo-innehåll kan uppdateras efter detta datum.*
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Ansvarsfriskrivning**:  
-Detta dokument har översatts med hjälp av AI-översättningstjänsten [Co-op Translator](https://github.com/Azure/co-op-translator). Även om vi strävar efter noggrannhet, var vänlig observera att automatiska översättningar kan innehålla fel eller brister. Det ursprungliga dokumentet på dess modersmål bör betraktas som den auktoritativa källan. För kritisk information rekommenderas professionell mänsklig översättning. Vi ansvarar inte för några missförstånd eller feltolkningar som uppstår från användningen av denna översättning.
+**Ansvarsfriskrivning**:
+Detta dokument har översatts med hjälp av AI-översättningstjänsten [Co-op Translator](https://github.com/Azure/co-op-translator). Även om vi strävar efter noggrannhet, var vänlig notera att automatiska översättningar kan innehålla fel eller brister. Det ursprungliga dokumentet på dess modersmål bör betraktas som den auktoritativa källan. För kritisk information rekommenderas professionell mänsklig översättning. Vi ansvarar inte för några missförstånd eller feltolkningar som uppstår till följd av användningen av denna översättning.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

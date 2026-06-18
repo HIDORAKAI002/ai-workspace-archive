@@ -1,109 +1,109 @@
-# 🚀 Modul 1: Grunnleggende om AI Toolkit
+# 🚀 Modul 1: Grunnleggende om Microsoft Foundry Toolkit
 
-[![Varighet](https://img.shields.io/badge/Duration-15%20minutes-blue.svg)]()
-[![Vanskelighetsgrad](https://img.shields.io/badge/Difficulty-Beginner-green.svg)]()
-[![Forutsetninger](https://img.shields.io/badge/Prerequisites-VS%20Code-orange.svg)]()
+[![Duration](https://img.shields.io/badge/Duration-15%20minutes-blue.svg)]()
+[![Difficulty](https://img.shields.io/badge/Difficulty-Beginner-green.svg)]()
+[![Prerequisites](https://img.shields.io/badge/Prerequisites-VS%20Code-orange.svg)]()
 
 ## 📋 Læringsmål
 
-Etter denne modulen vil du kunne:
-- ✅ Installere og konfigurere AI Toolkit for Visual Studio Code
-- ✅ Navigere i Model Catalog og forstå ulike modellkilder
+Ved slutten av denne modulen vil du kunne:
+- ✅ Installere og konfigurere Microsoft Foundry Toolkit Extension for VS Code
+- ✅ Navigere i Modellkatalogen og forstå ulike modellkilder
 - ✅ Bruke Playground for modelltesting og eksperimentering
 - ✅ Lage tilpassede AI-agenter med Agent Builder
-- ✅ Sammenligne modellprestasjoner på tvers av leverandører
+- ✅ Sammenligne modellprestasjoner på tvers av forskjellige tilbydere
 - ✅ Anvende beste praksis for prompt engineering
 
-## 🧠 Introduksjon til AI Toolkit (AITK)
+## 🧠 Introduksjon til Microsoft Foundry Toolkit
 
-**AI Toolkit for Visual Studio Code** er Microsofts flaggskip-utvidelse som forvandler VS Code til et komplett AI-utviklingsmiljø. Den bygger bro mellom AI-forskning og praktisk applikasjonsutvikling, og gjør generativ AI tilgjengelig for utviklere på alle ferdighetsnivåer.
+**Microsoft Foundry Toolkit Extension for VS Code** er Microsofts flaggskip-utvidelse som forvandler VS Code til et komplett AI-utviklingsmiljø. Den bygger bro mellom AI-forskning og praktisk applikasjonsutvikling, og gjør generativ AI tilgjengelig for utviklere på alle ferdighetsnivåer.
 
 ### 🌟 Nøkkelfunksjoner
 
 | Funksjon | Beskrivelse | Bruksområde |
 |---------|-------------|-------------|
-| **🗂️ Model Catalog** | Tilgang til 100+ modeller fra GitHub, ONNX, OpenAI, Anthropic, Google | Modellutforskning og valg |
-| **🔌 BYOM Support** | Integrer dine egne modeller (lokalt/fjernt) | Tilpasset modellutrulling |
-| **🎮 Interaktiv Playground** | Sanntidstesting av modeller med chat-grensesnitt | Rask prototyping og testing |
-| **📎 Multi-modalt støtte** | Håndter tekst, bilder og vedlegg | Komplekse AI-applikasjoner |
-| **⚡ Batchbehandling** | Kjør flere prompts samtidig | Effektive testarbeidsflyter |
-| **📊 Modellevaluering** | Innebygde måleparametere (F1, relevans, likhet, sammenheng) | Vurdering av ytelse |
+| **🗂️ Modellkatalog** | Tilgang til 100+ modeller fra GitHub, ONNX, OpenAI, Anthropic, Google | Modelloppdagelse og -valg |
+| **🔌 BYOM-støtte** | Integrer dine egne modeller (lokal/fjern) | Tilpasset modellutrulling |
+| **🎮 Interaktiv Playground** | Sanntidstesting av modeller med chattegrensesnitt | Rask prototyping og testing |
+| **📎 Multimodal støtte** | Håndter tekst, bilder og vedlegg | Komplekse AI-applikasjoner |
+| **⚡ Batch-prosessering** | Kjør flere prompts samtidig | Effektive testarbeidsflyter |
+| **📊 Modellevaluering** | Innebygde metrikker (F1, relevans, likhet, sammenheng) | Prestasjonsvurdering |
 
-### 🎯 Hvorfor AI Toolkit er viktig
+### 🎯 Hvorfor Microsoft Foundry Toolkit er viktig
 
 - **🚀 Raskere utvikling**: Fra idé til prototype på minutter
-- **🔄 Enhetlig arbeidsflyt**: Én plattform for flere AI-leverandører
-- **🧪 Enkel eksperimentering**: Sammenlign modeller uten komplisert oppsett
+- **🔄 Enhetlig arbeidsflyt**: Én grensesnitt for flere AI-leverandører
+- **🧪 Enkel eksperimentering**: Sammenlign modeller uten kompleks oppsett
 - **📈 Klar for produksjon**: Sømløs overgang fra prototype til utrulling
 
 ## 🛠️ Forutsetninger og oppsett
 
-### 📦 Installer AI Toolkit-utvidelsen
+### 📦 Installer Microsoft Foundry Toolkit Extension
 
-**Steg 1: Åpne Extensions Marketplace**
+**Steg 1: Gå til Extensions Marketplace**
 1. Åpne Visual Studio Code
-2. Gå til Extensions-visningen (`Ctrl+Shift+X` eller `Cmd+Shift+X`)
-3. Søk etter "AI Toolkit"
+2. Naviger til Extensions-visningen (`Ctrl+Shift+X` eller `Cmd+Shift+X`)
+3. Søk etter "Microsoft Foundry Toolkit"
 
-**Steg 2: Velg versjon**
-- **🟢 Release**: Anbefalt for produksjonsbruk
-- **🔶 Pre-release**: Tidlig tilgang til nye funksjoner
+**Steg 2: Velg din versjon**
+- **🟢 Release**: Anbefalt for produksjon
+- **🔶 Pre-release**: Tidlig tilgang til banebrytende funksjoner
 
 **Steg 3: Installer og aktiver**
 
-![AI Toolkit Extension](../../../../translated_images/no/aitkext.d28945a03eed003c.webp)
+![Microsoft Foundry Toolkit Extension](../../../../translated_images/no/aitkext.d28945a03eed003c.webp)
 
 ### ✅ Sjekkliste for verifisering
-- [ ] AI Toolkit-ikon vises i VS Code-sidepanelet
-- [ ] Utvidelsen er aktivert og i bruk
+- [ ] Microsoft Foundry Toolkit-ikon vises i VS Code-sidemeny
+- [ ] Utvidelsen er aktivert og fungerer
 - [ ] Ingen installasjonsfeil i output-panelet
 
 ## 🧪 Praktisk øvelse 1: Utforske GitHub-modeller
 
-**🎯 Mål**: Bli kjent med Model Catalog og test din første AI-modell
+**🎯 Mål**: Mestre Modellkatalogen og teste din første AI-modell
 
-### 📊 Steg 1: Naviger i Model Catalog
+### 📊 Steg 1: Naviger i Modellkatalogen
 
-Model Catalog er inngangsporten til AI-økosystemet. Den samler modeller fra flere leverandører, noe som gjør det enkelt å oppdage og sammenligne alternativer.
+Modellkatalogen er din gateway til AI-økosystemet. Den samler modeller fra flere tilbydere og gjør det enkelt å oppdage og sammenligne alternativer.
 
-**🔍 Navigasjonsveiledning:**
+**🔍 Navigasjonsguide:**
 
-Klikk på **MODELS - Catalog** i AI Toolkit-sidepanelet
+Klikk på **MODELS - Catalog** i Microsoft Foundry Toolkit-sidemenyen
 
 ![Model Catalog](../../../../translated_images/no/aimodel.263ed2be013d8fb0.webp)
 
-**💡 Profftips**: Se etter modeller med spesifikke egenskaper som passer ditt brukstilfelle (f.eks. kodegenerering, kreativ skriving, analyse).
+**💡 Profftips**: Se etter modeller med spesifikke egenskaper som matcher ditt bruksområde (f.eks. kodegenerering, kreativ skriving, analyse).
 
-**⚠️ Merk**: GitHub-hostede modeller (dvs. GitHub Models) er gratis å bruke, men har begrensninger på antall forespørsler og tokens. For å få tilgang til ikke-GitHub-modeller (eksterne modeller via Azure AI eller andre endepunkter) må du oppgi riktig API-nøkkel eller autentisering.
+**⚠️ Merk**: Modeller hostet på GitHub (dvs. GitHub-modeller) er gratis å bruke, men underlagt begrensninger på forespørsler og tokens. For tilgang til ikke-GitHub-modeller (dvs. eksterne modeller hostet via Azure AI eller andre endepunkter), må du oppgi riktig API-nøkkel eller autentisering.
 
 ### 🚀 Steg 2: Legg til og konfigurer din første modell
 
-**Modellvalgstrategi:**
-- **GPT-4.1**: Best for komplekse resonnementer og analyser
-- **Phi-4-mini**: Lettvekter, raske svar for enkle oppgaver
+**Valgstrategi for modell:**
+- **GPT-4.1**: Best for kompleks resonnering og analyse
+- **Phi-4-mini**: Lettvekts, raske svar for enkle oppgaver
 
 **🔧 Konfigurasjonsprosess:**
 1. Velg **OpenAI GPT-4.1** fra katalogen
 2. Klikk **Add to My Models** – dette registrerer modellen for bruk
-3. Velg **Try in Playground** for å åpne testmiljøet
-4. Vent på at modellen initialiseres (første oppstart kan ta litt tid)
+3. Velg **Try in Playground** for å starte testmiljøet
+4. Vent på initialisering av modellen (første gangs oppsett kan ta litt tid)
 
 ![Playground Setup](../../../../translated_images/no/playground.dd6f5141344878ca.webp)
 
-**⚙️ Forstå modellparametere:**
-- **Temperature**: Styrer kreativitet (0 = deterministisk, 1 = kreativ)
-- **Max Tokens**: Maksimal lengde på svar
-- **Top-p**: Nucleus sampling for variasjon i svar
+**⚙️ Forståelse av modellparametere:**
+- **Temperature**: Kontrollerer kreativitet (0 = deterministisk, 1 = kreativ)
+- **Max Tokens**: Maksimal svarlengde
+- **Top-p**: Nucleus sampling for svarvariasjon
 
 ### 🎯 Steg 3: Mestre Playground-grensesnittet
 
-Playground er ditt AI-eksperimentlaboratorium. Slik får du mest ut av det:
+Playground er ditt AI-eksperimentlaboratorium. Slik maksimerer du potensialet:
 
 **🎨 Beste praksis for prompt engineering:**
 1. **Vær spesifikk**: Klare, detaljerte instruksjoner gir bedre resultater
 2. **Gi kontekst**: Inkluder relevant bakgrunnsinformasjon
 3. **Bruk eksempler**: Vis modellen hva du ønsker med eksempler
-4. **Iterer**: Forbedre prompts basert på tidlige resultater
+4. **Iterer**: Forbedre prompts basert på første resultater
 
 **🧪 Testscenarier:**
 ```markdown
@@ -119,9 +119,9 @@ Playground er ditt AI-eksperimentlaboratorium. Slik får du mest ut av det:
 
 ![Testing Results](../../../../translated_images/no/result.1dfcf211fb359cf6.webp)
 
-### 🏆 Utfordringsøvelse: Sammenligning av modellprestasjoner
+### 🏆 Utfordringsøvelse: Sammenligning av modellprestasjon
 
-**🎯 Mål**: Sammenlign ulike modeller med identiske prompts for å forstå styrkene deres
+**🎯 Mål**: Sammenlign forskjellige modeller med identiske prompts for å forstå deres styrker
 
 **📋 Instruksjoner:**
 1. Legg til **Phi-4-mini** i arbeidsområdet ditt
@@ -130,33 +130,33 @@ Playground er ditt AI-eksperimentlaboratorium. Slik får du mest ut av det:
 ![set](../../../../translated_images/no/set.88132df189ecde2c.webp)
 
 3. Sammenlign svarenes kvalitet, hastighet og nøyaktighet
-4. Dokumenter funnene dine i resultatdelen
+4. Dokumenter funnene i resultatdelen
 
 ![Model Comparison](../../../../translated_images/no/compare.97746cd0f9074955.webp)
 
 **💡 Viktige innsikter å oppdage:**
-- Når bør man bruke LLM vs SLM
-- Kostnad vs ytelse
+- Når bruke LLM vs SLM
+- Kostnad kontra ytelse
 - Spesialiserte egenskaper ved ulike modeller
 
-## 🤖 Praktisk øvelse 2: Bygge tilpassede agenter med Agent Builder
+## 🤖 Praktisk øvelse 2: Bygg tilpassede agenter med Agent Builder
 
 **🎯 Mål**: Lag spesialiserte AI-agenter tilpasset bestemte oppgaver og arbeidsflyter
 
 ### 🏗️ Steg 1: Forstå Agent Builder
 
-Agent Builder er der AI Toolkit virkelig skinner. Her kan du lage skreddersydde AI-assistenter som kombinerer kraften i store språkmodeller med tilpassede instruksjoner, spesifikke parametere og spesialisert kunnskap.
+Agent Builder er hvor Microsoft Foundry Toolkit virkelig utmerker seg. Den lar deg lage formålbygde AI-assistenter som kombinerer kraften i store språkmodeller med tilpassede instruksjoner, spesifikke parametere og spesialisert kunnskap.
 
 **🧠 Komponenter i agentarkitekturen:**
 - **Kjernemodell**: Grunnleggende LLM (GPT-4, Groks, Phi, osv.)
-- **Systemprompt**: Definerer agentens personlighet og oppførsel
-- **Parametere**: Fininnstilte innstillinger for optimal ytelse
+- **Systemprompt**: Definerer agentens personlighet og atferd
+- **Parametere**: Finjusterte innstillinger for optimal ytelse
 - **Verktøyintegrasjon**: Koble til eksterne API-er og MCP-tjenester
-- **Minne**: Samtalekontekst og sesjonspersistens
+- **Minne**: Samtale-kontekst og sesjonspersistens
 
 ![Agent Builder Interface](../../../../translated_images/no/agentbuilder.25895b2d2f8c02e7.webp)
 
-### ⚙️ Steg 2: Dypdykk i agentkonfigurasjon
+### ⚙️ Steg 2: Dykk i agentkonfigurasjon
 
 **🎨 Lage effektive systemprompter:**
 ```markdown
@@ -178,25 +178,25 @@ You are a [specific role] with expertise in [domain].
 Provide 2-3 examples of ideal interactions
 ```
 
-*Selvfølgelig kan du også bruke Generate System Prompt for å la AI hjelpe deg med å lage og optimalisere prompter*
+*Selvfølgelig kan du også bruke Generate System Prompt for å la AI hjelpe deg med å generere og optimalisere prompter*
 
 **🔧 Parameteroptimalisering:**
 | Parameter | Anbefalt område | Bruksområde |
 |-----------|-----------------|-------------|
-| **Temperature** | 0.1-0.3 | Tekniske/faktabaserte svar |
-| **Temperature** | 0.7-0.9 | Kreative/idémyldringsoppgaver |
+| **Temperature** | 0.1-0.3 | Tekniske/faktuelle svar |
+| **Temperature** | 0.7-0.9 | Kreative/idemyldringsoppgaver |
 | **Max Tokens** | 500-1000 | Konsise svar |
 | **Max Tokens** | 2000-4000 | Detaljerte forklaringer |
 
 ### 🐍 Steg 3: Praktisk øvelse – Python-programmeringsagent
 
-**🎯 Oppdrag**: Lag en spesialisert assistent for Python-koding
+**🎯 Oppdrag**: Lag en spesialisert Python-kodingsassistent
 
 **📋 Konfigurasjonstrinn:**
 
-1. **Modellvalg**: Velg **Claude 3.5 Sonnet** (utmerket for kode)
+1. **Modellvalg**: Velg **Claude 3.5 Sonnet** (utmerket for koding)
 
-2. **Systempromptdesign**:
+2. **Systemprompt-design**:
 ```markdown
 # Python Programming Expert Agent
 
@@ -234,42 +234,46 @@ You are a senior Python developer with 10+ years of experience. You excel at wri
 
 **Testscenarier:**
 1. **Grunnleggende funksjon**: "Lag en funksjon for å finne primtall"
-2. **Kompleks algoritme**: "Implementer et binært søketre med innsetting, sletting og søk"
-3. **Virkelighetsproblem**: "Lag en webskraper som håndterer rate limiting og retry"
+2. **Komplekst algoritme**: "Implementer et binært søketre med sett inn, slett og søk metoder"
+3. **Virkelig problem**: "Lag en web-scraper som håndterer rate limiting og gjentakelser"
 4. **Feilsøking**: "Fiks denne koden [lim inn buggy kode]"
 
 **🏆 Suksesskriterier:**
 - ✅ Koden kjører uten feil
-- ✅ Inkluderer god dokumentasjon
+- ✅ Inkluderer korrekt dokumentasjon
 - ✅ Følger beste praksis for Python
 - ✅ Gir klare forklaringer
 - ✅ Foreslår forbedringer
 
-## 🎓 Modul 1 Oppsummering og neste steg
+## 🎓 Avslutning av Modul 1 & Videre steg
 
 ### 📊 Kunnskapssjekk
 
 Test din forståelse:
 - [ ] Kan du forklare forskjellen mellom modellene i katalogen?
-- [ ] Har du laget og testet en tilpasset agent?
+- [ ] Har du laget og testet en tilpasset agent med hell?
 - [ ] Forstår du hvordan du optimaliserer parametere for ulike bruksområder?
-- [ ] Kan du lage effektive systemprompter?
+- [ ] Kan du designe effektive systemprompter?
 
 ### 📚 Ekstra ressurser
 
-- **AI Toolkit Dokumentasjon**: [Official Microsoft Docs](https://github.com/microsoft/vscode-ai-toolkit)
-- **Guide til prompt engineering**: [Best Practices](https://platform.openai.com/docs/guides/prompt-engineering)
-- **Modeller i AI Toolkit**: [Models in Development](https://github.com/microsoft/vscode-ai-toolkit/blob/main/doc/models.md)
+- **Microsoft Foundry Toolkit Dokumentasjon**: [Offisielle Microsoft Docs](https://github.com/microsoft/vscode-ai-toolkit)
+- **Guide til prompt engineering**: [Beste praksis](https://platform.openai.com/docs/guides/prompt-engineering)
+- **Modeller i Microsoft Foundry Toolkit**: [Modeller under utvikling](https://github.com/microsoft/vscode-ai-toolkit/blob/main/doc/models.md)
 
-**🎉 Gratulerer!** Du har mestret det grunnleggende i AI Toolkit og er klar for å bygge mer avanserte AI-applikasjoner!
+**🎉 Gratulerer!** Du har mestret grunnprinsippene i Microsoft Foundry Toolkit og er klar til å bygge mer avanserte AI-applikasjoner!
 
 ### 🔜 Fortsett til neste modul
 
-Klar for mer avanserte funksjoner? Fortsett til **[Modul 2: MCP med AI Toolkit Fundamentals](../lab2/README.md)** hvor du vil lære å:
+Klar for mer avanserte funksjoner? Fortsett til **[Modul 2: MCP med Microsoft Foundry Toolkit Fundamentals](../lab2/README.md)** hvor du lærer hvordan du kan:
 - Koble agentene dine til eksterne verktøy med Model Context Protocol (MCP)
 - Bygge nettleserautomatiseringsagenter med Playwright
-- Integrere MCP-servere med AI Toolkit-agentene dine
-- Gi agentene dine ekstra kraft med ekstern data og funksjonalitet
+- Integrere MCP-servere med dine Microsoft Foundry Toolkit-agenter
+- Superlaste agentene dine med ekstern data og funksjoner
 
-**Ansvarsfraskrivelse**:  
-Dette dokumentet er oversatt ved hjelp av AI-oversettelsestjenesten [Co-op Translator](https://github.com/Azure/co-op-translator). Selv om vi streber etter nøyaktighet, vennligst vær oppmerksom på at automatiske oversettelser kan inneholde feil eller unøyaktigheter. Det opprinnelige dokumentet på originalspråket skal anses som den autoritative kilden. For kritisk informasjon anbefales profesjonell menneskelig oversettelse. Vi er ikke ansvarlige for eventuelle misforståelser eller feiltolkninger som oppstår ved bruk av denne oversettelsen.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Ansvarsfraskrivelse**:
+Dette dokumentet er oversatt ved hjelp av AI-oversettelsestjenesten [Co-op Translator](https://github.com/Azure/co-op-translator). Selv om vi streber etter nøyaktighet, vær oppmerksom på at automatiske oversettelser kan inneholde feil eller unøyaktigheter. Det opprinnelige dokumentet på originalspråket skal betraktes som den autoritative kilden. For kritisk informasjon anbefales profesjonell menneskelig oversettelse. Vi er ikke ansvarlige for eventuelle misforståelser eller feiltolkninger som oppstår ved bruk av denne oversettelsen.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

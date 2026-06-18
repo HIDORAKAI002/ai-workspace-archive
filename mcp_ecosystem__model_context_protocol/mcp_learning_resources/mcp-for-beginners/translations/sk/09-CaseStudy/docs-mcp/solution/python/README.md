@@ -1,14 +1,14 @@
 # Generátor študijného plánu s Chainlit & Microsoft Learn Docs MCP
 
-## Predpoklady
+## Požiadavky
 
 - Python 3.8 alebo novší
-- pip (správca balíkov pre Python)
+- pip (správca balíkov Pythonu)
 - Prístup na internet na pripojenie k serveru Microsoft Learn Docs MCP
 
 ## Inštalácia
 
-1. Naklonujte toto úložisko alebo stiahnite súbory projektu.
+1. Naklonujte si toto úložisko alebo si stiahnite súbory projektu.
 2. Nainštalujte potrebné závislosti:
 
    ```bash
@@ -18,28 +18,28 @@
 ## Použitie
 
 ### Scenár 1: Jednoduchý dotaz na Docs MCP
-Klient príkazového riadku, ktorý sa pripojí k serveru Docs MCP, odošle dotaz a zobrazí výsledok.
+Príkazový klient, ktorý sa pripája k serveru Docs MCP, odosiela dotaz a vypisuje výsledok.
 
 1. Spustite skript:
    ```bash
    python scenario1.py
    ```
-2. Zadajte svoju otázku týkajúcu sa dokumentácie do výzvy.
+2. Na výzvu zadajte svoju otázku k dokumentácii.
 
 ### Scenár 2: Generátor študijného plánu (webová aplikácia Chainlit)
-Webové rozhranie (využívajúce Chainlit), ktoré umožňuje používateľom generovať personalizovaný, týždeň po týždni štruktúrovaný študijný plán pre akúkoľvek technickú tému.
+Webové rozhranie (používajúce Chainlit), ktoré umožňuje používateľom generovať personalizovaný študijný plán týždeň po týždni pre akúkoľvek technickú tému.
 
 1. Spustite aplikáciu Chainlit:
    ```bash
    chainlit run scenario2.py
    ```
-2. Otvorte lokálnu URL adresu uvedenú vo vašom termináli (napr. http://localhost:8000) vo vašom prehliadači.
-3. V chatovom okne zadajte svoju študijnú tému a počet týždňov, ktoré chcete študovať (napr. "certifikácia AI-900, 8 týždňov").
-4. Aplikácia odpovie týždeň po týždni štruktúrovaným študijným plánom vrátane odkazov na relevantnú dokumentáciu Microsoft Learn.
+2. Otvorte lokálnu URL adresu, ktorú vám terminál poskytne (napr. http://localhost:8000), vo svojom prehliadači.
+3. V okne chatu zadajte tému štúdia a počet týždňov, počas ktorých chcete študovať (napr. „AI-900 certifikácia, 8 týždňov“).
+4. Aplikácia odpovie študijným plánom týždeň po týždni vrátane odkazov na relevantnú dokumentáciu Microsoft Learn.
 
-**Požadované premenné prostredia:**
+**Vyžadované premenné prostredia:**
 
-Na použitie Scenára 2 (webová aplikácia Chainlit s Azure OpenAI) musíte nastaviť nasledujúce premenné prostredia v súbore `.env` v adresári `python`:
+Ak chcete použiť Scenár 2 (webová aplikácia Chainlit s Azure OpenAI), musíte nastaviť nasledujúce premenné prostredia v súbore `.env` v priečinku `python`:
 
 ```
 AZURE_OPENAI_CHAT_DEPLOYMENT_NAME=
@@ -48,55 +48,57 @@ AZURE_OPENAI_ENDPOINT=
 AZURE_OPENAI_API_VERSION=
 ```
 
-Vyplňte tieto hodnoty podrobnosťami o vašom Azure OpenAI zdroji pred spustením aplikácie.
+Vyplňte tieto hodnoty detailmi vášho zdroja Azure OpenAI pred spustením aplikácie.
 
 > [!TIP]
-> Svoje vlastné modely môžete jednoducho nasadiť pomocou [Azure AI Foundry](https://ai.azure.com/).
+> Svoj vlastný model si môžete jednoducho nasadiť pomocou [Microsoft Foundry](https://ai.azure.com/).
 
 ### Scenár 3: Dokumentácia v editore s MCP serverom vo VS Code
 
-Namiesto prepínania medzi kartami prehliadača na vyhľadávanie dokumentácie môžete priniesť Microsoft Learn Docs priamo do vášho VS Code pomocou MCP servera. To vám umožňuje:
-- Vyhľadávať a čítať dokumentáciu priamo vo VS Code bez opustenia vášho pracovného prostredia.
-- Vkladať odkazy na dokumentáciu priamo do vášho README alebo súborov kurzu.
-- Používať GitHub Copilot a MCP spoločne pre plynulý, AI-poháňaný pracovný tok dokumentácie.
+Namiesto prepínania záložiek prehliadača pri hľadaní dokumentácie môžete Microsoft Learn Docs priamo priniesť do vášho VS Code pomocou MCP servera. To vám umožní:
+- Vyhľadávať a čítať dokumentáciu priamo vo VS Code bez odchodu z prostredia na písanie kódu.
+- Odkazovať na dokumentáciu a vkladať odkazy priamo do súborov README alebo kurzov.
+- Používať GitHub Copilot a MCP spolu pre hladký pracovný postup s podporou umelej inteligencie.
 
 **Príklady použitia:**
-- Rýchlo pridávať referenčné odkazy do README pri písaní kurzu alebo projektovej dokumentácie.
-- Používať Copilot na generovanie kódu a MCP na okamžité vyhľadanie a citovanie relevantnej dokumentácie.
-- Zostať sústredený vo vašom editore a zvýšiť produktivitu.
+- Rýchlo pridajte referenčné odkazy do README počas písania dokumentácie ku kurzu alebo projektu.
+- Použite Copilot na generovanie kódu a MCP na okamžité nájdenie a citovanie relevantnej dokumentácie.
+- Zostaňte sústredení vo vašom editore a zvýšte produktivitu.
 
 > [!IMPORTANT]
 > Uistite sa, že máte platnú konfiguráciu [`mcp.json`](../../../../../../09-CaseStudy/docs-mcp/solution/scenario3/mcp.json) vo vašom pracovnom priestore (umiestnenie je `.vscode/mcp.json`).
 
 ## Prečo Chainlit pre Scenár 2?
 
-Chainlit je moderný open-source rámec na tvorbu konverzačných webových aplikácií. Umožňuje jednoducho vytvárať chatové používateľské rozhrania, ktoré sa pripájajú k backendovým službám, ako je server Microsoft Learn Docs MCP. Tento projekt využíva Chainlit na poskytovanie jednoduchého, interaktívneho spôsobu generovania personalizovaných študijných plánov v reálnom čase. Vďaka Chainlit môžete rýchlo vytvárať a nasadzovať chatové nástroje, ktoré zlepšujú produktivitu a učenie.
+Chainlit je moderný open-source rámec na tvorbu konverzačných webových aplikácií. Umožňuje ľahko vytvárať chatové používateľské rozhrania, ktoré sa pripájajú k backendovým službám ako je Microsoft Learn Docs MCP server. Tento projekt používa Chainlit na poskytnutie jednoduchého, interaktívneho spôsobu generovania personalizovaných študijných plánov v reálnom čase. Využitím Chainlit môžete rýchlo vytvárať a nasadzovať chatové nástroje, ktoré zvyšujú produktivitu a učenie.
 
-## Čo táto aplikácia robí
+## Čo toto robí
 
-Táto aplikácia umožňuje používateľom vytvoriť personalizovaný študijný plán jednoduchým zadaním témy a trvania. Aplikácia spracuje váš vstup, odošle dotaz na server Microsoft Learn Docs MCP na relevantný obsah a usporiada výsledky do štruktúrovaného plánu týždeň po týždni. Odporúčania na každý týždeň sa zobrazia v chate, čo uľahčuje sledovanie a napredovanie. Integrácia zaručuje, že vždy získate najnovšie a najrelevantnejšie vzdelávacie zdroje.
+Táto aplikácia umožňuje používateľom vytvoriť personalizovaný študijný plán tým, že jednoducho zadáte tému a dĺžku štúdia. Aplikácia spracuje váš vstup, požiada Microsoft Learn Docs MCP server o relevantný obsah a usporiada výsledky do štruktúrovaného študijného plánu týždeň po týždni. Odporúčania pre každý týždeň sú zobrazené v chate, čo uľahčuje sledovanie a sledovanie pokroku. Integrácia zabezpečuje, že vždy získate najnovšie a najrelevantnejšie vzdelávacie zdroje.
 
-## Ukážkové dotazy
+## Ukážkové otázky
 
-Vyskúšajte tieto dotazy v chatovom okne, aby ste videli, ako aplikácia reaguje:
+Vyskúšajte tieto otázky v okne chatu, aby ste videli, ako aplikácia odpovedá:
 
-- `certifikácia AI-900, 8 týždňov`
-- `Naučiť sa Azure Functions, 4 týždne`
+- `AI-900 certifikácia, 8 týždňov`
+- `Naučte sa Azure Functions, 4 týždne`
 - `Azure DevOps, 6 týždňov`
 - `Dátové inžinierstvo na Azure, 10 týždňov`
-- `Microsoft základy bezpečnosti, 5 týždňov`
+- `Základy Microsoft bezpečnosti, 5 týždňov`
 - `Power Platform, 7 týždňov`
 - `Azure AI služby, 12 týždňov`
-- `Cloudová architektúra, 9 týždňov`
+- `Cloud architektúra, 9 týždňov`
 
 Tieto príklady demonštrujú flexibilitu aplikácie pre rôzne vzdelávacie ciele a časové rámce.
 
-## Referencie
+## Odkazy
 
-- [Chainlit Dokumentácia](https://docs.chainlit.io/)
-- [MCP Dokumentácia](https://github.com/MicrosoftDocs/mcp)
+- [Chainlit dokumentácia](https://docs.chainlit.io/)
+- [MCP dokumentácia](https://github.com/MicrosoftDocs/mcp)
 
 ---
 
-**Upozornenie**:  
-Tento dokument bol preložený pomocou služby na automatický preklad [Co-op Translator](https://github.com/Azure/co-op-translator). Aj keď sa snažíme o presnosť, upozorňujeme, že automatické preklady môžu obsahovať chyby alebo nepresnosti. Pôvodný dokument v jeho pôvodnom jazyku by mal byť považovaný za autoritatívny zdroj. Pre dôležité informácie sa odporúča profesionálny ľudský preklad. Nezodpovedáme za žiadne nedorozumenia alebo nesprávne interpretácie vyplývajúce z použitia tohto prekladu.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Vyhlásenie o zodpovednosti**:
+Tento dokument bol preložený pomocou AI prekladateľskej služby [Co-op Translator](https://github.com/Azure/co-op-translator). Hoci sa snažíme o presnosť, vezmite prosím na vedomie, že automatické preklady môžu obsahovať chyby alebo nepresnosti. Pôvodný dokument v jeho natívnom jazyku by mal byť považovaný za autoritatívny zdroj. Pre kritické informácie sa odporúča profesionálny ľudský preklad. Nie sme zodpovední za žiadne nedorozumenia alebo nesprávne interpretácie vyplývajúce z použitia tohto prekladu.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

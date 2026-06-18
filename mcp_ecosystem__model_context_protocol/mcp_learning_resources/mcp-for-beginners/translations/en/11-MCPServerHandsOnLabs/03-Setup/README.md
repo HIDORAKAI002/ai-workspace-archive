@@ -2,23 +2,23 @@
 
 ## 🎯 What This Lab Covers
 
-This hands-on lab walks you through setting up a complete development environment for building MCP servers with PostgreSQL integration. You'll configure all necessary tools, deploy Azure resources, and validate your setup before moving forward with implementation.
+This hands-on lab guides you through setting up a complete development environment for building MCP servers with PostgreSQL integration. You'll configure all necessary tools, deploy Azure resources, and validate your setup before proceeding with implementation.
 
 ## Overview
 
-A well-configured development environment is essential for successful MCP server development. This lab provides step-by-step instructions for setting up Docker, Azure services, development tools, and ensuring everything works seamlessly together.
+A proper development environment is crucial for successful MCP server development. This lab provides step-by-step instructions for setting up Docker, Azure services, development tools, and validating that everything works correctly together.
 
-By the end of this lab, you'll have a fully operational development environment ready for building the Zava Retail MCP server.
+By the end of this lab, you'll have a fully functional development environment ready for building the Zava Retail MCP server.
 
 ## Learning Objectives
 
 By the end of this lab, you will be able to:
 
 - **Install and configure** all required development tools
-- **Deploy Azure resources** necessary for the MCP server
+- **Deploy Azure resources** needed for the MCP server
 - **Set up Docker containers** for PostgreSQL and the MCP server
 - **Validate** your environment setup with test connections
-- **Troubleshoot** common setup and configuration issues
+- **Troubleshoot** common setup issues and configuration problems
 - **Understand** the development workflow and file structure
 
 ## 📋 Prerequisites Check
@@ -60,7 +60,7 @@ Docker provides the containerized environment for our development setup.
 2. **Install and Configure**:
    - Run the installer as Administrator
    - Enable WSL 2 integration when prompted
-   - Restart your computer after installation completes
+   - Restart your computer when installation completes
 
 3. **Verify Installation**:
    ```cmd
@@ -96,7 +96,7 @@ Docker provides the containerized environment for our development setup.
    sudo sh get-docker.sh
    sudo usermod -aG docker $USER
    
-   # Log out and back in for group changes to take effect
+   # Log out and log back in for group changes to take effect
    ```
 
 2. **Install Docker Compose**:
@@ -107,7 +107,7 @@ Docker provides the containerized environment for our development setup.
 
 ### 2. Install Azure CLI
 
-The Azure CLI enables deployment and management of Azure resources.
+The Azure CLI enables Azure resource deployment and management.
 
 #### Windows Installation
 
@@ -310,7 +310,7 @@ Our MCP server requires these Azure resources:
 
 | **Resource** | **Purpose** | **Estimated Cost** |
 |--------------|-------------|-------------------|
-| **Azure AI Foundry** | AI model hosting and management | $10-50/month |
+| **Microsoft Foundry** | AI model hosting and management | $10-50/month |
 | **OpenAI Deployment** | Text embedding model (text-embedding-3-small) | $5-20/month |
 | **Application Insights** | Monitoring and telemetry | $5-15/month |
 | **Resource Group** | Resource organization | Free |
@@ -332,7 +332,7 @@ cd infra
 
 The deployment script will:
 1. Create a unique resource group
-2. Deploy Azure AI Foundry resources
+2. Deploy Microsoft Foundry resources
 3. Deploy the text-embedding-3-small model
 4. Configure Application Insights
 5. Create a service principal for authentication
@@ -865,7 +865,7 @@ With your environment ready, continue to **[Lab 04: Database Design and Schema](
 - [VS Code Documentation](https://code.visualstudio.com/docs) - Editor configuration and extensions
 
 ### Azure Services
-- [Azure AI Foundry Documentation](https://docs.microsoft.com/azure/ai-foundry/) - AI service configuration
+- [Microsoft Foundry Documentation](https://docs.microsoft.com/azure/ai-foundry/) - AI service configuration
 - [Azure OpenAI Service](https://docs.microsoft.com/azure/cognitive-services/openai/) - AI model deployment
 - [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) - Monitoring setup
 
@@ -880,5 +880,7 @@ With your environment ready, continue to **[Lab 04: Database Design and Schema](
 
 ---
 
-**Disclaimer**:  
-This document has been translated using the AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). While we aim for accuracy, please note that automated translations may contain errors or inaccuracies. The original document in its native language should be regarded as the authoritative source. For critical information, professional human translation is recommended. We are not responsible for any misunderstandings or misinterpretations resulting from the use of this translation.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Disclaimer**:
+This document has been translated using AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). While we strive for accuracy, please be aware that automated translations may contain errors or inaccuracies. The original document in its native language should be considered the authoritative source. For critical information, professional human translation is recommended. We are not liable for any misunderstandings or misinterpretations arising from the use of this translation.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

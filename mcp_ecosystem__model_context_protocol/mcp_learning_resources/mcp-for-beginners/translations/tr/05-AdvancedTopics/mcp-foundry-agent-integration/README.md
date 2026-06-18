@@ -1,57 +1,57 @@
-# Model Context Protocol (MCP) Entegrasyonu Azure AI Foundry ile
+# Model Context Protocol (MCP) Microsoft Foundry ile Entegrasyonu
 
-Bu rehber, Model Context Protocol (MCP) sunucularını Azure AI Foundry ajanlarıyla nasıl entegre edeceğinizi gösterir; böylece güçlü araç orkestrasyonu ve kurumsal yapay zeka yetenekleri sağlanır.
+Bu kılavuz, Model Context Protocol (MCP) sunucularını Microsoft Foundry ajanlarıyla nasıl entegre edeceğinizi göstererek güçlü araç orkestrasyonu ve kurumsal yapay zeka yetenekleri sağlar.
 
 ## Giriş
 
-Model Context Protocol (MCP), yapay zeka uygulamalarının dış veri kaynakları ve araçlara güvenli bir şekilde bağlanmasını sağlayan açık bir standarttır. Azure AI Foundry ile entegre edildiğinde, MCP ajanların çeşitli dış hizmetlere, API’lere ve veri kaynaklarına standart bir şekilde erişip etkileşimde bulunmasına olanak tanır.
+Model Context Protocol (MCP), yapay zeka uygulamalarının harici veri kaynaklarına ve araçlara güvenli bir şekilde bağlanmasını sağlayan açık bir standarttır. Microsoft Foundry ile entegre edildiğinde, MCP ajanların çeşitli harici hizmetlere, API’lere ve veri kaynaklarına standart bir şekilde erişip etkileşimde bulunmasına olanak tanır.
 
-Bu entegrasyon, MCP’nin araç ekosisteminin esnekliğini Azure AI Foundry’nin sağlam ajan çerçevesiyle birleştirerek, kapsamlı özelleştirme imkanları sunan kurumsal düzeyde yapay zeka çözümleri sağlar.
+Bu entegrasyon, MCP’nin araç ekosisteminin esnekliğini Microsoft Foundry’nin sağlam ajan çerçevesiyle birleştirerek kapsamlı özelleştirme olanaklarına sahip kurumsal düzeyde yapay zeka çözümleri sunar.
 
-**Not:** MCP’yi Azure AI Foundry Agent Service içinde kullanmak isterseniz, şu anda yalnızca şu bölgeler desteklenmektedir: westus, westus2, uaenorth, southindia ve switzerlandnorth
+**Not:** Microsoft Foundry Agent Service içinde MCP kullanmak isterseniz, şu anda yalnızca aşağıdaki bölgeler desteklenmektedir: westus, westus2, uaenorth, southindia ve switzerlandnorth
 
 ## Öğrenme Hedefleri
 
-Bu rehberin sonunda şunları yapabileceksiniz:
+Bu kılavuz sonunda şunları yapabileceksiniz:
 
-- Model Context Protocol’ü ve faydalarını anlamak
-- Azure AI Foundry ajanlarıyla kullanmak üzere MCP sunucularını kurmak
-- MCP araç entegrasyonlu ajanlar oluşturup yapılandırmak
-- Gerçek MCP sunucuları kullanarak pratik örnekler uygulamak
+- Model Context Protocol’ü ve avantajlarını anlamak
+- Microsoft Foundry ajanlarıyla kullanılmak üzere MCP sunucularını kurmak
+- MCP araç entegrasyonuyla ajanlar oluşturmak ve yapılandırmak
+- Gerçek MCP sunucularını kullanarak pratik örnekler uygulamak
 - Ajan konuşmalarında araç yanıtları ve atıfları yönetmek
 
-## Ön Koşullar
+## Önkoşullar
 
-Başlamadan önce şunlara sahip olduğunuzdan emin olun:
+Başlamadan önce aşağıdakilere sahip olduğunuzdan emin olun:
 
-- AI Foundry erişimi olan bir Azure aboneliği
+- Microsoft Foundry erişimine sahip bir Azure aboneliği
 - Python 3.10+ veya .NET 8.0+
-- Azure CLI yüklü ve yapılandırılmış
-- AI kaynakları oluşturmak için uygun izinler
+- Azure CLI kurulu ve yapılandırılmış
+- AI kaynakları oluşturma izni
 
 ## Model Context Protocol (MCP) Nedir?
 
-Model Context Protocol, yapay zeka uygulamalarının dış veri kaynakları ve araçlara bağlanması için standart bir yöntemdir. Temel faydaları şunlardır:
+Model Context Protocol, yapay zeka uygulamalarının harici veri kaynakları ve araçlarla bağlanması için standartlaştırılmış bir yoldur. Temel avantajları şunlardır:
 
-- **Standartlaştırılmış Entegrasyon**: Farklı araçlar ve hizmetler arasında tutarlı arayüz
+- **Standartlaştırılmış Entegrasyon**: Farklı araç ve servisler arasında tutarlı arayüz
 - **Güvenlik**: Güvenli kimlik doğrulama ve yetkilendirme mekanizmaları
-- **Esneklik**: Çeşitli veri kaynakları, API’ler ve özel araçları destekler
+- **Esneklik**: Çeşitli veri kaynakları, API’ler ve özel araç desteği
 - **Genişletilebilirlik**: Yeni yetenekler ve entegrasyonlar kolayca eklenebilir
 
-## Azure AI Foundry ile MCP Kurulumu
+## Microsoft Foundry ile MCP Kurulumu
 
 ### Ortam Yapılandırması
 
 Tercih ettiğiniz geliştirme ortamını seçin:
 
-- [Python Uygulaması](../../../../05-AdvancedTopics/mcp-foundry-agent-integration)
-- [.NET Uygulaması](../../../../05-AdvancedTopics/mcp-foundry-agent-integration)
+- [Python Uygulaması](#python-uygulaması)
+- [.NET Uygulaması](#codeblock5)
 
 ---
 
 ## Python Uygulaması
 
-***Not*** Bu [notebook’u](mcp_support_python.ipynb) çalıştırabilirsiniz
+***Not*** Bu [notebook’u](./mcp_support_python.ipynb) çalıştırabilirsiniz
 
 ### 1. Gerekli Paketleri Yükleyin
 
@@ -93,7 +93,7 @@ project_client = AIProjectClient(
 mcp_tool = McpTool(
     server_label=mcp_server_label,
     server_url=mcp_server_url,
-    allowed_tools=[],  # Optional: specify allowed tools
+    allowed_tools=[],  # İsteğe bağlı: izin verilen araçları belirtin
 )
 ```
 
@@ -103,7 +103,7 @@ mcp_tool = McpTool(
 with project_client:
     agents_client = project_client.agents
 
-    # Create a new agent with MCP tools
+    # MCP araçları ile yeni bir ajan oluştur
     agent = agents_client.create_agent(
         model="Your AOAI Model Deployment",
         name="my-mcp-agent",
@@ -113,11 +113,11 @@ with project_client:
     print(f"Created agent, ID: {agent.id}")
     print(f"MCP Server: {mcp_tool.server_label} at {mcp_tool.server_url}")
 
-    # Create thread for communication
+    # İletişim için iş parçacığı oluştur
     thread = agents_client.threads.create()
     print(f"Created thread, ID: {thread.id}")
 
-    # Create message to thread
+    # İş parçacığına mesaj oluştur
     message = agents_client.messages.create(
         thread_id=thread.id,
         role="user",
@@ -125,7 +125,7 @@ with project_client:
     )
     print(f"Created message, ID: {message.id}")
 
-    # Handle tool approvals and run agent
+    # Araç onaylarını yönet ve ajanı çalıştır
     mcp_tool.update_headers("SuperSecret", "123456")
     run = agents_client.runs.create(thread_id=thread.id, agent_id=agent.id, tool_resources=mcp_tool.resources)
     print(f"Created run, ID: {run.id}")
@@ -165,7 +165,7 @@ with project_client:
 
     print(f"Run completed with status: {run.status}")
 
-    # Display conversation
+    # Konuşmayı göster
     messages = agents_client.messages.list(thread_id=thread.id)
     print("\nConversation:")
     print("-" * 50)
@@ -180,7 +180,7 @@ with project_client:
 
 ## .NET Uygulaması
 
-***Not*** Bu [notebook’u](mcp_support_dotnet.ipynb) çalıştırabilirsiniz
+***Not*** Bu [notebook’u](./mcp_support_dotnet.ipynb) çalıştırabilirsiniz
 
 ### 1. Gerekli Paketleri Yükleyin
 
@@ -305,9 +305,9 @@ Ajanınız için MCP araçlarını yapılandırırken birkaç önemli parametre 
 
 ```python
 mcp_tool = McpTool(
-    server_label="unique_server_name",      # Identifier for the MCP server
-    server_url="https://api.example.com/mcp", # MCP server endpoint
-    allowed_tools=[],                       # Optional: specify allowed tools
+    server_label="unique_server_name",      # MCP sunucusu için tanımlayıcı
+    server_url="https://api.example.com/mcp", # MCP sunucu uç noktası
+    allowed_tools=[],                       # Opsiyonel: izin verilen araçları belirtin
 )
 ```
 
@@ -342,41 +342,45 @@ mcpToolResource.UpdateHeader("SuperSecret", "123456");
 - Kimlik doğrulama bilgilerini kontrol edin
 - Ağ bağlantısını sağlayın
 
-### 2. Araç Çağrısı Hataları
-- Araç argümanları ve biçimlendirmesini gözden geçirin
-- Sunucuya özgü gereksinimleri kontrol edin
-- Doğru hata yönetimi uygulayın
+### 2. Araç Çağrısı Fail (Başarısız) Olması
+- Araç argümanları ve formatını gözden geçirin
+- Sunucuya özel gereksinimleri kontrol edin
+- Uygun hata yönetimini uygulayın
 
 ### 3. Performans Sorunları
 - Araç çağrı sıklığını optimize edin
-- Uygun yerlerde önbellekleme yapın
+- Uygun yerde önbellekleme uygulayın
 - Sunucu yanıt sürelerini izleyin
 
 ## Sonraki Adımlar
 
 MCP entegrasyonunuzu daha da geliştirmek için:
 
-1. **Özel MCP Sunucuları Keşfedin**: Kendi MCP sunucularınızı kurarak özel veri kaynakları oluşturun
+1. **Özel MCP Sunucuları Keşfedin**: Kendi özel veri kaynaklarınız için MCP sunucuları oluşturun
 2. **Gelişmiş Güvenlik Uygulayın**: OAuth2 veya özel kimlik doğrulama mekanizmaları ekleyin
-3. **İzleme ve Analitik**: Araç kullanımını kaydetme ve izleme sistemleri kurun
-4. **Çözümünüzü Ölçeklendirin**: Yük dengeleme ve dağıtık MCP sunucu mimarilerini değerlendirin
+3. **İzleme ve Analitik**: Araç kullanımını izlemek ve günlüklemek için çözümler uygulayın
+4. **Çözümünüzü Ölçeklendirin**: Yük dengeleme ve dağıtılmış MCP sunucu mimarilerini değerlendirin
 
 ## Ek Kaynaklar
 
-- [Azure AI Foundry Dokümantasyonu](https://learn.microsoft.com/azure/ai-foundry/)
+- [Microsoft Foundry Belgeleri](https://learn.microsoft.com/azure/ai-foundry/)
 - [Model Context Protocol Örnekleri](https://learn.microsoft.com/azure/ai-foundry/agents/how-to/tools/model-context-protocol-samples)
-- [Azure AI Foundry Ajanları Genel Bakış](https://learn.microsoft.com/azure/ai-foundry/agents/)
+- [Microsoft Foundry Ajanları Genel Bakış](https://learn.microsoft.com/azure/ai-foundry/agents/)
 - [MCP Spesifikasyonu](https://spec.modelcontextprotocol.io/)
 
 ## Destek
 
 Ek destek ve sorular için:
-- [Azure AI Foundry dokümantasyonunu](https://learn.microsoft.com/azure/ai-foundry/) inceleyin
-- [MCP topluluk kaynaklarını](https://modelcontextprotocol.io/) kontrol edin
+- [Microsoft Foundry belgelerini](https://learn.microsoft.com/azure/ai-foundry/) inceleyin
+- [MCP topluluk kaynaklarına](https://modelcontextprotocol.io/) göz atın
 
-## Sonraki Konu
+## Sonraki ne var
 
 - [5.14 MCP Context Engineering](../mcp-contextengineering/README.md)
 
-**Feragatname**:  
-Bu belge, AI çeviri servisi [Co-op Translator](https://github.com/Azure/co-op-translator) kullanılarak çevrilmiştir. Doğruluk için çaba göstersek de, otomatik çevirilerin hatalar veya yanlışlıklar içerebileceğini lütfen unutmayınız. Orijinal belge, kendi dilinde yetkili kaynak olarak kabul edilmelidir. Kritik bilgiler için profesyonel insan çevirisi önerilir. Bu çevirinin kullanımı sonucu ortaya çıkabilecek yanlış anlamalar veya yorum hatalarından sorumlu değiliz.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Feragatname**:
+Bu belge, AI çeviri hizmeti [Co-op Translator](https://github.com/Azure/co-op-translator) kullanılarak çevrilmiştir. Doğruluk için çaba sarf etsek de, otomatik çevirilerin hata veya yanlışlık içerebileceğini lütfen unutmayınız. Orijinal belge, kendi dilinde yetkili kaynak olarak kabul edilmelidir. Kritik bilgiler için profesyonel insan çevirisi önerilir. Bu çevirinin kullanımı sonucu ortaya çıkabilecek yanlış anlamalardan veya yanlış yorumlamalardan sorumlu değiliz.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

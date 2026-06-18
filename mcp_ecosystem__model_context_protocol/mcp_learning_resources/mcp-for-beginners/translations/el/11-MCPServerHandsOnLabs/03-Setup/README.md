@@ -2,43 +2,43 @@
 
 ## 🎯 Τι Καλύπτει Αυτό το Εργαστήριο
 
-Αυτό το πρακτικό εργαστήριο σας καθοδηγεί στη ρύθμιση ενός πλήρους περιβάλλοντος ανάπτυξης για τη δημιουργία MCP servers με ενσωμάτωση PostgreSQL. Θα ρυθμίσετε όλα τα απαραίτητα εργαλεία, θα αναπτύξετε πόρους Azure και θα επικυρώσετε τη ρύθμιση πριν προχωρήσετε στην υλοποίηση.
+Αυτό το πρακτικό εργαστήριο σας καθοδηγεί στη ρύθμιση ενός πλήρους περιβάλλοντος ανάπτυξης για την κατασκευή διακομιστών MCP με ενσωμάτωση PostgreSQL. Θα ρυθμίσετε όλα τα απαραίτητα εργαλεία, θα αναπτύξετε πόρους Azure και θα επικυρώσετε τη ρύθμισή σας πριν προχωρήσετε στην υλοποίηση.
 
 ## Επισκόπηση
 
-Ένα σωστά διαμορφωμένο περιβάλλον ανάπτυξης είναι κρίσιμο για την επιτυχή ανάπτυξη MCP servers. Αυτό το εργαστήριο παρέχει βήμα προς βήμα οδηγίες για τη ρύθμιση του Docker, των υπηρεσιών Azure, των εργαλείων ανάπτυξης και την επικύρωση ότι όλα λειτουργούν σωστά μαζί.
+Ένα κατάλληλο περιβάλλον ανάπτυξης είναι κρίσιμο για την επιτυχή ανάπτυξη διακομιστών MCP. Αυτό το εργαστήριο παρέχει βήμα προς βήμα οδηγίες για τη ρύθμιση Docker, υπηρεσιών Azure, εργαλείων ανάπτυξης και την επαλήθευση ότι όλα λειτουργούν σωστά μαζί.
 
-Μέχρι το τέλος αυτού του εργαστηρίου, θα έχετε ένα πλήρως λειτουργικό περιβάλλον ανάπτυξης έτοιμο για τη δημιουργία του MCP server της Zava Retail.
+Στο τέλος αυτού του εργαστηρίου, θα έχετε ένα πλήρως λειτουργικό περιβάλλον ανάπτυξης έτοιμο για την κατασκευή του διακομιστή Zava Retail MCP.
 
-## Στόχοι Μάθησης
+## Μαθησιακοί Στόχοι
 
-Μέχρι το τέλος αυτού του εργαστηρίου, θα μπορείτε να:
+Στο τέλος αυτού του εργαστηρίου, θα μπορείτε να:
 
-- **Εγκαταστήσετε και διαμορφώσετε** όλα τα απαραίτητα εργαλεία ανάπτυξης
-- **Αναπτύξετε πόρους Azure** που απαιτούνται για τον MCP server
-- **Ρυθμίσετε Docker containers** για PostgreSQL και τον MCP server
-- **Επικυρώσετε** τη ρύθμιση του περιβάλλοντος με δοκιμαστικές συνδέσεις
+- **Εγκαταστήσετε και ρυθμίσετε** όλα τα απαιτούμενα εργαλεία ανάπτυξης
+- **Αναπτύξετε πόρους Azure** που απαιτούνται για τον διακομιστή MCP
+- **Ρυθμίσετε κοντέινερ Docker** για PostgreSQL και τον διακομιστή MCP
+- **Επικυρώσετε** τη ρύθμιση του περιβάλλοντός σας με δοκιμαστικές συνδέσεις
 - **Αντιμετωπίσετε προβλήματα** κοινών ζητημάτων ρύθμισης και διαμόρφωσης
-- **Κατανοήσετε** τη ροή εργασίας ανάπτυξης και τη δομή αρχείων
+- **Κατανοήσετε** τη ροή εργασιών ανάπτυξης και τη δομή αρχείων
 
 ## 📋 Έλεγχος Προαπαιτούμενων
 
-Πριν ξεκινήσετε, βεβαιωθείτε ότι έχετε:
+Πριν ξεκινήσετε, βεβαιωθείτε ότι διαθέτετε:
 
-### Απαιτούμενες Γνώσεις
+### Απαραίτητες Γνώσεις
 - Βασική χρήση γραμμής εντολών (Windows Command Prompt/PowerShell)
 - Κατανόηση μεταβλητών περιβάλλοντος
 - Εξοικείωση με τον έλεγχο έκδοσης Git
-- Βασικές έννοιες Docker (containers, images, volumes)
+- Βασικές έννοιες Docker (κοντέινερ, εικόνες, τόμοι)
 
 ### Απαιτήσεις Συστήματος
-- **Λειτουργικό Σύστημα**: Windows 10/11, macOS ή Linux
-- **RAM**: Ελάχιστο 8GB (συνιστάται 16GB)
-- **Αποθηκευτικός Χώρος**: Τουλάχιστον 10GB ελεύθερος χώρος
-- **Δίκτυο**: Σύνδεση στο Internet για λήψεις και ανάπτυξη Azure
+- **Λειτουργικό Σύστημα**: Windows 10/11, macOS, ή Linux
+- **RAM**: Ελάχιστο 8GB (προτείνεται 16GB)
+- **Χώρος Αποθήκευσης**: Τουλάχιστον 10GB ελεύθερος χώρος
+- **Δίκτυο**: Σύνδεση στο Διαδίκτυο για λήψεις και ανάπτυξη Azure
 
 ### Απαιτήσεις Λογαριασμού
-- **Συνδρομή Azure**: Αρκεί το δωρεάν επίπεδο
+- **Συνδρομή Azure**: Η δωρεάν έκδοση είναι επαρκής
 - **Λογαριασμός GitHub**: Για πρόσβαση στο αποθετήριο
 - **Λογαριασμός Docker Hub**: (Προαιρετικό) Για δημοσίευση προσαρμοσμένων εικόνων
 
@@ -46,23 +46,23 @@
 
 ### 1. Εγκατάσταση Docker Desktop
 
-Το Docker παρέχει το περιβάλλον container για τη ρύθμιση ανάπτυξης.
+Το Docker παρέχει το περιβάλλον με κοντέινερ για τη ρύθμιση ανάπτυξης.
 
-#### Εγκατάσταση σε Windows
+#### Εγκατάσταση στα Windows
 
-1. **Λήψη Docker Desktop**:
+1. **Κατεβάστε Docker Desktop**:
    ```cmd
    # Visit https://desktop.docker.com/win/stable/Docker%20Desktop%20Installer.exe
    # Or use Windows Package Manager
    winget install Docker.DockerDesktop
    ```
 
-2. **Εγκατάσταση και Διαμόρφωση**:
+2. **Εγκαταστήστε και Ρυθμίστε**:
    - Εκτελέστε τον εγκαταστάτη ως Διαχειριστής
-   - Ενεργοποιήστε την ενσωμάτωση WSL 2 όταν σας ζητηθεί
-   - Επανεκκινήστε τον υπολογιστή σας όταν ολοκληρωθεί η εγκατάσταση
+   - Ενεργοποιήστε την ενσωμάτωση WSL 2 όταν ζητηθεί
+   - Επανεκκινήστε τον υπολογιστή μόλις ολοκληρωθεί η εγκατάσταση
 
-3. **Επικύρωση Εγκατάστασης**:
+3. **Επαληθεύστε την Εγκατάσταση**:
    ```cmd
    docker --version
    docker-compose --version
@@ -70,18 +70,18 @@
 
 #### Εγκατάσταση σε macOS
 
-1. **Λήψη και Εγκατάσταση**:
+1. **Κατεβάστε και Εγκαταστήστε**:
    ```bash
-   # Download from https://desktop.docker.com/mac/stable/Docker.dmg
-   # Or use Homebrew
+   # Κατεβάστε από https://desktop.docker.com/mac/stable/Docker.dmg
+   # Ή χρησιμοποιήστε το Homebrew
    brew install --cask docker
    ```
 
-2. **Εκκίνηση Docker Desktop**:
+2. **Εκκινήστε το Docker Desktop**:
    - Εκκινήστε το Docker Desktop από τις Εφαρμογές
    - Ολοκληρώστε τον αρχικό οδηγό ρύθμισης
 
-3. **Επικύρωση Εγκατάστασης**:
+3. **Επαληθεύστε την Εγκατάσταση**:
    ```bash
    docker --version
    docker-compose --version
@@ -96,7 +96,7 @@
    sudo sh get-docker.sh
    sudo usermod -aG docker $USER
    
-   # Log out and back in for group changes to take effect
+   # Αποσυνδεθείτε και συνδεθείτε ξανά για να εφαρμοστούν οι αλλαγές ομάδας
    ```
 
 2. **Εγκατάσταση Docker Compose**:
@@ -109,7 +109,7 @@
 
 Το Azure CLI επιτρέπει την ανάπτυξη και διαχείριση πόρων Azure.
 
-#### Εγκατάσταση σε Windows
+#### Εγκατάσταση στα Windows
 
 ```cmd
 # Using Windows Package Manager
@@ -121,10 +121,10 @@ winget install Microsoft.AzureCLI
 #### Εγκατάσταση σε macOS
 
 ```bash
-# Using Homebrew
+# Χρήση Homebrew
 brew install azure-cli
 
-# Or using installer
+# Ή χρήση του εγκαταστάτη
 curl -L https://aka.ms/InstallAzureCli | bash
 ```
 
@@ -139,16 +139,16 @@ sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
 sudo dnf install azure-cli
 ```
 
-#### Επικύρωση και Αυθεντικοποίηση
+#### Επαλήθευση και Πιστοποίηση
 
 ```bash
-# Check installation
+# Έλεγχος εγκατάστασης
 az version
 
-# Login to Azure
+# Σύνδεση στο Azure
 az login
 
-# Set default subscription (if you have multiple)
+# Ορισμός προεπιλεγμένης συνδρομής (αν έχετε πολλές)
 az account list --output table
 az account set --subscription "Your-Subscription-Name"
 ```
@@ -169,7 +169,7 @@ winget install Git.Git
 #### macOS
 
 ```bash
-# Git is usually pre-installed, but you can update via Homebrew
+# Το Git είναι συνήθως προεγκατεστημένο, αλλά μπορείτε να το ενημερώσετε μέσω του Homebrew
 brew install git
 ```
 
@@ -185,7 +185,7 @@ sudo dnf install git
 
 ### 4. Εγκατάσταση VS Code
 
-Το Visual Studio Code παρέχει το ολοκληρωμένο περιβάλλον ανάπτυξης με υποστήριξη MCP.
+Το Visual Studio Code παρέχει ολοκληρωμένο περιβάλλον ανάπτυξης με υποστήριξη MCP.
 
 #### Εγκατάσταση
 
@@ -202,10 +202,10 @@ sudo snap install code --classic
 
 #### Απαιτούμενες Επεκτάσεις
 
-Εγκαταστήστε αυτές τις επεκτάσεις VS Code:
+Εγκαταστήστε αυτές τις επεκτάσεις για VS Code:
 
 ```bash
-# Install via command line
+# Εγκατάσταση μέσω γραμμής εντολών
 code --install-extension ms-python.python
 code --install-extension ms-vscode.vscode-json
 code --install-extension ms-azuretools.vscode-docker
@@ -214,7 +214,7 @@ code --install-extension ms-vscode.azure-account
 
 Ή εγκαταστήστε μέσω VS Code:
 1. Ανοίξτε το VS Code
-2. Μεταβείτε στις Επεκτάσεις (Ctrl+Shift+X)
+2. Πηγαίνετε στις Επεκτάσεις (Ctrl+Shift+X)
 3. Εγκαταστήστε:
    - **Python** (Microsoft)
    - **Docker** (Microsoft)
@@ -223,7 +223,7 @@ code --install-extension ms-vscode.azure-account
 
 ### 5. Εγκατάσταση Python
 
-Απαιτείται Python 3.8+ για την ανάπτυξη MCP server.
+Η Python 3.8+ απαιτείται για την ανάπτυξη διακομιστή MCP.
 
 #### Windows
 
@@ -237,7 +237,7 @@ winget install Python.Python.3.11
 #### macOS
 
 ```bash
-# Using Homebrew
+# Χρήση του Homebrew
 brew install python@3.11
 ```
 
@@ -251,11 +251,11 @@ sudo apt update && sudo apt install python3.11 python3.11-pip python3.11-venv
 sudo dnf install python3.11 python3.11-pip
 ```
 
-#### Επικύρωση Εγκατάστασης
+#### Επαλήθευση Εγκατάστασης
 
 ```bash
-python --version  # Should show Python 3.11.x
-pip --version      # Should show pip version
+python --version  # Θα πρέπει να δείχνει Python 3.11.x
+pip --version      # Θα πρέπει να δείχνει την έκδοση του pip
 ```
 
 ## 🚀 Ρύθμιση Έργου
@@ -263,40 +263,40 @@ pip --version      # Should show pip version
 ### 1. Κλωνοποίηση Αποθετηρίου
 
 ```bash
-# Clone the main repository
+# Αντιγράψτε το κύριο αποθετήριο
 git clone https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail.git
 
-# Navigate to the project directory
+# Πλοηγηθείτε στον φάκελο του έργου
 cd MCP-Server-and-PostgreSQL-Sample-Retail
 
-# Verify repository structure
+# Επαληθεύστε τη δομή του αποθετηρίου
 ls -la
 ```
 
 ### 2. Δημιουργία Εικονικού Περιβάλλοντος Python
 
 ```bash
-# Create virtual environment
+# Δημιουργήστε εικονικό περιβάλλον
 python -m venv mcp-env
 
-# Activate virtual environment
+# Ενεργοποιήστε το εικονικό περιβάλλον
 # Windows
 mcp-env\Scripts\activate
 
 # macOS/Linux
 source mcp-env/bin/activate
 
-# Upgrade pip
+# Αναβαθμίστε το pip
 python -m pip install --upgrade pip
 ```
 
 ### 3. Εγκατάσταση Εξαρτήσεων Python
 
 ```bash
-# Install development dependencies
+# Εγκατάσταση εξαρτήσεων ανάπτυξης
 pip install -r requirements.lock.txt
 
-# Verify key packages
+# Επαλήθευση βασικών πακέτων
 pip list | grep fastmcp
 pip list | grep asyncpg
 pip list | grep azure
@@ -306,21 +306,21 @@ pip list | grep azure
 
 ### 1. Κατανόηση Απαιτήσεων Πόρων
 
-Ο MCP server μας απαιτεί τους εξής πόρους Azure:
+Ο διακομιστής MCP μας απαιτεί αυτούς τους πόρους Azure:
 
 | **Πόρος** | **Σκοπός** | **Εκτιμώμενο Κόστος** |
-|-----------|------------|-----------------------|
-| **Azure AI Foundry** | Φιλοξενία και διαχείριση AI μοντέλων | $10-50/μήνα |
+|--------------|-------------|-------------------|
+| **Microsoft Foundry** | Φιλοξενία και διαχείριση μοντέλων AI | $10-50/μήνα |
 | **OpenAI Deployment** | Μοντέλο ενσωμάτωσης κειμένου (text-embedding-3-small) | $5-20/μήνα |
 | **Application Insights** | Παρακολούθηση και τηλεμετρία | $5-15/μήνα |
-| **Resource Group** | Οργάνωση πόρων | Δωρεάν |
+| **Ομάδα Πόρων** | Οργάνωση πόρων | Δωρεάν |
 
 ### 2. Ανάπτυξη Πόρων Azure
 
 #### Επιλογή Α: Αυτοματοποιημένη Ανάπτυξη (Συνιστάται)
 
 ```bash
-# Navigate to infrastructure directory
+# Μεταβείτε στον φάκελο υποδομής
 cd infra
 
 # Windows - PowerShell
@@ -332,26 +332,26 @@ cd infra
 
 Το σενάριο ανάπτυξης θα:
 1. Δημιουργήσει μια μοναδική ομάδα πόρων
-2. Αναπτύξει πόρους Azure AI Foundry
+2. Αναπτύξει πόρους Microsoft Foundry
 3. Αναπτύξει το μοντέλο text-embedding-3-small
-4. Διαμορφώσει το Application Insights
-5. Δημιουργήσει έναν service principal για αυθεντικοποίηση
+4. Ρυθμίσει το Application Insights
+5. Δημιουργήσει υπηρεσιακό λογαριασμό για πιστοποίηση
 6. Δημιουργήσει αρχείο `.env` με τη διαμόρφωση
 
 #### Επιλογή Β: Χειροκίνητη Ανάπτυξη
 
-Αν προτιμάτε χειροκίνητο έλεγχο ή αποτύχει το αυτοματοποιημένο σενάριο:
+Εάν προτιμάτε χειροκίνητο έλεγχο ή αποτύχει το αυτοματοποιημένο σενάριο:
 
 ```bash
-# Set variables
+# Ορίστε μεταβλητές
 RESOURCE_GROUP="rg-zava-mcp-$(date +%s)"
 LOCATION="westus2"
 AI_PROJECT_NAME="zava-ai-project"
 
-# Create resource group
+# Δημιουργήστε ομάδα πόρων
 az group create --name $RESOURCE_GROUP --location $LOCATION
 
-# Deploy main template
+# Αναπτύξτε το κύριο πρότυπο
 az deployment group create \
   --resource-group $RESOURCE_GROUP \
   --template-file main.bicep \
@@ -359,27 +359,27 @@ az deployment group create \
   --parameters resourcePrefix="zava-mcp"
 ```
 
-### 3. Επικύρωση Ανάπτυξης Azure
+### 3. Επαλήθευση Ανάπτυξης Azure
 
 ```bash
-# Check resource group
+# Έλεγχος ομάδας πόρων
 az group show --name $RESOURCE_GROUP --output table
 
-# List deployed resources
+# Λίστα των αναπτυγμένων πόρων
 az resource list --resource-group $RESOURCE_GROUP --output table
 
-# Test AI service
+# Δοκιμή υπηρεσίας AI
 az cognitiveservices account show \
   --name "your-ai-service-name" \
   --resource-group $RESOURCE_GROUP
 ```
 
-### 4. Διαμόρφωση Μεταβλητών Περιβάλλοντος
+### 4. Ρύθμιση Μεταβλητών Περιβάλλοντος
 
-Μετά την ανάπτυξη, θα πρέπει να έχετε ένα αρχείο `.env`. Επικυρώστε ότι περιέχει:
+Μετά την ανάπτυξη, θα πρέπει να έχετε ένα αρχείο `.env`. Επαληθεύστε ότι περιέχει:
 
 ```bash
-# .env file contents
+# Περιεχόμενα αρχείου .env
 PROJECT_ENDPOINT=https://your-project.cognitiveservices.azure.com/
 AZURE_OPENAI_ENDPOINT=https://your-openai.openai.azure.com/
 EMBEDDING_MODEL_DEPLOYMENT_NAME=text-embedding-3-small
@@ -388,7 +388,7 @@ AZURE_CLIENT_SECRET=your-client-secret
 AZURE_TENANT_ID=your-tenant-id
 APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=your-key;...
 
-# Database configuration (for development)
+# Ρυθμίσεις βάσης δεδομένων (για ανάπτυξη)
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 POSTGRES_DB=zava
@@ -400,7 +400,7 @@ POSTGRES_PASSWORD=your-secure-password
 
 ### 1. Κατανόηση Σύνθεσης Docker
 
-Το περιβάλλον ανάπτυξης μας χρησιμοποιεί Docker Compose:
+Το περιβάλλον ανάπτυξής μας χρησιμοποιεί Docker Compose:
 
 ```yaml
 # docker-compose.yml overview
@@ -432,55 +432,55 @@ services:
 ### 2. Εκκίνηση Περιβάλλοντος Ανάπτυξης
 
 ```bash
-# Ensure you're in the project root directory
+# Βεβαιωθείτε ότι βρίσκεστε στον ριζικό κατάλογο του έργου
 cd /path/to/MCP-Server-and-PostgreSQL-Sample-Retail
 
-# Start the services
+# Ξεκινήστε τις υπηρεσίες
 docker-compose up -d
 
-# Check service status
+# Ελέγξτε την κατάσταση της υπηρεσίας
 docker-compose ps
 
-# View logs
+# Δείτε τα αρχεία καταγραφής
 docker-compose logs -f
 ```
 
-### 3. Επικύρωση Ρύθμισης Βάσης Δεδομένων
+### 3. Επαλήθευση Ρύθμισης Βάσης Δεδομένων
 
 ```bash
-# Connect to PostgreSQL container
+# Συνδεθείτε με το δοχείο PostgreSQL
 docker-compose exec postgres psql -U postgres -d zava
 
-# Check database structure
+# Ελέγξτε τη δομή της βάσης δεδομένων
 \dt retail.*
 
-# Verify sample data
+# Επαληθεύστε τα δείγματα δεδομένων
 SELECT COUNT(*) FROM retail.stores;
 SELECT COUNT(*) FROM retail.products;
 SELECT COUNT(*) FROM retail.orders;
 
-# Exit PostgreSQL
+# Έξοδος από το PostgreSQL
 \q
 ```
 
-### 4. Δοκιμή MCP Server
+### 4. Δοκιμή Διακομιστή MCP
 
 ```bash
-# Check MCP server health
+# Έλεγχος υγείας διακομιστή MCP
 curl http://localhost:8000/health
 
-# Test basic MCP endpoint
+# Δοκιμή βασικού endpoint MCP
 curl -X POST http://localhost:8000/mcp \
   -H "Content-Type: application/json" \
   -H "x-rls-user-id: 00000000-0000-0000-0000-000000000000" \
   -d '{"method": "tools/list", "params": {}}'
 ```
 
-## 🔧 Διαμόρφωση VS Code
+## 🔧 Ρύθμιση VS Code
 
-### 1. Διαμόρφωση Ενσωμάτωσης MCP
+### 1. Ρύθμιση Ενσωμάτωσης MCP
 
-Δημιουργήστε διαμόρφωση MCP στο VS Code:
+Δημιουργήστε τη ρύθμιση MCP για το VS Code:
 
 ```json
 // .vscode/mcp.json
@@ -506,7 +506,7 @@ curl -X POST http://localhost:8000/mcp \
 }
 ```
 
-### 2. Διαμόρφωση Περιβάλλοντος Python
+### 2. Ρύθμιση Περιβάλλοντος Python
 
 ```json
 // .vscode/settings.json
@@ -534,21 +534,21 @@ curl -X POST http://localhost:8000/mcp \
 
 2. **Ανοίξτε το AI Chat**:
    - Πατήστε `Ctrl+Shift+P` (Windows/Linux) ή `Cmd+Shift+P` (macOS)
-   - Πληκτρολογήστε "AI Chat" και επιλέξτε "AI Chat: Open Chat"
+   - Πληκτρολογήστε "AI Chat" και επιλέξτε "AI Chat: Άνοιγμα Chat"
 
-3. **Δοκιμή Σύνδεσης MCP Server**:
-   - Στο AI Chat, πληκτρολογήστε `#zava` και επιλέξτε έναν από τους διαμορφωμένους servers
-   - Ρωτήστε: "Ποιοι πίνακες είναι διαθέσιμοι στη βάση δεδομένων;"
-   - Θα πρέπει να λάβετε απάντηση με λίστα των πινάκων της βάσης δεδομένων λιανικής
+3. **Δοκιμάστε τη Σύνδεση Διακομιστή MCP**:
+   - Στο AI Chat, πληκτρολογήστε `#zava` και επιλέξτε έναν από τους ρυθμισμένους διακομιστές
+   - Ρωτήστε: "Ποιους πίνακες έχει η βάση δεδομένων;"
+   - Πρέπει να λάβετε απάντηση με λίστα πινάκων της λιανικής βάσης δεδομένων
 
 ## ✅ Επικύρωση Περιβάλλοντος
 
 ### 1. Ολοκληρωμένος Έλεγχος Συστήματος
 
-Εκτελέστε αυτό το σενάριο επικύρωσης για να επαληθεύσετε τη ρύθμιση σας:
+Τρέξτε αυτό το σενάριο επικύρωσης για να επαληθεύσετε τη ρύθμισή σας:
 
 ```bash
-# Create validation script
+# Δημιουργία σεναρίου επικύρωσης
 cat > validate_setup.py << 'EOF'
 #!/usr/bin/env python3
 """
@@ -567,7 +567,7 @@ async def validate_environment():
     """Comprehensive environment validation."""
     results = {}
     
-    # Check Python version
+    # Έλεγχος έκδοσης Python
     python_version = sys.version_info
     results['python'] = {
         'status': 'pass' if python_version >= (3, 8) else 'fail',
@@ -575,7 +575,7 @@ async def validate_environment():
         'required': '3.8+'
     }
     
-    # Check required packages
+    # Έλεγχος απαιτούμενων πακέτων
     required_packages = ['fastmcp', 'asyncpg', 'azure-ai-projects']
     for package in required_packages:
         try:
@@ -584,7 +584,7 @@ async def validate_environment():
         except ImportError:
             results[f'package_{package}'] = {'status': 'fail', 'error': 'Not installed'}
     
-    # Check Docker
+    # Έλεγχος Docker
     try:
         result = subprocess.run(['docker', '--version'], capture_output=True, text=True)
         results['docker'] = {
@@ -594,7 +594,7 @@ async def validate_environment():
     except FileNotFoundError:
         results['docker'] = {'status': 'fail', 'error': 'Docker not found'}
     
-    # Check Azure CLI
+    # Έλεγχος Azure CLI
     try:
         result = subprocess.run(['az', '--version'], capture_output=True, text=True)
         results['azure_cli'] = {
@@ -604,7 +604,7 @@ async def validate_environment():
     except FileNotFoundError:
         results['azure_cli'] = {'status': 'fail', 'error': 'Azure CLI not found'}
     
-    # Check environment variables
+    # Έλεγχος περιβαλλοντικών μεταβλητών
     required_env_vars = [
         'PROJECT_ENDPOINT',
         'AZURE_OPENAI_ENDPOINT',
@@ -621,7 +621,7 @@ async def validate_environment():
             'value': '***' if value and 'SECRET' in var else value
         }
     
-    # Check database connection
+    # Έλεγχος σύνδεσης βάσης δεδομένων
     try:
         conn = await asyncpg.connect(
             host=os.getenv('POSTGRES_HOST', 'localhost'),
@@ -631,7 +631,7 @@ async def validate_environment():
             password=os.getenv('POSTGRES_PASSWORD', 'secure_password')
         )
         
-        # Test query
+        # Δοκιμή ερωτήματος
         result = await conn.fetchval('SELECT COUNT(*) FROM retail.stores')
         await conn.close()
         
@@ -645,7 +645,7 @@ async def validate_environment():
             'error': str(e)
         }
     
-    # Check MCP server
+    # Έλεγχος διακομιστή MCP
     try:
         response = requests.get('http://localhost:8000/health', timeout=5)
         results['mcp_server'] = {
@@ -658,7 +658,7 @@ async def validate_environment():
             'error': str(e)
         }
     
-    # Check Azure AI service
+    # Έλεγχος υπηρεσίας Azure AI
     try:
         credential = DefaultAzureCredential()
         project_client = AIProjectClient(
@@ -666,7 +666,7 @@ async def validate_environment():
             credential=credential
         )
         
-        # This will fail if credentials are invalid
+        # Θα αποτύχει αν τα διαπιστευτήρια είναι μη έγκυρα
         results['azure_ai'] = {'status': 'pass'}
         
     except Exception as e:
@@ -716,148 +716,148 @@ async def main():
 
 EOF
 
-# Run validation
+# Εκτέλεση επικύρωσης
 python validate_setup.py
 ```
 
-### 2. Χειροκίνητη Λίστα Ελέγχου Επικύρωσης
+### 2. Λίστα Χειροκίνητης Επικύρωσης
 
 **✅ Βασικά Εργαλεία**
-- [ ] Εγκατεστημένη και λειτουργική έκδοση Docker 20.10+
-- [ ] Εγκατεστημένο και αυθεντικοποιημένο Azure CLI 2.40+
-- [ ] Εγκατεστημένο Python 3.8+ με pip
+- [ ] Εγκατεστημένη και σε λειτουργία έκδοση Docker 20.10+
+- [ ] Εγκατεστημένο και πιστοποιημένο Azure CLI 2.40+
+- [ ] Εγκατεστημένη Python 3.8+ με pip
 - [ ] Εγκατεστημένο Git 2.30+
-- [ ] VS Code με τις απαιτούμενες επεκτάσεις
+- [ ] VS Code με απαιτούμενες επεκτάσεις
 
 **✅ Πόροι Azure**
 - [ ] Δημιουργήθηκε επιτυχώς ομάδα πόρων
 - [ ] Αναπτύχθηκε έργο AI Foundry
-- [ ] Αναπτύχθηκε μοντέλο text-embedding-3-small
-- [ ] Διαμορφώθηκε Application Insights
-- [ ] Δημιουργήθηκε service principal με σωστές άδειες
+- [ ] Αναπτύχθηκε μοντέλο OpenAI text-embedding-3-small
+- [ ] Ρυθμίστηκε το Application Insights
+- [ ] Δημιουργήθηκε υπηρεσιακός λογαριασμός με τα κατάλληλα δικαιώματα
 
-**✅ Διαμόρφωση Περιβάλλοντος**
-- [ ] Δημιουργήθηκε αρχείο `.env` με όλες τις απαιτούμενες μεταβλητές
-- [ ] Λειτουργούν τα διαπιστευτήρια Azure (δοκιμή με `az account show`)
-- [ ] Λειτουργεί και είναι προσβάσιμο το container PostgreSQL
-- [ ] Φορτώθηκαν δείγματα δεδομένων στη βάση δεδομένων
+**✅ Ρύθμιση Περιβάλλοντος**
+- [ ] Δημιουργήθηκε αρχείο `.env` με όλες τις απαραίτητες μεταβλητές
+- [ ] Τα διαπιστευτήρια Azure λειτουργούν (δοκιμάστε με `az account show`)
+- [ ] Το κοντέινερ PostgreSQL εκτελείται και είναι προσβάσιμο
+- [ ] Φορτώθηκαν δείγματα δεδομένων στη βάση
 
 **✅ Ενσωμάτωση VS Code**
-- [ ] Διαμορφώθηκε το `.vscode/mcp.json`
-- [ ] Ο διερμηνέας Python έχει οριστεί στο εικονικό περιβάλλον
-- [ ] Εμφανίζονται οι MCP servers στο AI Chat
-- [ ] Μπορούν να εκτελεστούν δοκιμαστικά ερωτήματα μέσω AI Chat
+- [ ] Ρυθμίστηκε το `.vscode/mcp.json`
+- [ ] Ο διερμηνέας Python ορίστηκε στο εικονικό περιβάλλον
+- [ ] Οι διακομιστές MCP εμφανίζονται στο AI Chat
+- [ ] Μπορείτε να εκτελέσετε δοκιμαστικά ερωτήματα μέσω του AI Chat
 
-## 🛠️ Αντιμετώπιση Κοινών Προβλημάτων
+## 🛠️ Αντιμετώπιση Συνήθων Προβλημάτων
 
 ### Προβλήματα Docker
 
-**Πρόβλημα**: Τα containers Docker δεν ξεκινούν
+**Πρόβλημα**: Τα κοντέινερ Docker δεν ξεκινούν
 ```bash
-# Check Docker service status
+# Ελέγξτε την κατάσταση της υπηρεσίας Docker
 docker info
 
-# Check available resources
+# Ελέγξτε τους διαθέσιμους πόρους
 docker system df
 
-# Clean up if needed
+# Καθαρίστε αν είναι απαραίτητο
 docker system prune -f
 
-# Restart Docker Desktop (Windows/macOS)
-# Or restart Docker service (Linux)
+# Επανεκκινήστε το Docker Desktop (Windows/macOS)
+# Ή επανεκκινήστε την υπηρεσία Docker (Linux)
 sudo systemctl restart docker
 ```
 
-**Πρόβλημα**: Αποτυγχάνει η σύνδεση PostgreSQL
+**Πρόβλημα**: Απέτυχε η σύνδεση με PostgreSQL
 ```bash
-# Check container logs
+# Ελέγξτε τα αρχεία καταγραφής του κοντέινερ
 docker-compose logs postgres
 
-# Verify container is healthy
+# Επαληθεύστε ότι το κοντέινερ είναι υγιές
 docker-compose ps
 
-# Test direct connection
+# Δοκιμάστε άμεση σύνδεση
 docker-compose exec postgres psql -U postgres -d zava -c "SELECT 1;"
 ```
 
 ### Προβλήματα Ανάπτυξης Azure
 
-**Πρόβλημα**: Αποτυγχάνει η ανάπτυξη Azure
+**Πρόβλημα**: Η ανάπτυξη Azure αποτυγχάνει
 ```bash
-# Check Azure CLI authentication
+# Ελέγξτε την πιστοποίηση Azure CLI
 az account show
 
-# Verify subscription permissions
+# Επαληθεύστε τα δικαιώματα συνδρομής
 az role assignment list --assignee $(az account show --query user.name -o tsv)
 
-# Check resource provider registration
+# Ελέγξτε την εγγραφή του παρόχου πόρων
 az provider register --namespace Microsoft.CognitiveServices
 az provider register --namespace Microsoft.Insights
 ```
 
-**Πρόβλημα**: Αποτυγχάνει η αυθεντικοποίηση υπηρεσίας AI
+**Πρόβλημα**: Απέτυχε η πιστοποίηση υπηρεσίας AI
 ```bash
-# Test service principal
+# Δοκιμή κύριου υπηρεσίας
 az login --service-principal \
   --username $AZURE_CLIENT_ID \
   --password $AZURE_CLIENT_SECRET \
   --tenant $AZURE_TENANT_ID
 
-# Verify AI service deployment
+# Επαλήθευση ανάπτυξης υπηρεσίας AI
 az cognitiveservices account list --query "[].{Name:name,Kind:kind,Location:location}"
 ```
 
 ### Προβλήματα Περιβάλλοντος Python
 
-**Πρόβλημα**: Αποτυγχάνει η εγκατάσταση πακέτων
+**Πρόβλημα**: Απέτυχε η εγκατάσταση πακέτων
 ```bash
-# Upgrade pip and setuptools
+# Αναβάθμιση pip και setuptools
 python -m pip install --upgrade pip setuptools wheel
 
-# Clear pip cache
+# Εκκαθάριση της προσωρινής μνήμης του pip
 pip cache purge
 
-# Install packages one by one to identify issues
+# Εγκατάσταση πακέτων ένα προς ένα για την ανίχνευση προβλημάτων
 pip install fastmcp
 pip install asyncpg
 pip install azure-ai-projects
 ```
 
-**Πρόβλημα**: Το VS Code δεν βρίσκει τον διερμηνέα Python
+**Πρόβλημα**: Το VS Code δεν βρίσκει διερμηνέα Python
 ```bash
-# Show Python interpreter paths
+# Εμφάνιση διαδρομών διερμηνέα Python
 which python  # macOS/Linux
 where python  # Windows
 
-# Activate virtual environment first
+# Ενεργοποιήστε πρώτα το εικονικό περιβάλλον
 source mcp-env/bin/activate  # macOS/Linux
 mcp-env\Scripts\activate     # Windows
 
-# Then open VS Code
+# Στη συνέχεια ανοίξτε το VS Code
 code .
 ```
 
-## 🎯 Βασικά Συμπεράσματα
+## 🎯 Κύρια Σημεία
 
-Μετά την ολοκλήρωση αυτού του εργαστηρίου, θα πρέπει να έχετε:
+Μετά την ολοκλήρωση αυτού του εργαστηρίου, θα έχετε:
 
-✅ **Πλήρες Περιβάλλον Ανάπτυξης**: Όλα τα εργαλεία εγκατεστημένα και διαμορφωμένα  
+✅ **Πλήρες Περιβάλλον Ανάπτυξης**: Όλα τα εργαλεία εγκατεστημένα και ρυθμισμένα  
 ✅ **Αναπτυγμένους Πόρους Azure**: Υπηρεσίες AI και υποστηρικτική υποδομή  
-✅ **Λειτουργικό Περιβάλλον Docker**: Containers PostgreSQL και MCP server  
-✅ **Ενσωμάτωση VS Code**: Διαμορφωμένοι και προσβάσιμοι MCP servers  
+✅ **Λειτουργικό Περιβάλλον Docker**: Κοντέινερ PostgreSQL και διακομιστή MCP  
+✅ **Ενσωμάτωση VS Code**: Οι διακομιστές MCP ρυθμισμένοι και προσβάσιμοι  
 ✅ **Επικυρωμένη Ρύθμιση**: Όλα τα στοιχεία δοκιμασμένα και λειτουργικά μαζί  
-✅ **Γνώση Αντιμετώπισης Προβλημάτων**: Κοινά ζητήματα και λύσεις  
+✅ **Γνώσεις Αντιμετώπισης Προβλημάτων**: Συνήθη ζητήματα και λύσεις  
 
 ## 🚀 Τι Ακολουθεί
 
-Με το περιβάλλον σας έτοιμο, συνεχίστε στο **[Εργαστήριο 04: Σχεδιασμός Βάσης Δεδομένων και Σχήμα](../04-Database/README.md)** για να:
+Με το περιβάλλον σας έτοιμο, συνεχίστε στο **[Εργαστήριο 04: Σχεδίαση Βάσης Δεδομένων και Σχήμα](../04-Database/README.md)** για να:
 
-- Εξερευνήσετε το σχήμα της βάσης δεδομένων λιανικής
+- Εξερευνήσετε αναλυτικά το σχήμα της λιανικής βάσης δεδομένων
 - Κατανοήσετε τη μοντελοποίηση δεδομένων πολλαπλών ενοικιαστών
-- Μάθετε για την υλοποίηση Ασφάλειας σε Επίπεδο Γραμμής
-- Εργαστείτε με δείγματα δεδομένων λιανικής
+- Μάθετε για την υλοποίηση ασφάλειας σε επίπεδο γραμμής (Row Level Security)
+- Εργαστείτε με δείγματα λιανικών δεδομένων
 
-## 📚 Πρόσθετοι Πόροι
+## 📚 Επιπλέον Πόροι
 
 ### Εργαλεία Ανάπτυξης
 - [Τεκμηρίωση Docker](https://docs.docker.com/) - Πλήρης αναφορά Docker
@@ -865,20 +865,22 @@ code .
 - [Τεκμηρίωση VS Code](https://code.visualstudio.com/docs) - Ρύθμιση επεξεργαστή και επεκτάσεις
 
 ### Υπηρεσίες Azure
-- [Τεκμηρίωση Azure AI Foundry](https://docs.microsoft.com/azure/ai-foundry/) - Ρύθμιση υπηρεσίας AI
-- [Υπηρεσία Azure OpenAI](https://docs.microsoft.com/azure/cognitive-services/openai/) - Ανάπτυξη AI μοντέλου
+- [Τεκμηρίωση Microsoft Foundry](https://docs.microsoft.com/azure/ai-foundry/) - Ρύθμιση υπηρεσίας AI
+- [Υπηρεσία Azure OpenAI](https://docs.microsoft.com/azure/cognitive-services/openai/) - Ανάπτυξη μοντέλου AI
 - [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) - Ρύθμιση παρακολούθησης
 
 ### Ανάπτυξη Python
 - [Εικονικά Περιβάλλοντα Python](https://docs.python.org/3/tutorial/venv.html) - Διαχείριση περιβάλλοντος
-- [Τεκμηρίωση AsyncIO](https://docs.python.org/3/library/asyncio.html) - Πρότυπα προγραμματισμού Async
+- [Τεκμηρίωση AsyncIO](https://docs.python.org/3/library/asyncio.html) - Πρότυπα ασύγχρονης προγραμματισμού
 - [Τεκμηρίωση FastAPI](https://fastapi.tiangolo.com/) - Πρότυπα πλαισίου web
 
 ---
 
-**Επόμενο**: Το περιβάλλον είναι έτοιμο; Συνεχίστε με το [Εργαστήριο 04: Σχεδιασμός Βάσης Δεδομένων και Σχήμα](../04-Database/README.md)
+**Επόμενο**: Περιβάλλον έτοιμο; Συνεχίστε με το [Εργαστήριο 04: Σχεδίαση Βάσης Δεδομένων και Σχήμα](../04-Database/README.md)
 
 ---
 
-**Αποποίηση ευθύνης**:  
-Αυτό το έγγραφο έχει μεταφραστεί χρησιμοποιώντας την υπηρεσία αυτόματης μετάφρασης [Co-op Translator](https://github.com/Azure/co-op-translator). Παρόλο που καταβάλλουμε προσπάθειες για ακρίβεια, παρακαλούμε να έχετε υπόψη ότι οι αυτόματες μεταφράσεις ενδέχεται να περιέχουν σφάλματα ή ανακρίβειες. Το πρωτότυπο έγγραφο στη μητρική του γλώσσα θα πρέπει να θεωρείται η αυθεντική πηγή. Για κρίσιμες πληροφορίες, συνιστάται επαγγελματική ανθρώπινη μετάφραση. Δεν φέρουμε ευθύνη για τυχόν παρεξηγήσεις ή εσφαλμένες ερμηνείες που προκύπτουν από τη χρήση αυτής της μετάφρασης.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Αποποίηση ευθυνών**:
+Αυτό το έγγραφο έχει μεταφραστεί χρησιμοποιώντας την υπηρεσία μετάφρασης με τεχνητή νοημοσύνη [Co-op Translator](https://github.com/Azure/co-op-translator). Ενώ επιδιώκουμε την ακρίβεια, παρακαλούμε να έχετε υπόψη ότι οι αυτοματοποιημένες μεταφράσεις ενδέχεται να περιέχουν λάθη ή ανακρίβειες. Το πρωτότυπο έγγραφο στη μητρική του γλώσσα πρέπει να θεωρείται η αυθεντική πηγή. Για κρίσιμες πληροφορίες, συνιστάται επαγγελματική ανθρώπινη μετάφραση. Δεν φέρουμε ευθύνη για τυχόν παρεξηγήσεις ή λανθασμένες ερμηνείες που προκύπτουν από τη χρήση αυτής της μετάφρασης.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

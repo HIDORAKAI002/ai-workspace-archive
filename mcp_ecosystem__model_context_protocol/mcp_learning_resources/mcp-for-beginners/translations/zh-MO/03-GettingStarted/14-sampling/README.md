@@ -1,24 +1,24 @@
-# 取樣 - 將功能委派給客戶端
+# 取樣 - 將功能委派給用戶端
 
-有時，你需要 MCP 客戶端與 MCP 伺服器協同合作以達成共同目標。你可能遇到伺服器需要客戶端上的大型語言模型（LLM）幫助的情況。針對這種情況，取樣就是你應該使用的功能。
+有時候，你需要 MCP 用戶端與 MCP 伺服器協作以達成共同目標。你可能會遇到伺服器需要在用戶端運行的大型語言模型 (LLM) 協助的情況。針對這種情況，應該使用取樣功能。
 
-讓我們探索一些使用案例及如何建立一個包含取樣的解決方案。
+讓我們探索一些使用案例，以及如何構建包含取樣的解決方案。
 
 ## 概覽
 
-本課程將著重說明何時以及在哪裡使用取樣，以及如何配置取樣。
+本課程重點解釋何時以及在哪裡使用取樣，以及如何配置它。
 
 ## 學習目標
 
-在本章節，我們將：
+在本章中，我們將：
 
-- 解釋什麼是取樣以及何時使用它。
-- 示範如何在 MCP 中配置取樣。
-- 提供取樣的實作範例。
+- 解釋什麼是取樣以及何時使用。
+- 展示如何在 MCP 中配置取樣。
+- 提供取樣應用的範例。
 
 ## 什麼是取樣及為何使用它？
 
-取樣是一項進階功能，運作方式如下：
+取樣是一項高級功能，運作方式如下：
 
 ```mermaid
 sequenceDiagram
@@ -27,18 +27,19 @@ sequenceDiagram
     participant LLM
     participant MCP Server
 
-    User->>MCP Client: 撰寫部落格文章
-    MCP Client->>MCP Server: 工具呼叫（部落格文章草稿）
-    MCP Server->>MCP Client: 取樣請求（建立摘要）
-    MCP Client->>LLM: 產生部落格文章摘要
+    User->>MCP Client: 撰寫博客文章
+    MCP Client->>MCP Server: 工具調用（博客文章草稿）
+    MCP Server->>MCP Client: 抽樣請求（建立摘要）
+    MCP Client->>LLM: 產生博客文章摘要
     LLM->>MCP Client: 摘要結果
-    MCP Client->>MCP Server: 取樣回應（摘要）
-    MCP Server->>MCP Client: 完整部落格文章（草稿 + 摘要）
-    MCP Client->>User: 部落格文章已完成
+    MCP Client->>MCP Server: 抽樣回應（摘要）
+    MCP Server->>MCP Client: 完成博客文章（草稿＋摘要）
+    MCP Client->>User: 博客文章準備好
 ```
+
 ### 取樣請求
 
-好，現在我們有了一個可信場景的宏觀視角，讓我們來談談伺服器發送回客戶端的取樣請求。以下是該請求以 JSON-RPC 格式的樣貌：
+好的，現在我們有一個可信場景的高層次視角，讓我們來談談伺服器傳回給用戶端的取樣請求。以下是此類請求在 JSON-RPC 格式中的範例：
 
 ```json
 {
@@ -70,17 +71,17 @@ sequenceDiagram
 }
 ```
 
-這裡有幾點值得說明：
+這裡有幾點值得注意：
 
-- Prompt，在 content -> text 底下，是我們的提示，是指示 LLM 摘要部落格文章內容的指令。
+- 提示（Prompt）位於 content -> text 下，是我們給大型語言模型的指示，目的是讓它摘要博客文章內容。
 
-- **modelPreferences**。此部分就是偏好設定，是對使用 LLM 配置的建議。使用者可以選擇是否採納這些建議或自行更改。在這個例子中，建議了要使用的模型以及速度和智能優先度。
-- **systemPrompt**，這是你平常的系統提示，用來賦予你的 LLM 一個個性並包含指導指令。
-- **maxTokens**，另一個屬性，用來建議此任務應使用的最大代幣數。
+- **modelPreferences**。此部分就是偏好設置，建議使用哪種配置來搭配大型語言模型。使用者可以選擇是否接受這些建議或做出改變。此例中有關使用哪款模型、速度和智慧優先級的建議。
+- **systemPrompt**，這是你正常的系統提示，賦予大型語言模型一個個性，以及包含指導說明。
+- **maxTokens**，這是另一項屬性，用於說明推薦此任務使用多少 token。
 
 ### 取樣回應
 
-此回應是 MCP 客戶端最終發送回 MCP 伺服器的訊息，是客戶端呼叫 LLM 並等待回應後所構建的訊息。以下是其 JSON-RPC 格式範例：
+此回應是 MCP 用戶端在呼叫大型語言模型，等待回應後再構建的訊息，會傳回 MCP 伺服器。以下是它在 JSON-RPC 裡可能的樣貌：
 
 ```json
 {
@@ -98,13 +99,13 @@ sequenceDiagram
 }
 ```
 
-注意回應是部落格文章的摘要，正如我們所要求的。另外注意使用的 `model` 並非我們原先請求的，而是「gpt-5」而非「claude-3-sonnet」。這是為了示範使用者可以改變他們想使用的模型，而你的取樣請求只是個建議而已。
+注意回應是文章摘要，正如我們所要求的。同時也注意回應中使用的 `model` 並非我們原本要求的，而是用 "gpt-5" 取代 "claude-3-sonnet"。這是為了示範使用者可改變已用的模型，而你的取樣請求只是建議。
 
-好了，既然我們了解主流程以及一個實用任務「部落格文章創作 + 摘要」，讓我們看看要怎麼使它運作。
+好，既然我們了解主要流程以及適用於「部落格文章創作 + 摘要」的實用任務，接著來看看要怎麼實現此功能。
 
 ### 訊息類型
 
-取樣訊息不限於純文字，也可以傳送圖片和音訊。以下是 JSON-RPC 的不同樣貌：
+取樣訊息不僅限於文字，亦可傳送圖片與音訊。以下展示 JSON-RPC 不同的格式：
 
 <strong>文字</strong>
 
@@ -135,13 +136,13 @@ sequenceDiagram
 }
 ```
 
-> 注意：更多取樣詳細資訊，請參閱 [官方文件](https://modelcontextprotocol.io/specification/2025-06-18/client/sampling)
+> NOTE: 欲瞭解更詳細取樣資訊，請參閱[官方文件](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling)
 
-## 如何在客戶端配置取樣
+## 如何在用戶端配置取樣
 
-> 注意：如果你只是在建置伺服器端，這部分無需太多操作。
+> 注意：如果你只在建置伺服器，這部分不需做太多。
 
-在客戶端，你需要這樣指定該功能：
+在用戶端，你需要如此指定以下功能：
 
 ```json
 {
@@ -151,18 +152,18 @@ sequenceDiagram
 }
 ```
 
-當你選擇的客戶端與伺服器初始化時，這項設定就會被採用。
+當選定的用戶端與伺服器初始化時，將會採用此設定。
 
-## 取樣實作範例 - 創建部落格文章
+## 取樣範例 - 創建部落格文章
 
-讓我們一起編寫一個取樣伺服器，我們將需要完成以下步驟：
+讓我們一起編寫一個取樣伺服器，我們需做以下事：
 
-1. 在伺服器端建立一個工具。
-1. 該工具應建立一個取樣請求。
-1. 工具應等待客戶端的取樣回應。
-1. 然後工具產生結果。
+1. 在伺服器端建立工具。
+1. 該工具應產生一個取樣請求。
+1. 工具應等待用戶端的取樣回覆。
+1. 接著產生工具結果。
 
-讓我們一步一步看程式碼：
+讓我們逐步看程式碼：
 
 ### -1- 建立工具
 
@@ -177,7 +178,7 @@ async def create_blog(title: str, content: str, ctx: Context[ServerSession, None
 
 ### -2- 建立取樣請求
 
-將你的工具擴充如下：
+擴充你的工具，加入以下程式碼：
 
 **python**
 
@@ -203,7 +204,7 @@ result = await ctx.session.create_message(
 
 ```
 
-### -3- 等待回應並返回結果
+### -3- 等待回應並回傳結果
 
 **python**
 
@@ -212,7 +213,7 @@ post.abstract = result.content.text
 
 posts.append(post)
 
-# 返回完整的產品
+# 返回完整產品
 return json.dumps({
     "id": post.title,
     "abstract": post.abstract
@@ -281,7 +282,7 @@ async def create_blog(title: str, content: str, ctx: Context[ServerSession, None
 
     posts.append(post)
 
-    # 返回完整的博客文章
+    # 返回完整的部落格文章
     return json.dumps({
         "id": post.title,
         "abstract": post.abstract
@@ -292,15 +293,15 @@ if __name__ == "__main__":
     # mcp.run()
     mcp.run(transport="streamable-http")
 
-# 使用以下方式運行應用程序：python server.py
+# 使用 python server.py 運行應用程式
 ```
 
 ### -5- 在 Visual Studio Code 中測試
 
-要在 Visual Studio Code 中測試，請執行以下步驟：
+在 Visual Studio Code 中測試此流程，請做以下：
 
 1. 在終端機啟動伺服器
-1. 將它加入 *mcp.json*（並確保已啟動），如下範例：
+1. 將它加入 *mcp.json*（並確保伺服器已啟動），類似如下範例：
 
    ```json
    "servers": {
@@ -311,45 +312,45 @@ if __name__ == "__main__":
    }
    ```
 
-1. 輸入一個提示：
+1. 輸入提示詞：
 
    ```text
    create a blog post named "Where Python comes from", the content is "Python is actually named after Monty Python Flying Circus"
    ```
 
-1. 允許取樣進行。首次測試時，你會看到一個額外的對話框，需要你接受；接著會看到正常的對話框，請求你執行工具。
+1. 允許進行取樣。首次測試時，會跳出額外對話框要求你同意，接著才是正常的工具執行詢問視窗。
 
-1. 檢視結果。你會在 GitHub Copilot Chat 中看到美觀的呈現結果，也可以檢查原始 JSON 回應。
+1. 檢視結果。你會看到結果不僅在 GitHub Copilot Chat 中漂亮呈現，還可以查看原始 JSON 回應。
 
-<strong>額外提示</strong>。Visual Studio Code 工具有很棒的取樣支援。你可以這樣配置你安裝的伺服器的取樣權限：
+<strong>加分</strong>。Visual Studio Code 工具有很棒的取樣支援。你可以透過以下操作配置取樣存取權限：
 
-1. 進入擴充功能頁面。
-1. 在「MCP SERVERS - INSTALLED」區塊選擇你的伺服器設定齒輪圖示。
-1. 選取「Configure Model Access」，在此你可選擇 GitHub Copilot 執行取樣時可使用的模型。你也可以透過選擇「Show Sampling requests」了解近期所有取樣請求。
+1. 移至擴充功能區塊。
+1. 在「MCP SERVERS - INSTALLED」區段選擇已安裝伺服器的齒輪圖示。
+1. 選擇「Configure Model Access」，此處你可以決定 GitHub Copilot 執行取樣時允許使用哪些模型。點選「Show Sampling requests」還能看到近期所有取樣請求。
 
 ## 作業
 
-本次作業，你將建置一個稍作不同的取樣整合，主要是支持生成產品描述。以下是你的場景：
+這次作業讓你打造稍有不同的取樣 —— 一個支援生成產品描述的取樣整合。以下是情境設定：
 
-<strong>場景</strong>：電子商務的後勤人員需要協助，產生產品描述太耗時。因此，你需要建置一個解決方案，可以呼叫一個名為 "create_product" 的工具，帶入「title」和「keywords」作為引數，該工具應產生一份完整的產品資料物件，其中「description」欄位將由客戶端的 LLM 填寫。
+<strong>情境</strong>：電商後台工作人員生成產品描述非常耗時。因此，你需建置一個解決方案，能呼叫名為 "create_product" 的工具並傳入「標題」與「關鍵字」作為參數，該工具應產出一個完整產品，其中「description」欄位將由用戶端的大型語言模型填寫。
 
-提示：使用先前所學來構建此伺服器及其工具，包含一個取樣請求。
+提示：使用先前所學，建構此伺服器及其工具並使用取樣請求。
 
 ## 解答
 
-[解答](./solution/README.md)
+[Solution](./solution/README.md)
 
-## 主要重點
+## 重要重點
 
-取樣是一項強大的功能，允許伺服器在需要 LLM 協助時將任務委派給客戶端。
+取樣是一個強大的功能，當伺服器需要大型語言模型協助時，能將任務委派給用戶端。
 
 ## 下一步
 
-- [第四章 - 實務實作](../../04-PracticalImplementation/README.md)
+- [第4章 - 實務實作](../../04-PracticalImplementation/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**免責聲明**：  
-本文件由 AI 翻譯服務 [Co-op Translator](https://github.com/Azure/co-op-translator) 翻譯而成。雖然我們致力於確保準確性，但請注意，自動翻譯可能包含錯誤或不準確之處。原文的母語版本應被視為權威資料來源。對於重要資訊，建議尋求專業人工翻譯。我們不對因使用本翻譯而引致的任何誤解或誤譯承擔責任。
+**免責聲明**：
+本文件使用 AI 翻譯服務 [Co-op Translator](https://github.com/Azure/co-op-translator) 進行翻譯。雖然我們力求準確，但請注意，自動翻譯可能包含錯誤或不準確之處。原始文件的母語版本應被視為權威來源。對於重要資訊，建議尋求專業人工翻譯。我們不對因使用本翻譯而引起的任何誤解或曲解承擔責任。
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

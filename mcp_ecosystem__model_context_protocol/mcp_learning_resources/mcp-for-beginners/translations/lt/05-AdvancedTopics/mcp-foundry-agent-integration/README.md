@@ -1,59 +1,59 @@
-# Modelio konteksto protokolo (MCP) integracija su Azure AI Foundry
+# Modelio konteksto protokolo (MCP) integracija su Microsoft Foundry
 
-Šiame vadove parodoma, kaip integruoti Modelio konteksto protokolo (MCP) serverius su Azure AI Foundry agentais, suteikiant galingą įrankių koordinavimą ir įmonės AI galimybes.
+Šiame vadove parodyta, kaip integruoti Modelio konteksto protokolo (MCP) serverius su Microsoft Foundry agentais, leidžiant galingą įrankių orkestravimą ir verslo dirbtinio intelekto galimybes.
 
 ## Įvadas
 
-Modelio konteksto protokolas (MCP) yra atviras standartas, leidžiantis AI programoms saugiai prisijungti prie išorinių duomenų šaltinių ir įrankių. Integravus su Azure AI Foundry, MCP suteikia agentams galimybę pasiekti ir sąveikauti su įvairiomis išorinėmis paslaugomis, API ir duomenų šaltiniais standartizuotu būdu.
+Modelio konteksto protokolas (MCP) yra atviras standartas, leidžiantis DI programoms saugiai prisijungti prie išorinių duomenų šaltinių ir įrankių. Integruojant su Microsoft Foundry, MCP leidžia agentams prieiti ir sąveikauti su įvairiomis išorinėmis paslaugomis, API ir duomenų šaltiniais standartizuotu būdu.
 
-Ši integracija sujungia MCP įrankių ekosistemos lankstumą su Azure AI Foundry tvirtu agentų pagrindu, suteikdama įmonės lygio AI sprendimus su plačiomis pritaikymo galimybėmis.
+Ši integracija sujungia MCP įrankių ekosistemos lankstumą su Microsoft Foundry tvirtu agentų pagrindu, suteikiant įmonių lygio DI sprendimus su plačiomis pritaikymo galimybėmis.
 
-**Pastaba:** Jei norite naudoti MCP su Azure AI Foundry Agent Service, šiuo metu palaikomi tik šie regionai: westus, westus2, uaenorth, southindia ir switzerlandnorth.
+**Pastaba:** Jei norite naudoti MCP Microsoft Foundry agentų paslaugoje, šiuo metu palaikomi tik šie regionai: westus, westus2, uaenorth, southindia ir switzerlandnorth
 
 ## Mokymosi tikslai
 
-Baigę šį vadovą, galėsite:
+Įgiję šio vadovo žinias, galėsite:
 
-- Suprasti Modelio konteksto protokolą ir jo privalumus
-- Paruošti MCP serverius naudojimui su Azure AI Foundry agentais
+- Suprasti Modelio konteksto protokolą ir jo naudą
+- Paruošti MCP serverius naudojimui su Microsoft Foundry agentais
 - Kurti ir konfigūruoti agentus su MCP įrankių integracija
-- Įgyvendinti praktinius pavyzdžius naudojant realius MCP serverius
+- Įgyvendinti praktinius pavyzdžius naudojant tikrus MCP serverius
 - Tvarkyti įrankių atsakymus ir citatas agentų pokalbiuose
 
-## Reikalavimai
+## Reikalingos sąlygos
 
 Prieš pradėdami, įsitikinkite, kad turite:
 
-- Azure prenumeratą su AI Foundry prieiga
+- Azure prenumeratą su prieiga prie Microsoft Foundry
 - Python 3.10+ arba .NET 8.0+
 - Įdiegtą ir sukonfigūruotą Azure CLI
-- Tinkamus leidimus kurti AI išteklius
+- Tinkamus leidimus kurti DI išteklius
 
 ## Kas yra Modelio konteksto protokolas (MCP)?
 
-Modelio konteksto protokolas yra standartizuotas būdas AI programoms prisijungti prie išorinių duomenų šaltinių ir įrankių. Pagrindiniai privalumai:
+Modelio konteksto protokolas yra standartizuotas būdas DI programoms prisijungti prie išorinių duomenų šaltinių ir įrankių. Pagrindinės naudos:
 
-- **Standartizuota integracija**: Nuosekli sąsaja tarp skirtingų įrankių ir paslaugų
-- **Saugumas**: Saugūs autentifikavimo ir autorizacijos mechanizmai
-- **Lankstumas**: Palaikymas įvairiems duomenų šaltiniams, API ir pritaikytiems įrankiams
-- **Išplėstinumumas**: Lengvas naujų galimybių ir integracijų pridėjimas
+- **Standartizuota integracija**: nuosekli sąsaja su skirtingais įrankiais ir paslaugomis
+- **Sauga**: saugūs autentifikavimo ir autorizavimo mechanizmai
+- **Lankstumas**: palaiko įvairius duomenų šaltinius, API ir pasirinktinius įrankius
+- **Išplėtimai**: lengva pridėti naujų galimybių ir integracijų
 
-## MCP nustatymas su Azure AI Foundry
+## MCP nustatymas su Microsoft Foundry
 
 ### Aplinkos konfigūracija
 
 Pasirinkite pageidaujamą kūrimo aplinką:
 
-- [Python įgyvendinimas](../../../../05-AdvancedTopics/mcp-foundry-agent-integration)
-- [.NET įgyvendinimas](../../../../05-AdvancedTopics/mcp-foundry-agent-integration)
+- [Python įgyvendinimas](#python-įgyvendinimas)
+- [.NET įgyvendinimas](#codeblock5)
 
 ---
 
 ## Python įgyvendinimas
 
-***Pastaba*** Galite paleisti šį [notebook](mcp_support_python.ipynb)
+***Pastaba*** Galite paleisti šį [užrašų knygelę](./mcp_support_python.ipynb)
 
-### 1. Įdiekite reikalingus paketus
+### 1. Įdiekite reikalingas paketas
 
 ```bash
 pip install azure-ai-projects -U
@@ -71,14 +71,14 @@ from azure.identity import DefaultAzureCredential
 from azure.ai.agents.models import McpTool, RequiredMcpToolCall, SubmitToolApprovalAction, ToolApproval
 ```
 
-### 3. Konfigūruokite MCP nustatymus
+### 3. Sukonfigūruokite MCP nustatymus
 
 ```python
 mcp_server_url = os.environ.get("MCP_SERVER_URL", "https://learn.microsoft.com/api/mcp")
 mcp_server_label = os.environ.get("MCP_SERVER_LABEL", "mslearn")
 ```
 
-### 4. Inicijuokite projekto klientą
+### 4. Inicializuokite projekto klientą
 
 ```python
 project_client = AIProjectClient(
@@ -93,17 +93,17 @@ project_client = AIProjectClient(
 mcp_tool = McpTool(
     server_label=mcp_server_label,
     server_url=mcp_server_url,
-    allowed_tools=[],  # Optional: specify allowed tools
+    allowed_tools=[],  # Pasirinktinai: nurodykite leidžiamus įrankius
 )
 ```
 
-### 6. Užbaikite Python pavyzdį
+### 6. Baigtinis Python pavyzdys
 
 ```python
 with project_client:
     agents_client = project_client.agents
 
-    # Create a new agent with MCP tools
+    # Sukurkite naują agentą su MCP įrankiais
     agent = agents_client.create_agent(
         model="Your AOAI Model Deployment",
         name="my-mcp-agent",
@@ -113,11 +113,11 @@ with project_client:
     print(f"Created agent, ID: {agent.id}")
     print(f"MCP Server: {mcp_tool.server_label} at {mcp_tool.server_url}")
 
-    # Create thread for communication
+    # Sukurkite giją komunikacijai
     thread = agents_client.threads.create()
     print(f"Created thread, ID: {thread.id}")
 
-    # Create message to thread
+    # Sukurkite žinutę gijoje
     message = agents_client.messages.create(
         thread_id=thread.id,
         role="user",
@@ -125,7 +125,7 @@ with project_client:
     )
     print(f"Created message, ID: {message.id}")
 
-    # Handle tool approvals and run agent
+    # Tvarkykite įrankių patvirtinimus ir paleiskite agentą
     mcp_tool.update_headers("SuperSecret", "123456")
     run = agents_client.runs.create(thread_id=thread.id, agent_id=agent.id, tool_resources=mcp_tool.resources)
     print(f"Created run, ID: {run.id}")
@@ -165,7 +165,7 @@ with project_client:
 
     print(f"Run completed with status: {run.status}")
 
-    # Display conversation
+    # Rodyti pokalbį
     messages = agents_client.messages.list(thread_id=thread.id)
     print("\nConversation:")
     print("-" * 50)
@@ -180,9 +180,9 @@ with project_client:
 
 ## .NET įgyvendinimas
 
-***Pastaba*** Galite paleisti šį [notebook](mcp_support_dotnet.ipynb)
+***Pastaba*** Galite paleisti šį [užrašų knygelę](./mcp_support_dotnet.ipynb)
 
-### 1. Įdiekite reikalingus paketus
+### 1. Įdiekite reikalingas paketas
 
 ```csharp
 #r "nuget: Azure.AI.Agents.Persistent, 1.1.0-beta.4"
@@ -196,7 +196,7 @@ using Azure.AI.Agents.Persistent;
 using Azure.Identity;
 ```
 
-### 3. Konfigūruokite nustatymus
+### 3. Sukonfigūruokite nustatymus
 
 ```csharp
 var projectEndpoint = "https://your-project-endpoint.services.ai.azure.com/api/projects/your-project";
@@ -206,7 +206,7 @@ var mcpServerLabel = "mslearn";
 PersistentAgentsClient agentClient = new(projectEndpoint, new DefaultAzureCredential());
 ```
 
-### 4. Sukurkite MCP įrankio apibrėžimą
+### 4. Sukurkite MCP įrankio aprašą
 
 ```csharp
 MCPToolDefinition mcpTool = new(mcpServerLabel, mcpServerUrl);
@@ -223,7 +223,7 @@ PersistentAgent agent = await agentClient.Administration.CreateAgentAsync(
    );
 ```
 
-### 6. Užbaikite .NET pavyzdį
+### 6. Baigtinis .NET pavyzdys
 
 ```csharp
 // Create thread and message
@@ -299,15 +299,15 @@ await foreach (PersistentThreadMessage threadMessage in messages)
 
 ## MCP įrankių konfigūracijos parinktys
 
-Konfigūruojant MCP įrankius savo agentui, galite nurodyti kelis svarbius parametrus:
+Konfigūruodami MCP įrankius savo agentui, galite nurodyti keletą svarbių parametrų:
 
 ### Python konfigūracija
 
 ```python
 mcp_tool = McpTool(
-    server_label="unique_server_name",      # Identifier for the MCP server
-    server_url="https://api.example.com/mcp", # MCP server endpoint
-    allowed_tools=[],                       # Optional: specify allowed tools
+    server_label="unique_server_name",      # MCP serverio identifikatorius
+    server_url="https://api.example.com/mcp", # MCP serverio galinio taško adresas
+    allowed_tools=[],                       # Pasirinktinai: nurodykite leidžiamus įrankius
 )
 ```
 
@@ -322,7 +322,7 @@ MCPToolDefinition mcpTool = new(
 
 ## Autentifikacija ir antraštės
 
-Abi įgyvendinimo versijos palaiko pritaikytas antraštes autentifikacijai:
+Abi įgyvendinimo versijos palaiko pasirinktines antraštes autentifikacijai:
 
 ### Python
 ```python
@@ -335,50 +335,52 @@ MCPToolResource mcpToolResource = new(mcpServerLabel);
 mcpToolResource.UpdateHeader("SuperSecret", "123456");
 ```
 
-## Dažniausiai pasitaikančių problemų sprendimas
+## Dažniausios problemos ir jų sprendimai
 
 ### 1. Ryšio problemos
-- Patikrinkite, ar MCP serverio URL yra pasiekiamas
-- Patikrinkite autentifikavimo kredencialus
-- Įsitikinkite tinklo ryšiu
+- Patikrinkite ar MCP serverio URL yra pasiekiamas
+- Patikrinkite autentifikavimo duomenis
+- Užtikrinkite tinklo ryšio prieinamumą
 
-### 2. Įrankio kvietimo klaidos
-- Peržiūrėkite įrankio argumentus ir formatavimą
+### 2. Įrankių kvietimų gedimai
+- Peržiūrėkite įrankių argumentus ir formatavimą
 - Patikrinkite serverio specifinius reikalavimus
 - Įgyvendinkite tinkamą klaidų tvarkymą
 
-### 3. Našumo problemos
-- Optimizuokite įrankio kvietimų dažnį
-- Naudokite talpyklą, kur tai tinkama
+### 3. Veikimo problemos
+- Optimizuokite įrankio kvietimų dažnumą
+- Naudokite kešavimą, kur tai tinkama
 - Stebėkite serverio atsako laikus
 
-## Kiti žingsniai
+## Tolimesni žingsniai
 
-Norėdami dar labiau patobulinti MCP integraciją:
+Kad dar labiau patobulintumėte MCP integraciją:
 
-1. **Išbandykite pritaikytus MCP serverius**: Sukurkite savo MCP serverius, skirtus nuosaviems duomenų šaltiniams
-2. **Įgyvendinkite pažangų saugumą**: Pridėkite OAuth2 arba pritaikytus autentifikavimo mechanizmus
-3. **Stebėjimas ir analizė**: Įgyvendinkite įrankių naudojimo registravimą ir stebėjimą
-4. **Sprendimo mastelio didinimas**: Apsvarstykite apkrovos balansavimą ir paskirstytas MCP serverių architektūras
+1. **Ištirkite pasirinktinius MCP serverius**: kurkite savo MCP serverius patentuotiems duomenų šaltiniams
+2. **Įgyvendinkite pažangią saugą**: pridėkite OAuth2 arba pasirinktinius autentifikavimo mechanizmus
+3. **Stebėjimas ir analizė**: įgyvendinkite įrankių naudojimo žurnalavimą ir stebėjimą
+4. **Mastelio didinimas**: svarstykite apkrovos balansavimą ir paskirstytas MCP serverių architektūras
 
 ## Papildomi ištekliai
 
-- [Azure AI Foundry dokumentacija](https://learn.microsoft.com/azure/ai-foundry/)
+- [Microsoft Foundry dokumentacija](https://learn.microsoft.com/azure/ai-foundry/)
 - [Modelio konteksto protokolo pavyzdžiai](https://learn.microsoft.com/azure/ai-foundry/agents/how-to/tools/model-context-protocol-samples)
-- [Azure AI Foundry agentų apžvalga](https://learn.microsoft.com/azure/ai-foundry/agents/)
+- [Microsoft Foundry agentų apžvalga](https://learn.microsoft.com/azure/ai-foundry/agents/)
 - [MCP specifikacija](https://spec.modelcontextprotocol.io/)
 
 ## Pagalba
 
-Papildomai pagalbai ir klausimams:
-- Peržiūrėkite [Azure AI Foundry dokumentaciją](https://learn.microsoft.com/azure/ai-foundry/)
+Dėl papildomos pagalbos ir klausimų:
+- Peržiūrėkite [Microsoft Foundry dokumentaciją](https://learn.microsoft.com/azure/ai-foundry/)
 - Patikrinkite [MCP bendruomenės išteklius](https://modelcontextprotocol.io/)
 
-## Kas toliau
+## Kas toliau 
 
 - [5.14 MCP konteksto inžinerija](../mcp-contextengineering/README.md)
 
 ---
 
-**Atsakomybės apribojimas**:  
-Šis dokumentas buvo išverstas naudojant AI vertimo paslaugą [Co-op Translator](https://github.com/Azure/co-op-translator). Nors siekiame tikslumo, prašome atkreipti dėmesį, kad automatiniai vertimai gali turėti klaidų ar netikslumų. Originalus dokumentas jo gimtąja kalba turėtų būti laikomas autoritetingu šaltiniu. Dėl svarbios informacijos rekomenduojama profesionali žmogaus vertimo paslauga. Mes neprisiimame atsakomybės už nesusipratimus ar neteisingus interpretavimus, atsiradusius naudojant šį vertimą.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Atsakomybės apribojimas**:
+Šis dokumentas buvo išverstas naudojant dirbtinio intelekto vertimo paslaugą [Co-op Translator](https://github.com/Azure/co-op-translator). Nors siekiame tikslumo, prašome atkreipti dėmesį, kad automatiniai vertimai gali turėti klaidų ar netikslumų. Originalus dokumentas jo gimtąja kalba laikomas autoritetingu šaltiniu. Svarbiai informacijai rekomenduojama naudoti profesionalų žmogiškąjį vertimą. Mes neatsakome už jokius nesusipratimus ar neteisingą interpretaciją, kilusią naudojantis šiuo vertimu.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

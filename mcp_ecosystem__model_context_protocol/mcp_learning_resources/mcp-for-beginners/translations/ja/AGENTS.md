@@ -2,68 +2,68 @@
 
 ## プロジェクト概要
 
-**MCP for Beginners**は、Model Context Protocol (MCP) を学ぶためのオープンソース教育カリキュラムです。MCPは、AIモデルとクライアントアプリケーション間のインタラクションを標準化するフレームワークです。このリポジトリでは、複数のプログラミング言語を使用した実践的なコード例を含む包括的な学習資料を提供しています。
+**MCP for Beginners** は、Model Context Protocol (MCP) を学ぶためのオープンソースの教育カリキュラムです。MCPはAIモデルとクライアントアプリケーション間のやり取りの標準化フレームワークです。本リポジトリは複数のプログラミング言語にまたがる実用的なコード例を含む包括的な学習資料を提供します。
 
-### 主な技術
+### 主要技術
 
-- **プログラミング言語**: C#, Java, JavaScript, TypeScript, Python, Rust
-- **フレームワーク & SDK**: 
+- <strong>プログラミング言語</strong>: C#, Java, JavaScript, TypeScript, Python, Rust
+- **フレームワーク & SDK**:
   - MCP SDK (`@modelcontextprotocol/sdk`)
   - Spring Boot (Java)
   - FastMCP (Python)
   - LangChain4j (Java)
-- **データベース**: PostgreSQL（pgvector拡張付き）
-- **クラウドプラットフォーム**: Azure（Container Apps、OpenAI、Content Safety、Application Insights）
-- **ビルドツール**: npm、Maven、pip、Cargo
-- **ドキュメント**: Markdown（48以上の言語への自動翻訳対応）
+- <strong>データベース</strong>: pgvector拡張付きPostgreSQL
+- <strong>クラウドプラットフォーム</strong>: Azure（Container Apps、OpenAI、Content Safety、Application Insights）
+- <strong>ビルドツール</strong>: npm、Maven、pip、Cargo
+- <strong>ドキュメント</strong>: Markdown + 自動多言語翻訳（48言語以上）
 
 ### アーキテクチャ
 
-- **11のコアモジュール (00-11)**: 基礎から応用までの順序立てた学習パス
-- **実践ラボ**: 複数言語での完全なソリューションコードを含む実践的な演習
-- **サンプルプロジェクト**: MCPサーバーとクライアントの実装例
-- **翻訳システム**: 多言語対応の自動化されたGitHub Actionsワークフロー
-- **画像アセット**: 翻訳版を含む集中管理された画像ディレクトリ
+- **11コアモジュール（00-11）**: 基礎から高度まで順序立てた学習パス
+- <strong>ハンズオンラボ</strong>: 複数言語に対応した実践演習と完全な解答コード
+- <strong>サンプルプロジェクト</strong>: 実動作するMCPサーバー・クライアント実装
+- <strong>翻訳システム</strong>: GitHub Actionsによる自動多言語対応ワークフロー
+- <strong>画像資産</strong>: 集中管理された画像ディレクトリと翻訳版
 
 ## セットアップコマンド
 
-このリポジトリは主にドキュメントに焦点を当てています。ほとんどのセットアップは個々のサンプルプロジェクトやラボ内で行われます。
+本リポジトリはドキュメント重視です。セットアップは主に各サンプルプロジェクトやラボ内で行います。
 
 ### リポジトリセットアップ
 
 ```bash
-# Clone the repository
+# リポジトリをクローンする
 git clone https://github.com/microsoft/mcp-for-beginners.git
 cd mcp-for-beginners
 ```
 
-### サンプルプロジェクトの操作
+### サンプルプロジェクトの利用
 
-サンプルプロジェクトは以下にあります:
-- `03-GettingStarted/samples/` - 言語別の例
-- `03-GettingStarted/01-first-server/solution/` - 初めてのサーバー実装
+サンプルプロジェクトの場所は以下の通りです:
+- `03-GettingStarted/samples/` - 言語別サンプル
+- `03-GettingStarted/01-first-server/solution/` - 初期サーバー実装
 - `03-GettingStarted/02-client/solution/` - クライアント実装
-- `11-MCPServerHandsOnLabs/` - 包括的なデータベース統合ラボ
+- `11-MCPServerHandsOnLabs/` - 総合的なデータベース統合ラボ
 
-各サンプルプロジェクトには独自のセットアップ手順があります:
+各サンプルプロジェクト内にセットアップ手順があります：
 
-#### TypeScript/JavaScript プロジェクト
+#### TypeScript/JavaScriptプロジェクト
 ```bash
 cd <project-directory>
 npm install
 npm start
 ```
 
-#### Python プロジェクト
+#### Pythonプロジェクト
 ```bash
 cd <project-directory>
 pip install -r requirements.txt
-# or
+# または
 pip install -e .
 python main.py
 ```
 
-#### Java プロジェクト
+#### Javaプロジェクト
 ```bash
 cd <project-directory>
 mvn clean install
@@ -72,55 +72,55 @@ mvn spring-boot:run
 
 ## 開発ワークフロー
 
-### ドキュメント構造
+### ドキュメント構成
 
-- **モジュール 00-11**: 順序立てたコアカリキュラムコンテンツ
-- **translations/**: 言語別バージョン（自動生成、直接編集禁止）
-- **translated_images/**: ローカライズされた画像バージョン（自動生成）
-- **images/**: ソース画像と図
+- **モジュール 00-11**: 順序付きの基本カリキュラムコンテンツ
+- **translations/**: 言語別版（自動生成のため直接編集禁止）
+- **translated_images/**: ローカライズ済み画像（自動生成）
+- **images/**: ソース画像・図版
 
-### ドキュメント変更の手順
+### ドキュメント変更手順
 
-1. ルートモジュールディレクトリ (00-11) の英語のMarkdownファイルのみ編集
+1. ルートモジュールディレクトリ（00-11）の英語Markdownのみ編集
 2. 必要に応じて `images/` ディレクトリ内の画像を更新
-3. co-op-translator GitHub Actionが自動的に翻訳を生成
-4. 翻訳はメインブランチへのプッシュ時に再生成
+3. co-op-translator GitHub Actionが自動で翻訳生成
+4. mainブランチへのプッシュで翻訳が再生成されます
 
-### 翻訳の操作
+### 翻訳作業について
 
-- **自動翻訳**: GitHub Actionsワークフローがすべての翻訳を処理
-- **手動編集禁止**: `translations/` ディレクトリ内のファイルは編集しない
-- 翻訳メタデータは各翻訳ファイルに埋め込まれている
-- 対応言語: アラビア語、中国語、フランス語、ドイツ語、ヒンディー語、日本語、韓国語、ポルトガル語、ロシア語、スペイン語など48以上
+- <strong>自動翻訳</strong>: GitHub Actionsワークフローが翻訳を全て担当
+- `translations/`ディレクトリのファイルを手動で編集しないこと
+- 翻訳メタデータは各ファイルに埋め込み済み
+- 対応言語は48以上（アラビア語、中国語、フランス語、ドイツ語、ヒンディー語、日本語、韓国語、ポルトガル語、ロシア語、スペイン語など多数）
 
 ## テスト手順
 
 ### ドキュメント検証
 
-このリポジトリは主にドキュメントに焦点を当てているため、テストは以下に重点を置きます:
+本リポジトリは主にドキュメントのため、テストは以下に重点を置きます：
 
-1. **リンク検証**: すべての内部リンクが機能することを確認
+1. <strong>リンク検証</strong>: 全内部リンクの正常動作確認
 ```bash
-# Check for broken markdown links
+# 壊れたマークダウンリンクをチェックする
 find . -name "*.md" -type f | xargs grep -n "\[.*\](../../.*)"
 ```
 
-2. **コードサンプル検証**: コード例がコンパイル/実行可能であることを確認
+2. <strong>コード例検証</strong>: コードサンプルがコンパイル・実行されるか確認
 ```bash
-# Navigate to specific sample and run its tests
+# 特定のサンプルに移動してそのテストを実行する
 cd 03-GettingStarted/samples/typescript
 npm install && npm test
 ```
 
-3. **Markdownリント**: フォーマットの一貫性を確認
+3. **Markdown整形チェック**: フォーマットの一貫性検査
 ```bash
-# Use markdownlint if needed
+# 必要に応じてmarkdownlintを使用してください
 npx markdownlint-cli2 "**/*.md" "#node_modules"
 ```
 
 ### サンプルプロジェクトのテスト
 
-各言語別サンプルには独自のテスト手順があります:
+言語ごとのサンプルに独自のテスト手法があります：
 
 #### TypeScript/JavaScript
 ```bash
@@ -144,30 +144,30 @@ mvn verify
 
 ### ドキュメントスタイル
 
-- 明確で初心者に優しい言語を使用
-- 必要に応じて複数言語でコード例を含める
-- Markdownのベストプラクティスに従う:
-  - ATXスタイルのヘッダー (`#` 記法) を使用
-  - 言語識別子付きのフェンスコードブロックを使用
-  - 画像には説明的なaltテキストを含める
-  - 行の長さは適度に保つ（厳密な制限はないが、常識的に）
+- 分かりやすく初心者向けの言葉を使用
+- 複数言語のコード例を含める
+- Markdownのベストプラクティスに従う：
+  - ATX式見出し（`#`構文）
+  - 言語指定付きフェンス付きコードブロック
+  - 画像の説明的altテキストを付与
+  - 行の長さは妥当な範囲内（明確な制限はなし）
 
-### コードサンプルスタイル
+### コード例スタイル
 
 #### TypeScript/JavaScript
 - ESモジュール (`import`/`export`) を使用
-- TypeScriptの厳密モード規約に従う
-- 型注釈を含める
+- TypeScriptの厳格モード慣習に従う
+- 型注釈を付ける
 - ES2022をターゲット
 
 #### Python
-- PEP 8スタイルガイドラインに従う
-- 適切な場所で型ヒントを使用
-- 関数やクラスにdocstringを含める
-- 最新のPython機能 (3.8+) を使用
+- PEP 8スタイルガイドを遵守
+- 適切な型ヒントを使用
+- 関数・クラスにドキュメンテーション文字列を含める
+- Python 3.8以降のモダン機能を使用
 
 #### Java
-- Spring Bootの規約に従う
+- Spring Bootの慣習に従う
 - Java 21の機能を使用
 - 標準的なMavenプロジェクト構造に従う
 - Javadocコメントを含める
@@ -190,112 +190,114 @@ mvn verify
 
 ### ドキュメントデプロイ
 
-リポジトリはGitHub Pagesなどを使用してドキュメントをホスティングします（該当する場合）。メインブランチへの変更が以下をトリガーします:
+リポジトリはGitHub Pagesなどでドキュメントをホスト（該当する場合）。mainブランチ更新時には以下を実行：
 
-1. 翻訳ワークフロー (`.github/workflows/co-op-translator.yml`)
-2. すべての英語Markdownファイルの自動翻訳
+1. 翻訳ワークフロー（`.github/workflows/co-op-translator.yml`）
+2. すべての英語Markdownファイル自動翻訳
 3. 必要に応じた画像のローカライズ
 
 ### ビルドプロセス不要
 
-このリポジトリは主にMarkdownドキュメントを含むため、コアカリキュラムコンテンツにはコンパイルやビルドステップは必要ありません。
+本リポジトリは主にMarkdownドキュメントを含むため、カリキュラム内容のためのコンパイルやビルドは不要です。
 
 ### サンプルプロジェクトのデプロイ
 
-個々のサンプルプロジェクトにはデプロイ手順が含まれる場合があります:
-- MCPサーバーのデプロイガイダンスは `03-GettingStarted/09-deployment/` を参照
-- Azure Container Appsのデプロイ例は `11-MCPServerHandsOnLabs/` に記載
+個別のサンプルプロジェクトにデプロイ手順がある場合があります：
+- `03-GettingStarted/09-deployment/` にMCPサーバーデプロイのガイダンス
+- `11-MCPServerHandsOnLabs/` にAzure Container Apps例
 
-## 貢献ガイドライン
+## コントリビュートガイドライン
 
-### プルリクエストプロセス
+### プルリクエスト手順
 
-1. **フォークとクローン**: リポジトリをフォークし、ローカルにクローン
-2. **ブランチ作成**: 説明的なブランチ名を使用（例: `fix/typo-module-3`, `add/python-example`）
-3. **変更を加える**: 英語のMarkdownファイルのみ編集（翻訳は編集しない）
-4. **ローカルでテスト**: Markdownが正しくレンダリングされることを確認
-5. **PRを提出**: 明確なPRタイトルと説明を使用
-6. **CLA**: Microsoft Contributor License Agreementを求められたら署名
+1. **Fork & Clone**: リポジトリをフォークしローカルにクローン
+2. <strong>ブランチ作成</strong>: 説明的な名前を使用（例：`fix/typo-module-3`, `add/python-example`）
+3. <strong>変更作業</strong>: 英語のMarkdownファイルのみ編集（翻訳ファイルは触らない）
+4. <strong>ローカルテスト</strong>: Markdown表示が正しいか確認
+5. **PR提出**: PRタイトル・説明は明確に
+6. **CLA署名**: 求められたらMicrosoft Contributor License Agreementに署名
 
-### PRタイトル形式
+### PRタイトルフォーマット
 
-明確で説明的なタイトルを使用:
-- `[Module XX] 簡単な説明` モジュール固有の変更の場合
-- `[Samples] 説明` サンプルコードの変更の場合
-- `[Docs] 説明` 一般的なドキュメント更新の場合
+分かりやすく説明的に：
+- `[Module XX] 簡単な説明`（モジュール固有の変更用）
+- `[Samples] 説明`（サンプルコード変更）
+- `[Docs] 説明`（一般ドキュメント更新）
 
-### 貢献内容
+### 寄稿内容例
 
 - ドキュメントやコードサンプルのバグ修正
-- 追加言語での新しいコード例
-- 既存コンテンツの明確化と改善
-- 新しいケーススタディや実践例
-- 不明確または誤った内容に関する問題報告
+- 新しいプログラミング言語のコード例の追加
+- 既存コンテンツの説明強化・改善
+- 新規ケーススタディ・実践例
+- 不明瞭あるいは誤情報の報告
 
-### 禁止事項
+### 避けるべきこと
 
-- `translations/` ディレクトリ内のファイルを直接編集しない
-- `translated_images/` ディレクトリを編集しない
-- 大きなバイナリファイルを事前相談なしに追加しない
-- 翻訳ワークフローファイルを調整なしに変更しない
+- `translations/` ディレクトリの直接編集禁止
+- `translated_images/` ディレクトリの編集禁止
+- 大容量バイナリファイルの無断追加禁止
+- 翻訳ワークフロー関連ファイルの無断変更禁止
 
-## 追加の注意事項
+## 追加情報
 
-### リポジトリのメンテナンス
+### リポジトリ管理
 
-- **変更履歴**: すべての重要な変更は `changelog.md` に記載
-- **学習ガイド**: カリキュラムのナビゲーション概要は `study_guide.md` を使用
-- **問題テンプレート**: バグ報告や機能リクエストにはGitHubの問題テンプレートを使用
-- **行動規範**: すべての貢献者はMicrosoftオープンソース行動規範に従う必要があります
+- <strong>変更履歴</strong>: `changelog.md` に全重要変更を記録
+- <strong>学習ガイド</strong>: `study_guide.md` でカリキュラム全体概要を提供
+- **Issueテンプレート**: バグ報告・機能要望にGitHubのテンプレート利用
+- <strong>行動規範</strong>: すべての参加者はMicrosoftオープンソース行動規範を遵守
 
 ### 学習パス
 
-最適な学習のためにモジュールを順序立てて進めてください (00-11):
-1. **00-02**: 基礎（イントロダクション、コアコンセプト、セキュリティ）
-2. **03**: 実践的な実装の開始
-3. **04-05**: 実践的な実装と応用トピック
-4. **06-10**: コミュニティ、ベストプラクティス、実世界の応用
-5. **11**: 包括的なデータベース統合ラボ（13の順序立てたラボ）
+00から11のモジュールを順序立てて学習推奨：
+1. **00-02**: 基礎（導入、コアコンセプト、セキュリティ）
+2. **03**: ハンズオンの開始
+3. **04-05**: 実装と応用
+4. **06-10**: コミュニティ・ベストプラクティス・実例
+5. **11**: 総合的なDB統合ラボ（全13ラボ）
 
 ### サポートリソース
 
-- **ドキュメント**: https://modelcontextprotocol.io/
-- **仕様**: https://spec.modelcontextprotocol.io/
-- **コミュニティ**: https://github.com/orgs/modelcontextprotocol/discussions
-- **Discord**: Microsoft Azure AI Foundry Discordサーバー
-- **関連コース**: 他のMicrosoft学習パスについてはREADME.mdを参照
+- <strong>ドキュメント</strong>: https://modelcontextprotocol.io/
+- <strong>仕様書</strong>: https://spec.modelcontextprotocol.io/
+- <strong>コミュニティ</strong>: https://github.com/orgs/modelcontextprotocol/discussions
+- **Discord**: Microsoft Foundry Discordサーバー
+- <strong>関連コース</strong>: README.md参照（Microsoft学習パス）
 
-### よくあるトラブルシューティング
+### よくあるトラブルと対策
 
-**Q: PRが翻訳チェックに失敗しています**
-A: ルートモジュールディレクトリ内の英語Markdownファイルのみ編集し、翻訳版は編集しないようにしてください。
+**Q: PRが翻訳チェックで失敗する**
+A: 原因は、ルートの英語Markdown以外を編集した可能性があります。翻訳ファイルは変更しないでください。
 
-**Q: 新しい言語を追加するにはどうすればいいですか？**
-A: 言語サポートはco-op-translatorワークフローで管理されています。新しい言語を追加するには問題を開いて議論してください。
+**Q: 新しい言語を追加したい**
+A: co-op-translatorワークフローで言語管理しています。言語追加の要望はIssueでご相談ください。
 
-**Q: コードサンプルが動作しません**
-A: 特定のサンプルのREADMEに記載されたセットアップ手順に従ってください。依存関係の正しいバージョンがインストールされていることを確認してください。
+**Q: コードサンプルが動かない**
+A: サンプルのREADMEに従いセットアップが正しいか確認してください。依存関係のバージョンも要確認です。
 
-**Q: 画像が表示されません**
-A: 画像パスが相対的であることを確認し、スラッシュを使用してください。画像は `images/` ディレクトリまたはローカライズ版の場合は `translated_images/` にある必要があります。
+**Q: 画像が表示されない**
+A: 画像パスは相対パスかつスラッシュ区切りであることを確認してください。画像は`images/`または`translated_images/`内に配置してください。
 
-### パフォーマンスに関する考慮事項
+### パフォーマンス上の考慮点
 
-- 翻訳ワークフローは完了まで数分かかる場合があります
-- 大きな画像はコミット前に最適化してください
-- 個々のMarkdownファイルは焦点を絞り、適度なサイズに保つ
-- 移植性を高めるために相対リンクを使用
+- 翻訳ワークフローは数分かかることがあります
+- 大きな画像はコミット前に最適化推奨
+- Markdownファイルは意味のあるサイズに保つ
+- リンクは相対パスで作成すると移植性が高い
 
-### プロジェクトガバナンス
+### プロジェクト管理
 
-このプロジェクトはMicrosoftのオープンソースプラクティスに従います:
-- コードとドキュメントにはMITライセンスを適用
+本プロジェクトはMicrosoftのオープンソース慣行に従います：
+- MITライセンス（コード＆ドキュメント）
 - Microsoftオープンソース行動規範
-- 貢献にはCLAが必要
-- セキュリティ問題: SECURITY.mdガイドラインに従う
-- サポート: SUPPORT.mdを参照
+- 貢献にはCLA契約が必要
+- セキュリティ問題はSECURITY.md参照
+- サポート情報はSUPPORT.md参照
 
 ---
 
-**免責事項**:  
-この文書は、AI翻訳サービス[Co-op Translator](https://github.com/Azure/co-op-translator)を使用して翻訳されています。正確性を追求しておりますが、自動翻訳には誤りや不正確な部分が含まれる可能性があることをご承知ください。元の言語で記載された文書が正式な情報源とみなされるべきです。重要な情報については、専門の人間による翻訳を推奨します。この翻訳の使用に起因する誤解や誤解釈について、当方は責任を負いません。
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**免責事項**：
+本書類は AI 翻訳サービス [Co-op Translator](https://github.com/Azure/co-op-translator) を使用して翻訳されています。正確性を期していますが、自動翻訳には誤りや不正確な部分が含まれる可能性があることをご承知おきください。原文の原語版が正式な情報源とみなされるべきです。重要な情報については、専門の人間による翻訳を推奨します。本翻訳の利用により生じたいかなる誤解や解釈違いについても、当方は責任を負いかねます。
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

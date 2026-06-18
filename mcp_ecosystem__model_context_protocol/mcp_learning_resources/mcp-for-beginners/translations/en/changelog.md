@@ -2,6 +2,96 @@
 
 This document serves as a record of all significant changes made to the Model Context Protocol (MCP) for Beginners curriculum. Changes are documented in reverse chronological order (newest changes first).
 
+## June 16, 2026
+
+### MCP Specification Alignment & Sample Validation
+
+Validated the curriculum against the current **MCP Specification 2025-11-25** and the latest official SDKs, then corrected the remaining stale specification references and confirmed the core samples still build and run.
+
+#### Specification Version Corrections (2025-06-18 / 2025-03-26 → 2025-11-25)
+
+Updated English content where it still claimed an older spec revision was the *current/latest* standard, and repointed links to the canonical `modelcontextprotocol.io` spec paths:
+- **05-AdvancedTopics/mcp-security/README.md**: Updated the "Current Standard" banner, introduction, core security principles heading, mandatory requirements heading, Microsoft Entra ID section, References & Resources links, and closing security notice (8 references) to 2025-11-25
+- **05-AdvancedTopics/mcp-transport/README.md**: Updated the Additional Resources spec link and the "Current Standard" banner to 2025-11-25
+- **05-AdvancedTopics/mcp-realtimesearch/README.md**: Replaced the outdated `2025-03-26` security-and-trust link with the current 2025-11-25 security best practices page
+- **03-GettingStarted/14-sampling/README.md**: Updated the official sampling docs link to 2025-11-25
+- **03-GettingStarted/05-stdio-server/README.md**: Updated the present-tense "current MCP specification" reference and the Additional Resources spec link to 2025-11-25 (historical SSE-deprecation notes left intact for accuracy)
+
+#### Sample Validation Against Current SDKs
+
+- **TypeScript (03-GettingStarted/01-first-server/solution/typescript)**: `npm install` resolved `@modelcontextprotocol/sdk@1.29.0`; `tsc --noEmit` passed with no type errors — existing `McpServer`/`StdioServerTransport` APIs remain valid
+- **Python (03-GettingStarted/01-first-server/solution/python)**: Validated in an isolated `.venv` with `mcp[cli]` (1.27.2); `py_compile` passed and `FastMCP.list_tools()` correctly returned the `add` and `subtract` tools
+- Confirmed all sample `@modelcontextprotocol/sdk` version ranges (`>=1.26.0` / `^1.26.0` / `^1.27.0`) resolve cleanly to the current `1.29.0` with no breaking API changes
+
+#### Dependency Pin Alignment (closing version gaps)
+
+Bumped outdated SDK pins so every sample tracks the current MCP release, matching the repo-wide convention:
+- **03-GettingStarted/05-stdio-server/solution/typescript/package.json**: Bumped `@modelcontextprotocol/sdk` from `^1.8.0` → `>=1.26.0` and updated the stale `"updated for MCP 2025-06-18"` package description to `"aligned with MCP Specification 2025-11-25"`
+- **10-StreamliningAIWorkflows.../lab3/code/weather_mcp/pyproject.toml** and **lab4/code/github_mcp_server/pyproject.toml**: Bumped the exact pin `mcp==1.23.0` → `mcp>=1.26.0`; regenerated both `uv.lock` files (`uv lock`) so the lockfiles resolve to the current `mcp 1.27.2` and stay in sync with the manifests
+
+#### Curriculum Gap Analysis — Latest Spec Feature Coverage
+
+Verified the curriculum already covers all primitives introduced/expanded in MCP 2025-11-25, so no content gaps remain:
+- **Sampling**: Lesson 03-GettingStarted/14-sampling plus 05-AdvancedTopics/mcp-sampling
+- **Elicitation (incl. URL mode)**: Documented in 01-CoreConcepts and 05-AdvancedTopics/mcp-protocol-features
+- **Roots**: Documented in 00-Introduction, 01-CoreConcepts, and 05-AdvancedTopics/mcp-root-contexts
+- **Tasks (experimental, long-running operations)**: Documented in 01-CoreConcepts and 05-AdvancedTopics/mcp-protocol-features
+- **Tool Annotations** (`readOnlyHint` / `destructiveHint`): Documented in 01-CoreConcepts and 05-AdvancedTopics/mcp-protocol-features
+
+### Security Hardening & Dependency Vulnerability Remediation
+
+Ran a full security pass across every dependency manifest and the sample source code, then remediated all reported npm advisories and one code-level finding. After remediation, `npm audit` reports **0 vulnerabilities** in every audited directory.
+
+#### npm Dependency Vulnerabilities (transitive) — Fixed
+
+Audited all 15 committed `package-lock.json` files. Vulnerabilities were limited to transitive dependencies pulled in by the MCP Inspector dev tool, the OpenAI client, and the MCP SDK; all are now resolved without breaking the samples:
+- **10-StreamliningAIWorkflows.../lab4/code/github_mcp_server/inspector** and **lab3/code/weather_mcp/inspector**: Bumped `@modelcontextprotocol/inspector` (`0.16.6` / `0.14.1` → `0.22.0`), which cleared the bundled `ajv`, `brace-expansion`, `diff`, `path-to-regexp` and `ws` advisories. Added an npm `overrides` entry forcing the patched `shell-quote@1.8.4` to eliminate the remaining critical advisory carried by `concurrently`; regenerated both lockfiles (now 0 vulnerabilities)
+- **03-GettingStarted/samples/typescript**: `npm audit fix` updated the transitive `qs` (moderate) to a patched release
+- **03-GettingStarted/samples/javascript**: `npm audit fix` updated the transitive `hono` (moderate) to a patched release
+- **03-GettingStarted/03-llm-client/solution/typescript**: `npm audit fix` updated the transitive `form-data` (high) to a patched release
+- **03-GettingStarted/11-simple-auth/solution/typescript**: Generated the missing `package-lock.json` so the project is reproducible and auditable (0 vulnerabilities)
+
+#### Code-Level Security Fix (OWASP A03: Injection)
+
+- **10-StreamliningAIWorkflows.../lab4/code/github_mcp_server/src/server.py**: Removed `shell=True` from the `open_in_vscode` tool. The previous `subprocess.run(["start", "", vscode_path, folder_path], shell=True)` allowed shell metacharacters in a folder path to be interpreted by `cmd.exe` (command-injection vector). It now launches the resolved `Code.exe` directly with the folder as an argument — no shell — which is functionally equivalent and safe
+
+#### Python Dependency Audit
+
+- Audited every Python requirements set with `pip-audit`. `05-AdvancedTopics` and `03-GettingStarted/samples/python` reported **no known vulnerabilities** (their `mcp` / `httpx` / `pydantic` / `python-dotenv` ranges resolve to current patched releases)
+- **09-CaseStudy/docs-mcp/solution/python/requirements.txt**: `pip-audit` flagged the transitive dependency **`werkzeug` 3.1.1** with three `safe_join` Windows device-name DoS advisories — `CVE-2025-66221`, `CVE-2026-21860`, and `CVE-2026-27199` (all fixed in 3.1.6). Added an explicit security pin `werkzeug>=3.1.6` so the patched release is resolved; verified the constraint resolves cleanly with the `chainlit` / `mcp` / `semantic-kernel` stack
+
+### Product Name Rebranding
+
+Updated all curriculum content to reflect Microsoft's product rebranding:
+
+#### Azure AI Foundry → Microsoft Foundry
+- **SUPPORT.md**: Updated Discord community link
+- **AGENTS.md**: Updated Discord server reference
+- **README.md**: Updated technology ecosystem references
+- **study_guide.md**: Updated case study references
+- **05-AdvancedTopics/README.md**: Updated Module 5.13 title and description
+- **05-AdvancedTopics/mcp-integration/README.md**: Updated section header and description
+- **05-AdvancedTopics/mcp-foundry-agent-integration/README.md**: Full module title and content update
+- **05-AdvancedTopics/mcp-security-entra/README.md**: Updated cross-reference link
+- **07-LessonsfromEarlyAdoption/README.md**: Updated case study references
+- **07-LessonsfromEarlyAdoption/microsoft-mcp-servers.md**: Updated Section 9 header, badges, and capabilities
+- **08-BestPractices/README.md**: Updated Discord community link
+- **09-CaseStudy/docs-mcp/solution/scenario3/README.md**: Updated Discord channel reference
+- **09-CaseStudy/docs-mcp/solution/python/README.md**: Updated model deployment reference
+- **11-MCPServerHandsOnLabs/00-Introduction/README.md**: Updated AI Services table
+- **11-MCPServerHandsOnLabs/03-Setup/README.md**: Updated resource references
+
+#### AI Toolkit / AITK → Microsoft Foundry Toolkit Extension for VS Code
+- **README.md**: Updated main curriculum references
+- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/README.md**: Updated module title, overview, and all module headers
+- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab1/README.md**: Updated title, learning objectives, setup instructions, and resources
+- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab2/README.md**: Updated title, learning objectives, MCP hosts table, and cross-references
+- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/README.md**: Updated title, badges, prerequisites, and resources
+- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/README.md**: Updated Agent Builder references and feedback link
+- **10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab4/README.md**: Updated prerequisites and extension references
+
+---
+
 ## April 11, 2026
 
 ### New Lesson, Documentation Fixes, and Dependency Updates
@@ -225,6 +315,7 @@ Added lessons 5.15 (Custom Transport) and 5.16 (Protocol Features)
 - **Security Resources**: Added OWASP MCP Top 10 to official resources
 
 ## December 18, 2025
+
 ### Security Documentation Update - MCP Specification 2025-11-25
 
 #### MCP Security Best Practices (02-Security/mcp-best-practices.md) - Specification Version Update
@@ -262,7 +353,6 @@ Added lessons 5.15 (Custom Transport) and 5.16 (Protocol Features)
   - **Regular vs. Low-Level Server**: Detailed comparison and code examples in Python and TypeScript for both approaches.
   - **Handler-Based Design**: Explanation of handler-based tool/resource/prompt management for scalable, flexible server implementations.
   - **Practical Patterns**: Real-world scenarios where low-level server patterns are beneficial for advanced features and architecture.
-
 #### Simple Authentication (03-GettingStarted/11-simple-auth)
 - **New Chapter Added**: Step-by-step guide to implementing simple authentication in MCP servers.
   - **Auth Concepts**: Clear explanation of authentication vs. authorization, and credential handling.
@@ -416,176 +506,176 @@ These additions provide practical, hands-on guidance for building more robust, s
 ### Documentation Comprehensive Update - MCP 2025-06-18 Standards
 
 #### MCP Security Best Practices (02-Security/) - Complete Modernization
-- **MCP-SECURITY-BEST-PRACTICES-2025.md**: Complete rewrite aligned with MCP Specification 2025-06-18  
-  - **Mandatory Requirements**: Added explicit MUST/MUST NOT requirements from official specification with clear visual indicators  
-  - **12 Core Security Practices**: Restructured from 15-item list to comprehensive security domains  
-    - Token Security & Authentication with external identity provider integration  
-    - Session Management & Transport Security with cryptographic requirements  
-    - AI-Specific Threat Protection with Microsoft Prompt Shields integration  
-    - Access Control & Permissions with principle of least privilege  
-    - Content Safety & Monitoring with Azure Content Safety integration  
-    - Supply Chain Security with comprehensive component verification  
-    - OAuth Security & Confused Deputy Prevention with PKCE implementation  
-    - Incident Response & Recovery with automated capabilities  
-    - Compliance & Governance with regulatory alignment  
-    - Advanced Security Controls with zero trust architecture  
-    - Microsoft Security Ecosystem Integration with comprehensive solutions  
-    - Continuous Security Evolution with adaptive practices  
-  - **Microsoft Security Solutions**: Enhanced integration guidance for Prompt Shields, Azure Content Safety, Entra ID, and GitHub Advanced Security  
-  - **Implementation Resources**: Categorized comprehensive resource links by Official MCP Documentation, Microsoft Security Solutions, Security Standards, and Implementation Guides  
+- **MCP-SECURITY-BEST-PRACTICES-2025.md**: Complete rewrite aligned with MCP Specification 2025-06-18
+  - **Mandatory Requirements**: Added explicit MUST/MUST NOT requirements from official specification with clear visual indicators
+  - **12 Core Security Practices**: Restructured from 15-item list to comprehensive security domains
+    - Token Security & Authentication with external identity provider integration
+    - Session Management & Transport Security with cryptographic requirements
+    - AI-Specific Threat Protection with Microsoft Prompt Shields integration
+    - Access Control & Permissions with principle of least privilege
+    - Content Safety & Monitoring with Azure Content Safety integration
+    - Supply Chain Security with comprehensive component verification
+    - OAuth Security & Confused Deputy Prevention with PKCE implementation
+    - Incident Response & Recovery with automated capabilities
+    - Compliance & Governance with regulatory alignment
+    - Advanced Security Controls with zero trust architecture
+    - Microsoft Security Ecosystem Integration with comprehensive solutions
+    - Continuous Security Evolution with adaptive practices
+  - **Microsoft Security Solutions**: Enhanced integration guidance for Prompt Shields, Azure Content Safety, Entra ID, and GitHub Advanced Security
+  - **Implementation Resources**: Categorized comprehensive resource links by Official MCP Documentation, Microsoft Security Solutions, Security Standards, and Implementation Guides
 
-#### Advanced Security Controls (02-Security/) - Enterprise Implementation  
-- **MCP-SECURITY-CONTROLS-2025.md**: Complete overhaul with enterprise-grade security framework  
-  - **9 Comprehensive Security Domains**: Expanded from basic controls to detailed enterprise framework  
-    - Advanced Authentication & Authorization with Microsoft Entra ID integration  
-    - Token Security & Anti-Passthrough Controls with comprehensive validation  
-    - Session Security Controls with hijacking prevention  
-    - AI-Specific Security Controls with prompt injection and tool poisoning prevention  
-    - Confused Deputy Attack Prevention with OAuth proxy security  
-    - Tool Execution Security with sandboxing and isolation  
-    - Supply Chain Security Controls with dependency verification  
-    - Monitoring & Detection Controls with SIEM integration  
-    - Incident Response & Recovery with automated capabilities  
-  - **Implementation Examples**: Added detailed YAML configuration blocks and code examples  
-  - **Microsoft Solutions Integration**: Comprehensive coverage of Azure security services, GitHub Advanced Security, and enterprise identity management  
+#### Advanced Security Controls (02-Security/) - Enterprise Implementation
+- **MCP-SECURITY-CONTROLS-2025.md**: Complete overhaul with enterprise-grade security framework
+  - **9 Comprehensive Security Domains**: Expanded from basic controls to detailed enterprise framework
+    - Advanced Authentication & Authorization with Microsoft Entra ID integration
+    - Token Security & Anti-Passthrough Controls with comprehensive validation
+    - Session Security Controls with hijacking prevention
+    - AI-Specific Security Controls with prompt injection and tool poisoning prevention
+    - Confused Deputy Attack Prevention with OAuth proxy security
+    - Tool Execution Security with sandboxing and isolation
+    - Supply Chain Security Controls with dependency verification
+    - Monitoring & Detection Controls with SIEM integration
+    - Incident Response & Recovery with automated capabilities
+  - **Implementation Examples**: Added detailed YAML configuration blocks and code examples
+  - **Microsoft Solutions Integration**: Comprehensive coverage of Azure security services, GitHub Advanced Security, and enterprise identity management
 
-#### Advanced Topics Security (05-AdvancedTopics/mcp-security/) - Production-Ready Implementation  
-- **README.md**: Complete rewrite for enterprise security implementation  
-  - **Current Specification Alignment**: Updated to MCP Specification 2025-06-18 with mandatory security requirements  
-  - **Enhanced Authentication**: Microsoft Entra ID integration with comprehensive .NET and Java Spring Security examples  
-  - **AI Security Integration**: Microsoft Prompt Shields and Azure Content Safety implementation with detailed Python examples  
-  - **Advanced Threat Mitigation**: Comprehensive implementation examples for  
-    - Confused Deputy Attack Prevention with PKCE and user consent validation  
-    - Token Passthrough Prevention with audience validation and secure token management  
-    - Session Hijacking Prevention with cryptographic binding and behavioral analysis  
-  - **Enterprise Security Integration**: Azure Application Insights monitoring, threat detection pipelines, and supply chain security  
-  - **Implementation Checklist**: Clear mandatory vs. recommended security controls with Microsoft security ecosystem benefits  
+#### Advanced Topics Security (05-AdvancedTopics/mcp-security/) - Production-Ready Implementation
+- **README.md**: Complete rewrite for enterprise security implementation
+  - **Current Specification Alignment**: Updated to MCP Specification 2025-06-18 with mandatory security requirements
+  - **Enhanced Authentication**: Microsoft Entra ID integration with comprehensive .NET and Java Spring Security examples
+  - **AI Security Integration**: Microsoft Prompt Shields and Azure Content Safety implementation with detailed Python examples
+  - **Advanced Threat Mitigation**: Comprehensive implementation examples for
+    - Confused Deputy Attack Prevention with PKCE and user consent validation
+    - Token Passthrough Prevention with audience validation and secure token management
+    - Session Hijacking Prevention with cryptographic binding and behavioral analysis
+  - **Enterprise Security Integration**: Azure Application Insights monitoring, threat detection pipelines, and supply chain security
+  - **Implementation Checklist**: Clear mandatory vs. recommended security controls with Microsoft security ecosystem benefits
 
-### Documentation Quality & Standards Alignment  
-- **Specification References**: Updated all references to current MCP Specification 2025-06-18  
-- **Microsoft Security Ecosystem**: Enhanced integration guidance throughout all security documentation  
-- **Practical Implementation**: Added detailed code examples in .NET, Java, and Python with enterprise patterns  
-- **Resource Organization**: Comprehensive categorization of official documentation, security standards, and implementation guides  
-- **Visual Indicators**: Clear marking of mandatory requirements vs. recommended practices  
+### Documentation Quality & Standards Alignment
+- **Specification References**: Updated all references to current MCP Specification 2025-06-18
+- **Microsoft Security Ecosystem**: Enhanced integration guidance throughout all security documentation
+- **Practical Implementation**: Added detailed code examples in .NET, Java, and Python with enterprise patterns
+- **Resource Organization**: Comprehensive categorization of official documentation, security standards, and implementation guides
+- **Visual Indicators**: Clear marking of mandatory requirements vs. recommended practices
 
 
-#### Core Concepts (01-CoreConcepts/) - Complete Modernization  
-- **Protocol Version Update**: Updated to reference current MCP Specification 2025-06-18 with date-based versioning (YYYY-MM-DD format)  
-- **Architecture Refinement**: Enhanced descriptions of Hosts, Clients, and Servers to reflect current MCP architecture patterns  
-  - Hosts now clearly defined as AI applications coordinating multiple MCP client connections  
-  - Clients described as protocol connectors maintaining one-to-one server relationships  
-  - Servers enhanced with local vs. remote deployment scenarios  
-- **Primitive Restructuring**: Complete overhaul of server and client primitives  
-  - Server Primitives: Resources (data sources), Prompts (templates), Tools (executable functions) with detailed explanations and examples  
-  - Client Primitives: Sampling (LLM completions), Elicitation (user input), Logging (debugging/monitoring)  
-  - Updated with current discovery (`*/list`), retrieval (`*/get`), and execution (`*/call`) method patterns  
-- **Protocol Architecture**: Introduced two-layer architecture model  
-  - Data Layer: JSON-RPC 2.0 foundation with lifecycle management and primitives  
-  - Transport Layer: STDIO (local) and Streamable HTTP with SSE (remote) transport mechanisms  
-- **Security Framework**: Comprehensive security principles including explicit user consent, data privacy protection, tool execution safety, and transport layer security  
-- **Communication Patterns**: Updated protocol messages to show initialization, discovery, execution, and notification flows  
-- **Code Examples**: Refreshed multi-language examples (.NET, Java, Python, JavaScript) to reflect current MCP SDK patterns  
+#### Core Concepts (01-CoreConcepts/) - Complete Modernization
+- **Protocol Version Update**: Updated to reference current MCP Specification 2025-06-18 with date-based versioning (YYYY-MM-DD format)
+- **Architecture Refinement**: Enhanced descriptions of Hosts, Clients, and Servers to reflect current MCP architecture patterns
+  - Hosts now clearly defined as AI applications coordinating multiple MCP client connections
+  - Clients described as protocol connectors maintaining one-to-one server relationships
+  - Servers enhanced with local vs. remote deployment scenarios
+- **Primitive Restructuring**: Complete overhaul of server and client primitives
+  - Server Primitives: Resources (data sources), Prompts (templates), Tools (executable functions) with detailed explanations and examples
+  - Client Primitives: Sampling (LLM completions), Elicitation (user input), Logging (debugging/monitoring)
+  - Updated with current discovery (`*/list`), retrieval (`*/get`), and execution (`*/call`) method patterns
+- **Protocol Architecture**: Introduced two-layer architecture model
+  - Data Layer: JSON-RPC 2.0 foundation with lifecycle management and primitives
+  - Transport Layer: STDIO (local) and Streamable HTTP with SSE (remote) transport mechanisms
+- **Security Framework**: Comprehensive security principles including explicit user consent, data privacy protection, tool execution safety, and transport layer security
+- **Communication Patterns**: Updated protocol messages to show initialization, discovery, execution, and notification flows
+- **Code Examples**: Refreshed multi-language examples (.NET, Java, Python, JavaScript) to reflect current MCP SDK patterns
 
 #### Security (02-Security/) - Comprehensive Security Overhaul  
-- **Standards Alignment**: Full alignment with MCP Specification 2025-06-18 security requirements  
-- **Authentication Evolution**: Documented evolution from custom OAuth servers to external identity provider delegation (Microsoft Entra ID)  
-- **AI-Specific Threat Analysis**: Enhanced coverage of modern AI attack vectors  
-  - Detailed prompt injection attack scenarios with real-world examples  
-  - Tool poisoning mechanisms and "rug pull" attack patterns  
-  - Context window poisoning and model confusion attacks  
-- **Microsoft AI Security Solutions**: Comprehensive coverage of Microsoft security ecosystem  
-  - AI Prompt Shields with advanced detection, spotlighting, and delimiter techniques  
-  - Azure Content Safety integration patterns  
-  - GitHub Advanced Security for supply chain protection  
-- **Advanced Threat Mitigation**: Detailed security controls for  
-  - Session hijacking with MCP-specific attack scenarios and cryptographic session ID requirements  
-  - Confused deputy problems in MCP proxy scenarios with explicit consent requirements  
-  - Token passthrough vulnerabilities with mandatory validation controls  
-- **Supply Chain Security**: Expanded AI supply chain coverage including foundation models, embeddings services, context providers, and third-party APIs  
-- **Foundation Security**: Enhanced integration with enterprise security patterns including zero trust architecture and Microsoft security ecosystem  
-- **Resource Organization**: Categorized comprehensive resource links by type (Official Docs, Standards, Research, Microsoft Solutions, Implementation Guides)  
+- **Standards Alignment**: Full alignment with MCP Specification 2025-06-18 security requirements
+- **Authentication Evolution**: Documented evolution from custom OAuth servers to external identity provider delegation (Microsoft Entra ID)
+- **AI-Specific Threat Analysis**: Enhanced coverage of modern AI attack vectors
+  - Detailed prompt injection attack scenarios with real-world examples
+  - Tool poisoning mechanisms and "rug pull" attack patterns
+  - Context window poisoning and model confusion attacks
+- **Microsoft AI Security Solutions**: Comprehensive coverage of Microsoft security ecosystem
+  - AI Prompt Shields with advanced detection, spotlighting, and delimiter techniques
+  - Azure Content Safety integration patterns
+  - GitHub Advanced Security for supply chain protection
+- **Advanced Threat Mitigation**: Detailed security controls for
+  - Session hijacking with MCP-specific attack scenarios and cryptographic session ID requirements
+  - Confused deputy problems in MCP proxy scenarios with explicit consent requirements
+  - Token passthrough vulnerabilities with mandatory validation controls
+- **Supply Chain Security**: Expanded AI supply chain coverage including foundation models, embeddings services, context providers, and third-party APIs
+- **Foundation Security**: Enhanced integration with enterprise security patterns including zero trust architecture and Microsoft security ecosystem
+- **Resource Organization**: Categorized comprehensive resource links by type (Official Docs, Standards, Research, Microsoft Solutions, Implementation Guides)
 
-### Documentation Quality Improvements  
-- **Structured Learning Objectives**: Enhanced learning objectives with specific, actionable outcomes  
-- **Cross-References**: Added links between related security and core concept topics  
-- **Current Information**: Updated all date references and specification links to current standards  
-- **Implementation Guidance**: Added specific, actionable implementation guidelines throughout both sections  
+### Documentation Quality Improvements
+- **Structured Learning Objectives**: Enhanced learning objectives with specific, actionable outcomes 
+- **Cross-References**: Added links between related security and core concept topics
+- **Current Information**: Updated all date references and specification links to current standards
+- **Implementation Guidance**: Added specific, actionable implementation guidelines throughout both sections
 
-## July 16, 2025  
+## July 16, 2025
 
-### README and Navigation Improvements  
-- Completely redesigned the curriculum navigation in README.md  
-- Replaced `<details>` tags with more accessible table-based format  
-- Created alternative layout options in new "alternative_layouts" folder  
-- Added card-based, tabbed-style, and accordion-style navigation examples  
-- Updated repository structure section to include all latest files  
-- Enhanced "How to Use This Curriculum" section with clear recommendations  
-- Updated MCP specification links to point to correct URLs  
-- Added Context Engineering section (5.14) to the curriculum structure  
+### README and Navigation Improvements
+- Completely redesigned the curriculum navigation in README.md
+- Replaced `<details>` tags with more accessible table-based format
+- Created alternative layout options in new "alternative_layouts" folder
+- Added card-based, tabbed-style, and accordion-style navigation examples
+- Updated repository structure section to include all latest files
+- Enhanced "How to Use This Curriculum" section with clear recommendations
+- Updated MCP specification links to point to correct URLs
+- Added Context Engineering section (5.14) to the curriculum structure
 
-### Study Guide Updates  
-- Completely revised the study guide to align with current repository structure  
-- Added new sections for MCP Clients and Tools, and Popular MCP Servers  
-- Updated the Visual Curriculum Map to accurately reflect all topics  
-- Enhanced descriptions of Advanced Topics to cover all specialized areas  
-- Updated Case Studies section to reflect actual examples  
-- Added this comprehensive changelog  
+### Study Guide Updates
+- Completely revised the study guide to align with current repository structure
+- Added new sections for MCP Clients and Tools, and Popular MCP Servers
+- Updated the Visual Curriculum Map to accurately reflect all topics
+- Enhanced descriptions of Advanced Topics to cover all specialized areas
+- Updated Case Studies section to reflect actual examples
+- Added this comprehensive changelog
 
-### Community Contributions (06-CommunityContributions/)  
-- Added detailed information about MCP servers for image generation  
-- Added comprehensive section on using Claude in VSCode  
-- Added Cline terminal client setup and usage instructions  
-- Updated MCP client section to include all popular client options  
-- Enhanced contribution examples with more accurate code samples  
+### Community Contributions (06-CommunityContributions/)
+- Added detailed information about MCP servers for image generation
+- Added comprehensive section on using Claude in VSCode
+- Added Cline terminal client setup and usage instructions
+- Updated MCP client section to include all popular client options
+- Enhanced contribution examples with more accurate code samples
 
-### Advanced Topics (05-AdvancedTopics/)  
-- Organized all specialized topic folders with consistent naming  
-- Added context engineering materials and examples  
-- Added Foundry agent integration documentation  
-- Enhanced Entra ID security integration documentation  
+### Advanced Topics (05-AdvancedTopics/)
+- Organized all specialized topic folders with consistent naming
+- Added context engineering materials and examples
+- Added Foundry agent integration documentation
+- Enhanced Entra ID security integration documentation
 
-## June 11, 2025  
+## June 11, 2025
 
-### Initial Creation  
-- Released first version of the MCP for Beginners curriculum  
-- Created basic structure for all 10 main sections  
-- Implemented Visual Curriculum Map for navigation  
-- Added initial sample projects in multiple programming languages  
+### Initial Creation
+- Released first version of the MCP for Beginners curriculum
+- Created basic structure for all 10 main sections
+- Implemented Visual Curriculum Map for navigation
+- Added initial sample projects in multiple programming languages
 
-### Getting Started (03-GettingStarted/)  
-- Created first server implementation examples  
-- Added client development guidance  
-- Included LLM client integration instructions  
-- Added VS Code integration documentation  
-- Implemented Server-Sent Events (SSE) server examples  
+### Getting Started (03-GettingStarted/)
+- Created first server implementation examples
+- Added client development guidance
+- Included LLM client integration instructions
+- Added VS Code integration documentation
+- Implemented Server-Sent Events (SSE) server examples
 
-### Core Concepts (01-CoreConcepts/)  
-- Added detailed explanation of client-server architecture  
-- Created documentation on key protocol components  
-- Documented messaging patterns in MCP  
+### Core Concepts (01-CoreConcepts/)
+- Added detailed explanation of client-server architecture
+- Created documentation on key protocol components
+- Documented messaging patterns in MCP
 
-## May 23, 2025  
+## May 23, 2025
 
-### Repository Structure  
-- Initialized the repository with basic folder structure  
-- Created README files for each major section  
-- Set up translation infrastructure  
-- Added image assets and diagrams  
+### Repository Structure
+- Initialized the repository with basic folder structure
+- Created README files for each major section
+- Set up translation infrastructure
+- Added image assets and diagrams
 
-### Documentation  
-- Created initial README.md with curriculum overview  
-- Added CODE_OF_CONDUCT.md and SECURITY.md  
-- Set up SUPPORT.md with guidance for getting help  
-- Created preliminary study guide structure  
+### Documentation
+- Created initial README.md with curriculum overview
+- Added CODE_OF_CONDUCT.md and SECURITY.md
+- Set up SUPPORT.md with guidance for getting help
+- Created preliminary study guide structure
 
-## April 15, 2025  
+## April 15, 2025
 
-### Planning and Framework  
-- Initial planning for MCP for Beginners curriculum  
-- Defined learning objectives and target audience  
-- Outlined 10-section structure of the curriculum  
-- Developed conceptual framework for examples and case studies  
-- Created initial prototype examples for key concepts  
+### Planning and Framework
+- Initial planning for MCP for Beginners curriculum
+- Defined learning objectives and target audience
+- Outlined 10-section structure of the curriculum
+- Developed conceptual framework for examples and case studies
+- Created initial prototype examples for key concepts
 
 ---
 

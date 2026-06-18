@@ -1,39 +1,39 @@
 # MCP serveris su stdio transportu
 
-> **⚠️ Svarbus atnaujinimas**: Nuo MCP specifikacijos 2025-06-18 atskiras SSE (Server-Sent Events) transportas yra **atsisakytas** ir pakeistas „Streamable HTTP“ transportu. Dabartinė MCP specifikacija apibrėžia du pagrindinius transporto mechanizmus:
-> 1. **stdio** – standartinis įvesties/išvesties srautas (rekomenduojamas vietiniams serveriams)
+> **⚠️ Svarbus atnaujinimas**: Nuo MCP specifikacijos 2025-06-18, atskiras SSE (Server-Sent Events) transportas buvo **atsisakytas** ir pakeistas "Streamable HTTP" transportu. Dabartinė MCP specifikacija apibrėžia dvi pagrindines transporto mechanizmus:
+> 1. **stdio** – standartinis įvesties/išvesties transportas (rekomenduojamas vietiniams serveriams)
 > 2. **Streamable HTTP** – nuotoliniams serveriams, kurie gali naudoti SSE viduje
 >
-> Šis pamoka atnaujinta, kad būtų sutelktas dėmesys į **stdio transportą**, kuris yra rekomenduojamas daugumai MCP serverių įgyvendinimų.
+> Ši pamoka atnaujinta, kad sutelktų dėmesį į **stdio transportą**, kuris yra rekomenduojamas daugumai MCP serverių įgyvendinimų.
 
-Stdio transportas leidžia MCP serveriams bendrauti su klientais per standartinius įvesties ir išvesties srautus. Tai labiausiai paplitęs ir rekomenduojamas transporto mechanizmas dabartinėje MCP specifikacijoje, suteikiantis paprastą ir efektyvų būdą kurti MCP serverius, kuriuos lengva integruoti su įvairiomis kliento programomis.
+Stdio transportas leidžia MCP serveriams bendrauti su klientais per standartines įvesties ir išvesties sroves. Tai yra dažniausiai naudojamas ir rekomenduojamas transporto mechanizmas dabartinėje MCP specifikacijoje, suteikiantis paprastą ir efektyvų būdą kurti MCP serverius, lengvai integruojamus su įvairiomis klientų programomis.
 
 ## Apžvalga
 
-Šioje pamokoje aptarsime, kaip sukurti ir naudoti MCP serverius naudodami stdio transportą.
+Šioje pamokoje apžvelgiame, kaip kurti ir naudoti MCP serverius naudojant stdio transportą.
 
 ## Mokymosi tikslai
 
-Pamokos pabaigoje mokėsite:
+Pamokos pabaigoje jūs gebėsite:
 
-- Kurti MCP serverį naudojant stdio transportą.
-- Derinti MCP serverį naudojant Inspector.
+- Kurti MCP serverį, naudojant stdio transportą.
+- Derinti MCP serverį naudodami Inspector įrankį.
 - Naudoti MCP serverį Visual Studio Code aplinkoje.
-- Suprasti dabartinius MCP transporto mechanizmus ir kodėl rekomenduojamas stdio transportas.
+- Suprasti dabartinius MCP transporto mechanizmus ir kodėl rekomenduojamas stdio.
 
 ## stdio transportas – kaip tai veikia
 
-Stdio transportas yra vienas iš dviejų palaikomų transporto tipų dabartinėje MCP specifikacijoje (2025-06-18). Štai kaip tai veikia:
+Stdio transportas yra vienas iš dviejų transporto tipų, palaikomų dabartinėje MCP specifikacijoje (2025-11-25). Štai kaip jis veikia:
 
 - **Paprasta komunikacija**: serveris skaito JSON-RPC žinutes iš standartinės įvesties (`stdin`) ir siunčia žinutes į standartinę išvestį (`stdout`).
-- **Procesų pagrindu**: klientas paleidžia MCP serverį kaip posubordinatą procesą.
+- **Proceso pagrindu**: klientas paleidžia MCP serverį kaip subprocess'ą.
 - **Žinučių formatas**: žinutės yra atskiros JSON-RPC užklausos, pranešimai arba atsakymai, atskirti naujomis eilutėmis.
-- **Žurnalavimas**: serveris GALI rašyti UTF-8 eilutes į standartinę klaidų išvestį (`stderr`) žurnalų tikslams.
+- **Logavimas**: serveris GALI rašyti UTF-8 eilutes į standartinę klaidų išvestį (`stderr`) logavimui.
 
-### Svarbiausios sąlygos:
-- Žinutės TURI būti atskirtos naujomis eilutėmis ir NETURI turėti įdėtų naujų eilučių
-- Serveris NETURI rašyti į `stdout` nieko, kas nėra galiojanti MCP žinutė
-- Klientas NETURI rašyti į serverio `stdin` nieko, kas nėra galiojanti MCP žinutė
+### Pagrindiniai reikalavimai:
+- Žinutės TURI būti atskirtos naujomis eilutėmis ir NETURI turėti įterptų naujų eilučių
+- Serveris NETURI rašyti į `stdout`, kas nėra galiojanti MCP žinutė
+- Klientas NETURI rašyti serverio `stdin` kažko, kas nėra galiojanti MCP žinutė
 
 ### TypeScript
 
@@ -61,11 +61,11 @@ async function runServer() {
 runServer().catch(console.error);
 ```
 
-Aukščiau pateiktame kode:
+Ankstesniame kode:
 
 - Importuojame `Server` klasę ir `StdioServerTransport` iš MCP SDK
 - Sukuriame serverio egzempliorių su pagrindine konfigūracija ir galimybėmis
-- Sukuriame `StdioServerTransport` egzempliorių ir prijungiame serverį prie jo, leidžiant bendrauti per stdin/stdout
+- Sukuriame `StdioServerTransport` egzempliorių ir prijungiame prie jo serverį, leidžiant bendrauti per stdin/stdout
 
 ### Python
 
@@ -75,7 +75,7 @@ import logging
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 
-# Sukurkite serverio egzempliorių
+# Sukurti serverio egzempliorių
 server = Server("example-server")
 
 @server.tool()
@@ -95,11 +95,11 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-Aukščiau pateiktame kode:
+Ankstesniame kode mes:
 
-- Sukuriame serverio egzempliorių naudojant MCP SDK
-- Apibrėžiame įrankius naudodami dekoratorius
-- Naudojame stdio_server kontekstinį valdiklį transportui tvarkyti
+- Kuriame serverio egzempliorių naudodami MCP SDK
+- Apibrėžiame įrankius naudojant dekoratorius
+- Naudojame stdio_server kontekstinį valdiklį transportui valdyti
 
 ### .NET
 
@@ -122,29 +122,30 @@ var app = builder.Build();
 await app.RunAsync();
 ```
 
-Pagrindinis skirtumas nuo SSE yra tas, kad stdio serveriai:
+Pagrindinis skirtumas nuo SSE yra tai, kad stdio serveriai:
 
-- Nereikalauja interneto serverio nustatymo ar HTTP galinių taškų
-- Paleidžiami kaip posubordinatai procesai klientų
-- Bendrauja per stdin/stdout srautus
-- Paprastesni įgyvendinimui ir derinimui
+- Nereikalauja web serverio ar HTTP endpoint'ų
+- Paleidžiami kaip kliento subprocess'ai
+- Bendrauja per stdin/stdout sroves
+- Yra paprastesni įgyvendinami ir derinami
 
-## Užduotis: stdio serverio kūrimas
+## Užduotis: sukurti stdio serverį
 
-Kad sukurtume serverį, turime atsiminti du dalykus:
+Kad sukurtume serverį, turime atsiminti dvi dalis:
 
-- Turime naudoti interneto serverį, kad atvertume galinius taškus prisijungimui ir žinutėms.
-## Laboratorija: paprasto MCP stdio serverio kūrimas
+- Reikia naudoti web serverį, kad būtų atskleisti endpoint'ai prisijungimui ir žinutėms.
 
-Šioje laboratorijoje sukursime paprastą MCP serverį naudodami rekomenduojamą stdio transportą. Šis serveris atvers įrankius, kuriuos klientai gali kviesti naudodami standartinį Model Context Protocol.
+## Laboratorinis darbas: paprasto MCP stdio serverio kūrimas
+
+Šiame laboratoriniame darbe sukursime paprastą MCP serverį, naudodami rekomenduojamą stdio transportą. Šis serveris atskleis įrankius, kuriuos klientai galės kviesti naudodami standartinį Model Context Protocol.
 
 ### Reikalavimai
 
-- Python 3.8 arba naujesnis
+- Python 3.8 arba naujesnė versija
 - MCP Python SDK: `pip install mcp`
-- Pagrindinės asinchroninio programavimo žinios
+- Pagrindinės asynchroninės programavimo žinios
 
-Pradėkime kurdami pirmąjį MCP stdio serverį:
+Pradėkime nuo pirmojo MCP stdio serverio sukūrimo:
 
 ```python
 import asyncio
@@ -153,11 +154,11 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp import types
 
-# Konfigūruoti žurnalo įrašymą
+# Suconfigurekite žurnalo įrašymą
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Sukurti serverį
+# Sukurkite serverį
 server = Server("example-stdio-server")
 
 @server.tool()
@@ -171,7 +172,7 @@ def get_greeting(name: str) -> str:
     return f"Hello, {name}! Welcome to MCP stdio server."
 
 async def main():
-    # Naudoti stdio transportą
+    # Naudokite stdio prievadą
     async with stdio_server(server) as (read_stream, write_stream):
         await server.run(
             read_stream,
@@ -185,32 +186,32 @@ if __name__ == "__main__":
 
 ## Pagrindiniai skirtumai nuo atsisakyto SSE metodo
 
-**Stdio transportas (dabartinė standarto versija):**
-- Paprastas posubordinato modelis – klientas paleidžia serverį kaip vaikų procesą
+**Stdio Transportas (dabartinis standartas):**
+- Paprastas subprocess modelis – klientas paleidžia serverį kaip dukterinį procesą
 - Komunikacija per stdin/stdout naudojant JSON-RPC žinutes
-- Nereikia HTTP serverio nustatymo
+- HTTP serverio konfigūracija nereikalinga
 - Geresnis našumas ir saugumas
-- Lengvesnis derinimas ir vystymas
+- Lengvesnis derinimas ir plėtra
 
-**SSE transportas (atsisakytas nuo MCP 2025-06-18):**
-- Reikalavo HTTP serverio su SSE galiniais taškais
-- Sudėtingesnis nustatymas su interneto serverio infrastruktūra
-- Papildomos saugumo priemonės HTTP galiniams taškams
-- Dabar pakeistas Streamable HTTP bei interneto scenarijams
+**SSE Transportas (atsisakytas nuo MCP 2025-06-18):**
+- Reikalavo HTTP serverio su SSE endpoint'ais
+- Daug sudėtingesnė instaliacija su web serverio infrastruktūra
+- Papildomos saugumo priemonės HTTP endpoint’ams
+- Dabar pakeistas Streamable HTTP web scenarijams
 
 ### Serverio kūrimas su stdio transportu
 
-Norėdami sukurti stdio serverį, turime:
+Kad sukurtume stdio serverį, turime:
 
-1. **Importuoti reikalingas bibliotekas** – mums reikalingi MCP serverio komponentai ir stdio transportas
+1. **Importuoti reikiamas bibliotekas** – mums reikalingi MCP serverio komponentai ir stdio transportas
 2. **Sukurti serverio egzempliorių** – apibrėžti serverį su jo galimybėmis
 3. **Apibrėžti įrankius** – pridėti funkcionalumą, kurį norime atskleisti
-4. **Sukurti transportą** – sukonfigūruoti stdio komunikaciją
+4. **Sukurti transporto nustatymus** – sukonfigūruoti stdio komunikaciją
 5. **Paleisti serverį** – pradėti serverį ir tvarkyti žinutes
 
-Sukurkime tai žingsnis po žingsnio:
+Kurkime po žingsnį:
 
-### 1 žingsnis: Sukurkite paprastą stdio serverį
+### 1 žingsnis: sukurti bazinį stdio serverį
 
 ```python
 import asyncio
@@ -218,7 +219,7 @@ import logging
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 
-# Konfigūruoti žurnalo įrašymą
+# Konfigūruoti žurnalavimą
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -242,7 +243,7 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-### 2 žingsnis: Pridėkite daugiau įrankių
+### 2 žingsnis: pridėti daugiau įrankių
 
 ```python
 @server.tool()
@@ -266,19 +267,19 @@ def get_server_info() -> dict:
     }
 ```
 
-### 3 žingsnis: Paleiskite serverį
+### 3 žingsnis: serverio paleidimas
 
-Išsaugokite kodą kaip `server.py` ir paleiskite komandinėje eilutėje:
+Įrašykite kodą kaip `server.py` ir paleiskite komandų eilutėje:
 
 ```bash
 python server.py
 ```
 
-Serveris pradės veikti ir lauks įvesties iš stdin. Jis bendrauja naudodamas JSON-RPC žinutes per stdio transportą.
+Serveris pradės darbą ir lauks įvesties iš stdin. Jis bendrauja naudodamas JSON-RPC žinutes per stdio transportą.
 
-### 4 žingsnis: Testavimas su Inspector
+### 4 žingsnis: testavimas su Inspector
 
-Galite išbandyti serverį naudodami MCP Inspector:
+Galite išbandyti savo serverį naudodami MCP Inspector:
 
 1. Įdiekite Inspector: `npx @modelcontextprotocol/inspector`
 2. Paleiskite Inspector ir nukreipkite jį į savo serverį
@@ -291,11 +292,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services
     .AddMcpServer();
  ```
-## Savo stdio serverio derinimas
+
+## Derinimas su stdio serveriu
 
 ### Naudojant MCP Inspector
 
-MCP Inspector yra vertingas įrankis MCP serverių derinimui ir testavimui. Štai kaip jį naudoti su jūsų stdio serveriu:
+MCP Inspector yra vertingas įrankis MCP serverių derinimui ir testavimui. Štai kaip jį naudoti su stdio serveriu:
 
 1. **Įdiekite Inspector**:
    ```bash
@@ -307,17 +309,17 @@ MCP Inspector yra vertingas įrankis MCP serverių derinimui ir testavimui. Šta
    npx @modelcontextprotocol/inspector python server.py
    ```
 
-3. **Išbandykite savo serverį**: Inspector teikia interneto sąsają, kur galite:
+3. **Testuokite serverį**: Inspector suteikia žiniatinklio sąsają, kur galite:
    - Peržiūrėti serverio galimybes
-   - Išbandyti įrankius su skirtingais parametrais
+   - Išbandyti įrankius su įvairiais parametrais
    - Stebėti JSON-RPC žinutes
    - Derinti ryšio problemas
 
 ### Naudojant VS Code
 
-Taip pat galite derinti MCP serverį tiesiogiai VS Code aplinkoje:
+Taip pat galite tiesiogiai derinti MCP serverį VS Code aplinkoje:
 
-1. Sukurkite paleidimo konfigūraciją `.vscode/launch.json`:
+1. Sukurkite paleidimo konfigūraciją faile `.vscode/launch.json`:
    ```json
    {
      "version": "0.2.0",
@@ -333,23 +335,23 @@ Taip pat galite derinti MCP serverį tiesiogiai VS Code aplinkoje:
    }
    ```
 
-2. Nustatykite pertraukas serverio kode
+2. Įdėkite lūžio taškus serverio kode
 3. Paleiskite derintuvą ir testuokite su Inspector
 
-### Dažniausios derinimo rekomendacijos
+### Dažni derinimo patarimai
 
-- Naudokite `stderr` žurnaluoti – niekada nerašykite į `stdout`, nes jis skirtas MCP žinutėms
+- Naudokite `stderr` logavimui – niekada nerašykite į `stdout`, nes jis skirtas MCP žinutėms
 - Užtikrinkite, kad visos JSON-RPC žinutės būtų atskirtos naujomis eilutėmis
-- Iš pradžių testuokite su paprastais įrankiais, prieš pridėdami sudėtingesnes funkcijas
-- Naudokitės Inspector žinučių formatų patikrai
+- Iš pradžių išbandykite paprastus įrankius prieš pridėdami sudėtingą funkcionalumą
+- Naudokite Inspector formatų patikrinimui
 
-## Kaip naudoti savo stdio serverį VS Code
+## Naudojimas su VS Code
 
-Kai sukursite MCP stdio serverį, galėsite integruoti jį su VS Code, kad naudotumėte Claude ar kitus MCP suderinamus klientus.
+Kai sukūrėte MCP stdio serverį, galite integruoti jį su VS Code ir naudoti su Claude ar kitais MCP suderinamais klientais.
 
 ### Konfigūracija
 
-1. **Sukurkite MCP konfigūracijos failą** adresu `%APPDATA%\Claude\claude_desktop_config.json` (Windows) arba `~/Library/Application Support/Claude/claude_desktop_config.json` (Mac):
+1. **Sukurkite MCP konfigūracijos failą** `%APPDATA%\Claude\claude_desktop_config.json` (Windows) arba `~/Library/Application Support/Claude/claude_desktop_config.json` (Mac):
 
    ```json
    {
@@ -362,16 +364,16 @@ Kai sukursite MCP stdio serverį, galėsite integruoti jį su VS Code, kad naudo
    }
    ```
 
-2. **Perkraukite Claude**: Uždarykite ir vėl atidarykite Claude, kad įkeltumėte naują serverio konfigūraciją.
+2. **Perkraukite Claude**: uždarykite ir vėl atidarykite Claude, kad įkeltumėte naują serverio konfigūraciją.
 
-3. **Patikrinkite ryšį**: Pradėkite pokalbį su Claude ir išbandykite savo serverio įrankius:
-   - „Ar gali mane pasveikinti naudodamas greeting įrankį?“
-   - „Apskaičiuok 15 ir 27 sumą“
+3. **Išbandykite ryšį**: pradėkite pokalbį su Claude ir pabandykite naudoti savo serverio įrankius:
+   - „Ar gali mane pasveikinti naudodamas sveikinimo įrankį?“
+   - „Apskaičiuok sumą 15 ir 27“
    - „Kokia yra serverio informacija?“
 
 ### TypeScript stdio serverio pavyzdys
 
-Pilnas TypeScript pavyzdys suteikiamas kaip nuoroda:
+Čia pateiktas pilnas TypeScript pavyzdys:
 
 ```typescript
 #!/usr/bin/env node
@@ -476,17 +478,17 @@ public class Tools
 
 Šioje atnaujintoje pamokoje išmokote:
 
-- Kurti MCP serverius naudojant dabartinį **stdio transportą** (rekomenduojamą būdą)
-- Suprasti, kodėl SSE transportas buvo atsisakytas vietoje stdio ir Streamable HTTP
+- Kurti MCP serverius naudojant dabartinį **stdio transportą** (rekomenduojamas metodas)
+- Suprasti, kodėl SSE transportas buvo atsisakyta pasirenkant stdio ir Streamable HTTP
 - Kurti įrankius, kuriuos gali kviesti MCP klientai
 - Derinti serverį naudojant MCP Inspector
-- Integruoti savo stdio serverį su VS Code ir Claude
+- Integruoti stdio serverį su VS Code ir Claude
 
 Stdio transportas suteikia paprastesnį, saugesnį ir našesnį būdą kurti MCP serverius, palyginti su atsisakytu SSE metodu. Tai rekomenduojamas transportas daugumai MCP serverių įgyvendinimų nuo 2025-06-18 specifikacijos.
 
 ### .NET
 
-1. Pirmiausia sukurkime keletą įrankių, tam sukursime failą *Tools.cs* su tokiu turiniu:
+1. Pirmiausia sukurkime keletą įrankių, tam sukursime failą *Tools.cs* su šiuo turiniu:
 
   ```csharp
   using System.ComponentModel;
@@ -494,9 +496,9 @@ Stdio transportas suteikia paprastesnį, saugesnį ir našesnį būdą kurti MCP
   using ModelContextProtocol.Server;
   ```
 
-## Užduotis: savo stdio serverio testavimas
+## Užduotis: patikrinkite savo stdio serverį
 
-Dabar, kai sukūrėte stdio serverį, išbandykime jį, kad įsitikintume, jog veikia tinkamai.
+Dabar, kai sukūrėte stdio serverį, išbandykite jį, kad įsitikintumėte, jog veikia teisingai.
 
 ### Reikalavimai
 
@@ -505,71 +507,72 @@ Dabar, kai sukūrėte stdio serverį, išbandykime jį, kad įsitikintume, jog v
    npm install -g @modelcontextprotocol/inspector
    ```
 
-2. Jūsų serverio kodas išsaugotas (pvz., `server.py`)
+2. Jūsų serverio kodas turi biti išsaugotas (pvz., kaip `server.py`)
 
 ### Testavimas su Inspector
 
-1. **Pradėkite Inspector kartu su serveriu**:
+1. **Paleiskite Inspector nurodant savo serverį**:
    ```bash
    npx @modelcontextprotocol/inspector python server.py
    ```
 
-2. **Atidarykite interneto sąsają**: Inspector atidarys naršyklės langą, rodantį jūsų serverio galimybes.
+2. **Atidarykite žiniatinklio sąsają**: Inspector atidarys naršyklės langą su rodoma serverio galimybėmis.
 
 3. **Išbandykite įrankius**: 
-   - Išbandykite `get_greeting` įrankį su skirtingais vardais
-   - Išbandykite `calculate_sum` įrankį su įvairiais skaičiais
-   - Iškvieskite `get_server_info` įrankį, norėdami pamatyti serverio metaduomenis
+   - Išbandykite įrankį `get_greeting` su įvairiais vardais
+   - Testuokite `calculate_sum` įrankį su įvairiais skaičiais
+   - Iškvieskite `get_server_info` įrankį, kad pamatytumėte serverio metaduomenis
 
 4. **Stebėkite komunikaciją**: Inspector rodo JSON-RPC žinutes, kurios keičiasi tarp kliento ir serverio.
 
-### Ką turėtumėte matyti
+### Ko turėtumėte tikėtis
 
-Kai serveris paleidžiamas teisingai, turėtumėte matyti:
-- Serverio galimybių sąrašą Inspectoriaus lange
-- Įrankius, prieinamus testavimui
-- Sėkmingus JSON-RPC žinučių mainus
+Kai serveris sėkmingai paleidžiamas, turėtumėte matyti:
+- Serverio galimybių sąrašą Inspectoriuje
+- Įrankius, kuriuos galima testuoti
+- Sėkmingą JSON-RPC žinučių apsikeitimą
 - Įrankių atsakymus sąsajoje
 
 ### Dažnos problemos ir sprendimai
 
 **Serveris nepaleidžiamas:**
-- Patikrinkite, ar įdiegti visi priklausomybės: `pip install mcp`
-- Patikrinkite Python sintaksę ir įtraukimus
+- Patikrinkite, ar įdiegti visi reikalavimai: `pip install mcp`
+- Patikrinkite Python sintaksę ir įtrauką
 - Peržiūrėkite klaidų pranešimus konsolėje
 
 **Įrankiai nerodomi:**
-- Patikrinkite, ar yra `@server.tool()` dekoratoriai
-- Įsitikinkite, kad įrankių funkcijos apibrėžtos prieš `main()`
-- Patikrinkite, ar serveris tinkamai sukonfigūruotas
+- Įsitikinkite, kad yra `@server.tool()` dekoratoriai
+- Patikrinkite, ar įrankių funkcijos apibrėžtos prieš `main()`
+- Įsitikinkite, kad serveris tinkamai sukonfigūruotas
 
 **Ryšio problemos:**
-- Įsitikinkite, kad serveris tinkamai naudoja stdio transportą
-- Patikrinkite, ar kiti procesai netrukdo
-- Patikrinkite Inspector komandos sintaksę
+- Patikrinkite, ar serveris tinkamai naudoja stdio transportą
+- Įsitikinkite, kad kiti procesai netrukdo
+- Patikrinkite Inspectoriaus komandų sintaksę
 
 ## Užduotis
 
-Pabandykite pridėti daugiau galimybių savo serveriui. Peržiūrėkite [šią puslapį](https://api.chucknorris.io/) ir, pavyzdžiui, pridėkite įrankį, kuris kviečia API. Spręskite, kaip turėtų atrodyti serveris. Sėkmės :)
+Išbandykite savo serverį papildomomis funkcijomis. Peržiūrėkite [šią svetainę](https://api.chucknorris.io/), pavyzdžiui, pridėti įrankį, kuris kviečia API. Jūs nusprendžiate, kaip turėtų atrodyti serveris. Sėkmės :)
+
 ## Sprendimas
 
-[Sprendimas](./solution/README.md) Čia pateikiamas galimas veikiantis sprendimas su kodu.
+[Sprendimas](./solution/README.md) Čia pateiktas galimas sprendimas su veikiamu kodu.
 
-## Svarbiausios išvados
+## Pagrindinės išvados
 
-Pagrindinės įžvalgos iš šio skyriaus:
+Šio skyriaus svarbiausios išvados:
 
 - Stdio transportas yra rekomenduojamas mechanizmas vietiniams MCP serveriams.
-- Stdio transportas leidžia sklandžiai komunikuoti tarp MCP serverių ir klientų naudojant standartinius įvesties ir išvesties srautus.
-- Galite naudoti tiek Inspector, tiek Visual Studio Code tiesiogiai sąveikauti su stdio serveriais, kas palengvina derinimą ir integraciją.
+- Stdio transportas leidžia sklandžiai bendrauti tarp MCP serverių ir klientų per standartines įvesties ir išvesties sroves.
+- Galite naudoti tiek Inspector, tiek Visual Studio Code tiesiogiai naudojant stdio serverius, kas palengvina derinimą ir integraciją.
 
 ## Pavyzdžiai
 
-- [Java kalkuliatorius](../samples/java/calculator/README.md)
-- [.Net kalkuliatorius](../../../../03-GettingStarted/samples/csharp)
-- [JavaScript kalkuliatorius](../samples/javascript/README.md)
-- [TypeScript kalkuliatorius](../samples/typescript/README.md)
-- [Python kalkuliatorius](../../../../03-GettingStarted/samples/python)
+- [Java skaičiuotuvas](../samples/java/calculator/README.md)
+- [.Net skaičiuotuvas](../../../../03-GettingStarted/samples/csharp)
+- [JavaScript skaičiuotuvas](../samples/javascript/README.md)
+- [TypeScript skaičiuotuvas](../samples/typescript/README.md)
+- [Python skaičiuotuvas](../../../../03-GettingStarted/samples/python) 
 
 ## Papildomi ištekliai
 
@@ -577,23 +580,23 @@ Pagrindinės įžvalgos iš šio skyriaus:
 
 ## Kas toliau
 
-## Tolesni žingsniai
+## Kiti žingsniai
 
-Dabar, kai išmokote kurti MCP serverius su stdio transportu, galite gilintis į sudėtingesnes temas:
+Dabar, kai išmokote kurti MCP serverius su stdio transportu, galite tyrinėti pažangesnes temas:
 
-- **Toliau**: [HTTP srautas su MCP (Streamable HTTP)](../06-http-streaming/README.md) – sužinokite apie kitą palaikomą transporto mechanizmą nuotoliniams serveriams
-- **Pažengusiems**: [MCP saugumo gerosios praktikos](../../02-Security/README.md) – įgyvendinkite saugumą savo MCP serveriuose
-- **Gaminiui**: [Diegimo strategijos](../09-deployment/README.md) – diegkite savo serverius gamybai
+- **Toliau**: [HTTP transliacija su MCP (Streamable HTTP)](../06-http-streaming/README.md) – sužinokite apie kitą palaikomą transporto mechanizmą nuotoliniams serveriams
+- **Pažengusiems**: [MCP saugumo geriausios praktikos](../../02-Security/README.md) – įgyvendinkite saugumą savo MCP serveriuose
+- **Produkcijai**: [Diegimo strategijos](../09-deployment/README.md) – diegkite savo serverius gamybiniam naudojimui
 
 ## Papildomi ištekliai
 
-- [MCP specifikacija 2025-06-18](https://spec.modelcontextprotocol.io/specification/) – oficiali specifikacija
-- [MCP SDK dokumentacija](https://github.com/modelcontextprotocol/sdk) – SDK nuorodos visoms kalboms
+- [MCP specifikacija 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/) – oficiali specifikacija
+- [MCP SDK dokumentacija](https://github.com/modelcontextprotocol/sdk) – SDK nuorodos visoms programavimo kalboms
 - [Bendruomenės pavyzdžiai](../../06-CommunityContributions/README.md) – daugiau serverių pavyzdžių iš bendruomenės
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Atsakomybės apribojimas**:  
-Šis dokumentas buvo išverstas naudojant dirbtinio intelekto vertimo paslaugą [Co-op Translator](https://github.com/Azure/co-op-translator). Nors stengiamės užtikrinti tikslumą, atkreipkite dėmesį, kad automatiniai vertimai gali turėti klaidų ar netikslumų. Originalus dokumentas gimtąja kalba turėtų būti laikomas autoritetingu šaltiniu. Dėl svarbios informacijos rekomenduojama naudoti profesionalų žmogaus vertimą. Mes neatsakome už jokius nesusipratimus ar neteisingas išvadas, kilusias naudojant šį vertimą.
+**Atsakomybės apribojimas**:
+Šis dokumentas buvo išverstas naudojant dirbtinio intelekto vertimo paslaugą [Co-op Translator](https://github.com/Azure/co-op-translator). Nors siekiame tikslumo, prašome atkreipti dėmesį, kad automatiniai vertimai gali turėti klaidų ar netikslumų. Originalus dokumentas jo gimtąja kalba laikomas autoritetingu šaltiniu. Svarbiai informacijai rekomenduojama naudoti profesionalų žmogiškąjį vertimą. Mes neatsakome už jokius nesusipratimus ar neteisingą interpretaciją, kilusią naudojantis šiuo vertimu.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

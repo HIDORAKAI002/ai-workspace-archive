@@ -1,12 +1,12 @@
-# Sampling - Funktionen an den Client delegieren
+# Sampling – Funktionen an den Client delegieren
 
-Manchmal müssen der MCP Client und der MCP Server zusammenarbeiten, um ein gemeinsames Ziel zu erreichen. Sie könnten beispielsweise den Fall haben, dass der Server die Hilfe eines auf dem Client befindlichen LLM benötigt. Für diese Situation sollten Sie Sampling verwenden.
+Manchmal müssen der MCP Client und der MCP Server zusammenarbeiten, um ein gemeinsames Ziel zu erreichen. Es kann sein, dass der Server die Hilfe eines LLM benötigt, das auf dem Client läuft. Für diese Situation sollten Sie Sampling verwenden.
 
-Lassen Sie uns einige Anwendungsfälle betrachten und wie man eine Lösung mit Sampling erstellt.
+Lassen Sie uns einige Anwendungsfälle und den Aufbau einer Lösung mit Sampling erkunden.
 
-## Übersicht
+## Überblick
 
-In dieser Lektion konzentrieren wir uns darauf, zu erklären, wann und wo Sampling verwendet wird und wie es konfiguriert wird.
+In dieser Lektion konzentrieren wir uns darauf, zu erklären, wann und wo Sampling eingesetzt werden sollte und wie man es konfiguriert.
 
 ## Lernziele
 
@@ -16,9 +16,9 @@ In diesem Kapitel werden wir:
 - Zeigen, wie man Sampling in MCP konfiguriert.
 - Beispiele für den Einsatz von Sampling geben.
 
-## Was ist Sampling und warum es verwenden?
+## Was ist Sampling und warum sollte man es nutzen?
 
-Sampling ist eine erweiterte Funktion, die folgendermaßen funktioniert:
+Sampling ist eine erweiterte Funktion, die folgendermaßen arbeitet:
 
 ```mermaid
 sequenceDiagram
@@ -28,17 +28,18 @@ sequenceDiagram
     participant MCP Server
 
     User->>MCP Client: Blogbeitrag verfassen
-    MCP Client->>MCP Server: Toolaufruf (Blogbeitrag-Entwurf)
+    MCP Client->>MCP Server: Werkzeugaufruf (Blogbeitrag Entwurf)
     MCP Server->>MCP Client: Sampling-Anfrage (Zusammenfassung erstellen)
-    MCP Client->>LLM: Blogbeitrag-Zusammenfassung generieren
+    MCP Client->>LLM: Blogbeitrag Zusammenfassung generieren
     LLM->>MCP Client: Zusammenfassungsergebnis
     MCP Client->>MCP Server: Sampling-Antwort (Zusammenfassung)
     MCP Server->>MCP Client: Kompletter Blogbeitrag (Entwurf + Zusammenfassung)
     MCP Client->>User: Blogbeitrag fertig
 ```
+
 ### Sampling-Anfrage
 
-Ok, jetzt haben wir einen hochrangigen Überblick über ein glaubwürdiges Szenario, sprechen wir über die Sampling-Anfrage, die der Server an den Client zurücksendet. So kann eine solche Anfrage im JSON-RPC-Format aussehen:
+Ok, jetzt haben wir einen Überblick über ein realistisches Szenario, sprechen wir über die Sampling-Anfrage, die der Server an den Client zurücksendet. So könnte eine solche Anfrage im JSON-RPC-Format aussehen:
 
 ```json
 {
@@ -70,17 +71,17 @@ Ok, jetzt haben wir einen hochrangigen Überblick über ein glaubwürdiges Szena
 }
 ```
 
-Hier gibt es einige Punkte, die erwähnenswert sind:
+Hier gibt es ein paar Punkte, die erwähnenswert sind:
 
-- Prompt, unter content -> text, ist unsere Aufforderung, eine Anweisung an das LLM, den Inhalt eines Blogposts zusammenzufassen.
+- Prompt, unter content -> text, ist unser Prompt, also eine Anweisung an das LLM, den Blogbeitrag zusammenzufassen.
 
-- **modelPreferences**. Dieser Abschnitt ist genau das, eine Präferenz, eine Empfehlung, welche Konfiguration mit dem LLM verwendet werden soll. Der Benutzer kann wählen, ob er diesen Empfehlungen folgt oder sie ändert. In diesem Fall gibt es Empfehlungen für das zu verwendende Modell sowie Prioritäten für Geschwindigkeit und Intelligenz.
-- **systemPrompt**, das ist Ihr normaler System-Prompt, der Ihrem LLM eine Persönlichkeit gibt und Anweisungen enthält.
+- **modelPreferences**. Dieser Bereich ist genau das: eine Präferenz, eine Empfehlung, welche Konfiguration für das LLM verwendet werden sollte. Der Benutzer kann wählen, ob er diese Empfehlungen übernimmt oder ändert. In diesem Fall gibt es Empfehlungen zum Modell sowie Prioritäten bezüglich Geschwindigkeit und Intelligenz.
+- **systemPrompt**, dies ist Ihr normaler System-Prompt, der Ihrem LLM eine Persönlichkeit verleiht und Anleitung enthält.
 - **maxTokens**, eine weitere Eigenschaft, die angibt, wie viele Tokens für diese Aufgabe empfohlen werden.
 
 ### Sampling-Antwort
 
-Diese Antwort wird vom MCP Client an den MCP Server zurückgesendet und ist das Ergebnis des Aufrufs des LLM vom Client, des Wartens auf die Antwort und dann des Erstellens dieser Nachricht. So könnte diese Antwort im JSON-RPC-Format aussehen:
+Diese Antwort ist das, was der MCP Client schließlich an den MCP Server zurücksendet und das Ergebnis des Aufrufs des LLM durch den Client darstellt, nachdem dieser auf die Antwort gewartet und dann diese Nachricht konstruiert hat. So könnte sie im JSON-RPC aussehen:
 
 ```json
 {
@@ -98,13 +99,13 @@ Diese Antwort wird vom MCP Client an den MCP Server zurückgesendet und ist das 
 }
 ```
 
-Beachten Sie, wie die Antwort eine Zusammenfassung des Blogposts ist, genau wie wir es verlangt haben. Beachten Sie auch, dass das verwendete `model` nicht das angefragte „gpt-5“ über „claude-3-sonnet“ ist. Dies verdeutlicht, dass der Nutzer seine Meinung ändern kann, welches Modell verwendet wird und dass Ihre Sampling-Anfrage eine Empfehlung darstellt.
+Beachten Sie, dass die Antwort eine Zusammenfassung des Blogbeitrags ist, genau wie wir es verlangt haben. Ebenso sehen Sie, dass das verwendete `model` nicht das war, das wir angefragt hatten, sondern "gpt-5" anstelle von "claude-3-sonnet". Das verdeutlicht, dass der Benutzer seine Meinung darüber ändern kann, welches Modell er verwenden möchte, und dass Ihre Sampling-Anfrage eine Empfehlung ist.
 
-Ok, jetzt, da wir den Hauptablauf verstehen und gesehen haben, wie nützlich die Aufgabe „Blogpost-Erstellung + Zusammenfassung“ ist, sehen wir, was wir tun müssen, um es zum Laufen zu bringen.
+Ok, nun da wir den Hauptfluss verstanden haben und es eine nützliche Aufgabe für "Blogbeitragserstellung + Zusammenfassung" ist, schauen wir uns an, was wir tun müssen, damit es funktioniert.
 
 ### Nachrichtentypen
 
-Sampling-Nachrichten sind nicht nur auf Text beschränkt, Sie können auch Bilder und Audio senden. So sieht das JSON-RPC in diesen Fällen unterschiedlich aus:
+Sampling-Nachrichten sind nicht nur auf Text beschränkt, sondern Sie können auch Bilder und Audio senden. So sieht das JSON-RPC unterschiedlich aus:
 
 **Text**
 
@@ -135,13 +136,13 @@ Sampling-Nachrichten sind nicht nur auf Text beschränkt, Sie können auch Bilde
 }
 ```
 
-> HINWEIS: Für detailliertere Informationen zu Sampling, siehe die [offiziellen Docs](https://modelcontextprotocol.io/specification/2025-06-18/client/sampling)
+> HINWEIS: Für detailliertere Informationen zu Sampling schauen Sie in die [offizielle Dokumentation](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling)
 
-## Wie man Sampling im Client konfiguriert
+## Wie konfiguriert man Sampling im Client
 
-> Hinweis: Wenn Sie nur einen Server bauen, müssen Sie hier nicht viel tun.
+> Hinweis: Wenn Sie nur einen Server erstellen, müssen Sie hier nicht viel tun.
 
-In einem Client müssen Sie die folgende Funktion folgendermaßen angeben:
+In einem Client müssen Sie die folgende Funktion so angeben:
 
 ```json
 {
@@ -151,16 +152,16 @@ In einem Client müssen Sie die folgende Funktion folgendermaßen angeben:
 }
 ```
 
-Diese wird dann genutzt, wenn Ihr gewählter Client mit dem Server initialisiert wird.
+Diese wird dann beim Starten des gewählten Clients mit dem Server berücksichtigt.
 
-## Beispiel für Sampling in Aktion – Einen Blogpost erstellen
+## Beispiel für Sampling in Aktion – Einen Blogbeitrag erstellen
 
-Lassen Sie uns gemeinsam einen Sampling-Server programmieren, dazu müssen wir Folgendes tun:
+Lassen Sie uns gemeinsam einen Sampling-Server programmieren, wir müssen folgendes tun:
 
 1. Ein Tool auf dem Server erstellen.
 1. Dieses Tool soll eine Sampling-Anfrage erzeugen.
-1. Das Tool soll auf die Antwort der Sampling-Anfrage des Clients warten.
-1. Dann soll das Tool das Ergebnis erzeugen.
+1. Das Tool wartet darauf, dass die Sampling-Anfrage des Clients beantwortet wird.
+1. Danach soll das Ergebnis des Tools generiert werden.
 
 Schauen wir uns den Code Schritt für Schritt an:
 
@@ -203,7 +204,7 @@ result = await ctx.session.create_message(
 
 ```
 
-### -3- Auf die Antwort warten und diese zurückgeben
+### -3- Auf die Antwort warten und Antwort zurückgeben
 
 **python**
 
@@ -212,14 +213,14 @@ post.abstract = result.content.text
 
 posts.append(post)
 
-# gib das komplette Produkt zurück
+# das komplette Produkt zurückgeben
 return json.dumps({
     "id": post.title,
     "abstract": post.abstract
 })
 ```
 
-### -4- Gesamter Code
+### -4- Vollständiger Code
 
 **python**
 
@@ -281,7 +282,7 @@ async def create_blog(title: str, content: str, ctx: Context[ServerSession, None
 
     posts.append(post)
 
-    # gib den vollständigen Blogbeitrag zurück
+    # gib den kompletten Blogbeitrag zurück
     return json.dumps({
         "id": post.title,
         "abstract": post.abstract
@@ -292,15 +293,15 @@ if __name__ == "__main__":
     # mcp.run()
     mcp.run(transport="streamable-http")
 
-# Starte die App mit: python server.py
+# starte die App mit: python server.py
 ```
 
 ### -5- Testen in Visual Studio Code
 
-Um das in Visual Studio Code zu testen, machen Sie Folgendes:
+Um das in Visual Studio Code zu testen, gehen Sie wie folgt vor:
 
 1. Server im Terminal starten
-1. Fügen Sie ihn in *mcp.json* hinzu (und stellen Sie sicher, dass er gestartet ist), zum Beispiel so:
+1. Fügen Sie es zu *mcp.json* hinzu (und stellen Sie sicher, dass es gestartet ist), z.B. so:
 
    ```json
    "servers": {
@@ -311,45 +312,45 @@ Um das in Visual Studio Code zu testen, machen Sie Folgendes:
    }
    ```
 
-1. Geben Sie eine Eingabeaufforderung ein:
+1. Einen Prompt eingeben:
 
    ```text
    create a blog post named "Where Python comes from", the content is "Python is actually named after Monty Python Flying Circus"
    ```
 
-1. Erlauben Sie das Sampling. Beim ersten Test werden Sie mit einem zusätzlichen Dialog aufgefordert, den Sie akzeptieren müssen, danach sehen Sie den normalen Dialog, um ein Tool auszuführen.
+1. Sampling zulassen. Beim ersten Test wird Ihnen ein zusätzlicher Dialog angezeigt, den Sie akzeptieren müssen, danach sehen Sie den normalen Dialog zur Ausführung eines Tools.
 
-1. Ergebnisse prüfen. Die Ergebnisse werden sowohl schön im GitHub Copilot Chat angezeigt, als auch können Sie die rohe JSON-Antwort einsehen.
+1. Ergebnisse prüfen. Sie sehen die Ergebnisse sowohl schön gerendert in GitHub Copilot Chat, können aber auch die rohe JSON-Antwort inspizieren.
 
-**Bonus**. Visual Studio Code bietet großartige Unterstützung für Sampling. Sie können den Sampling-Zugriff für Ihren installierten Server folgendermaßen konfigurieren:
+**Bonus**. Die Visual Studio Code-Tools bieten großartige Unterstützung für Sampling. Sie können den Sampling-Zugang auf Ihrem installierten Server folgendermaßen konfigurieren:
 
 1. Navigieren Sie zum Erweiterungsbereich.
-1. Wählen Sie das Zahnrad-Symbol für Ihren installierten Server im Abschnitt "MCP SERVERS - INSTALLED".
-1. Wählen Sie „Configure Model Access“, hier können Sie auswählen, welche Modelle GitHub Copilot bei Sampling verwenden darf. Außerdem sehen Sie alle kürzlich ausgeführten Sampling-Anfragen unter „Show Sampling requests“.
+1. Wählen Sie das Zahnrad-Symbol für Ihren installierten Server im Bereich "MCP SERVERS - INSTALLED".
+1 Wählen Sie "Configure Model Access", hier können Sie auswählen, welche Modelle GitHub Copilot beim Sampling verwenden darf. Sie können auch alle kürzlich stattgefundenen Sampling-Anfragen unter "Show Sampling requests" einsehen.
 
 ## Aufgabe
 
-In dieser Aufgabe bauen Sie ein etwas anderes Sampling, nämlich eine Sampling-Integration, die eine Produktbeschreibung generiert. Hier ist Ihr Szenario:
+In dieser Aufgabe werden Sie ein etwas anderes Sampling bauen, nämlich eine Sampling-Integration, die die Generierung einer Produktbeschreibung unterstützt. Hier ist Ihr Szenario:
 
-**Szenario**: Ein Mitarbeiter im Backoffice eines E-Commerce-Unternehmens benötigt Unterstützung, es dauert viel zu lange, Produktbeschreibungen zu erstellen. Deshalb sollen Sie eine Lösung bauen, bei der Sie ein Tool „create_product“ mit „title“ und „keywords“ als Argumente aufrufen können und es ein komplettes Produkt inklusive eines „description“-Felds erzeugen soll, das vom LLM des Clients befüllt wird.
+**Szenario**: Der Backoffice-Mitarbeiter eines E-Commerce benötigt Hilfe, da die Erstellung von Produktbeschreibungen zu viel Zeit in Anspruch nimmt. Daher sollen Sie eine Lösung bauen, bei der Sie ein Tool "create_product" mit den Argumenten "title" und "keywords" aufrufen können, und es soll ein vollständiges Produkt einschließlich eines "description"-Feldes erzeugt werden, das vom LLM des Clients ausgefüllt wird.
 
-TIPP: Verwenden Sie das, was Sie zuvor gelernt haben, um diesen Server und sein Tool mit einer Sampling-Anfrage zu konstruieren.
+TIPP: Verwenden Sie das, was Sie zuvor gelernt haben, um diesen Server und sein Tool mit einer Sampling-Anfrage zu erstellen.
 
 ## Lösung
 
 [Lösung](./solution/README.md)
 
-## Wichtigste Erkenntnisse
+## Wichtige Erkenntnisse
 
-Sampling ist eine mächtige Funktion, die es dem Server erlaubt, Aufgaben an den Client zu delegieren, wenn er die Hilfe eines LLM benötigt.
+Sampling ist eine leistungsstarke Funktion, die es dem Server erlaubt, Aufgaben an den Client zu delegieren, wenn er die Hilfe eines LLM benötigt.
 
 ## Was kommt als Nächstes
 
-- [Kapitel 4 - Praktische Umsetzung](../../04-PracticalImplementation/README.md)
+- [Kapitel 4 – Praktische Umsetzung](../../04-PracticalImplementation/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Haftungsausschluss**:  
-Dieses Dokument wurde mit dem KI-Übersetzungsdienst [Co-op Translator](https://github.com/Azure/co-op-translator) übersetzt. Obwohl wir uns um Genauigkeit bemühen, beachten Sie bitte, dass automatisierte Übersetzungen Fehler oder Ungenauigkeiten enthalten können. Das Originaldokument in seiner Ausgangssprache ist als maßgebliche Quelle zu betrachten. Für wichtige Informationen wird eine professionelle menschliche Übersetzung empfohlen. Wir übernehmen keine Haftung für Missverständnisse oder Fehlinterpretationen, die aus der Verwendung dieser Übersetzung entstehen.
+**Haftungsausschluss**:
+Dieses Dokument wurde mit dem KI-Übersetzungsdienst [Co-op Translator](https://github.com/Azure/co-op-translator) übersetzt. Obwohl wir uns um Genauigkeit bemühen, beachten Sie bitte, dass automatisierte Übersetzungen Fehler oder Ungenauigkeiten enthalten können. Das Originaldokument in seiner Ursprungssprache gilt als maßgebliche Quelle. Bei kritischen Informationen wird eine professionelle menschliche Übersetzung empfohlen. Wir übernehmen keine Haftung für Missverständnisse oder Fehlinterpretationen, die aus der Verwendung dieser Übersetzung entstehen.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

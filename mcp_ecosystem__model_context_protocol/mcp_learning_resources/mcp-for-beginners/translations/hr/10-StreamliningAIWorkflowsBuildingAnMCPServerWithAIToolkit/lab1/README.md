@@ -1,4 +1,4 @@
-# 🚀 Modul 1: Osnove AI Toolkita
+# 🚀 Modul 1: Osnove Microsoft Foundry Toolkit
 
 [![Trajanje](https://img.shields.io/badge/Duration-15%20minutes-blue.svg)]()
 [![Težina](https://img.shields.io/badge/Difficulty-Beginner-green.svg)]()
@@ -6,104 +6,104 @@
 
 ## 📋 Ciljevi učenja
 
-Na kraju ovog modula moći ćete:
-- ✅ Instalirati i konfigurirati AI Toolkit za Visual Studio Code
-- ✅ Kretati se kroz Model Catalog i razumjeti različite izvore modela
-- ✅ Koristiti Playground za testiranje i eksperimentiranje s modelima
-- ✅ Kreirati prilagođene AI agente pomoću Agent Buildera
-- ✅ Uspoređivati performanse modela različitih pružatelja usluga
-- ✅ Primijeniti najbolje prakse za prompt engineering
+Do kraja ovog modula, moći ćete:
+- ✅ Instalirati i konfigurirati Microsoft Foundry Toolkit ekstenziju za VS Code
+- ✅ Kretati se kroz Katalog modela i razumjeti različite izvore modela
+- ✅ Koristiti Igralište za testiranje i eksperimentiranje s modelima
+- ✅ Kreirati prilagođene AI agente koristeći Agent Builder
+- ✅ Usporediti performanse modela među različitim pružateljima
+- ✅ Primijeniti najbolje prakse za inženjering prompta
 
-## 🧠 Uvod u AI Toolkit (AITK)
+## 🧠 Uvod u Microsoft Foundry Toolkit
 
-**AI Toolkit za Visual Studio Code** je vodeći Microsoftov dodatak koji pretvara VS Code u sveobuhvatno razvojno okruženje za AI. Povezuje AI istraživanja s praktičnim razvojem aplikacija, čineći generativnu AI dostupnom programerima svih razina iskustva.
+**Microsoft Foundry Toolkit ekstenzija za VS Code** je vodeća Microsoftova ekstenzija koja pretvara VS Code u sveobuhvatno razvojno okruženje za AI. Pruža most između AI istraživanja i praktičnog razvoja aplikacija, čineći generativni AI dostupnim programerima svih razina vještina.
 
 ### 🌟 Ključne mogućnosti
 
 | Značajka | Opis | Primjena |
 |---------|-------------|----------|
-| **🗂️ Model Catalog** | Pristup preko 100 modela s GitHub-a, ONNX-a, OpenAI-a, Anthropic-a, Google-a | Otkrivanje i odabir modela |
-| **🔌 BYOM podrška** | Integrirajte vlastite modele (lokalne/udaljene) | Prilagođeno postavljanje modela |
-| **🎮 Interaktivni Playground** | Testiranje modela u stvarnom vremenu s chat sučeljem | Brzi prototipovi i testiranje |
-| **📎 Podrška za više modaliteta** | Rukovanje tekstom, slikama i privicima | Složene AI aplikacije |
-| **⚡ Obrada u serijama** | Pokretanje više promptova istovremeno | Efikasni testni procesi |
+| **🗂️ Katalog modela** | Pristup 100+ modela s GitHub, ONNX, OpenAI, Anthropic, Google | Otkriće i odabir modela |
+| **🔌 Podrška za BYOM** | Integracija vlastitih modela (lokalnih/udaljenih) | Prilagođeni deployment modela |
+| **🎮 Interaktivno igralište** | Testiranje modela u stvarnom vremenu s chat sučeljem | Brzi prototip i testiranje |
+| **📎 Podrška za više modaliteta** | Obrada teksta, slika i privitaka | Složene AI aplikacije |
+| **⚡ Obrada u serijama** | Pokretanje više promptova istovremeno | Efikasni radni procesi testiranja |
 | **📊 Evaluacija modela** | Ugrađene metrike (F1, relevantnost, sličnost, koherentnost) | Procjena performansi |
 
-### 🎯 Zašto je AI Toolkit važan
+### 🎯 Zašto je Microsoft Foundry Toolkit važan
 
-- **🚀 Brži razvoj**: Od ideje do prototipa za nekoliko minuta
+- **🚀 Ubrzan razvoj**: Od ideje do prototipa u minutama
 - **🔄 Jedinstveni tijek rada**: Jedno sučelje za više AI pružatelja
-- **🧪 Jednostavno eksperimentiranje**: Usporedba modela bez složenih postavki
-- **📈 Spreman za produkciju**: Glatki prijelaz od prototipa do implementacije
+- **🧪 Jednostavno eksperimentiranje**: Usporedba modela bez kompliciranih postavki
+- **📈 Pripremljeno za produkciju**: Besprijekoran prijelaz s prototipa na implementaciju
 
 ## 🛠️ Preduvjeti i postavljanje
 
-### 📦 Instalacija AI Toolkit ekstenzije
+### 📦 Instalirajte Microsoft Foundry Toolkit ekstenziju
 
 **Korak 1: Otvorite Marketplace za ekstenzije**
-1. Pokrenite Visual Studio Code
-2. Otvorite prikaz ekstenzija (`Ctrl+Shift+X` ili `Cmd+Shift+X`)
-3. Potražite "AI Toolkit"
+1. Otvorite Visual Studio Code
+2. Idite na prikaz ekstenzija (`Ctrl+Shift+X` ili `Cmd+Shift+X`)
+3. Potražite "Microsoft Foundry Toolkit"
 
-**Korak 2: Odaberite verziju**
+**Korak 2: Odaberite svoju verziju**
 - **🟢 Release**: Preporučeno za produkcijsku upotrebu
 - **🔶 Pre-release**: Rani pristup najnovijim značajkama
 
 **Korak 3: Instalirajte i aktivirajte**
 
-![AI Toolkit Extension](../../../../translated_images/hr/aitkext.d28945a03eed003c.webp)
+![Microsoft Foundry Toolkit Extension](../../../../translated_images/hr/aitkext.d28945a03eed003c.webp)
 
 ### ✅ Provjera instalacije
-- [ ] Ikona AI Toolkita pojavljuje se u bočnoj traci VS Code-a
+- [ ] Ikona Microsoft Foundry Toolkit pojavljuje se u bočnoj traci VS Code-a
 - [ ] Ekstenzija je omogućena i aktivirana
 - [ ] Nema grešaka pri instalaciji u izlaznom panelu
 
-## 🧪 Praktični zadatak 1: Istraživanje GitHub modela
+## 🧪 Praktična vježba 1: Istraživanje GitHub modela
 
-**🎯 Cilj**: Savladati Model Catalog i testirati svoj prvi AI model
+**🎯 Cilj**: Ovladati Katalogom modela i testirati svoj prvi AI model
 
-### 📊 Korak 1: Kretanje kroz Model Catalog
+### 📊 Korak 1: Krećite se kroz Katalog modela
 
-Model Catalog je vaš ulaz u AI ekosustav. Okuplja modele od različitih pružatelja, olakšavajući pronalazak i usporedbu opcija.
+Katalog modela je vaš ulaz u AI ekosustav. Agregira modele od različitih pružatelja, olakšavajući pronalazak i usporedbu opcija.
 
-**🔍 Vodič za navigaciju:**
+**🔍 Vodič za kretanje:**
 
-Kliknite na **MODELS - Catalog** u AI Toolkit bočnoj traci
+Kliknite na **MODELS - Catalog** u bočnoj traci Microsoft Foundry Toolkit-a
 
 ![Model Catalog](../../../../translated_images/hr/aimodel.263ed2be013d8fb0.webp)
 
-**💡 Koristan savjet**: Potražite modele s određenim sposobnostima koje odgovaraju vašim potrebama (npr. generiranje koda, kreativno pisanje, analiza).
+**💡 Savjet**: Potražite modele sa specifičnim mogućnostima koje odgovaraju vašim potrebama (npr. generiranje koda, kreativno pisanje, analiza).
 
-**⚠️ Napomena**: Modeli hostani na GitHub-u (GitHub Models) su besplatni za korištenje, ali imaju ograničenja u broju zahtjeva i tokena. Za pristup modelima izvan GitHub-a (npr. modeli hostani putem Azure AI ili drugih krajnjih točaka) potrebno je unijeti odgovarajući API ključ ili autentifikaciju.
+**⚠️ Napomena**: Modeli hostani na GitHub-u (GitHub modeli) su besplatni za korištenje, ali su podložni ograničenjima na broj zahtjeva i tokena. Ako želite pristupiti modelima izvan GitHub-a (npr. modele hostane putem Azure AI ili drugih krajnjih točaka), trebate osigurati odgovarajući API ključ ili autentifikaciju.
 
-### 🚀 Korak 2: Dodavanje i konfiguracija prvog modela
+### 🚀 Korak 2: Dodajte i konfigurirajte svoj prvi model
 
 **Strategija odabira modela:**
-- **GPT-4.1**: Najbolji za složeno rezoniranje i analizu
-- **Phi-4-mini**: Lagani, brzi odgovori za jednostavne zadatke
+- **GPT-4.1**: Najbolji za složeno razmišljanje i analizu
+- **Phi-4-mini**: Lagan, brz za jednostavne zadatke
 
 **🔧 Proces konfiguracije:**
-1. Odaberite **OpenAI GPT-4.1** iz kataloga
-2. Kliknite **Add to My Models** - time registrirate model za korištenje
+1. Izaberite **OpenAI GPT-4.1** iz kataloga
+2. Kliknite **Add to My Models** - ovime registrirate model za korištenje
 3. Odaberite **Try in Playground** za pokretanje testnog okruženja
-4. Pričekajte inicijalizaciju modela (prvo pokretanje može potrajati)
+4. Pričekajte inicijalizaciju modela (postavljanje pri prvom korištenju može potrajati)
 
 ![Playground Setup](../../../../translated_images/hr/playground.dd6f5141344878ca.webp)
 
 **⚙️ Razumijevanje parametara modela:**
 - **Temperature**: Kontrolira kreativnost (0 = deterministički, 1 = kreativan)
 - **Max Tokens**: Maksimalna duljina odgovora
-- **Top-p**: Nucleus sampling za raznolikost odgovora
+- **Top-p**: Nucleus uzorkovanje za raznolikost odgovora
 
-### 🎯 Korak 3: Savladajte sučelje Playgounda
+### 🎯 Korak 3: Ovladavanje sučeljem Playgrounda
 
 Playground je vaš laboratorij za AI eksperimentiranje. Evo kako maksimalno iskoristiti njegove mogućnosti:
 
-**🎨 Najbolje prakse za prompt engineering:**
-1. **Budite precizni**: Jasne i detaljne upute daju bolje rezultate
-2. **Dajte kontekst**: Uključite relevantne informacije u pozadini
-3. **Koristite primjere**: Pokažite modelu što želite kroz primjere
-4. **Iterirajte**: Usavršavajte promptove na temelju prvih rezultata
+**🎨 Najbolje prakse za inženjering prompta:**
+1. **Budite precizni**: Jasne, detaljne upute daju bolje rezultate
+2. **Pružite kontekst**: Uključite relevantne informacije u pozadini
+3. **Koristite primjere**: Pokažite modelu što želite s primjerima
+4. **Iterirajte**: Usavršavajte promptove na temelju početnih rezultata
 
 **🧪 Scenariji testiranja:**
 ```markdown
@@ -119,9 +119,9 @@ Playground je vaš laboratorij za AI eksperimentiranje. Evo kako maksimalno isko
 
 ![Testing Results](../../../../translated_images/hr/result.1dfcf211fb359cf6.webp)
 
-### 🏆 Izazov: Usporedba performansi modela
+### 🏆 Izazovna vježba: Usporedba performansi modela
 
-**🎯 Cilj**: Usporediti različite modele koristeći iste promptove kako biste razumjeli njihove prednosti
+**🎯 Cilj**: Usporedite različite modele koristeći identične promptove kako biste razumjeli njihove prednosti
 
 **📋 Upute:**
 1. Dodajte **Phi-4-mini** u svoj radni prostor
@@ -130,35 +130,35 @@ Playground je vaš laboratorij za AI eksperimentiranje. Evo kako maksimalno isko
 ![set](../../../../translated_images/hr/set.88132df189ecde2c.webp)
 
 3. Usporedite kvalitetu odgovora, brzinu i točnost
-4. Zabilježite svoja zapažanja u odjeljku s rezultatima
+4. Zabilježite svoja zapažanja u odjeljku rezultata
 
 ![Model Comparison](../../../../translated_images/hr/compare.97746cd0f9074955.webp)
 
-**💡 Ključni uvidi za otkriti:**
-- Kada koristiti LLM naspram SLM
-- Odnos troškova i performansi
+**💡 Ključni uvidi koje trebate otkriti:**
+- Kada koristiti LLM naspram SLM modela
+- Odnose troškova i performansi
 - Specijalizirane mogućnosti različitih modela
 
-## 🤖 Praktični zadatak 2: Izrada prilagođenih agenata s Agent Builderom
+## 🤖 Praktična vježba 2: Izrada prilagođenih agenata uz Agent Builder
 
-**🎯 Cilj**: Kreirati specijalizirane AI agente prilagođene određenim zadacima i tijekovima rada
+**🎯 Cilj**: Kreirati specijalizirane AI agente prilagođene određenim zadacima i radnim tokovima
 
 ### 🏗️ Korak 1: Upoznavanje s Agent Builderom
 
-Agent Builder je mjesto gdje AI Toolkit zaista dolazi do izražaja. Omogućuje vam stvaranje AI asistenata s namjenom koji kombiniraju snagu velikih jezičnih modela s prilagođenim uputama, specifičnim parametrima i specijaliziranim znanjem.
+Agent Builder je mjesto gdje Microsoft Foundry Toolkit zaista dolazi do izražaja. Omogućuje vam kreiranje namjenskih AI asistenta koji kombiniraju snagu velikih jezičnih modela s prilagođenim uputama, specifičnim parametrima i specijaliziranim znanjem.
 
 **🧠 Komponente arhitekture agenta:**
 - **Core Model**: Temeljni LLM (GPT-4, Groks, Phi itd.)
 - **System Prompt**: Definira osobnost i ponašanje agenta
-- **Parametri**: Fino podešene postavke za optimalne performanse
+- **Parametri**: Fino podešeni za optimalne performanse
 - **Integracija alata**: Povezivanje s vanjskim API-jima i MCP servisima
-- **Memorija**: Kontekst razgovora i trajanje sesije
+- **Memorija**: Kontekst razgovora i trajnost sesije
 
 ![Agent Builder Interface](../../../../translated_images/hr/agentbuilder.25895b2d2f8c02e7.webp)
 
 ### ⚙️ Korak 2: Detaljna konfiguracija agenta
 
-**🎨 Kreiranje učinkovitih system promptova:**
+**🎨 Kreiranje učinkovitih sistemskih promptova:**
 ```markdown
 # Template Structure:
 ## Role Definition
@@ -178,17 +178,17 @@ You are a [specific role] with expertise in [domain].
 Provide 2-3 examples of ideal interactions
 ```
 
-*Naravno, možete koristiti i Generate System Prompt kako bi vam AI pomogao u generiranju i optimizaciji promptova*
+*Naravno, također možete koristiti opciju Generate System Prompt da AI pomoću generira i optimizira promptove*
 
 **🔧 Optimizacija parametara:**
 | Parametar | Preporučeni raspon | Primjena |
-|-----------|--------------------|----------|
-| **Temperature** | 0.1-0.3 | Tehnički/faktički odgovori |
-| **Temperature** | 0.7-0.9 | Kreativni/zadatci za brainstorming |
+|-----------|------------------|----------|
+| **Temperature** | 0.1-0.3 | Tehnički/faktualni odgovori |
+| **Temperature** | 0.7-0.9 | Kreativni/zadatci brainstorminga |
 | **Max Tokens** | 500-1000 | Sažeti odgovori |
 | **Max Tokens** | 2000-4000 | Detaljna objašnjenja |
 
-### 🐍 Korak 3: Praktični zadatak - Python programerski agent
+### 🐍 Korak 3: Praktična vježba - Python programerski agent
 
 **🎯 Misija**: Kreirati specijaliziranog asistenta za Python kodiranje
 
@@ -196,7 +196,7 @@ Provide 2-3 examples of ideal interactions
 
 1. **Odabir modela**: Izaberite **Claude 3.5 Sonnet** (izvrsno za kod)
 
-2. **Dizajn system prompta**:
+2. **Dizajn sistemskog prompta**:
 ```markdown
 # Python Programming Expert Agent
 
@@ -224,7 +224,7 @@ You are a senior Python developer with 10+ years of experience. You excel at wri
 ```
 
 3. **Konfiguracija parametara**:
-   - Temperature: 0.2 (za konzistentan i pouzdan kod)
+   - Temperature: 0.2 (za konzistentan, pouzdan kod)
    - Max Tokens: 2000 (detaljna objašnjenja)
    - Top-p: 0.9 (uravnotežena kreativnost)
 
@@ -235,41 +235,45 @@ You are a senior Python developer with 10+ years of experience. You excel at wri
 **Scenariji testiranja:**
 1. **Osnovna funkcija**: "Napravi funkciju za pronalazak prostih brojeva"
 2. **Složen algoritam**: "Implementiraj binarno stablo pretraživanja s metodama za umetanje, brisanje i pretraživanje"
-3. **Problem iz stvarnog svijeta**: "Napravi web scraper koji upravlja ograničenjem brzine i ponovnim pokušajima"
+3. **Problem iz stvarnog svijeta**: "Napravi web scraper koji upravlja ograničenjem zahtjeva i ponovnim pokušajima"
 4. **Debugging**: "Ispravi ovaj kod [zalijepi neispravan kod]"
 
 **🏆 Kriteriji uspjeha:**
-- ✅ Kod se izvršava bez grešaka
+- ✅ Kod se izvršava bez pogrešaka
 - ✅ Sadrži odgovarajuću dokumentaciju
-- ✅ Pridržava se najboljih praksi za Python
+- ✅ Slijedi najbolje prakse za Python
 - ✅ Pruža jasna objašnjenja
 - ✅ Predlaže poboljšanja
 
-## 🎓 Završetak Modula 1 i sljedeći koraci
+## 🎓 Završetak Modula 1 & Sljedeći koraci
 
 ### 📊 Provjera znanja
 
 Testirajte svoje razumijevanje:
-- [ ] Možete li objasniti razlike između modela u katalogu?
+- [ ] Možete li objasniti razliku između modela u katalogu?
 - [ ] Jeste li uspješno kreirali i testirali prilagođenog agenta?
 - [ ] Razumijete li kako optimizirati parametre za različite primjene?
-- [ ] Možete li dizajnirati učinkovite system promptove?
+- [ ] Možete li dizajnirati učinkovite sistemske promptove?
 
 ### 📚 Dodatni resursi
 
-- **Dokumentacija AI Toolkita**: [Službeni Microsoft Docs](https://github.com/microsoft/vscode-ai-toolkit)
-- **Vodič za prompt engineering**: [Najbolje prakse](https://platform.openai.com/docs/guides/prompt-engineering)
-- **Modeli u AI Toolkitu**: [Modeli u razvoju](https://github.com/microsoft/vscode-ai-toolkit/blob/main/doc/models.md)
+- **Microsoft Foundry Toolkit dokumentacija**: [Službena Microsoft Docs](https://github.com/microsoft/vscode-ai-toolkit)
+- **Vodič za inženjering prompta**: [Najbolje prakse](https://platform.openai.com/docs/guides/prompt-engineering)
+- **Modeli u Microsoft Foundry Toolkit-u**: [Modeli u razvoju](https://github.com/microsoft/vscode-ai-toolkit/blob/main/doc/models.md)
 
-**🎉 Čestitamo!** Savladali ste osnove AI Toolkita i spremni ste za izradu naprednijih AI aplikacija!
+**🎉 Čestitamo!** Ovladali ste osnovama Microsoft Foundry Toolkit-a i spremni ste graditi naprednije AI aplikacije!
 
 ### 🔜 Nastavite na sljedeći modul
 
-Spremni za naprednije mogućnosti? Nastavite na **[Modul 2: MCP s osnovama AI Toolkita](../lab2/README.md)** gdje ćete naučiti kako:
+Spremni za naprednije funkcionalnosti? Nastavite na **[Modul 2: MCP s osnovama Microsoft Foundry Toolkit-a](../lab2/README.md)** gdje ćete naučiti kako:
 - Povezati svoje agente s vanjskim alatima koristeći Model Context Protocol (MCP)
-- Izgraditi agente za automatizaciju preglednika s Playwrightom
-- Integrirati MCP servere s vašim AI Toolkit agentima
-- Pojačati svoje agente vanjskim podacima i mogućnostima
+- Izgraditi agente za automatizaciju preglednika pomoću Playwrighta
+- Integrirati MCP servere s vašim Microsoft Foundry Toolkit agentima
+- Ojačati svoje agente vanjskim podacima i mogućnostima
 
-**Odricanje od odgovornosti**:  
-Ovaj dokument je preveden korištenjem AI usluge za prevođenje [Co-op Translator](https://github.com/Azure/co-op-translator). Iako težimo točnosti, imajte na umu da automatski prijevodi mogu sadržavati pogreške ili netočnosti. Izvorni dokument na izvornom jeziku treba smatrati autoritativnim izvorom. Za kritične informacije preporučuje se profesionalni ljudski prijevod. Ne snosimo odgovornost za bilo kakva nesporazume ili pogrešna tumačenja koja proizlaze iz korištenja ovog prijevoda.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Napomena**:
+Ovaj dokument je preveden korištenjem AI prevoditeljskog servisa [Co-op Translator](https://github.com/Azure/co-op-translator). Iako težimo točnosti, imajte na umu da automatski prijevodi mogu sadržavati greške ili netočnosti. Izvorni dokument na izvornom jeziku treba smatrati autoritativnim izvorom. Za važne informacije preporuča se profesionalni ljudski prijevod. Nismo odgovorni za bilo kakva nesporazumevanja ili pogrešne interpretacije koje proizlaze iz korištenja ovog prijevoda.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

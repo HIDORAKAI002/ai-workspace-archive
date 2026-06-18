@@ -1,175 +1,175 @@
 # AGENTS.md
 
-## Proje Genel Bakış
+## Proje Genel Bakışı
 
-**MCP for Beginners**, Model Context Protocol (MCP) öğrenimi için açık kaynaklı bir eğitim müfredatıdır. MCP, yapay zeka modelleri ile istemci uygulamaları arasındaki etkileşimler için standartlaştırılmış bir çerçevedir. Bu depo, birden fazla programlama dilinde uygulamalı kod örnekleriyle kapsamlı öğrenim materyalleri sunar.
+**Yeni Başlayanlar için MCP**, Model Context Protocol (MCP) - yapay zeka modelleri ile istemci uygulamalar arasındaki etkileşimler için standartlaştırılmış bir çerçeve - öğrenmek için açık kaynaklı eğitim müfredatıdır. Bu depo, birden çok programlama dilinde uygulamalı kod örnekleri ile kapsamlı öğrenme materyalleri sağlar.
 
-### Temel Teknolojiler
+### Ana Teknolojiler
 
 - **Programlama Dilleri**: C#, Java, JavaScript, TypeScript, Python, Rust
-- **Çerçeveler ve SDK'lar**: 
-  - MCP SDK (`@modelcontextprotocol/sdk`)
-  - Spring Boot (Java)
-  - FastMCP (Python)
+- **Çerçeveler ve SDK'lar**:  
+  - MCP SDK (`@modelcontextprotocol/sdk`)  
+  - Spring Boot (Java)  
+  - FastMCP (Python)  
   - LangChain4j (Java)
-- **Veritabanları**: pgvector uzantısı ile PostgreSQL
-- **Bulut Platformları**: Azure (Container Apps, OpenAI, Content Safety, Application Insights)
-- **Yapı Araçları**: npm, Maven, pip, Cargo
-- **Dokümantasyon**: Otomatik çok dilli çeviri ile Markdown (48+ dil)
+- **Veritabanları**: pgvector uzantılı PostgreSQL
+- **Bulut Platformları**: Azure (Container Apps, OpenAI, İçerik Güvenliği, Application Insights)
+- **Derleme Araçları**: npm, Maven, pip, Cargo
+- **Dokümantasyon**: Otomatik çok dilli çeviri destekli Markdown (48+ dil)
 
 ### Mimari
 
-- **11 Temel Modül (00-11)**: Temellerden ileri konulara kadar sıralı öğrenim yolu
-- **Uygulamalı Laboratuvarlar**: Birden fazla dilde tam çözüm kodlarıyla pratik egzersizler
+- **11 Temel Modül (00-11)**: Temelden ileri konulara sıralı öğrenme yolu
+- **Uygulamalı Laboratuvarlar**: Birden çok dilde tam çözüm kodu ile pratik egzersizler
 - **Örnek Projeler**: Çalışan MCP sunucu ve istemci uygulamaları
 - **Çeviri Sistemi**: Çok dilli destek için otomatik GitHub Actions iş akışı
-- **Görsel Varlıklar**: Çevrilmiş versiyonlarıyla merkezi görseller dizini
+- **Görsel Varlıklar**: Çevirilmiş versiyonlarıyla merkezi resimler dizini
 
 ## Kurulum Komutları
 
-Bu, dokümantasyon odaklı bir depodur. Çoğu kurulum, bireysel örnek projeler ve laboratuvarlar içinde gerçekleşir.
+Bu depo belge odaklıdır. Çoğu kurulum bireysel örnek projeler ve laboratuvarlarda gerçekleşir.
 
 ### Depo Kurulumu
 
 ```bash
-# Clone the repository
+# Depoyu klonla
 git clone https://github.com/microsoft/mcp-for-beginners.git
 cd mcp-for-beginners
 ```
 
-### Örnek Projelerle Çalışma
+### Örnek Projeler ile Çalışma
 
-Örnek projeler şu konumlarda bulunur:
-- `03-GettingStarted/samples/` - Dile özgü örnekler
-- `03-GettingStarted/01-first-server/solution/` - İlk sunucu uygulamaları
-- `03-GettingStarted/02-client/solution/` - İstemci uygulamaları
-- `11-MCPServerHandsOnLabs/` - Kapsamlı veritabanı entegrasyonu laboratuvarları
+Örnek projeler şu dizinlerde yer alır:  
+- `03-GettingStarted/samples/` - Dil bazlı örnekler  
+- `03-GettingStarted/01-first-server/solution/` - İlk sunucu uygulamaları  
+- `03-GettingStarted/02-client/solution/` - İstemci uygulamaları  
+- `11-MCPServerHandsOnLabs/` - Kapsamlı veritabanı entegrasyon laboratuvarları
 
 Her örnek proje kendi kurulum talimatlarını içerir:
 
-#### TypeScript/JavaScript Projeleri
+#### TypeScript/JavaScript Projeleri  
 ```bash
 cd <project-directory>
 npm install
 npm start
 ```
-
-#### Python Projeleri
+  
+#### Python Projeleri  
 ```bash
 cd <project-directory>
 pip install -r requirements.txt
-# or
+# veya
 pip install -e .
 python main.py
 ```
-
-#### Java Projeleri
+  
+#### Java Projeleri  
 ```bash
 cd <project-directory>
 mvn clean install
 mvn spring-boot:run
 ```
-
+  
 ## Geliştirme İş Akışı
 
 ### Dokümantasyon Yapısı
 
-- **Modüller 00-11**: Sıralı düzen içinde temel müfredat içeriği
-- **translations/**: Dile özgü versiyonlar (otomatik oluşturulur, doğrudan düzenlemeyin)
-- **translated_images/**: Yerelleştirilmiş görsel versiyonlar (otomatik oluşturulur)
-- **images/**: Kaynak görseller ve diyagramlar
+- **Modüller 00-11**: Sıralı temel müfredat içeriği  
+- **translations/**: Dil bazlı versiyonlar (otomatik oluşturulur, doğrudan düzenlemeyin)  
+- **translated_images/**: Yerelleştirilmiş görsel versiyonları (otomatik oluşturulur)  
+- **images/**: Kaynak resimler ve diyagramlar
 
 ### Dokümantasyon Değişiklikleri Yapma
 
-1. Yalnızca kök modül dizinlerindeki İngilizce markdown dosyalarını düzenleyin (00-11)
-2. Gerekirse `images/` dizinindeki görselleri güncelleyin
-3. co-op-translator GitHub Action otomatik olarak çevirileri oluşturacaktır
-4. Çeviriler ana dalına yapılan push ile yeniden oluşturulur
+1. Yalnızca kök modül dizinlerindeki (00-11) İngilizce markdown dosyalarını düzenleyin  
+2. Gerekirse `images/` dizinindeki resimleri güncelleyin  
+3. co-op-translator GitHub Action çevirileri otomatik oluşturacaktır  
+4. Çeviriler main dalına push yapıldığında yeniden oluşturulur
 
 ### Çevirilerle Çalışma
 
-- **Otomatik Çeviri**: GitHub Actions iş akışı tüm çevirileri yönetir
-- `translations/` dizinindeki dosyaları MANUEL olarak düzenlemeyin
-- Çeviri meta verileri her çevrilmiş dosyada gömülüdür
-- Desteklenen diller: Arapça, Çince, Fransızca, Almanca, Hintçe, Japonca, Korece, Portekizce, Rusça, İspanyolca ve daha fazlası dahil 48+ dil
+- **Otomatik Çeviri**: Tüm çeviriler GitHub Actions iş akışı tarafından yönetilir  
+- **Manuel olarak `translations/` klasöründeki dosyaları düzenlemeyin**  
+- Çeviri meta verisi her çevrilmiş dosyada gömülüdür  
+- Desteklenen diller: Arapça, Çince, Fransızca, Almanca, Hintçe, Japonca, Korece, Portekizce, Rusça, İspanyolca ve daha fazla (48+ dil)
 
 ## Test Talimatları
 
-### Dokümantasyon Doğrulama
+### Dokümantasyon Doğrulaması
 
-Bu öncelikle bir dokümantasyon deposu olduğundan, testler şu konulara odaklanır:
+Bu depo öncelikle belge odaklı olduğundan testler şunlara odaklanır:
 
-1. **Bağlantı Doğrulama**: Tüm dahili bağlantıların çalıştığından emin olun
+1. **Bağlantı Doğrulama**: Tüm dahili bağlantıların çalıştığından emin olun  
 ```bash
-# Check for broken markdown links
+# Kırık markdown bağlantılarını kontrol edin
 find . -name "*.md" -type f | xargs grep -n "\[.*\](../../.*)"
 ```
-
-2. **Kod Örneği Doğrulama**: Kod örneklerinin derlenip çalıştığını test edin
+  
+2. **Kod Örneği Doğrulama**: Kod örneklerinin derlenip/çalıştırıldığı test edilir  
 ```bash
-# Navigate to specific sample and run its tests
+# Belirli bir örneğe git ve testlerini çalıştır
 cd 03-GettingStarted/samples/typescript
 npm install && npm test
 ```
-
-3. **Markdown Denetimi**: Biçimlendirme tutarlılığını kontrol edin
+  
+3. **Markdown Linting**: Formatlama tutarlılığı kontrol edilir  
 ```bash
-# Use markdownlint if needed
+# Gerekirse markdownlint kullanın
 npx markdownlint-cli2 "**/*.md" "#node_modules"
 ```
-
+  
 ### Örnek Proje Testi
 
-Her dile özgü örnek kendi test yaklaşımını içerir:
+Her dil spesifik örnek kendi test yaklaşımına sahiptir:
 
-#### TypeScript/JavaScript
+#### TypeScript/JavaScript  
 ```bash
 npm test
 npm run build
 ```
-
-#### Python
+  
+#### Python  
 ```bash
 pytest
 python -m pytest tests/
 ```
-
-#### Java
+  
+#### Java  
 ```bash
 mvn test
 mvn verify
 ```
-
-## Kod Stili Yönergeleri
+  
+## Kod Stili Rehberi
 
 ### Dokümantasyon Stili
 
-- Açık, başlangıç seviyesine uygun bir dil kullanın
-- Uygun olduğunda birden fazla dilde kod örnekleri ekleyin
-- Markdown en iyi uygulamalarını takip edin:
-  - ATX tarzı başlıklar kullanın (`#` sözdizimi)
-  - Dil tanımlayıcılarıyla çitlenmiş kod blokları kullanın
-  - Görseller için açıklayıcı alt metin ekleyin
-  - Satır uzunluklarını makul tutun (kesin bir sınır yok, ancak mantıklı olun)
+- Açık, yeni başlayan dostu bir dil kullanın  
+- İlgili yerlerde birden çok dilde kod örneklerine yer verin  
+- Markdown en iyi uygulamalarını takip edin:  
+  - ATX tarzı başlıklar (`#` sözdizimi) kullanın  
+  - Dil tanımlı çitli kod blokları kullanın  
+  - Görseller için açıklayıcı alt metin ekleyin  
+  - Satır uzunluklarını makul tutun (katı sınır yok, ama akıllıca olun)
 
 ### Kod Örneği Stili
 
-#### TypeScript/JavaScript
-- ES modüllerini kullanın (`import`/`export`)
-- TypeScript sıkı mod kurallarını takip edin
-- Tür açıklamaları ekleyin
-- ES2022 hedefleyin
+#### TypeScript/JavaScript  
+- ES modülleri (`import`/`export`) kullanın  
+- TypeScript katı mod kurallarına uyun  
+- Tür açıklamaları ekleyin  
+- Hedef: ES2022
 
-#### Python
-- PEP 8 stil yönergelerini takip edin
-- Uygun olduğunda tür ipuçları kullanın
-- Fonksiyonlar ve sınıflar için docstring ekleyin
+#### Python  
+- PEP 8 stil kurallarını takip edin  
+- Uygun yerlerde tip ipuçları kullanın  
+- Fonksiyonlar ve sınıflar için docstring ekleyin  
 - Modern Python özelliklerini kullanın (3.8+)
 
-#### Java
-- Spring Boot kurallarını takip edin
-- Java 21 özelliklerini kullanın
-- Standart Maven proje yapısını takip edin
+#### Java  
+- Spring Boot standartlarına uyun  
+- Java 21 özelliklerini kullanın  
+- Standart Maven proje yapısını takip edin  
 - Javadoc yorumları ekleyin
 
 ### Dosya Organizasyonu
@@ -185,117 +185,119 @@ mvn verify
 └── solution/              # Complete working solutions
     └── <language>/
 ```
-
-## Yapı ve Dağıtım
+  
+## Derleme ve Dağıtım
 
 ### Dokümantasyon Dağıtımı
 
-Depo, GitHub Pages veya benzeri bir platform kullanarak dokümantasyon barındırır (uygulanabilir ise). Ana dalına yapılan değişiklikler şu işlemleri tetikler:
+Depo, dokümantasyon barındırmak için GitHub Pages veya benzeri servisler kullanır (varsa). Ana dalda yapılan değişiklikler tetikler:
 
-1. Çeviri iş akışı (`.github/workflows/co-op-translator.yml`)
-2. Tüm İngilizce markdown dosyalarının otomatik çevirisi
+1. Çeviri iş akışı (`.github/workflows/co-op-translator.yml`)  
+2. Tüm İngilizce markdown dosyalarının otomatik çevirisi  
 3. Gerekirse görsel yerelleştirme
 
-### Yapı Süreci Gerekmez
+### Derleme İşlemine Gerek Yok
 
-Bu depo öncelikle markdown dokümantasyonu içerir. Temel müfredat içeriği için derleme veya yapı adımı gerekmez.
+Bu depo öncelikle markdown dokümantasyonu içerir. Temel müfredat içeriği için derleme veya build adımı gerekmez.
 
 ### Örnek Proje Dağıtımı
 
-Bireysel örnek projeler kendi dağıtım talimatlarını içerebilir:
-- MCP sunucu dağıtım rehberi için `03-GettingStarted/09-deployment/` bölümüne bakın
-- Azure Container Apps dağıtım örnekleri `11-MCPServerHandsOnLabs/` bölümünde
+Bireysel örnek projelerin dağıtım talimatları olabilir:  
+- MCP sunucu dağıtımı için `03-GettingStarted/09-deployment/` dizinine bakın  
+- Azure Container Apps dağıtım örnekleri için `11-MCPServerHandsOnLabs/` dizinine bakın
 
-## Katkı Yönergeleri
+## Katkıda Bulunma Kuralları
 
 ### Pull Request Süreci
 
-1. **Fork ve Klonlama**: Depoyu fork edin ve fork'unuzu yerel olarak klonlayın
-2. **Bir Dal Oluşturun**: Açıklayıcı dal adları kullanın (ör. `fix/typo-module-3`, `add/python-example`)
-3. **Değişiklik Yapın**: Yalnızca İngilizce markdown dosyalarını düzenleyin (çevirileri değil)
-4. **Yerel Test Yapın**: Markdown'ın doğru şekilde görüntülendiğini doğrulayın
-5. **PR Gönderin**: Açık PR başlıkları ve açıklamaları kullanın
-6. **CLA**: Microsoft Katkı Lisans Sözleşmesini imzalayın
+1. **Fork ve Kopyala:** Depoyu çatalla ve kopyanı yerelde klonla  
+2. **Bir Dal Oluştur:** Açıklayıcı dal isimleri kullan (ör. `fix/typo-module-3`, `add/python-example`)  
+3. **Değişiklik Yap:** Yalnızca İngilizce markdown dosyalarını düzenle (çeviriler değil)  
+4. **Yerelde Test Et:** Markdown'un doğru render edildiğini doğrula  
+5. **PR Gönder:** Açık PR başlıkları ve açıklamalar kullan  
+6. **CLA:** İstendiğinde Microsoft Katkı Lisans Sözleşmesi'ni imzala
 
 ### PR Başlık Formatı
 
-Açık, açıklayıcı başlıklar kullanın:
-- `[Module XX] Kısa açıklama` modül spesifik değişiklikler için
-- `[Samples] Açıklama` örnek kod değişiklikleri için
-- `[Docs] Açıklama` genel dokümantasyon güncellemeleri için
+Açık ve açıklayıcı başlıklar kullan:  
+- `[Modül XX] Kısa açıklama` modül spesifik değişiklikler için  
+- `[Örnekler] Açıklama` örnek kod değişiklikleri için  
+- `[Belgeler] Açıklama` genel dokümantasyon güncellemeleri için
 
-### Katkı Sağlanabilecekler
+### Ne Katkıda Bulunmalı
 
-- Dokümantasyon veya kod örneklerindeki hataların düzeltilmesi
-- Ek dillerde yeni kod örnekleri
-- Mevcut içeriğin açıklığının artırılması ve iyileştirilmesi
-- Yeni vaka çalışmaları veya pratik örnekler
-- Belirsiz veya yanlış içerik için sorun raporları
+- Dokümantasyon veya kod örneklerinde hata düzeltmeleri  
+- Yeni programlama dillerinde kod örnekleri  
+- Mevcut içeriğe açıklama ve iyileştirmeler  
+- Yeni vaka çalışmaları veya pratik örnekler  
+- Anlaşılmaz veya hatalı içerik için sorun bildirimleri
 
-### Yapılmaması Gerekenler
+### Ne Yapmamalı
 
-- `translations/` dizinindeki dosyaları doğrudan düzenlemeyin
-- `translated_images/` dizinini düzenlemeyin
-- Büyük ikili dosyalar eklemeden önce tartışma yapın
-- Çeviri iş akışı dosyalarını koordinasyon olmadan değiştirmeyin
+- `translations/` klasöründeki dosyaları doğrudan düzenlemeyin  
+- `translated_images/` klasörünü düzenlemeyin  
+- Tartışmadan büyük ikili dosya eklemeyin  
+- Koordinasyon olmadan çeviri iş akışı dosyalarını değiştirmeyin
 
 ## Ek Notlar
 
 ### Depo Bakımı
 
-- **Değişiklik Günlüğü**: Tüm önemli değişiklikler `changelog.md` dosyasında belgelenir
-- **Çalışma Kılavuzu**: Müfredat navigasyon genel görünümü için `study_guide.md` dosyasını kullanın
-- **Sorun Şablonları**: Hata raporları ve özellik istekleri için GitHub sorun şablonlarını kullanın
-- **Davranış Kuralları**: Tüm katkı sağlayıcılar Microsoft Açık Kaynak Davranış Kurallarına uymalıdır
+- **Değişiklik Günlüğü:** Tüm önemli değişiklikler `changelog.md` içinde dökümante edilir  
+- **Çalışma Rehberi:** Müfredat navigasyonu için `study_guide.md` kullanın  
+- **Sorun Şablonları:** GitHub sorun şablonları hata bildirimi ve özellik talepleri için  
+- **Davranış Kuralları:** Tüm katkıda bulunanlar Microsoft Açık Kaynak Davranış Kuralları’na uymalıdır
 
-### Öğrenim Yolu
+### Öğrenme Yolu
 
-Optimal öğrenim için modülleri sıralı olarak takip edin (00-11):
-1. **00-02**: Temeller (Giriş, Temel Kavramlar, Güvenlik)
-2. **03**: Uygulamalı uygulama ile başlangıç
-3. **04-05**: Pratik uygulama ve ileri konular
-4. **06-10**: Topluluk, en iyi uygulamalar ve gerçek dünya uygulamaları
-5. **11**: Kapsamlı veritabanı entegrasyonu laboratuvarları (13 sıralı laboratuvar)
+En iyi öğrenme için modülleri sıralı takip edin (00-11):  
+1. **00-02**: Temeller (Giriş, Temel Kavramlar, Güvenlik)  
+2. **03**: Uygulamalı başlangıç  
+3. **04-05**: Pratik uygulamalar ve ileri konular  
+4. **06-10**: Topluluk, en iyi uygulamalar ve gerçek dünya uygulamaları  
+5. **11**: Kapsamlı veritabanı entegrasyon laboratuvarları (13 sıralı laboratuvar)
 
 ### Destek Kaynakları
 
-- **Dokümantasyon**: https://modelcontextprotocol.io/
-- **Spesifikasyon**: https://spec.modelcontextprotocol.io/
-- **Topluluk**: https://github.com/orgs/modelcontextprotocol/discussions
-- **Discord**: Microsoft Azure AI Foundry Discord sunucusu
-- **İlgili Kurslar**: Diğer Microsoft öğrenim yolları için README.md dosyasına bakın
+- **Dokümantasyon**: https://modelcontextprotocol.io/  
+- **Spesifikasyon**: https://spec.modelcontextprotocol.io/  
+- **Topluluk**: https://github.com/orgs/modelcontextprotocol/discussions  
+- **Discord**: Microsoft Foundry Discord sunucusu  
+- **İlgili Kurslar**: Diğer Microsoft öğrenme yolları için README.md’ye bakınız
 
 ### Yaygın Sorun Giderme
 
-**S: PR'ım çeviri kontrolünden geçemiyor**
-C: Yalnızca kök modül dizinlerindeki İngilizce markdown dosyalarını düzenlediğinizden emin olun, çevrilmiş versiyonları değil.
+**S: PR’im çeviri kontrolünü geçemiyor**  
+C: Yalnızca kök modül dizinlerindeki İngilizce markdown dosyalarını düzenlediğinizden emin olun, çeviri dosyalarını değil.
 
-**S: Yeni bir dil nasıl eklenir?**
-C: Dil desteği co-op-translator iş akışı ile yönetilir. Yeni diller eklemek için bir sorun açarak tartışma başlatın.
+**S: Yeni bir dil nasıl eklerim?**  
+C: Dil desteği co-op-translator iş akışı ile yönetilir. Yeni diller için tartışma başlatmak üzere bir sorun açın.
 
-**S: Kod örnekleri çalışmıyor**
-C: Belirli örneğin README'sindeki kurulum talimatlarını takip ettiğinizden emin olun. Doğru bağımlılık sürümlerinin yüklü olduğundan emin olun.
+**S: Kod örnekleri çalışmıyor**  
+C: Özel örneğin README'sindeki kurulum talimatlarını uyguladığınızdan emin olun. Gerekli bağımlılıkların doğru sürümlerini kontrol edin.
 
-**S: Görseller görüntülenmiyor**
-C: Görsel yollarının göreceli olduğundan ve ileri eğik çizgiler kullandığından emin olun. Görseller `images/` dizininde veya yerelleştirilmiş versiyonlar için `translated_images/` dizininde olmalıdır.
+**S: Görseller görüntülenmiyor**  
+C: Görsel yollarının görece ve ileri eğik çizgi ile yazıldığını doğrulayın. Görseller `images/` veya yerelleştirilmiş için `translated_images/` dizininde olmalıdır.
 
-### Performans Dikkatleri
+### Performans Hususları
 
-- Çeviri iş akışı tamamlanması birkaç dakika sürebilir
-- Büyük görseller commit edilmeden önce optimize edilmelidir
-- Bireysel markdown dosyalarını odaklı ve makul boyutta tutun
-- Daha iyi taşınabilirlik için göreceli bağlantılar kullanın
+- Çeviri iş akışı tamamlanması birkaç dakika sürebilir  
+- Büyük görselleri commitlemeden önce optimize edin  
+- Bireysel markdown dosyalarını odaklı ve makul boyutta tutun  
+- Daha iyi taşınabilirlik için görece bağlantılar kullanın
 
 ### Proje Yönetimi
 
-Bu proje Microsoft açık kaynak uygulamalarını takip eder:
-- Kod ve dokümantasyon için MIT Lisansı
-- Microsoft Açık Kaynak Davranış Kuralları
-- Katkılar için CLA gereklidir
-- Güvenlik sorunları: SECURITY.md yönergelerini takip edin
-- Destek: Yardım kaynakları için SUPPORT.md dosyasına bakın
+Bu proje Microsoft açık kaynak uygulamalarını uygular:  
+- Kod ve dokümantasyon için MIT Lisansı  
+- Microsoft Açık Kaynak Davranış Kuralları  
+- Katkılar için CLA gereklidir  
+- Güvenlik sorunları için SECURITY.md yönergelerini takip edin  
+- Destek için SUPPORT.md dosyasına bakın
 
 ---
 
-**Feragatname**:  
-Bu belge, AI çeviri hizmeti [Co-op Translator](https://github.com/Azure/co-op-translator) kullanılarak çevrilmiştir. Doğruluğu sağlamak için çaba göstersek de, otomatik çeviriler hata veya yanlışlıklar içerebilir. Belgenin orijinal dili, yetkili kaynak olarak kabul edilmelidir. Kritik bilgiler için profesyonel insan çevirisi önerilir. Bu çevirinin kullanımından kaynaklanan herhangi bir yanlış anlama veya yanlış yorumlama durumunda sorumluluk kabul edilmez.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Feragatname**:
+Bu belge, AI çeviri hizmeti [Co-op Translator](https://github.com/Azure/co-op-translator) kullanılarak çevrilmiştir. Doğruluk için çaba sarf etsek de, otomatik çevirilerin hata veya yanlışlık içerebileceğini lütfen unutmayınız. Orijinal belge, kendi dilinde yetkili kaynak olarak kabul edilmelidir. Kritik bilgiler için profesyonel insan çevirisi önerilir. Bu çevirinin kullanımı sonucu ortaya çıkabilecek yanlış anlamalardan veya yanlış yorumlamalardan sorumlu değiliz.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

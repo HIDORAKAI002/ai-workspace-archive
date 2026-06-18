@@ -1,27 +1,27 @@
 # Įmonių integracija
 
-Kuriant MCP serverius įmonių kontekste, dažnai reikia integruoti esamas AI platformas ir paslaugas. Šiame skyriuje aptariama, kaip integruoti MCP su įmonių sistemomis, tokiomis kaip Azure OpenAI ir Microsoft AI Foundry, siekiant įgalinti pažangias AI galimybes ir įrankių koordinavimą.
+Kuriant MCP serverius įmonių kontekste dažnai reikia integruotis su esamomis DI platformomis ir paslaugomis. Šiame skyriuje aprašoma, kaip integruoti MCP su įmonių sistemomis, tokiomis kaip Azure OpenAI ir Microsoft AI Foundry, leidžiant pažangias DI galimybes ir įrankių orkestravimą.
 
 ## Įvadas
 
-Šioje pamokoje sužinosite, kaip integruoti Model Context Protocol (MCP) su įmonių AI sistemomis, daugiausia dėmesio skiriant Azure OpenAI ir Microsoft AI Foundry. Šios integracijos leidžia pasinaudoti galingais AI modeliais ir įrankiais, išlaikant MCP lankstumą ir pritaikomumą.
+Šioje pamokoje sužinosite, kaip integruoti Model Context Protocol (MCP) su įmonių DI sistemomis, daugiausia dėmesio skiriant Azure OpenAI ir Microsoft AI Foundry. Šios integracijos leidžia pasinaudoti galingais DI modeliais ir įrankiais, išlaikant MCP lankstumą ir išplečiamumą.
 
 ## Mokymosi tikslai
 
 Pamokos pabaigoje galėsite:
 
-- Integruoti MCP su Azure OpenAI, kad galėtumėte naudotis jo AI galimybėmis.
-- Įgyvendinti MCP įrankių koordinavimą su Azure OpenAI.
-- Derinti MCP su Microsoft AI Foundry, siekiant pažangių AI agentų galimybių.
-- Pasinaudoti Azure Machine Learning (ML) vykdant ML procesus ir registruojant modelius kaip MCP įrankius.
+- Integruoti MCP su Azure OpenAI, kad pasinaudotumėte jos DI galimybėmis.
+- Įgyvendinti MCP įrankių orkestravimą su Azure OpenAI.
+- Derinti MCP su Microsoft AI Foundry pažangioms DI agentų galimybėms.
+- Išnaudoti Azure Machine Learning (ML) ML vamzdynams vykdyti ir modeliams registruoti kaip MCP įrankiams.
 
 ## Azure OpenAI integracija
 
-Azure OpenAI suteikia prieigą prie galingų AI modelių, tokių kaip GPT-4 ir kitų. Integravus MCP su Azure OpenAI, galima naudotis šiais modeliais, išlaikant MCP įrankių koordinavimo lankstumą.
+Azure OpenAI suteikia prieigą prie galingų DI modelių, tokių kaip GPT-4 ir kitų. Integruoti MCP su Azure OpenAI leidžia pasinaudoti šiais modeliais, išlaikant MCP įrankių orkestravimo lankstumą.
 
 ### C# įgyvendinimas
 
-Šiame kodo pavyzdyje demonstruojame, kaip integruoti MCP su Azure OpenAI naudojant Azure OpenAI SDK.
+Šiame kodo fragmente demonstruojame, kaip integruoti MCP su Azure OpenAI, naudojant Azure OpenAI SDK.
 
 ```csharp
 // .NET Azure OpenAI Integration
@@ -85,24 +85,24 @@ namespace EnterpriseIntegration
 }
 ```
 
-Ankstesniame kode mes:
+Aukščiau pateiktame kode mes:
 
-- Supratome, kaip sukonfigūruoti Azure OpenAI klientą, naudojant galinį tašką, diegimo pavadinimą ir API raktą.
+- Suconfigūravome Azure OpenAI klientą su galiniu tašku, diegimo pavadinimu ir API raktu.
 - Sukūrėme metodą `GetCompletionWithToolsAsync`, kad gautume užbaigimus su įrankių palaikymu.
 - Apdorojome įrankių kvietimus atsakyme.
 
-Rekomenduojama įgyvendinti faktinę įrankių apdorojimo logiką, atsižvelgiant į jūsų specifinį MCP serverio nustatymą.
+Rekomenduojame įgyvendinti faktinę įrankių apdorojimo logiką pagal jūsų konkrečią MCP serverio sąranką.
 
-## Microsoft AI Foundry integracija
+## Microsoft Foundry integracija
 
-Azure AI Foundry suteikia platformą AI agentų kūrimui ir diegimui. Integravus MCP su AI Foundry, galima pasinaudoti jo galimybėmis, išlaikant MCP lankstumą.
+Microsoft Foundry suteikia platformą DI agentams kurti ir diegti. Integruoti MCP su Microsoft Foundry leidžia išnaudoti jo galimybes, išlaikant MCP lankstumą.
 
-Žemiau pateiktame kode kuriame agento integraciją, kuri apdoroja užklausas ir valdo įrankių kvietimus naudodama MCP.
+Toliau esančiame kode kuriame agento integraciją, kuri apdoroja užklausas ir tvarko įrankių kvietimus naudodama MCP.
 
 ### Java įgyvendinimas
 
 ```java
-// Java AI Foundry Agent Integration
+// Java AI Foundry agento integracija
 package com.example.mcp.enterprise;
 
 import com.microsoft.aifoundry.AgentClient;
@@ -125,26 +125,26 @@ public class AIFoundryMcpBridge {
     }
     
     public AgentResponse processAgentRequest(AgentRequest request) {
-        // Process the AI Foundry Agent request
+        // Apdoroti AI Foundry agento užklausą
         AgentResponse initialResponse = agentClient.processRequest(request);
         
-        // Check if the agent requested to use tools
+        // Patikrinti, ar agentas prašė naudoti įrankius
         if (initialResponse.getToolCalls() != null && !initialResponse.getToolCalls().isEmpty()) {
-            // For each tool call, route it to the appropriate MCP tool
+            // Kiekvienam įrankio kvietimui nukreipti jį į atitinkamą MCP įrankį
             for (AgentToolCall toolCall : initialResponse.getToolCalls()) {
                 String toolName = toolCall.getName();
                 Map<String, Object> parameters = toolCall.getArguments();
                 
-                // Execute the tool using MCP
+                // Vykdyti įrankį naudojant MCP
                 ToolResponse mcpResponse = mcpClient.executeTool(toolName, parameters);
                 
-                // Create tool response for AI Foundry
+                // Sukurti įrankio atsakymą AI Foundry
                 AgentToolResponse toolResponse = new AgentToolResponse(
                     toolCall.getId(),
                     mcpResponse.getResult()
                 );
                 
-                // Submit tool response back to the agent
+                // Grąžinti įrankio atsakymą agentui
                 initialResponse = agentClient.submitToolResponse(
                     request.getConversationId(), 
                     toolResponse
@@ -157,20 +157,20 @@ public class AIFoundryMcpBridge {
 }
 ```
 
-Ankstesniame kode mes:
+Aukščiau esančiame kode mes:
 
-- Sukūrėme klasę `AIFoundryMcpBridge`, kuri integruojasi tiek su AI Foundry, tiek su MCP.
+- Sukūrėme `AIFoundryMcpBridge` klasę, kuri integruojasi su tiek AI Foundry, tiek MCP.
 - Įgyvendinome metodą `processAgentRequest`, kuris apdoroja AI Foundry agento užklausą.
-- Apdorojome įrankių kvietimus, vykdydami juos per MCP klientą ir pateikdami rezultatus atgal AI Foundry agentui.
+- Apdorojome įrankių kvietimus vykdydami juos per MCP klientą ir pateikdami rezultatus atgal AI Foundry agentui.
 
-## MCP integracija su Azure ML
+## MCP integravimas su Azure ML
 
-Integravus MCP su Azure Machine Learning (ML), galima pasinaudoti galingomis Azure ML galimybėmis, išlaikant MCP lankstumą. Ši integracija gali būti naudojama ML procesų vykdymui, modelių registravimui kaip įrankių ir kompiuterinių resursų valdymui.
+Integracija MCP su Azure Machine Learning (ML) leidžia išnaudoti Azure galingas ML galimybes, išlaikant MCP lankstumą. Ši integracija gali būti naudojama ML vamzdynų vykdymui, modelių registravimui kaip įrankiams ir skaičiavimo išteklių valdymui.
 
 ### Python įgyvendinimas
 
 ```python
-# Python Azure AI Integration
+# Python Azure AI integracija
 from mcp_client import McpClient
 from azure.ai.ml import MLClient
 from azure.identity import DefaultAzureCredential
@@ -180,10 +180,10 @@ import asyncio
 
 class EnterpriseAiIntegration:
     def __init__(self, mcp_server_url, subscription_id, resource_group, workspace_name):
-        # Set up MCP client
+        # Nustatyti MCP klientą
         self.mcp_client = McpClient(server_url=mcp_server_url)
         
-        # Set up Azure ML client
+        # Nustatyti Azure ML klientą
         self.credential = DefaultAzureCredential()
         self.ml_client = MLClient(
             self.credential,
@@ -194,7 +194,7 @@ class EnterpriseAiIntegration:
     
     async def execute_ml_pipeline(self, pipeline_name, input_data):
         """Executes an ML pipeline in Azure ML"""
-        # First process the input data using MCP tools
+        # Pirmiausia apdoroti įvesties duomenis naudojant MCP įrankius
         processed_data = await self.mcp_client.execute_tool(
             "dataPreprocessor",
             {
@@ -203,7 +203,7 @@ class EnterpriseAiIntegration:
             }
         )
         
-        # Submit the pipeline to Azure ML
+        # Pateikti procesų seką į Azure ML
         pipeline_job = self.ml_client.jobs.create_or_update(
             entity={
                 "name": pipeline_name,
@@ -215,7 +215,7 @@ class EnterpriseAiIntegration:
             }
         )
         
-        # Return job information
+        # Grąžinti darbo informaciją
         return {
             "job_id": pipeline_job.id,
             "status": pipeline_job.status,
@@ -224,22 +224,22 @@ class EnterpriseAiIntegration:
     
     async def register_ml_model_as_tool(self, model_name, model_version="latest"):
         """Registers an Azure ML model as an MCP tool"""
-        # Get model details
+        # Gauti modelio detales
         if model_version == "latest":
             model = self.ml_client.models.get(name=model_name, label="latest")
         else:
             model = self.ml_client.models.get(name=model_name, version=model_version)
         
-        # Create deployment environment
+        # Sukurti diegimo aplinką
         env = Environment(
             name="mcp-model-env",
             conda_file="./environments/inference-env.yml"
         )
         
-        # Set up compute
+        # Nustatyti skaičiavimą
         compute = self.ml_client.compute.get("mcp-inference")
         
-        # Deploy model as online endpoint
+        # Diegti modelį kaip internetinę pabaigos tašką
         deployment = self.ml_client.online_deployments.create_or_update(
             endpoint_name=f"mcp-{model_name}",
             deployment={
@@ -255,22 +255,22 @@ class EnterpriseAiIntegration:
             }
         )
         
-        # Create MCP tool schema based on model schema
+        # Sukurti MCP įrankio schemą pagal modelio schemą
         tool_schema = {
             "type": "object",
             "properties": {},
             "required": []
         }
         
-        # Add input properties based on model schema
+        # Pridėti įvesties savybes pagal modelio schemą
         for input_name, input_spec in model.signature.inputs.items():
             tool_schema["properties"][input_name] = {
                 "type": self._map_ml_type_to_json_type(input_spec.type)
             }
             tool_schema["required"].append(input_name)
         
-        # Register as MCP tool
-        # In a real implementation, you would create a tool that calls the endpoint
+        # Užregistruoti kaip MCP įrankį
+        # Tikroje implementacijoje sukurtumėte įrankį, kuris kviečia pabaigos tašką
         return {
             "model_name": model_name,
             "model_version": model.version,
@@ -291,19 +291,21 @@ class EnterpriseAiIntegration:
         return mapping.get(ml_type, "string")
 ```
 
-Ankstesniame kode mes:
+Aukščiau pateiktame kode mes:
 
-- Sukūrėme klasę `EnterpriseAiIntegration`, kuri integruoja MCP su Azure ML.
-- Įgyvendinome metodą `execute_ml_pipeline`, kuris apdoroja įvesties duomenis naudodamas MCP įrankius ir pateikia ML procesą Azure ML.
-- Įgyvendinome metodą `register_ml_model_as_tool`, kuris registruoja Azure ML modelį kaip MCP įrankį, įskaitant reikalingos diegimo aplinkos ir kompiuterinių resursų sukūrimą.
-- Susiejome Azure ML duomenų tipus su JSON schemos tipais, skirtus įrankių registracijai.
-- Naudojome asinchroninį programavimą, kad apdorotume galimai ilgai trunkančias operacijas, tokias kaip ML procesų vykdymas ir modelių registracija.
+- Sukūrėme `EnterpriseAiIntegration` klasę, kuri integruoja MCP su Azure ML.
+- Įgyvendinome `execute_ml_pipeline` metodą, kuris apdoroja įvesties duomenis naudodamas MCP įrankius ir pateikia ML vamzdyną Azure ML.
+- Įgyvendinome `register_ml_model_as_tool` metodą, kuris registruoja Azure ML modelį kaip MCP įrankį, įskaitant reikalingos diegimo aplinkos ir skaičiavimo išteklių sukūrimą.
+- Atvaizdavo Azure ML duomenų tipus į JSON schemos tipus įrankių registravimui.
+- Naudojo asinchroninį programavimą, kad apdorotų potencialiai ilgai trunkančias operacijas kaip ML vamzdynų vykdymą ir modelių registravimą.
 
 ## Kas toliau
 
-- [5.2 Daugiarūšis modalumas](../mcp-multi-modality/README.md)
+- [5.2 Multi modality](../mcp-multi-modality/README.md)
 
 ---
 
-**Atsakomybės apribojimas**:  
-Šis dokumentas buvo išverstas naudojant AI vertimo paslaugą [Co-op Translator](https://github.com/Azure/co-op-translator). Nors siekiame tikslumo, prašome atkreipti dėmesį, kad automatiniai vertimai gali turėti klaidų ar netikslumų. Originalus dokumentas jo gimtąja kalba turėtų būti laikomas autoritetingu šaltiniu. Kritinei informacijai rekomenduojama naudoti profesionalų žmogaus vertimą. Mes neprisiimame atsakomybės už nesusipratimus ar klaidingus interpretavimus, atsiradusius dėl šio vertimo naudojimo.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Atsakomybės apribojimas**:
+Šis dokumentas buvo išverstas naudojant dirbtinio intelekto vertimo paslaugą [Co-op Translator](https://github.com/Azure/co-op-translator). Nors siekiame tikslumo, prašome atkreipti dėmesį, kad automatiniai vertimai gali turėti klaidų ar netikslumų. Originalus dokumentas jo gimtąja kalba laikomas autoritetingu šaltiniu. Svarbiai informacijai rekomenduojama naudoti profesionalų žmogiškąjį vertimą. Mes neatsakome už jokius nesusipratimus ar neteisingą interpretaciją, kilusią naudojantis šiuo vertimu.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

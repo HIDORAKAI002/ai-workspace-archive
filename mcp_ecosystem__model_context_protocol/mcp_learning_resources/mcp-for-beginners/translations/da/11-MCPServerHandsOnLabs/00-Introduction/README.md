@@ -1,82 +1,82 @@
-# Introduktion til MCP-databaseintegration
+# Introduktion til MCP Databaseintegration
 
-## 🎯 Hvad Denne Lab Dækker
+## 🎯 Hvad dette laboratorium dækker
 
-Denne introduktionslab giver en omfattende oversigt over opbygning af Model Context Protocol (MCP)-servere med databaseintegration. Du vil forstå forretningscasen, den tekniske arkitektur og virkelige anvendelser gennem Zava Retail-analytikcasen på https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail.
+Dette introduktionslaboratorium giver en omfattende oversigt over opbygning af Model Context Protocol (MCP) servere med databaseintegration. Du vil forstå forretningscasen, teknisk arkitektur og virkelige anvendelser gennem Zava Retail analyse-casen på https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail.
 
 ## Oversigt
 
-**Model Context Protocol (MCP)** gør det muligt for AI-assistenter at få sikker adgang til og interagere med eksterne datakilder i realtid. Når MCP kombineres med databaseintegration, åbnes der op for kraftfulde muligheder for datadrevne AI-applikationer.
+**Model Context Protocol (MCP)** giver AI-assistenter mulighed for sikkert at få adgang til og interagere med eksterne datakilder i realtid. Når det kombineres med databaseintegration, åbner MCP kraftfulde muligheder for datadrevne AI-applikationer.
 
-Denne læringssti lærer dig at opbygge produktionsklare MCP-servere, der forbinder AI-assistenter med detailsalgsdata via PostgreSQL, og implementerer virksomhedsmønstre som Row Level Security, semantisk søgning og multi-tenant dataadgang.
+Denne læringsvejledning lærer dig at bygge produktionsklare MCP-servere, der forbinder AI-assistenter til detailhandelssalgsdata via PostgreSQL, og implementerer virksomhedsmønstre som Row Level Security, semantisk søgning og multi-tenant dataadgang.
 
 ## Læringsmål
 
-Ved afslutningen af denne lab vil du kunne:
+Ved afslutningen af dette laboratorium vil du kunne:
 
-- **Definere** Model Context Protocol og dens kernefordele ved databaseintegration
+- **Definere** Model Context Protocol og dets kernefordele for databaseintegration
 - **Identificere** nøglekomponenter i en MCP-serverarkitektur med databaser
-- **Forstå** Zava Retail-casen og dens forretningskrav
-- **Genkende** virksomhedsmønstre for sikker og skalerbar databaseadgang
-- **Liste** værktøjer og teknologier, der bruges gennem hele læringsstien
+- **Forstå** Zava Retail casen og dens forretningskrav
+- **Genkende** virksomhedsmønstre for sikker, skalerbar databaseadgang
+- **Liste** de værktøjer og teknologier, der bruges gennem denne læringsvejledning
 
-## 🧭 Udfordringen: AI Møder Virkelige Data
+## 🧭 Udfordringen: AI møder virkelige data
 
-### Begrænsninger ved Traditionel AI
+### Traditionelle AI-begrænsninger
 
-Moderne AI-assistenter er utroligt kraftfulde, men står over for betydelige begrænsninger, når de arbejder med virkelige forretningsdata:
+Moderne AI-assistenter er utroligt kraftfulde, men møder væsentlige begrænsninger, når de arbejder med virkelige forretningsdata:
 
 | **Udfordring** | **Beskrivelse** | **Forretningspåvirkning** |
-|----------------|-----------------|---------------------------|
-| **Statisk Viden** | AI-modeller trænet på faste datasæt kan ikke tilgå aktuelle forretningsdata | Forældede indsigter, mistede muligheder |
-| **Datasiloer** | Information låst i databaser, API'er og systemer, som AI ikke kan nå | Ufuldstændig analyse, fragmenterede arbejdsgange |
-| **Sikkerhedsbegrænsninger** | Direkte databaseadgang skaber sikkerheds- og complianceproblemer | Begrænset implementering, manuel dataklargøring |
-| **Komplekse Forespørgsler** | Forretningsbrugere har brug for teknisk viden for at udtrække dataindsigter | Reduceret adoption, ineffektive processer |
+|---------------|-----------------|---------------------------|
+| **Statisk viden** | AI-modeller trænet på faste datasæt kan ikke få adgang til aktuelle forretningsdata | Forældede indsigter, mistede muligheder |
+| **Datasilos** | Information låst i databaser, API'er og systemer, AI ikke kan nå | Ufuldstændige analyser, fragmenterede arbejdsgange |
+| **Sikkerhedskrav** | Direkte databaseadgang rejser sikkerheds- og overholdelsesbekymringer | Begrænset implementering, manuel datapreparation |
+| **Komplekse forespørgsler** | Forretningsbrugere kræver teknisk viden for at udtrække dataindsigter | Mindsket adoption, ineffektive processer |
 
 ### MCP-løsningen
 
-Model Context Protocol adresserer disse udfordringer ved at tilbyde:
+Model Context Protocol håndterer disse udfordringer ved at tilbyde:
 
-- **Adgang til Data i Realtid**: AI-assistenter forespørger live databaser og API'er
-- **Sikker Integration**: Kontrolleret adgang med autentifikation og tilladelser
-- **Naturligt Sprog Interface**: Forretningsbrugere stiller spørgsmål på almindeligt engelsk
-- **Standardiseret Protokol**: Fungerer på tværs af forskellige AI-platforme og værktøjer
+- **Realtidsdataadgang**: AI-assistenter forespørger live databaser og API’er
+- **Sikker integration**: Kontrolleret adgang med autentifikation og tilladelser
+- **Naturligt sproginterface**: Forretningsbrugere stiller spørgsmål på almindeligt dansk
+- **Standardiseret protokol**: Fungerer på tværs af forskellige AI-platforme og værktøjer
 
-## 🏪 Mød Zava Retail: Vores Læringscase https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail
+## 🏪 Mød Zava Retail: Vores læringseksempel https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail
 
-Gennem denne læringssti vil vi opbygge en MCP-server for **Zava Retail**, en fiktiv gør-det-selv detailkæde med flere butikslokationer. Dette realistiske scenarie demonstrerer MCP-implementering på virksomhedsniveau.
+Gennem denne læringsvejledning bygger vi en MCP-server for **Zava Retail**, en fiktiv gør-det-selv detailkæde med flere butikker. Dette realistiske scenarie demonstrerer enterprise-grade MCP-implementering.
 
 ### Forretningskontekst
 
 **Zava Retail** driver:
 - **8 fysiske butikker** i Washington State (Seattle, Bellevue, Tacoma, Spokane, Everett, Redmond, Kirkland)
 - **1 online butik** til e-handelssalg
-- **Diversificeret produktkatalog** inklusive værktøj, hardware, havematerialer og byggematerialer
-- **Flerlagsledelse** med butikschefer, regionschefer og ledere
+- **Bredt produktkatalog** med værktøj, hardware, haveartikler og byggematerialer
+- **Multi-niveau ledelse** med butikschefer, regionschefer og ledere
 
 ### Forretningskrav
 
 Butikschefer og ledere har brug for AI-drevne analyser til at:
 
 1. **Analysere salgspræstationer** på tværs af butikker og tidsperioder
-2. **Sporing af lagerbeholdning** og identificere genopfyldningsbehov
+2. **Sporing af lagerstatus** og identificere genopfyldningsbehov
 3. **Forstå kundeadfærd** og købemønstre
-4. **Opdage produktindsigter** gennem semantisk søgning
+4. **Opdage produktindsigter** via semantisk søgning
 5. **Generere rapporter** med naturlige sprogforespørgsler
-6. **Opretholde datasikkerhed** med rollebaseret adgangskontrol
+6. **Sikre databeskyttelse** via rollebaseret adgangskontrol
 
-### Tekniske Krav
+### Tekniske krav
 
 MCP-serveren skal levere:
 
-- **Multi-tenant dataadgang**, hvor butikschefer kun ser deres butiks data
-- **Fleksible forespørgsler**, der understøtter komplekse SQL-operationer
+- **Multi-tenant dataadgang** hvor butikschefer kun ser deres butiks data
+- **Fleksible forespørgsler** der understøtter komplekse SQL-operationer
 - **Semantisk søgning** til produktopdagelse og anbefalinger
-- **Realtidsdata**, der afspejler den aktuelle forretningsstatus
-- **Sikker autentifikation** med Row Level Security
-- **Skalerbar arkitektur**, der understøtter flere samtidige brugere
+- **Realtidsdata** der afspejler forretningsaktuel tilstand
+- **Sikker autentifikation** med row-level security
+- **Skalerbar arkitektur** der understøtter flere samtidige brugere
 
-## 🏗️ MCP-serverarkitektur Oversigt
+## 🏗️ MCP Server Arkitektur Oversigt
 
 Vores MCP-server implementerer en lagdelt arkitektur optimeret til databaseintegration:
 
@@ -122,39 +122,39 @@ Vores MCP-server implementerer en lagdelt arkitektur optimeret til databaseinteg
 
 #### **1. MCP Server Lag**
 - **FastMCP Framework**: Moderne Python MCP-serverimplementering
-- **Værktøjsregistrering**: Deklarative værktøjsdefinitioner med type-sikkerhed
-- **Forespørgselskontekst**: Brugeridentitet og sessionhåndtering
-- **Fejlhåndtering**: Robust fejlstyring og logning
+- **Tool Registration**: Deklarative værktøjsdefinitioner med typesikkerhed
+- **Request Context**: Brugeridentitet og sessionhåndtering
+- **Error Handling**: Robust fejlstyring og logning
 
 #### **2. Databaseintegrationslag**
-- **Forbindelsespooling**: Effektiv asyncpg-forbindelseshåndtering
-- **Skemaprovider**: Dynamisk tabelskemaopdagelse
-- **Forespørgselsudfører**: Sikker SQL-eksekvering med RLS-kontekst
-- **Transaktionshåndtering**: ACID-kompatibilitet og rollback-håndtering
+- **Connection Pooling**: Effektiv asyncpg forbindelsesstyring
+- **Schema Provider**: Dynamisk opdagelse af tabelskemaer
+- **Query Executor**: Sikker udførelse af SQL med RLS-kontekst
+- **Transaction Management**: ACID-overholdelse og rollback-håndtering
 
 #### **3. Sikkerhedslag**
 - **Row Level Security**: PostgreSQL RLS til multi-tenant dataisolering
-- **Brugeridentitet**: Autentifikation og autorisation af butikschefer
-- **Adgangskontrol**: Fintmaskede tilladelser og revisionsspor
-- **Inputvalidering**: Forebyggelse af SQL-injektion og forespørgselsvalidering
+- **User Identity**: Butikschef-autentifikation og -autorisation
+- **Access Control**: Finkornede tilladelser og revisionsspor
+- **Input Validation**: Forebyggelse af SQL-injektion og forespørgselsvalidering
 
-#### **4. AI-forbedringslag**
-- **Semantisk søgning**: Vektorindlejring til produktopdagelse
-- **Azure OpenAI Integration**: Tekstindlejring generering
-- **Lighedsalgoritmer**: pgvector cosine similarity søgning
-- **Søgningsoptimering**: Indeksering og performance tuning
+#### **4. AI Forbedringslag**
+- **Semantic Search**: Vector embeddings til produktopdagelse
+- **Azure OpenAI Integration**: Tekst-embedding generering
+- **Similarity Algorithms**: pgvector cosine similarity-søgning
+- **Search Optimization**: Indeksering og ydeevnetuning
 
 ## 🔧 Teknologistak
 
-### Kerne Teknologier
+### Kerne teknologier
 
 | **Komponent** | **Teknologi** | **Formål** |
 |---------------|---------------|------------|
 | **MCP Framework** | FastMCP (Python) | Moderne MCP-serverimplementering |
 | **Database** | PostgreSQL 17 + pgvector | Relationelle data med vektorsøgning |
-| **AI-tjenester** | Azure OpenAI | Tekstindlejring og sprogmodeller |
+| **AI Services** | Azure OpenAI | Tekst-embedding og sprogmodeller |
 | **Containerisering** | Docker + Docker Compose | Udviklingsmiljø |
-| **Cloud Platform** | Microsoft Azure | Produktionsudrulning |
+| **Cloud Platform** | Microsoft Azure | Produktionsimplementering |
 | **IDE Integration** | VS Code | AI Chat og udviklingsworkflow |
 
 ### Udviklingsværktøjer
@@ -163,74 +163,74 @@ Vores MCP-server implementerer en lagdelt arkitektur optimeret til databaseinteg
 |-------------|------------|
 | **asyncpg** | Højtydende PostgreSQL-driver |
 | **Pydantic** | Datavalidering og serialisering |
-| **Azure SDK** | Integration af cloud-tjenester |
-| **pytest** | Testframework |
-| **Docker** | Containerisering og udrulning |
+| **Azure SDK** | Cloud-serviceintegration |
+| **pytest** | Test-framework |
+| **Docker** | Containerisering og deployment |
 
 ### Produktionsstak
 
-| **Tjeneste** | **Azure Ressource** | **Formål** |
-|--------------|---------------------|------------|
+| **Service** | **Azure Ressource** | **Formål** |
+|-------------|---------------------|------------|
 | **Database** | Azure Database for PostgreSQL | Administreret databaseservice |
-| **Container** | Azure Container Apps | Serverløs containerhosting |
-| **AI-tjenester** | Azure AI Foundry | OpenAI-modeller og endpoints |
-| **Overvågning** | Application Insights | Observabilitet og diagnostik |
-| **Sikkerhed** | Azure Key Vault | Hemmeligheder og konfigurationsstyring |
+| **Container** | Azure Container Apps | Serverless container hosting |
+| **AI Services** | Microsoft Foundry | OpenAI modeller og endpoints |
+| **Overvågning** | Application Insights | Observabilitet og diagnosticering |
+| **Sikkerhed** | Azure Key Vault | Hemmeligheder og konfigurationshåndtering |
 
-## 🎬 Virkelige Brugs Scenarier
+## 🎬 Virkelige Anvendelsesscenarier
 
 Lad os udforske, hvordan forskellige brugere interagerer med vores MCP-server:
 
-### Scenario 1: Butikschefens Præstationsgennemgang
+### Scenario 1: Butikschefens performanceevaluering
 
 **Bruger**: Sarah, butikschef i Seattle  
-**Mål**: Analysere sidste kvartals salgspræstationer
+**Mål**: Analysere sidste kvartals salgspræstation
 
-**Naturlig Sprogforespørgsel**:
-> "Vis mig de 10 mest indbringende produkter for min butik i Q4 2024"
+**Naturlig sprogforespørgsel**:  
+> "Vis mig de top 10 produkter efter omsætning i min butik i Q4 2024"
 
-**Hvad Der Sker**:
-1. VS Code AI Chat sender forespørgslen til MCP-serveren
-2. MCP-serveren identificerer Sarahs butiks kontekst (Seattle)
-3. RLS-politikker filtrerer data til kun Seattle-butikken
-4. SQL-forespørgsel genereres og eksekveres
-5. Resultater formateres og returneres til AI Chat
-6. AI leverer analyse og indsigter
+**Hvad sker der**:  
+1. VS Code AI Chat sender forespørgsel til MCP-server  
+2. MCP-server identificerer Sarahs butikskontekst (Seattle)  
+3. RLS-politikker filtrerer data til kun Seattle-butikken  
+4. SQL-forespørgsel genereres og udføres  
+5. Resultater formateres og returneres til AI Chat  
+6. AI leverer analyse og indsigt
 
-### Scenario 2: Produktopdagelse med Semantisk Søgning
+### Scenario 2: Produktopdagelse med semantisk søgning
 
 **Bruger**: Mike, lagerchef  
-**Mål**: Finde produkter, der ligner en kundes forespørgsel
+**Mål**: Find produkter, der ligner en kundebegæring
 
-**Naturlig Sprogforespørgsel**:
-> "Hvilke produkter sælger vi, der ligner 'vandtætte elektriske stik til udendørs brug'?"
+**Naturlig sprogforespørgsel**:  
+> "Hvilke produkter sælger vi, der ligner 'vandafvisende elektriske stik til udendørs brug'?"
 
-**Hvad Der Sker**:
-1. Forespørgsel behandles af semantisk søgningsværktøj
-2. Azure OpenAI genererer indlejringsvektor
-3. pgvector udfører lighedssøgning
-4. Relaterede produkter rangeres efter relevans
-5. Resultater inkluderer produktdetaljer og tilgængelighed
-6. AI foreslår alternativer og pakkemuligheder
+**Hvad sker der**:  
+1. Forespørgsel behandles af semantisk søgeværktøj  
+2. Azure OpenAI genererer embeddings-vektor  
+3. pgvector udfører lighedssøgning  
+4. Relaterede produkter rangeres efter relevans  
+5. Resultater inkluderer produktdetaljer og tilgængelighed  
+6. AI foreslår alternativer og pakkeløsninger
 
-### Scenario 3: Tværbutiksanalyse
+### Scenario 3: Tværgående Butiksanalyse
 
 **Bruger**: Jennifer, regionschef  
-**Mål**: Sammenligne præstationer på tværs af alle butikker
+**Mål**: Sammenligne præstation på tværs af alle butikker
 
-**Naturlig Sprogforespørgsel**:
+**Naturlig sprogforespørgsel**:  
 > "Sammenlign salg efter kategori for alle butikker i de sidste 6 måneder"
 
-**Hvad Der Sker**:
-1. RLS-kontekst indstilles til regionschefens adgang
-2. Kompleks tværbutiksforespørgsel genereres
-3. Data aggregeres på tværs af butikslokationer
-4. Resultater inkluderer tendenser og sammenligninger
-5. AI identificerer indsigter og anbefalinger
+**Hvad sker der**:  
+1. RLS-kontekst sættes for regionschefens adgang  
+2. Komplekse multi-butik forespørgsler genereres  
+3. Data aggregeres på tværs af butikslokationer  
+4. Resultater indeholder trends og sammenligninger  
+5. AI identificerer indsigt og anbefalinger
 
 ## 🔒 Sikkerhed og Multi-Tenancy Dybdegående
 
-Vores implementering prioriterer sikkerhed på virksomhedsniveau:
+Vores implementering prioriterer virksomhedssikkerhed:
 
 ### Row Level Security (RLS)
 
@@ -248,63 +248,65 @@ CREATE POLICY regional_manager_policy ON retail.orders
   USING (store_id = ANY(get_user_store_list()));
 ```
 
-### Brugeridentitetshåndtering
+### Brugeridentitetsstyring
 
-Hver MCP-forbindelse inkluderer:
-- **Butikschef-ID**: Unik identifikator for RLS-kontekst
-- **Rolle Tildeling**: Tilladelser og adgangsniveauer
-- **Sessionhåndtering**: Sikker autentifikationstokens
-- **Revisionslogning**: Komplet adgangshistorik
+Hver MCP-forbindelse inkluderer:  
+- **Butikschef-ID**: Unik identifikator for RLS-kontekst  
+- **Rollefordeling**: Tilladelser og adgangsniveauer  
+- **Sessionstyring**: Sikre autentifikationstokens  
+- **Revisionslog**: Komplethistorik over adgang
 
 ### Databeskyttelse
 
-Flere lag af sikkerhed:
-- **Forbindelseskryptering**: TLS for alle databaseforbindelser
-- **Forebyggelse af SQL-injektion**: Kun parameteriserede forespørgsler
-- **Inputvalidering**: Omfattende forespørgselsvalidering
+Flere lag af sikkerhed:  
+- **Forbindelseskryptering**: TLS for alle databaseforbindelser  
+- **Forebyggelse af SQL-injektion**: Kun parameteriserede forespørgsler  
+- **Inputvalidering**: Omfattende forespørgselsvalidering  
 - **Fejlhåndtering**: Ingen følsomme data i fejlmeddelelser
 
-## 🎯 Vigtige Pointer
+## 🎯 Vigtige pointer
 
 Efter at have gennemført denne introduktion, bør du forstå:
 
-✅ **MCP Værdi**: Hvordan MCP forbinder AI-assistenter med virkelige data  
+✅ **MCP værditilbud**: Hvordan MCP forbinder AI-assistenter og virkelige data  
 ✅ **Forretningskontekst**: Zava Retails krav og udfordringer  
-✅ **Arkitektur Oversigt**: Nøglekomponenter og deres interaktioner  
-✅ **Teknologisk Stak**: Værktøjer og frameworks, der bruges gennem hele processen  
+✅ **Arkitekturoversigt**: Nøglekomponenter og deres samspil  
+✅ **Teknologistak**: Brugte værktøjer og frameworks  
 ✅ **Sikkerhedsmodel**: Multi-tenant dataadgang og beskyttelse  
-✅ **Brugsmønstre**: Virkelige forespørgselsscenarier og arbejdsgange  
+✅ **Brugsmønstre**: Virkelige forespørgsels- og arbejdsflows
 
-## 🚀 Hvad Er Næste Skridt
+## 🚀 Hvad er næste skridt
 
 Klar til at dykke dybere? Fortsæt med:
 
 **[Lab 01: Core Architecture Concepts](../01-Architecture/README.md)**
 
-Lær om MCP-serverarkitekturens mønstre, principper for databasedesign og den detaljerede tekniske implementering, der driver vores detailanalyseløsning.
+Lær om MCP-serverarkitektur, databasedesignprincipper og den detaljerede tekniske implementering, der driver vores detailhandelsanalyse-løsning.
 
-## 📚 Yderligere Ressourcer
+## 📚 Yderligere ressourcer
 
 ### MCP Dokumentation
-- [MCP Specification](https://modelcontextprotocol.io/docs/) - Officiel protokoldokumentation
-- [MCP for Beginners](https://aka.ms/mcp-for-beginners) - Omfattende MCP-læringsguide
-- [FastMCP Documentation](https://github.com/modelcontextprotocol/python-sdk) - Python SDK-dokumentation
+- [MCP Specification](https://modelcontextprotocol.io/docs/) - Officiel protokol dokumentation  
+- [MCP for Beginners](https://aka.ms/mcp-for-beginners) - Omfattende MCP læringsguide  
+- [FastMCP Documentation](https://github.com/modelcontextprotocol/python-sdk) - Python SDK dokumentation  
 
-### Databaseintegration
-- [PostgreSQL Documentation](https://www.postgresql.org/docs/) - Komplet PostgreSQL-reference
-- [pgvector Guide](https://github.com/pgvector/pgvector) - Dokumentation for vektorextension
-- [Row Level Security](https://www.postgresql.org/docs/current/ddl-rowsecurity.html) - PostgreSQL RLS-guide
+### Databaseintegration  
+- [PostgreSQL Documentation](https://www.postgresql.org/docs/) - Komplett PostgreSQL reference  
+- [pgvector Guide](https://github.com/pgvector/pgvector) - Vector-udvidelsesdokumentation  
+- [Row Level Security](https://www.postgresql.org/docs/current/ddl-rowsecurity.html) - PostgreSQL RLS guide  
 
-### Azure Tjenester
-- [Azure OpenAI Documentation](https://docs.microsoft.com/azure/cognitive-services/openai/) - AI-tjenesteintegration
-- [Azure Database for PostgreSQL](https://docs.microsoft.com/azure/postgresql/) - Administreret databaseservice
-- [Azure Container Apps](https://docs.microsoft.com/azure/container-apps/) - Serverløse containere
-
----
-
-**Ansvarsfraskrivelse**: Dette er en læringsøvelse med fiktive detaildata. Følg altid din organisations datastyrings- og sikkerhedspolitikker, når du implementerer lignende løsninger i produktionsmiljøer.
+### Azure Services  
+- [Azure OpenAI Documentation](https://docs.microsoft.com/azure/cognitive-services/openai/) - AI service integration  
+- [Azure Database for PostgreSQL](https://docs.microsoft.com/azure/postgresql/) - Administreret databaseservice  
+- [Azure Container Apps](https://docs.microsoft.com/azure/container-apps/) - Serverless containere  
 
 ---
 
-**Ansvarsfraskrivelse**:  
-Dette dokument er blevet oversat ved hjælp af AI-oversættelsestjenesten [Co-op Translator](https://github.com/Azure/co-op-translator). Selvom vi bestræber os på nøjagtighed, skal det bemærkes, at automatiserede oversættelser kan indeholde fejl eller unøjagtigheder. Det originale dokument på dets oprindelige sprog bør betragtes som den autoritative kilde. For kritisk information anbefales professionel menneskelig oversættelse. Vi påtager os ikke ansvar for misforståelser eller fejltolkninger, der måtte opstå som følge af brugen af denne oversættelse.
+**Ansvarsfraskrivelse**: Dette er en læringsøvelse med fiktive detaildata. Følg altid din organisations datastyrings- og sikkerhedspolitikker ved implementering af lignende løsninger i produktionsmiljøer.
+
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Ansvarsfraskrivelse**:
+Dette dokument er blevet oversat ved hjælp af AI-oversættelsestjenesten [Co-op Translator](https://github.com/Azure/co-op-translator). Selvom vi bestræber os på nøjagtighed, skal du være opmærksom på, at automatiserede oversættelser kan indeholde fejl eller unøjagtigheder. Det originale dokument på dets oprindelige sprog bør betragtes som den autoritative kilde. For kritisk information anbefales professionel menneskelig oversættelse. Vi påtager os intet ansvar for misforståelser eller fejltolkninger, der opstår som følge af brugen af denne oversættelse.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

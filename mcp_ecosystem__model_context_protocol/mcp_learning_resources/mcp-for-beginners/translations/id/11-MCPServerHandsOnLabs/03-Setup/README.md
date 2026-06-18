@@ -1,52 +1,52 @@
 # Pengaturan Lingkungan
 
-## 🎯 Apa yang Dibahas dalam Lab Ini
+## 🎯 Apa yang Dicakup Lab Ini
 
-Lab praktis ini membimbing Anda dalam mengatur lingkungan pengembangan lengkap untuk membangun server MCP dengan integrasi PostgreSQL. Anda akan mengonfigurasi semua alat yang diperlukan, menerapkan sumber daya Azure, dan memvalidasi pengaturan Anda sebelum melanjutkan ke implementasi.
+Lab praktik ini memandu Anda dalam mengatur lingkungan pengembangan lengkap untuk membangun server MCP dengan integrasi PostgreSQL. Anda akan mengonfigurasi semua alat yang diperlukan, menyebarkan sumber daya Azure, dan memvalidasi pengaturan sebelum melanjutkan dengan implementasi.
 
 ## Ikhtisar
 
-Lingkungan pengembangan yang tepat sangat penting untuk pengembangan server MCP yang sukses. Lab ini menyediakan instruksi langkah demi langkah untuk mengatur Docker, layanan Azure, alat pengembangan, dan memvalidasi bahwa semuanya bekerja dengan baik bersama-sama.
+Lingkungan pengembangan yang tepat sangat penting untuk keberhasilan pengembangan server MCP. Lab ini menyediakan instruksi langkah demi langkah untuk mengatur Docker, layanan Azure, alat pengembangan, dan memvalidasi bahwa semuanya bekerja dengan baik bersama.
 
-Pada akhir lab ini, Anda akan memiliki lingkungan pengembangan yang sepenuhnya berfungsi untuk membangun server MCP Zava Retail.
+Pada akhir lab ini, Anda akan memiliki lingkungan pengembangan yang berfungsi penuh siap untuk membangun server Zava Retail MCP.
 
 ## Tujuan Pembelajaran
 
 Pada akhir lab ini, Anda akan dapat:
 
 - **Menginstal dan mengonfigurasi** semua alat pengembangan yang diperlukan
-- **Menerapkan sumber daya Azure** yang dibutuhkan untuk server MCP
-- **Mengatur kontainer Docker** untuk PostgreSQL dan server MCP
+- **Menyebarkan sumber daya Azure** yang dibutuhkan untuk server MCP
+- **Mengatur container Docker** untuk PostgreSQL dan server MCP
 - **Memvalidasi** pengaturan lingkungan Anda dengan koneksi uji
-- **Memecahkan masalah** umum terkait pengaturan dan konfigurasi
+- **Memecahkan masalah** masalah umum pengaturan dan konfigurasi
 - **Memahami** alur kerja pengembangan dan struktur file
 
 ## 📋 Pemeriksaan Prasyarat
 
-Sebelum memulai, pastikan Anda memiliki:
+Sebelum memulai, pastikan Anda mempunyai:
 
-### Pengetahuan yang Diperlukan
-- Penggunaan dasar command line (Windows Command Prompt/PowerShell)
-- Pemahaman tentang variabel lingkungan
-- Familiaritas dengan kontrol versi Git
-- Konsep dasar Docker (kontainer, gambar, volume)
+### Pengetahuan yang Dibutuhkan
+- Penggunaan dasar baris perintah (Windows Command Prompt/PowerShell)
+- Pemahaman variabel lingkungan
+- Familiar dengan kontrol versi Git
+- Konsep dasar Docker (container, image, volume)
 
 ### Persyaratan Sistem
 - **Sistem Operasi**: Windows 10/11, macOS, atau Linux
-- **RAM**: Minimal 8GB (16GB direkomendasikan)
-- **Penyimpanan**: Setidaknya 10GB ruang kosong
-- **Jaringan**: Koneksi internet untuk unduhan dan penerapan Azure
+- **RAM**: Minimal 8GB (disarankan 16GB)
+- **Penyimpanan**: Minimal 10GB ruang kosong
+- **Jaringan**: Koneksi internet untuk unduhan dan penyebaran Azure
 
 ### Persyaratan Akun
 - **Langganan Azure**: Tingkat gratis sudah cukup
 - **Akun GitHub**: Untuk akses repositori
-- **Akun Docker Hub**: (Opsional) Untuk publikasi gambar kustom
+- **Akun Docker Hub**: (Opsional) Untuk publikasi image kustom
 
 ## 🛠️ Instalasi Alat
 
 ### 1. Instal Docker Desktop
 
-Docker menyediakan lingkungan kontainer untuk pengaturan pengembangan kita.
+Docker menyediakan lingkungan container untuk pengaturan pengembangan kita.
 
 #### Instalasi Windows
 
@@ -60,7 +60,7 @@ Docker menyediakan lingkungan kontainer untuk pengaturan pengembangan kita.
 2. **Instal dan Konfigurasi**:
    - Jalankan installer sebagai Administrator
    - Aktifkan integrasi WSL 2 saat diminta
-   - Restart komputer Anda setelah instalasi selesai
+   - Restart komputer setelah instalasi selesai
 
 3. **Verifikasi Instalasi**:
    ```cmd
@@ -72,13 +72,13 @@ Docker menyediakan lingkungan kontainer untuk pengaturan pengembangan kita.
 
 1. **Unduh dan Instal**:
    ```bash
-   # Download from https://desktop.docker.com/mac/stable/Docker.dmg
-   # Or use Homebrew
+   # Unduh dari https://desktop.docker.com/mac/stable/Docker.dmg
+   # Atau gunakan Homebrew
    brew install --cask docker
    ```
 
 2. **Mulai Docker Desktop**:
-   - Luncurkan Docker Desktop dari Aplikasi
+   - Buka Docker Desktop dari Applications
    - Selesaikan wizard pengaturan awal
 
 3. **Verifikasi Instalasi**:
@@ -96,7 +96,7 @@ Docker menyediakan lingkungan kontainer untuk pengaturan pengembangan kita.
    sudo sh get-docker.sh
    sudo usermod -aG docker $USER
    
-   # Log out and back in for group changes to take effect
+   # Keluar dan masuk kembali agar perubahan grup berlaku
    ```
 
 2. **Instal Docker Compose**:
@@ -107,7 +107,7 @@ Docker menyediakan lingkungan kontainer untuk pengaturan pengembangan kita.
 
 ### 2. Instal Azure CLI
 
-Azure CLI memungkinkan penerapan dan pengelolaan sumber daya Azure.
+Azure CLI memungkinkan penyebaran dan manajemen sumber daya Azure.
 
 #### Instalasi Windows
 
@@ -121,10 +121,10 @@ winget install Microsoft.AzureCLI
 #### Instalasi macOS
 
 ```bash
-# Using Homebrew
+# Menggunakan Homebrew
 brew install azure-cli
 
-# Or using installer
+# Atau menggunakan penginstal
 curl -L https://aka.ms/InstallAzureCli | bash
 ```
 
@@ -142,20 +142,20 @@ sudo dnf install azure-cli
 #### Verifikasi dan Autentikasi
 
 ```bash
-# Check installation
+# Periksa instalasi
 az version
 
-# Login to Azure
+# Masuk ke Azure
 az login
 
-# Set default subscription (if you have multiple)
+# Atur langganan default (jika Anda memiliki beberapa)
 az account list --output table
 az account set --subscription "Your-Subscription-Name"
 ```
 
 ### 3. Instal Git
 
-Git diperlukan untuk cloning repositori dan kontrol versi.
+Git dibutuhkan untuk mengkloning repositori dan kontrol versi.
 
 #### Windows
 
@@ -169,7 +169,7 @@ winget install Git.Git
 #### macOS
 
 ```bash
-# Git is usually pre-installed, but you can update via Homebrew
+# Git biasanya sudah terpasang, tetapi Anda dapat memperbarui melalui Homebrew
 brew install git
 ```
 
@@ -185,7 +185,7 @@ sudo dnf install git
 
 ### 4. Instal VS Code
 
-Visual Studio Code menyediakan lingkungan pengembangan terintegrasi dengan dukungan MCP.
+Visual Studio Code menyediakan lingkungan pengembangan terpadu dengan dukungan MCP.
 
 #### Instalasi
 
@@ -200,12 +200,12 @@ brew install --cask visual-studio-code
 sudo snap install code --classic
 ```
 
-#### Ekstensi yang Diperlukan
+#### Ekstensi yang Dibutuhkan
 
 Instal ekstensi VS Code berikut:
 
 ```bash
-# Install via command line
+# Pasang melalui baris perintah
 code --install-extension ms-python.python
 code --install-extension ms-vscode.vscode-json
 code --install-extension ms-azuretools.vscode-docker
@@ -214,7 +214,7 @@ code --install-extension ms-vscode.azure-account
 
 Atau instal melalui VS Code:
 1. Buka VS Code
-2. Pergi ke Ekstensi (Ctrl+Shift+X)
+2. Pergi ke Extensions (Ctrl+Shift+X)
 3. Instal:
    - **Python** (Microsoft)
    - **Docker** (Microsoft)
@@ -237,7 +237,7 @@ winget install Python.Python.3.11
 #### macOS
 
 ```bash
-# Using Homebrew
+# Menggunakan Homebrew
 brew install python@3.11
 ```
 
@@ -254,73 +254,73 @@ sudo dnf install python3.11 python3.11-pip
 #### Verifikasi Instalasi
 
 ```bash
-python --version  # Should show Python 3.11.x
-pip --version      # Should show pip version
+python --version  # Harus menampilkan Python 3.11.x
+pip --version      # Harus menampilkan versi pip
 ```
 
 ## 🚀 Pengaturan Proyek
 
-### 1. Clone Repositori
+### 1. Kloning Repositori
 
 ```bash
-# Clone the main repository
+# Kloning repositori utama
 git clone https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail.git
 
-# Navigate to the project directory
+# Navigasikan ke direktori proyek
 cd MCP-Server-and-PostgreSQL-Sample-Retail
 
-# Verify repository structure
+# Verifikasi struktur repositori
 ls -la
 ```
 
 ### 2. Buat Lingkungan Virtual Python
 
 ```bash
-# Create virtual environment
+# Buat lingkungan virtual
 python -m venv mcp-env
 
-# Activate virtual environment
+# Aktifkan lingkungan virtual
 # Windows
 mcp-env\Scripts\activate
 
 # macOS/Linux
 source mcp-env/bin/activate
 
-# Upgrade pip
+# Perbarui pip
 python -m pip install --upgrade pip
 ```
 
 ### 3. Instal Dependensi Python
 
 ```bash
-# Install development dependencies
+# Pasang dependensi pengembangan
 pip install -r requirements.lock.txt
 
-# Verify key packages
+# Verifikasi paket utama
 pip list | grep fastmcp
 pip list | grep asyncpg
 pip list | grep azure
 ```
 
-## ☁️ Penerapan Sumber Daya Azure
+## ☁️ Penyebaran Sumber Daya Azure
 
 ### 1. Pahami Persyaratan Sumber Daya
 
-Server MCP kita membutuhkan sumber daya Azure berikut:
+Server MCP kita memerlukan sumber daya Azure berikut:
 
 | **Sumber Daya** | **Tujuan** | **Perkiraan Biaya** |
-|-----------------|------------|---------------------|
-| **Azure AI Foundry** | Hosting dan pengelolaan model AI | $10-50/bulan |
+|--------------|-------------|-------------------|
+| **Microsoft Foundry** | Hosting dan manajemen model AI | $10-50/bulan |
 | **OpenAI Deployment** | Model embedding teks (text-embedding-3-small) | $5-20/bulan |
 | **Application Insights** | Pemantauan dan telemetri | $5-15/bulan |
 | **Resource Group** | Organisasi sumber daya | Gratis |
 
-### 2. Terapkan Sumber Daya Azure
+### 2. Deploy Sumber Daya Azure
 
-#### Opsi A: Penerapan Otomatis (Direkomendasikan)
+#### Opsi A: Penyebaran Otomatis (Disarankan)
 
 ```bash
-# Navigate to infrastructure directory
+# Navigasi ke direktori infrastruktur
 cd infra
 
 # Windows - PowerShell
@@ -330,28 +330,28 @@ cd infra
 ./deploy.sh
 ```
 
-Script penerapan akan:
-1. Membuat grup sumber daya unik
-2. Menerapkan sumber daya Azure AI Foundry
-3. Menerapkan model text-embedding-3-small
+Script penyebaran akan:
+1. Membuat resource group unik
+2. Menyebarkan sumber daya Microsoft Foundry
+3. Menyebarkan model text-embedding-3-small
 4. Mengonfigurasi Application Insights
 5. Membuat service principal untuk autentikasi
 6. Menghasilkan file `.env` dengan konfigurasi
 
-#### Opsi B: Penerapan Manual
+#### Opsi B: Penyebaran Manual
 
-Jika Anda lebih suka kontrol manual atau script otomatis gagal:
+Jika Anda ingin kontrol manual atau script otomatis gagal:
 
 ```bash
-# Set variables
+# Atur variabel
 RESOURCE_GROUP="rg-zava-mcp-$(date +%s)"
 LOCATION="westus2"
 AI_PROJECT_NAME="zava-ai-project"
 
-# Create resource group
+# Buat grup sumber daya
 az group create --name $RESOURCE_GROUP --location $LOCATION
 
-# Deploy main template
+# Terapkan templat utama
 az deployment group create \
   --resource-group $RESOURCE_GROUP \
   --template-file main.bicep \
@@ -359,16 +359,16 @@ az deployment group create \
   --parameters resourcePrefix="zava-mcp"
 ```
 
-### 3. Verifikasi Penerapan Azure
+### 3. Verifikasi Penyebaran Azure
 
 ```bash
-# Check resource group
+# Periksa grup sumber daya
 az group show --name $RESOURCE_GROUP --output table
 
-# List deployed resources
+# Daftar sumber daya yang diterapkan
 az resource list --resource-group $RESOURCE_GROUP --output table
 
-# Test AI service
+# Uji layanan AI
 az cognitiveservices account show \
   --name "your-ai-service-name" \
   --resource-group $RESOURCE_GROUP
@@ -376,10 +376,10 @@ az cognitiveservices account show \
 
 ### 4. Konfigurasi Variabel Lingkungan
 
-Setelah penerapan, Anda harus memiliki file `.env`. Verifikasi bahwa file tersebut berisi:
+Setelah penyebaran, Anda harus memiliki file `.env`. Pastikan berisi:
 
 ```bash
-# .env file contents
+# isi file .env
 PROJECT_ENDPOINT=https://your-project.cognitiveservices.azure.com/
 AZURE_OPENAI_ENDPOINT=https://your-openai.openai.azure.com/
 EMBEDDING_MODEL_DEPLOYMENT_NAME=text-embedding-3-small
@@ -388,7 +388,7 @@ AZURE_CLIENT_SECRET=your-client-secret
 AZURE_TENANT_ID=your-tenant-id
 APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=your-key;...
 
-# Database configuration (for development)
+# Konfigurasi database (untuk pengembangan)
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 POSTGRES_DB=zava
@@ -432,44 +432,44 @@ services:
 ### 2. Mulai Lingkungan Pengembangan
 
 ```bash
-# Ensure you're in the project root directory
+# Pastikan Anda berada di direktori root proyek
 cd /path/to/MCP-Server-and-PostgreSQL-Sample-Retail
 
-# Start the services
+# Mulai layanan
 docker-compose up -d
 
-# Check service status
+# Periksa status layanan
 docker-compose ps
 
-# View logs
+# Lihat log
 docker-compose logs -f
 ```
 
 ### 3. Verifikasi Pengaturan Database
 
 ```bash
-# Connect to PostgreSQL container
+# Terhubung ke kontainer PostgreSQL
 docker-compose exec postgres psql -U postgres -d zava
 
-# Check database structure
+# Periksa struktur basis data
 \dt retail.*
 
-# Verify sample data
+# Verifikasi data contoh
 SELECT COUNT(*) FROM retail.stores;
 SELECT COUNT(*) FROM retail.products;
 SELECT COUNT(*) FROM retail.orders;
 
-# Exit PostgreSQL
+# Keluar dari PostgreSQL
 \q
 ```
 
 ### 4. Uji Server MCP
 
 ```bash
-# Check MCP server health
+# Periksa kesehatan server MCP
 curl http://localhost:8000/health
 
-# Test basic MCP endpoint
+# Uji endpoint dasar MCP
 curl -X POST http://localhost:8000/mcp \
   -H "Content-Type: application/json" \
   -H "x-rls-user-id: 00000000-0000-0000-0000-000000000000" \
@@ -538,17 +538,17 @@ Buat konfigurasi MCP di VS Code:
 
 3. **Uji Koneksi Server MCP**:
    - Di AI Chat, ketik `#zava` dan pilih salah satu server yang dikonfigurasi
-   - Tanyakan: "Tabel apa saja yang tersedia di database?"
-   - Anda harus menerima respons yang mencantumkan tabel database retail
+   - Tanyakan: "Apa saja tabel yang tersedia di database?"
+   - Anda harus menerima respon yang mencantumkan tabel database ritel
 
 ## ✅ Validasi Lingkungan
 
-### 1. Pemeriksaan Sistem Komprehensif
+### 1. Pemeriksaan Sistem Menyeluruh
 
-Jalankan script validasi ini untuk memverifikasi pengaturan Anda:
+Jalankan skrip validasi ini untuk memeriksa pengaturan Anda:
 
 ```bash
-# Create validation script
+# Buat skrip validasi
 cat > validate_setup.py << 'EOF'
 #!/usr/bin/env python3
 """
@@ -567,7 +567,7 @@ async def validate_environment():
     """Comprehensive environment validation."""
     results = {}
     
-    # Check Python version
+    # Periksa versi Python
     python_version = sys.version_info
     results['python'] = {
         'status': 'pass' if python_version >= (3, 8) else 'fail',
@@ -575,7 +575,7 @@ async def validate_environment():
         'required': '3.8+'
     }
     
-    # Check required packages
+    # Periksa paket yang dibutuhkan
     required_packages = ['fastmcp', 'asyncpg', 'azure-ai-projects']
     for package in required_packages:
         try:
@@ -584,7 +584,7 @@ async def validate_environment():
         except ImportError:
             results[f'package_{package}'] = {'status': 'fail', 'error': 'Not installed'}
     
-    # Check Docker
+    # Periksa Docker
     try:
         result = subprocess.run(['docker', '--version'], capture_output=True, text=True)
         results['docker'] = {
@@ -594,7 +594,7 @@ async def validate_environment():
     except FileNotFoundError:
         results['docker'] = {'status': 'fail', 'error': 'Docker not found'}
     
-    # Check Azure CLI
+    # Periksa Azure CLI
     try:
         result = subprocess.run(['az', '--version'], capture_output=True, text=True)
         results['azure_cli'] = {
@@ -604,7 +604,7 @@ async def validate_environment():
     except FileNotFoundError:
         results['azure_cli'] = {'status': 'fail', 'error': 'Azure CLI not found'}
     
-    # Check environment variables
+    # Periksa variabel lingkungan
     required_env_vars = [
         'PROJECT_ENDPOINT',
         'AZURE_OPENAI_ENDPOINT',
@@ -621,7 +621,7 @@ async def validate_environment():
             'value': '***' if value and 'SECRET' in var else value
         }
     
-    # Check database connection
+    # Periksa koneksi database
     try:
         conn = await asyncpg.connect(
             host=os.getenv('POSTGRES_HOST', 'localhost'),
@@ -631,7 +631,7 @@ async def validate_environment():
             password=os.getenv('POSTGRES_PASSWORD', 'secure_password')
         )
         
-        # Test query
+        # Uji query
         result = await conn.fetchval('SELECT COUNT(*) FROM retail.stores')
         await conn.close()
         
@@ -645,7 +645,7 @@ async def validate_environment():
             'error': str(e)
         }
     
-    # Check MCP server
+    # Periksa server MCP
     try:
         response = requests.get('http://localhost:8000/health', timeout=5)
         results['mcp_server'] = {
@@ -658,7 +658,7 @@ async def validate_environment():
             'error': str(e)
         }
     
-    # Check Azure AI service
+    # Periksa layanan Azure AI
     try:
         credential = DefaultAzureCredential()
         project_client = AIProjectClient(
@@ -666,7 +666,7 @@ async def validate_environment():
             credential=credential
         )
         
-        # This will fail if credentials are invalid
+        # Ini akan gagal jika kredensial tidak valid
         results['azure_ai'] = {'status': 'pass'}
         
     except Exception as e:
@@ -716,146 +716,146 @@ async def main():
 
 EOF
 
-# Run validation
+# Jalankan validasi
 python validate_setup.py
 ```
 
 ### 2. Daftar Periksa Validasi Manual
 
 **✅ Alat Dasar**
-- [ ] Versi Docker 20.10+ terinstal dan berjalan
-- [ ] Azure CLI 2.40+ terinstal dan terautentikasi
+- [ ] Versi Docker 20.10+ terpasang dan berjalan
+- [ ] Azure CLI 2.40+ terinstal dan sudah autentikasi
 - [ ] Python 3.8+ dengan pip terinstal
-- [ ] Git 2.30+ terinstal
+- [ ] Git 2.30+ terpasang
 - [ ] VS Code dengan ekstensi yang diperlukan
 
 **✅ Sumber Daya Azure**
-- [ ] Grup sumber daya berhasil dibuat
-- [ ] Proyek AI Foundry diterapkan
-- [ ] Model text-embedding-3-small diterapkan
+- [ ] Resource group berhasil dibuat
+- [ ] Proyek AI Foundry disebarkan
+- [ ] Model text-embedding-3-small OpenAI disebarkan
 - [ ] Application Insights dikonfigurasi
-- [ ] Service principal dibuat dengan izin yang tepat
+- [ ] Service principal dibuat dengan izin tepat
 
 **✅ Konfigurasi Lingkungan**
-- [ ] File `.env` dibuat dengan semua variabel yang diperlukan
+- [ ] File `.env` dibuat dengan semua variabel yang dibutuhkan
 - [ ] Kredensial Azure berfungsi (uji dengan `az account show`)
-- [ ] Kontainer PostgreSQL berjalan dan dapat diakses
-- [ ] Data sampel dimuat di database
+- [ ] Container PostgreSQL berjalan dan dapat diakses
+- [ ] Data contoh dimuat di database
 
 **✅ Integrasi VS Code**
-- [ ] File `.vscode/mcp.json` dikonfigurasi
+- [ ] `.vscode/mcp.json` dikonfigurasi
 - [ ] Interpreter Python diatur ke lingkungan virtual
 - [ ] Server MCP muncul di AI Chat
-- [ ] Dapat menjalankan kueri uji melalui AI Chat
+- [ ] Dapat menjalankan query tes lewat AI Chat
 
 ## 🛠️ Pemecahan Masalah Umum
 
 ### Masalah Docker
 
-**Masalah**: Kontainer Docker tidak mau mulai
+**Masalah**: Container Docker tidak mau mulai  
 ```bash
-# Check Docker service status
+# Periksa status layanan Docker
 docker info
 
-# Check available resources
+# Periksa sumber daya yang tersedia
 docker system df
 
-# Clean up if needed
+# Bersihkan jika diperlukan
 docker system prune -f
 
-# Restart Docker Desktop (Windows/macOS)
-# Or restart Docker service (Linux)
+# Mulai ulang Docker Desktop (Windows/macOS)
+# Atau mulai ulang layanan Docker (Linux)
 sudo systemctl restart docker
 ```
-
-**Masalah**: Koneksi PostgreSQL gagal
+  
+**Masalah**: Koneksi PostgreSQL gagal  
 ```bash
-# Check container logs
+# Periksa log kontainer
 docker-compose logs postgres
 
-# Verify container is healthy
+# Verifikasi kontainer sehat
 docker-compose ps
 
-# Test direct connection
+# Uji koneksi langsung
 docker-compose exec postgres psql -U postgres -d zava -c "SELECT 1;"
 ```
+  
+### Masalah Penyebaran Azure
 
-### Masalah Penerapan Azure
-
-**Masalah**: Penerapan Azure gagal
+**Masalah**: Penyebaran Azure gagal  
 ```bash
-# Check Azure CLI authentication
+# Periksa otentikasi Azure CLI
 az account show
 
-# Verify subscription permissions
+# Verifikasi izin langganan
 az role assignment list --assignee $(az account show --query user.name -o tsv)
 
-# Check resource provider registration
+# Periksa pendaftaran penyedia sumber daya
 az provider register --namespace Microsoft.CognitiveServices
 az provider register --namespace Microsoft.Insights
 ```
-
-**Masalah**: Autentikasi layanan AI gagal
+  
+**Masalah**: Autentikasi layanan AI gagal  
 ```bash
-# Test service principal
+# Uji prinsipal layanan
 az login --service-principal \
   --username $AZURE_CLIENT_ID \
   --password $AZURE_CLIENT_SECRET \
   --tenant $AZURE_TENANT_ID
 
-# Verify AI service deployment
+# Verifikasi penyebaran layanan AI
 az cognitiveservices account list --query "[].{Name:name,Kind:kind,Location:location}"
 ```
-
+  
 ### Masalah Lingkungan Python
 
-**Masalah**: Instalasi paket gagal
+**Masalah**: Instalasi paket gagal  
 ```bash
-# Upgrade pip and setuptools
+# Tingkatkan pip dan setuptools
 python -m pip install --upgrade pip setuptools wheel
 
-# Clear pip cache
+# Bersihkan cache pip
 pip cache purge
 
-# Install packages one by one to identify issues
+# Instal paket satu per satu untuk mengidentifikasi masalah
 pip install fastmcp
 pip install asyncpg
 pip install azure-ai-projects
 ```
-
-**Masalah**: VS Code tidak dapat menemukan interpreter Python
+  
+**Masalah**: VS Code tidak menemukan interpreter Python  
 ```bash
-# Show Python interpreter paths
+# Tampilkan jalur interpreter Python
 which python  # macOS/Linux
 where python  # Windows
 
-# Activate virtual environment first
+# Aktifkan lingkungan virtual terlebih dahulu
 source mcp-env/bin/activate  # macOS/Linux
 mcp-env\Scripts\activate     # Windows
 
-# Then open VS Code
+# Kemudian buka VS Code
 code .
 ```
+  
+## 🎯 Hal Penting yang Dipelajari
 
-## 🎯 Poin Penting
+Setelah menyelesaikan lab ini, Anda akan mendapatkan:
 
-Setelah menyelesaikan lab ini, Anda seharusnya memiliki:
-
-✅ **Lingkungan Pengembangan Lengkap**: Semua alat terinstal dan dikonfigurasi  
-✅ **Sumber Daya Azure Diterapkan**: Layanan AI dan infrastruktur pendukung  
-✅ **Lingkungan Docker Berjalan**: Kontainer PostgreSQL dan server MCP  
+✅ **Lingkungan Pengembangan Lengkap**: Semua alat terpasang dan dikonfigurasi  
+✅ **Sumber Daya Azure Disebarkan**: Layanan AI dan infrastruktur pendukung  
+✅ **Lingkungan Docker Berjalan**: Container PostgreSQL dan server MCP  
 ✅ **Integrasi VS Code**: Server MCP dikonfigurasi dan dapat diakses  
-✅ **Pengaturan yang Divalidasi**: Semua komponen diuji dan bekerja bersama  
+✅ **Pengaturan Terverifikasi**: Semua komponen diuji dan bekerja bersama  
 ✅ **Pengetahuan Pemecahan Masalah**: Masalah umum dan solusinya  
 
-## 🚀 Langkah Selanjutnya
+## 🚀 Apa Selanjutnya
 
-Dengan lingkungan Anda siap, lanjutkan ke **[Lab 04: Desain dan Skema Database](../04-Database/README.md)** untuk:
+Dengan lingkungan Anda siap, lanjutkan ke **[Lab 04: Perancangan Database dan Skema](../04-Database/README.md)** untuk:
 
-- Mengeksplorasi skema database retail secara mendetail
+- Mengeksplorasi skema database ritel secara detail
 - Memahami pemodelan data multi-tenant
-- Mempelajari implementasi Row Level Security
-- Bekerja dengan data retail sampel
+- Mempelajari implementasi Keamanan Tingkat Baris (Row Level Security)
+- Bekerja dengan data contoh ritel
 
 ## 📚 Sumber Daya Tambahan
 
@@ -865,20 +865,22 @@ Dengan lingkungan Anda siap, lanjutkan ke **[Lab 04: Desain dan Skema Database](
 - [Dokumentasi VS Code](https://code.visualstudio.com/docs) - Konfigurasi editor dan ekstensi
 
 ### Layanan Azure
-- [Dokumentasi Azure AI Foundry](https://docs.microsoft.com/azure/ai-foundry/) - Konfigurasi layanan AI
-- [Layanan Azure OpenAI](https://docs.microsoft.com/azure/cognitive-services/openai/) - Penerapan model AI
+- [Dokumentasi Microsoft Foundry](https://docs.microsoft.com/azure/ai-foundry/) - Konfigurasi layanan AI
+- [Layanan Azure OpenAI](https://docs.microsoft.com/azure/cognitive-services/openai/) - Penyebaran model AI
 - [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) - Pengaturan pemantauan
 
 ### Pengembangan Python
 - [Lingkungan Virtual Python](https://docs.python.org/3/tutorial/venv.html) - Manajemen lingkungan
-- [Dokumentasi AsyncIO](https://docs.python.org/3/library/asyncio.html) - Pola pemrograman async
+- [Dokumentasi AsyncIO](https://docs.python.org/3/library/asyncio.html) - Pola pemrograman Async
 - [Dokumentasi FastAPI](https://fastapi.tiangolo.com/) - Pola framework web
 
 ---
 
-**Selanjutnya**: Lingkungan siap? Lanjutkan dengan [Lab 04: Desain dan Skema Database](../04-Database/README.md)
+**Selanjutnya**: Lingkungan siap? Lanjutkan dengan [Lab 04: Perancangan Database dan Skema](../04-Database/README.md)
 
 ---
 
-**Penafian**:  
-Dokumen ini telah diterjemahkan menggunakan layanan penerjemahan AI [Co-op Translator](https://github.com/Azure/co-op-translator). Meskipun kami berusaha untuk memberikan hasil yang akurat, harap diperhatikan bahwa terjemahan otomatis mungkin mengandung kesalahan atau ketidakakuratan. Dokumen asli dalam bahasa aslinya harus dianggap sebagai sumber yang otoritatif. Untuk informasi yang bersifat kritis, disarankan menggunakan jasa penerjemahan manusia profesional. Kami tidak bertanggung jawab atas kesalahpahaman atau penafsiran yang keliru yang timbul dari penggunaan terjemahan ini.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Penafian**:
+Dokumen ini telah diterjemahkan menggunakan layanan terjemahan AI [Co-op Translator](https://github.com/Azure/co-op-translator). Meskipun kami berupaya untuk mencapai akurasi, harap diketahui bahwa terjemahan otomatis mungkin mengandung kesalahan atau ketidakakuratan. Dokumen asli dalam bahasa aslinya harus dianggap sebagai sumber yang sah. Untuk informasi penting, disarankan menggunakan terjemahan profesional oleh manusia. Kami tidak bertanggung jawab atas kesalahpahaman atau penafsiran yang keliru yang timbul dari penggunaan terjemahan ini.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

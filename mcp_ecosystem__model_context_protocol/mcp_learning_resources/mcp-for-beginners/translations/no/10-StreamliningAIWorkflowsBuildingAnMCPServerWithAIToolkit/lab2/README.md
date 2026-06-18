@@ -1,4 +1,4 @@
-# 🌐 Modul 2: MCP med AI Toolkit Grunnleggende
+# 🌐 Modul 2: MCP med Microsoft Foundry Toolkit Grunnleggende
 
 [![Varighet](https://img.shields.io/badge/Duration-20%20minutes-blue.svg)]()
 [![Vanskelighetsgrad](https://img.shields.io/badge/Difficulty-Intermediate-yellow.svg)]()
@@ -6,193 +6,193 @@
 
 ## 📋 Læringsmål
 
-Innen slutten av denne modulen vil du kunne:
-- ✅ Forstå Model Context Protocol (MCP) arkitektur og fordeler
-- ✅ Utforske Microsofts MCP-serverøkosystem
-- ✅ Integrere MCP-servere med AI Toolkit Agent Builder
+Ved slutten av denne modulen vil du kunne:
+- ✅ Forstå Model Context Protocol (MCP)-arkitektur og fordeler
+- ✅ Utforske Microsofts MCP server-økosystem
+- ✅ Integrere MCP-servere med Microsoft Foundry Toolkit Agent Builder
 - ✅ Bygge en funksjonell nettleserautomatiseringsagent med Playwright MCP
 - ✅ Konfigurere og teste MCP-verktøy i agentene dine
 - ✅ Eksportere og distribuere MCP-drevne agenter for produksjonsbruk
 
 ## 🎯 Bygger videre på Modul 1
 
-I Modul 1 mestret vi AI Toolkit-grunnleggende og laget vår første Python-agent. Nå skal vi **gi agentene dine ekstra kraft** ved å koble dem til eksterne verktøy og tjenester gjennom den revolusjonerende **Model Context Protocol (MCP)**.
+I Modul 1 mestret vi Microsoft Foundry Toolkit-grunnleggende og opprettet vår første Python-agent. Nå skal vi **superlade** agentene dine ved å koble dem til eksterne verktøy og tjenester gjennom den revolusjonerende **Model Context Protocol (MCP)**.
 
-Tenk på dette som en oppgradering fra en enkel kalkulator til en fullverdig datamaskin – AI-agentene dine får muligheten til å:
-- 🌐 Surfe og samhandle med nettsider
+Se på dette som en oppgradering fra en enkel kalkulator til en fullverdig datamaskin – AI-agentene dine vil få muligheten til å:
+- 🌐 Surfe på og samhandle med nettsteder
 - 📁 Få tilgang til og manipulere filer
-- 🔧 Integrere med bedriftsystemer
+- 🔧 Integrere med virksomhetssystemer
 - 📊 Behandle sanntidsdata fra API-er
 
 ## 🧠 Forstå Model Context Protocol (MCP)
 
 ### 🔍 Hva er MCP?
 
-Model Context Protocol (MCP) er **"USB-C for AI-applikasjoner"** – en revolusjonerende åpen standard som kobler store språkmodeller (LLMs) til eksterne verktøy, datakilder og tjenester. Akkurat som USB-C fjernet kabelkaos ved å tilby én universell kontakt, fjerner MCP kompleksiteten ved AI-integrasjon med én standardisert protokoll.
+Model Context Protocol (MCP) er **"USB-C for AI-applikasjoner"** – en revolusjonerende åpen standard som kobler store språkmodeller (LLMs) til eksterne verktøy, datakilder og tjenester. Akkurat som USB-C eliminerte kabelkaos ved å gi én universell kontakt, eliminerer MCP AI-integrasjonskompleksitet med én standardisert protokoll.
 
-### 🎯 Problemet MCP løser
+### 🎯 Problemet MCP Løser
 
 **Før MCP:**
-- 🔧 Skreddersydde integrasjoner for hvert verktøy
-- 🔄 Leverandørlås med proprietære løsninger  
-- 🔒 Sikkerhetssårbarheter fra ad-hoc-tilkoblinger
-- ⏱️ Måneder med utvikling for grunnleggende integrasjoner
+- 🔧 Tilpassede integrasjoner for hvert verktøy
+- 🔄 Leverandørbinding med proprietære løsninger  
+- 🔒 Sikkerhetsrisikoer fra ad hoc-tilkoblinger
+- ⏱️ Flere måneders utvikling for grunnleggende integrasjoner
 
 **Med MCP:**
-- ⚡ Plug-and-play verktøysintegrasjon
+- ⚡ Plug-and-play verktøyintegrasjon
 - 🔄 Leverandøruavhengig arkitektur
-- 🛡️ Innebygde sikkerhetsrutiner
+- 🛡️ Innebygde sikkerhetsbeste praksiser
 - 🚀 Minutter for å legge til nye funksjoner
 
-### 🏗️ MCP-arkitektur i detalj
+### 🏗️ MCP Arkitektur Dybdestudie
 
-MCP følger en **klient-server-arkitektur** som skaper et sikkert og skalerbart økosystem:
+MCP følger en **klient-server-konstruksjon** som skaper et sikkert, skalerbart økosystem:
 
 ```mermaid
 graph TB
-    A[AI Application/Agent] --> B[MCP Client]
-    B --> C[MCP Server 1: Files]
-    B --> D[MCP Server 2: Web APIs]
+    A[AI Applikasjon/Agent] --> B[MCP Klient]
+    B --> C[MCP Server 1: Filer]
+    B --> D[MCP Server 2: Nett-APIer]
     B --> E[MCP Server 3: Database]
-    B --> F[MCP Server N: Custom Tools]
+    B --> F[MCP Server N: Egendefinerte Verktøy]
     
-    C --> G[Local File System]
-    D --> H[External APIs]
-    E --> I[Database Systems]
-    F --> J[Enterprise Systems]
+    C --> G[Lokal Fillagring]
+    D --> H[Eksterne APIer]
+    E --> I[Databasesystemer]
+    F --> J[Bedriftssystemer]
 ```
 
 **🔧 Kjernekomponenter:**
 
 | Komponent | Rolle | Eksempler |
 |-----------|-------|-----------|
-| **MCP Hosts** | Applikasjoner som bruker MCP-tjenester | Claude Desktop, VS Code, AI Toolkit |
-| **MCP Clients** | Protokollhåndterere (1:1 med servere) | Innebygd i host-applikasjoner |
+| **MCP Hosts** | Applikasjoner som bruker MCP-tjenester | Claude Desktop, VS Code, Microsoft Foundry Toolkit |
+| **MCP Clients** | Protokollhåndterere (1:1 med servere) | Innebygd i vertsapplikasjoner |
 | **MCP Servers** | Eksponerer funksjonalitet via standard protokoll | Playwright, Files, Azure, GitHub |
 | **Transport Layer** | Kommunikasjonsmetoder | stdio, HTTP, WebSockets |
 
 
-## 🏢 Microsofts MCP-serverøkosystem
+## 🏢 Microsofts MCP Server-økosystem
 
-Microsoft leder MCP-økosystemet med en omfattende pakke av bedriftsservere som dekker reelle forretningsbehov.
+Microsoft leder MCP-økosystemet med en omfattende pakke av enterprise-grade servere som dekker virkelige forretningsbehov.
 
 ### 🌟 Utvalgte Microsoft MCP-servere
 
 #### 1. ☁️ Azure MCP Server
-**🔗 Repository**: [azure/azure-mcp](https://github.com/azure/azure-mcp)  
+**🔗 Repository**: [azure/azure-mcp](https://github.com/azure/azure-mcp)
 **🎯 Formål**: Omfattende Azure-ressursstyring med AI-integrasjon
 
-**✨ Nøkkelfunksjoner:**
+**✨ Hovedfunksjoner:**
 - Deklarativ infrastrukturprovisjonering
 - Sanntidsovervåking av ressurser
 - Anbefalinger for kostnadsoptimalisering
-- Sikkerhetsoverholdelse
+- Sikkerhetsoverholdelseskontroll
 
 **🚀 Bruksområder:**
-- Infrastruktur som kode med AI-assistanse
-- Automatisk ressurs-skalering
-- Optimalisering av skylagringskostnader
-- Automatisering av DevOps-arbeidsflyt
+- Infrastruktur-som-kode med AI-hjelp
+- Automatisert ressurseskalering
+- Optimalisering av skylastekostnader
+- DevOps arbeidsflytautomatisering
 
 #### 2. 📊 Microsoft Dataverse MCP
-**📚 Dokumentasjon**: [Microsoft Dataverse Integration](https://go.microsoft.com/fwlink/?linkid=2320176)  
+**📚 Dokumentasjon**: [Microsoft Dataverse Integration](https://go.microsoft.com/fwlink/?linkid=2320176)
 **🎯 Formål**: Naturlig språkgrensesnitt for forretningsdata
 
-**✨ Nøkkelfunksjoner:**
-- Naturlige språkspørringer mot databaser
+**✨ Hovedfunksjoner:**
+- Spørringer i database på naturlig språk
 - Forståelse av forretningskontekst
-- Tilpassede prompt-maler
-- Bedriftsdatastyring
+- Tilpassede promptmaler
+- Virksomhetsdataforvaltning
 
 **🚀 Bruksområder:**
 - Forretningsintelligensrapportering
-- Analyse av kundedata
+- Kundeanalyse
 - Innsikt i salgspipeline
-- Spørringer for samsvarsdokumentasjon
+- Spørringer for etterlevelsesdata
 
 #### 3. 🌐 Playwright MCP Server
-**🔗 Repository**: [microsoft/playwright-mcp](https://github.com/microsoft/playwright-mcp)  
+**🔗 Repository**: [microsoft/playwright-mcp](https://github.com/microsoft/playwright-mcp)
 **🎯 Formål**: Nettleserautomatisering og webinteraksjon
 
-**✨ Nøkkelfunksjoner:**
+**✨ Hovedfunksjoner:**
 - Kryss-nettleserautomatisering (Chrome, Firefox, Safari)
-- Intelligent elementgjenkjenning
-- Skjermbilder og PDF-generering
+- Intelligent elementdeteksjon
+- Skjermbildetaking og PDF-generering
 - Nettverksovervåking
 
 **🚀 Bruksområder:**
 - Automatiserte testarbeidsflyter
-- Webskraping og datauttrekk
+- Webskraping og datauthenting
 - UI/UX-overvåking
-- Automatisert konkurranseanalyse
+- Automatisering av konkurrentanalyse
 
 #### 4. 📁 Files MCP Server
-**🔗 Repository**: [microsoft/files-mcp-server](https://github.com/microsoft/files-mcp-server)  
+**🔗 Repository**: [microsoft/files-mcp-server](https://github.com/microsoft/files-mcp-server)
 **🎯 Formål**: Intelligente filsystemoperasjoner
 
-**✨ Nøkkelfunksjoner:**
-- Deklarativ filhåndtering
+**✨ Hovedfunksjoner:**
+- Deklarativ filbehandling
 - Innholdssynkronisering
 - Versjonskontrollintegrasjon
 - Metadatauttrekk
 
 **🚀 Bruksområder:**
-- Dokumentasjonsstyring
+- Dokumenthåndtering
 - Organisering av kodearkiv
-- Arbeidsflyt for innholdspublisering
+- Innholdspublisering
 - Filhåndtering i datapipelines
 
 #### 5. 📝 MarkItDown MCP Server
-**🔗 Repository**: [microsoft/markitdown](https://github.com/microsoft/markitdown)  
+**🔗 Repository**: [microsoft/markitdown](https://github.com/microsoft/markitdown)
 **🎯 Formål**: Avansert Markdown-behandling og manipulering
 
-**✨ Nøkkelfunksjoner:**
-- Omfattende Markdown-parsing
+**✨ Hovedfunksjoner:**
+- Rik Markdown-parsing
 - Formatkonvertering (MD ↔ HTML ↔ PDF)
 - Analyse av innholdsstruktur
 - Malbehandling
 
 **🚀 Bruksområder:**
-- Arbeidsflyt for teknisk dokumentasjon
-- Innholdsstyringssystemer
+- Tekniske dokumentasjonsarbeidsflyter
+- Innholdsadministrasjonssystemer
 - Rapportgenerering
-- Automatisering av kunnskapsbaser
+- Automatisering av kunnskapsbase
 
 #### 6. 📈 Clarity MCP Server
-**📦 Pakke**: [@microsoft/clarity-mcp-server](https://www.npmjs.com/package/@microsoft/clarity-mcp-server)  
+**📦 Pakke**: [@microsoft/clarity-mcp-server](https://www.npmjs.com/package/@microsoft/clarity-mcp-server)
 **🎯 Formål**: Webanalyse og innsikt i brukeradferd
 
-**✨ Nøkkelfunksjoner:**
-- Analyse av heatmaps
-- Opptak av brukersesjoner
+**✨ Hovedfunksjoner:**
+- Analyse av heatmap-data
+- Innspilling av brukersesjoner
 - Ytelsesmetrikker
-- Analyse av konverteringstrakter
+- Konverteringstraktanalyse
 
 **🚀 Bruksområder:**
-- Optimalisering av nettsider
+- Nettstedsoptimalisering
 - Brukeropplevelsesforskning
-- A/B-testing
-- Dashboards for forretningsintelligens
+- A/B-testingsanalyse
+- Dashbord for forretningsintelligens
 
 ### 🌍 Fellesskapsøkosystem
 
-I tillegg til Microsofts servere inkluderer MCP-økosystemet:
-- **🐙 GitHub MCP**: Repository-håndtering og kodeanalyse
-- **🗄️ Database MCP-er**: Integrasjoner for PostgreSQL, MySQL, MongoDB
-- **☁️ Cloud Provider MCP-er**: Verktøy for AWS, GCP, Digital Ocean
-- **📧 Kommunikasjons MCP-er**: Slack, Teams, e-postintegrasjoner
+Utover Microsofts servere inkluderer MCP-økosystemet:
+- **🐙 GitHub MCP**: Repository-styring og kodeanalyse
+- **🗄️ Database-MCP-er**: PostgreSQL, MySQL, MongoDB-integrasjoner
+- **☁️ Skyleverandør-MCP-er**: AWS, GCP, Digital Ocean-verktøy
+- **📧 Kommunikasjons-MCP-er**: Slack, Teams, e-post-integrasjoner
 
-## 🛠️ Praktisk lab: Bygg en nettleserautomatiseringsagent
+## 🛠️ Praktisk lab: Lage en nettleserautomatiseringsagent
 
-**🎯 Prosjektmål**: Lag en intelligent nettleserautomatiseringsagent med Playwright MCP-server som kan navigere på nettsider, hente informasjon og utføre komplekse webinteraksjoner.
+**🎯 Prosjektmål**: Lag en intelligent nettleserautomatiseringsagent med Playwright MCP-server som kan navigere på nettsteder, hente informasjon og utføre avanserte webinteraksjoner.
 
 ### 🚀 Fase 1: Oppsett av agentgrunnlag
 
 #### Steg 1: Initialiser agenten din
-1. **Åpne AI Toolkit Agent Builder**  
-2. **Opprett ny agent** med følgende konfigurasjon:  
-   - **Navn**: `BrowserAgent`  
-   - **Modell**: Velg GPT-4o  
+1. **Åpne Microsoft Foundry Toolkit Agent Builder**
+2. **Lag ny agent** med følgende konfigurasjon:
+   - **Navn**: `BrowserAgent`
+   - **Modell**: Velg GPT-4o
 
 ![BrowserAgent](../../../../translated_images/no/BrowserAgent.09c1adde5e136573.webp)
 
@@ -200,65 +200,65 @@ I tillegg til Microsofts servere inkluderer MCP-økosystemet:
 ### 🔧 Fase 2: MCP-integrasjonsarbeidsflyt
 
 #### Steg 3: Legg til MCP-serverintegrasjon
-1. **Gå til Verktøy-seksjonen** i Agent Builder  
-2. **Klikk "Add Tool"** for å åpne integrasjonsmenyen  
-3. **Velg "MCP Server"** fra tilgjengelige alternativer  
+1. **Naviger til verktøyseksjonen** i Agent Builder
+2. **Klikk "Legg til verktøy"** for å åpne integrasjonsmenyen
+3. **Velg "MCP Server"** fra tilgjengelige alternativer
 
 ![AddMCP](../../../../translated_images/no/AddMCP.afe3308ac20aa944.webp)
 
-**🔍 Forstå verktøytyper:**  
-- **Innebygde verktøy**: Ferdigkonfigurerte AI Toolkit-funksjoner  
-- **MCP-servere**: Eksterne tjenesteintegrasjoner  
-- **Egendefinerte API-er**: Egne tjenendepunkter  
-- **Funksjonskall**: Direkte tilgang til modellfunksjoner  
+**🔍 Forstå verktøytyper:**
+- **Innebygde verktøy**: Forhåndskonfigurerte Microsoft Foundry Toolkit-funksjoner
+- **MCP-servere**: Eksterne tjenesteintegrasjoner
+- **Egendefinerte APIer**: Egne tjenestepunkter
+- **Funksjonskall**: Direkte tilgang til modellfunksjoner
 
 #### Steg 4: Velg MCP-server
-1. **Velg "MCP Server"** for å fortsette  
+1. **Velg "MCP Server"** for å fortsette
 ![AddMCPServer](../../../../translated_images/no/AddMCPServer.69b911ccef872cbd.webp)
 
-2. **Utforsk MCP-katalogen** for å se tilgjengelige integrasjoner  
+2. **Bla gjennom MCP-katalogen** for å utforske tilgjengelige integrasjoner
 ![MCPCatalog](../../../../translated_images/no/MCPCatalog.a817d05314569900.webp)
 
 
-### 🎮 Fase 3: Konfigurasjon av Playwright MCP
+### 🎮 Fase 3: Playwright MCP-konfigurasjon
 
 #### Steg 5: Velg og konfigurer Playwright
-1. **Klikk "Use Featured MCP Servers"** for å få tilgang til Microsofts verifiserte servere  
-2. **Velg "Playwright"** fra listen over utvalgte  
-3. **Godta standard MCP ID** eller tilpass for ditt miljø  
+1. **Klikk "Bruk utvalgte MCP-servere"** for å åpne Microsofts verifiserte servere
+2. **Velg "Playwright"** fra den utvalgte listen
+3. **Godta standard MCP-ID** eller tilpass for ditt miljø
 
 ![MCPID](../../../../translated_images/no/MCPID.67d446052979e819.webp)
 
 #### Steg 6: Aktiver Playwright-funksjoner
-**🔑 Kritisk steg**: Velg **ALLE** tilgjengelige Playwright-metoder for maksimal funksjonalitet  
+**🔑 Kritisk steg**: Velg **ALLE** tilgjengelige Playwright-metoder for maksimal funksjonalitet
 
 ![Tools](../../../../translated_images/no/Tools.3ea23c447b4d9fec.webp)
 
-**🛠️ Viktige Playwright-verktøy:**  
-- **Navigasjon**: `goto`, `goBack`, `goForward`, `reload`  
-- **Interaksjon**: `click`, `fill`, `press`, `hover`, `drag`  
-- **Uttrekk**: `textContent`, `innerHTML`, `getAttribute`  
-- **Validering**: `isVisible`, `isEnabled`, `waitForSelector`  
-- **Fangst**: `screenshot`, `pdf`, `video`  
-- **Nettverk**: `setExtraHTTPHeaders`, `route`, `waitForResponse`  
+**🛠️ Viktige Playwright-verktøy:**
+- **Navigasjon**: `goto`, `goBack`, `goForward`, `reload`
+- **Interaksjon**: `click`, `fill`, `press`, `hover`, `drag`
+- **Uthenting**: `textContent`, `innerHTML`, `getAttribute`
+- **Validering**: `isVisible`, `isEnabled`, `waitForSelector`
+- **Opptak**: `screenshot`, `pdf`, `video`
+- **Nettverk**: `setExtraHTTPHeaders`, `route`, `waitForResponse`
 
-#### Steg 7: Verifiser vellykket integrasjon
-**✅ Suksessindikatorer:**  
-- Alle verktøy vises i Agent Builder-grensesnittet  
-- Ingen feilmeldinger i integrasjonspanelet  
-- Playwright-serverstatus viser "Connected"  
+#### Steg 7: Verifiser integrasjonssuksess
+**✅ Suksessindikatorer:**
+- Alle verktøy vises i Agent Builder-grensesnittet
+- Ingen feilmeldinger i integrasjonspanelet
+- Playwright server-status viser "Connected"
 
 ![AgentTools](../../../../translated_images/no/AgentTools.053cfb96a17e0219.webp)
 
-**🔧 Vanlige feilsøkingspunkter:**  
-- **Tilkobling mislyktes**: Sjekk internett og brannmurinnstillinger  
-- **Manglende verktøy**: Sørg for at alle funksjoner ble valgt under oppsett  
-- **Tillatelsesfeil**: Bekreft at VS Code har nødvendige systemtillatelser  
+**🔧 Vanlige feilsøkingstips:**
+- **Tilkobling mislyktes**: Sjekk Internett-tilkobling og brannmurinnstillinger
+- **Verktøy mangler**: Sørg for at alle funksjoner ble valgt under oppsettet
+- **Tillatelsesfeil**: Kontroller at VS Code har nødvendige systemtillatelser
 
 ### 🎯 Fase 4: Avansert promptdesign
 
 #### Steg 8: Design intelligente systemprompter
-Lag avanserte prompter som utnytter Playwrights fulle funksjonalitet:
+Lag sofistikerte prompter som utnytter Playwrights fullstendige funksjonalitet:
 
 ```markdown
 # Web Automation Expert System Prompt
@@ -301,7 +301,7 @@ You are an advanced web automation specialist with deep expertise in browser aut
 #### Steg 9: Lag dynamiske brukerprompter
 Design prompter som demonstrerer ulike funksjoner:
 
-**🌐 Eksempel på webanalyse:**  
+**🌐 Eksempel på webanalyse:**
 ```markdown
 Navigate to github.com/kinfey and provide a comprehensive analysis including:
 1. Repository structure and organization
@@ -316,58 +316,62 @@ Include screenshots at key steps and provide actionable insights.
 
 ![Prompt](../../../../translated_images/no/Prompt.bfc846605db4999f.webp)
 
-### 🚀 Fase 5: Kjøring og testing
+### 🚀 Fase 5: Utførelse og testing
 
-#### Steg 10: Kjør din første automatisering
-1. **Klikk "Run"** for å starte automatiseringssekvensen  
-2. **Følg sanntidskjøringen**:  
-   - Chrome-nettleser åpnes automatisk  
-   - Agenten navigerer til mål-nettside  
-   - Skjermbilder tas av hvert hovedsteg  
-   - Analyse-resultater strømmer i sanntid  
+#### Steg 10: Kjøre din første automatisering
+1. **Klikk "Kjør"** for å starte automasjonssekvensen
+2. **Overvåk sanntids utførelse**:
+   - Chrome-nettleser starter automatisk
+   - Agent navigerer til målnettstedet
+   - Skjermbilder tas for hvert viktig steg
+   - Analyse-resultater strømmer i sanntid
 
 ![Browser](../../../../translated_images/no/Browser.ec011d0bd64d0d11.webp)
 
 #### Steg 11: Analyser resultater og innsikt
-Se gjennom omfattende analyser i Agent Builder-grensesnittet:
+Gå gjennom omfattende analyse i Agent Builder-grensesnittet:
 
 ![Result](../../../../translated_images/no/Result.8638f2b6703e9ea6.webp)
 
 ### 🌟 Fase 6: Avanserte funksjoner og distribusjon
 
 #### Steg 12: Eksporter og distribuer i produksjon
-Agent Builder støtter flere distribusjonsalternativer:
+Agent Builder støtter flere distribusjonsmuligheter:
 
 ![Code](../../../../translated_images/no/Code.d9eeeead0b96db0c.webp)
 
 ## 🎓 Modul 2 Oppsummering & Neste steg
 
-### 🏆 Oppnåelse låst opp: MCP-integrasjonsmester
+### 🏆 Prestasjon oppnådd: MCP-integrasjonsmester
 
-**✅ Ferdigheter mestret:**  
-- [ ] Forstå MCP-arkitektur og fordeler  
-- [ ] Navigere Microsofts MCP-serverøkosystem  
-- [ ] Integrere Playwright MCP med AI Toolkit  
-- [ ] Bygge avanserte nettleserautomatiseringsagenter  
-- [ ] Avansert promptdesign for webautomatisering  
+**✅ Ferdigheter mestret:**
+- [ ] Forstå MCP-arkitektur og fordeler
+- [ ] Navigere Microsofts MCP server-økosystem
+- [ ] Integrere Playwright MCP med Microsoft Foundry Toolkit
+- [ ] Bygge avanserte nettleserautomatiseringsagenter
+- [ ] Avansert promptdesign for nettsideautomatisering
 
-### 📚 Ekstra ressurser
+### 📚 Ytterligere ressurser
 
-- **🔗 MCP-spesifikasjon**: [Offisiell protokoll-dokumentasjon](https://modelcontextprotocol.io/)  
-- **🛠️ Playwright API**: [Fullstendig metodeoversikt](https://playwright.dev/docs/api/class-playwright)  
-- **🏢 Microsoft MCP-servere**: [Enterprise Integrasjonsguide](https://github.com/microsoft/mcp-servers)  
-- **🌍 Fellesskapseksempler**: [MCP Server Gallery](https://github.com/modelcontextprotocol/servers)  
+- **🔗 MCP-spesifikasjon**: [Offisiell protokoll-dokumentasjon](https://modelcontextprotocol.io/)
+- **🛠️ Playwright API**: [Fullstendig metodeoversikt](https://playwright.dev/docs/api/class-playwright)
+- **🏢 Microsoft MCP-servere**: [Enterprise integrasjonsguide](https://github.com/microsoft/mcp-servers)
+- **🌍 Fellesskapseksempler**: [MCP Server-galleri](https://github.com/modelcontextprotocol/servers)
 
 **🎉 Gratulerer!** Du har nå mestret MCP-integrasjon og kan bygge produksjonsklare AI-agenter med eksterne verktøy!
 
 ### 🔜 Fortsett til neste modul
 
-Klar for å ta MCP-ferdighetene dine til neste nivå? Gå videre til **[Modul 3: Avansert MCP-utvikling med AI Toolkit](../lab3/README.md)** hvor du vil lære å:  
-- Lage dine egne egendefinerte MCP-servere  
-- Konfigurere og bruke den nyeste MCP Python SDK  
-- Sette opp MCP Inspector for feilsøking  
+Klar for å ta MCP-ferdighetene dine til neste nivå? Gå videre til **[Modul 3: Avansert MCP-utvikling med Microsoft Foundry Toolkit](../lab3/README.md)** hvor du lærer å:
+- Lage egne egendefinerte MCP-servere
+- Konfigurere og bruke nyeste MCP Python SDK
+- Sette opp MCP Inspector for debugging
 - Mestre avanserte arbeidsflyter for MCP-serverutvikling
-- Bygg en Weather MCP-server fra bunnen av
+- Bygge en Weather MCP Server fra bunnen av
 
-**Ansvarsfraskrivelse**:  
-Dette dokumentet er oversatt ved hjelp av AI-oversettelsestjenesten [Co-op Translator](https://github.com/Azure/co-op-translator). Selv om vi streber etter nøyaktighet, vennligst vær oppmerksom på at automatiske oversettelser kan inneholde feil eller unøyaktigheter. Det opprinnelige dokumentet på originalspråket skal anses som den autoritative kilden. For kritisk informasjon anbefales profesjonell menneskelig oversettelse. Vi er ikke ansvarlige for eventuelle misforståelser eller feiltolkninger som oppstår ved bruk av denne oversettelsen.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Ansvarsfraskrivelse**:
+Dette dokumentet er oversatt ved hjelp av AI-oversettelsestjenesten [Co-op Translator](https://github.com/Azure/co-op-translator). Selv om vi streber etter nøyaktighet, vær oppmerksom på at automatiske oversettelser kan inneholde feil eller unøyaktigheter. Det opprinnelige dokumentet på originalspråket skal betraktes som den autoritative kilden. For kritisk informasjon anbefales profesjonell menneskelig oversettelse. Vi er ikke ansvarlige for eventuelle misforståelser eller feiltolkninger som oppstår ved bruk av denne oversettelsen.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

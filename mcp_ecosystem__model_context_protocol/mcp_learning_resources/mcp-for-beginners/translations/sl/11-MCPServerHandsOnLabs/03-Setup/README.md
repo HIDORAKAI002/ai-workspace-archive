@@ -1,113 +1,113 @@
 # Nastavitev okolja
 
-## 🎯 Kaj pokriva ta laboratorij
+## 🎯 Kaj ta laboratorij zajema
 
-Ta praktični laboratorij vas vodi skozi nastavitev celotnega razvojnega okolja za gradnjo MCP strežnikov z integracijo PostgreSQL. Konfigurirali boste vsa potrebna orodja, uvedli Azure vire in preverili svojo nastavitev, preden nadaljujete z implementacijo.
+Ta praktični laboratorij vas vodi skozi nastavitev popolnega razvojnega okolja za izdelavo MCP strežnikov z integracijo PostgreSQL. Konfigurirali boste vsa potrebna orodja, namestili Azure vire in preverili svojo nastavitev, preden nadaljujete z implementacijo.
 
 ## Pregled
 
-Ustrezno razvojno okolje je ključno za uspešen razvoj MCP strežnikov. Ta laboratorij ponuja korak za korakom navodila za nastavitev Dockerja, Azure storitev, razvojnih orodij in preverjanje, da vse deluje pravilno skupaj.
+Pravilno razvojno okolje je ključno za uspešen razvoj MCP strežnika. Ta laboratorij ponuja korak za korakom navodila za nastavitev Dockerja, Azure storitev, razvojnih orodij in preverjanje, da vse deluje pravilno skupaj.
 
-Na koncu tega laboratorija boste imeli popolnoma funkcionalno razvojno okolje, pripravljeno za gradnjo MCP strežnika Zava Retail.
+Do konca tega laboratorija boste imeli popolnoma funkcionalno razvojno okolje, pripravljeno za izdelavo Zava Retail MCP strežnika.
 
 ## Cilji učenja
 
-Na koncu tega laboratorija boste lahko:
+Do konca tega laboratorija boste lahko:
 
-- **Namestili in konfigurirali** vsa potrebna razvojna orodja
-- **Uvedli Azure vire**, potrebne za MCP strežnik
-- **Nastavili Docker kontejnerje** za PostgreSQL in MCP strežnik
-- **Preverili** nastavitev okolja s testnimi povezavami
-- **Odpravili težave** z običajnimi težavami pri nastavitvi in konfiguraciji
-- **Razumeli** razvojni potek dela in strukturo datotek
+- **Namestili in konfigurirali** vsa potrebna razvojna orodja  
+- **Namestili Azure vire** potrebne za MCP strežnik  
+- **Nastavili Docker konteinerje** za PostgreSQL in MCP strežnik  
+- **Preverili** svojo nastavitev okolja z testnimi povezavami  
+- **Odpravili težave** s pogostimi nastavitvenimi in konfiguracijskimi problemi  
+- **Razumeli** razvojni potek in strukturo datotek  
 
 ## 📋 Preverjanje predpogojev
 
-Pred začetkom se prepričajte, da imate:
+Pred začetkom preverite, da imate:
 
-### Zahtevano znanje
-- Osnovna uporaba ukazne vrstice (Windows Command Prompt/PowerShell)
-- Razumevanje okoljskih spremenljivk
-- Poznavanje Git različice nadzora
-- Osnovni koncepti Dockerja (kontejnerji, slike, volumni)
+### Potrebno znanje
+- Osnovno uporabo ukazne vrstice (Windows Command Prompt/PowerShell)  
+- Razumevanje okoljskih spremenljivk  
+- Seznanjenost z Git sistemom za upravljanje verzij  
+- Osnovne pojme Dockerja (kontejnerji, slike, volumni)  
 
-### Sistemské zahteve
-- **Operacijski sistem**: Windows 10/11, macOS ali Linux
-- **RAM**: Najmanj 8 GB (priporočeno 16 GB)
-- **Shramba**: Vsaj 10 GB prostega prostora
-- **Omrežje**: Internetna povezava za prenose in uvedbo Azure
+### Sistemskih zahtev
+- **Operacijski sistem**: Windows 10/11, macOS ali Linux  
+- **RAM**: Najmanj 8GB (priporočeno 16GB)  
+- **Prostor na disku**: Vsaj 10GB prostega prostora  
+- **Omrežje**: Internetna povezava za prenos in namestitev Azure virov  
 
 ### Zahteve za račun
-- **Azure naročnina**: Brezplačna različica je dovolj
-- **GitHub račun**: Za dostop do repozitorija
-- **Docker Hub račun**: (Neobvezno) Za objavo prilagojenih slik
+- **Azure naročnina**: Brezplačni nivo je zadosten  
+- **GitHub račun**: Za dostop do repozitorija  
+- **Docker Hub račun**: (neobvezno) Za objavo lastnih slik  
 
 ## 🛠️ Namestitev orodij
 
-### 1. Namestitev Docker Desktop
+### 1. Namestite Docker Desktop
 
-Docker zagotavlja okolje s kontejnerji za našo razvojno nastavitev.
+Docker omogoča kontejnerizirano okolje za našo razvojno setup.
 
 #### Namestitev na Windows
 
-1. **Prenesite Docker Desktop**:
+1. **Prenesite Docker Desktop**:  
    ```cmd
    # Visit https://desktop.docker.com/win/stable/Docker%20Desktop%20Installer.exe
    # Or use Windows Package Manager
    winget install Docker.DockerDesktop
    ```
+  
+2. **Namestite in konfigurirajte**:  
+   - Zaženite namestitveni program kot Administrator  
+   - Omogočite integracijo WSL 2 ko se prikaže poziv  
+   - Ponovno zaženite računalnik po zaključku namestitve  
 
-2. **Namestite in konfigurirajte**:
-   - Zaženite namestitveni program kot skrbnik
-   - Omogočite integracijo WSL 2, ko vas pozove
-   - Po končani namestitvi znova zaženite računalnik
-
-3. **Preverite namestitev**:
+3. **Preverite namestitev**:  
    ```cmd
    docker --version
    docker-compose --version
    ```
-
+  
 #### Namestitev na macOS
 
-1. **Prenesite in namestite**:
+1. **Prenesite in namestite**:  
    ```bash
-   # Download from https://desktop.docker.com/mac/stable/Docker.dmg
-   # Or use Homebrew
+   # Prenesite z https://desktop.docker.com/mac/stable/Docker.dmg
+   # Ali uporabite Homebrew
    brew install --cask docker
    ```
+  
+2. **Zaženite Docker Desktop**:  
+   - Zaženite Docker Desktop iz Aplikacij  
+   - Dokončajte začetni čarovnik setupa  
 
-2. **Zaženite Docker Desktop**:
-   - Zaženite Docker Desktop iz aplikacij
-   - Dokončajte začetni čarovnik za nastavitev
-
-3. **Preverite namestitev**:
+3. **Preverite namestitev**:  
    ```bash
    docker --version
    docker-compose --version
    ```
-
+  
 #### Namestitev na Linux
 
-1. **Namestite Docker Engine**:
+1. **Namestite Docker Engine**:  
    ```bash
    # Ubuntu/Debian
    curl -fsSL https://get.docker.com -o get-docker.sh
    sudo sh get-docker.sh
    sudo usermod -aG docker $USER
    
-   # Log out and back in for group changes to take effect
+   # Odjavite se in ponovno prijavite, da spremembe skupine začnejo veljati
    ```
-
-2. **Namestite Docker Compose**:
+  
+2. **Namestite Docker Compose**:  
    ```bash
    sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
    sudo chmod +x /usr/local/bin/docker-compose
    ```
+  
+### 2. Namestite Azure CLI
 
-### 2. Namestitev Azure CLI
-
-Azure CLI omogoča uvedbo in upravljanje Azure virov.
+Azure CLI omogoča namestitev in upravljanje Azure virov.
 
 #### Namestitev na Windows
 
@@ -117,17 +117,17 @@ winget install Microsoft.AzureCLI
 
 # Or download MSI from: https://aka.ms/installazurecliwindows
 ```
-
+  
 #### Namestitev na macOS
 
 ```bash
-# Using Homebrew
+# Uporaba Homebrew
 brew install azure-cli
 
-# Or using installer
+# Ali uporaba namestitvenega programa
 curl -L https://aka.ms/InstallAzureCli | bash
 ```
-
+  
 #### Namestitev na Linux
 
 ```bash
@@ -138,24 +138,24 @@ curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
 sudo dnf install azure-cli
 ```
-
-#### Preverjanje in avtentikacija
+  
+#### Preverjanje in prijava
 
 ```bash
-# Check installation
+# Preveri namestitev
 az version
 
-# Login to Azure
+# Prijava v Azure
 az login
 
-# Set default subscription (if you have multiple)
+# Nastavi privzeto naročnino (če jih imaš več)
 az account list --output table
 az account set --subscription "Your-Subscription-Name"
 ```
+  
+### 3. Namestite Git
 
-### 3. Namestitev Git
-
-Git je potreben za kloniranje repozitorija in različico nadzora.
+Git je potreben za kloniranje repozitorija in upravljanje verzij.
 
 #### Windows
 
@@ -165,14 +165,14 @@ winget install Git.Git
 
 # Or download from: https://git-scm.com/download/win
 ```
-
+  
 #### macOS
 
 ```bash
-# Git is usually pre-installed, but you can update via Homebrew
+# Git je običajno že nameščen, vendar ga lahko posodobite preko Homebrew
 brew install git
 ```
-
+  
 #### Linux
 
 ```bash
@@ -182,10 +182,10 @@ sudo apt update && sudo apt install git
 # RHEL/CentOS
 sudo dnf install git
 ```
+  
+### 4. Namestite VS Code
 
-### 4. Namestitev VS Code
-
-Visual Studio Code zagotavlja integrirano razvojno okolje z podporo za MCP.
+Visual Studio Code nudi integrirano razvojno okolje z MCP podporo.
 
 #### Namestitev
 
@@ -199,29 +199,29 @@ brew install --cask visual-studio-code
 # Linux (Ubuntu/Debian)
 sudo snap install code --classic
 ```
+  
+#### Potrebna razširitev
 
-#### Zahtevane razširitve
-
-Namestite te razširitve za VS Code:
+Namestite naslednje VS Code razširitve:
 
 ```bash
-# Install via command line
+# Namestitev preko ukazne vrstice
 code --install-extension ms-python.python
 code --install-extension ms-vscode.vscode-json
 code --install-extension ms-azuretools.vscode-docker
 code --install-extension ms-vscode.azure-account
 ```
+  
+Ali namestite prek VS Code:  
+1. Odprite VS Code  
+2. Pojdite na Extensions (Ctrl+Shift+X)  
+3. Namestite:  
+   - **Python** (Microsoft)  
+   - **Docker** (Microsoft)  
+   - **Azure Account** (Microsoft)  
+   - **JSON** (Microsoft)  
 
-Ali pa jih namestite prek VS Code:
-1. Odprite VS Code
-2. Pojdite na razširitve (Ctrl+Shift+X)
-3. Namestite:
-   - **Python** (Microsoft)
-   - **Docker** (Microsoft)
-   - **Azure Account** (Microsoft)
-   - **JSON** (Microsoft)
-
-### 5. Namestitev Python
+### 5. Namestite Python
 
 Python 3.8+ je potreben za razvoj MCP strežnika.
 
@@ -233,14 +233,14 @@ winget install Python.Python.3.11
 
 # Or download from: https://www.python.org/downloads/
 ```
-
+  
 #### macOS
 
 ```bash
-# Using Homebrew
+# Uporaba Homebrew
 brew install python@3.11
 ```
-
+  
 #### Linux
 
 ```bash
@@ -250,77 +250,77 @@ sudo apt update && sudo apt install python3.11 python3.11-pip python3.11-venv
 # RHEL/CentOS
 sudo dnf install python3.11 python3.11-pip
 ```
-
-#### Preverjanje namestitve
+  
+#### Preverite namestitev
 
 ```bash
-python --version  # Should show Python 3.11.x
-pip --version      # Should show pip version
+python --version  # Mora prikazati Python 3.11.x
+pip --version      # Mora prikazati različico pip
 ```
-
+  
 ## 🚀 Nastavitev projekta
 
-### 1. Kloniranje repozitorija
+### 1. Klonirajte repozitorij
 
 ```bash
-# Clone the main repository
+# Klonirajte glavno skladišče
 git clone https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail.git
 
-# Navigate to the project directory
+# Pomaknite se v imenik projekta
 cd MCP-Server-and-PostgreSQL-Sample-Retail
 
-# Verify repository structure
+# Preverite strukturo skladišča
 ls -la
 ```
-
-### 2. Ustvarjanje virtualnega okolja Python
+  
+### 2. Ustvarite Python virtualno okolje
 
 ```bash
-# Create virtual environment
+# Ustvari virtualno okolje
 python -m venv mcp-env
 
-# Activate virtual environment
+# Aktiviraj virtualno okolje
 # Windows
 mcp-env\Scripts\activate
 
 # macOS/Linux
 source mcp-env/bin/activate
 
-# Upgrade pip
+# Nadgradi pip
 python -m pip install --upgrade pip
 ```
-
-### 3. Namestitev Python odvisnosti
+  
+### 3. Namestite Python odvisnosti
 
 ```bash
-# Install development dependencies
+# Namesti razvojne odvisnosti
 pip install -r requirements.lock.txt
 
-# Verify key packages
+# Preveri ključne pakete
 pip list | grep fastmcp
 pip list | grep asyncpg
 pip list | grep azure
 ```
+  
+## ☁️ Namestitev Azure virov
 
-## ☁️ Uvedba Azure virov
+### 1. Razumevanje potreb po virih
 
-### 1. Razumevanje zahtev za vire
+Naš MCP strežnik potrebuje naslednje Azure vire:
 
-Naš MCP strežnik potrebuje te Azure vire:
+| **Vir** | **Namen** | **Ocenjeni stroški** |  
+|--------------|-------------|-------------------|  
+| **Microsoft Foundry** | Gostovanje in upravljanje AI modelov | 10-50 $/mesec |  
+| **OpenAI Namestitev** | Model za vdelavo besedila (text-embedding-3-small) | 5-20 $/mesec |  
+| **Application Insights** | Nadzor in telemetrija | 5-15 $/mesec |  
+| **Resource Group** | Organizacija virov | Brezplačno |  
 
-| **Vir** | **Namen** | **Ocenjeni strošek** |
-|---------|-----------|-----------------------|
-| **Azure AI Foundry** | Gostovanje in upravljanje AI modelov | $10-50/mesec |
-| **OpenAI uvedba** | Model za vdelavo besedila (text-embedding-3-small) | $5-20/mesec |
-| **Application Insights** | Spremljanje in telemetrija | $5-15/mesec |
-| **Resource Group** | Organizacija virov | Brezplačno |
+### 2. Namestite Azure vire
 
-### 2. Uvedba Azure virov
-
-#### Možnost A: Samodejna uvedba (priporočeno)
+#### Možnost A: Avtomatizirana namestitev (priporočeno)
 
 ```bash
-# Navigate to infrastructure directory
+# Pojdi v imenik infrastrukture
 cd infra
 
 # Windows - PowerShell
@@ -329,57 +329,57 @@ cd infra
 # macOS/Linux - Bash
 ./deploy.sh
 ```
+  
+Namestitveni skript bo:  
+1. Ustvaril unikatno skupino virov  
+2. Namestil Microsoft Foundry vire  
+3. Namestil model text-embedding-3-small  
+4. Konfiguriral Application Insights  
+5. Ustvaril servisnega glavnega uporabnika za avtentikacijo  
+6. Generiral `.env` datoteko s konfiguracijo  
 
-Skript za uvedbo bo:
-1. Ustvaril edinstveno skupino virov
-2. Uvedel vire Azure AI Foundry
-3. Uvedel model text-embedding-3-small
-4. Konfiguriral Application Insights
-5. Ustvaril storitveni račun za avtentikacijo
-6. Ustvaril `.env` datoteko s konfiguracijo
+#### Možnost B: Ročna namestitev
 
-#### Možnost B: Ročna uvedba
-
-Če imate raje ročni nadzor ali če samodejni skript ne uspe:
+Če želite ročno kontrolo ali avtomatizirani skript ne uspe:
 
 ```bash
-# Set variables
+# Nastavi spremenljivke
 RESOURCE_GROUP="rg-zava-mcp-$(date +%s)"
 LOCATION="westus2"
 AI_PROJECT_NAME="zava-ai-project"
 
-# Create resource group
+# Ustvari skupino virov
 az group create --name $RESOURCE_GROUP --location $LOCATION
 
-# Deploy main template
+# Namesti glavno predlogo
 az deployment group create \
   --resource-group $RESOURCE_GROUP \
   --template-file main.bicep \
   --parameters location=$LOCATION \
   --parameters resourcePrefix="zava-mcp"
 ```
-
-### 3. Preverjanje uvedbe Azure
+  
+### 3. Preverite namestitev Azure virov
 
 ```bash
-# Check resource group
+# Preveri skupino virov
 az group show --name $RESOURCE_GROUP --output table
 
-# List deployed resources
+# Naštej nameščene vire
 az resource list --resource-group $RESOURCE_GROUP --output table
 
-# Test AI service
+# Preizkusi AI storitev
 az cognitiveservices account show \
   --name "your-ai-service-name" \
   --resource-group $RESOURCE_GROUP
 ```
+  
+### 4. Konfigurirajte okoljske spremenljivke
 
-### 4. Konfiguracija okoljskih spremenljivk
-
-Po uvedbi bi morali imeti `.env` datoteko. Preverite, da vsebuje:
+Po namestitvi preverite, da imate `.env` datoteko, ki vsebuje:
 
 ```bash
-# .env file contents
+# Vsebina datoteke .env
 PROJECT_ENDPOINT=https://your-project.cognitiveservices.azure.com/
 AZURE_OPENAI_ENDPOINT=https://your-openai.openai.azure.com/
 EMBEDDING_MODEL_DEPLOYMENT_NAME=text-embedding-3-small
@@ -388,17 +388,17 @@ AZURE_CLIENT_SECRET=your-client-secret
 AZURE_TENANT_ID=your-tenant-id
 APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=your-key;...
 
-# Database configuration (for development)
+# Konfiguracija baze podatkov (za razvoj)
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 POSTGRES_DB=zava
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=your-secure-password
 ```
-
+  
 ## 🐳 Nastavitev Docker okolja
 
-### 1. Razumevanje Docker sestave
+### 1. Razumevanje Docker Compose
 
 Naše razvojno okolje uporablja Docker Compose:
 
@@ -428,59 +428,59 @@ services:
     env_file:
       - .env
 ```
-
-### 2. Zagon razvojnega okolja
+  
+### 2. Zaženite razvojno okolje
 
 ```bash
-# Ensure you're in the project root directory
+# Prepričajte se, da ste v korenski mapi projekta
 cd /path/to/MCP-Server-and-PostgreSQL-Sample-Retail
 
-# Start the services
+# Zaženite storitve
 docker-compose up -d
 
-# Check service status
+# Preverite status storitev
 docker-compose ps
 
-# View logs
+# Prikaz dnevnikov
 docker-compose logs -f
 ```
-
-### 3. Preverjanje nastavitve baze podatkov
+  
+### 3. Preverite nastavitve baze podatkov
 
 ```bash
-# Connect to PostgreSQL container
+# Poveži se na PostgreSQL vsebnik
 docker-compose exec postgres psql -U postgres -d zava
 
-# Check database structure
+# Preveri strukturo baze podatkov
 \dt retail.*
 
-# Verify sample data
+# Preveri vzorčne podatke
 SELECT COUNT(*) FROM retail.stores;
 SELECT COUNT(*) FROM retail.products;
 SELECT COUNT(*) FROM retail.orders;
 
-# Exit PostgreSQL
+# Izhod iz PostgreSQL
 \q
 ```
-
-### 4. Testiranje MCP strežnika
+  
+### 4. Preizkusite MCP strežnik
 
 ```bash
-# Check MCP server health
+# Preveri zdravje MCP strežnika
 curl http://localhost:8000/health
 
-# Test basic MCP endpoint
+# Preizkusi osnovno MCP točko dostopa
 curl -X POST http://localhost:8000/mcp \
   -H "Content-Type: application/json" \
   -H "x-rls-user-id: 00000000-0000-0000-0000-000000000000" \
   -d '{"method": "tools/list", "params": {}}'
 ```
-
+  
 ## 🔧 Konfiguracija VS Code
 
-### 1. Konfiguracija MCP integracije
+### 1. Konfigurirajte MCP integracijo
 
-Ustvarite konfiguracijo MCP za VS Code:
+Ustvarite MCP konfiguracijo v VS Code:
 
 ```json
 // .vscode/mcp.json
@@ -505,8 +505,8 @@ Ustvarite konfiguracijo MCP za VS Code:
     "inputs": []
 }
 ```
-
-### 2. Konfiguracija Python okolja
+  
+### 2. Konfigurirajte Python okolje
 
 ```json
 // .vscode/settings.json
@@ -524,31 +524,31 @@ Ustvarite konfiguracijo MCP za VS Code:
     }
 }
 ```
+  
+### 3. Preizkusite integracijo VS Code
 
-### 3. Testiranje integracije VS Code
-
-1. **Odprite projekt v VS Code**:
+1. **Odprite projekt v VS Code**:  
    ```bash
    code .
    ```
+  
+2. **Odprite AI Chat**:  
+   - Pritisnite `Ctrl+Shift+P` (Windows/Linux) ali `Cmd+Shift+P` (macOS)  
+   - Vtipkajte "AI Chat" in izberite "AI Chat: Open Chat"  
 
-2. **Odprite AI Chat**:
-   - Pritisnite `Ctrl+Shift+P` (Windows/Linux) ali `Cmd+Shift+P` (macOS)
-   - Vnesite "AI Chat" in izberite "AI Chat: Open Chat"
-
-3. **Testiranje povezave MCP strežnika**:
-   - V AI Chat vnesite `#zava` in izberite enega od konfiguriranih strežnikov
-   - Vprašajte: "Katere tabele so na voljo v bazi podatkov?"
-   - Prejeli bi morali odgovor s seznamom tabel v maloprodajni bazi podatkov
+3. **Preizkusite povezavo z MCP strežnikom**:  
+   - V AI Chatu vtipkajte `#zava` in izberite enega izmed konfiguriranih strežnikov  
+   - Vprašajte: "Katere tabele so na voljo v podatkovni bazi?"  
+   - Prejeli bi morali odgovor s seznamom tabel v maloprodajni bazi  
 
 ## ✅ Preverjanje okolja
 
 ### 1. Celovit sistemski pregled
 
-Zaženite ta skript za preverjanje vaše nastavitve:
+Zaženite ta validacijski skript za preverjanje vaše nastavitve:
 
 ```bash
-# Create validation script
+# Ustvari skripto za preverjanje
 cat > validate_setup.py << 'EOF'
 #!/usr/bin/env python3
 """
@@ -567,7 +567,7 @@ async def validate_environment():
     """Comprehensive environment validation."""
     results = {}
     
-    # Check Python version
+    # Preveri različico Pythona
     python_version = sys.version_info
     results['python'] = {
         'status': 'pass' if python_version >= (3, 8) else 'fail',
@@ -575,7 +575,7 @@ async def validate_environment():
         'required': '3.8+'
     }
     
-    # Check required packages
+    # Preveri zahtevane pakete
     required_packages = ['fastmcp', 'asyncpg', 'azure-ai-projects']
     for package in required_packages:
         try:
@@ -584,7 +584,7 @@ async def validate_environment():
         except ImportError:
             results[f'package_{package}'] = {'status': 'fail', 'error': 'Not installed'}
     
-    # Check Docker
+    # Preveri Docker
     try:
         result = subprocess.run(['docker', '--version'], capture_output=True, text=True)
         results['docker'] = {
@@ -594,7 +594,7 @@ async def validate_environment():
     except FileNotFoundError:
         results['docker'] = {'status': 'fail', 'error': 'Docker not found'}
     
-    # Check Azure CLI
+    # Preveri Azure CLI
     try:
         result = subprocess.run(['az', '--version'], capture_output=True, text=True)
         results['azure_cli'] = {
@@ -604,7 +604,7 @@ async def validate_environment():
     except FileNotFoundError:
         results['azure_cli'] = {'status': 'fail', 'error': 'Azure CLI not found'}
     
-    # Check environment variables
+    # Preveri spremenljivke okolja
     required_env_vars = [
         'PROJECT_ENDPOINT',
         'AZURE_OPENAI_ENDPOINT',
@@ -621,7 +621,7 @@ async def validate_environment():
             'value': '***' if value and 'SECRET' in var else value
         }
     
-    # Check database connection
+    # Preveri povezavo do baze podatkov
     try:
         conn = await asyncpg.connect(
             host=os.getenv('POSTGRES_HOST', 'localhost'),
@@ -631,7 +631,7 @@ async def validate_environment():
             password=os.getenv('POSTGRES_PASSWORD', 'secure_password')
         )
         
-        # Test query
+        # Testiraj poizvedbo
         result = await conn.fetchval('SELECT COUNT(*) FROM retail.stores')
         await conn.close()
         
@@ -645,7 +645,7 @@ async def validate_environment():
             'error': str(e)
         }
     
-    # Check MCP server
+    # Preveri MCP strežnik
     try:
         response = requests.get('http://localhost:8000/health', timeout=5)
         results['mcp_server'] = {
@@ -658,7 +658,7 @@ async def validate_environment():
             'error': str(e)
         }
     
-    # Check Azure AI service
+    # Preveri Azure AI storitev
     try:
         credential = DefaultAzureCredential()
         project_client = AIProjectClient(
@@ -666,7 +666,7 @@ async def validate_environment():
             credential=credential
         )
         
-        # This will fail if credentials are invalid
+        # To bo spodletelo, če so poverilnice neveljavne
         results['azure_ai'] = {'status': 'pass'}
         
     except Exception as e:
@@ -716,169 +716,171 @@ async def main():
 
 EOF
 
-# Run validation
+# Zaženi preverjanje
 python validate_setup.py
 ```
+  
+### 2. Ročni kontrolni seznam
 
-### 2. Ročni kontrolni seznam za preverjanje
+**✅ Osnovna orodja**  
+- [ ] Docker različica 20.10+ nameščena in zagnana  
+- [ ] Azure CLI 2.40+ nameščen in prijavljen  
+- [ ] Python 3.8+ s pip nameščen  
+- [ ] Git 2.30+ nameščen  
+- [ ] VS Code s potrebnimi razširitvami  
 
-**✅ Osnovna orodja**
-- [ ] Nameščen in delujoč Docker različice 20.10+
-- [ ] Nameščen in avtenticiran Azure CLI 2.40+
-- [ ] Nameščen Python 3.8+ s pip
-- [ ] Nameščen Git 2.30+
-- [ ] Nameščen VS Code z zahtevanimi razširitvami
+**✅ Azure viri**  
+- [ ] Skupina virov uspešno ustvarjena  
+- [ ] Projekt AI Foundry nameščen  
+- [ ] Model OpenAI text-embedding-3-small nameščen  
+- [ ] Application Insights konfiguriran  
+- [ ] Servisni glavni uporabnik ustvarjen z ustreznimi dovoljenji  
 
-**✅ Azure viri**
-- [ ] Skupina virov uspešno ustvarjena
-- [ ] Projekt AI Foundry uveden
-- [ ] Model OpenAI text-embedding-3-small uveden
-- [ ] Application Insights konfiguriran
-- [ ] Storitveni račun ustvarjen z ustreznimi dovoljenji
+**✅ Konfiguracija okolja**  
+- [ ] `.env` datoteka ustvarjena z vsemi potrebnimi spremenljivkami  
+- [ ] Azure poverilnice delujejo (preverite z `az account show`)  
+- [ ] PostgreSQL kontejner teče in je dostopen  
+- [ ] V bazo naloženi testni podatki  
 
-**✅ Konfiguracija okolja**
-- [ ] Ustvarjena `.env` datoteka z vsemi zahtevanimi spremenljivkami
-- [ ] Delujoči Azure poverilnici (testirajte z `az account show`)
-- [ ] PostgreSQL kontejner deluje in je dostopen
-- [ ] V bazo podatkov naloženi vzorčni podatki
-
-**✅ Integracija VS Code**
-- [ ] Konfiguriran `.vscode/mcp.json`
-- [ ] Python interpreter nastavljen na virtualno okolje
-- [ ] MCP strežniki se prikažejo v AI Chat
-- [ ] Možno izvajanje testnih poizvedb prek AI Chat
+**✅ Integracija z VS Code**  
+- [ ] `.vscode/mcp.json` konfiguriran  
+- [ ] Python interpreter nastavljen na virtualno okolje  
+- [ ] MCP strežniki se prikažejo v AI Chat  
+- [ ] Možnost izvajanja testnih poizvedb skozi AI Chat  
 
 ## 🛠️ Odpravljanje pogostih težav
 
 ### Težave z Dockerjem
 
-**Težava**: Docker kontejnerji se ne zaženejo
+**Težava**: Docker kontejnerji se ne zaženejo  
 ```bash
-# Check Docker service status
+# Preveri stanje storitve Docker
 docker info
 
-# Check available resources
+# Preveri razpoložljive vire
 docker system df
 
-# Clean up if needed
+# Očisti, če je potrebno
 docker system prune -f
 
-# Restart Docker Desktop (Windows/macOS)
-# Or restart Docker service (Linux)
+# Ponovno zaženi Docker Desktop (Windows/macOS)
+# Ali ponovno zaženi storitev Docker (Linux)
 sudo systemctl restart docker
 ```
-
-**Težava**: Povezava s PostgreSQL ne uspe
+  
+**Težava**: Povezava s PostgreSQL ne uspe  
 ```bash
-# Check container logs
+# Preveri dnevniške datoteke vsebnika
 docker-compose logs postgres
 
-# Verify container is healthy
+# Preveri, ali je vsebnik zdrav
 docker-compose ps
 
-# Test direct connection
+# Preizkusi neposredno povezavo
 docker-compose exec postgres psql -U postgres -d zava -c "SELECT 1;"
 ```
+  
+### Težave pri namestitvi Azure
 
-### Težave z uvedbo Azure
-
-**Težava**: Uvedba Azure ne uspe
+**Težava**: Namestitev Azure ne uspe  
 ```bash
-# Check Azure CLI authentication
+# Preveri overjanje Azure CLI
 az account show
 
-# Verify subscription permissions
+# Preveri dovoljenja naročnine
 az role assignment list --assignee $(az account show --query user.name -o tsv)
 
-# Check resource provider registration
+# Preveri registracijo ponudnika virov
 az provider register --namespace Microsoft.CognitiveServices
 az provider register --namespace Microsoft.Insights
 ```
-
-**Težava**: Avtentikacija AI storitve ne uspe
+  
+**Težava**: Avtentikacija AI storitve ne uspe  
 ```bash
-# Test service principal
+# Preizkus službenega predstavnika
 az login --service-principal \
   --username $AZURE_CLIENT_ID \
   --password $AZURE_CLIENT_SECRET \
   --tenant $AZURE_TENANT_ID
 
-# Verify AI service deployment
+# Preverite namestitev AI storitve
 az cognitiveservices account list --query "[].{Name:name,Kind:kind,Location:location}"
 ```
+  
+### Težave s Python okoljem
 
-### Težave z Python okoljem
-
-**Težava**: Namestitev paketov ne uspe
+**Težava**: Namestitev paketov ne uspe  
 ```bash
-# Upgrade pip and setuptools
+# Nadgradite pip in setuptools
 python -m pip install --upgrade pip setuptools wheel
 
-# Clear pip cache
+# Počistite predpomnilnik pip
 pip cache purge
 
-# Install packages one by one to identify issues
+# Namestite pakete enega za drugim, da identificirate težave
 pip install fastmcp
 pip install asyncpg
 pip install azure-ai-projects
 ```
-
-**Težava**: VS Code ne najde Python interpreterja
+  
+**Težava**: VS Code ne najde Python interpreterja  
 ```bash
-# Show Python interpreter paths
+# Prikaži poti do Python interpreterja
 which python  # macOS/Linux
 where python  # Windows
 
-# Activate virtual environment first
+# Najprej aktiviraj virtualno okolje
 source mcp-env/bin/activate  # macOS/Linux
 mcp-env\Scripts\activate     # Windows
 
-# Then open VS Code
+# Nato odpri VS Code
 code .
 ```
-
+  
 ## 🎯 Ključne ugotovitve
 
 Po zaključku tega laboratorija bi morali imeti:
 
 ✅ **Popolno razvojno okolje**: Vsa orodja nameščena in konfigurirana  
-✅ **Uvedeni Azure viri**: AI storitve in podporna infrastruktura  
-✅ **Delujoče Docker okolje**: PostgreSQL in MCP strežniški kontejnerji  
-✅ **Integracija VS Code**: MCP strežniki konfigurirani in dostopni  
-✅ **Preverjena nastavitev**: Vse komponente testirane in delujejo skupaj  
-✅ **Znanje odpravljanja težav**: Pogoste težave in rešitve  
+✅ **Namestitev Azure virov**: AI storitve in podpornainfrastruktura  
+✅ **Docker okolje v delovanju**: PostgreSQL in MCP strežniški konteinerji  
+✅ **Integracija z VS Code**: MCP strežniki konfigurirani in dostopni  
+✅ **Preverjena nastavitev**: Vsi sestavni deli testirani in delujoči skupaj  
+✅ **Znanje za odpravljanje težav**: Pogoste težave in rešitve  
 
 ## 🚀 Kaj sledi
 
-Ko je vaše okolje pripravljeno, nadaljujte z **[Laboratorijem 04: Oblikovanje baze podatkov in shema](../04-Database/README.md)**, da:
+Z okoljem pripravljenim nadaljujte v **[Lab 04: Database Design and Schema](../04-Database/README.md)**, da:
 
-- Podrobno raziščete shemo maloprodajne baze podatkov
-- Razumete modeliranje podatkov za več najemnikov
-- Naučite se implementacije varnosti na ravni vrstic
-- Delate z vzorčnimi maloprodajnimi podatki
+- Podrobno raziščete shemo prodajne baze podatkov  
+- Razumete modeliranje več najemnikov  
+- Spoznate implementacijo varnosti na ravni vrstic (Row Level Security)  
+- Delate s primeri maloprodajnih podatkov  
 
 ## 📚 Dodatni viri
 
 ### Razvojna orodja
-- [Dokumentacija Dockerja](https://docs.docker.com/) - Celoten referenčni priročnik za Docker
-- [Referenca Azure CLI](https://docs.microsoft.com/cli/azure/) - Ukazi Azure CLI
-- [Dokumentacija VS Code](https://code.visualstudio.com/docs) - Konfiguracija urejevalnika in razširitve
+- [Docker Dokumentacija](https://docs.docker.com/) - Popolna referenca Dockerja  
+- [Azure CLI Referenca](https://docs.microsoft.com/cli/azure/) - Ukazi Azure CLI  
+- [VS Code Dokumentacija](https://code.visualstudio.com/docs) - Konfiguracija urejevalnika in razširitve  
 
 ### Azure storitve
-- [Dokumentacija Azure AI Foundry](https://docs.microsoft.com/azure/ai-foundry/) - Konfiguracija AI storitev
-- [Azure OpenAI storitev](https://docs.microsoft.com/azure/cognitive-services/openai/) - Uvedba AI modelov
-- [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) - Nastavitev spremljanja
+- [Microsoft Foundry Dokumentacija](https://docs.microsoft.com/azure/ai-foundry/) - Konfiguracija AI storitev  
+- [Azure OpenAI Storitev](https://docs.microsoft.com/azure/cognitive-services/openai/) - Namestitev AI modelov  
+- [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) - Nastavitev nadzora  
 
 ### Python razvoj
-- [Virtualna okolja Python](https://docs.python.org/3/tutorial/venv.html) - Upravljanje okolij
-- [Dokumentacija AsyncIO](https://docs.python.org/3/library/asyncio.html) - Vzorci asinhronega programiranja
-- [Dokumentacija FastAPI](https://fastapi.tiangolo.com/) - Vzorci spletnega ogrodja
+- [Python Virtualna okolja](https://docs.python.org/3/tutorial/venv.html) - Upravljanje okolij  
+- [AsyncIO Dokumentacija](https://docs.python.org/3/library/asyncio.html) - Vzorci asinhronega programiranja  
+- [FastAPI Dokumentacija](https://fastapi.tiangolo.com/) - Vzorci spletnih okvirov  
 
 ---
 
-**Naprej**: Je okolje pripravljeno? Nadaljujte z [Laboratorijem 04: Oblikovanje baze podatkov in shema](../04-Database/README.md)
+**Naprej**: Okolje pripravljeno? Nadaljujte z [Lab 04: Database Design and Schema](../04-Database/README.md)
 
 ---
 
-**Omejitev odgovornosti**:  
-Ta dokument je bil preveden z uporabo storitve AI za prevajanje [Co-op Translator](https://github.com/Azure/co-op-translator). Čeprav si prizadevamo za natančnost, vas prosimo, da upoštevate, da lahko avtomatizirani prevodi vsebujejo napake ali netočnosti. Izvirni dokument v njegovem maternem jeziku je treba obravnavati kot avtoritativni vir. Za ključne informacije priporočamo profesionalni človeški prevod. Ne prevzemamo odgovornosti za morebitna nesporazumevanja ali napačne razlage, ki izhajajo iz uporabe tega prevoda.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Omejitev odgovornosti**:
+Ta dokument je bil preveden z uporabo AI prevajalske storitve [Co-op Translator](https://github.com/Azure/co-op-translator). Čeprav si prizadevamo za natančnost, vas prosimo, da upoštevate, da avtomatizirani prevodi lahko vsebujejo napake ali netočnosti. Izvirni dokument v njegovem izvirnem jeziku je treba obravnavati kot avtoritativni vir. Za kritične informacije je priporočljiv strokovni človeški prevod. Ne odgovarjamo za morebitna nesporazume ali napačne interpretacije, ki izhajajo iz uporabe tega prevoda.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

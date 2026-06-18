@@ -1,18 +1,20 @@
-# Palaikymas
+# Pagalba
 
 ## Kaip pateikti problemas ir gauti pagalbą  
 
-Šis projektas naudoja GitHub Issues, kad stebėtų klaidas ir funkcijų užklausas. Prieš pateikdami naują problemą, ieškokite esamų problemų, kad išvengtumėte dubliavimosi. Naujas problemas pateikite kaip naują klaidą arba funkcijos užklausą.
+Šis projektas naudoja GitHub Issues klaidų ir funkcijų užklausoms fiksuoti. Prieš pateikiant naujas problemas, prašome patikrinti esamas, kad išvengtumėte pasikartojimų. Naujiems atvejams pateikite klaidą arba funkcijos užklausą kaip naują problemą.
 
-Jei reikia pagalbos ar turite klausimų apie šio projekto naudojimą, galite:
-- Apsilankyti [Azure AI Foundry Discord](https://discord.com/invite/ByRwuEEgH4), kur renkasi ekspertai ir kiti kūrėjai
-- Naudotis [Model Context Protocol Community](https://modelcontextprotocol.io/community/) ištekliais, skirtais su protokolu susijusiems klausimams
+Dėl pagalbos ir klausimų, susijusių su šiuo projektu, prašome:
+- Patikrinti [Microsoft Foundry Discord](https://discord.com/invite/ByRwuEEgH4), kur susirenka ekspertai ir kiti programuotojai
+- Naudotis [Model Context Protocol Community](https://modelcontextprotocol.io/community/) ištekliais protokolo klausimams
 
-## Microsoft palaikymo politika  
+## Microsoft Pagalbos Politika  
 
-Palaikymas projektui „Model Context Protocol (MCP) for Beginners“ yra ribotas iki aukščiau išvardytų išteklių.
+Pagalba Model Context Protocol (MCP) pradedančiųjų projektui yra ribota iki viršuje išvardytų išteklių.
 
 ---
 
-**Atsakomybės apribojimas**:  
-Šis dokumentas buvo išverstas naudojant AI vertimo paslaugą [Co-op Translator](https://github.com/Azure/co-op-translator). Nors siekiame tikslumo, prašome atkreipti dėmesį, kad automatiniai vertimai gali turėti klaidų ar netikslumų. Originalus dokumentas jo gimtąja kalba turėtų būti laikomas autoritetingu šaltiniu. Kritinei informacijai rekomenduojama profesionali žmogaus vertimo paslauga. Mes neprisiimame atsakomybės už nesusipratimus ar klaidingus interpretavimus, atsiradusius naudojant šį vertimą.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Atsakomybės apribojimas**:
+Šis dokumentas buvo išverstas naudojant dirbtinio intelekto vertimo paslaugą [Co-op Translator](https://github.com/Azure/co-op-translator). Nors siekiame tikslumo, prašome atkreipti dėmesį, kad automatiniai vertimai gali turėti klaidų ar netikslumų. Originalus dokumentas jo gimtąja kalba laikomas autoritetingu šaltiniu. Svarbiai informacijai rekomenduojama naudoti profesionalų žmogiškąjį vertimą. Mes neatsakome už jokius nesusipratimus ar neteisingą interpretaciją, kilusią naudojantis šiuo vertimu.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

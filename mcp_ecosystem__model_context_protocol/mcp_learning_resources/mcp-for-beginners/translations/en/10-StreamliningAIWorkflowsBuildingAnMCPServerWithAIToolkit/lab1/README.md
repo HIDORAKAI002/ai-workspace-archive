@@ -1,4 +1,4 @@
-# 🚀 Module 1: AI Toolkit Fundamentals
+# 🚀 Module 1: Microsoft Foundry Toolkit Fundamentals
 
 [![Duration](https://img.shields.io/badge/Duration-15%20minutes-blue.svg)]()
 [![Difficulty](https://img.shields.io/badge/Difficulty-Beginner-green.svg)]()
@@ -7,60 +7,60 @@
 ## 📋 Learning Objectives
 
 By the end of this module, you will be able to:
-- ✅ Install and configure AI Toolkit for Visual Studio Code
+- ✅ Install and configure Microsoft Foundry Toolkit Extension for VS Code
 - ✅ Navigate the Model Catalog and understand different model sources
 - ✅ Use the Playground for model testing and experimentation
 - ✅ Create custom AI agents using Agent Builder
 - ✅ Compare model performance across different providers
 - ✅ Apply best practices for prompt engineering
 
-## 🧠 Introduction to AI Toolkit (AITK)
+## 🧠 Introduction to Microsoft Foundry Toolkit
 
-The **AI Toolkit for Visual Studio Code** is Microsoft's flagship extension that turns VS Code into a full-featured AI development environment. It bridges the gap between AI research and practical application development, making generative AI accessible to developers of all skill levels.
+The **Microsoft Foundry Toolkit Extension for VS Code** is Microsoft's flagship extension that transforms VS Code into a comprehensive AI development environment. It bridges the gap between AI research and practical application development, making generative AI accessible to developers of all skill levels.
 
 ### 🌟 Key Capabilities
 
 | Feature | Description | Use Case |
 |---------|-------------|----------|
-| **🗂️ Model Catalog** | Access 100+ models from GitHub, ONNX, OpenAI, Anthropic, Google | Discover and select models |
-| **🔌 BYOM Support** | Integrate your own models (local or remote) | Deploy custom models |
-| **🎮 Interactive Playground** | Real-time model testing with chat interface | Rapid prototyping and experimentation |
-| **📎 Multi-Modal Support** | Work with text, images, and attachments | Build complex AI applications |
-| **⚡ Batch Processing** | Run multiple prompts at once | Streamline testing workflows |
-| **📊 Model Evaluation** | Built-in metrics (F1, relevance, similarity, coherence) | Assess model performance |
+| **🗂️ Model Catalog** | Access 100+ models from GitHub, ONNX, OpenAI, Anthropic, Google | Model discovery and selection |
+| **🔌 BYOM Support** | Integrate your own models (local/remote) | Custom model deployment |
+| **🎮 Interactive Playground** | Real-time model testing with chat interface | Rapid prototyping and testing |
+| **📎 Multi-Modal Support** | Handle text, images, and attachments | Complex AI applications |
+| **⚡ Batch Processing** | Run multiple prompts simultaneously | Efficient testing workflows |
+| **📊 Model Evaluation** | Built-in metrics (F1, relevance, similarity, coherence) | Performance assessment |
 
-### 🎯 Why AI Toolkit Matters
+### 🎯 Why Microsoft Foundry Toolkit Matters
 
-- **🚀 Accelerated Development**: Go from idea to prototype in minutes
+- **🚀 Accelerated Development**: From idea to prototype in minutes
 - **🔄 Unified Workflow**: One interface for multiple AI providers
-- **🧪 Easy Experimentation**: Compare models without complicated setup
-- **📈 Production Ready**: Smooth transition from prototype to deployment
+- **🧪 Easy Experimentation**: Compare models without complex setup
+- **📈 Production Ready**: Seamless transition from prototype to deployment
 
 ## 🛠️ Prerequisites & Setup
 
-### 📦 Install AI Toolkit Extension
+### 📦 Install Microsoft Foundry Toolkit Extension
 
 **Step 1: Access Extensions Marketplace**
 1. Open Visual Studio Code
-2. Go to the Extensions view (`Ctrl+Shift+X` or `Cmd+Shift+X`)
-3. Search for "AI Toolkit"
+2. Navigate to the Extensions view (`Ctrl+Shift+X` or `Cmd+Shift+X`)
+3. Search for "Microsoft Foundry Toolkit"
 
 **Step 2: Choose Your Version**
 - **🟢 Release**: Recommended for production use
-- **🔶 Pre-release**: Early access to the latest features
+- **🔶 Pre-release**: Early access to cutting-edge features
 
 **Step 3: Install and Activate**
 
-![AI Toolkit Extension](../../../../translated_images/en/aitkext.d28945a03eed003c.webp)
+![Microsoft Foundry Toolkit Extension](../../../../translated_images/en/aitkext.d28945a03eed003c.webp)
 
 ### ✅ Verification Checklist
-- [ ] AI Toolkit icon appears in the VS Code sidebar
+- [ ] Microsoft Foundry Toolkit icon appears in the VS Code sidebar
 - [ ] Extension is enabled and activated
 - [ ] No installation errors in the output panel
 
 ## 🧪 Hands-on Exercise 1: Exploring GitHub Models
 
-**🎯 Objective**: Get familiar with the Model Catalog and test your first AI model
+**🎯 Objective**: Master the Model Catalog and test your first AI model
 
 ### 📊 Step 1: Navigate the Model Catalog
 
@@ -68,13 +68,13 @@ The Model Catalog is your gateway to the AI ecosystem. It aggregates models from
 
 **🔍 Navigation Guide:**
 
-Click on **MODELS - Catalog** in the AI Toolkit sidebar
+Click on **MODELS - Catalog** in the Microsoft Foundry Toolkit sidebar
 
 ![Model Catalog](../../../../translated_images/en/aimodel.263ed2be013d8fb0.webp)
 
-**💡 Pro Tip**: Look for models with specific features that fit your needs (e.g., code generation, creative writing, analysis).
+**💡 Pro Tip**: Look for models with specific capabilities that match your use case (e.g., code generation, creative writing, analysis).
 
-**⚠️ Note**: GitHub-hosted models (GitHub Models) are free to use but have rate limits on requests and tokens. To access non-GitHub models (external models hosted via Azure AI or other endpoints), you’ll need to provide the appropriate API key or authentication.
+**⚠️ Note**: GitHub-hosted models (i.e. GitHub Models) are free to use but are subject to rate limits on requests and tokens. If you want to access non-GitHub models (that is, external models hosted via Azure AI or other endpoints), you'll need to supply the appropriate API key or authentication.
 
 ### 🚀 Step 2: Add and Configure Your First Model
 
@@ -84,26 +84,26 @@ Click on **MODELS - Catalog** in the AI Toolkit sidebar
 
 **🔧 Configuration Process:**
 1. Select **OpenAI GPT-4.1** from the catalog
-2. Click **Add to My Models** to register the model for use
-3. Choose **Try in Playground** to open the testing environment
-4. Wait for the model to initialize (first-time setup may take a moment)
+2. Click **Add to My Models** - this registers the model for use
+3. Choose **Try in Playground** to launch the testing environment
+4. Wait for model initialization (first-time setup may take a moment)
 
 ![Playground Setup](../../../../translated_images/en/playground.dd6f5141344878ca.webp)
 
 **⚙️ Understanding Model Parameters:**
 - **Temperature**: Controls creativity (0 = deterministic, 1 = creative)
-- **Max Tokens**: Maximum length of the response
-- **Top-p**: Nucleus sampling to control response diversity
+- **Max Tokens**: Maximum response length
+- **Top-p**: Nucleus sampling for response diversity
 
 ### 🎯 Step 3: Master the Playground Interface
 
-The Playground is your AI experimentation lab. Here’s how to get the most out of it:
+The Playground is your AI experimentation lab. Here's how to maximize its potential:
 
 **🎨 Prompt Engineering Best Practices:**
-1. **Be Specific**: Clear, detailed instructions get better results
+1. **Be Specific**: Clear, detailed instructions yield better results
 2. **Provide Context**: Include relevant background information
 3. **Use Examples**: Show the model what you want with examples
-4. **Iterate**: Refine prompts based on initial outputs
+4. **Iterate**: Refine prompts based on initial results
 
 **🧪 Testing Scenarios:**
 ```markdown
@@ -121,7 +121,7 @@ The Playground is your AI experimentation lab. Here’s how to get the most out 
 
 ### 🏆 Challenge Exercise: Model Performance Comparison
 
-**🎯 Goal**: Compare different models using the same prompts to understand their strengths
+**🎯 Goal**: Compare different models using identical prompts to understand their strengths
 
 **📋 Instructions:**
 1. Add **Phi-4-mini** to your workspace
@@ -137,20 +137,20 @@ The Playground is your AI experimentation lab. Here’s how to get the most out 
 **💡 Key Insights to Discover:**
 - When to use LLM vs SLM
 - Cost vs. performance trade-offs
-- Specialized strengths of different models
+- Specialized capabilities of different models
 
 ## 🤖 Hands-on Exercise 2: Building Custom Agents with Agent Builder
 
-**🎯 Objective**: Create specialized AI agents tailored to specific tasks and workflows
+**🎯 Objective**: Create specialized AI agents tailored for specific tasks and workflows
 
 ### 🏗️ Step 1: Understanding Agent Builder
 
-Agent Builder is where AI Toolkit really shines. It lets you create purpose-built AI assistants that combine large language models with custom instructions, specific parameters, and specialized knowledge.
+Agent Builder is where Microsoft Foundry Toolkit truly shines. It allows you to create purpose-built AI assistants that combine the power of large language models with custom instructions, specific parameters, and specialized knowledge.
 
 **🧠 Agent Architecture Components:**
-- **Core Model**: The base LLM (GPT-4, Groks, Phi, etc.)
-- **System Prompt**: Defines the agent’s personality and behavior
-- **Parameters**: Fine-tuned settings for best performance
+- **Core Model**: The foundation LLM (GPT-4, Groks, Phi, etc.)
+- **System Prompt**: Defines agent personality and behavior
+- **Parameters**: Fine-tuned settings for optimal performance
 - **Tools Integration**: Connect to external APIs and MCP services
 - **Memory**: Conversation context and session persistence
 
@@ -178,23 +178,23 @@ You are a [specific role] with expertise in [domain].
 Provide 2-3 examples of ideal interactions
 ```
 
-*You can also use Generate System Prompt to have AI help you create and optimize prompts*
+*Of course, you can also use Generate System Prompt to use AI to help you generate and optimize prompts*
 
 **🔧 Parameter Optimization:**
 | Parameter | Recommended Range | Use Case |
 |-----------|------------------|----------|
-| **Temperature** | 0.1-0.3 | Technical or factual responses |
-| **Temperature** | 0.7-0.9 | Creative or brainstorming tasks |
+| **Temperature** | 0.1-0.3 | Technical/factual responses |
+| **Temperature** | 0.7-0.9 | Creative/brainstorming tasks |
 | **Max Tokens** | 500-1000 | Concise responses |
 | **Max Tokens** | 2000-4000 | Detailed explanations |
 
 ### 🐍 Step 3: Practical Exercise - Python Programming Agent
 
-**🎯 Mission**: Build a specialized Python coding assistant
+**🎯 Mission**: Create a specialized Python coding assistant
 
 **📋 Configuration Steps:**
 
-1. **Model Selection**: Choose **Claude 3.5 Sonnet** (great for coding)
+1. **Model Selection**: Choose **Claude 3.5 Sonnet** (excellent for code)
 
 2. **System Prompt Design**:
 ```markdown
@@ -225,7 +225,7 @@ You are a senior Python developer with 10+ years of experience. You excel at wri
 
 3. **Parameter Configuration**:
    - Temperature: 0.2 (for consistent, reliable code)
-   - Max Tokens: 2000 (for detailed explanations)
+   - Max Tokens: 2000 (detailed explanations)
    - Top-p: 0.9 (balanced creativity)
 
 ![Python Agent Configuration](../../../../translated_images/en/pythonagent.5e51b406401c165f.webp)
@@ -250,26 +250,30 @@ You are a senior Python developer with 10+ years of experience. You excel at wri
 ### 📊 Knowledge Check
 
 Test your understanding:
-- [ ] Can you explain the differences between models in the catalog?
+- [ ] Can you explain the difference between models in the catalog?
 - [ ] Have you successfully created and tested a custom agent?
-- [ ] Do you know how to optimize parameters for different use cases?
+- [ ] Do you understand how to optimize parameters for different use cases?
 - [ ] Can you design effective system prompts?
 
 ### 📚 Additional Resources
 
-- **AI Toolkit Documentation**: [Official Microsoft Docs](https://github.com/microsoft/vscode-ai-toolkit)
+- **Microsoft Foundry Toolkit Documentation**: [Official Microsoft Docs](https://github.com/microsoft/vscode-ai-toolkit)
 - **Prompt Engineering Guide**: [Best Practices](https://platform.openai.com/docs/guides/prompt-engineering)
-- **Models in AI Toolkit**: [Models in Development](https://github.com/microsoft/vscode-ai-toolkit/blob/main/doc/models.md)
+- **Models in Microsoft Foundry Toolkit**: [Models in Develpment](https://github.com/microsoft/vscode-ai-toolkit/blob/main/doc/models.md)
 
-**🎉 Congratulations!** You’ve mastered the fundamentals of AI Toolkit and are ready to build more advanced AI applications!
+**🎉 Congratulations!** You've mastered the fundamentals of Microsoft Foundry Toolkit and are ready to build more advanced AI applications!
 
 ### 🔜 Continue to Next Module
 
-Ready to explore more advanced features? Continue to **[Module 2: MCP with AI Toolkit Fundamentals](../lab2/README.md)** where you’ll learn how to:
+Ready for more advanced capabilities? Continue to **[Module 2: MCP with Microsoft Foundry Toolkit Fundamentals](../lab2/README.md)** where you'll learn how to:
 - Connect your agents to external tools using Model Context Protocol (MCP)
 - Build browser automation agents with Playwright
-- Integrate MCP servers with your AI Toolkit agents
+- Integrate MCP servers with your Microsoft Foundry Toolkit agents
 - Supercharge your agents with external data and capabilities
 
-**Disclaimer**:  
-This document has been translated using the AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). While we strive for accuracy, please be aware that automated translations may contain errors or inaccuracies. The original document in its native language should be considered the authoritative source. For critical information, professional human translation is recommended. We are not liable for any misunderstandings or misinterpretations arising from the use of this translation.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Disclaimer**:
+This document has been translated using AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). While we strive for accuracy, please be aware that automated translations may contain errors or inaccuracies. The original document in its native language should be considered the authoritative source. For critical information, professional human translation is recommended. We are not liable for any misunderstandings or misinterpretations arising from the use of this translation.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

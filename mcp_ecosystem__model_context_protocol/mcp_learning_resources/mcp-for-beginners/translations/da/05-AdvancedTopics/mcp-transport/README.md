@@ -1,32 +1,32 @@
-# MCP Custom Transports - Avanceret Implementeringsvejledning
+# MCP Tilpassede Transports - Avanceret Implementeringsguide
 
-Model Context Protocol (MCP) giver fleksibilitet i transportmekanismer og tillader brugerdefinerede implementeringer til specialiserede virksomhedsmiljøer. Denne avancerede vejledning udforsker brugerdefinerede transportimplementeringer ved brug af Azure Event Grid og Azure Event Hubs som praktiske eksempler på opbygning af skalerbare, cloud-native MCP-løsninger.
+Model Context Protocol (MCP) giver fleksibilitet i transportmekanismer og tillader brugerdefinerede implementeringer til specialiserede virksomheds-miljøer. Denne avancerede guide udforsker tilpassede transportimplementeringer med Azure Event Grid og Azure Event Hubs som praktiske eksempler på opbygning af skalerbare, cloud-native MCP-løsninger.
 
 ## Introduktion
 
-Mens MCP's standardtransporter (stdio og HTTP streaming) dækker de fleste anvendelsestilfælde, kræver virksomhedsmiljøer ofte specialiserede transportmekanismer for forbedret skalerbarhed, pålidelighed og integration med eksisterende cloud-infrastruktur. Brugerdefinerede transporter gør det muligt for MCP at udnytte cloud-native messaging-tjenester til asynkron kommunikation, begivenhedsdrevne arkitekturer og distribueret behandling.
+Mens MCP's standardtransporter (stdio og HTTP streaming) dækker de fleste brugsscenarier, kræver virksomheds-miljøer ofte specialiserede transportmekanismer for forbedret skalerbarhed, pålidelighed og integration med eksisterende cloud-infrastruktur. Tilpassede transporter muliggør, at MCP kan drage fordel af cloud-native messagingtjenester til asynkron kommunikation, begivenhedsdrevne arkitekturer og distribueret behandling.
 
-Denne lektion udforsker avancerede transportimplementeringer baseret på den nyeste MCP-specifikation (2025-11-25), Azure messaging-tjenester og etablerede integrationsmønstre for virksomheder.
+Denne lektion udforsker avancerede transportimplementeringer baseret på den nyeste MCP-specifikation (2025-11-25), Azure messagingtjenester og etablerede integrationsmønstre for virksomheder.
 
 ### **MCP Transportarkitektur**
 
 **Fra MCP Specifikation (2025-11-25):**
 
 - **Standardtransporter**: stdio (anbefalet), HTTP streaming (til fjernscenarier)
-- **Brugerdefinerede transporter**: Enhver transport, der implementerer MCP beskedudvekslingsprotokol
-- **Beskedformat**: JSON-RPC 2.0 med MCP-specifikke udvidelser
-- **To-vejs kommunikation**: Fuld duplex kommunikation kræves til notifikationer og svar
+- **Tilpassede transporter**: Enhver transport der implementerer MCP meddelelsesudvekslingsprotokol
+- **Meddelelsesformat**: JSON-RPC 2.0 med MCP-specifikke udvidelser
+- **To-vejs kommunikation**: Fuld duplex kommunikation krævet til notifikationer og svar
 
 ## Læringsmål
 
-Ved slutningen af denne avancerede lektion vil du kunne:
+Når denne avancerede lektion er færdig, vil du kunne:
 
-- **Forstå krav til brugerdefinerede transporter**: Implementere MCP-protokol over enhver transportlag samtidig med overholdelse
-- **Bygge Azure Event Grid Transport**: Oprette begivenhedsdrevne MCP-servere ved brug af Azure Event Grid for serverløs skalerbarhed
-- **Implementere Azure Event Hubs Transport**: Designe høj-gennemstrømnings MCP-løsninger ved brug af Azure Event Hubs til realtidsstreaming
-- **Anvende virksomhedsmønstre**: Integrere brugerdefinerede transporter med eksisterende Azure-infrastruktur og sikkerhedsmodeller
-- **Håndtere transportpålidelighed**: Implementere beskeddurabilitet, rækkefølge og fejlhåndtering til virksomhedsscenarier
-- **Optimere ydeevne**: Designe transportløsninger til skala, latenstid og gennemstrømningskrav
+- **Forstå krav til tilpassede transporter**: Implementere MCP-protokol over enhver transportlag samtidig med overholdelse af specifikation
+- **Bygge Azure Event Grid Transport**: Oprette begivenhedsdrevne MCP-servere ved hjælp af Azure Event Grid for serverløs skalerbarhed
+- **Implementere Azure Event Hubs Transport**: Designe højtydende MCP-løsninger med Azure Event Hubs til realtidsstreaming
+- **Anvende virksomheds-mønstre**: Integrere tilpassede transporter med eksisterende Azure-infrastruktur og sikkerhedsmodeller
+- **Håndtere transports pålidelighed**: Implementere meddelelsesholdbarhed, rækkefølge og fejlhåndtering til virksomheds-scenarier
+- **Optimere ydeevne**: Designe transportløsninger til skalerings-, latenstid- og gennemløbsbehov
 
 ## **Transportkrav**
 
@@ -51,24 +51,25 @@ Custom Transport:
 
 ## **Azure Event Grid Transport Implementering**
 
-Azure Event Grid tilbyder en serverløs begivenhedsrutningstjeneste ideel til begivenhedsdrevne MCP-arkitekturer. Denne implementering demonstrerer, hvordan man bygger skalerbare, løst koblede MCP-systemer.
+Azure Event Grid tilbyder en serverløs begivenhedsrutingstjeneste ideel til begivenhedsdrevne MCP-arkitekturer. Denne implementering demonstrerer, hvordan man bygger skalerbare, løst koblede MCP-systemer.
 
-### **Arkitekturoversigt**
+### **Arkitektur Oversigt**
 
 ```mermaid
 graph TB
-    Client[MCP-klient] --> EG[Azure Event Grid]
-    EG --> Server[MCP-serverfunktion]
+    Client[MCP Client] --> EG[Azure Event Grid]
+    EG --> Server[MCP Server Funktion]
     Server --> EG
     EG --> Client
     
-    subgraph "Azure-tjenester"
+    subgraph "Azure Tjenester"
         EG
         Server
-        KV[Nøgleboks]
-        Monitor[Programindsigter]
+        KV[Nøglehvelv]
+        Monitor[Applikationsindsigt]
     end
 ```
+
 ### **C# Implementering - Event Grid Transport**
 
 ```csharp
@@ -178,7 +179,7 @@ export class EventGridMcpTransport implements McpTransport {
     // Begivenhedsdrevet modtagelse via Azure Functions
     onMessage(handler: (message: McpMessage) => Promise<void>): void {
         // Implementeringen vil bruge Azure Functions Event Grid-trigger
-        // Dette er en konceptuel grænseflade til webhook-modtageren
+        // Dette er et konceptuelt interface for webhook-modtageren
     }
 }
 
@@ -246,7 +247,7 @@ import logging
 def main(event: func.EventGridEvent) -> None:
     """Azure Functions Event Grid trigger for MCP messages"""
     try:
-        # Parse MCP-besked fra Event Grid-begivenhed
+        # Analyser MCP-besked fra Event Grid-hændelse
         mcp_message = json.loads(event.get_body().decode('utf-8'))
         
         # Behandl MCP-besked
@@ -262,20 +263,20 @@ def main(event: func.EventGridEvent) -> None:
 
 ## **Azure Event Hubs Transport Implementering**
 
-Azure Event Hubs tilbyder høj-gennemstrømnings, realtidsstreaming kapaciteter til MCP-scenarier, der kræver lav latenstid og højt beskedvolumen.
+Azure Event Hubs tilbyder højtydende, realtids-streaming muligheder til MCP-scenarier, der kræver lav latenstid og højt meddelelsesvolumen.
 
-### **Arkitekturoversigt**
+### **Arkitektur Oversigt**
 
 ```mermaid
 graph TB
-    Client[MCP Klient] --> EH[Azure Event Hubs]
+    Client[MCP Client] --> EH[Azure Event Hubs]
     EH --> Server[MCP Server]
     Server --> EH
     EH --> Client
     
-    subgraph "Event Hubs Funktioner"
+    subgraph "Funktioner i Event Hubs"
         Partition[Partitionering]
-        Retention[Beskedbevaring]
+        Retention[Beskedbevægelse]
         Scaling[Auto Skalering]
     end
     
@@ -283,6 +284,7 @@ graph TB
     EH --> Retention
     EH --> Scaling
 ```
+
 ### **C# Implementering - Event Hubs Transport**
 
 ```csharp
@@ -416,7 +418,7 @@ export class EventHubsMcpTransport implements McpTransport {
                         
                         await messageHandler(mcpMessage);
                         
-                        // Opdater tjekpunkt for mindst-en-gang levering
+                        // Opdater tjekpunkt for mindst en-gang levering
                         await context.updateCheckpoint(event);
                     } catch (error) {
                         console.error("Error processing Event Hubs message:", error);
@@ -525,7 +527,7 @@ class EventHubsMcpTransport:
 
 ## **Avancerede Transportmønstre**
 
-### **Beskeddurabilitet og Pålidelighed**
+### **Meddelelsesholdbarhed og Pålidelighed**
 
 ```csharp
 // Implementing message durability with retry logic
@@ -613,7 +615,7 @@ public class ObservableTransport : IMcpTransport
 }
 ```
 
-## **Virksomhedsintegrationsscenarier**
+## **Virksomheds Integrationsscenarier**
 
 ### **Scenario 1: Distribueret MCP Behandling**
 
@@ -647,9 +649,9 @@ Benefits:
   - Built-in partitioning for parallel processing
 ```
 
-### **Scenario 3: Hybrid Transportarkitektur**
+### **Scenario 3: Hybrid Transport Arkitektur**
 
-Kombinere flere transporter til forskellige anvendelsestilfælde:
+Kombination af flere transporter til forskellige brugssager:
 
 ```csharp
 public class HybridMcpTransport : IMcpTransport
@@ -675,7 +677,7 @@ public class HybridMcpTransport : IMcpTransport
 
 ## **Ydeevneoptimering**
 
-### **Beskedbatching for Event Grid**
+### **Meddelelsesbatching til Event Grid**
 
 ```csharp
 public class BatchingEventGridTransport : IMcpTransport
@@ -735,9 +737,9 @@ public class PartitionedEventHubsTransport : IMcpTransport
 }
 ```
 
-## **Test af Brugerdefinerede Transporter**
+## **Test af Tilpassede Transporter**
 
-### **Enhedstest med Test Doubles**
+### **Unit Test med Test Doubles**
 
 ```csharp
 [Test]
@@ -801,29 +803,29 @@ public async Task EventHubsTransport_IntegrationTest()
 
 ### **Transportdesignprincipper**
 
-1. **Idempotens**: Sikr, at beskedbehandling er idempotent for at håndtere dubletter
+1. **Idempotens**: Sikr, at meddelelsesbehandling er idempotent for at håndtere dubletter
 2. **Fejlhåndtering**: Implementer omfattende fejlhåndtering og dead letter køer
-3. **Overvågning**: Tilføj detaljeret telemetri og helbredstjek
-4. **Sikkerhed**: Brug managed identities og mindst privilegeret adgang
-5. **Ydeevne**: Design til dine specifikke latenstids- og gennemstrømningskrav
+3. **Overvågning**: Tilføj detaljeret telemetri og sundhedstjek
+4. **Sikkerhed**: Brug styrede identiteter og adgang med mindst privilegium
+5. **Ydeevne**: Design til dine specifikke latenstids- og gennemløbsbehov
 
 ### **Azure-specifikke anbefalinger**
 
-1. **Brug Managed Identity**: Undgå forbindelsesstrenge i produktion
-2. **Implementer Circuit Breakers**: Beskyt mod Azure serviceafbrydelser
-3. **Overvåg omkostninger**: Følg beskedvolumen og behandlingsomkostninger
+1. **Brug styret identitet**: Undgå forbindelsesstrenge i produktion
+2. **Implementer afbrydermekanismer**: Beskyt mod Azure-tjenesteudfald
+3. **Overvåg omkostninger**: Følg med i meddelelsesvolumen og behandlingsomkostninger
 4. **Planlæg for skala**: Design partitionering og skaleringsstrategier tidligt
 5. **Test grundigt**: Brug Azure DevTest Labs til omfattende test
 
 ## **Konklusion**
 
-Brugerdefinerede MCP-transporter muliggør kraftfulde virksomhedsscenarier ved brug af Azures messaging-tjenester. Ved at implementere Event Grid eller Event Hubs transporter kan du bygge skalerbare, pålidelige MCP-løsninger, der integreres problemfrit med eksisterende Azure-infrastruktur.
+Tilpassede MCP-transporter muliggør stærke virksomheds-scenarier ved hjælp af Azures messagingtjenester. Ved at implementere Event Grid eller Event Hubs transporter kan du opbygge skalerbare, pålidelige MCP-løsninger, der integreres sømløst med eksisterende Azure-infrastruktur.
 
-De givne eksempler demonstrerer produktionsklare mønstre til implementering af brugerdefinerede transporter samtidig med overholdelse af MCP-protokollen og Azures bedste praksis.
+De viste eksempler demonstrerer produktionsklare mønstre til implementering af tilpassede transporter samtidig med, at man overholder MCP-protokollen og Azures bedste praksis.
 
-## **Yderligere Ressourcer**
+## **Yderligere ressourcer**
 
-- [MCP Specification 2025-06-18](https://spec.modelcontextprotocol.io/specification/2025-06-18/)
+- [MCP Specifikation 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/)
 - [Azure Event Grid Dokumentation](https://docs.microsoft.com/azure/event-grid/)
 - [Azure Event Hubs Dokumentation](https://docs.microsoft.com/azure/event-hubs/)
 - [Azure Functions Event Grid Trigger](https://docs.microsoft.com/azure/azure-functions/functions-bindings-event-grid)
@@ -833,16 +835,16 @@ De givne eksempler demonstrerer produktionsklare mønstre til implementering af 
 
 ---
 
-> *Denne vejledning fokuserer på praktiske implementeringsmønstre til produktions-MCP-systemer. Valider altid transportimplementeringer mod dine specifikke krav og Azure servicegrænser.*
-> **Nuværende Standard**: Denne vejledning afspejler [MCP Specification 2025-06-18](https://spec.modelcontextprotocol.io/specification/2025-06-18/) transportkrav og avancerede transportmønstre til virksomhedsmiljøer.
+> *Denne guide fokuserer på praktiske implementeringsmønstre for produktions-MCP-systemer. Valider altid transportimplementeringer i forhold til dine specifikke krav og Azure-tjenestebegrænsninger.*
+> **Nuværende Standard**: Denne guide afspejler [MCP Specifikation 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/) transportkrav og avancerede transportmønstre til virksomheds-miljøer.
 
 
-## Hvad er Næste
+## Hvad Nu
 - [6. Community Contributions](../../06-CommunityContributions/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
 **Ansvarsfraskrivelse**:
-Dette dokument er blevet oversat ved hjælp af AI-oversættelsestjenesten [Co-op Translator](https://github.com/Azure/co-op-translator). Selvom vi bestræber os på nøjagtighed, bedes du være opmærksom på, at automatiserede oversættelser kan indeholde fejl eller unøjagtigheder. Det oprindelige dokument på dets modersmål bør betragtes som den autoritative kilde. For kritisk information anbefales professionel menneskelig oversættelse. Vi påtager os intet ansvar for misforståelser eller fejltolkninger, der opstår som følge af brugen af denne oversættelse.
+Dette dokument er blevet oversat ved hjælp af AI-oversættelsestjenesten [Co-op Translator](https://github.com/Azure/co-op-translator). Selvom vi bestræber os på nøjagtighed, skal du være opmærksom på, at automatiserede oversættelser kan indeholde fejl eller unøjagtigheder. Det originale dokument på dets oprindelige sprog bør betragtes som den autoritative kilde. For kritisk information anbefales professionel menneskelig oversættelse. Vi påtager os intet ansvar for misforståelser eller fejltolkninger, der opstår som følge af brugen af denne oversættelse.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

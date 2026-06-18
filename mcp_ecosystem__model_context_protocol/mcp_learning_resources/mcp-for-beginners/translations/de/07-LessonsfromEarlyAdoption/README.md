@@ -1,4 +1,4 @@
-# 🌟 Lektionen von Early Adopters
+# 🌟 Lektionen von frühen Anwendern
 
 [![Lessons from MCP Early Adopters](../../../translated_images/de/08.980bb2babbaadd8a.webp)](https://youtu.be/jds7dSmNptE)
 
@@ -6,38 +6,38 @@ _(Klicken Sie auf das obige Bild, um das Video zu dieser Lektion anzusehen)_
 
 ## 🎯 Was dieses Modul abdeckt
 
-Dieses Modul untersucht, wie reale Organisationen und Entwickler das Model Context Protocol (MCP) nutzen, um tatsächliche Herausforderungen zu bewältigen und Innovationen voranzutreiben. Durch detaillierte Fallstudien, praktische Projekte und anschauliche Beispiele entdecken Sie, wie MCP eine sichere, skalierbare KI-Integration ermöglicht, die Sprachmodelle, Tools und Unternehmensdaten verbindet.
+Dieses Modul zeigt, wie echte Organisationen und Entwickler das Model Context Protocol (MCP) verwenden, um reale Herausforderungen zu meistern und Innovationen voranzutreiben. Durch detaillierte Fallstudien, praktische Projekte und Beispiele erfahren Sie, wie MCP eine sichere, skalierbare KI-Integration ermöglicht, die Sprachmodelle, Werkzeuge und Unternehmensdaten verbindet.
 
 ### 📚 Sehen Sie MCP in Aktion
 
-Möchten Sie diese Prinzipien in einsatzbereiten Tools sehen? Schauen Sie sich unsere [**10 Microsoft MCP-Server an, die die Produktivität von Entwicklern verändern**](microsoft-mcp-servers.md) an, die reale Microsoft MCP-Server vorstellen, die Sie heute verwenden können.
+Möchten Sie sehen, wie diese Prinzipien bei produktionsreifen Werkzeugen angewendet werden? Schauen Sie sich unsere [**10 Microsoft MCP Server an, die die Produktivität von Entwicklern verändern**](microsoft-mcp-servers.md). Dort werden reale Microsoft MCP Server vorgestellt, die Sie heute nutzen können.
 
-## Übersicht
+## Überblick
 
-Diese Lektion zeigt, wie Early Adopters das Model Context Protocol (MCP) genutzt haben, um reale Herausforderungen zu meistern und branchenübergreifend Innovationen zu fördern. Durch detaillierte Fallstudien und praktische Projekte sehen Sie, wie MCP standardisierte, sichere und skalierbare KI-Integration ermöglicht – indem große Sprachmodelle, Tools und Unternehmensdaten in einem einheitlichen Rahmen verbunden werden. Sie erhalten praktische Erfahrungen beim Entwerfen und Erstellen von MCP-basierten Lösungen, lernen bewährte Implementierungsmuster kennen und entdecken Best Practices für den Einsatz von MCP in Produktionsumgebungen. Die Lektion hebt außerdem aufkommende Trends, zukünftige Entwicklungen und Open-Source-Ressourcen hervor, die Ihnen helfen, an der Spitze der MCP-Technologie und ihres sich entwickelnden Ökosystems zu bleiben.
+Diese Lektion untersucht, wie frühe Anwender das Model Context Protocol (MCP) genutzt haben, um reale Herausforderungen zu lösen und Innovationen in verschiedenen Branchen voranzutreiben. Durch detaillierte Fallstudien und praktische Projekte sehen Sie, wie MCP eine standardisierte, sichere und skalierbare KI-Integration ermöglicht – und dabei große Sprachmodelle, Werkzeuge sowie Unternehmensdaten in einem einheitlichen Rahmen verbindet. Sie sammeln praktische Erfahrungen beim Entwerfen und Bauen von MCP-basierten Lösungen, lernen bewährte Implementierungsmuster kennen und entdecken Best Practices für den Einsatz von MCP in produktiven Umgebungen. Die Lektion zeigt auch aufkommende Trends, zukünftige Entwicklungen und Open-Source-Ressourcen, die Ihnen helfen, an der Spitze der MCP-Technologie und ihres sich entwickelnden Ökosystems zu bleiben.
 
 ## Lernziele
 
-- Analyse realer MCP-Implementierungen in verschiedenen Branchen
-- Entwerfen und Erstellen kompletter MCP-basierter Anwendungen
-- Erkundung aufkommender Trends und zukünftiger Richtungen in der MCP-Technologie
-- Anwendung bewährter Praktiken in tatsächlichen Entwicklungsszenarien
+- Analysieren realer MCP-Implementierungen in verschiedenen Branchen
+- Entwerfen und bauen vollständiger MCP-basierter Anwendungen
+- Erforschen von aufkommenden Trends und zukünftigen Entwicklungen in der MCP-Technologie
+- Anwenden bewährter Methoden in realen Entwicklungsszenarien
 
 ## Reale MCP-Implementierungen
 
-### Fallstudie 1: Automatisierung des Kundensupports in Unternehmen
+### Fallstudie 1: Automatisierung des Kundensupports im Unternehmen
 
-Ein multinationales Unternehmen implementierte eine MCP-basierte Lösung, um KI-Interaktionen über ihre Kundensupport-Systeme hinweg zu standardisieren. Dadurch konnten sie:
+Ein multinationaler Konzern implementierte eine MCP-basierte Lösung, um KI-Interaktionen in ihren Kundensupport-Systemen zu standardisieren. Dadurch war es möglich:
 
-- Eine einheitliche Schnittstelle für mehrere LLM-Anbieter schaffen
-- Konsistentes Prompt-Management über Abteilungen hinweg gewährleisten
-- Robuste Sicherheits- und Compliance-Kontrollen implementieren
-- Einfach zwischen verschiedenen KI-Modellen je nach Bedürfnis wechseln
+- Eine einheitliche Schnittstelle für mehrere LLM-Anbieter zu schaffen
+- Konsistentes Prompt-Management über Abteilungen hinweg aufrechtzuerhalten
+- Robuste Sicherheits- und Compliance-Kontrollen zu implementieren
+- Leicht zwischen verschiedenen KI-Modellen je nach Bedarf zu wechseln
 
-**Technische Umsetzung:**
+**Technische Implementierung:**
 
 ```python
-# Python MCP Server-Implementierung für Kundensupport
+# Python MCP Server Implementierung für Kundensupport
 import logging
 import asyncio
 from modelcontextprotocol import create_server, ServerConfig
@@ -58,10 +58,10 @@ async def main():
         description="MCP server for handling customer support inquiries"
     )
     
-    # MCP-Server initialisieren
+    # MCP Server initialisieren
     server = create_server(config)
     
-    # Wissensdatenbankressourcen registrieren
+    # Wissensdatenbank-Ressourcen registrieren
     server.resources.register(
         ResourceDefinition(
             name="customer_kb",
@@ -96,18 +96,18 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
   
-**Ergebnisse:** 30 % Reduzierung der Modellkosten, 45 % Verbesserung der Antwortkonsistenz und verstärkte Compliance in den globalen Geschäftsbereichen.
+**Ergebnisse:** 30 % Kostensenkung bei Modellen, 45 % Verbesserung der Antwortkonsistenz und verbesserte Compliance in den globalen Abläufen.
 
 ### Fallstudie 2: Diagnostischer Assistent im Gesundheitswesen
 
-Ein Gesundheitsanbieter entwickelte eine MCP-Infrastruktur zur Integration mehrerer spezialisierter medizinischer KI-Modelle bei gleichzeitiger Sicherstellung des Schutzes sensibler Patientendaten:
+Ein Gesundheitsdienstleister entwickelte eine MCP-Infrastruktur, um verschiedene spezialisierte medizinische KI-Modelle zu integrieren und dabei den Schutz sensibler Patientendaten zu gewährleisten:
 
-- Nahtloser Wechsel zwischen allgemeinen und spezialisierten medizinischen Modellen  
-- Strenge Datenschutzkontrollen und Prüfpfade  
-- Integration mit bestehenden elektronischen Patientenakten-Systemen (EHR)  
-- Konsistentes Prompt-Engineering für medizinische Terminologie  
+- Nahtloser Wechsel zwischen generalistischen und spezialisierten medizinischen Modellen
+- Strenge Datenschutzkontrollen und Audit-Trails
+- Integration mit bestehenden elektronischen Gesundheitsakten (EHR-Systemen)
+- Konsistentes Prompt Engineering für medizinische Terminologie
 
-**Technische Umsetzung:**
+**Technische Implementierung:**
 
 ```csharp
 // C# MCP host application implementation in healthcare application
@@ -173,27 +173,27 @@ public class DiagnosticAssistant
 }
 ```
   
-**Ergebnisse:** Verbesserte diagnostische Vorschläge für Ärzte bei voller Einhaltung der HIPAA-Vorschriften und erhebliche Verringerung des Kontextwechsels zwischen Systemen.
+**Ergebnisse:** Verbesserte Diagnostikvorschläge für Ärzte bei voller HIPAA-Konformität und deutlich reduzierter Systemwechsel.
 
 ### Fallstudie 3: Risikoanalyse im Finanzdienstleistungssektor
 
-Eine Finanzinstitution implementierte MCP, um ihre Risikoanalyseprozesse über verschiedene Abteilungen zu standardisieren:
+Eine Finanzinstitution implementierte MCP, um ihre Risikoanalyseprozesse in verschiedenen Abteilungen zu standardisieren:
 
-- Einheitliche Schnittstelle für Kreditrisiko-, Betrugserkennungs- und Investitionsrisikomodelle geschaffen  
-- Strenge Zugriffskontrollen und Modellversionierung implementiert  
-- Nachvollziehbarkeit aller KI-Empfehlungen sichergestellt  
-- Einheitliche Datenformatierung über diverse Systeme aufrechterhalten  
+- Einheitliche Schnittstelle für Kreditrisiko-, Betrugserkennungs- und Investitionsrisikomodelle geschaffen
+- Strenge Zugangskontrollen und Modellversionierung implementiert
+- Auditierbarkeit aller KI-Empfehlungen gewährleistet
+- Konsistente Datenformatierung über diverse Systeme beibehalten
 
-**Technische Umsetzung:**
+**Technische Implementierung:**
 
 ```java
-// Java MCP-Server für finanzielle Risikobewertung
+// Java MCP-Server für Finanzrisikobewertung
 import org.mcp.server.*;
 import org.mcp.security.*;
 
 public class FinancialRiskMCPServer {
     public static void main(String[] args) {
-        // Erstelle MCP-Server mit Funktionen zur finanziellen Compliance
+        // Erstelle MCP-Server mit Finanz-Compliance-Funktionen
         MCPServer server = new MCPServerBuilder()
             .withModelProviders(
                 new ModelProvider("risk-assessment-primary", new AzureOpenAIProvider()),
@@ -216,27 +216,27 @@ public class FinancialRiskMCPServer {
 }
 ```
   
-**Ergebnisse:** Verbesserte regulatorische Compliance, 40 % schnellere Modellbereitstellungszyklen und erhöhte Konsistenz der Risikobewertung in den Abteilungen.
+**Ergebnisse:** Verbesserte regulatorische Compliance, 40 % schnellere Bereitstellungszyklen der Modelle und erhöhte Konsistenz der Risikoanalyse über Abteilungen hinweg.
 
-### Fallstudie 4: Microsoft Playwright MCP-Server für Browserautomatisierung
+### Fallstudie 4: Microsoft Playwright MCP Server zur Browserautomatisierung
 
-Microsoft entwickelte den [Playwright MCP Server](https://github.com/microsoft/playwright-mcp), um eine sichere, standardisierte Browserautomatisierung über das Model Context Protocol zu ermöglichen. Dieser produktionsreife Server erlaubt es KI-Agenten und LLMs, kontrolliert, prüfbar und erweiterbar mit Webbrowsern zu interagieren – und unterstützt Anwendungsfälle wie automatisiertes Web-Testing, Datenauszug und End-to-End-Workflows.
+Microsoft entwickelte den [Playwright MCP Server](https://github.com/microsoft/playwright-mcp), um eine sichere, standardisierte Browserautomatisierung über das Model Context Protocol zu ermöglichen. Dieser produktionsreife Server erlaubt es KI-Agenten und LLMs, mit Webbrowsern auf kontrollierte, prüfbare und erweiterbare Weise zu interagieren – etwa für automatisierte Webtests, Datenerfassung und End-to-End-Workflows.
 
-> **🎯 Produktionsreifes Tool**  
->  
-> Diese Fallstudie zeigt einen realen MCP-Server, den Sie heute nutzen können! Erfahren Sie mehr über den Playwright MCP Server und 9 weitere produktionsreife Microsoft MCP-Server in unserem [**Microsoft MCP Servers Guide**](microsoft-mcp-servers.md#8--playwright-mcp-server).
+> **🎯 Produktionsreifes Werkzeug**
+> 
+> Diese Fallstudie zeigt einen realen MCP-Server, den Sie heute nutzen können! Erfahren Sie mehr über den Playwright MCP Server und 9 weitere produktionsreife Microsoft MCP Server in unserem [**Microsoft MCP Servers Guide**](microsoft-mcp-servers.md#8--playwright-mcp-server).
 
-**Hauptmerkmale:**  
-- Stellt Browserautomatisierungsfunktionen (Navigation, Formularausfüllung, Screenshot-Erstellung etc.) als MCP-Tools bereit  
-- Implementiert strenge Zugriffskontrollen und Sandboxing, um unautorisierte Aktionen zu verhindern  
-- Bietet detaillierte Prüfprotokolle für alle Browserinteraktionen  
-- Unterstützt Integration mit Azure OpenAI und anderen LLM-Anbietern für agentengesteuerte Automatisierung  
-- Ermöglicht GitHub Copilots Coding Agent mit Web-Browsing-Fähigkeiten  
+**Hauptmerkmale:**
+- Bietet Browserautomatisierungsfunktionen (Navigation, Formularausfüllung, Screenshot-Erstellung usw.) als MCP-Werkzeuge an
+- Implementiert strenge Zugangskontrollen und Sandboxing zum Schutz vor unbefugten Aktionen
+- Stellt detaillierte Audit-Logs für alle Browser-Interaktionen bereit
+- Unterstützt Integration mit Azure OpenAI und anderen LLM-Anbietern für agentengetriebene Automatisierung
+- Betreibt GitHub Copilots Coding Agent mit Webbrowser-Funktionalität
 
-**Technische Umsetzung:**
+**Technische Implementierung:**
 
 ```typescript
-// TypeScript: Registrierung der Playwright-Browserautomatisierungstools in einem MCP-Server
+// TypeScript: Registrierung von Playwright-Browserautomatisierungstools in einem MCP-Server
 import { createServer, ToolDefinition } from 'modelcontextprotocol';
 import { launch } from 'playwright';
 
@@ -246,7 +246,7 @@ const server = createServer({
   description: 'MCP server for browser automation using Playwright'
 });
 
-// Registrierung eines Tools zum Navigieren zu einer URL und Aufnehmen eines Screenshots
+// Ein Tool registrieren, um zu einer URL zu navigieren und einen Screenshot aufzunehmen
 server.tools.register(
   new ToolDefinition({
     name: 'navigate_and_screenshot',
@@ -265,37 +265,36 @@ server.tools.register(
   }
 );
 
-// Starten des MCP-Servers
+// Starte den MCP-Server
 server.listen(8080);
 ```
   
 **Ergebnisse:**  
-
 - Ermöglichte sichere, programmatische Browserautomatisierung für KI-Agenten und LLMs  
-- Verringerte manuellen Testaufwand und verbesserte Testabdeckung von Webanwendungen  
-- Bietet ein wiederverwendbares, erweiterbares Framework für browserbasierte Tool-Integration in Unternehmensumgebungen  
-- Treibt GitHub Copilots Web-Browsing-Funktionen an  
+- Reduzierte manuellen Testaufwand und verbesserte Testabdeckung für Webanwendungen  
+- Bietet ein wiederverwendbares, erweiterbares Framework zur Integration browserbasierter Werkzeuge in Unternehmensumgebungen  
+- Treibt die Web-Browsing-Fähigkeiten von GitHub Copilot an
 
-**Referenzen:**  
+**Referenzen:**
 
-- [Playwright MCP Server GitHub Repository](https://github.com/microsoft/playwright-mcp)  
-- [Microsoft AI and Automation Solutions](https://azure.microsoft.com/en-us/products/ai-services/)
+- [Playwright MCP Server GitHub-Repository](https://github.com/microsoft/playwright-mcp)
+- [Microsoft AI- und Automationslösungen](https://azure.microsoft.com/en-us/products/ai-services/)
 
-### Fallstudie 5: Azure MCP – Enterprise-Grade Model Context Protocol als Dienst
+### Fallstudie 5: Azure MCP – Unternehmensgerechtes Model Context Protocol als Service
 
-Der Azure MCP Server ([https://aka.ms/azmcp](https://aka.ms/azmcp)) ist Microsofts verwaltete, enterprise-taugliche Implementierung des Model Context Protocol, konzipiert, um skalierbare, sichere und konforme MCP-Serverfähigkeiten als Cloud-Dienst bereitzustellen. Azure MCP ermöglicht Organisationen, MCP-Server schnell bereitzustellen, zu verwalten und mit Azure AI, Daten- und Sicherheitsdiensten zu integrieren, wodurch der Betriebsaufwand reduziert und die KI-Einführung beschleunigt wird.
+Der Azure MCP Server ([https://aka.ms/azmcp](https://aka.ms/azmcp)) ist Microsofts verwaltete, unternehmensgerechte Implementierung des Model Context Protocol, die skalierbare, sichere und konforme MCP-Serverfunktionen als Cloud-Service bereitstellt. Azure MCP ermöglicht Organisationen die schnelle Bereitstellung, Verwaltung und Integration von MCP-Servern mit Azure AI, Daten- und Sicherheitsdiensten, wodurch der Betriebsaufwand reduziert und die KI-Einführung beschleunigt wird.
 
-> **🎯 Produktionsreifes Tool**  
->  
-> Dies ist ein realer MCP-Server, den Sie heute nutzen können! Erfahren Sie mehr über den Azure AI Foundry MCP Server in unserem [**Microsoft MCP Servers Guide**](microsoft-mcp-servers.md).
+> **🎯 Produktionsreifes Werkzeug**
+> 
+> Dies ist ein realer MCP-Server, den Sie heute nutzen können! Erfahren Sie mehr über den Microsoft Foundry MCP Server in unserem [**Microsoft MCP Servers Guide**](microsoft-mcp-servers.md).
 
-- Vollständig verwaltetes MCP-Server-Hosting mit integrierter Skalierung, Überwachung und Sicherheit  
-- Native Integration mit Azure OpenAI, Azure AI Search und anderen Azure-Diensten  
-- Unternehmensauthentifizierung und -autorisierung über Microsoft Entra ID  
-- Unterstützung für benutzerdefinierte Tools, Prompt-Vorlagen und Ressourcen-Connectors  
-- Einhaltung von Sicherheits- und regulatorischen Anforderungen für Unternehmen  
+- Voll verwaltetes MCP-Server-Hosting mit eingebauter Skalierung, Überwachung und Sicherheit
+- Native Integration mit Azure OpenAI, Azure AI Search und weiteren Azure-Diensten
+- Unternehmensauthentifizierung und -autorisierung über Microsoft Entra ID
+- Unterstützung für benutzerdefinierte Werkzeuge, Prompt-Vorlagen und Ressourcen-Connectors
+- Einhaltung von Unternehmenssicherheits- und regulatorischen Anforderungen
 
-**Technische Umsetzung:**
+**Technische Implementierung:**
 
 ```yaml
 # Example: Azure MCP server deployment configuration (YAML)
@@ -323,241 +322,241 @@ spec:
 ```
   
 **Ergebnisse:**  
-- Verkürzte Time-to-Value für Enterprise-KI-Projekte durch Bereitstellung einer einsatzbereiten, konformen MCP-Serverplattform  
-- Vereinfachte Integration von LLMs, Tools und Unternehmenseigenen Datenquellen  
+- Verkürzte Time-to-Value für unternehmensweite KI-Projekte durch eine einsatzbereite, konforme MCP-Serverplattform  
+- Vereinfachte Integration von LLMs, Werkzeugen und Unternehmensdatenquellen  
 - Verbesserte Sicherheit, Beobachtbarkeit und Betriebseffizienz für MCP-Arbeitslasten  
-- Verbesserte Codequalität durch Azure SDK-Best Practices und aktuelle Authentifizierungsmuster  
+- Verbesserte Codequalität durch Azure SDK Best Practices und aktuelle Authentifizierungsmuster
 
 **Referenzen:**  
 - [Azure MCP Dokumentation](https://aka.ms/azmcp)  
-- [Azure MCP Server GitHub Repository](https://github.com/Azure/azure-mcp)  
-- [Azure AI Services](https://azure.microsoft.com/en-us/products/ai-services/)  
+- [Azure MCP Server GitHub-Repository](https://github.com/Azure/azure-mcp)  
+- [Azure AI Dienste](https://azure.microsoft.com/en-us/products/ai-services/)  
 - [Microsoft MCP Center](https://mcp.azure.com)
 
 ## Fallstudie 6: NLWeb  
-MCP (Model Context Protocol) ist ein aufkommendes Protokoll, mit dem Chatbots und KI-Assistenten mit Tools interagieren können. Jede NLWeb-Instanz ist auch ein MCP-Server, der eine Kernmethode unterstützt, „ask“, mit der eine Website in natürlicher Sprache befragt wird. Die zurückgegebene Antwort nutzt schema.org, ein weit verbreitetes Vokabular zur Beschreibung von Webdaten. Vereinfacht gesagt ist MCP zu NLWeb wie Http zu HTML. NLWeb kombiniert Protokolle, schema.org-Formate und Beispielcode, um Websites schnell solche Endpunkte bereitstellen zu lassen, was sowohl Menschen durch konversationelle Schnittstellen als auch Maschinen durch natürliche Agent-zu-Agent-Interaktion zugutekommt.
+MCP (Model Context Protocol) ist ein aufstrebendes Protokoll, mit dem Chatbots und KI-Assistenten mit Werkzeugen interagieren können. Jede NLWeb-Instanz ist auch ein MCP-Server, der eine Kernmethode ask unterstützt, mit der eine Website per natürlicher Sprache befragt wird. Die zurückgegebene Antwort nutzt schema.org, ein weit verbreitetes Vokabular zur Beschreibung von Webdaten. Frei gesprochen ist MCP für NLWeb, was HTTP für HTML ist. NLWeb kombiniert Protokolle, Schema.org-Formate und Beispielcode, um Webseiten schnell solche Endpunkte erstellen zu lassen – was sowohl Menschen durch konversationelle Schnittstellen als auch Maschinen durch natürliche Agent-zu-Agenten-Interaktion zugutekommt.
 
-Es gibt zwei unterschiedliche Komponenten von NLWeb.  
-- Ein Protokoll, sehr einfach zu Beginn, um mit einer Website in natürlicher Sprache über ein Format zu kommunizieren, das json und schema.org für die Antwort nutzt. Weitere Details gibt es in der REST-API-Dokumentation.  
-- Eine unkomplizierte Implementierung von (1), die bestehende Markups nutzt, für Websites, die als Listen von Elementen abstrahiert werden können (Produkte, Rezepte, Attraktionen, Bewertungen usw.). Zusammen mit einer Reihe von Benutzeroberflächen-Widgets können Websites einfach konversationelle Schnittstellen zu ihren Inhalten bereitstellen. Weitere Details finden Sie in der Dokumentation zu Life of a chat query.
+NLWeb besteht aus zwei klaren Komponenten.  
+- Ein Protokoll, das sehr einfach gehalten ist, um mit einer Webseite in natürlicher Sprache zu kommunizieren, und ein Format, das json und schema.org für die Antwort verwendet. Details finden Sie in der Dokumentation zur REST-API.  
+- Eine unkomplizierte Implementierung von (1), die vorhandene Markup-Informationen nutzt für Webseiten, die als Listen von Elementen abstrahiert werden können (Produkte, Rezepte, Attraktionen, Rezensionen etc.). Zusammen mit einer Auswahl an UI-Widgets können Webseiten so leicht konversationelle Schnittstellen zu ihren Inhalten bereitstellen. Details zum Funktionsablauf finden Sie in der Dokumentation zum „Life of a chat query“.
 
 **Referenzen:**  
 - [Azure MCP Dokumentation](https://aka.ms/azmcp)  
 - [NLWeb](https://github.com/microsoft/NlWeb)
 
-### Fallstudie 7: Azure AI Foundry MCP Server – Integration von Enterprise-KI-Agenten
+### Fallstudie 7: Microsoft Foundry MCP Server – Integration von Enterprise-KI-Agenten
 
-Azure AI Foundry MCP-Server zeigen, wie MCP genutzt werden kann, um KI-Agenten und Workflows in Unternehmensumgebungen zu orchestrieren und zu verwalten. Durch die Integration von MCP mit Azure AI Foundry können Organisationen Agenteninteraktionen standardisieren, Foundrys Workflow-Management nutzen und sichere, skalierbare Bereitstellungen sicherstellen.
+Microsoft Foundry MCP Server zeigen, wie MCP genutzt werden kann, um KI-Agenten und Workflows in Unternehmensumgebungen zu orchestrieren und zu verwalten. Durch die Integration von MCP mit Microsoft Foundry können Organisationen Agenten-Interaktionen standardisieren, das Workflow-Management von Foundry nutzen und sichere, skalierbare Bereitstellungen gewährleisten.
 
-> **🎯 Produktionsreifes Tool**  
->  
-> Dies ist ein realer MCP-Server, den Sie heute nutzen können! Erfahren Sie mehr über den Azure AI Foundry MCP Server in unserem [**Microsoft MCP Servers Guide**](microsoft-mcp-servers.md#9--azure-ai-foundry-mcp-server).
+> **🎯 Produktionsreifes Werkzeug**
+> 
+> Dies ist ein realer MCP-Server, den Sie heute nutzen können! Erfahren Sie mehr über den Microsoft Foundry MCP Server in unserem [**Microsoft MCP Servers Guide**](microsoft-mcp-servers.md#9--microsoft-foundry-mcp-server).
 
-**Hauptmerkmale:**  
-- Umfassender Zugriff auf das Azure-KI-Ökosystem, einschließlich Modellkatalogen und Bereitstellungsmanagement  
-- Wissensindizierung mit Azure AI Search für RAG-Anwendungen  
-- Evaluierungswerkzeuge für KI-Modellleistung und Qualitätssicherung  
-- Integration mit Azure AI Foundry Catalog und Labs für modernste Forschungsmodelle  
-- Agentenverwaltung und Evaluierungsfunktionen für Produktionsszenarien  
+**Hauptmerkmale:**
+- Umfassender Zugriff auf Azure’s KI-Ökosystem, inklusive Modellkataloge und Bereitstellungsmanagement
+- Wissensindexierung mit Azure AI Search für RAG-Anwendungen
+- Evaluierungswerkzeuge für KI-Modellleistung und Qualitätssicherung
+- Integration mit Microsoft Foundry Catalog und Labs für hochentwickelte Forschungsmodelle
+- Agentenverwaltung und Evaluierungsfunktionen für produktive Szenarien
 
-**Ergebnisse:**  
-- Schnelles Prototyping und robuste Überwachung von KI-Agenten-Workflows  
-- Nahtlose Integration mit Azure AI-Diensten für erweiterte Szenarien  
-- Einheitliche Schnittstelle zum Erstellen, Bereitstellen und Überwachen von Agenten-Pipelines  
-- Verbesserte Sicherheit, Compliance und Betriebseffizienz in Unternehmen  
-- Beschleunigte KI-Einführung bei gleichzeitiger Kontrolle komplexer agentengesteuerter Prozesse  
+**Ergebnisse:**
+- Schnelles Prototyping und robuste Überwachung von KI-Agenten-Workflows
+- Nahtlose Integration mit Azure AI-Diensten für fortschrittliche Szenarien
+- Einheitliche Schnittstelle zum Erstellen, Bereitstellen und Überwachen von Agenten-Pipelines
+- Verbesserte Sicherheit, Compliance und Betriebseffizienz für Unternehmen
+- Beschleunigte KI-Einführung bei gleichzeitiger Kontrolle komplexer agentengetriebener Prozesse
 
-**Referenzen:**  
-- [Azure AI Foundry MCP Server GitHub Repository](https://github.com/azure-ai-foundry/mcp-foundry)  
+**Referenzen:**
+- [Microsoft Foundry MCP Server GitHub-Repository](https://github.com/azure-ai-foundry/mcp-foundry)
 - [Integration von Azure AI Agents mit MCP (Microsoft Foundry Blog)](https://devblogs.microsoft.com/foundry/integrating-azure-ai-agents-mcp/)
 
 ### Fallstudie 8: Foundry MCP Playground – Experimentieren und Prototyping
 
-Der Foundry MCP Playground bietet eine einsatzbereite Umgebung zum Experimentieren mit MCP-Servern und Azure AI Foundry-Integrationen. Entwickler können schnell Prototypen erstellen, testen und KI-Modelle sowie Agenten-Workflows mit Ressourcen aus dem Azure AI Foundry Catalog und Labs evaluieren. Der Playground vereinfacht die Einrichtung, stellt Beispielprojekte bereit und unterstützt kollaborative Entwicklung, wodurch es einfach wird, Best Practices und neue Szenarien mit minimalem Aufwand zu erkunden. Besonders nützlich ist er für Teams, die Ideen validieren, Experimente teilen und das Lernen beschleunigen möchten, ohne komplexe Infrastruktur aufzubauen. Durch die Senkung der Zugangshürden fördert der Playground Innovation und Community-Beiträge im MCP- und Azure AI Foundry-Ökosystem.
+Der Foundry MCP Playground bietet eine einsatzbereite Umgebung zum Experimentieren mit MCP-Servern und Microsoft Foundry-Integrationen. Entwickler können schnell Prototypen erstellen, KI-Modelle und Agenten-Workflows testen und evaluieren, wobei ihnen Ressourcen aus dem Microsoft Foundry Catalog und Labs zur Verfügung stehen. Der Playground vereinfacht die Einrichtung, stellt Beispielprojekte bereit und unterstützt kollaborative Entwicklung. So lassen sich Best Practices und neue Szenarien mit minimalem Aufwand erkunden. Besonders nützlich ist es für Teams, die Ideen validieren, Experimente teilen und das Lernen beschleunigen möchten, ohne komplexe Infrastruktur zu benötigen. Durch die niedrigere Einstiegshürde fördert der Playground Innovation und Community-Beiträge im MCP- und Microsoft Foundry-Ökosystem.
 
 **Referenzen:**
 
-- [Foundry MCP Playground GitHub Repository](https://github.com/azure-ai-foundry/foundry-mcp-playground)
+- [Foundry MCP Playground GitHub-Repository](https://github.com/azure-ai-foundry/foundry-mcp-playground)
 
 ### Fallstudie 9: Microsoft Learn Docs MCP Server – KI-gestützter Dokumentationszugriff
 
-Der Microsoft Learn Docs MCP Server ist ein cloudbereitgestellter Dienst, der KI-Assistenten den Echtzeitzugriff auf offizielle Microsoft-Dokumentationen über das Model Context Protocol ermöglicht. Dieser produktionsreife Server verbindet sich mit dem umfassenden Microsoft Learn-Ökosystem und ermöglicht semantische Suche über alle offiziellen Microsoft-Quellen.
+Der Microsoft Learn Docs MCP Server ist ein cloudgehosteter Service, der KI-Assistenten in Echtzeit Zugriff auf offizielle Microsoft-Dokumentation über das Model Context Protocol ermöglicht. Dieser produktionsreife Server ist an das umfangreiche Microsoft Learn-Ökosystem angeschlossen und erlaubt semantische Suche über alle offiziellen Microsoft-Quellen.
 
-> **🎯 Produktionsreifes Tool**  
->  
+> **🎯 Produktionsreifes Werkzeug**
+> 
 > Dies ist ein realer MCP-Server, den Sie heute nutzen können! Erfahren Sie mehr über den Microsoft Learn Docs MCP Server in unserem [**Microsoft MCP Servers Guide**](microsoft-mcp-servers.md#1--microsoft-learn-docs-mcp-server).
 
-**Hauptmerkmale:**  
-- Echtzeitzugriff auf offizielle Microsoft-Dokumentationen, Azure-Dokumente und Microsoft 365-Dokumentationen  
-- Erweiterte semantische Suchfunktionen, die Kontext und Absicht verstehen  
-- Immer aktuelle Informationen, da Microsoft Learn-Inhalte zeitnah veröffentlicht werden  
-- Umfassende Abdeckung von Microsoft Learn, Azure-Dokumentation und Microsoft 365-Quellen  
-- Liefert bis zu 10 hochwertige Inhaltssegmente mit Artikeltiteln und URLs  
+**Hauptmerkmale:**
+- Echtzeitzugriff auf offizielle Microsoft-Dokumentation, Azure-Dokumente und Microsoft 365-Dokumentation
+- Fortschrittliche semantische Suchfunktionen, die Kontext und Absicht verstehen
+- Immer aktuelle Informationen, da Microsoft Learn-Inhalte veröffentlicht werden
+- Umfassende Abdeckung von Microsoft Learn, Azure-Dokumentation und Microsoft 365-Quellen
+- Liefert bis zu 10 hochwertige Inhaltsfragmente mit Artikeltiteln und URLs
 
-**Warum es wichtig ist:**  
-- Löst das Problem veralteten KI-Wissens zu Microsoft-Technologien  
-- Stellt sicher, dass KI-Assistenten Zugriff auf die neuesten Features von .NET, C#, Azure und Microsoft 365 haben  
-- Bietet autoritative, erstklassige Informationen für präzise Codegenerierung  
-- Unverzichtbar für Entwickler, die mit schnell entwickelnden Microsoft-Technologien arbeiten  
+**Warum es wichtig ist:**
+- Löst das Problem „veraltetes KI-Wissen“ für Microsoft-Technologien
+- Stellt sicher, dass KI-Assistenten Zugriff auf die neuesten .NET-, C#-, Azure- und Microsoft 365-Funktionen haben
+- Bietet autoritative, primäre Informationen für genaue Codegenerierung
+- Essenziell für Entwickler, die mit sich schnell entwickelnden Microsoft-Technologien arbeiten
 
-**Ergebnisse:**  
-- Dramatisch verbesserte Genauigkeit KI-generierten Codes für Microsoft-Technologien  
-- Verringerte Zeit für die Suche nach aktuellen Dokumentationen und Best Practices  
-- Erhöhte Entwicklerproduktivität durch kontextbezogenen Dokumentationsabruf  
-- Nahtlose Integration in Entwicklungs-Workflows ohne Verlassen der IDE  
+**Ergebnisse:**
+- Deutlich verbesserte Genauigkeit KI-generierten Codes für Microsoft-Technologien
+- Weniger Zeitaufwand für das Suchen aktueller Dokumentationen und Best Practices
+- Höhere Entwicklerproduktivität durch kontextbewusste Dokumentenabrufung
+- Nahtlose Integration in Entwicklungsabläufe ohne IDE-Verlassen
 
-**Referenzen:**  
-- [Microsoft Learn Docs MCP Server GitHub Repository](https://github.com/MicrosoftDocs/mcp)  
+**Referenzen:**
+- [Microsoft Learn Docs MCP Server GitHub-Repository](https://github.com/MicrosoftDocs/mcp)
 - [Microsoft Learn Dokumentation](https://learn.microsoft.com/)
 
-## Praxisprojekte
+## Praktische Projekte
 
-### Projekt 1: Erstellen Sie einen Multi-Provider-MCP-Server
+### Projekt 1: Aufbau eines Multi-Provider MCP Servers
 
-**Ziel:** Erstellen Sie einen MCP-Server, der Anfragen basierend auf bestimmten Kriterien an mehrere KI-Modellanbieter weiterleiten kann.
-
-**Anforderungen:**  
-
-- Unterstützung von mindestens drei verschiedenen Modellanbietern (z. B. OpenAI, Anthropic, lokale Modelle)  
-- Implementierung eines Routing-Mechanismus basierend auf Anfrage-Metadaten  
-- Erstellung eines Konfigurationssystems zur Verwaltung von Anbieter-Anmeldedaten  
-- Hinzufügen von Caching zur Optimierung von Leistung und Kosten  
-- Aufbau eines einfachen Dashboards zur Überwachung der Nutzung  
-
-**Implementierungsschritte:**  
-
-1. Einrichtung der grundlegenden MCP-Server-Infrastruktur  
-2. Implementierung von Anbieteradaptern für jeden KI-Modell-Service  
-3. Erstellung der Routing-Logik basierend auf Anfrageattributen  
-4. Hinzufügen von Caching-Mechanismen für häufige Anfragen  
-5. Entwicklung des Überwachungs-Dashboards  
-6. Testen mit verschiedenen Anfrage-Mustern  
-
-**Technologien:** Wahlweise Python (.NET/Java/Python je nach Präferenz), Redis für Caching und ein einfaches Web-Framework für das Dashboard.
-
-### Projekt 2: Enterprise Prompt Management System
-**Ziel:** Entwicklung eines MCP-basierten Systems zum Verwalten, Versionieren und Bereitstellen von Prompt-Vorlagen innerhalb einer Organisation.
+**Ziel:** Erstellen Sie einen MCP-Server, der Anfragen basierend auf bestimmten Kriterien an mehrere KI-Modell-Anbieter weiterleiten kann.
 
 **Anforderungen:**
 
-- Erstellung eines zentralen Repositories für Prompt-Vorlagen
-- Implementierung von Versionierungs- und Freigabeworkflows
-- Aufbau von Testfunktionen für Vorlagen mit Beispiel-Eingaben
-- Entwicklung rollenbasierter Zugriffskontrollen
-- Erstellung einer API für den Vorlagenabruf und die Bereitstellung
+- Unterstützung von mindestens drei verschiedenen Modell-Anbietern (z. B. OpenAI, Anthropic, lokale Modelle)
+- Implementierung eines Routing-Mechanismus basierend auf Anfrage-Metadaten
+- Einrichtung eines Konfigurationssystems zur Verwaltung von Anbieter-Zugangsdaten
+- Hinzufügen von Caching zur Optimierung von Leistung und Kosten
+- Aufbau eines einfachen Dashboards zur Überwachung der Nutzung
+
+**Umsetzungsschritte:**
+
+1. Einrichtung der Grundinfrastruktur des MCP-Servers  
+2. Implementierung von Anbieter-Adaptern für jeden KI-Modell-Dienst  
+3. Erstellung der Routing-Logik basierend auf Anfrage-Attributen  
+4. Hinzufügen von Caching-Mechanismen für häufige Anfragen  
+5. Entwicklung des Überwachungs-Dashboards  
+6. Test mit verschiedenen Anfragemustern
+
+**Technologien:** Wählen Sie aus Python (oder .NET/Java/Python je nach Präferenz), Redis für Caching und einem einfachen Web-Framework für das Dashboard.
+
+### Projekt 2: Enterprise Prompt Management System
+
+**Ziel:** Entwickeln Sie ein MCP-basiertes System zur Verwaltung, Versionierung und Bereitstellung von Prompt-Vorlagen innerhalb einer Organisation.
+
+**Anforderungen:**
+- Erstellen Sie ein zentrales Repository für Prompt-Vorlagen
+- Implementieren Sie Versionierung und Genehmigungs-Workflows
+- Entwickeln Sie Testmöglichkeiten für Vorlagen mit Beispiel-Eingaben
+- Entwickeln Sie rollenbasierte Zugriffskontrollen
+- Erstellen Sie eine API für die Vorlagenabruf und -bereitstellung
 
 **Implementierungsschritte:**
 
-1. Entwurf des Datenbankschemas für die Vorlagenverwaltung
-2. Erstellung der Kern-API für CRUD-Operationen von Vorlagen
-3. Implementierung des Versionsverwaltungssystems
-4. Aufbau des Freigabeworkflows
-5. Entwicklung des Test-Frameworks
-6. Erstellung einer einfachen Web-Oberfläche für das Management
-7. Integration mit einem MCP-Server
+1. Entwerfen Sie das Datenbankschema für die Vorlagen-Speicherung
+2. Erstellen Sie die Kern-API für CRUD-Operationen der Vorlagen
+3. Implementieren Sie das Versionierungssystem
+4. Erstellen Sie den Genehmigungs-Workflow
+5. Entwickeln Sie das Test-Framework
+6. Erstellen Sie eine einfache Web-Oberfläche für die Verwaltung
+7. Integrieren Sie mit einem MCP-Server
 
-**Technologien:** Wahl des Backend-Frameworks, SQL- oder NoSQL-Datenbanksystems und eines Frontend-Frameworks für die Verwaltungsoberfläche.
+**Technologien:** Ihre Wahl des Backend-Frameworks, SQL- oder NoSQL-Datenbank sowie ein Frontend-Framework für die Verwaltungsoberfläche.
 
-### Projekt 3: MCP-basierte Plattform zur Inhaltserstellung
+### Projekt 3: MCP-basierte Content-Generierungsplattform
 
-**Ziel:** Entwicklung einer Plattform für Inhaltserstellung, die MCP nutzt, um konsistente Ergebnisse für verschiedene Inhaltstypen zu liefern.
+**Ziel:** Aufbau einer Content-Generierungsplattform, die MCP nutzt, um konsistente Ergebnisse über verschiedene Content-Typen hinweg bereitzustellen.
 
 **Anforderungen:**
 
-- Unterstützung mehrerer Inhaltsformate (Blogbeiträge, soziale Medien, Marketingtexte)
-- Implementierung einer vorlagenbasierten Generierung mit Anpassungsoptionen
-- Erstellung eines Systems zur Inhaltsprüfung und Feedback
-- Erfassung von Leistungskennzahlen für Inhalte
-- Unterstützung von Versionsverwaltung und Iteration von Inhalten
+- Unterstützung mehrerer Content-Formate (Blogbeiträge, Social Media, Marketing-Texte)
+- Implementierung von vorlagenbasierter Generierung mit Anpassungsoptionen
+- Erstellung eines Content-Review- und Feedback-Systems
+- Verfolgung von Leistungskennzahlen für Inhalte
+- Unterstützung von Content-Versionierung und Iteration
 
 **Implementierungsschritte:**
 
 1. Aufbau der MCP-Client-Infrastruktur
-2. Erstellung von Vorlagen für verschiedene Inhaltstypen
-3. Aufbau der Pipeline zur Inhaltserstellung
-4. Implementierung des Prüfsystems
-5. Entwicklung des Systems zur Metrikerfassung
-6. Erstellung einer Benutzeroberfläche für Vorlagenverwaltung und Inhaltserstellung
+2. Erstellung von Vorlagen für verschiedene Content-Typen
+3. Aufbau der Content-Generierungs-Pipeline
+4. Implementierung des Review-Systems
+5. Entwicklung des Metrics-Tracking-Systems
+6. Erstellung einer Benutzeroberfläche für Vorlagenverwaltung und Content-Generierung
 
-**Technologien:** Bevorzugte Programmiersprache, Web-Framework und Datenbanksystem.
+**Technologien:** Ihre bevorzugte Programmiersprache, Web-Framework und Datenbanksystem.
 
-## Zukünftige Entwicklungen der MCP-Technologie
+## Zukünftige Richtungen für MCP-Technologie
 
 ### Aufkommende Trends
 
-1. **Multi-modaler MCP**
+1. **Multimodale MCP**
    - Erweiterung von MCP zur Standardisierung der Interaktionen mit Bild-, Audio- und Videomodellen
-   - Entwicklung von Fähigkeiten für cross-modales Reasoning
+   - Entwicklung von multimodalen Denkfähigkeiten
    - Standardisierte Prompt-Formate für verschiedene Modalitäten
 
 2. **Föderierte MCP-Infrastruktur**
-   - Verteilte MCP-Netzwerke, die Ressourcen über Organisationen hinweg teilen können
+   - Verteilte MCP-Netzwerke, die Ressourcen zwischen Organisationen teilen können
    - Standardisierte Protokolle für sicheren Modell-Austausch
-   - Datenschutzwahrende Berechnungsmethoden
+   - Datenschutzwahrende Berechnungstechniken
 
 3. **MCP-Marktplätze**
-   - Ökosysteme für das Teilen und Monetarisieren von MCP-Vorlagen und Plugins
+   - Ökosysteme zum Teilen und Monetarisieren von MCP-Vorlagen und Plugins
    - Qualitätssicherungs- und Zertifizierungsprozesse
    - Integration mit Modell-Marktplätzen
 
-4. **MCP für Edge Computing**
+4. **MCP für Edge-Computing**
    - Anpassung der MCP-Standards für ressourcenbeschränkte Edge-Geräte
    - Optimierte Protokolle für Umgebungen mit geringer Bandbreite
    - Spezialisierte MCP-Implementierungen für IoT-Ökosysteme
 
 5. **Regulatorische Rahmenwerke**
-   - Entwicklung von MCP-Erweiterungen zur Einhaltung regulatorischer Anforderungen
-   - Standardisierte Audit-Trails und Erklärbarkeits-Schnittstellen
-   - Integration in aufkommende KI-Governance-Rahmenwerke
+   - Entwicklung von MCP-Erweiterungen für regulatorische Compliance
+   - Standardisierte Prüfnachweise und Erklärbarkeitsschnittstellen
+   - Integration mit aufkommenden KI-Governance-Rahmenwerken
 
 ### MCP-Lösungen von Microsoft
 
-Microsoft und Azure haben mehrere Open-Source-Repositories entwickelt, die Entwicklern helfen, MCP in verschiedenen Szenarien umzusetzen:
+Microsoft und Azure haben mehrere Open-Source-Repositories entwickelt, um Entwickler bei der Implementierung von MCP in verschiedenen Szenarien zu unterstützen:
 
 #### Microsoft-Organisation
 
 1. [playwright-mcp](https://github.com/microsoft/playwright-mcp) – Ein Playwright MCP-Server für Browser-Automatisierung und Tests
-2. [files-mcp-server](https://github.com/microsoft/files-mcp-server) – Eine OneDrive-MCP-Serverimplementierung für lokale Tests und Community-Beiträge
-3. [NLWeb](https://github.com/microsoft/NlWeb) – NLWeb ist eine Sammlung offener Protokolle und zugehöriger Open-Source-Tools. Der Schwerpunkt liegt auf der Etablierung einer Basisschicht für das AI-Web
+2. [files-mcp-server](https://github.com/microsoft/files-mcp-server) – Eine OneDrive MCP-Server-Implementierung für lokale Tests und Community-Beiträge
+3. [NLWeb](https://github.com/microsoft/NlWeb) – NLWeb ist eine Sammlung offener Protokolle und zugehöriger Open-Source-Tools. Der Schwerpunkt liegt auf dem Aufbau einer Basisschicht für das AI Web
 
-#### Azure-Samples Organisation
+#### Azure-Samples-Organisation
 
 1. [mcp](https://github.com/Azure-Samples/mcp) – Links zu Beispielen, Tools und Ressourcen für den Aufbau und die Integration von MCP-Servern auf Azure mit mehreren Sprachen
-2. [mcp-auth-servers](https://github.com/Azure-Samples/mcp-auth-servers) – Referenz-MCP-Server mit Authentifizierung basierend auf der aktuellen Model Context Protocol Spezifikation
-3. [remote-mcp-functions](https://github.com/Azure-Samples/remote-mcp-functions) – Landing-Page für Remote-MCP-Server-Implementierungen in Azure Functions mit Links zu sprachspezifischen Repositories
-4. [remote-mcp-functions-python](https://github.com/Azure-Samples/remote-mcp-functions-python) – Quickstart-Vorlage zum Aufbau und zur Bereitstellung kundenspezifischer Remote-MCP-Server mit Azure Functions und Python
-5. [remote-mcp-functions-dotnet](https://github.com/Azure-Samples/remote-mcp-functions-dotnet) – Quickstart-Vorlage zum Aufbau und zur Bereitstellung kundenspezifischer Remote-MCP-Server mit Azure Functions und .NET/C#
-6. [remote-mcp-functions-typescript](https://github.com/Azure-Samples/remote-mcp-functions-typescript) – Quickstart-Vorlage zum Aufbau und zur Bereitstellung kundenspezifischer Remote-MCP-Server mit Azure Functions und TypeScript
-7. [remote-mcp-apim-functions-python](https://github.com/Azure-Samples/remote-mcp-apim-functions-python) – Azure API Management als AI-Gateway zu Remote-MCP-Servern mit Python
-8. [AI-Gateway](https://github.com/Azure-Samples/AI-Gateway) – APIM ❤️ AI-Experimente einschließlich MCP-Funktionalitäten, Integration mit Azure OpenAI und AI Foundry
+2. [mcp-auth-servers](https://github.com/Azure-Samples/mcp-auth-servers) – Referenz-MCP-Server, die die Authentifizierung mit der aktuellen Model Context Protocol-Spezifikation demonstrieren
+3. [remote-mcp-functions](https://github.com/Azure-Samples/remote-mcp-functions) – Landingpage für Remote MCP-Server-Implementierungen in Azure Functions mit Links zu sprachspezifischen Repos
+4. [remote-mcp-functions-python](https://github.com/Azure-Samples/remote-mcp-functions-python) – Quickstart-Vorlage für den Aufbau und die Bereitstellung benutzerdefinierter Remote MCP-Server mit Azure Functions in Python
+5. [remote-mcp-functions-dotnet](https://github.com/Azure-Samples/remote-mcp-functions-dotnet) – Quickstart-Vorlage für den Aufbau und die Bereitstellung benutzerdefinierter Remote MCP-Server mit Azure Functions in .NET/C#
+6. [remote-mcp-functions-typescript](https://github.com/Azure-Samples/remote-mcp-functions-typescript) – Quickstart-Vorlage für den Aufbau und die Bereitstellung benutzerdefinierter Remote MCP-Server mit Azure Functions in TypeScript
+7. [remote-mcp-apim-functions-python](https://github.com/Azure-Samples/remote-mcp-apim-functions-python) – Azure API Management als AI-Gateway für Remote MCP-Server mit Python
+8. [AI-Gateway](https://github.com/Azure-Samples/AI-Gateway) – APIM ❤️ KI-Experimente inklusive MCP-Fähigkeiten, Integration mit Azure OpenAI und AI Foundry
 
-Diese Repositories bieten verschiedene Implementierungen, Vorlagen und Ressourcen für die Arbeit mit dem Model Context Protocol in unterschiedlichen Programmiersprachen und Azure-Diensten. Sie decken eine Vielzahl von Anwendungsfällen ab, von einfachen Serverimplementierungen über Authentifizierung, Cloud-Bereitstellung bis hin zu Enterprise-Integrationsszenarien.
+Diese Repositories bieten verschiedene Implementierungen, Vorlagen und Ressourcen für die Arbeit mit dem Model Context Protocol in unterschiedlichen Programmiersprachen und Azure-Diensten. Sie decken ein breites Spektrum von Anwendungsfällen ab, von einfachen Serverimplementierungen über Authentifizierung, Cloud-Bereitstellung bis hin zu Enterprise-Integrationsszenarien.
 
-#### MCP Resources Verzeichnis
+#### MCP Ressourcen-Verzeichnis
 
-Das [MCP Resources-Verzeichnis](https://github.com/microsoft/mcp/tree/main/Resources) im offiziellen Microsoft MCP-Repository stellt eine kuratierte Sammlung von Beispielressourcen, Prompt-Vorlagen und Tool-Definitionen für die Nutzung mit Model Context Protocol-Servern bereit. Dieses Verzeichnis unterstützt Entwickler beim schnellen Einstieg in MCP, indem es wiederverwendbare Bausteine und Best-Practice-Beispiele für folgende Bereiche bietet:
+Das [MCP Resources directory](https://github.com/microsoft/mcp/tree/main/Resources) im offiziellen Microsoft MCP-Repository bietet eine kuratierte Sammlung von Beispiel-Ressourcen, Prompt-Vorlagen und Tool-Definitionen zur Verwendung mit Model Context Protocol-Servern. Dieses Verzeichnis soll Entwicklern helfen, mit MCP schnell zu starten, indem es wiederverwendbare Bausteine und Best-Practice-Beispiele für folgende Bereiche bereitstellt:
 
-- **Prompt-Vorlagen:** Fertig nutzbare Vorlagen für gängige KI-Aufgaben und Szenarien, die an eigene MCP-Server angepasst werden können.
-- **Tool-Definitionen:** Beispielhafte Toolschemas und Metadaten, um die Tool-Integration und -Aufrufe über verschiedene MCP-Server hinweg zu standardisieren.
-- **Resource-Beispiele:** Beispiel-Resource-Definitionen zur Verbindung mit Datenquellen, APIs und externen Diensten innerhalb des MCP-Rahmens.
-- **Referenzimplementierungen:** Praktische Beispiele, die zeigen, wie man Ressourcen, Prompts und Tools in realen MCP-Projekten strukturiert und organisiert.
+- **Prompt-Vorlagen:** Einsatzbereite Prompt-Vorlagen für gängige KI-Aufgaben und Szenarien, die an eigene MCP-Server-Implementierungen angepasst werden können.
+- **Tool-Definitionen:** Beispielhafte Tool-Schemata und Metadaten zur Standardisierung der Tool-Integration und -Aufrufe über verschiedene MCP-Server hinweg.
+- **Ressourcenbeispiele:** Beispielhafte Ressourcen-Definitionen zur Anbindung an Datenquellen, APIs und externe Dienste innerhalb des MCP-Frameworks.
+- **Referenzimplementierungen:** Praktische Beispiele, die zeigen, wie Ressourcen, Prompts und Tools in realen MCP-Projekten strukturiert und organisiert werden.
 
-Diese Ressourcen beschleunigen die Entwicklung, fördern die Standardisierung und unterstützen Best Practices beim Bauen und Bereitstellen MCP-basierter Lösungen.
+Diese Ressourcen beschleunigen die Entwicklung, fördern die Standardisierung und helfen dabei, Best Practices beim Aufbau und Einsatz von MCP-basierten Lösungen zu gewährleisten.
 
-#### MCP Resources Verzeichnis
+#### MCP Ressourcen-Verzeichnis
 
-- [MCP Resources (Beispiel-Prompts, Tools und Resource-Definitionen)](https://github.com/microsoft/mcp/tree/main/Resources)
+- [MCP Resources (Sample Prompts, Tools, and Resource Definitions)](https://github.com/microsoft/mcp/tree/main/Resources)
 
-### Forschungsperspektiven
+### Forschungsmöglichkeiten
 
-- Effiziente Prompt-Optimierungstechniken innerhalb von MCP-Frameworks
-- Sicherheitsmodelle für Multi-Tenant MCP-Bereitstellungen
-- Leistungsvergleiche zwischen verschiedenen MCP-Implementierungen
+- Effiziente Optimierungstechniken für Prompts innerhalb von MCP-Frameworks
+- Sicherheitsmodelle für Multi-Tenant-MCP-Deployments
+- Performance-Benchmarking verschiedener MCP-Implementierungen
 - Formale Verifikationsmethoden für MCP-Server
 
 ## Fazit
 
-Das Model Context Protocol (MCP) gestaltet die Zukunft einer standardisierten, sicheren und interoperablen KI-Integration innerhalb verschiedener Branchen maßgeblich mit. Durch die Fallstudien und praxisnahen Projekte in dieser Lektion haben Sie gesehen, wie frühe Anwender – darunter Microsoft und Azure – MCP nutzen, um reale Herausforderungen zu lösen, die KI-Einführung zu beschleunigen und Compliance, Sicherheit sowie Skalierbarkeit zu gewährleisten. Der modulare Aufbau von MCP ermöglicht es Organisationen, große Sprachmodelle, Tools und Unternehmensdaten in einem einheitlichen, auditierbaren Rahmen zu verbinden. Während MCP sich weiterentwickelt, sind Engagement in der Community, die Nutzung von Open-Source-Ressourcen und die Anwendung bewährter Verfahren entscheidend, um robuste, zukunftssichere KI-Lösungen zu bauen.
+Das Model Context Protocol (MCP) formt schnell die Zukunft der standardisierten, sicheren und interoperablen KI-Integration über verschiedene Branchen hinweg. Mithilfe der Fallstudien und praxisnahen Projekte in dieser Lektion haben Sie gesehen, wie Early Adopters – darunter Microsoft und Azure – MCP nutzen, um reale Herausforderungen zu lösen, die KI-Einführung zu beschleunigen und Compliance, Sicherheit sowie Skalierbarkeit sicherzustellen. MCPs modularer Ansatz ermöglicht es Organisationen, große Sprachmodelle, Tools und Unternehmensdaten in einem einheitlichen, auditierbaren Rahmen zu verbinden. Während MCP sich weiterentwickelt, wird die aktive Beteiligung an der Community, die Erforschung von Open-Source-Ressourcen und die Anwendung von Best Practices entscheidend sein, um robuste, zukunftsfähige KI-Lösungen zu entwickeln.
 
 ## Zusätzliche Ressourcen
 
@@ -565,11 +564,11 @@ Das Model Context Protocol (MCP) gestaltet die Zukunft einer standardisierten, s
 - [Foundry MCP Playground](https://github.com/azure-ai-foundry/foundry-mcp-playground)
 - [Integration von Azure AI Agents mit MCP (Microsoft Foundry Blog)](https://devblogs.microsoft.com/foundry/integrating-azure-ai-agents-mcp/)
 - [MCP GitHub Repository (Microsoft)](https://github.com/microsoft/mcp)
-- [MCP Resources Directory (Beispiel-Prompts, Tools und Resource-Definitionen)](https://github.com/microsoft/mcp/tree/main/Resources)
+- [MCP Resources Directory (Sample Prompts, Tools, and Resource Definitions)](https://github.com/microsoft/mcp/tree/main/Resources)
 - [MCP Community & Dokumentation](https://modelcontextprotocol.io/introduction)
 - [MCP Spezifikation (2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
 - [Azure MCP Dokumentation](https://aka.ms/azmcp)
-- [OWASP MCP Top 10](https://microsoft.github.io/mcp-azure-security-guide/mcp/) – Sicherheitsempfehlungen
+- [OWASP MCP Top 10](https://microsoft.github.io/mcp-azure-security-guide/mcp/) – Sicherheits-Best-Practices
 - [Playwright MCP Server GitHub Repository](https://github.com/microsoft/playwright-mcp)
 - [Files MCP Server (OneDrive)](https://github.com/microsoft/files-mcp-server)
 - [Azure-Samples MCP](https://github.com/Azure-Samples/mcp)
@@ -580,14 +579,14 @@ Das Model Context Protocol (MCP) gestaltet die Zukunft einer standardisierten, s
 - [Remote MCP Functions TypeScript (Azure-Samples)](https://github.com/Azure-Samples/remote-mcp-functions-typescript)
 - [Remote MCP APIM Functions Python (Azure-Samples)](https://github.com/Azure-Samples/remote-mcp-apim-functions-python)
 - [AI-Gateway (Azure-Samples)](https://github.com/Azure-Samples/AI-Gateway)
-- [Microsoft AI- und Automatisierungslösungen](https://azure.microsoft.com/en-us/products/ai-services/)
+- [Microsoft AI- und Automationslösungen](https://azure.microsoft.com/en-us/products/ai-services/)
 
 ## Übungen
 
 1. Analysieren Sie eine der Fallstudien und schlagen Sie einen alternativen Implementierungsansatz vor.
 2. Wählen Sie eine der Projektideen und erstellen Sie eine detaillierte technische Spezifikation.
-3. Recherchieren Sie eine Branche, die in den Fallstudien nicht behandelt wurde, und skizzieren Sie, wie MCP deren spezifische Herausforderungen lösen könnte.
-4. Erkunden Sie eine der zukünftigen Entwicklungen und entwickeln Sie ein Konzept für eine neue MCP-Erweiterung zur Unterstützung davon.
+3. Recherchieren Sie eine Branche, die in den Fallstudien nicht abgedeckt wurde, und skizzieren Sie, wie MCP deren spezifische Herausforderungen lösen könnte.
+4. Erkunden Sie eine der zukünftigen Entwicklungen und entwerfen Sie ein Konzept für eine neue MCP-Erweiterung, die diese unterstützt.
 
 ## Was kommt als Nächstes
 
@@ -598,6 +597,6 @@ Weiter zu: [Modul 8: Best Practices](../08-BestPractices/README.md)
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Haftungsausschluss**:  
-Dieses Dokument wurde mit dem KI-Übersetzungsdienst [Co-op Translator](https://github.com/Azure/co-op-translator) übersetzt. Obwohl wir um Genauigkeit bemüht sind, beachten Sie bitte, dass automatisierte Übersetzungen Fehler oder Ungenauigkeiten enthalten können. Das Originaldokument in seiner Ursprungssprache gilt als maßgebliche Quelle. Bei wichtigen Informationen wird eine professionelle menschliche Übersetzung empfohlen. Wir übernehmen keine Haftung für Missverständnisse oder Fehlinterpretationen, die durch die Nutzung dieser Übersetzung entstehen.
+**Haftungsausschluss**:
+Dieses Dokument wurde mit dem KI-Übersetzungsdienst [Co-op Translator](https://github.com/Azure/co-op-translator) übersetzt. Obwohl wir uns um Genauigkeit bemühen, beachten Sie bitte, dass automatisierte Übersetzungen Fehler oder Ungenauigkeiten enthalten können. Das Originaldokument in seiner Ursprungssprache gilt als maßgebliche Quelle. Bei kritischen Informationen wird eine professionelle menschliche Übersetzung empfohlen. Wir übernehmen keine Haftung für Missverständnisse oder Fehlinterpretationen, die aus der Verwendung dieser Übersetzung entstehen.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

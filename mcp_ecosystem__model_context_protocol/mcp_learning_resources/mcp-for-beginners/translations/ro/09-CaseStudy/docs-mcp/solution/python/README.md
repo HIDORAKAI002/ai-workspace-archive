@@ -2,9 +2,9 @@
 
 ## Cerințe preliminare
 
-- Python 3.8 sau o versiune mai recentă
-- pip (managerul de pachete Python)
-- Acces la internet pentru a conecta la serverul Microsoft Learn Docs MCP
+- Python 3.8 sau versiune superioară
+- pip (gestionarul de pachete Python)
+- Acces la internet pentru conectarea la serverul Microsoft Learn Docs MCP
 
 ## Instalare
 
@@ -18,28 +18,28 @@
 ## Utilizare
 
 ### Scenariul 1: Interogare simplă către Docs MCP
-Un client de linie de comandă care se conectează la serverul Docs MCP, trimite o interogare și afișează rezultatul.
+Un client din linia de comandă care se conectează la serverul Docs MCP, trimite o interogare și afișează rezultatul.
 
 1. Rulează scriptul:
    ```bash
    python scenario1.py
    ```
-2. Introdu întrebarea ta despre documentație la prompt.
+2. Introdu întrebarea ta privind documentația la prompt.
 
-### Scenariul 2: Generator de Plan de Studiu (Aplicație Web Chainlit)
-O interfață web (folosind Chainlit) care permite utilizatorilor să genereze un plan de studiu personalizat, organizat pe săptămâni, pentru orice subiect tehnic.
+### Scenariul 2: Generator plan de studiu (aplicație web Chainlit)
+O interfață web (folosind Chainlit) care permite utilizatorilor să genereze un plan de studiu personalizat, săptămână cu săptămână, pentru orice subiect tehnic.
 
 1. Pornește aplicația Chainlit:
    ```bash
    chainlit run scenario2.py
    ```
-2. Deschide URL-ul local furnizat în terminalul tău (de exemplu, http://localhost:8000) în browserul tău.
-3. În fereastra de chat, introdu subiectul de studiu și numărul de săptămâni în care dorești să studiezi (de exemplu, "certificare AI-900, 8 săptămâni").
-4. Aplicația va răspunde cu un plan de studiu organizat pe săptămâni, incluzând linkuri către documentația relevantă de pe Microsoft Learn.
+2. Deschide adresa URL locală afișată în terminalul tău (de exemplu, http://localhost:8000) în browser.
+3. În fereastra de chat, introdu subiectul de studiu și numărul de săptămâni pentru care dorești să studiezi (de exemplu, „certificare AI-900, 8 săptămâni”).
+4. Aplicația va răspunde cu un plan de studiu săptămânal, incluzând linkuri către documentația relevantă Microsoft Learn.
 
 **Variabile de mediu necesare:**
 
-Pentru a utiliza Scenariul 2 (aplicația web Chainlit cu Azure OpenAI), trebuie să setezi următoarele variabile de mediu într-un fișier `.env` din directorul `python`:
+Pentru a folosi Scenariul 2 (aplicația web Chainlit cu Azure OpenAI), trebuie să setezi următoarele variabile de mediu într-un fișier `.env` în directorul `python`:
 
 ```
 AZURE_OPENAI_CHAT_DEPLOYMENT_NAME=
@@ -51,30 +51,30 @@ AZURE_OPENAI_API_VERSION=
 Completează aceste valori cu detaliile resursei tale Azure OpenAI înainte de a rula aplicația.
 
 > [!TIP]
-> Poți să-ți implementezi cu ușurință propriile modele folosind [Azure AI Foundry](https://ai.azure.com/).
+> Poți implementa cu ușurință propriile modele folosind [Microsoft Foundry](https://ai.azure.com/).
 
-### Scenariul 3: Documentație în Editor cu Serverul MCP în VS Code
+### Scenariul 3: Documentație în editor cu server MCP în VS Code
 
-În loc să comuți între filele browserului pentru a căuta documentație, poți aduce Microsoft Learn Docs direct în VS Code folosind serverul MCP. Acest lucru îți permite să:
-- Cauți și citești documentația direct în VS Code fără a părăsi mediul de codare.
-- Referențiezi documentația și inserezi linkuri direct în README sau fișierele cursului.
-- Utilizezi GitHub Copilot și MCP împreună pentru un flux de lucru integrat, alimentat de AI.
+În loc să schimbi tab-urile browserului pentru a căuta documentație, poți aduce Microsoft Learn Docs direct în VS Code folosind serverul MCP. Acest lucru îți permite să:
+- Cauți și să citești documentația în interiorul VS Code fără să părăsești mediul tău de codare.
+- Să referențiezi documentația și să inserezi linkuri direct în fișierele README sau de curs.
+- Să folosești GitHub Copilot și MCP împreună pentru un flux de lucru AI integrat și eficient.
 
 **Exemple de utilizare:**
-- Adaugă rapid linkuri de referință într-un README în timp ce scrii documentația unui curs sau proiect.
+- Adaugă rapid linkuri de referință într-un README în timp ce scrii documentația pentru un curs sau proiect.
 - Folosește Copilot pentru a genera cod și MCP pentru a găsi și cita instant documentația relevantă.
-- Rămâi concentrat în editorul tău și crește productivitatea.
+- Rămâi concentrat în editor și crește productivitatea.
 
 > [!IMPORTANT]
-> Asigură-te că ai o configurație validă [`mcp.json`](../../../../../../09-CaseStudy/docs-mcp/solution/scenario3/mcp.json) în spațiul tău de lucru (locația este `.vscode/mcp.json`).
+> Asigură-te că ai un fișier valid [`mcp.json`](../../../../../../09-CaseStudy/docs-mcp/solution/scenario3/mcp.json) în spațiul tău de lucru (locația este `.vscode/mcp.json`).
 
 ## De ce Chainlit pentru Scenariul 2?
 
-Chainlit este un framework modern open-source pentru construirea aplicațiilor web conversaționale. Face ușor să creezi interfețe de utilizator bazate pe chat care se conectează la servicii backend, cum ar fi serverul Microsoft Learn Docs MCP. Acest proiect folosește Chainlit pentru a oferi o modalitate simplă și interactivă de a genera planuri de studiu personalizate în timp real. Prin utilizarea Chainlit, poți construi și implementa rapid instrumente bazate pe chat care îmbunătățesc productivitatea și procesul de învățare.
+Chainlit este un cadru modern open-source pentru construirea aplicațiilor web conversaționale. Face ușoară crearea interfețelor utilizator bazate pe chat care se conectează la servicii backend precum serverul Microsoft Learn Docs MCP. Acest proiect utilizează Chainlit pentru a oferi o modalitate simplă și interactivă de a genera planuri personalizate de studiu în timp real. Prin folosirea Chainlit, poți construi rapid și implementa unelte chat care îmbunătățesc productivitatea și procesul de învățare.
 
 ## Ce face această aplicație
 
-Această aplicație permite utilizatorilor să creeze un plan de studiu personalizat prin simpla introducere a unui subiect și a unei durate. Aplicația analizează inputul tău, interoghează serverul Microsoft Learn Docs MCP pentru conținut relevant și organizează rezultatele într-un plan structurat, săptămână cu săptămână. Recomandările pentru fiecare săptămână sunt afișate în chat, făcându-le ușor de urmat și de urmărit progresul. Integrarea asigură că primești mereu cele mai recente și relevante resurse de învățare.
+Această aplicație permite utilizatorilor să creeze un plan de studiu personalizat pur și simplu introducând un subiect și o durată. Aplicația interpretează inputul tău, interoghează serverul Microsoft Learn Docs MCP pentru conținut relevant și organizează rezultatele într-un plan structurat săptămână cu săptămână. Recomandările pentru fiecare săptămână sunt afișate în chat, facilitând urmărirea progresului. Integrarea asigură că primești întotdeauna cele mai noi și relevante resurse de învățare.
 
 ## Exemple de interogări
 
@@ -83,13 +83,13 @@ Această aplicație permite utilizatorilor să creeze un plan de studiu personal
 - `certificare AI-900, 8 săptămâni`
 - `Învață Azure Functions, 4 săptămâni`
 - `Azure DevOps, 6 săptămâni`
-- `Inginerie de date pe Azure, 10 săptămâni`
-- `Fundamentele securității Microsoft, 5 săptămâni`
+- `Inginierie de date pe Azure, 10 săptămâni`
+- `Fundamente de securitate Microsoft, 5 săptămâni`
 - `Power Platform, 7 săptămâni`
-- `Servicii AI Azure, 12 săptămâni`
+- `Servicii Azure AI, 12 săptămâni`
 - `Arhitectură cloud, 9 săptămâni`
 
-Aceste exemple demonstrează flexibilitatea aplicației pentru diferite obiective de învățare și intervale de timp.
+Aceste exemple demonstrează flexibilitatea aplicației pentru obiective și perioade de învățare diferite.
 
 ## Referințe
 
@@ -98,5 +98,7 @@ Aceste exemple demonstrează flexibilitatea aplicației pentru diferite obiectiv
 
 ---
 
-**Declinarea responsabilității**:  
-Acest document a fost tradus folosind serviciul de traducere AI [Co-op Translator](https://github.com/Azure/co-op-translator). Deși depunem eforturi pentru a asigura acuratețea, vă rugăm să aveți în vedere că traducerile automate pot conține erori sau inexactități. Documentul original în limba sa nativă ar trebui considerat sursa autoritară. Pentru informații critice, se recomandă traducerea profesională realizată de un specialist uman. Nu ne asumăm răspunderea pentru eventualele neînțelegeri sau interpretări greșite care pot apărea din utilizarea acestei traduceri.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Declinare a responsabilității**:
+Acest document a fost tradus folosind serviciul de traducere AI [Co-op Translator](https://github.com/Azure/co-op-translator). În timp ce ne străduim pentru acuratețe, vă rugăm să rețineți că traducerile automate pot conține erori sau inexactități. Documentul original în limba sa nativă trebuie considerat sursa autorizată. Pentru informații critice, se recomandă traducerea profesională realizată de un om. Nu ne asumăm responsabilitatea pentru eventualele neînțelegeri sau interpretări greșite care decurg din utilizarea acestei traduceri.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

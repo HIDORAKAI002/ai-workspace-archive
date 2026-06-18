@@ -1,57 +1,57 @@
-# Model Context Protocol (MCP) ਦਾ Azure AI Foundry ਨਾਲ ਇੰਟੀਗ੍ਰੇਸ਼ਨ
+# ਮਾਡਲ ਸੰਦਰਭ ਪ੍ਰੋਟੋਕਾਲ (MCP) ਦਾ Microsoft Foundry ਨਾਲ ਏਕੀਕਰਨ
 
-ਇਹ ਗਾਈਡ ਦਿਖਾਉਂਦੀ ਹੈ ਕਿ ਕਿਵੇਂ Model Context Protocol (MCP) ਸਰਵਰਾਂ ਨੂੰ Azure AI Foundry ਏਜੰਟਾਂ ਨਾਲ ਜੋੜਿਆ ਜਾ ਸਕਦਾ ਹੈ, ਜਿਸ ਨਾਲ ਸ਼ਕਤੀਸ਼ਾਲੀ ਟੂਲ ਆਰਕੀਸਟ੍ਰੇਸ਼ਨ ਅਤੇ ਉਦਯੋਗਿਕ AI ਸਮਰੱਥਾਵਾਂ ਮਿਲਦੀਆਂ ਹਨ।
+ਇਹ ਗਾਈਡ ਦਿਖਾਉਂਦੀ ਹੈ ਕਿ ਕਿਵੇਂ ਮਾਡਲ ਸੰਦਰਭ ਪ੍ਰੋਟੋਕਾਲ (MCP) ਸਰਵਰਾਂ ਨੂੰ Microsoft Foundry ਏਜੰਟਾਂ ਨਾਲ ਜੋੜਿਆ ਜਾ ਸਕਦਾ ਹੈ, ਇਸ ਨਾਲ ਸ਼ਕਤੀਸ਼ਾਲੀ ਟੂਲ ਆਰਕੀਸਟਰੈਸ਼ਨ ਅਤੇ ਉਦਯੋਗ AI ਸਮਰਥਾਵਾਂ ਮੁਹੱਈਆ ਹੁੰਦੀਆਂ ਹਨ।
 
-## ਜਾਣ ਪਹਿਚਾਣ
+## ਪਰਿਚਯ
 
-Model Context Protocol (MCP) ਇੱਕ ਖੁੱਲ੍ਹਾ ਮਿਆਰੀਕ੍ਰਿਤ ਪ੍ਰੋਟੋਕੋਲ ਹੈ ਜੋ AI ਐਪਲੀਕੇਸ਼ਨਾਂ ਨੂੰ ਬਾਹਰੀ ਡਾਟਾ ਸਰੋਤਾਂ ਅਤੇ ਟੂਲਾਂ ਨਾਲ ਸੁਰੱਖਿਅਤ ਤਰੀਕੇ ਨਾਲ ਜੁੜਨ ਦੀ ਆਗਿਆ ਦਿੰਦਾ ਹੈ। ਜਦੋਂ ਇਸਨੂੰ Azure AI Foundry ਨਾਲ ਜੋੜਿਆ ਜਾਂਦਾ ਹੈ, ਤਾਂ MCP ਏਜੰਟਾਂ ਨੂੰ ਵੱਖ-ਵੱਖ ਬਾਹਰੀ ਸੇਵਾਵਾਂ, APIs ਅਤੇ ਡਾਟਾ ਸਰੋਤਾਂ ਤੱਕ ਪਹੁੰਚ ਅਤੇ ਇੰਟਰੈਕਟ ਕਰਨ ਦੀ ਆਗਿਆ ਦਿੰਦਾ ਹੈ।
+ਮਾਡਲ ਸੰਦਰਭ ਪ੍ਰੋਟੋਕਾਲ (MCP) ਇੱਕ ਖੁਲਾ ਮਿਆਰ ਹੈ ਜੋ AI ਐਪਲੀਕੇਸ਼ਨਾਂ ਨੂੰ ਬਾਹਰੀ ਡਾਟਾ ਸਰੋਤਾਂ ਅਤੇ ਟੂਲਾਂ ਨਾਲ ਸੁਰੱਖਿਅਤ ਤਰੀਕੇ ਨਾਲ ਜੁੜਨ ਦੇ ਯੋਗ ਬਣਾਉਂਦਾ ਹੈ। ਜਦੋਂ Microsoft Foundry ਨਾਲ ਐਕਠੇ ਕੀਤਾ ਜਾਂਦਾ ਹੈ, MCP ਏਜੰਟਾਂ ਨੂੰ ਵੱਖ-ਵੱਖ ਬਾਹਰੀ ਸਰਵਿਸਾਂ, APIs ਅਤੇ ਡਾਟਾ ਸਰੋਤਾਂ ਤੱਕ ਸਧਾਰਨ ਤਰੀਕੇ ਨਾਲ ਪਹੁੰਚ ਅਤੇ ਇੰਟਰੈਕਟ ਕਰਨ ਦੇ ਯੋਗ ਬਣਾਉਂਦਾ ਹੈ।
 
-ਇਹ ਇੰਟੀਗ੍ਰੇਸ਼ਨ MCP ਦੇ ਟੂਲ ਇਕੋਸਿਸਟਮ ਦੀ ਲਚਕੀਲਾਪਣ ਨੂੰ Azure AI Foundry ਦੇ ਮਜ਼ਬੂਤ ਏਜੰਟ ਫਰੇਮਵਰਕ ਨਾਲ ਮਿਲਾ ਕੇ ਉਦਯੋਗਿਕ ਪੱਧਰ ਦੇ AI ਹੱਲ ਪ੍ਰਦਾਨ ਕਰਦਾ ਹੈ, ਜਿਸ ਵਿੱਚ ਵਿਆਪਕ ਕਸਟਮਾਈਜ਼ੇਸ਼ਨ ਸਮਰੱਥਾਵਾਂ ਹਨ।
+ਇਹ ਏਕੀਕਰਨ MCP ਦੇ ਟੂਲ ਪਰਿਆਵਰਣ ਦੀ ਲਚਕੀਲਾਪਣਤਾ ਨੂੰ Microsoft Foundry ਦੇ ਮਜ਼ਬੂਤ ਏਜੰਟ ਫਰੇਮਵਰਕ ਨਾਲ ਜੋੜਦਾ ਹੈ, ਜਿਸ ਨਾਲ ਉਦਯੋਗ-ਗ੍ਰੇਡ AI ਹੱਲਾਂ ਵਿਆਪਕ ਕਸਟਮਾਈਜੇਸ਼ਨ ਸਮਰਥਾਵਾਂ ਨਾਲ ਮੁਹੱਈਆ ਹੁੰਦੇ ਹਨ।
 
-**Note:** ਜੇ ਤੁਸੀਂ MCP ਨੂੰ Azure AI Foundry Agent Service ਵਿੱਚ ਵਰਤਣਾ ਚਾਹੁੰਦੇ ਹੋ, ਤਾਂ ਇਸ ਸਮੇਂ ਸਿਰਫ ਹੇਠਾਂ ਦਿੱਤੇ ਖੇਤਰਾਂ ਨੂੰ ਸਹਿਯੋਗ ਮਿਲਦਾ ਹੈ: westus, westus2, uaenorth, southindia ਅਤੇ switzerlandnorth
+**ਨੋਟ:** ਜੇ ਤੁਸੀਂ MCP ਨੂੰ Microsoft Foundry Agent Service ਵਿੱਚ ਵਰਤਣਾ ਚਾਹੁੰਦੇ ਹੋ, ਤਾਂ ਇਸ ਸਮੇਂ ਸਿਰਫ ਹੇਠਾਂ ਦਿੱਤੇ ਖੇਤਰ ਸਮਰਥਿਤ ਹਨ: westus, westus2, uaenorth, southindia ਅਤੇ switzerlandnorth
 
-## ਸਿੱਖਣ ਦੇ ਲਕੜੀ
+## ਸਿੱਖਣ ਦੇ ਉਦੇਸ਼
 
-ਇਸ ਗਾਈਡ ਦੇ ਅੰਤ ਤੱਕ, ਤੁਸੀਂ ਸਮਰੱਥ ਹੋਵੋਗੇ:
+ਇਸ ਗਾਈਡ ਦੇ ਅੰਤ ਤਕ, ਤੁਸੀਂ ਸਮਰੱਥ ਹੋਵੋਗੇ:
 
-- Model Context Protocol ਅਤੇ ਇਸਦੇ ਫਾਇਦੇ ਸਮਝਣਾ
-- Azure AI Foundry ਏਜੰਟਾਂ ਲਈ MCP ਸਰਵਰ ਸੈੱਟਅਪ ਕਰਨਾ
-- MCP ਟੂਲ ਇੰਟੀਗ੍ਰੇਸ਼ਨ ਨਾਲ ਏਜੰਟ ਬਣਾਉਣਾ ਅਤੇ ਸੰਰਚਿਤ ਕਰਨਾ
-- ਅਸਲੀ MCP ਸਰਵਰਾਂ ਦੀ ਵਰਤੋਂ ਕਰਕੇ ਪ੍ਰਯੋਗਿਕ ਉਦਾਹਰਣ ਲਾਗੂ ਕਰਨਾ
+- ਮਾਡਲ ਸੰਦਰਭ ਪ੍ਰੋਟੋਕਾਲ ਅਤੇ ਇਸਦੇ ਲਾਭਾਂ ਨੂੰ ਸਮਝਣਾ
+- Microsoft Foundry ਏਜੰਟਾਂ ਨਾਲ ਵਰਤੋਂ ਲਈ MCP ਸਰਵਰ ਸੈੱਟਅਪ ਕਰਨਾ
+- MCP ਟੂਲ ਏਕੀਕਰਨ ਨਾਲ ਏਜੰਟ ਬਣਾਉਣਾ ਅਤੇ ਸੰਰਚਿਤ ਕਰਨਾ
+- ਅਸਲੀ MCP ਸਰਵਰਾਂ ਦੀ ਵਰਤੋਂ ਕਰਦਿਆਂ ਪ੍ਰായੋਗਿਕ ਉਦਾਹਰਣ ਲਾਗੂ ਕਰਨਾ
 - ਏਜੰਟ ਗੱਲਬਾਤਾਂ ਵਿੱਚ ਟੂਲ ਜਵਾਬਾਂ ਅਤੇ ਹਵਾਲਿਆਂ ਨੂੰ ਸੰਭਾਲਣਾ
 
-## ਜ਼ਰੂਰੀ ਸ਼ਰਤਾਂ
+## ਪਹਿਲਾਂ ਜ਼ਰੂਰੀਆਂ ਸ਼ਰਤਾਂ
 
 ਸ਼ੁਰੂ ਕਰਨ ਤੋਂ ਪਹਿਲਾਂ, ਇਹ ਯਕੀਨੀ ਬਣਾਓ ਕਿ ਤੁਹਾਡੇ ਕੋਲ ਹੈ:
 
-- Azure ਸਬਸਕ੍ਰਿਪਸ਼ਨ ਜਿਸ ਵਿੱਚ AI Foundry ਦੀ ਪਹੁੰਚ ਹੈ
+- Microsoft Foundry ਐਕਸੈਸ ਵਾਲੀ ਇੱਕ Azure ਸਬਸਕ੍ਰਿਪਸ਼ਨ
 - Python 3.10+ ਜਾਂ .NET 8.0+
 - Azure CLI ਇੰਸਟਾਲ ਅਤੇ ਸੰਰਚਿਤ
-- AI ਸਰੋਤ ਬਣਾਉਣ ਲਈ ਉਚਿਤ ਅਧਿਕਾਰ
+- AI ਸਰੋਤ ਬਣਾਉਣ ਲਈ ਯੋਗ ਅਧਿਕਾਰ
 
-## Model Context Protocol (MCP) ਕੀ ਹੈ?
+## ਮਾਡਲ ਸੰਦਰਭ ਪ੍ਰੋਟੋਕਾਲ (MCP) ਕੀ ਹੈ?
 
-Model Context Protocol AI ਐਪਲੀਕੇਸ਼ਨਾਂ ਲਈ ਬਾਹਰੀ ਡਾਟਾ ਸਰੋਤਾਂ ਅਤੇ ਟੂਲਾਂ ਨਾਲ ਜੁੜਨ ਦਾ ਇੱਕ ਮਿਆਰੀਕ੍ਰਿਤ ਤਰੀਕਾ ਹੈ। ਮੁੱਖ ਫਾਇਦੇ ਹਨ:
+ਮਾਡਲ ਸੰਦਰਭ ਪ੍ਰੋਟੋਕਾਲ ਇੱਕ ਮਿਆਰੀ ਤਰੀਕਾ ਹੈ ਜੋ AI ਐਪਲੀਕੇਸ਼ਨਾਂ ਨੂੰ ਬਾਹਰੀ ਡਾਟਾ ਸਰੋਤਾਂ ਅਤੇ ਟੂਲਾਂ ਨਾਲ ਜੁੜਨ ਲਈ ਯੋਗ ਬਣਾਉਂਦਾ ਹੈ। ਮੁੱਖ ਲਾਭ ਇਸ ਪ੍ਰਕਾਰ ਹਨ:
 
-- **ਮਿਆਰੀਕ੍ਰਿਤ ਇੰਟੀਗ੍ਰੇਸ਼ਨ**: ਵੱਖ-ਵੱਖ ਟੂਲਾਂ ਅਤੇ ਸੇਵਾਵਾਂ ਲਈ ਇੱਕਸਾਰ ਇੰਟਰਫੇਸ
+- **ਮਿਆਰੀਕ੍ਰਿਤ ਏਕੀਕਰਨ**: ਵੱਖ-ਵੱਖ ਟੂਲਾਂ ਅਤੇ ਸੇਵਾਵਾਂ ਲਈ ਇੱਕਸਾਰ ਇੰਟਰਫੇਸ
 - **ਸੁਰੱਖਿਆ**: ਸੁਰੱਖਿਅਤ ਪ੍ਰਮਾਣਿਕਤਾ ਅਤੇ ਅਧਿਕਾਰ ਪ੍ਰਣਾਲੀਆਂ
-- **ਲਚਕੀਲਾਪਣ**: ਵੱਖ-ਵੱਖ ਡਾਟਾ ਸਰੋਤਾਂ, APIs ਅਤੇ ਕਸਟਮ ਟੂਲਾਂ ਲਈ ਸਹਿਯੋਗ
-- **ਵਿਸਤਾਰਯੋਗਤਾ**: ਨਵੀਆਂ ਸਮਰੱਥਾਵਾਂ ਅਤੇ ਇੰਟੀਗ੍ਰੇਸ਼ਨਾਂ ਨੂੰ ਆਸਾਨੀ ਨਾਲ ਸ਼ਾਮਲ ਕਰਨ ਦੀ ਸਮਰੱਥਾ
+- **ਲਚਕੀਲਾਪਣਤਾ**: ਵੱਖ-ਵੱਖ ਡਾਟਾ ਸਰੋਤਾਂ, APIs ਅਤੇ ਕਸਟਮ ਟੂਲਾਂ ਲਈ ਸਮਰਥਨ
+- **ਵਿਸਤਾਰਯੋਗਤਾ**: ਨਵੀਆਂ ਸਮਰਥਾਵਾਂ ਅਤੇ ਏਕੀਕਰਨੇ ਜੋੜਣਾ ਆਸਾਨ
 
-## Azure AI Foundry ਨਾਲ MCP ਸੈੱਟਅਪ ਕਰਨਾ
+## Microsoft Foundry ਨਾਲ MCP ਸੈੱਟਅਪ ਕਰਨਾ
 
-### ਵਾਤਾਵਰਣ ਸੰਰਚਨਾ
+### ਵਾਤਾਵਰਨ ਸੰਰਚਨਾ
 
-ਆਪਣੇ ਮਨਪਸੰਦ ਵਿਕਾਸ ਵਾਤਾਵਰਣ ਦੀ ਚੋਣ ਕਰੋ:
+ਆਪਣੇ ਮਨਪਸੰਦ ਡਿਵੈਲਪਮੈਂਟ ਵਾਤਾਵਰਨ ਦੀ ਚੋਣ ਕਰੋ:
 
-- [Python Implementation](../../../../05-AdvancedTopics/mcp-foundry-agent-integration)
-- [.NET Implementation](../../../../05-AdvancedTopics/mcp-foundry-agent-integration)
+- [Python Implementation](#python-implementation)
+- [.NET Implementation](#codeblock5)
 
 ---
 
 ## Python Implementation
 
-***Note*** ਤੁਸੀਂ ਇਹ [notebook](mcp_support_python.ipynb) ਚਲਾ ਸਕਦੇ ਹੋ
+***ਨੋਟ*** ਤੁਸੀਂ ਇਹ [ਨੋਟਬੁੱਕ](./mcp_support_python.ipynb) ਚਲਾ ਸਕਦੇ ਹੋ
 
 ### 1. ਲੋੜੀਂਦੇ ਪੈਕੇਜ ਇੰਸਟਾਲ ਕਰੋ
 
@@ -62,7 +62,7 @@ pip install azure-identity -U
 pip install mcp==1.11.0 -U
 ```
 
-### 2. Dependencies ਇੰਪੋਰਟ ਕਰੋ
+### 2. ਡਿਪੈਂਡੈਂਸੀਜ਼ ਇੰਪੋਰਟ ਕਰੋ
 
 ```python
 import os, time
@@ -71,14 +71,14 @@ from azure.identity import DefaultAzureCredential
 from azure.ai.agents.models import McpTool, RequiredMcpToolCall, SubmitToolApprovalAction, ToolApproval
 ```
 
-### 3. MCP ਸੈਟਿੰਗਜ਼ ਸੰਰਚਿਤ ਕਰੋ
+### 3. MCP ਸੈਟਿੰਗਸ ਸੰਰਚਿਤ ਕਰੋ
 
 ```python
 mcp_server_url = os.environ.get("MCP_SERVER_URL", "https://learn.microsoft.com/api/mcp")
 mcp_server_label = os.environ.get("MCP_SERVER_LABEL", "mslearn")
 ```
 
-### 4. ਪ੍ਰੋਜੈਕਟ ਕਲਾਇੰਟ ਸ਼ੁਰੂ ਕਰੋ
+### 4. ਪ੍ਰੋਜੈਕਟ ਕਲਾਇੰਟ ਸ਼ੁਰੂਆਤ ਕਰੋ
 
 ```python
 project_client = AIProjectClient(
@@ -93,7 +93,7 @@ project_client = AIProjectClient(
 mcp_tool = McpTool(
     server_label=mcp_server_label,
     server_url=mcp_server_url,
-    allowed_tools=[],  # Optional: specify allowed tools
+    allowed_tools=[],  # ਵਿਕਲਪਿਕ: ਆਗਿਆਯਤ ਸੰਦਾਂ ਨੂੰ ਦਰਸਾਓ
 )
 ```
 
@@ -103,7 +103,7 @@ mcp_tool = McpTool(
 with project_client:
     agents_client = project_client.agents
 
-    # Create a new agent with MCP tools
+    # MCP ਟੂਲਜ਼ ਨਾਲ ਨਵਾਂ ਏਜੰਟ ਬਣਾਓ
     agent = agents_client.create_agent(
         model="Your AOAI Model Deployment",
         name="my-mcp-agent",
@@ -113,11 +113,11 @@ with project_client:
     print(f"Created agent, ID: {agent.id}")
     print(f"MCP Server: {mcp_tool.server_label} at {mcp_tool.server_url}")
 
-    # Create thread for communication
+    # ਸੰਚਾਰ ਲਈ ਧਾਗਾ ਬਣਾਓ
     thread = agents_client.threads.create()
     print(f"Created thread, ID: {thread.id}")
 
-    # Create message to thread
+    # ਧਾਗੇ ਲਈ ਸੁਨੇਹਾ ਬਣਾਓ
     message = agents_client.messages.create(
         thread_id=thread.id,
         role="user",
@@ -125,7 +125,7 @@ with project_client:
     )
     print(f"Created message, ID: {message.id}")
 
-    # Handle tool approvals and run agent
+    # ਟੂਲ ਮਨਜ਼ੂਰੀਆਂ ਸੰਭਾਲੋ ਅਤੇ ਏਜੰਟ ਚਲਾਓ
     mcp_tool.update_headers("SuperSecret", "123456")
     run = agents_client.runs.create(thread_id=thread.id, agent_id=agent.id, tool_resources=mcp_tool.resources)
     print(f"Created run, ID: {run.id}")
@@ -165,7 +165,7 @@ with project_client:
 
     print(f"Run completed with status: {run.status}")
 
-    # Display conversation
+    # ਗੱਲਬਾਤ ਦਿਖਾਓ
     messages = agents_client.messages.list(thread_id=thread.id)
     print("\nConversation:")
     print("-" * 50)
@@ -180,7 +180,7 @@ with project_client:
 
 ## .NET Implementation
 
-***Note*** ਤੁਸੀਂ ਇਹ [notebook](mcp_support_dotnet.ipynb) ਚਲਾ ਸਕਦੇ ਹੋ
+***ਨੋਟ*** ਤੁਸੀਂ ਇਹ [ਨੋਟਬੁੱਕ](./mcp_support_dotnet.ipynb) ਚਲਾ ਸਕਦੇ ਹੋ
 
 ### 1. ਲੋੜੀਂਦੇ ਪੈਕੇਜ ਇੰਸਟਾਲ ਕਰੋ
 
@@ -189,14 +189,14 @@ with project_client:
 #r "nuget: Azure.Identity, 1.14.2"
 ```
 
-### 2. Dependencies ਇੰਪੋਰਟ ਕਰੋ
+### 2. ਡਿਪੈਂਡੈਂਸੀਜ਼ ਇੰਪੋਰਟ ਕਰੋ
 
 ```csharp
 using Azure.AI.Agents.Persistent;
 using Azure.Identity;
 ```
 
-### 3. ਸੈਟਿੰਗਜ਼ ਸੰਰਚਿਤ ਕਰੋ
+### 3. ਸੈਟਿੰਗਸ ਸੰਰਚਿਤ ਕਰੋ
 
 ```csharp
 var projectEndpoint = "https://your-project-endpoint.services.ai.azure.com/api/projects/your-project";
@@ -206,7 +206,7 @@ var mcpServerLabel = "mslearn";
 PersistentAgentsClient agentClient = new(projectEndpoint, new DefaultAzureCredential());
 ```
 
-### 4. MCP ਟੂਲ ਡਿਫਿਨੀਸ਼ਨ ਬਣਾਓ
+### 4. MCP ਟੂਲ ਪਰਿਭਾਸ਼ਾ ਬਣਾਓ
 
 ```csharp
 MCPToolDefinition mcpTool = new(mcpServerLabel, mcpServerUrl);
@@ -299,15 +299,15 @@ await foreach (PersistentThreadMessage threadMessage in messages)
 
 ## MCP ਟੂਲ ਸੰਰਚਨਾ ਵਿਕਲਪ
 
-ਜਦੋਂ ਤੁਸੀਂ ਆਪਣੇ ਏਜੰਟ ਲਈ MCP ਟੂਲ ਸੰਰਚਿਤ ਕਰ ਰਹੇ ਹੋ, ਤਾਂ ਤੁਸੀਂ ਕਈ ਮਹੱਤਵਪੂਰਨ ਪੈਰਾਮੀਟਰ ਨਿਰਧਾਰਤ ਕਰ ਸਕਦੇ ਹੋ:
+ਜਦੋਂ ਤੁਸੀਂ ਆਪਣੇ ਏਜੰਟ ਲਈ MCP ਟੂਲ ਸੰਰਚਿਤ ਕਰ ਰਹੇ ਹੋ, ਤੁਸੀਂ ਕਈ ਮਹੱਤਵਪੂਰਨ ਪੈਰਾਮੀਟਰ ਨਿਰਧਾਰਤ ਕਰ ਸਕਦੇ ਹੋ:
 
 ### Python ਸੰਰਚਨਾ
 
 ```python
 mcp_tool = McpTool(
-    server_label="unique_server_name",      # Identifier for the MCP server
-    server_url="https://api.example.com/mcp", # MCP server endpoint
-    allowed_tools=[],                       # Optional: specify allowed tools
+    server_label="unique_server_name",      # MCP ਸਰਵਰ ਲਈ ਪਹਚਾਣਕ
+    server_url="https://api.example.com/mcp", # MCP ਸਰਵਰ ਐਂਡਪੌਇੰਟ
+    allowed_tools=[],                       # ਵਿਕਲਪਿਕ: ਮਨਜ਼ੂਰਸ਼ੁਦਾ ਸਾਧਨਾਂ ਨੂੰ ਦਰਸਾਓ
 )
 ```
 
@@ -320,9 +320,9 @@ MCPToolDefinition mcpTool = new(
 );
 ```
 
-## ਪ੍ਰਮਾਣਿਕਤਾ ਅਤੇ ਹੈਡਰ
+## ਪ੍ਰਮਾਣਿਕਤਾ ਅਤੇ ਹੈਡਰਜ਼
 
-ਦੋਹਾਂ ਇੰਪਲੀਮੈਂਟੇਸ਼ਨਾਂ ਵਿੱਚ ਪ੍ਰਮਾਣਿਕਤਾ ਲਈ ਕਸਟਮ ਹੈਡਰਾਂ ਦਾ ਸਹਿਯੋਗ ਹੈ:
+ਦੋਹਾਂ ਇਮਪਲਿਮੈਂਟੇਸ਼ਨਾਂ ਵਿੱਚ ਪ੍ਰਮਾਣਿਕਤਾ ਲਈ ਕਸਟਮ ਹੈਡਰਜ਼ ਦਾ ਸਮਰਥਨ ਹੈ:
 
 ### Python
 ```python
@@ -335,48 +335,52 @@ MCPToolResource mcpToolResource = new(mcpServerLabel);
 mcpToolResource.UpdateHeader("SuperSecret", "123456");
 ```
 
-## ਆਮ ਸਮੱਸਿਆਵਾਂ ਦਾ ਹੱਲ
+## ਆਮ ਸਮੱਸਿਆਵਾਂ ਦਾ ਨਿਵਾਰਣ
 
 ### 1. ਕਨੈਕਸ਼ਨ ਸਮੱਸਿਆਵਾਂ
 - MCP ਸਰਵਰ URL ਦੀ ਪਹੁੰਚ ਯਕੀਨੀ ਬਣਾਓ
-- ਪ੍ਰਮਾਣਿਕਤਾ ਦੇ ਕ੍ਰੈਡੈਂਸ਼ਲ ਚੈੱਕ ਕਰੋ
-- ਨੈੱਟਵਰਕ ਕਨੈਕਸ਼ਨ ਦੀ ਜਾਂਚ ਕਰੋ
+- ਪ੍ਰਮਾਣਿਕਤਾ ਦੀਆਂ ਸਹੀ ਜਾਣਕਾਰੀਆਂ ਦੀ ਜਾਂਚ ਕਰੋ
+- ਨੈੱਟਵਰਕ ਕਨੈਕਟਿਵਿਟੀ ਦੀ ਪੁਸ਼ਟੀ ਕਰੋ
 
-### 2. ਟੂਲ ਕਾਲ ਫੇਲ੍ਹ ਹੋਣਾ
-- ਟੂਲ ਦੇ ਆਰਗੁਮੈਂਟ ਅਤੇ ਫਾਰਮੈਟਿੰਗ ਦੀ ਸਮੀਖਿਆ ਕਰੋ
+### 2. ਟੂਲ ਕਾਲ ਫੇਲ੍ਹ
+- ਟੂਲ ਆਰਗਯੂਮੈਂਟਸ ਅਤੇ ਫਾਰਮੈਟਿੰਗ ਦੀ ਸਮੀਖਿਆ ਕਰੋ
 - ਸਰਵਰ-ਵਿਸ਼ੇਸ਼ ਲੋੜਾਂ ਦੀ ਜਾਂਚ ਕਰੋ
-- ਠੀਕ ਤਰੀਕੇ ਨਾਲ ਐਰਰ ਹੈਂਡਲਿੰਗ ਲਾਗੂ ਕਰੋ
+- ਠੀਕ ਤਰੀਕੇ ਨਾਲ ਗਲਤੀ ਹੈਂਡਲਿੰਗ ਲਾਗੂ ਕਰੋ
 
-### 3. ਪ੍ਰਦਰਸ਼ਨ ਸਮੱਸਿਆਵਾਂ
-- ਟੂਲ ਕਾਲ ਦੀ ਫ੍ਰਿਕਵੈਂਸੀ ਨੂੰ ਅਪਟੀਮਾਈਜ਼ ਕਰੋ
+### 3. ਪ੍ਰਦਰਸ਼ਨ ਸੰਬੰਧੀ ਸਮੱਸਿਆਵਾਂ
+- ਟੂਲ ਕਾਲ ਦੀ ਆਵ੍ਰਤੀ ਸੁਧਾਰੋ
 - ਜਿੱਥੇ ਲੋੜ ਹੋਵੇ ਕੈਸ਼ਿੰਗ ਲਾਗੂ ਕਰੋ
-- ਸਰਵਰ ਜਵਾਬ ਸਮੇਂ ਦੀ ਨਿਗਰਾਨੀ ਕਰੋ
+- ਸਰਵਰ ਜਵਾਬ ਸਮਿਆਂ ਦੀ ਨਿਗਰਾਨੀ ਕਰੋ
 
-## ਅਗਲੇ ਕਦਮ
+## ਅੱਗੇ ਦੇ ਕਦਮ
 
-ਆਪਣੇ MCP ਇੰਟੀਗ੍ਰੇਸ਼ਨ ਨੂੰ ਹੋਰ ਬਿਹਤਰ ਬਣਾਉਣ ਲਈ:
+ਆਪਣੇ MCP ਏਕੀਕਰਨ ਨੂੰ ਹੋਰ ਵਧੀਆ ਬਣਾਉਣ ਲਈ:
 
-1. **ਕਸਟਮ MCP ਸਰਵਰ ਬਣਾਓ**: ਆਪਣੇ ਖਾਸ ਡਾਟਾ ਸਰੋਤਾਂ ਲਈ MCP ਸਰਵਰ ਤਿਆਰ ਕਰੋ
-2. **ਉੱਚ ਸੁਰੱਖਿਆ ਲਾਗੂ ਕਰੋ**: OAuth2 ਜਾਂ ਕਸਟਮ ਪ੍ਰਮਾਣਿਕਤਾ ਪ੍ਰਣਾਲੀਆਂ ਸ਼ਾਮਲ ਕਰੋ
-3. **ਮਾਨੀਟਰਿੰਗ ਅਤੇ ਵਿਸ਼ਲੇਸ਼ਣ**: ਟੂਲ ਦੀ ਵਰਤੋਂ ਲਈ ਲੌਗਿੰਗ ਅਤੇ ਮਾਨੀਟਰਿੰਗ ਲਾਗੂ ਕਰੋ
-4. **ਆਪਣੇ ਹੱਲ ਨੂੰ ਸਕੇਲ ਕਰੋ**: ਲੋਡ ਬੈਲੈਂਸਿੰਗ ਅਤੇ ਵੰਡੇ MCP ਸਰਵਰ ਆਰਕੀਟੈਕਚਰਾਂ ਬਾਰੇ ਸੋਚੋ
+1. **ਕਸਟਮ MCP ਸਰਵਰਾਂ ਦੀ ਖੋਜ ਕਰੋ**: ਆਪਣੇ ਖਾਸ ਡਾਟਾ ਸਰੋਤਾਂ ਲਈ ਆਪਣਾ MCP ਸਰਵਰ ਬਣਾਓ
+2. **ਉੱਚ ਸੁਰੱਖਿਆ ਲਾਗੂ ਕਰੋ**: OAuth2 ਜਾਂ ਕਸਟਮ ਪ੍ਰਮਾਣਿਕਤਾ ਤंत्र ਸ਼ਾਮਲ ਕਰੋ
+3. **ਨਿਗਰਾਨੀ ਅਤੇ ਵਿਸ਼ਲੇਸ਼ਣ**: ਟੂਲ ਦੀ ਵਰਤੋਂ ਲਈ ਲੌਗਿੰਗ ਅਤੇ ਨਿਗਰਾਨੀ ਲਾਗੂ ਕਰੋ
+4. **ਆਪਣੇ ਹੱਲ ਨੂੰ ਪੈਮਾਨੇ ‘ਤੇ ਲਿਆਓ**: ਲੋਡ ਬੈਲੈਂਸਿੰਗ ਅਤੇ ਵਿਤਰਿਤ MCP ਸਰਵਰ ਆਰਕੀਟੈਕਚਰਾਂ ਬਾਰੇ ਸੋਚੋ
 
 ## ਵਾਧੂ ਸਰੋਤ
 
-- [Azure AI Foundry Documentation](https://learn.microsoft.com/azure/ai-foundry/)
-- [Model Context Protocol Samples](https://learn.microsoft.com/azure/ai-foundry/agents/how-to/tools/model-context-protocol-samples)
-- [Azure AI Foundry Agents Overview](https://learn.microsoft.com/azure/ai-foundry/agents/)
-- [MCP Specification](https://spec.modelcontextprotocol.io/)
+- [Microsoft Foundry ਦਸਤਾਵੇਜ਼ੀकरण](https://learn.microsoft.com/azure/ai-foundry/)
+- [ਮਾਡਲ ਸੰਦਰਭ ਪ੍ਰੋਟੋਕਾਲ ਨਮੂਨੇ](https://learn.microsoft.com/azure/ai-foundry/agents/how-to/tools/model-context-protocol-samples)
+- [Microsoft Foundry ਏਜੰਟਸ ਦਾ ਓਵਰਵਿਊ](https://learn.microsoft.com/azure/ai-foundry/agents/)
+- [MCP ਵਿਸ਼ੇਸ਼ਤਾ](https://spec.modelcontextprotocol.io/)
 
 ## ਸਹਾਇਤਾ
 
 ਵਾਧੂ ਸਹਾਇਤਾ ਅਤੇ ਸਵਾਲਾਂ ਲਈ:
-- [Azure AI Foundry documentation](https://learn.microsoft.com/azure/ai-foundry/) ਨੂੰ ਵੇਖੋ
-- [MCP community resources](https://modelcontextprotocol.io/) ਦੀ ਜਾਂਚ ਕਰੋ
+- [Microsoft Foundry ਦਸਤਾਵੇਜ਼ੀकरण](https://learn.microsoft.com/azure/ai-foundry/) ਵੇਖੋ
+- [MCP ਕਮਿਊਨਿਟੀ ਸਰੋਤ](https://modelcontextprotocol.io/) ਚੈੱਕ ਕਰੋ
 
-## ਅਗਲਾ ਕੀ ਹੈ
+## ਅੱਗੇ ਕੀ
 
 - [5.14 MCP Context Engineering](../mcp-contextengineering/README.md)
 
-**ਅਸਵੀਕਾਰੋਪਣ**:  
-ਇਹ ਦਸਤਾਵੇਜ਼ AI ਅਨੁਵਾਦ ਸੇਵਾ [Co-op Translator](https://github.com/Azure/co-op-translator) ਦੀ ਵਰਤੋਂ ਕਰਕੇ ਅਨੁਵਾਦਿਤ ਕੀਤਾ ਗਿਆ ਹੈ। ਜਦੋਂ ਕਿ ਅਸੀਂ ਸਹੀਤਾ ਲਈ ਕੋਸ਼ਿਸ਼ ਕਰਦੇ ਹਾਂ, ਕਿਰਪਾ ਕਰਕੇ ਧਿਆਨ ਰੱਖੋ ਕਿ ਸਵੈਚਾਲਿਤ ਅਨੁਵਾਦਾਂ ਵਿੱਚ ਗਲਤੀਆਂ ਜਾਂ ਅਸਮਰਥਤਾਵਾਂ ਹੋ ਸਕਦੀਆਂ ਹਨ। ਮੂਲ ਦਸਤਾਵੇਜ਼ ਆਪਣੀ ਮੂਲ ਭਾਸ਼ਾ ਵਿੱਚ ਪ੍ਰਮਾਣਿਕ ਸਰੋਤ ਮੰਨਿਆ ਜਾਣਾ ਚਾਹੀਦਾ ਹੈ। ਮਹੱਤਵਪੂਰਨ ਜਾਣਕਾਰੀ ਲਈ, ਪੇਸ਼ੇਵਰ ਮਨੁੱਖੀ ਅਨੁਵਾਦ ਦੀ ਸਿਫਾਰਸ਼ ਕੀਤੀ ਜਾਂਦੀ ਹੈ। ਇਸ ਅਨੁਵਾਦ ਦੀ ਵਰਤੋਂ ਤੋਂ ਉਤਪੰਨ ਕਿਸੇ ਵੀ ਗਲਤਫਹਮੀ ਜਾਂ ਗਲਤ ਵਿਆਖਿਆ ਲਈ ਅਸੀਂ ਜ਼ਿੰਮੇਵਾਰ ਨਹੀਂ ਹਾਂ।
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**ਅਸਵੀਕਾਰੋਪਣ**:
+ਇਸ ਦਸਤਾਵੇਜ਼ ਦਾ ਅਨੁਵਾਦ ਏਆਈ ਅਨੁਵਾਦ ਸੇਵਾ [Co-op Translator](https://github.com/Azure/co-op-translator) ਦੀ ਵਰਤੋਂ ਕਰਕੇ ਕੀਤਾ ਗਿਆ ਹੈ। ਜਦੋਂ ਕਿ ਅਸੀਂ ਸਹੀਤਾਵਾਂ ਲਈ ਯਤਨਸ਼ੀਲ ਹਾਂ, ਕਿਰਪਾ ਕਰਕੇ ਧਿਆਨ ਰੱਖੋ ਕਿ ਸਵੈਚਾਲਿਤ ਅਨੁਵਾਦਾਂ ਵਿੱਚ ਗਲਤੀਆਂ ਜਾਂ ਅਸਮੱਤਿਆਵਾਂ ਹੋ ਸਕਦੀਆਂ ਹਨ। ਮੂਲ ਦਸਤਾਵੇਜ਼ ਆਪਣੀ ਮੂਲ ਭਾਸ਼ਾ ਵਿੱਚ ਅਧਿਕਾਰਕ ਸਰੋਤ ਮੰਨਿਆ ਜਾਣਾ ਚਾਹੀਦਾ ਹੈ। ਜਰੂਰੀ ਜਾਣਕਾਰੀ ਲਈ, ਪੇਸ਼ੇਵਰ ਮਨੁੱਖੀ ਅਨੁਵਾਦ ਦੀ ਸਿਫ਼ਾਰਸ਼ ਕੀਤੀ ਜਾਂਦੀ ਹੈ। ਅਸੀਂ ਇਸ ਅਨੁਵਾਦ ਦੇ ਉਪਯੋਗ ਤੋਂ ਪੈਦਾ ਹੋਣ ਵਾਲੀਆਂ ਕਿਸੇ ਵੀ ਗਲਤਫਹਿਮੀਆਂ ਜਾਂ ਗਲਤ ਵਿਆਖਿਆਵਾਂ ਲਈ ਜਵਾਬਦੇਹ ਨਹੀਂ ਹਾਂ।
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

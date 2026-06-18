@@ -1,59 +1,59 @@
-# Model Context Protocol (MCP) Kuunganishwa na Azure AI Foundry
+# Itifaki ya Muktadha wa Mfano (MCP) Ushirikiano na Microsoft Foundry
 
-Mwongozo huu unaonyesha jinsi ya kuunganisha seva za Model Context Protocol (MCP) na mawakala wa Azure AI Foundry, kuwezesha usimamizi mzuri wa zana na uwezo wa AI wa biashara.
+Mwongozo huu unaonyesha jinsi ya kuunganisha seva za Itifaki ya Muktadha wa Mfano (MCP) na maajenti wa Microsoft Foundry, kuruhusu uratibu wa zana wenye nguvu na uwezo wa AI wa mashirika.
 
 ## Utangulizi
 
-Model Context Protocol (MCP) ni kiwango wazi kinachowezesha programu za AI kuungana kwa usalama na vyanzo vya data na zana za nje. Wakati ikijiunga na Azure AI Foundry, MCP huruhusu mawakala kufikia na kuingiliana na huduma mbalimbali za nje, API, na vyanzo vya data kwa njia iliyopangwa.
+Itifaki ya Muktadha wa Mfano (MCP) ni kiwango wazi kinachoruhusu programu za AI kuunganishwa salama na vyanzo vya data na zana za nje. Inapounganishwa na Microsoft Foundry, MCP inaruhusu maajenti kufikia na kuingiliana na huduma mbalimbali za nje, API, na vyanzo vya data kwa njia iliyobinafsishwa.
 
-Muunganiko huu unachanganya unyumbufu wa mfumo wa zana za MCP na mfumo thabiti wa mawakala wa Azure AI Foundry, ukitoa suluhisho za AI za kiwango cha biashara zenye uwezo mkubwa wa kubinafsisha.
+Ushirikiano huu unachanganya unyumbufu wa mfumo wa zana wa MCP na mfumo imara wa maajenti wa Microsoft Foundry, ukitoa suluhisho za AI za kiwango cha shirika zenye uwezo mkubwa wa kusanidiwa.
 
-**Note:** Ikiwa unataka kutumia MCP katika Huduma ya Mawakala ya Azure AI Foundry, kwa sasa maeneo yafuatayo pekee yanasaidiwa: westus, westus2, uaenorth, southindia na switzerlandnorth
+**Kumbuka:** Ikiwa unataka kutumia MCP katika Huduma ya Maajenti ya Microsoft Foundry, kwa sasa mikoa ifuatayo tu inasaidiwa: westus, westus2, uaenorth, southindia na switzerlandnorth
 
 ## Malengo ya Kujifunza
 
-Mwisho wa mwongozo huu, utaweza:
+Mwisho wa mwongozo huu, utakuwa na uwezo wa:
 
-- Kuelewa Model Context Protocol na faida zake
-- Kuweka seva za MCP kwa matumizi na mawakala wa Azure AI Foundry
-- Kuunda na kusanidi mawakala kwa kuunganishwa kwa zana za MCP
-- Kutekeleza mifano halisi kwa kutumia seva za MCP
-- Kushughulikia majibu ya zana na marejeo katika mazungumzo ya mawakala
+- Kuelewa Itifaki ya Muktadha wa Mfano na faida zake
+- Kuweka seva za MCP kwa matumizi na maajenti wa Microsoft Foundry
+- Kuunda na kusanidi maajenti na ushirikiano wa zana za MCP
+- Kutekeleza mifano halisi kwa kutumia seva za MCP halisi
+- Kushughulikia majibu ya zana na marejeleo katika mazungumzo ya maajenti
 
-## Mahitaji ya Awali
+## Masharti ya Awali
 
 Kabla ya kuanza, hakikisha una:
 
-- Usajili wa Azure wenye ufikiaji wa AI Foundry
+- Usajili wa Azure wenye ufikiaji wa Microsoft Foundry
 - Python 3.10+ au .NET 8.0+
 - Azure CLI imewekwa na kusanidiwa
 - Ruhusa zinazofaa za kuunda rasilimali za AI
 
 ## Model Context Protocol (MCP) ni Nini?
 
-Model Context Protocol ni njia iliyopangwa kwa programu za AI kuungana na vyanzo vya data na zana za nje. Faida kuu ni:
+Itifaki ya Muktadha wa Mfano ni njia iliyowekwa viwango kwa programu za AI kuunganishwa na vyanzo vya data na zana za nje. Faida kuu ni:
 
-- **Muunganisho wa Kiwango**: Kiolesura kinacholingana kwa zana na huduma tofauti
-- **Usalama**: Mbinu salama za uthibitishaji na idhini
-- **Unyumbufu**: Msaada kwa vyanzo mbalimbali vya data, API, na zana maalum
-- **Uwezo wa Kuongezeka**: Rahisi kuongeza uwezo mpya na muunganisho
+- **Ushirikiano wa Viwango**: Kiolesura cha mara kwa mara kwa zana na huduma mbalimbali
+- **Usalama**: Mbinu salama za utambulisho na idhini
+- **Unyumbufu**: Msaada kwa vyanzo vya data mbalimbali, API, na zana maalum
+- **Ukuaji**: Rahisi kuongeza uwezo na ushirikiano mpya
 
-## Kuweka MCP na Azure AI Foundry
+## Kuweka MCP na Microsoft Foundry
 
 ### Usanidi wa Mazingira
 
-Chagua mazingira unayopendelea ya maendeleo:
+Chagua mazingira yako unayopendelea ya maendeleo:
 
-- [Utekelezaji wa Python](../../../../05-AdvancedTopics/mcp-foundry-agent-integration)
-- [Utekelezaji wa .NET](../../../../05-AdvancedTopics/mcp-foundry-agent-integration)
+- [Utekelezaji wa Python](#utekelezaji-wa-python)
+- [Utekelezaji wa .NET](#codeblock5)
 
 ---
 
 ## Utekelezaji wa Python
 
-***Note*** Unaweza kuendesha [daftari hili](mcp_support_python.ipynb)
+***Kumbuka*** Unaweza kuendesha [daftari hili](./mcp_support_python.ipynb)
 
-### 1. Sakinisha Pakiti Zinazohitajika
+### 1. Sakinisha Vifurushi Vinavyohitajika
 
 ```bash
 pip install azure-ai-projects -U
@@ -62,7 +62,7 @@ pip install azure-identity -U
 pip install mcp==1.11.0 -U
 ```
 
-### 2. Ingiza Maktaba
+### 2. Ingiza Mategemeo
 
 ```python
 import os, time
@@ -93,7 +93,7 @@ project_client = AIProjectClient(
 mcp_tool = McpTool(
     server_label=mcp_server_label,
     server_url=mcp_server_url,
-    allowed_tools=[],  # Optional: specify allowed tools
+    allowed_tools=[],  # Hiari: eleza zana zilizoruhusiwa
 )
 ```
 
@@ -103,7 +103,7 @@ mcp_tool = McpTool(
 with project_client:
     agents_client = project_client.agents
 
-    # Create a new agent with MCP tools
+    # Unda wakala mpya kwa kutumia zana za MCP
     agent = agents_client.create_agent(
         model="Your AOAI Model Deployment",
         name="my-mcp-agent",
@@ -113,11 +113,11 @@ with project_client:
     print(f"Created agent, ID: {agent.id}")
     print(f"MCP Server: {mcp_tool.server_label} at {mcp_tool.server_url}")
 
-    # Create thread for communication
+    # Unda thread kwa mawasiliano
     thread = agents_client.threads.create()
     print(f"Created thread, ID: {thread.id}")
 
-    # Create message to thread
+    # Tuma ujumbe kwa thread
     message = agents_client.messages.create(
         thread_id=thread.id,
         role="user",
@@ -125,7 +125,7 @@ with project_client:
     )
     print(f"Created message, ID: {message.id}")
 
-    # Handle tool approvals and run agent
+    # Shughulikia idhini za zana na endesha wakala
     mcp_tool.update_headers("SuperSecret", "123456")
     run = agents_client.runs.create(thread_id=thread.id, agent_id=agent.id, tool_resources=mcp_tool.resources)
     print(f"Created run, ID: {run.id}")
@@ -165,7 +165,7 @@ with project_client:
 
     print(f"Run completed with status: {run.status}")
 
-    # Display conversation
+    # Onyesha mazungumzo
     messages = agents_client.messages.list(thread_id=thread.id)
     print("\nConversation:")
     print("-" * 50)
@@ -180,16 +180,16 @@ with project_client:
 
 ## Utekelezaji wa .NET
 
-***Note*** Unaweza kuendesha [daftari hili](mcp_support_dotnet.ipynb)
+***Kumbuka*** Unaweza kuendesha [daftari hili](./mcp_support_dotnet.ipynb)
 
-### 1. Sakinisha Pakiti Zinazohitajika
+### 1. Sakinisha Vifurushi Vinavyohitajika
 
 ```csharp
 #r "nuget: Azure.AI.Agents.Persistent, 1.1.0-beta.4"
 #r "nuget: Azure.Identity, 1.14.2"
 ```
 
-### 2. Ingiza Maktaba
+### 2. Ingiza Mategemeo
 
 ```csharp
 using Azure.AI.Agents.Persistent;
@@ -212,7 +212,7 @@ PersistentAgentsClient agentClient = new(projectEndpoint, new DefaultAzureCreden
 MCPToolDefinition mcpTool = new(mcpServerLabel, mcpServerUrl);
 ```
 
-### 5. Unda Mwakala na Zana za MCP
+### 5. Unda Mwakala na Vifaa vya MCP
 
 ```csharp
 PersistentAgent agent = await agentClient.Administration.CreateAgentAsync(
@@ -299,15 +299,15 @@ await foreach (PersistentThreadMessage threadMessage in messages)
 
 ## Chaguzi za Usanidi wa Zana za MCP
 
-Unaposanidi zana za MCP kwa wakala wako, unaweza kubainisha vigezo kadhaa muhimu:
+Unapokuwa unasanidi zana za MCP kwa mwakala wako, unaweza kubainisha vigezo kadhaa muhimu:
 
 ### Usanidi wa Python
 
 ```python
 mcp_tool = McpTool(
-    server_label="unique_server_name",      # Identifier for the MCP server
-    server_url="https://api.example.com/mcp", # MCP server endpoint
-    allowed_tools=[],                       # Optional: specify allowed tools
+    server_label="unique_server_name",      # Kitambulisho cha seva ya MCP
+    server_url="https://api.example.com/mcp", # Mwangizo wa seva ya MCP
+    allowed_tools=[],                       # Hiari: bainisha zana zinazoruhusiwa
 )
 ```
 
@@ -320,9 +320,9 @@ MCPToolDefinition mcpTool = new(
 );
 ```
 
-## Uthibitishaji na Vichwa vya Habari
+## Utambuzi na Vichwa
 
-Matoleo yote mawili yanaunga mkono vichwa vya habari maalum kwa uthibitishaji:
+Utekelezaji wote unasaidia vichwa maalum kwa utambuzi:
 
 ### Python
 ```python
@@ -335,48 +335,52 @@ MCPToolResource mcpToolResource = new(mcpServerLabel);
 mcpToolResource.UpdateHeader("SuperSecret", "123456");
 ```
 
-## Kutatua Matatizo ya Kawaida
+## Utatuzi wa Matatizo ya Kawaida
 
 ### 1. Matatizo ya Muunganisho
-- Hakiki URL ya seva ya MCP inapatikana
-- Angalia taarifa za uthibitishaji
-- Hakikisha muunganisho wa mtandao uko sawa
+- Hakiki URL ya seva ya MCP iwe inapatikana
+- Angalia nywila za utambuzi
+- Hakikisha muunganisho wa mtandao
 
-### 2. Kushindwa kwa Mitoaji wa Zana
-- Pitia hoja na muundo wa zana
+### 2. Kushindwa kwa Miito ya Zana
+- Kagua hoja na muundo wa zana
 - Angalia mahitaji maalum ya seva
 - Tekeleza usimamizi sahihi wa makosa
 
 ### 3. Matatizo ya Utendaji
-- Boresha mara za kuitwa kwa zana
-- Tekeleza kuhifadhi data (caching) inapofaa
+- Boresha mara za miito ya zana
+- Tekeleza uhifadhi wa muda inapofaa
 - Fuatilia nyakati za majibu ya seva
 
 ## Hatua Zifuatazo
 
-Ili kuboresha zaidi muunganisho wako wa MCP:
+Ili kuimarisha zaidi ushirikiano wako wa MCP:
 
-1. **Chunguza Seva Maalum za MCP**: Jenga seva zako za MCP kwa vyanzo vya data vya kipekee
-2. **Tekeleza Usalama wa Juu**: Ongeza OAuth2 au mbinu maalum za uthibitishaji
-3. **Fuatilia na Tathmini**: Tekeleza uandikishaji na ufuatiliaji wa matumizi ya zana
-4. **Panua Suluhisho Lako**: Fikiria usawazishaji mzigo na usanifu wa seva za MCP zilizosambazwa
+1. **Chunguza Seva za MCP Zilizobinafsishwa**: Jenga seva zako za MCP kwa vyanzo vya data vya kipekee
+2. **Tekeleza Usalama wa Juu**: Ongeza OAuth2 au mbinu za utambuzi maalum
+3. **Fuatilia na Uchambuzi**: Tekeleza uandikishaji na ufuatiliaji wa matumizi ya zana
+4. **Panua Suluhisho lako**: Fikiria usawa wa mzigo na usanifu wa seva za MCP zilizogatuliwa
 
 ## Rasilimali Zaidi
 
-- [Nyaraka za Azure AI Foundry](https://learn.microsoft.com/azure/ai-foundry/)
+- [Nyaraka za Microsoft Foundry](https://learn.microsoft.com/azure/ai-foundry/)
 - [Mifano ya Model Context Protocol](https://learn.microsoft.com/azure/ai-foundry/agents/how-to/tools/model-context-protocol-samples)
-- [Muhtasari wa Mawakala wa Azure AI Foundry](https://learn.microsoft.com/azure/ai-foundry/agents/)
+- [Muhtasari wa Maajenti wa Microsoft Foundry](https://learn.microsoft.com/azure/ai-foundry/agents/)
 - [Maelezo ya MCP](https://spec.modelcontextprotocol.io/)
 
 ## Msaada
 
 Kwa msaada zaidi na maswali:
-- Pitia [nyaraka za Azure AI Foundry](https://learn.microsoft.com/azure/ai-foundry/)
-- Angalia [rasilimali za jamii ya MCP](https://modelcontextprotocol.io/)
+- Pitia [nyaraka za Microsoft Foundry](https://learn.microsoft.com/azure/ai-foundry/)
+- Angalia [rasilimali za jamii za MCP](https://modelcontextprotocol.io/)
 
-## Nini Kifuatacho
+## Ifuatayo
 
-- [5.14 MCP Context Engineering](../mcp-contextengineering/README.md)
+- [5.14 Uhandisi wa Muktadha wa MCP](../mcp-contextengineering/README.md)
 
-**Kiarifu cha Msamaha**:  
-Hati hii imetafsiriwa kwa kutumia huduma ya tafsiri ya AI [Co-op Translator](https://github.com/Azure/co-op-translator). Ingawa tunajitahidi kuhakikisha usahihi, tafadhali fahamu kwamba tafsiri za kiotomatiki zinaweza kuwa na makosa au upungufu wa usahihi. Hati ya asili katika lugha yake ya asili inapaswa kuchukuliwa kama chanzo cha mamlaka. Kwa taarifa muhimu, tafsiri ya kitaalamu inayofanywa na binadamu inapendekezwa. Hatubebei dhamana kwa kutoelewana au tafsiri potofu zinazotokana na matumizi ya tafsiri hii.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Kionyozo**:
+Hati hii imetafsiriwa kwa kutumia huduma ya tafsiri ya AI [Co-op Translator](https://github.com/Azure/co-op-translator). Ingawa tunajitahidi kupata usahihi, tafadhali fahamu kwamba tafsiri za kiotomatiki zinaweza kuwa na makosa au upungufu wa usahihi. Hati ya asili katika lugha yake halisi inapaswa kuchukuliwa kama chanzo cha mamlaka. Kwa taarifa muhimu, tafsiri ya kitaalamu inayofanywa na binadamu inapendekezwa. Hatutojibu kwa kuelewa vibaya au tafsiri potofu zinazotokea kutokana na matumizi ya tafsiri hii.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

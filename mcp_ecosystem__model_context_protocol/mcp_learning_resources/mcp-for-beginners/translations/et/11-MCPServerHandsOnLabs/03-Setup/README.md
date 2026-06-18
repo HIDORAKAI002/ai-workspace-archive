@@ -2,114 +2,114 @@
 
 ## 🎯 Mida see labor hõlmab
 
-See praktiline labor juhendab teid täieliku arenduskeskkonna seadistamisel MCP serverite loomiseks PostgreSQL integratsiooniga. Seadistate kõik vajalikud tööriistad, juurutate Azure'i ressursid ja valideerite oma seadistuse enne rakendamisega alustamist.
+See praktiline labor juhendab sind läbi täieliku arenduskeskkonna seadistamise MCP serverite loomise jaoks PostgreSQL integratsiooniga. Sa seadistad kõik vajalikud tööriistad, juurutad Azure ressursid ja valideerid oma seadistuse enne teostamisega jätkamist.
 
 ## Ülevaade
 
-Korralik arenduskeskkond on MCP serverite edukaks arendamiseks hädavajalik. See labor pakub samm-sammulisi juhiseid Docker'i, Azure'i teenuste ja arendustööriistade seadistamiseks ning kontrollib, et kõik toimiks korrektselt koos.
+Õige arenduskeskkond on MCP serveri edukaks arendamiseks ülioluline. See labor annab samm-sammult juhised Docker'i, Azure teenuste, arendustööriistade seadistamiseks ja kinnitab, et kõik töötab koos korrektselt.
 
-Labori lõpuks on teil täielikult toimiv arenduskeskkond Zava Retail MCP serveri loomiseks.
+Selle labori lõpuks on sul täielikult töökorras arenduskeskkond valmis Zava Retail MCP serveri ehitamiseks.
 
 ## Õpieesmärgid
 
-Labori lõpuks suudate:
+Selle labori lõpuks suudad sa:
 
-- **Installida ja seadistada** kõik vajalikud arendustööriistad
-- **Juurutada Azure'i ressursid**, mis on vajalikud MCP serveri jaoks
-- **Seadistada Docker'i konteinerid** PostgreSQL-i ja MCP serveri jaoks
+- **Paigaldada ja seadistada** kõik vajalikud arendustööriistad
+- **Juurutada Azure ressursid**, mida MCP server vajab
+- **Seadistada Docker konteinerid** PostgreSQL ja MCP serveri jaoks
 - **Valideerida** oma keskkonna seadistust testühendustega
-- **Lahendada** levinud seadistusprobleeme ja konfiguratsioonivigu
-- **Mõista** arendusvoogu ja failistruktuuri
+- **Tõrkeotsingut teha** levinumate seadistamis- ja konfiguratsiooniprobleemide puhul
+- **Mõista** arendustöövoogu ja failistruktuuri
 
-## 📋 Eeltingimuste kontroll
+## 📋 Eeldused
 
-Enne alustamist veenduge, et teil on:
+Enne alustamist veendu, et sul on olemas:
 
 ### Vajalikud teadmised
-- Põhiline käsurea kasutamine (Windows Command Prompt/PowerShell)
+- Baasteadmised käsurea kasutamisest (Windows Command Prompt/PowerShell)
 - Keskkonnamuutujate mõistmine
 - Git versioonihalduse tundmine
-- Põhilised Docker'i kontseptsioonid (konteinerid, pildid, mahud)
+- Algtõed Dockerist (konteinerid, pildid, mahud)
 
 ### Süsteeminõuded
 - **Operatsioonisüsteem**: Windows 10/11, macOS või Linux
-- **RAM**: Minimaalselt 8GB (soovitatavalt 16GB)
+- **RAM**: Vähemalt 8GB (soovitatav 16GB)
 - **Salvestusruum**: Vähemalt 10GB vaba ruumi
-- **Võrk**: Internetiühendus allalaadimisteks ja Azure'i juurutamiseks
+- **Võrk**: Internetiühendus allalaadimiste ja Azure juurutuse jaoks
 
 ### Konto nõuded
-- **Azure'i tellimus**: Tasuta tase on piisav
-- **GitHubi konto**: Repositooriumi juurdepääsuks
-- **Docker Hubi konto**: (Valikuline) Kohandatud piltide avaldamiseks
+- **Azure tellimus**: Tasuta tasand on piisav
+- **GitHub konto**: Koodihoidla ligipääsuks
+- **Docker Hub konto**: (Valikuline) Kohandatud piltide avaldamiseks
 
-## 🛠️ Tööriistade paigaldamine
+## 🛠️ Tööriistade paigaldus
 
-### 1. Paigaldage Docker Desktop
+### 1. Paigalda Docker Desktop
 
-Docker pakub konteineriseeritud keskkonda meie arendusseadistuseks.
+Docker tagab konteineripõhise keskkonna meie arendusprotsessis.
 
-#### Windowsi paigaldamine
+#### Windowsi paigaldus
 
-1. **Laadige alla Docker Desktop**:
+1. **Laadi alla Docker Desktop**:
    ```cmd
    # Visit https://desktop.docker.com/win/stable/Docker%20Desktop%20Installer.exe
    # Or use Windows Package Manager
    winget install Docker.DockerDesktop
    ```
 
-2. **Paigaldage ja seadistage**:
-   - Käivitage paigaldaja administraatorina
-   - Lubage WSL 2 integratsioon, kui küsitakse
-   - Taaskäivitage arvuti pärast paigaldamise lõpetamist
+2. **Paigalda ja seadista**:
+   - Käivita installiprogramm administraatorina
+   - Luba WSL 2 integratsioon, kui süsteem küsib
+   - Taaskäivita arvuti pärast installi lõpetamist
 
-3. **Kontrollige paigaldust**:
+3. **Kontrolli paigaldust**:
    ```cmd
    docker --version
    docker-compose --version
    ```
 
-#### macOS-i paigaldamine
+#### macOS paigaldus
 
-1. **Laadige alla ja paigaldage**:
+1. **Laadi alla ja paigalda**:
    ```bash
-   # Download from https://desktop.docker.com/mac/stable/Docker.dmg
-   # Or use Homebrew
+   # Laadi alla aadressilt https://desktop.docker.com/mac/stable/Docker.dmg
+   # Või kasuta Homebrewi
    brew install --cask docker
    ```
 
-2. **Käivitage Docker Desktop**:
-   - Käivitage Docker Desktop rakendustest
-   - Täitke algseadistuse viisard
+2. **Käivita Docker Desktop**:
+   - Ava Docker Desktop rakendustest
+   - Lõpeta esimene seadistusviisard
 
-3. **Kontrollige paigaldust**:
+3. **Kontrolli paigaldust**:
    ```bash
    docker --version
    docker-compose --version
    ```
 
-#### Linuxi paigaldamine
+#### Linuxi paigaldus
 
-1. **Paigaldage Docker Engine**:
+1. **Paigalda Docker Engine**:
    ```bash
    # Ubuntu/Debian
    curl -fsSL https://get.docker.com -o get-docker.sh
    sudo sh get-docker.sh
    sudo usermod -aG docker $USER
    
-   # Log out and back in for group changes to take effect
+   # Grupimuudatuste jõustumiseks logi välja ja uuesti sisse
    ```
 
-2. **Paigaldage Docker Compose**:
+2. **Paigalda Docker Compose**:
    ```bash
    sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
    sudo chmod +x /usr/local/bin/docker-compose
    ```
 
-### 2. Paigaldage Azure CLI
+### 2. Paigalda Azure CLI
 
-Azure CLI võimaldab Azure'i ressursside juurutamist ja haldamist.
+Azure CLI võimaldab Azure ressursside juurutamist ja haldust.
 
-#### Windowsi paigaldamine
+#### Windowsi paigaldus
 
 ```cmd
 # Using Windows Package Manager
@@ -118,17 +118,17 @@ winget install Microsoft.AzureCLI
 # Or download MSI from: https://aka.ms/installazurecliwindows
 ```
 
-#### macOS-i paigaldamine
+#### macOS paigaldus
 
 ```bash
-# Using Homebrew
+# Homebrew kasutamine
 brew install azure-cli
 
-# Or using installer
+# Või installeerija kasutamine
 curl -L https://aka.ms/InstallAzureCli | bash
 ```
 
-#### Linuxi paigaldamine
+#### Linuxi paigaldus
 
 ```bash
 # Ubuntu/Debian
@@ -139,23 +139,23 @@ sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
 sudo dnf install azure-cli
 ```
 
-#### Kontrollige ja autentige
+#### Kontrolli ja autentimine
 
 ```bash
-# Check installation
+# Kontrolli paigaldust
 az version
 
-# Login to Azure
+# Logi sisse Azure'i
 az login
 
-# Set default subscription (if you have multiple)
+# Sea vaikimisi tellimus (kui sul on mitu)
 az account list --output table
 az account set --subscription "Your-Subscription-Name"
 ```
 
-### 3. Paigaldage Git
+### 3. Paigalda Git
 
-Git on vajalik repositooriumi kloonimiseks ja versioonihalduseks.
+Git on vajalik hoidla kloonimiseks ja versioonihalduseks.
 
 #### Windows
 
@@ -169,7 +169,7 @@ winget install Git.Git
 #### macOS
 
 ```bash
-# Git is usually pre-installed, but you can update via Homebrew
+# Git on tavaliselt eelinstallitud, kuid saate seda uuendada Homebrew kaudu
 brew install git
 ```
 
@@ -183,11 +183,11 @@ sudo apt update && sudo apt install git
 sudo dnf install git
 ```
 
-### 4. Paigaldage VS Code
+### 4. Paigalda VS Code
 
-Visual Studio Code pakub integreeritud arenduskeskkonda MCP toetusega.
+Visual Studio Code annab meie arenduskeskkonna ja MCP toe.
 
-#### Paigaldamine
+#### Paigaldus
 
 ```cmd
 # Windows
@@ -202,28 +202,28 @@ sudo snap install code --classic
 
 #### Vajalikud laiendused
 
-Paigaldage need VS Code'i laiendused:
+Paigalda need VS Code laiendused:
 
 ```bash
-# Install via command line
+# Paigalda käsurea kaudu
 code --install-extension ms-python.python
 code --install-extension ms-vscode.vscode-json
 code --install-extension ms-azuretools.vscode-docker
 code --install-extension ms-vscode.azure-account
 ```
 
-Või paigaldage VS Code'i kaudu:
-1. Avage VS Code
-2. Minge laienduste juurde (Ctrl+Shift+X)
-3. Paigaldage:
+Või paigalda läbi VS Code:
+1. Ava VS Code
+2. Mine laienduste sektsiooni (Ctrl+Shift+X)
+3. Paigalda:
    - **Python** (Microsoft)
    - **Docker** (Microsoft)
    - **Azure Account** (Microsoft)
    - **JSON** (Microsoft)
 
-### 5. Paigaldage Python
+### 5. Paigalda Python
 
-Python 3.8+ on vajalik MCP serveri arendamiseks.
+Python 3.8+ on MCP serveri arendamiseks vajalik.
 
 #### Windows
 
@@ -237,7 +237,7 @@ winget install Python.Python.3.11
 #### macOS
 
 ```bash
-# Using Homebrew
+# Homebrewi kasutamine
 brew install python@3.11
 ```
 
@@ -251,76 +251,76 @@ sudo apt update && sudo apt install python3.11 python3.11-pip python3.11-venv
 sudo dnf install python3.11 python3.11-pip
 ```
 
-#### Kontrollige paigaldust
+#### Kontrolli paigaldust
 
 ```bash
-python --version  # Should show Python 3.11.x
-pip --version      # Should show pip version
+python --version  # Peaks näitama Python 3.11.x
+pip --version      # Peaks näitama pip versiooni
 ```
 
 ## 🚀 Projekti seadistamine
 
-### 1. Kloonige repositoorium
+### 1. Klooni hoidlasse
 
 ```bash
-# Clone the main repository
+# Kopeeri peamine hoidla
 git clone https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail.git
 
-# Navigate to the project directory
+# Liigu projekti kataloogi
 cd MCP-Server-and-PostgreSQL-Sample-Retail
 
-# Verify repository structure
+# Kontrolli hoidla struktuuri
 ls -la
 ```
 
-### 2. Looge Python'i virtuaalne keskkond
+### 2. Loo Python virtuaalne keskkond
 
 ```bash
-# Create virtual environment
+# Loo virtuaalne keskkond
 python -m venv mcp-env
 
-# Activate virtual environment
+# Aktiveeri virtuaalne keskkond
 # Windows
 mcp-env\Scripts\activate
 
 # macOS/Linux
 source mcp-env/bin/activate
 
-# Upgrade pip
+# Uuenda pip
 python -m pip install --upgrade pip
 ```
 
-### 3. Paigaldage Python'i sõltuvused
+### 3. Paigalda Python sõltuvused
 
 ```bash
-# Install development dependencies
+# Paigalda arendus-sõltuvused
 pip install -r requirements.lock.txt
 
-# Verify key packages
+# Kontrolli põhikomplekte
 pip list | grep fastmcp
 pip list | grep asyncpg
 pip list | grep azure
 ```
 
-## ☁️ Azure'i ressursside juurutamine
+## ☁️ Azure ressursside juurutus
 
-### 1. Ressursinõuete mõistmine
+### 1. Mõista ressursi nõudeid
 
-Meie MCP server vajab järgmisi Azure'i ressursse:
+Meie MCP server vajab järgmisi Azure ressursse:
 
-| **Ressurss** | **Eesmärk** | **Hinnanguline kulu** |
-|--------------|-------------|-----------------------|
-| **Azure AI Foundry** | AI mudelite majutamine ja haldamine | $10-50/kuus |
-| **OpenAI juurutamine** | Teksti embedimise mudel (text-embedding-3-small) | $5-20/kuus |
-| **Application Insights** | Jälgimine ja telemeetria | $5-15/kuus |
-| **Ressursigrupp** | Ressursside organiseerimine | Tasuta |
+| **Ressurss** | **Eesmärk** | **Eeldatav hind** |
+|--------------|-------------|-------------------|
+| **Microsoft Foundry** | AI mudelite majutamine ja haldus | 10–50 $/kuus |
+| **OpenAI juurutus** | Teksti sisse-võtva mudeli (text-embedding-3-small) juurutus | 5–20 $/kuus |
+| **Application Insights** | Järelevalve ja telemeetria | 5–15 $/kuus |
+| **Resource Group** | Ressursside organiseerimine | Tasuta |
 
-### 2. Azure'i ressursside juurutamine
+### 2. Juuruta Azure ressursid
 
-#### Valik A: Automaatne juurutamine (soovitatav)
+#### Variant A: Automatiseeritud juurutus (soovitatav)
 
 ```bash
-# Navigate to infrastructure directory
+# Liigu infrastruktuuri kataloogi
 cd infra
 
 # Windows - PowerShell
@@ -330,28 +330,28 @@ cd infra
 ./deploy.sh
 ```
 
-Juurutusskript teeb järgmist:
+Juurutus skript teeb järgnevat:
 1. Loob unikaalse ressursigrupi
-2. Juurutab Azure AI Foundry ressursid
+2. Juurutab Microsoft Foundry ressursid
 3. Juurutab text-embedding-3-small mudeli
-4. Konfigureerib Application Insights'i
-5. Loob autentimiseks teenusepõhimõtte
+4. Seadistab Application Insights
+5. Loob teenusepeapunkti autentimiseks
 6. Genereerib `.env` faili konfiguratsiooniga
 
-#### Valik B: Käsitsi juurutamine
+#### Variant B: Käsitsi juurutus
 
-Kui eelistate käsitsi kontrolli või automaatne skript ebaõnnestub:
+Kui soovid käsitsi kontrolli või automatiseeritud skript ebaõnnestub:
 
 ```bash
-# Set variables
+# Määra muutujad
 RESOURCE_GROUP="rg-zava-mcp-$(date +%s)"
 LOCATION="westus2"
 AI_PROJECT_NAME="zava-ai-project"
 
-# Create resource group
+# Loo ressursigrupp
 az group create --name $RESOURCE_GROUP --location $LOCATION
 
-# Deploy main template
+# Paigalda peamine mall
 az deployment group create \
   --resource-group $RESOURCE_GROUP \
   --template-file main.bicep \
@@ -359,27 +359,27 @@ az deployment group create \
   --parameters resourcePrefix="zava-mcp"
 ```
 
-### 3. Kontrollige Azure'i juurutust
+### 3. Kontrolli Azure juurutust
 
 ```bash
-# Check resource group
+# Kontrolli ressursigruppi
 az group show --name $RESOURCE_GROUP --output table
 
-# List deployed resources
+# Loendi paigaldatud ressursid
 az resource list --resource-group $RESOURCE_GROUP --output table
 
-# Test AI service
+# Testi AI teenust
 az cognitiveservices account show \
   --name "your-ai-service-name" \
   --resource-group $RESOURCE_GROUP
 ```
 
-### 4. Konfigureerige keskkonnamuutujad
+### 4. Konfigureeri keskkonnamuutujad
 
-Pärast juurutamist peaks teil olema `.env` fail. Kontrollige, et see sisaldab:
+Pärast juurutust peaks sul olema `.env` fail. Kontrolli, et see sisaldab:
 
 ```bash
-# .env file contents
+# .env faili sisu
 PROJECT_ENDPOINT=https://your-project.cognitiveservices.azure.com/
 AZURE_OPENAI_ENDPOINT=https://your-openai.openai.azure.com/
 EMBEDDING_MODEL_DEPLOYMENT_NAME=text-embedding-3-small
@@ -388,7 +388,7 @@ AZURE_CLIENT_SECRET=your-client-secret
 AZURE_TENANT_ID=your-tenant-id
 APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=your-key;...
 
-# Database configuration (for development)
+# Andmebaasi konfiguratsioon (arenduseks)
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 POSTGRES_DB=zava
@@ -396,9 +396,9 @@ POSTGRES_USER=postgres
 POSTGRES_PASSWORD=your-secure-password
 ```
 
-## 🐳 Docker'i keskkonna seadistamine
+## 🐳 Docker keskkonna seadistamine
 
-### 1. Docker Compose'i mõistmine
+### 1. Mõista Docker Compose'i struktuuri
 
 Meie arenduskeskkond kasutab Docker Compose'i:
 
@@ -429,58 +429,58 @@ services:
       - .env
 ```
 
-### 2. Käivitage arenduskeskkond
+### 2. Käivita arenduskeskkond
 
 ```bash
-# Ensure you're in the project root directory
+# Veendu, et oled projekti juurkataloogis
 cd /path/to/MCP-Server-and-PostgreSQL-Sample-Retail
 
-# Start the services
+# Käivita teenused
 docker-compose up -d
 
-# Check service status
+# Kontrolli teenuse staatust
 docker-compose ps
 
-# View logs
+# Vaata logisid
 docker-compose logs -f
 ```
 
-### 3. Kontrollige andmebaasi seadistust
+### 3. Kontrolli andmebaasi seadistust
 
 ```bash
-# Connect to PostgreSQL container
+# Ühendu PostgreSQL konteineriga
 docker-compose exec postgres psql -U postgres -d zava
 
-# Check database structure
+# Kontrolli andmebaasi struktuuri
 \dt retail.*
 
-# Verify sample data
+# Kinnita näidisandmed
 SELECT COUNT(*) FROM retail.stores;
 SELECT COUNT(*) FROM retail.products;
 SELECT COUNT(*) FROM retail.orders;
 
-# Exit PostgreSQL
+# Välju PostgreSQL-st
 \q
 ```
 
-### 4. Testige MCP serverit
+### 4. Testi MCP serverit
 
 ```bash
-# Check MCP server health
+# Kontrolli MCP serveri tervist
 curl http://localhost:8000/health
 
-# Test basic MCP endpoint
+# Testi põhikomplekti MCP lõpp-punkti
 curl -X POST http://localhost:8000/mcp \
   -H "Content-Type: application/json" \
   -H "x-rls-user-id: 00000000-0000-0000-0000-000000000000" \
   -d '{"method": "tools/list", "params": {}}'
 ```
 
-## 🔧 VS Code'i konfiguratsioon
+## 🔧 VS Code konfiguratsioon
 
-### 1. Konfigureerige MCP integratsioon
+### 1. Seadista MCP integratsioon
 
-Looge VS Code'i MCP konfiguratsioon:
+Loo VS Code MCP konfiguratsioon:
 
 ```json
 // .vscode/mcp.json
@@ -506,7 +506,7 @@ Looge VS Code'i MCP konfiguratsioon:
 }
 ```
 
-### 2. Konfigureerige Python'i keskkond
+### 2. Seadista Python keskkond
 
 ```json
 // .vscode/settings.json
@@ -525,30 +525,30 @@ Looge VS Code'i MCP konfiguratsioon:
 }
 ```
 
-### 3. Testige VS Code'i integratsiooni
+### 3. Testi VS Code integratsiooni
 
-1. **Avage projekt VS Code'is**:
+1. **Ava projekt VS Code's**:
    ```bash
    code .
    ```
 
-2. **Avage AI vestlus**:
-   - Vajutage `Ctrl+Shift+P` (Windows/Linux) või `Cmd+Shift+P` (macOS)
-   - Sisestage "AI Chat" ja valige "AI Chat: Open Chat"
+2. **Ava AI Chat**:
+   - Vajuta `Ctrl+Shift+P` (Windows/Linux) või `Cmd+Shift+P` (macOS)
+   - Kirjuta "AI Chat" ja vali "AI Chat: Open Chat"
 
-3. **Testige MCP serveri ühendust**:
-   - AI vestluses sisestage `#zava` ja valige üks konfigureeritud serveritest
-   - Küsige: "Millised tabelid on andmebaasis saadaval?"
-   - Peaksite saama vastuse, mis loetleb jaemüügi andmebaasi tabelid
+3. **Testi MCP serveriga ühendust**:
+   - AI Chatis kirjuta `#zava` ja vali üks konfigureeritud serveritest
+   - Küsi: „Millised tabelid andmebaasis saadaval on?“
+   - Sa peaksid saama vastuse ja nimekirja jaekaubanduse andmebaasi tabelitest
 
 ## ✅ Keskkonna valideerimine
 
-### 1. Põhjalik süsteemi kontroll
+### 1. Ulatuslik süsteemikontroll
 
-Käivitage see valideerimisskript, et kontrollida oma seadistust:
+Käivita see valideerimisskript, et kontrollida oma seadistust:
 
 ```bash
-# Create validation script
+# Loo valideerimisskript
 cat > validate_setup.py << 'EOF'
 #!/usr/bin/env python3
 """
@@ -567,7 +567,7 @@ async def validate_environment():
     """Comprehensive environment validation."""
     results = {}
     
-    # Check Python version
+    # Kontrolli Python'i versiooni
     python_version = sys.version_info
     results['python'] = {
         'status': 'pass' if python_version >= (3, 8) else 'fail',
@@ -575,7 +575,7 @@ async def validate_environment():
         'required': '3.8+'
     }
     
-    # Check required packages
+    # Kontrolli nõutud pakette
     required_packages = ['fastmcp', 'asyncpg', 'azure-ai-projects']
     for package in required_packages:
         try:
@@ -584,7 +584,7 @@ async def validate_environment():
         except ImportError:
             results[f'package_{package}'] = {'status': 'fail', 'error': 'Not installed'}
     
-    # Check Docker
+    # Kontrolli Dockerit
     try:
         result = subprocess.run(['docker', '--version'], capture_output=True, text=True)
         results['docker'] = {
@@ -594,7 +594,7 @@ async def validate_environment():
     except FileNotFoundError:
         results['docker'] = {'status': 'fail', 'error': 'Docker not found'}
     
-    # Check Azure CLI
+    # Kontrolli Azure CLI-d
     try:
         result = subprocess.run(['az', '--version'], capture_output=True, text=True)
         results['azure_cli'] = {
@@ -604,7 +604,7 @@ async def validate_environment():
     except FileNotFoundError:
         results['azure_cli'] = {'status': 'fail', 'error': 'Azure CLI not found'}
     
-    # Check environment variables
+    # Kontrolli keskkonnamuutujaid
     required_env_vars = [
         'PROJECT_ENDPOINT',
         'AZURE_OPENAI_ENDPOINT',
@@ -621,7 +621,7 @@ async def validate_environment():
             'value': '***' if value and 'SECRET' in var else value
         }
     
-    # Check database connection
+    # Kontrolli andmebaasi ühendust
     try:
         conn = await asyncpg.connect(
             host=os.getenv('POSTGRES_HOST', 'localhost'),
@@ -631,7 +631,7 @@ async def validate_environment():
             password=os.getenv('POSTGRES_PASSWORD', 'secure_password')
         )
         
-        # Test query
+        # Testi päringut
         result = await conn.fetchval('SELECT COUNT(*) FROM retail.stores')
         await conn.close()
         
@@ -645,7 +645,7 @@ async def validate_environment():
             'error': str(e)
         }
     
-    # Check MCP server
+    # Kontrolli MCP serverit
     try:
         response = requests.get('http://localhost:8000/health', timeout=5)
         results['mcp_server'] = {
@@ -658,7 +658,7 @@ async def validate_environment():
             'error': str(e)
         }
     
-    # Check Azure AI service
+    # Kontrolli Azure AI teenust
     try:
         credential = DefaultAzureCredential()
         project_client = AIProjectClient(
@@ -666,7 +666,7 @@ async def validate_environment():
             credential=credential
         )
         
-        # This will fail if credentials are invalid
+        # See ebaõnnestub, kui mandaadid on vigased
         results['azure_ai'] = {'status': 'pass'}
         
     except Exception as e:
@@ -716,169 +716,171 @@ async def main():
 
 EOF
 
-# Run validation
+# Käivita valideerimine
 python validate_setup.py
 ```
 
 ### 2. Käsitsi valideerimise kontrollnimekiri
 
 **✅ Põhitööriistad**
-- [ ] Docker versioon 20.10+ paigaldatud ja töötab
+- [ ] Docker versioon 20.10+ paigaldatud ja töötamas
 - [ ] Azure CLI 2.40+ paigaldatud ja autentitud
 - [ ] Python 3.8+ koos pip'iga paigaldatud
 - [ ] Git 2.30+ paigaldatud
 - [ ] VS Code koos vajalike laiendustega
 
-**✅ Azure'i ressursid**
+**✅ Azure ressursid**
 - [ ] Ressursigrupp edukalt loodud
 - [ ] AI Foundry projekt juurutatud
 - [ ] OpenAI text-embedding-3-small mudel juurutatud
-- [ ] Application Insights konfigureeritud
-- [ ] Teenusepõhimõte loodud õigete õigustega
+- [ ] Application Insights seadistatud
+- [ ] Teenusepeapunkt õigete õigustega loodud
 
 **✅ Keskkonna konfiguratsioon**
-- [ ] `.env` fail loodud kõigi vajalike muutujatega
-- [ ] Azure'i mandaadid töötavad (testige `az account show` abil)
-- [ ] PostgreSQL konteiner töötab ja on ligipääsetav
-- [ ] Näidisandmed andmebaasi laaditud
+- [ ] `.env` fail loodud koos kõigi nõutud muutujatega
+- [ ] Azure autentimisandmed töökorras (testi `az account show`-ga)
+- [ ] PostgreSQL konteiner käivitatud ja ligipääsetav
+- [ ] Andmebaasi on laetud näidandmed
 
-**✅ VS Code'i integratsioon**
+**✅ VS Code integratsioon**
 - [ ] `.vscode/mcp.json` konfigureeritud
-- [ ] Python'i tõlgendaja seadistatud virtuaalsele keskkonnale
-- [ ] MCP serverid ilmuvad AI vestluses
-- [ ] Saab käivitada testpäringuid AI vestluse kaudu
+- [ ] Python tõlgendaja seatud virtuaalkeskkonda
+- [ ] MCP serverid olemas AI Chatis
+- [ ] Testpäringute sooritamine AI Chati kaudu toimib
 
-## 🛠️ Levinud probleemide lahendamine
+## 🛠️ Levinumate probleemide lahendamine
 
-### Docker'i probleemid
+### Dockeriga seotud probleemid
 
-**Probleem**: Docker'i konteinerid ei käivitu
+**Probleem**: Docker konteinerid ei käivitu
 ```bash
-# Check Docker service status
+# Kontrolli Docker teenuse olekut
 docker info
 
-# Check available resources
+# Kontrolli saadaolevaid ressursse
 docker system df
 
-# Clean up if needed
+# Puhasta vajadusel
 docker system prune -f
 
-# Restart Docker Desktop (Windows/macOS)
-# Or restart Docker service (Linux)
+# Taaskäivita Docker Desktop (Windows/macOS)
+# Või taaskäivita Docker teenus (Linux)
 sudo systemctl restart docker
 ```
 
-**Probleem**: PostgreSQL-i ühendus ebaõnnestub
+**Probleem**: PostgreSQL ühendus ebaõnnestub
 ```bash
-# Check container logs
+# Kontrolli konteineri logisid
 docker-compose logs postgres
 
-# Verify container is healthy
+# Kontrolli konteineri tervislikkust
 docker-compose ps
 
-# Test direct connection
+# Testi otsest ühendust
 docker-compose exec postgres psql -U postgres -d zava -c "SELECT 1;"
 ```
 
-### Azure'i juurutamise probleemid
+### Azure juurutusprobleemid
 
-**Probleem**: Azure'i juurutamine ebaõnnestub
+**Probleem**: Azure juurutus ebaõnnestub
 ```bash
-# Check Azure CLI authentication
+# Kontrolli Azure CLI autentimist
 az account show
 
-# Verify subscription permissions
+# Kontrolli tellimuse õigusi
 az role assignment list --assignee $(az account show --query user.name -o tsv)
 
-# Check resource provider registration
+# Kontrolli ressursi pakkuja registreerimist
 az provider register --namespace Microsoft.CognitiveServices
 az provider register --namespace Microsoft.Insights
 ```
 
 **Probleem**: AI teenuse autentimine ebaõnnestub
 ```bash
-# Test service principal
+# Testi teenuse põhimõtet
 az login --service-principal \
   --username $AZURE_CLIENT_ID \
   --password $AZURE_CLIENT_SECRET \
   --tenant $AZURE_TENANT_ID
 
-# Verify AI service deployment
+# Kontrolli tehisintellekti teenuse juurutamist
 az cognitiveservices account list --query "[].{Name:name,Kind:kind,Location:location}"
 ```
 
-### Python'i keskkonna probleemid
+### Python keskkonna probleemid
 
-**Probleem**: Paketi paigaldamine ebaõnnestub
+**Probleem**: Paketi paigaldus ebaõnnestub
 ```bash
-# Upgrade pip and setuptools
+# Uuenda pipi ja setuptoolsi
 python -m pip install --upgrade pip setuptools wheel
 
-# Clear pip cache
+# Tühjenda pipi vahemälu
 pip cache purge
 
-# Install packages one by one to identify issues
+# Paigalda paketid ükshaaval, et tuvastada probleeme
 pip install fastmcp
 pip install asyncpg
 pip install azure-ai-projects
 ```
 
-**Probleem**: VS Code ei leia Python'i tõlgendajat
+**Probleem**: VS Code ei leia Python tõlgendajat
 ```bash
-# Show Python interpreter paths
+# Näita Python interpreteri teid
 which python  # macOS/Linux
 where python  # Windows
 
-# Activate virtual environment first
+# Aktiveeri esmalt virtuaalne keskkond
 source mcp-env/bin/activate  # macOS/Linux
 mcp-env\Scripts\activate     # Windows
 
-# Then open VS Code
+# Seejärel ava VS Code
 code .
 ```
 
-## 🎯 Peamised õppetunnid
+## 🎯 Peamised järeldused
 
-Pärast selle labori lõpetamist peaks teil olema:
+Pärast selle labori lõpetamist peaks sul olema:
 
-✅ **Täielik arenduskeskkond**: Kõik tööriistad paigaldatud ja konfigureeritud  
-✅ **Azure'i ressursid juurutatud**: AI teenused ja toetav infrastruktuur  
-✅ **Docker'i keskkond töötab**: PostgreSQL-i ja MCP serveri konteinerid  
-✅ **VS Code'i integratsioon**: MCP serverid konfigureeritud ja ligipääsetavad  
-✅ **Valideeritud seadistus**: Kõik komponendid testitud ja koos töötavad  
-✅ **Probleemide lahendamise oskused**: Levinud probleemid ja lahendused  
+✅ **Täielik arenduskeskkond**: kõik tööriistad paigaldatud ja seadistatud  
+✅ **Azure ressursid juurutatud**: AI teenused ja toetav infrastruktuur  
+✅ **Docker keskkond töötab**: PostgreSQL ja MCP serveri konteinerid  
+✅ **VS Code integratsioon**: MCP serverid konfigureeritud ja ligipääsetavad  
+✅ **Valideeritud seadistus**: kõik komponendid testitud ja üheskoos toimivad  
+✅ **Tõrkeotsingu teadmised**: levinumad probleemid ja lahendused  
 
-## 🚀 Mis edasi
+## 🚀 Mis järgmiseks
 
-Kui teie keskkond on valmis, jätkake **[Labor 04: Andmebaasi disain ja skeem](../04-Database/README.md)**, et:
+Kui su keskkond on valmis, jätka **[Labor 04: Andmebaasi kujundus ja skeem](../04-Database/README.md)**, et:
 
-- Uurida jaemüügi andmebaasi skeemi üksikasjalikult
-- Mõista mitme rentniku andmemudelit
-- Õppida ridade taseme turvalisuse rakendamist
-- Töötada näidisjaemüügi andmetega
+- Uurida jaekaubanduse andmebaasi skeemi põhjalikult
+- Mõista mitme rendi andmete modelleerimist
+- Õppida reali tasandi turvalisuse rakendamist
+- Töötada näidandmetega jaekaubanduses
 
 ## 📚 Lisamaterjalid
 
 ### Arendustööriistad
-- [Docker'i dokumentatsioon](https://docs.docker.com/) - Täielik Docker'i viide
+- [Docker dokumentatsioon](https://docs.docker.com/) - Täielik Docker'i viide
 - [Azure CLI viide](https://docs.microsoft.com/cli/azure/) - Azure CLI käsud
-- [VS Code'i dokumentatsioon](https://code.visualstudio.com/docs) - Redaktori konfiguratsioon ja laiendused
+- [VS Code dokumentatsioon](https://code.visualstudio.com/docs) - Redaktori konfiguratsioon ja laiendused
 
-### Azure'i teenused
-- [Azure AI Foundry dokumentatsioon](https://docs.microsoft.com/azure/ai-foundry/) - AI teenuse konfiguratsioon
-- [Azure OpenAI teenus](https://docs.microsoft.com/azure/cognitive-services/openai/) - AI mudeli juurutamine
-- [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) - Jälgimise seadistamine
+### Azure teenused
+- [Microsoft Foundry dokumentatsioon](https://docs.microsoft.com/azure/ai-foundry/) - AI teenuse konfiguratsioon
+- [Azure OpenAI teenus](https://docs.microsoft.com/azure/cognitive-services/openai/) - AI mudelite juurutus
+- [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) - Järelevalve seadistamine
 
-### Python'i arendus
-- [Python'i virtuaalsed keskkonnad](https://docs.python.org/3/tutorial/venv.html) - Keskkonna haldamine
+### Python arendus
+- [Python virtuaalkeskkonnad](https://docs.python.org/3/tutorial/venv.html) - Keskkonna haldus
 - [AsyncIO dokumentatsioon](https://docs.python.org/3/library/asyncio.html) - Asünkroonse programmeerimise mustrid
 - [FastAPI dokumentatsioon](https://fastapi.tiangolo.com/) - Veebiraamistiku mustrid
 
 ---
 
-**Järgmine**: Keskkond valmis? Jätkake [Labor 04: Andmebaasi disain ja skeem](../04-Database/README.md)
+**Järgmiseks**: Keskkond valmis? Jätka [Labor 04: Andmebaasi kujundus ja skeem](../04-Database/README.md)
 
 ---
 
-**Lahtiütlus**:  
-See dokument on tõlgitud AI tõlketeenuse [Co-op Translator](https://github.com/Azure/co-op-translator) abil. Kuigi püüame tagada täpsust, palume arvestada, et automaatsed tõlked võivad sisaldada vigu või ebatäpsusi. Algne dokument selle algses keeles tuleks pidada autoriteetseks allikaks. Olulise teabe puhul soovitame kasutada professionaalset inimtõlget. Me ei vastuta selle tõlke kasutamisest tulenevate arusaamatuste või valesti tõlgenduste eest.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Lahtiütlus**:
+See dokument on tõlgitud kasutades AI tõlketeenust [Co-op Translator](https://github.com/Azure/co-op-translator). Kuigi me püüdleme täpsuse poole, palun pange tähele, et automatiseeritud tõlgetes võib esineda vigu või ebatäpsusi. Originaaldokument selle emakeeles tuleks pidada autoriteetseks allikaks. Olulise teabe puhul soovitatakse kasutada professionaalset inimtõlget. Me ei vastuta selle tõlkega seotud eksimustest või valesti mõistmistest.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

@@ -1,4 +1,4 @@
-# 🚀 Module 1: AI Toolkit Basisprincipes
+# 🚀 Module 1: Microsoft Foundry Toolkit Basisprincipes
 
 [![Duration](https://img.shields.io/badge/Duration-15%20minutes-blue.svg)]()
 [![Difficulty](https://img.shields.io/badge/Difficulty-Beginner-green.svg)]()
@@ -7,105 +7,105 @@
 ## 📋 Leerdoelen
 
 Aan het einde van deze module kun je:
-- ✅ AI Toolkit voor Visual Studio Code installeren en configureren
-- ✅ Navigeren door de Model Catalogus en verschillende modelbronnen begrijpen
+- ✅ De Microsoft Foundry Toolkit-extensie voor VS Code installeren en configureren
+- ✅ Navigeren door de Modelcatalogus en verschillende modelbronnen begrijpen
 - ✅ De Playground gebruiken voor modeltesten en experimenteren
 - ✅ Aangepaste AI-agenten maken met Agent Builder
 - ✅ Modelprestaties vergelijken tussen verschillende aanbieders
 - ✅ Best practices toepassen voor prompt engineering
 
-## 🧠 Introductie tot AI Toolkit (AITK)
+## 🧠 Introductie tot Microsoft Foundry Toolkit
 
-De **AI Toolkit voor Visual Studio Code** is Microsofts toonaangevende extensie die VS Code transformeert tot een complete AI-ontwikkelomgeving. Het overbrugt de kloof tussen AI-onderzoek en praktische applicatieontwikkeling, waardoor generatieve AI toegankelijk wordt voor ontwikkelaars van elk niveau.
+De **Microsoft Foundry Toolkit-extensie voor VS Code** is Microsofts toonaangevende extensie die VS Code transformeert tot een uitgebreide AI-ontwikkelomgeving. Het overbrugt de kloof tussen AI-onderzoek en praktische applicatieontwikkeling, waardoor generatieve AI toegankelijk wordt voor ontwikkelaars van alle niveaus.
 
-### 🌟 Belangrijkste Functionaliteiten
+### 🌟 Belangrijke Mogelijkheden
 
-| Functie | Beschrijving | Gebruikssituatie |
+| Kenmerk | Beschrijving | Gebruiksscenario |
 |---------|--------------|------------------|
-| **🗂️ Model Catalogus** | Toegang tot 100+ modellen van GitHub, ONNX, OpenAI, Anthropic, Google | Modellen ontdekken en selecteren |
-| **🔌 BYOM Support** | Integreer je eigen modellen (lokaal/remote) | Aangepaste modelimplementatie |
+| **🗂️ Modelcatalogus** | Toegang tot 100+ modellen van GitHub, ONNX, OpenAI, Anthropic, Google | Modelontdekking en -selectie |
+| **🔌 BYOM-ondersteuning** | Integreer je eigen modellen (lokaal/remote) | Aangepaste modelimplementatie |
 | **🎮 Interactieve Playground** | Real-time modeltesten met chatinterface | Snel prototypen en testen |
-| **📎 Multi-Modal Support** | Verwerk tekst, afbeeldingen en bijlagen | Complexe AI-toepassingen |
-| **⚡ Batchverwerking** | Voer meerdere prompts tegelijk uit | Efficiënte testworkflows |
-| **📊 Model Evaluatie** | Ingebouwde metrics (F1, relevantie, gelijkenis, coherentie) | Prestatiebeoordeling |
+| **📎 Multi-modale ondersteuning** | Verwerken van tekst, afbeeldingen en bijlagen | Geavanceerde AI-toepassingen |
+| **⚡ Batchverwerking** | Voer meerdere prompts gelijktijdig uit | Efficiënte testworkflows |
+| **📊 Modelevaluatie** | Ingebouwde metrics (F1, relevantie, gelijkenis, samenhang) | Prestatiebeoordeling |
 
-### 🎯 Waarom AI Toolkit Belangrijk Is
+### 🎯 Waarom Microsoft Foundry Toolkit Belangrijk Is
 
-- **🚀 Versnelde Ontwikkeling**: Van idee naar prototype in enkele minuten
-- **🔄 Geünificeerde Workflow**: Eén interface voor meerdere AI-aanbieders
-- **🧪 Eenvoudig Experimenteren**: Modellen vergelijken zonder ingewikkelde setup
-- **📈 Klaar voor Productie**: Naadloze overgang van prototype naar implementatie
+- **🚀 Versnelde ontwikkeling**: Van idee tot prototype in minuten
+- **🔄 Geünificeerde workflow**: Eén interface voor meerdere AI-aanbieders
+- **🧪 Makkelijk experimenteren**: Modellen vergelijken zonder complexe setup
+- **📈 Klaar voor productie**: Naadloze overgang van prototype naar implementatie
 
 ## 🛠️ Vereisten & Installatie
 
-### 📦 AI Toolkit Extensie Installeren
+### 📦 Installeren van Microsoft Foundry Toolkit Extensie
 
-**Stap 1: Open Extensions Marketplace**
+**Stap 1: Toegang tot Extensions Marketplace**
 1. Open Visual Studio Code
 2. Ga naar het Extensions-venster (`Ctrl+Shift+X` of `Cmd+Shift+X`)
-3. Zoek op "AI Toolkit"
+3. Zoek naar "Microsoft Foundry Toolkit"
 
 **Stap 2: Kies je Versie**
 - **🟢 Release**: Aanbevolen voor productiegebruik
-- **🔶 Pre-release**: Vroege toegang tot de nieuwste functies
+- **🔶 Pre-release**: Vroege toegang tot geavanceerde functies
 
 **Stap 3: Installeren en Activeren**
 
-![AI Toolkit Extension](../../../../translated_images/nl/aitkext.d28945a03eed003c.webp)
+![Microsoft Foundry Toolkit Extension](../../../../translated_images/nl/aitkext.d28945a03eed003c.webp)
 
-### ✅ Controlelijst ter Verificatie
-- [ ] AI Toolkit-icoon verschijnt in de VS Code zijbalk
+### ✅ Verificatiechecklist
+- [ ] Microsoft Foundry Toolkit-pictogram verschijnt in de VS Code zijbalk
 - [ ] Extensie is ingeschakeld en geactiveerd
-- [ ] Geen installatiefouten in het outputpaneel
+- [ ] Geen installatieproblemen in het outputpaneel
 
-## 🧪 Praktijkopdracht 1: Verkennen van GitHub Modellen
+## 🧪 Praktijkoefening 1: GitHub Modellen Verkennen
 
-**🎯 Doel**: Beheers de Model Catalogus en test je eerste AI-model
+**🎯 Doel**: Beheers de Modelcatalogus en test je eerste AI-model
 
-### 📊 Stap 1: Navigeren door de Model Catalogus
+### 📊 Stap 1: Navigeer door de Modelcatalogus
 
-De Model Catalogus is je toegangspoort tot het AI-ecosysteem. Het verzamelt modellen van verschillende aanbieders, waardoor het eenvoudig is om opties te ontdekken en te vergelijken.
+De Modelcatalogus is je toegangspoort tot het AI-ecosysteem. Het verzamelt modellen van meerdere aanbieders, zodat je eenvoudig opties kunt ontdekken en vergelijken.
 
-**🔍 Navigatiehandleiding:**
+**🔍 Navigatiegids:**
 
-Klik op **MODELS - Catalog** in de AI Toolkit zijbalk
+Klik op **MODELS - Catalog** in de Microsoft Foundry Toolkit zijbalk
 
 ![Model Catalog](../../../../translated_images/nl/aimodel.263ed2be013d8fb0.webp)
 
-**💡 Pro Tip**: Zoek naar modellen met specifieke mogelijkheden die passen bij jouw gebruikssituatie (bijv. codegeneratie, creatief schrijven, analyse).
+**💡 Pro Tip**: Zoek modellen met specifieke mogelijkheden die passen bij je gebruiksscenario (bijv. codegeneratie, creatief schrijven, analyse).
 
-**⚠️ Note**: Modellen gehost op GitHub (GitHub Models) zijn gratis te gebruiken, maar hebben limieten op het aantal verzoeken en tokens. Wil je toegang tot niet-GitHub modellen (externe modellen gehost via Azure AI of andere endpoints), dan moet je de juiste API-sleutel of authenticatie aanleveren.
+**⚠️ Nota**: Modellen gehost op GitHub (d.w.z. GitHub-modellen) zijn gratis te gebruiken, maar zijn onderhevig aan limieten op verzoeken en tokens. Als je toegang wilt tot niet-GitHub-modellen (dat wil zeggen externe modellen gehost via Azure AI of andere endpoints), moet je de juiste API-sleutel of authenticatie leveren.
 
-### 🚀 Stap 2: Voeg je Eerste Model Toe en Configureer
+### 🚀 Stap 2: Voeg je Eerste Model toe en Configureer Het
 
 **Modelselectiestrategie:**
-- **GPT-4.1**: Geschikt voor complexe redenering en analyse
-- **Phi-4-mini**: Lichtgewicht, snelle reacties voor eenvoudige taken
+- **GPT-4.1**: Het beste voor complexe redenering en analyse
+- **Phi-4-mini**: Lichtgewicht, snelle antwoorden voor eenvoudige taken
 
 **🔧 Configuratieproces:**
 1. Selecteer **OpenAI GPT-4.1** uit de catalogus
-2. Klik op **Add to My Models** - hiermee registreer je het model voor gebruik
-3. Kies **Try in Playground** om de testomgeving te openen
-4. Wacht op initialisatie van het model (de eerste keer kan even duren)
+2. Klik op **Add to My Models** - dit registreert het model voor gebruik
+3. Kies **Try in Playground** om de testomgeving te starten
+4. Wacht op modelinitialisatie (eerste keer kan even duren)
 
 ![Playground Setup](../../../../translated_images/nl/playground.dd6f5141344878ca.webp)
 
-**⚙️ Begrijp de Modelparameters:**
+**⚙️ Begrip van Modelparameters:**
 - **Temperature**: Bepaalt creativiteit (0 = deterministisch, 1 = creatief)
-- **Max Tokens**: Maximale lengte van de respons
-- **Top-p**: Nucleus sampling voor variatie in antwoorden
+- **Max Tokens**: Maximale responslengte
+- **Top-p**: Nucleus sampling voor diversiteit in antwoorden
 
-### 🎯 Stap 3: Beheers de Playground Interface
+### 🎯 Stap 3: Beheers de Playground-interface
 
-De Playground is je AI-experimentatielab. Zo haal je er het meeste uit:
+De Playground is je AI-experimentatielab. Zo haal je er het maximale uit:
 
 **🎨 Best Practices voor Prompt Engineering:**
-1. **Wees Specifiek**: Duidelijke, gedetailleerde instructies leveren betere resultaten op
-2. **Geef Context**: Voeg relevante achtergrondinformatie toe
-3. **Gebruik Voorbeelden**: Laat het model zien wat je wilt met voorbeelden
-4. **Itereer**: Verbeter prompts op basis van de eerste resultaten
+1. **Wees specifiek**: Duidelijke, gedetailleerde instructies leveren betere resultaten
+2. **Geef context**: Voeg relevante achtergrondinformatie toe
+3. **Gebruik voorbeelden**: Laat aan het model zien wat je wilt met voorbeelden
+4. **Itereer**: Verbeter prompts op basis van eerste resultaten
 
-**🧪 Testscenario’s:**
+**🧪 Testscenario's:**
 ```markdown
 # Example 1: Code Generation
 "Write a Python function that calculates the factorial of a number using recursion. Include error handling and docstrings."
@@ -119,9 +119,9 @@ De Playground is je AI-experimentatielab. Zo haal je er het meeste uit:
 
 ![Testing Results](../../../../translated_images/nl/result.1dfcf211fb359cf6.webp)
 
-### 🏆 Uitdaging: Modelprestaties Vergelijken
+### 🏆 Uitdagingsoefening: Modelprestaties Vergelijken
 
-**🎯 Doel**: Vergelijk verschillende modellen met dezelfde prompts om hun sterke punten te ontdekken
+**🎯 Doel**: Vergelijk verschillende modellen met identieke prompts om hun kracht te begrijpen
 
 **📋 Instructies:**
 1. Voeg **Phi-4-mini** toe aan je werkruimte
@@ -129,30 +129,30 @@ De Playground is je AI-experimentatielab. Zo haal je er het meeste uit:
 
 ![set](../../../../translated_images/nl/set.88132df189ecde2c.webp)
 
-3. Vergelijk de kwaliteit, snelheid en nauwkeurigheid van de antwoorden
-4. Documenteer je bevindingen in het resultatenoverzicht
+3. Vergelijk de responskwaliteit, snelheid en nauwkeurigheid
+4. Documenteer je bevindingen in het resultatenblok
 
 ![Model Comparison](../../../../translated_images/nl/compare.97746cd0f9074955.webp)
 
 **💡 Belangrijke inzichten om te ontdekken:**
-- Wanneer gebruik je LLM versus SLM
-- Kosten versus prestatieafwegingen
-- Gespecialiseerde mogelijkheden van verschillende modellen
+- Wanneer gebruik je LLM vs SLM
+- Kosten- en prestatieafwegingen
+- Gespecialiseerde capaciteiten van verschillende modellen
 
-## 🤖 Praktijkopdracht 2: Aangepaste Agenten Bouwen met Agent Builder
+## 🤖 Praktijkoefening 2: Aangepaste Agenten Bouwen met Agent Builder
 
-**🎯 Doel**: Maak gespecialiseerde AI-agenten die zijn afgestemd op specifieke taken en workflows
+**🎯 Doel**: Maak gespecialiseerde AI-agenten op maat voor specifieke taken en workflows
 
 ### 🏗️ Stap 1: Agent Builder Begrijpen
 
-Agent Builder is waar AI Toolkit echt uitblinkt. Hiermee kun je doelgerichte AI-assistenten creëren die de kracht van grote taalmodellen combineren met aangepaste instructies, specifieke parameters en gespecialiseerde kennis.
+Agent Builder is waar Microsoft Foundry Toolkit echt uitblinkt. Het stelt je in staat doelgerichte AI-assistenten te maken die de kracht van grote taalmodellen combineren met aangepaste instructies, specifieke parameters en gespecialiseerde kennis.
 
-**🧠 Componenten van de Agent Architectuur:**
-- **Core Model**: De basis LLM (GPT-4, Groks, Phi, etc.)
-- **System Prompt**: Bepaalt de persoonlijkheid en het gedrag van de agent
+**🧠 Architectuurcomponenten van Agent:**
+- **Core Model**: Het fundamentele LLM (GPT-4, Groks, Phi, etc.)
+- **System Prompt**: Definieert de persoonlijkheid en het gedrag van de agent
 - **Parameters**: Fijn afgestelde instellingen voor optimale prestaties
-- **Tools Integratie**: Koppeling met externe API’s en MCP-diensten
-- **Geheugen**: Gesprekscontext en sessiebehoud
+- **Tools Integratie**: Verbind met externe API's en MCP-services
+- **Geheugen**: Conversatiecontext en sessiepersistentie
 
 ![Agent Builder Interface](../../../../translated_images/nl/agentbuilder.25895b2d2f8c02e7.webp)
 
@@ -178,25 +178,25 @@ You are a [specific role] with expertise in [domain].
 Provide 2-3 examples of ideal interactions
 ```
 
-*Je kunt natuurlijk ook Generate System Prompt gebruiken om AI te laten helpen bij het genereren en optimaliseren van prompts*
+*Natuurlijk kun je ook Generate System Prompt gebruiken om AI te laten helpen bij het genereren en optimaliseren van prompts*
 
 **🔧 Parameteroptimalisatie:**
-| Parameter | Aanbevolen Bereik | Gebruikssituatie |
+| Parameter | Aanbevolen Bereik | Gebruiksscenario |
 |-----------|-------------------|------------------|
 | **Temperature** | 0.1-0.3 | Technische/factuele antwoorden |
-| **Temperature** | 0.7-0.9 | Creatieve/brainstormtaken |
+| **Temperature** | 0.7-0.9 | Creatieve/brainstorming taken |
 | **Max Tokens** | 500-1000 | Bondige antwoorden |
 | **Max Tokens** | 2000-4000 | Gedetailleerde uitleg |
 
-### 🐍 Stap 3: Praktijkopdracht - Python Programmeeragent
+### 🐍 Stap 3: Praktijkoefening - Python Programmeeragent
 
-**🎯 Missie**: Maak een gespecialiseerde Python codeerassistent
+**🎯 Opdracht**: Maak een gespecialiseerde Python-codeerassistent
 
 **📋 Configuratiestappen:**
 
 1. **Modelselectie**: Kies **Claude 3.5 Sonnet** (uitstekend voor code)
 
-2. **System Prompt Ontwerp**:
+2. **System Prompt ontwerp**:
 ```markdown
 # Python Programming Expert Agent
 
@@ -230,46 +230,50 @@ You are a senior Python developer with 10+ years of experience. You excel at wri
 
 ![Python Agent Configuration](../../../../translated_images/nl/pythonagent.5e51b406401c165f.webp)
 
-### 🧪 Stap 4: Test je Python Agent
+### 🧪 Stap 4: Test je Python-agent
 
-**Testscenario’s:**
-1. **Basisfunctie**: "Maak een functie om priemgetallen te vinden"
-2. **Complex Algoritme**: "Implementeer een binaire zoekboom met insert-, delete- en zoekmethoden"
-3. **Praktijkprobleem**: "Bouw een web scraper die rate limiting en retries afhandelt"
-4. **Debuggen**: "Los deze code op [plak buggy code]"
+**Testscenario's:**
+1. **Basale functie**: "Maak een functie om priemgetallen te vinden"
+2. **Complex algoritme**: "Implementeer een binaire zoekboom met insert-, delete- en zoekmethoden"
+3. **Praktisch probleem**: "Bouw een web scraper die rate limiting en retries afhandelt"
+4. **Debugging**: "Los deze code op [plak buggy code]"
 
 **🏆 Succescriteria:**
 - ✅ Code draait zonder fouten
 - ✅ Bevat goede documentatie
 - ✅ Volgt Python best practices
-- ✅ Geeft duidelijke uitleg
-- ✅ Doet verbetervoorstellen
+- ✅ Biedt duidelijke uitleg
+- ✅ Doet verbeteringsvoorstellen
 
-## 🎓 Module 1 Afsluiting & Volgende Stappen
+## 🎓 Module 1 Afronding & Volgende Stappen
 
 ### 📊 Kennischeck
 
 Test je begrip:
-- [ ] Kun je het verschil uitleggen tussen modellen in de catalogus?
+- [ ] Kun je het verschil tussen modellen in de catalogus uitleggen?
 - [ ] Heb je succesvol een aangepaste agent gemaakt en getest?
-- [ ] Begrijp je hoe je parameters optimaliseert voor verschillende toepassingen?
+- [ ] Begrijp je hoe je parameters optimaliseert voor verschillende gebruiksscenario's?
 - [ ] Kun je effectieve system prompts ontwerpen?
 
-### 📚 Aanvullende Bronnen
+### 📚 Aanvullende bronnen
 
-- **AI Toolkit Documentatie**: [Official Microsoft Docs](https://github.com/microsoft/vscode-ai-toolkit)
+- **Microsoft Foundry Toolkit Documentatie**: [Officiële Microsoft Docs](https://github.com/microsoft/vscode-ai-toolkit)
 - **Prompt Engineering Gids**: [Best Practices](https://platform.openai.com/docs/guides/prompt-engineering)
-- **Modellen in AI Toolkit**: [Models in Develpment](https://github.com/microsoft/vscode-ai-toolkit/blob/main/doc/models.md)
+- **Modellen in Microsoft Foundry Toolkit**: [Models in Development](https://github.com/microsoft/vscode-ai-toolkit/blob/main/doc/models.md)
 
-**🎉 Gefeliciteerd!** Je beheerst de basisprincipes van AI Toolkit en bent klaar om geavanceerdere AI-toepassingen te bouwen!
+**🎉 Gefeliciteerd!** Je beheerst nu de basisprincipes van Microsoft Foundry Toolkit en bent klaar om geavanceerdere AI-applicaties te bouwen!
 
 ### 🔜 Ga door naar de Volgende Module
 
-Klaar voor meer geavanceerde mogelijkheden? Ga verder naar **[Module 2: MCP with AI Toolkit Fundamentals](../lab2/README.md)** waar je leert hoe je:
+Klaar voor geavanceerdere mogelijkheden? Ga door naar **[Module 2: MCP met Microsoft Foundry Toolkit Basisprincipes](../lab2/README.md)** waar je leert hoe je:
 - Je agenten koppelt aan externe tools met Model Context Protocol (MCP)
 - Browserautomatiseringsagenten bouwt met Playwright
-- MCP-servers integreert met je AI Toolkit-agenten
-- Je agenten versterkt met externe data en functionaliteiten
+- MCP-servers integreert met je Microsoft Foundry Toolkit-agenten
+- Je agenten versterkt met externe data en mogelijkheden
 
-**Disclaimer**:  
-Dit document is vertaald met behulp van de AI-vertalingsdienst [Co-op Translator](https://github.com/Azure/co-op-translator). Hoewel we streven naar nauwkeurigheid, dient u er rekening mee te houden dat geautomatiseerde vertalingen fouten of onnauwkeurigheden kunnen bevatten. Het originele document in de oorspronkelijke taal moet als de gezaghebbende bron worden beschouwd. Voor cruciale informatie wordt professionele menselijke vertaling aanbevolen. Wij zijn niet aansprakelijk voor eventuele misverstanden of verkeerde interpretaties die voortvloeien uit het gebruik van deze vertaling.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Disclaimer**:
+Dit document is vertaald met behulp van de AI vertaaldienst [Co-op Translator](https://github.com/Azure/co-op-translator). Hoewel we streven naar nauwkeurigheid, dient u er rekening mee te houden dat geautomatiseerde vertalingen fouten of onnauwkeurigheden kunnen bevatten. Het originele document in de oorspronkelijke taal moet worden beschouwd als de gezaghebbende bron. Voor kritieke informatie wordt professionele menselijke vertaling aanbevolen. Wij zijn niet aansprakelijk voor eventuele misverstanden of verkeerde interpretaties die voortvloeien uit het gebruik van deze vertaling.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

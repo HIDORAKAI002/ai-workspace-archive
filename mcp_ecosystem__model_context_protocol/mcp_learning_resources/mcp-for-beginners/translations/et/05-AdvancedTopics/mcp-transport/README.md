@@ -1,32 +1,32 @@
-# MCP kohandatud transpordid - täiustatud rakendusjuhend
+# MCP Kohandatud transport - täiustatud rakendusjuhend
 
-Model Context Protocol (MCP) pakub paindlikkust transpordimehhanismides, võimaldades kohandatud rakendusi spetsialiseeritud ettevõttekeskkondade jaoks. See täiustatud juhend uurib kohandatud transpordi rakendusi, kasutades praktiliste näidetena Azure Event Gridi ja Azure Event Hubsi, et luua skaleeritavaid, pilvepõhiseid MCP lahendusi.
+Model Context Protocol (MCP) pakub paindlikkust transpordimehhanismides, võimaldades kohandatud rakendusi spetsialiseeritud ettevõtte keskkondade jaoks. See täiustatud juhend uurib kohandatud transpordirakendusi, kasutades praktiliste näidetena Azure Event Gridi ja Azure Event Hubsi, et luua skaleeritavaid, pilvele orienteeritud MCP lahendusi.
 
 ## Sissejuhatus
 
-Kuigi MCP standardtranspordid (stdio ja HTTP voogedastus) teenindavad enamiku kasutusjuhtudest, vajavad ettevõttekeskkonnad sageli spetsialiseeritud transpordimehhanisme parema skaleeritavuse, töökindluse ja olemasoleva pilveinfrastruktuuriga integreerimise jaoks. Kohandatud transpordid võimaldavad MCP-l kasutada pilvepõhiseid sõnumiteenuseid asünkroonseks suhtluseks, sündmuspõhiste arhitektuuride ja hajutatud töötlemise jaoks.
+Kuigi MCP standardtranspordid (stdio ja HTTP-voogedastus) teenindavad enamikke kasutusjuhtumeid, nõuavad ettevõtte keskkonnad sageli spetsialiseeritud transpordimehhanisme parema skaleeritavuse, töökindluse ja olemasolevate pilveinfrastruktuuridega integreerimise jaoks. Kohandatud transpordid võimaldavad MCP-l kasutada pilvele orienteeritud sõnumside teenuseid asünkroonseks suhtluseks, sündmustepõhiste arhitektuuride ja hajutatud töötlemise jaoks.
 
-See õppetund uurib täiustatud transpordi rakendusi, mis põhinevad uusimal MCP spetsifikatsioonil (2025-11-25), Azure sõnumiteenustel ja kehtestatud ettevõtte integratsioonimustritel.
+See õppetund uurib täiustatud transpordirakendusi, mis põhinevad uusimal MCP spetsifikatsioonil (2025-11-25), Azure sõnumside teenustel ja kindlustatud ettevõtte integreerimise mudelitel.
 
 ### **MCP transpordi arhitektuur**
 
 **MCP spetsifikatsioonist (2025-11-25):**
 
-- **Standardtranspordid**: stdio (soovitatav), HTTP voogedastus (kaugjuhtumite jaoks)
-- **Kohandatud transpordid**: iga transpordimehhanism, mis rakendab MCP sõnumivahetusprotokolli
-- **Sõnumi formaat**: JSON-RPC 2.0 koos MCP-spetsiifiliste laiendustega
-- **Kahepoolsed suhtluskanalid**: täielik dupleks suhtlus vajalik teavituste ja vastuste jaoks
+- **Standardtranspordid**: stdio (soovitatav), HTTP voogedastus (kaugstsenaaride jaoks)
+- **Kohandatud transpordid**: ükskõik milline transport, mis rakendab MCP sõnumivahetuse protokolli
+- **Sõnumite formaat**: JSON-RPC 2.0 koos MCP-spetsiifiliste laiendustega
+- **Kahepoolsed kommunikatsioon**: täisdupleks side on vajalik teavituste ja vastuste jaoks
 
 ## Õpieesmärgid
 
-Selle täiustatud õppetunni lõpuks oskad:
+Selle täiustatud õppetunni lõpuks suudad Sa:
 
-- **Mõista kohandatud transpordi nõudeid**: rakendada MCP protokolli mis tahes transpordikihi peal, säilitades vastavuse
-- **Luua Azure Event Grid transpordilahendus**: ehitada sündmuspõhiseid MCP servereid serverivaba skaleeritavuse jaoks
-- **Rakendada Azure Event Hubsi transporti**: kujundada kõrge läbilaskevõimega MCP lahendusi reaalajas voogedastuseks
-- **Kasutada ettevõtte mustreid**: integreerida kohandatud transpordid olemasoleva Azure infrastruktuuri ja turvemudelitega
-- **Käsitleda transpordi töökindlust**: rakendada sõnumite vastupidavust, järjekorda ja veahaldust ettevõtte stsenaariumides
-- **Optimeerida jõudlust**: kujundada transpordilahendusi skaleeritavuse, latentsuse ja läbilaskevõime nõuete jaoks
+- **Mõista kohandatud transpordi nõudeid**: rakendada MCP protokolli mistahes transpordikihi peal, säilitades vastavuse
+- **Looma Azure Event Grid transpordi**: ehitada sündmustepõhiseid MCP servereid Azure Event Gridi abil serverivaba skaleeritavuse jaoks
+- **Rakendada Azure Event Hubs transpordi**: kujundada suurt läbilaskevõimet nõudvaid MCP lahendusi reaalajas voogedastuse jaoks Azure Event Hubsi abil
+- **Kasutada ettevõtte mudeleid**: integreerida kohandatud transpordid olemasoleva Azure infrastruktuuri ja turvamudelitega
+- **Tagada transpordi töökindlus**: rakendada sõnumite vastupidavust, järjekorda ja veakäsitlemist ettevõtte stsenaariumides
+- **Optimeerida jõudlust**: kujundada transpordilahendusi mahule, latentsusele ja läbilaskele
 
 ## **Transpordi nõuded**
 
@@ -49,16 +49,16 @@ Custom Transport:
   interoperability: "MUST maintain protocol compatibility"
 ```
 
-## **Azure Event Grid transpordi rakendus**
+## **Azure Event Gridi transpordi rakendus**
 
-Azure Event Grid pakub serverivaba sündmuste marsruutimise teenust, mis sobib ideaalselt sündmuspõhiste MCP arhitektuuride jaoks. See rakendus demonstreerib, kuidas ehitada skaleeritavaid, lahtiselt seotud MCP süsteeme.
+Azure Event Grid pakub serverivaba sündmuste marsruutimise teenust, mis on ideaalne sündmustepõhiste MCP arhitektuuride jaoks. See rakendus demonstreerib, kuidas ehitada skaleeritavaid ja lahtiselt seotud MCP süsteeme.
 
 ### **Arhitektuuri ülevaade**
 
 ```mermaid
 graph TB
-    Client[MCP klient] --> EG[Azure sündmuste võrk]
-    EG --> Server[MCP serveri funktsioon]
+    Client[MCP klient] --> EG[Azure sündmusvõrk]
+    EG --> Server[MCP serverifunktsioon]
     Server --> EG
     EG --> Client
     
@@ -66,10 +66,11 @@ graph TB
         EG
         Server
         KV[Võtmehoidla]
-        Monitor[Rakenduse ülevaated]
+        Monitor[Rakenduse Insights]
     end
 ```
-### **C# rakendus - Event Grid transport**
+
+### **C# rakendus - Event Gridi transport**
 
 ```csharp
 using Azure.Messaging.EventGrid;
@@ -141,7 +142,7 @@ public async Task<IActionResult> HandleEventGridMessage(
 }
 ```
 
-### **TypeScript rakendus - Event Grid transport**
+### **TypeScript rakendus - Event Gridi transport**
 
 ```typescript
 import { EventGridPublisherClient, AzureKeyCredential } from "@azure/eventgrid";
@@ -175,10 +176,10 @@ export class EventGridMcpTransport implements McpTransport {
         await this.publisher.sendEvents([event]);
     }
     
-    // Sündmuspõhine vastuvõtt Azure Functions kaudu
+    // Sündmuspõhine vastuvõtt Azure Functions abil
     onMessage(handler: (message: McpMessage) => Promise<void>): void {
-        // Rakenduses kasutataks Azure Functions Event Grid käivitajat
-        // See on kontseptuaalne liides webhooki vastuvõtjale
+        // Rakendamine kasutaks Azure Functions Event Grid päästikut
+        // See on mõtteline liides webhooki vastuvõtjale
     }
 }
 
@@ -204,7 +205,7 @@ app.eventGrid("mcpEventGridHandler", {
 });
 ```
 
-### **Python rakendus - Event Grid transport**
+### **Python rakendus - Event Gridi transport**
 
 ```python
 from azure.eventgrid import EventGridPublisherClient, EventGridEvent
@@ -239,21 +240,21 @@ class EventGridMcpTransport:
         """Register message handler for incoming events"""
         self.message_handler = handler
 
-# Azure Functionsi rakendus
+# Azure Functionsi teostus
 import azure.functions as func
 import logging
 
 def main(event: func.EventGridEvent) -> None:
     """Azure Functions Event Grid trigger for MCP messages"""
     try:
-        # Analüüsi MCP sõnum Event Gridi sündmusest
+        # MCP sõnumi tõlgendamine Event Grid sündmusest
         mcp_message = json.loads(event.get_body().decode('utf-8'))
         
-        # Töötle MCP sõnumit
+        # MCP sõnumi töötlemine
         response = process_mcp_message(mcp_message)
         
-        # Saada vastus tagasi Event Gridi kaudu
-        # (Rakendus looks uue Event Gridi kliendi)
+        # Vastuse saatmine tagasi Event Gridi kaudu
+        # (Teostus looks uue Event Grid kliendi)
         
     except Exception as e:
         logging.error(f"Error processing MCP Event Grid message: {e}")
@@ -262,7 +263,7 @@ def main(event: func.EventGridEvent) -> None:
 
 ## **Azure Event Hubsi transpordi rakendus**
 
-Azure Event Hubs pakub kõrge läbilaskevõimega, reaalajas voogedastuse võimalusi MCP stsenaariumide jaoks, mis nõuavad madalat latentsust ja suurt sõnumite mahtu.
+Azure Event Hubs pakub kõrge läbilaskevõimega ja reaalajas voogedastamise võimekust MCP stsenaariumide jaoks, mis vajavad madalat latentsust ja suurt sõnumite mahtu.
 
 ### **Arhitektuuri ülevaade**
 
@@ -273,7 +274,7 @@ graph TB
     Server --> EH
     EH --> Client
     
-    subgraph "Event Hubs funktsioonid"
+    subgraph "Event Hubide omadused"
         Partition[Partitsioneerimine]
         Retention[Sõnumite säilitamine]
         Scaling[Automaatne skaleerimine]
@@ -283,7 +284,8 @@ graph TB
     EH --> Retention
     EH --> Scaling
 ```
-### **C# rakendus - Event Hubs transport**
+
+### **C# rakendus - Event Hubsi transport**
 
 ```csharp
 using Azure.Messaging.EventHubs;
@@ -357,7 +359,7 @@ public class EventHubsMcpTransport : IMcpTransport, IDisposable
 }
 ```
 
-### **TypeScript rakendus - Event Hubs transport**
+### **TypeScript rakendus - Event Hubsi transport**
 
 ```typescript
 import { 
@@ -416,7 +418,7 @@ export class EventHubsMcpTransport implements McpTransport {
                         
                         await messageHandler(mcpMessage);
                         
-                        // Uuenda kontrollpunkti vähemalt-üks-kord kohaletoimetamiseks
+                        // Uuenda kontrollpunkti vähemalt ühe korra kohaletoimetamiseks
                         await context.updateCheckpoint(event);
                     } catch (error) {
                         console.error("Error processing Event Hubs message:", error);
@@ -437,7 +439,7 @@ export class EventHubsMcpTransport implements McpTransport {
 }
 ```
 
-### **Python rakendus - Event Hubs transport**
+### **Python rakendus - Event Hubsi transport**
 
 ```python
 from azure.eventhub import EventHubProducerClient, EventHubConsumerClient
@@ -469,11 +471,11 @@ class EventHubsMcpTransport:
         """Send MCP message via Event Hubs"""
         event_data = EventData(json.dumps(message))
         
-        # Lisa MCP-spetsiifilised omadused
+        # Lisa MCP-spetsiifilisi omadusi
         event_data.properties = {
             "messageType": message.get("method", "response"),
             "messageId": message.get("id"),
-            "timestamp": "2025-01-14T10:30:00Z"  # Kasuta tegelikku ajatemplit
+            "timestamp": "2025-01-14T10:30:00Z"  # Kasuta tegelikku ajatempel
         }
         
         async with self.producer:
@@ -501,14 +503,14 @@ class EventHubsMcpTransport:
         """Internal event handler wrapper"""
         async def handle_event(partition_context, event):
             try:
-                # Töötle MCP sõnum Event Hubs sündmusest
+                # Analüüsi MCP sõnum Event Hubs sündmusest
                 message_body = event.body_as_str(encoding='UTF-8')
                 mcp_message = json.loads(message_body)
                 
                 # Töötle MCP sõnumit
                 await handler(mcp_message)
                 
-                # Uuenda kontrollpunkti vähemalt kordse kohaletoimetamise jaoks
+                # Uuenda kontrollpunkti vähemalt-kordse kohaletoimetamise jaoks
                 await partition_context.update_checkpoint(event)
                 
             except Exception as e:
@@ -523,9 +525,9 @@ class EventHubsMcpTransport:
         await self.consumer.close()
 ```
 
-## **Täiustatud transpordi mustrid**
+## **Täiustatud transpordi mudelid**
 
-### **Sõnumite vastupidavus ja töökindlus**
+### **Sõnumi vastupidavus ja töökindlus**
 
 ```csharp
 // Implementing message durability with retry logic
@@ -552,7 +554,7 @@ public class ReliableTransportWrapper : IMcpTransport
 }
 ```
 
-### **Transpordi turvaintegratsioon**
+### **Transpordi turvaintergreerimine**
 
 ```csharp
 // Integrating Azure Key Vault for transport security
@@ -574,7 +576,7 @@ public class SecureTransportFactory
 }
 ```
 
-### **Transpordi jälgimine ja nähtavus**
+### **Transpordi jälgimine ja vaadeldavus**
 
 ```csharp
 // Adding telemetry to custom transports
@@ -613,9 +615,9 @@ public class ObservableTransport : IMcpTransport
 }
 ```
 
-## **Ettevõtte integratsiooni stsenaariumid**
+## **Ettevõtte integreerimise stsenaariumid**
 
-### **Stsenaarium 1: hajutatud MCP töötlemine**
+### **Stsenaarium 1: Hajutatud MCP töötlemine**
 
 Azure Event Gridi kasutamine MCP päringute jaotamiseks mitme töötlemissõlme vahel:
 
@@ -631,7 +633,7 @@ Benefits:
   - Cost optimization with serverless compute
 ```
 
-### **Stsenaarium 2: reaalajas MCP voogedastus**
+### **Stsenaarium 2: Reaalaja MCP voogedastus**
 
 Azure Event Hubsi kasutamine kõrgsageduslike MCP interaktsioonide jaoks:
 
@@ -647,9 +649,9 @@ Benefits:
   - Built-in partitioning for parallel processing
 ```
 
-### **Stsenaarium 3: hübriidne transpordi arhitektuur**
+### **Stsenaarium 3: Hübriidtranspordi arhitektuur**
 
-Mitme transpordi kombineerimine erinevate kasutusjuhtude jaoks:
+Mitme transpordi ühendamine erinevate kasutusjuhtude jaoks:
 
 ```csharp
 public class HybridMcpTransport : IMcpTransport
@@ -675,7 +677,7 @@ public class HybridMcpTransport : IMcpTransport
 
 ## **Jõudluse optimeerimine**
 
-### **Sõnumite grupeerimine Event Gridi jaoks**
+### **Sõnumite kogumine Event Gridi jaoks**
 
 ```csharp
 public class BatchingEventGridTransport : IMcpTransport
@@ -715,7 +717,7 @@ public class BatchingEventGridTransport : IMcpTransport
 }
 ```
 
-### **Partitsioneerimisstrateegia Event Hubsi jaoks**
+### **Partitsioneerimise strateegia Event Hubsi jaoks**
 
 ```csharp
 public class PartitionedEventHubsTransport : IMcpTransport
@@ -737,7 +739,7 @@ public class PartitionedEventHubsTransport : IMcpTransport
 
 ## **Kohandatud transpordide testimine**
 
-### **Ühiktestimine testtopeltidega**
+### **Ühiktestimine testkaaslastega**
 
 ```csharp
 [Test]
@@ -764,7 +766,7 @@ public async Task EventGridTransport_SendMessage_PublishesCorrectEvent()
 }
 ```
 
-### **Integratsioonitestimine Azure Test Containersiga**
+### **Integreerimistestimine Azure Test Containers abil**
 
 ```csharp
 [Test]
@@ -799,42 +801,42 @@ public async Task EventHubsTransport_IntegrationTest()
 
 ## **Parimad tavad ja juhised**
 
-### **Transpordi disaini põhimõtted**
+### **Transpordi disainipõhimõtted**
 
-1. **Idempotentsus**: tagada sõnumite töötlemise idempotentsus duplikaatide käsitlemiseks
-2. **Vea käsitlemine**: rakendada põhjalik veahaldus ja surnud kirjade järjekorrad
-3. **Jälgimine**: lisada detailne telemeetria ja tervisekontrollid
-4. **Turvalisus**: kasutada hallatavaid identiteete ja minimaalset ligipääsu
-5. **Jõudlus**: kujundada vastavalt konkreetsetele latentsuse ja läbilaskevõime nõuetele
+1. **Idempotentsus**: tagada sõnumite töötlemine idempotentsena dubleerimise tõttu
+2. **Vigade käsitlemine**: rakendada põhjalik vigade käsitlus ja surnud kirjade järjekorrad
+3. **Jälgimine**: lisada üksikasjalik telemeetria ja tervisekontrollid
+4. **Turvalisus**: kasutada hallatavaid identiteete ja minimaalset õiguste taset
+5. **Jõudlus**: kujundada vastavalt konkreetsetele latentsuse ja läbilaske nõuetele
 
 ### **Azure-spetsiifilised soovitused**
 
 1. **Kasuta hallatavat identiteeti**: väldi ühendusstringe tootmiskeskkonnas
-2. **Rakenda vooluahela katkestajaid**: kaitse Azure teenuste katkestuste eest
+2. **Rakenda vooluringi katkestajaid**: kaitse Azure teenuse rikete eest
 3. **Jälgi kulusid**: jälgi sõnumite mahtu ja töötlemiskulusid
-4. **Plaani skaleerimist**: kujunda partitsioneerimise ja skaleerimise strateegiad varakult
-5. **Testi põhjalikult**: kasuta Azure DevTest Labi põhjalikuks testimiseks
+4. **Plaani skaleerimist**: planeeri partitsioneerimise ja skaleerimise strateegiad varakult
+5. **Testi põhjalikult**: kasuta Azure DevTest Laby põhjalikuks testimiseks
 
 ## **Kokkuvõte**
 
-Kohandatud MCP transpordid võimaldavad võimsaid ettevõtte stsenaariume, kasutades Azure sõnumiteenuseid. Rakendades Event Gridi või Event Hubsi transpordid, saad luua skaleeritavaid, töökindlaid MCP lahendusi, mis integreeruvad sujuvalt olemasoleva Azure infrastruktuuriga.
+Kohandatud MCP transpordid võimaldavad võimsaid ettevõttesiseseid stsenaariume, kasutades Azure sõnumside teenuseid. Event Gridi või Event Hubsi transpordide rakendamisel saad ehitada skaleeritavaid, töökindlaid MCP lahendusi, mis integreeruvad sujuvalt olemasoleva Azure infrastruktuuriga.
 
-Esitatud näited demonstreerivad tootmiseks valmis mustreid kohandatud transpordide rakendamiseks, säilitades MCP protokolli vastavuse ja Azure parimad tavad.
+Antud näited demonstreerivad tootmiskõlblikke mudeleid kohandatud transpordide rakendamiseks, säilitades MCP protokolli vastavuse ja Azure parimad tavad.
 
-## **Täiendavad ressursid**
+## **Lisamaterjalid**
 
-- [MCP spetsifikatsioon 2025-06-18](https://spec.modelcontextprotocol.io/specification/2025-06-18/)
-- [Azure Event Grid dokumentatsioon](https://docs.microsoft.com/azure/event-grid/)
-- [Azure Event Hubs dokumentatsioon](https://docs.microsoft.com/azure/event-hubs/)
-- [Azure Functions Event Grid käivitaja](https://docs.microsoft.com/azure/azure-functions/functions-bindings-event-grid)
+- [MCP spetsifikatsioon 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/)
+- [Azure Event Gridi dokumentatsioon](https://docs.microsoft.com/azure/event-grid/)
+- [Azure Event Hubsi dokumentatsioon](https://docs.microsoft.com/azure/event-hubs/)
+- [Azure Functions Event Grid päästik](https://docs.microsoft.com/azure/azure-functions/functions-bindings-event-grid)
 - [Azure SDK .NET jaoks](https://github.com/Azure/azure-sdk-for-net)
 - [Azure SDK TypeScripti jaoks](https://github.com/Azure/azure-sdk-for-js)
-- [Azure SDK Python jaoks](https://github.com/Azure/azure-sdk-for-python)
+- [Azure SDK Pythonile](https://github.com/Azure/azure-sdk-for-python)
 
 ---
 
-> *See juhend keskendub praktilistele rakendusmustritele tootmiskeskkonna MCP süsteemide jaoks. Kontrolli alati transpordi rakendusi vastavalt oma konkreetsetele nõuetele ja Azure teenuste piirangutele.*
-> **Kehtiv standard**: see juhend kajastab [MCP spetsifikatsiooni 2025-06-18](https://spec.modelcontextprotocol.io/specification/2025-06-18/) transpordinõudeid ja täiustatud transpordimustreid ettevõttekeskkondade jaoks.
+> *See juhend keskendub praktilistele rakendusmustritele tootmisvalmis MCP süsteemide jaoks. Veendu alati, et transpordirakendused vastaksid Sinu konkreetsetele nõuetele ja Azure teenuse piirangutele.*
+> **Kehtiv standard**: See juhend peegeldab [MCP spetsifikatsiooni 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/) transpordinõudeid ja täiustatud transpordimustreid ettevõtte keskkondade jaoks.
 
 
 ## Mis järgmiseks
@@ -843,6 +845,6 @@ Esitatud näited demonstreerivad tootmiseks valmis mustreid kohandatud transpord
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Vastutusest loobumine**:
-See dokument on tõlgitud kasutades tehisintellektil põhinevat tõlketeenust [Co-op Translator](https://github.com/Azure/co-op-translator). Kuigi püüame tagada täpsust, palun arvestage, et automaatsed tõlked võivad sisaldada vigu või ebatäpsusi. Originaaldokument selle emakeeles tuleks pidada autoriteetseks allikaks. Olulise teabe puhul soovitatakse kasutada professionaalset inimtõlget. Me ei vastuta selle tõlke kasutamisest tulenevate arusaamatuste või valesti mõistmiste eest.
+**Lahtiütlus**:
+See dokument on tõlgitud kasutades AI tõlketeenust [Co-op Translator](https://github.com/Azure/co-op-translator). Kuigi me püüdleme täpsuse poole, palun pange tähele, et automatiseeritud tõlgetes võib esineda vigu või ebatäpsusi. Originaaldokument selle emakeeles tuleks pidada autoriteetseks allikaks. Olulise teabe puhul soovitatakse kasutada professionaalset inimtõlget. Me ei vastuta selle tõlkega seotud eksimustest või valesti mõistmistest.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

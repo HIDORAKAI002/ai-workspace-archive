@@ -1,4 +1,4 @@
-# 🐙 Modul 4: Praktičen razvoj MCP - Po meri narejen GitHub klonski strežnik
+# 🐙 Modul 4: Praktični razvoj MCP - lastni strežnik za kloniranje GitHub
 
 ![Duration](https://img.shields.io/badge/Duration-30_minutes-blue?style=flat-square)
 ![Difficulty](https://img.shields.io/badge/Difficulty-Intermediate-orange?style=flat-square)
@@ -6,45 +6,45 @@
 ![VS Code](https://img.shields.io/badge/VS%20Code-Integration-blue?style=flat-square&logo=visualstudiocode)
 ![GitHub Copilot](https://img.shields.io/badge/GitHub%20Copilot-Agent%20Mode-green?style=flat-square&logo=github)
 
-> **⚡ Hiter začetek:** Zgradite MCP strežnik pripravljen za produkcijo, ki avtomatizira kloniranje GitHub repozitorijev in integracijo z VS Code v samo 30 minutah!
+> **⚡ Hiter začetek:** Zgradite proizvodni MCP strežnik, ki avtomatizira kloniranje GitHub repozitorijev in integracijo z VS Code v samo 30 minutah!
 
 ## 🎯 Cilji učenja
 
-Ob koncu te delavnice boste lahko:
+Do konca te delavnice boste znali:
 
-- ✅ Ustvarili lasten MCP strežnik za razvojne delovne tokove v resničnem svetu
-- ✅ Implementirali funkcionalnost kloniranja GitHub repozitorijev preko MCP
-- ✅ Integrirali lastne MCP strežnike z VS Code in Agent Builderjem
-- ✅ Uporabljali GitHub Copilot Agent Mode z lastnimi MCP orodji
-- ✅ Testirali in uvajali lastne MCP strežnike v produkcijska okolja
+- ✅ Ustvariti lasten MCP strežnik za razvojne delovne tokove v realnem svetu
+- ✅ Implementirati funkcijo kloniranja GitHub repozitorijev preko MCP
+- ✅ Integrirati lastne MCP strežnike z VS Code in Agent Builderjem
+- ✅ Uporabljati GitHub Copilot Agent Mode z lastnimi MCP orodji
+- ✅ Testirati in uvajati lastne MCP strežnike v produkcijskih okoljih
 
 ## 📋 Predpogoji
 
-- Zaključena Lab 1–3 (osnove MCP in napredni razvoj)
-- Naročnina na GitHub Copilot ([na voljo brezplačna prijava](https://github.com/github-copilot/signup))
-- VS Code z razširitvami AI Toolkit in GitHub Copilot
+- Zaključek laboratorijev 1-3 (osnove MCP in napredni razvoj)
+- Naročnina na GitHub Copilot ([na voljo brezplačna registracija](https://github.com/github-copilot/signup))
+- VS Code z Microsoft Foundry Toolkit in razširitvami GitHub Copilot
 - Nameščen in konfiguriran Git CLI
 
 ## 🏗️ Pregled projekta
 
 ### **Razvojni izziv iz resničnega sveta**
-Kot razvijalci pogosto uporabljamo GitHub za kloniranje repozitorijev in odpiranje v VS Code ali VS Code Insiders. Ta ročni postopek vključuje:
-1. Odprtje terminala/ukazne vrstice
-2. Navigacijo do želene mape
-3. Zažene ukaz `git clone`
-4. Odpri VS Code v klonirani mapi
+Kot razvijalci pogosto uporabljamo GitHub za kloniranje repozitorijev in njihovo odpiranje v VS Code ali VS Code Insiders. Ta ročni postopek vključuje:
+1. Odpiranje terminala/ukazne vrstice
+2. Premik v želeni imenik
+3. Izvajanje ukaza `git clone`
+4. Odpiranje VS Code v kloniranem imeniku
 
 **Naša MCP rešitev to poenostavi v eno pametno ukazno vrstico!**
 
 ### **Kaj boste zgradili**
 **GitHub Clone MCP strežnik** (`git_mcp_server`), ki ponuja:
 
-| Funkcija | Opis | Korist |
+| Funkcija | Opis | Prednost |
 |---------|-------------|---------|
-| 🔄 **Pametno kloniranje repozitorijev** | Kloniranje GitHub repozitorijev z validacijo | Samodejno preverjanje napak |
-| 📁 **Pametno upravljanje map** | Preverjanje in varno ustvarjanje map | Preprečuje prepisovanje |
-| 🚀 **Multiplastformska integracija z VS Code** | Odpiranje projektov v VS Code/Insiders | Brezhiben prehod delovnih tokov |
-| 🛡️ **Robustno ravnanje z napakami** | Reševanje težav z omrežjem, dovoljenji in potmi | Zanesljivost pripravljenosti za produkcijo |
+| 🔄 **Pametno kloniranje repozitorijev** | Klonira GitHub repozitorije z validacijo | Avtomatsko preverjanje napak |
+| 📁 **Pametno upravljanje imenikov** | Pregleda in varno ustvari imenike | Preprečuje prepisovanje |
+| 🚀 **Medplatformna integracija z VS Code** | Odpre projekte v VS Code/Insiders | Gladek prehod delovnih tokov |
+| 🛡️ **Robustno upravljanje napak** | Obvladuje omrežne, dovolilne in poti težave | Zanesljivost primerna za produkcijo |
 
 ---
 
@@ -52,7 +52,7 @@ Kot razvijalci pogosto uporabljamo GitHub za kloniranje repozitorijev in odpiran
 
 ### Korak 1: Ustvarite GitHub agenta v Agent Builderju
 
-1. **Zaženite Agent Builder** preko razširitve AI Toolkit
+1. **Zaženite Agent Builder** preko razširitve Microsoft Foundry Toolkit
 2. **Ustvarite novega agenta** z naslednjo konfiguracijo:
    ```
    Agent Name: GitHubAgent
@@ -64,18 +64,18 @@ Kot razvijalci pogosto uporabljamo GitHub za kloniranje repozitorijev in odpiran
    - Izberite **Python predlogo** za največjo prilagodljivost
    - **Ime strežnika:** `git_mcp_server`
 
-### Korak 2: Nastavite GitHub Copilot Agent Mode
+### Korak 2: Konfigurirajte GitHub Copilot Agent Mode
 
 1. **Odprite GitHub Copilot** v VS Code (Ctrl/Cmd + Shift + P → "GitHub Copilot: Open")
-2. **Izberite Agent model** v vmesniku Copilot
-3. **Izberite model Claude 3.7** za boljše razumevanje in logično sklepanje
+2. **Izberite model agenta** v vmesniku Copilot
+3. **Izberite model Claude 3.7** za izboljšane zmožnosti razmišljanja
 4. **Omogočite MCP integracijo** za dostop do orodij
 
-> **💡 Namig za profesionalce:** Claude 3.7 ponuja vrhunsko razumevanje razvojnih delovnih tokov in vzorcev ravnanja z napakami.
+> **💡 Nasvet strokovnjaka:** Claude 3.7 omogoča boljše razumevanje razvojnih tokov in vzorcev upravljanja napak.
 
-### Korak 3: Implementirajte osnovno MCP strežniško funkcionalnost
+### Korak 3: Implementirajte osnovno funkcionalnost MCP strežnika
 
-**Uporabite naslednji podroben poziv z GitHub Copilot Agent Mode:**
+**Uporabite naslednje podrobno navodilo z GitHub Copilot Agent Mode:**
 
 ```
 Create two MCP tools with the following comprehensive requirements:
@@ -108,12 +108,12 @@ Additional Requirements:
 - Include comprehensive error handling
 ```
 
-### Korak 4: Preizkusite svoj MCP strežnik
+### Korak 4: Testirajte vaš MCP strežnik
 
-#### 4a. Test v Agent Builderju
+#### 4a. Testiranje v Agent Builderju
 
-1. **Zaženite debug konfiguracijo** v Agent Builderju
-2. **Konfigurirajte svojega agenta s tem sistemskim pozivom:**
+1. **Zaženite debug konfiguracijo** za Agent Builder
+2. **Konfigurirajte vašega agenta s tem sistemskim navodilom:**
 
 ```
 SYSTEM_PROMPT:
@@ -134,11 +134,11 @@ Scenario : Basic Clone and Open
 
 **Pričakovani rezultati:**
 - ✅ Uspešno kloniranje z potrdilom poti
-- ✅ Samodejno zagon VS Code
-- ✅ Jasna sporočila o napakah pri nepravilnih situacijah
-- ✅ Pravilno ravnanje z robnimi primeri
+- ✅ Samodejni zagon VS Code
+- ✅ Jasna sporočila o napakah za neveljavne scenarije
+- ✅ Pravilno upravljanje robnih primerov
 
-#### 4b. Test v MCP Inspectorju
+#### 4b. Testiranje v MCP Inspector
 
 
 ![MCP Inspector Testing](../../../../translated_images/sl/DebugInspector.eb5c95f94c69a8ba.webp)
@@ -147,13 +147,13 @@ Scenario : Basic Clone and Open
 
 
 
-**🎉 Čestitke!** Uspešno ste ustvarili praktičen, produkcijsko pripravljen MCP strežnik, ki rešuje izzive resničnih razvojnih delovnih tokov. Vaš po meri narejeni GitHub klonski strežnik prikazuje moč MCP za avtomatizacijo in izboljšanje produktivnosti razvijalcev.
+**🎉 Čestitamo!** Uspešno ste ustvarili praktični, proizvodni MCP strežnik, ki rešuje prave izzive razvojnih delovnih tokov. Vaš lastni strežnik za kloniranje GitHub ponazarja moč MCP za avtomatizacijo in povečanje produktivnosti razvijalcev.
 
-### 🏆 Dosežek pridobljen:
-- ✅ **MCP razvijalec** - Ustvarjen lasten MCP strežnik
-- ✅ **Avtomatizator delovnih tokov** - Poenostavljeni razvojni procesi  
-- ✅ **Strokovnjak za integracijo** - Povezana več razvojnih orodij
-- ✅ **Pripravljen za produkcijo** - Zgrajene rešitve za implementacijo
+### 🏆 Dosežki:
+- ✅ **Razvijalec MCP** - Ustvaril lasten MCP strežnik
+- ✅ **Avtomatizator delovnih tokov** - Poenostavil razvojne procese  
+- ✅ **Strokovnjak za integracijo** - Povezal več razvojnih orodij
+- ✅ **Pripravljen za produkcijo** - Zgradil rešitve za uvedbo
 
 ---
 
@@ -161,38 +161,38 @@ Scenario : Basic Clone and Open
 
 **Spoštovani udeleženec delavnice,**
 
-Čestitke za uspešno opravljanje vseh štirih modulov delavnice Model Context Protocol! Prehodili ste dolgo pot od razumevanja osnov AI Toolkit konceptov do gradnje produkcijsko pripravljenih MCP strežnikov, ki rešujejo razvojne izzive iz resničnega sveta.
+Čestitamo za zaključek vseh štirih modulov delavnice Model Context Protocol! Prepotovali ste dolgo pot od razumevanja osnov Microsoft Foundry Toolkit do izdelave proizvodnih MCP strežnikov, ki rešujejo prave razvojne izzive.
 
-### 🚀 Povzetek vaše učne poti:
+### 🚀 Povzetek vaše poti učenja:
 
-**[Modul 1](../lab1/README.md)**: Začeli ste z raziskovanjem osnov AI Toolkita, testiranjem modelov in izdelavo prvega AI agenta.
+**[Modul 1](../lab1/README.md)**: Začeli ste z raziskovanjem osnov Microsoft Foundry Toolkit, testiranjem modelov in ustvarjanjem prvega AI agenta.
 
-**[Modul 2](../lab2/README.md)**: Naučili ste se MCP arhitekture, integracije Playwright MCP in izdelali prvega agenta za avtomatizacijo brskalnika.
+**[Modul 2](../lab2/README.md)**: Naučili ste se arhitekture MCP, integrirali Playwright MCP in ustvarili svojega prvega agenta za avtomatizacijo brskalnika.
 
-**[Modul 3](../lab3/README.md)**: Napredovali ste do razvoja lastnih MCP strežnikov s strežnikom Weather MCP in obvladali orodja za razhroščevanje.
+**[Modul 3](../lab3/README.md)**: Napredovali ste v razvoju lastnih MCP strežnikov z Weather MCP strežnikom in obvladali orodja za odpravljanje napak.
 
-**[Modul 4](../lab4/README.md)**: Sedaj ste uporabili vse do sedaj za ustvarjanje praktičnega orodja za avtomatizacijo delovnih tokov GitHub repozitorijev.
+**[Modul 4](../lab4/README.md)**: Zdaj ste uporabili vse znanje za izdelavo praktičnega orodja za avtomatizacijo delovnega toka z GitHub repozitoriji.
 
 ### 🌟 Kaj ste osvojili:
 
-- ✅ **Ekosistem AI Toolkit**: modeli, agenti in vzorci integracije
-- ✅ **MCP arhitekturo**: klient-strežniško zasnovo, transportne protokole in varnost
-- ✅ **Razvojna orodja**: od Playgrounda do Inspectorja in produkcijske uvedbe
-- ✅ **Lastni razvoj**: gradnja, testiranje in uvajanje lastnih MCP strežnikov
+- ✅ **Ecosistem Microsoft Foundry Toolkit**: modeli, agenti in vzorci integracij
+- ✅ **Arhitektura MCP**: zasnova klient-strežnik, protokoli prenosa in varnost
+- ✅ **Razvojna orodja**: od Playground do Inspectorja do produkcijske uvedbe
+- ✅ **Prilagojeni razvoj**: izgradnja, testiranje in uvajanje lastnih MCP strežnikov
 - ✅ **Praktične uporabe**: reševanje resničnih izzivov delovnih tokov z AI
 
 ### 🔮 Vaši naslednji koraki:
 
-1. **Zgradite svoj lasten MCP strežnik**: uporabite te veščine za avtomatizacijo vaših edinstvenih delovnih tokov
-2. **Pridružite se MCP skupnosti**: delite vaše stvaritve in se učite od drugih
-3. **Raziskujte napredne integracije**: povežite MCP strežnike z enterpriznimi sistemi
-4. **Prispevajte v odprto kodo**: pomagajte izboljšati MCP orodja in dokumentacijo
+1. **Zgradite lastni MCP strežnik**: uporabite te veščine za avtomatizacijo svojih edinstvenih delovnih tokov
+2. **Pridružite se MCP skupnosti**: delite svoje stvaritve in se učite od drugih
+3. **Raziskujte napredno integracijo**: povežite MCP strežnike z enterprise sistemi
+4. **Prispevajte k odprtokodnim projektom**: pomagajte izboljšati MCP orodja in dokumentacijo
 
-Zapomnite si, da je ta delavnica šele začetek. Ekosistem Model Context Protocol hitro napreduje in zdaj ste opremljeni, da ste na čelu AI-podprtih razvojnih orodij.
+Ne pozabite, ta delavnica je šele začetek. Ekosistem Model Context Protocol hitro napreduje in zdaj ste opremljeni, da ste na čelu AI-podprtih razvojnih orodij.
 
-**Hvala za vašo udeležbo in predanost učenju!**
+**Hvala za vašo udeležbo in zavezanost učenju!**
 
-Upamo, da vam je ta delavnica dala ideje, ki bodo spremenile način, kako gradite in uporabljate AI orodja na vaši razvojni poti.
+Upamo, da je ta delavnica vzpodbudila ideje, ki bodo preoblikovale način, kako gradite in uporabljate AI orodja na vaši razvojni poti.
 
 **Srečno kodiranje!**
 
@@ -200,7 +200,7 @@ Upamo, da vam je ta delavnica dala ideje, ki bodo spremenile način, kako gradit
 
 ## Kaj sledi
 
-Čestitke za zaključek vseh vaj v Modulu 10!
+Čestitke ob zaključku vseh laboratorijev v Modulu 10!
 
 - Nazaj na: [Pregled Modula 10](../README.md)
 - Nadaljujte na: [Modul 11: MCP Server Hands-On Labs](../../11-MCPServerHandsOnLabs/README.md)
@@ -209,5 +209,5 @@ Upamo, da vam je ta delavnica dala ideje, ki bodo spremenile način, kako gradit
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
 **Omejitev odgovornosti**:
-Ta dokument je bil preveden s pomočjo storitve za prevajanje z uporabo umetne inteligence [Co-op Translator](https://github.com/Azure/co-op-translator). Čeprav si prizadevamo za natančnost, vas prosimo, da upoštevate, da lahko avtomatizirani prevodi vsebujejo napake ali netočnosti. Izvirni dokument v njegovem izvorni jezik je treba obravnavati kot avtoritativni vir. Za kritične informacije priporočamo strokoven prevod s strani človeka. Za kakršnekoli nesporazume ali napačne interpretacije, ki izhajajo iz uporabe tega prevoda, ne prevzemamo odgovornosti.
+Ta dokument je bil preveden z uporabo AI prevajalske storitve [Co-op Translator](https://github.com/Azure/co-op-translator). Čeprav si prizadevamo za natančnost, vas prosimo, da upoštevate, da avtomatizirani prevodi lahko vsebujejo napake ali netočnosti. Izvirni dokument v njegovem izvirnem jeziku je treba obravnavati kot avtoritativni vir. Za kritične informacije je priporočljiv strokovni človeški prevod. Ne odgovarjamo za morebitna nesporazume ali napačne interpretacije, ki izhajajo iz uporabe tega prevoda.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

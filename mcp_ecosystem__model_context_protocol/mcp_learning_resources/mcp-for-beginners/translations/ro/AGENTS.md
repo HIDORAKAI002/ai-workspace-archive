@@ -2,7 +2,7 @@
 
 ## Prezentare Generală a Proiectului
 
-**MCP pentru Începători** este un curriculum educațional open-source pentru învățarea Model Context Protocol (MCP) - un cadru standardizat pentru interacțiunile dintre modelele AI și aplicațiile client. Acest depozit oferă materiale de învățare cuprinzătoare, incluzând exemple de cod practice în mai multe limbaje de programare.
+**MCP pentru Începători** este un curriculum educațional open-source pentru învățarea Model Context Protocol (MCP) - un cadru standardizat pentru interacțiuni între modele AI și aplicații client. Acest depozit oferă materiale de învățare cuprinzătoare cu exemple practice de cod în mai multe limbaje de programare.
 
 ### Tehnologii Cheie
 
@@ -14,38 +14,38 @@
   - LangChain4j (Java)
 - **Baze de Date**: PostgreSQL cu extensia pgvector
 - **Platforme Cloud**: Azure (Container Apps, OpenAI, Content Safety, Application Insights)
-- **Instrumente de Build**: npm, Maven, pip, Cargo
-- **Documentație**: Markdown cu traducere automată în mai multe limbi (48+ limbi)
+- **Unelte de Build**: npm, Maven, pip, Cargo
+- **Documentație**: Markdown cu traducere automată multi-limbaj (peste 48 de limbi)
 
 ### Arhitectură
 
-- **11 Module de Bază (00-11)**: Parcurs de învățare secvențial de la fundamente la subiecte avansate
-- **Laboratoare Practice**: Exerciții practice cu cod soluție complet în mai multe limbaje
-- **Proiecte Exemple**: Implementări funcționale de server și client MCP
-- **Sistem de Traducere**: Flux de lucru automatizat GitHub Actions pentru suport multilingv
-- **Resurse Vizuale**: Director centralizat de imagini cu versiuni traduse
+- **11 Module de Bază (00-11)**: Parcurs de învățare secvențială de la concepte fundamentale la subiecte avansate
+- **Lab-uri Practice**: Exerciții practice cu soluții complete în mai multe limbaje
+- **Proiecte Exemplu**: Implementări funcționale ale serverului și clientului MCP
+- **Sistem de Traducere**: Flux de lucru automatizat cu GitHub Actions pentru suport multi-limbaj
+- **Resurse Grafice**: Director centralizat de imagini cu versiuni traduse
 
 ## Comenzi de Configurare
 
-Acesta este un depozit axat pe documentație. Majoritatea configurărilor se fac în cadrul proiectelor și laboratoarelor individuale.
+Acesta este un depozit axat pe documentație. Majoritatea configurărilor au loc în proiectele exemplu și laboratoare individuale.
 
 ### Configurarea Depozitului
 
 ```bash
-# Clone the repository
+# Clonează depozitul
 git clone https://github.com/microsoft/mcp-for-beginners.git
 cd mcp-for-beginners
 ```
 
-### Lucrul cu Proiecte Exemple
+### Lucrul cu Proiectele Exemplu
 
-Proiectele exemple sunt localizate în:
+Proiectele exemplu se găsesc în:
 - `03-GettingStarted/samples/` - Exemple specifice limbajului
 - `03-GettingStarted/01-first-server/solution/` - Implementări ale primului server
 - `03-GettingStarted/02-client/solution/` - Implementări ale clientului
-- `11-MCPServerHandsOnLabs/` - Laboratoare cuprinzătoare de integrare a bazei de date
+- `11-MCPServerHandsOnLabs/` - Laboratoare complete de integrare cu baza de date
 
-Fiecare proiect exemplu conține propriile instrucțiuni de configurare:
+Fiecare proiect exemplu conține instrucțiuni proprii de configurare:
 
 #### Proiecte TypeScript/JavaScript
 ```bash
@@ -58,7 +58,7 @@ npm start
 ```bash
 cd <project-directory>
 pip install -r requirements.txt
-# or
+# sau
 pip install -e .
 python main.py
 ```
@@ -74,24 +74,24 @@ mvn spring-boot:run
 
 ### Structura Documentației
 
-- **Module 00-11**: Conținutul curriculumului de bază în ordine secvențială
-- **translations/**: Versiuni specifice limbilor (generate automat, nu editați direct)
+- **Modulele 00-11**: Conținutul curriculum-ului de bază în ordine secvențială
+- **translations/**: Versiuni specifice limbajelor (generate automat, nu editați direct)
 - **translated_images/**: Versiuni localizate ale imaginilor (generate automat)
-- **images/**: Imagini sursă și diagrame
+- **images/**: Imagini și diagrame sursă
 
 ### Modificarea Documentației
 
-1. Editați doar fișierele markdown în limba engleză din directoarele modulelor de bază (00-11)
-2. Actualizați imaginile în directorul `images/` dacă este necesar
-3. Acțiunea GitHub co-op-translator va genera automat traduceri
-4. Traducerile sunt regenerate la fiecare push către ramura principală
+1. Editați doar fișierele markdown în limba engleză din directoarele modulului rădăcină (00-11)
+2. Actualizați imaginile din directorul `images/` dacă este necesar
+3. Acțiunea co-op-translator de pe GitHub generează automat traducerile
+4. Traducerile sunt regenerate la fiecare push în ramura main
 
 ### Lucrul cu Traducerile
 
 - **Traducere Automată**: Fluxul de lucru GitHub Actions gestionează toate traducerile
 - **NU editați manual** fișierele din directorul `translations/`
-- Metadatele traducerilor sunt încorporate în fiecare fișier tradus
-- Limbi suportate: 48+ limbi, inclusiv arabă, chineză, franceză, germană, hindi, japoneză, coreeană, portugheză, rusă, spaniolă și multe altele
+- Metadatele traducerii sunt încorporate în fiecare fișier tradus
+- Limbi suportate: peste 48 de limbi, inclusiv arabă, chineză, franceză, germană, hindi, japoneză, coreeană, portugheză, rusă, spaniolă și multe altele
 
 ## Instrucțiuni de Testare
 
@@ -101,26 +101,26 @@ Deoarece acesta este în principal un depozit de documentație, testarea se conc
 
 1. **Validarea Link-urilor**: Asigurați-vă că toate link-urile interne funcționează
 ```bash
-# Check for broken markdown links
+# Verifică dacă există linkuri markdown rupte
 find . -name "*.md" -type f | xargs grep -n "\[.*\](../../.*)"
 ```
 
-2. **Validarea Exemplelor de Cod**: Testați dacă exemplele de cod se compilează/rulează
+2. **Validarea Exemplelor de Cod**: Testați dacă exemplele de cod compilează/rulează
 ```bash
-# Navigate to specific sample and run its tests
+# Navighează către un eșantion specific și rulează testele acestuia
 cd 03-GettingStarted/samples/typescript
 npm install && npm test
 ```
 
 3. **Linting Markdown**: Verificați consistența formatării
 ```bash
-# Use markdownlint if needed
+# Folosește markdownlint dacă este necesar
 npx markdownlint-cli2 "**/*.md" "#node_modules"
 ```
 
-### Testarea Proiectelor Exemple
+### Testarea Proiectelor Exemplu
 
-Fiecare exemplu specific limbajului include propria abordare de testare:
+Fiecare exemplu specific limbajului are propria metodă de testare:
 
 #### TypeScript/JavaScript
 ```bash
@@ -140,36 +140,36 @@ mvn test
 mvn verify
 ```
 
-## Ghiduri de Stil pentru Cod
+## Ghid de Stil pentru Cod
 
-### Stilul Documentației
+### Stil Documentație
 
 - Folosiți un limbaj clar, prietenos pentru începători
-- Includeți exemple de cod în mai multe limbaje, acolo unde este aplicabil
-- Respectați cele mai bune practici pentru markdown:
-  - Folosiți anteturi de tip ATX (`#` sintaxă)
-  - Folosiți blocuri de cod delimitate cu identificatori de limbaj
-  - Includeți text descriptiv pentru imaginile alt
-  - Mențineți lungimea liniilor rezonabilă (fără limită strictă, dar fiți sensibili)
+- Includeți exemple de cod în mai multe limbaje unde este cazul
+- Urmați bune practici markdown:
+  - Folosiți antete stil ATX (`#` sintaxă)
+  - Folosiți blocuri de cod delimitate cu specificatori de limbaj
+  - Includeți text alternativ descriptiv pentru imagini
+  - Mențineți o lungime rezonabilă a liniilor (fără limite stricte, dar fiți rezonabili)
 
-### Stilul Exemplelor de Cod
+### Stil Exemplu de Cod
 
 #### TypeScript/JavaScript
 - Folosiți module ES (`import`/`export`)
-- Respectați convențiile modului strict TypeScript
+- Urmați convențiile modului strict TypeScript
 - Includeți adnotări de tip
 - Țintiți ES2022
 
 #### Python
-- Respectați ghidurile de stil PEP 8
-- Folosiți indicii de tip acolo unde este potrivit
-- Includeți docstrings pentru funcții și clase
-- Folosiți caracteristici moderne ale Python (3.8+)
+- Urmați ghidul de stil PEP 8
+- Folosiți tipuri sugestive acolo unde este cazul
+- Includeți docstring-uri pentru funcții și clase
+- Folosiți caracteristici moderne Python (3.8+)
 
 #### Java
-- Respectați convențiile Spring Boot
-- Folosiți caracteristici Java 21
-- Respectați structura standard a proiectului Maven
+- Urmați convențiile Spring Boot
+- Folosiți facilitățile Java 21
+- Urmați structura standard Maven pentru proiecte
 - Includeți comentarii Javadoc
 
 ### Organizarea Fișierelor
@@ -190,112 +190,114 @@ mvn verify
 
 ### Implementarea Documentației
 
-Depozitul folosește GitHub Pages sau similar pentru găzduirea documentației (dacă este aplicabil). Modificările aduse ramurii principale declanșează:
+Depozitul folosește GitHub Pages sau un serviciu similar pentru găzduirea documentației (dacă este cazul). Modificările în ramura main declanșează:
 
-1. Fluxul de lucru pentru traducere (`.github/workflows/co-op-translator.yml`)
+1. Fluxul de traducere (`.github/workflows/co-op-translator.yml`)
 2. Traducerea automată a tuturor fișierelor markdown în limba engleză
-3. Localizarea imaginilor, dacă este necesar
+3. Localizarea imaginilor după necesitate
 
-### Nu Este Necesar Procesul de Build
+### Nu este Necesară o Procedură de Build
 
-Acest depozit conține în principal documentație markdown. Nu este necesar niciun pas de compilare sau build pentru conținutul curriculumului de bază.
+Acest depozit conține în principal documentație markdown. Nu este nevoie de compilare sau build pentru conținutul principal al curriculumului.
 
-### Implementarea Proiectelor Exemple
+### Implementarea Proiectelor Exemplu
 
-Proiectele exemple individuale pot avea instrucțiuni de implementare:
-- Consultați `03-GettingStarted/09-deployment/` pentru ghidul de implementare a serverului MCP
-- Exemple de implementare Azure Container Apps în `11-MCPServerHandsOnLabs/`
+Proiectele exemplu individuale pot avea instrucțiuni de implementare:
+- Consultați `03-GettingStarted/09-deployment/` pentru ghid de implementare server MCP
+- Exemple Azure Container Apps în `11-MCPServerHandsOnLabs/`
 
-## Ghiduri pentru Contribuție
+## Ghid de Contribuire
 
-### Procesul de Pull Request
+### Procesul Pull Request
 
-1. **Fork și Clone**: Faceți fork depozitului și clonați fork-ul local
-2. **Creați o Ramură**: Folosiți nume descriptive pentru ramuri (ex.: `fix/typo-module-3`, `add/python-example`)
-3. **Faceți Modificări**: Editați doar fișiere markdown în limba engleză (nu traducerile)
-4. **Testați Local**: Verificați dacă markdown-ul se redă corect
+1. **Fork și Clone**: Faceți fork la depozit și clonați fork-ul local
+2. **Creați o Ramură**: Folosiți nume descriptive pentru ramuri (ex. `fix/typo-module-3`, `add/python-example`)
+3. **Faceți Modificări**: Editați doar fișierele markdown în limba engleză (nu traducerile)
+4. **Testați Local**: Verificați redarea corectă a markdown-ului
 5. **Trimiteți PR**: Folosiți titluri și descrieri clare pentru PR
 6. **CLA**: Semnați Acordul de Licență pentru Contribuitori Microsoft când vi se solicită
 
 ### Formatul Titlului PR
 
-Folosiți titluri clare, descriptive:
-- `[Module XX] Descriere scurtă` pentru modificări specifice modulelor
-- `[Samples] Descriere` pentru modificări ale codului exemplu
-- `[Docs] Descriere` pentru actualizări generale ale documentației
+Folosiți titluri clare și descriptive:
+- `[Module XX] Descriere scurtă` pentru modificări specifice modulului
+- `[Samples] Descriere` pentru modificări în codul exemplu
+- `[Docs] Descriere` pentru actualizări generale de documentație
 
 ### Ce să Contribuiți
 
-- Corecturi de erori în documentație sau exemple de cod
-- Noi exemple de cod în limbaje suplimentare
+- Corecții de erori în documentație sau exemple de cod
+- Exemple noi de cod în limbaje suplimentare
 - Clarificări și îmbunătățiri ale conținutului existent
 - Studii de caz noi sau exemple practice
-- Raportarea problemelor pentru conținut neclar sau incorect
+- Raportări de probleme pentru conținut neclar sau incorect
 
-### Ce NU Trebuie Să Faceți
+### Ce NU Să Faceți
 
 - Nu editați direct fișierele din directorul `translations/`
 - Nu editați directorul `translated_images/`
-- Nu adăugați fișiere binare mari fără discuție
-- Nu modificați fișierele fluxului de lucru pentru traducere fără coordonare
+- Nu adăugați fișiere binare mari fără discuție prealabilă
+- Nu modificați fișierele fluxului de traducere fără coordonare
 
 ## Note Suplimentare
 
-### Întreținerea Depozitului
+### Mentenanța Depozitului
 
-- **Changelog**: Toate modificările semnificative sunt documentate în `changelog.md`
-- **Ghid de Studiu**: Folosiți `study_guide.md` pentru o prezentare generală a navigării în curriculum
-- **Șabloane de Probleme**: Folosiți șabloanele de probleme GitHub pentru raportarea erorilor și cererile de funcționalități
+- **Jurnal de Modificări**: Toate modificările semnificative sunt documentate în `changelog.md`
+- **Ghid de Studiu**: Folosiți `study_guide.md` pentru orientare în curriculum
+- **Template-uri pentru Issue**: Folosiți template-uri GitHub pentru rapoarte de erori și cereri de funcționalități
 - **Cod de Conduită**: Toți contribuitorii trebuie să respecte Codul de Conduită Open Source Microsoft
 
-### Parcurs de Învățare
+### Calea de Învățare
 
-Urmați modulele în ordine secvențială (00-11) pentru o învățare optimă:
-1. **00-02**: Fundamente (Introducere, Concepte de Bază, Securitate)
-2. **03**: Începeți cu implementarea practică
+Parcurgeți modulele în ordine secvențială (00-11) pentru o învățare optimă:
+1. **00-02**: Fundamente (Introducere, Concepte de bază, Securitate)
+2. **03**: Primii pași cu implementare practică
 3. **04-05**: Implementare practică și subiecte avansate
-4. **06-10**: Comunitate, cele mai bune practici și aplicații reale
-5. **11**: Laboratoare cuprinzătoare de integrare a bazei de date (13 laboratoare secvențiale)
+4. **06-10**: Comunitate, bune practici și aplicații reale
+5. **11**: Laboratoare comprehensive de integrare cu baza de date (13 laboratoare secvențiale)
 
 ### Resurse de Suport
 
 - **Documentație**: https://modelcontextprotocol.io/
 - **Specificație**: https://spec.modelcontextprotocol.io/
 - **Comunitate**: https://github.com/orgs/modelcontextprotocol/discussions
-- **Discord**: Serverul Discord Microsoft Azure AI Foundry
-- **Cursuri Asemănătoare**: Consultați README.md pentru alte parcursuri de învățare Microsoft
+- **Discord**: Serverul Microsoft Foundry Discord
+- **Cursuri Asociate**: Consultați README.md pentru alte căi de învățare Microsoft
 
-### Rezolvarea Problemelor Comune
+### Probleme Comune și Soluții
 
-**Î: PR-ul meu eșuează la verificarea traducerii**
-R: Asigurați-vă că ați editat doar fișiere markdown în limba engleză din directoarele modulelor de bază, nu versiunile traduse.
+**Î: PR-ul meu eșuează la verificarea traducerii**  
+R: Asigurați-vă că ați editat numai fișierele markdown în engleză din directoarele modulului rădăcină, nu versiunile traduse.
 
-**Î: Cum adaug o limbă nouă?**
-R: Suportul pentru limbi este gestionat prin fluxul de lucru co-op-translator. Deschideți o problemă pentru a discuta adăugarea de limbi noi.
+**Î: Cum adaug o limbă nouă?**  
+R: Suportul pentru limbi este gestionat prin fluxul de lucru co-op-translator. Deschideți un issue pentru a discuta adăugarea de limbi noi.
 
-**Î: Exemplele de cod nu funcționează**
-R: Asigurați-vă că ați urmat instrucțiunile de configurare din README-ul specific exemplului. Verificați că aveți instalate versiunile corecte ale dependențelor.
+**Î: Exemplele de cod nu funcționează**  
+R: Asigurați-vă că ați urmat instrucțiunile de configurare din README-ul exemplului specific. Verificați dacă aveți versiunile corecte ale dependențelor instalate.
 
-**Î: Imaginile nu se afișează**
-R: Verificați că căile imaginilor sunt relative și folosesc slash-uri înainte. Imaginile ar trebui să fie în directorul `images/` sau `translated_images/` pentru versiuni localizate.
+**Î: Imaginile nu se afișează**  
+R: Verificați că căile către imagini sunt relative și folosesc slash-uri înainte (forward slashes). Imaginile ar trebui să fie în directorul `images/` sau în `translated_images/` pentru versiunile localizate.
 
 ### Considerații de Performanță
 
-- Fluxul de lucru pentru traducere poate dura câteva minute pentru a se finaliza
-- Imaginile mari ar trebui optimizate înainte de a fi comise
-- Mențineți fișierele markdown individuale concentrate și de dimensiuni rezonabile
+- Fluxul de traducere poate dura câteva minute să se finalizeze
+- Imaginile mari trebuie optimizate înainte de a fi comise
+- Mențineți fișierele markdown individuale concentrate și de dimensiune rezonabilă
 - Folosiți link-uri relative pentru o portabilitate mai bună
 
 ### Guvernanța Proiectului
 
-Acest proiect urmează practicile open source Microsoft:
-- Licență MIT pentru cod și documentație
-- Cod de Conduită Open Source Microsoft
-- CLA necesar pentru contribuții
-- Probleme de securitate: Urmați ghidurile din SECURITY.md
-- Suport: Consultați SUPPORT.md pentru resurse de ajutor
+Acest proiect urmează practicile open source Microsoft:  
+- Licență MIT pentru cod și documentație  
+- Codul de Conduită Open Source Microsoft  
+- CLA obligatoriu pentru contribuții  
+- Probleme de securitate: urmați indicațiile din SECURITY.md  
+- Suport: consultați SUPPORT.md pentru resurse de ajutor
 
 ---
 
-**Declinare de responsabilitate**:  
-Acest document a fost tradus folosind serviciul de traducere AI [Co-op Translator](https://github.com/Azure/co-op-translator). Deși ne străduim să asigurăm acuratețea, vă rugăm să fiți conștienți că traducerile automate pot conține erori sau inexactități. Documentul original în limba sa natală ar trebui considerat sursa autoritară. Pentru informații critice, se recomandă traducerea profesională realizată de un specialist uman. Nu ne asumăm responsabilitatea pentru eventualele neînțelegeri sau interpretări greșite care pot apărea din utilizarea acestei traduceri.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Declinare a responsabilității**:
+Acest document a fost tradus folosind serviciul de traducere AI [Co-op Translator](https://github.com/Azure/co-op-translator). În timp ce ne străduim pentru acuratețe, vă rugăm să rețineți că traducerile automate pot conține erori sau inexactități. Documentul original în limba sa nativă trebuie considerat sursa autorizată. Pentru informații critice, se recomandă traducerea profesională realizată de un om. Nu ne asumăm responsabilitatea pentru eventualele neînțelegeri sau interpretări greșite care decurg din utilizarea acestei traduceri.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

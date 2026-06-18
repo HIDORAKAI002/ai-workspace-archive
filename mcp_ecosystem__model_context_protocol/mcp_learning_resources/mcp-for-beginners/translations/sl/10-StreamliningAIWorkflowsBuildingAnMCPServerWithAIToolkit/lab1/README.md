@@ -1,4 +1,4 @@
-# 🚀 Modul 1: Osnove AI Toolkit
+# 🚀 Modul 1: Osnove Microsoft Foundry Toolkit
 
 [![Duration](https://img.shields.io/badge/Duration-15%20minutes-blue.svg)]()
 [![Difficulty](https://img.shields.io/badge/Difficulty-Beginner-green.svg)]()
@@ -6,104 +6,104 @@
 
 ## 📋 Cilji učenja
 
-Ob koncu tega modula boste znali:
-- ✅ Namestiti in konfigurirati AI Toolkit za Visual Studio Code
-- ✅ Krmariti po Katalogu modelov in razumeti različne vire modelov
-- ✅ Uporabiti Playground za testiranje in eksperimentiranje z modeli
-- ✅ Ustvariti prilagojene AI agente z Agent Builderjem
-- ✅ Primerjati zmogljivost modelov različnih ponudnikov
-- ✅ Uporabiti najboljše prakse za oblikovanje pozivov (prompt engineering)
+Do konca tega modula boste lahko:
+- ✅ Namestili in konfigurirali Microsoft Foundry Toolkit Extension za VS Code
+- ✅ Krmarili po katalogu modelov in razumeli različne vire modelov
+- ✅ Uporabljali Playground za testiranje in eksperimentiranje z modeli
+- ✅ Ustvarjali prilagojene AI agente z Agent Builder
+- ✅ Primerjali uspešnost modelov različnih ponudnikov
+- ✅ Uporabljali najboljše prakse za oblikovanje pozivov (prompt engineering)
 
-## 🧠 Uvod v AI Toolkit (AITK)
+## 🧠 Uvod v Microsoft Foundry Toolkit
 
-**AI Toolkit za Visual Studio Code** je Microsoftova vodilna razširitev, ki VS Code spremeni v celovito razvojno okolje za AI. Povezuje raziskave na področju AI z uporabo v praksi in omogoča dostop do generativne AI razvijalcem vseh stopenj znanja.
+**Microsoft Foundry Toolkit Extension za VS Code** je vodilni Microsoftov razširitev, ki spremeni VS Code v celovito razvojno okolje za AI. Premošča vrzel med raziskavami na področju AI in praktičnim razvojem aplikacij ter omogoča dostop do generativne AI razvijalcem vseh ravni znanja.
 
 ### 🌟 Ključne zmogljivosti
 
 | Funkcija | Opis | Primer uporabe |
 |---------|-------------|----------|
-| **🗂️ Katalog modelov** | Dostop do več kot 100 modelov z GitHub, ONNX, OpenAI, Anthropic, Google | Odkritje in izbira modelov |
-| **🔌 Podpora BYOM** | Integracija lastnih modelov (lokalno/oddaljeno) | Namestitev prilagojenih modelov |
+| **🗂️ Katalog modelov** | Dostop do več kot 100 modelov z GitHub-a, ONNX, OpenAI, Anthropic, Google | Odkritje in izbira modelov |
+| **🔌 Podpora BYOM** | Integracija lastnih modelov (lokalno/oddaljeno) | Namestitev lastnega modela |
 | **🎮 Interaktivni Playground** | Testiranje modelov v realnem času s klepetalnim vmesnikom | Hitro prototipiranje in testiranje |
-| **📎 Podpora več modalitet** | Obdelava besedila, slik in priponk | Kompleksne AI aplikacije |
-| **⚡ Serijsko procesiranje** | Hkratno izvajanje več pozivov | Učinkoviti testni poteki |
-| **📊 Ocena modelov** | Vgrajene metrike (F1, relevantnost, podobnost, koherenca) | Ocena zmogljivosti |
+| **📎 Večmodalna podpora** | Obrava besedila, slik in prilog | Kompleksne AI aplikacije |
+| **⚡ Paketno procesiranje** | Hkratno izvajanje več pozivov | Učinkoviti testni poteki |
+| **📊 Evalvacija modelov** | Vgrajeni metrični kazalniki (F1, relevantnost, podobnost, koherenca) | Ocena uspešnosti |
 
-### 🎯 Zakaj je AI Toolkit pomemben
+### 🎯 Zakaj je Microsoft Foundry Toolkit pomemben
 
 - **🚀 Pospešen razvoj**: Od ideje do prototipa v nekaj minutah
-- **🔄 Enoten potek dela**: En vmesnik za več AI ponudnikov
-- **🧪 Enostavno eksperimentiranje**: Primerjajte modele brez zapletene nastavitve
-- **📈 Pripravljen za produkcijo**: Gladek prehod od prototipa do uvedbe
+- **🔄 Enoten delovni tok**: En vmesnik za več ponudnikov AI
+- **🧪 Enostavno eksperimentiranje**: Primerjajte modele brez zapletenih nastavitev
+- **📈 Priprava za produkcijo**: Brezhiben prehod od prototipa do implementacije
 
-## 🛠️ Zahteve in namestitev
+## 🛠️ Predpogoji in namestitev
 
-### 📦 Namestitev razširitve AI Toolkit
+### 📦 Namestitev Microsoft Foundry Toolkit Extension
 
-**Korak 1: Odprite tržnico razširitev**
-1. Zaženite Visual Studio Code
-2. Odprite pogled Razširitve (`Ctrl+Shift+X` ali `Cmd+Shift+X`)
-3. Poiščite "AI Toolkit"
+**Korak 1: Dostop do tržnice razširitev**
+1. Odprite Visual Studio Code
+2. Odprite pogled razširitev (`Ctrl+Shift+X` ali `Cmd+Shift+X`)
+3. Poiščite "Microsoft Foundry Toolkit"
 
 **Korak 2: Izberite svojo različico**
-- **🟢 Release**: Priporočeno za produkcijsko uporabo
-- **🔶 Pre-release**: Zgodnji dostop do najnovejših funkcij
+- **🟢 Izdaja**: Priporočena za produkcijsko uporabo
+- **🔶 Predizdaja**: Zgodnji dostop do najnovejših funkcionalnosti
 
 **Korak 3: Namestite in aktivirajte**
 
-![AI Toolkit Extension](../../../../translated_images/sl/aitkext.d28945a03eed003c.webp)
+![Microsoft Foundry Toolkit Extension](../../../../translated_images/sl/aitkext.d28945a03eed003c.webp)
 
 ### ✅ Kontrolni seznam preverjanja
-- [ ] Ikona AI Toolkit se prikaže v stranski vrstici VS Code
+- [ ] Ikona Microsoft Foundry Toolkit se pojavi v stranski vrstici VS Code
 - [ ] Razširitev je omogočena in aktivirana
-- [ ] V izhodnem panelu ni napak pri namestitvi
+- [ ] V izhodnem oknu ni napak pri namestitvi
 
-## 🧪 Praktična vaja 1: Raziščite modele na GitHubu
+## 🧪 Praktična vaja 1: Raziskovanje modelov na GitHubu
 
-**🎯 Cilj**: Obvladati Katalog modelov in preizkusiti svoj prvi AI model
+**🎯 Cilj**: Obvladati katalog modelov in preizkusiti svoj prvi AI model
 
-### 📊 Korak 1: Krmarjenje po Katalogu modelov
+### 📊 Korak 1: Krmarjenje po katalogu modelov
 
-Katalog modelov je vaš vhod v AI ekosistem. Združuje modele iz različnih virov, kar omogoča enostavno odkrivanje in primerjavo.
+Katalog modelov je vaš vhod v AI ekosistem. Združuje modele različnih ponudnikov, kar omogoča enostavno odkrivanje in primerjanje možnosti.
 
 **🔍 Navodila za krmarjenje:**
 
-Kliknite na **MODELS - Catalog** v stranski vrstici AI Toolkit
+Kliknite na **MODELS - Catalog** v stranski vrstici Microsoft Foundry Toolkit
 
 ![Model Catalog](../../../../translated_images/sl/aimodel.263ed2be013d8fb0.webp)
 
-**💡 Nasvet**: Poiščite modele s specifičnimi zmogljivostmi, ki ustrezajo vašim potrebam (npr. generiranje kode, ustvarjalno pisanje, analiza).
+**💡 Nasvet**: Poiščite modele z določenimi zmožnostmi, ki ustrezajo vašemu primeru uporabe (npr. generiranje kode, kreativno pisanje, analiza).
 
-**⚠️ Opomba**: Modeli, gostovani na GitHubu (GitHub Models), so brezplačni za uporabo, vendar imajo omejitve glede števila zahtevkov in tokenov. Če želite dostopati do modelov, ki niso na GitHubu (npr. modeli, gostovani preko Azure AI ali drugih končnih točk), boste morali vnesti ustrezen API ključ ali avtentikacijo.
+**⚠️ Opomba**: Modeli, gostovani na GitHubu (t.j. GitHub modeli), so brezplačni za uporabo, vendar so omejeni glede števila zahtev in žetonov. Če želite dostopati do modelov, ki niso na GitHubu (zunanje modele, gostovane prek Azure AI ali drugih končnih točk), boste morali zagotoviti ustrezen API ključ ali avtentikacijo.
 
-### 🚀 Korak 2: Dodajte in konfigurirajte svoj prvi model
+### 🚀 Korak 2: Dodajanje in konfiguracija prvega modela
 
 **Strategija izbire modela:**
 - **GPT-4.1**: Najboljši za kompleksno razmišljanje in analizo
-- **Phi-4-mini**: Lahek in hiter za preproste naloge
+- **Phi-4-mini**: Lahek, hiter odziv za preproste naloge
 
 **🔧 Postopek konfiguracije:**
 1. Izberite **OpenAI GPT-4.1** iz kataloga
-2. Kliknite **Add to My Models** - model se registrira za uporabo
+2. Kliknite **Add to My Models** - s tem registrirate model za uporabo
 3. Izberite **Try in Playground** za zagon testnega okolja
 4. Počakajte na inicializacijo modela (prvič lahko traja nekaj trenutkov)
 
 ![Playground Setup](../../../../translated_images/sl/playground.dd6f5141344878ca.webp)
 
 **⚙️ Razumevanje parametrov modela:**
-- **Temperature**: Nadzoruje ustvarjalnost (0 = determinističen, 1 = ustvarjalen)
+- **Temperature**: Nadzoruje kreativnost (0 = determinističen, 1 = kreativen)
 - **Max Tokens**: Največja dolžina odgovora
 - **Top-p**: Nucleus sampling za raznolikost odgovorov
 
 ### 🎯 Korak 3: Obvladajte vmesnik Playground
 
-Playground je vaše laboratorij za AI eksperimentiranje. Tako lahko izkoristite njegov potencial:
+Playground je vaš laboratorij za eksperimentiranje z AI. Tako lahko kar najbolje izkoristite njegove zmogljivosti:
 
 **🎨 Najboljše prakse za oblikovanje pozivov:**
-1. **Bodite natančni**: Jasna in podrobna navodila prinesejo boljše rezultate
-2. **Podajte kontekst**: Vključite relevantne informacije v ozadju
-3. **Uporabite primere**: Pokažite modelu, kaj želite, s primeri
-4. **Iterirajte**: Izboljšujte pozive na podlagi prvih rezultatov
+1. **Bodite specifični**: Jasna, podrobna navodila dajo boljše rezultate
+2. **Obvestite kontekst**: Vključite ustrezne ozadinske informacije
+3. **Uporabite primere**: Modelu pokažite, kaj želite, z zgledi
+4. **Iterirajte**: Izboljšujte pozive glede na začetne rezultate
 
 **🧪 Testni scenariji:**
 ```markdown
@@ -119,44 +119,44 @@ Playground je vaše laboratorij za AI eksperimentiranje. Tako lahko izkoristite 
 
 ![Testing Results](../../../../translated_images/sl/result.1dfcf211fb359cf6.webp)
 
-### 🏆 Izziv: Primerjava zmogljivosti modelov
+### 🏆 Izziv: Primerjava uspešnosti modelov
 
-**🎯 Cilj**: Primerjajte različne modele z enakimi pozivi, da spoznate njihove prednosti
+**🎯 Cilj**: Primerjati različne modele z uporabo enakih pozivov in razumeti njihove prednosti
 
 **📋 Navodila:**
-1. Dodajte **Phi-4-mini** v svoje delovno okolje
-2. Uporabite isti poziv za GPT-4.1 in Phi-4-mini
+1. Dodajte **Phi-4-mini** v vaše delovno okolje
+2. Uporabite enak poziv za GPT-4.1 in Phi-4-mini
 
 ![set](../../../../translated_images/sl/set.88132df189ecde2c.webp)
 
-3. Primerjajte kakovost, hitrost in natančnost odgovorov
-4. Zabeležite ugotovitve v razdelek z rezultati
+3. Primerjajte kakovost odzivov, hitrost in natančnost
+4. Zabeležite svoje ugotovitve v razdelku z rezultati
 
 ![Model Comparison](../../../../translated_images/sl/compare.97746cd0f9074955.webp)
 
-**💡 Ključne ugotovitve:**
+**💡 Ključna spoznanja, ki jih želite odkriti:**
 - Kdaj uporabiti LLM proti SLM
-- Razmerje med stroški in zmogljivostjo
+- Izravnava stroškov in uspešnosti
 - Specializirane zmogljivosti različnih modelov
 
-## 🤖 Praktična vaja 2: Ustvarjanje prilagojenih agentov z Agent Builderjem
+## 🤖 Praktična vaja 2: Gradnja prilagojenih agentov z Agent Builder
 
-**🎯 Cilj**: Ustvariti specializirane AI agente za določene naloge in poteke dela
+**🎯 Cilj**: Ustvariti specializirane AI agente, prilagojene za določene naloge in delovne tokove
 
-### 🏗️ Korak 1: Spoznajte Agent Builder
+### 🏗️ Korak 1: Razumevanje Agent Builder
 
-Agent Builder je srce AI Toolkit-a. Omogoča ustvarjanje namensko zgrajenih AI pomočnikov, ki združujejo moč velikih jezikovnih modelov s prilagojenimi navodili, specifičnimi parametri in specializiranim znanjem.
+Agent Builder je tisti del Microsoft Foundry Toolkit, kjer resnično pride do izraza. Omogoča ustvarjanje AI pomočnikov po meri, ki združujejo moč velikih jezikovnih modelov z določenimi navodili, specifičnimi parametri in specializiranim znanjem.
 
 **🧠 Komponente arhitekture agenta:**
 - **Osnovni model**: Temeljni LLM (GPT-4, Groks, Phi itd.)
 - **Sistemski poziv**: Določa osebnost in vedenje agenta
 - **Parametri**: Nastavitve za optimalno delovanje
 - **Integracija orodij**: Povezava z zunanjimi API-ji in MCP storitvami
-- **Pomnilnik**: Kontekst pogovora in trajnost seje
+- **Memorija**: Kontekst pogovora in trajnost seje
 
 ![Agent Builder Interface](../../../../translated_images/sl/agentbuilder.25895b2d2f8c02e7.webp)
 
-### ⚙️ Korak 2: Podrobna konfiguracija agenta
+### ⚙️ Korak 2: Podroben pogled na konfiguracijo agenta
 
 **🎨 Ustvarjanje učinkovitih sistemskih pozivov:**
 ```markdown
@@ -182,15 +182,15 @@ Provide 2-3 examples of ideal interactions
 
 **🔧 Optimizacija parametrov:**
 | Parameter | Priporočeno območje | Primer uporabe |
-|-----------|--------------------|----------------|
+|-----------|------------------|----------|
 | **Temperature** | 0.1-0.3 | Tehnični/faktični odgovori |
-| **Temperature** | 0.7-0.9 | Ustvarjalne/idejne naloge |
+| **Temperature** | 0.7-0.9 | Kreativne/brainstorming naloge |
 | **Max Tokens** | 500-1000 | Jedrnati odgovori |
 | **Max Tokens** | 2000-4000 | Podrobna pojasnila |
 
-### 🐍 Korak 3: Praktična vaja - Python programerski agent
+### 🐍 Korak 3: Praktična vaja – agent za Python programiranje
 
-**🎯 Naloga**: Ustvarite specializiranega pomočnika za Python programiranje
+**🎯 Naloga**: Ustvariti specializiranega pomočnika za kodiranje v Pythonu
 
 **📋 Koraki konfiguracije:**
 
@@ -223,10 +223,10 @@ You are a senior Python developer with 10+ years of experience. You excel at wri
 - Write readable, maintainable code
 ```
 
-3. **Nastavitev parametrov**:
-   - Temperature: 0.2 (za dosledno in zanesljivo kodo)
+3. **Konfiguracija parametrov**:
+   - Temperature: 0.2 (za zanesljivo in dosledno kodo)
    - Max Tokens: 2000 (podrobna pojasnila)
-   - Top-p: 0.9 (uravnotežena ustvarjalnost)
+   - Top-p: 0.9 (uravnotežena kreativnost)
 
 ![Python Agent Configuration](../../../../translated_images/sl/pythonagent.5e51b406401c165f.webp)
 
@@ -234,14 +234,14 @@ You are a senior Python developer with 10+ years of experience. You excel at wri
 
 **Testni scenariji:**
 1. **Osnovna funkcija**: "Ustvari funkcijo za iskanje praštevil"
-2. **Kompleksen algoritem**: "Implementiraj binarno iskalno drevo z metodami za vstavljanje, brisanje in iskanje"
-3. **Praktična naloga**: "Naredi spletnega pajka, ki obvladuje omejitve zahtevkov in ponovitve"
-4. **Odpravljanje napak**: "Popravi to kodo [prilepi napako]"
+2. **Kompleksni algoritem**: "Implementiraj binarno iskalno drevo z metodami za vstavljanje, brisanje in iskanje"
+3. **Resnični problem**: "Zgradi spletnega pajka, ki upošteva omejitve števila zahtev in poskuse ponovitve"
+4. **Odpravljanje napak**: "Popravi to kodo [prilepi težavno kodo]"
 
 **🏆 Merila uspeha:**
 - ✅ Koda teče brez napak
-- ✅ Vključena ustrezna dokumentacija
-- ✅ Sledi najboljšim praksam za Python
+- ✅ Vključena je ustrezna dokumentacija
+- ✅ Sledi najboljšim praksam v Pythonu
 - ✅ Ponuja jasna pojasnila
 - ✅ Predlaga izboljšave
 
@@ -249,27 +249,31 @@ You are a senior Python developer with 10+ years of experience. You excel at wri
 
 ### 📊 Preverjanje znanja
 
-Preizkusite svoje razumevanje:
-- [ ] Ali znate razložiti razliko med modeli v katalogu?
-- [ ] Ste uspešno ustvarili in preizkusili prilagojenega agenta?
+Preizkusite svoje znanje:
+- [ ] Ali znate pojasniti razliko med modeli v katalogu?
+- [ ] Ste uspešno ustvarili in preizkusili lastnega agenta?
 - [ ] Ali razumete, kako optimizirati parametre za različne primere uporabe?
 - [ ] Ali znate oblikovati učinkovite sistemske pozive?
 
 ### 📚 Dodatni viri
 
-- **Dokumentacija AI Toolkit**: [Official Microsoft Docs](https://github.com/microsoft/vscode-ai-toolkit)
-- **Vodnik za oblikovanje pozivov**: [Best Practices](https://platform.openai.com/docs/guides/prompt-engineering)
-- **Modeli v AI Toolkit**: [Models in Development](https://github.com/microsoft/vscode-ai-toolkit/blob/main/doc/models.md)
+- **Dokumentacija Microsoft Foundry Toolkit**: [Uradna Microsoftova dokumentacija](https://github.com/microsoft/vscode-ai-toolkit)
+- **Vodnik za oblikovanje pozivov**: [Najboljše prakse](https://platform.openai.com/docs/guides/prompt-engineering)
+- **Modeli v Microsoft Foundry Toolkit**: [Modeli v razvoju](https://github.com/microsoft/vscode-ai-toolkit/blob/main/doc/models.md)
 
-**🎉 Čestitke!** Obvladali ste osnove AI Toolkit in ste pripravljeni na razvoj naprednejših AI aplikacij!
+**🎉 Čestitamo!** Obvladali ste osnove Microsoft Foundry Toolkit in ste pripravljeni graditi bolj napredne AI aplikacije!
 
 ### 🔜 Nadaljujte z naslednjim modulom
 
-Pripravljeni na naprednejše zmogljivosti? Nadaljujte z **[Modul 2: MCP z osnovami AI Toolkit](../lab2/README.md)**, kjer se boste naučili:
-- Povezovati svoje agente z zunanjimi orodji preko Model Context Protocol (MCP)
+Pripravljeni na bolj napredne zmogljivosti? Nadaljujte z **[Modulom 2: MCP z osnovami Microsoft Foundry Toolkit](../lab2/README.md)**, kjer se boste naučili:
+- Povezati svoje agente z zunanjimi orodji z uporabo Model Context Protocol (MCP)
 - Graditi agente za avtomatizacijo brskalnika z Playwright
-- Integrirati MCP strežnike z vašimi AI Toolkit agenti
+- Integrirati MCP strežnike s svojimi Microsoft Foundry Toolkit agenti
 - Okrepiti svoje agente z zunanjimi podatki in zmogljivostmi
 
-**Omejitev odgovornosti**:  
-Ta dokument je bil preveden z uporabo storitve za avtomatski prevod AI [Co-op Translator](https://github.com/Azure/co-op-translator). Čeprav si prizadevamo za natančnost, vas opozarjamo, da lahko avtomatizirani prevodi vsebujejo napake ali netočnosti. Izvirni dokument v njegovem izvirnem jeziku velja za avtoritativni vir. Za ključne informacije priporočamo strokovni človeški prevod. Za morebitna nesporazume ali napačne interpretacije, ki izhajajo iz uporabe tega prevoda, ne odgovarjamo.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Omejitev odgovornosti**:
+Ta dokument je bil preveden z uporabo AI prevajalske storitve [Co-op Translator](https://github.com/Azure/co-op-translator). Čeprav si prizadevamo za natančnost, vas prosimo, da upoštevate, da avtomatizirani prevodi lahko vsebujejo napake ali netočnosti. Izvirni dokument v njegovem izvirnem jeziku je treba obravnavati kot avtoritativni vir. Za kritične informacije je priporočljiv strokovni človeški prevod. Ne odgovarjamo za morebitna nesporazume ali napačne interpretacije, ki izhajajo iz uporabe tega prevoda.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

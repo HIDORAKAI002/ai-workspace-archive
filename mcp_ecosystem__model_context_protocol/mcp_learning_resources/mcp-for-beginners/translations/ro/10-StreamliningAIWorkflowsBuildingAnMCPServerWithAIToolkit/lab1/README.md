@@ -1,90 +1,90 @@
-# 🚀 Modulul 1: Fundamentele AI Toolkit
+# 🚀 Modulul 1: Fundamentele Microsoft Foundry Toolkit
 
 [![Durată](https://img.shields.io/badge/Duration-15%20minutes-blue.svg)]()
 [![Dificultate](https://img.shields.io/badge/Difficulty-Beginner-green.svg)]()
-[![Prerechizite](https://img.shields.io/badge/Prerequisites-VS%20Code-orange.svg)]()
+[![Precondiții](https://img.shields.io/badge/Prerequisites-VS%20Code-orange.svg)]()
 
 ## 📋 Obiective de învățare
 
-La finalul acestui modul, vei putea:
-- ✅ Instala și configura AI Toolkit pentru Visual Studio Code
-- ✅ Naviga prin Catalogul de Modele și înțelege diferitele surse de modele
-- ✅ Folosi Playground pentru testarea și experimentarea modelelor
-- ✅ Crea agenți AI personalizați folosind Agent Builder
-- ✅ Compara performanța modelelor între diferiți furnizori
-- ✅ Aplica cele mai bune practici pentru ingineria prompturilor
+La finalul acestui modul, vei fi capabil să:
+- ✅ Instalezi și configurezi extensia Microsoft Foundry Toolkit pentru VS Code
+- ✅ Navighezi în Catalogul de modele și înțelegi diferite surse de modele
+- ✅ Folosești Playground pentru testarea și experimentarea modelelor
+- ✅ Creezi agenți AI personalizați folosind Agent Builder
+- ✅ Compari performanța modelelor între diferiți furnizori
+- ✅ Aplici cele mai bune practici pentru ingineria prompturilor
 
-## 🧠 Introducere în AI Toolkit (AITK)
+## 🧠 Introducere în Microsoft Foundry Toolkit
 
-**AI Toolkit pentru Visual Studio Code** este extensia principală a Microsoft care transformă VS Code într-un mediu complet pentru dezvoltarea AI. Ea face legătura între cercetarea AI și dezvoltarea practică, făcând AI generativ accesibil dezvoltatorilor de toate nivelurile.
+**Extensia Microsoft Foundry Toolkit pentru VS Code** este extensia principală Microsoft care transformă VS Code într-un mediu complet de dezvoltare AI. Ea face legătura între cercetarea AI și dezvoltarea practică a aplicațiilor, făcând AI generativ accesibil dezvoltatorilor de toate nivelurile.
 
-### 🌟 Capacități cheie
+### 🌟 Capacități-cheie
 
 | Funcționalitate | Descriere | Caz de utilizare |
 |-----------------|-----------|------------------|
-| **🗂️ Catalog de Modele** | Acces la peste 100 de modele de pe GitHub, ONNX, OpenAI, Anthropic, Google | Descoperirea și selecția modelelor |
-| **🔌 Suport BYOM** | Integrează propriile modele (local/remote) | Implementare modele personalizate |
-| **🎮 Playground Interactiv** | Testare în timp real a modelelor cu interfață de chat | Prototipare rapidă și testare |
-| **📎 Suport Multi-Modal** | Lucrează cu text, imagini și atașamente | Aplicații AI complexe |
-| **⚡ Procesare în Batch** | Rulează mai multe prompturi simultan | Fluxuri de lucru eficiente pentru testare |
-| **📊 Evaluarea Modelului** | Metrice integrate (F1, relevanță, similaritate, coerență) | Evaluarea performanței |
+| **🗂️ Catalog de modele** | Acces la peste 100 de modele de pe GitHub, ONNX, OpenAI, Anthropic, Google | Descoperire și selecție de modele |
+| **🔌 Suport BYOM** | Integrează-ți propriile modele (local/remote) | Implementare de modele personalizate |
+| **🎮 Playground Interactiv** | Testarea modelelor în timp real cu interfață de chat | Prototipare și testare rapidă |
+| **📎 Suport multimodal** | Manipulează text, imagini și atașamente | Aplicații AI complexe |
+| **⚡ Procesare batch** | Rulează mai multe prompturi simultan | Fluxuri de testare eficiente |
+| **📊 Evaluarea modelelor** | Metrice integrate (F1, relevanță, similitudine, coerență) | Evaluare a performanței |
 
-### 🎯 De ce este important AI Toolkit
+### 🎯 De ce este important Microsoft Foundry Toolkit
 
 - **🚀 Dezvoltare accelerată**: De la idee la prototip în câteva minute
-- **🔄 Flux de lucru unificat**: O singură interfață pentru mai mulți furnizori AI
-- **🧪 Experimentare facilă**: Compară modele fără configurări complicate
+- **🔄 Flux unificat**: O singură interfață pentru mai mulți furnizori AI
+- **🧪 Experimentare ușoară**: Compară modele fără configurări complexe
 - **📈 Pregătit pentru producție**: Tranziție lină de la prototip la implementare
 
-## 🛠️ Prerechizite & Configurare
+## 🛠️ Precondiții & Configurare
 
-### 📦 Instalarea extensiei AI Toolkit
+### 📦 Instalarea extensiei Microsoft Foundry Toolkit
 
-**Pasul 1: Accesează Marketplace-ul de Extensii**
+**Pasul 1: Accesează piața de extensii**
 1. Deschide Visual Studio Code
 2. Navighează la vizualizarea Extensii (`Ctrl+Shift+X` sau `Cmd+Shift+X`)
-3. Caută „AI Toolkit”
+3. Caută „Microsoft Foundry Toolkit”
 
-**Pasul 2: Alege versiunea dorită**
-- **🟢 Release**: Recomandată pentru utilizare în producție
-- **🔶 Pre-release**: Acces timpuriu la funcții de ultimă oră
+**Pasul 2: Alege versiunea ta**
+- **🟢 Versiune stabilă**: Recomandată pentru utilizare în producție
+- **🔶 Versiune pre-release**: Acces anticipat la funcții de ultimă oră
 
 **Pasul 3: Instalează și activează**
 
-![Extensia AI Toolkit](../../../../translated_images/ro/aitkext.d28945a03eed003c.webp)
+![Microsoft Foundry Toolkit Extension](../../../../translated_images/ro/aitkext.d28945a03eed003c.webp)
 
-### ✅ Lista de verificare pentru confirmare
-- [ ] Iconița AI Toolkit apare în bara laterală VS Code
+### ✅ Listă de verificare pentru instalare
+- [ ] Iconița Microsoft Foundry Toolkit apare în bara laterală din VS Code
 - [ ] Extensia este activată și funcțională
-- [ ] Nu există erori de instalare în panoul de output
+- [ ] Nu există erori la instalare în panoul de output
 
-## 🧪 Exercițiu practic 1: Explorarea modelelor GitHub
+## 🧪 Exercițiul practic 1: Explorarea modelelor GitHub
 
-**🎯 Obiectiv**: Stăpânește Catalogul de Modele și testează primul tău model AI
+**🎯 Obiectiv**: Stăpânește Catalogul de modele și testează primul tău model AI
 
-### 📊 Pasul 1: Navighează în Catalogul de Modele
+### 📊 Pasul 1: Navighează în Catalogul de modele
 
-Catalogul de Modele este poarta ta către ecosistemul AI. Agregă modele de la mai mulți furnizori, facilitând descoperirea și compararea opțiunilor.
+Catalogul de modele este poarta ta către ecosistemul AI. El agregă modele de la mai mulți furnizori, facilitând descoperirea și compararea opțiunilor.
 
 **🔍 Ghid de navigare:**
 
-Click pe **MODELS - Catalog** în bara laterală AI Toolkit
+Click pe **MODELS - Catalog** în bara laterală Microsoft Foundry Toolkit
 
-![Catalogul de Modele](../../../../translated_images/ro/aimodel.263ed2be013d8fb0.webp)
+![Catalog de modele](../../../../translated_images/ro/aimodel.263ed2be013d8fb0.webp)
 
-**💡 Sfat util**: Caută modele cu capabilități specifice care se potrivesc cazului tău de utilizare (ex: generare de cod, scriere creativă, analiză).
+**💡 Sfat practic**: Caută modele cu capabilități specifice potrivite pentru cazul tău de utilizare (ex: generare de cod, scris creativ, analiză).
 
-**⚠️ Notă**: Modelele găzduite pe GitHub (adică GitHub Models) sunt gratuite, dar au limitări privind numărul de cereri și tokeni. Pentru a accesa modele non-GitHub (modele externe găzduite prin Azure AI sau alte endpoint-uri), va trebui să furnizezi cheia API sau autentificarea corespunzătoare.
+**⚠️ Notă**: Modelele găzduite pe GitHub (adică Modele GitHub) sunt gratuite, dar sunt supuse unor limite de rată pentru cereri și tokenuri. Pentru a accesa modele non-GitHub (modele externe găzduite prin Azure AI sau alte endpointuri), trebuie să furnizezi cheia API sau autentificarea corespunzătoare.
 
-### 🚀 Pasul 2: Adaugă și configurează primul tău model
+### 🚀 Pasul 2: Adaugă și configurează primul model
 
-**Strategia de selecție a modelului:**
-- **GPT-4.1**: Ideal pentru raționamente complexe și analiză
+**Strategie de selecție a modelului:**
+- **GPT-4.1**: Cel mai bun pentru raționament complex și analiză
 - **Phi-4-mini**: Ușor, răspunsuri rapide pentru sarcini simple
 
-**🔧 Procesul de configurare:**
+**🔧 Proces de configurare:**
 1. Selectează **OpenAI GPT-4.1** din catalog
-2. Apasă pe **Add to My Models** - astfel modelul este înregistrat pentru utilizare
+2. Click pe **Add to My Models** - înregistrează modelul pentru utilizare
 3. Alege **Try in Playground** pentru a lansa mediul de testare
 4. Așteaptă inițializarea modelului (configurarea inițială poate dura puțin)
 
@@ -93,17 +93,17 @@ Click pe **MODELS - Catalog** în bara laterală AI Toolkit
 **⚙️ Înțelegerea parametrilor modelului:**
 - **Temperature**: Controlează creativitatea (0 = determinist, 1 = creativ)
 - **Max Tokens**: Lungimea maximă a răspunsului
-- **Top-p**: Eșantionare nucleu pentru diversitatea răspunsului
+- **Top-p**: Sampling tip nucleu pentru diversitatea răspunsului
 
 ### 🎯 Pasul 3: Stăpânește interfața Playground
 
 Playground este laboratorul tău de experimentare AI. Iată cum să-i maximizezi potențialul:
 
 **🎨 Cele mai bune practici pentru ingineria prompturilor:**
-1. **Fii specific**: Instrucțiuni clare și detaliate aduc rezultate mai bune
+1. **Fii specific**: Instrucțiuni clare și detaliate oferă rezultate mai bune
 2. **Oferă context**: Include informații relevante de fundal
-3. **Folosește exemple**: Arată modelului ce dorești prin exemple
-4. **Iterează**: Ajustează prompturile pe baza rezultatelor inițiale
+3. **Folosește exemple**: Arată modelului ce dorești cu exemple
+4. **Iterează**: Ajustează prompturile în funcție de rezultatele inițiale
 
 **🧪 Scenarii de testare:**
 ```markdown
@@ -117,48 +117,48 @@ Playground este laboratorul tău de experimentare AI. Iată cum să-i maximizezi
 "Analyze this sales data and provide insights: [paste your data]. Focus on trends, anomalies, and actionable recommendations."
 ```
 
-![Rezultatele testării](../../../../translated_images/ro/result.1dfcf211fb359cf6.webp)
+![Rezultate test](../../../../translated_images/ro/result.1dfcf211fb359cf6.webp)
 
 ### 🏆 Exercițiu provocare: Compararea performanței modelelor
 
 **🎯 Scop**: Compară diferite modele folosind aceleași prompturi pentru a înțelege punctele lor forte
 
 **📋 Instrucțiuni:**
-1. Adaugă **Phi-4-mini** în spațiul tău de lucru
+1. Adaugă **Phi-4-mini** în spațiul de lucru
 2. Folosește același prompt pentru GPT-4.1 și Phi-4-mini
 
 ![set](../../../../translated_images/ro/set.88132df189ecde2c.webp)
 
-3. Compară calitatea răspunsurilor, viteza și acuratețea
-4. Documentează concluziile în secțiunea de rezultate
+3. Compară calitatea răspunsului, viteza și acuratețea
+4. Documentează concluziile în secțiunea rezultate
 
 ![Compararea modelelor](../../../../translated_images/ro/compare.97746cd0f9074955.webp)
 
-**💡 Aspecte cheie de descoperit:**
+**💡 Descoperiri-cheie:**
 - Când să folosești LLM vs SLM
-- Compromisuri între cost și performanță
+- Raportul cost vs performanță
 - Capabilități specializate ale diferitelor modele
 
-## 🤖 Exercițiu practic 2: Construirea agenților personalizați cu Agent Builder
+## 🤖 Exercițiul practic 2: Construirea de agenți personalizați cu Agent Builder
 
-**🎯 Obiectiv**: Creează agenți AI specializați pentru sarcini și fluxuri de lucru specifice
+**🎯 Obiectiv**: Creează agenți AI specializați adaptați pentru sarcini și fluxuri de lucru specifice
 
 ### 🏗️ Pasul 1: Înțelegerea Agent Builder
 
-Agent Builder este punctul forte al AI Toolkit. Îți permite să creezi asistenți AI dedicați care combină puterea modelelor mari de limbaj cu instrucțiuni personalizate, parametri specifici și cunoștințe specializate.
+Agent Builder este locul în care Microsoft Foundry Toolkit strălucește cu adevărat. Îți permite să creezi asistenți AI specifici, care combină puterea modelelor mari de limbaj cu instrucțiuni personalizate, parametri specifici și cunoștințe specializate.
 
-**🧠 Componentele arhitecturii agentului:**
-- **Modelul de bază**: LLM-ul fundamental (GPT-4, Groks, Phi etc.)
-- **System Prompt**: Definește personalitatea și comportamentul agentului
-- **Parametri**: Setări fine pentru performanță optimă
-- **Integrarea uneltelor**: Conectare la API-uri externe și servicii MCP
-- **Memorie**: Contextul conversației și persistența sesiunii
+**🧠 Componente arhitecturale ale agentului:**
+- **Modelul de bază**: Modelul LLM fundamental (GPT-4, Groks, Phi etc.)
+- **Promptul sistem**: Definirea personalității și comportamentului agentului
+- **Parametrii**: Setări fine pentru performanță optimă
+- **Integrarea uneltelor**: Conectarea la API externe și servicii MCP
+- **Memoria**: Contextul conversației și persistența sesiunii
 
 ![Interfața Agent Builder](../../../../translated_images/ro/agentbuilder.25895b2d2f8c02e7.webp)
 
-### ⚙️ Pasul 2: Detalii despre configurarea agentului
+### ⚙️ Pasul 2: Detaliu configurare agent
 
-**🎨 Crearea unor System Prompt eficiente:**
+**🎨 Crearea de prompturi sistem eficiente:**
 ```markdown
 # Template Structure:
 ## Role Definition
@@ -178,12 +178,12 @@ You are a [specific role] with expertise in [domain].
 Provide 2-3 examples of ideal interactions
 ```
 
-*Desigur, poți folosi și Generate System Prompt pentru a lăsa AI să te ajute să generezi și optimizezi prompturile*
+*Desigur, poți folosi și Generate System Prompt pentru a folosi AI în generarea și optimizarea prompturilor*
 
 **🔧 Optimizarea parametrilor:**
 | Parametru | Interval recomandat | Caz de utilizare |
 |-----------|---------------------|------------------|
-| **Temperature** | 0.1-0.3 | Răspunsuri tehnice/factuale |
+| **Temperature** | 0.1-0.3 | Răspunsuri tehnice/factice |
 | **Temperature** | 0.7-0.9 | Sarcini creative/de brainstorming |
 | **Max Tokens** | 500-1000 | Răspunsuri concise |
 | **Max Tokens** | 2000-4000 | Explicații detaliate |
@@ -196,7 +196,7 @@ Provide 2-3 examples of ideal interactions
 
 1. **Selectarea modelului**: Alege **Claude 3.5 Sonnet** (excelent pentru cod)
 
-2. **Designul System Prompt:**
+2. **Designul promptului sistem**:
 ```markdown
 # Python Programming Expert Agent
 
@@ -224,52 +224,56 @@ You are a senior Python developer with 10+ years of experience. You excel at wri
 ```
 
 3. **Configurarea parametrilor**:
-   - Temperature: 0.2 (pentru cod consistent și fiabil)
+   - Temperature: 0.2 (pentru cod constant și fiabil)
    - Max Tokens: 2000 (explicații detaliate)
    - Top-p: 0.9 (creativitate echilibrată)
 
-![Configurarea agentului Python](../../../../translated_images/ro/pythonagent.5e51b406401c165f.webp)
+![Configurare agent Python](../../../../translated_images/ro/pythonagent.5e51b406401c165f.webp)
 
-### 🧪 Pasul 4: Testarea agentului tău Python
+### 🧪 Pasul 4: Testarea agentului Python
 
-**Scenarii de testare:**
+**Scenarii de test:**
 1. **Funcție de bază**: „Creează o funcție pentru găsirea numerelor prime”
-2. **Algoritm complex**: „Implementează un arbore binar de căutare cu metodele insert, delete și search”
-3. **Problemă din lumea reală**: „Construiește un web scraper care gestionează limitarea ratei și retry-uri”
-4. **Debugging**: „Corectează acest cod [lipește codul cu erori]”
+2. **Algoritm complex**: „Implementează un arbore binar de căutare cu metode de inserare, ștergere și căutare”
+3. **Problema din lumea reală**: „Construiește un web scraper care gestionează limitarea ratelor și retry-uri”
+4. **Debugging**: „Remediază acest cod [lipește cod buggy]”
 
 **🏆 Criterii de succes:**
 - ✅ Codul rulează fără erori
-- ✅ Include documentație adecvată
-- ✅ Urmează cele mai bune practici Python
+- ✅ Include documentație corespunzătoare
+- ✅ Respectă bunele practici Python
 - ✅ Oferă explicații clare
 - ✅ Sugerează îmbunătățiri
 
-## 🎓 Încheiere Modul 1 & Pașii următori
+## 🎓 Recapitulare Modul 1 & Pași următori
 
 ### 📊 Verificare cunoștințe
 
 Testează-ți înțelegerea:
 - [ ] Poți explica diferențele dintre modelele din catalog?
 - [ ] Ai creat și testat cu succes un agent personalizat?
-- [ ] Înțelegi cum să optimizezi parametrii pentru diferite cazuri de utilizare?
-- [ ] Poți crea prompturi eficiente pentru sistem?
+- [ ] Înțelegi cum să optimizezi parametri pentru diverse cazuri?
+- [ ] Poți proiecta prompturi de sistem eficiente?
 
 ### 📚 Resurse suplimentare
 
-- **Documentația AI Toolkit**: [Documentația oficială Microsoft](https://github.com/microsoft/vscode-ai-toolkit)
+- **Documentația Microsoft Foundry Toolkit**: [Documentația oficială Microsoft](https://github.com/microsoft/vscode-ai-toolkit)
 - **Ghid de inginerie a prompturilor**: [Cele mai bune practici](https://platform.openai.com/docs/guides/prompt-engineering)
-- **Modele în AI Toolkit**: [Modele în dezvoltare](https://github.com/microsoft/vscode-ai-toolkit/blob/main/doc/models.md)
+- **Modele în Microsoft Foundry Toolkit**: [Modele în dezvoltare](https://github.com/microsoft/vscode-ai-toolkit/blob/main/doc/models.md)
 
-**🎉 Felicitări!** Ai stăpânit fundamentele AI Toolkit și ești pregătit să construiești aplicații AI mai avansate!
+**🎉 Felicitări!** Ai stăpânit fundamentele Microsoft Foundry Toolkit și ești gata să construiești aplicații AI mai avansate!
 
 ### 🔜 Continuă cu următorul modul
 
-Ești gata pentru funcționalități mai avansate? Continuă cu **[Modulul 2: MCP cu fundamente AI Toolkit](../lab2/README.md)** unde vei învăța cum să:
-- Conectezi agenții la unelte externe folosind Model Context Protocol (MCP)
-- Construiești agenți de automatizare a browserului cu Playwright
-- Integrezi servere MCP cu agenții tăi AI Toolkit
+Pregătit pentru capabilități mai avansate? Continuă cu **[Modulul 2: MCP cu Microsoft Foundry Toolkit Fundamentals](../lab2/README.md)** unde vei învăța cum să:
+- Conectezi agenții tăi la unelte externe folosind Model Context Protocol (MCP)
+- Construiești agenți de automatizare cu Playwright
+- Integrezi servere MCP cu agenții Microsoft Foundry Toolkit
 - Îmbunătățești agenții cu date și capabilități externe
 
-**Declinare de responsabilitate**:  
-Acest document a fost tradus folosind serviciul de traducere AI [Co-op Translator](https://github.com/Azure/co-op-translator). Deși ne străduim pentru acuratețe, vă rugăm să rețineți că traducerile automate pot conține erori sau inexactități. Documentul original în limba sa nativă trebuie considerat sursa autorizată. Pentru informații critice, se recomandă traducerea profesională realizată de un specialist uman. Nu ne asumăm răspunderea pentru eventualele neînțelegeri sau interpretări greșite rezultate din utilizarea acestei traduceri.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Declinare a responsabilității**:
+Acest document a fost tradus folosind serviciul de traducere AI [Co-op Translator](https://github.com/Azure/co-op-translator). În timp ce ne străduim pentru acuratețe, vă rugăm să rețineți că traducerile automate pot conține erori sau inexactități. Documentul original în limba sa nativă trebuie considerat sursa autorizată. Pentru informații critice, se recomandă traducerea profesională realizată de un om. Nu ne asumăm responsabilitatea pentru eventualele neînțelegeri sau interpretări greșite care decurg din utilizarea acestei traduceri.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

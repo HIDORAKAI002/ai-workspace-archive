@@ -1,113 +1,113 @@
 # การตั้งค่าสภาพแวดล้อม
 
-## 🎯 สิ่งที่คุณจะได้เรียนรู้ในห้องปฏิบัติการนี้
+## 🎯 สิ่งที่ห้องปฏิบัติการนี้ครอบคลุม
 
-ห้องปฏิบัติการนี้จะช่วยคุณตั้งค่าสภาพแวดล้อมการพัฒนาแบบครบวงจรสำหรับการสร้างเซิร์ฟเวอร์ MCP ที่มีการผสานรวมกับ PostgreSQL คุณจะได้ตั้งค่าเครื่องมือที่จำเป็นทั้งหมด, ใช้ทรัพยากร Azure และตรวจสอบการตั้งค่าของคุณก่อนเริ่มการพัฒนา
+ห้องปฏิบัติการเชิงปฏิบัติการนี้จะแนะนำคุณในการตั้งค่าสภาพแวดล้อมการพัฒนาอย่างครบถ้วนสำหรับการสร้างเซิร์ฟเวอร์ MCP พร้อมการรวม PostgreSQL คุณจะกำหนดค่าทุกเครื่องมือที่จำเป็น ติดตั้งทรัพยากร Azure และตรวจสอบการตั้งค่าของคุณก่อนดำเนินการขั้นตอนการใช้งาน
 
 ## ภาพรวม
 
-การมีสภาพแวดล้อมการพัฒนาที่เหมาะสมเป็นสิ่งสำคัญสำหรับการพัฒนาเซิร์ฟเวอร์ MCP ห้องปฏิบัติการนี้มีคำแนะนำทีละขั้นตอนสำหรับการตั้งค่า Docker, บริการ Azure, เครื่องมือพัฒนา และการตรวจสอบให้แน่ใจว่าทุกอย่างทำงานร่วมกันได้อย่างถูกต้อง
+สภาพแวดล้อมการพัฒนาที่เหมาะสมมีความสำคัญสำหรับความสำเร็จในการพัฒนาเซิร์ฟเวอร์ MCP ห้องปฏิบัติการนี้ให้คำแนะนำทีละขั้นตอนสำหรับการตั้งค่า Docker, บริการ Azure, เครื่องมือพัฒนา และการตรวจสอบว่าสิ่งต่างๆ ทำงานร่วมกันได้อย่างถูกต้อง
 
-เมื่อจบห้องปฏิบัติการนี้ คุณจะมีสภาพแวดล้อมการพัฒนาที่พร้อมสำหรับการสร้างเซิร์ฟเวอร์ MCP ของ Zava Retail
+เมื่อสิ้นสุดห้องปฏิบัติการนี้ คุณจะมีสภาพแวดล้อมการพัฒนาที่ทำงานอย่างสมบูรณ์พร้อมสำหรับการสร้างเซิร์ฟเวอร์ Zava Retail MCP
 
 ## วัตถุประสงค์การเรียนรู้
 
-เมื่อจบห้องปฏิบัติการนี้ คุณจะสามารถ:
+เมื่อสิ้นสุดห้องปฏิบัติการนี้ คุณจะสามารถ:
 
-- **ติดตั้งและตั้งค่า** เครื่องมือพัฒนาที่จำเป็นทั้งหมด
-- **ใช้ทรัพยากร Azure** ที่จำเป็นสำหรับเซิร์ฟเวอร์ MCP
-- **ตั้งค่า Docker containers** สำหรับ PostgreSQL และเซิร์ฟเวอร์ MCP
-- **ตรวจสอบ** การตั้งค่าสภาพแวดล้อมของคุณด้วยการเชื่อมต่อทดสอบ
-- **แก้ไขปัญหา** การตั้งค่าที่พบได้ทั่วไปและปัญหาการกำหนดค่า
-- **เข้าใจ** เวิร์กโฟลว์การพัฒนาและโครงสร้างไฟล์
+- **ติดตั้งและกำหนดค่า** เครื่องมือพัฒนาที่จำเป็นทั้งหมด  
+- **ติดตั้งทรัพยากร Azure** ที่ต้องการสำหรับเซิร์ฟเวอร์ MCP  
+- **ตั้งค่าคอนเทนเนอร์ Docker** สำหรับ PostgreSQL และเซิร์ฟเวอร์ MCP  
+- **ตรวจสอบ** การตั้งค่าสภาพแวดล้อมของคุณด้วยการเชื่อมต่อทดสอบ  
+- **แก้ไขปัญหา** ปัญหาการตั้งค่าที่พบบ่อยและปัญหาการกำหนดค่า  
+- **เข้าใจ** กระบวนการทำงานและโครงสร้างไฟล์
 
 ## 📋 การตรวจสอบความพร้อมก่อนเริ่ม
 
 ก่อนเริ่มต้น โปรดตรวจสอบว่าคุณมี:
 
 ### ความรู้ที่จำเป็น
-- การใช้งานคำสั่งพื้นฐาน (Windows Command Prompt/PowerShell)
-- ความเข้าใจเกี่ยวกับตัวแปรสภาพแวดล้อม
-- ความคุ้นเคยกับการควบคุมเวอร์ชัน Git
-- แนวคิดพื้นฐานเกี่ยวกับ Docker (containers, images, volumes)
+- การใช้งานบรรทัดคำสั่งพื้นฐาน (Windows Command Prompt/PowerShell)  
+- ความเข้าใจเกี่ยวกับตัวแปรสภาพแวดล้อม  
+- ความคุ้นเคยกับการควบคุมเวอร์ชันผ่าน Git  
+- แนวคิดพื้นฐานเกี่ยวกับ Docker (คอนเทนเนอร์, อิมเมจ, โวลุ่ม)
 
-### ความต้องการของระบบ
-- **ระบบปฏิบัติการ**: Windows 10/11, macOS หรือ Linux
-- **RAM**: ขั้นต่ำ 8GB (แนะนำ 16GB)
-- **พื้นที่เก็บข้อมูล**: อย่างน้อย 10GB พื้นที่ว่าง
-- **เครือข่าย**: การเชื่อมต่ออินเทอร์เน็ตสำหรับการดาวน์โหลดและการใช้งาน Azure
+### ข้อกำหนดของระบบ
+- **ระบบปฏิบัติการ**: Windows 10/11, macOS หรือ Linux  
+- **แรม**: อย่างน้อย 8GB (แนะนำ 16GB)  
+- **พื้นที่เก็บข้อมูล**: อย่างน้อย 10GB ว่าง  
+- **เครือข่าย**: การเชื่อมต่ออินเทอร์เน็ตสำหรับดาวน์โหลดและติดตั้ง Azure
 
-### ความต้องการบัญชี
-- **การสมัครสมาชิก Azure**: ระดับฟรีก็เพียงพอ
-- **บัญชี GitHub**: สำหรับการเข้าถึง repository
-- **บัญชี Docker Hub**: (ไม่บังคับ) สำหรับการเผยแพร่ image แบบกำหนดเอง
+### ข้อกำหนดบัญชี
+- **บัญชี Azure**: ฟรี Tier ก็เพียงพอ  
+- **บัญชี GitHub**: สำหรับเข้าถึงที่เก็บโค้ด  
+- **บัญชี Docker Hub**: (ไม่บังคับ) สำหรับการเผยแพร่อิมเมจของคุณเอง
 
 ## 🛠️ การติดตั้งเครื่องมือ
 
 ### 1. ติดตั้ง Docker Desktop
 
-Docker ให้สภาพแวดล้อมแบบ containerized สำหรับการตั้งค่าการพัฒนาของเรา
+Docker ให้สภาพแวดล้อมแบบคอนเทนเนอร์สำหรับการตั้งค่าสำหรับการพัฒนา
 
 #### การติดตั้งบน Windows
 
-1. **ดาวน์โหลด Docker Desktop**:
+1. **ดาวน์โหลด Docker Desktop**:  
    ```cmd
    # Visit https://desktop.docker.com/win/stable/Docker%20Desktop%20Installer.exe
    # Or use Windows Package Manager
    winget install Docker.DockerDesktop
    ```
+  
+2. **ติดตั้งและกำหนดค่า**:  
+   - รันตัวติดตั้งในฐานะผู้ดูแลระบบ  
+   - เปิดใช้งานการรวม WSL 2 เมื่อระบบแจ้ง  
+   - รีสตาร์ทคอมพิวเตอร์เมื่อการติดตั้งเสร็จสมบูรณ์  
 
-2. **ติดตั้งและตั้งค่า**:
-   - รันตัวติดตั้งในฐานะผู้ดูแลระบบ
-   - เปิดใช้งานการผสานรวม WSL 2 เมื่อมีการแจ้งเตือน
-   - รีสตาร์ทคอมพิวเตอร์เมื่อการติดตั้งเสร็จสิ้น
-
-3. **ตรวจสอบการติดตั้ง**:
+3. **ตรวจสอบการติดตั้ง**:  
    ```cmd
    docker --version
    docker-compose --version
    ```
-
+  
 #### การติดตั้งบน macOS
 
-1. **ดาวน์โหลดและติดตั้ง**:
+1. **ดาวน์โหลดและติดตั้ง**:  
    ```bash
-   # Download from https://desktop.docker.com/mac/stable/Docker.dmg
-   # Or use Homebrew
+   # ดาวน์โหลดจาก https://desktop.docker.com/mac/stable/Docker.dmg
+   # หรือใช้ Homebrew
    brew install --cask docker
    ```
+  
+2. **เริ่มต้น Docker Desktop**:  
+   - เปิด Docker Desktop จาก Applications  
+   - ทำตามวอร์ซาร์ดการตั้งค่าเริ่มต้นให้ครบถ้วน  
 
-2. **เริ่ม Docker Desktop**:
-   - เปิด Docker Desktop จาก Applications
-   - ทำตามตัวช่วยตั้งค่าเริ่มต้น
-
-3. **ตรวจสอบการติดตั้ง**:
+3. **ตรวจสอบการติดตั้ง**:  
    ```bash
    docker --version
    docker-compose --version
    ```
-
+  
 #### การติดตั้งบน Linux
 
-1. **ติดตั้ง Docker Engine**:
+1. **ติดตั้ง Docker Engine**:  
    ```bash
    # Ubuntu/Debian
    curl -fsSL https://get.docker.com -o get-docker.sh
    sudo sh get-docker.sh
    sudo usermod -aG docker $USER
    
-   # Log out and back in for group changes to take effect
+   # ออกจากระบบแล้วเข้าสู่ระบบใหม่เพื่อให้การเปลี่ยนแปลงกลุ่มมีผล
    ```
-
-2. **ติดตั้ง Docker Compose**:
+  
+2. **ติดตั้ง Docker Compose**:  
    ```bash
    sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
    sudo chmod +x /usr/local/bin/docker-compose
    ```
-
+  
 ### 2. ติดตั้ง Azure CLI
 
-Azure CLI ช่วยให้สามารถใช้งานและจัดการทรัพยากร Azure ได้
+Azure CLI ช่วยให้คุณติดตั้งและจัดการทรัพยากร Azure ได้
 
 #### การติดตั้งบน Windows
 
@@ -117,17 +117,17 @@ winget install Microsoft.AzureCLI
 
 # Or download MSI from: https://aka.ms/installazurecliwindows
 ```
-
+  
 #### การติดตั้งบน macOS
 
 ```bash
-# Using Homebrew
+# การใช้ Homebrew
 brew install azure-cli
 
-# Or using installer
+# หรือใช้ตัวติดตั้ง
 curl -L https://aka.ms/InstallAzureCli | bash
 ```
-
+  
 #### การติดตั้งบน Linux
 
 ```bash
@@ -138,24 +138,24 @@ curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
 sudo dnf install azure-cli
 ```
-
-#### การตรวจสอบและการรับรองความถูกต้อง
+  
+#### ตรวจสอบและลงชื่อเข้าใช้
 
 ```bash
-# Check installation
+# ตรวจสอบการติดตั้ง
 az version
 
-# Login to Azure
+# เข้าสู่ระบบ Azure
 az login
 
-# Set default subscription (if you have multiple)
+# ตั้งค่าการสมัครใช้งานเริ่มต้น (ถ้าคุณมีหลายรายการ)
 az account list --output table
 az account set --subscription "Your-Subscription-Name"
 ```
-
+  
 ### 3. ติดตั้ง Git
 
-Git จำเป็นสำหรับการโคลน repository และการควบคุมเวอร์ชัน
+Git จำเป็นสำหรับการโคลนที่เก็บและการควบคุมเวอร์ชัน
 
 #### Windows
 
@@ -165,27 +165,27 @@ winget install Git.Git
 
 # Or download from: https://git-scm.com/download/win
 ```
-
+  
 #### macOS
 
 ```bash
-# Git is usually pre-installed, but you can update via Homebrew
+# Git มักจะถูกติดตั้งไว้ล่วงหน้าแล้ว แต่คุณสามารถอัปเดตผ่าน Homebrew ได้
 brew install git
 ```
-
+  
 #### Linux
 
 ```bash
-# Ubuntu/Debian
+# อูบุนตู/เดเบียน
 sudo apt update && sudo apt install git
 
-# RHEL/CentOS
+# อาร์เฮล/เซ็นต์โอเอส
 sudo dnf install git
 ```
-
+  
 ### 4. ติดตั้ง VS Code
 
-Visual Studio Code เป็นสภาพแวดล้อมการพัฒนาที่มีการสนับสนุน MCP
+Visual Studio Code ให้สภาพแวดล้อมการพัฒนาที่บูรณาการพร้อมกับการสนับสนุน MCP
 
 #### การติดตั้ง
 
@@ -199,27 +199,27 @@ brew install --cask visual-studio-code
 # Linux (Ubuntu/Debian)
 sudo snap install code --classic
 ```
-
+  
 #### ส่วนขยายที่จำเป็น
 
 ติดตั้งส่วนขยาย VS Code เหล่านี้:
 
 ```bash
-# Install via command line
+# ติดตั้งผ่านบรรทัดคำสั่ง
 code --install-extension ms-python.python
 code --install-extension ms-vscode.vscode-json
 code --install-extension ms-azuretools.vscode-docker
 code --install-extension ms-vscode.azure-account
 ```
-
-หรือ ติดตั้งผ่าน VS Code:
-1. เปิด VS Code
-2. ไปที่ Extensions (Ctrl+Shift+X)
-3. ติดตั้ง:
-   - **Python** (Microsoft)
-   - **Docker** (Microsoft)
-   - **Azure Account** (Microsoft)
-   - **JSON** (Microsoft)
+  
+หรือจะติดตั้งผ่าน VS Code:  
+1. เปิด VS Code  
+2. ไปที่ Extensions (Ctrl+Shift+X)  
+3. ติดตั้ง:  
+   - **Python** (Microsoft)  
+   - **Docker** (Microsoft)  
+   - **Azure Account** (Microsoft)  
+   - **JSON** (Microsoft)  
 
 ### 5. ติดตั้ง Python
 
@@ -233,14 +233,14 @@ winget install Python.Python.3.11
 
 # Or download from: https://www.python.org/downloads/
 ```
-
+  
 #### macOS
 
 ```bash
-# Using Homebrew
+# การใช้ Homebrew
 brew install python@3.11
 ```
-
+  
 #### Linux
 
 ```bash
@@ -250,77 +250,77 @@ sudo apt update && sudo apt install python3.11 python3.11-pip python3.11-venv
 # RHEL/CentOS
 sudo dnf install python3.11 python3.11-pip
 ```
-
+  
 #### ตรวจสอบการติดตั้ง
 
 ```bash
-python --version  # Should show Python 3.11.x
-pip --version      # Should show pip version
+python --version  # ควรแสดง Python 3.11.x
+pip --version      # ควรแสดงเวอร์ชันของ pip
 ```
-
+  
 ## 🚀 การตั้งค่าโปรเจกต์
 
-### 1. โคลน Repository
+### 1. โคลนที่เก็บโค้ด
 
 ```bash
-# Clone the main repository
+# โคลนที่เก็บหลัก
 git clone https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail.git
 
-# Navigate to the project directory
+# ไปยังไดเรกทอรีโครงการ
 cd MCP-Server-and-PostgreSQL-Sample-Retail
 
-# Verify repository structure
+# ตรวจสอบโครงสร้างของที่เก็บข้อมูล
 ls -la
 ```
-
+  
 ### 2. สร้าง Python Virtual Environment
 
 ```bash
-# Create virtual environment
+# สร้างสภาพแวดล้อมเสมือน
 python -m venv mcp-env
 
-# Activate virtual environment
-# Windows
+# เปิดใช้งานสภาพแวดล้อมเสมือน
+# วินโดวส์
 mcp-env\Scripts\activate
 
-# macOS/Linux
+# แมคโอเอส/ลินุกซ์
 source mcp-env/bin/activate
 
-# Upgrade pip
+# อัปเกรด pip
 python -m pip install --upgrade pip
 ```
-
-### 3. ติดตั้ง Python Dependencies
+  
+### 3. ติดตั้ง dependencies ของ Python
 
 ```bash
-# Install development dependencies
+# ติดตั้ง dependencies สำหรับการพัฒนา
 pip install -r requirements.lock.txt
 
-# Verify key packages
+# ตรวจสอบแพ็กเกจสำคัญ
 pip list | grep fastmcp
 pip list | grep asyncpg
 pip list | grep azure
 ```
+  
+## ☁️ การติดตั้งทรัพยากร Azure
 
-## ☁️ การใช้งานทรัพยากร Azure
+### 1. เข้าใจข้อกำหนดทรัพยากร
 
-### 1. เข้าใจความต้องการทรัพยากร
+เซิร์ฟเวอร์ MCP ของเราต้องการทรัพยากร Azure ดังนี้:
 
-เซิร์ฟเวอร์ MCP ของเราต้องการทรัพยากร Azure เหล่านี้:
+| **ทรัพยากร** | **วัตถุประสงค์** | **ประมาณค่าใช้จ่าย** |
+|--------------|-------------|-------------------|
+| **Microsoft Foundry** | โฮสต์และจัดการโมเดล AI | $10-50/เดือน |
+| **OpenAI Deployment** | โมเดลแปลงข้อความ (text-embedding-3-small) | $5-20/เดือน |
+| **Application Insights** | การตรวจสอบและเทเลเมทรี | $5-15/เดือน |
+| **Resource Group** | การจัดการทรัพยากร | ฟรี |
 
-| **ทรัพยากร** | **วัตถุประสงค์** | **ค่าใช้จ่ายโดยประมาณ** |
-|---------------|--------------------|--------------------------|
-| **Azure AI Foundry** | การโฮสต์และการจัดการโมเดล AI | $10-50/เดือน |
-| **OpenAI Deployment** | โมเดลการฝังข้อความ (text-embedding-3-small) | $5-20/เดือน |
-| **Application Insights** | การตรวจสอบและการวิเคราะห์ | $5-15/เดือน |
-| **Resource Group** | การจัดระเบียบทรัพยากร | ฟรี |
+### 2. ติดตั้งทรัพยากร Azure
 
-### 2. ใช้งานทรัพยากร Azure
-
-#### ตัวเลือก A: การใช้งานแบบอัตโนมัติ (แนะนำ)
+#### ทางเลือก A: การติดตั้งอัตโนมัติ (แนะนำ)
 
 ```bash
-# Navigate to infrastructure directory
+# ไปที่ไดเรกทอรี infrastructure
 cd infra
 
 # Windows - PowerShell
@@ -329,57 +329,57 @@ cd infra
 # macOS/Linux - Bash
 ./deploy.sh
 ```
+  
+สคริปต์การติดตั้งจะ:  
+1. สร้าง resource group ที่ไม่ซ้ำกัน  
+2. ติดตั้งทรัพยากร Microsoft Foundry  
+3. ติดตั้งโมเดล text-embedding-3-small  
+4. กำหนดค่า Application Insights  
+5. สร้าง service principal สำหรับการรับรองตัวตน  
+6. สร้างไฟล์ `.env` พร้อมการตั้งค่า  
 
-สคริปต์การใช้งานจะ:
-1. สร้าง resource group ที่ไม่ซ้ำกัน
-2. ใช้งานทรัพยากร Azure AI Foundry
-3. ใช้งานโมเดล text-embedding-3-small
-4. ตั้งค่า Application Insights
-5. สร้าง service principal สำหรับการรับรองความถูกต้อง
-6. สร้างไฟล์ `.env` พร้อมการกำหนดค่า
+#### ทางเลือก B: การติดตั้งด้วยตนเอง
 
-#### ตัวเลือก B: การใช้งานแบบแมนนวล
-
-หากคุณต้องการควบคุมด้วยตนเองหรือสคริปต์อัตโนมัติล้มเหลว:
+ถ้าคุณต้องการควบคุมด้วยตัวเองหรือสคริปต์อัตโนมัติไม่สำเร็จ:
 
 ```bash
-# Set variables
+# ตั้งค่าตัวแปร
 RESOURCE_GROUP="rg-zava-mcp-$(date +%s)"
 LOCATION="westus2"
 AI_PROJECT_NAME="zava-ai-project"
 
-# Create resource group
+# สร้างกลุ่มทรัพยากร
 az group create --name $RESOURCE_GROUP --location $LOCATION
 
-# Deploy main template
+# ติดตั้งแม่แบบหลัก
 az deployment group create \
   --resource-group $RESOURCE_GROUP \
   --template-file main.bicep \
   --parameters location=$LOCATION \
   --parameters resourcePrefix="zava-mcp"
 ```
-
-### 3. ตรวจสอบการใช้งาน Azure
+  
+### 3. ตรวจสอบการติดตั้ง Azure
 
 ```bash
-# Check resource group
+# ตรวจสอบกลุ่มทรัพยากร
 az group show --name $RESOURCE_GROUP --output table
 
-# List deployed resources
+# แสดงรายการทรัพยากรที่ถูกติดตั้ง
 az resource list --resource-group $RESOURCE_GROUP --output table
 
-# Test AI service
+# ทดสอบบริการ AI
 az cognitiveservices account show \
   --name "your-ai-service-name" \
   --resource-group $RESOURCE_GROUP
 ```
+  
+### 4. กำหนดค่าสิ่งแวดล้อม
 
-### 4. ตั้งค่าตัวแปรสภาพแวดล้อม
-
-หลังการใช้งาน คุณควรมีไฟล์ `.env` ตรวจสอบให้แน่ใจว่ามี:
+หลังการติดตั้ง คุณควรมีไฟล์ `.env` ตรวจสอบให้แน่ใจว่าไฟล์ประกอบด้วย:
 
 ```bash
-# .env file contents
+# เนื้อหาไฟล์ .env
 PROJECT_ENDPOINT=https://your-project.cognitiveservices.azure.com/
 AZURE_OPENAI_ENDPOINT=https://your-openai.openai.azure.com/
 EMBEDDING_MODEL_DEPLOYMENT_NAME=text-embedding-3-small
@@ -388,15 +388,15 @@ AZURE_CLIENT_SECRET=your-client-secret
 AZURE_TENANT_ID=your-tenant-id
 APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=your-key;...
 
-# Database configuration (for development)
+# การตั้งค่าฐานข้อมูล (สำหรับการพัฒนา)
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 POSTGRES_DB=zava
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=your-secure-password
 ```
-
-## 🐳 การตั้งค่าสภาพแวดล้อม Docker
+  
+## 🐳 การตั้งค่า Docker
 
 ### 1. เข้าใจ Docker Composition
 
@@ -428,59 +428,59 @@ services:
     env_file:
       - .env
 ```
-
+  
 ### 2. เริ่มต้นสภาพแวดล้อมการพัฒนา
 
 ```bash
-# Ensure you're in the project root directory
+# ตรวจสอบให้แน่ใจว่าคุณอยู่ในไดเรกทอรีรูทของโปรเจค
 cd /path/to/MCP-Server-and-PostgreSQL-Sample-Retail
 
-# Start the services
+# เริ่มบริการ
 docker-compose up -d
 
-# Check service status
+# ตรวจสอบสถานะของบริการ
 docker-compose ps
 
-# View logs
+# ดูบันทึกเหตุการณ์
 docker-compose logs -f
 ```
-
+  
 ### 3. ตรวจสอบการตั้งค่าฐานข้อมูล
 
 ```bash
-# Connect to PostgreSQL container
+# เชื่อมต่อกับคอนเทนเนอร์ PostgreSQL
 docker-compose exec postgres psql -U postgres -d zava
 
-# Check database structure
+# ตรวจสอบโครงสร้างฐานข้อมูล
 \dt retail.*
 
-# Verify sample data
+# ยืนยันข้อมูลตัวอย่าง
 SELECT COUNT(*) FROM retail.stores;
 SELECT COUNT(*) FROM retail.products;
 SELECT COUNT(*) FROM retail.orders;
 
-# Exit PostgreSQL
+# ออกจาก PostgreSQL
 \q
 ```
-
+  
 ### 4. ทดสอบเซิร์ฟเวอร์ MCP
 
 ```bash
-# Check MCP server health
+# ตรวจสอบสุขภาพเซิร์ฟเวอร์ MCP
 curl http://localhost:8000/health
 
-# Test basic MCP endpoint
+# ทดสอบจุดสิ้นสุด MCP พื้นฐาน
 curl -X POST http://localhost:8000/mcp \
   -H "Content-Type: application/json" \
   -H "x-rls-user-id: 00000000-0000-0000-0000-000000000000" \
   -d '{"method": "tools/list", "params": {}}'
 ```
+  
+## 🔧 การกำหนดค่า VS Code
 
-## 🔧 การตั้งค่า VS Code
+### 1. กำหนดค่า MCP Integration
 
-### 1. ตั้งค่าการผสานรวม MCP
-
-สร้างการตั้งค่า MCP ใน VS Code:
+สร้างการกำหนดค่า MCP ใน VS Code:
 
 ```json
 // .vscode/mcp.json
@@ -505,8 +505,8 @@ curl -X POST http://localhost:8000/mcp \
     "inputs": []
 }
 ```
-
-### 2. ตั้งค่าสภาพแวดล้อม Python
+  
+### 2. กำหนดค่า Python Environment
 
 ```json
 // .vscode/settings.json
@@ -524,31 +524,31 @@ curl -X POST http://localhost:8000/mcp \
     }
 }
 ```
+  
+### 3. ทดสอบการรวม VS Code
 
-### 3. ทดสอบการผสานรวม VS Code
-
-1. **เปิดโปรเจกต์ใน VS Code**:
+1. **เปิดโปรเจกต์ใน VS Code**:  
    ```bash
    code .
    ```
+  
+2. **เปิด AI Chat**:  
+   - กด `Ctrl+Shift+P` (Windows/Linux) หรือ `Cmd+Shift+P` (macOS)  
+   - พิมพ์ "AI Chat" แล้วเลือก "AI Chat: Open Chat"  
 
-2. **เปิด AI Chat**:
-   - กด `Ctrl+Shift+P` (Windows/Linux) หรือ `Cmd+Shift+P` (macOS)
-   - พิมพ์ "AI Chat" และเลือก "AI Chat: Open Chat"
-
-3. **ทดสอบการเชื่อมต่อเซิร์ฟเวอร์ MCP**:
-   - ใน AI Chat พิมพ์ `#zava` และเลือกหนึ่งในเซิร์ฟเวอร์ที่ตั้งค่าไว้
-   - ถาม: "มีตารางอะไรบ้างในฐานข้อมูล?"
-   - คุณควรได้รับคำตอบที่แสดงรายการตารางในฐานข้อมูลค้าปลีก
+3. **ทดสอบการเชื่อมต่อเซิร์ฟเวอร์ MCP**:  
+   - ใน AI Chat ให้พิมพ์ `#zava` และเลือกเซิร์ฟเวอร์ที่ตั้งค่าไว้  
+   - ถามว่า: "มีตารางอะไรบ้างในฐานข้อมูล?"  
+   - คุณควรได้รับคำตอบแสดงตารางในฐานข้อมูลค้าปลีก  
 
 ## ✅ การตรวจสอบสภาพแวดล้อม
 
-### 1. การตรวจสอบระบบแบบครอบคลุม
+### 1. การตรวจสอบระบบโดยละเอียด
 
-รันสคริปต์การตรวจสอบนี้เพื่อยืนยันการตั้งค่าของคุณ:
+รันสคริปต์ตรวจสอบนี้เพื่อตรวจสอบการตั้งค่าของคุณ:
 
 ```bash
-# Create validation script
+# สร้างสคริปต์ตรวจสอบความถูกต้อง
 cat > validate_setup.py << 'EOF'
 #!/usr/bin/env python3
 """
@@ -567,7 +567,7 @@ async def validate_environment():
     """Comprehensive environment validation."""
     results = {}
     
-    # Check Python version
+    # ตรวจสอบเวอร์ชัน Python
     python_version = sys.version_info
     results['python'] = {
         'status': 'pass' if python_version >= (3, 8) else 'fail',
@@ -575,7 +575,7 @@ async def validate_environment():
         'required': '3.8+'
     }
     
-    # Check required packages
+    # ตรวจสอบแพ็กเกจที่จำเป็น
     required_packages = ['fastmcp', 'asyncpg', 'azure-ai-projects']
     for package in required_packages:
         try:
@@ -584,7 +584,7 @@ async def validate_environment():
         except ImportError:
             results[f'package_{package}'] = {'status': 'fail', 'error': 'Not installed'}
     
-    # Check Docker
+    # ตรวจสอบ Docker
     try:
         result = subprocess.run(['docker', '--version'], capture_output=True, text=True)
         results['docker'] = {
@@ -594,7 +594,7 @@ async def validate_environment():
     except FileNotFoundError:
         results['docker'] = {'status': 'fail', 'error': 'Docker not found'}
     
-    # Check Azure CLI
+    # ตรวจสอบ Azure CLI
     try:
         result = subprocess.run(['az', '--version'], capture_output=True, text=True)
         results['azure_cli'] = {
@@ -604,7 +604,7 @@ async def validate_environment():
     except FileNotFoundError:
         results['azure_cli'] = {'status': 'fail', 'error': 'Azure CLI not found'}
     
-    # Check environment variables
+    # ตรวจสอบตัวแปรสภาพแวดล้อม
     required_env_vars = [
         'PROJECT_ENDPOINT',
         'AZURE_OPENAI_ENDPOINT',
@@ -621,7 +621,7 @@ async def validate_environment():
             'value': '***' if value and 'SECRET' in var else value
         }
     
-    # Check database connection
+    # ตรวจสอบการเชื่อมต่อฐานข้อมูล
     try:
         conn = await asyncpg.connect(
             host=os.getenv('POSTGRES_HOST', 'localhost'),
@@ -631,7 +631,7 @@ async def validate_environment():
             password=os.getenv('POSTGRES_PASSWORD', 'secure_password')
         )
         
-        # Test query
+        # ทดสอบคำสั่งค้นหา
         result = await conn.fetchval('SELECT COUNT(*) FROM retail.stores')
         await conn.close()
         
@@ -645,7 +645,7 @@ async def validate_environment():
             'error': str(e)
         }
     
-    # Check MCP server
+    # ตรวจสอบเซิร์ฟเวอร์ MCP
     try:
         response = requests.get('http://localhost:8000/health', timeout=5)
         results['mcp_server'] = {
@@ -658,7 +658,7 @@ async def validate_environment():
             'error': str(e)
         }
     
-    # Check Azure AI service
+    # ตรวจสอบบริการ Azure AI
     try:
         credential = DefaultAzureCredential()
         project_client = AIProjectClient(
@@ -666,7 +666,7 @@ async def validate_environment():
             credential=credential
         )
         
-        # This will fail if credentials are invalid
+        # จะล้มเหลวหากข้อมูลรับรองไม่ถูกต้อง
         results['azure_ai'] = {'status': 'pass'}
         
     except Exception as e:
@@ -716,169 +716,171 @@ async def main():
 
 EOF
 
-# Run validation
+# รันการตรวจสอบความถูกต้อง
 python validate_setup.py
 ```
+  
+### 2. รายการตรวจสอบด้วยตนเอง
 
-### 2. รายการตรวจสอบการตรวจสอบแบบแมนนวล
+**✅ เครื่องมือพื้นฐาน**  
+- [ ] ติดตั้งและรัน Docker เวอร์ชัน 20.10+  
+- [ ] ติดตั้งและลงชื่อเข้าใช้ Azure CLI 2.40+  
+- [ ] ติดตั้ง Python 3.8+ พร้อม pip  
+- [ ] ติดตั้ง Git 2.30+  
+- [ ] ติดตั้ง VS Code พร้อมส่วนขยายที่จำเป็น  
 
-**✅ เครื่องมือพื้นฐาน**
-- [ ] ติดตั้ง Docker เวอร์ชัน 20.10+ และกำลังทำงาน
-- [ ] ติดตั้ง Azure CLI เวอร์ชัน 2.40+ และรับรองความถูกต้อง
-- [ ] ติดตั้ง Python 3.8+ พร้อม pip
-- [ ] ติดตั้ง Git เวอร์ชัน 2.30+
-- [ ] ติดตั้ง VS Code พร้อมส่วนขยายที่จำเป็น
+**✅ ทรัพยากร Azure**  
+- [ ] สร้าง resource group สำเร็จ  
+- [ ] ติดตั้งโครงการ AI Foundry  
+- [ ] ติดตั้งโมเดล openAI text-embedding-3-small  
+- [ ] กำหนดค่า Application Insights  
+- [ ] สร้าง service principal พร้อมสิทธิ์เหมาะสม  
 
-**✅ ทรัพยากร Azure**
-- [ ] สร้าง resource group สำเร็จ
-- [ ] ใช้งานโปรเจกต์ AI Foundry
-- [ ] ใช้งานโมเดล text-embedding-3-small
-- [ ] ตั้งค่า Application Insights
-- [ ] สร้าง service principal พร้อมสิทธิ์ที่เหมาะสม
+**✅ การกำหนดค่าสภาพแวดล้อม**  
+- [ ] สร้างไฟล์ `.env` พร้อมตัวแปรที่จำเป็นทั้งหมด  
+- [ ] การรับรองความถูกต้องของข้อมูล Azure ทำงาน (ทดสอบด้วย `az account show`)  
+- [ ] คอนเทนเนอร์ PostgreSQL รันและเข้าถึงได้  
+- [ ] โหลดข้อมูลตัวอย่างในฐานข้อมูล  
 
-**✅ การตั้งค่าสภาพแวดล้อม**
-- [ ] สร้างไฟล์ `.env` พร้อมตัวแปรที่จำเป็นทั้งหมด
-- [ ] การรับรองความถูกต้องของ Azure ทำงาน (ทดสอบด้วย `az account show`)
-- [ ] PostgreSQL container กำลังทำงานและเข้าถึงได้
-- [ ] โหลดข้อมูลตัวอย่างในฐานข้อมูล
+**✅ การรวม VS Code**  
+- [ ] กำหนดค่า `.vscode/mcp.json`  
+- [ ] ตั้งค่า Python interpreter เป็น virtual environment  
+- [ ] MCP servers ปรากฏใน AI Chat  
+- [ ] สามารถรันคำสั่งทดสอบผ่าน AI Chat  
 
-**✅ การผสานรวม VS Code**
-- [ ] ตั้งค่า `.vscode/mcp.json`
-- [ ] ตั้งค่าตัวแปล Python เป็น virtual environment
-- [ ] เซิร์ฟเวอร์ MCP ปรากฏใน AI Chat
-- [ ] สามารถรันคำสั่งทดสอบผ่าน AI Chat
-
-## 🛠️ การแก้ไขปัญหาที่พบได้ทั่วไป
+## 🛠️ การแก้ไขปัญหาที่พบบ่อย
 
 ### ปัญหา Docker
 
-**ปัญหา**: Docker containers ไม่เริ่มต้น
+**ปัญหา**: คอนเทนเนอร์ Docker ไม่เริ่มทำงาน  
 ```bash
-# Check Docker service status
+# ตรวจสอบสถานะของบริการ Docker
 docker info
 
-# Check available resources
+# ตรวจสอบทรัพยากรที่มีอยู่
 docker system df
 
-# Clean up if needed
+# ทำความสะอาดถ้าจำเป็น
 docker system prune -f
 
-# Restart Docker Desktop (Windows/macOS)
-# Or restart Docker service (Linux)
+# รีสตาร์ท Docker Desktop (Windows/macOS)
+# หรือรีสตาร์ทบริการ Docker (Linux)
 sudo systemctl restart docker
 ```
-
-**ปัญหา**: การเชื่อมต่อ PostgreSQL ล้มเหลว
+  
+**ปัญหา**: การเชื่อมต่อ PostgreSQL ล้มเหลว  
 ```bash
-# Check container logs
+# ตรวจสอบบันทึกคอนเทนเนอร์
 docker-compose logs postgres
 
-# Verify container is healthy
+# ยืนยันว่าคอนเทนเนอร์มีสุขภาพดี
 docker-compose ps
 
-# Test direct connection
+# ทดสอบการเชื่อมต่อโดยตรง
 docker-compose exec postgres psql -U postgres -d zava -c "SELECT 1;"
 ```
+  
+### ปัญหาการติดตั้ง Azure
 
-### ปัญหาการใช้งาน Azure
-
-**ปัญหา**: การใช้งาน Azure ล้มเหลว
+**ปัญหา**: การติดตั้ง Azure ล้มเหลว  
 ```bash
-# Check Azure CLI authentication
+# ตรวจสอบการพิสูจน์ตัวตนของ Azure CLI
 az account show
 
-# Verify subscription permissions
+# ตรวจสอบสิทธิ์การสมัครสมาชิก
 az role assignment list --assignee $(az account show --query user.name -o tsv)
 
-# Check resource provider registration
+# ตรวจสอบการลงทะเบียนผู้ให้บริการทรัพยากร
 az provider register --namespace Microsoft.CognitiveServices
 az provider register --namespace Microsoft.Insights
 ```
-
-**ปัญหา**: การรับรองความถูกต้องของบริการ AI ล้มเหลว
+  
+**ปัญหา**: การรับรองตัวตนบริการ AI ล้มเหลว  
 ```bash
-# Test service principal
+# ทดสอบผู้ใช้หลักบริการ
 az login --service-principal \
   --username $AZURE_CLIENT_ID \
   --password $AZURE_CLIENT_SECRET \
   --tenant $AZURE_TENANT_ID
 
-# Verify AI service deployment
+# ตรวจสอบการปรับใช้บริการ AI
 az cognitiveservices account list --query "[].{Name:name,Kind:kind,Location:location}"
 ```
-
+  
 ### ปัญหาสภาพแวดล้อม Python
 
-**ปัญหา**: การติดตั้งแพ็กเกจล้มเหลว
+**ปัญหา**: การติดตั้งแพ็กเกจล้มเหลว  
 ```bash
-# Upgrade pip and setuptools
+# อัปเกรด pip และ setuptools
 python -m pip install --upgrade pip setuptools wheel
 
-# Clear pip cache
+# ล้างแคชของ pip
 pip cache purge
 
-# Install packages one by one to identify issues
+# ติดตั้งแพ็กเกจทีละตัวเพื่อตรวจสอบปัญหา
 pip install fastmcp
 pip install asyncpg
 pip install azure-ai-projects
 ```
-
-**ปัญหา**: VS Code ไม่สามารถค้นหาตัวแปล Python ได้
+  
+**ปัญหา**: VS Code หา Python interpreter ไม่เจอ  
 ```bash
-# Show Python interpreter paths
+# แสดงเส้นทางตัวแปลภาษา Python
 which python  # macOS/Linux
 where python  # Windows
 
-# Activate virtual environment first
+# เปิดใช้งานสภาพแวดล้อมเสมือนก่อน
 source mcp-env/bin/activate  # macOS/Linux
 mcp-env\Scripts\activate     # Windows
 
-# Then open VS Code
+# จากนั้นเปิด VS Code
 code .
 ```
+  
+## 🎯 ข้อสรุปสำคัญ
 
-## 🎯 สิ่งสำคัญที่ควรทราบ
+หลังจากทำห้องปฏิบัติการนี้เสร็จสิ้น คุณจะมี:
 
-หลังจากจบห้องปฏิบัติการนี้ คุณควรมี:
+✅ **สภาพแวดล้อมการพัฒนาแบบครบถ้วน**: เครื่องมือทั้งหมดติดตั้งและกำหนดค่า  
+✅ **ทรัพยากร Azure ติดตั้งแล้ว**: บริการ AI และโครงสร้างพื้นฐานสนับสนุน  
+✅ **สภาพแวดล้อม Docker ทำงาน**: คอนเทนเนอร์ PostgreSQL และเซิร์ฟเวอร์ MCP  
+✅ **การรวม VS Code**: เซิร์ฟเวอร์ MCP กำหนดค่าและเข้าถึงได้  
+✅ **การตั้งค่าสภาพแวดล้อมผ่านการทดสอบ**: ส่วนประกอบทั้งหมดทำงานร่วมกันได้  
+✅ **ความรู้การแก้ไขปัญหา**: ปัญหาที่พบบ่อยและวิธีแก้ไข  
 
-✅ **สภาพแวดล้อมการพัฒนาที่สมบูรณ์**: ติดตั้งและตั้งค่าเครื่องมือทั้งหมด  
-✅ **ทรัพยากร Azure ที่ใช้งานแล้ว**: บริการ AI และโครงสร้างพื้นฐานที่สนับสนุน  
-✅ **สภาพแวดล้อม Docker ที่ทำงานได้**: PostgreSQL และเซิร์ฟเวอร์ MCP containers  
-✅ **การผสานรวม VS Code**: เซิร์ฟเวอร์ MCP ที่ตั้งค่าและเข้าถึงได้  
-✅ **การตั้งค่าที่ผ่านการตรวจสอบ**: ทดสอบและทำงานร่วมกันได้ทุกส่วน  
-✅ **ความรู้ในการแก้ไขปัญหา**: ปัญหาที่พบได้ทั่วไปและวิธีแก้ไข  
+## 🚀 ขั้นตอนถัดไป
 
-## 🚀 สิ่งที่ต้องทำต่อไป
+เมื่อสภาพแวดล้อมของคุณพร้อมแล้ว ให้ดำเนินการต่อใน **[Lab 04: Database Design and Schema](../04-Database/README.md)** เพื่อ:
 
-เมื่อสภาพแวดล้อมของคุณพร้อมแล้ว ให้ดำเนินการต่อที่ **[Lab 04: การออกแบบฐานข้อมูลและ Schema](../04-Database/README.md)** เพื่อ:
-
-- สำรวจ Schema ฐานข้อมูลค้าปลีกอย่างละเอียด
-- เข้าใจการออกแบบข้อมูลแบบ multi-tenant
-- เรียนรู้เกี่ยวกับการใช้งาน Row Level Security
-- ทำงานกับข้อมูลค้าปลีกตัวอย่าง
+- สำรวจก_SCHEMA ฐานข้อมูลค้าปลีกอย่างละเอียด  
+- เข้าใจโมเดลข้อมูลแบบมัลติเทนแนนต์  
+- เรียนรู้การใช้งาน Row Level Security  
+- ทำงานกับข้อมูลตัวอย่างค้าปลีก  
 
 ## 📚 แหล่งข้อมูลเพิ่มเติม
 
 ### เครื่องมือพัฒนา
-- [เอกสาร Docker](https://docs.docker.com/) - อ้างอิง Docker แบบครบถ้วน
-- [เอกสาร Azure CLI](https://docs.microsoft.com/cli/azure/) - คำสั่ง Azure CLI
-- [เอกสาร VS Code](https://code.visualstudio.com/docs) - การตั้งค่าและส่วนขยายของ Editor
+- [เอกสาร Docker](https://docs.docker.com/) - อ้างอิงครบถ้วนสำหรับ Docker  
+- [เอกสาร Azure CLI](https://docs.microsoft.com/cli/azure/) - คำสั่ง Azure CLI  
+- [เอกสาร VS Code](https://code.visualstudio.com/docs) - การกำหนดค่าและส่วนขยายของตัวแก้ไข  
 
 ### บริการ Azure
-- [เอกสาร Azure AI Foundry](https://docs.microsoft.com/azure/ai-foundry/) - การตั้งค่าบริการ AI
-- [บริการ Azure OpenAI](https://docs.microsoft.com/azure/cognitive-services/openai/) - การใช้งานโมเดล AI
-- [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) - การตั้งค่าการตรวจสอบ
+- [เอกสาร Microsoft Foundry](https://docs.microsoft.com/azure/ai-foundry/) - การกำหนดค่าบริการ AI  
+- [บริการ Azure OpenAI](https://docs.microsoft.com/azure/cognitive-services/openai/) - การติดตั้งโมเดล AI  
+- [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) - การตั้งค่าการตรวจสอบ  
 
 ### การพัฒนา Python
-- [Python Virtual Environments](https://docs.python.org/3/tutorial/venv.html) - การจัดการสภาพแวดล้อม
-- [เอกสาร AsyncIO](https://docs.python.org/3/library/asyncio.html) - รูปแบบการเขียนโปรแกรมแบบ Async
-- [เอกสาร FastAPI](https://fastapi.tiangolo.com/) - รูปแบบการพัฒนาเว็บ
+- [Python Virtual Environments](https://docs.python.org/3/tutorial/venv.html) - การจัดการสภาพแวดล้อม  
+- [เอกสาร AsyncIO](https://docs.python.org/3/library/asyncio.html) - รูปแบบการเขียนโปรแกรมแบบอะซิงโครนัส  
+- [เอกสาร FastAPI](https://fastapi.tiangolo.com/) - รูปแบบเฟรมเวิร์กเว็บ  
 
 ---
 
-**ถัดไป**: สภาพแวดล้อมพร้อมแล้ว? ดำเนินการต่อที่ [Lab 04: การออกแบบฐานข้อมูลและ Schema](../04-Database/README.md)
+**ถัดไป**: สภาพแวดล้อมพร้อมแล้วหรือยัง? ดำเนินการต่อที่ [Lab 04: Database Design and Schema](../04-Database/README.md)
 
 ---
 
-**ข้อจำกัดความรับผิดชอบ**:  
-เอกสารนี้ได้รับการแปลโดยใช้บริการแปลภาษา AI [Co-op Translator](https://github.com/Azure/co-op-translator) แม้ว่าเราจะพยายามให้การแปลมีความถูกต้อง แต่โปรดทราบว่าการแปลโดยอัตโนมัติอาจมีข้อผิดพลาดหรือความไม่ถูกต้อง เอกสารต้นฉบับในภาษาดั้งเดิมควรถือเป็นแหล่งข้อมูลที่เชื่อถือได้ สำหรับข้อมูลที่สำคัญ ขอแนะนำให้ใช้บริการแปลภาษามนุษย์ที่มีความเชี่ยวชาญ เราไม่รับผิดชอบต่อความเข้าใจผิดหรือการตีความผิดที่เกิดจากการใช้การแปลนี้
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**ปฏิเสธความรับผิดชอบ**:
+เอกสารนี้ได้รับการแปลโดยใช้บริการแปลภาษา AI [Co-op Translator](https://github.com/Azure/co-op-translator) ขณะที่เราพยายามให้ความถูกต้อง โปรดทราบว่าการแปลโดยอัตโนมัติอาจมีข้อผิดพลาดหรือความไม่ถูกต้อง เอกสารต้นฉบับในภาษาต้นทางควรถูกพิจารณาเป็นแหล่งข้อมูลที่เชื่อถือได้ สำหรับข้อมูลที่สำคัญ แนะนำให้ใช้การแปลโดยมนุษย์มืออาชีพ เราไม่รับผิดชอบต่อความเข้าใจผิดหรือการตีความที่ผิดพลาดที่เกิดขึ้นจากการใช้การแปลนี้
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

@@ -2,7 +2,7 @@
 
 ## Projektin yleiskatsaus
 
-**MCP for Beginners** on avoimen lähdekoodin opetusohjelma Model Context Protocolin (MCP) oppimiseen - standardoitu kehys AI-mallien ja asiakassovellusten välisille vuorovaikutuksille. Tämä arkisto tarjoaa kattavat oppimateriaalit käytännön koodiesimerkeillä useilla ohjelmointikielillä.
+**MCP aloittelijoille** on avoimen lähdekoodin koulutusohjelma Model Context Protocolin (MCP) oppimiseen - standardoitu kehys tekoälymallien ja asiakasohjelmien vuorovaikutukseen. Tämä repositorio tarjoaa kattavat oppimateriaalit ja käytännön koodiesimerkkejä useilla ohjelmointikielillä.
 
 ### Keskeiset teknologiat
 
@@ -14,38 +14,38 @@
   - LangChain4j (Java)
 - **Tietokannat**: PostgreSQL pgvector-laajennuksella
 - **Pilvialustat**: Azure (Container Apps, OpenAI, Content Safety, Application Insights)
-- **Rakennustyökalut**: npm, Maven, pip, Cargo
-- **Dokumentaatio**: Markdown automaattisella monikielisellä käännöksellä (48+ kieltä)
+- **Build-työkalut**: npm, Maven, pip, Cargo
+- **Dokumentaatio**: Markdown automatisoidulla monikielisellä käännöksellä (yli 48 kieltä)
 
 ### Arkkitehtuuri
 
-- **11 ydinosiota (00-11)**: Järjestelmällinen oppimispolku perusteista edistyneisiin aiheisiin
-- **Käytännön harjoitukset**: Käytännön tehtäviä täydellisillä ratkaisukoodilla useilla kielillä
-- **Esimerkkiprojektit**: Toimivat MCP-palvelin- ja asiakasohjelmointitoteutukset
-- **Käännösjärjestelmä**: Automaattinen GitHub Actions -työnkulku monikielistä tukea varten
-- **Kuvamateriaalit**: Keskitetty kuvahakemisto käännetyillä versioilla
+- **11 ydinohjelmaa (00-11)**: Järjestyksessä etenevä oppimispolku perusteista edistyneisiin aiheisiin
+- **Käytännön tehtävät**: Harjoituksia täydellisillä ratkaisukoodiesimerkeillä eri kielillä
+- **Esimerkkiprojektit**: Toimivat MCP-palvelin- ja asiakasohjelman toteutukset
+- **Käännösjärjestelmä**: Automaattinen GitHub Actions -työnkulku monikieliseen tukeen
+- **Kuvavarastot**: Kuvakansio käännettyine versioineen
 
 ## Asennuskomennot
 
-Tämä on dokumentaatiokeskeinen arkisto. Suurin osa asennuksesta tapahtuu yksittäisten esimerkkiprojektien ja harjoitusten yhteydessä.
+Tämä on dokumentaatioon keskittyvä repositorio. Suurin osa asennuksista tehdään yksittäisissä esimerkkiprojekteissa ja harjoituksissa.
 
-### Arkiston asennus
+### Repositorion asennus
 
 ```bash
-# Clone the repository
+# Kloonaa repositorio
 git clone https://github.com/microsoft/mcp-for-beginners.git
 cd mcp-for-beginners
 ```
 
 ### Työskentely esimerkkiprojektien kanssa
 
-Esimerkkiprojektit sijaitsevat:
-- `03-GettingStarted/samples/` - Kieleen liittyvät esimerkit
-- `03-GettingStarted/01-first-server/solution/` - Ensimmäiset palvelintoteutukset
-- `03-GettingStarted/02-client/solution/` - Asiakastoteutukset
-- `11-MCPServerHandsOnLabs/` - Kattavat tietokantaintegraatioharjoitukset
+Esimerkkiprojektit sijaitsevat kansioissa:
+- `03-GettingStarted/samples/` - kielikohtaiset esimerkit
+- `03-GettingStarted/01-first-server/solution/` - ensimmäisen palvelimen toteutukset
+- `03-GettingStarted/02-client/solution/` - asiakasohjelman toteutukset
+- `11-MCPServerHandsOnLabs/` - laajat tietokantaintegraatioharjoitukset
 
-Jokaisessa esimerkkiprojektissa on omat asennusohjeet:
+Jokaisessa esimerkkiprojektissa on omat asennusohjeensa:
 
 #### TypeScript/JavaScript-projektit
 ```bash
@@ -58,7 +58,7 @@ npm start
 ```bash
 cd <project-directory>
 pip install -r requirements.txt
-# or
+# tai
 pip install -e .
 python main.py
 ```
@@ -70,57 +70,57 @@ mvn clean install
 mvn spring-boot:run
 ```
 
-## Kehitystyönkulku
+## Kehitysprosessi
 
 ### Dokumentaation rakenne
 
-- **Osat 00-11**: Ydinkurssisisältö järjestyksessä
-- **translations/**: Kieleen liittyvät versiot (automaattisesti luotu, älä muokkaa suoraan)
-- **translated_images/**: Paikallistetut kuvaversiot (automaattisesti luotu)
+- **Moduulit 00-11**: Kurssin ydinmateriaali järjestyksessä
+- **translations/**: Kieli- ja moduulikohtaiset käännetyt versiot (automaattisesti tuotettu, ei muokattavaksi)
+- **translated_images/**: Lokalisoidut kuvat (automaattisesti tuotettu)
 - **images/**: Lähdekuvat ja kaaviot
 
-### Dokumentaation muutosten tekeminen
+### Dokumentaatiomuutosten tekeminen
 
-1. Muokkaa vain englanninkielisiä markdown-tiedostoja päämoduulihakemistoissa (00-11)
-2. Päivitä kuvat `images/`-hakemistossa tarvittaessa
-3. co-op-translator GitHub Action luo automaattisesti käännökset
-4. Käännökset luodaan uudelleen, kun muutokset työnnetään päähaaraan
+1. Muokkaa vain englanninkielisiä markdown-tiedostoja moduulihakemistoissa (00-11)
+2. Päivitä kuvia `images/`-kansiossa tarvittaessa
+3. co-op-translator GitHub Action generoi käännökset automaattisesti
+4. Käännökset uudelleen luodaan työn muuttuessa main-haaraan
 
 ### Työskentely käännösten kanssa
 
-- **Automaattinen käännös**: GitHub Actions -työnkulku hoitaa kaikki käännökset
-- **Älä muokkaa manuaalisesti** tiedostoja `translations/`-hakemistossa
-- Käännösten metadata on upotettu jokaiseen käännettyyn tiedostoon
-- Tuetut kielet: 48+ kieltä, mukaan lukien arabia, kiina, ranska, saksa, hindi, japani, korea, portugali, venäjä, espanja ja monet muut
+- **Automaattinen käännös**: GitHub Actions hoitaa kaikki käännökset
+- ÄLÄ muokkaa tiedostoja `translations/` kansiossa manuaalisesti
+- Käännösten metatiedot sisältyvät jokaiseen käännettyyn tiedostoon
+- Tuetut kielet: yli 48 kieltä, mm. arabia, kiina, ranska, saksa, hindi, japani, korea, portugali, venäjä, espanja jne.
 
 ## Testausohjeet
 
 ### Dokumentaation validointi
 
-Koska tämä on pääasiassa dokumentaatioarkisto, testaus keskittyy:
+Koska kyseessä on ensisijaisesti dokumentaatiorepositorio, testaus keskittyy:
 
 1. **Linkkien validointi**: Varmista, että kaikki sisäiset linkit toimivat
 ```bash
-# Check for broken markdown links
+# Tarkista rikkoutuneet markdown-linkit
 find . -name "*.md" -type f | xargs grep -n "\[.*\](../../.*)"
 ```
 
-2. **Koodiesimerkkien validointi**: Testaa, että koodiesimerkit kääntyvät/toimivat
+2. **Koodiesimerkkien testaus**: Varmista, että koodiesimerkit kääntyvät/ajavat
 ```bash
-# Navigate to specific sample and run its tests
+# Siirry tiettyyn näytteeseen ja suorita sen testit
 cd 03-GettingStarted/samples/typescript
 npm install && npm test
 ```
 
-3. **Markdown-tarkistus**: Tarkista muotoilun johdonmukaisuus
+3. **Markdownin tarkistus**: Muotoilun johdonmukaisuuden tarkastus
 ```bash
-# Use markdownlint if needed
+# Käytä markdownlintiä tarvittaessa
 npx markdownlint-cli2 "**/*.md" "#node_modules"
 ```
 
 ### Esimerkkiprojektien testaus
 
-Jokaisella kieleen liittyvällä esimerkillä on oma testauslähestymistapansa:
+Jokaisessa kielikohtaisessa esimerkissä on oma testausmenetelmänsä:
 
 #### TypeScript/JavaScript
 ```bash
@@ -142,37 +142,37 @@ mvn verify
 
 ## Koodityyliohjeet
 
-### Dokumentaatiotyyli
+### Dokumentaation tyyli
 
 - Käytä selkeää, aloittelijaystävällistä kieltä
-- Sisällytä koodiesimerkkejä useilla kielillä, jos mahdollista
-- Noudata markdownin parhaita käytäntöjä:
-  - Käytä ATX-tyylisiä otsikoita (`#`-syntaksi)
-  - Käytä aidattuja koodilohkoja kielitunnisteilla
-  - Sisällytä kuvien kuvaileva alt-teksti
-  - Pidä rivien pituudet kohtuullisina (ei tiukkaa rajaa, mutta ole järkevä)
+- Sisällytä koodiesimerkkejä useilla kielillä tarvittaessa
+- Noudata markdownin parhaimpia käytäntöjä:
+  - Käytä ATX-tyyppisiä otsikoita (`#`-syntaksi)
+  - Käytä koodilohkoja kielitunnisteilla
+  - Lisää kuviin kuvailevat alt-tekstit
+  - Pidä rivipituudet järkevinä (ei tiukkaa rajaa, mutta maltillisesti)
 
-### Koodiesimerkkityyli
+### Koodiesimerkkien tyyli
 
 #### TypeScript/JavaScript
 - Käytä ES-moduuleja (`import`/`export`)
-- Noudata TypeScriptin tiukan tilan käytäntöjä
+- Noudata TypeScriptin tiukkaa tilaa
 - Sisällytä tyyppimerkinnät
-- Kohdista ES2022
+- Kohdista ES2022-tasolle
 
 #### Python
 - Noudata PEP 8 -tyyliohjeita
-- Käytä tyyppivihjeitä tarvittaessa
-- Sisällytä docstringit funktioille ja luokille
+- Käytä tarvittaessa tyyppivihjeitä
+- Sisällytä docstringit funktioihin ja luokkiin
 - Käytä moderneja Python-ominaisuuksia (3.8+)
 
 #### Java
-- Noudata Spring Boot -käytäntöjä
+- Noudata Spring Bootin käytäntöjä
 - Käytä Java 21 -ominaisuuksia
-- Noudata standardia Maven-projektirakennetta
+- Noudata Mavenin vakiokansiopohjaa
 - Sisällytä Javadoc-kommentit
 
-### Tiedostojen organisointi
+### Tiedostojen järjestely
 
 ```
 <module-number>-<ModuleName>/
@@ -186,116 +186,118 @@ mvn verify
     └── <language>/
 ```
 
-## Rakennus ja käyttöönotto
+## Rakentaminen ja julkaisuprosessi
 
-### Dokumentaation käyttöönotto
+### Dokumentaation julkaisuprosessi
 
-Arkisto käyttää GitHub Pagesia tai vastaavaa dokumentaation isännöintiin (jos sovellettavissa). Muutokset päähaaraan käynnistävät:
+Repositorio käyttää GitHub Pages -julkaisua tai vastaavaa dokumentaation isännöintiin (tarvittaessa). Muutokset main-haaraan käynnistävät:
 
 1. Käännöstyönkulun (`.github/workflows/co-op-translator.yml`)
 2. Kaikkien englanninkielisten markdown-tiedostojen automaattisen käännöksen
-3. Kuvien paikallistamisen tarvittaessa
+3. Kuvien lokalisaation tarvittaessa
 
-### Ei vaadittua rakennusprosessia
+### Rakennusprosessia ei tarvita
 
-Tämä arkisto sisältää pääasiassa markdown-dokumentaatiota. Ydinkurssisisällölle ei tarvita kääntämistä tai rakennusvaihetta.
+Repositoriosta löytyy pääosin markdown-dokumentaatiota. Ydinmateriaalin kääntö- tai build-vaiheita ei tarvita.
 
-### Esimerkkiprojektien käyttöönotto
+### Esimerkkiprojektien julkaisu
 
-Yksittäisillä esimerkkiprojekteilla voi olla käyttöönotto-ohjeita:
-- Katso `03-GettingStarted/09-deployment/` MCP-palvelimen käyttöönotto-ohjeet
-- Azure Container Apps -käyttöönottoesimerkit `11-MCPServerHandsOnLabs/`-hakemistossa
+Yksittäisillä esimerkkiprojekteilla voi olla julkaisuojehjeita:
+- Katso `03-GettingStarted/09-deployment/` MCP-palvelimen julkaisun ohjeet
+- Azure Container Apps -julkaisuesimerkit kansiossa `11-MCPServerHandsOnLabs/`
 
 ## Osallistumisohjeet
 
-### Pull Request -prosessi
+### Pull request -prosessi
 
-1. **Fork ja kloonaus**: Haarauta arkisto ja kloonaa haarasi paikallisesti
-2. **Luo haara**: Käytä kuvailevia haaran nimiä (esim. `fix/typo-module-3`, `add/python-example`)
+1. **Forkkaa ja kloonaa**: Forkkaa repositorio ja kloonaa oma fork paikallisesti
+2. **Luo haara**: Käytä kuvaavia haaranimiä (esim. `fix/typo-module-3`, `add/python-example`)
 3. **Tee muutokset**: Muokkaa vain englanninkielisiä markdown-tiedostoja (ei käännöksiä)
-4. **Testaa paikallisesti**: Varmista, että markdown renderöityy oikein
+4. **Testaa paikallisesti**: Varmista, että markdown näyttää oikein
 5. **Lähetä PR**: Käytä selkeitä PR-otsikoita ja kuvauksia
-6. **CLA**: Allekirjoita Microsoft Contributor License Agreement pyydettäessä
+6. **CLA**: Allekirjoita Microsoft Contributor License Agreement tarvittaessa
 
 ### PR-otsikon muoto
 
-Käytä selkeitä, kuvailevia otsikoita:
+Käytä selkeitä, kuvaavia otsikoita:
 - `[Module XX] Lyhyt kuvaus` moduulikohtaisille muutoksille
 - `[Samples] Kuvaus` esimerkkikoodimuutoksille
-- `[Docs] Kuvaus` yleisille dokumentaatiopäivityksille
+- `[Docs] Kuvaus` yleisille dokumentaatiomuutoksille
 
-### Mitä voi tehdä
+### Mihin osallistua
 
-- Dokumentaation tai koodiesimerkkien virheiden korjaukset
+- Virheenkorjaukset dokumentaatiossa tai esimerkeissä
 - Uudet koodiesimerkit lisäkielillä
-- Selvennykset ja parannukset olemassa olevaan sisältöön
+- Sisällön selvennykset ja parannukset
 - Uudet tapaustutkimukset tai käytännön esimerkit
-- Epäselvän tai virheellisen sisällön ongelmaraportit
+- Virheraportit epäselvästä tai väärästä sisällöstä
 
-### Mitä EI saa tehdä
+### Mitä EI tehdä
 
-- Älä muokkaa suoraan tiedostoja `translations/`-hakemistossa
-- Älä muokkaa `translated_images/`-hakemistoa
+- Älä muokkaa tiedostoja suoraan `translations/`-kansiossa
+- Älä muokkaa `translated_images/`-kansiota
 - Älä lisää suuria binääritiedostoja ilman keskustelua
 - Älä muuta käännöstyönkulun tiedostoja ilman koordinointia
 
-## Lisähuomautukset
+## Lisätiedot
 
-### Arkiston ylläpito
+### Repositorion ylläpito
 
-- **Muutosloki**: Kaikki merkittävät muutokset dokumentoidaan `changelog.md`-tiedostossa
-- **Opas**: Käytä `study_guide.md`-tiedostoa kurssin navigointiin
-- **Ongelmapohjat**: Käytä GitHubin ongelmapohjia virheraportteihin ja ominaisuuspyyntöihin
-- **Toimintaohjeet**: Kaikkien osallistujien on noudatettava Microsoftin avoimen lähdekoodin toimintaohjeita
+- **Muutokset**: Kaikki merkittävät muutokset dokumentoidaan tiedostossa `changelog.md`
+- **Opas**: Käytä `study_guide.md` kurssin navigaatioon
+- **Ongelmien mallipohjat**: Käytä GitHub-ongelmalomakkeita bugiraporteissa ja ominaisuuspyynnöissä
+- **Käyttäytymisohjeet**: Kaikkien osallistujien tulee noudattaa Microsoft Open Source Code of Conduct -käyttäytymissääntöjä
 
 ### Oppimispolku
 
-Noudata moduuleja järjestyksessä (00-11) optimaalisen oppimisen saavuttamiseksi:
-1. **00-02**: Perusteet (Johdanto, ydinkonseptit, turvallisuus)
-2. **03**: Käytännön toteutus
+Seuraa moduuleita järjestyksessä (00-11) parhaan oppimistuloksen saavuttamiseksi:
+1. **00-02**: Perusteet (Johdanto, ydinkäsitteet, turvallisuus)
+2. **03**: Käytännön aloitus
 3. **04-05**: Käytännön toteutus ja edistyneet aiheet
-4. **06-10**: Yhteisö, parhaat käytännöt ja tosielämän sovellukset
-5. **11**: Kattavat tietokantaintegraatioharjoitukset (13 peräkkäistä harjoitusta)
+4. **06-10**: Yhteisö, parhaat käytännöt ja käytännön sovellukset
+5. **11**: Laajat tietokantaintegraatioharjoitukset (13 peräkkäistä harjoitusta)
 
 ### Tukiresurssit
 
 - **Dokumentaatio**: https://modelcontextprotocol.io/
-- **Määrittely**: https://spec.modelcontextprotocol.io/
+- **Määrittelyt**: https://spec.modelcontextprotocol.io/
 - **Yhteisö**: https://github.com/orgs/modelcontextprotocol/discussions
-- **Discord**: Microsoft Azure AI Foundry Discord-palvelin
-- **Liittyvät kurssit**: Katso README.md Microsoftin muut oppimispolut
+- **Discord**: Microsoft Foundry Discord -palvelin
+- **Aiheeseen liittyvät kurssit**: Katso README.md muista Microsoftin oppimispoluista
 
-### Yleiset ongelmatilanteet
+### Yleisiä vianetsintävinkkejä
 
-**K: PR:ni epäonnistuu käännöstarkistuksessa**
-V: Varmista, että muokkasit vain englanninkielisiä markdown-tiedostoja päämoduulihakemistoissa, et käännettyjä versioita.
+**K: PR:ni ei läpäise käännöspistettä**  
+V: Varmista, että muokkasit vain englanninkielisiä markdown-tiedostoja moduulien juurihakemistoissa, et käännettyjä versioita.
 
-**K: Kuinka lisään uuden kielen?**
-V: Kielen tuki hallitaan co-op-translator-työnkulun kautta. Avaa ongelma keskustellaksesi uuden kielen lisäämisestä.
+**K: Miten lisään uuden kielen?**  
+V: Kielituen hallinnointi tapahtuu co-op-translator-työnkulun kautta. Avaa issue keskustelua varten uusien kielten lisäämisestä.
 
-**K: Koodiesimerkit eivät toimi**
-V: Varmista, että olet noudattanut esimerkin README-tiedoston asennusohjeita. Tarkista, että sinulla on oikeat versiot riippuvuuksista asennettuna.
+**K: Koodiesimerkit eivät toimi**  
+V: Varmista, että olet seurannut kunkin esimerkin README-ohjeita. Tarkista, että riippuvuuksien versiot ovat oikein asennettuina.
 
-**K: Kuvat eivät näy**
-V: Varmista, että kuvapolut ovat suhteellisia ja käyttävät etuviivoja. Kuvien tulisi olla `images/`-hakemistossa tai `translated_images/`-hakemistossa paikallisille versioille.
+**K: Kuvat eivät näy**  
+V: Varmista, että kuvat polut ovat suhteellisia ja käyttävät eteenpäin osoittavia kauttaviivoja. Kuvien tulee olla `images/`-tai tarvittaessa `translated_images/`-kansiossa.
 
-### Suorituskykyhuomioita
+### Suorituskykyyn liittyviä huomioita
 
-- Käännöstyönkulku voi kestää useita minuutteja
-- Suuret kuvat tulisi optimoida ennen sitouttamista
-- Pidä yksittäiset markdown-tiedostot keskittyneinä ja kohtuullisen kokoisina
-- Käytä suhteellisia linkkejä paremman siirrettävyyden vuoksi
+- Käännöstyö vie yleensä useita minuutteja
+- Suuret kuvat on suositeltu optimoida ennen tallennusta
+- Pidä yksittäiset markdown-tiedostot ytimekkäinä ja kohtuullisina
+- Käytä suhteellisia linkkejä paremman siirrettävyyden takaamiseksi
 
-### Projektin hallinta
+### Projektin hallinto
 
-Tämä projekti noudattaa Microsoftin avoimen lähdekoodin käytäntöjä:
-- MIT-lisenssi koodille ja dokumentaatiolle
-- Microsoftin avoimen lähdekoodin toimintaohjeet
-- CLA vaaditaan osallistumiseen
-- Turvallisuuskysymykset: Noudata SECURITY.md-ohjeita
-- Tuki: Katso SUPPORT.md apuresursseja varten
+Tämä projekti noudattaa Microsoftin avoimen lähdekoodin käytäntöjä:  
+- MIT-lisenssi koodille ja dokumentaatiolle  
+- Microsoft Open Source Code of Conduct -käyttäytymissäännöt  
+- CLA vaaditaan kontribuutioihin  
+- Turvallisuusongelmat: noudata SECURITY.md ohjeita  
+- Tuki: katso SUPPORT.md apuresurssit
 
 ---
 
-**Vastuuvapauslauseke**:  
-Tämä asiakirja on käännetty käyttämällä tekoälypohjaista käännöspalvelua [Co-op Translator](https://github.com/Azure/co-op-translator). Vaikka pyrimme tarkkuuteen, huomioithan, että automaattiset käännökset voivat sisältää virheitä tai epätarkkuuksia. Alkuperäistä asiakirjaa sen alkuperäisellä kielellä tulisi pitää ensisijaisena lähteenä. Kriittisen tiedon osalta suositellaan ammattimaista ihmiskäännöstä. Emme ole vastuussa väärinkäsityksistä tai virhetulkinnoista, jotka johtuvat tämän käännöksen käytöstä.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Vastuuvapauslauseke**:
+Tämä asiakirja on käännetty käyttämällä tekoälypohjaista käännöspalvelua [Co-op Translator](https://github.com/Azure/co-op-translator). Vaikka pyrimme tarkkuuteen, otathan huomioon, että automaattiset käännökset saattavat sisältää virheitä tai epätarkkuuksia. Alkuperäinen asiakirja sen alkuperäiskielellä on virallinen lähde. Tärkeissä asioissa suositellaan ammattimaista ihmiskäännöstä. Emme ole vastuussa tämän käännöksen käytöstä aiheutuvista väärinymmärryksistä tai tulkinnoista.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

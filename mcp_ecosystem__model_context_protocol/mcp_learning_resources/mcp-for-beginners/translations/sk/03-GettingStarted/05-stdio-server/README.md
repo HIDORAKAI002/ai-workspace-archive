@@ -1,39 +1,38 @@
-# MCP Server so stdio transportom
+# MCP server so stdio transportom
 
-> **⚠️ Dôležitá aktualizácia**: Od špecifikácie MCP 2025-06-18 je samostatný SSE (Server-Sent Events) transport **zrušený** a nahradený transportom "Streamable HTTP". Súčasná špecifikácia MCP definuje dva hlavné mechanizmy transportu:
-> 1. **stdio** - Štandardný vstup/výstup (odporúčaný pre lokálne servery)
-> 2. **Streamable HTTP** - Pre vzdialené servery, ktoré môžu interne používať SSE
+> **⚠️ Dôležitá aktualizácia**: Od špecifikácie MCP 2025-06-18 je samostatný SSE (Server-Sent Events) transport **mimo platnosti** a bol nahradený transportom "Streamable HTTP". Aktuálna špecifikácia MCP definuje dva hlavné transportné mechanizmy:
+> 1. **stdio** - štandardný vstup/výstup (odporúčaný pre lokálne servery)
+> 2. **Streamable HTTP** - pre vzdialené servery, ktoré môžu využívať SSE interne
 >
-> Tento kurz bol aktualizovaný tak, aby sa zameral na **stdio transport**, ktorý je odporúčaný prístup pre väčšinu implementácií MCP serverov.
+> Táto lekcia bola aktualizovaná, aby sa zamerala na **stdio transport**, ktorý je odporúčaným prístupom pre väčšinu implementácií MCP serverov.
 
-Štandardný vstup/výstup (stdio) transport umožňuje MCP serverom komunikovať s klientmi cez štandardné vstupné a výstupné prúdy. Je to najpoužívanejší a odporúčaný transportný mechanizmus v súčasnej špecifikácii MCP a poskytuje jednoduchý a efektívny spôsob, ako budovať MCP servery, ktoré je možné ľahko integrovať s rôznymi aplikačnými klientmi.
+Transport stdio umožňuje MCP serverom komunikovať s klientmi prostredníctvom štandardných vstupných a výstupných prúdov. Je to najčastejšie používaný a odporúčaný transportný mechanizmus v aktuálnej špecifikácii MCP, poskytujúci jednoduchý a efektívny spôsob, ako vytvárať MCP servery, ktoré sa dajú ľahko integrovať s rôznymi klientskymi aplikáciami.
 
 ## Prehľad
 
-Tento kurz pokrýva, ako vytvoriť a používať MCP servery pomocou stdio transportu.
+Táto lekcia pokrýva, ako vytvoriť a používať MCP servery pomocou stdio transportu.
 
 ## Ciele učenia
 
-Na konci tohto kurzu budete schopní:
+Na konci tejto lekcie budete schopní:
 
 - Vytvoriť MCP server pomocou stdio transportu.
-- Ladiť MCP server pomocou Inspektora.
-- Používať MCP server cez Visual Studio Code.
-- Pochopiť súčasné transportné mechanizmy MCP a prečo je odporúčaný stdio transport.
+- Ladenie MCP servera pomocou nástroja Inspector.
+- Používať MCP server vo Visual Studio Code.
+- Pochopiť aktuálne transportné mechanizmy MCP a dôvody odporúčania stdio.
 
+## stdio transport - ako funguje
 
-## stdio Transport - Ako to funguje
+Transport stdio je jedným z dvoch podporovaných typov transportu v aktuálnej špecifikácii MCP (2025-11-25). Funguje nasledovne:
 
-stdio transport je jeden z dvoch podporovaných typov transportu v aktuálnej špecifikácii MCP (2025-06-18). Tu je jeho fungovanie:
-
-- **Jednoduchá komunikácia**: Server číta JSON-RPC správy zo štandardného vstupu (`stdin`) a posiela správy na štandardný výstup (`stdout`).
-- **Procesový model**: Klient spustí MCP server ako podproces.
-- **Formát správ**: Správy sú samostatné JSON-RPC požiadavky, notifikácie alebo odpovede, oddelené novými riadkami.
-- **Logovanie**: Server MÔŽE zapisovať UTF-8 reťazce do štandardnej chyby (`stderr`) na účely logovania.
+- **Jednoduchá komunikácia**: server číta JSON-RPC správy zo štandardného vstupu (`stdin`) a posiela správy na štandardný výstup (`stdout`).
+- **Procesovo založený**: klient spúšťa MCP server ako podproces.
+- **Formát správ**: správy sú samostatné JSON-RPC požiadavky, oznámenia alebo odpovede, oddelené novými riadkami.
+- **Logovanie**: server MÔŽE zapisovať UTF-8 reťazce na štandardný chybový výstup (`stderr`) na účely logovania.
 
 ### Kľúčové požiadavky:
 - Správy MUSIA byť oddelené novými riadkami a NESMÚ obsahovať vložené nové riadky
-- Server NESMIE nič zapisovať na `stdout`, čo nie je platná MCP správa
+- Server NESMIE zapisovať na `stdout` nič, čo nie je platná MCP správa
 - Klient NESMIE zapisovať na serverov `stdin` nič, čo nie je platná MCP správa
 
 ### TypeScript
@@ -65,8 +64,8 @@ runServer().catch(console.error);
 V predchádzajúcom kóde:
 
 - Importujeme triedu `Server` a `StdioServerTransport` z MCP SDK
-- Vytvárame inštanciu servera s základnou konfiguráciou a schopnosťami
-- Vytvárame inštanciu `StdioServerTransport` a pripájame server na ňu, čím umožňujeme komunikáciu cez stdin/stdout
+- Vytvoríme inštanciu servera s základnou konfiguráciou a schopnosťami
+- Vytvoríme inštanciu `StdioServerTransport` a prepojíme server s ňou, čím umožníme komunikáciu cez stdin/stdout
 
 ### Python
 
@@ -96,11 +95,11 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-V predchádzajúcom kóde:
+V predchádzajúcom kóde sme:
 
-- Vytvárame inštanciu servera pomocou MCP SDK
-- Definujeme nástroje pomocou dekorátorov
-- Používame kontextový manažér stdio_server na riadenie transportu
+- Vytvorili inštanciu servera pomocou MCP SDK
+- Definovali nástroje pomocou dekorátorov
+- Použili kontextový manažér stdio_server pre transport
 
 ### .NET
 
@@ -123,21 +122,21 @@ var app = builder.Build();
 await app.RunAsync();
 ```
 
-Hlavný rozdiel oproti SSE je v tom, že stdio servery:
+Hlavný rozdiel oproti SSE je, že stdio servery:
 
-- Nepotrebujú nastavenie webového servera alebo HTTP endpointov
-- Sú spustené klientom ako podprocesy
+- Nepotrebujú nastavenie web servera ani HTTP endpointy
+- Sú spúšťané ako podprocesy klientom
 - Komunikujú cez stdin/stdout prúdy
 - Sú jednoduchšie na implementáciu a ladenie
 
 ## Cvičenie: Vytvorenie stdio servera
 
-Pri tvorbe nášho servera musíme mať na pamäti dve veci:
+Na vytvorenie nášho servera si treba uvedomiť dve veci:
 
-- Potrebujeme použiť webový server na sprístupnenie endpointov pre spojenie a správy.
-## Laboratórium: Vytvorenie jednoduchého MCP stdio servera
+- Na vystavenie endpointov pre pripojenie a správy potrebujeme web server.
+## Lab: Vytvorenie jednoduchého MCP stdio servera
 
-V tomto laboratóriu vytvoríme jednoduchý MCP server používajúci odporúčaný stdio transport. Tento server sprístupní nástroje, ktoré môžu klienti volať pomocou štandardného Model Context Protocol.
+V tomto lab-e vytvoríme jednoduchý MCP server využívajúci odporúčaný stdio transport. Tento server vystaví nástroje, ktoré môžu klienti volať pomocou štandardného Model Context Protocol.
 
 ### Predpoklady
 
@@ -145,7 +144,7 @@ V tomto laboratóriu vytvoríme jednoduchý MCP server používajúci odporúča
 - MCP Python SDK: `pip install mcp`
 - Základné znalosti asynchrónneho programovania
 
-Začnime vytváraním nášho prvého MCP stdio servera:
+Začnime vytvorením nášho prvého MCP stdio servera:
 
 ```python
 import asyncio
@@ -154,11 +153,11 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp import types
 
-# Nakonfigurujte protokolovanie
+# Nakonfiguruj protokolovanie
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Vytvorte server
+# Vytvor server
 server = Server("example-stdio-server")
 
 @server.tool()
@@ -172,7 +171,7 @@ def get_greeting(name: str) -> str:
     return f"Hello, {name}! Welcome to MCP stdio server."
 
 async def main():
-    # Použite stdio transport
+    # Použi stdio transport
     async with stdio_server(server) as (read_stream, write_stream):
         await server.run(
             read_stream,
@@ -184,30 +183,30 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-## Kľúčové rozdiely oproti deprecated prístupu SSE
+## Kľúčové rozdiely oproti zastaralému SSE prístupu
 
-**Stdio transport (súčasný štandard):**
-- Jednoduchý model podprocesu - klient spúšťa server ako dcérsky proces
+**Stdio transport (aktuálny štandard):**
+- Jednoduchý model podprocesu - klient spúšťa server ako podradený proces
 - Komunikácia cez stdin/stdout pomocou JSON-RPC správ
-- Nie je potrebné nastavovanie HTTP servera
+- Nie je potrebné nastavovať HTTP server
 - Lepší výkon a bezpečnosť
 - Jednoduchšie ladenie a vývoj
 
-**SSE transport (deprecated od MCP 2025-06-18):**
+**SSE transport (zastaraný od MCP 2025-06-18):**
 - Vyžadoval HTTP server s SSE endpointmi
-- Zložitejšie nastavenie s webovým serverom
-- Ďalšie bezpečnostné opatrenia pre HTTP endpointy
+- Zložitejšie nastavenie s infraštruktúrou web servera
+- Dodatočné bezpečnostné aspekty pre HTTP endpointy
 - Teraz nahradený Streamable HTTP pre webové scenáre
 
 ### Vytvorenie servera so stdio transportom
 
-Aby sme vytvorili náš stdio server, musíme:
+Pre vytvorenie nášho stdio servera potrebujeme:
 
-1. **Importovať potrebné knižnice** - Potrebujeme komponenty MCP servera a stdio transport
-2. **Vytvoriť inštanciu servera** - Definovať server s jeho schopnosťami
-3. **Definovať nástroje** - Pridať funkcie, ktoré chceme sprístupniť
-4. **Nastaviť transport** - Konfigurovať stdio komunikáciu
-5. **Spustiť server** - Spustiť server a spracovávať správy
+1. **Importovať potrebné knižnice** - MCP server komponenty a stdio transport
+2. **Vytvoriť inštanciu servera** - definovať server s jeho schopnosťami
+3. **Definovať nástroje** - pridať funkcie, ktoré chceme sprístupniť
+4. **Nastaviť transport** - nakonfigurovať stdio komunikáciu
+5. **Spustiť server** - štartovať server a spracovávať správy
 
 Postupujme krok za krokom:
 
@@ -219,7 +218,7 @@ import logging
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 
-# Nakonfigurujte protokolovanie
+# Konfigurácia logovania
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -277,13 +276,13 @@ python server.py
 
 Server sa spustí a bude čakať na vstup zo stdin. Komunikuje pomocou JSON-RPC správ cez stdio transport.
 
-### Krok 4: Testovanie pomocou Inspektora
+### Krok 4: Testovanie pomocou Inspector
 
-Server môžete testovať pomocou MCP Inspektora:
+Server môžete testovať pomocou MCP Inspector:
 
-1. Nainštalujte Inspektora: `npx @modelcontextprotocol/inspector`
-2. Spustite Inspektora a nasmerujte ho na váš server
-3. Otestujte nástroje, ktoré ste vytvorili
+1. Nainštalujte Inspector: `npx @modelcontextprotocol/inspector`
+2. Spustite Inspector a nasmerujte ho na váš server
+3. Testujte nástroje, ktoré ste vytvorili
 
 ### .NET
 
@@ -294,29 +293,29 @@ builder.Services
  ```
 ## Ladenie vášho stdio servera
 
-### Použitie MCP Inspektora
+### Použitie MCP Inspectora
 
-MCP Inspektor je užitočný nástroj na ladenie a testovanie MCP serverov. Tu je, ako ho použiť so vaším stdio serverom:
+MCP Inspector je užitočný nástroj na ladenie a testovanie MCP serverov. Takto ho môžete použiť so svojím stdio serverom:
 
-1. **Inštalácia Inspektora**:
+1. **Inštalácia Inspectora**:
    ```bash
    npx @modelcontextprotocol/inspector
    ```
 
-2. **Spustenie Inspektora**:
+2. **Spustenie Inspectora**:
    ```bash
    npx @modelcontextprotocol/inspector python server.py
    ```
 
-3. **Testovanie servera**: Inspektor poskytuje webové rozhranie, kde môžete:
-   - Prezerať schopnosti servera
+3. **Testovanie servera**: Inspector poskytuje webové rozhranie, kde môžete:
+   - Zobraziť schopnosti servera
    - Testovať nástroje s rôznymi parametrami
    - Monitorovať JSON-RPC správy
-   - Ladiť problémy s pripojením
+   - Ladenie problémov s pripojením
 
 ### Použitie VS Code
 
-Môžete tiež ladiť váš MCP server priamo vo VS Code:
+Váš MCP server môžete ladiť aj priamo vo VS Code:
 
 1. Vytvorte launch konfiguráciu v `.vscode/launch.json`:
    ```json
@@ -335,22 +334,22 @@ Môžete tiež ladiť váš MCP server priamo vo VS Code:
    ```
 
 2. Nastavte breakpointy v kóde servera
-3. Spustite debugger a testujte pomocou Inspektora
+3. Spustite debugger a testujte s Inspector
 
 ### Bežné tipy na ladenie
 
-- Používajte `stderr` pre logovanie - nikdy nezapisujte do `stdout`, ktorý je vyhradený pre MCP správy
-- Zabezpečte, že všetky JSON-RPC správy sú oddelené novými riadkami
-- Najskôr testujte jednoduché nástroje pred pridávaním zložitej funkcionality
-- Používajte Inspektora na overenie formátu správ
+- Používajte `stderr` na logovanie - nikdy nepíšte do `stdout`, ktorý je vyhradený na MCP správy
+- Uistite sa, že všetky JSON-RPC správy sú oddelené novými riadkami
+- Najskôr testujte jednoduché nástroje pred pridaním zložitej funkcionality
+- Použite Inspector na overenie formátu správ
 
-## Použitie vášho stdio servera vo VS Code
+## Používanie vášho stdio servera vo VS Code
 
-Keď ste vytvorili svoj MCP stdio server, môžete ho integrovať do VS Code a používať s Claude alebo inými MCP kompatibilnými klientmi.
+Keď máte postavený MCP stdio server, môžete ho integrovať do VS Code na použitie s Claude alebo inými klientmi kompatibilnými s MCP.
 
 ### Konfigurácia
 
-1. **Vytvorte konfiguračný súbor MCP** na `%APPDATA%\Claude\claude_desktop_config.json` (Windows) alebo `~/Library/Application Support/Claude/claude_desktop_config.json` (Mac):
+1. **Vytvorte MCP konfiguračný súbor** v `%APPDATA%\Claude\claude_desktop_config.json` (Windows) alebo `~/Library/Application Support/Claude/claude_desktop_config.json` (Mac):
 
    ```json
    {
@@ -363,12 +362,12 @@ Keď ste vytvorili svoj MCP stdio server, môžete ho integrovať do VS Code a p
    }
    ```
 
-2. **Reštartujte Claude**: Zavrite a znova otvorte Claude, aby sa načítala nová konfigurácia servera.
+2. **Reštartujte Claude**: zatvorte a znova otvorte Claude, aby načítal novú konfiguráciu servera.
 
-3. **Otestujte pripojenie**: Začnite konverzáciu s Claudom a vyskúšajte nástroje vášho servera:
+3. **Otestujte pripojenie**: začnite konverzáciu s Claudom a vyskúšajte nástroje vášho servera:
    - "Môžeš ma pozdraviť pomocou nástroja greeting?"
    - "Vypočítaj súčet 15 a 27"
-   - "Aké sú informácie o servery?"
+   - "Aké je info o serveri?"
 
 ### Príklad TypeScript stdio servera
 
@@ -392,7 +391,7 @@ const server = new Server(
   }
 );
 
-// Pridať nástroje
+// Pridajte nástroje
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
     tools: [
@@ -475,20 +474,20 @@ public class Tools
 
 ## Zhrnutie
 
-V tomto aktualizovanom kurze ste sa naučili:
+V tejto aktualizovanej lekcii ste sa naučili:
 
-- Vytvárať MCP servery pomocou súčasného **stdio transportu** (odporúčaný prístup)
-- Pochopiť, prečo bol SSE transport zrušený v prospech stdio a Streamable HTTP
+- Vytvoriť MCP servery pomocou súčasného **stdio transportu** (odporúčaný prístup)
+- Pochopiť, prečo bol SSE transport nahradený stdio a Streamable HTTP
 - Vytvárať nástroje, ktoré môžu byť volané MCP klientmi
-- Ladiť váš server pomocou MCP Inspektora
-- Integrovať váš stdio server so VS Code a Claude
+- Ladiť server pomocou MCP Inspectora
+- Integrovať váš stdio server s VS Code a Claude
 
-stdio transport poskytuje jednoduchší, bezpečnejší a výkonnejší spôsob vytvárania MCP serverov v porovnaní s deprecated SSE prístupom. Je to odporúčaný transport pre väčšinu implementácií MCP serverov podľa špecifikácie z 2025-06-18.
+Transport stdio poskytuje jednoduchší, bezpečnejší a výkonnejší spôsob vytvárania MCP serverov v porovnaní so zastaraným SSE prístupom. Je to odporúčaný transport pre väčšinu implementácií MCP serverov podľa špecifikácie z 2025-06-18.
 
 
 ### .NET
 
-1. Najskôr si vytvorme nejaké nástroje, na to vytvoríme súbor *Tools.cs* s nasledujúcim obsahom:
+1. Najprv si vytvoríme nástroje, na to vytvoríme súbor *Tools.cs* s nasledovným obsahom:
 
   ```csharp
   using System.ComponentModel;
@@ -498,37 +497,37 @@ stdio transport poskytuje jednoduchší, bezpečnejší a výkonnejší spôsob 
 
 ## Cvičenie: Testovanie vášho stdio servera
 
-Teraz keď ste vytvorili váš stdio server, poďme ho otestovať, aby sme sa uistili, že funguje správne.
+Keďže ste už vytvorili stdio server, otestujme ho, aby sme sa uistili, že funguje správne.
 
 ### Predpoklady
 
-1. Uistite sa, že máte nainštalovaný MCP Inspektor:
+1. Uistite sa, že máte nainštalovaný MCP Inspector:
    ```bash
    npm install -g @modelcontextprotocol/inspector
    ```
 
-2. Váš kód servera je uložený (napr. ako `server.py`)
+2. Váš serverový kód by mal byť uložený (napr. ako `server.py`)
 
-### Testovanie pomocou Inspektora
+### Testovanie pomocou Inspectora
 
-1. **Spustite Inspektora s vaším serverom**:
+1. **Spustite Inspectora s vaším serverom**:
    ```bash
    npx @modelcontextprotocol/inspector python server.py
    ```
 
-2. **Otvorte webové rozhranie**: Inspektor otvorí prehliadač s rozhraním zobrazujúcim schopnosti vášho servera.
+2. **Otvorte webové rozhranie**: Inspector otvorí prehliadač, kde uvidíte schopnosti vášho servera.
 
 3. **Testujte nástroje**: 
    - Vyskúšajte nástroj `get_greeting` s rôznymi menami
-   - Otestujte nástroj `calculate_sum` s rôznymi číslami
-   - Zavolajte nástroj `get_server_info` a pozrite si metadáta servera
+   - Testujte nástroj `calculate_sum` s rôznymi číslami
+   - Zavolajte nástroj `get_server_info`, aby ste videli metaúdaje servera
 
-4. **Monitorujte komunikáciu**: Inspektor zobrazuje JSON-RPC správy vymieňané medzi klientom a serverom.
+4. **Monitorujte komunikáciu**: Inspector zobrazuje JSON-RPC správy medzi klientom a serverom.
 
 ### Čo by ste mali vidieť
 
-Keď sa server správne spustí, mali by ste vidieť:
-- Schopnosti servera zobrazené v Inspektore
+Keď sa váš server správne spustí, mali by ste vidieť:
+- Zobrazené schopnosti servera v Inspectore
 - Dostupné nástroje na testovanie
 - Úspešné výmeny JSON-RPC správ
 - Odpovede nástrojov zobrazené v rozhraní
@@ -536,36 +535,36 @@ Keď sa server správne spustí, mali by ste vidieť:
 ### Bežné problémy a riešenia
 
 **Server sa nespustí:**
-- Skontrolujte, či sú nainštalované všetky závislosti: `pip install mcp`
+- Skontrolujte, či sú všetky závislosti nainštalované: `pip install mcp`
 - Overte syntax a odsadenie v Pythone
-- Sledujte chybové hlásenia v konzole
+- Skontrolujte chybové hlásenia v konzole
 
-**Nástroje sa nezobrazujú:**
-- Uistite sa, že dekorátory `@server.tool()` sú prítomné
-- Skontrolujte, či sú funkcie nástrojov definované pred `main()`
+**Nástroje sa neobjavujú:**
+- Uistite sa, že sú použité dekorátory `@server.tool()`
+- Skontrolujte, či funkcie nástrojov sú definované pred `main()`
 - Overte správnu konfiguráciu servera
 
 **Problémy s pripojením:**
-- Uistite sa, že server používa správne stdio transport
-- Skontrolujte, či žiadne iné procesy nezasahujú
-- Overte správnosť príkazu Inspektora
+- Skontrolujte, či server používa stdio transport správne
+- Uistite sa, že žiadne iné procesy nezasahujú do pripojenia
+- Overte syntax príkazu v Inspectore
 
-## Zadanie
+## Úloha
 
-Skúste rozšíriť svoj server o viac schopností. Pozrite si [túto stránku](https://api.chucknorris.io/), kde môžete napríklad pridať nástroj, ktorý volá API. Vy rozhodnete, ako bude server vyzerať. Prajeme veľa zábavy :)
+Skúste rozšíriť server o ďalšie schopnosti. Pozrite si [túto stránku](https://api.chucknorris.io/), aby ste napríklad pridali nástroj, ktorý volá API. Vy sami rozhodnete, ako bude server vyzerať. Prajeme veľa zábavy :)
 ## Riešenie
 
 [Riešenie](./solution/README.md) Tu je možné riešenie s funkčným kódom.
 
 ## Kľúčové poznatky
 
-Hlavné poznatky z tejto kapitoly sú:
+Kľúčové poznatky z tejto kapitoly sú:
 
 - stdio transport je odporúčaný mechanizmus pre lokálne MCP servery.
-- stdio transport umožňuje plynulú komunikáciu medzi MCP servermi a klientmi cez štandardné vstupné a výstupné prúdy.
-- Môžete použiť Inspektora aj Visual Studio Code na priame používanie stdio serverov, čo uľahčuje ladenie a integráciu.
+- stdio transport umožňuje plynulú komunikáciu medzi MCP servermi a klientmi pomocou štandardných vstupných a výstupných prúdov.
+- Môžete použiť Inspector aj Visual Studio Code na priamu prácu so stdio servermi, čo uľahčuje ladenie a integráciu.
 
-## Ukážky
+## Ukážky 
 
 - [Java kalkulačka](../samples/java/calculator/README.md)
 - [.Net kalkulačka](../../../../03-GettingStarted/samples/csharp)
@@ -581,21 +580,21 @@ Hlavné poznatky z tejto kapitoly sú:
 
 ## Ďalšie kroky
 
-Keď ste sa naučili vytvárať MCP servery so stdio transportom, môžete preskúmať pokročilejšie témy:
+Keď ste sa naučili, ako vytvárať MCP servery so stdio transportom, môžete preskúmať pokročilejšie témy:
 
-- **Ďalej**: [HTTP streamovanie s MCP (Streamable HTTP)](../06-http-streaming/README.md) - Spoznajte ďalší podporovaný transport pre vzdialené servery
-- **Pokročilé**: [Najlepšie bezpečnostné praktiky MCP](../../02-Security/README.md) - Implementujte bezpečnosť vo vašich MCP serveroch
-- **Produkcia**: [Stratégie nasadenia](../09-deployment/README.md) - Nasadzujte svoje servery do produkcie
+- **Ďalej**: [HTTP Streaming s MCP (Streamable HTTP)](../06-http-streaming/README.md) - Naučte sa o druhom podporovanom transportnom mechanizme pre vzdialené servery
+- **Pokročilé**: [Najlepšie bezpečnostné praktiky MCP](../../02-Security/README.md) - Implementujte zabezpečenie vo vašich MCP serveroch
+- **Produkcia**: [Stratégie nasadenia](../09-deployment/README.md) - Nasadzujte servery do produkčného prostredia
 
 ## Dodatočné zdroje
 
-- [Špecifikácia MCP 2025-06-18](https://spec.modelcontextprotocol.io/specification/) - Oficiálna špecifikácia
+- [Špecifikácia MCP 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/) - Oficiálna špecifikácia
 - [Dokumentácia MCP SDK](https://github.com/modelcontextprotocol/sdk) - Referencie SDK pre všetky jazyky
 - [Príklady komunity](../../06-CommunityContributions/README.md) - Viac príkladov serverov od komunity
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Zrieknutie sa zodpovednosti**:  
-Tento dokument bol preložený pomocou AI prekladateľskej služby [Co-op Translator](https://github.com/Azure/co-op-translator). Aj keď sa snažíme o presnosť, berte prosím na vedomie, že automatické preklady môžu obsahovať chyby alebo nepresnosti. Pôvodný dokument v jeho pôvodnom jazyku by mal byť považovaný za autoritatívny zdroj. Pri kritických informáciách sa odporúča profesionálny ľudský preklad. Nie sme zodpovední za žiadne nedorozumenia alebo nesprávne interpretácie vyplývajúce z použitia tohto prekladu.
+**Vyhlásenie o zodpovednosti**:
+Tento dokument bol preložený pomocou AI prekladateľskej služby [Co-op Translator](https://github.com/Azure/co-op-translator). Hoci sa snažíme o presnosť, vezmite prosím na vedomie, že automatické preklady môžu obsahovať chyby alebo nepresnosti. Pôvodný dokument v jeho natívnom jazyku by mal byť považovaný za autoritatívny zdroj. Pre kritické informácie sa odporúča profesionálny ľudský preklad. Nie sme zodpovední za žiadne nedorozumenia alebo nesprávne interpretácie vyplývajúce z použitia tohto prekladu.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

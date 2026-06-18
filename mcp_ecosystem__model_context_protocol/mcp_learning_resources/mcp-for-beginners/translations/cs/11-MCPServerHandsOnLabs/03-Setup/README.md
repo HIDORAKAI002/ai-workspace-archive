@@ -2,112 +2,112 @@
 
 ## 🎯 Co tento lab pokrývá
 
-Tento praktický lab vás provede nastavením kompletního vývojového prostředí pro vytváření MCP serverů s integrací PostgreSQL. Konfigurujete všechny potřebné nástroje, nasadíte zdroje Azure a ověříte své nastavení před zahájením implementace.
+Tento praktický lab vás provede nastavením kompletního vývojového prostředí pro tvorbu MCP serverů s integrací PostgreSQL. Nakonfigurujete všechny potřebné nástroje, nasadíte Azure zdroje a ověříte nastavení před zahájením implementace.
 
 ## Přehled
 
-Správné vývojové prostředí je klíčové pro úspěšný vývoj MCP serverů. Tento lab poskytuje podrobné pokyny pro nastavení Dockeru, služeb Azure, vývojových nástrojů a ověření, že vše funguje správně dohromady.
+Správné vývojové prostředí je klíčové pro úspěšný vývoj MCP serveru. Tento lab nabízí krok za krokem instrukce pro nastavení Dockeru, Azure služeb, vývojářských nástrojů a ověření, že vše společně správně funguje.
 
-Na konci tohoto labu budete mít plně funkční vývojové prostředí připravené pro vytváření MCP serveru Zava Retail.
+Na konci tohoto labu budete mít plně funkční vývojové prostředí připravené pro tvorbu MCP serveru Zava Retail.
 
-## Výukové cíle
+## Cíle učení
 
 Na konci tohoto labu budete schopni:
 
-- **Nainstalovat a nakonfigurovat** všechny potřebné vývojové nástroje
-- **Nasadit zdroje Azure** potřebné pro MCP server
-- **Nastavit Docker kontejnery** pro PostgreSQL a MCP server
-- **Ověřit** nastavení prostředí pomocí testovacích připojení
-- **Řešit problémy** s běžnými problémy nastavení a konfigurace
-- **Porozumět** vývojovému workflow a struktuře souborů
+- **Nainstalovat a konfigurovat** všechny požadované vývojové nástroje  
+- **Nasadit Azure zdroje**, které MCP server potřebuje  
+- **Nastavit Docker kontejnery** pro PostgreSQL a MCP server  
+- **Ověřit** nastavení prostředí pomocí testovacích připojení  
+- **Řešit** běžné problémy s nastavením a konfigurací  
+- **Chápat** vývojový pracovní postup a strukturu souborů  
 
 ## 📋 Kontrola předpokladů
 
-Než začnete, ujistěte se, že máte:
+Před začátkem si ověřte, že máte:
 
 ### Požadované znalosti
-- Základní používání příkazového řádku (Windows Command Prompt/PowerShell)
-- Porozumění proměnným prostředí
-- Znalost verzovacího systému Git
-- Základní koncepty Dockeru (kontejnery, obrazy, svazky)
+- Základy práce s příkazovou řádkou (Windows Command Prompt/PowerShell)  
+- Pochopení proměnných prostředí  
+- Znalost Git verzovacího systému  
+- Základní znalosti Dockeru (kontejnery, image, volume)  
 
-### Požadavky na systém
-- **Operační systém**: Windows 10/11, macOS nebo Linux
-- **RAM**: Minimálně 8 GB (doporučeno 16 GB)
-- **Úložiště**: Minimálně 10 GB volného místa
-- **Síť**: Internetové připojení pro stahování a nasazení Azure
+### Systémové požadavky
+- **Operační systém**: Windows 10/11, macOS nebo Linux  
+- **RAM**: Minimálně 8GB (doporučeno 16GB)  
+- **Úložiště**: Nejlépe alespoň 10GB volného místa  
+- **Síť**: Připojení k internetu pro stahování a nasazení v Azure  
 
 ### Požadavky na účet
-- **Azure Subscription**: Bezplatná verze je dostačující
-- **GitHub Account**: Pro přístup k repozitáři
-- **Docker Hub Account**: (Volitelné) Pro publikování vlastních obrazů
+- **Předplatné Azure**: Stačí bezplatná úroveň  
+- **GitHub účet**: Pro přístup k repozitáři  
+- **Docker Hub účet**: (volitelné) Pro publikaci vlastních image  
 
 ## 🛠️ Instalace nástrojů
 
 ### 1. Instalace Docker Desktop
 
-Docker poskytuje kontejnerizované prostředí pro naše vývojové nastavení.
+Docker poskytuje kontejnerizované prostředí pro náš vývoj.
 
 #### Instalace na Windows
 
-1. **Stáhněte Docker Desktop**:
+1. **Stáhněte Docker Desktop**:  
    ```cmd
    # Visit https://desktop.docker.com/win/stable/Docker%20Desktop%20Installer.exe
    # Or use Windows Package Manager
    winget install Docker.DockerDesktop
    ```
+  
+2. **Nainstalujte a nakonfigurujte**:  
+   - Spusťte instalátor jako správce  
+   - Povolit integraci s WSL 2, když budete vyzváni  
+   - Po dokončení instalace restartujte počítač  
 
-2. **Nainstalujte a nakonfigurujte**:
-   - Spusťte instalátor jako správce
-   - Povolte integraci WSL 2, když budete vyzváni
-   - Restartujte počítač po dokončení instalace
-
-3. **Ověřte instalaci**:
+3. **Ověřte instalaci**:  
    ```cmd
    docker --version
    docker-compose --version
    ```
-
+  
 #### Instalace na macOS
 
-1. **Stáhněte a nainstalujte**:
+1. **Stáhněte a nainstalujte**:  
    ```bash
-   # Download from https://desktop.docker.com/mac/stable/Docker.dmg
-   # Or use Homebrew
+   # Stáhnout z https://desktop.docker.com/mac/stable/Docker.dmg
+   # Nebo použijte Homebrew
    brew install --cask docker
    ```
+  
+2. **Spusťte Docker Desktop**:  
+   - Otevřete Docker Desktop z Aplikací  
+   - Projděte průvodce nastavením  
 
-2. **Spusťte Docker Desktop**:
-   - Spusťte Docker Desktop z aplikací
-   - Dokončete úvodního průvodce nastavením
-
-3. **Ověřte instalaci**:
+3. **Ověřte instalaci**:  
    ```bash
    docker --version
    docker-compose --version
    ```
+  
+#### Instalace na Linuxu
 
-#### Instalace na Linux
-
-1. **Nainstalujte Docker Engine**:
+1. **Nainstalujte Docker Engine**:  
    ```bash
    # Ubuntu/Debian
    curl -fsSL https://get.docker.com -o get-docker.sh
    sudo sh get-docker.sh
    sudo usermod -aG docker $USER
    
-   # Log out and back in for group changes to take effect
+   # Odhlaste se a znovu přihlaste, aby změny skupiny nabyly účinku
    ```
-
-2. **Nainstalujte Docker Compose**:
+  
+2. **Nainstalujte Docker Compose**:  
    ```bash
    sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
    sudo chmod +x /usr/local/bin/docker-compose
    ```
-
+  
 ### 2. Instalace Azure CLI
 
-Azure CLI umožňuje nasazení a správu zdrojů Azure.
+Azure CLI umožňuje nasazování a správu Azure zdrojů.
 
 #### Instalace na Windows
 
@@ -117,18 +117,18 @@ winget install Microsoft.AzureCLI
 
 # Or download MSI from: https://aka.ms/installazurecliwindows
 ```
-
+  
 #### Instalace na macOS
 
 ```bash
-# Using Homebrew
+# Použití Homebrew
 brew install azure-cli
 
-# Or using installer
+# Nebo použití instalátoru
 curl -L https://aka.ms/InstallAzureCli | bash
 ```
-
-#### Instalace na Linux
+  
+#### Instalace na Linuxu
 
 ```bash
 # Ubuntu/Debian
@@ -138,24 +138,24 @@ curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
 sudo dnf install azure-cli
 ```
-
+  
 #### Ověření a autentizace
 
 ```bash
-# Check installation
+# Zkontrolujte instalaci
 az version
 
-# Login to Azure
+# Přihlaste se do Azure
 az login
 
-# Set default subscription (if you have multiple)
+# Nastavte výchozí odběr (pokud jich máte více)
 az account list --output table
 az account set --subscription "Your-Subscription-Name"
 ```
-
+  
 ### 3. Instalace Git
 
-Git je potřebný pro klonování repozitáře a verzování.
+Git je nutný pro klonování repozitáře a správu verzí.
 
 #### Windows
 
@@ -165,14 +165,14 @@ winget install Git.Git
 
 # Or download from: https://git-scm.com/download/win
 ```
-
+  
 #### macOS
 
 ```bash
-# Git is usually pre-installed, but you can update via Homebrew
+# Git je obvykle předinstalován, ale můžete ho aktualizovat přes Homebrew
 brew install git
 ```
-
+  
 #### Linux
 
 ```bash
@@ -182,10 +182,10 @@ sudo apt update && sudo apt install git
 # RHEL/CentOS
 sudo dnf install git
 ```
-
+  
 ### 4. Instalace VS Code
 
-Visual Studio Code poskytuje integrované vývojové prostředí s podporou MCP.
+Visual Studio Code poskytuje integrované vývojové prostředí se podporou MCP.
 
 #### Instalace
 
@@ -199,31 +199,31 @@ brew install --cask visual-studio-code
 # Linux (Ubuntu/Debian)
 sudo snap install code --classic
 ```
+  
+#### Požadovaná rozšíření
 
-#### Požadované rozšíření
-
-Nainstalujte tato rozšíření VS Code:
+Nainstalujte tato rozšíření do VS Code:
 
 ```bash
-# Install via command line
+# Nainstalujte přes příkazový řádek
 code --install-extension ms-python.python
 code --install-extension ms-vscode.vscode-json
 code --install-extension ms-azuretools.vscode-docker
 code --install-extension ms-vscode.azure-account
 ```
-
-Nebo nainstalujte přes VS Code:
-1. Otevřete VS Code
-2. Přejděte na Rozšíření (Ctrl+Shift+X)
-3. Nainstalujte:
-   - **Python** (Microsoft)
-   - **Docker** (Microsoft)
-   - **Azure Account** (Microsoft)
-   - **JSON** (Microsoft)
+  
+Nebo instalujte ve VS Code:  
+1. Otevřete VS Code  
+2. Přejděte na Rozšíření (Ctrl+Shift+X)  
+3. Nainstalujte:  
+   - **Python** (Microsoft)  
+   - **Docker** (Microsoft)  
+   - **Azure Account** (Microsoft)  
+   - **JSON** (Microsoft)  
 
 ### 5. Instalace Pythonu
 
-Python 3.8+ je požadován pro vývoj MCP serveru.
+Python 3.8+ je vyžadován pro vývoj MCP serveru.
 
 #### Windows
 
@@ -233,14 +233,14 @@ winget install Python.Python.3.11
 
 # Or download from: https://www.python.org/downloads/
 ```
-
+  
 #### macOS
 
 ```bash
-# Using Homebrew
+# Používání Homebrew
 brew install python@3.11
 ```
-
+  
 #### Linux
 
 ```bash
@@ -250,77 +250,77 @@ sudo apt update && sudo apt install python3.11 python3.11-pip python3.11-venv
 # RHEL/CentOS
 sudo dnf install python3.11 python3.11-pip
 ```
-
+  
 #### Ověření instalace
 
 ```bash
-python --version  # Should show Python 3.11.x
-pip --version      # Should show pip version
+python --version  # Mělo by zobrazit Python 3.11.x
+pip --version      # Měla by se zobrazit verze pipu
 ```
-
+  
 ## 🚀 Nastavení projektu
 
-### 1. Klonování repozitáře
+### 1. Naklonujte repozitář
 
 ```bash
-# Clone the main repository
+# Klonujte hlavní repozitář
 git clone https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail.git
 
-# Navigate to the project directory
+# Přejděte do adresáře projektu
 cd MCP-Server-and-PostgreSQL-Sample-Retail
 
-# Verify repository structure
+# Ověřte strukturu repozitáře
 ls -la
 ```
-
-### 2. Vytvoření virtuálního prostředí Pythonu
+  
+### 2. Vytvořte Python virtuální prostředí
 
 ```bash
-# Create virtual environment
+# Vytvořit virtuální prostředí
 python -m venv mcp-env
 
-# Activate virtual environment
+# Aktivovat virtuální prostředí
 # Windows
 mcp-env\Scripts\activate
 
 # macOS/Linux
 source mcp-env/bin/activate
 
-# Upgrade pip
+# Aktualizovat pip
 python -m pip install --upgrade pip
 ```
-
-### 3. Instalace Python závislostí
+  
+### 3. Nainstalujte Python závislosti
 
 ```bash
-# Install development dependencies
+# Nainstalujte závislosti pro vývoj
 pip install -r requirements.lock.txt
 
-# Verify key packages
+# Ověřte klíčové balíčky
 pip list | grep fastmcp
 pip list | grep asyncpg
 pip list | grep azure
 ```
+  
+## ☁️ Nasazení Azure zdrojů
 
-## ☁️ Nasazení zdrojů Azure
+### 1. Pochopení požadavků na zdroje
 
-### 1. Porozumění požadavkům na zdroje
+Náš MCP server vyžaduje tyto Azure zdroje:
 
-Náš MCP server vyžaduje tyto zdroje Azure:
-
-| **Zdroj** | **Účel** | **Odhadované náklady** |
-|-----------|----------|-----------------------|
-| **Azure AI Foundry** | Hosting a správa AI modelů | $10-50/měsíc |
-| **OpenAI Deployment** | Model textového vkládání (text-embedding-3-small) | $5-20/měsíc |
-| **Application Insights** | Monitoring a telemetrie | $5-15/měsíc |
+| **Zdroje** | **Účel** | **Odhadované náklady** |
+|------------|----------|-----------------------|
+| **Microsoft Foundry** | Hosting a správa AI modelů | 10–50 $/měsíc |
+| **OpenAI Deployment** | Textový embedding model (text-embedding-3-small) | 5–20 $/měsíc |
+| **Application Insights** | Monitorování a telemetrie | 5–15 $/měsíc |
 | **Resource Group** | Organizace zdrojů | Zdarma |
 
-### 2. Nasazení zdrojů Azure
+### 2. Nasazení Azure zdrojů
 
 #### Možnost A: Automatizované nasazení (doporučeno)
 
 ```bash
-# Navigate to infrastructure directory
+# Přejděte do adresáře infrastruktury
 cd infra
 
 # Windows - PowerShell
@@ -329,57 +329,57 @@ cd infra
 # macOS/Linux - Bash
 ./deploy.sh
 ```
-
-Skript nasazení provede:
-1. Vytvoření unikátní skupiny zdrojů
-2. Nasazení zdrojů Azure AI Foundry
-3. Nasazení modelu text-embedding-3-small
-4. Konfiguraci Application Insights
-5. Vytvoření servisního principála pro autentizaci
-6. Generování souboru `.env` s konfigurací
+  
+Skript nasazení provede:  
+1. Vytvoření unikátní skupiny zdrojů  
+2. Nasazení Microsoft Foundry zdrojů  
+3. Nasazení modelu text-embedding-3-small  
+4. Konfiguraci Application Insights  
+5. Vytvoření servisního principála pro autentizaci  
+6. Generování `.env` souboru s konfigurací  
 
 #### Možnost B: Manuální nasazení
 
-Pokud preferujete manuální kontrolu nebo automatizovaný skript selže:
+Pokud preferujete ruční kontrolu nebo automatický skript selže:
 
 ```bash
-# Set variables
+# Nastavit proměnné
 RESOURCE_GROUP="rg-zava-mcp-$(date +%s)"
 LOCATION="westus2"
 AI_PROJECT_NAME="zava-ai-project"
 
-# Create resource group
+# Vytvořit skupinu prostředků
 az group create --name $RESOURCE_GROUP --location $LOCATION
 
-# Deploy main template
+# Nasadit hlavní šablonu
 az deployment group create \
   --resource-group $RESOURCE_GROUP \
   --template-file main.bicep \
   --parameters location=$LOCATION \
   --parameters resourcePrefix="zava-mcp"
 ```
-
+  
 ### 3. Ověření nasazení Azure
 
 ```bash
-# Check resource group
+# Zkontrolujte skupinu prostředků
 az group show --name $RESOURCE_GROUP --output table
 
-# List deployed resources
+# Vypište nasazené prostředky
 az resource list --resource-group $RESOURCE_GROUP --output table
 
-# Test AI service
+# Otestujte AI službu
 az cognitiveservices account show \
   --name "your-ai-service-name" \
   --resource-group $RESOURCE_GROUP
 ```
-
+  
 ### 4. Konfigurace proměnných prostředí
 
-Po nasazení byste měli mít soubor `.env`. Ověřte, že obsahuje:
+Po nasazení byste měli mít `.env` soubor. Ověřte, že obsahuje:
 
 ```bash
-# .env file contents
+# Obsah souboru .env
 PROJECT_ENDPOINT=https://your-project.cognitiveservices.azure.com/
 AZURE_OPENAI_ENDPOINT=https://your-openai.openai.azure.com/
 EMBEDDING_MODEL_DEPLOYMENT_NAME=text-embedding-3-small
@@ -388,17 +388,17 @@ AZURE_CLIENT_SECRET=your-client-secret
 AZURE_TENANT_ID=your-tenant-id
 APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=your-key;...
 
-# Database configuration (for development)
+# Konfigurace databáze (pro vývoj)
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 POSTGRES_DB=zava
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=your-secure-password
 ```
-
+  
 ## 🐳 Nastavení Docker prostředí
 
-### 1. Porozumění Docker kompozici
+### 1. Pochopení Docker Compose
 
 Naše vývojové prostředí používá Docker Compose:
 
@@ -428,59 +428,59 @@ services:
     env_file:
       - .env
 ```
-
+  
 ### 2. Spuštění vývojového prostředí
 
 ```bash
-# Ensure you're in the project root directory
+# Ujistěte se, že jste v kořenovém adresáři projektu
 cd /path/to/MCP-Server-and-PostgreSQL-Sample-Retail
 
-# Start the services
+# Spusťte služby
 docker-compose up -d
 
-# Check service status
+# Zkontrolujte stav služby
 docker-compose ps
 
-# View logs
+# Zobrazte záznamy
 docker-compose logs -f
 ```
-
+  
 ### 3. Ověření nastavení databáze
 
 ```bash
-# Connect to PostgreSQL container
+# Připojit se k PostgreSQL kontejneru
 docker-compose exec postgres psql -U postgres -d zava
 
-# Check database structure
+# Zkontrolovat strukturu databáze
 \dt retail.*
 
-# Verify sample data
+# Ověřit vzorová data
 SELECT COUNT(*) FROM retail.stores;
 SELECT COUNT(*) FROM retail.products;
 SELECT COUNT(*) FROM retail.orders;
 
-# Exit PostgreSQL
+# Ukončit PostgreSQL
 \q
 ```
-
-### 4. Testování MCP serveru
+  
+### 4. Test MCP serveru
 
 ```bash
-# Check MCP server health
+# Zkontrolujte stav serveru MCP
 curl http://localhost:8000/health
 
-# Test basic MCP endpoint
+# Otestujte základní MCP endpoint
 curl -X POST http://localhost:8000/mcp \
   -H "Content-Type: application/json" \
   -H "x-rls-user-id: 00000000-0000-0000-0000-000000000000" \
   -d '{"method": "tools/list", "params": {}}'
 ```
-
+  
 ## 🔧 Konfigurace VS Code
 
-### 1. Konfigurace integrace MCP
+### 1. Nastavení MCP integrace
 
-Vytvořte konfiguraci MCP ve VS Code:
+Vytvořte VS Code konfiguraci MCP:
 
 ```json
 // .vscode/mcp.json
@@ -505,8 +505,8 @@ Vytvořte konfiguraci MCP ve VS Code:
     "inputs": []
 }
 ```
-
-### 2. Konfigurace Python prostředí
+  
+### 2. Nastavení Python prostředí
 
 ```json
 // .vscode/settings.json
@@ -524,31 +524,31 @@ Vytvořte konfiguraci MCP ve VS Code:
     }
 }
 ```
+  
+### 3. Test integrace VS Code
 
-### 3. Testování integrace VS Code
-
-1. **Otevřete projekt ve VS Code**:
+1. **Otevřete projekt ve VS Code**:  
    ```bash
    code .
    ```
+  
+2. **Otevřete AI Chat**:  
+   - Stiskněte `Ctrl+Shift+P` (Windows/Linux) nebo `Cmd+Shift+P` (macOS)  
+   - Napište "AI Chat" a vyberte "AI Chat: Open Chat"  
 
-2. **Otevřete AI Chat**:
-   - Stiskněte `Ctrl+Shift+P` (Windows/Linux) nebo `Cmd+Shift+P` (macOS)
-   - Zadejte "AI Chat" a vyberte "AI Chat: Open Chat"
-
-3. **Testování připojení MCP serveru**:
-   - V AI Chat zadejte `#zava` a vyberte jeden z nakonfigurovaných serverů
-   - Zeptejte se: "Jaké tabulky jsou dostupné v databázi?"
-   - Měli byste obdržet odpověď s výpisem tabulek maloobchodní databáze
+3. **Otestujte připojení MCP serveru**:  
+   - V AI Chatu napište `#zava` a vyberte jeden z nakonfigurovaných serverů  
+   - Zeptejte se: "Jaké tabulky jsou k dispozici v databázi?"  
+   - Měli byste obdržet odpověď s výpisem tabulek maloobchodní databáze  
 
 ## ✅ Ověření prostředí
 
-### 1. Komplexní kontrola systému
+### 1. Komplexní systémová kontrola
 
 Spusťte tento validační skript pro ověření nastavení:
 
 ```bash
-# Create validation script
+# Vytvořit validační skript
 cat > validate_setup.py << 'EOF'
 #!/usr/bin/env python3
 """
@@ -567,7 +567,7 @@ async def validate_environment():
     """Comprehensive environment validation."""
     results = {}
     
-    # Check Python version
+    # Zkontrolovat verzi Pythonu
     python_version = sys.version_info
     results['python'] = {
         'status': 'pass' if python_version >= (3, 8) else 'fail',
@@ -575,7 +575,7 @@ async def validate_environment():
         'required': '3.8+'
     }
     
-    # Check required packages
+    # Zkontrolovat požadované balíčky
     required_packages = ['fastmcp', 'asyncpg', 'azure-ai-projects']
     for package in required_packages:
         try:
@@ -584,7 +584,7 @@ async def validate_environment():
         except ImportError:
             results[f'package_{package}'] = {'status': 'fail', 'error': 'Not installed'}
     
-    # Check Docker
+    # Zkontrolovat Docker
     try:
         result = subprocess.run(['docker', '--version'], capture_output=True, text=True)
         results['docker'] = {
@@ -594,7 +594,7 @@ async def validate_environment():
     except FileNotFoundError:
         results['docker'] = {'status': 'fail', 'error': 'Docker not found'}
     
-    # Check Azure CLI
+    # Zkontrolovat Azure CLI
     try:
         result = subprocess.run(['az', '--version'], capture_output=True, text=True)
         results['azure_cli'] = {
@@ -604,7 +604,7 @@ async def validate_environment():
     except FileNotFoundError:
         results['azure_cli'] = {'status': 'fail', 'error': 'Azure CLI not found'}
     
-    # Check environment variables
+    # Zkontrolovat proměnné prostředí
     required_env_vars = [
         'PROJECT_ENDPOINT',
         'AZURE_OPENAI_ENDPOINT',
@@ -621,7 +621,7 @@ async def validate_environment():
             'value': '***' if value and 'SECRET' in var else value
         }
     
-    # Check database connection
+    # Zkontrolovat připojení k databázi
     try:
         conn = await asyncpg.connect(
             host=os.getenv('POSTGRES_HOST', 'localhost'),
@@ -631,7 +631,7 @@ async def validate_environment():
             password=os.getenv('POSTGRES_PASSWORD', 'secure_password')
         )
         
-        # Test query
+        # Testovací dotaz
         result = await conn.fetchval('SELECT COUNT(*) FROM retail.stores')
         await conn.close()
         
@@ -645,7 +645,7 @@ async def validate_environment():
             'error': str(e)
         }
     
-    # Check MCP server
+    # Zkontrolovat MCP server
     try:
         response = requests.get('http://localhost:8000/health', timeout=5)
         results['mcp_server'] = {
@@ -658,7 +658,7 @@ async def validate_environment():
             'error': str(e)
         }
     
-    # Check Azure AI service
+    # Zkontrolovat službu Azure AI
     try:
         credential = DefaultAzureCredential()
         project_client = AIProjectClient(
@@ -666,7 +666,7 @@ async def validate_environment():
             credential=credential
         )
         
-        # This will fail if credentials are invalid
+        # Toto selže, pokud jsou přihlašovací údaje neplatné
         results['azure_ai'] = {'status': 'pass'}
         
     except Exception as e:
@@ -716,169 +716,171 @@ async def main():
 
 EOF
 
-# Run validation
+# Spustit validaci
 python validate_setup.py
 ```
-
+  
 ### 2. Manuální kontrolní seznam
 
-**✅ Základní nástroje**
-- [ ] Nainstalovaná a spuštěná verze Dockeru 20.10+
-- [ ] Nainstalovaná a autentizovaná verze Azure CLI 2.40+
-- [ ] Nainstalovaný Python 3.8+ s pip
-- [ ] Nainstalovaný Git 2.30+
-- [ ] VS Code s požadovanými rozšířeními
+**✅ Základní nástroje**  
+- [ ] Docker verze 20.10+ nainstalován a spuštěn  
+- [ ] Azure CLI 2.40+ nainstalován a autentizován  
+- [ ] Python 3.8+ s pip nainstalován  
+- [ ] Git 2.30+ nainstalován  
+- [ ] VS Code s požadovanými rozšířeními  
 
-**✅ Zdroje Azure**
-- [ ] Úspěšně vytvořená skupina zdrojů
-- [ ] Nasazený projekt AI Foundry
-- [ ] Nasazený model text-embedding-3-small
-- [ ] Konfigurovaný Application Insights
-- [ ] Vytvořený servisní principál s odpovídajícími oprávněními
+**✅ Azure zdroje**  
+- [ ] Úspěšně vytvořena skupina zdrojů  
+- [ ] Nasazený AI Foundry projekt  
+- [ ] Nasazený OpenAI text-embedding-3-small model  
+- [ ] Nakonfigurovaný Application Insights  
+- [ ] Vytvořen servisní principál s potřebnými oprávněními  
 
-**✅ Konfigurace prostředí**
-- [ ] Vytvořený soubor `.env` se všemi požadovanými proměnnými
-- [ ] Funkční Azure přihlašovací údaje (testujte pomocí `az account show`)
-- [ ] Běžící a přístupný PostgreSQL kontejner
-- [ ] Načtená ukázková data v databázi
+**✅ Konfigurace prostředí**  
+- [ ] Vytvořen `.env` soubor se všemi potřebnými proměnnými  
+- [ ] Fungující Azure přihlašovací údaje (test přes `az account show`)  
+- [ ] PostgreSQL kontejner spuštěn a přístupný  
+- [ ] V databázi načtena vzorová data  
 
-**✅ Integrace VS Code**
-- [ ] Nakonfigurovaný soubor `.vscode/mcp.json`
-- [ ] Nastavený Python interpret na virtuální prostředí
-- [ ] MCP servery se zobrazují v AI Chat
-- [ ] Možnost provádět testovací dotazy přes AI Chat
+**✅ Integrace VS Code**  
+- [ ] Konfigurace `.vscode/mcp.json` nastavena  
+- [ ] Python interpreter nastaven na virtuální prostředí  
+- [ ] MCP servery viditelné v AI Chatu  
+- [ ] Schopnost spouštět testovací dotazy přes AI Chat  
 
 ## 🛠️ Řešení běžných problémů
 
 ### Problémy s Dockerem
 
-**Problém**: Docker kontejnery se nespustí
+**Problém**: Docker kontejnery se nespustí  
 ```bash
-# Check Docker service status
+# Zkontrolujte stav služby Docker
 docker info
 
-# Check available resources
+# Zkontrolujte dostupné zdroje
 docker system df
 
-# Clean up if needed
+# Vyčistěte, pokud je to potřeba
 docker system prune -f
 
-# Restart Docker Desktop (Windows/macOS)
-# Or restart Docker service (Linux)
+# Restartujte Docker Desktop (Windows/macOS)
+# Nebo restartujte službu Docker (Linux)
 sudo systemctl restart docker
 ```
-
-**Problém**: Selhání připojení k PostgreSQL
+  
+**Problém**: Selhání připojení k PostgreSQL  
 ```bash
-# Check container logs
+# Zkontrolujte protokoly kontejneru
 docker-compose logs postgres
 
-# Verify container is healthy
+# Ověřte, zda je kontejner zdravý
 docker-compose ps
 
-# Test direct connection
+# Otestujte přímé připojení
 docker-compose exec postgres psql -U postgres -d zava -c "SELECT 1;"
 ```
-
+  
 ### Problémy s nasazením Azure
 
-**Problém**: Selhání nasazení Azure
+**Problém**: Nasazení Azure selže  
 ```bash
-# Check Azure CLI authentication
+# Zkontrolujte autentizaci Azure CLI
 az account show
 
-# Verify subscription permissions
+# Ověřte oprávnění předplatného
 az role assignment list --assignee $(az account show --query user.name -o tsv)
 
-# Check resource provider registration
+# Zkontrolujte registraci poskytovatele zdrojů
 az provider register --namespace Microsoft.CognitiveServices
 az provider register --namespace Microsoft.Insights
 ```
-
-**Problém**: Selhání autentizace AI služby
+  
+**Problém**: Selhání autentizace AI služby  
 ```bash
-# Test service principal
+# Testovat hlavní službu
 az login --service-principal \
   --username $AZURE_CLIENT_ID \
   --password $AZURE_CLIENT_SECRET \
   --tenant $AZURE_TENANT_ID
 
-# Verify AI service deployment
+# Ověřit nasazení AI služby
 az cognitiveservices account list --query "[].{Name:name,Kind:kind,Location:location}"
 ```
-
+  
 ### Problémy s Python prostředím
 
-**Problém**: Selhání instalace balíčků
+**Problém**: Instalace balíčků selže  
 ```bash
-# Upgrade pip and setuptools
+# Aktualizujte pip a setuptools
 python -m pip install --upgrade pip setuptools wheel
 
-# Clear pip cache
+# Vyčistěte cache pipu
 pip cache purge
 
-# Install packages one by one to identify issues
+# Instalujte balíčky jeden po druhém, abyste identifikovali problémy
 pip install fastmcp
 pip install asyncpg
 pip install azure-ai-projects
 ```
-
-**Problém**: VS Code nemůže najít Python interpret
+  
+**Problém**: VS Code nenajde Python interpreter  
 ```bash
-# Show Python interpreter paths
+# Zobrazit cesty interpretru Pythonu
 which python  # macOS/Linux
 where python  # Windows
 
-# Activate virtual environment first
+# Nejprve aktivujte virtuální prostředí
 source mcp-env/bin/activate  # macOS/Linux
 mcp-env\Scripts\activate     # Windows
 
-# Then open VS Code
+# Pak otevřete VS Code
 code .
 ```
-
-## 🎯 Klíčové poznatky
+  
+## 🎯 Hlavní poznatky
 
 Po dokončení tohoto labu byste měli mít:
 
-✅ **Kompletní vývojové prostředí**: Všechny nástroje nainstalované a nakonfigurované  
-✅ **Nasazené zdroje Azure**: AI služby a podpůrná infrastruktura  
-✅ **Běžící Docker prostředí**: Kontejnery PostgreSQL a MCP serveru  
-✅ **Integrace VS Code**: Nakonfigurované a přístupné MCP servery  
-✅ **Ověřené nastavení**: Všechny komponenty otestované a funkční dohromady  
+✅ **Kompletní vývojové prostředí**: Všechny nástroje nainstalovány a nastaveny  
+✅ **Nasazeny Azure zdroje**: AI služby a podpůrná infrastruktura  
+✅ **Běžící Docker prostředí**: PostgreSQL a MCP server kontejnery  
+✅ **Integrace VS Code**: MCP servery konfigurány a přístupné  
+✅ **Ověřenou konfiguraci**: Všechny součásti otestovány a správně fungují  
 ✅ **Znalosti řešení problémů**: Běžné problémy a jejich řešení  
 
 ## 🚀 Co dál
 
-S připraveným prostředím pokračujte na **[Lab 04: Návrh databáze a schéma](../04-Database/README.md)**, kde:
+Po připravení prostředí pokračujte v **[Lab 04: Návrh databáze a schéma](../04-Database/README.md)**, kde se dozvíte:
 
-- Prozkoumáte podrobně schéma maloobchodní databáze
-- Porozumíte modelování dat pro více nájemců
-- Naučíte se implementaci Row Level Security
-- Budete pracovat s ukázkovými maloobchodními daty
+- Detailní pohled na schéma maloobchodní databáze  
+- Pochopení vícenájemnického modelování dat  
+- Implementaci Řízení přístupu na úrovni řádků (Row Level Security)  
+- Práci se vzorovými maloobchodními daty  
 
 ## 📚 Další zdroje
 
-### Vývojové nástroje
-- [Dokumentace Dockeru](https://docs.docker.com/) - Kompletní reference Dockeru
-- [Referenční příručka Azure CLI](https://docs.microsoft.com/cli/azure/) - Příkazy Azure CLI
-- [Dokumentace VS Code](https://code.visualstudio.com/docs) - Konfigurace editoru a rozšíření
+### Vývojářské nástroje
+- [Docker dokumentace](https://docs.docker.com/) - Kompletní reference k Dockeru  
+- [Azure CLI Reference](https://docs.microsoft.com/cli/azure/) - Příkazy Azure CLI  
+- [VS Code dokumentace](https://code.visualstudio.com/docs) - Nastavení editoru a rozšíření  
 
-### Služby Azure
-- [Dokumentace Azure AI Foundry](https://docs.microsoft.com/azure/ai-foundry/) - Konfigurace AI služeb
-- [Azure OpenAI Service](https://docs.microsoft.com/azure/cognitive-services/openai/) - Nasazení AI modelů
-- [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) - Nastavení monitoringu
+### Azure služby
+- [Microsoft Foundry dokumentace](https://docs.microsoft.com/azure/ai-foundry/) - Konfigurace AI služby  
+- [Azure OpenAI Service](https://docs.microsoft.com/azure/cognitive-services/openai/) - Nasazení AI modelů  
+- [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) - Nastavení monitoringu  
 
 ### Vývoj v Pythonu
-- [Virtuální prostředí Pythonu](https://docs.python.org/3/tutorial/venv.html) - Správa prostředí
-- [Dokumentace AsyncIO](https://docs.python.org/3/library/asyncio.html) - Asynchronní programovací vzory
-- [Dokumentace FastAPI](https://fastapi.tiangolo.com/) - Vzory webového frameworku
+- [Python virtuální prostředí](https://docs.python.org/3/tutorial/venv.html) - Správa prostředí  
+- [AsyncIO dokumentace](https://docs.python.org/3/library/asyncio.html) - Vzory asynchronního programování  
+- [FastAPI dokumentace](https://fastapi.tiangolo.com/) - Webové framework vzory  
 
 ---
 
-**Další krok**: Prostředí připraveno? Pokračujte na [Lab 04: Návrh databáze a schéma](../04-Database/README.md)
+**Další krok**: Prostředí připravené? Pokračujte na [Lab 04: Návrh databáze a schéma](../04-Database/README.md)
 
 ---
 
-**Prohlášení**:  
-Tento dokument byl přeložen pomocí služby AI pro překlad [Co-op Translator](https://github.com/Azure/co-op-translator). I když se snažíme o přesnost, mějte prosím na paměti, že automatizované překlady mohou obsahovat chyby nebo nepřesnosti. Původní dokument v jeho původním jazyce by měl být považován za autoritativní zdroj. Pro důležité informace se doporučuje profesionální lidský překlad. Neodpovídáme za žádná nedorozumění nebo nesprávné interpretace vyplývající z použití tohoto překladu.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Prohlášení o omezení odpovědnosti**:
+Tento dokument byl přeložen pomocí AI překladatelské služby [Co-op Translator](https://github.com/Azure/co-op-translator). Přestože usilujeme o co největší přesnost, mějte prosím na paměti, že automatizované překlady mohou obsahovat chyby nebo nepřesnosti. Originální dokument v jeho mateřském jazyce by měl být považován za autoritativní zdroj. Pro kritické informace se doporučuje profesionální lidský překlad. Nejsme odpovědní za jakékoli nedorozumění nebo nesprávné interpretace vzniklé použitím tohoto překladu.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

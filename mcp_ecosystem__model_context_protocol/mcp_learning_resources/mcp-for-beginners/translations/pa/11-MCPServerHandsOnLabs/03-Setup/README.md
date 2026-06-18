@@ -1,115 +1,115 @@
-# ਵਾਤਾਵਰਣ ਸੈਟਅੱਪ
+# Environment Setup
 
-## 🎯 ਇਹ ਲੈਬ ਕੀ ਕਵਰ ਕਰਦੀ ਹੈ
+## 🎯 What This Lab Covers
 
-ਇਹ ਹੈਂਡਸ-ਆਨ ਲੈਬ ਤੁਹਾਨੂੰ PostgreSQL ਇੰਟੀਗ੍ਰੇਸ਼ਨ ਨਾਲ MCP ਸਰਵਰ ਬਣਾਉਣ ਲਈ ਪੂਰਾ ਵਿਕਾਸ ਵਾਤਾਵਰਣ ਸੈਟਅੱਪ ਕਰਨ ਵਿੱਚ ਮਦਦ ਕਰਦੀ ਹੈ। ਤੁਸੀਂ ਸਾਰੇ ਜ਼ਰੂਰੀ ਟੂਲ ਕਨਫਿਗਰ ਕਰੋਗੇ, Azure ਸਰੋਤ ਤੈਨਾਤ ਕਰੋਗੇ, ਅਤੇ ਅਮਲ ਤੋਂ ਪਹਿਲਾਂ ਆਪਣੇ ਸੈਟਅੱਪ ਦੀ ਪੁਸ਼ਟੀ ਕਰੋਗੇ।
+ਇਹ ਹੱਥੋਂ-ਹੱਥ ਲੈਬ ਤੁਹਾਨੂੰ MCP ਸਰਵਰਾਂ ਦੇ ਨਿਰਮਾਣ ਲਈ ਪੋਸਟਗਰੇSQL ਇंटीਗ੍ਰੇਸ਼ਨ ਵਾਲਾ ਪੂਰਾ ਵਿਕਾਸ ਪਰਿਵੇਸ਼ ਸੈੱਟਅੱਪ ਕਰਨ ਵਿੱਚ ਮਦਦ ਕਰਦੀ ਹੈ। ਤੁਸੀਂ ਸਾਰੇ ਲੋੜੀਂਦੇ ਟੂਲ ਕਨਫਿਗਰ ਕਰੋਗੇ, Azure ਸਰੋਤ ਤਾਇਨਾਤ ਕਰੋਂਗੇ ਤੇ ਲਾਗੂ ਕਰਨ ਤੋਂ ਪਹਿਲਾਂ ਆਪਣੇ ਸੈੱਟਅੱਪ ਦੀ ਪੁਸ਼ਟੀ ਕਰੋਗੇ।
 
-## ਝਲਕ
+## Overview
 
-ਸਹੀ ਵਿਕਾਸ ਵਾਤਾਵਰਣ ਸਫਲ MCP ਸਰਵਰ ਵਿਕਾਸ ਲਈ ਬਹੁਤ ਜ਼ਰੂਰੀ ਹੈ। ਇਹ ਲੈਬ Docker, Azure ਸੇਵਾਵਾਂ, ਵਿਕਾਸ ਟੂਲ ਸੈਟਅੱਪ ਕਰਨ ਅਤੇ ਇਹ ਯਕੀਨੀ ਬਣਾਉਣ ਲਈ ਕਦਮ-ਦਰ-ਕਦਮ ਹਦਾਇਤਾਂ ਪ੍ਰਦਾਨ ਕਰਦੀ ਹੈ ਕਿ ਸਭ ਕੁਝ ਸਹੀ ਤਰੀਕੇ ਨਾਲ ਕੰਮ ਕਰ ਰਿਹਾ ਹੈ।
+ਸਹੀ ਵਿਕਾਸ ਪਰਿਵੇਸ਼ MCP ਸਰਵਰ ਵਿਕਾਸ ਵਿੱਚ ਸਫਲਤਾ ਲਈ ਜਰੂਰੀ ਹੈ। ਇਹ ਲੈਬ ਡੋਕਰ, Azure ਸਰਵਿਸਿਜ਼, ਵਿਕਾਸ ਟੂਲਸ ਦੇ ਸੈੱਟਅੱਪ ਅਤੇ ਸਭ ਕੁਝ ਠੀਕ ਤਰ੍ਹਾਂ ਕੰਮ ਕਰਦਾ ਹੈ ਜਾਂ ਨਹੀਂ, ਇਸ ਦੀ ਪੁਸ਼ਟੀ ਲਈ ਕਦਮ ਦਰ ਕਦਮ ਹਦਾਇਤਾਂ ਦਿੰਦੀ ਹੈ।
 
-ਇਸ ਲੈਬ ਦੇ ਅੰਤ ਤੱਕ, ਤੁਹਾਡੇ ਕੋਲ Zava Retail MCP ਸਰਵਰ ਬਣਾਉਣ ਲਈ ਪੂਰੀ ਤਰ੍ਹਾਂ ਕਾਰਗਰ ਵਿਕਾਸ ਵਾਤਾਵਰਣ ਹੋਵੇਗਾ।
+ਇਸ ਲੈਬ ਦੇ ਅੰਤ ਵਿੱਚ, ਤੁਹਾਡੇ ਕੋਲ Zava Retail MCP ਸਰਵਰ ਬਣਾਉਣ ਲਈ ਪੂਰੀ ਤਰ੍ਹਾਂ ਕਾਰਗਰ ਵਿਕਾਸ ਪਰਿਵੇਸ਼ ਹੋਵੇਗਾ।
 
-## ਸਿੱਖਣ ਦੇ ਉਦੇਸ਼
+## Learning Objectives
 
-ਇਸ ਲੈਬ ਦੇ ਅੰਤ ਤੱਕ, ਤੁਸੀਂ ਇਹ ਕਰਨ ਦੇ ਯੋਗ ਹੋਵੋਗੇ:
+ਇਸ ਲੈਬ ਦੇ ਅੰਤ ਵਿੱਚ, ਤੁਸੀਂ ਸਮਰੱਥ ਹੋਵੋਗੇ:
 
-- **ਸਾਰੇ ਜ਼ਰੂਰੀ ਵਿਕਾਸ ਟੂਲ** ਇੰਸਟਾਲ ਅਤੇ ਕਨਫਿਗਰ ਕਰੋ
-- **Azure ਸਰੋਤ ਤੈਨਾਤ ਕਰੋ** ਜੋ MCP ਸਰਵਰ ਲਈ ਲੋੜੀਂਦੇ ਹਨ
-- **Docker ਕੰਟੇਨਰ ਸੈਟਅੱਪ ਕਰੋ** PostgreSQL ਅਤੇ MCP ਸਰਵਰ ਲਈ
-- **ਆਪਣੇ ਵਾਤਾਵਰਣ ਸੈਟਅੱਪ ਦੀ ਪੁਸ਼ਟੀ ਕਰੋ** ਟੈਸਟ ਕਨੈਕਸ਼ਨ ਨਾਲ
-- **ਆਮ ਸੈਟਅੱਪ ਸਮੱਸਿਆਵਾਂ ਅਤੇ ਕਨਫਿਗਰੇਸ਼ਨ ਸਮੱਸਿਆਵਾਂ ਨੂੰ ਹੱਲ ਕਰੋ**
-- **ਵਿਕਾਸ ਵਰਕਫਲੋ ਅਤੇ ਫਾਈਲ ਸਟ੍ਰਕਚਰ ਨੂੰ ਸਮਝੋ**
+- **ਸਾਰੇ ਲੋੜੀਂਦੇ ਵਿਕਾਸ ਟੂਲਸ ਇੰਸਟਾਲ ਤੇ ਕਨਫਿਗਰ ਕਰਨਾ**  
+- **MCP ਸਰਵਰ ਲਈ ਲੋੜੀਂਦੇ Azure ਸਰੋਤ ਤਾਇਨਾਤ ਕਰਨਾ**  
+- **ਪੋਸਟਗਰੇSQL ਅਤੇ MCP ਸਰਵਰ ਲਈ ਡੋਕਰ ਕੰਟੇਨਰ ਸੈੱਟਅੱਪ ਕਰਨਾ**  
+- **ਟੈਸਟ ਕੁਨੈਕਸ਼ਨਾਂ ਨਾਲ ਆਪਣੇ ਪਰਿਵੇਸ਼ ਸੈੱਟਅੱਪ ਦੀ ਪੁਸ਼ਟੀ ਕਰਨਾ**  
+- **ਆਮ ਸੈੱਟਅੱਪ ਸਮੱਸਿਆਵਾਂ ਅਤੇ ਕਨਫਿਗਰੇਸ਼ਨ ਸਮੱਸਿਆਵਾਂ ਦਾ ਹੱਲ ਕਰਨਾ**  
+- **ਵਿਕਾਸ ਵਰਕਫਲੋ ਅਤੇ ਫਾਇਲ ਸਰਚਨਾ ਨੂੰ ਸਮਝਣਾ**  
 
-## 📋 ਪੂਰਵ-ਸ਼ਰਤਾਂ ਦੀ ਜਾਂਚ
+## 📋 Prerequisites Check
 
-ਸ਼ੁਰੂ ਕਰਨ ਤੋਂ ਪਹਿਲਾਂ, ਇਹ ਯਕੀਨੀ ਬਣਾਓ ਕਿ ਤੁਹਾਡੇ ਕੋਲ ਹੈ:
+ਸ਼ੁਰੂ ਕਰਨ ਤੋਂ ਪਹਿਲਾਂ ਯਕੀਨੀ ਬਣਾਓ ਕਿ ਤੁਹਾਡੇ ਕੋਲ ਹੈ:
 
-### ਲੋੜੀਂਦਾ ਗਿਆਨ
-- ਬੇਸਿਕ ਕਮਾਂਡ ਲਾਈਨ ਵਰਤੋਂ (Windows Command Prompt/PowerShell)
-- ਵਾਤਾਵਰਣ ਵੈਰੀਏਬਲ ਦੀ ਸਮਝ
-- Git ਵਰਜਨ ਕੰਟਰੋਲ ਨਾਲ ਜਾਣੂ
-- Docker ਦੇ ਬੁਨਿਆਦੀ ਸੰਕਲਪ (ਕੰਟੇਨਰ, ਇਮੇਜ, ਵਾਲਿਊਮ)
+### Required Knowledge
+- ਮੂਲ ਕਮਾਂਡ ਲਾਈਨ ਵਰਤੋਂ (Windows Command Prompt/PowerShell)  
+- ਪਰਿਵੇਸ਼ ਵੈਰੀਏਬਲ ਦੀ ਸਮਝ  
+- Git ਵਰਜਨ ਕੰਟਰੋਲ ਨਾਲ ਜਾਣੂਗੀ  
+- ਮੂਲ ਡੋਕਰ ਧਾਰਣਾ (ਕੰਟੇਨਰ, ਇਮੇਜ਼, ਵਾਲਿਊਮ)  
 
-### ਸਿਸਟਮ ਦੀਆਂ ਲੋੜਾਂ
-- **ਓਪਰੇਟਿੰਗ ਸਿਸਟਮ**: Windows 10/11, macOS, ਜਾਂ Linux
-- **RAM**: ਘੱਟੋ-ਘੱਟ 8GB (16GB ਸਿਫਾਰਸ਼ੀ)
-- **ਸਟੋਰੇਜ**: ਘੱਟੋ-ਘੱਟ 10GB ਖਾਲੀ ਜਗ੍ਹਾ
-- **ਨੈਟਵਰਕ**: ਡਾਊਨਲੋਡ ਅਤੇ Azure ਤੈਨਾਤੀ ਲਈ ਇੰਟਰਨੈਟ ਕਨੈਕਸ਼ਨ
+### System Requirements
+- **ਆਪਰੇਟਿੰਗ ਸਿਸਟਮ**: Windows 10/11, macOS, ਜਾਂ Linux  
+- **RAM**: ਘੱਟੋ-ਘੱਟ 8GB (16GB ਦੀ ਸਿਫਾਰਸ਼)  
+- **ਸਟੋਰੇਜ**: ਘੱਟੋ-ਘੱਟ 10GB ਖਾਲੀ ਜਗ੍ਹਾ  
+- **ਨੈੱਟਵਰਕ**: ਡਾਊਨਲੋਡ ਅਤੇ Azure ਤਾਇਨਾਤੀ ਲਈ ਇੰਟਰਨੈੱਟ ਕਨੈਕਸ਼ਨ  
 
-### ਅਕਾਊਂਟ ਦੀਆਂ ਲੋੜਾਂ
-- **Azure Subscription**: ਮੁਫ਼ਤ ਟੀਅਰ ਕਾਫ਼ੀ ਹੈ
-- **GitHub Account**: ਰਿਪੋਜ਼ਟਰੀ ਤੱਕ ਪਹੁੰਚ ਲਈ
-- **Docker Hub Account**: (ਵਿਕਲਪਿਕ) ਕਸਟਮ ਇਮੇਜ ਪਬਲਿਸ਼ ਕਰਨ ਲਈ
+### Account Requirements
+- **Azure Subscription**: ਮੁਫ਼ਤ ਟੀਅਰ ਕਾਫ਼ੀ ਹੈ  
+- **GitHub Account**: ਰਿਪੋਜ਼ਿਟਰੀ ਐਕਸੈਸ ਲਈ  
+- **Docker Hub Account**: (ਵਿਕਲਪਿਕ) ਕਸਟਮ ਇਮੇਜ਼ ਪ੍ਰਕਾਸ਼ਿਤ ਕਰਨ ਲਈ  
 
-## 🛠️ ਟੂਲ ਇੰਸਟਾਲੇਸ਼ਨ
+## 🛠️ Tool Installation
 
-### 1. Docker Desktop ਇੰਸਟਾਲ ਕਰੋ
+### 1. Install Docker Desktop
 
-Docker ਸਾਡੇ ਵਿਕਾਸ ਸੈਟਅੱਪ ਲਈ ਕੰਟੇਨਰਾਈਜ਼ਡ ਵਾਤਾਵਰਣ ਪ੍ਰਦਾਨ ਕਰਦਾ ਹੈ।
+ਡੋਕਰ ਸਾਡੇ ਵਿਕਾਸ ਪਰਿਵੇਸ਼ ਲਈ ਕੰਟੇਨਰ ਆਧਾਰਿਤ ਵਾਤਾਵਰਨ ਪ੍ਰਦਾਨ ਕਰਦਾ ਹੈ।
 
-#### Windows ਇੰਸਟਾਲੇਸ਼ਨ
+#### Windows Installation
 
-1. **Docker Desktop ਡਾਊਨਲੋਡ ਕਰੋ**:
+1. **ਡੋਕਰ ਡੈਸਕਟਾਪ ਡਾਊਨਲੋਡ ਕਰੋ**:  
    ```cmd
    # Visit https://desktop.docker.com/win/stable/Docker%20Desktop%20Installer.exe
    # Or use Windows Package Manager
    winget install Docker.DockerDesktop
    ```
 
-2. **ਇੰਸਟਾਲ ਅਤੇ ਕਨਫਿਗਰ ਕਰੋ**:
-   - ਇੰਸਟਾਲਰ ਨੂੰ Administrator ਵਜੋਂ ਚਲਾਓ
-   - WSL 2 ਇੰਟੀਗ੍ਰੇਸ਼ਨ ਨੂੰ ਐਨੇਬਲ ਕਰੋ ਜਦੋਂ ਪੁੱਛਿਆ ਜਾਵੇ
-   - ਇੰਸਟਾਲੇਸ਼ਨ ਪੂਰੀ ਹੋਣ 'ਤੇ ਆਪਣੇ ਕੰਪਿਊਟਰ ਨੂੰ ਰੀਸਟਾਰਟ ਕਰੋ
+2. **ਸਥਾਪਿਤ ਅਤੇ ਕਨਫਿਗਰ ਕਰੋ**:  
+   - ਇੰਸਟਾਲਰ ਨੂੰ ਐਡਮਿਨਿਸਟਰੇਟਰ ਵਜੋਂ ਚਲਾਓ  
+   - ਜਦੋਂ ਪੁੱਛਿਆ ਜਾਵੇ ਤਾਂ WSL 2 ਇੰਟਿਗ੍ਰੇਸ਼ਨ ਨੂੰ ਯੋਗ ਕਰੋ  
+   - ਇੰਸਟਾਲੇਸ਼ਨ ਪੂਰੀ ਹੋਣ ਤੇ ਕੰਪਿਊਟਰ ਨੂੰ ਰੀਸਟਾਰਟ ਕਰੋ  
 
-3. **ਇੰਸਟਾਲੇਸ਼ਨ ਦੀ ਪੁਸ਼ਟੀ ਕਰੋ**:
+3. **ਸਥਾਪਨਾ ਦੀ ਪੁਸ਼ਟੀ ਕਰੋ**:  
    ```cmd
    docker --version
    docker-compose --version
    ```
 
-#### macOS ਇੰਸਟਾਲੇਸ਼ਨ
+#### macOS Installation
 
-1. **ਡਾਊਨਲੋਡ ਅਤੇ ਇੰਸਟਾਲ ਕਰੋ**:
+1. **ਡਾਊਨਲੋਡ ਅਤੇ ਇੰਸਟਾਲ ਕਰੋ**:  
    ```bash
-   # Download from https://desktop.docker.com/mac/stable/Docker.dmg
-   # Or use Homebrew
+   # ਡਾਉਨਲੋਡ ਕਰੋ https://desktop.docker.com/mac/stable/Docker.dmg ਤੋਂ
+   # ਜਾਂ Homebrew ਵਰਤੋਂ
    brew install --cask docker
    ```
 
-2. **Docker Desktop ਸ਼ੁਰੂ ਕਰੋ**:
-   - Applications ਤੋਂ Docker Desktop ਲਾਂਚ ਕਰੋ
-   - ਸ਼ੁਰੂਆਤੀ ਸੈਟਅੱਪ ਵਿਜ਼ਾਰਡ ਪੂਰਾ ਕਰੋ
+2. **ਡੋਕਰ ਡੈਸਕਟਾਪ ਸ਼ੁਰੂ ਕਰੋ**:  
+   - Applications ਵਿੱਚੋਂ ਡੋਕਰ ਡੈਸਕਟਾਪ ਖੋਲ੍ਹੋ  
+   - ਸ਼ੁਰੂਆਤੀ ਸੈਟਅੱਪ ਵਿਜ਼ਾਰਡ ਪੂਰਾ ਕਰੋ  
 
-3. **ਇੰਸਟਾਲੇਸ਼ਨ ਦੀ ਪੁਸ਼ਟੀ ਕਰੋ**:
+3. **ਸਥਾਪਨਾ ਦੀ ਪੁਸ਼ਟੀ ਕਰੋ**:  
    ```bash
    docker --version
    docker-compose --version
    ```
 
-#### Linux ਇੰਸਟਾਲੇਸ਼ਨ
+#### Linux Installation
 
-1. **Docker Engine ਇੰਸਟਾਲ ਕਰੋ**:
+1. **ਡੋਕਰ ਇੰਜਨ ਇੰਸਟਾਲ ਕਰੋ**:  
    ```bash
-   # Ubuntu/Debian
+   # ਉਬੰਟੂ/ਡੈਬਿਆਨ
    curl -fsSL https://get.docker.com -o get-docker.sh
    sudo sh get-docker.sh
    sudo usermod -aG docker $USER
    
-   # Log out and back in for group changes to take effect
+   # ਗਰੁੱਪ ਬਦਲਾਵਾਂ ਦੇ ਪ੍ਰਭਾਵ ਲਈ ਲਾਗ ਆਊਟ ਕਰਕੇ ਮੁੜ ਲਾਗ ਇਨ ਕਰੋ
    ```
 
-2. **Docker Compose ਇੰਸਟਾਲ ਕਰੋ**:
+2. **ਡੋਕਰ ਕੋਮਪੋਜ਼ ਇੰਸਟਾਲ ਕਰੋ**:  
    ```bash
    sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
    sudo chmod +x /usr/local/bin/docker-compose
    ```
 
-### 2. Azure CLI ਇੰਸਟਾਲ ਕਰੋ
+### 2. Install Azure CLI
 
-Azure CLI Azure ਸਰੋਤ ਤੈਨਾਤੀ ਅਤੇ ਪ੍ਰਬੰਧਨ ਨੂੰ ਯੋਗ ਬਣਾਉਂਦਾ ਹੈ।
+Azure CLI Azure ਸਰੋਤ ਤਾਇਨਾਤ ਅਤੇ ਪ੍ਰਬੰਧਨ ਲਈ ਯੋਗ ਬਣਾਉਂਦਾ ਹੈ।
 
-#### Windows ਇੰਸਟਾਲੇਸ਼ਨ
+#### Windows Installation
 
 ```cmd
 # Using Windows Package Manager
@@ -118,44 +118,44 @@ winget install Microsoft.AzureCLI
 # Or download MSI from: https://aka.ms/installazurecliwindows
 ```
 
-#### macOS ਇੰਸਟਾਲੇਸ਼ਨ
+#### macOS Installation
 
 ```bash
-# Using Homebrew
+# ਹੋਮਬ੍ਰੂ ਦਾ ਇਸਤੇਮਾਲ ਕਰਨਾ
 brew install azure-cli
 
-# Or using installer
+# ਜਾਂ ਇੰਸਟਾਲਰ ਦੀ ਵਰਤੋਂ ਕਰਦੇ ਹੋਏ
 curl -L https://aka.ms/InstallAzureCli | bash
 ```
 
-#### Linux ਇੰਸਟਾਲੇਸ਼ਨ
+#### Linux Installation
 
 ```bash
-# Ubuntu/Debian
+# ਉਬੰਟੂ/ਡੇਬਿਅਨ
 curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 
-# RHEL/CentOS
+# ਆਰਐਚਈਐਲ/ਸੈਂਟਓਐਸ
 sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
 sudo dnf install azure-cli
 ```
 
-#### ਪੁਸ਼ਟੀ ਅਤੇ ਪ੍ਰਮਾਣਿਕਤਾ
+#### Verify and Authenticate
 
 ```bash
-# Check installation
+# ਇੰਸਟਾਲੇਸ਼ਨ ਦੀ ਜਾਂਚ ਕਰੋ
 az version
 
-# Login to Azure
+# ਐਜ਼ੂਅਰ ਵਿੱਚ ਲੌਗਇਨ ਕਰੋ
 az login
 
-# Set default subscription (if you have multiple)
+# ਡਿਫਾਲਟ ਸਬਸਕ੍ਰਿਪਸ਼ਨ ਸੈੱਟ ਕਰੋ (ਜੇ ਤੁਹਾਡੇ ਕੋਲ ਕਈ ਹਨ)
 az account list --output table
 az account set --subscription "Your-Subscription-Name"
 ```
 
-### 3. Git ਇੰਸਟਾਲ ਕਰੋ
+### 3. Install Git
 
-Git ਰਿਪੋਜ਼ਟਰੀ ਕਲੋਨ ਕਰਨ ਅਤੇ ਵਰਜਨ ਕੰਟਰੋਲ ਲਈ ਲੋੜੀਂਦਾ ਹੈ।
+Git ਰਿਪੋਜ਼ਿਟਰੀ ਕਲੋਨ ਕਰਨ ਅਤੇ ਵਰਜਨ ਕੰਟਰੋਲ ਲਈ ਲਾਜ਼ਮੀ ਹੈ।
 
 #### Windows
 
@@ -169,25 +169,25 @@ winget install Git.Git
 #### macOS
 
 ```bash
-# Git is usually pre-installed, but you can update via Homebrew
+# ਗਿਟ ਆਮ ਤੌਰ 'ਤੇ ਪਹਿਲਾਂ ਹੀ ਇੰਸਟਾਲ ਹੁੰਦਾ ਹੈ, ਪਰ ਤੁਸੀਂ Homebrew ਰਾਹੀਂ ਅੱਪਡੇਟ ਕਰ ਸਕਦੇ ਹੋ।
 brew install git
 ```
 
 #### Linux
 
 ```bash
-# Ubuntu/Debian
+# ਉਬੁੰਟੂ/ਡੀਬੀਅਨ
 sudo apt update && sudo apt install git
 
-# RHEL/CentOS
+# ਆਰਐਚਈਐਲ/ਸੈਂਟਓਐਸ
 sudo dnf install git
 ```
 
-### 4. VS Code ਇੰਸਟਾਲ ਕਰੋ
+### 4. Install VS Code
 
-Visual Studio Code MCP ਸਹਾਇਤਾ ਨਾਲ ਇੰਟੀਗ੍ਰੇਟਡ ਵਿਕਾਸ ਵਾਤਾਵਰਣ ਪ੍ਰਦਾਨ ਕਰਦਾ ਹੈ।
+Visual Studio Code MCP ਸਹਿਯੋਗ ਨਾਲ ਇੰਟੀਗ੍ਰੇਟਡ ਵਿਕਾਸ ਵਾਤਾਵਰਨ ਪ੍ਰਦਾਨ ਕਰਦਾ ਹੈ।
 
-#### ਇੰਸਟਾਲੇਸ਼ਨ
+#### Installation
 
 ```cmd
 # Windows
@@ -200,30 +200,30 @@ brew install --cask visual-studio-code
 sudo snap install code --classic
 ```
 
-#### ਲੋੜੀਂਦੇ ਐਕਸਟੈਂਸ਼ਨ
+#### Required Extensions
 
-ਇਹ VS Code ਐਕਸਟੈਂਸ਼ਨ ਇੰਸਟਾਲ ਕਰੋ:
+ਇਹ VS Code ਐਕਸਟੇਂਸ਼ਨ ਇੰਸਟਾਲ ਕਰੋ:
 
 ```bash
-# Install via command line
+# ਕਮਾਂਡ ਲਾਈਨ ਰਾਹੀਂ ਇੰਸਟਾਲ ਕਰੋ
 code --install-extension ms-python.python
 code --install-extension ms-vscode.vscode-json
 code --install-extension ms-azuretools.vscode-docker
 code --install-extension ms-vscode.azure-account
 ```
+  
+ਜਾਂ VS Code ਰਾਹੀਂ ਇੰਸਟਾਲ ਕਰੋ:  
+1. VS Code ਖੋਲ੍ਹੋ  
+2. Extensions (Ctrl+Shift+X) ਤੇ ਜਾਓ  
+3. ਇੰਸਟਾਲ ਕਰੋ:  
+   - **Python** (Microsoft)  
+   - **Docker** (Microsoft)  
+   - **Azure Account** (Microsoft)  
+   - **JSON** (Microsoft)  
 
-ਜਾਂ VS Code ਰਾਹੀਂ ਇੰਸਟਾਲ ਕਰੋ:
-1. VS Code ਖੋਲ੍ਹੋ
-2. ਐਕਸਟੈਂਸ਼ਨ 'ਤੇ ਜਾਓ (Ctrl+Shift+X)
-3. ਇੰਸਟਾਲ ਕਰੋ:
-   - **Python** (Microsoft)
-   - **Docker** (Microsoft)
-   - **Azure Account** (Microsoft)
-   - **JSON** (Microsoft)
+### 5. Install Python
 
-### 5. Python ਇੰਸਟਾਲ ਕਰੋ
-
-Python 3.8+ MCP ਸਰਵਰ ਵਿਕਾਸ ਲਈ ਲੋੜੀਂਦਾ ਹੈ।
+Python 3.8+ MCP ਸਰਵਰ ਵਿਕਾਸ ਲਈ ਜਰੂਰੀ ਹੈ।
 
 #### Windows
 
@@ -237,121 +237,121 @@ winget install Python.Python.3.11
 #### macOS
 
 ```bash
-# Using Homebrew
+# ਹੋਮਬ੍ਰੂ ਦੀ ਵਰਤੋਂ ਕਰਨਾ
 brew install python@3.11
 ```
 
 #### Linux
 
 ```bash
-# Ubuntu/Debian
+# ਉਬੁੰਟੂ/ਡੈਬੀਅਨ
 sudo apt update && sudo apt install python3.11 python3.11-pip python3.11-venv
 
-# RHEL/CentOS
+# ਆਰਐਚਈਐਲ/ਸੈਂਟਓਐਸ
 sudo dnf install python3.11 python3.11-pip
 ```
 
-#### ਇੰਸਟਾਲੇਸ਼ਨ ਦੀ ਪੁਸ਼ਟੀ ਕਰੋ
+#### Verify Installation
 
 ```bash
-python --version  # Should show Python 3.11.x
-pip --version      # Should show pip version
+python --version  # ਪਾਈਥਨ 3.11.x ਦਿਖਾਉਣਾ ਚਾਹੀਦਾ ਹੈ
+pip --version      # pip ਵਰਜਨ ਦਿਖਾਉਣਾ ਚਾਹੀਦਾ ਹੈ
 ```
 
-## 🚀 ਪ੍ਰੋਜੈਕਟ ਸੈਟਅੱਪ
+## 🚀 Project Setup
 
-### 1. ਰਿਪੋਜ਼ਟਰੀ ਕਲੋਨ ਕਰੋ
+### 1. Clone the Repository
 
 ```bash
-# Clone the main repository
+# ਮੁੱਖ ਰਿਪੋਜ਼ਟਰੀ ਨੂੰ ਕਲੋਨ ਕਰੋ
 git clone https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail.git
 
-# Navigate to the project directory
+# ਪ੍ਰੋਜੈਕਟ ਡਾਇਰੈਕਟਰੀ ਵਿੱਚ ਜਾਓ
 cd MCP-Server-and-PostgreSQL-Sample-Retail
 
-# Verify repository structure
+# ਰਿਪੋਜ਼ਟਰੀ ਦੀ ਢਾਂਚਾ ਦੀ ਜਾਂਚ ਕਰੋ
 ls -la
 ```
 
-### 2. Python ਵਰਚੁਅਲ ਵਾਤਾਵਰਣ ਬਣਾਓ
+### 2. Create Python Virtual Environment
 
 ```bash
-# Create virtual environment
+# ਵਰਚੁਅਲ ਵਾਤਾਵਰਣ ਬਣਾਓ
 python -m venv mcp-env
 
-# Activate virtual environment
-# Windows
+# ਵਰਚੁਅਲ ਵਾਤਾਵਰਣ ਚਾਲੂ ਕਰੋ
+# ਵਿਂਡੋਜ਼
 mcp-env\Scripts\activate
 
-# macOS/Linux
+# ਮੈਕਓਐਸ/ਲਿਨਕਸ
 source mcp-env/bin/activate
 
-# Upgrade pip
+# ਪਿਪ ਅੱਪਗ੍ਰੇਡ ਕਰੋ
 python -m pip install --upgrade pip
 ```
 
-### 3. Python Dependencies ਇੰਸਟਾਲ ਕਰੋ
+### 3. Install Python Dependencies
 
 ```bash
-# Install development dependencies
+# ਵਿਕਾਸਲਈ ਨਿਵੇਸ਼ ਪੁਸ਼ਟੀ ਕਰੋ
 pip install -r requirements.lock.txt
 
-# Verify key packages
+# ਮੁੱਖ ਪੈਕੇਜਾਂ ਦੀ ਪੁਸ਼ਟੀ ਕਰੋ
 pip list | grep fastmcp
 pip list | grep asyncpg
 pip list | grep azure
 ```
 
-## ☁️ Azure ਸਰੋਤ ਤੈਨਾਤੀ
+## ☁️ Azure Resource Deployment
 
-### 1. ਸਰੋਤ ਦੀਆਂ ਲੋੜਾਂ ਨੂੰ ਸਮਝੋ
+### 1. Understand Resource Requirements
 
-ਸਾਡੇ MCP ਸਰਵਰ ਨੂੰ ਇਹ Azure ਸਰੋਤਾਂ ਦੀ ਲੋੜ ਹੈ:
+ਸਾਡੇ MCP ਸਰਵਰ ਨੂੰ ਇਹਨਾਂ Azure ਸਰੋਤਾਂ ਦੀ ਲੋੜ ਹੈ:
 
-| **ਸਰੋਤ** | **ਉਦੇਸ਼** | **ਅਨੁਮਾਨਿਤ ਲਾਗਤ** |
+| **Resource** | **Purpose** | **Estimated Cost** |
 |--------------|-------------|-------------------|
-| **Azure AI Foundry** | AI ਮਾਡਲ ਹੋਸਟਿੰਗ ਅਤੇ ਪ੍ਰਬੰਧਨ | $10-50/ਮਹੀਨਾ |
-| **OpenAI Deployment** | ਟੈਕਸਟ ਐਮਬੈਡਿੰਗ ਮਾਡਲ (text-embedding-3-small) | $5-20/ਮਹੀਨਾ |
-| **Application Insights** | ਮਾਨੀਟਰਿੰਗ ਅਤੇ ਟੈਲੀਮੈਟਰੀ | $5-15/ਮਹੀਨਾ |
-| **Resource Group** | ਸਰੋਤ ਸੰਗਠਨ | ਮੁਫ਼ਤ |
+| **Microsoft Foundry** | AI ਮਾਡਲ ਹੋਸਟਿੰਗ ਅਤੇ ਪ੍ਰਬੰਧਨ | $10-50/ਮਹੀਨਾ |
+| **OpenAI Deployment** | ਟੈਕਸਟ ਇੰਬੈੱਡਿੰਗ ਮਾਡਲ (text-embedding-3-small) | $5-20/ਮਹੀਨਾ |
+| **Application Insights** | ਮਾਨੀਟਰਿੰਗ ਅਤੇ ਟੈਲੀਮੇਟਰੀ | $5-15/ਮਹੀਨਾ |
+| **Resource Group** | ਸਰੋਤਾਂ ਦਾ ਸੰਗਠਨ | ਮੁਫ਼ਤ |  
 
-### 2. Azure ਸਰੋਤ ਤੈਨਾਤ ਕਰੋ
+### 2. Deploy Azure Resources
 
-#### ਵਿਕਲਪ A: ਆਟੋਮੈਟਿਕ ਤੈਨਾਤੀ (ਸਿਫਾਰਸ਼ੀ)
+#### Option A: Automated Deployment (Recommended)
 
 ```bash
-# Navigate to infrastructure directory
+# ਇੰਫਰਾਸਟਰੱਕਚਰ ਡਾਇਰੈਕਟਰੀ ਵਿੱਚ ਜਾਓ
 cd infra
 
-# Windows - PowerShell
+# ਵਿਂਡੋਜ਼ - ਪਾਵਰਸ਼ੈੱਲ
 ./deploy.ps1
 
-# macOS/Linux - Bash
+# ਮੈਕਓਐਸ/ਲਿਨਕਸ - ਬੈਸ਼
 ./deploy.sh
 ```
+  
+ਡਿਪਲੋਇਮੈਂਟ ਸਕ੍ਰਿਪਟ ਇਹ ਕਰੇਗਾ:  
+1. ਇੱਕ ਵੱਖਰੀ ਰਿਸੋਰਸ ਗਰੁੱਪ ਬਣਾਓ  
+2. Microsoft Foundry ਸਰੋਤ ਤਾਇਨਾਤ ਕਰੋ  
+3. text-embedding-3-small ਮਾਡਲ ਤਾਇਨਾਤ ਕਰੋ  
+4. Application Insights ਕਨਫਿਗਰ ਕਰੋ  
+5. ਅਥੈਂਟੀਕੇਸ਼ਨ ਲਈ ਸੇਵਾ ਪ੍ਰਿੰਸਿਪਲ ਬਣਾਓ  
+6. ਕਨਫਿਗਰੇਸ਼ਨ ਨਾਲ `.env` ਫਾਈਲ ਤਿਆਰ ਕਰੋ  
 
-ਤੈਨਾਤੀ ਸਕ੍ਰਿਪਟ ਇਹ ਕਰੇਗਾ:
-1. ਇੱਕ ਵਿਲੱਖਣ ਰਿਸੋਰਸ ਗਰੁੱਪ ਬਣਾਓ
-2. Azure AI Foundry ਸਰੋਤ ਤੈਨਾਤ ਕਰੋ
-3. text-embedding-3-small ਮਾਡਲ ਤੈਨਾਤ ਕਰੋ
-4. Application Insights ਕਨਫਿਗਰ ਕਰੋ
-5. ਪ੍ਰਮਾਣਿਕਤਾ ਲਈ ਸੇਵਾ ਪ੍ਰਿੰਸਿਪਲ ਬਣਾਓ
-6. `.env` ਫਾਈਲ ਜਨਰੇਟ ਕਰੋ ਕਨਫਿਗਰੇਸ਼ਨ ਨਾਲ
+#### Option B: Manual Deployment
 
-#### ਵਿਕਲਪ B: ਮੈਨੂਅਲ ਤੈਨਾਤੀ
-
-ਜੇ ਤੁਸੀਂ ਮੈਨੂਅਲ ਕੰਟਰੋਲ ਨੂੰ ਤਰਜੀਹ ਦਿੰਦੇ ਹੋ ਜਾਂ ਆਟੋਮੈਟਿਕ ਸਕ੍ਰਿਪਟ ਫੇਲ੍ਹ ਹੋ ਜਾਂਦੀ ਹੈ:
+ਜੇ ਤੁਸੀਂ ਮੈਨੂਅਲ ਕੰਟਰੋਲ ਚਾਹੁੰਦੇ ਹੋ ਜਾਂ ਆਟੋਮੈਟਿਕ ਸਕ੍ਰਿਪਟ ਫੇਲ ਹੋ ਜਾਂਦਾ ਹੈ:
 
 ```bash
-# Set variables
+# ਵਿਰੀਏਬਲ ਸੈਟ ਕਰੋ
 RESOURCE_GROUP="rg-zava-mcp-$(date +%s)"
 LOCATION="westus2"
 AI_PROJECT_NAME="zava-ai-project"
 
-# Create resource group
+# ਸਰੋਤ ਸਮੂਹ ਬਣਾਓ
 az group create --name $RESOURCE_GROUP --location $LOCATION
 
-# Deploy main template
+# ਮੁੱਖ ਟੈਂਪਲੇਟ ਤੈਨਾਤ ਕਰੋ
 az deployment group create \
   --resource-group $RESOURCE_GROUP \
   --template-file main.bicep \
@@ -359,27 +359,27 @@ az deployment group create \
   --parameters resourcePrefix="zava-mcp"
 ```
 
-### 3. Azure ਤੈਨਾਤੀ ਦੀ ਪੁਸ਼ਟੀ ਕਰੋ
+### 3. Verify Azure Deployment
 
 ```bash
-# Check resource group
+# ਸਰੋਤ ਗਰੁੱਪ ਜਾਂਚੋ
 az group show --name $RESOURCE_GROUP --output table
 
-# List deployed resources
+# ਤੈਅ ਕੀਤੇ ਗਏ ਸਰੋਤ ਸੂਚੀਬੱਧ ਕਰੋ
 az resource list --resource-group $RESOURCE_GROUP --output table
 
-# Test AI service
+# AI ਸੇਵਾ ਦੀ ਜਾਂਚ ਕਰੋ
 az cognitiveservices account show \
   --name "your-ai-service-name" \
   --resource-group $RESOURCE_GROUP
 ```
 
-### 4. ਵਾਤਾਵਰਣ ਵੈਰੀਏਬਲ ਕਨਫਿਗਰ ਕਰੋ
+### 4. Configure Environment Variables
 
-ਤੈਨਾਤੀ ਤੋਂ ਬਾਅਦ, ਤੁਹਾਡੇ ਕੋਲ `.env` ਫਾਈਲ ਹੋਣੀ ਚਾਹੀਦੀ ਹੈ। ਇਹ ਯਕੀਨੀ ਬਣਾਓ ਕਿ ਇਸ ਵਿੱਚ ਇਹ ਸ਼ਾਮਲ ਹੈ:
+ਡਿਪਲੋਇਮੈਂਟ ਤੋਂ ਬਾਅਦ, ਤੁਹਾਡੇ ਕੋਲ `.env` ਫਾਈਲ ਹੋਣੀ ਚਾਹੀਦੀ ਹੈ। ਯਕੀਨੀ ਬਣਾਓ ਕਿ ਇਹ ਸ਼ਾਮਲ ਕਰਦੀ ਹੈ:
 
 ```bash
-# .env file contents
+# .env ਫਾਇਲ ਦੇ ਸਮੱਗਰੀ
 PROJECT_ENDPOINT=https://your-project.cognitiveservices.azure.com/
 AZURE_OPENAI_ENDPOINT=https://your-openai.openai.azure.com/
 EMBEDDING_MODEL_DEPLOYMENT_NAME=text-embedding-3-small
@@ -388,7 +388,7 @@ AZURE_CLIENT_SECRET=your-client-secret
 AZURE_TENANT_ID=your-tenant-id
 APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=your-key;...
 
-# Database configuration (for development)
+# ਡੇਟਾਬੇਸ ਸੰਰਚਨਾ (ਵਿਕਾਸ ਲਈ)
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 POSTGRES_DB=zava
@@ -396,11 +396,11 @@ POSTGRES_USER=postgres
 POSTGRES_PASSWORD=your-secure-password
 ```
 
-## 🐳 Docker ਵਾਤਾਵਰਣ ਸੈਟਅੱਪ
+## 🐳 Docker Environment Setup
 
-### 1. Docker Composition ਨੂੰ ਸਮਝੋ
+### 1. Understand Docker Composition
 
-ਸਾਡਾ ਵਿਕਾਸ ਵਾਤਾਵਰਣ Docker Compose ਵਰਤਦਾ ਹੈ:
+ਸਾਡਾ ਵਿਕਾਸ ਪਰਿਵੇਸ਼ ਡੋਕਰ ਕੋਮਪੋਜ਼ ਦੀ ਵਰਤੋਂ ਕਰਦਾ ਹੈ:
 
 ```yaml
 # docker-compose.yml overview
@@ -429,58 +429,58 @@ services:
       - .env
 ```
 
-### 2. ਵਿਕਾਸ ਵਾਤਾਵਰਣ ਸ਼ੁਰੂ ਕਰੋ
+### 2. Start the Development Environment
 
 ```bash
-# Ensure you're in the project root directory
+# ਯਕੀਨੀ ਬਣਾਓ ਕਿ ਤੁਸੀਂ ਪ੍ਰਾਜੈਕਟ ਦੇ ਰੂਟ ਡਾਇਰੈਕਟਰੀ ਵਿੱਚ ਹੋ
 cd /path/to/MCP-Server-and-PostgreSQL-Sample-Retail
 
-# Start the services
+# ਸੇਵਾਵਾਂ ਸ਼ੁਰੂ ਕਰੋ
 docker-compose up -d
 
-# Check service status
+# ਸੇਵਾ ਦੀ ਸਥਿਤੀ ਜਾਂਚੋ
 docker-compose ps
 
-# View logs
+# ਲਾਗ ਵੇਖੋ
 docker-compose logs -f
 ```
 
-### 3. ਡਾਟਾਬੇਸ ਸੈਟਅੱਪ ਦੀ ਪੁਸ਼ਟੀ ਕਰੋ
+### 3. Verify Database Setup
 
 ```bash
-# Connect to PostgreSQL container
+# PostgreSQL ਕੰਟੇਨਰ ਨਾਲ ਜੁੜੋ
 docker-compose exec postgres psql -U postgres -d zava
 
-# Check database structure
+# ਡੇਟਾਬੇਸ ਦੀ ਸੰਰਚਨਾ ਜਾਂਚੋ
 \dt retail.*
 
-# Verify sample data
+# ਉਦਾਹਰਨ ਦੇ ਡੇਟਾ ਦੀ ਪੁਸ਼ਟੀ ਕਰੋ
 SELECT COUNT(*) FROM retail.stores;
 SELECT COUNT(*) FROM retail.products;
 SELECT COUNT(*) FROM retail.orders;
 
-# Exit PostgreSQL
+# PostgreSQL ਤੋਂ ਬਾਹਰ ਨਿਕਲੋ
 \q
 ```
 
-### 4. MCP ਸਰਵਰ ਟੈਸਟ ਕਰੋ
+### 4. Test MCP Server
 
 ```bash
-# Check MCP server health
+# MCP ਸਰਵਰ ਦੀ ਸਿਹਤ ਦੀ ਜਾਂਚ ਕਰੋ
 curl http://localhost:8000/health
 
-# Test basic MCP endpoint
+# ਬੁਨਿਆਦੀ MCP ਐਂਡਪੌਇੰਟ ਦੀ ਜਾਂਚ ਕਰੋ
 curl -X POST http://localhost:8000/mcp \
   -H "Content-Type: application/json" \
   -H "x-rls-user-id: 00000000-0000-0000-0000-000000000000" \
   -d '{"method": "tools/list", "params": {}}'
 ```
 
-## 🔧 VS Code ਕਨਫਿਗਰੇਸ਼ਨ
+## 🔧 VS Code Configuration
 
-### 1. MCP ਇੰਟੀਗ੍ਰੇਸ਼ਨ ਕਨਫਿਗਰ ਕਰੋ
+### 1. Configure MCP Integration
 
-VS Code MCP ਕਨਫਿਗਰੇਸ਼ਨ ਬਣਾਓ:
+VS Code ਲਈ MCP ਕਨਫਿਗਰੇਸ਼ਨ ਬਣਾਓ:
 
 ```json
 // .vscode/mcp.json
@@ -506,7 +506,7 @@ VS Code MCP ਕਨਫਿਗਰੇਸ਼ਨ ਬਣਾਓ:
 }
 ```
 
-### 2. Python ਵਾਤਾਵਰਣ ਕਨਫਿਗਰ ਕਰੋ
+### 2. Configure Python Environment
 
 ```json
 // .vscode/settings.json
@@ -525,30 +525,30 @@ VS Code MCP ਕਨਫਿਗਰੇਸ਼ਨ ਬਣਾਓ:
 }
 ```
 
-### 3. VS Code ਇੰਟੀਗ੍ਰੇਸ਼ਨ ਟੈਸਟ ਕਰੋ
+### 3. Test VS Code Integration
 
-1. **ਪ੍ਰੋਜੈਕਟ ਨੂੰ VS Code ਵਿੱਚ ਖੋਲ੍ਹੋ**:
+1. **ਪਰੋਜੈਕਟ VS Code ਵਿੱਚ ਖੋਲ੍ਹੋ**:  
    ```bash
    code .
    ```
+  
+2. **AI ਚੈਟ ਖੋਲ੍ਹੋ**:  
+   - `Ctrl+Shift+P` (Windows/Linux) ਜਾਂ `Cmd+Shift+P` (macOS) ਦਬਾਓ  
+   - "AI Chat" ਲਿਖੋ ਅਤੇ "AI Chat: Open Chat" ਚੁਣੋ  
 
-2. **AI Chat ਖੋਲ੍ਹੋ**:
-   - `Ctrl+Shift+P` (Windows/Linux) ਜਾਂ `Cmd+Shift+P` (macOS) ਦਬਾਓ
-   - "AI Chat" ਲਿਖੋ ਅਤੇ "AI Chat: Open Chat" ਚੁਣੋ
+3. **MCP ਸਰਵਰ ਕੁਨੈਕਸ਼ਨ ਟੈਸਟ ਕਰੋ**:  
+   - AI ਚੈਟ ਵਿੱਚ `#zava` ਲਿਖੋ ਅਤੇ ਸਰਵਰ ਵਿਚੋਂ ਇੱਕ ਚੁਣੋ  
+   - ਪੁੱਛੋ: "ਡਾਟਾਬੇਸ ਵਿੱਚ ਕਿਹੜੀਆਂ ਟੇਬਲਾਂ ਹਨ?"  
+   - ਤੁਹਾਨੂੰ ਰਿਟੇਲ ਡਾਟਾਬੇਸ ਟੇਬਲਾਂ ਦੀ ਸੂਚੀ ਮਿਲੇਗੀ  
 
-3. **MCP ਸਰਵਰ ਕਨੈਕਸ਼ਨ ਟੈਸਟ ਕਰੋ**:
-   - AI Chat ਵਿੱਚ, `#zava` ਲਿਖੋ ਅਤੇ ਕਨਫਿਗਰ ਕੀਤੇ ਸਰਵਰਾਂ ਵਿੱਚੋਂ ਇੱਕ ਚੁਣੋ
-   - ਪੁੱਛੋ: "ਡਾਟਾਬੇਸ ਵਿੱਚ ਕਿਹੜੀਆਂ ਟੇਬਲਾਂ ਉਪਲਬਧ ਹਨ?"
-   - ਤੁਹਾਨੂੰ ਰਿਟੇਲ ਡਾਟਾਬੇਸ ਟੇਬਲਾਂ ਦੀ ਸੂਚੀ ਪ੍ਰਾਪਤ ਹੋਣੀ ਚਾਹੀਦੀ ਹੈ
+## ✅ Environment Validation
 
-## ✅ ਵਾਤਾਵਰਣ ਵੈਰੀਫਿਕੇਸ਼ਨ
+### 1. Comprehensive System Check
 
-### 1. ਵਿਸਤ੍ਰਿਤ ਸਿਸਟਮ ਜਾਂਚ
-
-ਆਪਣੇ ਸੈਟਅੱਪ ਦੀ ਪੁਸ਼ਟੀ ਕਰਨ ਲਈ ਇਹ ਵੈਰੀਫਿਕੇਸ਼ਨ ਸਕ੍ਰਿਪਟ ਚਲਾਓ:
+ਆਪਣਾ ਸੈੱਟਅੱਪ ਜाँचਣ ਲਈ ਇਹ ਵੈਧਤਾ ਸਕ੍ਰਿਪਟ ਚਲਾਓ:
 
 ```bash
-# Create validation script
+# ਵੈਧਤਾ ਸਕ੍ਰਿਪਟ ਬਣਾਓ
 cat > validate_setup.py << 'EOF'
 #!/usr/bin/env python3
 """
@@ -567,7 +567,7 @@ async def validate_environment():
     """Comprehensive environment validation."""
     results = {}
     
-    # Check Python version
+    # ਪਾਈਥਨ ਵਰਜ਼ਨ ਦੀ ਜਾਂਚ ਕਰੋ
     python_version = sys.version_info
     results['python'] = {
         'status': 'pass' if python_version >= (3, 8) else 'fail',
@@ -575,7 +575,7 @@ async def validate_environment():
         'required': '3.8+'
     }
     
-    # Check required packages
+    # ਲੋੜੀਂਦੇ ਪੈਕੇਜਾਂ ਦੀ ਜਾਂਚ ਕਰੋ
     required_packages = ['fastmcp', 'asyncpg', 'azure-ai-projects']
     for package in required_packages:
         try:
@@ -584,7 +584,7 @@ async def validate_environment():
         except ImportError:
             results[f'package_{package}'] = {'status': 'fail', 'error': 'Not installed'}
     
-    # Check Docker
+    # ਡੋਕਰ ਦੀ ਜਾਂਚ ਕਰੋ
     try:
         result = subprocess.run(['docker', '--version'], capture_output=True, text=True)
         results['docker'] = {
@@ -594,7 +594,7 @@ async def validate_environment():
     except FileNotFoundError:
         results['docker'] = {'status': 'fail', 'error': 'Docker not found'}
     
-    # Check Azure CLI
+    # ਅਜ਼ੂਰ CLI ਦੀ ਜਾਂਚ ਕਰੋ
     try:
         result = subprocess.run(['az', '--version'], capture_output=True, text=True)
         results['azure_cli'] = {
@@ -604,7 +604,7 @@ async def validate_environment():
     except FileNotFoundError:
         results['azure_cli'] = {'status': 'fail', 'error': 'Azure CLI not found'}
     
-    # Check environment variables
+    # ਵਾਤਾਵਰਣ ਵੈਰੀਏਬਲ ਦੀ ਜਾਂਚ ਕਰੋ
     required_env_vars = [
         'PROJECT_ENDPOINT',
         'AZURE_OPENAI_ENDPOINT',
@@ -621,7 +621,7 @@ async def validate_environment():
             'value': '***' if value and 'SECRET' in var else value
         }
     
-    # Check database connection
+    # ਡੇਟਾਬੇਸ ਕਨੈਕਸ਼ਨ ਦੀ ਜਾਂਚ ਕਰੋ
     try:
         conn = await asyncpg.connect(
             host=os.getenv('POSTGRES_HOST', 'localhost'),
@@ -631,7 +631,7 @@ async def validate_environment():
             password=os.getenv('POSTGRES_PASSWORD', 'secure_password')
         )
         
-        # Test query
+        # ਟੈਸਟ ਕਵੈਰੀ
         result = await conn.fetchval('SELECT COUNT(*) FROM retail.stores')
         await conn.close()
         
@@ -645,7 +645,7 @@ async def validate_environment():
             'error': str(e)
         }
     
-    # Check MCP server
+    # MCP ਸਰਵਰ ਦੀ ਜਾਂਚ ਕਰੋ
     try:
         response = requests.get('http://localhost:8000/health', timeout=5)
         results['mcp_server'] = {
@@ -658,7 +658,7 @@ async def validate_environment():
             'error': str(e)
         }
     
-    # Check Azure AI service
+    # ਅਜ਼ੂਰ AI ਸਰਵਿਸ ਦੀ ਜਾਂਚ ਕਰੋ
     try:
         credential = DefaultAzureCredential()
         project_client = AIProjectClient(
@@ -666,7 +666,7 @@ async def validate_environment():
             credential=credential
         )
         
-        # This will fail if credentials are invalid
+        # ਜੇਕਰ ਪ੍ਰਮਾਣਪੱਤਰ ਅਵੈਧ ਹਨ ਤਾਂ ਇਹ ਅਸਫਲ ਹੋਵੇਗਾ
         results['azure_ai'] = {'status': 'pass'}
         
     except Exception as e:
@@ -716,169 +716,171 @@ async def main():
 
 EOF
 
-# Run validation
+# ਵੈਧਤਾ ਚਲਾਓ
 python validate_setup.py
 ```
 
-### 2. ਮੈਨੂਅਲ ਵੈਰੀਫਿਕੇਸ਼ਨ ਚੈੱਕਲਿਸਟ
+### 2. Manual Validation Checklist
 
-**✅ ਬੁਨਿਆਦੀ ਟੂਲ**
-- [ ] Docker ਵਰਜਨ 20.10+ ਇੰਸਟਾਲ ਅਤੇ ਚਲ ਰਿਹਾ ਹੈ
-- [ ] Azure CLI 2.40+ ਇੰਸਟਾਲ ਅਤੇ ਪ੍ਰਮਾਣਿਤ
-- [ ] Python 3.8+ pip ਨਾਲ ਇੰਸਟਾਲ
-- [ ] Git 2.30+ ਇੰਸਟਾਲ
-- [ ] VS Code ਲੋੜੀਂਦੇ ਐਕਸਟੈਂਸ਼ਨ ਨਾਲ
+**✅ ਮੂਲ ਟੂਲਸ**  
+- [ ] ਡੋਕਰ ਵਰਜ਼ਨ 20.10+ ਇੰਸਟਾਲਡ ਅਤੇ ਚੱਲ ਰਿਹਾ ਹੈ  
+- [ ] Azure CLI 2.40+ ਇੰਸਟਾਲਡ ਅਤੇ ਪ੍ਰਮਾਣਿਤ ਹੈ  
+- [ ] Python 3.8+ ਅਤੇ pip ਇੰਸਟਾਲਡ  
+- [ ] Git 2.30+ ਇੰਸਟਾਲਡ  
+- [ ] VS Code ਲੋੜੀਂਦੇ ਐਕਸਟੇਂਸ਼ਨਸ ਨਾਲ  
 
-**✅ Azure ਸਰੋਤ**
-- [ ] ਰਿਸੋਰਸ ਗਰੁੱਪ ਸਫਲਤਾਪੂਰਵਕ ਬਣਾਇਆ ਗਿਆ
-- [ ] AI Foundry ਪ੍ਰੋਜੈਕਟ ਤੈਨਾਤ ਕੀਤਾ
-- [ ] OpenAI text-embedding-3-small ਮਾਡਲ ਤੈਨਾਤ ਕੀਤਾ
-- [ ] Application Insights ਕਨਫਿਗਰ ਕੀਤਾ
-- [ ] ਸੇਵਾ ਪ੍ਰਿੰਸਿਪਲ ਸਹੀ ਅਧਿਕਾਰਾਂ ਨਾਲ ਬਣਾਇਆ
+**✅ Azure ਸਰੋਤ**  
+- [ ] ਰਿਸੋਰਸ ਗਰੁੱਪ ਸਫਲਤਾਪੂਰਵਕ ਬਣਾਇਆ ਗਿਆ ਹੈ  
+- [ ] AI Foundry ਪਰੋਜੈਕਟ ਤਾਇਨਾਤ ਹੋਇਆ ਹੈ  
+- [ ] OpenAI text-embedding-3-small ਮਾਡਲ ਤਾਇਨਾਤ ਹੋਇਆ ਹੈ  
+- [ ] Application Insights ਕਨਫਿਗਰਡ ਹੈ  
+- [ ] ਸੇਵਾ ਪ੍ਰਿੰਸਿਪਲ ਸੂਚਿਤ ਅਧਿਕਾਰਾਂ ਨਾਲ ਬਣਾਇਆ ਗਿਆ ਹੈ  
 
-**✅ ਵਾਤਾਵਰਣ ਕਨਫਿਗਰੇਸ਼ਨ**
-- [ ] `.env` ਫਾਈਲ ਸਾਰੇ ਲੋੜੀਂਦੇ ਵੈਰੀਏਬਲਾਂ ਨਾਲ ਬਣਾਈ
-- [ ] Azure ਪ੍ਰਮਾਣਿਕਤਾ ਕੰਮ ਕਰ ਰਹੀ ਹੈ (ਟੈਸਟ `az account show` ਨਾਲ)
-- [ ] PostgreSQL ਕੰਟੇਨਰ ਚਲ ਰਿਹਾ ਹੈ ਅਤੇ ਪਹੁੰਚਯੋਗ ਹੈ
-- [ ] ਡਾਟਾਬੇਸ ਵਿੱਚ ਸੈਂਪਲ ਡਾਟਾ ਲੋਡ ਕੀਤਾ
+**✅ ਪਰਿਵੇਸ਼ ਕਨਫਿਗਰੇਸ਼ਨ**  
+- [ ] `.env` ਫਾਈਲ ਸਾਰੇ ਲੋੜੀਂਦੇ ਵੈਰੀਏਬਲਾਂ ਨਾਲ ਬਣੀ ਹੈ  
+- [ ] Azure ਕਰੈਡੈਂਸ਼ਿਅਲਜ਼ ਕੰਮ ਕਰ ਰਹੇ ਹਨ (`az account show` ਨਾਲ ਟੈਸਟ ਕਰੋ)  
+- [ ] ਪੋਸਟਗਰੇSQL ਕੰਟੇਨਰ ਚੱਲ ਰਿਹਾ ਹੈ ਅਤੇ ਪ੍ਰਾਪਤਯੋਗ ਹੈ  
+- [ ] ਡਾਟਾਬੇਸ ਵਿੱਚ ਨਮੂਨਾ ਡਾਟਾ ਲੋਡ ਕੀਤਾ ਗਿਆ ਹੈ  
 
-**✅ VS Code ਇੰਟੀਗ੍ਰੇਸ਼ਨ**
-- [ ] `.vscode/mcp.json` ਕਨਫਿਗਰ ਕੀਤਾ
-- [ ] Python interpreter ਵਰਚੁਅਲ ਵਾਤਾਵਰਣ 'ਤੇ ਸੈਟ ਕੀਤਾ
-- [ ] MCP ਸਰਵਰ AI Chat ਵਿੱਚ ਦਿਖਾਈ ਦੇ ਰਹੇ ਹਨ
-- [ ] AI Chat ਰਾਹੀਂ ਟੈਸਟ ਕਵੈਰੀਜ਼ ਚਲਾ ਸਕਦੇ ਹੋ
+**✅ VS Code ਇੰਟੀਗਰੇਸ਼ਨ**  
+- [ ] `.vscode/mcp.json` ਕਨਫਿਗਰਡ ਹੈ  
+- [ ] Python ਇੰਟਰਪ੍ਰੀਟਰ ਵਰਚੁਅਲ ਪਰਿਵੇਸ਼ ਲਈ ਸੈੱਟ ਹੈ  
+- [ ] MCP ਸਰਵਰ AI ਚੈਟ ਵਿੱਚ ਦਿਖਦੇ ਹਨ  
+- [ ] AI ਚੈਟ ਰਾਹੀਂ ਟੈਸਟ ਕੁਐਰੀਜ਼ ਏਗਜ਼ੈਕਿਊਟ ਕੀਤੀਆਂ ਜਾ ਸਕਦੀਆਂ ਹਨ  
 
-## 🛠️ ਆਮ ਸਮੱਸਿਆਵਾਂ ਦਾ ਹੱਲ
+## 🛠️ Troubleshooting Common Issues
 
-### Docker ਸਮੱਸਿਆਵਾਂ
+### Docker Issues
 
-**ਸਮੱਸਿਆ**: Docker ਕੰਟੇਨਰ ਸ਼ੁਰੂ ਨਹੀਂ ਹੁੰਦੇ
+**ਮੁੱਦਾ**: ਡੋਕਰ ਕੰਟੇਨਰ ਚਾਲੂ ਨਹੀਂ ਹੁੰਦੇ  
 ```bash
-# Check Docker service status
+# ਡੋਕਰ ਸੇਵਾ ਦੀ ਸਥਿਤੀ ਚੈੱਕ ਕਰੋ
 docker info
 
-# Check available resources
+# ਉਪਲਬਧ ਸਰੋਤਾਂ ਦੀ ਜਾਂਚ ਕਰੋ
 docker system df
 
-# Clean up if needed
+# ਜਰੂਰੀ ਹੋਵੇ ਤਾਂ ਸਾਫ਼-ਸੁਥਰਾ ਕਰੋ
 docker system prune -f
 
-# Restart Docker Desktop (Windows/macOS)
-# Or restart Docker service (Linux)
+# ਡੋਕਰ ਡੈਸਕਟਾਪ ਰੀਸਟਾਰਟ ਕਰੋ (ਵਿੰਡੋਜ਼/ਮੈਕਓਐਸ)
+# ਜਾਂ ਡੋਕਰ ਸੇਵਾ ਨੂੰ ਰੀਸਟਾਰਟ ਕਰੋ (ਲਿਨਕਸ)
 sudo systemctl restart docker
 ```
 
-**ਸਮੱਸਿਆ**: PostgreSQL ਕਨੈਕਸ਼ਨ ਫੇਲ੍ਹ ਹੋ ਜਾਂਦਾ ਹੈ
+**ਮੁੱਦਾ**: ਪੋਸਟਗਰੇSQL ਕੁਨੈਕਸ਼ਨ ਫੇਲ ਹੁੰਦੀ ਹੈ  
 ```bash
-# Check container logs
+# ਕੰਟੇਨਰ ਲਾਗ ਜਾਂਚੋ
 docker-compose logs postgres
 
-# Verify container is healthy
+# ਕੰਟੇਨਰ ਸਿਹਤਮੰਦ ਹੈ ਜਾਂ ਨਹੀਂ ਦੀ ਪੁਸ਼ਟੀ ਕਰੋ
 docker-compose ps
 
-# Test direct connection
+# ਸਿੱਧੀ ਕੁਨੈਕਸ਼ਨ ਦੀ ਜਾਂਚ ਕਰੋ
 docker-compose exec postgres psql -U postgres -d zava -c "SELECT 1;"
 ```
 
-### Azure ਤੈਨਾਤੀ ਸਮੱਸਿਆਵਾਂ
+### Azure Deployment Issues
 
-**ਸਮੱਸਿਆ**: Azure ਤੈਨਾਤੀ ਫੇਲ੍ਹ ਹੋ ਜਾਂਦੀ ਹੈ
+**ਮੁੱਦਾ**: Azure ਡਿਪਲੋਇਮੈਂਟ ਫੇਲ ਹੁੰਦਾ ਹੈ  
 ```bash
-# Check Azure CLI authentication
+# ਐਜ਼ੂਰ CLI ਪ੍ਰਮਾਣਿਕਤਾ ਦੀ ਜਾਂਚ ਕਰੋ
 az account show
 
-# Verify subscription permissions
+# ਸਬਸਕ੍ਰਿਪਸ਼ਨ ਦੀਆਂ ਅਧਿਕਾਰਤਾਂ ਦੀ ਪੁਸ਼ਟੀ ਕਰੋ
 az role assignment list --assignee $(az account show --query user.name -o tsv)
 
-# Check resource provider registration
+# ਸਰੋਤ ਪ੍ਰਦਾਤਾ ਦੀ ਰਜਿਸਟ੍ਰੇਸ਼ਨ ਦੀ ਜਾਂਚ ਕਰੋ
 az provider register --namespace Microsoft.CognitiveServices
 az provider register --namespace Microsoft.Insights
 ```
 
-**ਸਮੱਸਿਆ**: AI ਸੇਵਾ ਪ੍ਰਮਾਣਿਕਤਾ ਫੇਲ੍ਹ ਹੋ ਜਾਂਦੀ ਹੈ
+**ਮੁੱਦਾ**: AI ਸੇਵਾ ਪ੍ਰਮਾਣੀਕਰਨ ਫੇਲ ਹੁੰਦੀ ਹੈ  
 ```bash
-# Test service principal
+# ਸੇਵਾ ਮੁੱਖੀ ਨੂੰ ਟੈਸਟ ਕਰੋ
 az login --service-principal \
   --username $AZURE_CLIENT_ID \
   --password $AZURE_CLIENT_SECRET \
   --tenant $AZURE_TENANT_ID
 
-# Verify AI service deployment
+# AI ਸੇਵਾ ਤਿਆਰ ਕਰਨ ਦੀ ਪੁਸ਼ਟੀ ਕਰੋ
 az cognitiveservices account list --query "[].{Name:name,Kind:kind,Location:location}"
 ```
 
-### Python ਵਾਤਾਵਰਣ ਸਮੱਸਿਆਵਾਂ
+### Python Environment Issues
 
-**ਸਮੱਸਿਆ**: ਪੈਕੇਜ ਇੰਸਟਾਲੇਸ਼ਨ ਫੇਲ੍ਹ ਹੋ ਜਾਂਦੀ ਹੈ
+**ਮੁੱਦਾ**: ਪੈਕੇਜ ਇੰਸਟਾਲੇਸ਼ਨ ਫੇਲ ਹੁੰਦੀ ਹੈ  
 ```bash
-# Upgrade pip and setuptools
+# pip ਅਤੇ setuptools ਨੂੰ ਅੱਪਗਰੇਡ ਕਰੋ
 python -m pip install --upgrade pip setuptools wheel
 
-# Clear pip cache
+# pip ਕੈਸ਼ ਨੂੰ ਸਾਫ਼ ਕਰੋ
 pip cache purge
 
-# Install packages one by one to identify issues
+# ਸਮੱਸਿਆਵਾਂ ਦੀ ਪਛਾਣ ਲਈ ਪੈਕੇਜ ਇੱਕ-ਇੱਕ ਕਰਕੇ ਇੰਸਟਾਲ ਕਰੋ
 pip install fastmcp
 pip install asyncpg
 pip install azure-ai-projects
 ```
 
-**ਸਮੱਸਿਆ**: VS Code Python interpreter ਨਹੀਂ ਲੱਭ ਸਕਦਾ
+**ਮੁੱਦਾ**: VS Code Python ਇੰਟਰਪ੍ਰੀਟਰ ਨਹੀਂ ਲੱਭਦਾ  
 ```bash
-# Show Python interpreter paths
-which python  # macOS/Linux
-where python  # Windows
+# ਪਾਇਥਨ ਦਭਾਸ਼ਾ ਅਨੁਵਾਦਕ ਦੇ ਰਾਸਤੇ ਦਿਖਾਓ
+which python  # ਮੈਕਓਐਸ/ਲਿਨਕਸ
+where python  # ਵਿੰਡੋਜ਼
 
-# Activate virtual environment first
-source mcp-env/bin/activate  # macOS/Linux
-mcp-env\Scripts\activate     # Windows
+# ਪਹਿਲਾਂ ਵਰਚੁਅਲ ਵਾਤਾਵਰਣ ਅਕਟਿਵ ਕਰੋ
+source mcp-env/bin/activate  # ਮੈਕਓਐਸ/ਲਿਨਕਸ
+mcp-env\Scripts\activate     # ਵਿੰਡੋਜ਼
 
-# Then open VS Code
+# ਫਿਰ VS ਕੋਡ ਖੋਲ੍ਹੋ
 code .
 ```
 
-## 🎯 ਮੁੱਖ ਸਿੱਖਣ
+## 🎯 Key Takeaways
 
-ਇਸ ਲੈਬ ਨੂੰ ਪੂਰਾ ਕਰਨ ਤੋਂ ਬਾਅਦ, ਤੁਹਾਡੇ ਕੋਲ ਹੋਣਾ ਚਾਹੀਦਾ ਹੈ:
+ਇਸ ਲੈਬ ਨੂੰ ਪੂਰਾ ਕਰਨ ਤੋਂ ਬਾਅਦ, ਤੁਹਾਡੇ ਕੋਲ ਹੋਵੇਗਾ:
 
-✅ **ਪੂਰਾ ਵਿਕਾਸ ਵਾਤਾਵਰਣ**: ਸਾਰੇ ਟੂਲ ਇੰਸਟਾਲ ਅਤੇ ਕਨਫਿਗਰ  
-✅ **Azure ਸਰੋਤ ਤੈਨਾਤ ਕੀਤੇ**: AI ਸੇਵਾਵਾਂ ਅਤੇ ਸਹਾਇਕ ਢਾਂਚਾ  
-✅ **Docker ਵਾਤਾਵਰਣ ਚੱਲ ਰਿਹਾ**: PostgreSQL ਅਤੇ MCP ਸਰਵਰ ਕੰਟੇਨਰ  
-✅ **VS Code ਇੰਟੀਗ੍ਰੇਸ਼ਨ**: MCP ਸਰਵਰ ਕਨਫਿਗਰ ਅਤੇ ਪਹੁੰਚਯੋਗ  
-✅ **ਸੈਟਅੱਪ ਦੀ ਪੁਸ਼ਟੀ ਕੀਤੀ**: ਸਾਰੇ ਘਟਕਾਂ ਨੂੰ ਟੈਸਟ ਕੀਤਾ ਅਤੇ ਇਕੱਠੇ ਕੰਮ ਕਰਦੇ  
-✅ **ਸਮੱਸਿਆਵਾਂ ਦਾ ਹੱਲ ਜਾਣਕਾਰੀ**: ਆਮ ਸਮੱਸਿਆਵਾਂ ਅਤੇ ਹੱਲ  
+✅ **ਪੂਰਾ ਵਿਕਾਸ ਪਰਿਵੇਸ਼**: ਸਾਰੇ ਟੂਲ ਇੰਸਟਾਲ ਅਤੇ ਕਨਫਿਗਰਡ  
+✅ **Azure ਸਰੋਤ ਤਾਇਨਾਤ**: AI ਸੇਵਾਵਾਂ ਅਤੇ ਸਹਾਇਕ ਬੁਨਿਆਦੀ ਢਾਂਚਾ  
+✅ **ਡੋਕਰ ਪਰਿਵੇਸ਼ ਚੱਲ ਰਿਹਾ ਹੈ**: ਪੋਸਟਗਰੇSQL ਅਤੇ MCP ਸਰਵਰ ਕੰਟੇਨਰ  
+✅ **VS Code ਇੰਟੀਗਰੇਸ਼ਨ**: MCP ਸਰਵਰ ਕਨਫਿਗਰਡ ਅਤੇ ਪ੍ਰਾਪਤਯੋਗ  
+✅ **ਵੈਧਤਾ ਕੀਤਾ ਸੈੱਟਅੱਪ**: ਸਾਰੇ ਭਾਗ ਟੈਸਟ ਕੀਤੇ ਅਤੇ ਮਿਲ ਕੇ ਕੰਮ ਕਰ ਰਹੇ  
+✅ **ਟ੍ਰਬਲਸ਼ੂਟਿੰਗ ਗਿਆਨ**: ਆਮ ਸਮੱਸਿਆਵਾਂ ਅਤੇ ਹੱਲ  
 
-## 🚀 ਅਗਲਾ ਕੀ ਹੈ
+## 🚀 What's Next
 
-ਆਪਣੇ ਵਾਤਾਵਰਣ ਨੂੰ ਤਿਆਰ ਕਰਕੇ, **[ਲੈਬ 04: ਡਾਟਾਬੇਸ ਡਿਜ਼ਾਈਨ ਅਤੇ ਸਕੀਮਾ](../04-Database/README.md)** ਨਾਲ ਜਾਰੀ ਰੱਖੋ:
+ਤੁਹਾਡੇ ਪਰਿਵੇਸ਼ ਦੇ ਤਿਆਰ ਹੋਣ ਨਾਲ, جاري ਰੱਖੋ **[Lab 04: Database Design and Schema](../04-Database/README.md)** ਨਾਲ:
 
-- ਰਿਟੇਲ ਡਾਟਾਬੇਸ ਸਕੀਮਾ ਨੂੰ ਵਿਸਤ੍ਰਿਤ ਤੌਰ 'ਤੇ ਖੋਜੋ
-- ਮਲਟੀ-ਟੈਨੈਂਟ ਡਾਟਾ ਮਾਡਲਿੰਗ ਨੂੰ ਸਮਝੋ
-- Row Level Security ਅਮਲਬੰਦੀ ਬਾਰੇ ਸਿੱਖੋ
-- ਸੈਂਪਲ ਰਿਟੇਲ ਡਾਟਾ ਨਾਲ ਕੰਮ ਕਰੋ
+- ਰਿਟੇਲ ਡਾਟਾਬੇਸ ਸਕੀਮਾ ਦੀ ਵਿਸਥਾਰ ਨਾਲ ਪੜਚੋਲ ਕਰੋ  
+- ਬਹੁ-ਪ੍ਰਯੋਗਤਾ ਡਾਟਾ ਮਾਡਲਿੰਗ ਬਾਰੇ ਸਮਝੋ  
+- ਰੋ ਲੈਵਲ ਸੈਕੁਰਿਟੀ ਅਮਲ ਪ੍ਰਭਾਰਿਤ ਕਰੋ  
+- ਨਮੂਨਾ ਰਿਟੇਲ ਡਾਟਾ ਨਾਲ ਕੰਮ ਕਰੋ  
 
-## 📚 ਵਾਧੂ ਸਰੋਤ
+## 📚 Additional Resources
 
-### ਵਿਕਾਸ ਟੂਲ
-- [Docker Documentation](https://docs.docker.com/) - ਪੂਰੀ Docker ਰਿਫਰੈਂਸ
-- [Azure CLI Reference](https://docs.microsoft.com/cli/azure/) - Azure CLI ਕਮਾਂਡ
-- [VS Code Documentation](https://code.visualstudio.com/docs) - ਐਡੀਟਰ ਕਨਫਿਗਰੇਸ਼ਨ ਅਤੇ ਐਕਸਟੈਂਸ਼ਨ
+### Development Tools
+- [Docker Documentation](https://docs.docker.com/) - ਪੂਰਾ ਡੋਕਰ ਹਵਾਲਾ  
+- [Azure CLI Reference](https://docs.microsoft.com/cli/azure/) - Azure CLI ਕਮਾਂਡਸ  
+- [VS Code Documentation](https://code.visualstudio.com/docs) - ਐਡੀਟਰ ਕਨਫਿਗਰੇਸ਼ਨ ਅਤੇ ਐਕਸਟੇਂਸ਼ਨ  
 
-### Azure ਸੇਵਾਵਾਂ
-- [Azure AI Foundry Documentation](https://docs.microsoft.com/azure/ai-foundry/) - AI ਸੇਵਾ ਕਨਫਿਗਰੇਸ਼ਨ
-- [Azure OpenAI Service](https://docs.microsoft.com/azure/cognitive-services/openai/) - AI ਮਾਡਲ ਤੈਨਾਤੀ
-- [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) - ਮਾਨੀਟਰਿੰਗ ਸੈਟਅੱਪ
+### Azure Services
+- [Microsoft Foundry Documentation](https://docs.microsoft.com/azure/ai-foundry/) - AI ਸੇਵਾ ਕਨਫਿਗਰੇਸ਼ਨ  
+- [Azure OpenAI Service](https://docs.microsoft.com/azure/cognitive-services/openai/) - AI ਮਾਡਲ ਡਿਪਲੋਇਮੈਂਟ  
+- [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) - ਮਾਨੀਟਰਿੰਗ ਸੈਟਅੱਪ  
 
-### Python ਵਿਕਾਸ
-- [Python Virtual Environments](https://docs.python.org/3/tutorial/venv.html) - ਵਾਤਾਵਰਣ ਪ੍ਰਬੰਧਨ
-- [AsyncIO Documentation](https://docs.python.org/3/library/asyncio.html) - Async ਪ੍ਰੋਗਰਾਮਿੰਗ ਪੈਟਰਨ
-- [FastAPI Documentation](https://fastapi.tiangolo.com/) - ਵੈੱਬ ਫਰੇਮਵਰਕ ਪੈਟਰਨ
-
----
-
-**ਅਗਲਾ**: ਵਾਤਾਵਰਣ
+### Python Development
+- [Python Virtual Environments](https://docs.python.org/3/tutorial/venv.html) - ਪਰਿਵੇਸ਼ ਪ੍ਰਬੰਧਨ  
+- [AsyncIO Documentation](https://docs.python.org/3/library/asyncio.html) - ਐਸਿੰਕ ਪ੍ਰੋਗ੍ਰਾਮਿੰਗ ਪੈਟਰਨ  
+- [FastAPI Documentation](https://fastapi.tiangolo.com/) - ਵੈੱਬ ਫਰੇਮਵਰਕ ਪੈਟਰਨ  
 
 ---
 
-**ਅਸਵੀਕਰਤੀ**:  
-ਇਹ ਦਸਤਾਵੇਜ਼ AI ਅਨੁਵਾਦ ਸੇਵਾ [Co-op Translator](https://github.com/Azure/co-op-translator) ਦੀ ਵਰਤੋਂ ਕਰਕੇ ਅਨੁਵਾਦ ਕੀਤਾ ਗਿਆ ਹੈ। ਜਦੋਂ ਕਿ ਅਸੀਂ ਸਹੀਤਾ ਲਈ ਯਤਨਸ਼ੀਲ ਹਾਂ, ਕਿਰਪਾ ਕਰਕੇ ਧਿਆਨ ਦਿਓ ਕਿ ਸਵੈਚਾਲਿਤ ਅਨੁਵਾਦਾਂ ਵਿੱਚ ਗਲਤੀਆਂ ਜਾਂ ਅਸੁਚੀਤਤਾਵਾਂ ਹੋ ਸਕਦੀਆਂ ਹਨ। ਇਸ ਦੀ ਮੂਲ ਭਾਸ਼ਾ ਵਿੱਚ ਮੌਜੂਦ ਦਸਤਾਵੇਜ਼ ਨੂੰ ਅਧਿਕਾਰਤ ਸਰੋਤ ਮੰਨਿਆ ਜਾਣਾ ਚਾਹੀਦਾ ਹੈ। ਮਹੱਤਵਪੂਰਨ ਜਾਣਕਾਰੀ ਲਈ, ਪੇਸ਼ੇਵਰ ਮਨੁੱਖੀ ਅਨੁਵਾਦ ਦੀ ਸਿਫਾਰਸ਼ ਕੀਤੀ ਜਾਂਦੀ ਹੈ। ਅਸੀਂ ਇਸ ਅਨੁਵਾਦ ਦੀ ਵਰਤੋਂ ਤੋਂ ਪੈਦਾ ਹੋਣ ਵਾਲੇ ਕਿਸੇ ਵੀ ਗਲਤਫਹਿਮੀ ਜਾਂ ਗਲਤ ਵਿਆਖਿਆ ਲਈ ਜ਼ਿੰਮੇਵਾਰ ਨਹੀਂ ਹਾਂ।
+**Next**: Environment ready? Continue with [Lab 04: Database Design and Schema](../04-Database/README.md)
+
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**ਅਸਵੀਕਾਰੋਪਣ**:
+ਇਸ ਦਸਤਾਵੇਜ਼ ਦਾ ਅਨੁਵਾਦ ਏਆਈ ਅਨੁਵਾਦ ਸੇਵਾ [Co-op Translator](https://github.com/Azure/co-op-translator) ਦੀ ਵਰਤੋਂ ਕਰਕੇ ਕੀਤਾ ਗਿਆ ਹੈ। ਜਦੋਂ ਕਿ ਅਸੀਂ ਸਹੀਤਾਵਾਂ ਲਈ ਯਤਨਸ਼ੀਲ ਹਾਂ, ਕਿਰਪਾ ਕਰਕੇ ਧਿਆਨ ਰੱਖੋ ਕਿ ਸਵੈਚਾਲਿਤ ਅਨੁਵਾਦਾਂ ਵਿੱਚ ਗਲਤੀਆਂ ਜਾਂ ਅਸਮੱਤਿਆਵਾਂ ਹੋ ਸਕਦੀਆਂ ਹਨ। ਮੂਲ ਦਸਤਾਵੇਜ਼ ਆਪਣੀ ਮੂਲ ਭਾਸ਼ਾ ਵਿੱਚ ਅਧਿਕਾਰਕ ਸਰੋਤ ਮੰਨਿਆ ਜਾਣਾ ਚਾਹੀਦਾ ਹੈ। ਜਰੂਰੀ ਜਾਣਕਾਰੀ ਲਈ, ਪੇਸ਼ੇਵਰ ਮਨੁੱਖੀ ਅਨੁਵਾਦ ਦੀ ਸਿਫ਼ਾਰਸ਼ ਕੀਤੀ ਜਾਂਦੀ ਹੈ। ਅਸੀਂ ਇਸ ਅਨੁਵਾਦ ਦੇ ਉਪਯੋਗ ਤੋਂ ਪੈਦਾ ਹੋਣ ਵਾਲੀਆਂ ਕਿਸੇ ਵੀ ਗਲਤਫਹਿਮੀਆਂ ਜਾਂ ਗਲਤ ਵਿਆਖਿਆਵਾਂ ਲਈ ਜਵਾਬਦੇਹ ਨਹੀਂ ਹਾਂ।
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

@@ -6,31 +6,31 @@ _(Clicca sull'immagine sopra per vedere il video di questa lezione)_
 
 ## Panoramica
 
-Questa lezione si concentra sulle best practice avanzate per lo sviluppo, il testing e il deployment di server e funzionalità MCP in ambienti di produzione. Man mano che gli ecosistemi MCP crescono in complessità e importanza, seguire schemi consolidati garantisce affidabilità, manutenibilità e interoperabilità. Questa lezione consolida la saggezza pratica acquisita da implementazioni MCP reali per guidarti nella creazione di server robusti ed efficienti con risorse, prompt e strumenti efficaci.
+Questa lezione si concentra sulle best practice avanzate per sviluppare, testare e distribuire server MCP e funzionalità in ambienti di produzione. Con la crescita della complessità e dell'importanza degli ecosistemi MCP, seguire schemi consolidati garantisce affidabilità, manutenibilità e interoperabilità. Questa lezione consolida la saggezza pratica acquisita dalle implementazioni reali di MCP per guidarti nella creazione di server robusti ed efficienti con risorse, prompt e strumenti efficaci.
 
 ## Obiettivi di Apprendimento
 
-Alla fine di questa lezione, sarai in grado di:
+Al termine di questa lezione, sarai in grado di:
 
-- Applicare le best practice del settore nel design di server e funzionalità MCP
-- Creare strategie di testing complete per server MCP
+- Applicare le best practice del settore nella progettazione di server e funzionalità MCP
+- Creare strategie di test complete per i server MCP
 - Progettare schemi di workflow efficienti e riutilizzabili per applicazioni MCP complesse
 - Implementare una corretta gestione degli errori, logging e osservabilità nei server MCP
 - Ottimizzare le implementazioni MCP per prestazioni, sicurezza e manutenibilità
 
 ## Principi Fondamentali MCP
 
-Prima di entrare nelle pratiche di implementazione specifiche, è importante comprendere i principi fondamentali che guidano uno sviluppo MCP efficace:
+Prima di addentrarsi nelle pratiche di implementazione specifiche, è importante comprendere i principi fondamentali che guidano uno sviluppo MCP efficace:
 
 1. **Comunicazione Standardizzata**: MCP utilizza JSON-RPC 2.0 come base, fornendo un formato coerente per richieste, risposte e gestione degli errori in tutte le implementazioni.
 
-2. **Design User-Centric**: Dai sempre priorità al consenso, al controllo e alla trasparenza dell’utente nelle tue implementazioni MCP.
+2. **Design Centrato sull’Utente**: Dai sempre priorità al consenso, controllo e trasparenza dell’utente nelle tue implementazioni MCP.
 
-3. **Sicurezza Prima di Tutto**: Implementa misure di sicurezza robuste includendo autenticazione, autorizzazione, validazione e limitazione della velocità.
+3. **Sicurezza Prima di Tutto**: Implementa misure di sicurezza robuste inclusi autenticazione, autorizzazione, validazione e limitazione della frequenza.
 
-4. **Architettura Modulare**: Progetta i tuoi server MCP con un approccio modulare, dove ogni strumento e risorsa ha uno scopo chiaro e focalizzato.
+4. **Architettura Modulare**: Progetta i server MCP con un approccio modulare, dove ogni strumento e risorsa ha uno scopo chiaro e focalizzato.
 
-5. **Connessioni Stateful**: Sfrutta la capacità di MCP di mantenere lo stato attraverso più richieste per interazioni più coerenti e consapevoli del contesto.
+5. **Connessioni Stateful**: Sfrutta la capacità di MCP di mantenere stato attraverso richieste multiple per interazioni più coerenti e contestualizzate.
 
 ## Best Practice Ufficiali MCP
 
@@ -38,37 +38,37 @@ Le seguenti best practice derivano dalla documentazione ufficiale del Model Cont
 
 ### Best Practice di Sicurezza
 
-1. **Consenso e Controllo Utente**: Richiedi sempre consenso esplicito dell’utente prima di accedere ai dati o eseguire operazioni. Fornisci un controllo chiaro su quali dati sono condivisi e quali azioni sono autorizzate.
+1. **Consenso e Controllo dell’Utente**: Richiedi sempre un consenso esplicito dell’utente prima di accedere ai dati o eseguire operazioni. Fornisci un controllo chiaro su quali dati vengono condivisi e quali azioni sono autorizzate.
 
-2. **Privacy dei Dati**: Esporre dati utente solo con consenso esplicito e proteggerli con controlli di accesso appropriati. Salvaguardare da trasmissioni di dati non autorizzate.
+2. **Privacy dei Dati**: Esporre i dati degli utenti solo con consenso esplicito e proteggerli con controlli di accesso appropriati. Difendersi contro la trasmissione non autorizzata dei dati.
 
-3. **Sicurezza degli Strumenti**: Richiedere consenso esplicito prima di invocare qualsiasi strumento. Assicurarsi che gli utenti comprendano la funzionalità di ogni strumento e applicare confini di sicurezza robusti.
+3. **Sicurezza degli Strumenti**: Richiedi un consenso esplicito dell’utente prima di invocare qualsiasi strumento. Assicurati che gli utenti comprendano la funzionalità di ogni strumento e applica confini di sicurezza robusti.
 
-4. **Controllo dei Permessi degli Strumenti**: Configurare quali strumenti un modello può usare durante una sessione, assicurando che siano accessibili solo gli strumenti autorizzati esplicitamente.
+4. **Controllo delle Autorizzazioni degli Strumenti**: Configura quali strumenti un modello può utilizzare durante una sessione, assicurandoti che solo gli strumenti esplicitamente autorizzati siano accessibili.
 
-5. **Autenticazione**: Richiedere un’adeguata autenticazione prima di concedere accesso a strumenti, risorse o operazioni sensibili usando chiavi API, token OAuth o altri metodi sicuri.
+5. **Autenticazione**: Richiedi un’autenticazione corretta prima di concedere accesso a strumenti, risorse o operazioni sensibili utilizzando chiavi API, token OAuth o altri metodi di autenticazione sicuri.
 
-6. **Validazione dei Parametri**: Applicare la validazione per tutte le invocazioni degli strumenti per evitare input malformati o malevoli nelle implementazioni di strumenti.
+6. **Validazione dei Parametri**: Applica la validazione per tutte le invocazioni di strumenti per prevenire input malformati o malevoli che raggiungano l’implementazione degli strumenti.
 
-7. **Limitazione della Velocità (Rate Limiting)**: Implementare limitazioni per prevenire abusi e garantire un uso equo delle risorse del server.
+7. **Limitazione della Frequenza (Rate Limiting)**: Implementa limitazioni di frequenza per prevenire abusi e assicurare un uso equo delle risorse del server.
 
 ### Best Practice di Implementazione
 
-1. **Negoziazione delle Capacità**: Durante la configurazione della connessione, scambiarsi informazioni sulle funzionalità supportate, versioni del protocollo, strumenti e risorse disponibili.
+1. **Negoziazione delle Capacità**: Durante l’istituzione della connessione, scambia informazioni sulle funzionalità supportate, versioni del protocollo, strumenti e risorse disponibili.
 
-2. **Design degli Strumenti**: Creare strumenti focalizzati che fanno bene una cosa, piuttosto che strumenti monolitici che gestiscono molteplici preoccupazioni.
+2. **Design degli Strumenti**: Crea strumenti focalizzati che facciano bene una cosa, piuttosto che strumenti monolitici che gestiscono molteplici preoccupazioni.
 
-3. **Gestione degli Errori**: Implementare messaggi di errore e codici standardizzati per aiutare a diagnosticare problemi, gestire errori con grazia e fornire feedback azionabili.
+3. **Gestione degli Errori**: Implementa messaggi di errore e codici standardizzati per aiutare a diagnosticare problemi, gestire guasti con grazia e fornire feedback utili.
 
-4. **Logging**: Configurare log strutturati per auditing, debugging e monitoraggio delle interazioni del protocollo.
+4. **Logging**: Configura log strutturati per audit, debugging e monitoraggio delle interazioni del protocollo.
 
-5. **Tracciamento del Progresso**: Per operazioni a lunga durata, riportare aggiornamenti di progresso per abilitare interfacce utente reattive.
+5. **Tracciamento del Progresso**: Per operazioni a lunga durata, segnala aggiornamenti di progresso per abilitare interfacce utente reattive.
 
-6. **Cancellazione delle Richieste**: Permettere ai client di cancellare richieste in corso che non sono più necessarie o che richiedono troppo tempo.
+6. **Cancellazione delle Richieste**: Consenti ai client di annullare richieste in corso che non sono più necessarie o che richiedono troppo tempo.
 
 ## Riferimenti Aggiuntivi
 
-Per informazioni aggiornate sulle best practice MCP, consulta:
+Per le informazioni più aggiornate sulle best practice MCP, fare riferimento a:
 
 - [Documentazione MCP](https://modelcontextprotocol.io/)
 - [Specifiche MCP (2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
@@ -79,11 +79,11 @@ Per informazioni aggiornate sulle best practice MCP, consulta:
 
 ## Esempi Pratici di Implementazione
 
-### Best Practice di Design degli Strumenti
+### Best Practice per il Design degli Strumenti
 
-#### 1. Principio di Responsabilità Unica
+#### 1. Principio della Responsabilità Singola
 
-Ogni strumento MCP dovrebbe avere uno scopo chiaro e focalizzato. Invece di creare strumenti monolitici che cercano di gestire molteplici aspetti, sviluppa strumenti specializzati che eccellono in compiti specifici.
+Ogni strumento MCP dovrebbe avere uno scopo chiaro e focalizzato. Piuttosto che creare strumenti monolitici che tentano di gestire molteplici preoccupazioni, sviluppa strumenti specializzati che eccellono in compiti specifici.
 
 ```csharp
 // A focused tool that does one thing well
@@ -143,7 +143,7 @@ public class WeatherForecastTool : ITool
 }
 ```
 
-#### 2. Gestione Coerente degli Errori
+#### 2. Gestione Consistente degli Errori
 
 Implementa una gestione robusta degli errori con messaggi informativi e meccanismi di recupero appropriati.
 
@@ -169,7 +169,7 @@ class DataQueryTool:
                 raise ToolSecurityError("Query contains potentially unsafe SQL")
             
             try:
-                # Operazione su database con timeout
+                # Operazione database con timeout
                 async with timeout(10):  # Timeout di 10 secondi
                     result = await self._database.execute_query(query)
                     
@@ -183,7 +183,7 @@ class DataQueryTool:
                 self._log_error("Database connection error", e)
                 raise ToolExecutionError(f"Database connection error: {str(e)}")
             except DatabaseQueryError as e:
-                # Gli errori di query sono probabilmente errori lato client
+                # Gli errori di query sono probabilmente errori client
                 self._log_error("Database query error", e)
                 raise ToolExecutionError(f"Invalid query: {str(e)}")
                 
@@ -191,12 +191,12 @@ class DataQueryTool:
             # Lascia passare gli errori specifici dello strumento
             raise
         except Exception as e:
-            # Gestione generale per errori inaspettati
+            # Gestione generale per errori imprevisti
             self._log_error("Unexpected error in DataQueryTool", e)
             raise ToolExecutionError(f"An unexpected error occurred: {str(e)}")
     
     def _contains_unsafe_sql(self, query):
-        # Implementazione del rilevamento di SQL injection
+        # Implementazione del rilevamento dell'iniezione SQL
         pass
         
     def _log_error(self, message, error):
@@ -206,7 +206,7 @@ class DataQueryTool:
 
 #### 3. Validazione dei Parametri
 
-Valida sempre in modo approfondito i parametri per prevenire input malformati o malevoli.
+Valida sempre i parametri in modo completo per prevenire input malformati o malevoli.
 
 ```javascript
 // Esempio JavaScript/TypeScript con validazione dettagliata dei parametri
@@ -253,7 +253,7 @@ class FileOperationTool {
       throw new ToolError("Missing required parameter: path");
     }
     
-    // 2. Validare i tipi dei parametri
+    // 2. Validare i tipi di parametro
     if (typeof parameters.operation !== "string") {
       throw new ToolError("Parameter 'operation' must be a string");
     }
@@ -268,7 +268,7 @@ class FileOperationTool {
       throw new ToolError(`Invalid operation. Must be one of: ${validOperations.join(", ")}`);
     }
     
-    // 4. Validare la presenza di contenuto per l'operazione di scrittura
+    // 4. Validare la presenza del contenuto per l'operazione di scrittura
     if (parameters.operation === "write" && !parameters.content) {
       throw new ToolError("Content parameter is required for write operation");
     }
@@ -289,7 +289,7 @@ class FileOperationTool {
 }
 ```
 
-### Esempi di Implementazione di Sicurezza
+### Esempi di Implementazione della Sicurezza
 
 #### 1. Autenticazione e Autorizzazione
 
@@ -357,7 +357,7 @@ public class SecureDataAccessTool implements Tool {
 }
 ```
 
-#### 2. Limitazione della Velocità
+#### 2. Limitazione della Frequenza (Rate Limiting)
 
 ```csharp
 // C# rate limiting implementation
@@ -435,12 +435,12 @@ public class RateLimitingMiddleware
 
 ## Best Practice di Testing
 
-### 1. Testing Unitario degli Strumenti MCP
+### 1. Test Unitari degli Strumenti MCP
 
-Testa sempre i tuoi strumenti in isolamento, simulando dipendenze esterne:
+Testa sempre i tuoi strumenti in isolamento, simulando le dipendenze esterne:
 
 ```typescript
-// Esempio di test unitario di uno strumento in TypeScript
+// Esempio TypeScript di un test unitario per uno strumento
 describe('WeatherForecastTool', () => {
   let tool: WeatherForecastTool;
   let mockWeatherService: jest.Mocked<IWeatherService>;
@@ -468,7 +468,7 @@ describe('WeatherForecastTool', () => {
     
     mockWeatherService.getForecasts.mockResolvedValue(mockForecast);
     
-    // Esegui
+    // Agisci
     const response = await tool.execute({
       location: 'Seattle',
       days: 3
@@ -484,7 +484,7 @@ describe('WeatherForecastTool', () => {
     // Prepara
     mockWeatherService.getForecasts.mockRejectedValue(new Error('Service unavailable'));
     
-    // Esegui e verifica
+    // Agisci e verifica
     await expect(tool.execute({
       location: 'Seattle',
       days: 3
@@ -493,7 +493,7 @@ describe('WeatherForecastTool', () => {
 });
 ```
 
-### 2. Testing di Integrazione
+### 2. Test di Integrazione
 
 Testa il flusso completo dalle richieste client alle risposte del server:
 
@@ -510,11 +510,11 @@ async def test_mcp_server_integration():
         # Crea un client
         client = McpClient("http://localhost:5000")
         
-        # Testa la scoperta degli strumenti
+        # Verifica il rilevamento dello strumento
         tools = await client.discover_tools()
         assert "weatherForecast" in [t.name for t in tools]
         
-        # Testa l'esecuzione dello strumento
+        # Verifica l'esecuzione dello strumento
         response = await client.execute_tool("weatherForecast", {
             "location": "Seattle",
             "days": 3
@@ -534,7 +534,7 @@ async def test_mcp_server_integration():
 
 ### 1. Strategie di Caching
 
-Implementa caching adeguato per ridurre latenza e uso delle risorse:
+Implementa caching appropriato per ridurre latenza e uso delle risorse:
 
 ```csharp
 // C# example with caching
@@ -603,9 +603,9 @@ public class CachedWeatherTool : ITool
 }
 ```
 
-#### 2. Dependency Injection e Testabilità
+#### 2. Iniezione delle Dipendenze e Testabilità
 
-Progetta gli strumenti per ricevere le loro dipendenze tramite injection nel costruttore, rendendoli testabili e configurabili:
+Progetta gli strumenti per ricevere le loro dipendenze tramite iniezione nel costruttore, rendendoli testabili e configurabili:
 
 ```java
 // Esempio Java con iniezione delle dipendenze
@@ -631,7 +631,7 @@ public class CurrencyConversionTool implements Tool {
 
 #### 3. Strumenti Componibili
 
-Progetta strumenti che possano essere composti insieme per creare workflow più complessi:
+Progetta strumenti che possono essere composti insieme per creare workflow più complessi:
 
 ```python
 # Esempio Python che mostra strumenti componibili
@@ -659,10 +659,10 @@ class DataVisualizationTool(Tool):
         # Implementazione...
         pass
 
-# Questi strumenti possono essere utilizzati indipendentemente o come parte di un flusso di lavoro
+# Questi strumenti possono essere usati indipendentemente o come parte di un flusso di lavoro
 ```
 
-### Best Practice di Design dello Schema
+### Best Practice per il Design dello Schema
 
 Lo schema è il contratto tra il modello e il tuo strumento. Schemi ben progettati portano a una migliore usabilità dello strumento.
 
@@ -716,7 +716,7 @@ Map<String, Object> getSchema() {
     
     Map<String, Object> properties = new HashMap<>();
     
-    // Proprietà email con convalida del formato
+    // Proprietà email con validazione del formato
     Map<String, Object> email = new HashMap<>();
     email.put("type", "string");
     email.put("format", "email");
@@ -749,7 +749,7 @@ Map<String, Object> getSchema() {
 
 #### 3. Strutture di Ritorno Consistenti
 
-Mantieni coerenza nelle tue strutture di risposta per facilitare l’interpretazione dei risultati da parte dei modelli:
+Mantieni la coerenza nelle strutture di risposta per facilitare l’interpretazione dei risultati da parte dei modelli:
 
 ```python
 async def execute_async(self, request):
@@ -790,11 +790,11 @@ def _format_item(self, item):
 
 ### Gestione degli Errori
 
-Una gestione robusta degli errori è cruciale per mantenere l’affidabilità degli strumenti MCP.
+Una gestione robusta degli errori è cruciale per gli strumenti MCP per mantenere l’affidabilità.
 
 #### 1. Gestione Graziosa degli Errori
 
-Gestisci gli errori a livelli appropriati e fornisci messaggi informativi:
+Gestisci gli errori ai livelli appropriati e fornisci messaggi informativi:
 
 ```csharp
 public async Task<ToolResponse> ExecuteAsync(ToolRequest request)
@@ -870,7 +870,7 @@ public ToolResponse execute(ToolRequest request) {
 
 #### 3. Logica di Ritento
 
-Implementa logiche di ritento appropriate per errori transitori:
+Implementa una logica di ritento appropriata per i fallimenti temporanei:
 
 ```python
 async def execute_async(self, request):
@@ -880,14 +880,14 @@ async def execute_async(self, request):
     
     while retry_count < max_retries:
         try:
-            # Chiamare API esterna
+            # Chiama API esterna
             return await self._call_api(request.parameters)
         except TransientError as e:
             retry_count += 1
             if retry_count >= max_retries:
                 raise ToolExecutionException(f"Operation failed after {max_retries} attempts: {str(e)}")
                 
-            # Ritardo esponenziale
+            # Backoff esponenziale
             delay = base_delay * (2 ** (retry_count - 1))
             logging.warning(f"Transient error, retrying in {delay}s: {str(e)}")
             await asyncio.sleep(delay)
@@ -948,7 +948,7 @@ public class CachedDataTool : IMcpTool
 
 #### 2. Elaborazione Asincrona
 
-Usa pattern di programmazione asincrona per operazioni I/O-bound:
+Usa pattern di programmazione asincrona per operazioni IO-bound:
 
 ```java
 public class AsyncDocumentProcessingTool implements Tool {
@@ -959,23 +959,23 @@ public class AsyncDocumentProcessingTool implements Tool {
     public ToolResponse execute(ToolRequest request) {
         String documentId = request.getParameters().get("documentId").asText();
         
-        // Per operazioni a lunga durata, restituisci immediatamente un ID di elaborazione
+        // Per operazioni di lunga durata, restituisci immediatamente un ID di elaborazione
         String processId = UUID.randomUUID().toString();
         
         // Avvia l'elaborazione asincrona
         CompletableFuture.runAsync(() -> {
             try {
-                // Esegui un'operazione a lunga durata
+                // Esegui operazione di lunga durata
                 documentService.processDocument(documentId);
                 
-                // Aggiorna lo stato (normalmente verrebbe salvato in un database)
+                // Aggiorna lo stato (di solito verrebbe memorizzato in un database)
                 processStatusRepository.updateStatus(processId, "completed");
             } catch (Exception ex) {
                 processStatusRepository.updateStatus(processId, "failed", ex.getMessage());
             }
         }, executorService);
         
-        // Restituisci una risposta immediata con l'ID del processo
+        // Restituisci una risposta immediata con ID processo
         Map<String, Object> result = new HashMap<>();
         result.put("processId", processId);
         result.put("status", "processing");
@@ -997,20 +997,20 @@ public class AsyncDocumentProcessingTool implements Tool {
 }
 ```
 
-#### 3. Throttling delle Risorse
+#### 3. Limitazione delle Risorse
 
-Implementa throttling delle risorse per prevenire sovraccarichi:
+Implementa la limitazione delle risorse per evitare sovraccarichi:
 
 ```python
 class ThrottledApiTool(Tool):
     def __init__(self):
         self.rate_limiter = TokenBucketRateLimiter(
-            tokens_per_second=5,  # Permettere 5 richieste al secondo
-            bucket_size=10        # Permettere picchi fino a 10 richieste
+            tokens_per_second=5,  # Consenti 5 richieste al secondo
+            bucket_size=10        # Consenti picchi fino a 10 richieste
         )
     
     async def execute_async(self, request):
-        # Verificare se possiamo procedere o se dobbiamo aspettare
+        # Verifica se possiamo procedere o dobbiamo aspettare
         delay = self.rate_limiter.get_delay_time()
         
         if delay > 0:
@@ -1019,13 +1019,13 @@ class ThrottledApiTool(Tool):
                     f"Rate limit exceeded. Please try again in {delay:.1f} seconds."
                 )
             else:
-                # Aspettare il tempo di ritardo appropriato
+                # Attendi per il tempo di ritardo appropriato
                 await asyncio.sleep(delay)
         
-        # Consumare un token e procedere con la richiesta
+        # Consuma un token e procedi con la richiesta
         self.rate_limiter.consume()
         
-        # Chiamare l'API
+        # Chiama l'API
         result = await self._call_api(request.parameters)
         return ToolResponse(result=result)
 
@@ -1043,7 +1043,7 @@ class TokenBucketRateLimiter:
             if self.tokens >= 1:
                 return 0
             
-            # Calcolare il tempo fino al prossimo token disponibile
+            # Calcola il tempo fino al prossimo token disponibile
             return (1 - self.tokens) / self.tokens_per_second
     
     async def consume(self):
@@ -1055,7 +1055,7 @@ class TokenBucketRateLimiter:
         now = time.time()
         elapsed = now - self.last_refill
         
-        # Aggiungere nuovi token basati sul tempo trascorso
+        # Aggiungi nuovi token basati sul tempo trascorso
         new_tokens = elapsed * self.tokens_per_second
         self.tokens = min(self.bucket_size, self.tokens + new_tokens)
         self.last_refill = now
@@ -1065,7 +1065,7 @@ class TokenBucketRateLimiter:
 
 #### 1. Validazione degli Input
 
-Valida sempre in modo approfondito i parametri di input:
+Valida sempre accuratamente i parametri di input:
 
 ```csharp
 public async Task<ToolResponse> ExecuteAsync(ToolRequest request)
@@ -1116,12 +1116,12 @@ public ToolResponse execute(ToolRequest request) {
     // Ottieni il contesto utente dalla richiesta
     UserContext user = request.getContext().getUserContext();
     
-    // Verifica se l'utente ha i permessi richiesti
+    // Controlla se l'utente ha i permessi richiesti
     if (!authorizationService.hasPermission(user, "documents:read")) {
         throw new ToolExecutionException("User does not have permission to access documents");
     }
     
-    // Per risorse specifiche, verifica l'accesso a quella risorsa
+    // Per risorse specifiche, controlla l'accesso a quella risorsa
     String documentId = request.getParameters().get("documentId").asText();
     if (!documentService.canUserAccess(user.getId(), documentId)) {
         throw new ToolExecutionException("Access denied to the requested document");
@@ -1134,7 +1134,7 @@ public ToolResponse execute(ToolRequest request) {
 
 #### 3. Gestione dei Dati Sensibili
 
-Gestisci con cura i dati sensibili:
+Gestisci i dati sensibili con cura:
 
 ```python
 class SecureDataTool(Tool):
@@ -1152,31 +1152,31 @@ class SecureDataTool(Tool):
         user_id = request.parameters["userId"]
         include_sensitive = request.parameters.get("includeSensitiveData", False)
         
-        # Ottenere dati utente
+        # Recupera i dati dell'utente
         user_data = await self.user_service.get_user_data(user_id)
         
-        # Filtrare campi sensibili a meno che non sia esplicitamente richiesto E autorizzato
+        # Filtra i campi sensibili a meno che non siano esplicitamente richiesti E autorizzati
         if not include_sensitive or not self._is_authorized_for_sensitive_data(request):
             user_data = self._redact_sensitive_fields(user_data)
         
         return ToolResponse(result=user_data)
     
     def _is_authorized_for_sensitive_data(self, request):
-        # Verificare il livello di autorizzazione nel contesto della richiesta
+        # Controlla il livello di autorizzazione nel contesto della richiesta
         auth_level = request.context.get("authorizationLevel")
         return auth_level == "admin"
     
     def _redact_sensitive_fields(self, user_data):
-        # Creare una copia per evitare di modificare l'originale
+        # Crea una copia per evitare di modificare l'originale
         redacted = user_data.copy()
         
-        # Censurare campi sensibili specifici
+        # Oscura campi sensibili specifici
         sensitive_fields = ["ssn", "creditCardNumber", "password"]
         for field in sensitive_fields:
             if field in redacted:
                 redacted[field] = "REDACTED"
         
-        # Censurare dati sensibili nidificati
+        # Oscura dati sensibili nidificati
         if "financialInfo" in redacted:
             redacted["financialInfo"] = {"available": True, "accessRestricted": True}
         
@@ -1185,13 +1185,13 @@ class SecureDataTool(Tool):
 
 ## Best Practice di Testing per Strumenti MCP
 
-Un testing completo assicura che gli strumenti MCP funzionino correttamente, gestiscano i casi limite e si integrino correttamente con il resto del sistema.
+Il testing completo assicura che gli strumenti MCP funzionino correttamente, gestiscano i casi limite e si integrino adeguatamente con il resto del sistema.
 
-### Testing Unitario
+### Test Unitari
 
 #### 1. Testa Ogni Strumento in Isolamento
 
-Crea test mirati per le funzionalità di ogni strumento:
+Crea test mirati per la funzionalità di ogni strumento:
 
 ```csharp
 [Fact]
@@ -1251,7 +1251,7 @@ public async Task WeatherTool_InvalidLocation_ThrowsToolExecutionException()
 }
 ```
 
-#### 2. Test di Validazione dello Schema
+#### 2. Test di Validazione degli Schemi
 
 Verifica che gli schemi siano validi e applichino correttamente i vincoli:
 
@@ -1264,7 +1264,7 @@ public void testSchemaValidation() {
     // Ottieni schema
     Object schema = searchTool.getSchema();
     
-    // Converti lo schema in JSON per la validazione
+    // Converti schema in JSON per la validazione
     String schemaJson = objectMapper.writeValueAsString(schema);
     
     // Valida che lo schema sia un JSONSchema valido
@@ -1279,7 +1279,7 @@ public void testSchemaValidation() {
     ProcessingReport validReport = jsonSchema.validate(validParams);
     assertTrue(validReport.isSuccess());
     
-    // Testa parametro richiesto mancante
+    // Testa parametro obbligatorio mancante
     JsonNode missingRequired = objectMapper.createObjectNode()
         .put("limit", 5);
         
@@ -1298,7 +1298,7 @@ public void testSchemaValidation() {
 
 #### 3. Test di Gestione degli Errori
 
-Crea test specifici per condizioni di errore:
+Crea test specifici per le condizioni di errore:
 
 ```python
 @pytest.mark.asyncio
@@ -1306,7 +1306,7 @@ async def test_api_tool_handles_timeout():
     # Disporre
     tool = ApiTool(timeout=0.1)  # Timeout molto breve
     
-    # Simula una richiesta che scadrà
+    # Simulare una richiesta che scadrà per timeout
     with aioresponses() as mocked:
         mocked.get(
             "https://api.example.com/data",
@@ -1322,7 +1322,7 @@ async def test_api_tool_handles_timeout():
         with pytest.raises(ToolExecutionException) as exc_info:
             await tool.execute_async(request)
         
-        # Verificare il messaggio di eccezione
+        # Verificare il messaggio dell'eccezione
         assert "timed out" in str(exc_info.value).lower()
 
 @pytest.mark.asyncio
@@ -1330,7 +1330,7 @@ async def test_api_tool_handles_rate_limiting():
     # Disporre
     tool = ApiTool()
     
-    # Simula una risposta con limitazione di velocità
+    # Simulare una risposta limitata in frequenza
     with aioresponses() as mocked:
         mocked.get(
             "https://api.example.com/data",
@@ -1348,13 +1348,13 @@ async def test_api_tool_handles_rate_limiting():
         with pytest.raises(ToolExecutionException) as exc_info:
             await tool.execute_async(request)
         
-        # Verificare che l'eccezione contenga informazioni sul limite di velocità
+        # Verificare che l'eccezione contenga informazioni sul limite di frequenza
         error_msg = str(exc_info.value).lower()
         assert "rate limit" in error_msg
         assert "try again" in error_msg
 ```
 
-### Testing di Integrazione
+### Test di Integrazione
 
 #### 1. Test della Catena di Strumenti
 
@@ -1397,9 +1397,9 @@ public async Task DataProcessingWorkflow_CompletesSuccessfully()
 }
 ```
 
-#### 2. Testing del Server MCP
+#### 2. Test del Server MCP
 
-Testa il server MCP con registrazione completa degli strumenti ed esecuzione:
+Testa il server MCP con registrazione ed esecuzione completa degli strumenti:
 
 ```java
 @SpringBootTest
@@ -1425,7 +1425,7 @@ public class McpServerIntegrationTest {
     
     @Test
     public void testToolExecution() throws Exception {
-        // Creare richiesta dello strumento
+        // Creare la richiesta dello strumento
         Map<String, Object> request = new HashMap<>();
         request.put("toolName", "calculator");
         
@@ -1445,14 +1445,14 @@ public class McpServerIntegrationTest {
     
     @Test
     public void testToolValidation() throws Exception {
-        // Creare richiesta dello strumento non valida
+        // Creare una richiesta di strumento non valida
         Map<String, Object> request = new HashMap<>();
         request.put("toolName", "calculator");
         
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("operation", "divide");
         parameters.put("a", 10);
-        // Parametro mancante "b"
+        // Mancanza del parametro "b"
         request.put("parameters", parameters);
         
         // Inviare la richiesta e verificare la risposta di errore
@@ -1465,17 +1465,17 @@ public class McpServerIntegrationTest {
 }
 ```
 
-#### 3. Testing End-to-End
+#### 3. Test End-to-End
 
-Testa flussi completi dal prompt del modello all’esecuzione dello strumento:
+Testa workflow completi dal prompt del modello all’esecuzione dello strumento:
 
 ```python
 @pytest.mark.asyncio
 async def test_model_interaction_with_tool():
-    # Configura - Imposta il client MCP e il modello mock
+    # Organizza - Configura il client MCP e il modello mock
     mcp_client = McpClient(server_url="http://localhost:5000")
     
-    # Risposte del modello mock
+    # Modella le risposte mock
     mock_model = MockLanguageModel([
         MockResponse(
             "What's the weather in Seattle?",
@@ -1490,7 +1490,7 @@ async def test_model_interaction_with_tool():
         )
     ])
     
-    # Risposta dello strumento meteo mock
+    # Modella la risposta dello strumento meteo mock
     with aioresponses() as mocked:
         mocked.post(
             "http://localhost:5000/mcp/execute",
@@ -1513,7 +1513,7 @@ async def test_model_interaction_with_tool():
             allowed_tools=["weatherForecast"]
         )
         
-        # Verifica
+        # Asserisci
         assert "Seattle" in response.generated_text
         assert "65" in response.generated_text
         assert "Sunny" in response.generated_text
@@ -1522,11 +1522,11 @@ async def test_model_interaction_with_tool():
         assert response.tool_calls[0].tool_name == "weatherForecast"
 ```
 
-### Testing delle Prestazioni
+### Test delle Prestazioni
 
-#### 1. Load Testing
+#### 1. Test di Carico
 
-Testa quante richieste concorrenti il tuo server MCP può gestire:
+Verifica quante richieste concorrenti il server MCP può gestire:
 
 ```csharp
 [Fact]
@@ -1559,7 +1559,7 @@ public async Task McpServer_HandlesHighConcurrency()
 }
 ```
 
-#### 2. Stress Testing
+#### 2. Test di Stress
 
 Testa il sistema sotto carichi estremi:
 
@@ -1573,10 +1573,10 @@ public void testServerUnderStress() {
     // Configura JMeter per il test di stress
     StandardJMeterEngine jmeter = new StandardJMeterEngine();
     
-    // Configura il piano di test JMeter
+    // Configura il piano di test di JMeter
     HashTree testPlanTree = new HashTree();
     
-    // Crea piano di test, gruppo di thread, sampler, ecc.
+    // Crea piano di test, gruppo di thread, campionatori, ecc.
     TestPlan testPlan = new TestPlan("MCP Server Stress Test");
     testPlanTree.add(testPlan);
     
@@ -1588,7 +1588,7 @@ public void testServerUnderStress() {
     
     testPlanTree.add(threadGroup);
     
-    // Aggiungi sampler HTTP per l'esecuzione dello strumento
+    // Aggiungi campionatore HTTP per l'esecuzione dello strumento
     HTTPSampler toolExecutionSampler = new HTTPSampler();
     toolExecutionSampler.setDomain("localhost");
     toolExecutionSampler.setPort(5000);
@@ -1599,29 +1599,29 @@ public void testServerUnderStress() {
     
     threadGroup.add(toolExecutionSampler);
     
-    // Aggiungi listener
+    // Aggiungi ascoltatori
     SummaryReport summaryReport = new SummaryReport();
     threadGroup.add(summaryReport);
     
-    // Esegui il test
+    // Esegui test
     jmeter.configure(testPlanTree);
     jmeter.run();
     
-    // Valida i risultati
+    // Valida risultati
     assertEquals(0, summaryReport.getErrorCount());
-    assertTrue(summaryReport.getAverage() < 200); // Tempo di risposta medio < 200ms
+    assertTrue(summaryReport.getAverage() < 200); // Tempo medio di risposta < 200ms
     assertTrue(summaryReport.getPercentile(90.0) < 500); // 90° percentile < 500ms
 }
 ```
 
-#### 3. Monitoraggio e Profilazione
+#### 3. Monitoraggio e Profilatura
 
-Configura il monitoraggio per analisi delle prestazioni a lungo termine:
+Configura il monitoraggio per l’analisi delle prestazioni a lungo termine:
 
 ```python
 # Configura il monitoraggio per un server MCP
 def configure_monitoring(server):
-    # Configura metriche Prometheus
+    # Configura le metriche di Prometheus
     prometheus_metrics = {
         "request_count": Counter("mcp_requests_total", "Total MCP requests"),
         "request_latency": Histogram(
@@ -1647,10 +1647,10 @@ def configure_monitoring(server):
         )
     }
     
-    # Aggiungi middleware per temporizzazione e registrazione delle metriche
+    # Aggiungi un middleware per la temporizzazione e la registrazione delle metriche
     server.add_middleware(PrometheusMiddleware(prometheus_metrics))
     
-    # Esporre l'endpoint delle metriche
+    # Esponi il punto di accesso delle metriche
     @server.router.get("/metrics")
     async def metrics():
         return generate_latest()
@@ -1660,11 +1660,11 @@ def configure_monitoring(server):
 
 ## Pattern di Design dei Workflow MCP
 
-Workflow MCP ben progettati migliorano efficienza, affidabilità e manutenibilità. Ecco i pattern chiave da seguire:
+I workflow MCP ben progettati migliorano efficienza, affidabilità e manutenibilità. Ecco i principali schemi da seguire:
 
 ### 1. Pattern Catena di Strumenti
 
-Collega più strumenti in sequenza dove l’output di ciascuno diventa input per il prossimo:
+Collega più strumenti in sequenza dove l’output di uno diventa l’input del successivo:
 
 ```python
 # Implementazione della catena di strumenti in Python
@@ -1680,7 +1680,7 @@ class ChainWorkflow:
             # Esegui ogni strumento nella catena, passando il risultato precedente
             response = await mcp_client.execute_tool(tool_name, current_result)
             
-            # Memorizza il risultato e usalo come input per il prossimo strumento
+            # Memorizza il risultato e usalo come input per lo strumento successivo
             all_results[tool_name] = response.result
             current_result = response.result
         
@@ -1689,7 +1689,7 @@ class ChainWorkflow:
             "all_results": all_results
         }
 
-# Esempio di utilizzo
+# Esempio d'uso
 data_processing_chain = ChainWorkflow([
     "dataFetch",
     "dataCleaner",
@@ -1705,7 +1705,7 @@ result = await data_processing_chain.execute(
 
 ### 2. Pattern Dispatcher
 
-Usa uno strumento centrale che distribuisce a strumenti specializzati basandosi sull’input:
+Usa uno strumento centrale che dispatcha strumenti specializzati basati sull’input:
 
 ```csharp
 public class ContentDispatcherTool : IMcpTool
@@ -1824,7 +1824,7 @@ public class ParallelDataProcessingWorkflow {
             ))
         );
         
-        // Attendi il completamento di tutti i task paralleli
+        // Aspetta che tutti i compiti paralleli siano completati
         CompletableFuture<Void> allAnalyses = CompletableFuture.allOf(
             statisticalAnalysis, correlationAnalysis, outlierDetection
         );
@@ -1855,7 +1855,7 @@ public class ParallelDataProcessingWorkflow {
 
 ### 4. Pattern di Recupero dagli Errori
 
-Implementa fallback graziosi per errori degli strumenti:
+Implementa fallback gentili per i fallimenti degli strumenti:
 
 ```python
 class ResilientWorkflow:
@@ -1896,20 +1896,20 @@ class ResilientWorkflow:
     
     def _adapt_parameters(self, params, from_tool, to_tool):
         """Adapt parameters between different tools if needed"""
-        # Questa implementazione dipenderebbe dagli strumenti specifici
+        # Questa implementazione dipenderebbe dai singoli strumenti
         # Per questo esempio, restituiremo solo i parametri originali
         return params
 
 # Esempio di utilizzo
 async def get_weather(workflow, location):
     return await workflow.execute_with_fallback(
-        "premiumWeatherService",  # API meteo primaria (a pagamento)
+        "premiumWeatherService",  # API meteo principale (a pagamento)
         "basicWeatherService",    # API meteo di riserva (gratuita)
         {"location": location}
     )
 ```
 
-### 5. Pattern Composizione del Workflow
+### 5. Pattern di Composizione dei Workflow
 
 Costruisci workflow complessi componendo quelli più semplici:
 
@@ -1958,37 +1958,37 @@ var result = await documentWorkflow.ExecuteAsync(new WorkflowContext {
 });
 ```
 
-# Testing dei Server MCP: Best Practice e Consigli Top
+# Testing dei Server MCP: Best Practice e Consigli Principali
 
 ## Panoramica
 
-Il testing è un aspetto critico dello sviluppo di server MCP affidabili e di alta qualità. Questa guida fornisce best practice e consigli completi per testare i tuoi server MCP durante tutto il ciclo di sviluppo, dai test unitari ai test di integrazione e convalida end-to-end.
+Il testing è un aspetto critico per sviluppare server MCP affidabili e di alta qualità. Questa guida fornisce best practice e consigli completi per testare i tuoi server MCP durante tutto il ciclo di vita dello sviluppo, dai test unitari ai test di integrazione fino alla validazione end-to-end.
 
 ## Perché il Testing è Importante per i Server MCP
 
-I server MCP fungono da middleware cruciale tra modelli AI e applicazioni client. Un testing approfondito garantisce:
+I server MCP fungono da middleware cruciale tra modelli AI e applicazioni client. Un testing accurato garantisce:
 
-- Affidabilità in ambienti di produzione
+- Affidabilità negli ambienti di produzione
 - Gestione accurata di richieste e risposte
 - Implementazione corretta delle specifiche MCP
-- Resilienza contro errori e casi limite
-- Prestazioni costanti sotto carichi vari
+- Resilienza contro guasti e casi limite
+- Prestazioni costanti sotto vari carichi
 
-## Testing Unitario per Server MCP
+## Test Unitari per Server MCP
 
-### Testing Unitario (Fondamentale)
+### Test Unitari (Fondamenta)
 
-I test unitari verificano singoli componenti del server MCP in isolamento.
+I test unitari verificano i singoli componenti del tuo server MCP in isolamento.
 
 #### Cosa Testare
 
-1. **Gestori di Risorse**: Testare la logica di ogni gestore di risorsa indipendentemente
-2. **Implementazioni degli Strumenti**: Verificare il comportamento degli strumenti con diversi input
-3. **Template di Prompt**: Assicurarsi che i template di prompt siano renderizzati correttamente
-4. **Validazione dello Schema**: Testare la logica di validazione dei parametri
-5. **Gestione degli Errori**: Verificare risposte di errore per input non validi
+1. **Gestori delle Risorse**: Testa la logica di ogni gestore delle risorse in modo indipendente
+2. **Implementazioni degli Strumenti**: Verifica il comportamento degli strumenti con input vari
+3. **Template dei Prompt**: Assicurati che i template dei prompt vengano renderizzati correttamente
+4. **Validazione Schema**: Testa la logica di validazione dei parametri
+5. **Gestione degli Errori**: Verifica le risposte di errore per input non validi
 
-#### Best Practice per il Testing Unitario
+#### Best Practice per i Test Unitari
 
 ```csharp
 // Example unit test for a calculator tool in C#
@@ -2016,7 +2016,7 @@ public async Task CalculatorTool_Add_ReturnsCorrectSum()
 ```python
 # Esempio di test unitario per uno strumento calcolatrice in Python
 def test_calculator_tool_add():
-    # Prepara
+    # Disponi
     calculator = CalculatorTool()
     parameters = {
         "operation": "add",
@@ -2028,23 +2028,23 @@ def test_calculator_tool_add():
     response = calculator.execute(parameters)
     result = json.loads(response.content[0].text)
     
-    # Verifica
+    # Asserisci
     assert result["value"] == 12
 ```
 
-### Testing di Integrazione (Livello Intermedio)
+### Test di Integrazione (Livello Medio)
 
-I test di integrazione verificano le interazioni tra i componenti del server MCP.
+I test di integrazione verificano le interazioni tra i componenti del tuo server MCP.
 
 #### Cosa Testare
 
-1. **Inizializzazione del Server**: Testare l’avvio del server con varie configurazioni
-2. **Registrazione delle Rotte**: Verificare che tutti gli endpoint siano correttamente registrati
-3. **Elaborazione delle Richieste**: Testare il ciclo completo richiesta-risposta
-4. **Propagazione degli Errori**: Assicurare che gli errori siano gestiti correttamente tra i componenti
-5. **Autenticazione e Autorizzazione**: Testare i meccanismi di sicurezza
+1. **Inizializzazione del Server**: Testa l’avvio del server con varie configurazioni
+2. **Registrazione delle Route**: Verifica che tutti gli endpoint siano registrati correttamente
+3. **Elaborazione delle Richieste**: Testa il ciclo completo richiesta-risposta
+4. **Propagazione degli Errori**: Assicura che gli errori vengano gestiti correttamente tra i componenti
+5. **Autenticazione e Autorizzazione**: Testa i meccanismi di sicurezza
 
-#### Best Practice per il Testing di Integrazione
+#### Best Practice per i Test di Integrazione
 
 ```csharp
 // Example integration test for MCP server in C#
@@ -2080,19 +2080,19 @@ public async Task Server_ProcessToolRequest_ReturnsValidResponse()
 }
 ```
 
-### Testing End-to-End (Livello Superiore)
+### Test End-to-End (Livello Alto)
 
 I test end-to-end verificano il comportamento completo del sistema da client a server.
 
 #### Cosa Testare
 
-1. **Comunicazione Client-Server**: Testare cicli completi di richiesta-risposta
-2. **SDK Client Reali**: Testare con implementazioni client reali
-3. **Prestazioni sotto Carico**: Verificare il comportamento con più richieste concorrenti
-4. **Recupero dagli Errori**: Testare il recupero del sistema da errori
-5. **Operazioni a Lunga Durata**: Verificare la gestione di streaming e operazioni prolungate
+1. **Comunicazione Client-Server**: Testa cicli completi richiesta-risposta
+2. **SDK Client Reali**: Testa con implementazioni client reali
+3. **Prestazioni Sotto Carico**: Verifica il comportamento con richieste concorrenti multiple
+4. **Recupero dagli Errori**: Testa il recupero del sistema dai fallimenti
+5. **Operazioni a Lunga Durata**: Verifica la gestione dello streaming e delle operazioni lunghe
 
-#### Best Practice per il Testing E2E
+#### Best Practice per i Test End-to-End
 
 ```typescript
 // Esempio di test E2E con un client in TypeScript
@@ -2110,14 +2110,14 @@ describe('MCP Server E2E Tests', () => {
   });
   
   test('Client can invoke calculator tool and get correct result', async () => {
-    // Agisci
+    // Azione
     const response = await client.invokeToolAsync('calculator', {
       operation: 'divide',
       a: 20,
       b: 4
     });
     
-    // Asserisci
+    // Asserzione
     expect(response.statusCode).toBe(200);
     expect(response.content[0].text).toContain('5');
   });
@@ -2130,12 +2130,12 @@ Il mocking è essenziale per isolare i componenti durante il testing.
 
 ### Componenti da Mockare
 
-1. **Modelli AI Esterni**: Mock delle risposte dei modelli per un testing prevedibile
-2. **Servizi Esterni**: Mock delle dipendenze API (database, servizi di terze parti)
-3. **Servizi di Autenticazione**: Mock dei provider di identità
-4. **Provider di Risorse**: Mock dei gestori di risorse costose
+1. **Modelli AI Esterni**: Simula risposte di modelli per test prevedibili
+2. **Servizi Esterni**: Simula dipendenze API (database, servizi di terze parti)
+3. **Servizi di Autenticazione**: Simula provider di identità
+4. **Provider di Risorse**: Simula gestori di risorse costosi
 
-### Esempio: Mock di una Risposta di Modello AI
+### Esempio: Mocking di una Risposta di Modello AI
 
 ```csharp
 // C# example with Moq
@@ -2169,27 +2169,27 @@ def test_with_mock_model(mock_model):
 
 ## Testing delle Prestazioni
 
-Il testing delle prestazioni è cruciale per server MCP in produzione.
+Il testing delle prestazioni è cruciale per i server MCP in produzione.
 
 ### Cosa Misurare
 
-1. **Latenza**: Tempo di risposta alle richieste
+1. **Latenza**: Tempo di risposta per le richieste
 2. **Throughput**: Richieste gestite al secondo
-3. **Utilizzo delle Risorse**: Uso di CPU, memoria, network
+3. **Utilizzo delle Risorse**: CPU, memoria, utilizzo rete
 4. **Gestione della Concorrenza**: Comportamento sotto richieste parallele
 5. **Caratteristiche di Scalabilità**: Prestazioni con l’aumento del carico
 
 ### Strumenti per il Testing delle Prestazioni
 
 - **k6**: Strumento open-source per load testing
-- **JMeter**: Testing completo delle prestazioni
+- **JMeter**: Testing delle prestazioni completo
 - **Locust**: Load testing basato su Python
 - **Azure Load Testing**: Testing delle prestazioni basato su cloud
 
 ### Esempio: Test di Carico Base con k6
 
 ```javascript
-// script k6 per il test di carico del server MCP
+// Script k6 per il test di carico del server MCP
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 
@@ -2226,15 +2226,16 @@ export default function () {
 }
 ```
 
-## Automazione dei Test per Server MCP
+## Automazione dei Test per i Server MCP
 
 Automatizzare i test assicura qualità costante e cicli di feedback più rapidi.
 
 ### Integrazione CI/CD
-1. **Eseguire test unitari sulle pull request**: Assicurarsi che le modifiche al codice non compromettano le funzionalità esistenti  
-2. **Test di integrazione in staging**: Eseguire test di integrazione negli ambienti pre-produzione  
-3. **Riferimenti di prestazioni**: Mantenere benchmark di prestazioni per individuare regressioni  
-4. **Scansioni di sicurezza**: Automatizzare i test di sicurezza come parte della pipeline  
+
+1. **Esegui Test Unitari su Pull Request**: Assicurati che le modifiche al codice non rompano funzionalità esistenti
+2. **Test di Integrazione in Staging**: Esegui test di integrazione in ambienti di pre-produzione  
+3. **Riferimenti di Prestazione**: Mantieni benchmark di prestazione per rilevare regressioni  
+4. **Scansioni di Sicurezza**: Automatizza i test di sicurezza come parte della pipeline  
 
 ### Esempio di Pipeline CI (GitHub Actions)
 
@@ -2275,19 +2276,19 @@ jobs:
       run: dotnet run --project tests/PerformanceTests/PerformanceTests.csproj
 ```
   
-## Test per la conformità con la specifica MCP
+## Test per la Conformità alla Specifica MCP
 
 Verifica che il tuo server implementi correttamente la specifica MCP.
 
-### Aree chiave di conformità
+### Aree Chiave di Conformità
 
-1. **Endpoint API**: Testare gli endpoint richiesti (/resources, /tools, ecc.)  
-2. **Formato richiesta/risposta**: Validare la conformità dello schema  
-3. **Codici di errore**: Verificare i codici di stato corretti per vari scenari  
-4. **Tipi di contenuto**: Testare la gestione di diversi tipi di contenuto  
-5. **Flusso di autenticazione**: Verificare i meccanismi di autenticazione conformi alla specifica  
+1. **Endpoint API**: Testa gli endpoint richiesti (/resources, /tools, ecc.)  
+2. **Formato Richiesta/Risposta**: Valida la conformità allo schema  
+3. **Codici di Errore**: Verifica i codici di stato corretti per diversi scenari  
+4. **Tipi di Contenuto**: Testa la gestione di diversi tipi di contenuto  
+5. **Flusso di Autenticazione**: Verifica i meccanismi di autenticazione conformi alla specifica  
 
-### Suite di test di conformità
+### Suite di Test di Conformità
 
 ```csharp
 [Fact]
@@ -2314,69 +2315,68 @@ public async Task Server_ResourceEndpoint_ReturnsCorrectSchema()
 }
 ```
   
-## Le 10 migliori pratiche per testare efficacemente un server MCP
+## 10 Consigli Principali per un Test Efficace del Server MCP
 
-1. **Testare le definizioni degli strumenti separatamente**: Verificare le definizioni dello schema indipendentemente dalla logica degli strumenti  
-2. **Usare test parametrizzati**: Testare gli strumenti con una varietà di input, inclusi casi limite  
-3. **Verificare le risposte di errore**: Assicurarsi che la gestione degli errori sia corretta in tutte le condizioni di errore possibili  
-4. **Testare la logica di autorizzazione**: Garantire il controllo accessi corretto per diversi ruoli utente  
-5. **Monitorare la copertura dei test**: Puntare a una copertura elevata del codice del percorso critico  
-6. **Testare le risposte in streaming**: Verificare la corretta gestione dei contenuti in streaming  
-7. **Simulare problemi di rete**: Testare il comportamento in condizioni di rete sfavorevoli  
-8. **Testare i limiti delle risorse**: Verificare il comportamento a raggiungimento di quote o limiti di velocità  
-9. **Automatizzare i test di regressione**: Costruire una suite che venga eseguita a ogni modifica del codice  
-10. **Documentare i casi di test**: Mantenere una documentazione chiara degli scenari di test  
+1. **Testa le Definizioni degli Strumenti Separatamente**: Verifica le definizioni dello schema indipendentemente dalla logica degli strumenti  
+2. **Usa Test Parametrizzati**: Testa gli strumenti con una varietà di input, inclusi casi limite  
+3. **Controlla le Risposte di Errore**: Verifica una corretta gestione degli errori per tutte le condizioni di errore possibili  
+4. **Testa la Logica di Autorizzazione**: Assicura un controllo di accesso corretto per diversi ruoli utente  
+5. **Monitora la Copertura dei Test**: Punta a una copertura elevata del codice del percorso critico  
+6. **Testa le Risposte in Streaming**: Verifica una corretta gestione del contenuto in streaming  
+7. **Simula Problemi di Rete**: Testa il comportamento in condizioni di rete scadente  
+8. **Testa i Limiti delle Risorse**: Verifica il comportamento al raggiungimento di quote o limiti di velocità  
+9. **Automatizza i Test di Regressione**: Costruisci una suite che si esegua a ogni modifica del codice  
+10. **Documenta i Casi di Test**: Mantieni una documentazione chiara degli scenari di test  
 
-## Errori comuni nei test
+## Errori Comuni nei Test
 
-- **Affidarsi troppo ai test del cammino positivo**: Assicurarsi di testare approfonditamente i casi di errore  
-- **Ignorare i test di prestazioni**: Identificare i colli di bottiglia prima che impattino la produzione  
-- **Testare solo in isolamento**: Combinare test unitari, di integrazione e end-to-end  
-- **Copertura API incompleta**: Assicurarsi che tutti gli endpoint e le funzionalità siano testati  
-- **Ambientazioni di test non coerenti**: Usare container per garantire ambienti di test coerenti  
+- **Affidarsi troppo ai test del “percorso felice”**: Assicurati di testare a fondo i casi di errore  
+- **Ignorare i test di prestazione**: Identifica i colli di bottiglia prima che influiscano sulla produzione  
+- **Testare solo in isolamento**: Combina test unitari, di integrazione e end-to-end  
+- **Copertura incompleta delle API**: Garantire che tutti gli endpoint e funzionalità siano testati  
+- **Ambientazioni di test incoerenti**: Usa container per assicurare ambienti di test coerenti  
 
 ## Conclusione
 
-Una strategia di testing completa è essenziale per sviluppare server MCP affidabili e di alta qualità. Implementando le migliori pratiche e i suggerimenti illustrati in questa guida, puoi garantire che le tue implementazioni MCP soddisfino i più alti standard di qualità, affidabilità e prestazioni.  
+Una strategia di test completa è essenziale per sviluppare server MCP affidabili e di alta qualità. Implementando le migliori pratiche e i consigli descritti in questa guida, puoi garantire che le tue implementazioni MCP soddisfino i più alti standard di qualità, affidabilità e prestazioni.  
 
+## Punti Chiave
 
-## Punti chiave
-
-1. **Progettazione degli strumenti**: Seguire il principio di responsabilità singola, usare l'iniezione delle dipendenze e progettare per la composabilità  
-2. **Progettazione degli schemi**: Creare schemi chiari, ben documentati con opportune restrizioni di validazione  
-3. **Gestione degli errori**: Implementare una gestione degli errori elegante, risposte strutturate e logica di ritentativo  
-4. **Prestazioni**: Usare caching, elaborazione asincrona e limitazione delle risorse  
-5. **Sicurezza**: Applicare una validazione approfondita degli input, controlli di autorizzazione e gestione dei dati sensibili  
-6. **Testing**: Creare test unitari, di integrazione e end-to-end completi  
-7. **Pattern di workflow**: Applicare pattern consolidati come catene, dispatcher e elaborazione in parallelo  
+1. **Progettazione degli Strumenti**: Segui il principio di responsabilità unica, utilizza l’iniezione delle dipendenze e progetta per la composabilità  
+2. **Progettazione dello Schema**: Crea schemi chiari, ben documentati con appropriati vincoli di validazione  
+3. **Gestione degli Errori**: Implementa una gestione degli errori elegante, risposte strutturate e logica di ritentativo  
+4. **Prestazioni**: Usa caching, elaborazione asincrona e throttling delle risorse  
+5. **Sicurezza**: Applica una valida convalida degli input, controlli di autorizzazione e gestione dei dati sensibili  
+6. **Testing**: Crea test unitari, di integrazione e end-to-end completi  
+7. **Pattern di Workflow**: Applica pattern consolidati come catene, dispatcher e elaborazione parallela  
 
 ## Esercizio
 
-Progetta uno strumento MCP e un workflow per un sistema di elaborazione documenti che:
+Progetta uno strumento MCP e un workflow per un sistema di elaborazione documenti che:  
 
-1. Accetti documenti in più formati (PDF, DOCX, TXT)  
+1. Accetti documenti in formati multipli (PDF, DOCX, TXT)  
 2. Estragga testo e informazioni chiave dai documenti  
 3. Classifichi i documenti per tipo e contenuto  
-4. Generi un riepilogo di ogni documento  
+4. Generi un sommario di ciascun documento  
 
-Implementa gli schemi dello strumento, la gestione degli errori e un pattern di workflow che meglio si adatti a questo scenario. Considera come testeresti questa implementazione.  
+Implementa gli schemi degli strumenti, la gestione degli errori e un pattern di workflow che meglio si adatti a questo scenario. Considera come testeresti questa implementazione.  
 
-## Risorse
+## Risorse  
 
-1. Unisciti alla comunità MCP su [Azure AI Foundry Discord Community](https://aka.ms/foundrydevs) per rimanere aggiornato sugli ultimi sviluppi  
-2. Contribuisci a progetti open-source [MCP](https://github.com/modelcontextprotocol)  
-3. Applica i principi MCP nelle iniziative di AI della tua organizzazione  
-4. Esplora implementazioni MCP specializzate per il tuo settore  
-5. Considera di seguire corsi avanzati su argomenti MCP specifici, come integrazione multimodale o integrazione di applicazioni enterprise  
-6. Sperimenta costruendo i tuoi strumenti e workflow MCP utilizzando i principi appresi attraverso il [Hands on Lab](../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/README.md)  
+1. Unisciti alla community MCP su [Microsoft Foundry Discord Community](https://aka.ms/foundrydevs) per restare aggiornato sulle ultime novità  
+2. Contribuisci a [progetti MCP open-source](https://github.com/modelcontextprotocol)  
+3. Applica i principi MCP nelle iniziative AI della tua organizzazione  
+4. Esplora implementazioni specializzate MCP per il tuo settore  
+5. Considera corsi avanzati su temi specifici MCP, come integrazione multimodale o integrazione di applicazioni aziendali  
+6. Sperimenta costruendo i tuoi strumenti e workflow MCP seguendo i principi appresi nel [Hands on Lab](../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/README.md)  
 
-## Cosa c’è dopo
+## Cosa C’è Dopo
 
-Prossimo: [Case Studies](../09-CaseStudy/README.md)
+Successivo: [Case Studies](../09-CaseStudy/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
 **Disclaimer**:
-Questo documento è stato tradotto utilizzando il servizio di traduzione automatica [Co-op Translator](https://github.com/Azure/co-op-translator). Sebbene ci impegniamo per garantire accuratezza, si prega di notare che le traduzioni automatiche possono contenere errori o inesattezze. Il documento originale nella sua lingua natale deve essere considerato la fonte autorevole. Per informazioni critiche si raccomanda la traduzione professionale umana. Non siamo responsabili per eventuali malintesi o interpretazioni errate derivanti dall'uso di questa traduzione.
+Questo documento è stato tradotto utilizzando il servizio di traduzione AI [Co-op Translator](https://github.com/Azure/co-op-translator). Sebbene ci impegniamo per garantire la precisione, si prega di notare che le traduzioni automatizzate possono contenere errori o imprecisioni. Il documento originale nella sua lingua nativa deve essere considerato la fonte autorevole. Per informazioni critiche, si raccomanda una traduzione professionale effettuata da un essere umano. Non siamo responsabili per eventuali malintesi o interpretazioni errate derivanti dall’uso di questa traduzione.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

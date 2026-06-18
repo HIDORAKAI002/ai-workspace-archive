@@ -1,36 +1,36 @@
-# MCP Transports Personnalisés - Guide d'Implémentation Avancée
+# MCP Transports Personnalisés - Guide de Mise en œuvre Avancée
 
-Le Model Context Protocol (MCP) offre une flexibilité dans les mécanismes de transport, permettant des implémentations personnalisées pour des environnements d'entreprise spécialisés. Ce guide avancé explore les implémentations de transports personnalisés en utilisant Azure Event Grid et Azure Event Hubs comme exemples pratiques pour construire des solutions MCP évolutives et natives du cloud.
+Le Model Context Protocol (MCP) offre une flexibilité dans les mécanismes de transport, permettant des implémentations personnalisées pour des environnements d'entreprise spécialisés. Ce guide avancé explore les implémentations de transports personnalisés en utilisant Azure Event Grid et Azure Event Hubs comme exemples pratiques pour construire des solutions MCP évolutives et cloud-native.
 
 ## Introduction
 
-Alors que les transports standards de MCP (stdio et streaming HTTP) couvrent la plupart des cas d'utilisation, les environnements d'entreprise nécessitent souvent des mécanismes de transport spécialisés pour une meilleure évolutivité, fiabilité et intégration avec l'infrastructure cloud existante. Les transports personnalisés permettent à MCP de tirer parti des services de messagerie natifs du cloud pour la communication asynchrone, les architectures pilotées par les événements et le traitement distribué.
+Bien que les transports standards de MCP (stdio et streaming HTTP) couvrent la plupart des cas d'utilisation, les environnements d'entreprise nécessitent souvent des mécanismes de transport spécialisés pour améliorer l'évolutivité, la fiabilité et l'intégration avec l'infrastructure cloud existante. Les transports personnalisés permettent à MCP de tirer parti des services de messagerie natifs du cloud pour une communication asynchrone, des architectures orientées événements et un traitement distribué.
 
-Cette leçon explore des implémentations avancées de transport basées sur la dernière spécification MCP (2025-11-25), les services de messagerie Azure et les modèles d'intégration d'entreprise établis.
+Cette leçon explore des implémentations de transports avancées basées sur la spécification MCP la plus récente (2025-11-25), les services de messagerie Azure et des patterns d'intégration d'entreprise établis.
 
-### **Architecture du Transport MCP**
+### **Architecture de Transport MCP**
 
 **D'après la Spécification MCP (2025-11-25) :**
 
 - **Transports Standards** : stdio (recommandé), streaming HTTP (pour les scénarios distants)
-- **Transports Personnalisés** : Tout transport qui implémente le protocole d'échange de messages MCP
-- **Format des Messages** : JSON-RPC 2.0 avec extensions spécifiques MCP
-- **Communication Bidirectionnelle** : Communication full duplex requise pour les notifications et réponses
+- **Transports Personnalisés** : Tout transport implémentant le protocole d'échange de messages MCP
+- **Format de Message** : JSON-RPC 2.0 avec extensions spécifiques MCP
+- **Communication Bidirectionnelle** : Communication full duplex requise pour notifications et réponses
 
 ## Objectifs d'Apprentissage
 
 À la fin de cette leçon avancée, vous serez capable de :
 
 - **Comprendre les Exigences des Transports Personnalisés** : Implémenter le protocole MCP sur n'importe quelle couche de transport tout en respectant la conformité
-- **Construire un Transport Azure Event Grid** : Créer des serveurs MCP pilotés par événements utilisant Azure Event Grid pour une évolutivité serverless
+- **Construire un Transport Azure Event Grid** : Créer des serveurs MCP orientés événements utilisant Azure Event Grid pour une scalabilité serverless
 - **Implémenter un Transport Azure Event Hubs** : Concevoir des solutions MCP à haut débit utilisant Azure Event Hubs pour le streaming en temps réel
-- **Appliquer des Modèles d'Entreprise** : Intégrer les transports personnalisés avec l'infrastructure Azure existante et les modèles de sécurité
-- **Gérer la Fiabilité du Transport** : Implémenter la durabilité des messages, l'ordre et la gestion des erreurs pour les scénarios d'entreprise
-- **Optimiser les Performances** : Concevoir des solutions de transport adaptées aux exigences d'échelle, de latence et de débit
+- **Appliquer des Patterns d'Entreprise** : Intégrer des transports personnalisés avec l'infrastructure Azure existante et les modèles de sécurité
+- **Gérer la Fiabilité du Transport** : Mettre en œuvre la durabilité des messages, l'ordre et la gestion des erreurs pour des scénarios d’entreprise
+- **Optimiser les Performances** : Concevoir des solutions de transport pour répondre aux exigences de montée en charge, latence et débit
 
-## **Exigences du Transport**
+## **Exigences de Transport**
 
-### **Exigences Principales de la Spécification MCP (2025-11-25) :**
+### **Exigences de Base de la Spécification MCP (2025-11-25) :**
 
 ```yaml
 Message Protocol:
@@ -51,24 +51,25 @@ Custom Transport:
 
 ## **Implémentation du Transport Azure Event Grid**
 
-Azure Event Grid fournit un service de routage d'événements serverless idéal pour les architectures MCP pilotées par événements. Cette implémentation démontre comment construire des systèmes MCP évolutifs et faiblement couplés.
+Azure Event Grid fournit un service d'acheminement d'événements serverless idéal pour des architectures MCP orientées événements. Cette implémentation montre comment construire des systèmes MCP scalables et faiblement couplés.
 
 ### **Vue d'Architecture**
 
 ```mermaid
 graph TB
     Client[MCP Client] --> EG[Azure Event Grid]
-    EG --> Server[Function Serveur MCP]
+    EG --> Server[Fonction Serveur MCP]
     Server --> EG
     EG --> Client
     
     subgraph "Services Azure"
         EG
         Server
-        KV[Key Vault]
-        Monitor[Application Insights]
+        KV[Coffre de clés]
+        Monitor[Insights d'application]
     end
 ```
+
 ### **Implémentation C# - Transport Event Grid**
 
 ```csharp
@@ -175,10 +176,10 @@ export class EventGridMcpTransport implements McpTransport {
         await this.publisher.sendEvents([event]);
     }
     
-    // Réception pilotée par événements via Azure Functions
+    // Réception pilotée par événement via Azure Functions
     onMessage(handler: (message: McpMessage) => Promise<void>): void {
-        // L'implémentation utiliserait le déclencheur Event Grid d'Azure Functions
-        // Ceci est une interface conceptuelle pour le récepteur webhook
+        // L'implémentation utiliserait le déclencheur Azure Functions Event Grid
+        // Ceci est une interface conceptuelle pour le récepteur de webhook
     }
 }
 
@@ -262,7 +263,7 @@ def main(event: func.EventGridEvent) -> None:
 
 ## **Implémentation du Transport Azure Event Hubs**
 
-Azure Event Hubs offre des capacités de streaming en temps réel à haut débit pour les scénarios MCP nécessitant une faible latence et un volume élevé de messages.
+Azure Event Hubs offre des capacités de streaming en temps réel à haut débit pour les scénarios MCP nécessitant faible latence et volume élevé de messages.
 
 ### **Vue d'Architecture**
 
@@ -283,6 +284,7 @@ graph TB
     EH --> Retention
     EH --> Scaling
 ```
+
 ### **Implémentation C# - Transport Event Hubs**
 
 ```csharp
@@ -523,7 +525,7 @@ class EventHubsMcpTransport:
         await self.consumer.close()
 ```
 
-## **Modèles Avancés de Transport**
+## **Patterns Avancés de Transport**
 
 ### **Durabilité et Fiabilité des Messages**
 
@@ -617,7 +619,7 @@ public class ObservableTransport : IMcpTransport
 
 ### **Scénario 1 : Traitement Distribué MCP**
 
-Utilisation d'Azure Event Grid pour distribuer les requêtes MCP à travers plusieurs nœuds de traitement :
+Utilisation d'Azure Event Grid pour distribuer les requêtes MCP sur plusieurs nœuds de traitement :
 
 ```yaml
 Architecture:
@@ -649,7 +651,7 @@ Benefits:
 
 ### **Scénario 3 : Architecture de Transport Hybride**
 
-Combinaison de plusieurs transports pour différents cas d'utilisation :
+Combinaison de plusieurs transports pour différents cas d'usage :
 
 ```csharp
 public class HybridMcpTransport : IMcpTransport
@@ -735,9 +737,9 @@ public class PartitionedEventHubsTransport : IMcpTransport
 }
 ```
 
-## **Tests des Transports Personnalisés**
+## **Test des Transports Personnalisés**
 
-### **Tests Unitaires avec Doubles de Test**
+### **Tests Unitaires avec Doubles**
 
 ```csharp
 [Test]
@@ -801,48 +803,48 @@ public async Task EventHubsTransport_IntegrationTest()
 
 ### **Principes de Conception des Transports**
 
-1. **Idempotence** : Assurer que le traitement des messages est idempotent pour gérer les doublons
-2. **Gestion des Erreurs** : Implémenter une gestion complète des erreurs et des files d'attente de messages morts
-3. **Surveillance** : Ajouter une télémétrie détaillée et des contrôles de santé
-4. **Sécurité** : Utiliser des identités gérées et un accès au moindre privilège
+1. **Idempotence** : Assurer que le traitement des messages est idempotent pour gérer les duplicatas
+2. **Gestion des Erreurs** : Mettre en œuvre une gestion d'erreurs complète et des files d'attente de lettres mortes
+3. **Surveillance** : Ajouter une télémétrie détaillée et des vérifications de santé
+4. **Sécurité** : Utiliser des identités managées et le principe du moindre privilège
 5. **Performance** : Concevoir selon vos exigences spécifiques de latence et de débit
 
 ### **Recommandations Spécifiques à Azure**
 
-1. **Utiliser l'Identité Gérée** : Éviter les chaînes de connexion en production
-2. **Implémenter des Disjoncteurs** : Se protéger contre les pannes des services Azure
+1. **Utiliser l'Identité Managée** : Éviter les chaînes de connexion en production
+2. **Mettre en œuvre des Disjoncteurs** : Se protéger contre les pannes des services Azure
 3. **Surveiller les Coûts** : Suivre le volume de messages et les coûts de traitement
-4. **Planifier l'Échelle** : Concevoir tôt les stratégies de partitionnement et de montée en charge
-5. **Tester Rigoureusement** : Utiliser Azure DevTest Labs pour des tests complets
+4. **Prévoir la Scalabilité** : Concevoir les stratégies de partitionnement et de montée en charge dès le début
+5. **Tester de Manière Approfondie** : Utiliser Azure DevTest Labs pour des tests complets
 
 ## **Conclusion**
 
-Les transports MCP personnalisés permettent des scénarios d'entreprise puissants en utilisant les services de messagerie Azure. En implémentant les transports Event Grid ou Event Hubs, vous pouvez construire des solutions MCP évolutives et fiables qui s'intègrent parfaitement à l'infrastructure Azure existante.
+Les transports MCP personnalisés permettent des scénarios d'entreprise puissants en utilisant les services de messagerie Azure. En implémentant les transports Event Grid ou Event Hubs, vous pouvez construire des solutions MCP scalables et fiables qui s'intègrent parfaitement à l'infrastructure Azure existante.
 
-Les exemples fournis démontrent des modèles prêts pour la production pour implémenter des transports personnalisés tout en respectant la conformité au protocole MCP et les meilleures pratiques Azure.
+Les exemples fournis démontrent des patterns prêts pour la production pour implémenter des transports personnalisés tout en respectant la conformité au protocole MCP et les meilleures pratiques Azure.
 
-## **Ressources Supplémentaires**
+## **Ressources Complémentaires**
 
-- [Spécification MCP 2025-06-18](https://spec.modelcontextprotocol.io/specification/2025-06-18/)
+- [Spécification MCP 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/)
 - [Documentation Azure Event Grid](https://docs.microsoft.com/azure/event-grid/)
 - [Documentation Azure Event Hubs](https://docs.microsoft.com/azure/event-hubs/)
 - [Déclencheur Azure Functions Event Grid](https://docs.microsoft.com/azure/azure-functions/functions-bindings-event-grid)
-- [Azure SDK pour .NET](https://github.com/Azure/azure-sdk-for-net)
-- [Azure SDK pour TypeScript](https://github.com/Azure/azure-sdk-for-js)
-- [Azure SDK pour Python](https://github.com/Azure/azure-sdk-for-python)
+- [Azure SDK for .NET](https://github.com/Azure/azure-sdk-for-net)
+- [Azure SDK for TypeScript](https://github.com/Azure/azure-sdk-for-js)
+- [Azure SDK for Python](https://github.com/Azure/azure-sdk-for-python)
 
 ---
 
-> *Ce guide se concentre sur les modèles d'implémentation pratiques pour les systèmes MCP en production. Validez toujours les implémentations de transport selon vos exigences spécifiques et les limites des services Azure.*
-> **Standard Actuel** : Ce guide reflète les exigences de transport de la [Spécification MCP 2025-06-18](https://spec.modelcontextprotocol.io/specification/2025-06-18/) et les modèles avancés de transport pour les environnements d'entreprise.
+> *Ce guide se concentre sur les patterns de mise en œuvre pratiques pour des systèmes MCP en production. Validez toujours vos implémentations de transport selon vos exigences spécifiques et les limites des services Azure.*
+> **Norme Actuelle** : Ce guide reflète les exigences de transport de la [Spécification MCP 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/) et les patterns avancés de transport pour les environnements d’entreprise.
 
 
-## Et Après
+## Quelles sont les prochaines étapes
 - [6. Contributions Communautaires](../../06-CommunityContributions/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Avertissement** :  
-Ce document a été traduit à l’aide du service de traduction automatique [Co-op Translator](https://github.com/Azure/co-op-translator). Bien que nous nous efforcions d’assurer l’exactitude, veuillez noter que les traductions automatiques peuvent contenir des erreurs ou des inexactitudes. Le document original dans sa langue d’origine doit être considéré comme la source faisant foi. Pour les informations critiques, une traduction professionnelle réalisée par un humain est recommandée. Nous déclinons toute responsabilité en cas de malentendus ou de mauvaises interprétations résultant de l’utilisation de cette traduction.
+**Avertissement** :
+Ce document a été traduit à l'aide du service de traduction automatique [Co-op Translator](https://github.com/Azure/co-op-translator). Bien que nous nous efforçions d'assurer l'exactitude, veuillez noter que les traductions automatisées peuvent contenir des erreurs ou des inexactitudes. Le document original dans sa langue native doit être considéré comme la source faisant autorité. Pour les informations critiques, il est recommandé de recourir à une traduction professionnelle réalisée par un humain. Nous ne saurions être tenus responsables des malentendus ou erreurs d'interprétation découlant de l'utilisation de cette traduction.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

@@ -1,38 +1,38 @@
 # MCP Security Best Practices - Advanced Implementation Guide
 
-> **Current Standard**: This guide reflects [MCP Specification 2025-06-18](https://spec.modelcontextprotocol.io/specification/2025-06-18/) security requirements and official [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices).
+> **Current Standard**: This guide reflects [MCP Specification 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/) security requirements and official [MCP Security Best Practices](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices).
 
-Security is essential for MCP implementations, particularly in enterprise environments. This advanced guide delves into comprehensive security practices for production MCP deployments, addressing both traditional security concerns and AI-specific threats unique to the Model Context Protocol.
+Security is critical for MCP implementations, especially in enterprise environments. This advanced guide explores comprehensive security practices for production MCP deployments, addressing both traditional security concerns and AI-specific threats unique to the Model Context Protocol.
 
 ## Introduction
 
-The Model Context Protocol (MCP) presents unique security challenges that go beyond traditional software security. As AI systems gain access to tools, data, and external services, new attack vectors arise, including prompt injection, tool poisoning, session hijacking, confused deputy problems, and token passthrough vulnerabilities.
+The Model Context Protocol (MCP) introduces unique security challenges that extend beyond traditional software security. As AI systems gain access to tools, data, and external services, new attack vectors emerge including prompt injection, tool poisoning, session hijacking, confused deputy problems, and token passthrough vulnerabilities.
 
-This guide explores advanced security implementations based on the latest MCP specification (2025-06-18), Microsoft security solutions, and established enterprise security patterns.
+This lesson explores advanced security implementations based on the latest MCP specification (2025-11-25), Microsoft security solutions, and established enterprise security patterns.
 
 ### **Core Security Principles**
 
-**From MCP Specification (2025-06-18):**
+**From MCP Specification (2025-11-25):**
 
-- **Explicit Prohibitions**: MCP servers **MUST NOT** accept tokens not issued for them, and **MUST NOT** use sessions for authentication.
-- **Mandatory Verification**: All incoming requests **MUST** be verified, and user consent **MUST** be obtained for proxy operations.
-- **Secure Defaults**: Implement fail-safe security controls with defense-in-depth approaches.
-- **User Control**: Users must provide explicit consent before any data access or tool execution.
+- **Explicit Prohibitions**: MCP servers **MUST NOT** accept tokens not issued for them, and **MUST NOT** use sessions for authentication
+- **Mandatory Verification**: All inbound requests **MUST** be verified, and user consent **MUST** be obtained for proxy operations
+- **Secure Defaults**: Implement fail-safe security controls with defense-in-depth approaches
+- **User Control**: Users must provide explicit consent before any data access or tool execution
 
 ## Learning Objectives
 
-By the end of this advanced guide, you will be able to:
+By the end of this advanced lesson, you will be able to:
 
-- **Implement Advanced Authentication**: Deploy external identity provider integration with Microsoft Entra ID and OAuth 2.1 security patterns.
-- **Prevent AI-Specific Attacks**: Protect against prompt injection, tool poisoning, and session hijacking using Microsoft Prompt Shields and Azure Content Safety.
-- **Apply Enterprise Security**: Implement comprehensive logging, monitoring, and incident response for production MCP deployments.  
-- **Secure Tool Execution**: Design sandboxed execution environments with proper isolation and resource controls.
-- **Address MCP Vulnerabilities**: Identify and mitigate confused deputy problems, token passthrough vulnerabilities, and supply chain risks.
-- **Integrate Microsoft Security**: Leverage Azure security services and GitHub Advanced Security for comprehensive protection.
+- **Implement Advanced Authentication**: Deploy external identity provider integration with Microsoft Entra ID and OAuth 2.1 security patterns
+- **Prevent AI-Specific Attacks**: Protect against prompt injection, tool poisoning, and session hijacking using Microsoft Prompt Shields and Azure Content Safety
+- **Apply Enterprise Security**: Implement comprehensive logging, monitoring, and incident response for production MCP deployments  
+- **Secure Tool Execution**: Design sandboxed execution environments with proper isolation and resource controls
+- **Address MCP Vulnerabilities**: Identify and mitigate confused deputy problems, token passthrough vulnerabilities, and supply chain risks
+- **Integrate Microsoft Security**: Leverage Azure security services and GitHub Advanced Security for comprehensive protection
 
 ## **MANDATORY Security Requirements**
 
-### **Critical Requirements from MCP Specification (2025-06-18):**
+### **Critical Requirements from MCP Specification (2025-11-25):**
 
 ```yaml
 Authentication & Authorization:
@@ -57,7 +57,7 @@ Modern MCP implementations benefit from the specification's evolution toward ext
 
 ### **Microsoft Entra ID Integration**
 
-The current MCP specification (2025-06-18) allows delegation to external identity providers like Microsoft Entra ID, providing enterprise-grade security features:
+The current MCP specification (2025-11-25) allows delegation to external identity providers like Microsoft Entra ID, providing enterprise-grade security features:
 
 **Security Benefits:**
 - Enterprise-grade multi-factor authentication (MFA)
@@ -901,7 +901,7 @@ async def log_security_event(event_data: Dict):
 
 ### **1. Confused Deputy Attack Prevention**
 
-**Enhanced Implementation Following MCP Specification (2025-06-18):**
+**Enhanced Implementation Following MCP Specification (2025-11-25):**
 
 ```python
 import asyncio
@@ -1757,17 +1757,17 @@ Monitoring & Response:
 
 ### **Microsoft Security Ecosystem Benefits**
 
-- **Integrated Security Posture**: Unified security across identity, infrastructure, and applications.
-- **Advanced AI Protection**: Purpose-built defenses against AI-specific threats.  
-- **Enterprise Compliance**: Built-in support for regulatory requirements and industry standards.
-- **Threat Intelligence**: Global threat intelligence integration for proactive protection.
-- **Scalable Architecture**: Enterprise-grade scaling with maintained security controls.
+- **Integrated Security Posture**: Unified security across identity, infrastructure, and applications
+- **Advanced AI Protection**: Purpose-built defenses against AI-specific threats  
+- **Enterprise Compliance**: Built-in support for regulatory requirements and industry standards
+- **Threat Intelligence**: Global threat intelligence integration for proactive protection
+- **Scalable Architecture**: Enterprise-grade scaling with maintained security controls
 
 ### **References & Resources**
 
-- **[MCP Specification (2025-06-18)](https://spec.modelcontextprotocol.io/specification/2025-06-18/)**
-- **[MCP Security Best Practices](https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices)**  
-- **[MCP Authorization Specification](https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization)**
+- **[MCP Specification (2025-11-25)](https://modelcontextprotocol.io/specification/2025-11-25/)**
+- **[MCP Security Best Practices](https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices)**  
+- **[MCP Authorization Specification](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)**
 - **[Microsoft Prompt Shields](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection)**
 - **[Azure Content Safety](https://learn.microsoft.com/azure/ai-services/content-safety/)**
 - **[OAuth 2.0 Security Best Practices (RFC 9700)](https://datatracker.ietf.org/doc/html/rfc9700)**
@@ -1775,11 +1775,15 @@ Monitoring & Response:
 
 ---
 
-> **Security Notice**: This advanced implementation guide reflects current MCP specification (2025-06-18) requirements. Always verify against the latest official documentation and consider your specific security requirements and threat model when implementing these controls.
+> **Security Notice**: This advanced implementation guide reflects current MCP specification (2025-11-25) requirements. Always verify against the latest official documentation and consider your specific security requirements and threat model when implementing these controls.
 
 ## What's next
 
 - [5.9 Web search](../web-search-mcp/README.md)
 
-**Disclaimer**:  
-This document has been translated using the AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). While we strive for accuracy, please note that automated translations may contain errors or inaccuracies. The original document in its native language should be regarded as the authoritative source. For critical information, professional human translation is recommended. We are not responsible for any misunderstandings or misinterpretations resulting from the use of this translation.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Disclaimer**:
+This document has been translated using AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). While we strive for accuracy, please be aware that automated translations may contain errors or inaccuracies. The original document in its native language should be considered the authoritative source. For critical information, professional human translation is recommended. We are not liable for any misunderstandings or misinterpretations arising from the use of this translation.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

@@ -1,92 +1,92 @@
 # Napredne teme v MCP
 
-[![Napredni MCP: Varnostni, razširljivi in večmodalni AI agenti](../../../translated_images/sl/06.42259eaf91fccfc6.webp)](https://youtu.be/4yjmGvJzYdY)
+[![Napredni MCP: varni, razširljivi in multimodalni AI agenti](../../../translated_images/sl/06.42259eaf91fccfc6.webp)](https://youtu.be/4yjmGvJzYdY)
 
-_(Kliknite zgornjo sliko za ogled videa te lekcije)_
+_(Kliknite zgornjo sliko za ogled videoposnetka te lekcije)_
 
-To poglavje zajema vrsto naprednih tem pri implementaciji Model Context Protocol (MCP), vključno z večmodalno integracijo, razširljivostjo, najboljšimi praksami za varnost in integracijo v podjetja. Te teme so ključne za gradnjo robustnih in produkcijsko pripravljenih MCP aplikacij, ki lahko izpolnijo zahteve sodobnih AI sistemov.
+To poglavje pokriva vrsto naprednih tem v implementaciji Model Context Protocol (MCP), vključno z multimodalno integracijo, razširljivostjo, najboljšimi praksami za varnost in integracijo v podjetja. Te teme so ključnega pomena za gradnjo robustnih in produkcijsko pripravljenih MCP aplikacij, ki lahko zadostijo zahtevam sodobnih AI sistemov.
 
 ## Pregled
 
-Ta lekcija raziskuje napredne koncepte implementacije Model Context Protocol, s poudarkom na večmodalni integraciji, razširljivosti, najboljših varnostnih praksah in integraciji v podjetja. Te teme so bistvene za gradnjo MCP aplikacij proizvodne kakovosti, ki lahko obvladujejo kompleksne zahteve v poslovnih okoljih.
+Ta lekcija raziskuje napredne koncepte v implementaciji Model Context Protocol, osredotoča se na multimodalno integracijo, razširljivost, najboljše prakse za varnost in integracijo v podjetja. Te teme so bistvene za ustvarjanje produkcijskih MCP aplikacij, ki lahko obvladujejo kompleksne zahteve v podjetniškem okolju.
 
 ## Cilji učenja
 
-Do konca te lekcije boste:
+Ob zaključku te lekcije boste lahko:
 
-- Implementirali večmodalne zmogljivosti znotraj MCP okvirov
-- Oblikovali razširljive MCP arhitekture za scenarije z velikim povpraševanjem
-- Uporabljali najboljše varnostne prakse v skladu z varnostnimi načeli MCP
-- Integrirali MCP s podjetniškimi AI sistemi in okviri
+- Implementirali multimodalne zmogljivosti v MCP ogrodjih
+- Oblikovali razširljive MCP arhitekture za scenarije z visokimi zahtevami
+- Uporabili najboljše prakse za varnost v skladu s varnostnimi načeli MCP
+- Integrirali MCP s podjetniškimi AI sistemi in ogrodji
 - Optimizirali zmogljivost in zanesljivost v produkcijskem okolju
 
 ## Lekcije in vzorčni projekti
 
 | Povezava | Naslov | Opis |
 |------|-------|-------------|
-| [5.1 Integracija z Azure](./mcp-integration/README.md) | Integracija z Azure | Naučite se, kako integrirati vaš MCP strežnik na Azure |
-| [5.2 Večmodalni primer](./mcp-multi-modality/README.md) | MCP večmodalni primeri  | Primeri za avdio, sliko in večmodalne odzive |
-| [5.3 MCP OAuth2 primer](../../../05-AdvancedTopics/mcp-oauth2-demo) | MCP OAuth2 Demo | Minimalna Spring Boot aplikacija, ki prikazuje OAuth2 z MCP, kot avtorizacijski in virni strežnik. Prikazuje varno izdajo žetonov, zaščitene končne točke, uvajanje Azure Container Apps in integracijo upravljanja API-jev. |
-| [5.4 Glavni konteksti](./mcp-root-contexts/README.md) | Glavni konteksti  | Naučite se več o glavnem kontekstu in kako ga implementirati |
+| [5.1 Integracija z Azure](./mcp-integration/README.md) | Integracija z Azure | Naučite se, kako integrirati svoj MCP strežnik na Azure |
+| [5.2 Multimodalni vzorec](./mcp-multi-modality/README.md) | MCP multimodalni vzorci  | Vzorci za avdio, sliko in multimodalni odziv |
+| [5.3 MCP OAuth2 vzorec](../../../05-AdvancedTopics/mcp-oauth2-demo) | MCP OAuth2 Demo | Minimalna Spring Boot aplikacija, ki prikazuje OAuth2 z MCP, tako kot strežnik za avtentikacijo kot tudi za vire. Prikazuje varno izdajanje žetonov, zaščitene končne točke, nameščanje Azure Container Apps in integracijo upravljanja API-jev. |
+| [5.4 Root Contexts](./mcp-root-contexts/README.md) | Root konteksti  | Spoznajte več o root kontekstu in kako jih implementirati |
 | [5.5 Usmerjanje](./mcp-routing/README.md) | Usmerjanje | Spoznajte različne vrste usmerjanja |
-| [5.6 Vzorečenje](./mcp-sampling/README.md) | Vzorečenje | Naučite se, kako delati z vzorečenjem |
-| [5.7 Razširjanje](./mcp-scaling/README.md) | Razširjanje  | Spoznajte razširjanje |
-| [5.8 Varnost](./mcp-security/README.md) | Varnost  | Zavarujte vaš MCP strežnik |
-| [5.9 MCP spletno iskanje](./web-search-mcp/README.md) | MCP spletno iskanje | Python MCP strežnik in odjemalec, integriran s SerpAPI za iskanje po spletu, novicah, izdelkih in Q&A v realnem času. Prikazuje upravljanje več orodij, integracijo zunanjih API-jev in robustno obravnavo napak. |
-| [5.10 Prenos v realnem času](./mcp-realtimestreaming/README.md) | Pretakanje  | Pretakanje podatkov v realnem času je postalo bistveno v današnjem svetu, ki temelji na podatkih, kjer podjetja in aplikacije zahtevajo takojšen dostop do informacij za pravočasno odločanje.|
-| [5.11 Spletno iskanje v realnem času](./mcp-realtimesearch/README.md) | Spletno iskanje | Kako MCP preoblikuje spletno iskanje v realnem času z zagotavljanjem standardiziranega pristopa k upravljanju konteksta med AI modeli, iskalniki in aplikacijami.| 
-| [5.12 Avtentikacija Entra ID za MCP strežnike](./mcp-security-entra/README.md) | Avtentikacija Entra ID | Microsoft Entra ID nudi robustno rešitev za upravljanje identitet in dostopa v oblaku, ki pomaga zagotoviti, da lahko z vašim MCP strežnikom komunicirajo le pooblaščeni uporabniki in aplikacije.|
-| [5.13 Integracija Azure AI Foundry agentov](./mcp-foundry-agent-integration/README.md) | Integracija Azure AI Foundry | Naučite se, kako integrirati MCP strežnike z Azure AI Foundry agenti, kar omogoča močno orkestracijo orodij in podjetniške AI zmogljivosti z standardiziranimi povezavami do zunanjih virov podatkov.|
-| [5.14 Inženiring konteksta](./mcp-contextengineering/README.md) | Inženiring konteksta | Prihodnost možnosti tehnik inženiringa konteksta za MCP strežnike, vključno z optimizacijo konteksta, dinamičnim upravljanjem konteksta in strategijami za učinkovito inženirstvo pozivov znotraj MCP okvirov.|
-| [5.15 Prilagojeni prenos MCP](./mcp-transport/README.md) | Prilagojeni prenos | Naučite se, kako implementirati prilagojene transportne mehanizme za specializirane komunikacijske scenarije MCP.|
-| [5.16 Poglobljeno o protokolnih funkcijah](./mcp-protocol-features/README.md) | Protokolne funkcije | Obvladajte napredne funkcije protokola, vključno z obvestili o napredku, preklicem zahtev, predlogami virov in vzorci za upravljanje napak.|
-| [5.17 Protivložna večagentna razprava](./mcp-adversarial-agents/README.md) | Protivložni agenti | Uporabite dva agenta z nasprotnimi stališči, ki delita en nabor MCP orodij, da ujamete halucinacije, izpostavite robne primere in proizvedete bolje kalibrirane izhode skozi strukturiran razpravo.|
+| [5.6 Vzorcevanje](./mcp-sampling/README.md) | Vzorcevanje | Naučite se dela z vzorcevanjem |
+| [5.7 Skaliranje](./mcp-scaling/README.md) | Skaliranje  | Spoznajte skaliranje |
+| [5.8 Varnost](./mcp-security/README.md) | Varnost  | Zavarujte svoj MCP strežnik |
+| [5.9 Web Search vzorec](./web-search-mcp/README.md) | Web Search MCP | Python MCP strežnik in klient, ki se povezuje s SerpAPI za spletno, novičarsko in produktno iskanje v realnem času ter Q&A. Prikazuje orkestracijo več orodij, integracijo zunanjih API-jev in robustno ravnanje z napakami. |
+| [5.10 Pretakanje v realnem času](./mcp-realtimestreaming/README.md) | Pretakanje  | Pretakanje podatkov v realnem času je danes bistveno za podjetja in aplikacije, ki zahtevajo takojšen dostop do informacij za pravočasno odločanje.|
+| [5.11 Iskanje v realnem času](./mcp-realtimesearch/README.md) | Iskanje | Kako MCP preoblikuje iskanje v realnem času prek standardiziranega pristopa k upravljanju konteksta med AI modeli, iskalniki in aplikacijami.| 
+| [5.12 Entra ID avtorizacija za Model Context Protocol strežnike](./mcp-security-entra/README.md) | Entra ID avtentikacija | Microsoft Entra ID zagotavlja robustno rešitev za upravljanje identitet in dostopa v oblaku, kar pomaga zagotoviti, da lahko z vašim MCP strežnikom komunicirajo le pooblaščeni uporabniki in aplikacije.|
+| [5.13 Microsoft Foundry Agent integracija](./mcp-foundry-agent-integration/README.md) | Microsoft Foundry integracija | Naučite se, kako integrirati Model Context Protocol strežnike z Microsoft Foundry agenti, kar omogoča močno orkestracijo orodij in zmožnosti podjetniškega AI z uporabo standardiziranih povezav do zunanjih podatkovnih virov.|
+| [5.14 Inženiring konteksta](./mcp-contextengineering/README.md) | Inženiring konteksta | Prihodnje možnosti tehnik inženiringa konteksta za MCP strežnike, vključno z optimizacijo konteksta, dinamičnim upravljanjem konteksta in strategijami za učinkovito izdelavo pozivov v MCP ogrodjih.|
+| [5.15 MCP prilagojeni transport](./mcp-transport/README.md) | Prilagojeni transport | Naučite se implementirati prilagojene transportne mehanizme za specializirane komunikacijske scenarije MCP.|
+| [5.16 Podroben vpogled v funkcije protokola](./mcp-protocol-features/README.md) | Funkcije protokola | Obvladajte napredne funkcije protokola, vključno z obvestili o napredku, preklicem zahtev, predlogi za vire in vzorci ravnanja z napakami.|
+| [5.17 Adversarialno večagentno razmišljanje](./mcp-adversarial-agents/README.md) | Adversarialni agenti | Uporabite dva agenta z nasprotnimi stališči, ki delita eno MCP orodje, da ujamete halucinacije, izpostavite robne primere in ustvarite bolje kalibrirane izhode preko strukturiranega razpravljanja.|
 
-> **Novo v MCP specifikaciji 2025-11-25**: Specifikacija zdaj vključuje eksperimentalno podporo za **Naloge** (dolgotrajne operacije s sledenjem napredka), **Oznake orodij** (metapodatki o vedenju orodij za varnost), **URL način izzivanja** (zahtevajo specifično vsebino URL od odjemalcev) in izboljšane **korene** (za upravljanje delovnega okolja konteksta). Za celotne podrobnosti glejte [MCP Specificiation changelog](https://spec.modelcontextprotocol.io/).
+> **Novi v MCP specifikaciji 2025-11-25**: Specifikacija zdaj vključuje eksperimentalno podporo za **Naloge** (dolgo trajajoče operacije s sledenjem napredka), **Oznake orodij** (metapodatki o vedenju orodij za varnost), **Način zahtev URL** (zahtevanje specifične vsebine URL od odjemalcev) in izboljšane **Rote** (za upravljanje konteksta delovnega prostora). Za vse podrobnosti glejte [dnevnik sprememb MCP specifikacije](https://spec.modelcontextprotocol.io/).
 
 ## Dodatne reference
 
-Za najnovejše informacije o naprednih temah MCP glejte:
-- [MCP Dokumentacija](https://modelcontextprotocol.io/)
-- [MCP Specifikacija (2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
-- [GitHub Repozitorij](https://github.com/modelcontextprotocol)
-- [OWASP MCP Top 10](https://microsoft.github.io/mcp-azure-security-guide/mcp/) - Varnostna tveganja in omilitve
-- [MCP Varnostni vrh delavnica (Sherpa)](https://azure-samples.github.io/sherpa/) - Praktično varnostno usposabljanje
+Za najbolj ažurne informacije o naprednih temah MCP glejte:
+- [Dokumentacija MCP](https://modelcontextprotocol.io/)
+- [Specifikacija MCP (2025-11-25)](https://spec.modelcontextprotocol.io/specification/2025-11-25/)
+- [GitHub repozitorij](https://github.com/modelcontextprotocol)
+- [OWASP MCP Top 10](https://microsoft.github.io/mcp-azure-security-guide/mcp/) - varnostni tveganja in zaščite
+- [Delavnica MCP varnostnega vrha (Sherpa)](https://azure-samples.github.io/sherpa/) - praktično usposabljanje za varnost
 
-## Ključne ugotovitve
+## Ključna spoznanja
 
-- Večmodalne MCP implementacije razširjajo AI zmogljivosti preko obdelave besedila
-- Razširljivost je ključna za podjetniške uvajanja in jo lahko naslovimo s horizontalnim in vertikalnim skaliranjem
-- Celovite varnostne ukrepe varujejo podatke in zagotavljajo ustrezno kontrolo dostopa
+- Multimodalne MCP implementacije razširjajo AI zmogljivosti onkraj obdelave besedila
+- Razširljivost je ključna za podjetniške uvedbe in jo je mogoče nasloviti z horizontalnim in vertikalnim skaliranjem
+- Celoviti varnostni ukrepi ščitijo podatke in zagotavljajo ustrezno kontrolo dostopa
 - Podjetniška integracija s platformami, kot so Azure OpenAI in Microsoft AI Foundry, izboljšuje zmogljivosti MCP
-- Napredne MCP implementacije imajo korist od optimiziranih arhitektur in natančnega upravljanja virov
+- Napredne MCP implementacije imajo koristi od optimiziranih arhitektur in skrbnega upravljanja virov
 
-## Vaja
+## Naloga
 
-Oblikujte produkcijsko MCP implementacijo za specifičen primer uporabe:
+Oblikujte MCP implementacijo za podjetniško uporabo za določen primer:
 
-1. Opredelite večmodalne zahteve za vaš primer uporabe
-2. Opredelite varnostne kontrole potrebne za zaščito občutljivih podatkov
-3. Oblikujte razširljivo arhitekturo, ki lahko obvladuje spreminjajoče se obremenitve
-4. Načrtujte integracijske točke s podjetniškimi AI sistemi
-5. Dokumentirajte možne ozka grla zmogljivosti in strategije omilitve
+1. Opredelite multimodalne potrebe za vaš primer uporabe
+2. Načrtujte varnostne ukrepe za zaščito občutljivih podatkov
+3. Oblikujte razširljivo arhitekturo, ki lahko obvladuje različne obremenitve
+4. Načrtujte točke integracije s podjetniškimi AI sistemi
+5. Dokumentirajte potencialne ozka grla zmogljivosti in strategije za njihovo omilitev
 
 ## Dodatni viri
 
-- [Azure OpenAI Dokumentacija](https://learn.microsoft.com/en-us/azure/ai-services/openai/)
-- [Microsoft AI Foundry Dokumentacija](https://learn.microsoft.com/en-us/ai-services/)
+- [Azure OpenAI dokumentacija](https://learn.microsoft.com/en-us/azure/ai-services/openai/)
+- [Microsoft AI Foundry dokumentacija](https://learn.microsoft.com/en-us/ai-services/)
 
 ---
 
 ## Kaj sledi
 
-Raziskujte lekcije v tem modulu, začenši z: [5.1 MCP Integracija](./mcp-integration/README.md)
+Raziščite lekcije v tem modulu, začnite z: [5.1 Integracija MCP](./mcp-integration/README.md)
 
-Ko zaključite ta modul, nadaljujte z: [Modul 6: Prispevki skupnosti](../06-CommunityContributions/README.md)
+Ko zaključite ta modul, nadaljujte z: [Modul 6: Skupnostni prispevki](../06-CommunityContributions/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Omejitev odgovornosti**:  
-Ta dokument je bil preveden z uporabo storitve za prevajanje z umetno inteligenco [Co-op Translator](https://github.com/Azure/co-op-translator). Čeprav si prizadevamo za natančnost, vas prosimo, da upoštevate, da lahko avtomatizirani prevodi vsebujejo napake ali netočnosti. Izvirni dokument v maternem jeziku velja za avtoritativni vir. Za kritične informacije priporočamo strokovni človeški prevod. Ne odgovarjamo za morebitna nerazumevanja ali napačne interpretacije, ki izhajajo iz uporabe tega prevoda.
+**Omejitev odgovornosti**:
+Ta dokument je bil preveden z uporabo AI prevajalske storitve [Co-op Translator](https://github.com/Azure/co-op-translator). Čeprav si prizadevamo za natančnost, vas prosimo, da upoštevate, da avtomatizirani prevodi lahko vsebujejo napake ali netočnosti. Izvirni dokument v njegovem izvirnem jeziku je treba obravnavati kot avtoritativni vir. Za kritične informacije je priporočljiv strokovni človeški prevod. Ne odgovarjamo za morebitna nesporazume ali napačne interpretacije, ki izhajajo iz uporabe tega prevoda.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

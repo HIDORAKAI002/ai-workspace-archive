@@ -122,6 +122,7 @@ mindmap
       (13-Lab Structure)
       (Hands-on Learning)
 ```
+
 ## Repository Structure
 
 The repository is organized into eleven main sections, each focusing on different aspects of MCP:
@@ -211,7 +212,7 @@ The repository is organized into eleven main sections, each focusing on differen
      - SQL Server MCP Server
      - Playwright MCP Server
      - Dev Box MCP Server
-     - Azure AI Foundry MCP Server
+     - Microsoft Foundry MCP Server
      - Microsoft 365 Agents Toolkit MCP Server
 
 9. **Best Practices (08-BestPractices/)**
@@ -308,7 +309,7 @@ The repository introduces various MCP servers, including:
    - SQL Server MCP Server
    - Playwright MCP Server
    - Dev Box MCP Server
-   - Azure AI Foundry MCP Server
+   - Microsoft Foundry MCP Server
    - Microsoft 365 Agents Toolkit MCP Server
 
 2. **Official Reference Servers**:

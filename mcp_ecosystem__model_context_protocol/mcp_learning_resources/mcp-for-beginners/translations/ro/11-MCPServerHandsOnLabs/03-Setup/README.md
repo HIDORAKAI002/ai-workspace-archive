@@ -2,110 +2,110 @@
 
 ## 🎯 Ce Acoperă Acest Laborator
 
-Acest laborator practic te ghidează prin configurarea unui mediu complet de dezvoltare pentru construirea serverelor MCP cu integrare PostgreSQL. Vei configura toate instrumentele necesare, vei implementa resurse Azure și vei valida configurarea înainte de a trece la implementare.
+Acest laborator practic te ghidează prin configurarea unui mediu complet de dezvoltare pentru construirea serverelor MCP cu integrare PostgreSQL. Vei configura toate uneltele necesare, vei implementa resurse Azure și vei valida configurarea înainte de a continua cu implementarea.
 
 ## Prezentare Generală
 
-Un mediu de dezvoltare adecvat este esențial pentru dezvoltarea cu succes a serverelor MCP. Acest laborator oferă instrucțiuni pas cu pas pentru configurarea Docker, serviciilor Azure, instrumentelor de dezvoltare și validarea funcționării corecte a tuturor componentelor.
+Un mediu de dezvoltare adecvat este esențial pentru succesul dezvoltării serverelor MCP. Acest laborator furnizează instrucțiuni pas cu pas pentru configurarea Docker, serviciilor Azure, uneltelor de dezvoltare și validarea funcționării corecte a tuturor împreună.
 
-La finalul acestui laborator, vei avea un mediu de dezvoltare complet funcțional, pregătit pentru construirea serverului MCP Zava Retail.
+La finalul acestui laborator, vei avea un mediu de dezvoltare complet funcțional, pregătit pentru construirea serverului Zava Retail MCP.
 
 ## Obiective de Învățare
 
-La finalul acestui laborator, vei putea:
+La finalul acestui laborator, vei putea să:
 
-- **Instala și configura** toate instrumentele de dezvoltare necesare
-- **Implementa resurse Azure** necesare pentru serverul MCP
-- **Configura containere Docker** pentru PostgreSQL și serverul MCP
-- **Valida** configurarea mediului cu conexiuni de test
-- **Depana** probleme comune de configurare
-- **Înțelege** fluxul de lucru de dezvoltare și structura fișierelor
+- **Instalezi și configurezi** toate uneltele de dezvoltare necesare  
+- **Implementezi resurse Azure** necesare pentru serverul MCP  
+- **Configurezi containere Docker** pentru PostgreSQL și serverul MCP  
+- **Validezi** configurarea mediului prin conexiuni de test  
+- **Depanezi** probleme comune de configurare și setare  
+- **Înțelegi** fluxul de dezvoltare și structura fișierelor  
 
-## 📋 Verificarea Prerechizitelor
+## 📋 Verificare Prealabilă
 
 Înainte de a începe, asigură-te că ai:
 
 ### Cunoștințe Necesare
-- Utilizarea de bază a liniei de comandă (Windows Command Prompt/PowerShell)
-- Înțelegerea variabilelor de mediu
-- Familiaritate cu controlul versiunilor Git
-- Concepte de bază Docker (containere, imagini, volume)
+- Utilizare de bază a liniei de comandă (Windows Command Prompt/PowerShell)  
+- Înțelegerea variabilelor de mediu  
+- Familiaritate cu controlul versiunilor Git  
+- Concepte de bază Docker (containere, imagini, volume)  
 
 ### Cerințe de Sistem
-- **Sistem de Operare**: Windows 10/11, macOS sau Linux
-- **RAM**: Minimum 8GB (recomandat 16GB)
-- **Spațiu de Stocare**: Cel puțin 10GB liberi
-- **Rețea**: Conexiune la internet pentru descărcări și implementare Azure
+- **Sistem de Operare**: Windows 10/11, macOS sau Linux  
+- **RAM**: Minim 8GB (16GB recomandat)  
+- **Stocare**: Cel puțin 10GB spațiu liber  
+- **Rețea**: Conexiune la internet pentru descărcări și implementare Azure  
 
 ### Cerințe de Cont
-- **Abonament Azure**: Nivel gratuit este suficient
-- **Cont GitHub**: Pentru acces la depozite
-- **Cont Docker Hub**: (Opțional) Pentru publicarea imaginilor personalizate
+- **Abonament Azure**: Nivel gratuit este suficient  
+- **Cont GitHub**: Pentru acces la depozit  
+- **Cont Docker Hub**: (Opțional) Pentru publicarea imaginilor personalizate  
 
-## 🛠️ Instalarea Instrumentelor
+## 🛠️ Instalarea Uneltelor
 
-### 1. Instalarea Docker Desktop
+### 1. Instalează Docker Desktop
 
-Docker oferă mediul containerizat pentru configurarea noastră de dezvoltare.
+Docker oferă mediul containerizat pentru configurația noastră de dezvoltare.
 
 #### Instalare pe Windows
 
-1. **Descarcă Docker Desktop**:
+1. **Descarcă Docker Desktop**:  
    ```cmd
    # Visit https://desktop.docker.com/win/stable/Docker%20Desktop%20Installer.exe
    # Or use Windows Package Manager
    winget install Docker.DockerDesktop
    ```
+  
+2. **Instalează și Configurează**:  
+   - Rulează instalatorul ca Administrator  
+   - Activează integrarea WSL 2 când ți se solicită  
+   - Repornește calculatorul după finalizarea instalării  
 
-2. **Instalează și Configurează**:
-   - Rulează instalatorul ca Administrator
-   - Activează integrarea WSL 2 când ți se solicită
-   - Repornește computerul după finalizarea instalării
-
-3. **Verifică Instalarea**:
+3. **Verifică Instalarea**:  
    ```cmd
    docker --version
    docker-compose --version
    ```
-
+  
 #### Instalare pe macOS
 
-1. **Descarcă și Instalează**:
+1. **Descarcă și Instalează**:  
    ```bash
-   # Download from https://desktop.docker.com/mac/stable/Docker.dmg
-   # Or use Homebrew
+   # Descărcați de la https://desktop.docker.com/mac/stable/Docker.dmg
+   # Sau folosiți Homebrew
    brew install --cask docker
    ```
+  
+2. **Pornește Docker Desktop**:  
+   - Lansează Docker Desktop din Aplicații  
+   - Finalizează wizard-ul inițial de configurare  
 
-2. **Pornește Docker Desktop**:
-   - Lansează Docker Desktop din Aplicații
-   - Completează asistentul de configurare inițial
-
-3. **Verifică Instalarea**:
+3. **Verifică Instalarea**:  
    ```bash
    docker --version
    docker-compose --version
    ```
-
+  
 #### Instalare pe Linux
 
-1. **Instalează Docker Engine**:
+1. **Instalează Docker Engine**:  
    ```bash
    # Ubuntu/Debian
    curl -fsSL https://get.docker.com -o get-docker.sh
    sudo sh get-docker.sh
    sudo usermod -aG docker $USER
    
-   # Log out and back in for group changes to take effect
+   # Deconectați-vă și conectați-vă din nou pentru ca modificările grupului să intre în vigoare
    ```
-
-2. **Instalează Docker Compose**:
+  
+2. **Instalează Docker Compose**:  
    ```bash
    sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
    sudo chmod +x /usr/local/bin/docker-compose
    ```
-
-### 2. Instalarea Azure CLI
+  
+### 2. Instalează Azure CLI
 
 Azure CLI permite implementarea și gestionarea resurselor Azure.
 
@@ -117,17 +117,17 @@ winget install Microsoft.AzureCLI
 
 # Or download MSI from: https://aka.ms/installazurecliwindows
 ```
-
+  
 #### Instalare pe macOS
 
 ```bash
-# Using Homebrew
+# Utilizând Homebrew
 brew install azure-cli
 
-# Or using installer
+# Sau folosind programul de instalare
 curl -L https://aka.ms/InstallAzureCli | bash
 ```
-
+  
 #### Instalare pe Linux
 
 ```bash
@@ -138,22 +138,22 @@ curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
 sudo dnf install azure-cli
 ```
-
-#### Verificare și Autentificare
+  
+#### Verifică și Autentifică-te
 
 ```bash
-# Check installation
+# Verifică instalarea
 az version
 
-# Login to Azure
+# Autentificare în Azure
 az login
 
-# Set default subscription (if you have multiple)
+# Setează subscripția implicită (dacă ai mai multe)
 az account list --output table
 az account set --subscription "Your-Subscription-Name"
 ```
-
-### 3. Instalarea Git
+  
+### 3. Instalează Git
 
 Git este necesar pentru clonarea depozitului și controlul versiunilor.
 
@@ -165,14 +165,14 @@ winget install Git.Git
 
 # Or download from: https://git-scm.com/download/win
 ```
-
+  
 #### macOS
 
 ```bash
-# Git is usually pre-installed, but you can update via Homebrew
+# Git este de obicei preinstalat, dar îl poți actualiza prin Homebrew
 brew install git
 ```
-
+  
 #### Linux
 
 ```bash
@@ -182,10 +182,10 @@ sudo apt update && sudo apt install git
 # RHEL/CentOS
 sudo dnf install git
 ```
+  
+### 4. Instalează VS Code
 
-### 4. Instalarea VS Code
-
-Visual Studio Code oferă mediul integrat de dezvoltare cu suport MCP.
+Visual Studio Code oferă mediul de dezvoltare integrat cu suport MCP.
 
 #### Instalare
 
@@ -199,29 +199,29 @@ brew install --cask visual-studio-code
 # Linux (Ubuntu/Debian)
 sudo snap install code --classic
 ```
-
+  
 #### Extensii Necesare
 
 Instalează aceste extensii VS Code:
 
 ```bash
-# Install via command line
+# Instalați prin linia de comandă
 code --install-extension ms-python.python
 code --install-extension ms-vscode.vscode-json
 code --install-extension ms-azuretools.vscode-docker
 code --install-extension ms-vscode.azure-account
 ```
+  
+Sau instalează prin VS Code:  
+1. Deschide VS Code  
+2. Mergi la Extensii (Ctrl+Shift+X)  
+3. Instalează:  
+   - **Python** (Microsoft)  
+   - **Docker** (Microsoft)  
+   - **Azure Account** (Microsoft)  
+   - **JSON** (Microsoft)  
 
-Sau instalează prin VS Code:
-1. Deschide VS Code
-2. Accesează Extensii (Ctrl+Shift+X)
-3. Instalează:
-   - **Python** (Microsoft)
-   - **Docker** (Microsoft)
-   - **Azure Account** (Microsoft)
-   - **JSON** (Microsoft)
-
-### 5. Instalarea Python
+### 5. Instalează Python
 
 Python 3.8+ este necesar pentru dezvoltarea serverului MCP.
 
@@ -233,14 +233,14 @@ winget install Python.Python.3.11
 
 # Or download from: https://www.python.org/downloads/
 ```
-
+  
 #### macOS
 
 ```bash
-# Using Homebrew
+# Folosind Homebrew
 brew install python@3.11
 ```
-
+  
 #### Linux
 
 ```bash
@@ -250,77 +250,77 @@ sudo apt update && sudo apt install python3.11 python3.11-pip python3.11-venv
 # RHEL/CentOS
 sudo dnf install python3.11 python3.11-pip
 ```
-
+  
 #### Verifică Instalarea
 
 ```bash
-python --version  # Should show Python 3.11.x
-pip --version      # Should show pip version
+python --version  # Ar trebui să afișeze Python 3.11.x
+pip --version      # Ar trebui să afișeze versiunea pip
 ```
-
+  
 ## 🚀 Configurarea Proiectului
 
-### 1. Clonează Depozitul
+### 1. Clonarea Depozitului
 
 ```bash
-# Clone the main repository
+# Clonează depozitul principal
 git clone https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail.git
 
-# Navigate to the project directory
+# Navighează către directorul proiectului
 cd MCP-Server-and-PostgreSQL-Sample-Retail
 
-# Verify repository structure
+# Verifică structura depozitului
 ls -la
 ```
-
-### 2. Creează un Mediu Virtual Python
+  
+### 2. Creează Mediu Virtual Python
 
 ```bash
-# Create virtual environment
+# Creează mediu virtual
 python -m venv mcp-env
 
-# Activate virtual environment
+# Activează mediul virtual
 # Windows
 mcp-env\Scripts\activate
 
 # macOS/Linux
 source mcp-env/bin/activate
 
-# Upgrade pip
+# Actualizează pip
 python -m pip install --upgrade pip
 ```
-
+  
 ### 3. Instalează Dependențele Python
 
 ```bash
-# Install development dependencies
+# Instalează dependențele de dezvoltare
 pip install -r requirements.lock.txt
 
-# Verify key packages
+# Verifică pachetele cheie
 pip list | grep fastmcp
 pip list | grep asyncpg
 pip list | grep azure
 ```
-
+  
 ## ☁️ Implementarea Resurselor Azure
 
-### 1. Înțelegerea Cerințelor de Resurse
+### 1. Înțelege Cerințele Resurselor
 
 Serverul nostru MCP necesită aceste resurse Azure:
 
 | **Resursă** | **Scop** | **Cost Estimat** |
 |-------------|----------|------------------|
-| **Azure AI Foundry** | Găzduirea și gestionarea modelelor AI | $10-50/lună |
-| **Implementare OpenAI** | Model de încorporare text (text-embedding-3-small) | $5-20/lună |
-| **Application Insights** | Monitorizare și telemetrie | $5-15/lună |
+| **Microsoft Foundry** | Găzduire și gestionare modele AI | 10-50 USD/lună |
+| **Implementare OpenAI** | Model embedding text (text-embedding-3-small) | 5-20 USD/lună |
+| **Application Insights** | Monitorizare și telemetrie | 5-15 USD/lună |
 | **Grup de Resurse** | Organizarea resurselor | Gratuit |
 
-### 2. Implementarea Resurselor Azure
+### 2. Implementează Resursele Azure
 
 #### Opțiunea A: Implementare Automată (Recomandată)
 
 ```bash
-# Navigate to infrastructure directory
+# Navighează la directorul infrastructure
 cd infra
 
 # Windows - PowerShell
@@ -329,57 +329,57 @@ cd infra
 # macOS/Linux - Bash
 ./deploy.sh
 ```
-
-Scriptul de implementare va:
-1. Crea un grup de resurse unic
-2. Implementa resursele Azure AI Foundry
-3. Implementa modelul text-embedding-3-small
-4. Configura Application Insights
-5. Crea un principal de serviciu pentru autentificare
-6. Genera fișierul `.env` cu configurația
+  
+Scriptul de implementare va:  
+1. Crea un grup de resurse unic  
+2. Implementa resurse Microsoft Foundry  
+3. Implementa modelul text-embedding-3-small  
+4. Configura Application Insights  
+5. Crea un service principal pentru autentificare  
+6. Genera fișierul `.env` cu configurația  
 
 #### Opțiunea B: Implementare Manuală
 
-Dacă preferi control manual sau scriptul automat eșuează:
+Dacă preferi controlul manual sau scriptul automatizat eșuează:
 
 ```bash
-# Set variables
+# Setează variabilele
 RESOURCE_GROUP="rg-zava-mcp-$(date +%s)"
 LOCATION="westus2"
 AI_PROJECT_NAME="zava-ai-project"
 
-# Create resource group
+# Creează grupul de resurse
 az group create --name $RESOURCE_GROUP --location $LOCATION
 
-# Deploy main template
+# Desfășoară șablonul principal
 az deployment group create \
   --resource-group $RESOURCE_GROUP \
   --template-file main.bicep \
   --parameters location=$LOCATION \
   --parameters resourcePrefix="zava-mcp"
 ```
-
+  
 ### 3. Verifică Implementarea Azure
 
 ```bash
-# Check resource group
+# Verifică grupul de resurse
 az group show --name $RESOURCE_GROUP --output table
 
-# List deployed resources
+# Listează resursele implementate
 az resource list --resource-group $RESOURCE_GROUP --output table
 
-# Test AI service
+# Testează serviciul AI
 az cognitiveservices account show \
   --name "your-ai-service-name" \
   --resource-group $RESOURCE_GROUP
 ```
-
+  
 ### 4. Configurează Variabilele de Mediu
 
-După implementare, ar trebui să ai un fișier `.env`. Verifică dacă conține:
+După implementare, ar trebui să ai un fișier `.env`. Verifică să conțină:
 
 ```bash
-# .env file contents
+# Conținutul fișierului .env
 PROJECT_ENDPOINT=https://your-project.cognitiveservices.azure.com/
 AZURE_OPENAI_ENDPOINT=https://your-openai.openai.azure.com/
 EMBEDDING_MODEL_DEPLOYMENT_NAME=text-embedding-3-small
@@ -388,19 +388,19 @@ AZURE_CLIENT_SECRET=your-client-secret
 AZURE_TENANT_ID=your-tenant-id
 APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=your-key;...
 
-# Database configuration (for development)
+# Configurarea bazei de date (pentru dezvoltare)
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 POSTGRES_DB=zava
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=your-secure-password
 ```
-
+  
 ## 🐳 Configurarea Mediului Docker
 
-### 1. Înțelegerea Compoziției Docker
+### 1. Înțelege Compoziția Docker
 
-Mediul nostru de dezvoltare folosește Docker Compose:
+Mediul nostru de dezvoltare utilizează Docker Compose:
 
 ```yaml
 # docker-compose.yml overview
@@ -428,54 +428,54 @@ services:
     env_file:
       - .env
 ```
-
+  
 ### 2. Pornește Mediul de Dezvoltare
 
 ```bash
-# Ensure you're in the project root directory
+# Asigură-te că ești în directorul rădăcină al proiectului
 cd /path/to/MCP-Server-and-PostgreSQL-Sample-Retail
 
-# Start the services
+# Pornește serviciile
 docker-compose up -d
 
-# Check service status
+# Verifică starea serviciului
 docker-compose ps
 
-# View logs
+# Vizualizează jurnalele
 docker-compose logs -f
 ```
-
+  
 ### 3. Verifică Configurarea Bazei de Date
 
 ```bash
-# Connect to PostgreSQL container
+# Conectează-te la containerul PostgreSQL
 docker-compose exec postgres psql -U postgres -d zava
 
-# Check database structure
+# Verifică structura bazei de date
 \dt retail.*
 
-# Verify sample data
+# Verifică datele de probă
 SELECT COUNT(*) FROM retail.stores;
 SELECT COUNT(*) FROM retail.products;
 SELECT COUNT(*) FROM retail.orders;
 
-# Exit PostgreSQL
+# Ieși din PostgreSQL
 \q
 ```
-
+  
 ### 4. Testează Serverul MCP
 
 ```bash
-# Check MCP server health
+# Verificați sănătatea serverului MCP
 curl http://localhost:8000/health
 
-# Test basic MCP endpoint
+# Testați punctul final MCP de bază
 curl -X POST http://localhost:8000/mcp \
   -H "Content-Type: application/json" \
   -H "x-rls-user-id: 00000000-0000-0000-0000-000000000000" \
   -d '{"method": "tools/list", "params": {}}'
 ```
-
+  
 ## 🔧 Configurarea VS Code
 
 ### 1. Configurează Integrarea MCP
@@ -505,7 +505,7 @@ Creează configurația MCP pentru VS Code:
     "inputs": []
 }
 ```
-
+  
 ### 2. Configurează Mediul Python
 
 ```json
@@ -524,31 +524,31 @@ Creează configurația MCP pentru VS Code:
     }
 }
 ```
-
+  
 ### 3. Testează Integrarea VS Code
 
-1. **Deschide proiectul în VS Code**:
+1. **Deschide proiectul în VS Code**:  
    ```bash
    code .
    ```
+  
+2. **Deschide Chat AI**:  
+   - Apasă `Ctrl+Shift+P` (Windows/Linux) sau `Cmd+Shift+P` (macOS)  
+   - Tastează „AI Chat” și selectează „AI Chat: Open Chat”  
 
-2. **Deschide AI Chat**:
-   - Apasă `Ctrl+Shift+P` (Windows/Linux) sau `Cmd+Shift+P` (macOS)
-   - Tastează "AI Chat" și selectează "AI Chat: Open Chat"
-
-3. **Testează Conexiunea Serverului MCP**:
-   - În AI Chat, tastează `#zava` și selectează unul dintre serverele configurate
-   - Întreabă: "Ce tabele sunt disponibile în baza de date?"
-   - Ar trebui să primești un răspuns cu lista tabelelor din baza de date retail
+3. **Testează Conexiunea Server MCP**:  
+   - În AI Chat, tastează `#zava` și selectează unul dintre serverele configurate  
+   - Întreabă: „Ce tabele sunt disponibile în baza de date?”  
+   - Ar trebui să primești un răspuns cu lista tabelelor bazei de date retail  
 
 ## ✅ Validarea Mediului
 
-### 1. Verificare Completă a Sistemului
+### 1. Verificare Comprehensivă a Sistemului
 
 Rulează acest script de validare pentru a verifica configurarea:
 
 ```bash
-# Create validation script
+# Creează script de validare
 cat > validate_setup.py << 'EOF'
 #!/usr/bin/env python3
 """
@@ -567,7 +567,7 @@ async def validate_environment():
     """Comprehensive environment validation."""
     results = {}
     
-    # Check Python version
+    # Verifică versiunea Python
     python_version = sys.version_info
     results['python'] = {
         'status': 'pass' if python_version >= (3, 8) else 'fail',
@@ -575,7 +575,7 @@ async def validate_environment():
         'required': '3.8+'
     }
     
-    # Check required packages
+    # Verifică pachetele necesare
     required_packages = ['fastmcp', 'asyncpg', 'azure-ai-projects']
     for package in required_packages:
         try:
@@ -584,7 +584,7 @@ async def validate_environment():
         except ImportError:
             results[f'package_{package}'] = {'status': 'fail', 'error': 'Not installed'}
     
-    # Check Docker
+    # Verifică Docker
     try:
         result = subprocess.run(['docker', '--version'], capture_output=True, text=True)
         results['docker'] = {
@@ -594,7 +594,7 @@ async def validate_environment():
     except FileNotFoundError:
         results['docker'] = {'status': 'fail', 'error': 'Docker not found'}
     
-    # Check Azure CLI
+    # Verifică Azure CLI
     try:
         result = subprocess.run(['az', '--version'], capture_output=True, text=True)
         results['azure_cli'] = {
@@ -604,7 +604,7 @@ async def validate_environment():
     except FileNotFoundError:
         results['azure_cli'] = {'status': 'fail', 'error': 'Azure CLI not found'}
     
-    # Check environment variables
+    # Verifică variabilele de mediu
     required_env_vars = [
         'PROJECT_ENDPOINT',
         'AZURE_OPENAI_ENDPOINT',
@@ -621,7 +621,7 @@ async def validate_environment():
             'value': '***' if value and 'SECRET' in var else value
         }
     
-    # Check database connection
+    # Verifică conexiunea la baza de date
     try:
         conn = await asyncpg.connect(
             host=os.getenv('POSTGRES_HOST', 'localhost'),
@@ -631,7 +631,7 @@ async def validate_environment():
             password=os.getenv('POSTGRES_PASSWORD', 'secure_password')
         )
         
-        # Test query
+        # Testează interogarea
         result = await conn.fetchval('SELECT COUNT(*) FROM retail.stores')
         await conn.close()
         
@@ -645,7 +645,7 @@ async def validate_environment():
             'error': str(e)
         }
     
-    # Check MCP server
+    # Verifică serverul MCP
     try:
         response = requests.get('http://localhost:8000/health', timeout=5)
         results['mcp_server'] = {
@@ -658,7 +658,7 @@ async def validate_environment():
             'error': str(e)
         }
     
-    # Check Azure AI service
+    # Verifică serviciul Azure AI
     try:
         credential = DefaultAzureCredential()
         project_client = AIProjectClient(
@@ -666,7 +666,7 @@ async def validate_environment():
             credential=credential
         )
         
-        # This will fail if credentials are invalid
+        # Aceasta va eșua dacă acreditările sunt invalide
         results['azure_ai'] = {'status': 'pass'}
         
     except Exception as e:
@@ -716,169 +716,171 @@ async def main():
 
 EOF
 
-# Run validation
+# Rulează validarea
 python validate_setup.py
 ```
+  
+### 2. Listă Manuală de Validare
 
-### 2. Lista de Verificare Manuală
+**✅ Unelte de bază**  
+- [ ] Docker versiunea 20.10+ instalat și rulează  
+- [ ] Azure CLI 2.40+ instalat și autentificat  
+- [ ] Python 3.8+ cu pip instalat  
+- [ ] Git 2.30+ instalat  
+- [ ] VS Code cu extensiile necesare  
 
-**✅ Instrumente de Bază**
-- [ ] Docker versiunea 20.10+ instalat și funcțional
-- [ ] Azure CLI 2.40+ instalat și autentificat
-- [ ] Python 3.8+ cu pip instalat
-- [ ] Git 2.30+ instalat
-- [ ] VS Code cu extensiile necesare
+**✅ Resurse Azure**  
+- [ ] Grup de resurse creat cu succes  
+- [ ] Proiect AI Foundry implementat  
+- [ ] Model OpenAI text-embedding-3-small implementat  
+- [ ] Application Insights configurat  
+- [ ] Service principal creat cu permisiunile corecte  
 
-**✅ Resurse Azure**
-- [ ] Grup de resurse creat cu succes
-- [ ] Proiect AI Foundry implementat
-- [ ] Modelul OpenAI text-embedding-3-small implementat
-- [ ] Application Insights configurat
-- [ ] Principal de serviciu creat cu permisiuni adecvate
+**✅ Configurare Mediu**  
+- [ ] Fișier `.env` creat cu toate variabilele necesare  
+- [ ] Credențiale Azure funcționale (testează cu `az account show`)  
+- [ ] Container PostgreSQL rulează și este accesibil  
+- [ ] Date de probă încărcate în baza de date  
 
-**✅ Configurarea Mediului**
-- [ ] Fișier `.env` creat cu toate variabilele necesare
-- [ ] Credențiale Azure funcționale (testează cu `az account show`)
-- [ ] Container PostgreSQL funcțional și accesibil
-- [ ] Date de exemplu încărcate în baza de date
-
-**✅ Integrarea VS Code**
-- [ ] `.vscode/mcp.json` configurat
-- [ ] Interpretul Python setat la mediul virtual
-- [ ] Serverele MCP apar în AI Chat
-- [ ] Pot executa interogări de test prin AI Chat
+**✅ Integrare VS Code**  
+- [ ] `.vscode/mcp.json` configurat  
+- [ ] Interpret Python setat la mediul virtual  
+- [ ] Servere MCP apar în AI Chat  
+- [ ] Capacitatea de a executa interogări de test prin AI Chat  
 
 ## 🛠️ Depanarea Problemelor Comune
 
 ### Probleme Docker
 
-**Problemă**: Containerele Docker nu pornesc
+**Problema**: Containerele Docker nu pornesc  
 ```bash
-# Check Docker service status
+# Verifică starea serviciului Docker
 docker info
 
-# Check available resources
+# Verifică resursele disponibile
 docker system df
 
-# Clean up if needed
+# Curăță dacă este necesar
 docker system prune -f
 
-# Restart Docker Desktop (Windows/macOS)
-# Or restart Docker service (Linux)
+# Repornește Docker Desktop (Windows/macOS)
+# Sau repornește serviciul Docker (Linux)
 sudo systemctl restart docker
 ```
-
-**Problemă**: Conexiunea PostgreSQL eșuează
+  
+**Problema**: Conexiunea PostgreSQL eșuează  
 ```bash
-# Check container logs
+# Verificați jurnalele containerului
 docker-compose logs postgres
 
-# Verify container is healthy
+# Verificați dacă containerul este sănătos
 docker-compose ps
 
-# Test direct connection
+# Testați conexiunea directă
 docker-compose exec postgres psql -U postgres -d zava -c "SELECT 1;"
 ```
+  
+### Probleme Implementare Azure
 
-### Probleme de Implementare Azure
-
-**Problemă**: Implementarea Azure eșuează
+**Problema**: Implementarea Azure eșuează  
 ```bash
-# Check Azure CLI authentication
+# Verificați autentificarea Azure CLI
 az account show
 
-# Verify subscription permissions
+# Verificați permisiunile abonamentului
 az role assignment list --assignee $(az account show --query user.name -o tsv)
 
-# Check resource provider registration
+# Verificați înregistrarea furnizorului de resurse
 az provider register --namespace Microsoft.CognitiveServices
 az provider register --namespace Microsoft.Insights
 ```
-
-**Problemă**: Autentificarea serviciului AI eșuează
+  
+**Problema**: Autentificarea serviciului AI eșuează  
 ```bash
-# Test service principal
+# Testați principalul serviciului
 az login --service-principal \
   --username $AZURE_CLIENT_ID \
   --password $AZURE_CLIENT_SECRET \
   --tenant $AZURE_TENANT_ID
 
-# Verify AI service deployment
+# Verificați implementarea serviciului AI
 az cognitiveservices account list --query "[].{Name:name,Kind:kind,Location:location}"
 ```
+  
+### Probleme Mediu Python
 
-### Probleme de Mediu Python
-
-**Problemă**: Instalarea pachetelor eșuează
+**Problema**: Instalarea pachetelor eșuează  
 ```bash
-# Upgrade pip and setuptools
+# Actualizați pip și setuptools
 python -m pip install --upgrade pip setuptools wheel
 
-# Clear pip cache
+# Goliți cache-ul pip
 pip cache purge
 
-# Install packages one by one to identify issues
+# Instalați pachetele unul câte unul pentru a identifica problemele
 pip install fastmcp
 pip install asyncpg
 pip install azure-ai-projects
 ```
-
-**Problemă**: VS Code nu găsește interpretul Python
+  
+**Problema**: VS Code nu poate găsi interpretul Python  
 ```bash
-# Show Python interpreter paths
+# Afișează căile interpretorului Python
 which python  # macOS/Linux
 where python  # Windows
 
-# Activate virtual environment first
+# Activează mai întâi mediul virtual
 source mcp-env/bin/activate  # macOS/Linux
 mcp-env\Scripts\activate     # Windows
 
-# Then open VS Code
+# Apoi deschide VS Code
 code .
 ```
-
+  
 ## 🎯 Concluzii Cheie
 
 După finalizarea acestui laborator, ar trebui să ai:
 
-✅ **Mediu de Dezvoltare Complet**: Toate instrumentele instalate și configurate  
-✅ **Resurse Azure Implementate**: Servicii AI și infrastructura suport  
-✅ **Mediu Docker Funcțional**: Containere PostgreSQL și server MCP  
-✅ **Integrare VS Code**: Serverele MCP configurate și accesibile  
-✅ **Configurare Validată**: Toate componentele testate și funcționale împreună  
-✅ **Cunoștințe de Depanare**: Probleme comune și soluții  
+✅ **Mediu complet de dezvoltare**: Toate uneltele instalate și configurate  
+✅ **Resurse Azure implementate**: Servicii AI și infrastructura suport  
+✅ **Mediu Docker funcțional**: Containere PostgreSQL și server MCP  
+✅ **Integrare VS Code**: Servere MCP configurate și accesibile  
+✅ **Configurare validată**: Toate componentele testate și lucrând împreună  
+✅ **Cunoștințe de depanare**: Probleme comune și soluții  
 
 ## 🚀 Ce Urmează
 
-Cu mediul configurat, continuă cu **[Lab 04: Designul și Schema Bazei de Date](../04-Database/README.md)** pentru:
+Cu mediul pregătit, continuă cu **[Laboratorul 04: Designul Bazei de Date și Schema](../04-Database/README.md)** pentru a:
 
-- Explorarea detaliată a schemei bazei de date retail
-- Înțelegerea modelării datelor multi-chiriaș
-- Implementarea securității la nivel de rând
-- Lucrul cu date de exemplu din retail
+- Explora schema bazei de date retail în detaliu  
+- Înțelege modelarea datelor multi-chiriaș  
+- Învață despre implementarea Row Level Security  
+- Lucra cu date de probă retail  
 
 ## 📚 Resurse Suplimentare
 
-### Instrumente de Dezvoltare
-- [Documentația Docker](https://docs.docker.com/) - Referință completă Docker
-- [Referința Azure CLI](https://docs.microsoft.com/cli/azure/) - Comenzi Azure CLI
-- [Documentația VS Code](https://code.visualstudio.com/docs) - Configurarea editorului și extensiilor
+### Unelte de Dezvoltare
+- [Documentația Docker](https://docs.docker.com/) - Referință completă Docker  
+- [Referința Azure CLI](https://docs.microsoft.com/cli/azure/) - Comenzi Azure CLI  
+- [Documentația VS Code](https://code.visualstudio.com/docs) - Configurare editor și extensii  
 
 ### Servicii Azure
-- [Documentația Azure AI Foundry](https://docs.microsoft.com/azure/ai-foundry/) - Configurarea serviciilor AI
-- [Serviciul Azure OpenAI](https://docs.microsoft.com/azure/cognitive-services/openai/) - Implementarea modelelor AI
-- [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) - Configurarea monitorizării
+- [Documentația Microsoft Foundry](https://docs.microsoft.com/azure/ai-foundry/) - Configurare serviciu AI  
+- [Serviciul Azure OpenAI](https://docs.microsoft.com/azure/cognitive-services/openai/) - Implementare model AI  
+- [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) - Configurare monitorizare  
 
 ### Dezvoltare Python
-- [Mediile Virtuale Python](https://docs.python.org/3/tutorial/venv.html) - Gestionarea mediilor
-- [Documentația AsyncIO](https://docs.python.org/3/library/asyncio.html) - Modele de programare asincronă
-- [Documentația FastAPI](https://fastapi.tiangolo.com/) - Modele de framework web
+- [Medii Virtuale Python](https://docs.python.org/3/tutorial/venv.html) - Managementul mediilor  
+- [Documentația AsyncIO](https://docs.python.org/3/library/asyncio.html) - Modele programare asincronă  
+- [Documentația FastAPI](https://fastapi.tiangolo.com/) - Modele framework web  
 
 ---
 
-**Următorul Pas**: Mediul este gata? Continuă cu [Lab 04: Designul și Schema Bazei de Date](../04-Database/README.md)
+**Următorul pas**: Mediu gata? Continuă cu [Laboratorul 04: Designul Bazei de Date și Schema](../04-Database/README.md)
 
 ---
 
-**Declinare de responsabilitate**:  
-Acest document a fost tradus folosind serviciul de traducere AI [Co-op Translator](https://github.com/Azure/co-op-translator). Deși ne străduim să asigurăm acuratețea, vă rugăm să fiți conștienți că traducerile automate pot conține erori sau inexactități. Documentul original în limba sa maternă ar trebui considerat sursa autoritară. Pentru informații critice, se recomandă traducerea profesională realizată de un specialist. Nu ne asumăm responsabilitatea pentru eventualele neînțelegeri sau interpretări greșite care pot apărea din utilizarea acestei traduceri.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Declinare a responsabilității**:
+Acest document a fost tradus folosind serviciul de traducere AI [Co-op Translator](https://github.com/Azure/co-op-translator). În timp ce ne străduim pentru acuratețe, vă rugăm să rețineți că traducerile automate pot conține erori sau inexactități. Documentul original în limba sa nativă trebuie considerat sursa autorizată. Pentru informații critice, se recomandă traducerea profesională realizată de un om. Nu ne asumăm responsabilitatea pentru eventualele neînțelegeri sau interpretări greșite care decurg din utilizarea acestei traduceri.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

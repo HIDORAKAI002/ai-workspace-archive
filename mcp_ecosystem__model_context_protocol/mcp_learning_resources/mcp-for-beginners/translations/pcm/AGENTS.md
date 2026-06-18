@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**MCP for Beginners** na open-source curriculum wey dey teach Model Context Protocol (MCP) - na one standard framework wey dey help AI models and client apps dey interact well. Dis repository get full learning materials wey include code examples for different programming languages.
+**MCP for Beginners** na open-source educational curriculum wey dey teach Model Context Protocol (MCP) - na standardized framework wey dey arrange how AI models and client applications go take interact. Dis repository get full learning materials plus code examples wey you fit try for plenty programming languages.
 
 ### Key Technologies
 
@@ -12,27 +12,27 @@
   - Spring Boot (Java)
   - FastMCP (Python)
   - LangChain4j (Java)
-- **Databases**: PostgreSQL wey get pgvector extension
+- **Databases**: PostgreSQL with pgvector extension
 - **Cloud Platforms**: Azure (Container Apps, OpenAI, Content Safety, Application Insights)
 - **Build Tools**: npm, Maven, pip, Cargo
-- **Documentation**: Markdown wey fit translate automatically to 48+ languages
+- **Documentation**: Markdown with automated multi-language translation (48+ languages)
 
 ### Architecture
 
-- **11 Core Modules (00-11)**: Step-by-step learning from basics to advanced topics
-- **Hands-on Labs**: Practical exercises wey get solution code for different languages
-- **Sample Projects**: MCP server and client wey dey work well
-- **Translation System**: GitHub Actions workflow wey dey translate to different languages
-- **Image Assets**: Centralized image folder wey get translated versions
+- **11 Core Modules (00-11)**: Sequential learning path from fundamentals to advanced topics
+- **Hands-on Labs**: Practical exercises with complete solution code in multiple languages
+- **Sample Projects**: Working MCP server and client implementations
+- **Translation System**: Automated GitHub Actions workflow for multi-language support
+- **Image Assets**: Centralized images directory with translated versions
 
 ## Setup Commands
 
-Dis repository na mainly for documentation. Most setup dey happen inside the sample projects and labs.
+Dis na documentation-focused repository. Most setup dey happen inside individual sample projects and labs.
 
 ### Repository Setup
 
 ```bash
-# Clone the repository
+# Make you copy di repository
 git clone https://github.com/microsoft/mcp-for-beginners.git
 cd mcp-for-beginners
 ```
@@ -40,12 +40,12 @@ cd mcp-for-beginners
 ### Working with Sample Projects
 
 Sample projects dey for:
-- `03-GettingStarted/samples/` - Examples for different languages
+- `03-GettingStarted/samples/` - Language-specific examples
 - `03-GettingStarted/01-first-server/solution/` - First server implementations
 - `03-GettingStarted/02-client/solution/` - Client implementations
-- `11-MCPServerHandsOnLabs/` - Labs wey dey show how database dey work
+- `11-MCPServerHandsOnLabs/` - Comprehensive database integration labs
 
-Each sample project get im own setup instructions:
+Every sample project get im own setup instructions:
 
 #### TypeScript/JavaScript Projects
 ```bash
@@ -74,53 +74,53 @@ mvn spring-boot:run
 
 ### Documentation Structure
 
-- **Modules 00-11**: Main curriculum content wey dey follow order
-- **translations/**: Versions for different languages (auto-generated, no touch am)
+- **Modules 00-11**: Core curriculum content in sequential order
+- **translations/**: Language-specific versions (auto-generated, no modify direct)
 - **translated_images/**: Localized image versions (auto-generated)
-- **images/**: Original images and diagrams
+- **images/**: Source images and diagrams
 
 ### Making Documentation Changes
 
-1. Edit only the English markdown files wey dey root module folders (00-11)
-2. Update images for `images/` folder if e need am
-3. GitHub Action wey be co-op-translator go generate translations automatically
-4. Translations go update anytime you push to main branch
+1. Edit only the English markdown files wey dey for the root module directories (00-11)
+2. Update images for `images/` directory if you need
+3. The co-op-translator GitHub Action go automatically generate translations
+4. Translations go regenerate anytime you push to main branch
 
 ### Working with Translations
 
-- **Automated Translation**: GitHub Actions dey handle translations
-- **No touch manually** files wey dey `translations/` folder
-- Translation metadata dey inside each translated file
-- Supported languages: 48+ languages like Arabic, Chinese, French, German, Hindi, Japanese, Korean, Portuguese, Russian, Spanish, and plenty others
+- **Automated Translation**: GitHub Actions workflow dey handle all translations
+- **No touch** files for `translations/` directory manually
+- Translation metadata dey waka inside each translated file
+- Supported languages: 48+ languages including Arabic, Chinese, French, German, Hindi, Japanese, Korean, Portuguese, Russian, Spanish, and many more
 
 ## Testing Instructions
 
 ### Documentation Validation
 
-Since dis repository na mainly documentation, testing dey focus on:
+Because na documentation repository dis one be, testing dey focus on:
 
-1. **Link Validation**: Make sure all internal links dey work
+1. **Link Validation**: Check say all internal links dey work
 ```bash
-# Check for broken markdown links
+# Check for broken markdown link dem
 find . -name "*.md" -type f | xargs grep -n "\[.*\](../../.*)"
 ```
 
-2. **Code Sample Validation**: Test say code examples dey compile/run well
+2. **Code Sample Validation**: Test say code examples fit compile/run
 ```bash
-# Navigate to specific sample and run its tests
+# Go go particular sample and run dia tests
 cd 03-GettingStarted/samples/typescript
 npm install && npm test
 ```
 
-3. **Markdown Linting**: Check say formatting dey consistent
+3. **Markdown Linting**: Check formatting consistency
 ```bash
-# Use markdownlint if needed
+# Use markdownlint if yu need am
 npx markdownlint-cli2 "**/*.md" "#node_modules"
 ```
 
 ### Sample Project Testing
 
-Each language-specific sample get im own testing method:
+Every language-specific sample get im own testing style:
 
 #### TypeScript/JavaScript
 ```bash
@@ -144,33 +144,33 @@ mvn verify
 
 ### Documentation Style
 
-- Use simple language wey beginners go understand
-- Add code examples for different languages if e dey possible
+- Use clear, beginner-friendly language
+- Include code examples for many languages where e dey fit
 - Follow markdown best practices:
   - Use ATX-style headers (`#` syntax)
-  - Use fenced code blocks wey get language identifiers
-  - Add descriptive alt text for images
-  - Make line length reasonable (no hard limit, but e no go too long)
+  - Use fenced code blocks with language identifiers
+  - Include descriptive alt text for images
+  - Keep line lengths reasonable (no hard limit, but make sense)
 
 ### Code Sample Style
 
 #### TypeScript/JavaScript
 - Use ES modules (`import`/`export`)
 - Follow TypeScript strict mode rules
-- Add type annotations
+- Include type annotations
 - Target ES2022
 
 #### Python
-- Follow PEP 8 style rules
-- Use type hints if e dey possible
-- Add docstrings for functions and classes
+- Follow PEP 8 style guides
+- Use type hints where e good
+- Include docstrings for functions and classes
 - Use modern Python features (3.8+)
 
 #### Java
 - Follow Spring Boot rules
 - Use Java 21 features
 - Follow standard Maven project structure
-- Add Javadoc comments
+- Include Javadoc comments
 
 ### File Organization
 
@@ -190,32 +190,32 @@ mvn verify
 
 ### Documentation Deployment
 
-Dis repository dey use GitHub Pages or similar platform for documentation hosting (if e dey applicable). Changes wey dey main branch go trigger:
+Di repository dey use GitHub Pages or something like dat for documentation hosting (if e dey). Any change for main branch go trigger:
 
 1. Translation workflow (`.github/workflows/co-op-translator.yml`)
-2. Automatic translation of all English markdown files
-3. Image localization if e dey needed
+2. Automated translation of all English markdown files
+3. Image localization as needed
 
 ### No Build Process Required
 
-Dis repository na mainly markdown documentation. No need to compile or build the main curriculum content.
+Dis repository mainly get markdown documentation. No need compile or build step for the core curriculum content.
 
 ### Sample Project Deployment
 
 Individual sample projects fit get deployment instructions:
-- Check `03-GettingStarted/09-deployment/` for MCP server deployment guide
-- Azure Container Apps deployment examples dey `11-MCPServerHandsOnLabs/`
+- See `03-GettingStarted/09-deployment/` for MCP server deployment guide
+- Azure Container Apps deployment samples for `11-MCPServerHandsOnLabs/`
 
 ## Contributing Guidelines
 
 ### Pull Request Process
 
-1. **Fork and Clone**: Fork the repository and clone am for your computer
-2. **Create a Branch**: Use branch names wey dey descriptive (e.g., `fix/typo-module-3`, `add/python-example`)
+1. **Fork and Clone**: Fork di repository and clone your fork for your machine
+2. **Create a Branch**: Use descriptive branch names (like `fix/typo-module-3`, `add/python-example`)
 3. **Make Changes**: Edit only English markdown files (no touch translations)
-4. **Test Locally**: Check say markdown dey render well
+4. **Test Locally**: Check say markdown render well
 5. **Submit PR**: Use clear PR titles and descriptions
-6. **CLA**: Sign Microsoft Contributor License Agreement if dem ask you
+6. **CLA**: Sign Microsoft Contributor License Agreement when dem ask you
 
 ### PR Title Format
 
@@ -224,80 +224,80 @@ Use clear, descriptive titles:
 - `[Samples] Description` for sample code changes
 - `[Docs] Description` for general documentation updates
 
-### Wetin You Fit Contribute
+### What to Contribute
 
-- Fix bugs for documentation or code samples
-- Add new code examples for more languages
-- Make existing content clearer or better
-- Add new case studies or practical examples
-- Report issues for unclear or wrong content
+- Bug fixes for documentation or code samples
+- New code examples for different languages
+- Clarifications and improvements to existing content
+- New case studies or practical examples
+- Issue reports for unclear or wrong content
 
-### Wetin You No Go Do
+### What NOT to Do
 
-- No edit files wey dey `translations/` folder
-- No touch `translated_images/` folder
-- No add big binary files without discussion
-- No change translation workflow files without agreement
+- No dey edit files for `translations/` directory directly
+- No dey edit `translated_images/` directory
+- No dey add big binary files without talk first
+- No dey change translation workflow files without agreement
 
 ## Additional Notes
 
 ### Repository Maintenance
 
-- **Changelog**: All big changes dey documented for `changelog.md`
-- **Study Guide**: Use `study_guide.md` to navigate curriculum
-- **Issue Templates**: Use GitHub issue templates for bug reports and feature requests
-- **Code of Conduct**: All contributors must follow Microsoft Open Source Code of Conduct
+- **Changelog**: All important changes dey for `changelog.md`
+- **Study Guide**: Use `study_guide.md` for curriculum navigation overview
+- **Issue Templates**: Use GitHub issue templates for bugs and feature requests
+- **Code of Conduct**: All contributors gats follow Microsoft Open Source Code of Conduct
 
 ### Learning Path
 
-Follow modules step-by-step (00-11) for better learning:
-1. **00-02**: Basics (Introduction, Core Concepts, Security)
-2. **03**: Getting Started with practical implementation
+Follow modules one-by-one (00-11) for better learning:
+1. **00-02**: Fundamentals (Introduction, Core Concepts, Security)
+2. **03**: Getting Started with hands-on implementation
 3. **04-05**: Practical implementation and advanced topics
 4. **06-10**: Community, best practices, and real-world applications
-5. **11**: Full database integration labs (13 step-by-step labs)
+5. **11**: Full database integration labs (13 labs wey dey sequence)
 
 ### Support Resources
 
 - **Documentation**: https://modelcontextprotocol.io/
 - **Specification**: https://spec.modelcontextprotocol.io/
 - **Community**: https://github.com/orgs/modelcontextprotocol/discussions
-- **Discord**: Microsoft Azure AI Foundry Discord server
-- **Related Courses**: Check README.md for other Microsoft learning paths
+- **Discord**: Microsoft Foundry Discord server
+- **Related Courses**: See README.md for other Microsoft learning paths
 
 ### Common Troubleshooting
 
-**Q: My PR dey fail translation check**
-A: Make sure say you only edit English markdown files wey dey root module folders, no touch translated versions.
+**Q: My PR dey fail translation check**  
+A: Make sure say you only change English markdown files for root module directories, no touch translated files.
 
-**Q: How I go add new language?**
-A: Language support dey managed through co-op-translator workflow. Open issue to discuss am.
+**Q: How I go add new language?**  
+A: Language support dey managed by co-op-translator workflow. Open issue to talk about adding new languages.
 
-**Q: Code samples no dey work**
-A: Make sure say you follow setup instructions wey dey specific sample README. Check say you install correct versions of dependencies.
+**Q: Code samples no dey work**  
+A: Make sure say you follow setup instructions for the sample’s README. Check say dependencies get correct versions.
 
-**Q: Images no dey show**
-A: Confirm say image paths dey relative and use forward slashes. Images suppose dey `images/` folder or `translated_images/` for localized versions.
+**Q: Images no dey display**  
+A: Check say image paths correct and dem dey use forward slashes. Images suppose dey `images/` folder or `translated_images/` for translated versions.
 
 ### Performance Considerations
 
-- Translation workflow fit take some minutes to complete
-- Big images suppose dey optimized before you commit am
-- Make markdown files dey focused and no too big
-- Use relative links for better portability
+- Translation workflow fit take few minutes to finish
+- Big images suppose optimize before you commit
+- Keep markdown files focused and reasonable size
+- Use relative links for portability
 
 ### Project Governance
 
 Dis project dey follow Microsoft open source rules:
-- MIT License for code and documentation
+- MIT License for code and docs
 - Microsoft Open Source Code of Conduct
-- CLA dey required for contributions
+- CLA mandatory for contributions
 - Security issues: Follow SECURITY.md guidelines
-- Support: Check SUPPORT.md for help resources
+- Support: See SUPPORT.md for help resources
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Disclaimer**:  
-Dis dokyument don use AI transleto service [Co-op Translator](https://github.com/Azure/co-op-translator) do di translation. Even though we dey try make am accurate, abeg sabi say machine translation fit get mistake or no dey correct well. Di original dokyument wey dey for im native language na di main source wey you go fit trust. For important mata, e good make you use professional human translation. We no go fit take blame for any misunderstanding or wrong interpretation wey fit happen because you use dis translation.
+**Disclaimer**:
+Dis document don translate wit AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). Even tho we dey try make am correct, abeg make you know say automated translation fit get errors or mistakes. Di original document for dia own language na im be di correct source. For important info, make person wey sabi human translation do am. We no go responsible for any misunderstanding or wrong understanding wey fit happen because of dis translation.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

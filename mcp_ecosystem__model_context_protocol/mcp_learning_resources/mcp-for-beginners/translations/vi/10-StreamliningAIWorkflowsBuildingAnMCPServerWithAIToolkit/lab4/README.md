@@ -1,4 +1,4 @@
-# 🐙 Mô-đun 4: Phát Triển MCP Thực Tiễn - Máy chủ Cloning GitHub Tùy Chỉnh
+# 🐙 Mô-đun 4: Phát Triển MCP Thực Tiễn - Máy Chủ GitHub Clone Tùy Chỉnh
 
 ![Duration](https://img.shields.io/badge/Duration-30_minutes-blue?style=flat-square)
 ![Difficulty](https://img.shields.io/badge/Difficulty-Intermediate-orange?style=flat-square)
@@ -6,76 +6,76 @@
 ![VS Code](https://img.shields.io/badge/VS%20Code-Integration-blue?style=flat-square&logo=visualstudiocode)
 ![GitHub Copilot](https://img.shields.io/badge/GitHub%20Copilot-Agent%20Mode-green?style=flat-square&logo=github)
 
-> **⚡ Khởi Động Nhanh:** Xây dựng máy chủ MCP sẵn sàng sản xuất tự động hóa việc cloning kho GitHub và tích hợp VS Code chỉ trong 30 phút!
+> **⚡ Khởi Động Nhanh:** Xây dựng máy chủ MCP sẵn sàng sản xuất tự động hóa việc sao chép kho GitHub và tích hợp VS Code chỉ trong 30 phút!
 
 ## 🎯 Mục Tiêu Học Tập
 
-Cuối bài lab này, bạn sẽ có thể:
+Cuối khóa lab này, bạn sẽ có thể:
 
 - ✅ Tạo máy chủ MCP tùy chỉnh cho quy trình phát triển thực tế
-- ✅ Triển khai chức năng cloning kho GitHub qua MCP
+- ✅ Triển khai chức năng sao chép kho GitHub qua MCP
 - ✅ Tích hợp máy chủ MCP tùy chỉnh với VS Code và Agent Builder
-- ✅ Sử dụng Chế Độ Agent của GitHub Copilot với các công cụ MCP tùy chỉnh
+- ✅ Sử dụng Chế Độ Agent của GitHub Copilot với công cụ MCP tùy chỉnh
 - ✅ Kiểm tra và triển khai máy chủ MCP tùy chỉnh trong môi trường sản xuất
 
 ## 📋 Yêu Cầu Tiền Đề
 
-- Hoàn thành các Lab 1-3 (cơ bản và nâng cao về MCP)
-- Đăng ký GitHub Copilot ([có đăng ký miễn phí](https://github.com/github-copilot/signup))
-- VS Code với tiện ích AI Toolkit và GitHub Copilot đã cài đặt
-- Git CLI được cài đặt và cấu hình
+- Hoàn thành các Lab 1-3 (kiến thức cơ bản và phát triển MCP nâng cao)
+- Đăng ký GitHub Copilot ([đăng ký miễn phí có sẵn](https://github.com/github-copilot/signup))
+- VS Code với Microsoft Foundry Toolkit và các extension GitHub Copilot
+- Cài đặt và cấu hình Git CLI
 
 ## 🏗️ Tổng Quan Dự Án
 
 ### **Thách Thức Phát Triển Thực Tế**
-Là nhà phát triển, chúng ta thường xuyên dùng GitHub để clone kho và mở trong VS Code hoặc VS Code Insiders. Quy trình thủ công này gồm:
+Là các nhà phát triển, chúng ta thường xuyên dùng GitHub để sao chép kho và mở chúng trong VS Code hoặc VS Code Insiders. Quá trình thủ công này bao gồm:
 1. Mở terminal/cmd
-2. Điều hướng đến thư mục mong muốn
+2. Điều hướng tới thư mục mong muốn
 3. Chạy lệnh `git clone`
-4. Mở VS Code trong thư mục mới clone
+4. Mở VS Code trong thư mục đã sao chép
 
-**Giải pháp MCP của chúng ta sẽ hợp nhất thành một lệnh thông minh duy nhất!**
+**Giải pháp MCP của chúng tôi đơn giản hóa thành một lệnh thông minh duy nhất!**
 
 ### **Bạn Sẽ Xây Dựng**
-Một **Máy Chủ GitHub Clone MCP** (`git_mcp_server`) với các tính năng:
+Một **GitHub Clone MCP Server** (`git_mcp_server`) cung cấp:
 
 | Tính Năng | Mô Tả | Lợi Ích |
 |---------|-------------|---------|
-| 🔄 **Cloning Kho Thông Minh** | Clone kho GitHub kèm xác thực | Tự động kiểm lỗi |
-| 📁 **Quản Lý Thư Mục Thông Minh** | Kiểm tra và tạo thư mục an toàn | Ngăn chặn ghi đè |
+| 🔄 **Sao Chép Kho Thông Minh** | Sao chép kho GitHub với xác thực | Tự động kiểm tra lỗi |
+| 📁 **Quản Lý Thư Mục Thông Minh** | Kiểm tra và tạo thư mục an toàn | Ngăn chặn ghi đè dữ liệu |
 | 🚀 **Tích Hợp VS Code Đa Nền Tảng** | Mở dự án trong VS Code/Insiders | Chuyển đổi quy trình liền mạch |
-| 🛡️ **Xử Lý Lỗi Đường Thẳng** | Xử lý lỗi mạng, quyền, đường dẫn | Đảm bảo độ tin cậy trong sản xuất |
+| 🛡️ **Xử Lý Lỗi Mạnh Mẽ** | Xử lý sự cố mạng, quyền truy cập, và đường dẫn | Độ tin cậy sẵn sàng sản xuất |
 
 ---
 
-## 📖 Hướng Dẫn Thực Hiện Từng Bước
+## 📖 Triển Khai Từng Bước
 
 ### Bước 1: Tạo Agent GitHub trong Agent Builder
 
-1. **Khởi chạy Agent Builder** thông qua tiện ích AI Toolkit
+1. **Khởi chạy Agent Builder** qua extension Microsoft Foundry Toolkit
 2. **Tạo agent mới** với cấu hình sau:
    ```
    Agent Name: GitHubAgent
    ```
 
 3. **Khởi tạo máy chủ MCP tùy chỉnh:**
-   - Điều hướng **Tools** → **Add Tool** → **MCP Server**
+   - Điều hướng tới **Tools** → **Add Tool** → **MCP Server**
    - Chọn **"Create A new MCP Server"**
-   - Chọn **mẫu Python** để linh hoạt tối đa
+   - Chọn **mẫu Python** để linh hoạt cao nhất
    - **Tên máy chủ:** `git_mcp_server`
 
 ### Bước 2: Cấu Hình Chế Độ Agent GitHub Copilot
 
 1. **Mở GitHub Copilot** trong VS Code (Ctrl/Cmd + Shift + P → "GitHub Copilot: Open")
-2. **Chọn Model Agent** trong giao diện Copilot
-3. **Chọn model Claude 3.7** để tăng cường khả năng suy luận
+2. **Chọn Agent Model** trong giao diện Copilot
+3. **Chọn mô hình Claude 3.7** để tăng cường khả năng suy luận
 4. **Bật tích hợp MCP** để truy cập công cụ
 
-> **💡 Mẹo Pro:** Claude 3.7 cung cấp hiểu biết vượt trội về quy trình phát triển và xử lý lỗi.
+> **💡 Mẹo Chuyên Nghiệp:** Claude 3.7 cung cấp khả năng hiểu biết vượt trội về quy trình phát triển và mẫu xử lý lỗi.
 
-### Bước 3: Triển Khai Chức Năng Cốt Lõi của MCP Server
+### Bước 3: Triển Khai Chức Năng Cốt Lõi MCP Server
 
-**Sử dụng prompt chi tiết sau với chế độ Agent của GitHub Copilot:**
+**Sử dụng prompt chi tiết sau với Chế Độ Agent GitHub Copilot:**
 
 ```
 Create two MCP tools with the following comprehensive requirements:
@@ -108,19 +108,19 @@ Additional Requirements:
 - Include comprehensive error handling
 ```
 
-### Bước 4: Kiểm Tra Máy Chủ MCP Của Bạn
+### Bước 4: Kiểm Tra Máy Chủ MCP
 
-#### 4a. Kiểm Tra Trong Agent Builder
+#### 4a. Kiểm tra trong Agent Builder
 
-1. **Khởi chạy cấu hình debug** cho Agent Builder
-2. **Cấu hình agent với prompt hệ thống sau:**
+1. **Khởi chạy cấu hình gỡ lỗi** cho Agent Builder
+2. **Cấu hình agent của bạn với prompt hệ thống này:**
 
 ```
 SYSTEM_PROMPT:
 You are my intelligent coding repository assistant. You help developers efficiently clone GitHub repositories and set up their development environment. Always provide clear feedback about operations and handle errors gracefully.
 ```
 
-3. **Thử nghiệm với các kịch bản người dùng thực tế:**
+3. **Kiểm tra với các kịch bản người dùng thực tế:**
 
 ```
 USER_PROMPT EXAMPLES:
@@ -132,13 +132,13 @@ Scenario : Basic Clone and Open
 
 ![Agent Builder Testing](../../../../translated_images/vi/DebugAgent.81d152370c503241.webp)
 
-**Kết Quả Mong Đợi:**
-- ✅ Clone thành công với xác nhận đường dẫn
+**Kết quả mong đợi:**
+- ✅ Sao chép thành công với xác nhận đường dẫn
 - ✅ Tự động mở VS Code
-- ✅ Thông báo lỗi rõ ràng cho các tình huống không hợp lệ
-- ✅ Xử lý đúng các trường hợp rìa
+- ✅ Thông báo lỗi rõ ràng khi có tình huống không hợp lệ
+- ✅ Xử lý đúng các trường hợp đặc biệt
 
-#### 4b. Kiểm Tra Trong MCP Inspector
+#### 4b. Kiểm tra trong MCP Inspector
 
 
 ![MCP Inspector Testing](../../../../translated_images/vi/DebugInspector.eb5c95f94c69a8ba.webp)
@@ -147,60 +147,60 @@ Scenario : Basic Clone and Open
 
 
 
-**🎉 Chúc mừng!** Bạn đã thành công tạo ra một máy chủ MCP thực tiễn, sẵn sàng sản xuất giải quyết các thách thức trong quy trình phát triển thực tế. Máy chủ cloning GitHub tùy chỉnh của bạn chứng minh sức mạnh của MCP trong tự động hóa và nâng cao năng suất nhà phát triển.
+**🎉 Chúc mừng!** Bạn đã tạo thành công một máy chủ MCP thực tế, sẵn sàng sản xuất, giải quyết các thách thức quy trình phát triển thực tế. Máy chủ sao chép GitHub tùy chỉnh của bạn thể hiện sức mạnh của MCP trong tự động hóa và nâng cao năng suất của nhà phát triển.
 
 ### 🏆 Thành Tựu Đạt Được:
 - ✅ **Nhà Phát Triển MCP** - Tạo máy chủ MCP tùy chỉnh
-- ✅ **Chuyên Gia Tự Động Hóa Quy Trình** - Tinh gọn tiến trình phát triển  
+- ✅ **Tự Động Hóa Quy Trình** - Tinh giản các quy trình phát triển  
 - ✅ **Chuyên Gia Tích Hợp** - Kết nối nhiều công cụ phát triển
-- ✅ **Sẵn Sàng Sản Xuất** - Xây dựng giải pháp có thể triển khai
+- ✅ **Sẵn Sàng Sản Xuất** - Xây dựng giải pháp triển khai
 
 ---
 
 ## 🎓 Hoàn Thành Workshop: Hành Trình Với Model Context Protocol
 
-**Tham Gia Viên Workshop thân mến,**
+**Kính gửi Người Tham Gia Workshop,**
 
-Chúc mừng bạn đã hoàn thành cả bốn mô-đun của workshop Model Context Protocol! Bạn đã đi được quãng đường dài từ khi hiểu các khái niệm cơ bản của AI Toolkit tới xây dựng các máy chủ MCP sẵn sàng sản xuất giải quyết các thách thức phát triển thực tế.
+Chúc mừng bạn đã hoàn thành toàn bộ bốn mô-đun của workshop Model Context Protocol! Bạn đã tiến xa từ việc hiểu các khái niệm cơ bản của Microsoft Foundry Toolkit đến xây dựng máy chủ MCP sẵn sàng sản xuất giải quyết các thách thức phát triển thực tế.
 
-### 🚀 Tóm Tắt Lộ Trình Học Tập Của Bạn:
+### 🚀 Tóm Tắt Lộ Trình Học Tập:
 
-**[Mô-đun 1](../lab1/README.md)**: Bắt đầu khám phá các khái niệm cơ bản AI Toolkit, kiểm thử mô hình và tạo agent AI đầu tiên.
+**[Mô-đun 1](../lab1/README.md)**: Bạn bắt đầu bằng cách khám phá các kiến thức cơ bản Microsoft Foundry Toolkit, kiểm tra mô hình và tạo agent AI đầu tiên.
 
-**[Mô-đun 2](../lab2/README.md)**: Tìm hiểu kiến trúc MCP, tích hợp Playwright MCP, và xây dựng agent tự động trình duyệt đầu tiên.
+**[Mô-đun 2](../lab2/README.md)**: Bạn học kiến trúc MCP, tích hợp Playwright MCP và xây dựng agent tự động trình duyệt đầu tiên.
 
-**[Mô-đun 3](../lab3/README.md)**: Nâng cao phát triển máy chủ MCP tùy chỉnh với máy chủ Weather MCP và thành thạo công cụ gỡ lỗi.
+**[Mô-đun 3](../lab3/README.md)**: Bạn tiến tới phát triển máy chủ MCP tùy chỉnh với máy chủ Weather MCP và thành thạo các công cụ gỡ lỗi.
 
-**[Mô-đun 4](../lab4/README.md)**: Áp dụng tất cả để tạo công cụ tự động hóa quy trình kho GitHub thực tế.
+**[Mô-đun 4](../lab4/README.md)**: Bạn áp dụng mọi thứ để tạo công cụ tự động quy trình sao chép kho GitHub thực tế.
 
-### 🌟 Những Gì Bạn Đã Thành Thạo:
+### 🌟 Bạn Đã Thành Thục:
 
-- ✅ **Hệ Sinh Thái AI Toolkit**: Mô hình, agent, mẫu tích hợp
-- ✅ **Kiến Trúc MCP**: Thiết kế client-server, giao thức truyền tải, bảo mật
-- ✅ **Công Cụ Phát Triển**: Từ Playground đến Inspector tới triển khai sản xuất
-- ✅ **Phát Triển Tùy Chỉnh**: Xây dựng, kiểm thử và triển khai máy chủ MCP của riêng bạn
-- ✅ **Ứng Dụng Thực Tiễn**: Giải quyết thách thức quy trình thực tế với AI
+- ✅ **Hệ Sinh Thái Microsoft Foundry Toolkit**: Mô hình, agent và mẫu tích hợp
+- ✅ **Kiến Trúc MCP**: Thiết kế client-server, giao thức truyền tải và bảo mật
+- ✅ **Công Cụ Phát Triển**: Từ Playground đến Inspector đến triển khai sản xuất
+- ✅ **Phát Triển Tùy Chỉnh**: Xây dựng, kiểm tra và triển khai máy chủ MCP riêng
+- ✅ **Ứng Dụng Thực Tiễn**: Giải quyết thách thức quy trình phát triển thực tế bằng AI
 
-### 🔮 Các Bước Tiếp Theo Của Bạn:
+### 🔮 Bước Tiếp Theo Của Bạn:
 
-1. **Xây Dựng Máy Chủ MCP Riêng**: Áp dụng kỹ năng này để tự động hóa quy trình riêng của bạn
+1. **Xây Dựng Máy Chủ MCP Của Riêng Bạn**: Áp dụng kỹ năng để tự động hóa quy trình độc đáo của bạn
 2. **Tham Gia Cộng Đồng MCP**: Chia sẻ sản phẩm và học hỏi từ người khác
 3. **Khám Phá Tích Hợp Nâng Cao**: Kết nối máy chủ MCP với hệ thống doanh nghiệp
-4. **Đóng Góp Mã Nguồn Mở**: Giúp cải thiện công cụ MCP và tài liệu
+4. **Đóng Góp Cho Mã Nguồn Mở**: Cải thiện công cụ và tài liệu MCP
 
-Hãy nhớ, workshop này chỉ mới là khởi đầu. Hệ sinh thái Model Context Protocol đang phát triển nhanh chóng, và bạn bây giờ được trang bị để dẫn đầu các công cụ phát triển dựa trên AI.
+Hãy nhớ rằng, workshop này chỉ là khởi đầu. Hệ sinh thái Model Context Protocol đang phát triển nhanh chóng và bạn đã sẵn sàng dẫn đầu các công cụ phát triển AI hỗ trợ.
 
-**Cảm ơn bạn đã tham gia và nỗ lực học tập!**
+**Xin cảm ơn bạn đã tham gia và nhiệt huyết học tập!**
 
-Chúng tôi hy vọng workshop này đã thổi bùng ý tưởng sẽ thay đổi cách bạn xây dựng và tương tác với công cụ AI trong hành trình phát triển.
+Chúng tôi hy vọng workshop đã khơi dậy ý tưởng giúp bạn thay đổi cách xây dựng và tương tác với công cụ AI trên hành trình phát triển.
 
-**Chúc code vui vẻ!**
+**Chúc bạn viết mã vui vẻ!**
 
 ---
 
-## Phần Tiếp Theo
+## Tiếp Theo Là Gì
 
-Chúc mừng bạn đã hoàn thành tất cả các lab trong Mô-đun 10!
+Chúc mừng bạn đã hoàn thành toàn bộ các lab trong Mô-đun 10!
 
 - Quay lại: [Tổng Quan Mô-đun 10](../README.md)
 - Tiếp tục đến: [Mô-đun 11: Lab Thực Hành Máy Chủ MCP](../../11-MCPServerHandsOnLabs/README.md)
@@ -208,6 +208,6 @@ Chúc mừng bạn đã hoàn thành tất cả các lab trong Mô-đun 10!
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Tuyên bố từ chối trách nhiệm**:  
-Tài liệu này đã được dịch bằng dịch vụ dịch thuật AI [Co-op Translator](https://github.com/Azure/co-op-translator). Mặc dù chúng tôi cố gắng đảm bảo độ chính xác, xin lưu ý rằng các bản dịch tự động có thể chứa lỗi hoặc không chính xác. Tài liệu gốc bằng ngôn ngữ bản địa nên được coi là nguồn tham khảo chính thức. Đối với những thông tin quan trọng, nên sử dụng dịch vụ dịch thuật chuyên nghiệp của con người. Chúng tôi không chịu trách nhiệm về bất kỳ sự hiểu nhầm hay diễn giải sai nào phát sinh từ việc sử dụng bản dịch này.
+**Tuyên bố miễn trừ trách nhiệm**:
+Tài liệu này đã được dịch bằng dịch vụ dịch thuật AI [Co-op Translator](https://github.com/Azure/co-op-translator). Mặc dù chúng tôi cố gắng đảm bảo độ chính xác, xin lưu ý rằng bản dịch tự động có thể chứa lỗi hoặc sai sót. Tài liệu gốc bằng ngôn ngữ gốc nên được coi là nguồn tin chính thức. Đối với thông tin quan trọng, nên sử dụng dịch vụ dịch thuật chuyên nghiệp bởi con người. Chúng tôi không chịu trách nhiệm về bất kỳ hiểu lầm hoặc giải thích sai nào phát sinh từ việc sử dụng bản dịch này.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

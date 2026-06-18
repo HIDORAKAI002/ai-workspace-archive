@@ -1,54 +1,54 @@
-# Pagsasaayos ng Kapaligiran
+# Environment Setup
 
-## 🎯 Ano ang Saklaw ng Lab na Ito
+## 🎯 Ano Ang Sakop Ng Lab Na Ito
 
-Ang hands-on lab na ito ay magtuturo sa iyo kung paano mag-set up ng kumpletong development environment para sa paggawa ng MCP servers na may PostgreSQL integration. Ikaw ay magko-configure ng mga kinakailangang tools, magde-deploy ng Azure resources, at magva-validate ng iyong setup bago magpatuloy sa implementasyon.
+Ginagabayan ka ng hands-on na lab na ito sa pag-setup ng kompletong development environment para sa pagbuo ng MCP servers na may PostgreSQL integration. Iko-configure mo lahat ng kailangang tools, ide-deploy ang mga Azure resources, at ivavalidate ang iyong setup bago magpatuloy sa implementasyon.
 
 ## Pangkalahatang-ideya
 
-Ang tamang development environment ay mahalaga para sa matagumpay na paggawa ng MCP server. Ang lab na ito ay nagbibigay ng step-by-step na gabay para sa pag-set up ng Docker, Azure services, development tools, at pag-validate na gumagana ang lahat ng ito nang maayos.
+Mahalaga ang maayos na development environment para sa matagumpay na pagbuo ng MCP server. Nagbibigay ang lab na ito ng hakbang-hakbang na mga tagubilin para sa pag-setup ng Docker, Azure services, development tools, at pag-validate na gumagana nang tama ang lahat nang magkakasama.
 
-Sa pagtatapos ng lab na ito, magkakaroon ka ng ganap na functional na development environment na handa para sa paggawa ng Zava Retail MCP server.
+Sa pagtatapos ng lab na ito, magkakaroon ka ng ganap na gumaganang development environment na handang gamitin sa pagbuo ng Zava Retail MCP server.
 
-## Mga Layunin sa Pag-aaral
+## Mga Layunin ng Pagkatuto
 
-Sa pagtatapos ng lab na ito, magagawa mo ang sumusunod:
+Sa pagtatapos ng lab na ito, magagawa mong:
 
-- **I-install at i-configure** ang lahat ng kinakailangang development tools
-- **Mag-deploy ng Azure resources** na kinakailangan para sa MCP server
-- **Mag-set up ng Docker containers** para sa PostgreSQL at MCP server
-- **I-validate** ang iyong environment setup gamit ang test connections
-- **Mag-troubleshoot** ng mga karaniwang isyu sa setup at configuration
-- **Maunawaan** ang development workflow at file structure
+- **I-install at i-configure** lahat ng kinakailangang development tools
+- **Mag-deploy ng Azure resources** para sa MCP server
+- **Mag-setup ng Docker containers** para sa PostgreSQL at MCP server
+- **I-validate** ang iyong environment setup gamit ang mga test connections
+- **Mag-troubleshoot** ng mga karaniwang problema sa setup at configuration
+- **Maunawaan** ang development workflow at istruktura ng mga file
 
-## 📋 Pagsusuri ng Mga Kinakailangan
+## 📋 Tseklist Para sa Mga Kinakailangan
 
-Bago magsimula, tiyakin na mayroon ka ng mga sumusunod:
+Bago magsimula, siguraduhing mayroon ka ng:
 
-### Kinakailangang Kaalaman
-- Pangunahing paggamit ng command line (Windows Command Prompt/PowerShell)
+### Kaalamang Kinakailangan
+- Pangunahing gamit ng command line (Windows Command Prompt/PowerShell)
 - Pag-unawa sa environment variables
-- Pamilyar sa Git version control
+- Kaalaman sa Git version control
 - Pangunahing konsepto ng Docker (containers, images, volumes)
 
 ### Mga Kinakailangan sa Sistema
 - **Operating System**: Windows 10/11, macOS, o Linux
-- **RAM**: Minimum na 8GB (16GB inirerekomenda)
+- **RAM**: Minimum na 8GB (inirerekomendang 16GB)
 - **Storage**: Hindi bababa sa 10GB na libreng espasyo
-- **Network**: Internet connection para sa downloads at Azure deployment
+- **Network**: Internet connection para sa pag-download at Azure deployment
 
 ### Mga Kinakailangan sa Account
-- **Azure Subscription**: Ang libreng tier ay sapat na
-- **GitHub Account**: Para sa repository access
+- **Azure Subscription**: Sapat na ang free tier
+- **GitHub Account**: Para sa pag-access ng repository
 - **Docker Hub Account**: (Opsyonal) Para sa custom image publishing
 
-## 🛠️ Pag-install ng Mga Tool
+## 🛠️ Pag-install ng Mga Tools
 
 ### 1. I-install ang Docker Desktop
 
-Ang Docker ang nagbibigay ng containerized environment para sa ating development setup.
+Nagbibigay ang Docker ng containerized na environment para sa ating development setup.
 
-#### Pag-install sa Windows
+#### Windows Installation
 
 1. **I-download ang Docker Desktop**:
    ```cmd
@@ -59,35 +59,35 @@ Ang Docker ang nagbibigay ng containerized environment para sa ating development
 
 2. **I-install at I-configure**:
    - Patakbuhin ang installer bilang Administrator
-   - I-enable ang WSL 2 integration kapag na-prompt
-   - I-restart ang iyong computer kapag natapos ang pag-install
+   - I-enable ang WSL 2 integration kapag humiling
+   - I-restart ang iyong computer pagkatapos ng installation
 
-3. **I-verify ang Pag-install**:
+3. **I-verify ang Installation**:
    ```cmd
    docker --version
    docker-compose --version
    ```
 
-#### Pag-install sa macOS
+#### macOS Installation
 
 1. **I-download at I-install**:
    ```bash
-   # Download from https://desktop.docker.com/mac/stable/Docker.dmg
-   # Or use Homebrew
+   # I-download mula sa https://desktop.docker.com/mac/stable/Docker.dmg
+   # O gamitin ang Homebrew
    brew install --cask docker
    ```
 
-2. **I-start ang Docker Desktop**:
-   - I-launch ang Docker Desktop mula sa Applications
+2. **Simulan ang Docker Desktop**:
+   - Buksan ang Docker Desktop mula sa Applications
    - Kumpletuhin ang initial setup wizard
 
-3. **I-verify ang Pag-install**:
+3. **I-verify ang Installation**:
    ```bash
    docker --version
    docker-compose --version
    ```
 
-#### Pag-install sa Linux
+#### Linux Installation
 
 1. **I-install ang Docker Engine**:
    ```bash
@@ -96,7 +96,7 @@ Ang Docker ang nagbibigay ng containerized environment para sa ating development
    sudo sh get-docker.sh
    sudo usermod -aG docker $USER
    
-   # Log out and back in for group changes to take effect
+   # Mag-log out at mag-log in muli para maging epektibo ang mga pagbabago sa grupo
    ```
 
 2. **I-install ang Docker Compose**:
@@ -107,9 +107,9 @@ Ang Docker ang nagbibigay ng containerized environment para sa ating development
 
 ### 2. I-install ang Azure CLI
 
-Ang Azure CLI ang nagbibigay-daan sa pag-deploy at pamamahala ng Azure resources.
+Pinapagana ng Azure CLI ang deployment at pamamahala ng Azure resources.
 
-#### Pag-install sa Windows
+#### Windows Installation
 
 ```cmd
 # Using Windows Package Manager
@@ -118,17 +118,17 @@ winget install Microsoft.AzureCLI
 # Or download MSI from: https://aka.ms/installazurecliwindows
 ```
 
-#### Pag-install sa macOS
+#### macOS Installation
 
 ```bash
-# Using Homebrew
+# Paggamit ng Homebrew
 brew install azure-cli
 
-# Or using installer
+# O paggamit ng installer
 curl -L https://aka.ms/InstallAzureCli | bash
 ```
 
-#### Pag-install sa Linux
+#### Linux Installation
 
 ```bash
 # Ubuntu/Debian
@@ -142,20 +142,20 @@ sudo dnf install azure-cli
 #### I-verify at Mag-authenticate
 
 ```bash
-# Check installation
+# Suriin ang pag-install
 az version
 
-# Login to Azure
+# Mag-login sa Azure
 az login
 
-# Set default subscription (if you have multiple)
+# Itakda ang default na subscription (kung marami kang subscription)
 az account list --output table
 az account set --subscription "Your-Subscription-Name"
 ```
 
 ### 3. I-install ang Git
 
-Ang Git ay kinakailangan para sa pag-clone ng repository at version control.
+Kinakailangan ang Git para sa pag-clone ng repository at version control.
 
 #### Windows
 
@@ -169,7 +169,7 @@ winget install Git.Git
 #### macOS
 
 ```bash
-# Git is usually pre-installed, but you can update via Homebrew
+# Karaniwang naka-install na ang Git, ngunit maaari mo itong i-update gamit ang Homebrew
 brew install git
 ```
 
@@ -185,9 +185,9 @@ sudo dnf install git
 
 ### 4. I-install ang VS Code
 
-Ang Visual Studio Code ang nagbibigay ng integrated development environment na may suporta para sa MCP.
+Nagbibigay ang Visual Studio Code ng integrated development environment na may suporta sa MCP.
 
-#### Pag-install
+#### Installation
 
 ```cmd
 # Windows
@@ -200,19 +200,19 @@ brew install --cask visual-studio-code
 sudo snap install code --classic
 ```
 
-#### Mga Kinakailangang Extension
+#### Kinakailangang Extensions
 
 I-install ang mga sumusunod na VS Code extensions:
 
 ```bash
-# Install via command line
+# Mag-install gamit ang command line
 code --install-extension ms-python.python
 code --install-extension ms-vscode.vscode-json
 code --install-extension ms-azuretools.vscode-docker
 code --install-extension ms-vscode.azure-account
 ```
 
-O i-install sa pamamagitan ng VS Code:
+O i-install sa loob ng VS Code:
 1. Buksan ang VS Code
 2. Pumunta sa Extensions (Ctrl+Shift+X)
 3. I-install:
@@ -223,7 +223,7 @@ O i-install sa pamamagitan ng VS Code:
 
 ### 5. I-install ang Python
 
-Kinakailangan ang Python 3.8+ para sa paggawa ng MCP server.
+Kinakailangan ang Python 3.8+ para sa pag-develop ng MCP server.
 
 #### Windows
 
@@ -237,7 +237,7 @@ winget install Python.Python.3.11
 #### macOS
 
 ```bash
-# Using Homebrew
+# Paggamit ng Homebrew
 brew install python@3.11
 ```
 
@@ -251,52 +251,52 @@ sudo apt update && sudo apt install python3.11 python3.11-pip python3.11-venv
 sudo dnf install python3.11 python3.11-pip
 ```
 
-#### I-verify ang Pag-install
+#### I-verify ang Installation
 
 ```bash
-python --version  # Should show Python 3.11.x
-pip --version      # Should show pip version
+python --version  # Dapat magpakita ng Python 3.11.x
+pip --version      # Dapat magpakita ng bersyon ng pip
 ```
 
-## 🚀 Pag-set up ng Proyekto
+## 🚀 Pag-setup ng Projekto
 
 ### 1. I-clone ang Repository
 
 ```bash
-# Clone the main repository
+# I-clone ang pangunahing repositoryo
 git clone https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail.git
 
-# Navigate to the project directory
+# Pumunta sa direktoryo ng proyekto
 cd MCP-Server-and-PostgreSQL-Sample-Retail
 
-# Verify repository structure
+# Suriin ang estruktura ng repositoryo
 ls -la
 ```
 
 ### 2. Gumawa ng Python Virtual Environment
 
 ```bash
-# Create virtual environment
+# Gumawa ng virtual na kapaligiran
 python -m venv mcp-env
 
-# Activate virtual environment
+# I-activate ang virtual na kapaligiran
 # Windows
 mcp-env\Scripts\activate
 
 # macOS/Linux
 source mcp-env/bin/activate
 
-# Upgrade pip
+# I-upgrade ang pip
 python -m pip install --upgrade pip
 ```
 
-### 3. I-install ang Python Dependencies
+### 3. I-install ang Mga Dependencies ng Python
 
 ```bash
-# Install development dependencies
+# I-install ang mga development dependencies
 pip install -r requirements.lock.txt
 
-# Verify key packages
+# Suriin ang mga pangunahing pakete
 pip list | grep fastmcp
 pip list | grep asyncpg
 pip list | grep azure
@@ -304,23 +304,23 @@ pip list | grep azure
 
 ## ☁️ Pag-deploy ng Azure Resources
 
-### 1. Unawain ang Mga Kinakailangan sa Resource
+### 1. Unawain ang Mga Kinakailangan sa Resources
 
-Ang ating MCP server ay nangangailangan ng mga sumusunod na Azure resources:
+Kinakailangan ng MCP server namin ang mga sumusunod na Azure resources:
 
 | **Resource** | **Layunin** | **Tinatayang Gastos** |
 |--------------|-------------|-----------------------|
-| **Azure AI Foundry** | Hosting at pamamahala ng AI model | $10-50/buwan |
+| **Microsoft Foundry** | AI model hosting at pamamahala | $10-50/buwan |
 | **OpenAI Deployment** | Text embedding model (text-embedding-3-small) | $5-20/buwan |
 | **Application Insights** | Monitoring at telemetry | $5-15/buwan |
-| **Resource Group** | Organisasyon ng resources | Libre |
+| **Resource Group** | Organisasyon ng mga resources | Libre |
 
 ### 2. Mag-deploy ng Azure Resources
 
 #### Opsyon A: Automated Deployment (Inirerekomenda)
 
 ```bash
-# Navigate to infrastructure directory
+# Mag-navigate sa direktoryo ng imprastruktura
 cd infra
 
 # Windows - PowerShell
@@ -330,28 +330,28 @@ cd infra
 ./deploy.sh
 ```
 
-Ang deployment script ay gagawa ng sumusunod:
-1. Gumawa ng natatanging resource group
-2. Mag-deploy ng Azure AI Foundry resources
-3. Mag-deploy ng text-embedding-3-small model
-4. Mag-configure ng Application Insights
-5. Gumawa ng service principal para sa authentication
-6. Bumuo ng `.env` file na may configuration
+Ipapatupad ng deployment script ang:
+1. Paglikha ng natatanging resource group
+2. Pag-deploy ng Microsoft Foundry resources
+3. Pag-deploy ng text-embedding-3-small na modelo
+4. Pag-configure ng Application Insights
+5. Paglikha ng service principal para sa authentication
+6. Pag-generate ng `.env` file na may configuration
 
 #### Opsyon B: Manual Deployment
 
-Kung mas gusto mo ang manual na kontrol o nabigo ang automated script:
+Kung mas gusto mong kontrolin manually o pumalya ang automated script:
 
 ```bash
-# Set variables
+# Itakda ang mga variable
 RESOURCE_GROUP="rg-zava-mcp-$(date +%s)"
 LOCATION="westus2"
 AI_PROJECT_NAME="zava-ai-project"
 
-# Create resource group
+# Gumawa ng pangkat ng mga resource
 az group create --name $RESOURCE_GROUP --location $LOCATION
 
-# Deploy main template
+# I-deploy ang pangunahing template
 az deployment group create \
   --resource-group $RESOURCE_GROUP \
   --template-file main.bicep \
@@ -362,13 +362,13 @@ az deployment group create \
 ### 3. I-verify ang Azure Deployment
 
 ```bash
-# Check resource group
+# Suriin ang grupo ng mga resources
 az group show --name $RESOURCE_GROUP --output table
 
-# List deployed resources
+# Ilista ang mga na-deploy na resources
 az resource list --resource-group $RESOURCE_GROUP --output table
 
-# Test AI service
+# Subukan ang serbisyo ng AI
 az cognitiveservices account show \
   --name "your-ai-service-name" \
   --resource-group $RESOURCE_GROUP
@@ -376,10 +376,10 @@ az cognitiveservices account show \
 
 ### 4. I-configure ang Environment Variables
 
-Pagkatapos ng deployment, dapat mayroon kang `.env` file. Tiyakin na naglalaman ito ng:
+Pagkatapos ng deployment, dapat mayroon kang `.env` file. Tsek kung ito ay naglalaman ng:
 
 ```bash
-# .env file contents
+# Nilalaman ng .env file
 PROJECT_ENDPOINT=https://your-project.cognitiveservices.azure.com/
 AZURE_OPENAI_ENDPOINT=https://your-openai.openai.azure.com/
 EMBEDDING_MODEL_DEPLOYMENT_NAME=text-embedding-3-small
@@ -388,7 +388,7 @@ AZURE_CLIENT_SECRET=your-client-secret
 AZURE_TENANT_ID=your-tenant-id
 APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=your-key;...
 
-# Database configuration (for development)
+# Konfigurasyon ng database (para sa pag-unlad)
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 POSTGRES_DB=zava
@@ -396,11 +396,11 @@ POSTGRES_USER=postgres
 POSTGRES_PASSWORD=your-secure-password
 ```
 
-## 🐳 Pag-set up ng Docker Environment
+## 🐳 Pag-setup ng Docker Environment
 
 ### 1. Unawain ang Docker Composition
 
-Ang ating development environment ay gumagamit ng Docker Compose:
+Gumagamit ang development environment namin ng Docker Compose:
 
 ```yaml
 # docker-compose.yml overview
@@ -429,54 +429,54 @@ services:
       - .env
 ```
 
-### 2. I-start ang Development Environment
+### 2. Simulan ang Development Environment
 
 ```bash
-# Ensure you're in the project root directory
+# Siguraduhing nasa root directory ng proyekto ka
 cd /path/to/MCP-Server-and-PostgreSQL-Sample-Retail
 
-# Start the services
+# Simulan ang mga serbisyo
 docker-compose up -d
 
-# Check service status
+# Suriin ang status ng serbisyo
 docker-compose ps
 
-# View logs
+# Tingnan ang mga log
 docker-compose logs -f
 ```
 
-### 3. I-verify ang Database Setup
+### 3. I-verify ang Setup ng Database
 
 ```bash
-# Connect to PostgreSQL container
+# Kumonekta sa PostgreSQL container
 docker-compose exec postgres psql -U postgres -d zava
 
-# Check database structure
+# Suriin ang istruktura ng database
 \dt retail.*
 
-# Verify sample data
+# Beripikahin ang sample na data
 SELECT COUNT(*) FROM retail.stores;
 SELECT COUNT(*) FROM retail.products;
 SELECT COUNT(*) FROM retail.orders;
 
-# Exit PostgreSQL
+# Lumabas sa PostgreSQL
 \q
 ```
 
 ### 4. Subukan ang MCP Server
 
 ```bash
-# Check MCP server health
+# Suriin ang kalusugan ng MCP server
 curl http://localhost:8000/health
 
-# Test basic MCP endpoint
+# Subukan ang pangunahing MCP endpoint
 curl -X POST http://localhost:8000/mcp \
   -H "Content-Type: application/json" \
   -H "x-rls-user-id: 00000000-0000-0000-0000-000000000000" \
   -d '{"method": "tools/list", "params": {}}'
 ```
 
-## 🔧 Konfigurasyon ng VS Code
+## 🔧 Pag-configure ng VS Code
 
 ### 1. I-configure ang MCP Integration
 
@@ -537,18 +537,18 @@ Gumawa ng VS Code MCP configuration:
    - I-type ang "AI Chat" at piliin ang "AI Chat: Open Chat"
 
 3. **Subukan ang MCP Server Connection**:
-   - Sa AI Chat, i-type ang `#zava` at piliin ang isa sa mga naka-configure na servers
-   - Magtanong: "Anong mga tables ang available sa database?"
-   - Dapat kang makatanggap ng sagot na naglilista ng mga retail database tables
+   - Sa AI Chat, i-type ang `#zava` at piliin ang isa sa mga naka-configure na server
+   - Itanong: "Anong mga table ang available sa database?"
+   - Dapat kang makatanggap ng sagot na naglalaman ng mga retail database tables
 
 ## ✅ Pag-validate ng Kapaligiran
 
-### 1. Comprehensive System Check
+### 1. Komprehensibong Pagsusuri ng Sistema
 
 Patakbuhin ang validation script na ito para i-verify ang iyong setup:
 
 ```bash
-# Create validation script
+# Gumawa ng script para sa beripikasyon
 cat > validate_setup.py << 'EOF'
 #!/usr/bin/env python3
 """
@@ -567,7 +567,7 @@ async def validate_environment():
     """Comprehensive environment validation."""
     results = {}
     
-    # Check Python version
+    # Suriin ang bersyon ng Python
     python_version = sys.version_info
     results['python'] = {
         'status': 'pass' if python_version >= (3, 8) else 'fail',
@@ -575,7 +575,7 @@ async def validate_environment():
         'required': '3.8+'
     }
     
-    # Check required packages
+    # Suriin ang mga kinakailangang pakete
     required_packages = ['fastmcp', 'asyncpg', 'azure-ai-projects']
     for package in required_packages:
         try:
@@ -584,7 +584,7 @@ async def validate_environment():
         except ImportError:
             results[f'package_{package}'] = {'status': 'fail', 'error': 'Not installed'}
     
-    # Check Docker
+    # Suriin ang Docker
     try:
         result = subprocess.run(['docker', '--version'], capture_output=True, text=True)
         results['docker'] = {
@@ -594,7 +594,7 @@ async def validate_environment():
     except FileNotFoundError:
         results['docker'] = {'status': 'fail', 'error': 'Docker not found'}
     
-    # Check Azure CLI
+    # Suriin ang Azure CLI
     try:
         result = subprocess.run(['az', '--version'], capture_output=True, text=True)
         results['azure_cli'] = {
@@ -604,7 +604,7 @@ async def validate_environment():
     except FileNotFoundError:
         results['azure_cli'] = {'status': 'fail', 'error': 'Azure CLI not found'}
     
-    # Check environment variables
+    # Suriin ang mga environment variable
     required_env_vars = [
         'PROJECT_ENDPOINT',
         'AZURE_OPENAI_ENDPOINT',
@@ -621,7 +621,7 @@ async def validate_environment():
             'value': '***' if value and 'SECRET' in var else value
         }
     
-    # Check database connection
+    # Suriin ang koneksyon sa database
     try:
         conn = await asyncpg.connect(
             host=os.getenv('POSTGRES_HOST', 'localhost'),
@@ -631,7 +631,7 @@ async def validate_environment():
             password=os.getenv('POSTGRES_PASSWORD', 'secure_password')
         )
         
-        # Test query
+        # Subukan ang query
         result = await conn.fetchval('SELECT COUNT(*) FROM retail.stores')
         await conn.close()
         
@@ -645,7 +645,7 @@ async def validate_environment():
             'error': str(e)
         }
     
-    # Check MCP server
+    # Suriin ang MCP server
     try:
         response = requests.get('http://localhost:8000/health', timeout=5)
         results['mcp_server'] = {
@@ -658,7 +658,7 @@ async def validate_environment():
             'error': str(e)
         }
     
-    # Check Azure AI service
+    # Suriin ang Azure AI service
     try:
         credential = DefaultAzureCredential()
         project_client = AIProjectClient(
@@ -666,7 +666,7 @@ async def validate_environment():
             credential=credential
         )
         
-        # This will fail if credentials are invalid
+        # Mabibigo ito kung mali ang mga kredensyal
         results['azure_ai'] = {'status': 'pass'}
         
     except Exception as e:
@@ -716,169 +716,171 @@ async def main():
 
 EOF
 
-# Run validation
+# Patakbuhin ang beripikasyon
 python validate_setup.py
 ```
 
-### 2. Manual Validation Checklist
+### 2. Tseklist para sa Manwal na Pag-validate
 
-**✅ Pangunahing Tools**
-- [ ] Na-install at tumatakbo ang Docker version 20.10+
-- [ ] Na-install at authenticated ang Azure CLI 2.40+
-- [ ] Na-install ang Python 3.8+ na may pip
-- [ ] Na-install ang Git 2.30+
-- [ ] Na-install ang VS Code na may kinakailangang extensions
+**✅ Pangunahing Mga Tools**
+- [ ] Naka-install at gumagana ang Docker bersyon 20.10+
+- [ ] Nakainstall at authenticated ang Azure CLI 2.40+
+- [ ] Naka-install ang Python 3.8+ kasama ang pip
+- [ ] Naka-install ang Git 2.30+
+- [ ] Naka-install ang VS Code kasama ang kinakailangang extensions
 
 **✅ Azure Resources**
-- [ ] Matagumpay na nagawa ang resource group
+- [ ] Matagumpay ang paglikha ng resource group
 - [ ] Na-deploy ang AI Foundry project
 - [ ] Na-deploy ang OpenAI text-embedding-3-small model
 - [ ] Na-configure ang Application Insights
-- [ ] Nilikha ang service principal na may tamang permissions
+- [ ] Nalikha ang service principal na may tamang permiso
 
-**✅ Konfigurasyon ng Kapaligiran**
-- [ ] Nilikha ang `.env` file na may lahat ng kinakailangang variables
-- [ ] Gumagana ang Azure credentials (subukan gamit ang `az account show`)
-- [ ] Tumatakbo at accessible ang PostgreSQL container
-- [ ] Na-load ang sample data sa database
+**✅ Configuration ng Kapaligiran**
+- [ ] Nalikha ang `.env` file na may lahat ng kinakailangang variables
+- [ ] Gumagana ang Azure credentials (subukang `az account show`)
+- [ ] Tumakbo at na-access ang PostgreSQL container
+- [ ] Nakapag-load ng sample data sa database
 
-**✅ VS Code Integration**
+**✅ Integrasyon ng VS Code**
 - [ ] Na-configure ang `.vscode/mcp.json`
-- [ ] Na-set ang Python interpreter sa virtual environment
+- [ ] Nag-set ng Python interpreter sa virtual environment
 - [ ] Lumalabas ang MCP servers sa AI Chat
-- [ ] Maaaring magpatakbo ng test queries sa AI Chat
+- [ ] Nakakapag-execute ng test queries sa pamamagitan ng AI Chat
 
-## 🛠️ Pag-troubleshoot ng Karaniwang Isyu
+## 🛠️ Pag-troubleshoot ng Karaniwang Mga Isyu
 
 ### Mga Isyu sa Docker
 
-**Problema**: Hindi mag-start ang Docker containers
+**Problema**: Hindi nagsisimula ang mga Docker containers  
 ```bash
-# Check Docker service status
+# Suriin ang status ng Docker service
 docker info
 
-# Check available resources
+# Suriin ang magagamit na mga resources
 docker system df
 
-# Clean up if needed
+# Linisin kung kinakailangan
 docker system prune -f
 
-# Restart Docker Desktop (Windows/macOS)
-# Or restart Docker service (Linux)
+# I-restart ang Docker Desktop (Windows/macOS)
+# O i-restart ang Docker service (Linux)
 sudo systemctl restart docker
 ```
-
-**Problema**: Nabigo ang PostgreSQL connection
+  
+**Problema**: Nabibigo ang koneksyon sa PostgreSQL  
 ```bash
-# Check container logs
+# Suriin ang mga log ng lalagyan
 docker-compose logs postgres
 
-# Verify container is healthy
+# Tiyakin na malusog ang lalagyan
 docker-compose ps
 
-# Test direct connection
+# Subukan ang direktang koneksyon
 docker-compose exec postgres psql -U postgres -d zava -c "SELECT 1;"
 ```
-
+  
 ### Mga Isyu sa Azure Deployment
 
-**Problema**: Nabigo ang Azure deployment
+**Problema**: Nabibigo ang Azure deployment  
 ```bash
-# Check Azure CLI authentication
+# Suriin ang Azure CLI pagpapatotoo
 az account show
 
-# Verify subscription permissions
+# Patunayan ang mga permiso sa subscription
 az role assignment list --assignee $(az account show --query user.name -o tsv)
 
-# Check resource provider registration
+# Suriin ang pagpaparehistro ng resource provider
 az provider register --namespace Microsoft.CognitiveServices
 az provider register --namespace Microsoft.Insights
 ```
-
-**Problema**: Nabigo ang authentication ng AI service
+  
+**Problema**: Nabibigo ang AI service authentication  
 ```bash
-# Test service principal
+# Subukan ang service principal
 az login --service-principal \
   --username $AZURE_CLIENT_ID \
   --password $AZURE_CLIENT_SECRET \
   --tenant $AZURE_TENANT_ID
 
-# Verify AI service deployment
+# Suriin ang deployment ng AI service
 az cognitiveservices account list --query "[].{Name:name,Kind:kind,Location:location}"
 ```
-
+  
 ### Mga Isyu sa Python Environment
 
-**Problema**: Nabigo ang pag-install ng package
+**Problema**: Nabibigo ang pag-install ng package  
 ```bash
-# Upgrade pip and setuptools
+# I-upgrade ang pip at setuptools
 python -m pip install --upgrade pip setuptools wheel
 
-# Clear pip cache
+# Linisin ang cache ng pip
 pip cache purge
 
-# Install packages one by one to identify issues
+# I-install ang mga pakete isa-isa upang matukoy ang mga problema
 pip install fastmcp
 pip install asyncpg
 pip install azure-ai-projects
 ```
-
-**Problema**: Hindi mahanap ng VS Code ang Python interpreter
+  
+**Problema**: Hindi makita ng VS Code ang Python interpreter  
 ```bash
-# Show Python interpreter paths
+# Ipakita ang mga landas ng Python interpreter
 which python  # macOS/Linux
 where python  # Windows
 
-# Activate virtual environment first
+# I-activate muna ang virtual environment
 source mcp-env/bin/activate  # macOS/Linux
 mcp-env\Scripts\activate     # Windows
 
-# Then open VS Code
+# Pagkatapos ay buksan ang VS Code
 code .
 ```
+  
+## 🎯 Mga Pangunahing Punto
 
-## 🎯 Mga Pangunahing Puntos
+Pagkatapos makumpleto ang lab na ito, dapat ay mayroon ka:
 
-Pagkatapos makumpleto ang lab na ito, dapat mayroon ka ng:
+✅ **Kompletong Development Environment**: Lahat ng tools naka-install at naka-configure  
+✅ **Na-deploy na Azure Resources**: AI services at mga sumusuportang infrastructure  
+✅ **Tumatakbong Docker Environment**: PostgreSQL at MCP server containers  
+✅ **Integrasyon ng VS Code**: MCP servers naka-configure at naa-access  
+✅ **Na-validate na Setup**: Lahat ng bahagi nasubukan at nagtutulungan  
+✅ **Kaalaman sa Pag-troubleshoot**: Karaniwang problema at solusyon  
 
-✅ **Kumpletong Development Environment**: Na-install at na-configure ang lahat ng tools  
-✅ **Na-deploy na Azure Resources**: AI services at mga supporting infrastructure  
-✅ **Tumatakbo ang Docker Environment**: PostgreSQL at MCP server containers  
-✅ **VS Code Integration**: Na-configure at accessible ang MCP servers  
-✅ **Na-validate na Setup**: Nasubukan at gumagana ang lahat ng components  
-✅ **Kaalaman sa Troubleshooting**: Mga karaniwang isyu at solusyon  
-
-## 🚀 Ano ang Susunod
+## 🚀 Ano Ang Susunod
 
 Kapag handa na ang iyong environment, magpatuloy sa **[Lab 04: Database Design and Schema](../04-Database/README.md)** upang:
 
-- Tuklasin ang detalye ng retail database schema
-- Maunawaan ang multi-tenant data modeling
+- Tuklasin nang detalyado ang retail database schema
+- Unawain ang multi-tenant data modeling
 - Matutunan ang implementasyon ng Row Level Security
-- Magtrabaho gamit ang sample retail data
+- Magtrabaho gamit ang mga sample retail data
 
-## 📚 Karagdagang Resources
+## 📚 Karagdagang Mga Resources
 
 ### Mga Development Tools
-- [Docker Documentation](https://docs.docker.com/) - Kumpletong reference para sa Docker
-- [Azure CLI Reference](https://docs.microsoft.com/cli/azure/) - Mga Azure CLI commands
-- [VS Code Documentation](https://code.visualstudio.com/docs) - Konfigurasyon ng editor at extensions
+- [Docker Documentation](https://docs.docker.com/) - Kumpletong sanggunian ng Docker  
+- [Azure CLI Reference](https://docs.microsoft.com/cli/azure/) - Mga utos ng Azure CLI  
+- [VS Code Documentation](https://code.visualstudio.com/docs) - Configuration ng editor at mga extensions  
 
-### Mga Azure Services
-- [Azure AI Foundry Documentation](https://docs.microsoft.com/azure/ai-foundry/) - Konfigurasyon ng AI service
-- [Azure OpenAI Service](https://docs.microsoft.com/azure/cognitive-services/openai/) - Deployment ng AI model
-- [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) - Setup ng monitoring
+### Azure Services
+- [Microsoft Foundry Documentation](https://docs.microsoft.com/azure/ai-foundry/) - Configuration ng AI service  
+- [Azure OpenAI Service](https://docs.microsoft.com/azure/cognitive-services/openai/) - Pag-deploy ng AI model  
+- [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) - Setup ng monitoring  
 
 ### Python Development
-- [Python Virtual Environments](https://docs.python.org/3/tutorial/venv.html) - Pamamahala ng environment
-- [AsyncIO Documentation](https://docs.python.org/3/library/asyncio.html) - Mga pattern sa async programming
-- [FastAPI Documentation](https://fastapi.tiangolo.com/) - Mga pattern sa web framework
+- [Python Virtual Environments](https://docs.python.org/3/tutorial/venv.html) - Pamamahala ng environment  
+- [AsyncIO Documentation](https://docs.python.org/3/library/asyncio.html) - Mga pattern sa async programming  
+- [FastAPI Documentation](https://fastapi.tiangolo.com/) - Mga pattern ng web framework  
 
 ---
 
-**Susunod**: Handa na ang environment? Magpatuloy sa [Lab 04: Database Design and Schema](../04-Database/README.md)
+**Susunod**: Handang na ba ang environment? Magpatuloy sa [Lab 04: Database Design and Schema](../04-Database/README.md)
 
 ---
 
-**Paunawa**:  
-Ang dokumentong ito ay isinalin gamit ang AI translation service na [Co-op Translator](https://github.com/Azure/co-op-translator). Bagama't sinisikap naming maging tumpak, mangyaring tandaan na ang mga awtomatikong pagsasalin ay maaaring maglaman ng mga pagkakamali o hindi pagkakatugma. Ang orihinal na dokumento sa kanyang katutubong wika ang dapat ituring na opisyal na sanggunian. Para sa mahalagang impormasyon, inirerekomenda ang propesyonal na pagsasalin ng tao. Hindi kami mananagot sa anumang hindi pagkakaunawaan o maling interpretasyon na dulot ng paggamit ng pagsasaling ito.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Pagtatanggi**:
+Ang dokumentong ito ay isinalin gamit ang serbisyo ng AI translation na [Co-op Translator](https://github.com/Azure/co-op-translator). Bagama't nagsusumikap kami para sa katumpakan, pakatandaan na ang awtomatikong pagsasalin ay maaaring maglaman ng mga pagkakamali o hindi pagkakatugma. Ang orihinal na dokumento sa orihinal nitong wika ang dapat ituring na pangunahing sanggunian. Para sa mahahalagang impormasyon, inirerekomenda ang propesyonal na pagsasalin ng tao. Hindi kami mananagot sa anumang maling pagkakaintindi o maling interpretasyon na nagmula sa paggamit ng pagsasaling ito.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

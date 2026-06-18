@@ -2,11 +2,11 @@
 
 ## 🎯 Wat Deze Lab Behandelt
 
-Deze praktische lab begeleidt je bij het opzetten van een complete ontwikkelomgeving voor het bouwen van MCP-servers met PostgreSQL-integratie. Je configureert alle benodigde tools, implementeert Azure-resources en valideert je setup voordat je verder gaat met de implementatie.
+Deze praktijkgerichte lab begeleidt je bij het instellen van een volledige ontwikkelomgeving voor het bouwen van MCP-servers met PostgreSQL-integratie. Je configureert alle benodigde tools, zet Azure-resources in en valideert je setup voordat je verdergaat met de implementatie.
 
 ## Overzicht
 
-Een goede ontwikkelomgeving is essentieel voor succesvolle MCP-serverontwikkeling. Deze lab biedt stapsgewijze instructies voor het instellen van Docker, Azure-services, ontwikkeltools en het valideren dat alles correct samenwerkt.
+Een juiste ontwikkelomgeving is cruciaal voor succesvolle MCP-serverontwikkeling. Deze lab biedt stapsgewijze instructies voor het installeren van Docker, Azure-services, ontwikkeltools en het valideren dat alles correct samenwerkt.
 
 Aan het einde van deze lab heb je een volledig functionele ontwikkelomgeving klaar voor het bouwen van de Zava Retail MCP-server.
 
@@ -14,37 +14,37 @@ Aan het einde van deze lab heb je een volledig functionele ontwikkelomgeving kla
 
 Aan het einde van deze lab kun je:
 
-- **Installeren en configureren** van alle benodigde ontwikkeltools
-- **Azure-resources implementeren** die nodig zijn voor de MCP-server
+- **Alle benodigde ontwikkeltools installeren en configureren**
+- **Azure-resources inzetten** die nodig zijn voor de MCP-server
 - **Docker-containers instellen** voor PostgreSQL en de MCP-server
-- **Valideren** van je omgevingsinstelling met testverbindingen
-- **Problemen oplossen** met veelvoorkomende installatie- en configuratieproblemen
-- **Begrijpen** van de ontwikkelworkflow en bestandsstructuur
+- **Je omgeving valideren** met testverbindingen
+- **Veelvoorkomende configuratie- en setupproblemen oplossen**
+- **De ontwikkelworkflow en bestandsstructuur begrijpen**
 
-## 📋 Controle van Vereisten
+## 📋 Voorvereistencontrole
 
-Voordat je begint, zorg ervoor dat je beschikt over:
+Zorg ervoor dat je vóór de start beschikt over:
 
 ### Vereiste Kennis
-- Basisgebruik van de commandoregel (Windows Command Prompt/PowerShell)
+- Basiskennis van commandoregel (Windows Command Prompt/PowerShell)
 - Begrip van omgevingsvariabelen
-- Bekendheid met versiebeheer via Git
+- Bekendheid met Git versiebeheer
 - Basisconcepten van Docker (containers, images, volumes)
 
-### Systeemvereisten
+### Systeemeisen
 - **Besturingssysteem**: Windows 10/11, macOS of Linux
 - **RAM**: Minimaal 8GB (16GB aanbevolen)
-- **Opslag**: Minimaal 10GB vrije ruimte
+- **Opslag**: Minstens 10GB vrije ruimte
 - **Netwerk**: Internetverbinding voor downloads en Azure-implementatie
 
 ### Accountvereisten
-- **Azure-abonnement**: Gratis tier is voldoende
+- **Azure-abonnement**: Gratis laag is voldoende
 - **GitHub-account**: Voor toegang tot de repository
 - **Docker Hub-account**: (Optioneel) Voor het publiceren van aangepaste images
 
-## 🛠️ Installatie van Tools
+## 🛠️ Tool Installatie
 
-### 1. Installeer Docker Desktop
+### 1. Docker Desktop Installeren
 
 Docker biedt de containeromgeving voor onze ontwikkelsetup.
 
@@ -58,9 +58,9 @@ Docker biedt de containeromgeving voor onze ontwikkelsetup.
    ```
 
 2. **Installeren en Configureren**:
-   - Voer de installer uit als Administrator
-   - Schakel WSL 2-integratie in wanneer hierom wordt gevraagd
-   - Herstart je computer na voltooiing van de installatie
+   - Start de installer als Administrator
+   - Schakel WSL 2-integratie in wanneer daarom wordt gevraagd
+   - Herstart je computer wanneer de installatie is voltooid
 
 3. **Installatie Verifiëren**:
    ```cmd
@@ -70,16 +70,16 @@ Docker biedt de containeromgeving voor onze ontwikkelsetup.
 
 #### macOS Installatie
 
-1. **Downloaden en Installeren**:
+1. **Download en Installeer**:
    ```bash
-   # Download from https://desktop.docker.com/mac/stable/Docker.dmg
-   # Or use Homebrew
+   # Download van https://desktop.docker.com/mac/stable/Docker.dmg
+   # Of gebruik Homebrew
    brew install --cask docker
    ```
 
-2. **Start Docker Desktop**:
-   - Start Docker Desktop vanuit Applicaties
-   - Voltooi de initiële setup-wizard
+2. **Docker Desktop Starten**:
+   - Start Docker Desktop vanuit de map Applications
+   - Voltooi de eerste setup wizard
 
 3. **Installatie Verifiëren**:
    ```bash
@@ -89,25 +89,25 @@ Docker biedt de containeromgeving voor onze ontwikkelsetup.
 
 #### Linux Installatie
 
-1. **Installeer Docker Engine**:
+1. **Docker Engine Installeren**:
    ```bash
    # Ubuntu/Debian
    curl -fsSL https://get.docker.com -o get-docker.sh
    sudo sh get-docker.sh
    sudo usermod -aG docker $USER
    
-   # Log out and back in for group changes to take effect
+   # Log uit en weer in om groepswijzigingen van kracht te laten worden
    ```
 
-2. **Installeer Docker Compose**:
+2. **Docker Compose Installeren**:
    ```bash
    sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
    sudo chmod +x /usr/local/bin/docker-compose
    ```
 
-### 2. Installeer Azure CLI
+### 2. Azure CLI Installeren
 
-De Azure CLI maakt implementatie en beheer van Azure-resources mogelijk.
+De Azure CLI maakt het mogelijk Azure-resources in te zetten en te beheren.
 
 #### Windows Installatie
 
@@ -121,10 +121,10 @@ winget install Microsoft.AzureCLI
 #### macOS Installatie
 
 ```bash
-# Using Homebrew
+# Homebrew gebruiken
 brew install azure-cli
 
-# Or using installer
+# Of de installer gebruiken
 curl -L https://aka.ms/InstallAzureCli | bash
 ```
 
@@ -142,18 +142,18 @@ sudo dnf install azure-cli
 #### Verifiëren en Authenticeren
 
 ```bash
-# Check installation
+# Controleer installatie
 az version
 
-# Login to Azure
+# Log in op Azure
 az login
 
-# Set default subscription (if you have multiple)
+# Stel standaardabonnement in (als u er meerdere heeft)
 az account list --output table
 az account set --subscription "Your-Subscription-Name"
 ```
 
-### 3. Installeer Git
+### 3. Git Installeren
 
 Git is nodig voor het klonen van de repository en versiebeheer.
 
@@ -169,7 +169,7 @@ winget install Git.Git
 #### macOS
 
 ```bash
-# Git is usually pre-installed, but you can update via Homebrew
+# Git is meestal vooraf geïnstalleerd, maar je kunt het bijwerken via Homebrew
 brew install git
 ```
 
@@ -183,7 +183,7 @@ sudo apt update && sudo apt install git
 sudo dnf install git
 ```
 
-### 4. Installeer VS Code
+### 4. VS Code Installeren
 
 Visual Studio Code biedt de geïntegreerde ontwikkelomgeving met MCP-ondersteuning.
 
@@ -205,7 +205,7 @@ sudo snap install code --classic
 Installeer deze VS Code-extensies:
 
 ```bash
-# Install via command line
+# Installeren via de opdrachtregel
 code --install-extension ms-python.python
 code --install-extension ms-vscode.vscode-json
 code --install-extension ms-azuretools.vscode-docker
@@ -221,9 +221,9 @@ Of installeer via VS Code:
    - **Azure Account** (Microsoft)
    - **JSON** (Microsoft)
 
-### 5. Installeer Python
+### 5. Python Installeren
 
-Python 3.8+ is vereist voor MCP-serverontwikkeling.
+Python 3.8+ is vereist voor MCP-server ontwikkeling.
 
 #### Windows
 
@@ -237,7 +237,7 @@ winget install Python.Python.3.11
 #### macOS
 
 ```bash
-# Using Homebrew
+# Homebrew gebruiken
 brew install python@3.11
 ```
 
@@ -254,32 +254,32 @@ sudo dnf install python3.11 python3.11-pip
 #### Installatie Verifiëren
 
 ```bash
-python --version  # Should show Python 3.11.x
-pip --version      # Should show pip version
+python --version  # Moet Python 3.11.x tonen
+pip --version      # Moet pip-versie tonen
 ```
 
-## 🚀 Projectinstelling
+## 🚀 Project Setup
 
-### 1. Clone de Repository
+### 1. Repository Klonen
 
 ```bash
-# Clone the main repository
+# Kloneer de hoofdrepository
 git clone https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail.git
 
-# Navigate to the project directory
+# Navigeer naar de projectmap
 cd MCP-Server-and-PostgreSQL-Sample-Retail
 
-# Verify repository structure
+# Verifieer de structuur van de repository
 ls -la
 ```
 
-### 2. Maak een Python Virtuele Omgeving
+### 2. Python Virtuele Omgeving Maken
 
 ```bash
-# Create virtual environment
+# Maak virtuele omgeving aan
 python -m venv mcp-env
 
-# Activate virtual environment
+# Activeer virtuele omgeving
 # Windows
 mcp-env\Scripts\activate
 
@@ -290,37 +290,37 @@ source mcp-env/bin/activate
 python -m pip install --upgrade pip
 ```
 
-### 3. Installeer Python-afhankelijkheden
+### 3. Python Dependencies Installeren
 
 ```bash
-# Install development dependencies
+# Installeer ontwikkelingsafhankelijkheden
 pip install -r requirements.lock.txt
 
-# Verify key packages
+# Controleer belangrijke pakketten
 pip list | grep fastmcp
 pip list | grep asyncpg
 pip list | grep azure
 ```
 
-## ☁️ Implementatie van Azure-resources
+## ☁️ Azure Resource-Implementatie
 
-### 1. Begrijp Resourcevereisten
+### 1. Begrijp Resourcebehoeften
 
-Onze MCP-server vereist de volgende Azure-resources:
+Onze MCP-server heeft de volgende Azure-resources nodig:
 
 | **Resource** | **Doel** | **Geschatte Kosten** |
 |--------------|----------|----------------------|
-| **Azure AI Foundry** | Hosting en beheer van AI-modellen | $10-50/maand |
-| **OpenAI-implementatie** | Tekstembedding-model (text-embedding-3-small) | $5-20/maand |
+| **Microsoft Foundry** | AI modelhosting en -beheer | $10-50/maand |
+| **OpenAI Implementatie** | Tekst embedden model (text-embedding-3-small) | $5-20/maand |
 | **Application Insights** | Monitoring en telemetrie | $5-15/maand |
-| **Resourcegroep** | Organisatie van resources | Gratis |
+| **Resourcegroep** | Resource organisatie | Gratis |
 
-### 2. Implementeer Azure-resources
+### 2. Azure Resources Implementeren
 
 #### Optie A: Geautomatiseerde Implementatie (Aanbevolen)
 
 ```bash
-# Navigate to infrastructure directory
+# Navigeer naar de infrastructuurmap
 cd infra
 
 # Windows - PowerShell
@@ -331,27 +331,27 @@ cd infra
 ```
 
 Het implementatiescript zal:
-1. Een unieke resourcegroep maken
-2. Azure AI Foundry-resources implementeren
-3. Het text-embedding-3-small model implementeren
+1. Een unieke resourcegroep aanmaken
+2. Microsoft Foundry-resources uitrollen
+3. Het text-embedding-3-small model uitrollen
 4. Application Insights configureren
 5. Een serviceprincipal maken voor authenticatie
-6. Een `.env`-bestand genereren met configuratie
+6. `.env` bestand genereren met configuratie
 
 #### Optie B: Handmatige Implementatie
 
-Als je de voorkeur geeft aan handmatige controle of het geautomatiseerde script faalt:
+Als je liever handmatig controleert of als het geautomatiseerde script faalt:
 
 ```bash
-# Set variables
+# Stel variabelen in
 RESOURCE_GROUP="rg-zava-mcp-$(date +%s)"
 LOCATION="westus2"
 AI_PROJECT_NAME="zava-ai-project"
 
-# Create resource group
+# Maak resourcegroep aan
 az group create --name $RESOURCE_GROUP --location $LOCATION
 
-# Deploy main template
+# Implementeer hoofdtemplate
 az deployment group create \
   --resource-group $RESOURCE_GROUP \
   --template-file main.bicep \
@@ -359,27 +359,27 @@ az deployment group create \
   --parameters resourcePrefix="zava-mcp"
 ```
 
-### 3. Verifieer Azure-implementatie
+### 3. Azure-implementatie Verifiëren
 
 ```bash
-# Check resource group
+# Controleer resourcegroep
 az group show --name $RESOURCE_GROUP --output table
 
-# List deployed resources
+# Lijst van gedeployde resources
 az resource list --resource-group $RESOURCE_GROUP --output table
 
-# Test AI service
+# Test AI-service
 az cognitiveservices account show \
   --name "your-ai-service-name" \
   --resource-group $RESOURCE_GROUP
 ```
 
-### 4. Configureer Omgevingsvariabelen
+### 4. Omgevingsvariabelen Configureren
 
-Na implementatie zou je een `.env`-bestand moeten hebben. Controleer of het bevat:
+Na implementatie zou je een `.env` bestand moeten hebben. Controleer of het bevat:
 
 ```bash
-# .env file contents
+# Inhoud van het .env-bestand
 PROJECT_ENDPOINT=https://your-project.cognitiveservices.azure.com/
 AZURE_OPENAI_ENDPOINT=https://your-openai.openai.azure.com/
 EMBEDDING_MODEL_DEPLOYMENT_NAME=text-embedding-3-small
@@ -388,7 +388,7 @@ AZURE_CLIENT_SECRET=your-client-secret
 AZURE_TENANT_ID=your-tenant-id
 APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=your-key;...
 
-# Database configuration (for development)
+# Databaseconfiguratie (voor ontwikkeling)
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 POSTGRES_DB=zava
@@ -396,11 +396,11 @@ POSTGRES_USER=postgres
 POSTGRES_PASSWORD=your-secure-password
 ```
 
-## 🐳 Docker Omgevingsinstelling
+## 🐳 Docker Omgeving Setup
 
-### 1. Begrijp Docker-compositie
+### 1. Begrijp Docker Composition
 
-Onze ontwikkelomgeving maakt gebruik van Docker Compose:
+Onze ontwikkelomgeving gebruikt Docker Compose:
 
 ```yaml
 # docker-compose.yml overview
@@ -432,44 +432,44 @@ services:
 ### 2. Start de Ontwikkelomgeving
 
 ```bash
-# Ensure you're in the project root directory
+# Zorg ervoor dat je in de hoofdmap van het project bent
 cd /path/to/MCP-Server-and-PostgreSQL-Sample-Retail
 
-# Start the services
+# Start de services
 docker-compose up -d
 
-# Check service status
+# Controleer de status van de service
 docker-compose ps
 
-# View logs
+# Bekijk logs
 docker-compose logs -f
 ```
 
-### 3. Verifieer Database-instelling
+### 3. Verifieer Database Setup
 
 ```bash
-# Connect to PostgreSQL container
+# Verbinden met PostgreSQL-container
 docker-compose exec postgres psql -U postgres -d zava
 
-# Check database structure
+# Controleer database structuur
 \dt retail.*
 
-# Verify sample data
+# Controleer voorbeeldgegevens
 SELECT COUNT(*) FROM retail.stores;
 SELECT COUNT(*) FROM retail.products;
 SELECT COUNT(*) FROM retail.orders;
 
-# Exit PostgreSQL
+# Verlaat PostgreSQL
 \q
 ```
 
-### 4. Test MCP-server
+### 4. Test MCP Server
 
 ```bash
-# Check MCP server health
+# Controleer de gezondheid van de MCP-server
 curl http://localhost:8000/health
 
-# Test basic MCP endpoint
+# Test de basis MCP-eindpunt
 curl -X POST http://localhost:8000/mcp \
   -H "Content-Type: application/json" \
   -H "x-rls-user-id: 00000000-0000-0000-0000-000000000000" \
@@ -478,9 +478,9 @@ curl -X POST http://localhost:8000/mcp \
 
 ## 🔧 VS Code Configuratie
 
-### 1. Configureer MCP-integratie
+### 1. MCP Integratie Configureren
 
-Maak VS Code MCP-configuratie:
+Maak VS Code MCP configuratie:
 
 ```json
 // .vscode/mcp.json
@@ -506,7 +506,7 @@ Maak VS Code MCP-configuratie:
 }
 ```
 
-### 2. Configureer Python-omgeving
+### 2. Python Omgeving Configureren
 
 ```json
 // .vscode/settings.json
@@ -525,7 +525,7 @@ Maak VS Code MCP-configuratie:
 }
 ```
 
-### 3. Test VS Code-integratie
+### 3. Test VS Code Integratie
 
 1. **Open het project in VS Code**:
    ```bash
@@ -536,19 +536,19 @@ Maak VS Code MCP-configuratie:
    - Druk op `Ctrl+Shift+P` (Windows/Linux) of `Cmd+Shift+P` (macOS)
    - Typ "AI Chat" en selecteer "AI Chat: Open Chat"
 
-3. **Test MCP-serververbinding**:
-   - In AI Chat, typ `#zava` en selecteer een van de geconfigureerde servers
+3. **Test MCP Serververbinding**:
+   - Typ in AI Chat `#zava` en selecteer een van de geconfigureerde servers
    - Vraag: "Welke tabellen zijn beschikbaar in de database?"
-   - Je zou een antwoord moeten ontvangen met een lijst van de retail-databasetabellen
+   - Je ontvangt een antwoord met een lijst van de retail database tabellen
 
-## ✅ Validatie van de Omgeving
+## ✅ Omgeving Validatie
 
-### 1. Uitgebreide Systeemcontrole
+### 1. Uitgebreide System Check
 
-Voer dit validatiescript uit om je setup te verifiëren:
+Voer dit validatiescript uit om je setup te controleren:
 
 ```bash
-# Create validation script
+# Maak validatiescript
 cat > validate_setup.py << 'EOF'
 #!/usr/bin/env python3
 """
@@ -567,7 +567,7 @@ async def validate_environment():
     """Comprehensive environment validation."""
     results = {}
     
-    # Check Python version
+    # Controleer Python-versie
     python_version = sys.version_info
     results['python'] = {
         'status': 'pass' if python_version >= (3, 8) else 'fail',
@@ -575,7 +575,7 @@ async def validate_environment():
         'required': '3.8+'
     }
     
-    # Check required packages
+    # Controleer vereiste pakketten
     required_packages = ['fastmcp', 'asyncpg', 'azure-ai-projects']
     for package in required_packages:
         try:
@@ -584,7 +584,7 @@ async def validate_environment():
         except ImportError:
             results[f'package_{package}'] = {'status': 'fail', 'error': 'Not installed'}
     
-    # Check Docker
+    # Controleer Docker
     try:
         result = subprocess.run(['docker', '--version'], capture_output=True, text=True)
         results['docker'] = {
@@ -594,7 +594,7 @@ async def validate_environment():
     except FileNotFoundError:
         results['docker'] = {'status': 'fail', 'error': 'Docker not found'}
     
-    # Check Azure CLI
+    # Controleer Azure CLI
     try:
         result = subprocess.run(['az', '--version'], capture_output=True, text=True)
         results['azure_cli'] = {
@@ -604,7 +604,7 @@ async def validate_environment():
     except FileNotFoundError:
         results['azure_cli'] = {'status': 'fail', 'error': 'Azure CLI not found'}
     
-    # Check environment variables
+    # Controleer omgevingsvariabelen
     required_env_vars = [
         'PROJECT_ENDPOINT',
         'AZURE_OPENAI_ENDPOINT',
@@ -621,7 +621,7 @@ async def validate_environment():
             'value': '***' if value and 'SECRET' in var else value
         }
     
-    # Check database connection
+    # Controleer databaseverbinding
     try:
         conn = await asyncpg.connect(
             host=os.getenv('POSTGRES_HOST', 'localhost'),
@@ -645,7 +645,7 @@ async def validate_environment():
             'error': str(e)
         }
     
-    # Check MCP server
+    # Controleer MCP-server
     try:
         response = requests.get('http://localhost:8000/health', timeout=5)
         results['mcp_server'] = {
@@ -658,7 +658,7 @@ async def validate_environment():
             'error': str(e)
         }
     
-    # Check Azure AI service
+    # Controleer Azure AI-service
     try:
         credential = DefaultAzureCredential()
         project_client = AIProjectClient(
@@ -666,7 +666,7 @@ async def validate_environment():
             credential=credential
         )
         
-        # This will fail if credentials are invalid
+        # Dit mislukt als de referenties ongeldig zijn
         results['azure_ai'] = {'status': 'pass'}
         
     except Exception as e:
@@ -716,7 +716,7 @@ async def main():
 
 EOF
 
-# Run validation
+# Voer validatie uit
 python validate_setup.py
 ```
 
@@ -724,161 +724,163 @@ python validate_setup.py
 
 **✅ Basis Tools**
 - [ ] Docker versie 20.10+ geïnstalleerd en actief
-- [ ] Azure CLI 2.40+ geïnstalleerd en geauthenticeerd
+- [ ] Azure CLI 2.40+ geïnstalleerd en ingelogd
 - [ ] Python 3.8+ met pip geïnstalleerd
 - [ ] Git 2.30+ geïnstalleerd
-- [ ] VS Code met vereiste extensies
+- [ ] VS Code met benodigde extensies
 
-**✅ Azure-resources**
+**✅ Azure Resources**
 - [ ] Resourcegroep succesvol aangemaakt
-- [ ] AI Foundry-project geïmplementeerd
-- [ ] OpenAI text-embedding-3-small model geïmplementeerd
+- [ ] AI Foundry project uitgerold
+- [ ] OpenAI text-embedding-3-small model uitgerold
 - [ ] Application Insights geconfigureerd
-- [ ] Serviceprincipal gemaakt met de juiste permissies
+- [ ] Serviceprincipal aangemaakt met juiste permissies
 
 **✅ Omgevingsconfiguratie**
-- [ ] `.env`-bestand aangemaakt met alle vereiste variabelen
-- [ ] Azure-credentials werken (test met `az account show`)
-- [ ] PostgreSQL-container actief en toegankelijk
+- [ ] `.env` bestand aangemaakt met alle variabelen
+- [ ] Azure credentials werken (test met `az account show`)
+- [ ] PostgreSQL container draait en is toegankelijk
 - [ ] Voorbeelddata geladen in database
 
-**✅ VS Code-integratie**
+**✅ VS Code Integratie**
 - [ ] `.vscode/mcp.json` geconfigureerd
-- [ ] Python-interpreter ingesteld op virtuele omgeving
+- [ ] Python interpreter ingesteld op virtuele omgeving
 - [ ] MCP-servers verschijnen in AI Chat
-- [ ] Testqueries kunnen worden uitgevoerd via AI Chat
+- [ ] Test queries kunnen uitgevoerd worden via AI Chat
 
-## 🛠️ Veelvoorkomende Problemen Oplossen
+## 🛠️ Veelvoorkomende Problemen en Oplossingen
 
 ### Docker Problemen
 
-**Probleem**: Docker-containers starten niet
+**Probleem**: Docker containers starten niet
 ```bash
-# Check Docker service status
+# Controleer de status van de Docker-service
 docker info
 
-# Check available resources
+# Controleer beschikbare bronnen
 docker system df
 
-# Clean up if needed
+# Opruimen indien nodig
 docker system prune -f
 
-# Restart Docker Desktop (Windows/macOS)
-# Or restart Docker service (Linux)
+# Herstart Docker Desktop (Windows/macOS)
+# Of herstart de Docker-service (Linux)
 sudo systemctl restart docker
 ```
 
-**Probleem**: PostgreSQL-verbinding mislukt
+**Probleem**: PostgreSQL verbinding mislukt
 ```bash
-# Check container logs
+# Controleer containerlogboeken
 docker-compose logs postgres
 
-# Verify container is healthy
+# Controleer of container gezond is
 docker-compose ps
 
-# Test direct connection
+# Test directe verbinding
 docker-compose exec postgres psql -U postgres -d zava -c "SELECT 1;"
 ```
 
-### Azure Implementatieproblemen
+### Azure Implementatie Problemen
 
-**Probleem**: Azure-implementatie mislukt
+**Probleem**: Azure implementatie faalt
 ```bash
-# Check Azure CLI authentication
+# Controleer Azure CLI-authenticatie
 az account show
 
-# Verify subscription permissions
+# Verifieer abonnementstoestemmingen
 az role assignment list --assignee $(az account show --query user.name -o tsv)
 
-# Check resource provider registration
+# Controleer registratie van resourceprovider
 az provider register --namespace Microsoft.CognitiveServices
 az provider register --namespace Microsoft.Insights
 ```
 
-**Probleem**: Authenticatie van AI-service mislukt
+**Probleem**: AI service authenticatie faalt
 ```bash
-# Test service principal
+# Test service-principal
 az login --service-principal \
   --username $AZURE_CLIENT_ID \
   --password $AZURE_CLIENT_SECRET \
   --tenant $AZURE_TENANT_ID
 
-# Verify AI service deployment
+# Verifieer AI-service-implementatie
 az cognitiveservices account list --query "[].{Name:name,Kind:kind,Location:location}"
 ```
 
 ### Python Omgevingsproblemen
 
-**Probleem**: Installatie van pakketten mislukt
+**Probleem**: Package-installatie mislukt
 ```bash
-# Upgrade pip and setuptools
+# Upgrade pip en setuptools
 python -m pip install --upgrade pip setuptools wheel
 
-# Clear pip cache
+# Wis pip-cache
 pip cache purge
 
-# Install packages one by one to identify issues
+# Installeer pakketten één voor één om problemen te identificeren
 pip install fastmcp
 pip install asyncpg
 pip install azure-ai-projects
 ```
 
-**Probleem**: VS Code kan Python-interpreter niet vinden
+**Probleem**: VS Code kan Python interpreter niet vinden
 ```bash
-# Show Python interpreter paths
+# Toon Python-interpreterpaden
 which python  # macOS/Linux
 where python  # Windows
 
-# Activate virtual environment first
+# Activeer eerst de virtuele omgeving
 source mcp-env/bin/activate  # macOS/Linux
 mcp-env\Scripts\activate     # Windows
 
-# Then open VS Code
+# Open vervolgens VS Code
 code .
 ```
 
-## 🎯 Belangrijke Punten
+## 🎯 Belangrijkste Leerpunten
 
-Na het voltooien van deze lab zou je moeten hebben:
+Na het voltooien van deze lab heb je:
 
 ✅ **Complete Ontwikkelomgeving**: Alle tools geïnstalleerd en geconfigureerd  
-✅ **Azure-resources geïmplementeerd**: AI-services en ondersteunende infrastructuur  
-✅ **Docker-omgeving actief**: PostgreSQL- en MCP-servercontainers  
-✅ **VS Code-integratie**: MCP-servers geconfigureerd en toegankelijk  
-✅ **Gevalideerde Setup**: Alle componenten getest en werkend samen  
-✅ **Probleemoplossingskennis**: Veelvoorkomende problemen en oplossingen  
+✅ **Azure Resources Uitgerold**: AI-services en ondersteunende infrastructuur  
+✅ **Docker Omgeving Draait**: PostgreSQL- en MCP-server containers  
+✅ **VS Code Integratie**: MCP-servers geconfigureerd en toegankelijk  
+✅ **Setup Gevalideerd**: Alle onderdelen getest en werkend samen  
+✅ **Probleemoplossingskennis**: Veelvoorkomende issues en oplossingen  
 
 ## 🚀 Wat Nu?
 
-Met je omgeving gereed, ga verder met **[Lab 04: Databaseontwerp en Schema](../04-Database/README.md)** om:
+Met je omgeving klaar, ga verder met **[Lab 04: Databaseontwerp en Schema](../04-Database/README.md)** om:
 
-- Het retail-databaseschema in detail te verkennen
+- De retail database schema in detail te verkennen
 - Multi-tenant datamodellering te begrijpen
-- Meer te leren over implementatie van Row Level Security
-- Werken met voorbeeld retaildata
+- Werken met Row Level Security implementatie
+- Voorbeeld retaildata te gebruiken
 
 ## 📚 Aanvullende Bronnen
 
 ### Ontwikkeltools
-- [Docker Documentatie](https://docs.docker.com/) - Complete Docker-referentie
-- [Azure CLI Referentie](https://docs.microsoft.com/cli/azure/) - Azure CLI-commando's
+- [Docker Documentatie](https://docs.docker.com/) - Complete Docker referentie
+- [Azure CLI Referentie](https://docs.microsoft.com/cli/azure/) - Azure CLI commando's
 - [VS Code Documentatie](https://code.visualstudio.com/docs) - Editorconfiguratie en extensies
 
 ### Azure Services
-- [Azure AI Foundry Documentatie](https://docs.microsoft.com/azure/ai-foundry/) - Configuratie van AI-services
-- [Azure OpenAI Service](https://docs.microsoft.com/azure/cognitive-services/openai/) - Implementatie van AI-modellen
-- [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) - Monitoringinstelling
+- [Microsoft Foundry Documentatie](https://docs.microsoft.com/azure/ai-foundry/) - AI service configuratie
+- [Azure OpenAI Service](https://docs.microsoft.com/azure/cognitive-services/openai/) - AI model implementatie
+- [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) - Monitoring setup
 
 ### Python Ontwikkeling
-- [Python Virtuele Omgevingen](https://docs.python.org/3/tutorial/venv.html) - Beheer van omgevingen
+- [Python Virtuele Omgevingen](https://docs.python.org/3/tutorial/venv.html) - Omgevingsbeheer
 - [AsyncIO Documentatie](https://docs.python.org/3/library/asyncio.html) - Async programmeerpatronen
-- [FastAPI Documentatie](https://fastapi.tiangolo.com/) - Webframeworkpatronen
+- [FastAPI Documentatie](https://fastapi.tiangolo.com/) - Webframework patronen
 
 ---
 
-**Volgende**: Omgeving gereed? Ga verder met [Lab 04: Databaseontwerp en Schema](../04-Database/README.md)
+**Volgende**: Omgeving klaar? Ga door met [Lab 04: Databaseontwerp en Schema](../04-Database/README.md)
 
 ---
 
-**Disclaimer**:  
-Dit document is vertaald met behulp van de AI-vertalingsservice [Co-op Translator](https://github.com/Azure/co-op-translator). Hoewel we streven naar nauwkeurigheid, dient u zich ervan bewust te zijn dat geautomatiseerde vertalingen fouten of onnauwkeurigheden kunnen bevatten. Het originele document in de oorspronkelijke taal moet worden beschouwd als de gezaghebbende bron. Voor cruciale informatie wordt professionele menselijke vertaling aanbevolen. Wij zijn niet aansprakelijk voor misverstanden of verkeerde interpretaties die voortvloeien uit het gebruik van deze vertaling.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Disclaimer**:
+Dit document is vertaald met behulp van de AI vertaaldienst [Co-op Translator](https://github.com/Azure/co-op-translator). Hoewel we streven naar nauwkeurigheid, dient u er rekening mee te houden dat geautomatiseerde vertalingen fouten of onnauwkeurigheden kunnen bevatten. Het originele document in de oorspronkelijke taal moet worden beschouwd als de gezaghebbende bron. Voor kritieke informatie wordt professionele menselijke vertaling aanbevolen. Wij zijn niet aansprakelijk voor eventuele misverstanden of verkeerde interpretaties die voortvloeien uit het gebruik van deze vertaling.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

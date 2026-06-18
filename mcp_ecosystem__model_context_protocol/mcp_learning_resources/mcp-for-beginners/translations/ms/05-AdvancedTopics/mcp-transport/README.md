@@ -1,32 +1,32 @@
-# MCP Pengangkutan Tersuai - Panduan Pelaksanaan Lanjutan
+# MCP Custom Transports - Panduan Pelaksanaan Lanjutan
 
-Protokol Konteks Model (MCP) menyediakan fleksibiliti dalam mekanisme pengangkutan, membenarkan pelaksanaan tersuai untuk persekitaran perusahaan khusus. Panduan lanjutan ini meneroka pelaksanaan pengangkutan tersuai menggunakan Azure Event Grid dan Azure Event Hubs sebagai contoh praktikal untuk membina penyelesaian MCP asli awan yang boleh diskalakan.
+Protokol Konteks Model (MCP) menyediakan fleksibiliti dalam mekanisme penghantaran, membenarkan pelaksanaan tersuai untuk persekitaran perusahaan khusus. Panduan lanjutan ini meneroka pelaksanaan penghantaran tersuai menggunakan Azure Event Grid dan Azure Event Hubs sebagai contoh praktikal untuk membina penyelesaian MCP asli awan yang boleh diskala.
 
 ## Pengenalan
 
-Walaupun pengangkutan standard MCP (stdio dan penstriman HTTP) memenuhi kebanyakan kes penggunaan, persekitaran perusahaan sering memerlukan mekanisme pengangkutan khusus untuk meningkatkan kebolehskalaan, kebolehpercayaan, dan integrasi dengan infrastruktur awan sedia ada. Pengangkutan tersuai membolehkan MCP memanfaatkan perkhidmatan pemesejan asli awan untuk komunikasi tak segerak, seni bina berasaskan acara, dan pemprosesan teragih.
+Walaupun pengangkutan standard MCP (stdio dan penstriman HTTP) memenuhi kebanyakan kes penggunaan, persekitaran perusahaan sering memerlukan mekanisme penghantaran khusus untuk meningkatkan kebolehsuaian, kebolehpercayaan, dan integrasi dengan infrastruktur awan sedia ada. Pengangkutan tersuai membolehkan MCP memanfaatkan perkhidmatan pesanan asli awan untuk komunikasi tak segerak, seni bina berasaskan acara, dan pemprosesan teragih.
 
-Pelajaran ini meneroka pelaksanaan pengangkutan lanjutan berdasarkan spesifikasi MCP terkini (2025-11-25), perkhidmatan pemesejan Azure, dan corak integrasi perusahaan yang telah ditetapkan.
+Pelajaran ini meneroka pelaksanaan pengangkutan lanjutan berdasarkan spesifikasi MCP terkini (2025-11-25), perkhidmatan pesanan Azure, dan corak integrasi perusahaan yang established.
 
-### **Senibina Pengangkutan MCP**
+### **Seni Bina Pengangkutan MCP**
 
 **Daripada Spesifikasi MCP (2025-11-25):**
 
 - **Pengangkutan Standard**: stdio (disyorkan), penstriman HTTP (untuk senario jauh)
 - **Pengangkutan Tersuai**: Mana-mana pengangkutan yang melaksanakan protokol pertukaran mesej MCP
 - **Format Mesej**: JSON-RPC 2.0 dengan peluasan khusus MCP
-- **Komunikasi Dua Hala**: Komunikasi dwi-arah penuh diperlukan untuk pemberitahuan dan respons
+- **Komunikasi Dua Hala**: Komunikasi fullduplex diperlukan untuk notifikasi dan respons
 
 ## Objektif Pembelajaran
 
 Menjelang akhir pelajaran lanjutan ini, anda akan dapat:
 
-- **Memahami Keperluan Pengangkutan Tersuai**: Melaksanakan protokol MCP ke atas mana-mana lapisan pengangkutan sambil mengekalkan pematuhan
-- **Membina Pengangkutan Azure Event Grid**: Mewujudkan pelayan MCP berasaskan acara menggunakan Azure Event Grid untuk kebolehskalaan tanpa pelayan
-- **Melaksanakan Pengangkutan Azure Event Hubs**: Mereka bentuk penyelesaian MCP berkelajuan tinggi menggunakan Azure Event Hubs untuk penstriman masa nyata
-- **Mengaplikasi Corak Perusahaan**: Mengintegrasikan pengangkutan tersuai dengan infrastruktur Azure dan model keselamatan sedia ada
-- **Mengendalikan Kebolehpercayaan Pengangkutan**: Melaksanakan ketahanan mesej, pengurutan, dan pengendalian ralat untuk senario perusahaan
-- **Mengoptimumkan Prestasi**: Mereka bentuk penyelesaian pengangkutan untuk keperluan skala, kelewatan, dan kelajuan
+- **Memahami Keperluan Pengangkutan Tersuai**: Melaksanakan protokol MCP atas mana-mana lapisan pengangkutan sambil mengekalkan pematuhan
+- **Membina Pengangkutan Azure Event Grid**: Membina pelayan MCP berasaskan acara menggunakan Azure Event Grid untuk kebolehlaksanaan tanpa pelayan
+- **Melaksanakan Pengangkutan Azure Event Hubs**: Mereka bentuk penyelesaian MCP berkapasiti tinggi menggunakan Azure Event Hubs untuk penstriman masa nyata
+- **Menerapkan Corak Perusahaan**: Mengintegrasikan pengangkutan tersuai dengan infrastruktur dan model keselamatan Azure sedia ada
+- **Mengendalikan Kebolehpercayaan Pengangkutan**: Melaksanakan ketahanan mesej, susunan, dan pengendalian ralat untuk senario perusahaan
+- **Mengoptimumkan Prestasi**: Mereka bentuk penyelesaian pengangkutan untuk skala, latensi, dan keperluan melaluiannya
 
 ## **Keperluan Pengangkutan**
 
@@ -51,9 +51,9 @@ Custom Transport:
 
 ## **Pelaksanaan Pengangkutan Azure Event Grid**
 
-Azure Event Grid menyediakan perkhidmatan penghalaan acara tanpa pelayan yang sesuai untuk seni bina MCP berasaskan acara. Pelaksanaan ini menunjukkan cara membina sistem MCP yang boleh diskalakan dan longgar.
+Azure Event Grid menyediakan perkhidmatan penghalaan acara tanpa pelayan yang ideal untuk seni bina MCP berorientasikan acara. Pelaksanaan ini menunjukkan cara membina sistem MCP yang boleh diskala dan longgar digabungkan.
 
-### **Gambaran Keseluruhan Senibina**
+### **Gambaran Seni Bina**
 
 ```mermaid
 graph TB
@@ -69,6 +69,7 @@ graph TB
         Monitor[Application Insights]
     end
 ```
+
 ### **Pelaksanaan C# - Pengangkutan Event Grid**
 
 ```csharp
@@ -177,7 +178,7 @@ export class EventGridMcpTransport implements McpTransport {
     
     // Terima berasaskan acara melalui Azure Functions
     onMessage(handler: (message: McpMessage) => Promise<void>): void {
-        // Pelaksanaan akan menggunakan pencetus Azure Functions Event Grid
+        // Pelaksanaan akan menggunakan pencetus Event Grid Azure Functions
         // Ini adalah antara muka konseptual untuk penerima webhook
     }
 }
@@ -262,9 +263,9 @@ def main(event: func.EventGridEvent) -> None:
 
 ## **Pelaksanaan Pengangkutan Azure Event Hubs**
 
-Azure Event Hubs menyediakan keupayaan penstriman masa nyata berkelajuan tinggi untuk senario MCP yang memerlukan kelewatan rendah dan jumlah mesej tinggi.
+Azure Event Hubs menyediakan keupayaan penstriman masa nyata berkapasiti tinggi untuk senario MCP yang memerlukan latensi rendah dan jumlah mesej tinggi.
 
-### **Gambaran Keseluruhan Senibina**
+### **Gambaran Seni Bina**
 
 ```mermaid
 graph TB
@@ -273,16 +274,17 @@ graph TB
     Server --> EH
     EH --> Client
     
-    subgraph "Ciri-ciri Event Hubs"
+    subgraph "Ciri Event Hubs"
         Partition[Pembahagian]
-        Retention[Penahanan Mesej]
-        Scaling[Skala Automatik]
+        Retention[Pengekalan Mesej]
+        Scaling[Penyesuaian Automatik]
     end
     
     EH --> Partition
     EH --> Retention
     EH --> Scaling
 ```
+
 ### **Pelaksanaan C# - Pengangkutan Event Hubs**
 
 ```csharp
@@ -416,7 +418,7 @@ export class EventHubsMcpTransport implements McpTransport {
                         
                         await messageHandler(mcpMessage);
                         
-                        // Kemas kini titik semak untuk penghantaran sekurang-kurangnya sekali
+                        // Kemas kini titik semakan untuk penghantaran sekurang-kurangnya sekali
                         await context.updateCheckpoint(event);
                     } catch (error) {
                         console.error("Error processing Event Hubs message:", error);
@@ -617,7 +619,7 @@ public class ObservableTransport : IMcpTransport
 
 ### **Senario 1: Pemprosesan MCP Teragih**
 
-Menggunakan Azure Event Grid untuk mengedarkan permintaan MCP merentasi pelbagai nod pemprosesan:
+Menggunakan Azure Event Grid untuk mengagihkan permintaan MCP merentasi berbilang nod pemprosesan:
 
 ```yaml
 Architecture:
@@ -633,7 +635,7 @@ Benefits:
 
 ### **Senario 2: Penstriman MCP Masa Nyata**
 
-Menggunakan Azure Event Hubs untuk interaksi MCP berfrekuensi tinggi:
+Menggunakan Azure Event Hubs untuk interaksi MCP frekuensi tinggi:
 
 ```yaml
 Architecture:
@@ -647,9 +649,9 @@ Benefits:
   - Built-in partitioning for parallel processing
 ```
 
-### **Senario 3: Senibina Pengangkutan Hibrid**
+### **Senario 3: Seni Bina Pengangkutan Hibrid**
 
-Menggabungkan pelbagai pengangkutan untuk kes penggunaan berbeza:
+Menggabungkan pelbagai pengangkutan untuk pelbagai kes penggunaan:
 
 ```csharp
 public class HybridMcpTransport : IMcpTransport
@@ -802,28 +804,28 @@ public async Task EventHubsTransport_IntegrationTest()
 ### **Prinsip Reka Bentuk Pengangkutan**
 
 1. **Idempotensi**: Pastikan pemprosesan mesej adalah idempotent untuk mengendalikan pendua
-2. **Pengendalian Ralat**: Laksanakan pengendalian ralat menyeluruh dan antrian surat mati
-3. **Pemantauan**: Tambah telemetri terperinci dan pemeriksaan kesihatan
-4. **Keselamatan**: Gunakan identiti terurus dan akses keistimewaan minimum
-5. **Prestasi**: Reka bentuk mengikut keperluan kelewatan dan kelajuan khusus anda
+2. **Pengendalian Ralat**: Melaksanakan pengendalian ralat yang komprehensif dan antrian surat mati
+3. **Pemantauan**: Tambah teleportasi terperinci dan pemeriksaan kesihatan
+4. **Keselamatan**: Gunakan identiti terurus dan akses kebenaran minimum
+5. **Prestasi**: Reka untuk keperluan latensi dan melaluiannya khusus anda
 
 ### **Cadangan Khusus Azure**
 
 1. **Gunakan Identiti Terurus**: Elakkan rentetan sambungan dalam pengeluaran
 2. **Laksanakan Pemutus Litar**: Lindungi daripada gangguan perkhidmatan Azure
-3. **Pantau Kos**: Jejaki jumlah mesej dan kos pemprosesan
-4. **Rancang untuk Skala**: Reka bentuk strategi pembahagian dan penskalaan awal
-5. **Uji Secara Menyeluruh**: Gunakan Azure DevTest Labs untuk ujian menyeluruh
+3. **Pantau Kos**: Jejak jumlah mesej dan kos pemprosesan
+4. **Rancang untuk Skala**: Reka strategi pembahagian dan penskalaan lebih awal
+5. **Uji Secara Teliti**: Gunakan Azure DevTest Labs untuk ujian komprehensif
 
 ## **Kesimpulan**
 
-Pengangkutan MCP tersuai membolehkan senario perusahaan yang berkuasa menggunakan perkhidmatan pemesejan Azure. Dengan melaksanakan pengangkutan Event Grid atau Event Hubs, anda boleh membina penyelesaian MCP yang boleh diskalakan dan boleh dipercayai yang berintegrasi dengan lancar dengan infrastruktur Azure sedia ada.
+Pengangkutan MCP tersuai membolehkan senario perusahaan yang kuat menggunakan perkhidmatan pesanan Azure. Dengan melaksanakan pengangkutan Event Grid atau Event Hubs, anda boleh membina penyelesaian MCP yang boleh diskala dan boleh dipercayai yang berintegrasi dengan lancar dalam infrastruktur Azure sedia ada.
 
-Contoh yang disediakan menunjukkan corak sedia produksi untuk melaksanakan pengangkutan tersuai sambil mengekalkan pematuhan protokol MCP dan amalan terbaik Azure.
+Contoh yang disediakan menunjukkan corak siap produksi untuk melaksanakan pengangkutan tersuai sambil mengekalkan pematuhan protokol MCP dan amalan terbaik Azure.
 
 ## **Sumber Tambahan**
 
-- [Spesifikasi MCP 2025-06-18](https://spec.modelcontextprotocol.io/specification/2025-06-18/)
+- [Spesifikasi MCP 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/)
 - [Dokumentasi Azure Event Grid](https://docs.microsoft.com/azure/event-grid/)
 - [Dokumentasi Azure Event Hubs](https://docs.microsoft.com/azure/event-hubs/)
 - [Azure Functions Event Grid Trigger](https://docs.microsoft.com/azure/azure-functions/functions-bindings-event-grid)
@@ -834,8 +836,7 @@ Contoh yang disediakan menunjukkan corak sedia produksi untuk melaksanakan penga
 ---
 
 > *Panduan ini memfokuskan pada corak pelaksanaan praktikal untuk sistem MCP produksi. Sentiasa sahkan pelaksanaan pengangkutan mengikut keperluan khusus anda dan had perkhidmatan Azure.*
-> **Standard Semasa**: Panduan ini mencerminkan keperluan pengangkutan [Spesifikasi MCP 2025-06-18](https://spec.modelcontextprotocol.io/specification/2025-06-18/) dan corak pengangkutan lanjutan untuk persekitaran perusahaan.
-
+> **Standard Semasa**: Panduan ini mencerminkan keperluan pengangkutan dan corak pengangkutan lanjutan bagi persekitaran perusahaan daripada [Spesifikasi MCP 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/).
 
 ## Apa Seterusnya
 - [6. Sumbangan Komuniti](../../06-CommunityContributions/README.md)
@@ -843,6 +844,6 @@ Contoh yang disediakan menunjukkan corak sedia produksi untuk melaksanakan penga
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Penafian**:  
-Dokumen ini telah diterjemahkan menggunakan perkhidmatan terjemahan AI [Co-op Translator](https://github.com/Azure/co-op-translator). Walaupun kami berusaha untuk ketepatan, sila ambil maklum bahawa terjemahan automatik mungkin mengandungi kesilapan atau ketidaktepatan. Dokumen asal dalam bahasa asalnya harus dianggap sebagai sumber yang sahih. Untuk maklumat penting, terjemahan profesional oleh manusia adalah disyorkan. Kami tidak bertanggungjawab atas sebarang salah faham atau salah tafsir yang timbul daripada penggunaan terjemahan ini.
+**Penafian**:
+Dokumen ini telah diterjemahkan menggunakan perkhidmatan terjemahan AI [Co-op Translator](https://github.com/Azure/co-op-translator). Walaupun kami berusaha untuk ketepatan, sila ambil maklum bahawa terjemahan automatik mungkin mengandungi kesilapan atau ketidaktepatan. Dokumen asal dalam bahasa asalnya harus dianggap sebagai sumber yang sahih. Untuk maklumat penting, terjemahan oleh manusia profesional adalah disyorkan. Kami tidak bertanggungjawab terhadap sebarang salah faham atau salah tafsir yang timbul daripada penggunaan terjemahan ini.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

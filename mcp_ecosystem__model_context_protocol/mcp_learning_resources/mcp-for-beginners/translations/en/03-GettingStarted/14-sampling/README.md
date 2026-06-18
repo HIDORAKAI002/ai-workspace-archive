@@ -36,6 +36,7 @@ sequenceDiagram
     MCP Server->>MCP Client: Complete blog post (draft + summary)
     MCP Client->>User: Blog post ready
 ```
+
 ### Sampling request
 
 Ok, now we have a mile high view of a credible scenario, let's talk about the sampling request the server sends back to the client. Here's what such a request can look like in JSON-RPC format:
@@ -135,7 +136,7 @@ Sampling messages aren't constrained to just text but you can also send, images 
 }
 ```
 
-> NOTE: for more detailed info on Sampling, check out the [official docs](https://modelcontextprotocol.io/specification/2025-06-18/client/sampling)
+> NOTE: for more detailed info on Sampling, check out the [official docs](https://modelcontextprotocol.io/specification/2025-11-25/client/sampling)
 
 ## How to Configure Sampling in the Client
 

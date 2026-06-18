@@ -1,4 +1,4 @@
-# 🐙 Moduli 4: Maendeleo ya Vitendo ya MCP - Seva ya Kigeuzi ya GitHub ya Kipekee
+# 🐙 Moduli 4: Maendeleo ya Vitendo ya MCP - Kifanyakazi Maalum cha Kurejelea GitHub
 
 ![Duration](https://img.shields.io/badge/Duration-30_minutes-blue?style=flat-square)
 ![Difficulty](https://img.shields.io/badge/Difficulty-Intermediate-orange?style=flat-square)
@@ -6,45 +6,45 @@
 ![VS Code](https://img.shields.io/badge/VS%20Code-Integration-blue?style=flat-square&logo=visualstudiocode)
 ![GitHub Copilot](https://img.shields.io/badge/GitHub%20Copilot-Agent%20Mode-green?style=flat-square&logo=github)
 
-> **⚡ Anza Haraka:** Jenga seva ya MCP inayotumika uzalishaji inayojirudisha yenyewe ya kuiga hifadhidata za GitHub na muingiliano wa VS Code kwa dakika 30 tu!
+> **⚡ Anza Haraka:** Jenga seva ya MCP tayari kwa uzalishaji inayoendesha kunakili hifadhidata za GitHub na unganisho la VS Code kwa dakika 30 tu!
 
 ## 🎯 Malengo ya Kujifunza
 
-Mwisho wa maabara hii, utaweza:
+Mwisho wa mazoezi haya, utaweza:
 
-- ✅ Kuunda seva ya MCP ya kipekee kwa mtiririko wa kazi wa maendeleo halisi
-- ✅ Kutekeleza utendaji wa kuiga hifadhidata za GitHub kupitia MCP
-- ✅ Kuunganisha seva za MCP za kipekee na VS Code na Agent Builder
-- ✅ Kutumia Mode ya Wakala wa GitHub Copilot na zana za MCP za kipekee
-- ✅ Kupima na kuweka seva za MCP za kipekee katika mazingira ya uzalishaji
+- ✅ Kuunda seva maalum ya MCP kwa mitiririko halisi ya maendeleo
+- ✅ Kutekeleza utendakazi wa kunakili hifadhidata za GitHub kupitia MCP
+- ✅ Kuunganisha seva maalum za MCP na VS Code na Agent Builder
+- ✅ Kutumia Mode ya Wakala wa GitHub Copilot na zana maalum za MCP
+- ✅ Kupima na kutengeneza seva maalum za MCP katika mazingira ya uzalishaji
 
-## 📋 Masharti ya Awali
+## 📋 Masharti ya awali
 
-- Kumaliza Maabara 1-3 (Misingi ya MCP na maendeleo ya juu)
-- Usajili wa GitHub Copilot ([usajili wa bure unapatikana](https://github.com/github-copilot/signup))
-- VS Code yenye AI Toolkit na virutubisho vya GitHub Copilot
+- Kukamilisha maabara 1-3 (misingi ya MCP na maendeleo ya hali ya juu)
+- Usajili wa GitHub Copilot ([anasajili bure hapa](https://github.com/github-copilot/signup))
+- VS Code yenye Microsoft Foundry Toolkit na upanuzi wa GitHub Copilot
 - CLI ya Git imewekwa na kusanidiwa
 
 ## 🏗️ Muhtasari wa Mradi
 
 ### **Changamoto ya Maendeleo Halisi**
-Kama waendelezaji, mara nyingi tunatumia GitHub kuiga hifadhidata na kuzifungua kwenye VS Code au VS Code Insiders. Mchakato huu wa mwongozo unahusisha:
-1. Kufungua terminal/command prompt
-2. Kuhamia kwenye saraka inayotakiwa
-3. Kutumia amri ya `git clone`
-4. Kufungua VS Code kwenye saraka iliyogiwa
+Kama watengenezaji, mara nyingi tunatumia GitHub kunakili hifadhidata na kuzifungua katika VS Code au VS Code Insiders. Mchakato huu wa mkono unahusisha:
+1. Kufungua terminal / amri ya kompyuta
+2. Kusogea kwenye saraka inayotakikana
+3. Kukimbiza amri ya `git clone`
+4. Kufungua VS Code ndani ya saraka iliyopakuliwa
 
-**Suluhisho letu la MCP linapunguzia hili kuwa amri moja yenye akili!**
+**Suluhisho letu la MCP linafanya yote haya kwa amri moja yenye akili!**
 
-### **Utabadilisha Nini**
-Seva ya **GitHub Clone MCP** (`git_mcp_server`) inayotoa:
+### **Utabuni Utafanya**
+Seva ya MCP Mahali pa GitHub (`git_mcp_server`) ambayo inatoa:
 
 | Kipengele | Maelezo | Faida |
 |---------|-------------|---------|
-| 🔄 **Kuiga Hifadhidata kwa Akili** | Kuiga hifadhidata za GitHub kwa uthibitisho | Uthibitishaji wa makosa kiotomatiki |
-| 📁 **Usimamizi wa Saraka kwa Akili** | Angalia na tengeneza saraka kwa usalama | Kuzuia kuandika juu ya mambo yaliyopo |
-| 🚀 **Muunganisho wa VS Code wa Msalaba-Mifumo** | Fungua miradi katika VS Code/Insiders | Mpito mzuri wa mtiririko wa kazi |
-| 🛡️ **Utatuzi Imara wa Makosa** | Shimika matatizo ya mtandao, ruhusa, na njia | Uthabiti sawa wa matumizi uzalishaji |
+| 🔄 **Kunakili Hifadhidata kwa Akili** | Nakili hifadhidata za GitHub na uhakiki | Ukaguzi otomatiki wa makosa |
+| 📁 **Usimamizi wa Mwenendo wa Saraka Mwerevu** | Angalia na unda saraka kwa usalama | Inazuia kufuta faili zilizopo |
+| 🚀 **Uingizwaji wa VS Code Kwa Majukwaa Mbalimbali** | Fungua miradi ndani ya VS Code/Insiders | Mabadiliko bila mshono wa mitiririko |
+| 🛡️ **Udhibiti Imara wa Makosa** | Shughulikia matatizo ya mtandao, ruhusa na njia | Imara na tayari kwa uzalishaji |
 
 ---
 
@@ -52,30 +52,30 @@ Seva ya **GitHub Clone MCP** (`git_mcp_server`) inayotoa:
 
 ### Hatua 1: Unda Wakala wa GitHub katika Agent Builder
 
-1. **Anzisha Agent Builder** kupitia kiendelezi cha AI Toolkit  
-2. **Unda wakala mpya** na usanidi ufuatao:  
+1. **Anzisha Agent Builder** kupitia upanuzi wa Microsoft Foundry Toolkit
+2. **Unda wakala mpya** kwa usanidi ufuatao:
    ```
    Agent Name: GitHubAgent
    ```
-  
-3. **anzisha seva ya MCP ya kipekee:**  
-   - Nenda kwenye **Tools** → **Add Tool** → **MCP Server**  
-   - Chagua **"Create A new MCP Server"**  
-   - Chagua **kiolezo cha Python** kwa urefu wa kubadilika zaidi  
-   - **Jina la Seva:** `git_mcp_server`  
 
-### Hatua 2: Sanidi Mode ya Wakala wa GitHub Copilot
+3. **Anzisha seva maalum ya MCP:**
+   - Nenda kwa **Vifaa** → **Ongeza Kifaa** → **MCP Server**
+   - Chagua **"Unda Seva Mpya ya MCP"**
+   - Chagua **kiolezo cha Python** kwa kubadilika zaidi
+   - **Jina la Seva:** `git_mcp_server`
 
-1. **Fungua GitHub Copilot** katika VS Code (Ctrl/Cmd + Shift + P → "GitHub Copilot: Open")  
-2. **Chagua Mfano wa Wakala** katika kiolesura cha Copilot  
-3. **Chagua mfano wa Claude 3.7** kwa uelewa wa hali ya juu wa mantiki  
-4. **Washa muunganisho wa MCP** kwa kupata zana  
+### Hatua 2: Sanidi Mode ya Wakala ya GitHub Copilot
 
-> **💡 Ushauri wa Mtaalamu:** Claude 3.7 hutoa uelewa mzuri juu ya mtiririko wa kazi wa maendeleo na mifumo ya utatuzi makosa.
+1. **Fungua GitHub Copilot** katika VS Code (Ctrl/Cmd + Shift + P → "GitHub Copilot: Open")
+2. **Chagua Modeli ya Wakala** katika kiolesura cha Copilot
+3. **Chagua modeli ya Claude 3.7** kwa uwezo wa kufikiri zaidi
+4. **Washa uingizwaji wa MCP** kwa upatikanaji wa zana
 
-### Hatua 3: Tekeleza Utendaji Msingi wa Seva ya MCP
+> **💡 Ushauri wa Mtaalamu:** Claude 3.7 hutoa uelewa bora wa mitiririko ya maendeleo na mifumo ya kushughulikia makosa.
 
-**Tumia ombi hili kwa undani na Mode ya Wakala wa GitHub Copilot:**  
+### Hatua 3: Tekeleza Utendakazi wa Msingi wa Seva ya MCP
+
+**Tumia maelekezo haya ya kina na Mode ya Wakala wa GitHub Copilot:**
 
 ```
 Create two MCP tools with the following comprehensive requirements:
@@ -107,20 +107,20 @@ Additional Requirements:
 - Add input validation for all parameters
 - Include comprehensive error handling
 ```
-  
+
 ### Hatua 4: Jaribu Seva Yako ya MCP
 
-#### 4a. Jaribu Katika Agent Builder
+#### 4a. Jaribu katika Agent Builder
 
-1. **Anzisha usanidi wa utatuzi** kwa Agent Builder  
-2. **Sanidi wakala wako na ombi hili la mfumo:**  
+1. **Anzisha usanidi wa debugging** katika Agent Builder
+2. **Sanidi wakala wako na maelekezo haya ya mfumo:**
 
 ```
 SYSTEM_PROMPT:
 You are my intelligent coding repository assistant. You help developers efficiently clone GitHub repositories and set up their development environment. Always provide clear feedback about operations and handle errors gracefully.
 ```
-  
-3. **Jaribu kwa hali halisi za mtumiaji:**  
+
+3. **Jaribu kwa hali halisi za mtumiaji:**
 
 ```
 USER_PROMPT EXAMPLES:
@@ -129,16 +129,16 @@ Scenario : Basic Clone and Open
 "Clone {Your GitHub Repo link such as https://github.com/kinfey/GHCAgentWorkshop
  } and save to {The global path you specify}, then open it with VS Code Insiders"
 ```
-  
+
 ![Agent Builder Testing](../../../../translated_images/sw/DebugAgent.81d152370c503241.webp)
 
-**Matokeo Yanayotarajiwa:**  
-- ✅ Kuiga mafanikio na uthibitisho wa njia  
-- ✅ Kuanzisha VS Code moja kwa moja  
-- ✅ Ujumbe wazi wa makosa kwa hali zisizofaa  
-- ✅ Ushughulikiaji sahihi wa matukio ya kipekee  
+**Matokeo Yanayotarajiwa:**
+- ✅ Kunakili kwa mafanikio na uthibitisho wa njia
+- ✅ Kuzindua VS Code moja kwa moja
+- ✅ Ujumbe wazi wa makosa kwa hali batili
+- ✅ Shughulikiaji sahihi wa matukio magumu
 
-#### 4b. Jaribu Katika MCP Inspector
+#### 4b. Jaribu katika MCP Inspector
 
 
 ![MCP Inspector Testing](../../../../translated_images/sw/DebugInspector.eb5c95f94c69a8ba.webp)
@@ -147,67 +147,67 @@ Scenario : Basic Clone and Open
 
 
 
-**🎉 Hongera!** Umeunda seva ya MCP ya vitendo, inayotumika uzalishaji ili kutatua changamoto halisi za mtiririko wa maendeleo. Seva yako ya kuiga GitHub imeonyesha nguvu ya MCP kwa kuendesha kiotomatiki na kuboresha uzalishaji wa watengenezaji.
+**🎉 Hongera!** Umefanikiwa kuunda seva ya MCP inayoweza kutumika kiutendaji iliyo tayari kwa uzalishaji inayotatua changamoto halisi za mitiririko ya maendeleo. Seva yako maalum ya kunakili GitHub inaonyesha nguvu ya MCP kwa kuendesha na kuboresha uzalishaji wa watengenezaji.
 
-### 🏆 Mafanikio Uliyopata:
-- ✅ **MCP Developer** - Umeunda seva ya MCP ya kipekee  
-- ✅ **Workflow Automator** - Umeboresha michakato ya maendeleo  
-- ✅ **Integration Expert** - Umeunganisha zana anuwai za maendeleo  
-- ✅ **Production Ready** - Umejenga suluhisho zinazoweza kutumika  
+### 🏆 Mafanikio Uliyoyapata:
+- ✅ **MCP Developer** - Umeunda seva maalum ya MCP
+- ✅ **Mtiririko wa Otomatiki** - Umeboresha mchakato wa maendeleo  
+- ✅ **Mtaalamu wa Uingizwaji** - Umeunganisha zana nyingi za maendeleo
+- ✅ **Tayari kwa Uzalishaji** - Umejenga suluhisho zinazoweza kutengenezwa
 
 ---
 
-## 🎓 Kumaliza Warsha: Safari Yako na Protocol ya Muktadha wa Mfano
+## 🎓 Kukamilika kwa Warsha: Safari Yako na Model Context Protocol
 
-**Mwanachama wa Warsha Mpendwa,**
+**Mpenzi Mshiriki wa Warsha,**
 
-Hongera kwa kumaliza moduli zote nne za warsha ya Protocol ya Muktadha wa Mfano! Umefuata njia ndefu kuanzia kuelewa misingi ya AI Toolkit hadi kujenga seva za MCP zinazotumika uzalishaji zinazotatua changamoto za maendeleo halisi.
+Hongera kwa kukamilisha moduli nne za warsha ya Model Context Protocol! Umefikia mbali kutoka kuelewa misingi ya Microsoft Foundry Toolkit hadi kujenga seva za MCP zinazotumika kushughulikia changamoto halisi za maendeleo.
 
 ### 🚀 Muhtasari wa Njia Yako ya Kujifunza:
 
-**[Moduli 1](../lab1/README.md)**: Umeanza kwa kuchunguza misingi ya AI Toolkit, kupima mfano, na kuunda wakala wako wa kwanza wa AI.
+**[Moduli 1](../lab1/README.md)**: Umeanza kwa kuchunguza misingi ya Microsoft Foundry Toolkit, upimaji wa modeli, na kuunda wakala wako wa kwanza wa AI.
 
-**[Moduli 2](../lab2/README.md)**: Umejifunza usanifu wa MCP, kuunganisha Playwright MCP, na kujenga wakala wako wa kwanza wa otomatiki wa kivinjari.
+**[Moduli 2](../lab2/README.md)**: Umejifunza usanifu wa MCP, kuingiza Playwright MCP, na kujenga wakala wa otomatiki wa kivinjari.
 
-**[Moduli 3](../lab3/README.md)**: Umeendeleza maendeleo ya seva za MCP za kipekee na seva ya Weather MCP na kuhitimu zana za utatuzi.
+**[Moduli 3](../lab3/README.md)**: Umeendelea na maendeleo ya seva maalum ya MCP na seva ya Weather MCP na utaalamu wa zana za ufafanuzi wa makosa.
 
-**[Moduli 4](../lab4/README.md)**: Sasa umeitumia yote kuunda zana ya otomatiki ya mtiririko wa kazi wa hifadhidata za GitHub.
+**[Moduli 4](../lab4/README.md)**: Sasa umetumia yote kuunda zana halisi za otomatiki za mtiririko wa hifadhidata za GitHub.
 
-### 🌟 Umeweza Kutoa:
+### 🌟 Umemaliza Kujifunza:
 
-- ✅ **Ecosystem ya AI Toolkit**: Mifano, mawakala, na mifumo ya muunganisho  
-- ✅ **Usanifu wa MCP**: Muundo wa mteja-seva, itifaki za usafirishaji, na usalama  
-- ✅ **Zana za Waendelezaji**: Kutoka Playground hadi Inspector hadi utekelezaji uzalishaji  
-- ✅ **Maendeleo ya Kipekee**: Kujenga, kupima, na kuweka seva zako za MCP  
-- ✅ **Matumizi ya Vitendo**: Kutatua changamoto halisi za mtiririko wa kazi kwa AI  
+- ✅ **Ekosistimu ya Microsoft Foundry Toolkit**: Modeli, wakala, na mifumo ya uingizaji
+- ✅ **Msondoko wa MCP**: Ubunifu wa mteja-seva, itifaki za usafirishaji, na usalama
+- ✅ **Zana za Mtengenezaji**: Kutoka Playground hadi Inspector hadi utoaji
+- ✅ **Maendeleo Maalum**: Kujenga, kupima, na kutengeneza seva zako za MCP
+- ✅ **Matumizi halisi**: Kutatua changamoto za mitiririko halisi kwa AI
 
-### 🔮 Hatua Zako Zifuatazo:
+### 🔮 Hatua Zako Inazofuata:
 
-1. **Jenga Seva Yako Ya MCP**: Tumia ujuzi huu kuendesha otomatiki mtiririko wako wa kipekee  
-2. **Jiunge na Jamii ya MCP**: Shiriki kazi zako na jifunze kwa wengine  
-3. **Chunguza Muunganisho wa Juu**: Unganisha seva za MCP kwenye mifumo ya biashara  
-4. **Changia Chanzo Huria**: Saidia kuboresha zana na nyaraka za MCP  
+1. **Jenga Seva Yako ya MCP**: Tumia ujuzi huu kuendesha mitiririko yako ya kipekee
+2. **Jiunge na Jamii ya MCP**: Shiriki uundaji wako na jifunze kutoka kwa wengine
+3. **Chunguza Uingizaji wa Kina Zaidi**: Unganisha seva za MCP na mifumo ya makampuni
+4. **Changia Chanzo Huria**: Saidia kuboresha zana na nyaraka za MCP
 
-Kumbuka, warsha hii ni mwanzo tu. Ecosystem ya Protocol ya Muktadha wa Mfano inabadilika kwa kasi, na sasa umebeba uwezo wa kuwa mstari wa mbele wa zana za maendeleo zinazoendeshwa na AI.
+Kumbuka, warsha hii ni mwanzo tu. Ekosistimu ya Model Context Protocol inazidi kubadilika haraka, na sasa umejiandaa kuwa mbele ya zana za maendeleo zinazoendeshwa na AI.
 
-**Asante kwa ushiriki wako na bidii katika kujifunza!**
+**Asante kwa ushiriki na juhudi zako za kujifunza!**
 
-Tunatumai warsha hii imetoa mawazo yatakayobadilisha jinsi unavyotengeneza na kuingiliana na zana za AI katika safari yako ya maendeleo.
+Tunatumai warsha hii imechochea mawazo yatakayobadilisha jinsi unavyotengeneza na kuingiliana na zana za AI katika safari yako ya maendeleo.
 
 **Furahia kuandika msimbo!**
 
 ---
 
-## Nini Kifuatacho
+## Nini Kinachofuata
 
-Hongera kwa kumaliza maabara zote katika Moduli 10!
+Hongera kwa kukamilisha maabara zote katika Moduli 10!
 
-- Rudia kwa: [Muhtasari wa Moduli 10](../README.md)  
-- Endelea na: [Moduli 11: Maabara za Vitendo za Seva ya MCP](../../11-MCPServerHandsOnLabs/README.md)
+- Rudi kwa: [Muhtasari wa Moduli 10](../README.md)
+- Endelea kwa: [Moduli 11: Maabara za Mikono za MCP Server](../../11-MCPServerHandsOnLabs/README.md)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Kiarifa cha kutojihusisha**:
-Nyarisho hii imetafsiriwa kwa kutumia huduma ya tafsiri ya AI [Co-op Translator](https://github.com/Azure/co-op-translator). Ingawa tunajitahidi kwa usahihi, tafadhali fahamu kuwa tafsiri za kiotomatiki zinaweza kuwa na makosa au upendeleo. Nyarisho la awali katika lugha yake asilia linapaswa kuzingatiwa kama chanzo cha mamlaka. Kwa habari muhimu, tafsiri ya kitaalamu ya binadamu inashauriwa. Hatubebei lawama kwa kutoelewana au tafsiri potofu zitokanazo na matumizi ya tafsiri hii.
+**Kionyozo**:
+Hati hii imetafsiriwa kwa kutumia huduma ya tafsiri ya AI [Co-op Translator](https://github.com/Azure/co-op-translator). Ingawa tunajitahidi kupata usahihi, tafadhali fahamu kwamba tafsiri za kiotomatiki zinaweza kuwa na makosa au upungufu wa usahihi. Hati ya asili katika lugha yake halisi inapaswa kuchukuliwa kama chanzo cha mamlaka. Kwa taarifa muhimu, tafsiri ya kitaalamu inayofanywa na binadamu inapendekezwa. Hatutojibu kwa kuelewa vibaya au tafsiri potofu zinazotokea kutokana na matumizi ya tafsiri hii.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

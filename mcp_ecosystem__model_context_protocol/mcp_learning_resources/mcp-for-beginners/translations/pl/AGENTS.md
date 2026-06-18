@@ -2,7 +2,7 @@
 
 ## Przegląd projektu
 
-**MCP dla początkujących** to otwarty program edukacyjny, który umożliwia naukę Model Context Protocol (MCP) - standardowego frameworka do interakcji między modelami AI a aplikacjami klienckimi. Repozytorium zawiera kompleksowe materiały edukacyjne z praktycznymi przykładami kodu w różnych językach programowania.
+**MCP for Beginners** to otwarty edukacyjny program nauczania do nauki Model Context Protocol (MCP) - standardowego frameworku do interakcji między modelami AI a aplikacjami klienckimi. To repozytorium zawiera kompleksowe materiały edukacyjne z praktycznymi przykładami kodu w wielu językach programowania.
 
 ### Kluczowe technologie
 
@@ -15,24 +15,24 @@
 - **Bazy danych**: PostgreSQL z rozszerzeniem pgvector
 - **Platformy chmurowe**: Azure (Container Apps, OpenAI, Content Safety, Application Insights)
 - **Narzędzia budowania**: npm, Maven, pip, Cargo
-- **Dokumentacja**: Markdown z automatycznym tłumaczeniem na wiele języków (ponad 48 języków)
+- **Dokumentacja**: Markdown z automatycznym tłumaczeniem na wiele języków (48+ języków)
 
 ### Architektura
 
 - **11 modułów podstawowych (00-11)**: Sekwencyjna ścieżka nauki od podstaw do zaawansowanych tematów
-- **Laboratoria praktyczne**: Ćwiczenia praktyczne z kompletnymi rozwiązaniami w różnych językach
+- **Laboratoria praktyczne**: Ćwiczenia praktyczne z kompletnym kodem rozwiązania w wielu językach
 - **Projekty przykładowe**: Działające implementacje serwera i klienta MCP
-- **System tłumaczeń**: Automatyczny workflow GitHub Actions wspierający tłumaczenia na wiele języków
+- **System tłumaczeń**: Zautomatyzowany workflow GitHub Actions dla wsparcia wielojęzycznego
 - **Zasoby graficzne**: Centralny katalog obrazów z wersjami przetłumaczonymi
 
-## Polecenia konfiguracji
+## Komendy instalacyjne
 
 To repozytorium skupia się na dokumentacji. Większość konfiguracji odbywa się w poszczególnych projektach przykładowych i laboratoriach.
 
 ### Konfiguracja repozytorium
 
 ```bash
-# Clone the repository
+# Sklonuj repozytorium
 git clone https://github.com/microsoft/mcp-for-beginners.git
 cd mcp-for-beginners
 ```
@@ -40,10 +40,10 @@ cd mcp-for-beginners
 ### Praca z projektami przykładowymi
 
 Projekty przykładowe znajdują się w:
-- `03-GettingStarted/samples/` - Przykłady specyficzne dla języków
-- `03-GettingStarted/01-first-server/solution/` - Implementacje pierwszego serwera
-- `03-GettingStarted/02-client/solution/` - Implementacje klienta
-- `11-MCPServerHandsOnLabs/` - Kompleksowe laboratoria integracji z bazą danych
+- `03-GettingStarted/samples/` - przykłady specyficzne dla języków
+- `03-GettingStarted/01-first-server/solution/` - pierwsze implementacje serwerów
+- `03-GettingStarted/02-client/solution/` - implementacje klientów
+- `11-MCPServerHandsOnLabs/` - kompleksowe laboratoria integracji z bazą danych
 
 Każdy projekt przykładowy zawiera własne instrukcje konfiguracji:
 
@@ -58,7 +58,7 @@ npm start
 ```bash
 cd <project-directory>
 pip install -r requirements.txt
-# or
+# lub
 pip install -e .
 python main.py
 ```
@@ -70,57 +70,57 @@ mvn clean install
 mvn spring-boot:run
 ```
 
-## Workflow rozwoju
+## Przebieg pracy developerskiej
 
 ### Struktura dokumentacji
 
-- **Moduły 00-11**: Treści podstawowego programu nauczania w kolejności sekwencyjnej
-- **translations/**: Wersje językowe (generowane automatycznie, nie edytować ręcznie)
-- **translated_images/**: Zlokalizowane wersje obrazów (generowane automatycznie)
-- **images/**: Źródłowe obrazy i diagramy
+- **Moduły 00-11**: Podstawowa zawartość programu nauczania w kolejności sekwencyjnej
+- **translations/**: Wersje językowe (generowane automatycznie, nie edytować bezpośrednio)
+- **translated_images/**: Lokalizowane wersje obrazów (generowane automatycznie)
+- **images/**: Obrazy źródłowe i diagramy
 
 ### Wprowadzanie zmian w dokumentacji
 
-1. Edytuj tylko angielskie pliki markdown w głównych katalogach modułów (00-11)
-2. Zaktualizuj obrazy w katalogu `images/`, jeśli to konieczne
+1. Edytuj wyłącznie angielskie pliki markdown w katalogach głównych modułów (00-11)
+2. W razie potrzeby aktualizuj obrazy w katalogu `images/`
 3. GitHub Action co-op-translator automatycznie wygeneruje tłumaczenia
-4. Tłumaczenia są regenerowane po przesłaniu zmian do głównej gałęzi
+4. Tłumaczenia są ponownie tworzone po wypchnięciu do gałęzi main
 
 ### Praca z tłumaczeniami
 
-- **Automatyczne tłumaczenie**: Workflow GitHub Actions obsługuje wszystkie tłumaczenia
+- **Automatyczne tłumaczenie**: Workflow GitHub Actions zajmuje się wszystkimi tłumaczeniami
 - **Nie edytuj ręcznie** plików w katalogu `translations/`
-- Metadane tłumaczeń są osadzone w każdym przetłumaczonym pliku
-- Obsługiwane języki: Ponad 48 języków, w tym arabski, chiński, francuski, niemiecki, hindi, japoński, koreański, portugalski, rosyjski, hiszpański i wiele innych
+- Metadane tłumaczenia są osadzone w każdym pliku tłumaczonym
+- Obsługiwane języki: 48+ języków, w tym arabski, chiński, francuski, niemiecki, hindi, japoński, koreański, portugalski, rosyjski, hiszpański i wiele innych
 
-## Instrukcje testowania
+## Instrukcje testowe
 
 ### Walidacja dokumentacji
 
-Ponieważ repozytorium skupia się głównie na dokumentacji, testowanie obejmuje:
+Ponieważ jest to repozytorium głównie dokumentacyjne, testy koncentrują się na:
 
-1. **Walidacja linków**: Upewnij się, że wszystkie wewnętrzne linki działają
+1. **Walidacja linków**: Upewnij się, że wszystkie linki wewnętrzne działają
 ```bash
-# Check for broken markdown links
+# Sprawdź uszkodzone linki markdown
 find . -name "*.md" -type f | xargs grep -n "\[.*\](../../.*)"
 ```
 
-2. **Walidacja przykładów kodu**: Sprawdź, czy przykłady kodu się kompilują/uruchamiają
+2. **Walidacja przykładów kodu**: Sprawdź, czy przykłady kodu kompilują się/uruchamiają
 ```bash
-# Navigate to specific sample and run its tests
+# Przejdź do konkretnego przykładu i uruchom jego testy
 cd 03-GettingStarted/samples/typescript
 npm install && npm test
 ```
 
-3. **Linting Markdown**: Sprawdź spójność formatowania
+3. **Linter Markdown**: Sprawdź spójność formatowania
 ```bash
-# Use markdownlint if needed
+# Użyj markdownlint w razie potrzeby
 npx markdownlint-cli2 "**/*.md" "#node_modules"
 ```
 
 ### Testowanie projektów przykładowych
 
-Każdy projekt specyficzny dla języka zawiera własne podejście do testowania:
+Każdy projekt specyficzny dla języka ma własne podejście do testowania:
 
 #### TypeScript/JavaScript
 ```bash
@@ -140,37 +140,37 @@ mvn test
 mvn verify
 ```
 
-## Wytyczne dotyczące stylu kodu
+## Zasady stylu kodu
 
 ### Styl dokumentacji
 
 - Używaj jasnego, przyjaznego dla początkujących języka
-- Dołącz przykłady kodu w różnych językach, jeśli to możliwe
-- Przestrzegaj najlepszych praktyk markdown:
-  - Używaj nagłówków w stylu ATX (`#` syntax)
-  - Używaj bloków kodu z identyfikatorami języka
-  - Dołącz opisowy tekst alternatywny dla obrazów
-  - Zachowaj rozsądną długość linii (bez sztywnego limitu, ale bądź rozsądny)
+- Zamieszczaj przykłady kodu w wielu językach tam, gdzie to stosowne
+- Stosuj najlepsze praktyki markdown:
+  - Używaj nagłówków w stylu ATX (`#`)
+  - Używaj bloków kodu z oznaczeniem języka
+  - Zamieszczaj opisowe teksty alternatywne dla obrazów
+  - Dbaj o rozsądne długości linii (bez sztywnego limitu, ale sensownie)
 
 ### Styl przykładów kodu
 
 #### TypeScript/JavaScript
 - Używaj modułów ES (`import`/`export`)
-- Przestrzegaj konwencji trybu ścisłego TypeScript
-- Dołącz adnotacje typów
-- Celuj w ES2022
+- Stosuj reguły trybu ścisłego TypeScript
+- Dodawaj adnotacje typów
+- Docelowo ES2022
 
 #### Python
-- Przestrzegaj wytycznych stylu PEP 8
-- Używaj wskazówek typów, gdzie to możliwe
-- Dołącz docstringi dla funkcji i klas
-- Używaj nowoczesnych funkcji Pythona (3.8+)
+- Stosuj wytyczne stylu PEP 8
+- Używaj wskazówek typów tam, gdzie stosowne
+- Dodawaj docstringi dla funkcji i klas
+- Korzystaj z nowoczesnych funkcji Pythona (3.8+)
 
 #### Java
-- Przestrzegaj konwencji Spring Boot
+- Stosuj konwencje Spring Boot
 - Używaj funkcji Java 21
 - Przestrzegaj standardowej struktury projektu Maven
-- Dołącz komentarze Javadoc
+- Dodawaj komentarze Javadoc
 
 ### Organizacja plików
 
@@ -186,116 +186,118 @@ mvn verify
     └── <language>/
 ```
 
-## Budowanie i wdrażanie
+## Budowa i wdrożenie
 
-### Wdrażanie dokumentacji
+### Wdrożenie dokumentacji
 
-Repozytorium używa GitHub Pages lub podobnych do hostowania dokumentacji (jeśli dotyczy). Zmiany w głównej gałęzi uruchamiają:
+Repozytorium korzysta z GitHub Pages lub podobnego do hostingu dokumentacji (jeśli dotyczy). Zmiany na gałęzi main wyzwalają:
 
-1. Workflow tłumaczeń (`.github/workflows/co-op-translator.yml`)
+1. Workflow tłumaczeniowy (`.github/workflows/co-op-translator.yml`)
 2. Automatyczne tłumaczenie wszystkich angielskich plików markdown
-3. Lokalizację obrazów, jeśli to konieczne
+3. Lokalizację obrazów według potrzeb
 
 ### Brak wymaganego procesu budowania
 
-Repozytorium zawiera głównie dokumentację markdown. Nie jest wymagany proces kompilacji ani budowania dla treści programu nauczania.
+To repozytorium zawiera głównie dokumentację w markdown. Nie jest potrzebny krok kompilacji ani budowania dla podstawowej zawartości kursu.
 
-### Wdrażanie projektów przykładowych
+### Wdrożenie projektów przykładowych
 
-Poszczególne projekty przykładowe mogą mieć instrukcje wdrażania:
-- Zobacz `03-GettingStarted/09-deployment/` dla wskazówek dotyczących wdrażania serwera MCP
-- Przykłady wdrażania Azure Container Apps w `11-MCPServerHandsOnLabs/`
+Poszczególne projekty przykładowe mogą mieć instrukcje wdrożeniowe:
+- Zobacz `03-GettingStarted/09-deployment/` dla wskazówek wdrożenia serwera MCP
+- Przykłady wdrożenia Azure Container Apps w `11-MCPServerHandsOnLabs/`
 
-## Wytyczne dotyczące współpracy
+## Zasady współpracy
 
 ### Proces Pull Request
 
-1. **Fork i klonowanie**: Zrób fork repozytorium i sklonuj swój fork lokalnie
+1. **Fork i klonowanie**: Utwórz fork repozytorium i sklonuj go lokalnie
 2. **Utwórz gałąź**: Używaj opisowych nazw gałęzi (np. `fix/typo-module-3`, `add/python-example`)
 3. **Wprowadź zmiany**: Edytuj tylko angielskie pliki markdown (nie tłumaczenia)
-4. **Testuj lokalnie**: Sprawdź, czy markdown renderuje się poprawnie
-5. **Prześlij PR**: Używaj jasnych tytułów i opisów PR
+4. **Testuj lokalnie**: Zweryfikuj poprawność renderowania markdown
+5. **Złóż PR**: Używaj jasnych tytułów i opisów PR
 6. **CLA**: Podpisz Microsoft Contributor License Agreement, gdy zostaniesz o to poproszony
 
 ### Format tytułu PR
 
 Używaj jasnych, opisowych tytułów:
-- `[Module XX] Krótki opis` dla zmian specyficznych dla modułu
-- `[Samples] Opis` dla zmian w kodzie przykładowym
+- `[Module XX] Krótki opis` dla zmian w modułach
+- `[Samples] Opis` dla zmian w przykładach kodu
 - `[Docs] Opis` dla ogólnych aktualizacji dokumentacji
 
-### Co można wnieść
+### Co można wnosić
 
 - Poprawki błędów w dokumentacji lub przykładach kodu
 - Nowe przykłady kodu w dodatkowych językach
 - Wyjaśnienia i ulepszenia istniejących treści
 - Nowe studia przypadków lub praktyczne przykłady
-- Zgłaszanie problemów dotyczących niejasnych lub niepoprawnych treści
+- Zgłoszenia błędów dotyczących niejasnych lub błędnych treści
 
 ### Czego NIE robić
 
-- Nie edytuj bezpośrednio plików w katalogu `translations/`
+- Nie edytuj plików w katalogu `translations/` bezpośrednio
 - Nie edytuj katalogu `translated_images/`
-- Nie dodawaj dużych plików binarnych bez wcześniejszej dyskusji
-- Nie zmieniaj plików workflow tłumaczeń bez koordynacji
+- Nie dodawaj dużych plików binarnych bez konsultacji
+- Nie zmieniaj plików workflow tłumaczeniowego bez koordynacji
 
 ## Dodatkowe uwagi
 
 ### Utrzymanie repozytorium
 
-- **Changelog**: Wszystkie istotne zmiany są dokumentowane w `changelog.md`
-- **Przewodnik nauki**: Użyj `study_guide.md` do nawigacji po programie nauczania
-- **Szablony zgłoszeń**: Używaj szablonów zgłoszeń GitHub do raportowania błędów i zgłaszania funkcji
+- **Changelog**: Wszystkie znaczące zmiany są dokumentowane w `changelog.md`
+- **Przewodnik nauki**: Użyj `study_guide.md` do przeglądu ścieżki nauki
+- **Szablony zgłoszeń**: Używaj szablonów GitHub do raportowania błędów i propozycji funkcji
 - **Kodeks postępowania**: Wszyscy współtwórcy muszą przestrzegać Microsoft Open Source Code of Conduct
 
 ### Ścieżka nauki
 
-Podążaj za modułami w kolejności sekwencyjnej (00-11) dla optymalnej nauki:
-1. **00-02**: Podstawy (Wprowadzenie, Kluczowe koncepcje, Bezpieczeństwo)
+Przechodź moduły w kolejności sekwencyjnej (00-11) dla optymalnej nauki:
+1. **00-02**: Podstawy (Wprowadzenie, koncepcje podstawowe, bezpieczeństwo)
 2. **03**: Pierwsze kroki z praktyczną implementacją
-3. **04-05**: Praktyczna implementacja i zaawansowane tematy
-4. **06-10**: Społeczność, najlepsze praktyki i zastosowania w rzeczywistości
-5. **11**: Kompleksowe laboratoria integracji z bazą danych (13 sekwencyjnych laboratoriów)
+3. **04-05**: Praktyczne wdrożenia i tematy zaawansowane
+4. **06-10**: Społeczność, najlepsze praktyki i zastosowania w świecie rzeczywistym
+5. **11**: Kompleksowe laboratoria integracji z bazą danych (13 kolejnych laboratoriów)
 
 ### Zasoby wsparcia
 
 - **Dokumentacja**: https://modelcontextprotocol.io/
 - **Specyfikacja**: https://spec.modelcontextprotocol.io/
 - **Społeczność**: https://github.com/orgs/modelcontextprotocol/discussions
-- **Discord**: Serwer Discord Microsoft Azure AI Foundry
+- **Discord**: Server Discord Microsoft Foundry
 - **Powiązane kursy**: Zobacz README.md dla innych ścieżek nauki Microsoft
 
-### Częste problemy
+### Typowe problemy i rozwiązania
 
-**P: Mój PR nie przechodzi testu tłumaczenia**
-O: Upewnij się, że edytowałeś tylko angielskie pliki markdown w głównych katalogach modułów, a nie wersje przetłumaczone.
+**P: Mój PR nie przechodzi walidacji tłumaczeń**  
+O: Upewnij się, że edytowałeś tylko angielskie pliki markdown w katalogach modułów głównych, a nie pliki tłumaczone.
 
-**P: Jak dodać nowy język?**
+**P: Jak dodać nowy język?**  
 O: Obsługa języków jest zarządzana przez workflow co-op-translator. Otwórz zgłoszenie, aby omówić dodanie nowych języków.
 
-**P: Przykłady kodu nie działają**
-O: Upewnij się, że postępowałeś zgodnie z instrukcjami konfiguracji w README konkretnego przykładu. Sprawdź, czy masz zainstalowane odpowiednie wersje zależności.
+**P: Przykłady kodu nie działają**  
+O: Upewnij się, że postępowałeś zgodnie z instrukcjami konfiguracji w README konkretnego przykładu. Sprawdź, czy masz zainstalowane właściwe wersje zależności.
 
-**P: Obrazy się nie wyświetlają**
-O: Sprawdź, czy ścieżki obrazów są względne i używają ukośników. Obrazy powinny znajdować się w katalogu `images/` lub `translated_images/` dla wersji zlokalizowanych.
+**P: Obrazy się nie wyświetlają**  
+O: Sprawdź, czy ścieżki do obrazów są względne i używają ukośników. Obrazy powinny znajdować się w katalogu `images/` lub `translated_images/` dla wersji lokalizowanych.
 
-### Uwagi dotyczące wydajności
+### Wydajność
 
-- Workflow tłumaczeń może zająć kilka minut
-- Duże obrazy powinny być zoptymalizowane przed przesłaniem
-- Utrzymuj pojedyncze pliki markdown skoncentrowane i o rozsądnej wielkości
+- Workflow tłumaczeniowy może zająć kilka minut
+- Duże obrazy powinny być zoptymalizowane przed zatwierdzeniem
+- Trzymaj pojedyncze pliki markdown skoncentrowane i rozsądnie rozmiarowe
 - Używaj linków względnych dla lepszej przenośności
 
 ### Zarządzanie projektem
 
-Ten projekt przestrzega praktyk open source Microsoft:
+Projekt stosuje praktyki open source Microsoft:
 - Licencja MIT dla kodu i dokumentacji
 - Microsoft Open Source Code of Conduct
-- Wymagana CLA dla współtwórców
-- Problemy związane z bezpieczeństwem: Przestrzegaj wytycznych w SECURITY.md
-- Wsparcie: Zobacz SUPPORT.md dla zasobów pomocy
+- Wymagane CLA dla wkładów
+- Problemy bezpieczeństwa: Zgodnie z wytycznymi SECURITY.md
+- Wsparcie: Zobacz SUPPORT.md dla pomocy
 
 ---
 
-**Zastrzeżenie**:  
-Ten dokument został przetłumaczony za pomocą usługi tłumaczenia AI [Co-op Translator](https://github.com/Azure/co-op-translator). Chociaż staramy się zapewnić dokładność, prosimy pamiętać, że automatyczne tłumaczenia mogą zawierać błędy lub nieścisłości. Oryginalny dokument w jego języku źródłowym powinien być uznawany za autorytatywne źródło. W przypadku informacji krytycznych zaleca się skorzystanie z profesjonalnego tłumaczenia przez człowieka. Nie ponosimy odpowiedzialności za jakiekolwiek nieporozumienia lub błędne interpretacje wynikające z użycia tego tłumaczenia.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Zastrzeżenie**:
+Niniejszy dokument został przetłumaczony za pomocą usługi tłumaczenia AI [Co-op Translator](https://github.com/Azure/co-op-translator). Choć dążymy do dokładności, prosimy pamiętać, że automatyczne tłumaczenia mogą zawierać błędy lub niedokładności. Oryginalny dokument w jego języku źródłowym należy uznawać za autorytatywne źródło. W przypadku informacji krytycznych zalecane jest skorzystanie z profesjonalnego tłumaczenia wykonanego przez człowieka. Nie ponosimy odpowiedzialności za jakiekolwiek nieporozumienia lub błędne interpretacje wynikające z użycia tego tłumaczenia.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

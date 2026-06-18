@@ -1,39 +1,39 @@
-# MCP Server stdio transzporttal
+# MCP szerver stdio transzporttal
 
-> **⚠️ Fontos frissítés**: Az MCP specifikáció 2025-06-18 időpontjától az önálló SSE (Server-Sent Events) transzport **elavulttá vált**, és helyette a "Streamable HTTP" transzport lett bevezetve. A jelenlegi MCP specifikáció két elsődleges transzport mechanizmust határoz meg:
-> 1. **stdio** - Standard bemenet/kimenet (helyi szerverekhez ajánlott)
+> **⚠️ Fontos frissítés**: Az MCP specifikáció 2025-06-18 alapján a különálló SSE (Server-Sent Events) transzport **elavulttá vált**, helyette a „Streamable HTTP” transzportot vezették be. A jelenlegi MCP specifikáció két elsődleges transzport mechanizmust határoz meg:
+> 1. **stdio** - Szabványos bemenet/kimenet (helyi szerverekhez ajánlott)
 > 2. **Streamable HTTP** - Távoli szerverekhez, amelyek belsőleg SSE-t használhatnak
 >
-> Ez a lecke a **stdio transzportra** fókuszál, amely a legtöbb MCP szerver implementáció számára ajánlott megoldás.
+> Ez a lecke a **stdio transzportra** fókuszál, amely a legtöbb MCP szerver megvalósításhoz ajánlott megközelítés.
 
-A stdio transzport lehetővé teszi, hogy az MCP szerverek szabványos bemeneti és kimeneti adatfolyamokon keresztül kommunikáljanak a kliensekkel. Ez a legtöbbet használt és ajánlott transzport mechanizmus a jelenlegi MCP specifikációban, egyszerű és hatékony módot biztosít az MCP szerverek építésére, amelyek egyszerűen integrálhatók különböző kliens alkalmazásokkal.
+A stdio transzport lehetővé teszi az MCP szerverek számára, hogy a klienssel a szabványos bemenet és kimenet segítségével kommunikáljanak. Ez a leggyakrabban használt és ajánlott transzport mechanizmus a jelenlegi MCP specifikációban, mely egyszerű és hatékony módot kínál MCP szerverek építésére, amelyek könnyen integrálhatók különböző kliens alkalmazásokkal.
 
 ## Áttekintés
 
-Ez a lecke megtanítja, hogyan lehet MCP szervert építeni és használni a stdio transzportot alkalmazva.
+Ez a lecke bemutatja, hogyan lehet MCP szervert építeni és használni stdio transzporttal.
 
 ## Tanulási célok
 
 A lecke végére képes leszel:
 
-- MCP szervert építeni a stdio transzport használatával.
-- Hibakeresni egy MCP szervert az Inspector segítségével.
-- MCP szervert használni Visual Studio Code-on keresztül.
-- Megérteni a jelenlegi MCP transzport mechanizmusokat és az stdio ajánlásának okait.
+- MCP szervert építeni stdio transzporttal.
+- Hibakeresni egy MCP szervert az Inspectorral.
+- Felhasználni egy MCP szervert Visual Studio Code-ból.
+- Megérteni a jelenlegi MCP transzport mechanizmusokat és hogy miért ajánlott a stdio.
 
 ## stdio transzport - Hogyan működik
 
-A stdio transzport a jelenlegi MCP specifikáció (2025-06-18) két támogatott transzporttípusa közül az egyik. Íme, hogyan működik:
+A stdio transzport a jelenlegi MCP specifikáció (2025-11-25) két támogatott transzport típusa közül az egyik. Így működik:
 
-- **Egyszerű kommunikáció**: A szerver JSON-RPC üzeneteket olvas a standard bemenetről (`stdin`) és üzeneteket küld a standard kimenetre (`stdout`).
-- **Folyamat alapú**: A kliens alfolyamatként indítja el az MCP szervert.
-- **Üzenet formátum**: Az üzenetek egyedi JSON-RPC kérések, értesítések vagy válaszok, amelyek új sorral vannak elválasztva.
-- **Naplózás**: A szerver LEHETŐSÉG SZERINT írhat UTF-8 karakterláncokat a standard hibakimenetre (`stderr`) naplózáshoz.
+- **Egyszerű kommunikáció**: A szerver JSON-RPC üzeneteket olvas a szabványos bemenetről (`stdin`) és üzeneteket küld a szabványos kimenetre (`stdout`).
+- **Folyamat alapú**: A kliens alfolyamatként indítja az MCP szervert.
+- **Üzenetformátum**: Az üzenetek egyedi JSON-RPC kérések, értesítések vagy válaszok, amelyek új sorral vannak elválasztva.
+- **Naplózás**: A szerver LEHETŐSÉG szerint UTF-8 stringeket írhat a szabványos hiba kimenetre (`stderr`) naplózási célból.
 
 ### Fő követelmények:
-- Az üzeneteknek új sorral kell elválasztva lenniük, és nem tartalmazhatnak beágyazott új sorokat.
-- A szerver NEM írhat a `stdout`-ra olyan tartalmat, ami nem érvényes MCP üzenet.
-- A kliens NEM írhat a szerver `stdin`-jára olyan tartalmat, ami nem érvényes MCP üzenet.
+- Az üzeneteket új sorral kell elválasztani, és nem tartalmazhatnak beágyazott új sorokat
+- A szerver NEM írhat a `stdout`-ra nem érvényes MCP üzenetet
+- A kliens NEM írhat a szerver `stdin`-jére nem érvényes MCP üzenetet
 
 ### TypeScript
 
@@ -61,11 +61,11 @@ async function runServer() {
 runServer().catch(console.error);
 ```
 
-A fenti kódban:
+Az előző kódban:
 
-- Importáljuk a `Server` osztályt és a `StdioServerTransport`-ot az MCP SDK-ból
-- Létrehozunk egy szerver példányt alapkonfigurációval és képességekkel
-- Létrehozunk egy `StdioServerTransport` példányt, és összekapcsoljuk a szervert vele, engedélyezve a kommunikációt stdin/stdout-on keresztül
+- importáljuk a `Server` osztályt és a `StdioServerTransport`-ot az MCP SDK-ból
+- létrehozunk egy szerver példányt alap konfigurációval és képességekkel
+- létrehozunk egy `StdioServerTransport` példányt és összekapcsoljuk a szervert vele, lehetővé téve a kommunikációt stdin/stdout-on keresztül
 
 ### Python
 
@@ -95,11 +95,11 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-A fenti kódban:
+Az előző kódban:
 
-- Létrehozunk egy szerver példányt az MCP SDK használatával
-- Dekorátorokat használva definiálunk eszközöket
-- A stdio_server kontextuskezelőt használjuk a transzport kezelésére
+- létrehozunk egy szerver példányt az MCP SDK használatával
+- eszközöket definiálunk dekorátorokkal
+- a stdio_server kontextusmenedzsert használjuk a transzport kezelésére
 
 ### .NET
 
@@ -122,22 +122,22 @@ var app = builder.Build();
 await app.RunAsync();
 ```
 
-Az SSE-vel szemben a stdio szerverek:
+Az SSE-vel szembeni fő különbség, hogy a stdio szerverek:
 
-- Nem igényelnek webszerver beállítást vagy HTTP végpontokat
-- A kliens indítja őket alfolyamathoz hasonlóan
-- stdin/stdout adatfolyamokon keresztül kommunikálnak
-- Egyszerűbbek megvalósítani és hibakeresni
+- nem igényelnek webszerver beállítást vagy HTTP végpontokat
+- a kliens alfolyamatként indítja őket
+- a stdin/stdout csatornákon keresztül kommunikálnak
+- egyszerűbbek a megvalósításban és hibakeresésben
 
 ## Gyakorlat: stdio szerver létrehozása
 
-A szerver létrehozásakor két dolgot kell szem előtt tartanunk:
+Szerverünk létrehozásához két dolgot kell szem előtt tartanunk:
 
-- Webszervert kell használnunk a csatlakozási és üzenetküldési végpontok biztosítására.
+- Webszervert kell használnunk végpontok megosztásához a csatlakozáshoz és üzenetekhez.
 
 ## Labor: Egyszerű MCP stdio szerver készítése
 
-Ebben a laborban egy egyszerű MCP szervert hozunk létre az ajánlott stdio transzporttal. Ez a szerver olyan eszközöket tesz elérhetővé, amelyeket a kliensek a szabványos Model Context Protocol használatával hívhatnak meg.
+Ebben a laborban egy egyszerű MCP szervert hozunk létre az ajánlott stdio transzport használatával. Ez a szerver olyan eszközöket fog megosztani, amelyeket a kliensek a szabványos Model Context Protocol segítségével hívhatnak.
 
 ### Előfeltételek
 
@@ -145,7 +145,7 @@ Ebben a laborban egy egyszerű MCP szervert hozunk létre az ajánlott stdio tra
 - MCP Python SDK: `pip install mcp`
 - Alapvető aszinkron programozási ismeretek
 
-Kezdjük az első MCP stdio szerverünk létrehozásával:
+Kezdjük első MCP stdio szerverünk megalkotásával:
 
 ```python
 import asyncio
@@ -158,7 +158,7 @@ from mcp import types
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# A szerver létrehozása
+# Szerver létrehozása
 server = Server("example-stdio-server")
 
 @server.tool()
@@ -172,7 +172,7 @@ def get_greeting(name: str) -> str:
     return f"Hello, {name}! Welcome to MCP stdio server."
 
 async def main():
-    # stdio átvitel használata
+    # stdio szállítás használata
     async with stdio_server(server) as (read_stream, write_stream):
         await server.run(
             read_stream,
@@ -184,34 +184,34 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-## Fontos különbségek a megszűnt SSE megközelítéssel szemben
+## Fő különbségek az elavult SSE megközelítéstől
 
-**Stdio transzport (jelenleg ajánlott szabvány):**
-- Egyszerű alfolyamat modell - a kliens gyermekfolyamatként indítja a szervert
+**Stdio transzport (jelenlegi szabvány):**
+- Egyszerű alfolyamat modell – a kliens alfolyamként indítja a szervert
 - Kommunikáció stdin/stdout-on keresztül JSON-RPC üzenetekkel
-- HTTP szerver beállítása nem szükséges
+- Nincs szükség HTTP szerver beállításra
 - Jobb teljesítmény és biztonság
 - Könnyebb hibakeresés és fejlesztés
 
-**SSE transzport (2025-06-18-tól elavult):**
+**SSE transzport (elavult MCP 2025-06-18-tól):**
 - HTTP szerver szükséges SSE végpontokkal
-- Bonyolultabb webes szerver infrastruktúra
-- További biztonsági szempontok HTTP végpontokra
-- A webes esetekre most a Streamable HTTP váltotta fel
+- Összetettebb webszerver infrastruktúra beállítás
+- További biztonsági szempontok HTTP végpontoknál
+- Web alapú esetekre helyette a Streamable HTTP-t használjuk
 
 ### Szerver létrehozása stdio transzporttal
 
-A stdio szerver létrehozásához:
+Szerverünk létrehozásához a következőket kell tennünk:
 
-1. **Importáljuk a szükséges könyvtárakat** - Meg kell szereznünk az MCP szerver komponenseket és a stdio transzportot
-2. **Létrehozunk egy szerver példányt** - Meghatározzuk a szerver képességeit
-3. **Definiálunk eszközöket** - Hozzáadjuk a kívánt funkciókat
-4. **Beállítjuk a transzportot** - Konfiguráljuk a stdio kommunikációt
-5. **Elindítjuk a szervert** - Indítjuk a szervert és kezeljük az üzeneteket
+1. **Szükséges könyvtárak importálása** – Szükségünk van az MCP szerver komponensekre és stdio transzportra
+2. **Szerver példány létrehozása** – Definiáljuk a szervert a képességeivel együtt
+3. **Eszközök definiálása** – Hozzáadjuk a megosztani kívánt funkcionalitást
+4. **Transzport beállítása** – Konfiguráljuk a stdio kommunikációt
+5. **Szerver futtatása** – Elindítjuk a szervert és kezeljük az üzeneteket
 
-Lépésről lépésre építjük fel:
+Építsük ezt lépésről lépésre:
 
-### 1. lépés: Alap stdio szerver létrehozása
+### 1. lépés: Alap stdio szerver készítése
 
 ```python
 import asyncio
@@ -223,7 +223,7 @@ from mcp.server.stdio import stdio_server
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# A szerver létrehozása
+# Szerver létrehozása
 server = Server("example-stdio-server")
 
 @server.tool()
@@ -243,7 +243,7 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-### 2. lépés: Több eszköz hozzáadása
+### 2. lépés: További eszközök hozzáadása
 
 ```python
 @server.tool()
@@ -269,21 +269,21 @@ def get_server_info() -> dict:
 
 ### 3. lépés: A szerver futtatása
 
-Mentse el a kódot `server.py` néven, és futtassa parancssorból:
+Mentse el a kódot `server.py` néven, majd futtassa a parancssorból:
 
 ```bash
 python server.py
 ```
 
-A szerver elindul és várja a bemenetet stdin-ről. JSON-RPC üzeneteket használva kommunikál a stdio transzporton keresztül.
+A szerver elindul és várakozik a stdin bemenetre. JSON-RPC üzenetekkel kommunikál a stdio transzport felett.
 
-### 4. lépés: Tesztelés az Inspectorral
+### 4. lépés: Tesztelés az Inspector segítségével
 
-Tesztelheti szerverét az MCP Inspector segítségével:
+Tesztelheti szerverét az MCP Inspector használatával:
 
 1. Telepítse az Inspectort: `npx @modelcontextprotocol/inspector`
-2. Indítsa el az Inspectort, és irányítsa a szerver felé
-3. Tesztelje a létrehozott eszközöket
+2. Indítsa el az Inspectort és irányítsa a szerverére
+3. Tesztelje az elkészített eszközöket
 
 ### .NET
 
@@ -293,33 +293,34 @@ builder.Services
     .AddMcpServer();
  ```
 
-## Hibakeresés stdio szerverén
+
+## Hibakeresés stdio szerverrel
 
 ### MCP Inspector használata
 
-Az MCP Inspector értékes eszköz az MCP szerverek hibakereséséhez és teszteléséhez. Íme, hogyan használhatja stdio szerverével:
+Az MCP Inspector értékes eszköz MCP szerverek hibakeresésére és tesztelésére. Így használhatja stdio szerverrel:
 
-1. **Telepítse az Inspectort**:
+1. **Inspector telepítése**:
    ```bash
    npx @modelcontextprotocol/inspector
    ```
 
-2. **Indítsa el az Inspectort**:
+2. **Inspector futtatása**:
    ```bash
    npx @modelcontextprotocol/inspector python server.py
    ```
 
-3. **Tesztelje a szervert**: Az Inspector egy webes felületet kínál, ahol:
+3. **Tesztelje a szervert**: Az Inspector webes felületet biztosít, ahol:
    - Megtekintheti a szerver képességeit
-   - Tesztelheti az eszközöket különböző paraméterekkel
+   - Különböző paraméterekkel tesztelheti az eszközöket
    - Figyelheti a JSON-RPC üzeneteket
-   - Hibakeresheti a kapcsolódási problémákat
+   - Hibakeresheti a kapcsolati problémákat
 
 ### VS Code használata
 
-Közvetlenül VS Code-ban is hibakeresheti MCP szerverét:
+Közvetlenül a VS Code-ban is hibakeresheti MCP szerverét:
 
-1. Hozzon létre egy indítási konfigurációt a `.vscode/launch.json` fájlban:
+1. Hozzon létre indítási konfigurációt a `.vscode/launch.json` fájlban:
    ```json
    {
      "version": "0.2.0",
@@ -335,23 +336,23 @@ Közvetlenül VS Code-ban is hibakeresheti MCP szerverét:
    }
    ```
 
-2. Állítson be töréspontokat a szerver kódjában
+2. Helyezzen el töréspontokat a szerver kódban
 3. Indítsa el a hibakeresőt és teszteljen az Inspectorral
 
 ### Gyakori hibakeresési tippek
 
-- Használja a `stderr`-t naplózásra - soha ne írjon a `stdout`-ra, mert az MCP üzeneteké
-- Győződjön meg róla, hogy minden JSON-RPC üzenet új sorral elválasztott
+- Használja a `stderr`-t naplózásra – soha ne írjon a `stdout`-ra, mert az MCP üzenetekre fenntartott
+- Győződjön meg arról, hogy minden JSON-RPC üzenet új sorral van elválasztva
 - Először egyszerű eszközökkel teszteljen, mielőtt összetett funkciókat ad hozzá
-- Az Inspector segítségével ellenőrizze az üzenetformátumokat
+- Az Inspector segítségével ellenőrizze az üzenetformátumot
 
 ## stdio szerver használata VS Code-ban
 
-Miután elkészítette MCP stdio szerverét, integrálhatja azt VS Code-dal, hogy Claude-dal vagy más MCP-kompatibilis klienssel használhassa.
+Miután elkészítette MCP stdio szerverét, integrálhatja azt VS Code-dal, hogy Claude vagy más MCP-kompatibilis kliensekkel használhassa.
 
 ### Konfiguráció
 
-1. **Hozzon létre egy MCP konfigurációs fájlt** a `%APPDATA%\Claude\claude_desktop_config.json` (Windows) vagy `~/Library/Application Support/Claude/claude_desktop_config.json` (Mac) útvonalon:
+1. **Hozzon létre egy MCP konfigurációs fájlt** a `%APPDATA%\Claude\claude_desktop_config.json` (Windows) vagy `~/Library/Application Support/Claude/claude_desktop_config.json` (Mac) helyen:
 
    ```json
    {
@@ -364,16 +365,16 @@ Miután elkészítette MCP stdio szerverét, integrálhatja azt VS Code-dal, hog
    }
    ```
 
-2. **Indítsa újra Claudet**: Zárja be és nyissa meg újra Claudet az új szerver konfiguráció betöltéséhez.
+2. **Indítsa újra Claude-ot**: Zárja be és nyissa meg újra Claude-ot, hogy betöltse az új szerver konfigurációt.
 
-3. **Tesztelje a kapcsolatot**: Kezdjen beszélgetést Claudéval, és próbálja ki a szerver eszközeit:
-   - "Meg tudsz köszönni a köszönő eszközzel?"
-   - "Számold ki a 15 és 27 összegét"
-   - "Mi a szerver információ?"
+3. **Tesztelje a kapcsolatot**: Indítson beszélgetést Claude-dal és próbálja ki a szerver eszközeit:
+   - „Tudsz köszönteni a köszöntő eszközzel?”
+   - „Számold ki a 15 és 27 összegét”
+   - „Mi a szerver info?”
 
 ### TypeScript stdio szerver példa
 
-Íme egy teljes TypeScript példa hivatkozásként:
+Íme egy teljes TypeScript példa referenciaként:
 
 ```typescript
 #!/usr/bin/env node
@@ -474,21 +475,21 @@ public class Tools
 }
 ```
 
-## Összefoglalás
+## Összefoglaló
 
-Ebben a frissített leckében megtanultad, hogyan lehet:
+Ebben a frissített leckében megtanultad, hogyan:
 
-- MCP szervereket építeni a jelenlegi **stdio transzport** használatával (ajánlott megközelítés)
-- Megérteni, miért váltotta fel az SSE transzportot az stdio és Streamable HTTP
-- Olyan eszközöket létrehozni, amelyeket MCP kliensek hívhatnak
-- Hibakeresni a szervert az MCP Inspectorral
-- Integrálni a stdio szervert VS Code-dal és Claudéval
+- MCP szervereket építs a jelenlegi **stdio transzport** használatával (ajánlott megközelítés)
+- Megértsd, miért váltotta fel a stdio és Streamable HTTP az SSE transzportot
+- Eszközöket hozz létre, amelyeket MCP kliensek hívhatnak
+- Hibakeresd szervered az MCP Inspectorral
+- Integráld stdio szervered VS Code-dal és Claude-dal
 
-A stdio transzport egyszerűbb, biztonságosabb és jobb teljesítményt nyújt MCP szerverek építéséhez, mint az elavult SSE megoldás. A 2025-06-18-as specifikációtól kezdve ez az ajánlott transzport a legtöbb MCP szerver implementációhoz.
+A stdio transzport egyszerűbb, biztonságosabb és jobb teljesítményű módot nyújt MCP szerverek építésére az elavult SSE megközelítéshez képest. A 2025-06-18-as specifikáció óta ez a legtöbb MCP szerver megvalósításhoz ajánlott transzport.
 
 ### .NET
 
-1. Először készítsünk néhány eszközt, ehhez hozzunk létre egy *Tools.cs* fájlt a következő tartalommal:
+1. Először készítsünk néhány eszközt, ehhez hozzunk létre egy *Tools.cs* fájlt az alábbi tartalommal:
 
   ```csharp
   using System.ComponentModel;
@@ -498,81 +499,81 @@ A stdio transzport egyszerűbb, biztonságosabb és jobb teljesítményt nyújt 
 
 ## Gyakorlat: stdio szerver tesztelése
 
-Most, hogy elkészítetted a stdio szerveredet, teszteljük, hogy helyesen működik-e.
+Most, hogy elkészítetted a stdio szervered, teszteljük le, hogy megfelelően működik-e.
 
 ### Előfeltételek
 
-1. Győződj meg róla, hogy telepítve van az MCP Inspector:
+1. Győződj meg róla, hogy az MCP Inspector telepítve van:
    ```bash
    npm install -g @modelcontextprotocol/inspector
    ```
 
-2. A szerverkód mentve van (pl. `server.py`)
+2. A szerver kódjának elmentve kell lennie (pl. `server.py`)
 
-### Tesztelés az Inspectorral
+### Tesztelés Inspectorral
 
 1. **Indítsd el az Inspectort a szerverrel**:
    ```bash
    npx @modelcontextprotocol/inspector python server.py
    ```
 
-2. **Nyisd meg a webes felületet**: Az Inspector megnyit egy böngészőablakot, amely mutatja a szerver képességeit.
+2. **Nyisd meg a webes felületet**: Az Inspector megnyit egy böngészőablakot, amely megjeleníti a szerver képességeit.
 
-3. **Teszteld az eszközöket**: 
+3. **Teszteld az eszközöket**:
    - Próbáld ki a `get_greeting` eszközt különböző nevekkel
    - Teszteld a `calculate_sum` eszközt különféle számokkal
    - Hívd meg a `get_server_info` eszközt a szerver metaadatainak megtekintéséhez
 
-4. **Figyeld a kommunikációt**: Az Inspector mutatja a kliens és szerver közötti JSON-RPC üzeneteket.
+4. **Figyeld a kommunikációt**: Az Inspector mutatja a kliens és szerver közti JSON-RPC üzeneteket.
 
 ### Amit látnod kell
 
-Ha a szerver helyesen indul el, a következőket látod:
+Ha a szerver helyesen elindul, a következőket kell látnod:
 - A szerver képességei listázva az Inspectorban
 - Elérhető eszközök tesztelésre
 - Sikeres JSON-RPC üzenetváltások
-- Az eszközök válaszai megjelennek a felületen
+- Az eszköz válaszai megjelenítve a felületen
 
 ### Gyakori problémák és megoldások
 
-**A szerver nem indul el:**
+**Nem indul a szerver:**
 - Ellenőrizd, hogy minden függőség telepítve van: `pip install mcp`
 - Ellenőrizd a Python szintaxist és behúzásokat
-- Nézd meg a konzol hibajelzéseit
+- Nézd meg a konzolon az esetleges hibákat
 
-**Eszközök nem jelennek meg:**
-- Győződj meg róla, hogy jelen vannak az `@server.tool()` dekorátorok
-- Ellenőrizd, hogy az eszközfüggvények definiálva vannak-e a `main()` előtt
-- Ellenőrizd, hogy a szerver helyesen konfigurált-e
+**Nem jelennek meg az eszközök:**
+- Győződj meg róla, hogy az `@server.tool()` dekorátorok jelen vannak
+- Ellenőrizd, hogy az eszköz függvények a `main()` előtt vannak definiálva
+- Ellenőrizd, hogy a szerver helyesen van konfigurálva
 
 **Kapcsolati problémák:**
-- Biztosítsd, hogy a szerver stdio transzportot használ helyesen
-- Ellenőrizd, hogy nincs-e más folyamat, ami zavarhatja
-- Vizsgáld meg az Inspector parancs szintaxisát
+- Bizonyosodj meg arról, hogy a szerver helyesen használja a stdio transzportot
+- Ellenőrizd, hogy nem fut más folyamat, ami zavarhatja
+- Ellenőrizd az Inspector parancs szintaxisát
 
 ## Feladat
 
-Próbáld meg bővíteni a szerveredet további képességekkel. Nézd meg [ezt az oldalt](https://api.chucknorris.io/) például, hogy egy olyan eszközt adhass hozzá, amely egy API-t hív meg. Te döntöd el, milyen legyen a szerver. Jó szórakozást :)
+Próbáld meg tovább bővíteni a szervered képességeit. Nézd meg [ezt az oldalt](https://api.chucknorris.io/), hogy például hozzáadj egy eszközt, amely egy API-t hív. Te döntöd el, milyen legyen a szerver. Jó szórakozást :)
 
 ## Megoldás
 
 [Megoldás](./solution/README.md) Itt egy lehetséges megoldás működő kóddal.
 
-## Fő tanulságok
+## Főbb pontok
 
-E fejezetből a legfontosabb tanulságok a következők:
+A fejezet legfontosabb tanulságai:
 
 - A stdio transzport az ajánlott mechanizmus helyi MCP szerverekhez.
-- A stdio transzport zökkenőmentes kommunikációt tesz lehetővé MCP szerverek és kliensek között a szabványos bemeneti és kimeneti adatfolyamok használatával.
-- Mind az Inspector, mind a Visual Studio Code használható stdio szerverek közvetlen fogyasztására, megkönnyítve ezzel a hibakeresést és integrációt.
+- A stdio transzport zökkenőmentes kommunikációt biztosít MCP szerverek és kliensek között a szabványos bemenet és kimenet használatával.
+- Mind az Inspector, mind a Visual Studio Code közvetlenül képes fogyasztani stdio szervereket, megkönnyítve ezzel a hibakeresést és az integrációt.
 
-## Minták 
+## Minták
 
-- [Java Calculator](../samples/java/calculator/README.md)
-- [.Net Calculator](../../../../03-GettingStarted/samples/csharp)
-- [JavaScript Calculator](../samples/javascript/README.md)
-- [TypeScript Calculator](../samples/typescript/README.md)
-- [Python Calculator](../../../../03-GettingStarted/samples/python) 
+- [Java számológép](../samples/java/calculator/README.md)
+- [.Net számológép](../../../../03-GettingStarted/samples/csharp)
+- [JavaScript számológép](../samples/javascript/README.md)
+- [TypeScript számológép](../samples/typescript/README.md)
+- [Python számológép](../../../../03-GettingStarted/samples/python)
 
 ## További források
 
@@ -582,21 +583,21 @@ E fejezetből a legfontosabb tanulságok a következők:
 
 ## Következő lépések
 
-Most, hogy megtanultad, hogyan lehet MCP szervereket építeni stdio transzporttal, felfedezheted a haladóbb témákat:
+Most, hogy megtanultad, hogyan kell MCP szervereket készíteni stdio transzporttal, további haladóbb témákat fedezhetsz fel:
 
-- **Következő**: [HTTP Streaming MCP-vel (Streamable HTTP)](../06-http-streaming/README.md) - Tanulmányozd a másik támogatott transzport mechanizmust távoli szerverekhez
-- **Haladó**: [MCP Biztonsági legjobb gyakorlatok](../../02-Security/README.md) - Biztonság megvalósítása az MCP szervereidben
-- **Éles környezet**: [Kiszolgálási stratégiák](../09-deployment/README.md) - Szerverek éles üzembe helyezése
+- **Következő**: [HTTP Streaming MCP-vel (Streamable HTTP)](../06-http-streaming/README.md) – A másik támogatott transzport mechanizmus távoli szerverekhez
+- **Haladó**: [MCP biztonsági legjobb gyakorlatok](../../02-Security/README.md) – Biztonságot megvalósítani MCP szerverekben
+- **Éles használat**: [Telepítési stratégiák](../09-deployment/README.md) – Szerverek bevetése termelési környezetben
 
 ## További források
 
-- [MCP Specifikáció 2025-06-18](https://spec.modelcontextprotocol.io/specification/) - Hivatalos specifikáció
-- [MCP SDK Dokumentáció](https://github.com/modelcontextprotocol/sdk) - SDK hivatkozások minden nyelven
-- [Közösségi példák](../../06-CommunityContributions/README.md) - További szerver példák a közösségtől
+- [MCP specifikáció 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/) – Hivatalos specifikáció
+- [MCP SDK dokumentáció](https://github.com/modelcontextprotocol/sdk) – SDK referencia minden nyelvhez
+- [Közösségi példák](../../06-CommunityContributions/README.md) – Több szerver példa a közösségtől
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Jogi nyilatkozat**:  
-Ezt a dokumentumot az [Co-op Translator](https://github.com/Azure/co-op-translator) AI fordítószolgáltatás segítségével fordítottuk le. Bár a pontosságra törekszünk, kérjük, vegye figyelembe, hogy az automatikus fordítások hibákat vagy pontatlanságokat tartalmazhatnak. Az eredeti dokumentum az anyanyelvén tekintendő hivatalos forrásnak. Kritikus információk esetén javasolt szakmai emberi fordítást igénybe venni. Nem vállalunk felelősséget az ebből a fordításból eredő félreértésekért vagy félreértelmezésekért.
+**Jogi nyilatkozat**:
+Ez a dokumentum az AI fordítási szolgáltatás, a [Co-op Translator](https://github.com/Azure/co-op-translator) segítségével készült. Bár az pontosságra törekszünk, kérjük, vegye figyelembe, hogy az automatikus fordítások hibákat vagy pontatlanságokat tartalmazhatnak. Az eredeti dokumentum az anyanyelvén tekintendő hiteles forrásnak. Fontos információk esetén professzionális emberi fordítást javasolunk. Nem vállalunk felelősséget semmilyen félreértésért vagy téves értelmezésért, amely ebből a fordításból ered.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

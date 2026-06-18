@@ -1,50 +1,49 @@
-# 🔧 الوحدة 3: تطوير MCP متقدم باستخدام مجموعة أدوات الذكاء الاصطناعي
+# 🔧 الوحدة 3: تطوير متقدم لـ MCP باستخدام مجموعة أدوات Microsoft Foundry
 
-![المدة](https://img.shields.io/badge/Duration-20_minutes-blue?style=flat-square)
-![مجموعة أدوات الذكاء الاصطناعي](https://img.shields.io/badge/AI_Toolkit-Required-orange?style=flat-square)
-![بايثون](https://img.shields.io/badge/Python-3.10+-green?style=flat-square)
+![Duration](https://img.shields.io/badge/Duration-20_minutes-blue?style=flat-square)
+![Microsoft Foundry Toolkit](https://img.shields.io/badge/Microsoft_Foundry_Toolkit-Required-orange?style=flat-square)
+![Python](https://img.shields.io/badge/Python-3.10+-green?style=flat-square)
 ![MCP SDK](https://img.shields.io/badge/MCP_SDK-1.9.3-purple?style=flat-square)
-![المفتش](https://img.shields.io/badge/MCP_Inspector-0.14.0-blue?style=flat-square)
+![Inspector](https://img.shields.io/badge/MCP_Inspector-0.14.0-blue?style=flat-square)
 
 ## 🎯 أهداف التعلم
 
 بنهاية هذا المختبر، ستكون قادرًا على:
 
-- ✅ إنشاء خوادم MCP مخصصة باستخدام مجموعة أدوات الذكاء الاصطناعي
-- ✅ تكوين واستخدام أحدث إصدار من MCP Python SDK (الإصدار 1.9.3)
+- ✅ إنشاء خوادم MCP مخصصة باستخدام مجموعة أدوات Microsoft Foundry
+- ✅ تكوين واستخدام أحدث إصدار من MCP Python SDK (النسخة 1.9.3)
 - ✅ إعداد واستخدام MCP Inspector لأغراض التصحيح
 - ✅ تصحيح خوادم MCP في بيئتي Agent Builder وInspector
-- ✅ فهم سير عمل تطوير خوادم MCP المتقدمة
+- ✅ فهم سير عمل تطوير خوادم MCP المتقدم
 
 ## 📋 المتطلبات الأساسية
 
-- إتمام مختبر 2 (أساسيات MCP)
-- تثبيت VS Code مع امتداد AI Toolkit
+- إكمال المختبر 2 (أساسيات MCP)
+- وجود VS Code مع إضافة Microsoft Foundry Toolkit مثبتة
 - بيئة Python 3.10 أو أحدث
 - Node.js و npm لإعداد Inspector
 
-## 🏗️ ما ستبنيه
+## 🏗️ ما ستقوم ببنائه
 
-في هذا المختبر، ستقوم بإنشاء **خادم MCP للطقس** يوضح:
-
+في هذا المختبر، ستقوم بإنشاء **خادم MCP للطقس** يُظهر ما يلي:
 - تنفيذ خادم MCP مخصص
-- التكامل مع Agent Builder في مجموعة أدوات الذكاء الاصطناعي
+- التكامل مع Agent Builder في مجموعة أدوات Microsoft Foundry
 - سير عمل احترافي للتصحيح
-- أنماط استخدام حديثة لـ MCP SDK
+- أنماط استخدام حديثة لمكتبة MCP SDK
 
 ---
 
 ## 🔧 نظرة عامة على المكونات الأساسية
 
-### 🐍 MCP Python SDK  
-يوفر بروتوكول نموذج السياق (MCP) SDK لبايثون الأساس لبناء خوادم MCP مخصصة. ستستخدم الإصدار 1.9.3 مع ميزات تصحيح محسنة.
+### 🐍 MCP Python SDK
+توفر مكتبة Model Context Protocol الخاصة بـ Python الأساس لبناء خوادم MCP مخصصة. ستستخدم النسخة 1.9.3 مع ميزات تصحيح محسنة.
 
-### 🔍 MCP Inspector  
-أداة تصحيح قوية توفر:  
-- مراقبة الخادم في الوقت الحقيقي  
-- تصور تنفيذ الأدوات  
-- فحص طلبات واستجابات الشبكة  
-- بيئة اختبار تفاعلية  
+### 🔍 MCP Inspector
+أداة تصحيح قوية توفر:
+- مراقبة الخادم في الوقت الحقيقي
+- تصور تنفيذ الأدوات
+- فحص طلبات واستجابات الشبكة
+- بيئة اختبار تفاعلية
 
 ---
 
@@ -52,26 +51,26 @@
 
 ### الخطوة 1: إنشاء WeatherAgent في Agent Builder
 
-1. **افتح Agent Builder** في VS Code عبر امتداد AI Toolkit  
-2. **أنشئ وكيلًا جديدًا** بالتكوين التالي:  
+1. **افتح Agent Builder** في VS Code عبر إضافة Microsoft Foundry Toolkit
+2. **أنشئ وكيلًا جديدًا** بالتكوين التالي:
    - اسم الوكيل: `WeatherAgent`
 
-![إنشاء الوكيل](../../../../translated_images/ar/Agent.c9c33f6a412b4cde.webp)
+![Agent Creation](../../../../translated_images/ar/Agent.c9c33f6a412b4cde.webp)
 
-### الخطوة 2: تهيئة مشروع خادم MCP
+### الخطوة 2: تهيئة مشروع MCP Server
 
-1. **اذهب إلى Tools** → **Add Tool** في Agent Builder  
-2. **اختر "MCP Server"** من الخيارات المتاحة  
-3. **اختر "Create A new MCP Server"**  
-4. **اختر قالب `python-weather`**  
-5. **سمِّ خادمك:** `weather_mcp`
+1. **انتقل إلى Tools** → **Add Tool** في Agent Builder
+2. **اختر "MCP Server"** من الخيارات المتاحة
+3. **اختر "Create A new MCP Server"**
+4. **حدد القالب `python-weather`**
+5. **قم بتسمية الخادم الخاص بك:** `weather_mcp`
 
-![اختيار قالب بايثون](../../../../translated_images/ar/Pythontemplate.9d0a2913c6491500.webp)
+![Python Template Selection](../../../../translated_images/ar/Pythontemplate.9d0a2913c6491500.webp)
 
-### الخطوة 3: افتح وراجع المشروع
+### الخطوة 3: افتح وتفحص المشروع
 
-1. **افتح المشروع المُنشأ** في VS Code  
-2. **راجع هيكل المشروع:**  
+1. **افتح المشروع الذي تم إنشاؤه** في VS Code
+2. **راجع هيكل المشروع:**
    ```
    weather_mcp/
    ├── src/
@@ -89,31 +88,32 @@
 
 ### الخطوة 4: الترقية إلى أحدث إصدار من MCP SDK
 
-> **🔍 لماذا نُحدث؟** نرغب في استخدام أحدث إصدار من MCP SDK (الإصدار 1.9.3) وخدمة Inspector (الإصدار 0.14.0) للحصول على ميزات محسنة وقدرات تصحيح أفضل.
+> **🔍 لماذا الترقية؟** نريد استخدام أحدث إصدار من MCP SDK (النسخة 1.9.3) وخدمة Inspector (الإصدار 0.14.0) لميزات محسنة وقدرات تصحيح أفضل.
 
-#### 4أ. تحديث تبعيات بايثون
+#### 4a. تحديث تبعيات Python
 
-**حرر `pyproject.toml`:** تحديث [./code/weather_mcp/pyproject.toml](../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/pyproject.toml)
+**عدل `pyproject.toml`:** تحديث الملف [./code/weather_mcp/pyproject.toml](../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/pyproject.toml)
 
-#### 4ب. تحديث تكوين Inspector
 
-**حرر `inspector/package.json`:** تحديث [./code/weather_mcp/inspector/package.json](../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/inspector/package.json)
+#### 4b. تحديث تكوين Inspector
 
-#### 4ج. تحديث تبعيات Inspector
+**عدل `inspector/package.json`:** تحديث الملف [./code/weather_mcp/inspector/package.json](../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/inspector/package.json)
 
-**حرر `inspector/package-lock.json`:** تحديث [./code/weather_mcp/inspector/package-lock.json](../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/inspector/package-lock.json)
+#### 4c. تحديث تبعيات Inspector
 
-> **📝 ملاحظة:** يحتوي هذا الملف على تعريفات تبعيات واسعة النطاق. أدناه الهيكل الأساسي - المحتوى الكامل يضمن حل التبعيات بشكل صحيح.
+**عدل `inspector/package-lock.json`:** تحديث الملف [./code/weather_mcp/inspector/package-lock.json](../../../../10-StreamliningAIWorkflowsBuildingAnMCPServerWithAIToolkit/lab3/code/weather_mcp/inspector/package-lock.json)
 
-> **⚡ ملف القفل الكامل:** يحتوي package-lock.json الكامل على حوالي 3000 سطر من تعريفات التبعيات. ما سبق يعرض الهيكل الرئيسي - استخدم الملف المرفق لحل التبعيات بالكامل.
+> **📝 ملاحظة:** يحتوي هذا الملف على تعريفات تبعيات كبيرة. فيما يلي الهيكل الأساسي - المحتوى الكامل يضمن حل الاعتمادية بشكل صحيح.
+
+> **⚡ قفل الحزمة الكامل:** يحتوي package-lock.json الكامل على حوالي 3000 سطر من تعريفات التبعيات. ما سبق يوضح الهيكل الرئيسي - استخدم الملف المرفق لحل كامل للتبعيات.
 
 ### الخطوة 5: تكوين تصحيح الأخطاء في VS Code
 
 *ملاحظة: يرجى نسخ الملف في المسار المحدد لاستبدال الملف المحلي المقابل*
 
-#### 5أ. تحديث تكوين الإطلاق
+#### 5a. تحديث تكوين الإطلاق
 
-**حرر `.vscode/launch.json`:**
+**عدل `.vscode/launch.json`:**
 
 ```json
 {
@@ -190,7 +190,7 @@
 }
 ```
 
-**حرر `.vscode/tasks.json`:**
+**عدل `.vscode/tasks.json`:**
 
 ```
 {
@@ -292,20 +292,21 @@
 }
 ```
 
+
 ---
 
 ## 🚀 تشغيل واختبار خادم MCP الخاص بك
 
 ### الخطوة 6: تثبيت التبعيات
 
-بعد إجراء التعديلات، نفذ الأوامر التالية:
+بعد إجراء تغييرات التكوين، شغّل الأوامر التالية:
 
-**تثبيت تبعيات بايثون:**  
+**تثبيت تبعيات Python:**
 ```bash
 uv sync
 ```
 
-**تثبيت تبعيات Inspector:**  
+**تثبيت تبعيات Inspector:**
 ```bash
 cd inspector
 npm install
@@ -313,12 +314,12 @@ npm install
 
 ### الخطوة 7: التصحيح باستخدام Agent Builder
 
-1. **اضغط F5** أو استخدم تكوين **"Debug in Agent Builder"**  
-2. **اختر التكوين المركب** من لوحة التصحيح  
-3. **انتظر بدء تشغيل الخادم وفتح Agent Builder**  
-4. **اختبر خادم MCP الخاص بالطقس** باستخدام استعلامات اللغة الطبيعية
+1. **اضغط على F5** أو استخدم إعداد "Debug in Agent Builder"
+2. **اختر التكوين المركب** من لوحة التصحيح
+3. **انتظر حتى يبدأ الخادم** وفتح Agent Builder
+4. **اختبر خادم MCP الخاص بالطقس** باستخدام استفسارات اللغة الطبيعية
 
-أدخل موجه مثل هذا
+أدخل مدخلات مثل هذه
 
 SYSTEM_PROMPT
 
@@ -332,47 +333,47 @@ USER_PROMPT
 How's the weather like in Seattle
 ```
 
-![نتيجة تصحيح Agent Builder](../../../../translated_images/ar/Result.6ac570f7d2b1d538.webp)
+![Agent Builder Debug Result](../../../../translated_images/ar/Result.6ac570f7d2b1d538.webp)
 
 ### الخطوة 8: التصحيح باستخدام MCP Inspector
 
-1. **استخدم تكوين "Debug in Inspector"** (Edge أو Chrome)  
-2. **افتح واجهة Inspector** على `http://localhost:6274`  
-3. **استكشف بيئة الاختبار التفاعلية:**  
-   - عرض الأدوات المتاحة  
-   - اختبار تنفيذ الأدوات  
-   - مراقبة طلبات الشبكة  
-   - تصحيح استجابات الخادم  
+1. **استخدم إعداد "Debug in Inspector"** (على متصفح Edge أو Chrome)
+2. **افتح واجهة Inspector** على العنوان `http://localhost:6274`
+3. **استكشف بيئة الاختبار التفاعلية:**
+   - عرض الأدوات المتاحة
+   - اختبار تنفيذ الأدوات
+   - مراقبة طلبات الشبكة
+   - تصحيح استجابات الخادم
 
-![واجهة MCP Inspector](../../../../translated_images/ar/Inspector.5672415cd02fe873.webp)
+![MCP Inspector Interface](../../../../translated_images/ar/Inspector.5672415cd02fe873.webp)
 
 ---
 
 ## 🎯 النتائج الرئيسية للتعلم
 
-بإكمال هذا المختبر، تكون قد:
+عند إتمام هذا المختبر، تكون قد:
 
-- [x] **أنشأت خادم MCP مخصص** باستخدام قوالب AI Toolkit  
-- [x] **قمت بالترقية إلى أحدث إصدار من MCP SDK** (الإصدار 1.9.3) لتحسين الوظائف  
-- [x] **كونت سير عمل تصحيح احترافي** لكل من Agent Builder وInspector  
-- [x] **أعددت MCP Inspector** لاختبار الخادم بشكل تفاعلي  
-- [x] **أتقنت تكوينات تصحيح الأخطاء في VS Code** لتطوير MCP  
+- [x] **أنشأت خادم MCP مخصص** باستخدام قوالب Microsoft Foundry Toolkit
+- [x] **قمت بالترقية إلى أحدث MCP SDK** (النسخة 1.9.3) لوظائف محسنة
+- [x] **كونت سير عمل احترافي للتصحيح** لكل من Agent Builder وInspector
+- [x] **أعددت MCP Inspector** لاختبار الخادم التفاعلي
+- [x] **أتقنت تكوينات تصحيح الأخطاء في VS Code** لتطوير MCP
 
 ## 🔧 الميزات المتقدمة التي تم استكشافها
 
 | الميزة | الوصف | حالة الاستخدام |
 |---------|-------------|----------|
-| **MCP Python SDK v1.9.3** | أحدث تنفيذ للبروتوكول | تطوير خوادم حديثة |
-| **MCP Inspector 0.14.0** | أداة تصحيح تفاعلية | اختبار الخادم في الوقت الحقيقي |
+| **MCP Python SDK v1.9.3** | أحدث تنفيذ للبروتوكول | تطوير الخوادم الحديثة |
+| **MCP Inspector 0.14.0** | أداة تصحيح تفاعلية | اختبار الخوادم في الوقت الحقيقي |
 | **تصحيح VS Code** | بيئة تطوير متكاملة | سير عمل تصحيح احترافي |
-| **تكامل Agent Builder** | اتصال مباشر مع AI Toolkit | اختبار الوكلاء من البداية للنهاية |
+| **تكامل Agent Builder** | اتصال مباشر مع Microsoft Foundry Toolkit | اختبار الوكلاء من البداية إلى النهاية |
 
 ## 📚 موارد إضافية
 
-- [توثيق MCP Python SDK](https://modelcontextprotocol.io/docs/sdk/python)  
-- [دليل امتداد AI Toolkit](https://code.visualstudio.com/docs/ai/ai-toolkit)  
-- [توثيق تصحيح VS Code](https://code.visualstudio.com/docs/editor/debugging)  
-- [مواصفات Model Context Protocol](https://modelcontextprotocol.io/docs/concepts/architecture)  
+- [توثيق MCP Python SDK](https://modelcontextprotocol.io/docs/sdk/python)
+- [دليل إضافة Microsoft Foundry Toolkit](https://code.visualstudio.com/docs/ai/ai-toolkit)
+- [توثيق تصحيح VS Code](https://code.visualstudio.com/docs/editor/debugging)
+- [مواصفات Model Context Protocol](https://modelcontextprotocol.io/docs/concepts/architecture)
 
 ---
 
@@ -380,12 +381,16 @@ How's the weather like in Seattle
 
 ### 🔜 تابع إلى الوحدة التالية
 
-هل أنت مستعد لتطبيق مهارات MCP في سير عمل تطوير حقيقي؟ تابع إلى **[الوحدة 4: تطوير MCP عملي - خادم استنساخ GitHub مخصص](../lab4/README.md)** حيث ستقوم بـ:  
-- بناء خادم MCP جاهز للإنتاج لأتمتة عمليات مستودعات GitHub  
-- تنفيذ وظيفة استنساخ مستودعات GitHub عبر MCP  
-- دمج خوادم MCP المخصصة مع VS Code ووضع GitHub Copilot Agent  
-- اختبار ونشر خوادم MCP المخصصة في بيئات الإنتاج  
-- تعلم أتمتة سير العمل العملية للمطورين
+هل أنت مستعد لتطبيق مهارات MCP على سير عمل تطوير واقعي؟ تابع إلى **[الوحدة 4: تطوير MCP عملي - خادم استنساخ GitHub مخصص](../lab4/README.md)** حيث ستقوم بـ:
+- بناء خادم MCP جاهز للإنتاج لأتمتة عمليات مستودعات GitHub
+- تنفيذ وظيفة استنساخ مستودعات GitHub عبر MCP
+- دمج خوادم MCP مخصصة مع VS Code ووضع GitHub Copilot Agent
+- اختبار ونشر خوادم MCP مخصصة في بيئات الإنتاج
+- تعلم أتمتة سير العمل العملي للمطورين
 
-**إخلاء المسؤولية**:  
-تمت ترجمة هذا المستند باستخدام خدمة الترجمة الآلية [Co-op Translator](https://github.com/Azure/co-op-translator). بينما نسعى لتحقيق الدقة، يرجى العلم أن الترجمات الآلية قد تحتوي على أخطاء أو عدم دقة. يجب اعتبار المستند الأصلي بلغته الأصلية المصدر الموثوق به. للمعلومات الهامة، يُنصح بالترجمة البشرية المهنية. نحن غير مسؤولين عن أي سوء فهم أو تفسير ناتج عن استخدام هذه الترجمة.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**تنويه**:
+تمت ترجمة هذا المستند باستخدام خدمة الترجمة بالذكاء الاصطناعي [Co-op Translator](https://github.com/Azure/co-op-translator). بينما نسعى للدقة، يرجى العلم أن الترجمات الآلية قد تحتوي على أخطاء أو عدم دقة. يجب اعتبار المستند الأصلي بلغته الأصلية المصدر الرسمي والمعتمد. للمعلومات الهامة، يُنصح بالاستعانة بترجمة بشرية محترفة. نحن غير مسؤولين عن أي سوء فهم أو تفسير ناتج عن استخدام هذه الترجمة.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

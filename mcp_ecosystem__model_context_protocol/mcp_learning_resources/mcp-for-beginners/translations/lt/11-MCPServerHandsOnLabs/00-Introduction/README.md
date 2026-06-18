@@ -1,84 +1,84 @@
 # Įvadas į MCP duomenų bazės integraciją
 
-## 🎯 Ką apima šis praktinis užsiėmimas
+## 🎯 Ko apima šis laboratorinis darbas
 
-Šis įvadinis praktinis užsiėmimas suteikia išsamų supratimą apie Model Context Protocol (MCP) serverių kūrimą su duomenų bazės integracija. Jūs suprasite verslo atvejį, techninę architektūrą ir realaus pasaulio pritaikymą per Zava Retail analitikos pavyzdį, pateiktą adresu https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail.
+Šis įvadinis laboratorinis darbas suteikia išsamų Model Context Protocol (MCP) serverių kūrimo su duomenų bazių integracija apžvalgą. Suprasite verslo atvejį, techninę architektūrą ir realaus pasaulio taikymą per Zava Retail analizės naudojimo atvejį adresu https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail.
 
 ## Apžvalga
 
-**Model Context Protocol (MCP)** leidžia dirbtinio intelekto asistentams saugiai pasiekti ir sąveikauti su išoriniais duomenų šaltiniais realiuoju laiku. Sujungus MCP su duomenų bazės integracija, atsiveria galingos galimybės duomenimis pagrįstoms dirbtinio intelekto programoms.
+**Model Context Protocol (MCP)** leidžia AI asistentams saugiai pasiekti ir bendrauti su išoriniais duomenų šaltiniais realiuoju laiku. Derinant su duomenų bazių integracija, MCP atveria galingas galimybes duomenimis pagrįstoms AI programoms.
 
-Ši mokymosi programa moko jus kurti gamybai paruoštus MCP serverius, kurie jungia dirbtinio intelekto asistentus su mažmeninės prekybos pardavimų duomenimis per PostgreSQL, įgyvendinant įmonės modelius, tokius kaip eilutės lygio saugumas, semantinė paieška ir daugiabučių duomenų prieiga.
+Šis mokymosi kelias moko jus kurti gamybai pasiruošusius MCP serverius, kurie jungia AI asistentus su mažmeninės prekybos pardavimų duomenimis per PostgreSQL, įgyvendinant įmonių modelius kaip Row Level Security, semantinė paieška ir daugiapakopis duomenų prieigos valdymas.
 
 ## Mokymosi tikslai
 
-Baigę šį praktinį užsiėmimą, jūs galėsite:
+Baigę šį laboratorinį darbą, galėsite:
 
-- **Apibrėžti** Model Context Protocol ir jo pagrindinius privalumus duomenų bazės integracijai
-- **Identifikuoti** pagrindinius MCP serverio architektūros komponentus su duomenų bazėmis
-- **Suprasti** Zava Retail pavyzdį ir jo verslo reikalavimus
-- **Atpažinti** įmonės modelius saugiai ir mastelio požiūriu efektyviai duomenų prieigai
-- **Išvardinti** įrankius ir technologijas, naudojamus visoje mokymosi programoje
+- **Apibrėžti** Model Context Protocol ir jo pagrindines naudą duomenų bazių integracijai
+- **Nustatyti** pagrindinius MCP serverio architektūros komponentus su duomenų bazėmis
+- **Suprasti** Zava Retail naudojimo atvejį ir jo verslo reikalavimus
+- **Atpažinti** įmonių modelius saugiam, mastomam duomenų bazių pasiekiamumui
+- **Išvardyti** įrankius ir technologijas, naudojamas šiame mokymosi kelyje
 
 ## 🧭 Iššūkis: AI susitinka su realaus pasaulio duomenimis
 
 ### Tradiciniai AI apribojimai
 
-Šiuolaikiniai dirbtinio intelekto asistentai yra nepaprastai galingi, tačiau susiduria su reikšmingais apribojimais dirbant su realaus pasaulio verslo duomenimis:
+Šiuolaikiniai AI asistentai yra nepaprastai galingi, tačiau susiduria su reikšmingais apribojimais dirbdami su realaus pasaulio verslo duomenimis:
 
 | **Iššūkis** | **Aprašymas** | **Verslo poveikis** |
 |-------------|---------------|---------------------|
-| **Statinės žinios** | AI modeliai, apmokyti fiksuotais duomenų rinkiniais, negali pasiekti dabartinių verslo duomenų | Pasenusi įžvalga, praleistos galimybės |
-| **Duomenų silosai** | Informacija užrakinta duomenų bazėse, API ir sistemose, kurių AI negali pasiekti | Nepilna analizė, suskaidyti darbo procesai |
-| **Saugumo apribojimai** | Tiesioginė duomenų bazės prieiga kelia saugumo ir atitikties problemas | Ribotas diegimas, rankinis duomenų paruošimas |
-| **Sudėtingos užklausos** | Verslo vartotojams reikia techninių žinių, kad išgautų duomenų įžvalgas | Sumažėjęs priėmimas, neefektyvūs procesai |
+| **Statinė žinios bazė** | AI modeliai, apmokyti ant fiksuotų duomenų, negali pasiekti dabartinių verslo duomenų | Pasenę įžvalgos, prarastos galimybės |
+| **Duomenų izoliuotumas** | Informacija užrakinta duomenų bazėse, API ir sistemose, prie kurių AI neturi prieigos | Nepilna analizė, fragmentuoti darbo procesai |
+| **Saugumo apribojimai** | Tiesioginė prieiga prie duomenų bazės kelia saugumo ir atitikties problemas | Ribotas diegimas, rankinis duomenų paruošimas |
+| **Sudėtingi užklausimai** | Verslo naudotojams reikalingos techninės žinios duomenų įžvalgoms gauti | Sumažėjęs priėmimas, neefektyvūs procesai |
 
 ### MCP sprendimas
 
-Model Context Protocol sprendžia šiuos iššūkius, suteikdamas:
+Model Context Protocol sprendžia šiuos iššūkius suteikdamas:
 
-- **Duomenų prieigą realiuoju laiku**: AI asistentai užklausia gyvas duomenų bazes ir API
+- **Realiojo laiko duomenų prieigą**: AI asistentai gali užklausti tiesiogines duomenų bazes ir API
 - **Saugų integravimą**: Kontroliuojama prieiga su autentifikacija ir leidimais
-- **Natūralios kalbos sąsają**: Verslo vartotojai užduoda klausimus paprasta anglų kalba
+- **Natūralios kalbos sąsają**: Verslo vartotojai gali užduoti klausimus paprasta anglų kalba
 - **Standartizuotą protokolą**: Veikia su skirtingomis AI platformomis ir įrankiais
 
-## 🏪 Susipažinkite su Zava Retail: mūsų mokymosi atvejo studija https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail
+## 🏪 Susipažinkite su Zava Retail: mūsų mokymosi atveju https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail
 
-Visoje mokymosi programoje mes kursime MCP serverį **Zava Retail**, fiktyviai „pasidaryk pats“ mažmeninės prekybos tinklui su keliais parduotuvių vietomis. Šis realistiškas scenarijus demonstruoja įmonės lygio MCP įgyvendinimą.
+Šio mokymosi kelio metu kursime MCP serverį **Zava Retail**, fiktyviai „pasidaryk pats“ mažmeninės prekybos tinklui su keliais parduotuvių taškais. Šis realistiškas scenarijus demonstruoja įmonių lygio MCP diegimą.
 
 ### Verslo kontekstas
 
-**Zava Retail** valdo:
-- **8 fizines parduotuves** Vašingtono valstijoje (Sietlas, Bellevue, Tacoma, Spokane, Everett, Redmond, Kirkland)
-- **1 internetinę parduotuvę** e. prekybos pardavimams
-- **Įvairų produktų katalogą**, įskaitant įrankius, techninę įrangą, sodo reikmenis ir statybines medžiagas
-- **Daugiapakopę valdymo struktūrą** su parduotuvių vadovais, regioniniais vadovais ir vadovais
+**Zava Retail** veikia:
+- **8 fizinės parduotuvės** visoje Vašingtono valstijoje (Sietlas, Bellevue, Takoma, Spokane, Everett, Redmond, Kirkland)
+- **1 internetinė parduotuvė** el. prekybai
+- **Įvairus prekių katalogas**, įskaitant įrankius, aparatūrą, sodininkystės prekes ir statybines medžiagas
+- **Daugiapakopė valdymo struktūra** su parduotuvės vadovais, regioniniais vadovais ir vadovybe
 
 ### Verslo reikalavimai
 
-Parduotuvės vadovams ir vadovams reikia AI pagrįstos analitikos, kad:
+Parduotuvės vadovams ir vadovybei reikia AI pagrįstos analizės, kad būtų galima:
 
-1. **Analizuotų pardavimų rezultatus** skirtingose parduotuvėse ir laikotarpiuose
-2. **Sekti inventoriaus lygį** ir nustatyti poreikį papildyti atsargas
-3. **Suprasti klientų elgesį** ir pirkimo modelius
+1. **Analizuoti pardavimų rezultatus** tarp parduotuvių ir laiko tarpų
+2. **Stebėti inventoriaus lygius** ir numatyti papildymo poreikius
+3. **Suprasti klientų elgseną** ir pirkimo įpročius
 4. **Atrasti produktų įžvalgas** per semantinę paiešką
-5. **Generuoti ataskaitas** naudojant natūralios kalbos užklausas
-6. **Užtikrinti duomenų saugumą** su vaidmenimis pagrįsta prieigos kontrole
+5. **Generuoti ataskaitas** su natūralios kalbos užklausomis
+6. **Užtikrinti duomenų saugumą** pagal vaidmenų pagrindu valdomą prieigą
 
 ### Techniniai reikalavimai
 
-MCP serveris turi suteikti:
+MCP serveris turi užtikrinti:
 
-- **Daugiabučių duomenų prieigą**, kur parduotuvių vadovai mato tik savo parduotuvės duomenis
-- **Lankstų užklausų vykdymą**, palaikant sudėtingas SQL operacijas
+- **Daugiapakopę duomenų prieigą**, kur parduotuvių vadovai mato tik savo parduotuvės duomenis
+- **Lankstų užklausų palaikymą** su sudėtingomis SQL operacijomis
 - **Semantinę paiešką** produktų atradimui ir rekomendacijoms
-- **Duomenis realiuoju laiku**, atspindinčius dabartinę verslo būklę
-- **Saugų autentifikavimą** su eilutės lygio saugumu
-- **Mastelio požiūriu efektyvią architektūrą**, palaikančią kelis vartotojus vienu metu
+- **Realiojo laiko duomenis**, atspindinčius esamą verslo būklę
+- **Saugų autentifikavimą** su eilutės lygio saugumu (RLS)
+- **Mastomą architektūrą** keliems vienu metu veikiančiams naudotojams
 
 ## 🏗️ MCP serverio architektūros apžvalga
 
-Mūsų MCP serveris įgyvendina sluoksniuotą architektūrą, optimizuotą duomenų bazės integracijai:
+Mūsų MCP serveris įgyvendina sluoksniuotą architektūrą, optimizuotą duomenų bazių integracijai:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -121,120 +121,120 @@ Mūsų MCP serveris įgyvendina sluoksniuotą architektūrą, optimizuotą duome
 ### Pagrindiniai komponentai
 
 #### **1. MCP serverio sluoksnis**
-- **FastMCP Framework**: Moderni Python MCP serverio įgyvendinimo sistema
-- **Įrankių registracija**: Deklaratyvūs įrankių apibrėžimai su tipų saugumu
-- **Užklausos kontekstas**: Vartotojo tapatybė ir sesijos valdymas
-- **Klaidų tvarkymas**: Patikimas klaidų valdymas ir registravimas
+- **FastMCP Framework**: šiuolaikiška Python MCP serverio įgyvendinimas
+- **Įrankių registracija**: deklaratyvūs įrankių apibrėžimai su tipo saugumu
+- **Užklausos kontekstas**: naudotojo tapatybės ir sesijos valdymas
+- **Klaidų valdymas**: tvirtas klaidų valdymas ir žurnalo įrašai
 
 #### **2. Duomenų bazės integracijos sluoksnis**
-- **Jungčių valdymas**: Efektyvus asyncpg jungčių valdymas
-- **Schemos tiekėjas**: Dinaminis lentelių schemos atradimas
-- **Užklausų vykdytojas**: Saugus SQL vykdymas su RLS kontekstu
-- **Sandorių valdymas**: ACID atitiktis ir atšaukimo tvarkymas
+- **Ryšių valdymas**: efektyvus asyncpg ryšių valdymas
+- **Schemos tiekėjas**: dinamiškas lentelės schemos atpažinimas
+- **Užklausų vykdytojas**: saugus SQL vykdymas su RLS kontekstu
+- **Transakcijų valdymas**: ACID atitiktis ir transakcijų atšaukimas
 
 #### **3. Saugumo sluoksnis**
-- **Eilutės lygio saugumas**: PostgreSQL RLS daugiabučių duomenų izoliacijai
-- **Vartotojo tapatybė**: Parduotuvės vadovo autentifikavimas ir autorizacija
-- **Prieigos kontrolė**: Smulkiai detalizuoti leidimai ir audito pėdsakai
-- **Įvesties validacija**: SQL injekcijų prevencija ir užklausų validacija
+- **Eilutės lygio saugumas (RLS)**: PostgreSQL RLS daugiapakopiam duomenų izoliavimui
+- **Naudotojo tapatybė**: parduotuvių vadovų autentifikavimas ir autorizacija
+- **Prieigos kontrolė**: smulkiai sureguliuoti leidimai ir audito žurnalai
+- **Įvesties validacija**: SQL injekcijų prevencija ir užklausų patikra
 
-#### **4. AI patobulinimo sluoksnis**
-- **Semantinė paieška**: Vektoriniai įterpimai produktų atradimui
-- **Azure OpenAI integracija**: Teksto įterpimų generavimas
-- **Panašumo algoritmai**: pgvector kosininio panašumo paieška
-- **Paieškos optimizavimas**: Indeksavimas ir našumo gerinimas
+#### **4. AI stiprinimo sluoksnis**
+- **Semantinė paieška**: vektorinės embedavimo priemonės produktų atradimui
+- **Azure OpenAI integracija**: tekstų embedavimo generavimas
+- **Panašumo algoritmai**: pgvector kosinuso panašumo paieška
+- **Paieškos optimizavimas**: indeksavimas ir našumo reguliavimas
 
 ## 🔧 Technologijų rinkinys
 
 ### Pagrindinės technologijos
 
 | **Komponentas** | **Technologija** | **Paskirtis** |
-|------------------|------------------|---------------|
-| **MCP Framework** | FastMCP (Python) | Moderni MCP serverio įgyvendinimo sistema |
-| **Duomenų bazė** | PostgreSQL 17 + pgvector | Reliaciniai duomenys su vektorine paieška |
-| **AI paslaugos** | Azure OpenAI | Teksto įterpimai ir kalbos modeliai |
+|-----------------|------------------|---------------|
+| **MCP Framework** | FastMCP (Python) | Šiuolaikiškas MCP serverio įgyvendinimas |
+| **Duomenų bazė** | PostgreSQL 17 + pgvector | Santykiniai duomenys su vektorinės paieškos palaikymu |
+| **AI paslaugos** | Azure OpenAI | Tekstų embedavimas ir kalbos modeliai |
 | **Konteinerizacija** | Docker + Docker Compose | Kūrimo aplinka |
-| **Debesų platforma** | Microsoft Azure | Gamybos diegimas |
-| **IDE integracija** | VS Code | AI pokalbiai ir kūrimo darbo eiga |
+| **Debesų platforma** | Microsoft Azure | Gamybinė diegimo aplinka |
+| **IDE integracija** | VS Code | AI pokalbių ir kūrimo darbo eiga |
 
 ### Kūrimo įrankiai
 
 | **Įrankis** | **Paskirtis** |
-|-------------|--------------|
-| **asyncpg** | Aukštos našumo PostgreSQL tvarkyklė |
+|-------------|---------------|
+| **asyncpg** | Aukšto našumo PostgreSQL tvarkyklė |
 | **Pydantic** | Duomenų validacija ir serializacija |
 | **Azure SDK** | Debesų paslaugų integracija |
-| **pytest** | Testavimo sistema |
+| **pytest** | Testavimo karkasas |
 | **Docker** | Konteinerizacija ir diegimas |
 
-### Gamybos rinkinys
+### Gamybinis rinkinys
 
 | **Paslauga** | **Azure resursas** | **Paskirtis** |
 |--------------|--------------------|---------------|
 | **Duomenų bazė** | Azure Database for PostgreSQL | Valdoma duomenų bazės paslauga |
 | **Konteineris** | Azure Container Apps | Serverless konteinerių talpinimas |
-| **AI paslaugos** | Azure AI Foundry | OpenAI modeliai ir galiniai taškai |
-| **Stebėjimas** | Application Insights | Stebėjimas ir diagnostika |
-| **Saugumas** | Azure Key Vault | Slaptų duomenų ir konfigūracijos valdymas |
+| **AI paslaugos** | Microsoft Foundry | OpenAI modeliai ir galutinės taškos |
+| **Stebėsena** | Application Insights | Stebėjimo ir diagnostikos įrankiai |
+| **Saugumas** | Azure Key Vault | Slapčių ir konfigūracijos valdymas |
 
 ## 🎬 Realūs naudojimo scenarijai
 
-Pažvelkime, kaip skirtingi vartotojai sąveikauja su mūsų MCP serveriu:
+Pažiūrėkime, kaip skirtingi naudotojai sąveikauja su mūsų MCP serveriu:
 
-### Scenarijus 1: Parduotuvės vadovo veiklos peržiūra
+### Scenarijus 1: Parduotuvės vadovo našumo apžvalga
 
-**Vartotojas**: Sarah, Sietlo parduotuvės vadovė  
+**Naudotojas**: Sarah, Sietlo parduotuvės vadovė  
 **Tikslas**: Analizuoti praėjusio ketvirčio pardavimų rezultatus
 
 **Natūralios kalbos užklausa**:
-> "Parodykite 10 geriausių produktų pagal pajamas mano parduotuvėje 2024 m. IV ketvirtyje"
+> "Rodyk man 10 geriausiai parduodamų produktų pagal pajamas mano parduotuvėje 2024 m. IV ketvirtį"
 
 **Kas vyksta**:
-1. VS Code AI pokalbis siunčia užklausą MCP serveriui
-2. MCP serveris identifikuoja Sarah parduotuvės kontekstą (Sietlas)
+1. VS Code AI Chat siunčia užklausą MCP serveriui
+2. MCP serveris nustato Sarah parduotuvės kontekstą (Sietlas)
 3. RLS politika filtruoja duomenis tik Sietlo parduotuvei
-4. SQL užklausa generuojama ir vykdoma
-5. Rezultatai formatuojami ir grąžinami AI pokalbiui
+4. Sukuriama ir vykdoma SQL užklausa
+5. Rezultatai formatuojami ir perduodami AI Chat
 6. AI pateikia analizę ir įžvalgas
 
 ### Scenarijus 2: Produktų atradimas su semantine paieška
 
-**Vartotojas**: Mike, inventoriaus vadovas  
+**Naudotojas**: Mike, inventoriaus vadybininkas  
 **Tikslas**: Rasti produktus, panašius į kliento užklausą
 
 **Natūralios kalbos užklausa**:
-> "Kokius produktus mes parduodame, kurie yra panašūs į 'vandeniui atsparius elektros jungiklius lauko naudojimui'?"
+> "Kokius produktus parduodame, kurie panašūs į „atsparius vandeniui elektrinius jungtukus lauko naudotojui“?"
 
 **Kas vyksta**:
 1. Užklausa apdorojama semantinės paieškos įrankiu
-2. Azure OpenAI generuoja įterpimo vektorių
+2. Azure OpenAI generuoja embedavimo vektorių
 3. pgvector atlieka panašumo paiešką
-4. Susiję produktai reitinguojami pagal aktualumą
-5. Rezultatai apima produktų detales ir prieinamumą
+4. Susiję produktai surikiuojami pagal svarbumą
+5. Rezultatuose pateikiama produktų informacija ir prieinamumas
 6. AI siūlo alternatyvas ir komplektavimo galimybes
 
 ### Scenarijus 3: Kryžminė parduotuvių analizė
 
-**Vartotojas**: Jennifer, regioninė vadovė  
-**Tikslas**: Palyginti pardavimus pagal kategorijas visose parduotuvėse
+**Naudotojas**: Jennifer, regioninė vadybininkė  
+**Tikslas**: Palyginti rezultatus visose parduotuvėse
 
 **Natūralios kalbos užklausa**:
-> "Palyginkite pardavimus pagal kategorijas visose parduotuvėse per pastaruosius 6 mėnesius"
+> "Palyginkite pardavimus pagal kategorijas per paskutinius 6 mėnesius visose parduotuvėse"
 
 **Kas vyksta**:
-1. RLS kontekstas nustatomas regioninės vadovės prieigai
-2. Generuojama sudėtinga daugiabučių parduotuvių užklausa
-3. Duomenys agreguojami visose parduotuvių vietose
-4. Rezultatai apima tendencijas ir palyginimus
-5. AI identifikuoja įžvalgas ir rekomendacijas
+1. Nustatomas RLS kontekstas regioninei vadybinei prieigai
+2. Sukuriama sudėtinga užklausa kelioms parduotuvėms
+3. Duomenys agreguojami per parduotuvių vietas
+4. Rezultatuose pateikiamos tendencijos ir palyginimai
+5. AI pateikia įžvalgas ir rekomendacijas
 
-## 🔒 Saugumas ir daugiabučių duomenų prieiga
+## 🔒 Saugumo ir daugiapakopio prieigos giluminis peržiūrėjimas
 
-Mūsų įgyvendinimas prioritetą teikia įmonės lygio saugumui:
+Mūsų įgyvendinimas prioritetizuoja įmonių lygio saugumą:
 
 ### Eilutės lygio saugumas (RLS)
 
-PostgreSQL RLS užtikrina duomenų izoliaciją:
+PostgreSQL RLS užtikrina duomenų izoliavimą:
 
 ```sql
 -- Store managers see only their store's data
@@ -248,51 +248,51 @@ CREATE POLICY regional_manager_policy ON retail.orders
   USING (store_id = ANY(get_user_store_list()));
 ```
 
-### Vartotojo tapatybės valdymas
+### Naudotojo tapatybės valdymas
 
-Kiekviena MCP jungtis apima:
-- **Parduotuvės vadovo ID**: Unikalus identifikatorius RLS kontekstui
-- **Vaidmenų priskyrimas**: Leidimai ir prieigos lygiai
-- **Sesijos valdymas**: Saugūs autentifikavimo žetonai
-- **Audito registravimas**: Pilna prieigos istorija
+Kiekvienas MCP ryšys apima:
+- **Parduotuvės vadovo ID**: unikalus RLS konteksto identifikatorius
+- **Vaidmens priskyrimas**: leidimai ir prieigos lygiai
+- **Sesijos valdymas**: saugūs autentifikacijos tokenai
+- **Audito žurnalas**: pilnas prieigos istorijos registravimas
 
 ### Duomenų apsauga
 
-Kelios saugumo sluoksniai:
-- **Jungties šifravimas**: TLS visoms duomenų bazės jungtims
-- **SQL injekcijų prevencija**: Tik parametrizuotos užklausos
-- **Įvesties validacija**: Išsami užklausų validacija
-- **Klaidų tvarkymas**: Jokių jautrių duomenų klaidų pranešimuose
+Daugiasluoksnis saugumas:
+- **Ryšių šifravimas**: TLS visiems duomenų bazės ryšiams
+- **SQL injekcijų prevencija**: tik parametrizuotos užklausos
+- **Įvesties validacija**: išsami užklausų ir įvesties patikra
+- **Klaidų valdymas**: jokios jautrios informacijos klaidų pranešimuose
 
 ## 🎯 Pagrindinės išvados
 
 Baigę šį įvadą, turėtumėte suprasti:
 
-✅ **MCP vertės pasiūlymą**: Kaip MCP sujungia AI asistentus ir realaus pasaulio duomenis  
+✅ **MCP vertės pasiūlymą**: kaip MCP sujungia AI asistentus su realaus pasaulio duomenimis  
 ✅ **Verslo kontekstą**: Zava Retail reikalavimus ir iššūkius  
-✅ **Architektūros apžvalgą**: Pagrindinius komponentus ir jų sąveiką  
-✅ **Technologijų rinkinį**: Naudotus įrankius ir sistemas  
-✅ **Saugumo modelį**: Daugiabučių duomenų prieigą ir apsaugą  
-✅ **Naudojimo modelius**: Realūs užklausų scenarijai ir darbo procesai  
+✅ **Architektūros apžvalgą**: pagrindinius komponentus ir jų sąveiką  
+✅ **Technologijų rinkinį**: naudojamus įrankius ir karkasus  
+✅ **Saugumo modelį**: daugiapakopę duomenų prieigą ir apsaugą  
+✅ **Naudojimo modelius**: realaus pasaulio užklausų scenarijus ir darbo eigas  
 
 ## 🚀 Kas toliau
 
 Pasiruošę gilintis? Tęskite su:
 
-**[Lab 01: Pagrindinės architektūros sąvokos](../01-Architecture/README.md)**
+**[Laboratorinis darbas 01: Pagrindinės architektūros koncepcijos](../01-Architecture/README.md)**
 
-Sužinokite apie MCP serverio architektūros modelius, duomenų bazės projektavimo principus ir išsamią techninę įgyvendinimą, kuris palaiko mūsų mažmeninės prekybos analitikos sprendimą.
+Sužinokite apie MCP serverio architektūros modelius, duomenų bazių projektavimo principus ir išsamų techninį įgyvendinimą, kuris palaiko mūsų mažmeninės prekybos analizės sprendimą.
 
-## 📚 Papildomi ištekliai
+## 📚 Papildomi šaltiniai
 
 ### MCP dokumentacija
-- [MCP specifikacija](https://modelcontextprotocol.io/docs/) - Oficialus protokolo dokumentas
-- [MCP pradedantiesiems](https://aka.ms/mcp-for-beginners) - Išsamus MCP mokymosi vadovas
-- [FastMCP dokumentacija](https://github.com/modelcontextprotocol/python-sdk) - Python SDK dokumentacija
+- [MCP specifikacija](https://modelcontextprotocol.io/docs/) - Oficialioji protokolo dokumentacija
+- [MCP pradedantiesiems](https://aka.ms/mcp-for-beginners) - Išsamus MCP mokymosi gidas
+- [FastMCP dokumentacija](https://github.com/modelcontextprotocol/python-sdk) - Python SDK dokumentai
 
-### Duomenų bazės integracija
-- [PostgreSQL dokumentacija](https://www.postgresql.org/docs/) - Pilnas PostgreSQL vadovas
-- [pgvector vadovas](https://github.com/pgvector/pgvector) - Vektorinės plėtinio dokumentacija
+### Duomenų bazių integracija
+- [PostgreSQL dokumentacija](https://www.postgresql.org/docs/) - Išsamus PostgreSQL žinynas
+- [pgvector vadovas](https://github.com/pgvector/pgvector) - Vektorinių plėtinių dokumentacija
 - [Eilutės lygio saugumas](https://www.postgresql.org/docs/current/ddl-rowsecurity.html) - PostgreSQL RLS vadovas
 
 ### Azure paslaugos
@@ -302,9 +302,11 @@ Sužinokite apie MCP serverio architektūros modelius, duomenų bazės projektav
 
 ---
 
-**Atsakomybės apribojimas**: Tai mokymosi užduotis, naudojant fiktyvius mažmeninės prekybos duomenis. Visada laikykitės savo organizacijos duomenų valdymo ir saugumo politikos, įgyvendindami panaš
+**Atsakomybės klausimas**: Tai mokymosi pratybos, naudojant fiktyvius mažmeninės prekybos duomenis. Įgyvendindami panašius sprendimus gamybinėje aplinkoje, visuomet laikykitės savo organizacijos duomenų valdymo ir saugumo politikos.
 
 ---
 
-**Atsakomybės atsisakymas**:  
-Šis dokumentas buvo išverstas naudojant AI vertimo paslaugą [Co-op Translator](https://github.com/Azure/co-op-translator). Nors siekiame tikslumo, prašome atkreipti dėmesį, kad automatiniai vertimai gali turėti klaidų ar netikslumų. Originalus dokumentas jo gimtąja kalba turėtų būti laikomas autoritetingu šaltiniu. Kritinei informacijai rekomenduojama naudoti profesionalų žmogaus vertimą. Mes neprisiimame atsakomybės už nesusipratimus ar neteisingus interpretavimus, atsiradusius dėl šio vertimo naudojimo.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Atsakomybės apribojimas**:
+Šis dokumentas buvo išverstas naudojant dirbtinio intelekto vertimo paslaugą [Co-op Translator](https://github.com/Azure/co-op-translator). Nors siekiame tikslumo, prašome atkreipti dėmesį, kad automatiniai vertimai gali turėti klaidų ar netikslumų. Originalus dokumentas jo gimtąja kalba laikomas autoritetingu šaltiniu. Svarbiai informacijai rekomenduojama naudoti profesionalų žmogiškąjį vertimą. Mes neatsakome už jokius nesusipratimus ar neteisingą interpretaciją, kilusią naudojantis šiuo vertimu.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

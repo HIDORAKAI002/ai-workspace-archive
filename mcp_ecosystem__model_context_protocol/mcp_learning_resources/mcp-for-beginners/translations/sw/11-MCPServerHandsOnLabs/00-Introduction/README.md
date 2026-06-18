@@ -1,84 +1,84 @@
-# Utangulizi wa Muunganisho wa Hifadhidata ya MCP
+# Utangulizi kwa Uunganishaji wa Hifadhidata wa MCP
 
-## 🎯 Yaliyomo Katika Maabara Hii
+## 🎯 Kile Kile Kiwalabu Hiki Kinashughulikia
 
-Maabara hii ya utangulizi inatoa muhtasari wa kina wa jinsi ya kujenga seva za Model Context Protocol (MCP) zilizounganishwa na hifadhidata. Utajifunza kuhusu kesi ya kibiashara, usanifu wa kiufundi, na matumizi halisi kupitia mfano wa uchanganuzi wa Zava Retail kwenye https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail.
+Kiwalabu hiki cha utangulizi kinatoa muhtasari wa kina wa jinsi ya kujenga seva za Model Context Protocol (MCP) zenye uunganishaji na hifadhidata. Utakuwa na uelewa wa kesi ya biashara, usanifu wa kiufundi, na matumizi halisi kupitia kesi ya matumizi ya uchambuzi wa mauzo ya Zava Retail kwenye https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail.
 
 ## Muhtasari
 
-**Model Context Protocol (MCP)** inawezesha wasaidizi wa AI kufikia na kuingiliana na vyanzo vya data vya nje kwa usalama na kwa muda halisi. Ikichanganywa na muunganisho wa hifadhidata, MCP hufungua uwezo mkubwa kwa programu za AI zinazotegemea data.
+**Model Context Protocol (MCP)** inawezesha wasaidizi wa AI kupata na kuingiliana salama na vyanzo vya data vya nje kwa wakati halisi. Inapounganishwa na hifadhidata, MCP hutoa uwezo mkubwa kwa matumizi ya AI yanayotegemea data.
 
-Njia hii ya kujifunza inakufundisha jinsi ya kujenga seva za MCP zilizo tayari kwa uzalishaji ambazo zinaunganisha wasaidizi wa AI na data ya mauzo ya rejareja kupitia PostgreSQL, kwa kutumia mifumo ya biashara kama Usalama wa Kiwango cha Safu (Row Level Security), utafutaji wa semantiki, na ufikiaji wa data wa wateja wengi.
+Njia hii ya kujifunza inakufundisha jinsi ya kujenga seva za MCP zinazoweza kutumiwa uzalishaji zinazounganisha wasaidizi wa AI na data za mauzo ya rejareja kupitia PostgreSQL, zikitekeleza mifumo ya biashara kama Row Level Security, utafutaji wa maana, na ufikiaji wa data kwa wamiliki wengi.
 
 ## Malengo ya Kujifunza
 
-Mwisho wa maabara hii, utaweza:
+Mwisho wa kiwalabu hiki, utaweza:
 
-- **Kuelezea** Model Context Protocol na faida zake kuu kwa muunganisho wa hifadhidata  
-- **Kutambua** vipengele muhimu vya usanifu wa seva ya MCP na hifadhidata  
-- **Kuelewa** kesi ya matumizi ya Zava Retail na mahitaji yake ya kibiashara  
-- **Kutambua** mifumo ya biashara kwa ufikiaji wa hifadhidata salama na inayoweza kupanuka  
-- **Kuweka orodha** ya zana na teknolojia zinazotumika katika njia hii ya kujifunza  
+- **Fafanua** Model Context Protocol na faida zake kuu kwa uunganishaji wa hifadhidata  
+- **Tambua** vipengele muhimu vya usanifu wa seva ya MCP na hifadhidata  
+- **Elewa** kesi ya matumizi ya Zava Retail na mahitaji yake ya biashara  
+- **Tambua** mifumo ya biashara kwa ufikiaji salama na wenye upanuzi wa hifadhidata  
+- **Orodhesha** zana na teknolojia zilizotumika katika njia hii ya kujifunza  
 
-## 🧭 Changamoto: AI Kukutana na Data Halisi ya Kibiashara
+## 🧭 Changamoto: AI Inakutana na Data Halisi
 
-### Mapungufu ya Kawaida ya AI
+### Mipaka ya AI ya Kihistoria
 
-Wasaidizi wa kisasa wa AI wana nguvu sana lakini wanakabiliwa na changamoto kubwa wanapofanya kazi na data halisi ya kibiashara:
+Masaidizi wa kisasa wa AI ni wenye nguvu sana lakini wanakumbana na mipaka mikubwa wakati wakifanya kazi na data halisi za biashara:
 
-| **Changamoto** | **Maelezo** | **Athari za Kibiashara** |
-|----------------|-------------|--------------------------|
-| **Maarifa ya Kawaida** | Miundo ya AI iliyofunzwa kwenye seti za data zisizobadilika haiwezi kufikia data ya sasa ya kibiashara | Maarifa yaliyopitwa na wakati, fursa zilizokosa |
-| **Vizuizi vya Data** | Taarifa zilizofungwa kwenye hifadhidata, API, na mifumo ambayo AI haiwezi kufikia | Uchambuzi usio kamili, mtiririko wa kazi ulio na mapengo |
-| **Vizuizi vya Usalama** | Ufikiaji wa moja kwa moja wa hifadhidata huleta wasiwasi wa usalama na uzingatiaji | Utekelezaji mdogo, maandalizi ya data ya mwongozo |
-| **Maswali Magumu** | Watumiaji wa biashara wanahitaji ujuzi wa kiufundi ili kutoa maarifa ya data | Kupungua kwa matumizi, michakato isiyo na ufanisi |
+| **Changamoto** | **Maelezo** | **Athari za Biashara** |
+|---------------|-------------|----------------------|
+| **Maarifa Yaliyosimama** | Mifano ya AI iliyofunzwa kwa seti za data zilizowekwa haiwezi kupata data za sasa za biashara | Maarifa yaliyotimia, fursa zilizokosa |
+| **Data Zilizotengwa** | Taarifa zimefungwa katika hifadhidata, API, na mifumo ambayo AI haiwezi kufikia | Uchambuzi usio kamili, mtiririko wa kazi uliovunjika |
+| **Vizuizi vya Usalama** | Ufikiaji wa moja kwa moja wa hifadhidata unaibua wasiwasi wa usalama na ufuataji | Usambazaji mdogo, maandalizi ya data kwa mikono |
+| **Maswali Magumu** | Watumiaji wa biashara wanahitaji ujuzi wa kiufundi kutoa maarifa ya data | Kupungua kwa matumizi, michakato isiyotegemeka |
 
 ### Suluhisho la MCP
 
 Model Context Protocol inashughulikia changamoto hizi kwa kutoa:
 
-- **Ufikiaji wa Data wa Muda Halisi**: Wasaidizi wa AI huuliza hifadhidata na API moja kwa moja  
-- **Muunganisho Salama**: Ufikiaji unaodhibitiwa na uthibitishaji na ruhusa  
-- **Kiolesura cha Lugha Asilia**: Watumiaji wa biashara huuliza maswali kwa Kiingereza rahisi  
+- **Ufikiaji wa Data kwa Wakati Halisi**: Wasaidizi wa AI huuliza hifadhidata na API hai  
+- **Uunganishaji Salama**: Ufikiaji uliodhibitiwa kwa uthibitisho na vibali  
+- **Kiolesura cha Lugha Asilia**: Watumiaji wa biashara huuliza maswali kwa Kiingereza cha kawaida  
 - **Itifaki Iliyosanifishwa**: Inafanya kazi kwenye majukwaa na zana tofauti za AI  
 
 ## 🏪 Kutana na Zava Retail: Kesi Yetu ya Kujifunza https://github.com/microsoft/MCP-Server-and-PostgreSQL-Sample-Retail
 
-Katika njia hii ya kujifunza, tutajenga seva ya MCP kwa **Zava Retail**, mnyororo wa rejareja wa DIY wa kubuniwa wenye maeneo mengi ya maduka. Hali hii halisi inaonyesha utekelezaji wa MCP wa kiwango cha biashara.
+Katika njia hii ya kujifunza, tutajenga seva ya MCP kwa **Zava Retail**, mnyororo wa rejareja wa DIY wa kubuniwa mwenye maduka mengi. Hali halisi hii inaonyesha utekelezaji wa MCP wa daraja la kampuni.
 
-### Muktadha wa Kibiashara
+### Muktadha wa Biashara
 
-**Zava Retail** inaendesha:
-- **Maduka 8 ya kimwili** katika jimbo la Washington (Seattle, Bellevue, Tacoma, Spokane, Everett, Redmond, Kirkland)  
-- **Duka 1 la mtandaoni** kwa mauzo ya e-commerce  
-- **Katalogi ya bidhaa mbalimbali** ikijumuisha zana, vifaa vya ujenzi, vifaa vya bustani, na vifaa vya ujenzi  
-- **Usimamizi wa viwango vingi** na mameneja wa maduka, mameneja wa kanda, na watendaji  
+**Zava Retail** inafanya kazi:
+- **Maduka 8 halisi** kote katika jimbo la Washington (Seattle, Bellevue, Tacoma, Spokane, Everett, Redmond, Kirkland)  
+- **Duka 1 mtandaoni** kwa mauzo ya e-commerce  
+- **Katalogi ya bidhaa mbalimbali** ikiwa ni zana, vifaa vya nyumbani, vifaa vya bustani, na vifaa vya ujenzi  
+- **Usimamizi wa ngazi nyingi** kwa wasimamizi wa maduka, wasimamizi wa mikoa, na wakurugenzi  
 
-### Mahitaji ya Kibiashara
+### Mahitaji ya Biashara
 
-Mameneja wa maduka na watendaji wanahitaji uchanganuzi unaotumia AI ili:
+Wasimamizi wa maduka na wakurugenzi wanahitaji uchambuzi unaoendeshwa na AI ili:
 
-1. **Kuchambua utendaji wa mauzo** katika maduka na vipindi vya muda  
-2. **Kufuatilia viwango vya hesabu** na kutambua mahitaji ya kuongeza bidhaa  
-3. **Kuelewa tabia ya wateja** na mifumo ya ununuzi  
-4. **Kugundua maarifa ya bidhaa** kupitia utafutaji wa semantiki  
-5. **Kuzalisha ripoti** kwa maswali ya lugha asilia  
+1. **Kuchambua utendakazi wa mauzo** kote madukani na katika vipindi vya muda  
+2. **Kufuata viwango vya hesabu** na kubaini mahitaji ya upandaji tena  
+3. **Kuelewa tabia za wateja** na mifumo ya ununuzi  
+4. **Kubaini maarifa ya bidhaa** kupitia utafutaji wa maana  
+5. **Kutengeneza ripoti** kwa maswali ya lugha ya asili  
 6. **Kudumisha usalama wa data** kwa udhibiti wa ufikiaji kulingana na majukumu  
 
 ### Mahitaji ya Kiufundi
 
-Seva ya MCP inapaswa kutoa:
+Seva ya MCP lazima itoe:
 
-- **Ufikiaji wa data wa wateja wengi** ambapo mameneja wa maduka wanaona data ya maduka yao pekee  
-- **Uwezo wa kuuliza maswali kwa urahisi** unaounga mkono operesheni ngumu za SQL  
-- **Utafutaji wa semantiki** kwa ugunduzi wa bidhaa na mapendekezo  
-- **Data ya muda halisi** inayoonyesha hali ya sasa ya biashara  
-- **Uthibitishaji salama** na usalama wa kiwango cha safu (RLS)  
-- **Usanifu unaoweza kupanuka** unaounga mkono watumiaji wengi kwa wakati mmoja  
+- **Ufikiaji wa data kwa wamiliki wengi** ambapo wasimamizi wa maduka wanaona data za duka lao tu  
+- **Utafutaji wa kubadilika** unaounga mkono shughuli ngumu za SQL  
+- **Utafutaji wa maana** kwa kugundua bidhaa na mapendekezo  
+- **Data kwa wakati halisi** inayowakilisha hali ya sasa ya biashara  
+- **Uthibitishaji salama** kwa usalama wa ngazi ya mstari (row-level security)  
+- **Usanifu wenye upanuzi** unaounga mkono watumiaji wengi kwa wakati mmoja  
 
 ## 🏗️ Muhtasari wa Usanifu wa Seva ya MCP
 
-Seva yetu ya MCP inatekeleza usanifu wa tabaka ulioimarishwa kwa muunganisho wa hifadhidata:
+Seva yetu ya MCP ina utekelezaji wa usanifu wa tabaka uliohifadhiwa kwa ajili ya uunganishaji wa hifadhidata:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -121,120 +121,120 @@ Seva yetu ya MCP inatekeleza usanifu wa tabaka ulioimarishwa kwa muunganisho wa 
 ### Vipengele Muhimu
 
 #### **1. Tabaka la Seva ya MCP**
-- **FastMCP Framework**: Utekelezaji wa kisasa wa seva ya MCP kwa Python  
-- **Usajili wa Zana**: Ufafanuzi wa zana kwa njia ya tamko na usalama wa aina  
-- **Muktadha wa Ombi**: Utambulisho wa mtumiaji na usimamizi wa kikao  
-- **Ushughulikiaji wa Makosa**: Usimamizi wa makosa thabiti na ufuatiliaji  
+- **Freimu ya FastMCP**: Utekelezaji wa seva ya MCP wa kisasa katika Python  
+- **Usajili wa Zana**: Ufafanuzi wa zana kwa kutumia mbinu za mfano salama  
+- **Muktadha wa Ombi**: Utambuzi wa mtumiaji na usimamizi wa vikao  
+- **Udhibiti wa Makosa**: Usimamizi mzuri wa makosa na ufuatiliaji  
 
-#### **2. Tabaka la Muunganisho wa Hifadhidata**
-- **Usimamizi wa Muunganisho**: Usimamizi wa muunganisho wa asyncpg kwa ufanisi  
-- **Mtoa Schema**: Ugunduzi wa schema ya jedwali kwa njia ya nguvu  
-- **Mtekelezaji wa Maswali**: Utekelezaji salama wa SQL na muktadha wa RLS  
-- **Usimamizi wa Muamala**: Uzingatiaji wa ACID na usimamizi wa kurudisha nyuma  
+#### **2. Tabaka la Uunganishaji wa Hifadhidata**
+- **Usimamizi wa Mifumo ya Muunganisho**: Usimamizi bora wa muunganisho wa asyncpg  
+- **Mtoa Mfumo wa Jedwali**: Ugundaji wa mizunguko ya jedwali kwa njia ya kiotomatiki  
+- **Mtendaji wa Maswali**: Utekelezaji salama wa SQL kwa muktadha wa RLS  
+- **Usimamizi wa Miamala**: Uzingatiaji wa ACID na usimamizi wa kurudisha nyuma  
 
 #### **3. Tabaka la Usalama**
-- **Usalama wa Kiwango cha Safu**: RLS ya PostgreSQL kwa kutenganisha data ya wateja wengi  
-- **Utambulisho wa Mtumiaji**: Uthibitishaji na ruhusa za mameneja wa maduka  
-- **Udhibiti wa Ufikiaji**: Ruhusa za kina na rekodi za ukaguzi  
-- **Uthibitishaji wa Ingizo**: Kuzuia sindikizo la SQL na uthibitishaji wa maswali  
+- **Usalama wa Ngazi ya Mstari**: PostgreSQL RLS kwa kutenganisha data za wamiliki wengi  
+- **Utambulisho wa Mtumiaji**: Uthibitishaji na ruhusa za msimamizi wa duka  
+- **Udhibiti wa Ufikiaji**: Vibali vya kina na kumbukumbu za ukaguzi  
+- **Uthibitishaji wa Ingizo**: Kuzuia sindano ya SQL na uthibitishaji wa maswali  
 
 #### **4. Tabaka la Uboreshaji wa AI**
-- **Utafutaji wa Semantiki**: Uwekaji wa vector kwa ugunduzi wa bidhaa  
-- **Muunganisho wa Azure OpenAI**: Uzalishaji wa uwekaji wa maandishi  
-- **Algorithimu za Ulinganisho**: Utafutaji wa ulinganisho wa cosine wa pgvector  
-- **Uboreshaji wa Utafutaji**: Uwekaji wa faharasa na uboreshaji wa utendaji  
+- **Utafutaji wa Maana**: Kufanyia kazi viganja vya alama za vekta kwa kugundua bidhaa  
+- **Uunganishaji wa Azure OpenAI**: Uzalishaji wa viganja vya maandishi  
+- **Algoriti za Ulinganisho**: Utafutaji wa ugumu kwa kutumia pgvector cosine similarity  
+- **Uboreshaji wa Utafutaji**: Kuweka viashiria na tuning ya utendaji  
 
-## 🔧 Teknolojia Zinazotumika
+## 🔧 Teknohama Mtambuka
 
 ### Teknolojia za Msingi
 
-| **Kipengele** | **Teknolojia** | **Madhumuni** |
-|---------------|----------------|---------------|
-| **MCP Framework** | FastMCP (Python) | Utekelezaji wa kisasa wa seva ya MCP |
-| **Hifadhidata** | PostgreSQL 17 + pgvector | Data ya uhusiano na utafutaji wa vector |
-| **Huduma za AI** | Azure OpenAI | Uwekaji wa maandishi na mifano ya lugha |
-| **Uwekaji wa Kontena** | Docker + Docker Compose | Mazingira ya maendeleo |
-| **Jukwaa la Wingu** | Microsoft Azure | Utekelezaji wa uzalishaji |
-| **Muunganisho wa IDE** | VS Code | AI Chat na mtiririko wa kazi wa maendeleo |
+| **Sehemu** | **Teknolojia** | **Madhumuni** |
+|------------|----------------|---------------|
+| **Freimu ya MCP** | FastMCP (Python) | Utekelezaji wa seva ya MCP wa kisasa |
+| **Hifadhidata** | PostgreSQL 17 + pgvector | Data ya mahusiano na utafutaji wa vekta |
+| **Huduma za AI** | Azure OpenAI | Viganja vya maandishi na mifano ya lugha |
+| **Ufungashaji** | Docker + Docker Compose | Mazingira ya maendeleo |
+| **Jukwaa la Wingu** | Microsoft Azure | Usambazaji wa uzalishaji |
+| **Uunganisho wa IDE** | VS Code | Mazungumzo ya AI na mtiririko wa maendeleo |
 
 ### Zana za Maendeleo
 
 | **Zana** | **Madhumuni** |
-|----------|--------------|
-| **asyncpg** | Dereva wa PostgreSQL wa utendaji wa juu |
-| **Pydantic** | Uthibitishaji wa data na usawazishaji |
-| **Azure SDK** | Muunganisho wa huduma za wingu |
-| **pytest** | Mfumo wa majaribio |
-| **Docker** | Uwekaji wa kontena na utekelezaji |
+|----------|---------------|
+| **asyncpg** | Dereva wa PostgreSQL wenye utendaji wa juu |
+| **Pydantic** | Uthibitishaji na serialization ya data |
+| **Azure SDK** | Uunganisho wa huduma za wingu |
+| **pytest** | Mfumo wa upimaji |
+| **Docker** | Ufungashaji na usambazaji |
 
-### Stack ya Uzalishaji
+### Mtambuka wa Uzalishaji
 
 | **Huduma** | **Rasilimali ya Azure** | **Madhumuni** |
-|------------|-------------------------|---------------|
-| **Hifadhidata** | Azure Database for PostgreSQL | Huduma ya hifadhidata inayosimamiwa |
-| **Kontena** | Azure Container Apps | Ukaribishaji wa kontena bila seva |
-| **Huduma za AI** | Azure AI Foundry | Mifano ya OpenAI na ncha za mwisho |
-| **Ufuatiliaji** | Application Insights | Ufuatiliaji na uchunguzi |
-| **Usalama** | Azure Key Vault | Usiri na usimamizi wa usanidi |
+|------------|------------------------|---------------|
+| **Hifadhidata** | Azure Database for PostgreSQL | Huduma inayosimamiwa ya hifadhidata |
+| **Kontena** | Azure Container Apps | Uendeshaji wa kontena zisizo na seva |
+| **Huduma za AI** | Microsoft Foundry | Mifano na vituo vya OpenAI |
+| **Ufuatiliaji** | Application Insights | Uwezo wa kuonekana na uchunguzi |
+| **Usalama** | Azure Key Vault | Usimamizi wa siri na usanidi |
 
-## 🎬 Matumizi Halisi ya Kesi
+## 🎬 Hali Halisi za Matumizi
 
-Hebu tuchunguze jinsi watumiaji tofauti wanavyotumia seva yetu ya MCP:
+Hebu tuchunguze jinsi watumiaji tofauti wanavyoshirikiana na seva yetu ya MCP:
 
-### Kisa 1: Mapitio ya Utendaji wa Meneja wa Duka
+### Hali ya 1: Mapitio ya Utendakazi wa Msimamizi wa Duka
 
-**Mtumiaji**: Sarah, Meneja wa Duka la Seattle  
-**Lengo**: Kuchambua utendaji wa mauzo ya robo ya mwisho
+**Mtumiaji**: Sarah, Msimamizi wa Duka la Seattle  
+**Lengo**: Kuchambua utendakazi wa mauzo wa robo ya mwisho
 
 **Swali la Lugha Asilia**:  
-> "Nionyeshe bidhaa 10 bora kwa mapato kwa duka langu katika robo ya nne ya 2024"
+> "Nionyeshe bidhaa 10 bora kwa mapato kwa duka langu katika Robo 4 2024"
 
-**Kinachotokea**:
-1. VS Code AI Chat inatuma swali kwa seva ya MCP  
-2. Seva ya MCP inatambua muktadha wa duka la Sarah (Seattle)  
-3. Sera za RLS huchuja data kwa duka la Seattle pekee  
-4. Swali la SQL linazalishwa na kutekelezwa  
-5. Matokeo yanapangwa na kurudishwa kwa AI Chat  
-6. AI inatoa uchanganuzi na maarifa  
+**Kinachotokea**:  
+1. Mazungumzo ya AI ya VS Code hutuma swali kwa seva ya MCP  
+2. Seva ya MCP hutambua muktadha wa duka la Sarah (Seattle)  
+3. Sera za RLS huchuja data kwa duka la Seattle tu  
+4. Swali la SQL linaandaliwa na kutekelezwa  
+5. Matokeo yanapangwa na kurudishwa kwa Mazungumzo ya AI  
+6. AI hutoa uchambuzi na maarifa  
 
-### Kisa 2: Ugunduzi wa Bidhaa kwa Utafutaji wa Semantiki
+### Hali ya 2: Ugunduzi wa Bidhaa kwa Utafutaji wa Maana
 
-**Mtumiaji**: Mike, Meneja wa Hesabu  
+**Mtumiaji**: Mike, Msimamizi wa Hesabu  
 **Lengo**: Kupata bidhaa zinazofanana na ombi la mteja
 
 **Swali la Lugha Asilia**:  
-> "Ni bidhaa gani tunazouza zinazofanana na 'viunganishi vya umeme visivyo na maji kwa matumizi ya nje'?"
+> "Bidhaa gani tunauza zinazofanana na 'vifungashio vya umeme visivyo na maji kwa matumizi ya nje'?"
 
-**Kinachotokea**:
-1. Swali linashughulikiwa na zana ya utafutaji wa semantiki  
-2. Azure OpenAI inazalisha vector ya uwekaji  
-3. pgvector inafanya utafutaji wa ulinganisho  
-4. Bidhaa zinazohusiana zinapangwa kulingana na umuhimu  
+**Kinachotokea**:  
+1. Swali hulindwa na zana ya utafutaji wa maana  
+2. Azure OpenAI huzalisha alama za vekta za maandishi  
+3. pgvector hufanya utafutaji wa ugumu wa vekta  
+4. Bidhaa zinazohusiana zinaorodheshwa kwa umuhimu  
 5. Matokeo yanajumuisha maelezo ya bidhaa na upatikanaji  
-6. AI inapendekeza mbadala na fursa za kuunganisha bidhaa  
+6. AI inapendekeza mbadala na fursa za kuunganishwa pamoja  
 
-### Kisa 3: Uchambuzi wa Maduka Mbalimbali
+### Hali ya 3: Uchambuzi kwa Mabara ya Maduka
 
-**Mtumiaji**: Jennifer, Meneja wa Kanda  
-**Lengo**: Kulinganisha utendaji katika maduka yote
+**Mtumiaji**: Jennifer, Msimamizi wa Mkoa  
+**Lengo**: Kulinganisha utendakazi katika maduka yote
 
 **Swali la Lugha Asilia**:  
-> "Linganisha mauzo kwa kategoria kwa maduka yote katika miezi 6 iliyopita"
+> "Linganishe mauzo kwa kategoria kwa maduka yote kwa miezi 6 iliyopita"
 
-**Kinachotokea**:
-1. Muktadha wa RLS unasanidiwa kwa ufikiaji wa meneja wa kanda  
-2. Swali ngumu la maduka mengi linazalishwa  
-3. Data inakusanywa katika maeneo ya maduka  
-4. Matokeo yanajumuisha mitindo na kulinganisha  
-5. AI inatambua maarifa na mapendekezo  
+**Kinachotokea**:  
+1. Muktadha wa RLS umewekwa kwa ufikiaji wa msimamizi wa mkoa  
+2. Swali tata la maduka mengi linaandaliwa  
+3. Data huchanganywa kote maeneo ya maduka  
+4. Matokeo yanajumuisha mwelekeo na kulinganisha  
+5. AI hutambua maarifa na mapendekezo  
 
-## 🔒 Uchambuzi wa Usalama na Ufikiaji wa Wateja Wengi
+## 🔒 Usalama na Uchambuzi wa Kina wa Multi-Tenancy
 
-Utekelezaji wetu unazingatia usalama wa kiwango cha biashara:
+Utekelezaji wetu unaweka kipaumbele usalama wa daraja la biashara:
 
-### Usalama wa Kiwango cha Safu (RLS)
+### Usalama wa Ngazi ya Mstari (RLS)
 
-RLS ya PostgreSQL inahakikisha kutenganisha data:
+PostgreSQL RLS huhakikisha kutenganishwa kwa data:
 
 ```sql
 -- Store managers see only their store's data
@@ -250,61 +250,63 @@ CREATE POLICY regional_manager_policy ON retail.orders
 
 ### Usimamizi wa Utambulisho wa Mtumiaji
 
-Kila muunganisho wa MCP unajumuisha:
-- **Kitambulisho cha Meneja wa Duka**: Kitambulisho cha kipekee kwa muktadha wa RLS  
-- **Uteuzi wa Majukumu**: Ruhusa na viwango vya ufikiaji  
-- **Usimamizi wa Kikao**: Tokeni za uthibitishaji salama  
+Kila muunganisho wa MCP unajumuisha:  
+- **Kitambulisho cha msimamizi wa duka**: Kitambulisho cha kipekee kwa muktadha wa RLS  
+- **Ugawaji wa Majukumu**: Vibali na ngazi za ufikiaji  
+- **Usimamizi wa Vikao**: Tokeni salama za uthibitisho  
 - **Ufuatiliaji wa Ukaguzi**: Historia kamili ya ufikiaji  
 
 ### Ulinzi wa Data
 
-Tabaka nyingi za usalama:
-- **Usimbaji wa Muunganisho**: TLS kwa muunganisho wote wa hifadhidata  
-- **Kuzuia Sindikizo la SQL**: Maswali yaliyo na vigezo pekee  
-- **Uthibitishaji wa Ingizo**: Uthibitishaji wa maombi kwa kina  
-- **Ushughulikiaji wa Makosa**: Hakuna data nyeti katika ujumbe wa makosa  
+Tabaka nyingi za usalama:  
+- **Ufungaji wa Muunganisho**: TLS kwa muunganisho wote wa hifadhidata  
+- **Kuzuia Sindano ya SQL**: Maswali yaliyo na vigezo pekee  
+- **Uthibitishaji wa Ingizo**: Uthibitishaji wa kina wa maombi  
+- **Udhibiti wa Makosa**: Hakuna data nyeti katika ujumbe wa makosa  
 
-## 🎯 Mambo Muhimu ya Kujifunza
+## 🎯 Vidokezo Muhimu
 
-Baada ya kukamilisha utangulizi huu, unapaswa kuelewa:
+Baada ya kumaliza utangulizi huu, unapaswa kuelewa:
 
 ✅ **Thamani ya MCP**: Jinsi MCP inavyounganisha wasaidizi wa AI na data halisi  
-✅ **Muktadha wa Kibiashara**: Mahitaji na changamoto za Zava Retail  
+✅ **Muktadha wa Biashara**: Mahitaji na changamoto za Zava Retail  
 ✅ **Muhtasari wa Usanifu**: Vipengele muhimu na mwingiliano wake  
-✅ **Teknolojia Zinazotumika**: Zana na mifumo inayotumika  
-✅ **Mfumo wa Usalama**: Ufikiaji wa data wa wateja wengi na ulinzi  
-✅ **Mifumo ya Matumizi**: Kesi halisi za maswali na mtiririko wa kazi  
+✅ **Teknohama Mtambuka**: Zana na freimu zilizotumika  
+✅ **Mfumo wa Usalama**: Ufikiaji na ulinzi wa data za wamiliki wengi  
+✅ **Mifumo ya Matumizi**: Hali halisi za maswali na mtiririko wa kazi  
 
-## 🚀 Hatua Inayofuata
+## 🚀 Hatua Ifuatayo
 
-Tayari kuendelea? Endelea na:
+Uko tayari kuingia zaidi? Endelea na:
 
-**[Maabara 01: Dhana za Msingi za Usanifu](../01-Architecture/README.md)**
+**[Lab 01: Core Architecture Concepts](../01-Architecture/README.md)**
 
-Jifunze kuhusu mifumo ya usanifu wa seva ya MCP, kanuni za muundo wa hifadhidata, na utekelezaji wa kiufundi wa kina unaoendesha suluhisho letu la uchanganuzi wa rejareja.
+Jifunze kuhusu mifumo ya usanifu wa seva ya MCP, kanuni za muundo wa hifadhidata, na utekelezaji wa kiufundi wa kina unaochochea suluhisho letu la uchambuzi wa rejareja.
 
-## 📚 Rasilimali za Ziada
+## 📚 Rasilimali Zaidi
 
 ### Nyaraka za MCP
 - [MCP Specification](https://modelcontextprotocol.io/docs/) - Nyaraka rasmi za itifaki  
-- [MCP for Beginners](https://aka.ms/mcp-for-beginners) - Mwongozo wa kujifunza MCP kwa kina  
+- [MCP for Beginners](https://aka.ms/mcp-for-beginners) - Mwongozo kamili wa kujifunza MCP  
 - [FastMCP Documentation](https://github.com/modelcontextprotocol/python-sdk) - Nyaraka za SDK ya Python  
 
-### Muunganisho wa Hifadhidata
+### Uunganishaji wa Hifadhidata
 - [PostgreSQL Documentation](https://www.postgresql.org/docs/) - Marejeleo kamili ya PostgreSQL  
-- [pgvector Guide](https://github.com/pgvector/pgvector) - Nyaraka za kiendelezi cha vector  
-- [Row Level Security](https://www.postgresql.org/docs/current/ddl-rowsecurity.html) - Mwongozo wa RLS wa PostgreSQL  
+- [pgvector Guide](https://github.com/pgvector/pgvector) - Nyaraka za ugani wa vekta  
+- [Row Level Security](https://www.postgresql.org/docs/current/ddl-rowsecurity.html) - Mwongozo wa PostgreSQL RLS  
 
 ### Huduma za Azure
-- [Azure OpenAI Documentation](https://docs.microsoft.com/azure/cognitive-services/openai/) - Muunganisho wa huduma za AI  
-- [Azure Database for PostgreSQL](https://docs.microsoft.com/azure/postgresql/) - Huduma ya hifadhidata inayosimamiwa  
-- [Azure Container Apps](https://docs.microsoft.com/azure/container-apps/) - Kontena bila seva  
+- [Azure OpenAI Documentation](https://docs.microsoft.com/azure/cognitive-services/openai/) - Uunganisho wa huduma za AI  
+- [Azure Database for PostgreSQL](https://docs.microsoft.com/azure/postgresql/) - Huduma inayosimamiwa ya hifadhidata  
+- [Azure Container Apps](https://docs.microsoft.com/azure/container-apps/) - Kontena zisizo na seva  
 
 ---
 
-**Kanusho**: Hii ni zoezi la kujifunza linalotumia data ya rejareja ya kubuniwa. Daima fuata sera za usimamizi wa data na usalama za shirika lako unapotekeleza suluhisho kama hili katika mazingira ya uzalishaji.
+**Tangazo**: Hii ni mazoezi ya kujifunza kwa kutumia data ya rejareja ya kubuniwa. Daima fuata sera za usimamizi wa data na usalama za shirika lako unapoleta suluhisho kama hizi katika mazingira ya uzalishaji.
 
 ---
 
-**Kanusho**:  
-Hati hii imetafsiriwa kwa kutumia huduma ya kutafsiri ya AI [Co-op Translator](https://github.com/Azure/co-op-translator). Ingawa tunajitahidi kuhakikisha usahihi, tafadhali fahamu kuwa tafsiri za kiotomatiki zinaweza kuwa na makosa au kutokuwa sahihi. Hati ya asili katika lugha yake ya awali inapaswa kuzingatiwa kama chanzo cha mamlaka. Kwa taarifa muhimu, tafsiri ya kitaalamu ya binadamu inapendekezwa. Hatuwajibiki kwa kutoelewana au tafsiri zisizo sahihi zinazotokana na matumizi ya tafsiri hii.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Kionyozo**:
+Hati hii imetafsiriwa kwa kutumia huduma ya tafsiri ya AI [Co-op Translator](https://github.com/Azure/co-op-translator). Ingawa tunajitahidi kupata usahihi, tafadhali fahamu kwamba tafsiri za kiotomatiki zinaweza kuwa na makosa au upungufu wa usahihi. Hati ya asili katika lugha yake halisi inapaswa kuchukuliwa kama chanzo cha mamlaka. Kwa taarifa muhimu, tafsiri ya kitaalamu inayofanywa na binadamu inapendekezwa. Hatutojibu kwa kuelewa vibaya au tafsiri potofu zinazotokea kutokana na matumizi ya tafsiri hii.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

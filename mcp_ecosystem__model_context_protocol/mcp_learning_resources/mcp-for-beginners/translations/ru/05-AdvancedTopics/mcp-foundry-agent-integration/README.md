@@ -1,57 +1,57 @@
-# Интеграция Model Context Protocol (MCP) с Azure AI Foundry
+# Интеграция Model Context Protocol (MCP) с Microsoft Foundry
 
-В этом руководстве показано, как интегрировать серверы Model Context Protocol (MCP) с агентами Azure AI Foundry, что позволяет реализовать мощную оркестрацию инструментов и корпоративные возможности ИИ.
+Это руководство демонстрирует, как интегрировать серверы Model Context Protocol (MCP) с агентами Microsoft Foundry, обеспечивая мощную оркестрацию инструментов и корпоративные возможности ИИ.
 
 ## Введение
 
-Model Context Protocol (MCP) — это открытый стандарт, который позволяет ИИ-приложениям безопасно подключаться к внешним источникам данных и инструментам. При интеграции с Azure AI Foundry MCP даёт агентам возможность получать доступ и взаимодействовать с различными внешними сервисами, API и источниками данных по единому стандарту.
+Model Context Protocol (MCP) — это открытый стандарт, который позволяет ИИ-приложениям безопасно подключаться к внешним источникам данных и инструментам. При интеграции с Microsoft Foundry MCP позволяет агентам получать доступ и взаимодействовать с различными внешними сервисами, API и источниками данных стандартизированным образом.
 
-Эта интеграция сочетает гибкость экосистемы инструментов MCP с надёжной архитектурой агентов Azure AI Foundry, обеспечивая корпоративные решения ИИ с широкими возможностями настройки.
+Эта интеграция объединяет гибкость экосистемы инструментов MCP с надежной агентской платформой Microsoft Foundry, предоставляя корпоративные решения ИИ с широкими возможностями настройки.
 
-**Note:** Если вы хотите использовать MCP в Azure AI Foundry Agent Service, на данный момент поддерживаются только следующие регионы: westus, westus2, uaenorth, southindia и switzerlandnorth
+**Примечание:** Если вы хотите использовать MCP в Microsoft Foundry Agent Service, в настоящее время поддерживаются только следующие регионы: westus, westus2, uaenorth, southindia и switzerlandnorth
 
 ## Цели обучения
 
 К концу этого руководства вы сможете:
 
-- Понять, что такое Model Context Protocol и его преимущества
-- Настроить серверы MCP для работы с агентами Azure AI Foundry
+- Понять протокол Model Context Protocol и его преимущества
+- Настроить серверы MCP для использования с агентами Microsoft Foundry
 - Создавать и настраивать агентов с интеграцией инструментов MCP
 - Реализовывать практические примеры с использованием реальных серверов MCP
-- Обрабатывать ответы инструментов и ссылки в диалогах агентов
+- Обрабатывать ответы инструментов и ссылки в разговорах агентов
 
 ## Требования
 
 Перед началом убедитесь, что у вас есть:
 
-- Подписка Azure с доступом к AI Foundry
+- Подписка Azure с доступом к Microsoft Foundry
 - Python 3.10+ или .NET 8.0+
 - Установленный и настроенный Azure CLI
-- Необходимые права для создания ресурсов AI
+- Соответствующие разрешения для создания ресурсов ИИ
 
 ## Что такое Model Context Protocol (MCP)?
 
-Model Context Protocol — это стандартизированный способ подключения ИИ-приложений к внешним источникам данных и инструментам. Основные преимущества:
+Model Context Protocol — это стандартизированный способ подключения ИИ-приложений к внешним источникам данных и инструментам. Ключевые преимущества включают:
 
-- **Стандартизированная интеграция**: единый интерфейс для разных инструментов и сервисов
-- **Безопасность**: надёжные механизмы аутентификации и авторизации
-- **Гибкость**: поддержка различных источников данных, API и кастомных инструментов
-- **Расширяемость**: лёгкое добавление новых возможностей и интеграций
+- **Стандартизированная интеграция**: Единый интерфейс для разных инструментов и сервисов
+- **Безопасность**: Надежная аутентификация и авторизация
+- **Гибкость**: Поддержка различных источников данных, API и пользовательских инструментов
+- **Расширяемость**: Простое добавление новых возможностей и интеграций
 
-## Настройка MCP с Azure AI Foundry
+## Настройка MCP с Microsoft Foundry
 
 ### Конфигурация окружения
 
 Выберите предпочитаемую среду разработки:
 
-- [Реализация на Python](../../../../05-AdvancedTopics/mcp-foundry-agent-integration)
-- [Реализация на .NET](../../../../05-AdvancedTopics/mcp-foundry-agent-integration)
+- [Реализация на Python](#реализация-на-python)
+- [Реализация на .NET](#codeblock5)
 
 ---
 
 ## Реализация на Python
 
-***Note*** Вы можете запустить этот [notebook](mcp_support_python.ipynb)
+***Примечание*** Вы можете запустить этот [блокнот](./mcp_support_python.ipynb)
 
 ### 1. Установка необходимых пакетов
 
@@ -71,7 +71,7 @@ from azure.identity import DefaultAzureCredential
 from azure.ai.agents.models import McpTool, RequiredMcpToolCall, SubmitToolApprovalAction, ToolApproval
 ```
 
-### 3. Настройка параметров MCP
+### 3. Конфигурация MCP
 
 ```python
 mcp_server_url = os.environ.get("MCP_SERVER_URL", "https://learn.microsoft.com/api/mcp")
@@ -93,7 +93,7 @@ project_client = AIProjectClient(
 mcp_tool = McpTool(
     server_label=mcp_server_label,
     server_url=mcp_server_url,
-    allowed_tools=[],  # Optional: specify allowed tools
+    allowed_tools=[],  # Необязательно: укажите разрешенные инструменты
 )
 ```
 
@@ -103,7 +103,7 @@ mcp_tool = McpTool(
 with project_client:
     agents_client = project_client.agents
 
-    # Create a new agent with MCP tools
+    # Создать нового агента с инструментами MCP
     agent = agents_client.create_agent(
         model="Your AOAI Model Deployment",
         name="my-mcp-agent",
@@ -113,11 +113,11 @@ with project_client:
     print(f"Created agent, ID: {agent.id}")
     print(f"MCP Server: {mcp_tool.server_label} at {mcp_tool.server_url}")
 
-    # Create thread for communication
+    # Создать поток для связи
     thread = agents_client.threads.create()
     print(f"Created thread, ID: {thread.id}")
 
-    # Create message to thread
+    # Создать сообщение для потока
     message = agents_client.messages.create(
         thread_id=thread.id,
         role="user",
@@ -125,7 +125,7 @@ with project_client:
     )
     print(f"Created message, ID: {message.id}")
 
-    # Handle tool approvals and run agent
+    # Обработать утверждения инструментов и запустить агента
     mcp_tool.update_headers("SuperSecret", "123456")
     run = agents_client.runs.create(thread_id=thread.id, agent_id=agent.id, tool_resources=mcp_tool.resources)
     print(f"Created run, ID: {run.id}")
@@ -165,7 +165,7 @@ with project_client:
 
     print(f"Run completed with status: {run.status}")
 
-    # Display conversation
+    # Отобразить разговор
     messages = agents_client.messages.list(thread_id=thread.id)
     print("\nConversation:")
     print("-" * 50)
@@ -180,7 +180,7 @@ with project_client:
 
 ## Реализация на .NET
 
-***Note*** Вы можете запустить этот [notebook](mcp_support_dotnet.ipynb)
+***Примечание*** Вы можете запустить этот [блокнот](./mcp_support_dotnet.ipynb)
 
 ### 1. Установка необходимых пакетов
 
@@ -196,7 +196,7 @@ using Azure.AI.Agents.Persistent;
 using Azure.Identity;
 ```
 
-### 3. Настройка параметров
+### 3. Конфигурация настроек
 
 ```csharp
 var projectEndpoint = "https://your-project-endpoint.services.ai.azure.com/api/projects/your-project";
@@ -297,17 +297,17 @@ await foreach (PersistentThreadMessage threadMessage in messages)
 
 ---
 
-## Параметры конфигурации инструментов MCP
+## Параметры конфигурации инструмента MCP
 
-При настройке инструментов MCP для вашего агента можно указать несколько важных параметров:
+При настройке инструментов MCP для вашего агента вы можете указать несколько важных параметров:
 
 ### Конфигурация для Python
 
 ```python
 mcp_tool = McpTool(
-    server_label="unique_server_name",      # Identifier for the MCP server
-    server_url="https://api.example.com/mcp", # MCP server endpoint
-    allowed_tools=[],                       # Optional: specify allowed tools
+    server_label="unique_server_name",      # Идентификатор для сервера MCP
+    server_url="https://api.example.com/mcp", # Конечная точка сервера MCP
+    allowed_tools=[],                       # Необязательно: укажите разрешённые инструменты
 )
 ```
 
@@ -337,46 +337,50 @@ mcpToolResource.UpdateHeader("SuperSecret", "123456");
 
 ## Устранение распространённых проблем
 
-### 1. Проблемы с подключением
+### 1. Проблемы с соединением
 - Проверьте доступность URL сервера MCP
-- Проверьте правильность учётных данных для аутентификации
+- Проверьте данные для аутентификации
 - Убедитесь в наличии сетевого соединения
 
 ### 2. Ошибки вызова инструментов
-- Проверьте аргументы и форматирование вызовов инструментов
-- Учитывайте требования конкретного сервера
+- Проверьте аргументы инструмента и их форматирование
+- Удостоверьтесь в соблюдении требований сервера
 - Реализуйте корректную обработку ошибок
 
 ### 3. Проблемы с производительностью
-- Оптимизируйте частоту вызовов инструментов
-- Используйте кэширование там, где это уместно
-- Отслеживайте время отклика сервера
+- Оптимизируйте частоту вызова инструментов
+- Используйте кэширование, где это уместно
+- Мониторьте время отклика сервера
 
 ## Следующие шаги
 
-Для дальнейшего улучшения интеграции MCP:
+Для дальнейшего улучшения вашей интеграции MCP:
 
-1. **Изучите создание собственных серверов MCP**: создавайте свои MCP-серверы для проприетарных источников данных
-2. **Реализуйте расширенную безопасность**: добавьте OAuth2 или кастомные механизмы аутентификации
-3. **Мониторинг и аналитика**: внедрите логирование и мониторинг использования инструментов
-4. **Масштабирование решения**: рассмотрите балансировку нагрузки и распределённую архитектуру MCP-серверов
+1. **Изучите создание собственных MCP-серверов**: Разработайте собственные MCP-серверы для проприетарных источников данных
+2. **Реализуйте расширенную безопасность**: Добавьте OAuth2 или другие механизмы аутентификации
+3. **Мониторинг и аналитика**: Внедрите логирование и мониторинг использования инструментов
+4. **Масштабирование решения**: Рассмотрите балансировку нагрузки и распределённые архитектуры MCP-серверов
 
 ## Дополнительные ресурсы
 
-- [Документация Azure AI Foundry](https://learn.microsoft.com/azure/ai-foundry/)
+- [Документация Microsoft Foundry](https://learn.microsoft.com/azure/ai-foundry/)
 - [Примеры Model Context Protocol](https://learn.microsoft.com/azure/ai-foundry/agents/how-to/tools/model-context-protocol-samples)
-- [Обзор агентов Azure AI Foundry](https://learn.microsoft.com/azure/ai-foundry/agents/)
+- [Обзор агентов Microsoft Foundry](https://learn.microsoft.com/azure/ai-foundry/agents/)
 - [Спецификация MCP](https://spec.modelcontextprotocol.io/)
 
 ## Поддержка
 
 Для дополнительной поддержки и вопросов:
-- Ознакомьтесь с [документацией Azure AI Foundry](https://learn.microsoft.com/azure/ai-foundry/)
-- Посетите [сообщество MCP](https://modelcontextprotocol.io/)
+- Ознакомьтесь с [документацией Microsoft Foundry](https://learn.microsoft.com/azure/ai-foundry/)
+- Посетите [ресурсы сообщества MCP](https://modelcontextprotocol.io/)
 
 ## Что дальше
 
 - [5.14 MCP Context Engineering](../mcp-contextengineering/README.md)
 
-**Отказ от ответственности**:  
-Этот документ был переведен с помощью сервиса автоматического перевода [Co-op Translator](https://github.com/Azure/co-op-translator). Несмотря на наши усилия по обеспечению точности, просим учитывать, что автоматический перевод может содержать ошибки или неточности. Оригинальный документ на его исходном языке следует считать авторитетным источником. Для получения критически важной информации рекомендуется обращаться к профессиональному человеческому переводу. Мы не несем ответственности за любые недоразумения или неправильные толкования, возникшие в результате использования данного перевода.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Отказ от ответственности**:
+Этот документ был переведен с использованием сервиса машинного перевода [Co-op Translator](https://github.com/Azure/co-op-translator). Несмотря на наши усилия по обеспечению точности, имейте в виду, что автоматический перевод может содержать ошибки или неточности. Оригинальный документ на его исходном языке следует считать авторитетным источником. Для получения критически важной информации рекомендуется обратиться к профессиональному человеческому переводу. Мы не несем ответственности за любые недоразумения или неправильные толкования, возникшие в результате использования этого перевода.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->
