@@ -5,7 +5,6 @@ import {
   AgentManagementIdentifier,
   createCallAgentManifest,
 } from '@lobechat/builtin-tool-agent-management';
-import { ENABLE_BUSINESS_FEATURES } from '@lobechat/business-const';
 import { isDesktop, LOADING_FLAT } from '@lobechat/const';
 import { formatSelectedSkillsContext, formatSelectedToolsContext } from '@lobechat/context-engine';
 import { chainCompressContext } from '@lobechat/prompts';
@@ -57,6 +56,7 @@ import {
 import { getElectronStoreState } from '@/store/electron';
 import { useGlobalStore } from '@/store/global';
 import { systemStatusSelectors } from '@/store/global/selectors';
+import { getServerConfigStoreState, serverConfigSelectors } from '@/store/serverConfig';
 import { pageAgentRuntime } from '@/store/tool/slices/builtin/executors/lobe-page-agent';
 import { type StoreSetter } from '@/store/types';
 import { useUserMemoryStore } from '@/store/userMemory';
@@ -974,7 +974,11 @@ export class ConversationLifecycleActionImpl {
       this.#get().updateOperationMetadata(operationId, { inputEditorTempState: null });
     }
 
-    if (ENABLE_BUSINESS_FEATURES) {
+    const serverConfigState = getServerConfigStoreState();
+    const enableBusinessFeatures =
+      !!serverConfigState && serverConfigSelectors.enableBusinessFeatures(serverConfigState);
+
+    if (enableBusinessFeatures) {
       markUserValidAction();
     }
 

@@ -19,7 +19,6 @@ vi.mock('@lobechat/business-const', async (importOriginal) => {
 
   return {
     ...actual,
-    ENABLE_BUSINESS_FEATURES: false,
   };
 });
 

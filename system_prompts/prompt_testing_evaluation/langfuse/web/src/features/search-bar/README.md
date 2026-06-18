@@ -6,24 +6,30 @@ coexists with the sidebar and stays in sync with it. The facet
 sidebar's `FilterState` (+ the table's full-text search) remains the single
 source of truth; the bar reads from and writes to it. Only the legacy toolbar
 search field is replaced (full-text search goes inline in the bar).
-Per-user **Feature Preview** opt-in. Based on the `langfuse-search-bar` prototype.
+Generally available on the v4 events tables (no opt-in). Based on the
+`langfuse-search-bar` prototype.
 
 ## Enablement
 
-- Per-user **Feature Preview** opt-in (sidebar user menu → Feature Preview →
-  "Filter Search Bar"), exactly like the Langfuse Assistant. Stored on
-  `user.featureFlags` (the `searchBar` flag, see
-  `features/feature-flags/available-flags.ts`); toggled via
-  `userAccount.setFeaturePreviewEnabled({ flag, enabled })`; read through the
-  session by `hooks/useSearchBarEnabled.ts`
-  (`session.user.featureFlags.searchBar`). No project metadata, no `project:update`
-  RBAC. The Feature Preview menu is Cloud-only, so the flag is Cloud-enableable.
-- `EventsTable` activates the bar only when the user enabled the preview, the
-  viewer has the **v4 beta** (the bar only renders on the v4 Observations
-  table), and the table is a full-page surface
+- **Generally available on the v4 events tables** — every user gets the bar; it
+  is no longer a per-user Feature Preview opt-in. `hooks/useSearchBarEnabled.ts`
+  now returns `true` for everyone, so the bar renders wherever the v4 events
+  table does.
+- `EventsTable` activates the bar when the table is a full-page surface
   (`!hideControls && !externalFilterState && !peekContext && !userId && !sessionId`).
-  Default off — zero changes for users who don't opt in. The Feature Preview
-  modal warns that the v4 beta is also required.
+  The **v4 beta** gate is implicit: `EventsTable` only mounts on the v4
+  Observations/Traces tables, so call sites still read as
+  `isBetaEnabled && useSearchBarEnabled()`.
+- **Rollout/rollback (temporary).** GA was shipped by force-on shim, not by
+  deleting the opt-in: `useSearchBarEnabled` hard-returns `true` and the
+  "Filter Search Bar" tile was removed from the Feature Preview modal, but the
+  `searchBar` flag plumbing is intentionally **left as dead code** for a day or
+  two so a rollback is a one-line revert. The pieces still present and marked
+  `TODO(remove ~2026-06-19)`: the `searchBar` entry in
+  `features/feature-flags/available-flags.ts`, the
+  `userAccount.setFeaturePreviewEnabled` allowlist, and the modal's
+  `PreviewFlag`/registry entry (`features/feature-previews/`). Once the rollout
+  is confirmed stable, delete those and inline `true` at the call site.
 
 ## Query language
 
@@ -165,8 +171,22 @@ committedText ──resetTo──▶ store.draft ──(type/pick/remove)──�
 - `components/`:
   - `SearchComposer.tsx` — the stateful contenteditable CONTROLLER: browser
     owns selection, mutations flow through `beforeinput`, undo/redo/caret/
-    autocomplete state. Picking a value advances to "append next"; ArrowRight
-    at the end of the query exits the last token. Paste inserts cleaned text
+    autocomplete state. **Trailing space is the "start the next filter"
+    affordance, applied uniformly.** The RESTING draft carries a trailing space
+    when non-empty: it is baked into the URL→draft derivation
+    (`useEventsSearchBar`'s `restingDraft`, also returned by `commit`), so it is
+    present from the first paint. That is why clicking past the text — or landing
+    after a commit — never has to MUTATE the draft to insert it (which flickered
+    the caret from inside the last pill to after a freshly-added space); the
+    caret just lands after the already-present space. Completing a filter at the
+    end of the query — a pick-at-end (value or ready-to-run suggestion),
+    ArrowRight-at-end, a click past the text, or Enter that commits with the
+    caret at the end — leaves the caret AFTER that trailing space (outside the
+    last pill), reopening field suggestions. (The space is trimmed on commit, so
+    it never reaches the filter state; the commit echo's `resetTo` no-ops because
+    it's AST-equal to the committed form.) Picks that still need input — a bare
+    `field:` key, a `metadata.`/`scores.` prefix, an open `tags:(` group — and
+    mid-query edits keep the caret in place instead. Paste inserts cleaned text
     (line-breaks/tabs → spaces) into the draft, which auto-tokenizes like typed
     text — there is no special structured-vs-raw paste branch. Editing a
     value works by placing the caret in it (click/arrow): the value-stage
@@ -180,9 +200,9 @@ committedText ──resetTo──▶ store.draft ──(type/pick/remove)──�
     sticky stack around the composer + toolbar). The time-range + refresh
     controls live in the toolbar row below the composer (next to the filter
     toggle and views), via `DataTableToolbar`'s `timeRange`/`refreshConfig`
-    props — same as non-bar mode, not in the page header. The enablement toggle
-    lives in the shared Feature Preview modal (`features/feature-previews/`),
-    not in this feature.
+    props — same as non-bar mode, not in the page header. The bar is now GA on
+    the v4 tables, so there is no enablement toggle (the retired Feature Preview
+    tile lived in `features/feature-previews/`; see Enablement above).
 
 ## Integration (EventsTable)
 
@@ -335,10 +355,18 @@ unused planners).
     operators, or leave it. Entangled with `tidyQueryText`/chip-removal (which
     strips redundant parens and would bail on a now-"invalid" paren) and
     removes documented top-level grouping — needs its own pass.
-- App-wide **layer system** (z-index): the bar's overlays use a hardcoded local
-  ladder (X z-20 < error tooltip z-30 < popover z-50) because the app has no
-  shared z scale (overlays are just `z-50` + Radix portals). A proper layering
-  system is a separate, app-level ticket.
+- **Layer system**: the bar's in-flow overlays use a hardcoded local ladder (X
+  z-20 < autocomplete popover z-50, both drop into the table below the bar). The
+  **error tooltip is the exception**: when the popover is open it flips ABOVE
+  the bar, into the page header's band, where no in-flow z-index can win —
+  `#page > main` is `overflow:hidden` (clips anything above the bar) and the
+  header is inside the app's isolated stacking context. So that one tooltip
+  renders through the `"tooltip"` `<Layer>` (`components/ui/layer.tsx`), which
+  puts it in a `<body>`-level overlay layer that paints above the whole app by
+  DOM order — no z-index needed. `<Layer>` is the seed of an app-wide layer
+  system (one layer today, ordered by `LAYER_ORDER`). New overlays that must
+  escape clipping/stacking should reuse `<Layer>` rather than a one-off portal +
+  z-index.
 - Optional: extract `SearchComposer`'s contenteditable selection/`beforeinput`
   machinery into a `useContentEditableController` hook to fully separate the
   imperative integration from the React component.
